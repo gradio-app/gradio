@@ -89,7 +89,6 @@ export function create_components(
 		value_change_cb = cb;
 	}
 
-	// Store current layout and root for dynamic visibility recalculation
 	let current_layout: LayoutNode;
 	let current_root: string;
 
@@ -123,15 +122,12 @@ export function create_components(
 			fill_height: boolean;
 		};
 	}): Promise<void> {
-		// make sure the state is settled before proceeding
 		flush();
 		app = _app;
 
 		if (instance_map) {
-			// re-render in reload mode
 			components.forEach((c) => {
 				if (c.props.value == null && c.key) {
-					// If the component has a key, we preserve its value by finding a matching instance with the same key
 					const matching_instance = Object.values(instance_map).find(
 						(instance) => instance.key === c.key
 					);
@@ -150,7 +146,6 @@ export function create_components(
 		_component_map = new Map();
 		instance_map = {};
 
-		// Store current layout and root for dynamic visibility recalculation
 		current_layout = layout;
 		current_root = root;
 
@@ -453,7 +448,6 @@ export function create_components(
 		for (const component of components_to_load) {
 			const constructor_key = component.component_class_id || component.type;
 
-			// Only load if not already loaded
 			if (!constructor_map.has(constructor_key)) {
 				const { component: loadable_component, example_components } =
 					get_component(
@@ -471,7 +465,6 @@ export function create_components(
 					}
 				}
 
-				// Load the component if it doesn't exist yet
 				if (!component.component) {
 					component.component = (await loadable_component)?.default;
 				}
@@ -494,10 +487,8 @@ export function create_components(
 				const instance = instance_map?.[update.id];
 				if (!instance) return false;
 
-				// Check for visibility property changes
 				if (update.prop === "visible") return true;
 
-				// Check for selected tab changes in tabs components
 				if (update.prop === "selected" && instance.type === "tabs") return true;
 
 				return false;
@@ -512,7 +503,6 @@ export function create_components(
 			? [..._component_map.values()]
 			: _components;
 
-		// Capture current visibility state before applying updates
 		if (had_visibility_changes && current_layout) {
 			previous_visible_ids = determine_visible_components(
 				current_layout,
@@ -549,12 +539,9 @@ export function create_components(
 				}
 			}
 
-			// Form visibility is handled reactively in Render.svelte based on children visibility
-
 			return layout;
 		});
 
-		// After applying updates, check if we need to load new components
 		if (had_visibility_changes && current_layout && previous_visible_ids) {
 			raf(async () => {
 				const new_visible_ids = determine_visible_components(
@@ -563,17 +550,14 @@ export function create_components(
 				);
 				const newly_visible_ids = new Set<number>();
 
-				// Find components that are now visible but weren't before
 				for (const id of new_visible_ids) {
 					if (!previous_visible_ids!.has(id)) {
 						newly_visible_ids.add(id);
 					}
 				}
 
-				// Load the newly visible components
 				await load_newly_visible_components(newly_visible_ids, all_components);
 
-				// Trigger a layout update to render the newly loaded components
 				if (newly_visible_ids.size > 0) {
 					layout_store.update((layout) => layout);
 				}
@@ -916,13 +900,11 @@ function get_selected_tab_id(
 	layout: LayoutNode,
 	components: ComponentMeta[]
 ): string | number | undefined {
-	// Check if selected prop is a string or number
 	const selected = component.props.selected;
 	if (typeof selected === "string" || typeof selected === "number") {
 		return selected;
 	}
 
-	// If no tab is explicitly selected, find the first visible and interactive tab
 	if (layout.children) {
 		for (const child of layout.children) {
 			const child_component = components.find((c) => c.id === child.id);
@@ -992,26 +974,20 @@ function determine_visible_components(
 		return visible_components;
 	}
 
-	// Check component visibility
 	const component_visible = component.props.visible !== false && parent_visible;
 
-	// Components with visible === "hidden" should be loaded but not displayed
-	// They count as "visible" for loading purposes
 	const should_load = component.props.visible === "hidden" || component_visible;
 
 	if (!should_load) {
 		return visible_components;
 	}
 
-	// Handle tabs component specially
 	if (component.type === "tabs") {
 		const selected_tab_id = get_selected_tab_id(component, layout, components);
 		const tabs_context = { selected_tab_id };
 
-		// Add the tabs component itself
 		visible_components.add(layout.id);
 
-		// Process children with the tabs context
 		const child_visible = process_children_visibility(
 			layout,
 			components,
@@ -1019,13 +995,11 @@ function determine_visible_components(
 		);
 		child_visible.forEach((id) => visible_components.add(id));
 	} else if (component.type === "tabitem") {
-		// Handle tab items
 		if (
 			is_tab_item_visible(component, component_visible, parent_tabs_context)
 		) {
 			visible_components.add(layout.id);
 
-			// Process children of visible tab items
 			const child_visible = process_children_visibility(
 				layout,
 				components,
@@ -1034,10 +1008,8 @@ function determine_visible_components(
 			child_visible.forEach((id) => visible_components.add(id));
 		}
 	} else {
-		// Regular components
 		visible_components.add(layout.id);
 
-		// Process children
 		const child_visible = process_children_visibility(
 			layout,
 			components,
@@ -1063,13 +1035,11 @@ export function preload_visible_components(
 ): Map<ComponentMeta["type"], LoadingComponent> {
 	let constructor_map: Map<ComponentMeta["type"], LoadingComponent> = new Map();
 
-	// Determine which components should be visible
 	const visible_component_ids = determine_visible_components(
 		layout,
 		components
 	);
 
-	// Only preload visible components
 	components.forEach((c) => {
 		if (visible_component_ids.has(c.id)) {
 			const { component, example_components } = get_component(
@@ -1125,8 +1095,6 @@ export function preload_all_components(
 }
 
 function is_visible(component: ComponentMeta): boolean {
-	// "hidden" components are technically visible for state updates
-	// They're just visually hidden with CSS
 	if (component.props.visible === "hidden") {
 		return true;
 	}
