@@ -81,8 +81,6 @@
 		window.addEventListener("mousemove", onMouseMove);
 		window.addEventListener("mouseup", onMouseUp);
 	};
-
-	$: console.log("visible", visible);
 </script>
 
 <svelte:element
