@@ -1477,9 +1477,20 @@ class App(FastAPI):
                                 isinstance(message, ProcessCompletedMessage)
                                 and message.event_id
                             ):
-                                blocks._queue.pending_event_ids_session[
-                                    session_hash
-                                ].remove(message.event_id)
+                                # It's possible that the event_id has already been removed
+                                # for example, the user sent two duplicate `/cancel` requests.
+                                # The firtst one would have removed the event_id from pending_event_ids_session
+                                if (
+                                    message.event_id
+                                    in (
+                                        blocks._queue.pending_event_ids_session[
+                                            session_hash
+                                        ]
+                                    )
+                                ):
+                                    blocks._queue.pending_event_ids_session[
+                                        session_hash
+                                    ].remove(message.event_id)
                                 if message.msg == ServerMessage.server_stopped or (
                                     message.msg == ServerMessage.process_completed
                                     and (
