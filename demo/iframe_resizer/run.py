@@ -29,17 +29,16 @@ with gr.Blocks() as demo:
             )
     with gr.Tab("Images"):
         gr.Image(value="./cheetah.jpg")
-        gr.Image(value="./cheetah copy.jpg")
-        gr.Image(value="./cheetah copy 2.jpg")
-        gr.Image(value="./cheetah copy 3.jpg")
-        gr.Image(value="./cheetah copy 4.jpg")
-        gr.Image(value="./cheetah copy 5.jpg")
-        gr.Image(value="./cheetah copy 6.jpg")
-        gr.Image(value="./cheetah copy 7.jpg")
-        gr.Image(value="./cheetah copy 8.jpg")
-        gr.Image(value="./cheetah copy 9.jpg")
-        gr.Image(value="./cheetah copy 10.jpg")
-        gr.Image(value="./cheetah copy 11.jpg")
+        gr.Image(value="./cheetah.jpg")
+        gr.Image(value="./cheetah.jpg")
+        gr.Image(value="./cheetah.jpg")
+        gr.Image(value="./cheetah.jpg")
+        gr.Image(value="./cheetah.jpg")
+        gr.Image(value="./cheetah.jpg")
+        gr.Image(value="./cheetah.jpg")
+        gr.Image(value="./cheetah.jpg")
+        gr.Image(value="./cheetah.jpg")
+        gr.Image(value="./cheetah.jpg")
 
 
 if __name__ == "__main__":
