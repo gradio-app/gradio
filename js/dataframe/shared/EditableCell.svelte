@@ -90,6 +90,11 @@
 	function commit_change(checked: boolean): void {
 		handle_blur({ target: { value } } as unknown as FocusEvent);
 	}
+
+	$: if (!edit) {
+		// Shim blur on removal for Safari and Firefox
+		handle_blur({ target: { value } } as unknown as FocusEvent);
+	}
 </script>
 
 {#if edit && datatype !== "bool"}
