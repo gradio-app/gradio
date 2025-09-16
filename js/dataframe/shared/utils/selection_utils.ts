@@ -1,6 +1,6 @@
-import type { CellCoordinate } from "./../types";
+import type { CellCoordinate, CellValue } from "./../types";
 
-export type CellData = { id: string; value: string | number };
+export type CellData = { id: string; value: CellValue };
 
 export function is_cell_in_selection(
 	coords: [number, number],
@@ -208,7 +208,7 @@ export function select_row(data: any[][], row: number): CellCoordinate[] {
 
 export function calculate_selection_positions(
 	selected: CellCoordinate,
-	data: { id: string; value: string | number }[][],
+	data: { id: string; value: CellValue }[][],
 	els: Record<string, { cell: HTMLTableCellElement | null }>,
 	parent: HTMLElement,
 	table: HTMLElement
