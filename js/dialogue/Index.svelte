@@ -35,7 +35,7 @@
 	export let placeholder: string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 	export let value: DialogueLine[] | string = [];
 	export let show_label: boolean;
 	export let max_lines: number | undefined = undefined;

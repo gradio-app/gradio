@@ -42,7 +42,7 @@ class UploadButton(Component):
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         size: Literal["sm", "md", "lg"] = "lg",
         icon: str | None = None,
         scale: int | None = None,
@@ -64,7 +64,7 @@ class UploadButton(Component):
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
-            visible: If False, component will be hidden.
+            visible: If False, component will be hidden. If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM
             size: size of the button. Can be "sm", "md", or "lg".
             icon: URL or path to the icon file to display within the button. If None, no icon will be displayed.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
