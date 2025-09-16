@@ -12,7 +12,7 @@
 	import type { WebcamOptions } from "./shared/utils";
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 	export let value: { video: FileData; subtitles: FileData | null } | null =
 		null;
 	let old_value: { video: FileData; subtitles: FileData | null } | null = null;
