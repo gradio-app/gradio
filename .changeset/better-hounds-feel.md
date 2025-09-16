@@ -1,6 +1,6 @@
 ---
-"gradio": minor
-"website": minor
+"gradio": patch
+"website": patch
 ---
 
-feat:Add walkthrough to the docs
+fix:Add walkthrough to the docs
