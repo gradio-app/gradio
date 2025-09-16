@@ -1,5 +1,28 @@
 # @gradio/dataframe
 
+## 0.19.2
+
+### Dependency updates
+
+- @gradio/client@1.18.0
+- @gradio/icons@0.14.0
+- @gradio/atoms@0.17.0
+- @gradio/statustracker@0.11.0
+- @gradio/upload@0.16.17
+- @gradio/button@0.5.12
+- @gradio/checkbox@0.4.29
+
+## 0.19.1
+
+### Fixes
+
+- [#11782](https://github.com/gradio-app/gradio/pull/11782) [`e132283`](https://github.com/gradio-app/gradio/commit/e132283b2289d3689927a8fa7f0b4ac8f8628a18) - remove dompurify, update mermaid.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.18
+- @gradio/markdown-code@0.5.1
+
 ## 0.19.0
 
 ### Features

@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
-from gradio import processing_utils, wasm_utils
+from gradio import processing_utils
 from gradio.components.base import Component
 from gradio.data_classes import GradioModel
 from gradio.events import Events
@@ -46,9 +46,7 @@ class Plot(Component):
         self,
         value: Any | None = None,
         *,
-        format: str = "png"
-        if wasm_utils.IS_WASM
-        else "webp",  # webp is a good default for speed (see #7845) but can't be used in Wasm because the the version of matplotlib used in Wasm (3.5.2 in the case of Pyodide 0.26.1) doesn't support it.
+        format: str = "webp",  # webp is a good default for speed (see #7845) but can't be used in Wasm because the the version of matplotlib used in Wasm (3.5.2 in the case of Pyodide 0.26.1) doesn't support it.
         label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,

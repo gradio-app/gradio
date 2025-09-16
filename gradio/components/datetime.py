@@ -66,7 +66,6 @@ class DateTime(FormComponent):
         """
         self.type = type
         self.include_time = include_time
-        self.interactive = interactive
         self.time_format = "%Y-%m-%d %H:%M:%S" if include_time else "%Y-%m-%d"
         self.timezone = timezone
         self._value_description = (
@@ -92,6 +91,7 @@ class DateTime(FormComponent):
             key=key,
             preserved_by_key=preserved_by_key,
             value=value,
+            interactive=interactive,
         )
 
     def preprocess(self, payload: str | None) -> str | float | datetime | None:

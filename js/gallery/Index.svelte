@@ -1,5 +1,6 @@
 <script context="module" lang="ts">
 	export { default as BaseGallery } from "./shared/Gallery.svelte";
+	export { default as BaseExample } from "./Example.svelte";
 </script>
 
 <script lang="ts">
@@ -44,6 +45,7 @@
 		select: SelectData;
 		share: ShareData;
 		error: string;
+		delete: { file: FileData; index: number };
 		prop_change: Record<string, any>;
 		clear_status: LoadingStatus;
 		preview_open: never;
@@ -55,6 +57,16 @@
 	const dispatch = createEventDispatcher();
 
 	$: no_value = value === null ? true : value.length === 0;
+
+	function handle_delete(
+		event: CustomEvent<{ file: FileData; index: number }>
+	): void {
+		if (!value) return;
+		const { index } = event.detail;
+		gradio.dispatch("delete", event.detail);
+		value = value.filter((_, i) => i !== index);
+		gradio.dispatch("change", value);
+	}
 	$: selected_index, dispatch("prop_change", { selected_index });
 
 	async function process_upload_files(
@@ -137,6 +149,14 @@
 			on:fullscreen={({ detail }) => {
 				fullscreen = detail;
 			}}
+			on:delete={handle_delete}
+			on:upload={async (e) => {
+				const files = Array.isArray(e.detail) ? e.detail : [e.detail];
+				const new_value = await process_upload_files(files);
+				value = value ? [...value, ...new_value] : new_value;
+				gradio.dispatch("upload", new_value);
+				gradio.dispatch("change", value);
+			}}
 			{label}
 			{show_label}
 			{columns}
@@ -154,6 +174,11 @@
 			_fetch={(...args) => gradio.client.fetch(...args)}
 			{show_fullscreen_button}
 			{fullscreen}
+			{root}
+			{file_types}
+			max_file_size={gradio.max_file_size}
+			upload={(...args) => gradio.client.upload(...args)}
+			stream_handler={(...args) => gradio.client.stream(...args)}
 		/>
 	{/if}
 </Block>

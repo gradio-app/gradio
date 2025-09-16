@@ -379,65 +379,6 @@ The website supports documentation for both the latest released version on pypi 
 
 If you're making changes to documentation and are wondering why they're not showing up, make sure you're looking at the 'main' version of the page. Since they haven't been included in a release yet, they will only be visible there. 
 
-## 🌎 Gradio-Lite
-
-Gradio-Lite is a Pyodide-based library that lets you run Gradio serverless (in other words, directly in your browser).
-
-You can start the development server by running:
-<table>
-  <tr>
-  <th>MacOS / Linux</th>
-  <th>Windows</th>
-  </tr>
-  <tr>
-  <td>
-
-```
-bash scripts/run_lite.sh
-```
-  </td>
-  <td>
-  
-```bash
-scripts\run_lite.bat
-```
-  </td>
-  </tr>
-</table>
-
-If you make changes to the Python code during development, you will need to rebuild the Python packages loaded to Graio-Lite. To do this, run:
-```
-pnpm --filter @gradio/lite pybuild
-```
-
-To generate the release build, run:
-<table>
-  <tr>
-  <th>MacOS / Linux</th>
-  <th>Windows</th>
-  </tr>
-  <tr>
-  <td>
-
-```
-bash scripts/build_lite.sh
-```
-  </td>
-  <td>
-  
-```bash
-scripts\build_lite.bat
-```
-  </td>
-  </tr>
-</table>
-The release build will be located in the `dist` directory in the `js/lite` project.
-To test it, you can run a local server in the `js/lite` directory:
-```
-python -m http.server --directory js/lite
-```
-and navigate to `http://localhost:8000` in your browser. The demo page `index.html` located in the `js/lite` directory will be loaded.
-
 ## 📮 Submitting PRs
 
 All PRs should be submitted against `main`, and ideally should address an open issue, unless the change is small. Direct commits to main are blocked, and PRs require an approving review to merge into main. By convention, the Gradio maintainers will review PRs when:

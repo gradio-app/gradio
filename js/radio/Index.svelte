@@ -32,6 +32,8 @@
 	export let interactive = true;
 	export let rtl = false;
 
+	let pending_select: { value: string | number; index: number } | null = null;
+
 	function handle_change(): void {
 		gradio.dispatch("change");
 	}
@@ -41,6 +43,14 @@
 		if (value !== old_value) {
 			old_value = value;
 			handle_change();
+			if (pending_select && value === pending_select.value) {
+				gradio.dispatch("select", {
+					value: pending_select.value,
+					index: pending_select.index
+				});
+				gradio.dispatch("input");
+				pending_select = null;
+			}
 		}
 	}
 	$: disabled = !interactive;
@@ -74,8 +84,7 @@
 				{disabled}
 				{rtl}
 				on:input={() => {
-					gradio.dispatch("select", { value: internal_value, index: i });
-					gradio.dispatch("input");
+					pending_select = { value: internal_value, index: i };
 				}}
 			/>
 		{/each}

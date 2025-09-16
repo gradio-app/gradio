@@ -53,7 +53,6 @@
 		position: relative;
 		border: none;
 		border-radius: var(--radius-sm);
-		padding: var(--block-padding);
 		width: 100%;
 		box-sizing: border-box;
 	}

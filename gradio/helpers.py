@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Any, Literal, Optional
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
-from gradio import components, oauth, processing_utils, routes, utils, wasm_utils
+from gradio import components, oauth, processing_utils, routes, utils
 from gradio.context import Context, LocalContext, get_blocks_context
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Dependency, EventData
@@ -507,17 +507,7 @@ class Examples:
                     )
                     break
         if self.cache_examples is True:
-            if wasm_utils.IS_WASM:
-                # In the Wasm mode, the `threading` module is not supported,
-                # so `client_utils.synchronize_async` is also not available.
-                # And `self.cache()` should be waited for to complete before this method returns,
-                # (otherwise, an error "Cannot cache examples if not in a Blocks context" will be raised anyway)
-                # so `eventloop.create_task(self.cache())` is also not an option.
-                warnings.warn(
-                    "Setting `cache_examples=True` is not supported in the Wasm mode. You can set `cache_examples='lazy'` to cache examples after first use."
-                )
-            else:
-                await self.cache()
+            await self.cache()
 
     async def cache(self, example_id: int | None = None) -> None:
         """
@@ -983,13 +973,26 @@ def special_args(
         ):
             if inputs is not None:
                 # Retrieve session from gr.Request, if it exists (i.e. if user is logged in)
-                session = (
-                    # request.session (if fastapi.Request obj i.e. direct call)
-                    getattr(request, "session", {})
-                    or
-                    # or request.request.session (if gr.Request obj i.e. websocket call)
-                    getattr(getattr(request, "request", None), "session", {})
-                )
+                try:
+                    session = (
+                        # request.session (if fastapi.Request obj i.e. direct call)
+                        getattr(request, "session", {})
+                        or
+                        # or request.request.session (if gr.Request obj i.e. websocket call)
+                        getattr(getattr(request, "request", None), "session", {})
+                    )
+                except AssertionError as e:
+                    if (
+                        "SessionMiddleware must be installed to access request.session"
+                        in str(e)
+                    ):
+                        warnings.warn(
+                            "Empty session being created. Install gradio[oauth] and add a gr.LoginButton to your app to enable OAuth login.",
+                            UserWarning,
+                        )
+                        session = {}
+                    else:
+                        raise e
 
                 # Inject user profile
                 if type_hint in (Optional[oauth.OAuthProfile], oauth.OAuthProfile):
@@ -1008,7 +1011,7 @@ def special_args(
 
                 # Inject user token
                 elif type_hint in (Optional[oauth.OAuthToken], oauth.OAuthToken):
-                    oauth_info = session.get("oauth_info", None)
+                    oauth_info = session.get("oauth_info")
                     oauth_token = (
                         oauth.OAuthToken(
                             token=oauth_info["access_token"],
@@ -1097,6 +1100,14 @@ def update(
     if visible is not None:
         kwargs["visible"] = visible
     return kwargs
+
+
+@document()
+def validate(is_valid: bool, message: str):
+    """
+    A special function that can be returned from a Gradio function to set the validation error of an output component.
+    """
+    return {"__type__": "validate", "is_valid": is_valid, "message": message}
 
 
 @document()
