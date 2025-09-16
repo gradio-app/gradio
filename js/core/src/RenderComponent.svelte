@@ -72,18 +72,20 @@
 	$: value = translate_if_needed(value);
 </script>
 
-<svelte:component
-	this={_component}
-	bind:this={instance}
-	bind:value
-	on:prop_change
-	{elem_id}
-	{elem_classes}
-	{target}
-	{visible}
-	{...$$restProps}
-	{theme_mode}
-	{root}
->
-	<slot />
-</svelte:component>
+{#if visible}
+	<svelte:component
+		this={_component}
+		bind:this={instance}
+		bind:value
+		on:prop_change
+		{elem_id}
+		{elem_classes}
+		{target}
+		{visible}
+		{...$$restProps}
+		{theme_mode}
+		{root}
+	>
+		<slot />
+	</svelte:component>
+{/if}

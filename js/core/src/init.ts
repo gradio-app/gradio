@@ -974,7 +974,10 @@ function determine_visible_components(
 		return visible_components;
 	}
 
-	const component_visible = component.props.visible !== false && parent_visible;
+	const component_visible =
+		component.props.visible !== false &&
+		component.props.visible !== "hidden" &&
+		parent_visible;
 
 	const should_load = component.props.visible === "hidden" || component_visible;
 

@@ -177,7 +177,7 @@
 		<div class="tab-wrapper">
 			<div class="tab-container visually-hidden" aria-hidden="true">
 				{#each tabs as t, i}
-					{#if t && t?.visible !== false}
+					{#if t && t?.visible !== false && t?.visible !== "hidden"}
 						<button bind:this={tab_els[t.id]}>
 							{t?.label}
 						</button>
