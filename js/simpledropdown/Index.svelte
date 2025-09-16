@@ -7,7 +7,7 @@
 	export let label = "Dropdown";
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 	export let value: string | number;
 	export let value_is_output = false;
 	export let choices: [string, string | number][];

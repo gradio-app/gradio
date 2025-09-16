@@ -49,7 +49,7 @@ class LoginButton(Button):
         size: Literal["sm", "md", "lg"] = "lg",
         icon: str | Path | None = utils.get_icon_path("huggingface-logo.svg"),
         link: str | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         interactive: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,

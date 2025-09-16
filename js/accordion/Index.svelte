@@ -10,7 +10,7 @@
 	export let label: string;
 	export let elem_id: string;
 	export let elem_classes: string[];
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 	export let open = true;
 	export let loading_status: LoadingStatus;
 	export let gradio: Gradio<{

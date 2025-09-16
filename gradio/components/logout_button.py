@@ -37,7 +37,7 @@ class LogoutButton(Button):
         | None = "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
         # Link to logout page (which will delete the session cookie and redirect to landing page).
         link: str | None = "/gradio_api/logout",
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         interactive: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,

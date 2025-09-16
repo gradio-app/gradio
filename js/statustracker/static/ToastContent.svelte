@@ -10,7 +10,7 @@
 	export let type: ToastMessage["type"];
 	export let id: number;
 	export let duration: number | null = 10;
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 
 	$: message = sanitize(message);
 	$: display = visible;

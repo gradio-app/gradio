@@ -19,7 +19,7 @@
 	export let sample_labels: string[] | null = null;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 	export let value: number | null = null;
 	export let root: string;
 	export let proxy_url: null | string;
