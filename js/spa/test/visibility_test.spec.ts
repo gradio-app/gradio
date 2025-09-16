@@ -17,7 +17,10 @@ test.describe("Visibility States", () => {
 			.click();
 
 		const textbox = page.locator("#test-textbox");
-		await expect(textbox).not.toBeInViewport();
+
+		// invisible because there is no element
+		await expect(textbox).not.toBeVisible();
+		await expect(textbox).toHaveCount(0);
 	});
 
 	test("components with visible='hidden' remain in DOM but are not visible", async ({
@@ -31,12 +34,7 @@ test.describe("Visibility States", () => {
 		const textbox = page.locator("#test-textbox");
 
 		await expect(textbox).not.toBeVisible();
-
-		const textboxDisplay = await textbox.evaluate(
-			(el) => window.getComputedStyle(el).display
-		);
-
-		expect(textboxDisplay).toBe("none");
+		await expect(textbox).toHaveCount(1);
 	});
 
 	test("hidden components can still trigger and respond to events", async ({
