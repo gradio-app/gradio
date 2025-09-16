@@ -1302,7 +1302,7 @@ class App(FastAPI):
                     content=content,
                     status_code=500,
                 )
-            return output
+            return ORJSONResponse(output)
 
         @router.post("/call/{api_name}", dependencies=[Depends(login_check)])
         @router.post("/call/{api_name}/", dependencies=[Depends(login_check)])
