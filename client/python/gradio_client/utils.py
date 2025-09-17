@@ -436,6 +436,7 @@ def get_pred_from_sse_v1plus(
     future_sse = executor.submit(
         stream_sse_v1plus, helper, pending_messages_per_event, event_id, protocol
     )
+    print("[future_cancel, future_sse]", [future_cancel, future_sse])
     done, _ = concurrent.futures.wait(
         [future_cancel, future_sse],  # type: ignore
         return_when=concurrent.futures.FIRST_COMPLETED,
@@ -445,8 +446,10 @@ def get_pred_from_sse_v1plus(
     if len(done) != 1:
         raise ValueError(f"Did not expect {len(done)} tasks to be done.")
     for future in done:
+        print("future", future)
         exception = future.exception()
         if exception:
+            print("exception", exception)
             raise exception
         return future.result()
 
@@ -461,8 +464,10 @@ def check_for_cancel(
         time.sleep(0.05)
         with helper.lock:
             if helper.should_cancel:
+                print("Should cancel, breaking")
                 break
             if helper.thread_complete:
+                print("Thread complete, breaking")
                 raise concurrent.futures.CancelledError()
     if helper.event_id:
         httpx.post(
@@ -551,6 +556,7 @@ def stream_sse_v1plus(
     event_id: str,
     protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"],
 ) -> dict[str, Any]:
+    print("Calling stream_sse_v1plus")
     try:
         pending_messages = pending_messages_per_event[event_id]
         pending_responses_for_diffs = None
@@ -563,6 +569,9 @@ def stream_sse_v1plus(
                 continue
 
             if msg is None or helper.thread_complete:
+                print("Thread complete or msg is None, breaking")
+                print("msg", msg)
+                print("helper.thread_complete", helper.thread_complete)
                 raise concurrent.futures.CancelledError()
 
             with helper.lock:
