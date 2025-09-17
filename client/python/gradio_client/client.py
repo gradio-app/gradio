@@ -246,7 +246,8 @@ class Client:
                 return
 
     def stream_messages(
-        self, protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"]
+        self, protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"],
+        session_hash: str
     ) -> None:
         try:
             httpx_kwargs = self.httpx_kwargs.copy()
@@ -258,7 +259,7 @@ class Client:
                 with client.stream(
                     "GET",
                     self.sse_url,
-                    params={"session_hash": self.session_hash},
+                    params={"session_hash": session_hash},
                     headers=self.headers,
                     cookies=self.cookies,
                 ) as response:
@@ -272,6 +273,7 @@ class Client:
                                 continue
                             if line.startswith("data:"):
                                 resp = json.loads(line[5:])
+                                print("resp", resp)
                                 if resp["msg"] == ServerMessage.heartbeat:
                                     continue
                                 elif (
@@ -323,6 +325,7 @@ class Client:
             verify=self.ssl_verify,
             **self.httpx_kwargs,
         )
+        print("json", {**data, **hash_data})
         if req.status_code == 503:
             raise QueueError("Queue is full! Please try again.")
         if (validation_message := utils.extract_validation_message(req)) is not None:
@@ -335,7 +338,7 @@ class Client:
             self.stream_open = True
 
             def open_stream():
-                return self.stream_messages(protocol)
+                return self.stream_messages(protocol, session_hash=hash_data["session_hash"])
 
             def close_stream(_):
                 self.stream_open = False
@@ -1298,13 +1301,15 @@ class Endpoint:
             data = {
                 "data": data or [],
                 "fn_index": self.fn_index,
-                "session_hash": self.client.session_hash,
+                "session_hash": kwargs.get("session_hash", self.client.session_hash),
                 **kwargs,
             }
 
+            print("data", data)
+
             hash_data = {
                 "fn_index": self.fn_index,
-                "session_hash": self.client.session_hash,
+                "session_hash": kwargs.get("session_hash", self.client.session_hash),
             }
 
             if self.protocol == "sse":
