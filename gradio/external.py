@@ -593,17 +593,6 @@ def make_event_data_fn(client, endpoint):
     return event_data_fn
 
 
-def make_fn(client, endpoint):
-    """Create a wrapper around the client function so we can intercept the session hash."""
-    helper = client.new_helper(endpoint.fn_index)
-
-    def fn(request: gr.Request, *args):
-        end_to_end_fn = endpoint.make_end_to_end_fn(helper)
-        return end_to_end_fn(*args, session_hash=request.session_hash)
-
-    return fn
-
-
 def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
     client = Client(
         space,
@@ -640,7 +629,7 @@ def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
                 predict_fns.append(fn)
         else:
             predict_fns.append(None)
-    blocks  = gr.Blocks.from_config(client.config, predict_fns, client.src)  # type: ignore
+    blocks = gr.Blocks.from_config(client.config, predict_fns, client.src)  # type: ignore
     with blocks:
         # Reset the session_hash when page loads
         blocks.load(lambda: client.reset_session(), None, None)
