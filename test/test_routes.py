@@ -40,6 +40,7 @@ from gradio.route_utils import (
     get_request_origin,
     get_root_url,
     starts_with_protocol,
+    slugify,
 )
 
 
@@ -1978,3 +1979,19 @@ def test_server_fn_passes_request():
     response = requests.post(f"{local_url}/gradio_api/component_server", json=form_data)
     assert response.status_code == 200
     assert response.json()["_url"].endswith("/gradio_api/component_server")
+
+
+def test_slugify():
+    items = (
+        ("Hello, World!", "hello-world"),
+        ("spam & eggs", "spam-eggs"),
+        (" multiple---dash and  space ", "multiple-dash-and-space"),
+        ("\t whitespace-in-value \n", "whitespace-in-value"),
+        ("underscore_in-value", "underscore_in-value"),
+        ("__strip__underscore-value___", "strip__underscore-value"),
+        ("--strip-dash-value---", "strip-dash-value"),
+        ("__strip-mixed-value---", "strip-mixed-value"),
+        ("_ -strip-mixed-value _-", "strip-mixed-value"),
+    )
+    for value, expected_output in items:
+        assert slugify(value) == expected_output
