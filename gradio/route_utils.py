@@ -10,6 +10,7 @@ import pickle
 import re
 import shutil
 import threading
+import unicodedata
 import uuid
 from collections import defaultdict, deque
 from collections.abc import AsyncGenerator, Callable
@@ -1050,8 +1051,6 @@ def slugify(value):
     Convert to lowercase. Also strip leading and trailing whitespace,
     dashes, and underscores.
     """
-    import unicodedata
-
     value = str(value)
     value = (
         unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
