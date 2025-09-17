@@ -3,9 +3,10 @@
 	import CellMenuButton from "./CellMenuButton.svelte";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { Datatype } from "./utils/utils";
+	import type { CellValue } from "./types";
 	import { is_cell_in_selection } from "./utils/selection_utils";
 
-	export let value: string | number;
+	export let value: CellValue;
 	export let index: number;
 	export let j: number;
 	export let actual_pinned_columns: number;
