@@ -36,7 +36,7 @@ import fsspec.asyn
 import httpx
 import huggingface_hub
 from huggingface_hub import SpaceStage
-from websockets.legacy.protocol import WebSocketCommonProtocol
+from websockets.asyncio.client import ClientConnection
 
 if TYPE_CHECKING:
     from gradio_client.data_classes import ParameterInfo
@@ -318,7 +318,7 @@ def is_valid_url(possible_url: str) -> bool:
 
 
 async def get_pred_from_ws(
-    websocket: WebSocketCommonProtocol,
+    websocket: ClientConnection,
     data: str,
     hash_data: str,
     helper: Communicator | None = None,
