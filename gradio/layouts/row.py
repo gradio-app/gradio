@@ -28,7 +28,7 @@ class Row(BlockContext, metaclass=ComponentMeta):
         self,
         *,
         variant: Literal["default", "panel", "compact"] = "default",
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         scale: int | None = None,
