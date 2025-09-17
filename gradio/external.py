@@ -618,7 +618,12 @@ def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
             )
         if endpoint.backend_fn:
             dep_config = next(
-                d for d in client.config["dependencies"] if d["id"] == endpoint.fn_index
+                (
+                    d
+                    for d in client.config["dependencies"]
+                    if d.get("id") == endpoint.fn_index
+                ),
+                {},
             )
             if dep_config.get("collects_event_data"):
                 event_data_fn = make_event_data_fn(client, endpoint)
