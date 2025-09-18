@@ -147,7 +147,6 @@ const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 		escaped: boolean
 	) {
 		const lang = (infostring ?? "").match(/\S*/)?.[0] ?? "";
-		console.log("lang", lang, "code", typeof code, code);
 		code = code.replace(/\n$/, "") + "\n";
 
 		if (!lang || lang === "mermaid") {
@@ -187,9 +186,6 @@ export function create_marked({
 	latex_delimiters: { left: string; right: string; display: boolean }[];
 }): typeof marked {
 	const marked = new Marked();
-
-	console.log("Prism?.languages?", Prism?.languages);
-
 	marked.use(
 		{
 			gfm: true,
@@ -199,12 +195,6 @@ export function create_marked({
 		markedHighlight({
 			highlight: (code: string, lang: string) => {
 				if (Prism?.languages?.[lang]) {
-					console.log(
-						"lang",
-						lang,
-						"Prism.languages[lang]",
-						Prism.languages[lang]
-					);
 					return Prism.highlight(code, Prism.languages[lang], lang);
 				}
 				return code;
