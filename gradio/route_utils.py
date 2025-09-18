@@ -322,6 +322,10 @@ def prepare_event_data(
         blocks_config.blocks.get(target) if target else None,
         body.event_data,
     )
+    # Set parent to None to avoid pickle issues in ZeroGPU
+    # See https://github.com/gradio-app/gradio/issues/11551
+    if hasattr(event_data.target, "parent"):
+        event_data.target.parent = None  # type: ignore
     return event_data
 
 

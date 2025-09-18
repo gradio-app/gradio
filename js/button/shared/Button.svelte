@@ -4,7 +4,7 @@
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 	export let variant: "primary" | "secondary" | "stop" | "huggingface" =
 		"secondary";
 	export let size: "sm" | "md" | "lg" = "lg";
@@ -20,7 +20,7 @@
 	<a
 		href={link}
 		rel="noopener noreferrer"
-		class:hidden={!visible}
+		class:hidden={visible === false || visible === "hidden"}
 		class:disabled
 		aria-disabled={disabled}
 		class="{size} {variant} {elem_classes.join(' ')}"
@@ -40,7 +40,7 @@
 {:else}
 	<button
 		on:click
-		class:hidden={!visible}
+		class:hidden={visible === false || visible === "hidden"}
 		class="{size} {variant} {elem_classes.join(' ')}"
 		style:flex-grow={scale}
 		style:width={scale === 0 ? "fit-content" : null}

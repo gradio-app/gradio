@@ -34,7 +34,7 @@ class DuplicateButton(Button):
         size: Literal["sm", "md", "lg"] = "sm",
         icon: str | Path | None = None,
         link: str | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         interactive: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
@@ -55,7 +55,7 @@ class DuplicateButton(Button):
             size: size of the button. Can be "sm", "md", or "lg".
             icon: URL or path to the icon file to display within the button. If None, no icon will be displayed.
             link: URL to open when the button is clicked. If None, no link will be used.
-            visible: if False, component will be hidden.
+            visible: If False, component will be hidden. If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM
             interactive: if False, the Button will be in a disabled state.
             elem_id: an optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: an optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
