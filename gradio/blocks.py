@@ -73,7 +73,7 @@ from gradio.exceptions import (
 from gradio.helpers import create_tracker, skip, special_args
 from gradio.i18n import I18n, I18nData
 from gradio.node_server import start_node_server
-from gradio.route_utils import API_PREFIX, MediaStream
+from gradio.route_utils import API_PREFIX, MediaStream, slugify
 from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
 from gradio.state_holder import SessionState, StateHolder
 from gradio.themes import Default as DefaultTheme
@@ -3170,10 +3170,9 @@ Received inputs:
         if path in INTERNAL_ROUTES:
             raise ValueError(f"Route with path '{path}' already exists")
         if path is None:
-            path = name.lower().replace(" ", "-")
-            path = "".join(
-                [letter for letter in path if letter.isalnum() or letter == "-"]
-            )
+            path = slugify(name)
+            if not path:
+                raise ValueError(f"Route with path '{name}' is not valid")
         while path in INTERNAL_ROUTES or path in [page[0] for page in self.pages]:
             path = "_" + path
         self.pages.append((path, name, show_in_navbar))
