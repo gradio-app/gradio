@@ -58,7 +58,7 @@
 	export let waveform_options: WaveformOptions = {
 		show_recording_waveform: true
 	};
-	export let sources_string: string = "upload";
+	export let sources_string = "upload";
 	export let active_source: "microphone" | null = null;
 	export let html_attributes: InputHTMLAttributes | null = null;
 
@@ -134,7 +134,7 @@
 		}
 	});
 
-	const after_update = () => {
+	const after_update = (): void => {
 		if (can_scroll && autoscroll) {
 			scroll();
 		}
