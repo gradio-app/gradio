@@ -39,8 +39,8 @@ from gradio.route_utils import (
     get_api_call_path,
     get_request_origin,
     get_root_url,
-    starts_with_protocol,
     slugify,
+    starts_with_protocol,
 )
 
 
