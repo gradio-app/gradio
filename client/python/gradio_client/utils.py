@@ -445,10 +445,8 @@ def get_pred_from_sse_v1plus(
     if len(done) != 1:
         raise ValueError(f"Did not expect {len(done)} tasks to be done.")
     for future in done:
-        print("future", future)
         exception = future.exception()
         if exception:
-            print("exception", exception)
             raise exception
         return future.result()
 
@@ -463,10 +461,8 @@ def check_for_cancel(
         time.sleep(0.05)
         with helper.lock:
             if helper.should_cancel:
-                print("Should cancel, breaking")
                 break
             if helper.thread_complete:
-                print("Thread complete, breaking")
                 raise concurrent.futures.CancelledError()
     if helper.event_id:
         httpx.post(
