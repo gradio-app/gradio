@@ -586,9 +586,9 @@ def make_event_data_fn(client, endpoint):
     is correctly captured."""
     helper = client.new_helper(endpoint.fn_index)
 
-    def event_data_fn(request: gr.Request, event_data: gr.EventData, *args):
+    def event_data_fn(event_data: gr.EventData, *args):
         fn = endpoint.make_end_to_end_fn(helper)
-        return fn(*args, event_data=event_data._data, session_hash=request.session_hash)
+        return fn(*args, event_data=event_data._data)
 
     return event_data_fn
 
