@@ -580,6 +580,19 @@ def from_spaces(
         return from_spaces_blocks(space=space_name, hf_token=hf_token)
 
 
+def make_event_data_fn(client, endpoint):
+    """Create a function that accepts EventData.
+    The event_data_fn has to be created in this closure so that the value of endpoint
+    is correctly captured."""
+    helper = client.new_helper(endpoint.fn_index)
+
+    def event_data_fn(event_data: gr.EventData, *args):
+        fn = endpoint.make_end_to_end_fn(helper)
+        return fn(*args, event_data=event_data._data)
+
+    return event_data_fn
+
+
 def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
     client = Client(
         space,
@@ -598,17 +611,34 @@ def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
 
     # Use end_to_end_fn here to properly upload/download all files
     predict_fns = []
-    for fn_index, endpoint in client.endpoints.items():
+    for endpoint in client.endpoints.values():
         if not isinstance(endpoint, Endpoint):
             raise TypeError(
                 f"Expected endpoint to be an Endpoint, but got {type(endpoint)}"
             )
-        helper = client.new_helper(fn_index)
         if endpoint.backend_fn:
-            predict_fns.append(endpoint.make_end_to_end_fn(helper))
+            dep_config = next(
+                (
+                    d
+                    for d in client.config["dependencies"]
+                    if d.get("id") == endpoint.fn_index
+                ),
+                {},
+            )
+            if dep_config.get("collects_event_data"):
+                event_data_fn = make_event_data_fn(client, endpoint)
+                predict_fns.append(event_data_fn)
+            else:
+                helper = client.new_helper(endpoint.fn_index)
+                fn = endpoint.make_end_to_end_fn(helper)
+                predict_fns.append(fn)
         else:
             predict_fns.append(None)
-    return gr.Blocks.from_config(client.config, predict_fns, client.src)  # type: ignore
+    blocks = gr.Blocks.from_config(client.config, predict_fns, client.src)  # type: ignore
+    with blocks:
+        # Reset the session_hash when page loads
+        blocks.load(lambda: client.reset_session(), None, None)
+    return blocks
 
 
 def from_spaces_interface(
