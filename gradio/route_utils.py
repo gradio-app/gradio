@@ -10,6 +10,7 @@ import pickle
 import re
 import shutil
 import threading
+import unicodedata
 import uuid
 from collections import defaultdict, deque
 from collections.abc import AsyncGenerator, Callable
@@ -1041,3 +1042,18 @@ def create_url_safe_hash(data: bytes, digest_size=8):
     url_safe_hash = base64.urlsafe_b64encode(hash_obj.digest()).decode().rstrip("=")
 
     return url_safe_hash
+
+
+def slugify(value):
+    """
+    Convert to ASCII. Convert spaces or repeated dashes to single dashes.
+    Remove characters that aren't alphanumerics, underscores, or hyphens.
+    Convert to lowercase. Also strip leading and trailing whitespace,
+    dashes, and underscores.
+    """
+    value = str(value)
+    value = (
+        unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
+    )
+    value = re.sub(r"[^\w\s-]", "", value.lower())
+    return re.sub(r"[-\s]+", "-", value).strip("-_")
