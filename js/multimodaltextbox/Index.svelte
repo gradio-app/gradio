@@ -111,7 +111,7 @@
 	// Create const references to the callbacks so that afterUpdate in child is not called on every prop change
 	// in the DOM. See https://github.com/gradio-app/gradio/issues/11933
 	// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-	const upload_fn = (...args: Parameters<typeof gradio.client.upload>) => 
+	const upload_fn = (...args: Parameters<typeof gradio.client.upload>) =>
 		gradio.client.upload(...args);
 	const i18n = (s: string | null | undefined): string => gradio.i18n(s);
 	const stream_handler_fn = (
