@@ -1,6 +1,6 @@
 ---
-"@gradio/markdown-code": minor
-"gradio": minor
+"@gradio/markdown-code": patch
+"gradio": patch
 ---
 
-feat:Add Syntax Highlighting for more languages in Markdown Component
+fix:Add Syntax Highlighting for more languages in Markdown Component
