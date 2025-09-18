@@ -84,6 +84,7 @@
 	export let pinned_columns = 0;
 	export let static_columns: (string | number)[] = [];
 	export let fullscreen = false;
+	export let truncate_headers = true;
 
 	const df_ctx = create_dataframe_context({
 		show_fullscreen_button,
@@ -890,6 +891,7 @@
 							datatype={Array.isArray(datatype) ? datatype[i] : datatype}
 							{data}
 							on_select_all={handle_select_all}
+							{truncate_headers}
 						/>
 					{/each}
 				</tr>
@@ -1266,5 +1268,12 @@
 	tr {
 		border-bottom: 1px solid var(--border-color-primary);
 		text-align: left;
+	}
+
+	.truncate-header {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 150px;
 	}
 </style>
