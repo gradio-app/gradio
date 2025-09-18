@@ -58,7 +58,7 @@
 	export let waveform_options: WaveformOptions = {
 		show_recording_waveform: true
 	};
-	export let sources: ["microphone" | "upload"] = ["upload"];
+	export let sources_string: string = "upload";
 	export let active_source: "microphone" | null = null;
 	export let html_attributes: InputHTMLAttributes | null = null;
 
@@ -72,6 +72,14 @@
 	// value can be null in multimodalchatinterface when loading a deep link
 	let oldValue = value?.text ?? "";
 	let recording = false;
+
+	$: sources = sources_string
+		.split(",")
+		.map((s) => s.trim())
+		.filter((s) => s === "upload" || s === "microphone") as (
+		| "upload"
+		| "microphone"
+	)[];
 	$: dispatch("drag", dragging);
 	let mic_audio: FileData | null = null;
 
@@ -126,15 +134,16 @@
 		}
 	});
 
-	afterUpdate(() => {
+	const after_update = () => {
 		if (can_scroll && autoscroll) {
 			scroll();
 		}
-		if (autofocus && el !== null) {
+		if (autofocus && el) {
 			el.focus();
 		}
-		value_is_output = false;
-	});
+	};
+
+	afterUpdate(after_update);
 
 	function handle_select(event: Event): void {
 		const target: HTMLTextAreaElement | HTMLInputElement = event.target as
