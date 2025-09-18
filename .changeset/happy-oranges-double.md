@@ -1,6 +1,5 @@
 ---
 "@gradio/multimodaltextbox": patch
-"@self/spa": patch
 "gradio": patch
 ---
 
