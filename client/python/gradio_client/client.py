@@ -317,6 +317,7 @@ class Client:
         headers = self.add_zero_gpu_headers(self.headers)
         if request_headers is not None:
             headers = {**request_headers, **headers}
+        print("data", {**data, **hash_data})
         req = httpx.post(
             self.sse_data_url,
             json={**data, **hash_data},
