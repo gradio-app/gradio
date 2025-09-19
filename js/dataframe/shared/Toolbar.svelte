@@ -146,7 +146,6 @@
 		border-radius: var(--table-radius);
 		font-size: var(--text-sm);
 		color: var(--body-text-color);
-		background: var(--background-fill-secondary);
 		transition: all 0.2s ease;
 	}
 
