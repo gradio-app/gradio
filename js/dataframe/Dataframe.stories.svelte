@@ -873,3 +873,23 @@
 		await user.keyboard("{Enter}");
 	}}
 />
+
+<Story
+	name="Dataframe with truncated headers (truncate_headers=true)"
+	args={{
+		values: [
+			["Short", "Medium", "Long value"],
+			["Short", "Medium", "Another long value"],
+			["Short", "Medium", "Yet another long value that should be truncated"]
+		],
+		headers: [
+			"Short header",
+			"Medium header",
+			"This is a very long header that should be truncated when truncate_headers is true"
+		],
+		label: "Truncated Headers Example",
+		col_count: [3, "dynamic"],
+		row_count: [3, "dynamic"],
+		truncate_headers: true
+	}}
+/>

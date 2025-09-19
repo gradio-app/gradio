@@ -46,6 +46,7 @@
 	export let on_select_all:
 		| ((col: number, checked: boolean) => void)
 		| undefined = undefined;
+	export let truncate_headers = true;
 
 	$: can_add_columns = col_count && col_count[1] === "dynamic";
 	$: is_bool_column = datatype === "bool";
@@ -135,7 +136,7 @@
 				</div>
 			{/if}
 			<button
-				class="header-button"
+				class="header-button {truncate_headers ? 'truncate-header' : ''}"
 				on:click={(event) => handle_header_click(event, i)}
 				on:mousedown={(event) => {
 					event.preventDefault();
@@ -340,5 +341,11 @@
 
 	.select-all-checkbox :global(span) {
 		display: none;
+	}
+
+	.truncate-header {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 </style>
