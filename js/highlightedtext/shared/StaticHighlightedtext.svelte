@@ -47,7 +47,7 @@
 				}
 			}
 		}
-
+		_color_map = {};
 		correct_color_map(color_map, _color_map, browser, ctx);
 	}
 
