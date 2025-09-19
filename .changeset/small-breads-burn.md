@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix bug where keyboard navigation on a textbox would skip forward the audio waveform playbacl
+fix:Fix bug where keyboard navigation on a textbox would skip forward the audio waveform playback
