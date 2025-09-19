@@ -1156,7 +1156,8 @@ class ChatInterface(Blocks):
 
     def render(self) -> ChatInterface:
         # If this is being rendered inside another Blocks, and the height is not explicitly set, set it to 400 instead of 200.
+        print("RENDER CHAT INTERFACE", get_blocks_context(), self.provided_chatbot)
         if get_blocks_context() and not self.provided_chatbot:
             self.chatbot.height = 400
-            super().render()
+        super().render()
         return self
