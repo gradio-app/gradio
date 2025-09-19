@@ -50,12 +50,6 @@ jobs:
         uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
         with:
           skip_build: true
-      - name: update npm
-        run: npm i -g npm@latest
-      - name: check node version
-        run: node -v
-      - name: check npm version
-        run: npm -v
       - name: build client
         run: pnpm --filter @gradio/client build
       - name: format check
