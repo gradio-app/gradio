@@ -231,6 +231,7 @@
 
 	.cell-menu button:hover {
 		background-color: var(--background-fill-secondary);
+		/* add dark mode var for this */
 	}
 
 	.cell-menu button :global(svg) {

@@ -146,6 +146,8 @@
 		border-radius: var(--table-radius);
 		font-size: var(--text-sm);
 		color: var(--body-text-color);
+		background: var(--background-fill-secondary);
+		/* add dark mode var for this */
 		transition: all 0.2s ease;
 	}
 
