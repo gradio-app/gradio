@@ -1,5 +1,19 @@
 # website
 
+## 0.64.0
+
+### Features
+
+- [#11932](https://github.com/gradio-app/gradio/pull/11932) [`d67029a`](https://github.com/gradio-app/gradio/commit/d67029a81ed8846c34f3f84b66962bbe65d9ae10) - Remove references to deleted lite guide - Fix website build.  Thanks @aliabd!
+
+### Fixes
+
+- [#11940](https://github.com/gradio-app/gradio/pull/11940) [`13fdfa6`](https://github.com/gradio-app/gradio/commit/13fdfa6d549ee4e31308af69b75140085ea51fc4) - Upgrade Prismjs.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/paramviewer@0.8.1
+
 ## 0.63.0
 
 ### Features

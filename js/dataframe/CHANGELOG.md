@@ -1,5 +1,15 @@
 # @gradio/dataframe
 
+## 0.19.4
+
+### Fixes
+
+- [#11648](https://github.com/gradio-app/gradio/pull/11648) [`57d8d65`](https://github.com/gradio-app/gradio/commit/57d8d6598645e438337c78c1c8e0759f876fb193) - Dataframe Edit Event.  Thanks @deckar01!
+
+### Dependency updates
+
+- @gradio/markdown-code@0.5.2
+
 ## 0.19.3
 
 ### Features

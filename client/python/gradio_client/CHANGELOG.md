@@ -1,5 +1,12 @@
 # gradio_client
 
+## 1.13.1
+
+### Fixes
+
+- [#11896](https://github.com/gradio-app/gradio/pull/11896) [`915f3a2`](https://github.com/gradio-app/gradio/commit/915f3a2f2fa1843111868e4f23f543b097b9c839) - Send EventData when app is loaded via gr.load.  Thanks @freddyaboulton!
+- [#11924](https://github.com/gradio-app/gradio/pull/11924) [`a9167fb`](https://github.com/gradio-app/gradio/commit/a9167fb7d013b7f76784c98f9c673ce47214b119) - Update websocket import and type in get_pred_from_ws.  Thanks @qgallouedec!
+
 ## 1.13.0
 
 ### Features
