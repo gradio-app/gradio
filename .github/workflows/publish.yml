@@ -35,6 +35,10 @@ jobs:
           pnpm --filter @gradio/client --filter @gradio/preview build
       - name: update npm
         run: npm i -g npm@latest
+      - name: check node version
+        run: node -v
+      - name: check npm version
+        run: npm -v
       - name: create and publish versions
         id: changesets
         uses: changesets/action@aba318e9165b45b7948c60273e0b72fce0a64eb9 # @v1
@@ -45,6 +49,16 @@ jobs:
           publish: pnpm ci:publish
         env:
           GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }}
+      - name: Upload npm logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-logs
+          path: |
+            /home/runner/.npm/_logs/
+            ~/.npm/_logs/
+          retention-days: 7
+          if-no-files-found: ignore
       - name: add label to skip chromatic build
         if: ${{ steps.changesets.outputs.pullRequestNumber != '' && steps.changesets.outputs.pullRequestNumber != 'undefined' }}
         run: gh pr edit "$PR_NUMBER" --add-label "no-visual-update"
