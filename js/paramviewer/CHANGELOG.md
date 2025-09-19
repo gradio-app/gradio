@@ -1,5 +1,11 @@
 # @gradio/paramviewer
 
+## 0.8.1
+
+### Fixes
+
+- [#11940](https://github.com/gradio-app/gradio/pull/11940) [`13fdfa6`](https://github.com/gradio-app/gradio/commit/13fdfa6d549ee4e31308af69b75140085ea51fc4) - Upgrade Prismjs.  Thanks @freddyaboulton!
+
 ## 0.8.0
 
 ### Features
