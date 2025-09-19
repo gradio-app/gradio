@@ -33,6 +33,7 @@
 			color_map = {};
 		}
 		if (value.length > 0) {
+			console.log("UPDATE");
 			for (let entry of value) {
 				if (entry.class_or_confidence !== null) {
 					if (typeof entry.class_or_confidence === "string") {
@@ -47,7 +48,7 @@
 				}
 			}
 		}
-
+		_color_map = {};
 		correct_color_map(color_map, _color_map, browser, ctx);
 	}
 
