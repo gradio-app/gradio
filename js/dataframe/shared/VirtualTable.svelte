@@ -356,6 +356,7 @@
 		top: 0;
 		left: 0;
 		background: var(--background-fill-primary);
+		/* add dark mode var for this */
 		z-index: 7;
 	}
 
