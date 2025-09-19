@@ -355,7 +355,6 @@
 		position: sticky;
 		top: 0;
 		left: 0;
-		background: var(--background-fill-primary);
 		z-index: 7;
 	}
 

@@ -29,7 +29,6 @@
 		display: none;
 		align-items: center;
 		justify-content: center;
-		background-color: var(--block-background-fill);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--block-radius);
 		width: var(--size-5);
