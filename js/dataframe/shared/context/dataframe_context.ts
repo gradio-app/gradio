@@ -2,6 +2,7 @@ import { getContext, setContext } from "svelte";
 import { dequal } from "dequal";
 import { writable, get } from "svelte/store";
 import { sort_table_data } from "../utils/table_utils";
+import type { CellValue } from "../types";
 import { tick } from "svelte";
 import {
 	handle_selection,
@@ -30,14 +31,14 @@ interface DataFrameState {
 		max_height: number;
 		column_widths: string[];
 		max_chars?: number;
-		static_columns?: (string | number)[];
+		static_columns?: CellValue[];
 	};
 	current_search_query: string | null;
 	sort_state: {
 		sort_columns: { col: number; direction: SortDirection }[];
 		row_order: number[];
 		initial_data: {
-			data: { id: string; value: string | number }[][];
+			data: { id: string; value: CellValue }[][];
 			display_value: string[][] | null;
 			styling: string[][] | null;
 		} | null;
@@ -50,7 +51,7 @@ interface DataFrameState {
 			value: string;
 		}[];
 		initial_data: {
-			data: { id: string; value: string | number }[][];
+			data: { id: string; value: CellValue }[][];
 			display_value: string[][] | null;
 			styling: string[][] | null;
 		} | null;
@@ -124,10 +125,10 @@ interface DataFrameActions {
 	trigger_change: (
 		data: any[][],
 		headers: any[],
-		previous_data: string[][],
+		previous_data: any[][],
 		previous_headers: string[],
 		value_is_output: boolean,
-		dispatch: (e: "change" | "input", detail?: any) => void
+		dispatch: (e: "change" | "input" | "edit", detail?: any) => void
 	) => Promise<void>;
 	reset_sort_state: () => void;
 	reset_filter_state: () => void;
@@ -183,10 +184,10 @@ export interface DataFrameContext {
 		{ cell: HTMLTableCellElement | null; input: HTMLTextAreaElement | null }
 	>;
 	parent_element?: HTMLElement;
-	get_data_at?: (row: number, col: number) => string | number;
-	get_column?: (col: number) => (string | number)[];
-	get_row?: (row: number) => (string | number)[];
-	dispatch?: (e: "change" | "select" | "search", detail?: any) => void;
+	get_data_at?: (row: number, col: number) => CellValue;
+	get_column?: (col: number) => CellValue[];
+	get_row?: (row: number) => CellValue[];
+	dispatch?: (e: "change" | "select" | "search" | "edit", detail?: any) => void;
 }
 
 function create_actions(
@@ -230,7 +231,7 @@ function create_actions(
 	};
 
 	const update_array = (
-		source: { id: string; value: string | number }[][] | string[][] | null,
+		source: { id: string; value: CellValue }[][] | string[][] | null,
 		target: any[] | null | undefined
 	): void => {
 		if (source && target) {
@@ -397,9 +398,7 @@ function create_actions(
 			if (s.current_search_query) return;
 
 			const current_headers = headers.map((h) => h.value);
-			const current_data = data.map((row) =>
-				row.map((cell) => String(cell.value))
-			);
+			const current_data = data.map((row) => row.map((cell) => cell.value));
 
 			if (
 				!dequal(current_data, previous_data) ||
@@ -416,6 +415,14 @@ function create_actions(
 					headers: current_headers,
 					metadata: null
 				});
+				const index = s.ui_state.selected;
+				if (index) {
+					dispatch("edit", {
+						index,
+						value: data[index[0]][index[1]].value,
+						previous_value: previous_data[index[0]][index[1]]
+					});
+				}
 				if (!value_is_output) dispatch("input");
 			}
 		},

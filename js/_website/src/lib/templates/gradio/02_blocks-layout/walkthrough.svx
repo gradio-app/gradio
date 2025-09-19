@@ -1,0 +1,92 @@
+
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import ShortcutTable from "$lib/components/ShortcutTable.svelte";
+    import DemosSection from "$lib/components/DemosSection.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let walkthrough_obj = get_object("walkthrough");
+    let step_obj = get_object("step");
+</script>
+
+<!--- Title -->
+# {walkthrough_obj.name}
+
+<!--- Usage -->
+```python
+gradio.Walkthrough(···)
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(walkthrough_obj.description)}
+
+<!-- Example Usage --> 
+
+{#if walkthrough_obj.example}
+### Example Usage
+```python
+with gr.Walkthrough(selected=1) as walkthrough:
+    with gr.Step("Step 1", id=1):
+        btn = gr.Button("go to Step 2")
+        btn.click(lambda: gr.Walkthrough(selected=2), outputs=walkthrough)
+    with gr.Step("Step 2", id=2):
+        txt = gr.Textbox("Welcome to Step 2")
+```
+{/if}
+
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={walkthrough_obj.parameters} anchor_links={walkthrough_obj.name}/>
+
+
+{#if walkthrough_obj.demos && walkthrough_obj.demos.length > 0}
+<!--- Demos -->
+### Demos 
+<DemosSection demos={walkthrough_obj.demos} />
+{/if}
+
+{#if walkthrough_obj.fns && walkthrough_obj.fns.length > 0}
+<!--- Methods -->
+### Methods 
+<FunctionsSection fns={walkthrough_obj.fns} event_listeners={false} />
+{/if}
+
+{#if walkthrough_obj.guides && walkthrough_obj.guides.length > 0}
+<!--- Guides -->
+### Guides
+<GuidesSection guides={walkthrough_obj.guides}/>
+{/if}
+
+<!--- Title -->
+# {step_obj.name}
+
+<!--- Usage -->
+```python
+gradio.Step(···)
+```
+
+<!--- Description -->
+#### Description
+## {@html style_formatted_text(step_obj.description)}
+
+<!--- Initialization -->
+#### Initialization
+<ParamTable parameters={step_obj.parameters} anchor_links={step_obj.name}/>
+
+
+{#if step_obj.fns && step_obj.fns.length > 0}
+<!--- Methods -->
+#### Methods 
+<FunctionsSection fns={step_obj.fns} event_listeners={false} />
+{/if}
+
+{#if step_obj.guides && step_obj.guides.length > 0}
+<!--- Guides -->
+### Guides
+<GuidesSection guides={step_obj.guides}/>
+{/if}

@@ -6,7 +6,7 @@
 	export let equal_height = true;
 	export let elem_id: string;
 	export let elem_classes: string[] = [];
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 	export let variant: "default" | "panel" | "compact" = "default";
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let gradio: Gradio | undefined = undefined;

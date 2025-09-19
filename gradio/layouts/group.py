@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Literal
+
 from gradio_client.documentation import document
 
 from gradio.blocks import BlockContext
@@ -22,7 +24,7 @@ class Group(BlockContext, metaclass=ComponentMeta):
     def __init__(
         self,
         *,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,

@@ -1,5 +1,33 @@
 # gradio
 
+## 5.46.0
+
+### Features
+
+- [#11894](https://github.com/gradio-app/gradio/pull/11894) [`cf10724`](https://github.com/gradio-app/gradio/commit/cf107246c104f3d8be1adf7a4c3d85558a0a5497) - Remove additional indentation in python API docs.  Thanks @freddyaboulton!
+- [#11891](https://github.com/gradio-app/gradio/pull/11891) [`8d06ab7`](https://github.com/gradio-app/gradio/commit/8d06ab7d899cb8b1ab2a9575f19b8960999aba78) - Add select all checkbox for boolean columns in Dataframe.  Thanks @abidlabs!
+- [#11901](https://github.com/gradio-app/gradio/pull/11901) [`8264ad8`](https://github.com/gradio-app/gradio/commit/8264ad87f098573438fb3175fe19a34dcd84ed7e) - Add max_height parameter to ParamViewer.  Thanks @drewmlawton!
+- [#11854](https://github.com/gradio-app/gradio/pull/11854) [`ee3dbd8`](https://github.com/gradio-app/gradio/commit/ee3dbd837ef02d24e127a2923126ff35750317ab) - Add show_select_all parameter to CheckboxGroup.  Thanks @abidlabs!
+- [#11858](https://github.com/gradio-app/gradio/pull/11858) [`3f8ea13`](https://github.com/gradio-app/gradio/commit/3f8ea13a8ca92abf0ad34392e403a449fda3c6c2) - remove lite.  Thanks @pngwn!
+- [#11902](https://github.com/gradio-app/gradio/pull/11902) [`6d39644`](https://github.com/gradio-app/gradio/commit/6d39644ee1000b04728eb4909cee405e7ee3b5b2) - Add navbar visibility controls and customization options.  Thanks @abidlabs!
+
+### Fixes
+
+- [#11864](https://github.com/gradio-app/gradio/pull/11864) [`3df62ba`](https://github.com/gradio-app/gradio/commit/3df62ba698ed283b2e92599af0447222045bf242) - Add walkthrough to the docs.  Thanks @aliabd!
+- [#11919](https://github.com/gradio-app/gradio/pull/11919) [`3b15f63`](https://github.com/gradio-app/gradio/commit/3b15f6370bc143c0acd91225574250bccf0a8877) - ensure spaces iframe resizes when images load.  Thanks @pngwn!
+- [#11853](https://github.com/gradio-app/gradio/pull/11853) [`0d0699b`](https://github.com/gradio-app/gradio/commit/0d0699b0348dfd4e5e0ac82d438a405cf7a2228d) - Fix bugs in `FileExplorer`.  Thanks @abidlabs!
+- [#11920](https://github.com/gradio-app/gradio/pull/11920) [`0f38b65`](https://github.com/gradio-app/gradio/commit/0f38b65f551cb61b3e9ed668e0ea525441672482) - Fix Examples Pagination.  Thanks @freddyaboulton!
+- [#11784](https://github.com/gradio-app/gradio/pull/11784) [`d9dd3f5`](https://github.com/gradio-app/gradio/commit/d9dd3f54b7fb34cf7118e549d39fc63937ca3489) - Add "hidden" option to component's `visible` kwarg to render but visually hide the component.  Thanks @pngwn!
+- [#11912](https://github.com/gradio-app/gradio/pull/11912) [`8f0214d`](https://github.com/gradio-app/gradio/commit/8f0214dd4dee899a2307924b1f7ba974ba4344fe) - Fix bug where setting interactive prop of gr.Datetime from the backend was not working.  Thanks @freddyaboulton!
+- [#11866](https://github.com/gradio-app/gradio/pull/11866) [`02df670`](https://github.com/gradio-app/gradio/commit/02df670eccf365c253f38b682a3000fe316eef22) - Fix i18n when accept-language header contains multiple values.  Thanks @freddyaboulton!
+- [#11893](https://github.com/gradio-app/gradio/pull/11893) [`725dca0`](https://github.com/gradio-app/gradio/commit/725dca0d546710194b1559da89b03b56cf6dba41) - Fix logout multiple sessions.  Thanks @tarmkalavan!
+- [#11917](https://github.com/gradio-app/gradio/pull/11917) [`8a03624`](https://github.com/gradio-app/gradio/commit/8a03624544edd16d32b7f672c0e7fd8455cb5637) - Fix Bug where select events of ZeroGPU were causing errors.  Thanks @freddyaboulton!
+- [#11865](https://github.com/gradio-app/gradio/pull/11865) [`be70c9b`](https://github.com/gradio-app/gradio/commit/be70c9b68bbbe0792a84efa4c988f8a987149197) - Support per-page navbar configuration in multipage apps.  Thanks @abidlabs!
+- [#11921](https://github.com/gradio-app/gradio/pull/11921) [`f6f38f7`](https://github.com/gradio-app/gradio/commit/f6f38f7e5d7c0e0ef28038ec91f1f4dac87fab83) - Fix KeyError that can be caused by cancelling the same event twice.  Thanks @freddyaboulton!
+- [#11899](https://github.com/gradio-app/gradio/pull/11899) [`bb3315c`](https://github.com/gradio-app/gradio/commit/bb3315c2fc6affe14cbe23d74008fcf400fd8b49) - Fix Chat Examples Spacing.  Thanks @freddyaboulton!
+- [#11898](https://github.com/gradio-app/gradio/pull/11898) [`8212f67`](https://github.com/gradio-app/gradio/commit/8212f67488a0143f1afcbd953ef1be869c882c44) - Fix Dropdown change and input events.  Thanks @freddyaboulton!
+- [#11903](https://github.com/gradio-app/gradio/pull/11903) [`895d884`](https://github.com/gradio-app/gradio/commit/895d884a7345894f95df5f131d6517e935fd275a) - enhanced_the_arabic_translation.  Thanks @makhlwf!
+
 ## 5.45.0
 
 ### Features

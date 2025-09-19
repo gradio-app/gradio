@@ -10,7 +10,7 @@
 	import { MarkdownCode } from "@gradio/markdown-code";
 
 	export let elem_classes: string[] = [];
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 	export let value: string;
 	export let min_height: number | string | undefined = undefined;
 	export let rtl = false;

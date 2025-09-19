@@ -1,5 +1,17 @@
 # @self/app
 
+## 1.52.0
+
+### Features
+
+- [#11858](https://github.com/gradio-app/gradio/pull/11858) [`3f8ea13`](https://github.com/gradio-app/gradio/commit/3f8ea13a8ca92abf0ad34392e403a449fda3c6c2) - remove lite.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/client@1.19.0
+- @gradio/core@0.29.0
+- @self/build@0.4.0
+
 ## 1.51.0
 
 ### Features

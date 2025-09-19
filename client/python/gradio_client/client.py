@@ -246,7 +246,9 @@ class Client:
                 return
 
     def stream_messages(
-        self, protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"]
+        self,
+        protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"],
+        session_hash: str,
     ) -> None:
         try:
             httpx_kwargs = self.httpx_kwargs.copy()
@@ -258,7 +260,7 @@ class Client:
                 with client.stream(
                     "GET",
                     self.sse_url,
-                    params={"session_hash": self.session_hash},
+                    params={"session_hash": session_hash},
                     headers=self.headers,
                     cookies=self.cookies,
                 ) as response:
@@ -335,7 +337,9 @@ class Client:
             self.stream_open = True
 
             def open_stream():
-                return self.stream_messages(protocol)
+                return self.stream_messages(
+                    protocol, session_hash=hash_data["session_hash"]
+                )
 
             def close_stream(_):
                 self.stream_open = False
@@ -1200,14 +1204,14 @@ class Endpoint:
     def make_end_to_end_fn(self, helper: Communicator):
         _predict = self.make_predict(helper)
 
-        def _inner(*data):
+        def _inner(*data, **kwargs):
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
 
             if self.client._skip_components:
                 data = self.insert_empty_state(*data)
             data = self.process_input_files(*data)
-            predictions = _predict(*data)
+            predictions = _predict(*data, **kwargs)
             predictions = self.process_predictions(*predictions)
 
             # Append final output only if not already present
@@ -1294,16 +1298,16 @@ class Endpoint:
         return _cancel
 
     def make_predict(self, helper: Communicator):
-        def _predict(*data) -> tuple:
+        def _predict(*data, **kwargs) -> tuple:
             data = {
-                "data": data,
+                "data": data or [],
                 "fn_index": self.fn_index,
-                "session_hash": self.client.session_hash,
+                **kwargs,
             }
 
             hash_data = {
                 "fn_index": self.fn_index,
-                "session_hash": self.client.session_hash,
+                "session_hash": kwargs.get("session_hash", self.client.session_hash),
             }
 
             if self.protocol == "sse":

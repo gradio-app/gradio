@@ -3,7 +3,7 @@
 
 	export let elem_classes: string[] = [];
 	export let value: string;
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 	export let autoscroll = false;
 
 	const dispatch = createEventDispatcher<{

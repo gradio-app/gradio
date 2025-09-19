@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/paramviewer",
-	"version": "0.7.16",
+	"version": "0.8.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -24,7 +24,7 @@
 		"@gradio/atoms": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"prismjs": "^1.29.0"
+		"prismjs": "^1.30.0"
 	},
 	"devDependencies": {
 		"@types/prismjs": "^1.26.3",

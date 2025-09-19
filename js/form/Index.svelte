@@ -1,12 +1,13 @@
 <script lang="ts">
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 	export let scale: number | null = null;
 	export let min_width = 0;
 </script>
 
 <div
 	class="form"
-	class:hidden={!visible}
+	class:hidden={visible === false}
+	class:hidden-css={visible === "hidden"}
 	style:flex-grow={scale}
 	style:min-width={`calc(min(${min_width}px, 100%))`}
 >
@@ -34,5 +35,9 @@
 
 	.hidden {
 		display: none;
+	}
+
+	.hidden-css {
+		display: none !important;
 	}
 </style>

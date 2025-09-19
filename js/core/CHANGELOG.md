@@ -1,5 +1,41 @@
 # @gradio/core
 
+## 0.29.0
+
+### Features
+
+- [#11894](https://github.com/gradio-app/gradio/pull/11894) [`cf10724`](https://github.com/gradio-app/gradio/commit/cf107246c104f3d8be1adf7a4c3d85558a0a5497) - Remove additional indentation in python API docs.  Thanks @freddyaboulton!
+- [#11858](https://github.com/gradio-app/gradio/pull/11858) [`3f8ea13`](https://github.com/gradio-app/gradio/commit/3f8ea13a8ca92abf0ad34392e403a449fda3c6c2) - remove lite.  Thanks @pngwn!
+- [#11902](https://github.com/gradio-app/gradio/pull/11902) [`6d39644`](https://github.com/gradio-app/gradio/commit/6d39644ee1000b04728eb4909cee405e7ee3b5b2) - Add navbar visibility controls and customization options.  Thanks @abidlabs!
+
+### Fixes
+
+- [#11919](https://github.com/gradio-app/gradio/pull/11919) [`3b15f63`](https://github.com/gradio-app/gradio/commit/3b15f6370bc143c0acd91225574250bccf0a8877) - ensure spaces iframe resizes when images load.  Thanks @pngwn!
+- [#11784](https://github.com/gradio-app/gradio/pull/11784) [`d9dd3f5`](https://github.com/gradio-app/gradio/commit/d9dd3f54b7fb34cf7118e549d39fc63937ca3489) - Add "hidden" option to component's `visible` kwarg to render but visually hide the component.  Thanks @pngwn!
+- [#11866](https://github.com/gradio-app/gradio/pull/11866) [`02df670`](https://github.com/gradio-app/gradio/commit/02df670eccf365c253f38b682a3000fe316eef22) - Fix i18n when accept-language header contains multiple values.  Thanks @freddyaboulton!
+- [#11903](https://github.com/gradio-app/gradio/pull/11903) [`895d884`](https://github.com/gradio-app/gradio/commit/895d884a7345894f95df5f131d6517e935fd275a) - enhanced_the_arabic_translation.  Thanks @makhlwf!
+
+### Dependency updates
+
+- @gradio/paramviewer@0.8.0
+- @gradio/code@0.15.0
+- @gradio/statustracker@0.11.1
+- @gradio/tabitem@0.6.1
+- @gradio/tabs@0.5.1
+- @gradio/atoms@0.18.0
+- @gradio/checkbox@0.4.30
+- @gradio/client@1.19.0
+- @gradio/upload@0.17.0
+- @gradio/button@0.5.13
+- @gradio/textbox@0.11.1
+- @gradio/gallery@0.15.33
+- @gradio/plot@0.9.24
+- @gradio/image@0.23.0
+- @gradio/column@0.2.2
+- @gradio/dropdown@0.10.4
+- @gradio/file@0.13.0
+- @gradio/video@0.16.0
+
 ## 0.28.0
 
 ### Features

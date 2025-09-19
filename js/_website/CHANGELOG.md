@@ -1,5 +1,25 @@
 # website
 
+## 0.63.0
+
+### Features
+
+- [#11858](https://github.com/gradio-app/gradio/pull/11858) [`3f8ea13`](https://github.com/gradio-app/gradio/commit/3f8ea13a8ca92abf0ad34392e403a449fda3c6c2) - remove lite.  Thanks @pngwn!
+- [#11916](https://github.com/gradio-app/gradio/pull/11916) [`03024f8`](https://github.com/gradio-app/gradio/commit/03024f8cae5d1a35be8fe6a988ae3917eefba662) - Fix broken website build.  Thanks @aliabd!
+
+### Fixes
+
+- [#11864](https://github.com/gradio-app/gradio/pull/11864) [`3df62ba`](https://github.com/gradio-app/gradio/commit/3df62ba698ed283b2e92599af0447222045bf242) - Add walkthrough to the docs.  Thanks @aliabd!
+- [#11865](https://github.com/gradio-app/gradio/pull/11865) [`be70c9b`](https://github.com/gradio-app/gradio/commit/be70c9b68bbbe0792a84efa4c988f8a987149197) - Support per-page navbar configuration in multipage apps.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/paramviewer@0.8.0
+- @gradio/code@0.15.0
+- @gradio/statustracker@0.11.1
+- @gradio/tabitem@0.6.1
+- @gradio/tabs@0.5.1
+
 ## 0.62.1
 
 ### Fixes
