@@ -13,6 +13,10 @@ from gradio.components.base import Component
 from gradio.events import Events
 
 
+def default_delete_callback(x: Any) -> None:
+    pass
+
+
 @document()
 class State(Component):
     EVENTS = [Events.change]
@@ -43,7 +47,7 @@ class State(Component):
         self.time_to_live = self.time_to_live = (
             math.inf if time_to_live is None else time_to_live
         )
-        self.delete_callback = delete_callback or (lambda a: None)  # noqa: ARG005
+        self.delete_callback = delete_callback or default_delete_callback  # noqa: ARG005
         try:
             value = deepcopy(value)
         except TypeError as err:

@@ -190,22 +190,6 @@
 				application.
 			</div>
 		</a>
-		<a
-			href="../guides/gradio-lite"
-			target="_self"
-			class="w-full shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
-				.COLOR_SETS[5]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
-		>
-			<div class="relative mb-2 flex items-center text-lg font-semibold">
-				<span>Gradio Lite</span>
-			</div>
-			<code class="font-light text-md mb-2">@gradio/lite</code>
-
-			<div class="relative pr-4 text-lg font-light">
-				Run Gradio's Python code serverless (entirely in your browser) using
-				WebAssembly.
-			</div>
-		</a>
 	</div>
 
 	<h1 class="mb-4 flex items-center text-2xl font-light mt-8">

@@ -1,6 +1,6 @@
 {
 	"name": "website",
-	"version": "0.62.1",
+	"version": "0.63.0",
 	"private": true,
 	"scripts": {
 		"dev": "pip install boto3 markdown && python generate_jsons/generate.py && python ../../scripts/generate_theme.py --outfile ./src/lib/assets/theme.css && vite dev",
@@ -18,7 +18,7 @@
 		"@tailwindcss/typography": "^0.5.4",
 		"@types/prismjs": "^1.26.0",
 		"flexsearch": "^0.7.43",
-		"prismjs": "1.29.0",
+		"prismjs": "^1.30.0",
 		"tailwindcss": "^3.1.6"
 	},
 	"type": "module",

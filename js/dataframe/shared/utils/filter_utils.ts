@@ -1,9 +1,10 @@
 import { filter_table_data } from "./table_utils";
+import type { CellValue } from "../types";
 
 export type FilterDatatype = "string" | "number";
 
 export function filter_data(
-	data: { id: string; value: string | number }[][],
+	data: { id: string; value: CellValue }[][],
 	filter_columns: {
 		col: number;
 		datatype: FilterDatatype;
@@ -164,7 +165,7 @@ export function filter_data(
 }
 
 export function filter_data_and_preserve_selection(
-	data: { id: string; value: string | number }[][],
+	data: { id: string; value: CellValue }[][],
 	display_value: string[][] | null,
 	styling: string[][] | null,
 	filter_columns: {
@@ -176,9 +177,9 @@ export function filter_data_and_preserve_selection(
 	selected: [number, number] | false,
 	get_current_indices: (
 		id: string,
-		data: { id: string; value: string | number }[][]
+		data: { id: string; value: CellValue }[][]
 	) => [number, number],
-	original_data?: { id: string; value: string | number }[][],
+	original_data?: { id: string; value: CellValue }[][],
 	original_display_value?: string[][] | null,
 	original_styling?: string[][] | null
 ): { data: typeof data; selected: [number, number] | false } {
