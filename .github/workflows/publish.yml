@@ -33,6 +33,8 @@ jobs:
           . venv/bin/activate
           pnpm package
           pnpm --filter @gradio/client --filter @gradio/preview build
+      - name: update npm
+        run: npm i -g npm@latest
       - name: create and publish versions
         id: changesets
         uses: changesets/action@aba318e9165b45b7948c60273e0b72fce0a64eb9 # @v1
