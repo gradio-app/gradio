@@ -34,7 +34,7 @@
 				defaultValue: 2
 			},
 			height: {
-				options: ["auto", 500, 600],
+				options: ["auto", 200, 500, 600],
 				description: "The height of the grid",
 				control: { type: "select" },
 				defaultValue: "auto"
@@ -258,7 +258,16 @@
 		height: 400
 	}}
 />
-
+<Story
+	name="Gallery with overflow of images and short height"
+	args={{
+		label: "My Cheetah Gallery",
+		show_label: true,
+		rows: 2,
+		columns: 2,
+		height: 200
+	}}
+/>
 <Story
 	name="Gallery with download button"
 	args={{
