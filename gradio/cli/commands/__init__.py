@@ -2,7 +2,7 @@ from .cli_env_info import print_environment_info
 from .components import app as custom_component
 from .deploy_space import deploy
 from .hf_login import hf_login
-from .load import main as load
+from .load import load_app as load
 from .reload import main as reload
 from .sketch import launch as sketch
 from .upload_mcp import main as upload_mcp

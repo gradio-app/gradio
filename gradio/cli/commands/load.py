@@ -11,6 +11,7 @@ load_app = typer.Typer(
 # Register subcommands
 load_app.command("chat", help="Launch a chat interface using OpenAI-compatible API")(chat)
 
+@load_app.callback()
 def main():
-    """Main entry point for the load command."""
-    load_app()
+    """Load various types of interfaces and models."""
+    pass
