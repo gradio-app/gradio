@@ -1,8 +1,8 @@
 import sys
 
-import typer
 from gradio_client.cli import deploy_discord  # type: ignore
 from rich.console import Console
+import typer
 
 from gradio import analytics
 
@@ -10,6 +10,7 @@ from .commands import (
     custom_component,
     deploy,
     hf_login,
+    load,
     print_environment_info,
     reload,
     sketch,
@@ -39,6 +40,9 @@ def cli():
     elif args[0] in {"cc", "component"}:
         sys.argv = sys.argv[1:]
         custom_component()
+    elif args[0] == "load":
+        sys.argv = sys.argv[1:]
+        load()
     elif args[0] in {"build", "dev", "create", "show", "publish", "install"}:
         try:
             error = f"gradio {args[0]} is not a valid command. Did you mean `gradio cc {args[0]}` or `gradio component {args[0]}`?."
