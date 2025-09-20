@@ -39,6 +39,7 @@ def main(
         False, "--share/--no-share", help="Create a public share link"
     ),
 ) -> None:
+    """Launch a chat interface using OpenAI-compatible API."""
     resolved_token = token or os.getenv("OPENAI_API_KEY")
 
     for ft in file_types:
@@ -57,5 +58,3 @@ def main(
     )
 
     demo.launch(server_name=host, server_port=port, share=share)
-
-
