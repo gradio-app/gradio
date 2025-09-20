@@ -1,5 +1,22 @@
 # @gradio/paramviewer
 
+## 0.8.1
+
+### Fixes
+
+- [#11940](https://github.com/gradio-app/gradio/pull/11940) [`13fdfa6`](https://github.com/gradio-app/gradio/commit/13fdfa6d549ee4e31308af69b75140085ea51fc4) - Upgrade Prismjs.  Thanks @freddyaboulton!
+
+## 0.8.0
+
+### Features
+
+- [#11901](https://github.com/gradio-app/gradio/pull/11901) [`8264ad8`](https://github.com/gradio-app/gradio/commit/8264ad87f098573438fb3175fe19a34dcd84ed7e) - Add max_height parameter to ParamViewer.  Thanks @drewmlawton!
+
+### Dependency updates
+
+- @gradio/statustracker@0.11.1
+- @gradio/atoms@0.18.0
+
 ## 0.7.16
 
 ### Dependency updates

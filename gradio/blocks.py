@@ -73,7 +73,7 @@ from gradio.exceptions import (
 from gradio.helpers import create_tracker, skip, special_args
 from gradio.i18n import I18n, I18nData
 from gradio.node_server import start_node_server
-from gradio.route_utils import API_PREFIX, MediaStream
+from gradio.route_utils import API_PREFIX, MediaStream, slugify
 from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
 from gradio.state_holder import SessionState, StateHolder
 from gradio.themes import Default as DefaultTheme
@@ -130,7 +130,7 @@ class Block:
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         proxy_url: str | None = None,
     ):
         key_to_id_map = LocalContext.key_to_id_map.get(None)
@@ -437,7 +437,7 @@ class BlockContext(Block):
         self,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = None,
@@ -894,7 +894,8 @@ class BlocksConfig:
             "dependencies": [],
         }
 
-        for page, _ in self.root_block.pages:
+        for page_tuple in self.root_block.pages:
+            page = page_tuple[0]
             if page not in config["page"]:
                 config["page"][page] = {
                     "layout": {"id": self.root_block._id, "children": []},
@@ -1156,7 +1157,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         self.proxy_urls = set()
 
-        self.pages: list[tuple[str, str]] = [("", "Home")]
+        self.pages: list[tuple[str, str, bool]] = [("", "Home", True)]
         self.current_page = ""
 
         if self.analytics_enabled:
@@ -2377,19 +2378,19 @@ Received inputs:
                     )
 
     def validate_navbar_settings(self):
-        """Validates that only one Navbar component exists in the Blocks app."""
+        """Validates that only one Navbar component exists per page."""
         from gradio.components.navbar import Navbar
 
-        navbar_components = [
-            block for block in self.blocks.values() if isinstance(block, Navbar)
-        ]
-
-        if len(navbar_components) > 1:
-            raise ValueError(
-                "Only one gr.Navbar component can exist per Blocks app. "
-                f"Found {len(navbar_components)} Navbar components. "
-                "Please remove the extra Navbar components."
-            )
+        navbar_pages = set()
+        for block in self.blocks.values():
+            if isinstance(block, Navbar):
+                if block.page in navbar_pages:
+                    raise ValueError(
+                        f"Only one gr.Navbar component can exist per page. "
+                        f"Found multiple Navbar components on page '{block.page or 'Home'}'. "
+                        "Please remove the extra Navbar components."
+                    )
+                navbar_pages.add(block.page)
 
     def launch(
         self,
@@ -3137,12 +3138,15 @@ Received inputs:
         return target_events
 
     @document()
-    def route(self, name: str, path: str | None = None) -> Blocks:
+    def route(
+        self, name: str, path: str | None = None, show_in_navbar: bool = True
+    ) -> Blocks:
         """
         Adds a new page to the Blocks app.
         Parameters:
             name: The name of the page as it appears in the nav bar.
             path: The URL suffix appended after your Gradio app's root URL to access this page (e.g. if path="/test", the page may be accessible e.g. at http://localhost:7860/test). If not provided, the path is generated from the name by converting to lowercase and replacing spaces with hyphens. Any leading or trailing forward slashes are stripped.
+            show_in_navbar: If True, the page will appear in the navbar. If False, the page will be accessible via URL but not shown in the navbar.
         Example:
             with gr.Blocks() as demo:
                 name = gr.Textbox(label="Name")
@@ -3166,12 +3170,11 @@ Received inputs:
         if path in INTERNAL_ROUTES:
             raise ValueError(f"Route with path '{path}' already exists")
         if path is None:
-            path = name.lower().replace(" ", "-")
-            path = "".join(
-                [letter for letter in path if letter.isalnum() or letter == "-"]
-            )
+            path = slugify(name)
+            if not path:
+                raise ValueError(f"Route with path '{name}' is not valid")
         while path in INTERNAL_ROUTES or path in [page[0] for page in self.pages]:
             path = "_" + path
-        self.pages.append((path, name))
+        self.pages.append((path, name, show_in_navbar))
         self.current_page = path
         return self

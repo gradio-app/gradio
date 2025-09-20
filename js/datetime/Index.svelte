@@ -21,7 +21,7 @@
 	$: disabled = !interactive;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 	export let value = "";
 	let old_value = value;
 	export let scale: number | null = null;

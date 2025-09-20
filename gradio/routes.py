@@ -568,7 +568,11 @@ class App(FastAPI):
         else:
 
             @app.get("/logout")
-            def logout(request: fastapi.Request, user: str = Depends(get_current_user)):
+            def logout(
+                request: fastapi.Request,
+                user: str = Depends(get_current_user),
+                all_session: bool = True,
+            ):
                 root = route_utils.get_root_url(
                     request=request,
                     route_path="/logout",
@@ -579,10 +583,14 @@ class App(FastAPI):
                 response.delete_cookie(
                     key=f"access-token-unsecure-{app.cookie_id}", path="/"
                 )
-                # A user may have multiple tokens, so we need to delete all of them.
-                for token in list(app.tokens.keys()):
-                    if app.tokens[token] == user:
-                        del app.tokens[token]
+                if all_session:
+                    # Delete the tokens of all sessions associated with the current user.
+                    for token in list(app.tokens.keys()):
+                        if app.tokens[token] == user:
+                            del app.tokens[token]
+                # Delete only the token associated with the current session.
+                elif request.cookies.get(f"access-token-{app.cookie_id}") in app.tokens:
+                    del app.tokens[request.cookies.get(f"access-token-{app.cookie_id}")]
                 return response
 
         ###############
@@ -1294,7 +1302,7 @@ class App(FastAPI):
                     content=content,
                     status_code=500,
                 )
-            return output
+            return ORJSONResponse(output)
 
         @router.post("/call/{api_name}", dependencies=[Depends(login_check)])
         @router.post("/call/{api_name}/", dependencies=[Depends(login_check)])
@@ -1469,9 +1477,20 @@ class App(FastAPI):
                                 isinstance(message, ProcessCompletedMessage)
                                 and message.event_id
                             ):
-                                blocks._queue.pending_event_ids_session[
-                                    session_hash
-                                ].remove(message.event_id)
+                                # It's possible that the event_id has already been removed
+                                # for example, the user sent two duplicate `/cancel` requests.
+                                # The first one would have removed the event_id from pending_event_ids_session
+                                if (
+                                    message.event_id
+                                    in (
+                                        blocks._queue.pending_event_ids_session[
+                                            session_hash
+                                        ]
+                                    )
+                                ):
+                                    blocks._queue.pending_event_ids_session[
+                                        session_hash
+                                    ].remove(message.event_id)
                                 if message.msg == ServerMessage.server_stopped or (
                                     message.msg == ServerMessage.process_completed
                                     and (

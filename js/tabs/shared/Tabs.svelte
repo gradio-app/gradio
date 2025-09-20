@@ -5,7 +5,7 @@
 		label: string;
 		id: string | number;
 		elem_id: string | undefined;
-		visible: boolean;
+		visible: boolean | "hidden";
 		interactive: boolean;
 		scale: number | null;
 	}
@@ -17,7 +17,7 @@
 	import { writable } from "svelte/store";
 	import type { SelectData } from "@gradio/utils";
 
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let selected: number | string;
@@ -60,7 +60,7 @@
 		register_tab: (tab: Tab, order: number) => {
 			tabs[order] = tab;
 
-			if ($selected_tab === false && tab.visible && tab.interactive) {
+			if ($selected_tab === false && tab.visible !== false && tab.interactive) {
 				$selected_tab = tab.id;
 				$selected_tab_index = order;
 			}
@@ -82,7 +82,7 @@
 			id !== undefined &&
 			tab_to_activate &&
 			tab_to_activate.interactive &&
-			tab_to_activate.visible &&
+			tab_to_activate.visible !== false &&
 			$selected_tab !== tab_to_activate.id
 		) {
 			selected = id;
@@ -168,7 +168,8 @@
 
 <div
 	class="tabs {elem_classes.join(' ')}"
-	class:hide={!visible}
+	class:hide={visible === false}
+	class:hidden={visible === "hidden"}
 	id={elem_id}
 	style:flex-grow={tab_scale}
 >
@@ -176,7 +177,7 @@
 		<div class="tab-wrapper">
 			<div class="tab-container visually-hidden" aria-hidden="true">
 				{#each tabs as t, i}
-					{#if t?.visible}
+					{#if t && t?.visible !== false && t?.visible !== "hidden"}
 						<button bind:this={tab_els[t.id]}>
 							{t?.label}
 						</button>
@@ -185,7 +186,7 @@
 			</div>
 			<div class="tab-container" bind:this={tab_nav_el} role="tablist">
 				{#each visible_tabs as t, i}
-					{#if t?.visible}
+					{#if t && t?.visible !== false}
 						<button
 							role="tab"
 							class:selected={t.id === $selected_tab}
@@ -209,7 +210,8 @@
 			</div>
 			<span
 				class="overflow-menu"
-				class:hide={!is_overflowing || !overflow_tabs.some((t) => t?.visible)}
+				class:hide={!is_overflowing ||
+					!overflow_tabs.some((t) => t?.visible !== false)}
 				bind:this={overflow_menu}
 			>
 				<button
@@ -221,7 +223,7 @@
 				</button>
 				<div class="overflow-dropdown" class:hide={!overflow_menu_open}>
 					{#each overflow_tabs as t}
-						{#if t?.visible}
+						{#if t?.visible !== false}
 							<button
 								on:click={() => change_tab(t?.id)}
 								class:selected={t?.id === $selected_tab}
@@ -247,6 +249,10 @@
 
 	.hide {
 		display: none;
+	}
+
+	.hidden {
+		display: none !important;
 	}
 
 	.tab-wrapper {
