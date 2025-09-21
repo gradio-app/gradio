@@ -2047,7 +2047,6 @@ Prompt:
 History:
 {limited_history if limited_history else "No chat history."}
 """
-            print(prompt)
 
             system_prompt = load_system_prompt()
             content = (
@@ -2231,7 +2230,7 @@ Respond with a full Gradio app.
 Respond with a full Gradio app using correct syntax and features of the latest Gradio version. DO NOT write code that doesn't follow the signatures listed.
 Do not add comments explaining the code, unless they are very necessary to understand the code.
 Make sure the code includes all necessary imports.
-Clearly explain the changes, summary, or reasoning for the code you respond with, inside one large <reasoning> tag.
+Clearly explain the changes, summary, or reasoning for the code you respond with, inside one large <reasoning> tag. Make sure it's easy to parse. Use markdown formatting when it makes sense, including bullet points if there are multiple changes.
 
 
 Here's an example of a valid response:

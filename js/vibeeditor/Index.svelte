@@ -2,6 +2,7 @@
 	import { Client } from "@gradio/client";
 	import { onMount } from "svelte";
 	import { BaseCode } from "@gradio/code";
+	import { BaseMarkdown } from "@gradio/markdown";
 
 	export let app: Client;
 	export let root: string;
@@ -222,7 +223,13 @@
 						class:user-message={!message.isBot}
 					>
 						<div class="message-content">
-							<span class="message-text">{message.text}</span>
+							<span class="message-text">
+								<BaseMarkdown
+									value={message.text}
+									latex_delimiters={[]}
+									theme_mode="system"
+								/>
+							</span>
 							{#if !message.isBot && message.hash && !message.isPending}
 								<button
 									class="undo-button"
