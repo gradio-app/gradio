@@ -1981,6 +1981,30 @@ class App(FastAPI):
         chat_history = {"history": ""}
         hash_to_chat_history = {}
 
+        def limit_chat_history(history: str, max_pairs: int = 5) -> str:
+            """Limit chat history in the prompt to the last max_pairs user-assistant pairs."""
+            if not history.strip():
+                return ""
+
+            user_messages = history.split("\nUser: ")
+            if len(user_messages) <= max_pairs:
+                return history
+
+            recent_messages = user_messages[-max_pairs:]
+
+            if len(recent_messages) > 0:
+                if recent_messages[0].startswith("User: "):
+                    result = recent_messages[0]
+                else:
+                    result = "User: " + recent_messages[0]
+
+                for msg in recent_messages[1:]:
+                    result += "\nUser: " + msg
+
+                return result
+
+            return ""
+
         @router.post("/vibe-edit/")
         @router.post("/vibe-edit")
         async def vibe_edit(body: VibeEditBody):
@@ -2008,6 +2032,8 @@ class App(FastAPI):
             client = InferenceClient()
 
             content = ""
+            limited_history = limit_chat_history(chat_history["history"])
+
             prompt = f"""
 You are a code generator for Gradio apps. Given the following existing code and prompt, return the full new code.
 Existing code:
@@ -2019,8 +2045,9 @@ Prompt:
 {body.prompt}
 
 History:
-{chat_history["history"] if chat_history["history"] else "No chat history."}
+{limited_history if limited_history else "No chat history."}
 """
+            print(prompt)
 
             system_prompt = load_system_prompt()
             content = (
