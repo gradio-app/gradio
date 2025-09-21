@@ -123,6 +123,7 @@ if TYPE_CHECKING:
     from gradio.blocks import Block
 
 import difflib
+import re
 import shutil
 import tempfile
 
@@ -2020,7 +2021,7 @@ Prompt:
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": prompt},
                     ],
-                    max_tokens=1000,
+                    max_tokens=10000,
                 )
                 .choices[0]
                 .message.content
@@ -2028,6 +2029,30 @@ Prompt:
 
             if content is None:
                 raise HTTPException(status_code=500, detail="Error generating code")
+
+            control_token_re = re.compile(r"<\|[^>]*\|>")
+            final_start_re = re.compile(
+                r"<\|start\|>assistant<\|channel\|>final<\|message\|>", re.IGNORECASE
+            )
+            end_re = re.compile(r"<\|end\|>", re.IGNORECASE)
+
+            # Remove analysis and weird markers from gpt-oss
+            def clean_out_markers(raw: str) -> str:
+                if not raw:
+                    return raw
+
+                m = final_start_re.search(raw)
+                if m:
+                    text = raw[m.end() :]
+                    m_end = end_re.search(text)
+                    if m_end:
+                        text = text[: m_end.start()]
+                    return text.strip()
+
+                text = control_token_re.sub("", raw)
+                return text.strip()
+
+            content = clean_out_markers(content)
 
             reasoning = None
             if "<reasoning>" in content:
