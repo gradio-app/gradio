@@ -1978,6 +1978,8 @@ class App(FastAPI):
 
         vibe_edit_history_dir = Path(DEFAULT_TEMP_DIR) / "vibe_edit_history"
         vibe_edit_history_dir.mkdir(exist_ok=True, parents=True)
+        chat_history = {"history": ""}
+        hash_to_chat_history = {}
 
         @router.post("/vibe-edit/")
         @router.post("/vibe-edit")
@@ -1999,6 +2001,8 @@ class App(FastAPI):
             with open(snapshot_file, "w") as f:
                 f.write(original_code)
 
+            hash_to_chat_history[snapshot_hash] = chat_history["history"]
+
             from huggingface_hub import InferenceClient
 
             client = InferenceClient()
@@ -2012,7 +2016,12 @@ Existing code:
 ```
 
 Prompt:
-{body.prompt}"""
+{body.prompt}
+
+History:
+{chat_history["history"] if chat_history["history"] else "No chat history."}
+"""
+
             system_prompt = load_system_prompt()
             content = (
                 client.chat_completion(
@@ -2053,6 +2062,8 @@ Prompt:
                 return text.strip()
 
             content = clean_out_markers(content)
+
+            chat_history["history"] += f"\nUser: {body.prompt}\nAssistant: {content}\n"
 
             reasoning = None
             if "<reasoning>" in content:
@@ -2113,6 +2124,8 @@ Prompt:
 
             with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
                 f.write(saved_content)
+
+            chat_history["history"] = hash_to_chat_history.get(hash, "")
 
             return {"success": True}
 
