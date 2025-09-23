@@ -1,6 +1,6 @@
 ---
-"@gradio/vibeeditor": minor
-"gradio": minor
+"@gradio/vibeeditor": patch
+"gradio": patch
 ---
 
-feat:Fix various vibe editor issues 
+fix:Fix various vibe editor issues 
