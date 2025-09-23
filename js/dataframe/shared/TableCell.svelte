@@ -67,6 +67,7 @@
 	export let is_dragging: boolean;
 	export let display_value: string | undefined;
 	export let wrap = false;
+	export let truncate_headers = false;
 
 	function get_cell_position(col_index: number): string {
 		if (col_index >= actual_pinned_columns) {
@@ -150,6 +151,7 @@
 			on_select_row={handle_select_row}
 			{is_dragging}
 			wrap_text={wrap}
+			{truncate_headers}
 		/>
 		{#if editable && should_show_cell_menu([index, j], selected_cells, editable)}
 			<CellMenuButton on_click={(event) => toggle_cell_menu(event, index, j)} />

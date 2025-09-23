@@ -32,7 +32,7 @@
 	export let i18n: I18nFormatter;
 	export let is_dragging = false;
 	export let wrap_text = false;
-
+	export let truncate_headers = false;
 	export let show_selection_buttons = false;
 	export let coords: [number, number];
 	export let on_select_column: ((col: number) => void) | null = null;
@@ -125,6 +125,7 @@
 		class:edit
 		class:expanded={edit}
 		class:multiline={header}
+		class:truncate={header && truncate_headers}
 		on:focus|preventDefault
 		style={styling}
 		data-editable={editable}
@@ -223,6 +224,10 @@
 
 	.multiline {
 		white-space: pre;
+	}
+
+	.truncate {
+		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}

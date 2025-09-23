@@ -136,7 +136,7 @@
 				</div>
 			{/if}
 			<button
-				class="header-button {truncate_headers ? 'truncate-header' : ''}"
+				class="header-button"
 				on:click={(event) => handle_header_click(event, i)}
 				on:mousedown={(event) => {
 					event.preventDefault();
@@ -161,6 +161,7 @@
 						}
 					}}
 					header
+					{truncate_headers}
 					{editable}
 					{is_static}
 					{i18n}
@@ -273,8 +274,6 @@
 		display: flex;
 		text-align: left;
 		width: 100%;
-		overflow: hidden;
-		text-overflow: ellipsis;
 		display: flex;
 		align-items: center;
 		position: relative;
@@ -341,11 +340,5 @@
 
 	.select-all-checkbox :global(span) {
 		display: none;
-	}
-
-	.truncate-header {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
 	}
 </style>
