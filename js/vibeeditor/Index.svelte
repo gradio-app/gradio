@@ -26,7 +26,7 @@
 
 	let history_elem: HTMLDivElement;
 
-	const scroll_to_bottom = (behavior: "smooth" | "auto" = "smooth") => {
+	const scroll_to_bottom = (behavior: "smooth" | "auto" = "smooth"): void => {
 		if (!history_elem) return;
 		history_elem.scrollTo({
 			top: history_elem.scrollHeight,
