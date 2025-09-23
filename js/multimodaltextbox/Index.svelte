@@ -117,6 +117,12 @@
 	const stream_handler_fn = (
 		...args: Parameters<typeof gradio.client.stream>
 	): EventSource => gradio.client.stream(...args);
+
+	$: sources_string = sources.join(",") as
+		| "upload"
+		| "upload,microphone"
+		| "microphone"
+		| "microphone,upload";
 </script>
 
 <Block
@@ -160,7 +166,7 @@
 		{autofocus}
 		{autoscroll}
 		{file_count}
-		sources_string={sources.join(",")}
+		{sources_string}
 		max_file_size={gradio.max_file_size}
 		on:change={() => gradio.dispatch("change", value)}
 		on:input={() => gradio.dispatch("input")}

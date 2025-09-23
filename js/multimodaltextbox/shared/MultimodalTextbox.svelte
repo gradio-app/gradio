@@ -58,7 +58,11 @@
 	export let waveform_options: WaveformOptions = {
 		show_recording_waveform: true
 	};
-	export let sources_string = "upload";
+	export let sources_string:
+		| "upload"
+		| "upload,microphone"
+		| "microphone"
+		| "microphone,upload" = "upload";
 	export let active_source: "microphone" | null = null;
 	export let html_attributes: InputHTMLAttributes | null = null;
 
