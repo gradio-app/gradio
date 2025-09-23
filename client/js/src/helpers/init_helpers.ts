@@ -87,8 +87,11 @@ export async function resolve_config(
 		// @ts-ignore
 		return { ...window.gradio_config } as Config;
 	} else if (endpoint) {
+		if (window.gradio_config?.current_page) {
+			endpoint = endpoint.substring(0, endpoint.lastIndexOf("/"));
+		}
 		let config_url = join_urls(
-			endpoint.substring(0, endpoint.lastIndexOf("/")),
+			endpoint,
 			this.deep_link ? CONFIG_URL + "?deep_link=" + this.deep_link : CONFIG_URL
 		);
 
