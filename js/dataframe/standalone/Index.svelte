@@ -20,7 +20,7 @@
 		metadata: null
 	};
 	export let datatype: Datatype | Datatype[] = "str";
-	export let interactive = true
+	export let interactive = true;
 	export let show_row_numbers = false;
 	export let max_height = 500;
 	export let show_search: "none" | "search" | "filter" = "none";

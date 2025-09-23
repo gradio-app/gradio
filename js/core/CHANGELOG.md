@@ -2,6 +2,12 @@
 
 ## 0.29.0
 
+### Dependency updates
+
+- @gradio/paramviewer@0.8.1
+
+## 0.29.0
+
 ### Features
 
 - [#11894](https://github.com/gradio-app/gradio/pull/11894) [`cf10724`](https://github.com/gradio-app/gradio/commit/cf107246c104f3d8be1adf7a4c3d85558a0a5497) - Remove additional indentation in python API docs.  Thanks @freddyaboulton!
