@@ -44,9 +44,7 @@ def main(
 
     for ft in file_types:
         if ft not in {"text_encoded", "image"}:
-            raise typer.BadParameter(
-                "file_types must be one of: text_encoded, image"
-            )
+            raise typer.BadParameter("file_types must be one of: text_encoded, image")
 
     demo = load_chat_external(
         base_url=base_url,
