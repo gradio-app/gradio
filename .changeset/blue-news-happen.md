@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Ensure interactivity param works as expected in standalone dataframe
+feat:Ensure interactivity works as expected in standalone dataframe
