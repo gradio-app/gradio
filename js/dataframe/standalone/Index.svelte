@@ -20,7 +20,7 @@
 		metadata: null
 	};
 	export let datatype: Datatype | Datatype[] = "str";
-	export let editable = true;
+	export let interactive = true;
 	export let show_row_numbers = false;
 	export let max_height = 500;
 	export let show_search: "none" | "search" | "filter" = "none";
@@ -96,7 +96,7 @@
 		display_value={value?.metadata?.display_value}
 		styling={value?.metadata?.styling}
 		{datatype}
-		{editable}
+		editable={interactive}
 		{show_row_numbers}
 		{max_height}
 		{show_search}
