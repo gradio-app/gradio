@@ -1,7 +1,7 @@
 <script lang="ts">
 	// @ts-nocheck
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import Table from "./shared/Table.svelte";
+	import Dataframe from "./Index.svelte";
 	import { within } from "@testing-library/dom";
 	import { userEvent } from "@storybook/test";
 	import { get } from "svelte/store";
@@ -10,8 +10,8 @@
 </script>
 
 <Meta
-	title="Components/DataFrame"
-	component={Table}
+	title="Components/Dataframe"
+	component={Dataframe}
 	parameters={{
 		test: {
 			dangerouslyIgnoreUnhandledErrors: true // ignore fullscreen permission error
@@ -38,18 +38,20 @@
 />
 
 <Template let:args>
-	<Table {...args} i18n={get(format)} />
+	<Dataframe {...args} i18n={get(format)} />
 </Template>
 
 <Story
 	name="Interactive dataframe"
 	args={{
-		values: [
-			["Cat", 5],
-			["Horse", 3],
-			["Snake", 1]
-		],
-		headers: ["Animal", "Votes"],
+		value: {
+			data: [
+				["Cat", 5],
+				["Horse", 3],
+				["Snake", 1]
+			],
+			headers: ["Animal", "Votes"]
+		},
 		label: "Animals",
 		col_count: [2, "dynamic"],
 		row_count: [3, "dynamic"]
@@ -59,12 +61,14 @@
 <Story
 	name="Interactive dataframe with label"
 	args={{
-		values: [
-			["Cat", 5, true],
-			["Horse", 3, false],
-			["Snake", 1, false]
-		],
-		headers: ["Animal", "Votes", "Is Pet"],
+		value: {
+			data: [
+				["Cat", 5, true],
+				["Horse", 3, false],
+				["Snake", 1, false]
+			],
+			headers: ["Animal", "Votes", "Is Pet"]
+		},
 		datatype: ["str", "number", "bool"],
 		label: "Animals",
 		show_label: true,
@@ -76,12 +80,14 @@
 <Story
 	name="Interactive dataframe no label"
 	args={{
-		values: [
-			["Cat", 5],
-			["Horse", 3],
-			["Snake", 1]
-		],
-		headers: ["Animal", "Votes"],
+		value: {
+			data: [
+				["Cat", 5],
+				["Horse", 3],
+				["Snake", 1]
+			],
+			headers: ["Animal", "Votes"]
+		},
 		metadata: null,
 		label: "Animals",
 		show_label: false,
@@ -93,12 +99,14 @@
 <Story
 	name="Static dataframe"
 	args={{
-		values: [
-			["Cat", 5, true],
-			["Horse", 3, false],
-			["Snake", 1, false]
-		],
-		headers: ["Animal", "Votes", "Is Pet"],
+		value: {
+			data: [
+				["Cat", 5, true],
+				["Horse", 3, false],
+				["Snake", 1, false]
+			],
+			headers: ["Animal", "Votes", "Is Pet"]
+		},
 		datatype: ["str", "number", "bool"],
 		label: "Animals",
 		col_count: [3, "dynamic"],
@@ -129,126 +137,145 @@
 <Story
 	name="Dataframe with different precisions"
 	args={{
-		values: [
-			[1.24, 1.24, 1.24],
-			[1.21, 1.21, 1.21]
-		],
-		headers: ["Precision=0", "Precision=1", "Precision=2"],
-		display_value: [
-			["1", "1.2", "1.24"],
-			["1", "1.2", "1.21"]
-		],
+		value: {
+			data: [
+				[1.24, 1.24, 1.24],
+				[1.21, 1.21, 1.21]
+			],
+			headers: ["Precision=0", "Precision=1", "Precision=2"],
+			metadata: {
+				display_value: [
+					["1", "1.2", "1.24"],
+					["1", "1.2", "1.21"]
+				]
+			}
+		},
 		label: "Numbers",
 		col_count: [3, "dynamic"],
 		row_count: [2, "dynamic"],
-		editable: false
+		interactive: false
 	}}
 />
 
 <Story
 	name="Dataframe with markdown and math"
 	args={{
-		values: [
-			["Linear", "$y=x$", "Has a *maximum*  of 1 root"],
-			["Quadratic", "$y=x^2$", "Has a *maximum*  of 2 roots"],
-			["Cubic", "$y=x^3$", "Has a *maximum*  of 3 roots"]
-		],
-		headers: ["Type", "Example", "Roots"],
+		value: {
+			data: [
+				["Linear", "$y=x$", "Has a *maximum*  of 1 root"],
+				["Quadratic", "$y=x^2$", "Has a *maximum*  of 2 roots"],
+				["Cubic", "$y=x^3$", "Has a *maximum*  of 3 roots"]
+			],
+			headers: ["Type", "Example", "Roots"]
+		},
 		datatype: ["str", "markdown", "markdown"],
 		latex_delimiters: [{ left: "$", right: "$", display: false }],
 		label: "Math",
 		col_count: [3, "dynamic"],
 		row_count: [3, "dynamic"],
-		editable: false
+		interactive: false
 	}}
 />
 
 <Story
 	name="Dataframe without a label"
 	args={{
-		values: [
-			[800, 100, 800],
-			[200, 800, 700]
-		],
-		headers: ["Math", "Reading", "Writing"],
+		value: {
+			data: [
+				[800, 100, 800],
+				[200, 800, 700]
+			],
+			headers: ["Math", "Reading", "Writing"]
+		},
 		show_label: false,
 		col_count: [3, "dynamic"],
 		row_count: [2, "dynamic"],
-		editable: false
+		interactive: false
 	}}
 />
 
 <Story
 	name="Dataframe with different colors"
 	args={{
-		values: [
-			[800, 100, 800],
-			[200, 800, 700]
-		],
-		headers: ["Math", "Reading", "Writing"],
-
-		styling: [
-			[
-				"background-color:teal; color: white",
-				"1.2",
-				"background-color:teal; color: white"
+		value: {
+			data: [
+				[800, 100, 800],
+				[200, 800, 700]
 			],
-			["1", "background-color:teal; color: white", "1.21"]
-		],
+			headers: ["Math", "Reading", "Writing"],
+			metadata: {
+				styling: [
+					[
+						"background-color:teal; color: white",
+						"1.2",
+						"background-color:teal; color: white"
+					],
+					["1", "background-color:teal; color: white", "1.21"]
+				]
+			}
+		},
 		label: "Test scores",
 		col_count: [3, "dynamic"],
 		row_count: [2, "dynamic"],
-		editable: false
+		interactive: false
 	}}
 />
 
 <Story
 	name="Dataframe with column widths"
 	args={{
-		values: [
-			[800, 100, 800],
-			[200, 800, 700]
-		],
-		headers: ["Narrow", "Wide", "Half"],
+		value: {
+			data: [
+				[800, 100, 800],
+				[200, 800, 700]
+			],
+			headers: ["Narrow", "Wide", "Half"]
+		},
 		label: "Test scores",
 		col_count: [3, "dynamic"],
 		row_count: [2, "dynamic"],
 		column_widths: ["20%", "30%", "50%"],
-		editable: false
+		interactive: false
 	}}
 />
 
 <Story
 	name="Dataframe with zero row count"
 	args={{
-		values: [],
-		headers: ["Narrow", "Wide", "Half"],
+		value: {
+			data: [],
+			headers: ["Narrow", "Wide", "Half"]
+		},
 		label: "Test scores",
 		col_count: [0, "dynamic"],
 		row_count: [0, "dynamic"],
-		editable: false
+		interactive: false
 	}}
 />
 
 <Story
 	name="Interactive dataframe with zero row count"
 	args={{
-		values: [],
-		headers: ["Narrow", "Wide", "Half"],
+		value: {
+			data: [],
+			headers: ["Narrow", "Wide", "Half"]
+		},
 		label: "Test scores",
 		col_count: [0, "dynamic"],
 		row_count: [0, "dynamic"],
-		editable: true
+		interactive: true
 	}}
 />
 
 <Story
 	name="Dataframe with link"
 	args={{
-		values: [['<a href="https://www.google.com/">google</a>']],
-		headers: ["link"],
+		value: {
+			data: [['<a href="https://www.google.com/">google</a>']],
+			headers: ["link"]
+		},
 		datatype: ["markdown"],
-		editable: false,
+		interactive: false,
 		col_count: [1, "dynamic"],
 		row_count: [1, "dynamic"]
 	}}
@@ -257,14 +284,16 @@
 <Story
 	name="Dataframe with dialog interactions"
 	args={{
-		values: [
-			[800, 100, 400],
-			[200, 800, 700]
-		],
+		value: {
+			data: [
+				[800, 100, 400],
+				[200, 800, 700]
+			],
+			headers: ["Math", "Reading", "Writing"]
+		},
 		col_count: [3, "dynamic"],
 		row_count: [2, "dynamic"],
-		headers: ["Math", "Reading", "Writing"],
-		editable: true
+		interactive: true
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
@@ -287,13 +316,15 @@
 <Story
 	name="Dataframe with fullscreen button and label and search"
 	args={{
+		value: {
+			data: [
+				[800, 100, 400],
+				[200, 800, 700]
+			],
+			headers: ["Math", "Reading", "Writing"]
+		},
 		col_count: [3, "dynamic"],
 		row_count: [2, "dynamic"],
-		headers: ["Math", "Reading", "Writing"],
-		values: [
-			[800, 100, 400],
-			[200, 800, 700]
-		],
 		show_fullscreen_button: true,
 		show_label: true,
 		show_copy_button: true,
@@ -305,16 +336,18 @@
 <Story
 	name="Dataframe with multiple selection interactions"
 	args={{
-		values: [
-			[1, 2, 3, 4],
-			[5, 6, 7, 8],
-			[9, 10, 11, 12],
-			[13, 14, 15, 16]
-		],
+		value: {
+			data: [
+				[1, 2, 3, 4],
+				[5, 6, 7, 8],
+				[9, 10, 11, 12],
+				[13, 14, 15, 16]
+			],
+			headers: ["A", "B", "C", "D"]
+		},
 		col_count: [4, "dynamic"],
 		row_count: [4, "dynamic"],
-		headers: ["A", "B", "C", "D"],
-		editable: true
+		interactive: true
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
@@ -345,13 +378,15 @@
 <Story
 	name="Dataframe toolbar interactions"
 	args={{
+		value: {
+			data: [
+				[800, 100, 400],
+				[200, 800, 700]
+			],
+			headers: ["Math", "Reading", "Writing"]
+		},
 		col_count: [3, "dynamic"],
 		row_count: [2, "dynamic"],
-		headers: ["Math", "Reading", "Writing"],
-		values: [
-			[800, 100, 400],
-			[200, 800, 700]
-		],
 		show_fullscreen_button: true,
 		show_copy_button: true
 	}}
@@ -375,43 +410,47 @@
 <Story
 	name="Dataframe with row numbers"
 	args={{
-		values: [
-			[95, 92, 88],
-			[89, 90, 85],
-			[92, 88, 91],
-			[87, 85, 89],
-			[91, 93, 90]
-		],
-		headers: ["Model A", "Model B", "Model C"],
+		value: {
+			data: [
+				[95, 92, 88],
+				[89, 90, 85],
+				[92, 88, 91],
+				[87, 85, 89],
+				[91, 93, 90]
+			],
+			headers: ["Model A", "Model B", "Model C"]
+		},
 		label: "Model Performance",
 		col_count: [3, "dynamic"],
 		row_count: [5, "dynamic"],
 		show_row_numbers: true,
-		editable: false
+		interactive: false
 	}}
 />
 
 <Story
 	name="Dataframe with truncated text"
 	args={{
-		values: [
-			[
-				"This is a very long text that should be truncated",
-				"Short text",
-				"Another very long text that needs truncation"
+		value: {
+			data: [
+				[
+					"This is a very long text that should be truncated",
+					"Short text",
+					"Another very long text that needs truncation"
+				],
+				[
+					"Short",
+					"This text is also quite long and should be truncated as well",
+					"Medium length text here"
+				],
+				[
+					"Medium text",
+					"Brief",
+					"This is the longest text in the entire table and it should definitely be truncated"
+				]
 			],
-			[
-				"Short",
-				"This text is also quite long and should be truncated as well",
-				"Medium length text here"
-			],
-			[
-				"Medium text",
-				"Brief",
-				"This is the longest text in the entire table and it should definitely be truncated"
-			]
-		],
-		headers: ["Column A", "Column B", "Column C"],
+			headers: ["Column A", "Column B", "Column C"]
+		},
 		label: "Truncated Text Example",
 		max_chars: 20,
 		col_count: [3, "dynamic"],
@@ -422,42 +461,46 @@
 <Story
 	name="Dataframe with multiline headers"
 	args={{
-		values: [
-			[95, 92, 88],
-			[89, 90, 85],
-			[92, 88, 91]
-		],
-		headers: [
-			"Dataset A\nAccuracy",
-			"Dataset B\nPrecision",
-			"Dataset C\nRecall"
-		],
+		value: {
+			data: [
+				[95, 92, 88],
+				[89, 90, 85],
+				[92, 88, 91]
+			],
+			headers: [
+				"Dataset A\nAccuracy",
+				"Dataset B\nPrecision",
+				"Dataset C\nRecall"
+			]
+		},
+
 		label: "Model Metrics",
 		col_count: [3, "dynamic"],
 		row_count: [3, "dynamic"],
-		editable: false
+		interactive: false
 	}}
 />
 
 <Story
 	name="Dataframe with custom components"
 	args={{
-		values: [
-			[
-				"Absol G",
-				70,
-				"https://images.pokemontcg.io/pl3/1_hires.png",
-				"pl3-1",
-				"Supreme Victors"
-			]
-		],
+		value: {
+			data: [
+				[
+					"Absol G",
+					70,
+					"https://images.pokemontcg.io/pl3/1_hires.png",
+					"pl3-1",
+					"Supreme Victors"
+				]
+			],
+			headers: ["Pokemon", "HP", "Image", "ID", "Set"]
+		},
 		datatype: ["str", "number", "image", "str", "str"],
-		headers: ["Pokemon", "HP", "Image", "ID", "Set"],
 		label: "Pokemon Cards",
 		col_count: [5, "fixed"],
 		row_count: [1, "dynamic"],
-		editable: true,
-		editable: true,
+		interactive: true,
 		components: {
 			image: Image
 		}
@@ -467,16 +510,18 @@
 <Story
 	name="Dataframe with row and column selection"
 	args={{
-		values: [
-			[1, 2, 3, 4],
-			[5, 6, 7, 8],
-			[9, 10, 11, 12],
-			[13, 14, 15, 16]
-		],
+		value: {
+			data: [
+				[1, 2, 3, 4],
+				[5, 6, 7, 8],
+				[9, 10, 11, 12],
+				[13, 14, 15, 16]
+			],
+			headers: ["A", "B", "C", "D"]
+		},
 		col_count: [4, "dynamic"],
 		row_count: [4, "dynamic"],
-		headers: ["A", "B", "C", "D"],
-		editable: true
+		interactive: true
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
@@ -507,33 +552,35 @@
 <Story
 	name="Dataframe with lots of values"
 	args={{
-		values: [
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-		],
+		value: {
+			data: [
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+			]
+		},
 		col_count: [10, "dynamic"],
 		row_count: [10, "dynamic"],
 		max_height: 700
@@ -543,18 +590,20 @@
 <Story
 	name="Dataframe with search and filter"
 	args={{
-		values: [
-			["Cat", 5, "Pet"],
-			["Horse", 3, "Farm"],
-			["Snake", 1, "Pet"],
-			["Cow", 4, "Farm"],
-			["Dog", 6, "Pet"]
-		],
-		headers: ["Animal", "Count", "Type"],
+		value: {
+			data: [
+				["Cat", 5, "Pet"],
+				["Horse", 3, "Farm"],
+				["Snake", 1, "Pet"],
+				["Cow", 4, "Farm"],
+				["Dog", 6, "Pet"]
+			],
+			headers: ["Animal", "Count", "Type"]
+		},
 		col_count: [3, "dynamic"],
 		row_count: [5, "dynamic"],
 		show_search: "filter",
-		editable: false
+		interactive: false
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
@@ -578,32 +627,36 @@
 <Story
 	name="Dataframe with pinned columns"
 	args={{
-		values: [
-			["ID", "Name", "Age", "City", "Country", "Score"],
-			["1", "John", "25", "New York", "USA", "95"],
-			["2", "Emma", "30", "London", "UK", "88"],
-			["3", "Luis", "28", "Madrid", "Spain", "92"],
-			["4", "Anna", "35", "Paris", "France", "90"],
-			["5", "Chen", "27", "Beijing", "China", "94"]
-		],
-		headers: ["ID", "Name", "Age", "City", "Country", "Score"],
+		value: {
+			data: [
+				["ID", "Name", "Age", "City", "Country", "Score"],
+				["1", "John", "25", "New York", "USA", "95"],
+				["2", "Emma", "30", "London", "UK", "88"],
+				["3", "Luis", "28", "Madrid", "Spain", "92"],
+				["4", "Anna", "35", "Paris", "France", "90"],
+				["5", "Chen", "27", "Beijing", "China", "94"]
+			],
+			headers: ["ID", "Name", "Age", "City", "Country", "Score"]
+		},
 		label: "User Data",
 		col_count: [6, "dynamic"],
 		row_count: [6, "dynamic"],
 		pinned_columns: 2,
 		show_row_numbers: true,
-		editable: false
+		interactive: false
 	}}
 />
 
 <Story
 	name="Dataframe with pixel and percentage column widths set"
 	args={{
-		values: [
-			[1, 2, 3, 4, 5],
-			[6, 7, 8, 9, 10]
-		],
-		headers: ["10%", "50%", "40%", "100px", "100px"],
+		value: {
+			data: [
+				[1, 2, 3, 4, 5],
+				[6, 7, 8, 9, 10]
+			],
+			headers: ["A", "B", "C", "D", "E"]
+		},
 		col_count: [5, "dynamic"],
 		row_count: [2, "dynamic"],
 		column_widths: ["10%", "50%", "40%", "100px", "100px"]
@@ -613,18 +666,20 @@
 <Story
 	name="Dataframe with drag selection"
 	args={{
-		values: [
-			[1, 2, 3, 4, 5],
-			[6, 7, 8, 9, 10],
-			[11, 12, 13, 14, 15],
-			[16, 17, 18, 19, 20],
-			[21, 22, 23, 24, 25]
-		],
-		headers: ["A", "B", "C", "D", "E"],
+		value: {
+			data: [
+				[1, 2, 3, 4, 5],
+				[6, 7, 8, 9, 10],
+				[11, 12, 13, 14, 15],
+				[16, 17, 18, 19, 20],
+				[21, 22, 23, 24, 25]
+			],
+			headers: ["A", "B", "C", "D", "E"]
+		},
 		label: "Drag Selection Demo",
 		col_count: [5, "dynamic"],
 		row_count: [5, "dynamic"],
-		editable: true
+		interactive: true
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
@@ -688,15 +743,17 @@
 <Story
 	name="Non-interactive dataframe with sorting by multiple columns"
 	args={{
-		values: [
-			[1, 2, 3],
-			[4, 5, 6],
-			[7, 8, 9]
-		],
-		headers: ["A", "B", "C"],
+		value: {
+			data: [
+				[1, 2, 3],
+				[4, 5, 6],
+				[7, 8, 9]
+			],
+			headers: ["A", "B", "C"]
+		},
 		col_count: [3, "dynamic"],
 		row_count: [3, "dynamic"],
-		editable: false,
+		interactive: false,
 		sort_columns: [
 			{ col: 0, direction: "asc" },
 			{ col: 1, direction: "desc" }
@@ -755,52 +812,58 @@
 <Story
 	name="Dataframe with display values"
 	args={{
-		values: [
-			[95, 92, 88],
-			[89, 90, 85],
-			[92, 88, 91],
-			[87, 85, 89],
-			[91, 93, 90],
-			[82, 81, 83]
-		],
-		headers: ["Model A", "Model B", "Empty Values"],
-		display_value: [
-			["🥇 95", "92", ""],
-			["🥈 89", "90", ""],
-			["🥉 92", "88", ""],
-			["87", "85", ""],
-			["91", "93", ""],
-			["82", "81", ""]
-		],
+		value: {
+			data: [
+				[95, 92, 88],
+				[89, 90, 85],
+				[92, 88, 91],
+				[87, 85, 89],
+				[91, 93, 90],
+				[82, 81, 83]
+			],
+			metadata: {
+				display_value: [
+					["🥇 95", "92", ""],
+					["🥈 89", "90", ""],
+					["🥉 92", "88", ""],
+					["87", "85", ""],
+					["91", "93", ""],
+					["82", "81", ""]
+				]
+			},
+			headers: ["Model A", "Model B", "Empty Values"]
+		},
 		label: "Model Performance with Medal Indicators",
 		col_count: [3, "dynamic"],
 		row_count: [6, "dynamic"],
 		show_row_numbers: true,
-		editable: false
+		interactive: false
 	}}
 />
 
 <Story
 	name="Dataframe with text wrapping, no max chars"
 	args={{
-		values: [
-			[
-				"This is a very long text that should wrap to multiple lines when wrap is enabled",
-				"Short text",
-				"Another very long text that demonstrates wrapping behavior in the table cells"
+		value: {
+			data: [
+				[
+					"This is a very long text that should wrap to multiple lines when wrap is enabled",
+					"Short text",
+					"Another very long text that demonstrates wrapping behavior in the table cells"
+				],
+				[
+					"Short",
+					"This text is also quite long and should demonstrate the wrapping behavior when enabled",
+					"Medium length text here"
+				],
+				[
+					"Medium text",
+					"Brief",
+					"When wrap is disabled, this text should be truncated with an ellipsis instead of wrapping to multiple lines"
+				]
 			],
-			[
-				"Short",
-				"This text is also quite long and should demonstrate the wrapping behavior when enabled",
-				"Medium length text here"
-			],
-			[
-				"Medium text",
-				"Brief",
-				"When wrap is disabled, this text should be truncated with an ellipsis instead of wrapping to multiple lines"
-			]
-		],
-		headers: ["Column A", "Column B", "Column C"],
+			headers: ["Column A", "Column B", "Column C"]
+		},
 		label: "Text Wrapping Example",
 		col_count: [3, "dynamic"],
 		row_count: [3, "dynamic"],
@@ -812,30 +875,32 @@
 <Story
 	name="Dataframe text truncation and wrapping"
 	args={{
-		values: [
-			[
-				"This is a very long text that should be truncated with an ellipsis when wrap is false",
-				"Short text",
-				"Another very long text that should also be truncated with an ellipsis"
+		value: {
+			data: [
+				[
+					"This is a very long text that should be truncated with an ellipsis when wrap is false",
+					"Short text",
+					"Another very long text that should also be truncated with an ellipsis"
+				],
+				[
+					"Short",
+					"This text is also quite long and should be truncated with an ellipsis",
+					"Medium length text here"
+				],
+				[
+					"Medium text",
+					"Brief",
+					"When wrap is false this text should definitely be truncated with an ellipsis"
+				]
 			],
-			[
-				"Short",
-				"This text is also quite long and should be truncated with an ellipsis",
-				"Medium length text here"
-			],
-			[
-				"Medium text",
-				"Brief",
-				"When wrap is false this text should definitely be truncated with an ellipsis"
-			]
-		],
-		headers: ["Column A", "Column B", "Column C"],
+			headers: ["Column A", "Column B", "Column C"]
+		},
 		label: "Text Truncation Example",
 		col_count: [3, "dynamic"],
 		row_count: [3, "dynamic"],
 		wrap: true,
 		max_chars: 50,
-		editable: false,
+		interactive: false,
 		column_widths: ["200px", "200px", "200px"]
 	}}
 />
@@ -843,16 +908,18 @@
 <Story
 	name="Dataframe column addition test"
 	args={{
-		values: [
-			["Alice", 25],
-			["Bob", 30],
-			["Carol", 22]
-		],
-		headers: ["Name", "Age"],
+		value: {
+			data: [
+				["Alice", 25],
+				["Bob", 30],
+				["Carol", 22]
+			],
+			headers: ["Name", "Age"]
+		},
 		label: "Column Addition Test",
 		col_count: [2, "dynamic"],
 		row_count: [3, "dynamic"],
-		editable: true
+		interactive: true
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
@@ -877,19 +944,79 @@
 <Story
 	name="Dataframe with truncated headers (truncate_headers=true)"
 	args={{
-		values: [
-			["Short", "Medium", "Long value"],
-			["Short", "Medium", "Another long value"],
-			["Short", "Medium", "Yet another long value that should be truncated"]
-		],
-		headers: [
-			"Short header",
-			"Medium header",
-			"This is a very long header that should be truncated when truncate_headers is true"
-		],
+		value: {
+			data: [
+				["Short", "Medium", "Long value"],
+				["Short", "Medium", "Another long value"],
+				["Short", "Medium", "Yet another long value that should be truncated"]
+			],
+			headers: [
+				"Short header",
+				"Medium header",
+				"This is a very long header that should be truncated when truncate_headers is true"
+			]
+		},
 		label: "Truncated Headers Example",
 		col_count: [3, "dynamic"],
 		row_count: [3, "dynamic"],
 		truncate_headers: true
+	}}
+/>
+
+<Story
+	name="Dataframe with truncated headers (truncate_headers=false)"
+	args={{
+		value: {
+			data: [
+				[
+					"test-run",
+					"abidlabs",
+					"30 minutes ago",
+					20,
+					0.001,
+					32,
+					32768,
+					896,
+					4864
+				],
+				[
+					"test-run",
+					"abidlabs",
+					"30 minutes ago",
+					20,
+					0.001,
+					32,
+					32768,
+					896,
+					4864
+				],
+				[
+					"test-run",
+					"abidlabs",
+					"30 minutes ago",
+					20,
+					0.001,
+					32,
+					32768,
+					896,
+					4864
+				]
+			],
+			headers: [
+				"test-run",
+				"abidlabs",
+				"30 minutes ago",
+				"20",
+				"0.001",
+				"32",
+				"32768",
+				"896",
+				"4864"
+			]
+		},
+		label: "Truncated Headers Example",
+		col_count: [9, "dynamic"],
+		row_count: [3, "dynamic"],
+		truncate_headers: false
 	}}
 />
