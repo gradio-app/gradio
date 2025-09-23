@@ -2003,7 +2003,54 @@ class App(FastAPI):
             client = InferenceClient()
 
             content = ""
-            prompt = f"""
+            system_prompt = load_system_prompt()
+
+            has_images = len(body.files) > 0
+
+            if has_images:
+                # Use GLM-4.5V model for image processing
+                model = "zai-org/GLM-4.5V"
+
+                image_messages = []
+                for file in body.files:
+                    if file.mime_type and "image" in file.mime_type:
+                        import base64
+
+                        with open(file.path, "rb") as img_file:
+                            img_data = base64.b64encode(img_file.read()).decode("utf-8")
+                            image_messages.append(
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:{file.mime_type};base64,{img_data}"
+                                    },
+                                }
+                            )
+
+                prompt = f"""
+You are a code generator for Gradio apps. Given the following existing code, prompt, and images, return the full new code.
+Existing code:
+```python
+{original_code}
+```
+
+Prompt:
+{body.prompt}
+
+Please analyze the provided images and generate code based on the visual content and the text prompt.
+"""
+
+                messages = [
+                    {"role": "system", "content": system_prompt},
+                    {
+                        "role": "user",
+                        "content": [{"type": "text", "text": prompt}] + image_messages,
+                    },
+                ]
+            else:
+                # Use GPT-OSS for text-only prompts
+                model = "openai/gpt-oss-120b"
+                prompt = f"""
 You are a code generator for Gradio apps. Given the following existing code and prompt, return the full new code.
 Existing code:
 ```python
@@ -2012,15 +2059,15 @@ Existing code:
 
 Prompt:
 {body.prompt}"""
-            system_prompt = load_system_prompt()
+                messages = [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt},
+                ]
             content = (
                 client.chat_completion(
-                    model="openai/gpt-oss-120b",
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": prompt},
-                    ],
-                    max_tokens=1000,
+                    model=model,
+                    messages=messages,
+                    max_tokens=3000,
                 )
                 .choices[0]
                 .message.content
