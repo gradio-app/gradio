@@ -74,22 +74,21 @@ export async function resolve_config(
 
 	headers["Content-Type"] = "application/json";
 
-	if (window.gradio_config.current_page) {
-		endpoint = endpoint.substring(0, endpoint.lastIndexOf("/"));
-	}
-
 	if (
 		typeof window !== "undefined" &&
 		window.gradio_config &&
 		location.origin !== "http://localhost:9876" &&
 		!window.gradio_config.dev_mode
 	) {
+		if (window.gradio_config.current_page) {
+			endpoint = endpoint.substring(0, endpoint.lastIndexOf("/"));
+		}
 		window.gradio_config.root = endpoint;
 		// @ts-ignore
 		return { ...window.gradio_config } as Config;
 	} else if (endpoint) {
 		let config_url = join_urls(
-			endpoint,
+			endpoint.substring(0, endpoint.lastIndexOf("/")),
 			this.deep_link ? CONFIG_URL + "?deep_link=" + this.deep_link : CONFIG_URL
 		);
 
