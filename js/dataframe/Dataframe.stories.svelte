@@ -946,14 +946,20 @@
 	args={{
 		value: {
 			data: [
-				["Short", "Medium", "Long value"],
-				["Short", "Medium", "Another long value"],
-				["Short", "Medium", "Yet another long value that should be truncated"]
+				["Item 1", "user1", "2024-01-01", 10, 0.01, 100, 2000, 500, 1000],
+				["Item 2", "user2", "2024-01-02", 15, 0.02, 200, 3000, 600, 1100],
+				["Item 3", "user3", "2024-01-03", 20, 0.03, 300, 4000, 700, 1200]
 			],
 			headers: [
-				"Short header",
-				"Medium header",
-				"This is a very long header that should be truncated when truncate_headers is true"
+				"Name",
+				"Username",
+				"Created",
+				"epochs",
+				"learning_rate",
+				"batch_size",
+				"max_position_embedding",
+				"hidden_size",
+				"intermediate"
 			]
 		},
 		label: "Truncated Headers Example",
@@ -968,50 +974,20 @@
 	args={{
 		value: {
 			data: [
-				[
-					"test-run",
-					"abidlabs",
-					"30 minutes ago",
-					20,
-					0.001,
-					32,
-					32768,
-					896,
-					4864
-				],
-				[
-					"test-run",
-					"abidlabs",
-					"30 minutes ago",
-					20,
-					0.001,
-					32,
-					32768,
-					896,
-					4864
-				],
-				[
-					"test-run",
-					"abidlabs",
-					"30 minutes ago",
-					20,
-					0.001,
-					32,
-					32768,
-					896,
-					4864
-				]
+				["Item 1", "user1", "2024-01-01", 10, 0.01, 100, 2000, 500, 1000],
+				["Item 2", "user2", "2024-01-02", 15, 0.02, 200, 3000, 600, 1100],
+				["Item 3", "user3", "2024-01-03", 20, 0.03, 300, 4000, 700, 1200]
 			],
 			headers: [
-				"test-run",
-				"abidlabs",
-				"30 minutes ago",
-				"20",
-				"0.001",
-				"32",
-				"32768",
-				"896",
-				"4864"
+				"Name",
+				"Username",
+				"Created",
+				"epochs",
+				"learning_rate",
+				"batch_size",
+				"max_position_embedding",
+				"hidden_size",
+				"intermediate"
 			]
 		},
 		label: "Truncated Headers Example",
