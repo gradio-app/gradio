@@ -3,6 +3,7 @@
 	import { FullscreenButton } from "@gradio/atoms";
 	import { onDestroy } from "svelte";
 	import { createEventDispatcher } from "svelte";
+	import { IconButton } from "@gradio/atoms";
 
 	export let show_fullscreen_button = false;
 	export let show_copy_button = false;
@@ -74,18 +75,11 @@
 			</div>
 		{/if}
 		{#if show_copy_button}
-			<button
-				class="toolbar-button"
+			<IconButton
+				Icon={copied ? Check : Copy}
+				label={copied ? "Copied to clipboard" : "Copy table data"}
 				on:click={handle_copy}
-				aria-label={copied ? "Copied to clipboard" : "Copy table data"}
-				title={copied ? "Copied to clipboard" : "Copy table data"}
-			>
-				{#if copied}
-					<Check />
-				{:else}
-					<Copy />
-				{/if}
-			</button>
+			/>
 		{/if}
 		{#if show_fullscreen_button}
 			<FullscreenButton {fullscreen} on:fullscreen />
