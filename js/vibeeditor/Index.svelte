@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Client } from "@gradio/client";
-	import { onMount } from "svelte";
+	import { onMount, tick } from "svelte";
 	import { BaseCode } from "@gradio/code";
 	import { BaseMarkdown } from "@gradio/markdown";
 
@@ -24,7 +24,17 @@
 
 	let message_history: Message[] = [];
 
-	const submit = (): void => {
+	let history_elem: HTMLDivElement;
+
+	const scroll_to_bottom = (behavior: "smooth" | "auto" = "smooth") => {
+		if (!history_elem) return;
+		history_elem.scrollTo({
+			top: history_elem.scrollHeight,
+			behavior: behavior
+		});
+	};
+
+	const submit = async (): Promise<void> => {
 		if (prompt.trim() === "") return;
 
 		// Clear diff stats when submitting new prompt
@@ -39,6 +49,9 @@
 			{ text: "Working...", isBot: true, isPending: true }
 		];
 
+		await tick();
+		scroll_to_bottom();
+
 		const userPrompt = prompt;
 		prompt = "";
 
@@ -46,7 +59,7 @@
 			prompt: userPrompt
 		});
 		post
-			.then(([response, status_code]) => {
+			.then(async ([response, status_code]) => {
 				if (status_code !== 200) {
 					throw new Error(`Error: ${status_code}`);
 				}
@@ -76,13 +89,17 @@
 							}
 						: msg
 				);
+				await tick();
+				scroll_to_bottom();
 			})
-			.catch((error) => {
+			.catch(async (error) => {
 				message_history = message_history.map((msg, index) =>
 					index === botMessageIndex
 						? { text: "Error occurred.", isBot: true, isPending: false }
 						: msg
 				);
+				await tick();
+				scroll_to_bottom();
 			});
 	};
 
@@ -156,17 +173,29 @@
 		}
 	};
 
+	let code_updated = false;
+
 	const updateCode = async (): Promise<void> => {
 		try {
 			await app.post_data(`${root}/gradio_api/vibe-code/`, {
 				code: codeValue
 			});
+			code_updated = true;
+			setTimeout(() => {
+				code_updated = false;
+			}, 1000);
 		} catch (error) {
 			console.error("Failed to update code:", error);
 		}
 	};
 
 	$: app, fetchCode();
+
+	$: if (activeTab === "chat") {
+		tick().then(() => scroll_to_bottom("auto"));
+	}
+
+	$: code_updated;
 
 	onMount(() => {
 		return () => {
@@ -215,7 +244,7 @@
 
 	<div class="tab-content">
 		{#if activeTab === "chat"}
-			<div class="message-history">
+			<div class="message-history" bind:this={history_elem}>
 				{#each message_history as message, index}
 					<div
 						class="message-item"
@@ -258,12 +287,18 @@
 						readonly={false}
 						placeholder="Enter your code here..."
 						wrap_lines={true}
-						show_line_numbers={true}
-						autocomplete={false}
 					/>
 				</div>
-				<button class="update-code-button" on:click={updateCode}>
-					Update Code
+				<button
+					class:updating={code_updated}
+					class="update-code-button"
+					on:click={updateCode}
+				>
+					{#if code_updated}
+						Updated!
+					{:else}
+						Update Code
+					{/if}
 				</button>
 			</div>
 		{/if}
@@ -304,6 +339,7 @@
 		flex-direction: column;
 		z-index: 100;
 		box-shadow: var(--shadow-drop-lg);
+		overflow: hidden;
 	}
 
 	.resize-handle {
@@ -396,8 +432,17 @@
 		width: 100%;
 	}
 
+	.update-code-button.updating {
+		background: var(--button-secondary-background-fill);
+		color: var(--button-secondary-text-color);
+	}
+
 	.update-code-button:hover {
 		background: var(--button-primary-background-fill-hover);
+	}
+
+	.update-code-button.updating:hover {
+		background: var(--button-secondary-background-fill);
 	}
 
 	.message-history {
@@ -410,6 +455,7 @@
 	}
 
 	.message-item {
+		position: relative;
 		padding: 12px;
 		border-radius: var(--radius-md);
 		border: 1px solid var(--border-color-primary);
@@ -420,6 +466,7 @@
 
 	.user-message {
 		margin-left: 20px;
+		padding: 12px 64px 12px 12px;
 	}
 
 	.bot-message {
@@ -427,10 +474,7 @@
 	}
 
 	.message-content {
-		display: flex;
-		justify-content: space-between;
-		align-items: flex-start;
-		gap: 8px;
+		display: block;
 	}
 
 	.message-text {
@@ -441,6 +485,9 @@
 	}
 
 	.undo-button {
+		position: absolute;
+		top: 8px;
+		right: 8px;
 		background: var(--button-secondary-background-fill);
 		color: var(--button-secondary-text-color);
 		border: 1px solid var(--border-color-primary);
@@ -450,7 +497,6 @@
 		font-weight: 500;
 		cursor: pointer;
 		transition: all 0.2s;
-		flex-shrink: 0;
 	}
 
 	.undo-button:active {
