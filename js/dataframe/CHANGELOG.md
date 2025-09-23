@@ -1,5 +1,11 @@
 # @gradio/dataframe
 
+## 0.20.0
+
+### Features
+
+- [#11959](https://github.com/gradio-app/gradio/pull/11959) [`cb16ca5`](https://github.com/gradio-app/gradio/commit/cb16ca5123030beebcb24ddc287fcf958bd3fbe2) - Ensure interactivity works as expected in standalone dataframe.  Thanks @hannahblair!
+
 ## 0.19.4
 
 ### Fixes
