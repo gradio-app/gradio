@@ -20,7 +20,7 @@
 		metadata: null
 	};
 	export let datatype: Datatype | Datatype[] = "str";
-	export let editable = true;
+	export let interactive = true;
 	export let show_row_numbers = false;
 	export let max_height = 500;
 	export let show_search: "none" | "search" | "filter" = "none";
@@ -96,7 +96,7 @@
 		display_value={value?.metadata?.display_value}
 		styling={value?.metadata?.styling}
 		{datatype}
-		{editable}
+		editable={interactive}
 		{show_row_numbers}
 		{max_height}
 		{show_search}
@@ -466,7 +466,7 @@
 			--gr-df-input-border-color-hover,
 			var(
 				--df-input-border-color-hover,
-				var(--input-border-color, var(--border-color-primary, #e5e7eb))
+				var (--input-border-color, var (--border-color-primary, #e5e7eb))
 			)
 		);
 		--input-border-width: var(
@@ -486,22 +486,22 @@
 		);
 		--checkbox-border-color: var(
 			--gr-df-checkbox-border-color,
-			var(--df-checkbox-border-color, var(--df-neutral-300, #d4d4d8))
+			var(--df-checkbox-border-color, var (--df-neutral-300, #d4d4d8))
 		);
 		--checkbox-background-color: var(
 			--gr-df-checkbox-background-color,
 			var(
 				--df-checkbox-background-color,
-				var(--df-background-fill-primary, #ffffff)
+				var (--df-background-fill-primary, #ffffff)
 			)
 		);
 		--checkbox-background-color-selected: var(
 			--gr-df-checkbox-background-color,
-			var(--df-checkbox-background-color-selected, var(--color-accent))
+			var (--df-checkbox-background-color-selected, var (--color-accent))
 		);
 		--checkbox-border-color-focus: var(
 			--gr-df-checkbox-border-color-focus,
-			var(--df-checkbox-border-color-focus, var(--df-color-accent, #f97316))
+			var (--df-checkbox-border-color-focus, var (--df-color-accent, #f97316))
 		);
 		--checkbox-check: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
 		--button-transition: var(--df-button-transition, none);
