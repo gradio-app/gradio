@@ -188,6 +188,10 @@
 		create_mic_waveform();
 
 		window.addEventListener("keydown", (e) => {
+			const is_focused_in_waveform =
+				recordingContainer &&
+				recordingContainer.contains(document.activeElement);
+			if (!is_focused_in_waveform) return;
 			if (e.key === "ArrowRight") {
 				skip_audio(recordingWaveform, 0.1);
 			} else if (e.key === "ArrowLeft") {
