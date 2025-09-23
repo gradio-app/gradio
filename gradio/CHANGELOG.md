@@ -1,5 +1,17 @@
 # gradio
 
+## 5.46.1
+
+### Fixes
+
+- [#11936](https://github.com/gradio-app/gradio/pull/11936) [`d56f84f`](https://github.com/gradio-app/gradio/commit/d56f84f6a0d58d640ba590b4f1ce7141ad76c94f) - Fix multiple: route with accents doesnt work (#11935).  Thanks @josx!
+- [#11939](https://github.com/gradio-app/gradio/pull/11939) [`4e4b0bc`](https://github.com/gradio-app/gradio/commit/4e4b0bc5e0c434e3fda021af65f95dede301ae9b) - Add Syntax Highlighting for more languages in Markdown Component.  Thanks @freddyaboulton!
+- [#11896](https://github.com/gradio-app/gradio/pull/11896) [`915f3a2`](https://github.com/gradio-app/gradio/commit/915f3a2f2fa1843111868e4f23f543b097b9c839) - Send EventData when app is loaded via gr.load.  Thanks @freddyaboulton!
+- [#11940](https://github.com/gradio-app/gradio/pull/11940) [`13fdfa6`](https://github.com/gradio-app/gradio/commit/13fdfa6d549ee4e31308af69b75140085ea51fc4) - Upgrade Prismjs.  Thanks @freddyaboulton!
+- [#11648](https://github.com/gradio-app/gradio/pull/11648) [`57d8d65`](https://github.com/gradio-app/gradio/commit/57d8d6598645e438337c78c1c8e0759f876fb193) - Dataframe Edit Event.  Thanks @deckar01!
+- [#11923](https://github.com/gradio-app/gradio/pull/11923) [`98d44b9`](https://github.com/gradio-app/gradio/commit/98d44b963b7f72fb4d175c47b5d563d35330a6f2) - Serialize i18n data for events that dont go through queue.  Thanks @freddyaboulton!
+- [#11924](https://github.com/gradio-app/gradio/pull/11924) [`a9167fb`](https://github.com/gradio-app/gradio/commit/a9167fb7d013b7f76784c98f9c673ce47214b119) - Update websocket import and type in get_pred_from_ws.  Thanks @qgallouedec!
+
 ## 5.46.0
 
 ### Features
