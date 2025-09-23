@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.13.2
+
+### Features
+
+- [#11962](https://github.com/gradio-app/gradio/pull/11962) [`fdfe4fe`](https://github.com/gradio-app/gradio/commit/fdfe4fec334726fe91be98062826eb4b537410c3) - fix(client): websockets minimum version for asyncio.  Thanks @cbensimon!
+
 ## 1.13.1
 
 ### Fixes

@@ -1,5 +1,11 @@
 # @gradio/gallery
 
+## 0.15.34
+
+### Fixes
+
+- [#11938](https://github.com/gradio-app/gradio/pull/11938) [`beddde5`](https://github.com/gradio-app/gradio/commit/beddde5d432904d6384b7285acdbf1fd78469af7) - Fix bug where Gallery scrollbar would not show up.  Thanks @freddyaboulton!
+
 ## 0.15.33
 
 ### Fixes

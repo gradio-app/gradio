@@ -1,5 +1,21 @@
 # gradio
 
+## 5.47.0
+
+### Features
+
+- [#11959](https://github.com/gradio-app/gradio/pull/11959) [`cb16ca5`](https://github.com/gradio-app/gradio/commit/cb16ca5123030beebcb24ddc287fcf958bd3fbe2) - Ensure interactivity works as expected in standalone dataframe.  Thanks @hannahblair!
+- [#11962](https://github.com/gradio-app/gradio/pull/11962) [`fdfe4fe`](https://github.com/gradio-app/gradio/commit/fdfe4fec334726fe91be98062826eb4b537410c3) - fix(client): websockets minimum version for asyncio.  Thanks @cbensimon!
+
+### Fixes
+
+- [#11938](https://github.com/gradio-app/gradio/pull/11938) [`beddde5`](https://github.com/gradio-app/gradio/commit/beddde5d432904d6384b7285acdbf1fd78469af7) - Fix bug where Gallery scrollbar would not show up.  Thanks @freddyaboulton!
+- [#11944](https://github.com/gradio-app/gradio/pull/11944) [`01309af`](https://github.com/gradio-app/gradio/commit/01309af09209485f54391c36acc60c12f19fe726) - Bugfix: Update color map of HighlightedText programmatically.  Thanks @freddyaboulton!
+- [#11945](https://github.com/gradio-app/gradio/pull/11945) [`950b68f`](https://github.com/gradio-app/gradio/commit/950b68fa536f7f7df9052209992ec1d68ec88794) - Correctly Render ChatInterfaces Inside TabbedInterfaces.  Thanks @freddyaboulton!
+- [#11958](https://github.com/gradio-app/gradio/pull/11958) [`3f1842f`](https://github.com/gradio-app/gradio/commit/3f1842f4887a3d5ef721d55aa88d5254de5c7d69) - Fix various vibe editor issues.  Thanks @aliabd!
+- [#11956](https://github.com/gradio-app/gradio/pull/11956) [`fdb2bb2`](https://github.com/gradio-app/gradio/commit/fdb2bb2451ea21ce5916f12478c20d7d78cfd128) - Pass elem_classes to Sidebar svelte component.  Thanks @freddyaboulton!
+- [#11942](https://github.com/gradio-app/gradio/pull/11942) [`e64e5ec`](https://github.com/gradio-app/gradio/commit/e64e5ec0deb196d26b00c3b398b091d6a1dfc6ff) - Fix bug where keyboard navigation on a textbox would skip forward the audio waveform playback.  Thanks @freddyaboulton!
+
 ## 5.46.1
 
 ### Fixes
