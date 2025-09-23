@@ -41,7 +41,6 @@ from gradio.components.chatbot import (
     TupleFormat,
 )
 from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
-from gradio.context import get_blocks_context
 from gradio.events import Dependency, EditData, SelectData
 from gradio.flagging import ChatCSVLogger
 from gradio.helpers import create_examples as Examples  # noqa: N812
@@ -1153,10 +1152,3 @@ class ChatInterface(Blocks):
         if self.type == "tuples":
             history_ = self._messages_to_tuples(history_)  # type: ignore
         return history_, return_message  # type: ignore
-
-    def render(self) -> ChatInterface:
-        # If this is being rendered inside another Blocks, and the height is not explicitly set, set it to 400 instead of 200.
-        if get_blocks_context() and not self.provided_chatbot:
-            self.chatbot.height = 400
-            super().render()
-        return self
