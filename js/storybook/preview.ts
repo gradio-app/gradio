@@ -6,6 +6,8 @@ import "../theme/src/reset.css";
 import "../theme/src/global.css";
 import { locale } from "svelte-i18n";
 import { themes } from "@storybook/theming";
+import gradioThemeLight from "./themeLight";
+import gradioThemeDark from "./themeDark";
 
 import "../theme/src/pollen.css";
 import "../theme/src/typography.css";
@@ -106,8 +108,8 @@ const preview: Preview = {
 			}
 		},
 		darkMode: {
-			dark: { ...themes.dark },
-			light: { ...themes.light },
+			dark: { ...gradioThemeDark },
+			light: { ...gradioThemeLight },
 			current: "light",
 			stylePreview: true,
 			classTarget: "body"
