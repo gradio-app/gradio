@@ -1,7 +1,7 @@
 ---
-"@gradio/dataframe": minor
-"@self/storybook": minor
-"gradio": minor
+"@gradio/dataframe": patch
+"@self/storybook": patch
+"gradio": patch
 ---
 
-feat:Add dark mode to storybook
+fix:Add dark mode to storybook
