@@ -183,13 +183,13 @@
 		background: var(--color-accent-soft);
 	}
 
-	:global(.icon-button) {
+	.toolbar-buttons :global(.icon-button) {
 		background: transparent !important;
 		height: var(--size-6);
 		width: var(--size-6);
 	}
 
-	:global(.icon-button:hover) {
+	.toolbar-buttons :global(.icon-button:hover) {
 		background: var(--background-fill-secondary) !important;
 		color: var(--body-text-color) !important;
 		border: 1px solid var(--border-color-primary);
