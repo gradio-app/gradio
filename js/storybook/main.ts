@@ -6,7 +6,11 @@ const config: StorybookConfig = {
 	stories: [
 		"../../js/**/*.mdx",
 		"../../js/**/*.@(mdx|stories.@(js|jsx|ts|tsx|svelte))",
-		"!../../js/**/dist/**"
+		"!../../js/**/dist/**",
+		"!../../js/**/build/**",
+		"!../../js/**/node_modules/**",
+		"!../../js/**/.svelte-kit/**",
+		"!../../js/**/storybook-static/**"
 	],
 	addons: [
 		"@storybook/addon-links",
