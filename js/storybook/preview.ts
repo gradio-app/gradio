@@ -33,7 +33,7 @@ const withBackgroundSync = (storyFn: any): any => {
 	);
 	!document.getElementById("sb-bg") &&
 		(new MutationObserver(update).observe(document.body, {
-			attributes: 1,
+			attributes: true,
 			attributeFilter: ["class"]
 		}),
 		update());
