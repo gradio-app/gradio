@@ -1,5 +1,4 @@
 ---
-"@gradio/core": patch
 "@gradio/dataframe": patch
 "@self/storybook": patch
 "gradio": patch
