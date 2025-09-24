@@ -1,5 +1,11 @@
 # @gradio/sidebar
 
+## 0.1.23
+
+### Fixes
+
+- [#11956](https://github.com/gradio-app/gradio/pull/11956) [`fdb2bb2`](https://github.com/gradio-app/gradio/commit/fdb2bb2451ea21ce5916f12478c20d7d78cfd128) - Pass elem_classes to Sidebar svelte component.  Thanks @freddyaboulton!
+
 ## 0.1.22
 
 ### Fixes
