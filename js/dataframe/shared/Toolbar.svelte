@@ -100,6 +100,7 @@
 		display: flex;
 		gap: var(--size-1);
 		flex-wrap: nowrap;
+		align-items: center;
 	}
 
 	.toolbar-button {
@@ -180,5 +181,18 @@
 
 	.check-button:hover {
 		background: var(--color-accent-soft);
+	}
+
+	:global(.icon-button) {
+		background: transparent !important;
+		height: var(--size-6);
+		width: var(--size-6);
+	}
+
+	:global(.icon-button:hover) {
+		background: var(--background-fill-secondary) !important;
+		color: var(--body-text-color) !important;
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-sm) !important;
 	}
 </style>
