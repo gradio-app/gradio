@@ -1,11 +1,11 @@
 import { create } from "@storybook/theming/create";
-import Logo from "./public/gradio.svg";
+import LogoDark from "./public/gradio-dark.svg";
 
 export default create({
-	base: "light",
+	base: "dark",
 	brandTitle: "Gradio Storybook",
 	brandUrl: "https://gradio.app",
-	brandImage: Logo,
+	brandImage: LogoDark,
 	brandTarget: "_blank",
 
 	fontBase: '"IBM Plex Sans", sans-serif',
