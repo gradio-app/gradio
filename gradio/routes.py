@@ -123,6 +123,7 @@ if TYPE_CHECKING:
     from gradio.blocks import Block
 
 import difflib
+import re
 import shutil
 import tempfile
 
@@ -1977,6 +1978,32 @@ class App(FastAPI):
 
         vibe_edit_history_dir = Path(DEFAULT_TEMP_DIR) / "vibe_edit_history"
         vibe_edit_history_dir.mkdir(exist_ok=True, parents=True)
+        chat_history = {"history": ""}
+        hash_to_chat_history = {}
+
+        def limit_chat_history(history: str, max_pairs: int = 5) -> str:
+            """Limit chat history in the prompt to the last max_pairs user-assistant pairs."""
+            if not history.strip():
+                return ""
+
+            user_messages = history.split("\nUser: ")
+            if len(user_messages) <= max_pairs:
+                return history
+
+            recent_messages = user_messages[-max_pairs:]
+
+            if len(recent_messages) > 0:
+                if recent_messages[0].startswith("User: "):
+                    result = recent_messages[0]
+                else:
+                    result = "User: " + recent_messages[0]
+
+                for msg in recent_messages[1:]:
+                    result += "\nUser: " + msg
+
+                return result
+
+            return ""
 
         @router.post("/vibe-edit/")
         @router.post("/vibe-edit")
@@ -1998,11 +2025,15 @@ class App(FastAPI):
             with open(snapshot_file, "w") as f:
                 f.write(original_code)
 
+            hash_to_chat_history[snapshot_hash] = chat_history["history"]
+
             from huggingface_hub import InferenceClient
 
             client = InferenceClient()
 
             content = ""
+            limited_history = limit_chat_history(chat_history["history"])
+
             prompt = f"""
 You are a code generator for Gradio apps. Given the following existing code and prompt, return the full new code.
 Existing code:
@@ -2011,7 +2042,12 @@ Existing code:
 ```
 
 Prompt:
-{body.prompt}"""
+{body.prompt}
+
+History:
+{limited_history if limited_history else "No chat history."}
+"""
+
             system_prompt = load_system_prompt()
             content = (
                 client.chat_completion(
@@ -2020,7 +2056,7 @@ Prompt:
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": prompt},
                     ],
-                    max_tokens=1000,
+                    max_tokens=10000,
                 )
                 .choices[0]
                 .message.content
@@ -2028,6 +2064,32 @@ Prompt:
 
             if content is None:
                 raise HTTPException(status_code=500, detail="Error generating code")
+
+            control_token_re = re.compile(r"<\|[^>]*\|>")
+            final_start_re = re.compile(
+                r"<\|start\|>assistant<\|channel\|>final<\|message\|>", re.IGNORECASE
+            )
+            end_re = re.compile(r"<\|end\|>", re.IGNORECASE)
+
+            # Remove analysis and weird markers from gpt-oss
+            def clean_out_markers(raw: str) -> str:
+                if not raw:
+                    return raw
+
+                m = final_start_re.search(raw)
+                if m:
+                    text = raw[m.end() :]
+                    m_end = end_re.search(text)
+                    if m_end:
+                        text = text[: m_end.start()]
+                    return text.strip()
+
+                text = control_token_re.sub("", raw)
+                return text.strip()
+
+            content = clean_out_markers(content)
+
+            chat_history["history"] += f"\nUser: {body.prompt}\nAssistant: {content}\n"
 
             reasoning = None
             if "<reasoning>" in content:
@@ -2088,6 +2150,8 @@ Prompt:
 
             with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
                 f.write(saved_content)
+
+            chat_history["history"] = hash_to_chat_history.get(hash, "")
 
             return {"success": True}
 
@@ -2166,7 +2230,7 @@ Respond with a full Gradio app.
 Respond with a full Gradio app using correct syntax and features of the latest Gradio version. DO NOT write code that doesn't follow the signatures listed.
 Do not add comments explaining the code, unless they are very necessary to understand the code.
 Make sure the code includes all necessary imports.
-Clearly explain the changes, summary, or reasoning for the code you respond with, inside one large <reasoning> tag.
+Clearly explain the changes, summary, or reasoning for the code you respond with, inside one large <reasoning> tag. Make sure it's easy to parse. Use markdown formatting when it makes sense, including bullet points if there are multiple changes.
 
 
 Here's an example of a valid response:
