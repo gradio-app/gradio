@@ -1,5 +1,11 @@
 # @gradio/audio
 
+## 0.19.1
+
+### Fixes
+
+- [#11942](https://github.com/gradio-app/gradio/pull/11942) [`e64e5ec`](https://github.com/gradio-app/gradio/commit/e64e5ec0deb196d26b00c3b398b091d6a1dfc6ff) - Fix bug where keyboard navigation on a textbox would skip forward the audio waveform playback.  Thanks @freddyaboulton!
+
 ## 0.19.0
 
 ### Features

@@ -1,4 +1,5 @@
 ---
+"@gradio/atoms": patch
 "@gradio/dataframe": patch
 "@self/storybook": patch
 "gradio": patch
