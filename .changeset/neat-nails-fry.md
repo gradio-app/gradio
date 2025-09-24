@@ -1,7 +1,7 @@
 ---
-"@gradio/image": minor
-"@gradio/upload": minor
-"gradio": minor
+"@gradio/image": patch
+"@gradio/upload": patch
+"gradio": patch
 ---
 
-feat:Show UploadProgress for Webcam Uploads
+fix:Show UploadProgress for Webcam Uploads
