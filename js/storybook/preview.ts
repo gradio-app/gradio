@@ -30,7 +30,7 @@ const withBackgroundSync = (storyFn: any): any => {
 		document.getElementById("sb-bg")?.remove(),
 		document.head.insertAdjacentHTML(
 			"beforeend",
-			`<style id="sb-bg">.sb-show-main{background:${document.body.classList.contains("dark") ? "#333" : "#F7F9F2"}!important}</style>`
+			`<style id="sb-bg">.sb-show-main{background:${document.body.classList.contains("dark") ? "#333" : "#fff"}!important}</style>`
 		)
 	);
 	!document.getElementById("sb-bg") &&
