@@ -17,6 +17,7 @@
 </script>
 
 <button
+	class="icon-button"
 	{disabled}
 	on:click
 	aria-label={label}
