@@ -107,6 +107,22 @@
 			trim_region_settings.color || color_accent
 		);
 	}
+
+	// Create const references to the callbacks so that afterUpdate in child is not called on every prop change
+	// in the DOM. See https://github.com/gradio-app/gradio/issues/11933
+	// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+	const upload_fn = (...args: Parameters<typeof gradio.client.upload>) =>
+		gradio.client.upload(...args);
+	const i18n = (s: string | null | undefined): string => gradio.i18n(s);
+	const stream_handler_fn = (
+		...args: Parameters<typeof gradio.client.stream>
+	): EventSource => gradio.client.stream(...args);
+
+	$: sources_string = sources.join(",") as
+		| "upload"
+		| "upload,microphone"
+		| "microphone"
+		| "microphone,upload";
 </script>
 
 <Block
@@ -142,7 +158,7 @@
 		{rtl}
 		{text_align}
 		{waveform_settings}
-		i18n={gradio.i18n}
+		{i18n}
 		max_lines={!max_lines ? lines + 1 : max_lines}
 		{placeholder}
 		{submit_btn}
@@ -150,7 +166,7 @@
 		{autofocus}
 		{autoscroll}
 		{file_count}
-		{sources}
+		{sources_string}
 		max_file_size={gradio.max_file_size}
 		on:change={() => gradio.dispatch("change", value)}
 		on:input={() => gradio.dispatch("input")}
@@ -168,8 +184,8 @@
 		on:upload={(e) => gradio.dispatch("upload", e.detail)}
 		on:clear={() => gradio.dispatch("clear")}
 		disabled={!interactive}
-		upload={(...args) => gradio.client.upload(...args)}
-		stream_handler={(...args) => gradio.client.stream(...args)}
+		upload={upload_fn}
+		stream_handler={stream_handler_fn}
 		{max_plain_text_length}
 		{html_attributes}
 	/>
