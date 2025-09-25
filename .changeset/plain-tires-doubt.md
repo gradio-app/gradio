@@ -1,5 +1,5 @@
 ---
-"website": patch
+"website": minor
 ---
 
 feat:Fix website release
