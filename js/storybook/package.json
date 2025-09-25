@@ -5,5 +5,8 @@
 	"type": "module",
 	"author": "",
 	"license": "ISC",
-	"private": true
+	"private": true,
+	"dependencies": {
+		"storybook-dark-mode": "^4.0.2"
+	}
 }

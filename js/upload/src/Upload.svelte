@@ -96,10 +96,13 @@
 	}
 
 	async function handle_upload(
-		file_data: FileData[]
+		file_data: FileData[],
+		upload_id?: string
 	): Promise<(FileData | null)[]> {
 		await tick();
-		upload_id = Math.random().toString(36).substring(2, 15);
+		if (!upload_id) {
+			upload_id = Math.random().toString(36).substring(2, 15);
+		}
 		uploading = true;
 		try {
 			const _file_data = await upload(
@@ -153,7 +156,8 @@
 	}
 
 	export async function load_files(
-		files: File[] | Blob[]
+		files: File[] | Blob[],
+		upload_id?: string
 	): Promise<(FileData | null)[] | void> {
 		if (!files.length) {
 			return;
@@ -181,7 +185,7 @@
 		}
 
 		file_data = await prepare_files(_files);
-		return await handle_upload(file_data);
+		return await handle_upload(file_data, upload_id);
 	}
 
 	function is_valid_file(file: File): boolean {
