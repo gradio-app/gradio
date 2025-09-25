@@ -2,6 +2,12 @@
 
 ## 0.4.30
 
+### Dependency updates
+
+- @gradio/atoms@0.18.1
+
+## 0.4.30
+
 ### Features
 
 - [#11891](https://github.com/gradio-app/gradio/pull/11891) [`8d06ab7`](https://github.com/gradio-app/gradio/commit/8d06ab7d899cb8b1ab2a9575f19b8960999aba78) - Add select all checkbox for boolean columns in Dataframe.  Thanks @abidlabs!
