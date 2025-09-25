@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:MCP documentation fix
+fix:MCP documentation fix
