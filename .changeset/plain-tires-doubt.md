@@ -1,5 +1,5 @@
 ---
-"website": minor
+"website": patch
 ---
 
-feat:Fix website release
+fix:Fix website release
