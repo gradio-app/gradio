@@ -356,7 +356,8 @@
 			}
 		});
 		const hostname = window.location.hostname;
-		const is_hf_host = hostname.includes(".dev.") || hostname == "huggingface.co";
+		const is_hf_host =
+			hostname.includes(".dev.") || hostname == "huggingface.co";
 		if (is_hf_host) {
 			const origin = hostname.includes(".dev.")
 				? `https://moon-${hostname.split(".")[1]}.dev.spaces.huggingface.tech`
