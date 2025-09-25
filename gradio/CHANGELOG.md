@@ -1,5 +1,14 @@
 # gradio
 
+## 5.47.1
+
+### Fixes
+
+- [#11963](https://github.com/gradio-app/gradio/pull/11963) [`e2bc362`](https://github.com/gradio-app/gradio/commit/e2bc36273874364582f4f76c301a60a15140d9be) - MCP documentation fix.  Thanks @abidlabs!
+- [#11937](https://github.com/gradio-app/gradio/pull/11937) [`1b97ed7`](https://github.com/gradio-app/gradio/commit/1b97ed760c6adc6f7eef613904b90a0bfd0e9970) - Fix bug where multimodaltextbox would focus on any app update.  Thanks @freddyaboulton!
+- [#11969](https://github.com/gradio-app/gradio/pull/11969) [`c8f7909`](https://github.com/gradio-app/gradio/commit/c8f79090ede3b071a8d9620a885350b6ee5a8926) - Show UploadProgress for Webcam Uploads.  Thanks @freddyaboulton!
+- [#11964](https://github.com/gradio-app/gradio/pull/11964) [`86e6176`](https://github.com/gradio-app/gradio/commit/86e61763a14c745f7eb0ce35b861ea2be2336a15) - Add dark mode to storybook.  Thanks @hannahblair!
+
 ## 5.47.0
 
 ### Features

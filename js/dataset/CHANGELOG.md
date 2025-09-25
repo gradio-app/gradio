@@ -2,6 +2,13 @@
 
 ## 0.4.34
 
+### Dependency updates
+
+- @gradio/upload@0.17.1
+- @gradio/atoms@0.18.1
+
+## 0.4.34
+
 ### Fixes
 
 - [#11920](https://github.com/gradio-app/gradio/pull/11920) [`0f38b65`](https://github.com/gradio-app/gradio/commit/0f38b65f551cb61b3e9ed668e0ea525441672482) - Fix Examples Pagination.  Thanks @freddyaboulton!

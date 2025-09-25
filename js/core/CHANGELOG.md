@@ -4,6 +4,14 @@
 
 ### Dependency updates
 
+- @gradio/image@0.23.1
+- @gradio/upload@0.17.1
+- @gradio/atoms@0.18.1
+
+## 0.29.0
+
+### Dependency updates
+
 - @gradio/paramviewer@0.8.1
 
 ## 0.29.0

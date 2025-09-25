@@ -2,6 +2,12 @@
 
 ## 0.7.0
 
+### Dependency updates
+
+- @gradio/atoms@0.18.1
+
+## 0.7.0
+
 ### Features
 
 - [#11854](https://github.com/gradio-app/gradio/pull/11854) [`ee3dbd8`](https://github.com/gradio-app/gradio/commit/ee3dbd837ef02d24e127a2923126ff35750317ab) - Add show_select_all parameter to CheckboxGroup.  Thanks @abidlabs!
