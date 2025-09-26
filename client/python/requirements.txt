@@ -1,6 +1,6 @@
 fsspec
 httpx>=0.24.1
-huggingface_hub>=0.19.3
+huggingface_hub>=0.19.3,<2.0
 packaging
 typing_extensions~=4.0
 websockets>=13.0,<16.0
