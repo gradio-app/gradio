@@ -1,6 +1,6 @@
 ---
-"gradio": minor
-"gradio_client": minor
+"gradio": patch
+"gradio_client": patch
 ---
 
-feat:Allow gradio to run with huggingface_hub 1.x
+fix:Allow gradio to run with huggingface_hub 1.x
