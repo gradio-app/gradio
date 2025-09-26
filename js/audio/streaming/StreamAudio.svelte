@@ -34,7 +34,7 @@
 		if (!microphoneContainer) return;
 		micWaveform = WaveSurfer.create({
 			...waveform_settings,
-			height: 100,
+			normalize: false,
 			container: microphoneContainer
 		});
 
