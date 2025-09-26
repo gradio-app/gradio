@@ -303,7 +303,7 @@ def deploy(
             app_file,
         )
 
-    space_id = huggingface_hub.create_repo(
+    space_id = hf_api.create_repo(
         configuration["title"],
         space_sdk="gradio",
         repo_type="space",
@@ -317,5 +317,5 @@ def deploy(
     )
     if configuration.get("secrets"):
         for secret_name, secret_value in configuration["secrets"].items():
-            huggingface_hub.add_space_secret(space_id, secret_name, secret_value)
+            hf_api.add_space_secret(space_id, secret_name, secret_value)
     print(f"Space available at https://huggingface.co/spaces/{space_id}")
