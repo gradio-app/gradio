@@ -522,7 +522,7 @@ class App(FastAPI):
 
         @app.post("/login")
         @app.post("/login/")
-        def login(
+        async def login(
             request: fastapi.Request, form_data: OAuth2PasswordRequestForm = Depends()
         ):
             username, password = form_data.username.strip(), form_data.password
@@ -537,7 +537,14 @@ class App(FastAPI):
                 not callable(app.auth)
                 and username in app.auth  # type: ignore
                 and compare_passwords_securely(password, app.auth[username])  # type: ignore
-            ) or (callable(app.auth) and app.auth.__call__(username, password)):  # type: ignore
+            ) or (
+                callable(app.auth)
+                   and (
+                       await app.auth(username, password)
+                       if inspect.iscoroutinefunction(app.auth)
+                       else app.auth(username, password)
+                )
+            ):  # type: ignore
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
                 response = JSONResponse(content={"success": True})
