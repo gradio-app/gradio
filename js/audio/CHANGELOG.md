@@ -1,5 +1,11 @@
 # @gradio/audio
 
+## 0.19.2
+
+### Fixes
+
+- [#11970](https://github.com/gradio-app/gradio/pull/11970) [`9b4a16c`](https://github.com/gradio-app/gradio/commit/9b4a16ca6a7f351b0d27f55732eec579d7774304) - Create extended MediaRecorded only once for streaming demos.  Thanks @freddyaboulton!
+
 ## 0.19.1
 
 ### Dependency updates
