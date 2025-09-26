@@ -201,14 +201,6 @@
 
 	$: [heading, paragraph] = placeholder ? inject(placeholder) : [false, false];
 
-	let old_background = background;
-	// Automatically switch to draw tool if background changes to give better UX
-	// When setting background programmatically like with Examples
-	$: if (JSON.stringify(old_background) !== JSON.stringify(background)) {
-		if (current_tool !== "draw") current_tool = "draw";
-		old_background = background;
-	}
-
 	let current_tool: ToolbarTool;
 </script>
 
