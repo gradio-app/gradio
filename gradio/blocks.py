@@ -73,7 +73,7 @@ from gradio.exceptions import (
 from gradio.helpers import create_tracker, skip, special_args
 from gradio.i18n import I18n, I18nData
 from gradio.node_server import start_node_server
-from gradio.route_utils import API_PREFIX, MediaStream
+from gradio.route_utils import API_PREFIX, MediaStream, slugify
 from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
 from gradio.state_holder import SessionState, StateHolder
 from gradio.themes import Default as DefaultTheme
@@ -130,7 +130,7 @@ class Block:
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         proxy_url: str | None = None,
     ):
         key_to_id_map = LocalContext.key_to_id_map.get(None)
@@ -437,7 +437,7 @@ class BlockContext(Block):
         self,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = None,
@@ -894,7 +894,8 @@ class BlocksConfig:
             "dependencies": [],
         }
 
-        for page, _ in self.root_block.pages:
+        for page_tuple in self.root_block.pages:
+            page = page_tuple[0]
             if page not in config["page"]:
                 config["page"][page] = {
                     "layout": {"id": self.root_block._id, "children": []},
@@ -1156,7 +1157,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         self.proxy_urls = set()
 
-        self.pages: list[tuple[str, str]] = [("", "Home")]
+        self.pages: list[tuple[str, str, bool]] = [("", "Home", True)]
         self.current_page = ""
 
         if self.analytics_enabled:
@@ -2475,7 +2476,7 @@ Received inputs:
             ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
             pwa: If True, the Gradio app will be set up as an installable PWA (Progressive Web App). If set to None (default behavior), then the PWA feature will be enabled if this Gradio app is launched on Spaces, but not otherwise.
             i18n: An I18n instance containing custom translations, which are used to translate strings in our components (e.g. the labels of components or Markdown strings). This feature can only be used to translate static text in the frontend, not values in the backend.
-            mcp_server: If True, the Gradio app will be set up as an MCP server and documented functions will be added as MCP tools. If None (default behavior), then the GRADIO_MCP_SERVER environment variable will be used to determine if the MCP server should be enabled (which is "True" on Hugging Face Spaces).
+            mcp_server: If True, the Gradio app will be set up as an MCP server and documented functions will be added as MCP tools. If None (default behavior), then the GRADIO_MCP_SERVER environment variable will be used to determine if the MCP server should be enabled.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -3137,12 +3138,15 @@ Received inputs:
         return target_events
 
     @document()
-    def route(self, name: str, path: str | None = None) -> Blocks:
+    def route(
+        self, name: str, path: str | None = None, show_in_navbar: bool = True
+    ) -> Blocks:
         """
         Adds a new page to the Blocks app.
         Parameters:
             name: The name of the page as it appears in the nav bar.
             path: The URL suffix appended after your Gradio app's root URL to access this page (e.g. if path="/test", the page may be accessible e.g. at http://localhost:7860/test). If not provided, the path is generated from the name by converting to lowercase and replacing spaces with hyphens. Any leading or trailing forward slashes are stripped.
+            show_in_navbar: If True, the page will appear in the navbar. If False, the page will be accessible via URL but not shown in the navbar.
         Example:
             with gr.Blocks() as demo:
                 name = gr.Textbox(label="Name")
@@ -3166,12 +3170,11 @@ Received inputs:
         if path in INTERNAL_ROUTES:
             raise ValueError(f"Route with path '{path}' already exists")
         if path is None:
-            path = name.lower().replace(" ", "-")
-            path = "".join(
-                [letter for letter in path if letter.isalnum() or letter == "-"]
-            )
+            path = slugify(name)
+            if not path:
+                raise ValueError(f"Route with path '{name}' is not valid")
         while path in INTERNAL_ROUTES or path in [page[0] for page in self.pages]:
             path = "_" + path
-        self.pages.append((path, name))
+        self.pages.append((path, name, show_in_navbar))
         self.current_page = path
         return self

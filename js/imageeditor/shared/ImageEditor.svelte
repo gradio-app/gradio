@@ -666,6 +666,15 @@
 	function handle_redo(): void {
 		editor.redo();
 	}
+
+	let old_background = background;
+
+	$: if (old_background !== background) {
+		handle_tool_change({ tool: "draw" });
+		handle_subtool_change({ tool: "draw", subtool: null });
+		current_tool = "draw";
+		old_background = background;
+	}
 </script>
 
 <div

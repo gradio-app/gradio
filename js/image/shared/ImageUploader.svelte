@@ -11,7 +11,7 @@
 	import { get_coordinates_of_clicked_image } from "./utils";
 	import Webcam from "./Webcam.svelte";
 
-	import { Upload } from "@gradio/upload";
+	import { Upload, UploadProgress } from "@gradio/upload";
 	import { FileData, type Client } from "@gradio/client";
 	import { SelectSource } from "@gradio/atoms";
 	import Image from "./Image.svelte";
@@ -43,6 +43,9 @@
 	export let uploading = false;
 	export let active_source: source_type = null;
 	export let fullscreen = false;
+
+	let files: FileData[] = [];
+	let upload_id: string;
 
 	async function handle_upload({
 		detail
@@ -86,11 +89,20 @@
 			});
 			return;
 		}
+		upload_id = Math.random().toString(36).substring(2, 15);
+		const f_ = new File([img_blob], `image.${streaming ? "jpeg" : "png"}`);
+		files = [
+			new FileData({
+				path: f_.name,
+				orig_name: f_.name,
+				blob: f_,
+				size: f_.size,
+				mime_type: f_.type,
+				is_stream: false
+			})
+		];
 		pending = true;
-		const f = await upload_input.load_files([
-			new File([img_blob], `image/${streaming ? "jpeg" : "png"}`)
-		]);
-
+		const f = await upload_input.load_files([f_], upload_id);
 		if (event === "change" || event === "upload") {
 			value = f?.[0] || null;
 			await tick();
@@ -209,7 +221,9 @@
 				<slot />
 			{/if}
 		</Upload>
-		{#if active_source === "webcam" && (streaming || (!streaming && !value))}
+		{#if active_source === "webcam" && !streaming && pending}
+			<UploadProgress {root} {upload_id} {stream_handler} {files} />
+		{:else if active_source === "webcam" && (streaming || (!streaming && !value))}
 			<Webcam
 				{root}
 				{value}

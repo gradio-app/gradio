@@ -17,7 +17,7 @@
 	export let elem_id: string;
 	export let elem_classes: string[];
 	export let _id: number;
-	export let visible: boolean;
+	export let visible: boolean | "hidden";
 
 	const s = (id: number, p: string, v: any): CustomEvent =>
 		new CustomEvent("prop_change", { detail: { id, prop: p, value: v } });

@@ -1,5 +1,23 @@
 # @gradio/dropdown
 
+## 0.10.4
+
+### Dependency updates
+
+- @gradio/atoms@0.18.1
+
+## 0.10.4
+
+### Fixes
+
+- [#11784](https://github.com/gradio-app/gradio/pull/11784) [`d9dd3f5`](https://github.com/gradio-app/gradio/commit/d9dd3f54b7fb34cf7118e549d39fc63937ca3489) - Add "hidden" option to component's `visible` kwarg to render but visually hide the component.  Thanks @pngwn!
+- [#11898](https://github.com/gradio-app/gradio/pull/11898) [`8212f67`](https://github.com/gradio-app/gradio/commit/8212f67488a0143f1afcbd953ef1be869c882c44) - Fix Dropdown change and input events.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/statustracker@0.11.1
+- @gradio/atoms@0.18.0
+
 ## 0.10.3
 
 ### Dependency updates

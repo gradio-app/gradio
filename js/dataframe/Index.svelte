@@ -16,7 +16,7 @@
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 	export let value: DataframeValue = {
 		data: [["", "", ""]],
 		headers: ["1", "2", "3"],
@@ -41,6 +41,7 @@
 		input: never;
 		clear_status: LoadingStatus;
 		search: string | null;
+		edit: SelectData;
 	}>;
 	export let latex_delimiters: {
 		left: string;
@@ -95,6 +96,7 @@
 		}}
 		on:input={(e) => gradio.dispatch("input")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
+		on:edit={(e) => gradio.dispatch("edit", e.detail)}
 		on:fullscreen={({ detail }) => {
 			fullscreen = detail;
 		}}

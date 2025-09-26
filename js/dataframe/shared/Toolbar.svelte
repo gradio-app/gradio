@@ -3,6 +3,7 @@
 	import { FullscreenButton } from "@gradio/atoms";
 	import { onDestroy } from "svelte";
 	import { createEventDispatcher } from "svelte";
+	import { IconButton } from "@gradio/atoms";
 
 	export let show_fullscreen_button = false;
 	export let show_copy_button = false;
@@ -74,18 +75,11 @@
 			</div>
 		{/if}
 		{#if show_copy_button}
-			<button
-				class="toolbar-button"
+			<IconButton
+				Icon={copied ? Check : Copy}
+				label={copied ? "Copied to clipboard" : "Copy table data"}
 				on:click={handle_copy}
-				aria-label={copied ? "Copied to clipboard" : "Copy table data"}
-				title={copied ? "Copied to clipboard" : "Copy table data"}
-			>
-				{#if copied}
-					<Check />
-				{:else}
-					<Copy />
-				{/if}
-			</button>
+			/>
 		{/if}
 		{#if show_fullscreen_button}
 			<FullscreenButton {fullscreen} on:fullscreen />
@@ -106,6 +100,7 @@
 		display: flex;
 		gap: var(--size-1);
 		flex-wrap: nowrap;
+		align-items: center;
 	}
 
 	.toolbar-button {
@@ -186,5 +181,18 @@
 
 	.check-button:hover {
 		background: var(--color-accent-soft);
+	}
+
+	.toolbar-buttons :global(.icon-button) {
+		background: transparent !important;
+		height: var(--size-6);
+		width: var(--size-6);
+	}
+
+	.toolbar-buttons :global(.icon-button:hover) {
+		background: var(--background-fill-secondary) !important;
+		color: var(--body-text-color) !important;
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-sm) !important;
 	}
 </style>

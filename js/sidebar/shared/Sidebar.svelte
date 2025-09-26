@@ -8,6 +8,8 @@
 	export let open = true;
 	export let width: number | string;
 	export let position: "left" | "right" = "left";
+	export let elem_classes: string[] = [];
+	export let elem_id = "";
 
 	// Using a temporary variable to animate the sidebar opening at the start
 	let mounted = false;
@@ -58,10 +60,13 @@
 	// We need to wait for the component to be mounted before we can set the open state
 	// so that it animates correctly.
 	$: if (mounted) _open = open;
+
+	$: _elem_classes = elem_classes?.join(" ") || "";
 </script>
 
 <div
-	class="sidebar"
+	class="sidebar {_elem_classes}"
+	id={elem_id}
 	class:open={_open}
 	class:right={position === "right"}
 	class:reduce-motion={prefersReducedMotion}

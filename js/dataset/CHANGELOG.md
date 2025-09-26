@@ -1,5 +1,26 @@
 # @gradio/dataset
 
+## 0.4.34
+
+### Dependency updates
+
+- @gradio/upload@0.17.1
+- @gradio/atoms@0.18.1
+
+## 0.4.34
+
+### Fixes
+
+- [#11920](https://github.com/gradio-app/gradio/pull/11920) [`0f38b65`](https://github.com/gradio-app/gradio/commit/0f38b65f551cb61b3e9ed668e0ea525441672482) - Fix Examples Pagination.  Thanks @freddyaboulton!
+- [#11784](https://github.com/gradio-app/gradio/pull/11784) [`d9dd3f5`](https://github.com/gradio-app/gradio/commit/d9dd3f54b7fb34cf7118e549d39fc63937ca3489) - Add "hidden" option to component's `visible` kwarg to render but visually hide the component.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.18.0
+- @gradio/client@1.19.0
+- @gradio/upload@0.17.0
+- @gradio/textbox@0.11.1
+
 ## 0.4.33
 
 ### Dependency updates

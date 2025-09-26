@@ -1,12 +1,9 @@
 <script lang="ts">
 	import { BaseCheckbox } from "@gradio/checkbox";
 
-	export let value: boolean | string = false;
+	export let value = false;
 	export let editable = true;
 	export let on_change: (value: boolean) => void;
-
-	$: bool_value =
-		typeof value === "string" ? value.toLowerCase() === "true" : !!value;
 
 	function handle_change(event: CustomEvent<boolean>): void {
 		if (editable) {
@@ -17,7 +14,7 @@
 
 <div class="bool-cell" role="button" tabindex="-1">
 	<BaseCheckbox
-		bind:value={bool_value}
+		bind:value
 		label=""
 		interactive={editable}
 		on:change={handle_change}

@@ -461,6 +461,7 @@
 			class:minimal={mode === "minimal"}
 			class:fixed-height={mode !== "minimal" && (!height || height == "auto")}
 			class:hidden={is_full_screen}
+			style:height={height !== "auto" ? height + "px" : null}
 		>
 			{#if interactive && selected_index === null}
 				<ModifyUpload {i18n} on:clear={() => (value = [])}>
@@ -484,7 +485,7 @@
 			{/if}
 			<div
 				class="grid-container"
-				style="--grid-cols:{effective_columns}; --grid-rows:{rows}; --object-fit: {object_fit}; height: {height};"
+				style="--grid-cols:{effective_columns}; --grid-rows:{rows}; --object-fit: {object_fit};"
 				class:pt-6={show_label}
 			>
 				{#each resolved_value as entry, i}
@@ -722,7 +723,6 @@
 	.grid-wrap {
 		position: relative;
 		padding: var(--size-2);
-		height: var(--size-full);
 		overflow-y: scroll;
 	}
 

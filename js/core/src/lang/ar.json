@@ -2,7 +2,7 @@
 	"_name": "العربية",
 	"3D_model": {
 		"3d_model": "نموذج ثلاثي الأبعاد",
-		"drop_to_upload": "اسقط ملف نموذج 3D (.obj، .glb، .stl، .gltf، .splat، أو .ply) هنا للتحميل"
+		"drop_to_upload": "اسقط ملف نموذج ثلاثي الأبعاد 3D (.obj، .glb، .stl، .gltf، .splat، أو .ply) هنا للتحميل"
 	},
 	"annotated_image": {
 		"annotated_image": "صورة مشروحة"
@@ -23,10 +23,10 @@
 		"drop_to_upload": "اسقط ملف صوت هنا للتحميل"
 	},
 	"blocks": {
-		"connection_can_break": "على الهاتف المحمول، يمكن أن ينقطع الاتصال إذا تم تغيير التبويب أو دخل الجهاز في وضع السكون، مما يؤدي إلى فقدان موقعك في قائمة الانتظار.",
-		"long_requests_queue": "هناك قائمة انتظار طويلة من الطلبات المعلقة. قم بتكرار هذا الفضاء للتخطي.",
-		"lost_connection": "فقد الاتصال بسبب مغادرة الصفحة. إعادة الانضمام إلى قائمة الانتظار...",
-		"waiting_for_inputs": "انتظار انتهاء تحميل الملف(ات)، يرجى إعادة المحاولة."
+		"connection_can_break": "على الهاتف المحمول، يمكن أن ينقطع الاتصال إذا تم تغيير التبويب لهذه الصفحةة أو دخل الجهاز في وضع السكون، مما يؤدي إلى فقدان موقعك في قائمة الانتظار.",
+		"long_requests_queue": "هناك قائمة انتظار طويلة من الطلبات المعلقة. قم بنسخ هذه المساحة للتخطي.",
+		"lost_connection": "تم فقدان الاتصال بسبب مغادرة الصفحة. جارٍ إعادة الانضمام إلى قائمة الانتظار...",
+		"waiting_for_inputs": "إنتظر انتهاء رفع الملف(ات)، يرجى إعادة المحاولة."
 	},
 	"checkbox": {
 		"checkbox": "خانة اختيار",
@@ -40,9 +40,9 @@
 	},
 	"common": {
 		"built_with": "بُني باستخدام",
-		"built_with_gradio": "تم الإنشاء بإستخدام Gradio",
+		"built_with_gradio": "بني بإستخدام Gradio",
 		"clear": "أمسح",
-		"download": "تحميل",
+		"download": "تنزيل",
 		"edit": "تعديل",
 		"empty": "فارغ",
 		"error": "خطأ",
@@ -58,7 +58,12 @@
 		"no_devices": "لم يتم العثور على أجهزة",
 		"language": "اللغة",
 		"display_theme": "مظهر العرض",
-		"pwa": "تطبيق ويب تقدمي"
+		"pwa": "تطبيق ويب تقدمي",
+		"record": "تسجيل",
+		"stop_recording": "إيقاف التسجيل",
+		"screen_studio": "شاشة الأستوديو",
+		"share_gradio_tab": "مشاركة تبويبة صفحة Gradio",
+		"run": "تشغيل"
 	},
 	"dataframe": {
 		"incorrect_format": "تنسيق غير صحيح، يتم دعم ملفات CSV و TSV فقط",
@@ -73,8 +78,10 @@
 		"sort_column": "فرز العمود",
 		"sort_ascending": "فرز تصاعدي",
 		"sort_descending": "فرز تنازلي",
-		"drop_to_upload": "اسقط ملفات CSV أو TSV هنا لاستيراد البيانات إلى الإطار الجدولية",
-		"clear_sort": "مسح الترتيب"
+		"drop_to_upload": "اسقط ملفات CSV أو TSV هنا لاستيراد البيانات إلى الإطر الجدولية",
+		"clear_sort": "مسح الترتيب",
+		"filter": "مرشح",
+		"clear_filter": "مسح المرشحات"
 	},
 	"dropdown": {
 		"dropdown": "قائمة منسدلة"
@@ -82,18 +89,19 @@
 	"errors": {
 		"build_error": "هناك خطأ في البناء",
 		"config_error": "هناك خطأ في التكوين",
-		"contact_page_author": "يرجى الاتصال بمؤلف الصفحة",
+		"contact_page_author": "يرجى التواصل مع مبرمج الصفحة",
 		"no_app_file": "لا يوجد ملف تطبيق",
-		"runtime_error": "هناك خطأ في وقت التشغيل",
+		"runtime_error": "هناك خطأ أثناء التشغيل",
 		"space_not_working": "المساحة لا تعمل لأن {0}",
 		"space_paused": "المساحة متوقفة مؤقتًا",
-		"use_via_api": "استخدم عبر API"
+		"use_via_api": "إستخدام عبر API",
+		"use_via_api_or_mcp": "إستخدام عبر واجهة برمجة التطبيقات API أو خادم MCP"
 	},
 	"file": {
 		"uploading": "جاري الرفع..."
 	},
 	"highlighted_text": {
-		"highlighted_text": "نص مميز"
+		"highlighted_text": "نص محدد"
 	},
 	"image": {
 		"allow_webcam_access": "يرجى السماح بالوصول إلى كاميرا الويب للتسجيل.",

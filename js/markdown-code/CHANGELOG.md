@@ -1,5 +1,12 @@
 # @gradio/markdown-code
 
+## 0.5.2
+
+### Fixes
+
+- [#11939](https://github.com/gradio-app/gradio/pull/11939) [`4e4b0bc`](https://github.com/gradio-app/gradio/commit/4e4b0bc5e0c434e3fda021af65f95dede301ae9b) - Add Syntax Highlighting for more languages in Markdown Component.  Thanks @freddyaboulton!
+- [#11940](https://github.com/gradio-app/gradio/pull/11940) [`13fdfa6`](https://github.com/gradio-app/gradio/commit/13fdfa6d549ee4e31308af69b75140085ea51fc4) - Upgrade Prismjs.  Thanks @freddyaboulton!
+
 ## 0.5.1
 
 ### Fixes

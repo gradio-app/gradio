@@ -5,9 +5,11 @@ import { Gradio, formatter } from "../core/src/gradio_helper";
 import "../theme/src/reset.css";
 import "../theme/src/global.css";
 import { locale } from "svelte-i18n";
+import { themes } from "@storybook/theming";
+import gradioThemeLight from "./themeLight";
+import gradioThemeDark from "./themeDark";
 
 import "../theme/src/pollen.css";
-// import "../theme/src/tokens.css";
 import "../theme/src/typography.css";
 
 setupi18n();
@@ -23,8 +25,25 @@ const withI18n = (
 	return storyFn();
 };
 
+const withBackgroundSync = (storyFn: any): any => {
+	const update = (): void => (
+		document.getElementById("sb-bg")?.remove(),
+		document.head.insertAdjacentHTML(
+			"beforeend",
+			`<style id="sb-bg">.sb-show-main{background:${document.body.classList.contains("dark") ? "#333" : "#fff"}!important}</style>`
+		)
+	);
+	!document.getElementById("sb-bg") &&
+		(new MutationObserver(update).observe(document.body, {
+			attributes: true,
+			attributeFilter: ["class"]
+		}),
+		update());
+	return storyFn();
+};
+
 const preview: Preview = {
-	decorators: [withI18n],
+	decorators: [withI18n, withBackgroundSync],
 	globalTypes: {
 		locale: {
 			name: "Locale",
@@ -87,6 +106,13 @@ const preview: Preview = {
 					styles: { width: "1024px", height: "1000px" }
 				}
 			}
+		},
+		darkMode: {
+			dark: { ...gradioThemeDark },
+			light: { ...gradioThemeLight },
+			current: "light",
+			stylePreview: true,
+			classTarget: "body"
 		}
 	},
 

@@ -14,6 +14,9 @@ jobs:
   version_or_publish:
     runs-on: ubuntu-22.04
     environment: publish
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: checkout repo
         uses: actions/checkout@v4
@@ -30,6 +33,12 @@ jobs:
           . venv/bin/activate
           pnpm package
           pnpm --filter @gradio/client --filter @gradio/preview build
+      - name: update npm
+        run: npm i -g npm@latest
+      - name: check node version
+        run: node -v
+      - name: check npm version
+        run: npm -v
       - name: create and publish versions
         id: changesets
         uses: changesets/action@aba318e9165b45b7948c60273e0b72fce0a64eb9 # @v1
@@ -39,9 +48,17 @@ jobs:
           title: "chore: update versions"
           publish: pnpm ci:publish
         env:
-          NPM_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }}
+      - name: Upload npm logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-logs
+          path: |
+            /home/runner/.npm/_logs/
+            ~/.npm/_logs/
+          retention-days: 7
+          if-no-files-found: ignore
       - name: add label to skip chromatic build
         if: ${{ steps.changesets.outputs.pullRequestNumber != '' && steps.changesets.outputs.pullRequestNumber != 'undefined' }}
         run: gh pr edit "$PR_NUMBER" --add-label "no-visual-update"
@@ -68,10 +85,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.SDK_AWS_S3_BUCKET_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-west-2
         with:
-          user: __token__
-          passwords: |
-            gradio:${{ secrets.PYPI_API_TOKEN }}
-            gradio_client:${{ secrets.PYPI_GRADIO_CLIENT_TOKEN }}
+          use-oidc: true
       - name: trigger spaces deploy workflow
         env:
           GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}

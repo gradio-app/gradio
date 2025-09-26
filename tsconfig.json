@@ -41,6 +41,7 @@
 		"**/public/**/*",
 		"**/.config/**/*",
 		"**/*.test.ts",
+		"**/*.stories.*",
 		".github/**/*",
 		"**/demo/**/*",
 		"**/gradio/**/*",

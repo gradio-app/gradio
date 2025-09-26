@@ -12,7 +12,9 @@
 		collapse: never;
 	}>;
 	export let width: number | string;
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
+	export let elem_classes: string[] = [];
+	export let elem_id = "";
 </script>
 
 <StatusTracker
@@ -28,6 +30,8 @@
 		{width}
 		on:expand={() => gradio.dispatch("expand")}
 		on:collapse={() => gradio.dispatch("collapse")}
+		{elem_classes}
+		{elem_id}
 	>
 		<Column>
 			<slot />

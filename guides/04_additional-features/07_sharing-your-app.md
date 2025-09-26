@@ -273,6 +273,7 @@ with gr.Blocks() as demo:
 
 demo.launch(auth=[("Pete", "Pete"), ("Dawood", "Dawood")])
 ```
+By default, visiting `/logout` logs the user out from **all sessions** (e.g. if they are logged in from multiple browsers or devices, all will be signed out). If you want to log out only from the **current session**, add the query parameter `all_session=false` (i.e. `/logout?all_session=false`).
 
 Note: Gradio's built-in authentication provides a straightforward and basic layer of access control but does not offer robust security features for applications that require stringent access controls (e.g.  multi-factor authentication, rate limiting, or automatic lockout policies).
 

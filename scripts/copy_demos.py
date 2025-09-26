@@ -30,6 +30,7 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "fake_diffusion_with_gif",
         "file_explorer_component_events",
         "gradio_pdf_demo",
+        "iframe_resizer",
         "image_mod_default_image",
         "image_editor_events",
         "image_segmentation",
@@ -61,8 +62,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Copy all demos to all_demos and update requirements"
     )
-    parser.add_argument("--gradio-version", type=str, help="Gradio", default="5.9.1", required=False)
-    parser.add_argument("--gradio-client-version", type=str, help="Gradio Client Version", default="1.5.2", required=False)
+    parser.add_argument(
+        "--gradio-version", type=str, help="Gradio", default="5.9.1", required=False
+    )
+    parser.add_argument(
+        "--gradio-client-version",
+        type=str,
+        help="Gradio Client Version",
+        default="1.5.2",
+        required=False,
+    )
     args = parser.parse_args()
 
     source_dir = pathlib.Path(pathlib.Path(__file__).parent, "..", "demo")
