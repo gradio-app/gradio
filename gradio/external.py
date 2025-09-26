@@ -864,7 +864,7 @@ def load_chat(
         ) from e
     from gradio.chat_interface import ChatInterface
 
-    client = OpenAI(api_key=token, base_url=base_url)
+    client = OpenAI(api_key=token or "***", base_url=base_url)
     start_message = (
         [{"role": "system", "content": system_message}] if system_message else []
     )
