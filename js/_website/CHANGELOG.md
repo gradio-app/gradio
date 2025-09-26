@@ -1,5 +1,11 @@
 # website
 
+## 0.64.1
+
+### Fixes
+
+- [#11966](https://github.com/gradio-app/gradio/pull/11966) [`cde255a`](https://github.com/gradio-app/gradio/commit/cde255a731cb7b18d8aff0a0b82374f7d111cb01) - Fix website release.  Thanks @aliabd!
+
 ## 0.64.0
 
 ### Features

@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.13.3
+
+### Fixes
+
+- [#11979](https://github.com/gradio-app/gradio/pull/11979) [`50a89f0`](https://github.com/gradio-app/gradio/commit/50a89f079250735f268dfeeeddf40ffea84d7919) - Allow gradio to run with huggingface_hub 1.x.  Thanks @Wauplin!
+
 ## 1.13.2
 
 ### Features
