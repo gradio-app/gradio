@@ -1792,7 +1792,7 @@ class App(FastAPI):
         @app.get("/manifest.json")
         def manifest_json():
             if not blocks.pwa:
-                raise HTTPException(status_code=404)
+                raise HTTPException(status_code=404, detail="PWA not enabled.")
 
             favicon_path = blocks.favicon_path
             if isinstance(favicon_path, Path):
