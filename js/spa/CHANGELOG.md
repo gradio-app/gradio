@@ -1,5 +1,15 @@
 # @self/spa
 
+## 0.12.1-dev.0
+
+### Fixes
+
+- [#11972](https://github.com/gradio-app/gradio/pull/11972) [`cc27cd7`](https://github.com/gradio-app/gradio/commit/cc27cd765559a047efffe1073063cad0e071de0c) - Fix postMessage warning when running outside hugging face spaces.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/core@0.29.0
+
 ## 0.12.0
 
 ### Features

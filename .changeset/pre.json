@@ -83,5 +83,12 @@
     "@gradio/vibeeditor": "0.2.3",
     "@gradio/video": "0.15.1"
   },
-  "changesets": []
+  "changesets": [
+    "gentle-camels-agree",
+    "icy-islands-look",
+    "lazy-peaches-sleep",
+    "plain-tires-doubt",
+    "rotten-donkeys-know",
+    "solid-cats-melt"
+  ]
 }
