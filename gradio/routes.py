@@ -539,10 +539,10 @@ class App(FastAPI):
                 and compare_passwords_securely(password, app.auth[username])  # type: ignore
             ) or (
                 callable(app.auth)
-                   and (
-                       await app.auth(username, password)
-                       if inspect.iscoroutinefunction(app.auth)
-                       else app.auth(username, password)
+                and (
+                    await app.auth(username, password)
+                    if inspect.iscoroutinefunction(app.auth)
+                    else app.auth(username, password)
                 )
             ):  # type: ignore
                 token = secrets.token_urlsafe(16)
