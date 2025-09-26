@@ -22,6 +22,9 @@
 		"tailwindcss": "^3.1.6"
 	},
 	"type": "module",
+	"engines": {
+		"node": ">=22.0.0"
+	},
 	"dependencies": {
 		"@gradio/code": "workspace:^",
 		"@gradio/tabs": "workspace:^",
