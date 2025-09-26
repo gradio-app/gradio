@@ -154,7 +154,58 @@ class BaseReloader(ABC):
         self.running_app.blocks = demo
 
 
-class SourceFileReloader(BaseReloader):
+class ServerReloader(BaseReloader):
+    @property
+    @abstractmethod
+    def stop_event(self) -> threading.Event:
+        pass
+
+    def stop(self) -> None:
+        self.stop_event.set()
+
+    def get_demo_name(self, module: ModuleType, default_name: str) -> str:
+        log = lambda v: print("GRADIO_HOT_RELOAD:", v)
+        if (demo := self.running_app.blocks) is None:
+            log("Unexpected undefined blocks in launching app")
+            return default_name
+        if default_name:
+            if not module.__dict__.get(default_name) is demo:
+                log(f"'{default_name}' in {module.__name__} does not match launching demo")
+            return default_name
+        for name, value in module.__dict__.copy().items():
+            if value is demo:
+                if name != "demo":
+                    log(f"Using '{name}' for demo name")
+                return name
+        log(f"Launching demo not found in {module.__name__}. Using 'demo'")
+        return "demo"
+
+
+class JuriggedReloader(ServerReloader):
+    def __init__(
+        self,
+        app: App,
+        watch_dirs: list[str],
+        watch_module: ModuleType,
+        stop_event: threading.Event,
+        demo_name: str,
+    ):
+        self.app = app
+        self.demo_name = self.get_demo_name(watch_module, demo_name)
+        self.watch_dirs = watch_dirs
+        self.watch_module = watch_module
+        self._stop_event = stop_event
+
+    @property
+    def running_app(self) -> App:
+        return self.app
+
+    @property
+    def stop_event(self) -> threading.Event:
+        return self._stop_event
+
+
+class SourceFileReloader(ServerReloader):
     def __init__(
         self,
         app: App,
@@ -163,15 +214,15 @@ class SourceFileReloader(BaseReloader):
         demo_file: str,
         watch_module: ModuleType,
         stop_event: threading.Event,
-        demo_name: str = "demo",
+        demo_name: str,
         encoding="utf-8",
     ) -> None:
         super().__init__()
         self.app = app
         self.watch_dirs = watch_dirs
         self.watch_module_name = watch_module_name
-        self.stop_event = stop_event
-        self.demo_name = demo_name
+        self._stop_event = stop_event
+        self.demo_name = self.get_demo_name(watch_module, demo_name)
         self.demo_file = Path(demo_file)
         self.watch_module = watch_module
         self.encoding = encoding
@@ -180,11 +231,12 @@ class SourceFileReloader(BaseReloader):
     def running_app(self) -> App:
         return self.app
 
+    @property
+    def stop_event(self) -> threading.Event:
+        return self._stop_event
+
     def should_watch(self) -> bool:
         return not self.stop_event.is_set()
-
-    def stop(self) -> None:
-        self.stop_event.set()
 
     def alert_change(self, change_type: Literal["reload", "error"] = "reload"):
         self.app.change_type = change_type
@@ -242,6 +294,30 @@ def _find_module(source_file: Path) -> ModuleType | None:
         ):
             return v
     return None
+
+
+def watchfn_jurigged(reloader: JuriggedReloader):
+    from jurigged import watch
+    from gradio.cli.commands.reload import reload_thread
+
+    def prerun(*args, **kwargs):
+        NO_RELOAD.set(False)
+        reload_thread.running_reload = True
+
+    def postrun(*args, **kwargs):
+        NO_RELOAD.set(True)
+        demo = getattr(reloader.watch_module, reloader.demo_name)
+        reloader.swap_blocks(demo)
+
+    if reloader.watch_dirs:
+        watcher = watch(autostart=False, pattern=reloader.watch_dirs)
+    else:
+        watcher = watch(autostart=False)
+    watcher.prerun.register(prerun)
+    watcher.postrun.register(postrun)
+    watcher.start()
+    reloader.stop_event.wait()
+    watcher.stop()
 
 
 def watchfn(reloader: SourceFileReloader):
