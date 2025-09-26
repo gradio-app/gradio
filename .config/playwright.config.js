@@ -22,23 +22,54 @@ const base = defineConfig({
 	retries: 3
 });
 
+// There are Firefox-specific issues such as https://github.com/gradio-app/gradio/pull/9528 so we want to run the tests on Firefox, but Firefox sometimes fails to start in the GitHub Actions environment so we disable it on CI.
+const localOnly = (project) => (process.env.CI ? undefined : project);
+
 const normal = defineConfig(base, {
 	globalSetup: process.env.CUSTOM_TEST ? undefined : "./playwright-setup.js",
 	projects: [
-		{
+		localOnly({
 			name: "firefox",
 			use: { ...devices["Desktop Firefox"] },
-			testMatch: /.stream_(audio|video)_out\.spec\.ts/
-		},
+			grep: /@firefox/
+		}),
 		{
 			name: "chrome",
 			use: {
 				...devices["Desktop Chrome"],
 				permissions: ["clipboard-read", "clipboard-write", "microphone"]
-			},
-			testIgnore: /.stream_(audio|video)_out\.spec\.ts/
+			}
 		}
-	]
+	].filter(Boolean)
+});
+
+const lite = defineConfig(base, {
+	webServer: {
+		command: "python -m http.server 8000 --directory ../js/lite",
+		url: "http://localhost:8000/",
+		reuseExistingServer: !process.env.CI
+	},
+	testMatch: [
+		// "**/file_component_events.spec.ts",
+		"**/kitchen_sink.spec.ts",
+		"**/gallery_component_events.spec.ts",
+		"**/image_remote_url.spec.ts" // To detect the bugs on Lite fixed in https://github.com/gradio-app/gradio/pull/8011 and https://github.com/gradio-app/gradio/pull/8026
+		// "**/outbreak_forecast.spec.ts" // To test matplotlib on Lite
+	],
+	workers: 1,
+	retries: 3,
+	timeout: 60000,
+	projects: [
+		{
+			name: "chromium",
+			use: { ...devices["Desktop Chrome"] }
+		},
+		localOnly({
+			name: "firefox",
+			use: { ...devices["Desktop Firefox"] },
+			testIgnore: "**/kitchen_sink.*" // This test requires the camera permission but it's not supported on FireFox: https://github.com/microsoft/playwright/issues/11714
+		})
+	].filter(Boolean)
 });
 
 export default normal;

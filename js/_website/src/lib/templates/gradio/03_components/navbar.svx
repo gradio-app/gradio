@@ -19,31 +19,6 @@
 gradio.Navbar(···)
 ```
 
-<!-- Embedded Component -->
-<div class="embedded-component">
-<gradio-lite shared-worker>
-import gradio as gr
-
-with gr.Blocks() as demo:
-    navbar = gr.Navbar(
-        visible=True,
-        main_page_name="Dashboard",
-        value=[("About", "https://example.com/about")]
-    )
-    gr.Markdown("# Main Page")
-
-with demo.route("Settings"):
-    navbar = gr.Navbar(
-        visible=True,
-        main_page_name="Home",
-        value=[("Documentation", "https://docs.example.com")]
-    )
-    gr.Markdown("# Settings Page")
-
-demo.launch()
-</gradio-lite>
-</div>
-
 <!--- Description -->
 ### Description
 ## {@html style_formatted_text(obj.description)}

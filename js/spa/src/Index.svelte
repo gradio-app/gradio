@@ -34,7 +34,7 @@
 		username: string | null;
 		api_prefix?: string;
 		max_file_size?: number;
-		pages: [string, string][];
+		pages: [string, string, boolean][];
 		current_page: string;
 		deep_link_state?: "valid" | "invalid" | "none";
 		page: Record<
@@ -106,7 +106,7 @@
 	export let info: boolean;
 	export let eager: boolean;
 	let stream: EventSource;
-	let pages: [string, string][] = [];
+	let pages: [string, string, boolean][] = [];
 	let current_page: string;
 	let root: string;
 
@@ -356,10 +356,14 @@
 			}
 		});
 		const hostname = window.location.hostname;
-		const origin = hostname.includes(".dev.")
-			? `https://moon-${hostname.split(".")[1]}.dev.spaces.huggingface.tech`
-			: `https://huggingface.co`;
-		window.parent.postMessage(supports_zerogpu_headers, origin);
+		const is_hf_host =
+			hostname.includes(".dev.") || hostname.endsWith(".hf.space");
+		if (is_hf_host) {
+			const origin = hostname.includes(".dev.")
+				? `https://moon-${hostname.split(".")[1]}.dev.spaces.huggingface.tech`
+				: `https://huggingface.co`;
+			window.parent.postMessage(supports_zerogpu_headers, origin);
+		}
 
 		dispatch("loaded");
 

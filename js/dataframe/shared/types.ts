@@ -9,9 +9,11 @@ export interface HeadersWithIDs {
 }
 [];
 
+export type CellValue = string | number | boolean;
+
 export interface TableCell {
 	id: string;
-	value: string | number;
+	value: CellValue;
 }
 
 export type TableData = TableCell[][];

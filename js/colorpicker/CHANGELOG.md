@@ -1,5 +1,22 @@
 # @gradio/colorpicker
 
+## 0.4.29
+
+### Dependency updates
+
+- @gradio/atoms@0.18.1
+
+## 0.4.29
+
+### Fixes
+
+- [#11784](https://github.com/gradio-app/gradio/pull/11784) [`d9dd3f5`](https://github.com/gradio-app/gradio/commit/d9dd3f54b7fb34cf7118e549d39fc63937ca3489) - Add "hidden" option to component's `visible` kwarg to render but visually hide the component.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.11.1
+- @gradio/atoms@0.18.0
+
 ## 0.4.28
 
 ### Dependency updates

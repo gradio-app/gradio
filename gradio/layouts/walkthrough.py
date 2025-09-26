@@ -8,17 +8,20 @@ from gradio.events import Events
 from gradio.i18n import I18nData
 
 
+@document()
 class Walkthrough(BlockContext, metaclass=ComponentMeta):
     """
     Walkthrough is a layout element within Blocks that can contain multiple "Step" Components, which can be used to create a step-by-step workflow.
     Example:
-        with gr.Walkthrough():
+        with gr.Walkthrough(selected=1) as walkthrough:
             with gr.Step("Step 1", id=1):
-                txt_1 = gr.Textbox("Step 1")
-                txt_1.change(lambda x: gr.Walkthrough(selected=1), outputs=walkthrough)
+                btn = gr.Button("go to Step 2")
+                btn.click(lambda: gr.Walkthrough(selected=2), outputs=walkthrough)
             with gr.Step("Step 2", id=2):
-                txt_2 = gr.Textbox("Step 2")
-                txt_2.change(lambda x: gr.Walkthrough(selected=2), outputs=walkthrough)
+                txt = gr.Textbox("Welcome to Step 2")
+
+    Guides: controlling-layout
+    Demos: walkthrough
     """
 
     EVENTS = [Events.change, Events.select]
