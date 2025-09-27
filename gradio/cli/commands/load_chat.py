@@ -27,7 +27,7 @@ def main(
         None, "--system-message", help="Optional system prompt"
     ),
     stream: bool = typer.Option(
-        True, "--stream/--no-stream", help="Enable or disable streaming"
+        None, "--stream/--no-stream", help="Enable or disable streaming"
     ),
     host: str = typer.Option(
         "0.0.0.0", "--host", help="Server host (maps to launch.server_name)"
