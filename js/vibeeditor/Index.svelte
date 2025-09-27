@@ -34,14 +34,39 @@
 		});
 	};
 
-	const submit = async (): Promise<void> => {
-		if (prompt.trim() === "") return;
+	let starterQueries: string[] = [];
+
+	const fetchStarterQueries = async (): Promise<void> => {
+		const post = app.post_data(`${root}/gradio_api/vibe-starter-queries/`, {});
+		post
+			.then(async ([response, status_code]) => {
+				if (status_code !== 200) {
+					throw new Error(`Error: ${status_code}`);
+				}
+				const responseData = response as {
+					starter_queries: string[];
+				};
+				starterQueries = responseData.starter_queries;
+			})
+			.catch(async (error) => {
+				console.error("Failed to fetch starter queries:", error);
+			});
+	};
+
+	fetchStarterQueries();
+
+	const submit = async (queryText?: string): Promise<void> => {
+		const textToSubmit = queryText || prompt;
+		if (textToSubmit.trim() === "") return;
 
 		// Clear diff stats when submitting new prompt
 		diffStats = null;
 
 		const userMessageIndex = message_history.length;
-		message_history = [...message_history, { text: prompt, isBot: false }];
+		message_history = [
+			...message_history,
+			{ text: textToSubmit, isBot: false }
+		];
 
 		const botMessageIndex = message_history.length;
 		message_history = [
@@ -52,8 +77,10 @@
 		await tick();
 		scroll_to_bottom();
 
-		const userPrompt = prompt;
-		prompt = "";
+		const userPrompt = textToSubmit;
+		if (!queryText) {
+			prompt = "";
+		}
 
 		const post = app.post_data(`${root}/gradio_api/vibe-edit/`, {
 			prompt: userPrompt
@@ -101,6 +128,10 @@
 				await tick();
 				scroll_to_bottom();
 			});
+	};
+
+	const handleStarterQuery = async (query: string): Promise<void> => {
+		await submit(query);
 	};
 
 	const undoMessage = async (
@@ -203,6 +234,9 @@
 			document.removeEventListener("mouseup", handleResizeEnd);
 		};
 	});
+
+	$: starterQueries;
+	$: console.log(starterQueries);
 </script>
 
 <div
@@ -271,8 +305,24 @@
 						</div>
 					</div>
 				{/each}
+
 				{#if message_history.length === 0}
 					<div class="no-messages">No messages yet</div>
+				{/if}
+
+				{#if message_history.length === 0}
+					<div class="starter-queries-container">
+						<div class="starter-queries">
+							{#each starterQueries as query}
+								<button
+									class="starter-query-button"
+									on:click={() => handleStarterQuery(query)}
+								>
+									{query}
+								</button>
+							{/each}
+						</div>
+					</div>
 				{/if}
 			</div>
 		{:else if activeTab === "code"}
@@ -318,7 +368,7 @@
 			class="prompt-input"
 		/>
 		<button
-			on:click={submit}
+			on:click={() => submit()}
 			class="submit-button"
 			disabled={prompt.trim() === ""}
 		>
@@ -452,6 +502,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 12px;
+		position: relative;
 	}
 
 	.message-item {
@@ -578,5 +629,56 @@
 
 	.diff-stats .removed {
 		color: #ef4444;
+	}
+
+	.starter-queries-container {
+		position: absolute;
+		bottom: 16px;
+		left: 50%;
+		transform: translateX(-50%);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 16px;
+		gap: 12px;
+		width: calc(100% - 32px);
+		max-width: 500px;
+	}
+
+	.starter-queries {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: var(--spacing-md);
+		width: 100%;
+	}
+
+	.starter-query-button {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		padding: var(--spacing-lg);
+		border: none;
+		border-radius: var(--radius-lg);
+		background-color: var(--block-background-fill);
+		cursor: pointer;
+		transition: all 150ms ease-in-out;
+		width: 100%;
+		gap: var(--spacing-sm);
+		border: var(--block-border-width) solid var(--block-border-color);
+		transform: translateY(0px);
+		text-align: left;
+		line-height: 1.4;
+		word-wrap: break-word;
+		white-space: normal;
+		font-size: var(--text-md);
+	}
+
+	.starter-query-button:hover {
+		transform: translateY(-2px);
+		background-color: var(--color-accent-soft);
+	}
+
+	.starter-query-button:active {
+		transform: translateY(0);
 	}
 </style>

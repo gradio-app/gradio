@@ -2206,6 +2206,79 @@ History:
                     status_code=500, detail=f"Error writing file: {str(e)}"
                 ) from e
 
+        @router.post("/vibe-starter-queries/")
+        @router.post("/vibe-starter-queries")
+        async def get_vibe_starter_queries():
+            if not blocks.vibe_mode:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
+                )
+
+            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
+
+            with open(GRADIO_WATCH_DEMO_PATH) as f:
+                code = f.read()
+
+            from huggingface_hub import InferenceClient
+
+            client = InferenceClient()
+
+            prompt = f"""
+You are a prompt generator for a gradio vibe editor. Given the following existing code, return a list of starter queries that can be used to generate a new code.
+Existing code:
+```python
+{code}
+```
+"""
+
+            system_prompt = load_system_prompt(starter_queries=True)
+            content = (
+                client.chat_completion(
+                    model="openai/gpt-oss-120b",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt},
+                    ],
+                    max_tokens=10000,
+                )
+                .choices[0]
+                .message.content
+            )
+
+            if content is None:
+                raise HTTPException(status_code=500, detail="Error generating code")
+
+            control_token_re = re.compile(r"<\|[^>]*\|>")
+            final_start_re = re.compile(
+                r"<\|start\|>assistant<\|channel\|>final<\|message\|>", re.IGNORECASE
+            )
+            end_re = re.compile(r"<\|end\|>", re.IGNORECASE)
+
+            # Remove analysis and weird markers from gpt-oss
+            def clean_out_markers(raw: str) -> str:
+                if not raw:
+                    return raw
+
+                m = final_start_re.search(raw)
+                if m:
+                    text = raw[m.end() :]
+                    m_end = end_re.search(text)
+                    if m_end:
+                        text = text[: m_end.start()]
+                    return text.strip()
+
+                text = control_token_re.sub("", raw)
+                return text.strip()
+
+            content = clean_out_markers(content)
+
+            starter_queries = content.split("\n")
+
+            return {
+                "starter_queries": starter_queries,
+            }
+
         def cleanup_files(files):
             for file in files:
                 try:
@@ -2223,7 +2296,7 @@ History:
 ########
 
 
-def load_system_prompt():
+def load_system_prompt(starter_queries: bool = False):
     prompt_rules = """Generate code for using the Gradio python library.
 
 The following RULES must be followed.  Whenever you are forming a response, ensure all rules have been followed otherwise start over.
@@ -2255,6 +2328,33 @@ demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
 
 demo.launch()
 """
+    if starter_queries:
+        prompt_rules = """
+        You are a prompt generator for a gradio vibe editor.
+
+        Given python code of a gradio app, return a list of starter queries that can be used to generate new code.
+        Make sure the queries are short, concise, useful and actually possible with Gradio.
+        You should respond with at most three queries, each on a new line. Do not include any other text.
+        Make sure the features you suggest are actually supported by Gradio, and documented in the docs section below.
+
+        Here's an example of a gradio app:
+        ```python
+        import gradio as gr
+
+        def greet(name):
+            return "Hello " + name + "!"
+
+        demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
+
+        demo.launch()
+        ```
+
+        Here's an example of a valid response:
+        Add a title and description
+        Add examples
+        Rewrite this using Blocks
+
+        """
     try:
         with httpx.Client() as client:
             response = client.get("https://www.gradio.app/llms.txt")
