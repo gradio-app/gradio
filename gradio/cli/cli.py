@@ -10,7 +10,7 @@ from .commands import (
     custom_component,
     deploy,
     hf_login,
-    load,
+    load_app,
     print_environment_info,
     reload,
     sketch,
@@ -18,6 +18,7 @@ from .commands import (
 )
 
 app = typer.Typer()
+app.add_typer(load_app, name="load")
 app.command("environment", help="Print Gradio environment information.")(
     print_environment_info
 )
@@ -31,18 +32,16 @@ app.command("deploy-discord", help="Deploy a Gradio app to Discord.")(
 app.command("sketch", help="Open the Sketch app to design a Gradio app.")(sketch)
 
 
+
 def cli():
     args = sys.argv[1:]
     if len(args) == 0:
         raise ValueError("No file specified.")
-    if args[0] in {"deploy", "environment", "deploy-discord", "sketch"}:
+    if args[0] in {"deploy", "environment", "deploy-discord", "sketch", "load"}:
         app()
     elif args[0] in {"cc", "component"}:
         sys.argv = sys.argv[1:]
         custom_component()
-    elif args[0] == "load":
-        sys.argv = sys.argv[1:]
-        load()
     elif args[0] in {"build", "dev", "create", "show", "publish", "install"}:
         try:
             error = f"gradio {args[0]} is not a valid command. Did you mean `gradio cc {args[0]}` or `gradio component {args[0]}`?."
