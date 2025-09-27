@@ -1,6 +1,6 @@
 {
 	"name": "website",
-	"version": "0.64.0",
+	"version": "0.64.1",
 	"private": true,
 	"scripts": {
 		"dev": "pip install boto3 markdown && python generate_jsons/generate.py && python ../../scripts/generate_theme.py --outfile ./src/lib/assets/theme.css && vite dev",
@@ -22,6 +22,9 @@
 		"tailwindcss": "^3.1.6"
 	},
 	"type": "module",
+	"engines": {
+		"node": ">=22.0.0"
+	},
 	"dependencies": {
 		"@gradio/code": "workspace:^",
 		"@gradio/tabs": "workspace:^",
