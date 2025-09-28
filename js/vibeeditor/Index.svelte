@@ -228,6 +228,18 @@
 
 	$: code_updated;
 
+	function create_spaces_url(): void {
+		const base_URL = "https://huggingface.co/new-space";
+		const params = new URLSearchParams({
+			name: "new-space",
+			sdk: "gradio"
+		});
+		const encoded_content = codeValue.trimStart();
+		params.append("files[0][path]", "app.py");
+		params.append("files[0][content]", encoded_content);
+		window.open(`${base_URL}?${params.toString()}`, "_blank")?.focus();
+	}
+
 	onMount(() => {
 		return () => {
 			document.removeEventListener("mousemove", handleResizeMove);
@@ -236,7 +248,6 @@
 	});
 
 	$: starterQueries;
-	$: console.log(starterQueries);
 </script>
 
 <div
@@ -349,6 +360,12 @@
 					{:else}
 						Update Code
 					{/if}
+				</button>
+				<button
+					class="deploy-to-spaces-button"
+					on:click={() => create_spaces_url()}
+				>
+					Deploy to Spaces
 				</button>
 			</div>
 		{/if}
@@ -493,6 +510,23 @@
 
 	.update-code-button.updating:hover {
 		background: var(--button-secondary-background-fill);
+	}
+
+	.deploy-to-spaces-button {
+		background: var(--button-secondary-background-fill);
+		color: var(--button-secondary-text-color);
+		border: none;
+		border-radius: var(--button-large-radius);
+		padding: 8px 16px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: background-color 0.2s;
+		align-self: flex-start;
+		width: 100%;
+	}
+
+	.deploy-to-spaces-button:hover {
+		background: var(--button-secondary-background-fill-hover);
 	}
 
 	.message-history {
