@@ -24,7 +24,7 @@ from gradio.utils import (
 )
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    _ServerReloaderT = TypeVar('_ServerReloaderT', bound=ServerReloader)
+    _ServerReloaderT = TypeVar("_ServerReloaderT", bound=ServerReloader)
 
 # By default, the local server will try to open on localhost, port 7860.
 # If that is not available, then it will try 7861, 7862, ... 7959.
@@ -157,7 +157,10 @@ def start_server(
                     stop_event=threading.Event(),
                     watch_module=sys.modules["__main__"],
                 )
-                watchfn = watchfn_jurigged_server if GRADIO_HOT_RELOAD == "server" else watchfn_jurigged
+                if GRADIO_HOT_RELOAD == "server":
+                    watchfn = watchfn_jurigged_server
+                else:
+                    watchfn = watchfn_jurigged
                 server = Server(config=config, reloader=reloader, watchfn=watchfn)
             elif GRADIO_WATCH_DIRS:
                 reloader = SourceFileReloader(

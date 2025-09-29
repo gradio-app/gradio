@@ -166,12 +166,13 @@ class ServerReloader(BaseReloader):
     def get_demo_name(self, module: ModuleType, default_name: str) -> str:
         def log(*args):
             print("GRADIO_HOT_RELOAD:", *args)
+
         if (demo := self.running_app.blocks) is None:
             log("Unexpected undefined blocks in launching app")
             return default_name
         if default_name:
             if module.__dict__.get(default_name) is not demo:
-                log(f"'{default_name}' in {module.__name__} does not match launching demo")
+                log(f"'{default_name}' in {module.__name__} is not the launched demo")
             return default_name
         for name, value in module.__dict__.copy().items():
             if value is demo:
@@ -191,10 +192,13 @@ class JuriggedReloader(ServerReloader):
         stop_event: threading.Event,
         demo_name: str,
     ):
+        from gradio.cli.commands.reload import reload_thread
+
         self.app = app
         self.demo_name = self.get_demo_name(watch_module, demo_name)
         self.watch_dirs = watch_dirs
         self.watch_module = watch_module
+        self.reload_thread = reload_thread
         self._stop_event = stop_event
 
     @property
@@ -206,9 +210,8 @@ class JuriggedReloader(ServerReloader):
         return self._stop_event
 
     def prerun(self, *_args, **_kwargs):
-        from gradio.cli.commands.reload import reload_thread
         NO_RELOAD.set(False)
-        reload_thread.running_reload = True
+        self.reload_thread.running_reload = True
 
     def postrun(self, *_args, **_kwargs):
         NO_RELOAD.set(True)
@@ -328,11 +331,11 @@ def watchfn_jurigged_server(reloader: JuriggedReloader):
     from jurigged.codetools import CodeFileOperation
     from jurigged.register import registry
 
-    registry.auto_register(filter=live.to_filter("./*.py")) # TODO: reloader.watch_dirs
+    registry.auto_register(filter=live.to_filter("./*.py"))  # TODO: reloader.watch_dirs
 
     app = FastAPI()
 
-    @app.post('/reload')
+    @app.post("/reload")
     def handle_reload(filepath: str, contents: str):
         if (code_file := registry.get(filepath)) is None:
             raise HTTPException(status.HTTP_404_NOT_FOUND)
@@ -345,7 +348,7 @@ def watchfn_jurigged_server(reloader: JuriggedReloader):
         return list(map(str, activity))
 
     def run_reload_server():
-        uvicorn.run(app, port=7878) # TODO: Config
+        uvicorn.run(app, port=7878)  # TODO: Config
 
     threading.Thread(target=run_reload_server, daemon=True).start()
 

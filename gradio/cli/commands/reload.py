@@ -81,7 +81,7 @@ def _setup_config(
 
 def main(
     demo_path: Path,
-    demo_name: str  = "",
+    demo_name: str = "",
     watch_dirs: list[str] | None = None,
     encoding: str = "utf-8",
     watch_library: bool = False,
