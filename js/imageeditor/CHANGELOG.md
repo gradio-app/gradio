@@ -1,5 +1,19 @@
 # @gradio/imageeditor
 
+## 0.17.1
+
+### Fixes
+
+- [#11960](https://github.com/gradio-app/gradio/pull/11960) [`a060c85`](https://github.com/gradio-app/gradio/commit/a060c852ecc01244687916092a3f3dc234eb84aa) - Set active tool to "draw" when background image changes in ImageEditor.  Thanks @freddyaboulton!
+
+## 0.17.0
+
+### Dependency updates
+
+- @gradio/image@0.23.1
+- @gradio/upload@0.17.1
+- @gradio/atoms@0.18.1
+
 ## 0.17.0
 
 ### Features

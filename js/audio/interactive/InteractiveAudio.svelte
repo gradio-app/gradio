@@ -11,6 +11,8 @@
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import AudioRecorder from "../recorder/AudioRecorder.svelte";
 	import StreamAudio from "../streaming/StreamAudio.svelte";
+	import { init_media_recorder } from "../streaming/media_recorder";
+	import type { IMediaRecorderConstructor } from "extendable-media-recorder";
 	import { SelectSource } from "@gradio/atoms";
 	import type { WaveformOptions, SubtitleData } from "../shared/types";
 
@@ -74,24 +76,15 @@
 	let pending_stream: Uint8Array[] = [];
 	let submit_pending_stream_on_pending_end = false;
 	let inited = false;
+	let streaming_media_recorder: IMediaRecorderConstructor;
 
 	const NUM_HEADER_BYTES = 44;
 	let audio_chunks: Blob[] = [];
-	let module_promises: [
-		Promise<typeof import("extendable-media-recorder")>,
-		Promise<typeof import("extendable-media-recorder-wav-encoder")>
-	];
-
-	function get_modules(): void {
-		module_promises = [
-			import("extendable-media-recorder"),
-			import("extendable-media-recorder-wav-encoder")
-		];
-	}
-
 	const is_browser = typeof window !== "undefined";
 	if (is_browser && streaming) {
-		get_modules();
+		init_media_recorder().then((a) => {
+			streaming_media_recorder = a;
+		});
 	}
 
 	const dispatch = createEventDispatcher<{
@@ -151,10 +144,9 @@
 		if (stream == null) return;
 
 		if (streaming) {
-			const [{ MediaRecorder, register }, { connect }] =
-				await Promise.all(module_promises);
-			await register(await connect());
-			recorder = new MediaRecorder(stream, { mimeType: "audio/wav" });
+			recorder = new streaming_media_recorder(stream, {
+				mimeType: "audio/wav"
+			});
 			recorder.addEventListener("dataavailable", handle_chunk);
 		} else {
 			recorder = new MediaRecorder(stream);

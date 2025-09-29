@@ -1,5 +1,41 @@
 # gradio
 
+## 5.47.2
+
+### Fixes
+
+- [#11981](https://github.com/gradio-app/gradio/pull/11981) [`52861f8`](https://github.com/gradio-app/gradio/commit/52861f8a5c6522ebf853b74c5145b033abb25894) - Clean fix for support of async auth functions in login (#9244).  Thanks @TimPolk!
+- [#11960](https://github.com/gradio-app/gradio/pull/11960) [`a060c85`](https://github.com/gradio-app/gradio/commit/a060c852ecc01244687916092a3f3dc234eb84aa) - Set active tool to "draw" when background image changes in ImageEditor.  Thanks @freddyaboulton!
+- [#11972](https://github.com/gradio-app/gradio/pull/11972) [`cc27cd7`](https://github.com/gradio-app/gradio/commit/cc27cd765559a047efffe1073063cad0e071de0c) - Fix postMessage warning when running outside hugging face spaces.  Thanks @freddyaboulton!
+- [#11970](https://github.com/gradio-app/gradio/pull/11970) [`9b4a16c`](https://github.com/gradio-app/gradio/commit/9b4a16ca6a7f351b0d27f55732eec579d7774304) - Create extended MediaRecorded only once for streaming demos.  Thanks @freddyaboulton!
+- [#11979](https://github.com/gradio-app/gradio/pull/11979) [`50a89f0`](https://github.com/gradio-app/gradio/commit/50a89f079250735f268dfeeeddf40ffea84d7919) - Allow gradio to run with huggingface_hub 1.x.  Thanks @Wauplin!
+- [#11967](https://github.com/gradio-app/gradio/pull/11967) [`32b0fe7`](https://github.com/gradio-app/gradio/commit/32b0fe79881a710e784c094cce39198acbf2206f) - Allow passing token=None for load_chat.  Thanks @freddyaboulton!
+
+## 5.47.1
+
+### Fixes
+
+- [#11963](https://github.com/gradio-app/gradio/pull/11963) [`e2bc362`](https://github.com/gradio-app/gradio/commit/e2bc36273874364582f4f76c301a60a15140d9be) - MCP documentation fix.  Thanks @abidlabs!
+- [#11937](https://github.com/gradio-app/gradio/pull/11937) [`1b97ed7`](https://github.com/gradio-app/gradio/commit/1b97ed760c6adc6f7eef613904b90a0bfd0e9970) - Fix bug where multimodaltextbox would focus on any app update.  Thanks @freddyaboulton!
+- [#11969](https://github.com/gradio-app/gradio/pull/11969) [`c8f7909`](https://github.com/gradio-app/gradio/commit/c8f79090ede3b071a8d9620a885350b6ee5a8926) - Show UploadProgress for Webcam Uploads.  Thanks @freddyaboulton!
+- [#11964](https://github.com/gradio-app/gradio/pull/11964) [`86e6176`](https://github.com/gradio-app/gradio/commit/86e61763a14c745f7eb0ce35b861ea2be2336a15) - Add dark mode to storybook.  Thanks @hannahblair!
+
+## 5.47.0
+
+### Features
+
+- [#11959](https://github.com/gradio-app/gradio/pull/11959) [`cb16ca5`](https://github.com/gradio-app/gradio/commit/cb16ca5123030beebcb24ddc287fcf958bd3fbe2) - Ensure interactivity works as expected in standalone dataframe.  Thanks @hannahblair!
+- [#11962](https://github.com/gradio-app/gradio/pull/11962) [`fdfe4fe`](https://github.com/gradio-app/gradio/commit/fdfe4fec334726fe91be98062826eb4b537410c3) - fix(client): websockets minimum version for asyncio.  Thanks @cbensimon!
+
+### Fixes
+
+- [#11938](https://github.com/gradio-app/gradio/pull/11938) [`beddde5`](https://github.com/gradio-app/gradio/commit/beddde5d432904d6384b7285acdbf1fd78469af7) - Fix bug where Gallery scrollbar would not show up.  Thanks @freddyaboulton!
+- [#11944](https://github.com/gradio-app/gradio/pull/11944) [`01309af`](https://github.com/gradio-app/gradio/commit/01309af09209485f54391c36acc60c12f19fe726) - Bugfix: Update color map of HighlightedText programmatically.  Thanks @freddyaboulton!
+- [#11945](https://github.com/gradio-app/gradio/pull/11945) [`950b68f`](https://github.com/gradio-app/gradio/commit/950b68fa536f7f7df9052209992ec1d68ec88794) - Correctly Render ChatInterfaces Inside TabbedInterfaces.  Thanks @freddyaboulton!
+- [#11958](https://github.com/gradio-app/gradio/pull/11958) [`3f1842f`](https://github.com/gradio-app/gradio/commit/3f1842f4887a3d5ef721d55aa88d5254de5c7d69) - Fix various vibe editor issues.  Thanks @aliabd!
+- [#11956](https://github.com/gradio-app/gradio/pull/11956) [`fdb2bb2`](https://github.com/gradio-app/gradio/commit/fdb2bb2451ea21ce5916f12478c20d7d78cfd128) - Pass elem_classes to Sidebar svelte component.  Thanks @freddyaboulton!
+- [#11942](https://github.com/gradio-app/gradio/pull/11942) [`e64e5ec`](https://github.com/gradio-app/gradio/commit/e64e5ec0deb196d26b00c3b398b091d6a1dfc6ff) - Fix bug where keyboard navigation on a textbox would skip forward the audio waveform playback.  Thanks @freddyaboulton!
+
 ## 5.46.1
 
 ### Fixes

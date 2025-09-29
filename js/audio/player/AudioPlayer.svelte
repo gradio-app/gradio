@@ -32,6 +32,7 @@
 
 	let container: HTMLDivElement;
 	let waveform: WaveSurfer | undefined;
+	let waveform_component_wrapper: HTMLDivElement;
 	let playing = false;
 
 	let subtitle_container: HTMLDivElement;
@@ -218,6 +219,11 @@
 	onMount(() => {
 		window.addEventListener("keydown", (e) => {
 			if (!waveform || show_volume_slider) return;
+
+			const is_focused_in_waveform =
+				waveform_component_wrapper &&
+				waveform_component_wrapper.contains(document.activeElement);
+			if (!is_focused_in_waveform) return;
 			if (e.key === "ArrowRight" && mode !== "edit") {
 				skip_audio(waveform, 0.1);
 			} else if (e.key === "ArrowLeft" && mode !== "edit") {
@@ -337,6 +343,7 @@
 	<div
 		class="component-wrapper"
 		data-testid={label ? "waveform-" + label : "unlabelled-audio"}
+		bind:this={waveform_component_wrapper}
 	>
 		<div class="waveform-container">
 			<div

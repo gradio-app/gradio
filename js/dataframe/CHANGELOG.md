@@ -1,5 +1,22 @@
 # @gradio/dataframe
 
+## 0.20.1
+
+### Fixes
+
+- [#11964](https://github.com/gradio-app/gradio/pull/11964) [`86e6176`](https://github.com/gradio-app/gradio/commit/86e61763a14c745f7eb0ce35b861ea2be2336a15) - Add dark mode to storybook.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/upload@0.17.1
+- @gradio/atoms@0.18.1
+
+## 0.20.0
+
+### Features
+
+- [#11959](https://github.com/gradio-app/gradio/pull/11959) [`cb16ca5`](https://github.com/gradio-app/gradio/commit/cb16ca5123030beebcb24ddc287fcf958bd3fbe2) - Ensure interactivity works as expected in standalone dataframe.  Thanks @hannahblair!
+
 ## 0.19.4
 
 ### Fixes

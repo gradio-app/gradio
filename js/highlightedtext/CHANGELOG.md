@@ -1,5 +1,17 @@
 # @gradio/highlightedtext
 
+## 0.9.13
+
+### Dependency updates
+
+- @gradio/atoms@0.18.1
+
+## 0.9.13
+
+### Fixes
+
+- [#11944](https://github.com/gradio-app/gradio/pull/11944) [`01309af`](https://github.com/gradio-app/gradio/commit/01309af09209485f54391c36acc60c12f19fe726) - Bugfix: Update color map of HighlightedText programmatically.  Thanks @freddyaboulton!
+
 ## 0.9.12
 
 ### Fixes

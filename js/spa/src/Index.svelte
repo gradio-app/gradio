@@ -356,10 +356,14 @@
 			}
 		});
 		const hostname = window.location.hostname;
-		const origin = hostname.includes(".dev.")
-			? `https://moon-${hostname.split(".")[1]}.dev.spaces.huggingface.tech`
-			: `https://huggingface.co`;
-		window.parent.postMessage(supports_zerogpu_headers, origin);
+		const is_hf_host =
+			hostname.includes(".dev.") || hostname.endsWith(".hf.space");
+		if (is_hf_host) {
+			const origin = hostname.includes(".dev.")
+				? `https://moon-${hostname.split(".")[1]}.dev.spaces.huggingface.tech`
+				: `https://huggingface.co`;
+			window.parent.postMessage(supports_zerogpu_headers, origin);
+		}
 
 		dispatch("loaded");
 

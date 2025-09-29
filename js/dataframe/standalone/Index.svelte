@@ -20,7 +20,7 @@
 		metadata: null
 	};
 	export let datatype: Datatype | Datatype[] = "str";
-	export let editable = true;
+	export let interactive = true;
 	export let show_row_numbers = false;
 	export let max_height = 500;
 	export let show_search: "none" | "search" | "filter" = "none";
@@ -96,7 +96,7 @@
 		display_value={value?.metadata?.display_value}
 		styling={value?.metadata?.styling}
 		{datatype}
-		{editable}
+		editable={interactive}
 		{show_row_numbers}
 		{max_height}
 		{show_search}
@@ -186,6 +186,16 @@
 		--df-block-radius: var(--df-radius-sm, 4px);
 		--df-table-even-background-fill: #ffffff;
 		--df-table-odd-background-fill: #f9fafb;
+
+		--df-background-fill-primary-dark: var(--df-neutral-950, #0f0f11);
+		--df-background-fill-secondary-dark: var(--df-neutral-900, #18181b);
+		--df-body-text-color-dark: var(--df-neutral-100, #f4f4f5);
+		--df-block-background-fill-dark: var(--df-neutral-800, #27272a);
+		--df-table-even-background-fill-dark: var(--df-neutral-950, #0f0f11);
+		--df-table-odd-background-fill-dark: var(--df-neutral-900, #18181b);
+		--df-border-color-primary-dark: var(--df-neutral-700, #3f3f46);
+		--df-color-accent-dark: var(--df-primary-600, #ea580c);
+		--df-color-accent-soft-dark: var(--df-neutral-700, #3f3f46);
 		--df-radius-sm: 4px;
 		--df-size-1: 4px;
 		--df-size-2: 8px;
@@ -355,7 +365,15 @@
 		--cell-padding: var(--gr-df-cell-padding, var(--size-2));
 		--df-font-size: var(--gr-df-font-size, var(--text-md));
 		--background-fill-primary: var(--df-background-fill-primary, #ffffff);
+		--background-fill-primary-dark: var(
+			--df-background-fill-primary-dark,
+			var(--neutral-950, #0f0f11)
+		);
 		--background-fill-secondary: var(--df-background-fill-secondary, #f8fafc);
+		--background-fill-secondary-dark: var(
+			--df-background-fill-secondary-dark,
+			var(--neutral-900, #18181b)
+		);
 		--color-accent: var(--gr-df-accent, var(--df-color-accent, #7c3aed));
 		--color-accent-soft: var(
 			--gr-df-accent-soft,
@@ -549,6 +567,18 @@
 		overflow: auto;
 		border-radius: 0;
 		background-color: var(--block-background-fill);
+	}
+
+	:global(.dark) .gradio-dataframe-standalone {
+		--df-background-fill-primary: var(--df-background-fill-primary-dark);
+		--df-background-fill-secondary: var(--df-background-fill-secondary-dark);
+		--df-body-text-color: var(--df-body-text-color-dark);
+		--df-block-background-fill: var(--df-block-background-fill-dark);
+		--df-table-even-background-fill: var(--df-table-even-background-fill-dark);
+		--df-table-odd-background-fill: var(--df-table-odd-background-fill-dark);
+		--df-border-color-primary: var(--df-border-color-primary-dark);
+		--df-color-accent: var(--df-color-accent-dark);
+		--df-color-accent-soft: var(--df-color-accent-soft-dark);
 	}
 
 	:global(.gradio-container),
