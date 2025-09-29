@@ -98,6 +98,7 @@ export async function resolve_config(
 				endpoint,
 				!!this.options.auth
 			);
+			// @ts-ignore
 			window.gradio_config = {
 				...config,
 				current_page: window.gradio_config.current_page
