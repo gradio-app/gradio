@@ -1,25 +1,20 @@
 """
 Media Registry for Gradio Demos
 
-This module provides a centralized way to access media files for demos,
-reducing repository size by eliminating duplicate files and providing
-a clean abstraction for importing media content.
+This module provides a centralized way to access media files.
 
 Usage:
     from gradio.media import get_image, get_video, get_audio, get_model3d, get_file
-    
+
     # Get specific media files
     cheetah_img = get_image("cheetah1")
     world_video = get_video("world")
     cantina_audio = get_audio("cantina")
-    
+
     # Get random media of a type
     random_img = get_image()
     random_audio = get_audio()
-    
-    # List available media
-    available_images = list_images()
-    available_videos = list_videos()
+
 """
 
 import random
@@ -27,10 +22,8 @@ import warnings
 from pathlib import Path
 from typing import Dict, List, Optional
 
-# Media registry root directory
 MEDIA_ROOT = Path(__file__).parent / "media_assets"
 
-# Media type mappings
 MEDIA_REGISTRY: Dict[str, Dict[str, str]] = {
     "images": {
         "avatar": "avatar.png",
@@ -95,7 +88,6 @@ def _get_media_path(media_type: str, name: Optional[str] = None) -> str:
     media_files = MEDIA_REGISTRY[media_type]
 
     if name is None:
-        # Return random file of this type
         name = random.choice(list(media_files.keys()))
 
     if name not in media_files:
@@ -213,36 +205,6 @@ def get_subtitle(name: Optional[str] = None) -> str:
     return _get_media_path("subtitles", name)
 
 
-def list_images() -> List[str]:
-    """List all available image names."""
-    return list(MEDIA_REGISTRY["images"].keys())
-
-
-def list_videos() -> List[str]:
-    """List all available video names."""
-    return list(MEDIA_REGISTRY["videos"].keys())
-
-
-def list_audio() -> List[str]:
-    """List all available audio names."""
-    return list(MEDIA_REGISTRY["audio"].keys())
-
-
-def list_models3d() -> List[str]:
-    """List all available 3D model names."""
-    return list(MEDIA_REGISTRY["models3d"].keys())
-
-
-def list_files() -> List[str]:
-    """List all available data file names."""
-    return list(MEDIA_REGISTRY["data"].keys())
-
-
-def list_subtitles() -> List[str]:
-    """List all available subtitle names."""
-    return list(MEDIA_REGISTRY["subtitles"].keys())
-
-
 def get_media_info() -> Dict[str, List[str]]:
     """
     Get information about all available media files.
@@ -251,12 +213,12 @@ def get_media_info() -> Dict[str, List[str]]:
         Dictionary mapping media types to lists of available names
     """
     return {
-        "images": list_images(),
-        "videos": list_videos(),
-        "audio": list_audio(),
-        "models3d": list_models3d(),
-        "data": list_files(),
-        "subtitles": list_subtitles(),
+        "images": list(MEDIA_REGISTRY["images"].keys()),
+        "videos": list(MEDIA_REGISTRY["videos"].keys()),
+        "audio": list(MEDIA_REGISTRY["audio"].keys()),
+        "models3d": list(MEDIA_REGISTRY["models3d"].keys()),
+        "data": list(MEDIA_REGISTRY["data"].keys()),
+        "subtitles": list(MEDIA_REGISTRY["subtitles"].keys()),
     }
 
 
@@ -279,7 +241,6 @@ def random_audio() -> str:
     return get_audio()
 
 
-# For demo compatibility - provides directory paths
 class MediaPaths:
     """
     Provides directory paths for backwards compatibility with existing demos.
@@ -322,5 +283,4 @@ class MediaPaths:
         return str(MEDIA_ROOT / "subtitles")
 
 
-# Create default instance for easy access
 media_paths = MediaPaths()
