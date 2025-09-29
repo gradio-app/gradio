@@ -16,7 +16,7 @@ from uvicorn.config import Config
 from gradio.exceptions import ServerFailedToStartError
 from gradio.routes import App
 from gradio.utils import ServerReloader
-from gradio.utils import JuriggedReloader, watchfn_jurigged
+from gradio.utils import JuriggedReloader, watchfn_jurigged, watchfn_jurigged_server
 from gradio.utils import SourceFileReloader, watchfn
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
@@ -28,7 +28,7 @@ INITIAL_PORT_VALUE = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
 TRY_NUM_PORTS = int(os.getenv("GRADIO_NUM_PORTS", "100"))
 LOCALHOST_NAME = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
 
-GRADIO_HOT_RELOAD = os.getenv("GRADIO_HOT_RELOAD", "false").lower() in ("1", "t", "true")
+GRADIO_HOT_RELOAD = os.getenv("GRADIO_HOT_RELOAD", "false").lower()
 
 should_watch = bool(os.getenv("GRADIO_WATCH_DIRS", ""))
 GRADIO_WATCH_DIRS = (
@@ -153,7 +153,8 @@ def start_server(
                     stop_event=threading.Event(),
                     watch_module=sys.modules["__main__"],
                 )
-                server = Server(config=config, reloader=reloader, watchfn=watchfn_jurigged)
+                watchfn = watchfn_jurigged_server if GRADIO_HOT_RELOAD == "server" else watchfn_jurigged
+                server = Server(config=config, reloader=reloader, watchfn=watchfn)
             elif GRADIO_WATCH_DIRS:
                 reloader = SourceFileReloader(
                     app=app,

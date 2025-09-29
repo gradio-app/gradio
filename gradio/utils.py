@@ -204,6 +204,16 @@ class JuriggedReloader(ServerReloader):
     def stop_event(self) -> threading.Event:
         return self._stop_event
 
+    def prerun(self, *args, **kwargs):
+        from gradio.cli.commands.reload import reload_thread
+        NO_RELOAD.set(False)
+        reload_thread.running_reload = True
+
+    def postrun(self, *args, **kwargs):
+        NO_RELOAD.set(True)
+        demo = getattr(self.watch_module, self.demo_name)
+        self..swap_blocks(demo)
+
 
 class SourceFileReloader(ServerReloader):
     def __init__(
@@ -298,26 +308,48 @@ def _find_module(source_file: Path) -> ModuleType | None:
 
 def watchfn_jurigged(reloader: JuriggedReloader):
     from jurigged import watch
-    from gradio.cli.commands.reload import reload_thread
-
-    def prerun(*args, **kwargs):
-        NO_RELOAD.set(False)
-        reload_thread.running_reload = True
-
-    def postrun(*args, **kwargs):
-        NO_RELOAD.set(True)
-        demo = getattr(reloader.watch_module, reloader.demo_name)
-        reloader.swap_blocks(demo)
 
     if reloader.watch_dirs:
         watcher = watch(autostart=False, pattern=reloader.watch_dirs)
     else:
         watcher = watch(autostart=False)
-    watcher.prerun.register(prerun)
-    watcher.postrun.register(postrun)
+    watcher.prerun.register(reloader.prerun)
+    watcher.postrun.register(reloader.postrun)
     watcher.start()
     reloader.stop_event.wait()
     watcher.stop()
+
+
+def watchfn_jurigged_server(reloader: JuriggedReloader):
+    import uvicorn
+    from fastapi import FastAPI
+    from fastapi import HTTPException
+    from fastapi import status
+    from jurigged import live
+    from jurigged.codetools import CodeFileOperation
+    from jurigged.register import registry
+    from gradio.cli.commands.reload import reload_thread
+
+    registry.auto_register(filter=live.to_filter("./*.py")) # TODO: reloader.watch_dirs
+
+    app = FastAPI()
+
+    @app.post('/reload')
+    def handle_reload(filepath: str, contents: str):
+        if (code_file := registry.get(filepath)) is None:
+            raise HTTPException(status.HTTP_404_NOT_FOUND)
+        Path(filepath).write_text(contents)
+        reloader.prerun()
+        activity: list[CodeFileOperation] = []
+        code_file.activity.register(activity.append)
+        code_file.refresh()
+        reloader.postrun()
+        return list(map(str, activity))
+
+    def run_reload_server():
+        uvicorn.run(app, port=7878) # TODO: Config
+
+    threading.Thread(target=run_reload_server, daemon=True).start()
 
 
 def watchfn(reloader: SourceFileReloader):
