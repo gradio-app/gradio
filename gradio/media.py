@@ -19,11 +19,11 @@ Usage:
 
 import random
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Optional
 
 MEDIA_ROOT = Path(__file__).parent / "media_assets"
 
-MEDIA_REGISTRY: Dict[str, Dict[str, str]] = {
+MEDIA_REGISTRY: dict[str, dict[str, str]] = {
     "images": {
         "avatar": "avatar.png",
         "cheetah": "cheetah.jpg",
@@ -209,7 +209,7 @@ def get_subtitle(name: Optional[str] = None) -> str:
     return _get_media_path("subtitles", name)
 
 
-def get_media_info() -> Dict[str, List[str]]:
+def get_media_info() -> dict[str, list[str]]:
     """
     Get information about all available media files.
 
