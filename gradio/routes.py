@@ -2012,6 +2012,56 @@ class App(FastAPI):
 
             return ""
 
+        control_token_re = re.compile(r"<\|[^>]*\|>")
+        final_start_re = re.compile(
+            r"<\|start\|>assistant<\|channel\|>final<\|message\|>", re.IGNORECASE
+        )
+        end_re = re.compile(r"<\|end\|>", re.IGNORECASE)
+        reasoning_block_re = re.compile(
+            r"<\s*reasoning\s*>\s*(?P<body>.*?)\s*<\s*/\s*reasoning\s*>",
+            re.IGNORECASE | re.DOTALL,
+        )
+        think_block_re = re.compile(
+            r"<\s*think\s*>.*?<\s*/\s*think\s*>", re.IGNORECASE | re.DOTALL
+        )
+
+        # Remove analysis and weird markers from gpt-oss
+        def clean_out_markers(raw: str) -> str:
+            if not raw:
+                return raw
+
+            m = final_start_re.search(raw)
+            if m:
+                text = raw[m.end() :]
+                m_end = end_re.search(text)
+                if m_end:
+                    text = text[: m_end.start()]
+                return text.strip()
+
+            text = control_token_re.sub("", raw)
+            return text.strip()
+
+        def strip_think_blocks(text: str) -> str:
+            """Remove any <think> ... </think> blocks entirely"""
+            return think_block_re.sub("", text)
+
+        def split_reasoning_code(text: str) -> tuple[str, str]:
+            """
+            Extract all <reasoning>...</reasoning> and code. If multiple, concatenate with blank lines, de-duping exact copies.
+            """
+            reasoning_chunks = []
+            seen = set()
+            for m in reasoning_block_re.finditer(text):
+                body = m.group("body").strip()
+                if body and body not in seen:
+                    reasoning_chunks.append(body)
+                    seen.add(body)
+
+            reasoning_text = "\n\n".join(reasoning_chunks).strip()
+            code_text = reasoning_block_re.sub("", text).strip()
+
+            return reasoning_text, code_text
+
         @router.post("/vibe-edit/")
         @router.post("/vibe-edit")
         async def vibe_edit(body: VibeEditBody):
@@ -2072,38 +2122,12 @@ History:
             if content is None:
                 raise HTTPException(status_code=500, detail="Error generating code")
 
-            control_token_re = re.compile(r"<\|[^>]*\|>")
-            final_start_re = re.compile(
-                r"<\|start\|>assistant<\|channel\|>final<\|message\|>", re.IGNORECASE
-            )
-            end_re = re.compile(r"<\|end\|>", re.IGNORECASE)
-
-            # Remove analysis and weird markers from gpt-oss
-            def clean_out_markers(raw: str) -> str:
-                if not raw:
-                    return raw
-
-                m = final_start_re.search(raw)
-                if m:
-                    text = raw[m.end() :]
-                    m_end = end_re.search(text)
-                    if m_end:
-                        text = text[: m_end.start()]
-                    return text.strip()
-
-                text = control_token_re.sub("", raw)
-                return text.strip()
-
             content = clean_out_markers(content)
+            content = strip_think_blocks(content)
 
             chat_history["history"] += f"\nUser: {body.prompt}\nAssistant: {content}\n"
 
-            reasoning = None
-            if "<reasoning>" in content:
-                reasoning = content.split("<reasoning>")[1].split("</reasoning>")[0]
-                content = content.replace(
-                    f"<reasoning>{reasoning}</reasoning>", ""
-                ).strip()
+            reasoning, content = split_reasoning_code(content)
 
             if "```python\n" in content:
                 start = content.index("```python\n") + len("```python\n")
@@ -2249,28 +2273,7 @@ Existing code:
             if content is None:
                 raise HTTPException(status_code=500, detail="Error generating code")
 
-            control_token_re = re.compile(r"<\|[^>]*\|>")
-            final_start_re = re.compile(
-                r"<\|start\|>assistant<\|channel\|>final<\|message\|>", re.IGNORECASE
-            )
-            end_re = re.compile(r"<\|end\|>", re.IGNORECASE)
-
-            # Remove analysis and weird markers from gpt-oss
-            def clean_out_markers(raw: str) -> str:
-                if not raw:
-                    return raw
-
-                m = final_start_re.search(raw)
-                if m:
-                    text = raw[m.end() :]
-                    m_end = end_re.search(text)
-                    if m_end:
-                        text = text[: m_end.start()]
-                    return text.strip()
-
-                text = control_token_re.sub("", raw)
-                return text.strip()
-
+            content = strip_think_blocks(content)
             content = clean_out_markers(content)
 
             starter_queries = content.split("\n")
