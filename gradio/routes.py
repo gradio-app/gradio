@@ -2336,11 +2336,16 @@ demo.launch()
         You are a prompt generator for a gradio vibe editor.
 
         Given python code of a gradio app, return a list of starter queries that can be used to generate new code.
-        Make sure the queries are short, concise, useful and actually possible with Gradio.
+        Make sure the queries are short, useful and actually possible with Gradio.
+        The queries should be really simple and easy to understand.
         You should respond with at most three queries, each on a new line. Do not include any other text.
         Make sure the features you suggest are actually supported by Gradio, and documented in the docs section below.
+        Never suggest a query with more than one gradio feature or concept.
+        You may suggest queries that are not related to Gradio, but they must be related to the existing code and app. Never suggest queries that require external packages or libraries other than gradio.
+        Don't suggest adding a clear button if the app is an Interface, because Interface already has a clear button.
 
         Here's an example of a gradio app:
+
         ```python
         import gradio as gr
 
@@ -2353,9 +2358,14 @@ demo.launch()
         ```
 
         Here's an example of a valid response:
-        Add a title and description
+        Add a title to the app
         Add examples
-        Rewrite this using Blocks
+        Rewrite this app using Blocks
+
+        Here's an example of another valid response:
+        Add another textbox for name
+        Change the theme
+        Greet the user in many languages
 
         """
     try:
