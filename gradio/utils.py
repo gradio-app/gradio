@@ -154,7 +154,72 @@ class BaseReloader(ABC):
         self.running_app.blocks = demo
 
 
-class SourceFileReloader(BaseReloader):
+class ServerReloader(BaseReloader):
+    @property
+    @abstractmethod
+    def stop_event(self) -> threading.Event:
+        pass
+
+    def stop(self) -> None:
+        self.stop_event.set()
+
+    def get_demo_name(self, module: ModuleType, default_name: str) -> str:
+        def log(*args):
+            print("GRADIO_HOT_RELOAD:", *args)
+
+        if (demo := self.running_app.blocks) is None:
+            log("Unexpected undefined blocks in launching app")
+            return default_name
+        if default_name:
+            if module.__dict__.get(default_name) is not demo:
+                log(f"'{default_name}' in {module.__name__} is not the launched demo")
+            return default_name
+        for name, value in module.__dict__.copy().items():
+            if value is demo:
+                if name != "demo":
+                    log(f"Using '{name}' for demo name")
+                return name
+        log(f"Launching demo not found in {module.__name__}. Using 'demo'")
+        return "demo"
+
+
+class JuriggedReloader(ServerReloader):
+    def __init__(
+        self,
+        app: App,
+        watch_dirs: list[str],
+        watch_module: ModuleType,
+        stop_event: threading.Event,
+        demo_name: str,
+    ):
+        from gradio.cli.commands.reload import reload_thread
+
+        self.app = app
+        self.demo_name = self.get_demo_name(watch_module, demo_name)
+        self.watch_dirs = watch_dirs
+        self.watch_module = watch_module
+        self.reload_thread = reload_thread
+        self._stop_event = stop_event
+
+    @property
+    def running_app(self) -> App:
+        return self.app
+
+    @property
+    def stop_event(self) -> threading.Event:
+        return self._stop_event
+
+    def prerun(self, *_args, **_kwargs):
+        NO_RELOAD.set(False)
+        self.reload_thread.running_reload = True
+
+    def postrun(self, *_args, **_kwargs):
+        NO_RELOAD.set(True)
+        demo = getattr(self.watch_module, self.demo_name)
+        self.swap_blocks(demo)
+
+
+class SourceFileReloader(ServerReloader):
     def __init__(
         self,
         app: App,
@@ -163,15 +228,15 @@ class SourceFileReloader(BaseReloader):
         demo_file: str,
         watch_module: ModuleType,
         stop_event: threading.Event,
-        demo_name: str = "demo",
+        demo_name: str,
         encoding="utf-8",
     ) -> None:
         super().__init__()
         self.app = app
         self.watch_dirs = watch_dirs
         self.watch_module_name = watch_module_name
-        self.stop_event = stop_event
-        self.demo_name = demo_name
+        self._stop_event = stop_event
+        self.demo_name = self.get_demo_name(watch_module, demo_name)
         self.demo_file = Path(demo_file)
         self.watch_module = watch_module
         self.encoding = encoding
@@ -180,11 +245,12 @@ class SourceFileReloader(BaseReloader):
     def running_app(self) -> App:
         return self.app
 
+    @property
+    def stop_event(self) -> threading.Event:
+        return self._stop_event
+
     def should_watch(self) -> bool:
         return not self.stop_event.is_set()
-
-    def stop(self) -> None:
-        self.stop_event.set()
 
     def alert_change(self, change_type: Literal["reload", "error"] = "reload"):
         self.app.change_type = change_type
@@ -242,6 +308,49 @@ def _find_module(source_file: Path) -> ModuleType | None:
         ):
             return v
     return None
+
+
+def watchfn_jurigged(reloader: JuriggedReloader):
+    from jurigged import watch
+
+    if reloader.watch_dirs:
+        watcher = watch(autostart=False, pattern=reloader.watch_dirs)
+    else:
+        watcher = watch(autostart=False)
+    watcher.prerun.register(reloader.prerun)
+    watcher.postrun.register(reloader.postrun)
+    watcher.start()
+    reloader.stop_event.wait()
+    watcher.stop()
+
+
+def watchfn_jurigged_server(reloader: JuriggedReloader):
+    import uvicorn
+    from fastapi import FastAPI, HTTPException, status
+    from jurigged import live
+    from jurigged.codetools import CodeFileOperation
+    from jurigged.register import registry
+
+    registry.auto_register(filter=live.to_filter("./*.py"))  # TODO: reloader.watch_dirs
+
+    app = FastAPI()
+
+    @app.post("/reload")
+    def handle_reload(filepath: str, contents: str):
+        if (code_file := registry.get(filepath)) is None:
+            raise HTTPException(status.HTTP_404_NOT_FOUND)
+        Path(filepath).write_text(contents)
+        reloader.prerun()
+        activity: list[CodeFileOperation] = []
+        code_file.activity.register(activity.append)
+        code_file.refresh()
+        reloader.postrun()
+        return list(map(str, activity))
+
+    def run_reload_server():
+        uvicorn.run(app, port=7878)  # TODO: Config
+
+    threading.Thread(target=run_reload_server, daemon=True).start()
 
 
 def watchfn(reloader: SourceFileReloader):
