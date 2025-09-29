@@ -89,7 +89,6 @@ export async function resolve_config(
 					? CONFIG_URL + "?deep_link=" + this.deep_link
 					: CONFIG_URL
 			);
-
 			const response = await this.fetch(config_url, {
 				headers,
 				credentials: "include"
@@ -99,10 +98,10 @@ export async function resolve_config(
 				endpoint,
 				!!this.options.auth
 			);
-			window.gradio_config = { ...config };
-			window.gradio_config.current_page = endpoint.substring(
-				endpoint.lastIndexOf("/") + 1
-			);
+			window.gradio_config = {
+				...config,
+				current_page: window.gradio_config.current_page
+			};
 		}
 		window.gradio_config.root = endpoint;
 		// @ts-ignore
