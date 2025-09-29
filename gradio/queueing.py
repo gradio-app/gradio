@@ -8,7 +8,6 @@ import time
 import traceback
 import uuid
 from collections import defaultdict
-from importlib.metadata import version
 from queue import Queue as ThreadQueue
 from typing import TYPE_CHECKING, Literal, cast
 
@@ -44,8 +43,6 @@ from gradio.utils import (
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction, Blocks
-
-PANDAS_VERSION = version("pandas").split(".")
 
 
 class Event:
