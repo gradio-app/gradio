@@ -18,7 +18,6 @@ Usage:
 """
 
 import random
-import warnings
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -220,26 +219,6 @@ def get_media_info() -> Dict[str, List[str]]:
         "data": list(MEDIA_REGISTRY["data"].keys()),
         "subtitles": list(MEDIA_REGISTRY["subtitles"].keys()),
     }
-
-
-# Backwards compatibility - deprecated functions
-def random_image() -> str:
-    """Deprecated: Use get_image() instead."""
-    warnings.warn("random_image() is deprecated. Use get_image() instead.", DeprecationWarning)
-    return get_image()
-
-
-def random_video() -> str:
-    """Deprecated: Use get_video() instead."""
-    warnings.warn("random_video() is deprecated. Use get_video() instead.", DeprecationWarning)
-    return get_video()
-
-
-def random_audio() -> str:
-    """Deprecated: Use get_audio() instead."""
-    warnings.warn("random_audio() is deprecated. Use get_audio() instead.", DeprecationWarning)
-    return get_audio()
-
 
 class MediaPaths:
     """
