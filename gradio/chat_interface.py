@@ -41,7 +41,6 @@ from gradio.components.chatbot import (
     TupleFormat,
 )
 from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
-from gradio.context import get_blocks_context
 from gradio.events import Dependency, EditData, SelectData
 from gradio.flagging import ChatCSVLogger
 from gradio.helpers import create_examples as Examples  # noqa: N812
@@ -114,6 +113,7 @@ class ChatInterface(Blocks):
         api_description: str | None | Literal[False] = None,
         show_api: bool = True,
         save_history: bool = False,
+        validator: Callable | None = None,
     ):
         """
         Parameters:
@@ -157,6 +157,7 @@ class ChatInterface(Blocks):
             api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
             show_api: whether to show the chat endpoint in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
             save_history: if True, will save the chat history to the browser's local storage and display previous conversations in a side panel.
+            validator: a function that takes in the inputs and can optionally return a gr.validate() object for each input.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -188,6 +189,7 @@ class ChatInterface(Blocks):
         self.is_generator = inspect.isgeneratorfunction(
             self.fn
         ) or inspect.isasyncgenfunction(self.fn)
+        self.validator = validator
         self.provided_chatbot = chatbot is not None
         self.examples = examples
         self.examples_messages = self._setup_example_messages(
@@ -368,7 +370,7 @@ class ChatInterface(Blocks):
                     )
                     self.textbox = textbox_component(
                         show_label=False,
-                        label="Message",
+                        label="",
                         placeholder="Type a message...",
                         scale=7,
                         autofocus=self.autofocus,
@@ -593,22 +595,23 @@ class ChatInterface(Blocks):
             "queue": False,
         }
 
-        submit_event = (
-            self.textbox.submit(
-                self._clear_and_save_textbox,
-                [self.textbox],
-                [self.textbox, self.saved_input],
-                show_api=False,
-                queue=False,
-            )
-            .then(  # The reason we do this outside of the submit_fn is that we want to update the chatbot UI with the user message immediately, before the submit_fn is called
-                self._append_message_to_history,
-                [self.saved_input, self.chatbot],
-                [self.chatbot],
-                show_api=False,
-                queue=False,
-            )
-            .then(**submit_fn_kwargs)
+        user_submit = self.textbox.submit(
+            self._clear_and_save_textbox,
+            [self.textbox],
+            [self.textbox, self.saved_input],
+            show_api=False,
+            queue=bool(self.validator),
+            validator=self.validator,
+        )
+
+        submit_event = user_submit.then(  # The reason we do this outside of the submit_fn is that we want to update the chatbot UI with the user message immediately, before the submit_fn is called
+            self._append_message_to_history,
+            [self.saved_input, self.chatbot],
+            [self.chatbot],
+            show_api=False,
+            queue=False,
+        ).then(
+            **submit_fn_kwargs,
         )
         submit_event.then(**synchronize_chat_state_kwargs).then(
             lambda: update(value=None, interactive=True),
@@ -689,11 +692,11 @@ class ChatInterface(Blocks):
 
         self._setup_stop_events(
             event_triggers=[
-                self.textbox.submit,
                 self.chatbot.retry,
                 self.chatbot.example_select,
             ],
             events_to_cancel=events_to_cancel,
+            after_success=user_submit,
         )
 
         self.chatbot.undo(
@@ -785,10 +788,25 @@ class ChatInterface(Blocks):
         ).then(**synchronize_chat_state_kwargs)
 
     def _setup_stop_events(
-        self, event_triggers: list[Callable], events_to_cancel: list[Dependency]
+        self,
+        event_triggers: list[Callable],
+        events_to_cancel: list[Dependency],
+        after_success: Dependency,
     ) -> None:
         textbox_component = MultimodalTextbox if self.multimodal else Textbox
         original_submit_btn = self.textbox.submit_btn
+        after_success.success(
+            utils.async_lambda(
+                lambda: textbox_component(
+                    submit_btn=False,
+                    stop_btn=self.original_stop_btn,
+                )
+            ),
+            None,
+            [self.textbox],
+            show_api=False,
+            queue=False,
+        )
         for event_trigger in event_triggers:
             event_trigger(
                 utils.async_lambda(
@@ -1134,10 +1152,3 @@ class ChatInterface(Blocks):
         if self.type == "tuples":
             history_ = self._messages_to_tuples(history_)  # type: ignore
         return history_, return_message  # type: ignore
-
-    def render(self) -> ChatInterface:
-        # If this is being rendered inside another Blocks, and the height is not explicitly set, set it to 400 instead of 200.
-        if get_blocks_context() and not self.provided_chatbot:
-            self.chatbot.height = 400
-            super().render()
-        return self

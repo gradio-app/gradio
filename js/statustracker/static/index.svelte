@@ -84,6 +84,8 @@
 	export let translucent = false;
 	export let border = false;
 	export let autoscroll: boolean;
+	export let validation_error: string | null = null;
+	export let show_validation_error = true;
 
 	let el: HTMLDivElement;
 
@@ -204,20 +206,39 @@
 
 <div
 	class="wrap {variant} {show_progress}"
-	class:hide={!status ||
+	class:hide={(!status ||
 		status === "complete" ||
 		show_progress === "hidden" ||
-		status == "streaming"}
+		status == "streaming") &&
+		!validation_error}
 	class:translucent={(variant === "center" &&
 		(status === "pending" || status === "error")) ||
 		translucent ||
-		show_progress === "minimal"}
+		show_progress === "minimal" ||
+		validation_error}
 	class:generating={status === "generating" && show_progress === "full"}
 	class:border
 	style:position={absolute ? "absolute" : "static"}
 	style:padding={absolute ? "0" : "var(--size-8) 0"}
 	bind:this={el}
 >
+	{#if validation_error && show_validation_error}
+		<div class="validation-error">
+			{validation_error}
+			<button
+				><IconButton
+					Icon={Clear}
+					label={i18n("common.clear")}
+					disabled={false}
+					size="x-small"
+					background="var(--background-fill-primary)"
+					color="var(--error-background-text)"
+					border="var(--border-color-primary)"
+					on:click={() => (validation_error = null)}
+				/></button
+			>
+		</div>
+	{/if}
 	{#if status === "pending"}
 		{#if variant === "default" && show_eta_bar && show_progress === "full"}
 			<div
@@ -313,12 +334,13 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		z-index: var(--layer-2);
+		z-index: var(--layer-3);
 		transition: opacity 0.1s ease-in-out;
 		border-radius: var(--block-radius);
 		background: var(--block-background-fill);
 		padding: 0 var(--size-6);
 		overflow: hidden;
+		pointer-events: none;
 	}
 
 	.wrap.center {
@@ -454,6 +476,30 @@
 		font-size: var(--text-lg);
 		line-height: var(--line-lg);
 		font-family: var(--font);
+	}
+
+	.validation-error {
+		pointer-events: auto;
+		color: var(--error-text-color);
+		font-weight: var(--weight-semibold);
+		font-size: var(--text-lg);
+		line-height: var(--line-lg);
+		font-family: var(--font);
+		position: absolute;
+		background: var(--error-background-fill);
+		top: 0;
+		right: 0;
+		z-index: var(--layer-3);
+		padding: var(--size-1) var(--size-2);
+		font-size: var(--text-md);
+		text-align: center;
+		border-bottom-left-radius: var(--radius-sm);
+		border-bottom: 1px solid var(--error-border-color);
+		border-left: 1px solid var(--error-border-color);
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: var(--spacing-xl);
 	}
 
 	.minimal {

@@ -17,7 +17,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from pydub import AudioSegment
 
-from gradio import processing_utils, utils, wasm_utils
+from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingInput, StreamingOutput
 from gradio.data_classes import FileData, FileDataDict, MediaStreamChunk
 from gradio.events import Events
@@ -97,7 +97,7 @@ class Audio(
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         streaming: bool = False,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
@@ -129,7 +129,7 @@ class Audio(
             scale: Relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: Minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: If True, will allow users to upload and edit an audio file. If False, can only be used to play audio. If not provided, this is inferred based on whether the component is used as an input or output.
-            visible: If False, component will be hidden.
+            visible: If False, component will be hidden. If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM.
             streaming: If set to True when used in a `live` interface as an input, will automatically stream webcam feed. When used set as an output, takes audio chunks yield from the backend and combines them into one streaming audio output.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -339,10 +339,6 @@ class Audio(
 
     @staticmethod
     def _convert_to_adts(data: bytes):
-        if wasm_utils.IS_WASM:
-            raise wasm_utils.WasmUnsupportedError(
-                "Audio streaming is not supported in the Wasm mode."
-            )
         segment = AudioSegment.from_file(io.BytesIO(data))
 
         buffer = io.BytesIO()

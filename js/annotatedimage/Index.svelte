@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { Gradio, SelectData } from "@gradio/utils";
 
-	import { onMount } from "svelte";
 	import {
 		Block,
 		BlockLabel,
@@ -9,15 +8,14 @@
 		IconButtonWrapper,
 		FullscreenButton
 	} from "@gradio/atoms";
-	import { Image, Maximize, Minimize } from "@gradio/icons";
+	import { Image } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { type FileData } from "@gradio/client";
-	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 	export let value: {
 		image: FileData;
 		annotations: { image: FileData; label: string }[] | [];
@@ -68,42 +66,6 @@
 				}))
 			};
 			_value = normalized_value;
-
-			// In normal (non-Wasm) Gradio, the `<img>` element should be rendered with the passed values immediately
-			// without waiting for `resolve_wasm_src()` to resolve.
-			// If it waits, a blank image is displayed until the async task finishes
-			// and it leads to undesirable flickering.
-			// So set `_value` immediately above, and update it with the resolved values below later.
-			const image_url_promise = resolve_wasm_src(normalized_value.image.url);
-			const annotation_urls_promise = Promise.all(
-				normalized_value.annotations.map((ann) =>
-					resolve_wasm_src(ann.image.url)
-				)
-			);
-			const current_promise = Promise.all([
-				image_url_promise,
-				annotation_urls_promise
-			]);
-			latest_promise = current_promise;
-			current_promise.then(([image_url, annotation_urls]) => {
-				if (latest_promise !== current_promise) {
-					return;
-				}
-				const async_resolved_value: typeof _value = {
-					image: {
-						...normalized_value.image,
-						url: image_url ?? undefined
-					},
-					annotations: normalized_value.annotations.map((ann, i) => ({
-						...ann,
-						image: {
-							...ann.image,
-							url: annotation_urls[i] ?? undefined
-						}
-					}))
-				};
-				_value = async_resolved_value;
-			});
 		} else {
 			_value = null;
 		}

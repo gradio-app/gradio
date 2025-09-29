@@ -17,7 +17,7 @@
 	}>;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 	export let color: undefined | string = undefined;
 	export let value: {
 		label?: string;

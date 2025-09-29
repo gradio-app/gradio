@@ -6,7 +6,6 @@
 	import { skip_audio, process_audio } from "../shared/utils";
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import { Empty } from "@gradio/atoms";
-	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 	import type { FileData } from "@gradio/client";
 	import type { WaveformOptions, SubtitleData } from "../shared/types";
 	import { createEventDispatcher } from "svelte";
@@ -33,6 +32,7 @@
 
 	let container: HTMLDivElement;
 	let waveform: WaveSurfer | undefined;
+	let waveform_component_wrapper: HTMLDivElement;
 	let playing = false;
 
 	let subtitle_container: HTMLDivElement;
@@ -76,11 +76,9 @@
 			}
 		}
 
-		resolve_wasm_src(value?.url).then((resolved_src) => {
-			if (resolved_src && waveform) {
-				return waveform.load(resolved_src);
-			}
-		});
+		if (value?.url && waveform) {
+			waveform.load(value?.url);
+		}
 
 		waveform?.on("decode", (duration: any) => {
 			audio_duration = duration;
@@ -152,14 +150,12 @@
 
 	async function load_audio(data: string): Promise<void> {
 		stream_active = false;
-		await resolve_wasm_src(data).then((resolved_src) => {
-			if (!resolved_src || value?.is_stream) return;
-			if (waveform_options.show_recording_waveform) {
-				waveform?.load(resolved_src);
-			} else if (audio_player) {
-				audio_player.src = resolved_src;
-			}
-		});
+
+		if (waveform_options.show_recording_waveform) {
+			waveform?.load(data);
+		} else if (audio_player) {
+			audio_player.src = data;
+		}
 	}
 
 	$: url && load_audio(url);
@@ -223,6 +219,11 @@
 	onMount(() => {
 		window.addEventListener("keydown", (e) => {
 			if (!waveform || show_volume_slider) return;
+
+			const is_focused_in_waveform =
+				waveform_component_wrapper &&
+				waveform_component_wrapper.contains(document.activeElement);
+			if (!is_focused_in_waveform) return;
 			if (e.key === "ArrowRight" && mode !== "edit") {
 				skip_audio(waveform, 0.1);
 			} else if (e.key === "ArrowLeft" && mode !== "edit") {
@@ -342,6 +343,7 @@
 	<div
 		class="component-wrapper"
 		data-testid={label ? "waveform-" + label : "unlabelled-audio"}
+		bind:this={waveform_component_wrapper}
 	>
 		<div class="waveform-container">
 			<div

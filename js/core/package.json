@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/core",
-	"version": "0.27.2",
+	"version": "0.29.0",
 	"type": "module",
 	"devDependencies": {
 		"@gradio/accordion": "workspace:^",
@@ -62,8 +62,7 @@
 		"@gradio/uploadbutton": "workspace:^",
 		"@gradio/utils": "workspace:^",
 		"@gradio/vibeeditor": "workspace:^",
-		"@gradio/video": "workspace:^",
-		"@gradio/wasm": "workspace:^"
+		"@gradio/video": "workspace:^"
 	},
 	"msw": {
 		"workerDirectory": "public"
@@ -79,6 +78,11 @@
 			"gradio": "./src/Login.svelte",
 			"svelte": "./dist/src/Login.svelte",
 			"types": "./dist/src/Login.svelte.d.ts"
+		},
+		"./navbar_store": {
+			"gradio": "./src/navbar_store.ts",
+			"import": "./src/navbar_store.ts",
+			"types": "./src/navbar_store.ts"
 		},
 		"./package.json": "./package.json",
 		".": {

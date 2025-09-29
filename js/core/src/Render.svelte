@@ -54,13 +54,20 @@
 
 	$: {
 		if (node && node.type === "form") {
-			if (
-				node.children?.every(
-					(c) => typeof c.props.visible === "boolean" && !c.props.visible
-				)
-			) {
-				node.props.visible = false;
+			// Check if all children are invisible (false or "hidden")
+			const allChildrenInvisible = node.children?.every(
+				(c) => c.props.visible === false || c.props.visible === "hidden"
+			);
+
+			if (allChildrenInvisible) {
+				// Check if any child is "hidden" vs false
+				const hasHiddenChild = node.children?.some(
+					(c) => c.props.visible === "hidden"
+				);
+				// If any child is "hidden", form should be "hidden", otherwise false
+				node.props.visible = hasHiddenChild ? "hidden" : false;
 			} else {
+				// If any child is visible, form should be visible
 				node.props.visible = true;
 			}
 		}
@@ -94,7 +101,8 @@
 		{...node.props}
 		{theme_mode}
 		{root}
-		visible={typeof node.props.visible === "boolean"
+		visible={typeof node.props.visible === "boolean" ||
+		node.props.visible === "hidden"
 			? node.props.visible
 			: true}
 	>

@@ -127,17 +127,6 @@
 			</a>
 			<p class="self-center text-xl font-light -m-1">Playground</p>
 		</div>
-
-		<nav class="flex w-auto flex-row gap-6">
-			<a class="thin-link flex items-center gap-3" href="/docs" target="_blank"
-				><span>✍️</span> <span>Docs</span></a
-			>
-			<a
-				class="thin-link flex items-center gap-3"
-				href="/guides/gradio-lite"
-				target="_blank"><span>💡</span> <span>Gradio Lite</span></a
-			>
-		</nav>
 	</div>
 </div>
 

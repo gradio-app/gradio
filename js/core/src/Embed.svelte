@@ -1,24 +1,85 @@
 <script lang="ts">
-	import { getContext } from "svelte";
+	import { getContext, onMount } from "svelte";
 	import space_logo from "./images/spaces.svg";
 	import { _ } from "svelte-i18n";
+	import { navbar_config } from "./navbar_store";
+
 	export let wrapper: HTMLDivElement;
 	export let version: string;
 	export let initial_height: string;
 	export let fill_width: boolean;
 	export let is_embed: boolean;
-	export let is_lite: boolean;
 
 	export let space: string | null;
 	export let display: boolean;
 	export let info: boolean;
 	export let loaded: boolean;
-	export let pages: [string, string][] = [];
+	export let pages: [string, string, boolean][] = [];
 	export let current_page = "";
 	export let root: string;
+	export let components: any[] = [];
 
-	const set_page: ((page: string) => void) | undefined =
-		getContext("set_lite_page");
+	let navbar_component = components.find((c) => c.type === "navbar");
+	let navbar: {
+		visible: boolean;
+		main_page_name: string | false;
+		value: [string, string][] | null;
+	} | null = navbar_component
+		? {
+				visible: navbar_component.props.visible,
+				main_page_name: navbar_component.props.main_page_name,
+				value: navbar_component.props.value
+			}
+		: null;
+
+	if (navbar) {
+		navbar_config.set(navbar);
+	}
+
+	$: if ($navbar_config) {
+		navbar = {
+			visible: $navbar_config.visible ?? true,
+			main_page_name: $navbar_config.main_page_name ?? "Home",
+			value: $navbar_config.value ?? null
+		};
+	}
+
+	$: show_navbar =
+		pages.length > 1 && (navbar === null || navbar.visible !== false);
+
+	$: effective_pages = (() => {
+		let visible_pages = pages.filter(([route, label, show], index) => {
+			if (index === 0 && route === "") {
+				return navbar?.main_page_name !== false;
+			}
+			return show !== false;
+		});
+
+		let base_pages =
+			navbar &&
+			navbar.main_page_name !== false &&
+			navbar.main_page_name !== "Home"
+				? visible_pages.map(([route, label, show], index) =>
+						index === 0 && route === "" && label === "Home"
+							? ([route, navbar!.main_page_name] as [string, string])
+							: ([route, label] as [string, string])
+					)
+				: visible_pages.map(
+						([route, label]) => [route, label] as [string, string]
+					);
+
+		if (navbar?.value && navbar.value.length > 0) {
+			const existing_routes = new Set(base_pages.map(([route]) => route));
+			const additional_pages = navbar.value
+				.map(
+					([page_name, page_path]) => [page_path, page_name] as [string, string]
+				)
+				.filter(([route]) => !existing_routes.has(route));
+			return [...base_pages, ...additional_pages];
+		}
+
+		return base_pages;
+	})();
 </script>
 
 <div
@@ -31,27 +92,24 @@
 	style:flex-grow={!display ? "1" : "auto"}
 	data-iframe-height
 >
-	{#if pages.length > 1}
+	{#if show_navbar}
 		<div class="nav-holder">
 			<nav class="fillable" class:fill_width>
-				{#each pages as [route, label], i}
-					{#if is_lite}
-						<button
-							class:active={route === current_page}
-							on:click={(e) => {
-								e.preventDefault();
-								set_page?.(route);
-							}}
-							>{label}
-						</button>
-					{:else}
-						<a
-							href={`${root}/${route}`}
-							class:active={route === current_page}
-							data-sveltekit-reload
-							>{label}
-						</a>
-					{/if}
+				{#each effective_pages as [route, label], i}
+					<a
+						href={route.startsWith("http://") || route.startsWith("https://")
+							? route
+							: `${root}/${route}`}
+						class:active={route === current_page}
+						data-sveltekit-reload
+						target={route.startsWith("http://") || route.startsWith("https://")
+							? "_blank"
+							: "_self"}
+						rel={route.startsWith("http://") || route.startsWith("https://")
+							? "noopener noreferrer"
+							: ""}
+						>{label}
+					</a>
 				{/each}
 			</nav>
 		</div>
@@ -97,16 +155,14 @@
 		margin: 0 auto;
 		padding: 0 var(--size-8);
 	}
-	nav a,
-	button {
+	nav a {
 		padding: var(--size-1) var(--size-2);
 		border-radius: var(--block-radius);
 		border-width: var(--block-border-width);
 		border-color: transparent;
 		color: var(--body-text-color-subdued);
 	}
-	nav a.active,
-	button.active {
+	nav a.active {
 		color: var(--body-text-color);
 		border-color: var(--block-border-color);
 		background-color: var(--block-background-fill);

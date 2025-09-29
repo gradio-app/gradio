@@ -5,7 +5,8 @@ import turbosnap from "vite-plugin-turbosnap";
 const config: StorybookConfig = {
 	stories: [
 		"../../js/**/*.mdx",
-		"../../js/**/*.@(mdx|stories.@(js|jsx|ts|tsx|svelte))"
+		"../../js/**/*.@(mdx|stories.@(js|jsx|ts|tsx|svelte))",
+		"!../../js/**/dist/**"
 	],
 	addons: [
 		"@storybook/addon-links",
@@ -13,7 +14,8 @@ const config: StorybookConfig = {
 		"@storybook/addon-interactions",
 		"@storybook/addon-svelte-csf",
 		"@storybook/addon-a11y",
-		"@chromatic-com/storybook"
+		"@chromatic-com/storybook",
+		"storybook-dark-mode"
 	],
 	framework: {
 		name: "@storybook/svelte-vite",

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import copy
 import dataclasses
 import hashlib
@@ -40,8 +39,8 @@ from gradio import (
     queueing,
     themes,
     utils,
-    wasm_utils,
 )
+from gradio.block_function import BlockFunction
 from gradio.blocks_events import BLOCKS_EVENTS, BlocksEvents, BlocksMeta
 from gradio.context import (
     Context,
@@ -74,7 +73,7 @@ from gradio.exceptions import (
 from gradio.helpers import create_tracker, skip, special_args
 from gradio.i18n import I18n, I18nData
 from gradio.node_server import start_node_server
-from gradio.route_utils import API_PREFIX, MediaStream
+from gradio.route_utils import API_PREFIX, MediaStream, slugify
 from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
 from gradio.state_holder import SessionState, StateHolder
 from gradio.themes import Default as DefaultTheme
@@ -131,7 +130,7 @@ class Block:
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         proxy_url: str | None = None,
     ):
         key_to_id_map = LocalContext.key_to_id_map.get(None)
@@ -438,7 +437,7 @@ class BlockContext(Block):
         self,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = None,
@@ -538,160 +537,6 @@ class BlockContext(Block):
         Any postprocessing needed to be performed on a block context.
         """
         return y
-
-
-class BlockFunction:
-    def __init__(
-        self,
-        fn: Callable | None,
-        inputs: Sequence[Component | BlockContext],
-        outputs: Sequence[Component | BlockContext],
-        preprocess: bool,
-        postprocess: bool,
-        inputs_as_dict: bool,
-        targets: list[tuple[int | None, str]],
-        _id: int,
-        batch: bool = False,
-        max_batch_size: int = 4,
-        concurrency_limit: int | None | Literal["default"] = "default",
-        concurrency_id: str | None = None,
-        tracks_progress: bool = False,
-        api_name: str | Literal[False] = False,
-        api_description: str | None | Literal[False] = None,
-        js: str | Literal[True] | None = None,
-        show_progress: Literal["full", "minimal", "hidden"] = "full",
-        show_progress_on: Sequence[Component] | None = None,
-        cancels: list[int] | None = None,
-        collects_event_data: bool = False,
-        trigger_after: int | None = None,
-        trigger_only_on_success: bool = False,
-        trigger_only_on_failure: bool = False,
-        trigger_mode: Literal["always_last", "once", "multiple"] = "once",
-        queue: bool = True,
-        scroll_to_output: bool = False,
-        show_api: bool = True,
-        renderable: Renderable | None = None,
-        rendered_in: Renderable | None = None,
-        render_iteration: int | None = None,
-        is_cancel_function: bool = False,
-        connection: Literal["stream", "sse"] = "sse",
-        time_limit: float | None = None,
-        stream_every: float = 0.5,
-        like_user_message: bool = False,
-        event_specific_args: list[str] | None = None,
-        page: str = "",
-        js_implementation: str | None = None,
-        key: str | int | tuple[int | str, ...] | None = None,
-    ):
-        self.fn = fn
-        self._id = _id
-        self.inputs = inputs
-        self.outputs = outputs
-        self.preprocess = preprocess
-        self.postprocess = postprocess
-        self.tracks_progress = tracks_progress
-        self.concurrency_limit: int | None | Literal["default"] = concurrency_limit
-        self.concurrency_id = concurrency_id or str(id(fn))
-        self.batch = batch
-        self.max_batch_size = max_batch_size
-        self.total_runtime = 0
-        self.total_runs = 0
-        self.inputs_as_dict = inputs_as_dict
-        self.targets = targets
-        self.name = getattr(fn, "__name__", "fn") if fn is not None else None
-        self.api_name = api_name
-        self.api_description = api_description
-        self.js = js
-        self.show_progress = show_progress
-        self.show_progress_on = show_progress_on
-        self.cancels = cancels or []
-        self.collects_event_data = collects_event_data
-        self.trigger_after = trigger_after
-        self.trigger_only_on_success = trigger_only_on_success
-        self.trigger_only_on_failure = trigger_only_on_failure
-        self.trigger_mode = trigger_mode
-        self.queue = False if fn is None else queue
-        self.scroll_to_output = False if utils.get_space() else scroll_to_output
-        self.show_api = show_api
-        self.types_generator = inspect.isgeneratorfunction(
-            self.fn
-        ) or inspect.isasyncgenfunction(self.fn)
-        self.renderable = renderable
-        self.rendered_in = rendered_in
-        self.render_iteration = render_iteration
-        self.page = page
-        if js_implementation:
-            self.fn.__js_implementation__ = js_implementation  # type: ignore
-
-        # We need to keep track of which events are cancel events
-        # so that the client can call the /cancel route directly
-        self.is_cancel_function = is_cancel_function
-        self.time_limit = time_limit
-        self.stream_every = stream_every
-        self.connection = connection
-        self.like_user_message = like_user_message
-        self.event_specific_args = event_specific_args
-        self.key = key
-
-        self.spaces_auto_wrap()
-
-    def spaces_auto_wrap(self):
-        if spaces is None:
-            return
-        if utils.get_space() is None:
-            return
-        self.fn = spaces.gradio_auto_wrap(self.fn)
-
-    def __str__(self):
-        return str(
-            {
-                "fn": self.name,
-                "preprocess": self.preprocess,
-                "postprocess": self.postprocess,
-            }
-        )
-
-    def __repr__(self):
-        return str(self)
-
-    def get_config(self):
-        return {
-            "id": self._id,
-            "targets": self.targets,
-            "inputs": [block._id for block in self.inputs],
-            "outputs": [block._id for block in self.outputs],
-            "backend_fn": self.fn is not None,
-            "js": self.js,
-            "queue": self.queue,
-            "api_name": self.api_name,
-            "api_description": self.api_description,
-            "scroll_to_output": self.scroll_to_output,
-            "show_progress": self.show_progress,
-            "show_progress_on": None
-            if self.show_progress_on is None
-            else [block._id for block in self.show_progress_on],
-            "batch": self.batch,
-            "max_batch_size": self.max_batch_size,
-            "cancels": self.cancels,
-            "types": {
-                "generator": self.types_generator,
-                "cancel": self.is_cancel_function,
-            },
-            "collects_event_data": self.collects_event_data,
-            "trigger_after": self.trigger_after,
-            "trigger_only_on_success": self.trigger_only_on_success,
-            "trigger_only_on_failure": self.trigger_only_on_failure,
-            "trigger_mode": self.trigger_mode,
-            "show_api": self.show_api,
-            "rendered_in": self.rendered_in._id if self.rendered_in else None,
-            "render_id": self.renderable._id if self.renderable else None,
-            "connection": self.connection,
-            "time_limit": self.time_limit,
-            "stream_every": self.stream_every,
-            "like_user_message": self.like_user_message,
-            "event_specific_args": self.event_specific_args,
-            "js_implementation": getattr(self.fn, "__js_implementation__", None),
-        }
 
 
 def postprocess_update_dict(
@@ -802,6 +647,7 @@ class BlocksConfig:
         event_specific_args: list[str] | None = None,
         js_implementation: str | None = None,
         key: str | int | tuple[int | str, ...] | None = None,
+        validator: Callable | None = None,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -835,6 +681,7 @@ class BlocksConfig:
             connection: The connection format, either "sse" or "stream".
             time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
             stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
+            validator: a function that takes in the inputs and can optionally return a gr.validate() object for each input.
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
@@ -986,6 +833,7 @@ class BlocksConfig:
             page=self.root_block.current_page,
             js_implementation=js_implementation,
             key=key,
+            validator=validator,
         )
 
         self.fns[fn_id] = block_fn
@@ -1046,7 +894,8 @@ class BlocksConfig:
             "dependencies": [],
         }
 
-        for page, _ in self.root_block.pages:
+        for page_tuple in self.root_block.pages:
+            page = page_tuple[0]
             if page not in config["page"]:
                 config["page"][page] = {
                     "layout": {"id": self.root_block._id, "children": []},
@@ -1267,9 +1116,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             else analytics.analytics_enabled()
         )
         if self.analytics_enabled:
-            if not wasm_utils.IS_WASM:
-                t = threading.Thread(target=analytics.version_check)
-                t.start()
+            t = threading.Thread(target=analytics.version_check)
+            t.start()
         else:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         self.enable_monitoring: bool | None = None
@@ -1309,7 +1157,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         self.proxy_urls = set()
 
-        self.pages: list[tuple[str, str]] = [("", "Home")]
+        self.pages: list[tuple[str, str, bool]] = [("", "Home", True)]
         self.current_page = ""
 
         if self.analytics_enabled:
@@ -1350,11 +1198,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
     @property
     def _is_running_in_reload_thread(self):
-        if wasm_utils.IS_WASM:
-            # Wasm (Pyodide) doesn't support threading,
-            # so the return value is always False.
-            return False
-
         from gradio.cli.commands.reload import reload_thread
 
         return getattr(reload_thread, "running_reload", False)
@@ -2280,6 +2123,7 @@ Received inputs:
                 in_event_listener,
                 state,
             )
+
             data = await self.postprocess_data(block_fn, result["prediction"], state)
             if state:
                 changed_state_ids = [
@@ -2469,6 +2313,7 @@ Received inputs:
             block_fn.tracks_progress for block_fn in self.fns.values()
         )
         self.page = ""
+        self.validate_navbar_settings()
         self.exited = True
 
     def clear(self):
@@ -2531,8 +2376,21 @@ Received inputs:
                         "another event without enabling the queue. Both can be solved by calling .queue() "
                         "before .launch()"
                     )
-            if dep.batch and dep.queue is False:
-                raise ValueError("In order to use batching, the queue must be enabled.")
+
+    def validate_navbar_settings(self):
+        """Validates that only one Navbar component exists per page."""
+        from gradio.components.navbar import Navbar
+
+        navbar_pages = set()
+        for block in self.blocks.values():
+            if isinstance(block, Navbar):
+                if block.page in navbar_pages:
+                    raise ValueError(
+                        f"Only one gr.Navbar component can exist per page. "
+                        f"Found multiple Navbar components on page '{block.page or 'Home'}'. "
+                        "Please remove the extra Navbar components."
+                    )
+                navbar_pages.add(block.page)
 
     def launch(
         self,
@@ -2558,7 +2416,7 @@ Received inputs:
         ssl_keyfile_password: str | None = None,
         ssl_verify: bool = True,
         quiet: bool = False,
-        show_api: bool = not wasm_utils.IS_WASM,
+        show_api: bool = True,
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
         root_path: str | None = None,
@@ -2618,7 +2476,7 @@ Received inputs:
             ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
             pwa: If True, the Gradio app will be set up as an installable PWA (Progressive Web App). If set to None (default behavior), then the PWA feature will be enabled if this Gradio app is launched on Spaces, but not otherwise.
             i18n: An I18n instance containing custom translations, which are used to translate strings in our components (e.g. the labels of components or Markdown strings). This feature can only be used to translate static text in the frontend, not values in the backend.
-            mcp_server: If True, the Gradio app will be set up as an MCP server and documented functions will be added as MCP tools. If None (default behavior), then the GRADIO_MCP_SERVER environment variable will be used to determine if the MCP server should be enabled (which is "True" on Hugging Face Spaces).
+            mcp_server: If True, the Gradio app will be set up as an MCP server and documented functions will be added as MCP tools. If None (default behavior), then the GRADIO_MCP_SERVER environment variable will be used to determine if the MCP server should be enabled.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -2725,18 +2583,12 @@ Received inputs:
         self.transpile_to_js(quiet=quiet)
 
         self.ssr_mode = (
-            False
-            if wasm_utils.IS_WASM
-            else (
-                ssr_mode
-                if ssr_mode is not None
-                else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
-            )
+            ssr_mode
+            if ssr_mode is not None
+            else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
         )
         if self.ssr_mode:
-            self.node_path = os.environ.get(
-                "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
-            )
+            self.node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
             self.node_server_name, self.node_process, self.node_port = (
                 start_node_server(
                     server_name=node_server_name,
@@ -2773,31 +2625,21 @@ Received inputs:
                     "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
                 )
         else:
-            if wasm_utils.IS_WASM:
-                server_name = "xxx"
-                server_port = 99999
-                local_url = ""
-                server = None
-                # In the Wasm environment, we only need the app object
-                # which the frontend app will directly communicate with through the Worker API,
-                # and we don't need to start a server.
-                wasm_utils.register_app(self.app)
-            else:
-                from gradio import http_server
+            from gradio import http_server
 
-                (
-                    server_name,
-                    server_port,
-                    local_url,
-                    server,
-                ) = http_server.start_server(
-                    app=self.app,
-                    server_name=server_name,
-                    server_port=server_port,
-                    ssl_keyfile=ssl_keyfile,
-                    ssl_certfile=ssl_certfile,
-                    ssl_keyfile_password=ssl_keyfile_password,
-                )
+            (
+                server_name,
+                server_port,
+                local_url,
+                server,
+            ) = http_server.start_server(
+                app=self.app,
+                server_name=server_name,
+                server_port=server_port,
+                ssl_keyfile=ssl_keyfile,
+                ssl_certfile=ssl_certfile,
+                ssl_keyfile_password=ssl_keyfile_password,
+            )
             self.server_name = server_name
             self.local_url = local_url
             self.local_api_url = f"{self.local_url.rstrip('/')}{API_PREFIX}/"
@@ -2820,7 +2662,7 @@ Received inputs:
                 if self.local_url.startswith("https") or self.is_colab
                 else "http"
             )
-            if not wasm_utils.IS_WASM and not self.is_colab and not quiet:
+            if not self.is_colab and not quiet:
                 s = (
                     "* Running on local URL:  {}://{}:{}, with SSR ⚡ (experimental, to disable set `ssr_mode=False` in `launch()`)"
                     if self.ssr_mode
@@ -2830,30 +2672,15 @@ Received inputs:
 
             self._queue.set_server_app(self.server_app)
 
-            if not wasm_utils.IS_WASM:
-                # Cannot run async functions in background other than app's scope.
-                # Workaround by triggering the app endpoint
-                resp = httpx.get(
-                    f"{self.local_api_url}startup-events",
-                    verify=ssl_verify,
-                    timeout=None,
+            resp = httpx.get(
+                f"{self.local_api_url}startup-events",
+                verify=ssl_verify,
+                timeout=None,
+            )
+            if not resp.is_success:
+                raise Exception(
+                    f"Couldn't start the app because '{resp.url}' failed (code {resp.status_code}). Check your network or proxy settings to ensure localhost is accessible."
                 )
-                if not resp.is_success:
-                    raise Exception(
-                        f"Couldn't start the app because '{resp.url}' failed (code {resp.status_code}). Check your network or proxy settings to ensure localhost is accessible."
-                    )
-            else:
-                # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
-                # that `self._queue.start()` is called in another thread which is managed by the HTTP server, `uvicorn`
-                # so all the asyncio tasks created by the queue runs in an event loop in that thread and
-                # will be cancelled just by stopping the server.
-                # In contrast, in the Wasm env, we can't do that because `threading` is not supported and all async tasks will run in the same event loop, `pyodide.webloop.WebLoop` in the main thread.
-                # So we need to manually cancel them. See `self.close()`..
-                self.run_startup_events()
-                # In the normal mode, self.run_extra_startup_events() is awaited like https://github.com/gradio-app/gradio/blob/2afcad80abd489111e47cf586a2a8221cc3dc9b6/gradio/routes.py#L1442.
-                # But in the Wasm env, we need to call the start up events here as described above, so we can't await it as here is not in an async function.
-                # So we use create_task() instead. This is a best-effort fallback in the Wasm env but it doesn't guarantee that all the tasks are completed before they are needed.
-                asyncio.create_task(self.run_extra_startup_events())
 
         if share is None:
             if self.is_colab or self.is_hosted_notebook:
@@ -2878,12 +2705,7 @@ Received inputs:
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
-        if (
-            _frontend
-            and not wasm_utils.IS_WASM
-            and not networking.url_ok(self.local_url)
-            and not self.share
-        ):
+        if _frontend and not networking.url_ok(self.local_url) and not self.share:
             raise ValueError(
                 "When localhost is not accessible, a shareable link must be created. Please set share=True or check your proxy settings to allow access to localhost."
             )
@@ -2902,17 +2724,9 @@ Received inputs:
                     "Note: opening Chrome Inspector may crash demo inside Colab notebooks."
                 )
 
-        if self.share:
-            if self.space_id:
-                warnings.warn(
-                    "Setting share=True is not supported on Hugging Face Spaces"
-                )
-                self.share = False
-            if wasm_utils.IS_WASM:
-                warnings.warn(
-                    "Setting share=True is not supported in the Wasm environment"
-                )
-                self.share = False
+        if self.share and self.space_id:
+            warnings.warn("Setting share=True is not supported on Hugging Face Spaces")
+            self.share = False
 
         if self.share:
             try:
@@ -2951,7 +2765,7 @@ Received inputs:
                         f"\nCould not create share link. Missing file: {BINARY_PATH}. \n\nPlease check your internet connection. This can happen if your antivirus software blocks the download of this file. You can install manually by following these steps: \n\n1. Download this file: {BINARY_URL}\n2. Rename the downloaded file to: {BINARY_FILENAME}\n3. Move the file to this location: {BINARY_FOLDER}"
                     )
         else:
-            if not quiet and not wasm_utils.IS_WASM:
+            if not quiet:
                 print("* To create a public link, set `share=True` in `launch()`.")
             self.share_url = None
 
@@ -2963,7 +2777,7 @@ Received inputs:
                 f"\n* [Deprecated] SSE URL: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/sse"
             )
 
-        if inbrowser and not wasm_utils.IS_WASM:
+        if inbrowser:
             link = self.share_url if self.share and self.share_url else self.local_url
             webbrowser.open(link)
 
@@ -3041,14 +2855,11 @@ Received inputs:
         if (
             debug
             or int(os.getenv("GRADIO_DEBUG", "0")) == 1
-            and not wasm_utils.IS_WASM
             or (
                 # Block main thread if running in a script to stop script from exiting
-                not prevent_thread_lock
-                and not is_in_interactive_mode
+                not prevent_thread_lock and not is_in_interactive_mode
                 # In the Wasm env, we don't have to block the main thread because the server won't be shut down after the execution finishes.
                 # Moreover, we MUST NOT do it because there is only one thread in the Wasm env and blocking it will stop the subsequent code from running.
-                and not wasm_utils.IS_WASM
             )
         ):
             self.block_thread()
@@ -3124,16 +2935,6 @@ Received inputs:
             return
 
         try:
-            if wasm_utils.IS_WASM:
-                # NOTE:
-                # Normally, queue-related async tasks whose async tasks are started at the `/queue/data` endpoint function)
-                # are running in an event loop in the server thread,
-                # so they will be cancelled by `self.server.close()` below.
-                # However, in the Wasm env, we don't have the `server` and
-                # all async tasks are running in the same event loop, `pyodide.webloop.WebLoop` in the main thread,
-                # so we have to cancel them explicitly so that these tasks won't run after a new app is launched.
-                self._queue._cancel_asyncio_tasks()
-                self.server_app._cancel_asyncio_tasks()
             self._queue.close()
             # set this before closing server to shut down heartbeats
             self.is_running = False
@@ -3337,12 +3138,15 @@ Received inputs:
         return target_events
 
     @document()
-    def route(self, name: str, path: str | None = None) -> Blocks:
+    def route(
+        self, name: str, path: str | None = None, show_in_navbar: bool = True
+    ) -> Blocks:
         """
         Adds a new page to the Blocks app.
         Parameters:
             name: The name of the page as it appears in the nav bar.
             path: The URL suffix appended after your Gradio app's root URL to access this page (e.g. if path="/test", the page may be accessible e.g. at http://localhost:7860/test). If not provided, the path is generated from the name by converting to lowercase and replacing spaces with hyphens. Any leading or trailing forward slashes are stripped.
+            show_in_navbar: If True, the page will appear in the navbar. If False, the page will be accessible via URL but not shown in the navbar.
         Example:
             with gr.Blocks() as demo:
                 name = gr.Textbox(label="Name")
@@ -3366,12 +3170,11 @@ Received inputs:
         if path in INTERNAL_ROUTES:
             raise ValueError(f"Route with path '{path}' already exists")
         if path is None:
-            path = name.lower().replace(" ", "-")
-            path = "".join(
-                [letter for letter in path if letter.isalnum() or letter == "-"]
-            )
+            path = slugify(name)
+            if not path:
+                raise ValueError(f"Route with path '{name}' is not valid")
         while path in INTERNAL_ROUTES or path in [page[0] for page in self.pages]:
             path = "_" + path
-        self.pages.append((path, name))
+        self.pages.append((path, name, show_in_navbar))
         self.current_page = path
         return self

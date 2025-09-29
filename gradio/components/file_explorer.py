@@ -54,7 +54,7 @@ class FileExplorer(Component):
         max_height: int | str | None = 500,
         min_height: int | str | None = None,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
@@ -66,7 +66,7 @@ class FileExplorer(Component):
             glob: The glob-style pattern used to select which files to display, e.g. "*" to match all files, "*.png" to match all .png files, "**/*.txt" to match any .txt file in any subdirectory, etc. The default value matches all files and folders recursively. See the Python glob documentation at https://docs.python.org/3/library/glob.html for more information.
             value: The file (or list of files, depending on the `file_count` parameter) to show as "selected" when the component is first loaded. If a callable is provided, it will be called when the app loads to set the initial value of the component. If not provided, no files are shown as selected.
             file_count: Whether to allow single or multiple files to be selected. If "single", the component will return a single absolute file path as a string. If "multiple", the component will return a list of absolute file paths as a list of strings.
-            root_dir: Path to root directory to select files from. If not provided, defaults to current working directory.
+            root_dir: Path to root directory to select files from. If not provided, defaults to current working directory. Raises ValueError if the directory does not exist.
             ignore_glob: The glob-style, case-sensitive pattern that will be used to exclude files from the list. For example, "*.py" will exclude all .py files from the list. See the Python glob documentation at https://docs.python.org/3/library/glob.html for more information.
             label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
@@ -77,14 +77,19 @@ class FileExplorer(Component):
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             height: The maximum height of the file component, specified in pixels if a number is passed, or in CSS units if a string is passed. If more files are uploaded than can fit in the height, a scrollbar will appear.
             interactive: if True, will allow users to select file(s); if False, will only display files. If not provided, this is inferred based on whether the component is used as an input or output.
-            visible: If False, component will be hidden.
+            visible: If False, component will be hidden. If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
         """
-        self.root_dir = DeveloperPath(os.path.abspath(root_dir))
+        abs_root_dir = os.path.abspath(root_dir)
+        if not os.path.exists(abs_root_dir):
+            raise ValueError(f"The specified root_dir does not exist: {root_dir}")
+        if not os.path.isdir(abs_root_dir):
+            raise ValueError(f"The specified root_dir is not a directory: {root_dir}")
+        self.root_dir = DeveloperPath(abs_root_dir)
         self.glob = glob
         self.ignore_glob = ignore_glob
         valid_file_count = ["single", "multiple"]
@@ -181,16 +186,23 @@ class FileExplorer(Component):
 
         try:
             subdir_items = sorted(os.listdir(full_subdir_path))
-        except FileNotFoundError:
+        except (FileNotFoundError, PermissionError):
             return []
 
         files, folders = [], []
         for item in subdir_items:
             full_path = os.path.join(full_subdir_path, item)
-            is_file = not os.path.isdir(full_path)
+
+            try:
+                is_file = not os.path.isdir(full_path)
+            except (PermissionError, OSError):
+                continue
+
             valid_by_glob = fnmatch.fnmatch(full_path, self.glob)
+
             if is_file and not valid_by_glob:
                 continue
+
             if self.ignore_glob and fnmatch.fnmatch(full_path, self.ignore_glob):
                 continue
             target = files if is_file else folders

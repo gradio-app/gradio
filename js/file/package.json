@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/file",
-	"version": "0.12.28",
+	"version": "0.13.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -12,8 +12,7 @@
 		"@gradio/icons": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
-		"@gradio/utils": "workspace:^",
-		"@gradio/wasm": "workspace:^"
+		"@gradio/utils": "workspace:^"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"

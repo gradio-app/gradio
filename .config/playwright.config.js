@@ -22,23 +22,25 @@ const base = defineConfig({
 	retries: 3
 });
 
+// There are Firefox-specific issues such as https://github.com/gradio-app/gradio/pull/9528 so we want to run the tests on Firefox, but Firefox sometimes fails to start in the GitHub Actions environment so we disable it on CI.
+const localOnly = (project) => (process.env.CI ? undefined : project);
+
 const normal = defineConfig(base, {
 	globalSetup: process.env.CUSTOM_TEST ? undefined : "./playwright-setup.js",
 	projects: [
-		{
+		localOnly({
 			name: "firefox",
 			use: { ...devices["Desktop Firefox"] },
-			testMatch: /.stream_(audio|video)_out\.spec\.ts/
-		},
+			grep: /@firefox/
+		}),
 		{
 			name: "chrome",
 			use: {
 				...devices["Desktop Chrome"],
 				permissions: ["clipboard-read", "clipboard-write", "microphone"]
-			},
-			testIgnore: /.stream_(audio|video)_out\.spec\.ts/
+			}
 		}
-	]
+	].filter(Boolean)
 });
 
 const lite = defineConfig(base, {
@@ -62,14 +64,12 @@ const lite = defineConfig(base, {
 			name: "chromium",
 			use: { ...devices["Desktop Chrome"] }
 		},
-		process.env.CI
-			? undefined // There are Firefox-specific issues such as https://github.com/gradio-app/gradio/pull/9528 so we want to run the tests on Firefox, but Firefox sometimes fails to start in the GitHub Actions environment so we disable it on CI.
-			: {
-					name: "firefox",
-					use: { ...devices["Desktop Firefox"] },
-					testIgnore: "**/kitchen_sink.*" // This test requires the camera permission but it's not supported on FireFox: https://github.com/microsoft/playwright/issues/11714
-				}
+		localOnly({
+			name: "firefox",
+			use: { ...devices["Desktop Firefox"] },
+			testIgnore: "**/kitchen_sink.*" // This test requires the camera permission but it's not supported on FireFox: https://github.com/microsoft/playwright/issues/11714
+		})
 	].filter(Boolean)
 });
 
-export default !!process.env.GRADIO_E2E_TEST_LITE ? lite : normal;
+export default normal;

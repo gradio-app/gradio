@@ -3,10 +3,10 @@
 		BlockLabel,
 		Empty,
 		IconButton,
-		IconButtonWrapper
+		IconButtonWrapper,
+		DownloadLink
 	} from "@gradio/atoms";
 	import { Download } from "@gradio/icons";
-	import { DownloadLink } from "@gradio/wasm/svelte";
 
 	import { Image as ImageIcon } from "@gradio/icons";
 	import { type FileData } from "@gradio/client";

@@ -63,7 +63,7 @@ from starlette.datastructures import UploadFile as StarletteUploadFile
 from starlette.responses import RedirectResponse
 
 import gradio
-from gradio import ranged_response, route_utils, utils, wasm_utils
+from gradio import ranged_response, route_utils, utils
 from gradio.brotli_middleware import BrotliMiddleware
 from gradio.context import Context
 from gradio.data_classes import (
@@ -123,6 +123,7 @@ if TYPE_CHECKING:
     from gradio.blocks import Block
 
 import difflib
+import re
 import shutil
 import tempfile
 
@@ -408,13 +409,12 @@ class App(FastAPI):
 
         app.configure_app(blocks)
 
-        if not wasm_utils.IS_WASM:
-            app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
-            app.add_middleware(
-                BrotliMiddleware,
-                quality=4,
-                excluded_handlers=[mcp_subpath],
-            )
+        app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
+        app.add_middleware(
+            BrotliMiddleware,
+            quality=4,
+            excluded_handlers=[mcp_subpath],
+        )
 
         if ssr_mode:
 
@@ -522,7 +522,7 @@ class App(FastAPI):
 
         @app.post("/login")
         @app.post("/login/")
-        def login(
+        async def login(
             request: fastapi.Request, form_data: OAuth2PasswordRequestForm = Depends()
         ):
             username, password = form_data.username.strip(), form_data.password
@@ -537,7 +537,14 @@ class App(FastAPI):
                 not callable(app.auth)
                 and username in app.auth  # type: ignore
                 and compare_passwords_securely(password, app.auth[username])  # type: ignore
-            ) or (callable(app.auth) and app.auth.__call__(username, password)):  # type: ignore
+            ) or (
+                callable(app.auth)
+                and (
+                    await app.auth(username, password)
+                    if inspect.iscoroutinefunction(app.auth)
+                    else app.auth(username, password)
+                )
+            ):  # type: ignore
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
                 response = JSONResponse(content={"success": True})
@@ -569,7 +576,11 @@ class App(FastAPI):
         else:
 
             @app.get("/logout")
-            def logout(request: fastapi.Request, user: str = Depends(get_current_user)):
+            def logout(
+                request: fastapi.Request,
+                user: str = Depends(get_current_user),
+                all_session: bool = True,
+            ):
                 root = route_utils.get_root_url(
                     request=request,
                     route_path="/logout",
@@ -580,10 +591,14 @@ class App(FastAPI):
                 response.delete_cookie(
                     key=f"access-token-unsecure-{app.cookie_id}", path="/"
                 )
-                # A user may have multiple tokens, so we need to delete all of them.
-                for token in list(app.tokens.keys()):
-                    if app.tokens[token] == user:
-                        del app.tokens[token]
+                if all_session:
+                    # Delete the tokens of all sessions associated with the current user.
+                    for token in list(app.tokens.keys()):
+                        if app.tokens[token] == user:
+                            del app.tokens[token]
+                # Delete only the token associated with the current session.
+                elif request.cookies.get(f"access-token-{app.cookie_id}") in app.tokens:
+                    del app.tokens[request.cookies.get(f"access-token-{app.cookie_id}")]
                 return response
 
         ###############
@@ -1295,7 +1310,7 @@ class App(FastAPI):
                     content=content,
                     status_code=500,
                 )
-            return output
+            return ORJSONResponse(output)
 
         @router.post("/call/{api_name}", dependencies=[Depends(login_check)])
         @router.post("/call/{api_name}/", dependencies=[Depends(login_check)])
@@ -1341,15 +1356,18 @@ class App(FastAPI):
                     detail="Queue is stopped.",
                 )
             body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
-            success, event_id = await blocks._queue.push(
+            success, event_id, state = await blocks._queue.push(
                 body=body, request=request, username=username
             )
+            error_map = {
+                "queue_full": status.HTTP_503_SERVICE_UNAVAILABLE,
+                "validator_error": status.HTTP_422_UNPROCESSABLE_ENTITY,
+                "error": status.HTTP_400_BAD_REQUEST,
+                "success": status.HTTP_200_OK,
+            }
+
             if not success:
-                status_code = (
-                    status.HTTP_503_SERVICE_UNAVAILABLE
-                    if "Queue is full." in event_id
-                    else status.HTTP_400_BAD_REQUEST
-                )
+                status_code = error_map[state]
                 raise HTTPException(status_code=status_code, detail=event_id)
             return {"event_id": event_id}
 
@@ -1467,9 +1485,20 @@ class App(FastAPI):
                                 isinstance(message, ProcessCompletedMessage)
                                 and message.event_id
                             ):
-                                blocks._queue.pending_event_ids_session[
-                                    session_hash
-                                ].remove(message.event_id)
+                                # It's possible that the event_id has already been removed
+                                # for example, the user sent two duplicate `/cancel` requests.
+                                # The first one would have removed the event_id from pending_event_ids_session
+                                if (
+                                    message.event_id
+                                    in (
+                                        blocks._queue.pending_event_ids_session[
+                                            session_hash
+                                        ]
+                                    )
+                                ):
+                                    blocks._queue.pending_event_ids_session[
+                                        session_hash
+                                    ].remove(message.event_id)
                                 if message.msg == ServerMessage.server_stopped or (
                                     message.msg == ServerMessage.process_completed
                                     and (
@@ -1770,7 +1799,7 @@ class App(FastAPI):
         @app.get("/manifest.json")
         def manifest_json():
             if not blocks.pwa:
-                raise HTTPException(status_code=404)
+                raise HTTPException(status_code=404, detail="PWA not enabled.")
 
             favicon_path = blocks.favicon_path
             if isinstance(favicon_path, Path):
@@ -1923,7 +1952,7 @@ class App(FastAPI):
                 shutil.copyfileobj(video_file.file, input_file)
                 input_path = input_file.name
 
-            if wasm_utils.IS_WASM or shutil.which("ffmpeg") is None:
+            if shutil.which("ffmpeg") is None:
                 return FileResponse(
                     input_path,
                     media_type="video/mp4",
@@ -1956,6 +1985,32 @@ class App(FastAPI):
 
         vibe_edit_history_dir = Path(DEFAULT_TEMP_DIR) / "vibe_edit_history"
         vibe_edit_history_dir.mkdir(exist_ok=True, parents=True)
+        chat_history = {"history": ""}
+        hash_to_chat_history = {}
+
+        def limit_chat_history(history: str, max_pairs: int = 5) -> str:
+            """Limit chat history in the prompt to the last max_pairs user-assistant pairs."""
+            if not history.strip():
+                return ""
+
+            user_messages = history.split("\nUser: ")
+            if len(user_messages) <= max_pairs:
+                return history
+
+            recent_messages = user_messages[-max_pairs:]
+
+            if len(recent_messages) > 0:
+                if recent_messages[0].startswith("User: "):
+                    result = recent_messages[0]
+                else:
+                    result = "User: " + recent_messages[0]
+
+                for msg in recent_messages[1:]:
+                    result += "\nUser: " + msg
+
+                return result
+
+            return ""
 
         @router.post("/vibe-edit/")
         @router.post("/vibe-edit")
@@ -1977,11 +2032,15 @@ class App(FastAPI):
             with open(snapshot_file, "w") as f:
                 f.write(original_code)
 
+            hash_to_chat_history[snapshot_hash] = chat_history["history"]
+
             from huggingface_hub import InferenceClient
 
             client = InferenceClient()
 
             content = ""
+            limited_history = limit_chat_history(chat_history["history"])
+
             prompt = f"""
 You are a code generator for Gradio apps. Given the following existing code and prompt, return the full new code.
 Existing code:
@@ -1990,7 +2049,12 @@ Existing code:
 ```
 
 Prompt:
-{body.prompt}"""
+{body.prompt}
+
+History:
+{limited_history if limited_history else "No chat history."}
+"""
+
             system_prompt = load_system_prompt()
             content = (
                 client.chat_completion(
@@ -1999,7 +2063,7 @@ Prompt:
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": prompt},
                     ],
-                    max_tokens=1000,
+                    max_tokens=10000,
                 )
                 .choices[0]
                 .message.content
@@ -2007,6 +2071,32 @@ Prompt:
 
             if content is None:
                 raise HTTPException(status_code=500, detail="Error generating code")
+
+            control_token_re = re.compile(r"<\|[^>]*\|>")
+            final_start_re = re.compile(
+                r"<\|start\|>assistant<\|channel\|>final<\|message\|>", re.IGNORECASE
+            )
+            end_re = re.compile(r"<\|end\|>", re.IGNORECASE)
+
+            # Remove analysis and weird markers from gpt-oss
+            def clean_out_markers(raw: str) -> str:
+                if not raw:
+                    return raw
+
+                m = final_start_re.search(raw)
+                if m:
+                    text = raw[m.end() :]
+                    m_end = end_re.search(text)
+                    if m_end:
+                        text = text[: m_end.start()]
+                    return text.strip()
+
+                text = control_token_re.sub("", raw)
+                return text.strip()
+
+            content = clean_out_markers(content)
+
+            chat_history["history"] += f"\nUser: {body.prompt}\nAssistant: {content}\n"
 
             reasoning = None
             if "<reasoning>" in content:
@@ -2067,6 +2157,8 @@ Prompt:
 
             with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
                 f.write(saved_content)
+
+            chat_history["history"] = hash_to_chat_history.get(hash, "")
 
             return {"success": True}
 
@@ -2145,7 +2237,7 @@ Respond with a full Gradio app.
 Respond with a full Gradio app using correct syntax and features of the latest Gradio version. DO NOT write code that doesn't follow the signatures listed.
 Do not add comments explaining the code, unless they are very necessary to understand the code.
 Make sure the code includes all necessary imports.
-Clearly explain the changes, summary, or reasoning for the code you respond with, inside one large <reasoning> tag.
+Clearly explain the changes, summary, or reasoning for the code you respond with, inside one large <reasoning> tag. Make sure it's easy to parse. Use markdown formatting when it makes sense, including bullet points if there are multiple changes.
 
 
 Here's an example of a valid response:
@@ -2315,19 +2407,13 @@ def mount_gradio_app(
         blocks.root_path = root_path
 
     blocks.ssr_mode = (
-        False
-        if wasm_utils.IS_WASM
-        else (
-            ssr_mode
-            if ssr_mode is not None
-            else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
-        )
+        ssr_mode
+        if ssr_mode is not None
+        else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
     )
 
     if blocks.ssr_mode:
-        blocks.node_path = os.environ.get(
-            "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
-        )
+        blocks.node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
 
         blocks.node_server_name = node_server_name
         blocks.node_port = node_port

@@ -1,5 +1,21 @@
 # @self/tootils
 
+## 0.8.0
+
+### Features
+
+- [#11858](https://github.com/gradio-app/gradio/pull/11858) [`3f8ea13`](https://github.com/gradio-app/gradio/commit/3f8ea13a8ca92abf0ad34392e403a449fda3c6c2) - remove lite.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.11.1
+
+## 0.7.29
+
+### Dependency updates
+
+- @gradio/statustracker@0.11.0
+
 ## 0.7.28
 
 ### Dependency updates

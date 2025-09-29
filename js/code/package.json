@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/code",
-	"version": "0.14.15",
+	"version": "0.15.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -26,7 +26,6 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@gradio/wasm": "workspace:^",
 		"@lezer/common": "^1.2.3",
 		"@lezer/highlight": "^1.2.1",
 		"@lezer/markdown": "^1.4.2",

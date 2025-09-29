@@ -151,7 +151,8 @@ var ignore_list = [
   "utils",
   "wasm",
   "sanitize",
-  "markdown-code"
+  "markdown-code",
+  "spa"
 ];
 function generate_component_imports() {
   const exports = readdirSync(join(__dirname, "..", "..")).map((dir) => {
@@ -179,19 +180,41 @@ function generate_component_imports() {
     }
     return void 0;
   }).filter((x) => x !== void 0);
+
+  const walkthrough = exports.find((x) => x.name === "@gradio/tabs");
+  const walkthroughstep = exports.find((x) => x.name === "@gradio/tabitem");
+
+  exports.push({
+    name: "walkthrough",
+    component: walkthrough.component,
+    
+  });
+
+  exports.push({
+    name: "walkthroughstep",
+    component:  walkthroughstep.component,
+    
+  });
+
   const imports = exports.reduce((acc, _export) => {
     if (!_export) return acc;
-    const example = _export.example ? `example: () => import("${_export.name}/example"),
+    let example = _export.example ? `example: () => import("${_export.name}/example"),
 ` : "";
     const base = _export.base ? `base: () => import("${_export.name}/base"),
 ` : "";
+    let component = _export.name;
+    if (_export.name === 'walkthrough') component = "@gradio/tabs";
+    if (_export.name === 'walkthroughstep') component = "@gradio/tabitem";
+    
+      
     return `${acc}"${_export.name.replace("@gradio/", "")}": {
 			${base}
 			${example}
-			component: () => import("${_export.name}")
+			component: () => import("${component}")
 			},
 `;
   }, "");
+
   return imports;
 }
 function load_virtual_component_loader(mode) {

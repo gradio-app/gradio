@@ -1,5 +1,34 @@
 # @gradio/upload
 
+## 0.17.1
+
+### Fixes
+
+- [#11969](https://github.com/gradio-app/gradio/pull/11969) [`c8f7909`](https://github.com/gradio-app/gradio/commit/c8f79090ede3b071a8d9620a885350b6ee5a8926) - Show UploadProgress for Webcam Uploads.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.18.1
+
+## 0.17.0
+
+### Features
+
+- [#11858](https://github.com/gradio-app/gradio/pull/11858) [`3f8ea13`](https://github.com/gradio-app/gradio/commit/3f8ea13a8ca92abf0ad34392e403a449fda3c6c2) - remove lite.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.18.0
+- @gradio/client@1.19.0
+
+## 0.16.17
+
+### Dependency updates
+
+- @gradio/client@1.18.0
+- @gradio/icons@0.14.0
+- @gradio/atoms@0.17.0
+
 ## 0.16.16
 
 ### Fixes
