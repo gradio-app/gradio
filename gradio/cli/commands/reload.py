@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import inspect
 import os
-import re
 import subprocess
 import sys
 import threading

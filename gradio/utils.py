@@ -164,12 +164,13 @@ class ServerReloader(BaseReloader):
         self.stop_event.set()
 
     def get_demo_name(self, module: ModuleType, default_name: str) -> str:
-        log = lambda v: print("GRADIO_HOT_RELOAD:", v)
+        def log(*args):
+            print("GRADIO_HOT_RELOAD:", *args)
         if (demo := self.running_app.blocks) is None:
             log("Unexpected undefined blocks in launching app")
             return default_name
         if default_name:
-            if not module.__dict__.get(default_name) is demo:
+            if module.__dict__.get(default_name) is not demo:
                 log(f"'{default_name}' in {module.__name__} does not match launching demo")
             return default_name
         for name, value in module.__dict__.copy().items():
@@ -204,15 +205,15 @@ class JuriggedReloader(ServerReloader):
     def stop_event(self) -> threading.Event:
         return self._stop_event
 
-    def prerun(self, *args, **kwargs):
+    def prerun(self, *_args, **_kwargs):
         from gradio.cli.commands.reload import reload_thread
         NO_RELOAD.set(False)
         reload_thread.running_reload = True
 
-    def postrun(self, *args, **kwargs):
+    def postrun(self, *_args, **_kwargs):
         NO_RELOAD.set(True)
         demo = getattr(self.watch_module, self.demo_name)
-        self..swap_blocks(demo)
+        self.swap_blocks(demo)
 
 
 class SourceFileReloader(ServerReloader):
@@ -322,9 +323,7 @@ def watchfn_jurigged(reloader: JuriggedReloader):
 
 def watchfn_jurigged_server(reloader: JuriggedReloader):
     import uvicorn
-    from fastapi import FastAPI
-    from fastapi import HTTPException
-    from fastapi import status
+    from fastapi import FastAPI, HTTPException, status
     from jurigged import live
     from jurigged.codetools import CodeFileOperation
     from jurigged.register import registry

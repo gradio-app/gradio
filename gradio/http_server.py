@@ -5,19 +5,23 @@ import socket
 import sys
 import threading
 import time
+from collections.abc import Callable
 from functools import partial
-from typing import TYPE_CHECKING
-from typing import Callable
-from typing import TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 import uvicorn
 from uvicorn.config import Config
 
 from gradio.exceptions import ServerFailedToStartError
 from gradio.routes import App
-from gradio.utils import ServerReloader
-from gradio.utils import JuriggedReloader, watchfn_jurigged, watchfn_jurigged_server
-from gradio.utils import SourceFileReloader, watchfn
+from gradio.utils import (
+    JuriggedReloader,
+    ServerReloader,
+    SourceFileReloader,
+    watchfn,
+    watchfn_jurigged,
+    watchfn_jurigged_server,
+)
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     _ServerReloaderT = TypeVar('_ServerReloaderT', bound=ServerReloader)
