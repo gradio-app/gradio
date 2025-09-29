@@ -13,7 +13,7 @@ markupsafe>=2.0,<4.0
 numpy>=1.0,<3.0
 orjson~=3.0
 packaging
-pandas>=2.2.0,<3.0
+pandas>=1.0,<3.0
 pillow>=8.0,<12.0
 pydantic>=2.0,<2.12
 python-multipart>=0.0.18 # required for fastapi forms.

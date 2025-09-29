@@ -8,12 +8,12 @@ import time
 import traceback
 import uuid
 from collections import defaultdict
+from importlib.metadata import version
 from queue import Queue as ThreadQueue
 from typing import TYPE_CHECKING, Literal, cast
 
 import fastapi
 import numpy as np
-import pandas as pd
 from anyio.to_thread import run_sync
 
 from gradio import route_utils, routes, wasm_utils
@@ -44,6 +44,8 @@ from gradio.utils import (
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction, Blocks
+
+PANDAS_VERSION = version("pandas").split(".")
 
 
 class Event:
@@ -146,17 +148,32 @@ class Queue:
             os.getenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", "1")
         )
 
+    @staticmethod
+    def _get_df(event_analytics):
+        import pandas as pd
+
+        try:
+            with pd.option_context("future.no_silent_downcasting", True):
+                return (
+                    pd.DataFrame(list(event_analytics.values()))
+                    .fillna(value=np.nan)
+                    .infer_objects(copy=False)  # type: ignore
+                )
+        except Exception as e:
+            if "No such keys(s)" in str(e):
+                return (
+                    pd.DataFrame(list(event_analytics.values()))
+                    .fillna(value=np.nan)
+                    .infer_objects(copy=False)  # type: ignore
+                )
+            raise e
+
     def compute_analytics_summary(self, event_analytics):
         if (
             len(event_analytics) - self.event_count_at_last_cache
             >= self.ANAYLTICS_CACHE_FREQUENCY
         ):
-            with pd.option_context("future.no_silent_downcasting", True):
-                df = (
-                    pd.DataFrame(list(event_analytics.values()))
-                    .fillna(value=np.nan)
-                    .infer_objects(copy=False)
-                )  # type: ignore
+            df = self._get_df(event_analytics)
             self.event_count_at_last_cache = len(event_analytics)
             grouped = df.groupby("function")
             metrics = {"functions": {}}
