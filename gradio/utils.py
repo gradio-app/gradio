@@ -328,7 +328,6 @@ def watchfn_jurigged_server(reloader: JuriggedReloader):
     from jurigged import live
     from jurigged.codetools import CodeFileOperation
     from jurigged.register import registry
-    from gradio.cli.commands.reload import reload_thread
 
     registry.auto_register(filter=live.to_filter("./*.py")) # TODO: reloader.watch_dirs
 
