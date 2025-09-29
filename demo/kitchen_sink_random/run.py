@@ -6,6 +6,7 @@ import os
 import pandas as pd
 
 from constants import (  # type: ignore
+from gradio.media import get_audio, get_video
     file_dir,
     img_dir,
     highlighted_text,
@@ -46,8 +47,8 @@ demo = gr.Interface(
                 [os.path.join(img_dir, img) for img in os.listdir(img_dir)]
             )
         ),
-        gr.Video(value=lambda: os.path.join(file_dir, "world.mp4")),
-        gr.Audio(value=lambda: os.path.join(file_dir, "cantina.wav")),
+        gr.Video(value=lambda: get_video("world")),
+        gr.Audio(value=lambda: get_audio("cantina")),
         gr.File(
             value=lambda: random.choice(
                 [os.path.join(file_dir, img) for img in os.listdir(file_dir)]

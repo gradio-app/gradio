@@ -1,5 +1,5 @@
 import gradio as gr
-import os
+from gradio.media import get_image
 
 def flip(i):
     return i.rotate(180)
@@ -16,8 +16,8 @@ with gr.Blocks() as demo:
 
     gr.Examples(
         [
-            os.path.join(os.path.dirname(__file__), "images/cheetah1.jpg"),
-            os.path.join(os.path.dirname(__file__), "images/lion.jpg"),
+            get_image("cheetah1"),
+            get_image("lion"),
         ],
         img_i,
         img_o,

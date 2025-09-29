@@ -7,6 +7,7 @@ import pandas as pd
 
 import numpy as np
 import matplotlib.pyplot as plt
+from gradio.media import get_audio, get_video
 
 def random_plot():
     start_year = 2020
@@ -100,8 +101,8 @@ components = [
     gr.Image(
         value=lambda: random.choice(images)
     ),
-    gr.Video(value=lambda: os.path.join(file_dir, "world.mp4")),
-    gr.Audio(value=lambda: os.path.join(file_dir, "cantina.wav")),
+    gr.Video(value=lambda: get_video("world")),
+    gr.Audio(value=lambda: get_audio("cantina")),
     gr.File(
         value=lambda: random.choice(
             [os.path.join(file_dir, img) for img in os.listdir(file_dir)]
