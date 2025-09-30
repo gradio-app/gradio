@@ -2062,6 +2062,11 @@ class App(FastAPI):
 
             return reasoning_text, code_text
 
+        if blocks.vibe_mode:
+            from huggingface_hub import InferenceClient
+
+            inference_client = InferenceClient()
+
         @router.post("/vibe-edit/")
         @router.post("/vibe-edit")
         async def vibe_edit(body: VibeEditBody):
@@ -2084,10 +2089,6 @@ class App(FastAPI):
 
             hash_to_chat_history[snapshot_hash] = chat_history["history"]
 
-            from huggingface_hub import InferenceClient
-
-            client = InferenceClient()
-
             content = ""
             limited_history = limit_chat_history(chat_history["history"])
 
@@ -2107,7 +2108,7 @@ History:
 
             system_prompt = load_system_prompt()
             content = (
-                client.chat_completion(
+                inference_client.chat_completion(
                     model="openai/gpt-oss-120b",
                     messages=[
                         {"role": "system", "content": system_prompt},
@@ -2244,10 +2245,6 @@ History:
             with open(GRADIO_WATCH_DEMO_PATH) as f:
                 code = f.read()
 
-            from huggingface_hub import InferenceClient
-
-            client = InferenceClient()
-
             prompt = f"""
 You are a prompt generator for a gradio vibe editor. Given the following existing code, return a list of starter queries that can be used to generate a new code.
 Existing code:
@@ -2258,7 +2255,7 @@ Existing code:
 
             system_prompt = load_system_prompt(starter_queries=True)
             content = (
-                client.chat_completion(
+                inference_client.chat_completion(
                     model="openai/gpt-oss-120b",
                     messages=[
                         {"role": "system", "content": system_prompt},
