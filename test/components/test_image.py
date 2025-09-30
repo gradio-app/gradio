@@ -10,6 +10,7 @@ from gradio_client import utils as client_utils
 import gradio as gr
 from gradio.components.image import ImageData  # type: ignore
 from gradio.exceptions import Error
+from gradio.media import get_image
 
 
 class TestImage:
@@ -19,7 +20,7 @@ class TestImage:
         type: pil, file, filepath, numpy
         """
 
-        img = ImageData(path="test/test_files/bus.png", orig_name="bus.png")
+        img = ImageData(path=get_image("cheetah1"), orig_name="cheetah1.jpg")
         image_input = gr.Image()
 
         image_input = gr.Image(type="filepath")

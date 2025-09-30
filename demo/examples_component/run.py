@@ -1,4 +1,5 @@
 import gradio as gr
+# get_image() returns the file path to sample images included with Gradio
 from gradio.media import get_image
 
 def flip(i):

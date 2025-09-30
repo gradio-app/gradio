@@ -448,7 +448,7 @@ class TestAudioFormatDetection:
     @pytest.mark.parametrize(
         "file_path,expected",
         [
-            ("test/test_files/audio_sample.wav", ".wav"),
+            ("gradio/media_assets/audio/cantina.wav", ".wav"),
             ("gradio/test_data/test_audio.mp3", ".mp3"),
         ],
     )

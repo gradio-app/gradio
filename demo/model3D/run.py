@@ -1,4 +1,5 @@
 import gradio as gr
+# get_model3d() returns the file path to sample 3D models included with Gradio
 from gradio.media import get_model3d
 
 

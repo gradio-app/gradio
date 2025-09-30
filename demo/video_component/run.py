@@ -1,4 +1,5 @@
 import gradio as gr
+# get_video() returns the file path to sample videos included with Gradio
 from gradio.media import get_video
 
 demo = gr.Interface(

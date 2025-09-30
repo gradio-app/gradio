@@ -266,6 +266,3 @@ class MediaPaths:
     def subtitles_dir(self) -> str:
         """Directory containing subtitle files."""
         return str(MEDIA_ROOT / "subtitles")
-
-
-media_paths = MediaPaths()

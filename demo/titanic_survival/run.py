@@ -3,6 +3,7 @@ from sklearn.ensemble import RandomForestClassifier  # type: ignore
 from sklearn.model_selection import train_test_split  # type: ignore
 
 import gradio as gr
+# get_file() returns the file path to sample data files included with Gradio
 from gradio.media import get_file
 
 data = pd.read_csv(get_file("titanic"))
