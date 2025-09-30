@@ -32,7 +32,6 @@ app.command("deploy-discord", help="Deploy a Gradio app to Discord.")(
 app.command("sketch", help="Open the Sketch app to design a Gradio app.")(sketch)
 
 
-
 def cli():
     args = sys.argv[1:]
     if len(args) == 0:

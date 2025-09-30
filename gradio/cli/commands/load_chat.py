@@ -27,10 +27,10 @@ def main(
         None, "--system-message", help="Optional system prompt"
     ),
     stream: bool = typer.Option(
-        None, "--stream/--no-stream", help="Enable or disable streaming"
+        True, "--stream/--no-stream", help="Enable or disable streaming"
     ),
-    host: str = typer.Option(
-        "0.0.0.0", "--host", help="Server host (maps to launch.server_name)"
+    host: str | None = typer.Option(
+        None, "--host", help="Server host (maps to launch.server_name)"
     ),
     port: int = typer.Option(
         7860, "--port", help="Server port (maps to launch.server_port)"
