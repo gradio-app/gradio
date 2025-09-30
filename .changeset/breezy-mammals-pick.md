@@ -1,7 +1,7 @@
 ---
-"@gradio/core": minor
-"@self/spaces-test": minor
-"gradio": minor
+"@gradio/core": patch
+"@self/spaces-test": patch
+"gradio": patch
 ---
 
-feat:fix iframe sizing on spaces for apps runing in SPA mode
+fix:fix iframe sizing on spaces for apps runing in SPA mode
