@@ -1,5 +1,16 @@
 # gradio
 
+## 5.47.2
+
+### Fixes
+
+- [#11981](https://github.com/gradio-app/gradio/pull/11981) [`52861f8`](https://github.com/gradio-app/gradio/commit/52861f8a5c6522ebf853b74c5145b033abb25894) - Clean fix for support of async auth functions in login (#9244).  Thanks @TimPolk!
+- [#11960](https://github.com/gradio-app/gradio/pull/11960) [`a060c85`](https://github.com/gradio-app/gradio/commit/a060c852ecc01244687916092a3f3dc234eb84aa) - Set active tool to "draw" when background image changes in ImageEditor.  Thanks @freddyaboulton!
+- [#11972](https://github.com/gradio-app/gradio/pull/11972) [`cc27cd7`](https://github.com/gradio-app/gradio/commit/cc27cd765559a047efffe1073063cad0e071de0c) - Fix postMessage warning when running outside hugging face spaces.  Thanks @freddyaboulton!
+- [#11970](https://github.com/gradio-app/gradio/pull/11970) [`9b4a16c`](https://github.com/gradio-app/gradio/commit/9b4a16ca6a7f351b0d27f55732eec579d7774304) - Create extended MediaRecorded only once for streaming demos.  Thanks @freddyaboulton!
+- [#11979](https://github.com/gradio-app/gradio/pull/11979) [`50a89f0`](https://github.com/gradio-app/gradio/commit/50a89f079250735f268dfeeeddf40ffea84d7919) - Allow gradio to run with huggingface_hub 1.x.  Thanks @Wauplin!
+- [#11967](https://github.com/gradio-app/gradio/pull/11967) [`32b0fe7`](https://github.com/gradio-app/gradio/commit/32b0fe79881a710e784c094cce39198acbf2206f) - Allow passing token=None for load_chat.  Thanks @freddyaboulton!
+
 ## 5.47.1
 
 ### Fixes
