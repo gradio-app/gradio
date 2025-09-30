@@ -20,7 +20,7 @@
 		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--border-color-primary);
 		background: var(--block-background-fill);
-		padding: var(--spacing-xxs);
+		padding: var(--spacing-xxs) var(--text-sm);
 	}
 
 	.icon-button-wrapper.hide-top-corner {
