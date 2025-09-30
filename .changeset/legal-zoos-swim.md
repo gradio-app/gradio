@@ -1,6 +1,6 @@
 ---
-"@gradio/core": minor
-"gradio": minor
+"@gradio/core": patch
+"gradio": patch
 ---
 
-feat:Trigger Change Event if component is in inactive tab
+fix:Trigger Change Event if component is in inactive tab
