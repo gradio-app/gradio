@@ -152,7 +152,7 @@ class TestAudio:
             return (sr, np.flipud(data))
 
         iface = gr.Interface(reverse_audio, "audio", "audio")
-        reversed_file = iface(get_audio("cantina"))
+        reversed_file = iface(get_audio("audio_sample"))
         reversed_reversed_file = iface(reversed_file)
         reversed_reversed_data = client_utils.encode_url_or_file_to_base64(
             reversed_reversed_file

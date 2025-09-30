@@ -41,6 +41,7 @@ MEDIA_REGISTRY: dict[str, dict[str, str]] = {
         "world": "world.mp4",
     },
     "audio": {
+        "audio_sample": "audio_sample.wav",
         "cantina": "cantina.wav",
         "cate_blanch": "cate_blanch.mp3",
         "cate_blanch_2": "cate_blanch_2.mp3",
