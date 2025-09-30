@@ -999,8 +999,7 @@ function determine_visible_components(
 		child_visible.forEach((id) => visible_components.add(id));
 	} else if (component.type === "tabitem") {
 		if (
-			is_tab_item_visible(component, component_visible, parent_tabs_context) ||
-			should_load
+			is_tab_item_visible(component, component_visible, parent_tabs_context)
 		) {
 			visible_components.add(layout.id);
 
@@ -1108,6 +1107,12 @@ function is_visible(component: ComponentMeta): boolean {
 	) {
 		return false;
 	} else if (component.parent) {
+		if (component.parent.type === "tabitem") {
+			return is_tab_item_visible(
+				component.parent,
+				is_visible(component.parent)
+			);
+		}
 		return is_visible(component.parent);
 	}
 	return true;
