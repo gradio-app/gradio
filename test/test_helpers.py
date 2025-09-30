@@ -15,7 +15,6 @@ from tqdm import tqdm
 
 import gradio as gr
 from gradio import helpers, utils
-from gradio.media import get_image
 from gradio.route_utils import API_PREFIX
 
 
@@ -28,7 +27,7 @@ class TestExamples:
         examples = gr.Examples([["hello"]], gr.Textbox())
         assert examples.non_none_processed_examples.as_list() == [["hello"]]
 
-        examples = gr.Examples([get_image("cheetah1")], gr.Image())
+        examples = gr.Examples(["test/test_files/bus.png"], gr.Image())
         assert (
             client_utils.encode_file_to_base64(
                 examples.non_none_processed_examples.as_list()[0][0]["path"]
@@ -38,7 +37,7 @@ class TestExamples:
 
     def test_handle_multiple_inputs(self, patched_cache_folder):
         examples = gr.Examples(
-            [["hello", get_image("cheetah1")]], [gr.Textbox(), gr.Image()]
+            [["hello", "test/test_files/bus.png"]], [gr.Textbox(), gr.Image()]
         )
         assert examples.non_none_processed_examples.as_list()[0][0] == "hello"
         assert (
