@@ -999,7 +999,8 @@ function determine_visible_components(
 		child_visible.forEach((id) => visible_components.add(id));
 	} else if (component.type === "tabitem") {
 		if (
-			is_tab_item_visible(component, component_visible, parent_tabs_context)
+			is_tab_item_visible(component, component_visible, parent_tabs_context) ||
+			should_load
 		) {
 			visible_components.add(layout.id);
 
