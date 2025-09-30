@@ -910,7 +910,6 @@
 						// @ts-ignore
 						const url = `${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_id).event_id()}`;
 						app.post_data(`${url}/close`, {});
-						app.close_ws(url);
 					}
 				});
 			} else {
