@@ -23,7 +23,7 @@ class TestImage:
         img = ImageData(path=get_image("cheetah1"), orig_name="cheetah1.jpg")
         image_input = gr.Image()
 
-        image_input = gr.Image(type="filepath")
+        image_input = gr.Image(type="filepath", image_mode="L")
         image_temp_filepath = image_input.preprocess(img)
         assert image_temp_filepath in [
             str(f) for f in gradio_temp_dir.glob("**/*") if f.is_file()
