@@ -99,6 +99,10 @@ def _get_media_path(media_type: str, name: Optional[str] = None) -> str:
         )
 
     filename = media_files[name]
+
+    if filename.startswith(("http://", "https://")):
+        return filename
+
     file_path = MEDIA_ROOT / media_type / filename
 
     if not file_path.exists():

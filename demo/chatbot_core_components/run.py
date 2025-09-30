@@ -122,11 +122,12 @@ def random_bokeh_plot():
     )
     return p
 
+from gradio.media import get_file, get_image, get_model3d, get_video
+
 def random_matplotlib_plot():
     import numpy as np
     import pandas as pd
     import matplotlib.pyplot as plt
-from gradio.media import get_file, get_image, get_model3d, get_video
 
     countries = ["USA", "Canada", "Mexico", "UK"]
     months = ["January", "February", "March", "April", "May"]
