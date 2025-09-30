@@ -1,8 +1,5 @@
 ---
-"@gradio/core": minor
-"@self/component-test": minor
-"@self/spa": minor
-"gradio": minor
+"gradio": patch
 ---
 
 feat:Remove duplicate media files 
