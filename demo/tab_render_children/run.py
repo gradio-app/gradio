@@ -8,6 +8,7 @@ with gr.Blocks() as demo:
         with gr.Tab("Tab 2", render_children=True) as tab2:
             tb = gr.Textbox(label="Will be rendered but hidden", elem_id="invisible-but-rendered")
             tb2 = gr.Textbox(label="Will not be rendered", elem_id="invisible-and-not-rendered", visible=False)
+            tb3 = gr.Textbox(label="Will be rendered but hidden with visible='hidden'", elem_id="visibility-hidden", visible="hidden")
             btn = gr.Button("Make textbox interactive", variant="primary")
             btn.click(lambda: gr.update(interactive=True), None, tb)
 
