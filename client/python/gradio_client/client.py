@@ -24,7 +24,7 @@ from datetime import datetime
 from functools import partial
 from pathlib import Path
 from threading import Lock
-from typing import Any, Literal, cast
+from typing import Any, Literal
 
 import httpx
 import huggingface_hub
@@ -37,7 +37,6 @@ from huggingface_hub.utils import (
 from packaging import version
 
 from gradio_client import utils
-from gradio_client.compatibility import EndpointV3Compatibility
 from gradio_client.data_classes import ParameterInfo
 from gradio_client.documentation import document
 from gradio_client.exceptions import AppError, AuthenticationError, ValidationError
@@ -189,11 +188,8 @@ class Client:
         self._info = self._get_api_info()
         self.session_hash = str(uuid.uuid4())
 
-        endpoint_class = (
-            Endpoint if self.protocol.startswith("sse") else EndpointV3Compatibility
-        )
         self.endpoints = {
-            dependency.get("id", fn_index): endpoint_class(
+            dependency.get("id", fn_index): Endpoint(
                 self, dependency.get("id", fn_index), dependency, self.protocol
             )
             for fn_index, dependency in enumerate(self.config["dependencies"])
@@ -555,7 +551,6 @@ class Client:
 
         helper = None
         if endpoint.protocol in (
-            "ws",
             "sse",
             "sse_v1",
             "sse_v2",
@@ -565,9 +560,7 @@ class Client:
             helper = self.new_helper(inferred_fn_index, headers=headers)
             end_to_end_fn = endpoint.make_end_to_end_fn(helper)
         else:
-            end_to_end_fn = cast(EndpointV3Compatibility, endpoint).make_end_to_end_fn(
-                None
-            )
+            raise ValueError("Unknown protocol: " + endpoint.protocol)
         future = self.executor.submit(end_to_end_fn, *args)
 
         cancel_fn = endpoint.make_cancel(helper)

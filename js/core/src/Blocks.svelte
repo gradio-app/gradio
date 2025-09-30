@@ -518,7 +518,7 @@
 					submit_map.has(dep_index) &&
 					dep.inputs.some((id) => get_stream_state(id) === "open")
 				) {
-					await app.send_ws_message(
+					await app.post_data(
 						// @ts-ignore
 						`${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_index).event_id()}`,
 						{ ...payload, session_hash: app.session_hash }
