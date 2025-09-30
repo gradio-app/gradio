@@ -11,6 +11,7 @@ from __future__ import annotations
 import inspect
 import os
 import re
+import signal
 import subprocess
 import sys
 import threading
@@ -23,6 +24,21 @@ import gradio
 from gradio import utils
 
 reload_thread = threading.local()
+
+
+def _handle_interrupt():
+    """Handle interrupt signals and logout based on user preference"""
+
+    if os.getenv("GRADIO_VIBE_MODE") and os.getenv("GRADIO_AUTO_LOGOUT") == "true":
+        try:
+            from huggingface_hub import logout
+
+            logout()
+            print("\n\nLogged out of Hugging Face")
+        except Exception as e:
+            print(f"\n\nError logging out of Hugging Face: {e}")
+
+    sys.exit(0)
 
 
 def _setup_config(
@@ -105,6 +121,9 @@ def main(
     encoding: str = "utf-8",
     watch_library: bool = False,
 ):
+    signal.signal(signal.SIGINT, lambda _signum, _frame: _handle_interrupt())
+    signal.signal(signal.SIGTERM, lambda _signum, _frame: _handle_interrupt())
+
     # default execution pattern to start the server and watch changes
     module_name, path, watch_sources, demo_name = _setup_config(
         demo_path, demo_name, watch_dirs, encoding, watch_library
