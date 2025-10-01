@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:gr.load_chat supports optional textbox= argument
+fix:gr.load_chat supports optional textbox= argument
