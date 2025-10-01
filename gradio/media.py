@@ -10,9 +10,12 @@ Usage:
     cheetah_img = get_image("cheetah1.jpg")
     world_video = get_video("world.mp4")
     cantina_audio = get_audio("cantina.wav")
+    bunny_model = get_model3d("Bunny.obj")
+    titanic_data = get_file("titanic.csv")
 
     # Get random media of a type
     random_img = get_image()
+    random_video = get_video()
     random_audio = get_audio()
 
 """
@@ -29,7 +32,7 @@ def _get_media_path(media_type: str, filename: Optional[str] = None) -> str:
     Internal function to get the path to a media file.
 
     Args:
-        media_type: Type of media (images, videos, audio, models3d, data, subtitles)
+        media_type: Type of media (images, videos, audio, models3d, data)
         filename: Optional filename of the media file. If None, returns a random file.
 
     Returns:
@@ -147,80 +150,3 @@ def get_file(filename: Optional[str] = None) -> str:
     return _get_media_path("data", filename)
 
 
-def get_subtitle(filename: Optional[str] = None) -> str:
-    """
-    Get path to a subtitle file.
-
-    Args:
-        filename: Filename of the subtitle file (e.g., "s1.srt"). If None, returns a random subtitle.
-
-    Returns:
-        Absolute path to the subtitle file
-
-    Examples:
-        >>> get_subtitle("s1.srt")  # Get specific subtitle
-        >>> get_subtitle()  # Get random subtitle
-    """
-    return _get_media_path("subtitles", filename)
-
-
-def get_media_info() -> dict[str, list[str]]:
-    """
-    Get information about all available media files.
-
-    Returns:
-        Dictionary mapping media types to lists of available filenames
-    """
-    media_types = ["images", "videos", "audio", "models3d", "data", "subtitles"]
-    result = {}
-
-    for media_type in media_types:
-        media_dir = MEDIA_ROOT / media_type
-        if media_dir.exists():
-            result[media_type] = [f.name for f in media_dir.glob("*") if f.is_file()]
-        else:
-            result[media_type] = []
-
-    return result
-
-
-class MediaPaths:
-    """
-    Provides directory paths for backwards compatibility with existing demos.
-
-    Usage:
-        from gradio.media import MediaPaths
-        paths = MediaPaths()
-        img_dir = paths.images_dir
-        file_dir = paths.data_dir
-    """
-
-    @property
-    def images_dir(self) -> str:
-        """Directory containing image files."""
-        return str(MEDIA_ROOT / "images")
-
-    @property
-    def videos_dir(self) -> str:
-        """Directory containing video files."""
-        return str(MEDIA_ROOT / "videos")
-
-    @property
-    def audio_dir(self) -> str:
-        """Directory containing audio files."""
-        return str(MEDIA_ROOT / "audio")
-
-    @property
-    def models3d_dir(self) -> str:
-        """Directory containing 3D model files."""
-        return str(MEDIA_ROOT / "models3d")
-
-    @property
-    def data_dir(self) -> str:
-        """Directory containing data files."""
-        return str(MEDIA_ROOT / "data")
-
-    @property
-    def subtitles_dir(self) -> str:
-        """Directory containing subtitle files."""
-        return str(MEDIA_ROOT / "subtitles")

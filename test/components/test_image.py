@@ -20,7 +20,7 @@ class TestImage:
         type: pil, file, filepath, numpy
         """
 
-        img = ImageData(path=get_image("cheetah1.jpg"), orig_name="cheetah1.jpg")
+        img = ImageData(path=get_image("bus.png"), orig_name="bus.png")
         image_input = gr.Image()
 
         image_input = gr.Image(type="filepath", image_mode="L")

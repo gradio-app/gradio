@@ -193,7 +193,7 @@ import gradio as gr
 
 def load():
     return [
-        ("Here's an audio", gr.Audio("https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/audio/cantina.wav")),
+        ("Here's an audio", gr.Audio("https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/audio/audio_sample.wav")),
         ("Here's an video", gr.Video("https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/videos/world.mp4"))
     ]
 

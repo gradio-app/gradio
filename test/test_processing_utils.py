@@ -21,7 +21,7 @@ class TestTempFileManagement:
         h1 = processing_utils.hash_file(get_image("cheetah1.jpg"))
         h2 = processing_utils.hash_file(
             get_image("cheetah1.jpg")
-        )  # Same file, should have same hash
+        )
         h3 = processing_utils.hash_file("gradio/test_data/cheetah2.jpg")
         assert h1 == h2
         assert h1 != h3
@@ -263,10 +263,9 @@ class TestOutputPreprocessing:
 
 class TestVideoProcessing:
     def test_video_has_playable_codecs(self, test_file_dir):
-        from gradio.media import get_video
 
         assert processing_utils.video_is_playable(
-            get_video("b.mp4")  # Use media system video
+            str(test_file_dir / "video_sample.mp4")
         )
         assert processing_utils.video_is_playable(
             str(test_file_dir / "video_sample.ogg")
@@ -451,7 +450,7 @@ class TestAudioFormatDetection:
     @pytest.mark.parametrize(
         "file_path,expected",
         [
-            ("gradio/media_assets/audio/cantina.wav", ".wav"),
+            ("gradio/media_assets/audio/audio_sample.wav", ".wav"),
             ("gradio/test_data/test_audio.mp3", ".mp3"),
         ],
     )

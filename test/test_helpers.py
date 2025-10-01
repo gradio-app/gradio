@@ -284,7 +284,7 @@ class TestProcessExamples:
             audio_identity,
             "audio",
             "audio",
-            examples=[[get_audio("cantina.wav")]],
+            examples=[[get_audio("audio_sample.wav")]],
             cache_examples=True,
         )
         with connect(io):
@@ -362,7 +362,7 @@ class TestProcessExamples:
     def test_caching_with_generators_and_streamed_output(
         self, patched_cache_folder, connect
     ):
-        audio = get_audio("cantina.wav")
+        audio = get_audio("audio_sample.wav")
 
         def test_generator(x):
             for y in range(int(x)):

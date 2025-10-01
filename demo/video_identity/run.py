@@ -9,7 +9,7 @@ demo = gr.Interface(video_identity,
                     gr.Video(),
                     "playable_video",
                     examples=[
-                        get_video("b.mp4")  # Using media system video
+                        get_video("world.mp4")
                     ],
                     cache_examples=True)
 

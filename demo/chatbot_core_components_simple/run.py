@@ -47,7 +47,7 @@ def bot(history, response_type):
         )
     elif response_type == "audio":
         history[-1][1] = gr.Audio(
-            "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/audio/cantina.wav"
+            "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/audio/audio_sample.wav"
         )
     elif response_type == "html":
         history[-1][1] = gr.HTML(

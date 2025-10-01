@@ -79,7 +79,7 @@ demo = gr.Interface(
         gr.Chatbot(
             value=lambda: random.choice([[("hello", "hi!")], [("bye", "goodbye!")]])
         ),
-        gr.Model3D(value=lambda: get_model3d("Duck.glb")),
+        gr.Model3D(value=lambda: get_model3d()),
         gr.Plot(value=random_plot),
         gr.Markdown(value=lambda: f"### {random.choice(['Hello', 'Hi', 'Goodbye!'])}"),
     ],
