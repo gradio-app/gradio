@@ -204,7 +204,6 @@ class ImageEditor(Component):
         mirror_webcam: bool | None = None,
         show_share_button: bool | None = None,
         _selectable: bool = False,
-        crop_size: tuple[int | float, int | float] | str | None = None,
         transforms: Iterable[Literal["crop", "resize"]] | None = ("crop", "resize"),
         eraser: Eraser | None | Literal[False] = None,
         brush: Brush | None | Literal[False] = None,
@@ -240,7 +239,6 @@ class ImageEditor(Component):
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             placeholder: Custom text for the upload area. Overrides default upload messages when provided. Accepts new lines and `#` to designate a heading.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
-            crop_size: Deprecated. Used to set the `canvas_size` parameter.
             transforms: The transforms tools to make available to users. "crop" allows the user to crop the image.
             eraser: The options for the eraser tool in the image editor. Should be an instance of the `gr.Eraser` class, or None to use the default settings. Can also be False to hide the eraser tool. [See `gr.Eraser` docs](#eraser).
             brush: The options for the brush tool in the image editor. Should be an instance of the `gr.Brush` class, or None to use the default settings. Can also be False to hide the brush tool, which will also hide the eraser tool. [See `gr.Brush` docs](#brush).
