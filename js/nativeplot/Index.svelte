@@ -416,7 +416,9 @@
 	function export_chart(): void {
 		if (!view || !computed_style) return;
 
-		const block_background = computed_style.getPropertyValue("--block-background-fill");
+		const block_background = computed_style.getPropertyValue(
+			"--block-background-fill"
+		);
 		const export_background = block_background || "white";
 
 		view.background(export_background).run();
