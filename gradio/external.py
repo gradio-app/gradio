@@ -918,13 +918,22 @@ def load_chat(
 
         kwargs["chatbot"] = Chatbot(type="messages", scale=1, allow_tags=True)
 
+    # Allow user to override textbox by passing it in kwargs
+    textbox_arg = kwargs.pop("textbox", None)
+    if textbox_arg is not None:
+        textbox = textbox_arg
+    else:
+        textbox = (
+            gr.MultimodalTextbox(file_types=supported_extensions)
+            if file_types
+            else None
+        )
+
     return ChatInterface(
         open_api_stream if streaming else open_api,
         type="messages",
         multimodal=bool(file_types),
-        textbox=gr.MultimodalTextbox(file_types=supported_extensions)
-        if file_types
-        else None,
+        textbox=textbox,
         **kwargs,
     )
 
