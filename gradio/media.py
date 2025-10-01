@@ -148,5 +148,3 @@ def get_file(filename: Optional[str] = None) -> str:
         >>> get_file()  # Get random data file
     """
     return _get_media_path("data", filename)
-
-

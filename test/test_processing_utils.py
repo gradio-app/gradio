@@ -19,9 +19,7 @@ class TestTempFileManagement:
         from gradio.media import get_image
 
         h1 = processing_utils.hash_file(get_image("cheetah1.jpg"))
-        h2 = processing_utils.hash_file(
-            get_image("cheetah1.jpg")
-        )
+        h2 = processing_utils.hash_file(get_image("cheetah1.jpg"))
         h3 = processing_utils.hash_file("gradio/test_data/cheetah2.jpg")
         assert h1 == h2
         assert h1 != h3
@@ -263,7 +261,6 @@ class TestOutputPreprocessing:
 
 class TestVideoProcessing:
     def test_video_has_playable_codecs(self, test_file_dir):
-
         assert processing_utils.video_is_playable(
             str(test_file_dir / "video_sample.mp4")
         )
