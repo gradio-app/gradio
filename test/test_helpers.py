@@ -291,7 +291,7 @@ class TestProcessExamples:
             prediction = io.examples_handler.load_from_cache(0)
         file = prediction[0].path
         assert client_utils.encode_url_or_file_to_base64(file).startswith(
-            "data:audio/wav;base64,UklGRgA/"
+            "data:audio/wav;base64,UklGRvAEAgBXQ"
         )
 
     def test_caching_with_update(self, patched_cache_folder, connect):
