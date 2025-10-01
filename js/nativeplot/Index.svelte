@@ -412,13 +412,10 @@
 	function export_chart(): void {
 		if (!view) return;
 		
-		// PNG export with higher resolution (2x scale for retina quality)
-		// Temporarily set white background for export
 		view.background('white').run();
 		
-		view.toImageURL('png', 2) // 2x scale for higher resolution
+		view.toImageURL('png', 2)
 			.then(function(url) {
-				// Reset background to transparent after export
 				view.background('transparent').run();
 				
 				const link = document.createElement('a');
@@ -431,7 +428,6 @@
 			})
 			.catch(function(err) {
 				console.error('Export failed:', err);
-				// Reset background on error too
 				view.background('transparent').run();
 			});
 	}
