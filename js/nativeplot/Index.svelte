@@ -2,7 +2,11 @@
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Block } from "@gradio/atoms";
-	import { FullscreenButton, IconButtonWrapper, IconButton } from "@gradio/atoms";
+	import {
+		FullscreenButton,
+		IconButtonWrapper,
+		IconButton
+	} from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { onMount } from "svelte";
@@ -395,7 +399,7 @@
 	}
 
 	let refresh_pending = false;
-	
+
 	onMount(() => {
 		mounted = true;
 		return () => {
@@ -411,24 +415,25 @@
 
 	function export_chart(): void {
 		if (!view) return;
-		
-		view.background('white').run();
-		
-		view.toImageURL('png', 2)
-			.then(function(url) {
-				view.background('transparent').run();
-				
-				const link = document.createElement('a');
-				link.setAttribute('href', url);
-				link.setAttribute('download', 'chart.png');
-				link.style.display = 'none';
+
+		view.background("white").run();
+
+		view
+			.toImageURL("png", 2)
+			.then(function (url) {
+				view.background("transparent").run();
+
+				const link = document.createElement("a");
+				link.setAttribute("href", url);
+				link.setAttribute("download", "chart.png");
+				link.style.display = "none";
 				document.body.appendChild(link);
 				link.click();
 				document.body.removeChild(link);
 			})
-			.catch(function(err) {
-				console.error('Export failed:', err);
-				view.background('transparent').run();
+			.catch(function (err) {
+				console.error("Export failed:", err);
+				view.background("transparent").run();
 			});
 	}
 
@@ -740,11 +745,7 @@
 	{#if show_fullscreen_button || show_export_button}
 		<IconButtonWrapper>
 			{#if show_export_button}
-				<IconButton
-					Icon={Download}
-					label="Export"
-					on:click={export_chart}
-				/>
+				<IconButton Icon={Download} label="Export" on:click={export_chart} />
 			{/if}
 			{#if show_fullscreen_button}
 				<FullscreenButton
