@@ -1107,6 +1107,12 @@ function is_visible(component: ComponentMeta): boolean {
 	) {
 		return false;
 	} else if (component.parent) {
+		if (component.parent.type === "tabitem") {
+			return is_tab_item_visible(
+				component.parent,
+				is_visible(component.parent)
+			);
+		}
 		return is_visible(component.parent);
 	}
 	return true;

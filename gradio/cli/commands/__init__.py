@@ -2,6 +2,7 @@ from .cli_env_info import print_environment_info
 from .components import app as custom_component
 from .deploy_space import deploy
 from .hf_login import hf_login
+from .load import load_app
 from .reload import main as reload
 from .sketch import launch as sketch
 from .upload_mcp import main as upload_mcp
@@ -14,4 +15,5 @@ __all__ = [
     "sketch",
     "upload_mcp",
     "hf_login",
+    "load_app",
 ]

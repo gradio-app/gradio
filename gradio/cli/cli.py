@@ -10,6 +10,7 @@ from .commands import (
     custom_component,
     deploy,
     hf_login,
+    load_app,
     print_environment_info,
     reload,
     sketch,
@@ -17,6 +18,7 @@ from .commands import (
 )
 
 app = typer.Typer()
+app.add_typer(load_app, name="load")
 app.command("environment", help="Print Gradio environment information.")(
     print_environment_info
 )
@@ -34,7 +36,7 @@ def cli():
     args = sys.argv[1:]
     if len(args) == 0:
         raise ValueError("No file specified.")
-    if args[0] in {"deploy", "environment", "deploy-discord", "sketch"}:
+    if args[0] in {"deploy", "environment", "deploy-discord", "sketch", "load"}:
         app()
     elif args[0] in {"cc", "component"}:
         sys.argv = sys.argv[1:]
