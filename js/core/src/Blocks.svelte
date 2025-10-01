@@ -876,7 +876,11 @@
 			const { id, prop, value } = e.detail;
 			if (prop === "value") {
 				update_value([
-					{ id, prop: "loading_status", value: { validation_error: undefined } }
+					{
+						id,
+						prop: "loading_status",
+						value: { validation_error: undefined }
+					}
 				]);
 			}
 			update_value([{ id, prop, value }]);
@@ -1058,7 +1062,6 @@
 	let footer_height = 0;
 
 	let root_container: HTMLElement;
-	$: root_node = $_layout && get_root_node(root_container);
 
 	function get_root_node(container: HTMLElement | null): HTMLElement | null {
 		if (!container) return null;
@@ -1067,7 +1070,7 @@
 
 	function handle_resize(): void {
 		if ("parentIFrame" in window) {
-			const box = root_node?.getBoundingClientRect();
+			const box = root_container.children[0].getBoundingClientRect();
 			if (!box) return;
 			window.parentIFrame?.size(box.bottom + footer_height + 32);
 		}
