@@ -362,7 +362,6 @@ class TestProcessExamples:
     def test_caching_with_generators_and_streamed_output(
         self, patched_cache_folder, connect
     ):
-        file_dir = Path(Path(__file__).parent, "test_files")
         audio = get_audio("cantina.wav")
 
         def test_generator(x):
