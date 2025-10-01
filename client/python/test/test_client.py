@@ -141,7 +141,13 @@ class TestClientPredictions:
         with connect(max_file_size_demo, max_file_size="15kb") as client:
             with pytest.raises(ValueError, match="exceeds the maximum file size"):
                 client.predict(
-                    handle_file(Path(__file__).parents[3] / "gradio" / "media_assets" / "images" / "cheetah1.jpg"),
+                    handle_file(
+                        Path(__file__).parents[3]
+                        / "gradio"
+                        / "media_assets"
+                        / "images"
+                        / "cheetah1.jpg"
+                    ),
                     api_name="/upload_1b",
                 )
             client.predict(
@@ -340,7 +346,13 @@ class TestClientPredictions:
     def test_upload_preserves_orig_name(self):
         demo = gr.Interface(lambda x: x, "image", "text")
         with connect(demo) as client:
-            test_file = Path(__file__).parent.parent.parent.parent / "gradio" / "media_assets" / "images" / "cheetah1.jpg"
+            test_file = (
+                Path(__file__).parent.parent.parent.parent
+                / "gradio"
+                / "media_assets"
+                / "images"
+                / "cheetah1.jpg"
+            )
             output = client.endpoints[0]._upload_file({"path": test_file}, data_index=0)
             assert output["orig_name"] == "cheetah1.jpg"
 
