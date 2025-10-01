@@ -414,9 +414,12 @@
 	});
 
 	function export_chart(): void {
-		if (!view) return;
+		if (!view || !computed_style) return;
 
-		view.background("white").run();
+		const block_background = computed_style.getPropertyValue("--block-background-fill");
+		const export_background = block_background || "white";
+
+		view.background(export_background).run();
 
 		view
 			.toImageURL("png", 2)
