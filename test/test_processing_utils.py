@@ -16,15 +16,18 @@ from gradio.route_utils import API_PREFIX
 
 class TestTempFileManagement:
     def test_hash_file(self):
-        h1 = processing_utils.hash_file("gradio/test_data/cheetah1.jpg")
-        h2 = processing_utils.hash_file("gradio/test_data/cheetah1-copy.jpg")
+        from gradio.media import get_image
+        h1 = processing_utils.hash_file(get_image("cheetah1.jpg"))
+        h2 = processing_utils.hash_file(get_image("cheetah1.jpg"))  # Same file, should have same hash
         h3 = processing_utils.hash_file("gradio/test_data/cheetah2.jpg")
         assert h1 == h2
         assert h1 != h3
 
     def test_make_temp_copy_if_needed(self, gradio_temp_dir):
+        from gradio.media import get_image
+        cheetah_path = get_image("cheetah1.jpg")
         f = processing_utils.save_file_to_cache(
-            "gradio/test_data/cheetah1.jpg", cache_dir=gradio_temp_dir
+            cheetah_path, cache_dir=gradio_temp_dir
         )
         try:  # Delete if already exists from before this test
             os.remove(f)
@@ -32,14 +35,14 @@ class TestTempFileManagement:
             pass
 
         f = processing_utils.save_file_to_cache(
-            "gradio/test_data/cheetah1.jpg", cache_dir=gradio_temp_dir
+            cheetah_path, cache_dir=gradio_temp_dir
         )
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
         assert Path(f).name == "cheetah1.jpg"
 
         f = processing_utils.save_file_to_cache(
-            "gradio/test_data/cheetah1.jpg", cache_dir=gradio_temp_dir
+            cheetah_path, cache_dir=gradio_temp_dir
         )
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
@@ -79,7 +82,7 @@ class TestTempFileManagement:
     @pytest.mark.flaky
     def test_ssrf_protected_download(self, gradio_temp_dir):
         url1 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/test_image.png"
-        url2 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/cheetah1.jpg"
+        url2 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/media_assets/images/cheetah1.jpg"
 
         f = processing_utils.save_url_to_cache(url1, cache_dir=gradio_temp_dir)
         try:  # Delete if already exists from before this test
@@ -262,8 +265,9 @@ class TestOutputPreprocessing:
 
 class TestVideoProcessing:
     def test_video_has_playable_codecs(self, test_file_dir):
+        from gradio.media import get_video
         assert processing_utils.video_is_playable(
-            str(test_file_dir / "video_sample.mp4")
+            get_video("b.mp4")  # Use media system video
         )
         assert processing_utils.video_is_playable(
             str(test_file_dir / "video_sample.ogg")

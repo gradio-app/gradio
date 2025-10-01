@@ -1,15 +1,16 @@
 import gradio as gr
-import os
+from gradio.media import get_image
 
 def image_mod(image):
     return image.rotate(45)
 
-cheetah = os.path.join(os.path.dirname(__file__), "images/cheetah1.jpg")
+# get_image() returns file paths to sample media included with Gradio
+cheetah = get_image("cheetah1.jpg")
 
 demo = gr.Interface(image_mod, gr.Image(type="pil", value=cheetah), "image",
     flagging_options=["blurry", "incorrect", "other"], examples=[
-        os.path.join(os.path.dirname(__file__), "images/lion.jpg"),
-        os.path.join(os.path.dirname(__file__), "images/logo.png")
+        get_image("lion.jpg"),
+        get_image("avatar.png")  # Using avatar instead of deleted logo.png
         ])
 
 if __name__ == "__main__":

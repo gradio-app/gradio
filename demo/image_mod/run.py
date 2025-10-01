@@ -1,12 +1,13 @@
 import gradio as gr
-import os
+from gradio.media import get_image
 
 def image_mod(image):
     return image.rotate(45)
 
+# get_image() returns file paths to sample media included with Gradio
 new_samples = [
-    [os.path.join(os.path.dirname(__file__), "images/logo.png")],
-    [os.path.join(os.path.dirname(__file__), "images/tower.jpg")],
+    [get_image("avatar.png")],  # Using avatar instead of deleted logo.png
+    [get_image("tower.jpg")],
 ]
 
 with gr.Blocks() as demo:
@@ -16,8 +17,8 @@ with gr.Blocks() as demo:
         "image",
         flagging_options=["blurry", "incorrect", "other"],
         examples=[
-            os.path.join(os.path.dirname(__file__), "images/cheetah1.jpg"),
-            os.path.join(os.path.dirname(__file__), "images/lion.jpg"),
+            get_image("cheetah1.jpg"),
+            get_image("lion.jpg"),
         ],
     )
 

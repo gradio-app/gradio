@@ -4,6 +4,7 @@ import random
 import time
 
 import gradio as gr
+from gradio.media import get_image
 
 def fake_gan(desc):
     if desc == "NSFW":
@@ -13,8 +14,8 @@ def fake_gan(desc):
     time.sleep(9)
     image = random.choice(
         [
-            "files/cheetah1.jpg",
-            "files/elephant.jpg",
+            get_image("cheetah1.jpg"),
+            "files/elephant.jpg",  # Keep existing files that weren't deleted
             "files/tiger.jpg",
             "files/zebra.jpg",
         ]
