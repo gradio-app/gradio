@@ -291,23 +291,6 @@ class ImageEditor(Component):
             else show_share_button
         )
 
-        if crop_size is not None and canvas_size is None:
-            warnings.warn(
-                "`crop_size` parameter is deprecated. Please use `canvas_size` instead."
-            )
-            if isinstance(crop_size, str):
-                # convert ratio to tuple
-                proportion = [
-                    int(crop_size.split(":")[0]),
-                    int(crop_size.split(":")[1]),
-                ]
-                ratio = proportion[0] / proportion[1]
-                canvas_size = (
-                    (int(800 * ratio), 800) if ratio > 1 else (800, int(800 / ratio))
-                )
-            else:
-                canvas_size = (int(crop_size[0]), int(crop_size[1]))
-
         self.transforms = transforms
         self.eraser = Eraser() if eraser is None else eraser
         self.brush = Brush() if brush is None else brush
