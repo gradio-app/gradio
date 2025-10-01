@@ -8,7 +8,7 @@ base_b = os.path.join(os.path.dirname(__file__), "files/bird.bmp")
 
 watermark_a = get_image("hf-logo_transpng.png")
 watermark_b = os.path.join(os.path.dirname(__file__), "files/logo_nontrans.png")
-watermark_c = get_image("avatar.png")  # Using avatar instead of deleted logo.png
+watermark_c = get_image("logo.png")
 
 def generate_image(original_image, watermark):
     return gr.Image(original_image, watermark=watermark)

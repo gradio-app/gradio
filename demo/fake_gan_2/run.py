@@ -15,7 +15,7 @@ def fake_gan(desc):
     image = random.choice(
         [
             get_image("cheetah1.jpg"),
-            "files/elephant.jpg",  # Keep existing files that weren't deleted
+            "files/elephant.jpg",
             "files/tiger.jpg",
             "files/zebra.jpg",
         ]

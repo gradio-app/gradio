@@ -10,7 +10,7 @@ cheetah = get_image("cheetah1.jpg")
 demo = gr.Interface(image_mod, gr.Image(type="pil", value=cheetah), "image",
     flagging_options=["blurry", "incorrect", "other"], examples=[
         get_image("lion.jpg"),
-        get_image("avatar.png")  # Using avatar instead of deleted logo.png
+        get_image("logo.png")
         ])
 
 if __name__ == "__main__":

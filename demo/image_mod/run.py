@@ -6,7 +6,7 @@ def image_mod(image):
 
 # get_image() returns file paths to sample media included with Gradio
 new_samples = [
-    [get_image("avatar.png")],  # Using avatar instead of deleted logo.png
+    [get_image("logo.png")],
     [get_image("tower.jpg")],
 ]
 
