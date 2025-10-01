@@ -17,33 +17,31 @@ from gradio.route_utils import API_PREFIX
 class TestTempFileManagement:
     def test_hash_file(self):
         from gradio.media import get_image
+
         h1 = processing_utils.hash_file(get_image("cheetah1.jpg"))
-        h2 = processing_utils.hash_file(get_image("cheetah1.jpg"))  # Same file, should have same hash
+        h2 = processing_utils.hash_file(
+            get_image("cheetah1.jpg")
+        )  # Same file, should have same hash
         h3 = processing_utils.hash_file("gradio/test_data/cheetah2.jpg")
         assert h1 == h2
         assert h1 != h3
 
     def test_make_temp_copy_if_needed(self, gradio_temp_dir):
         from gradio.media import get_image
+
         cheetah_path = get_image("cheetah1.jpg")
-        f = processing_utils.save_file_to_cache(
-            cheetah_path, cache_dir=gradio_temp_dir
-        )
+        f = processing_utils.save_file_to_cache(cheetah_path, cache_dir=gradio_temp_dir)
         try:  # Delete if already exists from before this test
             os.remove(f)
         except OSError:
             pass
 
-        f = processing_utils.save_file_to_cache(
-            cheetah_path, cache_dir=gradio_temp_dir
-        )
+        f = processing_utils.save_file_to_cache(cheetah_path, cache_dir=gradio_temp_dir)
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
         assert Path(f).name == "cheetah1.jpg"
 
-        f = processing_utils.save_file_to_cache(
-            cheetah_path, cache_dir=gradio_temp_dir
-        )
+        f = processing_utils.save_file_to_cache(cheetah_path, cache_dir=gradio_temp_dir)
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
         f = processing_utils.save_file_to_cache(
@@ -266,6 +264,7 @@ class TestOutputPreprocessing:
 class TestVideoProcessing:
     def test_video_has_playable_codecs(self, test_file_dir):
         from gradio.media import get_video
+
         assert processing_utils.video_is_playable(
             get_video("b.mp4")  # Use media system video
         )
