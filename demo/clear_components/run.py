@@ -7,6 +7,7 @@ import pandas as pd
 
 import numpy as np
 import matplotlib.pyplot as plt
+# get_audio(), get_video() return file paths to sample media included with Gradio
 from gradio.media import get_audio, get_video
 
 def random_plot():
@@ -101,8 +102,8 @@ components = [
     gr.Image(
         value=lambda: random.choice(images)
     ),
-    gr.Video(value=lambda: get_video("world")),
-    gr.Audio(value=lambda: get_audio("cantina")),
+    gr.Video(value=lambda: get_video("world.mp4")),
+    gr.Audio(value=lambda: get_audio("cantina.wav")),
     gr.File(
         value=lambda: random.choice(
             [os.path.join(file_dir, img) for img in os.listdir(file_dir)]

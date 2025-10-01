@@ -17,8 +17,8 @@ with gr.Blocks() as demo:
 
     gr.Examples(
         [
-            get_image("cheetah1"),
-            get_image("lion"),
+            get_image("cheetah1.jpg"),
+            get_image("lion.jpg"),
         ],
         img_i,
         img_o,

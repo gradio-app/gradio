@@ -25,8 +25,8 @@ demo = gr.Interface(
     inputs=image,
     outputs=label,
     examples=[
-        get_image("cheetah1"),
-        get_image("lion")
+        get_image("cheetah1.jpg"),
+        get_image("lion.jpg")
         ]
     )
 

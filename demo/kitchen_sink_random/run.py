@@ -4,6 +4,7 @@ import random
 import string
 import pandas as pd
 
+# get_audio(), get_video(), get_image(), get_model3d(), get_file() return file paths to sample media included with Gradio
 from gradio.media import get_audio, get_video, get_image, get_model3d, get_file
 
 from constants import (  # type: ignore
@@ -42,10 +43,10 @@ demo = gr.Interface(
         gr.Image(
             value=lambda: get_image()
         ),
-        gr.Video(value=lambda: get_video("world")),
-        gr.Audio(value=lambda: get_audio("cantina")),
+        gr.Video(value=lambda: get_video("world.mp4")),
+        gr.Audio(value=lambda: get_audio("cantina.wav")),
         gr.File(
-            value=lambda: get_file("titanic")
+            value=lambda: get_file("titanic.csv")
         ),
         gr.Dataframe(
             value=lambda: pd.DataFrame(
@@ -78,7 +79,7 @@ demo = gr.Interface(
         gr.Chatbot(
             value=lambda: random.choice([[("hello", "hi!")], [("bye", "goodbye!")]])
         ),
-        gr.Model3D(value=lambda: get_model3d()),
+        gr.Model3D(value=lambda: get_model3d("Duck.glb")),
         gr.Plot(value=random_plot),
         gr.Markdown(value=lambda: f"### {random.choice(['Hello', 'Hi', 'Goodbye!'])}"),
     ],

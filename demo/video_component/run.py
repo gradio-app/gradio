@@ -7,9 +7,9 @@ demo = gr.Interface(
     inputs=gr.Video(),
     outputs=gr.Video(),
     examples=[
-        [get_video("world")],
-        [get_video("video_a")],
-        [get_video("video_b")],
+        [get_video("world.mp4")],
+        [get_video("a.mp4")],
+        [get_video("b.mp4")],
     ],
     cache_examples=True
 )

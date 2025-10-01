@@ -7,9 +7,9 @@ Usage:
     from gradio.media import get_image, get_video, get_audio, get_model3d, get_file
 
     # Get specific media files
-    cheetah_img = get_image("cheetah1")
-    world_video = get_video("world")
-    cantina_audio = get_audio("cantina")
+    cheetah_img = get_image("cheetah1.jpg")
+    world_video = get_video("world.mp4")
+    cantina_audio = get_audio("cantina.wav")
 
     # Get random media of a type
     random_img = get_image()
@@ -23,88 +23,38 @@ from typing import Optional
 
 MEDIA_ROOT = Path(__file__).parent / "media_assets"
 
-MEDIA_REGISTRY: dict[str, dict[str, str]] = {
-    "images": {
-        "avatar": "avatar.png",
-        "cheetah": "cheetah.jpg",
-        "cheetah1": "cheetah1.jpg",
-        "groot": "groot.jpeg",
-        "hf_logo_transpng": "hf-logo_transpng.png",
-        "lion": "lion.jpg",
-        "logo": "logo.png",
-        "screenshot_gif": "screenshot.gif",
-        "tower": "tower.jpg",
-    },
-    "videos": {
-        "video_a": "a.mp4",
-        "video_b": "b.mp4",
-        "world": "world.mp4",
-    },
-    "audio": {
-        "audio_sample": "audio_sample.wav",
-        "cantina": "cantina.wav",
-        "cate_blanch": "cate_blanch.mp3",
-        "cate_blanch_2": "cate_blanch_2.mp3",
-        "heath_ledger": "heath_ledger.mp3",
-        "recording1": "recording1.wav",
-    },
-    "models3d": {
-        "bunny": "Bunny.obj",
-        "duck": "Duck.glb",
-        "face": "face.obj",
-        "fox": "Fox.gltf",
-        "sofia": "sofia.stl",
-    },
-    "data": {
-        "imagenet_labels": "imagenet_labels.json",
-        "sample_text": "sample.txt",
-        "time_series": "time.csv",
-        "titanic": "titanic.csv",
-    },
-    "subtitles": {
-        "subtitle_srt": "s1.srt",
-        "subtitle_vtt": "s2.vtt",
-    },
-}
 
-
-def _get_media_path(media_type: str, name: Optional[str] = None) -> str:
+def _get_media_path(media_type: str, filename: Optional[str] = None) -> str:
     """
     Internal function to get the path to a media file.
 
     Args:
         media_type: Type of media (images, videos, audio, models3d, data, subtitles)
-        name: Optional name of the specific media file. If None, returns a random file.
+        filename: Optional filename of the media file. If None, returns a random file.
 
     Returns:
         Absolute path to the media file
 
     Raises:
-        ValueError: If media_type is invalid or name is not found
+        ValueError: If media_type is invalid
         FileNotFoundError: If the media file doesn't exist
     """
-    if media_type not in MEDIA_REGISTRY:
-        raise ValueError(
-            f"Invalid media type: {media_type}. Available types: {list(MEDIA_REGISTRY.keys())}"
-        )
+    media_dir = MEDIA_ROOT / media_type
 
-    media_files = MEDIA_REGISTRY[media_type]
+    if not media_dir.exists():
+        raise ValueError(f"Media directory not found: {media_dir}")
 
-    if name is None:
-        name = random.choice(list(media_files.keys()))
+    if filename is None:
+        # Get a random file from the directory
+        media_files = list(media_dir.glob("*"))
+        if not media_files:
+            raise ValueError(f"No media files found in {media_dir}")
+        file_path = random.choice(media_files)
+    else:
+        if filename.startswith(("http://", "https://")):
+            return filename
 
-    if name not in media_files:
-        available = list(media_files.keys())
-        raise ValueError(
-            f"Media '{name}' not found in {media_type}. Available: {available}"
-        )
-
-    filename = media_files[name]
-
-    if filename.startswith(("http://", "https://")):
-        return filename
-
-    file_path = MEDIA_ROOT / media_type / filename
+        file_path = media_dir / filename
 
     if not file_path.exists():
         raise FileNotFoundError(f"Media file not found: {file_path}")
@@ -112,106 +62,106 @@ def _get_media_path(media_type: str, name: Optional[str] = None) -> str:
     return str(file_path.absolute())
 
 
-def get_image(name: Optional[str] = None) -> str:
+def get_image(filename: Optional[str] = None) -> str:
     """
     Get path to an image file.
 
     Args:
-        name: Name of the image. If None, returns a random image.
+        filename: Filename of the image (e.g., "tower.jpg"). If None, returns a random image.
 
     Returns:
         Absolute path to the image file
 
     Examples:
-        >>> get_image("cheetah1")  # Get specific cheetah image
+        >>> get_image("tower.jpg")  # Get specific image
         >>> get_image()  # Get random image
     """
-    return _get_media_path("images", name)
+    return _get_media_path("images", filename)
 
 
-def get_video(name: Optional[str] = None) -> str:
+def get_video(filename: Optional[str] = None) -> str:
     """
     Get path to a video file.
 
     Args:
-        name: Name of the video. If None, returns a random video.
+        filename: Filename of the video (e.g., "world.mp4"). If None, returns a random video.
 
     Returns:
         Absolute path to the video file
 
     Examples:
-        >>> get_video("world")  # Get world.mp4
+        >>> get_video("world.mp4")  # Get specific video
         >>> get_video()  # Get random video
     """
-    return _get_media_path("videos", name)
+    return _get_media_path("videos", filename)
 
 
-def get_audio(name: Optional[str] = None) -> str:
+def get_audio(filename: Optional[str] = None) -> str:
     """
     Get path to an audio file.
 
     Args:
-        name: Name of the audio. If None, returns a random audio file.
+        filename: Filename of the audio (e.g., "cantina.wav"). If None, returns a random audio file.
 
     Returns:
         Absolute path to the audio file
 
     Examples:
-        >>> get_audio("cantina")  # Get cantina.wav
+        >>> get_audio("cantina.wav")  # Get specific audio
         >>> get_audio()  # Get random audio
     """
-    return _get_media_path("audio", name)
+    return _get_media_path("audio", filename)
 
 
-def get_model3d(name: Optional[str] = None) -> str:
+def get_model3d(filename: Optional[str] = None) -> str:
     """
     Get path to a 3D model file.
 
     Args:
-        name: Name of the 3D model. If None, returns a random model.
+        filename: Filename of the 3D model (e.g., "Duck.glb"). If None, returns a random model.
 
     Returns:
         Absolute path to the 3D model file
 
     Examples:
-        >>> get_model3d("duck")  # Get Duck.glb
+        >>> get_model3d("Duck.glb")  # Get specific model
         >>> get_model3d()  # Get random 3D model
     """
-    return _get_media_path("models3d", name)
+    return _get_media_path("models3d", filename)
 
 
-def get_file(name: Optional[str] = None) -> str:
+def get_file(filename: Optional[str] = None) -> str:
     """
     Get path to a data file (CSV, JSON, text, etc.).
 
     Args:
-        name: Name of the data file. If None, returns a random file.
+        filename: Filename of the data file (e.g., "titanic.csv"). If None, returns a random file.
 
     Returns:
         Absolute path to the data file
 
     Examples:
-        >>> get_file("titanic")  # Get titanic.csv
+        >>> get_file("titanic.csv")  # Get specific file
         >>> get_file()  # Get random data file
     """
-    return _get_media_path("data", name)
+    return _get_media_path("data", filename)
 
 
-def get_subtitle(name: Optional[str] = None) -> str:
+def get_subtitle(filename: Optional[str] = None) -> str:
     """
     Get path to a subtitle file.
 
     Args:
-        name: Name of the subtitle file. If None, returns a random subtitle.
+        filename: Filename of the subtitle file (e.g., "s1.srt"). If None, returns a random subtitle.
 
     Returns:
         Absolute path to the subtitle file
 
     Examples:
-        >>> get_subtitle("subtitle_srt")  # Get s1.srt
+        >>> get_subtitle("s1.srt")  # Get specific subtitle
         >>> get_subtitle()  # Get random subtitle
     """
-    return _get_media_path("subtitles", name)
+    return _get_media_path("subtitles", filename)
 
 
 def get_media_info() -> dict[str, list[str]]:
@@ -219,16 +169,19 @@ def get_media_info() -> dict[str, list[str]]:
     Get information about all available media files.
 
     Returns:
-        Dictionary mapping media types to lists of available names
+        Dictionary mapping media types to lists of available filenames
     """
-    return {
-        "images": list(MEDIA_REGISTRY["images"].keys()),
-        "videos": list(MEDIA_REGISTRY["videos"].keys()),
-        "audio": list(MEDIA_REGISTRY["audio"].keys()),
-        "models3d": list(MEDIA_REGISTRY["models3d"].keys()),
-        "data": list(MEDIA_REGISTRY["data"].keys()),
-        "subtitles": list(MEDIA_REGISTRY["subtitles"].keys()),
-    }
+    media_types = ["images", "videos", "audio", "models3d", "data", "subtitles"]
+    result = {}
+
+    for media_type in media_types:
+        media_dir = MEDIA_ROOT / media_type
+        if media_dir.exists():
+            result[media_type] = [f.name for f in media_dir.glob("*") if f.is_file()]
+        else:
+            result[media_type] = []
+
+    return result
 
 
 class MediaPaths:

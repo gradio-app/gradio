@@ -14,11 +14,11 @@ demo = gr.Interface(
         clear_color=(0.0, 0.0, 0.0, 0.0), label="3D Model", display_mode="wireframe"
     ),
     examples=[
-        [get_model3d("bunny")],
-        [get_model3d("duck")],
-        [get_model3d("fox")],
-        [get_model3d("face")],
-        [get_model3d("sofia")],
+        [get_model3d("Bunny.obj")],
+        [get_model3d("Duck.glb")],
+        [get_model3d("Fox.gltf")],
+        [get_model3d("face.obj")],
+        [get_model3d("sofia.stl")],
         [
             "https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/bonsai/bonsai-7k-mini.splat"
         ],
