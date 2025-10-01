@@ -11,6 +11,7 @@ import httpx
 import numpy as np
 import PIL.Image
 from gradio_client.utils import get_mimetype, is_http_url_like
+from gradio.components.image_editor import WatermarkOptions
 from PIL import ImageOps
 
 from gradio import processing_utils
@@ -110,9 +111,9 @@ def save_image(
 
 def add_watermark(
     base_img: np.ndarray | PIL.Image.Image | str | Path,
-    watermark: np.ndarray | PIL.Image.Image | str | Path,
+    watermarkOption: WatermarkOptions,
 ) -> PIL.Image.Image:
-    """Overlays a watermark image on a base image. Watermark is placed bottom right, 10 pixels from the right and bottom of the base image.
+    """Overlays a watermark image on a base image. If position coordinates are outside image bounds, watermark is placed 10 pixels from bottom-right corner.
     Parameters:
         base_img: Base image onto which the watermark is applied. Can be an array, PIL Image, or filepath.
         watermark: Watermark image. Can be an array, PIL Image, or filepath.
@@ -121,15 +122,22 @@ def add_watermark(
     """
     base_img = open_image(base_img)
     base_img_width, base_img_height = base_img.size
-    watermark = open_image(watermark)
-    watermark_width, watermark_height = watermark.size
-    x = base_img.width - watermark_width - 10
-    y = base_img.height - watermark_height - 10
+    watermarkOption.watermark = open_image(watermarkOption.watermark)
+    watermark_width, watermark_height = watermarkOption.watermark.size
+
+    x = watermarkOption.position[0]
+    y = watermarkOption.position[1]
+    
+    if (x < 0 or x + watermark_width > base_img_width or 
+        y < 0 or y + watermark_height > base_img_height):
+        x = base_img_width - watermark_width - 10
+        y = base_img_height - watermark_height - 10
+
     watermark_position = (x, y)
     orig_img_mode = base_img.mode
     base_img = base_img.convert("RGBA")
-    watermark = watermark.convert("RGBA")
-    base_img.paste(watermark, watermark_position, mask=watermark)
+    watermarkOption.watermark = watermarkOption.watermark.convert("RGBA")
+    base_img.paste(watermarkOption.watermark, watermark_position, mask=watermarkOption.watermark)
     base_img = base_img.convert(orig_img_mode)
 
     return base_img
@@ -295,12 +303,12 @@ def postprocess_image(
     value: np.ndarray | PIL.Image.Image | str | Path | None,
     cache_dir: str,
     format: str,
-    watermark: np.ndarray | PIL.Image.Image | str | Path | None = None,
+    watermark: WatermarkOptions | None = None,
 ) -> ImageData | None:
     """
     Parameters:
         value: Expects a `numpy.array`, `PIL.Image`, or `str` or `pathlib.Path` filepath to an image which is displayed.
-        watermark: An optional `numpy.array`, `PIL.Image`, or `str` or `pathlib.Path` filepath to an image which is pasted on the lower right of `value`.
+        watermark: An optional `WatermarkOptions` instance to apply a watermark to the image.
     Returns:
         Returns the image as a `FileData` object.
     """
@@ -318,7 +326,7 @@ def postprocess_image(
             orig_name=Path(value).name,
             url=f"data:image/svg+xml,{quote(svg_content)}",
         )
-    if watermark is not None:
+    if watermark.watermark is not None:
         value = add_watermark(value, watermark)
     saved = save_image(value, cache_dir=cache_dir, format=format)
     orig_name = Path(saved).name if Path(saved).exists() else None

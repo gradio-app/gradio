@@ -14,7 +14,7 @@ from gradio_client.documentation import document
 
 from gradio import image_utils, utils
 from gradio.components.base import Component, StreamingInput
-from gradio.components.image_editor import WebcamOptions
+from gradio.components.image_editor import WebcamOptions, WatermarkOptions
 from gradio.data_classes import Base64ImageData, ImageData
 from gradio.events import Events
 from gradio.i18n import I18nData
@@ -92,7 +92,7 @@ class Image(StreamingInput, Component):
         placeholder: str | None = None,
         show_fullscreen_button: bool = True,
         webcam_constraints: dict[str, Any] | None = None,
-        watermark: str | Path | PIL.Image.Image | np.ndarray | None = None,
+        watermark: WatermarkOptions | None = None,
     ):
         """
         Parameters:
@@ -131,6 +131,17 @@ class Image(StreamingInput, Component):
         self.webcam_options = (
             webcam_options if webcam_options is not None else WebcamOptions()
         )
+
+        self.watermark = (
+            watermark if isinstance(watermark, WatermarkOptions) else WatermarkOptions()
+        )
+
+        if not isinstance(watermark, WatermarkOptions) and watermark is not None:
+            warnings.warn(
+                "The `watermark` parameter is updated to use WatermarkOptions. Please use the `watermark` parameter with a `gr.WatermarkOptions` instance instead."
+            )
+            self.watermark.watermark = watermark
+
 
         if mirror_webcam is not None:
             warnings.warn(
@@ -180,8 +191,7 @@ class Image(StreamingInput, Component):
         )
         self.show_fullscreen_button = show_fullscreen_button
         self.placeholder = placeholder
-        self.watermark = watermark
-
+        
         super().__init__(
             label=label,
             every=every,

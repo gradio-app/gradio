@@ -70,7 +70,7 @@ from gradio.components import (
     component,
 )
 from gradio.components.audio import WaveformOptions
-from gradio.components.image_editor import Brush, Eraser, LayerOptions, WebcamOptions
+from gradio.components.image_editor import Brush, Eraser, LayerOptions, WebcamOptions, WatermarkOptions
 from gradio.data_classes import FileData
 from gradio.events import (
     CopyData,
@@ -246,6 +246,7 @@ __all__ = [
     "Warning",
     "WaveformOptions",
     "WebcamOptions",
+    "WatermarkOptions",
     "__version__",
     "close_all",
     "deploy",

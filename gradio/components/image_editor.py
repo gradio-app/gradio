@@ -145,6 +145,29 @@ class WebcamOptions:
     mirror: bool = True
     constraints: dict[str, Any] | None = None
 
+@document()
+@dataclasses.dataclass
+class WatermarkOptions:
+    """
+    A dataclass for specifying options for the watermark tool in the ImageEditor component.
+    
+    Parameters:
+        watermark: str, Path, PIL.Image.Image, np.ndarray to use as the watermark
+        position: (x,y) coordinates for watermark placement
+    """
+    watermark: Union[str, Path, PIL.Image.Image, np.ndarray, None] = None
+    position: tuple[int, int] = (0, 0)
+
+    def __post_init__(self):
+        # Validate watermark input
+        if self.watermark is not None:
+            if not isinstance(self.watermark, (str, Path, PIL.Image.Image, np.ndarray)):
+                raise ValueError("Watermark must be a string path, Path, PIL Image, numpy array, or None")
+        
+        # Validate position tuple
+        if not isinstance(self.position, tuple) or len(self.position) != 2:
+            raise ValueError("Position must be a tuple of (x,y) coordinates")
+
 
 @document()
 class ImageEditor(Component):

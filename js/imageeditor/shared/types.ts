@@ -17,3 +17,8 @@ export interface WebcamOptions {
 	mirror: boolean;
 	constraints: Record<string, any>;
 }
+
+export interface Watermark {
+	text: string | Blob | null;
+	position: [number, number];
+}
