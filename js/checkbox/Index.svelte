@@ -52,10 +52,6 @@
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 
-	{#if info}
-		<Info {info} />
-	{/if}
-
 	<BaseCheckbox
 		bind:value
 		{label}
@@ -63,4 +59,7 @@
 		on:change={handle_change}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 	/>
+	{#if info}
+		<Info {info} />
+	{/if}
 </Block>
