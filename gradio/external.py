@@ -918,7 +918,6 @@ def load_chat(
 
         kwargs["chatbot"] = Chatbot(type="messages", scale=1, allow_tags=True)
 
-    # Allow user to override textbox by passing it in kwargs
     textbox_arg = kwargs.pop("textbox", None)
     if textbox_arg is not None:
         textbox = textbox_arg
