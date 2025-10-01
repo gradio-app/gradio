@@ -27,7 +27,8 @@ th {
 .md pre {
 	background: none;
 	font-family: var(--font-mono);
-	font-size: var(--text-sm);
+	/* Match code font-size to body text font-size for consistency (issue #11953) */
+	font-size: var(--text-md);
 
 	text-align: left;
 	white-space: pre;

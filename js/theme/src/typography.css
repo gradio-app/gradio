@@ -83,6 +83,16 @@
 /* code
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 
+/* Match code font-size to body text font-size for consistency (issue #11953) */
+.prose code {
+	font-size: var(--text-md);
+	font-family: var(--font-mono);
+}
+
+.prose pre {
+	font-size: var(--text-md);
+}
+
 /* tables
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 .prose th,
