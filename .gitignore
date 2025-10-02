@@ -21,6 +21,7 @@ gradio/templates/*
 gradio/node/*
 gradio/_frontend_code/*
 js/gradio-preview/test/*
+**/dist/**/*.d.ts
 
 # Secrets
 .env
