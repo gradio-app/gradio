@@ -209,46 +209,6 @@ export function normalise_messages(
 		.filter((msg): msg is NormalisedMessage => msg !== null);
 }
 
-export function normalise_tuples(
-	messages: TupleFormat,
-	root: string
-): NormalisedMessage[] | null {
-	if (messages === null) return messages;
-	const msg = messages.flatMap((message_pair, i) => {
-		return message_pair.map((message, index) => {
-			if (message == null) return null;
-			const role = index == 0 ? "user" : "assistant";
-
-			if (typeof message === "string") {
-				return {
-					role: role,
-					type: "text",
-					content: redirect_src_url(message, root),
-					metadata: { title: null },
-					index: [i, index]
-				} as TextMessage;
-			}
-
-			if ("file" in message) {
-				return {
-					content: convert_file_message_to_component_message(message),
-					role: role,
-					type: "component",
-					index: [i, index]
-				} as ComponentMessage;
-			}
-
-			return {
-				role: role,
-				content: message,
-				type: "component",
-				index: [i, index]
-			} as ComponentMessage;
-		});
-	});
-	return msg.filter((message) => message != null) as NormalisedMessage[];
-}
-
 export function is_component_message(
 	message: NormalisedMessage
 ): message is ComponentMessage {

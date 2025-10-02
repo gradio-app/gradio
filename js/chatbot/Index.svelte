@@ -19,7 +19,7 @@
 		NormalisedMessage
 	} from "./types";
 
-	import { normalise_tuples, normalise_messages } from "./shared/utils";
+	import { normalise_messages } from "./shared/utils";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
