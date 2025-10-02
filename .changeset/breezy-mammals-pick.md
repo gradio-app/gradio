@@ -1,6 +1,5 @@
 ---
 "@gradio/core": patch
-"@self/spaces-test": patch
 "gradio": patch
 ---
 
