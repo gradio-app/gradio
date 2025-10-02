@@ -1,15 +1,16 @@
 import gradio as gr
-import os
+from gradio.media import get_video
 
 def video_identity(video):
     return video
 
+# get_video() returns file paths to sample media included with Gradio
 demo = gr.Interface(video_identity,
                     gr.Video(),
                     "playable_video",
                     examples=[
-                        os.path.join(os.path.dirname(__file__),
-                                     "video/video_sample.mp4")],
+                        get_video("world.mp4")
+                    ],
                     cache_examples=True)
 
 if __name__ == "__main__":

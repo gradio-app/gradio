@@ -56,9 +56,9 @@ describe("Image", () => {
 		const mock = listen("change");
 
 		component.value = {
-			url: "https://github.com/gradio-app/gradio/blob/main/test/test_files/cheetah1.jpg",
-			orig_name: "bus.png",
-			path: "https://github.com/gradio-app/gradio/blob/main/test/test_files/cheetah1.jpg"
+			url: "https://github.com/gradio-app/gradio/blob/main/gradio/media_assets/images/cheetah1.jpg",
+			orig_name: "cheetah1.jpg",
+			path: "https://github.com/gradio-app/gradio/blob/main/gradio/media_assets/images/cheetah1.jpg"
 		};
 		assert.equal(mock.callCount, 1);
 	});

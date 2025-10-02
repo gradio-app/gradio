@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import random
-import os
+from gradio.media import get_model3d
 
 def random_plot():
     start_year = 2020
@@ -16,9 +16,6 @@ def random_plot():
     ax.plot(x, series, plt_format)
     return fig
 
-img_dir = os.path.join(os.path.dirname(__file__), "files")
-file_dir = os.path.join(os.path.dirname(__file__), "..", "kitchen_sink", "files")
-model3d_dir = os.path.join(os.path.dirname(__file__), "..", "model3D", "files")
 highlighted_text_output_1 = [
     {
         "entity": "I-LOC",
@@ -59,7 +56,4 @@ highlighted_text_output_2 = [
 highlighted_text = "Does Chicago have any Pakistani restaurants"
 
 def random_model3d():
-    model_3d = random.choice(
-        [os.path.join(model3d_dir, model) for model in os.listdir(model3d_dir) if model != "source.txt"]
-    )
-    return model_3d
+    return get_model3d()

@@ -2,6 +2,12 @@
 
 ## 0.23.1
 
+### Dependency updates
+
+- @gradio/client@1.19.1
+
+## 0.23.1
+
 ### Fixes
 
 - [#11969](https://github.com/gradio-app/gradio/pull/11969) [`c8f7909`](https://github.com/gradio-app/gradio/commit/c8f79090ede3b071a8d9620a885350b6ee5a8926) - Show UploadProgress for Webcam Uploads.  Thanks @freddyaboulton!

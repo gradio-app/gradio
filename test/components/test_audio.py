@@ -11,6 +11,7 @@ from gradio_client import utils as client_utils
 import gradio as gr
 from gradio import processing_utils, utils
 from gradio.data_classes import FileData
+from gradio.media import get_audio
 
 
 class TestAudio:
@@ -151,7 +152,7 @@ class TestAudio:
             return (sr, np.flipud(data))
 
         iface = gr.Interface(reverse_audio, "audio", "audio")
-        reversed_file = iface("test/test_files/audio_sample.wav")
+        reversed_file = iface(get_audio("audio_sample.wav"))
         reversed_reversed_file = iface(reversed_file)
         reversed_reversed_data = client_utils.encode_url_or_file_to_base64(
             reversed_reversed_file
