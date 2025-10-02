@@ -88,10 +88,7 @@ test(`videos uploaded by a user should be shown in the chatbot`, async ({
 	await page.getByTestId("textbox").click();
 	await page.keyboard.press("Enter");
 
-	const user_message = await page
-		.getByTestId("user")
-		.first()
-		.locator("video");
+	const user_message = await page.getByTestId("user").first().locator("video");
 	const bot_message = await page
 		.getByTestId("bot")
 		.first()
@@ -166,9 +163,7 @@ test(`markdown code blocks input by a user should be rendered correctly with the
 	await expect(bot_message).toBeTruthy();
 });
 
-test(`LaTeX input by a user should be rendered correctly`, async ({
-	page
-}) => {
+test(`LaTeX input by a user should be rendered correctly`, async ({ page }) => {
 	const textbox = await page.getByTestId("textbox");
 	await textbox.fill("This is LaTeX $$x^2$$");
 	await page.keyboard.press("Enter");
@@ -202,9 +197,7 @@ test(`when a new message is sent the chatbot should scroll to the latest message
 	await expect(bot_message_text).toBeTruthy();
 });
 
-test(`chatbot like and dislike functionality`, async ({
-	page
-}) => {
+test(`chatbot like and dislike functionality`, async ({ page }) => {
 	await page.getByTestId("textbox").click();
 	await page.getByTestId("textbox").fill("hello");
 	await page.keyboard.press("Enter");
@@ -232,9 +225,7 @@ test(`Users can upload multiple images and they will be shown as thumbnails`, as
 	await expect(page.locator(".thumbnail-image")).toHaveCount(2);
 });
 
-test(`pasting large text should create a file upload`, async ({
-	page
-}) => {
+test(`pasting large text should create a file upload`, async ({ page }) => {
 	const textbox = await page.getByTestId("textbox");
 	const largeText = "x".repeat(2000);
 
@@ -257,4 +248,3 @@ test(`pasting large text should create a file upload`, async ({
 	const textboxValue = await textbox.inputValue();
 	await expect(textboxValue).toBe("");
 });
-

@@ -1,10 +1,6 @@
 import { test, expect, go_to_testcase } from "@self/tootils";
 
-const cases = [
-	"messages",
-	"multimodal_messages",
-	"multimodal_non_stream"
-];
+const cases = ["messages", "multimodal_messages", "multimodal_non_stream"];
 
 for (const test_case of cases) {
 	test(`test case ${test_case} chatinterface works with streaming functions and all buttons behave as expected`, async ({
