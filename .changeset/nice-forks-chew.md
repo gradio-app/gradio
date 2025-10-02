@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Add `truncate_headers` param to improve header text control 
+fix:Add `truncate_headers` parameter to `Dataframe` to improve header text control 
