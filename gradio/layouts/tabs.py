@@ -80,6 +80,7 @@ class Tab(BlockContext, metaclass=ComponentMeta):
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = None,
+        render_children: bool = False,
     ):
         """
         Parameters:
@@ -91,6 +92,7 @@ class Tab(BlockContext, metaclass=ComponentMeta):
             scale: relative size compared to adjacent elements. 1 or greater indicates the Tab will expand in size.
             visible: If False, Tab will be hidden.
             interactive: If False, Tab will not be clickable.
+            render_children: If True, the children of this Tab will be rendered on the page (but hidden) when the Tab is visible but inactive. This can be useful if you want to ensure that any components (e.g. videos or audio) within the Tab are pre-loaded before the user clicks on the Tab.
         """
         BlockContext.__init__(
             self,
@@ -105,6 +107,7 @@ class Tab(BlockContext, metaclass=ComponentMeta):
         self.visible = visible
         self.scale = scale
         self.interactive = interactive
+        self.render_children = render_children
 
     def get_expected_parent(self) -> type[Tabs]:
         return Tabs
