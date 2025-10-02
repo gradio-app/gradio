@@ -1,5 +1,16 @@
 # @gradio/core
 
+## 0.29.1
+
+### Fixes
+
+- [#11992](https://github.com/gradio-app/gradio/pull/11992) [`1ae2a57`](https://github.com/gradio-app/gradio/commit/1ae2a57a253c56cd8f3d3e5d795688fec80cab2c) - fix iframe sizing on spaces for apps runing in SPA mode.  Thanks @pngwn!
+- [#11993](https://github.com/gradio-app/gradio/pull/11993) [`0dc0be8`](https://github.com/gradio-app/gradio/commit/0dc0be8ff1526d43ba7b01ccc7d8173f92c5eed2) - Trigger Change Event if component is in inactive tab.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/client@1.19.1
+
 ## 0.29.0
 
 ### Dependency updates

@@ -15,6 +15,7 @@ from tqdm import tqdm
 
 import gradio as gr
 from gradio import helpers, utils
+from gradio.media import get_audio, get_image
 from gradio.route_utils import API_PREFIX
 
 
@@ -283,14 +284,14 @@ class TestProcessExamples:
             audio_identity,
             "audio",
             "audio",
-            examples=[["test/test_files/audio_sample.wav"]],
+            examples=[[get_audio("audio_sample.wav")]],
             cache_examples=True,
         )
         with connect(io):
             prediction = io.examples_handler.load_from_cache(0)
         file = prediction[0].path
         assert client_utils.encode_url_or_file_to_base64(file).startswith(
-            "data:audio/wav;base64,UklGRgA/"
+            "data:audio/wav;base64,UklGRgA/AABXQVZFZm10I"
         )
 
     def test_caching_with_update(self, patched_cache_folder, connect):
@@ -361,8 +362,7 @@ class TestProcessExamples:
     def test_caching_with_generators_and_streamed_output(
         self, patched_cache_folder, connect
     ):
-        file_dir = Path(Path(__file__).parent, "test_files")
-        audio = str(file_dir / "audio_sample.wav")
+        audio = get_audio("audio_sample.wav")
 
         def test_generator(x):
             for y in range(int(x)):
@@ -639,7 +639,7 @@ class TestProcessExamples:
 
             gr.Examples(
                 examples=[
-                    ["test/test_files/cheetah1.jpg", "cheetah"],
+                    [get_image("cheetah1.jpg"), "cheetah"],
                     ["test/test_files/bus.png", "bus"],
                 ],
                 inputs=[i1, t],
@@ -671,7 +671,7 @@ def test_multiple_file_flagging(tmp_path, connect):
                 gr.Image(type="filepath", label="frame 2"),
             ],
             outputs=[gr.Files()],
-            examples=[["test/test_files/cheetah1.jpg", "test/test_files/bus.png"]],
+            examples=[[get_image("cheetah1.jpg"), "test/test_files/bus.png"]],
             cache_examples=True,
         )
         with connect(io):
