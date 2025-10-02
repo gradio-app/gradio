@@ -356,6 +356,7 @@ class Chatbot(Component):
         self._setup_examples()
         self._value_description = "a list of chat message dictionaries in openai format, e.g. {'role': 'user', 'content': 'Hello'}"
 
+
     def _setup_examples(self):
         if self.examples is not None:
             for i, example in enumerate(self.examples):
@@ -382,16 +383,16 @@ class Chatbot(Component):
     @staticmethod
     def _check_format(messages: Any):
         all_valid = all(
-            isinstance(message, dict)
-            and "role" in message
-            and "content" in message
-            or isinstance(message, ChatMessage | Message)
-            for message in messages
-        )
+                isinstance(message, dict)
+                and "role" in message
+                and "content" in message
+                or isinstance(message, ChatMessage | Message)
+                for message in messages
+            )
         if not all_valid:
             raise Error(
-                "Data incompatible with messages format. Each message should be a dictionary with 'role' and 'content' keys or a ChatMessage object."
-            )
+                    "Data incompatible with messages format. Each message should be a dictionary with 'role' and 'content' keys or a ChatMessage object."
+                )
 
     def _preprocess_content(
         self,

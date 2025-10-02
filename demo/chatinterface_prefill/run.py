@@ -20,7 +20,7 @@ def random_response(message, history):
 
 with gr.Blocks() as demo:
     radio = gr.Radio(["Greeting", "Complaint", "Blank"])
-    chat = gr.ChatInterface(random_response, type="messages")
+    chat = gr.ChatInterface(random_response)
     radio.change(prefill_chatbot, radio, chat.chatbot_value)
 
 if __name__ == "__main__":
