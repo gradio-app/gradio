@@ -1,5 +1,6 @@
 import gradio as gr
-import os
+# get_image() returns the file path to sample images included with Gradio
+from gradio.media import get_image
 
 def flip(i):
     return i.rotate(180)
@@ -16,8 +17,8 @@ with gr.Blocks() as demo:
 
     gr.Examples(
         [
-            os.path.join(os.path.dirname(__file__), "images/cheetah1.jpg"),
-            os.path.join(os.path.dirname(__file__), "images/lion.jpg"),
+            get_image("cheetah1.jpg"),
+            get_image("lion.jpg"),
         ],
         img_i,
         img_o,
