@@ -8,8 +8,8 @@ Closes: #(issue)
 
 We encourage the use of AI tooling in creating PRs, but the any non-trivial use of AI needs be disclosed. E.g. if you used Claude to write a first draft, you should mention that. Trivial tab-completion doesn't need to be disclosed. You should self-review all PRs, especially if they were generated with AI.
 
- I used AI to... [fill here]
- I did not use AI
+- [ ] I used AI to... [fill here]
+- [ ] I did not use AI
 
 ## 🎯 PRs Should Target Issues
 
