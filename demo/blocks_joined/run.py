@@ -1,8 +1,9 @@
 from time import sleep
 import gradio as gr
-import os
+from gradio.media import get_image
 
-cheetah = os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg")
+# get_image() returns file paths to sample media included with Gradio
+cheetah = get_image("cheetah1.jpg")
 
 def img(text):
     sleep(3)

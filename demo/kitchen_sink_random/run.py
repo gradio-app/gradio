@@ -2,17 +2,16 @@ import gradio as gr
 from datetime import datetime
 import random
 import string
-import os
 import pandas as pd
 
+# get_audio(), get_video(), get_image(), get_model3d(), get_file() return file paths to sample media included with Gradio
+from gradio.media import get_audio, get_video, get_image, get_model3d, get_file
+
 from constants import (  # type: ignore
-    file_dir,
-    img_dir,
     highlighted_text,
     highlighted_text_output_2,
     highlighted_text_output_1,
     random_plot,
-    random_model3d,
 )
 
 demo = gr.Interface(
@@ -42,16 +41,12 @@ demo = gr.Interface(
             value=lambda: random.choice(["a", "b", "c"]),
         ),
         gr.Image(
-            value=lambda: random.choice(
-                [os.path.join(img_dir, img) for img in os.listdir(img_dir)]
-            )
+            value=lambda: get_image()
         ),
-        gr.Video(value=lambda: os.path.join(file_dir, "world.mp4")),
-        gr.Audio(value=lambda: os.path.join(file_dir, "cantina.wav")),
+        gr.Video(value=lambda: get_video("world.mp4")),
+        gr.Audio(value=lambda: get_audio("cantina.wav")),
         gr.File(
-            value=lambda: random.choice(
-                [os.path.join(file_dir, img) for img in os.listdir(file_dir)]
-            )
+            value=lambda: get_file("titanic.csv")
         ),
         gr.Dataframe(
             value=lambda: pd.DataFrame(
@@ -79,12 +74,12 @@ demo = gr.Interface(
             )
         ),
         gr.Gallery(
-            value=lambda: [os.path.join(img_dir, img) for img in os.listdir(img_dir)]
+            value=lambda: [get_image() for _ in range(3)]
         ),
         gr.Chatbot(
             value=lambda: random.choice([[("hello", "hi!")], [("bye", "goodbye!")]])
         ),
-        gr.Model3D(value=random_model3d),
+        gr.Model3D(value=lambda: get_model3d()),
         gr.Plot(value=random_plot),
         gr.Markdown(value=lambda: f"### {random.choice(['Hello', 'Hi', 'Goodbye!'])}"),
     ],

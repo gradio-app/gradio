@@ -122,6 +122,9 @@ def random_bokeh_plot():
     )
     return p
 
+# get_file(), get_image(), get_model3d(), get_video() return file paths to sample media included with Gradio
+from gradio.media import get_file, get_image, get_model3d, get_video
+
 def random_matplotlib_plot():
     import numpy as np
     import pandas as pd
@@ -164,7 +167,7 @@ def bot(history, response_type):
         content =  gr.Plot(random_matplotlib_plot())
     elif response_type == "gallery":
         content = gr.Gallery(
-            [os.path.join("files", "avatar.png"), os.path.join("files", "avatar.png")]
+            [get_image("avatar.png"), get_image("avatar.png")]
         )
     elif response_type == "dataframe":
         content = gr.Dataframe(
@@ -176,27 +179,27 @@ def bot(history, response_type):
             label="Dataframe",
         )
     elif response_type == "image":
-       content = gr.Image(os.path.join("files", "avatar.png"))
+       content = gr.Image(get_image("avatar.png"))
     elif response_type == "video":
-       content = gr.Video(os.path.join("files", "world.mp4"))
+       content = gr.Video(get_video("world.mp4"))
     elif response_type == "audio":
         content = gr.Audio(os.path.join("files", "audio.wav"))
     elif response_type == "audio_file":
         content = {"path": os.path.join("files", "audio.wav"), "alt_text": "description"}
     elif response_type == "image_file":
-        content = {"path": os.path.join("files", "avatar.png"), "alt_text": "description"}
+        content = {"path": get_image("avatar.png"), "alt_text": "description"}
     elif response_type == "video_file":
-        content = {"path": os.path.join("files", "world.mp4"), "alt_text": "description"}
+        content = {"path": get_video("world.mp4"), "alt_text": "description"}
     elif response_type == "txt_file":
-        content = {"path": os.path.join("files", "sample.txt"), "alt_text": "description"}
+        content = {"path": get_file("sample.txt"), "alt_text": "description"}
     elif response_type == "model3d_file":
-        content = {"path": os.path.join("files", "Duck.glb"), "alt_text": "description"}
+        content = {"path": get_model3d("Duck.glb"), "alt_text": "description"}
     elif response_type == "html":
         content = gr.HTML(
             html_src(random.choice(["harmful", "neutral", "beneficial"]))
         )
     elif response_type == "model3d":
-        content = gr.Model3D(os.path.join("files", "Duck.glb"))
+        content = gr.Model3D(get_model3d("Duck.glb"))
     else:
         content = txt
     msg["content"] = content # type: ignore
@@ -213,8 +216,8 @@ with gr.Blocks(fill_height=True) as demo:
         scale=1,
         show_copy_button=True,
         avatar_images=(
-            None,  # os.path.join("files", "avatar.png"),
-            os.path.join("files", "avatar.png"),
+            None,
+            get_image("avatar.png"),
         ),
     )
     response_type = gr.Radio(
