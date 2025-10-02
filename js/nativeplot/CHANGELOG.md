@@ -1,5 +1,11 @@
 # @gradio/nativeplot
 
+## 0.8.0
+
+### Features
+
+- [#12003](https://github.com/gradio-app/gradio/pull/12003) [`abc4dbe`](https://github.com/gradio-app/gradio/commit/abc4dbe95d45f82cd8eaa0e6d53d26183eb283d6) - Add export button to native plot components.  Thanks @abidlabs!
+
 ## 0.7.6
 
 ### Dependency updates

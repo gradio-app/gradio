@@ -1,5 +1,11 @@
 # @gradio/checkbox
 
+## 0.4.31
+
+### Fixes
+
+- [#12000](https://github.com/gradio-app/gradio/pull/12000) [`c5a5f51`](https://github.com/gradio-app/gradio/commit/c5a5f51c6eb177ad18ff50e2408cf81e6ea6c35d) - fix: render checkbox info text below label for consistency.  Thanks @Davda-James!
+
 ## 0.4.30
 
 ### Dependency updates
