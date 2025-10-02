@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 1.19.1
+
+### Fixes
+
+- [#11955](https://github.com/gradio-app/gradio/pull/11955) [`64046cc`](https://github.com/gradio-app/gradio/commit/64046ccd76a41f06ef9eed0e3aa1ec66348f55bd) - Fix Multi-page demo in Dev Mode.  Thanks @ftoh!
+
 ## 1.19.0
 
 ### Features

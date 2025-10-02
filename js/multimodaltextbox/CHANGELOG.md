@@ -2,6 +2,12 @@
 
 ## 0.10.20
 
+### Dependency updates
+
+- @gradio/client@1.19.1
+
+## 0.10.20
+
 ### Fixes
 
 - [#11937](https://github.com/gradio-app/gradio/pull/11937) [`1b97ed7`](https://github.com/gradio-app/gradio/commit/1b97ed760c6adc6f7eef613904b90a0bfd0e9970) - Fix bug where multimodaltextbox would focus on any app update.  Thanks @freddyaboulton!
