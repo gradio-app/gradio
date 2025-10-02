@@ -31,14 +31,14 @@ class TestEnum(Enum):
 
 def test_encode_url_or_file_to_base64():
     output_base64 = utils.encode_url_or_file_to_base64(
-        Path(__file__).parent / "../../../gradio/test_data/test_image.png"
+        Path(__file__).parents[3] / "gradio" / "test_data" / "test_image.png"
     )
     assert output_base64 == deepcopy(media_data.BASE64_IMAGE)
 
 
 def test_encode_file_to_base64():
     output_base64 = utils.encode_file_to_base64(
-        Path(__file__).parent / "../../../gradio/test_data/test_image.png"
+        Path(__file__).parents[3] / "gradio" / "test_data" / "test_image.png"
     )
     assert output_base64 == deepcopy(media_data.BASE64_IMAGE)
 
