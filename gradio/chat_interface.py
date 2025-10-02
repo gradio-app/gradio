@@ -914,9 +914,7 @@ class ChatInterface(Blocks):
         if self.is_async:
             response = await self.fn(*inputs)
         else:
-            response = await run_sync(
-                self.fn, *inputs, limiter=self.limiter
-            )
+            response = await run_sync(self.fn, *inputs, limiter=self.limiter)
         if self.additional_outputs:
             response, *additional_outputs = response
         else:
@@ -940,9 +938,7 @@ class ChatInterface(Blocks):
         if self.is_async:
             generator = self.fn(*inputs)
         else:
-            generator = await run_sync(
-                self.fn, *inputs, limiter=self.limiter
-            )
+            generator = await run_sync(self.fn, *inputs, limiter=self.limiter)
             generator = utils.SyncToAsyncIterator(generator, self.limiter)
 
         history = self._append_message_to_history(message, history, "user")
@@ -1030,7 +1026,7 @@ class ChatInterface(Blocks):
     ):
         result = []
         if self.multimodal:
-            message = cast(ExampleMessage, message)        
+            message = cast(ExampleMessage, message)
             for file in message.get("files", []):
                 if isinstance(file, dict):
                     file = file.get("path")
@@ -1053,9 +1049,7 @@ class ChatInterface(Blocks):
         if self.is_async:
             response = await self.fn(*inputs)
         else:
-            response = await run_sync(
-                self.fn, *inputs, limiter=self.limiter
-            )
+            response = await run_sync(self.fn, *inputs, limiter=self.limiter)
         return self._process_example(message, response)  # type: ignore
 
     async def _examples_stream_fn(
@@ -1068,9 +1062,7 @@ class ChatInterface(Blocks):
         if self.is_async:
             generator = self.fn(*inputs)
         else:
-            generator = await run_sync(
-                self.fn, *inputs, limiter=self.limiter
-            )
+            generator = await run_sync(self.fn, *inputs, limiter=self.limiter)
             generator = utils.SyncToAsyncIterator(generator, self.limiter)
         async for response in generator:
             yield self._process_example(message, response)

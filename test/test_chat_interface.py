@@ -93,8 +93,14 @@ class TestInit:
             with connect(chatbot):
                 prediction_hello = chatbot.examples_handler.load_from_cache(0)
                 prediction_hi = chatbot.examples_handler.load_from_cache(1)
-            assert prediction_hello[0].root == [Message(role="user", content="hello"), Message(role="assistant", content="hello hello")]
-            assert prediction_hi[0].root == [Message(role="user", content="hi"), Message(role="assistant", content="hi hi")]
+            assert prediction_hello[0].root == [
+                Message(role="user", content="hello"),
+                Message(role="assistant", content="hello hello"),
+            ]
+            assert prediction_hi[0].root == [
+                Message(role="user", content="hi"),
+                Message(role="assistant", content="hi hi"),
+            ]
 
     @pytest.mark.asyncio
     async def test_example_caching_lazy(self):
@@ -108,9 +114,15 @@ class TestInit:
                 cache_mode="lazy",
             )
             prediction_hello = chatbot.examples_handler.load_from_cache(0)
-            assert prediction_hello[0].root == [Message(role="user", content="hello"), Message(role="assistant", content="hello hello")]
+            assert prediction_hello[0].root == [
+                Message(role="user", content="hello"),
+                Message(role="assistant", content="hello hello"),
+            ]
             prediction_hi = chatbot.examples_handler.load_from_cache(1)
-            assert prediction_hi[0].root == [Message(role="user", content="hi"), Message(role="assistant", content="hi hi")]
+            assert prediction_hi[0].root == [
+                Message(role="user", content="hi"),
+                Message(role="assistant", content="hi hi"),
+            ]
 
     def test_example_caching_async(self, connect):
         with patch(
@@ -123,8 +135,14 @@ class TestInit:
             with connect(chatbot):
                 prediction_hello = chatbot.examples_handler.load_from_cache(0)
                 prediction_hi = chatbot.examples_handler.load_from_cache(1)
-            assert prediction_hello[0].root == [Message(role="user", content="abubakar"), Message(role="assistant", content="hi, abubakar")]
-            assert prediction_hi[0].root == [Message(role="user", content="tom"), Message(role="assistant", content="hi, tom")]
+            assert prediction_hello[0].root == [
+                Message(role="user", content="abubakar"),
+                Message(role="assistant", content="hi, abubakar"),
+            ]
+            assert prediction_hi[0].root == [
+                Message(role="user", content="tom"),
+                Message(role="assistant", content="hi, tom"),
+            ]
 
     def test_example_caching_with_streaming(self, connect):
         with patch(
@@ -136,8 +154,14 @@ class TestInit:
             with connect(chatbot):
                 prediction_hello = chatbot.examples_handler.load_from_cache(0)
                 prediction_hi = chatbot.examples_handler.load_from_cache(1)
-            assert prediction_hello[0].root == [Message(role="user", content="hello"), Message(role="assistant", content="hello")]
-            assert prediction_hi[0].root == [Message(role="user", content="hi"), Message(role="assistant", content="hi")]
+            assert prediction_hello[0].root == [
+                Message(role="user", content="hello"),
+                Message(role="assistant", content="hello"),
+            ]
+            assert prediction_hi[0].root == [
+                Message(role="user", content="hi"),
+                Message(role="assistant", content="hi"),
+            ]
 
     def test_example_caching_with_streaming_async(self, connect):
         with patch(
@@ -149,8 +173,14 @@ class TestInit:
             with connect(chatbot):
                 prediction_hello = chatbot.examples_handler.load_from_cache(0)
                 prediction_hi = chatbot.examples_handler.load_from_cache(1)
-            assert prediction_hello[0].root == [Message(role="user", content="hello"), Message(role="assistant", content="hello")]
-            assert prediction_hi[0].root == [Message(role="user", content="hi"), Message(role="assistant", content="hi")]
+            assert prediction_hello[0].root == [
+                Message(role="user", content="hello"),
+                Message(role="assistant", content="hello"),
+            ]
+            assert prediction_hi[0].root == [
+                Message(role="user", content="hi"),
+                Message(role="assistant", content="hi"),
+            ]
 
     def test_default_accordion_params(self):
         chatbot = gr.ChatInterface(
@@ -192,8 +222,14 @@ class TestInit:
             with connect(chatbot):
                 prediction_hello = chatbot.examples_handler.load_from_cache(0)
                 prediction_hi = chatbot.examples_handler.load_from_cache(1)
-            assert prediction_hello[0].root == [Message(role="user", content="hello"), Message(role="assistant", content="robot hello")]
-            assert prediction_hi[0].root == [Message(role="user", content="hi"), Message(role="assistant", content="ro")]
+            assert prediction_hello[0].root == [
+                Message(role="user", content="hello"),
+                Message(role="assistant", content="robot hello"),
+            ]
+            assert prediction_hi[0].root == [
+                Message(role="user", content="hi"),
+                Message(role="assistant", content="ro"),
+            ]
 
     def test_example_caching_with_additional_inputs_already_rendered(
         self, monkeypatch, connect
@@ -214,9 +250,14 @@ class TestInit:
             with connect(demo):
                 prediction_hello = chatbot.examples_handler.load_from_cache(0)
                 prediction_hi = chatbot.examples_handler.load_from_cache(1)
-            assert prediction_hello[0].root == [Message(role="user", content="hello"), Message(role="assistant", content="robot hello")]
-            assert prediction_hi[0].root == [Message(role="user", content="hi"), Message(role="assistant", content="ro")]
-
+            assert prediction_hello[0].root == [
+                Message(role="user", content="hello"),
+                Message(role="assistant", content="robot hello"),
+            ]
+            assert prediction_hi[0].root == [
+                Message(role="user", content="hi"),
+                Message(role="assistant", content="ro"),
+            ]
 
     def test_custom_chatbot_with_events(self):
         with gr.Blocks() as demo:
