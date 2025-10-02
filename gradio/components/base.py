@@ -162,6 +162,7 @@ class Component(ComponentBase, Block):
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
     ):
+        self._api_info_cache = None
         self.server_fns = [
             getattr(self, value)
             for value in dir(self.__class__)
@@ -334,10 +335,13 @@ class Component(ComponentBase, Block):
         The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
         Keys of the dictionary are: raw_input, raw_output, serialized_input, serialized_output
         """
+        if self._api_info_cache is not None:
+            return self._api_info_cache
         if self.data_model is not None:
             schema = self.data_model.model_json_schema()
             desc = schema.pop("description", None)
             schema["additional_description"] = desc
+            self._api_info_cache = schema
             return schema
         raise NotImplementedError(
             f"The api_info method has not been implemented for {self.get_block_name()}"
