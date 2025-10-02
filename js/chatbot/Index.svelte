@@ -40,7 +40,6 @@
 	export let show_copy_all_button = false;
 	export let sanitize_html = true;
 	export let layout: "bubble" | "panel" = "bubble";
-	export let type: "tuples" | "messages" = "tuples";
 	export let render_markdown = true;
 	export let line_breaks = true;
 	export let autoscroll = true;
@@ -71,10 +70,7 @@
 
 	let _value: NormalisedMessage[] | null = [];
 
-	$: _value =
-		type === "tuples"
-			? normalise_tuples(value as TupleFormat, root)
-			: normalise_messages(value as Message[], root);
+	$: _value = normalise_messages(value as Message[], root);
 
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 	export let like_user_message = false;
@@ -162,13 +158,8 @@
 			on:copy={(e) => gradio.dispatch("copy", e.detail)}
 			on:edit={(e) => {
 				if (value === null || value.length === 0) return;
-				if (type === "messages") {
-					//@ts-ignore
-					value[e.detail.index].content = e.detail.value;
-				} else {
-					//@ts-ignore
-					value[e.detail.index[0]][e.detail.index[1]] = e.detail.value;
-				}
+				//@ts-ignore
+				value[e.detail.index].content = e.detail.value;
 				value = value;
 				gradio.dispatch("edit", e.detail);
 			}}
@@ -184,7 +175,6 @@
 			upload={(...args) => gradio.client.upload(...args)}
 			_fetch={(...args) => gradio.client.fetch(...args)}
 			load_component={gradio.load_component}
-			msg_format={type}
 			{allow_file_downloads}
 			{allow_tags}
 			{watermark}

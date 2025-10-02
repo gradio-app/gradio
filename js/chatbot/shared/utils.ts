@@ -271,7 +271,6 @@ export function is_last_bot_message(
 
 export function group_messages(
 	messages: NormalisedMessage[],
-	msg_format: "messages" | "tuples",
 	display_consecutive_in_same_bubble = true
 ): NormalisedMessage[][] {
 	const groupedMessages: NormalisedMessage[][] = [];
