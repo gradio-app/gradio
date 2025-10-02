@@ -136,7 +136,7 @@ class Image(StreamingInput, Component):
             watermark if isinstance(watermark, WatermarkOptions) else WatermarkOptions()
         )
 
-        if not isinstance(watermark, WatermarkOptions) and watermark is not None:
+        if isinstance(watermark, (str, Path, PIL.Image.Image, np.ndarray)):
             warnings.warn(
                 "The `watermark` parameter is updated to use WatermarkOptions. Please use the `watermark` parameter with a `gr.WatermarkOptions` instance instead."
             )
