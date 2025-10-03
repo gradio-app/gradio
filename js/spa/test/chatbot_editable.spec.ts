@@ -27,9 +27,6 @@ test("test editing chatbot messages", async ({ page }) => {
 	await expect(page.getByLabel("Concatenated Chat 1")).toHaveValue(
 		"GRADIO|I'm a bot|I'm a user|I'm a bot"
 	);
-	await expect(page.getByLabel("Concatenated Chat 2")).toHaveValue(
-		"I'm a user|I'm a bot|SUCCESS|I'm a bot"
-	);
 });
 
 test("test editing consecutive user messages", async ({ page }) => {
@@ -39,9 +36,6 @@ test("test editing consecutive user messages", async ({ page }) => {
 	);
 	await page.getByRole("button", { name: "Add User Message" }).click();
 	await expect(page.getByLabel("Concatenated Chat 1")).toHaveValue(
-		"I'm a user|I'm a user"
-	);
-	await expect(page.getByLabel("Concatenated Chat 2")).toHaveValue(
 		"I'm a user|I'm a user"
 	);
 	await page.getByLabel("Edit").nth(0).click();
@@ -55,7 +49,4 @@ test("test editing consecutive user messages", async ({ page }) => {
 	await page.locator("textarea").nth(0).fill("THIRD EDIT");
 	await page.locator("textarea").nth(1).fill("FOURTH EDIT");
 	await page.getByLabel("Submit").click();
-	await expect(page.getByLabel("Concatenated Chat 2")).toHaveValue(
-		"THIRD EDIT|FOURTH EDIT"
-	);
 });

@@ -453,10 +453,27 @@ class TestClientPredictions:
 
     def test_does_not_upload_dir(self, stateful_chatbot):
         with connect(stateful_chatbot) as client:
-            initial_history = [["", None]]
+            initial_history = [{"role": "user", "content": ""}]
             message = "Hello"
             ret = client.predict(message, initial_history, api_name="/submit")
-            assert ret == ("", [["", None], ["Hello", "I love you"]])
+            assert ret == (
+                "",
+                [
+                    {"role": "user", "content": "", "metadata": None, "options": None},
+                    {
+                        "role": "user",
+                        "content": "Hello",
+                        "metadata": None,
+                        "options": None,
+                    },
+                    {
+                        "role": "assistant",
+                        "content": "I love you",
+                        "metadata": None,
+                        "options": None,
+                    },
+                ],
+            )
 
     def test_return_layout_component(self, hello_world_with_group):
         with connect(hello_world_with_group) as demo:

@@ -35,7 +35,6 @@ with gr.Blocks() as demo:
                 chat,
                 examples=["Python", "JavaScript"],
                 additional_outputs=[code],
-                type="messages"
             )
         with gr.Column():
             gr.Markdown("<center><h1>Code Artifacts</h1></center>")
