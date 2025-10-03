@@ -107,6 +107,7 @@ class Dataframe(Component):
         show_search: Literal["none", "search", "filter"] = "none",
         pinned_columns: int | None = None,
         static_columns: list[int] | None = None,
+        truncate_headers: bool = True,
     ):
         """
         Parameters:
@@ -205,6 +206,7 @@ class Dataframe(Component):
             raise ValueError(
                 f"pinned_columns ({pinned_columns}) cannot exceed the total number of columns ({self.col_count[0]}) when using fixed columns"
             )
+        self.truncate_headers = truncate_headers
         super().__init__(
             label=label,
             every=every,
