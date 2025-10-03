@@ -1705,8 +1705,8 @@ export class ResizeTool implements Tool {
 			this.resize_ui_container.visible = false;
 		}
 
-		if (this.image_editor_context.background_image) {
-			const bg = this.image_editor_context.background_image;
+		const bg = this.image_editor_context.background_image;
+		if (bg && typeof bg.cursor !== 'undefined') {
 			bg.cursor = this.current_cursor;
 		}
 

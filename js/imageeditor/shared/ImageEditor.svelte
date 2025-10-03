@@ -228,14 +228,21 @@
 		const is_visible = pixi_target.offsetParent !== null;
 
 		if (is_visible) {
-			const current_dimensions = pixi_target.getBoundingClientRect();
+			// If the editor's background_image is missing but a background is set, restore it
+			if (!editor.context.background_image && background) {
+				try {
+					await add_image_from_url(background);
+				} catch (error) {
+					console.error("Failed to restore background image after visibility change:", error);
+				}
+			}
 
+			const current_dimensions = pixi_target.getBoundingClientRect();
 			if (
 				current_dimensions.width !== last_dimensions.width ||
 				current_dimensions.height !== last_dimensions.height
 			) {
 				zoom.set_zoom("fit");
-
 				last_dimensions = {
 					width: current_dimensions.width,
 					height: current_dimensions.height
