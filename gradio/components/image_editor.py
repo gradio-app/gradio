@@ -154,8 +154,7 @@ class WatermarkOptions:
 
     Parameters:
         watermark: str, Path, PIL.Image.Image, np.ndarray to use as the watermark
-        position: (x,y) coordinates as tuple[int, int] or string position ('top-left', 'top-right',
-                 'bottom-left', 'bottom-right'). Default is 'bottom-right'.
+        position: (x,y) coordinates as tuple[int, int] or string position ('top-left', 'top-right', 'bottom-left', 'bottom-right'). Default is 'bottom-right'.
     """
 
     watermark: Union[str, Path, PIL.Image.Image, np.ndarray, None] = None
@@ -171,11 +170,12 @@ class WatermarkOptions:
 
     def __post_init__(self):
         # Validate watermark input
-        if self.watermark is not None:
-            if not isinstance(self.watermark, (str, Path, PIL.Image.Image, np.ndarray)):
-                raise ValueError(
-                    "Watermark must be a string path, Path, PIL Image, numpy array, or None"
-                )
+        if self.watermark is not None and not isinstance(
+            self.watermark, (str, Path, PIL.Image.Image, np.ndarray)
+        ):
+            raise ValueError(
+                "Watermark must be a string path, Path, PIL Image, numpy array, or None"
+            )
 
         if isinstance(self.position, str):
             valid_positions = {
