@@ -241,7 +241,7 @@
 								if (event.key === "Enter") {
 									remove_selected_choice(s);
 								}
-															}}
+							}}
 							role="button"
 							tabindex="0"
 							title={i18n("common.remove") + " " + s}
