@@ -182,8 +182,8 @@
 <BlockLabel {show_label} Icon={ImageIcon} label={label || "Image"} />
 
 <div data-testid="image" class="image-container" bind:this={image_container}>
-	<IconButtonWrapper>
-		{#if value?.url && !active_streaming}
+	{#if value?.url && !active_streaming}
+		<IconButtonWrapper>
 			{#if show_fullscreen_button}
 				<FullscreenButton {fullscreen} on:fullscreen />
 			{/if}
@@ -192,8 +192,8 @@
 				label="Remove Image"
 				on:click={handle_remove_image_click}
 			/>
-		{/if}
-	</IconButtonWrapper>
+		</IconButtonWrapper>
+	{/if}
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<div
 		class="upload-container"
