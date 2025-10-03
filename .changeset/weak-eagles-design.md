@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Tab focus change issue
+fix:Accessibility issue with tabing through multiseclect dropdown component
