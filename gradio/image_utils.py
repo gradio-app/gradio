@@ -4,7 +4,7 @@ import base64
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Literal
+from typing import Literal, cast
 from urllib.parse import quote
 
 import httpx
@@ -111,7 +111,7 @@ def save_image(
 
 def add_watermark(
     base_img: np.ndarray | PIL.Image.Image | str | Path,
-    watermarkOption: WatermarkOptions,
+    watermark_option: WatermarkOptions,
 ) -> PIL.Image.Image:
     """Overlays a watermark image on a base image.
     Parameters:
@@ -122,24 +122,26 @@ def add_watermark(
     """
     base_img = open_image(base_img)
     base_img_width, base_img_height = base_img.size
-    watermarkOption.watermark = open_image(watermarkOption.watermark)
-    watermark_width, watermark_height = watermarkOption.watermark.size
+    watermark_option.watermark = open_image(
+        cast(np.ndarray | PIL.Image.Image | str | Path, watermark_option.watermark)
+    )
+    watermark_width, watermark_height = watermark_option.watermark.size
 
-    if isinstance(watermarkOption.position, str):
+    if isinstance(watermark_option.position, str):
         padding = 10
-        if watermarkOption.position == "top-left":
+        if watermark_option.position == "top-left":
             x, y = padding, padding
-        elif watermarkOption.position == "top-right":
+        elif watermark_option.position == "top-right":
             x, y = base_img_width - watermark_width - padding, padding
-        elif watermarkOption.position == "bottom-left":
+        elif watermark_option.position == "bottom-left":
             x, y = padding, base_img_height - watermark_height - padding
-        elif watermarkOption.position == "bottom-right":
+        elif watermark_option.position == "bottom-right":
             x, y = (
                 base_img_width - watermark_width - padding,
                 base_img_height - watermark_height - padding,
             )
     else:
-        x, y = watermarkOption.position
+        x, y = watermark_option.position
 
     if (
         x < 0
@@ -153,9 +155,9 @@ def add_watermark(
     watermark_position = (x, y)
     orig_img_mode = base_img.mode
     base_img = base_img.convert("RGBA")
-    watermarkOption.watermark = watermarkOption.watermark.convert("RGBA")
+    watermark_option.watermark = watermark_option.watermark.convert("RGBA")
     base_img.paste(
-        watermarkOption.watermark, watermark_position, mask=watermarkOption.watermark
+        watermark_option.watermark, watermark_position, mask=watermark_option.watermark
     )
     base_img = base_img.convert(orig_img_mode)
 
@@ -345,7 +347,7 @@ def postprocess_image(
             orig_name=Path(value).name,
             url=f"data:image/svg+xml,{quote(svg_content)}",
         )
-    if watermark.watermark is not None:
+    if watermark and watermark.watermark is not None:
         value = add_watermark(value, watermark)
     saved = save_image(value, cache_dir=cache_dir, format=format)
     orig_name = Path(saved).name if Path(saved).exists() else None
