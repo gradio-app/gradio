@@ -48,7 +48,7 @@
 	export let text_align: "left" | "right" | undefined = undefined;
 	export let autoscroll = true;
 	export let root: string;
-	export let file_types: string[] | null = null;
+	export let file_types_string: string | null = null;
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
@@ -84,6 +84,9 @@
 		| "upload"
 		| "microphone"
 	)[];
+	$: file_types = file_types_string
+		? file_types_string.split(",").map((s) => s.trim())
+		: null;
 	$: dispatch("drag", dragging);
 	let mic_audio: FileData | null = null;
 
