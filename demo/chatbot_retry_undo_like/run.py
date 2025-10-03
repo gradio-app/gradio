@@ -46,7 +46,6 @@ with gr.Blocks() as demo:
     gr.Markdown("# Chat with Hugging Face Zephyr 7b 🤗")
     chatbot = gr.Chatbot(
         label="Agent",
-        type="messages",
         avatar_images=(
             None,
             "https://em-content.zobj.net/source/twitter/376/hugging-face_1f917.png",
