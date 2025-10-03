@@ -20,5 +20,10 @@ export interface WebcamOptions {
 
 export interface WatermarkOptions {
 	text: string | Blob | null;
-	position: [number, number] | "top-left" | "top-right" | "bottom-left" | "bottom-right";
+	position:
+		| [number, number]
+		| "top-left"
+		| "top-right"
+		| "bottom-left"
+		| "bottom-right";
 }
