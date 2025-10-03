@@ -228,7 +228,6 @@
 		const is_visible = pixi_target.offsetParent !== null;
 
 		if (is_visible) {
-			// If the editor's background_image is missing but a background is set, restore it
 			if (!editor.context.background_image && background) {
 				try {
 					await add_image_from_url(background);
