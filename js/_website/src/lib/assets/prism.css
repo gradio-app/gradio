@@ -10,6 +10,7 @@ code[class*="language-"],
 pre[class*="language-"] {
 	word-wrap: normal;
 	color: black;
+	/* Match code font-size to body text for consistency (issue #11953) */
 	font-size: 1em;
 	line-height: 1.5;
 	font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
@@ -27,7 +28,6 @@ pre[class*="language-"] {
 	-moz-tab-size: 4;
 	-o-tab-size: 4;
 	tab-size: 4;
-	font-size: 0.9em;
 }
 
 pre[class*="language-"]::-moz-selection,
