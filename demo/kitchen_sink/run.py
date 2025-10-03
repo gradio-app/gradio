@@ -149,7 +149,7 @@ demo = gr.Interface(
             get_video("world.mp4"),
             get_audio("cantina.wav"),
             get_audio("cantina.wav"),
-            os.path.join(os.path.dirname(__file__), "files/titanic.csv"),
+            get_file("titanic.csv"),
             [[1, 2, 3, 4], [4, 5, 6, 7], [8, 9, 1, 2], [3, 4, 5, 6]],
             "2025-06-10 12:00:00",
         ]

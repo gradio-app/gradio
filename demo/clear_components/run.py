@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 # get_audio(), get_video() return file paths to sample media included with Gradio
-from gradio.media import get_audio, get_video
+from gradio.media import get_audio, get_video, MEDIA_ROOT
 
 def random_plot():
     start_year = 2020
@@ -163,4 +163,4 @@ with gr.Blocks() as demo:
     get_value.click(evaluate_values, components, result)
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(allowed_paths=[str(MEDIA_ROOT)])
