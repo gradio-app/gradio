@@ -147,6 +147,53 @@ class WebcamOptions:
 
 
 @document()
+@dataclasses.dataclass
+class WatermarkOptions:
+    """
+    A dataclass for specifying options for the watermark tool in the ImageEditor component.
+
+    Parameters:
+        watermark: str, Path, PIL.Image.Image, np.ndarray to use as the watermark
+        position: (x,y) coordinates as tuple[int, int] or string position ('top-left', 'top-right', 'bottom-left', 'bottom-right'). Default is 'bottom-right'.
+    """
+
+    watermark: Union[str, Path, PIL.Image.Image, np.ndarray, None] = None
+    position: Union[
+        tuple[int, int],
+        Literal[
+            "top-left",
+            "top-right",
+            "bottom-left",
+            "bottom-right",
+        ],
+    ] = "bottom-right"
+
+    def __post_init__(self):
+        # Validate watermark input
+        if self.watermark is not None and not isinstance(
+            self.watermark, (str, Path, PIL.Image.Image, np.ndarray)
+        ):
+            raise ValueError(
+                "Watermark must be a string path, Path, PIL Image, numpy array, or None"
+            )
+
+        if isinstance(self.position, str):
+            valid_positions = {
+                "top-left",
+                "top-right",
+                "bottom-left",
+                "bottom-right",
+            }
+            if self.position not in valid_positions:
+                raise ValueError(f"String position must be one of: {valid_positions}")
+        elif isinstance(self.position, tuple):
+            if len(self.position) != 2:
+                raise ValueError("Position tuple must have exactly 2 values (x,y)")
+            if not all(isinstance(x, int) for x in self.position):
+                raise ValueError("Position coordinates must be integers")
+
+
+@document()
 class ImageEditor(Component):
     """
     Creates an image component that, as an input, can be used to upload and edit images using simple editing tools such
@@ -204,7 +251,6 @@ class ImageEditor(Component):
         mirror_webcam: bool | None = None,
         show_share_button: bool | None = None,
         _selectable: bool = False,
-        crop_size: tuple[int | float, int | float] | str | None = None,
         transforms: Iterable[Literal["crop", "resize"]] | None = ("crop", "resize"),
         eraser: Eraser | None | Literal[False] = None,
         brush: Brush | None | Literal[False] = None,
@@ -218,8 +264,8 @@ class ImageEditor(Component):
         """
         Parameters:
             value: Optional initial image(s) to populate the image editor. Should be a dictionary with keys: `background`, `layers`, and `composite`. The values corresponding to `background` and `composite` should be images or None, while `layers` should be a list of images. Images can be of type PIL.Image, np.array, or str filepath/URL. Or, the value can be a callable, in which case the function will be called whenever the app loads to set the initial value of the component.
-            height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed image files or numpy arrays, but will affect the displayed images. Beware of conflicting values with the canvas_size paramter. If the canvas_size is larger than the height, the editing canvas will not fit in the component.
-            width: The width of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed image files or numpy arrays, but will affect the displayed images. Beware of conflicting values with the canvas_size paramter. If the canvas_size is larger than the height, the editing canvas will not fit in the component.
+            height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed image files or numpy arrays, but will affect the displayed images. Beware of conflicting values with the canvas_size parameter. If the canvas_size is larger than the height, the editing canvas will not fit in the component.
+            width: The width of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed image files or numpy arrays, but will affect the displayed images. Beware of conflicting values with the canvas_size parameter. If the canvas_size is larger than the height, the editing canvas will not fit in the component.
             image_mode: "RGB" if color, or "L" if black and white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning.
             sources: List of sources that can be used to set the background image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard.
             type: The format the images are converted to before being passed into the prediction function. "numpy" converts the images to numpy arrays with shape (height, width, 3) and values from 0 to 255, "pil" converts the images to PIL image objects, "filepath" passes images as str filepaths to temporary copies of the images.
@@ -240,7 +286,6 @@ class ImageEditor(Component):
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             placeholder: Custom text for the upload area. Overrides default upload messages when provided. Accepts new lines and `#` to designate a heading.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
-            crop_size: Deprecated. Used to set the `canvas_size` parameter.
             transforms: The transforms tools to make available to users. "crop" allows the user to crop the image.
             eraser: The options for the eraser tool in the image editor. Should be an instance of the `gr.Eraser` class, or None to use the default settings. Can also be False to hide the eraser tool. [See `gr.Eraser` docs](#eraser).
             brush: The options for the brush tool in the image editor. Should be an instance of the `gr.Brush` class, or None to use the default settings. Can also be False to hide the brush tool, which will also hide the eraser tool. [See `gr.Brush` docs](#brush).
@@ -292,23 +337,6 @@ class ImageEditor(Component):
             if show_share_button is None
             else show_share_button
         )
-
-        if crop_size is not None and canvas_size is None:
-            warnings.warn(
-                "`crop_size` parameter is deprecated. Please use `canvas_size` instead."
-            )
-            if isinstance(crop_size, str):
-                # convert ratio to tuple
-                proportion = [
-                    int(crop_size.split(":")[0]),
-                    int(crop_size.split(":")[1]),
-                ]
-                ratio = proportion[0] / proportion[1]
-                canvas_size = (
-                    (int(800 * ratio), 800) if ratio > 1 else (800, int(800 / ratio))
-                )
-            else:
-                canvas_size = (int(crop_size[0]), int(crop_size[1]))
 
         self.transforms = transforms
         self.eraser = Eraser() if eraser is None else eraser
