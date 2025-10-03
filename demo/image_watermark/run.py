@@ -11,7 +11,7 @@ watermark_b = os.path.join(os.path.dirname(__file__), "files/logo_nontrans.png")
 watermark_c = get_image("logo.png")
 
 def generate_image(original_image, watermark_image):
-    return gr.Image(original_image, watermark=gr.WatermarkOptions(watermark=watermark_image, position=(10,10)))
+    return gr.Image(original_image, watermark=gr.WatermarkOptions(watermark=watermark_image, position='bottom-left'))
 
 
 demo = gr.Interface(generate_image, [gr.Image(image_mode=None), gr.Image(image_mode=None)], gr.Image(),

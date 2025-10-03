@@ -113,10 +113,10 @@ def add_watermark(
     base_img: np.ndarray | PIL.Image.Image | str | Path,
     watermarkOption: WatermarkOptions,
 ) -> PIL.Image.Image:
-    """Overlays a watermark image on a base image. If position coordinates are outside image bounds, watermark is placed 10 pixels from bottom-right corner.
+    """Overlays a watermark image on a base image.
     Parameters:
         base_img: Base image onto which the watermark is applied. Can be an array, PIL Image, or filepath.
-        watermark: Watermark image. Can be an array, PIL Image, or filepath.
+        watermarkOption: WatermarkOptions instance containing watermark image and position settings.
     Returns:
         watermarked_img: A PIL Image of the base image overlaid with the watermark image.
     """
@@ -125,9 +125,19 @@ def add_watermark(
     watermarkOption.watermark = open_image(watermarkOption.watermark)
     watermark_width, watermark_height = watermarkOption.watermark.size
 
-    x = watermarkOption.position[0]
-    y = watermarkOption.position[1]
-    
+    if isinstance(watermarkOption.position, str):
+        padding = 10
+        if watermarkOption.position == "top-left":
+            x, y = padding, padding
+        elif watermarkOption.position == "top-right":
+            x, y = base_img_width - watermark_width - padding, padding
+        elif watermarkOption.position == "bottom-left":
+            x, y = padding, base_img_height - watermark_height - padding
+        elif watermarkOption.position == "bottom-right":
+            x, y = base_img_width - watermark_width - padding, base_img_height - watermark_height - padding
+    else:
+        x, y = watermarkOption.position
+
     if (x < 0 or x + watermark_width > base_img_width or 
         y < 0 or y + watermark_height > base_img_height):
         x = base_img_width - watermark_width - 10
