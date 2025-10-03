@@ -1,5 +1,11 @@
 # @gradio/dropdown
 
+## 0.10.5
+
+### Fixes
+
+- [#12016](https://github.com/gradio-app/gradio/pull/12016) [`2c7a800`](https://github.com/gradio-app/gradio/commit/2c7a8007f45f28cbe158976aa93b3f09462a5a1a) - Accessibility issue with tabing through multiseclect dropdown component.  Thanks @PRIME-SV!
+
 ## 0.10.4
 
 ### Dependency updates

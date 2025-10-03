@@ -4,7 +4,7 @@ import base64
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Literal
+from typing import Literal, cast
 from urllib.parse import quote
 
 import httpx
@@ -14,6 +14,7 @@ from gradio_client.utils import get_mimetype, is_http_url_like
 from PIL import ImageOps
 
 from gradio import processing_utils
+from gradio.components.image_editor import WatermarkOptions
 from gradio.data_classes import ImageData
 from gradio.exceptions import Error
 
@@ -110,26 +111,54 @@ def save_image(
 
 def add_watermark(
     base_img: np.ndarray | PIL.Image.Image | str | Path,
-    watermark: np.ndarray | PIL.Image.Image | str | Path,
+    watermark_option: WatermarkOptions,
 ) -> PIL.Image.Image:
-    """Overlays a watermark image on a base image. Watermark is placed bottom right, 10 pixels from the right and bottom of the base image.
+    """Overlays a watermark image on a base image.
     Parameters:
         base_img: Base image onto which the watermark is applied. Can be an array, PIL Image, or filepath.
-        watermark: Watermark image. Can be an array, PIL Image, or filepath.
+        watermarkOption: WatermarkOptions instance containing watermark image and position settings.
     Returns:
         watermarked_img: A PIL Image of the base image overlaid with the watermark image.
     """
     base_img = open_image(base_img)
     base_img_width, base_img_height = base_img.size
-    watermark = open_image(watermark)
-    watermark_width, watermark_height = watermark.size
-    x = base_img.width - watermark_width - 10
-    y = base_img.height - watermark_height - 10
+    watermark_option.watermark = open_image(
+        cast(np.ndarray | PIL.Image.Image | str | Path, watermark_option.watermark)
+    )
+    watermark_width, watermark_height = watermark_option.watermark.size
+
+    if isinstance(watermark_option.position, str):
+        padding = 10
+        if watermark_option.position == "top-left":
+            x, y = padding, padding
+        elif watermark_option.position == "top-right":
+            x, y = base_img_width - watermark_width - padding, padding
+        elif watermark_option.position == "bottom-left":
+            x, y = padding, base_img_height - watermark_height - padding
+        elif watermark_option.position == "bottom-right":
+            x, y = (
+                base_img_width - watermark_width - padding,
+                base_img_height - watermark_height - padding,
+            )
+    else:
+        x, y = watermark_option.position
+
+    if (
+        x < 0
+        or x + watermark_width > base_img_width
+        or y < 0
+        or y + watermark_height > base_img_height
+    ):
+        x = base_img_width - watermark_width - 10
+        y = base_img_height - watermark_height - 10
+
     watermark_position = (x, y)
     orig_img_mode = base_img.mode
     base_img = base_img.convert("RGBA")
-    watermark = watermark.convert("RGBA")
-    base_img.paste(watermark, watermark_position, mask=watermark)
+    watermark_option.watermark = watermark_option.watermark.convert("RGBA")
+    base_img.paste(
+        watermark_option.watermark, watermark_position, mask=watermark_option.watermark
+    )
     base_img = base_img.convert(orig_img_mode)
 
     return base_img
@@ -295,12 +324,12 @@ def postprocess_image(
     value: np.ndarray | PIL.Image.Image | str | Path | None,
     cache_dir: str,
     format: str,
-    watermark: np.ndarray | PIL.Image.Image | str | Path | None = None,
+    watermark: WatermarkOptions | None = None,
 ) -> ImageData | None:
     """
     Parameters:
         value: Expects a `numpy.array`, `PIL.Image`, or `str` or `pathlib.Path` filepath to an image which is displayed.
-        watermark: An optional `numpy.array`, `PIL.Image`, or `str` or `pathlib.Path` filepath to an image which is pasted on the lower right of `value`.
+        watermark: An optional `WatermarkOptions` instance to apply a watermark to the image.
     Returns:
         Returns the image as a `FileData` object.
     """
@@ -318,7 +347,7 @@ def postprocess_image(
             orig_name=Path(value).name,
             url=f"data:image/svg+xml,{quote(svg_content)}",
         )
-    if watermark is not None:
+    if watermark and watermark.watermark is not None:
         value = add_watermark(value, watermark)
     saved = save_image(value, cache_dir=cache_dir, format=format)
     orig_name = Path(saved).name if Path(saved).exists() else None
