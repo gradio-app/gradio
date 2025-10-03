@@ -147,6 +147,53 @@ class WebcamOptions:
 
 
 @document()
+@dataclasses.dataclass
+class WatermarkOptions:
+    """
+    A dataclass for specifying options for the watermark tool in the ImageEditor component.
+
+    Parameters:
+        watermark: str, Path, PIL.Image.Image, np.ndarray to use as the watermark
+        position: (x,y) coordinates as tuple[int, int] or string position ('top-left', 'top-right', 'bottom-left', 'bottom-right'). Default is 'bottom-right'.
+    """
+
+    watermark: Union[str, Path, PIL.Image.Image, np.ndarray, None] = None
+    position: Union[
+        tuple[int, int],
+        Literal[
+            "top-left",
+            "top-right",
+            "bottom-left",
+            "bottom-right",
+        ],
+    ] = "bottom-right"
+
+    def __post_init__(self):
+        # Validate watermark input
+        if self.watermark is not None and not isinstance(
+            self.watermark, (str, Path, PIL.Image.Image, np.ndarray)
+        ):
+            raise ValueError(
+                "Watermark must be a string path, Path, PIL Image, numpy array, or None"
+            )
+
+        if isinstance(self.position, str):
+            valid_positions = {
+                "top-left",
+                "top-right",
+                "bottom-left",
+                "bottom-right",
+            }
+            if self.position not in valid_positions:
+                raise ValueError(f"String position must be one of: {valid_positions}")
+        elif isinstance(self.position, tuple):
+            if len(self.position) != 2:
+                raise ValueError("Position tuple must have exactly 2 values (x,y)")
+            if not all(isinstance(x, int) for x in self.position):
+                raise ValueError("Position coordinates must be integers")
+
+
+@document()
 class ImageEditor(Component):
     """
     Creates an image component that, as an input, can be used to upload and edit images using simple editing tools such

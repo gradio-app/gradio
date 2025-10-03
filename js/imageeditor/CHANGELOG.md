@@ -1,5 +1,11 @@
 # @gradio/imageeditor
 
+## 0.18.0
+
+### Features
+
+- [#12004](https://github.com/gradio-app/gradio/pull/12004) [`09b7111`](https://github.com/gradio-app/gradio/commit/09b71110717d65dd0f885c90f1e455a944d65a14) - Add ability to position watermark relative to watermarked content.  Thanks @PRIME-SV!
+
 ## 0.17.1
 
 ### Dependency updates

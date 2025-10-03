@@ -59,7 +59,7 @@ class TestImage:
             "streamable": False,
             "type": "pil",
             "placeholder": None,
-            "watermark": None,
+            "watermark": {"position": "bottom-right", "watermark": None},
         }
         assert image_input.preprocess(None) is None
         image_input = gr.Image()
