@@ -333,8 +333,8 @@ def from_model(
                 "examples": examples,
             }
             kwargs = dict(chat_interface_kwargs, **kwargs)
-            chatbot = Chatbot(scale=1, type="messages", allow_tags=True)
-            return ChatInterface(fn, chatbot=chatbot, type="messages", **kwargs)  # type: ignore
+            chatbot = Chatbot(scale=1, allow_tags=True)
+            return ChatInterface(fn, chatbot=chatbot, **kwargs)  # type: ignore
         inputs = components.Textbox(label="Text")
         outputs = inputs
         examples = ["Once upon a time"]
@@ -916,7 +916,7 @@ def load_chat(
     if "chatbot" not in kwargs:
         from gradio.components import Chatbot
 
-        kwargs["chatbot"] = Chatbot(type="messages", scale=1, allow_tags=True)
+        kwargs["chatbot"] = Chatbot(scale=1, allow_tags=True)
 
     textbox_arg = kwargs.pop("textbox", None)
     if textbox_arg is not None:
@@ -930,7 +930,6 @@ def load_chat(
 
     return ChatInterface(
         open_api_stream if streaming else open_api,
-        type="messages",
         multimodal=bool(file_types),
         textbox=textbox,
         **kwargs,
