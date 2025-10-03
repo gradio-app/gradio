@@ -7,7 +7,7 @@ w1 = os.path.join(os.path.dirname(__file__), "files/w1.jpg")
 w2 = os.path.join(os.path.dirname(__file__), "files/w2.png")
 
 def generate_video(original_video, watermark):
-    return gr.Video(original_video, watermark=watermark)
+    return gr.Video(original_video, watermark=gr.WatermarkOptions(watermark=watermark, position=(50, 100)))
 
 
 demo = gr.Interface(generate_video, [gr.Video(), gr.File()], gr.Video(),
