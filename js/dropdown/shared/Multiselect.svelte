@@ -237,11 +237,11 @@
 						<div
 							class="token-remove"
 							on:click|preventDefault={() => remove_selected_choice(s)}
-							on:keydown|preventDefault={(event) => {
+							on:keydown={(event) => {
 								if (event.key === "Enter") {
 									remove_selected_choice(s);
 								}
-							}}
+															}}
 							role="button"
 							tabindex="0"
 							title={i18n("common.remove") + " " + s}
