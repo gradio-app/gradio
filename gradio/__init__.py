@@ -111,6 +111,7 @@ from gradio.layouts import (
     Tabs,
     Walkthrough,
 )
+from gradio.media import get_audio, get_file, get_image, get_model3d, get_video
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.renderable import render
 from gradio.route_utils import Header
@@ -265,4 +266,9 @@ __all__ = [
     "DeepLinkButton",
     "mcp",
     "validate",
+    "get_audio",
+    "get_image",
+    "get_video",
+    "get_model3d",
+    "get_file",
 ]
