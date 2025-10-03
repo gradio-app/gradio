@@ -1,6 +1,6 @@
 import gradio as gr
 # get_model3d() returns the file path to sample 3D models included with Gradio
-from gradio.media import get_model3d
+from gradio.media import get_model3d, MEDIA_ROOT
 
 
 def load_mesh(mesh_file_name):
@@ -30,4 +30,4 @@ demo = gr.Interface(
 )
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(allowed_paths=[str(MEDIA_ROOT)])
