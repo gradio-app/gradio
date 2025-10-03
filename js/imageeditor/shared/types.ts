@@ -18,7 +18,7 @@ export interface WebcamOptions {
 	constraints: Record<string, any>;
 }
 
-export interface Watermark {
+export interface WatermarkOptions {
 	text: string | Blob | null;
-	position: [number, number];
+	position: [number, number] | "top-left" | "top-right" | "bottom-left" | "bottom-right";
 }
