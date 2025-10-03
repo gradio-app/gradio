@@ -56,7 +56,7 @@ class Markdown(Component):
         min_height: int | str | None = None,
         show_copy_button: bool = False,
         container: bool = False,
-        padding: bool = True,
+        padding: bool = False,
     ):
         """
         Parameters:

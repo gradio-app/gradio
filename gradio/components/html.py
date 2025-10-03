@@ -43,7 +43,7 @@ class HTML(Component):
         min_height: int | None = None,
         max_height: int | None = None,
         container: bool = False,
-        padding: bool = True,
+        padding: bool = False,
         autoscroll: bool = False,
     ):
         """
