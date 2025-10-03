@@ -1,5 +1,11 @@
 # @gradio/core
 
+## 0.29.2
+
+### Fixes
+
+- [#11994](https://github.com/gradio-app/gradio/pull/11994) [`d6f591e`](https://github.com/gradio-app/gradio/commit/d6f591e823dad8e7387de4124fa1e3ab16203a73) - Add render_children parameter to Tab component.  Thanks @freddyaboulton!
+
 ## 0.29.1
 
 ### Fixes
