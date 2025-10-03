@@ -11,10 +11,10 @@ import httpx
 import numpy as np
 import PIL.Image
 from gradio_client.utils import get_mimetype, is_http_url_like
-from gradio.components.image_editor import WatermarkOptions
 from PIL import ImageOps
 
 from gradio import processing_utils
+from gradio.components.image_editor import WatermarkOptions
 from gradio.data_classes import ImageData
 from gradio.exceptions import Error
 
@@ -134,12 +134,19 @@ def add_watermark(
         elif watermarkOption.position == "bottom-left":
             x, y = padding, base_img_height - watermark_height - padding
         elif watermarkOption.position == "bottom-right":
-            x, y = base_img_width - watermark_width - padding, base_img_height - watermark_height - padding
+            x, y = (
+                base_img_width - watermark_width - padding,
+                base_img_height - watermark_height - padding,
+            )
     else:
         x, y = watermarkOption.position
 
-    if (x < 0 or x + watermark_width > base_img_width or 
-        y < 0 or y + watermark_height > base_img_height):
+    if (
+        x < 0
+        or x + watermark_width > base_img_width
+        or y < 0
+        or y + watermark_height > base_img_height
+    ):
         x = base_img_width - watermark_width - 10
         y = base_img_height - watermark_height - 10
 
@@ -147,7 +154,9 @@ def add_watermark(
     orig_img_mode = base_img.mode
     base_img = base_img.convert("RGBA")
     watermarkOption.watermark = watermarkOption.watermark.convert("RGBA")
-    base_img.paste(watermarkOption.watermark, watermark_position, mask=watermarkOption.watermark)
+    base_img.paste(
+        watermarkOption.watermark, watermark_position, mask=watermarkOption.watermark
+    )
     base_img = base_img.convert(orig_img_mode)
 
     return base_img

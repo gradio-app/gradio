@@ -145,15 +145,16 @@ class WebcamOptions:
     mirror: bool = True
     constraints: dict[str, Any] | None = None
 
+
 @document()
 @dataclasses.dataclass
 class WatermarkOptions:
     """
     A dataclass for specifying options for the watermark tool in the ImageEditor component.
-    
+
     Parameters:
         watermark: str, Path, PIL.Image.Image, np.ndarray to use as the watermark
-        position: (x,y) coordinates as tuple[int, int] or string position ('top-left', 'top-right', 
+        position: (x,y) coordinates as tuple[int, int] or string position ('top-left', 'top-right',
                  'bottom-left', 'bottom-right'). Default is 'bottom-right'.
     """
 

@@ -70,7 +70,13 @@ from gradio.components import (
     component,
 )
 from gradio.components.audio import WaveformOptions
-from gradio.components.image_editor import Brush, Eraser, LayerOptions, WebcamOptions, WatermarkOptions
+from gradio.components.image_editor import (
+    Brush,
+    Eraser,
+    LayerOptions,
+    WatermarkOptions,
+    WebcamOptions,
+)
 from gradio.data_classes import FileData
 from gradio.events import (
     CopyData,
