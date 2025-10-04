@@ -70,7 +70,7 @@ class TestChatbot:
             "bubble_full_width": None,
             "line_breaks": True,
             "layout": None,
-            "allow_tags": False,
+            "allow_tags": True,
             "show_copy_all_button": False,
             "examples": None,
             "watermark": None,
