@@ -158,7 +158,6 @@
 		}
 	}
 
-	
 	$: if (subtitles && waveform) {
 		if (subtitles_toggle) {
 			add_subtitles_to_waveform(waveform, subtitles);
@@ -166,10 +165,10 @@
 			hide_subtitles();
 		}
 	}
-	
+
 	function load_stream(value: FileData | null): void {
 		if (!value || !value.is_stream || !value.url) return;
-		
+
 		if (Hls.isSupported() && !stream_active) {
 			// Set config to start playback after 1 second of data received
 			const hls = new Hls({
@@ -192,14 +191,14 @@
 							);
 							hls.startLoad();
 							break;
-							case Hls.ErrorTypes.MEDIA_ERROR:
-								console.error("Fatal media error encountered, trying to recover");
-								hls.recoverMediaError();
-								break;
-								default:
-									console.error("Fatal error, cannot recover");
-									hls.destroy();
-									break;
+						case Hls.ErrorTypes.MEDIA_ERROR:
+							console.error("Fatal media error encountered, trying to recover");
+							hls.recoverMediaError();
+							break;
+						default:
+							console.error("Fatal error, cannot recover");
+							hls.destroy();
+							break;
 					}
 				}
 			});
@@ -218,7 +217,7 @@
 	$: if (audio_player && value?.is_stream) {
 		load_stream(value);
 	}
-	
+
 	onMount(() => {
 		window.addEventListener("keydown", (e) => {
 			if (!waveform || show_volume_slider) return;
