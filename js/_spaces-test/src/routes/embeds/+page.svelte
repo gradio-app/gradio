@@ -49,6 +49,7 @@
 		display: flex;
 		width: 100%;
 		min-width: 100%;
+
 		flex: 1;
 		border: none;
 		margin: 0;
@@ -57,5 +58,7 @@
 	iframe {
 		width: 100%;
 		border: none;
+		flex-grow: 1;
+		min-height: 100%;
 	}
 </style>
