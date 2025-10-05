@@ -70,7 +70,13 @@ from gradio.components import (
     component,
 )
 from gradio.components.audio import WaveformOptions
-from gradio.components.image_editor import Brush, Eraser, LayerOptions, WebcamOptions
+from gradio.components.image_editor import (
+    Brush,
+    Eraser,
+    LayerOptions,
+    WatermarkOptions,
+    WebcamOptions,
+)
 from gradio.data_classes import FileData
 from gradio.events import (
     CopyData,
@@ -111,6 +117,7 @@ from gradio.layouts import (
     Tabs,
     Walkthrough,
 )
+from gradio.media import get_audio, get_file, get_image, get_model3d, get_video
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.renderable import render
 from gradio.route_utils import Header
@@ -246,6 +253,7 @@ __all__ = [
     "Warning",
     "WaveformOptions",
     "WebcamOptions",
+    "WatermarkOptions",
     "__version__",
     "close_all",
     "deploy",
@@ -264,4 +272,9 @@ __all__ = [
     "DeepLinkButton",
     "mcp",
     "validate",
+    "get_audio",
+    "get_image",
+    "get_video",
+    "get_model3d",
+    "get_file",
 ]

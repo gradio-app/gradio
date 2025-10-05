@@ -1,5 +1,39 @@
 # gradio
 
+## 5.49.0
+
+### Features
+
+- [#12004](https://github.com/gradio-app/gradio/pull/12004) [`09b7111`](https://github.com/gradio-app/gradio/commit/09b71110717d65dd0f885c90f1e455a944d65a14) - Add ability to position watermark relative to watermarked content.  Thanks @PRIME-SV!
+
+### Fixes
+
+- [#12019](https://github.com/gradio-app/gradio/pull/12019) [`81fc464`](https://github.com/gradio-app/gradio/commit/81fc4647cdc9ffd724b69ec7286f1d686571062a) - Fix MultimodalTextbox autofocus issue when file_types is specified.  Thanks @freddyaboulton!
+- [#12008](https://github.com/gradio-app/gradio/pull/12008) [`fd585f1`](https://github.com/gradio-app/gradio/commit/fd585f1f78a22734c322103a707b9382af93d212) - Fix: Add per-component caching for `api_info` to improve custom component performance.  Thanks @vijay-x-Raj!
+- [#11994](https://github.com/gradio-app/gradio/pull/11994) [`d6f591e`](https://github.com/gradio-app/gradio/commit/d6f591e823dad8e7387de4124fa1e3ab16203a73) - Add render_children parameter to Tab component.  Thanks @freddyaboulton!
+- [#12018](https://github.com/gradio-app/gradio/pull/12018) [`103e3ab`](https://github.com/gradio-app/gradio/commit/103e3ab8e95fbbbd3a099c297d91c6c5cb1c6615) - Fix Deployed Demos.  Thanks @freddyaboulton!
+- [#12016](https://github.com/gradio-app/gradio/pull/12016) [`2c7a800`](https://github.com/gradio-app/gradio/commit/2c7a8007f45f28cbe158976aa93b3f09462a5a1a) - Accessibility issue with tabing through multiseclect dropdown component.  Thanks @PRIME-SV!
+
+## 5.48.0
+
+### Features
+
+- [#12003](https://github.com/gradio-app/gradio/pull/12003) [`abc4dbe`](https://github.com/gradio-app/gradio/commit/abc4dbe95d45f82cd8eaa0e6d53d26183eb283d6) - Add export button to native plot components.  Thanks @abidlabs!
+- [#11905](https://github.com/gradio-app/gradio/pull/11905) [`327015b`](https://github.com/gradio-app/gradio/commit/327015b7dca90f17f174baee9f3c966a48fe4775) - Add CLI command gradio openaichat to launch default ChatInterface (addresses #11334).  Thanks @jyotiradityadav!
+- [#11905](https://github.com/gradio-app/gradio/pull/11905) [`327015b`](https://github.com/gradio-app/gradio/commit/327015b7dca90f17f174baee9f3c966a48fe4775) - Add CLI subcommand gradio openaichat to launch default ChatInterface, with --share.  Thanks @jyotiradityadav!
+- [#11989](https://github.com/gradio-app/gradio/pull/11989) [`2069fd2`](https://github.com/gradio-app/gradio/commit/2069fd2a43c294937fbbafddeca13ff3688fd521) - Remove duplicate media files.  Thanks @hannahblair!
+- [#11986](https://github.com/gradio-app/gradio/pull/11986) [`cf9aefd`](https://github.com/gradio-app/gradio/commit/cf9aefd0ae04ecc19bf7e69ec8d2ae4a081ef842) - More vibe editor issues and features.  Thanks @aliabd!
+
+### Fixes
+
+- [#12006](https://github.com/gradio-app/gradio/pull/12006) [`8a1c7d5`](https://github.com/gradio-app/gradio/commit/8a1c7d53f8d40be458ef5fd27a636968380f087c) - Fix example vales.  Thanks @freddyaboulton!
+- [#11992](https://github.com/gradio-app/gradio/pull/11992) [`1ae2a57`](https://github.com/gradio-app/gradio/commit/1ae2a57a253c56cd8f3d3e5d795688fec80cab2c) - fix iframe sizing on spaces for apps runing in SPA mode.  Thanks @pngwn!
+- [#11993](https://github.com/gradio-app/gradio/pull/11993) [`0dc0be8`](https://github.com/gradio-app/gradio/commit/0dc0be8ff1526d43ba7b01ccc7d8173f92c5eed2) - Trigger Change Event if component is in inactive tab.  Thanks @freddyaboulton!
+- [#11987](https://github.com/gradio-app/gradio/pull/11987) [`7ebaf4e`](https://github.com/gradio-app/gradio/commit/7ebaf4e8c8f06981f4c51f73a5dd46d8cde7bf5d) - Fix pandas.  Thanks @freddyaboulton!
+- [#11955](https://github.com/gradio-app/gradio/pull/11955) [`64046cc`](https://github.com/gradio-app/gradio/commit/64046ccd76a41f06ef9eed0e3aa1ec66348f55bd) - Fix Multi-page demo in Dev Mode.  Thanks @ftoh!
+- [#11998](https://github.com/gradio-app/gradio/pull/11998) [`e80f03b`](https://github.com/gradio-app/gradio/commit/e80f03b715d47b26584d7c13308c11f69ac7c2f3) - gr.load_chat supports optional textbox= argument.  Thanks @Davda-James!
+- [#12000](https://github.com/gradio-app/gradio/pull/12000) [`c5a5f51`](https://github.com/gradio-app/gradio/commit/c5a5f51c6eb177ad18ff50e2408cf81e6ea6c35d) - fix: render checkbox info text below label for consistency.  Thanks @Davda-James!
+
 ## 5.47.2
 
 ### Fixes

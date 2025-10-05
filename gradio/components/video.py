@@ -422,12 +422,12 @@ class Video(StreamingOutput, Component):
     def example_payload(self) -> Any:
         return {
             "video": handle_file(
-                "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
+                "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/videos/world.mp4"
             ),
         }
 
     def example_value(self) -> Any:
-        return "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
+        return "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/videos/world.mp4"
 
     @staticmethod
     def get_video_duration_ffprobe(filename: str):
