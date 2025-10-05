@@ -10,8 +10,7 @@ code[class*="language-"],
 pre[class*="language-"] {
 	word-wrap: normal;
 	color: black;
-	/* Match code font-size to body text for consistency (issue #11953) */
-	font-size: 1em;
+	/* Refer to global override for code font-size (see #11953) */
 	line-height: 1.5;
 	font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
 
@@ -65,10 +64,6 @@ pre[class*="language-"] {
 	background: rgb(249, 250, 251);
 }
 
-.prose code[class*="language-"],
-.prose pre[class*="language-"] {
-	font-size: 0.9em;
-}
 
 /* Inline code */
 :not(pre) > code[class*="language-"] {

@@ -212,3 +212,40 @@ th {
 .dark .md .token.url {
 	color: hsl(187, 47%, 55%);
 }
+
+/* --------------------------------------------- */
+/* Markdown Code Font-Size Alignment Fix (#11953) */
+/* Ensures all inline and block code use var(--text-md) */
+/* --------------------------------------------- */
+
+.prose :where(code):not(pre code),
+.prose pre,
+.prose pre code,
+code[class*="language-"],
+pre[class*="language-"] {
+	font-size: var(--text-md) !important;
+	line-height: var(--line-md, 1.5);
+}
+
+/* Inherit size for Prism token spans to avoid shrinkage */
+.prose pre .token,
+code[class*="language-"] .token {
+	font-size: inherit;
+	line-height: inherit;
+}
+
+/* Remove extra backticks sometimes inserted by Tailwind Typography */
+.prose :where(code)::before,
+.prose :where(code)::after {
+	content: none;
+}
+
+/*
+This override ensures:
+Inline and fenced code both use var(--text-md) (14px)
+
+No font shrinking inside .token elements
+
+Works across light/dark themes and in Spaces / Storybook
+
+*/
