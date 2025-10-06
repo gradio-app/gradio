@@ -1,16 +1,15 @@
 import gradio as gr
 import os
 
-a = os.path.join(os.path.dirname(__file__), "files/a.mp4")  # Video
-b = os.path.join(os.path.dirname(__file__), "files/b.mp4")  # Video
-s1 = os.path.join(os.path.dirname(__file__), "files/s1.srt")  # Subtitle
-s2 = os.path.join(os.path.dirname(__file__), "files/s2.vtt")  # Subtitle
+a = os.path.join(os.path.dirname(__file__), "files/a.mp4")
+b = os.path.join(os.path.dirname(__file__), "files/b.mp4")
+s1 = os.path.join(os.path.dirname(__file__), "files/s1.srt")
+s2 = os.path.join(os.path.dirname(__file__), "files/s2.vtt")
 
 def video_demo(video, subtitle=None):
     if subtitle is None:
         return video
-
-    return [video, subtitle.name]
+    return gr.Video(label="Out", value=video, subtitles=subtitle.name)
 
 demo = gr.Interface(
     fn=video_demo,

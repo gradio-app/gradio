@@ -30,11 +30,6 @@ if TYPE_CHECKING:
 from ffmpy import FFmpeg
 
 
-class VideoData(GradioModel):
-    video: FileData
-    subtitles: FileData | None = None
-
-
 @document()
 class Video(StreamingOutput, Component):
     """
@@ -47,7 +42,7 @@ class Video(StreamingOutput, Component):
     Demos: video_identity_2
     """
 
-    data_model = VideoData
+    data_model = FileData
 
     EVENTS = [
         Events.change,
@@ -64,7 +59,7 @@ class Video(StreamingOutput, Component):
     def __init__(
         self,
         value: (
-            str | Path | tuple[str | Path, str | Path | None] | Callable | None
+            str | Path | Callable | None
         ) = None,
         *,
         format: str | None = None,
@@ -99,10 +94,11 @@ class Video(StreamingOutput, Component):
         streaming: bool = False,
         watermark: str | Path | None = None,
         webcam_constraints: dict[str, Any] | None = None,
+        subtitles: str | Path | list[dict[str, Any]] | None = None,
     ):
         """
         Parameters:
-            value: path or URL for the default value that Video component is going to take. Can also be a tuple consisting of (video filepath, subtitle filepath). If a subtitle file is provided, it should be of type .srt or .vtt. Or can be callable, in which case the function will be called whenever the app loads to set the initial value of the component.
+            value: path or URL for the default value that Video component is going to take. Or can be callable, in which case the function will be called whenever the app loads to set the initial value of the component.
             format: the file extension with which to save video, such as 'avi' or 'mp4'. This parameter applies both when this component is used as an input to determine which file format to convert user-provided video to, and when this component is used as an output to determine the format of video returned to the user. If None, no file format conversion is done and the video is kept as is. Use 'mp4' to ensure browser playability.
             sources: list of sources permitted for video. "upload" creates a box where user can drop a video file, "webcam" allows user to record a video from their webcam. If None, defaults to both ["upload, "webcam"].
             height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed video file, but will affect the displayed video.
@@ -131,6 +127,7 @@ class Video(StreamingOutput, Component):
             streaming: when used set as an output, takes video chunks yielded from the backend and combines them into one streaming video output. Each chunk should be a video file with a .ts extension using an h.264 encoding. Mp4 files are also accepted but they will be converted to h.264 encoding.
             watermark: an image file to be included as a watermark on the video. The image is not scaled and is displayed on the bottom right of the video. Valid formats for the image are: jpeg, png.
             webcam_options: A `gr.WebcamOptions` instance that allows developers to specify custom media constraints for the webcam stream. This parameter provides flexibility to control the video stream's properties, such as resolution and front or rear camera on mobile devices. See $demo/webcam_constraints
+            subtitles: A subtitle file (srt, vtt, or json) for the video, or a list of subtitle dictionaries in the format [{"text": str, "timestamp": [start, end]}] where timestamps are in seconds. JSON files should contain an array of subtitle objects.
         """
         valid_sources: list[Literal["upload", "webcam"]] = ["upload", "webcam"]
         if sources is None:
@@ -174,6 +171,7 @@ class Video(StreamingOutput, Component):
             if show_share_button is None
             else show_share_button
         )
+
         self.show_download_button = show_download_button
         self.min_length = min_length
         self.max_length = max_length
@@ -196,20 +194,21 @@ class Video(StreamingOutput, Component):
             preserved_by_key=preserved_by_key,
             value=value,
         )
+        self.subtitles = subtitles
         self._value_description = "a string filepath to a video"
 
-    def preprocess(self, payload: VideoData | None) -> str | None:
+    def preprocess(self, payload: FileData | None) -> str | None:
         """
         Parameters:
-            payload: An instance of VideoData containing the video and subtitle files.
+            payload: An instance of FileData containing the video file.
         Returns:
             Passes the uploaded video as a `str` filepath or URL whose extension can be modified by `format`.
         """
         if payload is None:
             return None
-        if not payload.video.path:
+        if not payload.path:
             raise ValueError("Payload path missing")
-        file_name = Path(payload.video.path)
+        file_name = Path(payload.path)
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format
         flip = self.sources == ["webcam"] and self.webcam_options.mirror
@@ -273,45 +272,23 @@ class Video(StreamingOutput, Component):
             return str(file_name)
 
     def postprocess(
-        self, value: str | Path | tuple[str | Path, str | Path | None] | None
-    ) -> VideoData | None:
+        self, value: str | Path | None
+    ) -> FileData | None:
         """
         Parameters:
             value: Expects a {str} or {pathlib.Path} filepath to a video which is displayed, or a {Tuple[str | pathlib.Path, str | pathlib.Path | None]} where the first element is a filepath to a video and the second element is an optional filepath to a subtitle file.
         Returns:
-            VideoData object containing the video and subtitle files.
+            FileData object containing the video file.
         """
         if self.streaming:
             return value  # type: ignore
         if value is None or value in ([None, None], (None, None)):
             return None
         if isinstance(value, (str, Path)):
-            processed_files = (self._format_video(value), None)
-
-        elif isinstance(value, (tuple, list)):
-            if len(value) != 2:
-                raise ValueError(
-                    f"Expected lists of length 2 or tuples of length 2. Received: {value}"
-                )
-
-            if not (
-                isinstance(value[0], (str, Path)) and isinstance(value[1], (str, Path))
-            ):
-                raise TypeError(
-                    f"If a tuple is provided, both elements must be strings or Path objects. Received: {value}"
-                )
-            video = value[0]
-            subtitle = value[1]
-            processed_files = (
-                self._format_video(video),
-                self._format_subtitle(subtitle),
-            )
-
-        else:
-            raise Exception(f"Cannot process type as video: {type(value)}")
-        if not processed_files[0]:
-            raise ValueError("Video data missing")
-        return VideoData(video=processed_files[0], subtitles=processed_files[1])
+            processed_video = self._format_video(value)
+        if self.subtitles:
+            self.subtitles = self._format_subtitles(self.subtitles)
+        return processed_video
 
     def _format_video(self, video: str | Path | None) -> FileData | None:
         """
@@ -379,7 +356,7 @@ class Video(StreamingOutput, Component):
 
         return FileData(path=video, orig_name=Path(video).name)
 
-    def _format_subtitle(self, subtitle: str | Path | None) -> FileData | None:
+    def _format_subtitles(self, subtitle: str | Path | None) -> FileData | None:
         """
         Convert subtitle format to VTT and process the video to ensure it meets the HTML5 requirements.
         """
@@ -420,11 +397,9 @@ class Video(StreamingOutput, Component):
         return FileData(path=str(subtitle))
 
     def example_payload(self) -> Any:
-        return {
-            "video": handle_file(
+        return handle_file(
                 "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/videos/world.mp4"
-            ),
-        }
+            )
 
     def example_value(self) -> Any:
         return "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/videos/world.mp4"
@@ -489,7 +464,7 @@ class Video(StreamingOutput, Component):
         stream: list[bytes],
         desired_output_format: str | None = None,  # noqa: ARG002
         only_file=False,
-    ) -> VideoData | FileData:
+    ) ->  FileData:
         """Combine video chunks into a single video file.
 
         Do not take desired_output_format into consideration as
@@ -539,8 +514,7 @@ class Video(StreamingOutput, Component):
         if only_file:
             return video
 
-        output = VideoData(video=video)
-        return output
+        return video
 
     async def stream_output(
         self,
