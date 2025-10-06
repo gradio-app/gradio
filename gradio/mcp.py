@@ -331,7 +331,9 @@ class GradioMCPServer:
                         progress_token=progress_token,
                         progress=step,
                         message=message,  # type: ignore
-                        related_request_id=str(self.mcp_server.request_context.request_id),
+                        related_request_id=str(
+                            self.mcp_server.request_context.request_id
+                        ),
                     )
                     step += 1
                 elif update.type == "output" and update.final:
