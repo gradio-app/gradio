@@ -158,8 +158,6 @@
 		}
 	}
 
-	$: url && load_audio(url);
-
 	$: if (subtitles && waveform) {
 		if (subtitles_toggle) {
 			add_subtitles_to_waveform(waveform, subtitles);
@@ -210,6 +208,10 @@
 			if (waveform_settings.autoplay) audio_player.play();
 			stream_active = true;
 		}
+	}
+
+	$: if (audio_player && url) {
+		load_audio(url);
 	}
 
 	$: if (audio_player && value?.is_stream) {
