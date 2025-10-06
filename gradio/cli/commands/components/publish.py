@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import Annotated
 
 import semantic_version
-from packaging.version import Version as PEP440Version
 from huggingface_hub import HfApi
+from packaging.version import Version as PEP440Version
 from rich import print
 from rich.console import Console
 from rich.panel import Panel
