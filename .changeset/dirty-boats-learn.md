@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-DataFrame memory leak on repeated updates (closes #11934)
+fix: DataFrame memory leak on repeated updates (closes #11934)
