@@ -80,7 +80,6 @@ class TestVideo:
 
         # Output functionalities
         y_vid_path = "test/test_files/video_sample.mp4"
-        subtitles_path = "test/test_files/s1.srt"
         video_output = gr.Video()
         output1 = video_output.postprocess(y_vid_path)
         assert output1
