@@ -159,7 +159,6 @@
 			{show_label}
 			{buttons}
 			selectable={_selectable}
-			{interactive}
 			i18n={gradio.i18n}
 		/>
 	</Block>

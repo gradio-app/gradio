@@ -23,7 +23,6 @@
 	export let show_label: boolean;
 	export let buttons: string[] | null = null;
 	export let selectable = false;
-	export let interactive = false;
 	export let i18n: I18nFormatter;
 	export let display_icon_button_wrapper_top_corner = false;
 	export let fullscreen = false;
