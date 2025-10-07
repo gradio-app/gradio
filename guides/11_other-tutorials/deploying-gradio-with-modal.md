@@ -112,17 +112,17 @@ After the image builds Modal will print the URL to your webapp and to your Modal
 ### Sticky Sessions
 Modal Functions are serverless which means that each client request is considered independent. While this facilitates autoscaling, it can also mean that extra care should be taken if your application requires any sort of server-side statefulness.
 
-Gradio relies on a REST API, which is itself stateless. But it does require sticky sessions, meaning that every request from a particular client must be routing to the same container. However, Modal does not make any guarantees in this regard.
+Gradio relies on a REST API, which is itself stateless. But it does require sticky sessions, meaning that every request from a particular client must be routed to the same container. However, Modal does not make any guarantees in this regard.
 
 A simple way to satisfy this constraint is to set `max_containers = 1` in the `@app.function` decorator and setting the `max_inputs` argument of `@modal.concurrent` to a fairly large number - as we did above. This means that Modal won't spin up more than one container to serve requests to your app which effectively satisfies the sticky session requirement.
 
 ### Concurrency and Queues
 
-Both Gradio and Modal have concepts of concurrency and queues, and getting the most of out of your compute resources requires understanding how these interacts.
+Both Gradio and Modal have concepts of concurrency and queues, and getting the most of out of your compute resources requires understanding how these interact.
 
-Modal queues client requests to functions and executes up to its concurrency limit per container. If requests come in and the concurrency limit is already satisfied, Modal will spin up a new container up to the maximum set for the function. In our case, our Gradio app is represented by one Modal function, so all requests share one queue and concurrency limit. Therefore Modal constrains the _total_ number of requests running at one time, regardless of what they are doing.
+Modal queues client requests to functions and simultaneously executes requests up to its concurrency limit per container. If requests come in and the concurrency limit is already satisfied, Modal will spin up a new container up to the maximum set for the function. In our case, our Gradio app is represented by one Modal Function, so all requests share one queue and concurrency limit. Therefore Modal constrains the _total_ number of requests running at one time, regardless of what they are doing.
 
-Gradio on the other hand, allows developers to assign one or more event listeners to a queue each with its own concurrency limit. This can be useful to manage GPU resources for computationally expensive requests.
+Gradio on the other hand, allows developers to assign one or more event listeners to a any number of queues, each with its own concurrency limit. This can be useful to manage GPU resources for computationally expensive requests.
 
 Thinking carefully about how these queues and limits interact can help you optimize your app's performance and resource optimization while avoiding unwanted results like shared or lost state.
 
