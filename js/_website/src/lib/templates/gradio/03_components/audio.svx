@@ -105,7 +105,7 @@ gradio.WaveformOptions(···)
 <ParamTable parameters={waveform_obj.parameters} anchor_links={waveform_obj.name}/>
 
 <!--- Title -->
-### audio_is_correct_length
+### is_audio_correct_length
 
 Validates that the audio length is within the specified min and max length (in seconds).
 You can use this to construct a validator that will check if the user-provided audio is either too short or too long.
