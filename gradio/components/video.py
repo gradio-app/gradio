@@ -18,7 +18,7 @@ from gradio_client.documentation import document
 import gradio as gr
 from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingOutput
-from gradio.components.image_editor import WebcamOptions, WatermarkOptions
+from gradio.components.image_editor import WatermarkOptions, WebcamOptions
 from gradio.data_classes import FileData, GradioModel, MediaStreamChunk
 from gradio.events import Events
 from gradio.i18n import I18nData
@@ -377,17 +377,16 @@ class Video(StreamingOutput, Component):
                 if isinstance(pos, tuple):
                     x, y = pos
                     watermark_cmd = f"overlay={x}:{y}"
+                elif pos == "top-left":
+                    watermark_cmd = f"overlay={margin}:{margin}"
+                elif pos == "top-right":
+                    watermark_cmd = f"overlay=W-w-{margin}:{margin}"
+                elif pos == "bottom-left":
+                    watermark_cmd = f"overlay={margin}:H-h-{margin}"
+                elif pos == "bottom-right":
+                    watermark_cmd = f"overlay=W-w-{margin}:H-h-{margin}"
                 else:
-                    if pos == "top-left":
-                        watermark_cmd = f"overlay={margin}:{margin}"
-                    elif pos == "top-right":
-                        watermark_cmd = f"overlay=W-w-{margin}:{margin}"
-                    elif pos == "bottom-left":
-                        watermark_cmd = f"overlay={margin}:H-h-{margin}"
-                    elif pos == "bottom-right":
-                        watermark_cmd = f"overlay=W-w-{margin}:H-h-{margin}"
-                    else:
-                        watermark_cmd = "overlay=W-w-5:H-h-5"
+                    watermark_cmd = "overlay=W-w-5:H-h-5"
 
                 global_option_list += ["-filter_complex", watermark_cmd]
                 output_file_name = (
