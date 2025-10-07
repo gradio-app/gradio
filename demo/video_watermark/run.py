@@ -6,7 +6,7 @@ b = gr.get_video("b.mp4")
 w1 = gr.get_image("logo.png")
 w2 = gr.get_image("bus.png")
 
-def generate_video(original_video, watermark, position: str = "top-left"):
+def generate_video(original_video, watermark, position):
     return gr.Video(original_video, watermark=gr.WatermarkOptions(watermark=watermark, position=position))
 
 
