@@ -102,8 +102,6 @@ class TestAudio:
             "streaming": False,
             "show_label": True,
             "label": None,
-            "max_length": None,
-            "min_length": None,
             "container": True,
             "editable": True,
             "min_width": 160,
