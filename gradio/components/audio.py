@@ -83,6 +83,7 @@ def is_audio_correct_length(
     return {"__type__": "validate", "is_valid": True}
 
 
+@document()
 class Audio(
     StreamingInput,
     StreamingOutput,

@@ -124,7 +124,7 @@ demo.launch()
 
 <!--- Initialization -->
 #### Initialization
-<ParamTable parameters={validator_obj.parameters} anchor_links={waveform_obj.name}/>
+<ParamTable parameters={validator_obj.parameters} anchor_links={validator_obj.name}/>
 </div>
 
 

@@ -77,6 +77,7 @@ from gradio.components.image_editor import (
     WatermarkOptions,
     WebcamOptions,
 )
+from gradio.components.video import is_video_correct_length
 from gradio.data_classes import FileData
 from gradio.events import (
     CopyData,
@@ -278,4 +279,5 @@ __all__ = [
     "get_model3d",
     "get_file",
     "is_audio_correct_length",
+    "is_video_correct_length",
 ]
