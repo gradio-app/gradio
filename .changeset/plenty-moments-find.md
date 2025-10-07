@@ -1,6 +1,6 @@
 ---
-"@gradio/imageeditor": minor
-"gradio": minor
+"@gradio/imageeditor": patch
+"gradio": patch
 ---
 
-feat:feat: Extended the waternark positioning feature to Video
+fix:feat: Extended the waternark positioning feature to Video
