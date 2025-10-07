@@ -5,12 +5,12 @@ Tags: DEPLOYMENT, MODAL
 
 ### Introduction
 
-Gradio is great way to test and demo your machine learning apps using a simple and intuitive Python API. When combined with Modal's developer-first cloud infrastrcture, you can leverage powerful GPUs to run larger models faster. And you don't need an account with a cloud provider or any config files.
+Gradio is a great way to test and demo your machine learning apps using a simple and intuitive Python API. When combined with Modal's developer-first cloud infrastructure, you can leverage powerful GPUs to run larger models faster. And you don't need an account with a cloud provider or any config files.
 
 In this tutorial, we will walk you through setting up a Modal account, deploying a simple Gradio app on Modal, and discuss some of the nuance around Gradio's sticky session requirement and handling concurrency.
 
 ## Deploying a simple Gradio app on Modal
-Let's deploy a Gradio-style "Hello, world" app that let's a user input their name and then responds with a short greeting. We're not going to use this code as-is in our app, but it's useful to see what the initial Gradio version looks like.
+Let's deploy a Gradio-style "Hello, world" app that lets a user input their name and then responds with a short greeting. We're not going to use this code as-is in our app, but it's useful to see what the initial Gradio version looks like.
 
 ```python
 import gradio as gr
@@ -28,7 +28,7 @@ To deploy this app on Modal you'll need to
 - wrap the Gradio app in a Modal Function,
 - and deploy it using Modal's CLI!
 
-###  Prerequisite: Install and set up Modal
+### Prerequisite: Install and set up Modal
 
 Before you get started, you'll need to create a Modal account if you don't already have one. Then you can set up your environment by authenticating with those account credentials.
 
@@ -103,9 +103,9 @@ To deploy the app, just run the following command:
 modal deploy <path-to-file>
 ```
 
-The first time you run your app, Modal will build and cache the image which takes about 30 seconds. As long as you don't change the image, subsequent deployments will only take a few seconds.
+The first time you run your app, Modal will build and cache the image which, takes about 30 seconds. As long as you don't change the image, subsequent deployments will only take a few seconds.
 
-After the image builds Modal will print the URL to your webapp and to your Modal dashboard. The webapp URL should look something like `https://{workspace}-{environment}--gradio-app-ui.modal.run`. Past it into your web browser a try out your app!
+After the image builds Modal will print the URL to your webapp and to your Modal dashboard. The webapp URL should look something like `https://{workspace}-{environment}--gradio-app-ui.modal.run`. Paste it into your web browser a try out your app!
 
 ## Important Considerations
 
@@ -114,13 +114,13 @@ Modal Functions are serverless which means that each client request is considere
 
 Gradio relies on a REST API, which is itself stateless. But it does require sticky sessions, meaning that every request from a particular client must be routing to the same container. However, Modal does not make any guarantees in this regard.
 
-A simply way to satisfy this constraint is to set `max_containers = 1` in the `@app.function` decorator and setting the `max_inputs` argument of `@modal.concurrent` to a fairly large number - as we did above. This means that Modal won't spin up more than one container to serve requests to your app which effectively satisfies the sticky session requirement.
+A simple way to satisfy this constraint is to set `max_containers = 1` in the `@app.function` decorator and setting the `max_inputs` argument of `@modal.concurrent` to a fairly large number - as we did above. This means that Modal won't spin up more than one container to serve requests to your app which effectively satisfies the sticky session requirement.
 
 ### Concurrency and Queues
 
 Both Gradio and Modal have concepts of concurrency and queues, and getting the most of out of your compute resources requires understanding how these interacts.
 
-Modal queues client requests to functions and execute up to its concurrency limit per container. If requests come in and the concurrency limit is already satisfied, Modal will spin up a new container up to the maximum set for the function. In our case, our Gradio app is represented by one Modal function, so all requests share one queue and concurrency limit. Therefore Modal constrains the _total_ number of requests running at one time, regardless of what they are doing.
+Modal queues client requests to functions and executes up to its concurrency limit per container. If requests come in and the concurrency limit is already satisfied, Modal will spin up a new container up to the maximum set for the function. In our case, our Gradio app is represented by one Modal function, so all requests share one queue and concurrency limit. Therefore Modal constrains the _total_ number of requests running at one time, regardless of what they are doing.
 
 Gradio on the other hand, allows developers to assign one or more event listeners to a queue each with its own concurrency limit. This can be useful to manage GPU resources for computationally expensive requests.
 
@@ -128,4 +128,4 @@ Thinking carefully about how these queues and limits interact can help you optim
 
 ### Creating a GPU Function
 
-Another option to manage GPU utliziation is to deploy your GPU computations in their own Modal Function and calling this remote function from inside your Gradio app. This allows you to take full advantage of Modal's serverless autoscaling while routing all of the client HTTP requests to a single Gradio CPU container.
+Another option to manage GPU utilization is to deploy your GPU computations in their own Modal Function and calling this remote function from inside your Gradio app. This allows you to take full advantage of Modal's serverless autoscaling while routing all of the client HTTP requests to a single Gradio CPU container.
