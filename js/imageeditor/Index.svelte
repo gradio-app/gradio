@@ -31,7 +31,7 @@
 	};
 	export let label: string;
 	export let show_label: boolean;
-	export let show_download_button: boolean;
+	export let buttons: string[] | null = null;
 	export let root: string;
 	export let value_is_output = false;
 
@@ -43,7 +43,6 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
-	export let show_share_button = false;
 	export let sources: Source[] = [];
 	export let interactive: boolean;
 	export let placeholder: string | undefined;
@@ -57,7 +56,6 @@
 	};
 	export let canvas_size: [number, number];
 	export let fixed_canvas = false;
-	export let show_fullscreen_button = true;
 	export let full_history: CommandNode | null = null;
 	export let gradio: Gradio<{
 		change: never;
@@ -168,11 +166,9 @@
 			value={value?.composite || null}
 			{label}
 			{show_label}
-			{show_download_button}
+			{buttons}
 			selectable={_selectable}
-			{show_share_button}
 			i18n={gradio.i18n}
-			{show_fullscreen_button}
 		/>
 	</Block>
 {:else}

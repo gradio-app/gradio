@@ -36,9 +36,8 @@
 	export let selected_index: number | null = null;
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
-	export let show_share_button = false;
+	export let buttons: string[] | null = null;
 	export let interactive: boolean;
-	export let show_download_button = false;
 	export let gradio: Gradio<{
 		change: typeof value;
 		upload: typeof value;
@@ -51,7 +50,6 @@
 		preview_open: never;
 		preview_close: never;
 	}>;
-	export let show_fullscreen_button = true;
 	export let fullscreen = false;
 
 	const dispatch = createEventDispatcher();
@@ -168,11 +166,11 @@
 			{allow_preview}
 			bind:selected_index
 			bind:value
-			{show_share_button}
-			{show_download_button}
+			show_share_button={buttons?.includes("share") ?? false}
+			show_download_button={buttons?.includes("download") ?? false}
 			i18n={gradio.i18n}
 			_fetch={(...args) => gradio.client.fetch(...args)}
-			{show_fullscreen_button}
+			show_fullscreen_button={buttons?.includes("fullscreen") ?? false}
 			{fullscreen}
 			{root}
 			{file_types}
