@@ -19,8 +19,7 @@
 	export let subtitles: null | FileData | SubtitleData[] = null;
 	export let label: string;
 	export let show_label = true;
-	export let show_download_button = true;
-	export let show_share_button = false;
+	export let buttons: string[] = ["download", "share"];
 	export let i18n: I18nFormatter;
 	export let waveform_settings: Record<string, any> = {};
 	export let waveform_options: WaveformOptions = {
@@ -52,7 +51,7 @@
 	<IconButtonWrapper
 		display_top_corner={display_icon_button_wrapper_top_corner}
 	>
-		{#if show_download_button}
+		{#if buttons?.includes("download")}
 			<DownloadLink
 				href={value.is_stream
 					? value.url?.replace("playlist.m3u8", "playlist-file")
@@ -62,7 +61,7 @@
 				<IconButton Icon={Download} label={i18n("common.download")} />
 			</DownloadLink>
 		{/if}
-		{#if show_share_button}
+		{#if buttons?.includes("share")}
 			<ShareButton
 				{i18n}
 				on:error

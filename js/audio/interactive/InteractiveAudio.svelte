@@ -22,7 +22,7 @@
 	export let root: string;
 	export let loop: boolean;
 	export let show_label = true;
-	export let show_download_button = false;
+	export let buttons: string[] = ["download", "share"];
 	export let sources:
 		| ["microphone"]
 		| ["upload"]
@@ -292,7 +292,7 @@
 			{i18n}
 			on:clear={clear}
 			on:edit={() => (mode = "edit")}
-			download={show_download_button ? value.url : null}
+			download={buttons?.includes("download") ? value.url : null}
 		/>
 
 		<AudioPlayer
