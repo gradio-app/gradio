@@ -688,7 +688,7 @@
 	{#if submit_btn && !disabled}
 		<div class="submit-container">
 			<button class="submit-button" on:click={handle_submit} {disabled}>
-				{#if typeof submit_btn === 'string'}
+				{#if typeof submit_btn === "string"}
 					{submit_btn}
 				{:else}
 					<Send />

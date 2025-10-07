@@ -241,7 +241,9 @@
 			{placeholder}
 			bind:full_history
 			{webcam_options}
-			{show_download_button}
+			show_download_button={buttons === null
+				? true
+				: buttons.includes("download")}
 			{theme_mode}
 			on:download_error={(e) => gradio.dispatch("error", e.detail)}
 		></InteractiveImageEditor>

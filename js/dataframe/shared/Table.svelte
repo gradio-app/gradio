@@ -85,7 +85,8 @@
 	export let fullscreen = false;
 
 	const df_ctx = create_dataframe_context({
-		show_fullscreen_button: buttons === null ? true : buttons.includes("fullscreen"),
+		show_fullscreen_button:
+			buttons === null ? true : buttons.includes("fullscreen"),
 		show_copy_button: buttons === null ? true : buttons.includes("copy"),
 		show_search,
 		show_row_numbers,
@@ -822,7 +823,7 @@
 <svelte:window on:resize={() => set_cell_widths()} />
 
 <div class="table-container">
-	{#if (label && label.length !== 0 && show_label) || show_fullscreen_button || show_copy_button || show_search !== "none"}
+	{#if (label && label.length !== 0 && show_label) || (buttons === null ? true : buttons.includes("fullscreen")) || (buttons === null ? true : buttons.includes("copy")) || show_search !== "none"}
 		<div class="header-row">
 			{#if label && label.length !== 0 && show_label}
 				<div class="label">
@@ -830,10 +831,12 @@
 				</div>
 			{/if}
 			<Toolbar
-				{show_fullscreen_button}
+				show_fullscreen_button={buttons === null
+					? true
+					: buttons.includes("fullscreen")}
 				{fullscreen}
 				on_copy={async () => await copy_table_data(data, null)}
-				{show_copy_button}
+				show_copy_button={buttons === null ? true : buttons.includes("copy")}
 				{show_search}
 				on:search={(e) => df_actions.handle_search(e.detail)}
 				on:fullscreen

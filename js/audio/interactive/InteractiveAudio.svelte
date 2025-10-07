@@ -292,7 +292,11 @@
 			{i18n}
 			on:clear={clear}
 			on:edit={() => (mode = "edit")}
-			download={buttons?.includes("download") ? value.url : null}
+			download={buttons === null
+				? value.url
+				: buttons.includes("download")
+					? value.url
+					: null}
 		/>
 
 		<AudioPlayer

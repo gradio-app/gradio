@@ -17,7 +17,5 @@ class TestMarkdown:
         assert output_data == input_data.strip()
 
     def test_show_copy_button(self):
-        markdown_component = gr.Markdown(
-            "# Let's learn about $x$", show_copy_button=True
-        )
-        assert markdown_component.get_config()["show_copy_button"]
+        markdown_component = gr.Markdown("# Let's learn about $x$", buttons=["copy"])
+        assert markdown_component.get_config()["buttons"] == ["copy"]

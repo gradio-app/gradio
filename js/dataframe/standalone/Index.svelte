@@ -100,8 +100,7 @@
 		{show_row_numbers}
 		{max_height}
 		{show_search}
-		{show_copy_button}
-		{show_fullscreen_button}
+		buttons={null}
 		{wrap}
 		{line_breaks}
 		{column_widths}
