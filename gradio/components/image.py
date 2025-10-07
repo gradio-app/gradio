@@ -12,7 +12,7 @@ import PIL.Image
 from gradio_client import handle_file
 from gradio_client.documentation import document
 
-from gradio import image_utils, utils
+from gradio import image_utils
 from gradio.components.base import Component, StreamingInput
 from gradio.components.image_editor import WatermarkOptions, WebcamOptions
 from gradio.data_classes import Base64ImageData, ImageData

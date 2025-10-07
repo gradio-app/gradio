@@ -21,7 +21,7 @@ from gradio_client import handle_file
 from gradio_client.documentation import document
 from typing_extensions import TypedDict
 
-from gradio import image_utils, utils
+from gradio import image_utils
 from gradio.components.base import Component, server
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
