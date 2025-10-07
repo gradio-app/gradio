@@ -56,7 +56,6 @@ class TextArea(components.Textbox):
         type: Literal["text", "password", "email"] = "text",
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
-        show_copy_button: bool = False,
         buttons: list[Literal["fullscreen", "copy"]] | None = None,
         max_length: int | None = None,
         submit_btn: str | bool | None = False,
@@ -88,7 +87,7 @@ class TextArea(components.Textbox):
             type=type,
             text_align=text_align,
             rtl=rtl,
-            buttons=["copy"] if show_copy_button else None,
+            buttons=buttons,
             max_length=max_length,
             submit_btn=submit_btn,
             stop_btn=stop_btn,
@@ -144,7 +143,6 @@ class Sketchpad(components.ImageEditor):
         format: str = "webp",
         canvas_size: tuple[int, int] = (800, 800),
         fixed_canvas: bool = False,
-        show_fullscreen_button: bool = True,
         layers: LayerOptions | bool = True,
     ):
         if not brush:
@@ -233,7 +231,6 @@ class Paint(components.ImageEditor):
         layers: LayerOptions | bool = True,
         canvas_size: tuple[int, int] = (800, 800),
         fixed_canvas: bool = False,
-        show_fullscreen_button: bool = True,
         placeholder: str | None = None,
     ):
         super().__init__(
@@ -324,7 +321,6 @@ class ImageMask(components.ImageEditor):
         layers: LayerOptions | bool = False,
         canvas_size: tuple[int, int] = (800, 800),
         fixed_canvas: bool = False,
-        show_fullscreen_button: bool = True,
         webcam_options: WebcamOptions | None = None,
     ):
         if not brush:
@@ -637,9 +633,7 @@ class Numpy(components.Dataframe):
         show_search: Literal["none", "search", "filter"] = "none",
         static_columns: list[int] | None = None,
         pinned_columns: int | None = None,
-        show_fullscreen_button: bool = False,
         max_chars: int | None = None,
-        show_copy_button: bool = False,
         buttons: list[Literal["fullscreen", "copy"]] | None = None,
     ):
         super().__init__(
@@ -672,6 +666,7 @@ class Numpy(components.Dataframe):
             pinned_columns=pinned_columns,
             buttons=buttons,
             static_columns=static_columns,
+            max_chars=max_chars,
         )
 
 
@@ -720,9 +715,7 @@ class Matrix(components.Dataframe):
         show_row_numbers: bool = False,
         show_search: Literal["none", "search", "filter"] = "none",
         pinned_columns: int | None = None,
-        show_fullscreen_button: bool = False,
         max_chars: int | None = None,
-        show_copy_button: bool = False,
         buttons: list[Literal["fullscreen", "copy"]] | None = None,
         static_columns: list[int] | None = None,
     ):
@@ -756,6 +749,7 @@ class Matrix(components.Dataframe):
             pinned_columns=pinned_columns,
             buttons=buttons,
             static_columns=static_columns,
+            max_chars=max_chars,
         )
 
 
@@ -804,9 +798,7 @@ class List(components.Dataframe):
         show_row_numbers: bool = False,
         show_search: Literal["none", "search", "filter"] = "none",
         pinned_columns: int | None = None,
-        show_fullscreen_button: bool = False,
         max_chars: int | None = None,
-        show_copy_button: bool = False,
         buttons: list[Literal["fullscreen", "copy"]] | None = None,
         static_columns: list[int] | None = None,
     ):
@@ -840,6 +832,7 @@ class List(components.Dataframe):
             static_columns=static_columns,
             pinned_columns=pinned_columns,
             buttons=buttons,
+            max_chars=max_chars,
         )
 
 
