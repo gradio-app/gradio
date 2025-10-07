@@ -69,7 +69,7 @@ from gradio.components import (
     Video,
     component,
 )
-from gradio.components.audio import WaveformOptions
+from gradio.components.audio import WaveformOptions, is_audio_correct_length
 from gradio.components.image_editor import (
     Brush,
     Eraser,
@@ -277,4 +277,5 @@ __all__ = [
     "get_video",
     "get_model3d",
     "get_file",
+    "is_audio_correct_length",
 ]

@@ -212,3 +212,11 @@ class TestAudio:
             bytes_output, desired_output_format=None
         )
         assert str(output.path).endswith("mp3")
+
+
+def test_duration_validator():
+    assert gr.is_audio_correct_length((8000, np.zeros((8000,))), 1, 2)["is_valid"]
+    assert not gr.is_audio_correct_length((8000, np.zeros((8000,))), 2, 3)["is_valid"]
+    assert not gr.is_audio_correct_length((8000, np.zeros((8000,))), 0.25, 0.75)[
+        "is_valid"
+    ]

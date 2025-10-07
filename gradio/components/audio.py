@@ -21,7 +21,6 @@ from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingInput, StreamingOutput
 from gradio.data_classes import FileData, FileDataDict, MediaStreamChunk
 from gradio.events import Events
-from gradio.exceptions import Error
 from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
@@ -53,6 +52,37 @@ class WaveformOptions:
 
 
 @document()
+def is_audio_correct_length(
+    audio: tuple[int, np.ndarray], min_length: float | None, max_length: float | None
+) -> dict[str, Any]:
+    """
+    Validates that the audio length is within the specified min and max length (in seconds).
+
+    Parameters:
+        audio: A tuple of (sample rate in Hz, audio data as numpy array).
+        min_length: Minimum length of audio in seconds. If None, no minimum length check is performed.
+        max_length: Maximum length of audio in seconds. If None, no maximum length check is performed.
+    Returns:
+        A dict corresponding to `gr.validate()` indicating whether the audio length is valid and an optional message.
+    """
+    if min_length is not None or max_length is not None:
+        sample_rate, data = audio
+        duration = len(data) / sample_rate
+        if min_length is not None and duration < min_length:
+            return {
+                "__type__": "validate",
+                "is_valid": False,
+                "message": f"Audio is too short, and must be at least {min_length} seconds",
+            }
+        if max_length is not None and duration > max_length:
+            return {
+                "__type__": "validate",
+                "is_valid": False,
+                "message": f"Audio is too long, and must be at most {max_length} seconds",
+            }
+    return {"__type__": "validate", "is_valid": True}
+
+
 class Audio(
     StreamingInput,
     StreamingOutput,
@@ -109,8 +139,6 @@ class Audio(
         show_download_button: bool | None = None,
         show_share_button: bool | None = None,
         editable: bool = True,
-        min_length: int | None = None,
-        max_length: int | None = None,
         waveform_options: WaveformOptions | dict | None = None,
         loop: bool = False,
         recording: bool = False,
@@ -141,8 +169,6 @@ class Audio(
             show_download_button: If True, will show a download button in the corner of the component for saving audio. If False, icon does not appear. By default, it will be True for output components and False for input components.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             editable: If True, allows users to manipulate the audio file if the component is interactive. Defaults to True.
-            min_length: The minimum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
-            max_length: The maximum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool), skip_length (int), trim_region_color (str). Default is None, which uses the default values for these options. [See `gr.WaveformOptions` docs](#waveform-options).
             loop: If True, the audio will loop when it reaches the end and continue playing from the beginning.
             recording: If True, the audio component will be set to record audio from the microphone if the source is set to "microphone". Defaults to False.
@@ -200,8 +226,6 @@ class Audio(
             warnings.warn(
                 "The `show_controls` parameter is deprecated and will be removed in a future release. Use `show_recording_waveform` instead."
             )
-        self.min_length = min_length
-        self.max_length = max_length
         self.recording = recording
         super().__init__(
             label=label,
@@ -259,18 +283,6 @@ class Audio(
         original_suffix = Path(payload.path).suffix.lower()
         if self.format is not None and original_suffix != f".{self.format}":
             needs_conversion = True
-
-        if self.min_length is not None or self.max_length is not None:
-            sample_rate, data = processing_utils.audio_from_file(payload.path)
-            duration = len(data) / sample_rate
-            if self.min_length is not None and duration < self.min_length:
-                raise Error(
-                    f"Audio is too short, and must be at least {self.min_length} seconds"
-                )
-            if self.max_length is not None and duration > self.max_length:
-                raise Error(
-                    f"Audio is too long, and must be at most {self.max_length} seconds"
-                )
 
         if self.type == "numpy":
             return processing_utils.audio_from_file(payload.path)
