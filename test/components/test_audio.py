@@ -59,8 +59,6 @@ class TestAudio:
             "format": None,
             "recording": False,
             "streamable": False,
-            "max_length": None,
-            "min_length": None,
             "waveform_options": {
                 "sample_rate": 44100,
                 "show_controls": False,
