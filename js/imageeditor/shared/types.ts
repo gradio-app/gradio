@@ -19,7 +19,7 @@ export interface WebcamOptions {
 }
 
 export interface WatermarkOptions {
-	text: string | Blob | null;
+	watermark: string | Blob | null;
 	position:
 		| [number, number]
 		| "top-left"
