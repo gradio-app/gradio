@@ -1,17 +1,17 @@
 import gradio as gr
-import os
-
-a = os.path.join(os.path.dirname(__file__), "files/a.mp4")
-b = os.path.join(os.path.dirname(__file__), "files/b.mp4")
-w1 = os.path.join(os.path.dirname(__file__), "files/w1.jpg")
-w2 = os.path.join(os.path.dirname(__file__), "files/w2.png")
-
-def generate_video(original_video, watermark):
-    return gr.Video(original_video, watermark=gr.WatermarkOptions(watermark=watermark, position=(50, 100)))
 
 
-demo = gr.Interface(generate_video, [gr.Video(), gr.File()], gr.Video(),
-                    examples=[[a, w1], [b, w2]])
+a = gr.get_video("a.mp4")
+b = gr.get_video("b.mp4")
+w1 = gr.get_image("logo.png")
+w2 = gr.get_image("bus.png")
+
+def generate_video(original_video, watermark, position):
+    return gr.Video(original_video, watermark=gr.WatermarkOptions(watermark=watermark, position=position))
+
+
+demo = gr.Interface(generate_video, [gr.Video(), gr.File(), gr.Dropdown(["top-left", "top-right", "bottom-left", "bottom-right"], label="Position")], gr.Video(),
+                    examples=[[a, w1, "top-left"], [b, w2, "bottom-right"]])
 
 if __name__ == "__main__":
     demo.launch()
