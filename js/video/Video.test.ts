@@ -232,8 +232,8 @@ describe("Video", () => {
 	});
 	test("renders video and download button", async () => {
 		const data = {
-				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+			path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+			url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 		};
 		const results = await render(Video, {
 			interactive: false,

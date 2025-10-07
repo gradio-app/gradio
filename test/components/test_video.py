@@ -100,9 +100,9 @@ class TestVideo:
             video_url_with_query_param
         )
         assert postprocessed_video_with_query_param
-        assert postprocessed_video_with_query_param.model_dump()[
-            "path"
-        ].endswith("playable_but_bad_container.wav")
+        assert postprocessed_video_with_query_param.model_dump()["path"].endswith(
+            "playable_but_bad_container.wav"
+        )
 
         p_video = gr.Video()
         postprocessed_video = p_video.postprocess(Path(y_vid_path))

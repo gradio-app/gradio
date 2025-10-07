@@ -59,9 +59,7 @@ class Video(StreamingOutput, Component):
 
     def __init__(
         self,
-        value: (
-            str | Path | Callable | None
-        ) = None,
+        value: (str | Path | Callable | None) = None,
         *,
         format: str | None = None,
         sources: (
@@ -181,7 +179,9 @@ class Video(StreamingOutput, Component):
         self.subtitles = None
         if subtitles is not None:
             if isinstance(subtitles, list):
-                self.subtitles = handle_file(self._process_json_subtitles(subtitles).path)
+                self.subtitles = handle_file(
+                    self._process_json_subtitles(subtitles).path
+                )
             else:
                 self.subtitles = self._format_subtitles(subtitles)
         super().__init__(
@@ -277,9 +277,7 @@ class Video(StreamingOutput, Component):
         else:
             return str(file_name)
 
-    def postprocess(
-        self, value: str | Path | None
-    ) -> FileData | None:
+    def postprocess(self, value: str | Path | None) -> FileData | None:
         """
         Parameters:
             value: Expects a {str} or {pathlib.Path} filepath to a video which is displayed, or a {Tuple[str | pathlib.Path, str | pathlib.Path | None]} where the first element is a filepath to a video and the second element is an optional filepath to a subtitle file.
@@ -360,9 +358,7 @@ class Video(StreamingOutput, Component):
 
         return FileData(path=video, orig_name=Path(video).name)
 
-    def _process_json_subtitles(
-        self, subtitles: list[dict[str, Any]]
-    ) -> FileData:
+    def _process_json_subtitles(self, subtitles: list[dict[str, Any]]) -> FileData:
         """Convert JSON subtitles to VTT format."""
 
         def seconds_to_vtt_timestamp(seconds: float) -> str:
@@ -392,7 +388,11 @@ class Video(StreamingOutput, Component):
 
         # Create VTT file
         temp_file = tempfile.NamedTemporaryFile(
-            delete=False, suffix=".vtt", dir=get_upload_folder(), mode='w', encoding='utf-8'
+            delete=False,
+            suffix=".vtt",
+            dir=get_upload_folder(),
+            mode="w",
+            encoding="utf-8",
         )
 
         try:
@@ -470,8 +470,8 @@ class Video(StreamingOutput, Component):
 
     def example_payload(self) -> Any:
         return handle_file(
-                "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/videos/world.mp4"
-            )
+            "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/videos/world.mp4"
+        )
 
     def example_value(self) -> Any:
         return "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/videos/world.mp4"
@@ -536,7 +536,7 @@ class Video(StreamingOutput, Component):
         stream: list[bytes],
         desired_output_format: str | None = None,  # noqa: ARG002
         only_file=False,
-    ) ->  FileData:
+    ) -> FileData:
         """Combine video chunks into a single video file.
 
         Do not take desired_output_format into consideration as
