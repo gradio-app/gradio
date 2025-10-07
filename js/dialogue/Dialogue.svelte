@@ -20,7 +20,7 @@
 	export let container = true;
 	export let max_lines: number | undefined = undefined;
 	export let show_copy_button = false;
-	export let show_submit_button = true;
+	export let submit_btn: string | boolean | null = false;
 	export let color_map: Record<string, string> | null = null;
 	export let ui_mode: "dialogue" | "text" | "both" = "both";
 	let checked = ui_mode === "text";
@@ -685,10 +685,14 @@
 		</div>
 	{/if}
 
-	{#if show_submit_button && !disabled}
+	{#if submit_btn && !disabled}
 		<div class="submit-container">
 			<button class="submit-button" on:click={handle_submit} {disabled}>
-				<Send />
+				{#if typeof submit_btn === 'string'}
+					{submit_btn}
+				{:else}
+					<Send />
+				{/if}
 			</button>
 		</div>
 	{/if}

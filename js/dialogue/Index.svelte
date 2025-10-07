@@ -43,6 +43,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let buttons: string[] | null = null;
+	export let submit_btn: string | boolean | null = false;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let value_is_output = false;
 	export let interactive: boolean;
@@ -74,12 +75,12 @@
 		{info}
 		{show_label}
 		{max_lines}
-		show_copy_button={buttons?.includes("copy") ?? true}
+		show_copy_button={buttons?.includes("copy") ?? false}
 		{container}
 		{speakers}
 		{tags}
 		{placeholder}
-		show_submit_button={buttons?.includes("submit") ?? true}
+		{submit_btn}
 		{server}
 		{ui_mode}
 		on:change={() => gradio.dispatch("change", value)}

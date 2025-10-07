@@ -76,8 +76,7 @@
 	export let show_row_numbers = false;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
-	export let show_fullscreen_button = false;
-	export let show_copy_button = false;
+	export let buttons: string[] | null = null;
 	export let value_is_output = false;
 	export let max_chars: number | undefined = undefined;
 	export let show_search: "none" | "search" | "filter" = "none";
@@ -86,8 +85,8 @@
 	export let fullscreen = false;
 
 	const df_ctx = create_dataframe_context({
-		show_fullscreen_button,
-		show_copy_button,
+		show_fullscreen_button: buttons === null ? true : buttons.includes("fullscreen"),
+		show_copy_button: buttons === null ? true : buttons.includes("copy"),
 		show_search,
 		show_row_numbers,
 		editable,

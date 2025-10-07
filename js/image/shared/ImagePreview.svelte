@@ -23,6 +23,7 @@
 	export let show_label: boolean;
 	export let buttons: string[] | null = null;
 	export let selectable = false;
+	export let interactive = false;
 	export let i18n: I18nFormatter;
 	export let display_icon_button_wrapper_top_corner = false;
 	export let fullscreen = false;
@@ -55,7 +56,7 @@
 		<IconButtonWrapper
 			display_top_corner={display_icon_button_wrapper_top_corner}
 		>
-			{#if buttons === null ? !selectable : buttons.includes("fullscreen")}
+			{#if buttons === null ? true : buttons.includes("fullscreen")}
 				<FullscreenButton {fullscreen} on:fullscreen />
 			{/if}
 
@@ -64,7 +65,7 @@
 					<IconButton Icon={Download} label={i18n("common.download")} />
 				</DownloadLink>
 			{/if}
-			{#if buttons?.includes("share")}
+			{#if buttons === null ? true : buttons.includes("share")}
 				<ShareButton
 					{i18n}
 					on:share

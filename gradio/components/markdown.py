@@ -79,7 +79,7 @@ class Markdown(Component):
             height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If markdown content exceeds the height, the component will scroll.
             max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If markdown content exceeds the height, the component will scroll. If markdown content is shorter than the height, the component will shrink to fit the content. Will not have any effect if `height` is set and is smaller than `max_height`.
             min_height: The minimum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If markdown content exceeds the height, the component will expand to fit the content. Will not have any effect if `height` is set and is larger than `min_height`.
-            buttons: A list of buttons to show for the component. Valid option is "copy". The "copy" button allows the user to copy the text in the Markdown component. By default, no buttons are shown.
+            buttons: A list of buttons to show for the component. Currently, the only valid option is "copy". The "copy" button allows the user to copy the text in the Markdown component. By default, no buttons are shown.
             container: If True, the Markdown component will be displayed in a container. Default is False.
             padding: If True, the Markdown component will have a certain padding (set by the `--block-padding` CSS variable) in all directions. Default is False.
         """

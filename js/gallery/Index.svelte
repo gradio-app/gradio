@@ -166,11 +166,11 @@
 			{allow_preview}
 			bind:selected_index
 			bind:value
-			show_share_button={buttons?.includes("share") ?? false}
-			show_download_button={buttons?.includes("download") ?? false}
+			show_share_button={buttons?.includes("share") ?? true}
+			show_download_button={buttons?.includes("download") ?? true}
 			i18n={gradio.i18n}
 			_fetch={(...args) => gradio.client.fetch(...args)}
-			show_fullscreen_button={buttons?.includes("fullscreen") ?? false}
+			show_fullscreen_button={buttons?.includes("fullscreen") ?? true}
 			{fullscreen}
 			{root}
 			{file_types}

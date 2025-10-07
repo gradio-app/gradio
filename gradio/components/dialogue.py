@@ -63,7 +63,8 @@ class Dialogue(Component):
         render: bool = True,
         key: int | str | None = None,
         max_lines: int | None = None,
-        buttons: list[Literal["submit", "copy"]] | None = None,
+        buttons: list[Literal["copy"]] | None = None,
+        submit_btn: str | bool | None = False,
         ui_mode: Literal["dialogue", "text", "both"] = "both",
     ):
         """
@@ -90,7 +91,8 @@ class Dialogue(Component):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
-            buttons: A list of buttons to show for the component. Valid options are "submit" and "copy". The "submit" button allows the user to submit the dialogue. The "copy" button allows the user to copy the text in the textbox. By default, no buttons are shown.
+            buttons: A list of buttons to show for the component. Currently, the only valid option is "copy". The "copy" button allows the user to copy the text in the textbox. By default, no buttons are shown.
+            submit_btn: If False, will not show a submit button. If True, will show a submit button with an icon. If a string, will use that string as the submit button text.
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
             ui_mode: Determines the user interface mode of the component. Can be "dialogue" (displays dialogue lines), "text" (displays a single text input), or "both" (displays both dialogue lines and a text input). Defaults to "both".
         """
@@ -124,6 +126,7 @@ class Dialogue(Component):
         self.separator = separator
         self.color_map = color_map
         self.buttons = buttons
+        self.submit_btn = submit_btn
         if not interactive:
             self.info = None
 

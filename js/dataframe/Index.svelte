@@ -110,9 +110,8 @@
 		upload={(...args) => gradio.client.upload(...args)}
 		stream_handler={(...args) => gradio.client.stream(...args)}
 		bind:value_is_output
-		show_fullscreen_button={buttons?.includes("fullscreen") ?? false}
+		{buttons}
 		{max_chars}
-		show_copy_button={buttons?.includes("copy") ?? false}
 		{show_row_numbers}
 		{show_search}
 		{pinned_columns}
