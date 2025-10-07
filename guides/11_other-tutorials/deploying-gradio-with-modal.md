@@ -93,7 +93,7 @@ def ui():
 
 Let's quickly review what's going on here:
 - We use the `Image.imports` context manager to define our imports. These will be available when your function runs in the cloud.
-- We move our code inside a function, `ui`, and decorate it with `@app.function` which wraps it as a Modal serverless function. We provide the image and other parameters (we'll cover this later) as inputs to the decorator.
+- We move our code inside a Python function, `ui`, and decorate it with `@app.function` which wraps it as a Modal serverless Function. We provide the image and other parameters (we'll cover this later) as inputs to the decorator.
 - We add the `@modal.concurrent` decorator which allows multiple requests per container to be processed at the same time.
 - We add the `@modal.asgi_app` decorator which tells Modal that this particular function is serving an ASGI app (here a `fastapi` app). To use this decorator, your ASGI app needs to be the return value from the function.
 
@@ -120,12 +120,12 @@ A simple way to satisfy this constraint is to set `max_containers = 1` in the `@
 
 Both Gradio and Modal have concepts of concurrency and queues, and getting the most of out of your compute resources requires understanding how these interact.
 
-Modal queues client requests to functions and simultaneously executes requests up to its concurrency limit per container. If requests come in and the concurrency limit is already satisfied, Modal will spin up a new container up to the maximum set for the function. In our case, our Gradio app is represented by one Modal Function, so all requests share one queue and concurrency limit. Therefore Modal constrains the _total_ number of requests running at one time, regardless of what they are doing.
+Modal queues client requests to each deployed Function and simultaneously executes requests up to the concurrency limit for that Function. If requests come in and the concurrency limit is already satisfied, Modal will spin up a new container - up to the maximum set for the Function. In our case, our Gradio app is represented by one Modal Function, so all requests share one queue and concurrency limit. Therefore Modal constrains the _total_ number of requests running at one time, regardless of what they are doing.
 
-Gradio on the other hand, allows developers to assign one or more event listeners to a any number of queues, each with its own concurrency limit. This can be useful to manage GPU resources for computationally expensive requests.
+Gradio on the other hand, allows developers to utilize multiple queues each with its own concurrency limit. One or more event listeners can then be assigned to a queue which is useful to manage GPU resources for computationally expensive requests.
 
 Thinking carefully about how these queues and limits interact can help you optimize your app's performance and resource optimization while avoiding unwanted results like shared or lost state.
 
 ### Creating a GPU Function
 
-Another option to manage GPU utilization is to deploy your GPU computations in their own Modal Function and calling this remote function from inside your Gradio app. This allows you to take full advantage of Modal's serverless autoscaling while routing all of the client HTTP requests to a single Gradio CPU container.
+Another option to manage GPU utilization is to deploy your GPU computations in their own Modal Function and calling this remote Function from inside your Gradio app. This allows you to take full advantage of Modal's serverless autoscaling while routing all of the client HTTP requests to a single Gradio CPU container.
