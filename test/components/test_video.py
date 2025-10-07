@@ -20,9 +20,7 @@ class TestVideo:
         """
         Preprocess, serialize, deserialize, get_config
         """
-        x_video = VideoData(
-            video=FileData(path=deepcopy(media_data.BASE64_VIDEO)["path"])
-        )
+        x_video = FileData(path=deepcopy(media_data.BASE64_VIDEO)["path"])
         video_input = gr.Video()
 
         x_video = await processing_utils.async_move_files_to_cache(
@@ -71,6 +69,7 @@ class TestVideo:
             "loop": False,
             "streaming": False,
             "watermark": None,
+            "subtitles": None,
         }
         assert video_input.preprocess(None) is None
         video_input = gr.Video(format="avi")
@@ -85,19 +84,15 @@ class TestVideo:
         video_output = gr.Video()
         output1 = video_output.postprocess(y_vid_path)
         assert output1
-        output1 = output1.model_dump()["video"]["path"]
+        output1 = output1.model_dump()["path"]
         assert output1.endswith("mp4")
         output2 = video_output.postprocess(y_vid_path)
         assert output2
-        output2 = output2.model_dump()["video"]["path"]
+        output2 = output2.model_dump()["path"]
         assert output1 == output2
         output3 = video_output.postprocess(y_vid_path)
         assert output3
-        assert output3.model_dump()["video"]["orig_name"] == "video_sample.mp4"
-        output_with_subtitles = video_output.postprocess((y_vid_path, subtitles_path))
-        assert output_with_subtitles
-        output_with_subtitles = output_with_subtitles.model_dump()
-        assert output_with_subtitles["subtitles"]["path"].endswith(".vtt")
+        assert output3.model_dump()["orig_name"] == "video_sample.mp4"
 
         video = gr.Video(format="wav")
         video_url_with_query_param = "https://github.com/gradio-app/gradio/raw/refs/heads/main/test/test_files/playable_but_bad_container.mp4?query=fake"
@@ -105,67 +100,30 @@ class TestVideo:
             video_url_with_query_param
         )
         assert postprocessed_video_with_query_param
-        assert postprocessed_video_with_query_param.model_dump()["video"][
+        assert postprocessed_video_with_query_param.model_dump()[
             "path"
         ].endswith("playable_but_bad_container.wav")
 
         p_video = gr.Video()
-        video_with_subtitle = gr.Video()
         postprocessed_video = p_video.postprocess(Path(y_vid_path))
         assert postprocessed_video
 
         postprocessed_video = postprocessed_video.model_dump()
-        postprocessed_video_with_subtitle = video_with_subtitle.postprocess(
-            (Path(y_vid_path), Path(subtitles_path))
-        )
-        assert postprocessed_video_with_subtitle
-        postprocessed_video_with_subtitle = (
-            postprocessed_video_with_subtitle.model_dump()
-        )
 
         processed_video = {
-            "video": {
-                "path": "video_sample.mp4",
-                "orig_name": "video_sample.mp4",
-                "mime_type": None,
-                "size": None,
-                "url": None,
-                "is_stream": False,
-                "meta": {"_type": "gradio.FileData"},
-            },
-            "subtitles": None,
+            "path": "video_sample.mp4",
+            "orig_name": "video_sample.mp4",
+            "mime_type": None,
+            "size": None,
+            "url": None,
+            "is_stream": False,
+            "meta": {"_type": "gradio.FileData"},
         }
 
-        processed_video_with_subtitle = {
-            "video": {
-                "path": "video_sample.mp4",
-                "orig_name": "video_sample.mp4",
-                "mime_type": None,
-                "size": None,
-                "url": None,
-                "is_stream": False,
-                "meta": {"_type": "gradio.FileData"},
-            },
-            "subtitles": {
-                "path": "s1.srt",
-                "mime_type": None,
-                "orig_name": None,
-                "size": None,
-                "url": None,
-                "is_stream": False,
-                "meta": {"_type": "gradio.FileData"},
-            },
-        }
         postprocessed_video["video"]["path"] = os.path.basename(
             postprocessed_video["video"]["path"]
         )
         assert processed_video == postprocessed_video
-        postprocessed_video_with_subtitle["video"]["path"] = os.path.basename(
-            postprocessed_video_with_subtitle["video"]["path"]
-        )
-        if postprocessed_video_with_subtitle["subtitles"]["path"]:
-            postprocessed_video_with_subtitle["subtitles"]["path"] = "s1.srt"
-        assert processed_video_with_subtitle == postprocessed_video_with_subtitle
 
     def test_in_interface(self):
         """
@@ -199,7 +157,7 @@ class TestVideo:
             output = gr.Video().postprocess(tmp_not_playable_vid.name)
             assert output
             output = output.model_dump()
-            assert processing_utils.video_is_playable(output["video"]["path"])
+            assert processing_utils.video_is_playable(output["path"])
 
     @patch("pathlib.Path.exists", MagicMock(return_value=False))
     @patch("gradio.components.video.FFmpeg")

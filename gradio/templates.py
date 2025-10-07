@@ -429,6 +429,7 @@ class PlayableVideo(components.Video):
         streaming: bool = False,
         watermark: str | Path | None = None,
         webcam_constraints: dict[str, dict[str, int | str]] | None = None,
+        subtitles: str | Path | None = None,
     ):
         sources = ["upload"]
         super().__init__(
@@ -463,6 +464,7 @@ class PlayableVideo(components.Video):
             watermark=watermark,
             webcam_constraints=webcam_constraints,
             webcam_options=webcam_options,
+            subtitles=subtitles,
         )
 
 

@@ -59,7 +59,6 @@
 	$: input_ready = !uploading;
 	let active_source: "webcam" | "upload";
 
-	$: console.log("index::: subtitles", subtitles);
 	let initial_value: FileData | null = null;
 
 	$: if (value && initial_value === null) {

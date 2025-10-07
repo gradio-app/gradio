@@ -19,9 +19,10 @@ import gradio as gr
 from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingOutput
 from gradio.components.image_editor import WebcamOptions
-from gradio.data_classes import FileData, GradioModel, MediaStreamChunk
+from gradio.data_classes import FileData, MediaStreamChunk
 from gradio.events import Events
 from gradio.i18n import I18nData
+from gradio.utils import get_upload_folder
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -177,6 +178,12 @@ class Video(StreamingOutput, Component):
         self.max_length = max_length
         self.streaming = streaming
         self.watermark = watermark
+        self.subtitles = None
+        if subtitles is not None:
+            if isinstance(subtitles, list):
+                self.subtitles = handle_file(self._process_json_subtitles(subtitles).path)
+            else:
+                self.subtitles = self._format_subtitles(subtitles)
         super().__init__(
             label=label,
             every=every,
@@ -194,7 +201,6 @@ class Video(StreamingOutput, Component):
             preserved_by_key=preserved_by_key,
             value=value,
         )
-        self.subtitles = subtitles
         self._value_description = "a string filepath to a video"
 
     def preprocess(self, payload: FileData | None) -> str | None:
@@ -286,8 +292,6 @@ class Video(StreamingOutput, Component):
             return None
         if isinstance(value, (str, Path)):
             processed_video = self._format_video(value)
-        if self.subtitles:
-            self.subtitles = self._format_subtitles(self.subtitles)
         return processed_video
 
     def _format_video(self, video: str | Path | None) -> FileData | None:
@@ -356,10 +360,61 @@ class Video(StreamingOutput, Component):
 
         return FileData(path=video, orig_name=Path(video).name)
 
+    def _process_json_subtitles(
+        self, subtitles: list[dict[str, Any]]
+    ) -> FileData:
+        """Convert JSON subtitles to VTT format."""
+
+        def seconds_to_vtt_timestamp(seconds: float) -> str:
+            """Convert seconds to VTT timestamp format (HH:MM:SS.mmm)"""
+            hours = int(seconds // 3600)
+            minutes = int((seconds % 3600) // 60)
+            secs = seconds % 60
+            return f"{hours:02d}:{minutes:02d}:{secs:06.3f}"
+
+        # Validate input
+        for i, subtitle in enumerate(subtitles):
+            if not isinstance(subtitle, dict):
+                raise ValueError(f"Subtitle at index {i} must be a dictionary")
+            if "text" not in subtitle:
+                raise ValueError(f"Subtitle at index {i} missing required 'text' field")
+            if "timestamp" not in subtitle:
+                raise ValueError(
+                    f"Subtitle at index {i} missing required 'timestamp' field"
+                )
+            if (
+                not isinstance(subtitle["timestamp"], (list, tuple))
+                or len(subtitle["timestamp"]) != 2
+            ):
+                raise ValueError(
+                    f"Subtitle at index {i} 'timestamp' must be a list/tuple of [start, end]"
+                )
+
+        # Create VTT file
+        temp_file = tempfile.NamedTemporaryFile(
+            delete=False, suffix=".vtt", dir=get_upload_folder(), mode='w', encoding='utf-8'
+        )
+
+        try:
+            temp_file.write("WEBVTT\n\n")
+            for subtitle in subtitles:
+                start_time = seconds_to_vtt_timestamp(subtitle["timestamp"][0])
+                end_time = seconds_to_vtt_timestamp(subtitle["timestamp"][1])
+                text = subtitle["text"]
+                temp_file.write(f"{start_time} --> {end_time}\n")
+                temp_file.write(f"{text}\n\n")
+            temp_file.close()
+            return FileData(path=str(temp_file.name))
+        except Exception as e:
+            temp_file.close()
+            raise ValueError(f"Error creating VTT file from JSON subtitles: {e}") from e
+
     def _format_subtitles(self, subtitle: str | Path | None) -> FileData | None:
         """
         Convert subtitle format to VTT and process the video to ensure it meets the HTML5 requirements.
         """
+        import json
+        from pathlib import Path
 
         def srt_to_vtt(srt_file_path, vtt_file_path):
             """Convert an SRT subtitle file to a VTT subtitle file"""
@@ -375,10 +430,27 @@ class Video(StreamingOutput, Component):
                     vtt_file.write(f"{subtitle_timing} --> {subtitle_timing}\n")
                     vtt_file.write(f"{subtitle_text}\n\n")
 
+        file_path = Path(subtitle)
+        if file_path.suffix.lower() == ".json":
+            try:
+                with open(file_path, encoding="utf-8") as f:
+                    json_data = json.load(f)
+                if isinstance(json_data, list):
+                    return handle_file(self._process_json_subtitles(json_data).path)
+                else:
+                    raise ValueError(
+                        "JSON subtitle file must contain a list of subtitle objects"
+                    ) from None
+
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Invalid JSON format in subtitle file: {e}") from e
+            except Exception as e:
+                raise ValueError(f"Error reading JSON subtitle file: {e}") from e
+
         if subtitle is None:
             return None
 
-        valid_extensions = (".srt", ".vtt")
+        valid_extensions = (".srt", ".vtt", ".json")
 
         if Path(subtitle).suffix not in valid_extensions:
             raise ValueError(
@@ -388,13 +460,13 @@ class Video(StreamingOutput, Component):
         # HTML5 only support vtt format
         if Path(subtitle).suffix == ".srt":
             temp_file = tempfile.NamedTemporaryFile(
-                delete=False, suffix=".vtt", dir=self.GRADIO_CACHE
+                delete=False, suffix=".vtt", dir=get_upload_folder()
             )
 
             srt_to_vtt(subtitle, temp_file.name)
             subtitle = temp_file.name
 
-        return FileData(path=str(subtitle))
+        return handle_file(subtitle)
 
     def example_payload(self) -> Any:
         return handle_file(
