@@ -57,6 +57,7 @@ class TextArea(components.Textbox):
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
         show_copy_button: bool = False,
+        buttons: list[Literal["fullscreen", "copy"]] | None = None,
         max_length: int | None = None,
         submit_btn: str | bool | None = False,
         stop_btn: str | bool | None = False,
@@ -87,7 +88,7 @@ class TextArea(components.Textbox):
             type=type,
             text_align=text_align,
             rtl=rtl,
-            show_copy_button=show_copy_button,
+            buttons=["copy"] if show_copy_button else None,
             max_length=max_length,
             submit_btn=submit_btn,
             stop_btn=stop_btn,
@@ -122,7 +123,7 @@ class Sketchpad(components.ImageEditor):
             | None
         ) = None,
         show_label: bool | None = None,
-        show_download_button: bool = True,
+        buttons: list[Literal["download", "share", "fullscreen"]] | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
@@ -136,7 +137,6 @@ class Sketchpad(components.ImageEditor):
         placeholder: str | None = None,
         mirror_webcam: bool | None = None,
         webcam_options: WebcamOptions | None = None,
-        show_share_button: bool | None = None,
         _selectable: bool = False,
         transforms: Iterable[Literal["crop"]] = ("crop",),
         eraser: Eraser | None = None,
@@ -160,7 +160,7 @@ class Sketchpad(components.ImageEditor):
             every=every,
             inputs=inputs,
             show_label=show_label,
-            show_download_button=show_download_button,
+            buttons=buttons,
             container=container,
             scale=scale,
             min_width=min_width,
@@ -174,7 +174,6 @@ class Sketchpad(components.ImageEditor):
             placeholder=placeholder,
             mirror_webcam=mirror_webcam,
             webcam_options=webcam_options,
-            show_share_button=show_share_button,
             _selectable=_selectable,
             transforms=transforms,
             eraser=eraser,
@@ -182,7 +181,6 @@ class Sketchpad(components.ImageEditor):
             format=format,
             layers=layers,
             canvas_size=canvas_size,
-            show_fullscreen_button=show_fullscreen_button,
             fixed_canvas=fixed_canvas,
         )
 
@@ -214,7 +212,7 @@ class Paint(components.ImageEditor):
             | None
         ) = None,
         show_label: bool | None = None,
-        show_download_button: bool = True,
+        buttons: list[Literal["download", "share", "fullscreen"]] | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
@@ -227,7 +225,6 @@ class Paint(components.ImageEditor):
         preserved_by_key: list[str] | str | None = "value",
         mirror_webcam: bool | None = None,
         webcam_options: WebcamOptions | None = None,
-        show_share_button: bool | None = None,
         _selectable: bool = False,
         transforms: Iterable[Literal["crop"]] = ("crop",),
         eraser: Eraser | None = None,
@@ -250,7 +247,7 @@ class Paint(components.ImageEditor):
             every=every,
             inputs=inputs,
             show_label=show_label,
-            show_download_button=show_download_button,
+            buttons=buttons,
             container=container,
             scale=scale,
             min_width=min_width,
@@ -263,7 +260,6 @@ class Paint(components.ImageEditor):
             preserved_by_key=preserved_by_key,
             mirror_webcam=mirror_webcam,
             webcam_options=webcam_options,
-            show_share_button=show_share_button,
             _selectable=_selectable,
             transforms=transforms,
             eraser=eraser,
@@ -271,7 +267,6 @@ class Paint(components.ImageEditor):
             format=format,
             layers=layers,
             canvas_size=canvas_size,
-            show_fullscreen_button=show_fullscreen_button,
             placeholder=placeholder,
             fixed_canvas=fixed_canvas,
         )
@@ -308,7 +303,7 @@ class ImageMask(components.ImageEditor):
             | None
         ) = None,
         show_label: bool | None = None,
-        show_download_button: bool = True,
+        buttons: list[Literal["download", "share", "fullscreen"]] | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
@@ -321,7 +316,6 @@ class ImageMask(components.ImageEditor):
         preserved_by_key: list[str] | str | None = "value",
         placeholder: str | None = None,
         mirror_webcam: bool | None = None,
-        show_share_button: bool | None = None,
         _selectable: bool = False,
         transforms: Iterable[Literal["crop"]] = ("crop",),
         eraser: Eraser | None = None,
@@ -346,7 +340,7 @@ class ImageMask(components.ImageEditor):
             every=every,
             inputs=inputs,
             show_label=show_label,
-            show_download_button=show_download_button,
+            buttons=buttons,
             container=container,
             scale=scale,
             min_width=min_width,
@@ -360,7 +354,6 @@ class ImageMask(components.ImageEditor):
             placeholder=placeholder,
             mirror_webcam=mirror_webcam,
             webcam_options=webcam_options,
-            show_share_button=show_share_button,
             _selectable=_selectable,
             transforms=transforms,
             eraser=eraser,
@@ -368,7 +361,6 @@ class ImageMask(components.ImageEditor):
             format=format,
             layers=layers,
             canvas_size=canvas_size,
-            show_fullscreen_button=show_fullscreen_button,
             fixed_canvas=fixed_canvas,
         )
 
@@ -415,8 +407,7 @@ class PlayableVideo(components.Video):
         webcam_options: WebcamOptions | None = None,
         include_audio: bool | None = None,
         autoplay: bool = False,
-        show_share_button: bool | None = None,
-        show_download_button: bool | None = None,
+        buttons: list[Literal["download", "share"]] | None = None,
         min_length: int | None = None,
         max_length: int | None = None,
         loop: bool = False,
@@ -448,8 +439,7 @@ class PlayableVideo(components.Video):
             mirror_webcam=mirror_webcam,
             include_audio=include_audio,
             autoplay=autoplay,
-            show_share_button=show_share_button,
-            show_download_button=show_download_button,
+            buttons=buttons,
             min_length=min_length,
             max_length=max_length,
             loop=loop,
@@ -499,8 +489,7 @@ class Microphone(components.Audio):
         preserved_by_key: list[str] | str | None = "value",
         format: Literal["wav", "mp3"] = "wav",
         autoplay: bool = False,
-        show_download_button: bool | None = None,
-        show_share_button: bool | None = None,
+        buttons: list[Literal["download", "share"]] | None = None,
         editable: bool = True,
         min_length: int | None = None,
         max_length: int | None = None,
@@ -531,8 +520,7 @@ class Microphone(components.Audio):
             preserved_by_key=preserved_by_key,
             format=format,
             autoplay=autoplay,
-            show_download_button=show_download_button,
-            show_share_button=show_share_button,
+            buttons=buttons,
             editable=editable,
             min_length=min_length,
             max_length=max_length,
@@ -652,6 +640,7 @@ class Numpy(components.Dataframe):
         show_fullscreen_button: bool = False,
         max_chars: int | None = None,
         show_copy_button: bool = False,
+        buttons: list[Literal["fullscreen", "copy"]] | None = None,
     ):
         super().__init__(
             value=value,
@@ -681,9 +670,7 @@ class Numpy(components.Dataframe):
             show_row_numbers=show_row_numbers,
             show_search=show_search,
             pinned_columns=pinned_columns,
-            show_fullscreen_button=show_fullscreen_button,
-            max_chars=max_chars,
-            show_copy_button=show_copy_button,
+            buttons=buttons,
             static_columns=static_columns,
         )
 
@@ -736,6 +723,7 @@ class Matrix(components.Dataframe):
         show_fullscreen_button: bool = False,
         max_chars: int | None = None,
         show_copy_button: bool = False,
+        buttons: list[Literal["fullscreen", "copy"]] | None = None,
         static_columns: list[int] | None = None,
     ):
         super().__init__(
@@ -766,9 +754,7 @@ class Matrix(components.Dataframe):
             show_row_numbers=show_row_numbers,
             show_search=show_search,
             pinned_columns=pinned_columns,
-            show_fullscreen_button=show_fullscreen_button,
-            max_chars=max_chars,
-            show_copy_button=show_copy_button,
+            buttons=buttons,
             static_columns=static_columns,
         )
 
@@ -821,6 +807,7 @@ class List(components.Dataframe):
         show_fullscreen_button: bool = False,
         max_chars: int | None = None,
         show_copy_button: bool = False,
+        buttons: list[Literal["fullscreen", "copy"]] | None = None,
         static_columns: list[int] | None = None,
     ):
         super().__init__(
@@ -852,9 +839,7 @@ class List(components.Dataframe):
             show_search=show_search,
             static_columns=static_columns,
             pinned_columns=pinned_columns,
-            show_fullscreen_button=show_fullscreen_button,
-            max_chars=max_chars,
-            show_copy_button=show_copy_button,
+            buttons=buttons,
         )
 
 

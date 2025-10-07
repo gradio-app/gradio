@@ -5,7 +5,7 @@ class TestMarkdown:
     def test_component_functions(self):
         markdown_component = gr.Markdown("# Let's learn about $x$", label="Markdown")
         assert markdown_component.get_config()["value"] == "# Let's learn about $x$"
-        assert not markdown_component.get_config()["show_copy_button"]
+        assert not markdown_component.get_config()["buttons"]
 
     def test_in_interface(self):
         """
