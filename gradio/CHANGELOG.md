@@ -1,5 +1,28 @@
 # gradio
 
+## 5.49.1
+
+### Fixes
+
+- [#12026](https://github.com/gradio-app/gradio/pull/12026) [`31cf825`](https://github.com/gradio-app/gradio/commit/31cf825b472b9ffa29eea163db8b9fe069eefe1f) - gradio.Audio does not preload the file in browser style since 5.46.0.  Thanks @PRIME-SV!
+- [#12046](https://github.com/gradio-app/gradio/pull/12046) [`de9dad3`](https://github.com/gradio-app/gradio/commit/de9dad344f1489a4cfcaedc799e2cfe68de8fe26) - fix: correct various typos in documentation and code.  Thanks @shashax42!
+- [#12023](https://github.com/gradio-app/gradio/pull/12023) [`69da8c8`](https://github.com/gradio-app/gradio/commit/69da8c87653d7ea7f733a248b324051ef5bb810f) - feat: Extended the waternark positioning feature to Video.  Thanks @PRIME-SV!
+- [#12035](https://github.com/gradio-app/gradio/pull/12035) [`ab8dc66`](https://github.com/gradio-app/gradio/commit/ab8dc66b18cec5cb2dc8999264dd1570531318dc) - route progress notifications to the POST SSE Handler for MCP Servers.  Thanks @evalstate!
+
+## 5.49.0
+
+### Features
+
+- [#12004](https://github.com/gradio-app/gradio/pull/12004) [`09b7111`](https://github.com/gradio-app/gradio/commit/09b71110717d65dd0f885c90f1e455a944d65a14) - Add ability to position watermark relative to watermarked content.  Thanks @PRIME-SV!
+
+### Fixes
+
+- [#12019](https://github.com/gradio-app/gradio/pull/12019) [`81fc464`](https://github.com/gradio-app/gradio/commit/81fc4647cdc9ffd724b69ec7286f1d686571062a) - Fix MultimodalTextbox autofocus issue when file_types is specified.  Thanks @freddyaboulton!
+- [#12008](https://github.com/gradio-app/gradio/pull/12008) [`fd585f1`](https://github.com/gradio-app/gradio/commit/fd585f1f78a22734c322103a707b9382af93d212) - Fix: Add per-component caching for `api_info` to improve custom component performance.  Thanks @vijay-x-Raj!
+- [#11994](https://github.com/gradio-app/gradio/pull/11994) [`d6f591e`](https://github.com/gradio-app/gradio/commit/d6f591e823dad8e7387de4124fa1e3ab16203a73) - Add render_children parameter to Tab component.  Thanks @freddyaboulton!
+- [#12018](https://github.com/gradio-app/gradio/pull/12018) [`103e3ab`](https://github.com/gradio-app/gradio/commit/103e3ab8e95fbbbd3a099c297d91c6c5cb1c6615) - Fix Deployed Demos.  Thanks @freddyaboulton!
+- [#12016](https://github.com/gradio-app/gradio/pull/12016) [`2c7a800`](https://github.com/gradio-app/gradio/commit/2c7a8007f45f28cbe158976aa93b3f09462a5a1a) - Accessibility issue with tabing through multiseclect dropdown component.  Thanks @PRIME-SV!
+
 ## 5.48.0
 
 ### Features

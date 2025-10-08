@@ -40,12 +40,11 @@
 	<Chatbot
 		latex_delimiters={[{ left: "$$", right: "$$", display: true }]}
 		value={[
-			[
-				"Can you write a function in Python?",
-				"```py\ndef test():\n\tprint(x)\n```"
-			],
-			["Can you do math?", "$$1+1=2$$"],
-			["Can you say nothing?", null]
+			{ role: "user", content: "Can you write a function in Python?" },
+			{ role: "assistant", content: "```py\ndef test():\n\tprint(x)\n```" },
+			{ role: "user", content: "Can you do math?" },
+			{ role: "assistant", content: "$$1+1=2$$" },
+			{ role: "user", content: "Can you say nothing?" }
 		]}
 		{...args}
 	/>
@@ -72,14 +71,25 @@
 		rtl: true,
 		latex_delimiters: [{ left: "$$", right: "$$", display: true }],
 		value: [
-			[
-				"حلّت التجارية عرض لم, كرسي قادة دار كل. ما خيار ماذا بمحاولة به،. كما عن تونس إيطاليا. يتم بـ لأداء حادثة معزّزة.",
-				"إعادة احداث اعلان بين قد, ما القوى الحكومة التغييرات جهة. قبل و يذكر الإمتعاض, أوسع وشعار إستعمل بعد تم. سبتمبر الصفحة عل أضف, أي وفي الدمج تشكيل وصافرات. حيث قد بقسوة هاربر بأيدي, أملاً نتيجة الثالث ما على, ثم مدن للسيطرة بالتوقيع. هذه ان حقول أخرى."
-			],
-			[
-				"أي وتنصيب الصعداء انه. تاريخ بالجانب هو فصل, أخذ لمحاكم الإتفاقية ان. كنقطة بالعمل التكاليف شيء مع, وجزر الهادي كان و, أي حدى يطول الحكومة اليابان. حيث كرسي لتقليعة الاندونيسية تم, للصين وبغطاء بال بل. ٣٠ لهذه قتيل، ارتكبها كلا. سابق وبدأت تم ذات.",
-				"اليف نفس. ما يتبقّ لبولندا، استراليا، دول."
-			]
+			{
+				role: "user",
+				content:
+					"حلّت التجارية عرض لم, كرسي قادة دار كل. ما خيار ماذا بمحاولة به،. كما عن تونس إيطاليا. يتم بـ لأداء حادثة معزّزة."
+			},
+			{
+				role: "assistant",
+				content:
+					"إعادة احداث اعلان بين قد, ما القوى الحكومة التغييرات جهة. قبل و يذكر الإمتعاض, أوسع وشعار إستعمل بعد تم. سبتمبر الصفحة عل أضف, أي وفي الدمج تشكيل وصافرات. حيث قد بقسوة هاربر بأيدي, أملاً نتيجة الثالث ما على, ثم مدن للسيطرة بالتوقيع. هذه ان حقول أخرى."
+			},
+			{
+				role: "user",
+				content:
+					"أي وتنصيب الصعداء انه. تاريخ بالجانب هو فصل, أخذ لمحاكم الإتفاقية ان. كنقطة بالعمل التكاليف شيء مع, وجزر الهادي كان و, أي حدى يطول الحكومة اليابان. حيث كرسي لتقليعة الاندونيسية تم, للصين وبغطاء بال بل. ٣٠ لهذه قتيل، ارتكبها كلا. سابق وبدأت تم ذات."
+			},
+			{
+				role: "assistant",
+				content: "اليف نفس. ما يتبقّ لبولندا، استراليا، دول."
+			}
 		]
 	}}
 />
@@ -128,16 +138,20 @@
 	name="Chatbot with headers and lists"
 	args={{
 		value: [
-			[
-				`# Markdown Example
+			{
+				role: "user",
+				content: `# Markdown Example
 
-This document is a showcase of various Markdown capabilities.`,
-				`## Table of Contents
+This document is a showcase of various Markdown capabilities.`
+			},
+			{
+				role: "assistant",
+				content: `## Table of Contents
 
 1. [Text Formatting](#text-formating)
 2. [Code Blocks](#code-blocks)
 3. [Tables](#tables)`
-			]
+			}
 		]
 	}}
 />
@@ -146,15 +160,19 @@ This document is a showcase of various Markdown capabilities.`,
 	name="Chatbot with tables and nested lists"
 	args={{
 		value: [
-			[
-				`Creating tables in Markdown is straightforward:
+			{
+				role: "user",
+				content: `Creating tables in Markdown is straightforward:
 
 | Header 1 | Header 2 | Header 3 |
 |----------|----------|----------|
 | Row 1, Cell 1 | Row 1, Cell 2 | Row 1, Cell 3 |
 | Row 2, Cell 1 | Row 2, Cell 2 | Row 2, Cell 3 |
-| Row 3, Cell 1 | Row 3, Cell 2 | Row 3, Cell 3 |`,
-				`### Unordered List
+| Row 3, Cell 1 | Row 3, Cell 2 | Row 3, Cell 3 |`
+			},
+			{
+				role: "assistant",
+				content: `### Unordered List
 
 - Item 1
 - Item 2
@@ -169,7 +187,7 @@ This document is a showcase of various Markdown capabilities.`,
    1. Subitem 2.1
    2. Subitem 2.2
 3. Third Item`
-			]
+			}
 		]
 	}}
 />
@@ -178,9 +196,10 @@ This document is a showcase of various Markdown capabilities.`,
 	name="Chatbot with image in markdown"
 	args={{
 		value: [
-			[
-				`![A cheetah](https://cdn.britannica.com/02/92702-120-6A02E613/Cheetah.jpg)`
-			]
+			{
+				role: "user",
+				content: `![A cheetah](https://cdn.britannica.com/02/92702-120-6A02E613/Cheetah.jpg)`
+			}
 		]
 	}}
 />

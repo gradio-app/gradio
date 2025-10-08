@@ -123,6 +123,8 @@
 		| "upload,microphone"
 		| "microphone"
 		| "microphone,upload";
+
+	$: file_types_string = (file_types || []).join(",") || null;
 </script>
 
 <Block
@@ -149,7 +151,7 @@
 		bind:value_is_output
 		bind:dragging
 		bind:active_source
-		{file_types}
+		{file_types_string}
 		{root}
 		{label}
 		{info}

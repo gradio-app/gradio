@@ -2,7 +2,8 @@ import gradio as gr
 import subprocess
 import os
 
-audio_file = os.path.join(os.path.dirname(__file__), "cantina.wav")
+# get_audio returns the path to the audio file
+audio_file = gr.get_audio("cantina.wav")
 
 with gr.Blocks() as demo:
     with gr.Tab("Audio"):

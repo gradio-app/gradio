@@ -4,6 +4,7 @@ import os
 import sys
 import copy
 import pathlib
+from gradio.media import MEDIA_ROOT
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -42,4 +43,4 @@ for demo_name, demo, _ in all_demos:
     # app = gr.mount_gradio_app(app, demo, f"/demo/{demo_name}")
 
 if __name__ == "__main__":
-    app.launch()
+    app.launch(allowed_paths=[str(MEDIA_ROOT)])
