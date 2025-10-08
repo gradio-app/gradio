@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:fix: correct various typos in documentation and code
+fix:fix: correct various typos in documentation and code
