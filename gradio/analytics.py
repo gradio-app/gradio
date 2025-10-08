@@ -34,7 +34,7 @@ PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
 
 def get_block_name(class_name) -> str:
     """
-    This will return "matrix" for Matrix template, and ensures that any component name that is sent from the gradio app is part of the the core components list (no false positives for custom components).
+    This will return "matrix" for Matrix template, and ensures that any component name that is sent from the gradio app is part of the core components list (no false positives for custom components).
     """
     return class_name.__name__.lower()
 
