@@ -129,10 +129,6 @@ class Interface(Blocks):
         delete_cache: tuple[int, int] | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
         fill_width: bool = False,
-        allow_flagging: Literal["never"]
-        | Literal["auto"]
-        | Literal["manual"]
-        | None = None,
         time_limit: int | None = 30,
         stream_every: float = 0.5,
         deep_link: str | DeepLinkButton | bool | None = None,
@@ -409,14 +405,8 @@ class Interface(Blocks):
 
         self.simple_server = None
 
-        # For flagging_mode: (1) first check for `flagging_mode` parameter (or its alias `allow_flagging`),
+        # For flagging_mode: (1) first check for `flagging_mode` parameter,
         # (2) check for env variable, (3) default to "manual"
-        if allow_flagging is not None:
-            warnings.warn(
-                "The `allow_flagging` parameter in `Interface` is deprecated. "
-                "Use `flagging_mode` instead."
-            )
-            flagging_mode = allow_flagging
         if flagging_mode is None:
             self.flagging_mode = os.getenv("GRADIO_FLAGGING_MODE", "manual")
         elif flagging_mode in ["manual", "never", "auto"]:

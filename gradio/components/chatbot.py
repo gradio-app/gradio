@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import copy
 import inspect
-import warnings
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -219,7 +218,6 @@ class Chatbot(Component):
         preserved_by_key: list[str] | str | None = "value",
         height: int | str | None = 400,
         resizable: bool = False,
-        resizeable: bool = False,  # Deprecated, TODO: Remove
         max_height: int | str | None = None,
         min_height: int | str | None = None,
         editable: Literal["user", "all"] | None = None,
@@ -233,7 +231,6 @@ class Chatbot(Component):
         render_markdown: bool = True,
         feedback_options: list[str] | tuple[str, ...] | None = ("Like", "Dislike"),
         feedback_value: Sequence[str | None] | None = None,
-        bubble_full_width=None,
         line_breaks: bool = True,
         layout: Literal["panel", "bubble"] | None = None,
         placeholder: str | None = None,
@@ -275,7 +272,6 @@ class Chatbot(Component):
             render_markdown: If False, will disable Markdown rendering for chatbot messages.
             feedback_options: A list of strings representing the feedback options that will be displayed to the user. The exact case-sensitive strings "Like" and "Dislike" will render as thumb icons, but any other choices will appear under a separate flag icon.
             feedback_value: A list of strings representing the feedback state for entire chat. Only works when type="messages". Each entry in the list corresponds to that assistant message, in order, and the value is the feedback given (e.g. "Like", "Dislike", or any custom feedback option) or None if no feedback was given for that message.
-            bubble_full_width: Deprecated.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies if `render_markdown` is True.
             layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
             placeholder: a placeholder message to display in the chatbot when it is empty. Centered vertically and horizontally in the Chatbot. Supports Markdown and HTML. If None, no placeholder is displayed.
@@ -287,13 +283,6 @@ class Chatbot(Component):
         """
         self.autoscroll = autoscroll
         self.height = height
-        if resizeable is not False:
-            warnings.warn(
-                "The 'resizeable' parameter is deprecated and will be removed in a future version. Please use the 'resizable' (note the corrected spelling) parameter instead.",
-                DeprecationWarning,
-                stacklevel=3,
-            )
-            self.resizable = resizeable
         self.resizable = resizable
         self.max_height = max_height
         self.min_height = min_height
@@ -312,13 +301,6 @@ class Chatbot(Component):
         self.show_copy_button = show_copy_button
         self.watermark = watermark
         self.sanitize_html = sanitize_html
-        if bubble_full_width is not None:
-            warnings.warn(
-                "The 'bubble_full_width' parameter is deprecated and will be removed in a future version. This parameter no longer has any effect.",
-                DeprecationWarning,
-                stacklevel=3,
-            )
-        self.bubble_full_width = None
         self.line_breaks = line_breaks
         self.layout = layout
         self.show_copy_all_button = show_copy_all_button

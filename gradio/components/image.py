@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import warnings
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
@@ -86,12 +85,10 @@ class Image(StreamingInput, Component):
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
-        mirror_webcam: bool | None = None,
         webcam_options: WebcamOptions | None = None,
         show_share_button: bool | None = None,
         placeholder: str | None = None,
         show_fullscreen_button: bool = True,
-        webcam_constraints: dict[str, Any] | None = None,
         watermark: WatermarkOptions | None = None,
     ):
         """
@@ -119,11 +116,9 @@ class Image(StreamingInput, Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
-            mirror_webcam: If True webcam will be mirrored. Default is True.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             placeholder: Custom text for the upload area. Overrides default upload messages when provided. Accepts new lines and `#` to designate a heading.
             show_fullscreen_button: If True, will show a fullscreen icon in the corner of the component that allows user to view the image in fullscreen mode. If False, icon does not appear.
-            webcam_constraints: A dictionary that allows developers to specify custom media constraints for the webcam stream. This parameter provides flexibility to control the video stream's properties, such as resolution and front or rear camera on mobile devices. See $demo/webcam_constraints
             watermark: If provided and this component is used to display a `value` image, the `watermark` image will be displayed on the bottom right of the `value` image, 10 pixels from the bottom and 10 pixels from the right. The watermark image will not be resized. Supports `PIL.Image`, `numpy.array`, `pathlib.Path`, and `str` filepaths. SVGs and GIFs are not supported as `watermark` images nor can they be watermarked.
         """
         self.format = format
@@ -137,22 +132,7 @@ class Image(StreamingInput, Component):
         )
 
         if isinstance(watermark, (str, Path, PIL.Image.Image, np.ndarray)):
-            warnings.warn(
-                "The `watermark` parameter is updated to use WatermarkOptions. Please use the `watermark` parameter with a `gr.WatermarkOptions` instance instead."
-            )
             self.watermark.watermark = watermark
-
-        if mirror_webcam is not None:
-            warnings.warn(
-                "The `mirror_webcam` parameter is deprecated. Please use the `webcam_options` parameter with a `gr.WebcamOptions` instance instead."
-            )
-            self.webcam_options.mirror = mirror_webcam
-
-        if webcam_constraints is not None:
-            warnings.warn(
-                "The `webcam_constraints` parameter is deprecated. Please use the `webcam_options` parameter with a `gr.WebcamOptions` instance instead."
-            )
-            self.webcam_options.constraints = webcam_constraints
 
         valid_types = ["numpy", "pil", "filepath"]
         if type not in valid_types:

@@ -66,7 +66,6 @@ def bot(history, response_type):
 with gr.Blocks(fill_height=True) as demo:
     chatbot = gr.Chatbot(
         elem_id="chatbot",
-        bubble_full_width=False,
         scale=1,
     )
     response_type = gr.Radio(
