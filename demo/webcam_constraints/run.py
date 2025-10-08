@@ -28,7 +28,7 @@ with gr.Blocks() as demo:
     gr.Markdown("""# Webcam Constraints
                 The webcam constraints are set to 800x600 with the following syntax:
                 ```python
-                gr.Video(webcam_constraints={"video": {"width": 800, "height": 600}}, sources="webcam")
+                gr.Video(webcam_options=gr.WebcamOptions(constraints={"video": {"width": 800, "height": 600}}), sources="webcam")
                 ```
                 """)
     with gr.Tabs():
