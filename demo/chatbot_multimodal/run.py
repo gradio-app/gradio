@@ -26,7 +26,7 @@ def bot(history: list):
 
 
 with gr.Blocks() as demo:
-    chatbot = gr.Chatbot(elem_id="chatbot", bubble_full_width=False)
+    chatbot = gr.Chatbot(elem_id="chatbot")
 
     chat_input = gr.MultimodalTextbox(
         interactive=True,
