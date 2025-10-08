@@ -231,7 +231,6 @@ class Chatbot(Component):
         render_markdown: bool = True,
         feedback_options: list[str] | tuple[str, ...] | None = ("Like", "Dislike"),
         feedback_value: Sequence[str | None] | None = None,
-        bubble_full_width=None,
         line_breaks: bool = True,
         layout: Literal["panel", "bubble"] | None = None,
         placeholder: str | None = None,
@@ -273,7 +272,6 @@ class Chatbot(Component):
             render_markdown: If False, will disable Markdown rendering for chatbot messages.
             feedback_options: A list of strings representing the feedback options that will be displayed to the user. The exact case-sensitive strings "Like" and "Dislike" will render as thumb icons, but any other choices will appear under a separate flag icon.
             feedback_value: A list of strings representing the feedback state for entire chat. Only works when type="messages". Each entry in the list corresponds to that assistant message, in order, and the value is the feedback given (e.g. "Like", "Dislike", or any custom feedback option) or None if no feedback was given for that message.
-            bubble_full_width: Deprecated.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies if `render_markdown` is True.
             layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
             placeholder: a placeholder message to display in the chatbot when it is empty. Centered vertically and horizontally in the Chatbot. Supports Markdown and HTML. If None, no placeholder is displayed.
