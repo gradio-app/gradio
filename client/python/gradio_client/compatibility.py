@@ -256,7 +256,7 @@ class EndpointV3Compatibility:
                 s.deserialize(
                     d,
                     save_dir=self.client.output_dir,
-                    hf_token=self.client.hf_token,
+                    hf_token=self.client.token,
                     root_url=self.root_url,
                 )
                 for s, d in zip(self.deserializers, data, strict=False)

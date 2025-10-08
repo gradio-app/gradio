@@ -28,7 +28,7 @@ from typing import Any, Literal, cast
 
 import httpx
 import huggingface_hub
-from huggingface_hub import CommitOperationAdd, SpaceHardware, SpaceStage
+from huggingface_hub import SpaceHardware, SpaceStage
 from huggingface_hub.utils import (
     RepositoryNotFoundError,
     build_hf_headers,
@@ -78,7 +78,7 @@ class Client:
     def __init__(
         self,
         src: str,
-        hf_token: str | None = None,
+        token: str | None = None,
         max_workers: int = 40,
         verbose: bool = True,
         auth: tuple[str, str] | None = None,
@@ -93,7 +93,7 @@ class Client:
         """
         Parameters:
             src: either the name of the Hugging Face Space to load, (e.g. "abidlabs/whisper-large-v2") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
-            hf_token: optional Hugging Face token to use to access private Spaces. By default, the locally saved token is used if there is one. Find your tokens here: https://huggingface.co/settings/tokens.
+            token: optional Hugging Face token to use to access private Spaces. By default, the locally saved token is used if there is one. Find your tokens here: https://huggingface.co/settings/tokens.
             max_workers: maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
             verbose: whether the client should print statements to the console.
             headers: additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. This parameter will override the default headers if they have the same keys.
@@ -103,11 +103,11 @@ class Client:
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
         """
         self.verbose = verbose
-        self.hf_token = hf_token
+        self.token = token
         self.download_files = download_files
         self._skip_components = _skip_components
         self.headers = build_hf_headers(
-            token=hf_token,
+            token=token,
             library_name="gradio_client",
             library_version=utils.__version__,
         )
@@ -137,7 +137,7 @@ class Client:
             _src = self._space_name_to_src(src)
             if _src is None:
                 raise ValueError(
-                    f"Could not find Space: {src}. If it is a private Space, please provide an hf_token."
+                    f"Could not find Space: {src}. If it is a private Space, please provide a Hugging Face token."
                 )
             self.space_id = src
         self.src = _src
@@ -357,7 +357,7 @@ class Client:
         cls,
         from_id: str,
         to_id: str | None = None,
-        hf_token: str | None = None,
+        token: str | None = None,
         private: bool = True,
         hardware: Literal[
             "cpu-basic",
@@ -379,7 +379,7 @@ class Client:
         Duplicates a Hugging Face Space under your account and returns a Client object
         for the new Space. No duplication is created if the Space already exists in your
         account (to override this, provide a new name for the new Space using `to_id`).
-        To use this method, you must provide an `hf_token` or be logged in via the Hugging
+        To use this method, you must provide an `token` or be logged in via the Hugging
         Face Hub CLI.
 
         The new Space will be private by default and use the same hardware as the original
@@ -390,7 +390,7 @@ class Client:
         Parameters:
             from_id: The name of the Hugging Face Space to duplicate in the format "{username}/{space_id}", e.g. "gradio/whisper".
             to_id: The name of the new Hugging Face Space to create, e.g. "abidlabs/whisper-duplicate". If not provided, the new Space will be named "{your_HF_username}/{space_id}".
-            hf_token: optional Hugging Face token to use to duplicating private Spaces. By default, no token is sent to the server. Set `hf_token=None` to use the locally saved token if there is one. Find your tokens here: https://huggingface.co/settings/tokens.
+            token: optional Hugging Face token to use to duplicating private Spaces. By default, no token is sent to the server. Set `token=None` to use the locally saved token if there is one. Find your tokens here: https://huggingface.co/settings/tokens.
             private: Whether the new Space should be private (True) or public (False). Defaults to True.
             hardware: The hardware tier to use for the new Space. Defaults to the same hardware tier as the original Space. Options include "cpu-basic", "cpu-upgrade", "t4-small", "t4-medium", "a10g-small", "a10g-large", "a100-large", subject to availability.
             secrets: A dictionary of (secret key, secret value) to pass to the new Space. Defaults to None. Secrets are only used when the Space is duplicated for the first time, and are not updated if the duplicated Space already exists.
@@ -401,26 +401,26 @@ class Client:
             import os
             from gradio_client import Client
             HF_TOKEN = os.environ.get("HF_TOKEN")
-            client = Client.duplicate("abidlabs/whisper", hf_token=HF_TOKEN)
+            client = Client.duplicate("abidlabs/whisper", token=HF_TOKEN)
             client.predict("audio_sample.wav")
             >> "This is a test of the whisper speech recognition model."
         """
         try:
-            original_info = huggingface_hub.get_space_runtime(from_id, token=hf_token)
+            original_info = huggingface_hub.get_space_runtime(from_id, token=token)
         except RepositoryNotFoundError as rnfe:
             raise ValueError(
-                f"Could not find Space: {from_id}. If it is a private Space, please provide an `hf_token`."
+                f"Could not find Space: {from_id}. If it is a private Space, please provide a `token`."
             ) from rnfe
         if to_id:
             if "/" in to_id:
                 to_id = to_id.split("/")[1]
-            space_id = huggingface_hub.get_full_repo_name(to_id, token=hf_token)
+            space_id = huggingface_hub.get_full_repo_name(to_id, token=token)
         else:
             space_id = huggingface_hub.get_full_repo_name(
-                from_id.split("/")[1], token=hf_token
+                from_id.split("/")[1], token=token
             )
         try:
-            huggingface_hub.get_space_runtime(space_id, token=hf_token)
+            huggingface_hub.get_space_runtime(space_id, token=token)
             if verbose:
                 print(
                     f"Using your existing Space: {utils.SPACE_URL.format(space_id)} 🤗"
@@ -435,24 +435,22 @@ class Client:
             huggingface_hub.duplicate_space(
                 from_id=from_id,
                 to_id=space_id,
-                token=hf_token,
+                token=token,
                 exist_ok=True,
                 private=private,
             )
             if secrets is not None:
                 for key, value in secrets.items():
-                    huggingface_hub.add_space_secret(
-                        space_id, key, value, token=hf_token
-                    )
+                    huggingface_hub.add_space_secret(space_id, key, value, token=token)
             if verbose:
                 print(f"Created new Space: {utils.SPACE_URL.format(space_id)}")
-        current_info = huggingface_hub.get_space_runtime(space_id, token=hf_token)
+        current_info = huggingface_hub.get_space_runtime(space_id, token=token)
         current_hardware = (
             current_info.hardware or huggingface_hub.SpaceHardware.CPU_BASIC
         )
         hardware = hardware or original_info.hardware
         if current_hardware != hardware:
-            huggingface_hub.request_space_hardware(space_id, hardware, token=hf_token)  # type: ignore
+            huggingface_hub.request_space_hardware(space_id, hardware, token=token)  # type: ignore
             print(
                 f"-------\nNOTE: this Space uses upgraded hardware: {hardware}... see billing info at https://huggingface.co/settings/billing\n-------"
             )
@@ -460,19 +458,17 @@ class Client:
         # so set it here after the hardware has been requested
         if hardware != huggingface_hub.SpaceHardware.CPU_BASIC:
             utils.set_space_timeout(
-                space_id, hf_token=hf_token, timeout_in_seconds=sleep_timeout * 60
+                space_id, token=token, timeout_in_seconds=sleep_timeout * 60
             )
         if verbose:
             print("")
-        client = cls(
-            space_id, hf_token=hf_token, max_workers=max_workers, verbose=verbose
-        )
+        client = cls(space_id, token=token, max_workers=max_workers, verbose=verbose)
         return client
 
     def _get_space_state(self):
         if not self.space_id:
             return None
-        info = huggingface_hub.get_space_runtime(self.space_id, token=self.hf_token)
+        info = huggingface_hub.get_space_runtime(self.space_id, token=self.token)
         return info.stage
 
     def predict(
@@ -900,7 +896,7 @@ class Client:
             self.executor.shutdown(wait=True)
 
     def _space_name_to_src(self, space) -> str | None:
-        return huggingface_hub.space_info(space, token=self.hf_token).host  # type: ignore
+        return huggingface_hub.space_info(space, token=self.token).host  # type: ignore
 
     def _login(self, auth: tuple[str, str]):
         """
@@ -975,157 +971,6 @@ class Client:
                     "Gradio 2.x is not supported by this client. Please upgrade your Gradio app to Gradio 3.x or higher."
                 )
             return config
-
-    def deploy_discord(
-        self,
-        discord_bot_token: str | None = None,
-        api_names: list[str | tuple[str, str]] | None = None,
-        to_id: str | None = None,
-        hf_token: str | None = None,
-        private: bool = False,
-    ):
-        """
-        Deploy the upstream app as a discord bot. Currently only supports gr.ChatInterface.
-        Parameters:
-            discord_bot_token: This is the "password" needed to be able to launch the bot. Users can get a token by creating a bot app on the discord website. If run the method without specifying a token, the space will explain how to get one. See here: https://huggingface.co/spaces/freddyaboulton/test-discord-bot-v1.
-            api_names: The api_names of the app to turn into bot commands. This parameter currently has no effect as ChatInterface only has one api_name ('/chat').
-            to_id: The name of the space hosting the discord bot. If None, the name will be gradio-discord-bot-{random-substring}
-            hf_token: HF api token with write priviledges in order to upload the files to HF space. Can be ommitted if logged in via the HuggingFace CLI, unless the upstream space is private. Obtain from: https://huggingface.co/settings/token
-            private: Whether the space hosting the discord bot is private. The visibility of the discord bot itself is set via the discord website. See https://huggingface.co/spaces/freddyaboulton/test-discord-bot-v1
-        """
-        warnings.warn(
-            "This method is deprecated and may be removed in the future. Please see the documentation on how to create a discord bot with Gradio: https://www.gradio.app/guides/creating-a-discord-bot-from-a-gradio-app"
-        )
-        if self.config["mode"] == "chat_interface" and not api_names:
-            api_names = [("chat", "chat")]
-
-        valid_list = isinstance(api_names, list) and (
-            isinstance(n, str)
-            or (
-                isinstance(n, tuple) and isinstance(n[0], str) and isinstance(n[1], str)
-            )
-            for n in api_names
-        )
-        if api_names is None or not valid_list:
-            raise ValueError(
-                f"Each entry in api_names must be either a string or a tuple of strings. Received {api_names}"
-            )
-        if len(api_names) != 1:
-            raise ValueError("Currently only one api_name can be deployed to discord.")
-
-        for i, name in enumerate(api_names):
-            if isinstance(name, str):
-                api_names[i] = (name, name)
-
-        fn = next(
-            (
-                ep
-                for ep in self.endpoints.values()
-                if ep.api_name == f"/{api_names[0][0]}"
-            ),
-            None,
-        )
-        if not fn:
-            raise ValueError(
-                f"api_name {api_names[0][0]} not present in {self.space_id or self.src}"
-            )
-        inputs = [inp for inp in fn.input_component_types if not inp.skip]
-        outputs = [inp for inp in fn.input_component_types if not inp.skip]
-        if not inputs == ["textbox"] and outputs == ["textbox"]:
-            raise ValueError(
-                "Currently only api_names with a single textbox as input and output are supported. "
-                f"Received {inputs} and {outputs}"
-            )
-
-        is_private = False
-        if self.space_id:
-            is_private = huggingface_hub.space_info(self.space_id).private
-            if is_private and not hf_token:
-                raise ValueError(
-                    f"Since {self.space_id} is private, you must explicitly pass in hf_token "
-                    "so that it can be added as a secret in the discord bot space."
-                )
-
-        if to_id:
-            if "/" in to_id:
-                to_id = to_id.split("/")[1]
-            space_id = huggingface_hub.get_full_repo_name(to_id, token=hf_token)
-        else:
-            if self.space_id:
-                space_id = f"{self.space_id.split('/')[1]}-gradio-discord-bot"
-            else:
-                space_id = f"gradio-discord-bot-{secrets.token_hex(4)}"
-            space_id = huggingface_hub.get_full_repo_name(space_id, token=hf_token)
-
-        api = huggingface_hub.HfApi()
-
-        try:
-            huggingface_hub.space_info(space_id)
-            first_upload = False
-        except huggingface_hub.utils.RepositoryNotFoundError:
-            first_upload = True
-
-        huggingface_hub.create_repo(
-            space_id,
-            repo_type="space",
-            space_sdk="gradio",
-            token=hf_token,
-            exist_ok=True,
-            private=private,
-        )
-        if first_upload:
-            huggingface_hub.metadata_update(
-                repo_id=space_id,
-                repo_type="space",
-                metadata={"tags": ["gradio-discord-bot"]},
-            )
-
-        with open(
-            str(Path(__file__).parent / "templates" / "discord_chat.py"),
-            encoding="utf-8",
-        ) as f:
-            app = f.read()
-        app = app.replace("<<app-src>>", self.src)
-        app = app.replace("<<api-name>>", api_names[0][0])
-        app = app.replace("<<command-name>>", api_names[0][1])
-
-        with tempfile.NamedTemporaryFile(
-            mode="w", delete=False, encoding="utf-8"
-        ) as app_file:
-            with tempfile.NamedTemporaryFile(mode="w", delete=False) as requirements:
-                app_file.write(app)
-                requirements.write("\n".join(["discord.py==2.3.1"]))
-
-        operations = [
-            CommitOperationAdd(path_in_repo="app.py", path_or_fileobj=app_file.name),
-            CommitOperationAdd(
-                path_in_repo="requirements.txt", path_or_fileobj=requirements.name
-            ),
-        ]
-
-        api.create_commit(
-            repo_id=space_id,
-            commit_message="Deploy Discord Bot",
-            repo_type="space",
-            operations=operations,
-            token=hf_token,
-        )
-
-        if discord_bot_token:
-            huggingface_hub.add_space_secret(
-                space_id, "DISCORD_TOKEN", discord_bot_token, token=hf_token
-            )
-        if is_private:
-            huggingface_hub.add_space_secret(
-                space_id,
-                "HF_TOKEN",
-                hf_token,  # type: ignore
-                token=hf_token,
-            )
-
-        url = f"https://huggingface.co/spaces/{space_id}"
-        print(f"See your discord bot here! {url}")
-        return url
 
 
 @dataclass
