@@ -15,13 +15,13 @@ def image_mod(image):
 
 video = gr.Interface(
     fn=get_video_shape,
-    inputs=gr.Video(webcam_constraints={"video": {"width": 800, "height": 600}}, sources="webcam"),
+    inputs=gr.Video(webcam_options=gr.WebcamOptions(constraints={"video": {"width": 800, "height": 600}}), sources="webcam"),
     outputs=gr.JSON()
 )
 
 image = gr.Interface(
         image_mod,
-        gr.Image(type="pil", webcam_constraints={"video": {"width": 800, "height": 600}}, sources="webcam"),
+        gr.Image(type="pil", webcam_options=gr.WebcamOptions(constraints={"video": {"width": 800, "height": 600}}), sources="webcam"),
         gr.Json())
 
 with gr.Blocks() as demo:

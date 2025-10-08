@@ -63,7 +63,6 @@ class TestAudio:
             "min_length": None,
             "waveform_options": {
                 "sample_rate": 44100,
-                "show_controls": False,
                 "show_recording_waveform": True,
                 "skip_length": 5,
                 "waveform_color": None,
@@ -123,7 +122,6 @@ class TestAudio:
             "sources": ["upload", "microphone"],
             "waveform_options": {
                 "sample_rate": 44100,
-                "show_controls": False,
                 "show_recording_waveform": True,
                 "skip_length": 5,
                 "waveform_color": None,

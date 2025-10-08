@@ -95,7 +95,6 @@ class TestChatbot:
             "avatar_images": [None, None],
             "sanitize_html": True,
             "render_markdown": True,
-            "bubble_full_width": None,
             "line_breaks": True,
             "layout": None,
             "allow_tags": True,

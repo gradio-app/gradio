@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import copy
 import inspect
-import warnings
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -219,7 +218,6 @@ class Chatbot(Component):
         preserved_by_key: list[str] | str | None = "value",
         height: int | str | None = 400,
         resizable: bool = False,
-        resizeable: bool = False,  # Deprecated, TODO: Remove
         max_height: int | str | None = None,
         min_height: int | str | None = None,
         editable: Literal["user", "all"] | None = None,
@@ -287,13 +285,6 @@ class Chatbot(Component):
         """
         self.autoscroll = autoscroll
         self.height = height
-        if resizeable is not False:
-            warnings.warn(
-                "The 'resizeable' parameter is deprecated and will be removed in a future version. Please use the 'resizable' (note the corrected spelling) parameter instead.",
-                DeprecationWarning,
-                stacklevel=3,
-            )
-            self.resizable = resizeable
         self.resizable = resizable
         self.max_height = max_height
         self.min_height = min_height
@@ -312,13 +303,6 @@ class Chatbot(Component):
         self.show_copy_button = show_copy_button
         self.watermark = watermark
         self.sanitize_html = sanitize_html
-        if bubble_full_width is not None:
-            warnings.warn(
-                "The 'bubble_full_width' parameter is deprecated and will be removed in a future version. This parameter no longer has any effect.",
-                DeprecationWarning,
-                stacklevel=3,
-            )
-        self.bubble_full_width = None
         self.line_breaks = line_breaks
         self.layout = layout
         self.show_copy_all_button = show_copy_all_button
