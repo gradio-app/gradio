@@ -68,7 +68,7 @@ class TestVideo:
             "preserved_by_key": ["value"],
             "loop": False,
             "streaming": False,
-            "watermark": None,
+            "watermark": {"watermark": None, "position": "bottom-right"},
         }
         assert video_input.preprocess(None) is None
         video_input = gr.Video(format="avi")

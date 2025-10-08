@@ -17,7 +17,7 @@ from gradio_client.documentation import document
 
 from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingOutput
-from gradio.components.image_editor import WebcamOptions
+from gradio.components.image_editor import WatermarkOptions, WebcamOptions
 from gradio.data_classes import FileData, GradioModel, MediaStreamChunk
 from gradio.events import Events
 from gradio.i18n import I18nData
@@ -125,7 +125,7 @@ class Video(StreamingOutput, Component):
         show_download_button: bool | None = None,
         loop: bool = False,
         streaming: bool = False,
-        watermark: str | Path | None = None,
+        watermark: WatermarkOptions | None = None,
         webcam_constraints: dict[str, Any] | None = None,
     ):
         """
@@ -155,7 +155,7 @@ class Video(StreamingOutput, Component):
             show_download_button: if True, will show a download icon in the corner of the component that allows user to download the output. If False, icon does not appear. By default, it will be True for output components and False for input components.
             loop: if True, the video will loop when it reaches the end and continue playing from the beginning.
             streaming: when used set as an output, takes video chunks yielded from the backend and combines them into one streaming video output. Each chunk should be a video file with a .ts extension using an h.264 encoding. Mp4 files are also accepted but they will be converted to h.264 encoding.
-            watermark: an image file to be included as a watermark on the video. The image is not scaled and is displayed on the bottom right of the video. Valid formats for the image are: jpeg, png.
+            watermark: A `gr.WatermarkOptions` instance that includes an image file and position to be used as a watermark on the video. The image is not scaled and is displayed on the provided position on the video. Valid formats for the image are: jpeg, png.
             webcam_options: A `gr.WebcamOptions` instance that allows developers to specify custom media constraints for the webcam stream. This parameter provides flexibility to control the video stream's properties, such as resolution and front or rear camera on mobile devices. See $demo/webcam_constraints
         """
         valid_sources: list[Literal["upload", "webcam"]] = ["upload", "webcam"]
@@ -183,6 +183,16 @@ class Video(StreamingOutput, Component):
             webcam_options if webcam_options is not None else WebcamOptions()
         )
 
+        self.watermark = (
+            watermark if isinstance(watermark, WatermarkOptions) else WatermarkOptions()
+        )
+
+        if isinstance(watermark, (str, Path)):
+            warnings.warn(
+                "The `watermark` parameter is updated to use WatermarkOptions. Please use the `watermark` parameter with a `gr.WatermarkOptions` instance instead."
+            )
+            self.watermark.watermark = watermark
+
         if mirror_webcam is not None:
             warnings.warn(
                 "The `mirror_webcam` parameter is deprecated. Please use the `webcam_options` parameter with a `gr.WebcamOptions` instance instead."
@@ -202,7 +212,6 @@ class Video(StreamingOutput, Component):
         )
         self.show_download_button = show_download_button
         self.streaming = streaming
-        self.watermark = watermark
         super().__init__(
             label=label,
             every=every,
@@ -239,17 +248,17 @@ class Video(StreamingOutput, Component):
         flip = self.sources == ["webcam"] and self.webcam_options.mirror
         # TODO: Check other image extensions to see if they work.
         valid_watermark_extensions = [".png", ".jpg", ".jpeg"]
-        if self.watermark is not None:
-            if not isinstance(self.watermark, (str, Path)):
+        if self.watermark.watermark is not None:
+            if not isinstance(self.watermark.watermark, (str, Path)):
                 raise ValueError(
                     f"Provided watermark file not an expected file type. "
-                    f"Received: {self.watermark}"
+                    f"Received: {self.watermark.watermark}"
                 )
-            if Path(self.watermark).suffix not in valid_watermark_extensions:
+            if Path(self.watermark.watermark).suffix not in valid_watermark_extensions:
                 raise ValueError(
                     f"Watermark file does not have a supported extension. "
                     f"Expected one of {','.join(valid_watermark_extensions)}. "
-                    f"Received: {Path(self.watermark).suffix}."
+                    f"Received: {Path(self.watermark.watermark).suffix}."
                 )
         if needs_formatting or flip:
             format = f".{self.format if needs_formatting else uploaded_format}"
@@ -342,7 +351,7 @@ class Video(StreamingOutput, Component):
 
         # For cases where the video is a URL and does not need to be converted
         # to another format and have a watermark added, we can just return the URL
-        if not self.watermark and (is_url and not conversion_needed):
+        if not self.watermark.watermark and (is_url and not conversion_needed):
             return FileData(path=video)
 
         # For cases where the video needs to be converted to another format
@@ -363,7 +372,7 @@ class Video(StreamingOutput, Component):
         returned_format = utils.get_extension_from_file_path_or_url(video).lower()
         if (
             self.format is not None and returned_format != self.format
-        ) or self.watermark:
+        ) or self.watermark.watermark:
             global_option_list = ["-y"]
             inputs_dict = {video: None}
             output_file_name = video[0 : video.rindex(".") + 1]
@@ -371,9 +380,25 @@ class Video(StreamingOutput, Component):
                 output_file_name += self.format
             else:
                 output_file_name += returned_format
-            if self.watermark:
-                inputs_dict[str(self.watermark)] = None
-                watermark_cmd = "overlay=W-w-5:H-h-5"
+            if self.watermark.watermark:
+                inputs_dict[str(self.watermark.watermark)] = None
+                pos = self.watermark.position
+                margin = 5
+
+                if isinstance(pos, tuple):
+                    x, y = pos
+                    watermark_cmd = f"overlay={x}:{y}"
+                elif pos == "top-left":
+                    watermark_cmd = f"overlay={margin}:{margin}"
+                elif pos == "top-right":
+                    watermark_cmd = f"overlay=W-w-{margin}:{margin}"
+                elif pos == "bottom-left":
+                    watermark_cmd = f"overlay={margin}:H-h-{margin}"
+                elif pos == "bottom-right":
+                    watermark_cmd = f"overlay=W-w-{margin}:H-h-{margin}"
+                else:
+                    watermark_cmd = "overlay=W-w-5:H-h-5"
+
                 global_option_list += ["-filter_complex", watermark_cmd]
                 output_file_name = (
                     Path(output_file_name).stem
