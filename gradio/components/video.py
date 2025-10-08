@@ -15,7 +15,6 @@ from gradio_client import handle_file
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
-import gradio as gr
 from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingOutput
 from gradio.components.image_editor import WatermarkOptions, WebcamOptions
@@ -92,8 +91,6 @@ class Video(StreamingOutput, Component):
         autoplay: bool = False,
         show_share_button: bool | None = None,
         show_download_button: bool | None = None,
-        min_length: int | None = None,
-        max_length: int | None = None,
         loop: bool = False,
         streaming: bool = False,
         watermark: WatermarkOptions | None = None,
@@ -123,8 +120,6 @@ class Video(StreamingOutput, Component):
             autoplay: whether to automatically play the video when the component is used as an output. Note: browsers will not autoplay video files if the user has not interacted with the page yet.
             show_share_button: if True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             show_download_button: if True, will show a download icon in the corner of the component that allows user to download the output. If False, icon does not appear. By default, it will be True for output components and False for input components.
-            min_length: the minimum length of video (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
-            max_length: the maximum length of video (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             loop: if True, the video will loop when it reaches the end and continue playing from the beginning.
             streaming: when used set as an output, takes video chunks yielded from the backend and combines them into one streaming video output. Each chunk should be a video file with a .ts extension using an h.264 encoding. Mp4 files are also accepted but they will be converted to h.264 encoding.
             watermark: A `gr.WatermarkOptions` instance that includes an image file and position to be used as a watermark on the video. The image is not scaled and is displayed on the provided position on the video. Valid formats for the image are: jpeg, png.
@@ -171,8 +166,6 @@ class Video(StreamingOutput, Component):
             else show_share_button
         )
         self.show_download_button = show_download_button
-        self.min_length = min_length
-        self.max_length = max_length
         self.streaming = streaming
         super().__init__(
             label=label,
@@ -208,19 +201,6 @@ class Video(StreamingOutput, Component):
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format
         flip = self.sources == ["webcam"] and self.webcam_options.mirror
-
-        if self.min_length is not None or self.max_length is not None:
-            # With this if-clause, avoid unnecessary execution of `processing_utils.get_video_length`.
-            # This is necessary for the Wasm-mode, because it uses ffprobe, which is not available in the browser.
-            duration = processing_utils.get_video_length(file_name)
-            if self.min_length is not None and duration < self.min_length:
-                raise gr.Error(
-                    f"Video is too short, and must be at least {self.min_length} seconds"
-                )
-            if self.max_length is not None and duration > self.max_length:
-                raise gr.Error(
-                    f"Video is too long, and must be at most {self.max_length} seconds"
-                )
         # TODO: Check other image extensions to see if they work.
         valid_watermark_extensions = [".png", ".jpg", ".jpeg"]
         if self.watermark.watermark is not None:
