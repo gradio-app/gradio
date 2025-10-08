@@ -1,5 +1,14 @@
 # gradio
 
+## 5.49.1
+
+### Fixes
+
+- [#12026](https://github.com/gradio-app/gradio/pull/12026) [`31cf825`](https://github.com/gradio-app/gradio/commit/31cf825b472b9ffa29eea163db8b9fe069eefe1f) - gradio.Audio does not preload the file in browser style since 5.46.0.  Thanks @PRIME-SV!
+- [#12046](https://github.com/gradio-app/gradio/pull/12046) [`de9dad3`](https://github.com/gradio-app/gradio/commit/de9dad344f1489a4cfcaedc799e2cfe68de8fe26) - fix: correct various typos in documentation and code.  Thanks @shashax42!
+- [#12023](https://github.com/gradio-app/gradio/pull/12023) [`69da8c8`](https://github.com/gradio-app/gradio/commit/69da8c87653d7ea7f733a248b324051ef5bb810f) - feat: Extended the waternark positioning feature to Video.  Thanks @PRIME-SV!
+- [#12035](https://github.com/gradio-app/gradio/pull/12035) [`ab8dc66`](https://github.com/gradio-app/gradio/commit/ab8dc66b18cec5cb2dc8999264dd1570531318dc) - route progress notifications to the POST SSE Handler for MCP Servers.  Thanks @evalstate!
+
 ## 5.49.0
 
 ### Features
