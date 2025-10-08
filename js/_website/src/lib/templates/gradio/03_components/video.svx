@@ -117,7 +117,7 @@ demo = gr.Interface(
     lambda x: x,
     inputs="video",
     outputs="video",
-    validator=lambda video: gr.validators.is_video_correct_length(video, min_duration=1, max_duration=5)
+    validator=lambda video: gr.validators.is_video_correct_length(video, min_length=1, max_length=5)
 )
 demo.launch()
 ```

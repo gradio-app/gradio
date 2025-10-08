@@ -27,13 +27,13 @@ def is_audio_correct_length(
             return {
                 "__type__": "validate",
                 "is_valid": False,
-                "message": f"Audio is too short, and must be at least {min_length} seconds",
+                "message": f"Audio is too short. It must be at least {min_length} seconds",
             }
         if max_length is not None and duration > max_length:
             return {
                 "__type__": "validate",
                 "is_valid": False,
-                "message": f"Audio is too long, and must be at most {max_length} seconds",
+                "message": f"Audio is too long. It must be at most {max_length} seconds",
             }
     return {"__type__": "validate", "is_valid": True}
 
@@ -60,12 +60,12 @@ def is_video_correct_length(
             return {
                 "__type__": "validate",
                 "is_valid": False,
-                "message": f"Video is too short, and must be at least {min_length} seconds",
+                "message": f"Video is too short. It must be at least {min_length} seconds",
             }
         if max_length is not None and duration > max_length:
             return {
                 "__type__": "validate",
                 "is_valid": False,
-                "message": f"Video is too long, and must be at most {max_length} seconds",
+                "message": f"Video is too long. It must be at most {max_length} seconds",
             }
     return {"__type__": "validate", "is_valid": True}
