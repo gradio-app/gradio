@@ -434,10 +434,10 @@ export class Client {
 			"Content-Type"?: "application/json";
 		} = {};
 
-		const { token: hf_token } = this.options;
+		const { token } = this.options;
 		const { session_hash } = this;
 
-		if (hf_token) {
+		if (token) {
 			headers.Authorization = `Bearer ${this.options.token}`;
 		}
 
@@ -473,8 +473,8 @@ export class Client {
 			headers["Content-Type"] = "application/json";
 		}
 
-		if (hf_token) {
-			headers.Authorization = `Bearer ${hf_token}`;
+		if (token) {
+			headers.Authorization = `Bearer ${token}`;
 		}
 
 		try {

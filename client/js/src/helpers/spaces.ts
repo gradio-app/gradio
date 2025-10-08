@@ -199,11 +199,11 @@ export async function get_space_hardware(
 export async function set_space_timeout(
 	space_id: string,
 	timeout: number,
-	hf_token?: `hf_${string}`
+	token?: `hf_${string}`
 ): Promise<any> {
 	const headers: { Authorization?: string } = {};
-	if (hf_token) {
-		headers.Authorization = `Bearer ${hf_token}`;
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
 	}
 
 	const body: {

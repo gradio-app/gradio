@@ -182,7 +182,7 @@ export async function get_cookie_header(
 	host: string,
 	auth: [string, string],
 	_fetch: typeof fetch,
-	hf_token?: `hf_${string}`
+	token?: `hf_${string}`
 ): Promise<string | null> {
 	const formData = new FormData();
 	formData.append("username", auth?.[0]);
@@ -190,8 +190,8 @@ export async function get_cookie_header(
 
 	let headers: { Authorization?: string } = {};
 
-	if (hf_token) {
-		headers.Authorization = `Bearer ${hf_token}`;
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
 	}
 
 	const res = await _fetch(`${http_protocol}//${host}/${LOGIN_URL}`, {

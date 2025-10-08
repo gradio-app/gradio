@@ -8,7 +8,7 @@ import { join_urls, transform_api_info } from "../helpers/api_info";
 export async function view_api(this: Client): Promise<any> {
 	if (this.api_info) return this.api_info;
 
-	const { token: hf_token } = this.options;
+	const { token } = this.options;
 	const { config } = this;
 
 	const headers: {
@@ -16,8 +16,8 @@ export async function view_api(this: Client): Promise<any> {
 		"Content-Type": "application/json";
 	} = { "Content-Type": "application/json" };
 
-	if (hf_token) {
-		headers.Authorization = `Bearer ${hf_token}`;
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
 	}
 
 	if (!config) {

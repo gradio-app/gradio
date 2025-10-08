@@ -39,7 +39,7 @@ export function submit(
 	all_events?: boolean
 ): SubmitIterable<GradioEvent> {
 	try {
-		const { token: hf_token } = this.options;
+		const { token } = this.options;
 		const {
 			fetch,
 			app_reference,
@@ -265,7 +265,7 @@ export function submit(
 				} else if (protocol == "ws") {
 					const { ws_protocol, host } = await process_endpoint(
 						app_reference,
-						hf_token
+						token
 					);
 
 					fire_event({
