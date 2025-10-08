@@ -199,6 +199,9 @@
 			{root}
 			{sources}
 			{fullscreen}
+			show_fullscreen_button={buttons === null
+				? true
+				: buttons.includes("fullscreen")}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => {
 				fullscreen = false;
