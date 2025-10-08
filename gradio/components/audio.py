@@ -49,38 +49,6 @@ class WaveformOptions:
 
 
 @document()
-def is_audio_correct_length(
-    audio: tuple[int, np.ndarray], min_length: float | None, max_length: float | None
-) -> dict[str, Any]:
-    """
-    Validates that the audio length is within the specified min and max length (in seconds).
-
-    Parameters:
-        audio: A tuple of (sample rate in Hz, audio data as numpy array).
-        min_length: Minimum length of audio in seconds. If None, no minimum length check is performed.
-        max_length: Maximum length of audio in seconds. If None, no maximum length check is performed.
-    Returns:
-        A dict corresponding to `gr.validate()` indicating whether the audio length is valid and an optional message.
-    """
-    if min_length is not None or max_length is not None:
-        sample_rate, data = audio
-        duration = len(data) / sample_rate
-        if min_length is not None and duration < min_length:
-            return {
-                "__type__": "validate",
-                "is_valid": False,
-                "message": f"Audio is too short, and must be at least {min_length} seconds",
-            }
-        if max_length is not None and duration > max_length:
-            return {
-                "__type__": "validate",
-                "is_valid": False,
-                "message": f"Audio is too long, and must be at most {max_length} seconds",
-            }
-    return {"__type__": "validate", "is_valid": True}
-
-
-@document()
 class Audio(
     StreamingInput,
     StreamingOutput,

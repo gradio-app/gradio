@@ -257,11 +257,26 @@ class TestVideo:
 def test_is_video_correct_length():
     test_file_dir = Path(__file__).parent.parent / "test_files"
     video_path = str(test_file_dir / "muted_video_sample.mp4")
-    assert gr.is_video_correct_length(video_path, None, None)["is_valid"] is True
-    assert gr.is_video_correct_length(video_path, 1, None)["is_valid"] is True
-    assert gr.is_video_correct_length(video_path, 1000, None)["is_valid"] is False
-    assert gr.is_video_correct_length(video_path, None, 1000)["is_valid"] is True
-    assert gr.is_video_correct_length(video_path, None, 1)["is_valid"] is False
-    assert gr.is_video_correct_length(video_path, 1, 1000)["is_valid"] is True
-    assert gr.is_video_correct_length(video_path, 1, 5)["is_valid"] is True
-    assert gr.is_video_correct_length(video_path, 1, 2)["is_valid"] is False
+    assert (
+        gr.validators.is_video_correct_length(video_path, None, None)["is_valid"]
+        is True
+    )
+    assert (
+        gr.validators.is_video_correct_length(video_path, 1, None)["is_valid"] is True
+    )
+    assert (
+        gr.validators.is_video_correct_length(video_path, 1000, None)["is_valid"]
+        is False
+    )
+    assert (
+        gr.validators.is_video_correct_length(video_path, None, 1000)["is_valid"]
+        is True
+    )
+    assert (
+        gr.validators.is_video_correct_length(video_path, None, 1)["is_valid"] is False
+    )
+    assert (
+        gr.validators.is_video_correct_length(video_path, 1, 1000)["is_valid"] is True
+    )
+    assert gr.validators.is_video_correct_length(video_path, 1, 5)["is_valid"] is True
+    assert gr.validators.is_video_correct_length(video_path, 1, 2)["is_valid"] is False

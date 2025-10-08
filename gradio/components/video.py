@@ -35,37 +35,6 @@ class VideoData(GradioModel):
 
 
 @document()
-def is_video_correct_length(
-    video: str, min_length: float | None, max_length: float | None
-) -> dict[str, Any]:
-    """
-    Validates that the video file length is within the specified min and max length (in seconds).
-
-    Parameters:
-        video: The path to the video file.
-        min_length: Minimum length of video in seconds. If None, no minimum length check is performed.
-        max_length: Maximum length of video in seconds. If None, no maximum length check is performed.
-    Returns:
-        A dict corresponding to `gr.validate()` indicating whether the audio length is valid and an optional message.
-    """
-    if min_length is not None or max_length is not None:
-        duration = processing_utils.get_video_length(video)
-        if min_length is not None and duration < min_length:
-            return {
-                "__type__": "validate",
-                "is_valid": False,
-                "message": f"Video is too short, and must be at least {min_length} seconds",
-            }
-        if max_length is not None and duration > max_length:
-            return {
-                "__type__": "validate",
-                "is_valid": False,
-                "message": f"Video is too long, and must be at most {max_length} seconds",
-            }
-    return {"__type__": "validate", "is_valid": True}
-
-
-@document()
 class Video(StreamingOutput, Component):
     """
     Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).

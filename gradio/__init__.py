@@ -5,7 +5,7 @@ import gradio.image_utils
 import gradio.processing_utils
 import gradio.sketch
 import gradio.templates
-from gradio import components, layouts, mcp, themes
+from gradio import components, layouts, mcp, themes, validators
 from gradio.blocks import Blocks
 from gradio.chat_interface import ChatInterface
 from gradio.cli import deploy
@@ -69,7 +69,7 @@ from gradio.components import (
     Video,
     component,
 )
-from gradio.components.audio import WaveformOptions, is_audio_correct_length
+from gradio.components.audio import WaveformOptions
 from gradio.components.image_editor import (
     Brush,
     Eraser,
@@ -77,7 +77,6 @@ from gradio.components.image_editor import (
     WatermarkOptions,
     WebcamOptions,
 )
-from gradio.components.video import is_video_correct_length
 from gradio.data_classes import FileData
 from gradio.events import (
     CopyData,
@@ -278,6 +277,5 @@ __all__ = [
     "get_video",
     "get_model3d",
     "get_file",
-    "is_audio_correct_length",
-    "is_video_correct_length",
+    "validators",
 ]

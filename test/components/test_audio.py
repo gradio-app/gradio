@@ -209,8 +209,12 @@ class TestAudio:
 
 
 def test_duration_validator():
-    assert gr.is_audio_correct_length((8000, np.zeros((8000,))), 1, 2)["is_valid"]
-    assert not gr.is_audio_correct_length((8000, np.zeros((8000,))), 2, 3)["is_valid"]
-    assert not gr.is_audio_correct_length((8000, np.zeros((8000,))), 0.25, 0.75)[
+    assert gr.validators.is_audio_correct_length((8000, np.zeros((8000,))), 1, 2)[
         "is_valid"
     ]
+    assert not gr.validators.is_audio_correct_length((8000, np.zeros((8000,))), 2, 3)[
+        "is_valid"
+    ]
+    assert not gr.validators.is_audio_correct_length(
+        (8000, np.zeros((8000,))), 0.25, 0.75
+    )["is_valid"]
