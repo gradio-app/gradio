@@ -117,7 +117,6 @@ class Video(StreamingOutput, Component):
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
-        mirror_webcam: bool | None = None,
         webcam_options: WebcamOptions | None = None,
         include_audio: bool | None = None,
         autoplay: bool = False,
@@ -126,7 +125,6 @@ class Video(StreamingOutput, Component):
         loop: bool = False,
         streaming: bool = False,
         watermark: WatermarkOptions | None = None,
-        webcam_constraints: dict[str, Any] | None = None,
     ):
         """
         Parameters:
@@ -188,19 +186,7 @@ class Video(StreamingOutput, Component):
         )
 
         if isinstance(watermark, (str, Path)):
-            warnings.warn(
-                "The `watermark` parameter is updated to use WatermarkOptions. Please use the `watermark` parameter with a `gr.WatermarkOptions` instance instead."
-            )
             self.watermark.watermark = watermark
-
-        if mirror_webcam is not None:
-            warnings.warn(
-                "The `mirror_webcam` parameter is deprecated. Please use the `webcam_options` parameter with a `gr.WebcamOptions` instance instead."
-            )
-            self.webcam_options.mirror = mirror_webcam
-
-        if webcam_constraints is not None:
-            self.webcam_options.constraints = webcam_constraints
 
         self.include_audio = (
             include_audio if include_audio is not None else "upload" in self.sources
