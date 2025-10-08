@@ -63,8 +63,6 @@ class TestVideo:
             "webcam_options": {"constraints": None, "mirror": True},
             "include_audio": True,
             "format": None,
-            "min_length": None,
-            "max_length": None,
             "_selectable": False,
             "key": None,
             "preserved_by_key": ["value"],
@@ -254,3 +252,31 @@ class TestVideo:
         assert "flip" not in Path(list(output_params.keys())[0]).name
         assert ".avi" in list(output_params.keys())[0]
         assert ".avi" in output_file
+
+
+def test_is_video_correct_length():
+    test_file_dir = Path(__file__).parent.parent / "test_files"
+    video_path = str(test_file_dir / "muted_video_sample.mp4")
+    assert (
+        gr.validators.is_video_correct_length(video_path, None, None)["is_valid"]
+        is True
+    )
+    assert (
+        gr.validators.is_video_correct_length(video_path, 1, None)["is_valid"] is True
+    )
+    assert (
+        gr.validators.is_video_correct_length(video_path, 1000, None)["is_valid"]
+        is False
+    )
+    assert (
+        gr.validators.is_video_correct_length(video_path, None, 1000)["is_valid"]
+        is True
+    )
+    assert (
+        gr.validators.is_video_correct_length(video_path, None, 1)["is_valid"] is False
+    )
+    assert (
+        gr.validators.is_video_correct_length(video_path, 1, 1000)["is_valid"] is True
+    )
+    assert gr.validators.is_video_correct_length(video_path, 1, 5)["is_valid"] is True
+    assert gr.validators.is_video_correct_length(video_path, 1, 2)["is_valid"] is False
