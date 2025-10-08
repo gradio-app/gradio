@@ -172,11 +172,11 @@ export async function discussions_enabled(space_id: string): Promise<boolean> {
 
 export async function get_space_hardware(
 	space_id: string,
-	hf_token?: `hf_${string}` | undefined
+	token?: `hf_${string}` | undefined
 ): Promise<(typeof hardware_types)[number]> {
 	const headers: { Authorization?: string } = {};
-	if (hf_token) {
-		headers.Authorization = `Bearer ${hf_token}`;
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
 	}
 
 	try {

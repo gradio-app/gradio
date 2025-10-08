@@ -8,7 +8,7 @@ import { join_urls, transform_api_info } from "../helpers/api_info";
 export async function view_api(this: Client): Promise<any> {
 	if (this.api_info) return this.api_info;
 
-	const { hf_token } = this.options;
+	const { token: hf_token } = this.options;
 	const { config } = this;
 
 	const headers: {
