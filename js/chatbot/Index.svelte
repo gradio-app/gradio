@@ -12,11 +12,7 @@
 	import { Chat } from "@gradio/icons";
 	import type { FileData } from "@gradio/client";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type {
-		Message,
-		ExampleMessage,
-		NormalisedMessage
-	} from "./types";
+	import type { Message, ExampleMessage, NormalisedMessage } from "./types";
 
 	import { normalise_messages } from "./shared/utils";
 

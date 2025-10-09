@@ -26,7 +26,11 @@ export interface Option {
 export interface Message {
 	role: MessageRole;
 	metadata: Metadata;
-	content: string | FileData | ComponentData | (string | FileData | ComponentData)[];
+	content:
+		| string
+		| FileData
+		| ComponentData
+		| (string | FileData | ComponentData)[];
 	index: number | [number, number];
 	options?: Option[];
 }
@@ -54,6 +58,8 @@ export type message_data =
 	| { component: string; value: any; constructor_args: any; props: any }
 	| null;
 
-export type NormalisedMessage = TextMessage | ComponentMessage | MultipleContentMessage;
+export type NormalisedMessage =
+	| TextMessage
+	| ComponentMessage
 
 export type ThoughtNode = NormalisedMessage & { children: ThoughtNode[] };

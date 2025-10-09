@@ -151,28 +151,32 @@ function convert_file_message_to_component_message(
 	} as ComponentData;
 }
 
-function normalise_message(message: Message, content: string | FileData | ComponentData, root: string, i: number): NormalisedMessage {
-	let normalized: NormalisedMessage = typeof content === "string"
-					? {
-							role: message.role,
-							metadata: message.metadata,
-							content: redirect_src_url(content, root),
-								type: "text",
-							index: i,
-							options: message.options
-						}
-					: "file" in content
-						? {
-								content: convert_file_message_to_component_message(
-									content
-								),
-								metadata: message.metadata,
-								role: message.role,
-								type: "component",
-								index: i,
-								options: message.options
-							}
-						: ({ type: "component", ...message } as ComponentMessage);
+function normalise_message(
+	message: Message,
+	content: string | FileData | ComponentData,
+	root: string,
+	i: number
+): NormalisedMessage {
+	let normalized: NormalisedMessage =
+		typeof content === "string"
+			? {
+					role: message.role,
+					metadata: message.metadata,
+					content: redirect_src_url(content, root),
+					type: "text",
+					index: i,
+					options: message.options
+				}
+			: "file" in content
+				? {
+						content: convert_file_message_to_component_message(content),
+						metadata: message.metadata,
+						role: message.role,
+						type: "component",
+						index: i,
+						options: message.options
+					}
+				: ({ type: "component", ...message } as ComponentMessage);
 	return normalized;
 }
 
@@ -186,28 +190,31 @@ export function normalise_messages(
 
 	return messages
 		.flatMap((message, i) => {
-
-			const normalized:  NormalisedMessage[] = Array.isArray(message.content) ?  message.content.map((content) => normalise_message(message, content, root, i) ): [normalise_message(message, message.content, root, i)];				
+			const normalized: NormalisedMessage[] = Array.isArray(message.content)
+				? message.content.map((content) =>
+						normalise_message(message, content, root, i)
+					)
+				: [normalise_message(message, message.content, root, i)];
 
 			for (const msg of normalized) {
 				const { id, title, parent_id } = message.metadata || {};
-			if (parent_id) {
-				const parent = thought_map.get(String(parent_id));
-				if (parent) {
-					const thought = { ...normalized, children: [] } as ThoughtNode;
-					parent.children.push(thought);
-					if (id && title) {
-						thought_map.set(String(id), thought);
+				if (parent_id) {
+					const parent = thought_map.get(String(parent_id));
+					if (parent) {
+						const thought = { ...msg, children: [] } as ThoughtNode;
+						parent.children.push(thought);
+						if (id && title) {
+							thought_map.set(String(id), thought);
+						}
+						return null;
 					}
-					return null;
+				}
+				if (id && title) {
+					const thought = { ...msg, children: [] } as ThoughtNode;
+					thought_map.set(String(id), thought);
+					return thought;
 				}
 			}
-			if (id && title) {
-				const thought = { ...normalized, children: [] } as ThoughtNode;
-				thought_map.set(String(id), thought);
-				return thought;
-			}
-			}			
 			return normalized;
 		})
 		.filter((msg): msg is NormalisedMessage => msg !== null);
