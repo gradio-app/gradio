@@ -32,7 +32,7 @@ with gr.Blocks() as demo:
     )
     gr.Markdown("## Image Examples")
     gr.Examples(
-        examples=[os.path.join(os.path.dirname(__file__), "lion.jpg")],
+        examples=[gr.get_image("lion.jpg")],
         inputs=im,
         outputs=im_2,
         fn=mirror,
