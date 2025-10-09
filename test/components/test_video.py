@@ -115,8 +115,8 @@ class TestVideo:
             "meta": {"_type": "gradio.FileData"},
         }
 
-        postprocessed_video["video"]["path"] = os.path.basename(
-            postprocessed_video["video"]["path"]
+        postprocessed_video["path"] = os.path.basename(
+            postprocessed_video["path"]
         )
         assert processed_video == postprocessed_video
 
@@ -126,7 +126,7 @@ class TestVideo:
         """
         x_video = media_data.BASE64_VIDEO["path"]
         iface = gr.Interface(lambda x: x, "video", "playable_video")
-        assert iface({"video": x_video})["video"].endswith(".mp4")
+        assert iface(x_video).endswith(".mp4")
 
     def test_video_postprocess_converts_to_playable_format(self):
         test_file_dir = Path(__file__).parent.parent / "test_files"
@@ -140,7 +140,7 @@ class TestVideo:
             output = gr.Video().postprocess(tmp_not_playable_vid.name)
             assert output
             output = output.model_dump()
-            assert processing_utils.video_is_playable(output["video"]["path"])
+            assert processing_utils.video_is_playable(output["path"])
 
         # This file has a playable codec but not a playable container
         with tempfile.NamedTemporaryFile(
