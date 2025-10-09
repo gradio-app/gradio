@@ -158,7 +158,7 @@ class TestVideo:
     @patch("gradio.components.video.FFmpeg")
     def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
         # Ensures that the cached temp video file is not used so that ffmpeg is called for each test
-        x_video = VideoData(video=FileData(path=media_data.BASE64_VIDEO["path"]))
+        x_video = FileData(path=media_data.BASE64_VIDEO["path"])
         video_input = gr.Video(sources=["webcam"])
         _ = video_input.preprocess(x_video)
 
