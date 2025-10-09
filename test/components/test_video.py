@@ -10,7 +10,6 @@ from gradio_client import media_data
 
 import gradio as gr
 from gradio import processing_utils
-from gradio.components.video import VideoData
 from gradio.data_classes import FileData
 
 
