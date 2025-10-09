@@ -400,6 +400,7 @@ class PlayableVideo(components.Video):
         loop: bool = False,
         streaming: bool = False,
         watermark: str | Path | None = None,
+        subtitles: str | Path | None = None,
     ):
         sources = ["upload"]
         super().__init__(
@@ -429,6 +430,7 @@ class PlayableVideo(components.Video):
             streaming=streaming,
             watermark=watermark,
             webcam_options=webcam_options,
+            subtitles=subtitles,
         )
 
 
