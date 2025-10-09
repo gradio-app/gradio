@@ -115,9 +115,7 @@ class TestVideo:
             "meta": {"_type": "gradio.FileData"},
         }
 
-        postprocessed_video["path"] = os.path.basename(
-            postprocessed_video["path"]
-        )
+        postprocessed_video["path"] = os.path.basename(postprocessed_video["path"])
         assert processed_video == postprocessed_video
 
     def test_in_interface(self):

@@ -1935,9 +1935,9 @@ def test_render_when_mounted_sets_root_path_for_files():
                     render_config = data["output"]["render_config"]
                     for component in render_config["components"]:
                         if "value" in component.get("props", {}):
-                            assert component["props"]["value"][
-                                "url"
-                            ].startswith(f"http://testserver/test{API_PREFIX}/file=")
+                            assert component["props"]["value"]["url"].startswith(
+                                f"http://testserver/test{API_PREFIX}/file="
+                            )
                             checked_component = True
         assert checked_component
 
