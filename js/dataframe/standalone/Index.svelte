@@ -24,8 +24,6 @@
 	export let show_row_numbers = false;
 	export let max_height = 500;
 	export let show_search: "none" | "search" | "filter" = "none";
-	export let show_copy_button = false;
-	export let show_fullscreen_button = false;
 	export let wrap = false;
 	export let line_breaks = true;
 	export let column_widths: string[] = [];
@@ -100,8 +98,7 @@
 		{show_row_numbers}
 		{max_height}
 		{show_search}
-		{show_copy_button}
-		{show_fullscreen_button}
+		buttons={null}
 		{wrap}
 		{line_breaks}
 		{column_widths}

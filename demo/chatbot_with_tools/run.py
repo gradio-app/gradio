@@ -70,7 +70,7 @@ def like(evt: gr.LikeData):
     print(evt.index, evt.liked, evt.value)
 
 with gr.Blocks() as demo:
-    chatbot = gr.Chatbot(height=500, show_copy_button=True)
+    chatbot = gr.Chatbot(height=500, buttons=["copy"])
     button = gr.Button("Get San Francisco Weather")
     button.click(generate_response, chatbot, chatbot)
     chatbot.like(like)

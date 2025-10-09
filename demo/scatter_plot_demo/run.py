@@ -65,7 +65,7 @@ with gr.Blocks() as scatter_plots:
             x="rating",
             y="price",
             color="wait",
-            show_actions_button=True,
+            buttons=["actions"],
         )
         price_by_rating_color = gr.ScatterPlot(
             food_rating_data,

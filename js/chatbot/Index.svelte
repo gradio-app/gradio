@@ -34,10 +34,8 @@
 	export let likeable = false;
 	export let feedback_options: string[] = ["Like", "Dislike"];
 	export let feedback_value: (string | null)[] | null = null;
-	export let show_share_button = false;
+	export let buttons: string[] | null = null;
 	export let rtl = false;
-	export let show_copy_button = true;
-	export let show_copy_all_button = false;
 	export let sanitize_html = true;
 	export let layout: "bubble" | "panel" = "bubble";
 	export let render_markdown = true;
@@ -128,8 +126,10 @@
 			{likeable}
 			{feedback_options}
 			{feedback_value}
-			{show_share_button}
-			{show_copy_all_button}
+			show_share_button={buttons === null ? true : buttons.includes("share")}
+			show_copy_all_button={buttons === null
+				? true
+				: buttons.includes("copy_all")}
 			value={_value}
 			{latex_delimiters}
 			display_consecutive_in_same_bubble={group_consecutive_messages}
@@ -139,7 +139,7 @@
 			pending_message={loading_status?.status === "pending"}
 			generating={loading_status?.status === "generating"}
 			{rtl}
-			{show_copy_button}
+			show_copy_button={buttons === null ? false : buttons.includes("copy")}
 			{like_user_message}
 			show_progress={loading_status?.show_progress || "full"}
 			on:change={() => gradio.dispatch("change", value)}

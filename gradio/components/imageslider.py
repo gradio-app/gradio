@@ -74,7 +74,7 @@ class ImageSlider(Component):
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
-        show_download_button: bool = True,
+        buttons: list[Literal["download", "fullscreen"]] | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
@@ -85,7 +85,6 @@ class ImageSlider(Component):
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
-        show_fullscreen_button: bool = True,
         slider_position: float = 50,
         max_height: int = 500,
     ):
@@ -101,7 +100,7 @@ class ImageSlider(Component):
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
-            show_download_button: If True, will display button to download image. Only applies if interactive is False (e.g. if the component is used as an output).
+            buttons: A list of buttons to show in the top right corner of the component. Valid options are "download" and "fullscreen". The "download" button allows the user to download the image. The "fullscreen" button allows the user to view the image in fullscreen mode. By default, all buttons are shown.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
@@ -112,7 +111,6 @@ class ImageSlider(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
-            show_fullscreen_button: If True, will show a fullscreen icon in the corner of the component that allows user to view the image in fullscreen mode. If False, icon does not appear.
             slider_position: The position of the slider as a percentage of the width of the image, between 0 and 100.
             max_height: The maximum height of the image.
         """
@@ -128,8 +126,7 @@ class ImageSlider(Component):
         self.height = height
         self.width = width
         self.image_mode = image_mode
-        self.show_download_button = show_download_button
-        self.show_fullscreen_button = show_fullscreen_button
+        self.buttons = buttons
 
         super().__init__(
             label=label,

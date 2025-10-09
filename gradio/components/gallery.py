@@ -106,11 +106,9 @@ class Gallery(Component):
         object_fit: (
             Literal["contain", "cover", "fill", "none", "scale-down"] | None
         ) = None,
-        show_share_button: bool | None = None,
-        show_download_button: bool | None = True,
+        buttons: list[Literal["share", "download", "fullscreen"]] | None = None,
         interactive: bool | None = None,
         type: Literal["numpy", "pil", "filepath"] = "filepath",
-        show_fullscreen_button: bool = True,
     ):
         """
         Parameters:
@@ -137,11 +135,9 @@ class Gallery(Component):
             preview: If True, Gallery will start in preview mode, which shows all of the images as thumbnails and allows the user to click on them to view them in full size. Only works if allow_preview is True.
             selected_index: The index of the image that should be initially selected. If None, no image will be selected at start. If provided, will set Gallery to preview mode unless allow_preview is set to False.
             object_fit: CSS object-fit property for the thumbnail images in the gallery. Can be "contain", "cover", "fill", "none", or "scale-down".
-            show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
-            show_download_button: If True, will show a download button in the corner of the selected image. If False, the icon does not appear. Default is True.
+            buttons: A list of buttons to show in the top right corner of the component. Valid options are "share", "download", and "fullscreen". The "share" button allows the user to share outputs to Hugging Face Spaces Discussions. The "download" button allows the user to download the selected image. The "fullscreen" button allows the user to view the gallery in fullscreen mode. By default, all buttons are shown.
             interactive: If True, the gallery will be interactive, allowing the user to upload images. If False, the gallery will be static. Default is True.
             type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image. If the image is SVG, the `type` is ignored and the filepath of the SVG is returned.
-            show_fullscreen_button: If True, will show a fullscreen icon in the corner of the component that allows user to view the gallery in fullscreen mode. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
         self.format = format
         self.columns = columns
@@ -150,25 +146,15 @@ class Gallery(Component):
         self.preview = preview
         self.object_fit = object_fit
         self.allow_preview = allow_preview
-        self.show_download_button = (
-            (utils.get_space() is not None)
-            if show_download_button is None
-            else show_download_button
-        )
+        self.buttons = buttons
         self.selected_index = selected_index
         if type not in ["numpy", "pil", "filepath"]:
             raise ValueError(
                 f"Invalid type: {type}. Must be one of ['numpy', 'pil', 'filepath']"
             )
         self.type = type
-        self.show_fullscreen_button = show_fullscreen_button
         self.file_types = file_types
 
-        self.show_share_button = (
-            (utils.get_space() is not None)
-            if show_share_button is None
-            else show_share_button
-        )
         super().__init__(
             label=label,
             every=every,

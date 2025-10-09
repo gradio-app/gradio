@@ -42,7 +42,7 @@ with gr.Blocks() as demo:
                 show_label=True,
                 elem_id="dataframe",
                 show_search="filter",
-                show_copy_button=True,
+                buttons=["copy"],
                 show_row_numbers=True,
                 static_columns=[4]
             )
@@ -57,9 +57,8 @@ with gr.Blocks() as demo:
                 show_label=True,
                 show_search="search",
                 elem_id="non-interactive-dataframe",
-                show_copy_button=True,
+                buttons=["copy", "fullscreen"],
                 show_row_numbers=True,
-                show_fullscreen_button=True,
             )
 
     tall_df_value = [
@@ -100,7 +99,7 @@ with gr.Blocks() as demo:
                 max_height=200,
                 show_label=True,
                 elem_id="dataframe_tall",
-                show_copy_button=True,
+                buttons=["copy"],
                 show_row_numbers=True,
                 show_search="search",
             )

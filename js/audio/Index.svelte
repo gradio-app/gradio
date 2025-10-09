@@ -33,8 +33,7 @@
 	export let loading_status: LoadingStatus;
 	export let autoplay = false;
 	export let loop = false;
-	export let show_download_button: boolean;
-	export let show_share_button = false;
+	export let buttons: string[] | null = null;
 	export let editable = true;
 	export let waveform_options: WaveformOptions = {
 		show_recording_waveform: true
@@ -194,8 +193,7 @@
 		<StaticAudio
 			i18n={gradio.i18n}
 			{show_label}
-			{show_download_button}
-			{show_share_button}
+			buttons={buttons ?? ["download", "share"]}
 			{value}
 			{subtitles}
 			{label}
@@ -232,7 +230,7 @@
 		<InteractiveAudio
 			{label}
 			{show_label}
-			{show_download_button}
+			buttons={buttons ?? []}
 			{value}
 			{subtitles}
 			on:change={({ detail }) => (value = detail)}

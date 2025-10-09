@@ -42,11 +42,11 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let show_copy_button = false;
+	export let buttons: string[] | null = null;
+	export let submit_btn: string | boolean | null = false;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let value_is_output = false;
 	export let interactive: boolean;
-	export let show_submit_button = true;
 	export let ui_mode: "dialogue" | "text" | "both" = "both";
 </script>
 
@@ -75,12 +75,12 @@
 		{info}
 		{show_label}
 		{max_lines}
-		{show_copy_button}
+		show_copy_button={buttons?.includes("copy") ?? false}
 		{container}
 		{speakers}
 		{tags}
 		{placeholder}
-		{show_submit_button}
+		{submit_btn}
 		{server}
 		{ui_mode}
 		on:change={() => gradio.dispatch("change", value)}

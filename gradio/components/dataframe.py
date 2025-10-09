@@ -100,8 +100,7 @@ class Dataframe(Component):
         wrap: bool = False,
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
-        show_fullscreen_button: bool = False,
-        show_copy_button: bool = False,
+        buttons: list[Literal["fullscreen", "copy"]] | None = None,
         show_row_numbers: bool = False,
         max_chars: int | None = None,
         show_search: Literal["none", "search", "filter"] = "none",
@@ -135,8 +134,7 @@ class Dataframe(Component):
             wrap: If True, the text in table cells will wrap when appropriate. If False and the `column_width` parameter is not set, the column widths will expand based on the cell contents and the table may need to be horizontally scrolled. If `column_width` is set, then any overflow text will be hidden.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies for columns of type "markdown."
             column_widths: An optional list representing the width of each column. The elements of the list should be in the format "100px" (ints are also accepted and converted to pixel values) or "10%". The percentage width is calculated based on the viewport width of the table. If not provided, the column widths will be automatically determined based on the content of the cells.
-            show_fullscreen_button: If True, will show a button to view the values in the table in fullscreen mode.
-            show_copy_button: If True, will show a button to copy the table data to the clipboard.
+            buttons: A list of buttons to show in the top right corner of the component. Valid options are "fullscreen" and "copy". The "fullscreen" button allows the user to view the table in fullscreen mode. The "copy" button allows the user to copy the table data to the clipboard. By default, all buttons are shown.
             show_row_numbers: If True, will display row numbers in a separate column.
             max_chars: Maximum number of characters to display in each cell before truncating (single-clicking a cell value will still reveal the full content). If None, no truncation is applied.
             show_search: Show a search input in the toolbar. If "search", a search input is shown. If "filter", a search input and filter buttons are shown. If "none", no search input is shown.
@@ -190,8 +188,7 @@ class Dataframe(Component):
             else f"{w}px"
             for w in (column_widths or [])
         ]
-        self.show_fullscreen_button = show_fullscreen_button
-        self.show_copy_button = show_copy_button
+        self.buttons = buttons
         self.show_row_numbers = show_row_numbers
         self.max_chars = max_chars
         self.show_search = show_search

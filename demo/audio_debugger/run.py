@@ -1,16 +1,19 @@
 import gradio as gr
 import subprocess
-import os
 
 # get_audio returns the path to the audio file
 audio_file = gr.get_audio("cantina.wav")
 
 with gr.Blocks() as demo:
     with gr.Tab("Audio"):
-        gr.Audio(audio_file)
+        gr.Audio(audio_file, buttons=["download"])
     with gr.Tab("Interface"):
         gr.Interface(
-            lambda x: x, "audio", "audio", examples=[audio_file], cache_examples=True
+            lambda x: x, 
+            gr.Audio(),
+            gr.Audio(),
+            examples=[audio_file], 
+            cache_examples=True
         )
     with gr.Tab("Streaming"):
         gr.Interface(
