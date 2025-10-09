@@ -64,7 +64,7 @@ describe("Client class", () => {
 
 		test("connecting successfully to a private running app with a space reference", async () => {
 			const app = await Client.connect("hmb/secret_world", {
-				hf_token: "hf_123"
+				token: "hf_123"
 			});
 
 			expect(app.config).toEqual({
@@ -75,7 +75,7 @@ describe("Client class", () => {
 
 		test("connecting successfully to a private running app with a direct app URL ", async () => {
 			const app = await Client.connect(secret_direct_app_reference, {
-				hf_token: "hf_123"
+				token: "hf_123"
 			});
 
 			expect(app.config).toEqual({
@@ -87,7 +87,7 @@ describe("Client class", () => {
 		test("unsuccessfully attempting to connect to a private running app", async () => {
 			await expect(
 				Client.connect("hmb/secret_world", {
-					hf_token: "hf_bad_token"
+					token: "hf_bad_token"
 				})
 			).rejects.toThrowError(SPACE_METADATA_ERROR_MSG);
 		});
@@ -106,7 +106,7 @@ describe("Client class", () => {
 	describe("duplicate", () => {
 		test("backwards compatibility of duplicate using deprecated syntax", async () => {
 			const app = await duplicate("gradio/hello_world", {
-				hf_token: "hf_123",
+				token: "hf_123",
 				private: true,
 				hardware: "cpu-basic"
 			});
@@ -116,7 +116,7 @@ describe("Client class", () => {
 
 		test("creating a duplicate of a running app", async () => {
 			const duplicate = await Client.duplicate("gradio/hello_world", {
-				hf_token: "hf_123",
+				token: "hf_123",
 				private: true,
 				hardware: "cpu-basic"
 			});

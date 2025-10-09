@@ -1,7 +1,6 @@
 import sys
 
 import typer
-from gradio_client.cli import deploy_discord  # type: ignore
 from rich.console import Console
 
 from gradio import analytics
@@ -26,9 +25,6 @@ app.command(
     "deploy",
     help="Deploy a Gradio app to Spaces or Google Cloud Run. Must be called within the directory you would like to deploy.",
 )(deploy)
-app.command("deploy-discord", help="Deploy a Gradio app to Discord.")(
-    deploy_discord.main
-)
 app.command("sketch", help="Open the Sketch app to design a Gradio app.")(sketch)
 
 

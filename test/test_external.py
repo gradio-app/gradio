@@ -192,7 +192,7 @@ class TestLoadInterface:
             gr.load(
                 "spaces/gradio/test-loading-examplesv4-sse",
             )
-        assert Context.hf_token == HF_TOKEN
+        assert Context.token == HF_TOKEN
 
     def test_private_space_v4_sse_v1(self):
         io = gr.load(
