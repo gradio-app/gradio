@@ -213,7 +213,7 @@ with gr.Blocks(fill_height=True) as demo:
         elem_id="chatbot",
         type="messages",
         scale=1,
-        show_copy_button=True,
+        buttons=["copy"],
         avatar_images=(
             None,
             get_image("avatar.png"),

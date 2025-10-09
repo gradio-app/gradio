@@ -56,8 +56,7 @@
 	export let caption: string | null = null;
 	export let sort: "x" | "y" | "-x" | "-y" | string[] | null = null;
 	export let tooltip: "axis" | "none" | "all" | string[] = "axis";
-	export let show_fullscreen_button = false;
-	export let show_export_button = false;
+	export let buttons: string[] | null = null;
 	let fullscreen = false;
 
 	function reformat_sort(
@@ -747,12 +746,12 @@
 			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 	{/if}
-	{#if show_fullscreen_button || show_export_button}
+	{#if buttons?.length}
 		<IconButtonWrapper>
-			{#if show_export_button}
+			{#if buttons?.includes("export")}
 				<IconButton Icon={Download} label="Export" on:click={export_chart} />
 			{/if}
-			{#if show_fullscreen_button}
+			{#if buttons?.includes("fullscreen")}
 				<FullscreenButton
 					{fullscreen}
 					on:fullscreen={({ detail }) => {
