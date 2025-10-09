@@ -248,7 +248,6 @@ class ImageEditor(Component):
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
         placeholder: str | None = None,
-        mirror_webcam: bool | None = None,
         _selectable: bool = False,
         transforms: Iterable[Literal["crop", "resize"]] | None = ("crop", "resize"),
         eraser: Eraser | None | Literal[False] = None,
@@ -297,13 +296,6 @@ class ImageEditor(Component):
         self.webcam_options = (
             webcam_options if webcam_options is not None else WebcamOptions()
         )
-
-        if mirror_webcam is not None:
-            warnings.warn(
-                "The `mirror_webcam` parameter is deprecated. Please use the `webcam_options` parameter with a `gr.WebcamOptions` instance instead."
-            )
-            self.webcam_options.mirror = mirror_webcam
-
         valid_types = ["numpy", "pil", "filepath"]
         if type not in valid_types:
             raise ValueError(

@@ -15,7 +15,6 @@ from gradio_client import handle_file
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
-import gradio as gr
 from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingOutput
 from gradio.components.image_editor import WatermarkOptions, WebcamOptions
@@ -87,17 +86,13 @@ class Video(StreamingOutput, Component):
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
-        mirror_webcam: bool | None = None,
         webcam_options: WebcamOptions | None = None,
         include_audio: bool | None = None,
         autoplay: bool = False,
         buttons: list[Literal["download", "share"]] | None = None,
-        min_length: int | None = None,
-        max_length: int | None = None,
         loop: bool = False,
         streaming: bool = False,
         watermark: WatermarkOptions | None = None,
-        webcam_constraints: dict[str, Any] | None = None,
     ):
         """
         Parameters:
@@ -123,8 +118,6 @@ class Video(StreamingOutput, Component):
             include_audio: whether the component should record/retain the audio track for a video. By default, audio is excluded for webcam videos and included for uploaded videos.
             autoplay: whether to automatically play the video when the component is used as an output. Note: browsers will not autoplay video files if the user has not interacted with the page yet.
             buttons: A list of buttons to show in the top right corner of the component. Valid options are "download" and "share". The "download" button allows the user to save the video to their device. The "share" button allows the user to share the video via Hugging Face Spaces Discussions. By default, no buttons are shown if the component is interactive and both buttons are shown if the component is not interactive.
-            min_length: the minimum length of video (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
-            max_length: the maximum length of video (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             loop: if True, the video will loop when it reaches the end and continue playing from the beginning.
             streaming: when used set as an output, takes video chunks yielded from the backend and combines them into one streaming video output. Each chunk should be a video file with a .ts extension using an h.264 encoding. Mp4 files are also accepted but they will be converted to h.264 encoding.
             watermark: A `gr.WatermarkOptions` instance that includes an image file and position to be used as a watermark on the video. The image is not scaled and is displayed on the provided position on the video. Valid formats for the image are: jpeg, png.
@@ -160,26 +153,12 @@ class Video(StreamingOutput, Component):
         )
 
         if isinstance(watermark, (str, Path)):
-            warnings.warn(
-                "The `watermark` parameter is updated to use WatermarkOptions. Please use the `watermark` parameter with a `gr.WatermarkOptions` instance instead."
-            )
             self.watermark.watermark = watermark
-
-        if mirror_webcam is not None:
-            warnings.warn(
-                "The `mirror_webcam` parameter is deprecated. Please use the `webcam_options` parameter with a `gr.WebcamOptions` instance instead."
-            )
-            self.webcam_options.mirror = mirror_webcam
-
-        if webcam_constraints is not None:
-            self.webcam_options.constraints = webcam_constraints
 
         self.include_audio = (
             include_audio if include_audio is not None else "upload" in self.sources
         )
         self.buttons = buttons
-        self.min_length = min_length
-        self.max_length = max_length
         self.streaming = streaming
         super().__init__(
             label=label,
@@ -215,19 +194,6 @@ class Video(StreamingOutput, Component):
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format
         flip = self.sources == ["webcam"] and self.webcam_options.mirror
-
-        if self.min_length is not None or self.max_length is not None:
-            # With this if-clause, avoid unnecessary execution of `processing_utils.get_video_length`.
-            # This is necessary for the Wasm-mode, because it uses ffprobe, which is not available in the browser.
-            duration = processing_utils.get_video_length(file_name)
-            if self.min_length is not None and duration < self.min_length:
-                raise gr.Error(
-                    f"Video is too short, and must be at least {self.min_length} seconds"
-                )
-            if self.max_length is not None and duration > self.max_length:
-                raise gr.Error(
-                    f"Video is too long, and must be at most {self.max_length} seconds"
-                )
         # TODO: Check other image extensions to see if they work.
         valid_watermark_extensions = [".png", ".jpg", ".jpeg"]
         if self.watermark.watermark is not None:

@@ -47,7 +47,6 @@ def load(
     | Literal["models", "spaces", "huggingface"]
     | None = None,
     token: str | None = None,
-    hf_token: str | None = None,
     accept_token: bool | LoginButton = False,
     provider: PROVIDER_T | None = None,
     **kwargs,
@@ -68,11 +67,6 @@ def load(
         demo = gr.load("gradio/question-answering", src="spaces")
         demo.launch()
     """
-    if hf_token is not None and token is None:
-        token = hf_token
-        warnings.warn(
-            "The `hf_token` parameter is deprecated. Please use the equivalent `token` parameter instead."
-        )
     if src is None:
         # Separate the repo type (e.g. "model") from repo name (e.g. "google/vit-base-patch16-224")
         parts = name.split("/")

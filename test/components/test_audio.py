@@ -58,11 +58,8 @@ class TestAudio:
             "format": None,
             "recording": False,
             "streamable": False,
-            "max_length": None,
-            "min_length": None,
             "waveform_options": {
                 "sample_rate": 44100,
-                "show_controls": False,
                 "show_recording_waveform": True,
                 "skip_length": 5,
                 "waveform_color": None,
@@ -102,8 +99,6 @@ class TestAudio:
             "streaming": False,
             "show_label": True,
             "label": None,
-            "max_length": None,
-            "min_length": None,
             "container": True,
             "editable": True,
             "min_width": 160,
@@ -121,7 +116,6 @@ class TestAudio:
             "sources": ["upload", "microphone"],
             "waveform_options": {
                 "sample_rate": 44100,
-                "show_controls": False,
                 "show_recording_waveform": True,
                 "skip_length": 5,
                 "waveform_color": None,
@@ -210,3 +204,15 @@ class TestAudio:
             bytes_output, desired_output_format=None
         )
         assert str(output.path).endswith("mp3")
+
+
+def test_duration_validator():
+    assert gr.validators.is_audio_correct_length((8000, np.zeros((8000,))), 1, 2)[
+        "is_valid"
+    ]
+    assert not gr.validators.is_audio_correct_length((8000, np.zeros((8000,))), 2, 3)[
+        "is_valid"
+    ]
+    assert not gr.validators.is_audio_correct_length(
+        (8000, np.zeros((8000,))), 0.25, 0.75
+    )["is_valid"]

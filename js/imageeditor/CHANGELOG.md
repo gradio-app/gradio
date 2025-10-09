@@ -1,5 +1,11 @@
 # @gradio/imageeditor
 
+## 0.18.1
+
+### Fixes
+
+- [#12023](https://github.com/gradio-app/gradio/pull/12023) [`69da8c8`](https://github.com/gradio-app/gradio/commit/69da8c87653d7ea7f733a248b324051ef5bb810f) - feat: Extended the waternark positioning feature to Video.  Thanks @PRIME-SV!
+
 ## 0.18.0
 
 ### Features
