@@ -83,8 +83,7 @@ class Video(StreamingOutput, Component):
         webcam_options: WebcamOptions | None = None,
         include_audio: bool | None = None,
         autoplay: bool = False,
-        show_share_button: bool | None = None,
-        show_download_button: bool | None = None,
+        buttons: list[Literal["download", "share"]] | None = None,
         loop: bool = False,
         streaming: bool = False,
         watermark: WatermarkOptions | None = None,
@@ -113,8 +112,7 @@ class Video(StreamingOutput, Component):
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             include_audio: whether the component should record/retain the audio track for a video. By default, audio is excluded for webcam videos and included for uploaded videos.
             autoplay: whether to automatically play the video when the component is used as an output. Note: browsers will not autoplay video files if the user has not interacted with the page yet.
-            show_share_button: if True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
-            show_download_button: if True, will show a download icon in the corner of the component that allows user to download the output. If False, icon does not appear. By default, it will be True for output components and False for input components.
+            buttons: A list of buttons to show in the top right corner of the component. Valid options are "download" and "share". The "download" button allows the user to save the video to their device. The "share" button allows the user to share the video via Hugging Face Spaces Discussions. By default, no buttons are shown if the component is interactive and both buttons are shown if the component is not interactive.
             loop: if True, the video will loop when it reaches the end and continue playing from the beginning.
             streaming: when used set as an output, takes video chunks yielded from the backend and combines them into one streaming video output. Each chunk should be a video file with a .ts extension using an h.264 encoding. Mp4 files are also accepted but they will be converted to h.264 encoding.
             watermark: A `gr.WatermarkOptions` instance that includes an image file and position to be used as a watermark on the video. The image is not scaled and is displayed on the provided position on the video. Valid formats for the image are: jpeg, png.
@@ -156,13 +154,7 @@ class Video(StreamingOutput, Component):
         self.include_audio = (
             include_audio if include_audio is not None else "upload" in self.sources
         )
-        self.show_share_button = (
-            (utils.get_space() is not None)
-            if show_share_button is None
-            else show_share_button
-        )
-
-        self.show_download_button = show_download_button
+        self.buttons = buttons
         self.streaming = streaming
         self.subtitles = None
         if subtitles is not None:

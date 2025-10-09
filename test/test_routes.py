@@ -620,7 +620,7 @@ class TestRoutes:
         )
 
     def test_proxy_does_not_leak_hf_token_externally(self):
-        gr.context.Context.hf_token = "abcdef"  # type: ignore
+        gr.context.Context.token = "abcdef"  # type: ignore
         app = routes.App()
         interface = gr.Interface(lambda x: x, "text", "text")
         interface.proxy_urls = {

@@ -33,8 +33,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let autoplay = false;
-	export let show_share_button = true;
-	export let show_download_button: boolean;
+	export let buttons: string[] | null = null;
 	export let gradio: Gradio<{
 		change: never;
 		clear: never;
@@ -134,8 +133,8 @@
 			{show_label}
 			{autoplay}
 			{loop}
-			{show_share_button}
-			{show_download_button}
+			show_share_button={buttons?.includes("share") ?? true}
+			show_download_button={buttons?.includes("download") ?? true}
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}
 			on:stop={() => gradio.dispatch("stop")}
@@ -177,7 +176,7 @@
 			bind:uploading
 			{label}
 			{show_label}
-			{show_download_button}
+			show_download_button={buttons?.includes("download") ?? false}
 			{sources}
 			{active_source}
 			{webcam_options}
