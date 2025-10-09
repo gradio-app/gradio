@@ -58,8 +58,6 @@ export type message_data =
 	| { component: string; value: any; constructor_args: any; props: any }
 	| null;
 
-export type NormalisedMessage =
-	| TextMessage
-	| ComponentMessage
+export type NormalisedMessage = TextMessage | ComponentMessage;
 
 export type ThoughtNode = NormalisedMessage & { children: ThoughtNode[] };
