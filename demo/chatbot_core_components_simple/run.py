@@ -32,13 +32,13 @@ def bot(history, response_type):
     if response_type == "gallery":
         history[-1][1] = gr.Gallery(
             [
-                "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
-                "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+                "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/images/bus.png",
+                "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/images/bus.png",
             ]
         )
     elif response_type == "image":
         history[-1][1] = gr.Image(
-            "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+            "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/images/bus.png"
         )
     elif response_type == "video":
         history[-1][1] = gr.Video(
