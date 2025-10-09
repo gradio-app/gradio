@@ -18,7 +18,7 @@ from gradio_client.documentation import document
 from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingOutput
 from gradio.components.image_editor import WatermarkOptions, WebcamOptions
-from gradio.data_classes import FileData, GradioModel, MediaStreamChunk
+from gradio.data_classes import FileData, MediaStreamChunk
 from gradio.events import Events
 from gradio.i18n import I18nData
 from gradio.utils import get_upload_folder
@@ -88,6 +88,7 @@ class Video(StreamingOutput, Component):
         loop: bool = False,
         streaming: bool = False,
         watermark: WatermarkOptions | None = None,
+        subtitles: str | Path | list[dict[str, Any]] | None = None,
     ):
         """
         Parameters:
@@ -163,7 +164,6 @@ class Video(StreamingOutput, Component):
 
         self.show_download_button = show_download_button
         self.streaming = streaming
-        self.watermark = watermark
         self.subtitles = None
         if subtitles is not None:
             if isinstance(subtitles, list):
