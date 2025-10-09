@@ -413,7 +413,6 @@ class PlayableVideo(components.Video):
         loop: bool = False,
         streaming: bool = False,
         watermark: str | Path | None = None,
-        webcam_constraints: dict[str, dict[str, int | str]] | None = None,
         subtitles: str | Path | None = None,
     ):
         sources = ["upload"]
