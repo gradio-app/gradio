@@ -866,8 +866,6 @@ def load_chat(
 
     def open_api(message: str | MultimodalValue, history: list | None) -> str | None:
         history = history or start_message
-        if len(history) > 0 and isinstance(history[0], (list, tuple)):
-            history = ChatInterface._tuples_to_messages(history)
         conversation = format_conversation(history, message)  # type: ignore
         return (
             client.chat.completions.create(
@@ -882,8 +880,6 @@ def load_chat(
         message: str | MultimodalValue, history: list | None
     ) -> Generator[str, None, None]:
         history = history or start_message
-        if len(history) > 0 and isinstance(history[0], (list, tuple)):
-            history = ChatInterface._tuples_to_messages(history)
         conversation = format_conversation(history, message)  # type: ignore
         stream = client.chat.completions.create(
             model=model,
