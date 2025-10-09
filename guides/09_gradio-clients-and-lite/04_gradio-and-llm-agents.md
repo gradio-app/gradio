@@ -108,9 +108,9 @@ class StableDiffusionTool(GradioTool):
             "look like. The output will be a path to an image file."
         ),
         src="gradio-client-demos/stable-diffusion",
-        hf_token=None,
+        token=None,
     ) -> None:
-        super().__init__(name, description, src, hf_token)
+        super().__init__(name, description, src, token)
 
     def create_job(self, query: str) -> Job:
         return self.client.submit(query, "", 9, fn_index=1)
