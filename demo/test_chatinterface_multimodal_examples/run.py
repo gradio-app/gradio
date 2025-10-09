@@ -5,6 +5,7 @@ image = str(Path(__file__).parent / "files" / "avatar.png")
 audio = str(Path(__file__).parent / "files" / "cantina.wav")
 
 def echo(message, history):
+    print("HISTORY:", history)
     return f"You wrote: {message['text']} and uploaded {len(message['files'])} files."
 
 demo = gr.ChatInterface(

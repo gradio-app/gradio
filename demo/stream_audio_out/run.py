@@ -32,8 +32,8 @@ with gr.Blocks() as demo:
             )
 
             gr.Examples(
-                [[os.path.join(os.path.dirname(__file__), "audio/cantina.wav"), "wav"],
-                 [os.path.join(os.path.dirname(__file__), "audio/cantina.wav"), "mp3"]],
+                [[gr.get_audio("cantina.wav"), "wav"],
+                 [gr.get_audio("cantina.wav"), "mp3"]],
                 [input_audio, format],
                 fn=stream_file,
                 outputs=stream_as_file_output,
