@@ -10,7 +10,6 @@ from gradio_client import media_data
 
 import gradio as gr
 from gradio import processing_utils
-from gradio.components.video import VideoData
 from gradio.data_classes import FileData
 
 
@@ -20,9 +19,7 @@ class TestVideo:
         """
         Preprocess, serialize, deserialize, get_config
         """
-        x_video = VideoData(
-            video=FileData(path=deepcopy(media_data.BASE64_VIDEO)["path"])
-        )
+        x_video = FileData(path=deepcopy(media_data.BASE64_VIDEO)["path"])
         video_input = gr.Video()
 
         x_video = await processing_utils.async_move_files_to_cache(
@@ -45,13 +42,12 @@ class TestVideo:
             "autoplay": False,
             "sources": ["upload", "webcam"],
             "name": "video",
-            "show_share_button": False,
+            "buttons": None,
             "show_label": True,
             "label": "Upload Your Video",
             "container": True,
             "min_width": 160,
             "scale": None,
-            "show_download_button": None,
             "height": None,
             "width": None,
             "elem_id": None,
@@ -69,6 +65,7 @@ class TestVideo:
             "loop": False,
             "streaming": False,
             "watermark": {"watermark": None, "position": "bottom-right"},
+            "subtitles": None,
         }
         assert video_input.preprocess(None) is None
         video_input = gr.Video(format="avi")
@@ -79,23 +76,18 @@ class TestVideo:
 
         # Output functionalities
         y_vid_path = "test/test_files/video_sample.mp4"
-        subtitles_path = "test/test_files/s1.srt"
         video_output = gr.Video()
         output1 = video_output.postprocess(y_vid_path)
         assert output1
-        output1 = output1.model_dump()["video"]["path"]
+        output1 = output1.model_dump()["path"]
         assert output1.endswith("mp4")
         output2 = video_output.postprocess(y_vid_path)
         assert output2
-        output2 = output2.model_dump()["video"]["path"]
+        output2 = output2.model_dump()["path"]
         assert output1 == output2
         output3 = video_output.postprocess(y_vid_path)
         assert output3
-        assert output3.model_dump()["video"]["orig_name"] == "video_sample.mp4"
-        output_with_subtitles = video_output.postprocess((y_vid_path, subtitles_path))
-        assert output_with_subtitles
-        output_with_subtitles = output_with_subtitles.model_dump()
-        assert output_with_subtitles["subtitles"]["path"].endswith(".vtt")
+        assert output3.model_dump()["orig_name"] == "video_sample.mp4"
 
         video = gr.Video(format="wav")
         video_url_with_query_param = "https://github.com/gradio-app/gradio/raw/refs/heads/main/test/test_files/playable_but_bad_container.mp4?query=fake"
@@ -103,67 +95,28 @@ class TestVideo:
             video_url_with_query_param
         )
         assert postprocessed_video_with_query_param
-        assert postprocessed_video_with_query_param.model_dump()["video"][
-            "path"
-        ].endswith("playable_but_bad_container.wav")
+        assert postprocessed_video_with_query_param.model_dump()["path"].endswith(
+            "playable_but_bad_container.wav"
+        )
 
         p_video = gr.Video()
-        video_with_subtitle = gr.Video()
         postprocessed_video = p_video.postprocess(Path(y_vid_path))
         assert postprocessed_video
 
         postprocessed_video = postprocessed_video.model_dump()
-        postprocessed_video_with_subtitle = video_with_subtitle.postprocess(
-            (Path(y_vid_path), Path(subtitles_path))
-        )
-        assert postprocessed_video_with_subtitle
-        postprocessed_video_with_subtitle = (
-            postprocessed_video_with_subtitle.model_dump()
-        )
 
         processed_video = {
-            "video": {
-                "path": "video_sample.mp4",
-                "orig_name": "video_sample.mp4",
-                "mime_type": None,
-                "size": None,
-                "url": None,
-                "is_stream": False,
-                "meta": {"_type": "gradio.FileData"},
-            },
-            "subtitles": None,
+            "path": "video_sample.mp4",
+            "orig_name": "video_sample.mp4",
+            "mime_type": None,
+            "size": None,
+            "url": None,
+            "is_stream": False,
+            "meta": {"_type": "gradio.FileData"},
         }
 
-        processed_video_with_subtitle = {
-            "video": {
-                "path": "video_sample.mp4",
-                "orig_name": "video_sample.mp4",
-                "mime_type": None,
-                "size": None,
-                "url": None,
-                "is_stream": False,
-                "meta": {"_type": "gradio.FileData"},
-            },
-            "subtitles": {
-                "path": "s1.srt",
-                "mime_type": None,
-                "orig_name": None,
-                "size": None,
-                "url": None,
-                "is_stream": False,
-                "meta": {"_type": "gradio.FileData"},
-            },
-        }
-        postprocessed_video["video"]["path"] = os.path.basename(
-            postprocessed_video["video"]["path"]
-        )
+        postprocessed_video["path"] = os.path.basename(postprocessed_video["path"])
         assert processed_video == postprocessed_video
-        postprocessed_video_with_subtitle["video"]["path"] = os.path.basename(
-            postprocessed_video_with_subtitle["video"]["path"]
-        )
-        if postprocessed_video_with_subtitle["subtitles"]["path"]:
-            postprocessed_video_with_subtitle["subtitles"]["path"] = "s1.srt"
-        assert processed_video_with_subtitle == postprocessed_video_with_subtitle
 
     def test_in_interface(self):
         """
@@ -171,7 +124,7 @@ class TestVideo:
         """
         x_video = media_data.BASE64_VIDEO["path"]
         iface = gr.Interface(lambda x: x, "video", "playable_video")
-        assert iface({"video": x_video})["video"].endswith(".mp4")
+        assert iface(x_video).endswith(".mp4")
 
     def test_video_postprocess_converts_to_playable_format(self):
         test_file_dir = Path(__file__).parent.parent / "test_files"
@@ -185,7 +138,7 @@ class TestVideo:
             output = gr.Video().postprocess(tmp_not_playable_vid.name)
             assert output
             output = output.model_dump()
-            assert processing_utils.video_is_playable(output["video"]["path"])
+            assert processing_utils.video_is_playable(output["path"])
 
         # This file has a playable codec but not a playable container
         with tempfile.NamedTemporaryFile(
@@ -197,13 +150,13 @@ class TestVideo:
             output = gr.Video().postprocess(tmp_not_playable_vid.name)
             assert output
             output = output.model_dump()
-            assert processing_utils.video_is_playable(output["video"]["path"])
+            assert processing_utils.video_is_playable(output["path"])
 
     @patch("pathlib.Path.exists", MagicMock(return_value=False))
     @patch("gradio.components.video.FFmpeg")
     def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
         # Ensures that the cached temp video file is not used so that ffmpeg is called for each test
-        x_video = VideoData(video=FileData(path=media_data.BASE64_VIDEO["path"]))
+        x_video = FileData(path=media_data.BASE64_VIDEO["path"])
         video_input = gr.Video(sources=["webcam"])
         _ = video_input.preprocess(x_video)
 

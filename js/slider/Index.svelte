@@ -33,7 +33,7 @@
 	export let interactive: boolean;
 	export let loading_status: LoadingStatus;
 	export let value_is_output = false;
-	export let show_reset_button: boolean;
+	export let buttons: string[] | null = null;
 
 	let range_input: HTMLInputElement;
 	let number_input: HTMLInputElement;
@@ -124,7 +124,7 @@
 					{disabled}
 					on:pointerup={handle_release}
 				/>
-				{#if show_reset_button}
+				{#if buttons?.includes("reset") ?? true}
 					<button
 						class="reset-button"
 						on:click={reset_value}

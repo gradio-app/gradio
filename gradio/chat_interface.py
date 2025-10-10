@@ -33,7 +33,12 @@ from gradio.components import (
     Textbox,
     get_component_instance,
 )
-from gradio.components.chatbot import ChatMessage, ExampleMessage, Message, MessageDict
+from gradio.components.chatbot import (
+    ChatMessage,
+    ExampleMessage,
+    Message,
+    MessageDict,
+)
 from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
 from gradio.events import Dependency, EditData, SelectData
 from gradio.flagging import ChatCSVLogger

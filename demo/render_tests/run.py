@@ -43,7 +43,7 @@ with gr.Blocks() as demo:
             chatbot.select(get_select_index, None, selected_chat)
 
     selectable_chat = gr.Chatbot([{"role": "user", "content": "chat1"}, {"role": "assistant", "content": "chat2"}, {"role": "user", "content": "chat3"}, {"role": "assistant", "content": "chat4"}])
- 
+
     @gr.render(triggers=[selectable_chat.select])
     def show_selected_chat(selection: gr.SelectData):
         gr.Textbox(label="Trigger Index", value=selection.index)

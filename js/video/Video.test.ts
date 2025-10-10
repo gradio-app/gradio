@@ -40,11 +40,8 @@ describe("Video", () => {
 			show_label: true,
 			loading_status,
 			value: {
-				video: {
-					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-				},
-				subtitles: null
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 			},
 			label: "Test Label",
 			root: "foo",
@@ -72,11 +69,8 @@ describe("Video", () => {
 			show_label: false,
 			loading_status,
 			value: {
-				video: {
-					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-				},
-				subtitles: null
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 			},
 			label: "Video Component",
 			root: "foo",
@@ -99,11 +93,8 @@ describe("Video", () => {
 			show_label: true,
 			loading_status,
 			value: {
-				video: {
-					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-				},
-				subtitles: null
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 			},
 			root: "foo",
 			proxy_url: null,
@@ -130,11 +121,8 @@ describe("Video", () => {
 			loading_status,
 			interactive: false,
 			value: {
-				video: {
-					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-				},
-				subtitles: null
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 			},
 			root: "foo",
 			proxy_url: null,
@@ -158,11 +146,8 @@ describe("Video", () => {
 			show_label: true,
 			loading_status,
 			value: {
-				video: {
-					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-				},
-				subtitles: null
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 			},
 			root: "foo",
 			proxy_url: null,
@@ -187,11 +172,8 @@ describe("Video", () => {
 			loading_status,
 			interactive: false,
 			value: {
-				video: {
-					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-				},
-				subtitles: null
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 			},
 			root: "foo",
 			proxy_url: null,
@@ -209,9 +191,7 @@ describe("Video", () => {
 		startButton.dispatchEvent(new Event("loadeddata"));
 		component.$set({
 			value: {
-				video: {
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
-				}
+				path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 			}
 		});
 		startButton.dispatchEvent(new Event("loadeddata"));
@@ -224,11 +204,8 @@ describe("Video", () => {
 			loading_status,
 			interactive: true,
 			value: {
-				video: {
-					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-				},
-				subtitles: null
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 			},
 			root: "foo",
 			proxy_url: null,
@@ -246,11 +223,8 @@ describe("Video", () => {
 		startButton.dispatchEvent(new Event("loadeddata"));
 		component.$set({
 			value: {
-				video: {
-					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-				},
-				subtitles: null
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 			}
 		});
 		startButton.dispatchEvent(new Event("loadeddata"));
@@ -258,10 +232,8 @@ describe("Video", () => {
 	});
 	test("renders video and download button", async () => {
 		const data = {
-			video: {
-				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-			}
+			path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+			url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 		};
 		const results = await render(Video, {
 			interactive: false,
@@ -278,7 +250,7 @@ describe("Video", () => {
 		const downloadButton = results.getAllByTestId("download-div")[0];
 		expect(
 			downloadButton.getElementsByTagName("a")[0].getAttribute("href")
-		).toBe(data.video.path);
+		).toBe(data.path);
 		expect(
 			downloadButton.getElementsByTagName("button").length
 		).toBeGreaterThan(0);
