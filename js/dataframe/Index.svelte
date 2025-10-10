@@ -59,6 +59,7 @@
 	export let pinned_columns = 0;
 	export let static_columns: (string | number)[] = [];
 	export let fullscreen = false;
+	export let truncate_headers = true;
 </script>
 
 <Block
@@ -119,5 +120,6 @@
 		{pinned_columns}
 		components={{ image: Image }}
 		{static_columns}
+		{truncate_headers}
 	/>
 </Block>

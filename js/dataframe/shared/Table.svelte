@@ -84,6 +84,7 @@
 	export let pinned_columns = 0;
 	export let static_columns: (string | number)[] = [];
 	export let fullscreen = false;
+	export let truncate_headers = false;
 
 	const df_ctx = create_dataframe_context({
 		show_fullscreen_button,
@@ -890,6 +891,7 @@
 							datatype={Array.isArray(datatype) ? datatype[i] : datatype}
 							{data}
 							on_select_all={handle_select_all}
+							{truncate_headers}
 						/>
 					{/each}
 				</tr>
@@ -919,6 +921,7 @@
 									on_select_row={df_actions.handle_select_row}
 									{is_dragging}
 									on:blur={handle_blur}
+									{truncate_headers}
 								/>
 							</div>
 						</td>
@@ -996,6 +999,7 @@
 								datatype={Array.isArray(datatype) ? datatype[i] : datatype}
 								{data}
 								on_select_all={handle_select_all}
+								{truncate_headers}
 							/>
 						{/each}
 					</tr>
@@ -1037,6 +1041,7 @@
 								bind:el={els[id]}
 								{is_dragging}
 								{wrap}
+								{truncate_headers}
 							/>
 						{/each}
 					</tr>
