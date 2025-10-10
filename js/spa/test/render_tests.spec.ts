@@ -39,13 +39,13 @@ test("Test event/selection data works in render", async ({ page }) => {
 
 	const selected_chat = page.getByLabel("Selected Chat");
 	await page.getByText("Hi").click();
-	await expect(selected_chat).toHaveValue("[0, 1]");
+	await expect(selected_chat).toHaveValue("1");
 });
 
 test("Test event/selection data can trigger render", async ({ page }) => {
 	await page.getByText("chat3").click();
 	const selected_chat = page.getByLabel("Trigger Index");
-	await expect(selected_chat).toHaveValue("[1, 0]");
+	await expect(selected_chat).toHaveValue("2");
 });
 
 test("Test examples work in render", async ({ page }) => {
