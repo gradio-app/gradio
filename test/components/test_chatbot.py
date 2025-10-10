@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import gradio as gr
 from gradio import utils
 
@@ -31,17 +29,25 @@ class TestChatbot:
         ]
 
         multimodal_msg = [
-            {"role": "user", "content": ("test/test_files/video_sample.mp4",)},
+            {"role": "user", "content": {"path": "test/test_files/video_sample.mp4"}},
             {"role": "assistant", "content": "cool video"},
-            {"role": "user", "content": ("test/test_files/audio_sample.wav",)},
+            {"role": "user", "content": {"path": "test/test_files/audio_sample.wav"}},
             {"role": "assistant", "content": "cool audio"},
-            {"role": "user", "content": ("test/test_files/bus.png", "A bus")},
+            {
+                "role": "user",
+                "content": {"path": "test/test_files/bus.png", "alt_text": "A bus"},
+            },
             {"role": "assistant", "content": "cool pic"},
-            {"role": "user", "content": (Path("test/test_files/video_sample.mp4"),)},
+            {"role": "user", "content": {"path": "test/test_files/video_sample.mp4"}},
             {"role": "assistant", "content": "cool video"},
-            {"role": "user", "content": (Path("test/test_files/audio_sample.wav"),)},
+            {"role": "user", "content": {"path": "test/test_files/audio_sample.wav"}},
             {"role": "assistant", "content": "cool audio"},
-            {"role": "user", "content": (Path("test/test_files/bus.png"), "A bus")},
+            {
+                "role": "user",
+                "content": {
+                    "file": {"path": "test/test_files/bus.png", "alt_text": "A bus"}
+                },
+            },
             {"role": "assistant", "content": "cool pic"},
         ]
         postprocessed_multimodal_msg = chatbot.postprocess(multimodal_msg).model_dump()  # type: ignore
