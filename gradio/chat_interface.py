@@ -840,6 +840,7 @@ class ChatInterface(Blocks):
     ) -> list[MessageDict]:
         message_dicts = self._message_as_message_dict(message, role)
         history = copy.deepcopy(history)
+        print("message_dicts", message_dicts)
         history.extend(message_dicts)  # type: ignore
         return history
 
@@ -870,7 +871,7 @@ class ChatInterface(Blocks):
             ):  # in MessageDict format already
                 msg["role"] = role
                 message_dicts.append(msg)
-            else:  # in MultimodalPostprocess format
+            elif self.group_multimodal_data:  # in MultimodalPostprocess format
                 if self.group_multimodal_data:
                     multimodal_message = {"role": role, "content": []}
                     for x in msg.get("files", []):
@@ -878,12 +879,12 @@ class ChatInterface(Blocks):
                             x = x.get("path")
                         multimodal_message["content"].append({"path": x})
                     if msg["text"]:
-                        multimodal_message["content"].insert(0, msg["text"])
+                        multimodal_message["content"].append(msg["text"])
                     message_dicts.append(multimodal_message)
-                else:
-                    for x in msg.get("files", []):
-                        if isinstance(x, dict):
-                            x = x.get("path")
+            else:
+                for x in msg.get("files", []):
+                    if isinstance(x, dict):
+                        x = x.get("path")
                     message_dicts.append({"role": role, "content": {"path": x}})
                 if msg["text"] is None or not isinstance(msg["text"], str):
                     pass
@@ -1076,10 +1077,19 @@ class ChatInterface(Blocks):
             assert isinstance(msg, dict)  # noqa: S101
             if msg["role"] == "user":
                 content = msg["content"]
-                if isinstance(content, tuple):
-                    files.append(content[0])
+                print("content", content)
+                if isinstance(content, list):
+                    for item in content:
+                        if isinstance(item, dict) and "file" in item:
+                            files.append(item["file"])
+                        else:
+                            last_user_message = item
+                elif isinstance(content, dict) and "file" in content:
+                    files.append(content["file"])
                 else:
                     last_user_message = content
+        print("files", files)
+        print("last_user_message", last_user_message)
         return_message = (
             {"text": last_user_message, "files": files}
             if self.multimodal
