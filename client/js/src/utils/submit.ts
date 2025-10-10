@@ -37,7 +37,7 @@ export function submit(
 	all_events?: boolean
 ): SubmitIterable<GradioEvent> {
 	try {
-		const { hf_token } = this.options;
+		const { token } = this.options;
 		const {
 			fetch,
 			app_reference,

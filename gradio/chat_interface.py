@@ -38,7 +38,6 @@ from gradio.components.chatbot import (
     ExampleMessage,
     Message,
     MessageDict,
-    TupleFormat,
 )
 from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
 from gradio.events import Dependency, EditData, SelectData
@@ -831,36 +830,12 @@ class ChatInterface(Blocks):
             message,
         )
 
-    @staticmethod
-    def _messages_to_tuples(history_messages: list[MessageDict]) -> TupleFormat:
-        history_tuples = []
-        for message in history_messages:
-            if message["role"] == "user":
-                history_tuples.append((message["content"], None))
-            elif history_tuples and history_tuples[-1][1] is None:
-                history_tuples[-1] = (history_tuples[-1][0], message["content"])
-            else:
-                history_tuples.append((None, message["content"]))
-        return history_tuples
-
-    @staticmethod
-    def _tuples_to_messages(history_tuples: TupleFormat) -> list[MessageDict]:
-        history_messages = []
-        for message_tuple in history_tuples:
-            if message_tuple[0]:
-                history_messages.append({"role": "user", "content": message_tuple[0]})
-            if message_tuple[1]:
-                history_messages.append(
-                    {"role": "assistant", "content": message_tuple[1]}
-                )
-        return history_messages
-
     def _append_message_to_history(
         self,
         message: MessageDict | Message | str | Component | MultimodalPostprocess | list,
-        history: list[MessageDict] | TupleFormat,
+        history: list[MessageDict],
         role: Literal["user", "assistant"] = "user",
-    ) -> list[MessageDict] | TupleFormat:
+    ) -> list[MessageDict]:
         message_dicts = self._message_as_message_dict(message, role)
         history = copy.deepcopy(history)
         history.extend(message_dicts)  # type: ignore
@@ -907,7 +882,7 @@ class ChatInterface(Blocks):
     async def _submit_fn(
         self,
         message: str | MultimodalPostprocess,
-        history: TupleFormat | list[MessageDict],
+        history: list[MessageDict],
         *args,
     ) -> tuple:
         inputs = [message, history] + list(args)
@@ -928,7 +903,7 @@ class ChatInterface(Blocks):
     async def _stream_fn(
         self,
         message: str | MultimodalPostprocess,
-        history: TupleFormat | list[MessageDict],
+        history: list[MessageDict],
         *args,
     ) -> AsyncGenerator[
         tuple,
@@ -967,7 +942,7 @@ class ChatInterface(Blocks):
 
     def option_clicked(
         self, history: list[MessageDict], option: SelectData
-    ) -> tuple[TupleFormat | list[MessageDict], str | MultimodalPostprocess]:
+    ) -> tuple[list[MessageDict], str | MultimodalPostprocess]:
         """
         When an option is clicked, the chat history is appended with the option value.
         The saved input value is also set to option value.
@@ -991,10 +966,10 @@ class ChatInterface(Blocks):
             return example.value["text"]
 
     def _edit_message(
-        self, history: list[MessageDict] | TupleFormat, edit_data: EditData
+        self, history: list[MessageDict], edit_data: EditData
     ) -> tuple[
-        list[MessageDict] | TupleFormat,
-        list[MessageDict] | TupleFormat,
+        list[MessageDict],
+        list[MessageDict],
         str | MultimodalPostprocess,
     ]:
         if isinstance(edit_data.index, (list, tuple)):
@@ -1005,9 +980,7 @@ class ChatInterface(Blocks):
 
     def example_clicked(
         self, example: SelectData
-    ) -> Generator[
-        tuple[TupleFormat | list[MessageDict], str | MultimodalPostprocess], None, None
-    ]:
+    ) -> Generator[tuple[list[MessageDict], str | MultimodalPostprocess], None, None]:
         """
         When an example is clicked, the chat history (and saved input) is initially set only
         to the example message. Then, if example caching is enabled, the cached response is loaded
@@ -1044,7 +1017,7 @@ class ChatInterface(Blocks):
 
     async def _examples_fn(
         self, message: ExampleMessage | str, *args
-    ) -> TupleFormat | list[MessageDict]:
+    ) -> list[MessageDict]:
         inputs, _, _ = special_args(self.fn, inputs=[message, [], *args], request=None)
         if self.is_async:
             response = await self.fn(*inputs)
@@ -1069,8 +1042,8 @@ class ChatInterface(Blocks):
 
     def _pop_last_user_message(
         self,
-        history: list[MessageDict] | TupleFormat,
-    ) -> tuple[list[MessageDict] | TupleFormat, str | MultimodalPostprocess]:
+        history: list[MessageDict],
+    ) -> tuple[list[MessageDict], str | MultimodalPostprocess]:
         """
         Removes the message (or set of messages) that the user last sent from the chat history and returns them.
         If self.multimodal is True, returns a MultimodalPostprocess (dict) object with text and files.

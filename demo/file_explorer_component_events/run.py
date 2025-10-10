@@ -8,6 +8,7 @@ with gr.Blocks() as demo:
         dd = gr.Dropdown(label="Select File Explorer Root",
                         value=str(base_root / "dir1"),
                         choices=[str(base_root / "dir1"),
+                                 str(base_root / "dir2"),
                                  str(base_root / "dir3")])
         with gr.Group():
             txt_only_glob = gr.Checkbox(label="Show only text files", value=False)

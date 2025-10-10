@@ -30,23 +30,27 @@ def add_message(history, message):
 
 def bot(history, response_type):
     if response_type == "gallery":
-        msg = {"role": "assistant", "content": gr.Gallery(
-            ["https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
-             "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"]
-            )
+        msg = {"role": "assistant",
+               "content": gr.Gallery(
+            [
+                "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/images/bus.png",
+                "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/images/bus.png",
+            ])
         }
     elif response_type == "image":
         msg = {"role": "assistant",
-               "content": gr.Image("https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png")
+               "content": gr.Image(
+                   "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/images/bus.png"
+               )
         }
     elif response_type == "video":
         msg = {"role": "assistant",
-               "content": gr.Video("https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4",
+               "content": gr.Video("https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/videos/world.mp4",
                                    label="test")
         }
     elif response_type == "audio":
         msg = {"role": "assistant",
-               "content": gr.Audio("https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav")
+               "content": gr.Audio("https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/audio/audio_sample.wav")
         }
     elif response_type == "html":
        msg = {"role": "assistant",
@@ -56,7 +60,7 @@ def bot(history, response_type):
        }
     elif response_type == "model3d":
         msg = {"role": "assistant", "content": gr.Model3D(
-           "https://github.com/gradio-app/gradio/raw/main/test/test_files/Fox.gltf"
+           "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/models3d/Fox.gltf"
         )}
     else:
         msg = {"role": "assistant", "content": "Cool!"}

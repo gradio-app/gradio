@@ -43,7 +43,7 @@
 	export let min_width: number | undefined = undefined;
 	let active: string | null = null;
 	export let loading_status: LoadingStatus;
-	export let show_fullscreen_button = true;
+	export let buttons: string[] | null = null;
 
 	let image_container: HTMLElement;
 	let fullscreen = false;
@@ -115,7 +115,7 @@
 		{:else}
 			<div class="image-container" bind:this={image_container}>
 				<IconButtonWrapper>
-					{#if show_fullscreen_button}
+					{#if buttons?.includes("fullscreen") ?? true}
 						<FullscreenButton
 							{fullscreen}
 							on:fullscreen={({ detail }) => {

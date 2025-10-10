@@ -330,8 +330,8 @@ class App(FastAPI):
             raise PermissionError("This URL cannot be proxied.")
         is_hf_url = url.host.endswith(".hf.space")
         headers = {}
-        if Context.hf_token is not None and is_hf_url:
-            headers["Authorization"] = f"Bearer {Context.hf_token}"
+        if Context.token is not None and is_hf_url:
+            headers["Authorization"] = f"Bearer {Context.token}"
         rp_req = client.build_request("GET", url, headers=headers)
         return rp_req
 

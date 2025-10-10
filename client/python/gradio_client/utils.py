@@ -625,12 +625,12 @@ def create_tmp_copy_of_file(file_path: str, dir: str | None = None) -> str:
 
 
 def download_tmp_copy_of_file(
-    url_path: str, hf_token: str | None = None, dir: str | None = None
+    url_path: str, token: str | None = None, dir: str | None = None
 ) -> str:
     """Kept for backwards compatibility for 3.x spaces."""
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
-    headers = {"Authorization": "Bearer " + hf_token} if hf_token else {}
+    headers = {"Authorization": "Bearer " + token} if token else {}
     directory = Path(dir or tempfile.gettempdir()) / secrets.token_hex(20)
     directory.mkdir(exist_ok=True, parents=True)
     file_path = directory / Path(url_path).name
@@ -713,9 +713,9 @@ def encode_url_or_file_to_base64(path: str | Path):
     return encode_file_to_base64(path)
 
 
-def download_byte_stream(url: str, hf_token=None):
+def download_byte_stream(url: str, token=None):
     arr = bytearray()
-    headers = {"Authorization": "Bearer " + hf_token} if hf_token else {}
+    headers = {"Authorization": "Bearer " + token} if token else {}
     with httpx.stream("GET", url, headers=headers) as r:
         for data in r.iter_bytes():
             arr += data
@@ -817,11 +817,11 @@ def file_to_json(file_path: str | Path) -> dict | list:
 ###########################
 def set_space_timeout(
     space_id: str,
-    hf_token: str | None = None,
+    token: str | None = None,
     timeout_in_seconds: int = 300,
 ):
     headers = huggingface_hub.utils.build_hf_headers(
-        token=hf_token,
+        token=token,
         library_name="gradio_client",
         library_version=__version__,
     )

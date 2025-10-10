@@ -15,17 +15,17 @@ test("test editing chatbot messages", async ({ page }) => {
 	await expect(page.getByLabel("Edited Message")).toHaveValue(
 		"from I'm a user to GRADIO at 0"
 	);
-	await page.getByLabel("Edit").nth(2).click();
+	await page.getByLabel("Edit").nth(1).click();
 	await page.locator("textarea").first().fill("FAIL");
 	await page.getByLabel("Cancel").click();
-	await page.getByLabel("Edit").nth(3).click();
+	await page.getByLabel("Edit").nth(1).click();
 	await page.locator("textarea").first().fill("SUCCESS");
 	await page.getByLabel("Submit").click();
 	await expect(page.getByLabel("Edited Message")).toHaveValue(
-		"from I'm a user to SUCCESS at [1, 0]"
+		"from I'm a user to SUCCESS at 2"
 	);
 	await expect(page.getByLabel("Concatenated Chat 1")).toHaveValue(
-		"GRADIO|I'm a bot|I'm a user|I'm a bot"
+		"GRADIO|I'm a bot|SUCCESS|I'm a bot"
 	);
 });
 
@@ -45,8 +45,4 @@ test("test editing consecutive user messages", async ({ page }) => {
 	await expect(page.getByLabel("Concatenated Chat 1")).toHaveValue(
 		"FIRST EDIT|SECOND EDIT"
 	);
-	await page.getByLabel("Edit").nth(3).click();
-	await page.locator("textarea").nth(0).fill("THIRD EDIT");
-	await page.locator("textarea").nth(1).fill("FOURTH EDIT");
-	await page.getByLabel("Submit").click();
 });
