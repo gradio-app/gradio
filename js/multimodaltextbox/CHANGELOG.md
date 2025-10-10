@@ -1,5 +1,11 @@
 # @gradio/multimodaltextbox
 
+## 0.10.22-dev.0
+
+### Dependency updates
+
+- @gradio/video@0.17.0-dev.0
+
 ## 0.10.21
 
 ### Fixes
