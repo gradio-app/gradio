@@ -4,6 +4,7 @@ image = gr.get_image("avatar.png")
 audio = gr.get_audio("cantina.wav")
 
 def echo(message, history):
+    print("HISTORY:", history)
     return f"You wrote: {message['text']} and uploaded {len(message['files'])} files."
 
 demo = gr.ChatInterface(

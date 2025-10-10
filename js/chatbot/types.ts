@@ -26,7 +26,11 @@ export interface Option {
 export interface Message {
 	role: MessageRole;
 	metadata: Metadata;
-	content: string | FileData | ComponentData;
+	content:
+		| string
+		| FileData
+		| ComponentData
+		| (string | FileData | ComponentData)[];
 	index: number | [number, number];
 	options?: Option[];
 }
@@ -53,8 +57,6 @@ export type message_data =
 	| { file: FileData | FileData[]; alt_text: string | null }
 	| { component: string; value: any; constructor_args: any; props: any }
 	| null;
-
-export type TupleFormat = [message_data, message_data][] | null;
 
 export type NormalisedMessage = TextMessage | ComponentMessage;
 

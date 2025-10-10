@@ -112,6 +112,7 @@ class ChatInterface(Blocks):
         show_api: bool = True,
         save_history: bool = False,
         validator: Callable | None = None,
+        group_multimodal_data: bool = False,
     ):
         """
         Parameters:
@@ -155,6 +156,7 @@ class ChatInterface(Blocks):
             show_api: whether to show the chat endpoint in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
             save_history: if True, will save the chat history to the browser's local storage and display previous conversations in a side panel.
             validator: a function that takes in the inputs and can optionally return a gr.validate() object for each input.
+            group_multimodal_data: Whether the the multimodal data (text + files) from the MultimodalTextbox should be grouped into a single list in the `content` key of the message. This can be useful when working with multimodal models that require multimodal input to be grouped in the same message, e.g. {'role': 'user', 'content': ["What is in this image", {"path": "<url>"}]}. If False, the text and each file will be separate messages in the chat history. Only applies when `multimodal` is True.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -175,6 +177,7 @@ class ChatInterface(Blocks):
         self.show_api = show_api
         self.multimodal = multimodal
         self.concurrency_limit = concurrency_limit
+        self.group_multimodal_data = group_multimodal_data
         if isinstance(fn, ChatInterface):
             self.fn = fn.fn
         else:
@@ -505,7 +508,6 @@ class ChatInterface(Blocks):
             index,
             Chatbot(
                 value=conversations[index],  # type: ignore
-                feedback_value=[],
             ),
         )
 
@@ -838,6 +840,7 @@ class ChatInterface(Blocks):
     ) -> list[MessageDict]:
         message_dicts = self._message_as_message_dict(message, role)
         history = copy.deepcopy(history)
+        print("message_dicts", message_dicts)
         history.extend(message_dicts)  # type: ignore
         return history
 
@@ -868,11 +871,21 @@ class ChatInterface(Blocks):
             ):  # in MessageDict format already
                 msg["role"] = role
                 message_dicts.append(msg)
-            else:  # in MultimodalPostprocess format
+            elif self.group_multimodal_data:  # in MultimodalPostprocess format
+                if self.group_multimodal_data:
+                    multimodal_message = {"role": role, "content": []}
+                    for x in msg.get("files", []):
+                        if isinstance(x, dict):
+                            x = x.get("path")
+                        multimodal_message["content"].append({"path": x})
+                    if msg["text"]:
+                        multimodal_message["content"].append(msg["text"])
+                    message_dicts.append(multimodal_message)
+            else:
                 for x in msg.get("files", []):
                     if isinstance(x, dict):
                         x = x.get("path")
-                    message_dicts.append({"role": role, "content": (x,)})
+                    message_dicts.append({"role": role, "content": {"path": x}})
                 if msg["text"] is None or not isinstance(msg["text"], str):
                     pass
                 else:
@@ -1064,10 +1077,19 @@ class ChatInterface(Blocks):
             assert isinstance(msg, dict)  # noqa: S101
             if msg["role"] == "user":
                 content = msg["content"]
-                if isinstance(content, tuple):
-                    files.append(content[0])
+                print("content", content)
+                if isinstance(content, list):
+                    for item in content:
+                        if isinstance(item, dict) and "file" in item:
+                            files.append(item["file"])
+                        else:
+                            last_user_message = item
+                elif isinstance(content, dict) and "file" in content:
+                    files.append(content["file"])
                 else:
                     last_user_message = content
+        print("files", files)
+        print("last_user_message", last_user_message)
         return_message = (
             {"text": last_user_message, "files": files}
             if self.multimodal
