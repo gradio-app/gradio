@@ -46,7 +46,7 @@
 		if (!api || (hf_token && !hf_token.startsWith("hf_"))) return;
 
 		app = await Client.connect(api, {
-			hf_token
+			token: hf_token
 		});
 
 		const { named_endpoints, unnamed_endpoints } = await app.view_api();

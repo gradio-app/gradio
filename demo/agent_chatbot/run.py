@@ -29,7 +29,6 @@ demo = gr.ChatInterface(
     interact_with_agent,
     chatbot= gr.Chatbot(
         label="Agent",
-        type="messages",
         avatar_images=(
             None,
             "https://em-content.zobj.net/source/twitter/53/robot-face_1f916.png",
@@ -39,7 +38,6 @@ demo = gr.ChatInterface(
         ["Generate an image of an astronaut riding an alligator"],
         ["I am writing a children's book for my daughter. Can you help me with some illustrations?"],
     ],
-    type="messages",
 )
 
 if __name__ == "__main__":

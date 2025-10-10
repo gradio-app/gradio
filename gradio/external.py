@@ -47,7 +47,6 @@ def load(
     | Literal["models", "spaces", "huggingface"]
     | None = None,
     token: str | None = None,
-    hf_token: str | None = None,
     accept_token: bool | LoginButton = False,
     provider: PROVIDER_T | None = None,
     **kwargs,
@@ -68,11 +67,6 @@ def load(
         demo = gr.load("gradio/question-answering", src="spaces")
         demo.launch()
     """
-    if hf_token is not None and token is None:
-        token = hf_token
-        warnings.warn(
-            "The `hf_token` parameter is deprecated. Please use the equivalent `token` parameter instead."
-        )
     if src is None:
         # Separate the repo type (e.g. "model") from repo name (e.g. "google/vit-base-patch16-224")
         parts = name.split("/")
@@ -101,7 +95,7 @@ def load(
         return load_blocks_from_huggingface(
             name=name,
             src=src,  # type: ignore
-            hf_token=token,
+            token=token,
             provider=provider,
             **kwargs,  # type: ignore
         )
@@ -116,7 +110,7 @@ def load(
                 return load_blocks_from_huggingface(
                     name=name,
                     src=src,  # type: ignore
-                    hf_token=token_value,
+                    token=token_value,
                     provider=provider,
                     **kwargs,
                 )
@@ -164,7 +158,7 @@ def load(
                 return load_blocks_from_huggingface(
                     name=name,
                     src=src,  # type: ignore
-                    hf_token=token_value,
+                    token=token_value,
                     provider=provider,
                     **kwargs,
                 )
@@ -175,42 +169,40 @@ def load(
 def load_blocks_from_huggingface(
     name: str,
     src: str,
-    hf_token: str | None = None,
+    token: str | None = None,
     alias: str | None = None,
     provider: PROVIDER_T | None = None,
     **kwargs,
 ) -> Blocks:
     """Creates and returns a Blocks instance from a Hugging Face model or Space repo."""
-    if hf_token is not None:
-        if Context.hf_token is not None and Context.hf_token != hf_token:
+    if token is not None:
+        if Context.token is not None and Context.token != token:
             warnings.warn(
                 """You are loading a model/Space with a different access token than the one you used to load a previous model/Space. This is not recommended, as it may cause unexpected behavior."""
             )
-        Context.hf_token = hf_token
+        Context.token = token
 
     if src == "spaces":
         blocks = from_spaces(
-            name, hf_token=hf_token, alias=alias, provider=provider, **kwargs
+            name, token=token, alias=alias, provider=provider, **kwargs
         )
     else:
-        blocks = from_model(
-            name, hf_token=hf_token, alias=alias, provider=provider, **kwargs
-        )
+        blocks = from_model(name, token=token, alias=alias, provider=provider, **kwargs)
     return blocks
 
 
 def from_model(
     model_name: str,
-    hf_token: str | None,
+    token: str | None,
     alias: str | None,
     provider: PROVIDER_T | None = None,
     **kwargs,
 ) -> Blocks:
     headers = {"X-Wait-For-Model": "true"}
     client = huggingface_hub.InferenceClient(
-        model=model_name, headers=headers, token=hf_token, provider=provider
+        model=model_name, headers=headers, token=token, provider=provider
     )
-    p, tags = external_utils.get_model_info(model_name, hf_token)
+    p, tags = external_utils.get_model_info(model_name, token)
 
     # For tasks that are not yet supported by the InferenceClient
     api_url = f"https://api-inference.huggingface.co/models/{model_name}"
@@ -333,8 +325,8 @@ def from_model(
                 "examples": examples,
             }
             kwargs = dict(chat_interface_kwargs, **kwargs)
-            chatbot = Chatbot(scale=1, type="messages", allow_tags=True)
-            return ChatInterface(fn, chatbot=chatbot, type="messages", **kwargs)  # type: ignore
+            chatbot = Chatbot(scale=1, allow_tags=True)
+            return ChatInterface(fn, chatbot=chatbot, **kwargs)  # type: ignore
         inputs = components.Textbox(label="Text")
         outputs = inputs
         examples = ["Once upon a time"]
@@ -518,7 +510,7 @@ def from_model(
 
 def from_spaces(
     space_name: str,
-    hf_token: str | None,
+    token: str | None,
     alias: str | None,
     provider: PROVIDER_T | None = None,
     **kwargs,
@@ -533,8 +525,8 @@ def from_spaces(
     print(f"Fetching Space from: {space_url}")
 
     headers = {}
-    if hf_token not in [False, None]:
-        headers["Authorization"] = f"Bearer {hf_token}"
+    if token not in [False, None]:
+        headers["Authorization"] = f"Bearer {token}"
     iframe_url = (
         httpx.get(
             f"https://huggingface.co/api/spaces/{space_name}/host", headers=headers
@@ -545,7 +537,7 @@ def from_spaces(
 
     if iframe_url is None:
         raise ValueError(
-            f"Could not find Space: {space_name}. If it is a private or gated Space, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `hf_token` parameter."
+            f"Could not find Space: {space_name}. If it is a private or gated Space, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `token` parameter."
         )
 
     config_request = httpx.get(iframe_url + "/config", headers=headers)
@@ -567,7 +559,7 @@ def from_spaces(
         )
     if "allow_flagging" in config:  # Create an Interface for Gradio 2.x Spaces
         return from_spaces_interface(
-            space_name, config, alias, hf_token, iframe_url, **kwargs
+            space_name, config, alias, token, iframe_url, **kwargs
         )
     else:  # Create a Blocks for Gradio 3.x Spaces
         if kwargs:
@@ -577,7 +569,7 @@ def from_spaces(
                 "Blocks or Interface locally. You may find this Guide helpful: "
                 "https://gradio.app/using_blocks_like_functions/"
             )
-        return from_spaces_blocks(space=space_name, hf_token=hf_token)
+        return from_spaces_blocks(space=space_name, token=token)
 
 
 def make_event_data_fn(client, endpoint):
@@ -593,10 +585,10 @@ def make_event_data_fn(client, endpoint):
     return event_data_fn
 
 
-def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
+def from_spaces_blocks(space: str, token: str | None) -> Blocks:
     client = Client(
         space,
-        hf_token=hf_token,
+        token=token,
         download_files=False,
         _skip_components=False,
     )
@@ -645,15 +637,15 @@ def from_spaces_interface(
     model_name: str,
     config: dict,
     alias: str | None,
-    hf_token: str | None,
+    token: str | None,
     iframe_url: str,
     **kwargs,
 ) -> Interface:
     config = external_utils.streamline_spaces_interface(config)
     api_url = f"{iframe_url}/api/predict/"
     headers = {"Content-Type": "application/json"}
-    if hf_token not in [False, None]:
-        headers["Authorization"] = f"Bearer {hf_token}"
+    if token not in [False, None]:
+        headers["Authorization"] = f"Bearer {token}"
 
     # The function should call the API with preprocessed data
     def fn(*data):
@@ -872,8 +864,6 @@ def load_chat(
 
     def open_api(message: str | MultimodalValue, history: list | None) -> str | None:
         history = history or start_message
-        if len(history) > 0 and isinstance(history[0], (list, tuple)):
-            history = ChatInterface._tuples_to_messages(history)
         conversation = format_conversation(history, message)  # type: ignore
         return (
             client.chat.completions.create(
@@ -888,8 +878,6 @@ def load_chat(
         message: str | MultimodalValue, history: list | None
     ) -> Generator[str, None, None]:
         history = history or start_message
-        if len(history) > 0 and isinstance(history[0], (list, tuple)):
-            history = ChatInterface._tuples_to_messages(history)
         conversation = format_conversation(history, message)  # type: ignore
         stream = client.chat.completions.create(
             model=model,
@@ -916,7 +904,7 @@ def load_chat(
     if "chatbot" not in kwargs:
         from gradio.components import Chatbot
 
-        kwargs["chatbot"] = Chatbot(type="messages", scale=1, allow_tags=True)
+        kwargs["chatbot"] = Chatbot(scale=1, allow_tags=True)
 
     textbox_arg = kwargs.pop("textbox", None)
     if textbox_arg is not None:
@@ -930,7 +918,6 @@ def load_chat(
 
     return ChatInterface(
         open_api_stream if streaming else open_api,
-        type="messages",
         multimodal=bool(file_types),
         textbox=textbox,
         **kwargs,

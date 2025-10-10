@@ -284,7 +284,8 @@ def stateful_chatbot():
         def respond(message, st, chat_history):
             assert st[0] == 1 and st[1] == 2 and st[2] == 3
             bot_message = "I love you"
-            chat_history.append((message, bot_message))
+            chat_history.append({"role": "user", "content": message})
+            chat_history.append({"role": "assistant", "content": bot_message})
             return "", chat_history
 
         msg.submit(respond, [msg, st, chatbot], [msg, chatbot], api_name="submit")
@@ -463,7 +464,7 @@ def max_file_size_demo():
 @pytest.fixture
 def chatbot_message_format():
     with gr.Blocks() as demo:
-        chatbot = gr.Chatbot(type="messages")
+        chatbot = gr.Chatbot()
         msg = gr.Textbox()
 
         def respond(message, chat_history: list):

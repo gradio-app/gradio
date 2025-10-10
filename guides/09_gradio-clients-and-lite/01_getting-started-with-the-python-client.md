@@ -46,12 +46,12 @@ from gradio_client import Client
 client = Client("abidlabs/en2fr")  # a Space that translates from English to French
 ```
 
-You can also connect to private Spaces by passing in your HF token with the `hf_token` parameter. You can get your HF token here: https://huggingface.co/settings/tokens
+You can also connect to private Spaces by passing in your HF token with the `token` parameter. You can get your HF token here: https://huggingface.co/settings/tokens
 
 ```python
 from gradio_client import Client
 
-client = Client("abidlabs/my-private-space", hf_token="...")
+client = Client("abidlabs/my-private-space", token="...")
 ```
 
 
@@ -68,7 +68,7 @@ from gradio_client import Client, handle_file
 
 HF_TOKEN = os.environ.get("HF_TOKEN")
 
-client = Client.duplicate("abidlabs/whisper", hf_token=HF_TOKEN)
+client = Client.duplicate("abidlabs/whisper", token=HF_TOKEN)
 client.predict(handle_file("audio_sample.wav"))
 
 >> "This is a test of the whisper speech recognition model."

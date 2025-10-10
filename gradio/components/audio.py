@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import dataclasses
 import io
-import warnings
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
@@ -17,11 +16,10 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from pydub import AudioSegment
 
-from gradio import processing_utils, utils
+from gradio import processing_utils
 from gradio.components.base import Component, StreamingInput, StreamingOutput
 from gradio.data_classes import FileData, FileDataDict, MediaStreamChunk
 from gradio.events import Events
-from gradio.exceptions import Error
 from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
@@ -38,7 +36,6 @@ class WaveformOptions:
         waveform_progress_color: The color (as a hex string or valid CSS color) that the waveform fills with to as the audio plays. Defaults to the accent color.
         trim_region_color: The color (as a hex string or valid CSS color) of the trim region. Defaults to the accent color.
         show_recording_waveform: If True, shows a waveform when recording audio or playing audio. If False, uses the default browser audio players. For streamed audio, the default browser audio player is always used.
-        show_controls: Deprecated and has no effect. Use `show_recording_waveform` instead.
         skip_length: The percentage (between 0 and 100) of the audio to skip when clicking on the skip forward / skip backward buttons.
         sample_rate: The output sample rate (in Hz) of the audio after editing.
     """
@@ -47,7 +44,6 @@ class WaveformOptions:
     waveform_progress_color: str | None = None
     trim_region_color: str | None = None
     show_recording_waveform: bool = True
-    show_controls: bool = False
     skip_length: int | float = 5
     sample_rate: int = 44100
 
@@ -106,11 +102,8 @@ class Audio(
         preserved_by_key: list[str] | str | None = "value",
         format: Literal["wav", "mp3"] | None = None,
         autoplay: bool = False,
-        show_download_button: bool | None = None,
-        show_share_button: bool | None = None,
         editable: bool = True,
-        min_length: int | None = None,
-        max_length: int | None = None,
+        buttons: list[Literal["download", "share"]] | None = None,
         waveform_options: WaveformOptions | dict | None = None,
         loop: bool = False,
         recording: bool = False,
@@ -138,12 +131,9 @@ class Audio(
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             format: the file extension with which to save audio files. Either 'wav' or 'mp3'. wav files are lossless but will tend to be larger files. mp3 files tend to be smaller. This parameter applies both when this component is used as an input (and `type` is "filepath") to determine which file format to convert user-provided audio to, and when this component is used as an output to determine the format of audio returned to the user. If None, no file format conversion is done and the audio is kept as is. In the case where output audio is returned from the prediction function as numpy array and no `format` is provided, it will be returned as a "wav" file.
             autoplay: Whether to automatically play the audio when the component is used as an output. Note: browsers will not autoplay audio files if the user has not interacted with the page yet.
-            show_download_button: If True, will show a download button in the corner of the component for saving audio. If False, icon does not appear. By default, it will be True for output components and False for input components.
-            show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
+            buttons: A list of buttons to show in the top right corner of the component. Valid options are "download" and "share". The "download" button allows the user to save the audio to their device. The "share" button allows the user to share the audio via Hugging Face Spaces Discussions. By default, all buttons are shown.
             editable: If True, allows users to manipulate the audio file if the component is interactive. Defaults to True.
-            min_length: The minimum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
-            max_length: The maximum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
-            waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool), skip_length (int), trim_region_color (str). Default is None, which uses the default values for these options. [See `gr.WaveformOptions` docs](#waveform-options).
+            waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), skip_length (int), trim_region_color (str). Default is None, which uses the default values for these options. [See `gr.WaveformOptions` docs](#waveform-options).
             loop: If True, the audio will loop when it reaches the end and continue playing from the beginning.
             recording: If True, the audio component will be set to record audio from the microphone if the source is set to "microphone". Defaults to False.
             subtitles: A subtitle file (srt, vtt, or json) for the audio, or a list of subtitle dictionaries in the format [{"text": str, "timestamp": [start, end]}] where timestamps are in seconds. JSON files should contain an array of subtitle objects.
@@ -183,12 +173,7 @@ class Audio(
         self.format = format and format.lower()
         self.autoplay = autoplay
         self.loop = loop
-        self.show_download_button = show_download_button
-        self.show_share_button = (
-            (utils.get_space() is not None)
-            if show_share_button is None
-            else show_share_button
-        )
+        self.buttons = buttons
         self.editable = editable
         if waveform_options is None:
             self.waveform_options = WaveformOptions()
@@ -196,12 +181,6 @@ class Audio(
             self.waveform_options = WaveformOptions(**waveform_options)
         else:
             self.waveform_options = waveform_options
-        if self.waveform_options.show_controls is not False:
-            warnings.warn(
-                "The `show_controls` parameter is deprecated and will be removed in a future release. Use `show_recording_waveform` instead."
-            )
-        self.min_length = min_length
-        self.max_length = max_length
         self.recording = recording
         super().__init__(
             label=label,
@@ -259,18 +238,6 @@ class Audio(
         original_suffix = Path(payload.path).suffix.lower()
         if self.format is not None and original_suffix != f".{self.format}":
             needs_conversion = True
-
-        if self.min_length is not None or self.max_length is not None:
-            sample_rate, data = processing_utils.audio_from_file(payload.path)
-            duration = len(data) / sample_rate
-            if self.min_length is not None and duration < self.min_length:
-                raise Error(
-                    f"Audio is too short, and must be at least {self.min_length} seconds"
-                )
-            if self.max_length is not None and duration > self.max_length:
-                raise Error(
-                    f"Audio is too long, and must be at most {self.max_length} seconds"
-                )
 
         if self.type == "numpy":
             return processing_utils.audio_from_file(payload.path)

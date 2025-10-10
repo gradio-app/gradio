@@ -133,8 +133,8 @@ export class Client {
 				headers.append(name, this.options.headers[name]);
 			}
 		}
-		if (this && this.options.hf_token) {
-			headers.append("Authorization", `Bearer ${this.options.hf_token}`);
+		if (this && this.options.token) {
+			headers.append("Authorization", `Bearer ${this.options.token}`);
 		}
 
 		this.abort_controller = new AbortController();
@@ -241,18 +241,18 @@ export class Client {
 			this.api_prefix = _config.api_prefix || "";
 
 			if (this.config && this.config.connect_heartbeat) {
-				if (this.config.space_id && this.options.hf_token) {
+				if (this.config.space_id && this.options.token) {
 					this.jwt = await get_jwt(
 						this.config.space_id,
-						this.options.hf_token,
+						this.options.token,
 						this.cookies
 					);
 				}
 			}
 		}
 
-		if (_config.space_id && this.options.hf_token) {
-			this.jwt = await get_jwt(_config.space_id, this.options.hf_token);
+		if (_config.space_id && this.options.token) {
+			this.jwt = await get_jwt(_config.space_id, this.options.token);
 		}
 
 		if (this.config && this.config.connect_heartbeat) {
@@ -328,7 +328,7 @@ export class Client {
 	private async _resolve_config(): Promise<any> {
 		const { http_protocol, host, space_id } = await process_endpoint(
 			this.app_reference,
-			this.options.hf_token
+			this.options.token
 		);
 
 		const { status_callback } = this.options;
@@ -434,11 +434,11 @@ export class Client {
 			"Content-Type"?: "application/json";
 		} = {};
 
-		const { hf_token } = this.options;
+		const { token } = this.options;
 		const { session_hash } = this;
 
-		if (hf_token) {
-			headers.Authorization = `Bearer ${this.options.hf_token}`;
+		if (token) {
+			headers.Authorization = `Bearer ${this.options.token}`;
 		}
 
 		let root_url: string;
@@ -473,8 +473,8 @@ export class Client {
 			headers["Content-Type"] = "application/json";
 		}
 
-		if (hf_token) {
-			headers.Authorization = `Bearer ${hf_token}`;
+		if (token) {
+			headers.Authorization = `Bearer ${token}`;
 		}
 
 		try {

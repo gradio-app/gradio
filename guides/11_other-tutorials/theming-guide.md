@@ -334,7 +334,7 @@ Each theme instance has a method called `push_to_hub` we can use to upload a the
 ```python
 seafoam.push_to_hub(repo_name="seafoam",
                     version="0.0.1",
-					hf_token="<token>")
+					token="<token>")
 ```
 
 - Via the command line
@@ -352,12 +352,12 @@ upload_theme\
 "seafoam.json"\
 "seafoam"\
 --version "0.0.1"\
---hf_token "<token>"
+--token "<token>"
 ```
 
 In order to upload a theme, you must have a HuggingFace account and pass your [Access Token](https://huggingface.co/docs/huggingface_hub/quick-start#login)
-as the `hf_token` argument. However, if you log in via the [HuggingFace command line](https://huggingface.co/docs/huggingface_hub/quick-start#login) (which comes installed with `gradio`),
-you can omit the `hf_token` argument.
+as the `token` argument. However, if you log in via the [HuggingFace command line](https://huggingface.co/docs/huggingface_hub/quick-start#login) (which comes installed with `gradio`),
+you can omit the `token` argument.
 
 The `version` argument lets you specify a valid [semantic version](https://www.geeksforgeeks.org/introduction-semantic-versioning/) string for your theme.
 That way your users are able to specify which version of your theme they want to use in their apps. This also lets you publish updates to your theme without worrying

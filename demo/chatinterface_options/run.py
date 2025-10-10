@@ -23,7 +23,6 @@ def chat(message, history):
 
 demo = gr.ChatInterface(
     chat,
-    type="messages",
     examples=["Write an example Python lambda function."]
 )
 

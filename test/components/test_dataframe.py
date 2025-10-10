@@ -62,8 +62,7 @@ class TestDataframe:
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "line_breaks": True,
             "column_widths": [],
-            "show_fullscreen_button": False,
-            "show_copy_button": False,
+            "buttons": None,
             "max_chars": None,
         }
         dataframe_input = gr.Dataframe()
@@ -114,9 +113,8 @@ class TestDataframe:
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "line_breaks": True,
             "column_widths": [],
-            "show_fullscreen_button": False,
+            "buttons": None,
             "max_chars": None,
-            "show_copy_button": False,
         }
 
         dataframe_input = gr.Dataframe(column_widths=["100px", 200, "50%"])

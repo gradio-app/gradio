@@ -19,7 +19,7 @@ export const RE_SPACE_DOMAIN = /.*hf\.space\/{0,1}.*$/;
 
 export async function process_endpoint(
 	app_reference: string,
-	hf_token?: `hf_${string}`
+	token?: `hf_${string}`
 ): Promise<{
 	space_id: string | false;
 	host: string;
@@ -27,8 +27,8 @@ export async function process_endpoint(
 	http_protocol: "http:" | "https:";
 }> {
 	const headers: { Authorization?: string } = {};
-	if (hf_token) {
-		headers.Authorization = `Bearer ${hf_token}`;
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
 	}
 
 	const _app_reference = app_reference.trim().replace(/\/$/, "");

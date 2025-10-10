@@ -313,7 +313,7 @@ class FileSerializable(Serializable):
                 if root_url is not None:
                     file_name = utils.download_tmp_copy_of_file(
                         root_url + "file=" + filepath,
-                        hf_token=hf_token,
+                        token=hf_token,
                         dir=save_dir,
                     )
                 else:
