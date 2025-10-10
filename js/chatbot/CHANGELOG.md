@@ -1,5 +1,16 @@
 # @gradio/chatbot
 
+## 0.28.0-dev.0
+
+### Features
+
+- [#12012](https://github.com/gradio-app/gradio/pull/12012) [`4356fe7`](https://github.com/gradio-app/gradio/commit/4356fe7d609333a4150533fcb9a4eaafbc2ba561) - Remove tuples format from the chatbot.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/gallery@0.15.35-dev.0
+- @gradio/video@0.17.0-dev.0
+
 ## 0.27.0
 
 ### Dependency updates
