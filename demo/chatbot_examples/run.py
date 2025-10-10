@@ -27,7 +27,7 @@ def respond(history):
     history.append({"role": "assistant", "content": "Cool!"})
     return history
 
-with gr.Blocks(fill_height=True) as demo:
+with gr.Blocks() as demo:
     chatbot = gr.Chatbot(
         elem_id="chatbot",
         scale=1,

@@ -30,15 +30,16 @@ def add_message(history, message):
 
 def bot(history, response_type):
     if response_type == "gallery":
-        msg = {"role": "assistant", "content": gr.Gallery(
-            ["https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
-             "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"]
-            )
-        }
+        history[-1][1] = gr.Gallery(
+            [
+                "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/images/bus.png",
+                "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/images/bus.png",
+            ]
+        )
     elif response_type == "image":
-        msg = {"role": "assistant",
-               "content": gr.Image("https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png")
-        }
+        history[-1][1] = gr.Image(
+            "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/images/bus.png"
+        )
     elif response_type == "video":
         msg = {"role": "assistant",
                "content": gr.Video("https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4",
