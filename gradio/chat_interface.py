@@ -38,7 +38,6 @@ from gradio.components.chatbot import (
     ExampleMessage,
     Message,
     MessageDict,
-    TupleFormat,
 )
 from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
 from gradio.events import Dependency, EditData, SelectData
