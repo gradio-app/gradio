@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Gradio JS Client · Vercel Template</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Gradio JS Client on Vercel</h1>
+      <p>Calls a public Gradio app using <code>@gradio/client</code>.</p>
+
+      <input id="name" placeholder="Your name" />
+      <button id="run">Run</button>
+      <pre id="out">…</pre>
+    </main>
+
+    <script type="module">
+      import { client } from "https://cdn.jsdelivr.net/npm/@gradio/client/+esm";
+
+      const runBtn = document.getElementById("run");
+      const out = document.getElementById("out");
+
+      runBtn.onclick = async () => {
+        out.textContent = "Running…";
+        // Example public app: a simple greet Space; replace with any public Space
+        const c = await client("https://ysharma-examples-simple-greeting.hf.space");
+        const name = document.getElementById("name").value || "World";
+        const result = await c.predict("/predict", { name }); // endpoint name depends on the app
+        out.textContent = JSON.stringify(result, null, 2);
+      };
+    </script>
+  </body>
+</html>
