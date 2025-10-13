@@ -36,7 +36,6 @@ import fsspec.asyn
 import httpx
 import huggingface_hub
 from huggingface_hub import SpaceStage
-from websockets.asyncio.client import ClientConnection
 
 if TYPE_CHECKING:
     from gradio_client.data_classes import ParameterInfo
@@ -315,69 +314,6 @@ def is_valid_url(possible_url: str) -> bool:
         "Use is_http_url_like() and probe_url(), as suitable, instead.",
     )
     return is_http_url_like(possible_url) and probe_url(possible_url)
-
-
-async def get_pred_from_ws(
-    websocket: ClientConnection,
-    data: str,
-    hash_data: str,
-    helper: Communicator | None = None,
-) -> dict[str, Any]:
-    completed = False
-    resp = {}
-    while not completed:
-        # Receive message in the background so that we can
-        # cancel even while running a long pred
-        task = asyncio.create_task(websocket.recv())
-        while not task.done():
-            if helper:
-                with helper.lock:
-                    if helper.should_cancel:
-                        # Need to reset the iterator state since the client
-                        # will not reset the session
-                        async with httpx.AsyncClient() as http:
-                            reset = http.post(
-                                helper.reset_url, json=json.loads(hash_data)
-                            )
-                            # Retrieve cancel exception from task
-                            # otherwise will get nasty warning in console
-                            task.cancel()
-                            await asyncio.gather(task, reset, return_exceptions=True)
-                        raise concurrent.futures.CancelledError()
-            # Need to suspend this coroutine so that task actually runs
-            await asyncio.sleep(0.01)
-        msg = task.result()
-        resp = json.loads(msg)
-        if helper:
-            with helper.lock:
-                has_progress = "progress_data" in resp
-                status_update = StatusUpdate(
-                    code=Status.msg_to_status(resp["msg"]),
-                    queue_size=resp.get("queue_size"),
-                    rank=resp.get("rank", None),
-                    success=resp.get("success"),
-                    time=datetime.now(),
-                    eta=resp.get("rank_eta"),
-                    progress_data=ProgressUnit.from_msg(resp["progress_data"])
-                    if has_progress
-                    else None,
-                )
-                output = resp.get("output", {}).get("data", [])
-                if output and status_update.code != Status.FINISHED:
-                    try:
-                        result = helper.prediction_processor(*output)
-                    except Exception as e:
-                        result = [e]
-                    helper.job.outputs.append(result)
-                helper.job.latest_status = status_update
-        if resp["msg"] == "queue_full":
-            raise QueueError("Queue is full! Please try again.")
-        if resp["msg"] == "send_hash":
-            await websocket.send(hash_data)
-        elif resp["msg"] == "send_data":
-            await websocket.send(data)
-        completed = resp["msg"] == "process_completed"
-    return resp["output"]
 
 
 def get_pred_from_sse_v0(
