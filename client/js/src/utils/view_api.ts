@@ -38,7 +38,7 @@ export async function view_api(this: Client): Promise<any> {
 				throw new Error(BROKEN_CONNECTION_MSG);
 			}
 			api_info = await response.json();
-		}	
+		}
 		if ("api" in api_info) {
 			api_info = api_info.api;
 		}
