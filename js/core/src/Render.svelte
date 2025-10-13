@@ -50,19 +50,17 @@
 		}
 	}
 
-	setContext("BLOCK_KEY", parent);
-
 	$: {
 		if (node && node.type === "form") {
 			// Check if all children are invisible (false or "hidden")
 			const allChildrenInvisible = node.children?.every(
-				(c) => c.props.visible === false || c.props.visible === "hidden"
+				(c) => c.props.visible === false || c.props.visible === "hidden",
 			);
 
 			if (allChildrenInvisible) {
 				// Check if any child is "hidden" vs false
 				const hasHiddenChild = node.children?.some(
-					(c) => c.props.visible === "hidden"
+					(c) => c.props.visible === "hidden",
 				);
 				// If any child is "hidden", form should be "hidden", otherwise false
 				node.props.visible = hasHiddenChild ? "hidden" : false;
@@ -83,8 +81,12 @@
 		max_file_size,
 		$reactive_formatter,
 		client,
-		load_component
+		load_component,
 	);
+
+	onMount(() => {
+		console.log("MOUNTCOMPONENTS -- mount");
+	});
 </script>
 
 {#if node.component}
@@ -107,7 +109,7 @@
 			: true}
 	>
 		{#if node.children && node.children.length}
-			{#each node.children as _node (_node.id)}
+			{#each node.children as _node}
 				<svelte:self
 					node={_node}
 					component={_node.component}

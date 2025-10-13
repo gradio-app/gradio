@@ -2,10 +2,10 @@
 
 <script lang="ts">
 	import type { ComponentMeta, ThemeMode } from "./types";
-	import type { SvelteComponent, ComponentType } from "svelte";
+	import { type SvelteComponent, type ComponentType, onMount } from "svelte";
 	import { translate_if_needed } from "./i18n";
 	// @ts-ignore
-	import { bind, binding_callbacks } from "svelte/internal";
+	// import { bind, binding_callbacks } from "svelte/internal";
 
 	export let root: string;
 	export let component: ComponentMeta["component"];
@@ -22,34 +22,27 @@
 	const s = (id: number, p: string, v: any): CustomEvent =>
 		new CustomEvent("prop_change", { detail: { id, prop: p, value: v } });
 
-	function wrap(
-		component: ComponentType<SvelteComponent>
-	): ComponentType<SvelteComponent> {
-		const ProxiedMyClass = new Proxy(component, {
-			construct(_target, args: Record<string, any>[]) {
-				//@ts-ignore
-				const instance = new _target(...args);
-				const props = Object.keys(instance.$$.props);
+	// function wrap(state: any) {
+	// 	console.log("WRAP");
+	// 	const keys = Object.keys(state);
+	// 	let new_state = {};
+	// 	for (const key of keys) {
+	// 		console.log("key", key, state[key]);
+	// 		new_state[key] = new Proxy(state[key], {
+	// 			set(target, prop, value, receiver) {
+	// 				console.log("set", target, prop, value, receiver);
+	// 				return true;
+	// 			},
+	// 		});
+	// 	}
 
-				function report(props: string) {
-					return function (propargs: any) {
-						if (!target) return;
-						const ev = s(_id, props, propargs);
-						target.dispatchEvent(ev);
-					};
-				}
-				props.forEach((v) => {
-					binding_callbacks.push(() => bind(instance, v, report(v)));
-				});
+	// 	return new_state;
+	// }
+	// console.log("$$restProps", $$restProps);
+	// console.log("value", value);
+	// const wrapped_props = wrap($$restProps);
 
-				return instance;
-			}
-		});
-
-		return ProxiedMyClass;
-	}
-
-	let _component = wrap(component);
+	// let _component = component;
 
 	const supported_props = [
 		"description",
@@ -57,7 +50,7 @@
 		"title",
 		"placeholder",
 		"value",
-		"label"
+		"label",
 	];
 
 	function translate_prop(obj: SvelteRestProps): void {
@@ -69,14 +62,18 @@
 	}
 
 	$: translate_prop($$restProps);
-	$: value = translate_if_needed(value);
+	$: _value = translate_if_needed(value);
+
+	onMount(() => {
+		console.log("RENDERCOMPONENT -- mount");
+	});
 </script>
 
 {#if visible}
 	<svelte:component
-		this={_component}
+		this={component}
 		bind:this={instance}
-		bind:value
+		bind:value={_value}
 		on:prop_change
 		{elem_id}
 		{elem_classes}

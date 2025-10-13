@@ -14,6 +14,7 @@
 
 	const dispatch = createEventDispatcher<{ mount?: never }>();
 	onMount(() => {
+		console.log("hi");
 		dispatch("mount");
 	});
 </script>

@@ -1,3 +1,14 @@
+type FullAutoFill =
+	| AutoFill
+	| "bday"
+	| `${OptionalPrefixToken<AutoFillAddressKind>}${"cc-additional-name"}`
+	| "nickname"
+	| "language"
+	| "organization-title"
+	| "photo"
+	| "sex"
+	| "url";
+
 export interface InputHTMLAttributes {
 	autocapitalize?:
 		| "off"
@@ -9,7 +20,7 @@ export interface InputHTMLAttributes {
 		| null;
 	autocorrect?: "on" | "off" | null;
 	spellcheck?: boolean | null;
-	autocomplete?: string | null;
+	autocomplete?: FullAutoFill | undefined | null;
 	tabindex?: number | null;
 	enterkeyhint?:
 		| "enter"

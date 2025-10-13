@@ -22,6 +22,11 @@
 	export let gradio: Gradio<{
 		click: never;
 	}>;
+
+	function handle_click() {
+		console.log("clicked");
+		gradio.dispatch("click");
+	}
 </script>
 
 <Button
@@ -36,7 +41,7 @@
 	{min_width}
 	{visible}
 	disabled={!interactive}
-	on:click={() => gradio.dispatch("click")}
+	on:click={handle_click}
 >
 	{value ?? ""}
 </Button>
