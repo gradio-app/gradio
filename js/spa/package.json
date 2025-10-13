@@ -19,14 +19,14 @@
 		"@gradio/theme": "workspace:^",
 		"@huggingface/space-header": "^1.0.4",
 		"@self/build": "workspace:^",
-		"@types/eventsource": "^1.1.15",
-		"cross-env": "^7.0.3"
+		"@types/eventsource": "^3.0.0",
+		"cross-env": "^10.1.0"
 	},
 	"msw": {
 		"workerDirectory": "public"
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.39.6"
 	},
 	"main_changeset": true,
 	"repository": {

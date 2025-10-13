@@ -13,7 +13,7 @@
 		"directory": "js/tooltip"
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.39.6"
 	},
 	"exports": {
 		".": {

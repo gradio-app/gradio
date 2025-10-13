@@ -92,7 +92,7 @@
 		}
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.39.6"
 	},
 	"main": "./index.ts",
 	"repository": {
@@ -101,6 +101,6 @@
 		"directory": "js/core"
 	},
 	"dependencies": {
-		"dequal": "^2.0.2"
+		"dequal": "^2.0.3"
 	}
 }

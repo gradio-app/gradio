@@ -16,9 +16,9 @@
 	import MountComponents from "./MountComponents.svelte";
 	import { prefix_css } from "./css";
 
-	import type ApiDocs from "./api_docs/ApiDocs.svelte";
-	import type ApiRecorder from "./api_docs/ApiRecorder.svelte";
-	import type Settings from "./api_docs/Settings.svelte";
+	import type ApiDocsInterface from "./api_docs/ApiDocs.svelte";
+	import type ApiRecorderInterface from "./api_docs/ApiRecorder.svelte";
+	import type SettingsInterface from "./api_docs/Settings.svelte";
 	import type { ComponentType } from "svelte";
 
 	import logo from "./images/logo.svg";
@@ -29,7 +29,7 @@
 	import type {
 		LogMessage,
 		RenderMessage,
-		StatusMessage
+		StatusMessage,
 	} from "@gradio/client";
 	import * as screen_recorder from "./screen_recorder";
 
@@ -71,12 +71,12 @@
 		scheduled_updates,
 		create_layout,
 		rerender_layout,
-		value_change
+		value_change,
 	} = create_components({
-		initial_layout
+		initial_layout,
 	});
 
-	$: components, layout, dependencies, root, app, fill_height, target, run();
+	$: (components, layout, dependencies, root, app, fill_height, target, run());
 
 	$: {
 		ready = !!$_layout;
@@ -106,8 +106,8 @@
 			root: root + api_prefix,
 			app,
 			options: {
-				fill_height
-			}
+				fill_height,
+			},
 		});
 		layout_creating = false;
 	}
@@ -121,9 +121,9 @@
 	let allow_video_trim = true;
 
 	// Lazy component loading state
-	let ApiDocs: ComponentType<ApiDocs> | null = null;
-	let ApiRecorder: ComponentType<ApiRecorder> | null = null;
-	let Settings: ComponentType<Settings> | null = null;
+	let ApiDocs: ComponentType<ApiDocsInterface> | null = null;
+	let ApiRecorder: ComponentType<ApiRecorderInterface> | null = null;
+	let Settings: ComponentType<SettingsInterface> | null = null;
 	let VibeEditor: ComponentType | null = null;
 
 	async function loadApiDocs(): Promise<void> {
@@ -193,7 +193,7 @@
 	async function handle_update(data: any, fn_index: number): Promise<void> {
 		const dep = dependencies.find((dep) => dep.id === fn_index);
 		const input_type = components.find(
-			(comp) => comp.id === dep?.inputs[0]
+			(comp) => comp.id === dep?.inputs[0],
 		)?.type;
 		if (allow_zoom && dep && input_type !== "dataset") {
 			if (dep && dep.inputs && dep.inputs.length > 0 && $is_screen_recording) {
@@ -218,7 +218,7 @@
 			return {
 				id: outputs[i],
 				prop: "value_is_output",
-				value: true
+				value: true,
 			};
 		});
 
@@ -241,7 +241,7 @@
 						updates.push({
 							id: outputs[i],
 							prop: update_key,
-							value: update_value
+							value: update_value,
 						});
 					}
 				}
@@ -249,7 +249,7 @@
 				updates.push({
 					id: outputs[i],
 					prop: "value",
-					value
+					value,
 				});
 			}
 		});
@@ -262,7 +262,7 @@
 				import("./navbar_store").then(({ navbar_config }) => {
 					navbar_config.update((current) => ({
 						...current,
-						[update.prop]: update.value
+						[update.prop]: update.value,
 					}));
 				});
 			}
@@ -280,7 +280,7 @@
 		fn_index: number,
 		type: ToastMessage["type"],
 		duration: number | null = 10,
-		visible = true
+		visible = true,
 	): ToastMessage & { fn_index: number } {
 		return {
 			title,
@@ -289,14 +289,14 @@
 			type,
 			id: ++_error_id,
 			duration,
-			visible
+			visible,
 		};
 	}
 
 	export function add_new_message(
 		title: string,
 		message: string,
-		type: ToastMessage["type"]
+		type: ToastMessage["type"],
 	): void {
 		messages = [new_message(title, message, -1, type), ...messages];
 	}
@@ -326,7 +326,7 @@
 	function wait_then_trigger_api_call(
 		dep_index: number,
 		trigger_id: number | null = null,
-		event_data: unknown = null
+		event_data: unknown = null,
 	): void {
 		let _unsub = (): void => {};
 		function unsub(): void {
@@ -349,7 +349,7 @@
 	async function get_component_value_or_event_data(
 		component_id: number,
 		trigger_id: number | null,
-		event_data: unknown
+		event_data: unknown,
 	): Promise<any> {
 		if (
 			component_id === trigger_id &&
@@ -365,7 +365,7 @@
 	async function trigger_api_call(
 		dep_index: number,
 		trigger_id: number | null = null,
-		event_data: unknown = null
+		event_data: unknown = null,
 	): Promise<void> {
 		const _dep = dependencies.find((dep) => dep.id === dep_index);
 		if (_dep === undefined) {
@@ -390,19 +390,19 @@
 			fn_index: dep_index,
 			data: await Promise.all(
 				dep.inputs.map((id) =>
-					get_component_value_or_event_data(id, trigger_id, event_data)
-				)
+					get_component_value_or_event_data(id, trigger_id, event_data),
+				),
 			),
 			event_data: dep.collects_event_data ? event_data : null,
-			trigger_id: trigger_id
+			trigger_id: trigger_id,
 		};
 
 		if (dep.frontend_fn && typeof dep.frontend_fn !== "boolean") {
 			dep
 				.frontend_fn(
 					payload.data.concat(
-						await Promise.all(dep.outputs.map((id) => get_data(id)))
-					)
+						await Promise.all(dep.outputs.map((id) => get_data(id))),
+					),
 				)
 				.then((v: unknown[]) => {
 					if (dep.backend_fn) {
@@ -418,14 +418,14 @@
 					const submission = submit_map.get(fn_index);
 					submission?.cancel();
 					return submission;
-				})
+				}),
 			);
 		} else {
 			if (dep.backend_fn) {
 				if (dep.js_implementation) {
 					let js_fn = new AsyncFunction(
 						`let result = await (${dep.js_implementation})(...arguments);
-						return (!Array.isArray(result)) ? [result] : result;`
+						return (!Array.isArray(result)) ? [result] : result;`,
 					);
 					js_fn(...payload.data)
 						.then((js_result) => {
@@ -469,11 +469,13 @@
 						-1,
 						"info",
 						3,
-						true
+						true,
 					),
 					...messages.map((m) =>
-						m.message === LOST_CONNECTION_MESSAGE ? { ...m, visible: false } : m
-					)
+						m.message === LOST_CONNECTION_MESSAGE
+							? { ...m, visible: false }
+							: m,
+					),
 				];
 			} else if (connection_status === "connected") {
 				broken_connection = false;
@@ -484,18 +486,20 @@
 						-1,
 						"success",
 						null,
-						true
+						true,
 					),
 					...messages.map((m) =>
-						m.message === LOST_CONNECTION_MESSAGE ? { ...m, visible: false } : m
-					)
+						m.message === LOST_CONNECTION_MESSAGE
+							? { ...m, visible: false }
+							: m,
+					),
 				];
 			}
 		}
 
 		async function make_prediction(
 			payload: Payload,
-			streaming = false
+			streaming = false,
 		): Promise<void> {
 			if (allow_video_trim) {
 				screen_recorder.markRemoveSegmentStart();
@@ -521,7 +525,7 @@
 					await app.send_ws_message(
 						// @ts-ignore
 						`${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_index).event_id()}`,
-						{ ...payload, session_hash: app.session_hash }
+						{ ...payload, session_hash: app.session_hash },
 					);
 					return;
 				}
@@ -531,21 +535,21 @@
 					payload.fn_index,
 					payload.data as unknown[],
 					payload.event_data,
-					payload.trigger_id
+					payload.trigger_id,
 				);
 			} catch (e) {
 				const fn_index = 0; // Mock value for fn_index
 				if (app.closed) return; // when a user navigates away in multipage app.
 				messages = [
 					new_message("Error", String(e), fn_index, "error"),
-					...messages
+					...messages,
 				];
 				loading_status.update({
 					status: "error",
 					fn_index,
 					eta: 0,
 					queue: false,
-					queue_position: null
+					queue_position: null,
 				});
 				set_status($loading_status);
 				return;
@@ -604,7 +608,7 @@
 					layout: render_layout,
 					root: root + api_prefix,
 					dependencies: dependencies,
-					render_id: render_id
+					render_id: render_id,
 				});
 				_dependencies.forEach((dep) => {
 					if (dep.targets.some((dep) => dep[1] === "load")) {
@@ -617,14 +621,14 @@
 				const { title, log, fn_index, level, duration, visible } = msg;
 				messages = [
 					new_message(title, log, fn_index, level, duration, visible),
-					...messages
+					...messages,
 				];
 			}
 
 			function open_stream_events(
 				status: StatusMessage,
 				id: number,
-				dep: Dependency
+				dep: Dependency,
 			): void {
 				if (
 					status.original_msg === "process_starts" &&
@@ -659,13 +663,13 @@
 						validation_error_data.push({
 							id: dep.inputs[i],
 							prop: "validation_error",
-							value: message.message
+							value: message.message,
 						});
 
 						validation_error_data.push({
 							id: dep.inputs[i],
 							prop: "loading_status",
-							value: { validation_error: message.message }
+							value: { validation_error: message.message },
 						});
 					});
 
@@ -676,7 +680,7 @@
 							fn_index: message.fn_index,
 							eta: 0,
 							queue: false,
-							queue_position: null
+							queue_position: null,
 						});
 						set_status($loading_status);
 
@@ -691,9 +695,9 @@
 							-1,
 							"error",
 							null,
-							true
+							true,
 						),
-						...messages
+						...messages,
 					];
 
 					broken_connection = true;
@@ -707,9 +711,9 @@
 							-1,
 							"error",
 							null,
-							true
+							true,
 						),
-						...messages
+						...messages,
 					];
 				}
 				const { fn_index, ...status } = message;
@@ -727,7 +731,7 @@
 					time_limit: status.time_limit,
 					status: status.stage,
 					progress: status.progress_data,
-					fn_index
+					fn_index,
 				});
 				set_status($loading_status);
 				if (
@@ -741,7 +745,7 @@
 					showed_duplicate_message = true;
 					messages = [
 						new_message("Warning", DUPLICATE_MESSAGE, fn_index, "warning"),
-						...messages
+						...messages,
 					];
 				}
 				if (
@@ -753,7 +757,7 @@
 					showed_mobile_warning = true;
 					messages = [
 						new_message("Warning", MOBILE_QUEUE_WARNING, fn_index, "warning"),
-						...messages
+						...messages,
 					];
 				}
 
@@ -792,7 +796,7 @@
 					if (status.message && typeof status.message === "string") {
 						const _message = status.message.replace(
 							MESSAGE_QUOTE_RE,
-							(_, b) => b
+							(_, b) => b,
 						);
 						const _title = status.title ?? "Error";
 						messages = [
@@ -802,9 +806,9 @@
 								fn_index,
 								"error",
 								status.duration,
-								status.visible
+								status.visible,
 							),
-							...messages
+							...messages,
 						];
 					}
 					dependencies.map(async (dep) => {
@@ -829,7 +833,7 @@
 			return;
 		}
 		const discussion_url = new URL(
-			`https://huggingface.co/spaces/${space_id}/discussions/new`
+			`https://huggingface.co/spaces/${space_id}/discussions/new`,
 		);
 		if (title !== undefined && title.length > 0) {
 			discussion_url.searchParams.set("title", title);
@@ -850,7 +854,7 @@
 		if (js) {
 			let blocks_frontend_fn = new AsyncFunction(
 				`let result = await (${js})();
-					return (!Array.isArray(result)) ? [result] : result;`
+					return (!Array.isArray(result)) ? [result] : result;`,
 			);
 			await blocks_frontend_fn();
 		}
@@ -876,7 +880,11 @@
 			const { id, prop, value } = e.detail;
 			if (prop === "value") {
 				update_value([
-					{ id, prop: "loading_status", value: { validation_error: undefined } }
+					{
+						id,
+						prop: "loading_status",
+						value: { validation_error: undefined },
+					},
 				]);
 			}
 			update_value([{ id, prop, value }]);
@@ -887,6 +895,7 @@
 				inputs_waiting = inputs_waiting.filter((item) => item !== id);
 			}
 		});
+		console.log("ADDING LISTENERS");
 		target.addEventListener("gradio", (e: Event) => {
 			if (!isCustomEvent(e)) throw new Error("not a custom event");
 
@@ -950,15 +959,15 @@
 	function update_status(
 		id: number,
 		status: "error" | "complete" | "pending",
-		data: LoadingStatus
+		data: LoadingStatus,
 	): void {
 		data.status = status;
 		update_value([
 			{
 				id,
 				prop: "loading_status",
-				value: data
-			}
+				value: data,
+			},
 		]);
 	}
 
@@ -974,7 +983,7 @@
 				return;
 			}
 			let dependency = dependencies.find(
-				(dep) => dep.id == loading_status.fn_index
+				(dep) => dep.id == loading_status.fn_index,
 			);
 			if (dependency === undefined) {
 				return;
@@ -984,7 +993,7 @@
 			updates.push({
 				id: parseInt(id),
 				prop: "loading_status",
-				value: loading_status
+				value: loading_status,
 			});
 		});
 
@@ -994,9 +1003,9 @@
 				return {
 					id,
 					prop: "pending",
-					value: pending_status === "pending"
+					value: pending_status === "pending",
 				};
-			}
+			},
 		);
 
 		update_value([...updates, ...additional_updates]);
@@ -1011,7 +1020,7 @@
 	onMount(() => {
 		is_mobile_device =
 			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-				navigator.userAgent
+				navigator.userAgent,
 			);
 
 		screen_recorder.initialize(
@@ -1021,7 +1030,7 @@
 			},
 			(isRecording) => {
 				$is_screen_recording = isRecording;
-			}
+			},
 		);
 
 		const handleVibeEditorResize = (event: CustomEvent): void => {
@@ -1030,7 +1039,7 @@
 
 		window.addEventListener(
 			"vibeEditorResize",
-			handleVibeEditorResize as EventListener
+			handleVibeEditorResize as EventListener,
 		);
 
 		// Load components if they should be visible on initial page load
@@ -1085,7 +1094,7 @@
 		mut.observe(root_container, {
 			childList: true,
 			subtree: true,
-			attributes: true
+			attributes: true,
 		});
 
 		res.observe(root_container);

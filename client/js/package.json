@@ -17,19 +17,19 @@
 		"./browser.js": "./dist/browser.js"
 	},
 	"dependencies": {
-		"@types/eventsource": "^1.1.15",
-		"bufferutil": "^4.0.7",
-		"eventsource": "^2.0.2",
+		"@types/eventsource": "^3.0.0",
+		"bufferutil": "^4.0.9",
+		"eventsource": "^4.0.0",
 		"fetch-event-stream": "^0.1.5",
-		"msw": "^2.2.1",
+		"msw": "^2.11.3",
 		"semiver": "^1.1.0",
 		"textlinestream": "^1.1.1",
-		"typescript": "^5.0.0",
-		"ws": "^8.13.0"
+		"typescript": "^5.9.3",
+		"ws": "^8.18.3"
 	},
 	"devDependencies": {
-		"@types/ws": "^8.5.10",
-		"esbuild": "^0.21.0"
+		"@types/ws": "^8.18.1",
+		"esbuild": "^0.25.10"
 	},
 	"scripts": {
 		"bundle": "vite build --ssr",

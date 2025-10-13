@@ -13,8 +13,8 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"cropperjs": "^1.5.12",
-		"lazy-brush": "^1.0.1",
+		"cropperjs": "^2.0.1",
+		"lazy-brush": "^2.0.2",
 		"resize-observer-polyfill": "^1.5.1"
 	},
 	"devDependencies": {
@@ -41,7 +41,7 @@
 		}
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.39.6"
 	},
 	"repository": {
 		"type": "git",

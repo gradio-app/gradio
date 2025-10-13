@@ -43,6 +43,7 @@ export function create_components(
 	targets: Writable<TargetMap>;
 	update_value: (updates: UpdateTransaction[]) => void;
 	get_data: (id: number) => any | Promise<any>;
+	set_data: (id: number, values: Record<string, any>) => any | Promise<any>;
 	modify_stream: (id: number, state: "open" | "waiting" | "closed") => void;
 	get_stream_state: (id: number) => "open" | "waiting" | "closed" | "not_set";
 	set_time_limit: (id: number, time_limit: number | undefined) => void;
@@ -86,7 +87,7 @@ export function create_components(
 	let value_change_cb: ((id: number, value: any) => void) | null = null;
 
 	function value_change(cb: (id: number, value: any) => void): void {
-		value_change_cb = cb;
+		// value_change_cb = cb;
 	}
 
 	let current_layout: LayoutNode;
@@ -510,34 +511,47 @@ export function create_components(
 			);
 		}
 
+		let updates_per_id: Record<string, any>[] = [];
+
 		layout_store.update((layout) => {
 			for (let i = 0; i < pending_updates.length; i++) {
 				for (let j = 0; j < pending_updates[i].length; j++) {
 					const update = pending_updates[i][j];
-					if (!update) continue;
-					const instance = instance_map?.[update.id];
-					if (!instance) continue;
-					let new_value;
-					const old_value = instance.props[update.prop];
-					if (update.value instanceof Map) new_value = new Map(update.value);
-					else if (update.value instanceof Set)
-						new_value = new Set(update.value);
-					else if (Array.isArray(update.value)) new_value = [...update.value];
-					else if (update.value == null) new_value = null;
-					else if (typeof update.value === "object")
-						new_value = { ...update.value };
-					else new_value = update.value;
-					instance.props[update.prop] = new_value;
 
-					if (
-						update.prop === "value" &&
-						!is_visible(instance) &&
-						!dequal(old_value, new_value)
-					) {
-						value_change_cb?.(update.id, new_value);
+					if (!update) continue;
+					if (!updates_per_id[update.id]) {
+						updates_per_id[update.id] = {};
 					}
+					updates_per_id[update.id][update.prop] = update.value;
+
+					// let new_value;
+					// const old_value = instance.props[update.prop];
+					// if (update.value instanceof Map) new_value = new Map(update.value);
+					// else if (update.value instanceof Set)
+					// 	new_value = new Set(update.value);
+					// else if (Array.isArray(update.value)) new_value = [...update.value];
+					// else if (update.value == null) new_value = null;
+					// else if (typeof update.value === "object")
+					// 	new_value = { ...update.value };
+					// else new_value = update.value;
+					// instance.props[update.prop] = new_value;
+
+					// console.log();
+
+					// if (
+					// 	update.prop === "value" &&
+					// 	!is_visible(instance) &&
+					// 	!dequal(old_value, new_value)
+					// ) {
+					// 	console.log("setting value");
+					// 	set_data(update.id, "value", new_value);
+					// }
 				}
 			}
+
+			updates_per_id.forEach((val, i) => {
+				set_data(i, val);
+			});
 
 			return layout;
 		});
@@ -570,6 +584,7 @@ export function create_components(
 	}
 
 	function update_value(updates: UpdateTransaction[] | undefined): void {
+		console.log("updaaaate", updates);
 		if (!updates) return;
 		pending_updates.push(updates);
 
@@ -580,6 +595,7 @@ export function create_components(
 		}
 	}
 	function get_data(id: number): any | Promise<any> {
+		// console.log("get_data");
 		let comp = _component_map.get(id);
 		if (!comp) {
 			const layout = get(layout_store);
@@ -589,9 +605,27 @@ export function create_components(
 			return null;
 		}
 		if (comp.instance?.get_value) {
+			console.log("has get_value");
 			return comp.instance.get_value() as Promise<any>;
 		}
 		return comp.props.value;
+	}
+
+	function set_data(id: number, values: Record<string, any>) {
+		console.log("set_data");
+		let comp = _component_map.get(id);
+		if (!comp) {
+			const layout = get(layout_store);
+			comp = findComponentById(layout, id);
+		}
+		if (!comp) {
+			return null;
+		}
+		console.log(comp.instance);
+		if (comp.instance?.set_value) {
+			console.log("setting");
+			comp.instance.set_value(values);
+		}
 	}
 
 	function findComponentById(
@@ -643,6 +677,7 @@ export function create_components(
 		targets: target_map,
 		update_value,
 		get_data,
+		set_data,
 		modify_stream,
 		get_stream_state,
 		set_time_limit,
