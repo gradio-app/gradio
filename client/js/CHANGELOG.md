@@ -1,7 +1,5 @@
 # @gradio/client
 
-## 2.0.0-dev.0
-
 ## 1.19.1
 
 ### Fixes
