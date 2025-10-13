@@ -1,5 +1,4 @@
 import type { ApiInfo, ApiData } from "../types";
-import semiver from "semiver";
 import { API_INFO_URL, BROKEN_CONNECTION_MSG } from "../constants";
 import { Client } from "../client";
 import { SPACE_FETCHER_URL } from "../constants";
@@ -30,29 +29,16 @@ export async function view_api(this: Client): Promise<any> {
 		if (typeof window !== "undefined" && window.gradio_api_info) {
 			api_info = window.gradio_api_info;
 		} else {
-			if (semiver(config?.version || "2.0.0", "3.30") < 0) {
-				response = await this.fetch(SPACE_FETCHER_URL, {
-					method: "POST",
-					body: JSON.stringify({
-						serialize: false,
-						config: JSON.stringify(config)
-					}),
-					headers,
-					credentials: "include"
-				});
-			} else {
-				const url = join_urls(config.root, this.api_prefix, API_INFO_URL);
-				response = await this.fetch(url, {
-					headers,
-					credentials: "include"
-				});
-			}
-
+			const url = join_urls(config.root, this.api_prefix, API_INFO_URL);
+			response = await this.fetch(url, {
+				headers,
+				credentials: "include"
+			});
 			if (!response.ok) {
 				throw new Error(BROKEN_CONNECTION_MSG);
 			}
 			api_info = await response.json();
-		}
+		}	
 		if ("api" in api_info) {
 			api_info = api_info.api;
 		}
