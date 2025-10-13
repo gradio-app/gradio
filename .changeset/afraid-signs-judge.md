@@ -1,7 +1,7 @@
 ---
-"gradio": minor
-"gradio_client": minor
-"@gradio/client": minor
+"gradio": major
+"gradio_client": major
+"@gradio/client": major
 ---
 
 feat:[No Merge] Gradio 6.0 
