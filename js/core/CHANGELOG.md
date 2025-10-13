@@ -2,6 +2,19 @@
 
 ## 0.29.2
 
+### Dependency updates
+
+- @gradio/upload@0.17.2-dev.0
+- @gradio/code@0.15.1-dev.0
+- @gradio/client@2.0.0-dev.0
+- @gradio/gallery@0.15.35-dev.0
+- @gradio/image@0.23.2-dev.0
+- @gradio/button@0.5.14-dev.0
+- @gradio/file@0.13.1-dev.0
+- @gradio/video@0.17.0-dev.0
+
+## 0.29.2
+
 ### Fixes
 
 - [#11994](https://github.com/gradio-app/gradio/pull/11994) [`d6f591e`](https://github.com/gradio-app/gradio/commit/d6f591e823dad8e7387de4124fa1e3ab16203a73) - Add render_children parameter to Tab component.  Thanks @freddyaboulton!
