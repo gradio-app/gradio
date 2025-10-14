@@ -13,9 +13,7 @@ def get_plot(lib, time):
     return gr.LinePlot(value=data, x="date", y="downloads",
                               tooltip=['date', 'downloads'],
                               title=f"Pypi downloads of {lib} over last {time}",
-                              overlay_point=True,
-                              height=400,
-                              width=900)
+                              height=400)
 
 with gr.Blocks() as demo:
     gr.Markdown(
