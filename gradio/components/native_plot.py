@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import warnings
 from collections.abc import Callable, Sequence, Set
 from typing import (
     TYPE_CHECKING,
