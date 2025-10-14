@@ -51,6 +51,7 @@
 		preview_close: never;
 	}>;
 	export let fullscreen = false;
+	export let fit_columns = true;
 
 	const dispatch = createEventDispatcher();
 
@@ -168,6 +169,7 @@
 			bind:value
 			show_share_button={buttons?.includes("share") ?? true}
 			show_download_button={buttons?.includes("download") ?? true}
+			{fit_columns}
 			i18n={gradio.i18n}
 			_fetch={(...args) => gradio.client.fetch(...args)}
 			show_fullscreen_button={buttons?.includes("fullscreen") ?? true}
