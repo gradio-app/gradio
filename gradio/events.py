@@ -64,7 +64,7 @@ def set_cancel_events(
             ),
             inputs=None,
             outputs=timers_to_cancel,
-            show_api=False,
+            show_in_view_api=False,
         )
 
     if regular_cancels:
@@ -76,7 +76,7 @@ def set_cancel_events(
             outputs=None,
             queue=False,
             preprocess=False,
-            show_api=False,
+            show_in_view_api=False,
             cancels=fn_indices_to_cancel,
             is_cancel_function=True,
         )
@@ -616,7 +616,7 @@ class EventListener(str):
             js: str | Literal[True] | None = None,
             concurrency_limit: int | None | Literal["default"] = "default",
             concurrency_id: str | None = None,
-            show_api: bool = True,
+            show_in_view_api: bool = True,
             time_limit: int | None = None,
             stream_every: float = 0.5,
             like_user_message: bool = False,
@@ -643,7 +643,7 @@ class EventListener(str):
                 js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
                 concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
                 concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
-                show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
+                show_in_view_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_in_view_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_in_view_api will automatically be set to False.
                 key: A unique key for this event listener to be used in @gr.render(). If set, this value identifies an event as identical across re-renders when the key is identical.
                 validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function and should return a `gr.validate()` for each input value.
             """
@@ -670,7 +670,7 @@ class EventListener(str):
                         js=js,
                         concurrency_limit=concurrency_limit,
                         concurrency_id=concurrency_id,
-                        show_api=show_api,
+                        show_in_view_api=show_in_view_api,
                         key=key,
                         validator=validator,
                     )
@@ -722,7 +722,7 @@ class EventListener(str):
                 trigger_only_on_success=_trigger_only_on_success,
                 trigger_only_on_failure=_trigger_only_on_failure,
                 trigger_mode=trigger_mode,
-                show_api=show_api,
+                show_in_view_api=show_in_view_api,
                 connection=_connection,
                 time_limit=time_limit,
                 stream_every=stream_every,
@@ -923,7 +923,7 @@ def on(
         queue=queue,
         batch=batch,
         max_batch_size=max_batch_size,
-        show_api=show_api,
+        show_in_view_api=show_api,
         trigger_mode=trigger_mode,
         connection="stream"
         if any(t.connection == "stream" for t in (triggers_typed or []))
@@ -1065,7 +1065,7 @@ def api(
         queue=queue,
         batch=batch,
         max_batch_size=max_batch_size,
-        show_api=show_api,
+        show_in_view_api=show_api,
         trigger_mode=None,
         time_limit=time_limit,
         stream_every=stream_every,

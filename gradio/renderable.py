@@ -50,7 +50,7 @@ class Renderable:
             self.apply,
             self.inputs,
             self.container,
-            show_api=False,
+            show_in_view_api=False,
             concurrency_limit=concurrency_limit,
             concurrency_id=concurrency_id,
             renderable=self,

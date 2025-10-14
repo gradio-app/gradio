@@ -637,7 +637,7 @@ class BlocksConfig:
         trigger_mode: Literal["once", "multiple", "always_last"] | None = "once",
         concurrency_limit: int | None | Literal["default"] = "default",
         concurrency_id: str | None = None,
-        show_api: bool = True,
+        show_in_view_api: bool = True,
         renderable: Renderable | None = None,
         is_cancel_function: bool = False,
         connection: Literal["stream", "sse"] = "sse",
@@ -750,10 +750,10 @@ class BlocksConfig:
                 )
             elif js is not None:
                 api_name = "js_fn"
-                show_api = False
+                show_in_view_api = False
             else:
                 api_name = "unnamed"
-                show_api = False
+                show_in_view_api = False
 
         if api_name is not False:
             api_name = utils.append_unique_suffix(
@@ -765,7 +765,7 @@ class BlocksConfig:
                 ],
             )
         else:
-            show_api = False
+            show_in_view_api = False
 
         # The `show_api` parameter is False if: (1) the user explicitly sets it (2) the user sets `api_name` to False
         # or (3) the user sets `fn` to None (there's no backend function)
@@ -820,7 +820,7 @@ class BlocksConfig:
             trigger_mode=trigger_mode,
             queue=queue,
             scroll_to_output=scroll_to_output,
-            show_api=show_api,
+            show_api=show_in_view_api,
             renderable=renderable,
             rendered_in=rendered_in,
             render_iteration=render_iteration,
@@ -1428,7 +1428,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             trigger_mode="once",
             concurrency_limit="default",
             concurrency_id=None,
-            show_api=False,
+            show_in_view_api=False,
         )
 
     def render(self):
