@@ -105,6 +105,7 @@ class TestChatbot:
             "allow_tags": True,
             "examples": None,
             "watermark": None,
+            "collapse_thinking": None,
         }
 
     def test_avatar_images_are_moved_to_cache(self):
@@ -114,3 +115,222 @@ class TestChatbot:
             chatbot.avatar_images[0]["path"], chatbot.GRADIO_CACHE
         )
         assert chatbot.avatar_images[1] is None
+
+    def test_collapse_thinking_single_block(self):
+        """Test collapse_thinking with a single thinking block"""
+        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "<thinking>Let me think about this.</thinking>\nHere is my response.",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 2
+        assert result[0]["content"] == "Let me think about this."
+        assert result[0]["metadata"] == {"title": "Reasoning"}
+        assert result[1]["content"] == "Here is my response."
+        assert result[1]["metadata"] is None
+
+    def test_collapse_thinking_multiple_blocks(self):
+        """Test collapse_thinking with multiple thinking blocks"""
+        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "<thinking>First thought.</thinking>\nFirst response.\n<thinking>Second thought.</thinking>\nSecond response.",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 4
+        assert result[0]["content"] == "First thought."
+        assert result[0]["metadata"] == {"title": "Reasoning"}
+        assert result[1]["content"] == "First response."
+        assert result[1]["metadata"] is None
+        assert result[2]["content"] == "Second thought."
+        assert result[2]["metadata"] == {"title": "Reasoning"}
+        assert result[3]["content"] == "Second response."
+        assert result[3]["metadata"] is None
+
+    def test_collapse_thinking_only_thinking(self):
+        """Test collapse_thinking with only thinking content, no prose"""
+        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "<thinking>Only thinking here.</thinking>",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 1
+        assert result[0]["content"] == "Only thinking here."
+        assert result[0]["metadata"] == {"title": "Reasoning"}
+
+    def test_collapse_thinking_multiple_tag_types(self):
+        """Test collapse_thinking with multiple tag types like <reasoning>"""
+        chatbot = gr.Chatbot(
+            collapse_thinking=[
+                ("<thinking>", "</thinking>"),
+                ("<reasoning>", "</reasoning>"),
+            ]
+        )
+        messages = [
+            {
+                "role": "assistant",
+                "content": "<thinking>Thinking block.</thinking>\nFirst response.\n<reasoning>Reasoning block.</reasoning>\nSecond response.",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 4
+        assert result[0]["content"] == "Thinking block."
+        assert result[0]["metadata"] == {"title": "Reasoning"}
+        assert result[1]["content"] == "First response."
+        assert result[1]["metadata"] is None
+        assert result[2]["content"] == "Reasoning block."
+        assert result[2]["metadata"] == {"title": "Reasoning"}
+        assert result[3]["content"] == "Second response."
+        assert result[3]["metadata"] is None
+
+    def test_collapse_thinking_no_thinking_tags(self):
+        """Test collapse_thinking when no thinking tags are present"""
+        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "Just a regular response with no thinking.",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 1
+        assert result[0]["content"] == "Just a regular response with no thinking."
+        assert result[0]["metadata"] is None
+
+    def test_collapse_thinking_disabled(self):
+        """Test that collapse_thinking=None doesn't extract anything"""
+        chatbot = gr.Chatbot(collapse_thinking=None)
+        messages = [
+            {
+                "role": "assistant",
+                "content": "<thinking>This should not be extracted.</thinking>\nRegular response.",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 1
+        assert (
+            result[0]["content"]
+            == "<thinking>This should not be extracted.</thinking>\nRegular response."
+        )
+        assert result[0]["metadata"] is None
+
+    def test_collapse_thinking_preserves_order(self):
+        """Test that collapse_thinking preserves the order of thinking and prose"""
+        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "Intro.\n<thinking>Think 1.</thinking>\nMiddle 1.\n<thinking>Think 2.</thinking>\nMiddle 2.\n<thinking>Think 3.</thinking>\nConclusion.",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 7
+        assert result[0]["content"] == "Intro."
+        assert result[0]["metadata"] is None
+        assert result[1]["content"] == "Think 1."
+        assert result[1]["metadata"] == {"title": "Reasoning"}
+        assert result[2]["content"] == "Middle 1."
+        assert result[2]["metadata"] is None
+        assert result[3]["content"] == "Think 2."
+        assert result[3]["metadata"] == {"title": "Reasoning"}
+        assert result[4]["content"] == "Middle 2."
+        assert result[4]["metadata"] is None
+        assert result[5]["content"] == "Think 3."
+        assert result[5]["metadata"] == {"title": "Reasoning"}
+        assert result[6]["content"] == "Conclusion."
+        assert result[6]["metadata"] is None
+
+    def test_collapse_thinking_consecutive_thinking_blocks(self):
+        """Test consecutive thinking blocks with no prose between them"""
+        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "<thinking>Think 1.</thinking><thinking>Think 2.</thinking>Prose.<thinking>Think 3.</thinking><thinking>Think 4.</thinking>",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 5
+        assert result[0]["content"] == "Think 1."
+        assert result[0]["metadata"] == {"title": "Reasoning"}
+        assert result[1]["content"] == "Think 2."
+        assert result[1]["metadata"] == {"title": "Reasoning"}
+        assert result[2]["content"] == "Prose."
+        assert result[2]["metadata"] is None
+        assert result[3]["content"] == "Think 3."
+        assert result[3]["metadata"] == {"title": "Reasoning"}
+        assert result[4]["content"] == "Think 4."
+        assert result[4]["metadata"] == {"title": "Reasoning"}
+
+    def test_collapse_thinking_consecutive_prose_sections(self):
+        """Test that consecutive prose sections get merged into one message"""
+        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "Prose 1. Prose 2.<thinking>Think 1.</thinking>Prose 3. Prose 4.",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 3
+        assert result[0]["content"] == "Prose 1. Prose 2."
+        assert result[0]["metadata"] is None
+        assert result[1]["content"] == "Think 1."
+        assert result[1]["metadata"] == {"title": "Reasoning"}
+        assert result[2]["content"] == "Prose 3. Prose 4."
+        assert result[2]["metadata"] is None
+
+    def test_collapse_thinking_prose_before_thinking(self):
+        """Test prose at the start followed by thinking blocks"""
+        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "Starting with prose.<thinking>Then thinking.</thinking>Then more prose.",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 3
+        assert result[0]["content"] == "Starting with prose."
+        assert result[0]["metadata"] is None
+        assert result[1]["content"] == "Then thinking."
+        assert result[1]["metadata"] == {"title": "Reasoning"}
+        assert result[2]["content"] == "Then more prose."
+        assert result[2]["metadata"] is None
+
+    def test_collapse_thinking_multiple_thinking_only(self):
+        """Test multiple consecutive thinking blocks with no prose at all"""
+        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "<thinking>Think 1.</thinking><thinking>Think 2.</thinking><thinking>Think 3.</thinking>",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 3
+        assert result[0]["content"] == "Think 1."
+        assert result[0]["metadata"] == {"title": "Reasoning"}
+        assert result[1]["content"] == "Think 2."
+        assert result[1]["metadata"] == {"title": "Reasoning"}
+        assert result[2]["content"] == "Think 3."
+        assert result[2]["metadata"] == {"title": "Reasoning"}
