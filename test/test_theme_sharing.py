@@ -416,6 +416,7 @@ class TestThemeUploadDownload:
         )
 
 
+@pytest.mark.serial
 def test_theme_builder_launches():
     gr.themes.builder(prevent_thread_lock=True)
     gr.close_all()
