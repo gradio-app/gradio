@@ -167,8 +167,6 @@
 			{allow_preview}
 			bind:selected_index
 			bind:value
-			{show_share_button}
-			{show_download_button}
 			{fit_columns}
 			i18n={gradio.i18n}
 			_fetch={(...args) => gradio.client.fetch(...args)}
