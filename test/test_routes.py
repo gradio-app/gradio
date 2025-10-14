@@ -1096,9 +1096,11 @@ def test_show_api_queue_not_enabled():
     io = Interface(lambda x: x, "text", "text", examples=[["freddy"]])
     app, _, _ = io.launch(prevent_thread_lock=True)
     assert io.show_in_view_api
+    assert io.show_view_api
     io.close()
     io.launch(prevent_thread_lock=True, show_view_api=False)
-    assert not io.show_in_view_api
+    assert not io.show_view_api
+    assert io.show_in_view_api
 
 
 def test_config_show_api_reflects_launch_flag():
