@@ -1,0 +1,6 @@
+scikit-learn>=1.3
+numpy>=1.24
+pandas>=2.0
+joblib>=1.3
+gradio>=4.39
+datasets>=2.20  # only for TweetEval training
