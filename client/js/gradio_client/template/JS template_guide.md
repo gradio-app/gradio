@@ -80,7 +80,7 @@ with gr.Blocks(title="AI Background Remover") as demo:
 demo.launch()
 ```
 
-# **Hosting on Hugging Face**
+# **3. Hosting on Hugging Face**
 
 Step 1: got to [hugging face spaces](https://huggingface.co/spaces/) (a platform host gradio app for inference free of cost)
 
@@ -94,7 +94,7 @@ Step 3: Follow the hugging face steps to push your app and other files **( requi
 
 **RESULT**: On pushing the files your app will be deployed on the hugging face which you can use to make inference for your website
 
-# Making Inference Script
+# 4. Making Inference Script
 
 for demo purposes we will make a plain infrence script using gradio client for better understanding 
 
@@ -171,7 +171,7 @@ export async function removeBackground(file) {
 node <your_file.js>
 ```
 
-# Integrating Gradio Client in React website
+# 5. Integrating Gradio Client in React website
 
 make a github repo for the react website project or clone [template](https://github.com/W-Samik/background_remover) or download the [vercel_template.zip](vercel_template.zip) from gradio github repository.
 
@@ -185,7 +185,7 @@ const resultUrl = await removeBackground(file);
 
 **NOTE :** This project is made in **vite react** with **javascript** 
 
-# Hosting on Vercel 
+# 6. Hosting on Vercel 
 
 we will be using vercel to host our site 
 
