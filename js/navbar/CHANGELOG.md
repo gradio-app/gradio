@@ -4,6 +4,12 @@
 
 ### Dependency updates
 
+- @gradio/core@0.29.2
+
+## 0.2.1
+
+### Dependency updates
+
 - @gradio/atoms@0.18.1
 
 ## 0.2.1

@@ -8,7 +8,6 @@ def slow_echo(message, history):
 
 chat = gr.ChatInterface(
     slow_echo,
-    type="messages",
     flagging_mode="manual",
     flagging_options=["Like", "Spam", "Inappropriate", "Other"],
     save_history=False,
@@ -29,7 +28,6 @@ with demo.route("cached_examples"):
                      examples=[["Freddy", "Hello"]],
                      cache_examples=True,
                      deep_link=True)
-
 
 
 if __name__ == "__main__":

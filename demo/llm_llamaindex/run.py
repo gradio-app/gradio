@@ -20,7 +20,6 @@ def answer(message, history):
 
 demo = gr.ChatInterface(
     answer,
-    type="messages",
     title="Llama Index RAG Chatbot",
     description="Upload any text or pdf files and ask questions about them!",
     textbox=gr.MultimodalTextbox(file_types=[".pdf", ".txt"]),

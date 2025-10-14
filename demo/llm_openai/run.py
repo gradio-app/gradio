@@ -15,7 +15,7 @@ def predict(message, history):
         chunks.append(chunk.choices[0].delta.content or "")
         yield "".join(chunks)
 
-demo = gr.ChatInterface(predict, type="messages")
+demo = gr.ChatInterface(predict)
 
 if __name__ == "__main__":
     demo.launch()

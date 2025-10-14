@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import inspect
 import re
+import shutil
 import types
 import typing
 from subprocess import PIPE, Popen
+
+RUFF_INSTALLED = bool(shutil.which("ruff"))
 
 
 def find_first_non_return_key(some_dict):
@@ -19,6 +22,9 @@ def format(code: str, type: str):
     """Formats code using ruff."""
     if type == "value":
         code = f"value = {code}"
+
+    if not RUFF_INSTALLED:
+        return code
 
     ruff_args = ["ruff", "format", "-", "--line-length=60"]
 

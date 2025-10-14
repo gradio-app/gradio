@@ -95,14 +95,14 @@ class TestDialogue:
         dialogue = gr.Dialogue(
             speakers=["A", "B"],
             label="Test Dialogue",
-            show_copy_button=True,
+            buttons=["copy"],
             max_lines=10,
         )
 
         config = dialogue.get_config()
         assert config["speakers"] == ["A", "B"]
         assert config["label"] == "Test Dialogue"
-        assert config["show_copy_button"] is True
+        assert config["buttons"] == ["copy"]
         assert config["max_lines"] == 10
         assert config["name"] == "dialogue"
 

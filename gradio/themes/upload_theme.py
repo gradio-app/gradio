@@ -15,7 +15,7 @@ def main():
         help="The name of the org to save the space in. If None (the default), the username corresponding to the logged in user, or hƒ_token is used.",
     )
     parser.add_argument("--version", type=str, help="Semver version")
-    parser.add_argument("--hf_token", type=str, help="HF Token")
+    parser.add_argument("--token", type=str, help="Hugging Face Token")
     parser.add_argument(
         "--theme-name",
         type=str,
@@ -32,7 +32,7 @@ def main():
         args.repo_name,
         args.org_name,
         args.version,
-        args.hf_token,
+        args.token,
         args.theme_name,
         args.description,
     )
@@ -43,7 +43,7 @@ def upload_theme(
     repo_name: str,
     org_name: str | None = None,
     version: str | None = None,
-    hf_token: str | None = None,
+    token: str | None = None,
     theme_name: str | None = None,
     description: str | None = None,
 ):
@@ -52,7 +52,7 @@ def upload_theme(
     return theme.push_to_hub(
         repo_name=repo_name,
         version=version,
-        hf_token=hf_token,
+        token=token,
         theme_name=theme_name,
         description=description,
         org_name=org_name,

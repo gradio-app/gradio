@@ -52,7 +52,6 @@ from fastapi.responses import (
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
-from fastapi.websockets import WebSocket, WebSocketDisconnect
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import ServerMessage
@@ -331,8 +330,8 @@ class App(FastAPI):
             raise PermissionError("This URL cannot be proxied.")
         is_hf_url = url.host.endswith(".hf.space")
         headers = {}
-        if Context.hf_token is not None and is_hf_url:
-            headers["Authorization"] = f"Bearer {Context.hf_token}"
+        if Context.token is not None and is_hf_url:
+            headers["Authorization"] = f"Bearer {Context.token}"
         rp_req = client.build_request("GET", url, headers=headers)
         return rp_req
 
@@ -1074,23 +1073,6 @@ class App(FastAPI):
             event.data = body
             event.signal.set()
             return {"msg": "success"}
-
-        @router.websocket("/stream/{event_id}")
-        async def websocket_endpoint(websocket: WebSocket, event_id: str):
-            await websocket.accept()
-            try:
-                while True:
-                    data = await websocket.receive_json()
-                    body = PredictBody(**data)  # type: ignore
-                    event = app.get_blocks()._queue.event_ids_to_events[event_id]
-                    body_internal = PredictBodyInternal(  # type: ignore
-                        **body.model_dump(), request=None
-                    )
-                    event.data = body_internal
-                    event.signal.set()
-                    await websocket.send_json({"msg": "success"})
-            except WebSocketDisconnect:
-                pass
 
         @router.post("/stream/{event_id}/close")
         async def _(event_id: str):
