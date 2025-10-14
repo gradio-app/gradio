@@ -25,7 +25,7 @@
 		version: string;
 		space_id: string | null;
 		is_colab: boolean;
-		show_api: boolean;
+		show_view_api: boolean;
 		stylesheets?: string[];
 		app_id?: string;
 		fill_height?: boolean;

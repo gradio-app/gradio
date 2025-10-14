@@ -26,7 +26,7 @@
 			API Page guide
 		</a>
 		. To hide the API documentation button and this page, set
-		<code>show_api=False</code>
+		<code>show_view_api=False</code>
 		in the
 		<code>Blocks.launch()</code>
 		method.

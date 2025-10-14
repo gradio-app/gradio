@@ -620,12 +620,14 @@ class Client:
                     f"Could not fetch api info for {self.src}: {fetch.text}"
                 )
         info["named_endpoints"] = {
-            a: e for a, e in info["named_endpoints"].items() if e.pop("show_api", True)
+            a: e
+            for a, e in info["named_endpoints"].items()
+            if e.pop("show_in_view_api", True)
         }
         info["unnamed_endpoints"] = {
             a: e
             for a, e in info["unnamed_endpoints"].items()
-            if e.pop("show_api", True)
+            if e.pop("show_in_view_api", True)
         }
         return info
 
@@ -874,7 +876,7 @@ class Client:
                 if e.is_valid
                 and e.api_name is not None
                 and e.backend_fn is not None
-                and e.show_api
+                and e.show_in_view_api
             ]
             if len(valid_endpoints) == 1:
                 inferred_fn_index = valid_endpoints[0].fn_index
@@ -1005,7 +1007,7 @@ class Endpoint:
         # Disallow hitting endpoints that the Gradio app has disabled
         self.is_valid = self.api_name is not False
         self.backend_fn = dependency.get("backend_fn")
-        self.show_api = dependency.get("show_api")
+        self.show_in_view_api = dependency.get("show_in_view_api")
 
     def _get_component_type(self, component_id: int):
         component = next(

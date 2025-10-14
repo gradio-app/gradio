@@ -71,7 +71,7 @@ export interface Dependency {
 	trigger_only_on_failure?: boolean;
 	trigger_mode: "once" | "multiple" | "always_last";
 	final_event: Payload | null;
-	show_api: boolean;
+	show_in_view_api: boolean;
 	rendered_in: number | null;
 	render_id: number | null;
 	connection: "stream" | "sse";

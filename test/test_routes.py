@@ -1029,7 +1029,7 @@ def test_predict_route_is_blocked_if_api_open_false():
         api_open=False
     )
     app, _, _ = io.launch(prevent_thread_lock=True)
-    assert io.show_api
+    assert io.show_in_view_api
     client = TestClient(app)
     result = client.post(
         f"{API_PREFIX}/api/predict",
@@ -1049,9 +1049,9 @@ def test_predict_route_not_blocked_if_queue_disabled():
         )
         button.click(lambda: 42, None, number, queue=True, api_name="blocked")
     app, _, _ = demo.queue(api_open=False).launch(
-        prevent_thread_lock=True, show_api=True
+        prevent_thread_lock=True, show_view_api=True
     )
-    assert demo.show_api
+    assert demo.show_view_api
     client = TestClient(app)
 
     result = client.post(
@@ -1075,9 +1075,9 @@ def test_predict_route_not_blocked_if_routes_open():
             lambda x: f"Hello, {x}!", input, output, queue=True, api_name="not_blocked"
         )
     app, _, _ = demo.queue(api_open=True).launch(
-        prevent_thread_lock=True, show_api=False
+        prevent_thread_lock=True, show_view_api=False
     )
-    assert not demo.show_api
+    assert not demo.show_view_api
     client = TestClient(app)
 
     result = client.post(
@@ -1088,33 +1088,33 @@ def test_predict_route_not_blocked_if_routes_open():
     assert result.json()["data"] == ["Hello, freddy!"]
 
     demo.close()
-    demo.queue(api_open=False).launch(prevent_thread_lock=True, show_api=False)
-    assert not demo.show_api
+    demo.queue(api_open=False).launch(prevent_thread_lock=True, show_view_api=False)
+    assert not demo.show_view_api
 
 
 def test_show_api_queue_not_enabled():
     io = Interface(lambda x: x, "text", "text", examples=[["freddy"]])
     app, _, _ = io.launch(prevent_thread_lock=True)
-    assert io.show_api
+    assert io.show_in_view_api
     io.close()
-    io.launch(prevent_thread_lock=True, show_api=False)
-    assert not io.show_api
+    io.launch(prevent_thread_lock=True, show_view_api=False)
+    assert not io.show_in_view_api
 
 
 def test_config_show_api_reflects_launch_flag():
     with gr.Blocks() as demo:
         gr.Markdown("Hello")
 
-    app, _, _ = demo.launch(prevent_thread_lock=True, show_api=False)
+    app, _, _ = demo.launch(prevent_thread_lock=True, show_view_api=False)
     client = TestClient(app)
     config = client.get("/config").json()
-    assert config["show_api"] is False
+    assert config["show_view_api"] is False
     demo.close()
 
-    app, _, _ = demo.launch(prevent_thread_lock=True, show_api=True)
+    app, _, _ = demo.launch(prevent_thread_lock=True, show_view_api=True)
     client = TestClient(app)
     config = client.get("/config").json()
-    assert config["show_api"] is True
+    assert config["show_view_api"] is True
     demo.close()
 
 
@@ -1123,10 +1123,10 @@ def test_config_show_api_reflects_mount_flag():
     with gr.Blocks() as demo:
         gr.Markdown("Hello")
 
-    gr.mount_gradio_app(app, demo, path="/gr", show_api=False)
+    gr.mount_gradio_app(app, demo, path="/gr", show_view_api=False)
     client = TestClient(app)
     config = client.get("/gr/config").json()
-    assert config["show_api"] is False
+    assert config["show_view_api"] is False
 
 
 def test_orjson_serialization():

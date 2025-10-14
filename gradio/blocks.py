@@ -676,7 +676,7 @@ class BlocksConfig:
             trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` and `.key_up()` events) would allow a second submission after the pending event is complete.
             concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `queue()`, which itself is 1 by default).
             concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
-            show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
+            show_in_view_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_in_view_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_in_view_api will automatically be set to False.
             is_cancel_function: whether this event cancels another running event.
             connection: The connection format, either "sse" or "stream".
             time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
@@ -767,7 +767,7 @@ class BlocksConfig:
         else:
             show_in_view_api = False
 
-        # The `show_api` parameter is False if: (1) the user explicitly sets it (2) the user sets `api_name` to False
+        # The `show_in_view_api` parameter is False if: (1) the user explicitly sets it (2) the user sets `show_in_view_api` to False
         # or (3) the user sets `fn` to None (there's no backend function)
 
         if collects_event_data is None:
@@ -820,7 +820,7 @@ class BlocksConfig:
             trigger_mode=trigger_mode,
             queue=queue,
             scroll_to_output=scroll_to_output,
-            show_api=show_in_view_api,
+            show_in_view_api=show_in_view_api,
             renderable=renderable,
             rendered_in=rendered_in,
             render_iteration=render_iteration,
@@ -2224,7 +2224,7 @@ Received inputs:
             "space_id": self.space_id,
             "enable_queue": True,  # launch attributes
             "show_error": getattr(self, "show_error", False),
-            "show_api": getattr(self, "show_api", True),
+            "show_view_api": getattr(self, "show_view_api", True),
             "is_colab": utils.colab_check(),
             "max_file_size": getattr(self, "max_file_size", None),
             "stylesheets": self.stylesheets,
@@ -2416,7 +2416,7 @@ Received inputs:
         ssl_keyfile_password: str | None = None,
         ssl_verify: bool = True,
         quiet: bool = False,
-        show_api: bool = True,
+        show_view_api: bool = True,
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
         root_path: str | None = None,
@@ -2460,7 +2460,7 @@ Received inputs:
             ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
             ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
             quiet: If True, suppresses most print statements.
-            show_api: If True, shows the api docs in the footer of the app. Default True.
+            show_view_api: If True, shows the api docs in the footer of the app. Default True.
             allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app. Can be set by comma separated environment variable GRADIO_ALLOWED_PATHS. These files are generally assumed to be secure and will be displayed in the browser when possible.
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default. Can be set by comma separated environment variable GRADIO_BLOCKED_PATHS.
             root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". A full URL beginning with http:// or https:// can be provided, which will be used as the root path in its entirety. Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
@@ -2540,7 +2540,7 @@ Received inputs:
             self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         else:
             self.root_path = root_path
-        self.show_api = show_api
+        self.show_view_api = show_view_api
 
         if allowed_paths:
             self.allowed_paths = allowed_paths
@@ -2979,7 +2979,7 @@ Received inputs:
         """
         Gets the information needed to generate the API docs from a Blocks.
         Parameters:
-            all_endpoints: If True, returns information about all endpoints, including those with show_api=False.
+            all_endpoints: If True, returns information about all endpoints, including those with show_in_view_api=False.
         """
         config = self.config
         api_info: APIInfo = {"named_endpoints": {}, "unnamed_endpoints": {}}
@@ -2987,13 +2987,13 @@ Received inputs:
         for fn in self.fns.values():
             if not fn.fn or fn.api_name is False:
                 continue
-            if not all_endpoints and not fn.show_api:
+            if not all_endpoints and not fn.show_in_view_api:
                 continue
 
             dependency_info: APIEndpointInfo = {
                 "parameters": [],
                 "returns": [],
-                "show_api": fn.show_api,
+                "show_in_view_api": fn.show_in_view_api,
             }
             fn_info = utils.get_function_params(fn.fn)
             if fn.api_description is False:

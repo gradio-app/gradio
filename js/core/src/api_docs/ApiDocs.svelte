@@ -40,7 +40,7 @@
 		"https://www.gradio.app/guides/building-mcp-server-with-gradio";
 
 	let api_count = dependencies.filter(
-		(dependency) => dependency.show_api
+		(dependency) => dependency.show_in_view_api
 	).length;
 
 	if (root === "") {
@@ -466,7 +466,7 @@
 
 				{#if current_language !== "mcp"}
 					{#each dependencies as dependency}
-						{#if dependency.show_api && info.named_endpoints["/" + dependency.api_name]}
+						{#if dependency.show_in_view_api && info.named_endpoints["/" + dependency.api_name]}
 							<div class="endpoint-container">
 								<CodeSnippet
 									endpoint_parameters={info.named_endpoints[

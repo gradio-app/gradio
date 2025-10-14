@@ -40,7 +40,7 @@
 	export let title = "Gradio";
 	export let target: HTMLElement;
 	export let autoscroll: boolean;
-	export let show_api = true;
+	export let show_view_api = true;
 	export let show_footer = true;
 	export let control_page_title = false;
 	export let app_mode: boolean;
@@ -113,10 +113,10 @@
 	}
 
 	export let search_params: URLSearchParams;
-	let api_docs_visible = search_params.get("view") === "api" && show_api;
+	let api_docs_visible = search_params.get("view") === "api" && show_view_api;
 	let settings_visible = search_params.get("view") === "settings";
 	let api_recorder_visible =
-		search_params.get("view") === "api-recorder" && show_api;
+		search_params.get("view") === "api-recorder" && show_view_api;
 	let allow_zoom = true;
 	let allow_video_trim = true;
 
@@ -1132,7 +1132,7 @@
 
 	{#if show_footer}
 		<footer bind:clientHeight={footer_height}>
-			{#if show_api}
+			{#if show_view_api}
 				<button
 					on:click={() => {
 						set_api_docs_visible(!api_docs_visible);

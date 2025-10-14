@@ -50,7 +50,7 @@ class ClearButton(Button):
         scale: int | None = None,
         min_width: int | None = None,
         api_name: str | None | Literal["False"] = None,
-        show_api: bool = False,
+        show_in_view_api: bool = False,
     ):
         super().__init__(
             value,
@@ -71,7 +71,7 @@ class ClearButton(Button):
             min_width=min_width,
         )
         self.api_name = api_name
-        self.show_api = show_api
+        self.show_in_view_api = show_in_view_api
 
         if get_blocks_context():
             self.add(components)
@@ -108,7 +108,7 @@ class ClearButton(Button):
             components,
             js=f"() => {clear_values}",
             api_name=self.api_name,
-            show_api=self.show_api,
+            show_in_view_api=self.show_in_view_api,
         )
         if state_components:
             self.click(
@@ -116,7 +116,7 @@ class ClearButton(Button):
                 None,
                 state_components,
                 api_name=self.api_name,
-                show_api=self.show_api,
+                show_in_view_api=self.show_in_view_api,
             )
         return self
 

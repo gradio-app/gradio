@@ -391,7 +391,7 @@ class BlocksConfigDict(TypedDict):
     space_id: str | None
     enable_queue: bool
     show_error: bool
-    show_api: bool
+    show_view_api: bool
     is_colab: bool
     max_file_size: int | None
     stylesheets: list[str]
@@ -454,7 +454,7 @@ class APIEndpointInfo(TypedDict):
     description: NotRequired[str]
     parameters: list[ParameterInfo]
     returns: list[APIReturnInfo]
-    show_api: bool
+    show_in_view_api: bool
 
 
 class APIInfo(TypedDict):

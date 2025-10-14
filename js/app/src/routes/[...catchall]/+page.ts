@@ -73,7 +73,7 @@ export async function load({
 
 				is_space: false,
 				is_colab: false,
-				show_api: false,
+				show_view_api: false,
 				stylesheets: [],
 				protocol: "sse_v3",
 				username: ""
