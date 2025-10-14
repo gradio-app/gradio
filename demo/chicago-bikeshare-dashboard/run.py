@@ -64,10 +64,8 @@ with gr.Blocks() as demo:
             title="Number of rides per bicycle type",
             y_title="Number of Rides",
             x_title="Bicycle Type",
-            vertical=False,
             tooltip=['rideable_type', "n"],
             height=300,
-            width=300,
         )
         station = gr.BarPlot(
             x='station',
@@ -75,10 +73,8 @@ with gr.Blocks() as demo:
             title="Most Popular Stations",
             y_title="Number of Rides",
             x_title="Station Name",
-            vertical=False,
             tooltip=['station', 'n'],
-            height=300,
-            width=300
+            height=300
         )
 
     demo.load(get_count_ride_type, inputs=None, outputs=bike_type)

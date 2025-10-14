@@ -25,7 +25,6 @@ with gr.Blocks() as demo:
                     y="y1",
                     title="Chart 1",
                     height=200,
-                    width=300
                 )
                 gr.LinePlot(
                     data,
@@ -33,7 +32,6 @@ with gr.Blocks() as demo:
                     y="y2",
                     title="Chart 2",
                     height=200,
-                    width=300
                 )
                 gr.LinePlot(
                     data,
@@ -41,7 +39,6 @@ with gr.Blocks() as demo:
                     y="y3",
                     title="Chart 3",
                     height=200,
-                    width=300
                 )
                 gr.LinePlot(
                     data,
@@ -49,7 +46,6 @@ with gr.Blocks() as demo:
                     y="y4",
                     title="Chart 4",
                     height=200,
-                    width=300
                 )
         
         with gr.Column(scale=1):
@@ -61,7 +57,6 @@ with gr.Blocks() as demo:
                     y="y1",
                     title="Chart 1",
                     height=200,
-                    width=300
                 )
                 gr.LinePlot(
                     data,
@@ -69,7 +64,6 @@ with gr.Blocks() as demo:
                     y="y2",
                     title="Chart 2",
                     height=200,
-                    width=300
                 )
                 gr.LinePlot(
                     data,
@@ -77,7 +71,6 @@ with gr.Blocks() as demo:
                     y="y3",
                     title="Chart 3",
                     height=200,
-                    width=300
                 )
                 gr.LinePlot(
                     data,
@@ -85,7 +78,6 @@ with gr.Blocks() as demo:
                     y="y4",
                     title="Chart 4",
                     height=200,
-                    width=300
                 )
 
 if __name__ == "__main__":
