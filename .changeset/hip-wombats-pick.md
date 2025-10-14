@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:Handle special characters
+feat:Handle special characters in native plot column names
