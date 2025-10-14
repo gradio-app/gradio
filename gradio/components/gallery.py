@@ -111,6 +111,7 @@ class Gallery(Component):
         interactive: bool | None = None,
         type: Literal["numpy", "pil", "filepath"] = "filepath",
         show_fullscreen_button: bool = True,
+        fit_columns: bool = True,
     ):
         """
         Parameters:
@@ -142,6 +143,7 @@ class Gallery(Component):
             interactive: If True, the gallery will be interactive, allowing the user to upload images. If False, the gallery will be static. Default is True.
             type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image. If the image is SVG, the `type` is ignored and the filepath of the SVG is returned.
             show_fullscreen_button: If True, will show a fullscreen icon in the corner of the component that allows user to view the gallery in fullscreen mode. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
+            fit_columns: Expand columns to fit the full width when there are fewer images than the columns parameter.
         """
         self.format = format
         self.columns = columns
@@ -163,6 +165,7 @@ class Gallery(Component):
         self.type = type
         self.show_fullscreen_button = show_fullscreen_button
         self.file_types = file_types
+        self.fit_columns = fit_columns
 
         self.show_share_button = (
             (utils.get_space() is not None)

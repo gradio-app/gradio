@@ -53,6 +53,7 @@
 	}>;
 	export let show_fullscreen_button = true;
 	export let fullscreen = false;
+	export let fit_columns = true;
 
 	const dispatch = createEventDispatcher();
 
@@ -170,6 +171,7 @@
 			bind:value
 			{show_share_button}
 			{show_download_button}
+			{fit_columns}
 			i18n={gradio.i18n}
 			_fetch={(...args) => gradio.client.fetch(...args)}
 			{show_fullscreen_button}
