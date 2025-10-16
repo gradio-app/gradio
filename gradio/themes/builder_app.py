@@ -374,7 +374,7 @@ with gr.Blocks(  # noqa: SIM117
                             go,
                             [radio, drop, drop_2, check, name],
                             img,
-                            show_in_view_api=False,
+                            api_visibility="private",
                         )
 
                         def clear():
@@ -458,7 +458,7 @@ with gr.Blocks(  # noqa: SIM117
                         + (time.sleep(2) or []),
                         chatbot,
                         chatbot,
-                        show_in_view_api=False,
+                        api_visibility="private",
                     )
                 with gr.Column(scale=1):
                     with gr.Accordion("Advanced Settings"):
@@ -488,7 +488,7 @@ with gr.Blocks(  # noqa: SIM117
                     100
                 );
             }""",
-            show_in_view_api=False,
+            api_visibility="undocumented",
         )
 
         theme_inputs = (
@@ -848,7 +848,7 @@ with gr.Blocks(theme=theme) as demo:
                 render_variables,
                 [history, base_theme_dropdown] + theme_inputs,
                 [history, secret_css, secret_font, output_code, current_theme],
-                show_in_view_api=False,
+                api_visibility="private",
             ).then(
                 None,
                 [secret_css, secret_font],
@@ -872,7 +872,7 @@ with gr.Blocks(theme=theme) as demo:
                         });
                     }
                 }""",
-                show_in_view_api=False,
+                api_visibility="private",
             )
 
         def load_color(color_name):
@@ -881,17 +881,17 @@ with gr.Blocks(theme=theme) as demo:
 
         attach_rerender(
             primary_hue.select(
-                load_color, primary_hue, primary_hues, show_in_view_api=False
+                load_color, primary_hue, primary_hues, api_visibility="undocumented"
             ).then
         )
         attach_rerender(
             secondary_hue.select(
-                load_color, secondary_hue, secondary_hues, show_in_view_api=False
+                load_color, secondary_hue, secondary_hues, api_visibility="undocumented"
             ).then
         )
         attach_rerender(
             neutral_hue.select(
-                load_color, neutral_hue, neutral_hues, show_in_view_api=False
+                load_color, neutral_hue, neutral_hues, api_visibility="undocumented"
             ).then
         )
         for hue_set in (primary_hues, secondary_hues, neutral_hues):
@@ -904,23 +904,23 @@ with gr.Blocks(theme=theme) as demo:
 
         attach_rerender(
             text_size.change(
-                load_size, text_size, text_sizes, show_in_view_api=False
+                load_size, text_size, text_sizes, api_visibility="undocumented"
             ).then
         )
         attach_rerender(
             spacing_size.change(
-                load_size, spacing_size, spacing_sizes, show_in_view_api=False
+                load_size, spacing_size, spacing_sizes, api_visibility="undocumented"
             ).then
         )
         attach_rerender(
             radius_size.change(
-                load_size, radius_size, radius_sizes, show_in_view_api=False
+                load_size, radius_size, radius_sizes, api_visibility="undocumented"
             ).then
         )
 
         attach_rerender(
             load_theme_btn.click(
-                load_theme, base_theme_dropdown, theme_inputs, show_in_view_api=False
+                load_theme, base_theme_dropdown, theme_inputs, api_visibility="undocumented"
             ).then
         )
 
@@ -946,7 +946,7 @@ with gr.Blocks(theme=theme) as demo:
                 document.querySelector('body').classList.add('dark');
             }
         }""",
-            show_in_view_api=False,
+            api_visibility="undocumented",
         )
 
         def undo(history_var):
@@ -962,7 +962,7 @@ with gr.Blocks(theme=theme) as demo:
                 undo,
                 [history],
                 [history, base_theme_dropdown] + theme_inputs,
-                show_in_view_api=False,
+                api_visibility="private",
             ).then
         )
 
@@ -995,7 +995,7 @@ with gr.Blocks(theme=theme) as demo:
             lambda: "Uploading...",
             None,
             upload_to_hub_btn,
-            show_in_view_api=False,
+            api_visibility="undocumented",
         ).then(
             upload_to_hub,
             {
@@ -1005,7 +1005,7 @@ with gr.Blocks(theme=theme) as demo:
                 theme_version,
             },
             [theme_upload_status, upload_to_hub_btn],
-            show_in_view_api=False,
+            api_visibility="undocumented",
         )
 
 

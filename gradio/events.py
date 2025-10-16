@@ -64,7 +64,7 @@ def set_cancel_events(
             ),
             inputs=None,
             outputs=timers_to_cancel,
-            show_in_view_api=False,
+            api_visibility="private",
         )
 
     if regular_cancels:
@@ -76,7 +76,7 @@ def set_cancel_events(
             outputs=None,
             queue=False,
             preprocess=False,
-            show_in_view_api=False,
+            api_visibility="private",
             cancels=fn_indices_to_cancel,
             is_cancel_function=True,
         )
@@ -601,7 +601,7 @@ class EventListener(str):
             | Sequence[Component | BlockContext]
             | Set[Component | BlockContext]
             | None = None,
-            api_name: str | None | Literal[False] = None,
+            api_name: str | None = None,
             api_description: str | None | Literal[False] = None,
             scroll_to_output: bool = False,
             show_progress: Literal["full", "minimal", "hidden"] = _show_progress,
@@ -616,7 +616,7 @@ class EventListener(str):
             js: str | Literal[True] | None = None,
             concurrency_limit: int | None | Literal["default"] = "default",
             concurrency_id: str | None = None,
-            show_in_view_api: bool = True,
+            api_visibility: Literal["public", "private", "undocumented"] = "public",
             time_limit: int | None = None,
             stream_every: float = 0.5,
             like_user_message: bool = False,
@@ -628,7 +628,7 @@ class EventListener(str):
                 fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
                 inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
                 outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
-                api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
+                api_name: defines how the endpoint appears in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint.
                 api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
                 scroll_to_output: If True, will scroll to output component on completion
                 show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
@@ -643,7 +643,7 @@ class EventListener(str):
                 js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
                 concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
                 concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
-                show_in_view_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_in_view_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_in_view_api will automatically be set to False.
+                api_visibility: controls the visibility and accessibility of this endpoint. Can be "public" (shown in API docs and callable by clients), "private" (hidden from API docs and not callable by clients), or "undocumented" (hidden from API docs but callable by apps that load this application via gr.load). If fn is None, api_visibility will automatically be set to "private".
                 key: A unique key for this event listener to be used in @gr.render(). If set, this value identifies an event as identical across re-renders when the key is identical.
                 validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function and should return a `gr.validate()` for each input value.
             """
@@ -670,7 +670,7 @@ class EventListener(str):
                         js=js,
                         concurrency_limit=concurrency_limit,
                         concurrency_id=concurrency_id,
-                        show_in_view_api=show_in_view_api,
+                        api_visibility=api_visibility,
                         key=key,
                         validator=validator,
                     )
@@ -722,7 +722,7 @@ class EventListener(str):
                 trigger_only_on_success=_trigger_only_on_success,
                 trigger_only_on_failure=_trigger_only_on_failure,
                 trigger_mode=trigger_mode,
-                show_in_view_api=show_in_view_api,
+                api_visibility=api_visibility,
                 connection=_connection,
                 time_limit=time_limit,
                 stream_every=stream_every,
@@ -777,8 +777,8 @@ def on(
     | Set[Component | BlockContext]
     | None = None,
     *,
-    show_in_view_api: bool = True,
-    api_name: str | None | Literal[False] = None,
+    api_visibility: Literal["public", "private", "undocumented"] = "public",
+    api_name: str | None = None,
     api_description: str | None | Literal[False] = None,
     scroll_to_output: bool = False,
     show_progress: Literal["full", "minimal", "hidden"] = "full",
@@ -808,7 +808,7 @@ def on(
         fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
         inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
         outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
-        api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, will use the functions name as the endpoint route. If set to a string, the endpoint will be exposed in the api docs with the given name.
+        api_name: defines how the endpoint appears in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint.
         scroll_to_output: If True, will scroll to output component on completion
         show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all,
         show_progress_on: Component or list of components to show the progress animation on. If None, will show the progress animation on all of the output components.
@@ -822,7 +822,7 @@ def on(
         js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs', return should be a list of values for output components.
         concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
         concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
-        show_in_view_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_in_view_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_in_view_api will automatically be set to False.
+        api_visibility: controls the visibility and accessibility of this endpoint. Can be "public" (shown in API docs and callable by clients), "private" (hidden from API docs and not callable by clients), or "undocumented" (hidden from API docs but callable by apps that load this application via gr.load). If fn is None, api_visibility will automatically be set to "private".
         time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
         stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
         validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function and should return a `gr.validate()` for each input value.
@@ -871,7 +871,7 @@ def on(
                 js=js,
                 concurrency_limit=concurrency_limit,
                 concurrency_id=concurrency_id,
-                show_in_view_api=show_in_view_api,
+                api_visibility=api_visibility,
                 trigger_mode=trigger_mode,
                 time_limit=time_limit,
                 stream_every=stream_every,
@@ -923,7 +923,7 @@ def on(
         queue=queue,
         batch=batch,
         max_batch_size=max_batch_size,
-        show_in_view_api=show_in_view_api,
+        api_visibility=api_visibility,
         trigger_mode=trigger_mode,
         connection="stream"
         if any(t.connection == "stream" for t in (triggers_typed or []))
@@ -946,14 +946,14 @@ def on(
 def api(
     fn: Callable | Literal["decorator"] = "decorator",
     *,
-    api_name: str | None | Literal[False] = None,
+    api_name: str | None = None,
     api_description: str | None = None,
     queue: bool = True,
     batch: bool = False,
     max_batch_size: int = 4,
     concurrency_limit: int | None | Literal["default"] = "default",
     concurrency_id: str | None = None,
-    show_in_view_api: bool = True,
+    api_visibility: Literal["public", "private", "undocumented"] = "public",
     time_limit: int | None = None,
     stream_every: float = 0.5,
 ) -> Dependency:
@@ -962,14 +962,14 @@ def api(
 
     Parameters:
         fn: the function to call when this event is triggered. Often a machine learning model's prediction function. The function should be fully typed, and the type hints will be used to derive the typing information for the API/MCP endpoint.
-        api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, will use the functions name as the endpoint route. If set to a string, the endpoint will be exposed in the api docs with the given name.
+        api_name: defines how the endpoint appears in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint.
         api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
         queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
         batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
         max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
         concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
         concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
-        show_in_view_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_in_view_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_in_view_api will automatically be set to False.
+        api_visibility: controls the visibility and accessibility of this endpoint. Can be "public" (shown in API docs and callable by clients), "private" (hidden from API docs and not callable by clients), or "undocumented" (hidden from API docs but callable by apps that load this application via gr.load). If fn is None, api_visibility will automatically be set to "private".
         time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
         stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
     Example:
@@ -1006,7 +1006,7 @@ def api(
                 max_batch_size=max_batch_size,
                 concurrency_limit=concurrency_limit,
                 concurrency_id=concurrency_id,
-                show_in_view_api=show_in_view_api,
+                api_visibility=api_visibility,
                 time_limit=time_limit,
                 stream_every=stream_every,
             )
@@ -1065,7 +1065,7 @@ def api(
         queue=queue,
         batch=batch,
         max_batch_size=max_batch_size,
-        show_in_view_api=show_in_view_api,
+        api_visibility=api_visibility,
         trigger_mode=None,
         time_limit=time_limit,
         stream_every=stream_every,

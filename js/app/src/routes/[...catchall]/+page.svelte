@@ -25,7 +25,7 @@
 		version: string;
 		space_id: string | null;
 		is_colab: boolean;
-		show_view_api: boolean;
+		footer_links: string[];
 		stylesheets?: string[];
 		app_id?: string;
 		fill_height?: boolean;
@@ -415,7 +415,7 @@
 			bind:ready
 			bind:render_complete
 			bind:add_new_message={new_message_fn}
-			show_footer={!is_embed}
+			footer_links={is_embed ? [] : config.footer_links}
 			{app_mode}
 			{version}
 			search_params={$page.url.searchParams}

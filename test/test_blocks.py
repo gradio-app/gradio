@@ -1446,8 +1446,8 @@ class TestGetAPIInfo:
             t5 = gr.Textbox()
             t1.change(lambda x: x, t1, t2, api_name="change1")
             t2.change(lambda x: x, t2, t3, api_name="change2")
-            t3.change(lambda x: x, t3, t4, api_name=False)
-            t4.change(lambda x: x, t4, t5, api_name=False)
+            t3.change(lambda x: x, t3, t4, api_visibility="private")
+            t4.change(lambda x: x, t4, t5, api_visibility="private")
 
         api_info = demo.get_api_info()
         assert api_info
@@ -1458,7 +1458,7 @@ class TestGetAPIInfo:
         with gr.Blocks() as demo:
             t1 = gr.Textbox()
             t2 = gr.Textbox()
-            t1.change(lambda x: x, t1, t2, api_name=False)
+            t1.change(lambda x: x, t1, t2, api_visibility="private")
 
         api_info = demo.get_api_info()
         assert api_info

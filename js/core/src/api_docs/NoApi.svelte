@@ -26,7 +26,7 @@
 			API Page guide
 		</a>
 		. To hide the API documentation button and this page, set
-		<code>show_view_api=False</code>
+		<code>footer_links=["gradio", "settings"]</code>
 		in the
 		<code>Blocks.launch()</code>
 		method.

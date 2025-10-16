@@ -21,7 +21,7 @@ with gr.Blocks() as demo:
             result = gr.Number()
 
     submit_btn.click(
-        calculator, inputs=[num_1, operation, num_2], outputs=[result], api_name=False
+        calculator, inputs=[num_1, operation, num_2], outputs=[result], api_visibility="private"
     )
     examples = gr.Examples(
         examples=[
@@ -34,4 +34,4 @@ with gr.Blocks() as demo:
     )
 
 if __name__ == "__main__":
-    demo.launch(show_view_api=False)
+    demo.launch(footer_links=["gradio"])

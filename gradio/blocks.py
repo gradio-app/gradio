@@ -622,7 +622,7 @@ class BlocksConfig:
         scroll_to_output: bool = False,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
         show_progress_on: Component | Sequence[Component] | None = None,
-        api_name: str | None | Literal[False] = None,
+        api_name: str | None = None,
         api_description: str | None | Literal[False] = None,
         js: str | Literal[True] | None = None,
         no_target: bool = False,
@@ -637,7 +637,7 @@ class BlocksConfig:
         trigger_mode: Literal["once", "multiple", "always_last"] | None = "once",
         concurrency_limit: int | None | Literal["default"] = "default",
         concurrency_id: str | None = None,
-        show_in_view_api: bool = True,
+        api_visibility: Literal["public", "private", "undocumented"] = "public",
         renderable: Renderable | None = None,
         is_cancel_function: bool = False,
         connection: Literal["stream", "sse"] = "sse",
@@ -661,7 +661,7 @@ class BlocksConfig:
             scroll_to_output: whether to scroll to output of dependency on trigger
             show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
             show_progress_on: Component or list of components to show the progress animation on. If None, will show the progress animation on all of the output components.
-            api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None, the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
+            api_name: defines how the endpoint appears in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint.
             api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for the Blocks.load() event and .then() events
@@ -676,7 +676,7 @@ class BlocksConfig:
             trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` and `.key_up()` events) would allow a second submission after the pending event is complete.
             concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `queue()`, which itself is 1 by default).
             concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
-            show_in_view_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_in_view_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_in_view_api will automatically be set to False.
+            api_visibility: controls the visibility and accessibility of this endpoint. Can be "public" (shown in API docs and callable by clients), "private" (hidden from API docs and not callable by clients), or "undocumented" (hidden from API docs but callable by apps that load this application via gr.load). If fn is None, api_visibility will automatically be set to "private".
             is_cancel_function: whether this event cancels another running event.
             connection: The connection format, either "sse" or "stream".
             time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
@@ -750,25 +750,22 @@ class BlocksConfig:
                 )
             elif js is not None:
                 api_name = "js_fn"
-                show_in_view_api = False
+                api_visibility = "private"
             else:
                 api_name = "unnamed"
-                show_in_view_api = False
+                api_visibility = "private"
 
-        if api_name is not False:
-            api_name = utils.append_unique_suffix(
-                api_name,
-                [
-                    fn.api_name
-                    for fn in self.fns.values()
-                    if isinstance(fn.api_name, str)
-                ],
-            )
-        else:
-            show_in_view_api = False
+        api_name = utils.append_unique_suffix(
+            api_name,
+            [
+                fn.api_name
+                for fn in self.fns.values()
+                if isinstance(fn.api_name, str)
+            ],
+        )
 
-        # The `show_in_view_api` parameter is False if: (1) the user explicitly sets it (2) the user sets `show_in_view_api` to False
-        # or (3) the user sets `fn` to None (there's no backend function)
+        # The `api_visibility` parameter is "private" if: (1) the user explicitly sets it (2) fn is None (there's no backend function)
+        # or (3) the function is a js function
 
         if collects_event_data is None:
             collects_event_data = event_data_index is not None
@@ -820,7 +817,7 @@ class BlocksConfig:
             trigger_mode=trigger_mode,
             queue=queue,
             scroll_to_output=scroll_to_output,
-            show_in_view_api=show_in_view_api,
+            api_visibility=api_visibility,
             renderable=renderable,
             rendered_in=rendered_in,
             render_iteration=render_iteration,
@@ -1428,7 +1425,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             trigger_mode="once",
             concurrency_limit="default",
             concurrency_id=None,
-            show_in_view_api=False,
+            api_visibility="private",
         )
 
     def render(self):
@@ -2224,7 +2221,7 @@ Received inputs:
             "space_id": self.space_id,
             "enable_queue": True,  # launch attributes
             "show_error": getattr(self, "show_error", False),
-            "show_view_api": getattr(self, "show_view_api", True),
+            "footer_links": getattr(self, "footer_links", []),
             "is_colab": utils.colab_check(),
             "max_file_size": getattr(self, "max_file_size", None),
             "stylesheets": self.stylesheets,
@@ -2416,7 +2413,7 @@ Received inputs:
         ssl_keyfile_password: str | None = None,
         ssl_verify: bool = True,
         quiet: bool = False,
-        show_view_api: bool = True,
+        footer_links: list[Literal["api", "gradio", "settings"] | dict[str, str]] | None = None,
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
         root_path: str | None = None,
@@ -2460,7 +2457,7 @@ Received inputs:
             ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
             ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
             quiet: If True, suppresses most print statements.
-            show_view_api: If True, shows the api docs in the footer of the app. Default True.
+            footer_links: If provided, a list of links to display in the footer of the app. Each element of the list must be one of "api", "gradio", or "settings". If None, all three links will be shown
             allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app. Can be set by comma separated environment variable GRADIO_ALLOWED_PATHS. These files are generally assumed to be secure and will be displayed in the browser when possible.
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default. Can be set by comma separated environment variable GRADIO_BLOCKED_PATHS.
             root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". A full URL beginning with http:// or https:// can be provided, which will be used as the root path in its entirety. Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
@@ -2540,7 +2537,7 @@ Received inputs:
             self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         else:
             self.root_path = root_path
-        self.show_view_api = show_view_api
+        self.footer_links = footer_links or ["api", "gradio", "settings"]
 
         if allowed_paths:
             self.allowed_paths = allowed_paths
@@ -2979,21 +2976,21 @@ Received inputs:
         """
         Gets the information needed to generate the API docs from a Blocks.
         Parameters:
-            all_endpoints: If True, returns information about all endpoints, including those with show_in_view_api=False.
+            all_endpoints: If True, returns information about all endpoints, including those with api_visibility="undocumented".
         """
         config = self.config
         api_info: APIInfo = {"named_endpoints": {}, "unnamed_endpoints": {}}
 
         for fn in self.fns.values():
-            if not fn.fn or fn.api_name is False:
+            if not fn.fn or fn.api_visibility == "private":
                 continue
-            if not all_endpoints and not fn.show_in_view_api:
+            if not all_endpoints and fn.api_visibility != "public":
                 continue
 
             dependency_info: APIEndpointInfo = {
                 "parameters": [],
                 "returns": [],
-                "show_in_view_api": fn.show_in_view_api,
+                "api_visibility": cast(Literal["public", "private", "undocumented"], fn.api_visibility),
             }
             fn_info = utils.get_function_params(fn.fn)
             if fn.api_description is False:

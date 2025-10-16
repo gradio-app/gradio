@@ -49,8 +49,8 @@ class ClearButton(Button):
         preserved_by_key: list[str] | str | None = "value",
         scale: int | None = None,
         min_width: int | None = None,
-        api_name: str | None | Literal["False"] = None,
-        show_in_view_api: bool = False,
+        api_name: str | None = None,
+        api_visibility: Literal["public", "private", "undocumented"] = "undocumented",
     ):
         super().__init__(
             value,
@@ -71,7 +71,7 @@ class ClearButton(Button):
             min_width=min_width,
         )
         self.api_name = api_name
-        self.show_in_view_api = show_in_view_api
+        self.api_visibility = api_visibility
 
         if get_blocks_context():
             self.add(components)
@@ -108,7 +108,7 @@ class ClearButton(Button):
             components,
             js=f"() => {clear_values}",
             api_name=self.api_name,
-            show_in_view_api=self.show_in_view_api,
+            api_visibility="private",  # Pure JS function, no backend
         )
         if state_components:
             self.click(
@@ -116,7 +116,7 @@ class ClearButton(Button):
                 None,
                 state_components,
                 api_name=self.api_name,
-                show_in_view_api=self.show_in_view_api,
+                api_visibility=self.api_visibility,  # Uses undocumented since it has a backend function
             )
         return self
 

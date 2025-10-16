@@ -402,7 +402,7 @@ export const config_response: Config = {
 			trigger_only_on_success: false,
 			trigger_only_on_failure: false,
 			trigger_mode: "once",
-			show_in_view_api: true,
+			api_visibility: "public",
 			zerogpu: false
 		},
 		{
@@ -429,7 +429,7 @@ export const config_response: Config = {
 			trigger_only_on_success: false,
 			trigger_only_on_failure: false,
 			trigger_mode: "once",
-			show_in_view_api: false,
+			api_visibility: "private",
 			zerogpu: false
 		},
 		{
@@ -456,7 +456,7 @@ export const config_response: Config = {
 			trigger_only_on_success: false,
 			trigger_only_on_failure: false,
 			trigger_mode: "once",
-			show_in_view_api: false,
+			api_visibility: "private",
 			zerogpu: false
 		}
 	],

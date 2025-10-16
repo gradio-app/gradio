@@ -622,12 +622,12 @@ class Client:
         info["named_endpoints"] = {
             a: e
             for a, e in info["named_endpoints"].items()
-            if e.pop("show_in_view_api", True)
+            if e.pop("api_visibility", "public") != "private"
         }
         info["unnamed_endpoints"] = {
             a: e
             for a, e in info["unnamed_endpoints"].items()
-            if e.pop("show_in_view_api", True)
+            if e.pop("api_visibility", "public") != "private"
         }
         return info
 
@@ -852,7 +852,7 @@ class Client:
         if api_name is not None:
             for i, d in enumerate(self.config["dependencies"]):
                 config_api_name = d.get("api_name")
-                if config_api_name is None or config_api_name is False:
+                if config_api_name is None or d.get("api_visibility") == "private":
                     continue
                 if "/" + config_api_name == api_name:
                     inferred_fn_index = d.get("id", i)
@@ -876,7 +876,7 @@ class Client:
                 if e.is_valid
                 and e.api_name is not None
                 and e.backend_fn is not None
-                and e.show_in_view_api
+                and e.api_visibility == "public"
             ]
             if len(valid_endpoints) == 1:
                 inferred_fn_index = valid_endpoints[0].fn_index
@@ -990,7 +990,7 @@ class Endpoint:
         self.fn_index = fn_index
         self.dependency = dependency
         api_name = dependency.get("api_name")
-        self.api_name: str | Literal[False] | None = (
+        self.api_name: str | None = (
             "/" + api_name if isinstance(api_name, str) else api_name
         )
         self._info = self.client._info
@@ -1005,9 +1005,9 @@ class Endpoint:
         self.root_url = self.client.src_prefixed
 
         # Disallow hitting endpoints that the Gradio app has disabled
-        self.is_valid = self.api_name is not False
+        self.is_valid = dependency.get("api_visibility", "public") != "private"
         self.backend_fn = dependency.get("backend_fn")
-        self.show_in_view_api = dependency.get("show_in_view_api")
+        self.api_visibility = dependency.get("api_visibility", "public")
 
     def _get_component_type(self, component_id: int):
         component = next(
