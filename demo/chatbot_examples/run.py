@@ -27,7 +27,7 @@ def respond(history):
     history[-1][1] = "Cool!"
     return history
 
-with gr.Blocks(fill_height=True) as demo:
+with gr.Blocks() as demo:
     chatbot = gr.Chatbot(
         elem_id="chatbot",
         bubble_full_width=False,

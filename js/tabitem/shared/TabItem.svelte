@@ -8,7 +8,7 @@
 	export let elem_classes: string[] = [];
 	export let label: string;
 	export let id: string | number | object = {};
-	export let visible: boolean;
+	export let visible: boolean | "hidden";
 	export let interactive: boolean;
 	export let order: number;
 	export let scale: number;
@@ -33,20 +33,18 @@
 		tick().then(() => dispatch("select", { value: label, index: tab_index }));
 </script>
 
-{#if $selected_tab === id && visible}
-	<div
-		id={elem_id}
-		class="tabitem {elem_classes.join(' ')}"
-		class:grow-children={scale >= 1}
-		style:display={$selected_tab === id && visible ? "flex" : "none"}
-		style:flex-grow={scale}
-		role="tabpanel"
-	>
-		<Column scale={scale >= 1 ? scale : null}>
-			<slot />
-		</Column>
-	</div>
-{/if}
+<div
+	id={elem_id}
+	class="tabitem {elem_classes.join(' ')}"
+	class:grow-children={scale >= 1}
+	style:display={$selected_tab === id && visible !== false ? "flex" : "none"}
+	style:flex-grow={scale}
+	role="tabpanel"
+>
+	<Column scale={scale >= 1 ? scale : null}>
+		<slot />
+	</Column>
+</div>
 
 <style>
 	div {
@@ -55,7 +53,6 @@
 		position: relative;
 		border: none;
 		border-radius: var(--radius-sm);
-		padding: var(--block-padding);
 		width: 100%;
 		box-sizing: border-box;
 	}

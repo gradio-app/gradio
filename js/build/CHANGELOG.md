@@ -1,5 +1,21 @@
 # @self/build
 
+## 0.4.0
+
+### Features
+
+- [#11858](https://github.com/gradio-app/gradio/pull/11858) [`3f8ea13`](https://github.com/gradio-app/gradio/commit/3f8ea13a8ca92abf0ad34392e403a449fda3c6c2) - remove lite.  Thanks @pngwn!
+
+## 0.3.0
+
+### Features
+
+- [#11783](https://github.com/gradio-app/gradio/pull/11783) [`f407daf`](https://github.com/gradio-app/gradio/commit/f407daf8046f37e042ab8b86730ff0ab8d174bcf) - Add Walkthrough and Step compoents to facilitate multi-step workflows.  Thanks @pngwn!
+
+### Fixes
+
+- [#11749](https://github.com/gradio-app/gradio/pull/11749) [`70f4532`](https://github.com/gradio-app/gradio/commit/70f4532a4dc7576dbdbe1d0a43a05644a0dfcf43) - fix various iFrame related UI issues when deploying to spaces.  Thanks @pngwn!
+
 ## 0.2.1
 
 ### Dependency updates

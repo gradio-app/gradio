@@ -12,10 +12,12 @@
 	export let color = "var(--block-label-text-color)";
 	export let transparent = false;
 	export let background = "var(--block-background-fill)";
+	export let border = "transparent";
 	$: _color = highlight ? "var(--color-accent)" : color;
 </script>
 
 <button
+	class="icon-button"
 	{disabled}
 	on:click
 	aria-label={label}
@@ -25,6 +27,7 @@
 	class:padded
 	class:highlight
 	class:transparent
+	style:--border-color={border}
 	style:color={!disabled && _color ? _color : "var(--block-label-text-color)"}
 	style:--bg-color={!disabled ? background : "auto"}
 >
@@ -49,7 +52,7 @@
 		z-index: var(--layer-2);
 		border-radius: var(--radius-xs);
 		color: var(--block-label-text-color);
-		border: 1px solid transparent;
+		border: 1px solid var(--border-color);
 		padding: var(--spacing-xxs);
 	}
 

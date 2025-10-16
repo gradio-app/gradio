@@ -21,31 +21,12 @@ async function load_release_guides(
 	return await guide_json.json();
 }
 
-async function load_release_guide_names(
-	version: string
-): Promise<typeof import("$lib/json/guides/guide_names.json")> {
-	let guide_names_json = await fetch(
-		`${DOCS_BUCKET}/${version}/guides/guide_names.json`
-	);
-	return await guide_names_json.json();
-}
-
 async function load_main_guides(guide: string) {
 	return await import(`../../../../lib/json/guides/${guide}.json`);
 }
 
-async function load_main_guide_names() {
-	return await import(`../../../../lib/json/guides/guide_names.json`);
-}
-
-export async function load({ params, url }) {
-	if (params?.version === VERSION) {
-		throw redirect(302, url.href.replace(`/${params.version}`, ""));
-	}
-	let guide_names_json =
-		params?.version === "main"
-			? await load_main_guide_names()
-			: await load_release_guide_names(params.version || VERSION);
+export async function load({ params, url, parent }) {
+	const { guide_names_json, guides } = await parent();
 
 	if (
 		!guide_names_json.guide_urls.some((guide: string) => guide === params.guide)
@@ -53,10 +34,7 @@ export async function load({ params, url }) {
 		throw error(404);
 	}
 
-	let guide_json =
-		params?.version === "main"
-			? await load_main_guides(params.guide)
-			: await load_release_guides(params.version || VERSION, params.guide);
+	let guide_json = guides[params.guide];
 
 	let guide = guide_json.guide;
 	const guide_slug: object[] = [];

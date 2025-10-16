@@ -14,7 +14,7 @@
 	}>;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 	export let value: (string | number)[] = [];
 	export let choices: [string, string | number][];
 	export let container = true;
@@ -23,6 +23,7 @@
 	export let label = gradio.i18n("checkbox.checkbox_group");
 	export let info: string | undefined = undefined;
 	export let show_label = true;
+	export let show_select_all = false;
 
 	export let loading_status: LoadingStatus;
 	export let interactive = true;
@@ -36,6 +37,23 @@
 		}
 		gradio.dispatch("input");
 	}
+
+	function toggle_select_all(): void {
+		const all_values = choices.map(([, internal_value]) => internal_value);
+		if (value.length === all_values.length) {
+			value = [];
+		} else {
+			value = all_values.slice();
+		}
+		gradio.dispatch("input");
+	}
+
+	$: select_all_state = (() => {
+		const all_values = choices.map(([, internal_value]) => internal_value);
+		if (value.length === 0) return "unchecked";
+		if (value.length === all_values.length) return "checked";
+		return "indeterminate";
+	})();
 
 	$: disabled = !interactive;
 
@@ -60,7 +78,30 @@
 		{...loading_status}
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
-	<BlockTitle {show_label} {info}>{label}</BlockTitle>
+	<BlockTitle
+		show_label={show_label || (show_select_all && interactive)}
+		{info}
+	>
+		{#if show_select_all && interactive}
+			<div class="select-all-container">
+				<label class="select-all-label">
+					<input
+						class="select-all-checkbox"
+						on:change={toggle_select_all}
+						checked={select_all_state === "checked"}
+						indeterminate={select_all_state === "indeterminate"}
+						type="checkbox"
+						title="Select/Deselect All"
+					/>
+				</label>
+				<button type="button" class="label-text" on:click={toggle_select_all}>
+					{show_label ? label : "Select All"}
+				</button>
+			</div>
+		{:else if show_label}
+			{label}
+		{/if}
+	</BlockTitle>
 
 	<div class="wrap" data-testid="checkbox-group">
 		{#each choices as [display_value, internal_value], i}
@@ -174,5 +215,76 @@
 
 	input:hover {
 		cursor: pointer;
+	}
+
+	.select-all-container {
+		display: flex;
+		align-items: center;
+		gap: var(--size-2);
+	}
+
+	.select-all-label {
+		display: flex;
+		align-items: center;
+		cursor: pointer;
+		margin: 0;
+		padding: 0;
+		background: none;
+		border: none;
+		box-shadow: none;
+	}
+
+	.select-all-checkbox {
+		--ring-color: transparent;
+		position: relative;
+		box-shadow: var(--checkbox-shadow);
+		border: var(--checkbox-border-width) solid var(--checkbox-border-color);
+		border-radius: var(--checkbox-border-radius);
+		background-color: var(--checkbox-background-color);
+		line-height: var(--line-sm);
+		margin: 0;
+	}
+
+	.select-all-checkbox:checked,
+	.select-all-checkbox:checked:hover,
+	.select-all-checkbox:checked:focus {
+		border-color: var(--checkbox-border-color-selected);
+		background-image: var(--checkbox-check);
+		background-color: var(--checkbox-background-color-selected);
+	}
+
+	.select-all-checkbox:indeterminate,
+	.select-all-checkbox:indeterminate:hover {
+		border-color: var(--checkbox-border-color-selected);
+		background-color: var(--checkbox-background-color-selected);
+		position: relative;
+	}
+
+	.select-all-checkbox:indeterminate::after {
+		content: "";
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		transform: translate(-50%, -50%);
+		width: 60%;
+		height: 2px;
+		background-color: white;
+	}
+
+	.select-all-checkbox:not(:indeterminate):not(:checked):hover {
+		border-color: var(--checkbox-border-color-hover);
+		background-color: var(--checkbox-background-color-hover);
+		cursor: pointer;
+	}
+
+	.label-text {
+		margin: 0;
+		cursor: pointer;
+		background: none;
+		border: none;
+		padding: 0;
+		font: inherit;
+		color: inherit;
+		text-align: left;
 	}
 </style>

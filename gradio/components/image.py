@@ -14,7 +14,7 @@ from gradio_client.documentation import document
 
 from gradio import image_utils, utils
 from gradio.components.base import Component, StreamingInput
-from gradio.components.image_editor import WebcamOptions
+from gradio.components.image_editor import WatermarkOptions, WebcamOptions
 from gradio.data_classes import Base64ImageData, ImageData
 from gradio.events import Events
 from gradio.i18n import I18nData
@@ -79,7 +79,7 @@ class Image(StreamingInput, Component):
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         streaming: bool = False,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
@@ -92,10 +92,11 @@ class Image(StreamingInput, Component):
         placeholder: str | None = None,
         show_fullscreen_button: bool = True,
         webcam_constraints: dict[str, Any] | None = None,
+        watermark: WatermarkOptions | None = None,
     ):
         """
         Parameters:
-            value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
+            value: A `PIL.Image`, `numpy.array`, `pathlib.Path`, or `str` filepath or URL for the default value that Image component is going to take. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
             format: File format (e.g. "png" or "gif"). Used to save image if it does not already have a valid format (e.g. if the image is being returned to the frontend as a numpy array or PIL Image). The format should be supported by the PIL library. Applies both when this component is used as an input or output. This parameter has no effect on SVG files.
             height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed image file or numpy array, but will affect the displayed image.
             width: The width of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed image file or numpy array, but will affect the displayed image.
@@ -111,7 +112,7 @@ class Image(StreamingInput, Component):
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will allow users to upload and edit an image; if False, can only be used to display images. If not provided, this is inferred based on whether the component is used as an input or output.
-            visible: If False, component will be hidden.
+            visible: If False, component will be hidden. If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM
             streaming: If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'. If the component is an output component, will automatically convert images to base64.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -123,12 +124,23 @@ class Image(StreamingInput, Component):
             placeholder: Custom text for the upload area. Overrides default upload messages when provided. Accepts new lines and `#` to designate a heading.
             show_fullscreen_button: If True, will show a fullscreen icon in the corner of the component that allows user to view the image in fullscreen mode. If False, icon does not appear.
             webcam_constraints: A dictionary that allows developers to specify custom media constraints for the webcam stream. This parameter provides flexibility to control the video stream's properties, such as resolution and front or rear camera on mobile devices. See $demo/webcam_constraints
+            watermark: If provided and this component is used to display a `value` image, the `watermark` image will be displayed on the bottom right of the `value` image, 10 pixels from the bottom and 10 pixels from the right. The watermark image will not be resized. Supports `PIL.Image`, `numpy.array`, `pathlib.Path`, and `str` filepaths. SVGs and GIFs are not supported as `watermark` images nor can they be watermarked.
         """
         self.format = format
 
         self.webcam_options = (
             webcam_options if webcam_options is not None else WebcamOptions()
         )
+
+        self.watermark = (
+            watermark if isinstance(watermark, WatermarkOptions) else WatermarkOptions()
+        )
+
+        if isinstance(watermark, (str, Path, PIL.Image.Image, np.ndarray)):
+            warnings.warn(
+                "The `watermark` parameter is updated to use WatermarkOptions. Please use the `watermark` parameter with a `gr.WatermarkOptions` instance instead."
+            )
+            self.watermark.watermark = watermark
 
         if mirror_webcam is not None:
             warnings.warn(
@@ -234,6 +246,7 @@ class Image(StreamingInput, Component):
         """
         return image_utils.postprocess_image(
             value,
+            watermark=self.watermark,
             cache_dir=self.GRADIO_CACHE,
             format=self.format,
         )

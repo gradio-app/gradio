@@ -1,5 +1,40 @@
 # @gradio/nativeplot
 
+## 0.8.0
+
+### Features
+
+- [#12003](https://github.com/gradio-app/gradio/pull/12003) [`abc4dbe`](https://github.com/gradio-app/gradio/commit/abc4dbe95d45f82cd8eaa0e6d53d26183eb283d6) - Add export button to native plot components.  Thanks @abidlabs!
+
+## 0.7.6
+
+### Dependency updates
+
+- @gradio/atoms@0.18.1
+
+## 0.7.6
+
+### Fixes
+
+- [#11784](https://github.com/gradio-app/gradio/pull/11784) [`d9dd3f5`](https://github.com/gradio-app/gradio/commit/d9dd3f54b7fb34cf7118e549d39fc63937ca3489) - Add "hidden" option to component's `visible` kwarg to render but visually hide the component.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.11.1
+- @gradio/atoms@0.18.0
+
+## 0.7.5
+
+### Features
+
+- [#11843](https://github.com/gradio-app/gradio/pull/11843) [`a30f485`](https://github.com/gradio-app/gradio/commit/a30f485e1d906f97c64b578ca4570405bc50542e) - Fix native plots with long y-axis titles.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/icons@0.14.0
+- @gradio/atoms@0.17.0
+- @gradio/statustracker@0.11.0
+
 ## 0.7.4
 
 ### Dependency updates

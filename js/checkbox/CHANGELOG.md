@@ -1,5 +1,39 @@
 # @gradio/checkbox
 
+## 0.4.31
+
+### Fixes
+
+- [#12000](https://github.com/gradio-app/gradio/pull/12000) [`c5a5f51`](https://github.com/gradio-app/gradio/commit/c5a5f51c6eb177ad18ff50e2408cf81e6ea6c35d) - fix: render checkbox info text below label for consistency.  Thanks @Davda-James!
+
+## 0.4.30
+
+### Dependency updates
+
+- @gradio/atoms@0.18.1
+
+## 0.4.30
+
+### Features
+
+- [#11891](https://github.com/gradio-app/gradio/pull/11891) [`8d06ab7`](https://github.com/gradio-app/gradio/commit/8d06ab7d899cb8b1ab2a9575f19b8960999aba78) - Add select all checkbox for boolean columns in Dataframe.  Thanks @abidlabs!
+
+### Fixes
+
+- [#11784](https://github.com/gradio-app/gradio/pull/11784) [`d9dd3f5`](https://github.com/gradio-app/gradio/commit/d9dd3f54b7fb34cf7118e549d39fc63937ca3489) - Add "hidden" option to component's `visible` kwarg to render but visually hide the component.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.11.1
+- @gradio/atoms@0.18.0
+
+## 0.4.29
+
+### Dependency updates
+
+- @gradio/atoms@0.17.0
+- @gradio/statustracker@0.11.0
+
 ## 0.4.28
 
 ### Dependency updates

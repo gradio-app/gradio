@@ -141,7 +141,13 @@ class TestClientPredictions:
         with connect(max_file_size_demo, max_file_size="15kb") as client:
             with pytest.raises(ValueError, match="exceeds the maximum file size"):
                 client.predict(
-                    handle_file(Path(__file__).parent / "files" / "cheetah1.jpg"),
+                    handle_file(
+                        Path(__file__).parents[3]
+                        / "gradio"
+                        / "media_assets"
+                        / "images"
+                        / "cheetah1.jpg"
+                    ),
                     api_name="/upload_1b",
                 )
             client.predict(
@@ -340,7 +346,13 @@ class TestClientPredictions:
     def test_upload_preserves_orig_name(self):
         demo = gr.Interface(lambda x: x, "image", "text")
         with connect(demo) as client:
-            test_file = str(Path(__file__).parent / "files" / "cheetah1.jpg")
+            test_file = (
+                Path(__file__).parent.parent.parent.parent
+                / "gradio"
+                / "media_assets"
+                / "images"
+                / "cheetah1.jpg"
+            )
             output = client.endpoints[0]._upload_file({"path": test_file}, data_index=0)
             assert output["orig_name"] == "cheetah1.jpg"
 
@@ -584,6 +596,23 @@ class TestClientPredictionsWithKwargs:
                 "I love you",
                 "I'm very hungry",
             ]
+
+    def test_client_forwards_event_data(self):
+        with gr.Blocks() as demo:
+            button = gr.Button("Click me")
+            output = gr.JSON()
+
+            def return_event_data(evt: gr.EventData):
+                return evt._data
+
+            button.click(
+                fn=return_event_data, inputs=None, outputs=output, api_name="click"
+            )
+
+        with connect(demo) as client:
+            fn = client.endpoints[0].make_end_to_end_fn(client.new_helper(0))
+            result = fn(event_data={"foo": "bar", "baz": 123}, api_name="/click")
+            assert result == {"foo": "bar", "baz": 123}
 
 
 class TestStatusUpdates:

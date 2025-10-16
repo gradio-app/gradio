@@ -147,6 +147,53 @@ class WebcamOptions:
 
 
 @document()
+@dataclasses.dataclass
+class WatermarkOptions:
+    """
+    A dataclass for specifying options for the watermark tool in the ImageEditor component.
+
+    Parameters:
+        watermark: str, Path, PIL.Image.Image, np.ndarray to use as the watermark
+        position: (x,y) coordinates as tuple[int, int] or string position ('top-left', 'top-right', 'bottom-left', 'bottom-right'). Default is 'bottom-right'.
+    """
+
+    watermark: Union[str, Path, PIL.Image.Image, np.ndarray, None] = None
+    position: Union[
+        tuple[int, int],
+        Literal[
+            "top-left",
+            "top-right",
+            "bottom-left",
+            "bottom-right",
+        ],
+    ] = "bottom-right"
+
+    def __post_init__(self):
+        # Validate watermark input
+        if self.watermark is not None and not isinstance(
+            self.watermark, (str, Path, PIL.Image.Image, np.ndarray)
+        ):
+            raise ValueError(
+                "Watermark must be a string path, Path, PIL Image, numpy array, or None"
+            )
+
+        if isinstance(self.position, str):
+            valid_positions = {
+                "top-left",
+                "top-right",
+                "bottom-left",
+                "bottom-right",
+            }
+            if self.position not in valid_positions:
+                raise ValueError(f"String position must be one of: {valid_positions}")
+        elif isinstance(self.position, tuple):
+            if len(self.position) != 2:
+                raise ValueError("Position tuple must have exactly 2 values (x,y)")
+            if not all(isinstance(x, int) for x in self.position):
+                raise ValueError("Position coordinates must be integers")
+
+
+@document()
 class ImageEditor(Component):
     """
     Creates an image component that, as an input, can be used to upload and edit images using simple editing tools such
@@ -194,7 +241,7 @@ class ImageEditor(Component):
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
@@ -232,7 +279,7 @@ class ImageEditor(Component):
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will allow users to upload and edit an image; if False, can only be used to display images. If not provided, this is inferred based on whether the component is used as an input or output.
-            visible: If False, component will be hidden.
+            visible: If False, component will be hidden. If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.

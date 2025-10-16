@@ -214,6 +214,18 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_VIBE_MODE="1"
   ```
 
+### 23. `GRADIO_MCP_SERVER`
+
+- **Description**: Enables the MCP (Model Context Protocol) server functionality in Gradio. When enabled, the Gradio app will be set up as an MCP server and documented functions will be added as MCP tools that can be used by LLMs. This allows LLMs to interact with your Gradio app's functionality through the MCP protocol.
+- **Default**: `"False"`
+- **Options**: `"True"`, `"False"`
+- **Example**:
+  ```sh
+  export GRADIO_MCP_SERVER="True"
+  ```
+
+
+
 
 
 ## How to Set Environment Variables

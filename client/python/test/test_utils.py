@@ -1,6 +1,5 @@
 import importlib.resources
 import json
-import os
 import tempfile
 from copy import deepcopy
 from enum import Enum
@@ -10,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest
-from huggingface_hub import HfFolder
+from huggingface_hub import get_token
 
 from gradio_client import media_data, utils
 
@@ -21,7 +20,7 @@ types["MultipleFile"] = {
 }
 types["SingleFile"] = {"type": "string", "description": "filepath or URL to file"}
 types["FileWithAdditionalProperties"] = {"type": "object", "additionalProperties": True}
-HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
+HF_TOKEN = get_token()
 
 
 class TestEnum(Enum):
@@ -32,14 +31,14 @@ class TestEnum(Enum):
 
 def test_encode_url_or_file_to_base64():
     output_base64 = utils.encode_url_or_file_to_base64(
-        Path(__file__).parent / "../../../gradio/test_data/test_image.png"
+        Path(__file__).parents[3] / "gradio" / "test_data" / "test_image.png"
     )
     assert output_base64 == deepcopy(media_data.BASE64_IMAGE)
 
 
 def test_encode_file_to_base64():
     output_base64 = utils.encode_file_to_base64(
-        Path(__file__).parent / "../../../gradio/test_data/test_image.png"
+        Path(__file__).parents[3] / "gradio" / "test_data" / "test_image.png"
     )
     assert output_base64 == deepcopy(media_data.BASE64_IMAGE)
 

@@ -77,11 +77,32 @@ export async function resolve_config(
 	if (
 		typeof window !== "undefined" &&
 		window.gradio_config &&
-		location.origin !== "http://localhost:9876" &&
-		!window.gradio_config.dev_mode
+		location.origin !== "http://localhost:9876"
 	) {
 		if (window.gradio_config.current_page) {
 			endpoint = endpoint.substring(0, endpoint.lastIndexOf("/"));
+		}
+		if (window.gradio_config.dev_mode) {
+			let config_url = join_urls(
+				endpoint,
+				this.deep_link
+					? CONFIG_URL + "?deep_link=" + this.deep_link
+					: CONFIG_URL
+			);
+			const response = await this.fetch(config_url, {
+				headers,
+				credentials: "include"
+			});
+			const config = await handleConfigResponse(
+				response,
+				endpoint,
+				!!this.options.auth
+			);
+			// @ts-ignore
+			window.gradio_config = {
+				...config,
+				current_page: window.gradio_config.current_page
+			};
 		}
 		window.gradio_config.root = endpoint;
 		// @ts-ignore
@@ -201,14 +222,6 @@ export function determine_protocol(endpoint: string): {
 			ws_protocol: protocol === "https:" ? "wss" : "ws",
 			http_protocol: protocol as "http:" | "https:",
 			host: host + (pathname !== "/" ? pathname : "")
-		};
-	} else if (endpoint.startsWith("file:")) {
-		// This case is only expected to be used for the Wasm mode (Gradio-lite),
-		// where users can create a local HTML file using it and open the page in a browser directly via the `file:` protocol.
-		return {
-			ws_protocol: "ws",
-			http_protocol: "http:",
-			host: "lite.local" // Special fake hostname only used for this case. This matches the hostname allowed in `is_self_host()` in `js/wasm/network/host.ts`.
 		};
 	}
 

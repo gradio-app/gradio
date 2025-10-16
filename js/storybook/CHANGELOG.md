@@ -1,5 +1,17 @@
 # @self/storybook
 
+## 0.9.1
+
+### Fixes
+
+- [#11964](https://github.com/gradio-app/gradio/pull/11964) [`86e6176`](https://github.com/gradio-app/gradio/commit/86e61763a14c745f7eb0ce35b861ea2be2336a15) - Add dark mode to storybook.  Thanks @hannahblair!
+
+## 0.9.0
+
+### Features
+
+- [#11833](https://github.com/gradio-app/gradio/pull/11833) [`a446fcb`](https://github.com/gradio-app/gradio/commit/a446fcba6f3fe59c32194beb7f27fb6f80b61347) - Add gr.Navbar component for multipage apps.  Thanks @abidlabs!
+
 ## 0.8.2
 
 ### Fixes

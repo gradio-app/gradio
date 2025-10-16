@@ -1,5 +1,33 @@
 # @gradio/number
 
+## 0.7.1
+
+### Dependency updates
+
+- @gradio/atoms@0.18.1
+
+## 0.7.1
+
+### Fixes
+
+- [#11784](https://github.com/gradio-app/gradio/pull/11784) [`d9dd3f5`](https://github.com/gradio-app/gradio/commit/d9dd3f54b7fb34cf7118e549d39fc63937ca3489) - Add "hidden" option to component's `visible` kwarg to render but visually hide the component.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.11.1
+- @gradio/atoms@0.18.0
+
+## 0.7.0
+
+### Features
+
+- [#11814](https://github.com/gradio-app/gradio/pull/11814) [`013784a`](https://github.com/gradio-app/gradio/commit/013784a7086047651e8e661a38bde7d5c7f10db7) - add validation support.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.17.0
+- @gradio/statustracker@0.11.0
+
 ## 0.6.4
 
 ### Dependency updates

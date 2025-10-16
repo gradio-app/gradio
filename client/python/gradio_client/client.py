@@ -40,7 +40,7 @@ from gradio_client import utils
 from gradio_client.compatibility import EndpointV3Compatibility
 from gradio_client.data_classes import ParameterInfo
 from gradio_client.documentation import document
-from gradio_client.exceptions import AppError, AuthenticationError
+from gradio_client.exceptions import AppError, AuthenticationError, ValidationError
 from gradio_client.utils import (
     Communicator,
     JobStatus,
@@ -246,7 +246,9 @@ class Client:
                 return
 
     def stream_messages(
-        self, protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"]
+        self,
+        protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"],
+        session_hash: str,
     ) -> None:
         try:
             httpx_kwargs = self.httpx_kwargs.copy()
@@ -258,7 +260,7 @@ class Client:
                 with client.stream(
                     "GET",
                     self.sse_url,
-                    params={"session_hash": self.session_hash},
+                    params={"session_hash": session_hash},
                     headers=self.headers,
                     cookies=self.cookies,
                 ) as response:
@@ -325,6 +327,8 @@ class Client:
         )
         if req.status_code == 503:
             raise QueueError("Queue is full! Please try again.")
+        if (validation_message := utils.extract_validation_message(req)) is not None:
+            raise ValidationError(validation_message)
         req.raise_for_status()
         resp = req.json()
         event_id = resp["event_id"]
@@ -333,7 +337,9 @@ class Client:
             self.stream_open = True
 
             def open_stream():
-                return self.stream_messages(protocol)
+                return self.stream_messages(
+                    protocol, session_hash=hash_data["session_hash"]
+                )
 
             def close_stream(_):
                 self.stream_open = False
@@ -494,7 +500,6 @@ class Client:
             client.predict(5, "add", 4, api_name="/predict")
             >> 9.0
         """
-        self._infer_fn_index(api_name, fn_index)
         return self.submit(
             *args, api_name=api_name, fn_index=fn_index, headers=headers, **kwargs
         ).result()
@@ -1199,14 +1204,14 @@ class Endpoint:
     def make_end_to_end_fn(self, helper: Communicator):
         _predict = self.make_predict(helper)
 
-        def _inner(*data):
+        def _inner(*data, **kwargs):
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
 
             if self.client._skip_components:
                 data = self.insert_empty_state(*data)
             data = self.process_input_files(*data)
-            predictions = _predict(*data)
+            predictions = _predict(*data, **kwargs)
             predictions = self.process_predictions(*predictions)
 
             # Append final output only if not already present
@@ -1293,16 +1298,16 @@ class Endpoint:
         return _cancel
 
     def make_predict(self, helper: Communicator):
-        def _predict(*data) -> tuple:
+        def _predict(*data, **kwargs) -> tuple:
             data = {
-                "data": data,
+                "data": data or [],
                 "fn_index": self.fn_index,
-                "session_hash": self.client.session_hash,
+                **kwargs,
             }
 
             hash_data = {
                 "fn_index": self.fn_index,
-                "session_hash": self.client.session_hash,
+                "session_hash": kwargs.get("session_hash", self.client.session_hash),
             }
 
             if self.protocol == "sse":

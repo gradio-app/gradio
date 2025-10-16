@@ -1,5 +1,69 @@
 # @gradio/audio
 
+## 0.19.3
+
+### Fixes
+
+- [#12026](https://github.com/gradio-app/gradio/pull/12026) [`31cf825`](https://github.com/gradio-app/gradio/commit/31cf825b472b9ffa29eea163db8b9fe069eefe1f) - gradio.Audio does not preload the file in browser style since 5.46.0.  Thanks @PRIME-SV!
+
+## 0.19.2
+
+### Dependency updates
+
+- @gradio/client@1.19.1
+
+## 0.19.2
+
+### Fixes
+
+- [#11970](https://github.com/gradio-app/gradio/pull/11970) [`9b4a16c`](https://github.com/gradio-app/gradio/commit/9b4a16ca6a7f351b0d27f55732eec579d7774304) - Create extended MediaRecorded only once for streaming demos.  Thanks @freddyaboulton!
+
+## 0.19.1
+
+### Dependency updates
+
+- @gradio/upload@0.17.1
+- @gradio/atoms@0.18.1
+
+## 0.19.1
+
+### Fixes
+
+- [#11942](https://github.com/gradio-app/gradio/pull/11942) [`e64e5ec`](https://github.com/gradio-app/gradio/commit/e64e5ec0deb196d26b00c3b398b091d6a1dfc6ff) - Fix bug where keyboard navigation on a textbox would skip forward the audio waveform playback.  Thanks @freddyaboulton!
+
+## 0.19.0
+
+### Features
+
+- [#11858](https://github.com/gradio-app/gradio/pull/11858) [`3f8ea13`](https://github.com/gradio-app/gradio/commit/3f8ea13a8ca92abf0ad34392e403a449fda3c6c2) - remove lite.  Thanks @pngwn!
+
+### Fixes
+
+- [#11784](https://github.com/gradio-app/gradio/pull/11784) [`d9dd3f5`](https://github.com/gradio-app/gradio/commit/d9dd3f54b7fb34cf7118e549d39fc63937ca3489) - Add "hidden" option to component's `visible` kwarg to render but visually hide the component.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.11.1
+- @gradio/atoms@0.18.0
+- @gradio/client@1.19.0
+- @gradio/upload@0.17.0
+- @gradio/button@0.5.13
+
+## 0.18.0
+
+### Features
+
+- [#11763](https://github.com/gradio-app/gradio/pull/11763) [`c9e50d3`](https://github.com/gradio-app/gradio/commit/c9e50d3f071a416b2ca7ba30c7f25539986dfc4a) - Audio subtitles.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/client@1.18.0
+- @gradio/icons@0.14.0
+- @gradio/atoms@0.17.0
+- @gradio/statustracker@0.11.0
+- @gradio/upload@0.16.17
+- @gradio/button@0.5.12
+
 ## 0.17.26
 
 ### Fixes

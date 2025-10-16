@@ -48,7 +48,7 @@
 	export let text_align: "left" | "right" | undefined = undefined;
 	export let autoscroll = true;
 	export let root: string;
-	export let file_types: string[] | null = null;
+	export let file_types_string: string | null = null;
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
@@ -58,7 +58,11 @@
 	export let waveform_options: WaveformOptions = {
 		show_recording_waveform: true
 	};
-	export let sources: ["microphone" | "upload"] = ["upload"];
+	export let sources_string:
+		| "upload"
+		| "upload,microphone"
+		| "microphone"
+		| "microphone,upload" = "upload";
 	export let active_source: "microphone" | null = null;
 	export let html_attributes: InputHTMLAttributes | null = null;
 
@@ -72,6 +76,17 @@
 	// value can be null in multimodalchatinterface when loading a deep link
 	let oldValue = value?.text ?? "";
 	let recording = false;
+
+	$: sources = sources_string
+		.split(",")
+		.map((s) => s.trim())
+		.filter((s) => s === "upload" || s === "microphone") as (
+		| "upload"
+		| "microphone"
+	)[];
+	$: file_types = file_types_string
+		? file_types_string.split(",").map((s) => s.trim())
+		: null;
 	$: dispatch("drag", dragging);
 	let mic_audio: FileData | null = null;
 
@@ -126,12 +141,16 @@
 		}
 	});
 
-	afterUpdate(() => {
+	const after_update = (): void => {
 		if (can_scroll && autoscroll) {
 			scroll();
 		}
-		value_is_output = false;
-	});
+		if (autofocus && el) {
+			el.focus();
+		}
+	};
+
+	afterUpdate(after_update);
 
 	function handle_select(event: Event): void {
 		const target: HTMLTextAreaElement | HTMLInputElement = event.target as
@@ -429,7 +448,6 @@
 				<Microphone />
 			</button>
 		{/if}
-		<!-- svelte-ignore a11y-autofocus -->
 		<textarea
 			data-testid="textbox"
 			use:text_area_resize={{
@@ -445,7 +463,6 @@
 			{placeholder}
 			rows={lines}
 			{disabled}
-			{autofocus}
 			on:keypress={handle_keypress}
 			on:blur
 			on:select={handle_select}

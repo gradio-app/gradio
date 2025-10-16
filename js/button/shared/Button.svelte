@@ -4,7 +4,7 @@
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 	export let variant: "primary" | "secondary" | "stop" | "huggingface" =
 		"secondary";
 	export let size: "sm" | "md" | "lg" = "lg";
@@ -20,7 +20,7 @@
 	<a
 		href={link}
 		rel="noopener noreferrer"
-		class:hidden={!visible}
+		class:hidden={visible === false || visible === "hidden"}
 		class:disabled
 		aria-disabled={disabled}
 		class="{size} {variant} {elem_classes.join(' ')}"
@@ -40,7 +40,7 @@
 {:else}
 	<button
 		on:click
-		class:hidden={!visible}
+		class:hidden={visible === false || visible === "hidden"}
 		class="{size} {variant} {elem_classes.join(' ')}"
 		style:flex-grow={scale}
 		style:width={scale === 0 ? "fit-content" : null}
@@ -147,7 +147,7 @@
 		background: var(--button-cancel-background-fill);
 		color: var(--button-cancel-text-color);
 		border: var(--button-border-width) solid var(--button-cancel-border-color);
-		box-shadow: var(--button-secondary-shadow);
+		box-shadow: var(--button-cancel-shadow);
 	}
 
 	.stop:hover,
@@ -157,10 +157,10 @@
 
 	.stop:hover {
 		border-color: var(--button-cancel-border-color-hover);
-		box-shadow: var(--button-secondary-shadow-hover);
+		box-shadow: var(--button-cancel-shadow-hover);
 	}
 	.stop:active {
-		box-shadow: var(--button-secondary-shadow-active);
+		box-shadow: var(--button-cancel-shadow-active);
 	}
 
 	.stop[disabled] {

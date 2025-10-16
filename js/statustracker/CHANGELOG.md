@@ -1,5 +1,37 @@
 # @gradio/statustracker
 
+## 0.11.1
+
+### Dependency updates
+
+- @gradio/atoms@0.18.1
+
+## 0.11.1
+
+### Fixes
+
+- [#11784](https://github.com/gradio-app/gradio/pull/11784) [`d9dd3f5`](https://github.com/gradio-app/gradio/commit/d9dd3f54b7fb34cf7118e549d39fc63937ca3489) - Add "hidden" option to component's `visible` kwarg to render but visually hide the component.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.18.0
+
+## 0.11.0
+
+### Features
+
+- [#11814](https://github.com/gradio-app/gradio/pull/11814) [`013784a`](https://github.com/gradio-app/gradio/commit/013784a7086047651e8e661a38bde7d5c7f10db7) - add validation support.  Thanks @pngwn!
+
+### Fixes
+
+- [#11749](https://github.com/gradio-app/gradio/pull/11749) [`70f4532`](https://github.com/gradio-app/gradio/commit/70f4532a4dc7576dbdbe1d0a43a05644a0dfcf43) - fix various iFrame related UI issues when deploying to spaces.  Thanks @pngwn!
+- [#11816](https://github.com/gradio-app/gradio/pull/11816) [`77deb72`](https://github.com/gradio-app/gradio/commit/77deb72cb29b412b415a86908255a2294e8b50d9) - Set Progress Animation to cover component height.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/icons@0.14.0
+- @gradio/atoms@0.17.0
+
 ## 0.10.18
 
 ### Fixes

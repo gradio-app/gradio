@@ -4,35 +4,13 @@ import os
 import sys
 import copy
 import pathlib
-from fastapi import FastAPI, Request
-from fastapi.templating import Jinja2Templates
-import uvicorn
-from gradio.utils import get_space
+from gradio.media import MEDIA_ROOT
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 demo_dir = pathlib.Path(__file__).parent / "demos"
 
-app = FastAPI()
-
-templates = Jinja2Templates(directory="templates")
-
 names = sorted(os.listdir("./demos"))
-
-
-@app.get("/")
-def index(request: Request):
-    names = [[p[0], p[2]] for p in all_demos]
-    return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
-            "names": names,
-            "initial_demo": names[0][0],
-            "is_space": get_space(),
-        },
-    )
-
 
 all_demos = []
 demo_module = None
@@ -50,8 +28,19 @@ for p in sorted(os.listdir("./demos")):
             gr.Markdown(f"Error loading demo: {e}")
         all_demos.append((p, demo, True))
 
+app = gr.Blocks()
+
+with app:
+    gr.Markdown("""
+# Deployed Demos
+## Click through demos to test them out!
+""")
+
 for demo_name, demo, _ in all_demos:
-    app = gr.mount_gradio_app(app, demo, f"/demo/{demo_name}")
+    with app.route(demo_name):
+        demo.render()
+
+    # app = gr.mount_gradio_app(app, demo, f"/demo/{demo_name}")
 
 if __name__ == "__main__":
-    uvicorn.run(app, port=7860, host="0.0.0.0")
+    app.launch(allowed_paths=[str(MEDIA_ROOT)])

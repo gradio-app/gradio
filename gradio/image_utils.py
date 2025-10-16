@@ -4,7 +4,7 @@ import base64
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Literal
+from typing import Literal, cast
 from urllib.parse import quote
 
 import httpx
@@ -14,10 +14,34 @@ from gradio_client.utils import get_mimetype, is_http_url_like
 from PIL import ImageOps
 
 from gradio import processing_utils
+from gradio.components.image_editor import WatermarkOptions
 from gradio.data_classes import ImageData
 from gradio.exceptions import Error
 
 PIL.Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843 (remove when requiring Pillow 9.4+)
+
+
+def open_image(orig_img: np.ndarray | PIL.Image.Image | str | Path) -> PIL.Image.Image:
+    """
+    Provided an array, PIL Image or filepath, return a PIL Image.
+    Parameters:
+        orig_img: Local image file. If a filepath, it must be a webp, png, jpeg, or bmp.
+    Returns:
+        open_img: A PIL.Image.Image.
+    """
+
+    if isinstance(orig_img, np.ndarray):
+        open_img = PIL.Image.fromarray(orig_img)
+    elif isinstance(orig_img, (str, Path)):
+        open_img = PIL.Image.open(orig_img)
+    elif isinstance(orig_img, PIL.Image.Image):
+        open_img = orig_img
+    else:
+        raise ValueError(
+            "Expected image or path to image of type webp, png, bmp or jpeg; PIL image; or numpy array. Received  "
+            + str(type(orig_img))
+        )
+    return open_img
 
 
 def format_image(
@@ -83,6 +107,61 @@ def save_image(
         )
 
     return path
+
+
+def add_watermark(
+    base_img: np.ndarray | PIL.Image.Image | str | Path,
+    watermark_option: WatermarkOptions,
+) -> PIL.Image.Image:
+    """Overlays a watermark image on a base image.
+    Parameters:
+        base_img: Base image onto which the watermark is applied. Can be an array, PIL Image, or filepath.
+        watermarkOption: WatermarkOptions instance containing watermark image and position settings.
+    Returns:
+        watermarked_img: A PIL Image of the base image overlaid with the watermark image.
+    """
+    base_img = open_image(base_img)
+    base_img_width, base_img_height = base_img.size
+    watermark_option.watermark = open_image(
+        cast(np.ndarray | PIL.Image.Image | str | Path, watermark_option.watermark)
+    )
+    watermark_width, watermark_height = watermark_option.watermark.size
+
+    if isinstance(watermark_option.position, str):
+        padding = 10
+        if watermark_option.position == "top-left":
+            x, y = padding, padding
+        elif watermark_option.position == "top-right":
+            x, y = base_img_width - watermark_width - padding, padding
+        elif watermark_option.position == "bottom-left":
+            x, y = padding, base_img_height - watermark_height - padding
+        elif watermark_option.position == "bottom-right":
+            x, y = (
+                base_img_width - watermark_width - padding,
+                base_img_height - watermark_height - padding,
+            )
+    else:
+        x, y = watermark_option.position
+
+    if (
+        x < 0
+        or x + watermark_width > base_img_width
+        or y < 0
+        or y + watermark_height > base_img_height
+    ):
+        x = base_img_width - watermark_width - 10
+        y = base_img_height - watermark_height - 10
+
+    watermark_position = (x, y)
+    orig_img_mode = base_img.mode
+    base_img = base_img.convert("RGBA")
+    watermark_option.watermark = watermark_option.watermark.convert("RGBA")
+    base_img.paste(
+        watermark_option.watermark, watermark_position, mask=watermark_option.watermark
+    )
+    base_img = base_img.convert(orig_img_mode)
+
+    return base_img
 
 
 def crop_scale(img: PIL.Image.Image, final_width: int, final_height: int):
@@ -245,22 +324,31 @@ def postprocess_image(
     value: np.ndarray | PIL.Image.Image | str | Path | None,
     cache_dir: str,
     format: str,
+    watermark: WatermarkOptions | None = None,
 ) -> ImageData | None:
     """
     Parameters:
         value: Expects a `numpy.array`, `PIL.Image`, or `str` or `pathlib.Path` filepath to an image which is displayed.
+        watermark: An optional `WatermarkOptions` instance to apply a watermark to the image.
     Returns:
         Returns the image as a `FileData` object.
     """
+    from gradio import Warning
+
     if value is None:
         return None
     if isinstance(value, str) and value.lower().endswith(".svg"):
         svg_content = extract_svg_content(value)
+        if watermark is not None:
+            Warning(
+                "Watermarking for SVG images is currently not supported. No watermark will be applied."
+            )
         return ImageData(
             orig_name=Path(value).name,
             url=f"data:image/svg+xml,{quote(svg_content)}",
         )
-
+    if watermark and watermark.watermark is not None:
+        value = add_watermark(value, watermark)
     saved = save_image(value, cache_dir=cache_dir, format=format)
     orig_name = Path(saved).name if Path(saved).exists() else None
     return ImageData(path=saved, orig_name=orig_name)

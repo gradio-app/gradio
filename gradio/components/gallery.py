@@ -20,7 +20,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import is_http_url_like
 
-from gradio import image_utils, processing_utils, utils, wasm_utils
+from gradio import image_utils, processing_utils, utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel, ImageData
 from gradio.events import EventListener, Events
@@ -91,7 +91,7 @@ class Gallery(Component):
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
@@ -124,7 +124,7 @@ class Gallery(Component):
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
-            visible: If False, component will be hidden.
+            visible: If False, component will be hidden. If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
@@ -302,13 +302,9 @@ class Gallery(Component):
                     caption=caption,
                 )
 
-        if wasm_utils.IS_WASM:
-            for img in value:
-                output.append(_save(img))
-        else:
-            with ThreadPoolExecutor() as executor:
-                for o in executor.map(_save, value):
-                    output.append(o)
+        with ThreadPoolExecutor() as executor:
+            for o in executor.map(_save, value):
+                output.append(o)
         return GalleryData(root=output)
 
     @staticmethod

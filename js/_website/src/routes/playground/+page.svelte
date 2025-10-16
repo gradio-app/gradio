@@ -118,6 +118,32 @@
 	></script>
 </svelte:head>
 
+<!-- Deprecated Playground Banner-->
+<div class="flex-row">
+	<div
+		class="relative isolate flex items-center gap-x-6 overflow-hidden bg-red-300 px-6 py-1 sm:px-3.5 sm:before:flex-1 mx-auto"
+	>
+		<div class="flex flex-wrap items-center gap-x-4 gap-y-2 flex-grow">
+			<div class="flex flex-wrap items-center gap-x-2 gap-y-2 mx-auto">
+				<p class="text-md leading-6 text-gray-700 text-center mx-auto">
+					<strong class="font-semibold"
+						>Gradio Playground will be <strong style="font-weight: 800"
+							>deprecated</strong
+						> - Please use:</strong
+					>
+				</p>
+				<a
+					href="https://www.gradio.app/guides/developing-faster-with-reload-mode"
+					target="_blank"
+					class="mx-auto flex-none rounded-full px-3.5 py-1 text-sm font-semibold text-white bg-gradient-to-br from-green-300 via-green-400 to-green-300 hover:drop-shadow-md"
+					>Vibe Mode <span aria-hidden="true">&rarr;</span></a
+				>
+			</div>
+		</div>
+		<div class="hidden justify-end flex-grow sm:flex"></div>
+	</div>
+</div>
+
 <!-- Header on Desktop -->
 <div class="flex-row hidden md:flex">
 	<div class="flex flex-row relative items-center px-1 py-1 pr-6 text-lg gap-8">
@@ -127,17 +153,6 @@
 			</a>
 			<p class="self-center text-xl font-light -m-1">Playground</p>
 		</div>
-
-		<nav class="flex w-auto flex-row gap-6">
-			<a class="thin-link flex items-center gap-3" href="/docs" target="_blank"
-				><span>✍️</span> <span>Docs</span></a
-			>
-			<a
-				class="thin-link flex items-center gap-3"
-				href="/guides/gradio-lite"
-				target="_blank"><span>💡</span> <span>Gradio Lite</span></a
-			>
-		</nav>
 	</div>
 </div>
 
@@ -145,7 +160,7 @@
 {#if on_desktop}
 	<main
 		class="playground flex-col justify-between hidden md:flex"
-		style="height: 94vh"
+		style="height: calc(100vh - 91px)"
 	>
 		<div class="w-full border border-gray-200 shadow-xl h-full relative">
 			<div

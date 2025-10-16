@@ -17,7 +17,7 @@
 	export let value_is_output = false;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 	export let value: [FileData | null, FileData | null] = [null, null];
 	let old_value: [FileData | null, FileData | null] = [null, null];
 	export let label: string;

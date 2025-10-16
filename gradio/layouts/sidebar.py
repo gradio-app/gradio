@@ -29,7 +29,7 @@ class Sidebar(BlockContext, metaclass=ComponentMeta):
         label: str | I18nData | None = None,
         *,
         open: bool = True,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,

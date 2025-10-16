@@ -2,7 +2,6 @@
 .eggs/
 gradio.egg-info
 dist/
-dist-lite/
 *.pyc
 __pycache__/
 *.py[cod]
@@ -22,6 +21,7 @@ gradio/templates/*
 gradio/node/*
 gradio/_frontend_code/*
 js/gradio-preview/test/*
+**/dist/**/*.d.ts
 
 # Secrets
 .env
@@ -42,7 +42,6 @@ test.txt
 **/snapshots/**/*.png
 playwright-report/
 .hypothesis
-.lite-perf.json
 
 # Demos
 demo/tmp.zip

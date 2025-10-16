@@ -32,21 +32,22 @@ def bot(history, response_type):
     if response_type == "gallery":
         history[-1][1] = gr.Gallery(
             [
-                "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
-                "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+                "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/images/bus.png",
+                "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/images/bus.png",
             ]
         )
     elif response_type == "image":
         history[-1][1] = gr.Image(
-            "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+            "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/images/bus.png"
         )
     elif response_type == "video":
         history[-1][1] = gr.Video(
-            "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
+            "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/videos/world.mp4",
+            label="test"
         )
     elif response_type == "audio":
         history[-1][1] = gr.Audio(
-            "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+            "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/audio/audio_sample.wav"
         )
     elif response_type == "html":
         history[-1][1] = gr.HTML(
@@ -54,7 +55,7 @@ def bot(history, response_type):
         )
     elif response_type == "model3d":
         history[-1][1] = gr.Model3D(
-           "https://github.com/gradio-app/gradio/raw/main/test/test_files/Fox.gltf"
+           "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/models3d/Fox.gltf"
         )
     else:
         history[-1][1] = "Cool!"

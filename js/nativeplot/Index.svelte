@@ -2,14 +2,18 @@
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Block } from "@gradio/atoms";
-	import { FullscreenButton, IconButtonWrapper } from "@gradio/atoms";
+	import {
+		FullscreenButton,
+		IconButtonWrapper,
+		IconButton
+	} from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { onMount } from "svelte";
 
 	import type { TopLevelSpec as Spec } from "vega-lite";
 	import type { View } from "vega";
-	import { LineChart as LabelIcon } from "@gradio/icons";
+	import { LineChart as LabelIcon, Download } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
 
 	interface PlotData {
@@ -53,6 +57,7 @@
 	export let sort: "x" | "y" | "-x" | "-y" | string[] | null = null;
 	export let tooltip: "axis" | "none" | "all" | string[] = "axis";
 	export let show_fullscreen_button = false;
+	export let show_export_button = false;
 	let fullscreen = false;
 
 	function reformat_sort(
@@ -328,11 +333,18 @@
 				// a bug where when a nominal chart is first loaded, the width is 0, it doesn't resize
 				load_chart();
 			} else {
-				view.signal("width", el[0].target.offsetWidth).run();
-			}
-			if (old_height !== el[0].target.offsetHeight && fullscreen) {
-				view.signal("height", el[0].target.offsetHeight).run();
-				old_height = el[0].target.offsetHeight;
+				const width_change = Math.abs(old_width - el[0].target.offsetWidth);
+				const height_change = Math.abs(old_height - el[0].target.offsetHeight);
+				if (width_change > 100 || height_change > 100) {
+					old_width = el[0].target.offsetWidth;
+					old_height = el[0].target.offsetHeight;
+					load_chart();
+				} else {
+					view.signal("width", el[0].target.offsetWidth).run();
+					if (fullscreen) {
+						view.signal("height", el[0].target.offsetHeight).run();
+					}
+				}
 			}
 		});
 
@@ -387,6 +399,7 @@
 	}
 
 	let refresh_pending = false;
+
 	onMount(() => {
 		mounted = true;
 		return () => {
@@ -399,6 +412,36 @@
 			}
 		};
 	});
+
+	function export_chart(): void {
+		if (!view || !computed_style) return;
+
+		const block_background = computed_style.getPropertyValue(
+			"--block-background-fill"
+		);
+		const export_background = block_background || "white";
+
+		view.background(export_background).run();
+
+		view
+			.toImageURL("png", 2)
+			.then(function (url) {
+				view.background("transparent").run();
+
+				const link = document.createElement("a");
+				link.setAttribute("href", url);
+				link.setAttribute("download", "chart.png");
+				link.style.display = "none";
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+			})
+			.catch(function (err) {
+				console.error("Export failed:", err);
+				view.background("transparent").run();
+			});
+	}
+
 	$: _color_map = JSON.stringify(color_map);
 
 	$: title,
@@ -473,7 +516,8 @@
 					titleFontSize: text_size_sm,
 					labelFontWeight: "normal",
 					domain: false,
-					labelAngle: 0
+					labelAngle: 0,
+					titleLimit: chart_element.offsetHeight * 0.8
 				},
 				legend: {
 					labelColor: body_text_color,
@@ -676,7 +720,7 @@
 	export let label = "Textbox";
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
-	export let visible = true;
+	export let visible: boolean | "hidden" = true;
 	export let show_label: boolean;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -703,14 +747,19 @@
 			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 	{/if}
-	{#if show_fullscreen_button}
+	{#if show_fullscreen_button || show_export_button}
 		<IconButtonWrapper>
-			<FullscreenButton
-				{fullscreen}
-				on:fullscreen={({ detail }) => {
-					fullscreen = detail;
-				}}
-			/>
+			{#if show_export_button}
+				<IconButton Icon={Download} label="Export" on:click={export_chart} />
+			{/if}
+			{#if show_fullscreen_button}
+				<FullscreenButton
+					{fullscreen}
+					on:fullscreen={({ detail }) => {
+						fullscreen = detail;
+					}}
+				/>
+			{/if}
 		</IconButtonWrapper>
 	{/if}
 	<BlockTitle {show_label} info={undefined}>{label}</BlockTitle>

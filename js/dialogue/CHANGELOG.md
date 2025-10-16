@@ -1,5 +1,38 @@
 # @gradio/dialogue
 
+## 0.2.3
+
+### Dependency updates
+
+- @gradio/atoms@0.18.1
+
+## 0.2.3
+
+### Fixes
+
+- [#11784](https://github.com/gradio-app/gradio/pull/11784) [`d9dd3f5`](https://github.com/gradio-app/gradio/commit/d9dd3f54b7fb34cf7118e549d39fc63937ca3489) - Add "hidden" option to component's `visible` kwarg to render but visually hide the component.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.11.1
+- @gradio/atoms@0.18.0
+- @gradio/textbox@0.11.1
+- @gradio/dropdown@0.10.4
+
+## 0.2.2
+
+### Features
+
+- [#11832](https://github.com/gradio-app/gradio/pull/11832) [`e40df25`](https://github.com/gradio-app/gradio/commit/e40df252064e41d532472a535c42e3539877aa06) - Consolidate copy button implementations to use IconButton.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/icons@0.14.0
+- @gradio/atoms@0.17.0
+- @gradio/statustracker@0.11.0
+- @gradio/textbox@0.11.0
+- @gradio/dropdown@0.10.3
+
 ## 0.2.1
 
 ### Dependency updates

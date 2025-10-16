@@ -16,9 +16,9 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
 import gradio as gr
-from gradio import processing_utils, utils, wasm_utils
+from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingOutput
-from gradio.components.image_editor import WebcamOptions
+from gradio.components.image_editor import WatermarkOptions, WebcamOptions
 from gradio.data_classes import FileData, GradioModel, MediaStreamChunk
 from gradio.events import Events
 from gradio.i18n import I18nData
@@ -27,9 +27,7 @@ if TYPE_CHECKING:
     from gradio.components import Timer
 
 
-if not wasm_utils.IS_WASM:
-    # TODO: Support ffmpeg on Wasm
-    from ffmpy import FFmpeg
+from ffmpy import FFmpeg
 
 
 class VideoData(GradioModel):
@@ -83,7 +81,7 @@ class Video(StreamingOutput, Component):
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
@@ -99,7 +97,7 @@ class Video(StreamingOutput, Component):
         max_length: int | None = None,
         loop: bool = False,
         streaming: bool = False,
-        watermark: str | Path | None = None,
+        watermark: WatermarkOptions | None = None,
         webcam_constraints: dict[str, Any] | None = None,
     ):
         """
@@ -117,7 +115,7 @@ class Video(StreamingOutput, Component):
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will allow users to upload a video; if False, can only be used to display videos. If not provided, this is inferred based on whether the component is used as an input or output.
-            visible: if False, component will be hidden.
+            visible: If False, component will be hidden. If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM
             elem_id: an optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: an optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: if False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
@@ -131,7 +129,7 @@ class Video(StreamingOutput, Component):
             max_length: the maximum length of video (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             loop: if True, the video will loop when it reaches the end and continue playing from the beginning.
             streaming: when used set as an output, takes video chunks yielded from the backend and combines them into one streaming video output. Each chunk should be a video file with a .ts extension using an h.264 encoding. Mp4 files are also accepted but they will be converted to h.264 encoding.
-            watermark: an image file to be included as a watermark on the video. The image is not scaled and is displayed on the bottom right of the video. Valid formats for the image are: jpeg, png.
+            watermark: A `gr.WatermarkOptions` instance that includes an image file and position to be used as a watermark on the video. The image is not scaled and is displayed on the provided position on the video. Valid formats for the image are: jpeg, png.
             webcam_options: A `gr.WebcamOptions` instance that allows developers to specify custom media constraints for the webcam stream. This parameter provides flexibility to control the video stream's properties, such as resolution and front or rear camera on mobile devices. See $demo/webcam_constraints
         """
         valid_sources: list[Literal["upload", "webcam"]] = ["upload", "webcam"]
@@ -159,6 +157,16 @@ class Video(StreamingOutput, Component):
             webcam_options if webcam_options is not None else WebcamOptions()
         )
 
+        self.watermark = (
+            watermark if isinstance(watermark, WatermarkOptions) else WatermarkOptions()
+        )
+
+        if isinstance(watermark, (str, Path)):
+            warnings.warn(
+                "The `watermark` parameter is updated to use WatermarkOptions. Please use the `watermark` parameter with a `gr.WatermarkOptions` instance instead."
+            )
+            self.watermark.watermark = watermark
+
         if mirror_webcam is not None:
             warnings.warn(
                 "The `mirror_webcam` parameter is deprecated. Please use the `webcam_options` parameter with a `gr.WebcamOptions` instance instead."
@@ -180,7 +188,6 @@ class Video(StreamingOutput, Component):
         self.min_length = min_length
         self.max_length = max_length
         self.streaming = streaming
-        self.watermark = watermark
         super().__init__(
             label=label,
             every=every,
@@ -230,17 +237,17 @@ class Video(StreamingOutput, Component):
                 )
         # TODO: Check other image extensions to see if they work.
         valid_watermark_extensions = [".png", ".jpg", ".jpeg"]
-        if self.watermark is not None:
-            if not isinstance(self.watermark, (str, Path)):
+        if self.watermark.watermark is not None:
+            if not isinstance(self.watermark.watermark, (str, Path)):
                 raise ValueError(
                     f"Provided watermark file not an expected file type. "
-                    f"Received: {self.watermark}"
+                    f"Received: {self.watermark.watermark}"
                 )
-            if Path(self.watermark).suffix not in valid_watermark_extensions:
+            if Path(self.watermark.watermark).suffix not in valid_watermark_extensions:
                 raise ValueError(
                     f"Watermark file does not have a supported extension. "
                     f"Expected one of {','.join(valid_watermark_extensions)}. "
-                    f"Received: {Path(self.watermark).suffix}."
+                    f"Received: {Path(self.watermark.watermark).suffix}."
                 )
         if needs_formatting or flip:
             format = f".{self.format if needs_formatting else uploaded_format}"
@@ -253,10 +260,7 @@ class Video(StreamingOutput, Component):
             output_filepath = Path(output_file_name)
             if output_filepath.exists():
                 return str(output_filepath.resolve())
-            if wasm_utils.IS_WASM:
-                raise wasm_utils.WasmUnsupportedError(
-                    "Video formatting is not supported in the Wasm mode."
-                )
+
             ff = FFmpeg(  # type: ignore
                 inputs={str(file_name): None},
                 outputs={output_file_name: output_options},
@@ -267,10 +271,7 @@ class Video(StreamingOutput, Component):
             output_file_name = str(file_name.with_name(f"muted_{file_name.name}"))
             if Path(output_file_name).exists():
                 return output_file_name
-            if wasm_utils.IS_WASM:
-                raise wasm_utils.WasmUnsupportedError(
-                    "include_audio=False is not supported in the Wasm mode."
-                )
+
             ff = FFmpeg(  # type: ignore
                 inputs={str(file_name): None},
                 outputs={output_file_name: ["-an"]},
@@ -339,7 +340,7 @@ class Video(StreamingOutput, Component):
 
         # For cases where the video is a URL and does not need to be converted
         # to another format and have a watermark added, we can just return the URL
-        if not self.watermark and (is_url and not conversion_needed):
+        if not self.watermark.watermark and (is_url and not conversion_needed):
             return FileData(path=video)
 
         # For cases where the video needs to be converted to another format
@@ -360,11 +361,7 @@ class Video(StreamingOutput, Component):
         returned_format = utils.get_extension_from_file_path_or_url(video).lower()
         if (
             self.format is not None and returned_format != self.format
-        ) or self.watermark:
-            if wasm_utils.IS_WASM:
-                raise wasm_utils.WasmUnsupportedError(
-                    "Modifying a video is not supported in the Wasm mode."
-                )
+        ) or self.watermark.watermark:
             global_option_list = ["-y"]
             inputs_dict = {video: None}
             output_file_name = video[0 : video.rindex(".") + 1]
@@ -372,9 +369,25 @@ class Video(StreamingOutput, Component):
                 output_file_name += self.format
             else:
                 output_file_name += returned_format
-            if self.watermark:
-                inputs_dict[str(self.watermark)] = None
-                watermark_cmd = "overlay=W-w-5:H-h-5"
+            if self.watermark.watermark:
+                inputs_dict[str(self.watermark.watermark)] = None
+                pos = self.watermark.position
+                margin = 5
+
+                if isinstance(pos, tuple):
+                    x, y = pos
+                    watermark_cmd = f"overlay={x}:{y}"
+                elif pos == "top-left":
+                    watermark_cmd = f"overlay={margin}:{margin}"
+                elif pos == "top-right":
+                    watermark_cmd = f"overlay=W-w-{margin}:{margin}"
+                elif pos == "bottom-left":
+                    watermark_cmd = f"overlay={margin}:H-h-{margin}"
+                elif pos == "bottom-right":
+                    watermark_cmd = f"overlay=W-w-{margin}:H-h-{margin}"
+                else:
+                    watermark_cmd = "overlay=W-w-5:H-h-5"
+
                 global_option_list += ["-filter_complex", watermark_cmd]
                 output_file_name = (
                     Path(output_file_name).stem
@@ -434,20 +447,15 @@ class Video(StreamingOutput, Component):
     def example_payload(self) -> Any:
         return {
             "video": handle_file(
-                "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
+                "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/videos/world.mp4"
             ),
         }
 
     def example_value(self) -> Any:
-        return "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
+        return "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/videos/world.mp4"
 
     @staticmethod
     def get_video_duration_ffprobe(filename: str):
-        if wasm_utils.IS_WASM:
-            raise wasm_utils.WasmUnsupportedError(
-                "ffprobe is not supported in the Wasm mode."
-            )
-
         result = subprocess.run(
             [
                 "ffprobe",
@@ -478,11 +486,6 @@ class Video(StreamingOutput, Component):
 
     @staticmethod
     async def async_convert_mp4_to_ts(mp4_file, ts_file):
-        if wasm_utils.IS_WASM:
-            raise wasm_utils.WasmUnsupportedError(
-                "Streaming is not supported in the Wasm mode."
-            )
-
         ff = FFmpeg(  # type: ignore
             inputs={mp4_file: None},
             outputs={
@@ -517,10 +520,6 @@ class Video(StreamingOutput, Component):
         Do not take desired_output_format into consideration as
         mp4 is a safe format for playing in browser.
         """
-        if wasm_utils.IS_WASM:
-            raise wasm_utils.WasmUnsupportedError(
-                "Streaming is not supported in the Wasm mode."
-            )
 
         # Use an mp4 extension here so that the cached example
         # is playable in the browser

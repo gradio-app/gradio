@@ -36,7 +36,7 @@ import fsspec.asyn
 import httpx
 import huggingface_hub
 from huggingface_hub import SpaceStage
-from websockets.legacy.protocol import WebSocketCommonProtocol
+from websockets.asyncio.client import ClientConnection
 
 if TYPE_CHECKING:
     from gradio_client.data_classes import ParameterInfo
@@ -318,7 +318,7 @@ def is_valid_url(possible_url: str) -> bool:
 
 
 async def get_pred_from_ws(
-    websocket: WebSocketCommonProtocol,
+    websocket: ClientConnection,
     data: str,
     hash_data: str,
     helper: Communicator | None = None,
@@ -1348,3 +1348,26 @@ def construct_args(
         )
 
     return _args
+
+
+def extract_validation_message(req: httpx.Response) -> str | None:
+    """
+    If the request is a 422 error and the detail contains a validation error message, return the message. Otherwise, return None.
+    """
+    if req.status_code == 422:
+        detail = req.json().get("detail", [])
+        validation_messages = []
+        for index, error_info in enumerate(detail):
+            if (
+                error_info.get("__type__", "") == "validate"
+                and error_info.get("is_valid") is False
+            ):
+                param_name = error_info.get("parameter_name", f"parameter_{index}")
+                validation_messages.append(
+                    f"- {param_name}: {error_info.get('message', '')}"
+                )
+        validation_messages.insert(
+            0, f"{len(validation_messages)} parameter(s) failed validation:"
+        )
+        if validation_messages:
+            return "\n".join(validation_messages)

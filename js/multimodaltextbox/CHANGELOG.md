@@ -1,5 +1,60 @@
 # @gradio/multimodaltextbox
 
+## 0.10.21
+
+### Fixes
+
+- [#12019](https://github.com/gradio-app/gradio/pull/12019) [`81fc464`](https://github.com/gradio-app/gradio/commit/81fc4647cdc9ffd724b69ec7286f1d686571062a) - Fix MultimodalTextbox autofocus issue when file_types is specified.  Thanks @freddyaboulton!
+
+## 0.10.20
+
+### Dependency updates
+
+- @gradio/client@1.19.1
+
+## 0.10.20
+
+### Fixes
+
+- [#11937](https://github.com/gradio-app/gradio/pull/11937) [`1b97ed7`](https://github.com/gradio-app/gradio/commit/1b97ed760c6adc6f7eef613904b90a0bfd0e9970) - Fix bug where multimodaltextbox would focus on any app update.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/image@0.23.1
+- @gradio/upload@0.17.1
+- @gradio/atoms@0.18.1
+
+## 0.10.19
+
+### Fixes
+
+- [#11784](https://github.com/gradio-app/gradio/pull/11784) [`d9dd3f5`](https://github.com/gradio-app/gradio/commit/d9dd3f54b7fb34cf7118e549d39fc63937ca3489) - Add "hidden" option to component's `visible` kwarg to render but visually hide the component.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.11.1
+- @gradio/atoms@0.18.0
+- @gradio/client@1.19.0
+- @gradio/upload@0.17.0
+- @gradio/image@0.23.0
+- @gradio/video@0.16.0
+
+## 0.10.18
+
+### Fixes
+
+- [#11822](https://github.com/gradio-app/gradio/pull/11822) [`c9a5424`](https://github.com/gradio-app/gradio/commit/c9a5424e30bee42f4052d0fd1cef8dd61e8382f5) - Fix bug where multimodal textbox was not auto focused after updates.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/client@1.18.0
+- @gradio/icons@0.14.0
+- @gradio/atoms@0.17.0
+- @gradio/statustracker@0.11.0
+- @gradio/upload@0.16.17
+- @gradio/image@0.22.18
+- @gradio/video@0.15.1
+
 ## 0.10.17
 
 ### Dependency updates

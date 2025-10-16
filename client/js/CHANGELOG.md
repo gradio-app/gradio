@@ -1,5 +1,28 @@
 # @gradio/client
 
+## 1.19.1
+
+### Fixes
+
+- [#11955](https://github.com/gradio-app/gradio/pull/11955) [`64046cc`](https://github.com/gradio-app/gradio/commit/64046ccd76a41f06ef9eed0e3aa1ec66348f55bd) - Fix Multi-page demo in Dev Mode.  Thanks @ftoh!
+
+## 1.19.0
+
+### Features
+
+- [#11858](https://github.com/gradio-app/gradio/pull/11858) [`3f8ea13`](https://github.com/gradio-app/gradio/commit/3f8ea13a8ca92abf0ad34392e403a449fda3c6c2) - remove lite.  Thanks @pngwn!
+- [#11902](https://github.com/gradio-app/gradio/pull/11902) [`6d39644`](https://github.com/gradio-app/gradio/commit/6d39644ee1000b04728eb4909cee405e7ee3b5b2) - Add navbar visibility controls and customization options.  Thanks @abidlabs!
+
+### Fixes
+
+- [#11784](https://github.com/gradio-app/gradio/pull/11784) [`d9dd3f5`](https://github.com/gradio-app/gradio/commit/d9dd3f54b7fb34cf7118e549d39fc63937ca3489) - Add "hidden" option to component's `visible` kwarg to render but visually hide the component.  Thanks @pngwn!
+
+## 1.18.0
+
+### Features
+
+- [#11814](https://github.com/gradio-app/gradio/pull/11814) [`013784a`](https://github.com/gradio-app/gradio/commit/013784a7086047651e8e661a38bde7d5c7f10db7) - add validation support.  Thanks @pngwn!
+
 ## 1.17.1
 
 ### Fixes

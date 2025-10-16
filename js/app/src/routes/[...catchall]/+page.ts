@@ -1,6 +1,5 @@
 // import { type LayoutServerLoad } from "./$types";
 import { browser } from "$app/environment";
-import { setupi18n } from "@gradio/core";
 
 import { Client } from "@gradio/client";
 import {
@@ -11,13 +10,14 @@ import {
 import { get } from "svelte/store";
 import type { Config } from "@gradio/client";
 import { MISSING_CREDENTIALS_MSG } from "@gradio/client";
+import { setupi18n } from "@gradio/core";
 
 import Blocks from "@gradio/core/blocks";
 import Login from "@gradio/core/login";
 
 export async function load({
 	url,
-	data: { server, port, local_dev_mode }
+	data: { server, port, local_dev_mode, accept_language }
 }): Promise<{
 	Render: typeof Login | typeof Blocks;
 	config: Config;
@@ -104,8 +104,7 @@ export async function load({
 	});
 
 	const layouts = get(layout);
-
-	await setupi18n();
+	await setupi18n(app.config?.i18n_translations || undefined, accept_language);
 
 	return {
 		Render: app.config?.auth_required ? Login : Blocks,

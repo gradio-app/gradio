@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document
 
@@ -29,7 +29,7 @@ class Accordion(BlockContext, metaclass=ComponentMeta):
         label: str | I18nData | None = None,
         *,
         open: bool = True,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,

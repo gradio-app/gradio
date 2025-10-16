@@ -88,7 +88,7 @@ To learn more about sharing your demo, read our dedicated guide on [sharing your
 
 ## An Overview of Gradio
 
-So far, we've been discussing the `Interface` class, which is a high-level class that lets to build demos quickly with Gradio. But what else does Gradio include?
+So far, we've been discussing the `Interface` class, which is a high-level class that lets you build demos quickly with Gradio. But what else does Gradio include?
 
 ### Custom Demos with `gr.Blocks`
 
@@ -106,7 +106,6 @@ That's the gist of the core `gradio` Python library, but Gradio is actually so m
 
 * [Gradio Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client) (`gradio_client`): query any Gradio app programmatically in Python.
 * [Gradio JavaScript Client](https://www.gradio.app/guides/getting-started-with-the-js-client) (`@gradio/client`): query any Gradio app programmatically in JavaScript.
-* [Gradio-Lite](https://www.gradio.app/guides/gradio-lite) (`@gradio/lite`): write Gradio apps in Python that run entirely in the browser (no server needed!), thanks to Pyodide. 
 * [Hugging Face Spaces](https://huggingface.co/spaces): the most popular place to host Gradio applications — for free!
 
 ## What's Next?

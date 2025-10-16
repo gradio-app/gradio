@@ -1,5 +1,33 @@
 # @gradio/radio
 
+## 0.7.12
+
+### Dependency updates
+
+- @gradio/atoms@0.18.1
+
+## 0.7.12
+
+### Fixes
+
+- [#11784](https://github.com/gradio-app/gradio/pull/11784) [`d9dd3f5`](https://github.com/gradio-app/gradio/commit/d9dd3f54b7fb34cf7118e549d39fc63937ca3489) - Add "hidden" option to component's `visible` kwarg to render but visually hide the component.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.11.1
+- @gradio/atoms@0.18.0
+
+## 0.7.11
+
+### Fixes
+
+- [#11810](https://github.com/gradio-app/gradio/pull/11810) [`daf7f1e`](https://github.com/gradio-app/gradio/commit/daf7f1e1a8d65b74623f131aaf8bd82f8f661edb) - Ensure input events fires as expected in gr.Radio.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.17.0
+- @gradio/statustracker@0.11.0
+
 ## 0.7.10
 
 ### Dependency updates
