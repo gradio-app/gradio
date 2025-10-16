@@ -2396,7 +2396,8 @@ def mount_gradio_app(
     path: str,
     server_name: str = "0.0.0.0",
     server_port: int = 7860,
-    footer_links: list[Literal["api", "gradio", "settings"] | dict[str, str]] | None = None,
+    footer_links: list[Literal["api", "gradio", "settings"] | dict[str, str]]
+    | None = None,
     app_kwargs: dict[str, Any] | None = None,
     *,
     auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,

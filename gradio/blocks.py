@@ -757,11 +757,7 @@ class BlocksConfig:
 
         api_name = utils.append_unique_suffix(
             api_name,
-            [
-                fn.api_name
-                for fn in self.fns.values()
-                if isinstance(fn.api_name, str)
-            ],
+            [fn.api_name for fn in self.fns.values() if isinstance(fn.api_name, str)],
         )
 
         # The `api_visibility` parameter is "private" if: (1) the user explicitly sets it (2) fn is None (there's no backend function)
@@ -2413,7 +2409,8 @@ Received inputs:
         ssl_keyfile_password: str | None = None,
         ssl_verify: bool = True,
         quiet: bool = False,
-        footer_links: list[Literal["api", "gradio", "settings"] | dict[str, str]] | None = None,
+        footer_links: list[Literal["api", "gradio", "settings"] | dict[str, str]]
+        | None = None,
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
         root_path: str | None = None,
@@ -2990,7 +2987,9 @@ Received inputs:
             dependency_info: APIEndpointInfo = {
                 "parameters": [],
                 "returns": [],
-                "api_visibility": cast(Literal["public", "private", "undocumented"], fn.api_visibility),
+                "api_visibility": cast(
+                    Literal["public", "private", "undocumented"], fn.api_visibility
+                ),
             }
             fn_info = utils.get_function_params(fn.fn)
             if fn.api_description is False:

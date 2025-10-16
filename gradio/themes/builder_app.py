@@ -920,7 +920,10 @@ with gr.Blocks(theme=theme) as demo:
 
         attach_rerender(
             load_theme_btn.click(
-                load_theme, base_theme_dropdown, theme_inputs, api_visibility="undocumented"
+                load_theme,
+                base_theme_dropdown,
+                theme_inputs,
+                api_visibility="undocumented",
             ).then
         )
 

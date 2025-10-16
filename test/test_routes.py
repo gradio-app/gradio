@@ -1049,8 +1049,7 @@ def test_predict_route_not_blocked_if_queue_disabled():
             lambda x: f"Hello, {x}!", input, output, queue=False, api_name="not_blocked"
         )
         button.click(lambda: 42, None, number, queue=True, api_name="blocked")
-    app, _, _ = demo.queue(api_open=False).launch(
-        prevent_thread_lock=True)
+    app, _, _ = demo.queue(api_open=False).launch(prevent_thread_lock=True)
     assert "api" in (demo.footer_links or [])
     client = TestClient(app)
 
@@ -1088,7 +1087,9 @@ def test_predict_route_not_blocked_if_routes_open():
     assert result.json()["data"] == ["Hello, freddy!"]
 
     demo.close()
-    demo.queue(api_open=False).launch(prevent_thread_lock=True, footer_links=["gradio", "settings"])
+    demo.queue(api_open=False).launch(
+        prevent_thread_lock=True, footer_links=["gradio", "settings"]
+    )
     assert "api" not in (demo.footer_links or [])
 
 
@@ -1106,13 +1107,17 @@ def test_config_show_api_reflects_launch_flag():
     with gr.Blocks() as demo:
         gr.Markdown("Hello")
 
-    app, _, _ = demo.launch(prevent_thread_lock=True, footer_links=["gradio", "settings"])
+    app, _, _ = demo.launch(
+        prevent_thread_lock=True, footer_links=["gradio", "settings"]
+    )
     client = TestClient(app)
     config = client.get("/config").json()
     assert config["footer_links"] == ["gradio", "settings"]
     demo.close()
 
-    app, _, _ = demo.launch(prevent_thread_lock=True, footer_links=["gradio", "settings"])
+    app, _, _ = demo.launch(
+        prevent_thread_lock=True, footer_links=["gradio", "settings"]
+    )
     client = TestClient(app)
     config = client.get("/config").json()
     assert config["footer_links"] == ["gradio", "settings"]
