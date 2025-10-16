@@ -8,6 +8,7 @@ import copy
 import functools
 import hashlib
 import importlib
+import importlib.metadata
 import importlib.resources
 import importlib.util
 import inspect
@@ -61,6 +62,7 @@ import httpx
 import orjson
 from gradio_client.documentation import document
 from gradio_client.exceptions import AppError
+from packaging import version
 from typing_extensions import ParamSpec
 
 import gradio
@@ -183,7 +185,7 @@ class ServerReloader(BaseReloader):
         return "demo"
 
 
-class JuriggedReloader(ServerReloader):
+class SpacesReloader(ServerReloader):
     def __init__(
         self,
         app: App,
@@ -216,7 +218,12 @@ class JuriggedReloader(ServerReloader):
     def postrun(self, *_args, **_kwargs):
         NO_RELOAD.set(True)
         demo = getattr(self.watch_module, self.demo_name)
-        self.swap_blocks(demo)
+        if demo is not self.running_app.blocks:
+            self.swap_blocks(demo)
+            # TODO: re-assign keys?
+            # TODO: re-assign config?
+            return True
+        return False
 
 
 class SourceFileReloader(ServerReloader):
@@ -310,47 +317,23 @@ def _find_module(source_file: Path) -> ModuleType | None:
     return None
 
 
-def watchfn_jurigged(reloader: JuriggedReloader):
-    from jurigged import watch
+def watchfn_spaces(reloader: SpacesReloader):
+    try:
+        spaces_version = importlib.metadata.version("spaces")
+    except importlib.metadata.PackageNotFoundError:
+        raise RuntimeError("`spaces` package is required to run hot-reloading in Spaces") from None
 
-    if reloader.watch_dirs:
-        watcher = watch(autostart=False, pattern=reloader.watch_dirs)
-    else:
-        watcher = watch(autostart=False)
-    watcher.prerun.register(reloader.prerun)
-    watcher.postrun.register(reloader.postrun)
-    watcher.start()
-    reloader.stop_event.wait()
-    watcher.stop()
+    min_version = version.parse("0.43.0")
+    if version.parse(spaces_version) < min_version:
+        raise RuntimeError(f"Spaces hot-reloading requires `spaces>{min_version}`")
 
+    from spaces.reloading import start_reload_server
 
-def watchfn_jurigged_server(reloader: JuriggedReloader):
-    import uvicorn
-    from fastapi import FastAPI, HTTPException, status
-    from jurigged import live
-    from jurigged.codetools import CodeFileOperation
-    from jurigged.register import registry
-
-    registry.auto_register(filter=live.to_filter("./*.py"))  # TODO: reloader.watch_dirs
-
-    app = FastAPI()
-
-    @app.post("/reload")
-    def handle_reload(filepath: str, contents: str):
-        if (code_file := registry.get(filepath)) is None:
-            raise HTTPException(status.HTTP_404_NOT_FOUND)
-        Path(filepath).write_text(contents)
-        reloader.prerun()
-        activity: list[CodeFileOperation] = []
-        code_file.activity.register(activity.append)
-        code_file.refresh()
-        reloader.postrun()
-        return list(map(str, activity))
-
-    def run_reload_server():
-        uvicorn.run(app, port=7878)  # TODO: Config
-
-    threading.Thread(target=run_reload_server, daemon=True).start()
+    start_reload_server(
+        prerun=reloader.prerun,
+        postrun=reloader.postrun,
+        stop_event=reloader.stop_event,
+    )
 
 
 def watchfn(reloader: SourceFileReloader):

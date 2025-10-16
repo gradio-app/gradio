@@ -15,12 +15,12 @@ from uvicorn.config import Config
 from gradio.exceptions import ServerFailedToStartError
 from gradio.routes import App
 from gradio.utils import (
-    JuriggedReloader,
     ServerReloader,
     SourceFileReloader,
+    SpacesReloader,
+    get_space,
     watchfn,
-    watchfn_jurigged,
-    watchfn_jurigged_server,
+    watchfn_spaces,
 )
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
@@ -149,19 +149,15 @@ def start_server(
                 ssl_certfile=ssl_certfile,
                 ssl_keyfile_password=ssl_keyfile_password,
             )
-            if GRADIO_HOT_RELOAD:
-                reloader = JuriggedReloader(
+            if get_space() is not None:
+                reloader = SpacesReloader(
                     app=app,
                     watch_dirs=GRADIO_WATCH_DIRS,
                     demo_name=GRADIO_WATCH_DEMO_NAME,
                     stop_event=threading.Event(),
                     watch_module=sys.modules["__main__"],
                 )
-                if GRADIO_HOT_RELOAD == "server":
-                    watchfn = watchfn_jurigged_server
-                else:
-                    watchfn = watchfn_jurigged
-                server = Server(config=config, reloader=reloader, watchfn=watchfn)
+                server = Server(config=config, reloader=reloader, watchfn=watchfn_spaces)
             elif GRADIO_WATCH_DIRS:
                 reloader = SourceFileReloader(
                     app=app,
