@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:jurigged hot-reload
+feat:Spaces hot reloading
