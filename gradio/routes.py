@@ -2459,8 +2459,9 @@ def mount_gradio_app(
         )
 
     blocks.dev_mode = False
-    if footer_links is not None:
-        blocks.footer_links = footer_links
+    if footer_links is None:
+        footer_links = ["api", "gradio", "settings"]
+    blocks.footer_links = footer_links
     blocks.max_file_size = utils._parse_file_size(max_file_size)
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
