@@ -24,26 +24,6 @@ export interface Option {
 	value: string;
 }
 
-/*
-class Message(GradioModel):
-    role: str
-    metadata: MetadataDict | None = None
-    content: list[Union[TextMessage, FileMessage, ComponentMessage]]
-    options: list[OptionDict] | None = None
-
-class ComponentMessage(GradioModel):
-    component: str
-    value: Any
-    constructor_args: dict[str, Any]
-    props: dict[str, Any]
-    type: Literal["component"] = "component"
-
-class FileMessage(GradioModel):
-    file: FileData
-    alt_text: str | None = None
-    type: Literal["file"] = "file"
-*/
-
 export interface Text {
 	type: "text";
 	text: string;

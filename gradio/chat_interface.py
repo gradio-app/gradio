@@ -1076,7 +1076,6 @@ class ChatInterface(Blocks):
             assert isinstance(msg, dict)  # noqa: S101
             if msg["role"] == "user":
                 content = msg["content"]
-                print("content", content)
                 if isinstance(content, list):
                     for item in content:
                         if isinstance(item, dict) and "file" in item:
@@ -1087,8 +1086,6 @@ class ChatInterface(Blocks):
                     files.append(content["file"])
                 else:
                     last_user_message = content
-        print("files", files)
-        print("last_user_message", last_user_message)
         return_message = (
             {"text": last_user_message, "files": files}
             if self.multimodal

@@ -528,11 +528,7 @@ class Chatbot(Component):
         self, message: MessageDict | Message | ChatMessage | NormalizedMessageDict
     ) -> Message | None:
         message = copy.deepcopy(message)
-        role = (
-            message["role"]
-            if isinstance(message, dict)
-            else message.role
-        )
+        role = message["role"] if isinstance(message, dict) else message.role
         if isinstance(message, dict) and not isinstance(message["content"], list):
             content_ = self._postprocess_content(
                 cast(MessageContent, message["content"])
