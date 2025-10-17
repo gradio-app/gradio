@@ -212,7 +212,7 @@ export const config_response: Config = {
 				visible: true,
 				interactive: true,
 				elem_classes: [],
-				show_in_view_api: false,
+				api_visibility: "undocumented",
 				name: "button",
 				_selectable: false
 			},

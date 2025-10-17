@@ -619,16 +619,22 @@ class Client:
                 raise ValueError(
                     f"Could not fetch api info for {self.src}: {fetch.text}"
                 )
-        info["named_endpoints"] = {
-            a: e
-            for a, e in info["named_endpoints"].items()
-            if e.pop("api_visibility", "public") != "private"
-        }
-        info["unnamed_endpoints"] = {
-            a: e
-            for a, e in info["unnamed_endpoints"].items()
-            if e.pop("api_visibility", "public") != "private"
-        }
+        named_endpoints = {}
+        unnamed_endpoints = {}
+        for api_name, endpoint in info["named_endpoints"].items():
+            if (
+                "api_visibility" in endpoint
+                and endpoint.pop("api_visibility") != "private"
+            ) or (endpoint.pop("show_api", True)):
+                named_endpoints[api_name] = endpoint
+        for fn_index, endpoint in info["unnamed_endpoints"].items():
+            if (
+                "api_visibility" in endpoint
+                and endpoint.pop("api_visibility") != "private"
+            ) or (endpoint.pop("show_api", True)):
+                unnamed_endpoints[fn_index] = endpoint
+        info["unnamed_endpoints"] = unnamed_endpoints
+        info["named_endpoints"] = named_endpoints
         return info
 
     def view_api(
@@ -1003,11 +1009,20 @@ class Endpoint:
         ]
         self.parameters_info = self._get_parameters_info()
         self.root_url = self.client.src_prefixed
+        self.backend_fn = dependency.get("backend_fn")
 
         # Disallow hitting endpoints that the Gradio app has disabled
-        self.is_valid = dependency.get("api_visibility", "public") != "private"
-        self.backend_fn = dependency.get("backend_fn")
-        self.api_visibility = dependency.get("api_visibility", "public")
+        if "api_visibility" in dependency:
+            self.is_valid = dependency["api_visibility"] != "private"
+            self.api_visibility = dependency["api_visibility"]
+        else:
+            self.is_valid = dependency.get("api_name") is not False
+            if not self.is_valid:
+                self.api_visibility = "private"
+            elif dependency.get("show_api") is False:
+                self.api_visibility = "undocumented"
+            else:
+                self.api_visibility = "public"
 
     def _get_component_type(self, component_id: int):
         component = next(
