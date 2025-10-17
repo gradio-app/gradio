@@ -306,7 +306,7 @@ export const config_response: Config = {
 	space_id: "hmb/hello_world",
 	enable_queue: true,
 	show_error: false,
-	show_view_api: true,
+	footer_links: ["api", "gradio", "settings"],
 	is_colab: false,
 	stylesheets: [],
 	theme: "default",
