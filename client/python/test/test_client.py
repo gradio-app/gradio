@@ -453,22 +453,29 @@ class TestClientPredictions:
 
     def test_does_not_upload_dir(self, stateful_chatbot):
         with connect(stateful_chatbot) as client:
-            initial_history = [{"role": "user", "content": ""}]
+            initial_history = [
+                {"role": "user", "content": [{"text": "", "type": "text"}]}
+            ]
             message = "Hello"
             ret = client.predict(message, initial_history, api_name="/submit")
             assert ret == (
                 "",
                 [
-                    {"role": "user", "content": "", "metadata": None, "options": None},
                     {
                         "role": "user",
-                        "content": "Hello",
+                        "content": [{"type": "text", "text": ""}],
+                        "metadata": None,
+                        "options": None,
+                    },
+                    {
+                        "role": "user",
+                        "content": [{"type": "text", "text": "Hello"}],
                         "metadata": None,
                         "options": None,
                     },
                     {
                         "role": "assistant",
-                        "content": "I love you",
+                        "content": [{"type": "text", "text": "I love you"}],
                         "metadata": None,
                         "options": None,
                     },
@@ -599,16 +606,16 @@ class TestClientPredictionsWithKwargs:
         with connect(chatbot_message_format) as client:
             _, history = client.predict("hello", [], api_name="/chat")
             assert history[1]["role"] == "assistant"
-            assert history[1]["content"] in [
+            assert history[1]["content"][0]["text"] in [
                 "How are you?",
                 "I love you",
                 "I'm very hungry",
             ]
             _, history = client.predict("hi", history, api_name="/chat")
             assert history[2]["role"] == "user"
-            assert history[2]["content"] == "hi"
+            assert history[2]["content"][0]["text"] == "hi"
             assert history[3]["role"] == "assistant"
-            assert history[3]["content"] in [
+            assert history[3]["content"][0]["text"] in [
                 "How are you?",
                 "I love you",
                 "I'm very hungry",
