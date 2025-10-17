@@ -1,6 +1,10 @@
 import type { ActionReturn } from "svelte/action";
 import type { Client } from "@gradio/client";
 import type { ComponentType, SvelteComponent } from "svelte";
+import { getContext } from "svelte";
+import { type SharedProps } from "@gradio/core";
+
+export const GRADIO_ROOT = Symbol();
 
 export interface ValueData {
 	value: any;
@@ -221,53 +225,92 @@ type component_loader = (args: Args) => {
 
 const is_browser = typeof window !== "undefined";
 
+//
+// id: node.id,
+// target,
+// theme_mode,
+// version,
+// root,
+// autoscroll,
+// max_file_size,
+// formatter: $reactive_formatter,
+// client,
+// load_component,
 export type I18nFormatter = any;
-export class Gradio<T extends Record<string, any> = Record<string, any>> {
-	#id: number;
-	theme: string;
-	version: string;
-	i18n: I18nFormatter;
-	#el: HTMLElement;
-	root: string;
-	autoscroll: boolean;
-	max_file_size: number | null;
-	client: Client;
+export class Gradio<T extends object = {}, U extends object = {}> {
 	_load_component?: component_loader;
 	load_component = _load_component.bind(this);
+	shared: SharedProps = $state<SharedProps>() as SharedProps;
+	props = $state<U>() as U;
+	i18n: I18nFormatter = $state<any>() as any;
+	dispatcher!: Function;
+
+	shared_props: (keyof SharedProps)[] = [
+		"elem_id",
+		"elem_classes",
+		"components",
+		"visible",
+		"interactive",
+		"server_fns",
+		"id",
+		"target",
+		"theme_mode",
+		"version",
+		"root",
+		"autoscroll",
+		"max_file_size",
+		"formatter",
+		"client",
+		"load_component"
+	] as const;
 
 	constructor(
-		id: number,
-		el: HTMLElement,
-		theme: string,
-		version: string,
-		root: string,
-		autoscroll: boolean,
-		max_file_size: number | null,
-		i18n: I18nFormatter = (x: string): string => x,
-		client: Client,
+		props: { shared_props: SharedProps; props: U },
 		virtual_component_loader?: component_loader
 	) {
-		this.#id = id;
-		this.theme = theme;
-		this.version = version;
-		this.#el = el;
-		this.max_file_size = max_file_size;
-
-		this.i18n = i18n;
-		this.root = root;
-		this.autoscroll = autoscroll;
-		this.client = client;
+		this.shared = props.shared_props;
+		this.props = props.props;
 
 		this._load_component = virtual_component_loader;
+
+		if (!is_browser) return;
+		const { register, dispatcher } = getContext<{
+			register: (
+				id: number,
+				set_data: (data: U & SharedProps) => void,
+				get_data: Function
+			) => void;
+			dispatcher: Function;
+		}>(GRADIO_ROOT);
+
+		register(
+			props.shared_props.id,
+			this.set_data.bind(this),
+			this.get_data.bind(this)
+		);
+
+		this.dispatcher = dispatcher;
 	}
 
 	dispatch<E extends keyof T>(event_name: E, data?: T[E]): void {
-		if (!is_browser || !this.#el) return;
-		const e = new CustomEvent("gradio", {
-			bubbles: true,
-			detail: { data, id: this.#id, event: event_name }
-		});
-		this.#el.dispatchEvent(e);
+		this.dispatcher(this.shared.id, event_name, data);
+	}
+
+	get_data() {
+		return $state.snapshot(this.props);
+	}
+
+	set_data(data: U & SharedProps): void {
+		for (const key in data) {
+			if (this.shared_props.includes(key as keyof SharedProps)) {
+				const _key = key as keyof SharedProps;
+				// @ts-ignore i'm not doing pointless typescript gymanstics
+				this.shared[_key] = data[_key];
+			} else {
+				// @ts-ignore same here
+				this.props[key] = data[key];
+			}
+		}
 	}
 }
 
@@ -278,7 +321,7 @@ function _load_component(
 ): ReturnType<component_loader> {
 	return this._load_component!({
 		name,
-		api_url: this.client.config?.root!,
+		api_url: this.shared.client.config?.root!,
 		variant
 	});
 }
@@ -288,3 +331,6 @@ export const css_units = (dimension_value: string | number): string => {
 		? dimension_value + "px"
 		: dimension_value;
 };
+
+type MappedProps<T> = { [K in keyof T]: T[K] };
+type MappedProp<T, K extends keyof T> = { [P in K]: T[P] };
