@@ -32,16 +32,6 @@ class TestTextboxParameterConflicts:
                 stop_btn="Stop",  # This conflicts!
             )
 
-    def test_warning_with_custom_textbox_and_autofocus(self):
-        """Should warn when autofocus is set on ChatInterface with custom Textbox."""
-        with pytest.warns(UserWarning, match="autofocus.*will be ignored"):
-            gr.ChatInterface(
-                chat,
-                type="messages",
-                textbox=gr.Textbox(placeholder="Custom textbox"),
-                autofocus=True,
-            )
-
     def test_warning_with_multiple_conflicts(self):
         """Should warn about all conflicting parameters."""
         with pytest.warns(UserWarning, match="submit_btn.*stop_btn.*will be ignored"):

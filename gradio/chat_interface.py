@@ -289,14 +289,20 @@ class ChatInterface(Blocks):
         if textbox is not None:
             conflicting_params = []
 
-            # Check each parameter that might conflict
-            # Only warn if the ChatInterface parameter differs from the textbox's current value
+            # ChatInterface defaults: submit_btn=True, stop_btn=True, autofocus=True
+            # Only warn if ChatInterface parameter is non-default (customized) AND differs from textbox
+
             if isinstance(textbox, Textbox) or isinstance(textbox, MultimodalTextbox):
-                if submit_btn != textbox.submit_btn:
+                # Check submit_btn: only warn if it's NOT the default (True) and differs from textbox
+                if submit_btn is not True and submit_btn != textbox.submit_btn:
                     conflicting_params.append("submit_btn")
-                if stop_btn != textbox.stop_btn:
+
+                # Check stop_btn: only warn if it's NOT the default (True) and differs from textbox
+                if stop_btn is not True and stop_btn != textbox.stop_btn:
                     conflicting_params.append("stop_btn")
-                if autofocus != textbox.autofocus:
+
+                # Check autofocus: only warn if it's NOT the default (True) and differs from textbox
+                if autofocus is not True and autofocus != textbox.autofocus:
                     conflicting_params.append("autofocus")
 
             if conflicting_params:
@@ -305,7 +311,7 @@ class ChatInterface(Blocks):
                     f"{', '.join(f'`{p}`' for p in conflicting_params)} parameter(s) on `gr.ChatInterface`. "
                     f"These ChatInterface parameters will be ignored. To customize these settings, "
                     f"pass them directly to your `gr.Textbox` or `gr.MultimodalTextbox` component instead. "
-                    f"For example: textbox=gr.Textbox(..., submit_btn='{submit_btn}')",
+                    f"For example: textbox=gr.Textbox(..., submit_btn='ارسال')",
                     UserWarning,
                     stacklevel=2,
                 )
