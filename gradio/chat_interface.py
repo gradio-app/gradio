@@ -286,6 +286,30 @@ class ChatInterface(Blocks):
 
             self._setup_events()
 
+        if textbox is not None:
+            conflicting_params = []
+
+            # Check each parameter that might conflict
+            # Only warn if the ChatInterface parameter differs from the textbox's current value
+            if isinstance(textbox, Textbox) or isinstance(textbox, MultimodalTextbox):
+                if submit_btn != textbox.submit_btn:
+                    conflicting_params.append("submit_btn")
+                if stop_btn != textbox.stop_btn:
+                    conflicting_params.append("stop_btn")
+                if autofocus != textbox.autofocus:
+                    conflicting_params.append("autofocus")
+
+            if conflicting_params:
+                warnings.warn(
+                    f"You provided a custom `textbox` component, but also specified "
+                    f"{', '.join(f'`{p}`' for p in conflicting_params)} parameter(s) on `gr.ChatInterface`. "
+                    f"These ChatInterface parameters will be ignored. To customize these settings, "
+                    f"pass them directly to your `gr.Textbox` or `gr.MultimodalTextbox` component instead. "
+                    f"For example: textbox=gr.Textbox(..., submit_btn='{submit_btn}')",
+                    UserWarning,
+                    stacklevel=2,
+                )
+
     def _render_header(self):
         if self.title:
             Markdown(
@@ -350,9 +374,11 @@ class ChatInterface(Blocks):
                 height=400 if self.fill_height else None,
                 type=cast(Literal["messages", "tuples"], self.type),
                 autoscroll=self.autoscroll,
-                examples=self.examples_messages
-                if not self._additional_inputs_in_examples
-                else None,
+                examples=(
+                    self.examples_messages
+                    if not self._additional_inputs_in_examples
+                    else None
+                ),
             )
         with Group():
             with Row():
@@ -772,7 +798,9 @@ class ChatInterface(Blocks):
                 show_api=False,
                 queue=False,
                 show_progress="hidden",
-            ).then(**synchronize_chat_state_kwargs)
+            ).then(
+                **synchronize_chat_state_kwargs
+            )
 
         if self.flagging_mode != "never":
             flagging_callback = ChatCSVLogger()
