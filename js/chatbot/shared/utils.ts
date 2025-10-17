@@ -8,7 +8,10 @@ import type {
 	NormalisedMessage,
 	Message,
 	MessageRole,
-	ThoughtNode
+	ThoughtNode,
+	Text,
+	Component,
+	File
 } from "../types";
 import type { LoadedComponent } from "../../core/src/types";
 import { Gradio } from "@gradio/utils";
@@ -139,7 +142,7 @@ function get_component_for_mime_type(
 }
 
 function convert_file_message_to_component_message(
-	message: any
+	message: File
 ): ComponentData {
 	const _file = Array.isArray(message.file) ? message.file[0] : message.file;
 	return {
@@ -153,30 +156,39 @@ function convert_file_message_to_component_message(
 
 function normalise_message(
 	message: Message,
-	content: string | FileData | ComponentData,
+	content: Text | File | Component,
 	root: string,
 	i: number
 ): NormalisedMessage {
-	let normalized: NormalisedMessage =
-		typeof content === "string"
-			? {
-					role: message.role,
-					metadata: message.metadata,
-					content: redirect_src_url(content, root),
-					type: "text",
-					index: i,
-					options: message.options
-				}
-			: "file" in content
-				? {
-						content: convert_file_message_to_component_message(content),
-						metadata: message.metadata,
-						role: message.role,
-						type: "component",
-						index: i,
-						options: message.options
-					}
-				: ({ type: "component", ...message } as ComponentMessage);
+	let normalized: NormalisedMessage;
+	if (content.type === "text") {
+		normalized = {
+			role: message.role,
+			metadata: message.metadata,
+			content: redirect_src_url(content.text, root),
+			type: "text",
+			index: i,
+			options: message.options
+		};
+	} else if (content.type === "file") {
+		normalized = {
+			role: message.role,
+			metadata: message.metadata,
+			content: convert_file_message_to_component_message(content),
+			type: "component",
+			index: i,
+			options: message.options
+		};
+	} else {
+		normalized = {
+			role: message.role,
+			metadata: message.metadata,
+			content: content,
+			type: "component",
+			index: i,
+			options: message.options
+		};
+	}
 	return normalized;
 }
 
@@ -190,12 +202,9 @@ export function normalise_messages(
 
 	return messages
 		.flatMap((message, i) => {
-			const normalized: NormalisedMessage[] = Array.isArray(message.content)
-				? message.content.map((content) =>
-						normalise_message(message, content, root, i)
-					)
-				: [normalise_message(message, message.content, root, i)];
-
+			const normalized: NormalisedMessage[] = message.content.map((content) =>
+				normalise_message(message, content, root, i)
+			);
 			for (const msg of normalized) {
 				const { id, title, parent_id } = message.metadata || {};
 				if (parent_id) {

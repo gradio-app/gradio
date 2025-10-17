@@ -112,7 +112,7 @@ class ChatInterface(Blocks):
         show_api: bool = True,
         save_history: bool = False,
         validator: Callable | None = None,
-        group_multimodal_data: bool = False,
+        group_multimodal_data: bool = True,
     ):
         """
         Parameters:
@@ -840,7 +840,6 @@ class ChatInterface(Blocks):
     ) -> list[MessageDict]:
         message_dicts = self._message_as_message_dict(message, role)
         history = copy.deepcopy(history)
-        print("message_dicts", message_dicts)
         history.extend(message_dicts)  # type: ignore
         return history
 

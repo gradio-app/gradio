@@ -16,13 +16,13 @@ class TestChatbot:
         ).model_dump() == [
             {
                 "role": "user",
-                "content": "You are **cool**\nand fun",
+                "content": [{"type": "text", "text": "You are **cool**\nand fun"}],
                 "metadata": None,
                 "options": None,
             },
             {
                 "role": "assistant",
-                "content": "so are *you*",
+                "content": [{"type": "text", "text": "so are *you*"}],
                 "metadata": None,
                 "options": None,
             },
@@ -53,16 +53,20 @@ class TestChatbot:
         postprocessed_multimodal_msg = chatbot.postprocess(multimodal_msg).model_dump()  # type: ignore
         for msg in postprocessed_multimodal_msg:
             if msg["role"] == "user":
-                assert "file" in msg["content"]
-                assert msg["content"]["file"]["path"].split(".")[-1] in {
+                assert "file" in msg["content"][0]
+                assert msg["content"][0]["file"]["path"].split(".")[-1] in {
                     "mp4",
                     "wav",
                     "png",
                 }
-                if msg["content"]["alt_text"]:
-                    assert msg["content"]["alt_text"] == "A bus"
+                if msg["content"][0]["alt_text"]:
+                    assert msg["content"][0]["alt_text"] == "A bus"
             elif msg["role"] == "assistant":
-                assert msg["content"] in {"cool video", "cool audio", "cool pic"}
+                assert msg["content"][0]["text"] in {
+                    "cool video",
+                    "cool audio",
+                    "cool pic",
+                }
             else:
                 raise ValueError(f"Unexpected role: {msg['role']}")
         assert chatbot.get_config() == {

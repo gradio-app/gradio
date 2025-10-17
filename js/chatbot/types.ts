@@ -23,26 +23,71 @@ export interface Option {
 	label?: string;
 	value: string;
 }
+
+/*
+class Message(GradioModel):
+    role: str
+    metadata: MetadataDict | None = None
+    content: list[Union[TextMessage, FileMessage, ComponentMessage]]
+    options: list[OptionDict] | None = None
+
+class ComponentMessage(GradioModel):
+    component: str
+    value: Any
+    constructor_args: dict[str, Any]
+    props: dict[str, Any]
+    type: Literal["component"] = "component"
+
+class FileMessage(GradioModel):
+    file: FileData
+    alt_text: str | None = None
+    type: Literal["file"] = "file"
+*/
+
+export interface Text {
+	type: "text";
+	text: string;
+}
+
+export interface Component {
+	type: "component";
+	component: string;
+	constructor_args: object;
+	props: object;
+	value: any;
+	alt_text: string | null;
+}
+
+export interface File {
+	type: "file";
+	file: FileData;
+	alt_text: string | null;
+}
+
 export interface Message {
 	role: MessageRole;
 	metadata: Metadata;
-	content:
-		| string
-		| FileData
-		| ComponentData
-		| (string | FileData | ComponentData)[];
+	content: (Text | File | Component)[];
 	index: number | [number, number];
 	options?: Option[];
 }
 
-export interface TextMessage extends Message {
+export interface TextMessage {
 	type: "text";
 	content: string;
+	index: number | [number, number];
+	options?: Option[];
+	role: MessageRole;
+	metadata: Metadata;
 }
 
-export interface ComponentMessage extends Message {
+export interface ComponentMessage {
 	type: "component";
 	content: ComponentData;
+	index: number | [number, number];
+	options?: Option[];
+	role: MessageRole;
+	metadata: Metadata;
 }
 
 export interface ExampleMessage {
