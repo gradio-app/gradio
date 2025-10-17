@@ -3,45 +3,33 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio } from "@gradio/utils";
+	import { Gradio } from "@gradio/utils";
 	import { type FileData } from "@gradio/client";
+	import type { SharedProps } from "js/core";
 
 	import Button from "./shared/Button.svelte";
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let value: string | null;
-	export let variant: "primary" | "secondary" | "stop" = "secondary";
-	export let interactive: boolean;
-	export let size: "sm" | "lg" = "lg";
-	export let scale: number | null = null;
-	export let icon: FileData | null = null;
-	export let link: string | null = null;
-	export let min_width: number | undefined = undefined;
-	export let gradio: Gradio<{
-		click: never;
-	}>;
+	let _props: { shared_props: SharedProps; props: {} } = $props();
+	const gradio = new Gradio<never, {}>(_props);
 
 	function handle_click() {
-		console.log("clicked");
 		gradio.dispatch("click");
 	}
 </script>
 
 <Button
-	{value}
-	{variant}
-	{elem_id}
-	{elem_classes}
-	{size}
-	{scale}
-	{link}
-	{icon}
-	{min_width}
-	{visible}
-	disabled={!interactive}
+	value={gradio.props.value}
+	variant={gradio.props.variant}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+	size={gradio.props.size}
+	scale={gradio.props.scale}
+	link={gradio.props.link}
+	icon={gradio.props.icon}
+	min_width={gradio.shared.min_width}
+	visible={gradio.shared.visible}
+	disabled={!gradio.shared.interactive}
 	on:click={handle_click}
 >
-	{value ?? ""}
+	{gradio.props.value ?? ""}
 </Button>

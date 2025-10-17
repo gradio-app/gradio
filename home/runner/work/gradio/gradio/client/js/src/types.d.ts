@@ -149,6 +149,7 @@ export interface ComponentMeta {
     key: string | number | null;
     rendered_in?: number;
 }
+
 interface SharedProps {
     elem_id?: string;
     elem_classes?: string[];

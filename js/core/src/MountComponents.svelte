@@ -1,33 +1,22 @@
 <script lang="ts">
-	import { onMount, createEventDispatcher } from "svelte";
-	import type { Client } from "@gradio/client";
-	import Render from "./Render.svelte";
-
-	export let rootNode: any;
-	export let root: any;
-	export let target: any;
-	export let theme_mode: any;
-	export let version: any;
-	export let autoscroll: boolean;
-	export let max_file_size: number | null = null;
-	export let client: Client;
-
-	const dispatch = createEventDispatcher<{ mount?: never }>();
-	onMount(() => {
-		console.log("hi");
-		dispatch("mount");
-	});
+	import Self from "./MountComponents.svelte";
+	let { node } = $props();
 </script>
 
-{#if rootNode}
-	<Render
-		node={rootNode}
-		{root}
-		{target}
-		{theme_mode}
-		{version}
-		{autoscroll}
-		{max_file_size}
-		{client}
-	/>
+{#if node}
+	{#if node.props.shared_props.visible}
+		{#await node.component then component}
+			<svelte:component
+				this={component.default}
+				shared_props={node.props.shared_props}
+				props={node.props.props}
+			>
+				{#if node.children && node.children.length}
+					{#each node.children as _node}
+						<Self node={_node} />
+					{/each}
+				{/if}
+			</svelte:component>
+		{/await}
+	{/if}
 {/if}
