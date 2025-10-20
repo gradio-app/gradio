@@ -55,13 +55,13 @@ class TestClientInitialization:
             pytest.skip("HF_TOKEN is not set, skipping test")
         _, local_url, _ = increment_demo.launch(prevent_thread_lock=True)
         try:
-            client = Client(local_url, hf_token=HF_TOKEN)
+            client = Client(local_url, token=HF_TOKEN)
             assert {
                 "x-hf-authorization": f"Bearer {HF_TOKEN}"
             }.items() <= client.headers.items()
             client = Client(
                 local_url,
-                hf_token=HF_TOKEN,
+                token=HF_TOKEN,
                 headers={"additional": "value"},
             )
             assert {
@@ -70,7 +70,7 @@ class TestClientInitialization:
             }.items() <= client.headers.items()
             client = Client(
                 local_url,
-                hf_token=HF_TOKEN,
+                token=HF_TOKEN,
                 headers={"authorization": "Bearer abcde"},
             )
             assert {"authorization": "Bearer abcde"}.items() <= client.headers.items()
@@ -160,7 +160,7 @@ class TestClientPredictions:
         space_id = "gradio-tests/not-actually-private-space"
         api = huggingface_hub.HfApi()
         assert api.space_info(space_id).private
-        client = Client(space_id, hf_token=HF_TOKEN)
+        client = Client(space_id, token=HF_TOKEN)
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
 
@@ -171,7 +171,7 @@ class TestClientPredictions:
         assert api.space_info(space_id).private
         client = Client(
             space_id,
-            hf_token=HF_TOKEN,
+            token=HF_TOKEN,
         )
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
@@ -453,10 +453,27 @@ class TestClientPredictions:
 
     def test_does_not_upload_dir(self, stateful_chatbot):
         with connect(stateful_chatbot) as client:
-            initial_history = [["", None]]
+            initial_history = [{"role": "user", "content": ""}]
             message = "Hello"
             ret = client.predict(message, initial_history, api_name="/submit")
-            assert ret == ("", [["", None], ["Hello", "I love you"]])
+            assert ret == (
+                "",
+                [
+                    {"role": "user", "content": "", "metadata": None, "options": None},
+                    {
+                        "role": "user",
+                        "content": "Hello",
+                        "metadata": None,
+                        "options": None,
+                    },
+                    {
+                        "role": "assistant",
+                        "content": "I love you",
+                        "metadata": None,
+                        "options": None,
+                    },
+                ],
+            )
 
     def test_return_layout_component(self, hello_world_with_group):
         with connect(hello_world_with_group) as demo:
@@ -803,7 +820,7 @@ class TestAPIInfo:
     def test_private_space(self):
         client = Client(
             "gradio-tests/not-actually-private-space",
-            hf_token=HF_TOKEN,
+            token=HF_TOKEN,
         )
         assert "/predict" in client.view_api(return_format="dict")["named_endpoints"]
 
@@ -1002,7 +1019,7 @@ class TestEndpoints:
     def test_upload(self):
         client = Client(
             src="gradio-tests/not-actually-private-file-upload",
-            hf_token=HF_TOKEN,
+            token=HF_TOKEN,
         )
         response = MagicMock(status_code=200)
         response.json.return_value = [
@@ -1071,14 +1088,14 @@ class TestDuplication:
         Client.duplicate(
             "gradio/calculator",
             "test",
-            hf_token=HF_TOKEN,
+            token=HF_TOKEN,
         )
         mock_runtime.assert_any_call("gradio/calculator", token=HF_TOKEN)
         mock_init.assert_called()
         Client.duplicate(
             "gradio/calculator",
             "gradio-tests/test",
-            hf_token=HF_TOKEN,
+            token=HF_TOKEN,
         )
         mock_runtime.assert_any_call("gradio/calculator", token=HF_TOKEN)
         mock_init.assert_called()
@@ -1112,7 +1129,7 @@ class TestDuplication:
             "test",
             hardware="cpu-upgrade",
             sleep_timeout=15,
-            hf_token=HF_TOKEN,
+            token=HF_TOKEN,
         )
         assert mock_set_timeout.call_count == 1
         _, called_kwargs = mock_set_timeout.call_args
@@ -1129,7 +1146,7 @@ class TestDuplication:
             Client.duplicate(
                 "gradio/calculator",
                 name,
-                hf_token=HF_TOKEN,
+                token=HF_TOKEN,
                 secrets={"test_key": "test_value", "test_key2": "test_value2"},
             )
             mock_add_secret.assert_called_with(

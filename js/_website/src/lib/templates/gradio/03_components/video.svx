@@ -11,6 +11,7 @@
 
     let obj = get_object("video");
     let webcam_options_obj = get_object("webcamoptions")
+    let validator_obj = get_object("is_video_correct_length")
 </script>
 
 <!--- Title -->
@@ -102,6 +103,28 @@ gradio.WebcamOptions(···)
 <!--- Initialization -->
 #### Initialization
 <ParamTable parameters={webcam_options_obj.parameters} anchor_links={webcam_options_obj.name}/>
+
+<!--- Title -->
+### is_video_correct_length
+
+Validates that the audio length is within the specified min and max length (in seconds).
+You can use this to construct a validator that will check if the user-provided audio is either too short or too long.
+
+<!--- Usage -->
+```python
+import gradio as gr
+demo = gr.Interface(
+    lambda x: x,
+    inputs="video",
+    outputs="video",
+    validator=lambda video: gr.validators.is_video_correct_length(video, min_length=1, max_length=5)
+)
+demo.launch()
+```
+
+<!--- Initialization -->
+#### Initialization
+<ParamTable parameters={validator_obj.parameters} anchor_links={validator_obj.name}/>
 
 </div>
 

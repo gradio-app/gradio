@@ -1,5 +1,15 @@
 # gradio
 
+## 6.0.0-dev.0
+
+### Features
+
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`53d9098`](https://github.com/gradio-app/gradio/commit/53d9098cca378f6ebff9dec15d2faa8a3d2fb510) - [No Merge] Gradio 6.0.  Thanks @freddyaboulton!
+- [#12012](https://github.com/gradio-app/gradio/pull/12012) [`4356fe7`](https://github.com/gradio-app/gradio/commit/4356fe7d609333a4150533fcb9a4eaafbc2ba561) - Remove tuples format from the chatbot.  Thanks @freddyaboulton!
+- [#12027](https://github.com/gradio-app/gradio/pull/12027) [`d515a2e`](https://github.com/gradio-app/gradio/commit/d515a2e189a82883e85730157706f6f2865e9aba) - Make allow_tags=True the default in gr.Chatbot.  Thanks @PRIME-SV!
+- [#12010](https://github.com/gradio-app/gradio/pull/12010) [`844cd62`](https://github.com/gradio-app/gradio/commit/844cd626fb11ad604386dbb0411fc9b94effaf11) - fix: enable padding by default in HTML component.  Thanks @PRIME-SV!
+- [#12041](https://github.com/gradio-app/gradio/pull/12041) [`90e8a2c`](https://github.com/gradio-app/gradio/commit/90e8a2c23774e1d2a7401bccf4bdc86f70531de5) - Video subtitles.  Thanks @dawoodkhan82!
+
 ## 5.49.1
 
 ### Fixes

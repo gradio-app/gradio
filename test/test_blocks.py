@@ -444,8 +444,8 @@ class TestTempFile:
         video = grc.handle_file(str(file_dir / "video_sample.mp4"))
         demo = gr.Interface(lambda x: x, gr.Video(), gr.Video())
         with connect(demo) as client:
-            _ = client.predict({"video": video}, api_name="/predict")
-            _ = client.predict({"video": video}, api_name="/predict")
+            _ = client.predict(video, api_name="/predict")
+            _ = client.predict(video, api_name="/predict")
         # Upload route and postprocessing return the same file
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
@@ -1446,8 +1446,8 @@ class TestGetAPIInfo:
             t5 = gr.Textbox()
             t1.change(lambda x: x, t1, t2, api_name="change1")
             t2.change(lambda x: x, t2, t3, api_name="change2")
-            t3.change(lambda x: x, t3, t4, api_name=False)
-            t4.change(lambda x: x, t4, t5, api_name=False)
+            t3.change(lambda x: x, t3, t4, api_visibility="private")
+            t4.change(lambda x: x, t4, t5, api_visibility="private")
 
         api_info = demo.get_api_info()
         assert api_info
@@ -1458,7 +1458,7 @@ class TestGetAPIInfo:
         with gr.Blocks() as demo:
             t1 = gr.Textbox()
             t2 = gr.Textbox()
-            t1.change(lambda x: x, t1, t2, api_name=False)
+            t1.change(lambda x: x, t1, t2, api_visibility="private")
 
         api_info = demo.get_api_info()
         assert api_info
@@ -1935,9 +1935,9 @@ def test_render_when_mounted_sets_root_path_for_files():
                     render_config = data["output"]["render_config"]
                     for component in render_config["components"]:
                         if "value" in component.get("props", {}):
-                            assert component["props"]["value"]["video"][
-                                "url"
-                            ].startswith(f"http://testserver/test{API_PREFIX}/file=")
+                            assert component["props"]["value"]["url"].startswith(
+                                f"http://testserver/test{API_PREFIX}/file="
+                            )
                             checked_component = True
         assert checked_component
 

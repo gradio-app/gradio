@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import warnings
 from collections.abc import Callable, Sequence, Set
 from typing import (
     TYPE_CHECKING,
@@ -73,11 +72,9 @@ class NativePlot(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        show_fullscreen_button: bool = False,
-        show_export_button: bool = False,
+        buttons: list[Literal["fullscreen", "export"]] | None = None,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
-        **kwargs,
     ):
         """
         Parameters:
@@ -113,8 +110,7 @@ class NativePlot(Component):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            show_fullscreen_button: If True, will show a button to make plot visible in fullscreen mode.
-            show_export_button: If True, will show a button to export and download the current view of the plot as a PNG image.
+            buttons: A list of buttons to show for the component. Valid options are "fullscreen" and "export". The "fullscreen" button allows the user to view the plot in fullscreen mode. The "export" button allows the user to export and download the current view of the plot as a PNG image. By default, no buttons are shown.
             key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
         """
@@ -137,8 +133,7 @@ class NativePlot(Component):
         self.sort = sort
         self.tooltip = tooltip
         self.height = height
-        self.show_fullscreen_button = show_fullscreen_button
-        self.show_export_button = show_export_button
+        self.buttons = buttons
 
         if label is None and show_label is None:
             show_label = False
@@ -158,22 +153,6 @@ class NativePlot(Component):
             every=every,
             inputs=inputs,
         )
-        for key_, val in kwargs.items():
-            if key_ == "color_legend_title":
-                self.color_title = val
-            if key_ in [
-                "stroke_dash",
-                "overlay_point",
-                "x_label_angle",
-                "y_label_angle",
-                "interactive",
-                "show_actions_button",
-                "color_legend_title",
-                "width",
-            ]:
-                warnings.warn(
-                    f"Argument '{key_}' has been deprecated.", DeprecationWarning
-                )
 
     def get_block_name(self) -> str:
         return "nativeplot"
