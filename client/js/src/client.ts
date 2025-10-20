@@ -39,7 +39,6 @@ import {
 	HEARTBEAT_URL,
 	COMPONENT_SERVER_URL
 } from "./constants";
-
 declare const BROWSER_BUILD: boolean;
 
 export class Client {
@@ -542,7 +541,7 @@ export class Client {
 				this.ws_map[url] = "closed";
 			};
 
-			ws.onmessage = (event) => {};
+			ws.onmessage = (event) => { };
 		});
 	}
 
