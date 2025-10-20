@@ -446,12 +446,6 @@ importers:
       typescript:
         specifier: ^5.0.0
         version: 5.4.3
-      vi:
-        specifier: ^1.0.0
-        version: 1.0.0
-      vite:
-        specifier: ^6.4.1
-        version: 6.4.1(@types/node@20.12.8)(jiti@1.21.7)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.6))(terser@5.43.1)(yaml@2.4.2)
       ws:
         specifier: ^8.13.0
         version: 8.13.0(bufferutil@4.0.7)
@@ -9129,9 +9123,6 @@ packages:
   vfile-message@2.0.4:
     resolution: {integrity: sha512-DjssxRGkMvifUOJre00juHoP9DPWuzjxKuMDrhNbk2TdaYYBNMStsNhEOt3idrtI12VQYM/1+iM0KOzXi4pxwQ==}
 
-  vi@1.0.0:
-    resolution: {integrity: sha512-fLpBeQzBddayFzoNMfCzvkcomwRYHx05qRo8lVCjMmR8ggs36Auw5A6/yH/UU8e2UAsGvh0qmXlNoR1DIdfWUw==}
-
   vite-node@1.6.1:
     resolution: {integrity: sha512-YAXkfvGtuTzwWbDSACdJSg4A4DZiAqckWe90Zapc/sEX3XvHcw1NdurM/6od8J207tSDqNbSsgdCacBgvJKFuA==}
     engines: {node: ^18.0.0 || >=20.0.0}
@@ -16684,8 +16675,6 @@ snapshots:
       '@types/unist': 2.0.10
       unist-util-stringify-position: 2.0.3
 
-  vi@1.0.0: {}
-
   vite-node@1.6.1(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))(terser@5.43.1):
     dependencies:
       cac: 6.7.14
@@ -16764,25 +16753,6 @@ snapshots:
       sass: 1.66.1
       stylus: 0.63.0
       sugarss: 4.0.1(postcss@8.4.38)
-      terser: 5.43.1
-      yaml: 2.4.2
-
-  vite@6.4.1(@types/node@20.12.8)(jiti@1.21.7)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.6))(terser@5.43.1)(yaml@2.4.2):
-    dependencies:
-      esbuild: 0.25.9
-      fdir: 6.5.0(picomatch@4.0.3)
-      picomatch: 4.0.3
-      postcss: 8.5.6
-      rollup: 4.46.3
-      tinyglobby: 0.2.14
-    optionalDependencies:
-      '@types/node': 20.12.8
-      fsevents: 2.3.3
-      jiti: 1.21.7
-      lightningcss: 1.24.1
-      sass: 1.66.1
-      stylus: 0.63.0
-      sugarss: 4.0.1(postcss@8.5.6)
       terser: 5.43.1
       yaml: 2.4.2
 

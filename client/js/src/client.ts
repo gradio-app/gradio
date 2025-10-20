@@ -541,7 +541,7 @@ export class Client {
 				this.ws_map[url] = "closed";
 			};
 
-			ws.onmessage = (event) => { };
+			ws.onmessage = (event) => {};
 		});
 	}
 
