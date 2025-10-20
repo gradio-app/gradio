@@ -110,8 +110,8 @@ class Interface(Blocks):
         analytics_enabled: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
-        show_api: bool = True,
-        api_name: str | Literal[False] | None = "predict",
+        api_visibility: Literal["public", "private", "undocumented"] = "public",
+        api_name: str | None = "predict",
         api_description: str | None | Literal[False] = None,
         _api_mode: bool = False,
         allow_duplication: bool = False,
@@ -157,9 +157,9 @@ class Interface(Blocks):
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             batch: if True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
             max_batch_size: the maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
-            api_name: defines how the prediction endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None, the name of the prediction function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this prediction endpoint.
+            api_name: defines how the prediction endpoint appears in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given name. If None, an auto-generated name will be used.
             api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
-            show_api: whether to show the prediction endpoint in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event.
+            api_visibility: Controls the visibility of the prediction endpoint. Can be "public" (shown in API docs and callable), "private" (hidden from API docs and not callable), or "undocumented" (hidden from API docs but callable).
             allow_duplication: if True, then will show a 'Duplicate Spaces' button on Hugging Face Spaces.
             concurrency_limit: if set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which itself is 1 by default).
             css: Custom css as a code string. This css will be included in the demo webpage.
@@ -207,9 +207,9 @@ class Interface(Blocks):
         self.deep_link = deep_link
         self.time_limit = time_limit
         self.stream_every = stream_every
-        self.api_name: str | Literal[False] | None = api_name
+        self.api_name: str | None = api_name
         self.api_description: str | None | Literal[False] = api_description
-        self.show_api = show_api
+        self.api_visibility = api_visibility
         self.interface_type = InterfaceTypes.STANDARD
         if (inputs is None or inputs == []) and (outputs is None or outputs == []):
             raise ValueError("Must provide at least one of `inputs` or `outputs`")
@@ -553,7 +553,7 @@ class Interface(Blocks):
                     inputs=None,
                     outputs=[self.deep_link],
                     js=True,
-                    show_api=False,
+                    api_visibility="undocumented",
                 )
             self.render_examples()
             self.render_article()
@@ -710,7 +710,7 @@ class Interface(Blocks):
                     None,
                     self.output_components,
                     api_name=self.api_name,
-                    show_api=self.show_api,
+                    api_visibility=self.api_visibility,
                     api_description=self.api_description,
                     preprocess=not (self.api_mode),
                     postprocess=not (self.api_mode),
@@ -734,7 +734,7 @@ class Interface(Blocks):
                     self.output_components,
                     api_name=self.api_name,
                     api_description=self.api_description,
-                    show_api=self.show_api,
+                    api_visibility=self.api_visibility,
                     preprocess=not (self.api_mode),
                     postprocess=not (self.api_mode),
                     show_progress="hidden" if streaming_event else self.show_progress,
@@ -778,13 +778,13 @@ class Interface(Blocks):
                     inputs=None,
                     outputs=[_submit_btn, _stop_btn],
                     queue=False,
-                    show_api=False,
+                    api_visibility="undocumented",
                 ).then(
                     self.fn,
                     self.input_components,
                     self.output_components,
                     api_name=self.api_name,
-                    show_api=self.show_api,
+                    api_visibility=self.api_visibility,
                     api_description=self.api_description,
                     scroll_to_output=True,
                     preprocess=not (self.api_mode),
@@ -801,7 +801,7 @@ class Interface(Blocks):
                     inputs=None,
                     outputs=extra_output,  # type: ignore
                     queue=False,
-                    show_api=False,
+                    api_visibility="undocumented",
                 )
 
                 _stop_btn.click(
@@ -810,7 +810,7 @@ class Interface(Blocks):
                     outputs=[_submit_btn, _stop_btn],
                     cancels=predict_event,
                     queue=False,
-                    show_api=False,
+                    api_visibility="undocumented",
                 )
                 return final_event
             else:
@@ -820,7 +820,7 @@ class Interface(Blocks):
                     self.input_components,
                     self.output_components,
                     api_name=self.api_name,
-                    show_api=self.show_api,
+                    api_visibility=self.api_visibility,
                     api_description=self.api_description,
                     scroll_to_output=True,
                     preprocess=not (self.api_mode),
@@ -884,7 +884,7 @@ class Interface(Blocks):
                 outputs=None,
                 preprocess=False,
                 queue=False,
-                show_api=False,
+                api_visibility="undocumented",
             )
             return
 
@@ -908,7 +908,7 @@ class Interface(Blocks):
                 None,
                 flag_btn,
                 queue=False,
-                show_api=False,
+                api_visibility="undocumented",
             )
             flag_btn.click(
                 flag_method,
@@ -916,14 +916,14 @@ class Interface(Blocks):
                 outputs=flag_btn,
                 preprocess=False,
                 queue=False,
-                show_api=False,
+                api_visibility="undocumented",
             )
             _clear_btn.click(
                 utils.async_lambda(flag_method.reset),
                 None,
                 flag_btn,
                 queue=False,
-                show_api=False,
+                api_visibility="undocumented",
             )
 
     def render_examples(self):
@@ -953,7 +953,7 @@ class Interface(Blocks):
                     inputs=None,
                     outputs=[self.deep_link],
                     js=True,
-                    show_api=False,
+                    api_visibility="undocumented",
                 )
 
     def __str__(self):
