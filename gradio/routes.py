@@ -797,7 +797,7 @@ class App(FastAPI):
             }
 
             for endpoint_path, endpoint_info in info.get("named_endpoints", {}).items():  # type: ignore
-                if not endpoint_info.get("show_api", True):
+                if endpoint_info.get("api_visibility", "public") == "private":
                     continue
                 path_item = {
                     "post": {
@@ -2396,7 +2396,8 @@ def mount_gradio_app(
     path: str,
     server_name: str = "0.0.0.0",
     server_port: int = 7860,
-    show_api: bool | None = None,
+    footer_links: list[Literal["api", "gradio", "settings"] | dict[str, str]]
+    | None = None,
     app_kwargs: dict[str, Any] | None = None,
     *,
     auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,
@@ -2434,7 +2435,7 @@ def mount_gradio_app(
         favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for this gradio app's page.
         show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log. Otherwise, errors will only be visible in the terminal session running the Gradio app.
         max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
-        show_api: If False, hides the "Use via API" button on the Gradio interface.
+        footer_links: The links to display in the footer of the app. Accepts a list, where each element of the list must be one of "api", "gradio", or "settings" corresponding to the API docs, "built with Gradio", and settings pages respectively. If None, all three links will be shown in the footer. An empty list means that no footer is shown.
         ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
         node_server_name: The name of the Node server to use for SSR. If None, will use GRADIO_NODE_SERVER_NAME environment variable or search for a node binary in the system.
         i18n: If provided, the i18n instance to use for this gradio app.
@@ -2458,8 +2459,9 @@ def mount_gradio_app(
         )
 
     blocks.dev_mode = False
-    if show_api is not None:
-        blocks.show_api = show_api
+    if footer_links is None:
+        footer_links = ["api", "gradio", "settings"]
+    blocks.footer_links = footer_links
     blocks.max_file_size = utils._parse_file_size(max_file_size)
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()

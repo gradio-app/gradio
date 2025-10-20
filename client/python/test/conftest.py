@@ -111,7 +111,7 @@ def increment_demo():
             lambda x: (x + 1, x + 1),
             state,
             [state, numb],
-            api_name=False,
+            api_visibility="private",
         )
 
     return demo
@@ -232,8 +232,8 @@ def count_generator_no_api():
         with gr.Column():
             out = gr.Textbox()
 
-        count_btn.click(count, num, out, api_name=False)
-        list_btn.click(show, num, out, api_name=False)
+        count_btn.click(count, num, out, api_visibility="private")
+        list_btn.click(show, num, out, api_visibility="private")
 
     return demo
 
