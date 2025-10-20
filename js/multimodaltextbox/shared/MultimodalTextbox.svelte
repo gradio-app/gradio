@@ -21,10 +21,12 @@
 		Video,
 		Send,
 		Square,
-		Microphone
+		Microphone,
+		Plus
 	} from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 	import InteractiveAudio from "../../audio/interactive/InteractiveAudio.svelte";
+	import MobileAudioRecorder from "./MobileAudioRecorder.svelte";
 	import type { InputHTMLAttributes } from "./types";
 
 	export let value: { text: string; files: FileData[] } = {
@@ -76,6 +78,7 @@
 	// value can be null in multimodalchatinterface when loading a deep link
 	let oldValue = value?.text ?? "";
 	let recording = false;
+	let show_mobile_menu = false;
 
 	$: sources = sources_string
 		.split(",")
@@ -343,14 +346,12 @@
 			style="display: {value.files.length > 0 || uploading ? 'flex' : 'none'};"
 		>
 			{#each value.files as file, index}
-				<span role="listitem" aria-label="File thumbnail">
-					<button class="thumbnail-item thumbnail-small">
-						<button
-							class:disabled
-							class="delete-button"
-							on:click={(event) => remove_thumbnail(event, index)}
-							><Clear /></button
-						>
+				<div
+					class="thumbnail-wrapper"
+					role="listitem"
+					aria-label="File thumbnail"
+				>
+					<div class="thumbnail-item thumbnail-small">
 						{#if file.mime_type && file.mime_type.includes("image")}
 							<Image
 								src={file.url}
@@ -366,47 +367,120 @@
 						{:else}
 							<File />
 						{/if}
-					</button>
-				</span>
+						<button
+							class="delete-button"
+							on:click={(event) => remove_thumbnail(event, index)}
+							aria-label="Remove file"
+						>
+							<Clear />
+						</button>
+					</div>
+				</div>
 			{/each}
 			{#if uploading}
 				<div class="loader" role="status" aria-label="Uploading"></div>
 			{/if}
 		</div>
 	{/if}
-	{#if sources && sources.includes("microphone") && active_source === "microphone"}
-		<InteractiveAudio
-			on:change={({ detail }) => {
-				if (detail !== null) {
-					mic_audio = detail;
-				}
-			}}
-			on:clear={() => {
-				active_source = null;
-			}}
-			on:start_recording={() => dispatch("start_recording")}
-			on:pause_recording={() => dispatch("pause_recording")}
-			on:stop_recording={() => dispatch("stop_recording")}
-			sources={["microphone"]}
-			class_name="compact-audio"
-			{recording}
-			{waveform_settings}
-			{waveform_options}
-			{i18n}
-			{active_source}
-			{upload}
-			{stream_handler}
-			stream_every={1}
-			editable={true}
-			{label}
-			{root}
-			loop={false}
-			show_label={false}
-			show_download_button={false}
-			dragging={false}
-		/>
-	{/if}
 	<div class="input-container">
+		<div class="mobile-action-bar">
+			<button
+				class="mobile-plus-button"
+				class:active={show_mobile_menu}
+				on:click={() => (show_mobile_menu = !show_mobile_menu)}
+				{disabled}
+			>
+				<Plus />
+			</button>
+			{#if show_mobile_menu}
+				<div class="mobile-menu">
+					{#if sources && sources.includes("upload") && !(file_count === "single" && value.files.length > 0)}
+						<button
+							class="mobile-menu-item"
+							on:click={() => {
+								handle_upload_click();
+								show_mobile_menu = false;
+							}}
+							{disabled}
+						>
+							<Paperclip />
+						</button>
+					{/if}
+					{#if sources && sources.includes("microphone")}
+						<button
+							class="mobile-menu-item"
+							on:click={() => {
+								active_source =
+									active_source !== "microphone" ? "microphone" : null;
+								show_mobile_menu = false;
+							}}
+							{disabled}
+						>
+							<Microphone />
+						</button>
+					{/if}
+				</div>
+			{/if}
+		</div>
+
+		{#if sources && sources.includes("microphone") && active_source === "microphone"}
+			<div class="mobile-audio-recorder">
+				<MobileAudioRecorder
+					on:change={({ detail }) => {
+						if (detail !== null) {
+							value.files.push(detail);
+							value = value;
+						}
+					}}
+					on:close={() => {
+						active_source = null;
+					}}
+					on:start_recording={() => dispatch("start_recording")}
+					on:pause_recording={() => dispatch("pause_recording")}
+					on:stop_recording={() => dispatch("stop_recording")}
+					{recording}
+					{i18n}
+					{upload}
+					{label}
+					{root}
+					{max_file_size}
+				/>
+			</div>
+
+			<!-- Desktop audio recorder -->
+			<div class="desktop-audio-recorder">
+				<InteractiveAudio
+					on:change={({ detail }) => {
+						if (detail !== null) {
+							mic_audio = detail;
+						}
+					}}
+					on:clear={() => {
+						active_source = null;
+					}}
+					on:start_recording={() => dispatch("start_recording")}
+					on:pause_recording={() => dispatch("pause_recording")}
+					on:stop_recording={() => dispatch("stop_recording")}
+					sources={["microphone"]}
+					class_name="compact-audio"
+					{recording}
+					{waveform_settings}
+					{waveform_options}
+					{i18n}
+					{active_source}
+					{upload}
+					{stream_handler}
+					stream_every={1}
+					editable={true}
+					{label}
+					{root}
+					loop={false}
+					show_label={false}
+					show_download_button={false}
+					dragging={false}
+				/>
+			</div>
+		{/if}
 		{#if sources && sources.includes("upload") && !(file_count === "single" && value.files.length > 0)}
 			<Upload
 				bind:this={upload_component}
@@ -426,7 +500,7 @@
 			/>
 			<button
 				data-testid="upload-button"
-				class="upload-button"
+				class="upload-button desktop-only"
 				{disabled}
 				on:click={disabled ? undefined : handle_upload_click}
 				><Paperclip /></button
@@ -435,7 +509,7 @@
 		{#if sources && sources.includes("microphone")}
 			<button
 				data-testid="microphone-button"
-				class="microphone-button"
+				class="microphone-button desktop-only"
 				class:recording
 				{disabled}
 				on:click={disabled
@@ -534,7 +608,6 @@
 	.input-container {
 		display: flex;
 		position: relative;
-		align-items: flex-end;
 	}
 
 	textarea {
@@ -684,103 +757,126 @@
 		gap: var(--spacing-lg);
 		overflow-x: scroll;
 		padding-top: var(--spacing-sm);
-		margin-bottom: 6px;
+		margin-bottom: var(--spacing-sm);
+		padding-bottom: var(--spacing-xl);
+	}
+
+	.thumbnail-wrapper {
+		position: relative;
+		flex-shrink: 0;
 	}
 
 	.thumbnail-item {
+		position: relative;
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		--ring-color: transparent;
-		position: relative;
-		box-shadow:
-			0 0 0 2px var(--ring-color),
-			var(--shadow-drop);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-lg);
 		background: var(--background-fill-secondary);
 		aspect-ratio: var(--ratio-square);
 		width: var(--size-full);
 		height: var(--size-full);
-		cursor: default;
+		overflow: hidden;
 	}
 
 	.thumbnail-small {
-		flex: none;
-		transform: scale(0.9);
-		transition: 0.075s;
-		width: var(--size-12);
-		height: var(--size-12);
+		width: var(--size-10);
+		height: var(--size-10);
 	}
 
 	.thumbnail-item :global(svg) {
 		width: 30px;
 		height: 30px;
+		color: var(--body-text-color-subdued);
 	}
 
+	/* Desktop-only elements - hidden on mobile */
+	.desktop-only {
+		display: flex;
+	}
+
+	.mobile-action-bar,
+	.mobile-audio-recorder {
+		display: none;
+	}
+
+	/* Delete button - full thumbnail overlay, hidden by default on desktop */
 	.delete-button {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		width: 100%;
+		height: 100%;
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		position: absolute;
-		right: -7px;
-		top: -7px;
-		color: var(--button-secondary-text-color);
-		background: var(--button-secondary-background-fill);
+		color: white;
+		background: rgba(0, 0, 0, 0.6);
+		backdrop-filter: blur(4px);
 		border: none;
-		text-align: center;
-		text-decoration: none;
-		font-size: 10px;
 		cursor: pointer;
-		border-radius: 50%;
+		border-radius: var(--radius-lg);
+		padding: 0;
+		z-index: 1;
+		opacity: 0;
+		transition: opacity 0.2s ease;
+	}
+
+	.delete-button :global(svg) {
 		width: 20px;
 		height: 20px;
 	}
 
-	.disabled {
-		display: none;
-	}
-
-	.delete-button :global(svg) {
-		width: 12px;
-		height: 12px;
+	/* Show on hover for desktop */
+	.thumbnail-item:hover .delete-button {
+		opacity: 1;
 	}
 
 	.delete-button:hover {
-		filter: brightness(1.2);
-		border: 0.8px solid var(--color-grey-500);
+		background: rgba(0, 0, 0, 0.8);
 	}
 
 	@media (max-width: 768px) {
+		/* Hide desktop elements, show mobile elements */
+		.desktop-only {
+			display: none !important;
+		}
+
+		.desktop-audio-recorder {
+			display: none !important;
+		}
+
+		.mobile-action-bar,
+		.mobile-audio-recorder {
+			display: flex;
+		}
+
+		.input-container {
+			flex-direction: column;
+		}
+
 		textarea {
 			min-height: 100px;
-			padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-xxl)
-				var(--spacing-lg);
-			padding-bottom: 60px;
+			padding: var(--spacing-xl) var(--spacing-xl) var(--spacing-xxl)
+				var(--spacing-xl);
+			padding-bottom: 64px;
 		}
 
 		textarea.no-label {
-			padding-top: var(--spacing-lg);
-			padding-bottom: 60px;
+			padding-top: var(--spacing-xl);
+			padding-bottom: 64px;
 		}
 
 		.full-container {
 			padding: 0;
 		}
 
-		.upload-button {
-			position: absolute;
-			bottom: var(--spacing-lg);
-			left: var(--spacing-lg);
-			margin: 0;
-		}
-
-		.microphone-button {
-			position: absolute;
-			bottom: var(--spacing-lg);
-			left: var(--spacing-lg);
-			margin: 0;
-			transform: translateX(calc(100% + var(--spacing-sm)));
+		.thumbnails {
+			padding: var(--input-padding) var(--input-padding) 0 var(--input-padding);
+			margin-bottom: 0;
 		}
 
 		.submit-button,
@@ -792,6 +888,88 @@
 			min-width: 40px;
 			height: 40px;
 			border-radius: 50%;
+		}
+
+		.thumbnail-item:active .delete-button {
+			opacity: 1;
+		}
+
+		.mobile-action-bar {
+			position: absolute;
+			bottom: var(--spacing-lg);
+			left: var(--spacing-lg);
+			display: flex;
+			align-items: center;
+			gap: var(--spacing-sm);
+			z-index: var(--layer-2);
+		}
+
+		.mobile-plus-button {
+			margin: 0;
+			border: none;
+			background: var(--button-secondary-background-fill);
+			color: var(--button-secondary-text-color);
+			border-radius: 50%;
+			width: 40px;
+			height: 40px;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			cursor: pointer;
+			flex-shrink: 0;
+		}
+
+		.mobile-plus-button:hover:not(:disabled) {
+			background: var(--button-secondary-background-fill-hover);
+		}
+
+		.mobile-plus-button:disabled {
+			cursor: not-allowed;
+			opacity: 0.5;
+		}
+
+		.mobile-plus-button :global(svg) {
+			width: 22px;
+			height: 22px;
+			transition: transform 0.2s ease;
+		}
+
+		.mobile-plus-button.active :global(svg) {
+			transform: rotate(45deg);
+		}
+
+		.mobile-menu {
+			display: flex;
+			align-items: center;
+			gap: var(--spacing-sm);
+		}
+
+		.mobile-menu-item {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border: none;
+			background: var(--button-secondary-background-fill);
+			color: var(--button-secondary-text-color);
+			cursor: pointer;
+			border-radius: 50%;
+			width: 40px;
+			height: 40px;
+			flex-shrink: 0;
+		}
+
+		.mobile-menu-item:hover:not(:disabled) {
+			background: var(--button-secondary-background-fill-hover);
+		}
+
+		.mobile-menu-item:disabled {
+			cursor: not-allowed;
+			opacity: 0.5;
+		}
+
+		.mobile-menu-item :global(svg) {
+			width: 20px;
+			height: 20px;
 		}
 	}
 </style>
