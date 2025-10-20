@@ -137,8 +137,8 @@ The simplest way to make a prediction is simply to call the `.predict()` functio
 ```python
 from gradio_client import Client
 
-client = Client("abidlabs/en2fr", api_name='/predict')
-client.predict("Hello")
+client = Client("abidlabs/en2fr")
+client.predict("Hello", api_name='/predict')
 
 >> Bonjour
 ```

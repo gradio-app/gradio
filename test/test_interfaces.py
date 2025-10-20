@@ -285,8 +285,12 @@ def test_live_interface_sets_always_last():
 
 
 def test_tabbed_interface_predictions(connect):
-    hello_world = gradio.Interface(lambda name: "Hello " + name, "text", "text")
-    bye_world = gradio.Interface(lambda name: "Bye " + name, "text", "text")
+    hello_world = gradio.Interface(
+        lambda name: "Hello " + name, "text", "text", api_name="predict"
+    )
+    bye_world = gradio.Interface(
+        lambda name: "Bye " + name, "text", "text", api_name="predict"
+    )
 
     demo = gradio.TabbedInterface(
         [hello_world, bye_world], ["Hello World", "Bye World"]

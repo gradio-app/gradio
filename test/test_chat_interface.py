@@ -273,7 +273,7 @@ class TestInit:
 
 class TestAPI:
     def test_get_api_info(self):
-        chatbot = gr.ChatInterface(double)
+        chatbot = gr.ChatInterface(double, api_name="chat")
         api_info = chatbot.get_api_info()
         assert api_info
         assert len(api_info["named_endpoints"]) == 1
@@ -332,6 +332,7 @@ class TestAPI:
         chatbot = gr.ChatInterface(
             double_multimodal,
             multimodal=True,
+            api_name="chat",
         )
         with connect(chatbot) as client:
             result = client.predict({"text": "hello", "files": []}, api_name="/chat")
@@ -344,6 +345,7 @@ class TestAPI:
         chatbot = gr.ChatInterface(
             mock_chat_fn,
             multimodal=True,
+            api_name="chat",
         )
         with connect(chatbot) as client:
             result = client.predict(
@@ -362,6 +364,7 @@ class TestAPI:
         chatbot = gr.ChatInterface(
             multiple_messages,
             multimodal=True,
+            api_name="chat",
         )
         with connect(chatbot) as client:
             result = client.predict({"text": "hello", "files": []}, api_name="/chat")
@@ -433,7 +436,9 @@ class TestExampleMessages:
             return str(random_number)
 
         chat = gr.ChatInterface(
-            response, additional_inputs=[gr.Textbox(label="Random number")]
+            response,
+            additional_inputs=[gr.Textbox(label="Random number")],
+            api_name="chat",
         )
         with connect(chat) as client:
             endpoints = client.view_api(return_format="dict")["named_endpoints"]
