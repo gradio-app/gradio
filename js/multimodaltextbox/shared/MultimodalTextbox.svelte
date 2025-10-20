@@ -750,4 +750,48 @@
 		filter: brightness(1.2);
 		border: 0.8px solid var(--color-grey-500);
 	}
+
+	@media (max-width: 768px) {
+		textarea {
+			min-height: 100px;
+			padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-xxl)
+				var(--spacing-lg);
+			padding-bottom: 60px;
+		}
+
+		textarea.no-label {
+			padding-top: var(--spacing-lg);
+			padding-bottom: 60px;
+		}
+
+		.full-container {
+			padding: 0;
+		}
+
+		.upload-button {
+			position: absolute;
+			bottom: var(--spacing-lg);
+			left: var(--spacing-lg);
+			margin: 0;
+		}
+
+		.microphone-button {
+			position: absolute;
+			bottom: var(--spacing-lg);
+			left: var(--spacing-lg);
+			margin: 0;
+			transform: translateX(calc(100% + var(--spacing-sm)));
+		}
+
+		.submit-button,
+		.stop-button {
+			position: absolute;
+			bottom: var(--spacing-lg);
+			right: var(--spacing-lg);
+			margin: 0;
+			min-width: 40px;
+			height: 40px;
+			border-radius: 50%;
+		}
+	}
 </style>
