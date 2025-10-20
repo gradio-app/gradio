@@ -40,11 +40,20 @@
 	<Chatbot
 		latex_delimiters={[{ left: "$$", right: "$$", display: true }]}
 		value={[
-			{ role: "user", content: [{type: "text", text: "Can you write a function in Python?" }] },
-			{ role: "assistant", content: [{type: "text", text: "```py\ndef test():\n\tprint(x)\n```" }] },
-			{ role: "user", content: [{type: "text", text: "Can you do math?" }] },
-			{ role: "assistant", content: [{type: "text", text: "$$1+1=2$$" }] },
-			{ role: "user", content: [{type: "text", text: "Can you say nothing?" }] }
+			{
+				role: "user",
+				content: [{ type: "text", text: "Can you write a function in Python?" }]
+			},
+			{
+				role: "assistant",
+				content: [{ type: "text", text: "```py\ndef test():\n\tprint(x)\n```" }]
+			},
+			{ role: "user", content: [{ type: "text", text: "Can you do math?" }] },
+			{ role: "assistant", content: [{ type: "text", text: "$$1+1=2$$" }] },
+			{
+				role: "user",
+				content: [{ type: "text", text: "Can you say nothing?" }]
+			}
 		]}
 		{...args}
 	/>
@@ -73,22 +82,36 @@
 		value: [
 			{
 				role: "user",
-				content:
-					[{type: "text", text: "حلّت التجارية عرض لم, كرسي قادة دار كل. ما خيار ماذا بمحاولة به،. كما عن تونس إيطاليا. يتم بـ لأداء حادثة معزّزة."}]
+				content: [
+					{
+						type: "text",
+						text: "حلّت التجارية عرض لم, كرسي قادة دار كل. ما خيار ماذا بمحاولة به،. كما عن تونس إيطاليا. يتم بـ لأداء حادثة معزّزة."
+					}
+				]
 			},
 			{
 				role: "assistant",
-				content:
-					[{type: "text", text: "إعادة احداث اعلان بين قد, ما القوى الحكومة التغييرات جهة. قبل و يذكر الإمتعاض, أوسع وشعار إستعمل بعد تم. سبتمبر الصفحة عل أضف, أي وفي الدمج تشكيل وصافرات. حيث قد بقسوة هاربر بأيدي, أملاً نتيجة الثالث ما على, ثم مدن للسيطرة بالتوقيع. هذه ان حقول أخرى."}]
+				content: [
+					{
+						type: "text",
+						text: "إعادة احداث اعلان بين قد, ما القوى الحكومة التغييرات جهة. قبل و يذكر الإمتعاض, أوسع وشعار إستعمل بعد تم. سبتمبر الصفحة عل أضف, أي وفي الدمج تشكيل وصافرات. حيث قد بقسوة هاربر بأيدي, أملاً نتيجة الثالث ما على, ثم مدن للسيطرة بالتوقيع. هذه ان حقول أخرى."
+					}
+				]
 			},
 			{
 				role: "user",
-				content:
-					[{type: "text", text: "أي وتنصيب الصعداء انه. تاريخ بالجانب هو فصل, أخذ لمحاكم الإتفاقية ان. كنقطة بالعمل التكاليف شيء مع, وجزر الهادي كان و, أي حدى يطول الحكومة اليابان. حيث كرسي لتقليعة الاندونيسية تم, للصين وبغطاء بال بل. ٣٠ لهذه قتيل، ارتكبها كلا. سابق وبدأت تم ذات."}]
+				content: [
+					{
+						type: "text",
+						text: "أي وتنصيب الصعداء انه. تاريخ بالجانب هو فصل, أخذ لمحاكم الإتفاقية ان. كنقطة بالعمل التكاليف شيء مع, وجزر الهادي كان و, أي حدى يطول الحكومة اليابان. حيث كرسي لتقليعة الاندونيسية تم, للصين وبغطاء بال بل. ٣٠ لهذه قتيل، ارتكبها كلا. سابق وبدأت تم ذات."
+					}
+				]
 			},
 			{
 				role: "assistant",
-				content: [{type: "text", text: "اليف نفس. ما يتبقّ لبولندا، استراليا، دول."}]
+				content: [
+					{ type: "text", text: "اليف نفس. ما يتبقّ لبولندا، استراليا، دول." }
+				]
 			}
 		]
 	}}
@@ -162,17 +185,25 @@ This document is a showcase of various Markdown capabilities.`
 		value: [
 			{
 				role: "user",
-				content: [{type: "text", text: `Creating tables in Markdown is straightforward:
+				content: [
+					{
+						type: "text",
+						text: `Creating tables in Markdown is straightforward:
 
 | Header 1 | Header 2 | Header 3 |
 |----------|----------|----------|
 | Row 1, Cell 1 | Row 1, Cell 2 | Row 1, Cell 3 |
 | Row 2, Cell 1 | Row 2, Cell 2 | Row 2, Cell 3 |
 | Row 3, Cell 1 | Row 3, Cell 2 | Row 3, Cell 3 |`
-			}]},
+					}
+				]
+			},
 			{
 				role: "assistant",
-				content: [{type: "text", text: `### Unordered List
+				content: [
+					{
+						type: "text",
+						text: `### Unordered List
 
 - Item 1
 - Item 2
@@ -187,9 +218,11 @@ This document is a showcase of various Markdown capabilities.`
    1. Subitem 2.1
    2. Subitem 2.2
 3. Third Item`
+					}
+				]
 			}
 		]
-	}]}}
+	}}
 />
 
 <Story
@@ -198,7 +231,12 @@ This document is a showcase of various Markdown capabilities.`
 		value: [
 			{
 				role: "user",
-				content: [{type: "text", text: `![A cheetah](https://cdn.britannica.com/02/92702-120-6A02E613/Cheetah.jpg)`}]
+				content: [
+					{
+						type: "text",
+						text: `![A cheetah](https://cdn.britannica.com/02/92702-120-6A02E613/Cheetah.jpg)`
+					}
+				]
 			}
 		]
 	}}

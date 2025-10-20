@@ -108,6 +108,7 @@ export interface EditData {
 	index: number | [number, number];
 	value: string;
 	previous_value: string;
+	_dispatch_value: { type: "text"; text: string }[];
 }
 
 const redirect_src_url = (src: string, root: string): string =>

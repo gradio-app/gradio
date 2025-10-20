@@ -988,7 +988,7 @@ class ChatInterface(Blocks):
             history = history[: edit_data.index[0]]
         else:
             history = history[: edit_data.index]
-        return history, history, edit_data.value[0]["text"]
+        return history, history, edit_data.value
 
     def example_clicked(
         self, example: SelectData
