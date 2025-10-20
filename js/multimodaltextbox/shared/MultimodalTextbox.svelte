@@ -19,7 +19,7 @@
 		Music,
 		Paperclip,
 		Video,
-		Send,
+		ArrowUp,
 		Square,
 		Microphone,
 		Plus
@@ -560,7 +560,7 @@
 				on:click={disabled ? undefined : handle_submit}
 			>
 				{#if submit_btn === true}
-					<Send />
+					<ArrowUp />
 				{:else}
 					{submit_btn}
 				{/if}
@@ -608,6 +608,7 @@
 	.input-container {
 		display: flex;
 		position: relative;
+		gap: var(--spacing-sm);
 	}
 
 	textarea {
@@ -672,7 +673,6 @@
 		justify-content: center;
 		align-items: center;
 		z-index: var(--layer-1);
-		margin-left: var(--spacing-sm);
 	}
 	.padded-button {
 		padding: 0 10px;
@@ -707,8 +707,8 @@
 	}
 
 	.submit-button :global(svg) {
-		height: 22px;
-		width: 22px;
+		height: var(--size-4);
+		width: var(--size-4);
 	}
 	.microphone-button :global(svg),
 	.upload-button :global(svg) {
@@ -820,7 +820,7 @@
 		padding: 0;
 		z-index: 1;
 		opacity: 0;
-		transition: opacity 0.2s ease;
+		transition: opacity 0.1s ease;
 	}
 
 	.delete-button :global(svg) {
@@ -855,7 +855,8 @@
 		}
 
 		textarea {
-			min-height: 100px;
+			min-height: 100px !important;
+			height: auto !important;
 			padding: var(--spacing-xl) var(--spacing-xl) var(--spacing-xxl)
 				var(--spacing-xl);
 			padding-bottom: 64px;
@@ -900,8 +901,7 @@
 			z-index: var(--layer-2);
 		}
 
-		.mobile-plus-button,
-		.mobile-menu-item {
+		.mobile-plus-button {
 			margin: 0;
 			border: none;
 			background: var(--button-secondary-background-fill);
@@ -916,13 +916,11 @@
 			flex-shrink: 0;
 		}
 
-		.mobile-plus-button:hover:not(:disabled),
-		.mobile-menu-item:hover:not(:disabled) {
+		.mobile-plus-button:hover:not(:disabled) {
 			background: var(--button-secondary-background-fill-hover);
 		}
 
-		.mobile-plus-button:disabled,
-		.mobile-menu-item:disabled {
+		.mobile-plus-button:disabled {
 			cursor: not-allowed;
 			opacity: 0.5;
 		}
@@ -930,7 +928,6 @@
 		.mobile-plus-button :global(svg) {
 			width: 22px;
 			height: 22px;
-			transition: transform 0.2s ease;
 		}
 
 		.mobile-plus-button.active :global(svg) {
@@ -943,9 +940,39 @@
 			gap: var(--spacing-sm);
 		}
 
+		.mobile-menu-item {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border: none;
+			background: var(--button-secondary-background-fill);
+			color: var(--button-secondary-text-color);
+			cursor: pointer;
+			border-radius: 50%;
+			width: var(--size-10);
+			height: var(--size-10);
+			flex-shrink: 0;
+		}
+
+		.mobile-menu-item:hover:not(:disabled) {
+			background: var(--button-secondary-background-fill-hover);
+		}
+
+		.mobile-menu-item:disabled {
+			cursor: not-allowed;
+			opacity: 0.5;
+		}
+
 		.mobile-menu-item :global(svg) {
 			width: 20px;
 			height: 20px;
+		}
+	}
+
+	@media (min-width: 769px) {
+		textarea {
+			min-height: auto !important;
+			height: auto !important;
 		}
 	}
 </style>
