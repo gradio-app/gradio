@@ -115,16 +115,6 @@ class MessageDict(TypedDict):
     options: NotRequired[list[OptionDict]]
 
 
-NormalizedMessageContent = Union[TextMessageDict, FileDataDict, ComponentMessageDict]
-
-
-class NormalizedMessageDict(TypedDict):
-    content: list[NormalizedMessageContent]
-    role: Literal["user", "assistant", "system"]
-    metadata: NotRequired[MetadataDict]
-    options: NotRequired[list[OptionDict]]
-
-
 class FileMessage(GradioModel):
     file: FileData
     alt_text: str | None = None
@@ -135,6 +125,16 @@ class FileMessageDict(TypedDict):
     file: FileDataDict
     alt_text: NotRequired[str | None]
     type: Literal["file"]
+
+
+NormalizedMessageContent = Union[TextMessageDict, FileMessageDict, ComponentMessageDict]
+
+
+class NormalizedMessageDict(TypedDict):
+    content: list[NormalizedMessageContent]
+    role: Literal["user", "assistant", "system"]
+    metadata: NotRequired[MetadataDict]
+    options: NotRequired[list[OptionDict]]
 
 
 class Message(GradioModel):
