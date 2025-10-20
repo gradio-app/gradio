@@ -619,14 +619,22 @@ class Client:
                 raise ValueError(
                     f"Could not fetch api info for {self.src}: {fetch.text}"
                 )
-        info["named_endpoints"] = {
-            a: e for a, e in info["named_endpoints"].items() if e.pop("show_api", True)
-        }
-        info["unnamed_endpoints"] = {
-            a: e
-            for a, e in info["unnamed_endpoints"].items()
-            if e.pop("show_api", True)
-        }
+        named_endpoints = {}
+        unnamed_endpoints = {}
+        for api_name, endpoint in info["named_endpoints"].items():
+            if (
+                "api_visibility" in endpoint
+                and endpoint.pop("api_visibility") != "private"
+            ) or (endpoint.pop("show_api", True)):
+                named_endpoints[api_name] = endpoint
+        for fn_index, endpoint in info["unnamed_endpoints"].items():
+            if (
+                "api_visibility" in endpoint
+                and endpoint.pop("api_visibility") != "private"
+            ) or (endpoint.pop("show_api", True)):
+                unnamed_endpoints[fn_index] = endpoint
+        info["unnamed_endpoints"] = unnamed_endpoints
+        info["named_endpoints"] = named_endpoints
         return info
 
     def view_api(
@@ -850,7 +858,7 @@ class Client:
         if api_name is not None:
             for i, d in enumerate(self.config["dependencies"]):
                 config_api_name = d.get("api_name")
-                if config_api_name is None or config_api_name is False:
+                if config_api_name is None or d.get("api_visibility") == "private":
                     continue
                 if "/" + config_api_name == api_name:
                     inferred_fn_index = d.get("id", i)
@@ -874,7 +882,7 @@ class Client:
                 if e.is_valid
                 and e.api_name is not None
                 and e.backend_fn is not None
-                and e.show_api
+                and e.api_visibility == "public"
             ]
             if len(valid_endpoints) == 1:
                 inferred_fn_index = valid_endpoints[0].fn_index
@@ -988,7 +996,7 @@ class Endpoint:
         self.fn_index = fn_index
         self.dependency = dependency
         api_name = dependency.get("api_name")
-        self.api_name: str | Literal[False] | None = (
+        self.api_name: str | None = (
             "/" + api_name if isinstance(api_name, str) else api_name
         )
         self._info = self.client._info
@@ -1001,11 +1009,20 @@ class Endpoint:
         ]
         self.parameters_info = self._get_parameters_info()
         self.root_url = self.client.src_prefixed
+        self.backend_fn = dependency.get("backend_fn")
 
         # Disallow hitting endpoints that the Gradio app has disabled
-        self.is_valid = self.api_name is not False
-        self.backend_fn = dependency.get("backend_fn")
-        self.show_api = dependency.get("show_api")
+        if "api_visibility" in dependency:
+            self.is_valid = dependency["api_visibility"] != "private"
+            self.api_visibility = dependency["api_visibility"]
+        else:
+            self.is_valid = dependency.get("api_name") is not False
+            if not self.is_valid:
+                self.api_visibility = "private"
+            elif dependency.get("show_api") is False:
+                self.api_visibility = "undocumented"
+            else:
+                self.api_visibility = "public"
 
     def _get_component_type(self, component_id: int):
         component = next(

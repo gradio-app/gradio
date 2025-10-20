@@ -83,5 +83,11 @@
     "@gradio/vibeeditor": "0.2.3",
     "@gradio/video": "0.15.1"
   },
-  "changesets": []
+  "changesets": [
+    "afraid-signs-judge",
+    "hot-doodles-laugh",
+    "ready-olives-pay",
+    "ripe-sloths-post",
+    "sour-sides-attend"
+  ]
 }

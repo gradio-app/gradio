@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import warnings
 from collections.abc import Callable, Sequence, Set
 from typing import (
     TYPE_CHECKING,
@@ -76,7 +75,6 @@ class NativePlot(Component):
         buttons: list[Literal["fullscreen", "export"]] | None = None,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
-        **kwargs,
     ):
         """
         Parameters:
@@ -155,22 +153,6 @@ class NativePlot(Component):
             every=every,
             inputs=inputs,
         )
-        for key_, val in kwargs.items():
-            if key_ == "color_legend_title":
-                self.color_title = val
-            if key_ in [
-                "stroke_dash",
-                "overlay_point",
-                "x_label_angle",
-                "y_label_angle",
-                "interactive",
-                "show_actions_button",
-                "color_legend_title",
-                "width",
-            ]:
-                warnings.warn(
-                    f"Argument '{key_}' has been deprecated.", DeprecationWarning
-                )
 
     def get_block_name(self) -> str:
         return "nativeplot"

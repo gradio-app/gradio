@@ -420,8 +420,8 @@ class TestExampleMessages:
         assert chat.examples_messages == []
 
     def test_chat_interface_api_name(self, connect):
-        chat = gr.ChatInterface(double, api_name=False)
-        assert chat.api_name is False
+        chat = gr.ChatInterface(double, api_visibility="private")
+        assert chat.api_visibility == "private"
         with connect(chat) as client:
             assert client.view_api(return_format="dict")["named_endpoints"] == {}
         chat = gr.ChatInterface(double, api_name="double")

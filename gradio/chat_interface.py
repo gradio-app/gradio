@@ -107,9 +107,9 @@ class ChatInterface(Blocks):
         show_progress: Literal["full", "minimal", "hidden"] = "minimal",
         fill_height: bool = True,
         fill_width: bool = False,
-        api_name: str | Literal[False] = "chat",
+        api_name: str | None = "chat",
         api_description: str | None | Literal[False] = None,
-        show_api: bool = True,
+        api_visibility: Literal["public", "private", "undocumented"] = "public",
         save_history: bool = False,
         validator: Callable | None = None,
         group_multimodal_data: bool = True,
@@ -151,9 +151,9 @@ class ChatInterface(Blocks):
             show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
             fill_height: if True, the chat interface will expand to the height of window.
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
-            api_name: defines how the chat endpoint appears in the API docs. Can be a string or False. If set to a string, the chat endpoint will be exposed in the API docs with the given name. If False, the chat endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to call this chat endpoint.
+            api_name: defines how the chat endpoint appears in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given name. If None, an auto-generated name will be used.
             api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
-            show_api: whether to show the chat endpoint in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
+            api_visibility: Controls the visibility of the chat endpoint. Can be "public" (shown in API docs and callable), "private" (hidden from API docs and not callable), or "undocumented" (hidden from API docs but callable).
             save_history: if True, will save the chat history to the browser's local storage and display previous conversations in a side panel.
             validator: a function that takes in the inputs and can optionally return a gr.validate() object for each input.
             group_multimodal_data: Whether the the multimodal data (text + files) from the MultimodalTextbox should be grouped into a single list in the `content` key of the message. This can be useful when working with multimodal models that require multimodal input to be grouped in the same message, e.g. {'role': 'user', 'content': ["What is in this image", {"path": "<url>"}]}. If False, the text and each file will be separate messages in the chat history. Only applies when `multimodal` is True.
@@ -172,9 +172,9 @@ class ChatInterface(Blocks):
             fill_width=fill_width,
             delete_cache=delete_cache,
         )
-        self.api_name: str | Literal[False] = api_name
+        self.api_name: str | None = api_name
         self.api_description: str | None | Literal[False] = api_description
-        self.show_api = show_api
+        self.api_visibility = api_visibility
         self.multimodal = multimodal
         self.concurrency_limit = concurrency_limit
         self.group_multimodal_data = group_multimodal_data
@@ -548,14 +548,14 @@ class ChatInterface(Blocks):
             "fn": lambda x: (x, x),
             "inputs": [self.chatbot],
             "outputs": [self.chatbot_state, self.chatbot_value],
-            "show_api": False,
+            "api_visibility": "undocumented",
             "queue": False,
         }
         submit_fn_kwargs = {
             "fn": submit_wrapped,
             "inputs": [self.saved_input, self.chatbot_state] + self.additional_inputs,
             "outputs": [self.null_component, self.chatbot] + self.additional_outputs,
-            "show_api": False,
+            "api_visibility": "undocumented",
             "concurrency_limit": cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
             ),
@@ -571,7 +571,7 @@ class ChatInterface(Blocks):
                 self.saved_conversations,
             ],
             "outputs": [self.conversation_id, self.saved_conversations],
-            "show_api": False,
+            "api_visibility": "undocumented",
             "queue": False,
         }
 
@@ -579,7 +579,7 @@ class ChatInterface(Blocks):
             self._clear_and_save_textbox,
             [self.textbox],
             [self.textbox, self.saved_input],
-            show_api=False,
+            api_visibility="undocumented",
             queue=bool(self.validator),
             validator=self.validator,
         )
@@ -588,7 +588,7 @@ class ChatInterface(Blocks):
             self._append_message_to_history,
             [self.saved_input, self.chatbot],
             [self.chatbot],
-            show_api=False,
+            api_visibility="undocumented",
             queue=False,
         ).then(
             **submit_fn_kwargs,
@@ -597,7 +597,7 @@ class ChatInterface(Blocks):
             lambda: update(value=None, interactive=True),
             None,
             self.textbox,
-            show_api=False,
+            api_visibility="undocumented",
         ).then(**save_fn_kwargs)
 
         # Creates the "/chat" API endpoint
@@ -607,7 +607,7 @@ class ChatInterface(Blocks):
             [self.api_response, self.chatbot_state] + self.additional_outputs,
             api_name=self.api_name,
             api_description=self.api_description,
-            show_api=self.show_api,
+            api_visibility=cast(Literal["public", "private"], self.api_visibility),
             concurrency_limit=cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
             ),
@@ -625,7 +625,7 @@ class ChatInterface(Blocks):
                     self.example_clicked,
                     None,
                     [self.chatbot, self.saved_input],
-                    show_api=False,
+                    api_visibility="undocumented",
                 )
                 if not self.cache_examples:
                     example_select_event = example_select_event.then(**submit_fn_kwargs)
@@ -635,7 +635,7 @@ class ChatInterface(Blocks):
                     self.example_populated,
                     None,
                     [self.textbox],
-                    show_api=False,
+                    api_visibility="undocumented",
                 )
 
         retry_event = (
@@ -643,27 +643,27 @@ class ChatInterface(Blocks):
                 self._pop_last_user_message,
                 [self.chatbot_state],
                 [self.chatbot_state, self.saved_input],
-                show_api=False,
+                api_visibility="undocumented",
                 queue=False,
             )
             .then(
                 self._append_message_to_history,
                 [self.saved_input, self.chatbot_state],
                 [self.chatbot],
-                show_api=False,
+                api_visibility="undocumented",
                 queue=False,
             )
             .then(
                 lambda: update(interactive=False, placeholder=""),
                 outputs=[self.textbox],
-                show_api=False,
+                api_visibility="undocumented",
             )
             .then(**submit_fn_kwargs)
         )
         retry_event.then(**synchronize_chat_state_kwargs).then(
             lambda: update(interactive=True),
             outputs=[self.textbox],
-            show_api=False,
+            api_visibility="undocumented",
         ).then(**save_fn_kwargs)
 
         events_to_cancel = [submit_event, retry_event]
@@ -683,7 +683,7 @@ class ChatInterface(Blocks):
             self._pop_last_user_message,
             [self.chatbot],
             [self.chatbot, self.textbox],
-            show_api=False,
+            api_visibility="undocumented",
             queue=False,
         ).then(**synchronize_chat_state_kwargs).then(**save_fn_kwargs)
 
@@ -691,7 +691,7 @@ class ChatInterface(Blocks):
             self.option_clicked,
             [self.chatbot],
             [self.chatbot, self.saved_input],
-            show_api=False,
+            api_visibility="undocumented",
         ).then(**submit_fn_kwargs).then(**synchronize_chat_state_kwargs).then(
             **save_fn_kwargs
         )
@@ -700,7 +700,7 @@ class ChatInterface(Blocks):
             self._delete_conversation,
             [self.conversation_id, self.saved_conversations],
             [self.conversation_id, self.saved_conversations],
-            show_api=False,
+            api_visibility="undocumented",
             queue=False,
         )
 
@@ -709,7 +709,7 @@ class ChatInterface(Blocks):
                 self._edit_message,
                 [self.chatbot],
                 [self.chatbot, self.chatbot_state, self.saved_input],
-                show_api=False,
+                api_visibility="undocumented",
             ).success(**submit_fn_kwargs).success(**synchronize_chat_state_kwargs).then(
                 **save_fn_kwargs
             )
@@ -719,13 +719,13 @@ class ChatInterface(Blocks):
                 lambda: (None, []),
                 None,
                 [self.conversation_id, self.chatbot],
-                show_api=False,
+                api_visibility="undocumented",
                 queue=False,
             ).then(
                 lambda x: x,
                 [self.chatbot],
                 [self.chatbot_state],
-                show_api=False,
+                api_visibility="undocumented",
                 queue=False,
             )
 
@@ -734,7 +734,7 @@ class ChatInterface(Blocks):
                 fn=self._load_chat_history,
                 inputs=[self.saved_conversations],
                 outputs=[self.chat_history_dataset],
-                show_api=False,
+                api_visibility="undocumented",
                 queue=False,
             )
 
@@ -742,14 +742,14 @@ class ChatInterface(Blocks):
                 lambda: [],
                 None,
                 [self.chatbot],
-                show_api=False,
+                api_visibility="undocumented",
                 queue=False,
                 show_progress="hidden",
             ).then(
                 self._load_conversation,
                 [self.chat_history_dataset, self.saved_conversations],
                 [self.conversation_id, self.chatbot],
-                show_api=False,
+                api_visibility="undocumented",
                 queue=False,
                 show_progress="hidden",
             ).then(**synchronize_chat_state_kwargs)
@@ -764,7 +764,7 @@ class ChatInterface(Blocks):
             lambda x: x,
             [self.chatbot_value],
             [self.chatbot],
-            show_api=False,
+            api_visibility="undocumented",
         ).then(**synchronize_chat_state_kwargs)
 
     def _setup_stop_events(
@@ -784,7 +784,7 @@ class ChatInterface(Blocks):
             ),
             None,
             [self.textbox],
-            show_api=False,
+            api_visibility="undocumented",
             queue=False,
         )
         for event_trigger in event_triggers:
@@ -797,7 +797,7 @@ class ChatInterface(Blocks):
                 ),
                 None,
                 [self.textbox],
-                show_api=False,
+                api_visibility="undocumented",
                 queue=False,
             )
         for event_to_cancel in events_to_cancel:
@@ -809,7 +809,7 @@ class ChatInterface(Blocks):
                 ),
                 None,
                 [self.textbox],
-                show_api=False,
+                api_visibility="undocumented",
                 queue=False,
             )
         self.textbox.stop(
@@ -817,7 +817,7 @@ class ChatInterface(Blocks):
             None,
             None,
             cancels=events_to_cancel,  # type: ignore
-            show_api=False,
+            api_visibility="undocumented",
         )
 
     def _clear_and_save_textbox(

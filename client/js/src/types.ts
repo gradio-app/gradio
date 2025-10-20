@@ -179,7 +179,7 @@ export interface Config {
 	space_id: string | null;
 	is_space: boolean;
 	is_colab: boolean;
-	show_api: boolean;
+	footer_links: string[];
 	stylesheets: string[];
 	current_page: string;
 	page: Record<
@@ -270,7 +270,7 @@ export interface Dependency {
 	trigger_only_on_failure?: boolean;
 	trigger_mode: "once" | "multiple" | "always_last";
 	final_event: Payload | null;
-	show_api: boolean;
+	api_visibility: "public" | "private" | "undocumented";
 	rendered_in: number | null;
 	render_id: number | null;
 	connection: "stream" | "sse";
