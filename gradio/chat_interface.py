@@ -988,7 +988,7 @@ class ChatInterface(Blocks):
             history = history[: edit_data.index[0]]
         else:
             history = history[: edit_data.index]
-        return history, history, edit_data.value
+        return history, history, edit_data.value[0]["text"]
 
     def example_clicked(
         self, example: SelectData
@@ -1076,16 +1076,11 @@ class ChatInterface(Blocks):
             assert isinstance(msg, dict)  # noqa: S101
             if msg["role"] == "user":
                 content = msg["content"]
-                if isinstance(content, list):
-                    for item in content:
-                        if isinstance(item, dict) and "file" in item:
-                            files.append(item["file"])
-                        else:
-                            last_user_message = item
-                elif isinstance(content, dict) and "file" in content:
-                    files.append(content["file"])
-                else:
-                    last_user_message = content
+                for item in content:
+                    if item["type"] == "file":
+                        files.append(item["file"])
+                    else:
+                        last_user_message = item["text"]
         return_message = (
             {"text": last_user_message, "files": files}
             if self.multimodal

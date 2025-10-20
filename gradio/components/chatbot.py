@@ -529,6 +529,12 @@ class Chatbot(Component):
     ) -> Message | None:
         message = copy.deepcopy(message)
         role = message["role"] if isinstance(message, dict) else message.role
+        metadata = (
+            message.get("metadata") if isinstance(message, dict) else message.metadata
+        )
+        options = (
+            message.get("options") if isinstance(message, dict) else message.options
+        )
         if isinstance(message, dict) and not isinstance(message["content"], list):
             content_ = self._postprocess_content(
                 cast(MessageContent, message["content"])
@@ -547,7 +553,14 @@ class Chatbot(Component):
             if not content_postprocessed:
                 return None
         elif isinstance(message, ChatMessage):
-            content_postprocessed = self._postprocess_content(message.content)  # type: ignore
+            if not isinstance(message.content, list):
+                content_postprocessed = [self._postprocess_content(message.content)]  # type: ignore
+            else:
+                content_postprocessed = []
+                for content_item in message.content:
+                    item = self._postprocess_content(content_item)
+                    if item:
+                        content_postprocessed.append(item)
             if not content_postprocessed:
                 return None
         elif isinstance(message, Message):
@@ -559,6 +572,8 @@ class Chatbot(Component):
         return Message(
             role=role,
             content=content_postprocessed,
+            metadata=metadata,
+            options=options,
         )
 
     def postprocess(
