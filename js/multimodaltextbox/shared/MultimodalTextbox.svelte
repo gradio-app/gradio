@@ -727,7 +727,7 @@
 		align-items: center;
 		--ring-color: transparent;
 		position: relative;
-		border: 5px solid #f3f3f3;
+		border: 5px solid var(--border-color-primary);
 		border-top: 5px solid var(--color-accent);
 		border-radius: 50%;
 		width: 25px;
@@ -791,7 +791,6 @@
 		color: var(--body-text-color-subdued);
 	}
 
-	/* Desktop-only elements - hidden on mobile */
 	.desktop-only {
 		display: flex;
 	}
@@ -801,7 +800,6 @@
 		display: none;
 	}
 
-	/* Delete button - full thumbnail overlay, hidden by default on desktop */
 	.delete-button {
 		position: absolute;
 		top: 0;
@@ -813,7 +811,7 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		color: white;
+		color: var(--button-primary-text-color);
 		background: rgba(0, 0, 0, 0.6);
 		backdrop-filter: blur(4px);
 		border: none;
@@ -830,7 +828,6 @@
 		height: 20px;
 	}
 
-	/* Show on hover for desktop */
 	.thumbnail-item:hover .delete-button {
 		opacity: 1;
 	}
@@ -840,7 +837,6 @@
 	}
 
 	@media (max-width: 768px) {
-		/* Hide desktop elements, show mobile elements */
 		.desktop-only {
 			display: none !important;
 		}
@@ -904,7 +900,8 @@
 			z-index: var(--layer-2);
 		}
 
-		.mobile-plus-button {
+		.mobile-plus-button,
+		.mobile-menu-item {
 			margin: 0;
 			border: none;
 			background: var(--button-secondary-background-fill);
@@ -919,11 +916,13 @@
 			flex-shrink: 0;
 		}
 
-		.mobile-plus-button:hover:not(:disabled) {
+		.mobile-plus-button:hover:not(:disabled),
+		.mobile-menu-item:hover:not(:disabled) {
 			background: var(--button-secondary-background-fill-hover);
 		}
 
-		.mobile-plus-button:disabled {
+		.mobile-plus-button:disabled,
+		.mobile-menu-item:disabled {
 			cursor: not-allowed;
 			opacity: 0.5;
 		}
@@ -942,29 +941,6 @@
 			display: flex;
 			align-items: center;
 			gap: var(--spacing-sm);
-		}
-
-		.mobile-menu-item {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			border: none;
-			background: var(--button-secondary-background-fill);
-			color: var(--button-secondary-text-color);
-			cursor: pointer;
-			border-radius: 50%;
-			width: 40px;
-			height: 40px;
-			flex-shrink: 0;
-		}
-
-		.mobile-menu-item:hover:not(:disabled) {
-			background: var(--button-secondary-background-fill-hover);
-		}
-
-		.mobile-menu-item:disabled {
-			cursor: not-allowed;
-			opacity: 0.5;
 		}
 
 		.mobile-menu-item :global(svg) {
