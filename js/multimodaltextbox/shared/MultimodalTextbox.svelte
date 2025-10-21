@@ -26,7 +26,6 @@
 	} from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 	import InteractiveAudio from "../../audio/interactive/InteractiveAudio.svelte";
-	import MobileAudioRecorder from "./MobileAudioRecorder.svelte";
 	import type { InputHTMLAttributes } from "./types";
 
 	export let value: { text: string; files: FileData[] } = {
@@ -424,30 +423,6 @@
 		</div>
 
 		{#if sources && sources.includes("microphone") && active_source === "microphone"}
-			<div class="mobile-audio-recorder">
-				<MobileAudioRecorder
-					on:change={({ detail }) => {
-						if (detail !== null) {
-							value.files.push(detail);
-							value = value;
-						}
-					}}
-					on:close={() => {
-						active_source = null;
-					}}
-					on:start_recording={() => dispatch("start_recording")}
-					on:pause_recording={() => dispatch("pause_recording")}
-					on:stop_recording={() => dispatch("stop_recording")}
-					{recording}
-					{i18n}
-					{upload}
-					{label}
-					{root}
-					{max_file_size}
-				/>
-			</div>
-
-			<!-- Desktop audio recorder -->
 			<div class="desktop-audio-recorder">
 				<InteractiveAudio
 					on:change={({ detail }) => {
@@ -795,11 +770,6 @@
 		display: flex;
 	}
 
-	.mobile-action-bar,
-	.mobile-audio-recorder {
-		display: none;
-	}
-
 	.delete-button {
 		position: absolute;
 		top: 0;
@@ -843,11 +813,6 @@
 
 		.desktop-audio-recorder {
 			display: none !important;
-		}
-
-		.mobile-action-bar,
-		.mobile-audio-recorder {
-			display: flex;
 		}
 
 		.input-container {
