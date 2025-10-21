@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Improve multimodal textbox in mobile
+feat:Improve gr.MultimodalTextbox in mobile
