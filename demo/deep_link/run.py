@@ -9,6 +9,7 @@ with gr.Blocks() as demo:
         random_response,
         title="Greeting Bot",
         description="Ask anything and receive a nice greeting!",
+        api_name="chat",
     )
     gr.DeepLinkButton()
 

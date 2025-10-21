@@ -16,7 +16,7 @@ def predict(message, history):
     response = decoded.split("<|im_start|>assistant\n")[-1].split("<|im_end|>")[0]
     return response
 
-demo = gr.ChatInterface(predict)
+demo = gr.ChatInterface(predict, api_name="chat")
 
 if __name__ == "__main__":
     demo.launch()

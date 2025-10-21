@@ -14,7 +14,7 @@ def slow_echo(message, history):
     if "files" in message and message["files"]:
         yield f"Run {runs} - You typed: " + message['text'] + f" And you sent {len(message['files'])} files"
 
-chat = gr.ChatInterface(slow_echo, multimodal=True, group_multimodal_data=True)
+chat = gr.ChatInterface(slow_echo, multimodal=True)
 
 with gr.Blocks() as demo:
     chat.render()

@@ -13,7 +13,8 @@ with gr.Blocks() as demo:
             gr.Audio(),
             gr.Audio(),
             examples=[audio_file], 
-            cache_examples=True
+            cache_examples=True,
+            api_name="predict"
         )
     with gr.Tab("Streaming"):
         gr.Interface(
@@ -22,6 +23,7 @@ with gr.Blocks() as demo:
             "audio",
             examples=[audio_file],
             cache_examples=True,
+            api_name="predict"
         )
     with gr.Tab("console"):
         ip = gr.Textbox(label="User IP Address")
@@ -31,6 +33,7 @@ with gr.Blocks() as demo:
             .strip(),
             "text",
             "text",
+            api_name="predict"
         )
 
     def get_ip(request: gr.Request):

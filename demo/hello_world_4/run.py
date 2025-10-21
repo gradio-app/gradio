@@ -7,6 +7,7 @@ demo = gr.Interface(
     fn=greet,
     inputs=["text", "slider"],
     outputs=["text"],
+    api_name="predict"
 )
 
 if __name__ == "__main__":

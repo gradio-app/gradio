@@ -12,6 +12,7 @@ chat = gr.ChatInterface(
     flagging_options=["Like", "Spam", "Inappropriate", "Other"],
     save_history=False,
     multimodal=True,
+    api_name="chat"
 )
 
 with gr.Blocks() as demo:
@@ -27,6 +28,7 @@ with demo.route("cached_examples"):
                      outputs=gr.Textbox(label="Output"),
                      examples=[["Freddy", "Hello"]],
                      cache_examples=True,
+                     api_name="predict",
                      deep_link=True)
 
 

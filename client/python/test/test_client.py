@@ -332,7 +332,7 @@ class TestClientPredictions:
             assert count
 
     def test_upload_and_download_with_auth(self):
-        demo = gr.Interface(lambda x: x, "text", "text")
+        demo = gr.Interface(lambda x: x, "text", "text", api_name="predict")
         _, url, _ = demo.launch(auth=("user", "pass"), prevent_thread_lock=True)
         with pytest.raises(AuthenticationError):
             client = Client(url)
@@ -344,7 +344,7 @@ class TestClientPredictions:
             assert f.read() == "Hello file!"
 
     def test_upload_preserves_orig_name(self):
-        demo = gr.Interface(lambda x: x, "image", "text")
+        demo = gr.Interface(lambda x: x, "image", "text", api_name="predict")
         with connect(demo) as client:
             test_file = (
                 Path(__file__).parent.parent.parent.parent
@@ -507,9 +507,9 @@ class TestClientPredictions:
             assert demo.predict(api_name="/predict") == "\ta\nb" * 90000
 
     def test_queue_full_raises_error(self):
-        demo = gr.Interface(lambda s: f"Hello {s}", "textbox", "textbox").queue(
-            max_size=1
-        )
+        demo = gr.Interface(
+            lambda s: f"Hello {s}", "textbox", "textbox", api_name="predict"
+        ).queue(max_size=1)
         with connect(demo) as client:
             with pytest.raises(QueueError):
                 job1 = client.submit("Freddy", api_name="/predict")
@@ -529,7 +529,7 @@ class TestClientPredictions:
         def return_bad():
             return data
 
-        demo = gr.Interface(return_bad, None, ["text", "text"])
+        demo = gr.Interface(return_bad, None, ["text", "text"], api_name="predict")
         with connect(demo) as client:
             pred = client.predict(api_name="/predict")
             assert pred[0] == data[0]
@@ -570,7 +570,7 @@ class TestClientPredictions:
         def test():
             return """before\x85after"""
 
-        demo = gr.Interface(fn=test, inputs=[], outputs=["text"])
+        demo = gr.Interface(fn=test, inputs=[], outputs=["text"], api_name="predict")
         with connect(demo) as client:
             result = client.predict(api_name="/predict")
             assert result == "before\x85after"
