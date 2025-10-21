@@ -423,38 +423,36 @@
 		</div>
 
 		{#if sources && sources.includes("microphone") && active_source === "microphone"}
-			<div class="desktop-audio-recorder">
-				<InteractiveAudio
-					on:change={({ detail }) => {
-						if (detail !== null) {
-							mic_audio = detail;
-						}
-					}}
-					on:clear={() => {
-						active_source = null;
-					}}
-					on:start_recording={() => dispatch("start_recording")}
-					on:pause_recording={() => dispatch("pause_recording")}
-					on:stop_recording={() => dispatch("stop_recording")}
-					sources={["microphone"]}
-					class_name="compact-audio"
-					{recording}
-					{waveform_settings}
-					{waveform_options}
-					{i18n}
-					{active_source}
-					{upload}
-					{stream_handler}
-					stream_every={1}
-					editable={true}
-					{label}
-					{root}
-					loop={false}
-					show_label={false}
-					show_download_button={false}
-					dragging={false}
-				/>
-			</div>
+			<InteractiveAudio
+				on:change={({ detail }) => {
+					if (detail !== null) {
+						mic_audio = detail;
+					}
+				}}
+				on:clear={() => {
+					active_source = null;
+				}}
+				on:start_recording={() => dispatch("start_recording")}
+				on:pause_recording={() => dispatch("pause_recording")}
+				on:stop_recording={() => dispatch("stop_recording")}
+				sources={["microphone"]}
+				class_name="compact-audio"
+				{recording}
+				{waveform_settings}
+				{waveform_options}
+				{i18n}
+				{active_source}
+				{upload}
+				{stream_handler}
+				stream_every={1}
+				editable={true}
+				{label}
+				{root}
+				loop={false}
+				show_label={false}
+				show_download_button={false}
+				dragging={false}
+			/>
 		{/if}
 		{#if sources && sources.includes("upload") && !(file_count === "single" && value.files.length > 0)}
 			<Upload
