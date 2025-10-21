@@ -133,7 +133,7 @@ class TestChatbot:
 
         assert len(result) == 2
         assert result[0]["content"][0]["text"] == "Let me think about this."
-        assert result[0]["metadata"] == {"title": "Reasoning"}
+        assert result[0]["metadata"] == {"title": "Reasoning", "status": "done"}
         assert result[1]["content"][0]["text"] == "Here is my response."
         assert result[1]["metadata"] is None
 
@@ -150,11 +150,11 @@ class TestChatbot:
 
         assert len(result) == 4
         assert result[0]["content"][0]["text"] == "First thought."
-        assert result[0]["metadata"] == {"title": "Reasoning"}
+        assert result[0]["metadata"] == {"title": "Reasoning", "status": "done"}
         assert result[1]["content"][0]["text"] == "First response."
         assert result[1]["metadata"] is None
         assert result[2]["content"][0]["text"] == "Second thought."
-        assert result[2]["metadata"] == {"title": "Reasoning"}
+        assert result[2]["metadata"] == {"title": "Reasoning", "status": "done"}
         assert result[3]["content"][0]["text"] == "Second response."
         assert result[3]["metadata"] is None
 
@@ -171,7 +171,7 @@ class TestChatbot:
 
         assert len(result) == 1
         assert result[0]["content"][0]["text"] == "Only thinking here."
-        assert result[0]["metadata"] == {"title": "Reasoning"}
+        assert result[0]["metadata"] == {"title": "Reasoning", "status": "done"}
 
     def test_collapse_thinking_multiple_tag_types(self):
         """Test collapse_thinking with multiple tag types like <reasoning>"""
@@ -191,11 +191,11 @@ class TestChatbot:
 
         assert len(result) == 4
         assert result[0]["content"][0]["text"] == "Thinking block."
-        assert result[0]["metadata"] == {"title": "Reasoning"}
+        assert result[0]["metadata"] == {"title": "Reasoning", "status": "done"}
         assert result[1]["content"][0]["text"] == "First response."
         assert result[1]["metadata"] is None
         assert result[2]["content"][0]["text"] == "Reasoning block."
-        assert result[2]["metadata"] == {"title": "Reasoning"}
+        assert result[2]["metadata"] == {"title": "Reasoning", "status": "done"}
         assert result[3]["content"][0]["text"] == "Second response."
         assert result[3]["metadata"] is None
 
@@ -250,15 +250,15 @@ class TestChatbot:
         assert result[0]["content"][0]["text"] == "Intro."
         assert result[0]["metadata"] is None
         assert result[1]["content"][0]["text"] == "Think 1."
-        assert result[1]["metadata"] == {"title": "Reasoning"}
+        assert result[1]["metadata"] == {"title": "Reasoning", "status": "done"}
         assert result[2]["content"][0]["text"] == "Middle 1."
         assert result[2]["metadata"] is None
         assert result[3]["content"][0]["text"] == "Think 2."
-        assert result[3]["metadata"] == {"title": "Reasoning"}
+        assert result[3]["metadata"] == {"title": "Reasoning", "status": "done"}
         assert result[4]["content"][0]["text"] == "Middle 2."
         assert result[4]["metadata"] is None
         assert result[5]["content"][0]["text"] == "Think 3."
-        assert result[5]["metadata"] == {"title": "Reasoning"}
+        assert result[5]["metadata"] == {"title": "Reasoning", "status": "done"}
         assert result[6]["content"][0]["text"] == "Conclusion."
         assert result[6]["metadata"] is None
 
@@ -275,15 +275,15 @@ class TestChatbot:
 
         assert len(result) == 5
         assert result[0]["content"][0]["text"] == "Think 1."
-        assert result[0]["metadata"] == {"title": "Reasoning"}
+        assert result[0]["metadata"] == {"title": "Reasoning", "status": "done"}
         assert result[1]["content"][0]["text"] == "Think 2."
-        assert result[1]["metadata"] == {"title": "Reasoning"}
+        assert result[1]["metadata"] == {"title": "Reasoning", "status": "done"}
         assert result[2]["content"][0]["text"] == "Prose."
         assert result[2]["metadata"] is None
         assert result[3]["content"][0]["text"] == "Think 3."
-        assert result[3]["metadata"] == {"title": "Reasoning"}
+        assert result[3]["metadata"] == {"title": "Reasoning", "status": "done"}
         assert result[4]["content"][0]["text"] == "Think 4."
-        assert result[4]["metadata"] == {"title": "Reasoning"}
+        assert result[4]["metadata"] == {"title": "Reasoning", "status": "done"}
 
     def test_collapse_thinking_consecutive_prose_sections(self):
         """Test that consecutive prose sections get merged into one message"""
@@ -300,7 +300,7 @@ class TestChatbot:
         assert result[0]["content"][0]["text"] == "Prose 1. Prose 2."
         assert result[0]["metadata"] is None
         assert result[1]["content"][0]["text"] == "Think 1."
-        assert result[1]["metadata"] == {"title": "Reasoning"}
+        assert result[1]["metadata"] == {"title": "Reasoning", "status": "done"}
         assert result[2]["content"][0]["text"] == "Prose 3. Prose 4."
         assert result[2]["metadata"] is None
 
@@ -319,9 +319,45 @@ class TestChatbot:
         assert result[0]["content"][0]["text"] == "Starting with prose."
         assert result[0]["metadata"] is None
         assert result[1]["content"][0]["text"] == "Then thinking."
-        assert result[1]["metadata"] == {"title": "Reasoning"}
+        assert result[1]["metadata"] == {"title": "Reasoning", "status": "done"}
         assert result[2]["content"][0]["text"] == "Then more prose."
         assert result[2]["metadata"] is None
+
+    def test_collapse_thinking_sets_pending_correctly(self):
+        """Test prose at the start followed by thinking blocks"""
+        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "Starting with prose.<thinking>Then thinking",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 2
+        assert result[0]["content"][0]["text"] == "Starting with prose."
+        assert result[0]["metadata"] is None
+        assert result[1]["content"][0]["text"] == "Then thinking"
+        assert result[1]["metadata"] == {"title": "Reasoning", "status": "pending"}
+
+    def test_collapse_thinking_sets_pending_correctly_multiple_thinking(self):
+        """Test prose at the start followed by thinking blocks"""
+        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "Starting with prose.<thinking>Then thinking</thinking><thinking>More thinking",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 3
+        assert result[0]["content"][0]["text"] == "Starting with prose."
+        assert result[0]["metadata"] is None
+        assert result[1]["content"][0]["text"] == "Then thinking"
+        assert result[1]["metadata"] == {"title": "Reasoning", "status": "done"}
+        assert result[2]["content"][0]["text"] == "More thinking"
+        assert result[2]["metadata"] == {"title": "Reasoning", "status": "pending"}
 
     def test_collapse_thinking_multiple_thinking_only(self):
         """Test multiple consecutive thinking blocks with no prose at all"""
@@ -336,8 +372,8 @@ class TestChatbot:
 
         assert len(result) == 3
         assert result[0]["content"][0]["text"] == "Think 1."
-        assert result[0]["metadata"] == {"title": "Reasoning"}
+        assert result[0]["metadata"] == {"title": "Reasoning", "status": "done"}
         assert result[1]["content"][0]["text"] == "Think 2."
-        assert result[1]["metadata"] == {"title": "Reasoning"}
+        assert result[1]["metadata"] == {"title": "Reasoning", "status": "done"}
         assert result[2]["content"][0]["text"] == "Think 3."
-        assert result[2]["metadata"] == {"title": "Reasoning"}
+        assert result[2]["metadata"] == {"title": "Reasoning", "status": "done"}

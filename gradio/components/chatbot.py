@@ -582,12 +582,15 @@ class Chatbot(Component):
                     segments = self._extract_thinking_blocks(
                         content_item.text, self.collapse_thinking
                     )
-                    for text, is_thinking in segments:
+                    for text, is_thinking, status in segments:
                         if is_thinking:
                             thinking_message = Message(
                                 role=role,
                                 content=[TextMessage(text=text)],
-                                metadata={"title": "Reasoning"},
+                                metadata=cast(
+                                    MetadataDict,
+                                    {"title": "Reasoning", "status": status},
+                                ),
                             )
                             messages.append(thinking_message)
                         else:
@@ -620,7 +623,7 @@ class Chatbot(Component):
 
     def _extract_thinking_blocks(
         self, content: str, tags: list[tuple[str, str]]
-    ) -> list[tuple[str, bool]]:
+    ) -> list[tuple[str, bool, str]]:
         """
         Extract thinking blocks from content based on provided tags, preserving order.
 
@@ -629,7 +632,7 @@ class Chatbot(Component):
             tags: List of (open_tag, close_tag) tuples
 
         Returns:
-            A list of tuples (text, is_thinking) in order of appearance
+            A list of tuples (text, is_thinking, status) in order of appearance
         """
         import re
 
@@ -637,32 +640,34 @@ class Chatbot(Component):
         for open_tag, close_tag in tags:
             escaped_open = re.escape(open_tag)
             escaped_close = re.escape(close_tag)
-            patterns.append(f"({escaped_open})(.*?)({escaped_close})")
+            patterns.append(f"({escaped_open})(.*?)(?:{escaped_close}|$)")
 
         combined_pattern = "|".join(patterns)
 
         segments = []
         last_end = 0
-
         for match in re.finditer(combined_pattern, content, re.DOTALL):
             if match.start() > last_end:
                 prose = content[last_end : match.start()].strip()
                 if prose:
-                    segments.append((prose, False))
+                    segments.append([prose, False, "done"])
 
-            for i in range(1, len(match.groups()), 3):
+            thinking = None
+            for i in range(1, len(match.groups()), 2):
                 if match.group(i + 1) is not None:
                     thinking = match.group(i + 1).strip()
-                    if thinking:
-                        segments.append((thinking, True))
                     break
+
+            if thinking:
+                pending = not any(match.group(0).endswith(tag[1]) for tag in tags)
+                segments.append([thinking, True, "done" if not pending else "pending"])
 
             last_end = match.end()
 
         if last_end < len(content):
             prose = content[last_end:].strip()
             if prose:
-                segments.append((prose, False))
+                segments.append([prose, False, "done"])
 
         return segments
 
@@ -679,60 +684,6 @@ class Chatbot(Component):
         if value is None:
             return ChatbotDataMessages(root=[])
         self._check_format(value)
-
-        # processed_messages = []
-        # for message in value:
-        #     if self.collapse_thinking:
-        #         message_copy = copy.deepcopy(message)
-        #         content = (
-        #             message_copy.get("content")
-        #             if isinstance(message_copy, dict)
-        #             else message_copy.content  # type: ignore
-        #         )
-
-        #         if isinstance(content, str):
-        #             segments = self._extract_thinking_blocks(
-        #                 content, self.collapse_thinking
-        #             )
-
-        #             role = cast(
-        #                 Literal["assistant", "user", "system"],
-        #                 message_copy.get("role")
-        #                 if isinstance(message_copy, dict)
-        #                 else message_copy.role,  # type: ignore
-        #             )
-        #             for text, is_thinking in segments:
-        #                 if is_thinking:
-        #                     thinking_message = Message(
-        #                         role=role,
-        #                         content=text,
-        #                         metadata={"title": "Reasoning"},
-        #                     )
-        #                     processed_messages.append(thinking_message)
-        #                 else:
-        #                     if isinstance(message_copy, dict):
-        #                         prose_message = message_copy.copy()
-        #                         prose_message["content"] = text
-        #                     else:
-        #                         prose_message = ChatMessage(
-        #                             role=role,
-        #                             content=text,
-        #                             metadata=message_copy.metadata or {},  # type: ignore
-        #                             options=message_copy.options or [],  # type: ignore
-        #                         )
-        #                     processed_messages.append(
-        #                         self._postprocess_messages(
-        #                             cast(MessageDict, prose_message)
-        #                         )
-        #                     )
-        #         else:
-        #             processed_messages.append(
-        #                 self._postprocess_messages(cast(MessageDict, message))
-        #             )
-        #     else:
-        #         processed_messages.append(
-        #             self._postprocess_messages(cast(MessageDict, message))
-        #         )
 
         processed_messages = []
         for message in value:
