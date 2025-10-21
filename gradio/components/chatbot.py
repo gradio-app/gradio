@@ -640,6 +640,7 @@ class Chatbot(Component):
         for open_tag, close_tag in tags:
             escaped_open = re.escape(open_tag)
             escaped_close = re.escape(close_tag)
+            # match opening tag, and either the closing tag or the end of the string
             patterns.append(f"({escaped_open})(.*?)(?:{escaped_close}|$)")
 
         combined_pattern = "|".join(patterns)
