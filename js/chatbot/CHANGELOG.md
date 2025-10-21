@@ -1,5 +1,16 @@
 # @gradio/chatbot
 
+## 0.28.0-dev.1
+
+### Features
+
+- [#12051](https://github.com/gradio-app/gradio/pull/12051) [`15458a8`](https://github.com/gradio-app/gradio/commit/15458a87ac63346ed3443f4abc54cdf2b9ac267e) - Extend Chatbot Message Format.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.1
+- @gradio/gallery@0.15.35-dev.1
+
 ## 0.28.0-dev.0
 
 ### Features
