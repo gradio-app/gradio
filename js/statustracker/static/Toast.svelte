@@ -45,19 +45,23 @@
 		--toast-top: var(--size-4);
 		display: flex;
 		position: fixed;
-		top: calc(var(--toast-top) + var(--size-4));
-		right: var(--size-4);
-
+		top: calc(var(--toast-top) + var(--size-3));
+		right: var(--size-3);
+		left: var(--size-3);
 		flex-direction: column;
-		align-items: end;
+		align-items: stretch;
 		gap: var(--size-2);
 		z-index: var(--layer-top);
-		width: calc(100% - var(--size-8));
+		max-width: 100%;
 	}
 
 	@media (--screen-sm) {
 		.toast-wrap {
-			width: calc(var(--size-96) + var(--size-10));
+			left: auto;
+			right: var(--size-4);
+			width: auto;
+			max-width: min(90vw, var(--size-96));
+			align-items: end;
 		}
 	}
 </style>
