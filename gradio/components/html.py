@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Literal
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
-from gradio.events import Events
+from gradio.events import all_events
 from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
@@ -24,13 +24,16 @@ class HTML(Component):
     Guides: key-features
     """
 
-    EVENTS = [Events.change, Events.click]
+    EVENTS = all_events
 
     def __init__(
         self,
         value: str | Callable | None = None,
         *,
         label: str | I18nData | None = None,
+        html_template: str = "${value}",
+        css_template: str = "",
+        js_on_load: str | None = "element.addEventListener('click', function() { trigger('click') });",
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool = False,
@@ -45,11 +48,15 @@ class HTML(Component):
         container: bool = False,
         padding: bool = True,
         autoscroll: bool = False,
+        **props: dict[str, Any],
     ):
         """
         Parameters:
-            value: The HTML content to display. Only static HTML is rendered (e.g. no JavaScript. To render JavaScript, use the `js` or `head` parameters in the `Blocks` constructor). If a function is provided, the function will be called each time the app loads to set the initial value of this component.
+            value: The HTML content in the ${value} tag in the html_template. For example, if html_template="<p>${value}</p>" and value="Hello, world!", the component will render as `"<p>Hello, world!</p>"`.
             label: The label for this component. Is used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
+            html_template: A string representing the HTML template for this component. The `${value}` tag will be replaced with the `value` parameter, and all other tags will be filled in with the values from `props`.
+            css_template: A string representing the CSS template for this component. The CSS will be automatically scoped to this component. The `${value}` tag will be replaced with the `value` parameter, and all other tags will be filled in with the values from `props`.
+            js_on_load: A string representing the JavaScript code that will be executed when the component is loaded. The `element` variable refers to the HTML element of this component, and can be used to access children such as `element.querySelector()`. The `trigger` function can be used to trigger events, such as `trigger('click')`. The value and other props can be edited through `props`, e.g. `props.value = "new value"` which will re-render the HTML template.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: If True, the label will be displayed. If False, the label will be hidden.
@@ -64,11 +71,17 @@ class HTML(Component):
             container: If True, the HTML component will be displayed in a container. Default is False.
             padding: If True, the HTML component will have a certain padding (set by the `--block-padding` CSS variable) in all directions. Default is True.
             autoscroll: If True, will automatically scroll to the bottom of the component when the content changes, unless the user has scrolled up. If False, will not scroll to the bottom when the content changes.
+            props: Additional keyword arguments to pass into the HTML and CSS templates for rendering.
         """
+        self.html_template = html_template
+        self.css_template = css_template
+        self.js_on_load = js_on_load
         self.min_height = min_height
         self.max_height = max_height
         self.padding = padding
         self.autoscroll = autoscroll
+        self.props = props
+
         super().__init__(
             label=label,
             every=every,

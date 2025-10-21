@@ -2,17 +2,24 @@
 	import { createEventDispatcher, onMount, tick } from "svelte";
 
 	export let elem_classes: string[] = [];
-	export let value: string;
+	export let html: string;
+	export let css = "";
+	export let js_on_load: string | null = null;
 	export let visible: boolean | "hidden" = true;
 	export let autoscroll = false;
 
 	const dispatch = createEventDispatcher<{
-		change: undefined;
-		click: undefined;
+		event: { type: string; data: any };
 	}>();
 
-	let div: HTMLDivElement;
+	const trigger = (event_type: string, event_data: any = {}) => {
+		dispatch("event", { type: event_type, data: event_data });
+	};
+
+	let element: HTMLDivElement;
 	let scrollable_parent: HTMLElement | null = null;
+	let random_class: string = `html-${Math.random().toString(36).substring(2, 11)}`;
+	let style_element: HTMLStyleElement | null = null;
 
 	function get_scrollable_parent(element: HTMLElement): HTMLElement | null {
 		let parent = element.parentElement;
@@ -32,7 +39,7 @@
 	}
 
 	function is_at_bottom(): boolean {
-		if (!div) return true;
+		if (!element) return true;
 		if (!scrollable_parent) {
 			return (
 				window.innerHeight + window.scrollY >=
@@ -46,7 +53,7 @@
 	}
 
 	function scroll_to_bottom(): void {
-		if (!div) return;
+		if (!element) return;
 		if (scrollable_parent) {
 			scrollable_parent.scrollTo(0, scrollable_parent.scrollHeight);
 		} else {
@@ -54,10 +61,10 @@
 		}
 	}
 
-	async function scroll_on_value_update(): Promise<void> {
-		if (!autoscroll || !div) return;
+	async function scroll_on_html_update(): Promise<void> {
+		if (!autoscroll || !element) return;
 		if (!scrollable_parent) {
-			scrollable_parent = get_scrollable_parent(div);
+			scrollable_parent = get_scrollable_parent(element);
 		}
 		if (is_at_bottom()) {
 			await new Promise((resolve) => setTimeout(resolve, 300));
@@ -65,27 +72,58 @@
 		}
 	}
 
+	function update_css(): void {
+		if (typeof document === "undefined") return;
+		if (!style_element) {
+			style_element = document.createElement("style");
+			document.head.appendChild(style_element);
+		}
+		if (css) {
+			style_element.textContent = `.${random_class} { ${css} }`;
+		} else {
+			style_element.textContent = "";
+		}
+	}
+
 	onMount(() => {
+		update_css();
 		if (autoscroll) {
 			scroll_to_bottom();
 		}
-		scroll_on_value_update();
+		scroll_on_html_update();
+
+		if (js_on_load && element) {
+			try {
+				const func = new Function("element", "trigger", js_on_load);
+				func(element, trigger);
+			} catch (error) {
+				console.error("Error executing js_on_load:", error);
+			}
+		}
+
+		return () => {
+			if (style_element && style_element.parentNode) {
+				style_element.parentNode.removeChild(style_element);
+			}
+		};
 	});
 
-	$: value, dispatch("change");
-	$: if (value && autoscroll) {
-		scroll_on_value_update();
+	$: if (html && autoscroll) {
+		scroll_on_html_update();
+	}
+
+	$: if (css !== undefined) {
+		update_css();
 	}
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
 <div
-	bind:this={div}
-	class="prose {elem_classes.join(' ')}"
+	bind:this={element}
+	class="{css ? random_class : "prose"} {elem_classes.join(' ')}"
 	class:hide={!visible}
-	on:click={() => dispatch("click")}
 >
-	{@html value}
+	{@html html}
 </div>
 
 <style>

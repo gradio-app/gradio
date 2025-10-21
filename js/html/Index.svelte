@@ -12,6 +12,35 @@
 	export let elem_classes: string[] = [];
 	export let visible: boolean | "hidden" = true;
 	export let value = "";
+	export let props: Record<string, any> = {};
+
+	export let html_template = "${value}";
+	export let css_template = "";
+	export let js_on_load: string | null = null;
+
+	let _props: Record<string, any> = props;
+	$: _props = { ..._props, ...props };
+
+	$: html = (() => {
+		try {
+			const templateFunc = new Function('value', ...Object.keys(_props), `return \`${html_template}\`;`);
+			return templateFunc(value, ...Object.values(_props));
+		} catch (e) {
+			console.error('Error evaluating html_template:', e);
+			return value;
+		}
+	})();
+
+	$: css = (() => {
+		try {
+			const templateFunc = new Function('value', ...Object.keys(_props), `return \`${css_template}\`;`);
+			return templateFunc(value, ...Object.values(_props));
+		} catch (e) {
+			console.error('Error evaluating css_template:', e);
+			return '';
+		}
+	})();
+
 	export let loading_status: LoadingStatus;
 	export let gradio: Gradio<{
 		change: never;
@@ -24,6 +53,8 @@
 	export let container = false;
 	export let padding = true;
 	export let autoscroll = false;
+
+	$: value, gradio.dispatch("change");
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {container} padding={false}>
@@ -48,12 +79,13 @@
 		style:max-height={max_height ? css_units(max_height) : undefined}
 	>
 		<HTML
-			{value}
+			{html}
+			{css}
+			{js_on_load}
 			{elem_classes}
 			{visible}
 			{autoscroll}
-			on:change={() => gradio.dispatch("change")}
-			on:click={() => gradio.dispatch("click")}
+			on:event={(e) => gradio.dispatch(e.detail.type, e.detail.data)}
 		/>
 	</div>
 </Block>
