@@ -48,8 +48,10 @@
 	export let y_lim: [number | null, number | null] | null = null;
 	$: x_lim = x_lim || null; // for some unknown reason, x_lim was getting set to undefined when used in re-render, so this line is needed
 	$: y_lim = y_lim || null;
-	$: [x_start, x_end] = x_lim === null ? [undefined, undefined] : x_lim;
-	$: [y_start, y_end] = y_lim || [undefined, undefined];
+	$: x_start = x_lim && x_lim[0] !== null ? x_lim[0] : undefined;
+	$: x_end = x_lim && x_lim[1] !== null ? x_lim[1] : undefined;
+	$: y_start = y_lim && y_lim[0] !== null ? y_lim[0] : undefined;
+	$: y_end = y_lim && y_lim[1] !== null ? y_lim[1] : undefined;
 	export let x_label_angle: number | null = null;
 	export let y_label_angle: number | null = null;
 	export let x_axis_labels_visible = true;
@@ -104,7 +106,7 @@
 	}
 
 	$: x_temporal = value && value.datatypes[x] === "temporal";
-	$: _x_lim = x_lim && x_temporal ? [x_lim[0] ? x_lim[0] * 1000 : null, x_lim[1] ? x_lim[1] * 1000 : null] : x_lim;
+	$: _x_lim = x_lim && x_temporal ? [x_lim[0] !== null ? x_lim[0] * 1000 : null, x_lim[1] !== null ? x_lim[1] * 1000 : null] : x_lim;
 	let _x_bin: number | undefined;
 	let mouse_down_on_chart = false;
 	const SUFFIX_DURATION: Record<string, number> = {
@@ -593,8 +595,8 @@
 								type: value.datatypes[x],
 								scale: {
 									zero: false,
-									domainMin: _x_lim?.[0] ?? undefined,
-									domainMax: _x_lim?.[1] ?? undefined
+									domainMin: _x_lim?.[0] !== null ? _x_lim?.[0] : undefined,
+									domainMax: _x_lim?.[1] !== null ? _x_lim?.[1] : undefined
 								},
 								bin: _x_bin ? { step: _x_bin } : undefined,
 								sort: _sort
