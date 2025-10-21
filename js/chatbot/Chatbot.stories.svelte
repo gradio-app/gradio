@@ -163,17 +163,27 @@
 		value: [
 			{
 				role: "user",
-				content: [{ type: "text", text: `# Markdown Example
+				content: [
+					{
+						type: "text",
+						text: `# Markdown Example
 
-This document is a showcase of various Markdown capabilities.` }]
+This document is a showcase of various Markdown capabilities.`
+					}
+				]
 			},
 			{
 				role: "assistant",
-				content: [{ type: "text", text: `## Table of Contents
+				content: [
+					{
+						type: "text",
+						text: `## Table of Contents
 
 1. [Text Formatting](#text-formating)
 2. [Code Blocks](#code-blocks)
-3. [Tables](#tables)` }]
+3. [Tables](#tables)`
+					}
+				]
 			}
 		]
 	}}
@@ -249,33 +259,42 @@ This document is a showcase of various Markdown capabilities.` }]
 		value: [
 			{
 				role: "user",
-				content: {
-					file: {
-						path: "abc/qwerty.pdf",
-						url: ""
-					},
-					alt_text: null
-				}
+				content: [
+					{
+						type: "file",
+						file: {
+							path: "abc/qwerty.pdf",
+							url: ""
+						},
+						alt_text: null
+					}
+				]
 			},
 			{
 				role: "user",
-				content: {
-					file: {
-						path: "abc/qwerty.txt",
-						url: ""
-					},
-					alt_text: null
-				}
+				content: [
+					{
+						type: "file",
+						file: {
+							path: "abc/qwerty.txt",
+							url: ""
+						},
+						alt_text: null
+					}
+				]
 			},
 			{
 				role: "user",
-				content: {
-					file: {
-						path: "abc/qwerty.rtf",
-						url: ""
-					},
-					alt_text: null
-				}
+				content: [
+					{
+						type: "file",
+						file: {
+							path: "abc/qwerty.rtf",
+							url: ""
+						},
+						alt_text: null
+					}
+				]
 			}
 		]
 	}}
@@ -440,18 +459,15 @@ This document is a showcase of various Markdown capabilities.` }]
 			{
 				role: "assistant",
 				content: [
-					{type: "file",
-					file:
 					{
 						type: "file",
 						file: {
-						path: "abc/qwerty.txt",
-						url: ""
-					},
-					alt_text: null
-				}
-			}
-		]
+							path: "abc/qwerty.txt",
+							url: ""
+						},
+						alt_text: null
+					}
+				]
 			}
 		]
 	}}
@@ -503,7 +519,9 @@ This document is a showcase of various Markdown capabilities.` }]
 			{
 				role: "assistant",
 				duration: 10,
-				content: [{ type: "text", text: "Let me break this down step by step." }],
+				content: [
+					{ type: "text", text: "Let me break this down step by step." }
+				],
 				metadata: {
 					id: 1,
 					title: "Solving multiplication",
@@ -512,7 +530,12 @@ This document is a showcase of various Markdown capabilities.` }]
 			},
 			{
 				role: "assistant",
-				content: [{ type: "text", text: "First, let's multiply 27 by 10: 27 * 10 = 270" }],
+				content: [
+					{
+						type: "text",
+						text: "First, let's multiply 27 by 10: 27 * 10 = 270"
+					}
+				],
 				metadata: {
 					id: 2,
 					title: "Step 1",
@@ -572,7 +595,12 @@ This document is a showcase of various Markdown capabilities.` }]
 			},
 			{
 				role: "assistant",
-				content: [{ type: "text", text: "Using the standard algorithm: 27 * 14 = (20 + 7) * (10 + 4)" }],
+				content: [
+					{
+						type: "text",
+						text: "Using the standard algorithm: 27 * 14 = (20 + 7) * (10 + 4)"
+					}
+				],
 				metadata: {
 					id: 5,
 					title: "Expanding",
