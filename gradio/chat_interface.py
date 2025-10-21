@@ -38,6 +38,7 @@ from gradio.components.chatbot import (
     ExampleMessage,
     Message,
     MessageDict,
+    NormalizedMessageDict,
 )
 from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
 from gradio.events import Dependency, EditData, SelectData
@@ -432,7 +433,7 @@ class ChatInterface(Blocks):
                 examples_messages.append(example_message)
         return examples_messages
 
-    def _generate_chat_title(self, conversation: list[MessageDict]) -> str:
+    def _generate_chat_title(self, conversation: list[NormalizedMessageDict]) -> str:
         """
         Generate a title for a conversation by taking the first user message that is a string
         and truncating it to 40 characters. If files are present, add a 📎 to the title.
@@ -440,17 +441,20 @@ class ChatInterface(Blocks):
         title = ""
         for message in conversation:
             if message["role"] == "user":
-                if isinstance(message["content"], str):
-                    title += message["content"]
-                    break
-                else:
-                    title += "📎 "
+                for content in message["content"]:
+                    if content["type"] == "text":
+                        title += content["text"]
+                        break
+                    else:
+                        title += "📎 "
         if len(title) > 40:
             title = title[:40] + "..."
         return title or "Conversation"
 
     @staticmethod
-    def serialize_components(conversation: list[MessageDict]) -> list[MessageDict]:
+    def serialize_components(
+        conversation: list[NormalizedMessageDict],
+    ) -> list[NormalizedMessageDict]:
         def inner(obj: Any) -> Any:
             if isinstance(obj, list):
                 return [inner(item) for item in obj]
@@ -465,8 +469,8 @@ class ChatInterface(Blocks):
     def _save_conversation(
         self,
         index: int | None,
-        conversation: list[MessageDict],
-        saved_conversations: list[list[MessageDict]],
+        conversation: list[NormalizedMessageDict],
+        saved_conversations: list[list[NormalizedMessageDict]],
     ):
         if self.save_history:
             serialized_conversation = self.serialize_components(conversation)
@@ -481,7 +485,7 @@ class ChatInterface(Blocks):
     def _delete_conversation(
         self,
         index: int | None,
-        saved_conversations: list[list[MessageDict]],
+        saved_conversations: list[list[NormalizedMessageDict]],
     ):
         if index is not None:
             saved_conversations.pop(index)
@@ -499,7 +503,7 @@ class ChatInterface(Blocks):
     def _load_conversation(
         self,
         index: int,
-        conversations: list[list[MessageDict]],
+        conversations: list[list[NormalizedMessageDict]],
     ):
         return (
             index,
@@ -844,7 +848,7 @@ class ChatInterface(Blocks):
         self,
         message: MessageDict | Message | str | Component | MultimodalPostprocess | list,
         role: Literal["user", "assistant"],
-    ) -> list[MessageDict]:
+    ) -> list[NormalizedMessageDict]:
         """
         Converts a user message, example message, or response from the chat function to a
         list of MessageDict objects that can be appended to the chat history.
@@ -1041,8 +1045,8 @@ class ChatInterface(Blocks):
 
     def _pop_last_user_message(
         self,
-        history: list[MessageDict],
-    ) -> tuple[list[MessageDict], str | MultimodalPostprocess]:
+        history: list[NormalizedMessageDict],
+    ) -> tuple[list[NormalizedMessageDict], str | MultimodalPostprocess]:
         """
         Removes the message (or set of messages) that the user last sent from the chat history and returns them.
         If self.multimodal is True, returns a MultimodalPostprocess (dict) object with text and files.
@@ -1066,8 +1070,8 @@ class ChatInterface(Blocks):
                 for item in content:
                     if item["type"] == "file":
                         files.append(item["file"])
-                    else:
-                        last_user_message = item["text"]
+                    elif item["type"] == "text":
+                        last_user_message += item["text"]
         return_message = (
             {"text": last_user_message, "files": files}
             if self.multimodal
