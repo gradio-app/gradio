@@ -44,12 +44,12 @@
 		| "max"
 		| undefined = undefined;
 	export let color_map: Record<string, string> | null = null;
-	export let x_lim: [number, number] | null = null;
+	export let x_lim: [number | null, number | null] | null = null;
 	export let y_lim: [number | null, number | null] | null = null;
 	$: x_lim = x_lim || null; // for some unknown reason, x_lim was getting set to undefined when used in re-render, so this line is needed
 	$: y_lim = y_lim || null;
 	$: [x_start, x_end] = x_lim === null ? [undefined, undefined] : x_lim;
-	$: [y_start, y_end] = y_lim || [undefined, undefined];
+	$: [y_start, y_end] = y_lim || [0, undefined];
 	export let x_label_angle: number | null = null;
 	export let y_label_angle: number | null = null;
 	export let x_axis_labels_visible = true;
