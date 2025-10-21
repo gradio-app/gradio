@@ -154,7 +154,7 @@
 			on:edit={(e) => {
 				if (value === null || value.length === 0) return;
 				//@ts-ignore
-				value[e.detail.index].content = e.detail.value;
+				value[e.detail.index].content = e.detail._dispatch_value;
 				value = value;
 				gradio.dispatch("edit", e.detail);
 			}}

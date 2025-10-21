@@ -25,7 +25,7 @@ with gr.Blocks() as demo:
 
     add_message_btn.click(add_message, [chatbot], [chatbot])
     add_user_message_btn.click(add_user_message, [chatbot], [chatbot])
-    chatbot.change(lambda m: "|".join(m["content"] for m in m), chatbot, concatenated_text1)
+    chatbot.change(lambda m: "|".join(m["content"][0]["text"] for m in m), chatbot, concatenated_text1)
 
     def edit_message(edited_message: gr.EditData): # type: ignore
         return f"from {edited_message.previous_value} to {edited_message.value} at {edited_message.index}" # type: ignore

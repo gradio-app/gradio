@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 
     from gradio.blocks import Blocks
     from gradio.chat_interface import ChatInterface
-    from gradio.components.chatbot import MessageDict
+    from gradio.components.chatbot import NormalizedMessageDict
     from gradio.components.login_button import LoginButton
     from gradio.interface import Interface
 
@@ -504,7 +504,7 @@ def from_model(
     inputs = kwargs.pop("inputs", None)
     outputs = kwargs.pop("outputs", None)
 
-    interface = gr.Interface(fn, inputs, outputs, **kwargs)
+    interface = gr.Interface(fn, inputs, outputs, **kwargs, api_name="predict")
     return interface
 
 
@@ -751,31 +751,29 @@ IMAGE_FILE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".gif", ".webp")
 
 
 def format_conversation(
-    history: list[MessageDict], new_message: str | MultimodalValue
+    history: list[NormalizedMessageDict], new_message: str | MultimodalValue
 ) -> list[dict]:
     conversation = []
     for message in history:
-        if isinstance(message["content"], str):
-            conversation.append(
-                {"role": message["role"], "content": message["content"]}
-            )
-        elif isinstance(message["content"], tuple):
-            image_message = {
-                "role": message["role"],
-                "content": [
+        new_content = []
+        for content in message["content"]:
+            if "type" not in content:
+                raise ValueError(
+                    f"Invalid message format: {message['content']}. Each element must have a type key."
+                )
+            elif content["type"] == "file":
+                new_content.append(
                     {
                         "type": "image_url",
                         "image_url": {
-                            "url": encode_url_or_file_to_base64(message["content"][0])
+                            "url": encode_url_or_file_to_base64(content["file"]["path"])
                         },
                     }
-                ],
-            }
-            conversation.append(image_message)
-        else:
-            raise ValueError(
-                f"Invalid message format: {message['content']}. Messages must be either strings or tuples."
-            )
+                )
+            else:
+                new_content.append(content)
+        message["content"] = new_content
+        conversation.append(message)
     if isinstance(new_message, str):
         text = new_message
         files = []

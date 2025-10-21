@@ -12,6 +12,7 @@ demo = gr.ChatInterface(
     examples=[{"text": "hello"}, {"text": "hola", "files": [image]}, {"text": "merhaba", "files": [image, audio]}],
     title="Echo Bot",
     multimodal=True,
+    api_name="chat",
 )
 
 if __name__ == "__main__":

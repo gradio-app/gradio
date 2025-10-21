@@ -78,11 +78,31 @@ class FileDataDict(TypedDict):
     meta: dict[Literal["_type"], Literal["gradio.FileData"]]
 
 
+class TextMessage(GradioModel):
+    text: str
+    type: Literal["text"] = "text"
+
+
+class TextMessageDict(TypedDict):
+    text: str
+    type: Literal["text"]
+
+
 class ComponentMessage(GradioModel):
     component: str
     value: Any
     constructor_args: dict[str, Any]
     props: dict[str, Any]
+    type: Literal["component"] = "component"
+
+
+class ComponentMessageDict(TypedDict):
+    component: str
+    value: Any
+    constructor_args: dict[str, Any]
+    props: dict[str, Any]
+    type: Literal["component"]
+    instance: NotRequired[GradioComponent]
 
 
 MessageContent = Union[str, FileDataDict, FileData, Component]
@@ -98,15 +118,29 @@ class MessageDict(TypedDict):
 class FileMessage(GradioModel):
     file: FileData
     alt_text: str | None = None
+    type: Literal["file"] = "file"
+
+
+class FileMessageDict(TypedDict):
+    file: FileDataDict
+    alt_text: NotRequired[str | None]
+    type: Literal["file"]
+
+
+NormalizedMessageContent = Union[TextMessageDict, FileMessageDict, ComponentMessageDict]
+
+
+class NormalizedMessageDict(TypedDict):
+    content: list[NormalizedMessageContent]
+    role: Literal["user", "assistant", "system"]
+    metadata: NotRequired[MetadataDict]
+    options: NotRequired[list[OptionDict]]
 
 
 class Message(GradioModel):
     role: str
     metadata: MetadataDict | None = None
-    content: (
-        Union[str, FileMessage, ComponentMessage]
-        | list[Union[str, FileMessage, ComponentMessage]]
-    )
+    content: list[Union[TextMessage, FileMessage, ComponentMessage]]
     options: list[OptionDict] | None = None
 
 
@@ -151,13 +185,13 @@ if TYPE_CHECKING:
 
 def import_component_and_data(
     component_name: str,
-) -> GradioComponent | ComponentMeta | Any | None:
+) -> type[Component] | None:
     try:
         for component in utils.get_all_components():
             if component_name == component.__name__ and isinstance(
                 component, ComponentMeta
             ):
-                return component
+                return component  # ty: ignore[invalid-return-type]
     except ModuleNotFoundError as e:
         raise ValueError(f"Error importing {component_name}: {e}") from e
     except AttributeError:
@@ -349,7 +383,9 @@ class Chatbot(Component):
                                 file_info[i] = file_data
 
     @staticmethod
-    def _check_format(messages: Any):
+    def _check_format(
+        messages: list[MessageDict | Message | ChatMessage | NormalizedMessageDict],
+    ):
         all_valid = all(
             isinstance(message, dict)
             and "role" in message
@@ -364,13 +400,14 @@ class Chatbot(Component):
 
     def _preprocess_content(
         self,
-        chat_message: str | FileMessage | ComponentMessage,
-    ) -> str | GradioComponent | FileDataDict:
+        chat_message: Union[TextMessage, FileMessage, ComponentMessage],
+    ) -> NormalizedMessageContent:
         if isinstance(chat_message, FileMessage):
-            return cast(FileDataDict, chat_message.model_dump())
-        elif isinstance(chat_message, str):
-            return chat_message
+            return cast(FileMessageDict, chat_message.model_dump())
+        elif isinstance(chat_message, TextMessage):
+            return cast(TextMessageDict, chat_message.model_dump())
         elif isinstance(chat_message, ComponentMessage):
+            component_message = cast(ComponentMessageDict, chat_message.model_dump())
             capitalized_component = (
                 chat_message.component.upper()
                 if chat_message.component in ("json", "html")
@@ -390,18 +427,17 @@ class Chatbot(Component):
                 else:
                     payload = chat_message.value
                 value = instance.preprocess(payload)
-                return component(value=value, **chat_message.constructor_args)  # type: ignore
-            else:
-                raise ValueError(
-                    f"Invalid component for Chatbot component: {chat_message.component}"
+                component_message["instance"] = component(
+                    value=value, **chat_message.constructor_args
                 )
+            return component_message
         else:
             raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
 
     def preprocess(
         self,
         payload: ChatbotDataMessages | None,
-    ) -> list[list[str | tuple[str] | tuple[str, str] | None]] | list[MessageDict]:
+    ) -> list[NormalizedMessageDict]:
         """
         Parameters:
             payload: data as a ChatbotData object
@@ -415,13 +451,10 @@ class Chatbot(Component):
             raise Error("Data incompatible with the messages format")
         message_dicts = []
         for message in payload.root:
-            message_dict = cast(MessageDict, message.model_dump())
-            if isinstance(message.content, list):
-                message_dict["content"] = [
-                    self._preprocess_content(content) for content in message.content
-                ]
-            else:
-                message_dict["content"] = self._preprocess_content(message.content)
+            message_dict = cast(NormalizedMessageDict, message.model_dump())
+            message_dict["content"] = [
+                self._preprocess_content(content) for content in message.content
+            ]
             message_dicts.append(message_dict)
         return message_dicts
 
@@ -447,9 +480,16 @@ class Chatbot(Component):
         | FileDataDict
         | GradioComponent
         | ComponentMessage
-        | FileData,
-    ) -> str | FileMessage | ComponentMessage | None:
-        if isinstance(chat_message, (FileMessage, ComponentMessage, str)):
+        | FileData
+        | FileMessage
+        | ComponentMessage
+        | FileMessageDict
+        | ComponentMessageDict
+        | TextMessageDict,
+    ) -> Union[TextMessage, FileMessage, ComponentMessage, None]:
+        if isinstance(chat_message, str):
+            return TextMessage(text=inspect.cleandoc(chat_message))
+        elif isinstance(chat_message, (FileMessage, ComponentMessage)):
             return chat_message
         elif isinstance(chat_message, FileData):
             return FileMessage(file=chat_message)
@@ -472,48 +512,111 @@ class Chatbot(Component):
             return self._create_file_message(chat_message, filepath)
         elif isinstance(chat_message, dict) and "file" in chat_message:
             return FileMessage(
-                file=chat_message["file"], alt_text=chat_message.get("alt_text")
+                file=FileData(**chat_message["file"]),  # type: ignore
+                alt_text=chat_message.get("alt_text"),
+            )
+        elif isinstance(chat_message, dict) and chat_message.get("type") == "text":
+            return TextMessage(**chat_message)  # type: ignore
+        elif isinstance(chat_message, dict) and chat_message.get("type") == "component":
+            return ComponentMessage(**chat_message)  # type: ignore
+        elif isinstance(chat_message, dict) and chat_message.get("type") == "file":
+            return FileMessage(
+                file=FileData(**chat_message["file"]),  # type: ignore
+                alt_text=chat_message.get("alt_text"),
             )
         else:
             raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
 
-    def _postprocess_messages(self, message: MessageDict | ChatMessage) -> Message:
+    def _postprocess(
+        self, message: MessageDict | Message | ChatMessage | NormalizedMessageDict
+    ) -> list[Message] | None:
         message = copy.deepcopy(message)
-        if isinstance(message, dict):
-            if isinstance(message.get("content"), list):
-                content = []
-                for content_item in cast(list, message["content"]):
+        role = message["role"] if isinstance(message, dict) else message.role
+        metadata = (
+            message.get("metadata") if isinstance(message, dict) else message.metadata
+        )
+        options = (
+            message.get("options") if isinstance(message, dict) else message.options
+        )
+        if isinstance(message, dict) and not isinstance(message["content"], list):
+            content_ = self._postprocess_content(
+                cast(MessageContent, message["content"])
+            )
+            if not content_:
+                return None
+            content_postprocessed = [content_]
+        elif isinstance(message, dict) and isinstance(message["content"], list):
+            content_postprocessed: list[
+                Union[TextMessage, FileMessage, ComponentMessage]
+            ] = []
+            for content_item in cast(list, message["content"]):
+                item = self._postprocess_content(content_item)
+                if item:
+                    content_postprocessed.append(item)
+            if not content_postprocessed:
+                return None
+        elif isinstance(message, ChatMessage):
+            if not isinstance(message.content, list):
+                content_postprocessed = [self._postprocess_content(message.content)]  # type: ignore
+            else:
+                content_postprocessed = []
+                for content_item in message.content:
                     item = self._postprocess_content(content_item)
                     if item:
-                        content.append(item)
-                message["content"] = content
-            else:
-                content = self._postprocess_content(
-                    cast(MessageContent, message["content"])
-                )
-                message["content"] = content or ""  # type: ignore
-            msg = Message(**message)  # type: ignore
-        elif isinstance(message, ChatMessage):
-            message.content = self._postprocess_content(message.content)  # type: ignore
-            msg = Message(
-                role=message.role,
-                content=message.content,  # type: ignore
-                metadata=message.metadata,  # type: ignore
-                options=message.options,
-            )
+                        content_postprocessed.append(item)
+            if not content_postprocessed:
+                return None
         elif isinstance(message, Message):
-            return message
+            return [message]
         else:
             raise Error(
                 f"Invalid message for Chatbot component: {message}", visible=False
             )
-
-        msg.content = (
-            inspect.cleandoc(msg.content)
-            if isinstance(msg.content, str)
-            else msg.content
-        )
-        return msg
+        messages: list[Message] = []
+        if self.collapse_thinking:
+            non_text_content = [
+                item for item in content_postprocessed if item.type != "text"
+            ]
+            for content_item in content_postprocessed:
+                if content_item.type == "text":
+                    segments = self._extract_thinking_blocks(
+                        content_item.text, self.collapse_thinking
+                    )
+                    for text, is_thinking in segments:
+                        if is_thinking:
+                            thinking_message = Message(
+                                role=role,
+                                content=[TextMessage(text=text)],
+                                metadata={"title": "Reasoning"},
+                            )
+                            messages.append(thinking_message)
+                        else:
+                            prose_message = Message(
+                                role=role,
+                                content=[TextMessage(text=text)],
+                                metadata=metadata,
+                                options=options,
+                            )
+                            messages.append(prose_message)
+            if non_text_content:
+                messages.append(
+                    Message(
+                        role=role,
+                        content=non_text_content,
+                        metadata=metadata,
+                        options=options,
+                    )
+                )
+        else:
+            messages = [
+                Message(
+                    role=role,
+                    content=content_postprocessed,
+                    metadata=metadata,
+                    options=options,
+                )
+            ]
+        return messages
 
     def _extract_thinking_blocks(
         self, content: str, tags: list[tuple[str, str]]
@@ -530,29 +633,23 @@ class Chatbot(Component):
         """
         import re
 
-        # Build a pattern that matches any of the provided tag pairs
         patterns = []
         for open_tag, close_tag in tags:
             escaped_open = re.escape(open_tag)
             escaped_close = re.escape(close_tag)
             patterns.append(f"({escaped_open})(.*?)({escaped_close})")
 
-        # Combine all patterns with OR
         combined_pattern = "|".join(patterns)
 
-        # Split content into segments, preserving order
         segments = []
         last_end = 0
 
         for match in re.finditer(combined_pattern, content, re.DOTALL):
-            # Add any text before this match as prose
             if match.start() > last_end:
                 prose = content[last_end : match.start()].strip()
                 if prose:
                     segments.append((prose, False))
 
-            # Add the thinking content (group 2, 5, 8, etc. depending on pattern count)
-            # The thinking content is in every 3rd group starting from index 2
             for i in range(1, len(match.groups()), 3):
                 if match.group(i + 1) is not None:
                     thinking = match.group(i + 1).strip()
@@ -562,7 +659,6 @@ class Chatbot(Component):
 
             last_end = match.end()
 
-        # Add any remaining text after the last match
         if last_end < len(content):
             prose = content[last_end:].strip()
             if prose:
@@ -572,7 +668,7 @@ class Chatbot(Component):
 
     def postprocess(
         self,
-        value: list[MessageDict | Message | ChatMessage] | None,
+        value: list[MessageDict | Message | ChatMessage | NormalizedMessageDict] | None,
     ) -> ChatbotDataMessages:
         """
         Parameters:
@@ -584,70 +680,79 @@ class Chatbot(Component):
             return ChatbotDataMessages(root=[])
         self._check_format(value)
 
+        # processed_messages = []
+        # for message in value:
+        #     if self.collapse_thinking:
+        #         message_copy = copy.deepcopy(message)
+        #         content = (
+        #             message_copy.get("content")
+        #             if isinstance(message_copy, dict)
+        #             else message_copy.content  # type: ignore
+        #         )
+
+        #         if isinstance(content, str):
+        #             segments = self._extract_thinking_blocks(
+        #                 content, self.collapse_thinking
+        #             )
+
+        #             role = cast(
+        #                 Literal["assistant", "user", "system"],
+        #                 message_copy.get("role")
+        #                 if isinstance(message_copy, dict)
+        #                 else message_copy.role,  # type: ignore
+        #             )
+        #             for text, is_thinking in segments:
+        #                 if is_thinking:
+        #                     thinking_message = Message(
+        #                         role=role,
+        #                         content=text,
+        #                         metadata={"title": "Reasoning"},
+        #                     )
+        #                     processed_messages.append(thinking_message)
+        #                 else:
+        #                     if isinstance(message_copy, dict):
+        #                         prose_message = message_copy.copy()
+        #                         prose_message["content"] = text
+        #                     else:
+        #                         prose_message = ChatMessage(
+        #                             role=role,
+        #                             content=text,
+        #                             metadata=message_copy.metadata or {},  # type: ignore
+        #                             options=message_copy.options or [],  # type: ignore
+        #                         )
+        #                     processed_messages.append(
+        #                         self._postprocess_messages(
+        #                             cast(MessageDict, prose_message)
+        #                         )
+        #                     )
+        #         else:
+        #             processed_messages.append(
+        #                 self._postprocess_messages(cast(MessageDict, message))
+        #             )
+        #     else:
+        #         processed_messages.append(
+        #             self._postprocess_messages(cast(MessageDict, message))
+        #         )
+
         processed_messages = []
         for message in value:
-            if self.collapse_thinking:
-                message_copy = copy.deepcopy(message)
-                content = (
-                    message_copy.get("content")
-                    if isinstance(message_copy, dict)
-                    else message_copy.content  # type: ignore
-                )
-
-                if isinstance(content, str):
-                    segments = self._extract_thinking_blocks(
-                        content, self.collapse_thinking
-                    )
-
-                    role = cast(
-                        Literal["assistant", "user", "system"],
-                        message_copy.get("role")
-                        if isinstance(message_copy, dict)
-                        else message_copy.role,  # type: ignore
-                    )
-                    for text, is_thinking in segments:
-                        if is_thinking:
-                            thinking_message = Message(
-                                role=role,
-                                content=text,
-                                metadata={"title": "Reasoning"},
-                            )
-                            processed_messages.append(thinking_message)
-                        else:
-                            if isinstance(message_copy, dict):
-                                prose_message = message_copy.copy()
-                                prose_message["content"] = text
-                            else:
-                                prose_message = ChatMessage(
-                                    role=role,
-                                    content=text,
-                                    metadata=message_copy.metadata or {},  # type: ignore
-                                    options=message_copy.options or [],  # type: ignore
-                                )
-                            processed_messages.append(
-                                self._postprocess_messages(
-                                    cast(MessageDict, prose_message)
-                                )
-                            )
-                else:
-                    processed_messages.append(
-                        self._postprocess_messages(cast(MessageDict, message))
-                    )
-            else:
-                processed_messages.append(
-                    self._postprocess_messages(cast(MessageDict, message))
-                )
-
+            processed_message = self._postprocess(message)
+            if processed_message is not None:
+                processed_messages.extend(processed_message)
         return ChatbotDataMessages(root=processed_messages)
 
     def example_payload(self) -> Any:
         return [
-            Message(role="user", content="Hello!").model_dump(),
-            Message(role="assistant", content="How can I help you?").model_dump(),
+            Message(role="user", content=[TextMessage(text="Hello!")]).model_dump(),
+            Message(
+                role="assistant", content=[TextMessage(text="How can I help you?")]
+            ).model_dump(),
         ]
 
     def example_value(self) -> Any:
         return [
-            Message(role="user", content="Hello!").model_dump(),
-            Message(role="assistant", content="How can I help you?").model_dump(),
+            Message(role="user", content=[TextMessage(text="Hello!")]).model_dump(),
+            Message(
+                role="assistant", content=[TextMessage(text="How can I help you?")]
+            ).model_dump(),
         ]

@@ -73,7 +73,8 @@ def generate_response(message, history):
 demo = gr.ChatInterface(
     generate_response,
     title="Nested Thoughts Chat Interface",
-    examples=["What is the weather in San Francisco right now?"]
+    examples=["What is the weather in San Francisco right now?"],
+    api_name="chat"
 )
 
 if __name__ == "__main__":
