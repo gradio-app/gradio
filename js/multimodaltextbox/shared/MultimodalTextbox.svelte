@@ -770,6 +770,10 @@
 		display: flex;
 	}
 
+	.mobile-action-bar {
+		display: none;
+	}
+
 	.delete-button {
 		position: absolute;
 		top: 0;
@@ -813,6 +817,10 @@
 
 		.desktop-audio-recorder {
 			display: none !important;
+		}
+
+		.mobile-action-bar {
+			display: flex;
 		}
 
 		.input-container {
