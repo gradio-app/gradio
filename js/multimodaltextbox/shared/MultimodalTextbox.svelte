@@ -813,10 +813,6 @@
 			display: none !important;
 		}
 
-		.desktop-audio-recorder {
-			display: none !important;
-		}
-
 		.mobile-action-bar {
 			display: flex;
 		}
