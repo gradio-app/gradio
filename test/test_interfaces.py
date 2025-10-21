@@ -298,3 +298,20 @@ def test_tabbed_interface_predictions(connect):
     with connect(demo) as client:
         assert client.predict("Emily", api_name="/predict") == "Hello Emily"
         assert client.predict("Hannah", api_name="/predict") == "Hello Hannah"
+
+
+def test_interface_predictions_default_api_name(connect):
+    def greet(name):
+        return "Hello " + name
+
+    hello_world = gradio.Interface(greet, "text", "text")
+
+    with connect(hello_world) as client:
+        assert client.predict("Emily", api_name="/greet") == "Hello Emily"
+        assert client.predict("Hannah", api_name="/greet") == "Hello Hannah"
+
+    hello_lambda = gradio.Interface(lambda s: "Hello " + s, "text", "text")
+
+    with connect(hello_lambda) as client:
+        assert client.predict("Emily", api_name="/lambda") == "Hello Emily"
+        assert client.predict("Hannah", api_name="/lambda") == "Hello Hannah"

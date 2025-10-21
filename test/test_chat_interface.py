@@ -300,6 +300,12 @@ class TestAPI:
             result = client.predict("hello")
             assert result == "hello hello"
 
+    def test_non_streaming_api_default(self, connect):
+        chatbot = gr.ChatInterface(double, api_name="double")
+        with connect(chatbot) as client:
+            result = client.predict("hello", api_name="/double")
+            assert result == "hello hello"
+
     def test_non_streaming_api_async(self, connect):
         chatbot = gr.ChatInterface(async_greet)
         with connect(chatbot) as client:
@@ -324,8 +330,7 @@ class TestAPI:
                 "robot h",
             ]
 
-    @pytest.mark.parametrize("type", ["tuples", "messages"])
-    def test_multimodal_api(self, type, connect):
+    def test_multimodal_api(self, connect):
         def double_multimodal(msg, history):
             return msg["text"] + " " + msg["text"]
 
