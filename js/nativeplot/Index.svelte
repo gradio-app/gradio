@@ -104,7 +104,7 @@
 	}
 
 	$: x_temporal = value && value.datatypes[x] === "temporal";
-	$: _x_lim = x_lim && x_temporal ? [x_lim[0] * 1000, x_lim[1] * 1000] : x_lim;
+	$: _x_lim = x_lim && x_temporal ? [x_lim[0] ? x_lim[0] * 1000 : null, x_lim[1] ? x_lim[1] * 1000 : null] : x_lim;
 	let _x_bin: number | undefined;
 	let mouse_down_on_chart = false;
 	const SUFFIX_DURATION: Record<string, number> = {
@@ -591,7 +591,11 @@
 								field: escape_field_name(x),
 								title: x_title || x,
 								type: value.datatypes[x],
-								scale: _x_lim ? { domain: _x_lim } : undefined,
+								scale: {
+									zero: false,
+									domainMin: _x_lim?.[0] ?? undefined,
+									domainMax: _x_lim?.[1] ?? undefined
+								},
 								bin: _x_bin ? { step: _x_bin } : undefined,
 								sort: _sort
 							},
