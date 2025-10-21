@@ -54,14 +54,18 @@ with gr.Blocks() as line_plots:
     with gr.Row():
         price_by_rating = gr.LinePlot(
             food_rating_data,
+            title="Price by Rating (for Ratings >2)",
             x="rating",
             y="price",
+            x_lim=[2, None],
             buttons=["export"],
         )
         price_by_rating_color = gr.LinePlot(
             food_rating_data,
+            title="Price by Rating (for Ratings <4)",
             x="rating",
             y="price",
+            x_lim=[None, 4],
             color="cuisine",
             color_map={"Italian": "red", "Mexican": "green", "Chinese": "blue"},
             buttons=["export"],

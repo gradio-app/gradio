@@ -52,7 +52,7 @@ class NativePlot(Component):
         y_aggregate: Literal["sum", "mean", "median", "min", "max", "count"]
         | None = None,
         color_map: dict[str, str] | None = None,
-        x_lim: list[float] | None = None,
+        x_lim: list[float | None] | None = None,
         y_lim: list[float | None] = None,
         x_label_angle: float = 0,
         y_label_angle: float = 0,
@@ -90,7 +90,7 @@ class NativePlot(Component):
             y_aggregate: Aggregation function used to aggregate y values, used if x_bin is provided or x is a string/category. Must be one of "sum", "mean", "median", "min", "max".
             color_map: Mapping of series to color names or codes. For example, {"success": "green", "fail": "#FF8888"}.
             height: The height of the plot in pixels.
-            x_lim: A tuple or list containing the limits for the x-axis, specified as [x_min, x_max]. If x column is datetime type, x_lim should be timestamps.
+            x_lim: A tuple or list containing the limits for the x-axis, specified as [x_min, x_max]. To fix only one of these values, set the other to None, e.g. [0, None] to scale from 0 to the maximum value. If x column is datetime type, x_lim should be timestamps.
             y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max]. To fix only one of these values, set the other to None, e.g. [0, None] to scale from 0 to the maximum to value.
             x_label_angle: The angle of the x-axis labels in degrees offset clockwise.
             y_label_angle: The angle of the y-axis labels in degrees offset clockwise.
