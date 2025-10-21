@@ -38,24 +38,22 @@ def respond(
     yield history
 
     response = {"role": "assistant", "content": ""}
-    for message in client.chat_completion(
+    for message in client.chat_completion( # type: ignore
         history,
         temperature=0.95,
         top_p=0.9,
         max_tokens=512,
         stream=True,
-        model="HuggingFaceH4/zephyr-7b-beta"
+        model="openai/gpt-oss-20b"
     ):
-        response["content"] += message.choices[0].delta.content or ""
-
+        response["content"] += message.choices[0].delta.content or "" if message.choices else ""
         yield history + [response]
 
 
 with gr.Blocks() as demo:
-    gr.Markdown("# Chat with Hugging Face Zephyr 7b 🤗")
+    gr.Markdown("# Chat with GPT-OSS 20b 🤗")
     chatbot = gr.Chatbot(
         label="Agent",
-        type="messages",
         avatar_images=(
             None,
             "https://em-content.zobj.net/source/twitter/376/hugging-face_1f917.png",
@@ -64,7 +62,6 @@ with gr.Blocks() as demo:
     prompt = gr.Textbox(max_lines=1, label="Chat Message")
     prompt.submit(respond, [prompt, chatbot], [chatbot])
     prompt.submit(lambda: "", None, [prompt])
-
 
 if __name__ == "__main__":
     demo.launch()
@@ -78,7 +75,7 @@ In order to know the index of the last user message, we can pass `gr.UndoData` t
 
 ```python
 def handle_undo(history, undo_data: gr.UndoData):
-    return history[:undo_data.index], history[undo_data.index]['content']
+    return history[:undo_data.index], history[undo_data.index]['content'][0]["text"]
 ```
 
 We then pass this function to the `undo` event!
@@ -100,9 +97,8 @@ The retry event will work similarly. We'll use `gr.RetryData` to get the index o
 ```python
 def handle_retry(history, retry_data: gr.RetryData):
     new_history = history[:retry_data.index]
-    previous_prompt = history[retry_data.index]['content']
+    previous_prompt = history[retry_data.index]['content'][0]["text"]
     yield from respond(previous_prompt, new_history)
-
 ...
 
 chatbot.retry(handle_retry, chatbot, chatbot)
@@ -128,9 +124,7 @@ def handle_like(data: gr.LikeData):
     else:
         print("You downvoted this response: ", data.value)
 
-...
-
-chatbot.like(vote, None, None)
+chatbot.like(handle_like, None, None)
 ```
 
 ## The Edit Event
@@ -140,7 +134,7 @@ Same idea with the edit listener! with `gr.Chatbot(editable=True)`, you can capt
 ```python
 def handle_edit(history, edit_data: gr.EditData):
     new_history = history[:edit_data.index]
-    new_history[-1]['content'] = edit_data.value
+    new_history[-1]['content'] = [{"text": edit_data.value, "type": "text"}]
     return new_history
 
 ...
@@ -170,14 +164,13 @@ with gr.Blocks() as demo:
     uuid_state = gr.State(
         uuid4
     )
-    chatbot = gr.Chatbot(type="messages")
+    chatbot = gr.Chatbot()
     chatbot.clear(clear, outputs=[uuid_state])
 
     gr.ChatInterface(
         chat_fn,
         additional_inputs=[uuid_state],
         chatbot=chatbot,
-        type="messages"
     )
 
 demo.launch()

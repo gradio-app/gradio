@@ -40,11 +40,20 @@
 	<Chatbot
 		latex_delimiters={[{ left: "$$", right: "$$", display: true }]}
 		value={[
-			{ role: "user", content: "Can you write a function in Python?" },
-			{ role: "assistant", content: "```py\ndef test():\n\tprint(x)\n```" },
-			{ role: "user", content: "Can you do math?" },
-			{ role: "assistant", content: "$$1+1=2$$" },
-			{ role: "user", content: "Can you say nothing?" }
+			{
+				role: "user",
+				content: [{ type: "text", text: "Can you write a function in Python?" }]
+			},
+			{
+				role: "assistant",
+				content: [{ type: "text", text: "```py\ndef test():\n\tprint(x)\n```" }]
+			},
+			{ role: "user", content: [{ type: "text", text: "Can you do math?" }] },
+			{ role: "assistant", content: [{ type: "text", text: "$$1+1=2$$" }] },
+			{
+				role: "user",
+				content: [{ type: "text", text: "Can you say nothing?" }]
+			}
 		]}
 		{...args}
 	/>
@@ -73,22 +82,36 @@
 		value: [
 			{
 				role: "user",
-				content:
-					"حلّت التجارية عرض لم, كرسي قادة دار كل. ما خيار ماذا بمحاولة به،. كما عن تونس إيطاليا. يتم بـ لأداء حادثة معزّزة."
+				content: [
+					{
+						type: "text",
+						text: "حلّت التجارية عرض لم, كرسي قادة دار كل. ما خيار ماذا بمحاولة به،. كما عن تونس إيطاليا. يتم بـ لأداء حادثة معزّزة."
+					}
+				]
 			},
 			{
 				role: "assistant",
-				content:
-					"إعادة احداث اعلان بين قد, ما القوى الحكومة التغييرات جهة. قبل و يذكر الإمتعاض, أوسع وشعار إستعمل بعد تم. سبتمبر الصفحة عل أضف, أي وفي الدمج تشكيل وصافرات. حيث قد بقسوة هاربر بأيدي, أملاً نتيجة الثالث ما على, ثم مدن للسيطرة بالتوقيع. هذه ان حقول أخرى."
+				content: [
+					{
+						type: "text",
+						text: "إعادة احداث اعلان بين قد, ما القوى الحكومة التغييرات جهة. قبل و يذكر الإمتعاض, أوسع وشعار إستعمل بعد تم. سبتمبر الصفحة عل أضف, أي وفي الدمج تشكيل وصافرات. حيث قد بقسوة هاربر بأيدي, أملاً نتيجة الثالث ما على, ثم مدن للسيطرة بالتوقيع. هذه ان حقول أخرى."
+					}
+				]
 			},
 			{
 				role: "user",
-				content:
-					"أي وتنصيب الصعداء انه. تاريخ بالجانب هو فصل, أخذ لمحاكم الإتفاقية ان. كنقطة بالعمل التكاليف شيء مع, وجزر الهادي كان و, أي حدى يطول الحكومة اليابان. حيث كرسي لتقليعة الاندونيسية تم, للصين وبغطاء بال بل. ٣٠ لهذه قتيل، ارتكبها كلا. سابق وبدأت تم ذات."
+				content: [
+					{
+						type: "text",
+						text: "أي وتنصيب الصعداء انه. تاريخ بالجانب هو فصل, أخذ لمحاكم الإتفاقية ان. كنقطة بالعمل التكاليف شيء مع, وجزر الهادي كان و, أي حدى يطول الحكومة اليابان. حيث كرسي لتقليعة الاندونيسية تم, للصين وبغطاء بال بل. ٣٠ لهذه قتيل، ارتكبها كلا. سابق وبدأت تم ذات."
+					}
+				]
 			},
 			{
 				role: "assistant",
-				content: "اليف نفس. ما يتبقّ لبولندا، استراليا، دول."
+				content: [
+					{ type: "text", text: "اليف نفس. ما يتبقّ لبولندا، استراليا، دول." }
+				]
 			}
 		]
 	}}
@@ -140,17 +163,27 @@
 		value: [
 			{
 				role: "user",
-				content: `# Markdown Example
+				content: [
+					{
+						type: "text",
+						text: `# Markdown Example
 
 This document is a showcase of various Markdown capabilities.`
+					}
+				]
 			},
 			{
 				role: "assistant",
-				content: `## Table of Contents
+				content: [
+					{
+						type: "text",
+						text: `## Table of Contents
 
 1. [Text Formatting](#text-formating)
 2. [Code Blocks](#code-blocks)
 3. [Tables](#tables)`
+					}
+				]
 			}
 		]
 	}}
@@ -162,17 +195,25 @@ This document is a showcase of various Markdown capabilities.`
 		value: [
 			{
 				role: "user",
-				content: `Creating tables in Markdown is straightforward:
+				content: [
+					{
+						type: "text",
+						text: `Creating tables in Markdown is straightforward:
 
 | Header 1 | Header 2 | Header 3 |
 |----------|----------|----------|
 | Row 1, Cell 1 | Row 1, Cell 2 | Row 1, Cell 3 |
 | Row 2, Cell 1 | Row 2, Cell 2 | Row 2, Cell 3 |
 | Row 3, Cell 1 | Row 3, Cell 2 | Row 3, Cell 3 |`
+					}
+				]
 			},
 			{
 				role: "assistant",
-				content: `### Unordered List
+				content: [
+					{
+						type: "text",
+						text: `### Unordered List
 
 - Item 1
 - Item 2
@@ -187,6 +228,8 @@ This document is a showcase of various Markdown capabilities.`
    1. Subitem 2.1
    2. Subitem 2.2
 3. Third Item`
+					}
+				]
 			}
 		]
 	}}
@@ -198,7 +241,12 @@ This document is a showcase of various Markdown capabilities.`
 		value: [
 			{
 				role: "user",
-				content: `![A cheetah](https://cdn.britannica.com/02/92702-120-6A02E613/Cheetah.jpg)`
+				content: [
+					{
+						type: "text",
+						text: `![A cheetah](https://cdn.britannica.com/02/92702-120-6A02E613/Cheetah.jpg)`
+					}
+				]
 			}
 		]
 	}}
@@ -211,33 +259,42 @@ This document is a showcase of various Markdown capabilities.`
 		value: [
 			{
 				role: "user",
-				content: {
-					file: {
-						path: "abc/qwerty.pdf",
-						url: ""
-					},
-					alt_text: null
-				}
+				content: [
+					{
+						type: "file",
+						file: {
+							path: "abc/qwerty.pdf",
+							url: ""
+						},
+						alt_text: null
+					}
+				]
 			},
 			{
 				role: "user",
-				content: {
-					file: {
-						path: "abc/qwerty.txt",
-						url: ""
-					},
-					alt_text: null
-				}
+				content: [
+					{
+						type: "file",
+						file: {
+							path: "abc/qwerty.txt",
+							url: ""
+						},
+						alt_text: null
+					}
+				]
 			},
 			{
 				role: "user",
-				content: {
-					file: {
-						path: "abc/qwerty.rtf",
-						url: ""
-					},
-					alt_text: null
-				}
+				content: [
+					{
+						type: "file",
+						file: {
+							path: "abc/qwerty.rtf",
+							url: ""
+						},
+						alt_text: null
+					}
+				]
 			}
 		]
 	}}
@@ -251,25 +308,28 @@ This document is a showcase of various Markdown capabilities.`
 		value: [
 			{
 				role: "user",
-				content: "Show me the file."
+				content: [{ type: "text", text: "Show me the file." }]
 			},
 			{
 				role: "user",
-				content: "Second user message"
+				content: [{ type: "text", text: "Second user message" }]
 			},
 			{
 				role: "assistant",
-				content: "Here is the file you requested"
+				content: [{ type: "text", text: "Here is the file you requested" }]
 			},
 			{
 				role: "assistant",
-				content: {
-					file: {
-						path: "abc/qwerty.txt",
-						url: ""
-					},
-					alt_text: null
-				}
+				content: [
+					{
+						type: "file",
+						file: {
+							path: "abc/qwerty.txt",
+							url: ""
+						},
+						alt_text: null
+					}
+				]
 			}
 		]
 	}}
@@ -386,25 +446,28 @@ This document is a showcase of various Markdown capabilities.`
 		value: [
 			{
 				role: "user",
-				content: "Show me the file."
+				content: [{ type: "text", text: "Show me the file." }]
 			},
 			{
 				role: "user",
-				content: "Second user message"
+				content: [{ type: "text", text: "Second user message" }]
 			},
 			{
 				role: "assistant",
-				content: "Here is the file you requested"
+				content: [{ type: "text", text: "Here is the file you requested" }]
 			},
 			{
 				role: "assistant",
-				content: {
-					file: {
-						path: "abc/qwerty.txt",
-						url: ""
-					},
-					alt_text: null
-				}
+				content: [
+					{
+						type: "file",
+						file: {
+							path: "abc/qwerty.txt",
+							url: ""
+						},
+						alt_text: null
+					}
+				]
 			}
 		]
 	}}
@@ -450,13 +513,15 @@ This document is a showcase of various Markdown capabilities.`
 		value: [
 			{
 				role: "user",
-				content: "What is 27 * 14?",
+				content: [{ type: "text", text: "What is 27 * 14?" }],
 				duration: 0.1
 			},
 			{
 				role: "assistant",
 				duration: 10,
-				content: "Let me break this down step by step.",
+				content: [
+					{ type: "text", text: "Let me break this down step by step." }
+				],
 				metadata: {
 					id: 1,
 					title: "Solving multiplication",
@@ -465,7 +530,12 @@ This document is a showcase of various Markdown capabilities.`
 			},
 			{
 				role: "assistant",
-				content: "First, let's multiply 27 by 10: 27 * 10 = 270",
+				content: [
+					{
+						type: "text",
+						text: "First, let's multiply 27 by 10: 27 * 10 = 270"
+					}
+				],
 				metadata: {
 					id: 2,
 					title: "Step 1",
@@ -474,8 +544,12 @@ This document is a showcase of various Markdown capabilities.`
 			},
 			{
 				role: "assistant",
-				content:
-					"We can do this quickly because multiplying by 10 just adds a zero",
+				content: [
+					{
+						type: "text",
+						text: "We can do this quickly because multiplying by 10 just adds a zero"
+					}
+				],
 				metadata: {
 					id: 6,
 					title: "Quick Tip",
@@ -484,7 +558,12 @@ This document is a showcase of various Markdown capabilities.`
 			},
 			{
 				role: "assistant",
-				content: "Then multiply 27 by 4: 27 * 4 = 108",
+				content: [
+					{
+						type: "text",
+						text: "Then multiply 27 by 4: 27 * 4 = 108"
+					}
+				],
 				metadata: {
 					id: 3,
 					title: "Step 2",
@@ -493,12 +572,21 @@ This document is a showcase of various Markdown capabilities.`
 			},
 			{
 				role: "assistant",
-				content:
-					"Adding these together: 270 + 108 = 378. Therefore, 27 * 14 = 378"
+				content: [
+					{
+						type: "text",
+						text: "Adding these together: 270 + 108 = 378. Therefore, 27 * 14 = 378"
+					}
+				]
 			},
 			{
 				role: "assistant",
-				content: "Let me verify this result using a different method.",
+				content: [
+					{
+						type: "text",
+						text: "Let me verify this result using a different method."
+					}
+				],
 				metadata: {
 					id: 4,
 					title: "Verification",
@@ -507,7 +595,12 @@ This document is a showcase of various Markdown capabilities.`
 			},
 			{
 				role: "assistant",
-				content: "Using the standard algorithm: 27 * 14 = (20 + 7) * (10 + 4)",
+				content: [
+					{
+						type: "text",
+						text: "Using the standard algorithm: 27 * 14 = (20 + 7) * (10 + 4)"
+					}
+				],
 				metadata: {
 					id: 5,
 					title: "Expanding",
@@ -516,7 +609,7 @@ This document is a showcase of various Markdown capabilities.`
 			},
 			{
 				role: "assistant",
-				content: "The result is confirmed to be 378."
+				content: [{ type: "text", text: "The result is confirmed to be 378." }]
 			}
 		]
 	}}

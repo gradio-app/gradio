@@ -24,7 +24,7 @@ def append_example_message(x: gr.SelectData, history):
     return history
 
 def respond(history):
-    history.append({"role": "assistant", "content": "Cool!"})
+    history.append({"role": "assistant", "content": "Cool!", "options": [{"value": "Option 1"}, {"value": "Option 2"}]})
     return history
 
 with gr.Blocks() as demo:

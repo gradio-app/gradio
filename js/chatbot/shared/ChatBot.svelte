@@ -204,6 +204,7 @@
 			edit_index = null;
 			dispatch("edit", {
 				index: message.index,
+				_dispatch_value: [{ type: "text", text: edit_messages[i].slice() }],
 				value: edit_messages[i].slice(),
 				previous_value: message.content as string
 			});
