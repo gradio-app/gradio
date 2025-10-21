@@ -21,6 +21,7 @@ def predict(message, history):
 
 demo = gr.ChatInterface(
     predict,
+    api_name="chat",
 )
 
 if __name__ == "__main__":

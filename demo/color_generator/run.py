@@ -50,6 +50,7 @@ demo = gr.Interface(
     outputs=outputs,
     title=title,
     description=description,
+    api_name="predict",
 )
 
 if __name__ == "__main__":

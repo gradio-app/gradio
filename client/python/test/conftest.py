@@ -31,6 +31,7 @@ def calculator_demo():
         calculator,
         ["number", gr.Radio(["add", "subtract", "multiply", "divide"]), "number"],
         "number",
+        api_name="predict",
         examples=[
             [5, "add", 3],
             [4, "divide", 2],
@@ -69,6 +70,7 @@ def calculator_demo_with_defaults():
             [-4, "multiply", 2.5],
             [0, "subtract", 1.2],
         ],
+        api_name="predict",
     )
     return demo
 
@@ -80,6 +82,7 @@ def state_demo():
         lambda x, y: (x, y),
         ["textbox", state],
         ["textbox", state],
+        api_name="predict",
     )
     return demo
 
@@ -125,7 +128,7 @@ def progress_demo():
             time.sleep(0.1)
         return x
 
-    return gr.Interface(my_function, gr.Textbox(), gr.Textbox())
+    return gr.Interface(my_function, gr.Textbox(), gr.Textbox(), api_name="predict")
 
 
 @pytest.fixture
@@ -135,7 +138,7 @@ def yield_demo():
             time.sleep(0.5)
             yield x[:i]
 
-    return gr.Interface(spell, "textbox", "textbox")
+    return gr.Interface(spell, "textbox", "textbox", api_name="predict")
 
 
 @pytest.fixture
@@ -268,6 +271,7 @@ def file_io_demo():
         lambda _: print("foox"),
         [gr.File(file_count="multiple"), "file"],
         [gr.File(file_count="multiple"), "file"],
+        api_name="predict",
     )
 
     return demo
@@ -378,12 +382,15 @@ def stream_audio():
         fn=_stream_audio,
         inputs=gr.Audio(type="filepath", label="Audio file to stream"),
         outputs=gr.Audio(autoplay=True, streaming=True),
+        api_name="predict",
     )
 
 
 @pytest.fixture
 def video_component():
-    return gr.Interface(fn=lambda x: x, inputs=gr.Video(), outputs=gr.Video())
+    return gr.Interface(
+        fn=lambda x: x, inputs=gr.Video(), outputs=gr.Video(), api_name="predict"
+    )
 
 
 @pytest.fixture
@@ -425,9 +432,7 @@ def long_response_with_info():
         return "\ta\nb" * 90000
 
     return gr.Interface(
-        long_response,
-        None,
-        gr.Textbox(label="Output"),
+        long_response, None, gr.Textbox(label="Output"), api_name="predict"
     )
 
 

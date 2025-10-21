@@ -10,7 +10,9 @@ def store_message(message: str, history: list[str]):  # type: ignore
 
 demo = gr.Interface(fn=store_message,
                     inputs=["textbox", gr.State(value=[])],
-                    outputs=["json", gr.State()])
+                    outputs=["json", gr.State()],
+                    api_name="predict"
+                    )
 
 if __name__ == "__main__":
     demo.launch()

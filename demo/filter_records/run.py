@@ -15,6 +15,7 @@ demo = gr.Interface(
         gr.Dropdown(["M", "F", "O"]),
     ],
     "dataframe",
+    api_name="predict",
     description="Enter gender as 'M', 'F', or 'O' for other.",
 )
 

@@ -14,7 +14,7 @@ def gif_maker():
     out.release()
     return output_file, output_file
 
-demo = gr.Interface(gif_maker, inputs=None, outputs=[gr.Video(buttons=["download"]), gr.File()])
+demo = gr.Interface(gif_maker, inputs=None, outputs=[gr.Video(buttons=["download"]), gr.File()], api_name="predict")
 
 if __name__ == "__main__":
     demo.launch()

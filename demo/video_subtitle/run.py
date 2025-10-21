@@ -18,6 +18,7 @@ demo = gr.Interface(
         [get_video("b.mp4"), get_file("s2.vtt")],
         [get_video("a.mp4"), get_file("s3.json")],
     ],
+    api_name="predict",
 )
 
 if __name__ == "__main__":

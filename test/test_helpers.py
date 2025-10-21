@@ -963,6 +963,7 @@ def test_examples_no_cache_optional_inputs():
         "json",
         cache_examples=False,
         examples=[["a", "b", None, "d"], ["a", "b", None, "de"]],
+        api_name="predict",
     )
 
     try:

@@ -99,6 +99,7 @@ demo = gr.Interface(
         ["third", True, 30, ["Child"], 20, "S"],
     ],
     live=True,
+    api_name="predict",
 )
 
 if __name__ == "__main__":

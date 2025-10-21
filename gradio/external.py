@@ -504,7 +504,7 @@ def from_model(
     inputs = kwargs.pop("inputs", None)
     outputs = kwargs.pop("outputs", None)
 
-    interface = gr.Interface(fn, inputs, outputs, **kwargs)
+    interface = gr.Interface(fn, inputs, outputs, **kwargs, api_name="predict")
     return interface
 
 

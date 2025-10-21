@@ -33,6 +33,7 @@ demo = gr.Interface(
         [10000, "Married", [["Suit", 5000], ["Laptop", 800], ["Car", 1800]]],
         [80000, "Single", [["Suit", 800], ["Watch", 1800], ["Car", 800]]],
     ],
+    api_name="predict"
 )
 
 demo.launch()

@@ -17,7 +17,8 @@ demo = gr.Interface(
     fn=percent_of_pixels_selected,
     inputs=image_editor,
     outputs=output_image,
-    live=True
+    live=True,
+    api_name="predict",
 )
 
 if __name__ == "__main__":

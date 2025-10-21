@@ -30,6 +30,7 @@ demo = gr.Interface(
     examples=[
         [os.path.join(os.path.dirname(__file__), "fraud.csv"), ["retail", "food", "other"], 1.0],
     ],
+    api_name="predict"
 )
 if __name__ == "__main__":
     demo.launch()

@@ -7,7 +7,7 @@ def reverse_audio(audio):
 
 demo = gr.Interface(fn=reverse_audio,
                     inputs="microphone",
-                    outputs="audio")
+                    outputs="audio", api_name="predict")
 
 if __name__ == "__main__":
     demo.launch()

@@ -34,6 +34,7 @@ demo = gr.ChatInterface(
     predict,
     examples=["Start!"],
     chatbot=gr.Chatbot(placeholder=placeholder),
+    api_name="chat",
 )
 
 if __name__ == "__main__":

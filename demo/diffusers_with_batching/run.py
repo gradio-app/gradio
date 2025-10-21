@@ -15,7 +15,8 @@ demo = gr.Interface(generate,
              "textbox",
              "image",
              batch=True,
-             max_batch_size=4  # Set the batch size based on your CPU/GPU memory
+             max_batch_size=4,  # Set the batch size based on your CPU/GPU memory
+             api_name="predict"
 )
 
 if __name__ == "__main__":
