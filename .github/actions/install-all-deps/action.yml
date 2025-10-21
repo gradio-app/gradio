@@ -49,7 +49,7 @@ runs:
     - name: Create env
       shell: bash
       run: |
-        python -m pip install --upgrade virtualenv
+        python -m pip install virtualenv==20.34.0
         python -m virtualenv venv
     - name: Install uv (linux)
       if: ${{ inputs.os == 'ubuntu-latest' }}
