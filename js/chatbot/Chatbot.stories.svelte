@@ -163,17 +163,17 @@
 		value: [
 			{
 				role: "user",
-				content: `# Markdown Example
+				content: [{ type: "text", text: `# Markdown Example
 
-This document is a showcase of various Markdown capabilities.`
+This document is a showcase of various Markdown capabilities.` }]
 			},
 			{
 				role: "assistant",
-				content: `## Table of Contents
+				content: [{ type: "text", text: `## Table of Contents
 
 1. [Text Formatting](#text-formating)
 2. [Code Blocks](#code-blocks)
-3. [Tables](#tables)`
+3. [Tables](#tables)` }]
 			}
 		]
 	}}
@@ -289,25 +289,28 @@ This document is a showcase of various Markdown capabilities.`
 		value: [
 			{
 				role: "user",
-				content: "Show me the file."
+				content: [{ type: "text", text: "Show me the file." }]
 			},
 			{
 				role: "user",
-				content: "Second user message"
+				content: [{ type: "text", text: "Second user message" }]
 			},
 			{
 				role: "assistant",
-				content: "Here is the file you requested"
+				content: [{ type: "text", text: "Here is the file you requested" }]
 			},
 			{
 				role: "assistant",
-				content: {
-					file: {
-						path: "abc/qwerty.txt",
-						url: ""
-					},
-					alt_text: null
-				}
+				content: [
+					{
+						type: "file",
+						file: {
+							path: "abc/qwerty.txt",
+							url: ""
+						},
+						alt_text: null
+					}
+				]
 			}
 		]
 	}}
@@ -424,25 +427,31 @@ This document is a showcase of various Markdown capabilities.`
 		value: [
 			{
 				role: "user",
-				content: "Show me the file."
+				content: [{ type: "text", text: "Show me the file." }]
 			},
 			{
 				role: "user",
-				content: "Second user message"
+				content: [{ type: "text", text: "Second user message" }]
 			},
 			{
 				role: "assistant",
-				content: "Here is the file you requested"
+				content: [{ type: "text", text: "Here is the file you requested" }]
 			},
 			{
 				role: "assistant",
-				content: {
-					file: {
+				content: [
+					{type: "file",
+					file:
+					{
+						type: "file",
+						file: {
 						path: "abc/qwerty.txt",
 						url: ""
 					},
 					alt_text: null
 				}
+			}
+		]
 			}
 		]
 	}}
@@ -488,13 +497,13 @@ This document is a showcase of various Markdown capabilities.`
 		value: [
 			{
 				role: "user",
-				content: "What is 27 * 14?",
+				content: [{ type: "text", text: "What is 27 * 14?" }],
 				duration: 0.1
 			},
 			{
 				role: "assistant",
 				duration: 10,
-				content: "Let me break this down step by step.",
+				content: [{ type: "text", text: "Let me break this down step by step." }],
 				metadata: {
 					id: 1,
 					title: "Solving multiplication",
@@ -503,7 +512,7 @@ This document is a showcase of various Markdown capabilities.`
 			},
 			{
 				role: "assistant",
-				content: "First, let's multiply 27 by 10: 27 * 10 = 270",
+				content: [{ type: "text", text: "First, let's multiply 27 by 10: 27 * 10 = 270" }],
 				metadata: {
 					id: 2,
 					title: "Step 1",
@@ -512,8 +521,12 @@ This document is a showcase of various Markdown capabilities.`
 			},
 			{
 				role: "assistant",
-				content:
-					"We can do this quickly because multiplying by 10 just adds a zero",
+				content: [
+					{
+						type: "text",
+						text: "We can do this quickly because multiplying by 10 just adds a zero"
+					}
+				],
 				metadata: {
 					id: 6,
 					title: "Quick Tip",
@@ -522,7 +535,12 @@ This document is a showcase of various Markdown capabilities.`
 			},
 			{
 				role: "assistant",
-				content: "Then multiply 27 by 4: 27 * 4 = 108",
+				content: [
+					{
+						type: "text",
+						text: "Then multiply 27 by 4: 27 * 4 = 108"
+					}
+				],
 				metadata: {
 					id: 3,
 					title: "Step 2",
@@ -531,12 +549,21 @@ This document is a showcase of various Markdown capabilities.`
 			},
 			{
 				role: "assistant",
-				content:
-					"Adding these together: 270 + 108 = 378. Therefore, 27 * 14 = 378"
+				content: [
+					{
+						type: "text",
+						text: "Adding these together: 270 + 108 = 378. Therefore, 27 * 14 = 378"
+					}
+				]
 			},
 			{
 				role: "assistant",
-				content: "Let me verify this result using a different method.",
+				content: [
+					{
+						type: "text",
+						text: "Let me verify this result using a different method."
+					}
+				],
 				metadata: {
 					id: 4,
 					title: "Verification",
@@ -545,7 +572,7 @@ This document is a showcase of various Markdown capabilities.`
 			},
 			{
 				role: "assistant",
-				content: "Using the standard algorithm: 27 * 14 = (20 + 7) * (10 + 4)",
+				content: [{ type: "text", text: "Using the standard algorithm: 27 * 14 = (20 + 7) * (10 + 4)" }],
 				metadata: {
 					id: 5,
 					title: "Expanding",
@@ -554,7 +581,7 @@ This document is a showcase of various Markdown capabilities.`
 			},
 			{
 				role: "assistant",
-				content: "The result is confirmed to be 378."
+				content: [{ type: "text", text: "The result is confirmed to be 378." }]
 			}
 		]
 	}}
