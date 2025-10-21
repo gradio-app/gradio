@@ -12,6 +12,7 @@ demo = gr.ChatInterface(
     echo_multimodal,
     multimodal=True,
     textbox=gr.MultimodalTextbox(file_count="multiple"),
+    api_name="chat",
 )
 
 if __name__ == "__main__":

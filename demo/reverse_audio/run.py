@@ -19,7 +19,8 @@ input_audio = gr.Audio(
 demo = gr.Interface(
     fn=reverse_audio,
     inputs=input_audio,
-    outputs="audio"
+    outputs="audio",
+    api_name="predict",
 )
 
 if __name__ == "__main__":
