@@ -106,7 +106,12 @@
 	}
 
 	$: x_temporal = value && value.datatypes[x] === "temporal";
-	$: _x_lim = x_temporal ? [x_start !== undefined ? x_start * 1000 : null, x_end !== undefined ? x_end * 1000 : null] : x_lim;
+	$: _x_lim = x_temporal
+		? [
+				x_start !== undefined ? x_start * 1000 : null,
+				x_end !== undefined ? x_end * 1000 : null
+			]
+		: x_lim;
 	let _x_bin: number | undefined;
 	let mouse_down_on_chart = false;
 	const SUFFIX_DURATION: Record<string, number> = {
