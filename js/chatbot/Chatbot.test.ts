@@ -24,8 +24,11 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			value: [
-				{ role: "user", content: "user message one" },
-				{ role: "assistant", content: "bot message one" }
+				{ role: "user", content: [{ type: "text", text: "user message one" }] },
+				{
+					role: "assistant",
+					content: [{ type: "text", text: "bot message one" }]
+				}
 			],
 			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
@@ -42,8 +45,8 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			value: [
-				{ role: "user", content: "" },
-				{ role: "assistant", content: "" }
+				{ role: "user", content: [{ type: "text", text: "" }] },
+				{ role: "assistant", content: [{ type: "text", text: "" }] }
 			],
 			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
@@ -60,18 +63,27 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			value: [
-				{ role: "user", content: "user message one" },
-				{ role: "assistant", content: "bot message one" }
+				{ role: "user", content: [{ type: "text", text: "user message one" }] },
+				{
+					role: "assistant",
+					content: [{ type: "text", text: "bot message one" }]
+				}
 			],
 			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
 
 		await component.$set({
 			value: [
-				{ role: "user", content: "user message one" },
-				{ role: "assistant", content: "bot message one" },
-				{ role: "user", content: "user message two" },
-				{ role: "assistant", content: "bot message two" }
+				{ role: "user", content: [{ type: "text", text: "user message one" }] },
+				{
+					role: "assistant",
+					content: [{ type: "text", text: "bot message one" }]
+				},
+				{ role: "user", content: [{ type: "text", text: "user message two" }] },
+				{
+					role: "assistant",
+					content: [{ type: "text", text: "bot message two" }]
+				}
 			]
 		});
 
@@ -102,7 +114,8 @@ describe("Chatbot", () => {
 					url: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah1.jpg",
 					mime_type: "image/jpeg",
 					alt_text: null
-				}
+				},
+				type: "file"
 			}
 		]);
 
@@ -131,7 +144,8 @@ describe("Chatbot", () => {
 						url: "https://gradio-builds.s3.amazonaws.com/demo-files/video_sample.mp4",
 						mime_type: "video/mp4",
 						alt_text: null
-					}
+					},
+					type: "file"
 				}
 			]);
 		await component.$set({
@@ -158,7 +172,8 @@ describe("Chatbot", () => {
 					url: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
 					mime_type: "audio/wav",
 					alt_text: null
-				}
+				},
+				type: "file"
 			}
 		]);
 
@@ -180,14 +195,17 @@ describe("Chatbot", () => {
 
 		let value = [
 			{
-				content: {
-					file: {
-						path: "https://gradio-builds.s3.amazonaws.com/demo-files/titanic.csv",
-						url: "https://gradio-builds.s3.amazonaws.com/demo-files/titanic.csv",
-						mime_type: "text/csv",
-						alt_text: null
+				content: [
+					{
+						file: {
+							path: "https://gradio-builds.s3.amazonaws.com/demo-files/titanic.csv",
+							url: "https://gradio-builds.s3.amazonaws.com/demo-files/titanic.csv",
+							mime_type: "text/csv",
+							alt_text: null
+						},
+						type: "file"
 					}
-				},
+				],
 				role: "user"
 			}
 		];
@@ -215,8 +233,11 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			value: [
-				{ role: "user", content: "user message one" },
-				{ role: "assistant", content: "bot message one" }
+				{ role: "user", content: [{ type: "text", text: "user message one" }] },
+				{
+					role: "assistant",
+					content: [{ type: "text", text: "bot message one" }]
+				}
 			],
 			show_copy_all_button: true
 		});
@@ -238,10 +259,12 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			value: [
-				{ role: "user", content: "user message" },
+				{ role: "user", content: [{ type: "text", text: "user message" }] },
 				{
 					role: "assistant",
-					content: "<thinking>processing query...</thinking>"
+					content: [
+						{ type: "text", text: "<thinking>processing query...</thinking>" }
+					]
 				}
 			],
 			allow_tags: ["thinking"]
@@ -291,11 +314,17 @@ describe("Chatbot", () => {
 
 	test("displays like/dislike buttons on every message when group_consecutive_messages is false", async () => {
 		const messages = [
-			{ role: "user", content: "Hello" },
-			{ role: "assistant", content: "Hi there" },
-			{ role: "assistant", content: "How can I help?" },
-			{ role: "user", content: "Thanks" },
-			{ role: "assistant", content: "You're welcome!" }
+			{ role: "user", content: [{ type: "text", text: "Hello" }] },
+			{ role: "assistant", content: [{ type: "text", text: "Hi there" }] },
+			{
+				role: "assistant",
+				content: [{ type: "text", text: "How can I help?" }]
+			},
+			{ role: "user", content: [{ type: "text", text: "Thanks" }] },
+			{
+				role: "assistant",
+				content: [{ type: "text", text: "You're welcome!" }]
+			}
 		];
 
 		const { container } = await render(Chatbot, {

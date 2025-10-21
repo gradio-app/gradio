@@ -20,18 +20,18 @@ def respond(
         top_p=0.9,
         max_tokens=512,
         stream=True,
-        model="HuggingFaceH4/zephyr-7b-beta"
+        model="openai/gpt-oss-20b"
     ):
         response["content"] += message.choices[0].delta.content or "" if message.choices else ""
         yield history + [response]
 
 
 def handle_undo(history, undo_data: gr.UndoData):
-    return history[:undo_data.index], history[undo_data.index]['content']
+    return history[:undo_data.index], history[undo_data.index]['content'][0]["text"]
 
 def handle_retry(history, retry_data: gr.RetryData):
     new_history = history[:retry_data.index]
-    previous_prompt = history[retry_data.index]['content']
+    previous_prompt = history[retry_data.index]['content'][0]["text"]
     yield from respond(previous_prompt, new_history)
 
 
@@ -43,7 +43,7 @@ def handle_like(data: gr.LikeData):
 
 
 with gr.Blocks() as demo:
-    gr.Markdown("# Chat with Hugging Face Zephyr 7b 🤗")
+    gr.Markdown("# Chat with GPT-OSS 20b 🤗")
     chatbot = gr.Chatbot(
         label="Agent",
         avatar_images=(

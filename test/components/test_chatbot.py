@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import gradio as gr
 from gradio import utils
 
@@ -18,45 +16,57 @@ class TestChatbot:
         ).model_dump() == [
             {
                 "role": "user",
-                "content": "You are **cool**\nand fun",
+                "content": [{"type": "text", "text": "You are **cool**\nand fun"}],
                 "metadata": None,
                 "options": None,
             },
             {
                 "role": "assistant",
-                "content": "so are *you*",
+                "content": [{"type": "text", "text": "so are *you*"}],
                 "metadata": None,
                 "options": None,
             },
         ]
 
         multimodal_msg = [
-            {"role": "user", "content": ("test/test_files/video_sample.mp4",)},
+            {"role": "user", "content": {"path": "test/test_files/video_sample.mp4"}},
             {"role": "assistant", "content": "cool video"},
-            {"role": "user", "content": ("test/test_files/audio_sample.wav",)},
+            {"role": "user", "content": {"path": "test/test_files/audio_sample.wav"}},
             {"role": "assistant", "content": "cool audio"},
-            {"role": "user", "content": ("test/test_files/bus.png", "A bus")},
+            {
+                "role": "user",
+                "content": {"path": "test/test_files/bus.png", "alt_text": "A bus"},
+            },
             {"role": "assistant", "content": "cool pic"},
-            {"role": "user", "content": (Path("test/test_files/video_sample.mp4"),)},
+            {"role": "user", "content": {"path": "test/test_files/video_sample.mp4"}},
             {"role": "assistant", "content": "cool video"},
-            {"role": "user", "content": (Path("test/test_files/audio_sample.wav"),)},
+            {"role": "user", "content": {"path": "test/test_files/audio_sample.wav"}},
             {"role": "assistant", "content": "cool audio"},
-            {"role": "user", "content": (Path("test/test_files/bus.png"), "A bus")},
+            {
+                "role": "user",
+                "content": {
+                    "file": {"path": "test/test_files/bus.png", "alt_text": "A bus"}
+                },
+            },
             {"role": "assistant", "content": "cool pic"},
         ]
         postprocessed_multimodal_msg = chatbot.postprocess(multimodal_msg).model_dump()  # type: ignore
         for msg in postprocessed_multimodal_msg:
             if msg["role"] == "user":
-                assert "file" in msg["content"]
-                assert msg["content"]["file"]["path"].split(".")[-1] in {
+                assert "file" in msg["content"][0]
+                assert msg["content"][0]["file"]["path"].split(".")[-1] in {
                     "mp4",
                     "wav",
                     "png",
                 }
-                if msg["content"]["alt_text"]:
-                    assert msg["content"]["alt_text"] == "A bus"
+                if msg["content"][0]["alt_text"]:
+                    assert msg["content"][0]["alt_text"] == "A bus"
             elif msg["role"] == "assistant":
-                assert msg["content"] in {"cool video", "cool audio", "cool pic"}
+                assert msg["content"][0]["text"] in {
+                    "cool video",
+                    "cool audio",
+                    "cool pic",
+                }
             else:
                 raise ValueError(f"Unexpected role: {msg['role']}")
         assert chatbot.get_config() == {

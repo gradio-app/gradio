@@ -143,7 +143,7 @@ with gr.Blocks() as demo:
                 label="Input Audio", sources="microphone", type="numpy"
             )
         with gr.Column():
-            chatbot = gr.Chatbot(label="Conversation", type="messages")
+            chatbot = gr.Chatbot(label="Conversation")
             output_audio = gr.Audio(label="Output Audio", streaming=True, autoplay=True)
     state = gr.State(value=AppState())
 

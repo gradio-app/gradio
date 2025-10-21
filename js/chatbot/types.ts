@@ -23,22 +23,51 @@ export interface Option {
 	label?: string;
 	value: string;
 }
+
+export interface Text {
+	type: "text";
+	text: string;
+}
+
+export interface Component {
+	type: "component";
+	component: string;
+	constructor_args: object;
+	props: object;
+	value: any;
+	alt_text: string | null;
+}
+
+export interface File {
+	type: "file";
+	file: FileData;
+	alt_text: string | null;
+}
+
 export interface Message {
 	role: MessageRole;
 	metadata: Metadata;
-	content: string | FileData | ComponentData;
+	content: (Text | File | Component)[];
 	index: number | [number, number];
 	options?: Option[];
 }
 
-export interface TextMessage extends Message {
+export interface TextMessage {
 	type: "text";
 	content: string;
+	index: number | [number, number];
+	options?: Option[];
+	role: MessageRole;
+	metadata: Metadata;
 }
 
-export interface ComponentMessage extends Message {
+export interface ComponentMessage {
 	type: "component";
 	content: ComponentData;
+	index: number | [number, number];
+	options?: Option[];
+	role: MessageRole;
+	metadata: Metadata;
 }
 
 export interface ExampleMessage {
@@ -53,8 +82,6 @@ export type message_data =
 	| { file: FileData | FileData[]; alt_text: string | null }
 	| { component: string; value: any; constructor_args: any; props: any }
 	| null;
-
-export type TupleFormat = [message_data, message_data][] | null;
 
 export type NormalisedMessage = TextMessage | ComponentMessage;
 

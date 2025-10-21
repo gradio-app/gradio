@@ -7,7 +7,7 @@ import pytest
 from gradio_client import handle_file
 
 import gradio as gr
-from gradio.components.chatbot import Message
+from gradio.components.chatbot import Message, TextMessage
 
 
 def invalid_fn(message):
@@ -94,12 +94,12 @@ class TestInit:
                 prediction_hello = chatbot.examples_handler.load_from_cache(0)
                 prediction_hi = chatbot.examples_handler.load_from_cache(1)
             assert prediction_hello[0].root == [
-                Message(role="user", content="hello"),
-                Message(role="assistant", content="hello hello"),
+                Message(role="user", content=[TextMessage(text="hello")]),
+                Message(role="assistant", content=[TextMessage(text="hello hello")]),
             ]
             assert prediction_hi[0].root == [
-                Message(role="user", content="hi"),
-                Message(role="assistant", content="hi hi"),
+                Message(role="user", content=[TextMessage(text="hi")]),
+                Message(role="assistant", content=[TextMessage(text="hi hi")]),
             ]
 
     @pytest.mark.asyncio
@@ -115,13 +115,13 @@ class TestInit:
             )
             prediction_hello = chatbot.examples_handler.load_from_cache(0)
             assert prediction_hello[0].root == [
-                Message(role="user", content="hello"),
-                Message(role="assistant", content="hello hello"),
+                Message(role="user", content=[TextMessage(text="hello")]),
+                Message(role="assistant", content=[TextMessage(text="hello hello")]),
             ]
             prediction_hi = chatbot.examples_handler.load_from_cache(1)
             assert prediction_hi[0].root == [
-                Message(role="user", content="hi"),
-                Message(role="assistant", content="hi hi"),
+                Message(role="user", content=[TextMessage(text="hi")]),
+                Message(role="assistant", content=[TextMessage(text="hi hi")]),
             ]
 
     def test_example_caching_async(self, connect):
@@ -136,12 +136,12 @@ class TestInit:
                 prediction_hello = chatbot.examples_handler.load_from_cache(0)
                 prediction_hi = chatbot.examples_handler.load_from_cache(1)
             assert prediction_hello[0].root == [
-                Message(role="user", content="abubakar"),
-                Message(role="assistant", content="hi, abubakar"),
+                Message(role="user", content=[TextMessage(text="abubakar")]),
+                Message(role="assistant", content=[TextMessage(text="hi, abubakar")]),
             ]
             assert prediction_hi[0].root == [
-                Message(role="user", content="tom"),
-                Message(role="assistant", content="hi, tom"),
+                Message(role="user", content=[TextMessage(text="tom")]),
+                Message(role="assistant", content=[TextMessage(text="hi, tom")]),
             ]
 
     def test_example_caching_with_streaming(self, connect):
@@ -155,12 +155,12 @@ class TestInit:
                 prediction_hello = chatbot.examples_handler.load_from_cache(0)
                 prediction_hi = chatbot.examples_handler.load_from_cache(1)
             assert prediction_hello[0].root == [
-                Message(role="user", content="hello"),
-                Message(role="assistant", content="hello"),
+                Message(role="user", content=[TextMessage(text="hello")]),
+                Message(role="assistant", content=[TextMessage(text="hello")]),
             ]
             assert prediction_hi[0].root == [
-                Message(role="user", content="hi"),
-                Message(role="assistant", content="hi"),
+                Message(role="user", content=[TextMessage(text="hi")]),
+                Message(role="assistant", content=[TextMessage(text="hi")]),
             ]
 
     def test_example_caching_with_streaming_async(self, connect):
@@ -174,12 +174,12 @@ class TestInit:
                 prediction_hello = chatbot.examples_handler.load_from_cache(0)
                 prediction_hi = chatbot.examples_handler.load_from_cache(1)
             assert prediction_hello[0].root == [
-                Message(role="user", content="hello"),
-                Message(role="assistant", content="hello"),
+                Message(role="user", content=[TextMessage(text="hello")]),
+                Message(role="assistant", content=[TextMessage(text="hello")]),
             ]
             assert prediction_hi[0].root == [
-                Message(role="user", content="hi"),
-                Message(role="assistant", content="hi"),
+                Message(role="user", content=[TextMessage(text="hi")]),
+                Message(role="assistant", content=[TextMessage(text="hi")]),
             ]
 
     def test_default_accordion_params(self):
@@ -223,12 +223,12 @@ class TestInit:
                 prediction_hello = chatbot.examples_handler.load_from_cache(0)
                 prediction_hi = chatbot.examples_handler.load_from_cache(1)
             assert prediction_hello[0].root == [
-                Message(role="user", content="hello"),
-                Message(role="assistant", content="robot hello"),
+                Message(role="user", content=[TextMessage(text="hello")]),
+                Message(role="assistant", content=[TextMessage(text="robot hello")]),
             ]
             assert prediction_hi[0].root == [
-                Message(role="user", content="hi"),
-                Message(role="assistant", content="ro"),
+                Message(role="user", content=[TextMessage(text="hi")]),
+                Message(role="assistant", content=[TextMessage(text="ro")]),
             ]
 
     def test_example_caching_with_additional_inputs_already_rendered(
@@ -251,12 +251,12 @@ class TestInit:
                 prediction_hello = chatbot.examples_handler.load_from_cache(0)
                 prediction_hi = chatbot.examples_handler.load_from_cache(1)
             assert prediction_hello[0].root == [
-                Message(role="user", content="hello"),
-                Message(role="assistant", content="robot hello"),
+                Message(role="user", content=[TextMessage(text="hello")]),
+                Message(role="assistant", content=[TextMessage(text="robot hello")]),
             ]
             assert prediction_hi[0].root == [
-                Message(role="user", content="hi"),
-                Message(role="assistant", content="ro"),
+                Message(role="user", content=[TextMessage(text="hi")]),
+                Message(role="assistant", content=[TextMessage(text="ro")]),
             ]
 
     def test_custom_chatbot_with_events(self):
