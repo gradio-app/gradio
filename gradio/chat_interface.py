@@ -841,7 +841,6 @@ class ChatInterface(Blocks):
     ) -> list[MessageDict]:
         message_dicts = self._message_as_message_dict(message, role)
         history = copy.deepcopy(history)
-        print("message_dicts", message_dicts)
         history.extend(message_dicts)  # type: ignore
         return history
 
