@@ -216,7 +216,7 @@ with gr.Blocks(theme=theme, js=js) as demo:
             waveform_options=gr.WaveformOptions(waveform_color="#B83A4B"),
         )
     with gr.Row():
-        chatbot = gr.Chatbot(label="Conversation", type="messages")
+        chatbot = gr.Chatbot(label="Conversation")
     state = gr.State(value=AppState())
 ```
 

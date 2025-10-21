@@ -112,7 +112,6 @@ class ChatInterface(Blocks):
         api_visibility: Literal["public", "private", "undocumented"] = "public",
         save_history: bool = False,
         validator: Callable | None = None,
-        group_multimodal_data: bool = True,
     ):
         """
         Parameters:
@@ -156,7 +155,6 @@ class ChatInterface(Blocks):
             api_visibility: Controls the visibility of the chat endpoint. Can be "public" (shown in API docs and callable), "private" (hidden from API docs and not callable), or "undocumented" (hidden from API docs but callable).
             save_history: if True, will save the chat history to the browser's local storage and display previous conversations in a side panel.
             validator: a function that takes in the inputs and can optionally return a gr.validate() object for each input.
-            group_multimodal_data: Whether the the multimodal data (text + files) from the MultimodalTextbox should be grouped into a single list in the `content` key of the message. This can be useful when working with multimodal models that require multimodal input to be grouped in the same message, e.g. {'role': 'user', 'content': ["What is in this image", {"path": "<url>"}]}. If False, the text and each file will be separate messages in the chat history. Only applies when `multimodal` is True.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -177,7 +175,6 @@ class ChatInterface(Blocks):
         self.api_visibility = api_visibility
         self.multimodal = multimodal
         self.concurrency_limit = concurrency_limit
-        self.group_multimodal_data = group_multimodal_data
         if isinstance(fn, ChatInterface):
             self.fn = fn.fn
         else:
@@ -870,25 +867,15 @@ class ChatInterface(Blocks):
             ):  # in MessageDict format already
                 msg["role"] = role
                 message_dicts.append(msg)
-            elif self.group_multimodal_data:  # in MultimodalPostprocess format
-                if self.group_multimodal_data:
-                    multimodal_message = {"role": role, "content": []}
-                    for x in msg.get("files", []):
-                        if isinstance(x, dict):
-                            x = x.get("path")
-                        multimodal_message["content"].append({"path": x})
-                    if msg["text"]:
-                        multimodal_message["content"].append(msg["text"])
-                    message_dicts.append(multimodal_message)
-            else:
+            else:  # in MultimodalPostprocess format
+                multimodal_message = {"role": role, "content": []}
                 for x in msg.get("files", []):
                     if isinstance(x, dict):
                         x = x.get("path")
-                    message_dicts.append({"role": role, "content": {"path": x}})
-                if msg["text"] is None or not isinstance(msg["text"], str):
-                    pass
-                else:
-                    message_dicts.append({"role": role, "content": msg["text"]})
+                    multimodal_message["content"].append({"path": x})
+                if msg["text"]:
+                    multimodal_message["content"].append(msg["text"])
+                message_dicts.append(multimodal_message)
         return message_dicts
 
     async def _submit_fn(
