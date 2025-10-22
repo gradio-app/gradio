@@ -2,4 +2,4 @@
 "website": minor
 ---
 
-feat:Add dark mode to gradio docs 🌙
+feat:🌙 Add dark mode to gradio docs 
