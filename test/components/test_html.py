@@ -22,7 +22,7 @@ class TestHTML:
             "min_height": None,
             "max_height": None,
             "container": False,
-            "padding": True,
+            "padding": False,
             "autoscroll": False,
         }
 

@@ -23,7 +23,7 @@ async def wait(job):
 
 
 def get_client(session: str | None = None) -> grc.Client:
-    client = grc.Client("<<app-src>>", hf_token=os.getenv("HF_TOKEN"))
+    client = grc.Client("<<app-src>>", token=os.getenv("HF_TOKEN"))
     if session:
         client.session_hash = session
     return client

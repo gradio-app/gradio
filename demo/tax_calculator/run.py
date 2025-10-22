@@ -2,7 +2,7 @@ import gradio as gr
 
 def tax_calculator(income, marital_status, assets):
     tax_brackets = [(10, 0), (25, 8), (60, 12), (120, 20), (250, 30)]
-    total_deductible = sum(assets["Cost"])
+    total_deductible = sum(cost for cost, deductible in zip(assets["Cost"], assets["Deductible"]) if deductible)
     taxable_income = income - total_deductible
 
     total_tax = 0
@@ -23,16 +23,18 @@ demo = gr.Interface(
         "number",
         gr.Radio(["Single", "Married", "Divorced"]),
         gr.Dataframe(
-            headers=["Item", "Cost"],
-            datatype=["str", "number"],
+            headers=["Item", "Cost", "Deductible"],
+            datatype=["str", "number", "bool"],
             label="Assets Purchased this Year",
         ),
     ],
-    "number",
+    gr.Number(label="Tax due"),
     examples=[
-        [10000, "Married", [["Suit", 5000], ["Laptop", 800], ["Car", 1800]]],
-        [80000, "Single", [["Suit", 800], ["Watch", 1800], ["Car", 800]]],
+        [10000, "Married", [["Suit", 5000, True], ["Laptop (for work)", 800, False], ["Car", 1800, True]]],
+        [80000, "Single", [["Suit", 800, True], ["Watch", 1800, True], ["Food", 800, True]]],
     ],
+    live=True,
+    api_name="predict"
 )
 
 demo.launch()
