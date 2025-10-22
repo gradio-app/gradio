@@ -45,6 +45,7 @@
 	export let input_ready: boolean;
 	export let recording = false;
 	export let subtitles: null | FileData | SubtitleData[] = null;
+	export let minimal = false;
 	let uploading = false;
 	$: input_ready = !uploading;
 
@@ -203,6 +204,7 @@
 			{waveform_settings}
 			{waveform_options}
 			{editable}
+			{minimal}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 			on:play={() => gradio.dispatch("play")}
