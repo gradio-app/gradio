@@ -116,7 +116,7 @@
 			href="./docs/python-client"
 			target="_self"
 			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
-				.COLOR_SETS[1]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800 text-gray-900 dark:text-gray-100"
+				.COLOR_SETS[1]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:bg-neutral-800 dark:hover:bg-neutral-900 text-gray-900 dark:text-gray-100"
 		>
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>Python Client</span>
@@ -132,7 +132,7 @@
 			href="./docs/js-client"
 			target="_self"
 			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
-				.COLOR_SETS[0]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800 text-gray-900 dark:text-gray-100"
+				.COLOR_SETS[0]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:bg-neutral-800 dark:hover:bg-neutral-900 text-gray-900 dark:text-gray-100"
 		>
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>Javascript Client</span>
@@ -148,7 +148,7 @@
 			href="./docs/third-party-clients"
 			target="_self"
 			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
-				.COLOR_SETS[3]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800 text-gray-900 dark:text-gray-100"
+				.COLOR_SETS[3]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:bg-neutral-800 dark:hover:bg-neutral-900 text-gray-900 dark:text-gray-100"
 		>
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>Third Party Clients</span>
@@ -165,7 +165,7 @@
 			href="./docs/js"
 			target="_self"
 			class="w-full shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
-				.COLOR_SETS[4]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800 text-gray-900 dark:text-gray-100"
+				.COLOR_SETS[4]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:bg-neutral-800 dark:hover:bg-neutral-900 text-gray-900 dark:text-gray-100"
 		>
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>Javascript Components</span>
@@ -180,7 +180,7 @@
 			href="../guides/custom-components-in-five-minutes"
 			target="_self"
 			class="w-full shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
-				.COLOR_SETS[2]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800 text-gray-900 dark:text-gray-100"
+				.COLOR_SETS[2]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:bg-neutral-800 dark:hover:bg-neutral-900 text-gray-900 dark:text-gray-100"
 		>
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>Custom Components</span>
@@ -231,7 +231,7 @@
 						class="shadow-alternate hover:scale-[1.04] guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl bg-gradient-to-r px-3 py-4 from-{data
 							.COLOR_SETS[
 							i
-						]}-50 hover:shadow-alternate to-white dark:from-gray-850 dark:to-gray-950 shadow-none transition-shadow text-gray-900 dark:text-gray-100"
+						]}-50 hover:shadow-alternate to-white dark:bg-neutral-800 dark:hover:bg-neutral-900 shadow-none transition-shadow text-gray-900 dark:text-gray-100"
 						href=".{guide.url}"
 					>
 						<div class="flex flex-col p-4 h-min">

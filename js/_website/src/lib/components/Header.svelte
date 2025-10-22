@@ -20,7 +20,7 @@
 </script>
 
 <!-- Launch BANNER  -->
-<div class="main-header flex-row mb-4">
+<div class="main-header flex-row mb-4" style="--header-total-height: auto;">
 	<div
 		class="relative isolate flex items-center gap-x-6 overflow-hidden bg-gradient-to-r from-white via-yellow-200 to-white dark:from-neutral-900 dark:via-yellow-900 dark:to-neutral-900 px-6 py-2 sm:px-3.5 sm:before:flex-1 mx-auto"
 	>

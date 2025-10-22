@@ -230,19 +230,19 @@ code.language-bash {
 }
 
 .tip {
-	@apply bg-gradient-to-br from-green-50 to-white border-green-50 border-l-2 border-l-green-300 text-green-700 p-4 px-6;
+	@apply bg-green-50 dark:bg-green-900/30 border-green-50 dark:border-green-800 border-l-2 border-l-green-300 dark:border-l-green-600 text-green-700 dark:text-green-300 p-4 px-6;
 }
 
 .tip strong {
-	@apply text-green-700;
+	@apply text-green-700 dark:text-green-300;
 }
 
 .tip code {
-	@apply text-green-700;
+	@apply text-green-700 dark:text-green-300;
 }
 
 .tip a {
-	@apply text-green-700;
+	@apply text-green-700 dark:text-green-300;
 }
 
 .tip p {
@@ -250,7 +250,7 @@ code.language-bash {
 }
 
 .warning {
-	@apply bg-gradient-to-br from-red-50 to-white border-red-50 border-l-2 border-l-red-300 text-red-700 p-4 px-6;
+	@apply bg-red-50 dark:bg-red-900/30 border-red-50 dark:border-red-800 border-l-2 border-l-red-300 dark:border-l-red-600 text-red-700 dark:text-red-300 p-4 px-6;
 }
 
 .warning strong {

@@ -28,7 +28,6 @@
 		window.__gradio_mode__ = "website";
 	}
 
-
 	// Reactively apply dark mode class when theme changes
 	$: if (typeof window !== "undefined") {
 		if ($theme === "dark") {

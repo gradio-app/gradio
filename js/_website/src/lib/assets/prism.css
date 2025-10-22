@@ -73,6 +73,7 @@ pre[class*="language-"] {
 .dark code[class*="language-"],
 .dark pre[class*="language-"] {
 	text-shadow: none;
+	color: #e6edf3;
 }
 
 .prose code[class*="language-"],
