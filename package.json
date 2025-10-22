@@ -87,7 +87,7 @@
 		"tinyspy": "^4.0.4",
 		"typescript": "^5.9.3",
 		"typescript-svelte-plugin": "^0.3.50",
-		"vite": "^7.1.9",
+		"vite": "npm:rolldown-vite@latest",
 		"vite-plugin-turbosnap": "1.0.3",
 		"vitest": "^3.2.4"
 	},

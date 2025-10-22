@@ -11,7 +11,8 @@ import type { Dependency, LoadingComponent } from "./types";
 export function get_component(
 	type: string,
 	class_id: string,
-	root: string
+	root: string,
+	variant: "component" | "example" | "base" = "component"
 ): LoadingComponent {
 	if (type === "api") type = "state";
 
@@ -19,7 +20,7 @@ export function get_component(
 		api_url: root,
 		name: type,
 		id: class_id,
-		variant: "component"
+		variant
 	}).component;
 }
 

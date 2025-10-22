@@ -116,6 +116,19 @@ export class Dependency {
 	}
 }
 
+interface DispatchFunction {
+	type: "fn";
+	event_data: unknown;
+	fn_index?: number;
+}
+
+interface DispatchEvent {
+	type: "event";
+	event_name?: string;
+	target_id?: number;
+	event_data: unknown;
+}
+
 /**
  * Manages all dependencies for an app acting as a bridge between app state and Dependencies
  * Responsible for registering dependencies and dispatching events to them
@@ -158,22 +171,24 @@ export class DependencyManager {
 	 * @param event_data any additional data to pass to the dependency
 	 * @returns a value if there is no backend fn, a 'submission' if there is a backend fn, or null if there is no dependency
 	 */
-	async dispatch({
-		event_name,
-		target_id,
-		event_data
-	}: {
-		event_name: string;
-		target_id: number;
-		event_data: unknown;
-	}): Promise<void> {
-		const dep = this.dependencies_by_event.get(`${event_name}-${target_id}`);
+	async dispatch(event_meta: DispatchFunction | DispatchEvent): Promise<void> {
+		let dep: Dependency | undefined;
+
+		if (event_meta.type === "fn") {
+			dep = this.dependencies_by_fn.get(event_meta.fn_index!);
+		} else {
+			dep = this.dependencies_by_event.get(
+				`${event_meta.event_name}-${event_meta.target_id}`
+			);
+		}
 
 		if (dep) {
 			const dispatch_status = should_dispatch(
 				dep.trigger_modes,
 				this.submissions.has(dep.id)
 			);
+
+			console.log("Dispatching status:", dispatch_status);
 
 			switch (dispatch_status) {
 				case "skip":
@@ -194,12 +209,17 @@ export class DependencyManager {
 
 			const { success, failure, all } = dep.get_triggers();
 
+			console.log({ success, failure, all });
+			console.log("Running dependency:", dep.id, data_payload);
+
 			try {
 				const dep_submission = await dep.run(
 					this.client,
 					data_payload,
-					event_data
+					event_meta.event_data
 				);
+
+				console.log("Dispatching to", dep.id);
 
 				if (dep_submission.type === "void") {
 					unset_args();
@@ -207,42 +227,49 @@ export class DependencyManager {
 					this.handle_data(dep.outputs, dep_submission.data);
 					unset_args();
 				} else {
+					console.log("Dispatching to", dep.id, dep_submission);
 					this.submissions.set(dep.id, dep_submission.data);
 					// fn for this?
-					for await (const result of dep_submission.data) {
+					submit_loop: for await (const result of dep_submission.data) {
+						console.log("Received submission result for", dep.id, result);
 						if (result === null) continue;
 						if (result.type === "data") {
 							this.handle_data(dep.outputs, result.data);
 						}
 						if (result.type === "status") {
 							// handle status updates here
+							if (result.stage === "complete") {
+								console.log("Submission complete for", dep.id);
+								break submit_loop;
+							}
 						}
 					}
+					console.log("+++");
+					console.log("Dependency complete:", dep.id);
 					unset_args();
 					this.submissions.delete(dep.id);
 
 					if (this.queue.has(dep.id)) {
 						this.queue.delete(dep.id);
-						return this.dispatch({
-							event_name,
-							target_id,
-							event_data
-						});
+						this.dispatch(event_meta);
 					}
 				}
 
+				console.log("Dispatching success/failure triggers");
+
 				success.forEach((dep_id) => {
+					console.log("Dispatching success to", dep_id);
 					this.dispatch({
-						event_name: "then",
-						target_id: dep_id,
+						type: "fn",
+						fn_index: dep_id,
 						event_data: null
 					});
 				});
 			} catch (error) {
 				failure.forEach((dep_id) => {
 					this.dispatch({
-						event_name: "then",
-						target_id: dep_id,
+						type: "fn",
+						fn_index: dep_id,
 						event_data: null
 					});
 				});
@@ -250,8 +277,8 @@ export class DependencyManager {
 
 			all.forEach((dep_id) => {
 				this.dispatch({
-					event_name: "then",
-					target_id: dep_id,
+					type: "fn",
+					fn_index: dep_id,
 					event_data: null
 				});
 			});
@@ -320,17 +347,20 @@ export class DependencyManager {
 	 * @param outputs the ids of the output components
 	 * @param data the data to update the components with
 	 * */
-	handle_data(outputs: number[], data: unknown[]) {
-		outputs.forEach((output_id, i) => {
+	async handle_data(outputs: number[], data: unknown[]) {
+		outputs.forEach(async (output_id, i) => {
 			const _data = data[i] ?? null;
 			if (!_data) return;
 			if (is_prop_update(_data)) {
 				for (const [update_key, update_value] of Object.entries(_data)) {
 					if (update_key === "__type__") continue;
-					this.update_state_cb(outputs[i], { [update_key]: update_value });
+					await this.update_state_cb(outputs[i], {
+						[update_key]: update_value
+					});
 				}
 			} else {
-				this.update_state_cb(output_id, { value: _data });
+				console.log("handle_data", output_id, _data);
+				await this.update_state_cb(output_id, { value: _data });
 			}
 		});
 	}
