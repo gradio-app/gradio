@@ -291,7 +291,7 @@
 			{#if prev_guide}
 				<a
 					href="..{prev_guide.url}"
-					class="lg:ml-10 text-left px-4 py-1 bg-gray-50 dark:bg-neutral-800 rounded-full hover:underline max-w-[48%]"
+					class="lg:ml-10 text-left px-4 py-1 bg-gray-50 dark:bg-neutral-800 rounded-full text-gray-900 dark:text-gray-100 hover:underline max-w-[48%]"
 				>
 					<div class="flex text-lg">
 						<span class="text-orange-500 mr-1">&#8592;</span>
@@ -306,7 +306,7 @@
 			{#if next_guide}
 				<a
 					href="..{next_guide.url}"
-					class="text-right px-4 py-1 bg-gray-50 dark:bg-neutral-800 rounded-full max-w-1/2 hover:underline max-w-[48%]"
+					class="text-right px-4 py-1 bg-gray-50 dark:bg-neutral-800 rounded-full text-gray-900 dark:text-gray-100 max-w-1/2 hover:underline max-w-[48%]"
 				>
 					<div class="flex text-lg">
 						<p class="whitespace-nowrap overflow-hidden text-ellipsis">
@@ -348,7 +348,7 @@
 			{#if prev_guide}
 				<a
 					href="..{prev_guide.url}"
-					class="lg:ml-10 text-left px-4 py-1 bg-gray-50 dark:bg-neutral-800 rounded-full hover:underline max-w-[48%]"
+					class="lg:ml-10 text-left px-4 py-1 bg-gray-50 dark:bg-neutral-800 rounded-full text-gray-900 dark:text-gray-100 hover:underline max-w-[48%]"
 				>
 					<div class="flex text-lg">
 						<span class="text-orange-500 mr-1">&#8592;</span>
@@ -363,7 +363,7 @@
 			{#if next_guide}
 				<a
 					href="..{next_guide.url}"
-					class="text-right px-4 py-1 bg-gray-50 dark:bg-neutral-800 rounded-full max-w-1/2 hover:underline max-w-[48%]"
+					class="text-right px-4 py-1 bg-gray-50 dark:bg-neutral-800 rounded-full text-gray-900 dark:text-gray-100 max-w-1/2 hover:underline max-w-[48%]"
 				>
 					<div class="flex text-lg">
 						<p class="whitespace-nowrap overflow-hidden text-ellipsis">

@@ -11,7 +11,7 @@
 	let show_help_menu = false;
 	let show_nav = false;
 	$: show_nav = click_nav || $store?.lg;
-	$: currentLogo = $theme === "dark" ? gradio_logo_dark : gradio_logo;
+	$: current_logo = $theme === "dark" ? gradio_logo_dark : gradio_logo;
 
 	onNavigate(() => {
 		click_nav = false;
@@ -34,7 +34,7 @@
 				<a
 					href="/hackathon-winners"
 					target="_blank"
-					class="mx-auto flex-none rounded-full px-3.5 py-1 text-sm font-semibold text-white bg-gradient-to-br from-orange-300 via-orange-500 to-orange-300 hover:drop-shadow-md"
+					class="mx-auto flex-none rounded-full px-3.5 py-1 text-sm font-semibold text-white dark:text-gray-900 bg-gradient-to-br from-orange-300 via-orange-500 to-orange-300 hover:drop-shadow-md"
 					>Winners <span aria-hidden="true">&rarr;</span></a
 				>
 			</div>
@@ -47,7 +47,7 @@
 		class="w-[95%] mx-auto border-gray-200 dark:border-gray-700 rounded-lg p-2 mt-2 flex flex-wrap justify-between flex-row relative items-center text-lg z-40 lg:px-4 lg:py-5 lg:gap-6 lg:container lg:border-none lg:shadow-none"
 	>
 		<a href="/">
-			<img src={currentLogo} alt="Gradio logo" />
+			<img src={current_logo} alt="Gradio logo" />
 		</a>
 		{#if !show_nav}
 			<svg
@@ -126,29 +126,29 @@
 				</div>
 				{#if show_help_menu}
 					<div
-						class="help-menu flex flex-col gap-3 lg:absolute lg:top-7 lg:w-52 lg:bg-white dark:lg:bg-gray-800 lg:shadow lg:group-hover:flex lg:sm:right-0 lg:gap-0"
+						class="help-menu flex flex-col gap-3 lg:absolute lg:top-7 lg:w-52 lg:bg-white dark:lg:bg-neutral-800 lg:shadow lg:group-hover:flex lg:sm:right-0 lg:gap-0"
 					>
 						<a
-							class="thin-link inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2 lg:hover:bg-gray-100"
+							class="thin-link inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2 lg:hover:bg-gray-100 dark:lg:hover:bg-neutral-900"
 							href="https://github.com/gradio-app/gradio/issues/new/choose"
 							target="_blank">File an Issue</a
 						>
 						<a
-							class="thin-link inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2 lg:hover:bg-gray-100"
+							class="thin-link inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2 lg:hover:bg-gray-100 dark:lg:hover:bg-neutral-900"
 							target="_blank"
 							href="https://discord.gg/feTf9x3ZSB">Discord</a
 						>
 						<a
-							class="thin-link inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2 lg:hover:bg-gray-100"
+							class="thin-link inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2 lg:hover:bg-gray-100 dark:lg:hover:bg-neutral-900"
 							target="_blank"
 							href="https://gradio.curated.co/">Newsletter</a
 						>
 						<a
-							class="thin-link inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2 lg:hover:bg-gray-100"
+							class="thin-link inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2 lg:hover:bg-gray-100 dark:lg:hover:bg-neutral-900"
 							href="/brand">Brand</a
 						>
 						<a
-							class="thin-link inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2 lg:hover:bg-gray-100"
+							class="thin-link inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2 lg:hover:bg-gray-100 dark:lg:hover:bg-neutral-900"
 							target="_blank"
 							href="https://github.com/gradio-app/gradio"
 						>

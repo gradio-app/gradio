@@ -190,13 +190,13 @@
 						link_copied = true;
 						copy_link(component.id);
 					}}
-					class="rounded-md w-fit px-3.5 py-1 text-sm font-semibold text-white bg-orange-300 hover:drop-shadow-sm mr-4"
+					class="rounded-md w-fit px-3.5 py-1 text-sm font-semibold text-white dark:text-gray-900 bg-orange-300 hover:drop-shadow-sm mr-4"
 				>
 					Share
 				</button>
 			{:else}
 				<span
-					class="rounded-md w-fit px-3.5 py-1 text-sm font-semibold text-white bg-orange-300 hover:drop-shadow-sm mr-4"
+					class="rounded-md w-fit px-3.5 py-1 text-sm font-semibold text-white dark:text-gray-900 bg-orange-300 hover:drop-shadow-sm mr-4"
 				>
 					Link copied to clipboard!
 				</span>
@@ -204,7 +204,7 @@
 			<a
 				href={`https://huggingface.co/spaces/${component.id}`}
 				target="_blank"
-				class="rounded-md w-fit px-3.5 py-1 text-sm font-semibold text-white bg-orange-300 hover:drop-shadow-sm"
+				class="rounded-md w-fit px-3.5 py-1 text-sm font-semibold text-white dark:text-gray-900 bg-orange-300 hover:drop-shadow-sm"
 			>
 				Go to Space <span aria-hidden="true">→</span>
 			</a>

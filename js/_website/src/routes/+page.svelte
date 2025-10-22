@@ -2,7 +2,7 @@
 	import version_json from "$lib/json/version.json";
 	import DemosLanding from "$lib/components/DemosLanding.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
-	import gradio_banner from "$lib/assets/img/header-image.jpg";
+	import gradio_banner from "$lib/assets/img/header-image.png";
 	export let data: {
 		logos: {
 			img: string;
@@ -107,7 +107,9 @@
 <div
 	class="relative mx-auto container space-y-6 px-4 py-24 md:flex md:space-y-0 md:space-x-8 text-lg"
 >
-	<div class="shadow-alternate flex-1 rounded-xl border border-gray-100 dark:border-gray-800 dark:bg-neutral-900 p-6">
+	<div
+		class="shadow-alternate flex-1 rounded-xl border border-gray-100 dark:border-gray-800 dark:bg-neutral-900 p-6"
+	>
 		<h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-gray-100">
 			<svg
 				class="mr-2 mb-3 text-2xl text-gray-800 dark:text-gray-200"
@@ -189,7 +191,9 @@
 			remotely from their own devices.
 		</p>
 	</div>
-	<div class="shadow-alternate flex-1 rounded-xl border border-gray-100 dark:border-gray-800 dark:bg-neutral-900 p-6">
+	<div
+		class="shadow-alternate flex-1 rounded-xl border border-gray-100 dark:border-gray-800 dark:bg-neutral-900 p-6"
+	>
 		<h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-gray-100">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
@@ -223,7 +227,9 @@
 	</div>
 </div>
 <div class="text-center">
-	<h2 class="mb-2 inline-block bg-white dark:bg-gray-950 px-5 text-gray-400">Used by</h2>
+	<h2 class="mb-2 inline-block bg-white dark:bg-gray-950 px-5 text-gray-400">
+		Used by
+	</h2>
 	<div
 		class="border-t border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-neutral-900 px-4 pt-24 pb-32"
 		style="margin-top: -1.2rem;"

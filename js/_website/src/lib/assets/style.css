@@ -2,11 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="search"],
+.dark input[type="password"],
+.dark input[type="number"],
+.dark input[type="url"],
+.dark input[type="tel"],
+.dark textarea {
+	background-color: rgb(38, 38, 38);
+	color: rgb(245, 245, 245);
+	border-color: rgb(64, 64, 64);
+}
+
 .link {
 	@apply font-semibold hover:text-orange-500 transition-colors;
 }
 .thin-link {
-	@apply text-gray-900 dark:text-white hover:text-orange-500 transition-colors;
+	@apply text-gray-900 dark:text-gray-400 hover:text-orange-500 dark:hover:text-white transition-colors;
 }
 .thinner-link {
 	@apply hover:text-orange-500 transition-colors;
