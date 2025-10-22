@@ -18,8 +18,8 @@ from gradio import components
 from gradio.exceptions import Error, TooManyRequestsError
 
 
-def get_model_info(model_name, hf_token=None):
-    hf_api = HfApi(token=hf_token)
+def get_model_info(model_name, token=None):
+    hf_api = HfApi(token=token)
     print(f"Fetching model from: https://huggingface.co/{model_name}")
 
     model_info = hf_api.model_info(model_name)

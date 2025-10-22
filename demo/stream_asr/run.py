@@ -25,6 +25,7 @@ demo = gr.Interface(
     ["state", gr.Audio(sources=["microphone"], streaming=True)],
     ["state", "text"],
     live=True,
+    api_name="predict"
 )
 
 if __name__ == "__main__":

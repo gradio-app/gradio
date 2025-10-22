@@ -32,11 +32,11 @@ def wait(x):
     time.sleep(2)
     return x
 
-identity_iface = gr.Interface(wait, "image", "image")
+identity_iface = gr.Interface(wait, "image", "image", api_name="predict")
 
 with demo.route("Interface") as incrementer_demo:
     identity_iface.render()
-    gr.Interface(lambda x, y: x * y, ["number", "number"], "number")
+    gr.Interface(lambda x, y: x * y, ["number", "number"], "number", api_name="predict")
 
 if __name__ == "__main__":
     demo.launch()
