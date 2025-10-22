@@ -2,13 +2,16 @@
 	import { onNavigate } from "$app/navigation";
 	import { store } from "../../routes/+layout.svelte";
 
-	import { gradio_logo } from "../assets";
+	import { gradio_logo, gradio_logo_dark } from "../assets";
 	import Search from "./search";
+	import ThemeToggle from "./ThemeToggle.svelte";
+	import { theme } from "$lib/stores/theme";
 
 	let click_nav = false;
 	let show_help_menu = false;
 	let show_nav = false;
 	$: show_nav = click_nav || $store?.lg;
+	$: currentLogo = $theme === "dark" ? gradio_logo_dark : gradio_logo;
 
 	onNavigate(() => {
 		click_nav = false;
@@ -19,11 +22,13 @@
 <!-- Launch BANNER  -->
 <div class="main-header flex-row mb-4">
 	<div
-		class="relative isolate flex items-center gap-x-6 overflow-hidden bg-gradient-to-r from-white via-yellow-200 to-white px-6 py-2 sm:px-3.5 sm:before:flex-1 mx-auto"
+		class="relative isolate flex items-center gap-x-6 overflow-hidden bg-gradient-to-r from-white via-yellow-200 to-white dark:from-neutral-900 dark:via-yellow-900 dark:to-neutral-900 px-6 py-2 sm:px-3.5 sm:before:flex-1 mx-auto"
 	>
 		<div class="flex flex-wrap items-center gap-x-4 gap-y-2 flex-grow">
 			<div class="flex flex-wrap items-center gap-x-4 gap-y-2 mx-auto">
-				<p class="text-md leading-6 text-gray-700 text-center mx-auto">
+				<p
+					class="text-md leading-6 text-gray-700 dark:text-gray-200 text-center mx-auto"
+				>
 					<strong class="font-semibold">Gradio Agents & MCP Hackathon </strong>
 				</p>
 				<a
@@ -39,28 +44,28 @@
 	<div
 		class:border={show_nav}
 		class:shadow={show_nav}
-		class="w-[95%] mx-auto border-gray-200 rounded-lg p-2 mt-2 flex flex-wrap justify-between flex-row relative items-center text-lg z-40 lg:px-4 lg:py-5 lg:gap-6 lg:container lg:border-none lg:shadow-none"
+		class="w-[95%] mx-auto border-gray-200 dark:border-gray-700 rounded-lg p-2 mt-2 flex flex-wrap justify-between flex-row relative items-center text-lg z-40 lg:px-4 lg:py-5 lg:gap-6 lg:container lg:border-none lg:shadow-none"
 	>
 		<a href="/">
-			<img src={gradio_logo} alt="Gradio logo" />
+			<img src={currentLogo} alt="Gradio logo" />
 		</a>
 		{#if !show_nav}
 			<svg
-				class="h-8 w-8 lg:hidden"
+				class="h-8 w-8 lg:hidden text-gray-900 dark:text-gray-100"
 				viewBox="-10 -10 20 20"
 				on:click={() => (click_nav = !click_nav)}
 			>
-				<rect x="-7" y="-6" width="14" height="2" />
-				<rect x="-7" y="-1" width="14" height="2" />
-				<rect x="-7" y="4" width="14" height="2" />
+				<rect x="-7" y="-6" width="14" height="2" fill="currentColor" />
+				<rect x="-7" y="-1" width="14" height="2" fill="currentColor" />
+				<rect x="-7" y="4" width="14" height="2" fill="currentColor" />
 			</svg>
 		{:else}
 			<svg
-				class="h-5 w-5 lg:hidden mr-2"
+				class="h-5 w-5 lg:hidden mr-2 text-gray-900 dark:text-gray-100"
 				viewBox="-10 -10 70 70"
 				width="50"
 				height="50"
-				stroke="black"
+				stroke="currentColor"
 				stroke-width="10"
 				stroke-linecap="round"
 				on:click={() => (click_nav = !click_nav)}
@@ -71,7 +76,7 @@
 		{/if}
 		<nav
 			class:hidden={!show_nav}
-			class="flex w-full flex-col gap-3 px-4 py-2 lg:flex lg:w-auto lg:flex-row lg:gap-8"
+			class="flex w-full flex-col gap-3 px-4 py-2 lg:flex lg:w-auto lg:flex-row lg:gap-8 text-gray-900 dark:text-gray-100"
 		>
 			<a class="thin-link flex items-center gap-3" href="/guides/quickstart"
 				><span>⚡</span> <span>Quickstart</span>
@@ -121,7 +126,7 @@
 				</div>
 				{#if show_help_menu}
 					<div
-						class="help-menu flex flex-col gap-3 lg:absolute lg:top-7 lg:w-52 lg:bg-white lg:shadow lg:group-hover:flex lg:sm:right-0 lg:gap-0"
+						class="help-menu flex flex-col gap-3 lg:absolute lg:top-7 lg:w-52 lg:bg-white dark:lg:bg-gray-800 lg:shadow lg:group-hover:flex lg:sm:right-0 lg:gap-0"
 					>
 						<a
 							class="thin-link inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2 lg:hover:bg-gray-100"
@@ -154,6 +159,9 @@
 			</div>
 			<div>
 				<Search />
+			</div>
+			<div>
+				<ThemeToggle />
 			</div>
 		</nav>
 	</div>

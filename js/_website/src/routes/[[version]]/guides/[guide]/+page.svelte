@@ -148,7 +148,7 @@
 			use:clickOutside
 			on:click_outside={() => (show_nav = false)}
 			class:hidden={!show_nav}
-			class="max-w-max min-w-[75%] navigation mobile-nav shadow overflow-y-auto fixed backdrop-blur-lg z-50 bg-white pr-6 pl-4 py-4 -ml-4 h-full inset-0 lg:inset-auto lg:shadow-none lg:ml-0 lg:z-0 lg:backdrop-blur-none lg:navigation lg:p-0 lg:pb-4 lg:h-screen lg:leading-relaxed lg:sticky lg:top-0 lg:text-md lg:block lg:rounded-t-xl lg:bg-gradient-to-r lg:from-white lg:to-gray-50 lg:overflow-x-clip lg:w-2/12 lg:min-w-0"
+			class="max-w-max min-w-[75%] navigation mobile-nav shadow overflow-y-auto fixed backdrop-blur-lg z-50 bg-white dark:bg-neutral-900 pr-6 pl-4 py-4 -ml-4 h-full inset-0 lg:inset-auto lg:shadow-none lg:ml-0 lg:z-0 lg:backdrop-blur-none lg:navigation lg:p-0 lg:pb-4 lg:h-screen lg:leading-relaxed lg:sticky lg:top-0 lg:text-md lg:block lg:rounded-t-xl lg:bg-white dark:lg:bg-neutral-900 lg:overflow-x-clip lg:w-2/12 lg:min-w-0"
 			id="mobile-nav"
 		>
 			<button
@@ -170,7 +170,7 @@
 			</button>
 
 			{#each guide_names as { category, guides } (category)}
-				<p class="font-semibold px-4 my-2 block">{category}</p>
+				<p class="font-semibold px-4 my-2 block text-gray-900 dark:text-gray-100">{category}</p>
 				{#each guides as guide, i}
 					<a
 						class:current-nav-link={guide.name == guide_page.name}
@@ -184,14 +184,14 @@
 
 	<div
 		bind:this={sidebar}
-		class="side-navigation h-screen leading-relaxed sticky top-0 text-md overflow-y-auto overflow-x-hidden hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50 lg:w-3/12"
+		class="side-navigation h-screen leading-relaxed sticky top-0 text-md overflow-y-auto overflow-x-hidden hidden lg:block rounded-t-xl bg-white dark:bg-neutral-900 lg:w-3/12"
 	>
 		<div class="sticky top-0 pr-2 float-right">
 			<DropDown></DropDown>
 		</div>
 		{#each guide_names as guides, i}
 			<div
-				class="category-link my-2 font-semibold px-4 pt-2 text-ellipsis block"
+				class="category-link my-2 font-semibold px-4 pt-2 text-ellipsis block text-gray-900 dark:text-gray-100"
 				style="max-width: 12rem"
 			>
 				{guides.category}
@@ -220,7 +220,7 @@
 
 					{#if guide_slug.length > 0}
 						<div
-							class="navigation max-w-full bg-gradient-to-r from-orange-50 to-orange-100 p-2 mx-2 border-l-2 border-orange-500 mb-2"
+							class="navigation max-w-full bg-orange-50 dark:bg-orange-900 p-2 mx-2 border-l-2 border-orange-500 mb-2"
 						>
 							{#each guide_slug as heading}
 								<a
@@ -291,7 +291,7 @@
 			{#if prev_guide}
 				<a
 					href="..{prev_guide.url}"
-					class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+					class="lg:ml-10 text-left px-4 py-1 bg-gray-50 dark:bg-neutral-800 rounded-full hover:underline max-w-[48%]"
 				>
 					<div class="flex text-lg">
 						<span class="text-orange-500 mr-1">&#8592;</span>
@@ -306,7 +306,7 @@
 			{#if next_guide}
 				<a
 					href="..{next_guide.url}"
-					class="text-right px-4 py-1 bg-gray-50 rounded-full max-w-1/2 hover:underline max-w-[48%]"
+					class="text-right px-4 py-1 bg-gray-50 dark:bg-neutral-800 rounded-full max-w-1/2 hover:underline max-w-[48%]"
 				>
 					<div class="flex text-lg">
 						<p class="whitespace-nowrap overflow-hidden text-ellipsis">
@@ -341,14 +341,14 @@
 				{/each}
 			</div>
 		{/if}
-		<div class="prose text-lg max-w-full" bind:this={content_el}>
+		<div class="prose text-lg max-w-full dark:prose-invert" bind:this={content_el}>
 			{@html guide_page.new_html}
 		</div>
 		<div class="w-full flex flex-wrap justify-between my-4">
 			{#if prev_guide}
 				<a
 					href="..{prev_guide.url}"
-					class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+					class="lg:ml-10 text-left px-4 py-1 bg-gray-50 dark:bg-neutral-800 rounded-full hover:underline max-w-[48%]"
 				>
 					<div class="flex text-lg">
 						<span class="text-orange-500 mr-1">&#8592;</span>
@@ -363,7 +363,7 @@
 			{#if next_guide}
 				<a
 					href="..{next_guide.url}"
-					class="text-right px-4 py-1 bg-gray-50 rounded-full max-w-1/2 hover:underline max-w-[48%]"
+					class="text-right px-4 py-1 bg-gray-50 dark:bg-neutral-800 rounded-full max-w-1/2 hover:underline max-w-[48%]"
 				>
 					<div class="flex text-lg">
 						<p class="whitespace-nowrap overflow-hidden text-ellipsis">

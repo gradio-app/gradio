@@ -125,7 +125,7 @@
 		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
 			<div>
 				<p
-					class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left lg:ml-10"
+					class="bg-orange-100 dark:bg-orange-900 border border-orange-200 dark:border-orange-700 px-4 py-1 mr-2 rounded-full text-orange-800 dark:text-orange-200 mb-1 w-fit float-left lg:ml-10"
 				>
 					New to Gradio? Start here: <a class="link" href="/quickstart"
 						>Getting Started</a

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { page } from "$app/stores";
-	import gradio_banner from "$lib/assets/img/header-faded.jpg";
 	import logo_melted from "$lib/assets/img/logo-melted.png";
 </script>
 
@@ -13,29 +12,14 @@
 			{$page.status}
 		</h1>
 		<h2
-			class="mx-auto max-w-xl text-2xl text-gray-500 md:text-4xl z-10 relative"
+			class="mx-auto max-w-xl text-2xl text-gray-500 dark:text-gray-400 md:text-4xl z-10 relative"
 		>
 			{$page.error?.message}
 		</h2>
-		<img class="banner-faded mx-auto" src={gradio_banner} />
 	</div>
 </div>
 
 <style>
-	.banner-faded {
-		-webkit-mask-image: -webkit-gradient(
-			linear,
-			left bottom,
-			left top,
-			from(rgba(0, 0, 0, 1)),
-			to(rgba(0, 0, 0, 0))
-		);
-		mask-image: linear-gradient(to top, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0));
-		position: absolute;
-		top: 0;
-		left: 10%;
-		width: 80%;
-	}
 	.logo {
 		position: relative;
 		z-index: 10;

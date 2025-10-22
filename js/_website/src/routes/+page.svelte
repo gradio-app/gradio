@@ -47,12 +47,12 @@
 		/>
 		<div class="text-left">
 			<div
-				class="mb-10 text-4xl font-bold capitalize text-gray-900 xl:-ml-52 xl:text-5xl 2xl:text-6xl"
+				class="mb-10 text-4xl font-bold capitalize text-gray-900 dark:text-gray-100 xl:-ml-52 xl:text-5xl 2xl:text-6xl"
 			>
 				Build &amp; share delightful machine learning apps
 			</div>
 			<div class="lg:pl-12">
-				<p class="mx-auto mb-12 text-xl text-gray-600">
+				<p class="mx-auto mb-12 text-xl text-gray-600 dark:text-gray-300">
 					Gradio is the fastest way to demo your machine learning model with a
 					friendly web interface so that anyone can use it, anywhere!
 				</p>
@@ -66,7 +66,7 @@
 					<div class="flex items-center justify-center">
 						<a
 							href="https://github.com/gradio-app/gradio"
-							class="cursor-pointer select-none inline-flex justify-center items-center whitespace-nowrap px-3 py-1 rounded-lg border bg-gradient-to-b focus:outline-none focus:ring text-gray-800 border-gray-200 from-white to-gray-100 hover:shadow-inner font-bold text-lg -mr-1"
+							class="cursor-pointer select-none inline-flex justify-center items-center whitespace-nowrap px-3 py-1 rounded-lg border bg-gradient-to-b focus:outline-none focus:ring text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-700 from-white to-gray-100 dark:from-neutral-800 dark:to-neutral-900 hover:shadow-inner font-bold text-lg -mr-1"
 						>
 							<svg
 								class="dark:text-gray-200 mr-2"
@@ -89,11 +89,11 @@
 						</a>
 						<div class="relative ml-3">
 							<div
-								class="absolute z-[-1] -left-1 top-3 h-3 w-3 bg-gradient-to-t from-gray-100-to-white rounded-sm dark:bg-gray-900 border border-gray-200 dark:border-gray-850 flex-none transform rotate-45"
+								class="absolute z-[-1] -left-1 top-3 h-3 w-3 bg-gradient-to-t from-gray-100 to-white dark:from-neutral-900 dark:to-neutral-800 rounded-sm border border-gray-200 dark:border-gray-700 flex-none transform rotate-45"
 							/>
 							<a
 								id="star-count"
-								class="inset-0 cursor-pointer select-none inline-flex justify-center items-center whitespace-nowrap px-3 py-1 rounded-lg border bg-gradient-to-b focus:outline-none focus:ring text-gray-800 border-gray-200 from-white to-gray-100 hover:shadow-inner font-bold text-lg dark:hover:text-yellow-500 relative"
+								class="inset-0 cursor-pointer select-none inline-flex justify-center items-center whitespace-nowrap px-3 py-1 rounded-lg border bg-gradient-to-b focus:outline-none focus:ring text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-700 from-white to-gray-100 dark:from-neutral-800 dark:to-neutral-900 hover:shadow-inner font-bold text-lg dark:hover:text-yellow-500 relative"
 								href="https://github.com/gradio-app/gradio">{data.star_count}</a
 							>
 						</div>
@@ -107,10 +107,10 @@
 <div
 	class="relative mx-auto container space-y-6 px-4 py-24 md:flex md:space-y-0 md:space-x-8 text-lg"
 >
-	<div class="shadow-alternate flex-1 rounded-xl border border-gray-100 p-6">
-		<h2 class="mb-4 text-xl font-bold">
+	<div class="shadow-alternate flex-1 rounded-xl border border-gray-100 dark:border-gray-800 dark:bg-neutral-900 p-6">
+		<h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-gray-100">
 			<svg
-				class="mr-2 mb-3 text-2xl text-gray-800"
+				class="mr-2 mb-3 text-2xl text-gray-800 dark:text-gray-200"
 				xmlns="http://www.w3.org/2000/svg"
 				xmlns:xlink="http://www.w3.org/1999/xlink"
 				aria-hidden="true"
@@ -136,25 +136,25 @@
 			</svg>
 			Fast, easy setup
 		</h2>
-		<p class="mb-3 text-gray-600">
+		<p class="mb-3 text-gray-600 dark:text-gray-300">
 			Gradio can be <a class="text-link" href="/guides/quickstart"
 				>installed with pip</a
 			>. Creating a Gradio interface only requires adding a couple lines of code
 			to your project.
 		</p>
-		<p class="text-gray-600">
+		<p class="text-gray-600 dark:text-gray-300">
 			Seamlessly use any python library on your computer. If you can write a
 			python function, gradio can run it.
 		</p>
 	</div>
 	<div
-		class="shadow-alternate flex-1 rounded-xl border border-t border-gray-100 p-6"
+		class="shadow-alternate flex-1 rounded-xl border border-t border-gray-100 dark:border-gray-800 dark:bg-neutral-900 p-6"
 	>
-		<h2 class="mb-4 text-xl font-bold">
+		<h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-gray-100">
 			<svg
 				width="1em"
 				height="1em"
-				class="mr-2 mb-3 fill-current text-2xl text-gray-800"
+				class="mr-2 mb-3 fill-current text-2xl text-gray-800 dark:text-gray-200"
 				viewBox="0 0 1 1"
 				fill="none"
 				xmlns="http://www.w3.org/2000/svg"
@@ -172,7 +172,7 @@
 			</svg>
 			Present and share
 		</h2>
-		<p class="mb-3 text-gray-600">
+		<p class="mb-3 text-gray-600 dark:text-gray-300">
 			Gradio can be embedded in <a
 				href="https://colab.research.google.com/drive/1T70IHFbztf_F0-HggwvM1PN7jBmS_wPN"
 				class="text-link">Python notebooks</a
@@ -183,20 +183,20 @@
 				class="text-link">webpage</a
 			>.
 		</p>
-		<p class="text-gray-600">
+		<p class="text-gray-600 dark:text-gray-300">
 			A Gradio interface can automatically generate a public link you can share
 			with colleagues that lets them interact with the model on your computer
 			remotely from their own devices.
 		</p>
 	</div>
-	<div class="shadow-alternate flex-1 rounded-xl border border-gray-100 p-6">
-		<h2 class="mb-4 text-xl font-bold">
+	<div class="shadow-alternate flex-1 rounded-xl border border-gray-100 dark:border-gray-800 dark:bg-neutral-900 p-6">
+		<h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-gray-100">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				xmlns:xlink="http://www.w3.org/1999/xlink"
 				aria-hidden="true"
 				role="img"
-				class="mr-2 mb-3 text-2xl text-gray-800"
+				class="mr-2 mb-3 text-2xl text-gray-800 dark:text-gray-200"
 				width="1em"
 				height="1em"
 				preserveAspectRatio="xMidYMid meet"
@@ -210,11 +210,11 @@
 			</svg>
 			Permanent hosting
 		</h2>
-		<p class="mb-3 text-gray-600">
+		<p class="mb-3 text-gray-600 dark:text-gray-300">
 			Once you've created an interface, you can permanently host it on Hugging
 			Face.
 		</p>
-		<p class="text-gray-600">
+		<p class="text-gray-600 dark:text-gray-300">
 			<a href="https://huggingface.co/spaces" class="text-link"
 				>Hugging Face Spaces</a
 			> will host the interface on its servers and provide you with a link you can
@@ -223,9 +223,9 @@
 	</div>
 </div>
 <div class="text-center">
-	<h2 class="mb-2 inline-block bg-white px-5 text-gray-400">Used by</h2>
+	<h2 class="mb-2 inline-block bg-white dark:bg-gray-950 px-5 text-gray-400">Used by</h2>
 	<div
-		class="border-t border-b border-gray-100 bg-gradient-to-t from-gray-50 px-4 pt-24 pb-32"
+		class="border-t border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-neutral-900 px-4 pt-24 pb-32"
 		style="margin-top: -1.2rem;"
 	>
 		<div
@@ -247,7 +247,7 @@
 		{#each data.tweets as tweet}
 			<a
 				href={tweet["link"]}
-				class="rounded-xl border border-gray-200 bg-white p-4 hover:shadow dark:border-gray-800 dark:bg-gray-800"
+				class="rounded-xl border border-gray-200 bg-white p-4 hover:shadow dark:border-gray-800 dark:bg-neutral-800"
 			>
 				<div class="flex justify-between">
 					<div class="flex items-center gap-2">

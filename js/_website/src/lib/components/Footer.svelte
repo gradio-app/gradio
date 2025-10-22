@@ -1,18 +1,21 @@
 <script lang="ts">
-	import { gradio_logo, twitter, github } from "../assets";
+	import { gradio_logo, gradio_logo_dark, twitter, github } from "../assets";
+	import { theme } from "$lib/stores/theme";
+
+	$: currentLogo = $theme === "dark" ? gradio_logo_dark : gradio_logo;
 </script>
 
 <footer
 	class="main-footer container mx-auto flex-row flex items-center px-4 py-6 justify-between"
 >
 	<a href="/">
-		<img src={gradio_logo} alt="Gradio logo" />
+		<img src={currentLogo} alt="Gradio logo" />
 	</a>
 	<div class="flex gap-3">
 		<a
 			href="https://status.gradio.app"
 			target="_blank"
-			class="text-gray-400 hover:text-gray-500"
+			class="text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400"
 		>
 			<span>Status</span>
 		</a>

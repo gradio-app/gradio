@@ -6,7 +6,7 @@
 	@apply font-semibold hover:text-orange-500 transition-colors;
 }
 .thin-link {
-	@apply hover:text-orange-500 transition-colors;
+	@apply text-gray-900 dark:text-white hover:text-orange-500 transition-colors;
 }
 .thinner-link {
 	@apply hover:text-orange-500 transition-colors;
@@ -48,7 +48,7 @@
 
 @layer base {
 	a.text-link {
-		@apply font-semibold text-gray-800 underline decoration-orange-500 underline-offset-2 hover:text-orange-500;
+		@apply font-semibold text-gray-800 dark:text-white underline decoration-orange-500 underline-offset-2 hover:text-orange-500;
 	}
 }
 
@@ -90,7 +90,7 @@
 }
 /* index */
 .active-example-tab {
-	@apply border-orange-500 rounded-full text-orange-500 ring-1 bg-orange-50 ring-orange-200 hover:!text-orange-500 cursor-pointer shadow shadow-orange-200;
+	@apply border-orange-500 rounded-full text-orange-500 ring-1 bg-orange-50 dark:bg-orange-900 ring-orange-200 dark:ring-orange-700 hover:!text-orange-500 cursor-pointer shadow shadow-orange-200 dark:shadow-orange-900;
 }
 
 /* guides */
@@ -206,7 +206,7 @@ code.language-bash {
 }
 
 .codeblock {
-	@apply relative bg-gray-50 mx-auto p-3 mt-2;
+	@apply relative bg-gray-50 dark:bg-neutral-800 mx-auto p-3 mt-2;
 }
 .codeblock:hover > .clipboard-button {
 	@apply opacity-100 duration-200;

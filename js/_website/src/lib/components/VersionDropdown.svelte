@@ -14,7 +14,7 @@
 	let match_name: RegExpMatchArray | null;
 	let docs_section: string;
 
-	$: match_name = $page.url.pathname.match(/\/docs\/([^/]+)/);
+	$: match_name = $page.url?.pathname?.match(/\/docs\/([^/]+)/);
 	$: if (match_name) {
 		docs_section = match_name[1];
 	}
@@ -29,7 +29,7 @@
 	}`;
 
 	$: path_parts = $page.route.id?.split("/") || [];
-	$: is_dynamic = path_parts[path_parts.length - 1].match(/\[.+\]/);
+	$: is_dynamic = path_parts[path_parts.length - 1]?.match(/\[.+\]/);
 
 	$: guide_url = `${value === version ? "" : `/${value}`}/guides/${
 		$page.params?.guide ||
