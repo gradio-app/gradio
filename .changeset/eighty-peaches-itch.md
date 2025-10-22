@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Plot legend fix
+feat:Fixes for long legends in native plots
