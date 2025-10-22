@@ -20,12 +20,10 @@
 	const create_waveform = async (): Promise<void> => {
 		if (!container || !resolved_src || waveform_ready) return;
 
-		// Destroy existing waveform if any
 		if (waveform) {
 			waveform.destroy();
 		}
 
-		// Get the computed accent color from CSS variable
 		const accentColor =
 			getComputedStyle(document.documentElement).getPropertyValue(
 				"--color-accent"
