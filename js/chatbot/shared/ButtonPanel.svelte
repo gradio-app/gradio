@@ -93,7 +93,7 @@
 							} else if (mime_type.startsWith("image/")) {
 								return `<img src="${url}" />`;
 							}
-						return "";
+							return "";
 						}}
 						value={file}
 					/>
