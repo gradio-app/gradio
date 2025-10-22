@@ -450,7 +450,7 @@
 				{root}
 				loop={false}
 				show_label={false}
-				show_download_button={false}
+				buttons={[]}
 				dragging={false}
 			/>
 		{/if}

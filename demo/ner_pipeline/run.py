@@ -15,7 +15,8 @@ def ner(text):
 demo = gr.Interface(ner,
              gr.Textbox(placeholder="Enter sentence here..."),
              gr.HighlightedText(),
-             examples=examples)
+             examples=examples,
+             api_name="predict")
 
 if __name__ == "__main__":
     demo.launch()

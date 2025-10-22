@@ -33,12 +33,12 @@ To create a chat application with `gr.ChatInterface()`, the first thing you shou
 - `message`: a `str` representing the user's most recent message.
 - `history`: a list of openai-style dictionaries with `role` and `content` keys, representing the previous conversation history. May also include additional keys representing message metadata.
 
-For example, the `history` could look like this:
+The `history` would look like this:
 
 ```python
 [
-    {"role": "user", "content": "What is the capital of France?"},
-    {"role": "assistant", "content": "Paris"}
+    {"role": "user", "content": [{"type": "text", "text": "What is the capital of France?"}]},
+    {"role": "assistant", "content": [{"type": "text", "text": "Paris"}]}
 ]
 ```
 
@@ -78,11 +78,8 @@ import gradio as gr
 
 gr.ChatInterface(
     fn=random_response, 
-    type="messages"
 ).launch()
 ```
-
-Tip: Always set type="messages" in gr.ChatInterface. The default value (type="tuples") is deprecated and will be removed in a future version of Gradio.
 
 That's it! Here's our running demo, try it out:
 
@@ -103,7 +100,6 @@ def alternatingly_agree(message, history):
 
 gr.ChatInterface(
     fn=alternatingly_agree, 
-    type="messages"
 ).launch()
 ```
 
@@ -124,7 +120,6 @@ def slow_echo(message, history):
 
 gr.ChatInterface(
     fn=slow_echo, 
-    type="messages"
 ).launch()
 ```
 
@@ -164,7 +159,6 @@ def yes_man(message, history):
 
 gr.ChatInterface(
     yes_man,
-    type="messages",
     chatbot=gr.Chatbot(height=300),
     textbox=gr.Textbox(placeholder="Ask me a yes or no question", container=False, scale=7),
     title="Yes Man",
@@ -180,7 +174,6 @@ Here's another example that adds a "placeholder" for your chat interface, which 
 ```python
 gr.ChatInterface(
     yes_man,
-    type="messages",
     chatbot=gr.Chatbot(placeholder="<strong>Your Personal Yes-Man</strong><br>Ask Me Anything"),
 ...
 ```
@@ -204,13 +197,13 @@ When `multimodal=True`, the signature of your chat function changes slightly: th
 }
 ```
 
-This second parameter of your chat function, `history`, will be in the same openai-style dictionary format as before. However, if the history contains uploaded files, the `content` key for a file will be not a string, but rather a single-element tuple consisting of the filepath. Each file will be a separate message in the history. So after uploading two files and asking a question, your history might look like this:
+This second parameter of your chat function, `history`, will be in the same openai-style dictionary format as before. However, if the history contains uploaded files, the `content` key will be a dictionary with a "type" key whose value is "file" and the file will be represented as a dictionary. All the files will be grouped in message in the history. So after uploading two files and asking a question, your history might look like this:
 
 ```python
 [
-    {"role": "user", "content": ("cat1.png")},
-    {"role": "user", "content": ("cat2.png")},
-    {"role": "user", "content": "What's the difference between these two images?"},
+    {"role": "user", "content": [{"type": "file", "file": {"path": "cat1.png"}},
+                                 {"type": "file", "file": {"path": "cat1.png"}},
+                                 {"type": "text", "text": "What's the difference between these two images?"}]}
 ]
 ```
 
@@ -226,13 +219,13 @@ def count_images(message, history):
     num_images = len(message["files"])
     total_images = 0
     for message in history:
-        if isinstance(message["content"], tuple):
-            total_images += 1
+        for content in message["content"]:
+            if content["type"] == "file":
+                total_images += 1
     return f"You just uploaded {num_images} images, total uploaded: {total_images+num_images}"
 
 demo = gr.ChatInterface(
     fn=count_images, 
-    type="messages", 
     examples=[
         {"text": "No files", "files": []}
     ], 
@@ -270,7 +263,7 @@ with gr.Blocks() as demo:
     slider = gr.Slider(10, 100, render=False)
 
     gr.ChatInterface(
-        echo, additional_inputs=[system_prompt, slider], type="messages"
+        echo, additional_inputs=[system_prompt, slider],
     )
 
 demo.launch()
@@ -319,7 +312,6 @@ def music(message, history):
 
 gr.ChatInterface(
     music,
-    type="messages",
     textbox=gr.Textbox(placeholder="Which artist's music do you want to listen to?", scale=7),
 ).launch()
 ```
@@ -342,9 +334,11 @@ The `gr.ChatInterface` class supports displaying intermediate thoughts or tool u
  To do this, you will need to return a `gr.ChatMessage` object from your chat function. Here is the schema of the `gr.ChatMessage` data class as well as two internal typed dictionaries:
  
  ```py
+MessageContent = Union[str, FileDataDict, FileData, Component]
+
 @dataclass
 class ChatMessage:
-    content: str | Component
+    content: MessageContent | list[MessageContent]
     metadata: MetadataDict = None
     options: list[OptionDict] = None
 
@@ -385,13 +379,12 @@ $code_chatinterface_prefill
 
 ## Using Your Chatbot via API
 
-Once you've built your Gradio chat interface and are hosting it on [Hugging Face Spaces](https://hf.space) or somewhere else, then you can query it with a simple API at the `/chat` endpoint. The endpoint just expects the user's message and will return the response, internally keeping track of the message history.
+Once you've built your Gradio chat interface and are hosting it on [Hugging Face Spaces](https://hf.space) or somewhere else, then you can query it with a simple API. The API route will be the name of the function you pass to the ChatInterface. So if `gr.ChatInterface(respond)`, then the API route is `/respond`. The endpoint just expects the user's message and will return the response, internally keeping track of the message history.
 
 ![](https://github.com/gradio-app/gradio/assets/1778297/7b10d6db-6476-4e2e-bebd-ecda802c3b8f)
 
 To use the endpoint, you should use either the [Gradio Python Client](/guides/getting-started-with-the-python-client) or the [Gradio JS client](/guides/getting-started-with-the-js-client). Or, you can deploy your Chat Interface to other platforms, such as a:
 
-* Discord bot [[tutorial]](../guides/creating-a-discord-bot-from-a-gradio-app)
 * Slack bot [[tutorial]](../guides/creating-a-slack-bot-from-a-gradio-app)
 * Website widget [[tutorial]](../guides/creating-a-website-widget-from-a-gradio-chatbot)
 

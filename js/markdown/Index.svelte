@@ -34,7 +34,7 @@
 	export let height: number | string | undefined;
 	export let min_height: number | string | undefined;
 	export let max_height: number | string | undefined;
-	export let show_copy_button = false;
+	export let buttons: string[] | null = null;
 	export let container = false;
 	export let theme_mode: ThemeMode;
 	export let padding = false;
@@ -70,7 +70,7 @@
 			{sanitize_html}
 			{line_breaks}
 			{header_links}
-			{show_copy_button}
+			show_copy_button={buttons?.includes("copy") ?? false}
 			{loading_status}
 			{theme_mode}
 		/>
