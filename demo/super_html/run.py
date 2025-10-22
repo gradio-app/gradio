@@ -11,7 +11,7 @@ with gr.Blocks() as demo:
     gr.Markdown("""
     # Templated HTML usecase
     'value' can now be anything, and it can be used inside the `html_template` using `${value}` syntax.
-    Note that when used as output or input, `value` is just the name rather than the entire HTML.
+    Note that when used as output or input, `value` is just this specific value rather than the entire HTML.
     """)
     with gr.Row():
         name1 = gr.Textbox(label="Name")
@@ -20,7 +20,7 @@ with gr.Blocks() as demo:
 
     gr.Markdown("""
     # Additional Props
-    You are not limited to using `${value}` in the templates, you can add any number of tags to the template, and pass them to the component as keyword arguments. These props can be updated via python event listeners as well.
+    You are not limited to using `${value}` in the templates, you can add any number of custom tags to the template, and pass them to the component as keyword arguments. These props can be updated via python event listeners as well.
     """)
     with gr.Row():
         templated_html_props = gr.HTML("John", html_template="""
@@ -75,10 +75,8 @@ with gr.Blocks() as demo:
         """,
         js_on_load="""
         const buttons = element.querySelectorAll('button');
-        console.log(1)
         buttons.forEach(button => {
             button.addEventListener('click', () => {
-                console.log('clicked', button.innerText);
                 trigger('click', {clicked: button.innerText});
             });
         });
