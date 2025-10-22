@@ -13,9 +13,9 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible: boolean | "hidden" = true;
-	export let value: { video: FileData; subtitles: FileData | null } | null =
-		null;
-	let old_value: { video: FileData; subtitles: FileData | null } | null = null;
+	export let value: null | FileData = null;
+	let old_value: null | FileData = null;
+	export let subtitles: null | FileData = null;
 
 	export let label: string;
 	export let sources:
@@ -33,8 +33,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let autoplay = false;
-	export let show_share_button = true;
-	export let show_download_button: boolean;
+	export let buttons: string[] | null = null;
 	export let gradio: Gradio<{
 		change: never;
 		clear: never;
@@ -57,14 +56,9 @@
 	export let input_ready: boolean;
 	let uploading = false;
 	$: input_ready = !uploading;
-
-	let _video: FileData | null = null;
-	let _subtitle: FileData | null = null;
-
 	let active_source: "webcam" | "upload";
 
-	let initial_value: { video: FileData; subtitles: FileData | null } | null =
-		value;
+	let initial_value: FileData | null = null;
 
 	$: if (value && initial_value === null) {
 		initial_value = value;
@@ -82,16 +76,6 @@
 		active_source = sources[0];
 	}
 
-	$: {
-		if (value != null) {
-			_video = value.video;
-			_subtitle = value.subtitles;
-		} else {
-			_video = null;
-			_subtitle = null;
-		}
-	}
-
 	let dragging = false;
 
 	$: {
@@ -103,10 +87,7 @@
 
 	function handle_change({ detail }: CustomEvent<FileData | null>): void {
 		if (detail != null) {
-			value = { video: detail, subtitles: null } as {
-				video: FileData;
-				subtitles: FileData | null;
-			} | null;
+			value = detail;
 		} else {
 			value = null;
 		}
@@ -146,14 +127,14 @@
 		/>
 
 		<StaticVideo
-			value={_video}
-			subtitle={_subtitle}
+			{value}
+			subtitle={subtitles}
 			{label}
 			{show_label}
 			{autoplay}
 			{loop}
-			{show_share_button}
-			{show_download_button}
+			show_share_button={buttons?.includes("share") ?? true}
+			show_download_button={buttons?.includes("download") ?? true}
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}
 			on:stop={() => gradio.dispatch("stop")}
@@ -187,15 +168,15 @@
 		/>
 
 		<Video
-			value={_video}
-			subtitle={_subtitle}
+			{value}
+			subtitle={subtitles}
 			on:change={handle_change}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:error={handle_error}
 			bind:uploading
 			{label}
 			{show_label}
-			{show_download_button}
+			show_download_button={buttons?.includes("download") ?? false}
 			{sources}
 			{active_source}
 			{webcam_options}

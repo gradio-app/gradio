@@ -15,7 +15,7 @@ def set_lang_from_path():
 def code(language, code):
     return gr.Code(code, language=language)
 
-io = gr.Interface(lambda x: x, "code", "code")
+io = gr.Interface(lambda x: x, "code", "code", api_name="predict")
 
 with gr.Blocks() as demo:
     lang = gr.Dropdown(value="python", choices=gr.Code.languages)

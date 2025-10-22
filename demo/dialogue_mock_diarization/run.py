@@ -42,6 +42,7 @@ demo = gr.Interface(
     outputs=[gr.Dialogue(speakers=speakers, tags=None, formatter=format_speaker)],
     title="Mock Speech Diarization",
     description="Mock speech diarization",
+    api_name="predict"
 )
 
 if __name__ == "__main__":

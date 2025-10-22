@@ -53,7 +53,7 @@ That's all the code that's needed -- notice that the API endpoints returns two a
 ```py
 from gradio_client import Client
 
-client = Client.duplicate("abidlabs/music-separation", hf_token=YOUR_HF_TOKEN)
+client = Client.duplicate("abidlabs/music-separation", token=YOUR_HF_TOKEN)
 ```
 
 Everything else remains the same!

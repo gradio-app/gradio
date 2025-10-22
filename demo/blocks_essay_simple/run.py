@@ -12,7 +12,7 @@ with gr.Blocks() as demo:
     radio = gr.Radio(
         ["short", "long", "none"], label="What kind of essay would you like to write?"
     )
-    text = gr.Textbox(lines=2, interactive=True, show_copy_button=True)
+    text = gr.Textbox(lines=2, interactive=True, buttons=["copy"])
     radio.change(fn=change_textbox, inputs=radio, outputs=text)
 
 if __name__ == "__main__":
