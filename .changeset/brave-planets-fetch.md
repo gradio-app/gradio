@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Remove deprecated compatibility layer and simplify Chatbot API
+feat:Fix issue with boolean columns in dataframe
