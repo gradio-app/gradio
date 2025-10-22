@@ -41,7 +41,6 @@ runs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ inputs.python_version }}
-        cache: pip
         cache-dependency-path: |
           client/python/requirements.txt
           requirements.txt
