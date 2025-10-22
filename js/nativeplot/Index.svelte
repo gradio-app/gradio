@@ -542,7 +542,12 @@
 					titleFontWeight: "normal",
 					titleFontSize: text_size_sm,
 					labelFontWeight: "normal",
-					offset: 2
+					offset: 2,
+					columns: Math.max(
+						1,
+						Math.floor(chart_element.offsetWidth / (text_size_sm * 12))
+					),
+					labelLimit: text_size_sm * 8
 				},
 				title: {
 					color: body_text_color,
