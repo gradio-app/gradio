@@ -46,11 +46,6 @@ runs:
           client/python/requirements.txt
           requirements.txt
           test/requirements.txt
-    - name: Create env
-      shell: bash
-      run: |
-        python -m pip install virtualenv==20.34.0
-        python -m virtualenv venv
     - name: Install uv (linux)
       if: ${{ inputs.os == 'ubuntu-latest' }}
       shell: bash
@@ -63,6 +58,10 @@ runs:
       run: |
         powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/0.9.2/install.ps1 | iex"
         echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+    - name: Create env
+      shell: bash
+      run: |
+        uv venv --python=${{ inputs.python_version }}
     - uses: actions/cache@v4
       id: cache
       with:
