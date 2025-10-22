@@ -2,11 +2,17 @@
 	import LikeDislike from "./LikeDislike.svelte";
 	import Copy from "./Copy.svelte";
 	import type { FileData } from "@gradio/client";
-	import type { NormalisedMessage, TextMessage, ThoughtNode } from "../types";
-	import { Retry, Undo, Edit, Check, Clear } from "@gradio/icons";
-	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
+	import type { NormalisedMessage } from "../types";
+	import { Retry, Undo, Edit, Check, Clear, Download } from "@gradio/icons";
+	import {
+		IconButtonWrapper,
+		IconButton,
+		DownloadLink,
+		ShareButton
+	} from "@gradio/atoms";
 	import { all_text, is_all_text } from "./utils";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
+	import { uploadToHuggingFace } from "@gradio/utils";
 
 	export let i18n: I18nFormatter;
 	export let likeable: boolean;
@@ -22,6 +28,9 @@
 	export let avatar: FileData | null;
 	export let generating: boolean;
 	export let current_feedback: string | null;
+	export let file: FileData | null = null;
+	export let show_download_button = false;
+	export let show_share_button = false;
 
 	export let handle_action: (selected: string | null) => void;
 	export let layout: "bubble" | "panel";
@@ -31,7 +40,7 @@
 	$: show_copy = show_copy_button && message && is_all_text(message);
 </script>
 
-{#if show_copy || show_retry || show_undo || show_edit || likeable}
+{#if show_copy || show_retry || show_undo || show_edit || likeable || show_download_button || show_share_button}
 	<div
 		class="message-buttons-{position} {layout} message-buttons {avatar !==
 			null && 'with-avatar'}"
@@ -56,6 +65,37 @@
 						value={message_text}
 						on:copy={(e) => dispatch("copy", e.detail)}
 						{watermark}
+					/>
+				{/if}
+				{#if show_download_button && file?.url}
+					<DownloadLink
+						href={file.is_stream
+							? file.url?.replace("playlist.m3u8", "playlist-file")
+							: file.url}
+						download={file.orig_name || file.path || "file"}
+					>
+						<IconButton Icon={Download} label={i18n("common.download")} />
+					</DownloadLink>
+				{/if}
+				{#if show_share_button && file}
+					<ShareButton
+						{i18n}
+						on:error={(e) => dispatch("error", e.detail)}
+						on:share={(e) => dispatch("share", e.detail)}
+						formatter={async (value) => {
+							if (!value) return "";
+							let url = await uploadToHuggingFace(value.url, "url");
+							const mime_type = value.mime_type || "";
+							if (mime_type.startsWith("audio/")) {
+								return `<audio controls src="${url}"></audio>`;
+							} else if (mime_type.startsWith("video/")) {
+								return `<video controls src="${url}"></video>`;
+							} else if (mime_type.startsWith("image/")) {
+								return `<img src="${url}" />`;
+							}
+						return "";
+						}}
+						value={file}
 					/>
 				{/if}
 				{#if show_retry}

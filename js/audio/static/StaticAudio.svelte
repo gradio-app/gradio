@@ -43,14 +43,12 @@
 	$: value && dispatch("change", value);
 </script>
 
-{#if !minimal}
-	<BlockLabel
-		{show_label}
-		Icon={Music}
-		float={false}
-		label={label || i18n("audio.audio")}
-	/>
-{/if}
+<BlockLabel
+	{show_label}
+	Icon={Music}
+	float={false}
+	label={label || i18n("audio.audio")}
+/>
 
 {#if value !== null}
 	{#if minimal}

@@ -121,8 +121,6 @@
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		width: var(--size-8);
-		height: var(--size-8);
 		padding: 0;
 		border: none;
 		background: none;
