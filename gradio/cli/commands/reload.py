@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import inspect
 import os
-import re
 import signal
 import subprocess
 import sys
@@ -43,28 +42,10 @@ def _handle_interrupt():
 
 def _setup_config(
     demo_path: Path,
-    demo_name: str = "demo",
     additional_watch_dirs: list[str] | None = None,
-    encoding: str = "utf-8",
     watch_library: bool = False,
 ):
     original_path = Path(demo_path)
-    app_text = original_path.read_text(encoding=encoding)
-
-    patterns = [
-        rf"with (?:gr\.)?Blocks\(.*\) as {demo_name}",
-        f"{demo_name} = gr\\.Blocks",
-        f"{demo_name} = gr\\.Interface",
-        f"{demo_name} = gr\\.ChatInterface",
-        f"{demo_name} = gr\\.TabbedInterface",
-    ]
-
-    if not any(re.search(p, app_text, flags=re.DOTALL) for p in patterns):
-        print(
-            f"\n[bold red]Warning[/]: Cannot statically find a gradio demo called {demo_name}. "
-            "Reload work may fail."
-        )
-
     abs_original_path = utils.abspath(original_path)
 
     if original_path.is_absolute():
@@ -111,12 +92,12 @@ def _setup_config(
 
     # guarantee access to the module of an app
     sys.path.insert(0, os.getcwd())
-    return module_name, abs_original_path, [str(s) for s in watching_dirs], demo_name
+    return module_name, abs_original_path, [str(s) for s in watching_dirs]
 
 
 def main(
     demo_path: Path,
-    demo_name: str = "demo",
+    demo_name: str = "",
     watch_dirs: list[str] | None = None,
     encoding: str = "utf-8",
     watch_library: bool = False,
@@ -125,8 +106,8 @@ def main(
     signal.signal(signal.SIGTERM, lambda _signum, _frame: _handle_interrupt())
 
     # default execution pattern to start the server and watch changes
-    module_name, path, watch_sources, demo_name = _setup_config(
-        demo_path, demo_name, watch_dirs, encoding, watch_library
+    module_name, path, watch_sources = _setup_config(
+        demo_path, watch_dirs, watch_library
     )
 
     # Pass the following data as environment variables
