@@ -1,7 +1,3 @@
-import { setContext } from "svelte";
-
-import { GRADIO_ROOT } from "@gradio/utils";
-
 import {
 	determine_interactivity,
 	get_component,
@@ -14,7 +10,8 @@ import type {
 	LayoutNode,
 	Dependency,
 	SharedProps,
-	LoadingComponent
+	LoadingComponent,
+	AppConfig
 } from "./types";
 
 interface RootNode {
@@ -25,7 +22,6 @@ interface RootNode {
 const allowed_shared_props: (keyof SharedProps)[] = [
 	"elem_id",
 	"elem_classes",
-	"components",
 	"visible",
 	"interactive",
 	"server_fns",
@@ -38,7 +34,17 @@ const allowed_shared_props: (keyof SharedProps)[] = [
 	"max_file_size",
 	"formatter",
 	"client",
-	"load_component"
+	"load_component",
+	"scale",
+	"min_width",
+	"theme",
+	"padding",
+	"loading_status",
+	"label",
+	"show_label",
+	"validation_error",
+	"show_progress",
+	"api_prefix"
 ] as const;
 
 type set_data_type = (data: Record<string, unknown>) => void;
@@ -51,16 +57,17 @@ export class AppTree {
 	#layout_payload: LayoutNode;
 	/** the raw dependency structure received from the backend */
 	#dependency_payload: Dependency[];
-	/** a map of event targets to their component metadata for easy lookup */
-	event_target_map: Map<string, ComponentMeta> = new Map();
+
+	/** the config for the app */
+	#config: AppConfig;
 
 	/** the root node of the processed layout tree */
 	root = $state<ProcessedComponentMeta>();
 
 	/** a map of component IDs to their component payload for easy lookup */
-	component_map: Map<number, ComponentMeta> = new Map();
+	#component_map: Map<number, ComponentMeta> = new Map();
 	/** a map of component IDs to their processed component metadata for easy lookup */
-	processed_component_map: Map<number, ProcessedComponentMeta> = new Map();
+	#processed_component_map: Map<number, ProcessedComponentMeta> = new Map();
 
 	/** a set of all component IDs that are inputs to dependencies */
 	#input_ids: Set<number> = new Set();
@@ -68,16 +75,19 @@ export class AppTree {
 	#output_ids: Set<number> = new Set();
 
 	/** A list of components that are currently loading */
-	pending_components: Array<LoadingComponent> = [];
+	#pending_components: Array<LoadingComponent> = [];
 
-	get_callbacks = new Map<number, get_data_type>();
-	set_callbacks = new Map<number, set_data_type>();
+	#get_callbacks = new Map<number, get_data_type>();
+	#set_callbacks = new Map<number, set_data_type>();
 
 	constructor(
 		components: ComponentMeta[],
 		layout: LayoutNode,
-		dependencies: Dependency[]
+		dependencies: Dependency[],
+		config: AppConfig
 	) {
+		console.log("AppTree config:", config);
+		this.#config = config;
 		this.#component_payload = components;
 		this.#layout_payload = layout;
 		this.#dependency_payload = dependencies;
@@ -96,8 +106,8 @@ export class AppTree {
 		_set_data: set_data_type,
 		_get_data: get_data_type
 	): void {
-		this.set_callbacks.set(id, _set_data);
-		this.get_callbacks.set(id, _get_data);
+		this.#set_callbacks.set(id, _set_data);
+		this.#get_callbacks.set(id, _get_data);
 	}
 
 	/**
@@ -111,6 +121,7 @@ export class AppTree {
 
 	/** Processes the layout payload into a tree of components */
 	async process() {
+		console.log("Processing layout payload:", this.#layout_payload);
 		this.root!.children = this.#layout_payload.children.map((node) =>
 			this.traverse(node, (node) => this.create_node(node))
 		);
@@ -166,21 +177,16 @@ export class AppTree {
 			type: component.type,
 			props: gather_props(
 				opts.id,
-				{
-					...component.props,
-					onupdate: (args: {
-						shared: Partial<SharedProps>;
-						props: Record<string, unknown>;
-					}) => this.update_state.apply(this, [opts.id, args])
-				},
-				[this.#input_ids, this.#output_ids]
+				component.props,
+				[this.#input_ids, this.#output_ids],
+				{ ...this.#config }
 			),
 			children: [],
 			show_progress_on: null,
 			component: get_component(
 				component.type,
 				component.component_class_id,
-				component.props.root || ""
+				this.#config.root || ""
 			),
 			key: component.key,
 			rendered_in: component.rendered_in,
@@ -196,16 +202,16 @@ export class AppTree {
 	 * @returns the component metadata, or undefined if not found
 	 * */
 	find_component_by_id(id: number): ComponentMeta | undefined {
-		if (this.component_map.has(id)) {
-			return this.component_map.get(id);
+		if (this.#component_map.has(id)) {
+			return this.#component_map.get(id);
 		} else {
 			for (const comp of this.#component_payload) {
 				if (comp.id === id) {
-					this.component_map.set(id, comp);
+					this.#component_map.set(id, comp);
 					return comp;
 				} else {
-					if (!this.component_map.has(comp.id)) {
-						this.component_map.set(comp.id, comp);
+					if (!this.#component_map.has(comp.id)) {
+						this.#component_map.set(comp.id, comp);
 					}
 				}
 			}
@@ -218,14 +224,14 @@ export class AppTree {
 	 * @param id the ID of the component to update
 	 * @param new_state the new state to set
 	 * */
-	update_state(
+	async update_state(
 		id: number,
 		new_state: Partial<SharedProps> & Record<string, unknown>
 	) {
-		const _set_data = this.set_callbacks.get(id);
+		const _set_data = this.#set_callbacks.get(id);
 		if (!_set_data) return;
-
-		_set_data(new_state);
+		console.log("Updating state for component", id, "with", new_state);
+		await _set_data(new_state);
 	}
 
 	/**
@@ -234,7 +240,7 @@ export class AppTree {
 	 * @returns the current state of the component, or null if not found
 	 */
 	async get_state(id: number): Promise<Record<string, unknown> | null> {
-		const _get_data = this.get_callbacks.get(id);
+		const _get_data = this.#get_callbacks.get(id);
 		if (!_get_data) return null;
 
 		return await _get_data();
@@ -268,6 +274,16 @@ function gather_props(
 			_props[key] = props[key];
 		}
 	}
+
+	for (const key in additional) {
+		if (allowed_shared_props.includes(key as keyof SharedProps)) {
+			const _key = key as keyof SharedProps;
+			_shared_props[_key] = additional[key];
+		} else {
+			_props[key] = additional[key];
+		}
+	}
+
 	_shared_props.id = id;
 	_shared_props.interactive = determine_interactivity(
 		id,
@@ -276,17 +292,11 @@ function gather_props(
 		dependencies
 	);
 
+	_shared_props.load_component = (name: string) =>
+		get_component(name, "", _shared_props.root || "", "example");
+
 	_shared_props.visible =
 		_shared_props.visible === undefined ? true : _shared_props.visible;
-
-	for (const key in additional) {
-		if (allowed_shared_props.includes(key as keyof SharedProps)) {
-			const _key = key as keyof SharedProps;
-			_shared_props[_key] = props[key];
-		} else {
-			_props[key] = props[key];
-		}
-	}
-
+	console.log("gather_props:", { shared_props: _shared_props, props: _props });
 	return { shared_props: _shared_props as SharedProps, props: _props };
 }

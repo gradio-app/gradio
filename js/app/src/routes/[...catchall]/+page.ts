@@ -22,6 +22,7 @@ export async function load({
 	layout: unknown;
 	app: Client | null;
 }> {
+	console.log("SERVER");
 	let app: Client;
 	const api_url =
 		browser && !local_dev_mode ? new URL(".", location.href).href : server;
@@ -89,15 +90,16 @@ export async function load({
 
 	// const { create_layout, layout } = create_components();
 
-	const Tree = new AppTree(
-		page_config.components,
-		page_config.layout,
-		page_config.dependencies
-	);
-	Tree.process();
+	// const Tree = new AppTree(
+	// 	page_config.components,
+	// 	page_config.layout,
+	// 	page_config.dependencies,
+	// 	{ ...app.config }
+	// );
+	// Tree.process();
+	// console.log("boo")
 
-	const layouts = Tree.root;
-	console.log("Processed Layout:", layouts, page_config.layout);
+	// const layouts = Tree.root;
 	// await create_layout({
 	// 	app,
 	// 	components: page_config.components,
@@ -111,12 +113,12 @@ export async function load({
 
 	// const layouts = get(layout);
 	await setupi18n(app.config?.i18n_translations || undefined, accept_language);
-
+	console.log("AUTH REQUIRED:", app.config?.auth_required);
 	return {
 		Render: app.config?.auth_required ? Login : Blocks,
 		config: page_config,
 		api_url,
-		layout: layouts,
+		// layout: layouts,
 		app
 	};
 }

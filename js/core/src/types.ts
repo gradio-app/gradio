@@ -1,13 +1,15 @@
 import type { Component } from "svelte";
 import type { Client } from "@gradio/client";
 import type { LoadingStatus } from "js/statustracker";
+import type { load_component } from "@gradio/utils";
+import type { get_component } from "./init_utils.js";
 
 // import type { I18nFormatter } from "./i18n.js";
 // import type { component_loader } from "./init.js";
 /** The props that are always present on a component */
 export interface SharedProps {
 	elem_id?: string;
-	elem_classes?: string[];
+	elem_classes: string[];
 	components?: string[];
 	server_fns?: string[];
 	interactive: boolean;
@@ -25,7 +27,7 @@ export interface SharedProps {
 	scale: number;
 	min_width: number;
 	padding: number;
-	load_component: any; //component_loader;
+	load_component: typeof get_component; //component_loader;
 	loading_status?: LoadingStatus;
 	label: string;
 	show_label: boolean;
@@ -143,3 +145,12 @@ export type LoadedComponent = {
 export type LoadingComponent = Promise<{
 	default: Component;
 }>;
+
+export interface AppConfig {
+	root: string;
+	theme: string;
+	version: string;
+	max_file_size?: number;
+	autoscroll: boolean;
+	api_prefix: string;
+}

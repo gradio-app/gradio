@@ -170,7 +170,7 @@ export interface Config {
 	enable_queue: boolean;
 	show_error: boolean;
 	layout: any;
-	mode: "blocks" | "interface";
+	mode: "blocks" | "interface" | "chat_interface";
 	root: string;
 	root_url?: string;
 	theme: string;

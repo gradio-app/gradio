@@ -67,7 +67,14 @@
 	export let vibe_mode = false;
 	let broken_connection = false;
 
-	let app_tree = new AppTree(components, layout, dependencies);
+	let app_tree = new AppTree(components, layout, dependencies, {
+		root,
+		theme: theme_mode,
+		version,
+		api_prefix,
+		max_file_size,
+		autoscroll,
+	});
 	app_tree.process();
 	setContext(GRADIO_ROOT, {
 		register: app_tree.register_component.bind(app_tree),

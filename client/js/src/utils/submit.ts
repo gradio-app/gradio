@@ -808,7 +808,7 @@ export function submit(
 			},
 			return: async () => {
 				close();
-				return next();
+				return { value: undefined, done: true as const };
 			},
 			cancel,
 			event_id: () => event_id_final,

@@ -1,7 +1,7 @@
 import type { ActionReturn } from "svelte/action";
 import type { Client } from "@gradio/client";
 import type { ComponentType, SvelteComponent } from "svelte";
-import { getContext } from "svelte";
+import { getContext, tick } from "svelte";
 import { type SharedProps } from "@gradio/core";
 
 export const GRADIO_ROOT = Symbol();
@@ -216,12 +216,17 @@ interface Args {
 	variant: "component" | "example" | "base";
 }
 
-type component_loader = (args: Args) => {
+export type component_loader = (args: Args) => {
 	name: "string";
 	component: {
 		default: ComponentType<SvelteComponent>;
 	};
 };
+
+export type load_component = (
+	name: string,
+	variant: "component" | "example" | "base"
+) => ReturnType<component_loader>;
 
 const is_browser = typeof window !== "undefined";
 
@@ -244,11 +249,11 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	props = $state<U>() as U;
 	i18n: I18nFormatter = $state<any>() as any;
 	dispatcher!: Function;
-
+	last_update: ReturnType<typeof tick> | null = null;
 	shared_props: (keyof SharedProps)[] = [
 		"elem_id",
 		"elem_classes",
-		"components",
+
 		"visible",
 		"interactive",
 		"server_fns",
@@ -264,14 +269,11 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		"load_component"
 	] as const;
 
-	constructor(
-		props: { shared_props: SharedProps; props: U },
-		virtual_component_loader?: component_loader
-	) {
+	constructor(props: { shared_props: SharedProps; props: U }) {
 		this.shared = props.shared_props;
 		this.props = props.props;
-
-		this._load_component = virtual_component_loader;
+		this.i18n = (s) => s;
+		this._load_component = props.shared_props.load_component;
 
 		if (!is_browser) return;
 		const { register, dispatcher } = getContext<{
@@ -296,11 +298,20 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		this.dispatcher(this.shared.id, event_name, data);
 	}
 
-	get_data() {
+	async get_data() {
+		console.log("get_data -- before", $state.snapshot(this.props));
+		await this.last_update;
+		console.log("get_data -- after", $state.snapshot(this.props));
 		return $state.snapshot(this.props);
 	}
 
+	update(data: Partial<U & SharedProps>): void {
+		this.set_data(data as U & SharedProps);
+		this.last_update = tick();
+	}
+
 	set_data(data: U & SharedProps): void {
+		console.log("set_data", data);
 		for (const key in data) {
 			if (this.shared_props.includes(key as keyof SharedProps)) {
 				const _key = key as keyof SharedProps;
