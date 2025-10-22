@@ -543,10 +543,9 @@
 					titleFontSize: text_size_sm,
 					labelFontWeight: "normal",
 					offset: 2,
-					columns: Math.max(
-						1,
-						Math.floor(chart_element.offsetWidth / (text_size_sm * 12))
-					),
+					columns: chart_element.offsetWidth > 0 
+						? Math.max(1, Math.floor(chart_element.offsetWidth / (text_size_sm * 10)))
+						: undefined,
 					labelLimit: text_size_sm * 8
 				},
 				title: {
