@@ -211,6 +211,19 @@
 
 	$: {
 		if (!dequal(headers, old_headers)) {
+			// Clean up old header cell references before processing new headers
+			if (_headers && _headers.length > 0) {
+				const old_header_ids = new Set<string>();
+				for (const header of _headers) {
+					if (header?.id) {
+						old_header_ids.add(header.id);
+					}
+				}
+				for (const id of old_header_ids) {
+					delete els[id];
+				}
+			}
+
 			_headers = make_headers(headers, col_count, els, make_id);
 			old_headers = JSON.parse(JSON.stringify(headers));
 		}
@@ -250,6 +263,22 @@
 			old_val !== undefined &&
 			(values.length !== old_val.length ||
 				(values[0] && old_val[0] && values[0].length !== old_val[0].length));
+
+		// Clean up old data cell references before processing new data
+		if (data && data.length > 0) {
+			const old_data_ids = new Set<string>();
+			for (const row of data) {
+				for (const cell of row) {
+					if (cell?.id) {
+						old_data_ids.add(cell.id);
+					}
+				}
+			}
+			for (const id of old_data_ids) {
+				delete els[id];
+				delete data_binding[id];
+			}
+		}
 
 		data = process_data(
 			values as CellValue[][],
