@@ -1,6 +1,5 @@
 ---
 "@gradio/nativeplot": minor
-"@gradio/textbox": minor
 "gradio": minor
 ---
 
