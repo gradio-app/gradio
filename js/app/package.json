@@ -20,7 +20,7 @@
 		"svelte": "^5.39.10",
 		"svelte-check": "^4.3.2",
 		"typescript": "^5.9.3",
-		"vite": "npm:rolldown-vite@latest"
+		"vite": "^7.1.9"
 	},
 	"type": "module",
 	"dependencies": {

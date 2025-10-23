@@ -89,14 +89,11 @@
 	let props = $props();
 	const gradio = new Gradio<ChatbotEvents, ChatbotProps>(props);
 
-	$inspect("chatbot", gradio.props.value);
 	let _value: NormalisedMessage[] | null = $derived(
 		gradio.props.type === "tuples"
 			? normalise_tuples(gradio.props.value as TupleFormat, gradio.shared.root)
 			: normalise_messages(gradio.props.value as Message[], gradio.shared.root),
 	);
-
-	$inspect(_value).with(console.trace);
 </script>
 
 <Block

@@ -158,6 +158,7 @@ export class DependencyManager {
 		get_state_cb: (id: number) => Promise<Record<string, unknown> | null>
 	) {
 		const { by_id, by_event } = this.create(dependencies);
+		console.log("Created dependencies:", { by_id });
 		this.dependencies_by_event = by_event;
 		this.dependencies_by_fn = by_id;
 		this.client = client;

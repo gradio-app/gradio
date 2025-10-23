@@ -1,23 +1,23 @@
 <script lang="ts">
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import type { Gradio } from "@gradio/utils";
+	import { Gradio } from "@gradio/utils";
 
-	export let equal_height = true;
-	export let elem_id: string;
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let variant: "default" | "panel" | "compact" = "default";
-	export let loading_status: LoadingStatus | undefined = undefined;
-	export let gradio: Gradio | undefined = undefined;
-	export let show_progress = false;
-	export let height: number | string | undefined;
-	export let min_height: number | string | undefined;
-	export let max_height: number | string | undefined;
-	export let scale: number | null = null;
+	// export let equal_height = true;
+	// export let elem_id: string;
+	// export let elem_classes: string[] = [];
+	// export let visible: boolean | "hidden" = true;
+	// export let variant: "default" | "panel" | "compact" = "default";
+	// export let loading_status: LoadingStatus | undefined = undefined;
+	// export let gradio: Gradio | undefined = undefined;
+	// export let show_progress = false;
+	// export let height: number | string | undefined;
+	// export let min_height: number | string | undefined;
+	// export let max_height: number | string | undefined;
+	// export let scale: number | null = null;
 
 	const get_dimension = (
-		dimension_value: string | number | undefined
+		dimension_value: string | number | undefined,
 	): string | undefined => {
 		if (dimension_value === undefined) {
 			return undefined;
@@ -28,31 +28,43 @@
 			return dimension_value;
 		}
 	};
+
+	let props = $props();
+	let gradio = new Gradio<
+		{},
+		{
+			equal_height: boolean | null;
+			variant: "default" | "panel" | "compact";
+			height: number | string | undefined;
+			min_height: number | string | undefined;
+			max_height: number | string | undefined;
+		}
+	>(props);
 </script>
 
 <div
-	class:compact={variant === "compact"}
-	class:panel={variant === "panel"}
-	class:unequal-height={equal_height === false}
-	class:stretch={equal_height}
-	class:hide={!visible}
-	class:grow-children={scale && scale >= 1}
-	style:height={get_dimension(height)}
-	style:max-height={get_dimension(max_height)}
-	style:min-height={get_dimension(min_height)}
-	style:flex-grow={scale}
-	id={elem_id}
-	class="row {elem_classes.join(' ')}"
+	class:compact={gradio.props.variant === "compact"}
+	class:panel={gradio.props.variant === "panel"}
+	class:unequal-height={gradio.props.equal_height === false}
+	class:stretch={gradio.props.equal_height}
+	class:hide={!gradio.shared.visible}
+	class:grow-children={gradio.shared.scale && gradio.shared.scale >= 1}
+	style:height={get_dimension(gradio.props.height)}
+	style:max-height={get_dimension(gradio.props.max_height)}
+	style:min-height={get_dimension(gradio.props.min_height)}
+	style:flex-grow={gradio.shared.scale}
+	id={gradio.shared.elem_id}
+	class="row {gradio.shared.elem_classes?.join(' ')}"
 >
-	{#if loading_status && show_progress && gradio}
+	{#if gradio.shared.loading_status && gradio.shared.loading_status.show_progress && gradio}
 		<StatusTracker
-			autoscroll={gradio.autoscroll}
+			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
-			{...loading_status}
-			status={loading_status
-				? loading_status.status == "pending"
+			{...gradio.shared.loading_status}
+			status={gradio.shared.loading_status
+				? gradio.shared.loading_status.status == "pending"
 					? "generating"
-					: loading_status.status
+					: gradio.shared.loading_status.status
 				: null}
 		/>
 	{/if}

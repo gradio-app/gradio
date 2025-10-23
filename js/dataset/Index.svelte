@@ -9,8 +9,7 @@
 	let props = $props();
 
 	const gradio = new Gradio<DatasetEvents, DatasetProps>(props);
-
-	$inspect("dataset", gradio.shared, gradio.props);
+	$inspect("Dataset props:", gradio.shared, gradio.props);
 </script>
 
 <Block
@@ -45,7 +44,10 @@
 	{/if}
 
 	<Dataset
-		onclick={() => gradio.dispatch("click")}
+		onclick={(d) => (
+			(gradio.props.value = d.index),
+			gradio.dispatch("click", gradio.props.value)
+		)}
 		onselect={(data) => gradio.dispatch("select", data)}
 		load_component={gradio.shared.load_component}
 		{...gradio.props}

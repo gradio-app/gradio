@@ -113,7 +113,9 @@
 			// 	}
 			// });
 		} else {
+			console.log({ data, event });
 			dep_manager.dispatch({
+				type: "event",
 				event_name: event,
 				target_id: id,
 				event_data: data,
