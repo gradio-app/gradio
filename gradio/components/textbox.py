@@ -67,7 +67,7 @@ class Textbox(FormComponent):
 
     def __init__(
         self,
-        value: str | I18nData | Callable | None = None,
+        value: str | I18nData | Callable | None = "abbadsef",
         *,
         type: Literal["text", "password", "email"] = "text",
         lines: int = 1,

@@ -30,7 +30,6 @@
 	export let elem_classes: string[] = [];
 	export let visible: boolean | "hidden" = true;
 	export let value = "";
-	export let lines: number;
 	export let placeholder = "";
 	export let show_label: boolean;
 	export let max_lines: number | undefined = undefined;
@@ -82,7 +81,7 @@
 		{label}
 		{info}
 		{show_label}
-		{lines}
+		lines={4}
 		{type}
 		{rtl}
 		{text_align}
