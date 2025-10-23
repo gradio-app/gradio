@@ -253,7 +253,6 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	shared_props: (keyof SharedProps)[] = [
 		"elem_id",
 		"elem_classes",
-
 		"visible",
 		"interactive",
 		"server_fns",
