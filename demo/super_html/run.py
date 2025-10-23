@@ -96,23 +96,28 @@ with gr.Blocks() as demo:
     form = gr.HTML(
         html_template="""
         <input type="text" value="${value}">
-        <button class="submit">submit</button>
+        <p>${value.length} letters</p>
+        ${valid ? '<button class="submit">submit</button>' : ''}
         <button class="clear">clear</button>
         """,
         js_on_load="""
         const input = element.querySelector('input');
         const submit_button = element.querySelector('button.submit');
         const clear_button = element.querySelector('button.clear');
-        submit_button.addEventListener('click', () => {
+        input.addEventListener('input', () => {
             props.value = input.value;
-            trigger('submit', {value: input.value});
+            props.valid = input.value.length > 5;
+        });
+        submit_button.addEventListener('click', () => {
+            trigger('submit');
         });
         clear_button.addEventListener('click', () => {
             props.value = "";
+            props.valid = false;
             trigger('clear');
         });
     """,
-    )
+    valid=False)
     output_box = gr.Textbox()
     form.submit(lambda x: x, form, outputs=output_box)
     

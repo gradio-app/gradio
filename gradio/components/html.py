@@ -57,6 +57,7 @@ class HTML(Component):
             html_template: A string representing the HTML template for this component. The `${value}` tag will be replaced with the `value` parameter, and all other tags will be filled in with the values from `props`.
             css_template: A string representing the CSS template for this component. The CSS will be automatically scoped to this component. The `${value}` tag will be replaced with the `value` parameter, and all other tags will be filled in with the values from `props`.
             js_on_load: A string representing the JavaScript code that will be executed when the component is loaded. The `element` variable refers to the HTML element of this component, and can be used to access children such as `element.querySelector()`. The `trigger` function can be used to trigger events, such as `trigger('click')`. The value and other props can be edited through `props`, e.g. `props.value = "new value"` which will re-render the HTML template.
+
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: If True, the label will be displayed. If False, the label will be hidden.
