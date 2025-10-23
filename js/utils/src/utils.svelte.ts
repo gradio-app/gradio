@@ -268,14 +268,18 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		"load_component",
 		"scale",
 		"min_width",
-		"theme",
+		"theme_mode",
 		"padding",
 		"loading_status",
 		"label",
 		"show_label",
 		"validation_error",
 		"show_progress",
-		"api_prefix"
+		"api_prefix",
+		"min_height",
+		"max_height",
+		"height",
+		"container"
 	] as const;
 
 	constructor(props: { shared_props: SharedProps; props: U }) {
