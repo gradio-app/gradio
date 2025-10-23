@@ -12,7 +12,7 @@
 		Promise<{
 			default: ComponentType<SvelteComponent>;
 		}>
-	>;
+	> = new Map();
 	export let load_component: load_component_type;
 	export let headers: string[];
 	export let samples: any[][] | null = null;
@@ -22,7 +22,7 @@
 	export let root: string;
 	export let proxy_url: null | string;
 	export let samples_per_page = 10;
-	export let onclick: () => void;
+	export let onclick: (data: SelectData) => void;
 	export let onselect: (data: SelectData) => void;
 
 	export let layout: "gallery" | "table" | null = null;
@@ -94,6 +94,12 @@
 	}[][] = [];
 
 	async function get_component_meta(selected_samples: any[][]): Promise<void> {
+		console.log("+++++++++++++++++++++++++++++++++++++");
+		console.log(
+			"Getting component meta for samples:",
+			selected_samples,
+			components,
+		);
 		component_meta = await Promise.all(
 			selected_samples &&
 				selected_samples.map(
@@ -111,20 +117,8 @@
 		);
 	}
 
-	// $: {
-	// 	samples?.forEach((sample_row, i) => {
-	// 		sample_row.forEach((sample_cell, j) => {
-	// 			console.log(
-	// 				`samples[${i}][${j}] = `,
-	// 				sample_cell,
-	// 				" using component ",
-	// 				components[j],
-	// 			);
-	// 		});
-	// 	});
-	// }
-
 	$: get_component_meta(selected_samples);
+	$: console.log("Component meta:", component_meta, component_map);
 </script>
 
 {#if gallery}
@@ -135,7 +129,7 @@
 					class="gallery-item"
 					on:click={() => {
 						value = i + page * samples_per_page;
-						onclick();
+						onclick({ index: value, value: sample_row });
 						onselect({ index: value, value: sample_row });
 					}}
 					on:mouseenter={() => handle_mouseenter(i)}
@@ -147,7 +141,21 @@
 							selected={current_hover === i}
 							type="gallery"
 						/>
-					{:else if component_meta.length && component_map.get(components[0])}
+					{:else if component_meta.length}
+						{#await component_meta[0][0].component then component}
+							<svelte:component
+								this={component}
+								{...component_props[0]}
+								value={sample_row[0]}
+								{samples_dir}
+								type="gallery"
+								selected={current_hover === i}
+								index={i}
+								{root}
+							/>
+						{:catch error}
+							<div>Error loading component: {error.message}</div>
+						{/await}
 						<svelte:component
 							this={component_meta[0][0].component}
 							{...component_props[0]}
@@ -181,7 +189,7 @@
 						class="tr-body"
 						on:click={() => {
 							value = i + page * samples_per_page;
-							onclick();
+							onclick({ index: value, value: sample_row });
 							onselect({
 								index: value,
 								value: selected_samples[i],
@@ -192,23 +200,28 @@
 					>
 						{#each sample_row as { value, component }, j}
 							{@const component_name = components[j]}
-							{#if component_name !== undefined && component_map.get(component_name) !== undefined}
+
+							{#if component_name !== undefined}
 								<td
 									style="max-width: {component_name === 'textbox'
 										? '35ch'
 										: 'auto'}"
 									class={component_name}
 								>
-									<svelte:component
-										this={component}
-										{...component_props[j]}
-										{value}
-										{samples_dir}
-										type="table"
-										selected={current_hover === i}
-										index={i}
-										{root}
-									/>
+									{#await component then component}
+										<svelte:component
+											this={component.default}
+											{...component_props[j]}
+											{value}
+											{samples_dir}
+											type="table"
+											selected={current_hover === i}
+											index={i}
+											{root}
+										/>
+									{:catch error}
+										<div>Error loading component: {error.message}</div>
+									{/await}
 								</td>
 							{/if}
 						{/each}

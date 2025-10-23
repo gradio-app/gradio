@@ -91,8 +91,6 @@
 			| "microphone"
 			| "microphone,upload",
 	);
-
-	$inspect("multimodaltextbox", gradio);
 </script>
 
 <Block

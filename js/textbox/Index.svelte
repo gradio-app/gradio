@@ -10,10 +10,9 @@
 	import StatusTracker from "@gradio/statustracker";
 	import { Block } from "@gradio/atoms";
 	import { Gradio } from "@gradio/utils";
-	import type { SharedProps } from "js/core";
 	import type { TextboxProps, TextboxEvents } from "./types";
 
-	let _props: { shared_props: SharedProps; props: TextboxProps } = $props();
+	let _props = $props();
 
 	const gradio = new Gradio<TextboxEvents, TextboxProps>(_props);
 

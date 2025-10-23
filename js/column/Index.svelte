@@ -4,7 +4,6 @@
 
 	let props = $props();
 
-	$inspect("column props", props);
 	const gradio = new Gradio<{}, { variant: "default" | "panel" | "compact" }>(
 		props,
 	);

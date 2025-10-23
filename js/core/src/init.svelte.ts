@@ -14,11 +14,6 @@ import type {
 	AppConfig
 } from "./types";
 
-interface RootNode {
-	type: "root";
-	children: ProcessedComponentMeta[];
-}
-
 const allowed_shared_props: (keyof SharedProps)[] = [
 	"elem_id",
 	"elem_classes",
@@ -49,7 +44,7 @@ const allowed_shared_props: (keyof SharedProps)[] = [
 
 type set_data_type = (data: Record<string, unknown>) => void;
 type get_data_type = () => Promise<Record<string, unknown>>;
-
+type visitor<T> = (node: T) => ProcessedComponentMeta;
 export class AppTree {
 	/** the raw component structure received from the backend */
 	#component_payload: ComponentMeta[];
@@ -120,11 +115,18 @@ export class AppTree {
 	}
 
 	/** Processes the layout payload into a tree of components */
-	async process() {
-		console.log("Processing layout payload:", this.#layout_payload);
+	process() {
 		this.root!.children = this.#layout_payload.children.map((node) =>
 			this.traverse(node, (node) => this.create_node(node))
 		);
+		this.postprocess(this.root!);
+	}
+
+	async postprocess(tree: ProcessedComponentMeta) {
+		this.root = this.traverse(tree, [
+			(node) => handle_visibility(node, this.#config.root),
+			(node) => handle_empty_forms(node, this.#config.root)
+		]);
 	}
 
 	/**
@@ -133,14 +135,33 @@ export class AppTree {
 	 * @param visit the callback to apply to each node
 	 * @returns the return value of the callback, with a `children` property added for any child nodes
 	 */
-	traverse(
-		node: LayoutNode,
-		visit: (node: LayoutNode) => ProcessedComponentMeta
-	) {
-		const result = visit(node);
-		result.children =
-			node.children?.map((child) => this.traverse(child, visit)) || [];
-		return result;
+
+	traverse<T extends LayoutNode | ProcessedComponentMeta>(
+		node: T,
+		visit: visitor<T> | visitor<T>[]
+	): ProcessedComponentMeta {
+		function single_visit<U extends T>(
+			node: U,
+			visit: visitor<U>,
+			traverse_fn: any
+		): ProcessedComponentMeta {
+			const result = visit(node);
+			if ("children" in node) {
+				result.children =
+					node.children?.map((child) => traverse_fn(child, visit)) || [];
+			}
+			return result;
+		}
+
+		if (Array.isArray(visit)) {
+			let result: ProcessedComponentMeta = node as ProcessedComponentMeta;
+			for (const v of visit) {
+				result = single_visit(result as T, v, this.traverse.bind(this));
+			}
+			return result;
+		} else {
+			return single_visit(node, visit, this.traverse.bind(this));
+		}
 	}
 
 	/**
@@ -172,22 +193,29 @@ export class AppTree {
 			throw new Error(`Component with ID ${opts.id} not found`);
 		}
 
+		const processed_props = gather_props(
+			opts.id,
+			component.props,
+			[this.#input_ids, this.#output_ids],
+			{ ...this.#config }
+		);
+
 		const node = {
+			node_kind: "processed" as const,
 			id: opts.id,
 			type: component.type,
-			props: gather_props(
-				opts.id,
-				component.props,
-				[this.#input_ids, this.#output_ids],
-				{ ...this.#config }
-			),
+			props: processed_props,
 			children: [],
 			show_progress_on: null,
-			component: get_component(
-				component.type,
-				component.component_class_id,
-				this.#config.root || ""
-			),
+			component_class_id: component.component_class_id || component.type,
+			component:
+				processed_props.shared_props.visible !== false
+					? get_component(
+							component.type,
+							component.component_class_id,
+							this.#config.root || ""
+						)
+					: null,
 			key: component.key,
 			rendered_in: component.rendered_in,
 			documentation: component.documentation
@@ -232,6 +260,10 @@ export class AppTree {
 		if (!_set_data) return;
 		console.log("Updating state for component", id, "with", new_state);
 		await _set_data(new_state);
+		console.log("Updated state for component", id, new_state);
+		this.root = this.traverse(this.root!, (n) =>
+			handle_visibility(n, this.#config.root)
+		);
 	}
 
 	/**
@@ -297,6 +329,50 @@ function gather_props(
 
 	_shared_props.visible =
 		_shared_props.visible === undefined ? true : _shared_props.visible;
-	console.log("gather_props:", { shared_props: _shared_props, props: _props });
+
 	return { shared_props: _shared_props as SharedProps, props: _props };
+}
+
+function handle_visibility(
+	node: ProcessedComponentMeta,
+	root: string
+): ProcessedComponentMeta {
+	// Check if the node is visible
+	if (node.props.shared_props.visible && !node.component) {
+		const result: ProcessedComponentMeta = {
+			...node,
+			component: get_component(node.type, node.component_class_id, root),
+			children: []
+		};
+
+		if (node.children) {
+			result.children = node.children.map((child) =>
+				handle_visibility(child, root)
+			);
+		}
+		return result;
+	} else {
+		return node;
+	}
+}
+
+function handle_empty_forms(
+	node: ProcessedComponentMeta,
+	root: string
+): ProcessedComponentMeta {
+	// Check if the node is visible
+	if (node.type === "form") {
+		const all_children_invisible = node.children.every(
+			(child) =>
+				child.props.shared_props.visible === false ||
+				child.props.shared_props.visible === "hidden"
+		);
+
+		if (all_children_invisible) {
+			node.props.shared_props.visible = false;
+			return node;
+		}
+	}
+
+	return node;
 }
