@@ -352,6 +352,7 @@ export class DependencyManager {
 		outputs.forEach(async (output_id, i) => {
 			const _data = data[i] ?? null;
 			if (!_data) return;
+
 			if (is_prop_update(_data)) {
 				for (const [update_key, update_value] of Object.entries(_data)) {
 					if (update_key === "__type__") continue;
