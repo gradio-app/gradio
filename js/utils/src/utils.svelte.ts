@@ -265,7 +265,17 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		"max_file_size",
 		"formatter",
 		"client",
-		"load_component"
+		"load_component",
+		"scale",
+		"min_width",
+		"theme",
+		"padding",
+		"loading_status",
+		"label",
+		"show_label",
+		"validation_error",
+		"show_progress",
+		"api_prefix"
 	] as const;
 
 	constructor(props: { shared_props: SharedProps; props: U }) {
