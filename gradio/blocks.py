@@ -552,7 +552,14 @@ def postprocess_update_dict(
         postprocess: Whether to postprocess the "value" key of the update dictionary.
     """
     value = update_dict.pop("value", components._Keywords.NO_VALUE)
+   
+    props = None
+    if hasattr(block, "props"):
+        props = {k: v for k, v in update_dict.items() if not hasattr(block, k)}
     update_dict = {k: getattr(block, k) for k in update_dict if hasattr(block, k)}
+    if props:
+        update_dict["props"] = props
+
     if value is not components._Keywords.NO_VALUE:
         if postprocess:
             update_dict["value"] = block.postprocess(value)
