@@ -3,7 +3,10 @@
 	import logo_melted from "$lib/assets/img/logo-melted.png";
 </script>
 
-<div class="flex flex-col items-center justify-center" style="min-height: calc(100vh - var(--header-height, 180px));">
+<div
+	class="flex flex-col items-center justify-center"
+	style="min-height: calc(100vh - var(--header-height, 180px));"
+>
 	<div class="text-center">
 		<img class="mx-auto w-32 mb-6 logo" src={logo_melted} />
 		<h1

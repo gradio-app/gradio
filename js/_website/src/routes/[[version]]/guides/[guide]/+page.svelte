@@ -170,7 +170,11 @@
 			</button>
 
 			{#each guide_names as { category, guides } (category)}
-				<p class="font-semibold px-4 my-2 block text-gray-900 dark:text-gray-100">{category}</p>
+				<p
+					class="font-semibold px-4 my-2 block text-gray-900 dark:text-gray-100"
+				>
+					{category}
+				</p>
 				{#each guides as guide, i}
 					<a
 						class:current-nav-link={guide.name == guide_page.name}
@@ -341,7 +345,10 @@
 				{/each}
 			</div>
 		{/if}
-		<div class="prose text-lg max-w-full dark:prose-invert" bind:this={content_el}>
+		<div
+			class="prose text-lg max-w-full dark:prose-invert"
+			bind:this={content_el}
+		>
 			{@html guide_page.new_html}
 		</div>
 		<div class="w-full flex flex-wrap justify-between my-4">

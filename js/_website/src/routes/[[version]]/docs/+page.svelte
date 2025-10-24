@@ -19,7 +19,9 @@
 	<div class="float-right">
 		<DropDown />
 	</div>
-	<h1 class="mb-4 flex items-center text-2xl font-light text-gray-900 dark:text-gray-100">
+	<h1
+		class="mb-4 flex items-center text-2xl font-light text-gray-900 dark:text-gray-100"
+	>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -56,7 +58,11 @@
 		<div
 			class="shadow-alternate hover:scale-[1.02] group group flex flex-col overflow-hidden md:first:row-span-3 rounded-xl px-3 pb-4 pt-6 bg-orange-50 dark:bg-orange-900 hover:shadow-alternate shadow-none transition-shadow"
 		>
-			<a class="mt-auto mb-2 flex-grow text-gray-900 dark:text-gray-100" href="./docs/gradio" target="_self">
+			<a
+				class="mt-auto mb-2 flex-grow text-gray-900 dark:text-gray-100"
+				href="./docs/gradio"
+				target="_self"
+			>
 				<div class="text-lg">
 					<p class="font-semibold">Gradio</p>
 				</div>
@@ -192,7 +198,9 @@
 		</a>
 	</div>
 
-	<h1 class="mb-4 flex items-center text-2xl font-light mt-8 text-gray-900 dark:text-gray-100">
+	<h1
+		class="mb-4 flex items-center text-2xl font-light mt-8 text-gray-900 dark:text-gray-100"
+	>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -222,7 +230,9 @@
 
 	{#each data.guides_by_category as { category, guides }, i (category)}
 		<div class="category py-4">
-			<h2 class="mb-4 text-xl font-normal block text-gray-900 dark:text-gray-100">
+			<h2
+				class="mb-4 text-xl font-normal block text-gray-900 dark:text-gray-100"
+			>
 				{category}
 			</h2>
 			<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

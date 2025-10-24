@@ -54,7 +54,9 @@
 	{/if}
 
 	{#each library_pages as category_pages}
-		<p class="font-semibold px-4 my-2 block text-gray-900 dark:text-gray-100">{category_pages.category}</p>
+		<p class="font-semibold px-4 my-2 block text-gray-900 dark:text-gray-100">
+			{category_pages.category}
+		</p>
 		{#each category_pages.pages as page}
 			<a
 				class:current-nav-link={current_nav_link == page.name}
