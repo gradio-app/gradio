@@ -281,6 +281,36 @@ class ChatInterface(Blocks):
 
             self._setup_events()
 
+        if textbox is not None:
+            conflicting_params = []
+
+            # ChatInterface defaults: submit_btn=True, stop_btn=True, autofocus=True
+            # Only warn if ChatInterface parameter is non-default (customized) AND differs from textbox
+
+            if isinstance(textbox, Textbox) or isinstance(textbox, MultimodalTextbox):
+                # Check submit_btn: only warn if it's NOT the default (True) and differs from textbox
+                if submit_btn is not True and submit_btn != textbox.submit_btn:
+                    conflicting_params.append("submit_btn")
+
+                # Check stop_btn: only warn if it's NOT the default (True) and differs from textbox
+                if stop_btn is not True and stop_btn != textbox.stop_btn:
+                    conflicting_params.append("stop_btn")
+
+                # Check autofocus: only warn if it's NOT the default (True) and differs from textbox
+                if autofocus is not True and autofocus != textbox.autofocus:
+                    conflicting_params.append("autofocus")
+
+            if conflicting_params:
+                warnings.warn(
+                    f"You provided a custom `textbox` component, but also specified "
+                    f"{', '.join(f'`{p}`' for p in conflicting_params)} parameter(s) on `gr.ChatInterface`. "
+                    f"These ChatInterface parameters will be ignored. To customize these settings, "
+                    f"pass them directly to your `gr.Textbox` or `gr.MultimodalTextbox` component instead. "
+                    f"For example: textbox=gr.Textbox(..., submit_btn='ارسال')",
+                    UserWarning,
+                    stacklevel=2,
+                )
+
     def _render_header(self):
         if self.title:
             Markdown(
@@ -330,9 +360,11 @@ class ChatInterface(Blocks):
                 scale=1,
                 height=400 if self.fill_height else None,
                 autoscroll=self.autoscroll,
-                examples=self.examples_messages
-                if not self._additional_inputs_in_examples
-                else None,
+                examples=(
+                    self.examples_messages
+                    if not self._additional_inputs_in_examples
+                    else None
+                ),
             )
         with Group():
             with Row():
@@ -753,7 +785,9 @@ class ChatInterface(Blocks):
                 api_visibility="undocumented",
                 queue=False,
                 show_progress="hidden",
-            ).then(**synchronize_chat_state_kwargs)
+            ).then(
+                **synchronize_chat_state_kwargs
+            )
 
         if self.flagging_mode != "never":
             flagging_callback = ChatCSVLogger()
