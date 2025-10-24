@@ -7,7 +7,17 @@
 		<script>
 			// prevents the flash of light mode by applying theme before page renders
 			(function () {
-				const theme = localStorage.getItem("theme") || "light";
+				let theme = localStorage.getItem("theme");
+				if (!theme) {
+					if (
+						window.matchMedia &&
+						window.matchMedia("(prefers-color-scheme: dark)").matches
+					) {
+						theme = "dark";
+					} else {
+						theme = "light";
+					}
+				}
 				if (theme === "dark") {
 					document.documentElement.classList.add("dark");
 				}
