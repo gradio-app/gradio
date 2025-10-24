@@ -14,33 +14,7 @@ import type {
 	AppConfig
 } from "./types";
 
-const allowed_shared_props: (keyof SharedProps)[] = [
-	"elem_id",
-	"elem_classes",
-	"visible",
-	"interactive",
-	"server_fns",
-	"id",
-	"target",
-	"theme_mode",
-	"version",
-	"root",
-	"autoscroll",
-	"max_file_size",
-	"formatter",
-	"client",
-	"load_component",
-	"scale",
-	"min_width",
-	"theme",
-	"padding",
-	"loading_status",
-	"label",
-	"show_label",
-	"validation_error",
-	"show_progress",
-	"api_prefix"
-] as const;
+import { allowed_shared_props } from "@gradio/utils";
 
 type set_data_type = (data: Record<string, unknown>) => void;
 type get_data_type = () => Promise<Record<string, unknown>>;

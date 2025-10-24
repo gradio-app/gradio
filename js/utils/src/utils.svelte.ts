@@ -241,6 +241,33 @@ const is_browser = typeof window !== "undefined";
 // formatter: $reactive_formatter,
 // client,
 // load_component,
+export const allowed_shared_props: (keyof SharedProps)[] = [
+	"elem_id",
+	"elem_classes",
+	"visible",
+	"interactive",
+	"server_fns",
+	"id",
+	"target",
+	"theme_mode",
+	"version",
+	"root",
+	"autoscroll",
+	"max_file_size",
+	"formatter",
+	"client",
+	"load_component",
+	"scale",
+	"min_width",
+	"theme",
+	"padding",
+	"loading_status",
+	"label",
+	"show_label",
+	"validation_error",
+	"show_progress",
+	"api_prefix"
+] as const;
 export type I18nFormatter = any;
 export class Gradio<T extends object = {}, U extends object = {}> {
 	_load_component?: component_loader;
@@ -250,33 +277,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	i18n: I18nFormatter = $state<any>() as any;
 	dispatcher!: Function;
 	last_update: ReturnType<typeof tick> | null = null;
-	shared_props: (keyof SharedProps)[] = [
-		"elem_id",
-		"elem_classes",
-		"visible",
-		"interactive",
-		"server_fns",
-		"id",
-		"target",
-		"theme_mode",
-		"version",
-		"root",
-		"autoscroll",
-		"max_file_size",
-		"formatter",
-		"client",
-		"load_component",
-		"scale",
-		"min_width",
-		"theme",
-		"padding",
-		"loading_status",
-		"label",
-		"show_label",
-		"validation_error",
-		"show_progress",
-		"api_prefix"
-	] as const;
+	shared_props: (keyof SharedProps)[] = allowed_shared_props;
 
 	constructor(props: { shared_props: SharedProps; props: U }) {
 		this.shared = props.shared_props;
