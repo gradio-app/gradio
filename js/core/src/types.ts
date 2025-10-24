@@ -32,6 +32,9 @@ export interface SharedProps {
 	label: string;
 	show_label: boolean;
 	validation_error?: string | null;
+	theme?: "light" | "dark";
+	show_progress: boolean;
+	api_prefix: string;
 }
 
 /** The metadata for a component
