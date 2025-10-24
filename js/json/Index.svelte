@@ -32,6 +32,7 @@
 	export let height: number | string | undefined;
 	export let min_height: number | string | undefined;
 	export let max_height: number | string | undefined;
+	export let buttons: string[] | null = null;
 
 	$: {
 		if (value !== old_value) {
@@ -77,5 +78,12 @@
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 
-	<JSON {value} {open} {theme_mode} {show_indices} {label_height} />
+	<JSON
+		{value}
+		{open}
+		{theme_mode}
+		{show_indices}
+		{label_height}
+		show_copy_button={buttons === null ? true : buttons.includes("copy")}
+	/>
 </Block>

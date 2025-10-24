@@ -16,7 +16,6 @@ with gr.Blocks() as demo:
         with gr.Row():
             im = gr.ImageEditor(
                 type="numpy",
-                crop_size="1:1",
                 elem_id="image_editor",
             )
             im_preview = gr.Image()

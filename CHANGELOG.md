@@ -1,5 +1,30 @@
 # gradio
 
+## 6.0.0-dev.1
+
+### Features
+
+- [#12069](https://github.com/gradio-app/gradio/pull/12069) [`9de88ca`](https://github.com/gradio-app/gradio/commit/9de88ca470ce529366d259f0deaa955f658000b9) - Rename show_api.  Thanks @freddyaboulton!
+- [#12063](https://github.com/gradio-app/gradio/pull/12063) [`88a7236`](https://github.com/gradio-app/gradio/commit/88a7236cef2ecb53a82638c53e2e37f071cc670f) - Remove more deprecated parameters for the native plot components.  Thanks @abidlabs!
+- [#12064](https://github.com/gradio-app/gradio/pull/12064) [`90dfb44`](https://github.com/gradio-app/gradio/commit/90dfb446876f3aa2c135e2c58f2f088eb5185311) - Handle special characters in native plot column names.  Thanks @abidlabs!
+- [#12086](https://github.com/gradio-app/gradio/pull/12086) [`a56f4e1`](https://github.com/gradio-app/gradio/commit/a56f4e1bddc1e8608e00992e6faeba4a6f2455bb) - Use function name as the api route name in gr.Interface and gr.ChatInterface.  Thanks @freddyaboulton!
+- [#12096](https://github.com/gradio-app/gradio/pull/12096) [`ed08086`](https://github.com/gradio-app/gradio/commit/ed08086f90909438551c3b841dff2e757d9b09d2) - Allow setting x limits independently in native plots.  Thanks @abidlabs!
+- [#12051](https://github.com/gradio-app/gradio/pull/12051) [`15458a8`](https://github.com/gradio-app/gradio/commit/15458a87ac63346ed3443f4abc54cdf2b9ac267e) - Extend Chatbot Message Format.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#12066](https://github.com/gradio-app/gradio/pull/12066) [`6a4757a`](https://github.com/gradio-app/gradio/commit/6a4757ab289e8e53b5503eb6887333d7ad26c9eb) - Gallery: Allow empty columns when items < columns.  Thanks @missionfloyd!
+
+## 6.0.0-dev.0
+
+### Features
+
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`53d9098`](https://github.com/gradio-app/gradio/commit/53d9098cca378f6ebff9dec15d2faa8a3d2fb510) - [No Merge] Gradio 6.0.  Thanks @freddyaboulton!
+- [#12012](https://github.com/gradio-app/gradio/pull/12012) [`4356fe7`](https://github.com/gradio-app/gradio/commit/4356fe7d609333a4150533fcb9a4eaafbc2ba561) - Remove tuples format from the chatbot.  Thanks @freddyaboulton!
+- [#12027](https://github.com/gradio-app/gradio/pull/12027) [`d515a2e`](https://github.com/gradio-app/gradio/commit/d515a2e189a82883e85730157706f6f2865e9aba) - Make allow_tags=True the default in gr.Chatbot.  Thanks @PRIME-SV!
+- [#12010](https://github.com/gradio-app/gradio/pull/12010) [`844cd62`](https://github.com/gradio-app/gradio/commit/844cd626fb11ad604386dbb0411fc9b94effaf11) - fix: enable padding by default in HTML component.  Thanks @PRIME-SV!
+- [#12041](https://github.com/gradio-app/gradio/pull/12041) [`90e8a2c`](https://github.com/gradio-app/gradio/commit/90e8a2c23774e1d2a7401bccf4bdc86f70531de5) - Video subtitles.  Thanks @dawoodkhan82!
+
 ## 5.49.1
 
 ### Fixes

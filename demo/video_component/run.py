@@ -11,7 +11,8 @@ demo = gr.Interface(
         [get_video("a.mp4")],
         [get_video("b.mp4")],
     ],
-    cache_examples=True
+    cache_examples=True,
+    api_name="predict"
 )
 
 if __name__ == "__main__":

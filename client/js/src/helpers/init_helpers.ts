@@ -68,8 +68,8 @@ export async function resolve_config(
 	this: Client,
 	endpoint: string
 ): Promise<Config | undefined> {
-	const headers: Record<string, string> = this.options.hf_token
-		? { Authorization: `Bearer ${this.options.hf_token}` }
+	const headers: Record<string, string> = this.options.token
+		? { Authorization: `Bearer ${this.options.token}` }
 		: {};
 
 	headers["Content-Type"] = "application/json";
@@ -156,7 +156,7 @@ async function handleConfigResponse(
 export async function resolve_cookies(this: Client): Promise<void> {
 	const { http_protocol, host } = await process_endpoint(
 		this.app_reference,
-		this.options.hf_token
+		this.options.token
 	);
 
 	try {
@@ -166,7 +166,7 @@ export async function resolve_cookies(this: Client): Promise<void> {
 				host,
 				this.options.auth,
 				this.fetch,
-				this.options.hf_token
+				this.options.token
 			);
 
 			if (cookie_header) this.set_cookies(cookie_header);
@@ -182,7 +182,7 @@ export async function get_cookie_header(
 	host: string,
 	auth: [string, string],
 	_fetch: typeof fetch,
-	hf_token?: `hf_${string}`
+	token?: `hf_${string}`
 ): Promise<string | null> {
 	const formData = new FormData();
 	formData.append("username", auth?.[0]);
@@ -190,8 +190,8 @@ export async function get_cookie_header(
 
 	let headers: { Authorization?: string } = {};
 
-	if (hf_token) {
-		headers.Authorization = `Bearer ${hf_token}`;
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
 	}
 
 	const res = await _fetch(`${http_protocol}//${host}/${LOGIN_URL}`, {

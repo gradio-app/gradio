@@ -308,7 +308,8 @@ class Queue:
             )
             validator_fn = BlockFunction(
                 fn=fn.validator,
-                api_name=False,
+                api_name=None,
+                api_visibility="undocumented",
                 batch=fn.batch,
                 concurrency_id=None,
                 concurrency_limit=None,

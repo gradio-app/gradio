@@ -1,5 +1,19 @@
 # @gradio/fileexplorer
 
+## 0.5.42-dev.0
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.1
+
+## 0.5.42-dev.0
+
+### Dependency updates
+
+- @gradio/upload@0.17.2-dev.0
+- @gradio/client@2.0.0-dev.0
+- @gradio/file@0.13.1-dev.0
+
 ## 0.5.41
 
 ### Dependency updates

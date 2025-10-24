@@ -82,7 +82,7 @@ def _publish(
         Path,
         Option(help="Path to the source directory of the custom component."),
     ] = Path("."),
-    hf_token: Annotated[
+    token: Annotated[
         str | None,
         Option(
             help="HuggingFace token for uploading demo. Can be omitted if already logged in via huggingface cli."
@@ -103,7 +103,7 @@ def _publish(
     repo_id: Annotated[
         str | None,
         Option(
-            help="The repository id to upload the demo to. If not provided, a space will be created with the same name as the package in the HuggingFace account corresponding to the hf_token."
+            help="The repository id to upload the demo to. If not provided, a space will be created with the same name as the package in the HuggingFace account corresponding to the token."
         ),
     ] = None,
 ):
@@ -270,7 +270,7 @@ def _publish(
                 str(source_dir / "README.md"), str(Path(tempdir) / "README.md")
             )
 
-            api = HfApi(token=hf_token)
+            api = HfApi(token=token)
             repo_url = api.create_repo(
                 repo_id=repo_id or package_name,
                 repo_type="space",
@@ -292,7 +292,7 @@ def _publish(
                 )
             print("\n")
             # Do a factory reboot so that the new dependencies get installed
-            api.restart_space(repo_id=repo_id, factory_reboot=True, token=hf_token)
+            api.restart_space(repo_id=repo_id, factory_reboot=True, token=token)
             print(f"Demo uploaded to https://huggingface.co/spaces/{repo_id} !")
 
 

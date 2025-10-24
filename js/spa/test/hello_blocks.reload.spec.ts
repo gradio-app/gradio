@@ -338,7 +338,6 @@ def echo(message, history):
 
 demo = gr.ChatInterface(
     echo,
-    type="messages",
 )
 
 if __name__ == "__main__":

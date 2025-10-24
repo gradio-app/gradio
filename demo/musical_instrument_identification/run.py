@@ -44,7 +44,8 @@ demo = gr.Interface(fn=predict,
                     outputs=[gr.Label(num_top_classes=11, label="Predictions"),
                              gr.Number(label="Prediction time (s)")],
                     examples=example_list,
-                    cache_examples=False
+                    cache_examples=False,
+                    api_name="predict"
                     )
 
 demo.launch(debug=False)

@@ -422,7 +422,7 @@ describe("process_endpoint", () => {
 		const app_reference = "hmb/hello_world";
 		const host = "hmb-hello-world.hf.space";
 
-		const hf_token = "hf_token";
+		const token = "hf_token";
 		const expected = {
 			space_id: app_reference,
 			host,
@@ -430,16 +430,16 @@ describe("process_endpoint", () => {
 			http_protocol: "https:"
 		};
 
-		const result = await process_endpoint(app_reference, hf_token);
+		const result = await process_endpoint(app_reference, token);
 		expect(result).toEqual(expected);
 	});
 
 	it("should throw an error when fetching space metadata fails", async () => {
 		const app_reference = "hmb/bye_world";
-		const hf_token = "hf_token";
+		const token = "hf_token";
 
 		try {
-			await process_endpoint(app_reference, hf_token);
+			await process_endpoint(app_reference, token);
 		} catch (error) {
 			expect(error.message).toEqual(SPACE_METADATA_ERROR_MSG);
 		}

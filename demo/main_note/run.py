@@ -45,6 +45,7 @@ demo = gr.Interface(
         [get_audio("recording1.wav")],
         [get_audio("cantina.wav")],
     ],
+    api_name="predict"
 )
 
 if __name__ == "__main__":

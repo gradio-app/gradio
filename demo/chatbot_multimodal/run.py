@@ -9,10 +9,12 @@ def print_like_dislike(x: gr.LikeData):
 
 
 def add_message(history, message):
+    user_msg = {"role": "user", "content": []}
     for x in message["files"]:
-        history.append({"role": "user", "content": {"path": x}})
+        user_msg["content"].append({"path": x})
     if message["text"] is not None:
-        history.append({"role": "user", "content": message["text"]})
+       user_msg["content"].append(message["text"])
+    history.append(user_msg)
     return history, gr.MultimodalTextbox(value=None, interactive=False)
 
 
@@ -26,7 +28,7 @@ def bot(history: list):
 
 
 with gr.Blocks() as demo:
-    chatbot = gr.Chatbot(elem_id="chatbot", bubble_full_width=False, type="messages")
+    chatbot = gr.Chatbot(elem_id="chatbot")
 
     chat_input = gr.MultimodalTextbox(
         interactive=True,

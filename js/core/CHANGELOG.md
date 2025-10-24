@@ -1,5 +1,29 @@
 # @gradio/core
 
+## 1.0.0-dev.0
+
+### Features
+
+- [#12069](https://github.com/gradio-app/gradio/pull/12069) [`9de88ca`](https://github.com/gradio-app/gradio/commit/9de88ca470ce529366d259f0deaa955f658000b9) - Rename show_api.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.1
+- @gradio/gallery@0.15.35-dev.1
+
+## 0.29.2
+
+### Dependency updates
+
+- @gradio/upload@0.17.2-dev.0
+- @gradio/code@0.15.1-dev.0
+- @gradio/client@2.0.0-dev.0
+- @gradio/gallery@0.15.35-dev.0
+- @gradio/image@0.23.2-dev.0
+- @gradio/button@0.5.14-dev.0
+- @gradio/file@0.13.1-dev.0
+- @gradio/video@0.17.0-dev.0
+
 ## 0.29.2
 
 ### Fixes

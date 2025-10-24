@@ -61,6 +61,7 @@ _module_prefixes = [
     ("gradio_client.", "py-client"),
     ("gradio.utils", "helpers"),
     ("gradio.renderable", "renderable"),
+    ("gradio.validators", "validators"),
 ]
 
 

@@ -39,7 +39,8 @@ def fake_diffusion(steps):
 
 demo = gr.Interface(fake_diffusion,
                     inputs=gr.Slider(1, 10, 3, step=1),
-                    outputs=["image", gr.Image(label="All Images", visible=False)])
+                    outputs=["image", gr.Image(label="All Images", visible=False)],
+                    api_name="predict",)
 
 if __name__ == "__main__":
     demo.launch()

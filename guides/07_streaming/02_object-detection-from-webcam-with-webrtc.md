@@ -1,8 +1,8 @@
-# Real Time Object Detection from a Webcam Stream with WebRTC
+# Real Time Object Detection from a Webcam Stream with FastRTC
 
 Tags: VISION, STREAMING, WEBCAM
 
-In this guide, we'll use YOLOv10 to perform real-time object detection in Gradio from a user's webcam feed. We'll utilize the latest streaming features introduced in Gradio 5.0. You can see the finished product in action below:
+In this guide, we'll use YOLOv10 to perform real-time object detection in Gradio from a user's webcam feed. We'll utilize [FastRTC](https://fastrtc.org/) a companion library from the gradio team for building low latency streaming web applications. You can see the finished product in action below:
 
 <video src="https://github.com/user-attachments/assets/4584cec6-8c1a-401b-9b61-a4fe0718b558" controls
 height="600" width="600" style="display: block; margin: auto;" autoplay="true" loop="true">
@@ -14,17 +14,15 @@ Start by installing all the dependencies. Add the following lines to a `requirem
 
 ```bash
 opencv-python
-twilio
-gradio>=5.0
-gradio-webrtc
+fastrtc
 onnxruntime-gpu
 ```
 
 We'll use the ONNX runtime to speed up YOLOv10 inference. This guide assumes you have access to a GPU. If you don't, change `onnxruntime-gpu` to `onnxruntime`. Without a GPU, the model will run slower, resulting in a laggy demo.
 
-We'll use OpenCV for image manipulation and the [Gradio WebRTC](https://github.com/freddyaboulton/gradio-webrtc) custom component to use [WebRTC](https://webrtc.org/) under the hood, achieving near-zero latency.
+We'll use OpenCV for image manipulation and the [WebRTC](https://webrtc.org/) protocol to achieve near-zero latency.
 
-**Note**: If you want to deploy this app on any cloud provider, you'll need to use the free Twilio API for their [TURN servers](https://www.twilio.com/docs/stun-turn). Create a free account on Twilio. If you're not familiar with TURN servers, consult this [guide](https://www.twilio.com/docs/stun-turn/faq#faq-what-is-nat).
+**Note**: If you want to deploy this app on any cloud provider, you'll need to use your Hugging Face token to connect to a TURN server. Learn more in this [guide](https://fastrtc.org/deployment/). If you're not familiar with TURN servers, consult this [guide](https://www.twilio.com/docs/stun-turn/faq#faq-what-is-nat).
 
 ## The Inference Function
 
@@ -66,7 +64,7 @@ We'll also apply custom CSS to center the webcam and slider on the page.
 
 ```python
 import gradio as gr
-from gradio_webrtc import WebRTC
+from fastrtc import WebRTC
 
 css = """.my-group {max-width: 600px !important; max-height: 600px !important;}
          .my-column {display: flex !important; justify-content: center !important; align-items: center !important;}"""
@@ -102,4 +100,4 @@ if __name__ == "__main__":
 
 Our app is hosted on Hugging Face Spaces [here](https://huggingface.co/spaces/freddyaboulton/webrtc-yolov10n). 
 
-You can use this app as a starting point to build real-time image applications with Gradio. Don't hesitate to open issues in the space or in the [WebRTC component GitHub repo](https://github.com/freddyaboulton/gradio-webrtc) if you have any questions or encounter problems.
+You can use this app as a starting point to build real-time image applications with Gradio. Don't hesitate to open issues in the space or in the [FastRTC GitHub repo](https://github.com/gradio-app/fastrtc) if you have any questions or encounter problems.

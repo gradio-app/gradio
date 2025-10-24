@@ -33,6 +33,7 @@ demo = gr.Interface(
         ["What a beautiful morning for a walk!"],
         ["It was the best of times, it was the worst of times."],
     ],
+    api_name="predict",
 )
 
 demo.launch()

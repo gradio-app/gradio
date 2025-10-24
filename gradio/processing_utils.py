@@ -241,7 +241,8 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
 PUBLIC_HOSTNAME_WHITELIST = [
     "hf.co",
     "huggingface.co",
-    "cas-bridge-direct.xethub.hf.co",
+    "*.hf.co",
+    "*.huggingface.co",
 ]
 
 

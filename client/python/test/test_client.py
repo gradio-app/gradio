@@ -55,13 +55,13 @@ class TestClientInitialization:
             pytest.skip("HF_TOKEN is not set, skipping test")
         _, local_url, _ = increment_demo.launch(prevent_thread_lock=True)
         try:
-            client = Client(local_url, hf_token=HF_TOKEN)
+            client = Client(local_url, token=HF_TOKEN)
             assert {
                 "x-hf-authorization": f"Bearer {HF_TOKEN}"
             }.items() <= client.headers.items()
             client = Client(
                 local_url,
-                hf_token=HF_TOKEN,
+                token=HF_TOKEN,
                 headers={"additional": "value"},
             )
             assert {
@@ -70,7 +70,7 @@ class TestClientInitialization:
             }.items() <= client.headers.items()
             client = Client(
                 local_url,
-                hf_token=HF_TOKEN,
+                token=HF_TOKEN,
                 headers={"authorization": "Bearer abcde"},
             )
             assert {"authorization": "Bearer abcde"}.items() <= client.headers.items()
@@ -160,7 +160,7 @@ class TestClientPredictions:
         space_id = "gradio-tests/not-actually-private-space"
         api = huggingface_hub.HfApi()
         assert api.space_info(space_id).private
-        client = Client(space_id, hf_token=HF_TOKEN)
+        client = Client(space_id, token=HF_TOKEN)
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
 
@@ -171,7 +171,7 @@ class TestClientPredictions:
         assert api.space_info(space_id).private
         client = Client(
             space_id,
-            hf_token=HF_TOKEN,
+            token=HF_TOKEN,
         )
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
@@ -332,7 +332,7 @@ class TestClientPredictions:
             assert count
 
     def test_upload_and_download_with_auth(self):
-        demo = gr.Interface(lambda x: x, "text", "text")
+        demo = gr.Interface(lambda x: x, "text", "text", api_name="predict")
         _, url, _ = demo.launch(auth=("user", "pass"), prevent_thread_lock=True)
         with pytest.raises(AuthenticationError):
             client = Client(url)
@@ -344,7 +344,7 @@ class TestClientPredictions:
             assert f.read() == "Hello file!"
 
     def test_upload_preserves_orig_name(self):
-        demo = gr.Interface(lambda x: x, "image", "text")
+        demo = gr.Interface(lambda x: x, "image", "text", api_name="predict")
         with connect(demo) as client:
             test_file = (
                 Path(__file__).parent.parent.parent.parent
@@ -453,10 +453,34 @@ class TestClientPredictions:
 
     def test_does_not_upload_dir(self, stateful_chatbot):
         with connect(stateful_chatbot) as client:
-            initial_history = [["", None]]
+            initial_history = [
+                {"role": "user", "content": [{"text": "", "type": "text"}]}
+            ]
             message = "Hello"
             ret = client.predict(message, initial_history, api_name="/submit")
-            assert ret == ("", [["", None], ["Hello", "I love you"]])
+            assert ret == (
+                "",
+                [
+                    {
+                        "role": "user",
+                        "content": [{"type": "text", "text": ""}],
+                        "metadata": None,
+                        "options": None,
+                    },
+                    {
+                        "role": "user",
+                        "content": [{"type": "text", "text": "Hello"}],
+                        "metadata": None,
+                        "options": None,
+                    },
+                    {
+                        "role": "assistant",
+                        "content": [{"type": "text", "text": "I love you"}],
+                        "metadata": None,
+                        "options": None,
+                    },
+                ],
+            )
 
     def test_return_layout_component(self, hello_world_with_group):
         with connect(hello_world_with_group) as demo:
@@ -483,9 +507,9 @@ class TestClientPredictions:
             assert demo.predict(api_name="/predict") == "\ta\nb" * 90000
 
     def test_queue_full_raises_error(self):
-        demo = gr.Interface(lambda s: f"Hello {s}", "textbox", "textbox").queue(
-            max_size=1
-        )
+        demo = gr.Interface(
+            lambda s: f"Hello {s}", "textbox", "textbox", api_name="predict"
+        ).queue(max_size=1)
         with connect(demo) as client:
             with pytest.raises(QueueError):
                 job1 = client.submit("Freddy", api_name="/predict")
@@ -505,7 +529,7 @@ class TestClientPredictions:
         def return_bad():
             return data
 
-        demo = gr.Interface(return_bad, None, ["text", "text"])
+        demo = gr.Interface(return_bad, None, ["text", "text"], api_name="predict")
         with connect(demo) as client:
             pred = client.predict(api_name="/predict")
             assert pred[0] == data[0]
@@ -546,7 +570,7 @@ class TestClientPredictions:
         def test():
             return """before\x85after"""
 
-        demo = gr.Interface(fn=test, inputs=[], outputs=["text"])
+        demo = gr.Interface(fn=test, inputs=[], outputs=["text"], api_name="predict")
         with connect(demo) as client:
             result = client.predict(api_name="/predict")
             assert result == "before\x85after"
@@ -582,16 +606,16 @@ class TestClientPredictionsWithKwargs:
         with connect(chatbot_message_format) as client:
             _, history = client.predict("hello", [], api_name="/chat")
             assert history[1]["role"] == "assistant"
-            assert history[1]["content"] in [
+            assert history[1]["content"][0]["text"] in [
                 "How are you?",
                 "I love you",
                 "I'm very hungry",
             ]
             _, history = client.predict("hi", history, api_name="/chat")
             assert history[2]["role"] == "user"
-            assert history[2]["content"] == "hi"
+            assert history[2]["content"][0]["text"] == "hi"
             assert history[3]["role"] == "assistant"
-            assert history[3]["content"] in [
+            assert history[3]["content"][0]["text"] in [
                 "How are you?",
                 "I love you",
                 "I'm very hungry",
@@ -803,7 +827,7 @@ class TestAPIInfo:
     def test_private_space(self):
         client = Client(
             "gradio-tests/not-actually-private-space",
-            hf_token=HF_TOKEN,
+            token=HF_TOKEN,
         )
         assert "/predict" in client.view_api(return_format="dict")["named_endpoints"]
 
@@ -1002,7 +1026,7 @@ class TestEndpoints:
     def test_upload(self):
         client = Client(
             src="gradio-tests/not-actually-private-file-upload",
-            hf_token=HF_TOKEN,
+            token=HF_TOKEN,
         )
         response = MagicMock(status_code=200)
         response.json.return_value = [
@@ -1071,14 +1095,14 @@ class TestDuplication:
         Client.duplicate(
             "gradio/calculator",
             "test",
-            hf_token=HF_TOKEN,
+            token=HF_TOKEN,
         )
         mock_runtime.assert_any_call("gradio/calculator", token=HF_TOKEN)
         mock_init.assert_called()
         Client.duplicate(
             "gradio/calculator",
             "gradio-tests/test",
-            hf_token=HF_TOKEN,
+            token=HF_TOKEN,
         )
         mock_runtime.assert_any_call("gradio/calculator", token=HF_TOKEN)
         mock_init.assert_called()
@@ -1112,7 +1136,7 @@ class TestDuplication:
             "test",
             hardware="cpu-upgrade",
             sleep_timeout=15,
-            hf_token=HF_TOKEN,
+            token=HF_TOKEN,
         )
         assert mock_set_timeout.call_count == 1
         _, called_kwargs = mock_set_timeout.call_args
@@ -1129,7 +1153,7 @@ class TestDuplication:
             Client.duplicate(
                 "gradio/calculator",
                 name,
-                hf_token=HF_TOKEN,
+                token=HF_TOKEN,
                 secrets={"test_key": "test_value", "test_key2": "test_value2"},
             )
             mock_add_secret.assert_called_with(

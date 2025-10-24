@@ -7,6 +7,7 @@ import pytest
 from gradio_client import handle_file
 
 import gradio as gr
+from gradio.components.chatbot import Message, TextMessage
 
 
 def invalid_fn(message):
@@ -92,8 +93,14 @@ class TestInit:
             with connect(chatbot):
                 prediction_hello = chatbot.examples_handler.load_from_cache(0)
                 prediction_hi = chatbot.examples_handler.load_from_cache(1)
-            assert prediction_hello[0].root[0] == ("hello", "hello hello")
-            assert prediction_hi[0].root[0] == ("hi", "hi hi")
+            assert prediction_hello[0].root == [
+                Message(role="user", content=[TextMessage(text="hello")]),
+                Message(role="assistant", content=[TextMessage(text="hello hello")]),
+            ]
+            assert prediction_hi[0].root == [
+                Message(role="user", content=[TextMessage(text="hi")]),
+                Message(role="assistant", content=[TextMessage(text="hi hi")]),
+            ]
 
     @pytest.mark.asyncio
     async def test_example_caching_lazy(self):
@@ -107,9 +114,15 @@ class TestInit:
                 cache_mode="lazy",
             )
             prediction_hello = chatbot.examples_handler.load_from_cache(0)
-            assert prediction_hello[0].root[0] == ("hello", "hello hello")
+            assert prediction_hello[0].root == [
+                Message(role="user", content=[TextMessage(text="hello")]),
+                Message(role="assistant", content=[TextMessage(text="hello hello")]),
+            ]
             prediction_hi = chatbot.examples_handler.load_from_cache(1)
-            assert prediction_hi[0].root[0] == ("hi", "hi hi")
+            assert prediction_hi[0].root == [
+                Message(role="user", content=[TextMessage(text="hi")]),
+                Message(role="assistant", content=[TextMessage(text="hi hi")]),
+            ]
 
     def test_example_caching_async(self, connect):
         with patch(
@@ -122,8 +135,14 @@ class TestInit:
             with connect(chatbot):
                 prediction_hello = chatbot.examples_handler.load_from_cache(0)
                 prediction_hi = chatbot.examples_handler.load_from_cache(1)
-            assert prediction_hello[0].root[0] == ("abubakar", "hi, abubakar")
-            assert prediction_hi[0].root[0] == ("tom", "hi, tom")
+            assert prediction_hello[0].root == [
+                Message(role="user", content=[TextMessage(text="abubakar")]),
+                Message(role="assistant", content=[TextMessage(text="hi, abubakar")]),
+            ]
+            assert prediction_hi[0].root == [
+                Message(role="user", content=[TextMessage(text="tom")]),
+                Message(role="assistant", content=[TextMessage(text="hi, tom")]),
+            ]
 
     def test_example_caching_with_streaming(self, connect):
         with patch(
@@ -135,8 +154,14 @@ class TestInit:
             with connect(chatbot):
                 prediction_hello = chatbot.examples_handler.load_from_cache(0)
                 prediction_hi = chatbot.examples_handler.load_from_cache(1)
-            assert prediction_hello[0].root[0] == ("hello", "hello")
-            assert prediction_hi[0].root[0] == ("hi", "hi")
+            assert prediction_hello[0].root == [
+                Message(role="user", content=[TextMessage(text="hello")]),
+                Message(role="assistant", content=[TextMessage(text="hello")]),
+            ]
+            assert prediction_hi[0].root == [
+                Message(role="user", content=[TextMessage(text="hi")]),
+                Message(role="assistant", content=[TextMessage(text="hi")]),
+            ]
 
     def test_example_caching_with_streaming_async(self, connect):
         with patch(
@@ -148,8 +173,14 @@ class TestInit:
             with connect(chatbot):
                 prediction_hello = chatbot.examples_handler.load_from_cache(0)
                 prediction_hi = chatbot.examples_handler.load_from_cache(1)
-            assert prediction_hello[0].root[0] == ("hello", "hello")
-            assert prediction_hi[0].root[0] == ("hi", "hi")
+            assert prediction_hello[0].root == [
+                Message(role="user", content=[TextMessage(text="hello")]),
+                Message(role="assistant", content=[TextMessage(text="hello")]),
+            ]
+            assert prediction_hi[0].root == [
+                Message(role="user", content=[TextMessage(text="hi")]),
+                Message(role="assistant", content=[TextMessage(text="hi")]),
+            ]
 
     def test_default_accordion_params(self):
         chatbot = gr.ChatInterface(
@@ -191,8 +222,14 @@ class TestInit:
             with connect(chatbot):
                 prediction_hello = chatbot.examples_handler.load_from_cache(0)
                 prediction_hi = chatbot.examples_handler.load_from_cache(1)
-            assert prediction_hello[0].root[0] == ("hello", "robot hello")
-            assert prediction_hi[0].root[0] == ("hi", "ro")
+            assert prediction_hello[0].root == [
+                Message(role="user", content=[TextMessage(text="hello")]),
+                Message(role="assistant", content=[TextMessage(text="robot hello")]),
+            ]
+            assert prediction_hi[0].root == [
+                Message(role="user", content=[TextMessage(text="hi")]),
+                Message(role="assistant", content=[TextMessage(text="ro")]),
+            ]
 
     def test_example_caching_with_additional_inputs_already_rendered(
         self, monkeypatch, connect
@@ -213,8 +250,14 @@ class TestInit:
             with connect(demo):
                 prediction_hello = chatbot.examples_handler.load_from_cache(0)
                 prediction_hi = chatbot.examples_handler.load_from_cache(1)
-            assert prediction_hello[0].root[0] == ("hello", "robot hello")
-            assert prediction_hi[0].root[0] == ("hi", "ro")
+            assert prediction_hello[0].root == [
+                Message(role="user", content=[TextMessage(text="hello")]),
+                Message(role="assistant", content=[TextMessage(text="robot hello")]),
+            ]
+            assert prediction_hi[0].root == [
+                Message(role="user", content=[TextMessage(text="hi")]),
+                Message(role="assistant", content=[TextMessage(text="ro")]),
+            ]
 
     def test_custom_chatbot_with_events(self):
         with gr.Blocks() as demo:
@@ -227,71 +270,51 @@ class TestInit:
             None,
         )
 
-    def test_chatbot_type_mismatch(self):
-        chatbot = gr.Chatbot()
-        chat_interface = gr.ChatInterface(
-            fn=lambda x, y: x, chatbot=chatbot, type="tuples"
-        )
-        assert chatbot.type == "tuples"
-        assert chat_interface.type == "tuples"
-
-        chatbot = gr.Chatbot()
-        chat_interface = gr.ChatInterface(
-            fn=lambda x, y: x, chatbot=chatbot, type="messages"
-        )
-        assert chatbot.type == "messages"
-        assert chat_interface.type == "messages"
-
-        chatbot = gr.Chatbot()
-        chat_interface = gr.ChatInterface(fn=lambda x, y: x, chatbot=chatbot)
-        assert chatbot.type == "tuples"
-        assert chat_interface.type == "tuples"
-
 
 class TestAPI:
     def test_get_api_info(self):
-        chatbot = gr.ChatInterface(double)
+        chatbot = gr.ChatInterface(double, api_name="chat")
         api_info = chatbot.get_api_info()
         assert api_info
         assert len(api_info["named_endpoints"]) == 1
         assert len(api_info["unnamed_endpoints"]) == 0
         assert "/chat" in api_info["named_endpoints"]
 
-    @pytest.mark.parametrize("type", ["tuples", "messages"])
-    def test_streaming_api(self, type, connect):
-        chatbot = gr.ChatInterface(stream, type=type).queue()
+    def test_streaming_api(self, connect):
+        chatbot = gr.ChatInterface(stream).queue()
         with connect(chatbot) as client:
             job = client.submit("hello")
             wait([job])
             assert job.outputs() == ["h", "he", "hel", "hell", "hello"]
 
-    @pytest.mark.parametrize("type", ["tuples", "messages"])
-    def test_streaming_api_async(self, type, connect):
-        chatbot = gr.ChatInterface(async_stream, type=type).queue()
+    def test_streaming_api_async(self, connect):
+        chatbot = gr.ChatInterface(async_stream).queue()
         with connect(chatbot) as client:
             job = client.submit("hello")
             wait([job])
             assert job.outputs() == ["h", "he", "hel", "hell", "hello"]
 
-    @pytest.mark.parametrize("type", ["tuples", "messages"])
-    def test_non_streaming_api(self, type, connect):
-        chatbot = gr.ChatInterface(double, type=type)
+    def test_non_streaming_api(self, connect):
+        chatbot = gr.ChatInterface(double)
         with connect(chatbot) as client:
             result = client.predict("hello")
             assert result == "hello hello"
 
-    @pytest.mark.parametrize("type", ["tuples", "messages"])
-    def test_non_streaming_api_async(self, type, connect):
-        chatbot = gr.ChatInterface(async_greet, type=type)
+    def test_non_streaming_api_default(self, connect):
+        chatbot = gr.ChatInterface(double, api_name="double")
+        with connect(chatbot) as client:
+            result = client.predict("hello", api_name="/double")
+            assert result == "hello hello"
+
+    def test_non_streaming_api_async(self, connect):
+        chatbot = gr.ChatInterface(async_greet)
         with connect(chatbot) as client:
             result = client.predict("gradio")
             assert result == "hi, gradio"
 
-    @pytest.mark.parametrize("type", ["tuples", "messages"])
-    def test_streaming_api_with_additional_inputs(self, type, connect):
+    def test_streaming_api_with_additional_inputs(self, connect):
         chatbot = gr.ChatInterface(
             echo_system_prompt_plus_message,
-            type=type,
             additional_inputs=["textbox", "slider"],
         ).queue()
         with connect(chatbot) as client:
@@ -307,29 +330,27 @@ class TestAPI:
                 "robot h",
             ]
 
-    @pytest.mark.parametrize("type", ["tuples", "messages"])
-    def test_multimodal_api(self, type, connect):
+    def test_multimodal_api(self, connect):
         def double_multimodal(msg, history):
             return msg["text"] + " " + msg["text"]
 
         chatbot = gr.ChatInterface(
             double_multimodal,
-            type=type,
             multimodal=True,
+            api_name="chat",
         )
         with connect(chatbot) as client:
             result = client.predict({"text": "hello", "files": []}, api_name="/chat")
             assert result == "hello hello"
 
-    @pytest.mark.parametrize("type", ["tuples", "messages"])
-    def test_component_returned(self, type, connect):
+    def test_component_returned(self, connect):
         def mock_chat_fn(msg, history):
             return gr.Audio("test/test_files/audio_sample.wav")
 
         chatbot = gr.ChatInterface(
             mock_chat_fn,
-            type=type,
             multimodal=True,
+            api_name="chat",
         )
         with connect(chatbot) as client:
             result = client.predict(
@@ -341,15 +362,14 @@ class TestAPI:
             )
             assert result["value"] == "test/test_files/audio_sample.wav"
 
-    @pytest.mark.parametrize("type", ["tuples", "messages"])
-    def test_multiple_messages(self, type, connect):
+    def test_multiple_messages(self, connect):
         def multiple_messages(msg, history):
             return [msg["text"], msg["text"]]
 
         chatbot = gr.ChatInterface(
             multiple_messages,
-            type=type,
             multimodal=True,
+            api_name="chat",
         )
         with connect(chatbot) as client:
             result = client.predict({"text": "hello", "files": []}, api_name="/chat")
@@ -408,8 +428,8 @@ class TestExampleMessages:
         assert chat.examples_messages == []
 
     def test_chat_interface_api_name(self, connect):
-        chat = gr.ChatInterface(double, api_name=False)
-        assert chat.api_name is False
+        chat = gr.ChatInterface(double, api_visibility="private")
+        assert chat.api_visibility == "private"
         with connect(chat) as client:
             assert client.view_api(return_format="dict")["named_endpoints"] == {}
         chat = gr.ChatInterface(double, api_name="double")
@@ -421,7 +441,9 @@ class TestExampleMessages:
             return str(random_number)
 
         chat = gr.ChatInterface(
-            response, additional_inputs=[gr.Textbox(label="Random number")]
+            response,
+            additional_inputs=[gr.Textbox(label="Random number")],
+            api_name="chat",
         )
         with connect(chat) as client:
             endpoints = client.view_api(return_format="dict")["named_endpoints"]
@@ -434,7 +456,6 @@ class TestExampleMessages:
     def test_example_icons_set_if_multimodal_false(self):
         demo = gr.ChatInterface(
             fn=double,
-            type="messages",
             title="🌤️ Weather Assistant",
             description="Ask about the weather anywhere! Watch as I gather the information step by step.",
             examples=[

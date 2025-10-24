@@ -105,6 +105,7 @@ exclude = [
   "gradio/node/*.py",
   "gradio/_frontend_code/*.py",
   "gradio/cli/commands/cli_env_info.py",
+  "demo/scratch/**",
 ]
 
 [tool.ruff]

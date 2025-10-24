@@ -15,7 +15,8 @@ demo = gr.Interface(
     examples=[[[gr.get_file("titanic.csv"),
     gr.get_file("titanic.csv"),
     gr.get_file("titanic.csv")]]],
-    cache_examples=True
+    cache_examples=True,
+    api_name="predict"
 )
 
 if __name__ == "__main__":

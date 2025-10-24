@@ -322,7 +322,6 @@ def gradio_interface():
         chatbot = gr.Chatbot(
             value=[], 
             height=500,
-            type="messages",
             show_copy_button=True,
             avatar_images=("👤", "🤖")
         )

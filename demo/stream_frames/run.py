@@ -8,7 +8,8 @@ demo = gr.Interface(
     flip,
     gr.Image(sources=["webcam"], streaming=True),
     "image",
-    live=True
+    live=True,
+    api_name="predict",
 )
 if __name__ == "__main__":
     demo.launch()

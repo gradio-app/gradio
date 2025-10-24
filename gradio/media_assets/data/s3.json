@@ -1,0 +1,22 @@
+[
+  {
+    "text": "一",
+    "timestamp": [0.0, 0.5]
+  },
+  {
+    "text": "二",
+    "timestamp": [0.5, 1.0]
+  },
+  {
+    "text": "三",
+    "timestamp": [1.0, 1.5]
+  },
+  {
+    "text": "四",
+    "timestamp": [1.5, 2.0]
+  },
+  {
+    "text": "中文測試",
+    "timestamp": [2.0, 2.5]
+  }
+]
