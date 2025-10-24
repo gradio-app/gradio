@@ -1,5 +1,13 @@
 # gradio
 
+## 6.0.0-dev.2
+
+### Features
+
+- [#12110](https://github.com/gradio-app/gradio/pull/12110) [`e80fc6f`](https://github.com/gradio-app/gradio/commit/e80fc6f9eba1b895680b19803bbd15e7e303d969) - Fix issue with boolean columns in dataframe.  Thanks @abidlabs!
+- [#12117](https://github.com/gradio-app/gradio/pull/12117) [`45493c9`](https://github.com/gradio-app/gradio/commit/45493c9c8125fb3e451c75c444cb65c31c0bf71a) - Upgrade version of `safehttpx` in `gradio` and use subdomain wildcards.  Thanks @abidlabs!
+- [#12100](https://github.com/gradio-app/gradio/pull/12100) [`75cfe0e`](https://github.com/gradio-app/gradio/commit/75cfe0efea3cbfe04b3f587609db03d01831e2dd) - Fixes for long legends in native plots.  Thanks @abidlabs!
+
 ## 6.0.0-dev.1
 
 ### Features
