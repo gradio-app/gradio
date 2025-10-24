@@ -31,19 +31,60 @@
 	});
 
 	$: timer_animation_duration = `${duration || 0}s`;
+
+	let touch_start_x = 0;
+	let touch_start_y = 0;
+	let offset_x = 0;
+	let is_dragging = false;
+	let toast_element: HTMLElement;
+
+	function handle_touch_start(e: TouchEvent): void {
+		touch_start_x = e.touches[0].clientX;
+		touch_start_y = e.touches[0].clientY;
+		is_dragging = true;
+	}
+
+	function handle_touch_move(e: TouchEvent): void {
+		if (!is_dragging) return;
+
+		const touch_x = e.touches[0].clientX;
+		const touch_y = e.touches[0].clientY;
+		const delta_x = touch_x - touch_start_x;
+		const delta_y = touch_y - touch_start_y;
+
+		if (Math.abs(delta_x) > Math.abs(delta_y) && Math.abs(delta_x) > 10) {
+			e.preventDefault();
+			offset_x = delta_x;
+		}
+	}
+
+	function handle_touch_end(): void {
+		if (!is_dragging) return;
+
+		if (Math.abs(offset_x) > 100) {
+			close_message();
+		} else {
+			offset_x = 0;
+		}
+
+		is_dragging = false;
+	}
 </script>
 
-<!-- TODO: fix-->
-<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
 <div
+	bind:this={toast_element}
 	class="toast-body {type}"
-	role="alert"
+	role="status"
+	aria-live="polite"
 	data-testid="toast-body"
 	class:hidden={!display}
-	on:click|stopPropagation
-	on:keydown|stopPropagation
+	on:touchstart={handle_touch_start}
+	on:touchmove={handle_touch_move}
+	on:touchend={handle_touch_end}
 	in:fade={{ duration: 200, delay: 100 }}
 	out:fade={{ duration: 200 }}
+	style="transform: translateX({offset_x}px); opacity: {1 -
+		Math.abs(offset_x) / 300};"
 >
 	<div class="toast-icon {type}">
 		{#if type === "warning"}
@@ -86,12 +127,21 @@
 		position: relative;
 		right: 0;
 		left: 0;
-		align-items: center;
-		margin: var(--size-6) var(--size-4);
+		align-items: flex-start;
 		margin: auto;
-		border-radius: var(--container-radius);
+		border-radius: var(--radius-xl);
 		overflow: hidden;
 		pointer-events: auto;
+		backdrop-filter: blur(10px);
+		box-shadow:
+			0 4px 12px rgba(0, 0, 0, 0.08),
+			0 1px 3px rgba(0, 0, 0, 0.06);
+		padding: var(--size-1-5) var(--size-2) var(--size-2-5) var(--size-2);
+		transition:
+			transform 0.2s ease-out,
+			opacity 0.2s ease-out;
+		touch-action: pan-y;
+		user-select: none;
 	}
 
 	.toast-body.error {
@@ -137,6 +187,7 @@
 		font-weight: var(--weight-bold);
 		font-size: var(--text-lg);
 		line-height: var(--line-sm);
+		margin-bottom: var(--size-1);
 	}
 
 	.toast-title.error {
@@ -168,11 +219,30 @@
 	}
 
 	.toast-close {
-		margin: 0 var(--size-3);
-		border-radius: var(--size-3);
-		padding: 0px var(--size-1-5);
-		font-size: var(--size-5);
-		line-height: var(--size-5);
+		margin: 0 var(--size-1);
+		border-radius: var(--radius-lg);
+		padding: var(--size-1);
+		font-size: var(--text-xl);
+		line-height: 1;
+		background: transparent;
+		border: none;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: var(--size-7);
+		height: var(--size-7);
+		opacity: 0.6;
+	}
+
+	.toast-close:hover {
+		opacity: 1;
+		transform: scale(1.1);
+	}
+
+	.toast-close:active {
+		transform: scale(0.95);
 	}
 
 	.toast-close.error {
@@ -205,6 +275,7 @@
 
 	.toast-text {
 		font-size: var(--text-lg);
+		line-height: 1.5;
 		word-wrap: break-word;
 		overflow-wrap: break-word;
 		word-break: break-word;
@@ -241,23 +312,21 @@
 	}
 
 	.toast-details {
-		margin: var(--size-3) var(--size-3) var(--size-3) 0;
+		margin: var(--size-2) var(--size-2) var(--size-2) 0;
 		width: 100%;
 	}
 
 	.toast-icon {
 		display: flex;
-		position: absolute;
 		position: relative;
 		flex-shrink: 0;
 		justify-content: center;
 		align-items: center;
-		margin: var(--size-2);
+		margin: var(--size-1);
 		border-radius: var(--radius-full);
-		padding: var(--size-1);
-		padding-left: calc(var(--size-1) - 1px);
-		width: 35px;
-		height: 35px;
+		padding: var(--size-1-5);
+		width: var(--size-8);
+		height: var(--size-8);
 	}
 
 	.toast-icon.error {
