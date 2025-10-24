@@ -44,6 +44,7 @@
 		| "max"
 		| undefined = undefined;
 	export let color_map: Record<string, string> | null = null;
+	export let colors_in_legend: string[] | null = null;
 	export let x_lim: [number | null, number | null] | null = null;
 	export let y_lim: [number | null, number | null] | null = null;
 	$: x_lim = x_lim || null; // for some unknown reason, x_lim was getting set to undefined when used in re-render, so this line is needed
@@ -469,6 +470,7 @@
 		x_bin,
 		_y_aggregate,
 		_color_map,
+		colors_in_legend,
 		x_start,
 		x_end,
 		y_start,
@@ -543,9 +545,13 @@
 					titleFontSize: text_size_sm,
 					labelFontWeight: "normal",
 					offset: 2,
-					columns: chart_element.offsetWidth > 0 
-						? Math.max(1, Math.floor(chart_element.offsetWidth / (text_size_sm * 10)))
-						: undefined,
+					columns:
+						chart_element.offsetWidth > 0
+							? Math.max(
+									1,
+									Math.floor(chart_element.offsetWidth / (text_size_sm * 10))
+								)
+							: undefined,
 					labelLimit: text_size_sm * 8
 				},
 				title: {
@@ -625,7 +631,11 @@
 							color: color
 								? {
 										field: escape_field_name(color),
-										legend: { orient: "bottom", title: color_title },
+										legend: {
+											orient: "bottom",
+											title: color_title,
+											values: colors_in_legend || undefined
+										},
 										scale:
 											value.datatypes[color] === "nominal"
 												? {
