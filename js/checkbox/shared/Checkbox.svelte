@@ -9,8 +9,6 @@
 
 	let disabled = $derived(!gradio.shared.interactive);
 
-	// When the value changes, dispatch the change event via handle_change()
-	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
 	$effect(() => {
 		gradio.dispatch("change", $state.snapshot(gradio.props.value));
 	});
