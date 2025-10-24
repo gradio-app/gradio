@@ -2,11 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="search"],
+.dark input[type="password"],
+.dark input[type="number"],
+.dark input[type="url"],
+.dark input[type="tel"],
+.dark textarea {
+	background-color: rgb(38, 38, 38);
+	color: rgb(245, 245, 245);
+	border-color: rgb(64, 64, 64);
+}
+
 .link {
 	@apply font-semibold hover:text-orange-500 transition-colors;
 }
 .thin-link {
-	@apply hover:text-orange-500 transition-colors;
+	@apply text-gray-900 dark:text-gray-400 hover:text-orange-500 dark:hover:text-white transition-colors;
 }
 .thinner-link {
 	@apply hover:text-orange-500 transition-colors;
@@ -48,7 +61,7 @@
 
 @layer base {
 	a.text-link {
-		@apply font-semibold text-gray-800 underline decoration-orange-500 underline-offset-2 hover:text-orange-500;
+		@apply font-semibold text-gray-800 dark:text-white underline decoration-orange-500 underline-offset-2 hover:text-orange-500;
 	}
 }
 
@@ -90,7 +103,7 @@
 }
 /* index */
 .active-example-tab {
-	@apply border-orange-500 rounded-full text-orange-500 ring-1 bg-orange-50 ring-orange-200 hover:!text-orange-500 cursor-pointer shadow shadow-orange-200;
+	@apply border-orange-500 rounded-full text-orange-500 ring-1 bg-orange-50 dark:bg-orange-900 ring-orange-200 dark:ring-orange-700 hover:!text-orange-500 cursor-pointer shadow shadow-orange-200 dark:shadow-orange-900;
 }
 
 /* guides */
@@ -206,7 +219,7 @@ code.language-bash {
 }
 
 .codeblock {
-	@apply relative bg-gray-50 mx-auto p-3 mt-2;
+	@apply relative bg-gray-50 dark:bg-neutral-800 mx-auto p-3 mt-2;
 }
 .codeblock:hover > .clipboard-button {
 	@apply opacity-100 duration-200;
@@ -230,19 +243,19 @@ code.language-bash {
 }
 
 .tip {
-	@apply bg-gradient-to-br from-green-50 to-white border-green-50 border-l-2 border-l-green-300 text-green-700 p-4 px-6;
+	@apply bg-green-50 dark:bg-green-900/30 border-green-50 dark:border-green-800 border-l-2 border-l-green-300 dark:border-l-green-600 text-green-700 dark:text-green-300 p-4 px-6;
 }
 
 .tip strong {
-	@apply text-green-700;
+	@apply text-green-700 dark:text-green-300;
 }
 
 .tip code {
-	@apply text-green-700;
+	@apply text-green-700 dark:text-green-300;
 }
 
 .tip a {
-	@apply text-green-700;
+	@apply text-green-700 dark:text-green-300;
 }
 
 .tip p {
@@ -250,7 +263,7 @@ code.language-bash {
 }
 
 .warning {
-	@apply bg-gradient-to-br from-red-50 to-white border-red-50 border-l-2 border-l-red-300 text-red-700 p-4 px-6;
+	@apply bg-red-50 dark:bg-red-900/30 border-red-50 dark:border-red-800 border-l-2 border-l-red-300 dark:border-l-red-600 text-red-700 dark:text-red-300 p-4 px-6;
 }
 
 .warning strong {

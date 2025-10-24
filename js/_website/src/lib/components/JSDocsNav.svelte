@@ -67,7 +67,7 @@
 	</div>
 
 	<p
-		class="mx-4 block bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 mr-2 rounded-full text-orange-800 mb-1 w-fit hover:shadow-lg"
+		class="mx-4 block bg-orange-100 dark:bg-orange-900 border border-orange-200 dark:border-orange-700 px-4 py-0.5 mr-2 rounded-full text-orange-800 dark:text-orange-200 mb-1 w-fit hover:shadow-lg"
 	>
 		<a class="inline-block" href="./storybook">
 			<svg
