@@ -4,6 +4,8 @@ import type { LoadingStatus } from "js/statustracker";
 import type { load_component } from "@gradio/utils";
 import type { get_component } from "./init_utils.js";
 
+export type ServerFunctions = Record<string, (...args: any[]) => Promise<any>>;
+
 // import type { I18nFormatter } from "./i18n.js";
 // import type { component_loader } from "./init.js";
 /** The props that are always present on a component */
@@ -35,6 +37,7 @@ export interface SharedProps {
 	theme?: "light" | "dark";
 	show_progress: boolean;
 	api_prefix: string;
+	server: ServerFunctions;
 }
 
 /** The metadata for a component
