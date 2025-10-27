@@ -85,7 +85,7 @@
 
 	const dispatch = createEventDispatcher();
 
-	$: console.log("filtered_indices", filtered_indices)
+	$: console.log("filtered_indices", filtered_indices);
 </script>
 
 <svelte:window on:scroll={scroll_listener} bind:innerHeight />

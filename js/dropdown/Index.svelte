@@ -11,7 +11,7 @@
 	import Dropdown from "./shared/Dropdown.svelte";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type {DropdownProps, DropdownEvents} from "./types.ts";
+	import type { DropdownProps, DropdownEvents } from "./types.ts";
 
 	let props = $props();
 	const gradio = new Gradio<DropdownEvents, DropdownProps>(props);
@@ -34,12 +34,8 @@
 	/>
 
 	{#if gradio.props.multiselect}
-		<Multiselect
-			{gradio}
-		/>
+		<Multiselect {gradio} />
 	{:else}
-		<Dropdown
-			{gradio}
-		/>
+		<Dropdown {gradio} />
 	{/if}
 </Block>
