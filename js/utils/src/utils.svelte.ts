@@ -247,6 +247,7 @@ export const allowed_shared_props: (keyof SharedProps)[] = [
 	"visible",
 	"interactive",
 	"server_fns",
+	"server",
 	"id",
 	"target",
 	"theme_mode",
