@@ -28,7 +28,8 @@ demo = gr.Interface(
     examples=[["Building a translation demo with Gradio is so easy!", "eng_Latn", "spa_Latn"]],
     cache_examples=False,
     title="Translation Demo",
-    description="This demo is a simplified version of the original [NLLB-Translator](https://huggingface.co/spaces/Narrativaai/NLLB-Translator) space"
+    description="This demo is a simplified version of the original [NLLB-Translator](https://huggingface.co/spaces/Narrativaai/NLLB-Translator) space",
+    api_name="predict"
 )
 
 demo.launch()

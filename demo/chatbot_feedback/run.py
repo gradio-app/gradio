@@ -10,7 +10,6 @@ def test_liked_loading():
 
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot(
-        type="messages",
         resizable=True,
         min_height=500,
         layout="bubble",
@@ -23,4 +22,5 @@ with gr.Blocks() as demo:
     test_btn = gr.Button("Test Liked Loading")
     test_btn.click(test_liked_loading, outputs=[chatbot])
 
-demo.launch(debug=True)
+if __name__ == "__main__":
+    demo.launch(debug=True)
