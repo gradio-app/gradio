@@ -13,7 +13,7 @@
 	import { fade, fly, slide, blur } from "svelte/transition";
 	import { theme } from "$lib/stores/theme";
 
-	$: currentLogo = $theme === "dark" ? gradio_logo_dark : gradio_logo;
+	$: current_logo = $theme === "dark" ? gradio_logo_dark : gradio_logo;
 
 	export let data: {
 		demos_by_category: {
@@ -152,7 +152,7 @@
 	<div class="flex flex-row relative items-center px-1 py-1 pr-6 text-lg gap-8">
 		<div class="flex">
 			<a href="/">
-				<img src={currentLogo} alt="Gradio logo" />
+				<img src={current_logo} alt="Gradio logo" />
 			</a>
 			<p class="self-center text-xl font-light -m-1">Playground</p>
 		</div>
