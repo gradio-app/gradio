@@ -243,6 +243,11 @@ export class DependencyManager {
 								console.log("Submission complete for", dep.id);
 								break submit_loop;
 							}
+							else if (result.stage === "error") {
+								console.log("Submission error for", dep.id);
+								break submit_loop;
+							}
+
 						}
 					}
 					console.log("+++");
