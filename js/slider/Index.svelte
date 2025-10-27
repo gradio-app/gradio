@@ -7,14 +7,13 @@
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	// import { afterUpdate } from "svelte";
 	import type { SliderEvents, SliderProps } from "./types";
 
 	let props = $props();
 	let gradio = new Gradio<SliderEvents, SliderProps>(props);
 	const INITIAL_VALUE = gradio.props.value;
 
-	let range_input: HTMLInputElement;
+	let range_input: HTMLInputElement;;
 	let number_input: HTMLInputElement;
 
 	const id = `range_id_${_id++}`;
@@ -22,14 +21,30 @@
 	let window_width: number;
 
 	let minimum_value = $derived(gradio.props.minimum ?? 0);
+	let percentage = $derived.by(() => {
+		const min = gradio.props.minimum;
+		const max = gradio.props.maximum;
+		const val = gradio.props.value;
+		if (val > max) {
+			return 100;
+		} else if (val < min) {
+			return 0;
+		}
+		return ((val - min) / (max - min)) * 100;
+	});
+
+	$effect(() => {
+		range_input.style.setProperty("--range_progress", `${percentage}%`);
+		range_input.value = gradio.props.value.toString();
+	});
+
+	$inspect("percentage", percentage, "maximum", gradio.props.maximum, "minimum", gradio.props.minimum, "value", gradio.props.value);
 
 	function handle_change(): void {
 		gradio.dispatch("change");
+		gradio.dispatch("input");
 	}
 
-	// afterUpdate(() => {
-	// 	set_slider();
-	// });
 
 	function handle_release(e: MouseEvent): void {
 		gradio.dispatch("release", gradio.props.value);
@@ -40,20 +55,6 @@
 			Math.max(gradio.props.value, gradio.props.minimum),
 			gradio.props.maximum,
 		);
-	}
-
-	function set_slider(): void {
-		set_slider_range();
-		range_input.addEventListener("input", set_slider_range);
-		number_input.addEventListener("input", set_slider_range);
-	}
-	function set_slider_range(): void {
-		const range = range_input;
-		const min = Number(range.min);
-		const max = Number(range.max);
-		const val = Number(range.value);
-		const percentage = ((val - min) / (max - min)) * 100;
-		range.style.setProperty("--range_progress", `${percentage}%`);
 	}
 
 	let disabled = $derived(!gradio.shared.interactive);
@@ -70,7 +71,6 @@
 
 	function reset_value(): void {
 		gradio.props.value = INITIAL_VALUE;
-		set_slider_range();
 		gradio.dispatch("change");
 		gradio.dispatch("release", gradio.props.value);
 	}
