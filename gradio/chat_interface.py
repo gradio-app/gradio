@@ -283,19 +283,14 @@ class ChatInterface(Blocks):
         if textbox is not None:
             conflicting_params = []
 
-            # ChatInterface defaults: submit_btn=True, stop_btn=True, autofocus=True
-            # Only warn if ChatInterface parameter is non-default (customized) AND differs from textbox
-
             if isinstance(textbox, Textbox) or isinstance(textbox, MultimodalTextbox):
-                # Check submit_btn: only warn if it's NOT the default (True) and differs from textbox
+
                 if submit_btn is not True and submit_btn != textbox.submit_btn:
                     conflicting_params.append("submit_btn")
 
-                # Check stop_btn: only warn if it's NOT the default (True) and differs from textbox
                 if stop_btn is not True and stop_btn != textbox.stop_btn:
                     conflicting_params.append("stop_btn")
 
-                # Check autofocus: only warn if it's NOT the default (True) and differs from textbox
                 if autofocus is not True and autofocus != textbox.autofocus:
                     conflicting_params.append("autofocus")
 
@@ -999,9 +994,7 @@ class ChatInterface(Blocks):
         else:
             return example.value["text"]
 
-    def _edit_message(
-        self, history: list[MessageDict], edit_data: EditData
-    ) -> tuple[
+    def _edit_message(self, history: list[MessageDict], edit_data: EditData) -> tuple[
         list[MessageDict],
         list[MessageDict],
         str | MultimodalPostprocess,
