@@ -300,7 +300,7 @@ class ChatInterface(Blocks):
                     f"{', '.join(f'`{p}`' for p in conflicting_params)} parameter(s) on `gr.ChatInterface`. "
                     f"These ChatInterface parameters will be ignored. To customize these settings, "
                     f"pass them directly to your `gr.Textbox` or `gr.MultimodalTextbox` component instead. "
-                    f"For example: textbox=gr.Textbox(..., submit_btn='ارسال')",
+                    f"For example: textbox=gr.Textbox(..., submit_btn='submit')",
                     UserWarning,
                     stacklevel=2,
                 )
