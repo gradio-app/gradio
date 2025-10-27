@@ -11,10 +11,14 @@ import type {
 	Dependency,
 	SharedProps,
 	LoadingComponent,
-	AppConfig
+	AppConfig,
+	ServerFunctions,
 } from "./types";
 
 import { allowed_shared_props } from "@gradio/utils";
+import { Client } from "@gradio/client";
+
+type client_return = Awaited<ReturnType<typeof Client.connect>>;
 
 type set_data_type = (data: Record<string, unknown>) => void;
 type get_data_type = () => Promise<Record<string, unknown>>;
@@ -29,6 +33,7 @@ export class AppTree {
 
 	/** the config for the app */
 	#config: AppConfig;
+	client: client_return;
 
 	/** the root node of the processed layout tree */
 	root = $state<ProcessedComponentMeta>();
@@ -53,13 +58,15 @@ export class AppTree {
 		components: ComponentMeta[],
 		layout: LayoutNode,
 		dependencies: Dependency[],
-		config: AppConfig
+		config: AppConfig,
+		app: client_return
 	) {
 		console.log("AppTree config:", config);
 		this.#config = config;
 		this.#component_payload = components;
 		this.#layout_payload = layout;
 		this.#dependency_payload = dependencies;
+		this.client = app;
 		this.root = this.create_node({ id: layout.id, children: [] }, true);
 		this.prepare();
 	}
@@ -171,6 +178,7 @@ export class AppTree {
 			opts.id,
 			component.props,
 			[this.#input_ids, this.#output_ids],
+			this.client,
 			{ ...this.#config }
 		);
 
@@ -254,6 +262,33 @@ export class AppTree {
 }
 
 /**
+ * Process the server function names and return a dictionary of functions
+ * @param id the component id
+ * @param server_fns the server function names
+ * @param app the client instance
+ * @returns the actual server functions
+ */
+export function process_server_fn(
+	id: number,
+	server_fns: string[] | undefined,
+	app: client_return
+): ServerFunctions {
+	if (!server_fns) {
+		return {};
+	}
+	return server_fns.reduce((acc, fn: string) => {
+		acc[fn] = async (...args: any[]) => {
+			if (args.length === 1) {
+				args = args[0];
+			}
+			const result = await app.component_server(id, fn, args);
+			return result;
+		};
+		return acc;
+	}, {} as ServerFunctions);
+}
+
+/**
  * Gathers the props for a component
  * @param id the ID of the component
  * @param props the props of the component
@@ -265,6 +300,7 @@ function gather_props(
 	id: number,
 	props: ComponentMeta["props"],
 	dependencies: [Set<number>, Set<number>],
+	client: client_return,
 	additional: Record<string, unknown> = {}
 ): {
 	shared_props: SharedProps;
@@ -276,6 +312,9 @@ function gather_props(
 		if (allowed_shared_props.includes(key as keyof SharedProps)) {
 			const _key = key as keyof SharedProps;
 			_shared_props[_key] = props[key];
+			if (_key === "server_fns") {
+				_shared_props.server = process_server_fn(id, props.server_fns, client);
+			}
 		} else {
 			_props[key] = props[key];
 		}
@@ -290,6 +329,7 @@ function gather_props(
 		}
 	}
 
+	_shared_props.client = client;
 	_shared_props.id = id;
 	_shared_props.interactive = determine_interactivity(
 		id,
