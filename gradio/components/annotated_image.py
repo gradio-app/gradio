@@ -74,7 +74,7 @@ class AnnotatedImage(Component):
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
-        show_fullscreen_button: bool = True,
+        buttons: list[str] | None = None,
     ):
         """
         Parameters:
@@ -97,14 +97,14 @@ class AnnotatedImage(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
-            show_fullscreen_button: If True, will show a button to allow the image to be viewed in fullscreen mode.
+            buttons: A list of buttons to show in the top right corner of the component. Valid options are "fullscreen". The "share" button allows the user to share outputs to Hugging Face Spaces Discussions. The "download" button allows the user to download the selected image. The "fullscreen" button allows the user to view the gallery in fullscreen mode. By default, all buttons are shown.
         """
         self.format = format
         self.show_legend = show_legend
         self.height = height
         self.width = width
         self.color_map = color_map
-        self.show_fullscreen_button = show_fullscreen_button
+        self.buttons = buttons or ["fullscreen"]
         self._value_description = "a tuple of type [image: str, annotations: list[tuple[mask: str, label: str]]] where 'image' is the path to the base image and 'annotations' is a list of tuples where each tuple has a 'mask' image filepath and a corresponding label."
         super().__init__(
             label=label,
