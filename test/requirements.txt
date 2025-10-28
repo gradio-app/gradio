@@ -105,7 +105,7 @@ httpx==0.28.1
     #   gradio-client
     #   respx
     #   safehttpx
-huggingface-hub==0.28.0
+huggingface-hub==1.0.1
     # via
     #   -r test/requirements.in
     #   diffusers
@@ -345,7 +345,7 @@ traitlets==5.14.3
     # via
     #   ipython
     #   matplotlib-inline
-transformers==4.48.1
+transformers==4.57.1
     # via -r test/requirements.in
 typer==0.15.1
     # via gradio
