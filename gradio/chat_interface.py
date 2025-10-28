@@ -283,8 +283,7 @@ class ChatInterface(Blocks):
         if textbox is not None:
             conflicting_params = []
 
-            if isinstance(textbox, Textbox) or isinstance(textbox, MultimodalTextbox):
-
+            if isinstance(textbox, (Textbox, MultimodalTextbox)):
                 if submit_btn is not True and submit_btn != textbox.submit_btn:
                     conflicting_params.append("submit_btn")
 
@@ -777,9 +776,7 @@ class ChatInterface(Blocks):
                 api_visibility="undocumented",
                 queue=False,
                 show_progress="hidden",
-            ).then(
-                **synchronize_chat_state_kwargs
-            )
+            ).then(**synchronize_chat_state_kwargs)
 
         if self.flagging_mode != "never":
             flagging_callback = ChatCSVLogger()
@@ -994,7 +991,9 @@ class ChatInterface(Blocks):
         else:
             return example.value["text"]
 
-    def _edit_message(self, history: list[MessageDict], edit_data: EditData) -> tuple[
+    def _edit_message(
+        self, history: list[MessageDict], edit_data: EditData
+    ) -> tuple[
         list[MessageDict],
         list[MessageDict],
         str | MultimodalPostprocess,

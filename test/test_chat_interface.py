@@ -1,11 +1,11 @@
 import tempfile
+import warnings
 from concurrent.futures import wait
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 from gradio_client import handle_file
-import warnings
 
 import gradio as gr
 from gradio.components.chatbot import Message
@@ -487,7 +487,6 @@ class TestTextboxParameterConflicts:
         with pytest.warns(UserWarning, match="submit_btn.*will be ignored"):
             gr.ChatInterface(
                 chat,
-                type="messages",
                 textbox=gr.Textbox(placeholder="Custom textbox"),
                 submit_btn="submit",
             )
@@ -497,7 +496,6 @@ class TestTextboxParameterConflicts:
         with pytest.warns(UserWarning, match="stop_btn.*will be ignored"):
             gr.ChatInterface(
                 chat,
-                type="messages",
                 textbox=gr.Textbox(placeholder="Custom textbox"),
                 stop_btn="Stop",
             )
@@ -507,7 +505,6 @@ class TestTextboxParameterConflicts:
         with pytest.warns(UserWarning, match="submit_btn.*stop_btn.*will be ignored"):
             gr.ChatInterface(
                 chat,
-                type="messages",
                 textbox=gr.Textbox(placeholder="Custom textbox"),
                 submit_btn="Send",
                 stop_btn="Stop",
@@ -520,7 +517,6 @@ class TestTextboxParameterConflicts:
 
             gr.ChatInterface(
                 chat,
-                type="messages",
                 textbox=gr.Textbox(placeholder="Custom textbox", submit_btn="submit"),
             )
 
@@ -531,7 +527,6 @@ class TestTextboxParameterConflicts:
 
             gr.ChatInterface(
                 chat,
-                type="messages",
                 submit_btn="Submit",
             )
 
@@ -542,7 +537,6 @@ class TestTextboxParameterConflicts:
 
             gr.ChatInterface(
                 chat,
-                type="messages",
                 textbox=gr.Textbox(placeholder="Test", submit_btn="Send"),
                 submit_btn="Send",
             )
@@ -552,7 +546,6 @@ class TestTextboxParameterConflicts:
         with pytest.warns(UserWarning, match="stop_btn.*will be ignored"):
             gr.ChatInterface(
                 chat,
-                type="messages",
                 multimodal=True,
                 textbox=gr.MultimodalTextbox(placeholder="Custom"),
                 stop_btn="Stop",
@@ -564,7 +557,6 @@ class TestTextboxParameterConflicts:
             warnings.simplefilter("error")
             gr.ChatInterface(
                 chat,
-                type="messages",
                 multimodal=True,
                 textbox=gr.MultimodalTextbox(placeholder="Custom", stop_btn="Stop"),
             )
