@@ -3,24 +3,16 @@
 </script>
 
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
-	export let display_value: string;
-	export let internal_value: string | number;
-	export let disabled = false;
-	export let selected: string | null = null;
-	export let rtl = false;
-
-	const dispatch = createEventDispatcher<{ input: string | number }>();
-	let is_selected = false;
-
-	$: is_selected = selected === internal_value;
+	
+	let { selected = $bindable(), display_value, internal_value, disabled, rtl, on_input } = $props()
+	let is_selected = $derived(selected === internal_value);
 
 	function handle_input(
 		e: Event & { currentTarget: EventTarget & HTMLInputElement }
 	): void {
 		is_selected = e.currentTarget.checked;
 		if (e.currentTarget.checked) {
-			dispatch("input", internal_value);
+			on_input();
 		}
 	}
 </script>
