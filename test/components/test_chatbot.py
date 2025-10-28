@@ -109,7 +109,7 @@ class TestChatbot:
             "allow_tags": True,
             "examples": None,
             "watermark": None,
-            "collapse_thinking": None,
+            "reasoning_tags": None,
         }
 
     def test_avatar_images_are_moved_to_cache(self):
@@ -120,9 +120,9 @@ class TestChatbot:
         )
         assert chatbot.avatar_images[1] is None
 
-    def test_collapse_thinking_single_block(self):
-        """Test collapse_thinking with a single thinking block"""
-        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+    def test_reasoning_tags_single_block(self):
+        """Test reasoning_tags with a single thinking block"""
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
         messages = [
             {
                 "role": "assistant",
@@ -137,9 +137,9 @@ class TestChatbot:
         assert result[1]["content"][0]["text"] == "Here is my response."
         assert result[1]["metadata"] is None
 
-    def test_collapse_thinking_multiple_blocks(self):
-        """Test collapse_thinking with multiple thinking blocks"""
-        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+    def test_reasoning_tags_multiple_blocks(self):
+        """Test reasoning_tags with multiple thinking blocks"""
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
         messages = [
             {
                 "role": "assistant",
@@ -158,9 +158,9 @@ class TestChatbot:
         assert result[3]["content"][0]["text"] == "Second response."
         assert result[3]["metadata"] is None
 
-    def test_collapse_thinking_only_thinking(self):
-        """Test collapse_thinking with only thinking content, no prose"""
-        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+    def test_reasoning_tags_only_thinking(self):
+        """Test reasoning_tags with only thinking content, no prose"""
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
         messages = [
             {
                 "role": "assistant",
@@ -173,10 +173,10 @@ class TestChatbot:
         assert result[0]["content"][0]["text"] == "Only thinking here."
         assert result[0]["metadata"] == {"title": "Reasoning", "status": "done"}
 
-    def test_collapse_thinking_multiple_tag_types(self):
-        """Test collapse_thinking with multiple tag types like <reasoning>"""
+    def test_reasoning_tags_multiple_tag_types(self):
+        """Test reasoning_tags with multiple tag types like <reasoning>"""
         chatbot = gr.Chatbot(
-            collapse_thinking=[
+            reasoning_tags=[
                 ("<thinking>", "</thinking>"),
                 ("<reasoning>", "</reasoning>"),
             ]
@@ -199,9 +199,9 @@ class TestChatbot:
         assert result[3]["content"][0]["text"] == "Second response."
         assert result[3]["metadata"] is None
 
-    def test_collapse_thinking_no_thinking_tags(self):
-        """Test collapse_thinking when no thinking tags are present"""
-        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+    def test_reasoning_tags_no_thinking_tags(self):
+        """Test reasoning_tags when no thinking tags are present"""
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
         messages = [
             {
                 "role": "assistant",
@@ -217,9 +217,9 @@ class TestChatbot:
         )
         assert result[0]["metadata"] is None
 
-    def test_collapse_thinking_disabled(self):
-        """Test that collapse_thinking=None doesn't extract anything"""
-        chatbot = gr.Chatbot(collapse_thinking=None)
+    def test_reasoning_tags_disabled(self):
+        """Test that reasoning_tags=None doesn't extract anything"""
+        chatbot = gr.Chatbot(reasoning_tags=None)
         messages = [
             {
                 "role": "assistant",
@@ -235,9 +235,9 @@ class TestChatbot:
         )
         assert result[0]["metadata"] is None
 
-    def test_collapse_thinking_preserves_order(self):
-        """Test that collapse_thinking preserves the order of thinking and prose"""
-        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+    def test_reasoning_tags_preserves_order(self):
+        """Test that reasoning_tags preserves the order of thinking and prose"""
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
         messages = [
             {
                 "role": "assistant",
@@ -262,9 +262,9 @@ class TestChatbot:
         assert result[6]["content"][0]["text"] == "Conclusion."
         assert result[6]["metadata"] is None
 
-    def test_collapse_thinking_consecutive_thinking_blocks(self):
+    def test_reasoning_tags_consecutive_thinking_blocks(self):
         """Test consecutive thinking blocks with no prose between them"""
-        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
         messages = [
             {
                 "role": "assistant",
@@ -285,9 +285,9 @@ class TestChatbot:
         assert result[4]["content"][0]["text"] == "Think 4."
         assert result[4]["metadata"] == {"title": "Reasoning", "status": "done"}
 
-    def test_collapse_thinking_consecutive_prose_sections(self):
+    def test_reasoning_tags_consecutive_prose_sections(self):
         """Test that consecutive prose sections get merged into one message"""
-        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
         messages = [
             {
                 "role": "assistant",
@@ -304,9 +304,9 @@ class TestChatbot:
         assert result[2]["content"][0]["text"] == "Prose 3. Prose 4."
         assert result[2]["metadata"] is None
 
-    def test_collapse_thinking_prose_before_thinking(self):
+    def test_reasoning_tags_prose_before_thinking(self):
         """Test prose at the start followed by thinking blocks"""
-        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
         messages = [
             {
                 "role": "assistant",
@@ -323,9 +323,9 @@ class TestChatbot:
         assert result[2]["content"][0]["text"] == "Then more prose."
         assert result[2]["metadata"] is None
 
-    def test_collapse_thinking_sets_pending_correctly(self):
+    def test_reasoning_tags_sets_pending_correctly(self):
         """Test prose at the start followed by thinking blocks"""
-        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
         messages = [
             {
                 "role": "assistant",
@@ -340,9 +340,9 @@ class TestChatbot:
         assert result[1]["content"][0]["text"] == "Then thinking"
         assert result[1]["metadata"] == {"title": "Reasoning", "status": "pending"}
 
-    def test_collapse_thinking_sets_pending_correctly_multiple_thinking(self):
+    def test_reasoning_tags_sets_pending_correctly_multiple_thinking(self):
         """Test prose at the start followed by thinking blocks"""
-        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
         messages = [
             {
                 "role": "assistant",
@@ -359,9 +359,9 @@ class TestChatbot:
         assert result[2]["content"][0]["text"] == "More thinking"
         assert result[2]["metadata"] == {"title": "Reasoning", "status": "pending"}
 
-    def test_collapse_thinking_multiple_thinking_only(self):
+    def test_reasoning_tags_multiple_thinking_only(self):
         """Test multiple consecutive thinking blocks with no prose at all"""
-        chatbot = gr.Chatbot(collapse_thinking=[("<thinking>", "</thinking>")])
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
         messages = [
             {
                 "role": "assistant",
