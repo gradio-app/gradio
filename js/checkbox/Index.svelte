@@ -22,7 +22,7 @@
 		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
 		{...gradio.shared.loading_status}
-		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+		on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 
 	{#if gradio.props.info}
