@@ -405,7 +405,7 @@
 						<button
 							data-testid="upload-button"
 							class="upload-button mobile-thumbnail-add"
-							disabled={disabled}
+							{disabled}
 							on:click={handle_upload_click}
 							aria-label="Upload a file"
 						>
@@ -486,7 +486,7 @@
 						data-testid="microphone-button"
 						class="microphone-button"
 						class:recording
-						disabled={disabled}
+						{disabled}
 						on:click={() => {
 							active_source =
 								active_source !== "microphone" ? "microphone" : null;
@@ -501,7 +501,7 @@
 					<button
 						class="submit-button"
 						class:padded-button={submit_btn !== true}
-						disabled={disabled}
+						{disabled}
 						on:click={handle_submit}
 						aria-label="Submit"
 					>
