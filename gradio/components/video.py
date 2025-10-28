@@ -15,7 +15,6 @@ from gradio_client import handle_file
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
-import gradio as gr
 from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingOutput
 from gradio.components.image_editor import WebcamOptions

@@ -150,7 +150,10 @@ class Image(StreamingInput, Component):
         self.height = height
         self.width = width
         self.image_mode = image_mode
-        self.buttons = buttons or ["download", "fullscreen",]
+        self.buttons = buttons or [
+            "download",
+            "fullscreen",
+        ]
         valid_sources = ["upload", "webcam", "clipboard"]
         if sources is None:
             self.sources = (
