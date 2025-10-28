@@ -8,13 +8,15 @@ build==1.2.2.post1
 coverage
 docker==7.1.0
 fastapi>=0.115.7
+gradio_pdf==0.0.21
+gradio==5.10.0
 matplotlib
 httpx
-huggingface_hub<1.0
+huggingface_hub
 hypothesis
 nbformat
-openai
-polars
+openai==1.63.2
+polars==1.31.0
 pydantic[email]
 pytest
 pytest-asyncio
@@ -24,6 +26,6 @@ respx
 scikit-image
 torch
 tqdm
-transformers>4.13.0
+transformers
 vega_datasets
 diffusers
