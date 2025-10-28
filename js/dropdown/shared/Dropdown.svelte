@@ -135,7 +135,7 @@
 	$effect(() => {
 		if (old_value !== gradio.props.value) {
 			old_value = gradio.props.value;
-			gradio.dispatch("change", $state.snapshot(gradio.props.value));
+			gradio.dispatch("change");
 		}
 	});
 </script>
