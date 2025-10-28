@@ -346,3 +346,4 @@ wcwidth==0.2.14
     # via prompt-toolkit
 zipp==3.23.0
     # via importlib-metadata
+gradio-pdf
