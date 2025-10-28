@@ -9,8 +9,13 @@
 
 	let disabled = $derived(!gradio.shared.interactive);
 
+	let old_value = $state(gradio.props.value);
+
 	$effect(() => {
-		gradio.dispatch("change", $state.snapshot(gradio.props.value));
+		if (old_value !== gradio.props.value) {
+			old_value = gradio.props.value;
+			gradio.dispatch("change", $state.snapshot(gradio.props.value));
+		}
 	});
 
 	async function handle_enter(

@@ -131,12 +131,12 @@
 		}
 	}
 
+	let old_value = $state(gradio.props.value);
 	$effect(() => {
-		const access_state = [
-			$state.snapshot(gradio.props.choices),
-			$state.snapshot(gradio.props.value)
-		];
-		gradio.dispatch("change");
+		if (old_value !== gradio.props.value) {
+			old_value = gradio.props.value;
+			gradio.dispatch("change");
+		}
 	});
 </script>
 
