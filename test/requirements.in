@@ -10,11 +10,11 @@ docker==7.1.0
 fastapi>=0.115.7
 matplotlib
 httpx
-huggingface_hub>1.0,<2.0
+huggingface_hub<1.0
 hypothesis
 nbformat
-openai==1.63.2
-polars==1.31.0
+openai
+polars
 pydantic[email]
 pytest
 pytest-asyncio
@@ -24,7 +24,6 @@ respx
 scikit-image
 torch
 tqdm
-tokenizers
-transformers
+transformers>4.13.0
 vega_datasets
 diffusers
