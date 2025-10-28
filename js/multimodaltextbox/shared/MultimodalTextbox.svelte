@@ -21,8 +21,7 @@
 		Video,
 		ArrowUp,
 		Square,
-		Microphone,
-		Plus
+		Microphone
 	} from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 	import InteractiveAudio from "../../audio/interactive/InteractiveAudio.svelte";
@@ -77,7 +76,6 @@
 	// value can be null in multimodalchatinterface when loading a deep link
 	let oldValue = value?.text ?? "";
 	let recording = false;
-	let show_mobile_menu = false;
 
 	$: sources = sources_string
 		.split(",")
@@ -90,6 +88,10 @@
 		? file_types_string.split(",").map((s) => s.trim())
 		: null;
 	$: dispatch("drag", dragging);
+	$: show_upload =
+		sources &&
+		sources.includes("upload") &&
+		!(file_count === "single" && value.files.length > 0);
 	let mic_audio: FileData | null = null;
 
 	let full_container: HTMLDivElement;
@@ -180,11 +182,7 @@
 			e.preventDefault();
 			dispatch("submit");
 			active_source = null;
-			if (mic_audio) {
-				value.files.push(mic_audio);
-				value = value;
-				mic_audio = null;
-			}
+			add_mic_audio_to_files();
 		}
 	}
 
@@ -236,14 +234,18 @@
 		dispatch("stop");
 	}
 
-	function handle_submit(): void {
-		dispatch("submit");
-		active_source = null;
+	function add_mic_audio_to_files(): void {
 		if (mic_audio) {
 			value.files.push(mic_audio);
 			value = value;
 			mic_audio = null;
 		}
+	}
+
+	function handle_submit(): void {
+		dispatch("submit");
+		active_source = null;
+		add_mic_audio_to_files();
 	}
 
 	async function handle_paste(event: ClipboardEvent): Promise<void> {
@@ -337,91 +339,7 @@
 	aria-label="Multimedia input field"
 >
 	<BlockTitle {show_label} {info} {rtl}>{label}</BlockTitle>
-	{#if value.files.length > 0 || uploading}
-		<div
-			class="thumbnails scroll-hide"
-			aria-label="Uploaded files"
-			data-testid="container_el"
-			style="display: {value.files.length > 0 || uploading ? 'flex' : 'none'};"
-		>
-			{#each value.files as file, index}
-				<div
-					class="thumbnail-wrapper"
-					role="listitem"
-					aria-label="File thumbnail"
-				>
-					<div class="thumbnail-item thumbnail-small">
-						{#if file.mime_type && file.mime_type.includes("image")}
-							<Image
-								src={file.url}
-								title={null}
-								alt=""
-								loading="lazy"
-								class={"thumbnail-image"}
-							/>
-						{:else if file.mime_type && file.mime_type.includes("audio")}
-							<Music />
-						{:else if file.mime_type && file.mime_type.includes("video")}
-							<Video />
-						{:else}
-							<File />
-						{/if}
-						<button
-							class="delete-button"
-							on:click={(event) => remove_thumbnail(event, index)}
-							aria-label="Remove file"
-						>
-							<Clear />
-						</button>
-					</div>
-				</div>
-			{/each}
-			{#if uploading}
-				<div class="loader" role="status" aria-label="Uploading"></div>
-			{/if}
-		</div>
-	{/if}
 	<div class="input-container">
-		<div class="mobile-action-bar">
-			<button
-				class="mobile-plus-button"
-				class:active={show_mobile_menu}
-				on:click={() => (show_mobile_menu = !show_mobile_menu)}
-				{disabled}
-			>
-				<Plus />
-			</button>
-			{#if show_mobile_menu}
-				<div class="mobile-menu">
-					{#if sources && sources.includes("upload") && !(file_count === "single" && value.files.length > 0)}
-						<button
-							class="mobile-menu-item"
-							on:click={() => {
-								handle_upload_click();
-								show_mobile_menu = false;
-							}}
-							{disabled}
-						>
-							<Paperclip />
-						</button>
-					{/if}
-					{#if sources && sources.includes("microphone")}
-						<button
-							class="mobile-menu-item"
-							on:click={() => {
-								active_source =
-									active_source !== "microphone" ? "microphone" : null;
-								show_mobile_menu = false;
-							}}
-							{disabled}
-						>
-							<Microphone />
-						</button>
-					{/if}
-				</div>
-			{/if}
-		</div>
-
 		{#if sources && sources.includes("microphone") && active_source === "microphone"}
 			<InteractiveAudio
 				on:change={({ detail }) => {
@@ -454,7 +372,7 @@
 				dragging={false}
 			/>
 		{/if}
-		{#if sources && sources.includes("upload") && !(file_count === "single" && value.files.length > 0)}
+		{#if show_upload}
 			<Upload
 				bind:this={upload_component}
 				on:load={handle_upload}
@@ -471,87 +389,145 @@
 				{upload}
 				{stream_handler}
 			/>
-			<button
-				data-testid="upload-button"
-				class="upload-button desktop-only"
-				{disabled}
-				on:click={disabled ? undefined : handle_upload_click}
-				><Paperclip /></button
-			>
 		{/if}
-		{#if sources && sources.includes("microphone")}
-			<button
-				data-testid="microphone-button"
-				class="microphone-button desktop-only"
-				class:recording
-				{disabled}
-				on:click={disabled
-					? undefined
-					: () => {
+
+		<div
+			class="input-wrapper"
+			class:has-files={value.files.length > 0 || uploading}
+		>
+			{#if value.files.length > 0 || uploading || show_upload}
+				<div
+					class="thumbnails"
+					aria-label="Uploaded files"
+					data-testid="container_el"
+				>
+					{#if show_upload}
+						<button
+							data-testid="upload-button"
+							class="upload-button mobile-thumbnail-add"
+							disabled={disabled}
+							on:click={handle_upload_click}
+							aria-label="Upload a file"
+						>
+							<Paperclip />
+						</button>
+					{/if}
+					{#each value.files as file, index}
+						<span
+							class="thumbnail-wrapper"
+							role="listitem"
+							aria-label="File thumbnail"
+						>
+							<button class="thumbnail-item thumbnail-small">
+								{#if file.mime_type && file.mime_type.includes("image")}
+									<Image
+										src={file.url}
+										title={null}
+										alt=""
+										loading="lazy"
+										class={"thumbnail-image"}
+									/>
+								{:else if file.mime_type && file.mime_type.includes("audio")}
+									<Music />
+								{:else if file.mime_type && file.mime_type.includes("video")}
+									<Video />
+								{:else}
+									<File />
+								{/if}
+								<button
+									class="delete-button"
+									on:click={(event) => remove_thumbnail(event, index)}
+									aria-label="Remove file"
+								>
+									<Clear />
+								</button>
+							</button>
+						</span>
+					{/each}
+					{#if uploading}
+						<div class="loader" role="status" aria-label="Uploading"></div>
+					{/if}
+				</div>
+			{/if}
+
+			<div class="input-row">
+				<textarea
+					data-testid="textbox"
+					use:text_area_resize={{
+						text: value.text,
+						lines: lines,
+						max_lines: max_lines
+					}}
+					class:no-label={!show_label}
+					dir={rtl ? "rtl" : "ltr"}
+					bind:value={value.text}
+					bind:this={el}
+					{placeholder}
+					rows={lines}
+					{disabled}
+					on:keypress={handle_keypress}
+					on:blur
+					on:select={handle_select}
+					on:focus
+					on:scroll={handle_scroll}
+					on:paste={handle_paste}
+					style={text_align ? "text-align: " + text_align : ""}
+					autocapitalize={html_attributes?.autocapitalize}
+					autocorrect={html_attributes?.autocorrect}
+					spellcheck={html_attributes?.spellcheck}
+					autocomplete={html_attributes?.autocomplete}
+					tabindex={html_attributes?.tabindex}
+					enterkeyhint={html_attributes?.enterkeyhint}
+					lang={html_attributes?.lang}
+				/>
+
+				{#if sources && sources.includes("microphone")}
+					<button
+						data-testid="microphone-button"
+						class="microphone-button"
+						class:recording
+						disabled={disabled}
+						on:click={() => {
 							active_source =
 								active_source !== "microphone" ? "microphone" : null;
 						}}
-			>
-				<Microphone />
-			</button>
-		{/if}
-		<textarea
-			data-testid="textbox"
-			use:text_area_resize={{
-				text: value.text,
-				lines: lines,
-				max_lines: max_lines
-			}}
-			class="scroll-hide"
-			class:no-label={!show_label}
-			dir={rtl ? "rtl" : "ltr"}
-			bind:value={value.text}
-			bind:this={el}
-			{placeholder}
-			rows={lines}
-			{disabled}
-			on:keypress={handle_keypress}
-			on:blur
-			on:select={handle_select}
-			on:focus
-			on:scroll={handle_scroll}
-			on:paste={handle_paste}
-			style={text_align ? "text-align: " + text_align : ""}
-			autocapitalize={html_attributes?.autocapitalize}
-			autocorrect={html_attributes?.autocorrect}
-			spellcheck={html_attributes?.spellcheck}
-			autocomplete={html_attributes?.autocomplete}
-			tabindex={html_attributes?.tabindex}
-			enterkeyhint={html_attributes?.enterkeyhint}
-			lang={html_attributes?.lang}
-		/>
-		{#if submit_btn}
-			<button
-				class="submit-button"
-				class:padded-button={submit_btn !== true}
-				{disabled}
-				on:click={disabled ? undefined : handle_submit}
-			>
-				{#if submit_btn === true}
-					<ArrowUp />
-				{:else}
-					{submit_btn}
+						aria-label="Record audio"
+					>
+						<Microphone />
+					</button>
 				{/if}
-			</button>
-		{/if}
-		{#if stop_btn}
-			<button
-				class="stop-button"
-				class:padded-button={stop_btn !== true}
-				on:click={handle_stop}
-			>
-				{#if stop_btn === true}
-					<Square fill={"none"} stroke_width={2.5} />
-				{:else}
-					{stop_btn}
+
+				{#if submit_btn}
+					<button
+						class="submit-button"
+						class:padded-button={submit_btn !== true}
+						disabled={disabled}
+						on:click={handle_submit}
+						aria-label="Submit"
+					>
+						{#if submit_btn === true}
+							<ArrowUp />
+						{:else}
+							{submit_btn}
+						{/if}
+					</button>
 				{/if}
-			</button>
-		{/if}
+				{#if stop_btn}
+					<button
+						class="stop-button"
+						class:padded-button={stop_btn !== true}
+						on:click={handle_stop}
+						aria-label="Stop"
+					>
+						{#if stop_btn === true}
+							<Square fill={"none"} stroke_width={2.5} />
+						{:else}
+							{stop_btn}
+						{/if}
+					</button>
+				{/if}
+			</div>
+		</div>
 	</div>
 </div>
 
@@ -564,174 +540,75 @@
 	}
 
 	.full-container.dragging {
-		border: 1px solid var(--color-accent);
-		border-radius: calc(var(--radius-sm) - 1px);
+		border-color: var(--color-accent);
+		border-radius: calc(var(--radius-sm) - var(--size-px));
 	}
 
 	.full-container.dragging::after {
 		content: "";
 		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
+		inset: 0;
 		pointer-events: none;
 	}
 
 	.input-container {
 		display: flex;
 		position: relative;
-		gap: var(--spacing-sm);
+		flex-direction: column;
+		gap: 0;
 	}
 
-	textarea {
-		flex-grow: 1;
-		outline: none !important;
+	.input-wrapper {
+		display: flex;
+		position: relative;
+		flex-direction: column;
+		gap: 0;
 		background: var(--block-background-fill);
-		padding: var(--input-padding);
-		color: var(--body-text-color);
-		font-weight: var(--input-text-weight);
-		font-size: var(--input-text-size);
-		line-height: var(--line-sm);
-		border: none;
-		margin-top: 0px;
-		margin-bottom: 0px;
-		resize: none;
-		position: relative;
-		z-index: 1;
-		text-align: left;
-	}
-	textarea[dir="rtl"] {
-		text-align: right;
+		border-radius: var(--radius-xl);
+		padding: var(--spacing-sm);
+		align-items: flex-start;
+		min-height: auto;
 	}
 
-	textarea[dir="rtl"] ~ .submit-button {
-		order: -1;
-		margin-left: 0;
-		margin-right: var(--spacing-sm);
+	.input-wrapper.has-files {
+		padding-top: var(--spacing-xs);
 	}
 
-	textarea[dir="rtl"] ~ .submit-button :global(svg) {
-		transform: scaleX(-1);
-	}
-
-	textarea.no-label {
-		padding-top: 5px;
-		padding-bottom: 5px;
-	}
-
-	textarea:disabled {
-		-webkit-opacity: 1;
-		opacity: 1;
-	}
-
-	textarea::placeholder {
-		color: var(--input-placeholder-color);
-	}
-
-	.microphone-button,
-	.upload-button,
-	.submit-button,
-	.stop-button {
-		border: none;
-		text-align: center;
-		text-decoration: none;
-		font-size: 14px;
-		cursor: pointer;
-		border-radius: 15px;
-		min-width: 30px;
-		height: 30px;
-		flex-shrink: 0;
+	.input-row {
 		display: flex;
-		justify-content: center;
-		align-items: center;
-		z-index: var(--layer-1);
-	}
-	.padded-button {
-		padding: 0 10px;
+		align-items: flex-end;
+		gap: var(--spacing-sm);
+		width: 100%;
 	}
 
-	.microphone-button,
-	.stop-button,
-	.upload-button,
-	.submit-button {
-		background: var(--button-secondary-background-fill);
-	}
-
-	.microphone-button:hover:not(:disabled),
-	.stop-button:hover:not(:disabled),
-	.upload-button:hover:not(:disabled),
-	.submit-button:hover:not(:disabled) {
-		background: var(--button-secondary-background-fill-hover);
-	}
-
-	.microphone-button:disabled,
-	.stop-button:disabled,
-	.upload-button:disabled,
-	.submit-button:disabled {
-		background: var(--button-secondary-background-fill);
-		cursor: not-allowed;
-	}
-	.microphone-button:active,
-	.stop-button:active,
-	.upload-button:active,
-	.submit-button:active {
-		box-shadow: var(--button-shadow-active);
-	}
-
-	.submit-button :global(svg) {
-		height: var(--size-4);
-		width: var(--size-4);
-	}
-	.microphone-button :global(svg),
-	.upload-button :global(svg) {
-		height: 17px;
-		width: 17px;
-	}
-
-	.stop-button :global(svg) {
-		height: 16px;
-		width: 16px;
-	}
-
-	.loader {
+	.thumbnails {
 		display: flex;
-		justify-content: center;
 		align-items: center;
-		--ring-color: transparent;
-		position: relative;
-		border: 5px solid var(--border-color-primary);
-		border-top: 5px solid var(--color-accent);
-		border-radius: 50%;
-		width: 25px;
-		height: 25px;
-		animation: spin 2s linear infinite;
+		gap: var(--spacing-sm);
+		padding: var(--spacing-xs) 0;
+		margin-bottom: var(--spacing-xs);
+		overflow-x: auto;
+		overflow-y: hidden;
+		scrollbar-width: none;
+		-ms-overflow-style: none;
+		flex-wrap: nowrap;
+		-webkit-overflow-scrolling: touch;
+		scroll-behavior: smooth;
+		overflow-y: scroll;
+		width: 100%;
 	}
 
-	@keyframes spin {
-		0% {
-			transform: rotate(0deg);
-		}
-		100% {
-			transform: rotate(360deg);
-		}
+	.thumbnails::-webkit-scrollbar,
+	.thumbnails::-webkit-scrollbar-track,
+	.thumbnails::-webkit-scrollbar-thumb {
+		display: none;
 	}
 
 	.thumbnails :global(img) {
 		width: var(--size-full);
 		height: var(--size-full);
 		object-fit: cover;
-		border-radius: var(--radius-lg);
-	}
-
-	.thumbnails {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-lg);
-		overflow-x: scroll;
-		padding-top: var(--spacing-sm);
-		margin-bottom: var(--spacing-sm);
-		padding-bottom: var(--spacing-xl);
+		border-radius: var(--radius-md);
 	}
 
 	.thumbnail-wrapper {
@@ -744,13 +621,13 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		border: 1px solid var(--border-color-primary);
-		border-radius: var(--radius-lg);
+		border: var(--size-px) solid var(--border-color-primary);
+		border-radius: var(--radius-md);
 		background: var(--background-fill-secondary);
-		aspect-ratio: var(--ratio-square);
 		width: var(--size-full);
 		height: var(--size-full);
-		overflow: hidden;
+		cursor: default;
+		padding: 0;
 	}
 
 	.thumbnail-small {
@@ -759,187 +636,203 @@
 	}
 
 	.thumbnail-item :global(svg) {
-		width: 30px;
-		height: 30px;
-		color: var(--body-text-color-subdued);
-	}
-
-	.desktop-only {
-		display: flex;
-	}
-
-	.mobile-action-bar {
-		display: none;
+		width: var(--size-5);
+		height: var(--size-5);
 	}
 
 	.delete-button {
 		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		width: 100%;
-		height: 100%;
+		inset: 0;
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		color: var(--button-primary-text-color);
 		background: rgba(0, 0, 0, 0.6);
-		backdrop-filter: blur(4px);
-		border: none;
-		cursor: pointer;
-		border-radius: var(--radius-lg);
+		backdrop-filter: var(--blur-xs);
+		border-radius: var(--radius-md);
 		padding: 0;
-		z-index: 1;
+		z-index: var(--layer-1);
 		opacity: 0;
-		transition: opacity 0.1s ease;
-	}
-
-	.delete-button :global(svg) {
-		width: 20px;
-		height: 20px;
-	}
-
-	.thumbnail-item:hover .delete-button {
-		opacity: 1;
+		transition: opacity 0.1s var(--easing-standard);
 	}
 
 	.delete-button:hover {
 		background: rgba(0, 0, 0, 0.8);
 	}
 
+	.delete-button :global(svg) {
+		width: var(--size-5);
+		height: var(--size-5);
+	}
+
+	.thumbnail-item:hover .delete-button {
+		opacity: 1;
+	}
+
+	textarea {
+		flex-grow: 1;
+		outline: none !important;
+		background: transparent;
+		padding: 0;
+		color: var(--body-text-color);
+		font-weight: var(--input-text-weight);
+		font-size: var(--input-text-size);
+		border: none;
+		margin: 0;
+		resize: none;
+		position: relative;
+		z-index: var(--layer-1);
+		text-align: left;
+		min-height: var(--size-9);
+	}
+
+	textarea:disabled {
+		-webkit-opacity: 1;
+		opacity: 1;
+	}
+
+	textarea::placeholder {
+		color: var(--input-placeholder-color);
+	}
+
+	textarea[dir="rtl"] {
+		text-align: right;
+	}
+
+	textarea[dir="rtl"] ~ .submit-button {
+		order: -1;
+	}
+
+	textarea[dir="rtl"] ~ .submit-button :global(svg) {
+		transform: scaleX(-1);
+	}
+
+	.mobile-thumbnail-add,
+	.microphone-button {
+		color: var(--body-text-color);
+		cursor: pointer;
+		padding: var(--spacing-sm);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		flex-shrink: 0;
+		border-radius: var(--radius-md);
+		transition:
+			background 0.2s var(--easing-standard),
+			border-color 0.2s var(--easing-standard);
+	}
+
+	.mobile-thumbnail-add {
+		width: var(--size-10);
+		height: var(--size-10);
+	}
+
+	.microphone-button {
+		width: var(--size-9);
+		height: var(--size-9);
+	}
+
+	.mobile-thumbnail-add:hover:not(:disabled),
+	.microphone-button:hover:not(:disabled) {
+		background: var(--button-secondary-background-fill-hover);
+		border-color: var(--border-color-primary);
+	}
+
+	.mobile-thumbnail-add:disabled,
+	.microphone-button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.mobile-thumbnail-add :global(svg),
+	.microphone-button :global(svg) {
+		width: var(--size-5);
+		height: var(--size-5);
+	}
+
+	.submit-button,
+	.stop-button {
+		border: var(--size-px) solid var(--border-color-primary);
+		background: var(--button-secondary-background-fill);
+		cursor: pointer;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		flex-shrink: 0;
+		width: var(--size-9);
+		height: var(--size-9);
+		border-radius: var(--radius-md);
+		z-index: var(--layer-1);
+		transition:
+			background 0.2s var(--easing-standard),
+			border-color 0.2s var(--easing-standard);
+	}
+
+	.submit-button:hover:not(:disabled),
+	.stop-button:hover:not(:disabled) {
+		background: var(--button-secondary-background-fill-hover);
+	}
+
+	.submit-button:active:not(:disabled),
+	.stop-button:active:not(:disabled) {
+		box-shadow: var(--button-shadow-active);
+	}
+
+	.submit-button:disabled,
+	.stop-button:disabled {
+		cursor: not-allowed;
+	}
+
+	.submit-button :global(svg),
+	.stop-button :global(svg) {
+		width: var(--size-5);
+		height: var(--size-5);
+	}
+
+	.padded-button {
+		padding: 0 var(--spacing-lg);
+		width: auto;
+		border-radius: var(--radius-xl);
+	}
+
+	.loader {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		position: relative;
+		border: var(--size-1) solid var(--border-color-primary);
+		border-top-color: var(--color-accent);
+		border-radius: var(--radius-100);
+		width: var(--size-5);
+		height: var(--size-5);
+		animation: spin 1s linear infinite;
+		flex-shrink: 0;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
 	@media (max-width: 768px) {
-		.desktop-only {
-			display: none !important;
-		}
-
-		.mobile-action-bar {
-			display: flex;
-		}
-
-		.input-container {
-			flex-direction: column;
-		}
-
-		textarea {
-			min-height: 100px !important;
-			height: auto !important;
-			padding: var(--spacing-xl) var(--spacing-xl) var(--spacing-xxl)
-				var(--spacing-xl);
-			padding-bottom: 64px;
-		}
-
-		textarea.no-label {
-			padding-top: var(--spacing-xl);
-			padding-bottom: 64px;
-		}
-
-		.full-container {
-			padding: 0;
+		.input-wrapper {
+			padding: var(--spacing-xs);
 		}
 
 		.thumbnails {
-			padding: var(--input-padding) var(--input-padding) 0 var(--input-padding);
-			margin-bottom: 0;
+			padding: var(--spacing-xs) 0;
+			margin-bottom: var(--spacing-md);
 		}
 
-		.submit-button,
-		.stop-button {
-			position: absolute;
-			bottom: var(--spacing-lg);
-			right: var(--spacing-lg);
-			margin: 0;
-			min-width: 40px;
-			height: 40px;
-			border-radius: 50%;
+		.thumbnail-small,
+		.mobile-thumbnail-add {
+			width: var(--size-9);
+			height: var(--size-9);
 		}
 
 		.thumbnail-item:active .delete-button {
 			opacity: 1;
-		}
-
-		.mobile-action-bar {
-			position: absolute;
-			bottom: var(--spacing-lg);
-			left: var(--spacing-lg);
-			display: flex;
-			align-items: center;
-			gap: var(--spacing-sm);
-			z-index: var(--layer-2);
-		}
-
-		.mobile-plus-button {
-			margin: 0;
-			border: none;
-			background: var(--button-secondary-background-fill);
-			color: var(--button-secondary-text-color);
-			border-radius: 50%;
-			width: 40px;
-			height: 40px;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			cursor: pointer;
-			flex-shrink: 0;
-		}
-
-		.mobile-plus-button:hover:not(:disabled) {
-			background: var(--button-secondary-background-fill-hover);
-		}
-
-		.mobile-plus-button:disabled {
-			cursor: not-allowed;
-			opacity: 0.5;
-		}
-
-		.mobile-plus-button :global(svg) {
-			width: 22px;
-			height: 22px;
-		}
-
-		.mobile-plus-button.active :global(svg) {
-			transform: rotate(45deg);
-		}
-
-		.mobile-menu {
-			display: flex;
-			align-items: center;
-			gap: var(--spacing-sm);
-		}
-
-		.mobile-menu-item {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			border: none;
-			background: var(--button-secondary-background-fill);
-			color: var(--button-secondary-text-color);
-			cursor: pointer;
-			border-radius: 50%;
-			width: var(--size-10);
-			height: var(--size-10);
-			flex-shrink: 0;
-		}
-
-		.mobile-menu-item:hover:not(:disabled) {
-			background: var(--button-secondary-background-fill-hover);
-		}
-
-		.mobile-menu-item:disabled {
-			cursor: not-allowed;
-			opacity: 0.5;
-		}
-
-		.mobile-menu-item :global(svg) {
-			width: 20px;
-			height: 20px;
-		}
-	}
-
-	@media (min-width: 769px) {
-		textarea {
-			min-height: auto !important;
-			height: auto !important;
 		}
 	}
 </style>
