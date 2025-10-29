@@ -24,8 +24,6 @@
 	});
 
 	let label_height = $state(0);
-
-	$inspect("open", gradio.props.open);
 </script>
 
 <Block
