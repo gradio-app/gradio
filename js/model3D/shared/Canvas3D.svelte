@@ -22,7 +22,8 @@
 	onMount(() => {
 		const initViewer = async (): Promise<void> => {
 			BABYLON_VIEWER = await import("@babylonjs/viewer");
-			BABYLON_VIEWER.createViewerForCanvas(canvas, {
+			console.log("canvas", canvas)
+			BABYLON_VIEWER.CreateViewerForCanvas(canvas, {
 				clearColor: clear_color,
 				useRightHandedSystem: true,
 				animationAutoPlay: true,
