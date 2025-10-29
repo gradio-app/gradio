@@ -111,29 +111,29 @@
 			</div>
 			{#if show_help_menu}
 				<div
-					class="help-menu flex flex-col gap-0 lg:absolute lg:top-9 lg:w-48 lg:bg-white/98 dark:lg:bg-neutral-800/98 lg:backdrop-blur-sm lg:shadow-lg lg:group-hover:flex lg:sm:right-0 lg:rounded-lg lg:border lg:border-gray-200 dark:lg:border-neutral-700"
+					class="help-menu flex flex-col gap-0 lg:absolute lg:top-9 lg:w-48 bg-white dark:bg-neutral-800 lg:backdrop-blur-sm lg:shadow-lg lg:group-hover:flex lg:sm:right-0 lg:rounded-lg border border-gray-200 dark:border-neutral-700"
 				>
 					<a
-						class="thin-link inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2.5 lg:hover:bg-gray-100/80 dark:lg:hover:bg-neutral-700/50 transition-colors text-sm"
+						class="inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 lg:hover:bg-gray-100/80 dark:lg:hover:bg-neutral-700/50 transition-colors text-sm"
 						href="https://github.com/gradio-app/gradio/issues/new/choose"
 						target="_blank">File an Issue</a
 					>
 					<a
-						class="thin-link inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2.5 lg:hover:bg-gray-100/80 dark:lg:hover:bg-neutral-700/50 transition-colors text-sm"
+						class="inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 lg:hover:bg-gray-100/80 dark:lg:hover:bg-neutral-700/50 transition-colors text-sm"
 						target="_blank"
 						href="https://discord.gg/feTf9x3ZSB">Discord</a
 					>
 					<a
-						class="thin-link inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2.5 lg:hover:bg-gray-100/80 dark:lg:hover:bg-neutral-700/50 transition-colors text-sm"
+						class="inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 lg:hover:bg-gray-100/80 dark:lg:hover:bg-neutral-700/50 transition-colors text-sm"
 						target="_blank"
 						href="https://gradio.curated.co/">Newsletter</a
 					>
 					<a
-						class="thin-link inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2.5 lg:hover:bg-gray-100/80 dark:lg:hover:bg-neutral-700/50 transition-colors text-sm"
+						class="inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 lg:hover:bg-gray-100/80 dark:lg:hover:bg-neutral-700/50 transition-colors text-sm"
 						href="/brand">Brand</a
 					>
 					<a
-						class="thin-link inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2.5 lg:hover:bg-gray-100/80 dark:lg:hover:bg-neutral-700/50 transition-colors text-sm"
+						class="inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 lg:hover:bg-gray-100/80 dark:lg:hover:bg-neutral-700/50 transition-colors text-sm"
 						target="_blank"
 						href="https://github.com/gradio-app/gradio"
 					>
