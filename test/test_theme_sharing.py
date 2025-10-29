@@ -1,6 +1,7 @@
 import tempfile
 from unittest.mock import patch
 
+import httpx
 import huggingface_hub
 import pytest
 from huggingface_hub.hf_api import SpaceInfo
@@ -340,7 +341,7 @@ class TestThemeUploadDownload:
     def test_first_upload_no_version(self, mock_1):
         mock_1.whoami.return_value = {"name": "freddyaboulton"}
 
-        mock_1.HfApi().space_info.side_effect = huggingface_hub.hf_api.HTTPError("Foo")  # type: ignore
+        mock_1.HfApi().space_info.side_effect = httpx.HTTPError("Foo")  # type: ignore
 
         gr.themes.Monochrome().push_to_hub(repo_name="does_not_exist")
         repo_call_args = mock_1.HfApi().create_commit.call_args_list[0][1]
