@@ -131,13 +131,10 @@
 <svelte:window on:keydown={handle_key_down} on:click={on_click} />
 
 <button class="search-button" bind:this={search_button_elem}>
-	<SearchIcon />
-	<span class="pl-1 pr-5">Search</span>
-	<div class="shortcut">
-		<div class="text-sm">
-			{meta_key}K
-		</div>
-	</div>
+	<span class="text-gray-700 dark:text-gray-300 text-sm">Search</span>
+	<span class="shortcut text-xs opacity-70 text-gray-700 dark:text-gray-300 ml-2">
+		{meta_key}K
+	</span>
 </button>
 
 {#if open}
@@ -268,17 +265,17 @@
 	}
 
 	.search-bar {
-		@apply font-sans text-lg z-10 px-4 relative flex flex-none items-center border-b border-gray-100 text-gray-500;
+		@apply font-sans text-lg z-10 px-4 relative flex flex-none items-center border-b border-gray-100 dark:border-gray-700 text-gray-500 dark:text-gray-400;
 	}
 
 	.search-bar input {
-		@apply text-lg appearance-none h-14 text-black mx-1	flex-auto min-w-0 border-none cursor-text;
+		@apply text-lg appearance-none h-14 text-black dark:text-white mx-1	flex-auto min-w-0 border-none cursor-text;
 		outline: none;
 		box-shadow: none;
 	}
 
 	.content {
-		@apply fixed left-1/2 top-[7%] -translate-x-1/2 mx-auto w-[95vw] max-w-3xl flex flex-col min-h-0 rounded-lg shadow-2xl bg-white z-40;
+		@apply fixed left-1/2 top-[7%] -translate-x-1/2 mx-auto w-[95vw] max-w-3xl flex flex-col min-h-0 rounded-lg shadow-2xl bg-white dark:bg-neutral-800 z-40;
 	}
 
 	.results {
@@ -301,7 +298,13 @@
 	}
 
 	.search-button {
-		@apply flex flex-row rounded-full items-center cursor-pointer px-2 text-gray-400 border-gray-300 border text-lg outline-none font-sans;
+		@apply flex flex-row rounded-lg items-center cursor-pointer px-4 py-1.5 bg-transparent hover:bg-white/10 border text-sm outline-none font-sans transition-colors;
+		--tw-border-opacity: 1;
+		border-color: rgb(229 231 235 / var(--tw-border-opacity));
+	}
+
+	:global(.dark) .search-button {
+		border-color: rgb(64 64 68 / var(--tw-border-opacity));
 	}
 
 	:global(.res-content .mark) {

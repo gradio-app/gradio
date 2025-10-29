@@ -19,7 +19,7 @@
 	@apply font-semibold hover:text-orange-500 transition-colors;
 }
 .thin-link {
-	@apply text-gray-900 dark:text-gray-400 hover:text-orange-500 dark:hover:text-white transition-colors;
+	@apply text-gray-900 dark:text-gray-300 hover:text-gray-600 dark:hover:text-gray-100 transition-colors;
 }
 .thinner-link {
 	@apply hover:text-orange-500 transition-colors;
