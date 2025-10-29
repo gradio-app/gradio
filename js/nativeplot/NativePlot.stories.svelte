@@ -110,6 +110,42 @@
 />
 
 <Story
+	name="Colors In Legend Test"
+	args={{
+		value: {
+			columns: ["x", "y", "category"],
+			data: [
+				[1, 2, "A"],
+				[2, 4, "A"],
+				[3, 1, "B"],
+				[4, 5, "B"],
+				[5, 3, "C"],
+				[6, 6, "C"],
+				[7, 4, "D"],
+				[8, 7, "D"]
+			],
+			datatypes: {
+				x: "quantitative",
+				y: "quantitative",
+				category: "nominal"
+			},
+			mark: "point"
+		},
+		x: "x",
+		y: "y",
+		color: "category",
+		colors_in_legend: ["A", "C"],
+		title: "Plot with Filtered Legend (only A and C shown)",
+		x_title: "X Axis",
+		y_title: "Y Axis",
+		color_title: "Categories",
+		label: "Filtered Legend Plot",
+		show_label: true,
+		tooltip: "all"
+	}}
+/>
+
+<Story
 	name="Empty Plot"
 	args={{
 		value: null,
