@@ -5,7 +5,7 @@ brotli>=1.1.0
 fastapi>=0.115.2,<1.0
 ffmpy
 groovy~=0.1
-gradio_client==2.0.0-dev.1
+gradio_client==2.0.0-dev.0
 httpx>=0.24.1,<1.0
 huggingface_hub>=0.33.5,<2.0
 Jinja2<4.0
@@ -19,7 +19,7 @@ pydantic>=2.0,<2.12
 python-multipart>=0.0.18 # required for fastapi forms.
 pydub
 pyyaml>=5.0,<7.0
-safehttpx>=0.1.6,<0.2.0
+safehttpx>=0.1.7,<0.2.0
 semantic_version~=2.0
 starlette>=0.40.0,<1.0
 tomlkit>=0.12.0,<0.14.0
