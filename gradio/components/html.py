@@ -33,7 +33,9 @@ class HTML(Component):
         label: str | I18nData | None = None,
         html_template: str = "${value}",
         css_template: str = "",
-        js_on_load: str | None = "element.addEventListener('click', function() { trigger('click') });",
+        js_on_load: str
+        | None = "element.addEventListener('click', function() { trigger('click') });",
+        apply_default_css: bool = True,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool = False,
@@ -57,7 +59,7 @@ class HTML(Component):
             html_template: A string representing the HTML template for this component. The `${value}` tag will be replaced with the `value` parameter, and all other tags will be filled in with the values from `props`.
             css_template: A string representing the CSS template for this component. The CSS will be automatically scoped to this component. The `${value}` tag will be replaced with the `value` parameter, and all other tags will be filled in with the values from `props`.
             js_on_load: A string representing the JavaScript code that will be executed when the component is loaded. The `element` variable refers to the HTML element of this component, and can be used to access children such as `element.querySelector()`. The `trigger` function can be used to trigger events, such as `trigger('click')`. The value and other props can be edited through `props`, e.g. `props.value = "new value"` which will re-render the HTML template.
-
+            apply_default_css: If True, default Gradio CSS styles will be applied to the HTML component.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: If True, the label will be displayed. If False, the label will be hidden.
@@ -77,6 +79,7 @@ class HTML(Component):
         self.html_template = html_template
         self.css_template = css_template
         self.js_on_load = js_on_load
+        self.apply_default_css = apply_default_css
         self.min_height = min_height
         self.max_height = max_height
         self.padding = padding
@@ -124,3 +127,14 @@ class HTML(Component):
 
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
+
+    def get_config(self) -> dict[str, Any]:
+        if type(self) is not HTML:
+            return {
+                **super().get_config(),
+                **super().get_config(HTML),
+            }
+        return super().get_config()
+
+    def get_block_name(self):
+        return "html"

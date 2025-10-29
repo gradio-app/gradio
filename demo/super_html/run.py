@@ -43,7 +43,7 @@ with gr.Blocks() as demo:
                           ${value.split('').map(c => `<li>${c}</li>`).join('')}
                         </ul>
             """, css_template="""
-            h1, ul {
+            h1, li {
                 color: ${color};
                 font-weight: ${bold ? 'bold' : 'normal'};
             }
@@ -97,7 +97,7 @@ with gr.Blocks() as demo:
         html_template="""
         <input type="text" value="${value}">
         <p>${value.length} letters</p>
-        ${valid ? '<button class="submit">submit</button>' : ''}
+        <button class="submit" style="display: ${valid ? 'block' : 'none'};">submit</button>
         <button class="clear">clear</button>
         """,
         js_on_load="""
@@ -105,8 +105,8 @@ with gr.Blocks() as demo:
         const submit_button = element.querySelector('button.submit');
         const clear_button = element.querySelector('button.clear');
         input.addEventListener('input', () => {
-            props.value = input.value;
             props.valid = input.value.length > 5;
+            props.value = input.value;
         });
         submit_button.addEventListener('click', () => {
             trigger('submit');
@@ -120,7 +120,30 @@ with gr.Blocks() as demo:
     valid=False)
     output_box = gr.Textbox()
     form.submit(lambda x: x, form, outputs=output_box)
+    output_box.submit(lambda x: x, output_box, outputs=form)
+
+    gr.Markdown("""
+    # Extending gr.HTML for new Components
+    You can create your own Components by extending the gr.HTML class.
+    """)
+    class ListComponent(gr.HTML):
+        def __init__(self, container=True, label="List", **kwargs):
+            super().__init__(
+                html_template="""
+                <h2>${label}</h2>
+                <ul>
+                    ${value.map(item => `<li>${item}</li>`).join('')}
+                </ul>
+                """,
+                container=container,
+                label=label,
+                **kwargs
+            )
     
+    ListComponent(label="Fruits", value=["Apple", "Banana", "Cherry"])
+    ListComponent(label="Vegetables", value=["Carrot", "Broccoli", "Spinach"])
+
+
 
 if __name__ == "__main__":
     demo.launch()

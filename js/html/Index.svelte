@@ -13,38 +13,20 @@
 	export let visible: boolean | "hidden" = true;
 	export let value = "";
 	export let props: Record<string, any> = {};
+	export let apply_default_css: boolean = true;
 
 	export let html_template = "${value}";
 	export let css_template = "";
 	export let js_on_load: string | null = null;
 
-	let _props: Record<string, any> = props;
-	$: _props = { ..._props, ...props };
-
-	$: html = (() => {
-		try {
-			const templateFunc = new Function('value', ...Object.keys(_props), `return \`${html_template}\`;`);
-			return templateFunc(value, ...Object.values(_props));
-		} catch (e) {
-			console.error('Error evaluating html_template:', e);
-			return value;
-		}
-	})();
-
-	$: css = (() => {
-		try {
-			const templateFunc = new Function('value', ...Object.keys(_props), `return \`${css_template}\`;`);
-			return templateFunc(value, ...Object.values(_props));
-		} catch (e) {
-			console.error('Error evaluating css_template:', e);
-			return '';
-		}
-	})();
+	let _props: Record<string, any> = { value, label, visible, ...props };
+	$: _props = { ..._props, ...props, value, label, visible };
 
 	export let loading_status: LoadingStatus;
 	export let gradio: Gradio<{
 		change: never;
 		click: never;
+		submit: never;
 		clear_status: LoadingStatus;
 	}>;
 	export let show_label = false;
@@ -57,7 +39,14 @@
 	$: value, gradio.dispatch("change");
 </script>
 
-<Block {visible} {elem_id} {elem_classes} {container} padding={false}>
+<Block
+	{visible}
+	{elem_id}
+	{elem_classes}
+	{container}
+	padding={true}
+	overflow_behavior="visible"
+>
 	{#if show_label}
 		<BlockLabel Icon={CodeIcon} {show_label} {label} float={false} />
 	{/if}
@@ -79,13 +68,26 @@
 		style:max-height={max_height ? css_units(max_height) : undefined}
 	>
 		<HTML
-			{html}
-			{css}
+			props={_props}
+			{html_template}
+			{css_template}
 			{js_on_load}
 			{elem_classes}
 			{visible}
 			{autoscroll}
-			on:event={(e) => gradio.dispatch(e.detail.type, e.detail.data)}
+			{apply_default_css}
+			on:event={(e) => {
+				gradio.dispatch(e.detail.type, e.detail.data);
+			}}
+			on:update_value={(e) => {
+				if (e.detail.property === "value") {
+					value = e.detail.data;
+				} else if (e.detail.property === "label") {
+					label = e.detail.data;
+				} else if (e.detail.property === "visible") {
+					visible = e.detail.data;
+				}
+			}}
 		/>
 	</div>
 </Block>
