@@ -1,8 +1,8 @@
-import type { SelectData, ValueData } from "@gradio/utils";
+import type { SelectData, ValueData, ShareData } from "@gradio/utils";
 import type { LoadingStatus } from "@gradio/statustracker";
 import type { FileData } from "@gradio/client";
 
-export interface SliderEvents {
+export interface ImageSliderEvents {
 	input: never;
 	change: never;
 	error: string;
@@ -17,7 +17,7 @@ export interface SliderEvents {
 	close_stream: string;
 }
 
-export interface SliderProps {
+export interface ImageSliderProps {
 	value: [FileData | null, FileData | null];
 	show_download_button: boolean;
 	height: number | undefined;
