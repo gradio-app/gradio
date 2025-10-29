@@ -161,7 +161,6 @@ class ChatInterface(Blocks):
             analytics_enabled=analytics_enabled,
             mode="chat_interface",
             title=title or "Gradio",
-            theme=theme,
             css=css,
             css_paths=css_paths,
             js=js,
