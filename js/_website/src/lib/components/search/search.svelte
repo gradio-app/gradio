@@ -132,7 +132,9 @@
 
 <button class="search-button" bind:this={search_button_elem}>
 	<span class="text-gray-700 dark:text-gray-300 text-sm">Search</span>
-	<span class="shortcut text-xs opacity-70 text-gray-700 dark:text-gray-300 ml-2">
+	<span
+		class="shortcut text-xs opacity-70 text-gray-700 dark:text-gray-300 ml-2"
+	>
 		{meta_key}K
 	</span>
 </button>
