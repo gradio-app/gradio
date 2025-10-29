@@ -7,101 +7,87 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio } from "@gradio/utils";
+	import type { SimpleImageProps, SimpleImageEvents } from "./types";
+	import { Gradio } from "@gradio/utils";
 	import ImagePreview from "./shared/ImagePreview.svelte";
 	import ImageUploader from "./shared/ImageUploader.svelte";
 
 	import { Block, UploadText } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { FileData } from "@gradio/client";
-	import type { LoadingStatus } from "@gradio/statustracker";
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let value: null | FileData = null;
-	export let label: string;
-	export let show_label: boolean;
-	export let show_download_button: boolean;
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let loading_status: LoadingStatus;
-	export let interactive: boolean;
-	export let root: string;
-	export let placeholder: string | undefined = undefined;
+	const props = $props();
+	const gradio = new Gradio<SimpleImageEvents, SimpleImageProps>(props);
 
-	export let gradio: Gradio<{
-		change: never;
-		upload: never;
-		clear: never;
-		clear_status: LoadingStatus;
-	}>;
+	let dragging = $state(false);
+	let old_value = $state(gradio.props.value);
 
-	$: value, gradio.dispatch("change");
-
-	let dragging: boolean;
+	$effect(() => {
+		if (old_value != gradio.props.value) {
+			old_value = gradio.props.value;
+			gradio.dispatch("change");
+		}
+	});
 </script>
 
-{#if !interactive}
+{#if !gradio.shared.interactive}
 	<Block
-		{visible}
+		visible={gradio.shared.visible}
 		variant={"solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
-		{elem_id}
-		{elem_classes}
+		elem_id={gradio.shared.elem_id}
+		elem_classes={gradio.shared.elem_classes}
 		allow_overflow={false}
-		{container}
-		{scale}
-		{min_width}
+		container={gradio.shared.container}
+		scale={gradio.shared.scale}
+		min_width={gradio.shared.min_width}
 	>
 		<StatusTracker
-			autoscroll={gradio.autoscroll}
+			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
-			{...loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+			{...gradio.shared.loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 		<ImagePreview
-			{value}
-			{label}
-			{show_label}
-			{show_download_button}
+			value={gradio.props.value}
+			label={gradio.shared.label}
+			show_label={gradio.shared.show_label}
+			show_download_button={gradio.props.show_download_button}
 			i18n={gradio.i18n}
 		/>
 	</Block>
 {:else}
 	<Block
-		{visible}
-		variant={value === null ? "dashed" : "solid"}
+		visible={gradio.shared.visible}
+		variant={gradio.props.value === null ? "dashed" : "solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
-		{elem_id}
-		{elem_classes}
+		elem_id={gradio.shared.elem_id}
+		elem_classes={gradio.shared.elem_classes}
 		allow_overflow={false}
-		{container}
-		{scale}
-		{min_width}
+		container={gradio.shared.container}
+		scale={gradio.shared.scale}
+		min_width={gradio.shared.min_width}
 	>
 		<StatusTracker
-			autoscroll={gradio.autoscroll}
+			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
-			{...loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+			{...gradio.shared.loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 
 		<ImageUploader
-			upload={(...args) => gradio.client.upload(...args)}
-			stream_handler={(...args) => gradio.client.stream(...args)}
-			bind:value
-			{root}
+			upload={(...args) => gradio.shared.client.upload(...args)}
+			stream_handler={(...args) => gradio.shared.client.stream(...args)}
+			bind:value={gradio.props.value}
+			root={gradio.root}
 			on:clear={() => gradio.dispatch("clear")}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:upload={() => gradio.dispatch("upload")}
-			{label}
-			{show_label}
+			label={gradio.shared.label}
+			show_label={gradio.shared.show_label}
 		>
-			<UploadText i18n={gradio.i18n} type="image" {placeholder} />
+			<UploadText i18n={gradio.i18n} type="image" placeholder={gradio.props.placeholder} />
 		</ImageUploader>
 	</Block>
 {/if}
