@@ -1,5 +1,7 @@
 ---
 "@gradio/html": minor
+"@gradio/theme": minor
+"@self/app": minor
 "gradio": minor
 ---
 
