@@ -140,6 +140,9 @@
 						{@html sanitize(message.message)}
 					</div>
 				</div>
+				{#if i < messages.length - 1}
+					<div class="toast-separator" />
+				{/if}
 			{/each}
 		</div>
 	{/if}
@@ -308,9 +311,13 @@
 	}
 
 	.toast-message-item {
-		padding: var(--size-3);
-		border-radius: var(--radius-lg);
-		background: var(--background-fill-secondary);
+		padding: var(--size-2);
+	}
+
+	.toast-separator {
+		height: 1px;
+		background: var(--border-color-primary);
+		margin: 0;
 	}
 
 	.toast-message-text {

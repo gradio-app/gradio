@@ -77,9 +77,9 @@
 		gap: var(--size-2);
 		z-index: var(--layer-top);
 		right: var(--size-3);
-		left: auto;
+		left: var(--size-3);
 		align-items: end;
-		max-width: min(90vw, var(--size-96));
+		max-width: none;
 	}
 
 	.toast-item {
@@ -88,8 +88,8 @@
 
 	@media (--screen-sm) {
 		.toast-wrap {
-			width: 100%;
-			right: var(--size-4);
+			left: auto;
+			width: calc(var(--size-96) + var(--size-10));
 		}
 	}
 </style>
