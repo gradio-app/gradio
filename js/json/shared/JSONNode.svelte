@@ -13,7 +13,7 @@
 
 	const dispatch = createEventDispatcher();
 	let root_element: HTMLElement;
-	let collapsed = open ? false : depth >= 3;
+	$: collapsed = open ? false : depth >= 3;
 	let child_nodes: any[] = [];
 
 	function is_collapsible(val: any): boolean {
