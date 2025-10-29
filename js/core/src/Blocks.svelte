@@ -92,6 +92,7 @@
 		event: string,
 		data: unknown
 	): void {
+		console.log("event", event, "id", id);
 		if (event === "share") {
 			const { title, description } = data as ShareData;
 			// trigger_share(title, description);
