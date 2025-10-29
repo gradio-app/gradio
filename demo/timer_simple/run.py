@@ -5,7 +5,7 @@ import time
 with gr.Blocks() as demo:
   timer = gr.Timer(1)
   timestamp = gr.Number(label="Time")
-  timer.tick(lambda: round(time.time()), outputs=timestamp)
+  timer.tick(lambda: round(time.time()), outputs=timestamp, api_name="timestamp")
 
   number = gr.Number(lambda: random.randint(1, 10), every=timer, label="Random Number")
   with gr.Row():

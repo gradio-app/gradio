@@ -142,7 +142,7 @@ interface DispatchEvent {
  */
 export class DependencyManager {
 	dependencies_by_fn: Map<number, Dependency> = new Map();
-	dependencies_by_event: Map<string, Dependency> = new Map();
+	dependencies_by_event: Map<string, Dependency[]> = new Map();
 
 	submissions: Map<number, ReturnType<Client["submit"]>> = new Map();
 	client: Client;
@@ -173,17 +173,18 @@ export class DependencyManager {
 	 * @returns a value if there is no backend fn, a 'submission' if there is a backend fn, or null if there is no dependency
 	 */
 	async dispatch(event_meta: DispatchFunction | DispatchEvent): Promise<void> {
-		let dep: Dependency | undefined;
+		let deps: Dependency[] | undefined;
 
 		if (event_meta.type === "fn") {
-			dep = this.dependencies_by_fn.get(event_meta.fn_index!);
+			const dep = this.dependencies_by_fn.get(event_meta.fn_index!);
+			if(dep) deps = [dep];
 		} else {
-			dep = this.dependencies_by_event.get(
+			deps = this.dependencies_by_event.get(
 				`${event_meta.event_name}-${event_meta.target_id}`
 			);
 		}
-
-		if (dep) {
+		deps?.forEach(async (dep) => {
+			if (dep) {
 			const dispatch_status = should_dispatch(
 				dep.trigger_modes,
 				this.submissions.has(dep.id)
@@ -289,7 +290,7 @@ export class DependencyManager {
 				});
 			});
 		}
-
+		});
 		return;
 	}
 
@@ -301,17 +302,21 @@ export class DependencyManager {
 	 * */
 	create(dependencies: IDependency[]): {
 		by_id: Map<number, Dependency>;
-		by_event: Map<string, Dependency>;
+		by_event: Map<string, Dependency[]>;
 	} {
 		const _deps_by_id = new Map<number, Dependency>();
-		const _deps_by_event = new Map<string, Dependency>();
+		const _deps_by_event = new Map<string, Dependency[]>();
 		const then_triggers: [number, number, "success" | "failure" | "all"][] = [];
 
 		for (const dep_config of dependencies) {
 			const dependency = new Dependency(dep_config);
 
 			for (const [target_id, event_name] of dep_config.targets) {
-				_deps_by_event.set(`${event_name}-${target_id}`, dependency);
+				// if the key is already present, add it to the list. Otherwise, create a new element with the list
+				if (!_deps_by_event.has(`${event_name}-${target_id}`)) {
+					_deps_by_event.set(`${event_name}-${target_id}`, []);
+				}
+				_deps_by_event.get(`${event_name}-${target_id}`)?.push(dependency);
 			}
 
 			_deps_by_id.set(dep_config.id, dependency);
