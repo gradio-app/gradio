@@ -10,7 +10,7 @@
 
 <button
 	on:click={handle_click}
-	class="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+	class="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/20 dark:hover:bg-white/20 hover:bg-gray-200 transition-colors text-gray-900 dark:text-gray-300"
 	aria-label="Toggle dark mode"
 	title={is_dark ? "Switch to light mode" : "Switch to dark mode"}
 >
