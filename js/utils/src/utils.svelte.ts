@@ -267,7 +267,8 @@ export const allowed_shared_props: (keyof SharedProps)[] = [
 	"show_label",
 	"validation_error",
 	"show_progress",
-	"api_prefix"
+	"api_prefix",
+	"container",
 ] as const;
 export type I18nFormatter = any;
 export class Gradio<T extends object = {}, U extends object = {}> {
