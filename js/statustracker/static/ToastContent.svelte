@@ -1,42 +1,37 @@
 <script lang="ts">
-	import { Error, Info, Warning, Success } from "@gradio/icons";
+	import { Error, Info, Warning, Success, ChevronDown } from "@gradio/icons";
 	import { sanitize } from "@gradio/sanitize";
 	import { createEventDispatcher, onMount } from "svelte";
-	import { fade } from "svelte/transition";
+	import { fade, slide } from "svelte/transition";
 	import type { ToastMessage } from "./types";
 
-	export let title = "";
-	export let message = "";
 	export let type: ToastMessage["type"];
-	export let id: number;
-	export let duration: number | null = 10;
-	export let visible: boolean | "hidden" = true;
-
-	$: message = sanitize(message);
-	$: display = visible;
-	$: duration = duration || null;
+	export let messages: ToastMessage[] = [];
+	export let expanded = false;
 
 	const dispatch = createEventDispatcher();
-
-	function close_message(): void {
-		dispatch("close", id);
-	}
-
-	onMount(() => {
-		if (duration !== null) {
-			setTimeout(() => {
-				close_message();
-			}, duration * 1000);
-		}
-	});
-
-	$: timer_animation_duration = `${duration || 0}s`;
 
 	let touch_start_x = 0;
 	let touch_start_y = 0;
 	let offset_x = 0;
 	let is_dragging = false;
 	let toast_element: HTMLElement;
+
+	$: count = messages.length;
+	$: first_message = messages[0];
+	$: type_label = type.charAt(0).toUpperCase() + type.slice(1);
+	$: has_duration = first_message?.duration !== null;
+	$: timer_duration = has_duration ? `${first_message.duration}s` : "0s";
+
+	function handle_toggle(): void {
+		dispatch("toggle");
+	}
+
+	function close_all(): void {
+		messages.forEach((msg) => {
+			dispatch("close", msg.id);
+		});
+	}
 
 	function handle_touch_start(e: TouchEvent): void {
 		touch_start_x = e.touches[0].clientX;
@@ -62,13 +57,19 @@
 		if (!is_dragging) return;
 
 		if (Math.abs(offset_x) > 100) {
-			close_message();
+			close_all();
 		} else {
 			offset_x = 0;
 		}
 
 		is_dragging = false;
 	}
+
+	onMount(() => {
+		if (has_duration && messages.length === 1) {
+			setTimeout(close_all, first_message.duration! * 1000);
+		}
+	});
 </script>
 
 <div
@@ -77,7 +78,6 @@
 	role="status"
 	aria-live="polite"
 	data-testid="toast-body"
-	class:hidden={!display}
 	on:touchstart={handle_touch_start}
 	on:touchmove={handle_touch_move}
 	on:touchend={handle_touch_end}
@@ -86,99 +86,156 @@
 	style="transform: translateX({offset_x}px); opacity: {1 -
 		Math.abs(offset_x) / 300};"
 >
-	<div class="toast-icon {type}">
-		{#if type === "warning"}
-			<Warning />
-		{:else if type === "info"}
-			<Info />
-		{:else if type === "success"}
-			<Success />
-		{:else if type === "error"}
-			<Error />
-		{/if}
-	</div>
-
-	<div class="toast-details {type}">
-		<div class="toast-title {type}">{title}</div>
-		<div class="toast-text {type}">
-			{@html message}
-		</div>
-	</div>
-
-	<button
-		on:click={close_message}
-		class="toast-close {type}"
-		type="button"
-		aria-label="Close"
-		data-testid="toast-close"
-	>
-		<span aria-hidden="true">&#215;</span>
-	</button>
-
 	<div
-		class="timer {type}"
-		style={`animation-duration: ${timer_animation_duration};`}
-	/>
+		class="toast-header"
+		on:click={handle_toggle}
+		role="button"
+		tabindex="0"
+		on:keydown={(e) => {
+			if (e.key === "Enter" || e.key === " ") {
+				handle_toggle();
+			}
+		}}
+	>
+		<div class="toast-icon {type}">
+			{#if type === "warning"}
+				<Warning />
+			{:else if type === "info"}
+				<Info />
+			{:else if type === "success"}
+				<Success />
+			{:else if type === "error"}
+				<Error />
+			{/if}
+		</div>
+
+		<div class="toast-title-row">
+			<span class="toast-title {type}">
+				{type_label}
+				{#if count > 1}
+					<span class="toast-count">({count})</span>
+				{/if}
+			</span>
+			<div class="chevron" class:expanded class:visible={count > 0}>
+				<ChevronDown />
+			</div>
+		</div>
+
+		<button
+			on:click|stopPropagation={close_all}
+			class="toast-close {type}"
+			type="button"
+			aria-label="Close"
+			data-testid="toast-close"
+		>
+			<span aria-hidden="true">&#215;</span>
+		</button>
+	</div>
+
+	{#if expanded}
+		<div class="toast-messages" transition:slide={{ duration: 200 }}>
+			{#each messages as message, i (message.id)}
+				<div class="toast-message-item {type}">
+					<div class="toast-message-text {type}">
+						{@html sanitize(message.message)}
+					</div>
+				</div>
+			{/each}
+		</div>
+	{/if}
+
+	{#if has_duration}
+		<div class="timer {type}" style="animation-duration: {timer_duration}" />
+	{/if}
 </div>
 
 <style>
 	.toast-body {
 		display: flex;
+		flex-direction: column;
 		position: relative;
 		right: 0;
 		left: 0;
-		align-items: flex-start;
 		margin: auto;
 		border-radius: var(--radius-xl);
 		overflow: hidden;
 		pointer-events: auto;
-		backdrop-filter: blur(10px);
-		box-shadow:
-			0 4px 12px rgba(0, 0, 0, 0.08),
-			0 1px 3px rgba(0, 0, 0, 0.06);
-		padding: var(--size-1-5) var(--size-2) var(--size-2-5) var(--size-2);
-		transition:
-			transform 0.2s ease-out,
-			opacity 0.2s ease-out;
+		background: var(--background-fill-secondary);
+		border: 1px solid var(--border-color-primary);
+		box-shadow: var(--shadow-drop);
 		touch-action: pan-y;
 		user-select: none;
 	}
 
-	.toast-body.error {
-		border: 1px solid var(--color-red-700);
-		background: var(--color-red-50);
+	:global(.dark) .toast-body {
+		background: var(--background-fill-primary);
 	}
 
-	:global(.dark) .toast-body.error {
-		border: 1px solid var(--color-red-500);
-		background-color: var(--color-grey-950);
+	.toast-body.error {
+		--toast-color: var(--color-red-700);
 	}
 
 	.toast-body.warning {
-		border: 1px solid var(--color-yellow-700);
-		background: var(--color-yellow-50);
-	}
-	:global(.dark) .toast-body.warning {
-		border: 1px solid var(--color-yellow-500);
-		background-color: var(--color-grey-950);
+		--toast-color: var(--color-yellow-700);
 	}
 
 	.toast-body.info {
-		border: 1px solid var(--color-grey-700);
-		background: var(--color-grey-50);
-	}
-	:global(.dark) .toast-body.info {
-		border: 1px solid var(--color-grey-500);
-		background-color: var(--color-grey-950);
+		--toast-color: var(--color-grey-700);
 	}
 
 	.toast-body.success {
-		border: 1px solid var(--color-green-700);
-		background: var(--color-green-50);
+		--toast-color: var(--color-green-700);
 	}
+
+	:global(.dark) .toast-body.error {
+		--toast-color: var(--color-red-500);
+	}
+
+	:global(.dark) .toast-body.warning {
+		--toast-color: var(--color-yellow-500);
+	}
+
+	:global(.dark) .toast-body.info {
+		--toast-color: var(--color-grey-500);
+	}
+
 	:global(.dark) .toast-body.success {
-		border: 1px solid var(--color-green-500);
-		background-color: var(--color-grey-950);
+		--toast-color: var(--color-green-500);
+	}
+
+	.toast-header {
+		display: flex;
+		align-items: center;
+		padding: var(--size-3) var(--size-3);
+		cursor: pointer;
+	}
+
+	.toast-header:hover {
+		opacity: 0.9;
+	}
+
+	.toast-title-row {
+		flex: 1;
+		display: flex;
+		align-items: center;
+		gap: var(--size-2);
+	}
+
+	.chevron {
+		display: flex;
+		align-items: center;
+		width: var(--size-4);
+		height: var(--size-4);
+		transition: transform 0.2s ease;
+		opacity: 0.6;
+	}
+
+	.chevron.visible {
+		opacity: 1;
+	}
+
+	.chevron.expanded {
+		transform: rotate(180deg);
 	}
 
 	.toast-title {
@@ -187,35 +244,11 @@
 		font-weight: var(--weight-bold);
 		font-size: var(--text-lg);
 		line-height: var(--line-sm);
-		margin-bottom: var(--size-1);
 	}
 
-	.toast-title.error {
-		color: var(--color-red-700);
-	}
-	:global(.dark) .toast-title.error {
-		color: var(--color-red-50);
-	}
-
-	.toast-title.warning {
-		color: var(--color-yellow-700);
-	}
-	:global(.dark) .toast-title.warning {
-		color: var(--color-yellow-50);
-	}
-
-	.toast-title.info {
-		color: var(--color-grey-700);
-	}
-	:global(.dark) .toast-title.info {
-		color: var(--color-grey-50);
-	}
-
-	.toast-title.success {
-		color: var(--color-green-700);
-	}
-	:global(.dark) .toast-title.success {
-		color: var(--color-green-50);
+	.toast-count {
+		margin-left: var(--size-1);
+		font-weight: var(--weight-semibold);
 	}
 
 	.toast-close {
@@ -234,6 +267,7 @@
 		width: var(--size-7);
 		height: var(--size-7);
 		opacity: 0.6;
+		flex-shrink: 0;
 	}
 
 	.toast-close:hover {
@@ -245,75 +279,8 @@
 		transform: scale(0.95);
 	}
 
-	.toast-close.error {
-		color: var(--color-red-700);
-	}
-	:global(.dark) .toast-close.error {
-		color: var(--color-red-500);
-	}
-
-	.toast-close.warning {
-		color: var(--color-yellow-700);
-	}
-	:global(.dark) .toast-close.warning {
-		color: var(--color-yellow-500);
-	}
-
-	.toast-close.info {
-		color: var(--color-grey-700);
-	}
-	:global(.dark) .toast-close.info {
-		color: var(--color-grey-500);
-	}
-
-	.toast-close.success {
-		color: var(--color-green-700);
-	}
-	:global(.dark) .toast-close.success {
-		color: var(--color-green-500);
-	}
-
-	.toast-text {
-		font-size: var(--text-lg);
-		line-height: 1.5;
-		word-wrap: break-word;
-		overflow-wrap: break-word;
-		word-break: break-word;
-	}
-
-	.toast-text.error {
-		color: var(--color-red-700);
-	}
-	:global(.dark) .toast-text.error {
-		color: var(--color-red-50);
-	}
-
-	.toast-text.warning {
-		color: var(--color-yellow-700);
-	}
-
-	:global(.dark) .toast-text.warning {
-		color: var(--color-yellow-50);
-	}
-
-	.toast-text.info {
-		color: var(--color-grey-700);
-	}
-
-	:global(.dark) .toast-text.info {
-		color: var(--color-grey-50);
-	}
-
-	.toast-text.success {
-		color: var(--color-green-700);
-	}
-	:global(.dark) .toast-text.success {
-		color: var(--color-green-50);
-	}
-
-	.toast-details {
-		margin: var(--size-2) var(--size-2) var(--size-2) 0;
-		width: 100%;
+	.toast-close {
+		color: var(--toast-color);
 	}
 
 	.toast-icon {
@@ -322,43 +289,41 @@
 		flex-shrink: 0;
 		justify-content: center;
 		align-items: center;
-		margin: var(--size-1);
+		margin-right: var(--size-2);
 		border-radius: var(--radius-full);
 		padding: var(--size-1-5);
 		width: var(--size-8);
 		height: var(--size-8);
 	}
 
-	.toast-icon.error {
-		color: var(--color-red-700);
+	.toast-icon {
+		color: var(--toast-color);
 	}
 
-	:global(.dark) .toast-icon.error {
-		color: var(--color-red-500);
+	.toast-messages {
+		display: flex;
+		flex-direction: column;
+		gap: var(--size-2);
+		padding: 0 var(--size-3) var(--size-3) var(--size-3);
 	}
 
-	.toast-icon.warning {
-		color: var(--color-yellow-700);
+	.toast-message-item {
+		padding: var(--size-3);
+		border-radius: var(--radius-lg);
+		background: var(--background-fill-secondary);
 	}
 
-	:global(.dark) .toast-icon.warning {
-		color: var(--color-yellow-500);
+	.toast-message-text {
+		font-size: var(--text-md);
+		line-height: 1.5;
+		word-wrap: break-word;
+		overflow-wrap: break-word;
+		word-break: break-word;
+		color: var(--body-text-color);
 	}
 
-	.toast-icon.info {
-		color: var(--color-grey-700);
-	}
-
-	:global(.dark) .toast-icon.info {
-		color: var(--color-grey-500);
-	}
-
-	.toast-icon.success {
-		color: var(--color-green-700);
-	}
-
-	:global(.dark) .toast-icon.success {
-		color: var(--color-green-500);
+	.toast-message-text :global(a) {
+		text-decoration: underline;
 	}
 
 	@keyframes countdown {
@@ -380,43 +345,22 @@
 		height: var(--size-1);
 	}
 
-	.timer.error {
-		background: var(--color-red-700);
+	.timer {
+		background: var(--toast-color);
 	}
 
-	:global(.dark) .timer.error {
-		background: var(--color-red-500);
-	}
+	@media (max-width: 640px) {
+		.toast-header {
+			padding: var(--size-2) var(--size-2);
+		}
 
-	.timer.warning {
-		background: var(--color-yellow-700);
-	}
+		.toast-messages {
+			gap: var(--size-1);
+			padding: 0 var(--size-2) var(--size-2) var(--size-2);
+		}
 
-	:global(.dark) .timer.warning {
-		background: var(--color-yellow-500);
-	}
-
-	.timer.info {
-		background: var(--color-grey-700);
-	}
-
-	:global(.dark) .timer.info {
-		background: var(--color-grey-500);
-	}
-
-	.timer.success {
-		background: var(--color-green-700);
-	}
-
-	:global(.dark) .timer.success {
-		background: var(--color-green-500);
-	}
-
-	.hidden {
-		display: none;
-	}
-
-	.toast-text :global(a) {
-		text-decoration: underline;
+		.toast-message-item {
+			padding: var(--size-2);
+		}
 	}
 </style>

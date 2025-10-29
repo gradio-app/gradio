@@ -1,13 +1,33 @@
 <script lang="ts">
-	import { flip } from "svelte/animate";
-	import type { ToastMessage } from "./types";
+	import type { ToastMessage, GroupedToastMessage } from "./types";
 	import ToastContent from "./ToastContent.svelte";
 	import { spring } from "svelte/motion";
 
 	export let messages: ToastMessage[] = [];
 	const top = spring(0, { stiffness: 0.4, damping: 0.5 });
 
+	let grouped_messages: GroupedToastMessage[] = [];
+
 	$: scroll_to_top(messages);
+	$: grouped_messages = group_messages(messages);
+
+	function group_messages(msgs: ToastMessage[]): GroupedToastMessage[] {
+		const groups = new Map<string, GroupedToastMessage>();
+
+		msgs.forEach((msg) => {
+			const key = msg.type;
+			if (!groups.has(key)) {
+				groups.set(key, {
+					type: msg.type,
+					messages: [],
+					expanded: false
+				});
+			}
+			groups.get(key)!.messages.push(msg);
+		});
+
+		return Array.from(groups.values());
+	}
 
 	function scroll_to_top(_messages: ToastMessage[]): void {
 		if (_messages.length > 0) {
@@ -22,19 +42,26 @@
 			}
 		}
 	}
+
+	function toggle_group(type: string): void {
+		grouped_messages = grouped_messages.map((group) => {
+			if (group.type === type) {
+				return { ...group, expanded: !group.expanded };
+			}
+			return group;
+		});
+	}
 </script>
 
 <div class="toast-wrap" style="--toast-top: {$top}px;">
-	{#each messages as { type, title, message, id, duration, visible } (id)}
-		<div animate:flip={{ duration: 300 }} style:width="100%">
+	{#each grouped_messages as group (group.type)}
+		<div class="toast-item">
 			<ToastContent
-				{type}
-				{title}
-				{message}
-				{duration}
-				{visible}
+				type={group.type}
+				messages={group.messages}
+				expanded={group.expanded}
+				on:toggle={() => toggle_group(group.type)}
 				on:close
-				{id}
 			/>
 		</div>
 	{/each}
@@ -53,6 +80,10 @@
 		left: auto;
 		align-items: end;
 		max-width: min(90vw, var(--size-96));
+	}
+
+	.toast-item {
+		width: 100%;
 	}
 
 	@media (--screen-sm) {
