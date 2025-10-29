@@ -105,7 +105,7 @@ httpx==0.28.1
     #   gradio-client
     #   respx
     #   safehttpx
-huggingface-hub==0.28.0
+huggingface-hub==0.36.0
     # via
     #   -r test/requirements.in
     #   diffusers
@@ -382,3 +382,4 @@ websockets==14.2
     # via gradio-client
 zipp==3.21.0
     # via importlib-metadata
+hug
