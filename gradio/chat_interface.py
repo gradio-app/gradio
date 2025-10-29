@@ -38,6 +38,7 @@ from gradio.components.chatbot import (
     ExampleMessage,
     Message,
     MessageDict,
+    NormalizedMessageDict,
 )
 from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
 from gradio.events import Dependency, EditData, SelectData
@@ -107,7 +108,7 @@ class ChatInterface(Blocks):
         show_progress: Literal["full", "minimal", "hidden"] = "minimal",
         fill_height: bool = True,
         fill_width: bool = False,
-        api_name: str | None = "chat",
+        api_name: str | None = None,
         api_description: str | None | Literal[False] = None,
         api_visibility: Literal["public", "private", "undocumented"] = "public",
         save_history: bool = False,
@@ -150,7 +151,7 @@ class ChatInterface(Blocks):
             show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
             fill_height: if True, the chat interface will expand to the height of window.
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
-            api_name: defines how the chat endpoint appears in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given name. If None, an auto-generated name will be used.
+            api_name: defines how the chat endpoint appears in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given name. If None, the name of the function will be used.
             api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
             api_visibility: Controls the visibility of the chat endpoint. Can be "public" (shown in API docs and callable), "private" (hidden from API docs and not callable), or "undocumented" (hidden from API docs but callable).
             save_history: if True, will save the chat history to the browser's local storage and display previous conversations in a side panel.
@@ -458,7 +459,7 @@ class ChatInterface(Blocks):
                 examples_messages.append(example_message)
         return examples_messages
 
-    def _generate_chat_title(self, conversation: list[MessageDict]) -> str:
+    def _generate_chat_title(self, conversation: list[NormalizedMessageDict]) -> str:
         """
         Generate a title for a conversation by taking the first user message that is a string
         and truncating it to 40 characters. If files are present, add a 📎 to the title.
@@ -466,17 +467,20 @@ class ChatInterface(Blocks):
         title = ""
         for message in conversation:
             if message["role"] == "user":
-                if isinstance(message["content"], str):
-                    title += message["content"]
-                    break
-                else:
-                    title += "📎 "
+                for content in message["content"]:
+                    if content["type"] == "text":
+                        title += content["text"]
+                        break
+                    else:
+                        title += "📎 "
         if len(title) > 40:
             title = title[:40] + "..."
         return title or "Conversation"
 
     @staticmethod
-    def serialize_components(conversation: list[MessageDict]) -> list[MessageDict]:
+    def serialize_components(
+        conversation: list[NormalizedMessageDict],
+    ) -> list[NormalizedMessageDict]:
         def inner(obj: Any) -> Any:
             if isinstance(obj, list):
                 return [inner(item) for item in obj]
@@ -491,8 +495,8 @@ class ChatInterface(Blocks):
     def _save_conversation(
         self,
         index: int | None,
-        conversation: list[MessageDict],
-        saved_conversations: list[list[MessageDict]],
+        conversation: list[NormalizedMessageDict],
+        saved_conversations: list[list[NormalizedMessageDict]],
     ):
         if self.save_history:
             serialized_conversation = self.serialize_components(conversation)
@@ -507,7 +511,7 @@ class ChatInterface(Blocks):
     def _delete_conversation(
         self,
         index: int | None,
-        saved_conversations: list[list[MessageDict]],
+        saved_conversations: list[list[NormalizedMessageDict]],
     ):
         if index is not None:
             saved_conversations.pop(index)
@@ -525,13 +529,12 @@ class ChatInterface(Blocks):
     def _load_conversation(
         self,
         index: int,
-        conversations: list[list[MessageDict]],
+        conversations: list[list[NormalizedMessageDict]],
     ):
         return (
             index,
             Chatbot(
                 value=conversations[index],  # type: ignore
-                feedback_value=[],
             ),
         )
 
@@ -871,7 +874,7 @@ class ChatInterface(Blocks):
         self,
         message: MessageDict | Message | str | Component | MultimodalPostprocess | list,
         role: Literal["user", "assistant"],
-    ) -> list[MessageDict]:
+    ) -> list[NormalizedMessageDict]:
         """
         Converts a user message, example message, or response from the chat function to a
         list of MessageDict objects that can be appended to the chat history.
@@ -895,14 +898,14 @@ class ChatInterface(Blocks):
                 msg["role"] = role
                 message_dicts.append(msg)
             else:  # in MultimodalPostprocess format
+                multimodal_message = {"role": role, "content": []}
                 for x in msg.get("files", []):
                     if isinstance(x, dict):
                         x = x.get("path")
-                    message_dicts.append({"role": role, "content": (x,)})
-                if msg["text"] is None or not isinstance(msg["text"], str):
-                    pass
-                else:
-                    message_dicts.append({"role": role, "content": msg["text"]})
+                    multimodal_message["content"].append({"path": x})
+                if msg["text"]:
+                    multimodal_message["content"].append(msg["text"])
+                message_dicts.append(multimodal_message)
         return message_dicts
 
     async def _submit_fn(
@@ -1068,8 +1071,8 @@ class ChatInterface(Blocks):
 
     def _pop_last_user_message(
         self,
-        history: list[MessageDict],
-    ) -> tuple[list[MessageDict], str | MultimodalPostprocess]:
+        history: list[NormalizedMessageDict],
+    ) -> tuple[list[NormalizedMessageDict], str | MultimodalPostprocess]:
         """
         Removes the message (or set of messages) that the user last sent from the chat history and returns them.
         If self.multimodal is True, returns a MultimodalPostprocess (dict) object with text and files.
@@ -1090,10 +1093,11 @@ class ChatInterface(Blocks):
             assert isinstance(msg, dict)  # noqa: S101
             if msg["role"] == "user":
                 content = msg["content"]
-                if isinstance(content, tuple):
-                    files.append(content[0])
-                else:
-                    last_user_message = content
+                for item in content:
+                    if item["type"] == "file":
+                        files.append(item["file"])
+                    elif item["type"] == "text":
+                        last_user_message += item["text"]
         return_message = (
             {"text": last_user_message, "files": files}
             if self.multimodal

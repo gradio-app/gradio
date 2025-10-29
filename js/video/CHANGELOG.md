@@ -2,6 +2,12 @@
 
 ## 0.17.0-dev.0
 
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.1
+
+## 0.17.0-dev.0
+
 ### Features
 
 - [#12041](https://github.com/gradio-app/gradio/pull/12041) [`90e8a2c`](https://github.com/gradio-app/gradio/commit/90e8a2c23774e1d2a7401bccf4bdc86f70531de5) - Video subtitles.  Thanks @dawoodkhan82!

@@ -12,19 +12,14 @@
 	import { Chat } from "@gradio/icons";
 	import type { FileData } from "@gradio/client";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type {
-		Message,
-		ExampleMessage,
-		TupleFormat,
-		NormalisedMessage
-	} from "./types";
+	import type { Message, ExampleMessage, NormalisedMessage } from "./types";
 
 	import { normalise_messages } from "./shared/utils";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible: boolean | "hidden" = true;
-	export let value: TupleFormat | Message[] = [];
+	export let value: Message[] = [];
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let label: string;
@@ -159,7 +154,7 @@
 			on:edit={(e) => {
 				if (value === null || value.length === 0) return;
 				//@ts-ignore
-				value[e.detail.index].content = e.detail.value;
+				value[e.detail.index].content = e.detail._dispatch_value;
 				value = value;
 				gradio.dispatch("edit", e.detail);
 			}}

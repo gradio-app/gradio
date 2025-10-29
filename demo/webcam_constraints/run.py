@@ -16,13 +16,15 @@ def image_mod(image):
 video = gr.Interface(
     fn=get_video_shape,
     inputs=gr.Video(webcam_options=gr.WebcamOptions(constraints={"video": {"width": 800, "height": 600}}), sources="webcam"),
-    outputs=gr.JSON()
+    outputs=gr.JSON(),
+    api_name="predict"
 )
 
 image = gr.Interface(
         image_mod,
         gr.Image(type="pil", webcam_options=gr.WebcamOptions(constraints={"video": {"width": 800, "height": 600}}), sources="webcam"),
-        gr.Json())
+        gr.Json(),
+        api_name="predict")
 
 with gr.Blocks() as demo:
     gr.Markdown("""# Webcam Constraints
