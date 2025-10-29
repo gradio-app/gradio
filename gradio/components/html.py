@@ -18,10 +18,27 @@ if TYPE_CHECKING:
 @document()
 class HTML(Component):
     """
-    Creates a component to display arbitrary HTML output. As this component does not accept user input, it is rarely used as an input component.
+    Creates a component with arbitrary HTML. Can include CSS and JavaScript to create highly customized and interactive components.
+    Example:
+        ```python
+        import gradio as gr
 
-    Demos: blocks_scroll
-    Guides: key-features
+        with gr.Blocks() as demo:
+            basic_html = gr.HTML("<h2>This is a basic HTML component</h2>")
+
+            button_set = gr.HTML(["Option 1", "Option 2", "Option 3"],
+                           html_template="${value.map(option => `<button class='option-btn'>${option}</button>`).join('')}",
+                           css_template="button { margin: 5px; padding: 10px; }",
+                           js_on_load="element.querySelectorAll('.option-btn').forEach(btn => { btn.addEventListener('click', () => { trigger('click', {option: btn.innerText}); }); });")
+            clicked_option = gr.Textbox(label="Clicked Option")
+            def on_button_click(evt: gr.EventData):
+                return evt.option
+            button_set.click(on_button_click, outputs=clicked_option)
+
+        demo.launch()
+        ```
+    Demos: super_html
+    Guides: custom_HTML
     """
 
     EVENTS = all_events

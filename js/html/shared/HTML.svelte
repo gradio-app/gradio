@@ -91,7 +91,7 @@
 			return templateFunc(...propValues);
 		} catch (e) {
 			console.error("Error evaluating template:", e);
-			return props.value || "";
+			return "--- Error rendering template ---";
 		}
 	}
 
