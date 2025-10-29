@@ -1050,27 +1050,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
         """
         self.limiter = None
-        if theme is None:
-            theme = DefaultTheme()
-        elif isinstance(theme, str):
-            if theme.lower() in BUILT_IN_THEMES:
-                theme = BUILT_IN_THEMES[theme.lower()]
-            else:
-                try:
-                    theme = Theme.from_hub(theme)
-                except Exception as e:
-                    warnings.warn(f"Cannot load {theme}. Caught Exception: {str(e)}")
-                    theme = DefaultTheme()
-        if not isinstance(theme, Theme):
-            warnings.warn("Theme should be a class loaded from gradio.themes")
-            theme = DefaultTheme()
-        self.theme: Theme = theme
-        self.theme_css = theme._get_theme_css()
-        self.stylesheets = theme._stylesheets
-        theme_hasher = hashlib.sha256()
-        theme_hasher.update(self.theme_css.encode("utf-8"))
-        self.theme_hash = theme_hasher.hexdigest()
-
         self.encrypt = False
         self.mcp_server_obj: None | GradioMCPServer = None
         self.mcp_error: None | str = None
@@ -1154,15 +1133,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.current_page = ""
 
         if self.analytics_enabled:
-            is_custom_theme = not any(
-                self.theme.to_dict() == built_in_theme.to_dict()
-                for built_in_theme in BUILT_IN_THEMES.values()
-            )
             data = {
                 "mode": self.mode,
-                "custom_css": self.css is not None,
-                "theme": self.theme.name,
-                "is_custom_theme": is_custom_theme,
                 "version": get_package_version(),
             }
             analytics.initiated_analytics(data)
@@ -2220,8 +2192,8 @@ Received inputs:
             "footer_links": getattr(self, "footer_links", []),
             "is_colab": utils.colab_check(),
             "max_file_size": getattr(self, "max_file_size", None),
-            "stylesheets": self.stylesheets,
-            "theme": self.theme.name,
+            "stylesheets": getattr(self, "stylesheets", []),
+            "theme": getattr(self, "theme", None).name if getattr(self, "theme", None) is not None else None,
             "protocol": "sse_v3",
             "body_css": {
                 "body_background_fill": self.theme._get_computed_value(
@@ -2234,10 +2206,10 @@ Received inputs:
                 "body_text_color_dark": self.theme._get_computed_value(
                     "body_text_color_dark"
                 ),
-            },
+            } if getattr(self, "theme", None) is not None else None,
             "fill_height": self.fill_height,
             "fill_width": self.fill_width,
-            "theme_hash": self.theme_hash,
+            "theme_hash": getattr(self, "theme_hash", None),
             "pwa": self.pwa,
             "pages": self.pages,
             "page": {},
@@ -2430,6 +2402,12 @@ Received inputs:
         mcp_server: bool | None = None,
         _frontend: bool = True,
         i18n: I18n | None = None,
+        theme: Theme | str | None = None,
+        css: str | None = None,
+        css_paths: str | Path | Sequence[str | Path] | None = None,
+        js: str | Literal[True] | None = None,
+        head: str | None = None,
+        head_paths: str | Path | Sequence[str | Path] | None = None,
     ) -> tuple[App, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -2471,6 +2449,12 @@ Received inputs:
             pwa: If True, the Gradio app will be set up as an installable PWA (Progressive Web App). If set to None (default behavior), then the PWA feature will be enabled if this Gradio app is launched on Spaces, but not otherwise.
             i18n: An I18n instance containing custom translations, which are used to translate strings in our components (e.g. the labels of components or Markdown strings). This feature can only be used to translate static text in the frontend, not values in the backend.
             mcp_server: If True, the Gradio app will be set up as an MCP server and documented functions will be added as MCP tools. If None (default behavior), then the GRADIO_MCP_SERVER environment variable will be used to determine if the MCP server should be enabled.
+            theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
+            css: Custom css as a code string. This css will be included in the demo webpage.
+            css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
+            js: Custom js as a code string. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
+            head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
+            head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -2495,6 +2479,38 @@ Received inputs:
         if self._is_running_in_reload_thread:
             # We have already launched the demo
             return None, None, None  # type: ignore
+
+        if theme is None:
+            theme = DefaultTheme()
+        elif isinstance(theme, str):
+            if theme.lower() in BUILT_IN_THEMES:
+                theme = BUILT_IN_THEMES[theme.lower()]
+            else:
+                try:
+                    theme = Theme.from_hub(theme)
+                except Exception as e:
+                    warnings.warn(f"Cannot load {theme}. Caught Exception: {str(e)}")
+                    theme = DefaultTheme()
+        if not isinstance(theme, Theme):
+            warnings.warn("Theme should be a class loaded from gradio.themes")
+            theme = DefaultTheme()
+        self.theme: Theme = theme
+        self.theme_css = theme._get_theme_css()
+        self.stylesheets = theme._stylesheets
+        theme_hasher = hashlib.sha256()
+        theme_hasher.update(self.theme_css.encode("utf-8"))
+        self.theme_hash = theme_hasher.hexdigest()
+        self.css = css or ""
+        css_paths = utils.none_or_singleton_to_list(css_paths)
+        for css_path in css_paths or []:
+            with open(css_path, encoding="utf-8") as css_file:
+                self.css += "\n" + css_file.read()
+        self.js = js or ""
+        self.head = head or ""
+        head_paths = utils.none_or_singleton_to_list(head_paths)
+        for head_path in head_paths or []:
+            with open(head_path, encoding="utf-8") as head_file:
+                self.head += "\n" + head_file.read()
 
         if not self.exited:
             self.__exit__()
@@ -2834,12 +2850,23 @@ Received inputs:
                 pass
 
         if getattr(self, "analytics_enabled", False):
+            is_custom_theme = not any(
+                self.theme.to_dict() == built_in_theme.to_dict()
+                for built_in_theme in BUILT_IN_THEMES.values()
+            )
             data = {
                 "launch_method": "browser" if inbrowser else "inline",
                 "is_google_colab": self.is_colab,
                 "is_sharing_on": self.share,
                 "is_space": self.space_id is not None,
                 "mode": self.mode,
+                "custom_css": self.css is not None,
+                "theme": self.theme.name,
+                "is_custom_theme": is_custom_theme,
+                "custom_js": self.js is not None,
+                "custom_head": self.head is not None,
+                "custom_css_paths": len(css_paths) > 0 if css_paths else False,
+                "custom_head_paths": len(head_paths) > 0 if head_paths else False,
             }
             analytics.launched_analytics(self, data)
 
