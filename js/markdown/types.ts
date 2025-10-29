@@ -1,3 +1,5 @@
+import type { LoadingStatus } from "js/statustracker";
+
 export interface MarkdownProps {
 	value: string;
 	sanitize_html: boolean;
@@ -7,9 +9,13 @@ export interface MarkdownProps {
 	line_breaks: boolean;
 	padding: boolean;
 	buttons: string[] | null;
+	height: number | null;
+	min_height: number | null;
+	max_height: number | null;
 }
 
 export interface MarkdownEvents {
 	change: string;
-	copy: never;
+	copy: any;
+	clear_status: LoadingStatus;
 }

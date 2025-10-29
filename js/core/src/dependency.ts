@@ -6,6 +6,8 @@ import type {
 import { AsyncFunction } from "./init_utils";
 import { Client, type client_return } from "@gradio/client";
 
+class NOVALUE {}
+
 /**
  * A dependency as used by the frontend
  * This class represents a discrete dependency that can be triggered by an event
@@ -77,7 +79,7 @@ export class Dependency {
 		let _data_payload = data_payload;
 
 		if (this.functions.frontend) {
-			_data_payload = await this.functions.frontend(...data_payload);
+			_data_payload = await this.functions.frontend(data_payload);
 		}
 
 		if (this.functions.backend_js) {
@@ -93,6 +95,8 @@ export class Dependency {
 					this.original_trigger_id
 				)
 			};
+		} else if (this.functions.frontend) {
+			return { type: "data", data: _data_payload };
 		}
 		return { type: "void", data: null };
 	}
@@ -360,8 +364,8 @@ export class DependencyManager {
 	 * */
 	async handle_data(outputs: number[], data: unknown[]) {
 		outputs.forEach(async (output_id, i) => {
-			const _data = data[i] ?? null;
-			if (!_data) return;
+			const _data = data[i] === undefined ? new NOVALUE() : data[i];
+			if (_data === new NOVALUE()) return;
 
 			if (is_prop_update(_data)) {
 				for (const [update_key, update_value] of Object.entries(_data)) {
