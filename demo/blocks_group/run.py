@@ -107,4 +107,4 @@ with gr.Blocks() as demo:
             gr.Textbox(container=False)
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(mcp_server=True)

@@ -3,9 +3,23 @@ import gradio as gr
 disease_values = [0.25, 0.5, 0.75]
 
 def xray_model(diseases, img):
+    """
+    Compute the disease of the patient from the scan.
+
+    Args:
+        diseases (list): The diseases to scan for.
+        img (Image): The image to scan.
+    """
     return [{disease: disease_values[idx] for idx,disease in enumerate(diseases)}]
 
 def ct_model(diseases, img):
+    """
+    Compute the disease of the patient from the scan.
+
+    Args:
+        diseases (list): The diseases to scan for.
+        img (Image): The image to scan.
+    """
     return [{disease: 0.1 for disease in diseases}]
 
 with gr.Blocks(fill_width=True) as demo:
@@ -56,4 +70,4 @@ With this model you can lorem ipsum
     )
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(mcp_server=True)
