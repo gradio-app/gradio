@@ -5,8 +5,9 @@ with gr.Blocks() as demo:
         value=3, 
         html_template="""
         <h2>Star Rating:</h2>
-        ${[0, 1, 2, 3, 4].map(i =>  
-            `<img class='${i < value ? '' : 'faded'}' src='https://upload.wikimedia.org/wikipedia/commons/d/df/Award-star-gold-3d.svg'>`).join('')}""", 
+        {% for i in range(5) %}
+            <img class='{{ '' if i < value else 'faded' }}' src='https://upload.wikimedia.org/wikipedia/commons/d/df/Award-star-gold-3d.svg'>
+        {% endfor %}""", 
         css_template="""
             img { height: 50px; display: inline-block; }
             .faded { filter: grayscale(100%); opacity: 0.3; }

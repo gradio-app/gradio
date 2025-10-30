@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount, tick } from "svelte";
+	import nunjucks from "nunjucks";
 
 	export let elem_classes: string[] = [];
 	export let props: Record<string, any>;
@@ -85,9 +86,14 @@
 		props: Record<string, any>
 	): string {
 		try {
+			const nunjucksRendered = nunjucks.renderString(template, props);
+
 			const propKeys = Object.keys(props);
 			const propValues = Object.values(props);
-			const templateFunc = new Function(...propKeys, `return \`${template}\`;`);
+			const templateFunc = new Function(
+				...propKeys,
+				`return \`${nunjucksRendered}\`;`
+			);
 			return templateFunc(...propValues);
 		} catch (e) {
 			console.error("Error evaluating template:", e);

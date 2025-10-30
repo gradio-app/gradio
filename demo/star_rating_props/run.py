@@ -6,10 +6,10 @@ with gr.Blocks() as demo:
         size=40,
         max_stars=10,
         html_template="""
-            <h2>Star Rating:</h2>
-            ${Array(max_stars).fill("").map((_, i) => 
-                `<img class='${i < value ? '' : 'faded'}' src='https://upload.wikimedia.org/wikipedia/commons/d/df/Award-star-gold-3d.svg'>`).join('')}
-        """, 
+        <h2>Star Rating:</h2>
+        {% for i in range(max_stars) %}
+            <img class='{{ '' if i < value else 'faded' }}' src='https://upload.wikimedia.org/wikipedia/commons/d/df/Award-star-gold-3d.svg'>
+        {% endfor %}""", 
         css_template="""
             img { height: ${size}px; display: inline-block; }
             .faded { filter: grayscale(100%); opacity: 0.3; }

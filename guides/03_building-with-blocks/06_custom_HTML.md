@@ -1,18 +1,49 @@
 # Creating new components with gr.HTML
 
-If you wish to create custom HTML in your app, use the `gr.HTML` component. Here's a very basic usecase to display a 3 star rating visually.
+If you wish to create custom HTML in your app, use the `gr.HTML` component. Here's a basic "HTML-only" example:
+
+```python
+gr.HTML("<h1>Hello World!</h1>")
+```
+
+You can also use html-templates to organize your HTML. Take a look at the example below:
+
+```python
+gr.HTML("John", "<h1>Hello, {{ value }}!</h1><p>${value.length} letters</p>")
+```
+
+"John" becomes `value` when injected into the template, resulting in:
+
+```html
+<h1>Hello, John!</h1><p>4 letters</p>
+```
+
+Notice how we support two types of templating syntaxes: `${}` for custom JavaScript expressions, and `{{ }}` and `{% %}` for Nunjucks templating. You can use either or both in your templates - `${}` allows for completely custom JS logic, while Nunjucks allows for cleaner python-like organization for loops and conditionals.
+
+Let's look at another example for displaying a list of items:
+
+```python
+gr.HTML(["apple", "banana", "cherry"], """
+    <h1>${value.length} fruits:</h1>
+    <ul>
+      {% for item in value %}
+        <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+""")
+```
+
+Let's build a simple star rating component using `gr.HTML`, and then extend it with more features.
 
 $code_star_rating_simple
 $demo_star_rating_simple
 
 Note how we used the `css_template` argument to add custom CSS that styles the HTML inside the `gr.HTML` component.
 
-If we wanted to update the HTML dynamically based on user input, it would be messy to update the entire HTML. Instead, we can use the `html_template` argument to update the component automatically when the `value` changes.
+Let's see how the template automatically updates when we update the value.
 
 $code_star_rating_templates
 $demo_star_rating_templates
-
-In this example, we used the `html_template` argument to create a star rating component that can be updated easily by changing the `value` variable in the template. The `html_template` accepts any JS template string where the `value` variable corresponds to the current value of the component.
 
 We may wish to pass additional props beyond just `value` to the `html_template`. Simply add these props to your templates and pass them as kwargs to the `gr.HTML` component. For example, lets add `size` and `max_stars` props to the star rating component.
 
@@ -44,6 +75,16 @@ def handle_event(evt: gr.EventData):
     print(evt.count)
 
 star_rating.event(fn=handle_event, inputs=[], outputs=[])
+```
+
+Keep in mind that event listeners attached in `js_on_load` are only attached once when the component is first rendered. If your component creates new elements dynamically that need event listeners, attach the event listener to a parent element that exists when the component loads, and check for the target. For example:
+
+```js
+element.addEventListener('click', (e) =>
+    if (e.target && e.target.matches('.child-element')) {
+        props.value = e.target.dataset.value;
+    }
+);
 ```
 
 ## Component Classes

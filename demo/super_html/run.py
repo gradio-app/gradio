@@ -6,7 +6,7 @@ with gr.Blocks() as demo:
     # Simple HTML usecase
     This is the classic `gr.HTML` usecase where we just want to render some static HTML.
     """)
-    simple_html = gr.HTML("<h1 style='color:purple;'>Hello, World!</h1>")
+    simple_html = gr.HTML("<h1 style='color:purple;' id='simple'>Hello, World!</h1>")
 
     gr.Markdown("""
     # Templated HTML usecase
@@ -15,7 +15,7 @@ with gr.Blocks() as demo:
     """)
     with gr.Row():
         name1 = gr.Textbox(label="Name")
-        templated_html = gr.HTML("", html_template="<h1>Hello, ${value}! ${value.length} letters</h1>")
+        templated_html = gr.HTML("", html_template="<h1>Hello, {{ value }}! ${value.length} letters</h1>", elem_id="templated")
         name1.change(lambda x: x, inputs=name1, outputs=templated_html)
 
     gr.Markdown("""
@@ -25,7 +25,7 @@ with gr.Blocks() as demo:
     with gr.Row():
         templated_html_props = gr.HTML("John", html_template="""
                             <h1 style="font-size: ${fontSize}px;">Hello, ${value}!</h1>
-                """, fontSize=30)
+                """, fontSize=30, elem_id="props")
         slider = gr.Slider(10, 100, value=30, label="Font Size")
         slider.change(lambda x: gr.HTML(fontSize=x), inputs=slider, outputs=templated_html_props)
 
@@ -34,20 +34,22 @@ with gr.Blocks() as demo:
     We can also template CSS, which is automatically scoped to the component.
     """)
     with gr.Row():
-        name2 = gr.Textbox(label="Name")
+        name2 = gr.Textbox(label="Person")
         color = gr.ColorPicker(label="Text Color", value="#00ff00")
         bold = gr.Checkbox(label="Bold Text", value=True)
         templated_html_css = gr.HTML("John", html_template="""
                         <h1>Hello, ${value}!</h1>
                         <ul>
-                          ${value.split('').map(c => `<li>${c}</li>`).join('')}
+                          {% for i in value %}
+                            <li>{{ i }}</li>
+                          {% endfor %}
                         </ul>
             """, css_template="""
             h1, li {
                 color: ${color};
                 font-weight: ${bold ? 'bold' : 'normal'};
             }
-        """, color="green", bold=True)
+        """, color="green", bold=True, elem_id="css")
     with gr.Row():
         btn = gr.Button("Update HTML")
         btn_blue = gr.Button("Make HTML Blue")
@@ -63,9 +65,9 @@ with gr.Blocks() as demo:
 
     button_set = gr.HTML(
         html_template="""
-        <button>A</button>
-        <button>B</button>
-        <button>C</button>
+        <button id='A'>A</button>
+        <button id='B'>B</button>
+        <button id='C'>C</button>
         """,
         css_template="""
         button {
@@ -81,8 +83,9 @@ with gr.Blocks() as demo:
             });
         });
         """,
+        elem_id="button_set"
     )
-    clicked_box = gr.Textbox()
+    clicked_box = gr.Textbox(label="Clicked")
 
     def on_button_click(evt: gr.EventData):
         return evt.clicked
@@ -95,7 +98,7 @@ with gr.Blocks() as demo:
     """)    
     form = gr.HTML(
         html_template="""
-        <input type="text" value="${value}">
+        <input type="text" value="${value}" id="text-input" />
         <p>${value.length} letters</p>
         <button class="submit" style="display: ${valid ? 'block' : 'none'};">submit</button>
         <button class="clear">clear</button>
@@ -117,8 +120,8 @@ with gr.Blocks() as demo:
             trigger('clear');
         });
     """,
-    valid=False)
-    output_box = gr.Textbox()
+    valid=False, elem_id="form")
+    output_box = gr.Textbox(label="Output Box")
     form.submit(lambda x: x, form, outputs=output_box)
     output_box.submit(lambda x: x, output_box, outputs=form)
 
@@ -139,9 +142,9 @@ with gr.Blocks() as demo:
                 label=label,
                 **kwargs
             )
-    
-    ListComponent(label="Fruits", value=["Apple", "Banana", "Cherry"])
-    ListComponent(label="Vegetables", value=["Carrot", "Broccoli", "Spinach"])
+
+    ListComponent(label="Fruits", value=["Apple", "Banana", "Cherry"], elem_id="fruits")
+    ListComponent(label="Vegetables", value=["Carrot", "Broccoli", "Spinach"], elem_id="vegetables")
 
 
 
