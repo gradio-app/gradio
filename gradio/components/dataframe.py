@@ -254,7 +254,9 @@ class Dataframe(Component):
             polars = _import_polars()
             if payload.headers is not None:
                 return polars.DataFrame(
-                    [] if payload.data == [[]] else payload.data, schema=payload.headers
+                    [] if payload.data == [[]] else payload.data,
+                    schema=payload.headers,
+                    orient="row",
                 )
             else:
                 return polars.DataFrame(payload.data)
