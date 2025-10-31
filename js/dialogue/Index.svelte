@@ -34,6 +34,5 @@
 				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 	{/if}
-
 	<Dialogue {gradio} />
 </Block>

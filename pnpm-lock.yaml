@@ -411,40 +411,16 @@ importers:
 
   client/js:
     dependencies:
-      '@types/eventsource':
-        specifier: ^3.0.0
-        version: 3.0.0
-      bufferutil:
-        specifier: ^4.0.9
-        version: 4.0.9
-      eventsource:
-        specifier: ^4.0.0
-        version: 4.0.0
       fetch-event-stream:
         specifier: ^0.1.5
         version: 0.1.5
+    devDependencies:
       msw:
         specifier: ^2.11.3
         version: 2.11.3(@types/node@24.7.0)(typescript@5.9.3)
-      semiver:
-        specifier: ^1.1.0
-        version: 1.1.0
-      textlinestream:
-        specifier: ^1.1.1
-        version: 1.1.1
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
-      ws:
-        specifier: ^8.18.3
-        version: 8.18.3(bufferutil@4.0.9)
-    devDependencies:
-      '@types/ws':
-        specifier: ^8.18.1
-        version: 8.18.1
-      esbuild:
-        specifier: ^0.25.10
-        version: 0.25.10
 
   client/python/gradio_client: {}
 
@@ -4612,9 +4588,6 @@ packages:
   '@types/which@3.0.4':
     resolution: {integrity: sha512-liyfuo/106JdlgSchJzXEQCVArk0CvevqPote8F8HgWgJ3dRCcTHgJIsLDuee0kxk/mhbInzIZk3QWSZJ8R+2w==}
 
-  '@types/ws@8.18.1':
-    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
-
   '@typescript-eslint/eslint-plugin@8.46.0':
     resolution: {integrity: sha512-hA8gxBq4ukonVXPy0OKhiaUh/68D0E88GSmtC1iAEnGaieuDi38LhS7jdCHRLi6ErJBNDGCzvh5EnzdPwUc0DA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
@@ -7508,9 +7481,6 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  textlinestream@1.1.1:
-    resolution: {integrity: sha512-iBHbi7BQxrFmwZUQJsT0SjNzlLLsXhvW/kg7EyOMVMBIrlnj/qYofwo1LVLZi+3GbUEo96Iu2eqToI2+lZoAEQ==}
-
   thenify-all@1.6.0:
     resolution: {integrity: sha512-RNxQH/qI8/t3thXJDwcstUO4zeqo64+Uy/+sNVRBx4Xn2OX+OZ9oP+iJnNFqplFra2ZUVeKCSa2oVWi3T4uVmA==}
     engines: {node: '>=0.8'}
@@ -10343,10 +10313,6 @@ snapshots:
 
   '@types/which@3.0.4': {}
 
-  '@types/ws@8.18.1':
-    dependencies:
-      '@types/node': 24.7.0
-
   '@typescript-eslint/eslint-plugin@8.46.0(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@1.21.7))(typescript@5.9.3))(eslint@9.37.0(jiti@1.21.7))(typescript@5.9.3)':
     dependencies:
       '@eslint-community/regexpp': 4.12.1
@@ -10715,6 +10681,7 @@ snapshots:
   bufferutil@4.0.9:
     dependencies:
       node-gyp-build: 4.8.4
+    optional: true
 
   cac@6.7.14: {}
 
@@ -13482,8 +13449,6 @@ snapshots:
       acorn: 8.15.0
       commander: 2.20.3
       source-map-support: 0.5.21
-
-  textlinestream@1.1.1: {}
 
   thenify-all@1.6.0:
     dependencies:

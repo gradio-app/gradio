@@ -148,6 +148,9 @@
 			root={gradio.shared.root}
 			sources={gradio.props.sources}
 			{fullscreen}
+			show_fullscreen_button={buttons === null
+				? true
+				: buttons.includes("fullscreen")}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => {
 				fullscreen = false;
@@ -174,7 +177,6 @@
 			streaming={gradio.props.streaming}
 			webcam_options={gradio.props.webcam_options}
 			stream_every={gradio.props.stream_every}
-			show_fullscreen_button={gradio.props.buttons.includes("fullscreen")}
 			bind:modify_stream={_modify_stream}
 			bind:set_time_limit
 			max_file_size={gradio.shared.max_file_size}

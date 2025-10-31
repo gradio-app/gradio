@@ -646,10 +646,14 @@
 		</div>
 	{/if}
 
-	{#if gradio.props.buttons.includes("submit") && !disabled}
+	{#if gradio.props.submit_btn && !disabled}
 		<div class="submit-container">
 			<button class="submit-button" on:click={handle_submit} {disabled}>
-				<Send />
+				{#if typeof gradio.props.submit_btn === "string"}
+					{gradio.props.submit_btn}
+				{:else}
+					<Send />
+				{/if}
 			</button>
 		</div>
 	{/if}

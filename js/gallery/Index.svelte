@@ -134,6 +134,7 @@
 			bind:value={gradio.props.value}
 			show_share_button={gradio.props.buttons.includes("share")}
 			show_download_button={gradio.props.buttons.includes("download")}
+			fit_columns={gradio.props.fit_columns}
 			i18n={gradio.i18n}
 			_fetch={(...args) => gradio.shared.client.fetch(...args)}
 			show_fullscreen_button={gradio.props.buttons.includes("fullscreen")}

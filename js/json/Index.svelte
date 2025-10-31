@@ -65,6 +65,7 @@
 		open={gradio.props.open}
 		theme_mode={gradio.props.theme_mode}
 		show_indices={gradio.props.show_indices}
+		show_copy_button={buttons === null ? true : buttons.includes("copy")}
 		{label_height}
 	/>
 </Block>

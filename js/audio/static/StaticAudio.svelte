@@ -19,6 +19,7 @@
 	export let subtitles: null | FileData | SubtitleData[] = null;
 	export let label: string;
 	export let show_label = true;
+	export let buttons: string[] | null = null;
 	export let i18n: I18nFormatter;
 	export let waveform_settings: Record<string, any> = {};
 	export let waveform_options: WaveformOptions = {
@@ -27,7 +28,6 @@
 	export let editable = true;
 	export let loop: boolean;
 	export let display_icon_button_wrapper_top_corner = false;
-	export let buttons: string[];
 
 	const dispatch = createEventDispatcher<{
 		change: FileData;
@@ -51,7 +51,7 @@
 	<IconButtonWrapper
 		display_top_corner={display_icon_button_wrapper_top_corner}
 	>
-		{#if buttons.includes("download")}
+		{#if buttons === null ? true : buttons.includes("download")}
 			<DownloadLink
 				href={value.is_stream
 					? value.url?.replace("playlist.m3u8", "playlist-file")
@@ -61,7 +61,7 @@
 				<IconButton Icon={Download} label={i18n("common.download")} />
 			</DownloadLink>
 		{/if}
-		{#if buttons.includes("share")}
+		{#if buttons === null ? true : buttons.includes("share")}
 			<ShareButton
 				{i18n}
 				on:error

@@ -24,6 +24,7 @@ export interface GalleryProps {
 	object_fit: "contain" | "cover" | "fill" | "none" | "scale-down";
 	buttons: string[];
 	type: "numpy" | "pil" | "filepath";
+	fit_columns: boolean;
 }
 
 export interface GalleryEvents {

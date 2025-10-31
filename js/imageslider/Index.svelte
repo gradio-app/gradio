@@ -96,9 +96,9 @@
 			bind:value={gradio.props.value}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
-			show_download_button={gradio.props.show_download_button}
+			show_download_button={gradio.props.buttons.includes("download")}
 			i18n={gradio.i18n}
-			show_fullscreen_button={gradio.props.show_fullscreen_button}
+			show_fullscreen_button={gradio.props.buttons.includes("fullscreen")}
 			position={normalised_slider_position}
 			slider_color={gradio.props.slider_color}
 			max_height={gradio.props.max_height}

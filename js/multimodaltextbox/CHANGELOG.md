@@ -1,5 +1,32 @@
 # @gradio/multimodaltextbox
 
+## 0.10.22-dev.0
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.1
+
+## 0.10.22-dev.0
+
+### Dependency updates
+
+- @gradio/upload@0.17.2-dev.0
+- @gradio/client@2.0.0-dev.0
+- @gradio/image@0.23.2-dev.0
+- @gradio/video@0.17.0-dev.0
+
+## 0.10.21
+
+### Fixes
+
+- [#12019](https://github.com/gradio-app/gradio/pull/12019) [`81fc464`](https://github.com/gradio-app/gradio/commit/81fc4647cdc9ffd724b69ec7286f1d686571062a) - Fix MultimodalTextbox autofocus issue when file_types is specified.  Thanks @freddyaboulton!
+
+## 0.10.20
+
+### Dependency updates
+
+- @gradio/client@1.19.1
+
 ## 0.10.20
 
 ### Fixes

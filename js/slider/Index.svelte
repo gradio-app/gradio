@@ -115,7 +115,7 @@
 					{disabled}
 					on:pointerup={handle_release}
 				/>
-				{#if gradio.props.show_reset_button}
+				{#if buttons?.includes("reset") ?? true}
 					<button
 						class="reset-button"
 						on:click={reset_value}

@@ -55,6 +55,7 @@
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"] | undefined = undefined;
 	export let stream_handler: Client["stream"] | undefined = undefined;
+	export let fit_columns = true;
 
 	let is_full_screen = false;
 	let image_container: HTMLElement;
@@ -95,7 +96,7 @@
 	let effective_columns: number | number[] | undefined = columns;
 
 	$: {
-		if (resolved_value && columns) {
+		if (resolved_value && columns && fit_columns) {
 			const item_count = resolved_value.length;
 			if (Array.isArray(columns)) {
 				effective_columns = columns.map((col) => Math.min(col, item_count));

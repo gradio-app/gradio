@@ -26,22 +26,51 @@ export interface Option {
 	label?: string;
 	value: string;
 }
+
+export interface Text {
+	type: "text";
+	text: string;
+}
+
+export interface Component {
+	type: "component";
+	component: string;
+	constructor_args: object;
+	props: object;
+	value: any;
+	alt_text: string | null;
+}
+
+export interface File {
+	type: "file";
+	file: FileData;
+	alt_text: string | null;
+}
+
 export interface Message {
 	role: MessageRole;
 	metadata: Metadata;
-	content: string | FileData | ComponentData;
+	content: (Text | File | Component)[];
 	index: number | [number, number];
 	options?: Option[];
 }
 
-export interface TextMessage extends Message {
+export interface TextMessage {
 	type: "text";
 	content: string;
+	index: number | [number, number];
+	options?: Option[];
+	role: MessageRole;
+	metadata: Metadata;
 }
 
-export interface ComponentMessage extends Message {
+export interface ComponentMessage {
 	type: "component";
 	content: ComponentData;
+	index: number | [number, number];
+	options?: Option[];
+	role: MessageRole;
+	metadata: Metadata;
 }
 
 export interface ExampleMessage {
@@ -57,14 +86,12 @@ export type message_data =
 	| { component: string; value: any; constructor_args: any; props: any }
 	| null;
 
-export type TupleFormat = [message_data, message_data][] | null;
-
 export type NormalisedMessage = TextMessage | ComponentMessage;
 
 export type ThoughtNode = NormalisedMessage & { children: ThoughtNode[] };
 
 export interface ChatbotEvents {
-	change: TupleFormat | Message[];
+	change: Message[];
 	select: SelectData;
 	share: ShareData;
 	error: string;
@@ -80,11 +107,10 @@ export interface ChatbotEvents {
 }
 
 export interface ChatbotProps {
-	messages: TupleFormat | Message[];
+	messages: Message[];
 	examples: ExampleMessage[] | null;
 	allow_undo: boolean;
 	allow_retry: boolean;
-	show_copy_button: boolean;
 	root: string;
 	proxy_url: null | string;
 	max_messages: number | null;
@@ -98,14 +124,13 @@ export interface ChatbotProps {
 	placeholder: string | null;
 	allow_file_downloads: boolean;
 	watermark: string | null;
-	value: TupleFormat | Message[];
+	value: Message[];
 	_selectable: boolean;
 	likeable: boolean;
 	feedback_options: string[];
 	feedback_value: (string | null)[] | null;
-	show_share_button: boolean;
+	buttons: string[] | null;
 	rtl: boolean;
-	show_copy_all_button: boolean;
 	sanitize_html: boolean;
 	layout: "bubble" | "panel";
 	type: "tuples" | "messages";

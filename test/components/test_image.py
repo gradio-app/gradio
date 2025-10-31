@@ -10,6 +10,7 @@ from gradio_client import utils as client_utils
 import gradio as gr
 from gradio.components.image import ImageData  # type: ignore
 from gradio.exceptions import Error
+from gradio.media import get_image
 
 
 class TestImage:
@@ -19,10 +20,10 @@ class TestImage:
         type: pil, file, filepath, numpy
         """
 
-        img = ImageData(path="test/test_files/bus.png", orig_name="bus.png")
+        img = ImageData(path=get_image("bus.png"), orig_name="bus.png")
         image_input = gr.Image()
 
-        image_input = gr.Image(type="filepath")
+        image_input = gr.Image(type="filepath", image_mode="L")
         image_temp_filepath = image_input.preprocess(img)
         assert image_temp_filepath in [
             str(f) for f in gradio_temp_dir.glob("**/*") if f.is_file()
@@ -33,9 +34,7 @@ class TestImage:
             "image_mode": "RGB",
             "sources": ["upload", "webcam", "clipboard"],
             "name": "image",
-            "show_share_button": False,
-            "show_download_button": True,
-            "show_fullscreen_button": True,
+            "buttons": None,
             "streaming": False,
             "show_label": True,
             "label": "Upload Your Image",
@@ -58,7 +57,7 @@ class TestImage:
             "streamable": False,
             "type": "pil",
             "placeholder": None,
-            "watermark": None,
+            "watermark": {"position": "bottom-right", "watermark": None},
         }
         assert image_input.preprocess(None) is None
         image_input = gr.Image()
