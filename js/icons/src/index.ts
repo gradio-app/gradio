@@ -9,6 +9,7 @@ export { default as Camera } from "./Camera.svelte";
 export { default as Chart } from "./Chart.svelte";
 export { default as Chat } from "./Chat.svelte";
 export { default as Check } from "./Check.svelte";
+export { default as ChevronDown } from "./ChevronDown.svelte";
 export { default as Circle } from "./Circle.svelte";
 export { default as Clear } from "./Clear.svelte";
 export { default as ClosedCaption } from "./ClosedCaption.svelte";

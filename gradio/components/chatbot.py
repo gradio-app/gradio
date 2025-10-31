@@ -263,6 +263,7 @@ class Chatbot(Component):
         allow_file_downloads=True,
         group_consecutive_messages: bool = True,
         allow_tags: list[str] | bool = True,
+        reasoning_tags: list[tuple[str, str]] | None = None,
     ):
         """
         Parameters:
@@ -302,6 +303,7 @@ class Chatbot(Component):
             allow_file_downloads: If True, will show a download button for chatbot messages that contain media. Defaults to True.
             group_consecutive_messages: If True, will display consecutive messages from the same role in the same bubble. If False, will display each message in a separate bubble. Defaults to True.
             allow_tags: If a list of tags is provided, these tags will be preserved in the output chatbot messages, even if `sanitize_html` is `True`. For example, if this list is ["thinking"], the tags `<thinking>` and `</thinking>` will not be removed. If True, all custom tags (non-standard HTML tags) will be preserved. If False, no tags will be preserved. Default value is 'True'.
+            reasoning_tags: If provided, a list of tuples of (open_tag, close_tag) strings. Any text between these tags will be extracted and displayed in a separate collapsible message with metadata={"title": "Reasoning"}. For example, [("<thinking>", "</thinking>")] will extract content between <thinking> and </thinking> tags. Each thinking block will be displayed as a separate collapsible message before the main response. If None (default), no automatic extraction is performed.
         """
         self.autoscroll = autoscroll
         self.height = height
@@ -324,6 +326,7 @@ class Chatbot(Component):
         self.feedback_options = feedback_options
         self.feedback_value = feedback_value
         self.allow_tags = allow_tags if allow_tags else False
+        self.reasoning_tags = reasoning_tags
         super().__init__(
             label=label,
             every=every,
@@ -400,7 +403,7 @@ class Chatbot(Component):
         chat_message: Union[TextMessage, FileMessage, ComponentMessage],
     ) -> NormalizedMessageContent:
         if isinstance(chat_message, FileMessage):
-            return cast(FileDataDict, chat_message.model_dump())
+            return cast(FileMessageDict, chat_message.model_dump())
         elif isinstance(chat_message, TextMessage):
             return cast(TextMessageDict, chat_message.model_dump())
         elif isinstance(chat_message, ComponentMessage):
@@ -526,7 +529,7 @@ class Chatbot(Component):
 
     def _postprocess(
         self, message: MessageDict | Message | ChatMessage | NormalizedMessageDict
-    ) -> Message | None:
+    ) -> list[Message] | None:
         message = copy.deepcopy(message)
         role = message["role"] if isinstance(message, dict) else message.role
         metadata = (
@@ -564,17 +567,110 @@ class Chatbot(Component):
             if not content_postprocessed:
                 return None
         elif isinstance(message, Message):
-            return message
+            return [message]
         else:
             raise Error(
                 f"Invalid message for Chatbot component: {message}", visible=False
             )
-        return Message(
-            role=role,
-            content=content_postprocessed,
-            metadata=metadata,
-            options=options,
-        )
+        messages: list[Message] = []
+        if self.reasoning_tags:
+            non_text_content = [
+                item for item in content_postprocessed if item.type != "text"
+            ]
+            for content_item in content_postprocessed:
+                if content_item.type == "text":
+                    segments = self._extract_thinking_blocks(
+                        content_item.text, self.reasoning_tags
+                    )
+                    for text, is_thinking, status in segments:
+                        if is_thinking:
+                            thinking_message = Message(
+                                role=role,
+                                content=[TextMessage(text=text)],
+                                metadata=cast(
+                                    MetadataDict,
+                                    {"title": "Reasoning", "status": status},
+                                ),
+                            )
+                            messages.append(thinking_message)
+                        else:
+                            prose_message = Message(
+                                role=role,
+                                content=[TextMessage(text=text)],
+                                metadata=metadata,
+                                options=options,
+                            )
+                            messages.append(prose_message)
+            if non_text_content:
+                messages.append(
+                    Message(
+                        role=role,
+                        content=non_text_content,
+                        metadata=metadata,
+                        options=options,
+                    )
+                )
+        else:
+            messages = [
+                Message(
+                    role=role,
+                    content=content_postprocessed,
+                    metadata=metadata,
+                    options=options,
+                )
+            ]
+        return messages
+
+    def _extract_thinking_blocks(
+        self, content: str, tags: list[tuple[str, str]]
+    ) -> list[tuple[str, bool, str]]:
+        """
+        Extract thinking blocks from content based on provided tags, preserving order.
+
+        Parameters:
+            content: The message content to process
+            tags: List of (open_tag, close_tag) tuples
+
+        Returns:
+            A list of tuples (text, is_thinking, status) in order of appearance
+        """
+        import re
+
+        patterns = []
+        for open_tag, close_tag in tags:
+            escaped_open = re.escape(open_tag)
+            escaped_close = re.escape(close_tag)
+            # match opening tag, and either the closing tag or the end of the string
+            patterns.append(f"({escaped_open})(.*?)(?:{escaped_close}|$)")
+
+        combined_pattern = "|".join(patterns)
+
+        segments = []
+        last_end = 0
+        for match in re.finditer(combined_pattern, content, re.DOTALL):
+            if match.start() > last_end:
+                prose = content[last_end : match.start()].strip()
+                if prose:
+                    segments.append([prose, False, "done"])
+
+            thinking = None
+            for i in range(1, len(match.groups()), 2):
+                if match.group(i + 1) is not None:
+                    thinking = match.group(i + 1).strip()
+                    break
+
+            if thinking:
+                pending = not any(match.group(0).endswith(tag[1]) for tag in tags)
+                segments.append([thinking, True, "done" if not pending else "pending"])
+
+            last_end = match.end()
+
+        if last_end < len(content):
+            prose = content[last_end:].strip()
+            if prose:
+                segments.append([prose, False, "done"])
+
+        return segments
 
     def postprocess(
         self,
@@ -589,11 +685,12 @@ class Chatbot(Component):
         if value is None:
             return ChatbotDataMessages(root=[])
         self._check_format(value)
+
         processed_messages = []
         for message in value:
             processed_message = self._postprocess(message)
             if processed_message is not None:
-                processed_messages.append(processed_message)
+                processed_messages.extend(processed_message)
         return ChatbotDataMessages(root=processed_messages)
 
     def example_payload(self) -> Any:
