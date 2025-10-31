@@ -40,7 +40,7 @@ class TestAudio:
             "autoplay": False,
             "sources": ["upload", "microphone"],
             "name": "audio",
-            "buttons": None,
+            "buttons": ["download", "share"],
             "streaming": False,
             "show_label": True,
             "label": "Upload Your Audio",
