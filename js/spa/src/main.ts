@@ -3,10 +3,11 @@ import "@gradio/theme/global.css";
 import "@gradio/theme/pollen.css";
 import "@gradio/theme/typography.css";
 //@ts-ignore
-import * as svelte from "./svelte/svelte.js";
+// import * as svelte from "./svelte/svelte.js";
 import { Client } from "@gradio/client";
 import type Index from "./Index.svelte";
 import type { ThemeMode } from "@gradio/core";
+import { mount, unmount } from "svelte";
 
 declare let BUILD_MODE: string;
 declare let GRADIO_VERSION: string;
@@ -34,21 +35,21 @@ async function get_index(): Promise<void> {
 }
 
 function create_custom_element(): void {
-	const o = {
-		SvelteComponent: svelte.SvelteComponent
-	};
-	for (const key in svelte) {
-		if (key === "SvelteComponent") continue;
-		if (key === "SvelteComponentDev") {
-			//@ts-ignore
-			o[key] = o["SvelteComponent"];
-		} else {
-			//@ts-ignore
-			o[key] = svelte[key];
-		}
-	}
+	// const o = {
+	// 	SvelteComponent: svelte.SvelteComponent
+	// };
+	// for (const key in svelte) {
+	// 	if (key === "SvelteComponent") continue;
+	// 	if (key === "SvelteComponentDev") {
+	// 		//@ts-ignore
+	// 		o[key] = o["SvelteComponent"];
+	// 	} else {
+	// 		//@ts-ignore
+	// 		o[key] = svelte[key];
+	// 	}
+	// }
 	//@ts-ignore
-	window.__gradio__svelte__internal = o;
+	// window.__gradio__svelte__internal = o;
 	class GradioApp extends HTMLElement {
 		control_page_title: string | null;
 		initial_height: string;
@@ -61,10 +62,9 @@ function create_custom_element(): void {
 		host: string | null;
 		space: string | null;
 		src: string | null;
-		app?: Index;
+		app?: ReturnType<typeof mount>;
 		loading: boolean;
 		updating: { name: string; value: string } | false;
-
 		constructor() {
 			super();
 			this.host = this.getAttribute("host");
@@ -109,7 +109,7 @@ function create_custom_element(): void {
 
 			observer.observe(this, { childList: true });
 
-			this.app = new IndexComponent({
+			const opts = {
 				target: this,
 				props: {
 					// embed source
@@ -133,7 +133,9 @@ function create_custom_element(): void {
 					// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
 					app_mode: window.__gradio_mode__ === "app"
 				}
-			});
+			};
+
+			this.app = mount(IndexComponent, opts);
 
 			if (this.updating) {
 				this.setAttribute(this.updating.name, this.updating.value);
@@ -160,7 +162,7 @@ function create_custom_element(): void {
 				if (this.loading) return;
 
 				if (this.app) {
-					this.app.$destroy();
+					unmount(this.app);
 				}
 
 				this.space = null;
@@ -175,7 +177,7 @@ function create_custom_element(): void {
 					this.src = new_val;
 				}
 
-				this.app = new IndexComponent({
+				const opts = {
 					target: this,
 					props: {
 						// embed source
@@ -200,7 +202,9 @@ function create_custom_element(): void {
 						// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
 						app_mode: window.__gradio_mode__ === "app"
 					}
-				});
+				};
+
+				this.app = mount(IndexComponent, opts);
 
 				this.updating = false;
 			}

@@ -38,9 +38,7 @@ with gr.Blocks() as demo:
     set_layers.click(
         lambda: {
             "background": None,
-            "layers": [
-                "https://nationalzoo.si.edu/sites/default/files/animals/cheetah-003.jpg"
-            ],
+            "layers": [str(dir_ / "cheetah.jpg")],
             "composite": None,
         },
         None,
@@ -57,7 +55,7 @@ with gr.Blocks() as demo:
         lambda: {
             "background": None,
             "layers": None,
-            "composite": "https://nationalzoo.si.edu/sites/default/files/animals/cheetah-003.jpg",
+            "composite": str(dir_ / "cheetah.jpg"),
         },
         None,
         im,
@@ -73,7 +71,7 @@ with gr.Blocks() as demo:
 
     gr.Examples(
         examples=[
-            "https://upload.wikimedia.org/wikipedia/commons/0/09/TheCheethcat.jpg",
+            str(dir_ / "cheetah.jpg"),
             {
                 "background": str(dir_ / "cheetah.jpg"),
                 "layers": [str(dir_ / "layer1.png")],

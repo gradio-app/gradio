@@ -47,7 +47,8 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 		ssr: {
 			resolve: {
 				conditions: ["gradio"]
-			}
+			},
+			noExternal: ["@gradio/*", "@huggingface/space-header"]
 		},
 		build: {
 			rollupOptions: {
