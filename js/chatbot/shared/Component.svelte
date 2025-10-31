@@ -78,7 +78,7 @@
 			{i18n}
 			waveform_settings={{
 				...props.waveform_settings,
-				autoplay: props.autoplay,
+				autoplay: props.autoplay
 			}}
 			show_download_button={allow_file_downloads}
 			{display_icon_button_wrapper_top_corner}
@@ -133,7 +133,7 @@
 		zoom_speed={props.zoom_speed}
 		pan_speed={props.pan_speed}
 		{...props.camera_position !== undefined && {
-			camera_position: props.camera_position,
+			camera_position: props.camera_position
 		}}
 		has_change_history={true}
 		show_label={props.label ? true : false}

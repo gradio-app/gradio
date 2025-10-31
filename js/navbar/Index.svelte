@@ -15,8 +15,7 @@
 			main_page_name: gradio.props.main_page_name,
 			value: gradio.props.value
 		};
-	}
-	);
+	});
 
 	$inspect("navbar visible", gradio.shared.visible);
 
@@ -33,4 +32,8 @@
 	});
 </script>
 
-<div style="display: none;" id={gradio.shared.elem_id} class={gradio.shared.elem_classes.join(" ")}></div>
+<div
+	style="display: none;"
+	id={gradio.shared.elem_id}
+	class={gradio.shared.elem_classes.join(" ")}
+></div>

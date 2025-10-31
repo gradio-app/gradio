@@ -13,7 +13,7 @@
 	let gradio = new Gradio<SliderEvents, SliderProps>(props);
 	const INITIAL_VALUE = gradio.props.value;
 
-	let range_input: HTMLInputElement;;
+	let range_input: HTMLInputElement;
 	let number_input: HTMLInputElement;
 
 	const id = `range_id_${_id++}`;
@@ -38,13 +38,21 @@
 		range_input.value = gradio.props.value.toString();
 	});
 
-	$inspect("percentage", percentage, "maximum", gradio.props.maximum, "minimum", gradio.props.minimum, "value", gradio.props.value);
+	$inspect(
+		"percentage",
+		percentage,
+		"maximum",
+		gradio.props.maximum,
+		"minimum",
+		gradio.props.minimum,
+		"value",
+		gradio.props.value
+	);
 
 	function handle_change(): void {
 		gradio.dispatch("change");
 		gradio.dispatch("input");
 	}
-
 
 	function handle_release(e: MouseEvent): void {
 		gradio.dispatch("release", gradio.props.value);
@@ -53,7 +61,7 @@
 		gradio.dispatch("release", gradio.props.value);
 		gradio.props.value = Math.min(
 			Math.max(gradio.props.value, gradio.props.minimum),
-			gradio.props.maximum,
+			gradio.props.maximum
 		);
 	}
 

@@ -56,7 +56,7 @@
 		);
 	}
 
-	$: value, update_components();
+	$: (value, update_components());
 
 	export let latex_delimiters: {
 		left: string;

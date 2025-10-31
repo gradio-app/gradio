@@ -4,7 +4,7 @@
 		beforeUpdate,
 		afterUpdate,
 		createEventDispatcher,
-		tick,
+		tick
 	} from "svelte";
 	import { text_area_resize, resize } from "../shared/utils";
 	import { BlockTitle } from "@gradio/atoms";
@@ -21,7 +21,7 @@
 		Video,
 		Send,
 		Square,
-		Microphone,
+		Microphone
 	} from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 	import { BaseInteractiveAudio as InteractiveAudio } from "@gradio/audio";
@@ -29,7 +29,7 @@
 
 	export let value: { text: string; files: FileData[] } = {
 		text: "",
-		files: [],
+		files: []
 	};
 
 	export let value_is_output = false;
@@ -56,7 +56,7 @@
 	export let max_plain_text_length = 1000;
 	export let waveform_settings: Record<string, any>;
 	export let waveform_options: WaveformOptions = {
-		show_recording_waveform: true,
+		show_recording_waveform: true
 	};
 	export let sources_string:
 		| "upload"
@@ -98,7 +98,7 @@
 	}
 
 	$: if (value === null) value = { text: "", files: [] };
-	$: value, el && lines !== max_lines && resize(el, lines, max_lines);
+	$: (value, el && lines !== max_lines && resize(el, lines, max_lines));
 
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
@@ -159,7 +159,7 @@
 		const text = target.value;
 		const index: [number, number] = [
 			target.selectionStart as number,
-			target.selectionEnd as number,
+			target.selectionEnd as number
 		];
 		dispatch("select", { value: text.substring(...index), index: index });
 	}
@@ -202,7 +202,7 @@
 	}
 
 	async function handle_upload({
-		detail,
+		detail
 	}: CustomEvent<FileData>): Promise<void> {
 		handle_change();
 		if (Array.isArray(detail)) {
@@ -253,7 +253,7 @@
 			event.preventDefault();
 			const file = new window.File([text], "pasted_text.txt", {
 				type: "text/plain",
-				lastModified: Date.now(),
+				lastModified: Date.now()
 			});
 			if (upload_component) {
 				upload_component.load_files([file]);
@@ -309,7 +309,7 @@
 				if (invalid_files > 0) {
 					dispatch(
 						"error",
-						`${invalid_files} file(s) were rejected. Accepted formats: ${file_types.join(", ")}`,
+						`${invalid_files} file(s) were rejected. Accepted formats: ${file_types.join(", ")}`
 					);
 				}
 
@@ -453,7 +453,7 @@
 			use:text_area_resize={{
 				text: value.text,
 				lines: lines,
-				max_lines: max_lines,
+				max_lines: max_lines
 			}}
 			class="scroll-hide"
 			class:no-label={!show_label}

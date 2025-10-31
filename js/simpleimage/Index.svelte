@@ -46,7 +46,8 @@
 			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
 			{...gradio.shared.loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
+			on:clear_status={() =>
+				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 		<ImagePreview
 			value={gradio.props.value}
@@ -73,7 +74,8 @@
 			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
 			{...gradio.shared.loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
+			on:clear_status={() =>
+				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 
 		<ImageUploader
@@ -87,7 +89,11 @@
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
 		>
-			<UploadText i18n={gradio.i18n} type="image" placeholder={gradio.props.placeholder} />
+			<UploadText
+				i18n={gradio.i18n}
+				type="image"
+				placeholder={gradio.props.placeholder}
+			/>
 		</ImageUploader>
 	</Block>
 {/if}

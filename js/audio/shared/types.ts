@@ -1,4 +1,4 @@
-import {FileData} from "@gradio/client";
+import { FileData } from "@gradio/client";
 
 export type WaveformOptions = {
 	waveform_color?: string;
@@ -17,17 +17,18 @@ export interface SubtitleData {
 }
 
 export interface AudioProps {
-    sources: | ["microphone"]
+	sources:
+		| ["microphone"]
 		| ["upload"]
 		| ["microphone", "upload"]
-		| ["upload", "microphone"]
-    value: FileData | null;
-    type: "numpy" | "filepath";
-    autoplay: boolean;
-    buttons: ("play" | "download")[];
-    recording: boolean;
-    loop: boolean;
-    subtitles: FileData | SubtitleData[] | null;
+		| ["upload", "microphone"];
+	value: FileData | null;
+	type: "numpy" | "filepath";
+	autoplay: boolean;
+	buttons: ("play" | "download")[];
+	recording: boolean;
+	loop: boolean;
+	subtitles: FileData | SubtitleData[] | null;
 	waveform_options: WaveformOptions;
 	editable: boolean;
 	pending: boolean;
@@ -52,5 +53,5 @@ export interface AudioEvents {
 	warning: any;
 	clear_status: any;
 	close_stream: any;
-	edit: any
+	edit: any;
 }

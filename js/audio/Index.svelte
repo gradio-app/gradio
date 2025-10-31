@@ -14,7 +14,9 @@
 	let props = $props();
 	const gradio = new Gradio<AudioEvents, AudioProps>(props);
 	let uploading = false;
-	let active_source = $derived.by(() => gradio.props.sources ? gradio.props.sources[0] : null);
+	let active_source = $derived.by(() =>
+		gradio.props.sources ? gradio.props.sources[0] : null
+	);
 	let initial_value = gradio.props.value;
 
 	let stream_state = "closed";
@@ -81,16 +83,19 @@
 			"--color-accent"
 		);
 		set_trim_region_colour();
-		waveform_settings.waveColor = gradio.props.waveform_options.waveform_color || "#9ca3af";
+		waveform_settings.waveColor =
+			gradio.props.waveform_options.waveform_color || "#9ca3af";
 		waveform_settings.progressColor =
 			gradio.props.waveform_options.waveform_progress_color || color_accent;
-		waveform_settings.mediaControls = gradio.props.waveform_options.show_controls;
-		waveform_settings.sampleRate = gradio.props.waveform_options.sample_rate || 44100;
+		waveform_settings.mediaControls =
+			gradio.props.waveform_options.show_controls;
+		waveform_settings.sampleRate =
+			gradio.props.waveform_options.sample_rate || 44100;
 	});
 
 	$effect(() => {
 		gradio.dispatch("change", gradio.props.value);
-	})
+	});
 </script>
 
 {#if !gradio.shared.interactive}
@@ -110,7 +115,8 @@
 			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
 			{...gradio.shared.loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
+			on:clear_status={() =>
+				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 
 		<StaticAudio
@@ -133,7 +139,9 @@
 	</Block>
 {:else}
 	<Block
-		variant={gradio.props.value === null && active_source === "upload" ? "dashed" : "solid"}
+		variant={gradio.props.value === null && active_source === "upload"
+			? "dashed"
+			: "solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
 		allow_overflow={false}
@@ -148,7 +156,8 @@
 			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
 			{...gradio.shared.loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
+			on:clear_status={() =>
+				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 		<InteractiveAudio
 			label={gradio.shared.label}
@@ -164,7 +173,7 @@
 			on:drag={({ detail }) => (dragging = detail)}
 			root={gradio.shared.root}
 			sources={gradio.props.sources}
-			active_source={active_source}
+			{active_source}
 			pending={gradio.props.pending}
 			streaming={gradio.props.streaming}
 			bind:recording={gradio.props.recording}

@@ -3,7 +3,7 @@
 		beforeUpdate,
 		afterUpdate,
 		createEventDispatcher,
-		tick,
+		tick
 	} from "svelte";
 	import { BlockTitle, IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import { Copy, Check, Send, Square } from "@gradio/icons";
@@ -127,7 +127,7 @@
 		const text = target.value;
 		const index: [number, number] = [
 			target.selectionStart as number,
-			target.selectionEnd as number,
+			target.selectionEnd as number
 		];
 		dispatch("select", { value: text.substring(...index), index: index });
 	}
@@ -172,7 +172,7 @@
 	}
 
 	async function resize(
-		event: Event | { target: HTMLTextAreaElement | HTMLInputElement },
+		event: Event | { target: HTMLTextAreaElement | HTMLInputElement }
 	): Promise<void> {
 		await tick();
 		if (lines === _max_lines) return;
@@ -213,7 +213,7 @@
 		const content_height = textarea.scrollHeight;
 		const visible_height = textarea.clientHeight;
 		const line_height = parseFloat(
-			window.getComputedStyle(textarea).lineHeight,
+			window.getComputedStyle(textarea).lineHeight
 		);
 		if (content_height > visible_height + line_height) {
 			textarea.style.overflowY = "scroll";
@@ -224,7 +224,7 @@
 
 	function text_area_resize(
 		_el: HTMLTextAreaElement,
-		_value: string,
+		_value: string
 	): any | undefined {
 		if (lines === _max_lines || (lines === 1 && _max_lines === 1)) return;
 
@@ -235,7 +235,7 @@
 		resize({ target: _el });
 
 		return {
-			destroy: () => _el.removeEventListener("input", resize),
+			destroy: () => _el.removeEventListener("input", resize)
 		};
 	}
 </script>

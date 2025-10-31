@@ -72,7 +72,7 @@
 		scroll_on_value_update();
 	});
 
-	$: value, dispatch("change");
+	$: (value, dispatch("change"));
 	$: if (value && autoscroll) {
 		scroll_on_value_update();
 	}

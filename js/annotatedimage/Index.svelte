@@ -90,7 +90,8 @@
 				/>
 				{#each gradio.props.value ? gradio.props.value.annotations : [] as ann, i}
 					<img
-						alt="segmentation mask identifying {gradio.shared.label} within the uploaded file"
+						alt="segmentation mask identifying {gradio.shared
+							.label} within the uploaded file"
 						class="mask fit-height"
 						class:fit-height={!fullscreen}
 						class:active={active == ann.label}
@@ -109,7 +110,8 @@
 					{#each gradio.props.value.annotations as ann, i}
 						<button
 							class="legend-item"
-							style="background-color: {gradio.props.color_map && ann.label in gradio.props.color_map
+							style="background-color: {gradio.props.color_map &&
+							ann.label in gradio.props.color_map
 								? gradio.props.color_map[ann.label] + '88'
 								: `hsla(${Math.round(
 										(i * 360) / gradio.props.value.annotations.length

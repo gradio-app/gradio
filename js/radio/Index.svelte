@@ -4,7 +4,7 @@
 </script>
 
 <script lang="ts">
-	import  { Gradio,} from "@gradio/utils";
+	import { Gradio } from "@gradio/utils";
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import BaseRadio from "./shared/Radio.svelte";
@@ -17,9 +17,13 @@
 
 	let disabled = $derived(!gradio.shared.interactive);
 
-	let pending_select: { value: string | number; index: number } | null = $state(null);
+	let pending_select: { value: string | number; index: number } | null =
+		$state(null);
 
-	function trigger_change(value: typeof gradio.props.value, pending_select: { value: string | number; index: number } | null ): void {
+	function trigger_change(
+		value: typeof gradio.props.value,
+		pending_select: { value: string | number; index: number } | null
+	): void {
 		gradio.dispatch("change", value);
 		if (pending_select && value === pending_select.value) {
 			gradio.dispatch("select", {
@@ -30,7 +34,7 @@
 			pending_select = null;
 		}
 	}
-	
+
 	$effect(() => {
 		trigger_change(gradio.props.value, pending_select);
 	});
@@ -50,10 +54,13 @@
 		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
 		{...gradio.shared.loading_status}
-		on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
+		on:clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 
-	<BlockTitle show_label={gradio.shared.show_label} info={gradio.props.info}>{gradio.shared.label}</BlockTitle>
+	<BlockTitle show_label={gradio.shared.show_label} info={gradio.props.info}
+		>{gradio.shared.label}</BlockTitle
+	>
 
 	<div class="wrap">
 		{#each gradio.props.choices as [display_value, internal_value], i (i)}

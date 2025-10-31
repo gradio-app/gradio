@@ -70,7 +70,7 @@
 		}
 	}
 
-	$: src, (stream_active = false);
+	$: (src, (stream_active = false));
 
 	$: if (node && src && is_stream) {
 		load_stream(src, is_stream, node);

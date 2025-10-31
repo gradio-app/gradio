@@ -85,7 +85,7 @@
 
 	$: dispatch("drag", dragging);
 
-	$: console.log("model3d value", value)
+	$: console.log("model3d value", value);
 </script>
 
 <BlockLabel {show_label} Icon={File} label={label || "3D Model"} />

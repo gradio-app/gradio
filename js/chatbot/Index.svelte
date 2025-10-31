@@ -13,7 +13,7 @@
 		Message,
 		ExampleMessage,
 		TupleFormat,
-		NormalisedMessage,
+		NormalisedMessage
 	} from "./types";
 	import type { SharedProps } from "@gradio/core";
 	import type { ChatbotProps, ChatbotEvents } from "./types";
@@ -89,7 +89,9 @@
 	let props = $props();
 	const gradio = new Gradio<ChatbotEvents, ChatbotProps>(props);
 
-	let _value: NormalisedMessage[] | null = $derived(normalise_messages(gradio.props.value as Message[], gradio.shared.root));
+	let _value: NormalisedMessage[] | null = $derived(
+		normalise_messages(gradio.props.value as Message[], gradio.shared.root)
+	);
 </script>
 
 <Block
@@ -135,7 +137,9 @@
 			feedback_options={gradio.props.feedback_options}
 			feedback_value={gradio.props.feedback_value}
 			show_share_button={(gradio.props.buttons ?? ["share"]).includes("share")}
-			show_copy_all_button={(gradio.props.buttons ?? ["copy_all"]).includes("copy_all")}
+			show_copy_all_button={(gradio.props.buttons ?? ["copy_all"]).includes(
+				"copy_all"
+			)}
 			value={_value}
 			latex_delimiters={gradio.props.latex_delimiters}
 			display_consecutive_in_same_bubble={gradio.props

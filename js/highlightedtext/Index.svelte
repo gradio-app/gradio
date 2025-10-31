@@ -26,8 +26,11 @@
 		}
 	});
 
-	let value = $derived.by(() => gradio.props.combine_adjacent ? merge_elements(gradio.props.value, "equal") : gradio.props.value);
-
+	let value = $derived.by(() =>
+		gradio.props.combine_adjacent
+			? merge_elements(gradio.props.value, "equal")
+			: gradio.props.value
+	);
 </script>
 
 {#if !gradio.shared.interactive}
@@ -47,7 +50,8 @@
 			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
 			{...gradio.shared.loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
+			on:clear_status={() =>
+				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 		{#if gradio.shared.label && gradio.shared.show_label}
 			<BlockLabel
@@ -64,7 +68,7 @@
 			<StaticHighlightedText
 				on:select={({ detail }) => gradio.dispatch("select", detail)}
 				selectable={false}
-				value={value}
+				{value}
 				show_legend={gradio.props.show_legend}
 				show_inline_category={gradio.props.show_inline_category}
 				color_map={gradio.props.color_map}
@@ -91,7 +95,8 @@
 			autoscroll={gradio.shared.autoscroll}
 			{...gradio.shared.loading_status}
 			i18n={gradio.i18n}
-			on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
+			on:clear_status={() =>
+				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 		{#if gradio.shared.label && gradio.shared.show_label}
 			<BlockLabel

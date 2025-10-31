@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getContext, onMount, createEventDispatcher, tick } from "svelte";
 	import { TABS } from "@gradio/tabs";
-	import {BaseColumn} from "@gradio/column";
+	import { BaseColumn } from "@gradio/column";
 	import type { SelectData } from "@gradio/utils";
 
 	export let elem_id = "";

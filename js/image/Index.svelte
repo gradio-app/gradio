@@ -9,13 +9,13 @@
 </script>
 
 <script lang="ts">
-	import { Gradio} from "@gradio/utils";
+	import { Gradio } from "@gradio/utils";
 	import StaticImage from "./shared/ImagePreview.svelte";
 	import ImageUploader from "./shared/ImageUploader.svelte";
 	import { Block, Empty, UploadText } from "@gradio/atoms";
 	import { Image } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { ImageProps, ImageEvents,  } from "./shared/types";
+	import type { ImageProps, ImageEvents } from "./shared/types";
 
 	const props = $props();
 	const gradio = new Gradio<ImageEvents, ImageProps>(props);
@@ -31,11 +31,13 @@
 
 	export const get_stream_state: () => void = () => stream_state;
 	let set_time_limit: (arg0: number) => void = props.set_time_limit;
-	
+
 	let fullscreen = $state(false);
 	let uploading = $state(false);
 	let dragging = $state(false);
-	let active_source = $derived.by(() => gradio.props.sources ? gradio.props.sources[0] : null);
+	let active_source = $derived.by(() =>
+		gradio.props.sources ? gradio.props.sources[0] : null
+	);
 
 	let upload_component: ImageUploader;
 	const handle_drag_event = (event: Event): void => {
@@ -135,7 +137,8 @@
 			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
 			{...gradio.shared.loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
+			on:clear_status={() =>
+				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 
 		<ImageUploader
@@ -185,7 +188,11 @@
 			stream_handler={gradio.shared.client?.stream}
 		>
 			{#if active_source === "upload" || !active_source}
-				<UploadText i18n={gradio.i18n} type="image" placeholder={gradio.props.placeholder} />
+				<UploadText
+					i18n={gradio.i18n}
+					type="image"
+					placeholder={gradio.props.placeholder}
+				/>
 			{:else if active_source === "clipboard"}
 				<UploadText i18n={gradio.i18n} type="clipboard" mode="short" />
 			{:else}

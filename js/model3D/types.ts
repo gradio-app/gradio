@@ -16,6 +16,6 @@ export interface Model3DEvents {
 	upload: FileData;
 	edit: never;
 	clear: never;
-	clear_status: LoadingStatus
+	clear_status: LoadingStatus;
 	error: string;
 }

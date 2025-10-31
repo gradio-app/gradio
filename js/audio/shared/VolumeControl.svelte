@@ -21,7 +21,7 @@
 		}%, var(--neutral-400) ${currentVolume * 100}%)`;
 	};
 
-	$: currentVolume, adjustSlider();
+	$: (currentVolume, adjustSlider());
 </script>
 
 <input

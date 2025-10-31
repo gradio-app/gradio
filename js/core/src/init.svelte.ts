@@ -12,7 +12,7 @@ import type {
 	SharedProps,
 	LoadingComponent,
 	AppConfig,
-	ServerFunctions,
+	ServerFunctions
 } from "./types";
 
 import { allowed_shared_props } from "@gradio/utils";

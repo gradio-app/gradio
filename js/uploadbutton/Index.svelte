@@ -41,8 +41,8 @@
 	icon={gradio.props.icon}
 	min_width={gradio.shared.min_width}
 	root={gradio.shared.root}
-	value={value}
-	disabled={disabled}
+	{value}
+	{disabled}
 	variant={gradio.props.variant}
 	label={gradio.shared.label}
 	max_file_size={gradio.shared.max_file_size}

@@ -17,7 +17,11 @@
 
 	let old_value = $state(gradio.props.value);
 
-	let rerender_key = $derived([gradio.props.root_dir, gradio.props.glob, gradio.props.ignore_glob]);
+	let rerender_key = $derived([
+		gradio.props.root_dir,
+		gradio.props.glob,
+		gradio.props.ignore_glob
+	]);
 
 	$effect(() => {
 		if (old_value != gradio.props.value) {
@@ -47,7 +51,8 @@
 		{...gradio.shared.loading_status}
 		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
-		on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
+		on:clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 	<BlockLabel
 		show_label={gradio.shared.show_label}

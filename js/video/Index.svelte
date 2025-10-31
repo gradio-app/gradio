@@ -15,8 +15,13 @@
 	let old_value = $state(gradio.props.value);
 	let uploading = $state(false);
 	let dragging = $state(false);
-	let active_source = $derived.by(() => gradio.props.sources ? gradio.props.sources[0] : undefined);
-	let initial_value: { video: FileData | null; subtitles: FileData | null } | null = gradio.props.value;
+	let active_source = $derived.by(() =>
+		gradio.props.sources ? gradio.props.sources[0] : undefined
+	);
+	let initial_value: {
+		video: FileData | null;
+		subtitles: FileData | null;
+	} | null = gradio.props.value;
 
 	$effect(() => {
 		if (old_value != gradio.props.value) {
@@ -56,7 +61,9 @@
 {#if !gradio.shared.interactive}
 	<Block
 		visible={gradio.shared.visible}
-		variant={gradio.props.value === null && active_source === "upload" ? "dashed" : "solid"}
+		variant={gradio.props.value === null && active_source === "upload"
+			? "dashed"
+			: "solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
 		elem_id={gradio.shared.elem_id}
@@ -72,7 +79,8 @@
 			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
 			{...gradio.shared.loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
+			on:clear_status={() =>
+				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 
 		<StaticVideo
@@ -97,7 +105,9 @@
 {:else}
 	<Block
 		visible={gradio.shared.visible}
-		variant={gradio.props.value === null && active_source === "upload" ? "dashed" : "solid"}
+		variant={gradio.props.value === null && active_source === "upload"
+			? "dashed"
+			: "solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
 		elem_id={gradio.shared.elem_id}
@@ -113,7 +123,8 @@
 			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
 			{...gradio.shared.loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
+			on:clear_status={() =>
+				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 
 		<Video
@@ -136,7 +147,7 @@
 			{handle_reset_value}
 			on:clear={() => {
 				gradio.props.value = null;
-				gradio.dispatch("clear")
+				gradio.dispatch("clear");
 			}}
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}

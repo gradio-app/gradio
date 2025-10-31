@@ -181,7 +181,7 @@ export class DependencyManager {
 
 		if (event_meta.type === "fn") {
 			const dep = this.dependencies_by_fn.get(event_meta.fn_index!);
-			if(dep) deps = [dep];
+			if (dep) deps = [dep];
 		} else {
 			deps = this.dependencies_by_event.get(
 				`${event_meta.event_name}-${event_meta.target_id}`
@@ -189,95 +189,102 @@ export class DependencyManager {
 		}
 		deps?.forEach(async (dep) => {
 			if (dep) {
-			const dispatch_status = should_dispatch(
-				dep.trigger_modes,
-				this.submissions.has(dep.id)
-			);
-
-			console.log("Dispatching status:", dispatch_status);
-
-			switch (dispatch_status) {
-				case "skip":
-					return;
-				case "defer":
-					this.queue.add(dep.id);
-					return;
-				case "run":
-					// continue to run
-					break;
-			}
-
-			// only cancel if the event actually runs
-			this.cancel(dep.cancels);
-
-			const data_payload = await this.gather_state(dep.inputs);
-			const unset_args = await this.set_event_args(dep.id, dep.event_args);
-
-			const { success, failure, all } = dep.get_triggers();
-
-			console.log({ success, failure, all });
-			console.log("Running dependency:", dep.id, data_payload);
-
-			try {
-				const dep_submission = await dep.run(
-					this.client,
-					data_payload,
-					event_meta.event_data
+				const dispatch_status = should_dispatch(
+					dep.trigger_modes,
+					this.submissions.has(dep.id)
 				);
 
-				console.log("Dispatching to", dep.id);
+				console.log("Dispatching status:", dispatch_status);
 
-				if (dep_submission.type === "void") {
-					unset_args();
-				} else if (dep_submission.type === "data") {
-					this.handle_data(dep.outputs, dep_submission.data);
-					unset_args();
-				} else {
-					console.log("Dispatching to", dep.id, dep_submission);
-					this.submissions.set(dep.id, dep_submission.data);
-					// fn for this?
-					submit_loop: for await (const result of dep_submission.data) {
-						console.log("Received submission result for", dep.id, result);
-						if (result === null) continue;
-						if (result.type === "data") {
-							this.handle_data(dep.outputs, result.data);
-						}
-						if (result.type === "status") {
-							// handle status updates here
-							if (result.stage === "complete") {
-								console.log("Submission complete for", dep.id);
-								break submit_loop;
-							}
-							else if (result.stage === "error") {
-								console.log("Submission error for", dep.id);
-								break submit_loop;
-							}
-
-						}
-					}
-					console.log("+++");
-					console.log("Dependency complete:", dep.id);
-					unset_args();
-					this.submissions.delete(dep.id);
-
-					if (this.queue.has(dep.id)) {
-						this.queue.delete(dep.id);
-						this.dispatch(event_meta);
-					}
+				switch (dispatch_status) {
+					case "skip":
+						return;
+					case "defer":
+						this.queue.add(dep.id);
+						return;
+					case "run":
+						// continue to run
+						break;
 				}
 
-				console.log("Dispatching success/failure triggers");
+				// only cancel if the event actually runs
+				this.cancel(dep.cancels);
 
-				success.forEach((dep_id) => {
-					console.log("Dispatching success to", dep_id);
-					this.dispatch({
-						type: "fn",
-						fn_index: dep_id,
-						event_data: null
+				const data_payload = await this.gather_state(dep.inputs);
+				const unset_args = await this.set_event_args(dep.id, dep.event_args);
+
+				const { success, failure, all } = dep.get_triggers();
+
+				console.log({ success, failure, all });
+				console.log("Running dependency:", dep.id, data_payload);
+
+				try {
+					const dep_submission = await dep.run(
+						this.client,
+						data_payload,
+						event_meta.event_data
+					);
+
+					console.log("Dispatching to", dep.id);
+
+					if (dep_submission.type === "void") {
+						unset_args();
+					} else if (dep_submission.type === "data") {
+						this.handle_data(dep.outputs, dep_submission.data);
+						unset_args();
+					} else {
+						console.log("Dispatching to", dep.id, dep_submission);
+						this.submissions.set(dep.id, dep_submission.data);
+						// fn for this?
+						submit_loop: for await (const result of dep_submission.data) {
+							console.log("Received submission result for", dep.id, result);
+							if (result === null) continue;
+							if (result.type === "data") {
+								this.handle_data(dep.outputs, result.data);
+							}
+							if (result.type === "status") {
+								// handle status updates here
+								if (result.stage === "complete") {
+									console.log("Submission complete for", dep.id);
+									break submit_loop;
+								} else if (result.stage === "error") {
+									console.log("Submission error for", dep.id);
+									break submit_loop;
+								}
+							}
+						}
+						console.log("+++");
+						console.log("Dependency complete:", dep.id);
+						unset_args();
+						this.submissions.delete(dep.id);
+
+						if (this.queue.has(dep.id)) {
+							this.queue.delete(dep.id);
+							this.dispatch(event_meta);
+						}
+					}
+
+					console.log("Dispatching success/failure triggers");
+
+					success.forEach((dep_id) => {
+						console.log("Dispatching success to", dep_id);
+						this.dispatch({
+							type: "fn",
+							fn_index: dep_id,
+							event_data: null
+						});
 					});
-				});
-			} catch (error) {
-				failure.forEach((dep_id) => {
+				} catch (error) {
+					failure.forEach((dep_id) => {
+						this.dispatch({
+							type: "fn",
+							fn_index: dep_id,
+							event_data: null
+						});
+					});
+				}
+
+				all.forEach((dep_id) => {
 					this.dispatch({
 						type: "fn",
 						fn_index: dep_id,
@@ -285,15 +292,6 @@ export class DependencyManager {
 					});
 				});
 			}
-
-			all.forEach((dep_id) => {
-				this.dispatch({
-					type: "fn",
-					fn_index: dep_id,
-					event_data: null
-				});
-			});
-		}
 		});
 		return;
 	}

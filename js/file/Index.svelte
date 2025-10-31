@@ -17,7 +17,7 @@
 
 	const props = $props();
 	const gradio = new Gradio<FileEvents, FileProps>(props);
-	
+
 	let uploading = $state(false);
 	let dragging = $state(false);
 	let pending_upload = $state(false);
@@ -51,7 +51,8 @@
 		status={pending_upload
 			? "generating"
 			: gradio.shared.loading_status?.status || "complete"}
-		on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
+		on:clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 	{#if !gradio.shared.interactive}
 		<File

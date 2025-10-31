@@ -67,7 +67,7 @@
 			visible_pages = [];
 			selected_samples = samples.slice(
 				page * samples_per_page,
-				(page + 1) * samples_per_page,
+				(page + 1) * samples_per_page
 			);
 			page_count = Math.ceil(samples.length / samples_per_page);
 			[0, page, page_count - 1].forEach((anchor) => {
@@ -98,7 +98,7 @@
 		console.log(
 			"Getting component meta for samples:",
 			selected_samples,
-			components,
+			components
 		);
 		component_meta = await Promise.all(
 			selected_samples &&
@@ -109,11 +109,11 @@
 								console.log("Loading component:", components[j]);
 								return {
 									value: sample_cell,
-									component: load_component(components[j], "example"),
+									component: load_component(components[j], "example")
 								};
-							}),
-						),
-				),
+							})
+						)
+				)
 		);
 	}
 
@@ -192,7 +192,7 @@
 							onclick({ index: value, value: sample_row });
 							onselect({
 								index: value,
-								value: selected_samples[i],
+								value: selected_samples[i]
 							});
 						}}
 						on:mouseenter={() => handle_mouseenter(i)}
