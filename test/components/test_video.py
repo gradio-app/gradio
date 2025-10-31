@@ -42,7 +42,7 @@ class TestVideo:
             "autoplay": False,
             "sources": ["upload", "webcam"],
             "name": "video",
-            "buttons": None,
+            "buttons": ["share", "download"],
             "show_label": True,
             "label": "Upload Your Video",
             "container": True,
