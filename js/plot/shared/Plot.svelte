@@ -31,7 +31,7 @@
 	const plotTypeMapping = {
 		plotly: () => import("./plot_types/PlotlyPlot.svelte"),
 		bokeh: () => import("./plot_types/BokehPlot.svelte"),
-		matplotlib: () => import("./plot_types/MatplotlibPlot.svelte"),
+		matplotlib: () => import("./plot_types/MatplotlibPlot.svelte")
 	};
 
 	let loadedPlotTypeMapping = {};

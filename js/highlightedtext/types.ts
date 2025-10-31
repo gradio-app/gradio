@@ -18,5 +18,5 @@ export interface HighlightedTextProps {
 export interface HighlightedTextEvents {
 	change: never;
 	select: SelectData;
-	clear_status: LoadingStatus
+	clear_status: LoadingStatus;
 }

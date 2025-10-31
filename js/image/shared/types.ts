@@ -29,11 +29,11 @@ export interface ImageProps {
 
 export interface ImageEvents {
 	clear: void;
-    change: any;
-    stream: any;
-    select: any;
-    upload: any;
-    input: any;
+	change: any;
+	stream: any;
+	select: any;
+	upload: any;
+	input: any;
 	clear_status: LoadingStatus;
 	share: any;
 	error: any;

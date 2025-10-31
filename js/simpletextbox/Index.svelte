@@ -45,12 +45,15 @@
 			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
 			{...gradio.shared.loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
+			on:clear_status={() =>
+				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 	{/if}
 
 	<label class:container>
-		<BlockTitle show_label={gradio.shared.show_label} info={undefined}>{gradio.shared.label}</BlockTitle>
+		<BlockTitle show_label={gradio.shared.show_label} info={undefined}
+			>{gradio.shared.label}</BlockTitle
+		>
 
 		<input
 			data-testid="textbox"

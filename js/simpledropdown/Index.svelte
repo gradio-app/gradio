@@ -15,7 +15,9 @@
 
 	$effect(() => {
 		if (display_value) {
-			candidate = gradio.props.choices.filter((choice) => choice[0] === display_value);
+			candidate = gradio.props.choices.filter(
+				(choice) => choice[0] === display_value
+			);
 			gradio.props.value = candidate.length ? candidate[0][1] : "";
 			gradio.dispatch("input");
 		}
@@ -40,12 +42,15 @@
 			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
 			{...gradio.shared.loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
+			on:clear_status={() =>
+				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 	{/if}
 
 	<label class:container>
-		<BlockTitle show_label={gradio.shared.show_label} info={undefined}>{gradio.shared.label}</BlockTitle>
+		<BlockTitle show_label={gradio.shared.show_label} info={undefined}
+			>{gradio.shared.label}</BlockTitle
+		>
 		<select disabled={!gradio.shared.interactive} bind:value={display_value}>
 			{#each gradio.props.choices as choice}
 				<option>{choice[0]}</option>

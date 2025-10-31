@@ -17,7 +17,7 @@
 	// export let scale: number | null = null;
 
 	const get_dimension = (
-		dimension_value: string | number | undefined,
+		dimension_value: string | number | undefined
 	): string | undefined => {
 		if (dimension_value === undefined) {
 			return undefined;

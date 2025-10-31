@@ -127,7 +127,8 @@
 			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
 			{...gradio.shared.loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
+			on:clear_status={() =>
+				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 
 		<ImageUploader
@@ -142,7 +143,8 @@
 			on:drag={({ detail }) => (dragging = detail)}
 			on:upload={() => gradio.dispatch("upload")}
 			on:error={({ detail }) => {
-				if(gradio.shared.loading_status) gradio.shared.loading_status.status = "error";
+				if (gradio.shared.loading_status)
+					gradio.shared.loading_status.status = "error";
 				gradio.dispatch("error", detail);
 			}}
 			on:close_stream={() => {
@@ -158,7 +160,11 @@
 			max_height={gradio.props.max_height}
 		>
 			{#if active_source === "upload" || !active_source}
-				<UploadText i18n={gradio.i18n} type="image" placeholder={gradio.props.placeholder} />
+				<UploadText
+					i18n={gradio.i18n}
+					type="image"
+					placeholder={gradio.props.placeholder}
+				/>
 			{:else if active_source === "clipboard"}
 				<UploadText i18n={gradio.i18n} type="clipboard" mode="short" />
 			{:else}

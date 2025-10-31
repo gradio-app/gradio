@@ -12,9 +12,9 @@
 		if (interval) clearInterval(interval);
 		if (gradio.props.active) {
 			interval = setInterval(() => {
-				console.log("document.visibilityState", document.visibilityState)
-				if (document.visibilityState === "visible"){
-					console.log("dispatching tick")
+				console.log("document.visibilityState", document.visibilityState);
+				if (document.visibilityState === "visible") {
+					console.log("dispatching tick");
 					gradio.dispatch("tick");
 				}
 			}, gradio.props.value * 1000);

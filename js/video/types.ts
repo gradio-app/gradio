@@ -8,7 +8,11 @@ export interface VideoProps {
 	width: number | undefined;
 	autoplay: boolean;
 	buttons: ("share" | "download" | "fullscreen")[];
-	sources: ["webcam"] | ["upload"] | ["webcam", "upload"] | ["upload", "webcam"];
+	sources:
+		| ["webcam"]
+		| ["upload"]
+		| ["webcam", "upload"]
+		| ["upload", "webcam"];
 	webcam_options: WebcamOptions;
 	include_audio: boolean;
 	loop: boolean;

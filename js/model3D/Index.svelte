@@ -27,7 +27,7 @@
 	$effect(() => {
 		if (old_value !== gradio.props.value) {
 			old_value = gradio.props.value;
-			gradio.dispatch("change")
+			gradio.dispatch("change");
 		}
 	});
 
@@ -52,9 +52,9 @@
 	}
 
 	function handle_error(detail: string) {
-		if (gradio.shared.loading_status) gradio.shared.loading_status.status = "error";
+		if (gradio.shared.loading_status)
+			gradio.shared.loading_status.status = "error";
 		gradio.dispatch("error", detail);
-
 	}
 </script>
 
@@ -75,7 +75,8 @@
 			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
 			{...gradio.shared.loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
+			on:clear_status={() =>
+				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 
 		{#if gradio.props.value && is_browser}
@@ -88,10 +89,14 @@
 				show_label={gradio.shared.show_label}
 				camera_position={gradio.props.camera_position}
 				zoom_speed={gradio.props.zoom_speed}
-				has_change_history={has_change_history}
+				{has_change_history}
 			/>
 		{:else}
-			<BlockLabel show_label={gradio.shared.show_label} Icon={File} label={gradio.shared.label || "3D Model"} />
+			<BlockLabel
+				show_label={gradio.shared.show_label}
+				Icon={File}
+				label={gradio.shared.label || "3D Model"}
+			/>
 
 			<Empty unpadded_box={true} size="large"><File /></Empty>
 		{/if}
@@ -113,7 +118,8 @@
 			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
 			{...gradio.shared.loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
+			on:clear_status={() =>
+				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 
 		<Model3DUpload

@@ -8,10 +8,7 @@
 	const props = $props();
 	const gradio = new Gradio<NumberEvents, NumberProps>(props);
 
-	if (
-		gradio.props.value === null &&
-		gradio.props.placeholder === ""
-	) {
+	if (gradio.props.value === null && gradio.props.placeholder === "") {
 		gradio.props.value = 0;
 	}
 
@@ -49,14 +46,17 @@
 		i18n={gradio.i18n}
 		{...gradio.shared.loading_status}
 		show_validation_error={false}
-		on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
+		on:clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 	<label class="block" class:container={gradio.shared.container}>
 		<BlockTitle show_label={gradio.shared.show_label} info={gradio.props.info}
 			>{gradio.shared.label}
 
 			{#if gradio.shared.loading_status?.validation_error}
-				<div class="validation-error">{gradio.shared.loading_status?.validation_error}</div>
+				<div class="validation-error">
+					{gradio.shared.loading_status?.validation_error}
+				</div>
 			{/if}
 		</BlockTitle>
 

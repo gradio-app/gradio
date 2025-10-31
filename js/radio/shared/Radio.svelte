@@ -3,8 +3,14 @@
 </script>
 
 <script lang="ts">
-	
-	let { selected = $bindable(), display_value, internal_value, disabled, rtl, on_input } = $props()
+	let {
+		selected = $bindable(),
+		display_value,
+		internal_value,
+		disabled,
+		rtl,
+		on_input
+	} = $props();
 	let is_selected = $derived(selected === internal_value);
 
 	function handle_input(

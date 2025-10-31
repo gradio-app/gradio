@@ -68,14 +68,17 @@
 	scale={gradio.shared.scale}
 	min_width={gradio.shared.min_width}
 	allow_overflow={false}
-	height={typeof gradio.props.height === "number" ? gradio.props.height : undefined}
+	height={typeof gradio.props.height === "number"
+		? gradio.props.height
+		: undefined}
 	bind:fullscreen
 >
 	<StatusTracker
 		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
 		{...gradio.shared.loading_status}
-		on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
+		on:clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 	{#if gradio.shared.interactive && no_value}
 		<BaseFileUpload
@@ -117,7 +120,9 @@
 			on:upload={async (e) => {
 				const files = Array.isArray(e.detail) ? e.detail : [e.detail];
 				const new_value = await process_upload_files(files);
-				gradio.props.value = gradio.props.value ? [...gradio.props.value, ...new_value] : new_value;
+				gradio.props.value = gradio.props.value
+					? [...gradio.props.value, ...new_value]
+					: new_value;
 				gradio.dispatch("upload", new_value);
 				gradio.dispatch("change", gradio.props.value);
 			}}

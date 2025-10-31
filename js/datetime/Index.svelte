@@ -30,7 +30,9 @@
 	let selected_second = $state(new Date().getSeconds());
 	let is_pm = $state(selected_hour >= 12);
 
-	let valid = $derived.by(() => date_is_valid_format(entered_value, gradio.props.include_time));
+	let valid = $derived.by(() =>
+		date_is_valid_format(entered_value, gradio.props.include_time)
+	);
 	let disabled = $derived(!gradio.shared.interactive);
 
 	$effect(() => {
@@ -150,7 +152,9 @@
 	padding={true}
 >
 	<div class="label-content">
-		<BlockTitle show_label={gradio.shared.show_label} info={gradio.shared.info}>{gradio.shared.label}</BlockTitle>
+		<BlockTitle show_label={gradio.shared.show_label} info={gradio.shared.info}
+			>{gradio.shared.label}</BlockTitle
+		>
 	</div>
 	<div class="timebox">
 		<input
@@ -166,7 +170,9 @@
 			}}
 			on:blur={submit_values}
 			{disabled}
-			placeholder={gradio.props.include_time ? "YYYY-MM-DD HH:MM:SS" : "YYYY-MM-DD"}
+			placeholder={gradio.props.include_time
+				? "YYYY-MM-DD HH:MM:SS"
+				: "YYYY-MM-DD"}
 		/>
 
 		{#if gradio.shared.interactive}

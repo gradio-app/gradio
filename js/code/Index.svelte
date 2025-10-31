@@ -40,11 +40,17 @@
 		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
 		{...gradio.shared.loading_status}
-		on:clear_status={() => gradio.dispatch("clear_status", gradio.shared.loading_status)}
+		on:clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 
 	{#if gradio.shared.show_label}
-		<BlockLabel Icon={CodeIcon} show_label={gradio.shared.show_label} label={gradio.shared.label} float={false} />
+		<BlockLabel
+			Icon={CodeIcon}
+			show_label={gradio.shared.show_label}
+			label={gradio.shared.label}
+			float={false}
+		/>
 	{/if}
 
 	{#if !gradio.props.value && !gradio.shared.interactive}
@@ -59,7 +65,7 @@
 			language={gradio.props.language}
 			lines={gradio.props.lines}
 			max_lines={gradio.props.max_lines}
-			dark_mode={dark_mode}
+			{dark_mode}
 			wrap_lines={gradio.props.wrap_lines}
 			show_line_numbers={gradio.props.show_line_numbers}
 			autocomplete={gradio.props.autocomplete}
@@ -67,7 +73,7 @@
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
 			on:change={() => {
-				gradio.dispatch("input",);
+				gradio.dispatch("input");
 			}}
 		/>
 	{/if}

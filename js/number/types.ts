@@ -15,5 +15,5 @@ export interface NumberEvents {
 	submit: never;
 	blur: never;
 	focus: never;
-	clear_status: LoadingStatus
+	clear_status: LoadingStatus;
 }

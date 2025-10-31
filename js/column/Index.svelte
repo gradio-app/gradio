@@ -9,7 +9,7 @@
 	let props = $props();
 
 	const gradio = new Gradio<{}, { variant: "default" | "panel" | "compact" }>(
-		props,
+		props
 	);
 </script>
 
