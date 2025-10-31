@@ -89,8 +89,9 @@
 			| "microphone,upload"
 	);
 
-	let file_types_string =
-		$derived(gradio.props.file_types || []).join(",") || null;
+	let file_types_string = $derived.by(
+		() => (gradio.props.file_types || []).join(",") || null
+	);
 </script>
 
 <Block
