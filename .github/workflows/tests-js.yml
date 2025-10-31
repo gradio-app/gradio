@@ -47,7 +47,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: install dependencies
-        uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
+        uses: "gradio-app/gradio/.github/actions/install-frontend-deps@svelte5-migration"
         with:
           skip_build: true
       - name: build client
