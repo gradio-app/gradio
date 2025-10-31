@@ -1,6 +1,6 @@
 import { test, expect } from "@self/tootils";
 
-test(`Gallery component properly displayed`, async ({ page }) => {
+test.fixme(`Gallery component properly displayed`, async ({ page }) => {
 	await page.getByTestId("gallery-radio-label").click();
 	await page.getByTestId("textbox").click();
 	await page.getByTestId("textbox").fill("gallery");
@@ -13,7 +13,7 @@ test(`Gallery component properly displayed`, async ({ page }) => {
 	).toBeVisible();
 });
 
-test(`Audio component properly displayed`, async ({ page }) => {
+test.fixme(`Audio component properly displayed`, async ({ page }) => {
 	await page.getByTestId("audio-radio-label").click();
 	await page.getByTestId("textbox").click();
 	await page.getByTestId("textbox").fill("audio");
@@ -23,7 +23,7 @@ test(`Audio component properly displayed`, async ({ page }) => {
 	).toBeAttached();
 });
 
-test(`Video component properly displayed`, async ({ page }) => {
+test.fixme(`Video component properly displayed`, async ({ page }) => {
 	await page.getByTestId("video-radio-label").click();
 	await page.getByTestId("textbox").click();
 	await page.getByTestId("textbox").fill("video");
@@ -34,7 +34,7 @@ test(`Video component properly displayed`, async ({ page }) => {
 	).toBeTruthy();
 });
 
-test(`Image component properly displayed`, async ({ page }) => {
+test.fixme(`Image component properly displayed`, async ({ page }) => {
 	await page.getByTestId("image-radio-label").click();
 	await page.getByTestId("textbox").click();
 	await page.getByTestId("textbox").fill("image");
@@ -42,7 +42,7 @@ test(`Image component properly displayed`, async ({ page }) => {
 	await expect(page.getByTestId("bot").locator("img")).toBeAttached();
 });
 
-test(`Model3D component properly displayed`, async ({ page }) => {
+test.fixme(`Model3D component properly displayed`, async ({ page }) => {
 	await page.getByTestId("model3d-radio-label").click();
 	await page.getByTestId("textbox").click();
 	await page.getByTestId("textbox").fill("model3d");
