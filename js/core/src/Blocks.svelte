@@ -113,7 +113,6 @@
 			// 	}
 			// });
 		} else {
-			console.log({ data, event });
 			dep_manager.dispatch({
 				type: "event",
 				event_name: event,
@@ -127,6 +126,7 @@
 		app,
 		app_tree.update_state.bind(app_tree),
 		app_tree.get_state.bind(app_tree),
+		app_tree.rerender.bind(app_tree),
 	);
 
 	let old_dependencies = dependencies;

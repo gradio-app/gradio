@@ -40,6 +40,11 @@ const config = {
 		adapter: adapter({
 			out: out_path
 		})
+	},
+	compilerOptions: {
+		experimental: {
+			async: true
+		}
 	}
 };
 

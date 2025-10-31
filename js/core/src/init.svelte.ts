@@ -1,3 +1,5 @@
+import { SvelteMap } from "svelte/reactivity";
+
 import {
 	determine_interactivity,
 	get_component,
@@ -33,8 +35,8 @@ export class AppTree {
 	/** the root node of the processed layout tree */
 	root = $state<ProcessedComponentMeta>();
 
-	/** a map of component IDs to their component payload for easy lookup */
-	#component_map: Map<number, ComponentMeta> = new Map();
+	// /** a map of component IDs to their component payload for easy lookup */
+	// #component_map: Map<number, ComponentMeta> = new Map();
 	/** a map of component IDs to their processed component metadata for easy lookup */
 	#processed_component_map: Map<number, ProcessedComponentMeta> = new Map();
 
@@ -60,8 +62,29 @@ export class AppTree {
 		this.#component_payload = components;
 		this.#layout_payload = layout;
 		this.#dependency_payload = dependencies;
-		this.root = this.create_node({ id: layout.id, children: [] }, true);
+		this.root = this.create_node(
+			{ id: layout.id, children: [] },
+			new Map(),
+			true
+		);
+
 		this.prepare();
+
+		const component_map = components.reduce((map, comp) => {
+			map.set(comp.id, comp);
+			return map;
+		}, new Map<number, ComponentMeta>());
+
+		this.root!.children = this.#layout_payload.children.map((node) =>
+			this.traverse(node, (node) => {
+				const new_node = this.create_node(node, component_map);
+				return new_node;
+			})
+		);
+
+		this.postprocess(this.root!);
+
+		console.log("AppTree initialized:", this.root);
 	}
 
 	/**
@@ -89,12 +112,7 @@ export class AppTree {
 	}
 
 	/** Processes the layout payload into a tree of components */
-	process() {
-		this.root!.children = this.#layout_payload.children.map((node) =>
-			this.traverse(node, (node) => this.create_node(node))
-		);
-		this.postprocess(this.root!);
-	}
+	process() {}
 
 	async postprocess(tree: ProcessedComponentMeta) {
 		this.root = this.traverse(tree, [
@@ -144,10 +162,14 @@ export class AppTree {
 	 * @param root whether this is the root node
 	 * @returns the processed component node
 	 */
-	create_node(opts: LayoutNode, root = false): ProcessedComponentMeta {
+	create_node(
+		opts: LayoutNode,
+		component_map: Map<number, ComponentMeta>,
+		root = false
+	): ProcessedComponentMeta {
 		let component: ComponentMeta | undefined;
 		if (!root) {
-			component = this.find_component_by_id(opts.id);
+			component = component_map.get(opts.id);
 		} else {
 			component = {
 				type: "column",
@@ -175,7 +197,6 @@ export class AppTree {
 		);
 
 		const node = {
-			node_kind: "processed" as const,
 			id: opts.id,
 			type: component.type,
 			props: processed_props,
@@ -198,27 +219,38 @@ export class AppTree {
 		return node;
 	}
 
-	/**
-	 * Get a component from its ID, caching as it goes
-	 * @param id the ID of the component to find
-	 * @returns the component metadata, or undefined if not found
-	 * */
-	find_component_by_id(id: number): ComponentMeta | undefined {
-		if (this.#component_map.has(id)) {
-			return this.#component_map.get(id);
-		} else {
-			for (const comp of this.#component_payload) {
-				if (comp.id === id) {
-					this.#component_map.set(id, comp);
-					return comp;
-				} else {
-					if (!this.#component_map.has(comp.id)) {
-						this.#component_map.set(comp.id, comp);
-					}
-				}
+	rerender(components: ComponentMeta[], layout: LayoutNode) {
+		console.log("+++++++ RERENDERING APP TREE +++++++");
+		console.log("+++++++ RERENDERING APP TREE +++++++");
+		console.log("+++++++ RERENDERING APP TREE +++++++");
+		console.log("+++++++ RERENDERING APP TREE +++++++");
+		console.log("Rerendering AppTree with new components and layout");
+		const component_map = components.reduce((map, comp) => {
+			map.set(comp.id, comp);
+			return map;
+		}, new Map<number, ComponentMeta>());
+		const subtree = this.traverse(layout, (node) => {
+			const current_node = find_node_by_id(this.root!, node.id);
+
+			if (current_node) {
+				// this.update_state(node.id, component_map.get(node.id)?.props || {});
+
+				return current_node;
 			}
+			const new_node = this.create_node(node, component_map);
+			return new_node;
+		});
+
+		console.log("find root in subtree:", subtree);
+		const n = find_node_by_id(this.root!, subtree.id);
+		console.log("matching root in current tree:", n);
+		if (!n) {
+			throw new Error("Rerender failed: root node not found in current tree");
 		}
-		return undefined;
+		n.children = subtree.children;
+		// console.log("matching root:", matching_root);
+		// matching_root!.children = subtree.children;
+		// this.root = this.root;
 	}
 
 	/*
@@ -230,6 +262,7 @@ export class AppTree {
 		id: number,
 		new_state: Partial<SharedProps> & Record<string, unknown>
 	) {
+		console.log("Updating state for component", id, "with", new_state);
 		const _set_data = this.#set_callbacks.get(id);
 		if (!_set_data) return;
 		console.log("Updating state for component", id, "with", new_state);
@@ -238,6 +271,7 @@ export class AppTree {
 		this.root = this.traverse(this.root!, (n) =>
 			handle_visibility(n, this.#config.root)
 		);
+		console.log("BOO DONE");
 	}
 
 	/**
@@ -349,4 +383,24 @@ function handle_empty_forms(
 	}
 
 	return node;
+}
+
+function find_node_by_id(
+	tree: ProcessedComponentMeta,
+	id: number
+): ProcessedComponentMeta | null {
+	if (tree.id === id) {
+		return tree;
+	}
+
+	if (tree.children) {
+		for (const child of tree.children) {
+			const result = find_node_by_id(child, id);
+			if (result) {
+				return result;
+			}
+		}
+	}
+
+	return null;
 }

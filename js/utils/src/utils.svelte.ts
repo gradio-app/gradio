@@ -268,20 +268,31 @@ export const allowed_shared_props: (keyof SharedProps)[] = [
 	"show_progress",
 	"api_prefix"
 ] as const;
+
 export type I18nFormatter = any;
 export class Gradio<T extends object = {}, U extends object = {}> {
 	_load_component?: component_loader;
 	load_component = _load_component.bind(this);
-	shared: SharedProps = $state<SharedProps>() as SharedProps;
-	props = $state<U>() as U;
-	i18n: I18nFormatter = $state<any>() as any;
+	shared: SharedProps = $state<SharedProps>({}) as SharedProps;
+	props = $state<U>({}) as U;
+	i18n: I18nFormatter = $state<any>({}) as any;
 	dispatcher!: Function;
 	last_update: ReturnType<typeof tick> | null = null;
 	shared_props: (keyof SharedProps)[] = allowed_shared_props;
 
 	constructor(props: { shared_props: SharedProps; props: U }) {
-		this.shared = props.shared_props;
-		this.props = props.props;
+		console.log("Gradio props:", {
+			props: props.props,
+			shared: props.shared_props
+		});
+		for (const key in props.shared_props) {
+			// @ts-ignore i'm not doing pointless typescript gymanstics
+			this.shared[key] = props.shared_props[key];
+		}
+		for (const key in props.props) {
+			// @ts-ignore same here
+			this.props[key] = props.props[key];
+		}
 		this.i18n = (s) => s;
 		this._load_component = props.shared_props.load_component;
 
@@ -320,14 +331,16 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		this.last_update = tick();
 	}
 
-	set_data(data: U & SharedProps): void {
+	set_data(data: Partial<U & SharedProps>): void {
 		console.log("set_data", data);
 		for (const key in data) {
 			if (this.shared_props.includes(key as keyof SharedProps)) {
+				console.log("finding:", key, " in shared_props");
 				const _key = key as keyof SharedProps;
 				// @ts-ignore i'm not doing pointless typescript gymanstics
 				this.shared[_key] = data[_key];
 			} else {
+				console.log("finding:", key, " in props");
 				// @ts-ignore same here
 				this.props[key] = data[key];
 			}

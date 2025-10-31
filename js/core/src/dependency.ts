@@ -1,6 +1,8 @@
 import type {
+	ComponentMeta,
 	DependencyTypes,
 	Dependency as IDependency,
+	LayoutNode,
 	Payload
 } from "./types.js";
 import { AsyncFunction } from "./init_utils";
@@ -143,6 +145,7 @@ interface DispatchEvent {
 export class DependencyManager {
 	dependencies_by_fn: Map<number, Dependency> = new Map();
 	dependencies_by_event: Map<string, Dependency> = new Map();
+	render_id_deps = new Map<number, Set<number>>();
 
 	submissions: Map<number, ReturnType<Client["submit"]>> = new Map();
 	client: Client;
@@ -150,12 +153,14 @@ export class DependencyManager {
 
 	update_state_cb: (id: number, state: Record<string, unknown>) => void;
 	get_state_cb: (id: number) => Promise<Record<string, unknown> | null>;
+	rerender_cb: (components: ComponentMeta[], layout: LayoutNode) => void;
 
 	constructor(
 		dependencies: IDependency[],
 		client: Client,
 		update_state_cb: (id: number, state: Record<string, unknown>) => void,
-		get_state_cb: (id: number) => Promise<Record<string, unknown> | null>
+		get_state_cb: (id: number) => Promise<Record<string, unknown> | null>,
+		rerender_cb: (components: ComponentMeta[], layout: LayoutNode) => void
 	) {
 		const { by_id, by_event } = this.create(dependencies);
 		console.log("Created dependencies:", { by_id });
@@ -164,6 +169,7 @@ export class DependencyManager {
 		this.client = client;
 		this.update_state_cb = update_state_cb;
 		this.get_state_cb = get_state_cb;
+		this.rerender_cb = rerender_cb;
 	}
 
 	/** Dispatches an event to the appropriate dependency
@@ -244,16 +250,56 @@ export class DependencyManager {
 								break submit_loop;
 							}
 						}
+
+						if (result.type === "render") {
+							const { layout, components, render_id, dependencies } =
+								result.data;
+							console.log(
+								"Rerendering components from dependency",
+								dep.id,
+								result
+							);
+							this.rerender_cb(components, layout);
+							// update dependencies
+							const { by_id, by_event } = this.create(
+								dependencies as IDependency[]
+							);
+							by_id.forEach((dep) => this.dependencies_by_fn.set(dep.id, dep));
+							by_event.forEach((dep, key) =>
+								this.dependencies_by_event.set(key, dep)
+							);
+							const current_deps = this.render_id_deps.get(render_id);
+							if (current_deps) {
+								current_deps.forEach((old_dep_id) => {
+									if (!by_id.has(old_dep_id)) {
+										this.dependencies_by_fn.delete(old_dep_id);
+									}
+								});
+							}
+							this.render_id_deps.set(
+								render_id,
+								new Set(Array.from(by_id.keys()))
+							);
+
+							break submit_loop;
+						}
 					}
 					console.log("+++");
 					console.log("Dependency complete:", dep.id);
 					unset_args();
 					this.submissions.delete(dep.id);
 
-					if (this.queue.has(dep.id)) {
-						this.queue.delete(dep.id);
-						this.dispatch(event_meta);
-					}
+					console.log(
+						"Checking queue for deferred dependencies",
+						this.queue.has(dep.id)
+					);
+
+					// if (this.queue.has(dep.id)) {
+					// 	this.queue.delete(dep.id);
+					// 	this.dispatch(event_meta);
+					// }
+
+					return;
 				}
 
 				console.log("Dispatching success/failure triggers");
@@ -350,6 +396,7 @@ export class DependencyManager {
 	 * */
 	async handle_data(outputs: number[], data: unknown[]) {
 		outputs.forEach(async (output_id, i) => {
+			console.log("handle_data", output_id, data[i]);
 			const _data = data[i] ?? null;
 			if (!_data) return;
 
@@ -393,6 +440,14 @@ export class DependencyManager {
 		const current_state = await this.get_state_cb(id);
 		for (const [key] of Object.entries(args)) {
 			current_args[key] = current_state?.[key] ?? null;
+		}
+
+		console.log("Setting event args for", id, args, current_args);
+
+		if (Object.keys(args).length === 0) {
+			return () => {
+				// do nothing
+			};
 		}
 		this.update_state_cb(id, args);
 

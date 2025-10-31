@@ -14,12 +14,21 @@
 
 	let _props = $props();
 
+	// console.log(
+	// 	"Textbox props:",
+	// 	$state.snapshot(_props.shared_props),
+	// 	$state.snapshot(_props.props),
+	// );
+
 	const gradio = new Gradio<TextboxEvents, TextboxProps>(_props);
 
 	function handle_change(value: string): void {
-		gradio.shared.validation_error = null;
-		gradio.props.value = value;
-		gradio.dispatch("change", value);
+		// console.log("HANDLE CHANGE", $state.snapshot(gradio.props));
+		// console.log("HANDLE CHANGE", $state.snapshot(gradio.shared));
+		// if (!gradio.shared || !gradio.props) return;
+		// gradio.set_data({ validation_error: null });
+		// gradio.set_data({ value });
+		// gradio.dispatch("change", value);
 	}
 </script>
 
@@ -62,8 +71,8 @@
 		autoscroll={gradio.shared.autoscroll}
 		max_length={gradio.props.max_length}
 		html_attributes={gradio.props.html_attributes}
-		validation_error={gradio.shared.loading_status?.validation_error ||
-			gradio.shared.validation_error}
+		validation_error={gradio.shared?.loading_status?.validation_error ||
+			gradio.shared?.validation_error}
 		on:change={(e) => handle_change(e.detail)}
 		on:input={() => gradio.dispatch("input")}
 		on:submit={() => {
