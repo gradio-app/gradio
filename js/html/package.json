@@ -9,12 +9,14 @@
 	"main_changeset": true,
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
+		"@gradio/icons": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@gradio/icons": "workspace:^"
+		"nunjucks": "^3.2.4"
 	},
 	"devDependencies": {
-		"@gradio/preview": "workspace:^"
+		"@gradio/preview": "workspace:^",
+		"@types/nunjucks": "^3.2.6"
 	},
 	"exports": {
 		"./package.json": "./package.json",
