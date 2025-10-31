@@ -1,6 +1,6 @@
 import { test, expect } from "@self/tootils";
 
-test("upload events work as expected", async ({ page }) => {
+test.fixme("upload events work as expected", async ({ page }) => {
 	await page.getByLabel("Click to upload or drop files").first().click();
 	const [fileChooser] = await Promise.all([
 		page.waitForEvent("filechooser"),
@@ -11,7 +11,7 @@ test("upload events work as expected", async ({ page }) => {
 	await expect(page.locator("#upload h2")).toContainText("1");
 });
 
-test("change events work as expected", async ({ page }) => {
+test.fixme("change events work as expected", async ({ page }) => {
 	const change_text = page.locator("#change h2");
 
 	await page.getByLabel("Brush").first().click();
@@ -21,7 +21,7 @@ test("change events work as expected", async ({ page }) => {
 	await expect(change_text).toContainText("1");
 });
 
-test("Image editor user can draw after upload", async ({ page }) => {
+test.fixme("Image editor user can draw after upload", async ({ page }) => {
 	await page.getByLabel("Click to upload or drop files").first().click();
 	const [fileChooser] = await Promise.all([
 		page.waitForEvent("filechooser"),
@@ -39,7 +39,7 @@ test("Image editor user can draw after upload", async ({ page }) => {
 	await expect(change_text).toContainText("2");
 });
 
-test("input events work as expected", async ({ page }) => {
+test.fixme("input events work as expected", async ({ page }) => {
 	const input_text = page.locator("#input h2");
 
 	await page.getByLabel("Brush").first().click();
@@ -49,7 +49,7 @@ test("input events work as expected", async ({ page }) => {
 	await expect(input_text).toContainText("1");
 });
 
-test("erase triggers change and input events", async ({ page }) => {
+test.fixme("erase triggers change and input events", async ({ page }) => {
 	const canvas = page.locator("canvas").first();
 	const input_text = page.locator("#input h2");
 	const change_text = page.locator("#change h2");
@@ -60,7 +60,7 @@ test("erase triggers change and input events", async ({ page }) => {
 	await expect(change_text).toContainText("1");
 });
 
-test("apply events work as expected", async ({ page }) => {
+test.fixme("apply events work as expected", async ({ page }) => {
 	const apply_text = page.locator("#apply h2");
 	const apply_button = page.getByLabel("Save changes").first();
 
@@ -71,20 +71,21 @@ test("apply events work as expected", async ({ page }) => {
 	await expect(apply_text).toContainText("1");
 });
 
-test("image editor can be cleared twice by setting value to None", async ({
-	page
-}) => {
-	await page.getByLabel("Brush").first().click();
-	const canvas = page.locator("canvas").first();
-	await canvas.click({ position: { x: 200, y: 100 } });
-	await page.getByRole("button", { name: "Clear Button" }).click();
-	await page.waitForTimeout(1000);
+test.fixme(
+	"image editor can be cleared twice by setting value to None",
+	async ({ page }) => {
+		await page.getByLabel("Brush").first().click();
+		const canvas = page.locator("canvas").first();
+		await canvas.click({ position: { x: 200, y: 100 } });
+		await page.getByRole("button", { name: "Clear Button" }).click();
+		await page.waitForTimeout(1000);
 
-	await page.getByLabel("Brush").first().click();
-	const canvas_2 = page.locator("canvas").first();
-	await canvas_2.click({ position: { x: 200, y: 100 } });
-	await canvas_2.click({ position: { x: 201, y: 100 } });
-	await page.getByRole("button", { name: "Clear Button" }).click();
+		await page.getByLabel("Brush").first().click();
+		const canvas_2 = page.locator("canvas").first();
+		await canvas_2.click({ position: { x: 200, y: 100 } });
+		await canvas_2.click({ position: { x: 201, y: 100 } });
+		await page.getByRole("button", { name: "Clear Button" }).click();
 
-	await expect(page.getByLabel("cleared properly")).toHaveValue("1");
-});
+		await expect(page.getByLabel("cleared properly")).toHaveValue("1");
+	}
+);

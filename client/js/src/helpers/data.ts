@@ -73,7 +73,7 @@ export async function walk_and_store_blobs(
 		return [
 			{
 				path: path,
-				blob: new Blob([data]),
+				blob: new Blob([data as any]),
 				type
 			}
 		];
@@ -151,7 +151,7 @@ export function handle_file(
 	} else if (typeof File !== "undefined" && file_or_url instanceof File) {
 		return new Blob([file_or_url]);
 	} else if (file_or_url instanceof Buffer) {
-		return new Blob([file_or_url]);
+		return new Blob([file_or_url as any]);
 	} else if (file_or_url instanceof Blob) {
 		return file_or_url;
 	}

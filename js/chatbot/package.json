@@ -17,9 +17,9 @@
 		"@gradio/theme": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@types/katex": "^0.16.0",
-		"@types/prismjs": "1.26.4",
-		"dequal": "^2.0.2"
+		"@types/katex": "^0.16.7",
+		"@types/prismjs": "1.26.5",
+		"dequal": "^2.0.3"
 	},
 	"devDependencies": {
 		"@gradio/audio": "workspace:^",
@@ -38,7 +38,7 @@
 		}
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.39.6"
 	},
 	"repository": {
 		"type": "git",

@@ -42,7 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: install dependencies
-        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@svelte5-migration"
         with:
           python_version: "3.12"
       - name: install deps

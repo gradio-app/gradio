@@ -173,7 +173,7 @@ class Audio(
         self.format = format and format.lower()
         self.autoplay = autoplay
         self.loop = loop
-        self.buttons = buttons
+        self.buttons = buttons or ["download", "share"]
         self.editable = editable
         if waveform_options is None:
             self.waveform_options = WaveformOptions()
@@ -238,7 +238,6 @@ class Audio(
         original_suffix = Path(payload.path).suffix.lower()
         if self.format is not None and original_suffix != f".{self.format}":
             needs_conversion = True
-
         if self.type == "numpy":
             return processing_utils.audio_from_file(payload.path)
         elif self.type == "filepath":

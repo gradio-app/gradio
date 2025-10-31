@@ -95,6 +95,7 @@ function make_entry(script: string): string {
 }
 
 export function handle_ce_css(): Plugin {
+	return {};
 	return {
 		enforce: "post",
 		name: "custom-element-css",

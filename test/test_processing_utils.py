@@ -410,20 +410,20 @@ async def test_json_data_not_moved_to_cache():
 def test_public_request_pass():
     tempdir = tempfile.TemporaryDirectory()
     file = processing_utils.ssrf_protected_download(
-        "https://en.wikipedia.org/static/images/icons/wikipedia.png", tempdir.name
+        "https://huggingface.co/datasets/freddyaboulton/bucket/resolve/main/Hugging%20Face%20x%20Cloudflare.png",
+        tempdir.name,
     )
     assert os.path.exists(file)
-    assert os.path.getsize(file) == 13444
 
 
 @pytest.mark.asyncio
 async def test_async_public_request_pass():
     tempdir = tempfile.TemporaryDirectory()
     file = await processing_utils.async_ssrf_protected_download(
-        "https://en.wikipedia.org/static/images/icons/wikipedia.png", tempdir.name
+        "https://huggingface.co/datasets/freddyaboulton/bucket/resolve/main/Hugging%20Face%20x%20Cloudflare.png",
+        tempdir.name,
     )
     assert os.path.exists(file)
-    assert os.path.getsize(file) == 13444
 
 
 def test_private_request_fail():

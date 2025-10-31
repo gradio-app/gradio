@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { type ComponentType } from "svelte";
-	export let Icon: ComponentType;
+	import { type Component } from "svelte";
+	export let Icon: Component;
 	export let label = "";
 	export let show_label = false;
 	export let pending = false;

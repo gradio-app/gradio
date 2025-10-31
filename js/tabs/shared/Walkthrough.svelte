@@ -138,14 +138,14 @@
 		}
 	}
 
-	$: tabs,
+	$: (tabs,
 		selected !== null &&
 			change_tab(
 				selected,
 				tabs.findIndex((t) => t?.id === selected)
-			);
-	$: tabs, check_overflow();
-	$: $selected_tab_index, check_overflow();
+			));
+	$: (tabs, check_overflow());
+	$: ($selected_tab_index, check_overflow());
 
 	$: tab_scale =
 		tabs[$selected_tab_index >= 0 ? $selected_tab_index : 0]?.scale;

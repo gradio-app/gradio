@@ -9,7 +9,7 @@
 	import { Copy, Check, Send, Square } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import type { SelectData, CopyData } from "@gradio/utils";
-	import type { InputHTMLAttributes } from "./types";
+	import type { InputHTMLAttributes } from "../types";
 
 	export let value = "";
 	export let value_is_output = false;
@@ -54,9 +54,9 @@
 		_max_lines = Math.max(max_lines, lines);
 	}
 
-	$: value,
+	$: (value,
 		validation_error,
-		el && lines !== _max_lines && lines > 1 && resize({ target: el });
+		el && lines !== _max_lines && lines > 1 && resize({ target: el }));
 
 	$: if (value === null) value = "";
 
@@ -102,7 +102,7 @@
 		}
 		value_is_output = false;
 	});
-	$: value, handle_change();
+	$: (value, handle_change());
 
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {

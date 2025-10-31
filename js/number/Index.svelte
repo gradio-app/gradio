@@ -1,50 +1,24 @@
 <script lang="ts">
-	import type { Gradio } from "@gradio/utils";
+	import type { NumberProps, NumberEvents } from "./types";
+	import { Gradio } from "@gradio/utils";
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
-	import { afterUpdate, tick } from "svelte";
+	import { tick } from "svelte";
 
-	export let gradio: Gradio<{
-		change: never;
-		input: never;
-		submit: never;
-		blur: never;
-		focus: never;
-		clear_status: LoadingStatus;
-	}>;
-	export let label = gradio.i18n("number.number");
-	export let info: string | undefined = undefined;
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let value: number | null = null;
-	export let show_label: boolean;
-	export let minimum: number | undefined = undefined;
-	export let maximum: number | undefined = undefined;
-	export let loading_status: LoadingStatus;
-	export let value_is_output = false;
-	export let step: number | null = null;
-	export let interactive: boolean;
-	export let placeholder = "";
+	const props = $props();
+	const gradio = new Gradio<NumberEvents, NumberProps>(props);
 
-	if (value === null && placeholder === "") {
-		value = 0;
+	if (gradio.props.value === null && gradio.props.placeholder === "") {
+		gradio.props.value = 0;
 	}
 
-	function handle_change(): void {
-		if (value !== null && !isNaN(value)) {
+	let old_value = $state(gradio.props.value);
+
+	$effect(() => {
+		if (old_value != gradio.props.value) {
+			old_value = gradio.props.value;
 			gradio.dispatch("change");
-			if (!value_is_output) {
-				gradio.dispatch("input");
-			}
 		}
-	}
-	afterUpdate(() => {
-		value_is_output = false;
 	});
 
 	async function handle_keypress(e: KeyboardEvent): Promise<void> {
@@ -55,45 +29,48 @@
 		}
 	}
 
-	$: value, handle_change();
-	$: disabled = !interactive;
+	const disabled = $derived(!gradio.shared.interactive);
 </script>
 
 <Block
-	{visible}
-	{elem_id}
-	{elem_classes}
-	padding={container}
+	visible={gradio.shared.visible}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+	padding={gradio.shared.container}
 	allow_overflow={false}
-	{scale}
-	{min_width}
+	scale={gradio.shared.scale}
+	min_width={gradio.shared.min_width}
 >
 	<StatusTracker
-		autoscroll={gradio.autoscroll}
+		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
-		{...loading_status}
+		{...gradio.shared.loading_status}
 		show_validation_error={false}
-		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+		on:clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
-	<label class="block" class:container>
-		<BlockTitle {show_label} {info}
-			>{label}
+	<label class="block" class:container={gradio.shared.container}>
+		<BlockTitle show_label={gradio.shared.show_label} info={gradio.props.info}
+			>{gradio.shared.label}
 
-			{#if loading_status?.validation_error}
-				<div class="validation-error">{loading_status?.validation_error}</div>
+			{#if gradio.shared.loading_status?.validation_error}
+				<div class="validation-error">
+					{gradio.shared.loading_status?.validation_error}
+				</div>
 			{/if}
 		</BlockTitle>
 
 		<input
-			class:validation-error={loading_status?.validation_error}
-			aria-label={label}
+			class:validation-error={gradio.shared.loading_status?.validation_error}
+			aria-label={gradio.shared.label}
 			type="number"
-			bind:value
-			min={minimum}
-			max={maximum}
-			{step}
-			{placeholder}
+			bind:value={gradio.props.value}
+			min={gradio.props.minimum}
+			max={gradio.props.maximum}
+			step={gradio.props.step}
+			placeholder={gradio.props.placeholder}
 			on:keypress={handle_keypress}
+			on:input={() => gradio.dispatch("input")}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
 			{disabled}

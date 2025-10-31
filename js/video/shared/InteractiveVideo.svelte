@@ -78,7 +78,7 @@
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
 <div data-testid="video" class="video-container">
-	{#if value === null || value.url === undefined}
+	{#if value === null || value?.url === undefined}
 		<div class="upload-container">
 			{#if active_source === "upload"}
 				<Upload

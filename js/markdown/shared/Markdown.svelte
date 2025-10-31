@@ -34,7 +34,7 @@
 		copy: CopyData;
 	}>();
 
-	$: value, dispatch("change");
+	$: (value, dispatch("change"));
 
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {

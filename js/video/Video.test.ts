@@ -280,11 +280,11 @@ describe("Video", () => {
 
 		const mock = listen("change");
 
-		(component.value = [
+		((component.value = [
 			{
 				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/b.mp4"
 			}
 		]),
-			assert.equal(mock.callCount, 1);
+			assert.equal(mock.callCount, 1));
 	});
 });

@@ -3,7 +3,7 @@
 	import { set_config } from "./altair_utils";
 	import { onMount, onDestroy } from "svelte";
 	import type { TopLevelSpec as Spec } from "vega-lite";
-	import vegaEmbed from "vega-embed";
+	// import vegaEmbed from "vega-embed";
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import type { View } from "vega";
 

@@ -60,5 +60,5 @@ class TestAnnotatedImage:
             "_selectable": False,
             "key": None,
             "preserved_by_key": ["value"],
-            "buttons": None,
+            "buttons": ["fullscreen"],
         }

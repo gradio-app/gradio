@@ -154,7 +154,7 @@ class Video(StreamingOutput, Component):
         self.include_audio = (
             include_audio if include_audio is not None else "upload" in self.sources
         )
-        self.buttons = buttons
+        self.buttons = buttons or ["share", "download"]
         self.streaming = streaming
         self.subtitles = None
         if subtitles is not None:

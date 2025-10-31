@@ -280,7 +280,7 @@
 			window.removeEventListener("resize", check_thumbnails_overflow);
 	});
 
-	$: resolved_value, check_thumbnails_overflow();
+	$: (resolved_value, check_thumbnails_overflow());
 	$: if (container_element) {
 		check_thumbnails_overflow();
 	}
@@ -321,7 +321,7 @@
 {:else}
 	<div class="gallery-container" bind:this={image_container}>
 		{#if selected_media && allow_preview}
-			<button
+			<span
 				on:keydown={on_keydown}
 				class="preview"
 				class:minimal={mode === "minimal"}
@@ -454,7 +454,7 @@
 						</button>
 					{/each}
 				</div>
-			</button>
+			</span>
 		{/if}
 
 		<div

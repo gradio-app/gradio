@@ -232,7 +232,6 @@
 			dispatch("error", `Invalid file type only ${filetype} allowed.`);
 			return false;
 		});
-
 		if (format != "blob") {
 			await load_files(files_to_load);
 		} else {
