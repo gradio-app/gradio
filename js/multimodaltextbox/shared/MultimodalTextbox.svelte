@@ -434,13 +434,13 @@
 								{:else}
 									<File />
 								{/if}
-								<button
+								<!-- <button
 									class="delete-button"
 									on:click={(event) => remove_thumbnail(event, index)}
 									aria-label="Remove file"
 								>
 									<Clear />
-								</button>
+								</button> -->
 							</button>
 						</span>
 					{/each}
