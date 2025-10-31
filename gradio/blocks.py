@@ -37,7 +37,6 @@ from gradio import (
     networking,
     processing_utils,
     queueing,
-    themes,
     utils,
 )
 from gradio.block_function import BlockFunction
@@ -105,21 +104,6 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components.base import Component
     from gradio.mcp import GradioMCPServer
     from gradio.renderable import Renderable
-
-BUILT_IN_THEMES: dict[str, Theme] = {
-    t.name: t
-    for t in [
-        themes.Base(),
-        themes.Default(),
-        themes.Monochrome(),
-        themes.Soft(),
-        themes.Glass(),
-        themes.Origin(),
-        themes.Citrus(),
-        themes.Ocean(),
-    ]
-}
-
 
 class Block:
     def __init__(
@@ -2460,20 +2444,9 @@ Received inputs:
             # We have already launched the demo
             return None, None, None  # type: ignore
 
-        if theme is None:
-            theme = DefaultTheme()
-        elif isinstance(theme, str):
-            if theme.lower() in BUILT_IN_THEMES:
-                theme = BUILT_IN_THEMES[theme.lower()]
-            else:
-                try:
-                    theme = Theme.from_hub(theme)
-                except Exception as e:
-                    warnings.warn(f"Cannot load {theme}. Caught Exception: {str(e)}")
-                    theme = DefaultTheme()
-        self.theme: Theme = theme
-        self.theme_css = theme._get_theme_css()
-        self.stylesheets = theme._stylesheets
+        self.theme: Theme = utils.get_theme(theme)
+        self.theme_css = self.theme._get_theme_css()
+        self.stylesheets = self.theme._stylesheets
         theme_hasher = hashlib.sha256()
         theme_hasher.update(self.theme_css.encode("utf-8"))
         self.theme_hash = theme_hasher.hexdigest()
@@ -2829,7 +2802,7 @@ Received inputs:
         if getattr(self, "analytics_enabled", False):
             is_custom_theme = not any(
                 self.theme.to_dict() == built_in_theme.to_dict()
-                for built_in_theme in BUILT_IN_THEMES.values()
+                for built_in_theme in utils.BUILT_IN_THEMES.values()
             )
             data = {
                 "launch_method": "browser" if inbrowser else "inline",
