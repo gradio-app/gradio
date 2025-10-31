@@ -18,8 +18,6 @@ runs:
         key: gradio-lib-front-end-${{ hashFiles('js/**', 'client/js/**')}}
     - name: Install pnpm
       uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # @v4
-      with:
-        version: 10.17.x
     - uses: actions/setup-node@v4
       with:
         node-version: 22
