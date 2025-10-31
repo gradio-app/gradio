@@ -27,3 +27,9 @@ export interface ToastMessage {
 	duration: number | null;
 	visible: boolean;
 }
+
+export interface GroupedToastMessage {
+	type: "error" | "warning" | "info" | "success";
+	messages: ToastMessage[];
+	expanded: boolean;
+}

@@ -86,6 +86,7 @@ demo = gr.Interface(
     outputs=[
         gr.State(value=lambda: random.choice(string.ascii_lowercase))
     ],
+    api_name="predict",
 )
 
 if __name__ == "__main__":

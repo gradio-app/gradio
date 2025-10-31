@@ -21,7 +21,8 @@ demo = gr.Interface(
     inputs=[gr.Textbox("strawberry"), gr.Textbox("r")],
     outputs=[gr.Number()],
     title="Letter Counter",
-    description="Enter text and a letter to count how many times the letter appears in the text."
+    description="Enter text and a letter to count how many times the letter appears in the text.",
+    api_name="predict"
 )
 
 if __name__ == "__main__":

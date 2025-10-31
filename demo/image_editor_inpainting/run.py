@@ -19,7 +19,7 @@ with gr.Blocks() as demo:
             type="numpy",
             label="Input Image with Inpainting Layers",
             interactive=True,
-            show_fullscreen_button=True
+            buttons=["fullscreen"]
         )
 
         output_image = gr.Image(

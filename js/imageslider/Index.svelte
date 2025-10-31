@@ -22,7 +22,7 @@
 	let old_value: [FileData | null, FileData | null] = [null, null];
 	export let label: string;
 	export let show_label: boolean;
-	export let show_download_button: boolean;
+	export let buttons: string[] | null = null;
 	export let root: string;
 	export let height: number | undefined;
 	export let width: number | undefined;
@@ -32,7 +32,6 @@
 	export let loading_status: LoadingStatus;
 	export let interactive: boolean;
 	export let placeholder: string | undefined = undefined;
-	export let show_fullscreen_button: boolean;
 	let fullscreen = false;
 	export let input_ready: boolean;
 	export let slider_position: number;
@@ -138,9 +137,9 @@
 			bind:value
 			{label}
 			{show_label}
-			{show_download_button}
+			show_download_button={buttons?.includes("download") ?? true}
 			i18n={gradio.i18n}
-			{show_fullscreen_button}
+			show_fullscreen_button={buttons?.includes("fullscreen") ?? true}
 			position={normalised_slider_position}
 			{slider_color}
 			{max_height}

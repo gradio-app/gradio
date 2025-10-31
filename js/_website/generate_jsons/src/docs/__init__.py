@@ -31,6 +31,8 @@ def add_component_shortcuts():
                 "Uses default values",
             )
         ]
+        if not hasattr(component["class"], "__subclasses__"):
+            continue
         for subcls in component["class"].__subclasses__():
             if getattr(subcls, "is_template", False):
                 _, tags, _ = document_cls(subcls)

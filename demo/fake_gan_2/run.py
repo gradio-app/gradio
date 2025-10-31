@@ -22,6 +22,7 @@ demo = gr.Interface(
     outputs=gr.Image(label="Generated Image"),
     title="FD-GAN",
     description="This is a fake demo of a GAN. In reality, the images are randomly chosen from Unsplash.",
+    api_name="predict"
 )
 demo.queue(max_size=3)
 

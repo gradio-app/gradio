@@ -40,7 +40,7 @@
 	export let min_width: number | undefined = undefined;
 	export let submit_btn: string | boolean | null = null;
 	export let stop_btn: string | boolean | null = null;
-	export let show_copy_button = false;
+	export let buttons: string[] | null = null;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let value_is_output = false;
 	export let rtl = false;
@@ -90,7 +90,7 @@
 		{placeholder}
 		{submit_btn}
 		{stop_btn}
-		{show_copy_button}
+		show_copy_button={buttons?.includes("copy") ?? false}
 		{autofocus}
 		{container}
 		{autoscroll}

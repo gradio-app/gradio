@@ -440,31 +440,6 @@
 />
 
 <Story
-	name="Dataframe with custom components"
-	args={{
-		values: [
-			[
-				"Absol G",
-				70,
-				"https://images.pokemontcg.io/pl3/1_hires.png",
-				"pl3-1",
-				"Supreme Victors"
-			]
-		],
-		datatype: ["str", "number", "image", "str", "str"],
-		headers: ["Pokemon", "HP", "Image", "ID", "Set"],
-		label: "Pokemon Cards",
-		col_count: [5, "fixed"],
-		row_count: [1, "dynamic"],
-		editable: true,
-		editable: true,
-		components: {
-			image: Image
-		}
-	}}
-/>
-
-<Story
 	name="Dataframe with row and column selection"
 	args={{
 		values: [

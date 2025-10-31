@@ -27,7 +27,8 @@ demo = gr.Interface(
     examples=[
         get_image("cheetah1.jpg"),
         get_image("lion.jpg")
-        ]
+        ],
+    api_name="predict"
     )
 
 if __name__ == "__main__":

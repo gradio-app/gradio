@@ -205,7 +205,9 @@ class TestBlocksMethods:
 
     @pytest.mark.asyncio
     async def test_restart_after_close(self, connect):
-        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox()).queue()
+        io = gr.Interface(
+            lambda s: s, gr.Textbox(), gr.Textbox(), api_name="predict"
+        ).queue()
 
         with connect(io) as client:
             assert client.predict("freddy", api_name="/predict") == "freddy"
@@ -259,7 +261,7 @@ class TestBlocksMethods:
                 await asyncio.sleep(0.2)
 
         demo = gr.Interface(
-            async_iteration, gr.Number(precision=0), gr.Number()
+            async_iteration, gr.Number(precision=0), gr.Number(), api_name="predict"
         ).queue()
         outputs = []
         with connect(demo) as client:
@@ -271,7 +273,7 @@ class TestBlocksMethods:
         def generator(string):
             yield from string
 
-        demo = gr.Interface(generator, "text", "text").queue()
+        demo = gr.Interface(generator, "text", "text", api_name="predict").queue()
         outputs = []
         with connect(demo) as client:
             for output in client.submit("abc", api_name="/predict"):
@@ -403,6 +405,7 @@ class TestTempFile:
             create_images,
             inputs="slider",
             outputs=gallery,
+            api_name="predict",
         )
         with connect(demo) as client:
             client.predict(3, api_name="/predict")
@@ -418,6 +421,7 @@ class TestTempFile:
             lambda x: x,
             inputs=gr.Image(type="filepath"),
             outputs=gr.Image(),
+            api_name="predict",
         )
         with connect(demo) as client:
             _ = client.predict(image, api_name="/predict")
@@ -429,7 +433,9 @@ class TestTempFile:
     @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
     def test_file_component_uploads(self, component, connect, gradio_temp_dir):
         code_file = grc.handle_file(str(pathlib.Path(__file__)))
-        demo = gr.Interface(lambda x: x.name, component(), gr.File())
+        demo = gr.Interface(
+            lambda x: x.name, component(), gr.File(), api_name="predict"
+        )
         with connect(demo) as client:
             _ = client.predict(code_file, api_name="/predict")
             _ = client.predict(code_file, api_name="/predict")
@@ -442,10 +448,10 @@ class TestTempFile:
     def test_no_empty_video_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         video = grc.handle_file(str(file_dir / "video_sample.mp4"))
-        demo = gr.Interface(lambda x: x, gr.Video(), gr.Video())
+        demo = gr.Interface(lambda x: x, gr.Video(), gr.Video(), api_name="predict")
         with connect(demo) as client:
-            _ = client.predict({"video": video}, api_name="/predict")
-            _ = client.predict({"video": video}, api_name="/predict")
+            _ = client.predict(video, api_name="/predict")
+            _ = client.predict(video, api_name="/predict")
         # Upload route and postprocessing return the same file
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
@@ -457,7 +463,9 @@ class TestTempFile:
             sr, data = audio
             return (sr, np.flipud(data))
 
-        demo = gr.Interface(fn=reverse_audio, inputs=gr.Audio(), outputs=gr.Audio())
+        demo = gr.Interface(
+            fn=reverse_audio, inputs=gr.Audio(), outputs=gr.Audio(), api_name="predict"
+        )
         with connect(demo) as client:
             _ = client.predict(audio, api_name="/predict")
             _ = client.predict(audio, api_name="/predict")
@@ -796,7 +804,12 @@ class TestBlocksPostprocessing:
                 dataset = gr.Dataset(
                     components=["text"], samples=[["Original"]], label="Saved Prompts"
                 )
-                dataset.click(update, inputs=[dataset], outputs=[textbox, dataset])
+                dataset.click(
+                    update,
+                    inputs=[dataset],
+                    outputs=[textbox, dataset],
+                    api_name="predict",
+                )
         app, _, _ = demo.launch(prevent_thread_lock=True)
 
         client = TestClient(app)
@@ -827,6 +840,7 @@ class TestStateHolder:
                 run,
                 inputs=[num, state],
                 outputs=[num, state],
+                api_name="predict",
             )
         app, _, _ = demo.launch(prevent_thread_lock=True, state_session_capacity=2)
         client = TestClient(app)
@@ -882,6 +896,7 @@ class TestStateHolder:
                 run,
                 inputs=[min, num],
                 outputs=[min, num],
+                api_name="predict",
             )
         app, _, _ = demo.launch(prevent_thread_lock=True, state_session_capacity=2)
         client = TestClient(app)
@@ -1446,8 +1461,8 @@ class TestGetAPIInfo:
             t5 = gr.Textbox()
             t1.change(lambda x: x, t1, t2, api_name="change1")
             t2.change(lambda x: x, t2, t3, api_name="change2")
-            t3.change(lambda x: x, t3, t4, api_name=False)
-            t4.change(lambda x: x, t4, t5, api_name=False)
+            t3.change(lambda x: x, t3, t4, api_visibility="private")
+            t4.change(lambda x: x, t4, t5, api_visibility="private")
 
         api_info = demo.get_api_info()
         assert api_info
@@ -1458,7 +1473,7 @@ class TestGetAPIInfo:
         with gr.Blocks() as demo:
             t1 = gr.Textbox()
             t2 = gr.Textbox()
-            t1.change(lambda x: x, t1, t2, api_name=False)
+            t1.change(lambda x: x, t1, t2, api_visibility="private")
 
         api_info = demo.get_api_info()
         assert api_info
@@ -1737,7 +1752,9 @@ def test_async_iterator_update_with_new_component(connect):
 
             await asyncio.sleep(0.1)
 
-    demo = gr.Interface(fn=get_number_stream, inputs=None, outputs=["number"])
+    demo = gr.Interface(
+        fn=get_number_stream, inputs=None, outputs=["number"], api_name="predict"
+    )
     demo.queue()
 
     with connect(demo) as client:
@@ -1935,9 +1952,9 @@ def test_render_when_mounted_sets_root_path_for_files():
                     render_config = data["output"]["render_config"]
                     for component in render_config["components"]:
                         if "value" in component.get("props", {}):
-                            assert component["props"]["value"]["video"][
-                                "url"
-                            ].startswith(f"http://testserver/test{API_PREFIX}/file=")
+                            assert component["props"]["value"]["url"].startswith(
+                                f"http://testserver/test{API_PREFIX}/file="
+                            )
                             checked_component = True
         assert checked_component
 

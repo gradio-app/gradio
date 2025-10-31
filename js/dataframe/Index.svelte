@@ -51,9 +51,8 @@
 	export let max_height: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let interactive: boolean;
-	export let show_fullscreen_button = false;
+	export let buttons: string[] | null = null;
 	export let max_chars: number | undefined = undefined;
-	export let show_copy_button = false;
 	export let show_row_numbers = false;
 	export let show_search: "none" | "search" | "filter" = "none";
 	export let pinned_columns = 0;
@@ -111,9 +110,8 @@
 		upload={(...args) => gradio.client.upload(...args)}
 		stream_handler={(...args) => gradio.client.stream(...args)}
 		bind:value_is_output
-		{show_fullscreen_button}
+		{buttons}
 		{max_chars}
-		{show_copy_button}
 		{show_row_numbers}
 		{show_search}
 		{pinned_columns}
