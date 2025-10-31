@@ -2,7 +2,7 @@ import type { ActionReturn } from "svelte/action";
 import type { Client } from "@gradio/client";
 import type { ComponentType, SvelteComponent } from "svelte";
 import { getContext, tick } from "svelte";
-import { type SharedProps } from "@gradio/core";
+// import { type SharedProps } from "@gradio/core";
 
 export const GRADIO_ROOT = Symbol();
 
@@ -230,6 +230,38 @@ export type load_component = (
 
 const is_browser = typeof window !== "undefined";
 
+export type ServerFunctions = Record<string, (...args: any[]) => Promise<any>>;
+export interface SharedProps {
+	elem_id?: string;
+	elem_classes: string[];
+	components?: string[];
+	server_fns?: string[];
+	interactive: boolean;
+	visible: boolean | "hidden";
+	id: number;
+	container: boolean;
+	target: HTMLElement;
+	theme_mode: "light" | "dark" | "system";
+	version: string;
+	root: string;
+	autoscroll: boolean;
+	max_file_size: number | null;
+	formatter: any; //I18nFormatter;
+	client: Client;
+	scale: number;
+	min_width: number;
+	padding: number;
+	load_component: typeof get_component; //component_loader;
+	loading_status?: LoadingStatus;
+	label: string;
+	show_label: boolean;
+	validation_error?: string | null;
+	theme?: "light" | "dark";
+	show_progress: boolean;
+	api_prefix: string;
+	server: ServerFunctions;
+}
+
 //
 // id: node.id,
 // target,
@@ -241,7 +273,7 @@ const is_browser = typeof window !== "undefined";
 // formatter: $reactive_formatter,
 // client,
 // load_component,
-export const allowed_shared_props: (keyof SharedProps)[] = [
+export const allowed_shared_props: string[] = [
 	"elem_id",
 	"elem_classes",
 	"visible",
