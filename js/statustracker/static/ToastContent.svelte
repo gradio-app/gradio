@@ -283,7 +283,7 @@
 	}
 
 	.toast-close {
-		color: var(--toast-color);
+		color: var(--body-text-color);
 	}
 
 	.toast-icon {
@@ -307,11 +307,12 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--size-2);
-		padding: 0 var(--size-3) var(--size-3) var(--size-3);
+		padding: 0 var(--size-3) var(--size-2) var(--size-3);
 	}
 
 	.toast-message-item {
-		padding: var(--size-2);
+		padding: var(--size-1-5) var(--size-1-5) var(--size-1-5) var(--size-1-5);
+		border-radius: var(--radius-lg);
 	}
 
 	.toast-separator {
@@ -363,11 +364,11 @@
 
 		.toast-messages {
 			gap: var(--size-1);
-			padding: 0 var(--size-2) var(--size-2) var(--size-2);
+			padding: 0 var(--size-2) var(--size-1-5) var(--size-2);
 		}
 
 		.toast-message-item {
-			padding: var(--size-2);
+			padding: 0 var(--size-1) var(--size-1) var(--size-1);
 		}
 	}
 </style>
