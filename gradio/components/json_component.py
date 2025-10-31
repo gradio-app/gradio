@@ -55,6 +55,7 @@ class JSON(Component):
         height: int | str | None = None,
         max_height: int | str | None = 500,
         min_height: int | str | None = None,
+        buttons: list[Literal["copy"]] | None = None,
     ):
         """
         Parameters:
@@ -75,6 +76,7 @@ class JSON(Component):
             open: If True, all JSON nodes will be expanded when rendered. By default, node levels deeper than 3 are collapsed.
             show_indices: Whether to show numerical indices when displaying the elements of a list within the JSON object.
             height: Height of the JSON component in pixels if a number is passed, or in CSS units if a string is passed. Overflow will be scrollable. If None, the height will be automatically adjusted to fit the content.
+            buttons: A list of buttons to show for the component. Currently, the only valid option is "copy". The "copy" button allows users to copy the JSON to the clipboard. By default, the copy button is shown.
         """
         super().__init__(
             label=label,
@@ -98,6 +100,7 @@ class JSON(Component):
         self.height = height
         self.max_height = max_height
         self.min_height = min_height
+        self.buttons = buttons
 
     def preprocess(self, payload: dict | list | None) -> dict | list | None:
         """

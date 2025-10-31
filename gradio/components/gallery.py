@@ -109,6 +109,7 @@ class Gallery(Component):
         buttons: list[Literal["share", "download", "fullscreen"]] | None = None,
         interactive: bool | None = None,
         type: Literal["numpy", "pil", "filepath"] = "filepath",
+        fit_columns: bool = True,
     ):
         """
         Parameters:
@@ -138,6 +139,7 @@ class Gallery(Component):
             buttons: A list of buttons to show in the top right corner of the component. Valid options are "share", "download", and "fullscreen". The "share" button allows the user to share outputs to Hugging Face Spaces Discussions. The "download" button allows the user to download the selected image. The "fullscreen" button allows the user to view the gallery in fullscreen mode. By default, all buttons are shown.
             interactive: If True, the gallery will be interactive, allowing the user to upload images. If False, the gallery will be static. Default is True.
             type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image. If the image is SVG, the `type` is ignored and the filepath of the SVG is returned.
+            fit_columns: Expand columns to fit the full width when there are fewer images than the columns parameter.
         """
         self.format = format
         self.columns = columns
@@ -154,6 +156,7 @@ class Gallery(Component):
         self.type = type
         self.file_types = file_types
         self.buttons = buttons or ["download", "fullscreen"]
+        self.fit_columns = fit_columns
 
         super().__init__(
             label=label,

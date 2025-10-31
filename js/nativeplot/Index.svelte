@@ -2,7 +2,11 @@
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Block } from "@gradio/atoms";
-	import { FullscreenButton, IconButtonWrapper } from "@gradio/atoms";
+	import {
+		FullscreenButton,
+		IconButtonWrapper,
+		IconButton
+	} from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { onMount } from "svelte";
@@ -40,19 +44,22 @@
 		| "max"
 		| undefined = undefined;
 	export let color_map: Record<string, string> | null = null;
-	export let x_lim: [number, number] | null = null;
+	export let colors_in_legend: string[] | null = null;
+	export let x_lim: [number | null, number | null] | null = null;
 	export let y_lim: [number | null, number | null] | null = null;
 	$: x_lim = x_lim || null; // for some unknown reason, x_lim was getting set to undefined when used in re-render, so this line is needed
 	$: y_lim = y_lim || null;
-	$: [x_start, x_end] = x_lim === null ? [undefined, undefined] : x_lim;
-	$: [y_start, y_end] = y_lim || [undefined, undefined];
+	$: x_start = x_lim?.[0] !== null ? x_lim?.[0] : undefined;
+	$: x_end = x_lim?.[1] !== null ? x_lim?.[1] : undefined;
+	$: y_start = y_lim?.[0] !== null ? y_lim?.[0] : undefined;
+	$: y_end = y_lim?.[1] !== null ? y_lim?.[1] : undefined;
 	export let x_label_angle: number | null = null;
 	export let y_label_angle: number | null = null;
 	export let x_axis_labels_visible = true;
 	export let caption: string | null = null;
 	export let sort: "x" | "y" | "-x" | "-y" | string[] | null = null;
 	export let tooltip: "axis" | "none" | "all" | string[] = "axis";
-	export let show_fullscreen_button = false;
+	export let buttons: string[] | null = null;
 	let fullscreen = false;
 
 	function reformat_sort(
@@ -90,8 +97,22 @@
 		clear_status: LoadingStatus;
 	}>;
 
+	function escape_field_name(fieldName: string): string {
+		// Escape special characters in field names according to Vega-Lite spec:
+		// https://vega.github.io/vega-lite/docs/field.html
+		return fieldName
+			.replace(/\./g, "\\.")
+			.replace(/\[/g, "\\[")
+			.replace(/\]/g, "\\]");
+	}
+
 	$: x_temporal = value && value.datatypes[x] === "temporal";
-	$: _x_lim = x_lim && x_temporal ? [x_lim[0] * 1000, x_lim[1] * 1000] : x_lim;
+	$: _x_lim = x_temporal
+		? [
+				x_start !== undefined ? x_start * 1000 : null,
+				x_end !== undefined ? x_end * 1000 : null
+			]
+		: x_lim;
 	let _x_bin: number | undefined;
 	let mouse_down_on_chart = false;
 	const SUFFIX_DURATION: Record<string, number> = {
@@ -394,6 +415,7 @@
 	// }
 
 	let refresh_pending = false;
+
 	onMount(() => {
 		mounted = true;
 		return () => {
@@ -406,6 +428,36 @@
 			// }
 		};
 	});
+
+	function export_chart(): void {
+		if (!view || !computed_style) return;
+
+		const block_background = computed_style.getPropertyValue(
+			"--block-background-fill"
+		);
+		const export_background = block_background || "white";
+
+		view.background(export_background).run();
+
+		view
+			.toImageURL("png", 2)
+			.then(function (url) {
+				view.background("transparent").run();
+
+				const link = document.createElement("a");
+				link.setAttribute("href", url);
+				link.setAttribute("download", "chart.png");
+				link.style.display = "none";
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+			})
+			.catch(function (err) {
+				console.error("Export failed:", err);
+				view.background("transparent").run();
+			});
+	}
+
 	$: _color_map = JSON.stringify(color_map);
 
 	$: (title,
@@ -418,6 +470,7 @@
 		x_bin,
 		_y_aggregate,
 		_color_map,
+		colors_in_legend,
 		x_start,
 		x_end,
 		y_start,
@@ -544,16 +597,20 @@
 									labels: x_axis_labels_visible,
 									ticks: x_axis_labels_visible,
 								},
-								field: x,
+								field: escape_field_name(x),
 								title: x_title || x,
 								type: value.datatypes[x],
-								scale: _x_lim ? { domain: _x_lim } : undefined,
+								scale: {
+									zero: false,
+									domainMin: _x_lim?.[0] !== null ? _x_lim?.[0] : undefined,
+									domainMax: _x_lim?.[1] !== null ? _x_lim?.[1] : undefined
+								},
 								bin: _x_bin ? { step: _x_bin } : undefined,
 								sort: _sort,
 							},
 							y: {
 								axis: y_label_angle ? { labelAngle: y_label_angle } : {},
-								field: y,
+								field: escape_field_name(y),
 								title: y_title || y,
 								type: value.datatypes[y],
 								scale: {
@@ -565,8 +622,12 @@
 							},
 							color: color
 								? {
-										field: color,
-										legend: { orient: "bottom", title: color_title },
+										field: escape_field_name(color),
+										legend: {
+											orient: "bottom",
+											title: color_title,
+											values: colors_in_legend || undefined
+										},
 										scale:
 											value.datatypes[color] === "nominal"
 												? {
@@ -591,13 +652,13 @@
 									? undefined
 									: [
 											{
-												field: y,
+												field: escape_field_name(y),
 												type: value.datatypes[y],
 												aggregate: aggregating ? _y_aggregate : undefined,
 												title: y_title || y,
 											},
 											{
-												field: x,
+												field: escape_field_name(x),
 												type: value.datatypes[x],
 												title: x_title || x,
 												format: x_temporal ? "%Y-%m-%d %H:%M:%S" : undefined,
@@ -626,13 +687,6 @@
 															type: value.datatypes[column],
 														}))),
 										],
-						},
-						strokeDash: {},
-						mark: { clip: true, type: mode === "hover" ? "point" : value.mark },
-						name: mode,
-					};
-				},
-			),
 			// @ts-ignore
 			params: [
 				...(value.mark === "line"
@@ -711,14 +765,19 @@
 			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 	{/if}
-	{#if show_fullscreen_button}
+	{#if buttons?.length}
 		<IconButtonWrapper>
-			<FullscreenButton
-				{fullscreen}
-				on:fullscreen={({ detail }) => {
-					fullscreen = detail;
-				}}
-			/>
+			{#if buttons?.includes("export")}
+				<IconButton Icon={Download} label="Export" on:click={export_chart} />
+			{/if}
+			{#if buttons?.includes("fullscreen")}
+				<FullscreenButton
+					{fullscreen}
+					on:fullscreen={({ detail }) => {
+						fullscreen = detail;
+					}}
+				/>
+			{/if}
 		</IconButtonWrapper>
 	{/if}
 	<BlockTitle {show_label} info={undefined}>{label}</BlockTitle>

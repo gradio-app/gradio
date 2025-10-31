@@ -9,6 +9,7 @@ export interface DialogueProps {
 	speakers: string[];
 	info: string;
 	placeholder: string;
+	submit_btn: string | boolean;
 }
 
 export interface DialogueEvents {

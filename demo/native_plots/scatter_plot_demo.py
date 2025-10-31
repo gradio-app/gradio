@@ -14,12 +14,14 @@ with gr.Blocks() as scatter_plots:
         temp_sensor_data,
         x="time",
         y="temperature",
+        buttons=["export"],
     )
     temp_by_time_location = gr.ScatterPlot(
         temp_sensor_data,
         x="time",
         y="temperature",
         color="location",
+        buttons=["export"],
     )
 
     time_graphs = [temp_by_time, temp_by_time_location]
@@ -47,6 +49,7 @@ with gr.Blocks() as scatter_plots:
         food_rating_data,
         x="cuisine",
         y="price",
+        buttons=["export"],
     )
     with gr.Row():
         price_by_rating = gr.ScatterPlot(
@@ -54,14 +57,14 @@ with gr.Blocks() as scatter_plots:
             x="rating",
             y="price",
             color="wait",
-            show_actions_button=True,
+            buttons=["actions", "export"],
         )
         price_by_rating_color = gr.ScatterPlot(
             food_rating_data,
             x="rating",
             y="price",
             color="cuisine",
-            # color_map={"Italian": "red", "Mexican": "green", "Chinese": "blue"},
+            buttons=["export"],
         )
 
 if __name__ == "__main__":

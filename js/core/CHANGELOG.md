@@ -1,5 +1,46 @@
 # @gradio/core
 
+## 1.0.0-dev.0
+
+### Features
+
+- [#12069](https://github.com/gradio-app/gradio/pull/12069) [`9de88ca`](https://github.com/gradio-app/gradio/commit/9de88ca470ce529366d259f0deaa955f658000b9) - Rename show_api.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.1
+- @gradio/gallery@0.15.35-dev.1
+
+## 0.29.2
+
+### Dependency updates
+
+- @gradio/upload@0.17.2-dev.0
+- @gradio/code@0.15.1-dev.0
+- @gradio/client@2.0.0-dev.0
+- @gradio/gallery@0.15.35-dev.0
+- @gradio/image@0.23.2-dev.0
+- @gradio/button@0.5.14-dev.0
+- @gradio/file@0.13.1-dev.0
+- @gradio/video@0.17.0-dev.0
+
+## 0.29.2
+
+### Fixes
+
+- [#11994](https://github.com/gradio-app/gradio/pull/11994) [`d6f591e`](https://github.com/gradio-app/gradio/commit/d6f591e823dad8e7387de4124fa1e3ab16203a73) - Add render_children parameter to Tab component.  Thanks @freddyaboulton!
+
+## 0.29.1
+
+### Fixes
+
+- [#11992](https://github.com/gradio-app/gradio/pull/11992) [`1ae2a57`](https://github.com/gradio-app/gradio/commit/1ae2a57a253c56cd8f3d3e5d795688fec80cab2c) - fix iframe sizing on spaces for apps runing in SPA mode.  Thanks @pngwn!
+- [#11993](https://github.com/gradio-app/gradio/pull/11993) [`0dc0be8`](https://github.com/gradio-app/gradio/commit/0dc0be8ff1526d43ba7b01ccc7d8173f92c5eed2) - Trigger Change Event if component is in inactive tab.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/client@1.19.1
+
 ## 0.29.0
 
 ### Dependency updates

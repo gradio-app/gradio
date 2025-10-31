@@ -83,5 +83,18 @@
     "@gradio/vibeeditor": "0.2.3",
     "@gradio/video": "0.15.1"
   },
-  "changesets": []
+  "changesets": [
+    "afraid-signs-judge",
+    "dark-flowers-poke",
+    "full-cities-battle",
+    "hip-wombats-pick",
+    "hot-doodles-laugh",
+    "loud-taxes-juggle",
+    "ready-olives-pay",
+    "ripe-sloths-post",
+    "sour-sides-attend",
+    "stale-papers-win",
+    "tired-colts-jump",
+    "true-frogs-hang"
+  ]
 }

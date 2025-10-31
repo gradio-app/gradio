@@ -1,5 +1,17 @@
 # @gradio/navbar
 
+## 0.2.2-dev.0
+
+### Dependency updates
+
+- @gradio/core@1.0.0-dev.0
+
+## 0.2.1
+
+### Dependency updates
+
+- @gradio/core@0.29.2
+
 ## 0.2.1
 
 ### Dependency updates

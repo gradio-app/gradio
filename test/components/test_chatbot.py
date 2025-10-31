@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import gradio as gr
 from gradio import utils
 
@@ -11,31 +9,71 @@ class TestChatbot:
         """
         chatbot = gr.Chatbot()
         assert chatbot.postprocess(
-            [["You are **cool**\nand fun", "so are *you*"]]
-        ).model_dump() == [("You are **cool**\nand fun", "so are *you*")]
+            [
+                {"role": "user", "content": "You are **cool**\nand fun"},
+                {"role": "assistant", "content": "so are *you*"},
+            ]
+        ).model_dump() == [
+            {
+                "role": "user",
+                "content": [{"type": "text", "text": "You are **cool**\nand fun"}],
+                "metadata": None,
+                "options": None,
+            },
+            {
+                "role": "assistant",
+                "content": [{"type": "text", "text": "so are *you*"}],
+                "metadata": None,
+                "options": None,
+            },
+        ]
 
         multimodal_msg = [
-            [("test/test_files/video_sample.mp4",), "cool video"],
-            [("test/test_files/audio_sample.wav",), "cool audio"],
-            [("test/test_files/bus.png", "A bus"), "cool pic"],
-            [(Path("test/test_files/video_sample.mp4"),), "cool video"],
-            [(Path("test/test_files/audio_sample.wav"),), "cool audio"],
-            [(Path("test/test_files/bus.png"), "A bus"), "cool pic"],
+            {"role": "user", "content": {"path": "test/test_files/video_sample.mp4"}},
+            {"role": "assistant", "content": "cool video"},
+            {"role": "user", "content": {"path": "test/test_files/audio_sample.wav"}},
+            {"role": "assistant", "content": "cool audio"},
+            {
+                "role": "user",
+                "content": {"path": "test/test_files/bus.png", "alt_text": "A bus"},
+            },
+            {"role": "assistant", "content": "cool pic"},
+            {"role": "user", "content": {"path": "test/test_files/video_sample.mp4"}},
+            {"role": "assistant", "content": "cool video"},
+            {"role": "user", "content": {"path": "test/test_files/audio_sample.wav"}},
+            {"role": "assistant", "content": "cool audio"},
+            {
+                "role": "user",
+                "content": {
+                    "file": {"path": "test/test_files/bus.png", "alt_text": "A bus"}
+                },
+            },
+            {"role": "assistant", "content": "cool pic"},
         ]
         postprocessed_multimodal_msg = chatbot.postprocess(multimodal_msg).model_dump()  # type: ignore
         for msg in postprocessed_multimodal_msg:
-            assert "file" in msg[0]
-            assert msg[1] in {"cool video", "cool audio", "cool pic"}
-            assert msg[0]["file"]["path"].split(".")[-1] in {"mp4", "wav", "png"}
-            if msg[0]["alt_text"]:
-                assert msg[0]["alt_text"] == "A bus"
-
+            if msg["role"] == "user":
+                assert "file" in msg["content"][0]
+                assert msg["content"][0]["file"]["path"].split(".")[-1] in {
+                    "mp4",
+                    "wav",
+                    "png",
+                }
+                if msg["content"][0]["alt_text"]:
+                    assert msg["content"][0]["alt_text"] == "A bus"
+            elif msg["role"] == "assistant":
+                assert msg["content"][0]["text"] in {
+                    "cool video",
+                    "cool audio",
+                    "cool pic",
+                }
+            else:
+                raise ValueError(f"Unexpected role: {msg['role']}")
         assert chatbot.get_config() == {
             "value": [],
             "label": None,
             "show_label": True,
             "name": "chatbot",
-            "show_share_button": False,
             "visible": True,
             "elem_id": None,
             "elem_classes": [],
@@ -59,19 +97,16 @@ class TestChatbot:
             "allow_file_downloads": True,
             "key": None,
             "preserved_by_key": ["value"],
-            "type": "tuples",
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "likeable": False,
             "rtl": False,
-            "show_copy_button": False,
+            "buttons": None,
             "avatar_images": [None, None],
             "sanitize_html": True,
             "render_markdown": True,
-            "bubble_full_width": None,
             "line_breaks": True,
             "layout": None,
-            "allow_tags": False,
-            "show_copy_all_button": False,
+            "allow_tags": True,
             "examples": None,
             "watermark": None,
         }

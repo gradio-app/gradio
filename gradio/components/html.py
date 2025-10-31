@@ -43,7 +43,7 @@ class HTML(Component):
         min_height: int | None = None,
         max_height: int | None = None,
         container: bool = False,
-        padding: bool = True,
+        padding: bool = False,
         autoscroll: bool = False,
     ):
         """
@@ -62,7 +62,7 @@ class HTML(Component):
             min_height: The minimum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If HTML content exceeds the height, the component will expand to fit the content.
             max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If content exceeds the height, the component will scroll.
             container: If True, the HTML component will be displayed in a container. Default is False.
-            padding: If True, the HTML component will have a certain padding (set by the `--block-padding` CSS variable) in all directions. Default is True.
+            padding: If True, the HTML component will have a certain padding (set by the `--block-padding` CSS variable) in all directions. Default is False.
             autoscroll: If True, will automatically scroll to the bottom of the component when the content changes, unless the user has scrolled up. If False, will not scroll to the bottom when the content changes.
         """
         self.min_height = min_height

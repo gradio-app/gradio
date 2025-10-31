@@ -31,14 +31,14 @@ class TestEnum(Enum):
 
 def test_encode_url_or_file_to_base64():
     output_base64 = utils.encode_url_or_file_to_base64(
-        Path(__file__).parent / "../../../gradio/test_data/test_image.png"
+        Path(__file__).parents[3] / "gradio" / "test_data" / "test_image.png"
     )
     assert output_base64 == deepcopy(media_data.BASE64_IMAGE)
 
 
 def test_encode_file_to_base64():
     output_base64 = utils.encode_file_to_base64(
-        Path(__file__).parent / "../../../gradio/test_data/test_image.png"
+        Path(__file__).parents[3] / "gradio" / "test_data" / "test_image.png"
     )
     assert output_base64 == deepcopy(media_data.BASE64_IMAGE)
 
@@ -115,34 +115,6 @@ def test_strip_invalid_filename_characters(orig_filename, new_filename):
 class AsyncMock(MagicMock):
     async def __call__(self, *args, **kwargs):
         return super().__call__(*args, **kwargs)
-
-
-@pytest.mark.asyncio
-async def test_get_pred_from_ws():
-    mock_ws = AsyncMock(name="ws")
-    messages = [
-        json.dumps({"msg": "estimation"}),
-        json.dumps({"msg": "send_data"}),
-        json.dumps({"msg": "process_generating"}),
-        json.dumps({"msg": "process_completed", "output": {"data": ["result!"]}}),
-    ]
-    mock_ws.recv.side_effect = messages
-    data = {"data": ["foo"], "fn_index": "foo"}
-    hash_data = {"session_hash": "daslskdf", "fn_index": "foo"}
-    output = await utils.get_pred_from_ws(mock_ws, data, hash_data)  # type: ignore
-    assert output == {"data": ["result!"]}
-    mock_ws.send.assert_called_once_with(data)
-
-
-@pytest.mark.asyncio
-async def test_get_pred_from_ws_raises_if_queue_full():
-    mock_ws = AsyncMock(name="ws")
-    messages = [json.dumps({"msg": "queue_full"})]
-    mock_ws.recv.side_effect = messages
-    data = json.dumps({"data": ["foo"], "fn_index": "foo"})
-    hash_data = json.dumps({"session_hash": "daslskdf", "fn_index": "foo"})
-    with pytest.raises(utils.QueueError, match="Queue is full!"):
-        await utils.get_pred_from_ws(mock_ws, data, hash_data)
 
 
 @patch("httpx.post")

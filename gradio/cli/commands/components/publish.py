@@ -8,6 +8,7 @@ from typing import Annotated
 
 import semantic_version
 from huggingface_hub import HfApi
+from packaging.version import Version as PEP440Version
 from rich import print
 from rich.console import Console
 from rich.panel import Panel
@@ -34,6 +35,20 @@ def _get_version_from_file(dist_file: Path) -> str | None:
     match = re.search(r"-(\d+\.\d+\.\d+[a-zA-Z]*\d*)-", dist_file.name)
     if match:
         return match.group(1)
+    return None
+
+
+def _parse_version(
+    version_string: str,
+) -> semantic_version.Version | PEP440Version | None:
+    """Parse a version string, trying semantic_version first, then PEP440."""
+    try:
+        return semantic_version.Version(version_string)
+    except ValueError:
+        try:
+            return PEP440Version(version_string)
+        except Exception:
+            return None
 
 
 def _get_max_version(distribution_files: list[Path]) -> str | None:
@@ -43,9 +58,10 @@ def _get_max_version(distribution_files: list[Path]) -> str | None:
         # If anything goes wrong, just return None so we upload all files
         # better safe than sorry
         if version:
-            try:
-                versions.append(semantic_version.Version(version))
-            except ValueError:
+            parsed = _parse_version(version)
+            if parsed:
+                versions.append(parsed)
+            else:
                 return None
     return str(max(versions)) if versions else None
 
@@ -66,7 +82,7 @@ def _publish(
         Path,
         Option(help="Path to the source directory of the custom component."),
     ] = Path("."),
-    hf_token: Annotated[
+    token: Annotated[
         str | None,
         Option(
             help="HuggingFace token for uploading demo. Can be omitted if already logged in via huggingface cli."
@@ -87,7 +103,7 @@ def _publish(
     repo_id: Annotated[
         str | None,
         Option(
-            help="The repository id to upload the demo to. If not provided, a space will be created with the same name as the package in the HuggingFace account corresponding to the hf_token."
+            help="The repository id to upload the demo to. If not provided, a space will be created with the same name as the package in the HuggingFace account corresponding to the token."
         ),
     ] = None,
 ):
@@ -110,9 +126,17 @@ def _publish(
     distribution_files = [
         p.resolve() for p in Path(dist_dir).glob("*") if p.suffix in {".whl", ".gz"}
     ]
+
+    def _get_wheel_version(path: Path):
+        version_str = str(path.name).split("-")[1]
+        parsed = _parse_version(version_str)
+        if parsed is None:
+            raise ValueError(f"Could not parse version {version_str} from {path.name}")
+        return parsed
+
     wheel_file = max(
         (p for p in distribution_files if p.suffix == ".whl"),
-        key=lambda s: semantic_version.Version(str(s.name).split("-")[1]),
+        key=_get_wheel_version,
     )
     if not wheel_file:
         raise ValueError(
@@ -210,6 +234,7 @@ def _publish(
                 or source_dir
             )
             source_dir = Path(source_dir_).resolve()
+
     if upload_demo:
         pyproject_toml_path = source_dir / "pyproject.toml"
 
@@ -245,7 +270,7 @@ def _publish(
                 str(source_dir / "README.md"), str(Path(tempdir) / "README.md")
             )
 
-            api = HfApi(token=hf_token)
+            api = HfApi(token=token)
             repo_url = api.create_repo(
                 repo_id=repo_id or package_name,
                 repo_type="space",
@@ -267,7 +292,7 @@ def _publish(
                 )
             print("\n")
             # Do a factory reboot so that the new dependencies get installed
-            api.restart_space(repo_id=repo_id, factory_reboot=True, token=hf_token)
+            api.restart_space(repo_id=repo_id, factory_reboot=True, token=token)
             print(f"Demo uploaded to https://huggingface.co/spaces/{repo_id} !")
 
 

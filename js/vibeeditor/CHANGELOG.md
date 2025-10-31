@@ -1,5 +1,27 @@
 # @gradio/vibeeditor
 
+## 0.3.1-dev.0
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.1
+
+## 0.3.1-dev.0
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.0
+
+## 0.3.0
+
+### Features
+
+- [#11986](https://github.com/gradio-app/gradio/pull/11986) [`cf9aefd`](https://github.com/gradio-app/gradio/commit/cf9aefd0ae04ecc19bf7e69ec8d2ae4a081ef842) - More vibe editor issues and features.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/client@1.19.1
+
 ## 0.2.5
 
 ### Dependency updates

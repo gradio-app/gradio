@@ -71,7 +71,7 @@ export async function load({
 
 				is_space: false,
 				is_colab: false,
-				show_api: false,
+				footer_links: ["gradio", "settings"],
 				stylesheets: [],
 				protocol: "sse_v3",
 				username: ""

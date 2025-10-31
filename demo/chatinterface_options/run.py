@@ -23,8 +23,8 @@ def chat(message, history):
 
 demo = gr.ChatInterface(
     chat,
-    type="messages",
-    examples=["Write an example Python lambda function."]
+    examples=["Write an example Python lambda function."],
+    api_name="chat",
 )
 
 if __name__ == "__main__":

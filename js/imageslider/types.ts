@@ -19,11 +19,10 @@ export interface ImageSliderEvents {
 
 export interface ImageSliderProps {
 	value: [FileData | null, FileData | null];
-	show_download_button: boolean;
 	height: number | undefined;
 	width: number | undefined;
 	placeholder: string | undefined;
-	show_fullscreen_button: boolean;
+	buttons: string[];
 	input_ready: boolean;
 	slider_position: number;
 	upload_count: number;

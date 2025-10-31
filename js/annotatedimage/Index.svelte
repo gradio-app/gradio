@@ -72,7 +72,7 @@
 		{:else}
 			<div class="image-container" bind:this={image_container}>
 				<IconButtonWrapper>
-					{#if gradio.props.buttons.includes("fullscreen")}
+					{#if gradio.props.buttons.includes("fullscreen") ?? true}
 						<FullscreenButton
 							{fullscreen}
 							on:fullscreen={({ detail }) => {

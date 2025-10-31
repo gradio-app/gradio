@@ -12,13 +12,11 @@ import type {
 } from "../types";
 
 import { skip_queue, post_message, handle_payload } from "../helpers/data";
-import { resolve_root } from "../helpers/init_helpers";
 import {
 	handle_message,
 	map_data_to_params,
 	process_endpoint
 } from "../helpers/api_info";
-import semiver from "semiver";
 import {
 	BROKEN_CONNECTION_MSG,
 	QUEUE_FULL_MSG,
@@ -39,7 +37,7 @@ export function submit(
 	all_events?: boolean
 ): SubmitIterable<GradioEvent> {
 	try {
-		const { hf_token } = this.options;
+		const { token } = this.options;
 		const {
 			fetch,
 			app_reference,
@@ -71,9 +69,11 @@ export function submit(
 
 		let resolved_data = map_data_to_params(data, endpoint_info);
 
-		let websocket: WebSocket;
 		let stream: EventSource | null;
 		let protocol = config.protocol ?? "ws";
+		if (protocol === "ws") {
+			throw new Error("WebSocket protocol is not supported in this version");
+		}
 		let event_id_final = "";
 		let event_id_cb: () => string = () => event_id_final;
 
@@ -106,19 +106,8 @@ export function submit(
 		async function cancel(): Promise<void> {
 			let reset_request = {};
 			let cancel_request = {};
-			if (protocol === "ws") {
-				if (websocket && websocket.readyState === 0) {
-					websocket.addEventListener("open", () => {
-						websocket.close();
-					});
-				} else {
-					websocket.close();
-				}
-				reset_request = { fn_index, session_hash };
-			} else {
-				reset_request = { event_id };
-				cancel_request = { event_id, session_hash, fn_index };
-			}
+			reset_request = { event_id };
+			cancel_request = { event_id, session_hash, fn_index };
 
 			try {
 				if (!config) {
@@ -267,137 +256,6 @@ export function submit(
 							time: new Date()
 						});
 					});
-			} else if (protocol == "ws") {
-				const { ws_protocol, host } = await process_endpoint(
-					app_reference,
-					hf_token
-				);
-
-				fire_event({
-					type: "status",
-					stage: "pending",
-					queue: true,
-					endpoint: _endpoint,
-					fn_index,
-					time: new Date()
-				});
-
-				let url = new URL(
-					`${ws_protocol}://${resolve_root(
-						host,
-						config.root as string,
-						true
-					)}/queue/join${url_params ? "?" + url_params : ""}`
-				);
-
-				if (this.jwt) {
-					url.searchParams.set("__sign", this.jwt);
-				}
-
-				websocket = new WebSocket(url);
-
-				websocket.onclose = (evt) => {
-					if (!evt.wasClean) {
-						fire_event({
-							type: "status",
-							stage: "error",
-							broken: true,
-							message: BROKEN_CONNECTION_MSG,
-							queue: true,
-							endpoint: _endpoint,
-							fn_index,
-							time: new Date()
-						});
-					}
-				};
-
-				websocket.onmessage = function (event) {
-					const _data = JSON.parse(event.data);
-					const { type, status, data } = handle_message(
-						_data,
-						last_status[fn_index]
-					);
-
-					if (type === "update" && status && !complete) {
-						// call 'status' listeners
-						fire_event({
-							type: "status",
-							endpoint: _endpoint,
-							fn_index,
-							time: new Date(),
-							...status
-						});
-						if (status.stage === "error") {
-							websocket.close();
-						}
-					} else if (type === "hash") {
-						websocket.send(JSON.stringify({ fn_index, session_hash }));
-						return;
-					} else if (type === "data") {
-						websocket.send(JSON.stringify({ ...payload, session_hash }));
-					} else if (type === "complete") {
-						complete = status;
-					} else if (type === "log") {
-						fire_event({
-							type: "log",
-							title: data.title,
-							log: data.log,
-							level: data.level,
-							endpoint: _endpoint,
-							duration: data.duration,
-							visible: data.visible,
-							fn_index
-						});
-					} else if (type === "generating") {
-						fire_event({
-							type: "status",
-							time: new Date(),
-							...status,
-							stage: status?.stage!,
-							queue: true,
-							endpoint: _endpoint,
-							fn_index
-						});
-					}
-					if (data) {
-						fire_event({
-							type: "data",
-							time: new Date(),
-							data: handle_payload(
-								data.data,
-								dependency,
-								config.components,
-								"output",
-								options.with_null_state
-							),
-							endpoint: _endpoint,
-							fn_index,
-							event_data,
-							trigger_id
-						});
-
-						if (complete) {
-							fire_event({
-								type: "status",
-								time: new Date(),
-								...complete,
-								stage: status?.stage!,
-								queue: true,
-								endpoint: _endpoint,
-								fn_index
-							});
-							websocket.close();
-						}
-					}
-				};
-
-				// different ws contract for gradio versions older than 3.6.0
-				//@ts-ignore
-				if (semiver(config.version || "2.0.0", "3.6") < 0) {
-					addEventListener("open", () =>
-						websocket.send(JSON.stringify({ hash: session_hash }))
-					);
-				}
 			} else if (protocol == "sse") {
 				fire_event({
 					type: "status",

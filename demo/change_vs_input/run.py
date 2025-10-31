@@ -1,5 +1,5 @@
-import os
 import gradio as gr
+from gradio.media import get_image, get_audio, get_video
 
 with gr.Blocks() as demo:
     set_button = gr.Button("Set Values")
@@ -70,9 +70,9 @@ with gr.Blocks() as demo:
 
     counter = gr.Number(label="Change counter")
 
-    lion = os.path.join(os.path.dirname(__file__), "files/lion.jpg")
-    cantina = os.path.join(os.path.dirname(__file__), "files/cantina.wav")
-    world = os.path.join(os.path.dirname(__file__), "files/world.mp4")
+    lion = get_image("lion.jpg")
+    cantina = get_audio("cantina.wav")
+    world = get_video("world.mp4")
 
     set_button.click(
         lambda: ["asdf", 555, 12, True, ["a", "c"], "b", "b", "#FF0000", "import gradio as gr", [["a", "b", "c", "d"], ["1", "2", "3", "4"]], lion, cantina, world],

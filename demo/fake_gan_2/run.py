@@ -1,9 +1,10 @@
 # This demo needs to be run from the repo folder.
 # python demo/fake_gan/run.py
-import random
 import time
 
 import gradio as gr
+# get_image() returns file paths (randomly if None) to sample media included with Gradio
+from gradio.media import get_image
 
 def fake_gan(desc):
     if desc == "NSFW":
@@ -11,14 +12,8 @@ def fake_gan(desc):
     if desc == "error":
         raise ValueError("error")
     time.sleep(9)
-    image = random.choice(
-        [
-            "files/cheetah1.jpg",
-            "files/elephant.jpg",
-            "files/tiger.jpg",
-            "files/zebra.jpg",
-        ]
-    )
+    image = get_image()
+
     return image
 
 demo = gr.Interface(
@@ -27,6 +22,7 @@ demo = gr.Interface(
     outputs=gr.Image(label="Generated Image"),
     title="FD-GAN",
     description="This is a fake demo of a GAN. In reality, the images are randomly chosen from Unsplash.",
+    api_name="predict"
 )
 demo.queue(max_size=3)
 

@@ -1,5 +1,31 @@
 # @gradio/audio
 
+## 0.19.4-dev.0
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.1
+
+## 0.19.4-dev.0
+
+### Dependency updates
+
+- @gradio/upload@0.17.2-dev.0
+- @gradio/client@2.0.0-dev.0
+- @gradio/button@0.5.14-dev.0
+
+## 0.19.3
+
+### Fixes
+
+- [#12026](https://github.com/gradio-app/gradio/pull/12026) [`31cf825`](https://github.com/gradio-app/gradio/commit/31cf825b472b9ffa29eea163db8b9fe069eefe1f) - gradio.Audio does not preload the file in browser style since 5.46.0.  Thanks @PRIME-SV!
+
+## 0.19.2
+
+### Dependency updates
+
+- @gradio/client@1.19.1
+
 ## 0.19.2
 
 ### Fixes

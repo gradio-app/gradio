@@ -192,7 +192,7 @@ class TestLoadInterface:
             gr.load(
                 "spaces/gradio/test-loading-examplesv4-sse",
             )
-        assert Context.hf_token == HF_TOKEN
+        assert Context.token == HF_TOKEN
 
     def test_private_space_v4_sse_v1(self):
         io = gr.load(
@@ -420,3 +420,18 @@ def test_load_chat_with_streaming(mock_openai):
     response_stream = chat.fn("Hi!", None)
     responses = list(response_stream)
     assert responses == ["Hello", "Hello World", "Hello World!"]
+
+
+def test_load_chat_textbox_override():
+    from gradio import ChatInterface
+
+    custom_textbox = gr.Textbox(placeholder="Custom textbox", container=False)
+    chat = gr.load_chat(
+        base_url="http://localhost:1234/v1/",
+        model="demo",
+        token="dummy",
+        textbox=custom_textbox,
+        streaming=False,
+    )
+    assert isinstance(chat, ChatInterface)
+    assert chat.textbox is custom_textbox

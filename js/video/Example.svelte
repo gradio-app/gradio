@@ -5,7 +5,7 @@
 
 	export let type: "gallery" | "table";
 	export let selected = false;
-	export let value: { video: FileData; subtitles: FileData | null } | null;
+	export let value: null | FileData = null;
 	export let loop: boolean;
 	let video: HTMLVideoElement;
 
@@ -35,7 +35,7 @@
 				on:loadeddata={init}
 				on:mouseover={video.play.bind(video)}
 				on:mouseout={video.pause.bind(video)}
-				src={value?.video.url}
+				src={value?.url}
 				is_stream={false}
 				{loop}
 			/>

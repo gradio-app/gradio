@@ -7,30 +7,29 @@ def print_like_dislike(x: gr.LikeData):
 
 def add_message(history, message):
     for x in message["files"]:
-        history.append(((x,), None))
+        history.append({"role": "user", "content": (x,)})
     if message["text"] is not None:
-        history.append((message["text"], None))
+        history.append({"role": "user", "content": message["text"]})
     return history, gr.MultimodalTextbox(value=None, interactive=False)
 
 def append_example_message(x: gr.SelectData, history):
     if x.value["text"] is not None:
-        history.append((x.value["text"], None))
+        history.append({"role": "user", "content": x.value["text"]})
     if "files" in x.value:
         if isinstance(x.value["files"], list):
             for file in x.value["files"]:
-                history.append((file, None))
+                history.append({"role": "user", "content": file})
         else:
-            history.append((x.value["files"], None))
+            history.append({"role": "user", "content": x.value["files"]})
     return history
 
 def respond(history):
-    history[-1][1] = "Cool!"
+    history.append({"role": "assistant", "content": "Cool!", "options": [{"value": "Option 1"}, {"value": "Option 2"}]})
     return history
 
-with gr.Blocks(fill_height=True) as demo:
+with gr.Blocks() as demo:
     chatbot = gr.Chatbot(
         elem_id="chatbot",
-        bubble_full_width=False,
         scale=1,
         placeholder='<h1 style="font-weight: bold; color: #FFFFFF; text-align: center; font-size: 48px; font-family: Arial, sans-serif;">Welcome to Gradio!</h1>',
         examples=[{"icon": os.path.join(os.path.dirname(__file__), "files/avatar.png"), "display_text": "Display Text Here!", "text": "Try this example with this audio.", "files": [os.path.join(os.path.dirname(__file__), "files/cantina.wav")]},

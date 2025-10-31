@@ -89,11 +89,7 @@
 	let props = $props();
 	const gradio = new Gradio<ChatbotEvents, ChatbotProps>(props);
 
-	let _value: NormalisedMessage[] | null = $derived(
-		gradio.props.type === "tuples"
-			? normalise_tuples(gradio.props.value as TupleFormat, gradio.shared.root)
-			: normalise_messages(gradio.props.value as Message[], gradio.shared.root),
-	);
+	let _value: NormalisedMessage[] | null = $derived(normalise_messages(gradio.props.value as Message[], gradio.shared.root));
 </script>
 
 <Block
@@ -138,8 +134,8 @@
 			likeable={gradio.props.likeable}
 			feedback_options={gradio.props.feedback_options}
 			feedback_value={gradio.props.feedback_value}
-			show_share_button={gradio.props.show_share_button}
-			show_copy_all_button={gradio.props.show_copy_all_button}
+			show_share_button={(gradio.props.buttons ?? ["share"]).includes("share")}
+			show_copy_all_button={(gradio.props.buttons ?? ["copy_all"]).includes("copy_all")}
 			value={_value}
 			latex_delimiters={gradio.props.latex_delimiters}
 			display_consecutive_in_same_bubble={gradio.props
@@ -150,7 +146,7 @@
 			pending_message={gradio.shared.loading_status?.status === "pending"}
 			generating={gradio.shared.loading_status?.status === "generating"}
 			rtl={gradio.props.rtl}
-			show_copy_button={gradio.props.show_copy_button}
+			show_copy_button={(gradio.props.buttons ?? ["copy"]).includes("copy")}
 			like_user_message={gradio.props.like_user_message}
 			show_progress={gradio.shared.loading_status?.show_progress || "full"}
 			on:change={() => (
@@ -173,14 +169,8 @@
 			on:edit={(e) => {
 				if (gradio.props.value === null || gradio.props.value.length === 0)
 					return;
-				if (gradio.props.type === "messages") {
-					//@ts-ignore
-					gradio.props.value[e.detail.index].content = e.detail.value;
-				} else {
-					//@ts-ignore
-					value[e.detail.index[0]][e.detail.index[1]] = e.detail.value;
-				}
-
+				//@ts-ignore
+				gradio.props.value[e.detail.index].content = e.detail.value;
 				gradio.dispatch("edit", e.detail);
 			}}
 			avatar_images={gradio.props.avatar_images}
@@ -195,7 +185,6 @@
 			upload={(...args) => gradio.shared.client.upload(...args)}
 			_fetch={(...args) => gradio.shared.client.fetch(...args)}
 			load_component={gradio.load_component}
-			msg_format={gradio.props.type}
 			allow_file_downloads={gradio.props.allow_file_downloads}
 			allow_tags={gradio.props.allow_tags}
 			watermark={gradio.props.watermark}

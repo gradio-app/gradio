@@ -11,8 +11,8 @@ export async function upload_files(
 	const headers: {
 		Authorization?: string;
 	} = {};
-	if (this?.options?.hf_token) {
-		headers.Authorization = `Bearer ${this.options.hf_token}`;
+	if (this?.options?.token) {
+		headers.Authorization = `Bearer ${this.options.token}`;
 	}
 
 	const chunkSize = 1000;

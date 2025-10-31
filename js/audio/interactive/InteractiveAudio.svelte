@@ -22,6 +22,7 @@
 	export let root: string;
 	export let loop: boolean;
 	export let show_label = true;
+	export let buttons: string[] = ["download", "share"];
 	export let sources:
 		| ["microphone"]
 		| ["upload"]
@@ -44,7 +45,6 @@
 	export let uploading = false;
 	export let recording = false;
 	export let class_name = "";
-	export let buttons: string[];
 
 	let time_limit: number | null = null;
 	let stream_state: "open" | "waiting" | "closed" = "closed";
@@ -292,7 +292,11 @@
 			{i18n}
 			on:clear={clear}
 			on:edit={() => (mode = "edit")}
-			download={buttons.includes("download") ? value.url : null}
+			download={buttons === null
+				? value.url
+				: buttons.includes("download")
+					? value.url
+					: null}
 		/>
 
 		<AudioPlayer

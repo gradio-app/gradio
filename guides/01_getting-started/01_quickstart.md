@@ -88,7 +88,7 @@ To learn more about sharing your demo, read our dedicated guide on [sharing your
 
 ## An Overview of Gradio
 
-So far, we've been discussing the `Interface` class, which is a high-level class that lets to build demos quickly with Gradio. But what else does Gradio include?
+So far, we've been discussing the `Interface` class, which is a high-level class that lets you build demos quickly with Gradio. But what else does Gradio include?
 
 ### Custom Demos with `gr.Blocks`
 

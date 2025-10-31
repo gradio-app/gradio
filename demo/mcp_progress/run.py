@@ -8,7 +8,7 @@ def slow_text_reverser(text: str, progress=gr.Progress()):
     return text[::-1]
 
 
-demo = gr.Interface(slow_text_reverser, gr.Textbox("Hello, world!"), gr.Textbox())
+demo = gr.Interface(slow_text_reverser, gr.Textbox("Hello, world!"), gr.Textbox(), api_name="predict")
 
 if __name__ == "__main__":
     demo.launch(mcp_server=True)

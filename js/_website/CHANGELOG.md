@@ -1,5 +1,17 @@
 # website
 
+## 0.65.1-dev.0
+
+### Dependency updates
+
+- @gradio/code@0.15.1-dev.0
+
+## 0.65.0
+
+### Features
+
+- [#11986](https://github.com/gradio-app/gradio/pull/11986) [`cf9aefd`](https://github.com/gradio-app/gradio/commit/cf9aefd0ae04ecc19bf7e69ec8d2ae4a081ef842) - More vibe editor issues and features.  Thanks @aliabd!
+
 ## 0.64.1
 
 ### Fixes

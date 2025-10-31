@@ -23,7 +23,7 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 class TestInterfaceErrors:
     def test_processing_error(self):
-        io = Interface(lambda x: 1 / x, "number", "number")
+        io = Interface(lambda x: 1 / x, "number", "number", api_name="predict")
         app, _, _ = io.launch(show_error=True, prevent_thread_lock=True)
         client = TestClient(app)
         response = client.post(

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import dataclasses
 import io
-import warnings
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
@@ -37,7 +36,6 @@ class WaveformOptions:
         waveform_progress_color: The color (as a hex string or valid CSS color) that the waveform fills with to as the audio plays. Defaults to the accent color.
         trim_region_color: The color (as a hex string or valid CSS color) of the trim region. Defaults to the accent color.
         show_recording_waveform: If True, shows a waveform when recording audio or playing audio. If False, uses the default browser audio players. For streamed audio, the default browser audio player is always used.
-        show_controls: Deprecated and has no effect. Use `show_recording_waveform` instead.
         skip_length: The percentage (between 0 and 100) of the audio to skip when clicking on the skip forward / skip backward buttons.
         sample_rate: The output sample rate (in Hz) of the audio after editing.
     """
@@ -46,7 +44,6 @@ class WaveformOptions:
     waveform_progress_color: str | None = None
     trim_region_color: str | None = None
     show_recording_waveform: bool = True
-    show_controls: bool = False
     skip_length: int | float = 5
     sample_rate: int = 44100
 
@@ -129,14 +126,14 @@ class Audio(
             streaming: If set to True when used in a `live` interface as an input, will automatically stream webcam feed. When used set as an output, takes audio chunks yield from the backend and combines them into one streaming audio output.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
-            render: if False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            render: if False, component will not be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             format: the file extension with which to save audio files. Either 'wav' or 'mp3'. wav files are lossless but will tend to be larger files. mp3 files tend to be smaller. This parameter applies both when this component is used as an input (and `type` is "filepath") to determine which file format to convert user-provided audio to, and when this component is used as an output to determine the format of audio returned to the user. If None, no file format conversion is done and the audio is kept as is. In the case where output audio is returned from the prediction function as numpy array and no `format` is provided, it will be returned as a "wav" file.
             autoplay: Whether to automatically play the audio when the component is used as an output. Note: browsers will not autoplay audio files if the user has not interacted with the page yet.
-            editable: If True, allows users to manipulate the audio file if the component is interactive. Defaults to True.
             buttons: A list of buttons to show in the top right corner of the component. Valid options are "download" and "share". The "download" button allows the user to save the audio to their device. The "share" button allows the user to share the audio via Hugging Face Spaces Discussions. By default, all buttons are shown.
-            waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool), skip_length (int), trim_region_color (str). Default is None, which uses the default values for these options. [See `gr.WaveformOptions` docs](#waveform-options).
+            editable: If True, allows users to manipulate the audio file if the component is interactive. Defaults to True.
+            waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), skip_length (int), trim_region_color (str). Default is None, which uses the default values for these options. [See `gr.WaveformOptions` docs](#waveform-options).
             loop: If True, the audio will loop when it reaches the end and continue playing from the beginning.
             recording: If True, the audio component will be set to record audio from the microphone if the source is set to "microphone". Defaults to False.
             subtitles: A subtitle file (srt, vtt, or json) for the audio, or a list of subtitle dictionaries in the format [{"text": str, "timestamp": [start, end]}] where timestamps are in seconds. JSON files should contain an array of subtitle objects.
@@ -184,10 +181,6 @@ class Audio(
             self.waveform_options = WaveformOptions(**waveform_options)
         else:
             self.waveform_options = waveform_options
-        if self.waveform_options.show_controls is not False:
-            warnings.warn(
-                "The `show_controls` parameter is deprecated and will be removed in a future release. Use `show_recording_waveform` instead."
-            )
         self.recording = recording
         super().__init__(
             label=label,

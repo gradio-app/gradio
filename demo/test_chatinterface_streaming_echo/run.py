@@ -12,7 +12,7 @@ def slow_echo(message, history):
     for i in range(len(message)):
         yield f"Run {runs} - You typed: " + message[: i + 1]
 
-chat = gr.ChatInterface(slow_echo, fill_height=True, editable=True)
+chat = gr.ChatInterface(slow_echo, fill_height=True, editable=True, api_name="chat")
 
 with gr.Blocks() as demo:
     chat.render()

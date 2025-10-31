@@ -25,14 +25,13 @@ from transformers import RTDetrForObjectDetection, RTDetrImageProcessor
 image_processor = RTDetrImageProcessor.from_pretrained("PekingU/rtdetr_r50vd")
 model = RTDetrForObjectDetection.from_pretrained("PekingU/rtdetr_r50vd").to("cuda")
 ```
-
 We're moving the model to the GPU. We'll be deploying our model to Hugging Face Spaces and running the inference in the [free ZeroGPU cluster](https://huggingface.co/zero-gpu-explorers). 
 
 
 ## The Inference Function
 
 Our inference function will accept a video and a desired confidence threshold.
-Object detection models identify many objects and assign a confidence score to each object. The lower the confidence, the higher the chance of a false positive. So we will let our users set the conference threshold.
+Object detection models identify many objects and assign a confidence score to each object. The lower the confidence, the higher the chance of a false positive. So we will let our users set the confidence threshold.
 
 Our function will iterate over the frames in the video and run the RT-DETR model over each frame.
 We will then draw the bounding boxes for each detected object in the frame and save the frame to a new output video.

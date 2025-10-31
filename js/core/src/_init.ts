@@ -863,11 +863,14 @@ function process_children_visibility(
 	const visible_components: Set<number> = new Set();
 
 	if (layout.children) {
+		const layout_component = components.find((c) => c.id === layout.id);
 		for (const child of layout.children) {
 			const child_visible = determine_visible_components(
 				child,
 				components,
-				true,
+				layout_component?.type === "tabitem"
+					? layout_component.props.children_visible !== false
+					: true,
 				parent_tabs_context
 			);
 			child_visible.forEach((id) => visible_components.add(id));
@@ -923,8 +926,14 @@ function determine_visible_components(
 		);
 		child_visible.forEach((id) => visible_components.add(id));
 	} else if (component.type === "tabitem") {
+		const tab_item_visible = is_tab_item_visible(
+			component,
+			component_visible,
+			parent_tabs_context
+		);
 		if (
-			is_tab_item_visible(component, component_visible, parent_tabs_context)
+			tab_item_visible ||
+			(!tab_item_visible && component.props.render_children)
 		) {
 			visible_components.add(layout.id);
 
@@ -1032,6 +1041,12 @@ function is_visible(component: ComponentMeta): boolean {
 	) {
 		return false;
 	} else if (component.parent) {
+		if (component.parent.type === "tabitem") {
+			return is_tab_item_visible(
+				component.parent,
+				is_visible(component.parent)
+			);
+		}
 		return is_visible(component.parent);
 	}
 	return true;

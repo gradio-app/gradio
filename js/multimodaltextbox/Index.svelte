@@ -10,11 +10,8 @@
 	import MultimodalTextbox from "./shared/MultimodalTextbox.svelte";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
-	import type { FileData } from "@gradio/client";
 	import { onMount } from "svelte";
 	import type { WaveformOptions } from "../audio/shared/types";
-	import type { InputHTMLAttributes } from "./shared/types";
 	import type {
 		MultimodalTextboxProps,
 		MultimodalTextboxEvents,
@@ -91,6 +88,9 @@
 			| "microphone"
 			| "microphone,upload",
 	);
+
+	let file_types_string = $derived(gradio.props.file_types || []).join(",") || null;
+
 </script>
 
 <Block
@@ -118,7 +118,7 @@
 		value_is_output
 		bind:dragging
 		bind:active_source
-		file_types={gradio.props.file_types}
+		file_types_string={file_types_string}
 		root={gradio.shared.root}
 		label={gradio.shared.label}
 		info={gradio.props.info}

@@ -57,8 +57,8 @@ jobs:
       - name: install dependencies for specific tests
         run: |
           . venv/bin/activate
-          python -m pip install -r demo/outbreak_forecast/requirements.txt
-          python -m pip install -r demo/stream_video_out/requirements.txt
+          uv pip install -r demo/outbreak_forecast/requirements.txt
+          uv pip install -r demo/stream_video_out/requirements.txt
       - run: pnpm exec playwright install chromium firefox
       - name: build essential packages
         run: pnpm --filter @gradio/utils --filter @gradio/theme package

@@ -177,24 +177,23 @@ class GradioMCPServer:
         creates a mapping from the tool names to the endpoint names in the API docs.
         """
         tool_to_endpoint = {}
-        for endpoint_name, endpoint_info in self.api_info["named_endpoints"].items():
-            if endpoint_info["show_api"]:
-                block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
-                if block_fn is None or block_fn.fn is None:
-                    continue
-                fn_name = (
-                    getattr(block_fn.fn, "__name__", None)
-                    or (
-                        hasattr(block_fn.fn, "__class__")
-                        and getattr(block_fn.fn.__class__, "__name__", None)
-                    )
-                    or endpoint_name.lstrip("/")
+        for endpoint_name in self.api_info["named_endpoints"]:
+            block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+            if block_fn is None or block_fn.fn is None:
+                continue
+            fn_name = (
+                getattr(block_fn.fn, "__name__", None)
+                or (
+                    hasattr(block_fn.fn, "__class__")
+                    and getattr(block_fn.fn.__class__, "__name__", None)
                 )
-                tool_name = self.tool_prefix + fn_name
-                tool_name = self.valid_and_unique_tool_name(
-                    tool_name, set(tool_to_endpoint.keys())
-                )
-                tool_to_endpoint[tool_name] = endpoint_name
+                or endpoint_name.lstrip("/")
+            )
+            tool_name = self.tool_prefix + fn_name
+            tool_name = self.valid_and_unique_tool_name(
+                tool_name, set(tool_to_endpoint.keys())
+            )
+            tool_to_endpoint[tool_name] = endpoint_name
         return tool_to_endpoint
 
     def warn_about_state_inputs(self) -> None:
@@ -331,6 +330,9 @@ class GradioMCPServer:
                         progress_token=progress_token,
                         progress=step,
                         message=message,  # type: ignore
+                        related_request_id=str(
+                            self.mcp_server.request_context.request_id
+                        ),
                     )
                     step += 1
                 elif update.type == "output" and update.final:

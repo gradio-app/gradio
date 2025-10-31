@@ -116,7 +116,7 @@
 		<StaticAudio
 			i18n={gradio.i18n}
 			show_label={gradio.shared.show_label}
-			buttons={gradio.props.buttons}
+			buttons={gradio.props.buttons ?? ["download", "share"]}
 			value={gradio.props.value}
 			subtitles={gradio.props.subtitles}
 			label={gradio.shared.label}
@@ -153,7 +153,7 @@
 		<InteractiveAudio
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
-			buttons={gradio.props.buttons}
+			buttons={gradio.props.buttons ?? []}
 			value={gradio.props.value}
 			subtitles={gradio.props.subtitles}
 			on:change={({ detail }) => (gradio.props.value = detail)}

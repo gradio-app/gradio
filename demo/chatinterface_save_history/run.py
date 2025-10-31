@@ -6,7 +6,6 @@ def echo_multimodal(message, history):
 
 demo = gr.ChatInterface(
     echo_multimodal,
-    type="messages",
     multimodal=True,
     textbox=gr.MultimodalTextbox(file_count="multiple"),
     save_history=True,
