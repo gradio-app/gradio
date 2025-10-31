@@ -1,15 +1,18 @@
 # Gradio Themes
 
-Gradio themes are the easiest way to customize the look and feel of your app. You can choose from a variety of themes, or create your own. To do so, pass the `theme=` kwarg to the `Interface` constructor. For example:
+Gradio themes are the easiest way to customize the look and feel of your app. You can choose from a variety of themes, or create your own. To do so, pass the `theme=` kwarg to the `launch()` method of the `Interface`. For example:
 
 ```python
-demo = gr.Interface(..., theme=gr.themes.Monochrome())
+demo = gr.Interface()
+demo.launch(theme=gr.themes.Monochrome())
 ```
 
 or
 
 ```python
-with gr.Block(theme=gr.themes.Soft()):
+with gr.Blocks() as demo:
+    ... # your code here
+demo.launch(theme=gr.themes.Soft())
     ...
 ```
 

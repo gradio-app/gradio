@@ -19,7 +19,7 @@ def img(text):
         cheetah,
     ]
 
-with gr.Blocks(css=".container { max-width: 800px; margin: auto; }") as demo:
+with gr.Blocks() as demo:
     gr.Markdown("<h1><center>DALL·E mini</center></h1>")
     gr.Markdown(
         "DALL·E mini is an AI model that generates images from any prompt you give!"
@@ -41,7 +41,7 @@ with gr.Blocks(css=".container { max-width: 800px; margin: auto; }") as demo:
     btn.click(img, inputs=text, outputs=gallery)
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(css=".container { max-width: 800px; margin: auto; }")
 
 # margin = (TOP, RIGHT, BOTTOM, LEFT)
 # rounded = (TOPLEFT, TOPRIGHT, BOTTOMRIGHT, BOTTOMLEFT)

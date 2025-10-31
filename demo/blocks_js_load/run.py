@@ -36,10 +36,11 @@ function createGradioAnimation() {
     return 'Animation created';
 }
 """
-with gr.Blocks(js=js) as demo:
+
+with gr.Blocks() as demo:
     inp = gr.Textbox(placeholder="What is your name?")
     out = gr.Textbox()
     inp.change(welcome, inp, out)
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(js=js)
