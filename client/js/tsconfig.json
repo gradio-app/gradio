@@ -1,6 +1,6 @@
 {
 	"include": ["src/**/*"],
-	"exclude": ["src/**/*.test.ts", "src/**/*.node-test.ts"],
+	"exclude": ["src/**/*.test.ts", "src/**/*.node-test.ts", "src/test/**/*"],
 	"compilerOptions": {
 		"allowJs": true,
 		"declaration": true,
@@ -12,6 +12,7 @@
 		"useDefineForClassFields": true,
 		"lib": ["ES2020", "DOM", "DOM.Iterable"],
 		"skipLibCheck": true,
+		"types": ["node"],
 
 		/* Bundler */
 		"moduleResolution": "Bundler",

@@ -30,7 +30,7 @@ export interface SharedProps {
 	min_width: number;
 	padding: number;
 	load_component: typeof get_component; //component_loader;
-	loading_status?: LoadingStatus;
+	loading_status?: any;
 	label: string;
 	show_label: boolean;
 	validation_error?: string | null;

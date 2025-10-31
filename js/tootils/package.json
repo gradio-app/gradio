@@ -19,6 +19,6 @@
 		"./render": "./src/render.ts"
 	},
 	"scripts": {
-		"package": "svelte-package --input=. --cwd=../../.config/"
+		"package": "svelte-package --input=. --tsconfig=../../tsconfig.json"
 	}
 }
