@@ -52,7 +52,7 @@
     >
         <IconCopy classNames="w-3 h-3 max-sm:w-2.5 max-sm:h-2.5" />
     </span>
-    <span>{copied ? "Copied" : label}</span>
+    <span>{copied ? "Copied!" : label}</span>
 </button>
 
 

@@ -281,12 +281,24 @@ let markdown_code_snippets: Record<string, Record<string, string>> = {};
 
 $: markdown_code_snippets;
 
+let streamable_http_config: string = "";
+let sse_config: string = "";
+let stdio_config: string = "";
+
+$: streamable_http_config;
+$: sse_config;
+$: stdio_config;
+
+$: console.log("streamable_http_config", streamable_http_config);
+$: console.log("sse_config", sse_config);
+$: console.log("stdio_config", stdio_config);
+
 let markdown_content = "";
 
 $: markdown_content = `
 # API documentation for ${space_id || root}
 API Endpoints: ${api_count}
-MCP Tools: ${api_count}
+MCP Tools: ${tools.length}
 
 Choose one of the following ways to interact with the API:
 - Python
@@ -369,9 +381,7 @@ ${info?.named_endpoints["/" + d.api_name]?.returns?.map((r: any, i: number) => {
   const type =
     js_info.named_endpoints["/" + d.api_name]?.returns[i]?.type;
   return `${info?.named_endpoints["/" + d.api_name]?.returns?.length > 1 ? `[${i}]: ` : ""}- Type: ${type}\n- The output value that appears in the "${r.label}" ${r.component} component.`;
-}).join("\n\n")}
-
-`)
+}).join("\n\n")}`)
   .join("\n\n\n")}
 
 ## Bash Documentation: 
@@ -415,10 +425,93 @@ ${info?.named_endpoints["/" + d.api_name]?.returns?.map((r: any, i: number) => {
 `)
   .join("\n\n\n")}
 
+## MCP Documentation: 
+${!mcp_server_active ? `This Gradio app can also serve as an MCP server, with an MCP tool corresponding to each API endpoint. 
+To enable this, launch this Gradio app with \`.launch(mcp_server=True)\` or set the \`.launch(mcp_server=True)\`or set the \`GRADIO_MCP_SERVER\` env variable to \`"True"\`.` :
+`
+
+This page documents three transports: Streamable HTTP, SSE, and STDIO.
+
+### Streamable HTTP
+
+MCP Server URL (Streamable HTTP): ${mcp_server_url_streamable}
+
+${tools.length} available MCP tools, resources, and prompts: 
+
+${tools.map((tool) => 
+`### ${tool.name}
+Type: ${tool.meta.mcp_type}
+Description: ${tool.description ? tool.description : "No description provided in function docstring"}
+Parameters: ${Object.keys(tool.parameters).length}
+${Object.keys(tool.parameters).map((parameter) => {
+  return `- ${parameter} (${tool.parameters[parameter].type}): ${tool.parameters[parameter].description ? tool.parameters[parameter].description : "No description provided in function docstring"}`;
+}).join("\n")}
+`).join("\n\n")}
+
+Stremable HTTP Transport: To add this MCP to clients that support Streamable HTTP, simply add the following configuration to your MCP config.
+
+\`\`\`json
+${streamable_http_config}
+\`\`\`
+
+The \`upload_files_to_gradio\` tool uploads files from your local \`UPLOAD_DIRECTORY\` (or any of its subdirectories) to the Gradio app. 
+This is needed because MCP servers require files to be provided as URLs. You can omit this tool if you prefer to upload files manually. This tool requires [uv](https://docs.astral.sh/uv/getting-started/installation/) to be installed.
+
+### SSE Transport
+
+MCP Server URL (SSE): ${mcp_server_url}
+
+${tools.length} available MCP tools, resources, and prompts: 
+
+${tools.map((tool) => 
+`### ${tool.name}
+Type: ${tool.meta.mcp_type}
+Description: ${tool.description ? tool.description : "No description provided in function docstring"}
+Parameters: ${Object.keys(tool.parameters).length}
+${Object.keys(tool.parameters).map((parameter) => {
+  return `- ${parameter} (${tool.parameters[parameter].type}): ${tool.parameters[parameter].description ? tool.parameters[parameter].description : "No description provided in function docstring"}`;
+}).join("\n")}
+`).join("\n\n")}
+
+
+SSE Transport: The SSE transport has been deprecated by the MCP spec. We recommend using the Streamable HTTP transport instead. But to add this MCP to clients that only support server-sent events (SSE), simply add the following configuration to your MCP config.
+
+\`\`\`json
+${sse_config}
+\`\`\`
+
+The \`upload_files_to_gradio\` tool uploads files from your local \`UPLOAD_DIRECTORY\` (or any of its subdirectories) to the Gradio app. 
+This is needed because MCP servers require files to be provided as URLs. You can omit this tool if you prefer to upload files manually. This tool requires [uv](https://docs.astral.sh/uv/getting-started/installation/) to be installed.
+
+### STDIO Transport
+
+
+${tools.length} available MCP tools, resources, and prompts: 
+
+${tools.map((tool) => 
+`### ${tool.name}
+Type: ${tool.meta.mcp_type}
+Description: ${tool.description ? tool.description : "No description provided in function docstring"}
+Parameters: ${Object.keys(tool.parameters).length}
+${Object.keys(tool.parameters).map((parameter) => {
+  return `- ${parameter} (${tool.parameters[parameter].type}): ${tool.parameters[parameter].description ? tool.parameters[parameter].description : "No description provided in function docstring"}`;
+}).join("\n")}
+`).join("\n\n")}
+
+STDIO Transport: For clients that only support stdio (e.g. Claude Desktop), first [install Node.js](https://nodejs.org/en/download/). Then, you can use the following command:
+
+\`\`\`json
+${stdio_config}
+\`\`\`
+
+The \`upload_files_to_gradio\` tool uploads files from your local \`UPLOAD_DIRECTORY\` (or any of its subdirectories) to the Gradio app. 
+This is needed because MCP servers require files to be provided as URLs. You can omit this tool if you prefer to upload files manually. This tool requires [uv](https://docs.astral.sh/uv/getting-started/installation/) to be installed.
+
+Read more about the MCP in the [Gradio docs](${mcp_docs}).
+`}
 
 `;
 
-$: console.log("markdown_content", markdown_content);
 
 	onMount(() => {
 		const controller = new AbortController();
@@ -552,6 +645,9 @@ $: console.log("markdown_content", markdown_content);
 								{file_data_present}
 								{mcp_docs}
 								{analytics}
+								bind:streamable_http_config
+								bind:sse_config
+								bind:stdio_config
 							/>
 						{:else}
 							1. Confirm that you have cURL installed on your system.
@@ -611,10 +707,11 @@ $: console.log("markdown_content", markdown_content);
 					{/if}
 				{/if}
 
-				{#if current_language !== "mcp"}
+				<div class:hidden={current_language === "mcp"}>
 					{#each dependencies as dependency}
 						{#if dependency.show_api && info.named_endpoints["/" + dependency.api_name]}
 							<div class="endpoint-container">
+
 								<CodeSnippet
 									endpoint_parameters={info.named_endpoints[
 										"/" + dependency.api_name
@@ -654,7 +751,7 @@ $: console.log("markdown_content", markdown_content);
 							</div>
 						{/if}
 					{/each}
-				{/if}
+					</div>
 			</div>
 		</div>
 	{:else}
@@ -848,5 +945,9 @@ $: console.log("markdown_content", markdown_content);
 
 	.api-name {
 		color: var(--color-accent);
+	}
+
+	.hidden {
+		display: none;
 	}
 </style>

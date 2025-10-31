@@ -15,6 +15,9 @@
 	export let file_data_present: boolean;
 	export let mcp_docs: string;
 	export let analytics: Record<string, any>;
+	export let streamable_http_config: string;
+	export let sse_config: string;
+	export let stdio_config: string;
 
 	interface ToolParameter {
 		title?: string;
@@ -110,6 +113,16 @@
 		mcp_json_stdio,
 		include_file_upload
 	);
+
+	let streamable_http_config_el: HTMLDivElement;
+	let sse_config_el: HTMLDivElement;
+	let stdio_config_el: HTMLDivElement;
+
+	$: streamable_http_config = streamable_http_config_el?.innerText;
+	$: sse_config = sse_config_el?.innerText;
+	$: stdio_config = stdio_config_el?.innerText;
+
+	$: console.log("streamable_http_config in ", streamable_http_config);
 </script>
 
 {#if mcp_server_active}
@@ -290,7 +303,7 @@
 	</div>
 	<p>&nbsp;</p>
 
-	{#if current_transport === "streamable_http"}
+	<div class:hidden={current_transport !== "streamable_http"}>
 		<strong>Streamable HTTP Transport</strong>: To add this MCP to clients that
 		support Streamable HTTP, simply add the following configuration to your MCP
 		config.
@@ -302,12 +315,13 @@
 						code={JSON.stringify(mcp_json_streamable_http, null, 2)}
 					/>
 				</div>
-				<div>
+				<div bind:this={streamable_http_config_el}>
 					<pre>{JSON.stringify(mcp_json_streamable_http, null, 2)}</pre>
 				</div>
 			</code>
 		</Block>
-	{:else if current_transport === "sse"}
+	</div>
+	<div class:hidden={current_transport !== "sse"}>
 		<strong>SSE Transport</strong>: The SSE transport has been deprecated by the
 		MCP spec. We recommend using the Streamable HTTP transport instead. But to
 		add this MCP to clients that only support server-sent events (SSE), simply
@@ -318,12 +332,13 @@
 				<div class="copy">
 					<CopyButton code={JSON.stringify(mcp_json_sse_updated, null, 2)} />
 				</div>
-				<div>
+				<div bind:this={sse_config_el}>
 					<pre>{JSON.stringify(mcp_json_sse_updated, null, 2)}</pre>
 				</div>
 			</code>
 		</Block>
-	{:else if current_transport === "stdio"}
+	</div>
+	<div class:hidden={current_transport !== "stdio"}>
 		<strong>STDIO Transport</strong>: For clients that only support stdio (e.g.
 		Claude Desktop), first
 		<a href="https://nodejs.org/en/download/" target="_blank">install Node.js</a
@@ -334,12 +349,12 @@
 				<div class="copy">
 					<CopyButton code={JSON.stringify(mcp_json_stdio_updated, null, 2)} />
 				</div>
-				<div>
+				<div bind:this={stdio_config_el}>
 					<pre>{JSON.stringify(mcp_json_stdio_updated, null, 2)}</pre>
 				</div>
 			</code>
 		</Block>
-	{/if}
+	</div>
 	{#if file_data_present}
 		<div class="file-upload-section">
 			<label class="checkbox-label">
@@ -664,5 +679,9 @@
 
 	a {
 		text-decoration: underline;
+	}
+
+	.hidden {
+		display: none;
 	}
 </style>
