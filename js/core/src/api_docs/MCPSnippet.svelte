@@ -112,13 +112,11 @@
 		include_file_upload
 	);
 
-
 	$: config_snippets = {
 		streamable_http: JSON.stringify(mcp_json_streamable_http, null, 2),
 		sse: JSON.stringify(mcp_json_sse_updated, null, 2),
 		stdio: JSON.stringify(mcp_json_stdio_updated, null, 2)
 	};
-
 </script>
 
 {#if mcp_server_active}
@@ -307,9 +305,7 @@
 		<Block>
 			<code>
 				<div class="copy">
-					<CopyButton
-						code={config_snippets.streamable_http}
-					/>
+					<CopyButton code={config_snippets.streamable_http} />
 				</div>
 				<div>
 					<pre>{config_snippets.streamable_http}</pre>

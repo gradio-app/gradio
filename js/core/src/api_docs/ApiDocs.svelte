@@ -21,7 +21,6 @@
 	import ResponseSnippet from "./ResponseSnippet.svelte";
 	import mcp from "./img/mcp.svg";
 	import MCPSnippet from "./MCPSnippet.svelte";
-
 	import CopyMarkdown from "./CopyMarkdown.svelte";
 
 	export let dependencies: Dependency[];
@@ -336,11 +335,14 @@
 		</div>
 
 		<div class="docs-wrap">
-			<div class="client-doc" style="display: flex; align-items: center; justify-content: space-between;">
+			<div
+				class="client-doc"
+				style="display: flex; align-items: center; justify-content: space-between;"
+			>
 				<p style="font-size: var(--text-lg);">
 					Choose one of the following ways to interact with the API.
 				</p>
-				<CopyMarkdown 
+				<CopyMarkdown
 					{space_id}
 					{root}
 					{api_count}
@@ -500,7 +502,6 @@
 					{#each dependencies as dependency}
 						{#if dependency.show_api && info.named_endpoints["/" + dependency.api_name]}
 							<div class="endpoint-container">
-
 								<CodeSnippet
 									endpoint_parameters={info.named_endpoints[
 										"/" + dependency.api_name
@@ -540,7 +541,7 @@
 							</div>
 						{/if}
 					{/each}
-					</div>
+				</div>
 			</div>
 		</div>
 	{:else}
