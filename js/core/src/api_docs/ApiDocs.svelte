@@ -281,17 +281,7 @@ let markdown_code_snippets: Record<string, Record<string, string>> = {};
 
 $: markdown_code_snippets;
 
-let streamable_http_config: string = "";
-let sse_config: string = "";
-let stdio_config: string = "";
-
-$: streamable_http_config;
-$: sse_config;
-$: stdio_config;
-
-$: console.log("streamable_http_config", streamable_http_config);
-$: console.log("sse_config", sse_config);
-$: console.log("stdio_config", stdio_config);
+let config_snippets: Record<string, string> = {};
 
 let markdown_content = "";
 
@@ -451,7 +441,7 @@ ${Object.keys(tool.parameters).map((parameter) => {
 Stremable HTTP Transport: To add this MCP to clients that support Streamable HTTP, simply add the following configuration to your MCP config.
 
 \`\`\`json
-${streamable_http_config}
+${config_snippets.streamable_http}
 \`\`\`
 
 The \`upload_files_to_gradio\` tool uploads files from your local \`UPLOAD_DIRECTORY\` (or any of its subdirectories) to the Gradio app. 
@@ -477,7 +467,7 @@ ${Object.keys(tool.parameters).map((parameter) => {
 SSE Transport: The SSE transport has been deprecated by the MCP spec. We recommend using the Streamable HTTP transport instead. But to add this MCP to clients that only support server-sent events (SSE), simply add the following configuration to your MCP config.
 
 \`\`\`json
-${sse_config}
+${config_snippets.sse}
 \`\`\`
 
 The \`upload_files_to_gradio\` tool uploads files from your local \`UPLOAD_DIRECTORY\` (or any of its subdirectories) to the Gradio app. 
@@ -501,7 +491,7 @@ ${Object.keys(tool.parameters).map((parameter) => {
 STDIO Transport: For clients that only support stdio (e.g. Claude Desktop), first [install Node.js](https://nodejs.org/en/download/). Then, you can use the following command:
 
 \`\`\`json
-${stdio_config}
+${config_snippets.stdio}
 \`\`\`
 
 The \`upload_files_to_gradio\` tool uploads files from your local \`UPLOAD_DIRECTORY\` (or any of its subdirectories) to the Gradio app. 
@@ -632,27 +622,27 @@ Read more about the MCP in the [Gradio docs](${mcp_docs}).
 								href={current_language == "python" ? py_docs : js_docs}
 								target="_blank">docs</a
 							>) if you don't already have it installed.
-						{:else if current_language == "mcp"}
-							<MCPSnippet
-								{mcp_server_active}
-								{mcp_server_url}
-								{mcp_server_url_streamable}
-								tools={tools.filter((tool) => selected_tools.has(tool.name))}
-								all_tools={tools}
-								bind:selected_tools
-								{mcp_json_sse}
-								{mcp_json_stdio}
-								{file_data_present}
-								{mcp_docs}
-								{analytics}
-								bind:streamable_http_config
-								bind:sse_config
-								bind:stdio_config
-							/>
-						{:else}
+						{:else if current_language == "bash"}
 							1. Confirm that you have cURL installed on your system.
 						{/if}
 					</p>
+
+					<div class:hidden={current_language !== "mcp"}>
+						<MCPSnippet
+							{mcp_server_active}
+							{mcp_server_url}
+							{mcp_server_url_streamable}
+							tools={tools.filter((tool) => selected_tools.has(tool.name))}
+							all_tools={tools}
+							bind:selected_tools
+							{mcp_json_sse}
+							{mcp_json_stdio}
+							{file_data_present}
+							{mcp_docs}
+							{analytics}
+							bind:config_snippets
+						/>
+					</div>
 
 					{#if current_language !== "mcp"}
 						<InstallSnippet {current_language} />
