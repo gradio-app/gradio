@@ -44,20 +44,22 @@
 		| "max"
 		| undefined = undefined;
 	export let color_map: Record<string, string> | null = null;
-	export let x_lim: [number, number] | null = null;
+	export let colors_in_legend: string[] | null = null;
+	export let x_lim: [number | null, number | null] | null = null;
 	export let y_lim: [number | null, number | null] | null = null;
 	$: x_lim = x_lim || null; // for some unknown reason, x_lim was getting set to undefined when used in re-render, so this line is needed
 	$: y_lim = y_lim || null;
-	$: [x_start, x_end] = x_lim === null ? [undefined, undefined] : x_lim;
-	$: [y_start, y_end] = y_lim || [undefined, undefined];
+	$: x_start = x_lim?.[0] !== null ? x_lim?.[0] : undefined;
+	$: x_end = x_lim?.[1] !== null ? x_lim?.[1] : undefined;
+	$: y_start = y_lim?.[0] !== null ? y_lim?.[0] : undefined;
+	$: y_end = y_lim?.[1] !== null ? y_lim?.[1] : undefined;
 	export let x_label_angle: number | null = null;
 	export let y_label_angle: number | null = null;
 	export let x_axis_labels_visible = true;
 	export let caption: string | null = null;
 	export let sort: "x" | "y" | "-x" | "-y" | string[] | null = null;
 	export let tooltip: "axis" | "none" | "all" | string[] = "axis";
-	export let show_fullscreen_button = false;
-	export let show_export_button = false;
+	export let buttons: string[] | null = null;
 	let fullscreen = false;
 
 	function reformat_sort(
@@ -95,8 +97,22 @@
 		clear_status: LoadingStatus;
 	}>;
 
+	function escape_field_name(fieldName: string): string {
+		// Escape special characters in field names according to Vega-Lite spec:
+		// https://vega.github.io/vega-lite/docs/field.html
+		return fieldName
+			.replace(/\./g, "\\.")
+			.replace(/\[/g, "\\[")
+			.replace(/\]/g, "\\]");
+	}
+
 	$: x_temporal = value && value.datatypes[x] === "temporal";
-	$: _x_lim = x_lim && x_temporal ? [x_lim[0] * 1000, x_lim[1] * 1000] : x_lim;
+	$: _x_lim = x_temporal
+		? [
+				x_start !== undefined ? x_start * 1000 : null,
+				x_end !== undefined ? x_end * 1000 : null
+			]
+		: x_lim;
 	let _x_bin: number | undefined;
 	let mouse_down_on_chart = false;
 	const SUFFIX_DURATION: Record<string, number> = {
@@ -454,6 +470,7 @@
 		x_bin,
 		_y_aggregate,
 		_color_map,
+		colors_in_legend,
 		x_start,
 		x_end,
 		y_start,
@@ -527,7 +544,15 @@
 					titleFontWeight: "normal",
 					titleFontSize: text_size_sm,
 					labelFontWeight: "normal",
-					offset: 2
+					offset: 2,
+					columns:
+						chart_element.offsetWidth > 0
+							? Math.max(
+									1,
+									Math.floor(chart_element.offsetWidth / (text_size_sm * 10))
+								)
+							: undefined,
+					labelLimit: text_size_sm * 8
 				},
 				title: {
 					color: body_text_color,
@@ -580,16 +605,20 @@
 									labels: x_axis_labels_visible,
 									ticks: x_axis_labels_visible
 								},
-								field: x,
+								field: escape_field_name(x),
 								title: x_title || x,
 								type: value.datatypes[x],
-								scale: _x_lim ? { domain: _x_lim } : undefined,
+								scale: {
+									zero: false,
+									domainMin: _x_lim?.[0] !== null ? _x_lim?.[0] : undefined,
+									domainMax: _x_lim?.[1] !== null ? _x_lim?.[1] : undefined
+								},
 								bin: _x_bin ? { step: _x_bin } : undefined,
 								sort: _sort
 							},
 							y: {
 								axis: y_label_angle ? { labelAngle: y_label_angle } : {},
-								field: y,
+								field: escape_field_name(y),
 								title: y_title || y,
 								type: value.datatypes[y],
 								scale: {
@@ -601,8 +630,12 @@
 							},
 							color: color
 								? {
-										field: color,
-										legend: { orient: "bottom", title: color_title },
+										field: escape_field_name(color),
+										legend: {
+											orient: "bottom",
+											title: color_title,
+											values: colors_in_legend || undefined
+										},
 										scale:
 											value.datatypes[color] === "nominal"
 												? {
@@ -627,13 +660,13 @@
 									? undefined
 									: [
 											{
-												field: y,
+												field: escape_field_name(y),
 												type: value.datatypes[y],
 												aggregate: aggregating ? _y_aggregate : undefined,
 												title: y_title || y
 											},
 											{
-												field: x,
+												field: escape_field_name(x),
 												type: value.datatypes[x],
 												title: x_title || x,
 												format: x_temporal ? "%Y-%m-%d %H:%M:%S" : undefined,
@@ -642,7 +675,7 @@
 											...(color
 												? [
 														{
-															field: color,
+															field: escape_field_name(color),
 															type: value.datatypes[color]
 														}
 													]
@@ -658,7 +691,7 @@
 																(tooltip === "all" || tooltip.includes(col))
 														)
 														.map((column) => ({
-															field: column,
+															field: escape_field_name(column),
 															type: value.datatypes[column]
 														})))
 										]
@@ -747,12 +780,12 @@
 			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 	{/if}
-	{#if show_fullscreen_button || show_export_button}
+	{#if buttons?.length}
 		<IconButtonWrapper>
-			{#if show_export_button}
+			{#if buttons?.includes("export")}
 				<IconButton Icon={Download} label="Export" on:click={export_chart} />
 			{/if}
-			{#if show_fullscreen_button}
+			{#if buttons?.includes("fullscreen")}
 				<FullscreenButton
 					{fullscreen}
 					on:fullscreen={({ detail }) => {

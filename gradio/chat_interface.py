@@ -15,7 +15,7 @@ from functools import wraps
 from pathlib import Path
 from typing import Any, Literal, Union, cast
 
-import anyio
+from anyio.to_thread import run_sync
 from gradio_client.documentation import document
 
 from gradio import utils
@@ -38,7 +38,7 @@ from gradio.components.chatbot import (
     ExampleMessage,
     Message,
     MessageDict,
-    TupleFormat,
+    NormalizedMessageDict,
 )
 from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
 from gradio.events import Dependency, EditData, SelectData
@@ -64,7 +64,7 @@ class ChatInterface(Blocks):
         def echo(message, history):
             return message
 
-        demo = gr.ChatInterface(fn=echo, type="messages", examples=[{"text": "hello", "text": "hola", "text": "merhaba"}], title="Echo Bot")
+        demo = gr.ChatInterface(fn=echo, examples=[{"text": "hello", "text": "hola", "text": "merhaba"}], title="Echo Bot")
         demo.launch()
     Demos: chatinterface_random_response, chatinterface_streaming_echo, chatinterface_artifacts
     Guides: creating-a-chatbot-fast, sharing-your-app
@@ -75,7 +75,6 @@ class ChatInterface(Blocks):
         fn: Callable,
         *,
         multimodal: bool = False,
-        type: Literal["messages", "tuples"] | None = None,
         chatbot: Chatbot | None = None,
         textbox: Textbox | MultimodalTextbox | None = None,
         additional_inputs: str | Component | list[str | Component] | None = None,
@@ -109,17 +108,16 @@ class ChatInterface(Blocks):
         show_progress: Literal["full", "minimal", "hidden"] = "minimal",
         fill_height: bool = True,
         fill_width: bool = False,
-        api_name: str | Literal[False] = "chat",
+        api_name: str | None = None,
         api_description: str | None | Literal[False] = None,
-        show_api: bool = True,
+        api_visibility: Literal["public", "private", "undocumented"] = "public",
         save_history: bool = False,
         validator: Callable | None = None,
     ):
         """
         Parameters:
-            fn: the function to wrap the chat interface around. Normally (assuming `type` is set to "messages"), the function should accept two parameters: a `str` representing the input message and `list` of openai-style dictionaries: {"role": "user" | "assistant", "content": `str` | {"path": `str`} | `gr.Component`} representing the chat history. The function should return/yield a `str` (for a simple message), a supported Gradio component (e.g. gr.Image to return an image), a `dict` (for a complete openai-style message response), or a `list` of such messages.
+            fn: the function to wrap the chat interface around. The function should accept two parameters: a `str` representing the input message and `list` of openai-style dictionaries: {"role": "user" | "assistant", "content": `str` | {"path": `str`} | `gr.Component`} representing the chat history. The function should return/yield a `str` (for a simple message), a supported Gradio component (e.g. gr.Image to return an image), a `dict` (for a complete openai-style message response), or a `list` of such messages.
             multimodal: if True, the chat interface will use a `gr.MultimodalTextbox` component for the input, which allows for the uploading of multimedia files. If False, the chat interface will use a gr.Textbox component for the input. If this is True, the first argument of `fn` should accept not a `str` message but a `dict` message with keys "text" and "files"
-            type: The format of the messages passed into the chat history parameter of `fn`. If "messages", passes the history as a list of dictionaries with openai-style "role" and "content" keys. The "content" key's value should be one of the following - (1) strings in valid Markdown (2) a dictionary with a "path" key and value corresponding to the file to display or (3) an instance of a Gradio component: at the moment gr.Image, gr.Plot, gr.Video, gr.Gallery, gr.Audio, and gr.HTML are supported. The "role" key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output. If this parameter is 'tuples' (deprecated), passes the chat history as a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message.
             chatbot: an instance of the gr.Chatbot component to use for the chat interface, if you would like to customize the chatbot properties. If not provided, a default gr.Chatbot component will be created.
             textbox: an instance of the gr.Textbox or gr.MultimodalTextbox component to use for the chat interface, if you would like to customize the textbox properties. If not provided, a default gr.Textbox or gr.MultimodalTextbox component will be created.
             editable: if True, users can edit past messages to regenerate responses.
@@ -153,9 +151,9 @@ class ChatInterface(Blocks):
             show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
             fill_height: if True, the chat interface will expand to the height of window.
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
-            api_name: defines how the chat endpoint appears in the API docs. Can be a string or False. If set to a string, the chat endpoint will be exposed in the API docs with the given name. If False, the chat endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to call this chat endpoint.
+            api_name: defines how the chat endpoint appears in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given name. If None, the name of the function will be used.
             api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
-            show_api: whether to show the chat endpoint in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
+            api_visibility: Controls the visibility of the chat endpoint. Can be "public" (shown in API docs and callable), "private" (hidden from API docs and not callable), or "undocumented" (hidden from API docs but callable).
             save_history: if True, will save the chat history to the browser's local storage and display previous conversations in a side panel.
             validator: a function that takes in the inputs and can optionally return a gr.validate() object for each input.
         """
@@ -173,10 +171,9 @@ class ChatInterface(Blocks):
             fill_width=fill_width,
             delete_cache=delete_cache,
         )
-        self.api_name: str | Literal[False] = api_name
+        self.api_name: str | None = api_name
         self.api_description: str | None | Literal[False] = api_description
-        self.show_api = show_api
-        self.type = type
+        self.api_visibility = api_visibility
         self.multimodal = multimodal
         self.concurrency_limit = concurrency_limit
         if isinstance(fn, ChatInterface):
@@ -205,8 +202,6 @@ class ChatInterface(Blocks):
         self.title = title
         self.description = description
         self.show_progress = show_progress
-        if save_history and not type == "messages":
-            raise ValueError("save_history is only supported for type='messages'")
         self.save_history = save_history
         self.additional_inputs = [
             get_component_instance(i)
@@ -286,6 +281,30 @@ class ChatInterface(Blocks):
 
             self._setup_events()
 
+        if textbox is not None:
+            conflicting_params = []
+
+            if isinstance(textbox, (Textbox, MultimodalTextbox)):
+                if submit_btn is not True and submit_btn != textbox.submit_btn:
+                    conflicting_params.append("submit_btn")
+
+                if stop_btn is not True and stop_btn != textbox.stop_btn:
+                    conflicting_params.append("stop_btn")
+
+                if autofocus is not True and autofocus != textbox.autofocus:
+                    conflicting_params.append("autofocus")
+
+            if conflicting_params:
+                warnings.warn(
+                    f"You provided a custom `textbox` component, but also specified "
+                    f"{', '.join(f'`{p}`' for p in conflicting_params)} parameter(s) on `gr.ChatInterface`. "
+                    f"These ChatInterface parameters will be ignored. To customize these settings, "
+                    f"pass them directly to your `gr.Textbox` or `gr.MultimodalTextbox` component instead. "
+                    f"For example: textbox=gr.Textbox(..., submit_btn='submit')",
+                    UserWarning,
+                    stacklevel=2,
+                )
+
     def _render_header(self):
         if self.title:
             Markdown(
@@ -318,19 +337,6 @@ class ChatInterface(Blocks):
         stop_btn: str | bool | None,
     ):
         if chatbot:
-            if self.type:
-                if self.type != chatbot.type:
-                    warnings.warn(
-                        "The type of the gr.Chatbot does not match the type of the gr.ChatInterface."
-                        f"The type of the gr.ChatInterface, '{self.type}', will be used."
-                    )
-                    chatbot.type = cast(Literal["messages", "tuples"], self.type)
-                    chatbot._setup_data_model()
-            else:
-                warnings.warn(
-                    f"The gr.ChatInterface was not provided with a type, so the type of the gr.Chatbot, '{chatbot.type}', will be used."
-                )
-                self.type = chatbot.type
             self.chatbot = cast(Chatbot, get_component_instance(chatbot, render=True))
             if self.chatbot.examples and self.examples_messages:
                 warnings.warn(
@@ -343,16 +349,16 @@ class ChatInterface(Blocks):
             )
             self.chatbot._setup_examples()
         else:
-            self.type = self.type or "tuples"
             self.chatbot = Chatbot(
                 label="Chatbot",
                 scale=1,
                 height=400 if self.fill_height else None,
-                type=cast(Literal["messages", "tuples"], self.type),
                 autoscroll=self.autoscroll,
-                examples=self.examples_messages
-                if not self._additional_inputs_in_examples
-                else None,
+                examples=(
+                    self.examples_messages
+                    if not self._additional_inputs_in_examples
+                    else None
+                ),
             )
         with Group():
             with Row():
@@ -453,7 +459,7 @@ class ChatInterface(Blocks):
                 examples_messages.append(example_message)
         return examples_messages
 
-    def _generate_chat_title(self, conversation: list[MessageDict]) -> str:
+    def _generate_chat_title(self, conversation: list[NormalizedMessageDict]) -> str:
         """
         Generate a title for a conversation by taking the first user message that is a string
         and truncating it to 40 characters. If files are present, add a 📎 to the title.
@@ -461,17 +467,20 @@ class ChatInterface(Blocks):
         title = ""
         for message in conversation:
             if message["role"] == "user":
-                if isinstance(message["content"], str):
-                    title += message["content"]
-                    break
-                else:
-                    title += "📎 "
+                for content in message["content"]:
+                    if content["type"] == "text":
+                        title += content["text"]
+                        break
+                    else:
+                        title += "📎 "
         if len(title) > 40:
             title = title[:40] + "..."
         return title or "Conversation"
 
     @staticmethod
-    def serialize_components(conversation: list[MessageDict]) -> list[MessageDict]:
+    def serialize_components(
+        conversation: list[NormalizedMessageDict],
+    ) -> list[NormalizedMessageDict]:
         def inner(obj: Any) -> Any:
             if isinstance(obj, list):
                 return [inner(item) for item in obj]
@@ -486,8 +495,8 @@ class ChatInterface(Blocks):
     def _save_conversation(
         self,
         index: int | None,
-        conversation: list[MessageDict],
-        saved_conversations: list[list[MessageDict]],
+        conversation: list[NormalizedMessageDict],
+        saved_conversations: list[list[NormalizedMessageDict]],
     ):
         if self.save_history:
             serialized_conversation = self.serialize_components(conversation)
@@ -502,7 +511,7 @@ class ChatInterface(Blocks):
     def _delete_conversation(
         self,
         index: int | None,
-        saved_conversations: list[list[MessageDict]],
+        saved_conversations: list[list[NormalizedMessageDict]],
     ):
         if index is not None:
             saved_conversations.pop(index)
@@ -520,14 +529,12 @@ class ChatInterface(Blocks):
     def _load_conversation(
         self,
         index: int,
-        conversations: list[list[MessageDict]],
+        conversations: list[list[NormalizedMessageDict]],
     ):
         return (
             index,
             Chatbot(
                 value=conversations[index],  # type: ignore
-                feedback_value=[],
-                type="messages",
             ),
         )
 
@@ -568,14 +575,14 @@ class ChatInterface(Blocks):
             "fn": lambda x: (x, x),
             "inputs": [self.chatbot],
             "outputs": [self.chatbot_state, self.chatbot_value],
-            "show_api": False,
+            "api_visibility": "undocumented",
             "queue": False,
         }
         submit_fn_kwargs = {
             "fn": submit_wrapped,
             "inputs": [self.saved_input, self.chatbot_state] + self.additional_inputs,
             "outputs": [self.null_component, self.chatbot] + self.additional_outputs,
-            "show_api": False,
+            "api_visibility": "undocumented",
             "concurrency_limit": cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
             ),
@@ -591,7 +598,7 @@ class ChatInterface(Blocks):
                 self.saved_conversations,
             ],
             "outputs": [self.conversation_id, self.saved_conversations],
-            "show_api": False,
+            "api_visibility": "undocumented",
             "queue": False,
         }
 
@@ -599,7 +606,7 @@ class ChatInterface(Blocks):
             self._clear_and_save_textbox,
             [self.textbox],
             [self.textbox, self.saved_input],
-            show_api=False,
+            api_visibility="undocumented",
             queue=bool(self.validator),
             validator=self.validator,
         )
@@ -608,7 +615,7 @@ class ChatInterface(Blocks):
             self._append_message_to_history,
             [self.saved_input, self.chatbot],
             [self.chatbot],
-            show_api=False,
+            api_visibility="undocumented",
             queue=False,
         ).then(
             **submit_fn_kwargs,
@@ -617,7 +624,7 @@ class ChatInterface(Blocks):
             lambda: update(value=None, interactive=True),
             None,
             self.textbox,
-            show_api=False,
+            api_visibility="undocumented",
         ).then(**save_fn_kwargs)
 
         # Creates the "/chat" API endpoint
@@ -627,7 +634,7 @@ class ChatInterface(Blocks):
             [self.api_response, self.chatbot_state] + self.additional_outputs,
             api_name=self.api_name,
             api_description=self.api_description,
-            show_api=self.show_api,
+            api_visibility=cast(Literal["public", "private"], self.api_visibility),
             concurrency_limit=cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
             ),
@@ -645,7 +652,7 @@ class ChatInterface(Blocks):
                     self.example_clicked,
                     None,
                     [self.chatbot, self.saved_input],
-                    show_api=False,
+                    api_visibility="undocumented",
                 )
                 if not self.cache_examples:
                     example_select_event = example_select_event.then(**submit_fn_kwargs)
@@ -655,7 +662,7 @@ class ChatInterface(Blocks):
                     self.example_populated,
                     None,
                     [self.textbox],
-                    show_api=False,
+                    api_visibility="undocumented",
                 )
 
         retry_event = (
@@ -663,27 +670,27 @@ class ChatInterface(Blocks):
                 self._pop_last_user_message,
                 [self.chatbot_state],
                 [self.chatbot_state, self.saved_input],
-                show_api=False,
+                api_visibility="undocumented",
                 queue=False,
             )
             .then(
                 self._append_message_to_history,
                 [self.saved_input, self.chatbot_state],
                 [self.chatbot],
-                show_api=False,
+                api_visibility="undocumented",
                 queue=False,
             )
             .then(
                 lambda: update(interactive=False, placeholder=""),
                 outputs=[self.textbox],
-                show_api=False,
+                api_visibility="undocumented",
             )
             .then(**submit_fn_kwargs)
         )
         retry_event.then(**synchronize_chat_state_kwargs).then(
             lambda: update(interactive=True),
             outputs=[self.textbox],
-            show_api=False,
+            api_visibility="undocumented",
         ).then(**save_fn_kwargs)
 
         events_to_cancel = [submit_event, retry_event]
@@ -703,7 +710,7 @@ class ChatInterface(Blocks):
             self._pop_last_user_message,
             [self.chatbot],
             [self.chatbot, self.textbox],
-            show_api=False,
+            api_visibility="undocumented",
             queue=False,
         ).then(**synchronize_chat_state_kwargs).then(**save_fn_kwargs)
 
@@ -711,7 +718,7 @@ class ChatInterface(Blocks):
             self.option_clicked,
             [self.chatbot],
             [self.chatbot, self.saved_input],
-            show_api=False,
+            api_visibility="undocumented",
         ).then(**submit_fn_kwargs).then(**synchronize_chat_state_kwargs).then(
             **save_fn_kwargs
         )
@@ -720,7 +727,7 @@ class ChatInterface(Blocks):
             self._delete_conversation,
             [self.conversation_id, self.saved_conversations],
             [self.conversation_id, self.saved_conversations],
-            show_api=False,
+            api_visibility="undocumented",
             queue=False,
         )
 
@@ -729,7 +736,7 @@ class ChatInterface(Blocks):
                 self._edit_message,
                 [self.chatbot],
                 [self.chatbot, self.chatbot_state, self.saved_input],
-                show_api=False,
+                api_visibility="undocumented",
             ).success(**submit_fn_kwargs).success(**synchronize_chat_state_kwargs).then(
                 **save_fn_kwargs
             )
@@ -739,13 +746,13 @@ class ChatInterface(Blocks):
                 lambda: (None, []),
                 None,
                 [self.conversation_id, self.chatbot],
-                show_api=False,
+                api_visibility="undocumented",
                 queue=False,
             ).then(
                 lambda x: x,
                 [self.chatbot],
                 [self.chatbot_state],
-                show_api=False,
+                api_visibility="undocumented",
                 queue=False,
             )
 
@@ -754,7 +761,7 @@ class ChatInterface(Blocks):
                 fn=self._load_chat_history,
                 inputs=[self.saved_conversations],
                 outputs=[self.chat_history_dataset],
-                show_api=False,
+                api_visibility="undocumented",
                 queue=False,
             )
 
@@ -762,14 +769,14 @@ class ChatInterface(Blocks):
                 lambda: [],
                 None,
                 [self.chatbot],
-                show_api=False,
+                api_visibility="undocumented",
                 queue=False,
                 show_progress="hidden",
             ).then(
                 self._load_conversation,
                 [self.chat_history_dataset, self.saved_conversations],
                 [self.conversation_id, self.chatbot],
-                show_api=False,
+                api_visibility="undocumented",
                 queue=False,
                 show_progress="hidden",
             ).then(**synchronize_chat_state_kwargs)
@@ -784,7 +791,7 @@ class ChatInterface(Blocks):
             lambda x: x,
             [self.chatbot_value],
             [self.chatbot],
-            show_api=False,
+            api_visibility="undocumented",
         ).then(**synchronize_chat_state_kwargs)
 
     def _setup_stop_events(
@@ -804,7 +811,7 @@ class ChatInterface(Blocks):
             ),
             None,
             [self.textbox],
-            show_api=False,
+            api_visibility="undocumented",
             queue=False,
         )
         for event_trigger in event_triggers:
@@ -817,7 +824,7 @@ class ChatInterface(Blocks):
                 ),
                 None,
                 [self.textbox],
-                show_api=False,
+                api_visibility="undocumented",
                 queue=False,
             )
         for event_to_cancel in events_to_cancel:
@@ -829,7 +836,7 @@ class ChatInterface(Blocks):
                 ),
                 None,
                 [self.textbox],
-                show_api=False,
+                api_visibility="undocumented",
                 queue=False,
             )
         self.textbox.stop(
@@ -837,7 +844,7 @@ class ChatInterface(Blocks):
             None,
             None,
             cancels=events_to_cancel,  # type: ignore
-            show_api=False,
+            api_visibility="undocumented",
         )
 
     def _clear_and_save_textbox(
@@ -852,51 +859,22 @@ class ChatInterface(Blocks):
             message,
         )
 
-    @staticmethod
-    def _messages_to_tuples(history_messages: list[MessageDict]) -> TupleFormat:
-        history_tuples = []
-        for message in history_messages:
-            if message["role"] == "user":
-                history_tuples.append((message["content"], None))
-            elif history_tuples and history_tuples[-1][1] is None:
-                history_tuples[-1] = (history_tuples[-1][0], message["content"])
-            else:
-                history_tuples.append((None, message["content"]))
-        return history_tuples
-
-    @staticmethod
-    def _tuples_to_messages(history_tuples: TupleFormat) -> list[MessageDict]:
-        history_messages = []
-        for message_tuple in history_tuples:
-            if message_tuple[0]:
-                history_messages.append({"role": "user", "content": message_tuple[0]})
-            if message_tuple[1]:
-                history_messages.append(
-                    {"role": "assistant", "content": message_tuple[1]}
-                )
-        return history_messages
-
     def _append_message_to_history(
         self,
         message: MessageDict | Message | str | Component | MultimodalPostprocess | list,
-        history: list[MessageDict] | TupleFormat,
+        history: list[MessageDict],
         role: Literal["user", "assistant"] = "user",
-    ) -> list[MessageDict] | TupleFormat:
+    ) -> list[MessageDict]:
         message_dicts = self._message_as_message_dict(message, role)
-        if self.type == "tuples":
-            history = self._tuples_to_messages(history)  # type: ignore
-        else:
-            history = copy.deepcopy(history)
+        history = copy.deepcopy(history)
         history.extend(message_dicts)  # type: ignore
-        if self.type == "tuples":
-            history = self._messages_to_tuples(history)  # type: ignore
         return history
 
     def _message_as_message_dict(
         self,
         message: MessageDict | Message | str | Component | MultimodalPostprocess | list,
         role: Literal["user", "assistant"],
-    ) -> list[MessageDict]:
+    ) -> list[NormalizedMessageDict]:
         """
         Converts a user message, example message, or response from the chat function to a
         list of MessageDict objects that can be appended to the chat history.
@@ -920,29 +898,27 @@ class ChatInterface(Blocks):
                 msg["role"] = role
                 message_dicts.append(msg)
             else:  # in MultimodalPostprocess format
+                multimodal_message = {"role": role, "content": []}
                 for x in msg.get("files", []):
                     if isinstance(x, dict):
                         x = x.get("path")
-                    message_dicts.append({"role": role, "content": (x,)})
-                if msg["text"] is None or not isinstance(msg["text"], str):
-                    pass
-                else:
-                    message_dicts.append({"role": role, "content": msg["text"]})
+                    multimodal_message["content"].append({"path": x})
+                if msg["text"]:
+                    multimodal_message["content"].append(msg["text"])
+                message_dicts.append(multimodal_message)
         return message_dicts
 
     async def _submit_fn(
         self,
         message: str | MultimodalPostprocess,
-        history: TupleFormat | list[MessageDict],
+        history: list[MessageDict],
         *args,
     ) -> tuple:
         inputs = [message, history] + list(args)
         if self.is_async:
             response = await self.fn(*inputs)
         else:
-            response = await anyio.to_thread.run_sync(
-                self.fn, *inputs, limiter=self.limiter
-            )
+            response = await run_sync(self.fn, *inputs, limiter=self.limiter)
         if self.additional_outputs:
             response, *additional_outputs = response
         else:
@@ -956,7 +932,7 @@ class ChatInterface(Blocks):
     async def _stream_fn(
         self,
         message: str | MultimodalPostprocess,
-        history: TupleFormat | list[MessageDict],
+        history: list[MessageDict],
         *args,
     ) -> AsyncGenerator[
         tuple,
@@ -966,9 +942,7 @@ class ChatInterface(Blocks):
         if self.is_async:
             generator = self.fn(*inputs)
         else:
-            generator = await anyio.to_thread.run_sync(
-                self.fn, *inputs, limiter=self.limiter
-            )
+            generator = await run_sync(self.fn, *inputs, limiter=self.limiter)
             generator = utils.SyncToAsyncIterator(generator, self.limiter)
 
         history = self._append_message_to_history(message, history, "user")
@@ -997,12 +971,10 @@ class ChatInterface(Blocks):
 
     def option_clicked(
         self, history: list[MessageDict], option: SelectData
-    ) -> tuple[TupleFormat | list[MessageDict], str | MultimodalPostprocess]:
+    ) -> tuple[list[MessageDict], str | MultimodalPostprocess]:
         """
         When an option is clicked, the chat history is appended with the option value.
-        The saved input value is also set to option value. Note that event can only
-        be called if self.type is "messages" since options are only available for this
-        chatbot type.
+        The saved input value is also set to option value.
         """
         history.append({"role": "user", "content": option.value})
         return history, option.value
@@ -1023,10 +995,10 @@ class ChatInterface(Blocks):
             return example.value["text"]
 
     def _edit_message(
-        self, history: list[MessageDict] | TupleFormat, edit_data: EditData
+        self, history: list[MessageDict], edit_data: EditData
     ) -> tuple[
-        list[MessageDict] | TupleFormat,
-        list[MessageDict] | TupleFormat,
+        list[MessageDict],
+        list[MessageDict],
         str | MultimodalPostprocess,
     ]:
         if isinstance(edit_data.index, (list, tuple)):
@@ -1037,9 +1009,7 @@ class ChatInterface(Blocks):
 
     def example_clicked(
         self, example: SelectData
-    ) -> Generator[
-        tuple[TupleFormat | list[MessageDict], str | MultimodalPostprocess], None, None
-    ]:
+    ) -> Generator[tuple[list[MessageDict], str | MultimodalPostprocess], None, None]:
         """
         When an example is clicked, the chat history (and saved input) is initially set only
         to the example message. Then, if example caching is enabled, the cached response is loaded
@@ -1059,41 +1029,29 @@ class ChatInterface(Blocks):
         result = []
         if self.multimodal:
             message = cast(ExampleMessage, message)
-            if self.type == "tuples":
-                for file in message.get("files", []):
-                    result.append([file, None])
-                if "text" in message:
-                    result.append([message["text"], None])
-                result[-1][1] = response
-            else:
-                for file in message.get("files", []):
-                    if isinstance(file, dict):
-                        file = file.get("path")
-                    result.append({"role": "user", "content": (file,)})
-                if "text" in message:
-                    result.append({"role": "user", "content": message["text"]})
-                result.append({"role": "assistant", "content": response})
+            for file in message.get("files", []):
+                if isinstance(file, dict):
+                    file = file.get("path")
+                result.append({"role": "user", "content": (file,)})
+            if "text" in message:
+                result.append({"role": "user", "content": message["text"]})
+            result.append({"role": "assistant", "content": response})
         else:
             message = cast(str, message)
-            if self.type == "tuples":
-                result = [[message, response]]
-            else:
-                result = [
-                    {"role": "user", "content": message},
-                    {"role": "assistant", "content": response},
-                ]
+            result = [
+                {"role": "user", "content": message},
+                {"role": "assistant", "content": response},
+            ]
         return result
 
     async def _examples_fn(
         self, message: ExampleMessage | str, *args
-    ) -> TupleFormat | list[MessageDict]:
+    ) -> list[MessageDict]:
         inputs, _, _ = special_args(self.fn, inputs=[message, [], *args], request=None)
         if self.is_async:
             response = await self.fn(*inputs)
         else:
-            response = await anyio.to_thread.run_sync(
-                self.fn, *inputs, limiter=self.limiter
-            )
+            response = await run_sync(self.fn, *inputs, limiter=self.limiter)
         return self._process_example(message, response)  # type: ignore
 
     async def _examples_stream_fn(
@@ -1106,17 +1064,15 @@ class ChatInterface(Blocks):
         if self.is_async:
             generator = self.fn(*inputs)
         else:
-            generator = await anyio.to_thread.run_sync(
-                self.fn, *inputs, limiter=self.limiter
-            )
+            generator = await run_sync(self.fn, *inputs, limiter=self.limiter)
             generator = utils.SyncToAsyncIterator(generator, self.limiter)
         async for response in generator:
             yield self._process_example(message, response)
 
     def _pop_last_user_message(
         self,
-        history: list[MessageDict] | TupleFormat,
-    ) -> tuple[list[MessageDict] | TupleFormat, str | MultimodalPostprocess]:
+        history: list[NormalizedMessageDict],
+    ) -> tuple[list[NormalizedMessageDict], str | MultimodalPostprocess]:
         """
         Removes the message (or set of messages) that the user last sent from the chat history and returns them.
         If self.multimodal is True, returns a MultimodalPostprocess (dict) object with text and files.
@@ -1125,8 +1081,6 @@ class ChatInterface(Blocks):
         if not history:
             return history, "" if not self.multimodal else {"text": "", "files": []}
 
-        if self.type == "tuples":
-            history = self._tuples_to_messages(history)  # type: ignore
         i = len(history) - 1
         while i >= 0 and history[i]["role"] == "assistant":  # type: ignore
             i -= 1
@@ -1139,16 +1093,15 @@ class ChatInterface(Blocks):
             assert isinstance(msg, dict)  # noqa: S101
             if msg["role"] == "user":
                 content = msg["content"]
-                if isinstance(content, tuple):
-                    files.append(content[0])
-                else:
-                    last_user_message = content
+                for item in content:
+                    if item["type"] == "file":
+                        files.append(item["file"])
+                    elif item["type"] == "text":
+                        last_user_message += item["text"]
         return_message = (
             {"text": last_user_message, "files": files}
             if self.multimodal
             else last_user_message
         )
         history_ = history[: i + 1]
-        if self.type == "tuples":
-            history_ = self._messages_to_tuples(history_)  # type: ignore
         return history_, return_message  # type: ignore
