@@ -14,17 +14,9 @@
 
 	let _props = $props();
 
-	// console.log(
-	// 	"Textbox props:",
-	// 	$state.snapshot(_props.shared_props),
-	// 	$state.snapshot(_props.props),
-	// );
-
 	const gradio = new Gradio<TextboxEvents, TextboxProps>(_props);
 
 	function handle_change(value: string): void {
-		console.log("HANDLE CHANGE", $state.snapshot(gradio.props));
-		console.log("HANDLE CHANGE", $state.snapshot(gradio.shared));
 		if (!gradio.shared || !gradio.props) return;
 		gradio.set_data({ validation_error: null });
 		gradio.set_data({ value });
