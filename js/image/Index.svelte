@@ -41,7 +41,7 @@
 	let old_value: null | FileData = null;
 	export let label: string;
 	export let show_label: boolean;
-	export let show_download_button: boolean;
+	export let buttons: string[] | null = null;
 	export let root: string;
 
 	export let height: number | undefined;
@@ -53,7 +53,6 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
-	export let show_share_button = false;
 	export let sources: ("clipboard" | "webcam" | "upload")[] = [
 		"upload",
 		"clipboard",
@@ -63,7 +62,6 @@
 	export let streaming: boolean;
 	export let pending: boolean;
 	export let placeholder: string | undefined = undefined;
-	export let show_fullscreen_button: boolean;
 	export let input_ready: boolean;
 	export let webcam_options: WebcamOptions;
 	let fullscreen = false;
@@ -159,11 +157,9 @@
 			{value}
 			{label}
 			{show_label}
-			{show_download_button}
+			{buttons}
 			selectable={_selectable}
-			{show_share_button}
 			i18n={gradio.i18n}
-			{show_fullscreen_button}
 		/>
 	</Block>
 {:else}
@@ -203,6 +199,9 @@
 			{root}
 			{sources}
 			{fullscreen}
+			show_fullscreen_button={buttons === null
+				? true
+				: buttons.includes("fullscreen")}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => {
 				fullscreen = false;
