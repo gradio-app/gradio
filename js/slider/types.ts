@@ -12,7 +12,7 @@ export interface SliderProps {
 	minimum: number;
 	maximum: number;
 	step: number;
-	show_reset_button: boolean;
+	buttons: string[] | null;
 	info: string | undefined;
 }
 

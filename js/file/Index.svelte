@@ -8,115 +8,88 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
+	import { Gradio } from "@gradio/utils";
 	import File from "./shared/File.svelte";
 	import FileUpload from "./shared/FileUpload.svelte";
-	import type { FileData } from "@gradio/client";
 	import { Block, UploadText } from "@gradio/atoms";
-
+	import type { FileEvents, FileProps } from "./types";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let value: null | FileData | FileData[];
+	const props = $props();
+	const gradio = new Gradio<FileEvents, FileProps>(props);
 
-	export let interactive: boolean;
-	export let root: string;
-	export let label: string;
-	export let show_label: boolean;
-	export let height: number | undefined = undefined;
+	let uploading = $state(false);
+	let dragging = $state(false);
+	let pending_upload = $state(false);
 
-	export let _selectable = false;
-	export let loading_status: LoadingStatus;
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let gradio: Gradio<{
-		change: never;
-		error: string;
-		upload: never;
-		clear: never;
-		select: SelectData;
-		clear_status: LoadingStatus;
-		delete: FileData;
-		download: FileData;
-	}>;
-	export let file_count: "single" | "multiple" | "directory";
-	export let file_types: string[] = ["file"];
-	export let input_ready: boolean;
-	export let allow_reordering = false;
-	let uploading = false;
-	$: input_ready = !uploading;
+	let old_value = $state(gradio.props.value);
 
-	let old_value = value;
-	$: if (JSON.stringify(old_value) !== JSON.stringify(value)) {
-		gradio.dispatch("change");
-		old_value = value;
-	}
-
-	let dragging = false;
-	let pending_upload = false;
+	$effect(() => {
+		if (old_value !== gradio.props.value) {
+			old_value = gradio.props.value;
+			gradio.dispatch("change", $state.snapshot(gradio.props.value));
+		}
+	});
 </script>
 
 <Block
-	{visible}
-	variant={value ? "solid" : "dashed"}
+	visible={gradio.shared.visible}
+	variant={gradio.props.value ? "solid" : "dashed"}
 	border_mode={dragging ? "focus" : "base"}
 	padding={false}
-	{elem_id}
-	{elem_classes}
-	{container}
-	{scale}
-	{min_width}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+	container={gradio.shared.container}
+	scale={gradio.shared.scale}
+	min_width={gradio.shared.min_width}
 	allow_overflow={false}
 >
 	<StatusTracker
-		autoscroll={gradio.autoscroll}
+		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
-		{...loading_status}
+		{...gradio.shared.loading_status}
 		status={pending_upload
 			? "generating"
-			: loading_status?.status || "complete"}
-		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+			: gradio.shared.loading_status?.status || "complete"}
+		on:clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
-	{#if !interactive}
+	{#if !gradio.shared.interactive}
 		<File
-			on:select={({ detail }) => gradio.dispatch("select", detail)}
-			on:download={({ detail }) => gradio.dispatch("download", detail)}
-			selectable={_selectable}
-			{value}
-			{label}
-			{show_label}
-			{height}
+			on_select={({ detail }) => gradio.dispatch("select", detail)}
+			on_download={({ detail }) => gradio.dispatch("download", detail)}
+			selectable={gradio.props._selectable}
+			value={gradio.props.value}
+			label={gradio.shared.label}
+			show_label={gradio.shared.show_label}
+			height={gradio.props.height}
 			i18n={gradio.i18n}
 		/>
 	{:else}
 		<FileUpload
-			upload={(...args) => gradio.client.upload(...args)}
-			stream_handler={(...args) => gradio.client.stream(...args)}
-			{label}
-			{show_label}
-			{value}
-			{file_count}
-			{file_types}
-			selectable={_selectable}
-			{root}
-			{height}
-			{allow_reordering}
+			upload={(...args) => gradio.shared.client.upload(...args)}
+			stream_handler={(...args) => gradio.shared.client.stream(...args)}
+			label={gradio.shared.label}
+			show_label={gradio.shared.show_label}
+			value={gradio.props.value}
+			file_count={gradio.props.file_count}
+			file_types={gradio.props.file_types}
+			selectable={gradio.props._selectable}
+			height={gradio.props.height}
+			root={gradio.shared.root}
+			allow_reordering={gradio.props.allow_reordering}
 			bind:uploading
-			max_file_size={gradio.max_file_size}
+			max_file_size={gradio.shared.max_file_size}
 			on:change={({ detail }) => {
-				value = detail;
+				gradio.props.value = detail;
 			}}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:clear={() => gradio.dispatch("clear")}
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
 			on:upload={() => gradio.dispatch("upload")}
 			on:error={({ detail }) => {
-				loading_status = loading_status || {};
-				loading_status.status = "error";
+				gradio.shared.loading_status = gradio.shared.loading_status || {};
+				gradio.shared.loading_status.status = "error";
 				gradio.dispatch("error", detail);
 			}}
 			on:delete={({ detail }) => {

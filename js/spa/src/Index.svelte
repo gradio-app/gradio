@@ -25,7 +25,7 @@
 		version: string;
 		space_id: string | null;
 		is_colab: boolean;
-		show_api: boolean;
+		footer_links: string[];
 		stylesheets?: string[];
 		app_id?: string;
 		fill_height?: boolean;
@@ -423,6 +423,8 @@
 
 	$: config && (eager || $intersecting[_id]) && load_demo();
 
+	$: console.log({ loader_status, ready, status });
+
 	let Blocks: typeof import("@gradio/core/blocks").default;
 
 	let Login: typeof import("@gradio/core/login").default;
@@ -592,7 +594,7 @@
 				bind:ready
 				bind:render_complete
 				bind:add_new_message={new_message_fn}
-				show_footer={!is_embed}
+				footer_links={is_embed ? [] : config.footer_links}
 				{app_mode}
 				{version}
 				api_prefix={config.api_prefix || ""}

@@ -10,18 +10,15 @@
 	import MultimodalTextbox from "./shared/MultimodalTextbox.svelte";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
-	import type { FileData } from "@gradio/client";
 	import { onMount } from "svelte";
 	import type { WaveformOptions } from "../audio/shared/types";
-	import type { InputHTMLAttributes } from "./shared/types";
 	import type {
 		MultimodalTextboxProps,
-		MultimodalTextboxEvents,
+		MultimodalTextboxEvents
 	} from "./types";
 	let props = $props();
 	const gradio = new Gradio<MultimodalTextboxEvents, MultimodalTextboxProps>(
-		props,
+		props
 	);
 
 	let dragging: boolean;
@@ -43,12 +40,12 @@
 		waveColor: "",
 		progressColor: "",
 		mediaControls: false as boolean | undefined,
-		sampleRate: 44100,
+		sampleRate: 44100
 	};
 
 	onMount(() => {
 		color_accent = getComputedStyle(document?.documentElement).getPropertyValue(
-			"--color-accent",
+			"--color-accent"
 		);
 		set_trim_region_colour();
 		waveform_settings.waveColor =
@@ -64,13 +61,13 @@
 	const trim_region_settings = {
 		color: gradio.props?.waveform_options?.trim_region_color,
 		drag: true,
-		resize: true,
+		resize: true
 	};
 
 	function set_trim_region_colour(): void {
 		document.documentElement.style.setProperty(
 			"--trim-region-color",
-			trim_region_settings.color || color_accent,
+			trim_region_settings.color || color_accent
 		);
 	}
 
@@ -89,7 +86,11 @@
 			| "upload"
 			| "upload,microphone"
 			| "microphone"
-			| "microphone,upload",
+			| "microphone,upload"
+	);
+
+	let file_types_string = $derived.by(
+		() => (gradio.props.file_types || []).join(",") || null
 	);
 </script>
 
@@ -118,7 +119,7 @@
 		value_is_output
 		bind:dragging
 		bind:active_source
-		file_types={gradio.props.file_types}
+		{file_types_string}
 		root={gradio.shared.root}
 		label={gradio.shared.label}
 		info={gradio.props.info}

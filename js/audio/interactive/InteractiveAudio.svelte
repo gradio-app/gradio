@@ -22,7 +22,7 @@
 	export let root: string;
 	export let loop: boolean;
 	export let show_label = true;
-	export let show_download_button = false;
+	export let buttons: string[] = ["download", "share"];
 	export let sources:
 		| ["microphone"]
 		| ["upload"]
@@ -50,7 +50,7 @@
 	let stream_state: "open" | "waiting" | "closed" = "closed";
 
 	export const modify_stream: (state: "open" | "closed" | "waiting") => void = (
-		state: "open" | "closed" | "waiting",
+		state: "open" | "closed" | "waiting"
 	) => {
 		if (state === "closed") {
 			time_limit = null;
@@ -107,13 +107,13 @@
 
 	const dispatch_blob = async (
 		blobs: Uint8Array[] | Blob[],
-		event: "stream" | "change" | "stop_recording",
+		event: "stream" | "change" | "stop_recording"
 	): Promise<void> => {
 		let _audio_blob = new File(blobs, "audio.wav");
 		const val = await prepare_files([_audio_blob], event === "stream");
 		value = (
 			(await upload(val, root, undefined, max_file_size || undefined))?.filter(
-				Boolean,
+				Boolean
 			) as FileData[]
 		)[0];
 		dispatch(event, value);
@@ -145,7 +145,7 @@
 
 		if (streaming) {
 			recorder = new streaming_media_recorder(stream, {
-				mimeType: "audio/wav",
+				mimeType: "audio/wav"
 			});
 			recorder.addEventListener("dataavailable", handle_chunk);
 		} else {
@@ -292,7 +292,11 @@
 			{i18n}
 			on:clear={clear}
 			on:edit={() => (mode = "edit")}
-			download={show_download_button ? value.url : null}
+			download={buttons === null
+				? value.url
+				: buttons.includes("download")
+					? value.url
+					: null}
 		/>
 
 		<AudioPlayer

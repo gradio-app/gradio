@@ -8,6 +8,7 @@ import type {
 import { AsyncFunction } from "./init_utils";
 import { Client, type client_return } from "@gradio/client";
 
+const NOVALUE = Symbol("NOVALUE");
 /**
  * A dependency as used by the frontend
  * This class represents a discrete dependency that can be triggered by an event
@@ -79,7 +80,7 @@ export class Dependency {
 		let _data_payload = data_payload;
 
 		if (this.functions.frontend) {
-			_data_payload = await this.functions.frontend(...data_payload);
+			_data_payload = await this.functions.frontend(data_payload);
 		}
 
 		if (this.functions.backend_js) {
@@ -95,6 +96,8 @@ export class Dependency {
 					this.original_trigger_id
 				)
 			};
+		} else if (this.functions.frontend) {
+			return { type: "data", data: _data_payload };
 		}
 		return { type: "void", data: null };
 	}
@@ -144,7 +147,7 @@ interface DispatchEvent {
  */
 export class DependencyManager {
 	dependencies_by_fn: Map<number, Dependency> = new Map();
-	dependencies_by_event: Map<string, Dependency> = new Map();
+	dependencies_by_event: Map<string, Dependency[]> = new Map();
 	render_id_deps = new Map<number, Set<number>>();
 
 	submissions: Map<number, ReturnType<Client["submit"]>> = new Map();
@@ -179,54 +182,24 @@ export class DependencyManager {
 	 * @returns a value if there is no backend fn, a 'submission' if there is a backend fn, or null if there is no dependency
 	 */
 	async dispatch(event_meta: DispatchFunction | DispatchEvent): Promise<void> {
-		let dep: Dependency | undefined;
+		let deps: Dependency[] | undefined;
 
 		if (event_meta.type === "fn") {
-			dep = this.dependencies_by_fn.get(event_meta.fn_index!);
+			const dep = this.dependencies_by_fn.get(event_meta.fn_index!);
+			if (dep) deps = [dep];
 		} else {
-			dep = this.dependencies_by_event.get(
+			deps = this.dependencies_by_event.get(
 				`${event_meta.event_name}-${event_meta.target_id}`
 			);
 		}
-
-		if (dep) {
-			const dispatch_status = should_dispatch(
-				dep.trigger_modes,
-				this.submissions.has(dep.id)
-			);
-
-			console.log("Dispatching status:", dispatch_status);
-
-			switch (dispatch_status) {
-				case "skip":
-					return;
-				case "defer":
-					this.queue.add(dep.id);
-					return;
-				case "run":
-					// continue to run
-					break;
-			}
-
-			// only cancel if the event actually runs
-			this.cancel(dep.cancels);
-
-			const data_payload = await this.gather_state(dep.inputs);
-			const unset_args = await this.set_event_args(dep.id, dep.event_args);
-
-			const { success, failure, all } = dep.get_triggers();
-
-			console.log({ success, failure, all });
-			console.log("Running dependency:", dep.id, data_payload);
-
-			try {
-				const dep_submission = await dep.run(
-					this.client,
-					data_payload,
-					event_meta.event_data
+		deps?.forEach(async (dep) => {
+			if (dep) {
+				const dispatch_status = should_dispatch(
+					dep.trigger_modes,
+					this.submissions.has(dep.id)
 				);
 
-				console.log("Dispatching to", dep.id);
+				console.log("Dispatching status:", dispatch_status);
 
 				if (dep_submission.type === "void") {
 					unset_args();
@@ -302,18 +275,84 @@ export class DependencyManager {
 					return;
 				}
 
-				console.log("Dispatching success/failure triggers");
+				// only cancel if the event actually runs
+				this.cancel(dep.cancels);
 
-				success.forEach((dep_id) => {
-					console.log("Dispatching success to", dep_id);
-					this.dispatch({
-						type: "fn",
-						fn_index: dep_id,
-						event_data: null
+				const data_payload = await this.gather_state(dep.inputs);
+				const unset_args = await this.set_event_args(dep.id, dep.event_args);
+
+				const { success, failure, all } = dep.get_triggers();
+
+				console.log({ success, failure, all });
+				console.log("Running dependency:", dep.id, data_payload);
+
+				try {
+					const dep_submission = await dep.run(
+						this.client,
+						data_payload,
+						event_meta.event_data
+					);
+
+					console.log("Dispatching to", dep.id);
+
+					if (dep_submission.type === "void") {
+						unset_args();
+					} else if (dep_submission.type === "data") {
+						this.handle_data(dep.outputs, dep_submission.data);
+						unset_args();
+					} else {
+						console.log("Dispatching to", dep.id, dep_submission);
+						this.submissions.set(dep.id, dep_submission.data);
+						// fn for this?
+						submit_loop: for await (const result of dep_submission.data) {
+							console.log("Received submission result for", dep.id, result);
+							if (result === null) continue;
+							if (result.type === "data") {
+								this.handle_data(dep.outputs, result.data);
+							}
+							if (result.type === "status") {
+								// handle status updates here
+								if (result.stage === "complete") {
+									console.log("Submission complete for", dep.id);
+									break submit_loop;
+								} else if (result.stage === "error") {
+									console.log("Submission error for", dep.id);
+									break submit_loop;
+								}
+							}
+						}
+						console.log("+++");
+						console.log("Dependency complete:", dep.id);
+						unset_args();
+						this.submissions.delete(dep.id);
+
+						if (this.queue.has(dep.id)) {
+							this.queue.delete(dep.id);
+							this.dispatch(event_meta);
+						}
+					}
+
+					console.log("Dispatching success/failure triggers");
+
+					success.forEach((dep_id) => {
+						console.log("Dispatching success to", dep_id);
+						this.dispatch({
+							type: "fn",
+							fn_index: dep_id,
+							event_data: null
+						});
 					});
-				});
-			} catch (error) {
-				failure.forEach((dep_id) => {
+				} catch (error) {
+					failure.forEach((dep_id) => {
+						this.dispatch({
+							type: "fn",
+							fn_index: dep_id,
+							event_data: null
+						});
+					});
+				}
+
+				all.forEach((dep_id) => {
 					this.dispatch({
 						type: "fn",
 						fn_index: dep_id,
@@ -321,16 +360,7 @@ export class DependencyManager {
 					});
 				});
 			}
-
-			all.forEach((dep_id) => {
-				this.dispatch({
-					type: "fn",
-					fn_index: dep_id,
-					event_data: null
-				});
-			});
-		}
-
+		});
 		return;
 	}
 
@@ -342,17 +372,21 @@ export class DependencyManager {
 	 * */
 	create(dependencies: IDependency[]): {
 		by_id: Map<number, Dependency>;
-		by_event: Map<string, Dependency>;
+		by_event: Map<string, Dependency[]>;
 	} {
 		const _deps_by_id = new Map<number, Dependency>();
-		const _deps_by_event = new Map<string, Dependency>();
+		const _deps_by_event = new Map<string, Dependency[]>();
 		const then_triggers: [number, number, "success" | "failure" | "all"][] = [];
 
 		for (const dep_config of dependencies) {
 			const dependency = new Dependency(dep_config);
 
 			for (const [target_id, event_name] of dep_config.targets) {
-				_deps_by_event.set(`${event_name}-${target_id}`, dependency);
+				// if the key is already present, add it to the list. Otherwise, create a new element with the list
+				if (!_deps_by_event.has(`${event_name}-${target_id}`)) {
+					_deps_by_event.set(`${event_name}-${target_id}`, []);
+				}
+				_deps_by_event.get(`${event_name}-${target_id}`)?.push(dependency);
 			}
 
 			_deps_by_id.set(dep_config.id, dependency);
@@ -396,9 +430,8 @@ export class DependencyManager {
 	 * */
 	async handle_data(outputs: number[], data: unknown[]) {
 		outputs.forEach(async (output_id, i) => {
-			console.log("handle_data", output_id, data[i]);
-			const _data = data[i] ?? null;
-			if (!_data) return;
+			const _data = data[i] === undefined ? NOVALUE : data[i];
+			if (_data === NOVALUE) return;
 
 			if (is_prop_update(_data)) {
 				for (const [update_key, update_value] of Object.entries(_data)) {

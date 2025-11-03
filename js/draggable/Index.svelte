@@ -1,16 +1,11 @@
 <script lang="ts">
+	import type { DraggableProps, DraggableEvents } from "./types";
+	import { Gradio } from "@gradio/utils";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
-	import type { Gradio } from "@gradio/utils";
 	import { onMount, tick } from "svelte";
 
-	export let elem_id: string;
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let orientation: "row" | "column" = "row";
-	export let loading_status: LoadingStatus | undefined = undefined;
-	export let gradio: Gradio | undefined = undefined;
-	export let show_progress = false;
+	const props = $props();
+	const gradio = new Gradio<DraggableEvents, DraggableProps>(props);
 
 	let container_el: HTMLDivElement;
 	let dragged_el: HTMLElement | null = null;
@@ -267,23 +262,23 @@
 
 <div
 	bind:this={container_el}
-	class:hide={!visible}
-	class:horizontal={orientation === "row"}
-	class:vertical={orientation === "column"}
-	id={elem_id}
-	class="draggable {elem_classes.join(' ')}"
+	class:hide={!gradio.shared.visible}
+	class:horizontal={gradio.props.orientation === "row"}
+	class:vertical={gradio.props.orientation === "column"}
+	id={gradio.shared.elem_id}
+	class="draggable {(gradio.shared.elem_classes || []).join(' ')}"
 	role="region"
 	aria-label="Draggable items container"
 >
-	{#if loading_status && show_progress && gradio}
+	{#if gradio.shared.loading_status && gradio.props.show_progress}
 		<StatusTracker
-			autoscroll={gradio.autoscroll}
+			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
-			{...loading_status}
-			status={loading_status
-				? loading_status.status == "pending"
+			{...gradio.shared.loading_status}
+			status={gradio.shared.loading_status
+				? gradio.shared.loading_status.status == "pending"
 					? "generating"
-					: loading_status.status
+					: gradio.shared.loading_status.status
 				: null}
 		/>
 	{/if}

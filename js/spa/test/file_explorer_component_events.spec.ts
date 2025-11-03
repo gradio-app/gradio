@@ -73,7 +73,7 @@ test("File Explorer correctly displays both directories and files. Directories i
 
 	await page
 		.locator("span")
-		.filter({ hasText: "dir3_foo.txt" })
+		.filter({ hasText: "dir3_bar.log" })
 		.getByRole("checkbox")
 		.check();
 
@@ -85,7 +85,7 @@ test("File Explorer correctly displays both directories and files. Directories i
 		return (
 			files.some((f) => f.endsWith("dir4")) &&
 			files.some((f) => f.endsWith("dir_4_foo.txt")) &&
-			files.some((f) => f.endsWith("dir3_foo.txt"))
+			files.some((f) => f.endsWith("dir3_bar.log"))
 		);
 	};
 

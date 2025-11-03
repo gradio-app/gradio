@@ -11,6 +11,7 @@ from gradio_client import utils as client_utils
 import gradio as gr
 from gradio import processing_utils, utils
 from gradio.data_classes import FileData
+from gradio.media import get_audio
 
 
 class TestAudio:
@@ -39,8 +40,7 @@ class TestAudio:
             "autoplay": False,
             "sources": ["upload", "microphone"],
             "name": "audio",
-            "show_download_button": None,
-            "show_share_button": False,
+            "buttons": ["download", "share"],
             "streaming": False,
             "show_label": True,
             "label": "Upload Your Audio",
@@ -58,11 +58,8 @@ class TestAudio:
             "format": None,
             "recording": False,
             "streamable": False,
-            "max_length": None,
-            "min_length": None,
             "waveform_options": {
                 "sample_rate": 44100,
-                "show_controls": False,
                 "show_recording_waveform": True,
                 "skip_length": 5,
                 "waveform_color": None,
@@ -98,13 +95,10 @@ class TestAudio:
         assert audio_output.get_config() == {
             "autoplay": False,
             "name": "audio",
-            "show_download_button": None,
-            "show_share_button": False,
+            "buttons": ["download", "share"],
             "streaming": False,
             "show_label": True,
             "label": None,
-            "max_length": None,
-            "min_length": None,
             "container": True,
             "editable": True,
             "min_width": 160,
@@ -122,7 +116,6 @@ class TestAudio:
             "sources": ["upload", "microphone"],
             "waveform_options": {
                 "sample_rate": 44100,
-                "show_controls": False,
                 "show_recording_waveform": True,
                 "skip_length": 5,
                 "waveform_color": None,
@@ -151,7 +144,7 @@ class TestAudio:
             return (sr, np.flipud(data))
 
         iface = gr.Interface(reverse_audio, "audio", "audio")
-        reversed_file = iface("test/test_files/audio_sample.wav")
+        reversed_file = iface(get_audio("audio_sample.wav"))
         reversed_reversed_file = iface(reversed_file)
         reversed_reversed_data = client_utils.encode_url_or_file_to_base64(
             reversed_reversed_file
@@ -211,3 +204,15 @@ class TestAudio:
             bytes_output, desired_output_format=None
         )
         assert str(output.path).endswith("mp3")
+
+
+def test_duration_validator():
+    assert gr.validators.is_audio_correct_length((8000, np.zeros((8000,))), 1, 2)[
+        "is_valid"
+    ]
+    assert not gr.validators.is_audio_correct_length((8000, np.zeros((8000,))), 2, 3)[
+        "is_valid"
+    ]
+    assert not gr.validators.is_audio_correct_length(
+        (8000, np.zeros((8000,))), 0.25, 0.75
+    )["is_valid"]

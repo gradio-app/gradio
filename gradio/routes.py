@@ -52,7 +52,6 @@ from fastapi.responses import (
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
-from fastapi.websockets import WebSocket, WebSocketDisconnect
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import ServerMessage
@@ -331,8 +330,8 @@ class App(FastAPI):
             raise PermissionError("This URL cannot be proxied.")
         is_hf_url = url.host.endswith(".hf.space")
         headers = {}
-        if Context.hf_token is not None and is_hf_url:
-            headers["Authorization"] = f"Bearer {Context.hf_token}"
+        if Context.token is not None and is_hf_url:
+            headers["Authorization"] = f"Bearer {Context.token}"
         rp_req = client.build_request("GET", url, headers=headers)
         return rp_req
 
@@ -798,7 +797,7 @@ class App(FastAPI):
             }
 
             for endpoint_path, endpoint_info in info.get("named_endpoints", {}).items():  # type: ignore
-                if not endpoint_info.get("show_api", True):
+                if endpoint_info.get("api_visibility", "public") == "private":
                     continue
                 path_item = {
                     "post": {
@@ -1074,23 +1073,6 @@ class App(FastAPI):
             event.data = body
             event.signal.set()
             return {"msg": "success"}
-
-        @router.websocket("/stream/{event_id}")
-        async def websocket_endpoint(websocket: WebSocket, event_id: str):
-            await websocket.accept()
-            try:
-                while True:
-                    data = await websocket.receive_json()
-                    body = PredictBody(**data)  # type: ignore
-                    event = app.get_blocks()._queue.event_ids_to_events[event_id]
-                    body_internal = PredictBodyInternal(  # type: ignore
-                        **body.model_dump(), request=None
-                    )
-                    event.data = body_internal
-                    event.signal.set()
-                    await websocket.send_json({"msg": "success"})
-            except WebSocketDisconnect:
-                pass
 
         @router.post("/stream/{event_id}/close")
         async def _(event_id: str):
@@ -2012,6 +1994,61 @@ class App(FastAPI):
 
             return ""
 
+        control_token_re = re.compile(r"<\|[^>]*\|>")
+        final_start_re = re.compile(
+            r"<\|start\|>assistant<\|channel\|>final<\|message\|>", re.IGNORECASE
+        )
+        end_re = re.compile(r"<\|end\|>", re.IGNORECASE)
+        reasoning_block_re = re.compile(
+            r"<\s*reasoning\s*>\s*(?P<body>.*?)\s*<\s*/\s*reasoning\s*>",
+            re.IGNORECASE | re.DOTALL,
+        )
+        think_block_re = re.compile(
+            r"<\s*think\s*>.*?<\s*/\s*think\s*>", re.IGNORECASE | re.DOTALL
+        )
+
+        # Remove analysis and weird markers from gpt-oss
+        def clean_out_markers(raw: str) -> str:
+            if not raw:
+                return raw
+
+            m = final_start_re.search(raw)
+            if m:
+                text = raw[m.end() :]
+                m_end = end_re.search(text)
+                if m_end:
+                    text = text[: m_end.start()]
+                return text.strip()
+
+            text = control_token_re.sub("", raw)
+            return text.strip()
+
+        def strip_think_blocks(text: str) -> str:
+            """Remove any <think> ... </think> blocks entirely"""
+            return think_block_re.sub("", text)
+
+        def split_reasoning_code(text: str) -> tuple[str, str]:
+            """
+            Extract all <reasoning>...</reasoning> and code. If multiple, concatenate with blank lines, de-duping exact copies.
+            """
+            reasoning_chunks = []
+            seen = set()
+            for m in reasoning_block_re.finditer(text):
+                body = m.group("body").strip()
+                if body and body not in seen:
+                    reasoning_chunks.append(body)
+                    seen.add(body)
+
+            reasoning_text = "\n\n".join(reasoning_chunks).strip()
+            code_text = reasoning_block_re.sub("", text).strip()
+
+            return reasoning_text, code_text
+
+        if blocks.vibe_mode:
+            from huggingface_hub import InferenceClient
+
+            inference_client = InferenceClient()
+
         @router.post("/vibe-edit/")
         @router.post("/vibe-edit")
         async def vibe_edit(body: VibeEditBody):
@@ -2034,10 +2071,6 @@ class App(FastAPI):
 
             hash_to_chat_history[snapshot_hash] = chat_history["history"]
 
-            from huggingface_hub import InferenceClient
-
-            client = InferenceClient()
-
             content = ""
             limited_history = limit_chat_history(chat_history["history"])
 
@@ -2057,7 +2090,7 @@ History:
 
             system_prompt = load_system_prompt()
             content = (
-                client.chat_completion(
+                inference_client.chat_completion(
                     model="openai/gpt-oss-120b",
                     messages=[
                         {"role": "system", "content": system_prompt},
@@ -2072,38 +2105,12 @@ History:
             if content is None:
                 raise HTTPException(status_code=500, detail="Error generating code")
 
-            control_token_re = re.compile(r"<\|[^>]*\|>")
-            final_start_re = re.compile(
-                r"<\|start\|>assistant<\|channel\|>final<\|message\|>", re.IGNORECASE
-            )
-            end_re = re.compile(r"<\|end\|>", re.IGNORECASE)
-
-            # Remove analysis and weird markers from gpt-oss
-            def clean_out_markers(raw: str) -> str:
-                if not raw:
-                    return raw
-
-                m = final_start_re.search(raw)
-                if m:
-                    text = raw[m.end() :]
-                    m_end = end_re.search(text)
-                    if m_end:
-                        text = text[: m_end.start()]
-                    return text.strip()
-
-                text = control_token_re.sub("", raw)
-                return text.strip()
-
             content = clean_out_markers(content)
+            content = strip_think_blocks(content)
 
             chat_history["history"] += f"\nUser: {body.prompt}\nAssistant: {content}\n"
 
-            reasoning = None
-            if "<reasoning>" in content:
-                reasoning = content.split("<reasoning>")[1].split("</reasoning>")[0]
-                content = content.replace(
-                    f"<reasoning>{reasoning}</reasoning>", ""
-                ).strip()
+            reasoning, content = split_reasoning_code(content)
 
             if "```python\n" in content:
                 start = content.index("```python\n") + len("```python\n")
@@ -2206,6 +2213,54 @@ History:
                     status_code=500, detail=f"Error writing file: {str(e)}"
                 ) from e
 
+        @router.post("/vibe-starter-queries/")
+        @router.post("/vibe-starter-queries")
+        async def get_vibe_starter_queries():
+            if not blocks.vibe_mode:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
+                )
+
+            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
+
+            with open(GRADIO_WATCH_DEMO_PATH) as f:
+                code = f.read()
+
+            prompt = f"""
+You are a prompt generator for a gradio vibe editor. Given the following existing code, return a list of starter queries that can be used to generate a new code.
+Existing code:
+```python
+{code}
+```
+"""
+
+            system_prompt = load_system_prompt(starter_queries=True)
+            content = (
+                inference_client.chat_completion(
+                    model="openai/gpt-oss-120b",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt},
+                    ],
+                    max_tokens=10000,
+                )
+                .choices[0]
+                .message.content
+            )
+
+            if content is None:
+                raise HTTPException(status_code=500, detail="Error generating code")
+
+            content = strip_think_blocks(content)
+            content = clean_out_markers(content)
+
+            starter_queries = content.split("\n")
+
+            return {
+                "starter_queries": starter_queries,
+            }
+
         def cleanup_files(files):
             for file in files:
                 try:
@@ -2223,7 +2278,7 @@ History:
 ########
 
 
-def load_system_prompt():
+def load_system_prompt(starter_queries: bool = False):
     prompt_rules = """Generate code for using the Gradio python library.
 
 The following RULES must be followed.  Whenever you are forming a response, ensure all rules have been followed otherwise start over.
@@ -2255,6 +2310,43 @@ demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
 
 demo.launch()
 """
+    if starter_queries:
+        prompt_rules = """
+        You are a prompt generator for a gradio vibe editor.
+
+        Given python code of a gradio app, return a list of starter queries that can be used to generate new code.
+        Make sure the queries are short, useful and actually possible with Gradio.
+        The queries should be really simple and easy to understand.
+        You should respond with at most three queries, each on a new line. Do not include any other text.
+        Make sure the features you suggest are actually supported by Gradio, and documented in the docs section below.
+        Never suggest a query with more than one gradio feature or concept.
+        You may suggest queries that are not related to Gradio, but they must be related to the existing code and app. Never suggest queries that require external packages or libraries other than gradio.
+        Don't suggest adding a clear button if the app is an Interface, because Interface already has a clear button.
+
+        Here's an example of a gradio app:
+
+        ```python
+        import gradio as gr
+
+        def greet(name):
+            return "Hello " + name + "!"
+
+        demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
+
+        demo.launch()
+        ```
+
+        Here's an example of a valid response:
+        Add a title to the app
+        Add examples
+        Rewrite this app using Blocks
+
+        Here's an example of another valid response:
+        Add another textbox for name
+        Change the theme
+        Greet the user in many languages
+
+        """
     try:
         with httpx.Client() as client:
             response = client.get("https://www.gradio.app/llms.txt")
@@ -2304,7 +2396,8 @@ def mount_gradio_app(
     path: str,
     server_name: str = "0.0.0.0",
     server_port: int = 7860,
-    show_api: bool | None = None,
+    footer_links: list[Literal["api", "gradio", "settings"] | dict[str, str]]
+    | None = None,
     app_kwargs: dict[str, Any] | None = None,
     *,
     auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,
@@ -2342,7 +2435,7 @@ def mount_gradio_app(
         favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for this gradio app's page.
         show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log. Otherwise, errors will only be visible in the terminal session running the Gradio app.
         max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
-        show_api: If False, hides the "Use via API" button on the Gradio interface.
+        footer_links: The links to display in the footer of the app. Accepts a list, where each element of the list must be one of "api", "gradio", or "settings" corresponding to the API docs, "built with Gradio", and settings pages respectively. If None, all three links will be shown in the footer. An empty list means that no footer is shown.
         ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
         node_server_name: The name of the Node server to use for SSR. If None, will use GRADIO_NODE_SERVER_NAME environment variable or search for a node binary in the system.
         i18n: If provided, the i18n instance to use for this gradio app.
@@ -2366,8 +2459,9 @@ def mount_gradio_app(
         )
 
     blocks.dev_mode = False
-    if show_api is not None:
-        blocks.show_api = show_api
+    if footer_links is None:
+        footer_links = ["api", "gradio", "settings"]
+    blocks.footer_links = footer_links
     blocks.max_file_size = utils._parse_file_size(max_file_size)
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()

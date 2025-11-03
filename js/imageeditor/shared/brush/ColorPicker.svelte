@@ -247,7 +247,8 @@
 		position: relative;
 		--hue: white;
 
-		background: linear-gradient(rgba(0, 0, 0, 0), #000),
+		background:
+			linear-gradient(rgba(0, 0, 0, 0), #000),
 			linear-gradient(90deg, #fff, hsl(var(--hue), 100%, 50%));
 		width: 100%;
 		height: 150px;

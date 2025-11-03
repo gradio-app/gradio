@@ -41,28 +41,26 @@ runs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ inputs.python_version }}
-        cache: pip
         cache-dependency-path: |
           client/python/requirements.txt
           requirements.txt
           test/requirements.txt
-    - name: Create env
-      shell: bash
-      run: |
-        python -m pip install --upgrade virtualenv
-        python -m virtualenv venv
     - name: Install uv (linux)
       if: ${{ inputs.os == 'ubuntu-latest' }}
       shell: bash
       run: |
-        curl -LsSf https://astral.sh/uv/install.sh | sh
+        curl -LsSf https://astral.sh/uv/0.9.2/install.sh | sh
         echo "$HOME/.cargo/bin" >> $GITHUB_PATH
     - name: Install uv (windows)
       if: ${{ inputs.os == 'windows-latest' }}
       shell: bash
       run: |
-        powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+        powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/0.9.2/install.ps1 | iex"
         echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+    - name: Create env
+      shell: bash
+      run: |
+        uv venv venv --python=${{ inputs.python_version }}
     - uses: actions/cache@v4
       id: cache
       with:
@@ -71,7 +69,7 @@ runs:
           client/python/venv
         restore-keys: |
           gradio-lib-${{inputs.python_version}}-${{inputs.os}}-latest-pip-
-        key: "gradio-lib-${{inputs.python_version}}-${{inputs.os}}-latest-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}${{ inputs.test == 'true' && '-test' || ''}}"
+        key: "gradio-lib-svelte5-${{inputs.python_version}}-${{inputs.os}}-latest-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}${{ inputs.test == 'true' && '-test' || ''}}"
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@583042d32dd1cabb8bd09df03bde06080da5c87c # @v2
     - name: Install test dependencies
@@ -88,7 +86,7 @@ runs:
         uv pip install -e client/python
         uv pip install -e ".[oauth, mcp]"
     - name: install-frontend
-      uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
+      uses: "gradio-app/gradio/.github/actions/install-frontend-deps@svelte5-migration"
       with:
         skip_build: ${{ inputs.skip_build }}
     - name: generate json

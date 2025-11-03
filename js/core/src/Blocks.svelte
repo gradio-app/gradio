@@ -48,8 +48,7 @@
 	export let title = "Gradio";
 	export let target: HTMLElement;
 	export let autoscroll: boolean;
-	export let show_api = true;
-	export let show_footer = true;
+	export let footer_links = ["gradio", "settings", "api"];
 	export let control_page_title = false;
 	export let app_mode: boolean;
 	export let theme_mode: ThemeMode;
@@ -67,14 +66,20 @@
 	export let vibe_mode = false;
 	let broken_connection = false;
 
-	let app_tree = new AppTree(components, layout, dependencies, {
-		root,
-		theme: theme_mode,
-		version,
-		api_prefix,
-		max_file_size,
-		autoscroll,
-	});
+	let app_tree = new AppTree(
+		components,
+		layout,
+		dependencies,
+		{
+			root,
+			theme: theme_mode,
+			version,
+			api_prefix,
+			max_file_size,
+			autoscroll,
+		},
+		app,
+	);
 	app_tree.process();
 	setContext(GRADIO_ROOT, {
 		register: app_tree.register_component.bind(app_tree),
@@ -143,10 +148,12 @@
 	let vibe_editor_width = 350;
 
 	export let search_params: URLSearchParams;
-	let api_docs_visible = search_params.get("view") === "api" && show_api;
+	let api_docs_visible =
+		search_params.get("view") === "api" && footer_links.includes("api");
 	let settings_visible = search_params.get("view") === "settings";
 	let api_recorder_visible =
-		search_params.get("view") === "api-recorder" && show_api;
+		search_params.get("view") === "api-recorder" &&
+		footer_links.includes("api");
 	let allow_zoom = true;
 	let allow_video_trim = true;
 
@@ -284,7 +291,7 @@
 
 	function handle_resize(): void {
 		if ("parentIFrame" in window) {
-			const box = root_node?.getBoundingClientRect();
+			const box = root_container.children[0].getBoundingClientRect();
 			if (!box) return;
 			window.parentIFrame?.size(box.bottom + footer_height + 32);
 		}
@@ -311,6 +318,8 @@
 			res.disconnect();
 		};
 	});
+
+	$: ready = !!app_tree.root;
 </script>
 
 <svelte:head>
@@ -333,9 +342,9 @@
 			<MountComponents node={app_tree.root} />
 		{/if}
 
-		<!-- {#if show_footer} -->
-		<!-- <footer bind:clientHeight={footer_height}>
-			{#if show_api}
+		<!-- {#if footer_links.length > 0}
+		<footer bind:clientHeight={footer_height}>
+			{#if footer_links.includes("api")}
 				<button
 					on:click={() => {
 						set_api_docs_visible(!api_docs_visible);
@@ -353,18 +362,19 @@
 					{/if}
 					<img src={api_logo} alt={$_("common.logo")} />
 				</button>
-				<div class="divider show-api-divider">·</div>
 			{/if}
-			<a
-				href="https://gradio.app"
-				class="built-with"
-				target="_blank"
-				rel="noreferrer"
-			>
-				{$_("common.built_with_gradio")}
-				<img src={logo} alt={$_("common.logo")} />
-			</a>
-			<div class="divider" class:hidden={!$is_screen_recording}>·</div>
+			{#if footer_links.includes("gradio")}
+				<div class="divider show-api-divider">·</div>
+				<a
+					href="https://gradio.app"
+					class="built-with"
+					target="_blank"
+					rel="noreferrer"
+				>
+					{$_("common.built_with_gradio")}
+					<img src={logo} alt={$_("common.logo")} />
+				</a>
+			{/if}
 			<button
 				class:hidden={!$is_screen_recording}
 				on:click={() => {
@@ -376,20 +386,23 @@
 				<img src={record_stop} alt={$_("common.stop_recording")} />
 			</button>
 			<div class="divider">·</div>
-			<button
-				on:click={() => {
-					set_settings_visible(!settings_visible);
-				}}
-				on:mouseenter={() => {
-					loadSettings();
-				}}
-				class="settings"
-			>
-				{$_("common.settings")}
-				<img src={settings_logo} alt={$_("common.settings")} />
-			</button>
-		</footer> -->
-		<!-- {/if} -->
+			{#if footer_links.includes("settings")}
+				<div class="divider" class:hidden={!$is_screen_recording}>·</div>
+				<button
+					on:click={() => {
+						set_settings_visible(!settings_visible);
+					}}
+					on:mouseenter={() => {
+						loadSettings();
+					}}
+					class="settings"
+				>
+					{$_("common.settings")}
+					<img src={settings_logo} alt={$_("common.settings")} />
+				</button>
+			{/if}
+		</footer>
+	{/if} -->
 	</div>
 
 	<!-- {#if api_recorder_visible && ApiRecorder} -->

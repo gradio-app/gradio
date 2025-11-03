@@ -1,10 +1,10 @@
 from math import log2, pow
-import os
 
 import numpy as np
 from scipy.fftpack import fft
 
 import gradio as gr
+from gradio.media import get_audio
 
 A4 = 440
 C0 = A4 * pow(2, -4.75)
@@ -42,9 +42,10 @@ demo = gr.Interface(
     gr.Audio(sources=["microphone"]),
     gr.Label(num_top_classes=4),
     examples=[
-        [os.path.join(os.path.dirname(__file__),"audio/recording1.wav")],
-        [os.path.join(os.path.dirname(__file__),"audio/cantina.wav")],
+        [get_audio("recording1.wav")],
+        [get_audio("cantina.wav")],
     ],
+    api_name="predict"
 )
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 import tempfile
 from unittest.mock import patch
 
+import httpx
 import huggingface_hub
 import pytest
 from huggingface_hub.hf_api import SpaceInfo
@@ -308,13 +309,13 @@ class TestThemeUploadDownload:
     @patch("gradio.themes.base.Base._theme_version_exists", return_value=True)
     def test_theme_upload_fails_if_duplicate_version(self, mock_1, mock_2):
         with pytest.raises(ValueError, match="already has a theme with version 0.2.1"):
-            dracula.push_to_hub("dracula_revamped", version="0.2.1", hf_token="foo")
+            dracula.push_to_hub("dracula_revamped", version="0.2.1", token="foo")
 
     @patch("gradio.themes.base.huggingface_hub")
     @patch("gradio.themes.base.huggingface_hub.HfApi")
     def test_upload_fails_if_not_valid_semver(self, mock_1, mock_2):
         with pytest.raises(ValueError, match="Invalid version string: '3.0'"):
-            dracula.push_to_hub("dracula_revamped", version="3.0", hf_token="s")
+            dracula.push_to_hub("dracula_revamped", version="3.0", token="s")
 
     def test_dump_and_load(self):
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as path:
@@ -340,7 +341,7 @@ class TestThemeUploadDownload:
     def test_first_upload_no_version(self, mock_1):
         mock_1.whoami.return_value = {"name": "freddyaboulton"}
 
-        mock_1.HfApi().space_info.side_effect = huggingface_hub.hf_api.HTTPError("Foo")  # type: ignore
+        mock_1.HfApi().space_info.side_effect = httpx.HTTPError("Foo")  # type: ignore
 
         gr.themes.Monochrome().push_to_hub(repo_name="does_not_exist")
         repo_call_args = mock_1.HfApi().create_commit.call_args_list[0][1]
@@ -358,7 +359,7 @@ class TestThemeUploadDownload:
         mock_1.whoami.return_value = {"name": "freddyaboulton"}
 
         gr.themes.Monochrome().push_to_hub(
-            repo_name="my_monochrome", version="0.1.5", hf_token="foo"
+            repo_name="my_monochrome", version="0.1.5", token="foo"
         )
         repo_call_args = mock_1.HfApi().create_commit.call_args_list[0][1]
         assert repo_call_args["repo_id"] == "freddyaboulton/my_monochrome"
@@ -416,6 +417,7 @@ class TestThemeUploadDownload:
         )
 
 
+@pytest.mark.serial
 def test_theme_builder_launches():
     gr.themes.builder(prevent_thread_lock=True)
     gr.close_all()

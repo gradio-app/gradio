@@ -5,7 +5,7 @@
 		ShareButton,
 		IconButton,
 		IconButtonWrapper,
-		FullscreenButton,
+		FullscreenButton
 	} from "@gradio/atoms";
 	import { ModifyUpload, Upload as UploadComponent } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
@@ -21,7 +21,7 @@
 		Image as ImageIcon,
 		Clear,
 		Play,
-		Upload as UploadIcon,
+		Upload as UploadIcon
 	} from "@gradio/icons";
 	import { FileData } from "@gradio/client";
 	import type { Client } from "@gradio/client";
@@ -55,6 +55,7 @@
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"] | undefined = undefined;
 	export let stream_handler: Client["stream"] | undefined = undefined;
+	export let fit_columns = true;
 
 	let is_full_screen = false;
 	let image_container: HTMLElement;
@@ -84,7 +85,7 @@
 					if ("video" in data) {
 						return {
 							video: data.video as FileData,
-							caption: data.caption,
+							caption: data.caption
 						};
 					} else if ("image" in data) {
 						return { image: data.image as FileData, caption: data.caption };
@@ -95,7 +96,7 @@
 	let effective_columns: number | number[] | undefined = columns;
 
 	$: {
-		if (resolved_value && columns) {
+		if (resolved_value && columns && fit_columns) {
 			const item_count = resolved_value.length;
 			if (Array.isArray(columns)) {
 				effective_columns = columns.map((col) => Math.min(col, item_count));
@@ -125,7 +126,7 @@
 			if (selected_index !== null && value !== null) {
 				selected_index = Math.max(
 					0,
-					Math.min(selected_index, value.length - 1),
+					Math.min(selected_index, value.length - 1)
 				);
 			} else {
 				selected_index = null;
@@ -179,12 +180,12 @@
 				if (resolved_value != null) {
 					selected_index = Math.max(
 						0,
-						Math.min(selected_index, resolved_value.length - 1),
+						Math.min(selected_index, resolved_value.length - 1)
 					);
 				}
 				dispatch("select", {
 					index: selected_index,
-					value: resolved_value?.[selected_index],
+					value: resolved_value?.[selected_index]
 				});
 			}
 		}
@@ -220,7 +221,7 @@
 		if (container_element && typeof container_element.scrollTo === "function") {
 			container_element.scrollTo({
 				left: pos < 0 ? 0 : pos,
-				behavior: "smooth",
+				behavior: "smooth"
 			});
 		}
 	}
@@ -279,7 +280,7 @@
 			window.removeEventListener("resize", check_thumbnails_overflow);
 	});
 
-	$: resolved_value, check_thumbnails_overflow();
+	$: (resolved_value, check_thumbnails_overflow());
 	$: if (container_element) {
 		check_thumbnails_overflow();
 	}
@@ -293,12 +294,12 @@
 		if ("image" in deleted_item) {
 			deleted_file_data = {
 				file: deleted_item.image,
-				index: index,
+				index: index
 			};
 		} else if ("video" in deleted_item) {
 			deleted_file_data = {
 				file: deleted_item.video,
-				index: index,
+				index: index
 			};
 		}
 

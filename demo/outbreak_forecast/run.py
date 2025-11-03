@@ -76,6 +76,7 @@ demo = gr.Interface(
         ["Bokeh", 3.2, "April", ["Canada", "UK"], False],
     ],
     cache_examples=True,
+    api_name="predict"
 )
 
 if __name__ == "__main__":

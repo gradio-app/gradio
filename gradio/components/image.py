@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import warnings
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
@@ -12,9 +11,9 @@ import PIL.Image
 from gradio_client import handle_file
 from gradio_client.documentation import document
 
-from gradio import image_utils, utils
+from gradio import image_utils
 from gradio.components.base import Component, StreamingInput
-from gradio.components.image_editor import WebcamOptions
+from gradio.components.image_editor import WatermarkOptions, WebcamOptions
 from gradio.data_classes import Base64ImageData, ImageData
 from gradio.events import Events
 from gradio.i18n import I18nData
@@ -74,7 +73,7 @@ class Image(StreamingInput, Component):
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
-        show_download_button: bool = True,
+        buttons: list[Literal["download", "share", "fullscreen"]] | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
@@ -86,13 +85,9 @@ class Image(StreamingInput, Component):
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
-        mirror_webcam: bool | None = None,
         webcam_options: WebcamOptions | None = None,
-        show_share_button: bool | None = None,
         placeholder: str | None = None,
-        show_fullscreen_button: bool = True,
-        webcam_constraints: dict[str, Any] | None = None,
-        watermark: str | Path | PIL.Image.Image | np.ndarray | None = None,
+        watermark: WatermarkOptions | None = None,
     ):
         """
         Parameters:
@@ -107,7 +102,7 @@ class Image(StreamingInput, Component):
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
-            show_download_button: If True, will display button to download image. Only applies if interactive is False (e.g. if the component is used as an output).
+            buttons: A list of buttons to show in the corner of the component. Valid options are "download" to download the image, "share" to share to Hugging Face Spaces Discussions, and "fullscreen" to view in fullscreen mode. By default, all buttons are shown.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
@@ -119,11 +114,7 @@ class Image(StreamingInput, Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
-            mirror_webcam: If True webcam will be mirrored. Default is True.
-            show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             placeholder: Custom text for the upload area. Overrides default upload messages when provided. Accepts new lines and `#` to designate a heading.
-            show_fullscreen_button: If True, will show a fullscreen icon in the corner of the component that allows user to view the image in fullscreen mode. If False, icon does not appear.
-            webcam_constraints: A dictionary that allows developers to specify custom media constraints for the webcam stream. This parameter provides flexibility to control the video stream's properties, such as resolution and front or rear camera on mobile devices. See $demo/webcam_constraints
             watermark: If provided and this component is used to display a `value` image, the `watermark` image will be displayed on the bottom right of the `value` image, 10 pixels from the bottom and 10 pixels from the right. The watermark image will not be resized. Supports `PIL.Image`, `numpy.array`, `pathlib.Path`, and `str` filepaths. SVGs and GIFs are not supported as `watermark` images nor can they be watermarked.
         """
         self.format = format
@@ -132,17 +123,12 @@ class Image(StreamingInput, Component):
             webcam_options if webcam_options is not None else WebcamOptions()
         )
 
-        if mirror_webcam is not None:
-            warnings.warn(
-                "The `mirror_webcam` parameter is deprecated. Please use the `webcam_options` parameter with a `gr.WebcamOptions` instance instead."
-            )
-            self.webcam_options.mirror = mirror_webcam
+        self.watermark = (
+            watermark if isinstance(watermark, WatermarkOptions) else WatermarkOptions()
+        )
 
-        if webcam_constraints is not None:
-            warnings.warn(
-                "The `webcam_constraints` parameter is deprecated. Please use the `webcam_options` parameter with a `gr.WebcamOptions` instance instead."
-            )
-            self.webcam_options.constraints = webcam_constraints
+        if isinstance(watermark, (str, Path, PIL.Image.Image, np.ndarray)):
+            self.watermark.watermark = watermark
 
         valid_types = ["numpy", "pil", "filepath"]
         if type not in valid_types:
@@ -153,6 +139,10 @@ class Image(StreamingInput, Component):
         self.height = height
         self.width = width
         self.image_mode = image_mode
+        self.buttons = buttons or [
+            "download",
+            "fullscreen",
+        ]
         valid_sources = ["upload", "webcam", "clipboard"]
         if sources is None:
             self.sources = (
@@ -168,19 +158,12 @@ class Image(StreamingInput, Component):
                     f"`sources` must a list consisting of elements in {valid_sources}"
                 )
         self.streaming = streaming
-        self.show_download_button = show_download_button
+        self.buttons = buttons or ["download", "share", "fullscreen"]
         if streaming and self.sources != ["webcam"]:
             raise ValueError(
                 "Image streaming only available if sources is ['webcam']. Streaming not supported with multiple sources."
             )
-        self.show_share_button = (
-            (utils.get_space() is not None)
-            if show_share_button is None
-            else show_share_button
-        )
-        self.show_fullscreen_button = show_fullscreen_button
         self.placeholder = placeholder
-        self.watermark = watermark
 
         super().__init__(
             label=label,

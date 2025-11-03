@@ -56,7 +56,7 @@
 		);
 	}
 
-	$: value, update_components();
+	$: (value, update_components());
 
 	export let latex_delimiters: {
 		left: string;
@@ -84,7 +84,6 @@
 	export let layout: "bubble" | "panel" = "bubble";
 	export let placeholder: string | null = null;
 	export let upload: Client["upload"];
-	export let msg_format: "tuples" | "messages" = "tuples";
 	export let examples: ExampleMessage[] | null = null;
 	export let _retryable = false;
 	export let _undoable = false;
@@ -176,8 +175,7 @@
 		}
 	}
 	$: groupedMessages =
-		value &&
-		group_messages(value, msg_format, display_consecutive_in_same_bubble);
+		value && group_messages(value, display_consecutive_in_same_bubble);
 	$: options = value && get_last_bot_options();
 
 	function handle_action(
@@ -206,6 +204,7 @@
 			edit_index = null;
 			dispatch("edit", {
 				index: message.index,
+				_dispatch_value: [{ type: "text", text: edit_messages[i].slice() }],
 				value: edit_messages[i].slice(),
 				previous_value: message.content as string
 			});
@@ -216,27 +215,19 @@
 					: selected === "Dislike"
 						? false
 						: selected || "";
-			if (msg_format === "tuples") {
-				dispatch("like", {
-					index: message.index,
-					value: message.content,
-					liked: feedback
-				});
-			} else {
-				if (!groupedMessages) return;
+			if (!groupedMessages) return;
 
-				const message_group = groupedMessages[i];
-				const [first, last] = [
-					message_group[0],
-					message_group[message_group.length - 1]
-				];
+			const message_group = groupedMessages[i];
+			const [first, last] = [
+				message_group[0],
+				message_group[message_group.length - 1]
+			];
 
-				dispatch("like", {
-					index: first.index as number,
-					value: message_group.map((m) => m.content),
-					liked: feedback
-				});
-			}
+			dispatch("like", {
+				index: first.index as number,
+				value: message_group.map((m) => m.content),
+				liked: feedback
+			});
 		}
 	}
 
@@ -323,7 +314,6 @@
 					{latex_delimiters}
 					{_components}
 					{generating}
-					{msg_format}
 					{feedback_options}
 					{current_feedback}
 					{allow_tags}

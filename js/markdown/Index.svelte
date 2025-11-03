@@ -23,9 +23,9 @@
 	container={gradio.shared.container}
 	allow_overflow={true}
 	overflow_behavior="auto"
-	height={gradio.shared.height}
-	min_height={gradio.shared.min_height}
-	max_height={gradio.shared.max_height}
+	height={gradio.props.height}
+	min_height={gradio.props.min_height}
+	max_height={gradio.props.max_height}
 >
 	<StatusTracker
 		autoscroll={gradio.shared.autoscroll}

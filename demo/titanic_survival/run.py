@@ -1,13 +1,12 @@
-import os
-
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier  # type: ignore
 from sklearn.model_selection import train_test_split  # type: ignore
 
 import gradio as gr
+# get_file() returns the file path to sample data files included with Gradio
+from gradio.media import get_file
 
-current_dir = os.path.dirname(os.path.realpath(__file__))
-data = pd.read_csv(os.path.join(current_dir, "files/titanic.csv"))
+data = pd.read_csv(get_file("titanic.csv"))
 
 def encode_age(df):
     df.Age = df.Age.fillna(-0.5)
@@ -100,6 +99,7 @@ demo = gr.Interface(
         ["third", True, 30, ["Child"], 20, "S"],
     ],
     live=True,
+    api_name="predict",
 )
 
 if __name__ == "__main__":

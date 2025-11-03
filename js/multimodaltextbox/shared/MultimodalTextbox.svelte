@@ -4,7 +4,7 @@
 		beforeUpdate,
 		afterUpdate,
 		createEventDispatcher,
-		tick,
+		tick
 	} from "svelte";
 	import { text_area_resize, resize } from "../shared/utils";
 	import { BlockTitle } from "@gradio/atoms";
@@ -19,9 +19,9 @@
 		Music,
 		Paperclip,
 		Video,
-		Send,
+		ArrowUp,
 		Square,
-		Microphone,
+		Microphone
 	} from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 	import { BaseInteractiveAudio as InteractiveAudio } from "@gradio/audio";
@@ -29,7 +29,7 @@
 
 	export let value: { text: string; files: FileData[] } = {
 		text: "",
-		files: [],
+		files: []
 	};
 
 	export let value_is_output = false;
@@ -48,7 +48,7 @@
 	export let text_align: "left" | "right" | undefined = undefined;
 	export let autoscroll = true;
 	export let root: string;
-	export let file_types: string[] | null = null;
+	export let file_types_string: string | null = null;
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
@@ -56,7 +56,7 @@
 	export let max_plain_text_length = 1000;
 	export let waveform_settings: Record<string, any>;
 	export let waveform_options: WaveformOptions = {
-		show_recording_waveform: true,
+		show_recording_waveform: true
 	};
 	export let sources_string:
 		| "upload"
@@ -84,7 +84,14 @@
 		| "upload"
 		| "microphone"
 	)[];
+	$: file_types = file_types_string
+		? file_types_string.split(",").map((s) => s.trim())
+		: null;
 	$: dispatch("drag", dragging);
+	$: show_upload =
+		sources &&
+		sources.includes("upload") &&
+		!(file_count === "single" && value.files.length > 0);
 	let mic_audio: FileData | null = null;
 
 	let full_container: HTMLDivElement;
@@ -95,7 +102,7 @@
 	}
 
 	$: if (value === null) value = { text: "", files: [] };
-	$: value, el && lines !== max_lines && resize(el, lines, max_lines);
+	$: (value, el && lines !== max_lines && resize(el, lines, max_lines));
 
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
@@ -156,7 +163,7 @@
 		const text = target.value;
 		const index: [number, number] = [
 			target.selectionStart as number,
-			target.selectionEnd as number,
+			target.selectionEnd as number
 		];
 		dispatch("select", { value: text.substring(...index), index: index });
 	}
@@ -175,11 +182,7 @@
 			e.preventDefault();
 			dispatch("submit");
 			active_source = null;
-			if (mic_audio) {
-				value.files.push(mic_audio);
-				value = value;
-				mic_audio = null;
-			}
+			add_mic_audio_to_files();
 		}
 	}
 
@@ -199,7 +202,7 @@
 	}
 
 	async function handle_upload({
-		detail,
+		detail
 	}: CustomEvent<FileData>): Promise<void> {
 		handle_change();
 		if (Array.isArray(detail)) {
@@ -231,14 +234,18 @@
 		dispatch("stop");
 	}
 
-	function handle_submit(): void {
-		dispatch("submit");
-		active_source = null;
+	function add_mic_audio_to_files(): void {
 		if (mic_audio) {
 			value.files.push(mic_audio);
 			value = value;
 			mic_audio = null;
 		}
+	}
+
+	function handle_submit(): void {
+		dispatch("submit");
+		active_source = null;
+		add_mic_audio_to_files();
 	}
 
 	async function handle_paste(event: ClipboardEvent): Promise<void> {
@@ -250,7 +257,7 @@
 			event.preventDefault();
 			const file = new window.File([text], "pasted_text.txt", {
 				type: "text/plain",
-				lastModified: Date.now(),
+				lastModified: Date.now()
 			});
 			if (upload_component) {
 				upload_component.load_files([file]);
@@ -306,7 +313,7 @@
 				if (invalid_files > 0) {
 					dispatch(
 						"error",
-						`${invalid_files} file(s) were rejected. Accepted formats: ${file_types.join(", ")}`,
+						`${invalid_files} file(s) were rejected. Accepted formats: ${file_types.join(", ")}`
 					);
 				}
 
@@ -332,79 +339,40 @@
 	aria-label="Multimedia input field"
 >
 	<BlockTitle {show_label} {info} {rtl}>{label}</BlockTitle>
-	{#if value.files.length > 0 || uploading}
-		<div
-			class="thumbnails scroll-hide"
-			aria-label="Uploaded files"
-			data-testid="container_el"
-			style="display: {value.files.length > 0 || uploading ? 'flex' : 'none'};"
-		>
-			{#each value.files as file, index}
-				<span role="listitem" aria-label="File thumbnail">
-					<button class="thumbnail-item thumbnail-small">
-						<span
-							class:disabled
-							class="delete-button"
-							on:click={(event) => remove_thumbnail(event, index)}
-							><Clear /></span
-						>
-						{#if file.mime_type && file.mime_type.includes("image")}
-							<Image
-								src={file.url}
-								title={null}
-								alt=""
-								loading="lazy"
-								class={"thumbnail-image"}
-							/>
-						{:else if file.mime_type && file.mime_type.includes("audio")}
-							<Music />
-						{:else if file.mime_type && file.mime_type.includes("video")}
-							<Video />
-						{:else}
-							<File />
-						{/if}
-					</button>
-				</span>
-			{/each}
-			{#if uploading}
-				<div class="loader" role="status" aria-label="Uploading"></div>
-			{/if}
-		</div>
-	{/if}
-	{#if sources && sources.includes("microphone") && active_source === "microphone"}
-		<InteractiveAudio
-			on:change={({ detail }) => {
-				if (detail !== null) {
-					mic_audio = detail;
-				}
-			}}
-			on:clear={() => {
-				active_source = null;
-			}}
-			on:start_recording={() => dispatch("start_recording")}
-			on:pause_recording={() => dispatch("pause_recording")}
-			on:stop_recording={() => dispatch("stop_recording")}
-			sources={["microphone"]}
-			class_name="compact-audio"
-			{recording}
-			{waveform_settings}
-			{waveform_options}
-			{i18n}
-			{active_source}
-			{upload}
-			{stream_handler}
-			stream_every={1}
-			editable={true}
-			{label}
-			{root}
-			loop={false}
-			show_label={false}
-			show_download_button={false}
-			dragging={false}
-		/>
-	{/if}
 	<div class="input-container">
-		{#if sources && sources.includes("upload") && !(file_count === "single" && value.files.length > 0)}
+		{#if sources && sources.includes("microphone") && active_source === "microphone"}
+			<InteractiveAudio
+				on:change={({ detail }) => {
+					if (detail !== null) {
+						mic_audio = detail;
+					}
+				}}
+				on:clear={() => {
+					active_source = null;
+				}}
+				on:start_recording={() => dispatch("start_recording")}
+				on:pause_recording={() => dispatch("pause_recording")}
+				on:stop_recording={() => dispatch("stop_recording")}
+				sources={["microphone"]}
+				class_name="compact-audio"
+				{recording}
+				{waveform_settings}
+				{waveform_options}
+				{i18n}
+				{active_source}
+				{upload}
+				{stream_handler}
+				stream_every={1}
+				editable={true}
+				{label}
+				{root}
+				loop={false}
+				show_label={false}
+				buttons={[]}
+				dragging={false}
+			/>
+		{/if}
+		{#if show_upload}
 			<Upload
 				bind:this={upload_component}
 				on:load={handle_upload}
@@ -421,87 +389,145 @@
 				{upload}
 				{stream_handler}
 			/>
-			<button
-				data-testid="upload-button"
-				class="upload-button"
-				{disabled}
-				on:click={disabled ? undefined : handle_upload_click}
-				><Paperclip /></button
-			>
 		{/if}
-		{#if sources && sources.includes("microphone")}
-			<button
-				data-testid="microphone-button"
-				class="microphone-button"
-				class:recording
-				{disabled}
-				on:click={disabled
-					? undefined
-					: () => {
+
+		<div
+			class="input-wrapper"
+			class:has-files={value.files.length > 0 || uploading}
+		>
+			{#if value.files.length > 0 || uploading || show_upload}
+				<div
+					class="thumbnails"
+					aria-label="Uploaded files"
+					data-testid="container_el"
+				>
+					{#if show_upload}
+						<button
+							data-testid="upload-button"
+							class="upload-button mobile-thumbnail-add"
+							{disabled}
+							on:click={handle_upload_click}
+							aria-label="Upload a file"
+						>
+							<Paperclip />
+						</button>
+					{/if}
+					{#each value.files as file, index}
+						<span
+							class="thumbnail-wrapper"
+							role="listitem"
+							aria-label="File thumbnail"
+						>
+							<button class="thumbnail-item thumbnail-small">
+								{#if file.mime_type && file.mime_type.includes("image")}
+									<Image
+										src={file.url}
+										title={null}
+										alt=""
+										loading="lazy"
+										class={"thumbnail-image"}
+									/>
+								{:else if file.mime_type && file.mime_type.includes("audio")}
+									<Music />
+								{:else if file.mime_type && file.mime_type.includes("video")}
+									<Video />
+								{:else}
+									<File />
+								{/if}
+								<!-- <button
+									class="delete-button"
+									on:click={(event) => remove_thumbnail(event, index)}
+									aria-label="Remove file"
+								>
+									<Clear />
+								</button> -->
+							</button>
+						</span>
+					{/each}
+					{#if uploading}
+						<div class="loader" role="status" aria-label="Uploading"></div>
+					{/if}
+				</div>
+			{/if}
+
+			<div class="input-row">
+				<textarea
+					data-testid="textbox"
+					use:text_area_resize={{
+						text: value.text,
+						lines: lines,
+						max_lines: max_lines
+					}}
+					class:no-label={!show_label}
+					dir={rtl ? "rtl" : "ltr"}
+					bind:value={value.text}
+					bind:this={el}
+					{placeholder}
+					rows={lines}
+					{disabled}
+					on:keypress={handle_keypress}
+					on:blur
+					on:select={handle_select}
+					on:focus
+					on:scroll={handle_scroll}
+					on:paste={handle_paste}
+					style={text_align ? "text-align: " + text_align : ""}
+					autocapitalize={html_attributes?.autocapitalize}
+					autocorrect={html_attributes?.autocorrect}
+					spellcheck={html_attributes?.spellcheck}
+					autocomplete={html_attributes?.autocomplete}
+					tabindex={html_attributes?.tabindex}
+					enterkeyhint={html_attributes?.enterkeyhint}
+					lang={html_attributes?.lang}
+				/>
+
+				{#if sources && sources.includes("microphone")}
+					<button
+						data-testid="microphone-button"
+						class="microphone-button"
+						class:recording
+						{disabled}
+						on:click={() => {
 							active_source =
 								active_source !== "microphone" ? "microphone" : null;
 						}}
-			>
-				<Microphone />
-			</button>
-		{/if}
-		<textarea
-			data-testid="textbox"
-			use:text_area_resize={{
-				text: value.text,
-				lines: lines,
-				max_lines: max_lines,
-			}}
-			class="scroll-hide"
-			class:no-label={!show_label}
-			dir={rtl ? "rtl" : "ltr"}
-			bind:value={value.text}
-			bind:this={el}
-			{placeholder}
-			rows={lines}
-			{disabled}
-			on:keypress={handle_keypress}
-			on:blur
-			on:select={handle_select}
-			on:focus
-			on:scroll={handle_scroll}
-			on:paste={handle_paste}
-			style={text_align ? "text-align: " + text_align : ""}
-			autocapitalize={html_attributes?.autocapitalize}
-			autocorrect={html_attributes?.autocorrect}
-			spellcheck={html_attributes?.spellcheck}
-			autocomplete={html_attributes?.autocomplete}
-			tabindex={html_attributes?.tabindex}
-			enterkeyhint={html_attributes?.enterkeyhint}
-			lang={html_attributes?.lang}
-		/>
-		{#if submit_btn}
-			<button
-				class="submit-button"
-				class:padded-button={submit_btn !== true}
-				{disabled}
-				on:click={disabled ? undefined : handle_submit}
-			>
-				{#if submit_btn === true}
-					<Send />
-				{:else}
-					{submit_btn}
+						aria-label="Record audio"
+					>
+						<Microphone />
+					</button>
 				{/if}
-			</button>
-		{/if}
-		{#if stop_btn}
-			<button
-				class="stop-button"
-				class:padded-button={stop_btn !== true}
-				on:click={handle_stop}
-			>
-				{#if stop_btn === true}
-					<Square fill={"none"} stroke_width={2.5} />
-				{:else}
-					{stop_btn}
+
+				{#if submit_btn}
+					<button
+						class="submit-button"
+						class:padded-button={submit_btn !== true}
+						{disabled}
+						on:click={handle_submit}
+						aria-label="Submit"
+					>
+						{#if submit_btn === true}
+							<ArrowUp />
+						{:else}
+							{submit_btn}
+						{/if}
+					</button>
 				{/if}
-			</button>
-		{/if}
+				{#if stop_btn}
+					<button
+						class="stop-button"
+						class:padded-button={stop_btn !== true}
+						on:click={handle_stop}
+						aria-label="Stop"
+					>
+						{#if stop_btn === true}
+							<Square fill={"none"} stroke_width={2.5} />
+						{:else}
+							{stop_btn}
+						{/if}
+					</button>
+				{/if}
+			</div>
+		</div>
 	</div>
 </div>
 
@@ -514,60 +540,150 @@
 	}
 
 	.full-container.dragging {
-		border: 1px solid var(--color-accent);
-		border-radius: calc(var(--radius-sm) - 1px);
+		border-color: var(--color-accent);
+		border-radius: calc(var(--radius-sm) - var(--size-px));
 	}
 
 	.full-container.dragging::after {
 		content: "";
 		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
+		inset: 0;
 		pointer-events: none;
 	}
 
 	.input-container {
 		display: flex;
 		position: relative;
+		flex-direction: column;
+		gap: 0;
+	}
+
+	.input-wrapper {
+		display: flex;
+		position: relative;
+		flex-direction: column;
+		gap: 0;
+		background: var(--block-background-fill);
+		border-radius: var(--radius-xl);
+		padding: var(--spacing-sm);
+		align-items: flex-start;
+		min-height: auto;
+	}
+
+	.input-wrapper.has-files {
+		padding-top: var(--spacing-xs);
+	}
+
+	.input-row {
+		display: flex;
 		align-items: flex-end;
+		gap: var(--spacing-sm);
+		width: 100%;
+	}
+
+	.thumbnails {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+		padding: var(--spacing-xs) 0;
+		margin-bottom: var(--spacing-xs);
+		overflow-x: auto;
+		overflow-y: hidden;
+		scrollbar-width: none;
+		-ms-overflow-style: none;
+		flex-wrap: nowrap;
+		-webkit-overflow-scrolling: touch;
+		scroll-behavior: smooth;
+		overflow-y: scroll;
+		width: 100%;
+	}
+
+	.thumbnails::-webkit-scrollbar,
+	.thumbnails::-webkit-scrollbar-track,
+	.thumbnails::-webkit-scrollbar-thumb {
+		display: none;
+	}
+
+	.thumbnails :global(img) {
+		width: var(--size-full);
+		height: var(--size-full);
+		object-fit: cover;
+		border-radius: var(--radius-md);
+	}
+
+	.thumbnail-wrapper {
+		position: relative;
+		flex-shrink: 0;
+	}
+
+	.thumbnail-item {
+		position: relative;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border: var(--size-px) solid var(--border-color-primary);
+		border-radius: var(--radius-md);
+		background: var(--background-fill-secondary);
+		width: var(--size-full);
+		height: var(--size-full);
+		cursor: default;
+		padding: 0;
+	}
+
+	.thumbnail-small {
+		width: var(--size-10);
+		height: var(--size-10);
+	}
+
+	.thumbnail-item :global(svg) {
+		width: var(--size-5);
+		height: var(--size-5);
+	}
+
+	.delete-button {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		color: var(--button-primary-text-color);
+		background: rgba(0, 0, 0, 0.6);
+		backdrop-filter: var(--blur-xs);
+		border-radius: var(--radius-md);
+		padding: 0;
+		z-index: var(--layer-1);
+		opacity: 0;
+		transition: opacity 0.1s var(--easing-standard);
+	}
+
+	.delete-button:hover {
+		background: rgba(0, 0, 0, 0.8);
+	}
+
+	.delete-button :global(svg) {
+		width: var(--size-5);
+		height: var(--size-5);
+	}
+
+	.thumbnail-item:hover .delete-button {
+		opacity: 1;
 	}
 
 	textarea {
 		flex-grow: 1;
 		outline: none !important;
-		background: var(--block-background-fill);
-		padding: var(--input-padding);
+		background: transparent;
+		padding: 0;
 		color: var(--body-text-color);
 		font-weight: var(--input-text-weight);
 		font-size: var(--input-text-size);
-		line-height: var(--line-sm);
 		border: none;
-		margin-top: 0px;
-		margin-bottom: 0px;
+		margin: 0;
 		resize: none;
 		position: relative;
-		z-index: 1;
+		z-index: var(--layer-1);
 		text-align: left;
-	}
-	textarea[dir="rtl"] {
-		text-align: right;
-	}
-
-	textarea[dir="rtl"] ~ .submit-button {
-		order: -1;
-		margin-left: 0;
-		margin-right: var(--spacing-sm);
-	}
-
-	textarea[dir="rtl"] ~ .submit-button :global(svg) {
-		transform: scaleX(-1);
-	}
-
-	textarea.no-label {
-		padding-top: 5px;
-		padding-bottom: 5px;
+		min-height: var(--size-9);
 	}
 
 	textarea:disabled {
@@ -579,172 +695,144 @@
 		color: var(--input-placeholder-color);
 	}
 
-	.microphone-button,
-	.upload-button,
-	.submit-button,
-	.stop-button {
-		border: none;
-		text-align: center;
-		text-decoration: none;
-		font-size: 14px;
+	textarea[dir="rtl"] {
+		text-align: right;
+	}
+
+	textarea[dir="rtl"] ~ .submit-button {
+		order: -1;
+	}
+
+	textarea[dir="rtl"] ~ .submit-button :global(svg) {
+		transform: scaleX(-1);
+	}
+
+	.mobile-thumbnail-add,
+	.microphone-button {
+		color: var(--body-text-color);
 		cursor: pointer;
-		border-radius: 15px;
-		min-width: 30px;
-		height: 30px;
-		flex-shrink: 0;
+		padding: var(--spacing-sm);
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		z-index: var(--layer-1);
-		margin-left: var(--spacing-sm);
-	}
-	.padded-button {
-		padding: 0 10px;
+		flex-shrink: 0;
+		border-radius: var(--radius-md);
+		transition:
+			background 0.2s var(--easing-standard),
+			border-color 0.2s var(--easing-standard);
 	}
 
-	.microphone-button,
-	.stop-button,
-	.upload-button,
-	.submit-button {
+	.mobile-thumbnail-add {
+		width: var(--size-10);
+		height: var(--size-10);
+	}
+
+	.microphone-button {
+		width: var(--size-9);
+		height: var(--size-9);
+	}
+
+	.mobile-thumbnail-add:hover:not(:disabled),
+	.microphone-button:hover:not(:disabled) {
+		background: var(--button-secondary-background-fill-hover);
+		border-color: var(--border-color-primary);
+	}
+
+	.mobile-thumbnail-add:disabled,
+	.microphone-button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.mobile-thumbnail-add :global(svg),
+	.microphone-button :global(svg) {
+		width: var(--size-5);
+		height: var(--size-5);
+	}
+
+	.submit-button,
+	.stop-button {
+		border: var(--size-px) solid var(--border-color-primary);
 		background: var(--button-secondary-background-fill);
+		cursor: pointer;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		flex-shrink: 0;
+		width: var(--size-9);
+		height: var(--size-9);
+		border-radius: var(--radius-md);
+		z-index: var(--layer-1);
+		transition:
+			background 0.2s var(--easing-standard),
+			border-color 0.2s var(--easing-standard);
 	}
 
-	.microphone-button:hover:not(:disabled),
-	.stop-button:hover:not(:disabled),
-	.upload-button:hover:not(:disabled),
-	.submit-button:hover:not(:disabled) {
+	.submit-button:hover:not(:disabled),
+	.stop-button:hover:not(:disabled) {
 		background: var(--button-secondary-background-fill-hover);
 	}
 
-	.microphone-button:disabled,
-	.stop-button:disabled,
-	.upload-button:disabled,
-	.submit-button:disabled {
-		background: var(--button-secondary-background-fill);
-		cursor: not-allowed;
-	}
-	.microphone-button:active,
-	.stop-button:active,
-	.upload-button:active,
-	.submit-button:active {
+	.submit-button:active:not(:disabled),
+	.stop-button:active:not(:disabled) {
 		box-shadow: var(--button-shadow-active);
 	}
 
-	.submit-button :global(svg) {
-		height: 22px;
-		width: 22px;
-	}
-	.microphone-button :global(svg),
-	.upload-button :global(svg) {
-		height: 17px;
-		width: 17px;
+	.submit-button:disabled,
+	.stop-button:disabled {
+		cursor: not-allowed;
 	}
 
+	.submit-button :global(svg),
 	.stop-button :global(svg) {
-		height: 16px;
-		width: 16px;
+		width: var(--size-5);
+		height: var(--size-5);
+	}
+
+	.padded-button {
+		padding: 0 var(--spacing-lg);
+		width: auto;
+		border-radius: var(--radius-xl);
 	}
 
 	.loader {
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		--ring-color: transparent;
 		position: relative;
-		border: 5px solid #f3f3f3;
-		border-top: 5px solid var(--color-accent);
-		border-radius: 50%;
-		width: 25px;
-		height: 25px;
-		animation: spin 2s linear infinite;
+		border: var(--size-1) solid var(--border-color-primary);
+		border-top-color: var(--color-accent);
+		border-radius: var(--radius-100);
+		width: var(--size-5);
+		height: var(--size-5);
+		animation: spin 1s linear infinite;
+		flex-shrink: 0;
 	}
 
 	@keyframes spin {
-		0% {
-			transform: rotate(0deg);
-		}
-		100% {
+		to {
 			transform: rotate(360deg);
 		}
 	}
 
-	.thumbnails :global(img) {
-		width: var(--size-full);
-		height: var(--size-full);
-		object-fit: cover;
-		border-radius: var(--radius-lg);
-	}
+	@media (max-width: 768px) {
+		.input-wrapper {
+			padding: var(--spacing-xs);
+		}
 
-	.thumbnails {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-lg);
-		overflow-x: scroll;
-		padding-top: var(--spacing-sm);
-		margin-bottom: 6px;
-	}
+		.thumbnails {
+			padding: var(--spacing-xs) 0;
+			margin-bottom: var(--spacing-md);
+		}
 
-	.thumbnail-item {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		--ring-color: transparent;
-		position: relative;
-		box-shadow:
-			0 0 0 2px var(--ring-color),
-			var(--shadow-drop);
-		border: 1px solid var(--border-color-primary);
-		border-radius: var(--radius-lg);
-		background: var(--background-fill-secondary);
-		aspect-ratio: var(--ratio-square);
-		width: var(--size-full);
-		height: var(--size-full);
-		cursor: default;
-	}
+		.thumbnail-small,
+		.mobile-thumbnail-add {
+			width: var(--size-9);
+			height: var(--size-9);
+		}
 
-	.thumbnail-small {
-		flex: none;
-		transform: scale(0.9);
-		transition: 0.075s;
-		width: var(--size-12);
-		height: var(--size-12);
-	}
-
-	.thumbnail-item :global(svg) {
-		width: 30px;
-		height: 30px;
-	}
-
-	.delete-button {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		position: absolute;
-		right: -7px;
-		top: -7px;
-		color: var(--button-secondary-text-color);
-		background: var(--button-secondary-background-fill);
-		border: none;
-		text-align: center;
-		text-decoration: none;
-		font-size: 10px;
-		cursor: pointer;
-		border-radius: 50%;
-		width: 20px;
-		height: 20px;
-	}
-
-	.disabled {
-		display: none;
-	}
-
-	.delete-button :global(svg) {
-		width: 12px;
-		height: 12px;
-	}
-
-	.delete-button:hover {
-		filter: brightness(1.2);
-		border: 0.8px solid var(--color-grey-500);
+		.thumbnail-item:active .delete-button {
+			opacity: 1;
+		}
 	}
 </style>

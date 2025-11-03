@@ -4,6 +4,7 @@ import json
 import numpy as np
 
 import gradio as gr
+from gradio.media import get_image, get_video, get_audio, get_file
 
 CHOICES = ["foo", "bar", "baz"]
 JSONOBJ = """{"items":{"item":[{"id": "0001","type": null,"is_good": false,"ppu": 0.55,"batters":{"batter":[{ "id": "1001", "type": "Regular" },{ "id": "1002", "type": "Chocolate" },{ "id": "1003", "type": "Blueberry" },{ "id": "1004", "type": "Devil's Food" }]},"topping":[{ "id": "5001", "type": "None" },{ "id": "5002", "type": "Glazed" },{ "id": "5005", "type": "Sugar" },{ "id": "5007", "type": "Powdered Sugar" },{ "id": "5006", "type": "Chocolate with Sprinkles" },{ "id": "5003", "type": "Chocolate" },{ "id": "5004", "type": "Maple" }]}]}}"""
@@ -41,13 +42,13 @@ def fn(
         },  # Label
         (audio1[0], np.flipud(audio1[1]))
         if audio1 is not None
-        else os.path.join(os.path.dirname(__file__), "files/cantina.wav"),  # Audio
+        else get_audio("cantina.wav"),  # Audio
         np.flipud(im1)
         if im1 is not None
-        else os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"),  # Image
+        else get_image("cheetah1.jpg"),  # Image
         video
         if video is not None
-        else os.path.join(os.path.dirname(__file__), "files/world.mp4"),  # Video
+        else get_video("world.mp4"),  # Video
         [
             ("The", "art"),
             ("quick brown", "adj"),
@@ -77,7 +78,7 @@ def fn(
         "<button style='background-color: red'>Click Me: "
         + radio
         + "</button>",  # HTML
-        os.path.join(os.path.dirname(__file__), "files/titanic.csv"),
+        get_file("titanic.csv"),  # File
         df1,  # Dataframe
         np.random.randint(0, 10, (4, 4)),  # Dataframe
         time, # DateTime
@@ -141,14 +142,14 @@ demo = gr.Interface(
             "baz",
             "bar",
             ["foo", "bar"],
-            os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"),
-            # os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"),
-            # os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"),
-            os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"),
-            os.path.join(os.path.dirname(__file__), "files/world.mp4"),
-            os.path.join(os.path.dirname(__file__), "files/cantina.wav"),
-            os.path.join(os.path.dirname(__file__), "files/cantina.wav"),
-            os.path.join(os.path.dirname(__file__), "files/titanic.csv"),
+            get_image("cheetah1.jpg"),
+            # get_image("cheetah1.jpg"),
+            # get_image("cheetah1.jpg"),
+            get_image("cheetah1.jpg"),
+            get_video("world.mp4"),
+            get_audio("cantina.wav"),
+            get_audio("cantina.wav"),
+            get_file("titanic.csv"),
             [[1, 2, 3, 4], [4, 5, 6, 7], [8, 9, 1, 2], [3, 4, 5, 6]],
             "2025-06-10 12:00:00",
         ]
@@ -158,6 +159,7 @@ demo = gr.Interface(
     description="Try out all the components!",
     article="Learn more about [Gradio](http://gradio.app)",
     cache_examples=True,
+    api_name="predict"
 )
 
 if __name__ == "__main__":
