@@ -1,7 +1,7 @@
 import type { ActionReturn } from "svelte/action";
 import type { Client } from "@gradio/client";
 import type { ComponentType, SvelteComponent } from "svelte";
-import { getContext, tick } from "svelte";
+import { getContext, tick, untrack } from "svelte";
 // import { type SharedProps } from "@gradio/core";
 
 export const GRADIO_ROOT = Symbol();
@@ -302,20 +302,31 @@ export const allowed_shared_props: string[] = [
 	"api_prefix",
 	"container"
 ] as const;
+
 export type I18nFormatter = any;
 export class Gradio<T extends object = {}, U extends object = {}> {
 	_load_component?: component_loader;
 	load_component = _load_component.bind(this);
-	shared: SharedProps = $state<SharedProps>() as SharedProps;
-	props = $state<U>() as U;
-	i18n: I18nFormatter = $state<any>() as any;
+	shared: SharedProps = $state<SharedProps>({}) as SharedProps;
+	props = $state<U>({}) as U;
+	i18n: I18nFormatter = $state<any>({}) as any;
 	dispatcher!: Function;
 	last_update: ReturnType<typeof tick> | null = null;
 	shared_props: (keyof SharedProps)[] = allowed_shared_props;
 
 	constructor(props: { shared_props: SharedProps; props: U }) {
-		this.shared = props.shared_props;
-		this.props = props.props;
+		console.log("Gradio props:", {
+			props: props.props,
+			shared: props.shared_props
+		});
+		for (const key in props.shared_props) {
+			// @ts-ignore i'm not doing pointless typescript gymanstics
+			this.shared[key] = props.shared_props[key];
+		}
+		for (const key in props.props) {
+			// @ts-ignore same here
+			this.props[key] = props.props[key];
+		}
 		this.i18n = (s) => s;
 		this._load_component = props.shared_props.load_component;
 
@@ -336,6 +347,17 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		);
 
 		this.dispatcher = dispatcher;
+
+		$effect(() => {
+			register(
+				props.shared_props.id,
+				this.set_data.bind(this),
+				this.get_data.bind(this)
+			);
+			untrack(() => {
+				this.shared.id = props.shared_props.id;
+			});
+		});
 	}
 
 	dispatch<E extends keyof T>(event_name: E, data?: T[E]): void {
@@ -344,6 +366,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 
 	async get_data() {
 		console.log("get_data -- before", $state.snapshot(this.props));
+		console.log(this.shared.id);
 		await this.last_update;
 		console.log("get_data -- after", $state.snapshot(this.props));
 		return $state.snapshot(this.props);
@@ -354,18 +377,22 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		this.last_update = tick();
 	}
 
-	set_data(data: U & SharedProps): void {
+	async set_data(data: Partial<U & SharedProps>): Promise<void> {
 		console.log("set_data", data);
 		for (const key in data) {
 			if (this.shared_props.includes(key as keyof SharedProps)) {
+				console.log("finding:", key, " in shared_props");
 				const _key = key as keyof SharedProps;
 				// @ts-ignore i'm not doing pointless typescript gymanstics
 				this.shared[_key] = data[_key];
 			} else {
+				console.log("finding:", key, " in props");
 				// @ts-ignore same here
 				this.props[key] = data[key];
 			}
 		}
+
+		await tick();
 	}
 }
 

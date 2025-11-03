@@ -61,6 +61,14 @@ export function determine_interactivity(
 	value: any,
 	dependencies: [Set<number>, Set<number>]
 ): boolean {
+	if (id === 1) {
+		console.log({
+			interactive_prop,
+			value,
+			output: dependencies[0]
+		});
+	}
+
 	const [inputs, outputs] = dependencies;
 
 	if (interactive_prop === false) {

@@ -7,7 +7,7 @@ with gr.Blocks() as demo:
     def render_count(count):
         boxes = []
         for i in range(count):
-            box = gr.Textbox(key=i, label=f"Box {i}")
+            box = gr.Textbox(label=f"Box {i}")
             boxes.append(box)
 
         def merge(*args):
@@ -16,12 +16,12 @@ with gr.Blocks() as demo:
         merge_btn.click(merge, boxes, output)
 
         def clear():
-            return [""] * count
+            return [" "] * count
 
         clear_btn.click(clear, None, boxes)
 
         def countup():
-            return [i for i in range(count)]
+            return list(range(count))
 
         count_btn.click(countup, None, boxes, queue=False)
 

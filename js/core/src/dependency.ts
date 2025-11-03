@@ -1,13 +1,14 @@
 import type {
+	ComponentMeta,
 	DependencyTypes,
 	Dependency as IDependency,
+	LayoutNode,
 	Payload
 } from "./types.js";
 import { AsyncFunction } from "./init_utils";
 import { Client, type client_return } from "@gradio/client";
 
-class NOVALUE {}
-
+const NOVALUE = Symbol("NOVALUE");
 /**
  * A dependency as used by the frontend
  * This class represents a discrete dependency that can be triggered by an event
@@ -147,6 +148,7 @@ interface DispatchEvent {
 export class DependencyManager {
 	dependencies_by_fn: Map<number, Dependency> = new Map();
 	dependencies_by_event: Map<string, Dependency[]> = new Map();
+	render_id_deps = new Map<number, Set<number>>();
 
 	submissions: Map<number, ReturnType<Client["submit"]>> = new Map();
 	client: Client;
@@ -154,12 +156,14 @@ export class DependencyManager {
 
 	update_state_cb: (id: number, state: Record<string, unknown>) => void;
 	get_state_cb: (id: number) => Promise<Record<string, unknown> | null>;
+	rerender_cb: (components: ComponentMeta[], layout: LayoutNode) => void;
 
 	constructor(
 		dependencies: IDependency[],
 		client: Client,
 		update_state_cb: (id: number, state: Record<string, unknown>) => void,
-		get_state_cb: (id: number) => Promise<Record<string, unknown> | null>
+		get_state_cb: (id: number) => Promise<Record<string, unknown> | null>,
+		rerender_cb: (components: ComponentMeta[], layout: LayoutNode) => void
 	) {
 		const { by_id, by_event } = this.create(dependencies);
 		console.log("Created dependencies:", { by_id });
@@ -168,6 +172,7 @@ export class DependencyManager {
 		this.client = client;
 		this.update_state_cb = update_state_cb;
 		this.get_state_cb = get_state_cb;
+		this.rerender_cb = rerender_cb;
 	}
 
 	/** Dispatches an event to the appropriate dependency
@@ -187,36 +192,22 @@ export class DependencyManager {
 				`${event_meta.event_name}-${event_meta.target_id}`
 			);
 		}
-		deps?.forEach(async (dep) => {
+
+		for (let i = 0; i < (deps?.length || 0); i++) {
+			const dep = deps ? deps[i] : undefined;
 			if (dep) {
+				this.cancel(dep.cancels);
+
 				const dispatch_status = should_dispatch(
 					dep.trigger_modes,
 					this.submissions.has(dep.id)
 				);
 
 				console.log("Dispatching status:", dispatch_status);
-
-				switch (dispatch_status) {
-					case "skip":
-						return;
-					case "defer":
-						this.queue.add(dep.id);
-						return;
-					case "run":
-						// continue to run
-						break;
-				}
-
-				// only cancel if the event actually runs
-				this.cancel(dep.cancels);
-
 				const data_payload = await this.gather_state(dep.inputs);
 				const unset_args = await this.set_event_args(dep.id, dep.event_args);
 
 				const { success, failure, all } = dep.get_triggers();
-
-				console.log({ success, failure, all });
-				console.log("Running dependency:", dep.id, data_payload);
 
 				try {
 					const dep_submission = await dep.run(
@@ -224,8 +215,6 @@ export class DependencyManager {
 						data_payload,
 						event_meta.event_data
 					);
-
-					console.log("Dispatching to", dep.id);
 
 					if (dep_submission.type === "void") {
 						unset_args();
@@ -247,33 +236,62 @@ export class DependencyManager {
 								if (result.stage === "complete") {
 									console.log("Submission complete for", dep.id);
 									break submit_loop;
-								} else if (result.stage === "error") {
-									console.log("Submission error for", dep.id);
-									break submit_loop;
 								}
 							}
+
+							if (result.type === "render") {
+								const { layout, components, render_id, dependencies } =
+									result.data;
+								console.log(
+									"Rerendering components from dependency",
+									dep.id,
+									result
+								);
+								this.rerender_cb(components, layout);
+								// update dependencies
+								const { by_id, by_event } = this.create(
+									dependencies as IDependency[]
+								);
+								by_id.forEach((dep) =>
+									this.dependencies_by_fn.set(dep.id, dep)
+								);
+								by_event.forEach((dep, key) =>
+									this.dependencies_by_event.set(key, dep)
+								);
+								const current_deps = this.render_id_deps.get(render_id);
+								if (current_deps) {
+									current_deps.forEach((old_dep_id) => {
+										if (!by_id.has(old_dep_id)) {
+											this.dependencies_by_fn.delete(old_dep_id);
+										}
+									});
+								}
+								this.render_id_deps.set(
+									render_id,
+									new Set(Array.from(by_id.keys()))
+								);
+
+								break submit_loop;
+							}
 						}
+
 						console.log("+++");
 						console.log("Dependency complete:", dep.id);
 						unset_args();
 						this.submissions.delete(dep.id);
 
-						if (this.queue.has(dep.id)) {
-							this.queue.delete(dep.id);
-							this.dispatch(event_meta);
-						}
+						console.log(
+							"Checking queue for deferred dependencies",
+							this.queue.has(dep.id)
+						);
+
+						// if (this.queue.has(dep.id)) {
+						// 	this.queue.delete(dep.id);
+						// 	this.dispatch(event_meta);
+						// }
+
+						return;
 					}
-
-					console.log("Dispatching success/failure triggers");
-
-					success.forEach((dep_id) => {
-						console.log("Dispatching success to", dep_id);
-						this.dispatch({
-							type: "fn",
-							fn_index: dep_id,
-							event_data: null
-						});
-					});
 				} catch (error) {
 					failure.forEach((dep_id) => {
 						this.dispatch({
@@ -292,7 +310,7 @@ export class DependencyManager {
 					});
 				});
 			}
-		});
+		}
 		return;
 	}
 
@@ -362,8 +380,8 @@ export class DependencyManager {
 	 * */
 	async handle_data(outputs: number[], data: unknown[]) {
 		outputs.forEach(async (output_id, i) => {
-			const _data = data[i] === undefined ? new NOVALUE() : data[i];
-			if (_data === new NOVALUE()) return;
+			const _data = data[i] === undefined ? NOVALUE : data[i];
+			if (_data === NOVALUE) return;
 
 			if (is_prop_update(_data)) {
 				for (const [update_key, update_value] of Object.entries(_data)) {
@@ -405,6 +423,14 @@ export class DependencyManager {
 		const current_state = await this.get_state_cb(id);
 		for (const [key] of Object.entries(args)) {
 			current_args[key] = current_state?.[key] ?? null;
+		}
+
+		console.log("Setting event args for", id, args, current_args);
+
+		if (Object.keys(args).length === 0) {
+			return () => {
+				// do nothing
+			};
 		}
 		this.update_state_cb(id, args);
 
