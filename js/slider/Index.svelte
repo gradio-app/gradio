@@ -6,7 +6,6 @@
 	import { Gradio } from "@gradio/utils";
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
 	import type { SliderEvents, SliderProps } from "./types";
 
 	let props = $props();
@@ -37,17 +36,6 @@
 		range_input.style.setProperty("--range_progress", `${percentage}%`);
 		range_input.value = gradio.props.value.toString();
 	});
-
-	$inspect(
-		"percentage",
-		percentage,
-		"maximum",
-		gradio.props.maximum,
-		"minimum",
-		gradio.props.minimum,
-		"value",
-		gradio.props.value
-	);
 
 	function handle_change(): void {
 		gradio.dispatch("change");

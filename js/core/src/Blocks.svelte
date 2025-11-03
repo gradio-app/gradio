@@ -20,6 +20,7 @@
 
 	import MountComponents from "./MountComponents.svelte";
 	import { prefix_css } from "./css";
+	import { reactive_formatter } from "./gradio_helper";
 
 	// import type ApiDocsInterface from "./api_docs/ApiDocs.svelte";
 	// import type ApiRecorderInterface from "./api_docs/ApiRecorder.svelte";
@@ -65,6 +66,12 @@
 	export let css: string | null | undefined = null;
 	export let vibe_mode = false;
 	let broken_connection = false;
+
+	components.forEach((comp) => {
+		if (!comp.props.i18n) {
+			comp.props.i18n = $reactive_formatter;
+		}
+	});
 
 	let app_tree = new AppTree(
 		components,
