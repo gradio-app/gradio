@@ -235,7 +235,16 @@ export class DependencyManager {
 								// handle status updates here
 								if (result.stage === "complete") {
 									console.log("Submission complete for", dep.id);
+									success.forEach((dep_id) => {
+										this.dispatch({
+											type: "fn",
+											fn_index: dep_id,
+											event_data: null
+										});
+									});
 									break submit_loop;
+								} else if (result.stage === "error") {
+									throw new Error("Dependency function failed");
 								}
 							}
 
