@@ -192,99 +192,22 @@ export class DependencyManager {
 				`${event_meta.event_name}-${event_meta.target_id}`
 			);
 		}
-		deps?.forEach(async (dep) => {
+
+		for (let i = 0; i < (deps?.length || 0); i++) {
+			const dep = deps ? deps[i] : undefined;
 			if (dep) {
+				this.cancel(dep.cancels);
+
 				const dispatch_status = should_dispatch(
 					dep.trigger_modes,
 					this.submissions.has(dep.id)
 				);
 
 				console.log("Dispatching status:", dispatch_status);
-
-				if (dep_submission.type === "void") {
-					unset_args();
-				} else if (dep_submission.type === "data") {
-					this.handle_data(dep.outputs, dep_submission.data);
-					unset_args();
-				} else {
-					console.log("Dispatching to", dep.id, dep_submission);
-					this.submissions.set(dep.id, dep_submission.data);
-					// fn for this?
-					submit_loop: for await (const result of dep_submission.data) {
-						console.log("Received submission result for", dep.id, result);
-						if (result === null) continue;
-						if (result.type === "data") {
-							this.handle_data(dep.outputs, result.data);
-						}
-						if (result.type === "status") {
-							// handle status updates here
-							if (result.stage === "complete") {
-								console.log("Submission complete for", dep.id);
-								break submit_loop;
-							}
-						}
-
-						if (result.type === "render") {
-							const { layout, components, render_id, dependencies } =
-								result.data;
-							console.log(
-								"Rerendering components from dependency",
-								dep.id,
-								result
-							);
-							this.rerender_cb(components, layout);
-							// update dependencies
-							const { by_id, by_event } = this.create(
-								dependencies as IDependency[]
-							);
-							by_id.forEach((dep) => this.dependencies_by_fn.set(dep.id, dep));
-							by_event.forEach((dep, key) =>
-								this.dependencies_by_event.set(key, dep)
-							);
-							const current_deps = this.render_id_deps.get(render_id);
-							if (current_deps) {
-								current_deps.forEach((old_dep_id) => {
-									if (!by_id.has(old_dep_id)) {
-										this.dependencies_by_fn.delete(old_dep_id);
-									}
-								});
-							}
-							this.render_id_deps.set(
-								render_id,
-								new Set(Array.from(by_id.keys()))
-							);
-
-							break submit_loop;
-						}
-					}
-					console.log("+++");
-					console.log("Dependency complete:", dep.id);
-					unset_args();
-					this.submissions.delete(dep.id);
-
-					console.log(
-						"Checking queue for deferred dependencies",
-						this.queue.has(dep.id)
-					);
-
-					// if (this.queue.has(dep.id)) {
-					// 	this.queue.delete(dep.id);
-					// 	this.dispatch(event_meta);
-					// }
-
-					return;
-				}
-
-				// only cancel if the event actually runs
-				this.cancel(dep.cancels);
-
 				const data_payload = await this.gather_state(dep.inputs);
 				const unset_args = await this.set_event_args(dep.id, dep.event_args);
 
 				const { success, failure, all } = dep.get_triggers();
-
-				console.log({ success, failure, all });
-				console.log("Running dependency:", dep.id, data_payload);
 
 				try {
 					const dep_submission = await dep.run(
@@ -292,8 +215,6 @@ export class DependencyManager {
 						data_payload,
 						event_meta.event_data
 					);
-
-					console.log("Dispatching to", dep.id);
 
 					if (dep_submission.type === "void") {
 						unset_args();
@@ -315,33 +236,62 @@ export class DependencyManager {
 								if (result.stage === "complete") {
 									console.log("Submission complete for", dep.id);
 									break submit_loop;
-								} else if (result.stage === "error") {
-									console.log("Submission error for", dep.id);
-									break submit_loop;
 								}
 							}
+
+							if (result.type === "render") {
+								const { layout, components, render_id, dependencies } =
+									result.data;
+								console.log(
+									"Rerendering components from dependency",
+									dep.id,
+									result
+								);
+								this.rerender_cb(components, layout);
+								// update dependencies
+								const { by_id, by_event } = this.create(
+									dependencies as IDependency[]
+								);
+								by_id.forEach((dep) =>
+									this.dependencies_by_fn.set(dep.id, dep)
+								);
+								by_event.forEach((dep, key) =>
+									this.dependencies_by_event.set(key, dep)
+								);
+								const current_deps = this.render_id_deps.get(render_id);
+								if (current_deps) {
+									current_deps.forEach((old_dep_id) => {
+										if (!by_id.has(old_dep_id)) {
+											this.dependencies_by_fn.delete(old_dep_id);
+										}
+									});
+								}
+								this.render_id_deps.set(
+									render_id,
+									new Set(Array.from(by_id.keys()))
+								);
+
+								break submit_loop;
+							}
 						}
+
 						console.log("+++");
 						console.log("Dependency complete:", dep.id);
 						unset_args();
 						this.submissions.delete(dep.id);
 
-						if (this.queue.has(dep.id)) {
-							this.queue.delete(dep.id);
-							this.dispatch(event_meta);
-						}
+						console.log(
+							"Checking queue for deferred dependencies",
+							this.queue.has(dep.id)
+						);
+
+						// if (this.queue.has(dep.id)) {
+						// 	this.queue.delete(dep.id);
+						// 	this.dispatch(event_meta);
+						// }
+
+						return;
 					}
-
-					console.log("Dispatching success/failure triggers");
-
-					success.forEach((dep_id) => {
-						console.log("Dispatching success to", dep_id);
-						this.dispatch({
-							type: "fn",
-							fn_index: dep_id,
-							event_data: null
-						});
-					});
 				} catch (error) {
 					failure.forEach((dep_id) => {
 						this.dispatch({
