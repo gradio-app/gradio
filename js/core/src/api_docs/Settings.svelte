@@ -69,8 +69,6 @@
 	function handleVideoTrimChange(e: CustomEvent): void {
 		allow_video_trim = e.detail;
 	}
-
-	setupi18n();
 </script>
 
 <div class="banner-wrap">

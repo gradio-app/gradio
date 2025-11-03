@@ -27,10 +27,10 @@
 	// import type SettingsInterface from "./api_docs/Settings.svelte";
 	// import type { ComponentType } from "svelte";
 
-	// import logo from "./images/logo.svg";
-	// import api_logo from "./api_docs/img/api-logo.svg";
-	// import settings_logo from "./api_docs/img/settings-logo.svg";
-	// import record_stop from "./api_docs/img/record-stop.svg";
+	import logo from "./images/logo.svg";
+	import api_logo from "./api_docs/img/api-logo.svg";
+	import settings_logo from "./api_docs/img/settings-logo.svg";
+	import record_stop from "./api_docs/img/record-stop.svg";
 	import { AsyncFunction } from "./init_utils";
 	import { AppTree } from "./init.svelte";
 	// import type {
@@ -179,6 +179,13 @@
 		}
 	}
 
+	async function loadApiRecorder(): Promise<void> {
+		if (!ApiRecorder) {
+			const api_recorder_module = await import("./api_docs/ApiRecorder.svelte");
+			ApiRecorder = api_recorder_module.default;
+		}
+	}
+
 	async function loadSettings(): Promise<void> {
 		if (!Settings) {
 			const settings_module = await import("./api_docs/Settings.svelte");
@@ -304,6 +311,14 @@
 		}
 	}
 
+	function screen_recording(): void {
+		if ($is_screen_recording) {
+			screen_recorder.stopRecording();
+		} else {
+			screen_recorder.startRecording();
+		}
+	}
+
 	onMount(() => {
 		if ("parentIFrame" in window) {
 			window.parentIFrame?.autoResize(false);
@@ -349,7 +364,7 @@
 			<MountComponents node={app_tree.root} />
 		{/if}
 
-		<!-- {#if footer_links.length > 0}
+		{#if footer_links.length > 0}
 		<footer bind:clientHeight={footer_height}>
 			{#if footer_links.includes("api")}
 				<button
@@ -409,14 +424,13 @@
 				</button>
 			{/if}
 		</footer>
-	{/if} -->
+	{/if}
 	</div>
-
-	<!-- {#if api_recorder_visible && ApiRecorder} -->
+{#if api_recorder_visible && ApiRecorder}
 	<!-- TODO: fix -->
 	<!-- svelte-ignore a11y-click-events-have-key-events-->
 	<!-- svelte-ignore a11y-no-static-element-interactions-->
-	<!-- <div
+	<div
 		id="api-recorder-container"
 		on:click={() => {
 			set_api_docs_visible(true);
@@ -424,15 +438,15 @@
 		}}
 	>
 		<svelte:component this={ApiRecorder} {api_calls} {dependencies} />
-	</div> -->
-	<!-- {/if} -->
+	</div>
+{/if}
 
-	<!-- {#if api_docs_visible && $_layout && ApiDocs} -->
-	<!-- <div class="api-docs"> -->
-	<!-- TODO: fix -->
-	<!-- svelte-ignore a11y-click-events-have-key-events-->
-	<!-- svelte-ignore a11y-no-static-element-interactions-->
-	<!-- <div
+{#if api_docs_visible && app_tree.root && ApiDocs}
+	<div class="api-docs">
+		<!-- TODO: fix -->
+		<!-- svelte-ignore a11y-click-events-have-key-events-->
+		<!-- svelte-ignore a11y-no-static-element-interactions-->
+		<div
 			class="backdrop"
 			on:click={() => {
 				set_api_docs_visible(false);
@@ -441,7 +455,7 @@
 		<div class="api-docs-wrap">
 			<svelte:component
 				this={ApiDocs}
-				root_node={$_layout}
+				root_node={app_tree.root}
 				on:close={(event) => {
 					set_api_docs_visible(false);
 					api_calls = [];
@@ -456,15 +470,15 @@
 				{username}
 			/>
 		</div>
-	</div> -->
-	<!-- {/if} -->
-	<!-- 
-{#if settings_visible && $_layout && app.config && Settings}
-	<div class="api-docs"> -->
-	<!-- TODO: fix -->
-	<!-- svelte-ignore a11y-click-events-have-key-events-->
-	<!-- svelte-ignore a11y-no-static-element-interactions-->
-	<!-- <div
+	</div>
+{/if}
+
+{#if settings_visible && app.config && app_tree.root && Settings}
+	<div class="api-docs">
+		<!-- TODO: fix -->
+		<!-- svelte-ignore a11y-click-events-have-key-events-->
+		<!-- svelte-ignore a11y-no-static-element-interactions-->
+		<div
 			class="backdrop"
 			on:click={() => {
 				set_settings_visible(false);
@@ -485,7 +499,10 @@
 				{root}
 				{space_id}
 			/>
-		</div>-->
+		</div>
+	</div>
+{/if}
+
 </div>
 
 <style>
