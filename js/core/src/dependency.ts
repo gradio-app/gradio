@@ -208,7 +208,6 @@ export class DependencyManager {
 				const unset_args = await this.set_event_args(dep.id, dep.event_args);
 
 				const { success, failure, all } = dep.get_triggers();
-				console.log("success", success, "failure", failure, "all", all);
 
 				try {
 					const dep_submission = await dep.run(
