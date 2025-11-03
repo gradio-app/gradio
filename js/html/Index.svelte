@@ -37,7 +37,7 @@
 	export let autoscroll = false;
 
 	let old_value = value;
-	$: if (old_value !== value) {
+	$: if (JSON.stringify(old_value) !== JSON.stringify(value)) {
 		old_value = value;
 		gradio.dispatch("change");
 	}
