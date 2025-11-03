@@ -1,7 +1,7 @@
 import type { ActionReturn } from "svelte/action";
 import type { Client } from "@gradio/client";
 import type { ComponentType, SvelteComponent } from "svelte";
-import { getContext, tick } from "svelte";
+import { getContext, tick, untrack } from "svelte";
 import { type SharedProps } from "@gradio/core";
 
 export const GRADIO_ROOT = Symbol();
@@ -313,6 +313,17 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		);
 
 		this.dispatcher = dispatcher;
+
+		$effect(() => {
+			register(
+				props.shared_props.id,
+				this.set_data.bind(this),
+				this.get_data.bind(this)
+			);
+			untrack(() => {
+				this.shared.id = props.shared_props.id;
+			});
+		});
 	}
 
 	dispatch<E extends keyof T>(event_name: E, data?: T[E]): void {
@@ -321,6 +332,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 
 	async get_data() {
 		console.log("get_data -- before", $state.snapshot(this.props));
+		console.log(this.shared.id);
 		await this.last_update;
 		console.log("get_data -- after", $state.snapshot(this.props));
 		return $state.snapshot(this.props);
@@ -331,7 +343,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		this.last_update = tick();
 	}
 
-	set_data(data: Partial<U & SharedProps>): void {
+	async set_data(data: Partial<U & SharedProps>): Promise<void> {
 		console.log("set_data", data);
 		for (const key in data) {
 			if (this.shared_props.includes(key as keyof SharedProps)) {
@@ -345,6 +357,8 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 				this.props[key] = data[key];
 			}
 		}
+
+		await tick();
 	}
 }
 

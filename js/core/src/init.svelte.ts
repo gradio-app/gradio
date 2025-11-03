@@ -232,11 +232,11 @@ export class AppTree {
 		const subtree = this.traverse(layout, (node) => {
 			const current_node = find_node_by_id(this.root!, node.id);
 
-			if (current_node) {
-				// this.update_state(node.id, component_map.get(node.id)?.props || {});
+			// if (current_node) {
+			// 	this.update_state(node.id, component_map.get(node.id)?.props || {});
 
-				return current_node;
-			}
+			// 	return current_node;
+			// }
 			const new_node = this.create_node(node, component_map);
 			return new_node;
 		});
@@ -263,6 +263,8 @@ export class AppTree {
 		new_state: Partial<SharedProps> & Record<string, unknown>
 	) {
 		console.log("Updating state for component", id, "with", new_state);
+		console.log("upate callbacks:", this.#set_callbacks);
+
 		const _set_data = this.#set_callbacks.get(id);
 		if (!_set_data) return;
 		console.log("Updating state for component", id, "with", new_state);
