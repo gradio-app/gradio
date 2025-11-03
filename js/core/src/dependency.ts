@@ -310,7 +310,7 @@ export class DependencyManager {
 					});
 				});
 			}
-		});
+		}
 		return;
 	}
 

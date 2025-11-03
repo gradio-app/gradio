@@ -46,7 +46,7 @@
 		"minimum",
 		gradio.props.minimum,
 		"value",
-		gradio.props.value
+		gradio.props.value,
 	);
 
 	function handle_change(): void {
@@ -61,7 +61,7 @@
 		gradio.dispatch("release", gradio.props.value);
 		gradio.props.value = Math.min(
 			Math.max(gradio.props.value, gradio.props.minimum),
-			gradio.props.maximum
+			gradio.props.maximum,
 		);
 	}
 
@@ -123,7 +123,7 @@
 					{disabled}
 					on:pointerup={handle_release}
 				/>
-				{#if buttons?.includes("reset") ?? true}
+				{#if gradio.props.buttons?.includes("reset") ?? true}
 					<button
 						class="reset-button"
 						on:click={reset_value}
