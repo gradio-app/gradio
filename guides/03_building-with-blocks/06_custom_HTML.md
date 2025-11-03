@@ -33,6 +33,8 @@ gr.HTML(["apple", "banana", "cherry"], """
 """)
 ```
 
+By default, the content of gr.HTML will have some CSS styles applied to match the Gradio theme. You can disable this with `apply_default_css=False`. You can also provide your own CSS styles via the `css_template` argument as shown in the next example.
+
 Let's build a simple star rating component using `gr.HTML`, and then extend it with more features.
 
 $code_star_rating_simple

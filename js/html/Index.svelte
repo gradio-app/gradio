@@ -36,7 +36,11 @@
 	export let padding = true;
 	export let autoscroll = false;
 
-	$: value, gradio.dispatch("change");
+	let old_value = value;
+	$: if (old_value !== value) {
+		old_value = value;
+		gradio.dispatch("change");
+	}
 </script>
 
 <Block
