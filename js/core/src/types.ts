@@ -66,7 +66,6 @@ export interface ProcessedComponentMeta {
 	component_class_id: string; // ?;
 	key: string | number | null; // ?;
 	rendered_in?: number; // ?;
-	node_kind: "processed";
 }
 
 /** Dictates whether a dependency is continous and/or a generator */
@@ -135,7 +134,6 @@ export interface Documentation {
 export interface LayoutNode {
 	id: number;
 	children: LayoutNode[];
-	node_kind: undefined;
 }
 
 /** The system theme mode */

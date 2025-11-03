@@ -87,7 +87,9 @@
 		}
 	};
 
-	function handle_change(): void {
+	async function handle_change(): void {
+		await tick();
+		console.log("dispatching change", value); // --- IGNORE ---
 		dispatch("change", value);
 		if (!value_is_output) {
 			dispatch("input");

@@ -9,7 +9,7 @@
 	import type {
 		ComponentMeta,
 		Dependency as IDependency,
-		LayoutNode
+		LayoutNode,
 	} from "./types";
 	// import type { UpdateTransaction } from "./_init";
 	import { setupi18n } from "./i18n";
@@ -76,20 +76,20 @@
 			version,
 			api_prefix,
 			max_file_size,
-			autoscroll
+			autoscroll,
 		},
-		app
+		app,
 	);
 	app_tree.process();
 	setContext(GRADIO_ROOT, {
 		register: app_tree.register_component.bind(app_tree),
-		dispatcher: gradio_event_dispatcher
+		dispatcher: gradio_event_dispatcher,
 	});
 
 	function gradio_event_dispatcher(
 		id: number,
 		event: string,
-		data: unknown
+		data: unknown,
 	): void {
 		if (event === "share") {
 			const { title, description } = data as ShareData;
@@ -118,12 +118,11 @@
 			// 	}
 			// });
 		} else {
-			console.log({ data, event });
 			dep_manager.dispatch({
 				type: "event",
 				event_name: event,
 				target_id: id,
-				event_data: data
+				event_data: data,
 			});
 		}
 	}
@@ -131,7 +130,8 @@
 		dependencies,
 		app,
 		app_tree.update_state.bind(app_tree),
-		app_tree.get_state.bind(app_tree)
+		app_tree.get_state.bind(app_tree),
+		app_tree.rerender.bind(app_tree),
 	);
 
 	let old_dependencies = dependencies;
@@ -227,7 +227,7 @@
 		fn_index: number,
 		type: ToastMessage["type"],
 		duration: number | null = 10,
-		visible = true
+		visible = true,
 	): ToastMessage & { fn_index: number } {
 		return {
 			title,
@@ -236,14 +236,14 @@
 			type,
 			id: ++_error_id,
 			duration,
-			visible
+			visible,
 		};
 	}
 
 	export function add_new_message(
 		title: string,
 		message: string,
-		type: ToastMessage["type"]
+		type: ToastMessage["type"],
 	): void {
 		messages = [new_message(title, message, -1, type), ...messages];
 	}
@@ -276,7 +276,7 @@
 	onMount(() => {
 		is_mobile_device =
 			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-				navigator.userAgent
+				navigator.userAgent,
 			);
 	});
 
@@ -308,7 +308,7 @@
 		mut.observe(root_container, {
 			childList: true,
 			subtree: true,
-			attributes: true
+			attributes: true,
 		});
 
 		res.observe(root_container);
