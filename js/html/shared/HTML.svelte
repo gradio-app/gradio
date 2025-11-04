@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount, tick } from "svelte";
-	import nunjucks from "nunjucks";
+	import Handlebars from "handlebars";
 
 	export let elem_classes: string[] = [];
 	export let props: Record<string, any>;
@@ -86,13 +86,14 @@
 		props: Record<string, any>
 	): string {
 		try {
-			const nunjucksRendered = nunjucks.renderString(template, props);
+			const handlebarsTemplate = Handlebars.compile(template);
+			const handlebarsRendered = handlebarsTemplate(props);
 
 			const propKeys = Object.keys(props);
 			const propValues = Object.values(props);
 			const templateFunc = new Function(
 				...propKeys,
-				`return \`${nunjucksRendered}\`;`
+				`return \`${handlebarsRendered}\`;`
 			);
 			return templateFunc(...propValues);
 		} catch (e) {

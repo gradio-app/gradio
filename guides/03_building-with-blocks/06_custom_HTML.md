@@ -9,7 +9,7 @@ gr.HTML("<h1>Hello World!</h1>")
 You can also use html-templates to organize your HTML. Take a look at the example below:
 
 ```python
-gr.HTML("John", "<h1>Hello, {{ value }}!</h1><p>${value.length} letters</p>")
+gr.HTML("John", "<h1>Hello, {{value}}!</h1><p>${value.length} letters</p>")
 ```
 
 "John" becomes `value` when injected into the template, resulting in:
@@ -18,7 +18,7 @@ gr.HTML("John", "<h1>Hello, {{ value }}!</h1><p>${value.length} letters</p>")
 <h1>Hello, John!</h1><p>4 letters</p>
 ```
 
-Notice how we support two types of templating syntaxes: `${}` for custom JavaScript expressions, and `{{ }}` and `{% %}` for Nunjucks templating. You can use either or both in your templates - `${}` allows for completely custom JS logic, while Nunjucks allows for cleaner python-like organization for loops and conditionals.
+Notice how we support two types of templating syntaxes: `${}` for custom JavaScript expressions, and `{{}}` for Handlebars templating. You can use either or both in your templates - `${}` allows for completely custom JS logic, while Handlebars provides structured templating for loops and conditionals.
 
 Let's look at another example for displaying a list of items:
 
@@ -26,9 +26,9 @@ Let's look at another example for displaying a list of items:
 gr.HTML(["apple", "banana", "cherry"], """
     <h1>${value.length} fruits:</h1>
     <ul>
-      {% for item in value %}
-        <li>{{ item }}</li>
-      {% endfor %}
+      {{#each value}}
+        <li>{{this}}</li>
+      {{/each}}
     </ul>
 """)
 ```

@@ -27,7 +27,7 @@ class HTML(Component):
             basic_html = gr.HTML("<h2>This is a basic HTML component</h2>")
 
             button_set = gr.HTML(["Option 1", "Option 2", "Option 3"],
-                           html_template="{% for option in value %%}<button class='option-btn'>{{ option }}</button>{% endfor %}",
+                           html_template="{{#each value}}<button class='option-btn'>{{this}}</button>{{/each}}",
                            css_template="button { margin: 5px; padding: 10px; }",
                            js_on_load="element.querySelectorAll('.option-btn').forEach(btn => { btn.addEventListener('click', () => { trigger('click', {option: btn.innerText}); }); });")
             clicked_option = gr.Textbox(label="Clicked Option")
@@ -73,8 +73,8 @@ class HTML(Component):
         Parameters:
             value: The HTML content in the ${value} tag in the html_template. For example, if html_template="<p>${value}</p>" and value="Hello, world!", the component will render as `"<p>Hello, world!</p>"`.
             label: The label for this component. Is used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            html_template: A string representing the HTML template for this component as a JS template string and Nunjucks template. The `${value}` tag will be replaced with the `value` parameter, and all other tags will be filled in with the values from `props`.
-            css_template: A string representing the CSS template for this component as a JS template string and Nunjucks template. The CSS will be automatically scoped to this component. The `${value}` tag will be replaced with the `value` parameter, and all other tags will be filled in with the values from `props`.
+            html_template: A string representing the HTML template for this component as a JS template string and Handlebars template. The `${value}` tag will be replaced with the `value` parameter, and all other tags will be filled in with the values from `props`.
+            css_template: A string representing the CSS template for this component as a JS template string and Handlebars template. The CSS will be automatically scoped to this component. The `${value}` tag will be replaced with the `value` parameter, and all other tags will be filled in with the values from `props`.
             js_on_load: A string representing the JavaScript code that will be executed when the component is loaded. The `element` variable refers to the HTML element of this component, and can be used to access children such as `element.querySelector()`. The `trigger` function can be used to trigger events, such as `trigger('click')`. The value and other props can be edited through `props`, e.g. `props.value = "new value"` which will re-render the HTML template.
             apply_default_css: If True, default Gradio CSS styles will be applied to the HTML component.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.

@@ -5,10 +5,8 @@ with gr.Blocks() as demo:
         value=3, 
         html_template="""
         <h2>Star Rating:</h2>
-        {% for i in range(5) %}
-            <img class='{{ '' if i < value else 'faded' }}' src='https://upload.wikimedia.org/wikipedia/commons/d/df/Award-star-gold-3d.svg'>
-        {% endfor %}
-        <button id='submit-btn'>Submit Rating</button>    
+        ${Array.from({length: 5}, (_, i) => `<img class='${i < value ? '' : 'faded'}' src='https://upload.wikimedia.org/wikipedia/commons/d/df/Award-star-gold-3d.svg'>`).join('')}
+        <button id='submit-btn'>Submit Rating</button>
         """, 
         css_template="""
             img { height: 50px; display: inline-block; cursor: pointer; }

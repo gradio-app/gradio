@@ -4,9 +4,7 @@ class StarRating(gr.HTML):
     def __init__(self, label, value=0, **kwargs):
         html_template = """
         <h2>${label} rating:</h2>
-        {% for i in range(5) %}
-            <img class='{{ '' if i < value else 'faded' }}' src='https://upload.wikimedia.org/wikipedia/commons/d/df/Award-star-gold-3d.svg'>
-        {% endfor %}
+        ${Array.from({length: 5}, (_, i) => `<img class='${i < value ? '' : 'faded'}' src='https://upload.wikimedia.org/wikipedia/commons/d/df/Award-star-gold-3d.svg'>`).join('')}
         """
         css_template = """
             img { height: 50px; display: inline-block; cursor: pointer; }

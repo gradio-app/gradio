@@ -15,7 +15,7 @@ with gr.Blocks() as demo:
     """)
     with gr.Row():
         name1 = gr.Textbox(label="Name")
-        templated_html = gr.HTML("", html_template="<h1>Hello, {{ value }}! ${value.length} letters</h1>", elem_id="templated")
+        templated_html = gr.HTML("", html_template="<h1>Hello, {{value}}! ${value.length} letters</h1>", elem_id="templated")
         name1.change(lambda x: x, inputs=name1, outputs=templated_html)
 
     gr.Markdown("""
@@ -40,9 +40,9 @@ with gr.Blocks() as demo:
         templated_html_css = gr.HTML("John", html_template="""
                         <h1>Hello, ${value}!</h1>
                         <ul>
-                          {% for i in value %}
-                            <li>{{ i }}</li>
-                          {% endfor %}
+                          {{#each value}}
+                            <li>{{this}}</li>
+                          {{/each}}
                         </ul>
             """, css_template="""
             h1, li {
