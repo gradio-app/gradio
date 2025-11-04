@@ -9,6 +9,9 @@
 	let props = $props();
 
 	const gradio = new Gradio<DatasetEvents, DatasetProps>(props);
+
+	// Need to mark samples as state, otherwise get_component_meta constantly triggers
+	let samples = $derived(gradio.props.samples ?? []);
 	$inspect("Dataset props:", gradio.shared, gradio.props);
 </script>
 
@@ -50,6 +53,7 @@
 		)}
 		onselect={(data) => gradio.dispatch("select", data)}
 		load_component={gradio.shared.load_component}
+		{samples}
 		{...gradio.props}
 	/>
 </Block>

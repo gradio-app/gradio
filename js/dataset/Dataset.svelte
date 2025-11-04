@@ -109,7 +109,7 @@
 								console.log("Loading component:", components[j]);
 								return {
 									value: sample_cell,
-									component: load_component(components[j], "example")
+									component: await load_component(components[j], "example")
 								};
 							})
 						)
@@ -119,6 +119,7 @@
 
 	$: get_component_meta(selected_samples);
 	$: console.log("Component meta:", component_meta, component_map);
+	$: console.log("Selected samples:", selected_samples);
 </script>
 
 {#if gallery}
@@ -142,9 +143,9 @@
 							type="gallery"
 						/>
 					{:else if component_meta.length}
-						{#await component_meta[0][0].component then component}
+						{#key sample_row[0]}
 							<svelte:component
-								this={component}
+								this={component_meta[0][0].component.default}
 								{...component_props[0]}
 								value={sample_row[0]}
 								{samples_dir}
@@ -153,19 +154,7 @@
 								index={i}
 								{root}
 							/>
-						{:catch error}
-							<div>Error loading component: {error.message}</div>
-						{/await}
-						<svelte:component
-							this={component_meta[0][0].component}
-							{...component_props[0]}
-							value={sample_row[0]}
-							{samples_dir}
-							type="gallery"
-							selected={current_hover === i}
-							index={i}
-							{root}
-						/>
+						{/key}
 					{/if}
 				</button>
 			{/if}
@@ -208,20 +197,16 @@
 										: 'auto'}"
 									class={component_name}
 								>
-									{#await component then component}
-										<svelte:component
-											this={component.default}
-											{...component_props[j]}
-											{value}
-											{samples_dir}
-											type="table"
-											selected={current_hover === i}
-											index={i}
-											{root}
-										/>
-									{:catch error}
-										<div>Error loading component: {error.message}</div>
-									{/await}
+									<svelte:component
+										this={component.default}
+										{...component_props[j]}
+										{value}
+										{samples_dir}
+										type="table"
+										selected={current_hover === i}
+										index={i}
+										{root}
+									/>
 								</td>
 							{/if}
 						{/each}
