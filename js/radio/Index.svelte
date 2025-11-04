@@ -17,26 +17,12 @@
 
 	let disabled = $derived(!gradio.shared.interactive);
 
-	let pending_select: { value: string | number; index: number } | null =
-		$state(null);
-
-	function trigger_change(
-		value: typeof gradio.props.value,
-		pending_select: { value: string | number; index: number } | null
-	): void {
-		gradio.dispatch("change", value);
-		if (pending_select && value === pending_select.value) {
-			gradio.dispatch("select", {
-				value: pending_select.value,
-				index: pending_select.index
-			});
-			gradio.dispatch("input");
-			pending_select = null;
-		}
-	}
-
+	let old_value = $state(gradio.props.value);
 	$effect(() => {
-		trigger_change(gradio.props.value, pending_select);
+		if (old_value != gradio.props.value) {
+			old_value = gradio.props.value;
+			gradio.dispatch("change");
+		}
 	});
 </script>
 
@@ -71,7 +57,11 @@
 				{disabled}
 				rtl={gradio.props.rtl}
 				on_input={() => {
-					pending_select = { value: internal_value, index: i };
+					gradio.dispatch("select", {
+						value: internal_value,
+						index: i
+					});
+					gradio.dispatch("input");
 				}}
 			/>
 		{/each}
