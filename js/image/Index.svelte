@@ -106,11 +106,9 @@
 			value={gradio.props.value}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
-			show_download_button={gradio.props.buttons.includes("download")}
 			selectable={gradio.props._selectable}
-			show_share_button={gradio.props.buttons.includes("share")}
 			i18n={gradio.i18n}
-			show_fullscreen_button={gradio.props.buttons.includes("fullscreen")}
+			buttons={gradio.props.buttons}
 		/>
 	</Block>
 {:else}
@@ -151,17 +149,21 @@
 			root={gradio.shared.root}
 			sources={gradio.props.sources}
 			{fullscreen}
-			show_fullscreen_button={buttons === null
+			show_fullscreen_button={gradio.props.buttons === null
 				? true
-				: buttons.includes("fullscreen")}
+				: gradio.props.buttons.includes("fullscreen")}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => {
 				fullscreen = false;
 				gradio.dispatch("clear");
+				gradio.dispatch("input");
 			}}
 			on:stream={({ detail }) => gradio.dispatch("stream", detail)}
 			on:drag={({ detail }) => (dragging = detail)}
-			on:upload={() => gradio.dispatch("upload")}
+			on:upload={() => {
+				gradio.dispatch("upload");
+				gradio.dispatch("input");
+			}}
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
 			on:share={({ detail }) => gradio.dispatch("share", detail)}
 			on:error={({ detail }) => {
