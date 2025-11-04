@@ -75,7 +75,6 @@ from gradio.node_server import start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream, slugify
 from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
 from gradio.state_holder import SessionState, StateHolder
-from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
 from gradio.tunneling import (
     BINARY_FILENAME,
@@ -104,6 +103,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components.base import Component
     from gradio.mcp import GradioMCPServer
     from gradio.renderable import Renderable
+
 
 class Block:
     def __init__(
@@ -1255,6 +1255,20 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 dependency.pop("rendered_in", None)
                 dependency.pop("render_id", None)
                 dependency.pop("every", None)
+
+                # Older versions of Gradio had a show_api field, which has been replaced
+                # by api_visibility.
+                api_visibility = dependency.pop("api_visibility", None)
+                if api_visibility is None:
+                    show_api = dependency.pop("show_api", None)
+                    if dependency["api_name"] is False:
+                        api_visibility = "private"
+                    elif show_api is True:
+                        api_visibility = "public"
+                    else:
+                        api_visibility = "undocumented"
+                    dependency["api_visibility"] = api_visibility
+
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
                 if is_then_event:

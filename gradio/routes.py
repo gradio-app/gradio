@@ -116,7 +116,6 @@ from gradio.server_messages import (
     UnexpectedErrorMessage,
 )
 from gradio.state_holder import StateHolder
-from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
 from gradio.utils import (
     cancel_tasks,

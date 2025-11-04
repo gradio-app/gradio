@@ -10,9 +10,8 @@ import dataclasses
 import inspect
 import os
 import warnings
-from collections.abc import AsyncGenerator, Callable, Generator, Sequence
+from collections.abc import AsyncGenerator, Callable, Generator
 from functools import wraps
-from pathlib import Path
 from typing import Any, Literal, Union, cast
 
 from anyio.to_thread import run_sync
