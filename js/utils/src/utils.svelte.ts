@@ -351,6 +351,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		this.dispatcher = dispatcher;
 
 		$effect(() => {
+			console.log("effect running for id:", props.shared_props.id);
 			register(
 				props.shared_props.id,
 				this.set_data.bind(this),
@@ -379,22 +380,25 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		this.last_update = tick();
 	}
 
-	async set_data(data: Partial<U & SharedProps>): Promise<void> {
+	set_data(data: Partial<U & SharedProps>): Promise<void> {
 		console.log("set_data", data);
 		for (const key in data) {
 			if (this.shared_props.includes(key as keyof SharedProps)) {
 				console.log("finding:", key, " in shared_props");
 				const _key = key as keyof SharedProps;
 				// @ts-ignore i'm not doing pointless typescript gymanstics
+
 				this.shared[_key] = data[_key];
+
+				continue;
+
+				// @ts-ignore same here
 			} else {
 				console.log("finding:", key, " in props");
 				// @ts-ignore same here
 				this.props[key] = data[key];
 			}
 		}
-
-		await tick();
 	}
 }
 
