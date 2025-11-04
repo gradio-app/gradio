@@ -119,7 +119,10 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 				compilerOptions: {
 					dev: true,
 					discloseVersion: false,
-					accessors: true
+					accessors: true,
+					experimental: {
+						async: true
+					}
 				},
 				hot: !process.env.VITEST && !production,
 				preprocess: [
