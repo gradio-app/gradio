@@ -326,7 +326,6 @@ class App(FastAPI):
                 self.auth = auth
         else:
             self.auth = None
-        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", blocks.get_config_file())
         self.blocks = blocks
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
