@@ -63,7 +63,6 @@ export class AppTree {
 		config: AppConfig,
 		app: client_return
 	) {
-		console.log("AppTree config:", config);
 		this.#config = config;
 		this.#component_payload = components;
 		this.#layout_payload = layout;
@@ -91,8 +90,6 @@ export class AppTree {
 		);
 
 		this.postprocess(this.root!);
-
-		console.log("AppTree initialized:", this.root);
 	}
 
 	/**
@@ -229,11 +226,6 @@ export class AppTree {
 	}
 
 	rerender(components: ComponentMeta[], layout: LayoutNode) {
-		console.log("+++++++ RERENDERING APP TREE +++++++");
-		console.log("+++++++ RERENDERING APP TREE +++++++");
-		console.log("+++++++ RERENDERING APP TREE +++++++");
-		console.log("+++++++ RERENDERING APP TREE +++++++");
-		console.log("Rerendering AppTree with new components and layout");
 		const component_map = components.reduce((map, comp) => {
 			map.set(comp.id, comp);
 			return map;
@@ -250,9 +242,8 @@ export class AppTree {
 			return new_node;
 		});
 
-		console.log("find root in subtree:", subtree);
 		const n = find_node_by_id(this.root!, subtree.id);
-		console.log("matching root in current tree:", n);
+
 		if (!n) {
 			throw new Error("Rerender failed: root node not found in current tree");
 		}
@@ -271,18 +262,14 @@ export class AppTree {
 		id: number,
 		new_state: Partial<SharedProps> & Record<string, unknown>
 	) {
-		console.log("Updating state for component", id, "with", new_state);
-		console.log("upate callbacks:", this.#set_callbacks);
-
 		const _set_data = this.#set_callbacks.get(id);
 		if (!_set_data) return;
-		console.log("Updating state for component", id, "with", new_state);
+
 		await _set_data(new_state);
-		console.log("Updated state for component", id, new_state);
+
 		this.root = this.traverse(this.root!, (n) =>
 			handle_visibility(n, this.#config.root)
 		);
-		console.log("BOO DONE");
 	}
 
 	/**
@@ -380,6 +367,7 @@ function gather_props(
 
 	_shared_props.visible =
 		_shared_props.visible === undefined ? true : _shared_props.visible;
+	_shared_props.loading_status = {};
 
 	return { shared_props: _shared_props as SharedProps, props: _props };
 }

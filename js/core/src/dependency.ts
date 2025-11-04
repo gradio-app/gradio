@@ -7,6 +7,8 @@ import type {
 } from "./types.js";
 import { AsyncFunction } from "./init_utils";
 import { Client, type client_return } from "@gradio/client";
+import { LoadingStatus, type LoadingStatusArgs } from "@gradio/statustracker";
+import { tick } from "svelte";
 
 const NOVALUE = Symbol("NOVALUE");
 /**
@@ -30,6 +32,7 @@ export class Dependency {
 	// the id of the original event_id that caused this dependency to run
 	// in the case of chained events, it would be the id of the initial trigger
 	original_trigger_id: number | null = null;
+	show_progress_on: number[] | null = null;
 
 	functions: {
 		frontend?: (...args: unknown[]) => Promise<unknown[]>;
@@ -61,6 +64,7 @@ export class Dependency {
 		};
 		this.cancels = dep_config.cancels;
 		this.trigger_modes = dep_config.trigger_mode;
+		this.show_progress_on = dep_config.show_progress_on || null;
 
 		for (let i = 0; i < dep_config.event_specific_args?.length || 0; i++) {
 			const key = dep_config.event_specific_args[i];
@@ -158,6 +162,8 @@ export class DependencyManager {
 	get_state_cb: (id: number) => Promise<Record<string, unknown> | null>;
 	rerender_cb: (components: ComponentMeta[], layout: LayoutNode) => void;
 
+	loading_stati = new LoadingStatus();
+
 	constructor(
 		dependencies: IDependency[],
 		client: Client,
@@ -166,13 +172,35 @@ export class DependencyManager {
 		rerender_cb: (components: ComponentMeta[], layout: LayoutNode) => void
 	) {
 		const { by_id, by_event } = this.create(dependencies);
-		console.log("Created dependencies:", { by_id });
+
 		this.dependencies_by_event = by_event;
 		this.dependencies_by_fn = by_id;
 		this.client = client;
 		this.update_state_cb = update_state_cb;
 		this.get_state_cb = get_state_cb;
 		this.rerender_cb = rerender_cb;
+
+		this.register_loading_stati(by_id);
+	}
+
+	register_loading_stati(deps: Map<number, Dependency>): void {
+		for (const [_, dep] of deps) {
+			this.loading_stati.register(dep.id, dep.show_progress_on || dep.outputs);
+		}
+	}
+
+	async update_loading_stati_state() {
+		for (const [_, dep] of Object.entries(this.loading_stati.current)) {
+			const dep_id = dep.fn_index;
+			const dependency = this.dependencies_by_fn.get(dep_id);
+			if (dependency) {
+				for (const output_id of dependency.outputs) {
+					this.update_state_cb(output_id, {
+						loading_status: dep
+					});
+				}
+			}
+		}
 	}
 
 	/** Dispatches an event to the appropriate dependency
@@ -203,7 +231,6 @@ export class DependencyManager {
 					this.submissions.has(dep.id)
 				);
 
-				console.log("Dispatching status:", dispatch_status);
 				const data_payload = await this.gather_state(dep.inputs);
 				const unset_args = await this.set_event_args(dep.id, dep.event_args);
 
@@ -222,19 +249,26 @@ export class DependencyManager {
 						this.handle_data(dep.outputs, dep_submission.data);
 						unset_args();
 					} else {
-						console.log("Dispatching to", dep.id, dep_submission);
 						this.submissions.set(dep.id, dep_submission.data);
 						// fn for this?
 						submit_loop: for await (const result of dep_submission.data) {
-							console.log("Received submission result for", dep.id, result);
 							if (result === null) continue;
 							if (result.type === "data") {
 								this.handle_data(dep.outputs, result.data);
 							}
 							if (result.type === "status") {
+								const { fn_index, ...status } = result;
+								// @ts-ignore
+								this.loading_stati.update({
+									...status,
+									status: status.stage,
+									fn_index: dep.id
+								});
+
+								this.update_loading_stati_state();
+
 								// handle status updates here
 								if (result.stage === "complete") {
-									console.log("Submission complete for", dep.id);
 									break submit_loop;
 								}
 							}
@@ -242,16 +276,14 @@ export class DependencyManager {
 							if (result.type === "render") {
 								const { layout, components, render_id, dependencies } =
 									result.data;
-								console.log(
-									"Rerendering components from dependency",
-									dep.id,
-									result
-								);
+
 								this.rerender_cb(components, layout);
 								// update dependencies
 								const { by_id, by_event } = this.create(
-									dependencies as IDependency[]
+									dependencies as unknown as IDependency[]
 								);
+								this.register_loading_stati(by_id);
+
 								by_id.forEach((dep) =>
 									this.dependencies_by_fn.set(dep.id, dep)
 								);
@@ -270,20 +302,20 @@ export class DependencyManager {
 									render_id,
 									new Set(Array.from(by_id.keys()))
 								);
-
+								this.register_loading_stati(by_id);
 								break submit_loop;
 							}
 						}
 
-						console.log("+++");
-						console.log("Dependency complete:", dep.id);
 						unset_args();
+						all.forEach((dep_id) => {
+							this.dispatch({
+								type: "fn",
+								fn_index: dep_id,
+								event_data: null
+							});
+						});
 						this.submissions.delete(dep.id);
-
-						console.log(
-							"Checking queue for deferred dependencies",
-							this.queue.has(dep.id)
-						);
 
 						// if (this.queue.has(dep.id)) {
 						// 	this.queue.delete(dep.id);
@@ -293,6 +325,13 @@ export class DependencyManager {
 						return;
 					}
 				} catch (error) {
+					this.loading_stati.update({
+						status: "error",
+						fn_index: dep.id,
+						eta: 0,
+						queue: false
+					});
+
 					failure.forEach((dep_id) => {
 						this.dispatch({
 							type: "fn",
@@ -371,7 +410,7 @@ export class DependencyManager {
 	}
 
 	handle_log() {}
-	handle_status() {}
+
 	/**
 	 *  Updates the state of the outputs based on the data received from the dependency
 	 *
@@ -391,7 +430,6 @@ export class DependencyManager {
 					});
 				}
 			} else {
-				console.log("handle_data", output_id, _data);
 				await this.update_state_cb(output_id, { value: _data });
 			}
 		});
@@ -424,8 +462,6 @@ export class DependencyManager {
 		for (const [key] of Object.entries(args)) {
 			current_args[key] = current_state?.[key] ?? null;
 		}
-
-		console.log("Setting event args for", id, args, current_args);
 
 		if (Object.keys(args).length === 0) {
 			return () => {

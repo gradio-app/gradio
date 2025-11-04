@@ -3,8 +3,6 @@
 	let { node } = $props();
 
 	let component = $state(await node.component);
-
-	$inspect(node);
 </script>
 
 {#if node && component}
