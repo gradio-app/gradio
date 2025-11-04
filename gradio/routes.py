@@ -326,7 +326,7 @@ class App(FastAPI):
                 self.auth = auth
         else:
             self.auth = None
-
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", blocks.get_config_file())
         self.blocks = blocks
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
@@ -2551,20 +2551,9 @@ def mount_gradio_app(
                 node_path=blocks.node_path,
             )
         )
-    if theme is None:
-        theme = DefaultTheme()
-    elif isinstance(theme, str):
-        if theme.lower() in BUILT_IN_THEMES:
-            theme = BUILT_IN_THEMES[theme.lower()]
-        else:
-            try:
-                theme = Theme.from_hub(theme)
-            except Exception as e:
-                warnings.warn(f"Cannot load {theme}. Caught Exception: {str(e)}")
-                theme = DefaultTheme()
-    blocks.theme: Theme = theme
-    blocks.theme_css = theme._get_theme_css()
-    blocks.stylesheets = theme._stylesheets
+    blocks.theme: Theme = utils.get_theme(theme)
+    blocks.theme_css = blocks.theme._get_theme_css()
+    blocks.stylesheets = blocks.theme._stylesheets
     theme_hasher = hashlib.sha256()
     theme_hasher.update(blocks.theme_css.encode("utf-8"))
     blocks.theme_hash = theme_hasher.hexdigest()
