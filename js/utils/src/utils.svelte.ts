@@ -255,7 +255,10 @@ export interface SharedProps {
 	scale: number;
 	min_width: number;
 	padding: number;
-	load_component: (arg0: string, arg1: "base" | "example" | "component") => LoadingComponent; //component_loader;
+	load_component: (
+		arg0: string,
+		arg1: "base" | "example" | "component"
+	) => LoadingComponent; //component_loader;
 	loading_status?: LoadingStatus;
 	label: string;
 	show_label: boolean;
@@ -333,7 +336,10 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		}
 		// @ts-ignore same here
 		this.i18n = this.props.i18n;
-		console.log("load_component in Gradio constructor:", this.shared.load_component);
+		console.log(
+			"load_component in Gradio constructor:",
+			this.shared.load_component
+		);
 		this.load_component = this.shared.load_component;
 
 		if (!is_browser) return;

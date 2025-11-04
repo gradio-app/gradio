@@ -304,7 +304,7 @@ export async function load_components(
 		const comp = await load_component(component_name, variant);
 		// @ts-ignore
 		_components[component_name] = comp.default;
-	}	
+	}
 	return _components;
 }
 
