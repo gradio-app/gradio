@@ -69,6 +69,7 @@
 		delete: { file: FileData; index: number };
 		upload: FileData | FileData[];
 		error: string;
+		clear: undefined;
 	}>();
 
 	// tracks whether the value of the gallery was reset
@@ -465,7 +466,13 @@
 			style:height={height !== "auto" ? height + "px" : null}
 		>
 			{#if interactive && selected_index === null}
-				<ModifyUpload {i18n} on:clear={() => (value = [])}>
+				<ModifyUpload
+					{i18n}
+					on:clear={() => {
+						value = [];
+						dispatch("clear");
+					}}
+				>
 					{#if upload && stream_handler}
 						<IconButton Icon={UploadIcon} label={i18n("common.upload")}>
 							<UploadComponent

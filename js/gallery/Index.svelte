@@ -108,6 +108,7 @@
 	{:else}
 		<Gallery
 			on:change={() => gradio.dispatch("change")}
+			on:clear={() => gradio.dispatch("change")}
 			on:select={(e) => gradio.dispatch("select", e.detail)}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
