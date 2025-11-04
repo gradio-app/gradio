@@ -48,7 +48,7 @@
 	Icon={ImageIcon}
 	label={!show_label ? "" : label || i18n("image.image")}
 />
-{#if value === null || !value.url}
+{#if value == null || !value?.url}
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
 	<div class="image-container" bind:this={image_container}>
