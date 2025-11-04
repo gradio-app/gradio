@@ -56,6 +56,7 @@ export class AppTree {
 
 	#get_callbacks = new Map<number, get_data_type>();
 	#set_callbacks = new Map<number, set_data_type>();
+	component_ids: number[];
 
 	constructor(
 		components: ComponentMeta[],
@@ -90,6 +91,7 @@ export class AppTree {
 				return new_node;
 			})
 		);
+		this.component_ids = components.map((c) => c.id);
 
 		this.postprocess(this.root!);
 

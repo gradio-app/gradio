@@ -2,16 +2,20 @@
 	/* eslint-disable */
 	import { onMount } from "svelte";
 	import SettingsBanner from "./SettingsBanner.svelte";
-	export let root: string;
-	export let space_id: string | null;
-	export let pwa_enabled: boolean | undefined;
 	import { BaseDropdown as Dropdown } from "@gradio/dropdown";
 	import { BaseCheckbox as Checkbox } from "@gradio/checkbox";
 	import { language_choices, changeLocale } from "../i18n";
 	import { locale, _ } from "svelte-i18n";
-	import { setupi18n } from "../i18n";
 	import record from "./img/record.svg";
 	import { createEventDispatcher } from "svelte";
+
+	let {
+		root,
+		space_id,
+		pwa_enabled,
+		allow_zoom = $bindable(),
+		allow_video_trim = $bindable()
+	} = $props();
 
 	const dispatch = createEventDispatcher();
 	if (root === "") {
@@ -34,7 +38,7 @@
 	}
 
 	onMount(() => {
-		document.body.style.overflow = "hidden";
+		// document.body.style.overflow = "hidden";
 		if ("parentIFrame" in window) {
 			window.parentIFrame?.scrollTo(0, 0);
 		}
@@ -46,10 +50,8 @@
 		};
 	});
 
-	let current_locale: string;
-	let current_theme: "light" | "dark" | "system" = "system";
-	export let allow_zoom = true;
-	export let allow_video_trim = true;
+	let current_locale: string = $state("en");
+	let current_theme: "light" | "dark" | "system" = $state("system");
 
 	locale.subscribe((value) => {
 		if (value) {

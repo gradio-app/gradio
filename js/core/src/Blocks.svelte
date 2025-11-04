@@ -87,6 +87,7 @@
 		},
 		app
 	);
+	let dep_ids_to_render = new Set<number>(app_tree.component_ids);
 	app_tree.process();
 	setContext(GRADIO_ROOT, {
 		register: app_tree.register_component.bind(app_tree),
@@ -148,7 +149,7 @@
 		!layout_creating
 	) {
 		// re-run load triggers in SSR mode when page changes
-		handle_load_triggers();
+		// handle_load_triggers();
 		old_dependencies = dependencies;
 	}
 
@@ -333,6 +334,7 @@
 			attributes: true
 		});
 
+		dep_manager.dispatch_load_events();
 		res.observe(root_container);
 
 		return () => {
@@ -365,144 +367,143 @@
 		{/if}
 
 		{#if footer_links.length > 0}
-		<footer bind:clientHeight={footer_height}>
-			{#if footer_links.includes("api")}
+			<footer bind:clientHeight={footer_height}>
+				{#if footer_links.includes("api")}
+					<button
+						on:click={() => {
+							set_api_docs_visible(!api_docs_visible);
+						}}
+						on:mouseenter={() => {
+							loadApiDocs();
+							loadApiRecorder();
+						}}
+						class="show-api"
+					>
+						{#if app.config?.mcp_server}
+							{$_("errors.use_via_api_or_mcp")}
+						{:else}
+							{$_("errors.use_via_api")}
+						{/if}
+						<img src={api_logo} alt={$_("common.logo")} />
+					</button>
+				{/if}
+				{#if footer_links.includes("gradio")}
+					<div class="divider show-api-divider">·</div>
+					<a
+						href="https://gradio.app"
+						class="built-with"
+						target="_blank"
+						rel="noreferrer"
+					>
+						{$_("common.built_with_gradio")}
+						<img src={logo} alt={$_("common.logo")} />
+					</a>
+				{/if}
 				<button
+					class:hidden={!$is_screen_recording}
 					on:click={() => {
-						set_api_docs_visible(!api_docs_visible);
+						screen_recording();
 					}}
-					on:mouseenter={() => {
-						loadApiDocs();
-						loadApiRecorder();
-					}}
-					class="show-api"
+					class="record"
 				>
-					{#if app.config?.mcp_server}
-						{$_("errors.use_via_api_or_mcp")}
-					{:else}
-						{$_("errors.use_via_api")}
-					{/if}
-					<img src={api_logo} alt={$_("common.logo")} />
+					{$_("common.stop_recording")}
+					<img src={record_stop} alt={$_("common.stop_recording")} />
 				</button>
-			{/if}
-			{#if footer_links.includes("gradio")}
-				<div class="divider show-api-divider">·</div>
-				<a
-					href="https://gradio.app"
-					class="built-with"
-					target="_blank"
-					rel="noreferrer"
-				>
-					{$_("common.built_with_gradio")}
-					<img src={logo} alt={$_("common.logo")} />
-				</a>
-			{/if}
-			<button
-				class:hidden={!$is_screen_recording}
-				on:click={() => {
-					screen_recording();
-				}}
-				class="record"
-			>
-				{$_("common.stop_recording")}
-				<img src={record_stop} alt={$_("common.stop_recording")} />
-			</button>
-			<div class="divider">·</div>
-			{#if footer_links.includes("settings")}
-				<div class="divider" class:hidden={!$is_screen_recording}>·</div>
-				<button
-					on:click={() => {
-						set_settings_visible(!settings_visible);
-					}}
-					on:mouseenter={() => {
-						loadSettings();
-					}}
-					class="settings"
-				>
-					{$_("common.settings")}
-					<img src={settings_logo} alt={$_("common.settings")} />
-				</button>
-			{/if}
-		</footer>
-	{/if}
+				<div class="divider">·</div>
+				{#if footer_links.includes("settings")}
+					<div class="divider" class:hidden={!$is_screen_recording}>·</div>
+					<button
+						on:click={() => {
+							set_settings_visible(!settings_visible);
+						}}
+						on:mouseenter={() => {
+							loadSettings();
+						}}
+						class="settings"
+					>
+						{$_("common.settings")}
+						<img src={settings_logo} alt={$_("common.settings")} />
+					</button>
+				{/if}
+			</footer>
+		{/if}
 	</div>
-{#if api_recorder_visible && ApiRecorder}
-	<!-- TODO: fix -->
-	<!-- svelte-ignore a11y-click-events-have-key-events-->
-	<!-- svelte-ignore a11y-no-static-element-interactions-->
-	<div
-		id="api-recorder-container"
-		on:click={() => {
-			set_api_docs_visible(true);
-			api_recorder_visible = false;
-		}}
-	>
-		<svelte:component this={ApiRecorder} {api_calls} {dependencies} />
-	</div>
-{/if}
-
-{#if api_docs_visible && app_tree.root && ApiDocs}
-	<div class="api-docs">
+	{#if api_recorder_visible && ApiRecorder}
 		<!-- TODO: fix -->
 		<!-- svelte-ignore a11y-click-events-have-key-events-->
 		<!-- svelte-ignore a11y-no-static-element-interactions-->
 		<div
-			class="backdrop"
+			id="api-recorder-container"
 			on:click={() => {
-				set_api_docs_visible(false);
+				set_api_docs_visible(true);
+				api_recorder_visible = false;
 			}}
-		/>
-		<div class="api-docs-wrap">
-			<svelte:component
-				this={ApiDocs}
-				root_node={app_tree.root}
-				on:close={(event) => {
-					set_api_docs_visible(false);
-					api_calls = [];
-					api_recorder_visible = api_recorder_visible =
-						event.detail?.api_recorder_visible;
-				}}
-				{dependencies}
-				{root}
-				{app}
-				{space_id}
-				{api_calls}
-				{username}
-			/>
+		>
+			<svelte:component this={ApiRecorder} {api_calls} {dependencies} />
 		</div>
-	</div>
-{/if}
+	{/if}
 
-{#if settings_visible && app.config && app_tree.root && Settings}
-	<div class="api-docs">
-		<!-- TODO: fix -->
-		<!-- svelte-ignore a11y-click-events-have-key-events-->
-		<!-- svelte-ignore a11y-no-static-element-interactions-->
-		<div
-			class="backdrop"
-			on:click={() => {
-				set_settings_visible(false);
-			}}
-		/>
-		<div class="api-docs-wrap">
-			<svelte:component
-				this={Settings}
-				bind:allow_zoom
-				bind:allow_video_trim
-				on:close={() => {
+	{#if api_docs_visible && app_tree.root && ApiDocs}
+		<div class="api-docs">
+			<!-- TODO: fix -->
+			<!-- svelte-ignore a11y-click-events-have-key-events-->
+			<!-- svelte-ignore a11y-no-static-element-interactions-->
+			<div
+				class="backdrop"
+				on:click={() => {
+					set_api_docs_visible(false);
+				}}
+			/>
+			<div class="api-docs-wrap">
+				<svelte:component
+					this={ApiDocs}
+					root_node={app_tree.root}
+					on:close={(event) => {
+						set_api_docs_visible(false);
+						api_calls = [];
+						api_recorder_visible = api_recorder_visible =
+							event.detail?.api_recorder_visible;
+					}}
+					{dependencies}
+					{root}
+					{app}
+					{space_id}
+					{api_calls}
+					{username}
+				/>
+			</div>
+		</div>
+	{/if}
+
+	{#if settings_visible && app.config && app_tree.root && Settings}
+		<div class="api-docs">
+			<!-- TODO: fix -->
+			<!-- svelte-ignore a11y-click-events-have-key-events-->
+			<!-- svelte-ignore a11y-no-static-element-interactions-->
+			<div
+				class="backdrop"
+				on:click={() => {
 					set_settings_visible(false);
 				}}
-				on:start_recording={() => {
-					screen_recording();
-				}}
-				pwa_enabled={app.config.pwa}
-				{root}
-				{space_id}
 			/>
+			<div class="api-docs-wrap">
+				<svelte:component
+					this={Settings}
+					bind:allow_zoom
+					bind:allow_video_trim
+					on:close={() => {
+						set_settings_visible(false);
+					}}
+					on:start_recording={() => {
+						screen_recording();
+					}}
+					pwa_enabled={app.config.pwa}
+					{root}
+					{space_id}
+				/>
+			</div>
 		</div>
-	</div>
-{/if}
-
+	{/if}
 </div>
 
 <style>
