@@ -1093,6 +1093,11 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.pages: list[tuple[str, str, bool]] = [("", "Home", True)]
         self.current_page = ""
 
+        self.css = None
+        self.js = None
+        self.head = None
+        self.theme = None
+
         if self.analytics_enabled:
             data = {
                 "mode": self.mode,
@@ -2155,10 +2160,10 @@ Received inputs:
             "vibe_mode": self.vibe_mode,
             "analytics_enabled": self.analytics_enabled,
             "components": [],
-            "css": getattr(self, "css", None),
+            "css": self.css,
             "connect_heartbeat": False,
-            "js": getattr(self, "js", None),
-            "head": getattr(self, "head", None),
+            "js": self.js,
+            "head": self.head,
             "title": self.title or "Gradio",
             "space_id": self.space_id,
             "enable_queue": True,  # launch attributes
@@ -2167,9 +2172,7 @@ Received inputs:
             "is_colab": utils.colab_check(),
             "max_file_size": getattr(self, "max_file_size", None),
             "stylesheets": getattr(self, "stylesheets", []),
-            "theme": getattr(self, "theme", None).name
-            if getattr(self, "theme", None) is not None
-            else None,
+            "theme": self.theme.name if self.theme is not None else None,
             "protocol": "sse_v3",
             "body_css": {
                 "body_background_fill": self.theme._get_computed_value(
@@ -2464,13 +2467,13 @@ Received inputs:
         theme_hasher = hashlib.sha256()
         theme_hasher.update(self.theme_css.encode("utf-8"))
         self.theme_hash = theme_hasher.hexdigest()
-        self.css = css or ""
+        self.css = css
         css_paths = utils.none_or_singleton_to_list(css_paths)
         for css_path in css_paths or []:
             with open(css_path, encoding="utf-8") as css_file:
                 self.css += "\n" + css_file.read()
-        self.js = js or ""
-        self.head = head or ""
+        self.js = js
+        self.head = head
         head_paths = utils.none_or_singleton_to_list(head_paths)
         for head_path in head_paths or []:
             with open(head_path, encoding="utf-8") as head_file:
