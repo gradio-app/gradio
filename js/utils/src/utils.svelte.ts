@@ -3,6 +3,11 @@ import type { Client } from "@gradio/client";
 import type { ComponentType, SvelteComponent } from "svelte";
 import { getContext, tick, untrack } from "svelte";
 // import { type SharedProps } from "@gradio/core";
+import type { Component } from "svelte";
+
+export type LoadingComponent = Promise<{
+	default: Component;
+}>;
 
 export const GRADIO_ROOT = Symbol();
 
@@ -217,7 +222,6 @@ interface Args {
 }
 
 export type component_loader = (args: Args) => {
-	name: "string";
 	component: {
 		default: ComponentType<SvelteComponent>;
 	};
@@ -226,7 +230,7 @@ export type component_loader = (args: Args) => {
 export type load_component = (
 	name: string,
 	variant: "component" | "example" | "base"
-) => ReturnType<component_loader>;
+) => LoadingComponent;
 
 const is_browser = typeof window !== "undefined";
 
@@ -251,7 +255,10 @@ export interface SharedProps {
 	scale: number;
 	min_width: number;
 	padding: number;
-	load_component: typeof get_component; //component_loader;
+	load_component: (
+		arg0: string,
+		arg1: "base" | "example" | "component"
+	) => LoadingComponent; //component_loader;
 	loading_status?: LoadingStatus;
 	label: string;
 	show_label: boolean;
@@ -306,8 +313,7 @@ export const allowed_shared_props: (keyof SharedProps)[] = [
 
 export type I18nFormatter = any;
 export class Gradio<T extends object = {}, U extends object = {}> {
-	_load_component?: component_loader;
-	load_component = _load_component.bind(this);
+	load_component: load_component;
 	shared: SharedProps = $state<SharedProps>({} as SharedProps) as SharedProps;
 	props = $state<U>({} as U) as U;
 	i18n: I18nFormatter = $state<any>({}) as any;
@@ -330,7 +336,11 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		}
 		// @ts-ignore same here
 		this.i18n = this.props.i18n;
-		this._load_component = props.shared_props.load_component;
+		console.log(
+			"load_component in Gradio constructor:",
+			this.shared.load_component
+		);
+		this.load_component = this.shared.load_component;
 
 		if (!is_browser) return;
 		const { register, dispatcher } = getContext<{
@@ -402,17 +412,17 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	}
 }
 
-function _load_component(
-	this: Gradio,
-	name: string,
-	variant: "component" | "example" | "base" = "component"
-): ReturnType<component_loader> {
-	return this._load_component!({
-		name,
-		api_url: this.shared.client.config?.root!,
-		variant
-	});
-}
+// function _load_component(
+// 	this: Gradio,
+// 	name: string,
+// 	variant: "component" | "example" | "base" = "component"
+// ): ReturnType<component_loader> {
+// 	return this._load_component!({
+// 		name,
+// 		api_url: this.shared.client.config?.root!,
+// 		variant
+// 	});
+// }
 
 export const css_units = (dimension_value: string | number): string => {
 	return typeof dimension_value === "number"
