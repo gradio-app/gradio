@@ -292,34 +292,19 @@ export async function load_components(
 	_components: Record<string, ComponentType<SvelteComponent>>,
 	load_component: Gradio["load_component"]
 ): Promise<Record<string, ComponentType<SvelteComponent>>> {
-	let names: string[] = [];
-	let components: ReturnType<typeof load_component>["component"][] = [];
-
-	component_names.forEach((component_name) => {
+	for (const component_name of component_names) {
 		if (_components[component_name] || component_name === "file") {
-			return;
+			continue;
 		}
 		const variant =
 			component_name === "dataframe" || component_name === "model3d"
 				? "component"
 				: "base";
-		const { name, component } = load_component(component_name, variant);
-		names.push(name);
-		components.push(component);
-		component_name;
-	});
-
-	const resolved_components = await Promise.allSettled(components);
-	const supported_components: [number, LoadedComponent][] = resolved_components
-		.map((result, index) =>
-			result.status === "fulfilled" ? [index, result.value] : null
-		)
-		.filter((item): item is [number, LoadedComponent] => item !== null);
-
-	supported_components.forEach(([originalIndex, component]) => {
-		_components[names[originalIndex]] = component.default;
-	});
-
+		// console.log("CHATBOT load_component", load_component(component_name, "component"));
+		const comp = await load_component(component_name, variant);
+		// @ts-ignore
+		_components[component_name] = comp.default;
+	}	
 	return _components;
 }
 

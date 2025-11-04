@@ -377,8 +377,8 @@ function gather_props(
 		dependencies
 	);
 
-	_shared_props.load_component = (name: string) =>
-		get_component(name, "", _shared_props.root || "", "example");
+	_shared_props.load_component = (name: string, variant: "base" | "component" | "example") =>
+		get_component(name, "", _shared_props.root || "", variant) as LoadingComponent;
 
 	_shared_props.visible =
 		_shared_props.visible === undefined ? true : _shared_props.visible;
