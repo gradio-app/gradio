@@ -109,7 +109,7 @@
 								console.log("Loading component:", components[j]);
 								return {
 									value: sample_cell,
-									component: await load_component(components[j], "example")
+									component: load_component(components[j], "example")
 								};
 							})
 						)
@@ -143,18 +143,20 @@
 							type="gallery"
 						/>
 					{:else if component_meta.length}
-						{#key sample_row[0]}
-							<svelte:component
-								this={component_meta[0][0].component.default}
-								{...component_props[0]}
-								value={sample_row[0]}
-								{samples_dir}
-								type="gallery"
-								selected={current_hover === i}
-								index={i}
-								{root}
-							/>
-						{/key}
+						{#await component_meta[0][0].component then component}
+							{#key sample_row[0]}
+								<svelte:component
+									this={component.default}
+									{...component_props[0]}
+									value={sample_row[0]}
+									{samples_dir}
+									type="gallery"
+									selected={current_hover === i}
+									index={i}
+									{root}
+								/>
+							{/key}
+						{/await}
 					{/if}
 				</button>
 			{/if}
@@ -197,16 +199,18 @@
 										: 'auto'}"
 									class={component_name}
 								>
-									<svelte:component
-										this={component.default}
-										{...component_props[j]}
-										{value}
-										{samples_dir}
-										type="table"
-										selected={current_hover === i}
-										index={i}
-										{root}
-									/>
+									{#await component then component}
+										<svelte:component
+											this={component.default}
+											{...component_props[j]}
+											{value}
+											{samples_dir}
+											type="table"
+											selected={current_hover === i}
+											index={i}
+											{root}
+										/>
+									{/await}
 								</td>
 							{/if}
 						{/each}
