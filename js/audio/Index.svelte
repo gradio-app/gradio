@@ -93,8 +93,12 @@
 			gradio.props.waveform_options.sample_rate || 44100;
 	});
 
+	let old_value = $state(gradio.props.value);
 	$effect(() => {
-		gradio.dispatch("change", gradio.props.value);
+		if (old_value != gradio.props.value) {
+			old_value = gradio.props.value;
+			gradio.dispatch("change");
+		}
 	});
 </script>
 

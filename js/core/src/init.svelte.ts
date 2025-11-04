@@ -5,6 +5,7 @@ import {
 	get_component,
 	get_inputs_outputs
 } from "./init_utils";
+import { translate_if_needed } from "./i18n";
 
 import type {
 	ComponentMeta,
@@ -122,7 +123,8 @@ export class AppTree {
 	async postprocess(tree: ProcessedComponentMeta) {
 		this.root = this.traverse(tree, [
 			(node) => handle_visibility(node, this.#config.root),
-			(node) => handle_empty_forms(node, this.#config.root)
+			(node) => handle_empty_forms(node, this.#config.root),
+			(node) => translate_props(node, this.#config.root)
 		]);
 	}
 
@@ -413,6 +415,34 @@ function handle_empty_forms(
 		}
 	}
 
+	return node;
+}
+
+function translate_props(
+	node: ProcessedComponentMeta,
+	root: string
+): ProcessedComponentMeta {
+	const supported_props = [
+		"description",
+		"info",
+		"title",
+		"placeholder",
+		"value",
+		"label"
+	];
+	for (const attr of Object.keys(node.props.shared_props)) {
+		if (supported_props.includes(attr as string)) {
+			// @ts-ignore
+			node.props.shared_props[attr] = translate_if_needed(
+				node.props.shared_props[attr as keyof SharedProps]
+			);
+		}
+	}
+	for (const attr of Object.keys(node.props.props)) {
+		if (supported_props.includes(attr as string)) {
+			node.props.props[attr] = translate_if_needed(node.props.props[attr]);
+		}
+	}
 	return node;
 }
 

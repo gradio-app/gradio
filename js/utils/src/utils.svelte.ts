@@ -260,6 +260,7 @@ export interface SharedProps {
 	show_progress: boolean;
 	api_prefix: string;
 	server: ServerFunctions;
+	i18n: I18nFormatter;
 }
 
 //
@@ -273,7 +274,7 @@ export interface SharedProps {
 // formatter: $reactive_formatter,
 // client,
 // load_component,
-export const allowed_shared_props: string[] = [
+export const allowed_shared_props: (keyof SharedProps)[] = [
 	"elem_id",
 	"elem_classes",
 	"visible",
@@ -307,8 +308,8 @@ export type I18nFormatter = any;
 export class Gradio<T extends object = {}, U extends object = {}> {
 	_load_component?: component_loader;
 	load_component = _load_component.bind(this);
-	shared: SharedProps = $state<SharedProps>({}) as SharedProps;
-	props = $state<U>({}) as U;
+	shared: SharedProps = $state<SharedProps>({} as SharedProps) as SharedProps;
+	props = $state<U>({} as U) as U;
 	i18n: I18nFormatter = $state<any>({}) as any;
 	dispatcher!: Function;
 	last_update: ReturnType<typeof tick> | null = null;
@@ -327,7 +328,8 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 			// @ts-ignore same here
 			this.props[key] = props.props[key];
 		}
-		this.i18n = (s) => s;
+		// @ts-ignore same here
+		this.i18n = this.props.i18n;
 		this._load_component = props.shared_props.load_component;
 
 		if (!is_browser) return;
