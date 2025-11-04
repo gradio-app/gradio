@@ -22,9 +22,9 @@
 		"@types/prismjs": "1.26.5",
 		"github-slugger": "^2.0.0",
 		"katex": "^0.16.23",
-		"marked": "^16.4.0",
-		"marked-gfm-heading-id": "^4.1.2",
-		"marked-highlight": "^2.2.2",
+		"marked": "^12.0.0",
+		"marked-gfm-heading-id": "^3.1.2",
+		"marked-highlight": "^2.0.1",
 		"mermaid": "^11.12.0",
 		"prismjs": "^1.30.0"
 	},

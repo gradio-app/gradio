@@ -16,7 +16,11 @@
 	import { Gradio } from "@gradio/utils";
 
 	let props = $props();
+	console.log("CHATBOT props", props.shared_props.load_component);
 	const gradio = new Gradio<ChatbotEvents, ChatbotProps>(props);
+	console.log("CHATBOT load_component", gradio.shared.load_component);
+
+	$inspect("CHATBOT IMAGE", gradio.shared.load_component("image", "component"));
 
 	let _value: NormalisedMessage[] | null = $derived(
 		normalise_messages(gradio.props.value as Message[], gradio.shared.root)
@@ -119,7 +123,7 @@
 			_undoable={gradio.props._undoable}
 			upload={(...args) => gradio.shared.client.upload(...args)}
 			_fetch={(...args) => gradio.shared.client.fetch(...args)}
-			load_component={gradio.load_component}
+			load_component={gradio.shared.load_component}
 			allow_file_downloads={gradio.props.allow_file_downloads}
 			allow_tags={gradio.props.allow_tags}
 			watermark={gradio.props.watermark}

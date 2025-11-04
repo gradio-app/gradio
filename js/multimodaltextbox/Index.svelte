@@ -21,6 +21,8 @@
 		props
 	);
 
+	const value = $derived(gradio.props.value || { text: "", files: [] });
+
 	let dragging: boolean;
 	let active_source: "microphone" | null = null;
 
@@ -115,7 +117,7 @@
 	{/if}
 
 	<MultimodalTextbox
-		value={gradio.props.value}
+		{value}
 		value_is_output
 		bind:dragging
 		bind:active_source

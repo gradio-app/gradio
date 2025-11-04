@@ -235,6 +235,7 @@ export class DependencyManager {
 				const unset_args = await this.set_event_args(dep.id, dep.event_args);
 
 				const { success, failure, all } = dep.get_triggers();
+				console.log("Dependency triggers:", { success, failure, all });
 
 				try {
 					const dep_submission = await dep.run(
@@ -331,6 +332,13 @@ export class DependencyManager {
 						// 	this.dispatch(event_meta);
 						// }
 
+						all.forEach((dep_id) => {
+							this.dispatch({
+								type: "fn",
+								fn_index: dep_id,
+								event_data: null
+							});
+						});
 						return;
 					}
 				} catch (error) {
