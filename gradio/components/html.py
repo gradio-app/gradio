@@ -45,7 +45,7 @@ class HTML(Component):
 
     def __init__(
         self,
-        value: str | Callable | None = None,
+        value: Any | Callable | None = None,
         *,
         label: str | I18nData | None = None,
         html_template: str = "${value}",
@@ -67,7 +67,7 @@ class HTML(Component):
         container: bool = False,
         padding: bool = False,
         autoscroll: bool = False,
-        **props: dict[str, Any],
+        **props: Any,
     ):
         """
         Parameters:
