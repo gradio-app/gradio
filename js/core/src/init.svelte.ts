@@ -1,5 +1,3 @@
-import { SvelteMap } from "svelte/reactivity";
-
 import {
 	determine_interactivity,
 	get_component,
@@ -20,7 +18,6 @@ import type {
 
 import { allowed_shared_props } from "@gradio/utils";
 import { Client } from "@gradio/client";
-import type { S } from "node_modules/@storybook/svelte/dist/types-b7d0039b";
 
 type client_return = Awaited<ReturnType<typeof Client.connect>>;
 

@@ -9,7 +9,7 @@
 	import type {
 		ComponentMeta,
 		Dependency as IDependency,
-		LayoutNode,
+		LayoutNode
 	} from "./types";
 	// import type { UpdateTransaction } from "./_init";
 	import { setupi18n } from "./i18n";
@@ -31,7 +31,6 @@
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import settings_logo from "./api_docs/img/settings-logo.svg";
 	import record_stop from "./api_docs/img/record-stop.svg";
-	import { AsyncFunction } from "./init_utils";
 	import { AppTree } from "./init.svelte";
 	// import type {
 	// 	LogMessage,
@@ -59,7 +58,6 @@
 		version,
 		js,
 		fill_height,
-		ready,
 		username,
 		api_prefix,
 		max_file_size,
@@ -68,6 +66,7 @@
 		vibe_mode,
 		search_params,
 		render_complete = false,
+		on_ready
 	}: {
 		root: string;
 		components: ComponentMeta[];
@@ -85,7 +84,6 @@
 		version: string;
 		js: string | null;
 		fill_height: boolean;
-		ready: boolean;
 		username: string | null;
 		api_prefix: string;
 		max_file_size: number | undefined;
@@ -94,6 +92,7 @@
 		vibe_mode: boolean;
 		search_params: URLSearchParams;
 		render_complete: boolean;
+		on_ready: () => void;
 	} = $props();
 
 	components.forEach((comp) => {
@@ -112,14 +111,14 @@
 			version,
 			api_prefix,
 			max_file_size,
-			autoscroll,
+			autoscroll
 		},
-		app,
+		app
 	);
 
 	setContext(GRADIO_ROOT, {
 		register: app_tree.register_component.bind(app_tree),
-		dispatcher: gradio_event_dispatcher,
+		dispatcher: gradio_event_dispatcher
 	});
 
 	let messages: (ToastMessage & { fn_index: number })[] = $state([]);
@@ -127,7 +126,7 @@
 	function gradio_event_dispatcher(
 		id: number,
 		event: string,
-		data: unknown,
+		data: unknown
 	): void {
 		if (event === "share") {
 			const { title, description } = data as ShareData;
@@ -160,7 +159,7 @@
 				type: "event",
 				event_name: event,
 				target_id: id,
-				event_data: data,
+				event_data: data
 			});
 		}
 	}
@@ -171,7 +170,7 @@
 		app_tree.update_state.bind(app_tree),
 		app_tree.get_state.bind(app_tree),
 		app_tree.rerender.bind(app_tree),
-		new_message,
+		new_message
 	);
 
 	let old_dependencies = dependencies;
@@ -273,7 +272,7 @@
 		fn_index: number,
 		type: ToastMessage["type"],
 		duration: number | null = 10,
-		visible = true,
+		visible = true
 	): void {
 		messages.push({
 			title,
@@ -282,14 +281,14 @@
 			type,
 			id: ++_error_id,
 			duration,
-			visible,
+			visible
 		});
 	}
 
 	export function add_new_message(
 		title: string,
 		message: string,
-		type: ToastMessage["type"],
+		type: ToastMessage["type"]
 	): void {
 		messages = [new_message(title, message, -1, type), ...messages];
 	}
@@ -347,7 +346,7 @@
 	onMount(() => {
 		is_mobile_device =
 			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-				navigator.userAgent,
+				navigator.userAgent
 			);
 
 		if ("parentIFrame" in window) {
@@ -360,12 +359,13 @@
 		mut.observe(root_container, {
 			childList: true,
 			subtree: true,
-			attributes: true,
+			attributes: true
 		});
 		res.observe(root_container);
 
 		app_tree.ready.then(() => {
 			dep_manager.dispatch_load_events();
+			on_ready();
 		});
 
 		return () => {
