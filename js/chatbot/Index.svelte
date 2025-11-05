@@ -9,85 +9,18 @@
 	import { Chat } from "@gradio/icons";
 	import type { FileData } from "@gradio/client";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type {
-		Message,
-		ExampleMessage,
-		TupleFormat,
-		NormalisedMessage
-	} from "./types";
+	import type { Message, ExampleMessage, NormalisedMessage } from "./types";
 	import type { SharedProps } from "@gradio/core";
 	import type { ChatbotProps, ChatbotEvents } from "./types";
-	import { normalise_tuples, normalise_messages } from "./shared/utils";
+	import { normalise_messages } from "./shared/utils";
 	import { Gradio } from "@gradio/utils";
-	// export let elem_id = "";
-	// export let elem_classes: string[] = [];
-	// export let visible: boolean | "hidden" = true;
-	// export let value: TupleFormat | Message[] = [];
-	// export let scale: number | null = null;
-	// export let min_width: number | undefined = undefined;
-	// export let label: string;
-	// export let show_label = true;
-	// export let root: string;
-	// export let _selectable = false;
-	// export let likeable = false;
-	// export let feedback_options: string[] = ["Like", "Dislike"];
-	// export let feedback_value: (string | null)[] | null = null;
-	// export let show_share_button = false;
-	// export let rtl = false;
-	// export let show_copy_button = true;
-	// export let show_copy_all_button = false;
-	// export let sanitize_html = true;
-	// export let layout: "bubble" | "panel" = "bubble";
-	// export let type: "tuples" | "messages" = "tuples";
-	// export let render_markdown = true;
-	// export let line_breaks = true;
-	// export let autoscroll = true;
-	// export let _retryable = false;
-	// export let _undoable = false;
-	// export let group_consecutive_messages = true;
-	// export let allow_tags: string[] | boolean = false;
-	// export let latex_delimiters: {
-	// 	left: string;
-	// 	right: string;
-	// 	display: boolean;
-	// }[];
-	// export let gradio: Gradio<{
-	// 	change: typeof value;
-	// 	select: SelectData;
-	// 	share: ShareData;
-	// 	error: string;
-	// 	like: LikeData;
-	// 	clear_status: LoadingStatus;
-	// 	example_select: SelectData;
-	// 	option_select: SelectData;
-	// 	edit: SelectData;
-	// 	retry: UndoRetryData;
-	// 	undo: UndoRetryData;
-	// 	clear: null;
-	// 	copy: CopyData;
-	// }>;
-
-	// $: _value =
-	// 	type === "tuples"
-	// 		? normalise_tuples(value as TupleFormat, root)
-	// 		: normalise_messages(value as Message[], root);
-
-	// export let avatar_images: [FileData | null, FileData | null] = [null, null];
-	// export let like_user_message = false;
-	// export let loading_status: LoadingStatus | undefined = undefined;
-	// export let height: number | string | undefined;
-	// export let resizable: boolean;
-	// export let min_height: number | string | undefined;
-	// export let max_height: number | string | undefined;
-	// export let editable: "user" | "all" | null = null;
-	// export let placeholder: string | null = null;
-	// export let examples: ExampleMessage[] | null = null;
-	// export let theme_mode: "system" | "light" | "dark";
-	// export let allow_file_downloads = true;
-	// export let watermark: string | null = null;
 
 	let props = $props();
+	console.log("CHATBOT props", props.shared_props.load_component);
 	const gradio = new Gradio<ChatbotEvents, ChatbotProps>(props);
+	console.log("CHATBOT load_component", gradio.shared.load_component);
+
+	$inspect("CHATBOT IMAGE", gradio.shared.load_component("image", "component"));
 
 	let _value: NormalisedMessage[] | null = $derived(
 		normalise_messages(gradio.props.value as Message[], gradio.shared.root)
@@ -174,7 +107,9 @@
 				if (gradio.props.value === null || gradio.props.value.length === 0)
 					return;
 				//@ts-ignore
-				gradio.props.value[e.detail.index].content = e.detail.value;
+				gradio.props.value[e.detail.index].content = [
+					{ text: e.detail.value, type: "text" }
+				];
 				gradio.dispatch("edit", e.detail);
 			}}
 			avatar_images={gradio.props.avatar_images}
@@ -188,7 +123,7 @@
 			_undoable={gradio.props._undoable}
 			upload={(...args) => gradio.shared.client.upload(...args)}
 			_fetch={(...args) => gradio.shared.client.fetch(...args)}
-			load_component={gradio.load_component}
+			load_component={gradio.shared.load_component}
 			allow_file_downloads={gradio.props.allow_file_downloads}
 			allow_tags={gradio.props.allow_tags}
 			watermark={gradio.props.watermark}

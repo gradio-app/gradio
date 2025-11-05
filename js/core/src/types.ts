@@ -29,7 +29,10 @@ export interface SharedProps {
 	scale: number;
 	min_width: number;
 	padding: number;
-	load_component: typeof get_component; //component_loader;
+	load_component: (
+		arg0: string,
+		arg1: "base" | "example" | "component"
+	) => LoadingComponent; //component_loader;
 	loading_status?: any;
 	label: string;
 	show_label: boolean;

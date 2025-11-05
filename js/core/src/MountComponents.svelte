@@ -2,19 +2,6 @@
 	import Self from "./MountComponents.svelte";
 	let { node } = $props();
 
-	async function load_component(node_) {
-		console.log("Loading component for", node_);
-		return await node_.component;
-	}
-
-	let component = $state(null);
-
-	$effect(() => {
-		load_component(node).then((c) => {
-			component = c;
-		});
-	});
-
 	// onMount(() => {
 	// 	console.log("Mounted component", node.id);
 	// 	component_ids.delete(node.id);
@@ -32,6 +19,7 @@
 	// });
 
 	$inspect(node);
+	let component = $state(await node.component);
 </script>
 
 {#if node && component}
