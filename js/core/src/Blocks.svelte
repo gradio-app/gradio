@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick, onMount, setContext } from "svelte";
+	import { tick, onMount, setContext, settled } from "svelte";
 	import { _ } from "svelte-i18n";
 	import { Client } from "@gradio/client";
 	import { writable } from "svelte/store";
@@ -9,7 +9,7 @@
 	import type {
 		ComponentMeta,
 		Dependency as IDependency,
-		LayoutNode
+		LayoutNode,
 	} from "./types";
 	// import type { UpdateTransaction } from "./_init";
 	import { setupi18n } from "./i18n";
@@ -27,10 +27,10 @@
 	// import type SettingsInterface from "./api_docs/Settings.svelte";
 	// import type { ComponentType } from "svelte";
 
-	// import logo from "./images/logo.svg";
-	// import api_logo from "./api_docs/img/api-logo.svg";
-	// import settings_logo from "./api_docs/img/settings-logo.svg";
-	// import record_stop from "./api_docs/img/record-stop.svg";
+	import logo from "./images/logo.svg";
+	import api_logo from "./api_docs/img/api-logo.svg";
+	import settings_logo from "./api_docs/img/settings-logo.svg";
+	import record_stop from "./api_docs/img/record-stop.svg";
 	import { AsyncFunction } from "./init_utils";
 	import { AppTree } from "./init.svelte";
 	// import type {
@@ -42,30 +42,84 @@
 
 	import { DependencyManager } from "./dependency";
 
-	export let root: string;
-	export let components: ComponentMeta[];
-	export let layout: LayoutNode;
-	export let dependencies: IDependency[];
-	export let title = "Gradio";
-	export let target: HTMLElement;
-	export let autoscroll: boolean;
-	export let footer_links = ["gradio", "settings", "api"];
-	export let control_page_title = false;
-	export let app_mode: boolean;
-	export let theme_mode: ThemeMode;
-	export let app: Awaited<ReturnType<typeof Client.connect>>;
-	export let space_id: string | null;
-	export let version: string;
-	export let js: string | null;
-	export let fill_height = false;
-	export let ready: boolean;
-	export let username: string | null;
-	export let api_prefix = "";
-	export let max_file_size: number | undefined = undefined;
-	export let initial_layout: ComponentMeta | undefined = undefined;
-	export let css: string | null | undefined = null;
-	export let vibe_mode = false;
-	let broken_connection = false;
+	let {
+		root,
+		components,
+		layout,
+		dependencies,
+		title,
+		target,
+		autoscroll,
+		footer_links,
+		control_page_title,
+		app_mode,
+		theme_mode,
+		app,
+		space_id,
+		version,
+		js,
+		fill_height,
+		ready,
+		username,
+		api_prefix,
+		max_file_size,
+		initial_layout,
+		css,
+		vibe_mode,
+		search_params,
+		render_complete = false,
+	}: {
+		root: string;
+		components: ComponentMeta[];
+		layout: LayoutNode;
+		dependencies: IDependency[];
+		title: string;
+		target: HTMLElement;
+		autoscroll: boolean;
+		footer_links: string[];
+		control_page_title: boolean;
+		app_mode: boolean;
+		theme_mode: ThemeMode;
+		app: Awaited<ReturnType<typeof Client.connect>>;
+		space_id: string | null;
+		version: string;
+		js: string | null;
+		fill_height: boolean;
+		ready: boolean;
+		username: string | null;
+		api_prefix: string;
+		max_file_size: number | undefined;
+		initial_layout: ComponentMeta | undefined;
+		css: string | null | undefined;
+		vibe_mode: boolean;
+		search_params: URLSearchParams;
+		render_complete: boolean;
+	} = $props();
+
+	// export let root: string;
+	// export let components: ComponentMeta[];
+	// export let layout: LayoutNode;
+	// export let dependencies: IDependency[];
+	// export let title = "Gradio";
+	// export let target: HTMLElement;
+	// export let autoscroll: boolean;
+	// export let footer_links = ["gradio", "settings", "api"];
+	// export let control_page_title = false;
+	// export let app_mode: boolean;
+	// export let theme_mode: ThemeMode;
+	// export let app: Awaited<ReturnType<typeof Client.connect>>;
+	// export let space_id: string | null;
+	// export let version: string;
+	// export let js: string | null;
+	// export let fill_height = false;
+	// export let ready: boolean;
+	// export let username: string | null;
+	// export let api_prefix = "";
+	// export let max_file_size: number | undefined = undefined;
+	// export let initial_layout: ComponentMeta | undefined = undefined;
+	// export let css: string | null | undefined = null;
+	// export let vibe_mode = false;
+	// let broken_connection = false;
 
 	components.forEach((comp) => {
 		if (!comp.props.i18n) {
@@ -83,20 +137,22 @@
 			version,
 			api_prefix,
 			max_file_size,
-			autoscroll
+			autoscroll,
 		},
-		app
+		app,
 	);
-	app_tree.process();
+
+	let dep_ids_to_render = new Set<number>(app_tree.component_ids);
+	// app_tree.process();
 	setContext(GRADIO_ROOT, {
 		register: app_tree.register_component.bind(app_tree),
-		dispatcher: gradio_event_dispatcher
+		dispatcher: gradio_event_dispatcher,
 	});
 
 	function gradio_event_dispatcher(
 		id: number,
 		event: string,
-		data: unknown
+		data: unknown,
 	): void {
 		if (event === "share") {
 			const { title, description } = data as ShareData;
@@ -129,7 +185,7 @@
 				type: "event",
 				event_name: event,
 				target_id: id,
-				event_data: data
+				event_data: data,
 			});
 		}
 	}
@@ -138,23 +194,23 @@
 		app,
 		app_tree.update_state.bind(app_tree),
 		app_tree.get_state.bind(app_tree),
-		app_tree.rerender.bind(app_tree)
+		app_tree.rerender.bind(app_tree),
 	);
 
 	let old_dependencies = dependencies;
-	$: if (
-		dependencies !== old_dependencies &&
-		render_complete &&
-		!layout_creating
-	) {
-		// re-run load triggers in SSR mode when page changes
-		handle_load_triggers();
-		old_dependencies = dependencies;
-	}
+	// $: if (
+	// 	dependencies !== old_dependencies &&
+	// 	render_complete &&
+	// 	!layout_creating
+	// ) {
+	// 	// re-run load triggers in SSR mode when page changes
+	// 	// handle_load_triggers();
+	// 	old_dependencies = dependencies;
+	// }
 
 	let vibe_editor_width = 350;
 
-	export let search_params: URLSearchParams;
+	// export let
 	let api_docs_visible =
 		search_params.get("view") === "api" && footer_links.includes("api");
 	let settings_visible = search_params.get("view") === "settings";
@@ -176,6 +232,13 @@
 			const api_recorder_module = await import("./api_docs/ApiRecorder.svelte");
 			if (!ApiDocs) ApiDocs = api_docs_module.default;
 			if (!ApiRecorder) ApiRecorder = api_recorder_module.default;
+		}
+	}
+
+	async function loadApiRecorder(): Promise<void> {
+		if (!ApiRecorder) {
+			const api_recorder_module = await import("./api_docs/ApiRecorder.svelte");
+			ApiRecorder = api_recorder_module.default;
 		}
 	}
 
@@ -225,7 +288,7 @@
 	let api_calls: Payload[] = [];
 
 	let layout_creating = false;
-	export let render_complete = false;
+	//
 
 	let messages: (ToastMessage & { fn_index: number })[] = [];
 	function new_message(
@@ -234,7 +297,7 @@
 		fn_index: number,
 		type: ToastMessage["type"],
 		duration: number | null = 10,
-		visible = true
+		visible = true,
 	): ToastMessage & { fn_index: number } {
 		return {
 			title,
@@ -243,14 +306,14 @@
 			type,
 			id: ++_error_id,
 			duration,
-			visible
+			visible,
 		};
 	}
 
 	export function add_new_message(
 		title: string,
 		message: string,
-		type: ToastMessage["type"]
+		type: ToastMessage["type"],
 	): void {
 		messages = [new_message(title, message, -1, type), ...messages];
 	}
@@ -280,13 +343,6 @@
 
 	let is_screen_recording = writable(false);
 
-	onMount(() => {
-		is_mobile_device =
-			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-				navigator.userAgent
-			);
-	});
-
 	let footer_height = 0;
 
 	let root_container: HTMLElement;
@@ -304,7 +360,20 @@
 		}
 	}
 
+	function screen_recording(): void {
+		if ($is_screen_recording) {
+			screen_recorder.stopRecording();
+		} else {
+			screen_recorder.startRecording();
+		}
+	}
+
 	onMount(() => {
+		is_mobile_device =
+			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+				navigator.userAgent,
+			);
+
 		if ("parentIFrame" in window) {
 			window.parentIFrame?.autoResize(false);
 		}
@@ -315,18 +384,19 @@
 		mut.observe(root_container, {
 			childList: true,
 			subtree: true,
-			attributes: true
+			attributes: true,
 		});
-
 		res.observe(root_container);
+
+		app_tree.ready.then(() => {
+			dep_manager.dispatch_load_events();
+		});
 
 		return () => {
 			mut.disconnect();
 			res.disconnect();
 		};
 	});
-
-	$: ready = !!app_tree.root;
 </script>
 
 <svelte:head>
@@ -345,147 +415,146 @@
 		bind:this={root_container}
 		style:margin-right={vibe_mode ? `${vibe_editor_width}px` : "0"}
 	>
-		{#if app_tree.root}
-			<MountComponents node={app_tree.root} />
+		<MountComponents node={app_tree.root} />
+
+		{#if footer_links.length > 0}
+			<footer bind:clientHeight={footer_height}>
+				{#if footer_links.includes("api")}
+					<button
+						on:click={() => {
+							set_api_docs_visible(!api_docs_visible);
+						}}
+						on:mouseenter={() => {
+							loadApiDocs();
+							loadApiRecorder();
+						}}
+						class="show-api"
+					>
+						{#if app.config?.mcp_server}
+							{$_("errors.use_via_api_or_mcp")}
+						{:else}
+							{$_("errors.use_via_api")}
+						{/if}
+						<img src={api_logo} alt={$_("common.logo")} />
+					</button>
+				{/if}
+				{#if footer_links.includes("gradio")}
+					<div class="divider show-api-divider">·</div>
+					<a
+						href="https://gradio.app"
+						class="built-with"
+						target="_blank"
+						rel="noreferrer"
+					>
+						{$_("common.built_with_gradio")}
+						<img src={logo} alt={$_("common.logo")} />
+					</a>
+				{/if}
+				<button
+					class:hidden={!$is_screen_recording}
+					on:click={() => {
+						screen_recording();
+					}}
+					class="record"
+				>
+					{$_("common.stop_recording")}
+					<img src={record_stop} alt={$_("common.stop_recording")} />
+				</button>
+				<div class="divider">·</div>
+				{#if footer_links.includes("settings")}
+					<div class="divider" class:hidden={!$is_screen_recording}>·</div>
+					<button
+						on:click={() => {
+							set_settings_visible(!settings_visible);
+						}}
+						on:mouseenter={() => {
+							loadSettings();
+						}}
+						class="settings"
+					>
+						{$_("common.settings")}
+						<img src={settings_logo} alt={$_("common.settings")} />
+					</button>
+				{/if}
+			</footer>
 		{/if}
-
-		<!-- {#if footer_links.length > 0}
-		<footer bind:clientHeight={footer_height}>
-			{#if footer_links.includes("api")}
-				<button
-					on:click={() => {
-						set_api_docs_visible(!api_docs_visible);
-					}}
-					on:mouseenter={() => {
-						loadApiDocs();
-						loadApiRecorder();
-					}}
-					class="show-api"
-				>
-					{#if app.config?.mcp_server}
-						{$_("errors.use_via_api_or_mcp")}
-					{:else}
-						{$_("errors.use_via_api")}
-					{/if}
-					<img src={api_logo} alt={$_("common.logo")} />
-				</button>
-			{/if}
-			{#if footer_links.includes("gradio")}
-				<div class="divider show-api-divider">·</div>
-				<a
-					href="https://gradio.app"
-					class="built-with"
-					target="_blank"
-					rel="noreferrer"
-				>
-					{$_("common.built_with_gradio")}
-					<img src={logo} alt={$_("common.logo")} />
-				</a>
-			{/if}
-			<button
-				class:hidden={!$is_screen_recording}
-				on:click={() => {
-					screen_recording();
-				}}
-				class="record"
-			>
-				{$_("common.stop_recording")}
-				<img src={record_stop} alt={$_("common.stop_recording")} />
-			</button>
-			<div class="divider">·</div>
-			{#if footer_links.includes("settings")}
-				<div class="divider" class:hidden={!$is_screen_recording}>·</div>
-				<button
-					on:click={() => {
-						set_settings_visible(!settings_visible);
-					}}
-					on:mouseenter={() => {
-						loadSettings();
-					}}
-					class="settings"
-				>
-					{$_("common.settings")}
-					<img src={settings_logo} alt={$_("common.settings")} />
-				</button>
-			{/if}
-		</footer>
-	{/if} -->
 	</div>
-
-	<!-- {#if api_recorder_visible && ApiRecorder} -->
-	<!-- TODO: fix -->
-	<!-- svelte-ignore a11y-click-events-have-key-events-->
-	<!-- svelte-ignore a11y-no-static-element-interactions-->
-	<!-- <div
-		id="api-recorder-container"
-		on:click={() => {
-			set_api_docs_visible(true);
-			api_recorder_visible = false;
-		}}
-	>
-		<svelte:component this={ApiRecorder} {api_calls} {dependencies} />
-	</div> -->
-	<!-- {/if} -->
-
-	<!-- {#if api_docs_visible && $_layout && ApiDocs} -->
-	<!-- <div class="api-docs"> -->
-	<!-- TODO: fix -->
-	<!-- svelte-ignore a11y-click-events-have-key-events-->
-	<!-- svelte-ignore a11y-no-static-element-interactions-->
-	<!-- <div
-			class="backdrop"
+	{#if api_recorder_visible && ApiRecorder}
+		<!-- TODO: fix -->
+		<!-- svelte-ignore a11y-click-events-have-key-events-->
+		<!-- svelte-ignore a11y-no-static-element-interactions-->
+		<div
+			id="api-recorder-container"
 			on:click={() => {
-				set_api_docs_visible(false);
+				set_api_docs_visible(true);
+				api_recorder_visible = false;
 			}}
-		/>
-		<div class="api-docs-wrap">
-			<svelte:component
-				this={ApiDocs}
-				root_node={$_layout}
-				on:close={(event) => {
-					set_api_docs_visible(false);
-					api_calls = [];
-					api_recorder_visible = api_recorder_visible =
-						event.detail?.api_recorder_visible;
-				}}
-				{dependencies}
-				{root}
-				{app}
-				{space_id}
-				{api_calls}
-				{username}
-			/>
+		>
+			<svelte:component this={ApiRecorder} {api_calls} {dependencies} />
 		</div>
-	</div> -->
-	<!-- {/if} -->
-	<!-- 
-{#if settings_visible && $_layout && app.config && Settings}
-	<div class="api-docs"> -->
-	<!-- TODO: fix -->
-	<!-- svelte-ignore a11y-click-events-have-key-events-->
-	<!-- svelte-ignore a11y-no-static-element-interactions-->
-	<!-- <div
-			class="backdrop"
-			on:click={() => {
-				set_settings_visible(false);
-			}}
-		/>
-		<div class="api-docs-wrap">
-			<svelte:component
-				this={Settings}
-				bind:allow_zoom
-				bind:allow_video_trim
-				on:close={() => {
+	{/if}
+
+	{#if api_docs_visible && app_tree.root && ApiDocs}
+		<div class="api-docs">
+			<!-- TODO: fix -->
+			<!-- svelte-ignore a11y-click-events-have-key-events-->
+			<!-- svelte-ignore a11y-no-static-element-interactions-->
+			<div
+				class="backdrop"
+				on:click={() => {
+					set_api_docs_visible(false);
+				}}
+			/>
+			<div class="api-docs-wrap">
+				<svelte:component
+					this={ApiDocs}
+					root_node={app_tree.root}
+					on:close={(event) => {
+						set_api_docs_visible(false);
+						api_calls = [];
+						api_recorder_visible = api_recorder_visible =
+							event.detail?.api_recorder_visible;
+					}}
+					{dependencies}
+					{root}
+					{app}
+					{space_id}
+					{api_calls}
+					{username}
+				/>
+			</div>
+		</div>
+	{/if}
+
+	{#if settings_visible && app.config && app_tree.root && Settings}
+		<div class="api-docs">
+			<!-- TODO: fix -->
+			<!-- svelte-ignore a11y-click-events-have-key-events-->
+			<!-- svelte-ignore a11y-no-static-element-interactions-->
+			<div
+				class="backdrop"
+				on:click={() => {
 					set_settings_visible(false);
 				}}
-				on:start_recording={() => {
-					screen_recording();
-				}}
-				pwa_enabled={app.config.pwa}
-				{root}
-				{space_id}
 			/>
-		</div>-->
+			<div class="api-docs-wrap">
+				<svelte:component
+					this={Settings}
+					bind:allow_zoom
+					bind:allow_video_trim
+					on:close={() => {
+						set_settings_visible(false);
+					}}
+					on:start_recording={() => {
+						screen_recording();
+					}}
+					pwa_enabled={app.config.pwa}
+					{root}
+					{space_id}
+				/>
+			</div>
+		</div>
+	{/if}
 </div>
 
 <style>

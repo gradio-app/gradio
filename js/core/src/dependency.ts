@@ -25,6 +25,7 @@ export class Dependency {
 	pending = false;
 	trigger_modes: "once" | "multiple" | "always_last";
 	event_args: Record<string, unknown> = {};
+	targets: [number, string][] = [];
 
 	// if this dependency has any then, success or failure triggers
 	triggers: [number, "success" | "failure" | "all"][] = [];
@@ -62,6 +63,7 @@ export class Dependency {
 					)
 				: undefined
 		};
+		this.targets = dep_config.targets;
 		this.cancels = dep_config.cancels;
 		this.trigger_modes = dep_config.trigger_mode;
 		this.show_progress_on = dep_config.show_progress_on || null;
@@ -235,7 +237,6 @@ export class DependencyManager {
 				const unset_args = await this.set_event_args(dep.id, dep.event_args);
 
 				const { success, failure, all } = dep.get_triggers();
-				console.log("Dependency triggers:", { success, failure, all });
 
 				try {
 					const dep_submission = await dep.run(
@@ -460,7 +461,9 @@ export class DependencyManager {
 	 */
 	async gather_state(ids: number[]): Promise<(unknown | null)[]> {
 		return (await Promise.all(ids.map((id) => this.get_state_cb(id)))).map(
-			(state) => state?.value ?? null
+			(state) => {
+				return state?.value ?? null;
+			}
 		);
 	}
 
@@ -502,6 +505,21 @@ export class DependencyManager {
 				this.submissions.delete(id);
 			}
 		}
+	}
+
+	dispatch_load_events() {
+		this.dependencies_by_fn.forEach((dep) => {
+			dep.targets.forEach(([target_id, event_name]) => {
+				if (event_name === "load") {
+					this.dispatch({
+						type: "event",
+						event_name: "load",
+						target_id: target_id,
+						event_data: null
+					});
+				}
+			});
+		});
 	}
 }
 
