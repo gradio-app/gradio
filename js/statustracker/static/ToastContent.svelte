@@ -161,7 +161,7 @@
 		right: 0;
 		left: 0;
 		margin: auto;
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-sm);
 		overflow: hidden;
 		pointer-events: auto;
 		background: var(--background-fill-secondary);

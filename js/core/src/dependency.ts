@@ -8,7 +8,8 @@ import type {
 import { AsyncFunction } from "./init_utils";
 import { Client, type client_return } from "@gradio/client";
 import { LoadingStatus, type LoadingStatusArgs } from "@gradio/statustracker";
-import { tick } from "svelte";
+import type { ToastMessage } from "@gradio/statustracker";
+const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
 const NOVALUE = Symbol("NOVALUE");
 /**
@@ -163,7 +164,14 @@ export class DependencyManager {
 	update_state_cb: (id: number, state: Record<string, unknown>) => void;
 	get_state_cb: (id: number) => Promise<Record<string, unknown> | null>;
 	rerender_cb: (components: ComponentMeta[], layout: LayoutNode) => void;
-
+	log_cb: (
+		title: string,
+		message: string,
+		fn_index: number,
+		type: ToastMessage["type"],
+		duration?: number | null,
+		visible?: boolean
+	) => void;
 	loading_stati = new LoadingStatus();
 
 	constructor(
@@ -171,7 +179,15 @@ export class DependencyManager {
 		client: Client,
 		update_state_cb: (id: number, state: Record<string, unknown>) => void,
 		get_state_cb: (id: number) => Promise<Record<string, unknown> | null>,
-		rerender_cb: (components: ComponentMeta[], layout: LayoutNode) => void
+		rerender_cb: (components: ComponentMeta[], layout: LayoutNode) => void,
+		log_cb: (
+			title: string,
+			message: string,
+			fn_index: number,
+			type: ToastMessage["type"],
+			duration?: number | null,
+			visible?: boolean
+		) => void
 	) {
 		const { by_id, by_event } = this.create(dependencies);
 
@@ -181,6 +197,7 @@ export class DependencyManager {
 		this.update_state_cb = update_state_cb;
 		this.get_state_cb = get_state_cb;
 		this.rerender_cb = rerender_cb;
+		this.log_cb = log_cb;
 
 		this.register_loading_stati(by_id);
 	}
@@ -280,6 +297,18 @@ export class DependencyManager {
 									});
 									break submit_loop;
 								} else if (result.stage === "error") {
+									const _message = result?.message?.replace(
+										MESSAGE_QUOTE_RE,
+										(_, b) => b
+									);
+									this.log_cb(
+										result._title ?? "Error",
+										_message,
+										fn_index,
+										"error",
+										status.duration,
+										status.visible
+									);
 									throw new Error("Dependency function failed");
 								}
 							}
@@ -315,6 +344,10 @@ export class DependencyManager {
 								);
 								this.register_loading_stati(by_id);
 								break submit_loop;
+							}
+
+							if (result.type === "log") {
+								this.handle_log(result);
 							}
 						}
 
@@ -427,7 +460,11 @@ export class DependencyManager {
 		return { by_id: _deps_by_id, by_event: _deps_by_event };
 	}
 
-	handle_log() {}
+	handle_log(msg: LogMessage): void {
+		const { title, log, fn_index, level, duration, visible } = msg;
+
+		this.log_cb(title, log, fn_index, level, duration, visible);
+	}
 
 	/**
 	 *  Updates the state of the outputs based on the data received from the dependency

@@ -14,8 +14,6 @@
 
 	let props = $props();
 	const gradio = new Gradio<ColorPickerEvents, ColorPickerProps>(props);
-
-	$inspect(props, "props");
 </script>
 
 <Block

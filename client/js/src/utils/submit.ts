@@ -203,7 +203,6 @@ export function submit(
 					.then(([output, status_code]: any) => {
 						const data = output.data;
 
-						console.log("Output from /run:", { output, status_code });
 						if (status_code == 200) {
 							fire_event({
 								type: "data",
@@ -431,7 +430,6 @@ export function submit(
 				});
 
 				return post_data_promise.then(async ([response, status]: any) => {
-					console.log("Output from /queue/data:", { response, status });
 					if (response.event_id) {
 						event_id_final = response.event_id as string;
 					}

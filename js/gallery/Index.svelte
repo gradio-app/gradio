@@ -18,11 +18,11 @@
 	let fullscreen = $state(false);
 
 	let no_value = $derived(
-		gradio.props.value === null ? true : gradio.props.value.length === 0
+		gradio.props.value === null ? true : gradio.props.value.length === 0,
 	);
 
 	function handle_delete(
-		event: CustomEvent<{ file: FileData; index: number }>
+		event: CustomEvent<{ file: FileData; index: number }>,
 	): void {
 		if (!gradio.props.value) return;
 		const { index } = event.detail;
@@ -32,7 +32,7 @@
 	}
 
 	async function process_upload_files(
-		files: FileData[]
+		files: FileData[],
 	): Promise<GalleryData[]> {
 		const processed_files = await Promise.all(
 			files.map(async (x) => {
@@ -41,21 +41,19 @@
 					const svgContent = await response.text();
 					return {
 						...x,
-						url: `data:image/svg+xml,${encodeURIComponent(svgContent)}`
+						url: `data:image/svg+xml,${encodeURIComponent(svgContent)}`,
 					};
 				}
 				return x;
-			})
+			}),
 		);
 
 		return processed_files.map((x) =>
 			x.mime_type?.includes("video")
 				? { video: x, caption: null }
-				: { image: x, caption: null }
+				: { image: x, caption: null },
 		);
 	}
-
-	$inspect("value", gradio.props.value);
 </script>
 
 <Block

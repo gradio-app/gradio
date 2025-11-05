@@ -13,11 +13,9 @@
 		return {
 			visible: gradio.shared.visible,
 			main_page_name: gradio.props.main_page_name,
-			value: gradio.props.value
+			value: gradio.props.value,
 		};
 	});
-
-	$inspect("navbar visible", gradio.shared.visible);
 
 	onMount(() => {
 		const current_store = get(navbar_config);
@@ -27,7 +25,6 @@
 	});
 
 	$effect(() => {
-		console.log("Updating navbar store:", navbar_props);
 		navbar_config.set(navbar_props);
 	});
 </script>

@@ -73,18 +73,17 @@
 
 	let suggested_demos = suggested_links.filter((item) => item.type === "DEMO");
 	let suggested_guides_docs = suggested_links.filter(
-		(item) => item.type !== "DEMO"
+		(item) => item.type !== "DEMO",
 	);
 
 	$: if (suggested_links) {
 		suggested_links.forEach((link) => {
 			if (link.type == "DEMO") {
-				console.log(all_demos);
 				all_demos.push({
 					name: link.title,
 					dir: link.title.replaceAll(" ", "_").toLowerCase(),
 					code: link.url,
-					requirements: link.requirements.split("\n")
+					requirements: link.requirements.split("\n"),
 				});
 			}
 		});
@@ -93,7 +92,7 @@
 	$: suggested_links;
 	$: suggested_demos = suggested_links.filter((item) => item.type === "DEMO");
 	$: suggested_guides_docs = suggested_links.filter(
-		(item) => item.type !== "DEMO"
+		(item) => item.type !== "DEMO",
 	);
 	$: edited_demos;
 </script>
@@ -113,7 +112,7 @@
 		type="module"
 		src="https://gradio.s3-us-west-2.amazonaws.com/{version.replace(
 			'b',
-			'-beta.'
+			'-beta.',
 		)}/gradio.js"
 	></script>
 </svelte:head>

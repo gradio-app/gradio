@@ -14,8 +14,8 @@
 	// import type { UpdateTransaction } from "./_init";
 	import { setupi18n } from "./i18n";
 	import type { ThemeMode, Payload } from "./types";
-	// import { Toast } from "@gradio/statustracker";
-	// import type { ToastMessage } from "@gradio/statustracker";
+	import { Toast } from "@gradio/statustracker";
+	import type { ToastMessage } from "@gradio/statustracker";
 	import { type ShareData, type ValueData, GRADIO_ROOT } from "@gradio/utils";
 
 	import MountComponents from "./MountComponents.svelte";
@@ -96,31 +96,6 @@
 		render_complete: boolean;
 	} = $props();
 
-	// export let root: string;
-	// export let components: ComponentMeta[];
-	// export let layout: LayoutNode;
-	// export let dependencies: IDependency[];
-	// export let title = "Gradio";
-	// export let target: HTMLElement;
-	// export let autoscroll: boolean;
-	// export let footer_links = ["gradio", "settings", "api"];
-	// export let control_page_title = false;
-	// export let app_mode: boolean;
-	// export let theme_mode: ThemeMode;
-	// export let app: Awaited<ReturnType<typeof Client.connect>>;
-	// export let space_id: string | null;
-	// export let version: string;
-	// export let js: string | null;
-	// export let fill_height = false;
-	// export let ready: boolean;
-	// export let username: string | null;
-	// export let api_prefix = "";
-	// export let max_file_size: number | undefined = undefined;
-	// export let initial_layout: ComponentMeta | undefined = undefined;
-	// export let css: string | null | undefined = null;
-	// export let vibe_mode = false;
-	// let broken_connection = false;
-
 	components.forEach((comp) => {
 		if (!comp.props.i18n) {
 			comp.props.i18n = $reactive_formatter;
@@ -142,12 +117,12 @@
 		app,
 	);
 
-	let dep_ids_to_render = new Set<number>(app_tree.component_ids);
-	// app_tree.process();
 	setContext(GRADIO_ROOT, {
 		register: app_tree.register_component.bind(app_tree),
 		dispatcher: gradio_event_dispatcher,
 	});
+
+	let messages: (ToastMessage & { fn_index: number })[] = $state([]);
 
 	function gradio_event_dispatcher(
 		id: number,
@@ -159,11 +134,11 @@
 			// trigger_share(title, description);
 			// TODO: lets combine all of the into a log type with levels
 		} else if (event === "error") {
-			messages = [new_message("Error", data, -1, event), ...messages];
+			new_message("Error", data, -1, event);
 		} else if (event === "warning") {
-			messages = [new_message("Warning", data, -1, event), ...messages];
+			new_message("Warning", data, -1, event);
 		} else if (event === "info") {
-			messages = [new_message("Info", data, -1, event), ...messages];
+			new_message("Info", data, -1, event);
 		} else if (event == "clear_status") {
 			// TODO: the loading_status store should handle this via a method
 			// update_status(id, "complete", data);
@@ -189,12 +164,14 @@
 			});
 		}
 	}
+
 	const dep_manager = new DependencyManager(
 		dependencies,
 		app,
 		app_tree.update_state.bind(app_tree),
 		app_tree.get_state.bind(app_tree),
 		app_tree.rerender.bind(app_tree),
+		new_message,
 	);
 
 	let old_dependencies = dependencies;
@@ -290,7 +267,6 @@
 	let layout_creating = false;
 	//
 
-	let messages: (ToastMessage & { fn_index: number })[] = [];
 	function new_message(
 		title: string,
 		message: string,
@@ -298,8 +274,8 @@
 		type: ToastMessage["type"],
 		duration: number | null = 10,
 		visible = true,
-	): ToastMessage & { fn_index: number } {
-		return {
+	): void {
+		messages.push({
 			title,
 			message,
 			fn_index,
@@ -307,7 +283,7 @@
 			id: ++_error_id,
 			duration,
 			visible,
-		};
+		});
 	}
 
 	export function add_new_message(
@@ -397,6 +373,10 @@
 			res.disconnect();
 		};
 	});
+
+	function handle_close(id: number): void {
+		messages = messages.filter((m) => m.id !== id);
+	}
 </script>
 
 <svelte:head>
@@ -556,6 +536,10 @@
 		</div>
 	{/if}
 </div>
+
+{#if messages}
+	<Toast {messages} on_close={handle_close} />
+{/if}
 
 <style>
 	.wrap {

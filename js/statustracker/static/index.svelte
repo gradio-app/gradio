@@ -13,7 +13,7 @@
 
 	async function scroll_into_view(
 		el: HTMLDivElement,
-		enable: boolean | null = true
+		enable: boolean | null = true,
 	): Promise<void> {
 		if (
 			window.__gradio_mode__ === "website" ||
@@ -86,31 +86,6 @@
 	export let autoscroll: boolean;
 	export let validation_error: string | null = null;
 	export let show_validation_error = true;
-
-	$: console.log(
-		"++++\nstatus:",
-		status,
-		"progress:",
-		progress,
-		"validation_error:",
-		validation_error
-	);
-	$: console.log(
-		"SHOULD HIDE STATUSTRACKER:",
-		(!status ||
-			status === "complete" ||
-			show_progress === "hidden" ||
-			status == "streaming") &&
-			!validation_error,
-		{
-			"!status": !status,
-			"!validation_error": !validation_error,
-			"status===complete": status === "complete",
-			"show_progress===hidden": show_progress === "hidden",
-			"status==streaming": status == "streaming"
-		},
-		{ eta }
-	);
 
 	$: should_hide =
 		(!status ||

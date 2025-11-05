@@ -26,14 +26,12 @@
 
 	function load_value(): void {
 		const stored = localStorage.getItem(gradio.props.storage_key);
-		console.log("Stored value from localStorage:", stored);
 		if (!stored) {
 			gradio.props.value = gradio.props.default_value;
 			return;
 		}
 		try {
 			const decrypted = decrypt(stored, gradio.props.secret);
-			console.log("Decrypted value from localStorage:", decrypted);
 			gradio.props.value = JSON.parse(decrypted);
 		} catch (e) {
 			console.error("Error reading from localStorage:", e);
@@ -46,7 +44,7 @@
 		try {
 			const encrypted = encrypt(
 				JSON.stringify(gradio.props.value),
-				gradio.props.secret
+				gradio.props.secret,
 			);
 			localStorage.setItem(gradio.props.storage_key, encrypted);
 		} catch (e) {

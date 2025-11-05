@@ -9,7 +9,7 @@
 		import("@self/spa/webcomponent");
 		gradio_container = document.querySelector("gradio-container");
 		const iframe_resizer_attribute = "iframe-resizer";
-		console.log("iframeResize", iframeResize);
+
 		iframeResize.iframeResizer(
 			{
 				heightCalculationMethod: "lowestElement",
@@ -20,9 +20,9 @@
 					iframe.setAttribute(iframe_resizer_attribute, "");
 					iframe.setAttribute("scrolling", "no");
 					iframe.style.overflow = "hidden";
-				}
+				},
 			},
-			iframe
+			iframe,
 		);
 
 		setTimeout(() => {

@@ -300,7 +300,6 @@ export async function load_components(
 			component_name === "dataframe" || component_name === "model3d"
 				? "component"
 				: "base";
-		// console.log("CHATBOT load_component", load_component(component_name, "component"));
 		const comp = await load_component(component_name, variant);
 		// @ts-ignore
 		_components[component_name] = comp.default;

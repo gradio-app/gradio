@@ -7,12 +7,6 @@ export class LoadingStatus {
 	fn_status: Record<number, ILoadingStatus["status"]> = {};
 
 	register(id: number, outputs: number[]): void {
-		console.log(
-			"LoadingStatus register called with id:",
-			id,
-			"outputs:",
-			outputs
-		);
 		this.fn_outputs[id] = outputs;
 		this.current[id] = {
 			eta: 0,
@@ -28,7 +22,6 @@ export class LoadingStatus {
 
 	update(args: LoadingStatusArgs): void {
 		const updates = this.resolve_args(args);
-		console.log({ updates });
 
 		updates.forEach(
 			({ id, queue_position, queue_size, eta, status, message, progress }) => {
@@ -61,7 +54,6 @@ export class LoadingStatus {
 			progress = null
 		} = args;
 
-		console.log({ args });
 		const outputs = this.fn_outputs[fn_index];
 		const last_status = this.fn_status[fn_index];
 
