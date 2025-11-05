@@ -1,24 +1,12 @@
+<script module>
+	const then = performance.now();
+</script>
+
 <script lang="ts">
+	import { onMount } from "svelte";
 	import Self from "./MountComponents.svelte";
 	let { node } = $props();
 
-	// onMount(() => {
-	// 	console.log("Mounted component", node.id);
-	// 	component_ids.delete(node.id);
-	// 	console.log("Component IDs left:", component_ids);
-	// });
-
-	// $effect(() => {
-	// 	console.log("Checking on_mount for", node.id, "with component_ids:", component_ids);
-	// 	console.log("component_ids.size===0", component_ids.size === 0);
-	// 	console.log("on_mount:", on_mount);
-	// 	if (on_mount && component_ids.size === 0) {
-	// 		console.log("HERE", node.id);
-	// 		on_mount();
-	// 	}
-	// });
-
-	$inspect(node);
 	let component = $state(await node.component);
 </script>
 

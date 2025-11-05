@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick, onMount, setContext } from "svelte";
+	import { tick, onMount, setContext, settled } from "svelte";
 	import { _ } from "svelte-i18n";
 	import { Client } from "@gradio/client";
 	import { writable } from "svelte/store";
@@ -9,7 +9,7 @@
 	import type {
 		ComponentMeta,
 		Dependency as IDependency,
-		LayoutNode
+		LayoutNode,
 	} from "./types";
 	// import type { UpdateTransaction } from "./_init";
 	import { setupi18n } from "./i18n";
@@ -42,30 +42,84 @@
 
 	import { DependencyManager } from "./dependency";
 
-	export let root: string;
-	export let components: ComponentMeta[];
-	export let layout: LayoutNode;
-	export let dependencies: IDependency[];
-	export let title = "Gradio";
-	export let target: HTMLElement;
-	export let autoscroll: boolean;
-	export let footer_links = ["gradio", "settings", "api"];
-	export let control_page_title = false;
-	export let app_mode: boolean;
-	export let theme_mode: ThemeMode;
-	export let app: Awaited<ReturnType<typeof Client.connect>>;
-	export let space_id: string | null;
-	export let version: string;
-	export let js: string | null;
-	export let fill_height = false;
-	export let ready: boolean;
-	export let username: string | null;
-	export let api_prefix = "";
-	export let max_file_size: number | undefined = undefined;
-	export let initial_layout: ComponentMeta | undefined = undefined;
-	export let css: string | null | undefined = null;
-	export let vibe_mode = false;
-	let broken_connection = false;
+	let {
+		root,
+		components,
+		layout,
+		dependencies,
+		title,
+		target,
+		autoscroll,
+		footer_links,
+		control_page_title,
+		app_mode,
+		theme_mode,
+		app,
+		space_id,
+		version,
+		js,
+		fill_height,
+		ready,
+		username,
+		api_prefix,
+		max_file_size,
+		initial_layout,
+		css,
+		vibe_mode,
+		search_params,
+		render_complete = false,
+	}: {
+		root: string;
+		components: ComponentMeta[];
+		layout: LayoutNode;
+		dependencies: IDependency[];
+		title: string;
+		target: HTMLElement;
+		autoscroll: boolean;
+		footer_links: string[];
+		control_page_title: boolean;
+		app_mode: boolean;
+		theme_mode: ThemeMode;
+		app: Awaited<ReturnType<typeof Client.connect>>;
+		space_id: string | null;
+		version: string;
+		js: string | null;
+		fill_height: boolean;
+		ready: boolean;
+		username: string | null;
+		api_prefix: string;
+		max_file_size: number | undefined;
+		initial_layout: ComponentMeta | undefined;
+		css: string | null | undefined;
+		vibe_mode: boolean;
+		search_params: URLSearchParams;
+		render_complete: boolean;
+	} = $props();
+
+	// export let root: string;
+	// export let components: ComponentMeta[];
+	// export let layout: LayoutNode;
+	// export let dependencies: IDependency[];
+	// export let title = "Gradio";
+	// export let target: HTMLElement;
+	// export let autoscroll: boolean;
+	// export let footer_links = ["gradio", "settings", "api"];
+	// export let control_page_title = false;
+	// export let app_mode: boolean;
+	// export let theme_mode: ThemeMode;
+	// export let app: Awaited<ReturnType<typeof Client.connect>>;
+	// export let space_id: string | null;
+	// export let version: string;
+	// export let js: string | null;
+	// export let fill_height = false;
+	// export let ready: boolean;
+	// export let username: string | null;
+	// export let api_prefix = "";
+	// export let max_file_size: number | undefined = undefined;
+	// export let initial_layout: ComponentMeta | undefined = undefined;
+	// export let css: string | null | undefined = null;
+	// export let vibe_mode = false;
+	// let broken_connection = false;
 
 	components.forEach((comp) => {
 		if (!comp.props.i18n) {
@@ -83,21 +137,22 @@
 			version,
 			api_prefix,
 			max_file_size,
-			autoscroll
+			autoscroll,
 		},
-		app
+		app,
 	);
+
 	let dep_ids_to_render = new Set<number>(app_tree.component_ids);
-	app_tree.process();
+	// app_tree.process();
 	setContext(GRADIO_ROOT, {
 		register: app_tree.register_component.bind(app_tree),
-		dispatcher: gradio_event_dispatcher
+		dispatcher: gradio_event_dispatcher,
 	});
 
 	function gradio_event_dispatcher(
 		id: number,
 		event: string,
-		data: unknown
+		data: unknown,
 	): void {
 		if (event === "share") {
 			const { title, description } = data as ShareData;
@@ -130,7 +185,7 @@
 				type: "event",
 				event_name: event,
 				target_id: id,
-				event_data: data
+				event_data: data,
 			});
 		}
 	}
@@ -139,23 +194,23 @@
 		app,
 		app_tree.update_state.bind(app_tree),
 		app_tree.get_state.bind(app_tree),
-		app_tree.rerender.bind(app_tree)
+		app_tree.rerender.bind(app_tree),
 	);
 
 	let old_dependencies = dependencies;
-	$: if (
-		dependencies !== old_dependencies &&
-		render_complete &&
-		!layout_creating
-	) {
-		// re-run load triggers in SSR mode when page changes
-		// handle_load_triggers();
-		old_dependencies = dependencies;
-	}
+	// $: if (
+	// 	dependencies !== old_dependencies &&
+	// 	render_complete &&
+	// 	!layout_creating
+	// ) {
+	// 	// re-run load triggers in SSR mode when page changes
+	// 	// handle_load_triggers();
+	// 	old_dependencies = dependencies;
+	// }
 
 	let vibe_editor_width = 350;
 
-	export let search_params: URLSearchParams;
+	// export let
 	let api_docs_visible =
 		search_params.get("view") === "api" && footer_links.includes("api");
 	let settings_visible = search_params.get("view") === "settings";
@@ -233,7 +288,7 @@
 	let api_calls: Payload[] = [];
 
 	let layout_creating = false;
-	export let render_complete = false;
+	//
 
 	let messages: (ToastMessage & { fn_index: number })[] = [];
 	function new_message(
@@ -242,7 +297,7 @@
 		fn_index: number,
 		type: ToastMessage["type"],
 		duration: number | null = 10,
-		visible = true
+		visible = true,
 	): ToastMessage & { fn_index: number } {
 		return {
 			title,
@@ -251,14 +306,14 @@
 			type,
 			id: ++_error_id,
 			duration,
-			visible
+			visible,
 		};
 	}
 
 	export function add_new_message(
 		title: string,
 		message: string,
-		type: ToastMessage["type"]
+		type: ToastMessage["type"],
 	): void {
 		messages = [new_message(title, message, -1, type), ...messages];
 	}
@@ -288,13 +343,6 @@
 
 	let is_screen_recording = writable(false);
 
-	onMount(() => {
-		is_mobile_device =
-			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-				navigator.userAgent
-			);
-	});
-
 	let footer_height = 0;
 
 	let root_container: HTMLElement;
@@ -321,6 +369,11 @@
 	}
 
 	onMount(() => {
+		is_mobile_device =
+			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+				navigator.userAgent,
+			);
+
 		if ("parentIFrame" in window) {
 			window.parentIFrame?.autoResize(false);
 		}
@@ -331,19 +384,19 @@
 		mut.observe(root_container, {
 			childList: true,
 			subtree: true,
-			attributes: true
+			attributes: true,
 		});
-
-		dep_manager.dispatch_load_events();
 		res.observe(root_container);
+
+		app_tree.ready.then(() => {
+			dep_manager.dispatch_load_events();
+		});
 
 		return () => {
 			mut.disconnect();
 			res.disconnect();
 		};
 	});
-
-	$: ready = !!app_tree.root;
 </script>
 
 <svelte:head>
@@ -362,9 +415,7 @@
 		bind:this={root_container}
 		style:margin-right={vibe_mode ? `${vibe_editor_width}px` : "0"}
 	>
-		{#if app_tree.root}
-			<MountComponents node={app_tree.root} />
-		{/if}
+		<MountComponents node={app_tree.root} />
 
 		{#if footer_links.length > 0}
 			<footer bind:clientHeight={footer_height}>

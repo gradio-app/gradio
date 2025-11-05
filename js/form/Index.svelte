@@ -1,15 +1,20 @@
 <script lang="ts">
-	export let visible: boolean | "hidden" = true;
-	export let scale: number | null = null;
-	export let min_width = 0;
+	import { Gradio } from "@gradio/utils";
+	// export let visible: boolean | "hidden" = true;
+	// export let scale: number | null = null;
+	// export let min_width = 0;
+
+	let props = $props();
+
+	const gradio = new Gradio(props);
 </script>
 
 <div
 	class="form"
-	class:hidden={visible === false}
-	class:hidden-css={visible === "hidden"}
-	style:flex-grow={scale}
-	style:min-width={`calc(min(${min_width}px, 100%))`}
+	class:hidden={gradio.shared.visible === false}
+	class:hidden-css={gradio.shared.visible === "hidden"}
+	style:flex-grow={gradio.shared.scale}
+	style:min-width={`calc(min(${gradio.shared.min_width}px, 100%))`}
 >
 	<slot />
 </div>

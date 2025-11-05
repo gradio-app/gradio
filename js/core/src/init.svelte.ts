@@ -20,6 +20,7 @@ import type {
 
 import { allowed_shared_props } from "@gradio/utils";
 import { Client } from "@gradio/client";
+import type { S } from "node_modules/@storybook/svelte/dist/types-b7d0039b";
 
 type client_return = Awaited<ReturnType<typeof Client.connect>>;
 
@@ -41,11 +42,6 @@ export class AppTree {
 	/** the root node of the processed layout tree */
 	root = $state<ProcessedComponentMeta>();
 
-	// /** a map of component IDs to their component payload for easy lookup */
-	// #component_map: Map<number, ComponentMeta> = new Map();
-	/** a map of component IDs to their processed component metadata for easy lookup */
-	#processed_component_map: Map<number, ProcessedComponentMeta> = new Map();
-
 	/** a set of all component IDs that are inputs to dependencies */
 	#input_ids: Set<number> = new Set();
 	/** a set of all component IDs that are outputs of dependencies */
@@ -58,6 +54,10 @@ export class AppTree {
 	#set_callbacks = new Map<number, set_data_type>();
 	component_ids: number[];
 
+	components_to_register: Set<number> = new Set();
+	ready: Promise<void>;
+	ready_resolve!: () => void;
+
 	constructor(
 		components: ComponentMeta[],
 		layout: LayoutNode,
@@ -65,6 +65,10 @@ export class AppTree {
 		config: AppConfig,
 		app: client_return
 	) {
+		this.ready = new Promise<void>((resolve) => {
+			this.ready_resolve = resolve;
+		});
+
 		this.#config = config;
 		this.#component_payload = components;
 		this.#layout_payload = layout;
@@ -74,6 +78,9 @@ export class AppTree {
 			new Map(),
 			true
 		);
+		for (const comp of components) {
+			this.components_to_register.add(comp.id);
+		}
 
 		this.client = app;
 
@@ -108,6 +115,10 @@ export class AppTree {
 	): void {
 		this.#set_callbacks.set(id, _set_data);
 		this.#get_callbacks.set(id, _get_data);
+		this.components_to_register.delete(id);
+		if (this.components_to_register.size === 0) {
+			this.ready_resolve();
+		}
 	}
 
 	/**
@@ -122,7 +133,7 @@ export class AppTree {
 	/** Processes the layout payload into a tree of components */
 	process() {}
 
-	async postprocess(tree: ProcessedComponentMeta) {
+	postprocess(tree: ProcessedComponentMeta) {
 		this.root = this.traverse(tree, [
 			(node) => handle_visibility(node, this.#config.root),
 			(node) => handle_empty_forms(node, this.#config.root),
@@ -147,10 +158,11 @@ export class AppTree {
 			traverse_fn: any
 		): ProcessedComponentMeta {
 			const result = visit(node);
-			if ("children" in node) {
+			if ("children" in node && node.children.length > 0) {
 				result.children =
 					node.children?.map((child) => traverse_fn(child, visit)) || [];
 			}
+
 			return result;
 		}
 
@@ -159,6 +171,7 @@ export class AppTree {
 			for (const v of visit) {
 				result = single_visit(result as T, v, this.traverse.bind(this));
 			}
+
 			return result;
 		} else {
 			return single_visit(node, visit, this.traverse.bind(this));
@@ -252,9 +265,6 @@ export class AppTree {
 			throw new Error("Rerender failed: root node not found in current tree");
 		}
 		n.children = subtree.children;
-		// console.log("matching root:", matching_root);
-		// matching_root!.children = subtree.children;
-		// this.root = this.root;
 	}
 
 	/*

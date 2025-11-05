@@ -156,8 +156,6 @@ export function create_components(
 			});
 		}
 
-		console.log(components[0].props);
-
 		_components = components;
 		inputs = new Set();
 		outputs = new Set();

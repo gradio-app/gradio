@@ -234,11 +234,9 @@ export class DependencyManager {
 				);
 
 				const data_payload = await this.gather_state(dep.inputs);
-				console.log("Gathered state for dependency", dep.id, data_payload);
 				const unset_args = await this.set_event_args(dep.id, dep.event_args);
 
 				const { success, failure, all } = dep.get_triggers();
-				console.log("Dependency triggers:", { success, failure, all });
 
 				try {
 					const dep_submission = await dep.run(
@@ -464,7 +462,6 @@ export class DependencyManager {
 	async gather_state(ids: number[]): Promise<(unknown | null)[]> {
 		return (await Promise.all(ids.map((id) => this.get_state_cb(id)))).map(
 			(state) => {
-				console.log("$STATE", state);
 				return state?.value ?? null;
 			}
 		);
