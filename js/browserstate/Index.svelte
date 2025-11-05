@@ -44,7 +44,7 @@
 		try {
 			const encrypted = encrypt(
 				JSON.stringify(gradio.props.value),
-				gradio.props.secret,
+				gradio.props.secret
 			);
 			localStorage.setItem(gradio.props.storage_key, encrypted);
 		} catch (e) {

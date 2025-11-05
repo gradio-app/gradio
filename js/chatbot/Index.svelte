@@ -20,7 +20,7 @@
 	const gradio = new Gradio<ChatbotEvents, ChatbotProps>(props);
 
 	let _value: NormalisedMessage[] | null = $derived(
-		normalise_messages(gradio.props.value as Message[], gradio.shared.root),
+		normalise_messages(gradio.props.value as Message[], gradio.shared.root)
 	);
 </script>
 
@@ -68,7 +68,7 @@
 			feedback_value={gradio.props.feedback_value}
 			show_share_button={(gradio.props.buttons ?? ["share"]).includes("share")}
 			show_copy_all_button={(gradio.props.buttons ?? ["copy_all"]).includes(
-				"copy_all",
+				"copy_all"
 			)}
 			value={_value}
 			latex_delimiters={gradio.props.latex_delimiters}
@@ -105,7 +105,7 @@
 					return;
 				//@ts-ignore
 				gradio.props.value[e.detail.index].content = [
-					{ text: e.detail.value, type: "text" },
+					{ text: e.detail.value, type: "text" }
 				];
 				gradio.dispatch("edit", e.detail);
 			}}

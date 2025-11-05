@@ -29,7 +29,7 @@
 				cameraAutoOrbit: { enabled: false },
 				onInitialized: (details: any) => {
 					viewerDetails = details;
-				},
+				}
 			}).then((promiseViewer: any) => {
 				viewer = promiseViewer;
 				mounted = true;
@@ -57,9 +57,9 @@
 					.loadModel(url, {
 						pluginOptions: {
 							obj: {
-								importVertexColors: true,
-							},
-						},
+								importVertexColors: true
+							}
+						}
 					})
 					.then(() => {
 						if (display_mode === "point_cloud") {
@@ -79,7 +79,7 @@
 	export function update_camera(
 		camera_position: [number | null, number | null, number | null],
 		zoom_speed: number,
-		pan_speed: number,
+		pan_speed: number
 	): void {
 		const camera = viewerDetails.camera;
 		if (camera_position[0] !== null) {
