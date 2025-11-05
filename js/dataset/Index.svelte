@@ -12,7 +12,6 @@
 
 	// Need to mark samples as state, otherwise get_component_meta constantly triggers
 	let samples = $derived(gradio.props.samples ?? []);
-	$inspect("Dataset props:", gradio.shared, gradio.props);
 </script>
 
 <Block

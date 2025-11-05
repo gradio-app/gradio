@@ -22,7 +22,6 @@ export async function load({
 	layout: unknown;
 	app: Client | null;
 }> {
-	console.log("SERVER");
 	let app: Client;
 	const api_url =
 		browser && !local_dev_mode ? new URL(".", location.href).href : server;
@@ -113,7 +112,6 @@ export async function load({
 
 	// const layouts = get(layout);
 	await setupi18n(app.config?.i18n_translations || undefined, accept_language);
-	console.log("AUTH REQUIRED:", app.config?.auth_required);
 	return {
 		Render: app.config?.auth_required ? Login : Blocks,
 		config: page_config,
