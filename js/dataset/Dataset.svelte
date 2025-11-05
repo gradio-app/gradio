@@ -119,6 +119,7 @@
 
 	$: get_component_meta(selected_samples);
 	$: console.log("Component meta:", component_meta, component_map);
+	$: console.log("Selected samples:", selected_samples);
 </script>
 
 {#if gallery}
@@ -143,29 +144,19 @@
 						/>
 					{:else if component_meta.length}
 						{#await component_meta[0][0].component then component}
-							<svelte:component
-								this={component}
-								{...component_props[0]}
-								value={sample_row[0]}
-								{samples_dir}
-								type="gallery"
-								selected={current_hover === i}
-								index={i}
-								{root}
-							/>
-						{:catch error}
-							<div>Error loading component: {error.message}</div>
+							{#key sample_row[0]}
+								<svelte:component
+									this={component.default}
+									{...component_props[0]}
+									value={sample_row[0]}
+									{samples_dir}
+									type="gallery"
+									selected={current_hover === i}
+									index={i}
+									{root}
+								/>
+							{/key}
 						{/await}
-						<svelte:component
-							this={component_meta[0][0].component}
-							{...component_props[0]}
-							value={sample_row[0]}
-							{samples_dir}
-							type="gallery"
-							selected={current_hover === i}
-							index={i}
-							{root}
-						/>
 					{/if}
 				</button>
 			{/if}
@@ -219,8 +210,6 @@
 											index={i}
 											{root}
 										/>
-									{:catch error}
-										<div>Error loading component: {error.message}</div>
 									{/await}
 								</td>
 							{/if}
