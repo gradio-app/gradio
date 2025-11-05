@@ -13,7 +13,7 @@
 		return {
 			visible: gradio.shared.visible,
 			main_page_name: gradio.props.main_page_name,
-			value: gradio.props.value,
+			value: gradio.props.value
 		};
 	});
 

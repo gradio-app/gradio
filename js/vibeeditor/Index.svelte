@@ -30,7 +30,7 @@
 		if (!history_elem) return;
 		history_elem.scrollTo({
 			top: history_elem.scrollHeight,
-			behavior: behavior,
+			behavior: behavior
 		});
 	};
 
@@ -65,13 +65,13 @@
 		const userMessageIndex = message_history.length;
 		message_history = [
 			...message_history,
-			{ text: textToSubmit, isBot: false },
+			{ text: textToSubmit, isBot: false }
 		];
 
 		const botMessageIndex = message_history.length;
 		message_history = [
 			...message_history,
-			{ text: "Working...", isBot: true, isPending: true },
+			{ text: "Working...", isBot: true, isPending: true }
 		];
 
 		await tick();
@@ -83,7 +83,7 @@
 		}
 
 		const post = app.post_data(`${root}/gradio_api/vibe-edit/`, {
-			prompt: userPrompt,
+			prompt: userPrompt
 		});
 		post
 			.then(async ([response, status_code]) => {
@@ -112,9 +112,9 @@
 						? {
 								text: responseData.reasoning ? responseData.reasoning : "Done.",
 								isBot: true,
-								isPending: false,
+								isPending: false
 							}
-						: msg,
+						: msg
 				);
 				await tick();
 				scroll_to_bottom();
@@ -123,7 +123,7 @@
 				message_history = message_history.map((msg, index) =>
 					index === botMessageIndex
 						? { text: "Error occurred.", isBot: true, isPending: false }
-						: msg,
+						: msg
 				);
 				await tick();
 				scroll_to_bottom();
@@ -136,7 +136,7 @@
 
 	const undoMessage = async (
 		hash: string,
-		messageIndex: number,
+		messageIndex: number
 	): Promise<void> => {
 		try {
 			await app.post_data(`${root}/gradio_api/undo-vibe-edit/`, { hash });
@@ -174,8 +174,8 @@
 		// Dispatch custom event to update the main content margin
 		window.dispatchEvent(
 			new CustomEvent("vibeEditorResize", {
-				detail: { width: editorWidth },
-			}),
+				detail: { width: editorWidth }
+			})
 		);
 	};
 
@@ -192,8 +192,8 @@
 			const response = await fetch(`${root}/gradio_api/vibe-code/`, {
 				method: "GET",
 				headers: {
-					"Content-Type": "application/json",
-				},
+					"Content-Type": "application/json"
+				}
 			});
 			if (response.ok) {
 				const data = await response.json();
@@ -209,7 +209,7 @@
 	const updateCode = async (): Promise<void> => {
 		try {
 			await app.post_data(`${root}/gradio_api/vibe-code/`, {
-				code: codeValue,
+				code: codeValue
 			});
 			code_updated = true;
 			setTimeout(() => {
@@ -232,7 +232,7 @@
 		const base_URL = "https://huggingface.co/new-space";
 		const params = new URLSearchParams({
 			name: "new-space",
-			sdk: "gradio",
+			sdk: "gradio"
 		});
 		const encoded_content = codeValue.trimStart();
 		params.append("files[0][path]", "app.py");

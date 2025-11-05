@@ -21,7 +21,7 @@
 				groups.set(key, {
 					type: msg.type,
 					messages: [],
-					expanded: true,
+					expanded: true
 				});
 			}
 			groups.get(key)!.messages.push(msg);

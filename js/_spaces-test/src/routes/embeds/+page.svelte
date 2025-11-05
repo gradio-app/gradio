@@ -20,9 +20,9 @@
 					iframe.setAttribute(iframe_resizer_attribute, "");
 					iframe.setAttribute("scrolling", "no");
 					iframe.style.overflow = "hidden";
-				},
+				}
 			},
-			iframe,
+			iframe
 		);
 
 		setTimeout(() => {
