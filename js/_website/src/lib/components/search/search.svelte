@@ -131,13 +131,12 @@
 <svelte:window on:keydown={handle_key_down} on:click={on_click} />
 
 <button class="search-button" bind:this={search_button_elem}>
-	<SearchIcon />
-	<span class="pl-1 pr-5">Search</span>
-	<div class="shortcut">
-		<div class="text-sm">
-			{meta_key}K
-		</div>
-	</div>
+	<span class="text-gray-700 dark:text-gray-300 text-sm">Search</span>
+	<span
+		class="shortcut text-xs opacity-70 text-gray-700 dark:text-gray-300 ml-2"
+	>
+		{meta_key}K
+	</span>
 </button>
 
 {#if open}
@@ -310,7 +309,13 @@
 	}
 
 	.search-button {
-		@apply flex flex-row rounded-full items-center cursor-pointer px-2 text-gray-400 border-gray-300 border text-lg outline-none font-sans;
+		@apply flex flex-row rounded-lg items-center cursor-pointer px-4 py-1.5 bg-transparent hover:bg-white/10 border text-sm outline-none font-sans transition-colors;
+		--tw-border-opacity: 1;
+		border-color: rgb(229 231 235 / var(--tw-border-opacity));
+	}
+
+	:global(.dark) .search-button {
+		border-color: rgb(64 64 68 / var(--tw-border-opacity));
 	}
 
 	:global(.res-content .mark) {
