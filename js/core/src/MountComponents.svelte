@@ -1,4 +1,9 @@
+<script module>
+	const then = performance.now();
+</script>
+
 <script lang="ts">
+	import { onMount } from "svelte";
 	import Self from "./MountComponents.svelte";
 	let { node } = $props();
 
