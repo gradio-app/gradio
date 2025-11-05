@@ -1,4 +1,6 @@
 ---
+"@gradio/paramviewer": minor
+"gradio": minor
 "website": minor
 ---
 
