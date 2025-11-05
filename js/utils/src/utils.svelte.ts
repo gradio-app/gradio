@@ -322,10 +322,6 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	shared_props: (keyof SharedProps)[] = allowed_shared_props;
 
 	constructor(props: { shared_props: SharedProps; props: U }) {
-		console.log("Gradio props:", {
-			props: props.props,
-			shared: props.shared_props
-		});
 		for (const key in props.shared_props) {
 			// @ts-ignore i'm not doing pointless typescript gymanstics
 			this.shared[key] = props.shared_props[key];
@@ -336,10 +332,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		}
 		// @ts-ignore same here
 		this.i18n = this.props.i18n;
-		console.log(
-			"load_component in Gradio constructor:",
-			this.shared.load_component
-		);
+
 		this.load_component = this.shared.load_component;
 
 		if (!is_browser) return;
@@ -361,7 +354,6 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		this.dispatcher = dispatcher;
 
 		$effect(() => {
-			console.log("effect running for id:", props.shared_props.id);
 			register(
 				props.shared_props.id,
 				this.set_data.bind(this),
@@ -378,10 +370,8 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	}
 
 	async get_data() {
-		console.log("get_data -- before", $state.snapshot(this.props));
-		console.log(this.shared.id);
 		await this.last_update;
-		console.log("get_data -- after", $state.snapshot(this.props));
+
 		return $state.snapshot(this.props);
 	}
 
@@ -391,10 +381,8 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	}
 
 	set_data(data: Partial<U & SharedProps>): Promise<void> {
-		console.log("set_data", data);
 		for (const key in data) {
 			if (this.shared_props.includes(key as keyof SharedProps)) {
-				console.log("finding:", key, " in shared_props");
 				const _key = key as keyof SharedProps;
 				// @ts-ignore i'm not doing pointless typescript gymanstics
 
@@ -404,7 +392,6 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 
 				// @ts-ignore same here
 			} else {
-				console.log("finding:", key, " in props");
 				// @ts-ignore same here
 				this.props[key] = data[key];
 			}
