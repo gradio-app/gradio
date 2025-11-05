@@ -418,7 +418,7 @@
 							role="listitem"
 							aria-label="File thumbnail"
 						>
-							<button class="thumbnail-item thumbnail-small">
+							<div class="thumbnail-item thumbnail-small">
 								{#if file.mime_type && file.mime_type.includes("image")}
 									<Image
 										src={file.url}
@@ -441,7 +441,7 @@
 								>
 									<Clear />
 								</button>
-							</button>
+							</div>
 						</span>
 					{/each}
 					{#if uploading}
