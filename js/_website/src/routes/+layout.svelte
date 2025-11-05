@@ -106,7 +106,7 @@
 		background-color: white;
 		color: rgb(23, 23, 23);
 	}
-	:global(body.dark) {
+	:global(.dark body) {
 		background-color: rgb(23, 23, 23); /* neutral-900 - true gray */
 		color: rgb(245, 245, 245); /* neutral-100 */
 	}

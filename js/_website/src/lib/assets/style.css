@@ -145,20 +145,20 @@
 /* editable docs */
 
 .obj h1 {
-	@apply text-3xl font-light py-4;
+	@apply text-3xl font-light py-4 text-gray-900 dark:text-gray-100;
 }
 .obj h2 {
-	@apply mb-2 text-lg;
+	@apply mb-2 text-lg text-gray-900 dark:text-gray-100;
 }
 .obj h3 {
-	@apply mt-8 text-xl text-orange-500 font-light;
+	@apply mt-8 text-xl text-orange-500 dark:text-orange-400 font-light;
 }
 .obj h4 {
-	@apply mt-8 text-xl text-orange-500 font-light;
+	@apply mt-8 text-xl text-orange-500 dark:text-orange-400 font-light;
 }
 
 .obj p {
-	@apply mb-2 text-lg;
+	@apply mb-2 text-lg text-gray-900 dark:text-gray-100;
 }
 
 /* playground */
@@ -303,6 +303,7 @@ li > ul {
 
 code {
 	font-size: 0.9em;
+	@apply text-gray-900 dark:text-gray-100;
 }
 
 pre > code {
@@ -337,12 +338,16 @@ h5 {
 
 strong {
 	font-weight: 600;
+	@apply text-gray-900 dark:text-gray-100;
 }
 
 .obj a {
 	color: var(--tw-prose-links);
 	text-decoration: underline;
 	font-weight: 500;
+}
+.dark .obj a {
+	@apply text-orange-400;
 }
 
 .codeblock > pre {
@@ -355,6 +360,9 @@ strong {
 .obj ol,
 .obj ul {
 	padding-inline-start: 40px;
+}
+.obj li {
+	@apply text-gray-900 dark:text-gray-100;
 }
 
 ol {

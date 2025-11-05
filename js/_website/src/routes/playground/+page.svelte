@@ -124,11 +124,11 @@
 <!-- Deprecated Playground Banner-->
 <div class="flex-row">
 	<div
-		class="relative isolate flex items-center gap-x-6 overflow-hidden bg-red-300 px-6 py-1 sm:px-3.5 sm:before:flex-1 mx-auto"
+		class="relative isolate flex items-center gap-x-6 overflow-hidden bg-red-300 dark:bg-red-800 px-6 py-1 sm:px-3.5 sm:before:flex-1 mx-auto"
 	>
 		<div class="flex flex-wrap items-center gap-x-4 gap-y-2 flex-grow">
 			<div class="flex flex-wrap items-center gap-x-2 gap-y-2 mx-auto">
-				<p class="text-md leading-6 text-gray-700 text-center mx-auto">
+				<p class="text-md leading-6 text-gray-700 dark:text-gray-200 text-center mx-auto">
 					<strong class="font-semibold"
 						>Gradio Playground will be <strong style="font-weight: 800"
 							>deprecated</strong
@@ -165,22 +165,22 @@
 		class="playground flex-col justify-between hidden md:flex"
 		style="height: calc(100vh - 91px)"
 	>
-		<div class="w-full border border-gray-200 shadow-xl h-full relative">
+		<div class="w-full border border-gray-200 dark:border-gray-700 shadow-xl h-full relative">
 			<div
-				class="w-[200px] rounded-tr-none rounded-bl-xl mb-0 p-0 pb-4 text-md block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip overflow-y-auto"
+				class="w-[200px] rounded-tr-none rounded-bl-xl mb-0 p-0 pb-4 text-md block rounded-t-xl bg-gradient-to-r from-white to-gray-50 dark:from-neutral-800 dark:to-neutral-900 overflow-x-clip overflow-y-auto"
 				style="word-break: normal; overflow-wrap: break-word; white-space:nowrap; height: 100%; width: {show_nav
 					? 200
 					: 37}px;"
 			>
 				<div class="flex justify-between align-middle h-8 border-b px-2">
 					{#if show_nav}
-						<h3 class="pl-2 py-1 my-auto text-sm font-medium text-[#27272a]">
+						<h3 class="pl-2 py-1 my-auto text-sm font-medium text-[#27272a] dark:text-gray-200">
 							Demos
 						</h3>
 					{/if}
 					<button
 						on:click={() => (show_nav = !show_nav)}
-						class="float-right text-gray-600 pl-1"
+						class="float-right text-gray-600 dark:text-gray-300 pl-1"
 						>{#if show_nav}&larr;{:else}&rarr;{/if}</button
 					>
 				</div>
@@ -189,8 +189,12 @@
 						<a
 							class:bg-orange-100={link.type == "GUIDE"}
 							class:border-orange-100={link.type == "GUIDE"}
+							class:dark:bg-orange-900={link.type == "GUIDE"}
+							class:dark:border-orange-800={link.type == "GUIDE"}
 							class:bg-green-100={link.type == "DOCS"}
 							class:border-green-100={link.type == "DOCS"}
+							class:dark:bg-green-900={link.type == "DOCS"}
+							class:dark:border-green-800={link.type == "DOCS"}
 							class="sug-block my-2"
 							href={link.url}
 							target="_blank"
@@ -200,7 +204,9 @@
 							<div class="flex items-center flex-row">
 								<p
 									class:text-orange-700={link.type == "GUIDE"}
+									class:dark:text-orange-300={link.type == "GUIDE"}
 									class:text-green-700={link.type == "DOCS"}
+									class:dark:text-green-300={link.type == "DOCS"}
 									class="text-xs font-semibold flex-grow"
 								>
 									{link.type}
@@ -219,7 +225,7 @@
 						<div in:slide out:slide>
 							<div class="my-1 mx-2 pb-2">
 								<div class="flex items-center flex-row px-2">
-									<p class="my-2 font-medium text-sm text-[#27272a] flex-grow">
+									<p class="my-2 font-medium text-sm text-[#27272a] dark:text-gray-200 flex-grow">
 										Related Demos
 									</p>
 									<p class="float-right text-xs font-semibold mx-1">✨</p>
@@ -230,13 +236,13 @@
 										class:current-playground-demo={current_selection ==
 											link.title}
 										class:shared-link={shared == link.title}
-										class="thin-link font-light !px-2 block text-sm text-[#27272a] break-words w-full text-left capitalize"
+										class="thin-link font-light !px-2 block text-sm text-[#27272a] dark:text-gray-200 break-words w-full text-left capitalize"
 										style="white-space: initial"
 										>{link.title.replaceAll("-", " ")}</button
 									>
 								{/each}
 							</div>
-							<div class="border-b border-gray-400 ml-4 mr-5"></div>
+							<div class="border-b border-gray-400 dark:border-gray-600 ml-4 mr-5"></div>
 						</div>
 					{/if}
 					<div>
@@ -248,12 +254,12 @@
 							class:!pl-1={edited_demos.includes("Blank")}
 							class:current-playground-demo={current_selection == "Blank"}
 							class:shared-link={shared == "Blank"}
-							class="thin-link font-light px-4 block my-2 text-sm text-[#27272a]"
+							class="thin-link font-light px-4 block my-2 text-sm text-[#27272a] dark:text-gray-200"
 							>New Demo</button
 						>
 					</div>
 					{#each data.demos_by_category as { category, demos } (category)}
-						<p class="px-4 my-2 font-medium text-sm text-[#27272a]">
+						<p class="px-4 my-2 font-medium text-sm text-[#27272a] dark:text-gray-200">
 							{category}
 						</p>
 						{#each demos as demo, i}
@@ -265,7 +271,7 @@
 								class:!pl-1={edited_demos.includes(demo.name)}
 								class:current-playground-demo={current_selection == demo.name}
 								class:shared-link={shared == demo.name}
-								class="thin-link font-light px-4 block text-sm text-[#27272a]"
+								class="thin-link font-light px-4 block text-sm text-[#27272a] dark:text-gray-200"
 								>{demo.name}</button
 							>
 						{/each}
@@ -287,13 +293,13 @@
 	<main class="playground flex-col justify-between flex md:hidden">
 		<div
 			class:hidden={!show_mobile_nav}
-			class="fixed inset-0 bg-black/20 backdrop-blur-md lg:hidden z-50"
+			class="fixed inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-md lg:hidden z-50"
 		></div>
 		<div
 			use:clickOutside
 			on:click_outside={() => (show_mobile_nav = false)}
 			class:hidden={!show_mobile_nav}
-			class="max-w-max min-w-[75%] navigation mobile-nav shadow overflow-y-auto fixed backdrop-blur-lg z-50 bg-white pr-6 pl-4 py-4 -ml-4 h-full inset-0 lg:inset-auto lg:shadow-none lg:ml-0 lg:z-0 lg:backdrop-blur-none lg:navigation lg:p-0 lg:pb-4 lg:h-screen lg:leading-relaxed lg:sticky lg:top-0 lg:text-md lg:block lg:rounded-t-xl lg:bg-gradient-to-r lg:from-white lg:to-gray-50 lg:overflow-x-clip lg:w-2/12 lg:min-w-0"
+			class="max-w-max min-w-[75%] navigation mobile-nav shadow overflow-y-auto fixed backdrop-blur-lg z-50 bg-white dark:bg-neutral-900 pr-6 pl-4 py-4 -ml-4 h-full inset-0 lg:inset-auto lg:shadow-none lg:ml-0 lg:z-0 lg:backdrop-blur-none lg:navigation lg:p-0 lg:pb-4 lg:h-screen lg:leading-relaxed lg:sticky lg:top-0 lg:text-md lg:block lg:rounded-t-xl lg:bg-gradient-to-r lg:from-white lg:to-gray-50 dark:lg:from-neutral-800 dark:lg:to-neutral-900 lg:overflow-x-clip lg:w-2/12 lg:min-w-0"
 			id="mobile-nav"
 		>
 			<button
@@ -376,7 +382,7 @@
 				</div>
 				<div
 					class:hidden={current_selection !== demo.name}
-					class="mobile-window w-[95%] mx-auto relative border rounded-xl border-gray-200 shadow md:hidden"
+					class="mobile-window w-[95%] mx-auto relative border rounded-xl border-gray-200 dark:border-gray-700 shadow md:hidden"
 				>
 					{#if !show_preview}
 						<Code
@@ -384,7 +390,7 @@
 							language="python"
 							lines={10}
 							readonly
-							dark_mode={false}
+							dark_mode={$theme === "dark"}
 						/>
 					{:else}
 						<gradio-app space={"gradio/" + demo.dir} />
@@ -395,7 +401,9 @@
 		<div class="mx-auto mt-4 flex flex-row items-center gap-4">
 			<span
 				class:text-gray-500={show_preview}
+				class:dark:text-gray-400={show_preview}
 				class:text-gray-600={!show_preview}
+				class:dark:text-gray-300={!show_preview}
 				class:font-semibold={!show_preview}
 				class="text-lg">Code</span
 			>
@@ -409,12 +417,14 @@
 			</label>
 			<span
 				class:text-gray-500={!show_preview}
+				class:dark:text-gray-400={!show_preview}
 				class:text-gray-600={show_preview}
+				class:dark:text-gray-300={show_preview}
 				class:font-semibold={show_preview}
 				class="text-lg">Preview</span
 			>
 		</div>
-		<p class="mt-4 mx-auto text-lg text-gray-600 text-center md:hidden">
+		<p class="mt-4 mx-auto text-lg text-gray-600 dark:text-gray-300 text-center md:hidden">
 			To edit code and see live changes, use Playground on a desktop.
 		</p>
 	</main>
@@ -451,6 +461,10 @@
 		transition: 0.4s;
 	}
 
+	:global(.dark) .slider {
+		background-color: #666;
+	}
+
 	.slider:before {
 		position: absolute;
 		content: "";
@@ -461,6 +475,10 @@
 		background-color: white;
 		-webkit-transition: 0.4s;
 		transition: 0.4s;
+	}
+
+	:global(.dark) .slider:before {
+		background-color: #f0f0f0;
 	}
 
 	input:checked + .slider {
@@ -515,6 +533,6 @@
 		@apply block m-2 p-2 border rounded-md hover:scale-[1.02] drop-shadow-md;
 	}
 	.dot {
-		@apply w-[0.4rem] h-[0.4rem] bg-gray-500 rounded-full mt-[6.5px] ml-[6px];
+		@apply w-[0.4rem] h-[0.4rem] bg-gray-500 dark:bg-gray-400 rounded-full mt-[6.5px] ml-[6px];
 	}
 </style>

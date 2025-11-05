@@ -9,7 +9,7 @@ https://prismjs.com/download.html#themes=prism&languages=python */
 code[class*="language-"],
 pre[class*="language-"] {
 	word-wrap: normal;
-	color: black;
+	color: #171717;
 	font-size: 1em;
 	line-height: 1.5;
 	font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
