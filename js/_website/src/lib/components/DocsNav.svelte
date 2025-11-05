@@ -12,13 +12,13 @@
 
 <div
 	class:hidden={!show_nav}
-	class="fixed inset-0 bg-black/20 backdrop-blur-md lg:hidden z-50"
+	class="fixed inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-md lg:hidden z-50"
 ></div>
 <div
 	use:clickOutside
 	on:click_outside={() => (show_nav = false)}
 	class:hidden={!show_nav}
-	class="max-w-max min-w-[75%] navigation mobile-nav shadow overflow-y-auto fixed backdrop-blur-lg z-50 bg-white dark:bg-neutral-900 pr-6 pl-4 py-4 -ml-4 h-full inset-0 lg:inset-auto lg:shadow-none lg:ml-0 lg:z-0 lg:backdrop-blur-none lg:navigation lg:p-0 lg:pb-4 lg:h-screen lg:leading-relaxed lg:sticky lg:top-0 lg:text-md lg:block lg:rounded-t-xl lg:bg-white dark:lg:bg-neutral-900 lg:overflow-x-clip lg:w-2/12 lg:min-w-0"
+	class="max-w-max min-w-[75%] navigation mobile-nav shadow overflow-y-auto fixed backdrop-blur-lg z-50 bg-white dark:bg-neutral-900 pr-6 pl-4 py-4 -ml-4 h-full inset-0 lg:inset-auto lg:shadow-none lg:ml-0 lg:z-0 lg:backdrop-blur-none lg:navigation lg:p-0 lg:pb-4 lg:h-screen lg:leading-relaxed lg:sticky lg:top-0 lg:text-md lg:block lg:rounded-t-xl lg:bg-white lg:dark:bg-neutral-900 lg:overflow-x-clip lg:w-2/12 lg:min-w-0"
 	id="mobile-nav"
 >
 	<button

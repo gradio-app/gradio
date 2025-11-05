@@ -14,7 +14,7 @@
 </script>
 
 <section
-	class="top-0 fixed -ml-4 flex items-center p-4 rounded-br-lg backdrop-blur-lg z-50 bg-gray-200/50 lg:hidden"
+	class="top-0 fixed -ml-4 flex items-center p-4 rounded-br-lg backdrop-blur-lg z-50 bg-white dark:bg-neutral-900 lg:hidden"
 	id="menu-bar"
 >
 	<button
@@ -38,7 +38,7 @@
 	use:clickOutside
 	on:click_outside={() => (show_nav = false)}
 	class:hidden={!show_nav}
-	class="min-w-[200px] navigation mobile-nav overflow-y-auto fixed backdrop-blur-lg z-50 bg-gray-200/50 pr-6 pl-4 py-4 -ml-4 h-full inset-0 w-5/6 lg:inset-auto lg:ml-0 lg:z-0 lg:backdrop-blur-none lg:navigation lg:p-0 lg:pb-4 lg:h-screen lg:leading-relaxed lg:sticky lg:top-0 lg:text-md lg:block rounded-t-xl lg:bg-gradient-to-r lg:from-white lg:to-gray-50 lg:overflow-x-clip lg:w-2/12"
+	class="min-w-[200px] navigation mobile-nav overflow-y-auto fixed backdrop-blur-lg z-50 bg-white dark:bg-neutral-900 pr-6 pl-4 py-4 -ml-4 h-full inset-0 w-5/6 lg:inset-auto lg:ml-0 lg:z-0 lg:backdrop-blur-none lg:navigation lg:p-0 lg:pb-4 lg:h-screen lg:leading-relaxed lg:sticky lg:top-0 lg:text-md lg:block rounded-t-xl lg:bg-white dark:lg:bg-neutral-900 lg:overflow-x-clip lg:w-2/12"
 	id="mobile-nav"
 >
 	<button
@@ -59,7 +59,7 @@
 	</button>
 
 	<div
-		class="w-full sticky top-0 bg-gradient-to-r from-white to-gray-50 z-10 hidden lg:block my-4 ml-4"
+		class="w-full sticky top-0 bg-white dark:bg-neutral-900 z-10 hidden lg:block my-4 ml-4"
 	>
 		{#if version_dropdown}
 			<DropDown docs_type="js"></DropDown>
@@ -93,7 +93,9 @@
 		>
 	</p>
 
-	<p class="font-semibold px-4 my-2 block">Components</p>
+	<p class="font-semibold px-4 my-2 block text-gray-900 dark:text-gray-100">
+		Components
+	</p>
 
 	{#each js_components as name}
 		<a
@@ -102,7 +104,9 @@
 			href="./{name}/">{name}</a
 		>
 	{/each}
-	<p class="font-semibold px-4 my-2 block">Client</p>
+	<p class="font-semibold px-4 my-2 block text-gray-900 dark:text-gray-100">
+		Client
+	</p>
 	<a
 		class:current-nav-link={current_nav_link == "js-client"}
 		class="px-4 block thin-link"
