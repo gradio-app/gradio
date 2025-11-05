@@ -78,7 +78,8 @@ export class Dependency {
 	async run(
 		client: client_return,
 		data_payload: unknown[],
-		event_data: unknown
+		event_data: unknown,
+		target_id: number | null | undefined
 	): Promise<
 		| { type: "data"; data: unknown[] }
 		| { type: "void"; data: null }
@@ -96,12 +97,7 @@ export class Dependency {
 		} else if (this.functions.backend) {
 			return {
 				type: "submit",
-				data: client.submit(
-					this.id,
-					_data_payload,
-					event_data,
-					this.original_trigger_id
-				)
+				data: client.submit(this.id, _data_payload, event_data, target_id)
 			};
 		} else if (this.functions.frontend) {
 			return { type: "data", data: _data_payload };
@@ -132,6 +128,7 @@ interface DispatchFunction {
 	type: "fn";
 	event_data: unknown;
 	fn_index?: number;
+	target_id?: number;
 }
 
 interface DispatchEvent {
@@ -230,7 +227,6 @@ export class DependencyManager {
 	 */
 	async dispatch(event_meta: DispatchFunction | DispatchEvent): Promise<void> {
 		let deps: Dependency[] | undefined;
-
 		if (event_meta.type === "fn") {
 			const dep = this.dependencies_by_fn.get(event_meta.fn_index!);
 			if (dep) deps = [dep];
@@ -256,10 +252,20 @@ export class DependencyManager {
 				const { success, failure, all } = dep.get_triggers();
 
 				try {
+					let target_id: number | null = null;
+					if (
+						event_meta.target_id !== undefined ||
+						event_meta.type === "event"
+					) {
+						target_id = event_meta.target_id || null;
+					} else {
+						target_id = dep.original_trigger_id;
+					}
 					const dep_submission = await dep.run(
 						this.client,
 						data_payload,
-						event_meta.event_data
+						event_meta.event_data,
+						target_id
 					);
 
 					if (dep_submission.type === "void") {
@@ -292,7 +298,8 @@ export class DependencyManager {
 										this.dispatch({
 											type: "fn",
 											fn_index: dep_id,
-											event_data: null
+											event_data: null,
+											target_id: target_id as number | undefined
 										});
 									});
 									break submit_loop;
@@ -356,7 +363,8 @@ export class DependencyManager {
 							this.dispatch({
 								type: "fn",
 								fn_index: dep_id,
-								event_data: null
+								event_data: null,
+								target_id: target_id as number | undefined
 							});
 						});
 						this.submissions.delete(dep.id);
@@ -370,7 +378,8 @@ export class DependencyManager {
 							this.dispatch({
 								type: "fn",
 								fn_index: dep_id,
-								event_data: null
+								event_data: null,
+								target_id: target_id as number | undefined
 							});
 						});
 						return;
