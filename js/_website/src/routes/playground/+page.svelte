@@ -128,7 +128,9 @@
 	>
 		<div class="flex flex-wrap items-center gap-x-4 gap-y-2 flex-grow">
 			<div class="flex flex-wrap items-center gap-x-2 gap-y-2 mx-auto">
-				<p class="text-md leading-6 text-gray-700 dark:text-gray-200 text-center mx-auto">
+				<p
+					class="text-md leading-6 text-gray-700 dark:text-gray-200 text-center mx-auto"
+				>
 					<strong class="font-semibold"
 						>Gradio Playground will be <strong style="font-weight: 800"
 							>deprecated</strong
@@ -165,7 +167,9 @@
 		class="playground flex-col justify-between hidden md:flex"
 		style="height: calc(100vh - 91px)"
 	>
-		<div class="w-full border border-gray-200 dark:border-gray-700 shadow-xl h-full relative">
+		<div
+			class="w-full border border-gray-200 dark:border-gray-700 shadow-xl h-full relative"
+		>
 			<div
 				class="w-[200px] rounded-tr-none rounded-bl-xl mb-0 p-0 pb-4 text-md block rounded-t-xl bg-gradient-to-r from-white to-gray-50 dark:from-neutral-800 dark:to-neutral-900 overflow-x-clip overflow-y-auto"
 				style="word-break: normal; overflow-wrap: break-word; white-space:nowrap; height: 100%; width: {show_nav
@@ -174,7 +178,9 @@
 			>
 				<div class="flex justify-between align-middle h-8 border-b px-2">
 					{#if show_nav}
-						<h3 class="pl-2 py-1 my-auto text-sm font-medium text-[#27272a] dark:text-gray-200">
+						<h3
+							class="pl-2 py-1 my-auto text-sm font-medium text-[#27272a] dark:text-gray-200"
+						>
 							Demos
 						</h3>
 					{/if}
@@ -225,7 +231,9 @@
 						<div in:slide out:slide>
 							<div class="my-1 mx-2 pb-2">
 								<div class="flex items-center flex-row px-2">
-									<p class="my-2 font-medium text-sm text-[#27272a] dark:text-gray-200 flex-grow">
+									<p
+										class="my-2 font-medium text-sm text-[#27272a] dark:text-gray-200 flex-grow"
+									>
 										Related Demos
 									</p>
 									<p class="float-right text-xs font-semibold mx-1">✨</p>
@@ -242,7 +250,9 @@
 									>
 								{/each}
 							</div>
-							<div class="border-b border-gray-400 dark:border-gray-600 ml-4 mr-5"></div>
+							<div
+								class="border-b border-gray-400 dark:border-gray-600 ml-4 mr-5"
+							></div>
 						</div>
 					{/if}
 					<div>
@@ -259,7 +269,9 @@
 						>
 					</div>
 					{#each data.demos_by_category as { category, demos } (category)}
-						<p class="px-4 my-2 font-medium text-sm text-[#27272a] dark:text-gray-200">
+						<p
+							class="px-4 my-2 font-medium text-sm text-[#27272a] dark:text-gray-200"
+						>
 							{category}
 						</p>
 						{#each demos as demo, i}
@@ -424,7 +436,9 @@
 				class="text-lg">Preview</span
 			>
 		</div>
-		<p class="mt-4 mx-auto text-lg text-gray-600 dark:text-gray-300 text-center md:hidden">
+		<p
+			class="mt-4 mx-auto text-lg text-gray-600 dark:text-gray-300 text-center md:hidden"
+		>
 			To edit code and see live changes, use Playground on a desktop.
 		</p>
 	</main>

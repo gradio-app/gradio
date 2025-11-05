@@ -93,7 +93,9 @@
 		>
 	</p>
 
-	<p class="font-semibold px-4 my-2 block text-gray-900 dark:text-gray-100">Components</p>
+	<p class="font-semibold px-4 my-2 block text-gray-900 dark:text-gray-100">
+		Components
+	</p>
 
 	{#each js_components as name}
 		<a
@@ -102,7 +104,9 @@
 			href="./{name}/">{name}</a
 		>
 	{/each}
-	<p class="font-semibold px-4 my-2 block text-gray-900 dark:text-gray-100">Client</p>
+	<p class="font-semibold px-4 my-2 block text-gray-900 dark:text-gray-100">
+		Client
+	</p>
 	<a
 		class:current-nav-link={current_nav_link == "js-client"}
 		class="px-4 block thin-link"

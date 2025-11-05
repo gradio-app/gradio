@@ -156,7 +156,9 @@
 					class="text-sm font-light py-1"
 					style="position: absolute; bottom: 5%; left: 5%"
 				>
-					<span class="bg-white dark:bg-neutral-800 p-1 rounded-md text-gray-700 dark:text-gray-200">
+					<span
+						class="bg-white dark:bg-neutral-800 p-1 rounded-md text-gray-700 dark:text-gray-200"
+					>
 						@{component.author}
 					</span>
 				</p>
@@ -165,7 +167,9 @@
 						class="text-sm font-light py-1"
 						style="position: absolute; bottom: 5%; right: 5%"
 					>
-						<span class="bg-white dark:bg-neutral-800 p-1 rounded-md text-gray-700 dark:text-gray-200">
+						<span
+							class="bg-white dark:bg-neutral-800 p-1 rounded-md text-gray-700 dark:text-gray-200"
+						>
 							{component.template}
 						</span>
 					</p>

@@ -116,7 +116,9 @@
 		</select> -->
 	</div>
 
-	<p class="font-semibold px-4 my-2 block text-gray-900 dark:text-gray-100">{title}</p>
+	<p class="font-semibold px-4 my-2 block text-gray-900 dark:text-gray-100">
+		{title}
+	</p>
 	{#each Object.entries(items) as [name, url] (name)}
 		<a
 			class:current-nav-link={current_nav_link == name}
