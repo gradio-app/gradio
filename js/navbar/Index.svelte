@@ -20,7 +20,7 @@
 	});
 
 	$: {
-		navbar_config.set(navbar_props);
+		navbar_config.set({ visible, main_page_name, value });
 	}
 </script>
 
