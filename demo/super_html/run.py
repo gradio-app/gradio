@@ -37,8 +37,8 @@ with gr.Blocks() as demo:
         name2 = gr.Textbox(label="Person")
         color = gr.ColorPicker(label="Text Color", value="#00ff00")
         bold = gr.Checkbox(label="Bold Text", value=True)
-        templated_html_css = gr.HTML("John", html_template="""
-                        <h1>Hello, ${value}!</h1>
+        templated_html_css = gr.HTML(["J", "o", "h", "n"], html_template="""
+                        <h1>Hello, ${value.join('')}!</h1>
                         <ul>
                           {{#each value}}
                             <li>{{this}}</li>
@@ -54,7 +54,7 @@ with gr.Blocks() as demo:
         btn = gr.Button("Update HTML")
         btn_blue = gr.Button("Make HTML Blue")
     def update_templated_html_css(name, color, bold):
-        return gr.HTML(value=name, color=color, bold=bold)
+        return gr.HTML(value=list(name), color=color, bold=bold)
     btn.click(update_templated_html_css, inputs=[name2, color, bold], outputs=templated_html_css)
     btn_blue.click(lambda: gr.HTML(color="blue"), outputs=templated_html_css)
 
