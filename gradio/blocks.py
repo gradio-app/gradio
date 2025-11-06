@@ -270,9 +270,11 @@ class Block:
         """
         return True
 
-    def get_config(self):
+    def get_config(self, cls: type[Block] | None = None) -> dict[str, Any]:
         config = {}
-        signature = inspect.signature(self.__class__.__init__)
+        if cls is None:
+            cls = self.__class__
+        signature = inspect.signature(cls.__init__)
         for parameter in signature.parameters.values():
             if hasattr(self, parameter.name):
                 value = getattr(self, parameter.name)
@@ -536,7 +538,14 @@ def postprocess_update_dict(
         postprocess: Whether to postprocess the "value" key of the update dictionary.
     """
     value = update_dict.pop("value", components._Keywords.NO_VALUE)
+
+    props = None
+    if hasattr(block, "props"):
+        props = {k: v for k, v in update_dict.items() if not hasattr(block, k)}
     update_dict = {k: getattr(block, k) for k in update_dict if hasattr(block, k)}
+    if props:
+        update_dict["props"] = props
+
     if value is not components._Keywords.NO_VALUE:
         if postprocess:
             update_dict["value"] = block.postprocess(value)

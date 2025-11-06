@@ -178,6 +178,11 @@ class EventData:
         self.target = target
         self._data = _data
 
+    def __getattr__(self, name):
+        if name in self._data:
+            return self._data[name]
+        raise AttributeError(f"'EventData' object has no attribute '{name}'")
+
 
 @document()
 class SelectData(EventData):
@@ -1244,3 +1249,10 @@ class Events:
         "copy",
         doc="This listener is triggered when the user copies content from the {{ component }}. Uses event data gradio.CopyData to carry information about the copied content. See EventData documentation on how to use this event data",
     )
+
+
+all_events = [
+    event_listener
+    for _, event_listener in Events.__dict__.items()
+    if isinstance(event_listener, EventListener)
+]
