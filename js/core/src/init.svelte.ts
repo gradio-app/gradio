@@ -271,13 +271,14 @@ export class AppTree {
 	 * */
 	async update_state(
 		id: number,
-		new_state: Partial<SharedProps> & Record<string, unknown>
+		new_state: Partial<SharedProps> & Record<string, unknown>,
+		check_visibility: boolean = true
 	) {
 		const _set_data = this.#set_callbacks.get(id);
 		if (!_set_data) return;
 
 		await _set_data(new_state);
-
+		if (!check_visibility) return;
 		this.root = this.traverse(this.root!, (n) =>
 			handle_visibility(n, this.#config.root)
 		);
