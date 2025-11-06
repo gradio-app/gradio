@@ -51,7 +51,7 @@ def generate(prompt, request: gr.Request):
 with gr.Blocks() as demo:
     image = gr.Image()
     prompt = gr.Textbox(max_lines=1)
-    prompt.submit(text_to_image, [prompt], [image])
+    prompt.submit(generate, [prompt], [image])
 
 demo.launch()
 ```
