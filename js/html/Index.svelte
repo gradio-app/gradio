@@ -12,10 +12,21 @@
 	export let elem_classes: string[] = [];
 	export let visible: boolean | "hidden" = true;
 	export let value = "";
+	export let props: Record<string, any> = {};
+	export let apply_default_css = true;
+
+	export let html_template = "${value}";
+	export let css_template = "";
+	export let js_on_load: string | null = null;
+
+	let _props: Record<string, any> = { value, label, visible, ...props };
+	$: _props = { ..._props, ...props, value, label, visible };
+
 	export let loading_status: LoadingStatus;
 	export let gradio: Gradio<{
 		change: never;
 		click: never;
+		submit: never;
 		clear_status: LoadingStatus;
 	}>;
 	export let show_label = false;
@@ -24,9 +35,22 @@
 	export let container = false;
 	export let padding = true;
 	export let autoscroll = false;
+
+	let old_value = value;
+	$: if (JSON.stringify(old_value) !== JSON.stringify(value)) {
+		old_value = value;
+		gradio.dispatch("change");
+	}
 </script>
 
-<Block {visible} {elem_id} {elem_classes} {container} padding={false}>
+<Block
+	{visible}
+	{elem_id}
+	{elem_classes}
+	{container}
+	padding={true}
+	overflow_behavior="visible"
+>
 	{#if show_label}
 		<BlockLabel Icon={CodeIcon} {show_label} {label} float={false} />
 	{/if}
@@ -48,12 +72,26 @@
 		style:max-height={max_height ? css_units(max_height) : undefined}
 	>
 		<HTML
-			{value}
+			props={_props}
+			{html_template}
+			{css_template}
+			{js_on_load}
 			{elem_classes}
 			{visible}
 			{autoscroll}
-			on:change={() => gradio.dispatch("change")}
-			on:click={() => gradio.dispatch("click")}
+			{apply_default_css}
+			on:event={(e) => {
+				gradio.dispatch(e.detail.type, e.detail.data);
+			}}
+			on:update_value={(e) => {
+				if (e.detail.property === "value") {
+					value = e.detail.data;
+				} else if (e.detail.property === "label") {
+					label = e.detail.data;
+				} else if (e.detail.property === "visible") {
+					visible = e.detail.data;
+				}
+			}}
 		/>
 	</div>
 </Block>
