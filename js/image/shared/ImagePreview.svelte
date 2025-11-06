@@ -80,7 +80,11 @@
 		</IconButtonWrapper>
 		<button on:click={handle_click}>
 			<div class:selectable class="image-frame">
-				<Image src={value.url} alt="" loading="lazy" on:load />
+				<Image
+					src={value.url}
+					restProps={{ loading: "lazy", alt: "cute dog" }}
+					on:load
+				/>
 			</div>
 		</button>
 	</div>
