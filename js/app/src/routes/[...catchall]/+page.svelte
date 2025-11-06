@@ -425,6 +425,7 @@
 			{version}
 			search_params={$page.url.searchParams}
 			initial_layout={data.layout}
+			on_ready={() => null}
 		/>
 	{/if}
 </Embed>

@@ -357,8 +357,6 @@ export class DependencyManager {
 								this.handle_log(result);
 							}
 						}
-
-						unset_args();
 						all.forEach((dep_id) => {
 							this.dispatch({
 								type: "fn",
@@ -367,21 +365,13 @@ export class DependencyManager {
 								target_id: target_id as number | undefined
 							});
 						});
+						unset_args();
 						this.submissions.delete(dep.id);
 
 						// if (this.queue.has(dep.id)) {
 						// 	this.queue.delete(dep.id);
 						// 	this.dispatch(event_meta);
 						// }
-
-						all.forEach((dep_id) => {
-							this.dispatch({
-								type: "fn",
-								fn_index: dep_id,
-								event_data: null,
-								target_id: target_id as number | undefined
-							});
-						});
 						return;
 					}
 				} catch (error) {
@@ -400,14 +390,6 @@ export class DependencyManager {
 						});
 					});
 				}
-
-				all.forEach((dep_id) => {
-					this.dispatch({
-						type: "fn",
-						fn_index: dep_id,
-						event_data: null
-					});
-				});
 			}
 		}
 		return;
