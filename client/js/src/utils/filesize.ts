@@ -32,7 +32,6 @@ export function filesize(bytes: number, fixed = 1, spec = "jedec"): string {
 	bytes = Math.abs(bytes);
 	const { radix, unit } = SPECS[spec];
 	let loop = 0;
-	// calculate
 	while (bytes >= radix) {
 		bytes /= radix;
 		++loop;
