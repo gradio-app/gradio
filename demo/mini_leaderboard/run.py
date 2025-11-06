@@ -235,4 +235,3 @@ with demo:
 
 if __name__ == "__main__":
     demo.queue(default_concurrency_limit=40).launch(css=str(abs_path / "assets/custom_css.css"))
-")
