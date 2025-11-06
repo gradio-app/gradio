@@ -39,7 +39,7 @@
 		"yootils": "^0.3.1"
 	},
 	"optionalDependencies": {
-		"svelte": "^5.39.10"
+		"svelte": "^5.43.4"
 	},
 	"exports": {
 		".": {
