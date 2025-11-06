@@ -17,13 +17,13 @@
 		update_value: { data: any; property: "value" | "label" | "visible" };
 	}>();
 
-	const trigger = (event_type: "click" | "submit", event_data: any = {}) => {
+	const trigger = (event_type: "click" | "submit", event_data: any = {}): void => {
 		dispatch("event", { type: event_type, data: event_data });
 	};
 
 	let element: HTMLDivElement;
 	let scrollable_parent: HTMLElement | null = null;
-	let random_id: string = `html-${Math.random().toString(36).substring(2, 11)}`;
+	let random_id = `html-${Math.random().toString(36).substring(2, 11)}`;
 	let style_element: HTMLStyleElement | null = null;
 	let reactiveProps: Record<string, any> = {};
 	let currentHtml = "";
@@ -141,6 +141,7 @@
 		}
 	}
 
+	// eslint-disable-next-line complexity
 	function updateNode(oldNode: Node, newNode: Node): void {
 		if (
 			oldNode.nodeType === Node.TEXT_NODE &&
@@ -305,7 +306,6 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
 <div
 	bind:this={element}
 	id={random_id}

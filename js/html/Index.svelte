@@ -13,7 +13,7 @@
 	export let visible: boolean | "hidden" = true;
 	export let value = "";
 	export let props: Record<string, any> = {};
-	export let apply_default_css: boolean = true;
+	export let apply_default_css = true;
 
 	export let html_template = "${value}";
 	export let css_template = "";
