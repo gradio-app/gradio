@@ -3,8 +3,6 @@ import json
 import os
 import re
 import requests
-import base64
-import urllib.parse
 
 
 
@@ -102,21 +100,9 @@ def add_guides():
 add_guides()
 
 
-def generate_playground_link(demo_name):
-    playground_url = "https://gradio.app/playground?demo=Blank"
-    with open(os.path.join(DEMOS_DIR, demo_name, "run.py")) as f:
-        demo_code = f.read()
-        encoded_code = base64.b64encode(demo_code.encode('utf-8')).decode('utf-8')
-        encoded_code_url = urllib.parse.quote(encoded_code, safe='')
-        playground_url += "&code=" + encoded_code_url
-    if "requirements.txt" in os.listdir(os.path.join(DEMOS_DIR, demo_name)):
-        with open(os.path.join(DEMOS_DIR, demo_name, "requirements.txt")) as f:
-            requirements = f.read()
-            if requirements:
-                encoded_reqs = base64.b64encode(requirements.encode('utf-8')).decode('utf-8')
-                encoded_reqs_url = urllib.parse.quote(encoded_reqs, safe='')
-                playground_url += "&reqs=" + encoded_reqs_url
-    return f"[demo/{demo_name}]({playground_url})"
+def generate_demo_link(demo_name):
+    github_url = f"https://github.com/gradio-app/gradio/tree/main/demo/{demo_name}"
+    return f"[demo/{demo_name}]({github_url})"
 
 
 def escape_parameters(parameters):
@@ -127,7 +113,7 @@ def escape_parameters(parameters):
         if param["doc"] and "$demo/" in param["doc"]:
             param["doc"] = re.sub(
                     r"\$demo/(\w+)",
-                    lambda m: generate_playground_link(m.group(1)),
+                    lambda m: generate_demo_link(m.group(1)),
                     param["doc"],
                 )
         new_parameters.append(param)

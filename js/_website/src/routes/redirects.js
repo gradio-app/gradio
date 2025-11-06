@@ -8,7 +8,6 @@ export const redirects = {
 	"/introduction_to_blocks": "/guides/blocks-and-event-listeners",
 	"/getting_started": "/guides/quickstart",
 	"/guides/building-with-blocks": "/guides/blocks-and-event-listeners",
-	"/demos": "/playground",
 	"/docs/client": "/docs/python-client/client",
 	"/docs/blocks": "/docs/gradio/blocks",
 	"/docs/audio": "/docs/gradio/audio",
