@@ -30,7 +30,7 @@ Gradio Client is a JavaScript library that allows you to interact programmatical
 Example: a background remover powered by ai.<br> (orginal -> background removed)
 
 the code below is refers the gradio app we build for infrence at 
-[app_template](js_template.py) 
+[app_template](https://github.com/W-Samik/Gradio-JS-Client-Vercel_Template-/blob/main/js_template.py) 
 
 check out resources to get a better grasp of how gradio works.  [Gradio JS Client on NPM](https://www.npmjs.com/package/@gradio/client) , [Gradio Docs](https://gradio.app/docs/)
 
@@ -132,7 +132,7 @@ export async function connectClient() {
 }
 ```
 
-- Stemp 3: Making a function for inference
+- Step 3: Making a function for inference
 
 ```js
 export async function removeBackground(file) {
@@ -173,9 +173,9 @@ node <your_file.js>
 
 # 5. Integrating Gradio Client in React website
 
-make a github repo for the react website project or clone [template](https://github.com/W-Samik/background_remover) or download the [vercel_template.zip](vercel_template.zip) from gradio github repository.
+make a github repo for the react website project or clone [template](https://github.com/W-Samik/background_remover) or download the [vercel_template.zip](https://github.com/W-Samik/Gradio-JS-Client-Vercel_Template-/blob/main/vercel_template.zip) from gradio github repository.
 
-we will do the inference using the [infrence.js Script](#making-inference-script) as follows in our template.
+we will do the inference using the [infrence.js Script](#4-making-inference-script) as follows in our template.
 
 
 ```jsx
@@ -194,21 +194,9 @@ we will be using vercel to host our site
 - Step 3: **Import** the template repository
 - Step 4: build website complete
 
-you can use template webstie given on [gradio repository](vercel_template.zip) or fork the template from my [presonal repository](https://github.com/W-Samik/background_remover)
+you can use template webstie given on my [presonal repository](https://github.com/W-Samik/background_remover)
 
-# Hosted Template Website
-
-<i>**HERO PAGE**</i>
-
-![hero page](assets/hero.png)
-
-<i>**UPLOAD**</i>
-
-![Upload](assets/upload.png)
-
-<i>**RESULT**</i>
-
-![result](assets/result.png)
+# Conclusion
 
 <i>we have achived a website that is easily integrated with the power of gradio js client to produce full functional production websites. </i>
 
@@ -230,6 +218,14 @@ OR
 ```cli
 git clone https://github.com/W-Samik/background_remover.git
 ```
+<br>
+<div style="text-align: center;">
+!To take a look at the finished template!
+</div>
+<br>
+<div style="text-align: center;">
+  <a href="https://background-remover-kappa-nine.vercel.app/">Visit</a>
+</div>
 
 
 
