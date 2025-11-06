@@ -17,7 +17,10 @@
 		update_value: { data: any; property: "value" | "label" | "visible" };
 	}>();
 
-	const trigger = (event_type: "click" | "submit", event_data: any = {}): void => {
+	const trigger = (
+		event_type: "click" | "submit",
+		event_data: any = {}
+	): void => {
 		dispatch("event", { type: event_type, data: event_data });
 	};
 
