@@ -1982,6 +1982,7 @@ h1 { font-size: 20px; }
 .class { margin: 10px; }
         """
 
+    assert instance.css is not None
     assert instance.css.strip() == expected_css.strip()
 
 
