@@ -248,7 +248,7 @@
 			<!-- svelte-ignore a11y-click-events-have-key-events-->
 			<!-- svelte-ignore a11y-no-static-element-interactions-->
 			<div class:selectable class="image-frame" on:click={handle_click}>
-				<Image src={value.url} alt={value.alt_text} />
+				<Image src={value.url} restProps={{ alt: value.alt_text }} />
 			</div>
 		{/if}
 	</div>

@@ -4,13 +4,13 @@
 	interface Props extends HTMLImgAttributes {
 		"data-testid"?: string;
 	}
-	type $$Props = Props;
 
-	export let src: HTMLImgAttributes["src"] = undefined;
+	let { src, restProps }: { src: string; restProps: HTMLImgAttributes } =
+		$props();
 </script>
 
 <!-- svelte-ignore a11y-missing-attribute -->
-<img {src} {...$$restProps} on:load />
+<img {src} {...restProps} on:load />
 
 <style>
 	img {
