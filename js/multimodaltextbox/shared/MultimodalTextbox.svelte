@@ -422,10 +422,12 @@
 								{#if file.mime_type && file.mime_type.includes("image")}
 									<Image
 										src={file.url}
-										title={null}
-										alt=""
-										loading="lazy"
-										class={"thumbnail-image"}
+										restProps={{
+											title: null,
+											alt: "",
+											loading: "lazy",
+											class: "thumbnail-image"
+										}}
 									/>
 								{:else if file.mime_type && file.mime_type.includes("audio")}
 									<Music />
