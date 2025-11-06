@@ -25,9 +25,6 @@
 	"msw": {
 		"workerDirectory": "public"
 	},
-	"peerDependencies": {
-		"svelte": "^5.39.6"
-	},
 	"main_changeset": true,
 	"repository": {
 		"type": "git",
