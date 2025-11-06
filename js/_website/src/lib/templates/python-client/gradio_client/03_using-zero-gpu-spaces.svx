@@ -46,7 +46,7 @@ def text_to_image(prompt, request: gr.Request):
     return img
 
 def generate(prompt, request: gr.Request):
-    return text_to_image(prompt, request: gr.Request)
+    return text_to_image(prompt, request)
 
 with gr.Blocks() as demo:
     image = gr.Image()
