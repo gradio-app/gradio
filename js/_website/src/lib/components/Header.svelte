@@ -5,18 +5,23 @@
 	import { gradio_logo, gradio_logo_dark } from "../assets";
 	import Search from "./search";
 	import ThemeToggle from "./ThemeToggle.svelte";
+	import DownloadLogoMenu from "./DownloadLogoMenu.svelte";
 	import { theme } from "$lib/stores/theme";
 
 	let click_nav = false;
 	let show_help_menu = false;
 	let show_nav = false;
 	let is_scrolled = false;
+	let show_download_menu = false;
+	let menu_x = 0;
+	let menu_y = 0;
 	$: show_nav = click_nav || $store?.lg;
 	$: current_logo = $theme === "dark" ? gradio_logo_dark : gradio_logo;
 
 	onNavigate(() => {
 		click_nav = false;
 		show_help_menu = false;
+		show_download_menu = false;
 	});
 
 	function handle_click_outside(event: MouseEvent) {
@@ -24,10 +29,20 @@
 		if (show_help_menu && !target.closest(".help-menu-container")) {
 			show_help_menu = false;
 		}
+		if (show_download_menu && !target.closest(".download-menu")) {
+			show_download_menu = false;
+		}
 	}
 
 	function handle_scroll() {
 		is_scrolled = window.scrollY > 50;
+	}
+
+	function handle_logo_contextmenu(event: MouseEvent) {
+		event.preventDefault();
+		menu_x = event.clientX;
+		menu_y = event.clientY;
+		show_download_menu = true;
 	}
 </script>
 
@@ -39,7 +54,7 @@
 		? 'backdrop-blur-sm bg-gray-50/80 dark:bg-neutral-800/80'
 		: ''}"
 >
-	<a href="/" class="lg:flex-shrink-0">
+	<a href="/" class="lg:flex-shrink-0" on:contextmenu={handle_logo_contextmenu}>
 		<img src={current_logo} alt="Gradio logo" class="h-10" />
 	</a>
 	{#if !show_nav}
@@ -146,4 +161,8 @@
 		<Search />
 		<ThemeToggle />
 	</div>
+</div>
+
+<div class="download-menu">
+	<DownloadLogoMenu bind:show={show_download_menu} x={menu_x} y={menu_y} />
 </div>
