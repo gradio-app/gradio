@@ -38,7 +38,7 @@
 	let uploading = $state(false);
 	let dragging = $state(false);
 	let active_source = $derived.by(() =>
-		gradio.props.sources ? gradio.props.sources[0] : null,
+		gradio.props.sources ? gradio.props.sources[0] : null
 	);
 
 	let upload_component: ImageUploader;

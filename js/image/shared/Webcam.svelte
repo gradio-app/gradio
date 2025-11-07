@@ -5,7 +5,7 @@
 		Circle,
 		Square,
 		DropdownArrow,
-		Spinner,
+		Spinner
 	} from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import { StreamingBar } from "@gradio/statustracker";
@@ -15,7 +15,7 @@
 	import {
 		get_devices,
 		get_video_stream,
-		set_available_devices,
+		set_available_devices
 	} from "./stream_utils";
 	import type { Base64File } from "./types";
 
@@ -67,12 +67,12 @@
 			include_audio,
 			video_source,
 			webcam_constraints,
-			device_id,
+			device_id
 		).then(async (local_stream) => {
 			stream = local_stream;
 			selected_device =
 				available_video_devices.find(
-					(device) => device.deviceId === device_id,
+					(device) => device.deviceId === device_id
 				) || null;
 			options_open = false;
 		});
@@ -127,7 +127,7 @@
 				0,
 				0,
 				video_source.videoWidth,
-				video_source.videoHeight,
+				video_source.videoHeight
 			);
 
 			if (mirror_webcam) {
@@ -149,7 +149,7 @@
 					dispatch(streaming ? "stream" : "capture", blob);
 				},
 				`image/${streaming ? "jpeg" : "png"}`,
-				0.8,
+				0.8
 			);
 		}
 	}
@@ -169,7 +169,7 @@
 				if (e.target) {
 					let _video_blob = new File(
 						[video_blob],
-						"sample." + mimeType.substring(6),
+						"sample." + mimeType.substring(6)
 					);
 					const val = await prepare_files([_video_blob]);
 					let val_ = (
@@ -195,7 +195,7 @@
 				return;
 			}
 			media_recorder = new MediaRecorder(stream, {
-				mimeType: mimeType,
+				mimeType: mimeType
 			});
 			media_recorder.addEventListener("dataavailable", function (e) {
 				recorded_blobs.push(e.data);
@@ -208,7 +208,7 @@
 	let webcam_accessed = false;
 
 	function record_video_or_photo({
-		destroy,
+		destroy
 	}: { destroy?: boolean } = {}): void {
 		if (mode === "image" && streaming) {
 			recording = !recording;
@@ -245,7 +245,7 @@
 		return {
 			destroy() {
 				document.removeEventListener("click", handle_click, true);
-			},
+			}
 		};
 	}
 

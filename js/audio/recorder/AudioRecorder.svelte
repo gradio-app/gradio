@@ -15,11 +15,11 @@
 	export let i18n: I18nFormatter;
 	export let dispatch_blob: (
 		blobs: Uint8Array[] | Blob[],
-		event: "stream" | "change" | "stop_recording",
+		event: "stream" | "change" | "stop_recording"
 	) => Promise<void> | undefined;
 	export let waveform_settings: Record<string, any>;
 	export let waveform_options: WaveformOptions = {
-		show_recording_waveform: true,
+		show_recording_waveform: true
 	};
 	export let handle_reset_value: () => void;
 	export let editable = true;
@@ -80,7 +80,7 @@
 		try {
 			const array_buffer = await blob.arrayBuffer();
 			const context = new AudioContext({
-				sampleRate: waveform_settings.sampleRate,
+				sampleRate: waveform_settings.sampleRate
 			});
 			const audio_buffer = await context.decodeAudioData(array_buffer);
 
@@ -106,7 +106,7 @@
 	$: recordingWaveform?.on(
 		"timeupdate",
 		(currentTime: any) =>
-			timeRef && (timeRef.textContent = format_time(currentTime)),
+			timeRef && (timeRef.textContent = format_time(currentTime))
 	);
 
 	$: recordingWaveform?.on("pause", () => {
@@ -133,7 +133,7 @@
 		micWaveform = WaveSurfer.create({
 			...waveform_settings,
 			normalize: false,
-			container: microphoneContainer,
+			container: microphoneContainer
 		});
 
 		record = micWaveform.registerPlugin(RecordPlugin.create());
@@ -165,13 +165,13 @@
 		recordingWaveform = WaveSurfer.create({
 			container: recording,
 			url: recordedAudio,
-			...waveform_settings,
+			...waveform_settings
 		});
 	};
 
 	const handle_trim_audio = async (
 		start: number,
-		end: number,
+		end: number
 	): Promise<void> => {
 		mode = "edit";
 		const decodedData = recordingWaveform.getDecodedData();
@@ -182,7 +182,7 @@
 					await dispatch_blob([trimmedAudio], "stop_recording");
 					recordingWaveform.destroy();
 					create_recording_waveform();
-				},
+				}
 			);
 		dispatch("edit");
 	};
