@@ -199,9 +199,11 @@ class TestBlocksMethods:
             }
         """
         css = css * 5  # simulate a long css string
-        block = gr.Blocks(css=css)
+        block = gr.Blocks()
+        block.launch(css=css)
 
         assert block.css == css
+        block.close()
 
     @pytest.mark.asyncio
     async def test_restart_after_close(self, connect):
@@ -379,8 +381,10 @@ class TestBlocksMethods:
         with pytest.warns(
             UserWarning, match="Cannot load freddyaboulton/this-theme-does-not-exist"
         ):
-            with gr.Blocks(theme="freddyaboulton/this-theme-does-not-exist") as demo:
-                assert demo.theme.to_dict() == gr.themes.Default().to_dict()
+            demo = gr.Blocks()
+            demo.launch(theme="freddyaboulton/this-theme-does-not-exist")
+            assert demo.theme.to_dict() == gr.themes.Default().to_dict()
+            demo.close()
 
     def test_exit_called_at_launch(self):
         with gr.Blocks() as demo:
@@ -1975,15 +1979,16 @@ def mock_css_files():
 
 def test_css_and_css_paths_parameters(mock_css_files):
     css_paths = ["file1.css", "file2.css"]
-    instance = gr.Blocks(css="body { color: red; }", css_paths=css_paths)
+    instance = gr.Blocks()
     expected_css = """
 body { color: red; }
 h1 { font-size: 20px; }
 .class { margin: 10px; }
         """
-
+    instance.launch(css="body { color: red; }", css_paths=css_paths)
     assert instance.css is not None
     assert instance.css.strip() == expected_css.strip()
+    instance.close()
 
 
 def test_navbar_config():
