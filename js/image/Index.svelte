@@ -69,6 +69,12 @@
 	let old_value = $state(gradio.props.value);
 
 	$effect(() => {
+		console.log(
+			"IMAGE VALUE CHANGE CHECK",
+			old_value,
+			gradio.props.value,
+			gradio.props.streaming
+		);
 		if (old_value != gradio.props.value) {
 			old_value = gradio.props.value;
 			gradio.dispatch("change");
@@ -76,8 +82,6 @@
 	});
 
 	let status = $derived(gradio?.shared?.loading_status.stream_state);
-
-	$inspect("STATUS: ", status);
 </script>
 
 {#if !gradio.shared.interactive}

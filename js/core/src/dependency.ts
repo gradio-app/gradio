@@ -229,15 +229,25 @@ export class DependencyManager {
 			const dependency = this.dependencies_by_fn.get(dep_id);
 			if (dependency) {
 				for (const output_id of dependency.outputs) {
-					await this.update_state_cb(output_id, {
-						loading_status: { ...dep, type: "output" }
-					});
+					await this.update_state_cb(
+						output_id,
+						{
+							loading_status: { ...dep, type: "output" }
+						},
+						false
+					);
 				}
 
 				for (const input_id of dependency.inputs) {
-					await this.update_state_cb(input_id, {
-						loading_status: { ...dep, type: "input" }
-					});
+					if (dependency.connection_type === "stream") {
+						await this.update_state_cb(
+							input_id,
+							{
+								loading_status: { ...dep, type: "input" }
+							},
+							false
+						);
+					}
 				}
 			}
 		}
@@ -365,7 +375,6 @@ export class DependencyManager {
 											target_id: target_id as number | undefined
 										});
 									});
-
 									// @ts-ignore
 									this.loading_stati.update({
 										...status,
@@ -551,14 +560,30 @@ export class DependencyManager {
 			if (_data === NOVALUE) return;
 
 			if (is_prop_update(_data)) {
+				let pending_visibility_update = false;
+				let pending_visibility_value = null;
 				for (const [update_key, update_value] of Object.entries(_data)) {
 					if (update_key === "__type__") continue;
+					if (update_key === "visible") {
+						pending_visibility_update = true;
+						pending_visibility_value = update_value;
+						continue;
+					}
 					await this.update_state_cb(
 						outputs[i],
 						{
 							[update_key]: update_value
 						},
 						update_key === "visible"
+					);
+				}
+				if (pending_visibility_update) {
+					await this.update_state_cb(
+						outputs[i],
+						{
+							visible: pending_visibility_value
+						},
+						true
 					);
 				}
 			} else {
