@@ -13,7 +13,13 @@ from gradio.analytics import custom_component_analytics
 from gradio.cli.commands.display import LivePanelDisplay
 
 from ._docs_assets import css
-from ._docs_utils import extract_docstrings, get_deep, make_markdown, make_space
+from ._docs_utils import (
+    RUFF_INSTALLED,
+    extract_docstrings,
+    get_deep,
+    make_markdown,
+    make_space,
+)
 
 
 def _docs(
@@ -87,6 +93,11 @@ def _docs(
 
         if not isinstance(name, str):
             raise ValueError("Name not found in pyproject.toml")
+
+        if not RUFF_INSTALLED:
+            live.update(
+                "\n:warning: [yellow]Ruff is not installed. Code snippets will not be formatted. To install, run `pip install ruff`.[/]"
+            )
 
         run_command(
             live=live,

@@ -17,6 +17,7 @@ class TestJSON:
             "container": True,
             "min_width": 160,
             "scale": None,
+            "buttons": None,
             "elem_id": None,
             "elem_classes": [],
             "visible": True,
