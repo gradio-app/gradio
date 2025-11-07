@@ -76,7 +76,7 @@ export class AppTree {
 			true
 		);
 		for (const comp of components) {
-			this.components_to_register.add(comp.id);
+			if (comp.props.visible != false) this.components_to_register.add(comp.id);
 		}
 
 		this.client = app;
@@ -133,7 +133,12 @@ export class AppTree {
 	postprocess(tree: ProcessedComponentMeta) {
 		this.root = this.traverse(tree, [
 			(node) => handle_visibility(node, this.#config.root),
-			(node) => handle_empty_forms(node, this.#config.root),
+			(node) =>
+				handle_empty_forms(
+					node,
+					this.#config.root,
+					this.components_to_register
+				),
 			(node) => translate_props(node, this.#config.root)
 		]);
 	}
@@ -417,7 +422,8 @@ function handle_visibility(
 
 function handle_empty_forms(
 	node: ProcessedComponentMeta,
-	root: string
+	root: string,
+	components_to_register: Set<number>
 ): ProcessedComponentMeta {
 	// Check if the node is visible
 	if (node.type === "form") {
@@ -429,6 +435,7 @@ function handle_empty_forms(
 
 		if (all_children_invisible) {
 			node.props.shared_props.visible = false;
+			components_to_register.delete(node.id);
 			return node;
 		}
 	}
