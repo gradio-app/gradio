@@ -12,19 +12,14 @@
 	import { Chat } from "@gradio/icons";
 	import type { FileData } from "@gradio/client";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type {
-		Message,
-		ExampleMessage,
-		TupleFormat,
-		NormalisedMessage
-	} from "./types";
+	import type { Message, ExampleMessage, NormalisedMessage } from "./types";
 
-	import { normalise_tuples, normalise_messages } from "./shared/utils";
+	import { normalise_messages } from "./shared/utils";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible: boolean | "hidden" = true;
-	export let value: TupleFormat | Message[] = [];
+	export let value: Message[] = [];
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let label: string;
@@ -34,13 +29,10 @@
 	export let likeable = false;
 	export let feedback_options: string[] = ["Like", "Dislike"];
 	export let feedback_value: (string | null)[] | null = null;
-	export let show_share_button = false;
+	export let buttons: string[] | null = null;
 	export let rtl = false;
-	export let show_copy_button = true;
-	export let show_copy_all_button = false;
 	export let sanitize_html = true;
 	export let layout: "bubble" | "panel" = "bubble";
-	export let type: "tuples" | "messages" = "tuples";
 	export let render_markdown = true;
 	export let line_breaks = true;
 	export let autoscroll = true;
@@ -71,10 +63,7 @@
 
 	let _value: NormalisedMessage[] | null = [];
 
-	$: _value =
-		type === "tuples"
-			? normalise_tuples(value as TupleFormat, root)
-			: normalise_messages(value as Message[], root);
+	$: _value = normalise_messages(value as Message[], root);
 
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 	export let like_user_message = false;
@@ -132,8 +121,10 @@
 			{likeable}
 			{feedback_options}
 			{feedback_value}
-			{show_share_button}
-			{show_copy_all_button}
+			show_share_button={buttons === null ? true : buttons.includes("share")}
+			show_copy_all_button={buttons === null
+				? true
+				: buttons.includes("copy_all")}
 			value={_value}
 			{latex_delimiters}
 			display_consecutive_in_same_bubble={group_consecutive_messages}
@@ -143,7 +134,7 @@
 			pending_message={loading_status?.status === "pending"}
 			generating={loading_status?.status === "generating"}
 			{rtl}
-			{show_copy_button}
+			show_copy_button={buttons === null ? false : buttons.includes("copy")}
 			{like_user_message}
 			show_progress={loading_status?.show_progress || "full"}
 			on:change={() => gradio.dispatch("change", value)}
@@ -162,13 +153,8 @@
 			on:copy={(e) => gradio.dispatch("copy", e.detail)}
 			on:edit={(e) => {
 				if (value === null || value.length === 0) return;
-				if (type === "messages") {
-					//@ts-ignore
-					value[e.detail.index].content = e.detail.value;
-				} else {
-					//@ts-ignore
-					value[e.detail.index[0]][e.detail.index[1]] = e.detail.value;
-				}
+				//@ts-ignore
+				value[e.detail.index].content = e.detail._dispatch_value;
 				value = value;
 				gradio.dispatch("edit", e.detail);
 			}}
@@ -184,7 +170,6 @@
 			upload={(...args) => gradio.client.upload(...args)}
 			_fetch={(...args) => gradio.client.fetch(...args)}
 			load_component={gradio.load_component}
-			msg_format={type}
 			{allow_file_downloads}
 			{allow_tags}
 			{watermark}

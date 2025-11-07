@@ -11,6 +11,6 @@ def sepia(input_img):
     sepia_img /= sepia_img.max()
     return sepia_img
 
-demo = gr.Interface(sepia, gr.Image(), "image")
+demo = gr.Interface(sepia, gr.Image(), "image", api_name="predict")
 if __name__ == "__main__":
     demo.launch()

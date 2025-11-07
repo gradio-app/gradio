@@ -67,7 +67,6 @@ export class Client {
 	abort_controller: AbortController | null = null;
 	stream_instance: EventSource | null = null;
 	current_payload: any;
-	ws_map: Record<string, WebSocket | "pending" | "failed" | "closed"> = {};
 
 	get_url_config(url: string | null = null): Config {
 		if (!this.config) {
@@ -132,8 +131,8 @@ export class Client {
 				headers.append(name, this.options.headers[name]);
 			}
 		}
-		if (this && this.options.hf_token) {
-			headers.append("Authorization", `Bearer ${this.options.hf_token}`);
+		if (this && this.options.token) {
+			headers.append("Authorization", `Bearer ${this.options.token}`);
 		}
 
 		this.abort_controller = new AbortController();
@@ -212,16 +211,6 @@ export class Client {
 	}
 
 	private async init(): Promise<void> {
-		if (
-			(typeof window === "undefined" || !("WebSocket" in window)) &&
-			!global.WebSocket
-		) {
-			if (!BROWSER_BUILD) {
-				const ws = await import("ws");
-				global.WebSocket = ws.WebSocket as unknown as typeof WebSocket;
-			}
-		}
-
 		if (this.options.auth) {
 			await this.resolve_cookies();
 		}
@@ -240,18 +229,18 @@ export class Client {
 			this.api_prefix = _config.api_prefix || "";
 
 			if (this.config && this.config.connect_heartbeat) {
-				if (this.config.space_id && this.options.hf_token) {
+				if (this.config.space_id && this.options.token) {
 					this.jwt = await get_jwt(
 						this.config.space_id,
-						this.options.hf_token,
+						this.options.token,
 						this.cookies
 					);
 				}
 			}
 		}
 
-		if (_config.space_id && this.options.hf_token) {
-			this.jwt = await get_jwt(_config.space_id, this.options.hf_token);
+		if (_config.space_id && this.options.token) {
+			this.jwt = await get_jwt(_config.space_id, this.options.token);
 		}
 
 		if (this.config && this.config.connect_heartbeat) {
@@ -327,7 +316,7 @@ export class Client {
 	private async _resolve_config(): Promise<any> {
 		const { http_protocol, host, space_id } = await process_endpoint(
 			this.app_reference,
-			this.options.hf_token
+			this.options.token
 		);
 
 		const { status_callback } = this.options;
@@ -433,11 +422,11 @@ export class Client {
 			"Content-Type"?: "application/json";
 		} = {};
 
-		const { hf_token } = this.options;
+		const { token } = this.options;
 		const { session_hash } = this;
 
-		if (hf_token) {
-			headers.Authorization = `Bearer ${this.options.hf_token}`;
+		if (token) {
+			headers.Authorization = `Bearer ${this.options.token}`;
 		}
 
 		let root_url: string;
@@ -472,8 +461,8 @@ export class Client {
 			headers["Content-Type"] = "application/json";
 		}
 
-		if (hf_token) {
-			headers.Authorization = `Bearer ${hf_token}`;
+		if (token) {
+			headers.Authorization = `Bearer ${token}`;
 		}
 
 		try {
@@ -512,66 +501,6 @@ export class Client {
 			view_api: this.view_api,
 			component_server: this.component_server
 		};
-	}
-
-	private async connect_ws(url: string): Promise<void> {
-		return new Promise((resolve, reject) => {
-			let ws;
-			try {
-				ws = new WebSocket(url);
-			} catch (e) {
-				this.ws_map[url] = "failed";
-				return;
-			}
-
-			this.ws_map[url] = "pending";
-			ws.onopen = () => {
-				this.ws_map[url] = ws;
-				resolve();
-			};
-
-			ws.onerror = (error) => {
-				console.error("WebSocket error:", error);
-				this.close_ws(url);
-				this.ws_map[url] = "failed";
-				resolve();
-			};
-
-			ws.onclose = () => {
-				this.ws_map[url] = "closed";
-			};
-
-			ws.onmessage = (event) => {};
-		});
-	}
-
-	async send_ws_message(url: string, data: any): Promise<void> {
-		// connect if not connected
-		if (!(url in this.ws_map)) {
-			await this.connect_ws(url);
-		} else if (
-			this.ws_map[url] === "pending" ||
-			this.ws_map[url] === "closed" ||
-			this.ws_map[url] === "failed"
-		) {
-			return;
-		}
-		const ws = this.ws_map[url];
-		if (ws instanceof WebSocket) {
-			ws.send(JSON.stringify(data));
-		} else {
-			this.post_data(url, data);
-		}
-	}
-
-	async close_ws(url: string): Promise<void> {
-		if (url in this.ws_map) {
-			const ws = this.ws_map[url];
-			if (ws instanceof WebSocket) {
-				ws.close();
-				delete this.ws_map[url];
-			}
-		}
 	}
 }
 
