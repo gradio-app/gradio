@@ -360,12 +360,12 @@
 				use:click_outside={handle_click_outside}
 				on:change={handle_device_change}
 			>
-				<button
+				<!-- <button
 					class="inset-icon"
 					on:click|stopPropagation={() => (options_open = false)}
 				>
 					<DropdownArrow />
-				</button>
+				</button> -->
 				{#if available_video_devices.length === 0}
 					<option value="">{i18n("common.no_devices")}</option>
 				{:else}

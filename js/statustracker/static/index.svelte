@@ -87,6 +87,13 @@
 	export let validation_error: string | null = null;
 	export let show_validation_error = true;
 
+	$: should_hide =
+		(!status ||
+			status === "complete" ||
+			show_progress === "hidden" ||
+			status == "streaming") &&
+		!validation_error;
+
 	let el: HTMLDivElement;
 
 	let _timer = false;
@@ -206,11 +213,7 @@
 
 <div
 	class="wrap {variant} {show_progress}"
-	class:hide={(!status ||
-		status === "complete" ||
-		show_progress === "hidden" ||
-		status == "streaming") &&
-		!validation_error}
+	class:hide={should_hide}
 	class:translucent={(variant === "center" &&
 		(status === "pending" || status === "error")) ||
 		translucent ||

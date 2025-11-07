@@ -18,8 +18,6 @@
 	export let _fetch;
 	export let allow_file_downloads: boolean;
 	export let display_icon_button_wrapper_top_corner = false;
-
-	$: console.log("props.label", props.label);
 </script>
 
 {#if type === "gallery"}

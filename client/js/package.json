@@ -20,8 +20,8 @@
 		"fetch-event-stream": "^0.1.5"
 	},
 	"devDependencies": {
-		"msw": "^2.2.1",
-		"typescript": "^5.0.0"
+		"msw": "^2.11.3",
+		"typescript": "^5.9.3"
 	},
 	"scripts": {
 		"bundle": "vite build --ssr",

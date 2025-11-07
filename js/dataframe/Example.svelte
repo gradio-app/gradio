@@ -23,22 +23,26 @@
 			{value}
 		{:else if is_empty}
 			<table class="">
-				<tr>
-					<td>Empty</td>
-				</tr>
+				<tbody>
+					<tr>
+						<td>Empty</td>
+					</tr>
+				</tbody>
 			</table>
 		{:else}
 			<table class="">
-				{#each value.slice(0, 3) as row, i}
-					<tr>
-						{#each row.slice(0, 3) as cell, j}
-							<td>{cell}</td>
-						{/each}
-						{#if row.length > 3}
-							<td>…</td>
-						{/if}
-					</tr>
-				{/each}
+				<tbody>
+					{#each value.slice(0, 3) as row, i}
+						<tr>
+							{#each row.slice(0, 3) as cell, j}
+								<td>{cell}</td>
+							{/each}
+							{#if row.length > 3}
+								<td>…</td>
+							{/if}
+						</tr>
+					{/each}
+				</tbody>
 			</table>
 			{#if value.length > 3}
 				<div

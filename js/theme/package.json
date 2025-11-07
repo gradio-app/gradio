@@ -9,7 +9,7 @@
 	"private": false,
 	"scripts": {
 		"generate": "pollen -c src/pollen.config.cjs",
-		"package": "svelte-package --input=. --cwd=../../.config/"
+		"package": "svelte-package --input=. --tsconfig=../../tsconfig.json"
 	},
 	"exports": {
 		".": {
@@ -40,7 +40,7 @@
 		"./package.json": "./package.json"
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.43.4"
 	},
 	"main_changeset": true,
 	"repository": {

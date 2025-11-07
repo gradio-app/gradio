@@ -79,7 +79,6 @@
 	$: if (suggested_links) {
 		suggested_links.forEach((link) => {
 			if (link.type == "DEMO") {
-				console.log(all_demos);
 				all_demos.push({
 					name: link.title,
 					dir: link.title.replaceAll(" ", "_").toLowerCase(),

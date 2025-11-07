@@ -88,6 +88,8 @@
 	const dispatch = createEventDispatcher();
 	export let data;
 
+	// console.log("data", data);
+
 	export let autoscroll = false;
 	export let version = GRADIO_VERSION;
 	export let initial_height: string;
@@ -362,9 +364,12 @@
 		}
 	}
 
-	onDestroy(() => {
-		spaceheader?.remove();
-	});
+	// onDestroy(() => {
+	// 	if (spaceheader) {
+	// 		spaceheader.remove();
+	// 		spaceheader = undefined;
+	// 	}
+	// });
 </script>
 
 <svelte:head>

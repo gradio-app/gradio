@@ -1,28 +1,29 @@
 <script lang="ts">
 	import type { SelectData } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
+	import type { Gradio } from "@gradio/utils";
+	import type { CheckboxProps, CheckboxEvents } from "../types";
 
-	export let value = false;
-	export let label = "Checkbox";
-	export let interactive: boolean;
-	export let indeterminate = false;
+	const props = $props();
+	const gradio: Gradio<CheckboxEvents, CheckboxProps> = props.gradio;
 
-	const dispatch = createEventDispatcher<{
-		change: boolean;
-		select: SelectData;
-	}>();
+	let disabled = $derived(!gradio.shared.interactive);
 
-	// When the value changes, dispatch the change event via handle_change()
-	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
-	$: value, dispatch("change", value);
-	$: disabled = !interactive;
+	let old_value = $state(gradio.props.value);
+
+	$effect(() => {
+		if (old_value !== gradio.props.value) {
+			old_value = gradio.props.value;
+			gradio.dispatch("change", $state.snapshot(gradio.props.value));
+		}
+	});
 
 	async function handle_enter(
 		event: KeyboardEvent & { currentTarget: EventTarget & HTMLInputElement }
 	): Promise<void> {
 		if (event.key === "Enter") {
-			value = !value;
-			dispatch("select", {
+			gradio.props.value = !gradio.props.value;
+			gradio.dispatch("select", {
 				index: 0,
 				value: event.currentTarget.checked,
 				selected: event.currentTarget.checked
@@ -33,19 +34,19 @@
 	async function handle_input(
 		event: Event & { currentTarget: EventTarget & HTMLInputElement }
 	): Promise<void> {
-		value = event.currentTarget.checked;
-		dispatch("select", {
+		gradio.props.value = event.currentTarget.checked;
+		gradio.dispatch("select", {
 			index: 0,
 			value: event.currentTarget.checked,
 			selected: event.currentTarget.checked
 		});
+		gradio.dispatch("input");
 	}
 </script>
 
 <label class:disabled>
 	<input
-		bind:checked={value}
-		bind:indeterminate
+		bind:checked={gradio.props.value}
 		on:keydown={handle_enter}
 		on:input={handle_input}
 		{disabled}
@@ -53,7 +54,7 @@
 		name="test"
 		data-testid="checkbox"
 	/>
-	<span>{label}</span>
+	<span>{gradio.shared.label}</span>
 </label>
 
 <style>

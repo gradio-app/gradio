@@ -301,8 +301,8 @@
 		--df-body-text-color-subdued: var(--df-neutral-400, #9ca3af);
 		--df-table-text-color: var(--df-body-text-color, #111827);
 		--df-shadow-drop: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
-		--df-shadow-drop-lg: 0 1px 3px 0 rgb(0 0 0 / 0.1),
-			0 1px 2px -1px rgb(0 0 0 / 0.1);
+		--df-shadow-drop-lg:
+			0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 		--df-shadow-inset: rgba(0, 0, 0, 0.05) 0px 2px 4px 0px inset;
 		--df-shadow-spread: 3px;
 
@@ -310,8 +310,8 @@
 		--df-bw-svt-p-bottom: 0px;
 
 		--df-border-color-secondary: var(--df-border-color-accent, #fdba74);
-		--df-shadow-md: 0 12px 16px -4px rgba(0, 0, 0, 0.1),
-			0 4px 6px -2px rgba(0, 0, 0, 0.05);
+		--df-shadow-md:
+			0 12px 16px -4px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 
 		--df-checkbox-border-radius: var(--df-radius-sm, 4px);
 		--df-checkbox-shadow: none;
@@ -353,8 +353,8 @@
 		--df-input-placeholder-color: var(--neutral-400, #9ca3af);
 		--df-input-radius: var(--df-radius-sm, 4px);
 		--df-input-shadow: none;
-		--df-input-shadow-focus: 0 0 0 var(--shadow-spread, 3px)
-				var(--secondary-50, #eff6ff),
+		--df-input-shadow-focus:
+			0 0 0 var(--shadow-spread, 3px) var(--secondary-50, #eff6ff),
 			var(--shadow-inset, rgba(0, 0, 0, 0.05) 0px 2px 4px 0px inset);
 
 		--table-radius: var(--gr-df-table-radius, var(--df-table-radius, 4px));
@@ -540,16 +540,17 @@
 		--line-md: var(--df-line-md, 1.5);
 		--line-lg: var(--df-line-lg, 1.75);
 
-		--shadow-xs: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-		--shadow-sm: 0 4px 6px -2px rgba(0, 0, 0, 0.1),
-			0 2px 4px -2px rgba(0, 0, 0, 0.06);
-		--shadow-md: 0 12px 16px -4px rgba(0, 0, 0, 0.1),
-			0 4px 6px -2px rgba(0, 0, 0, 0.05);
-		--shadow-lg: 0 20px 24px -4px rgba(0, 0, 0, 0.1),
-			0 8px 8px -4px rgba(0, 0, 0, 0.04);
+		--shadow-xs:
+			0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+		--shadow-sm:
+			0 4px 6px -2px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+		--shadow-md:
+			0 12px 16px -4px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+		--shadow-lg:
+			0 20px 24px -4px rgba(0, 0, 0, 0.1), 0 8px 8px -4px rgba(0, 0, 0, 0.04);
 		--shadow-drop: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
-		--shadow-drop-lg: 0 1px 3px 0 rgb(0 0 0 / 0.1),
-			0 1px 2px -1px rgb(0 0 0 / 0.1);
+		--shadow-drop-lg:
+			0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 		--shadow-inset: rgba(0, 0, 0, 0.05) 0px 2px 4px 0px inset;
 		--shadow-spread: 3px;
 	}

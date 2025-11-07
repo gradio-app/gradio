@@ -3,37 +3,14 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio } from "@gradio/utils";
+	import { Gradio } from "@gradio/utils";
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
-	import { afterUpdate } from "svelte";
+	import type { SliderEvents, SliderProps } from "./types";
 
-	export let gradio: Gradio<{
-		change: never;
-		input: never;
-		release: number;
-		clear_status: LoadingStatus;
-	}>;
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let value = 0;
-	let initial_value = value;
-
-	export let label = gradio.i18n("slider.slider");
-	export let info: string | undefined = undefined;
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let minimum: number;
-	export let maximum = 100;
-	export let step: number;
-	export let show_label: boolean;
-	export let interactive: boolean;
-	export let loading_status: LoadingStatus;
-	export let value_is_output = false;
-	export let buttons: string[] | null = null;
+	let props = $props();
+	let gradio = new Gradio<SliderEvents, SliderProps>(props);
+	const INITIAL_VALUE = gradio.props.value;
 
 	let range_input: HTMLInputElement;
 	let number_input: HTMLInputElement;
@@ -42,89 +19,99 @@
 
 	let window_width: number;
 
-	$: minimum_value = minimum ?? 0;
+	let minimum_value = $derived(gradio.props.minimum ?? 0);
+	let percentage = $derived.by(() => {
+		const min = gradio.props.minimum;
+		const max = gradio.props.maximum;
+		const val = gradio.props.value;
+		if (val > max) {
+			return 100;
+		} else if (val < min) {
+			return 0;
+		}
+		return ((val - min) / (max - min)) * 100;
+	});
+
+	$effect(() => {
+		range_input.style.setProperty("--range_progress", `${percentage}%`);
+		range_input.value = gradio.props.value.toString();
+	});
 
 	function handle_change(): void {
 		gradio.dispatch("change");
-		if (!value_is_output) {
-			gradio.dispatch("input");
-		}
+		gradio.dispatch("input");
 	}
-	afterUpdate(() => {
-		value_is_output = false;
-		set_slider();
-	});
 
 	function handle_release(e: MouseEvent): void {
-		gradio.dispatch("release", value);
+		gradio.dispatch("release", gradio.props.value);
 	}
 	function clamp(): void {
-		gradio.dispatch("release", value);
-		value = Math.min(Math.max(value, minimum), maximum);
+		gradio.dispatch("release", gradio.props.value);
+		gradio.props.value = Math.min(
+			Math.max(gradio.props.value, gradio.props.minimum),
+			gradio.props.maximum
+		);
 	}
 
-	function set_slider(): void {
-		set_slider_range();
-		range_input.addEventListener("input", set_slider_range);
-		number_input.addEventListener("input", set_slider_range);
-	}
-	function set_slider_range(): void {
-		const range = range_input;
-		const min = Number(range.min);
-		const max = Number(range.max);
-		const val = Number(range.value);
-		const percentage = ((val - min) / (max - min)) * 100;
-		range.style.setProperty("--range_progress", `${percentage}%`);
-	}
-
-	$: disabled = !interactive;
+	let disabled = $derived(!gradio.shared.interactive);
 
 	// When the value changes, dispatch the change event via handle_change()
 	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
-	$: value, handle_change();
+	$effect(() => {
+		gradio.props.value && handle_change();
+	});
 
 	function handle_resize(): void {
 		window_width = window.innerWidth;
 	}
 
 	function reset_value(): void {
-		value = initial_value;
-		set_slider_range();
+		gradio.props.value = INITIAL_VALUE;
 		gradio.dispatch("change");
-		gradio.dispatch("release", value);
+		gradio.dispatch("release", gradio.props.value);
 	}
 </script>
 
 <svelte:window on:resize={handle_resize} />
 
-<Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
+<Block
+	visible={gradio.shared.visible}
+	elem_classes={gradio.shared.elem_classes}
+	container={gradio.shared.container}
+	scale={gradio.shared.scale}
+	min_width={gradio.shared.min_width}
+>
 	<StatusTracker
-		autoscroll={gradio.autoscroll}
+		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
-		{...loading_status}
-		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+		{...gradio.shared.loading_status}
+		on:clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 
 	<div class="wrap">
 		<div class="head">
 			<label for={id}>
-				<BlockTitle {show_label} {info}>{label}</BlockTitle>
+				<BlockTitle
+					show_label={gradio.shared.show_label}
+					info={gradio.props.info}>label={gradio.shared.label}</BlockTitle
+				>
 			</label>
 			<div class="tab-like-container">
 				<input
-					aria-label={`number input for ${label}`}
+					aria-label={`number input for ${gradio.shared.label}`}
 					data-testid="number-input"
 					type="number"
-					bind:value
+					bind:value={gradio.props.value}
 					bind:this={number_input}
-					min={minimum}
-					max={maximum}
+					min={gradio.props.minimum}
+					max={gradio.props.maximum}
 					on:blur={clamp}
-					{step}
+					step={gradio.props.step}
 					{disabled}
 					on:pointerup={handle_release}
 				/>
-				{#if buttons?.includes("reset") ?? true}
+				{#if gradio.props.buttons?.includes("reset") ?? true}
 					<button
 						class="reset-button"
 						on:click={reset_value}
@@ -144,16 +131,16 @@
 				type="range"
 				{id}
 				name="cowbell"
-				bind:value
+				bind:value={gradio.props.value}
 				bind:this={range_input}
-				min={minimum}
-				max={maximum}
-				{step}
+				min={gradio.props.minimum}
+				max={gradio.props.maximum}
+				step={gradio.props.step}
 				{disabled}
 				on:pointerup={handle_release}
-				aria-label={`range slider for ${label}`}
+				aria-label={`range slider for ${gradio.shared.label}`}
 			/>
-			<span class="max_value">{maximum}</span>
+			<span class="max_value">{gradio.props.maximum}</span>
 		</div>
 	</div>
 </Block>

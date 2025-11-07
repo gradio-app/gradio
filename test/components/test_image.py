@@ -34,7 +34,7 @@ class TestImage:
             "image_mode": "RGB",
             "sources": ["upload", "webcam", "clipboard"],
             "name": "image",
-            "buttons": None,
+            "buttons": ["download", "share", "fullscreen"],
             "streaming": False,
             "show_label": True,
             "label": "Upload Your Image",

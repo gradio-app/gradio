@@ -88,7 +88,7 @@
 
 <BlockLabel {show_label} Icon={File} label={label || "3D Model"} />
 
-{#if value === null}
+{#if value == null}
 	<Upload
 		{upload}
 		{stream_handler}

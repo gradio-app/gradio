@@ -12,11 +12,11 @@
 	},
 	"dependencies": {
 		"@gradio/theme": "workspace:^",
-		"esbuild": "^0.21.0",
-		"svelte-i18n": "^3.6.0"
+		"esbuild": "^0.25.10",
+		"svelte-i18n": "^4.0.1"
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.43.4"
 	},
 	"main_changeset": true,
 	"repository": {
