@@ -36,7 +36,16 @@
 		"cancel": "Cancel",
 		"like": "Like",
 		"dislike": "Dislike",
-		"clear": "Clear"
+		"clear": "Clear",
+		"copy_message": "Copy message",
+		"copied_message": "Copied message"
+	},
+	"chat_interface": {
+		"new_chat": "New chat",
+		"message_placeholder": "Type a message...",
+		"additional_inputs": "Additional inputs",
+		"chatbot": "Chatbot",
+		"conversation": "Conversation"
 	},
 	"checkbox": {
 		"checkbox": "Checkbox",
