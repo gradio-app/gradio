@@ -25,7 +25,7 @@ def main(
         str | None,
         Option(
             help=(
-                "Hugging Face token. Can be ommitted if you are logged in via huggingface_hub cli. "
+                "Hugging Face token. Can be omitted if you are logged in via huggingface_hub cli. "
                 "Must be provided if upstream space is private."
             )
         ),
