@@ -17,7 +17,7 @@
 		"@sveltejs/vite-plugin-svelte": "^6.2.1",
 		"prettier": "^3.6.2",
 		"prettier-plugin-svelte": "^3.4.0",
-		"svelte": "^5.43.0",
+		"svelte": "^5.43.4",
 		"svelte-check": "^4.3.3",
 		"typescript": "^5.9.3",
 		"vite": "^7.1.12"

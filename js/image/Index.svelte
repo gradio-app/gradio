@@ -17,26 +17,28 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { ImageProps, ImageEvents } from "./shared/types";
 
-	const props = $props();
-	const gradio = new Gradio<ImageEvents, ImageProps>(props);
+	let stream_data = { value: null };
 
-	let stream_state = "closed";
-	let _modify_stream: (state: "open" | "closed" | "waiting") => void = () => {};
-	export function modify_stream_state(
-		state: "open" | "closed" | "waiting"
-	): void {
-		stream_state = state;
-		_modify_stream(state);
+	class ImageGradio extends Gradio<ImageEvents, ImageProps> {
+		async get_data() {
+			console.log("Getting data with stream_data:", stream_data);
+			const data = await super.get_data();
+			if (props.props.streaming) {
+				data.value = stream_data.value;
+			}
+
+			return data;
+		}
 	}
 
-	export const get_stream_state: () => void = () => stream_state;
-	let set_time_limit: (arg0: number) => void = props.set_time_limit;
+	const props = $props();
+	const gradio = new ImageGradio(props);
 
 	let fullscreen = $state(false);
 	let uploading = $state(false);
 	let dragging = $state(false);
 	let active_source = $derived.by(() =>
-		gradio.props.sources ? gradio.props.sources[0] : null
+		gradio.props.sources ? gradio.props.sources[0] : null,
 	);
 
 	let upload_component: ImageUploader;
@@ -72,6 +74,10 @@
 			gradio.dispatch("change");
 		}
 	});
+
+	let status = $derived(gradio?.shared?.loading_status.stream_status);
+
+	$inspect("STATUS: ", status);
 </script>
 
 {#if !gradio.shared.interactive}
@@ -131,14 +137,15 @@
 		on:dragover={handle_drag_event}
 		on:drop={handle_drop}
 	>
-		<StatusTracker
-			autoscroll={gradio.shared.autoscroll}
-			i18n={gradio.i18n}
-			{...gradio.shared.loading_status}
-			on:clear_status={() =>
-				gradio.dispatch("clear_status", gradio.shared.loading_status)}
-		/>
-
+		{#if gradio.shared.loading_status.type === "output"}
+			<StatusTracker
+				autoscroll={gradio.shared.autoscroll}
+				i18n={gradio.i18n}
+				{...gradio.shared.loading_status}
+				on:clear_status={() =>
+					gradio.dispatch("clear_status", gradio.shared.loading_status)}
+			/>
+		{/if}
 		<ImageUploader
 			bind:this={upload_component}
 			bind:uploading
@@ -158,7 +165,10 @@
 				gradio.dispatch("clear");
 				gradio.dispatch("input");
 			}}
-			on:stream={({ detail }) => gradio.dispatch("stream", detail)}
+			on:stream={({ detail }) => {
+				stream_data = detail;
+				gradio.dispatch("stream", detail);
+			}}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:upload={() => {
 				gradio.dispatch("upload");
@@ -171,23 +181,24 @@
 				gradio.dispatch("error", detail);
 			}}
 			on:close_stream={() => {
-				gradio.dispatch("close_stream", "stream");
+				gradio.dispatch("close_stream");
 			}}
 			on:fullscreen={({ detail }) => {
 				fullscreen = detail;
 			}}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
-			pending={gradio.props.pending}
+			pending={gradio.shared.loading_status?.status === "pending" ||
+				gradio.shared.loading_status?.status === "streaming"}
 			streaming={gradio.props.streaming}
 			webcam_options={gradio.props.webcam_options}
 			stream_every={gradio.props.stream_every}
-			bind:modify_stream={_modify_stream}
-			bind:set_time_limit
+			time_limit={gradio.shared.loading_status?.time_limit}
 			max_file_size={gradio.shared.max_file_size}
 			i18n={gradio.i18n}
 			upload={(...args) => gradio.shared.client.upload(...args)}
 			stream_handler={gradio.shared.client?.stream}
+			stream_status={status}
 		>
 			{#if active_source === "upload" || !active_source}
 				<UploadText

@@ -17,6 +17,8 @@ export interface ILoadingStatus {
 		desc: string | null;
 	}[];
 	validation_error?: string | null;
+	type: "input" | "output";
+	stream_status: "open" | "closed" | "waiting" | null;
 }
 
 export interface LoadingStatusArgs {
@@ -29,6 +31,8 @@ export interface LoadingStatusArgs {
 	message?: ILoadingStatus["message"];
 	progress?: ILoadingStatus["progress"];
 	time_limit?: ILoadingStatus["time_limit"];
+	type?: ILoadingStatus["type"];
+	stream_status: "open" | "closed" | "waiting" | null;
 }
 
 export interface ToastMessage {

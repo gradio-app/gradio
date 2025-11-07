@@ -1,13 +1,15 @@
 import type { ILoadingStatus, LoadingStatusArgs } from "./types.js";
 
 export class LoadingStatus {
-	current: Record<string, ILoadingStatus> = {};
+	current: Record<string, Omit<ILoadingStatus, "type">> = {};
 	fn_outputs: Record<number, number[]> = {};
+	fn_inputs: Record<number, number[]> = {};
 	pending_outputs = new Map<number, number>();
 	fn_status: Record<number, ILoadingStatus["status"]> = {};
 
-	register(id: number, outputs: number[]): void {
+	register(id: number, outputs: number[], inputs: number[]): void {
 		this.fn_outputs[id] = outputs;
+		this.fn_inputs[id] = inputs;
 		this.current[id] = {
 			eta: 0,
 			queue: false,
@@ -16,7 +18,8 @@ export class LoadingStatus {
 			status: "pending",
 			fn_index: -1,
 			message: undefined,
-			progress: undefined
+			progress: undefined,
+			stream_status: null
 		};
 	}
 
@@ -24,16 +27,28 @@ export class LoadingStatus {
 		const updates = this.resolve_args(args);
 
 		updates.forEach(
-			({ id, queue_position, queue_size, eta, status, message, progress }) => {
+			({
+				id,
+				queue_position,
+				queue_size,
+				eta,
+				status,
+				message,
+				progress,
+				stream_status,
+				time_limit
+			}) => {
 				this.current[id] = {
 					queue: args.queue || false,
 					queue_size: queue_size,
 					queue_position: queue_position,
 					eta: eta,
+					stream_status: stream_status,
 					message: message,
 					progress: progress || undefined,
 					status,
-					fn_index: args.fn_index
+					fn_index: args.fn_index,
+					time_limit
 				};
 			}
 		);
@@ -51,7 +66,9 @@ export class LoadingStatus {
 			position = null,
 			eta = null,
 			message = null,
-			progress = null
+			progress = null,
+			stream_status = null,
+			time_limit = null
 		} = args;
 
 		const outputs = this.fn_outputs[fn_index];
@@ -90,7 +107,9 @@ export class LoadingStatus {
 				eta: eta,
 				status: new_status,
 				message: message,
-				progress: progress
+				progress: progress,
+				stream_status,
+				time_limit
 			};
 		});
 	}

@@ -9,7 +9,7 @@
 	import type {
 		ComponentMeta,
 		Dependency as IDependency,
-		LayoutNode
+		LayoutNode,
 	} from "./types";
 	// import type { UpdateTransaction } from "./_init";
 	import { setupi18n } from "./i18n";
@@ -66,7 +66,7 @@
 		vibe_mode,
 		search_params,
 		render_complete = false,
-		on_ready
+		on_ready = () => {},
 	}: {
 		root: string;
 		components: ComponentMeta[];
@@ -111,14 +111,14 @@
 			version,
 			api_prefix,
 			max_file_size,
-			autoscroll
+			autoscroll,
 		},
-		app
+		app,
 	);
 
 	setContext(GRADIO_ROOT, {
 		register: app_tree.register_component.bind(app_tree),
-		dispatcher: gradio_event_dispatcher
+		dispatcher: gradio_event_dispatcher,
 	});
 
 	let messages: (ToastMessage & { fn_index: number })[] = $state([]);
@@ -126,7 +126,7 @@
 	function gradio_event_dispatcher(
 		id: number,
 		event: string,
-		data: unknown
+		data: unknown,
 	): void {
 		if (event === "share") {
 			const { title, description } = data as ShareData;
@@ -142,24 +142,13 @@
 			// TODO: the loading_status store should handle this via a method
 			// update_status(id, "complete", data);
 		} else if (event == "close_stream") {
-			// TODO: this is for streaming webcam + audio, can they manage their own streams
-			// the data streaming is orthogonal to the event, like files are
-			//
-			// const deps = $targets[id]?.[data];
-			// deps?.forEach((dep_id) => {
-			// 	if (submit_map.has(dep_id)) {
-			// 		// @ts-ignore
-			// 		const url = `${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_id).event_id()}`;
-			// 		app.post_data(`${url}/close`, {});
-			// 		app.close_ws(url);
-			// 	}
-			// });
+			dep_manager.close_stream(id);
 		} else {
 			dep_manager.dispatch({
 				type: "event",
 				event_name: event,
 				target_id: id,
-				event_data: data
+				event_data: data,
 			});
 		}
 	}
@@ -170,7 +159,7 @@
 		app_tree.update_state.bind(app_tree),
 		app_tree.get_state.bind(app_tree),
 		app_tree.rerender.bind(app_tree),
-		new_message
+		new_message,
 	);
 
 	let old_dependencies = dependencies;
@@ -272,7 +261,7 @@
 		fn_index: number,
 		type: ToastMessage["type"],
 		duration: number | null = 10,
-		visible = true
+		visible = true,
 	): void {
 		messages.push({
 			title,
@@ -281,14 +270,14 @@
 			type,
 			id: ++_error_id,
 			duration,
-			visible
+			visible,
 		});
 	}
 
 	export function add_new_message(
 		title: string,
 		message: string,
-		type: ToastMessage["type"]
+		type: ToastMessage["type"],
 	): void {
 		messages = [new_message(title, message, -1, type), ...messages];
 	}
@@ -346,7 +335,7 @@
 	onMount(() => {
 		is_mobile_device =
 			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-				navigator.userAgent
+				navigator.userAgent,
 			);
 
 		if ("parentIFrame" in window) {
@@ -359,7 +348,7 @@
 		mut.observe(root_container, {
 			childList: true,
 			subtree: true,
-			attributes: true
+			attributes: true,
 		});
 		res.observe(root_container);
 

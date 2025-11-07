@@ -667,6 +667,20 @@ export function submit(
 				return { value: undefined, done: true as const };
 			},
 			cancel,
+			send_chunk: (payload: Record<string, unknown>) => {
+				this.post_data(`${config.root}${api_prefix}/stream/${event_id_final}`, {
+					...payload,
+					session_hash: this.session_hash
+				});
+			},
+			close_stream: () => {
+				this.post_data(
+					`${config.root}${api_prefix}/stream/${event_id_final}/close`,
+					{}
+				);
+
+				close();
+			},
 			event_id: () => event_id_final,
 			wait_for_id: async () => {
 				await job;

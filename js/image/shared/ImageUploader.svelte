@@ -6,7 +6,7 @@
 	import {
 		type SelectData,
 		type I18nFormatter,
-		type ValueData
+		type ValueData,
 	} from "@gradio/utils";
 	import { get_coordinates_of_clicked_image } from "./utils";
 	import Webcam from "./Webcam.svelte";
@@ -34,10 +34,11 @@
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let stream_every: number;
-
-	export let modify_stream: (state: "open" | "closed" | "waiting") => void;
-	export let set_time_limit: (arg0: number) => void;
+	export let time_limit: number;
 	export let show_fullscreen_button = true;
+	export let stream_status: "open" | "waiting" | "closed" = "closed";
+
+	$: console.log({ pending });
 
 	let upload_input: Upload;
 	export let uploading = false;
@@ -48,7 +49,7 @@
 	let upload_id: string;
 
 	async function handle_upload({
-		detail
+		detail,
 	}: CustomEvent<FileData>): Promise<void> {
 		if (!streaming) {
 			if (detail.path?.toLowerCase().endsWith(".svg") && detail.url) {
@@ -56,7 +57,7 @@
 				const svgContent = await response.text();
 				value = {
 					...detail,
-					url: `data:image/svg+xml,${encodeURIComponent(svgContent)}`
+					url: `data:image/svg+xml,${encodeURIComponent(svgContent)}`,
 				};
 			} else {
 				value = detail;
@@ -80,12 +81,13 @@
 
 	async function handle_save(
 		img_blob: Blob | any,
-		event: "change" | "stream" | "upload"
+		event: "change" | "stream" | "upload",
 	): Promise<void> {
+		console.log("handle_save", { event, img_blob });
 		if (event === "stream") {
 			dispatch("stream", {
 				value: { url: img_blob } as Base64File,
-				is_value_data: true
+				is_value_data: true,
 			});
 			return;
 		}
@@ -98,11 +100,12 @@
 				blob: f_,
 				size: f_.size,
 				mime_type: f_.type,
-				is_stream: false
-			})
+				is_stream: false,
+			}),
 		];
 		pending = true;
 		const f = await upload_input.load_files([f_], upload_id);
+		console.log("uploaded file", f);
 		if (event === "change" || event === "upload") {
 			value = f?.[0] || null;
 			await tick();
@@ -140,7 +143,7 @@
 	}
 
 	async function handle_select_source(
-		source: (typeof sources)[number]
+		source: (typeof sources)[number],
 	): Promise<void> {
 		switch (source) {
 			case "clipboard":
@@ -233,6 +236,7 @@
 				on:drag
 				on:upload={(e) => handle_save(e.detail, "upload")}
 				on:close_stream
+				stream_state={stream_status}
 				mirror_webcam={webcam_options.mirror}
 				{stream_every}
 				{streaming}
@@ -240,8 +244,7 @@
 				include_audio={false}
 				{i18n}
 				{upload}
-				bind:modify_stream
-				bind:set_time_limit
+				{time_limit}
 				webcam_constraints={webcam_options.constraints}
 			/>
 		{:else if value !== null && !streaming}

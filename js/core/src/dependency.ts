@@ -19,7 +19,6 @@ const NOVALUE = Symbol("NOVALUE");
  */
 export class Dependency {
 	id: number;
-
 	inputs: number[];
 	outputs: number[];
 	cancels: number[];
@@ -27,6 +26,7 @@ export class Dependency {
 	trigger_modes: "once" | "multiple" | "always_last";
 	event_args: Record<string, unknown> = {};
 	targets: [number, string][] = [];
+	connection_type: "stream" | "sse";
 
 	// if this dependency has any then, success or failure triggers
 	triggers: [number, "success" | "failure" | "all"][] = [];
@@ -47,6 +47,7 @@ export class Dependency {
 		this.original_trigger_id = dep_config.id;
 		this.inputs = dep_config.inputs;
 		this.outputs = dep_config.outputs;
+		this.connection_type = dep_config.connection;
 		this.functions = {
 			frontend: dep_config.js
 				? process_frontend_fn(
@@ -201,7 +202,11 @@ export class DependencyManager {
 
 	register_loading_stati(deps: Map<number, Dependency>): void {
 		for (const [_, dep] of deps) {
-			this.loading_stati.register(dep.id, dep.show_progress_on || dep.outputs);
+			this.loading_stati.register(
+				dep.id,
+				dep.show_progress_on || dep.outputs,
+				dep.inputs
+			);
 		}
 	}
 
@@ -212,7 +217,13 @@ export class DependencyManager {
 			if (dependency) {
 				for (const output_id of dependency.outputs) {
 					this.update_state_cb(output_id, {
-						loading_status: dep
+						loading_status: { ...dep, type: "output" }
+					});
+				}
+
+				for (const input_id of dependency.inputs) {
+					this.update_state_cb(input_id, {
+						loading_status: { ...dep, type: "input" }
 					});
 				}
 			}
@@ -246,6 +257,13 @@ export class DependencyManager {
 					this.submissions.has(dep.id)
 				);
 
+				if (dispatch_status === "skip") {
+					continue;
+				} else if (dispatch_status === "defer") {
+					this.queue.add(dep.id);
+					continue;
+				}
+
 				const data_payload = await this.gather_state(dep.inputs);
 				const unset_args = await this.set_event_args(dep.id, dep.event_args);
 
@@ -261,6 +279,22 @@ export class DependencyManager {
 					} else {
 						target_id = dep.original_trigger_id;
 					}
+
+					if (
+						dep.connection_type === "stream" &&
+						this.submissions.has(dep.id)
+					) {
+						const submission = this.submissions.get(dep.id);
+						let payload: Payload = {
+							fn_index: dep.id,
+							data: data_payload,
+							event_data: event_meta.event_data
+						};
+						submission!.send_chunk(payload);
+						unset_args();
+						continue;
+					}
+
 					const dep_submission = await dep.run(
 						this.client,
 						data_payload,
@@ -274,26 +308,35 @@ export class DependencyManager {
 						this.handle_data(dep.outputs, dep_submission.data);
 						unset_args();
 					} else {
+						let stream_status: "open" | "closed" | "waiting" | null = null;
+
+						if (
+							dep.connection_type === "stream" &&
+							!this.submissions.has(dep.id)
+						) {
+							stream_status = "waiting";
+						}
+
 						this.submissions.set(dep.id, dep_submission.data);
 						// fn for this?
 						submit_loop: for await (const result of dep_submission.data) {
+							console.log({ result }); // TODO: remove
 							if (result === null) continue;
 							if (result.type === "data") {
 								this.handle_data(dep.outputs, result.data);
 							}
 							if (result.type === "status") {
+								if (
+									result.original_msg === "process_starts" &&
+									dep.connection_type === "stream"
+								) {
+									stream_status = "open";
+								}
 								const { fn_index, ...status } = result;
-								// @ts-ignore
-								this.loading_stati.update({
-									...status,
-									status: status.stage,
-									fn_index: dep.id
-								});
-
-								this.update_loading_stati_state();
 
 								// handle status updates here
 								if (result.stage === "complete") {
+									stream_status = "closed";
 									success.forEach((dep_id) => {
 										this.dispatch({
 											type: "fn",
@@ -302,6 +345,15 @@ export class DependencyManager {
 											target_id: target_id as number | undefined
 										});
 									});
+
+									// @ts-ignore
+									this.loading_stati.update({
+										...status,
+										status: status.stage,
+										fn_index: dep.id,
+										stream_status
+									});
+									this.update_loading_stati_state();
 									break submit_loop;
 								} else if (result.stage === "error") {
 									const _message = result?.message?.replace(
@@ -317,6 +369,15 @@ export class DependencyManager {
 										status.visible
 									);
 									throw new Error("Dependency function failed");
+								} else {
+									// @ts-ignore
+									this.loading_stati.update({
+										...status,
+										status: status.stage,
+										fn_index: dep.id,
+										stream_status
+									});
+									this.update_loading_stati_state();
 								}
 							}
 
@@ -369,10 +430,10 @@ export class DependencyManager {
 						});
 						this.submissions.delete(dep.id);
 
-						// if (this.queue.has(dep.id)) {
-						// 	this.queue.delete(dep.id);
-						// 	this.dispatch(event_meta);
-						// }
+						if (this.queue.has(dep.id)) {
+							this.queue.delete(dep.id);
+							this.dispatch(event_meta);
+						}
 
 						all.forEach((dep_id) => {
 							this.dispatch({
@@ -566,6 +627,46 @@ export class DependencyManager {
 				}
 			});
 		});
+	}
+
+	get_fns_from_targets(target_id: number): number[] {
+		const fn_indices: number[] = [];
+		this.dependencies_by_event.forEach((deps, key) => {
+			const [, dep_target_id] = key.split("-");
+			if (Number(dep_target_id) === target_id) {
+				deps.forEach((dep) => {
+					fn_indices.push(dep.id);
+				});
+			}
+		});
+		return fn_indices;
+	}
+
+	close_stream(id: number): void {
+		// const submission = this.submissions.get(id);
+		const fn_ids = this.get_fns_from_targets(id);
+		console.log("CLOSING STREAM", { fn_ids, id });
+
+		for (const fn_id of fn_ids) {
+			const submission = this.submissions.get(fn_id);
+			if (submission) {
+				submission.close_stream();
+				this.submissions.delete(fn_id);
+			}
+
+			this.loading_stati.update({
+				status: "complete",
+				fn_index: fn_id,
+				eta: 0,
+				queue: false,
+				stream_status: "closed"
+			});
+		}
+
+		this.update_loading_stati_state();
+		// if (submission) {
+		// 	submission.close_stream();
+		// }
 	}
 }
 
