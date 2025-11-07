@@ -136,7 +136,7 @@
 		<div class="toast-messages" transition:slide={{ duration: 200 }}>
 			{#each messages as message, i (message.id)}
 				<div class="toast-message-item {type}">
-					<div class="toast-message-text {type}">
+					<div class="toast-message-text {type}" data-testid="toast-text">
 						{@html sanitize(message.message)}
 					</div>
 				</div>

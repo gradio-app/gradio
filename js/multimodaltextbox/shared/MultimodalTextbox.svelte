@@ -419,7 +419,7 @@
 							role="listitem"
 							aria-label="File thumbnail"
 						>
-							<button class="thumbnail-item thumbnail-small">
+							<div class="thumbnail-item thumbnail-small">
 								{#if file.mime_type && file.mime_type.includes("image")}
 									<Image
 										src={file.url}
@@ -437,14 +437,14 @@
 								{:else}
 									<File />
 								{/if}
-								<!-- <button
+								<button
 									class="delete-button"
 									on:click={(event) => remove_thumbnail(event, index)}
 									aria-label="Remove file"
 								>
 									<Clear />
-								</button> -->
-							</button>
+								</button>
+							</div>
 						</span>
 					{/each}
 					{#if uploading}
