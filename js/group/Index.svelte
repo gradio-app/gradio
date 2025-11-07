@@ -1,7 +1,14 @@
 <script lang="ts">
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
+	import { Gradio } from "@gradio/utils";
+
+	const props = $props();
+
+	// Register the component with Gradio
+	const _ = new Gradio<{}, {}>(props);
+
+	const elem_id = $derived(props.elem_id || "");
+	const elem_classes = $derived(props.elem_classes || []);
+	const visible = $derived(props.visible === undefined ? true : props.visible);
 </script>
 
 <div

@@ -1,11 +1,7 @@
 <script lang="ts">
 	import { Gradio } from "@gradio/utils";
-	// export let visible: boolean | "hidden" = true;
-	// export let scale: number | null = null;
-	// export let min_width = 0;
 
 	let props = $props();
-
 	const gradio = new Gradio(props);
 </script>
 

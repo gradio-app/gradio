@@ -21,6 +21,9 @@
 	"peerDependencies": {
 		"svelte": "^5.43.4"
 	},
+	"dependencies": {
+		"@gradio/utils": "workspace:^"
+	},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/gradio-app/gradio.git",

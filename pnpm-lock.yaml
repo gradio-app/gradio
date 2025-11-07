@@ -1514,6 +1514,9 @@ importers:
 
   js/group:
     dependencies:
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
       svelte:
         specifier: ^5.43.4
         version: 5.43.4
