@@ -20,6 +20,7 @@ demo = gr.Interface(
         gr.Textbox(value="1", label="Duration in seconds"),
     ],
     "audio",
+    api_name="predict"
 )
 if __name__ == "__main__":
     demo.launch()

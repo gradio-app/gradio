@@ -1,11 +1,10 @@
 import { test, expect, go_to_testcase } from "@self/tootils";
 
 const cases = [
-	"tuples",
 	"messages",
-	"multimodal_tuples",
 	"multimodal_messages",
-	"multimodal_non_stream"
+	"multimodal_non_stream",
+	"multimodal_group_messages"
 ];
 
 for (const test_case of cases) {
@@ -31,6 +30,13 @@ for (const test_case of cases) {
 			.toBe(1);
 
 		await textbox.fill("hi");
+		if (test_case === "multimodal_group_messages") {
+			const fileChooserPromise = page.waitForEvent("filechooser");
+			await page.getByTestId("upload-button").click();
+			const fileChooser = await fileChooserPromise;
+			await fileChooser.setFiles("./test/files/cheetah1.jpg");
+			await expect(page.locator(".thumbnail-item")).toBeVisible();
+		}
 		await submit_button.click();
 		await expect(textbox).toHaveValue("");
 		const expected_text_el_1 = page.locator(".bot p", {

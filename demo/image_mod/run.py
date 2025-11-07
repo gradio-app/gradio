@@ -20,6 +20,7 @@ with gr.Blocks() as demo:
             get_image("cheetah1.jpg"),
             get_image("lion.jpg"),
         ],
+        api_name="predict",
     )
 
     btn = gr.Button("Update Examples")

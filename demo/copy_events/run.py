@@ -8,9 +8,9 @@ def copy_callback(copy_data: gr.CopyData):
 with gr.Blocks() as demo:
     textbox = gr.Textbox(label="Copied text")
     with gr.Row():
-        markdown = gr.Markdown(value=md, header_links=True, height=400, show_copy_button=True)
-        chatbot = gr.Chatbot([("Hello", "World"), ("Goodbye", "World")], show_copy_button=True)
-        textbox2 = gr.Textbox("Write something here", interactive=True, show_copy_button=True)
+        markdown = gr.Markdown(value=md, header_links=True, height=400, buttons=["copy"])
+        chatbot = gr.Chatbot([("Hello", "World"), ("Goodbye", "World")], buttons=["copy"])
+        textbox2 = gr.Textbox("Write something here", interactive=True, buttons=["copy"])
 
         gr.on(
             [markdown.copy, chatbot.copy, textbox2.copy],
