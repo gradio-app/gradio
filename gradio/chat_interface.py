@@ -215,7 +215,7 @@ class ChatInterface(Blocks):
         self.additional_outputs = utils.none_or_singleton_to_list(additional_outputs)
         if additional_inputs_accordion is None:
             self.additional_inputs_accordion_params = {
-                "label": "Additional Inputs",
+                "label": I18nData("chat_interface.additional_inputs"),
                 "open": False,
             }
         elif isinstance(additional_inputs_accordion, str):
@@ -297,7 +297,7 @@ class ChatInterface(Blocks):
     def _render_history_area(self):
         with Column(scale=1, min_width=100):
             self.new_chat_button = Button(
-                "New chat",
+                I18nData("chat_interface.new_chat"),
                 variant="primary",
                 size="md",
                 icon=utils.get_icon_path("plus.svg"),
@@ -345,7 +345,7 @@ class ChatInterface(Blocks):
         else:
             self.type = self.type or "tuples"
             self.chatbot = Chatbot(
-                label="Chatbot",
+                label=I18nData("chat_interface.chatbot"),
                 scale=1,
                 height=400 if self.fill_height else None,
                 type=cast(Literal["messages", "tuples"], self.type),
@@ -371,7 +371,7 @@ class ChatInterface(Blocks):
                     self.textbox = textbox_component(
                         show_label=False,
                         label="",
-                        placeholder="Type a message...",
+                        placeholder=I18nData("chat_interface.message_placeholder"),
                         scale=7,
                         autofocus=self.autofocus,
                         submit_btn=submit_btn,
@@ -468,7 +468,7 @@ class ChatInterface(Blocks):
                     title += "📎 "
         if len(title) > 40:
             title = title[:40] + "..."
-        return title or "Conversation"
+        return title or str(I18nData("chat_interface.conversation"))
 
     @staticmethod
     def serialize_components(conversation: list[MessageDict]) -> list[MessageDict]:
