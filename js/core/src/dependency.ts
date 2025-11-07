@@ -158,7 +158,11 @@ export class DependencyManager {
 	client: Client;
 	queue: Set<number> = new Set();
 
-	update_state_cb: (id: number, state: Record<string, unknown>) => void;
+	update_state_cb: (
+		id: number,
+		state: Record<string, unknown>,
+		check_visibility: boolean
+	) => void;
 	get_state_cb: (id: number) => Promise<Record<string, unknown> | null>;
 	rerender_cb: (components: ComponentMeta[], layout: LayoutNode) => void;
 	log_cb: (
@@ -211,9 +215,13 @@ export class DependencyManager {
 			const dependency = this.dependencies_by_fn.get(dep_id);
 			if (dependency) {
 				for (const output_id of dependency.outputs) {
-					this.update_state_cb(output_id, {
-						loading_status: dep
-					});
+					this.update_state_cb(
+						output_id,
+						{
+							loading_status: dep
+						},
+						false
+					);
 				}
 			}
 		}
@@ -471,12 +479,16 @@ export class DependencyManager {
 			if (is_prop_update(_data)) {
 				for (const [update_key, update_value] of Object.entries(_data)) {
 					if (update_key === "__type__") continue;
-					await this.update_state_cb(outputs[i], {
-						[update_key]: update_value
-					});
+					await this.update_state_cb(
+						outputs[i],
+						{
+							[update_key]: update_value
+						},
+						update_key === "visible"
+					);
 				}
 			} else {
-				await this.update_state_cb(output_id, { value: _data });
+				await this.update_state_cb(output_id, { value: _data }, false);
 			}
 		});
 	}
@@ -516,10 +528,10 @@ export class DependencyManager {
 				// do nothing
 			};
 		}
-		this.update_state_cb(id, args);
+		this.update_state_cb(id, args, false);
 
 		return () => {
-			this.update_state_cb(id, current_args);
+			this.update_state_cb(id, current_args, false);
 		};
 	}
 
