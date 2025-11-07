@@ -40,7 +40,7 @@ class TestAudio:
             "autoplay": False,
             "sources": ["upload", "microphone"],
             "name": "audio",
-            "buttons": ["download", "share"],
+            "buttons": None,
             "streaming": False,
             "show_label": True,
             "label": "Upload Your Audio",
@@ -95,7 +95,7 @@ class TestAudio:
         assert audio_output.get_config() == {
             "autoplay": False,
             "name": "audio",
-            "buttons": ["download", "share"],
+            "buttons": None,
             "streaming": False,
             "show_label": True,
             "label": None,
