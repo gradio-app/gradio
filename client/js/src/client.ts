@@ -39,7 +39,6 @@ import {
 	HEARTBEAT_URL,
 	COMPONENT_SERVER_URL
 } from "./constants";
-
 declare const BROWSER_BUILD: boolean;
 
 export class Client {
