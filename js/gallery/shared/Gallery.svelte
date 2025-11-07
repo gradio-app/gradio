@@ -388,12 +388,14 @@
 				>
 					{#if "image" in selected_media}
 						<Image
-							data-testid="detailed-image"
+							restProps={{
+								alt: selected_media.caption || "",
+								title: selected_media.caption || null,
+								class: selected_media.caption && "with-caption",
+								loading: "lazy"
+							}}
 							src={selected_media.image.url}
-							alt={selected_media.caption || ""}
-							title={selected_media.caption || null}
-							class={selected_media.caption && "with-caption"}
-							loading="lazy"
+							data_testid="detailed-image"
 						/>
 					{:else}
 						<Video
@@ -435,10 +437,13 @@
 							{#if "image" in media}
 								<Image
 									src={media.image.url}
-									title={media.caption || null}
-									data-testid={"thumbnail " + (i + 1)}
-									alt=""
-									loading="lazy"
+									restProps={{
+										title: media.caption || null,
+										alt: "",
+										class: "with-caption",
+										loading: "lazy"
+									}}
+									data_testid={`thumbnail ${i + 1}`}
 								/>
 							{:else}
 								<Play />

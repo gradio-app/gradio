@@ -18,10 +18,7 @@
 	let active_source = $derived.by(() =>
 		gradio.props.sources ? gradio.props.sources[0] : undefined
 	);
-	let initial_value: {
-		video: FileData | null;
-		subtitles: FileData | null;
-	} | null = gradio.props.value;
+	let initial_value: FileData | null = gradio.props.value;
 
 	$effect(() => {
 		if (old_value != gradio.props.value) {
@@ -39,10 +36,7 @@
 
 	function handle_change({ detail }: CustomEvent<FileData | null>): void {
 		if (detail != null) {
-			gradio.props.value = { video: detail, subtitles: null } as {
-				video: FileData;
-				subtitles: FileData | null;
-			} | null;
+			gradio.props.value = detail as FileData;
 		} else {
 			gradio.props.value = null;
 		}
@@ -84,14 +78,16 @@
 		/>
 
 		<StaticVideo
-			value={gradio.props.value?.video}
-			subtitle={gradio.props.value?.subtitles}
+			value={gradio.props.value}
+			subtitle={gradio.props.subtitles}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
 			autoplay={gradio.props.autoplay}
 			loop={gradio.props.loop}
-			show_share_button={gradio.props.buttons.includes("share")}
-			show_download_button={gradio.props.buttons.includes("download")}
+			show_share_button={(gradio.props.buttons || []).includes("share")}
+			show_download_button={(gradio.props.buttons || ["download"]).includes(
+				"download"
+			)}
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}
 			on:stop={() => gradio.dispatch("stop")}
@@ -128,15 +124,15 @@
 		/>
 
 		<Video
-			value={gradio.props.value?.video}
-			subtitle={gradio.props.value?.subtitles}
+			value={gradio.props.value}
+			subtitle={gradio.props.subtitles}
 			on:change={handle_change}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:error={handle_error}
 			bind:uploading
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
-			show_download_button={gradio.props.buttons.includes("download")}
+			show_download_button={(gradio.props.buttons || []).includes("download")}
 			sources={gradio.props.sources}
 			{active_source}
 			webcam_options={gradio.props.webcam_options}

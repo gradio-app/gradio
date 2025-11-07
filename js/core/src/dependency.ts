@@ -159,7 +159,11 @@ export class DependencyManager {
 	client: Client;
 	queue: Set<number> = new Set();
 
-	update_state_cb: (id: number, state: Record<string, unknown>) => void;
+	update_state_cb: (
+		id: number,
+		state: Record<string, unknown>,
+		check_visibility: boolean
+	) => void;
 	get_state_cb: (id: number) => Promise<Record<string, unknown> | null>;
 	rerender_cb: (components: ComponentMeta[], layout: LayoutNode) => void;
 	log_cb: (
@@ -418,8 +422,6 @@ export class DependencyManager {
 								this.handle_log(result);
 							}
 						}
-
-						unset_args();
 						all.forEach((dep_id) => {
 							this.dispatch({
 								type: "fn",
@@ -428,6 +430,7 @@ export class DependencyManager {
 								target_id: target_id as number | undefined
 							});
 						});
+						unset_args();
 						this.submissions.delete(dep.id);
 
 						if (this.queue.has(dep.id)) {
@@ -461,14 +464,6 @@ export class DependencyManager {
 						});
 					});
 				}
-
-				all.forEach((dep_id) => {
-					this.dispatch({
-						type: "fn",
-						fn_index: dep_id,
-						event_data: null
-					});
-				});
 			}
 		}
 		return;
@@ -550,12 +545,16 @@ export class DependencyManager {
 			if (is_prop_update(_data)) {
 				for (const [update_key, update_value] of Object.entries(_data)) {
 					if (update_key === "__type__") continue;
-					await this.update_state_cb(outputs[i], {
-						[update_key]: update_value
-					});
+					await this.update_state_cb(
+						outputs[i],
+						{
+							[update_key]: update_value
+						},
+						update_key === "visible"
+					);
 				}
 			} else {
-				await this.update_state_cb(output_id, { value: _data });
+				await this.update_state_cb(output_id, { value: _data }, false);
 			}
 		});
 	}
@@ -595,10 +594,10 @@ export class DependencyManager {
 				// do nothing
 			};
 		}
-		this.update_state_cb(id, args);
+		this.update_state_cb(id, args, false);
 
 		return () => {
-			this.update_state_cb(id, current_args);
+			this.update_state_cb(id, current_args, false);
 		};
 	}
 

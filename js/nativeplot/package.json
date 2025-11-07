@@ -34,7 +34,7 @@
 		"@gradio/preview": "workspace:^"
 	},
 	"peerDependencies": {
-		"svelte": "^5.39.6"
+		"svelte": "^5.43.4"
 	},
 	"repository": {
 		"type": "git",

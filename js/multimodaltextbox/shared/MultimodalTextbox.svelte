@@ -169,9 +169,9 @@
 	}
 
 	async function handle_keypress(e: KeyboardEvent): Promise<void> {
-		await tick();
 		if (e.key === "Enter" && e.shiftKey && lines > 1) {
 			e.preventDefault();
+			await tick();
 			dispatch("submit");
 		} else if (
 			e.key === "Enter" &&
@@ -180,6 +180,7 @@
 			max_lines >= 1
 		) {
 			e.preventDefault();
+			await tick();
 			dispatch("submit");
 			active_source = null;
 			add_mic_audio_to_files();
@@ -422,10 +423,12 @@
 								{#if file.mime_type && file.mime_type.includes("image")}
 									<Image
 										src={file.url}
-										title={null}
-										alt=""
-										loading="lazy"
-										class={"thumbnail-image"}
+										restProps={{
+											title: null,
+											alt: "",
+											loading: "lazy",
+											class: "thumbnail-image"
+										}}
 									/>
 								{:else if file.mime_type && file.mime_type.includes("audio")}
 									<Music />

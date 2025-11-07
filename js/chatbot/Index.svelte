@@ -5,12 +5,9 @@
 <script lang="ts">
 	import ChatBot from "./shared/ChatBot.svelte";
 	import { Block, BlockLabel } from "@gradio/atoms";
-	import type { LoadingStatus } from "@gradio/statustracker";
 	import { Chat } from "@gradio/icons";
-	import type { FileData } from "@gradio/client";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { Message, ExampleMessage, NormalisedMessage } from "./types";
-	import type { SharedProps } from "@gradio/core";
 	import type { ChatbotProps, ChatbotEvents } from "./types";
 	import { normalise_messages } from "./shared/utils";
 	import { Gradio } from "@gradio/utils";

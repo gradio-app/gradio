@@ -66,7 +66,11 @@
 		vibe_mode,
 		search_params,
 		render_complete = false,
+<<<<<<< HEAD
 		on_ready = () => {},
+=======
+		ready = $bindable(false)
+>>>>>>> svelte5-migration
 	}: {
 		root: string;
 		components: ComponentMeta[];
@@ -92,7 +96,7 @@
 		vibe_mode: boolean;
 		search_params: URLSearchParams;
 		render_complete: boolean;
-		on_ready: () => void;
+		ready: boolean;
 	} = $props();
 
 	components.forEach((comp) => {
@@ -353,8 +357,8 @@
 		res.observe(root_container);
 
 		app_tree.ready.then(() => {
+			ready = true;
 			dep_manager.dispatch_load_events();
-			on_ready();
 		});
 
 		return () => {
