@@ -3,7 +3,7 @@ import type { LoadingStatus } from "@gradio/statustracker";
 import type { WebcamOptions } from "./shared/utils";
 
 export interface VideoProps {
-	value: { video: FileData | null; subtitles: FileData | null } | null;
+	value: FileData | null;
 	height: number | undefined;
 	width: number | undefined;
 	autoplay: boolean;
@@ -17,6 +17,7 @@ export interface VideoProps {
 	include_audio: boolean;
 	loop: boolean;
 	webcam_constraints: object;
+	subtitles: FileData | null;
 }
 
 export interface VideoEvents {
@@ -32,4 +33,5 @@ export interface VideoEvents {
 	clear_status: LoadingStatus;
 	share: any;
 	error: any;
+	warning: any;
 }
