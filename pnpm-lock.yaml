@@ -612,9 +612,6 @@ importers:
       prettier-plugin-svelte:
         specifier: ^3.4.0
         version: 3.4.0(prettier@3.6.2)(svelte@5.43.4)
-      svelte:
-        specifier: ^5.43.4
-        version: 5.43.4
       svelte-check:
         specifier: ^4.3.3
         version: 4.3.3(picomatch@4.0.3)(svelte@5.43.4)(typescript@5.9.3)
