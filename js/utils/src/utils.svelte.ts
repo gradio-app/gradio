@@ -321,14 +321,14 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	last_update: ReturnType<typeof tick> | null = null;
 	shared_props: (keyof SharedProps)[] = allowed_shared_props;
 
-	constructor(props: { shared_props: SharedProps; props: U }) {
-		for (const key in props.shared_props) {
+	constructor(_props: { shared_props: SharedProps; props: U }) {
+		for (const key in _props.shared_props) {
 			// @ts-ignore i'm not doing pointless typescript gymanstics
-			this.shared[key] = props.shared_props[key];
+			this.shared[key] = _props.shared_props[key];
 		}
-		for (const key in props.props) {
+		for (const key in _props.props) {
 			// @ts-ignore same here
-			this.props[key] = props.props[key];
+			this.props[key] = _props.props[key];
 		}
 		// @ts-ignore same here
 		this.i18n = this.props.i18n;
@@ -346,7 +346,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		}>(GRADIO_ROOT);
 
 		register(
-			props.shared_props.id,
+			_props.shared_props.id,
 			this.set_data.bind(this),
 			this.get_data.bind(this)
 		);
@@ -355,12 +355,12 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 
 		$effect(() => {
 			register(
-				props.shared_props.id,
+				_props.shared_props.id,
 				this.set_data.bind(this),
 				this.get_data.bind(this)
 			);
 			untrack(() => {
-				this.shared.id = props.shared_props.id;
+				this.shared.id = _props.shared_props.id;
 			});
 		});
 	}
@@ -380,7 +380,9 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		this.last_update = tick();
 	}
 
-	set_data(data: Partial<U & SharedProps>): Promise<void> {
+	async set_data(data: Partial<U & SharedProps>): Promise<void> {
+		await this.last_update;
+
 		for (const key in data) {
 			if (this.shared_props.includes(key as keyof SharedProps)) {
 				const _key = key as keyof SharedProps;

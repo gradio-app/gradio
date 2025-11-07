@@ -36,7 +36,7 @@
 	export let stream_every: number;
 	export let time_limit: number;
 	export let show_fullscreen_button = true;
-	export let stream_status: "open" | "waiting" | "closed" = "closed";
+	export let stream_state: "open" | "waiting" | "closed" = "closed";
 
 	$: console.log({ pending });
 
@@ -236,7 +236,7 @@
 				on:drag
 				on:upload={(e) => handle_save(e.detail, "upload")}
 				on:close_stream
-				stream_state={stream_status}
+				{stream_state}
 				mirror_webcam={webcam_options.mirror}
 				{stream_every}
 				{streaming}

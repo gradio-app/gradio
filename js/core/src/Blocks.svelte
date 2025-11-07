@@ -66,11 +66,7 @@
 		vibe_mode,
 		search_params,
 		render_complete = false,
-<<<<<<< HEAD
-		on_ready = () => {},
-=======
-		ready = $bindable(false)
->>>>>>> svelte5-migration
+		ready = $bindable(false),
 	}: {
 		root: string;
 		components: ComponentMeta[];

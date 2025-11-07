@@ -75,7 +75,7 @@
 		}
 	});
 
-	let status = $derived(gradio?.shared?.loading_status.stream_status);
+	let status = $derived(gradio?.shared?.loading_status.stream_state);
 
 	$inspect("STATUS: ", status);
 </script>
@@ -198,7 +198,7 @@
 			i18n={gradio.i18n}
 			upload={(...args) => gradio.shared.client.upload(...args)}
 			stream_handler={gradio.shared.client?.stream}
-			stream_status={status}
+			stream_state={status}
 		>
 			{#if active_source === "upload" || !active_source}
 				<UploadText

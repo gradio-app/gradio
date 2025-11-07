@@ -162,8 +162,8 @@ export class DependencyManager {
 	update_state_cb: (
 		id: number,
 		state: Record<string, unknown>,
-		check_visibility: boolean
-	) => void;
+		check_visibility?: boolean
+	) => Promise<void>;
 	get_state_cb: (id: number) => Promise<Record<string, unknown> | null>;
 	rerender_cb: (components: ComponentMeta[], layout: LayoutNode) => void;
 	log_cb: (
@@ -179,7 +179,11 @@ export class DependencyManager {
 	constructor(
 		dependencies: IDependency[],
 		client: Client,
-		update_state_cb: (id: number, state: Record<string, unknown>) => void,
+		update_state_cb: (
+			id: number,
+			state: Record<string, unknown>,
+			check_visibility?: boolean
+		) => Promise<void>,
 		get_state_cb: (id: number) => Promise<Record<string, unknown> | null>,
 		rerender_cb: (components: ComponentMeta[], layout: LayoutNode) => void,
 		log_cb: (
@@ -201,6 +205,11 @@ export class DependencyManager {
 		this.rerender_cb = rerender_cb;
 		this.log_cb = log_cb;
 
+		for (const [dep_id, dep] of this.dependencies_by_fn) {
+			for (const [output_id] of dep.targets) {
+				this.set_event_args(output_id, dep.event_args);
+			}
+		}
 		this.register_loading_stati(by_id);
 	}
 
@@ -220,13 +229,13 @@ export class DependencyManager {
 			const dependency = this.dependencies_by_fn.get(dep_id);
 			if (dependency) {
 				for (const output_id of dependency.outputs) {
-					this.update_state_cb(output_id, {
+					await this.update_state_cb(output_id, {
 						loading_status: { ...dep, type: "output" }
 					});
 				}
 
 				for (const input_id of dependency.inputs) {
-					this.update_state_cb(input_id, {
+					await this.update_state_cb(input_id, {
 						loading_status: { ...dep, type: "input" }
 					});
 				}
@@ -269,7 +278,11 @@ export class DependencyManager {
 				}
 
 				const data_payload = await this.gather_state(dep.inputs);
-				const unset_args = await this.set_event_args(dep.id, dep.event_args);
+				const unset_args = await Promise.all(
+					dep.targets.map(([output_id]) =>
+						this.set_event_args(output_id, dep.event_args)
+					)
+				);
 
 				const { success, failure, all } = dep.get_triggers();
 
@@ -295,7 +308,7 @@ export class DependencyManager {
 							event_data: event_meta.event_data
 						};
 						submission!.send_chunk(payload);
-						unset_args();
+						unset_args.forEach((fn) => fn());
 						continue;
 					}
 
@@ -307,24 +320,23 @@ export class DependencyManager {
 					);
 
 					if (dep_submission.type === "void") {
-						unset_args();
+						unset_args.forEach((fn) => fn());
 					} else if (dep_submission.type === "data") {
 						this.handle_data(dep.outputs, dep_submission.data);
-						unset_args();
+						unset_args.forEach((fn) => fn());
 					} else {
-						let stream_status: "open" | "closed" | "waiting" | null = null;
+						let stream_state: "open" | "closed" | "waiting" | null = null;
 
 						if (
 							dep.connection_type === "stream" &&
 							!this.submissions.has(dep.id)
 						) {
-							stream_status = "waiting";
+							stream_state = "waiting";
 						}
 
 						this.submissions.set(dep.id, dep_submission.data);
 						// fn for this?
 						submit_loop: for await (const result of dep_submission.data) {
-							console.log({ result }); // TODO: remove
 							if (result === null) continue;
 							if (result.type === "data") {
 								this.handle_data(dep.outputs, result.data);
@@ -334,13 +346,13 @@ export class DependencyManager {
 									result.original_msg === "process_starts" &&
 									dep.connection_type === "stream"
 								) {
-									stream_status = "open";
+									stream_state = "open";
 								}
 								const { fn_index, ...status } = result;
 
 								// handle status updates here
 								if (result.stage === "complete") {
-									stream_status = "closed";
+									stream_state = "closed";
 									success.forEach((dep_id) => {
 										this.dispatch({
 											type: "fn",
@@ -355,7 +367,7 @@ export class DependencyManager {
 										...status,
 										status: status.stage,
 										fn_index: dep.id,
-										stream_status
+										stream_state
 									});
 									this.update_loading_stati_state();
 									break submit_loop;
@@ -379,7 +391,7 @@ export class DependencyManager {
 										...status,
 										status: status.stage,
 										fn_index: dep.id,
-										stream_status
+										stream_state
 									});
 									this.update_loading_stati_state();
 								}
@@ -430,7 +442,7 @@ export class DependencyManager {
 								target_id: target_id as number | undefined
 							});
 						});
-						unset_args();
+						unset_args.forEach((fn) => fn());
 						this.submissions.delete(dep.id);
 
 						if (this.queue.has(dep.id)) {
@@ -594,7 +606,8 @@ export class DependencyManager {
 				// do nothing
 			};
 		}
-		this.update_state_cb(id, args, false);
+
+		await this.update_state_cb(id, args, false);
 
 		return () => {
 			this.update_state_cb(id, current_args, false);
@@ -642,9 +655,7 @@ export class DependencyManager {
 	}
 
 	close_stream(id: number): void {
-		// const submission = this.submissions.get(id);
 		const fn_ids = this.get_fns_from_targets(id);
-		console.log("CLOSING STREAM", { fn_ids, id });
 
 		for (const fn_id of fn_ids) {
 			const submission = this.submissions.get(fn_id);
@@ -658,14 +669,11 @@ export class DependencyManager {
 				fn_index: fn_id,
 				eta: 0,
 				queue: false,
-				stream_status: "closed"
+				stream_state: "closed"
 			});
 		}
 
 		this.update_loading_stati_state();
-		// if (submission) {
-		// 	submission.close_stream();
-		// }
 	}
 }
 

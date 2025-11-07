@@ -14,7 +14,7 @@
 	export let i18n: I18nFormatter;
 	export let waveform_settings: Record<string, any>;
 	export let waveform_options: WaveformOptions = {
-		show_recording_waveform: true
+		show_recording_waveform: true,
 	};
 	export let waiting = false;
 
@@ -35,7 +35,7 @@
 		micWaveform = WaveSurfer.create({
 			...waveform_settings,
 			normalize: false,
-			container: microphoneContainer
+			container: microphoneContainer,
 		});
 
 		waveformRecord = micWaveform.registerPlugin(RecordPlugin.create());

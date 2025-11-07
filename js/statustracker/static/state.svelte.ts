@@ -19,7 +19,7 @@ export class LoadingStatus {
 			fn_index: -1,
 			message: undefined,
 			progress: undefined,
-			stream_status: null
+			stream_state: null
 		};
 	}
 
@@ -35,7 +35,7 @@ export class LoadingStatus {
 				status,
 				message,
 				progress,
-				stream_status,
+				stream_state,
 				time_limit
 			}) => {
 				this.current[id] = {
@@ -43,7 +43,7 @@ export class LoadingStatus {
 					queue_size: queue_size,
 					queue_position: queue_position,
 					eta: eta,
-					stream_status: stream_status,
+					stream_state: stream_state,
 					message: message,
 					progress: progress || undefined,
 					status,
@@ -67,7 +67,7 @@ export class LoadingStatus {
 			eta = null,
 			message = null,
 			progress = null,
-			stream_status = null,
+			stream_state = null,
 			time_limit = null
 		} = args;
 
@@ -108,7 +108,7 @@ export class LoadingStatus {
 				status: new_status,
 				message: message,
 				progress: progress,
-				stream_status,
+				stream_state: stream_state,
 				time_limit
 			};
 		});
