@@ -199,9 +199,9 @@ class TestBlocksMethods:
             }
         """
         css = css * 5  # simulate a long css string
-        block = gr.Blocks()
+        with gr.Blocks() as block:
+            pass
         block.launch(prevent_thread_lock=True, css=css)
-
         assert block.css == css
         block.close()
 
@@ -381,7 +381,8 @@ class TestBlocksMethods:
         with pytest.warns(
             UserWarning, match="Cannot load freddyaboulton/this-theme-does-not-exist"
         ):
-            demo = gr.Blocks()
+            with gr.Blocks() as demo:
+                pass
             demo.launch(
                 prevent_thread_lock=True,
                 theme="freddyaboulton/this-theme-does-not-exist",
@@ -1982,12 +1983,13 @@ def mock_css_files():
 
 def test_css_and_css_paths_parameters(mock_css_files):
     css_paths = ["file1.css", "file2.css"]
-    instance = gr.Blocks()
     expected_css = """
 body { color: red; }
 h1 { font-size: 20px; }
 .class { margin: 10px; }
         """
+    with gr.Blocks() as instance:
+        pass
     instance.launch(
         prevent_thread_lock=True, css="body { color: red; }", css_paths=css_paths
     )
