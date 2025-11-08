@@ -200,7 +200,7 @@ class TestBlocksMethods:
         """
         css = css * 5  # simulate a long css string
         block = gr.Blocks()
-        block.launch(css=css)
+        block.launch(prevent_thread_lock=True, css=css)
 
         assert block.css == css
         block.close()
@@ -382,7 +382,10 @@ class TestBlocksMethods:
             UserWarning, match="Cannot load freddyaboulton/this-theme-does-not-exist"
         ):
             demo = gr.Blocks()
-            demo.launch(theme="freddyaboulton/this-theme-does-not-exist")
+            demo.launch(
+                prevent_thread_lock=True,
+                theme="freddyaboulton/this-theme-does-not-exist",
+            )
             assert demo.theme.to_dict() == gr.themes.Default().to_dict()
             demo.close()
 
@@ -1985,7 +1988,9 @@ body { color: red; }
 h1 { font-size: 20px; }
 .class { margin: 10px; }
         """
-    instance.launch(css="body { color: red; }", css_paths=css_paths)
+    instance.launch(
+        prevent_thread_lock=True, css="body { color: red; }", css_paths=css_paths
+    )
     assert instance.css is not None
     assert instance.css.strip() == expected_css.strip()
     instance.close()

@@ -413,7 +413,7 @@ def test_public_request_pass():
         "https://github.com/favicon.ico", tempdir.name
     )
     assert os.path.exists(file)
-    assert os.path.getsize(file) == 13444
+    assert os.path.getsize(file) == 6518
 
 
 @pytest.mark.asyncio
@@ -423,7 +423,7 @@ async def test_async_public_request_pass():
         "https://github.com/favicon.ico", tempdir.name
     )
     assert os.path.exists(file)
-    assert os.path.getsize(file) == 13444
+    assert os.path.getsize(file) == 6518
 
 
 def test_private_request_fail():

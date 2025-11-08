@@ -195,7 +195,7 @@ class TestInit:
         ][0]
         assert accordion.get_config().get("open") is False
         assert (
-            accordion.get_config().get("label").get("key")
+            accordion.get_config().get("label").key
             == "chat_interface.additional_inputs"
         )
 

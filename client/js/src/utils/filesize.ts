@@ -31,7 +31,7 @@ export const SPECS: Record<string, SPEC> = {
  */
 export function filesize(bytes: number, fixed = 1, spec = "jedec"): string {
 	bytes = Math.abs(bytes);
-	const { radix, unit } = SPECS[spec];
+	const { radix, unit } = SPECS[spec] || SPECS.jedec;
 	let loop = 0;
 	while (bytes >= radix) {
 		bytes /= radix;
