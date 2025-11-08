@@ -142,18 +142,7 @@
 			// TODO: the loading_status store should handle this via a method
 			// update_status(id, "complete", data);
 		} else if (event == "close_stream") {
-			// TODO: this is for streaming webcam + audio, can they manage their own streams
-			// the data streaming is orthogonal to the event, like files are
-			//
-			// const deps = $targets[id]?.[data];
-			// deps?.forEach((dep_id) => {
-			// 	if (submit_map.has(dep_id)) {
-			// 		// @ts-ignore
-			// 		const url = `${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_id).event_id()}`;
-			// 		app.post_data(`${url}/close`, {});
-			// 		app.close_ws(url);
-			// 	}
-			// });
+			dep_manager.close_stream(id);
 		} else {
 			dep_manager.dispatch({
 				type: "event",

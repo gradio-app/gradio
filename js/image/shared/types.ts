@@ -37,4 +37,6 @@ export interface ImageEvents {
 	clear_status: LoadingStatus;
 	share: any;
 	error: any;
+	close_stream: void;
+	edit: void;
 }

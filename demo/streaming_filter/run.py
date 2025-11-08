@@ -2,6 +2,7 @@ import gradio as gr
 import numpy as np
 import cv2  # type: ignore
 
+
 def transform_cv2(frame, transform):
     if transform == "cartoon":
         # prepare color
@@ -31,16 +32,26 @@ def transform_cv2(frame, transform):
     else:
         return np.flipud(frame)
 
+
 with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
-            transform = gr.Dropdown(choices=["cartoon", "edges", "flip"],
-                                    value="flip", label="Transformation")
+            transform = gr.Dropdown(
+                choices=["cartoon", "edges", "flip"],
+                value="flip",
+                label="Transformation",
+            )
             input_img = gr.Image(sources=["webcam"], type="numpy")
         with gr.Column():
             output_img = gr.Image(streaming=True)
-        dep = input_img.stream(transform_cv2, [input_img, transform], [output_img],
-                                time_limit=30, stream_every=0.1, concurrency_limit=30)
+        dep = input_img.stream(
+            transform_cv2,
+            [input_img, transform],
+            [output_img],
+            time_limit=30,
+            stream_every=0.1,
+            concurrency_limit=30,
+        )
 
 if __name__ == "__main__":
     demo.launch()

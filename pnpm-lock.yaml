@@ -661,29 +661,29 @@ importers:
         specifier: workspace:^
         version: link:../utils
       '@types/wavesurfer.js':
-        specifier: ^6.0.12
-        version: 6.0.12
+        specifier: 6.0.10
+        version: 6.0.10
       extendable-media-recorder:
-        specifier: ^9.2.31
-        version: 9.2.31
+        specifier: 9.0.0
+        version: 9.0.0
       extendable-media-recorder-wav-encoder:
-        specifier: ^7.0.132
-        version: 7.0.132
+        specifier: 7.0.76
+        version: 7.0.76
       hls.js:
-        specifier: ^1.6.13
-        version: 1.6.14
+        specifier: 1.5.13
+        version: 1.5.13
       resize-observer-polyfill:
-        specifier: ^1.5.1
+        specifier: 1.5.1
         version: 1.5.1
       svelte:
         specifier: ^5.43.4
         version: 5.43.4
       svelte-range-slider-pips:
-        specifier: ^4.1.0
+        specifier: 4.1.0
         version: 4.1.0(svelte@5.43.4)
       wavesurfer.js:
-        specifier: ^7.11.0
-        version: 7.11.1
+        specifier: 7.4.2
+        version: 7.4.2
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -4525,6 +4525,9 @@ packages:
   '@types/uuid@9.0.8':
     resolution: {integrity: sha512-jg+97EGIcY9AGHJJRaaPVgetKDsrTgbRjQ5Msgjh/DQKEFl0DtyRr/VCOyD1T2R1MNeWPK/u7JoGhlDZnKBAfA==}
 
+  '@types/wavesurfer.js@6.0.10':
+    resolution: {integrity: sha512-LEzDaKM8L/fx8lwh7SQROD8s5MuEtimChhEQ2HwDFJApPmZFALxSwwUMlEj0mT71EstWZuLhijY2uUiNRZtzqg==}
+
   '@types/wavesurfer.js@6.0.12':
     resolution: {integrity: sha512-oM9hYlPIVms4uwwoaGs9d0qp7Xk7IjSGkdwgmhUymVUIIilRfjtSQvoOgv4dpKiW0UozWRSyXfQqTobi0qWyCw==}
 
@@ -5715,11 +5718,11 @@ packages:
   extendable-media-recorder-wav-encoder-worker@8.0.119:
     resolution: {integrity: sha512-7RRdga3SvQ5k/KLuFPxZJl3wBe9vhanBVZD/2+STwHxfHkbbh3VLKv3rjtH7h4F2OYOEGCLLKKcfI5LFWiXA7g==}
 
-  extendable-media-recorder-wav-encoder@7.0.132:
-    resolution: {integrity: sha512-i+DWP7eDBP+V/jVzmpVMET6XsQPTWcW3vmYZP8lGShnWx5vkwB+mdgK2kAwdu9i9r0IVMFVQETsO1nGYOW1cwg==}
+  extendable-media-recorder-wav-encoder@7.0.76:
+    resolution: {integrity: sha512-HLeyR9R0mUPOo7zG3d3GRWltNaSYUjyUZGQ8amRjuQVkZFXszmOIAAUVBq3fou0Z3V1mAEo+mXnCqbEfYtgZXQ==}
 
-  extendable-media-recorder@9.2.31:
-    resolution: {integrity: sha512-oznSghXWrRZcusZenD7aEsEnlEO/ZVOdIiNxyG53PlN3FZh8xXsR+TOzK8kPBEkfLg1twO/cO6qCqtJDQhWYng==}
+  extendable-media-recorder@9.0.0:
+    resolution: {integrity: sha512-50HNf/4wv2V7H7YBXVfxYLnaXQwMVcna9UHZxFPXmgWdThetWNu+TYKwA+xOPWA+rkr8Tqvtldxc/sPC/s/wXg==}
 
   fast-deep-equal@3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
@@ -5932,6 +5935,9 @@ packages:
 
   headers-polyfill@4.0.3:
     resolution: {integrity: sha512-IScLbePpkvO846sIwOtOTDjutRMWdXdJmXdMvk6gCBHxFO8d+QKOQedyZSxFTTFYRSmlgSTDtXqqq4pcenBXLQ==}
+
+  hls.js@1.5.13:
+    resolution: {integrity: sha512-xRgKo84nsC7clEvSfIdgn/Tc0NOT+d7vdiL/wvkLO+0k0juc26NRBPPG1SfB8pd5bHXIjMW/F5VM8VYYkOYYdw==}
 
   hls.js@1.6.14:
     resolution: {integrity: sha512-CSpT2aXsv71HST8C5ETeVo+6YybqCpHBiYrCRQSn3U5QUZuLTSsvtq/bj+zuvjLVADeKxoebzo16OkH8m1+65Q==}
@@ -6365,14 +6371,14 @@ packages:
     peerDependencies:
       svelte: ^3.56.0 || ^4.0.0 || ^5.0.0-next.120
 
-  media-encoder-host-broker@8.0.22:
-    resolution: {integrity: sha512-c/JeVViD6WBh99PqEkhS85Lf/ZOe3FvNEu+rdWfRMIDg4tqrgZCGwuh/eiyv0kbQNRlNSEvJw0GbyHlkWt9TfQ==}
+  media-encoder-host-broker@7.1.0:
+    resolution: {integrity: sha512-Emu3f45Wbf6AoRJxfvZ8e5nh8fRVviBfkABgYNvVUsVBgJ7+l137gn324g/JmNVQhhVQ89fjmGT1kHIJ9JG5Nw==}
 
-  media-encoder-host-worker@10.0.22:
-    resolution: {integrity: sha512-xoIBkv2aCFTkO1VnQEThD+55yqUcqdbLHXLyLihes1r65JN8qRemOK8gElyl3rUnhm8gaw1egLhwpy7+wp1zXw==}
+  media-encoder-host-worker@9.2.0:
+    resolution: {integrity: sha512-LrJJgNBDZH2y1PYBLaiYQw9uFU5i3yPvDkDxdko+L3Z4qzhKq9+4eYxKDqlwO4EdOlaiggvMpkgZl3roOniz2A==}
 
-  media-encoder-host@9.0.23:
-    resolution: {integrity: sha512-RwbZPP+RpuSWmAREOvyQLwsGqGxUHdBCmaWaQejrpOUzoFV05Xws71gHL9GszsF1W5zz2U/13+3i0aBC+mHGOg==}
+  media-encoder-host@8.1.0:
+    resolution: {integrity: sha512-VwX3ex48ltl+K1ObGEq3IcZp/XqpNTWemd9brC9ovo89rYmCRKTZAp1FCyfAY86RdvSMrUs26lbo45DIDVyERg==}
 
   memoizee@0.4.17:
     resolution: {integrity: sha512-DGqD7Hjpi/1or4F/aYAspXKNm5Yili0QDAFAY4QYvpqpgiY6+1jOfqpmByzjxbWd/T9mChbCArXAbDAsTm5oXA==}
@@ -6453,9 +6459,9 @@ packages:
       typescript:
         optional: true
 
-  multi-buffer-data-view@6.0.24:
-    resolution: {integrity: sha512-cz5S5YlGBhQQpiaajm+gy49ydWQtnwCQnqmyFpHu17psNSI0PXzsEhhGoCRynPhjGy6Sbu0Hvb3Ja5X3Wk3bJA==}
-    engines: {node: '>=18.2.0'}
+  multi-buffer-data-view@5.0.14:
+    resolution: {integrity: sha512-MaATo4p+GrnsfQIoOfr6ZRaUFdkHiDgaXv7fghTzEAnfWMdhkC2VJg5cduGQIhdmgbRoXMqJ8AEgIRYGt7MX4g==}
+    engines: {node: '>=16.1.0'}
 
   mute-stream@2.0.0:
     resolution: {integrity: sha512-WWdIxpyjEn+FhQJQQv9aQAYlHoNVdzIzUySNV1gHUPDSdZJ3yZn7pAAbQcV7B56Mvu881q9FZV+0Vx2xC44VWA==}
@@ -7751,8 +7757,8 @@ packages:
     resolution: {integrity: sha512-o8qghlI8NZHU1lLPrpi2+Uq7abh4GGPpYANlalzWxyWteJOCsr/P+oPBA49TOLu5FTZO4d3F9MnWJfiMo4BkmA==}
     engines: {node: '>=18'}
 
-  wavesurfer.js@7.11.1:
-    resolution: {integrity: sha512-8Q+wwItpjJAlhQ7crQLtKwgfbqqczm5/wx+76K4PptP+MBAjB0OA78+A9OuLnULz/8GpAQ+fKM6s81DonEO0Sg==}
+  wavesurfer.js@7.4.2:
+    resolution: {integrity: sha512-4pNQ1porOCUBYBmd2F1TqVuBnB2wBPipaw2qI920zYLuPnada0Rd1CURgh8HRuPGKxijj2iyZDFN2UZwsaEuhA==}
 
   webidl-conversions@3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
@@ -9974,6 +9980,10 @@ snapshots:
 
   '@types/uuid@9.0.8': {}
 
+  '@types/wavesurfer.js@6.0.10':
+    dependencies:
+      '@types/debounce': 1.2.4
+
   '@types/wavesurfer.js@6.0.12':
     dependencies:
       '@types/debounce': 1.2.4
@@ -11251,18 +11261,18 @@ snapshots:
       tslib: 2.8.1
       worker-factory: 7.0.46
 
-  extendable-media-recorder-wav-encoder@7.0.132:
+  extendable-media-recorder-wav-encoder@7.0.76:
     dependencies:
       '@babel/runtime': 7.28.4
       extendable-media-recorder-wav-encoder-broker: 7.0.122
       extendable-media-recorder-wav-encoder-worker: 8.0.119
       tslib: 2.8.1
 
-  extendable-media-recorder@9.2.31:
+  extendable-media-recorder@9.0.0:
     dependencies:
       '@babel/runtime': 7.28.4
-      media-encoder-host: 9.0.23
-      multi-buffer-data-view: 6.0.24
+      media-encoder-host: 8.1.0
+      multi-buffer-data-view: 5.0.14
       recorder-audio-worklet: 6.0.51
       standardized-audio-context: 25.3.77
       subscribable-things: 2.1.55
@@ -11464,6 +11474,8 @@ snapshots:
   he@1.2.0: {}
 
   headers-polyfill@4.0.3: {}
+
+  hls.js@1.5.13: {}
 
   hls.js@1.6.14: {}
 
@@ -11860,26 +11872,26 @@ snapshots:
       unist-util-visit: 2.0.3
       vfile-message: 2.0.4
 
-  media-encoder-host-broker@8.0.22:
+  media-encoder-host-broker@7.1.0:
     dependencies:
       '@babel/runtime': 7.28.4
       broker-factory: 3.1.10
       fast-unique-numbers: 9.0.24
-      media-encoder-host-worker: 10.0.22
+      media-encoder-host-worker: 9.2.0
       tslib: 2.8.1
 
-  media-encoder-host-worker@10.0.22:
+  media-encoder-host-worker@9.2.0:
     dependencies:
       '@babel/runtime': 7.28.4
       extendable-media-recorder-wav-encoder-broker: 7.0.122
       tslib: 2.8.1
       worker-factory: 7.0.46
 
-  media-encoder-host@9.0.23:
+  media-encoder-host@8.1.0:
     dependencies:
       '@babel/runtime': 7.28.4
-      media-encoder-host-broker: 8.0.22
-      media-encoder-host-worker: 10.0.22
+      media-encoder-host-broker: 7.1.0
+      media-encoder-host-worker: 9.2.0
       tslib: 2.8.1
 
   memoizee@0.4.17:
@@ -12007,7 +12019,7 @@ snapshots:
     transitivePeerDependencies:
       - '@types/node'
 
-  multi-buffer-data-view@6.0.24:
+  multi-buffer-data-view@5.0.14:
     dependencies:
       '@babel/runtime': 7.28.4
       tslib: 2.8.1
@@ -13465,7 +13477,7 @@ snapshots:
     dependencies:
       xml-name-validator: 5.0.0
 
-  wavesurfer.js@7.11.1: {}
+  wavesurfer.js@7.4.2: {}
 
   webidl-conversions@3.0.1: {}
 

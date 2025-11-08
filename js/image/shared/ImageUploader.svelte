@@ -34,10 +34,11 @@
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let stream_every: number;
-
-	export let modify_stream: (state: "open" | "closed" | "waiting") => void;
-	export let set_time_limit: (arg0: number) => void;
+	export let time_limit: number;
 	export let show_fullscreen_button = true;
+	export let stream_state: "open" | "waiting" | "closed" = "closed";
+
+	$: console.log({ pending });
 
 	let upload_input: Upload;
 	export let uploading = false;
@@ -82,6 +83,7 @@
 		img_blob: Blob | any,
 		event: "change" | "stream" | "upload"
 	): Promise<void> {
+		console.log("handle_save", { event, img_blob });
 		if (event === "stream") {
 			dispatch("stream", {
 				value: { url: img_blob } as Base64File,
@@ -103,6 +105,7 @@
 		];
 		pending = true;
 		const f = await upload_input.load_files([f_], upload_id);
+		console.log("uploaded file", f);
 		if (event === "change" || event === "upload") {
 			value = f?.[0] || null;
 			await tick();
@@ -233,6 +236,7 @@
 				on:drag
 				on:upload={(e) => handle_save(e.detail, "upload")}
 				on:close_stream
+				{stream_state}
 				mirror_webcam={webcam_options.mirror}
 				{stream_every}
 				{streaming}
@@ -240,8 +244,7 @@
 				include_audio={false}
 				{i18n}
 				{upload}
-				bind:modify_stream
-				bind:set_time_limit
+				{time_limit}
 				webcam_constraints={webcam_options.constraints}
 			/>
 		{:else if value !== null && !streaming}
