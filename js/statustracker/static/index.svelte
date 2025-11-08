@@ -86,13 +86,15 @@
 	export let autoscroll: boolean;
 	export let validation_error: string | null = null;
 	export let show_validation_error = true;
+	export let type: "input" | "outputs" | null = null;
 
 	$: should_hide =
-		(!status ||
+		type === "input" ||
+		((!status ||
 			status === "complete" ||
 			show_progress === "hidden" ||
 			status == "streaming") &&
-		!validation_error;
+			!validation_error);
 
 	let el: HTMLDivElement;
 

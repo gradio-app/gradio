@@ -12,23 +12,13 @@
 	import type { AudioEvents, AudioProps } from "./shared/types";
 
 	let props = $props();
+	props.props.stream_every = 0.1; // default to 0.1s stream interval
 	const gradio = new Gradio<AudioEvents, AudioProps>(props);
 	let uploading = false;
 	let active_source = $derived.by(() =>
 		gradio.props.sources ? gradio.props.sources[0] : null
 	);
 	let initial_value = gradio.props.value;
-
-	let stream_state = "closed";
-	let _modify_stream: (state: "open" | "closed" | "waiting") => void;
-	export function modify_stream_state(
-		state: "open" | "closed" | "waiting"
-	): void {
-		stream_state = state;
-		_modify_stream(state);
-	}
-	export const get_stream_state: () => void = () => stream_state;
-	let set_time_limit: (time: number) => void = props.set_time_limit;
 
 	const handle_reset_value = (): void => {
 		if (initial_value === null || gradio.props.value === initial_value) {
@@ -78,6 +68,15 @@
 		gradio.dispatch(level as "error" | "warning", detail);
 	}
 
+	let old_value = $state(gradio.props.value);
+
+	$effect(() => {
+		if (old_value != gradio.props.value) {
+			old_value = gradio.props.value;
+			gradio.dispatch("change");
+		}
+	});
+
 	onMount(() => {
 		color_accent = getComputedStyle(document?.documentElement).getPropertyValue(
 			"--color-accent"
@@ -91,14 +90,6 @@
 			gradio.props.waveform_options.show_controls;
 		waveform_settings.sampleRate =
 			gradio.props.waveform_options.sample_rate || 44100;
-	});
-
-	let old_value = $state(gradio.props.value);
-	$effect(() => {
-		if (old_value != gradio.props.value) {
-			old_value = gradio.props.value;
-			gradio.dispatch("change");
-		}
 	});
 </script>
 
@@ -178,7 +169,7 @@
 			root={gradio.shared.root}
 			sources={gradio.props.sources}
 			{active_source}
-			pending={gradio.props.pending}
+			pending={gradio.shared.loading_status.pending}
 			streaming={gradio.props.streaming}
 			bind:recording={gradio.props.recording}
 			loop={gradio.props.loop}
@@ -212,10 +203,10 @@
 			waveform_options={gradio.props.waveform_options}
 			{trim_region_settings}
 			stream_every={gradio.props.stream_every}
-			bind:modify_stream={_modify_stream}
-			bind:set_time_limit
+			stream_state={gradio.shared.loading_status.stream_state}
 			upload={(...args) => gradio.shared.client.upload(...args)}
 			stream_handler={(...args) => gradio.shared.client.stream(...args)}
+			time_limit={gradio.shared.loading_status.time_limit}
 		>
 			<UploadText i18n={gradio.i18n} type="audio" />
 		</InteractiveAudio>

@@ -19,7 +19,6 @@ const NOVALUE = Symbol("NOVALUE");
  */
 export class Dependency {
 	id: number;
-
 	inputs: number[];
 	outputs: number[];
 	cancels: number[];
@@ -27,6 +26,7 @@ export class Dependency {
 	trigger_modes: "once" | "multiple" | "always_last";
 	event_args: Record<string, unknown> = {};
 	targets: [number, string][] = [];
+	connection_type: "stream" | "sse";
 
 	// if this dependency has any then, success or failure triggers
 	triggers: [number, "success" | "failure" | "all"][] = [];
@@ -47,6 +47,7 @@ export class Dependency {
 		this.original_trigger_id = dep_config.id;
 		this.inputs = dep_config.inputs;
 		this.outputs = dep_config.outputs;
+		this.connection_type = dep_config.connection;
 		this.functions = {
 			frontend: dep_config.js
 				? process_frontend_fn(
@@ -161,8 +162,8 @@ export class DependencyManager {
 	update_state_cb: (
 		id: number,
 		state: Record<string, unknown>,
-		check_visibility: boolean
-	) => void;
+		check_visibility?: boolean
+	) => Promise<void>;
 	get_state_cb: (id: number) => Promise<Record<string, unknown> | null>;
 	rerender_cb: (components: ComponentMeta[], layout: LayoutNode) => void;
 	log_cb: (
@@ -178,7 +179,11 @@ export class DependencyManager {
 	constructor(
 		dependencies: IDependency[],
 		client: Client,
-		update_state_cb: (id: number, state: Record<string, unknown>) => void,
+		update_state_cb: (
+			id: number,
+			state: Record<string, unknown>,
+			check_visibility?: boolean
+		) => Promise<void>,
 		get_state_cb: (id: number) => Promise<Record<string, unknown> | null>,
 		rerender_cb: (components: ComponentMeta[], layout: LayoutNode) => void,
 		log_cb: (
@@ -200,12 +205,21 @@ export class DependencyManager {
 		this.rerender_cb = rerender_cb;
 		this.log_cb = log_cb;
 
+		for (const [dep_id, dep] of this.dependencies_by_fn) {
+			for (const [output_id] of dep.targets) {
+				this.set_event_args(output_id, dep.event_args);
+			}
+		}
 		this.register_loading_stati(by_id);
 	}
 
 	register_loading_stati(deps: Map<number, Dependency>): void {
 		for (const [_, dep] of deps) {
-			this.loading_stati.register(dep.id, dep.show_progress_on || dep.outputs);
+			this.loading_stati.register(
+				dep.id,
+				dep.show_progress_on || dep.outputs,
+				dep.inputs
+			);
 		}
 	}
 
@@ -215,13 +229,25 @@ export class DependencyManager {
 			const dependency = this.dependencies_by_fn.get(dep_id);
 			if (dependency) {
 				for (const output_id of dependency.outputs) {
-					this.update_state_cb(
+					await this.update_state_cb(
 						output_id,
 						{
-							loading_status: dep
+							loading_status: { ...dep, type: "output" }
 						},
 						false
 					);
+				}
+
+				for (const input_id of dependency.inputs) {
+					if (dependency.connection_type === "stream") {
+						await this.update_state_cb(
+							input_id,
+							{
+								loading_status: { ...dep, type: "input" }
+							},
+							false
+						);
+					}
 				}
 			}
 		}
@@ -247,6 +273,10 @@ export class DependencyManager {
 		for (let i = 0; i < (deps?.length || 0); i++) {
 			const dep = deps ? deps[i] : undefined;
 			if (dep) {
+				console.log(
+					"Dispatching dependency",
+					`${event_meta.event_name}-${event_meta.target_id}`
+				);
 				this.cancel(dep.cancels);
 
 				const dispatch_status = should_dispatch(
@@ -254,8 +284,19 @@ export class DependencyManager {
 					this.submissions.has(dep.id)
 				);
 
+				if (dispatch_status === "skip") {
+					continue;
+				} else if (dispatch_status === "defer") {
+					this.queue.add(dep.id);
+					continue;
+				}
+
 				const data_payload = await this.gather_state(dep.inputs);
-				const unset_args = await this.set_event_args(dep.id, dep.event_args);
+				const unset_args = await Promise.all(
+					dep.targets.map(([output_id]) =>
+						this.set_event_args(output_id, dep.event_args)
+					)
+				);
 
 				const { success, failure, all } = dep.get_triggers();
 
@@ -269,6 +310,22 @@ export class DependencyManager {
 					} else {
 						target_id = dep.original_trigger_id;
 					}
+
+					if (
+						dep.connection_type === "stream" &&
+						this.submissions.has(dep.id)
+					) {
+						const submission = this.submissions.get(dep.id);
+						let payload: Payload = {
+							fn_index: dep.id,
+							data: data_payload,
+							event_data: event_meta.event_data
+						};
+						submission!.send_chunk(payload);
+						unset_args.forEach((fn) => fn());
+						continue;
+					}
+
 					const dep_submission = await dep.run(
 						this.client,
 						data_payload,
@@ -277,11 +334,20 @@ export class DependencyManager {
 					);
 
 					if (dep_submission.type === "void") {
-						unset_args();
+						unset_args.forEach((fn) => fn());
 					} else if (dep_submission.type === "data") {
 						this.handle_data(dep.outputs, dep_submission.data);
-						unset_args();
+						unset_args.forEach((fn) => fn());
 					} else {
+						let stream_state: "open" | "closed" | "waiting" | null = null;
+
+						if (
+							dep.connection_type === "stream" &&
+							!this.submissions.has(dep.id)
+						) {
+							stream_state = "waiting";
+						}
+
 						this.submissions.set(dep.id, dep_submission.data);
 						// fn for this?
 						submit_loop: for await (const result of dep_submission.data) {
@@ -290,18 +356,17 @@ export class DependencyManager {
 								this.handle_data(dep.outputs, result.data);
 							}
 							if (result.type === "status") {
+								if (
+									result.original_msg === "process_starts" &&
+									dep.connection_type === "stream"
+								) {
+									stream_state = "open";
+								}
 								const { fn_index, ...status } = result;
-								// @ts-ignore
-								this.loading_stati.update({
-									...status,
-									status: status.stage,
-									fn_index: dep.id
-								});
-
-								this.update_loading_stati_state();
 
 								// handle status updates here
 								if (result.stage === "complete") {
+									stream_state = "closed";
 									success.forEach((dep_id) => {
 										this.dispatch({
 											type: "fn",
@@ -310,6 +375,14 @@ export class DependencyManager {
 											target_id: target_id as number | undefined
 										});
 									});
+									// @ts-ignore
+									this.loading_stati.update({
+										...status,
+										status: status.stage,
+										fn_index: dep.id,
+										stream_state
+									});
+									this.update_loading_stati_state();
 									break submit_loop;
 								} else if (result.stage === "error") {
 									const _message = result?.message?.replace(
@@ -325,6 +398,15 @@ export class DependencyManager {
 										status.visible
 									);
 									throw new Error("Dependency function failed");
+								} else {
+									// @ts-ignore
+									this.loading_stati.update({
+										...status,
+										status: status.stage,
+										fn_index: dep.id,
+										stream_state
+									});
+									this.update_loading_stati_state();
 								}
 							}
 
@@ -373,13 +455,14 @@ export class DependencyManager {
 								target_id: target_id as number | undefined
 							});
 						});
-						unset_args();
+						unset_args.forEach((fn) => fn());
 						this.submissions.delete(dep.id);
 
-						// if (this.queue.has(dep.id)) {
-						// 	this.queue.delete(dep.id);
-						// 	this.dispatch(event_meta);
-						// }
+						if (this.queue.has(dep.id)) {
+							this.queue.delete(dep.id);
+							this.dispatch(event_meta);
+						}
+
 						return;
 					}
 				} catch (error) {
@@ -477,14 +560,30 @@ export class DependencyManager {
 			if (_data === NOVALUE) return;
 
 			if (is_prop_update(_data)) {
+				let pending_visibility_update = false;
+				let pending_visibility_value = null;
 				for (const [update_key, update_value] of Object.entries(_data)) {
 					if (update_key === "__type__") continue;
+					if (update_key === "visible") {
+						pending_visibility_update = true;
+						pending_visibility_value = update_value;
+						continue;
+					}
 					await this.update_state_cb(
 						outputs[i],
 						{
 							[update_key]: update_value
 						},
 						update_key === "visible"
+					);
+				}
+				if (pending_visibility_update) {
+					await this.update_state_cb(
+						outputs[i],
+						{
+							visible: pending_visibility_value
+						},
+						true
 					);
 				}
 			} else {
@@ -528,7 +627,8 @@ export class DependencyManager {
 				// do nothing
 			};
 		}
-		this.update_state_cb(id, args, false);
+
+		await this.update_state_cb(id, args, false);
 
 		return () => {
 			this.update_state_cb(id, current_args, false);
@@ -560,6 +660,41 @@ export class DependencyManager {
 				}
 			});
 		});
+	}
+
+	get_fns_from_targets(target_id: number): number[] {
+		const fn_indices: number[] = [];
+		this.dependencies_by_event.forEach((deps, key) => {
+			const [, dep_target_id] = key.split("-");
+			if (Number(dep_target_id) === target_id) {
+				deps.forEach((dep) => {
+					fn_indices.push(dep.id);
+				});
+			}
+		});
+		return fn_indices;
+	}
+
+	close_stream(id: number): void {
+		const fn_ids = this.get_fns_from_targets(id);
+
+		for (const fn_id of fn_ids) {
+			const submission = this.submissions.get(fn_id);
+			if (submission) {
+				submission.close_stream();
+				this.submissions.delete(fn_id);
+			}
+
+			this.loading_stati.update({
+				status: "complete",
+				fn_index: fn_id,
+				eta: 0,
+				queue: false,
+				stream_state: "closed"
+			});
+		}
+
+		this.update_loading_stati_state();
 	}
 }
 

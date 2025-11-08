@@ -67,6 +67,7 @@ class Event:
         self.progress: ProgressMessage | None = None
         self.progress_pending: bool = False
         self.alive = True
+        self.closed = False
         self.n_calls = 0
         self.run_time: float = 0
         self.signal = asyncio.Event()
@@ -79,6 +80,8 @@ class Event:
     def is_finished(self):
         if not self.streaming:
             raise ValueError("Cannot access if_finished during a non-streaming event")
+        if self.closed:
+            return True
         if self.fn.time_limit is None:
             return False
         return self.run_time >= self.fn.time_limit

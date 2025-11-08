@@ -41,30 +41,13 @@
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
-	export let stream_every: number;
+	export let stream_every: number = 0.1;
 	export let uploading = false;
 	export let recording = false;
 	export let class_name = "";
 
-	let time_limit: number | null = null;
-	let stream_state: "open" | "waiting" | "closed" = "closed";
-
-	export const modify_stream: (state: "open" | "closed" | "waiting") => void = (
-		state: "open" | "closed" | "waiting"
-	) => {
-		if (state === "closed") {
-			time_limit = null;
-			stream_state = "closed";
-		} else if (state === "waiting") {
-			stream_state = "waiting";
-		} else {
-			stream_state = "open";
-		}
-	};
-
-	export const set_time_limit = (time: number): void => {
-		if (recording) time_limit = time;
-	};
+	export let time_limit: number | null = null;
+	export let stream_state: "open" | "waiting" | "closed" = "closed";
 
 	$: dispatch("drag", dragging);
 
@@ -142,11 +125,11 @@
 			throw err;
 		}
 		if (stream == null) return;
-
 		if (streaming) {
 			recorder = new streaming_media_recorder(stream, {
 				mimeType: "audio/wav"
 			});
+
 			recorder.addEventListener("dataavailable", handle_chunk);
 		} else {
 			recorder = new MediaRecorder(stream);
@@ -194,6 +177,7 @@
 		recording = true;
 		dispatch("start_recording");
 		if (!inited) await prepare_audio();
+
 		header = undefined;
 		if (streaming && recorder.state != "recording") {
 			recorder.start(stream_every * 1000);
