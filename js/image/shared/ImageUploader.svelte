@@ -6,7 +6,7 @@
 	import {
 		type SelectData,
 		type I18nFormatter,
-		type ValueData
+		type ValueData,
 	} from "@gradio/utils";
 	import { get_coordinates_of_clicked_image } from "./utils";
 	import Webcam from "./Webcam.svelte";
@@ -37,6 +37,7 @@
 	export let time_limit: number;
 	export let show_fullscreen_button = true;
 	export let stream_state: "open" | "waiting" | "closed" = "closed";
+	export let upload_promise: Promise<any> | null = null;
 
 	$: console.log({ pending });
 
@@ -49,7 +50,7 @@
 	let upload_id: string;
 
 	async function handle_upload({
-		detail
+		detail,
 	}: CustomEvent<FileData>): Promise<void> {
 		if (!streaming) {
 			if (detail.path?.toLowerCase().endsWith(".svg") && detail.url) {
@@ -57,7 +58,7 @@
 				const svgContent = await response.text();
 				value = {
 					...detail,
-					url: `data:image/svg+xml,${encodeURIComponent(svgContent)}`
+					url: `data:image/svg+xml,${encodeURIComponent(svgContent)}`,
 				};
 			} else {
 				value = detail;
@@ -81,13 +82,13 @@
 
 	async function handle_save(
 		img_blob: Blob | any,
-		event: "change" | "stream" | "upload"
+		event: "change" | "stream" | "upload",
 	): Promise<void> {
 		console.log("handle_save", { event, img_blob });
 		if (event === "stream") {
 			dispatch("stream", {
 				value: { url: img_blob } as Base64File,
-				is_value_data: true
+				is_value_data: true,
 			});
 			return;
 		}
@@ -100,8 +101,8 @@
 				blob: f_,
 				size: f_.size,
 				mime_type: f_.type,
-				is_stream: false
-			})
+				is_stream: false,
+			}),
 		];
 		pending = true;
 		const f = await upload_input.load_files([f_], upload_id);
@@ -143,7 +144,7 @@
 	}
 
 	async function handle_select_source(
-		source: (typeof sources)[number]
+		source: (typeof sources)[number],
 	): Promise<void> {
 		switch (source) {
 			case "clipboard":
@@ -206,6 +207,7 @@
 		on:drop={on_drop}
 	>
 		<Upload
+			bind:upload_promise
 			hidden={value !== null || active_source === "webcam"}
 			bind:this={upload_input}
 			bind:uploading

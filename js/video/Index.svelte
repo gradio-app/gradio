@@ -1,6 +1,7 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
+	import { tick } from "svelte";
 	import type { FileData } from "@gradio/client";
 	import { Block, UploadText } from "@gradio/atoms";
 	import StaticVideo from "./shared/VideoPreview.svelte";
@@ -10,13 +11,28 @@
 	import type { VideoProps, VideoEvents } from "./types";
 
 	const props = $props();
-	const gradio = new Gradio<VideoEvents, VideoProps>(props);
 
+	let upload_promise = $state<Promise<any>>();
+
+	class VideoGradio extends Gradio<VideoEvents, VideoProps> {
+		async get_data() {
+			if (upload_promise) {
+				await upload_promise;
+				await tick();
+			}
+			const data = await super.get_data();
+
+			return data;
+		}
+	}
+
+	const gradio = new VideoGradio(props);
 	let old_value = $state(gradio.props.value);
+
 	let uploading = $state(false);
 	let dragging = $state(false);
 	let active_source = $derived.by(() =>
-		gradio.props.sources ? gradio.props.sources[0] : undefined
+		gradio.props.sources ? gradio.props.sources[0] : undefined,
 	);
 	let initial_value: FileData | null = gradio.props.value;
 
@@ -86,7 +102,7 @@
 			loop={gradio.props.loop}
 			show_share_button={(gradio.props.buttons || []).includes("share")}
 			show_download_button={(gradio.props.buttons || ["download"]).includes(
-				"download"
+				"download",
 			)}
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}
@@ -124,6 +140,7 @@
 		/>
 
 		<Video
+			bind:upload_promise
 			value={gradio.props.value}
 			subtitle={gradio.props.subtitles}
 			on:change={handle_change}

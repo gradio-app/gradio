@@ -9,6 +9,7 @@
 </script>
 
 <script lang="ts">
+	import { tick } from "svelte";
 	import { Gradio } from "@gradio/utils";
 	import StaticImage from "./shared/ImagePreview.svelte";
 	import ImageUploader from "./shared/ImageUploader.svelte";
@@ -18,10 +19,15 @@
 	import type { ImageProps, ImageEvents } from "./shared/types";
 
 	let stream_data = { value: null };
-
+	let upload_promise = $state<Promise<any>>();
 	class ImageGradio extends Gradio<ImageEvents, ImageProps> {
 		async get_data() {
 			console.log("Getting data with stream_data:", stream_data);
+			if (upload_promise) {
+				await upload_promise;
+				await tick();
+			}
+
 			const data = await super.get_data();
 			if (props.props.streaming) {
 				data.value = stream_data.value;
@@ -35,10 +41,9 @@
 	const gradio = new ImageGradio(props);
 
 	let fullscreen = $state(false);
-	let uploading = $state(false);
 	let dragging = $state(false);
 	let active_source = $derived.by(() =>
-		gradio.props.sources ? gradio.props.sources[0] : null
+		gradio.props.sources ? gradio.props.sources[0] : null,
 	);
 
 	let upload_component: ImageUploader;
@@ -73,7 +78,7 @@
 			"IMAGE VALUE CHANGE CHECK",
 			old_value,
 			gradio.props.value,
-			gradio.props.streaming
+			gradio.props.streaming,
 		);
 		if (old_value != gradio.props.value) {
 			old_value = gradio.props.value;
@@ -151,8 +156,8 @@
 			/>
 		{/if}
 		<ImageUploader
+			bind:upload_promise
 			bind:this={upload_component}
-			bind:uploading
 			bind:active_source
 			bind:value={gradio.props.value}
 			bind:dragging

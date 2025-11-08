@@ -4,6 +4,7 @@
 </script>
 
 <script lang="ts">
+	import { tick } from "svelte";
 	import type { FileData } from "@gradio/client";
 	import { Block, UploadText } from "@gradio/atoms";
 	import Gallery from "./shared/Gallery.svelte";
@@ -12,17 +13,31 @@
 	import { BaseFileUpload } from "@gradio/file";
 	import type { GalleryProps, GalleryEvents, GalleryData } from "./types";
 
+	let upload_promise = $state<Promise<any>>();
+
+	class GalleryGradio extends Gradio<GalleryEvents, GalleryProps> {
+		async get_data() {
+			if (upload_promise) {
+				await upload_promise;
+				await tick();
+			}
+			const data = await super.get_data();
+
+			return data;
+		}
+	}
+
 	const props = $props();
-	const gradio = new Gradio<GalleryEvents, GalleryProps>(props);
+	const gradio = new GalleryGradio<GalleryEvents, GalleryProps>(props);
 
 	let fullscreen = $state(false);
 
 	let no_value = $derived(
-		gradio.props.value === null ? true : gradio.props.value.length === 0
+		gradio.props.value === null ? true : gradio.props.value.length === 0,
 	);
 
 	function handle_delete(
-		event: CustomEvent<{ file: FileData; index: number }>
+		event: CustomEvent<{ file: FileData; index: number }>,
 	): void {
 		if (!gradio.props.value) return;
 		const { index } = event.detail;
@@ -32,7 +47,7 @@
 	}
 
 	async function process_upload_files(
-		files: FileData[]
+		files: FileData[],
 	): Promise<GalleryData[]> {
 		const processed_files = await Promise.all(
 			files.map(async (x) => {
@@ -41,17 +56,17 @@
 					const svgContent = await response.text();
 					return {
 						...x,
-						url: `data:image/svg+xml,${encodeURIComponent(svgContent)}`
+						url: `data:image/svg+xml,${encodeURIComponent(svgContent)}`,
 					};
 				}
 				return x;
-			})
+			}),
 		);
 
 		return processed_files.map((x) =>
 			x.mime_type?.includes("video")
 				? { video: x, caption: null }
-				: { image: x, caption: null }
+				: { image: x, caption: null },
 		);
 	}
 </script>
@@ -80,6 +95,7 @@
 	/>
 	{#if gradio.shared.interactive && no_value}
 		<BaseFileUpload
+			bind:upload_promise
 			value={null}
 			root={gradio.shared.root}
 			label={gradio.shared.label}

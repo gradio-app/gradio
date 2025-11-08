@@ -10,16 +10,32 @@
 	import MultimodalTextbox from "./shared/MultimodalTextbox.svelte";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import { onMount } from "svelte";
+	import { onMount, tick } from "svelte";
 	import type { WaveformOptions } from "../audio/shared/types";
 	import type {
 		MultimodalTextboxProps,
-		MultimodalTextboxEvents
+		MultimodalTextboxEvents,
 	} from "./types";
+
+	let upload_promise = $state<Promise<any>>();
+
+	class MultimodalTextboxGradio extends Gradio<
+		MultimodalTextboxEvents,
+		MultimodalTextboxProps
+	> {
+		async get_data() {
+			if (upload_promise) {
+				await upload_promise;
+				await tick();
+			}
+			const data = await super.get_data();
+
+			return data;
+		}
+	}
+
 	let props = $props();
-	const gradio = new Gradio<MultimodalTextboxEvents, MultimodalTextboxProps>(
-		props
-	);
+	const gradio = new MultimodalTextboxGradio(props);
 
 	const value = $derived(gradio.props.value || { text: "", files: [] });
 
@@ -42,12 +58,12 @@
 		waveColor: "",
 		progressColor: "",
 		mediaControls: false as boolean | undefined,
-		sampleRate: 44100
+		sampleRate: 44100,
 	};
 
 	onMount(() => {
 		color_accent = getComputedStyle(document?.documentElement).getPropertyValue(
-			"--color-accent"
+			"--color-accent",
 		);
 		set_trim_region_colour();
 		waveform_settings.waveColor =
@@ -63,13 +79,13 @@
 	const trim_region_settings = {
 		color: gradio.props?.waveform_options?.trim_region_color,
 		drag: true,
-		resize: true
+		resize: true,
 	};
 
 	function set_trim_region_colour(): void {
 		document.documentElement.style.setProperty(
 			"--trim-region-color",
-			trim_region_settings.color || color_accent
+			trim_region_settings.color || color_accent,
 		);
 	}
 
@@ -88,11 +104,11 @@
 			| "upload"
 			| "upload,microphone"
 			| "microphone"
-			| "microphone,upload"
+			| "microphone,upload",
 	);
 
 	let file_types_string = $derived.by(
-		() => (gradio.props.file_types || []).join(",") || null
+		() => (gradio.props.file_types || []).join(",") || null,
 	);
 </script>
 
@@ -117,6 +133,7 @@
 	{/if}
 
 	<MultimodalTextbox
+		bind:upload_promise
 		{value}
 		value_is_output
 		bind:dragging

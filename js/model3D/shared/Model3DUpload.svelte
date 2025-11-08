@@ -19,18 +19,19 @@
 	export let pan_speed = 1;
 	export let max_file_size: number | null = null;
 	export let uploading = false;
+	export let upload_promise: Promise<(FileData | null)[]> | null = null;
 
 	// alpha, beta, radius
 	export let camera_position: [number | null, number | null, number | null] = [
 		null,
 		null,
-		null
+		null,
 	];
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 
 	async function handle_upload({
-		detail
+		detail,
 	}: CustomEvent<FileData>): Promise<void> {
 		value = detail;
 		await tick();
@@ -90,6 +91,7 @@
 
 {#if value == null}
 	<Upload
+		bind:upload_promise
 		{upload}
 		{stream_handler}
 		on:load={handle_upload}
