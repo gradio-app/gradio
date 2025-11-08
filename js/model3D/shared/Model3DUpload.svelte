@@ -25,13 +25,13 @@
 	export let camera_position: [number | null, number | null, number | null] = [
 		null,
 		null,
-		null,
+		null
 	];
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 
 	async function handle_upload({
-		detail,
+		detail
 	}: CustomEvent<FileData>): Promise<void> {
 		value = detail;
 		await tick();

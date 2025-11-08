@@ -43,7 +43,7 @@
 	let fullscreen = $state(false);
 	let dragging = $state(false);
 	let active_source = $derived.by(() =>
-		gradio.props.sources ? gradio.props.sources[0] : null,
+		gradio.props.sources ? gradio.props.sources[0] : null
 	);
 
 	let upload_component: ImageUploader;
@@ -78,7 +78,7 @@
 			"IMAGE VALUE CHANGE CHECK",
 			old_value,
 			gradio.props.value,
-			gradio.props.streaming,
+			gradio.props.streaming
 		);
 		if (old_value != gradio.props.value) {
 			old_value = gradio.props.value;

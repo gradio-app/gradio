@@ -83,7 +83,7 @@
 					items[i].getType(type).then(async (blob) => {
 						const file = new File(
 							[blob],
-							`clipboard.${type.replace("image/", "")}`,
+							`clipboard.${type.replace("image/", "")}`
 						);
 						await load_files([file]);
 					});
@@ -99,7 +99,7 @@
 
 	function handle_upload(
 		file_data: FileData[],
-		_upload_id?: string,
+		_upload_id?: string
 	): Promise<(FileData | null)[]> {
 		upload_promise = new Promise(async (resolve, rej) => {
 			await tick();
@@ -116,11 +116,11 @@
 					file_data,
 					root,
 					upload_id,
-					max_file_size ?? Infinity,
+					max_file_size ?? Infinity
 				);
 				dispatch(
 					"load",
-					file_count === "single" ? _file_data?.[0] : _file_data,
+					file_count === "single" ? _file_data?.[0] : _file_data
 				);
 				resolve(_file_data || []);
 				uploading = false;
@@ -138,7 +138,7 @@
 	function is_valid_mimetype(
 		file_accept: string | string[] | null,
 		uploaded_file_extension: string,
-		uploaded_file_type: string,
+		uploaded_file_type: string
 	): boolean {
 		if (
 			!file_accept ||
@@ -171,14 +171,14 @@
 
 	export async function load_files(
 		files: File[] | Blob[],
-		upload_id?: string,
+		upload_id?: string
 	): Promise<(FileData | null)[] | void> {
 		if (!files.length) {
 			return;
 		}
 		let _files: File[] = files.map(
 			(f) =>
-				new File([f], f instanceof File ? f.name : "file", { type: f.type }),
+				new File([f], f instanceof File ? f.name : "file", { type: f.type })
 		);
 
 		if (ios && use_post_upload_validation) {
@@ -188,7 +188,7 @@
 				}
 				dispatch(
 					"error",
-					`Invalid file type: ${file.name}. Only ${filetype} allowed.`,
+					`Invalid file type: ${file.name}. Only ${filetype} allowed.`
 				);
 				return false;
 			});
@@ -261,7 +261,7 @@
 		dragging = false;
 		if (!e.dataTransfer?.files) return;
 		const files_to_load = Array.from(e.dataTransfer.files).filter(
-			is_valid_file,
+			is_valid_file
 		);
 
 		if (format != "blob") {
@@ -321,7 +321,7 @@
 			on_files: (files) => load_files_from_upload(files),
 			accepted_types: accept_file_types,
 			mode: file_count,
-			disable_click,
+			disable_click
 		}}
 		aria-label={aria_label || "Click to upload or drop files"}
 		aria-dropeffect="copy"
