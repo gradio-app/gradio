@@ -19,7 +19,7 @@
 
 	const trigger = (
 		event_type: "click" | "submit",
-		event_data: any = {},
+		event_data: any = {}
 	): void => {
 		dispatch("event", { type: event_type, data: event_data });
 	};
@@ -86,7 +86,7 @@
 
 	function render_template(
 		template: string,
-		props: Record<string, any>,
+		props: Record<string, any>
 	): string {
 		try {
 			const handlebarsTemplate = Handlebars.compile(template);
@@ -96,7 +96,7 @@
 			const propValues = Object.values(props);
 			const templateFunc = new Function(
 				...propKeys,
-				`return \`${handlebarsRendered}\`;`,
+				`return \`${handlebarsRendered}\`;`
 			);
 			return templateFunc(...propValues);
 		} catch (e) {
@@ -221,7 +221,7 @@
 	function renderHTML(): void {
 		console.trace(
 			"re-rendering HTML with props:",
-			JSON.stringify(reactiveProps),
+			JSON.stringify(reactiveProps)
 		);
 		const newHtml = render_template(html_template, reactiveProps);
 		if (element) {
@@ -266,8 +266,8 @@
 						}
 					}
 					return true;
-				},
-			},
+				}
+			}
 		);
 
 		currentHtml = render_template(html_template, reactiveProps);
@@ -313,7 +313,7 @@
 	bind:this={element}
 	id={random_id}
 	class="{apply_default_css ? 'prose gradio-style' : ''} {elem_classes.join(
-		' ',
+		' '
 	)}"
 	class:hide={!visible}
 ></div>

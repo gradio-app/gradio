@@ -291,12 +291,15 @@ export class DependencyManager {
 					continue;
 				}
 
-				this.loading_stati.update({
-					status: "pending",
-					fn_index: dep.id,
-					stream_state: null
-				});
-				await this.update_loading_stati_state();
+				// No loading status for js-only deps
+				if (dep.functions.backend) {
+					this.loading_stati.update({
+						status: "pending",
+						fn_index: dep.id,
+						stream_state: null
+					});
+					await this.update_loading_stati_state();
+				}
 
 				const data_payload = await this.gather_state(dep.inputs);
 				const unset_args = await Promise.all(
