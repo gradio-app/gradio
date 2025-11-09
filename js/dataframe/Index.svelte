@@ -6,116 +6,79 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
+	import type { SelectData } from "@gradio/utils";
+	import { Gradio } from "@gradio/utils";
 	import { Block } from "@gradio/atoms";
 	import Table from "./shared/Table.svelte";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import type { Datatype, DataframeValue } from "./shared/utils/utils";
+	import type { DataframeProps, DataframeEvents } from "./types";
 	import Image from "@gradio/image";
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let value: DataframeValue = {
-		data: [["", "", ""]],
-		headers: ["1", "2", "3"],
-		metadata: null
-	};
-	export let value_is_output = false;
-	export let col_count: [number, "fixed" | "dynamic"];
-	export let row_count: [number, "fixed" | "dynamic"];
-	export let label: string | null = null;
-	export let show_label = true;
-	export let wrap: boolean;
-	export let datatype: Datatype | Datatype[];
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let root: string;
+	let props = $props();
 
-	export let line_breaks = true;
-	export let column_widths: string[] = [];
-	export let gradio: Gradio<{
-		change: never;
-		select: SelectData;
-		input: never;
-		clear_status: LoadingStatus;
-		search: string | null;
-		edit: SelectData;
-	}>;
-	export let latex_delimiters: {
-		left: string;
-		right: string;
-		display: boolean;
-	}[];
-	export let max_height: number | undefined = undefined;
-	export let loading_status: LoadingStatus;
-	export let interactive: boolean;
-	export let buttons: string[] | null = null;
-	export let max_chars: number | undefined = undefined;
-	export let show_row_numbers = false;
-	export let show_search: "none" | "search" | "filter" = "none";
-	export let pinned_columns = 0;
-	export let static_columns: (string | number)[] = [];
-	export let fullscreen = false;
+	let gradio = new Gradio<DataframeEvents, DataframeProps>(props);
 </script>
 
 <Block
-	{visible}
+	visible={gradio.shared.visible}
 	padding={false}
-	{elem_id}
-	{elem_classes}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
 	container={false}
-	{scale}
-	{min_width}
+	scale={gradio.shared.scale}
+	min_width={gradio.shared.min_width}
 	overflow_behavior="visible"
-	bind:fullscreen
+	bind:fullscreen={gradio.props.fullscreen}
 >
 	<StatusTracker
-		autoscroll={gradio.autoscroll}
+		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
-		{...loading_status}
-		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+		{...gradio.shared.loading_status}
+		on:clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 	<Table
-		{root}
-		{label}
-		{show_label}
-		{row_count}
-		{col_count}
-		values={value.data}
-		display_value={value.metadata?.display_value}
-		styling={value.metadata?.styling}
-		headers={value.headers}
-		{fullscreen}
-		on:change={(e) => {
-			value.data = e.detail.data;
-			value.headers = e.detail.headers;
-			gradio.dispatch("change");
-		}}
+		root={gradio.shared.root}
+		label={gradio.shared.label}
+		show_label={gradio.shared.show_label}
+		row_count={gradio.props.row_count}
+		col_count={gradio.props.col_count}
+		values={gradio.props.value.data}
+		display_value={gradio.props.value.metadata?.display_value}
+		styling={gradio.props.value.metadata?.styling}
+		headers={gradio.props.value.headers}
+		fullscreen={gradio.props.fullscreen}
 		on:input={(e) => gradio.dispatch("input")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		on:edit={(e) => gradio.dispatch("edit", e.detail)}
 		on:fullscreen={({ detail }) => {
-			fullscreen = detail;
+			gradio.props.fullscreen = detail;
 		}}
-		{wrap}
-		{datatype}
-		{latex_delimiters}
-		editable={interactive}
-		{max_height}
+		on:change={(e) => {
+			console.log("DataFrame change event:", e.detail);
+			gradio.props.value.data = e.detail.data;
+			gradio.props.value.headers = e.detail.headers;
+			gradio.props.headers = e.detail.headers;
+			gradio.dispatch("change");
+		}}
+		wrap={gradio.props.wrap}
+		datatype={gradio.props.datatype}
+		latex_delimiters={gradio.props.latex_delimiters}
+		editable={gradio.shared.interactive}
+		max_height={gradio.props.max_height}
 		i18n={gradio.i18n}
-		{line_breaks}
-		{column_widths}
-		upload={(...args) => gradio.client.upload(...args)}
-		stream_handler={(...args) => gradio.client.stream(...args)}
-		bind:value_is_output
-		{buttons}
-		{max_chars}
-		{show_row_numbers}
-		{show_search}
-		{pinned_columns}
+		line_breaks={gradio.props.line_breaks}
+		column_widths={gradio.props.column_widths}
+		upload={(...args) => gradio.shared.client.upload(...args)}
+		stream_handler={(...args) => gradio.shared.client.stream(...args)}
+		buttons={gradio.props.buttons}
+		max_chars={gradio.props.max_chars}
+		show_row_numbers={gradio.props.show_row_numbers}
+		show_search={gradio.props.show_search}
+		pinned_columns={gradio.props.pinned_columns}
 		components={{ image: Image }}
-		{static_columns}
+		static_columns={gradio.props.static_columns}
 	/>
 </Block>

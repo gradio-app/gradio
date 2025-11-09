@@ -273,7 +273,7 @@ export class DependencyManager {
 		for (let i = 0; i < (deps?.length || 0); i++) {
 			const dep = deps ? deps[i] : undefined;
 			if (dep) {
-				console.log(
+				console.trace(
 					"Dispatching dependency",
 					`${event_meta.event_name}-${event_meta.target_id}`
 				);
@@ -606,11 +606,13 @@ export class DependencyManager {
 	 * @returns an array of the current state of the components, in the same order as the ids
 	 */
 	async gather_state(ids: number[]): Promise<(unknown | null)[]> {
-		return (await Promise.all(ids.map((id) => this.get_state_cb(id)))).map(
+		const x = (await Promise.all(ids.map((id) => this.get_state_cb(id)))).map(
 			(state) => {
 				return state?.value ?? null;
 			}
 		);
+		console.log("Gathered state", x);
+		return x;
 	}
 
 	/** Sets the event arguments for a specific component

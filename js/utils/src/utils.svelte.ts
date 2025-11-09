@@ -321,7 +321,10 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	last_update: ReturnType<typeof tick> | null = null;
 	shared_props: (keyof SharedProps)[] = allowed_shared_props;
 
-	constructor(_props: { shared_props: SharedProps; props: U }) {
+	constructor(
+		_props: { shared_props: SharedProps; props: U },
+		default_values?: Partial<U>
+	) {
 		for (const key in _props.shared_props) {
 			// @ts-ignore i'm not doing pointless typescript gymanstics
 			this.shared[key] = _props.shared_props[key];
@@ -329,6 +332,15 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		for (const key in _props.props) {
 			// @ts-ignore same here
 			this.props[key] = _props.props[key];
+		}
+
+		if (default_values) {
+			for (const key in default_values) {
+				if (key in this.props) continue;
+
+				// @ts-ignore same here
+				this.props[key] = default_values[key as keyof U];
+			}
 		}
 		// @ts-ignore same here
 		this.i18n = this.props.i18n;
@@ -363,6 +375,8 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 				this.shared.id = _props.shared_props.id;
 			});
 		});
+
+		this.last_update = tick();
 	}
 
 	dispatch<E extends keyof T>(event_name: E, data?: T[E]): void {
@@ -371,18 +385,14 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 
 	async get_data() {
 		await this.last_update;
-
+		this.last_update = tick();
 		return $state.snapshot(this.props);
 	}
 
-	update(data: Partial<U & SharedProps>): void {
-		this.set_data(data as U & SharedProps);
-		this.last_update = tick();
-	}
-
 	async set_data(data: Partial<U & SharedProps>): Promise<void> {
+		console.log("set_data called", data);
 		await this.last_update;
-
+		this.last_update = tick();
 		for (const key in data) {
 			if (this.shared_props.includes(key as keyof SharedProps)) {
 				const _key = key as keyof SharedProps;

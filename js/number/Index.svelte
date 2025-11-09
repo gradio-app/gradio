@@ -6,7 +6,9 @@
 	import { tick } from "svelte";
 
 	const props = $props();
-	const gradio = new Gradio<NumberEvents, NumberProps>(props);
+	const gradio = new Gradio<NumberEvents, NumberProps>(props, {
+		value: 0,
+	});
 
 	if (gradio.props.value === null && gradio.props.placeholder === "") {
 		gradio.props.value = 0;
