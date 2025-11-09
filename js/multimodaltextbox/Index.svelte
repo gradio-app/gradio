@@ -10,16 +10,32 @@
 	import MultimodalTextbox from "./shared/MultimodalTextbox.svelte";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import { onMount } from "svelte";
+	import { onMount, tick } from "svelte";
 	import type { WaveformOptions } from "../audio/shared/types";
 	import type {
 		MultimodalTextboxProps,
 		MultimodalTextboxEvents
 	} from "./types";
+
+	let upload_promise = $state<Promise<any>>();
+
+	class MultimodalTextboxGradio extends Gradio<
+		MultimodalTextboxEvents,
+		MultimodalTextboxProps
+	> {
+		async get_data() {
+			if (upload_promise) {
+				await upload_promise;
+				await tick();
+			}
+			const data = await super.get_data();
+
+			return data;
+		}
+	}
+
 	let props = $props();
-	const gradio = new Gradio<MultimodalTextboxEvents, MultimodalTextboxProps>(
-		props
-	);
+	const gradio = new MultimodalTextboxGradio(props);
 
 	const value = $derived(gradio.props.value || { text: "", files: [] });
 
@@ -117,6 +133,7 @@
 	{/if}
 
 	<MultimodalTextbox
+		bind:upload_promise
 		{value}
 		value_is_output
 		bind:dragging

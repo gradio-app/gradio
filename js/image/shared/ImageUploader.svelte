@@ -37,6 +37,7 @@
 	export let time_limit: number;
 	export let show_fullscreen_button = true;
 	export let stream_state: "open" | "waiting" | "closed" = "closed";
+	export let upload_promise: Promise<any> | null = null;
 
 	$: console.log({ pending });
 
@@ -206,6 +207,7 @@
 		on:drop={on_drop}
 	>
 		<Upload
+			bind:upload_promise
 			hidden={value !== null || active_source === "webcam"}
 			bind:this={upload_input}
 			bind:uploading

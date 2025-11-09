@@ -4,6 +4,7 @@
 </script>
 
 <script lang="ts">
+	import { tick } from "svelte";
 	import type { FileData } from "@gradio/client";
 	import { Block, UploadText } from "@gradio/atoms";
 	import Gallery from "./shared/Gallery.svelte";
@@ -12,8 +13,22 @@
 	import { BaseFileUpload } from "@gradio/file";
 	import type { GalleryProps, GalleryEvents, GalleryData } from "./types";
 
+	let upload_promise = $state<Promise<any>>();
+
+	class GalleryGradio extends Gradio<GalleryEvents, GalleryProps> {
+		async get_data() {
+			if (upload_promise) {
+				await upload_promise;
+				await tick();
+			}
+			const data = await super.get_data();
+
+			return data;
+		}
+	}
+
 	const props = $props();
-	const gradio = new Gradio<GalleryEvents, GalleryProps>(props);
+	const gradio = new GalleryGradio<GalleryEvents, GalleryProps>(props);
 
 	let fullscreen = $state(false);
 
@@ -80,6 +95,7 @@
 	/>
 	{#if gradio.shared.interactive && no_value}
 		<BaseFileUpload
+			bind:upload_promise
 			value={null}
 			root={gradio.shared.root}
 			label={gradio.shared.label}

@@ -1,6 +1,7 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
+	import { tick } from "svelte";
 	import { Gradio } from "@gradio/utils";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
@@ -12,9 +13,24 @@
 	import type { AudioEvents, AudioProps } from "./shared/types";
 
 	let props = $props();
+	let upload_promise = $state<Promise<any>>();
 	props.props.stream_every = 0.1; // default to 0.1s stream interval
-	const gradio = new Gradio<AudioEvents, AudioProps>(props);
-	let uploading = false;
+
+	class AudioGradio extends Gradio<AudioEvents, AudioProps> {
+		async get_data() {
+			if (upload_promise) {
+				await upload_promise;
+				await tick();
+			}
+
+			const data = await super.get_data();
+
+			return data;
+		}
+	}
+
+	const gradio = new AudioGradio(props);
+	// let uploading = $state(false);
 	let active_source = $derived.by(() =>
 		gradio.props.sources ? gradio.props.sources[0] : null
 	);
@@ -155,6 +171,7 @@
 				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 		<InteractiveAudio
+			bind:upload_promise
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
 			buttons={gradio.props.buttons ?? []}
@@ -177,7 +194,6 @@
 			{handle_reset_value}
 			editable={gradio.props.editable}
 			bind:dragging
-			bind:uploading
 			on:edit={() => gradio.dispatch("edit")}
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}

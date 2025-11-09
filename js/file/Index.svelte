@@ -14,13 +14,27 @@
 	import { Block, UploadText } from "@gradio/atoms";
 	import type { FileEvents, FileProps } from "./types";
 	import { StatusTracker } from "@gradio/statustracker";
+	import { tick } from "svelte";
 
 	const props = $props();
-	const gradio = new Gradio<FileEvents, FileProps>(props);
+	let upload_promise = $state<Promise<any>>();
 
-	let uploading = $state(false);
 	let dragging = $state(false);
 	let pending_upload = $state(false);
+
+	class FileGradio extends Gradio<FileEvents, FileProps> {
+		async get_data() {
+			if (upload_promise) {
+				await upload_promise;
+				await tick();
+			}
+			const data = await super.get_data();
+
+			return data;
+		}
+	}
+
+	const gradio = new FileGradio(props);
 
 	let old_value = $state(gradio.props.value);
 
@@ -67,6 +81,7 @@
 		/>
 	{:else}
 		<FileUpload
+			bind:upload_promise
 			upload={(...args) => gradio.shared.client.upload(...args)}
 			stream_handler={(...args) => gradio.shared.client.stream(...args)}
 			label={gradio.shared.label}
@@ -78,7 +93,6 @@
 			height={gradio.props.height}
 			root={gradio.shared.root}
 			allow_reordering={gradio.props.allow_reordering}
-			bind:uploading
 			max_file_size={gradio.shared.max_file_size}
 			on:change={({ detail }) => {
 				gradio.props.value = detail;

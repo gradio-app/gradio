@@ -65,6 +65,7 @@
 		| "microphone,upload" = "upload";
 	export let active_source: "microphone" | null = null;
 	export let html_attributes: InputHTMLAttributes | null = null;
+	export let upload_promise: Promise<any> | null = null;
 
 	let upload_component: Upload;
 	let el: HTMLTextAreaElement | HTMLInputElement;
@@ -375,6 +376,7 @@
 		{/if}
 		{#if show_upload}
 			<Upload
+				bind:upload_promise
 				bind:this={upload_component}
 				on:load={handle_upload}
 				{file_count}

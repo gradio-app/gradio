@@ -5,6 +5,7 @@
 </script>
 
 <script lang="ts">
+	import { tick } from "svelte";
 	import type { Model3DProps, Model3DEvents } from "./types";
 	import type { FileData } from "@gradio/client";
 	import { Gradio } from "@gradio/utils";
@@ -14,13 +15,26 @@
 	import { File } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
 
+	class Model3dGradio extends Gradio<Model3DEvents, Model3DProps> {
+		async get_data() {
+			if (upload_promise) {
+				await upload_promise;
+				await tick();
+			}
+			const data = await super.get_data();
+
+			return data;
+		}
+	}
+
 	const props = $props();
-	const gradio = new Gradio<Model3DEvents, Model3DProps>(props);
+	const gradio = new Model3dGradio(props);
 
 	let old_value = $state(gradio.props.value);
 	let uploading = $state(false);
 	let dragging = $state(false);
 	let has_change_history = $state(false);
+	let upload_promise = $state<Promise<any>>();
 
 	const is_browser = typeof window !== "undefined";
 
@@ -123,6 +137,7 @@
 		/>
 
 		<Model3DUpload
+			bind:upload_promise
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
 			root={gradio.shared.root}

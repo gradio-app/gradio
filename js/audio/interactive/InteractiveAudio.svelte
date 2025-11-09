@@ -45,6 +45,7 @@
 	export let uploading = false;
 	export let recording = false;
 	export let class_name = "";
+	export let upload_promise: Promise<any> | null = null;
 
 	export let time_limit: number | null = null;
 	export let stream_state: "open" | "waiting" | "closed" = "closed";
@@ -257,6 +258,7 @@
 		{:else if active_source === "upload"}
 			<!-- explicitly listed out audio mimetypes due to iOS bug not recognizing audio/* -->
 			<Upload
+				bind:upload_promise
 				filetype="audio/aac,audio/midi,audio/mpeg,audio/ogg,audio/wav,audio/x-wav,audio/opus,audio/webm,audio/flac,audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
 				on:load={handle_load}
 				bind:dragging

@@ -1,6 +1,7 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
+	import { tick } from "svelte";
 	import type { ImageSliderProps, ImageSliderEvents } from "./types";
 	import { Gradio } from "@gradio/utils";
 	import StaticImage from "./shared/SliderPreview.svelte";
@@ -12,13 +13,26 @@
 
 	type sources = "upload" | "webcam" | "clipboard" | null;
 
+	let upload_promise = $state<Promise<any>>();
+
+	class ImageSliderGradio extends Gradio<ImageSliderEvents, ImageSliderProps> {
+		async get_data() {
+			if (upload_promise) {
+				await upload_promise;
+				await tick();
+			}
+
+			const data = await super.get_data();
+			return data;
+		}
+	}
+
 	const props = $props();
-	const gradio = new Gradio<ImageSliderEvents, ImageSliderProps>(props);
+	const gradio = new ImageSliderGradio(props);
 
 	let value_is_output = $state(false);
 	let old_value = $state(gradio.props.value);
 	let fullscreen = $state(false);
-	let uploading = $state(false);
 	let dragging = $state(false);
 	let active_source: sources = $state(null);
 	let upload_component: ImageUploader;
@@ -132,6 +146,7 @@
 		/>
 
 		<ImageUploader
+			bind:upload_promise
 			bind:this={upload_component}
 			bind:value={gradio.props.value}
 			bind:dragging
