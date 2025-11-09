@@ -56,6 +56,7 @@
 	export let upload: Client["upload"] | undefined = undefined;
 	export let stream_handler: Client["stream"] | undefined = undefined;
 	export let fit_columns = true;
+	export let upload_promise: Promise<any> | null = null;
 
 	let is_full_screen = false;
 	let image_container: HTMLElement;
@@ -481,6 +482,7 @@
 					{#if upload && stream_handler}
 						<IconButton Icon={UploadIcon} label={i18n("common.upload")}>
 							<UploadComponent
+								bind:upload_promise
 								icon_upload={true}
 								on:load={(e) => dispatch("upload", e.detail)}
 								filetype={file_types}
