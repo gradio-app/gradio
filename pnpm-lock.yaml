@@ -1575,6 +1575,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      handlebars:
+        specifier: ^4.7.8
+        version: 4.7.8
       svelte:
         specifier: ^4.0.0
         version: 4.2.15
@@ -6830,6 +6833,11 @@ packages:
   hachure-fill@0.5.2:
     resolution: {integrity: sha512-3GKBOn+m2LX9iq+JC1064cSFprJY4jL1jCXTcpnfER5HYE2l/4EfWSGzkPa/ZDBmYI0ZOEj5VHV/eKnPGkHuOg==}
 
+  handlebars@4.7.8:
+    resolution: {integrity: sha512-vafaFqs8MZkRrSX7sFVUdo3ap/eNiLnb4IakshzvP56X5Nr1iGKAIqdX6tMlm6HcNRIkr6AxO5jFEoJzzpT8aQ==}
+    engines: {node: '>=0.4.7'}
+    hasBin: true
+
   happy-dom@14.12.3:
     resolution: {integrity: sha512-vsYlEs3E9gLwA1Hp+w3qzu+RUDFf4VTT8cyKqVICoZ2k7WM++Qyd2LwzyTi5bqMJFiIC/vNpTDYuxdreENRK/g==}
     engines: {node: '>=16.0.0'}
@@ -7644,6 +7652,9 @@ packages:
 
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
+
+  neo-async@2.6.2:
+    resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
 
   next-tick@1.1.0:
     resolution: {integrity: sha512-CXdUiJembsNjuToQvxayPZF9Vqht7hewsvy2sOWafLvi2awflj9mOC6bHIg50orX8IJvWKY9wYQ/zB2kogPslQ==}
@@ -8897,6 +8908,11 @@ packages:
   ufo@1.5.4:
     resolution: {integrity: sha512-UsUk3byDzKd04EyoZ7U4DOlxQaD14JUKQl6/P7wiX4FNvUfm3XL246n9W5AmqwW5RSFJ27NAuM0iLscAOYUiGQ==}
 
+  uglify-js@3.19.3:
+    resolution: {integrity: sha512-v3Xu+yuwBXisp6QYTcH4UbH+xYJXqnq2m/LtQVWKWzYc1iehYnLixoQDN9FH6/j9/oybfd6W9Ghwkl8+UMKTKQ==}
+    engines: {node: '>=0.8.0'}
+    hasBin: true
+
   undici-types@5.26.5:
     resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
 
@@ -9184,8 +9200,8 @@ packages:
       terser:
         optional: true
 
-  vite@6.3.5:
-    resolution: {integrity: sha512-cZn6NDFE7wdTpINgs++ZJ4N49W2vRp8LCKrn3Ob1kYNtOo21vfDoaV5GzBfLU4MovSAB8uNRm4jgzVQZ+mBzPQ==}
+  vite@6.4.1:
+    resolution: {integrity: sha512-+Oxm7q9hDoLMyJOYfUYBuHQo+dkAloi33apOPP56pzj+vsdJDzr+j1NISE5pyaAuKL4A3UD34qd0lx5+kfKp2g==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
     hasBin: true
     peerDependencies:
@@ -9405,6 +9421,9 @@ packages:
   word-wrap@1.2.5:
     resolution: {integrity: sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==}
     engines: {node: '>=0.10.0'}
+
+  wordwrap@1.0.0:
+    resolution: {integrity: sha512-gvVzJFlPycKc5dZN4yPkP8w7Dc37BtP1yczEneOb4uq34pXZcvrtRTmWV8W+Ume+XCxKgbjM+nevkyFPMybd4Q==}
 
   worker-factory@7.0.13:
     resolution: {integrity: sha512-qNAXpWWjosIui6VzJguG3CHvBaja4P+bnX3ITaHDlclE9Q+YNllL+dQ9gv0eYqYJ3jNeaMbVvuWUM4YqIBV1vQ==}
@@ -10929,7 +10948,7 @@ snapshots:
     dependencies:
       playwright: 1.54.2
       playwright-core: 1.54.2
-      vite: 6.3.5(@types/node@20.12.8)(jiti@1.21.7)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))(terser@5.43.1)(yaml@2.4.2)
+      vite: 6.4.1(@types/node@20.12.8)(jiti@1.21.7)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))(terser@5.43.1)(yaml@2.4.2)
     transitivePeerDependencies:
       - '@types/node'
       - jiti
@@ -12621,7 +12640,7 @@ snapshots:
   code-red@1.0.4:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.0
-      '@types/estree': 1.0.7
+      '@types/estree': 1.0.8
       acorn: 8.15.0
       estree-walker: 3.0.3
       periscopic: 3.1.0
@@ -13606,7 +13625,7 @@ snapshots:
 
   estree-walker@3.0.3:
     dependencies:
-      '@types/estree': 1.0.7
+      '@types/estree': 1.0.8
 
   esutils@2.0.3: {}
 
@@ -13944,6 +13963,15 @@ snapshots:
 
   hachure-fill@0.5.2: {}
 
+  handlebars@4.7.8:
+    dependencies:
+      minimist: 1.2.8
+      neo-async: 2.6.2
+      source-map: 0.6.1
+      wordwrap: 1.0.0
+    optionalDependencies:
+      uglify-js: 3.19.3
+
   happy-dom@14.12.3:
     dependencies:
       entities: 4.5.0
@@ -14140,7 +14168,7 @@ snapshots:
 
   is-reference@3.0.2:
     dependencies:
-      '@types/estree': 1.0.7
+      '@types/estree': 1.0.8
 
   is-reference@3.0.3:
     dependencies:
@@ -14782,6 +14810,8 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
+  neo-async@2.6.2: {}
+
   next-tick@1.1.0: {}
 
   no-case@3.0.4:
@@ -14970,7 +15000,7 @@ snapshots:
 
   periscopic@3.1.0:
     dependencies:
-      '@types/estree': 1.0.5
+      '@types/estree': 1.0.8
       estree-walker: 3.0.3
       is-reference: 3.0.2
 
@@ -15148,9 +15178,9 @@ snapshots:
     dependencies:
       postcss: 8.4.38
 
-  postcss-scss@4.0.9(postcss@8.5.3):
+  postcss-scss@4.0.9(postcss@8.5.6):
     dependencies:
-      postcss: 8.5.3
+      postcss: 8.5.6
 
   postcss-selector-parser@6.0.13:
     dependencies:
@@ -15877,8 +15907,8 @@ snapshots:
       eslint-scope: 7.2.2
       eslint-visitor-keys: 3.4.3
       espree: 9.6.1
-      postcss: 8.5.3
-      postcss-scss: 4.0.9(postcss@8.5.3)
+      postcss: 8.5.6
+      postcss-scss: 4.0.9(postcss@8.5.6)
     optionalDependencies:
       svelte: 4.2.15
 
@@ -16205,6 +16235,9 @@ snapshots:
 
   ufo@1.5.4: {}
 
+  uglify-js@3.19.3:
+    optional: true
+
   undici-types@5.26.5: {}
 
   undici@5.28.4:
@@ -16322,7 +16355,7 @@ snapshots:
 
   vega-expression@5.0.1:
     dependencies:
-      '@types/estree': 1.0.5
+      '@types/estree': 1.0.8
       vega-util: 1.17.2
 
   vega-expression@5.1.0:
@@ -16684,13 +16717,13 @@ snapshots:
       sugarss: 4.0.1(postcss@8.4.38)
       terser: 5.43.1
 
-  vite@6.3.5(@types/node@20.12.8)(jiti@1.21.7)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))(terser@5.43.1)(yaml@2.4.2):
+  vite@6.4.1(@types/node@20.12.8)(jiti@1.21.7)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))(terser@5.43.1)(yaml@2.4.2):
     dependencies:
       esbuild: 0.25.9
       fdir: 6.5.0(picomatch@4.0.3)
       picomatch: 4.0.3
-      postcss: 8.5.3
-      rollup: 4.39.0
+      postcss: 8.5.6
+      rollup: 4.46.3
       tinyglobby: 0.2.14
     optionalDependencies:
       '@types/node': 20.12.8
@@ -16866,6 +16899,8 @@ snapshots:
       babel-walk: 3.0.0-canary-5
 
   word-wrap@1.2.5: {}
+
+  wordwrap@1.0.0: {}
 
   worker-factory@7.0.13:
     dependencies:

@@ -1,5 +1,5 @@
 import type { Client } from "./client";
-
+import { filesize } from "./utils/filesize";
 export async function upload(
 	this: Client,
 	file_data: FileData[],
@@ -16,8 +16,8 @@ export async function upload(
 	);
 	if (oversized_files.length) {
 		throw new Error(
-			`File size exceeds the maximum allowed size of ${max_file_size} bytes: ${oversized_files
-				.map((f) => f.name)
+			`File(s) exceed the maximum allowed size of ${filesize(max_file_size || Infinity)}: ${oversized_files
+				.map((f) => `"${f.name}"`)
 				.join(", ")}`
 		);
 	}
