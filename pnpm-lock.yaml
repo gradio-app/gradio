@@ -1564,6 +1564,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      handlebars:
+        specifier: ^4.7.8
+        version: 4.7.8
       svelte:
         specifier: ^5.43.4
         version: 5.43.4
@@ -5906,9 +5909,20 @@ packages:
   hachure-fill@0.5.2:
     resolution: {integrity: sha512-3GKBOn+m2LX9iq+JC1064cSFprJY4jL1jCXTcpnfER5HYE2l/4EfWSGzkPa/ZDBmYI0ZOEj5VHV/eKnPGkHuOg==}
 
+<<<<<<< HEAD
   happy-dom@19.0.2:
     resolution: {integrity: sha512-831CLbgDyjRbd2lApHZFsBDe56onuFcjsCBPodzWpzedTpeDr8CGZjs7iEIdNW1DVwSFRecfwzLpVyGBPamwGA==}
     engines: {node: '>=20.0.0'}
+=======
+  handlebars@4.7.8:
+    resolution: {integrity: sha512-vafaFqs8MZkRrSX7sFVUdo3ap/eNiLnb4IakshzvP56X5Nr1iGKAIqdX6tMlm6HcNRIkr6AxO5jFEoJzzpT8aQ==}
+    engines: {node: '>=0.4.7'}
+    hasBin: true
+
+  happy-dom@14.12.3:
+    resolution: {integrity: sha512-vsYlEs3E9gLwA1Hp+w3qzu+RUDFf4VTT8cyKqVICoZ2k7WM++Qyd2LwzyTi5bqMJFiIC/vNpTDYuxdreENRK/g==}
+    engines: {node: '>=16.0.0'}
+>>>>>>> 6.0-dev
 
   has-flag@4.0.0:
     resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
@@ -6477,6 +6491,9 @@ packages:
 
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
+
+  neo-async@2.6.2:
+    resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
 
   next-tick@1.1.0:
     resolution: {integrity: sha512-CXdUiJembsNjuToQvxayPZF9Vqht7hewsvy2sOWafLvi2awflj9mOC6bHIg50orX8IJvWKY9wYQ/zB2kogPslQ==}
@@ -7424,8 +7441,18 @@ packages:
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
+<<<<<<< HEAD
   undici-types@7.16.0:
     resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
+=======
+  uglify-js@3.19.3:
+    resolution: {integrity: sha512-v3Xu+yuwBXisp6QYTcH4UbH+xYJXqnq2m/LtQVWKWzYc1iehYnLixoQDN9FH6/j9/oybfd6W9Ghwkl8+UMKTKQ==}
+    engines: {node: '>=0.8.0'}
+    hasBin: true
+
+  undici-types@5.26.5:
+    resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
+>>>>>>> 6.0-dev
 
   undici@7.14.0:
     resolution: {integrity: sha512-Vqs8HTzjpQXZeXdpsfChQTlafcMQaaIwnGwLam1wudSSjlJeQ3bw1j+TLPePgrCnCpUXx7Ba5Pdpf5OBih62NQ==}
@@ -7610,6 +7637,96 @@ packages:
   vite-plugin-turbosnap@1.0.3:
     resolution: {integrity: sha512-p4D8CFVhZS412SyQX125qxyzOgIFouwOcvjZWk6bQbNPR1wtaEzFT6jZxAjf1dejlGqa6fqHcuCvQea6EWUkUA==}
 
+<<<<<<< HEAD
+=======
+  vite@5.2.11:
+    resolution: {integrity: sha512-HndV31LWW05i1BLPMUCE1B9E9GFbOu1MbenhS58FuK6owSO5qHm7GiCotrNY1YE5rMeQSFBGmT5ZaLEjFizgiQ==}
+    engines: {node: ^18.0.0 || >=20.0.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': ^18.0.0 || >=20.0.0
+      less: '*'
+      lightningcss: ^1.21.0
+      sass: '*'
+      stylus: '*'
+      sugarss: '*'
+      terser: ^5.4.0
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      less:
+        optional: true
+      lightningcss:
+        optional: true
+      sass:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+
+  vite@5.2.9:
+    resolution: {integrity: sha512-uOQWfuZBlc6Y3W/DTuQ1Sr+oIXWvqljLvS881SVmAj00d5RdgShLcuXWxseWPd4HXwiYBFW/vXHfKFeqj9uQnw==}
+    engines: {node: ^18.0.0 || >=20.0.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': ^18.0.0 || >=20.0.0
+      less: '*'
+      lightningcss: ^1.21.0
+      sass: '*'
+      stylus: '*'
+      sugarss: '*'
+      terser: ^5.4.0
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      less:
+        optional: true
+      lightningcss:
+        optional: true
+      sass:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+
+  vite@5.4.19:
+    resolution: {integrity: sha512-qO3aKv3HoQC8QKiNSTuUM1l9o/XX3+c+VTgLHbJWHZGeTPVAg2XwazI9UWzoxjIJCGCV2zU60uqMzjeLZuULqA==}
+    engines: {node: ^18.0.0 || >=20.0.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': ^18.0.0 || >=20.0.0
+      less: '*'
+      lightningcss: ^1.21.0
+      sass: '*'
+      sass-embedded: '*'
+      stylus: '*'
+      sugarss: '*'
+      terser: ^5.4.0
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      less:
+        optional: true
+      lightningcss:
+        optional: true
+      sass:
+        optional: true
+      sass-embedded:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+
+>>>>>>> 6.0-dev
   vite@6.4.1:
     resolution: {integrity: sha512-+Oxm7q9hDoLMyJOYfUYBuHQo+dkAloi33apOPP56pzj+vsdJDzr+j1NISE5pyaAuKL4A3UD34qd0lx5+kfKp2g==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
@@ -7816,8 +7933,16 @@ packages:
     resolution: {integrity: sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==}
     engines: {node: '>=0.10.0'}
 
+<<<<<<< HEAD
   worker-factory@7.0.46:
     resolution: {integrity: sha512-Sr1hq2FMgNa04UVhYQacsw+i58BtMimzDb4+CqYphZ97OfefRpURu0UZ+JxMr/H36VVJBfuVkxTK7MytsanC3w==}
+=======
+  wordwrap@1.0.0:
+    resolution: {integrity: sha512-gvVzJFlPycKc5dZN4yPkP8w7Dc37BtP1yczEneOb4uq34pXZcvrtRTmWV8W+Ume+XCxKgbjM+nevkyFPMybd4Q==}
+
+  worker-factory@7.0.13:
+    resolution: {integrity: sha512-qNAXpWWjosIui6VzJguG3CHvBaja4P+bnX3ITaHDlclE9Q+YNllL+dQ9gv0eYqYJ3jNeaMbVvuWUM4YqIBV1vQ==}
+>>>>>>> 6.0-dev
 
   workerd@1.20251105.0:
     resolution: {integrity: sha512-8D1UmsxrRr3Go7enbYCsYoiWeGn66u1WFNojPSgtjp7z8pV2cXskjr05vQ1OOzl7+rg1hDDofnCJqVwChMym8g==}
@@ -9161,9 +9286,15 @@ snapshots:
 
   '@playwright/experimental-ct-core@1.56.1(@types/node@24.10.0)(lightningcss@1.30.2)(sass@1.93.3)(stylus@0.64.0)(terser@5.44.1)':
     dependencies:
+<<<<<<< HEAD
       playwright: 1.56.1
       playwright-core: 1.56.1
       vite: 6.4.1(@types/node@24.10.0)(lightningcss@1.30.2)(sass@1.93.3)(stylus@0.64.0)(terser@5.44.1)
+=======
+      playwright: 1.54.2
+      playwright-core: 1.54.2
+      vite: 6.4.1(@types/node@20.12.8)(jiti@1.21.7)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))(terser@5.43.1)(yaml@2.4.2)
+>>>>>>> 6.0-dev
     transitivePeerDependencies:
       - '@types/node'
       - jiti
@@ -10449,11 +10580,27 @@ snapshots:
 
   codemirror@6.0.2:
     dependencies:
+<<<<<<< HEAD
       '@codemirror/autocomplete': 6.19.1
       '@codemirror/commands': 6.10.0
       '@codemirror/language': 6.11.3
       '@codemirror/lint': 6.9.2
       '@codemirror/search': 6.5.11
+=======
+      '@jridgewell/sourcemap-codec': 1.5.0
+      '@types/estree': 1.0.8
+      acorn: 8.15.0
+      estree-walker: 3.0.3
+      periscopic: 3.1.0
+
+  codemirror@6.0.1:
+    dependencies:
+      '@codemirror/autocomplete': 6.18.6
+      '@codemirror/commands': 6.8.0
+      '@codemirror/language': 6.10.8
+      '@codemirror/lint': 6.8.4
+      '@codemirror/search': 6.5.10
+>>>>>>> 6.0-dev
       '@codemirror/state': 6.5.2
       '@codemirror/view': 6.38.6
 
@@ -11449,7 +11596,20 @@ snapshots:
 
   hachure-fill@0.5.2: {}
 
+<<<<<<< HEAD
   happy-dom@19.0.2:
+=======
+  handlebars@4.7.8:
+    dependencies:
+      minimist: 1.2.8
+      neo-async: 2.6.2
+      source-map: 0.6.1
+      wordwrap: 1.0.0
+    optionalDependencies:
+      uglify-js: 3.19.3
+
+  happy-dom@14.12.3:
+>>>>>>> 6.0-dev
     dependencies:
       '@types/node': 20.19.24
       '@types/whatwg-mimetype': 3.0.2
@@ -11583,6 +11743,13 @@ snapshots:
 
   is-reference@1.2.1:
     dependencies:
+<<<<<<< HEAD
+=======
+      '@types/estree': 1.0.5
+
+  is-reference@3.0.2:
+    dependencies:
+>>>>>>> 6.0-dev
       '@types/estree': 1.0.8
 
   is-reference@3.0.3:
@@ -12036,6 +12203,8 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
+  neo-async@2.6.2: {}
+
   next-tick@1.1.0: {}
 
   node-addon-api@7.1.1:
@@ -12171,6 +12340,17 @@ snapshots:
 
   pathval@2.0.1: {}
 
+<<<<<<< HEAD
+=======
+  periscopic@3.1.0:
+    dependencies:
+      '@types/estree': 1.0.8
+      estree-walker: 3.0.3
+      is-reference: 3.0.2
+
+  picocolors@1.0.0: {}
+
+>>>>>>> 6.0-dev
   picocolors@1.1.1: {}
 
   picomatch@2.3.1: {}
@@ -12286,7 +12466,19 @@ snapshots:
     dependencies:
       postcss: 8.5.6
 
+<<<<<<< HEAD
   postcss-selector-parser@6.0.10:
+=======
+  postcss-scss@4.0.9(postcss@8.4.38):
+    dependencies:
+      postcss: 8.4.38
+
+  postcss-scss@4.0.9(postcss@8.5.6):
+    dependencies:
+      postcss: 8.5.6
+
+  postcss-selector-parser@6.0.13:
+>>>>>>> 6.0-dev
     dependencies:
       cssesc: 3.0.0
       util-deprecate: 1.0.2
@@ -12839,7 +13031,35 @@ snapshots:
 
   svelte-i18n@4.0.1(svelte@5.43.4):
     dependencies:
+<<<<<<< HEAD
       cli-color: 2.0.4
+=======
+      eslint-scope: 7.2.2
+      eslint-visitor-keys: 3.4.3
+      espree: 9.6.1
+      postcss: 8.5.6
+      postcss-scss: 4.0.9(postcss@8.5.6)
+    optionalDependencies:
+      svelte: 4.2.15
+
+  svelte-hmr@0.16.0(svelte@4.2.15):
+    dependencies:
+      svelte: 4.2.15
+
+  svelte-i18n@3.6.0(svelte@4.2.15):
+    dependencies:
+      cli-color: 2.0.3
+      deepmerge: 4.3.1
+      estree-walker: 2.0.2
+      intl-messageformat: 9.13.0
+      sade: 1.8.1
+      svelte: 4.2.15
+      tiny-glob: 0.2.9
+
+  svelte-i18n@4.0.1(svelte@4.2.15):
+    dependencies:
+      cli-color: 2.0.3
+>>>>>>> 6.0-dev
       deepmerge: 4.3.1
       esbuild: 0.19.12
       estree-walker: 2.0.2
@@ -13028,7 +13248,14 @@ snapshots:
 
   undici-types@6.21.0: {}
 
+<<<<<<< HEAD
   undici-types@7.16.0: {}
+=======
+  uglify-js@3.19.3:
+    optional: true
+
+  undici-types@5.26.5: {}
+>>>>>>> 6.0-dev
 
   undici@7.14.0: {}
 
@@ -13120,7 +13347,11 @@ snapshots:
   vega-expression@6.1.0:
     dependencies:
       '@types/estree': 1.0.8
+<<<<<<< HEAD
       vega-util: 2.1.0
+=======
+      vega-util: 1.17.2
+>>>>>>> 6.0-dev
 
   vega-force@5.1.0:
     dependencies:
@@ -13374,7 +13605,72 @@ snapshots:
 
   vite@6.4.1(@types/node@24.10.0)(lightningcss@1.30.2)(sass@1.93.3)(stylus@0.64.0)(terser@5.44.1):
     dependencies:
+<<<<<<< HEAD
       esbuild: 0.25.12
+=======
+      esbuild: 0.20.2
+      postcss: 8.4.38
+      rollup: 4.17.2
+    optionalDependencies:
+      '@types/node': 20.12.8
+      fsevents: 2.3.3
+      lightningcss: 1.24.1
+      sass: 1.66.1
+      stylus: 0.63.0
+      sugarss: 4.0.1(postcss@8.5.6)
+      terser: 5.43.1
+
+  vite@5.2.9(@types/node@20.12.8)(lightningcss@1.21.7)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.6))(terser@5.43.1):
+    dependencies:
+      esbuild: 0.20.2
+      postcss: 8.4.38
+      rollup: 4.14.3
+    optionalDependencies:
+      '@types/node': 20.12.8
+      fsevents: 2.3.3
+      lightningcss: 1.21.7
+      sass: 1.66.1
+      stylus: 0.63.0
+      sugarss: 4.0.1(postcss@8.5.6)
+      terser: 5.43.1
+
+  vite@5.4.19(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))(terser@5.43.1):
+    dependencies:
+      esbuild: 0.21.5
+      postcss: 8.5.3
+      rollup: 4.39.0
+    optionalDependencies:
+      '@types/node': 20.12.8
+      fsevents: 2.3.3
+      lightningcss: 1.24.1
+      sass: 1.66.1
+      stylus: 0.63.0
+      sugarss: 4.0.1(postcss@8.4.38)
+      terser: 5.43.1
+
+  vite@6.4.1(@types/node@20.12.8)(jiti@1.21.7)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))(terser@5.43.1)(yaml@2.4.2):
+    dependencies:
+      esbuild: 0.25.9
+      fdir: 6.5.0(picomatch@4.0.3)
+      picomatch: 4.0.3
+      postcss: 8.5.6
+      rollup: 4.46.3
+      tinyglobby: 0.2.14
+    optionalDependencies:
+      '@types/node': 20.12.8
+      fsevents: 2.3.3
+      jiti: 1.21.7
+      lightningcss: 1.24.1
+      sass: 1.66.1
+      stylus: 0.63.0
+      sugarss: 4.0.1(postcss@8.4.38)
+      terser: 5.43.1
+      yaml: 2.4.2
+
+  vite@7.1.3(@types/node@20.12.8)(jiti@1.21.7)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))(terser@5.43.1)(yaml@2.4.2):
+    dependencies:
+      esbuild: 0.25.9
+>>>>>>> 6.0-dev
       fdir: 6.5.0(picomatch@4.0.3)
       picomatch: 4.0.3
       postcss: 8.5.6
@@ -13527,7 +13823,13 @@ snapshots:
 
   word-wrap@1.2.5: {}
 
+<<<<<<< HEAD
   worker-factory@7.0.46:
+=======
+  wordwrap@1.0.0: {}
+
+  worker-factory@7.0.13:
+>>>>>>> 6.0-dev
     dependencies:
       '@babel/runtime': 7.28.4
       fast-unique-numbers: 9.0.24

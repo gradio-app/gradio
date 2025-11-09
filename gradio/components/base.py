@@ -245,8 +245,8 @@ class Component(ComponentBase, Block):
     TEMPLATE_DIR = DeveloperPath("./templates/")
     FRONTEND_DIR = "../../frontend/"
 
-    def get_config(self):
-        config = super().get_config()
+    def get_config(self, cls: type[Block] | None = None) -> dict[str, Any]:
+        config = super().get_config(cls)
         if self.info:
             config["info"] = self.info
         if len(self.server_fns):
