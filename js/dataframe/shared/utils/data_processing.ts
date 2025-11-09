@@ -29,6 +29,8 @@ export function make_headers(
 			});
 	}
 
+	console.log("make_headers called", _h);
+
 	return _h.map((h, i) => {
 		const _id = make_id();
 		els[_id] = { cell: null, input: null };

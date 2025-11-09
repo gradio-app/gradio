@@ -31,7 +31,7 @@
 	let is_pm = $state(selected_hour >= 12);
 
 	let valid = $derived.by(() =>
-		date_is_valid_format(entered_value, gradio.props.include_time)
+		date_is_valid_format(entered_value, gradio.props.include_time),
 	);
 	let disabled = $derived(!gradio.shared.interactive);
 
@@ -67,7 +67,7 @@
 			const rect = calendar_button_ref.getBoundingClientRect();
 			picker_position = {
 				top: rect.bottom + 4,
-				left: rect.right - 280
+				left: rect.right - 280,
 			};
 		}
 	};
@@ -119,7 +119,7 @@
 	};
 
 	const handle_picker_update = (
-		event: CustomEvent<{ date: Date; formatted: string }>
+		event: CustomEvent<{ date: Date; formatted: string }>,
 	): void => {
 		entered_value = event.detail.formatted;
 		submit_values();

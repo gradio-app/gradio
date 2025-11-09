@@ -25,7 +25,14 @@
 		on:clear_status={() =>
 			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
-	<BaseCheckbox {gradio} />
+	<BaseCheckbox
+		{...gradio.props}
+		label={gradio.shared.label}
+		interactive={gradio.shared.interactive}
+		on_change={() => gradio.dispatch("change")}
+		on_input={() => gradio.dispatch("input")}
+		on_select={(data) => gradio.dispatch("select", data)}
+	/>
 	{#if gradio.props.info}
 		<Info info={gradio.props.info} />
 	{/if}

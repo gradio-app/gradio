@@ -50,10 +50,12 @@
 	$: can_add_columns = col_count && col_count[1] === "dynamic";
 	$: is_bool_column = datatype === "bool";
 
+	$: console.log("HEADERS", headers);
+
 	$: select_all_state = (() => {
 		if (!is_bool_column || data.length === 0) return "unchecked";
 		const true_count = data.filter(
-			(row) => row[i]?.value === true || row[i]?.value === "true"
+			(row) => row[i]?.value === true || row[i]?.value === "true",
 		).length;
 		if (true_count === 0) return "unchecked";
 		if (true_count === data.length) return "checked";

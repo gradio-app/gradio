@@ -394,6 +394,7 @@ function create_actions(
 			value_is_output,
 			dispatch
 		) => {
+			console.log("trigger_change called", { data, headers });
 			const s = get(state);
 			if (s.current_search_query) return;
 

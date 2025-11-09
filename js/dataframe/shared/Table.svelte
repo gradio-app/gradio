@@ -2,7 +2,7 @@
 	import {
 		create_dataframe_context,
 		type SortDirection,
-		type FilterDatatype
+		type FilterDatatype,
 	} from "./context/dataframe_context";
 </script>
 
@@ -24,7 +24,7 @@
 		Headers,
 		DataframeValue,
 		Datatype,
-		EditData
+		EditData,
 	} from "./utils/utils";
 	import CellMenu from "./CellMenu.svelte";
 	import Toolbar from "./Toolbar.svelte";
@@ -34,22 +34,23 @@
 		should_show_cell_menu,
 		get_current_indices,
 		handle_click_outside as handle_click_outside_util,
-		calculate_selection_positions
+		calculate_selection_positions,
 	} from "./utils/selection_utils";
 	import {
 		copy_table_data,
 		get_max,
-		handle_file_upload
+		handle_file_upload,
 	} from "./utils/table_utils";
 	import { make_headers, process_data } from "./utils/data_processing";
 	import { handle_keydown, handle_cell_blur } from "./utils/keyboard_utils";
 	import {
 		create_drag_handlers,
 		type DragState,
-		type DragHandlers
+		type DragHandlers,
 	} from "./utils/drag_utils";
 	import { sort_data_and_preserve_selection } from "./utils/sort_utils";
 	import { filter_data_and_preserve_selection } from "./utils/filter_utils";
+	import { _ } from "svelte-i18n";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -98,7 +99,7 @@
 		max_height,
 		column_widths,
 		max_chars,
-		static_columns
+		static_columns,
 	});
 
 	const { state: df_state, actions: df_actions } = df_ctx;
@@ -152,15 +153,15 @@
 		};
 	});
 
-	$: {
-		if (data || _headers || els) {
-			df_ctx.data = data;
-			df_ctx.headers = _headers;
-			df_ctx.els = els;
-			df_ctx.display_value = display_value;
-			df_ctx.styling = styling;
-		}
-	}
+	$: df_ctx.data = data;
+	// $: df_ctx.headers = _headers;
+	$: df_ctx.els = els;
+	// $: df_ctx.display_value = display_value;
+	// $: df_ctx.styling = styling;
+
+	// $: if (dequal(df_ctx.headers, _headers) === false) {
+	// 	df_ctx.headers = _headers;
+	// }
 
 	const dispatch = createEventDispatcher<{
 		change: DataframeValue;
@@ -196,7 +197,7 @@
 		color_accent_copied = color + "40"; // 80 is 50% opacity in hex
 		document.documentElement.style.setProperty(
 			"--color-accent-copied",
-			color_accent_copied
+			color_accent_copied,
 		);
 	});
 
@@ -211,9 +212,14 @@
 
 	$: {
 		if (!dequal(headers, old_headers)) {
-			_headers = make_headers(headers, col_count, els, make_id);
-			old_headers = JSON.parse(JSON.stringify(headers));
+			rerun_headers();
 		}
+	}
+
+	function rerun_headers() {
+		_headers = make_headers(headers, col_count, els, make_id);
+		df_ctx.headers = _headers;
+		old_headers = JSON.parse(JSON.stringify(headers));
 	}
 
 	function make_id(): string {
@@ -257,7 +263,7 @@
 			data_binding,
 			make_id,
 			display_value,
-			datatype
+			datatype,
 		);
 		old_val = JSON.parse(JSON.stringify(values)) as CellValue[][];
 
@@ -294,7 +300,7 @@
 				row.some((cell) =>
 					String(cell?.value)
 						.toLowerCase()
-						.includes($df_state.current_search_query?.toLowerCase() || "")
+						.includes($df_state.current_search_query?.toLowerCase() || ""),
 				)
 			) {
 				filtered_to_original_map.push(row_idx);
@@ -306,7 +312,7 @@
 						cell.display_value !== undefined
 							? cell.display_value
 							: String(cell.value),
-					styling: styling?.[row_idx]?.[col_idx] || ""
+					styling: styling?.[row_idx]?.[col_idx] || "",
 				});
 			});
 		});
@@ -322,30 +328,36 @@
 						original?.display_value !== undefined
 							? original.display_value
 							: String(cell.value),
-					styling: original?.styling || ""
+					styling: original?.styling || "",
 				};
-			})
+			}),
 		);
 	} else {
 		filtered_to_original_map = [];
 	}
 
-	let previous_headers = _headers.map((h) => h.value);
+	let previous_headers = _headers?.map((h) => h.value);
 	let previous_data = data.map((row) => row.map((cell) => cell.value));
 
 	$: {
-		if (data || _headers) {
-			df_actions.trigger_change(
-				data,
-				_headers,
-				previous_data,
-				previous_headers,
-				value_is_output,
-				dispatch
-			);
-			previous_data = data.map((row) => row.map((cell) => cell.value));
-			previous_headers = _headers.map((h) => h.value);
+		if (!dequal(data, previous_data) || !dequal(_headers, previous_headers)) {
+			rerun();
 		}
+	}
+
+	async function rerun() {
+		df_actions.trigger_change(
+			data,
+			_headers,
+			previous_data,
+			previous_headers,
+			value_is_output,
+			dispatch,
+		);
+
+		// _headers = make_headers(df_ctx.headers, col_count, els, make_id);
+		previous_data = data.map((row) => row.map((cell) => cell.value));
+		previous_headers = _headers.map((h) => h.value);
 	}
 
 	function handle_sort(col: number, direction: SortDirection): void {
@@ -373,7 +385,7 @@
 		col: number,
 		datatype: FilterDatatype,
 		filter: string,
-		value: string
+		value: string,
 	): void {
 		df_actions.handle_filter(col, datatype, filter, value);
 		filter_data(data, display_value, styling);
@@ -542,7 +554,7 @@
 	function sort_data(
 		_data: typeof data,
 		_display_value: string[][] | null,
-		_styling: string[][] | null
+		_styling: string[][] | null,
 	): void {
 		const result = sort_data_and_preserve_selection(
 			_data,
@@ -550,7 +562,7 @@
 			_styling,
 			$df_state.sort_state.sort_columns,
 			selected,
-			get_current_indices
+			get_current_indices,
 		);
 
 		data = result.data;
@@ -560,7 +572,7 @@
 	function filter_data(
 		_data: typeof data,
 		_display_value: string[][] | null,
-		_styling: string[][] | null
+		_styling: string[][] | null,
 	): void {
 		const result = filter_data_and_preserve_selection(
 			_data,
@@ -571,7 +583,7 @@
 			get_current_indices,
 			$df_state.filter_state.initial_data?.data,
 			$df_state.filter_state.initial_data?.display_value,
-			$df_state.filter_state.initial_data?.styling
+			$df_state.filter_state.initial_data?.styling,
 		);
 		data = result.data;
 		selected = result.selected;
@@ -601,7 +613,7 @@
 		event: CustomEvent<{
 			blur_event: FocusEvent;
 			coords: [number, number];
-		}>
+		}>,
 	): void {
 		const { blur_event, coords } = event.detail;
 		handle_cell_blur(blur_event, df_ctx, coords);
@@ -618,15 +630,11 @@
 				df_actions.set_active_header_menu({
 					col,
 					x: rect.right,
-					y: rect.bottom
+					y: rect.bottom,
 				});
 			}
 		}
 	}
-
-	afterUpdate(() => {
-		value_is_output = false;
-	});
 
 	function delete_col_at(index: number): void {
 		if (col_count[1] !== "dynamic") return;
@@ -636,6 +644,7 @@
 		data = result.data;
 		headers = result.headers;
 		_headers = make_headers(headers, col_count, els, make_id);
+		df_ctx.headers = _headers;
 		df_actions.set_active_cell_menu(null);
 		df_actions.set_active_header_menu(null);
 		df_actions.set_selected(false);
@@ -658,15 +667,15 @@
 			data,
 			els,
 			parent,
-			table
+			table,
 		);
 		document.documentElement.style.setProperty(
 			"--selected-col-pos",
-			positions.col_pos
+			positions.col_pos,
 		);
 		document.documentElement.style.setProperty(
 			"--selected-row-pos",
-			positions.row_pos || "0px"
+			positions.row_pos || "0px",
 		);
 	}
 
@@ -686,7 +695,7 @@
 					display_row.push(
 						cell.display_value !== undefined
 							? cell.display_value
-							: String(cell.value)
+							: String(cell.value),
 					);
 					styling_row.push(cell.styling || "");
 				});
@@ -701,8 +710,8 @@
 				headers: _headers.map((h) => h.value),
 				metadata: {
 					display_value: filtered_display_values,
-					styling: filtered_styling
-				}
+					styling: filtered_styling,
+				},
 			};
 
 			dispatch("change", change_payload);
@@ -720,7 +729,7 @@
 
 	function scroll_to_top(): void {
 		viewport.scrollTo({
-			top: 0
+			top: 0,
 		});
 	}
 
@@ -758,7 +767,7 @@
 			if (new_row[col]) {
 				new_row[col] = {
 					...new_row[col],
-					value: checked
+					value: checked,
 				};
 			}
 			return new_row;
@@ -772,7 +781,7 @@
 	const drag_state: DragState = {
 		is_dragging,
 		drag_start,
-		mouse_down_pos
+		mouse_down_pos,
 	};
 
 	$: {
@@ -791,7 +800,7 @@
 			(cell) => df_actions.set_selected(cell),
 			(event, row, col) => df_actions.handle_cell_click(event, row, col),
 			show_row_numbers,
-			parent
+			parent,
 		);
 	}
 
@@ -874,7 +883,7 @@
 							{actual_pinned_columns}
 							{header_edit}
 							{selected_header}
-							{headers}
+							headers={_headers}
 							{get_cell_width}
 							{handle_header_click}
 							{toggle_header_menu}
@@ -944,13 +953,14 @@
 							head.map((h) => h ?? ""),
 							col_count,
 							els,
-							make_id
+							make_id,
 						);
+						df_ctx.headers = _headers;
 						return _headers;
 					},
 					(vals) => {
 						values = vals;
-					}
+					},
 				)}
 			bind:dragging
 			aria_label={i18n("dataframe.drop_to_upload")}
@@ -1068,12 +1078,12 @@
 		on_add_column_left={() =>
 			add_col_at(
 				active_cell_menu?.col ?? active_header_menu?.col ?? -1,
-				"left"
+				"left",
 			)}
 		on_add_column_right={() =>
 			add_col_at(
 				active_cell_menu?.col ?? active_header_menu?.col ?? -1,
-				"right"
+				"right",
 			)}
 		on_delete_row={() => delete_row_at(active_cell_menu?.row ?? -1)}
 		on_delete_col={() =>
@@ -1098,12 +1108,12 @@
 			: undefined}
 		sort_direction={active_header_menu
 			? ($df_state.sort_state.sort_columns.find(
-					(item) => item.col === (active_header_menu?.col ?? -1)
+					(item) => item.col === (active_header_menu?.col ?? -1),
 				)?.direction ?? null)
 			: null}
 		sort_priority={active_header_menu
 			? $df_state.sort_state.sort_columns.findIndex(
-					(item) => item.col === (active_header_menu?.col ?? -1)
+					(item) => item.col === (active_header_menu?.col ?? -1),
 				) + 1 || null
 			: null}
 		on_filter={active_header_menu
@@ -1122,7 +1132,7 @@
 			: undefined}
 		filter_active={active_header_menu
 			? $df_state.filter_state.filter_columns.some(
-					(c) => c.col === (active_header_menu?.col ?? -1)
+					(c) => c.col === (active_header_menu?.col ?? -1),
 				)
 			: null}
 	/>
