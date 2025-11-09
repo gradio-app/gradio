@@ -9,9 +9,10 @@
 	"main_changeset": true,
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
+		"@gradio/icons": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@gradio/icons": "workspace:^"
+		"handlebars": "^4.7.8"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"

@@ -150,6 +150,15 @@
 		"cancel": "Отмена",
 		"like": "Нравится",
 		"dislike": "Не нравится",
-		"clear": "Очистить чат"
+		"clear": "Очистить чат",
+		"copy_message": "Копировать сообщение",
+		"copied_message": "Сообщение скопировано"
+	},
+	"chat_interface": {
+		"new_chat": "Новый чат",
+		"message_placeholder": "Введите сообщение...",
+		"additional_inputs": "Дополнительные поля",
+		"chatbot": "Чат-бот",
+		"conversation": "Разговор"
 	}
 }
