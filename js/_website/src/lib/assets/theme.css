@@ -245,7 +245,7 @@
 	--button-medium-text-weight: 600;
 }
 
-:root .dark {
+.dark {
 	--body-background-fill: var(--background-fill-primary);
 	--body-text-color: var(--neutral-100);
 	--color-accent-soft: var(--neutral-700);

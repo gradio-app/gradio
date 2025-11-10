@@ -19,7 +19,20 @@
 	@apply font-semibold hover:text-orange-500 transition-colors;
 }
 .thin-link {
-	@apply text-gray-900 dark:text-gray-300 hover:text-gray-600 dark:hover:text-gray-100 transition-colors;
+	@apply text-gray-900 dark:text-gray-300 transition-all duration-200 relative;
+}
+.thin-link::after {
+	content: '';
+	position: absolute;
+	bottom: -4px;
+	left: 0;
+	width: 0;
+	height: 2px;
+	background: linear-gradient(to right, #f97316, #fb923c);
+	transition: width 0.3s ease;
+}
+.thin-link:hover::after {
+	width: 100%;
 }
 .thinner-link {
 	@apply hover:text-orange-500 transition-colors;

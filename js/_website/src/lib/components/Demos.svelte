@@ -1,5 +1,8 @@
 <script lang="ts">
 	import WHEEL from "$lib/json/wheel.json";
+	import { theme } from "$lib/stores/theme";
+	import { update_gradio_theme } from "$lib/utils";
+	import { onMount } from "svelte";
 
 	export let name: string;
 	export let code: string;
@@ -7,6 +10,14 @@
 	export let url_version: string;
 
 	$: url_version;
+
+	onMount(() => {
+		update_gradio_theme($theme);
+	});
+
+	$: if (typeof window !== "undefined" && $theme) {
+		update_gradio_theme($theme);
+	}
 </script>
 
 <svelte:head>

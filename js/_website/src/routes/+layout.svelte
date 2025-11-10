@@ -12,6 +12,7 @@
 <script lang="ts">
 	import "$lib/assets/style.css";
 	import "$lib/assets/prism.css";
+	import "$lib/assets/theme.css";
 
 	import Header from "$lib/components/Header.svelte";
 	import Footer from "$lib/components/Footer.svelte";
@@ -22,19 +23,9 @@
 	store = media_query();
 
 	import { browser } from "$app/environment";
-	import { theme } from "$lib/stores/theme";
 
 	if (browser) {
 		window.__gradio_mode__ = "website";
-	}
-
-	// Reactively apply dark mode class when theme changes
-	$: if (typeof window !== "undefined") {
-		if ($theme === "dark") {
-			document.documentElement.classList.add("dark");
-		} else {
-			document.documentElement.classList.remove("dark");
-		}
 	}
 
 	import CopyButton from "$lib/components/CopyButton.svelte";
@@ -87,7 +78,7 @@
 	</script>
 </svelte:head>
 
-<div class="bg-white dark:bg-neutral-900 min-h-screen transition-colors">
+<div class="bg-gray-50 dark:bg-neutral-900 min-h-screen transition-colors">
 	<Header />
 
 	<slot />
@@ -97,17 +88,17 @@
 
 <style>
 	:global(html) {
-		background-color: white;
+		background-color: var(--bg-gray-50);
 	}
 	:global(html.dark) {
 		background-color: rgb(23, 23, 23); /* neutral-900 - true gray */
 	}
 	:global(body) {
-		background-color: white;
+		background-color: transparent;
 		color: rgb(23, 23, 23);
 	}
 	:global(.dark body) {
-		background-color: rgb(23, 23, 23); /* neutral-900 - true gray */
+		background-color: transparent;
 		color: rgb(245, 245, 245); /* neutral-100 */
 	}
 </style>

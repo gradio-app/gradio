@@ -66,3 +66,19 @@ export function make_slug_processor() {
 		}
 	};
 }
+
+export function update_gradio_theme(theme: string): void {
+	if (typeof document === "undefined") return;
+
+	const gradio_apps = document.querySelectorAll("gradio-app");
+	const gradio_lites = document.querySelectorAll("gradio-lite");
+
+	gradio_apps.forEach((app) => {
+		app.setAttribute("theme", theme);
+		app.setAttribute("theme_mode", theme);
+	});
+
+	gradio_lites.forEach((lite) => {
+		lite.setAttribute("theme", theme);
+	});
+}
