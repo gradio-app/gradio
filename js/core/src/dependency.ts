@@ -9,6 +9,7 @@ import { AsyncFunction } from "./init_utils";
 import { Client, type client_return } from "@gradio/client";
 import { LoadingStatus, type LoadingStatusArgs } from "@gradio/statustracker";
 import type { ToastMessage } from "@gradio/statustracker";
+import type { ValidationError } from "@gradio/client";
 const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
 const NOVALUE = Symbol("NOVALUE");
@@ -223,6 +224,10 @@ export class DependencyManager {
 		}
 	}
 
+	clear_loading_status(component_id: number): void {
+		this.loading_stati.clear(component_id);
+	}
+
 	async update_loading_stati_state() {
 		for (const [_, dep] of Object.entries(this.loading_stati.current)) {
 			const dep_id = dep.fn_index;
@@ -395,6 +400,28 @@ export class DependencyManager {
 									this.update_loading_stati_state();
 									break submit_loop;
 								} else if (result.stage === "error") {
+									if (Array.isArray(result?.message)) {
+										result.message.forEach((m: ValidationError, i) => {
+											this.update_state_cb(
+												dep.inputs[i],
+												{
+													loading_status: {
+														validation_error: !m.is_valid ? m.message : null,
+														show_validation_error: true
+													}
+												},
+												false
+											);
+										});
+										this.loading_stati.update({
+											status: "complete",
+											fn_index: dep.id,
+											stream_state: null
+										});
+										this.update_loading_stati_state();
+										break submit_loop;
+									}
+
 									const _message = result?.message?.replace(
 										MESSAGE_QUOTE_RE,
 										(_, b) => b
@@ -472,7 +499,6 @@ export class DependencyManager {
 							this.queue.delete(dep.id);
 							this.dispatch(event_meta);
 						}
-
 						return;
 					}
 				} catch (error) {
@@ -480,9 +506,11 @@ export class DependencyManager {
 						status: "error",
 						fn_index: dep.id,
 						eta: 0,
-						queue: false
+						queue: false,
+						stream_state: null
 					});
-
+					this.update_loading_stati_state();
+					this.submissions.delete(dep.id);
 					failure.forEach((dep_id) => {
 						this.dispatch({
 							type: "fn",
