@@ -139,6 +139,14 @@
 		} else if (event === "info") {
 			new_message("Info", data, -1, event);
 		} else if (event == "clear_status") {
+			app_tree.update_state(
+				id,
+				{
+					loading_status: {}
+				},
+				false
+			);
+			dep_manager.clear_loading_status(id);
 			// TODO: the loading_status store should handle this via a method
 			// update_status(id, "complete", data);
 		} else if (event == "close_stream") {

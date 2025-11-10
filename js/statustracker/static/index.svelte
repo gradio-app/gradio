@@ -90,11 +90,11 @@
 
 	$: should_hide =
 		type === "input" ||
-		((!status ||
-			status === "complete" ||
-			show_progress === "hidden" ||
-			status == "streaming") &&
-			!validation_error);
+		!status ||
+		status === "complete" ||
+		show_progress === "hidden" ||
+		status == "streaming" ||
+		(show_validation_error && validation_error);
 
 	let el: HTMLDivElement;
 
@@ -215,6 +215,7 @@
 
 <div
 	class="wrap {variant} {show_progress}"
+	class:no-click={validation_error && show_validation_error}
 	class:hide={should_hide}
 	class:translucent={(variant === "center" &&
 		(status === "pending" || status === "error")) ||
@@ -345,6 +346,8 @@
 		background: var(--block-background-fill);
 		padding: 0 var(--size-6);
 		overflow: hidden;
+	}
+	.no-click {
 		pointer-events: none;
 	}
 
