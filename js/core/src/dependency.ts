@@ -280,7 +280,7 @@ export class DependencyManager {
 			if (dep) {
 				console.log(
 					"Dispatching dependency",
-					`${event_meta.event_name}-${event_meta.target_id}`
+					`${event_meta.event_name}-${event_meta.target_id}`, event_meta
 				);
 				this.cancel(dep.cancels);
 
