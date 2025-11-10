@@ -226,7 +226,6 @@ export class AppTree {
 			this.client,
 			{ ...this.#config }
 		);
-		console.log("Processed props for component ID", opts.id, processed_props);
 
 		const node = {
 			id: opts.id,
@@ -279,7 +278,6 @@ export class AppTree {
 			throw new Error("Rerender failed: root node not found in current tree");
 		}
 		n.children = subtree.children;
-		console.log("Rerendered tree:", subtree.children);
 	}
 
 	/*
