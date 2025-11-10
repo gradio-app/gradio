@@ -94,7 +94,7 @@
 			<label for={id}>
 				<BlockTitle
 					show_label={gradio.shared.show_label}
-					info={gradio.props.info}>label={gradio.shared.label}</BlockTitle
+					info={gradio.props.info}>{gradio.shared.label || "Slider"}</BlockTitle
 				>
 			</label>
 			<div class="tab-like-container">

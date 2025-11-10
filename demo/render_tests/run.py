@@ -13,14 +13,14 @@ def get_select_index(evt: gr.SelectData):
     return evt.index
 
 with gr.Blocks() as demo:
-    gr.Textbox(value=update_log, label="Time")
+    gr.Textbox(value=update_log, every=0.5, label="Time")
 
-    slider = gr.Slider(1, 10, step=1)
+    slider = gr.Slider(1, 10, step=1, label="Slider")
     @gr.render(inputs=[slider])
     def show_log(s):
         with gr.Row():
             for i in range(s):
-                gr.Textbox(value=update_log, label=f"Render {i + 1}")
+                gr.Textbox(value=update_log,  every=0.5, label=f"Render {i + 1}")
 
     slider2 = gr.Slider(1, 10, step=1, label="Box Count")
     btn = gr.Button("Create Boxes")
@@ -50,12 +50,12 @@ with gr.Blocks() as demo:
 
     @gr.render()
     def examples_in_interface():
-        gr.Interface(lambda x:x, gr.Textbox(label="input"), gr.Textbox())
+        gr.Interface(lambda x:x, gr.Textbox(label="input"), gr.Textbox(), examples=[["test"]])
 
-    # @gr.render()
-    # def examples_in_blocks():
-    #     a = gr.Textbox(label="little textbox")
-    #     gr.Examples([["abc"], ["def"]], [a])
+    @gr.render()
+    def examples_in_blocks():
+        a = gr.Textbox(label="little textbox")
+        gr.Examples([["abc"], ["def"]], [a])
 
     choices_count = gr.Slider(1, 10, 3, step=1, label="Choices")
     @gr.render(choices_count)
@@ -66,14 +66,14 @@ with gr.Blocks() as demo:
 
             textbox.change(lambda l: gr.Radio(label=l), textbox, letter_choices)
 
-    #timer = gr.Timer(0.5)
+    timer = gr.Timer(0.5)
 
-    # @gr.render(triggers=[timer.tick], show_progress="hidden")
-    # def render():
-    #     a = gr.Textbox(label="box-a", key="a")
-    #     b = gr.Textbox(label="box-b", key="b")
-    #     a.change(lambda x: time.sleep(0.5) or x, a, b, key="a-b")
-    #     gr.Number(value=round(time.time(), 2))
+    @gr.render(triggers=[timer.tick], show_progress="hidden")
+    def render():
+        a = gr.Textbox(label="box-a", key="a")
+        b = gr.Textbox(label="box-b", key="b")
+        a.change(lambda x: time.sleep(0.5) or x, a, b, key="a-b")
+        gr.Number(value=round(time.time(), 2))
 
 
 if __name__ == '__main__':

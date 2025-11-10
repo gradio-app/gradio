@@ -357,7 +357,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 			// Need to update the props here
 			// otherwise UI won't reflect latest state from render
 			for (const key in _props.shared_props) {
-			// @ts-ignore i'm not doing pointless typescript gymanstics
+				// @ts-ignore i'm not doing pointless typescript gymanstics
 				this.shared[key] = _props.shared_props[key];
 			}
 			for (const key in _props.props) {
