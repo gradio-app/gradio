@@ -103,6 +103,7 @@ class TestImage:
         """
         component = gr.Image("test/test_files/bus.png")
         value = component.get_config().get("value")
+        assert value is not None
         base64 = client_utils.encode_file_to_base64(value["path"])
         assert base64 == media_data.BASE64_IMAGE
         component = gr.Image(None)
