@@ -18,7 +18,8 @@ with gr.Blocks() as demo:
 
     def double_value_and_max(x: gr.Number):
         x.maximum *= 2
-        x.value *= 2
+        x.value = (x.value or 0) * 2
+        x.info = f"Enter a number between 0 and {x.maximum}"
         return x
     
     double_btn.click(double_value_and_max, a, a).then(
@@ -28,6 +29,7 @@ with gr.Blocks() as demo:
     def reset(x: gr.Number):
         x.maximum = 10
         x.value = 5
+        x.info = "Enter a number between 0 and 10"
         return x
 
     reset_btn.click(reset, a, a).then(
