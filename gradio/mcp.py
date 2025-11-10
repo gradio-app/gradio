@@ -88,7 +88,6 @@ class GradioMCPServer:
         else:
             self.app_html_path = False
 
-
         manager = self.StreamableHTTPSessionManager(
             app=self.mcp_server, json_response=False, stateless=True
         )
@@ -640,6 +639,17 @@ class GradioMCPServer:
             List all available resources.
             """
             resources = []
+
+            if self.app_html_path:
+                resources.append(
+                    self.types.Resource(
+                        uri="ui://widget/app.html",
+                        name="app-widget",
+                        description="Interactive app widget",
+                        mimeType="text/html+skybridge",
+                    )
+                )
+
             selected_tools = self.get_selected_tools_from_request()
             for tool_name, endpoint_name in self.tool_to_endpoint.items():
                 if selected_tools is not None and tool_name not in selected_tools:
@@ -708,6 +718,16 @@ class GradioMCPServer:
             Read a specific resource by URI.
             """
             uri = str(uri)
+
+            if self.app_html_path and uri == "ui://widget/app.html":
+                html_content = self.app_html_path.read_text()
+                return [
+                    self.ReadResourceContents(
+                        content=html_content,
+                        mime_type="text/html+skybridge",
+                    )
+                ]
+
             client = await run_sync(self._get_or_create_client)
             for endpoint_name in self.tool_to_endpoint.values():
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
