@@ -23,6 +23,13 @@ export class LoadingStatus {
 		};
 	}
 
+	clear(id: number): void {
+		if (id in this.current) {
+			//@ts-ignore
+			this.current[id] = {};
+		}
+	}
+
 	update(args: LoadingStatusArgs): void {
 		const updates = this.resolve_args(args);
 

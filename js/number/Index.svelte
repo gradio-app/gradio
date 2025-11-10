@@ -52,7 +52,6 @@
 	<label class="block" class:container={gradio.shared.container}>
 		<BlockTitle show_label={gradio.shared.show_label} info={gradio.props.info}
 			>{gradio.shared.label}
-
 			{#if gradio.shared.loading_status?.validation_error}
 				<div class="validation-error">
 					{gradio.shared.loading_status?.validation_error}

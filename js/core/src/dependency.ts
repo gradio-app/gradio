@@ -9,6 +9,7 @@ import { AsyncFunction } from "./init_utils";
 import { Client, type client_return } from "@gradio/client";
 import { LoadingStatus, type LoadingStatusArgs } from "@gradio/statustracker";
 import type { ToastMessage } from "@gradio/statustracker";
+import type { ValidationError } from "@gradio/client";
 const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
 const NOVALUE = Symbol("NOVALUE");
@@ -223,6 +224,10 @@ export class DependencyManager {
 		}
 	}
 
+	clear_loading_status(component_id: number): void {
+		this.loading_stati.clear(component_id);
+	}
+
 	async update_loading_stati_state() {
 		for (const [_, dep] of Object.entries(this.loading_stati.current)) {
 			const dep_id = dep.fn_index;
@@ -359,8 +364,24 @@ export class DependencyManager {
 						}
 
 						this.submissions.set(dep.id, dep_submission.data);
+						let index = 0;
 						// fn for this?
 						submit_loop: for await (const result of dep_submission.data) {
+							if (index === 0) {
+								// Clear out previously set validation errors
+								dep.inputs.forEach((input_id) => {
+									this.update_state_cb(
+										input_id,
+										{
+											loading_status: {
+												validation_error: null
+											}
+										},
+										false
+									);
+								});
+							}
+							index += 1;
 							if (result === null) continue;
 							if (result.type === "data") {
 								this.handle_data(dep.outputs, result.data);
@@ -395,6 +416,44 @@ export class DependencyManager {
 									this.update_loading_stati_state();
 									break submit_loop;
 								} else if (result.stage === "error") {
+									if (Array.isArray(result?.message)) {
+										result.message.forEach((m: ValidationError, i) => {
+											this.update_state_cb(
+												dep.inputs[i],
+												{
+													loading_status: {
+														validation_error: !m.is_valid ? m.message : null,
+														show_validation_error: true
+													}
+												},
+												false
+											);
+										});
+										// Manually set the output statuses to null
+										// Doing this in update_loading_stati_state would
+										// validation errors set above
+										// For example, if the input component is an output component (chatinterface)
+										dep.outputs.forEach((output_id) => {
+											if (dep.inputs.includes(output_id)) return;
+											this.update_state_cb(
+												output_id,
+												{
+													loading_status: {
+														status: null
+													}
+												},
+												false
+											);
+										});
+										unset_args.forEach((fn) => fn());
+										this.submissions.delete(dep.id);
+										if (this.queue.has(dep.id)) {
+											this.queue.delete(dep.id);
+											this.dispatch(event_meta);
+										}
+										return;
+									}
+
 									const _message = result?.message?.replace(
 										MESSAGE_QUOTE_RE,
 										(_, b) => b
@@ -472,7 +531,6 @@ export class DependencyManager {
 							this.queue.delete(dep.id);
 							this.dispatch(event_meta);
 						}
-
 						return;
 					}
 				} catch (error) {
@@ -480,9 +538,11 @@ export class DependencyManager {
 						status: "error",
 						fn_index: dep.id,
 						eta: 0,
-						queue: false
+						queue: false,
+						stream_state: null
 					});
-
+					this.update_loading_stati_state();
+					this.submissions.delete(dep.id);
 					failure.forEach((dep_id) => {
 						this.dispatch({
 							type: "fn",
