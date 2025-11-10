@@ -8,7 +8,7 @@
 	const props = $props();
 	const gradio = new Gradio<NumberEvents, NumberProps>(props);
 
-	if (gradio.props.value === null && gradio.props.placeholder === "") {
+	if (gradio.props.value == null && gradio.props.placeholder === "") {
 		gradio.props.value = 0;
 	}
 
@@ -28,7 +28,6 @@
 			gradio.dispatch("submit");
 		}
 	}
-
 	const disabled = $derived(!gradio.shared.interactive);
 </script>
 
