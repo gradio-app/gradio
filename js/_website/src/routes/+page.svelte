@@ -121,9 +121,7 @@
 </div>
 
 <div class="relative overflow-hidden py-20">
-	<div
-		class="absolute inset-0 bg-gray-50 dark:bg-neutral-950 -z-10"
-	></div>
+	<div class="absolute inset-0 bg-gray-50 dark:bg-neutral-950 -z-10"></div>
 	<div
 		class="absolute top-20 left-1/4 w-72 h-72 bg-orange-500/5 dark:bg-orange-500/10 rounded-full blur-3xl pointer-events-none"
 	></div>
@@ -155,9 +153,7 @@
 	</div>
 </div>
 
-<div
-	class="relative overflow-hidden py-24"
->
+<div class="relative overflow-hidden py-24">
 	<div
 		class="absolute inset-0 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-neutral-950 dark:to-neutral-900 -z-10"
 	></div>
@@ -284,12 +280,16 @@
 								<div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
 								<div class="w-3 h-3 rounded-full bg-green-500/80"></div>
 							</div>
-							<span class="text-gray-500 dark:text-gray-400 text-xs ml-2">terminal</span>
+							<span class="text-gray-500 dark:text-gray-400 text-xs ml-2"
+								>terminal</span
+							>
 						</div>
 						<div class="space-y-2">
 							<div>
 								<span class="text-gray-400 dark:text-gray-500">$</span>
-								<span class="text-green-600 dark:text-green-400">pip install</span>
+								<span class="text-green-600 dark:text-green-400"
+									>pip install</span
+								>
 								<span class="text-blue-600 dark:text-blue-400">gradio</span>
 							</div>
 							<div>

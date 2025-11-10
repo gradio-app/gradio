@@ -96,10 +96,10 @@
 				class="flex items-center gap-2 cursor-pointer thin-link"
 				on:click={() => (show_help_menu = !show_help_menu)}
 			>
-				<span>Community</span>
+				<span class="pointer-events-none">Community</span>
 				{#if show_help_menu}
 					<svg
-						class="h-4 w-4 text-gray-900 dark:text-gray-300"
+						class="h-4 w-4 text-gray-900 dark:text-gray-300 pointer-events-none"
 						xmlns="http://www.w3.org/2000/svg"
 						viewBox="0 0 20 20"
 						fill="currentColor"
@@ -112,7 +112,7 @@
 					</svg>
 				{:else}
 					<svg
-						class="h-4 w-4 text-gray-900 dark:text-gray-300"
+						class="h-4 w-4 text-gray-900 dark:text-gray-300 pointer-events-none"
 						xmlns="http://www.w3.org/2000/svg"
 						viewBox="0 0 20 20"
 						fill="currentColor"

@@ -22,7 +22,7 @@
 	@apply text-gray-900 dark:text-gray-300 transition-all duration-200 relative;
 }
 .thin-link::after {
-	content: '';
+	content: "";
 	position: absolute;
 	bottom: -4px;
 	left: 0;
