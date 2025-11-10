@@ -15,17 +15,7 @@
 
 <div class="hidden lg:block py-2 max-h-[750px] overflow-y-scroll">
 	{#key name}
-		<button
-			class="hidden lg:block open-btn bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-300 font-bold px-2 rounded mx-4 my-2"
-			on:click={() => {
-				let code_b64 = btoa(code);
-				window.open("/playground?demo=Blank&code=" + code_b64, "_blank");
-			}}
-		>
-			Open in 🎢 ↗
-		</button>
-
-		<gradio-lite playground shared-worker layout="vertical" class="p-2">
+		<gradio-lite shared-worker layout="vertical" class="p-2">
 			{code}
 		</gradio-lite>
 	{/key}
@@ -48,12 +38,6 @@
 </div>
 
 <style>
-	.open-btn {
-		position: absolute;
-		top: 3%;
-		right: 0;
-		font-weight: 500;
-	}
 	:global(.child-container) {
 		flex-direction: column !important;
 	}
