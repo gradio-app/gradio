@@ -14,6 +14,7 @@ import warnings
 from collections.abc import Callable, Iterable, Sequence
 from functools import partial
 from pathlib import Path
+from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, Literal, Optional
 
 from gradio_client import utils as client_utils
@@ -1058,9 +1059,9 @@ def special_args(
         ):
             component_prop_indices.append(i)
             if inputs is not None and component_props and i in component_props:
-                from types import SimpleNamespace
-
-                inputs[i] = SimpleNamespace(**component_props[i])
+                inputs[i] = SimpleNamespace(
+                    **component_props[i], _is_component_update=True
+                )
         elif (
             param.default is not param.empty and inputs is not None and len(inputs) <= i
         ):

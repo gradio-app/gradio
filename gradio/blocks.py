@@ -19,7 +19,7 @@ import webbrowser
 from collections import defaultdict
 from collections.abc import AsyncIterator, Callable, Coroutine, Sequence, Set
 from pathlib import Path
-from types import ModuleType
+from types import ModuleType, SimpleNamespace
 from typing import TYPE_CHECKING, Any, Literal, Union, cast
 from urllib.parse import urlparse, urlunparse
 
@@ -1895,6 +1895,15 @@ Received inputs:
                 if isinstance(prediction_value, Block):
                     prediction_value = prediction_value.constructor_args.copy()
                     prediction_value["__type__"] = "update"
+                elif isinstance(prediction_value, SimpleNamespace) and getattr(
+                    prediction_value, "_is_component_update", False
+                ):
+                    prediction_value = vars(prediction_value).copy()
+                    keys = inspect.signature(block.__class__.__init__).parameters.keys()
+                    prediction_value = {
+                        k: v for k, v in prediction_value.items() if k in keys
+                    }
+                    prediction_value["__type__"] = "update"
                 if utils.is_prop_update(prediction_value):
                     kwargs = state[block._id].constructor_args.copy()
                     kwargs.update(prediction_value)
@@ -1902,6 +1911,7 @@ Received inputs:
                     kwargs.pop("__type__")
                     kwargs["render"] = False
 
+                    print(">>", kwargs)
                     state[block._id] = block.__class__(**kwargs)
                     state._update_config(block._id)
                     prediction_value = postprocess_update_dict(
