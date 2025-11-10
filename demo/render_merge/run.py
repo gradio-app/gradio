@@ -2,7 +2,7 @@ import gradio as gr
 import time
 
 with gr.Blocks() as demo:
-    text_count = gr.Slider(1, 5, step=1, label="Textbox Count")
+    text_count = gr.Slider(1, 5, value=1, step=1, label="Textbox Count")
 
     @gr.render(inputs=text_count)
     def render_count(count):
@@ -12,19 +12,19 @@ with gr.Blocks() as demo:
             boxes.append(box)
 
         def merge(*args):
-            time.sleep(1)  # simulate a delay
+            time.sleep(0.2)  # simulate a delay
             return " ".join(args)
 
         merge_btn.click(merge, boxes, output)
 
         def clear():
-            time.sleep(1)  # simulate a delay
+            time.sleep(0.2)  # simulate a delay
             return [" "] * count
 
         clear_btn.click(clear, None, boxes)
 
         def countup():
-            time.sleep(1)  # simulate a delay
+            time.sleep(0.2)  # simulate a delay
             return list(range(count))
 
         count_btn.click(countup, None, boxes, queue=False)
