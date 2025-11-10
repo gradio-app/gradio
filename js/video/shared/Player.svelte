@@ -60,6 +60,12 @@
 		time = (duration * (clientX - left)) / (right - left);
 	}
 
+	function handle_slider_input(event: Event): void {
+		if (!duration) return;
+		const target = event.target as HTMLInputElement;
+		time = parseFloat(target.value);
+	}
+
 	async function play_pause(): Promise<void> {
 		if (document.fullscreenElement != video) {
 			const isPlaying =
@@ -150,14 +156,19 @@
 
 			<span class="time">{format_time(time)} / {format_time(duration)}</span>
 
-			<!-- TODO: implement accessible video timeline for 4.0 -->
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-			<progress
-				value={time / duration || 0}
-				on:mousemove={handleMove}
-				on:touchmove|preventDefault={handleMove}
-				on:click|stopPropagation|preventDefault={handle_click}
+			<input
+				type="range"
+				min="0"
+				max={duration}
+				step="1"
+				bind:value={time}
+				class="timeline"
+				aria-label="Video progress bar"
+				aria-valuemin="0"
+				aria-valuemax={duration}
+				aria-valuenow={time}
+				aria-valuetext={format_time(time)}
+				on:input={handle_slider_input}
 			/>
 
 			<div
@@ -193,21 +204,31 @@
 		text-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
 	}
 
-	progress {
+	.timeline {
 		margin-right: var(--size-3);
-		border-radius: var(--radius-sm);
-		width: var(--size-full);
+		flex-grow: 1;
 		height: var(--size-2);
+		-webkit-appearance: none;
+		background: rgba(255, 255, 255, 0.2);
+		border-radius: var(--radius-sm);
 	}
 
-	progress::-webkit-progress-bar {
-		border-radius: 2px;
-		background-color: rgba(255, 255, 255, 0.2);
-		overflow: hidden;
+	.timeline::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		width: var(--size-2);
+		height: var(--size-2);
+		background: rgba(255, 255, 255, 0.9);
+		border-radius: 50%;
+		cursor: pointer;
 	}
 
-	progress::-webkit-progress-value {
-		background-color: rgba(255, 255, 255, 0.9);
+	.timeline::-moz-range-thumb {
+		width: var(--size-2);
+		height: var(--size-2);
+		background: rgba(255, 255, 255, 0.9);
+		border: none;
+		border-radius: 50%;
+		cursor: pointer;
 	}
 
 	.mirror {
