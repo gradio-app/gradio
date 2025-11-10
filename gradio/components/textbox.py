@@ -73,7 +73,7 @@ class Textbox(FormComponent):
         lines: int = 1,
         max_lines: int | None = None,
         placeholder: str | I18nData | None = None,
-        label: str | I18nData | None = None,
+        label: str | I18nData | None = "Textbox",
         info: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,

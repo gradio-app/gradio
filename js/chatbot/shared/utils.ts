@@ -296,10 +296,7 @@ export async function load_components(
 		if (_components[component_name] || component_name === "file") {
 			continue;
 		}
-		const variant =
-			component_name === "dataframe"
-				? "component"
-				: "base";
+		const variant = component_name === "dataframe" ? "component" : "base";
 		const comp = await load_component(component_name, variant);
 		// @ts-ignore
 		_components[component_name] = comp.default;

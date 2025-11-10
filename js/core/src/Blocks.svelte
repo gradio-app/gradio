@@ -113,7 +113,8 @@
 			max_file_size,
 			autoscroll
 		},
-		app
+		app,
+		$reactive_formatter
 	);
 
 	setContext(GRADIO_ROOT, {

@@ -93,16 +93,20 @@
 		component: ComponentType<SvelteComponent>;
 	}[][] = [];
 
-	async function get_component_meta(selected_samples: any[][]): Promise<void> {
+	async function get_component_meta(
+		selected_samples_json: string
+	): Promise<void> {
+		const _selected_samples: any[][] = JSON.parse(selected_samples_json);
 		console.log("+++++++++++++++++++++++++++++++++++++");
 		console.log(
 			"Getting component meta for samples:",
-			selected_samples,
+			_selected_samples,
 			components
 		);
+		// @ts-ignore
 		component_meta = await Promise.all(
-			selected_samples &&
-				selected_samples.map(
+			_selected_samples &&
+				_selected_samples.map(
 					async (sample_row) =>
 						await Promise.all(
 							sample_row.map(async (sample_cell, j) => {
@@ -117,9 +121,11 @@
 		);
 	}
 
-	$: get_component_meta(selected_samples);
-	$: console.log("Component meta:", component_meta, component_map);
-	$: console.log("Selected samples:", selected_samples);
+	// Need to striginfiy the samples otherwise get_component_meta will trigger infinitely
+	// Saw this when rendering examples in a gr.render block
+	$: selected_samples_json = JSON.stringify(selected_samples || []);
+
+	$: get_component_meta(selected_samples_json);
 </script>
 
 {#if gallery}
