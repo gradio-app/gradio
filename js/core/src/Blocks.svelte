@@ -347,10 +347,39 @@
 		}
 	}
 
+	function filter_serializable_props(
+		props: Record<string, any>
+	): Record<string, any> {
+		const serializable: Record<string, any> = {};
+		for (const [key, value] of Object.entries(props)) {
+			if (
+				value === undefined ||
+				typeof value === "function" ||
+				value instanceof HTMLElement ||
+				key === "instance" ||
+				key === "component"
+			) {
+				continue;
+			}
+			if (
+				value === null ||
+				typeof value === "string" ||
+				typeof value === "number" ||
+				typeof value === "boolean" ||
+				Array.isArray(value) ||
+				(typeof value === "object" && value.constructor === Object)
+			) {
+				serializable[key] = value;
+			}
+		}
+		return serializable;
+	}
+
 	async function get_component_value_or_event_data(
 		component_id: number,
 		trigger_id: number | null,
-		event_data: unknown
+		event_data: unknown,
+		need_all_props: boolean = false
 	): Promise<any> {
 		if (
 			component_id === trigger_id &&
@@ -359,6 +388,17 @@
 		) {
 			// @ts-ignore
 			return event_data.value;
+		}
+		if (need_all_props) {
+			const component = components.find((c) => c.id === component_id);
+			if (component) {
+				const value = await get_data(component_id);
+				const serializable_props = filter_serializable_props(component.props);
+				return {
+					...serializable_props,
+					value: value
+				};
+			}
 		}
 		return get_data(component_id);
 	}
@@ -390,8 +430,14 @@
 		let payload: Payload = {
 			fn_index: dep_index,
 			data: await Promise.all(
-				dep.inputs.map((id) =>
-					get_component_value_or_event_data(id, trigger_id, event_data)
+				dep.inputs.map((id, index) =>
+					get_component_value_or_event_data(
+						id,
+						trigger_id,
+						event_data,
+						dep.component_prop_inputs &&
+							dep.component_prop_inputs.includes(index)
+					)
 				)
 			),
 			event_data: dep.collects_event_data ? event_data : null,

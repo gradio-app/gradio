@@ -945,7 +945,7 @@ def test_request_session_none_without_sessionmiddleware():
     def foo(a: int, prof: gr.OAuthProfile | None = None):
         return a
 
-    inputs, _, _ = helpers.special_args(
+    inputs, _, _, _ = helpers.special_args(
         foo,
         inputs=[5],
         request=Request(scope={"type": "http"}),  # type: ignore
