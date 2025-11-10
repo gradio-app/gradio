@@ -297,7 +297,7 @@ export async function load_components(
 			continue;
 		}
 		const variant =
-			component_name === "dataframe" || component_name === "model3d"
+			component_name === "dataframe"
 				? "component"
 				: "base";
 		const comp = await load_component(component_name, variant);

@@ -211,7 +211,6 @@ fig = random_plot()
 with gr.Blocks(fill_height=True) as demo:
     chatbot = gr.Chatbot(
         elem_id="chatbot",
-        type="messages",
         scale=1,
         buttons=["copy"],
         avatar_images=(
