@@ -29,7 +29,7 @@ class Number(FormComponent):
 
     def __init__(
         self,
-        value: float | Callable | None = None,
+        value: float | Callable | None = 0,
         *,
         label: str | I18nData | None = None,
         placeholder: str | I18nData | None = None,
