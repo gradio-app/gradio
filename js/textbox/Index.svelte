@@ -14,6 +14,8 @@
 
 	let _props = $props();
 
+	$inspect("TEXTBOX _props", _props);
+
 	const gradio = new Gradio<TextboxEvents, TextboxProps>(_props);
 
 	function handle_change(value: string): void {
@@ -23,6 +25,8 @@
 
 		gradio.dispatch("change", value);
 	}
+
+	$inspect("TEXTBOX gradio.props.id", gradio.shared.id, gradio.props.value);
 </script>
 
 <Block

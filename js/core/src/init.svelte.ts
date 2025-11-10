@@ -220,6 +220,7 @@ export class AppTree {
 			this.client,
 			{ ...this.#config }
 		);
+		console.log("Processed props for component ID", opts.id, processed_props);
 
 		const node = {
 			id: opts.id,
@@ -251,8 +252,9 @@ export class AppTree {
 		}, new Map<number, ComponentMeta>());
 		const subtree = this.traverse(layout, (node) => {
 			const current_node = find_node_by_id(this.root!, node.id);
-
+			console.log("Rerendering node:", node.id);
 			// if (current_node) {
+			// 	console.log("Updating existing node:", node.id,  component_map.get(node.id)?.props);
 			// 	this.update_state(node.id, component_map.get(node.id)?.props || {});
 
 			// 	return current_node;
@@ -267,6 +269,7 @@ export class AppTree {
 			throw new Error("Rerender failed: root node not found in current tree");
 		}
 		n.children = subtree.children;
+		console.log("Rerendered tree:", subtree.children);
 	}
 
 	/*
