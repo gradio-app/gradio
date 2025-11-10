@@ -36,6 +36,11 @@
 			"svelte": "./dist/Example.svelte",
 			"types": "./dist/Example.svelte.d.ts"
 		},
+		"./base": {
+			"gradio": "./shared/Model3D.svelte",
+			"svelte": "./dist/shared/Model3D.svelte",
+			"types": "./dist/shared/Model3D.svelte.d.ts"
+		},
 		"./package.json": "./package.json"
 	},
 	"peerDependencies": {
