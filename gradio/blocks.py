@@ -2437,6 +2437,7 @@ Received inputs:
         ssr_mode: bool | None = None,
         pwa: bool | None = None,
         mcp_server: bool | None = None,
+        mcp_app: bool | str | Path = False,
         _frontend: bool = True,
         i18n: I18n | None = None,
     ) -> tuple[App, str, str]:
@@ -2480,6 +2481,7 @@ Received inputs:
             pwa: If True, the Gradio app will be set up as an installable PWA (Progressive Web App). If set to None (default behavior), then the PWA feature will be enabled if this Gradio app is launched on Spaces, but not otherwise.
             i18n: An I18n instance containing custom translations, which are used to translate strings in our components (e.g. the labels of components or Markdown strings). This feature can only be used to translate static text in the frontend, not values in the backend.
             mcp_server: If True, the Gradio app will be set up as an MCP server and documented functions will be added as MCP tools. If None (default behavior), then the GRADIO_MCP_SERVER environment variable will be used to determine if the MCP server should be enabled.
+            mcp_app: If True, the Gradio app will generate and serve a HTML UI as an MCP resource allowing it to be used as an app within ChatGPT. If a string or Path to an HTML file is provided, that file will be used as the path to the MCP app. Requires `mcp_server=True`.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo

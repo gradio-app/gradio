@@ -345,10 +345,13 @@ class App(FastAPI):
         blocks: gradio.Blocks,
         app_kwargs: dict[str, Any],
         mcp_server: bool | None = None,
+        mcp_app: bool | str | Path = False,
     ):
         mcp_subpath = API_PREFIX + "/mcp"
         if mcp_server is None:
             mcp_server = os.environ.get("GRADIO_MCP_SERVER", "False").lower() == "true"
+        if mcp_app and not mcp_server:
+            raise ValueError("`mcp_app` requires `mcp_server=True`. Please set `mcp_server=True` in `launch()`.")
         if mcp_server:
             try:
                 import gradio.mcp
@@ -392,10 +395,11 @@ class App(FastAPI):
         strict_cors: bool = True,
         ssr_mode: bool = False,
         mcp_server: bool | None = None,
+        mcp_app: bool | str | Path = False,
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
-        mcp_subpath = App.setup_mcp_server(blocks, app_kwargs, mcp_server)
+        mcp_subpath = App.setup_mcp_server(blocks, app_kwargs, mcp_server, mcp_app)
 
         delete_cache = blocks.delete_cache or (None, None)
         app_kwargs["lifespan"] = create_lifespan_handler(
