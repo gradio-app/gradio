@@ -364,8 +364,24 @@ export class DependencyManager {
 						}
 
 						this.submissions.set(dep.id, dep_submission.data);
+						let index = 0;
 						// fn for this?
 						submit_loop: for await (const result of dep_submission.data) {
+							if (index === 0) {
+								// Clear out previously set validation errors
+								dep.inputs.forEach((input_id) => {
+									this.update_state_cb(
+										input_id,
+										{
+											loading_status: {
+												validation_error: null
+											}
+										},
+										false
+									);
+								});
+							}
+							index += 1;
 							if (result === null) continue;
 							if (result.type === "data") {
 								this.handle_data(dep.outputs, result.data);
@@ -413,13 +429,29 @@ export class DependencyManager {
 												false
 											);
 										});
-										this.loading_stati.update({
-											status: "complete",
-											fn_index: dep.id,
-											stream_state: null
+										// Manually set the output statuses to null
+										// Doing this in update_loading_stati_state would
+										// validation errors set above
+										// For example, if the input component is an output component (chatinterface)
+										dep.outputs.forEach((output_id) => {
+											if (dep.inputs.includes(output_id)) return;
+											this.update_state_cb(
+												output_id,
+												{
+													loading_status: {
+														status: null
+													}
+												},
+												false
+											);
 										});
-										this.update_loading_stati_state();
-										break submit_loop;
+										unset_args.forEach((fn) => fn());
+										this.submissions.delete(dep.id);
+										if (this.queue.has(dep.id)) {
+											this.queue.delete(dep.id);
+											this.dispatch(event_meta);
+										}
+										return;
 									}
 
 									const _message = result?.message?.replace(
