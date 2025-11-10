@@ -4,7 +4,7 @@
 
 <script lang="ts">
 	import type { Gradio } from "@gradio/utils";
-	import { Block, Info } from "@gradio/atoms";
+	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import type { SelectData } from "@gradio/utils";
@@ -18,6 +18,7 @@
 	export let value_is_output = false;
 	export let label = "Checkbox";
 	export let info: string | undefined = undefined;
+	export let show_label = true;
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -44,7 +45,15 @@
 	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
 </script>
 
-<Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
+<Block
+	{visible}
+	{elem_id}
+	{elem_classes}
+	type="fieldset"
+	{container}
+	{scale}
+	{min_width}
+>
 	<StatusTracker
 		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}
@@ -55,11 +64,10 @@
 	<BaseCheckbox
 		bind:value
 		{label}
+		{show_label}
+		{info}
 		{interactive}
 		on:change={handle_change}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 	/>
-	{#if info}
-		<Info {info} />
-	{/if}
 </Block>

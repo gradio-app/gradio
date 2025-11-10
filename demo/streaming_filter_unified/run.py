@@ -35,7 +35,7 @@ def transform_cv2(frame, transform):
 css=""".my-group {max-width: 500px !important; max-height: 500px !important;}
             .my-column {display: flex !important; justify-content: center !important; align-items: center !important};"""
 
-with gr.Blocks(css=css) as demo:
+with gr.Blocks() as demo:
     with gr.Column(elem_classes=["my-column"]):
         with gr.Group(elem_classes=["my-group"]):
             transform = gr.Dropdown(choices=["cartoon", "edges", "flip"],
@@ -45,4 +45,4 @@ with gr.Blocks(css=css) as demo:
 
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(css=css)

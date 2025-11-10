@@ -206,7 +206,7 @@ This script loads our VAD model and sets up functions to start and stop recordin
 Now, let’s create an intuitive and visually appealing user interface with Gradio. This interface will include an audio input for capturing voice, a chat window for displaying responses, and state management to keep things synchronized.
 
 ```python
-with gr.Blocks(theme=theme, js=js) as demo:
+with gr.Blocks() as demo:
     with gr.Row():
         input_audio = gr.Audio(
             label="Input Audio",
@@ -218,6 +218,7 @@ with gr.Blocks(theme=theme, js=js) as demo:
     with gr.Row():
         chatbot = gr.Chatbot(label="Conversation")
     state = gr.State(value=AppState())
+demo.launch(theme=theme, js=js)
 ```
 
 In this code block, we’re using Gradio’s `Blocks` API to create an interface with an audio input, a chat display, and an application state manager. The color customization for the waveform adds a nice visual touch.

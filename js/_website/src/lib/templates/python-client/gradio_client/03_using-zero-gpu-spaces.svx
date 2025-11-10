@@ -16,18 +16,23 @@ This token is a request header called `X-IP-Token` and its value changes dependi
 <br>
 
 Let's say you want to create a space (Space A) that uses a ZeroGPU space (Space B) programmatically.
-Simply calling Space B from Space A with the python client will quickly exhaust your rate limit, as all the requests to the ZeroGPU space will have the same token.
-So in order to avoid this, we need to extract the token of the user using Space A before we call Space B programmatically.
-<br> 
+Normally, calling Space B from Space A with the Gradio Python client would quickly exhaust Space B's rate limit, as all the requests to the ZeroGPU space
+would be missing the `X-IP-Token` request header and would therefore be treated as unauthenticated. 
+
+In order to avoid this, we need to extract the `X-IP-Token` of the user using Space A before we call Space B programmatically.
+Where possible, specifically in the case of functions that are passed into event listeners directly, Gradio automatically
+extracts the `X-IP-Token` from the incoming request and passes it into the Gradio Client. But if the Client 
+is instantiated outside of such a function or if it is in a nested function that is not directly passed into a Gradio event listener,
+then you may need to pass in the token manually.
 
 How to do this will be explained in the following section.
 
-### Avoiding Rate Limits 
+### Avoiding Rate Limits by Manually Passing an IP Token
 
-When a user presses enter in the textbox, we will extract their token from the `X-IP-Token` header of the incoming request.
+In the following hypothetical example, when a user presses enter in the textbox, the `generate()` function
+is called, which calls a second function, `text_to_image()`. Because the Gradio Client is being
+instantiated indirectly, in `text_to_image()`, we will need to extract their token from the `X-IP-Token` header of the incoming request.
 We will use this header when constructing the gradio client.
-The following hypothetical text-to-image application shows how this is done.
-<br> 
 
 
 ```python
@@ -40,11 +45,14 @@ def text_to_image(prompt, request: gr.Request):
     img = client.predict(prompt, api_name="/predict")
     return img
 
+def generate(prompt, request: gr.Request):
+    prompt = prompt[:300]
+    return text_to_image(prompt, request)
 
 with gr.Blocks() as demo:
     image = gr.Image()
     prompt = gr.Textbox(max_lines=1)
-    prompt.submit(text_to_image, [prompt], [image])
+    prompt.submit(generate, [prompt], [image])
 
 demo.launch()
 ```
