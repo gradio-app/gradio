@@ -4,4 +4,4 @@
 "website": minor
 ---
 
-feat:🌙 Add dark mode to gradio docs 
+feat:Remove playground from docs
