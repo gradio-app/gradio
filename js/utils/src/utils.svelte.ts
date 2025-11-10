@@ -354,6 +354,16 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		this.dispatcher = dispatcher;
 
 		$effect(() => {
+			// Need to update the props here
+			// otherwise UI won't reflect latest state from render
+			for (const key in _props.shared_props) {
+				// @ts-ignore i'm not doing pointless typescript gymanstics
+				this.shared[key] = _props.shared_props[key];
+			}
+			for (const key in _props.props) {
+				// @ts-ignore same here
+				this.props[key] = _props.props[key];
+			}
 			register(
 				_props.shared_props.id,
 				this.set_data.bind(this),

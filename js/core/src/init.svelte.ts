@@ -31,7 +31,8 @@ export class AppTree {
 	#layout_payload: LayoutNode;
 	/** the raw dependency structure received from the backend */
 	#dependency_payload: Dependency[];
-
+	/** Need this to set i18n in re-render */
+	reactive_formatter: (str: string) => string = (str: string) => str;
 	/** the config for the app */
 	#config: AppConfig;
 	client: client_return;
@@ -60,11 +61,13 @@ export class AppTree {
 		layout: LayoutNode,
 		dependencies: Dependency[],
 		config: AppConfig,
-		app: client_return
+		app: client_return,
+		reactive_formatter: (str: string) => string
 	) {
 		this.ready = new Promise<void>((resolve) => {
 			this.ready_resolve = resolve;
 		});
+		this.reactive_formatter = reactive_formatter;
 
 		this.#config = config;
 		this.#component_payload = components;
@@ -189,7 +192,8 @@ export class AppTree {
 	create_node(
 		opts: LayoutNode,
 		component_map: Map<number, ComponentMeta>,
-		root = false
+		root = false,
+		reactive_formatter?: (str: string) => string
 	): ProcessedComponentMeta {
 		let component: ComponentMeta | undefined;
 		if (!root) {
@@ -212,7 +216,9 @@ export class AppTree {
 		if (!component) {
 			throw new Error(`Component with ID ${opts.id} not found`);
 		}
-
+		if (reactive_formatter) {
+			component.props.i18n = reactive_formatter;
+		}
 		const processed_props = gather_props(
 			opts.id,
 			component.props,
@@ -251,13 +257,18 @@ export class AppTree {
 		}, new Map<number, ComponentMeta>());
 		const subtree = this.traverse(layout, (node) => {
 			const current_node = find_node_by_id(this.root!, node.id);
-
 			// if (current_node) {
+			// 	console.log("Updating existing node:", node.id,  component_map.get(node.id)?.props);
 			// 	this.update_state(node.id, component_map.get(node.id)?.props || {});
 
 			// 	return current_node;
 			// }
-			const new_node = this.create_node(node, component_map);
+			const new_node = this.create_node(
+				node,
+				component_map,
+				false,
+				this.reactive_formatter
+			);
 			return new_node;
 		});
 
