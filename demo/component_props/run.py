@@ -2,7 +2,7 @@ import gradio as gr
 
 with gr.Blocks() as demo:
     a = gr.Number(value=5, minimum=0, maximum=10, label="Input A", info="Enter a number between 0 and 10")
-    output_a = gr.JSON(label="Output")
+    output_a = gr.JSON(label="Output", elem_id="output")
     with gr.Row():
         show_value_btn = gr.Button("Show Value")
         double_btn = gr.Button("Double Value and Maximum")
