@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from "svelte";
 	import gradio_logo_svg from "$lib/assets/brand-assets/gradio-logo.svg";
 	import gradio_logo_png from "$lib/assets/brand-assets/gradio-logo.png";
 	import gradio_logo_with_title_svg from "$lib/assets/brand-assets/gradio-logo-with-title.svg";
