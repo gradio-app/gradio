@@ -360,7 +360,7 @@ class App(FastAPI):
                     'In order to use `mcp_server=True`, you must install gradio with the `mcp` extra. Please install it with `pip install "gradio[mcp]"`'
                 ) from e
             try:
-                blocks.mcp_server_obj = gradio.mcp.GradioMCPServer(blocks)
+                blocks.mcp_server_obj = gradio.mcp.GradioMCPServer(blocks, app_html=mcp_app)
                 blocks.mcp_server = True
                 user_lifespan = None
                 if "lifespan" in app_kwargs:
@@ -2420,6 +2420,7 @@ def mount_gradio_app(
     pwa: bool | None = None,
     i18n: I18n | None = None,
     mcp_server: bool | None = None,
+    mcp_app: bool | str | Path = False,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -2445,6 +2446,7 @@ def mount_gradio_app(
         i18n: If provided, the i18n instance to use for this gradio app.
         node_port: The port on which the Node server should run. If None, will use GRADIO_NODE_SERVER_PORT environment variable or find a free port.
         mcp_server: If True, the MCP server will be launched on the gradio app. If None, will use GRADIO_MCP_SERVER environment variable or default to False.
+        mcp_app: If True, the Gradio app will generate and serve a HTML UI as an MCP resource allowing it to be used as an app within ChatGPT. If a string or Path to an HTML file is provided, that file will be used as the path to the MCP app. Requires `mcp_server=True`.
     Example:
         from fastapi import FastAPI
         import gradio as gr
@@ -2529,6 +2531,7 @@ def mount_gradio_app(
         auth_dependency=auth_dependency,
         ssr_mode=blocks.ssr_mode,
         mcp_server=mcp_server,
+        mcp_app=mcp_app,
     )
     old_lifespan = app.router.lifespan_context
 

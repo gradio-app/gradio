@@ -2616,6 +2616,7 @@ Received inputs:
             strict_cors=strict_cors,
             ssr_mode=self.ssr_mode,
             mcp_server=mcp_server,
+            mcp_app=mcp_app,
         )
         if self.mcp_error and not quiet:
             print(self.mcp_error)

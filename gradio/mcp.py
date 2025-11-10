@@ -64,7 +64,7 @@ class GradioMCPServer:
     except ImportError:
         pass
 
-    def __init__(self, blocks: "Blocks"):
+    def __init__(self, blocks: "Blocks", app_html: bool | str | Path = False):
         try:
             import mcp  # noqa: F401
         except ImportError as e:
@@ -82,6 +82,12 @@ class GradioMCPServer:
         self.warn_about_state_inputs()
         self._local_url: str | None = None
         self._client_instance: Client | None = None
+
+        if app_html:
+            self.app_html_path = self._generate_app_html()
+        else:
+            self.app_html_path = False
+
 
         manager = self.StreamableHTTPSessionManager(
             app=self.mcp_server, json_response=False, stateless=True
@@ -124,6 +130,239 @@ class GradioMCPServer:
     @property
     def local_url(self) -> str | None:
         return self._local_url
+
+    def _generate_app_html(self) -> Path:
+        gradio_dir = Path(".gradio")
+        gradio_dir.mkdir(exist_ok=True)
+
+        html_content = """<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Todo list</title>
+    <style>
+      :root {
+        color: #0b0b0f;
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+      }
+
+      html,
+      body {
+        width: 100%;
+        min-height: 100%;
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 16px;
+        background: #f6f8fb;
+      }
+
+      main {
+        width: 100%;
+        max-width: 360px;
+        min-height: 260px;
+        margin: 0 auto;
+        background: #fff;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+      }
+
+      h2 {
+        margin: 0 0 16px;
+        font-size: 1.25rem;
+      }
+
+      form {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      form input {
+        flex: 1;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid #cad3e0;
+        font-size: 0.95rem;
+      }
+
+      form button {
+        border: none;
+        border-radius: 10px;
+        background: #111bf5;
+        color: white;
+        font-weight: 600;
+        padding: 0 16px;
+        cursor: pointer;
+      }
+
+      input[type="checkbox"] {
+        accent-color: #111bf5;
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      li {
+        background: #f2f4fb;
+        border-radius: 12px;
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      li span {
+        flex: 1;
+      }
+
+      li[data-completed="true"] span {
+        text-decoration: line-through;
+        color: #6c768a;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h2>Todo list</h2>
+      <form id="add-form" autocomplete="off">
+        <input id="todo-input" name="title" placeholder="Add a task" />
+        <button type="submit">Add</button>
+      </form>
+      <ul id="todo-list"></ul>
+    </main>
+
+    <script type="module">
+      const listEl = document.querySelector("#todo-list");
+      const formEl = document.querySelector("#add-form");
+      const inputEl = document.querySelector("#todo-input");
+
+      let tasks = [...(window.openai?.toolOutput?.tasks ?? [])];
+
+      const render = () => {
+        listEl.innerHTML = "";
+        tasks.forEach((task) => {
+          const li = document.createElement("li");
+          li.dataset.id = task.id;
+          li.dataset.completed = String(Boolean(task.completed));
+
+          const label = document.createElement("label");
+          label.style.display = "flex";
+          label.style.alignItems = "center";
+          label.style.gap = "10px";
+
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.checked = Boolean(task.completed);
+
+          const span = document.createElement("span");
+          span.textContent = task.title;
+
+          label.appendChild(checkbox);
+          label.appendChild(span);
+          li.appendChild(label);
+          listEl.appendChild(li);
+        });
+      };
+
+      const updateFromResponse = (response) => {
+        if (response?.structuredContent?.tasks) {
+          tasks = response.structuredContent.tasks;
+          render();
+        }
+      };
+
+      const handleSetGlobals = (event) => {
+        const globals = event.detail?.globals;
+        if (!globals?.toolOutput?.tasks) return;
+        tasks = globals.toolOutput.tasks;
+        render();
+      };
+
+      window.addEventListener("openai:set_globals", handleSetGlobals, {
+        passive: true,
+      });
+
+      const mutateTasksLocally = (name, payload) => {
+        if (name === "add_todo") {
+          tasks = [
+            ...tasks,
+            { id: crypto.randomUUID(), title: payload.title, completed: false },
+          ];
+        }
+
+        if (name === "complete_todo") {
+          tasks = tasks.map((task) =>
+            task.id === payload.id ? { ...task, completed: true } : task
+          );
+        }
+
+        if (name === "set_completed") {
+          tasks = tasks.map((task) =>
+            task.id === payload.id
+              ? { ...task, completed: payload.completed }
+              : task
+          );
+        }
+
+        render();
+      };
+
+      const callTodoTool = async (name, payload) => {
+        if (window.openai?.callTool) {
+          const response = await window.openai.callTool(name, payload);
+          updateFromResponse(response);
+          return;
+        }
+
+        mutateTasksLocally(name, payload);
+      };
+
+      formEl.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const title = inputEl.value.trim();
+        if (!title) return;
+        await callTodoTool("add_todo", { title });
+        inputEl.value = "";
+      });
+
+      listEl.addEventListener("change", async (event) => {
+        const checkbox = event.target;
+        if (!checkbox.matches('input[type="checkbox"]')) return;
+        const id = checkbox.closest("li")?.dataset.id;
+        if (!id) return;
+
+        if (!checkbox.checked) {
+          if (window.openai?.callTool) {
+            checkbox.checked = true;
+            return;
+          }
+
+          mutateTasksLocally("set_completed", { id, completed: false });
+          return;
+        }
+
+        await callTodoTool("complete_todo", { id });
+      });
+
+      render();
+    </script>
+  </body>
+</html>
+"""
+
+        html_path = gradio_dir / "app.html"
+        html_path.write_text(html_content)
+        return html_path
 
     def get_route_path(self, request: Request) -> str:
         """
