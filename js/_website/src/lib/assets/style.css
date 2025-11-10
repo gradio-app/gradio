@@ -422,7 +422,7 @@ summary code {
 
 summary::after {
 	@apply pl-1 !opacity-100;
-	background: #f9fafb;
+	background: var(--table-odd-background-fill);
 	height: 90%;
 	padding-top: 14px;
 }
