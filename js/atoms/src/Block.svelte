@@ -83,68 +83,70 @@
 	};
 </script>
 
-<svelte:element
-	this={tag}
-	bind:this={element}
-	data-testid={test_id}
-	id={elem_id}
-	class:hidden={visible === false || visible === "hidden"}
-	class="block {elem_classes?.join(' ') || ''}"
-	class:padded={padding}
-	class:flex
-	class:border_focus={border_mode === "focus"}
-	class:border_contrast={border_mode === "contrast"}
-	class:hide-container={!explicit_call && !container}
-	style:height={fullscreen ? undefined : get_dimension(height)}
-	style:min-height={fullscreen ? undefined : get_dimension(min_height)}
-	style:max-height={fullscreen ? undefined : get_dimension(max_height)}
-	class:fullscreen
-	class:animating={fullscreen && preexpansionBoundingRect !== null}
-	style:--start-top={preexpansionBoundingRect
-		? `${preexpansionBoundingRect.top}px`
-		: "0px"}
-	style:--start-left={preexpansionBoundingRect
-		? `${preexpansionBoundingRect.left}px`
-		: "0px"}
-	style:--start-width={preexpansionBoundingRect
-		? `${preexpansionBoundingRect.width}px`
-		: "0px"}
-	style:--start-height={preexpansionBoundingRect
-		? `${preexpansionBoundingRect.height}px`
-		: "0px"}
-	style:width={fullscreen
-		? undefined
-		: typeof width === "number"
-			? `calc(min(${width}px, 100%))`
-			: get_dimension(width)}
-	style:border-style={variant}
-	style:overflow={allow_overflow ? overflow_behavior : "hidden"}
-	style:flex-grow={scale}
-	style:min-width={`calc(min(${min_width}px, 100%))`}
-	style:border-width="var(--block-border-width)"
-	class:auto-margin={scale === null}
-	dir={rtl ? "rtl" : "ltr"}
->
-	<slot />
-	{#if resizable}
-		<!-- svelte-ignore a11y-no-static-element-interactions -->
-		<svg
-			class="resize-handle"
-			xmlns="http://www.w3.org/2000/svg"
-			viewBox="0 0 10 10"
-			on:mousedown={resize}
-		>
-			<line x1="1" y1="9" x2="9" y2="1" stroke="gray" stroke-width="0.5" />
-			<line x1="5" y1="9" x2="9" y2="5" stroke="gray" stroke-width="0.5" />
-		</svg>
+{#if visible === true || visible === "hidden"}
+	<svelte:element
+		this={tag}
+		bind:this={element}
+		data-testid={test_id}
+		id={elem_id}
+		class:hidden={visible === false || visible === "hidden"}
+		class="block {elem_classes?.join(' ') || ''}"
+		class:padded={padding}
+		class:flex
+		class:border_focus={border_mode === "focus"}
+		class:border_contrast={border_mode === "contrast"}
+		class:hide-container={!explicit_call && !container}
+		style:height={fullscreen ? undefined : get_dimension(height)}
+		style:min-height={fullscreen ? undefined : get_dimension(min_height)}
+		style:max-height={fullscreen ? undefined : get_dimension(max_height)}
+		class:fullscreen
+		class:animating={fullscreen && preexpansionBoundingRect !== null}
+		style:--start-top={preexpansionBoundingRect
+			? `${preexpansionBoundingRect.top}px`
+			: "0px"}
+		style:--start-left={preexpansionBoundingRect
+			? `${preexpansionBoundingRect.left}px`
+			: "0px"}
+		style:--start-width={preexpansionBoundingRect
+			? `${preexpansionBoundingRect.width}px`
+			: "0px"}
+		style:--start-height={preexpansionBoundingRect
+			? `${preexpansionBoundingRect.height}px`
+			: "0px"}
+		style:width={fullscreen
+			? undefined
+			: typeof width === "number"
+				? `calc(min(${width}px, 100%))`
+				: get_dimension(width)}
+		style:border-style={variant}
+		style:overflow={allow_overflow ? overflow_behavior : "hidden"}
+		style:flex-grow={scale}
+		style:min-width={`calc(min(${min_width}px, 100%))`}
+		style:border-width="var(--block-border-width)"
+		class:auto-margin={scale === null}
+		dir={rtl ? "rtl" : "ltr"}
+	>
+		<slot />
+		{#if resizable}
+			<!-- svelte-ignore a11y-no-static-element-interactions -->
+			<svg
+				class="resize-handle"
+				xmlns="http://www.w3.org/2000/svg"
+				viewBox="0 0 10 10"
+				on:mousedown={resize}
+			>
+				<line x1="1" y1="9" x2="9" y2="1" stroke="gray" stroke-width="0.5" />
+				<line x1="5" y1="9" x2="9" y2="5" stroke="gray" stroke-width="0.5" />
+			</svg>
+		{/if}
+	</svelte:element>
+	{#if fullscreen}
+		<div
+			class="placeholder"
+			style:height={placeholder_height + "px"}
+			style:width={placeholder_width + "px"}
+		></div>
 	{/if}
-</svelte:element>
-{#if fullscreen}
-	<div
-		class="placeholder"
-		style:height={placeholder_height + "px"}
-		style:width={placeholder_width + "px"}
-	></div>
 {/if}
 
 <style>
