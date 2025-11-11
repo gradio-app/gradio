@@ -26,7 +26,7 @@
 		server: { accept_blobs: () => {} },
 		buttons: [],
 		height: 350,
-		border_region: 0,
+		border_region: 0
 	});
 
 	let editor_instance: InteractiveImageEditor;
@@ -68,21 +68,21 @@
 	let has_value = $derived(
 		gradio.props.value?.background ||
 			gradio.props.value?.layers?.length ||
-			gradio.props.value?.composite,
+			gradio.props.value?.composite
 	);
 
 	let normalised_background = $derived(
 		gradio.props.value?.background
 			? new FileData(gradio.props.value.background)
-			: null,
+			: null
 	);
 	let normalised_composite = $derived(
 		gradio.props.value?.composite
 			? new FileData(gradio.props.value.composite)
-			: null,
+			: null
 	);
 	let normalised_layers = $derived(
-		gradio.props.value?.layers?.map((layer) => new FileData(layer)) || [],
+		gradio.props.value?.layers?.map((layer) => new FileData(layer)) || []
 	);
 </script>
 
@@ -181,7 +181,7 @@
 				(gradio.props.value = {
 					background: null,
 					layers: [],
-					composite: null,
+					composite: null
 				})}
 			on:change={() => {
 				if (!has_run_change) {

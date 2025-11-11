@@ -10,12 +10,11 @@ import type {
 	ProcessedComponentMeta,
 	LayoutNode,
 	Dependency,
-	SharedProps,
 	LoadingComponent,
 	AppConfig,
 	ServerFunctions
 } from "./types";
-
+import type { SharedProps } from "@gradio/utils";
 import { allowed_shared_props } from "@gradio/utils";
 import { Client } from "@gradio/client";
 
