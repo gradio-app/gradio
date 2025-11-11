@@ -360,9 +360,14 @@ class GradioMCPServer:
                 root_path=self.root_path,
             )
             output_data = output["data"]
+            content = self.postprocess_output_data(output_data, root_url)
+            if getattr(block_fn.fn, "_mcp_structured_output", False):
+                structured_content = {"result": content}
+            else:
+                structured_content = None
             return self.types.CallToolResult(
-                content=self.postprocess_output_data(output_data, root_url),
-                structuredContent={"result": output_data},
+                content=content,
+                structuredContent=structured_content,
                 _meta=getattr(block_fn.fn, "_mcp_meta", None),
             )
 
@@ -1140,13 +1145,24 @@ def prompt(name: str | None = None, description: str | None = None):
 def tool(
     name: str | None = None,
     description: str | None = None,
+    structured_output: bool = False,
     _meta: dict[str, Any] | None = None,
 ):
-    """Decorator to mark a function as an MCP tool (optional, since functions are registered as tools by default)."""
+    """
+    Decorator to mark a function as an MCP tool (optional, since functions are registered as tools by default).
+    Can be used to configure various aspects of the tool.
+
+    Parameters:
+        name: The name of the tool. Overrides the default name of the function.
+        description: The description of the tool. Overrides the default description from the function's docstring.
+        structured_output: Whether the tool should return structured output (implementation is quite limited at the moment). If True, the output will be wrapped in a dictionary with the key "result" and the value being the output of the function. Recommended to keep this False unless you have a specific reason to need the structured output.
+        _meta: Additional metadata for the tool.
+    """
 
     def decorator(fn):
         fn._mcp_type = "tool"
         fn._mcp_name = name
+        fn._mcp_structured_output = structured_output
         fn._mcp_description = description
         fn._mcp_meta = _meta
         return fn
