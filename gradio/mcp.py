@@ -250,7 +250,7 @@ class GradioMCPServer:
         @server.call_tool()
         async def call_tool(
             name: str, arguments: dict[str, Any]
-        ) -> list[self.types.TextContent | self.types.ImageContent]:
+        ) -> self.types.CallToolResult:
             """
             Call a tool on the Gradio app.
 
@@ -367,7 +367,11 @@ class GradioMCPServer:
                 route_path=route_path,
                 root_path=self.root_path,
             )
-            return self.postprocess_output_data(output["data"], root_url)
+            output_data = output["data"]
+            return self.types.CallToolResult(
+                content=self.postprocess_output_data(output_data, root_url),
+                _meta=getattr(block_fn.fn, "_mcp_meta", None),
+            )
 
         @server.list_tools()
         async def list_tools() -> list[self.types.Tool]:
@@ -394,13 +398,7 @@ class GradioMCPServer:
 
                 description, parameters = self.get_fn_description(block_fn, tool_name)
                 schema, _ = self.get_input_schema(tool_name, parameters)
-
-                tool_meta = None
-                if self.app_html_path:
-                    tool_meta = {
-                        "openai/outputTemplate": "ui://widget/app.html",
-                        "openai/resultCanProduceWidget": True,
-                    }
+                tool_meta = getattr(block_fn.fn, "_mcp_meta", None)
 
                 tools.append(
                     self.types.Tool(
@@ -589,7 +587,7 @@ class GradioMCPServer:
                                 break
 
                         mime_type = block_fn.fn._mcp_mime_type
-                        if mime_type != "text/plain":
+                        if mime_type and not mime_type.startswith("text/"):
                             result = base64.b64decode(result.encode("ascii"))
                         return [
                             self.ReadResourceContents(
@@ -1196,13 +1194,14 @@ def prompt(name: str | None = None, description: str | None = None):
     return decorator
 
 
-def tool(name: str | None = None, description: str | None = None):
+def tool(name: str | None = None, description: str | None = None, _meta: dict[str, Any] | None = None):
     """Decorator to mark a function as an MCP tool (optional, since functions are registered as tools by default)."""
 
     def decorator(fn):
         fn._mcp_type = "tool"
         fn._mcp_name = name
         fn._mcp_description = description
+        fn._mcp_meta = _meta
         return fn
 
     return decorator
