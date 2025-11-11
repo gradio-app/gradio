@@ -2520,6 +2520,7 @@ def mount_gradio_app(
             )
         )
 
+    blocks.transpile_to_js()
     gradio_app = App.create_app(
         blocks,
         app_kwargs=app_kwargs,
