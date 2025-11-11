@@ -34,9 +34,7 @@ class TestImage:
             "image_mode": "RGB",
             "sources": ["upload", "webcam", "clipboard"],
             "name": "image",
-            "show_share_button": False,
-            "show_download_button": True,
-            "show_fullscreen_button": True,
+            "buttons": None,
             "streaming": False,
             "show_label": True,
             "label": "Upload Your Image",
@@ -105,6 +103,7 @@ class TestImage:
         """
         component = gr.Image("test/test_files/bus.png")
         value = component.get_config().get("value")
+        assert value is not None
         base64 = client_utils.encode_file_to_base64(value["path"])
         assert base64 == media_data.BASE64_IMAGE
         component = gr.Image(None)

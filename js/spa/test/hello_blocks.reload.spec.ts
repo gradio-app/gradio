@@ -338,7 +338,6 @@ def echo(message, history):
 
 demo = gr.ChatInterface(
     echo,
-    type="messages",
 )
 
 if __name__ == "__main__":
@@ -441,7 +440,7 @@ if __name__ == "__main__":
 			}
 		});
 
-		await expect(page.getByText("Error reloading")).toBeVisible();
+		await expect(page.getByText("Error")).toBeVisible();
 
 		const demo4 = `
 import gradio as gr

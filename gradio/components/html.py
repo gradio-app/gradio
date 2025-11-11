@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Literal
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
-from gradio.events import Events
+from gradio.events import all_events
 from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
@@ -18,19 +18,41 @@ if TYPE_CHECKING:
 @document()
 class HTML(Component):
     """
-    Creates a component to display arbitrary HTML output. As this component does not accept user input, it is rarely used as an input component.
+    Creates a component with arbitrary HTML. Can include CSS and JavaScript to create highly customized and interactive components.
+    Example:
+        ```python
+        import gradio as gr
 
-    Demos: blocks_scroll
-    Guides: key-features
+        with gr.Blocks() as demo:
+            basic_html = gr.HTML("<h2>This is a basic HTML component</h2>")
+
+            button_set = gr.HTML(["Option 1", "Option 2", "Option 3"],
+                           html_template="{{#each value}}<button class='option-btn'>{{this}}</button>{{/each}}",
+                           css_template="button { margin: 5px; padding: 10px; }",
+                           js_on_load="element.querySelectorAll('.option-btn').forEach(btn => { btn.addEventListener('click', () => { trigger('click', {option: btn.innerText}); }); });")
+            clicked_option = gr.Textbox(label="Clicked Option")
+            def on_button_click(evt: gr.EventData):
+                return evt.option
+            button_set.click(on_button_click, outputs=clicked_option)
+
+        demo.launch()
+        ```
+    Demos: super_html
+    Guides: custom_HTML
     """
 
-    EVENTS = [Events.change, Events.click]
+    EVENTS = all_events
 
     def __init__(
         self,
-        value: str | Callable | None = None,
+        value: Any | Callable | None = None,
         *,
         label: str | I18nData | None = None,
+        html_template: str = "${value}",
+        css_template: str = "",
+        js_on_load: str
+        | None = "element.addEventListener('click', function() { trigger('click') });",
+        apply_default_css: bool = True,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool = False,
@@ -43,13 +65,18 @@ class HTML(Component):
         min_height: int | None = None,
         max_height: int | None = None,
         container: bool = False,
-        padding: bool = True,
+        padding: bool = False,
         autoscroll: bool = False,
+        **props: Any,
     ):
         """
         Parameters:
-            value: The HTML content to display. Only static HTML is rendered (e.g. no JavaScript. To render JavaScript, use the `js` or `head` parameters in the `Blocks` constructor). If a function is provided, the function will be called each time the app loads to set the initial value of this component.
+            value: The HTML content in the ${value} tag in the html_template. For example, if html_template="<p>${value}</p>" and value="Hello, world!", the component will render as `"<p>Hello, world!</p>"`.
             label: The label for this component. Is used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
+            html_template: A string representing the HTML template for this component as a JS template string and Handlebars template. The `${value}` tag will be replaced with the `value` parameter, and all other tags will be filled in with the values from `props`.
+            css_template: A string representing the CSS template for this component as a JS template string and Handlebars template. The CSS will be automatically scoped to this component. The `${value}` tag will be replaced with the `value` parameter, and all other tags will be filled in with the values from `props`.
+            js_on_load: A string representing the JavaScript code that will be executed when the component is loaded. The `element` variable refers to the HTML element of this component, and can be used to access children such as `element.querySelector()`. The `trigger` function can be used to trigger events, such as `trigger('click')`. The value and other props can be edited through `props`, e.g. `props.value = "new value"` which will re-render the HTML template.
+            apply_default_css: If True, default Gradio CSS styles will be applied to the HTML component.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: If True, the label will be displayed. If False, the label will be hidden.
@@ -62,13 +89,20 @@ class HTML(Component):
             min_height: The minimum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If HTML content exceeds the height, the component will expand to fit the content.
             max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If content exceeds the height, the component will scroll.
             container: If True, the HTML component will be displayed in a container. Default is False.
-            padding: If True, the HTML component will have a certain padding (set by the `--block-padding` CSS variable) in all directions. Default is True.
+            padding: If True, the HTML component will have a certain padding (set by the `--block-padding` CSS variable) in all directions. Default is False.
             autoscroll: If True, will automatically scroll to the bottom of the component when the content changes, unless the user has scrolled up. If False, will not scroll to the bottom when the content changes.
+            props: Additional keyword arguments to pass into the HTML and CSS templates for rendering.
         """
+        self.html_template = html_template
+        self.css_template = css_template
+        self.js_on_load = js_on_load
+        self.apply_default_css = apply_default_css
         self.min_height = min_height
         self.max_height = max_height
         self.padding = padding
         self.autoscroll = autoscroll
+        self.props = props
+
         super().__init__(
             label=label,
             every=every,
@@ -110,3 +144,14 @@ class HTML(Component):
 
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
+
+    def get_config(self) -> dict[str, Any]:
+        if type(self) is not HTML:
+            return {
+                **super().get_config(),
+                **super().get_config(HTML),
+            }
+        return super().get_config()
+
+    def get_block_name(self):
+        return "html"

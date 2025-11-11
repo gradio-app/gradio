@@ -31,6 +31,7 @@ def calculator_demo():
         calculator,
         ["number", gr.Radio(["add", "subtract", "multiply", "divide"]), "number"],
         "number",
+        api_name="predict",
         examples=[
             [5, "add", 3],
             [4, "divide", 2],
@@ -69,6 +70,7 @@ def calculator_demo_with_defaults():
             [-4, "multiply", 2.5],
             [0, "subtract", 1.2],
         ],
+        api_name="predict",
     )
     return demo
 
@@ -80,6 +82,7 @@ def state_demo():
         lambda x, y: (x, y),
         ["textbox", state],
         ["textbox", state],
+        api_name="predict",
     )
     return demo
 
@@ -111,7 +114,7 @@ def increment_demo():
             lambda x: (x + 1, x + 1),
             state,
             [state, numb],
-            api_name=False,
+            api_visibility="private",
         )
 
     return demo
@@ -125,7 +128,7 @@ def progress_demo():
             time.sleep(0.1)
         return x
 
-    return gr.Interface(my_function, gr.Textbox(), gr.Textbox())
+    return gr.Interface(my_function, gr.Textbox(), gr.Textbox(), api_name="predict")
 
 
 @pytest.fixture
@@ -135,7 +138,7 @@ def yield_demo():
             time.sleep(0.5)
             yield x[:i]
 
-    return gr.Interface(spell, "textbox", "textbox")
+    return gr.Interface(spell, "textbox", "textbox", api_name="predict")
 
 
 @pytest.fixture
@@ -172,7 +175,7 @@ def sentiment_classification_demo():
         time.sleep(10)
         return 2
 
-    with gr.Blocks(theme="gstaff/xkcd") as demo:
+    with gr.Blocks() as demo:
         with gr.Row():
             with gr.Column():
                 input_text = gr.Textbox(label="Input Text")
@@ -232,8 +235,8 @@ def count_generator_no_api():
         with gr.Column():
             out = gr.Textbox()
 
-        count_btn.click(count, num, out, api_name=False)
-        list_btn.click(show, num, out, api_name=False)
+        count_btn.click(count, num, out, api_visibility="private")
+        list_btn.click(show, num, out, api_visibility="private")
 
     return demo
 
@@ -268,6 +271,7 @@ def file_io_demo():
         lambda _: print("foox"),
         [gr.File(file_count="multiple"), "file"],
         [gr.File(file_count="multiple"), "file"],
+        api_name="predict",
     )
 
     return demo
@@ -284,7 +288,8 @@ def stateful_chatbot():
         def respond(message, st, chat_history):
             assert st[0] == 1 and st[1] == 2 and st[2] == 3
             bot_message = "I love you"
-            chat_history.append((message, bot_message))
+            chat_history.append({"role": "user", "content": message})
+            chat_history.append({"role": "assistant", "content": bot_message})
             return "", chat_history
 
         msg.submit(respond, [msg, st, chatbot], [msg, chatbot], api_name="submit")
@@ -377,12 +382,15 @@ def stream_audio():
         fn=_stream_audio,
         inputs=gr.Audio(type="filepath", label="Audio file to stream"),
         outputs=gr.Audio(autoplay=True, streaming=True),
+        api_name="predict",
     )
 
 
 @pytest.fixture
 def video_component():
-    return gr.Interface(fn=lambda x: x, inputs=gr.Video(), outputs=gr.Video())
+    return gr.Interface(
+        fn=lambda x: x, inputs=gr.Video(), outputs=gr.Video(), api_name="predict"
+    )
 
 
 @pytest.fixture
@@ -424,9 +432,7 @@ def long_response_with_info():
         return "\ta\nb" * 90000
 
     return gr.Interface(
-        long_response,
-        None,
-        gr.Textbox(label="Output"),
+        long_response, None, gr.Textbox(label="Output"), api_name="predict"
     )
 
 
@@ -463,7 +469,7 @@ def max_file_size_demo():
 @pytest.fixture
 def chatbot_message_format():
     with gr.Blocks() as demo:
-        chatbot = gr.Chatbot(type="messages")
+        chatbot = gr.Chatbot()
         msg = gr.Textbox()
 
         def respond(message, chat_history: list):
