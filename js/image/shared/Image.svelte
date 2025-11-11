@@ -15,7 +15,7 @@
 <!-- svelte-ignore a11y-missing-attribute -->
 <img
 	{src}
-	class={class_names.join(" ")}
+	class={(class_names || []).join(" ")}
 	data-testid={data_testid}
 	{...restProps}
 	on:load
