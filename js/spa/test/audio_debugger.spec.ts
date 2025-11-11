@@ -9,8 +9,10 @@ test("audio waveform", async ({ page }) => {
 		"true"
 	);
 	await page.getByRole("tab", { name: "Interface" }).click();
-	await page.getByRole("tab", { name: "Interface" }).click();
 	await page.getByRole("button", { name: "cantina.wav" }).click();
+
+	await expect(page.getByTestId("waveform-x")).toHaveCount(1);
+	await expect(page.getByTestId("waveform-output")).toHaveCount(1);
 
 	await page
 		.getByTestId("waveform-x")
@@ -43,11 +45,6 @@ test("audio waveform", async ({ page }) => {
 	await page
 		.getByTestId("waveform-output")
 		.getByLabel("Skip backwards by 0.15 seconds")
-		.first()
-		.click();
-	await page
-		.getByTestId("waveform-output")
-		.getByLabel("Skip forward by 0.15 seconds")
 		.first()
 		.click();
 });

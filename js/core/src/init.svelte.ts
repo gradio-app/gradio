@@ -24,6 +24,16 @@ type client_return = Awaited<ReturnType<typeof Client.connect>>;
 type set_data_type = (data: Record<string, unknown>) => void;
 type get_data_type = () => Promise<Record<string, unknown>>;
 type visitor<T> = (node: T) => ProcessedComponentMeta;
+
+type Tab = {
+	label: string;
+	id: string;
+	visible: boolean;
+	interactive: boolean;
+	elem_id: string | undefined;
+	scale: number | null;
+	order?: number;
+};
 export class AppTree {
 	/** the raw component structure received from the backend */
 	#component_payload: ComponentMeta[];
@@ -51,6 +61,7 @@ export class AppTree {
 	#get_callbacks = new Map<number, get_data_type>();
 	#set_callbacks = new Map<number, set_data_type>();
 	component_ids: number[];
+	initial_tabs: Record<number, Tab[]> = {};
 
 	components_to_register: Set<number> = new Set();
 	ready: Promise<void>;
@@ -98,7 +109,8 @@ export class AppTree {
 			})
 		);
 		this.component_ids = components.map((c) => c.id);
-
+		this.initial_tabs = {};
+		gather_initial_tabs(this.root!, this.initial_tabs);
 		this.postprocess(this.root!);
 	}
 
@@ -142,7 +154,8 @@ export class AppTree {
 					this.#config.root,
 					this.components_to_register
 				),
-			(node) => translate_props(node, this.#config.root)
+			(node) => translate_props(node, this.#config.root),
+			(node) => apply_initial_tabs(node, this.#config.root, this.initial_tabs)
 		]);
 	}
 
@@ -361,7 +374,11 @@ function gather_props(
 	const _shared_props: Partial<SharedProps> = {};
 	const _props: Record<string, unknown> = {};
 	for (const key in props) {
-		if (allowed_shared_props.includes(key as keyof SharedProps)) {
+		// For Tabs (or any component that already has an id prop)
+		// Set the id to the props so that it doesn't get overwritten
+		if (key === "id") {
+			_props[key] = props[key];
+		} else if (allowed_shared_props.includes(key as keyof SharedProps)) {
 			const _key = key as keyof SharedProps;
 			_shared_props[_key] = props[key];
 			if (_key === "server_fns") {
@@ -480,6 +497,72 @@ function translate_props(
 		}
 	}
 	return node;
+}
+
+function apply_initial_tabs(
+	node: ProcessedComponentMeta,
+	root: string,
+	initial_tabs: Record<number, Tab[]>
+): ProcessedComponentMeta {
+	if (node.type === "tabs" && node.id in initial_tabs) {
+		const tabs = initial_tabs[node.id].sort((a, b) => a.order! - b.order!);
+		node.props.props.initial_tabs = tabs;
+	}
+	return node;
+}
+
+function _gather_initial_tabs(
+	node: ProcessedComponentMeta,
+	initial_tabs: Record<number, Tab[]>,
+	parent_tab_id: number | null,
+	order: number | null
+): void {
+	if (parent_tab_id !== null && node.type === "tabitem") {
+		if (!(parent_tab_id in initial_tabs)) {
+			initial_tabs[parent_tab_id] = [];
+		}
+		if (!("id" in node.props.props)) {
+			node.props.props.id = node.id;
+		}
+		initial_tabs[parent_tab_id].push({
+			label: node.props.shared_props.label as string,
+			id: node.props.props.id,
+			elem_id: node.props.shared_props.elem_id,
+			visible: node.props.shared_props.visible,
+			interactive: node.props.shared_props.interactive,
+			scale: node.props.shared_props.scale || null
+		});
+		node.props.props.order = order;
+	}
+	if (node.children) {
+		node.children.forEach((child, i) => {
+			_gather_initial_tabs(
+				child,
+				initial_tabs,
+				node.type === "tabs" ? node.id : null,
+				node.type === "tabs" ? i : null
+			);
+		});
+	}
+	return;
+}
+
+function gather_initial_tabs(
+	node: ProcessedComponentMeta,
+	initial_tabs: Record<number, Tab[]>
+): void {
+	function single_visit<U extends ProcessedComponentMeta>(node: U): void {
+		if ("children" in node && node.children.length > 0) {
+			node.children?.forEach((child) =>
+				_gather_initial_tabs(
+					child,
+					initial_tabs,
+					node.type === "tabs" ? node.id : null
+				)
+			);
+		}
+	}
+	return single_visit(node);
 }
 
 function find_node_by_id(
