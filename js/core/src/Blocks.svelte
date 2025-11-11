@@ -379,7 +379,7 @@
 		component_id: number,
 		trigger_id: number | null,
 		event_data: unknown,
-		need_all_props: boolean = false
+		need_all_props = false
 	): Promise<any> {
 		if (
 			component_id === trigger_id &&

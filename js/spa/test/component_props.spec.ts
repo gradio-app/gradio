@@ -2,7 +2,7 @@ import { test, expect } from "@self/tootils";
 
 test("component props", async ({ page }) => {
 	const numberInput = page.getByLabel("Input A");
-	const outputJson = page.locator("#output")
+	const outputJson = page.locator("#output");
 	const showValueBtn = page.getByRole("button", { name: "Show Value" });
 	const doubleBtn = page.getByRole("button", {
 		name: "Double Value and Maximum"
