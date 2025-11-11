@@ -22,8 +22,7 @@ would be missing the `X-IP-Token` request header and would therefore be treated 
 In order to avoid this, we need to extract the `X-IP-Token` of the user using Space A before we call Space B programmatically.
 Where possible, specifically in the case of functions that are passed into event listeners directly, Gradio automatically
 extracts the `X-IP-Token` from the incoming request and passes it into the Gradio Client. But if the Client 
-is instantiated outside of such a function or if it is in a nested function that is not directly passed into a Gradio event listener,
-then you may need to pass in the token manually.
+is instantiated outside of such a function, then you may need to pass in the token manually.
 
 How to do this will be explained in the following section.
 

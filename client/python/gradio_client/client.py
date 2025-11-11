@@ -749,8 +749,8 @@ class Client:
         """
         Adds the x-ip-token header to the headers dictionary to pass it to a Zero-GPU Space. This allows a user's
         ZeroGPU quota to be tracked and used by the underlying Space. For the x-ip-token header to be present,
-        this method needs to be called when a Gradio app's LocalContext is defined. i.e. this method needs to be called 
-        when a Gradio app's LocalContext is defined. i.e. must be called from directly inside a Gradio app's
+        this method needs to be called when a Gradio app's LocalContext is defined. i.e. this method needs to be called
+        when a Gradio app's LocalContext is defined. i.e. must be called from inside a Gradio app's
         event listener function or will not have any effect.
         """
         if not self.space_id:
