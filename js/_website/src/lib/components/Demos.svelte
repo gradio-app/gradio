@@ -13,14 +13,6 @@
 	<link rel="stylesheet" href="{WHEEL.gradio_lite_url}/dist/lite.css" />
 </svelte:head>
 
-<div class="hidden lg:block py-2 max-h-[750px] overflow-y-scroll">
-	{#key name}
-		<gradio-lite shared-worker layout="vertical" class="p-2">
-			{code}
-		</gradio-lite>
-	{/key}
-</div>
-
 <div class="lg:hidden">
 	<div class="codeblock" id="{name}_code">
 		<pre class=" max-h-80 overflow-auto"><code class="code language-python"
