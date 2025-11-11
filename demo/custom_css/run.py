@@ -67,7 +67,7 @@ css = """
 }
 """
 
-with gr.Blocks(css=css) as demo:
+with gr.Blocks() as demo:
     with gr.Column(elem_classes="cool-col"):
         gr.Markdown("### Gradio Demo with Custom CSS", elem_classes="darktest")
         gr.Markdown(
@@ -76,4 +76,4 @@ with gr.Blocks(css=css) as demo:
         )
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(css=css)
