@@ -27,16 +27,16 @@ def app_html():
         (function() {
             const word = window.openai?.toolInput?.word || "strawberry";
             const letter = window.openai?.toolInput?.letter || "r";
-            
+
             const container = document.getElementById('letter-card-container');
-            
+
             let letterHTML = '';
             for (let i = 0; i < word.length; i++) {
                 const char = word[i];
                 const color = char.toLowerCase() === letter.toLowerCase() ? '#b8860b' : '#000000';
                 letterHTML += `<span style="color: ${color};">${char}</span>`;
             }
-            
+
             container.innerHTML = `
                 <div style="
                     background: linear-gradient(135deg, #f5f5dc 0%, #e8e4d0 100%);
