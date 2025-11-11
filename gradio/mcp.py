@@ -64,7 +64,7 @@ class GradioMCPServer:
     except ImportError:
         pass
 
-    def __init__(self, blocks: "Blocks"):
+    def __init__(self, blocks: "Blocks", app_html: bool | str | Path = False):
         try:
             import mcp  # noqa: F401
         except ImportError as e:
@@ -82,6 +82,11 @@ class GradioMCPServer:
         self.warn_about_state_inputs()
         self._local_url: str | None = None
         self._client_instance: Client | None = None
+
+        if app_html:
+            self.app_html_path = self._generate_app_html()
+        else:
+            self.app_html_path = False
 
         manager = self.StreamableHTTPSessionManager(
             app=self.mcp_server, json_response=False, stateless=True
@@ -124,6 +129,9 @@ class GradioMCPServer:
     @property
     def local_url(self) -> str | None:
         return self._local_url
+
+    def _generate_app_html(self) -> Path:
+        return Path(".gradio/app.html")
 
     def get_route_path(self, request: Request) -> str:
         """
@@ -362,6 +370,7 @@ class GradioMCPServer:
             output_data = output["data"]
             return self.types.CallToolResult(
                 content=self.postprocess_output_data(output_data, root_url),
+                structuredContent={"result": output_data},
                 _meta=getattr(block_fn.fn, "_mcp_meta", None),
             )
 
@@ -408,6 +417,16 @@ class GradioMCPServer:
             List all available resources.
             """
             resources = []
+
+            if self.app_html_path:
+                resources.append(
+                    self.types.Resource(
+                        uri="ui://widget/app.html",
+                        name="app-widget",
+                        description="Interactive app widget",
+                        mimeType="text/html+skybridge",
+                    )
+                )
 
             selected_tools = self.get_selected_tools_from_request()
             for tool_name, endpoint_name in self.tool_to_endpoint.items():
@@ -477,6 +496,47 @@ class GradioMCPServer:
             Read a specific resource by URI.
             """
             uri = str(uri)
+
+            if self.app_html_path and uri == "ui://widget/app.html":
+                html_content = """<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Gradio App</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 20px;
+        font-family: system-ui, sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: #f6f8fb;
+      }
+      .container {
+        text-align: center;
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Your Gradio App Goes Here</h2>
+    </div>
+  </body>
+</html>
+"""
+                return [
+                    self.ReadResourceContents(
+                        content=html_content,
+                        mime_type="text/html+skybridge",
+                    )
+                ]
+
             client = await run_sync(self._get_or_create_client)
             for endpoint_name in self.tool_to_endpoint.values():
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
@@ -1135,11 +1195,7 @@ def prompt(name: str | None = None, description: str | None = None):
     return decorator
 
 
-def tool(
-    name: str | None = None,
-    description: str | None = None,
-    _meta: dict[str, Any] | None = None,
-):
+def tool(name: str | None = None, description: str | None = None, _meta: dict[str, Any] | None = None):
     """Decorator to mark a function as an MCP tool (optional, since functions are registered as tools by default)."""
 
     def decorator(fn):
