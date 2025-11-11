@@ -466,9 +466,7 @@ function handle_empty_forms(
 	// Check if the node is visible
 	if (node.type === "form") {
 		const all_children_invisible = node.children.every(
-			(child) =>
-				child.props.shared_props.visible === false ||
-				child.props.shared_props.visible === "hidden"
+			(child) => child.props.shared_props.visible === false
 		);
 
 		if (all_children_invisible) {
