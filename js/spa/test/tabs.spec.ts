@@ -1,6 +1,6 @@
 import { test, expect } from "@self/tootils";
 
-test.fixme("clicking through tabs shows correct content", async ({ page }) => {
+test("clicking through tabs shows correct content", async ({ page }) => {
 	await page.getByRole("tab", { name: "Tab 2" }).click();
 	await expect(page.getByText("Text 1!")).toBeHidden();
 	await expect(page.getByText("Text 2!")).toBeVisible();
@@ -15,7 +15,7 @@ test.fixme("clicking through tabs shows correct content", async ({ page }) => {
 	await expect(page.getByText("Text 12!")).toBeVisible();
 });
 
-test.fixme("correct selected tab shown", async ({ page }) => {
+test("correct selected tab shown", async ({ page }) => {
 	await page.getByRole("tab", { name: "Tab 2" }).click();
 	await expect(page.getByLabel("Selected Tab")).toHaveValue("Tab 2");
 
@@ -46,7 +46,7 @@ test.fixme("correct selected tab shown", async ({ page }) => {
 	await expect(page.getByLabel("Selected Tab")).toHaveValue("Tab 9");
 });
 
-test.fixme("output from one tab to another works", async ({ page }) => {
+test("output from one tab to another works", async ({ page }) => {
 	await page.getByRole("tab", { name: "Tab 4" }).click();
 	await page.getByLabel("Input 4").fill("hi");
 	await page.getByLabel("Input 4").press("Enter");
@@ -62,7 +62,7 @@ test.fixme("output from one tab to another works", async ({ page }) => {
 	await expect(page.getByLabel("Input 14")).toHaveValue("hi");
 });
 
-test.fixme("programmatic selection works", async ({ page }) => {
+test("programmatic selection works", async ({ page }) => {
 	await expect(page.getByText("Text 1!")).toBeHidden();
 	await expect(page.getByText("Text 3!")).toBeVisible();
 

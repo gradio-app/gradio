@@ -283,7 +283,6 @@ export class DependencyManager {
 	 * @returns a value if there is no backend fn, a 'submission' if there is a backend fn, or null if there is no dependency
 	 */
 	async dispatch(event_meta: DispatchFunction | DispatchEvent): Promise<void> {
-		console.log("Processing EVENT META", event_meta);
 		let deps: Dependency[] | undefined;
 		if (event_meta.type === "fn") {
 			const dep = this.dependencies_by_fn.get(event_meta.fn_index!);
@@ -293,10 +292,8 @@ export class DependencyManager {
 				`${event_meta.event_name}-${event_meta.target_id}`
 			);
 		}
-		console.log("Processing DEPS", deps);
 
 		for (let i = 0; i < (deps?.length || 0); i++) {
-			console.log("Processing dependency", i, deps[i]);
 			const dep = deps ? deps[i] : undefined;
 			if (dep) {
 				console.log(
@@ -310,7 +307,6 @@ export class DependencyManager {
 					dep.trigger_modes,
 					this.submissions.has(dep.id)
 				);
-				console.log("Dispatch status", dispatch_status);
 
 				if (dispatch_status === "skip") {
 					continue;
@@ -370,7 +366,6 @@ export class DependencyManager {
 						event_meta.event_data,
 						target_id
 					);
-					console.log("DEP SUBMISSION", dep_submission);
 
 					if (dep_submission.type === "void") {
 						unset_args.forEach((fn) => fn());
@@ -391,7 +386,6 @@ export class DependencyManager {
 						let index = 0;
 						// fn for this?
 						submit_loop: for await (const result of dep_submission.data) {
-							console.log("SUBMISSION RESULT", result);
 							if (index === 0) {
 								// Clear out previously set validation errors
 								dep.inputs.forEach((input_id) => {
@@ -424,10 +418,6 @@ export class DependencyManager {
 								if (result.stage === "complete") {
 									stream_state = "closed";
 									success.forEach((dep_id) => {
-										console.log(
-											"Processing dispatching change event line 408",
-											dep.id
-										);
 										this.dispatch({
 											type: "fn",
 											fn_index: dep_id,
@@ -481,10 +471,6 @@ export class DependencyManager {
 										this.submissions.delete(dep.id);
 										if (this.queue.has(dep.id)) {
 											this.queue.delete(dep.id);
-											console.log(
-												"Processing dispatching change event line 473",
-												dep.id
-											);
 											this.dispatch(event_meta);
 										}
 										return;
@@ -579,7 +565,6 @@ export class DependencyManager {
 					this.update_loading_stati_state();
 					this.submissions.delete(dep.id);
 					failure.forEach((dep_id) => {
-						console.log("Processing dispatching change event line 571", dep_id);
 						this.dispatch({
 							type: "fn",
 							fn_index: dep_id,
@@ -757,7 +742,6 @@ export class DependencyManager {
 		this.dependencies_by_fn.forEach((dep) => {
 			dep.targets.forEach(([target_id, event_name]) => {
 				if (event_name === "load") {
-					console.log("Processing dispatching load event line 749", target_id);
 					this.dispatch({
 						type: "fn",
 						fn_index: dep.id,
