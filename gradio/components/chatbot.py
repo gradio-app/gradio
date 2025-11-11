@@ -264,6 +264,7 @@ class Chatbot(Component):
         group_consecutive_messages: bool = True,
         allow_tags: list[str] | bool = True,
         reasoning_tags: list[tuple[str, str]] | None = None,
+        like_user_message: bool = False,
     ):
         """
         Parameters:
@@ -304,6 +305,7 @@ class Chatbot(Component):
             group_consecutive_messages: If True, will display consecutive messages from the same role in the same bubble. If False, will display each message in a separate bubble. Defaults to True.
             allow_tags: If a list of tags is provided, these tags will be preserved in the output chatbot messages, even if `sanitize_html` is `True`. For example, if this list is ["thinking"], the tags `<thinking>` and `</thinking>` will not be removed. If True, all custom tags (non-standard HTML tags) will be preserved. If False, no tags will be preserved. Default value is 'True'.
             reasoning_tags: If provided, a list of tuples of (open_tag, close_tag) strings. Any text between these tags will be extracted and displayed in a separate collapsible message with metadata={"title": "Reasoning"}. For example, [("<thinking>", "</thinking>")] will extract content between <thinking> and </thinking> tags. Each thinking block will be displayed as a separate collapsible message before the main response. If None (default), no automatic extraction is performed.
+            like_user_message: If True, will show like/dislike buttons for user messages as well. Defaults to False.
         """
         self.autoscroll = autoscroll
         self.height = height
@@ -327,6 +329,7 @@ class Chatbot(Component):
         self.feedback_value = feedback_value
         self.allow_tags = allow_tags if allow_tags else False
         self.reasoning_tags = reasoning_tags
+        self.like_user_message = like_user_message
         super().__init__(
             label=label,
             every=every,
