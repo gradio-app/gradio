@@ -13,7 +13,7 @@ import type { client_return } from "@gradio/client";
 import { create_loading_status_store } from "./stores";
 import { _ } from "svelte-i18n";
 import { i18n_marker } from "./i18n";
-import { type SharedProps } from "./types";
+import type { SharedProps } from "@gradio/utils";
 
 export interface UpdateTransaction {
 	id: number;

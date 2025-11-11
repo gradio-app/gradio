@@ -22,7 +22,6 @@
 	let upload_promise = $state<Promise<any>>();
 	class ImageGradio extends Gradio<ImageEvents, ImageProps> {
 		async get_data() {
-			console.log("Getting data with stream_data:", stream_data);
 			if (upload_promise) {
 				await upload_promise;
 				await tick();

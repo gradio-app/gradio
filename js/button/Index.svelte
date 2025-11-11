@@ -4,8 +4,7 @@
 
 <script lang="ts">
 	import { Gradio } from "@gradio/utils";
-	import { type FileData } from "@gradio/client";
-	import type { SharedProps } from "js/core";
+	import type { SharedProps } from "@gradio/utils";
 
 	import Button from "./shared/Button.svelte";
 

@@ -10,12 +10,11 @@ import type {
 	ProcessedComponentMeta,
 	LayoutNode,
 	Dependency,
-	SharedProps,
 	LoadingComponent,
 	AppConfig,
 	ServerFunctions
 } from "./types";
-
+import type { SharedProps } from "@gradio/utils";
 import { allowed_shared_props } from "@gradio/utils";
 import { Client } from "@gradio/client";
 
@@ -155,8 +154,26 @@ export class AppTree {
 					this.components_to_register
 				),
 			(node) => translate_props(node, this.#config.root),
-			(node) => apply_initial_tabs(node, this.#config.root, this.initial_tabs)
+			(node) => apply_initial_tabs(node, this.#config.root, this.initial_tabs),
+			(node) => this.find_attached_events(node, this.#dependency_payload)
 		]);
+	}
+
+	find_attached_events(
+		node: ProcessedComponentMeta,
+		dependencies: Dependency[]
+	): ProcessedComponentMeta {
+		const attached_events = dependencies
+			.filter((dep) => dep.targets.find(([id]) => id === node.id))
+			.map((dep) => {
+				const target = dep.targets.find(([id]) => id === node.id);
+				return target ? target[1] : null;
+			})
+			.filter(Boolean) as string[];
+
+		node.props.shared_props.attached_events = attached_events;
+
+		return node;
 	}
 
 	/**
@@ -269,13 +286,6 @@ export class AppTree {
 			return map;
 		}, new Map<number, ComponentMeta>());
 		const subtree = this.traverse(layout, (node) => {
-			const current_node = find_node_by_id(this.root!, node.id);
-			// if (current_node) {
-			// 	console.log("Updating existing node:", node.id,  component_map.get(node.id)?.props);
-			// 	this.update_state(node.id, component_map.get(node.id)?.props || {});
-
-			// 	return current_node;
-			// }
 			const new_node = this.create_node(
 				node,
 				component_map,

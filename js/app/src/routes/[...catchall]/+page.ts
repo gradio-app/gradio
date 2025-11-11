@@ -12,6 +12,8 @@ import Blocks from "@gradio/core/blocks";
 import Login from "@gradio/core/login";
 import { page } from "$app/state";
 
+export let ssr = false;
+
 export async function load({
 	url,
 	data: { server, port, local_dev_mode, accept_language }
