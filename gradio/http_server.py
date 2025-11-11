@@ -157,7 +157,9 @@ def start_server(
                     stop_event=threading.Event(),
                     watch_module=sys.modules["__main__"],
                 )
-                server = Server(config=config, reloader=reloader, watchfn=watchfn_spaces)
+                server = Server(
+                    config=config, reloader=reloader, watchfn=watchfn_spaces
+                )
             elif GRADIO_WATCH_DIRS:
                 reloader = SourceFileReloader(
                     app=app,

@@ -321,7 +321,9 @@ def watchfn_spaces(reloader: SpacesReloader):
     try:
         spaces_version = importlib.metadata.version("spaces")
     except importlib.metadata.PackageNotFoundError:
-        raise RuntimeError("`spaces` package is required to run hot-reloading in Spaces") from None
+        raise RuntimeError(
+            "`spaces` package is required to run hot-reloading in Spaces"
+        ) from None
 
     min_version = version.parse("0.43.0")
     if version.parse(spaces_version) < min_version:
