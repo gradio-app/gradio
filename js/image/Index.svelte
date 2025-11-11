@@ -22,7 +22,6 @@
 	let upload_promise = $state<Promise<any>>();
 	class ImageGradio extends Gradio<ImageEvents, ImageProps> {
 		async get_data() {
-			console.log("Getting data with stream_data:", stream_data);
 			if (upload_promise) {
 				await upload_promise;
 				await tick();
@@ -43,7 +42,7 @@
 	let fullscreen = $state(false);
 	let dragging = $state(false);
 	let active_source = $derived.by(() =>
-		gradio.props.sources ? gradio.props.sources[0] : null
+		gradio.props.sources ? gradio.props.sources[0] : null,
 	);
 
 	let upload_component: ImageUploader;
@@ -74,12 +73,6 @@
 	let old_value = $state(gradio.props.value);
 
 	$effect(() => {
-		console.log(
-			"IMAGE VALUE CHANGE CHECK",
-			old_value,
-			gradio.props.value,
-			gradio.props.streaming
-		);
 		if (old_value != gradio.props.value) {
 			old_value = gradio.props.value;
 			gradio.dispatch("change");

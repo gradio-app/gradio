@@ -2,7 +2,7 @@ import type { ActionReturn } from "svelte/action";
 import type { Client } from "@gradio/client";
 import type { ComponentType, SvelteComponent } from "svelte";
 import { getContext, tick, untrack } from "svelte";
-// import { type SharedProps } from "@gradio/core";
+import { type SharedProps } from "@gradio/core";
 import type { Component } from "svelte";
 
 export type LoadingComponent = Promise<{
@@ -235,40 +235,40 @@ export type load_component = (
 const is_browser = typeof window !== "undefined";
 
 export type ServerFunctions = Record<string, (...args: any[]) => Promise<any>>;
-export interface SharedProps {
-	elem_id?: string;
-	elem_classes: string[];
-	components?: string[];
-	server_fns?: string[];
-	interactive: boolean;
-	visible: boolean | "hidden";
-	id: number;
-	container: boolean;
-	target: HTMLElement;
-	theme_mode: "light" | "dark" | "system";
-	version: string;
-	root: string;
-	autoscroll: boolean;
-	max_file_size: number | null;
-	formatter: any; //I18nFormatter;
-	client: Client;
-	scale: number;
-	min_width: number;
-	padding: number;
-	load_component: (
-		arg0: string,
-		arg1: "base" | "example" | "component"
-	) => LoadingComponent; //component_loader;
-	loading_status?: LoadingStatus;
-	label: string;
-	show_label: boolean;
-	validation_error?: string | null;
-	theme?: "light" | "dark";
-	show_progress: boolean;
-	api_prefix: string;
-	server: ServerFunctions;
-	i18n: I18nFormatter;
-}
+// export interface SharedProps {
+// 	elem_id?: string;
+// 	elem_classes: string[];
+// 	components?: string[];
+// 	server_fns?: string[];
+// 	interactive: boolean;
+// 	visible: boolean | "hidden";
+// 	id: number;
+// 	container: boolean;
+// 	target: HTMLElement;
+// 	theme_mode: "light" | "dark" | "system";
+// 	version: string;
+// 	root: string;
+// 	autoscroll: boolean;
+// 	max_file_size: number | null;
+// 	formatter: any; //I18nFormatter;
+// 	client: Client;
+// 	scale: number;
+// 	min_width: number;
+// 	padding: number;
+// 	load_component: (
+// 		arg0: string,
+// 		arg1: "base" | "example" | "component"
+// 	) => LoadingComponent; //component_loader;
+// 	loading_status?: LoadingStatus;
+// 	label: string;
+// 	show_label: boolean;
+// 	validation_error?: string | null;
+// 	theme?: "light" | "dark";
+// 	show_progress: boolean;
+// 	api_prefix: string;
+// 	server: ServerFunctions;
+// 	i18n: I18nFormatter;
+// }
 
 //
 // id: node.id,
@@ -308,7 +308,8 @@ export const allowed_shared_props: (keyof SharedProps)[] = [
 	"validation_error",
 	"show_progress",
 	"api_prefix",
-	"container"
+	"container",
+	"attached_events"
 ] as const;
 
 export type I18nFormatter = any;
@@ -321,7 +322,10 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	last_update: ReturnType<typeof tick> | null = null;
 	shared_props: (keyof SharedProps)[] = allowed_shared_props;
 
-	constructor(_props: { shared_props: SharedProps; props: U }) {
+	constructor(
+		_props: { shared_props: SharedProps; props: U },
+		default_values?: Partial<U>
+	) {
 		for (const key in _props.shared_props) {
 			// @ts-ignore i'm not doing pointless typescript gymanstics
 			this.shared[key] = _props.shared_props[key];
@@ -329,6 +333,16 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		for (const key in _props.props) {
 			// @ts-ignore same here
 			this.props[key] = _props.props[key];
+		}
+
+		if (default_values) {
+			for (const key in default_values) {
+				// @ts-ignore same here
+
+				if (this.props[key as keyof U] === undefined) {
+					this.props[key] = default_values[key as keyof U];
+				}
+			}
 		}
 		// @ts-ignore same here
 		this.i18n = this.props.i18n;

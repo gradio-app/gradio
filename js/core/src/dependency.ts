@@ -296,11 +296,6 @@ export class DependencyManager {
 		for (let i = 0; i < (deps?.length || 0); i++) {
 			const dep = deps ? deps[i] : undefined;
 			if (dep) {
-				console.log(
-					"Dispatching dependency",
-					`${event_meta.event_name}-${event_meta.target_id}`,
-					event_meta
-				);
 				this.cancel(dep.cancels);
 
 				const dispatch_status = should_dispatch(

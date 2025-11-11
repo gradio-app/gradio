@@ -41,6 +41,7 @@ export interface SharedProps {
 	show_progress: boolean;
 	api_prefix: string;
 	server: ServerFunctions;
+	attached_events?: string[];
 }
 
 /** The metadata for a component
