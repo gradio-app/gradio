@@ -3,7 +3,7 @@
 	import DemosLanding from "$lib/components/DemosLanding.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import gradio_banner from "$lib/assets/img/header-image.png";
-	import '$lib/assets/theme.css';
+	import "$lib/assets/theme.css";
 	export let data: {
 		logos: {
 			img: string;
