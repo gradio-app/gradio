@@ -31,7 +31,7 @@ test("DeepLinkButton correctly saves and loads multimodal chatinterface conversa
 
 test("DeepLinkButton correctly saves and loads cached_examples", async ({
 	page,
-context
+	context
 }) => {
 	await page.getByRole("link", { name: "cached_examples" }).click();
 	await page.locator(".table").first().click();

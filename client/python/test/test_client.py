@@ -595,12 +595,12 @@ class TestClientPredictionsWithKwargs:
             result = client.predict(num2=33, operation="multiply", api_name="/predict")
             assert result == 330
 
-    def test_missing_params(self, calculator_demo):
-        with connect(calculator_demo) as client:
+    def test_missing_params(self, hello_world_demo):
+        with connect(hello_world_demo) as client:
             with pytest.raises(
-                TypeError, match="No value provided for required argument: num2"
+                TypeError, match="No value provided for required argument: punctuation"
             ):
-                client.predict(num1=3, operation="add", api_name="/predict")
+                client.predict(name="Alice", api_name="/greet")
 
     def test_chatbot_message_format(self, chatbot_message_format):
         with connect(chatbot_message_format) as client:
@@ -840,8 +840,8 @@ class TestAPIInfo:
                     {
                         "label": "num1",
                         "parameter_name": "num1",
-                        "parameter_has_default": False,
-                        "parameter_default": None,
+                        "parameter_has_default": True,
+                        "parameter_default": 0,
                         "type": {"type": "number"},
                         "python_type": {"type": "float", "description": ""},
                         "component": "Number",
@@ -867,8 +867,8 @@ class TestAPIInfo:
                     {
                         "label": "num2",
                         "parameter_name": "num2",
-                        "parameter_has_default": False,
-                        "parameter_default": None,
+                        "parameter_has_default": True,
+                        "parameter_default": 0,
                         "type": {"type": "number"},
                         "python_type": {"type": "float", "description": ""},
                         "component": "Number",

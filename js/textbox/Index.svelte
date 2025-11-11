@@ -15,6 +15,8 @@
 	let _props = $props();
 	const gradio = new Gradio<TextboxEvents, TextboxProps>(_props);
 
+	let label = $derived(gradio.shared.label || "Textbox");
+
 	function handle_change(value: string): void {
 		if (!gradio.shared || !gradio.props) return;
 		gradio.set_data({ validation_error: null });
@@ -46,7 +48,7 @@
 
 	<TextBox
 		value={gradio.props.value}
-		label={gradio.shared.label}
+		{label}
 		info={gradio.props.info}
 		show_label={gradio.shared.show_label}
 		lines={gradio.props.lines}
