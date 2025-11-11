@@ -199,7 +199,7 @@
 							on:click={() => {
 								if (t.id !== $selected_tab) {
 									change_tab(t.id);
-									dispatch("select", { value: t.label, index: i });
+									dispatch("select", { value: t.label, index: i, id: t.id });
 								}
 							}}
 						>

@@ -153,6 +153,14 @@
 		} else if (event == "close_stream") {
 			dep_manager.close_stream(id);
 		} else {
+			// Tabs are a bit weird. The Tabs component dispatches 'select' events
+			// but the target id corresponds to the child Tab component that was selected.
+			// So the id we get from the dispatcher belongs to the Tabs,
+			// so we need to pull out the correct id here.
+			if (event === "select" && id in app_tree.initial_tabs) {
+				// this is the id of the selected tab
+				id = data.id;
+			}
 			dep_manager.dispatch({
 				type: "event",
 				event_name: event,

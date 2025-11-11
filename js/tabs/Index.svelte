@@ -3,50 +3,44 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
-	import { createEventDispatcher } from "svelte";
-	import Tabs, { type Tab } from "./shared/Tabs.svelte";
+	import { Gradio } from "@gradio/utils";
+	import Tabs from "./shared/Tabs.svelte";
 	import Walkthrough from "./shared/Walkthrough.svelte";
+	import type { TabsProps, TabsEvents } from "./types";
 
-	const dispatch = createEventDispatcher();
+	let props = $props();
+	const gradio = new Gradio<TabsEvents, TabsProps>(props);
 
-	export let visible: boolean | "hidden" = true;
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let selected: number | string;
-	export let initial_tabs: Tab[] = [];
-	export let name: "tabs" | "walkthrough" = "tabs";
-	export let gradio:
-		| Gradio<{
-				change: never;
-				select: SelectData;
-		  }>
-		| undefined;
+	let old_selected = $state(gradio.props.selected);
 
-	$: dispatch("prop_change", { selected });
+	$effect(() => {
+		if (old_selected !== gradio.props.selected) {
+			old_selected = gradio.props.selected;
+		}
+	});
 </script>
 
-{#if name === "walkthrough"}
+{#if gradio.props.name === "walkthrough"}
 	<Walkthrough
-		{visible}
-		{elem_id}
-		{elem_classes}
-		bind:selected
-		on:change={() => gradio?.dispatch("change")}
-		on:select={(e) => gradio?.dispatch("select", e.detail)}
-		{initial_tabs}
+		visible={gradio.shared.visible}
+		elem_id={gradio.shared.elem_id}
+		elem_classes={gradio.shared.elem_classes}
+		bind:selected={gradio.props.selected}
+		on:change={() => gradio.dispatch("change")}
+		on:select={(e) => gradio.dispatch("select", e.detail)}
+		initial_tabs={gradio.props.initial_tabs}
 	>
 		<slot />
 	</Walkthrough>
 {:else}
 	<Tabs
-		{visible}
-		{elem_id}
-		{elem_classes}
-		bind:selected
-		on:change={() => gradio?.dispatch("change")}
-		on:select={(e) => gradio?.dispatch("select", e.detail)}
-		{initial_tabs}
+		visible={gradio.shared.visible}
+		elem_id={gradio.shared.elem_id}
+		elem_classes={gradio.shared.elem_classes}
+		bind:selected={gradio.props.selected}
+		on:change={() => gradio.dispatch("change")}
+		on:select={(e) => gradio.dispatch("select", e.detail)}
+		initial_tabs={gradio.props.initial_tabs}
 	>
 		<slot />
 	</Tabs>

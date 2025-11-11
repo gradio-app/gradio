@@ -20,10 +20,21 @@
 
 	let tab_index: number;
 
-	$: tab_index = register_tab(
-		{ label, id, elem_id, visible, interactive, scale },
-		order
-	);
+	function _register_tab(obj: string, order: number): number {
+		obj = JSON.parse(obj);
+		return register_tab(obj, order);
+	}
+
+	$: props_json = JSON.stringify({
+		label,
+		id,
+		elem_id,
+		visible,
+		interactive,
+		scale
+	});
+
+	$: tab_index = _register_tab(props_json, order);
 
 	onMount(() => {
 		return (): void => unregister_tab({ label, id, elem_id }, order);
