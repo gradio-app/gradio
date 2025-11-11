@@ -483,7 +483,6 @@ class GradioMCPServer:
             Read a specific resource by URI.
             """
             uri = str(uri)
-
             client = await run_sync(self._get_or_create_client)
             for endpoint_name in self.tool_to_endpoint.values():
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
