@@ -137,15 +137,12 @@
 						target="_blank"
 						href="https://discord.gg/feTf9x3ZSB">Discord</a
 					>
-					<a
+					<!-- commenting this out but not removing in case we revisit this again -->
+					<!-- <a
 						class="inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 lg:hover:bg-gray-100/80 dark:lg:hover:bg-neutral-700/50 transition-colors text-sm"
 						target="_blank"
 						href="https://gradio.curated.co/">Newsletter</a
-					>
-					<a
-						class="inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 lg:hover:bg-gray-100/80 dark:lg:hover:bg-neutral-700/50 transition-colors text-sm"
-						href="/brand">Brand</a
-					>
+					> -->
 					<a
 						class="inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 lg:hover:bg-gray-100/80 dark:lg:hover:bg-neutral-700/50 transition-colors text-sm"
 						target="_blank"
