@@ -22,9 +22,9 @@
 	import { prefix_css } from "./css";
 	import { reactive_formatter } from "./gradio_helper";
 
-	// import type ApiDocsInterface from "./api_docs/ApiDocs.svelte";
-	// import type ApiRecorderInterface from "./api_docs/ApiRecorder.svelte";
-	// import type SettingsInterface from "./api_docs/Settings.svelte";
+	import type ApiDocsInterface from "./api_docs/ApiDocs.svelte";
+	import type ApiRecorderInterface from "./api_docs/ApiRecorder.svelte";
+	import type SettingsInterface from "./api_docs/Settings.svelte";
 	// import type { ComponentType } from "svelte";
 
 	import logo from "./images/logo.svg";
@@ -170,13 +170,22 @@
 		}
 	}
 
+	let api_calls: Payload[] = $state([]);
+	// We need a callback to add to api_calls from the DependencyManager
+	// We can't update a state variable from inside the DependencyManager because
+	// svelte won't see it and won't update the UI.
+	let add_to_api_calls = (payload: Payload): void => {
+		api_calls = [...api_calls, payload];
+	};
+
 	const dep_manager = new DependencyManager(
 		dependencies,
 		app,
 		app_tree.update_state.bind(app_tree),
 		app_tree.get_state.bind(app_tree),
 		app_tree.rerender.bind(app_tree),
-		new_message
+		new_message,
+		add_to_api_calls
 	);
 
 	let old_dependencies = dependencies;
@@ -193,12 +202,13 @@
 	let vibe_editor_width = 350;
 
 	// export let
-	let api_docs_visible =
-		search_params.get("view") === "api" && footer_links.includes("api");
-	let settings_visible = search_params.get("view") === "settings";
-	let api_recorder_visible =
-		search_params.get("view") === "api-recorder" &&
-		footer_links.includes("api");
+	let api_docs_visible = $derived(
+		search_params.get("view") === "api" && footer_links.includes("api")
+	);
+	let settings_visible = $derived(search_params.get("view") === "settings");
+	let api_recorder_visible = $derived(
+		search_params.get("view") === "api-recorder" && footer_links.includes("api")
+	);
 	let allow_zoom = true;
 	let allow_video_trim = true;
 
@@ -266,8 +276,6 @@
 		history.replaceState(null, "", "?" + params.toString());
 		settings_visible = !settings_visible;
 	}
-
-	let api_calls: Payload[] = [];
 
 	let layout_creating = false;
 	//

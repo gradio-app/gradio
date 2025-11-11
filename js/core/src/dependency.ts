@@ -159,6 +159,7 @@ export class DependencyManager {
 	submissions: Map<number, ReturnType<Client["submit"]>> = new Map();
 	client: Client;
 	queue: Set<number> = new Set();
+	add_to_api_calls: (payload: Payload) => void;
 
 	update_state_cb: (
 		id: number,
@@ -194,7 +195,8 @@ export class DependencyManager {
 			type: ToastMessage["type"],
 			duration?: number | null,
 			visible?: boolean
-		) => void
+		) => void,
+		add_to_api_calls: (payload: Payload) => void
 	) {
 		const { by_id, by_event } = this.create(dependencies);
 
@@ -205,6 +207,7 @@ export class DependencyManager {
 		this.get_state_cb = get_state_cb;
 		this.rerender_cb = rerender_cb;
 		this.log_cb = log_cb;
+		this.add_to_api_calls = add_to_api_calls;
 
 		for (const [dep_id, dep] of this.dependencies_by_fn) {
 			for (const [output_id] of dep.targets) {
@@ -360,6 +363,12 @@ export class DependencyManager {
 						continue;
 					}
 
+					this.add_to_api_calls({
+						fn_index: dep.id,
+						data: data_payload,
+						event_data: event_meta.event_data,
+						trigger_id: target_id
+					});
 					const dep_submission = await dep.run(
 						this.client,
 						data_payload,
