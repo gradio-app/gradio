@@ -329,7 +329,7 @@ def watchfn_spaces(reloader: SpacesReloader):
     if version.parse(spaces_version) < min_version:
         raise RuntimeError(f"Spaces hot-reloading requires `spaces>{min_version}`")
 
-    from spaces.reloading import start_reload_server
+    from spaces.reloading import start_reload_server # ty: ignore[unresolved-import]
 
     start_reload_server(
         prerun=reloader.prerun,
@@ -338,7 +338,7 @@ def watchfn_spaces(reloader: SpacesReloader):
     )
 
 
-def watchfn(reloader: SourceFileReloader):
+def watchfn(reloader: SourceFileReloader) -> None:
     """Watch python files in a given module.
 
     get_changes is taken from uvicorn's default file watcher.
