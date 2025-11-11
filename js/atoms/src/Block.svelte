@@ -81,6 +81,10 @@
 		window.addEventListener("mousemove", onMouseMove);
 		window.addEventListener("mouseup", onMouseUp);
 	};
+	// When visible is False, we need to remove the component from the page
+	// We can remove it by either modifying the AppTree in Blocks or by hiding the component here
+	// We do it here because if visible is updated via an event, only the local state will be updated
+	// and we would have to flow the state back up to modify the AppTree
 </script>
 
 {#if visible === true || visible === "hidden"}
@@ -89,7 +93,7 @@
 		bind:this={element}
 		data-testid={test_id}
 		id={elem_id}
-		class:hidden={visible === false || visible === "hidden"}
+		class:hidden={visible === "hidden"}
 		class="block {elem_classes?.join(' ') || ''}"
 		class:padded={padding}
 		class:flex
