@@ -1,20 +1,25 @@
 <script lang="ts">
-	import type { HTMLImgAttributes } from "svelte/elements";
-
-	interface Props extends HTMLImgAttributes {
-		"data-testid"?: string;
-	}
-
 	let {
 		src,
 		restProps,
-		data_testid
-	}: { src: string; restProps: HTMLImgAttributes; data_testid: string } =
-		$props();
+		data_testid,
+		class_names
+	}: {
+		src: string;
+		restProps: object;
+		data_testid: string;
+		class_names: string[];
+	} = $props();
 </script>
 
 <!-- svelte-ignore a11y-missing-attribute -->
-<img {src} data-testid={data_testid} {...restProps} on:load />
+<img
+	{src}
+	class={class_names.join(" ")}
+	data-testid={data_testid}
+	{...restProps}
+	on:load
+/>
 
 <style>
 	img {
