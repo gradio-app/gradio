@@ -2,9 +2,7 @@
 <script lang="ts">
     import {get_object} from "../../process_json.ts";
     import ParamTable from "$lib/components/ParamTable.svelte";
-    import ShortcutTable from "$lib/components/ShortcutTable.svelte";
-    import DemosSection from "$lib/components/DemosSection.svelte";
-    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import ShortcutTable from "$lib/components/ShortcutTable.svelte";    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
     import GuidesSection from "$lib/components/GuidesSection.svelte";
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
@@ -34,12 +32,6 @@ gradio_client.Job(···)
 <!--- Shortcuts -->
 ### Shortcuts
 <ShortcutTable shortcuts={obj.string_shortcuts} />
-{/if}
-
-{#if obj.demos && obj.demos.length > 0}
-<!--- Demos -->
-### Demos 
-<DemosSection demos={obj.demos} />
 {/if}
 
 {#if obj.fns && obj.fns.length > 0}
