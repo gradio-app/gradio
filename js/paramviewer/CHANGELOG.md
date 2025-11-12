@@ -1,5 +1,17 @@
 # @gradio/paramviewer
 
+## 0.9.0-dev.0
+
+### Features
+
+- [#12106](https://github.com/gradio-app/gradio/pull/12106) [`26bbdf8`](https://github.com/gradio-app/gradio/commit/26bbdf8b6a16d370d0314b03b3fa49de922ad2ff) - 🌙 Add dark mode to gradio docs.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.18.2-dev.0
+- @gradio/utils@0.10.3-dev.0
+- @gradio/statustracker@0.12.0-dev.0
+
 ## 0.8.1
 
 ### Dependency updates
