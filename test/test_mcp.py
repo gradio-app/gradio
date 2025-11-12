@@ -6,6 +6,8 @@ import time
 
 import httpx
 import pytest
+from mcp import ClientSession
+from mcp.client.streamable_http import streamablehttp_client
 from PIL import Image
 from starlette.requests import Request
 
@@ -385,3 +387,42 @@ async def test_tool_selection_via_query_params():
     schema = json.loads(schema)
     assert len(schema) == 1
     assert schema[0]["name"] == "tool_2"
+
+
+@pytest.mark.asyncio
+async def test_mcp_streamable_http_client():
+    def double(word: str) -> str:
+        """
+        Doubles the input word.
+
+        Parameters:
+            word: The word to double
+        Returns:
+            The doubled word
+        """
+        return word * 2
+
+    with gr.Blocks() as demo:
+        input_box = gr.Textbox(label="Input")
+        output_box = gr.Textbox(label="Output")
+        input_box.change(double, input_box, output_box, api_name="double")
+
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, mcp_server=True)
+    mcp_url = f"{local_url}gradio_api/mcp/"
+
+    try:
+        async with streamablehttp_client(mcp_url) as (read_stream, write_stream, _):
+            async with ClientSession(read_stream, write_stream) as session:
+                await session.initialize()
+
+                tools_response = await session.list_tools()
+                assert len(tools_response.tools) == 1
+                tool = tools_response.tools[0]
+                assert "double" in tool.name
+                assert "Doubles the input word" in tool.description
+
+                result = await session.call_tool(tool.name, arguments={"word": "Hello"})
+                assert len(result.content) == 1
+                assert result.content[0].text == "HelloHello"
+    finally:
+        demo.close()

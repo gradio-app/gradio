@@ -320,11 +320,10 @@ class GradioMCPServer:
                     if progress_unit.desc is None
                     else f"Progress {progress_unit.desc}"
                 )
-                if (
-                    progress_unit.index is not None
-                    and progress_unit.length is not None
-                ):
-                    return f"{title}: Step {progress_unit.index} of {progress_unit.length}"
+                if progress_unit.index is not None and progress_unit.length is not None:
+                    return (
+                        f"{title}: Step {progress_unit.index} of {progress_unit.length}"
+                    )
                 elif progress_unit.index is not None and progress_unit.length is None:
                     return f"{title}: Step {progress_unit.index}"
         elif update.code in [Status.PROCESSING, Status.ITERATING]:
@@ -356,13 +355,15 @@ class GradioMCPServer:
                 update = cast(StatusUpdate, update)
                 message = self._format_progress_message(update)
 
-                await self.mcp_server.request_context.session.send_progress_notification(
-                    progress_token=progress_token,
-                    progress=step,
-                    message=message,  # type: ignore
-                    related_request_id=str(
-                        self.mcp_server.request_context.request_id
-                    ),
+                await (
+                    self.mcp_server.request_context.session.send_progress_notification(
+                        progress_token=progress_token,
+                        progress=step,
+                        message=message,  # type: ignore
+                        related_request_id=str(
+                            self.mcp_server.request_context.request_id
+                        ),
+                    )
                 )
                 step += 1
             elif update.type == "output" and update.final:
