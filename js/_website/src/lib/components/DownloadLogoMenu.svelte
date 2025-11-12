@@ -48,7 +48,9 @@
 		class="fixed bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg shadow-lg py-1 z-50 min-w-[200px]"
 		style="left: {x}px; top: {y}px;"
 	>
-		<div class="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-neutral-700">
+		<div
+			class="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-neutral-700"
+		>
 			Download Logo
 		</div>
 		{#each downloads as download}
