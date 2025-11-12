@@ -189,7 +189,7 @@ def sentiment_classification_demo():
         time.sleep(10)
         return 2
 
-    with gr.Blocks(theme="gstaff/xkcd") as demo:
+    with gr.Blocks() as demo:
         with gr.Row():
             with gr.Column():
                 input_text = gr.Textbox(label="Input Text")

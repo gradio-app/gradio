@@ -8,7 +8,7 @@
 <div class="grid">
 	<div class="demo-window overflow-y-auto h-fit w-full mb-4">
 		<div
-			class="relative mx-auto my-auto rounded-md bg-white"
+			class="relative mx-auto my-auto rounded-md bg-white dark:bg-neutral-800"
 			style="top: 5%; height: 90%"
 		>
 			<div class="flex overflow-auto pt-4">
@@ -16,7 +16,7 @@
 					<button
 						on:click={() => (current_selection = i)}
 						class:selected-demo-tab={current_selection == i}
-						class="demo-btn px-4 py-2 text-lg min-w-max text-gray-600 hover:text-orange-500"
+						class="demo-btn px-4 py-2 text-lg min-w-max text-gray-600 dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400"
 						name={demo[0]}>{demo[0]}</button
 					>
 				{/each}
