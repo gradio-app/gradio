@@ -69,12 +69,9 @@
 "@gradio/video": minor
 "@self/app": minor
 "@self/build": minor
-"@self/component-test": minor
 "@self/spa": minor
-"@self/spaces-test": minor
 "@self/tootils": minor
 "gradio": minor
-"website": minor
 ---
 
 feat:Svelte5 migration
