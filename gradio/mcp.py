@@ -273,30 +273,18 @@ class GradioMCPServer:
 
         return endpoint_name, processed_args, request_headers, block_fn
 
-    async def _execute_tool_without_progress(
-        self,
-        client: Client,
-        endpoint_name: str,
-        processed_args: list[Any],
-        request_headers: dict[str, str],
-        block_fn: "BlockFunction",
-    ) -> list[Any]:
+    async def _execute_tool_without_progress(self, job: Any) -> list[Any]:
         """
         Execute a tool call without progress tracking (fast path).
+
+        Calls job.result() to get the final output without processing
+        intermediate status updates.
 
         Returns:
             The output data as a list.
         """
-        result = await run_sync(
-            lambda: client.predict(
-                *processed_args,
-                api_name=endpoint_name,
-                headers=request_headers,
-            )
-        )
-        output = [result] if not isinstance(result, (list, tuple)) else result
-        self.pop_returned_state(block_fn.inputs, processed_args)
-        return output
+        result = await run_sync(job.result)
+        return [result] if not isinstance(result, (list, tuple)) else result
 
     @staticmethod
     def _format_progress_message(update: StatusUpdate) -> str | None:
@@ -331,25 +319,18 @@ class GradioMCPServer:
         return None
 
     async def _execute_tool_with_progress(
-        self,
-        client: Client,
-        endpoint_name: str,
-        processed_args: list[Any],
-        request_headers: dict[str, str],
-        block_fn: "BlockFunction",
-        progress_token: str,
+        self, job: Any, progress_token: str
     ) -> dict[str, Any]:
         """
         Execute a tool call with progress tracking (streaming path).
+
+        Iterates through job updates to send progress notifications to the client.
 
         Returns:
             The output dictionary with a "data" key containing the results.
         """
         step = 0
         output = {"data": []}
-        job = client.submit(
-            *processed_args, api_name=endpoint_name, headers=request_headers
-        )
         async for update in job:
             if update.type == "status":
                 update = cast(StatusUpdate, update)
@@ -382,7 +363,6 @@ class GradioMCPServer:
                     raise RuntimeError(msg)
         if job.exception():
             raise job.exception()
-        self.pop_returned_state(block_fn.inputs, processed_args)
         return output
 
     def create_mcp_server(self) -> "Server":
@@ -417,20 +397,17 @@ class GradioMCPServer:
                 self._prepare_tool_call_args(name, arguments)
             )
 
+            job = client.submit(
+                *processed_args, api_name=endpoint_name, headers=request_headers
+            )
+
             if progress_token is None:
-                output_data = await self._execute_tool_without_progress(
-                    client, endpoint_name, processed_args, request_headers, block_fn
-                )
+                output_data = await self._execute_tool_without_progress(job)
             else:
-                output = await self._execute_tool_with_progress(
-                    client,
-                    endpoint_name,
-                    processed_args,
-                    request_headers,
-                    block_fn,
-                    progress_token,
-                )
+                output = await self._execute_tool_with_progress(job, progress_token)
                 output_data = output["data"]
+
+            self.pop_returned_state(block_fn.inputs, processed_args)
 
             context_request: Request | None = self.mcp_server.request_context.request
             route_path = self.get_route_path(context_request)
