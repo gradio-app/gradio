@@ -227,6 +227,163 @@ class GradioMCPServer:
             )
         return self._client_instance
 
+    def _prepare_tool_call_args(
+        self, name: str, arguments: dict[str, Any]
+    ) -> tuple[str, list[Any], dict[str, str], "BlockFunction"]:
+        """
+        Prepare and validate arguments for a tool call.
+
+        Returns:
+            A tuple of (endpoint_name, processed_args, request_headers, block_fn)
+        """
+        selected_tools = self.get_selected_tools_from_request()
+        _, filedata_positions = self.get_input_schema(name)
+        processed_kwargs = self.convert_strings_to_filedata(
+            arguments, filedata_positions
+        )
+        endpoint_name = self.tool_to_endpoint.get(name)
+        if endpoint_name is None:
+            raise ValueError(f"Unknown tool for this Gradio app: {name}")
+
+        if selected_tools is not None and name not in selected_tools:
+            raise ValueError(f"Tool '{name}' is not in the selected tools list")
+
+        block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+        assert block_fn is not None  # noqa: S101
+
+        if endpoint_name in self.api_info["named_endpoints"]:
+            parameters_info = self.api_info["named_endpoints"][endpoint_name][
+                "parameters"
+            ]
+            processed_args = client_utils.construct_args(
+                parameters_info,
+                (),
+                processed_kwargs,
+            )
+        else:
+            processed_args = []
+
+        context_request: Request | None = self.mcp_server.request_context.request
+        if context_request is None:
+            raise ValueError(
+                "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
+            )
+        request_headers = dict(context_request.headers.items())
+        request_headers.pop("content-length", None)
+
+        return endpoint_name, processed_args, request_headers, block_fn
+
+    async def _execute_tool_without_progress(
+        self,
+        client: Client,
+        endpoint_name: str,
+        processed_args: list[Any],
+        request_headers: dict[str, str],
+        block_fn: "BlockFunction",
+    ) -> list[Any]:
+        """
+        Execute a tool call without progress tracking (fast path).
+
+        Returns:
+            The output data as a list.
+        """
+        result = await run_sync(
+            lambda: client.predict(
+                *processed_args,
+                api_name=endpoint_name,
+                headers=request_headers,
+            )
+        )
+        output = [result] if not isinstance(result, (list, tuple)) else result
+        self.pop_returned_state(block_fn.inputs, processed_args)
+        return output
+
+    @staticmethod
+    def _format_progress_message(update: StatusUpdate) -> str | None:
+        """
+        Format a status update into a human-readable progress message.
+
+        Returns:
+            A formatted message string, or None if no message should be shown.
+        """
+        if update.code in [Status.JOINING_QUEUE, Status.STARTING]:
+            return "Joined server queue."
+        elif update.code in [Status.IN_QUEUE]:
+            message = f"In queue. Position {update.rank} out of {update.queue_size}."
+            if update.eta is not None:
+                message += f" Estimated time remaining: {update.eta} seconds."
+            return message
+        elif update.code in [Status.PROGRESS]:
+            for progress_unit in update.progress_data or []:
+                title = (
+                    "Progress"
+                    if progress_unit.desc is None
+                    else f"Progress {progress_unit.desc}"
+                )
+                if (
+                    progress_unit.index is not None
+                    and progress_unit.length is not None
+                ):
+                    return f"{title}: Step {progress_unit.index} of {progress_unit.length}"
+                elif progress_unit.index is not None and progress_unit.length is None:
+                    return f"{title}: Step {progress_unit.index}"
+        elif update.code in [Status.PROCESSING, Status.ITERATING]:
+            return "Processing"
+        return None
+
+    async def _execute_tool_with_progress(
+        self,
+        client: Client,
+        endpoint_name: str,
+        processed_args: list[Any],
+        request_headers: dict[str, str],
+        block_fn: "BlockFunction",
+        progress_token: str,
+    ) -> dict[str, Any]:
+        """
+        Execute a tool call with progress tracking (streaming path).
+
+        Returns:
+            The output dictionary with a "data" key containing the results.
+        """
+        step = 0
+        output = {"data": []}
+        job = client.submit(
+            *processed_args, api_name=endpoint_name, headers=request_headers
+        )
+        async for update in job:
+            if update.type == "status":
+                update = cast(StatusUpdate, update)
+                message = self._format_progress_message(update)
+
+                await self.mcp_server.request_context.session.send_progress_notification(
+                    progress_token=progress_token,
+                    progress=step,
+                    message=message,  # type: ignore
+                    related_request_id=str(
+                        self.mcp_server.request_context.request_id
+                    ),
+                )
+                step += 1
+            elif update.type == "output" and update.final:
+                output = update.outputs
+                if not update.success:
+                    error_title = output.get("title")
+                    error_message = output.get("error")
+                    if error_title and error_message:
+                        msg = f"{error_title}: {error_message}"
+                    elif error_message:
+                        msg = error_message
+                    elif error_title:
+                        msg = error_title
+                    else:
+                        msg = "Error!"
+                    raise RuntimeError(msg)
+        if job.exception():
+            raise job.exception()
+        self.pop_returned_state(block_fn.inputs, processed_args)
+        return output
+
     def create_mcp_server(self) -> "Server":
         """
         Create an MCP server for the given Gradio Blocks app.
@@ -253,127 +410,34 @@ class GradioMCPServer:
             progress_token = None
             if self.mcp_server.request_context.meta is not None:
                 progress_token = self.mcp_server.request_context.meta.progressToken
-            selected_tools = self.get_selected_tools_from_request()
+
             client = await run_sync(self._get_or_create_client)
-            _, filedata_positions = self.get_input_schema(name)
-            processed_kwargs = self.convert_strings_to_filedata(
-                arguments, filedata_positions
+            endpoint_name, processed_args, request_headers, block_fn = (
+                self._prepare_tool_call_args(name, arguments)
             )
-            endpoint_name = self.tool_to_endpoint.get(name)
-            if endpoint_name is None:
-                raise ValueError(f"Unknown tool for this Gradio app: {name}")
 
-            if selected_tools is not None and name not in selected_tools:
-                raise ValueError(f"Tool '{name}' is not in the selected tools list")
-
-            block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
-            assert block_fn is not None  # noqa: S101
-
-            if endpoint_name in self.api_info["named_endpoints"]:
-                parameters_info = self.api_info["named_endpoints"][endpoint_name][
-                    "parameters"
-                ]
-                processed_args = client_utils.construct_args(
-                    parameters_info,
-                    (),
-                    processed_kwargs,
-                )
-            else:
-                processed_args = []
-            context_request: Request | None = self.mcp_server.request_context.request
-            if context_request is None:
-                raise ValueError(
-                    "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
-                )
-            request_headers = dict(context_request.headers.items())
-            request_headers.pop("content-length", None)
-            
             if progress_token is None:
-                result = await run_sync(
-                    lambda: client.predict(
-                        *processed_args,
-                        api_name=endpoint_name,
-                        headers=request_headers
-                    )
+                output_data = await self._execute_tool_without_progress(
+                    client, endpoint_name, processed_args, request_headers, block_fn
                 )
-                if not isinstance(result, (list, tuple)):
-                    output = [result]
-                else:
-                    output = result
-                processed_args = self.pop_returned_state(block_fn.inputs, processed_args)
             else:
-                step = 0
-                output = {"data": []}
-                job = client.submit(
-                    *processed_args, api_name=endpoint_name, headers=request_headers
+                output = await self._execute_tool_with_progress(
+                    client,
+                    endpoint_name,
+                    processed_args,
+                    request_headers,
+                    block_fn,
+                    progress_token,
                 )
-                async for update in job:
-                    if update.type == "status":
-                        update = cast(StatusUpdate, update)
+                output_data = output["data"]
 
-                        if update.code in [Status.JOINING_QUEUE, Status.STARTING]:
-                            message = "Joined server queue."
-                        elif update.code in [Status.IN_QUEUE]:
-                            message = f"In queue. Position {update.rank} out of {update.queue_size}."
-                            if update.eta is not None:
-                                message += (
-                                    f" Estimated time remaining: {update.eta} seconds."
-                                )
-                        elif update.code in [Status.PROGRESS]:
-                            for progress_unit in update.progress_data or []:
-                                title = (
-                                    "Progress"
-                                    if progress_unit.desc is None
-                                    else f"Progress {progress_unit.desc}"
-                                )
-                                if (
-                                    progress_unit.index is not None
-                                    and progress_unit.length is not None
-                                ):
-                                    message = f"{title}: Step {progress_unit.index} of {progress_unit.length}"
-                                elif (
-                                    progress_unit.index is not None
-                                    and progress_unit.length is None
-                                ):
-                                    message = f"{title}: Step {progress_unit.index}"
-                        elif update.code in [Status.PROCESSING, Status.ITERATING]:
-                            message = "Processing"
-                        else:
-                            message = None
-
-                        await self.mcp_server.request_context.session.send_progress_notification(
-                            progress_token=progress_token,
-                            progress=step,
-                            message=message,  # type: ignore
-                            related_request_id=str(
-                                self.mcp_server.request_context.request_id
-                            ),
-                        )
-                        step += 1
-                    elif update.type == "output" and update.final:
-                        output = update.outputs
-                        if not update.success:
-                            error_title = output.get("title")
-                            error_message = output.get("error")
-                            if error_title and error_message:
-                                msg = f"{error_title}: {error_message}"
-                            elif error_message:
-                                msg = error_message
-                            elif error_title:
-                                msg = error_title
-                            else:
-                                msg = "Error!"
-                            raise RuntimeError(msg)
-                if job.exception():
-                    raise job.exception()
-                processed_args = self.pop_returned_state(block_fn.inputs, processed_args)
+            context_request: Request | None = self.mcp_server.request_context.request
             route_path = self.get_route_path(context_request)
             root_url = route_utils.get_root_url(
                 request=context_request,
                 route_path=route_path,
                 root_path=self.root_path,
             )
-            output_data = output if progress_token is None else output["data"]
             return self.postprocess_output_data(output_data, root_url)
 
         @server.list_tools()
