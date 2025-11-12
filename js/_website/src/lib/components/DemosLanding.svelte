@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { hello } from "../assets/demo_code";
-	import { theme } from "../stores/theme";
+	import "$lib/assets/theme.css";
+	import { theme } from "$lib/stores/theme";
 
 	let tabs = [
 		{
@@ -55,7 +56,7 @@
 			>
 				{@html code}
 			</div>
-			<div class="mx-auto max-w-5xl">
+			<div class="mx-auto max-w-5xl" class:dark={$theme === "dark"}>
 				{#key demo}
 					<gradio-app space={demo} theme_mode={$theme} />
 				{/key}
