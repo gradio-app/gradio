@@ -2491,7 +2491,7 @@ Received inputs:
 
         self.theme: Theme = utils.get_theme(theme)
         self.css = css
-        self.css_paths = css_paths
+        self.css_paths = css_paths or []
         self.js = js
         self.head = head
         self.head_paths = head_paths
@@ -2850,8 +2850,8 @@ Received inputs:
                 "is_custom_theme": is_custom_theme,
                 "custom_js": self.js is not None,
                 "custom_head": self.head is not None,
-                "custom_css_paths": len(css_paths) > 0 if css_paths else False,
-                "custom_head_paths": len(head_paths) > 0 if head_paths else False,
+                "custom_css_paths": bool(self.css_paths),
+                "custom_head_paths": bool(head_paths),
             }
             analytics.launched_analytics(self, data)
 
