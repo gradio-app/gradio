@@ -10,8 +10,8 @@
 	},
 	"devDependencies": {
 		"@self/build": "workspace:^",
-		"@sveltejs/adapter-auto": "^3.0.0",
-		"@sveltejs/kit": "^2.0.0"
+		"@sveltejs/adapter-auto": "^6.1.1",
+		"@sveltejs/kit": "^2.46.2"
 	},
 	"dependencies": {
 		"@gradio/video": "workspace:^"

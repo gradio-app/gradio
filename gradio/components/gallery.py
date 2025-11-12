@@ -148,7 +148,6 @@ class Gallery(Component):
         self.preview = preview
         self.object_fit = object_fit
         self.allow_preview = allow_preview
-        self.buttons = buttons
         self.selected_index = selected_index
         if type not in ["numpy", "pil", "filepath"]:
             raise ValueError(
@@ -156,6 +155,7 @@ class Gallery(Component):
             )
         self.type = type
         self.file_types = file_types
+        self.buttons = buttons or ["download", "fullscreen"]
         self.fit_columns = fit_columns
 
         super().__init__(

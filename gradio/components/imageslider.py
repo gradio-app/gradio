@@ -126,7 +126,7 @@ class ImageSlider(Component):
         self.height = height
         self.width = width
         self.image_mode = image_mode
-        self.buttons = buttons
+        self.buttons = buttons or ["download", "fullscreen"]
 
         super().__init__(
             label=label,

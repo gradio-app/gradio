@@ -1,4 +1,4 @@
-import { writable, type Writable, get } from "svelte/store";
+import { writable, type Writable } from "svelte/store";
 import { dequal } from "dequal";
 
 import type {
@@ -13,6 +13,7 @@ import type { client_return } from "@gradio/client";
 import { create_loading_status_store } from "./stores";
 import { _ } from "svelte-i18n";
 import { i18n_marker } from "./i18n";
+import type { SharedProps } from "@gradio/utils";
 
 export interface UpdateTransaction {
 	id: number;
@@ -20,11 +21,17 @@ export interface UpdateTransaction {
 	prop: string;
 }
 
-let pending_updates: UpdateTransaction[][] = [];
-const is_browser = typeof window !== "undefined";
-const raf = is_browser
-	? requestAnimationFrame
-	: async (fn: () => Promise<void> | void) => await fn();
+const shared_props: (keyof SharedProps)[] = [
+	"elem_id",
+	"elem_classes",
+	"components",
+	"visible",
+	"interactive",
+	"server_fns"
+] as const;
+
+type set_data_type = (data: Record<string, unknown>) => void;
+type get_data_type = () => Promise<Record<string, unknown>>;
 
 /**
  * Create a store with the layout and a map of targets
@@ -41,13 +48,12 @@ export function create_components(
 ): {
 	layout: Writable<ComponentMeta>;
 	targets: Writable<TargetMap>;
-	update_value: (updates: UpdateTransaction[]) => void;
-	get_data: (id: number) => any | Promise<any>;
+	get_data: (id: number) => Promise<unknown> | void;
+	set_data: (id: number, data: Record<string, unknown>) => void;
 	modify_stream: (id: number, state: "open" | "waiting" | "closed") => void;
 	get_stream_state: (id: number) => "open" | "waiting" | "closed" | "not_set";
 	set_time_limit: (id: number, time_limit: number | undefined) => void;
 	loading_status: ReturnType<typeof create_loading_status_store>;
-	scheduled_updates: Writable<boolean>;
 	create_layout: (args: {
 		app: client_return;
 		components: ComponentMeta[];
@@ -65,7 +71,11 @@ export function create_components(
 		root: string;
 		dependencies: Dependency[];
 	}) => void;
-	value_change: (cb: (id: number, value: any) => void) => void;
+	register_component: (
+		id: number,
+		set: set_data_type,
+		get: get_data_type
+	) => void;
 } {
 	let _component_map: Map<number, ComponentMeta>;
 
@@ -83,16 +93,22 @@ export function create_components(
 	let keys_per_render_id: Record<number, (string | number)[]> = {};
 	let _rootNode: ComponentMeta;
 
-	let value_change_cb: ((id: number, value: any) => void) | null = null;
-
-	function value_change(cb: (id: number, value: any) => void): void {
-		value_change_cb = cb;
-	}
-
 	let current_layout: LayoutNode;
 	let current_root: string;
 
-	function set_event_specific_args(dependencies: Dependency[]): void {
+	const get_callbacks = new Map<number, get_data_type>();
+	const set_callbacks = new Map<number, set_data_type>();
+
+	function register_component(
+		id: number,
+		_set_data: set_data_type,
+		_get_data: get_data_type
+	): void {
+		set_callbacks.set(id, _set_data);
+		get_callbacks.set(id, _get_data);
+	}
+
+	function get_event_specific_args(dependencies: Dependency[]): void {
 		dependencies.forEach((dep) => {
 			dep.targets.forEach((target) => {
 				const instance = instance_map?.[target[0]];
@@ -122,7 +138,6 @@ export function create_components(
 			fill_height: boolean;
 		};
 	}): Promise<void> {
-		flush();
 		app = _app;
 
 		if (instance_map) {
@@ -135,13 +150,15 @@ export function create_components(
 						c.props.value = matching_instance.props.value;
 					}
 				}
+
+				const { shared_props, props } = gather_props(c.props);
+				c.props = { props, shared_props };
 			});
 		}
 
 		_components = components;
 		inputs = new Set();
 		outputs = new Set();
-		pending_updates = [];
 		constructor_map = new Map();
 		_component_map = new Map();
 		instance_map = {};
@@ -216,13 +233,13 @@ export function create_components(
 		root: string;
 		dependencies: Dependency[];
 	}): void {
-		components.forEach((c) => {
-			for (const prop in c.props) {
-				if (c.props[prop] === null) {
-					c.props[prop] = undefined;
-				}
-			}
-		});
+		// components.forEach((c) => {
+		// 	for (const prop in c.props) {
+		// 		if (c.props[prop] === null) {
+		// 			c.props[prop] = undefined;
+		// 		}
+		// 	}
+		// });
 		let replacement_components: ComponentMeta[] = [];
 		let new_components: ComponentMeta[] = [];
 		components.forEach((c) => {
@@ -428,9 +445,6 @@ export function create_components(
 		return instance;
 	}
 
-	let update_scheduled = false;
-	let update_scheduled_store = writable(false);
-
 	/**
 	 * Load newly visible components after visibility changes
 	 * @param newly_visible_ids Set of component IDs that are now visible
@@ -496,102 +510,12 @@ export function create_components(
 		);
 	}
 
-	function flush(): void {
-		const had_visibility_changes = has_visibility_changes(pending_updates);
-		let previous_visible_ids: Set<number> | undefined;
-		const all_components = _component_map
-			? [..._component_map.values()]
-			: _components;
-
-		if (had_visibility_changes && current_layout) {
-			previous_visible_ids = determine_visible_components(
-				current_layout,
-				all_components
-			);
-		}
-
-		layout_store.update((layout) => {
-			for (let i = 0; i < pending_updates.length; i++) {
-				for (let j = 0; j < pending_updates[i].length; j++) {
-					const update = pending_updates[i][j];
-					if (!update) continue;
-					const instance = instance_map?.[update.id];
-					if (!instance) continue;
-					let new_value;
-					const old_value = instance.props[update.prop];
-					if (update.value instanceof Map) new_value = new Map(update.value);
-					else if (update.value instanceof Set)
-						new_value = new Set(update.value);
-					else if (Array.isArray(update.value)) new_value = [...update.value];
-					else if (update.value == null) new_value = null;
-					else if (typeof update.value === "object")
-						new_value = { ...update.value };
-					else new_value = update.value;
-					instance.props[update.prop] = new_value;
-
-					if (
-						update.prop === "value" &&
-						!is_visible(instance) &&
-						!dequal(old_value, new_value)
-					) {
-						value_change_cb?.(update.id, new_value);
-					}
-				}
-			}
-
-			return layout;
-		});
-
-		if (had_visibility_changes && current_layout && previous_visible_ids) {
-			raf(async () => {
-				const new_visible_ids = determine_visible_components(
-					current_layout,
-					all_components
-				);
-				const newly_visible_ids = new Set<number>();
-
-				for (const id of new_visible_ids) {
-					if (!previous_visible_ids!.has(id)) {
-						newly_visible_ids.add(id);
-					}
-				}
-
-				await load_newly_visible_components(newly_visible_ids, all_components);
-
-				if (newly_visible_ids.size > 0) {
-					layout_store.update((layout) => layout);
-				}
-			});
-		}
-
-		pending_updates = [];
-		update_scheduled = false;
-		update_scheduled_store.set(false);
+	async function get_data(id: number): Promise<unknown | void> {
+		return get_callbacks.get(id)?.();
 	}
 
-	function update_value(updates: UpdateTransaction[] | undefined): void {
-		if (!updates) return;
-		pending_updates.push(updates);
-
-		if (!update_scheduled) {
-			update_scheduled = true;
-			update_scheduled_store.set(true);
-			raf(flush);
-		}
-	}
-	function get_data(id: number): any | Promise<any> {
-		let comp = _component_map.get(id);
-		if (!comp) {
-			const layout = get(layout_store);
-			comp = findComponentById(layout, id);
-		}
-		if (!comp) {
-			return null;
-		}
-		if (comp.instance?.get_value) {
-			return comp.instance.get_value() as Promise<any>;
-		}
-		return comp.props.value;
+	function set_data(id: number, data: Record<string, unknown>): void {
+		set_callbacks.get(id)?.(data);
 	}
 
 	function findComponentById(
@@ -641,16 +565,15 @@ export function create_components(
 	return {
 		layout: layout_store,
 		targets: target_map,
-		update_value,
 		get_data,
+		set_data,
 		modify_stream,
 		get_stream_state,
 		set_time_limit,
 		loading_status,
-		scheduled_updates: update_scheduled_store,
 		create_layout: create_layout,
 		rerender_layout,
-		value_change
+		register_component
 	};
 }
 

@@ -7,20 +7,20 @@
 	"license": "ISC",
 	"private": false,
 	"dependencies": {
-		"@codemirror/autocomplete": "^6.18.6",
-		"@codemirror/commands": "^6.8.0",
+		"@codemirror/autocomplete": "^6.19.0",
+		"@codemirror/commands": "^6.9.0",
 		"@codemirror/lang-css": "^6.3.1",
-		"@codemirror/lang-html": "^6.4.9",
-		"@codemirror/lang-javascript": "^6.2.3",
-		"@codemirror/lang-json": "^6.0.1",
-		"@codemirror/lang-markdown": "^6.3.2",
-		"@codemirror/lang-python": "^6.1.7",
-		"@codemirror/language": "^6.10.8",
-		"@codemirror/legacy-modes": "^6.4.3",
-		"@codemirror/lint": "^6.8.4",
-		"@codemirror/search": "^6.5.10",
+		"@codemirror/lang-html": "^6.4.11",
+		"@codemirror/lang-javascript": "^6.2.4",
+		"@codemirror/lang-json": "^6.0.2",
+		"@codemirror/lang-markdown": "^6.4.0",
+		"@codemirror/lang-python": "^6.2.1",
+		"@codemirror/language": "^6.11.3",
+		"@codemirror/legacy-modes": "^6.5.2",
+		"@codemirror/lint": "^6.9.0",
+		"@codemirror/search": "^6.5.11",
 		"@codemirror/state": "^6.5.2",
-		"@codemirror/view": "^6.36.3",
+		"@codemirror/view": "^6.38.5",
 		"@gradio/atoms": "workspace:^",
 		"@gradio/icons": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
@@ -28,10 +28,10 @@
 		"@gradio/utils": "workspace:^",
 		"@lezer/common": "^1.2.3",
 		"@lezer/highlight": "^1.2.1",
-		"@lezer/markdown": "^1.4.2",
+		"@lezer/markdown": "^1.4.3",
 		"cm6-theme-basic-dark": "^0.2.0",
 		"cm6-theme-basic-light": "^0.2.0",
-		"codemirror": "^6.0.1"
+		"codemirror": "^6.0.2"
 	},
 	"main_changeset": true,
 	"main": "./Index.svelte",
@@ -54,7 +54,7 @@
 		"@gradio/preview": "workspace:^"
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.43.4"
 	},
 	"repository": {
 		"type": "git",

@@ -362,9 +362,12 @@
 		}
 	}
 
-	onDestroy(() => {
-		spaceheader?.remove();
-	});
+	// onDestroy(() => {
+	// 	if (spaceheader) {
+	// 		spaceheader.remove();
+	// 		spaceheader = undefined;
+	// 	}
+	// });
 </script>
 
 <svelte:head>

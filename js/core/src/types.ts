@@ -1,16 +1,10 @@
-import type { ComponentType } from "svelte";
-import type { SvelteComponent } from "svelte";
+import type { Component } from "svelte";
+import type { SharedProps } from "@gradio/utils";
 
-/** The props that are always present on a component */
-interface SharedProps {
-	elem_id?: string;
-	elem_classes?: string[];
-	components?: string[];
-	server_fns?: string[];
-	interactive: boolean;
-	visible: boolean | "hidden";
-	[key: string]: unknown;
-}
+export type ServerFunctions = Record<string, (...args: any[]) => Promise<any>>;
+
+// import type { I18nFormatter } from "./i18n.js";
+// import type { component_loader } from "./init.js";
 
 /** The metadata for a component
  * The non optional fields are what are received from the backend
@@ -19,17 +13,25 @@ interface SharedProps {
 export interface ComponentMeta {
 	type: string;
 	id: number;
-	has_modes: boolean;
-	props: SharedProps;
-	instance: SvelteComponent;
-	component: ComponentType<SvelteComponent>;
+	props: SharedProps & Record<string, unknown>;
 	documentation?: Documentation;
-	children?: ComponentMeta[];
-	parent?: ComponentMeta;
 	value?: any;
 	component_class_id: string;
 	key: string | number | null;
 	rendered_in?: number;
+}
+
+export interface ProcessedComponentMeta {
+	type: string;
+	id: number;
+	props: { shared_props: SharedProps; props: Record<string, unknown> };
+	component: Component | LoadingComponent | null;
+	documentation?: Documentation;
+	children: ProcessedComponentMeta[];
+	//	parent?: ProcessedComponentMeta;
+	component_class_id: string; // ?;
+	key: string | number | null; // ?;
+	rendered_in?: number; // ?;
 }
 
 /** Dictates whether a dependency is continous and/or a generator */
@@ -54,32 +56,32 @@ export interface Dependency {
 	inputs: number[];
 	outputs: number[];
 	backend_fn: boolean;
-	js: string | null;
-	scroll_to_output: boolean;
-	show_progress: "full" | "minimal" | "hidden";
-	show_progress_on: number[] | null;
-	frontend_fn: ((...args: unknown[]) => Promise<unknown[]>) | null;
-	status?: string;
-	queue: boolean | null;
-	api_name: string | null;
+	js: string | null; // frontend fn
+	scroll_to_output: boolean; // used by loading_status
+	show_progress: "full" | "minimal" | "hidden"; // used by loading_status
+	show_progress_on: number[] | null; // used by loading_status
+	// frontend_fn: ((...args: unknown[]) => Promise<unknown[]>) | null;
+	//status?: string; // I can't find this
+	queue: boolean | null; // used by client
+	api_name: string | null; // used by client
 	cancels: number[];
 	types: DependencyTypes;
 	collects_event_data: boolean;
-	pending_request?: boolean;
-	trigger_after?: number;
-	trigger_only_on_success?: boolean;
-	trigger_only_on_failure?: boolean;
-	trigger_mode: "once" | "multiple" | "always_last";
-	final_event: Payload | null;
-	api_visibility: "public" | "private" | "undocumented";
-	rendered_in: number | null;
-	render_id: number | null;
-	connection: "stream" | "sse";
-	time_limit: number;
-	stream_every: number;
-	like_user_message: boolean;
-	event_specific_args: string[];
-	js_implementation: string | null;
+	//pending_request?: boolean; // added, not received from backend, unneeded
+	trigger_after?: number; // then events
+	trigger_only_on_success?: boolean; // success events
+	trigger_only_on_failure?: boolean; // failure events
+	trigger_mode: "once" | "multiple" | "always_last"; // dispatch policy
+	// final_event: Payload | null; // added, not received from backend
+	show_api: boolean; // use by api_doc
+	rendered_in: number | null; // which component the new config should be added to
+	render_id: number | null; // dno
+	connection: "stream" | "sse"; // dno
+	time_limit: number; // time limit for streaming
+	stream_every: number; // chunk timeout for media recorder
+	like_user_message: boolean; // dno, this shouldnt be here surely
+	event_specific_args: ("time_limit" | "stream_every" | "like_user_message")[]; // `click(fn, some_arg=val)`
+	js_implementation: string | null; // pythong -> js transpilation
 }
 
 interface TypeDescription {
@@ -108,10 +110,19 @@ export type TargetMap = Record<number, Record<string, number[]>>;
 
 /** A component that has been loaded via dynamic import */
 export type LoadedComponent = {
-	default: ComponentMeta["component"];
+	default: Component;
 };
 
 /**A component that is loading */
 export type LoadingComponent = Promise<{
-	default: ComponentMeta["component"];
+	default: Component;
 }>;
+
+export interface AppConfig {
+	root: string;
+	theme: string;
+	version: string;
+	max_file_size?: number;
+	autoscroll: boolean;
+	api_prefix: string;
+}

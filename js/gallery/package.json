@@ -9,14 +9,14 @@
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/client": "workspace:^",
+		"@gradio/file": "workspace:^",
 		"@gradio/icons": "workspace:^",
 		"@gradio/image": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
 		"@gradio/video": "workspace:^",
-		"@gradio/file": "workspace:^",
-		"dequal": "^2.0.2"
+		"dequal": "^2.0.3"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
@@ -42,7 +42,7 @@
 		}
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.43.4"
 	},
 	"repository": {
 		"type": "git",
