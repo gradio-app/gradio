@@ -2,11 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="search"],
+.dark input[type="password"],
+.dark input[type="number"],
+.dark input[type="url"],
+.dark input[type="tel"],
+.dark textarea {
+	background-color: rgb(38, 38, 38);
+	color: rgb(245, 245, 245);
+	border-color: rgb(64, 64, 64);
+}
+
 .link {
 	@apply font-semibold hover:text-orange-500 transition-colors;
 }
 .thin-link {
-	@apply hover:text-orange-500 transition-colors;
+	@apply text-gray-900 dark:text-gray-300 hover:text-gray-600 dark:hover:text-gray-100 transition-colors;
 }
 .thinner-link {
 	@apply hover:text-orange-500 transition-colors;
@@ -48,7 +61,7 @@
 
 @layer base {
 	a.text-link {
-		@apply font-semibold text-gray-800 underline decoration-orange-500 underline-offset-2 hover:text-orange-500;
+		@apply font-semibold text-gray-800 dark:text-white underline decoration-orange-500 underline-offset-2 hover:text-orange-500;
 	}
 }
 
@@ -90,7 +103,7 @@
 }
 /* index */
 .active-example-tab {
-	@apply border-orange-500 rounded-full text-orange-500 ring-1 bg-orange-50 ring-orange-200 hover:!text-orange-500 cursor-pointer shadow shadow-orange-200;
+	@apply border-orange-500 rounded-full text-orange-500 ring-1 bg-orange-50 dark:bg-orange-900 ring-orange-200 dark:ring-orange-700 hover:!text-orange-500 cursor-pointer shadow shadow-orange-200 dark:shadow-orange-900;
 }
 
 /* guides */
@@ -132,20 +145,20 @@
 /* editable docs */
 
 .obj h1 {
-	@apply text-3xl font-light py-4;
+	@apply text-3xl font-light py-4 text-gray-900 dark:text-gray-100;
 }
 .obj h2 {
-	@apply mb-2 text-lg;
+	@apply mb-2 text-lg text-gray-900 dark:text-gray-100;
 }
 .obj h3 {
-	@apply mt-8 text-xl text-orange-500 font-light;
+	@apply mt-8 text-xl text-orange-500 dark:text-orange-400 font-light;
 }
 .obj h4 {
-	@apply mt-8 text-xl text-orange-500 font-light;
+	@apply mt-8 text-xl text-orange-500 dark:text-orange-400 font-light;
 }
 
 .obj p {
-	@apply mb-2 text-lg;
+	@apply mb-2 text-lg text-gray-900 dark:text-gray-100;
 }
 
 /* playground */
@@ -206,7 +219,7 @@ code.language-bash {
 }
 
 .codeblock {
-	@apply relative bg-gray-50 mx-auto p-3 mt-2;
+	@apply relative bg-gray-50 dark:bg-neutral-800 mx-auto p-3 mt-2;
 }
 .codeblock:hover > .clipboard-button {
 	@apply opacity-100 duration-200;
@@ -223,26 +236,26 @@ code.language-bash {
 
 /* demos */
 .selected-demo-tab {
-	@apply font-semibold text-orange-500 rounded-t-md border-2 border-gray-100 border-b-0 bg-white;
+	@apply font-semibold text-orange-500 rounded-t-md border-2 border-gray-100 dark:border-neutral-700 border-b-0 bg-white dark:bg-neutral-800;
 }
 .selected-demo-window {
 	@apply rounded-b-md border-2  border-gray-100 -mt-0.5;
 }
 
 .tip {
-	@apply bg-gradient-to-br from-green-50 to-white border-green-50 border-l-2 border-l-green-300 text-green-700 p-4 px-6;
+	@apply bg-green-50 dark:bg-green-900/30 border-green-50 dark:border-green-800 border-l-2 border-l-green-300 dark:border-l-green-600 text-green-700 dark:text-green-300 p-4 px-6;
 }
 
 .tip strong {
-	@apply text-green-700;
+	@apply text-green-700 dark:text-green-300;
 }
 
 .tip code {
-	@apply text-green-700;
+	@apply text-green-700 dark:text-green-300;
 }
 
 .tip a {
-	@apply text-green-700;
+	@apply text-green-700 dark:text-green-300;
 }
 
 .tip p {
@@ -250,7 +263,7 @@ code.language-bash {
 }
 
 .warning {
-	@apply bg-gradient-to-br from-red-50 to-white border-red-50 border-l-2 border-l-red-300 text-red-700 p-4 px-6;
+	@apply bg-red-50 dark:bg-red-900/30 border-red-50 dark:border-red-800 border-l-2 border-l-red-300 dark:border-l-red-600 text-red-700 dark:text-red-300 p-4 px-6;
 }
 
 .warning strong {
@@ -290,6 +303,7 @@ li > ul {
 
 code {
 	font-size: 0.9em;
+	@apply text-gray-900 dark:text-gray-100;
 }
 
 pre > code {
@@ -324,12 +338,16 @@ h5 {
 
 strong {
 	font-weight: 600;
+	@apply text-gray-900 dark:text-gray-100;
 }
 
 .obj a {
 	color: var(--tw-prose-links);
 	text-decoration: underline;
 	font-weight: 500;
+}
+.dark .obj a {
+	@apply text-orange-400;
 }
 
 .codeblock > pre {
@@ -342,6 +360,9 @@ strong {
 .obj ol,
 .obj ul {
 	padding-inline-start: 40px;
+}
+.obj li {
+	@apply text-gray-900 dark:text-gray-100;
 }
 
 ol {
@@ -401,7 +422,7 @@ summary code {
 
 summary::after {
 	@apply pl-1 !opacity-100;
-	background: #f9fafb;
+	background: var(--table-odd-background-fill);
 	height: 90%;
 	padding-top: 14px;
 }

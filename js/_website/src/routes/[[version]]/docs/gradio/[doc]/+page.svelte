@@ -150,7 +150,7 @@
 		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
 			<div>
 				<p
-					class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left lg:ml-10"
+					class="bg-orange-100 dark:bg-orange-900 border border-orange-200 dark:border-orange-700 px-4 py-1 mr-2 rounded-full text-orange-800 dark:text-orange-200 mb-1 w-fit float-left lg:ml-10"
 				>
 					New to Gradio? Start here: <a class="link" href="/quickstart"
 						>Getting Started</a
@@ -187,11 +187,11 @@
 					{#if prev_obj}
 						<a
 							href="./{prev_obj.name}"
-							class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+							class="lg:ml-10 text-left px-4 py-1 bg-gray-50 dark:bg-neutral-700 rounded-full hover:underline max-w-[48%]"
 						>
 							<div class="flex text-lg">
 								<span class="text-orange-500 mr-1">&#8592;</span>
-								<p class="whitespace-nowrap overflow-hidden text-ellipsis">{prev_obj.pretty_name}</p>
+								<p class="whitespace-nowrap overflow-hidden text-ellipsis text-gray-900 dark:text-gray-100">{prev_obj.pretty_name}</p>
 							</div>
 						</a>
 					{:else}
@@ -200,10 +200,10 @@
 					{#if next_obj}
 						<a
 							href="./{next_obj.name}"
-							class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+							class="text-right px-4 py-1 bg-gray-50 dark:bg-neutral-700 rounded-full hover:underline max-w-[48%]"
 						>
 							<div class="flex text-lg">
-								<p class="whitespace-nowrap overflow-hidden text-ellipsis">{next_obj.pretty_name}</p>
+								<p class="whitespace-nowrap overflow-hidden text-ellipsis text-gray-900 dark:text-gray-100">{next_obj.pretty_name}</p>
 								<span class="text-orange-500 ml-1">&#8594;</span>
 							</div>
 						</a>
@@ -214,7 +214,7 @@
 
 				<div class="flex flex-row">
 					<div class="lg:ml-10 w-full">
-						<div class="obj">
+						<div class="obj text-gray-900 dark:text-gray-100">
 							<svelte:component this={module} bind:this={dynamic_component}/>
 						</div>
 					</div>
@@ -224,11 +224,11 @@
 					{#if prev_obj}
 						<a
 							href="./{prev_obj.name}"
-							class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+							class="lg:ml-10 text-left px-4 py-1 bg-gray-50 dark:bg-neutral-700 rounded-full hover:underline max-w-[48%]"
 						>
 							<div class="flex text-lg">
 								<span class="text-orange-500 mr-1">&#8592;</span>
-								<p class="whitespace-nowrap overflow-hidden text-ellipsis">{prev_obj.pretty_name}</p>
+								<p class="whitespace-nowrap overflow-hidden text-ellipsis text-gray-900 dark:text-gray-100">{prev_obj.pretty_name}</p>
 							</div>
 						</a>
 					{:else}
@@ -237,10 +237,10 @@
 					{#if next_obj}
 						<a
 							href="./{next_obj.name}"
-							class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+							class="text-right px-4 py-1 bg-gray-50 dark:bg-neutral-700 rounded-full hover:underline max-w-[48%]"
 						>
 							<div class="flex text-lg">
-								<p class="whitespace-nowrap overflow-hidden text-ellipsis">{next_obj.pretty_name}</p>
+								<p class="whitespace-nowrap overflow-hidden text-ellipsis text-gray-900 dark:text-gray-100">{next_obj.pretty_name}</p>
 								<span class="text-orange-500 ml-1">&#8594;</span>
 							</div>
 						</a>
