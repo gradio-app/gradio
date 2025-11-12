@@ -1,4 +1,4 @@
-import { create } from "@storybook/theming/create";
+import { create } from "storybook/theming/create";
 import Logo from "./public/gradio.svg";
 
 export default create({
