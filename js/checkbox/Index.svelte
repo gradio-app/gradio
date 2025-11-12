@@ -3,71 +3,30 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio } from "@gradio/utils";
-	import { Block } from "@gradio/atoms";
+	import { Gradio } from "@gradio/utils";
+	import { Block, Info } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
-	import type { SelectData } from "@gradio/utils";
-	import { afterUpdate } from "svelte";
+	import type { CheckboxProps, CheckboxEvents } from "./types";
 	import BaseCheckbox from "./shared/Checkbox.svelte";
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let value = false;
-	export let value_is_output = false;
-	export let label = "Checkbox";
-	export let info: string | undefined = undefined;
-	export let show_label = true;
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let loading_status: LoadingStatus;
-	export let gradio: Gradio<{
-		change: never;
-		select: SelectData;
-		input: never;
-		clear_status: LoadingStatus;
-	}>;
-	export let interactive: boolean;
-
-	function handle_change(): void {
-		gradio.dispatch("change");
-		if (!value_is_output) {
-			gradio.dispatch("input");
-		}
-	}
-	afterUpdate(() => {
-		value_is_output = false;
-	});
-
-	// When the value changes, dispatch the change event via handle_change()
-	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
+	let props = $props();
+	const gradio = new Gradio<CheckboxEvents, CheckboxProps>(props);
 </script>
 
 <Block
-	{visible}
-	{elem_id}
-	{elem_classes}
-	type="fieldset"
-	{container}
-	{scale}
-	{min_width}
+	visible={gradio.shared.visible}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
 >
 	<StatusTracker
-		autoscroll={gradio.autoscroll}
+		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
-		{...loading_status}
-		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+		{...gradio.shared.loading_status}
+		on:clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
-
-	<BaseCheckbox
-		bind:value
-		{label}
-		{show_label}
-		{info}
-		{interactive}
-		on:change={handle_change}
-		on:select={(e) => gradio.dispatch("select", e.detail)}
-	/>
+	<BaseCheckbox {gradio} />
+	{#if gradio.props.info}
+		<Info info={gradio.props.info} />
+	{/if}
 </Block>

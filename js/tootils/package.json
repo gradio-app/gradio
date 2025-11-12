@@ -12,13 +12,13 @@
 		"@gradio/utils": "workspace:^"
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.43.4"
 	},
 	"exports": {
 		".": "./src/index.ts",
 		"./render": "./src/render.ts"
 	},
 	"scripts": {
-		"package": "svelte-package --input=. --cwd=../../.config/"
+		"package": "svelte-package --input=. --tsconfig=../../tsconfig.json"
 	}
 }

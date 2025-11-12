@@ -53,7 +53,7 @@ with gr.Blocks() as demo:
             button = gr.Button("Get Value", elem_id="test-button", visible=True)
 
             # Hidden counter for testing events on hidden elements
-            counter = gr.Number(value=0, visible=False, elem_id="counter")
+            counter = gr.Number(value=0, visible="hidden", elem_id="counter")
 
             increment_btn = gr.Button(
                 "Increment Counter",

@@ -13,14 +13,14 @@ def get_select_index(evt: gr.SelectData):
     return evt.index
 
 with gr.Blocks() as demo:
-    gr.Textbox(value=update_log, every=0.2, label="Time")
+    gr.Textbox(value=update_log, every=0.5, label="Time")
 
-    slider = gr.Slider(1, 10, step=1)
+    slider = gr.Slider(1, 10, step=1, label="Slider")
     @gr.render(inputs=[slider])
     def show_log(s):
         with gr.Row():
             for i in range(s):
-                gr.Textbox(value=update_log, every=0.2, label=f"Render {i + 1}")
+                gr.Textbox(value=update_log,  every=0.5, label=f"Render {i + 1}")
 
     slider2 = gr.Slider(1, 10, step=1, label="Box Count")
     btn = gr.Button("Create Boxes")

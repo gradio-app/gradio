@@ -7,11 +7,11 @@
 	"main": "./dist/server.js",
 	"license": "ISC",
 	"dependencies": {
-		"sanitize-html": "^2.13.0",
-		"amuchina": "^1.0.12"
+		"amuchina": "^1.0.12",
+		"sanitize-html": "^2.17.0"
 	},
 	"devDependencies": {
-		"@types/sanitize-html": "^2.13.0"
+		"@types/sanitize-html": "^2.16.0"
 	},
 	"main_changeset": true,
 	"repository": {

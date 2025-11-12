@@ -99,9 +99,9 @@ components = [
     gr.File(
         value=gr.get_file
     ),
-    gr.Dataframe(
-        value=lambda: pd.DataFrame({"random_number_rows": range(5)}, columns=["one", "two", "three"])  # type: ignore
-    ),
+    # gr.Dataframe(
+    #     value=lambda: pd.DataFrame({"random_number_rows": range(5)}, columns=["one", "two", "three"])  # type: ignore
+    # ),
     gr.ColorPicker(value=lambda: random.choice(["#000000", "#ff0000", "#0000FF"])),
     gr.Label(value=lambda: random.choice(["Pedestrian", "Car", "Cyclist"])),
     gr.HighlightedText(
@@ -113,19 +113,19 @@ components = [
         ),
     ),
     gr.JSON(value=lambda: random.choice([{"a": 1}, {"b": 2}])),
-    gr.HTML(
-        value=lambda: random.choice(
-            [
-                '<p style="color:red;">I am red</p>',
-                '<p style="color:blue;">I am blue</p>',
-            ]
-        )
-    ),
+    # gr.HTML(
+    #     value=lambda: random.choice(
+    #         [
+    #             '<p style="color:red;">I am red</p>',
+    #             '<p style="color:blue;">I am blue</p>',
+    #         ]
+    #     )
+    # ),
     gr.Gallery(
         value=lambda: images
     ),
     gr.Model3D(value=gr.get_model3d),
-    gr.Plot(value=random_plot),
+    # gr.Plot(value=random_plot),
     gr.Markdown(value=lambda: f"### {random.choice(['Hello', 'Hi', 'Goodbye!'])}"),
 ]
 

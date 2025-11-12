@@ -7,13 +7,13 @@ import { make_slug_processor } from "$lib/utils";
 import { toString as to_string } from "hast-util-to-string";
 
 import Prism from "prismjs";
-import "prismjs/components/prism-python";
-import "prismjs/components/prism-bash";
-import "prismjs/components/prism-json";
-import "prismjs/components/prism-typescript";
-import "prismjs/components/prism-csv";
-import "prismjs/components/prism-markup";
-import "prism-svelte";
+// import "prismjs/components/prism-python";
+// import "prismjs/components/prism-bash";
+// import "prismjs/components/prism-json";
+// import "prismjs/components/prism-typescript";
+// import "prismjs/components/prism-csv";
+// import "prismjs/components/prism-markup";
+// import "prism-svelte";
 
 const langs = {
 	python: "python",

@@ -9,10 +9,10 @@ with gr.Blocks() as demo:
         gr.Audio(audio_file, buttons=["download"])
     with gr.Tab("Interface"):
         gr.Interface(
-            lambda x: x, 
+            lambda x: x,
             gr.Audio(),
             gr.Audio(),
-            examples=[audio_file], 
+            examples=[audio_file],
             cache_examples=True,
             api_name="predict"
         )

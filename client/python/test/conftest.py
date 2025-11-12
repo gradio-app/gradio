@@ -43,6 +43,20 @@ def calculator_demo():
 
 
 @pytest.fixture
+def hello_world_demo():
+    def greet(name, punctuation):
+        return "Hello " + name + punctuation
+
+    demo = gr.Interface(
+        fn=greet,
+        inputs=[gr.Textbox(label="Name"), gr.Textbox(label="Punctuation")],
+        outputs=gr.Textbox(label="Greeting"),
+        api_name="greet",
+    )
+    return demo
+
+
+@pytest.fixture
 def calculator_demo_with_defaults():
     def calculator(num1, operation=None, num2=100):
         if operation is None or operation == "add":

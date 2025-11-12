@@ -124,6 +124,8 @@
 		playing = false;
 	});
 
+	let record_mounted = false;
+
 	const create_mic_waveform = (): void => {
 		if (microphoneContainer) microphoneContainer.innerHTML = "";
 		if (micWaveform !== undefined) micWaveform.destroy();
@@ -154,6 +156,7 @@
 				create_recording_waveform();
 			}
 		});
+		record_mounted = true;
 	};
 
 	const create_recording_waveform = (): void => {
@@ -225,7 +228,7 @@
 		</div>
 	{/if}
 
-	{#if microphoneContainer && !recordedAudio}
+	{#if microphoneContainer && !recordedAudio && record_mounted}
 		<WaveformRecordControls
 			bind:record
 			{i18n}

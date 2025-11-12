@@ -16,12 +16,12 @@
 		"./package.json": "./package.json"
 	},
 	"dependencies": {
-		"dequal": "^2.0.2",
-		"crypto-js": "^4.1.1",
-		"@gradio/utils": "workspace:^"
+		"@gradio/utils": "workspace:^",
+		"crypto-js": "^4.2.0",
+		"dequal": "^2.0.3"
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.43.4"
 	},
 	"repository": {
 		"type": "git",
@@ -29,6 +29,6 @@
 		"directory": "js/state"
 	},
 	"devDependencies": {
-		"@types/crypto-js": "^4.1.1"
+		"@types/crypto-js": "^4.2.2"
 	}
 }

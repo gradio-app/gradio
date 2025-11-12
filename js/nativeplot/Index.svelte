@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
+	import { Gradio } from "@gradio/utils";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Block } from "@gradio/atoms";
 	import {
@@ -8,62 +8,37 @@
 		IconButton
 	} from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
-	import { onMount } from "svelte";
+	import { onMount, untrack } from "svelte";
+	import { Download } from "@gradio/icons";
 
 	import type { TopLevelSpec as Spec } from "vega-lite";
 	import type { View } from "vega";
-	import { LineChart as LabelIcon, Download } from "@gradio/icons";
+	import { LineChart as LabelIcon } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
+	import type { NativePlotProps, NativePlotEvents, PlotData } from "./types";
 
-	interface PlotData {
-		columns: string[];
-		data: [string | number][];
-		datatypes: Record<string, "quantitative" | "temporal" | "nominal">;
-		mark: "line" | "point" | "bar";
-	}
-	export let value: PlotData | null;
-	export let x: string;
-	export let y: string;
-	export let color: string | null = null;
-	$: unique_colors =
-		color && value && value.datatypes[color] === "nominal"
-			? Array.from(new Set(_data.map((d) => d[color])))
-			: [];
+	let props = $props();
+	const gradio = new Gradio<NativePlotEvents, NativePlotProps>(props);
 
-	export let title: string | null = null;
-	export let x_title: string | null = null;
-	export let y_title: string | null = null;
-	export let color_title: string | null = null;
-	export let x_bin: string | number | null = null;
-	export let y_aggregate:
-		| "sum"
-		| "mean"
-		| "median"
-		| "min"
-		| "max"
-		| undefined = undefined;
-	export let color_map: Record<string, string> | null = null;
-	export let colors_in_legend: string[] | null = null;
-	export let x_lim: [number | null, number | null] | null = null;
-	export let y_lim: [number | null, number | null] | null = null;
-	$: x_lim = x_lim || null; // for some unknown reason, x_lim was getting set to undefined when used in re-render, so this line is needed
-	$: y_lim = y_lim || null;
-	$: x_start = x_lim?.[0] !== null ? x_lim?.[0] : undefined;
-	$: x_end = x_lim?.[1] !== null ? x_lim?.[1] : undefined;
-	$: y_start = y_lim?.[0] !== null ? y_lim?.[0] : undefined;
-	$: y_end = y_lim?.[1] !== null ? y_lim?.[1] : undefined;
-	export let x_label_angle: number | null = null;
-	export let y_label_angle: number | null = null;
-	export let x_axis_labels_visible = true;
-	export let caption: string | null = null;
-	export let sort: "x" | "y" | "-x" | "-y" | string[] | null = null;
-	export let tooltip: "axis" | "none" | "all" | string[] = "axis";
-	export let buttons: string[] | null = null;
-	let fullscreen = false;
+	let unique_colors = $derived(
+		gradio.props.color &&
+			gradio.props.value &&
+			gradio.props.value.datatypes[gradio.props.color] === "nominal"
+			? Array.from(new Set(_data.map((d) => d[gradio.props.color!])))
+			: []
+	);
+
+	let x_lim = $derived(gradio.props.x_lim || null); // for some unknown reason, x_lim was getting set to undefined when used in re-render, so this line is needed
+	let y_lim = $derived(gradio.props.y_lim || null);
+	let x_start = $derived(x_lim?.[0] !== null ? x_lim?.[0] : undefined);
+	let x_end = $derived(x_lim?.[1] !== null ? x_lim?.[1] : undefined);
+	let y_start = $derived(y_lim?.[0] !== null ? y_lim?.[0] : undefined);
+	let y_end = $derived(y_lim?.[1] !== null ? y_lim?.[1] : undefined);
+
+	let fullscreen = $state(false);
 
 	function reformat_sort(
-		_sort: typeof sort
+		_sort: NativePlotProps["sort"]
 	):
 		| string
 		| "ascending"
@@ -77,25 +52,20 @@
 		} else if (_sort === "-x") {
 			return "descending";
 		} else if (_sort === "y") {
-			return { field: y, order: "ascending" };
+			return { field: gradio.props.y, order: "ascending" };
 		} else if (_sort === "-y") {
-			return { field: y, order: "descending" };
+			return { field: gradio.props.y, order: "descending" };
 		} else if (_sort === null) {
 			return null;
 		} else if (Array.isArray(_sort)) {
 			return _sort;
 		}
 	}
-	$: _sort = reformat_sort(sort);
-	export let _selectable = false;
+	let _sort = $derived(reformat_sort(gradio.props.sort));
+
 	let _data: {
 		[x: string]: string | number;
-	}[];
-	export let gradio: Gradio<{
-		select: SelectData;
-		double_click: undefined;
-		clear_status: LoadingStatus;
-	}>;
+	}[] = $state([]);
 
 	function escape_field_name(fieldName: string): string {
 		// Escape special characters in field names according to Vega-Lite spec:
@@ -106,41 +76,62 @@
 			.replace(/\]/g, "\\]");
 	}
 
-	$: x_temporal = value && value.datatypes[x] === "temporal";
-	$: _x_lim = x_temporal
-		? [
-				x_start !== undefined ? x_start * 1000 : null,
-				x_end !== undefined ? x_end * 1000 : null
-			]
-		: x_lim;
-	let _x_bin: number | undefined;
-	let mouse_down_on_chart = false;
+	let x_temporal = $derived(
+		gradio.props.value &&
+			gradio.props.value.datatypes[gradio.props.x] === "temporal"
+	);
+	let _x_lim = $derived(
+		x_temporal
+			? [
+					x_start !== undefined ? x_start * 1000 : null,
+					x_end !== undefined ? x_end * 1000 : null
+				]
+			: x_lim
+	);
+	let mouse_down_on_chart = $state(false);
 	const SUFFIX_DURATION: Record<string, number> = {
 		s: 1,
 		m: 60,
 		h: 60 * 60,
 		d: 24 * 60 * 60
 	};
-	$: _x_bin = x_bin
-		? typeof x_bin === "string"
-			? 1000 *
-				parseInt(x_bin.substring(0, x_bin.length - 1)) *
-				SUFFIX_DURATION[x_bin[x_bin.length - 1]]
-			: x_bin
-		: undefined;
-	let _y_aggregate: typeof y_aggregate;
-	let aggregating: boolean;
-	$: {
-		if (value) {
-			if (value.mark === "point") {
-				aggregating = _x_bin !== undefined;
-				_y_aggregate = y_aggregate || aggregating ? "sum" : undefined;
+	let _x_bin = $derived(
+		gradio.props.x_bin
+			? typeof gradio.props.x_bin === "string"
+				? 1000 *
+					parseInt(
+						gradio.props.x_bin.substring(0, gradio.props.x_bin.length - 1)
+					) *
+					SUFFIX_DURATION[gradio.props.x_bin[gradio.props.x_bin.length - 1]]
+				: gradio.props.x_bin
+			: undefined
+	);
+
+	let _y_aggregate = $derived.by(() => {
+		if (gradio.props.value) {
+			if (gradio.props.value.mark === "point") {
+				const aggregating = _x_bin !== undefined;
+				return gradio.props.y_aggregate || aggregating ? "sum" : undefined;
 			} else {
-				aggregating = _x_bin !== undefined || value.datatypes[x] === "nominal";
-				_y_aggregate = y_aggregate ? y_aggregate : "sum";
+				return gradio.props.y_aggregate ? gradio.props.y_aggregate : "sum";
 			}
 		}
-	}
+		return undefined;
+	});
+
+	let aggregating = $derived.by(() => {
+		if (gradio.props.value) {
+			if (gradio.props.value.mark === "point") {
+				return _x_bin !== undefined;
+			} else {
+				return (
+					_x_bin !== undefined ||
+					gradio.props.value.datatypes[gradio.props.x] === "nominal"
+				);
+			}
+		}
+		return false;
+	});
 
 	function downsample(
 		data: PlotData["data"],
@@ -152,9 +143,9 @@
 	): PlotData["data"] {
 		if (
 			data.length < 1000 ||
-			x_bin !== null ||
-			value?.mark !== "line" ||
-			value?.datatypes[x] === "nominal"
+			gradio.props.x_bin !== null ||
+			gradio.props.value?.mark !== "line" ||
+			gradio.props.value?.datatypes[gradio.props.x] === "nominal"
 		) {
 			return data;
 		}
@@ -233,13 +224,16 @@
 	): {
 		[x: string]: string | number;
 	}[] {
-		let x_index = data.columns.indexOf(x);
-		let y_index = data.columns.indexOf(y);
-		let color_index = color ? data.columns.indexOf(color) : null;
+		let x_index = data.columns.indexOf(gradio.props.x);
+		let y_index = data.columns.indexOf(gradio.props.y);
+		let color_index = gradio.props.color
+			? data.columns.indexOf(gradio.props.color)
+			: null;
 		let datatable = data.data;
 
 		if (x_start !== undefined && x_end !== undefined) {
-			const time_factor = data.datatypes[x] === "temporal" ? 1000 : 1;
+			const time_factor =
+				data.datatypes[gradio.props.x] === "temporal" ? 1000 : 1;
 			const _x_start = x_start * time_factor;
 			const _x_end = x_end * time_factor;
 			let largest_before_start: Record<string, [number, number]> = {};
@@ -287,7 +281,7 @@
 			);
 		}
 
-		if (tooltip == "all" || Array.isArray(tooltip)) {
+		if (gradio.props.tooltip == "all" || Array.isArray(gradio.props.tooltip)) {
 			return datatable.map((row) => {
 				const obj: { [x: string]: string | number } = {};
 				data.columns.forEach((col, i) => {
@@ -298,34 +292,45 @@
 		}
 		return datatable.map((row) => {
 			const obj = {
-				[x]: row[x_index],
-				[y]: row[y_index]
+				[gradio.props.x]: row[x_index],
+				[gradio.props.y]: row[y_index]
 			};
-			if (color && color_index !== null) {
-				obj[color] = row[color_index];
+			if (gradio.props.color && color_index !== null) {
+				obj[gradio.props.color] = row[color_index];
 			}
 			return obj;
 		});
 	}
-	$: _data = value ? reformat_data(value, x_start, x_end) : [];
-	let old_value = value;
-	$: if (old_value !== value && view) {
-		old_value = value;
-		view.data("data", _data).runAsync();
-	}
+
+	$effect(() => {
+		console.log("effect 0 run");
+		_data = gradio.props.value
+			? reformat_data(gradio.props.value, x_start, x_end)
+			: [];
+	});
+
+	let old_value = $state<PlotData | null>(gradio.props.value);
+	$effect(() => {
+		console.log("effect 1 run");
+		if (old_value !== gradio.props.value && view) {
+			old_value = gradio.props.value;
+			view.data("data", _data).runAsync();
+		}
+	});
 
 	const is_browser = typeof window !== "undefined";
-	let chart_element: HTMLDivElement;
-	$: computed_style = chart_element
-		? window.getComputedStyle(chart_element)
-		: null;
-	let view: View;
-	let mounted = false;
-	let old_width: number;
-	let old_height: number;
-	let resizeObserver: ResizeObserver;
+	let chart_element = $state<HTMLDivElement>();
+	let computed_style = $derived(
+		chart_element ? window.getComputedStyle(chart_element) : null
+	);
+	let view = $state<View>();
+	let mounted = $state(false);
+	let old_width = $state<number>(0);
+	let old_height = $state<number>(0);
+	let resizeObserver = $state<ResizeObserver>();
 
 	let vegaEmbed: typeof import("vega-embed").default;
+
 	async function load_chart(): Promise<void> {
 		if (mouse_down_on_chart) {
 			refresh_pending = true;
@@ -334,7 +339,7 @@
 		if (view) {
 			view.finalize();
 		}
-		if (!value || !chart_element) return;
+		if (!gradio.props.value || !chart_element) return;
 		old_width = chart_element.offsetWidth;
 		old_height = chart_element.offsetHeight;
 		const spec = create_vega_lite_spec();
@@ -343,8 +348,8 @@
 			if (!el[0].target || !(el[0].target instanceof HTMLElement)) return;
 			if (
 				old_width === 0 &&
-				chart_element.offsetWidth !== 0 &&
-				value.datatypes[x] === "nominal"
+				chart_element!.offsetWidth !== 0 &&
+				gradio.props.value!.datatypes[gradio.props.x] === "nominal"
 			) {
 				// a bug where when a nominal chart is first loaded, the width is 0, it doesn't resize
 				load_chart();
@@ -369,15 +374,14 @@
 		}
 		vegaEmbed(chart_element, spec, { actions: false }).then(function (result) {
 			view = result.view;
-
-			resizeObserver.observe(chart_element);
+			resizeObserver!.observe(chart_element!);
 			var debounceTimeout: NodeJS.Timeout;
 			var lastSelectTime = 0;
 			view.addEventListener("dblclick", () => {
 				gradio.dispatch("double_click");
 			});
 			// prevent double-clicks from highlighting text
-			chart_element.addEventListener(
+			chart_element!.addEventListener(
 				"mousedown",
 				function (e) {
 					if (e.detail > 1) {
@@ -386,7 +390,7 @@
 				},
 				false
 			);
-			if (_selectable) {
+			if (gradio.props._selectable) {
 				view.addSignalListener("brush", function (_, value) {
 					if (Date.now() - lastSelectTime < 1000) return;
 					mouse_down_on_chart = true;
@@ -414,7 +418,7 @@
 		});
 	}
 
-	let refresh_pending = false;
+	let refresh_pending = $state(false);
 
 	onMount(() => {
 		mounted = true;
@@ -458,32 +462,42 @@
 			});
 	}
 
-	$: _color_map = JSON.stringify(color_map);
+	let _color_map = $derived(JSON.stringify(gradio.props.color_map));
 
-	$: title,
-		x_title,
-		y_title,
-		color_title,
-		x,
-		y,
-		color,
-		x_bin,
-		_y_aggregate,
-		_color_map,
-		colors_in_legend,
-		x_start,
-		x_end,
-		y_start,
-		y_end,
-		caption,
-		sort,
-		mounted,
-		chart_element,
-		fullscreen,
-		computed_style && requestAnimationFrame(load_chart);
+	$effect(() => {
+		// Track dependencies to trigger chart reload
+		void gradio.props.title;
+		void gradio.props.x_title;
+		void gradio.props.y_title;
+		void gradio.props.color_title;
+		void gradio.props.x;
+		void gradio.props.y;
+		void gradio.props.color;
+		void gradio.props.x_bin;
+		void _y_aggregate;
+		void _color_map;
+		void gradio.props.colors_in_legend;
+		void x_start;
+		void x_end;
+		void y_start;
+		void y_end;
+		void gradio.props.caption;
+		void gradio.props.sort;
+		void mounted;
+		void chart_element;
+		void fullscreen;
+		void computed_style;
+
+		if (mounted && chart_element) {
+			console.log("Reloading chart due to prop change");
+			untrack(() => {
+				load_chart();
+			});
+		}
+	});
 
 	function create_vega_lite_spec(): Spec | null {
-		if (!value || !computed_style) return null;
+		if (!gradio.props.value || !computed_style) return null;
 		let accent_color = computed_style.getPropertyValue("--color-accent");
 		let body_text_color = computed_style.getPropertyValue("--body-text-color");
 		let borderColorPrimary = computed_style.getPropertyValue(
@@ -544,15 +558,7 @@
 					titleFontWeight: "normal",
 					titleFontSize: text_size_sm,
 					labelFontWeight: "normal",
-					offset: 2,
-					columns:
-						chart_element.offsetWidth > 0
-							? Math.max(
-									1,
-									Math.floor(chart_element.offsetWidth / (text_size_sm * 10))
-								)
-							: undefined,
-					labelLimit: text_size_sm * 8
+					offset: 2
 				},
 				title: {
 					color: body_text_color,
@@ -563,8 +569,8 @@
 				},
 				view: { stroke: borderColorPrimary },
 				mark: {
-					stroke: value.mark !== "bar" ? accent_color : undefined,
-					fill: value.mark === "bar" ? accent_color : undefined,
+					stroke: gradio.props.value.mark !== "bar" ? accent_color : undefined,
+					fill: gradio.props.value.mark === "bar" ? accent_color : undefined,
 					cursor: "crosshair"
 				}
 			},
@@ -572,145 +578,159 @@
 			datasets: {
 				data: _data
 			},
-			layer: ["plot", ...(value.mark === "line" ? ["hover"] : [])].map(
-				(mode) => {
-					return {
-						encoding: {
-							size:
-								value.mark === "line"
-									? mode == "plot"
-										? {
-												condition: {
-													empty: false,
-													param: "hoverPlot",
-													value: 3
-												},
-												value: 2
-											}
-										: {
-												condition: { empty: false, param: "hover", value: 100 },
-												value: 0
-											}
-									: undefined,
-							opacity:
-								mode === "plot"
-									? undefined
+			layer: [
+				"plot",
+				...(gradio.props.value.mark === "line" ? ["hover"] : [])
+			].map((mode) => {
+				return {
+					encoding: {
+						size:
+							gradio.props.value!.mark === "line"
+								? mode == "plot"
+									? {
+											condition: {
+												empty: false,
+												param: "hoverPlot",
+												value: 3
+											},
+											value: 2
+										}
 									: {
-											condition: { empty: false, param: "hover", value: 1 },
+											condition: { empty: false, param: "hover", value: 100 },
 											value: 0
-										},
-							x: {
-								axis: {
-									...(x_label_angle !== null && { labelAngle: x_label_angle }),
-									labels: x_axis_labels_visible,
-									ticks: x_axis_labels_visible
-								},
-								field: escape_field_name(x),
-								title: x_title || x,
-								type: value.datatypes[x],
-								scale: {
-									zero: false,
-									domainMin: _x_lim?.[0] !== null ? _x_lim?.[0] : undefined,
-									domainMax: _x_lim?.[1] !== null ? _x_lim?.[1] : undefined
-								},
-								bin: _x_bin ? { step: _x_bin } : undefined,
-								sort: _sort
-							},
-							y: {
-								axis: y_label_angle ? { labelAngle: y_label_angle } : {},
-								field: escape_field_name(y),
-								title: y_title || y,
-								type: value.datatypes[y],
-								scale: {
-									zero: false,
-									domainMin: y_start ?? undefined,
-									domainMax: y_end ?? undefined
-								},
-								aggregate: aggregating ? _y_aggregate : undefined
-							},
-							color: color
-								? {
-										field: escape_field_name(color),
-										legend: {
-											orient: "bottom",
-											title: color_title,
-											values: colors_in_legend || undefined
-										},
-										scale:
-											value.datatypes[color] === "nominal"
-												? {
-														domain: unique_colors,
-														range: color_map
-															? unique_colors.map((c) => color_map[c])
-															: undefined
-													}
-												: {
-														range: [
-															100, 200, 300, 400, 500, 600, 700, 800, 900
-														].map((n) =>
-															computed_style.getPropertyValue("--primary-" + n)
-														),
-														interpolate: "hsl"
-													},
-										type: value.datatypes[color]
-									}
+										}
 								: undefined,
-							tooltip:
-								tooltip == "none"
-									? undefined
-									: [
-											{
-												field: escape_field_name(y),
-												type: value.datatypes[y],
-												aggregate: aggregating ? _y_aggregate : undefined,
-												title: y_title || y
-											},
-											{
-												field: escape_field_name(x),
-												type: value.datatypes[x],
-												title: x_title || x,
-												format: x_temporal ? "%Y-%m-%d %H:%M:%S" : undefined,
-												bin: _x_bin ? { step: _x_bin } : undefined
-											},
-											...(color
-												? [
-														{
-															field: escape_field_name(color),
-															type: value.datatypes[color]
-														}
-													]
-												: []),
-											...(tooltip === "axis"
-												? []
-												: value?.columns
-														.filter(
-															(col) =>
-																col !== x &&
-																col !== y &&
-																col !== color &&
-																(tooltip === "all" || tooltip.includes(col))
-														)
-														.map((column) => ({
-															field: escape_field_name(column),
-															type: value.datatypes[column]
-														})))
-										]
+						opacity:
+							mode === "plot"
+								? undefined
+								: {
+										condition: { empty: false, param: "hover", value: 1 },
+										value: 0
+									},
+						x: {
+							axis: {
+								...(gradio.props.x_label_angle !== null && {
+									labelAngle: gradio.props.x_label_angle
+								}),
+								labels: gradio.props.x_axis_labels_visible,
+								ticks: gradio.props.x_axis_labels_visible
+							},
+							field: escape_field_name(gradio.props.x),
+							title: gradio.props.x_title || gradio.props.x,
+							type: gradio.props.value!.datatypes[gradio.props.x],
+							scale: {
+								zero: false,
+								domainMin: _x_lim?.[0] !== null ? _x_lim?.[0] : undefined,
+								domainMax: _x_lim?.[1] !== null ? _x_lim?.[1] : undefined
+							},
+							bin: _x_bin ? { step: _x_bin } : undefined,
+							sort: _sort
 						},
-						strokeDash: {},
-						mark: { clip: true, type: mode === "hover" ? "point" : value.mark },
-						name: mode
-					};
-				}
-			),
+						y: {
+							axis: gradio.props.y_label_angle
+								? { labelAngle: gradio.props.y_label_angle }
+								: {},
+							field: escape_field_name(gradio.props.y),
+							title: gradio.props.y_title || gradio.props.y,
+							type: gradio.props.value!.datatypes[gradio.props.y],
+							scale: {
+								zero: false,
+								domainMin: y_start ?? undefined,
+								domainMax: y_end ?? undefined
+							},
+							aggregate: aggregating ? _y_aggregate : undefined
+						},
+						color: gradio.props.color
+							? {
+									field: escape_field_name(gradio.props.color),
+									legend: {
+										orient: "bottom",
+										title: gradio.props.color_title,
+										values: gradio.props.colors_in_legend || undefined
+									},
+									scale:
+										gradio.props.value!.datatypes[gradio.props.color] ===
+										"nominal"
+											? {
+													domain: unique_colors,
+													range: gradio.props.color_map
+														? unique_colors.map(
+																(c) => gradio.props.color_map![c]
+															)
+														: undefined
+												}
+											: {
+													range: [
+														100, 200, 300, 400, 500, 600, 700, 800, 900
+													].map((n) =>
+														computed_style!.getPropertyValue("--primary-" + n)
+													),
+													interpolate: "hsl"
+												},
+									type: gradio.props.value!.datatypes[gradio.props.color]
+								}
+							: undefined,
+						tooltip:
+							gradio.props.tooltip == "none"
+								? undefined
+								: [
+										{
+											field: escape_field_name(gradio.props.y),
+											type: gradio.props.value!.datatypes[gradio.props.y],
+											aggregate: aggregating ? _y_aggregate : undefined,
+											title: gradio.props.y_title || gradio.props.y
+										},
+										{
+											field: escape_field_name(gradio.props.x),
+											type: gradio.props.value!.datatypes[gradio.props.x],
+											title: gradio.props.x_title || gradio.props.x,
+											format: x_temporal ? "%Y-%m-%d %H:%M:%S" : undefined,
+											bin: _x_bin ? { step: _x_bin } : undefined
+										},
+										...(gradio.props.color
+											? [
+													{
+														field: gradio.props.color,
+														type: gradio.props.value!.datatypes[
+															gradio.props.color
+														]
+													}
+												]
+											: []),
+										...(gradio.props.tooltip === "axis"
+											? []
+											: gradio.props.value?.columns
+													.filter(
+														(col) =>
+															col !== gradio.props.x &&
+															col !== gradio.props.y &&
+															col !== gradio.props.color &&
+															(gradio.props.tooltip === "all" ||
+																gradio.props.tooltip.includes(col))
+													)
+													.map((column) => ({
+														field: column,
+														type: gradio.props.value!.datatypes[column]
+													})))
+									]
+					},
+					strokeDash: {},
+					mark: {
+						clip: true,
+						type: mode === "hover" ? "point" : gradio.props.value.mark
+					},
+					name: mode
+				};
+			}),
 			// @ts-ignore
 			params: [
-				...(value.mark === "line"
+				...(gradio.props.value!.mark === "line"
 					? [
 							{
 								name: "hoverPlot",
 								select: {
 									clear: "mouseout",
-									fields: color ? [color] : [],
+									fields: gradio.props.color ? [gradio.props.color] : [],
 									nearest: true,
 									on: "mouseover",
 									type: "point" as "point"
@@ -729,7 +749,7 @@
 							}
 						]
 					: []),
-				...(_selectable
+				...(gradio.props._selectable
 					? [
 							{
 								name: "brush",
@@ -743,49 +763,40 @@
 						]
 					: [])
 			],
-			width: chart_element.offsetWidth,
-			height: height || fullscreen ? "container" : undefined,
-			title: title || undefined
-		};
-		/* eslint-enable complexity */
+			width: chart_element!.offsetWidth,
+			height: gradio.props.height || fullscreen ? "container" : undefined,
+			title: gradio.props.title || undefined
+		} as Spec;
 	}
-
-	export let label = "Textbox";
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let show_label: boolean;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let loading_status: LoadingStatus | undefined = undefined;
-	export let height: number | undefined = undefined;
+	/* eslint-enable complexity */
 </script>
 
 <Block
-	{visible}
-	{elem_id}
-	{elem_classes}
-	{scale}
-	{min_width}
+	visible={gradio.shared.visible}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+	scale={gradio.shared.scale}
+	min_width={gradio.shared.min_width}
 	allow_overflow={false}
 	padding={true}
-	{height}
+	height={gradio.props.height}
 	bind:fullscreen
 >
-	{#if loading_status}
+	{#if gradio.shared.loading_status}
 		<StatusTracker
-			autoscroll={gradio.autoscroll}
+			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
-			{...loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+			{...gradio.shared.loading_status}
+			on:clear_status={() =>
+				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 	{/if}
-	{#if buttons?.length}
+	{#if gradio.props.buttons?.length}
 		<IconButtonWrapper>
-			{#if buttons?.includes("export")}
+			{#if gradio.props.buttons?.includes("export")}
 				<IconButton Icon={Download} label="Export" on:click={export_chart} />
 			{/if}
-			{#if buttons?.includes("fullscreen")}
+			{#if gradio.props.buttons?.includes("fullscreen")}
 				<FullscreenButton
 					{fullscreen}
 					on:fullscreen={({ detail }) => {
@@ -795,13 +806,15 @@
 			{/if}
 		</IconButtonWrapper>
 	{/if}
-	<BlockTitle {show_label} info={undefined}>{label}</BlockTitle>
+	<BlockTitle show_label={gradio.props.show_label} info={undefined}
+		>{gradio.props.label}</BlockTitle
+	>
 
-	{#if value && is_browser}
+	{#if gradio.props.value && is_browser}
 		<div bind:this={chart_element}></div>
 
-		{#if caption}
-			<p class="caption">{caption}</p>
+		{#if gradio.props.caption}
+			<p class="caption">{gradio.props.caption}</p>
 		{/if}
 	{:else}
 		<Empty unpadded_box={true}><LabelIcon /></Empty>

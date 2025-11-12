@@ -93,8 +93,8 @@
 		}
 	}
 
-	$: tabs, selected !== null && change_tab(selected);
-	$: tabs, tab_nav_el, tab_els, handle_menu_overflow();
+	$: (tabs, selected !== null && change_tab(selected));
+	$: (tabs, tab_nav_el, tab_els, handle_menu_overflow());
 
 	function handle_outside_click(event: MouseEvent): void {
 		if (
@@ -199,7 +199,7 @@
 							on:click={() => {
 								if (t.id !== $selected_tab) {
 									change_tab(t.id);
-									dispatch("select", { value: t.label, index: i });
+									dispatch("select", { value: t.label, index: i, id: t.id });
 								}
 							}}
 						>

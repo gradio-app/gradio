@@ -1097,6 +1097,7 @@ class App(FastAPI):
         async def _(event_id: str):
             event = app.get_blocks()._queue.event_ids_to_events[event_id]
             event.run_time = math.inf
+            event.closed = True
             event.signal.set()
             return {"msg": "success"}
 
@@ -2557,6 +2558,7 @@ def mount_gradio_app(
     blocks.css_paths = css_paths or []
     blocks._set_html_css_theme_variables()
 
+    blocks.transpile_to_js()
     gradio_app = App.create_app(
         blocks,
         app_kwargs=app_kwargs,
