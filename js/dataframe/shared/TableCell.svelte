@@ -14,27 +14,27 @@
 	export let handle_cell_click: (
 		event: MouseEvent,
 		row: number,
-		col: number
+		col: number,
 	) => void;
 	export let handle_blur: (
 		event: CustomEvent<{
 			blur_event: FocusEvent;
 			coords: [number, number];
-		}>
+		}>,
 	) => void;
 	export let toggle_cell_menu: (
 		event: MouseEvent,
 		row: number,
-		col: number
+		col: number,
 	) => void;
 	export let is_cell_selected: (
 		coords: [number, number],
-		selected_cells: [number, number][]
+		selected_cells: [number, number][],
 	) => string;
 	export let should_show_cell_menu: (
 		coords: [number, number],
 		selected_cells: [number, number][],
-		editable: boolean
+		editable: boolean,
 	) => boolean;
 	export let selected_cells: [number, number][];
 	export let copy_flash: boolean;
@@ -61,7 +61,7 @@
 	export let el: {
 		cell: HTMLTableCellElement | null;
 		input: HTMLTextAreaElement | null;
-	};
+	} = { cell: null, input: null };
 	export let handle_select_column: (col: number) => void;
 	export let handle_select_row: (row: number) => void;
 	export let is_dragging: boolean;
@@ -120,7 +120,7 @@
 >
 	<div class="cell-wrap">
 		<EditableCell
-			bind:value
+			{value}
 			bind:el={el.input}
 			display_value={display_value !== undefined
 				? display_value

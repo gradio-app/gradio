@@ -19,6 +19,10 @@ export interface ILoadingStatus {
 	validation_error?: string | null;
 	type: "input" | "output";
 	stream_state: "open" | "closed" | "waiting" | null;
+	fn_type?: {
+		generator: boolean;
+		cancel: boolean;
+	};
 }
 
 export interface LoadingStatusArgs {
@@ -35,6 +39,10 @@ export interface LoadingStatusArgs {
 	stream_state: "open" | "closed" | "waiting" | null;
 	validation_error?: string;
 	show_validation_error?: boolean;
+	fn_type?: {
+		generator: boolean;
+		cancel: boolean;
+	};
 }
 
 export interface ToastMessage {

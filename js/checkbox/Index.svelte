@@ -11,6 +11,7 @@
 
 	let props = $props();
 	const gradio = new Gradio<CheckboxEvents, CheckboxProps>(props);
+	$inspect(gradio?.props);
 </script>
 
 <Block
@@ -25,8 +26,17 @@
 		on:clear_status={() =>
 			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
-	<BaseCheckbox {gradio} />
-	{#if gradio.props.info}
-		<Info info={gradio.props.info} />
+	{#if gradio}
+		<BaseCheckbox
+			value={gradio.props.value}
+			interactive={gradio.shared.interactive}
+			label={gradio.shared.label}
+			on_change={() => gradio.dispatch("change")}
+			on_select={() => gradio.dispatch("select")}
+			on_input={() => gradio.dispatch("input")}
+		/>
+		{#if gradio.props.info}
+			<Info info={gradio.props.info} />
+		{/if}
 	{/if}
 </Block>
