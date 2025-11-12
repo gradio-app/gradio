@@ -42,9 +42,9 @@
 
 	let disabled = $derived(!gradio.shared.interactive);
 
-	$effect(() => {
-		gradio.dispatch("change", $state.snapshot(gradio.props.value));
-	});
+	// $effect(() => {
+	// 	gradio.dispatch("change", $state.snapshot(gradio.props.value));
+	// });
 </script>
 
 <Block

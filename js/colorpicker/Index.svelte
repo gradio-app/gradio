@@ -38,10 +38,5 @@
 		info={gradio.props.info}
 		show_label={gradio.shared.show_label}
 		disabled={!gradio.shared.interactive}
-		on:change={() => gradio.dispatch("change")}
-		on:input={() => gradio.dispatch("input")}
-		on:submit={() => gradio.dispatch("submit")}
-		on:blur={() => gradio.dispatch("blur")}
-		on:focus={() => gradio.dispatch("focus")}
 	/>
 </Block>

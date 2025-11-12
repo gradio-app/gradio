@@ -1,6 +1,4 @@
 <script lang="ts">
-	import type { SelectData } from "@gradio/utils";
-	import { createEventDispatcher } from "svelte";
 	import type { Gradio } from "@gradio/utils";
 	import type { CheckboxProps, CheckboxEvents } from "../types";
 
@@ -11,12 +9,12 @@
 
 	let old_value = $state(gradio.props.value);
 
-	$effect(() => {
-		if (old_value !== gradio.props.value) {
-			old_value = gradio.props.value;
-			gradio.dispatch("change", $state.snapshot(gradio.props.value));
-		}
-	});
+	// $effect(() => {
+	// 	if (old_value !== gradio.props.value) {
+	// 		old_value = gradio.props.value;
+	// 		gradio.dispatch("change", $state.snapshot(gradio.props.value));
+	// 	}
+	// });
 
 	async function handle_enter(
 		event: KeyboardEvent & { currentTarget: EventTarget & HTMLInputElement }

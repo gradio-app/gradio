@@ -100,7 +100,6 @@ with gr.Blocks(  # noqa: SIM117
                     base_theme_dropdown = gr.Dropdown(
                         [theme.__name__ for theme in themes],
                         value="Base",
-                        show_label=False,
                         label="Theme",
                     )
                     load_theme_btn = gr.Button("Load Theme", elem_id="load_theme")
@@ -282,11 +281,11 @@ with gr.Blocks(  # noqa: SIM117
                                     if "*" + variable in suggestions:
                                         suggestions.remove("*" + variable)
                                     break
-                            dropdown = gr.Dropdown(
+                            dropdown = gr.Textbox(
                                 label=variable,
                                 info=get_docstr(variable),
-                                choices=suggestions,
-                                allow_custom_value=True,
+                                # choices=suggestions,
+                                # allow_custom_value=True,
                             )
                             theme_var_input.append(dropdown)
 
@@ -330,7 +329,7 @@ with gr.Blocks(  # noqa: SIM117
                 interactive=True,
             )
 
-            gr.Interface(lambda x: x, "number", "textbox")
+            # gr.Interface(lambda x: x, "number", "textbox")
 
             with gr.Row():
                 slider1 = gr.Slider(label="Slider 1")
@@ -387,28 +386,28 @@ with gr.Blocks(  # noqa: SIM117
                         btn2 = gr.UploadButton(size="sm")
                         stop_btn = gr.Button("Stop", variant="stop", size="sm")
 
-            gr.Examples(
-                examples=[
-                    [
-                        "A",
-                        "Option 1",
-                        ["Option B"],
-                        True,
-                    ],
-                    [
-                        "B",
-                        "Option 2",
-                        ["Option B", "Option C"],
-                        False,
-                    ],
-                ],
-                inputs=[radio, drop, drop_2, check],
-                label="Examples",
-            )
+            # gr.Examples(
+            #     examples=[
+            #         [
+            #             "A",
+            #             "Option 1",
+            #             ["Option B"],
+            #             True,
+            #         ],
+            #         [
+            #             "B",
+            #             "Option 2",
+            #             ["Option B", "Option C"],
+            #             False,
+            #         ],
+            #     ],
+            #     inputs=[radio, drop, drop_2, check],
+            #     label="Examples",
+            # )
 
             with gr.Row():
-                gr.Dataframe(value=[[1, 2, 3], [4, 5, 6], [7, 8, 9]], label="Dataframe")
-                gr.JSON(
+                # gr.Dataframe(value=[[1, 2, 3], [4, 5, 6], [7, 8, 9]], label="Dataframe")
+                gr.Json(
                     value={"a": 1, "b": 2, "c": {"test": "a", "test2": [1, 2, 3]}},
                     label="JSON",
                 )
@@ -472,24 +471,24 @@ with gr.Blocks(  # noqa: SIM117
         secret_css = gr.Textbox(visible=False)
         secret_font = gr.JSON(visible=False)
 
-        demo.load(  # doing this via python was not working for some reason, so using this hacky method for now
-            None,
-            None,
-            None,
-            js="""() => {
-                let evt_listener = window.setTimeout(
-                    () => {
-                        load_theme_btn = document.querySelector('#load_theme');
-                        if (load_theme_btn) {
-                            load_theme_btn.click();
-                            window.clearTimeout(evt_listener);
-                        }
-                    },
-                    100
-                );
-            }""",
-            api_visibility="undocumented",
-        )
+        # demo.load(  # doing this via python was not working for some reason, so using this hacky method for now
+        #     None,
+        #     None,
+        #     None,
+        #     js="""() => {
+        #         let evt_listener = window.setTimeout(
+        #             () => {
+        #                 load_theme_btn = document.querySelector('#load_theme');
+        #                 if (load_theme_btn) {
+        #                     load_theme_btn.click();
+        #                     window.clearTimeout(evt_listener);
+        #                 }
+        #             },
+        #             100
+        #         );
+        #     }""",
+        #     api_visibility="undocumented",
+        # )
 
         theme_inputs = (
             [primary_hue, secondary_hue, neutral_hue]
@@ -918,14 +917,14 @@ with gr.Blocks(theme=theme) as demo:
             ).then
         )
 
-        attach_rerender(
-            load_theme_btn.click(
-                load_theme,
-                base_theme_dropdown,
-                theme_inputs,
-                api_visibility="undocumented",
-            ).then
+        # attach_rerender(
+        load_theme_btn.click(
+            load_theme,
+            base_theme_dropdown,
+            theme_inputs,
+            api_visibility="undocumented",
         )
+        # )
 
         for theme_box in (
             text_sizes + spacing_sizes + radius_sizes + main_fonts + mono_fonts
@@ -1010,6 +1009,8 @@ with gr.Blocks(theme=theme) as demo:
             [theme_upload_status, upload_to_hub_btn],
             api_visibility="undocumented",
         )
+
+        demo.load(lambda: print("FOO"))
 
 
 if __name__ == "__main__":
