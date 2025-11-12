@@ -1,5 +1,17 @@
 # @self/app
 
+## 2.0.0-dev.2
+
+### Features
+
+- [#12098](https://github.com/gradio-app/gradio/pull/12098) [`3965abe`](https://github.com/gradio-app/gradio/commit/3965abe584fef88e23501ffb67145fd47e517633) - gr.HTML "custom components".  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/theme@0.5.0-dev.0
+- @gradio/core@1.0.0-dev.1
+- @self/build@0.4.1-dev.0
+
 ## 2.0.0-dev.1
 
 ### Features

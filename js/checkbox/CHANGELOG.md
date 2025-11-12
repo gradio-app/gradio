@@ -1,5 +1,17 @@
 # @gradio/checkbox
 
+## 0.5.0-dev.0
+
+### Features
+
+- [#12217](https://github.com/gradio-app/gradio/pull/12217) [`681fa11`](https://github.com/gradio-app/gradio/commit/681fa11357de520f0b05605cbd300d9e276d8736) - Improve behaviour of gr.Checkbox.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/atoms@0.18.2-dev.0
+- @gradio/utils@0.10.3-dev.0
+- @gradio/statustracker@0.12.0-dev.0
+
 ## 0.4.31
 
 ### Fixes

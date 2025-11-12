@@ -1,5 +1,18 @@
 # @gradio/gallery
 
+## 0.15.35-dev.2
+
+### Dependency updates
+
+- @gradio/atoms@0.18.2-dev.0
+- @gradio/upload@0.17.2-dev.1
+- @gradio/utils@0.10.3-dev.0
+- @gradio/image@0.23.2-dev.1
+- @gradio/statustracker@0.12.0-dev.0
+- @gradio/icons@0.15.0-dev.0
+- @gradio/video@0.17.0-dev.1
+- @gradio/file@0.13.1-dev.1
+
 ## 0.15.35-dev.1
 
 ### Fixes

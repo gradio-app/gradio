@@ -1,5 +1,13 @@
 # @gradio/upload
 
+## 0.17.2-dev.1
+
+### Dependency updates
+
+- @gradio/atoms@0.18.2-dev.0
+- @gradio/utils@0.10.3-dev.0
+- @gradio/icons@0.15.0-dev.0
+
 ## 0.17.2-dev.0
 
 ### Dependency updates
