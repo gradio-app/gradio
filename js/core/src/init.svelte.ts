@@ -65,6 +65,7 @@ export class AppTree {
 	components_to_register: Set<number> = new Set();
 	ready: Promise<void>;
 	ready_resolve!: () => void;
+	resolved: boolean = false;
 
 	constructor(
 		components: ComponentMeta[],
@@ -127,7 +128,8 @@ export class AppTree {
 		this.#set_callbacks.set(id, _set_data);
 		this.#get_callbacks.set(id, _get_data);
 		this.components_to_register.delete(id);
-		if (this.components_to_register.size === 0) {
+		if (this.components_to_register.size === 0 && !this.resolved) {
+			this.resolved = true;
 			this.ready_resolve();
 		}
 	}
@@ -315,9 +317,9 @@ export class AppTree {
 	) {
 		const _set_data = this.#set_callbacks.get(id);
 		if (!_set_data) return;
-
-		await _set_data(new_state);
+		_set_data(new_state);
 		if (!check_visibility) return;
+		console.log("Re-evaluating visibility for component ID:", id);
 		this.root = this.traverse(this.root!, (n) =>
 			handle_visibility(n, this.#config.root)
 		);

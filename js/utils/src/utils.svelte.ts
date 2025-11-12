@@ -269,52 +269,7 @@ export type load_component = (
 const is_browser = typeof window !== "undefined";
 
 export type ServerFunctions = Record<string, (...args: any[]) => Promise<any>>;
-// export interface SharedProps {
-// 	elem_id?: string;
-// 	elem_classes: string[];
-// 	components?: string[];
-// 	server_fns?: string[];
-// 	interactive: boolean;
-// 	visible: boolean | "hidden";
-// 	id: number;
-// 	container: boolean;
-// 	target: HTMLElement;
-// 	theme_mode: "light" | "dark" | "system";
-// 	version: string;
-// 	root: string;
-// 	autoscroll: boolean;
-// 	max_file_size: number | null;
-// 	formatter: any; //I18nFormatter;
-// 	client: Client;
-// 	scale: number;
-// 	min_width: number;
-// 	padding: number;
-// 	load_component: (
-// 		arg0: string,
-// 		arg1: "base" | "example" | "component"
-// 	) => LoadingComponent; //component_loader;
-// 	loading_status?: LoadingStatus;
-// 	label: string;
-// 	show_label: boolean;
-// 	validation_error?: string | null;
-// 	theme?: "light" | "dark";
-// 	show_progress: boolean;
-// 	api_prefix: string;
-// 	server: ServerFunctions;
-// 	i18n: I18nFormatter;
-// }
 
-//
-// id: node.id,
-// target,
-// theme_mode,
-// version,
-// root,
-// autoscroll,
-// max_file_size,
-// formatter: $reactive_formatter,
-// client,
-// load_component,
 export const allowed_shared_props: (keyof SharedProps)[] = [
 	"elem_id",
 	"elem_classes",
@@ -429,7 +384,6 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 
 	async get_data() {
 		await this.last_update;
-
 		return $state.snapshot(this.props);
 	}
 
@@ -440,7 +394,6 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 
 	async set_data(data: Partial<U & SharedProps>): Promise<void> {
 		await this.last_update;
-
 		for (const key in data) {
 			if (this.shared_props.includes(key as keyof SharedProps)) {
 				const _key = key as keyof SharedProps;

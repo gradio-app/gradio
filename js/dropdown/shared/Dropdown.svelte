@@ -98,7 +98,6 @@
 		show_options = false;
 		active_index = null;
 		gradio.dispatch("blur");
-		gradio.dispatch("change");
 		gradio.dispatch("input");
 	}
 
@@ -161,11 +160,12 @@
 					bind:value={input_text}
 					bind:this={filter_input}
 					on:keydown={handle_key_down}
-					on:keyup={(e) =>
+					on:keyup={(e) => {
 						gradio.dispatch("key_up", {
 							key: e.key,
 							input_value: input_text
-						})}
+						});
+					}}
 					on:blur={handle_blur}
 					on:focus={handle_focus}
 					readonly={!gradio.props.filterable}
