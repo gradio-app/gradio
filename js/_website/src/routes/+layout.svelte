@@ -22,8 +22,19 @@
 	store = media_query();
 
 	import { browser } from "$app/environment";
+	import { theme } from "$lib/stores/theme";
+
 	if (browser) {
 		window.__gradio_mode__ = "website";
+	}
+
+	// Reactively apply dark mode class when theme changes
+	$: if (typeof window !== "undefined") {
+		if ($theme === "dark") {
+			document.documentElement.classList.add("dark");
+		} else {
+			document.documentElement.classList.remove("dark");
+		}
 	}
 
 	import CopyButton from "$lib/components/CopyButton.svelte";
@@ -76,8 +87,27 @@
 	</script>
 </svelte:head>
 
-<Header />
+<div class="bg-white dark:bg-neutral-900 min-h-screen transition-colors">
+	<Header />
 
-<slot />
+	<slot />
 
-<Footer />
+	<Footer />
+</div>
+
+<style>
+	:global(html) {
+		background-color: white;
+	}
+	:global(html.dark) {
+		background-color: rgb(23, 23, 23); /* neutral-900 - true gray */
+	}
+	:global(body) {
+		background-color: white;
+		color: rgb(23, 23, 23);
+	}
+	:global(.dark body) {
+		background-color: rgb(23, 23, 23); /* neutral-900 - true gray */
+		color: rgb(245, 245, 245); /* neutral-100 */
+	}
+</style>

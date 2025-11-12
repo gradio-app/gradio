@@ -33,6 +33,10 @@
 			"gradio": "./src/typography.css",
 			"import": "./dist/src/typography.css"
 		},
+		"./gradio-style.scss": {
+			"gradio": "./src/gradio-style.scss",
+			"import": "./dist/src/gradio-style.scss"
+		},
 		"./pollen.css": {
 			"gradio": "./src/pollen.css",
 			"import": "./dist/src/pollen.css"
