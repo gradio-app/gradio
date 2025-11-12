@@ -71,7 +71,6 @@
 
 		show_options = false;
 		active_index = null;
-		// gradio.dispatch("blur");
 	}
 
 	function remove_selected_choice(option_index: number | string) {
@@ -79,16 +78,16 @@
 		gradio.props.value = selected_indices.map((index) =>
 			typeof index === "number" ? choices_values[index] : index
 		);
-		// gradio.dispatch("change");
-		// gradio.dispatch("input");
-		// gradio.dispatch("select", {
-		// 	index: typeof option_index === "number" ? option_index : -1,
-		// 	value:
-		// 		typeof option_index === "number"
-		// 			? choices_values[option_index]
-		// 			: option_index,
-		// 	selected: false
-		// });
+		gradio.dispatch("change");
+		gradio.dispatch("input");
+		gradio.dispatch("select", {
+			index: typeof option_index === "number" ? option_index : -1,
+			value:
+				typeof option_index === "number"
+					? choices_values[option_index]
+					: option_index,
+			selected: false
+		});
 	}
 
 	function add_selected_choice(option_index: number | string) {
@@ -97,14 +96,14 @@
 			selected_indices.length < gradio.props.max_choices
 		) {
 			selected_indices.push(option_index);
-			// gradio.dispatch("select", {
-			// 	index: typeof option_index === "number" ? option_index : -1,
-			// 	value:
-			// 		typeof option_index === "number"
-			// 			? choices_values[option_index]
-			// 			: option_index,
-			// 	selected: true
-			// });
+			gradio.dispatch("select", {
+				index: typeof option_index === "number" ? option_index : -1,
+				value:
+					typeof option_index === "number"
+						? choices_values[option_index]
+						: option_index,
+				selected: true
+			});
 		}
 		if (selected_indices.length === gradio.props.max_choices) {
 			show_options = false;
@@ -129,8 +128,8 @@
 		}
 		input_text = "";
 		active_index = null;
-		// gradio.dispatch("change");
-		// gradio.dispatch("input");
+		gradio.dispatch("change");
+		gradio.dispatch("input");
 	}
 
 	function remove_all(e: any): void {
@@ -177,13 +176,13 @@
 		}
 	}
 
-	$effect(() => {
-		const access_state = [
-			$state.snapshot(gradio.props.choices),
-			$state.snapshot(gradio.props.value)
-		];
-		// gradio.dispatch("change");
-	});
+	// $effect(() => {
+	// 	const access_state = [
+	// 		$state.snapshot(gradio.props.choices),
+	// 		$state.snapshot(gradio.props.value)
+	// 	];
+	// 	gradio.dispatch("change");
+	// });
 </script>
 
 <label class:container={gradio.shared.container}>
@@ -231,13 +230,12 @@
 					bind:value={input_text}
 					bind:this={filter_input}
 					on:keydown={handle_key_down}
-					on:keyup={(e) => console.log()
-					// 	gradio.dispatch("key_up", {
-					// 		key: e.key,
-					// 		input_value: input_text
-					// 	}
-					// )
-					}
+					on:keyup={(e) => {
+						gradio.dispatch("key_up", {
+							key: e.key,
+							input_value: input_text
+						})
+					}}
 					on:blur={handle_blur}
 					on:focus={handle_focus}
 					readonly={!gradio.props.filterable}

@@ -72,11 +72,11 @@
 		let [_input_text, _value] = gradio.props.choices[selected_index];
 		input_text = _input_text;
 		gradio.props.value = _value;
-		// gradio.dispatch("select", {
-		// 	index: selected_index,
-		// 	value: choices_values[selected_index],
-		// 	selected: true
-		// });
+		gradio.dispatch("select", {
+			index: selected_index,
+			value: choices_values[selected_index],
+			selected: true
+		});
 		show_options = false;
 		active_index = null;
 		filter_input.blur();
@@ -85,7 +85,7 @@
 	function handle_focus(e: FocusEvent): void {
 		filtered_indices = gradio.props.choices.map((_, i) => i);
 		show_options = true;
-		// gradio.dispatch("focus");
+		gradio.dispatch("focus");
 	}
 
 	function handle_blur(): void {
@@ -97,8 +97,8 @@
 		}
 		show_options = false;
 		active_index = null;
-		// gradio.dispatch("blur");
-		// gradio.dispatch("input");
+		gradio.dispatch("blur");
+		gradio.dispatch("input");
 	}
 
 	function handle_key_down(e: KeyboardEvent): void {
@@ -130,13 +130,13 @@
 		}
 	}
 
-	// let old_value = $state(gradio.props.value);
-	// $effect(() => {
-	// 	if (old_value !== gradio.props.value) {
-	// 		old_value = gradio.props.value;
-	// 		gradio.dispatch("change");
-	// 	}
-	// });
+	let old_value = $state(gradio.props.value);
+	$effect(() => {
+		if (old_value !== gradio.props.value) {
+			old_value = gradio.props.value;
+			gradio.dispatch("change");
+		}
+	});
 
 
 </script>
