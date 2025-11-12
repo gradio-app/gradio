@@ -39,8 +39,6 @@
 	export let stream_state: "open" | "waiting" | "closed" = "closed";
 	export let upload_promise: Promise<any> | null = null;
 
-	$: console.log({ pending });
-
 	let upload_input: Upload;
 	export let uploading = false;
 	export let active_source: source_type = null;

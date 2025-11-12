@@ -1,47 +1,10 @@
 import type { Component } from "svelte";
-import type { Client } from "@gradio/client";
-import type { LoadingStatus } from "js/statustracker";
-import type { load_component } from "@gradio/utils";
-import type { get_component } from "./init_utils.js";
+import type { SharedProps } from "@gradio/utils";
 
 export type ServerFunctions = Record<string, (...args: any[]) => Promise<any>>;
 
 // import type { I18nFormatter } from "./i18n.js";
 // import type { component_loader } from "./init.js";
-/** The props that are always present on a component */
-export interface SharedProps {
-	elem_id?: string;
-	elem_classes: string[];
-	components?: string[];
-	server_fns?: string[];
-	interactive: boolean;
-	visible: boolean | "hidden";
-	id: number;
-	container: boolean;
-	target: HTMLElement;
-	theme_mode: "light" | "dark" | "system";
-	version: string;
-	root: string;
-	autoscroll: boolean;
-	max_file_size: number | null;
-	formatter: any; //I18nFormatter;
-	client: Client;
-	scale: number;
-	min_width: number;
-	padding: number;
-	load_component: (
-		arg0: string,
-		arg1: "base" | "example" | "component"
-	) => LoadingComponent; //component_loader;
-	loading_status?: any;
-	label: string;
-	show_label: boolean;
-	validation_error?: string | null;
-	theme?: "light" | "dark";
-	show_progress: boolean;
-	api_prefix: string;
-	server: ServerFunctions;
-}
 
 /** The metadata for a component
  * The non optional fields are what are received from the backend

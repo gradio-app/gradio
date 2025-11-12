@@ -1,13 +1,8 @@
-<script module>
-	const then = performance.now();
-</script>
-
 <script lang="ts">
-	import { onMount } from "svelte";
 	import Self from "./MountComponents.svelte";
 	let { node } = $props();
 
-	let component = $state(await node.component);
+	let component = $derived(await node.component);
 </script>
 
 {#if node && component}

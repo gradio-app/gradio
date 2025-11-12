@@ -17,7 +17,7 @@ class TestNumber:
         assert numeric_input.postprocess(2.14) == 2.14
         assert numeric_input.postprocess(None) is None
         assert numeric_input.get_config() == {
-            "value": None,
+            "value": 0,
             "name": "number",
             "show_label": True,
             "step": 1,
@@ -146,6 +146,6 @@ class TestNumber:
         postprocess
         """
         component = gr.Number()
-        assert component.get_config().get("value") is None
+        assert component.get_config().get("value") == 0
         component = gr.Number(3)
         assert component.get_config().get("value") == 3.0

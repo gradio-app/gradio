@@ -155,7 +155,7 @@ def test_setting_cache_dir_env_variable(monkeypatch, connect):
 @patch("gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp()))
 class TestExamplesDataset:
     def test_no_headers(self, patched_cache_folder):
-        examples = gr.Examples("test/test_files/images_log", [gr.Image(), gr.Text()])
+        examples = gr.Examples("test/test_files/images_log", [gr.Image(), gr.Number()])
         assert examples.dataset.headers == []
 
     def test_all_headers(self, patched_cache_folder):
@@ -167,7 +167,7 @@ class TestExamplesDataset:
 
     def test_some_headers(self, patched_cache_folder):
         examples = gr.Examples(
-            "test/test_files/images_log", [gr.Image(label="im"), gr.Text()]
+            "test/test_files/images_log", [gr.Image(label="im"), gr.Number()]
         )
         assert examples.dataset.headers == ["im", ""]
 

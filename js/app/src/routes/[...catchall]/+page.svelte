@@ -88,8 +88,6 @@
 	const dispatch = createEventDispatcher();
 	export let data;
 
-	// console.log("data", data);
-
 	export let autoscroll = false;
 	export let version = GRADIO_VERSION;
 	export let initial_height: string;

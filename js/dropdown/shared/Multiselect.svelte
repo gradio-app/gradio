@@ -4,7 +4,7 @@
 	import { Remove, DropdownArrow } from "@gradio/icons";
 	import type { Gradio } from "@gradio/utils";
 	import DropdownOptions from "./DropdownOptions.svelte";
-	import { handle_filter, handle_change, handle_shared_keys } from "./utils";
+	import { handle_filter, handle_shared_keys } from "./utils";
 	import type { DropdownEvents, DropdownProps, Item } from "../types.ts";
 
 	const props = $props();
@@ -68,10 +68,9 @@
 			add_selected_choice(input_text);
 			input_text = "";
 		}
-
+		gradio.dispatch("blur");
 		show_options = false;
 		active_index = null;
-		gradio.dispatch("blur");
 	}
 
 	function remove_selected_choice(option_index: number | string) {
@@ -79,7 +78,6 @@
 		gradio.props.value = selected_indices.map((index) =>
 			typeof index === "number" ? choices_values[index] : index
 		);
-		gradio.dispatch("change");
 		gradio.dispatch("input");
 		gradio.dispatch("select", {
 			index: typeof option_index === "number" ? option_index : -1,
@@ -129,7 +127,6 @@
 		}
 		input_text = "";
 		active_index = null;
-		gradio.dispatch("change");
 		gradio.dispatch("input");
 	}
 
@@ -177,12 +174,13 @@
 		}
 	}
 
+	let old_value = $state(gradio.props.value);
+
 	$effect(() => {
-		const access_state = [
-			$state.snapshot(gradio.props.choices),
-			$state.snapshot(gradio.props.value)
-		];
-		gradio.dispatch("change");
+		if (old_value !== gradio.props.value) {
+			old_value = gradio.props.value;
+			gradio.dispatch("change");
+		}
 	});
 </script>
 
@@ -231,11 +229,12 @@
 					bind:value={input_text}
 					bind:this={filter_input}
 					on:keydown={handle_key_down}
-					on:keyup={(e) =>
+					on:keyup={(e) => {
 						gradio.dispatch("key_up", {
 							key: e.key,
 							input_value: input_text
-						})}
+						});
+					}}
 					on:blur={handle_blur}
 					on:focus={handle_focus}
 					readonly={!gradio.props.filterable}

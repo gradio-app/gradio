@@ -1,6 +1,4 @@
 <script lang="ts">
-	import type { SelectData } from "@gradio/utils";
-	import { createEventDispatcher } from "svelte";
 	import type { Gradio } from "@gradio/utils";
 	import type { CheckboxProps, CheckboxEvents } from "../types";
 

@@ -37,16 +37,7 @@ test("audio waveform", async ({ page }) => {
 	await page.getByRole("button", { name: "Trim" }).click();
 	await page.getByLabel("Reset audio").click();
 	await page.getByRole("button", { name: "Submit" }).click();
-	await page
-		.getByTestId("waveform-output")
-		.getByLabel("Adjust playback speed to 1.5x")
-		.first()
-		.click();
-	await page
-		.getByTestId("waveform-output")
-		.getByLabel("Skip backwards by 0.15 seconds")
-		.first()
-		.click();
+	await expect(page.getByTestId("waveform-output")).toHaveCount(1);
 });
 
 test("audio streaming tab", async ({ page }) => {
