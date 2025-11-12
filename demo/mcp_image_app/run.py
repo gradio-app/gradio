@@ -56,7 +56,7 @@ with gr.Blocks() as demo:
             output_image = gr.Image(label="Output Image", type="filepath")
             html = gr.Code(language="html", max_lines=20)
 
-    btn.click(power_law_image, inputs=original_image, outputs=output_image)
+    btn.click(power_law_image, inputs=original_image, outputs=original_image)
     btn.click(app_html, outputs=html)
 
 if __name__ == "__main__":
