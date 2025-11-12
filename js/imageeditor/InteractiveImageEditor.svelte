@@ -219,6 +219,7 @@
 	bind:this={editor}
 	{changeable}
 	on:save
+	on:input
 	on:change={handle_change}
 	on:clear={() => dispatch("clear")}
 	on:download_error

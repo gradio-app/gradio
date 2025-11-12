@@ -12,7 +12,7 @@ import Blocks from "@gradio/core/blocks";
 import Login from "@gradio/core/login";
 import { page } from "$app/state";
 
-export const ssr = false;
+// export const ssr = false;
 
 export async function load({
 	url,

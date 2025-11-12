@@ -4,7 +4,7 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 
-	import Column from "@gradio/column";
+	import { BaseColumn } from "@gradio/column";
 	import { Gradio } from "@gradio/utils";
 
 	import type { AccordionProps, AccordionEvents } from "./types";
@@ -32,8 +32,8 @@
 		on:expand={() => gradio.dispatch("expand")}
 		on:collapse={() => gradio.dispatch("collapse")}
 	>
-		<Column>
+		<BaseColumn>
 			<slot />
-		</Column>
+		</BaseColumn>
 	</Accordion>
 </Block>
