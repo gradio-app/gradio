@@ -104,7 +104,7 @@ class AnnotatedImage(Component):
         self.height = height
         self.width = width
         self.color_map = color_map
-        self.buttons = buttons
+        self.buttons = buttons or ["fullscreen"]
         self._value_description = "a tuple of type [image: str, annotations: list[tuple[mask: str, label: str]]] where 'image' is the path to the base image and 'annotations' is a list of tuples where each tuple has a 'mask' image filepath and a corresponding label."
         super().__init__(
             label=label,

@@ -506,7 +506,6 @@
 			if (header) spaceheader = header.element;
 		}
 	}
-
 	onDestroy(() => {
 		spaceheader?.remove();
 	});
@@ -584,12 +583,12 @@
 			<Blocks
 				{app}
 				{...config}
+				bind:ready
 				fill_height={!is_embed && config.fill_height}
 				theme_mode={active_theme_mode}
 				{control_page_title}
 				target={wrapper}
 				{autoscroll}
-				bind:ready
 				bind:render_complete
 				bind:add_new_message={new_message_fn}
 				footer_links={is_embed ? [] : config.footer_links}
