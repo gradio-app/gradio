@@ -288,14 +288,6 @@ export class DependencyManager {
 			);
 		}
 
-		if (`${event_meta.event_name}-${event_meta.target_id}` === "change-5") {
-			console.trace(
-				"Dispatching dependency",
-				`${event_meta.event_name}-${event_meta.target_id}`,
-				event_meta
-			);
-		}
-
 		for (let i = 0; i < (deps?.length || 0); i++) {
 			const dep = deps ? deps[i] : undefined;
 			if (dep) {
