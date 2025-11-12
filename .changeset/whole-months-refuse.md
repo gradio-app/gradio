@@ -74,4 +74,4 @@
 "gradio": minor
 ---
 
-feat:Svelte5 migration
+feat:Svelte5 migration and bugfix
