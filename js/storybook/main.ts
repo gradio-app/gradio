@@ -10,12 +10,14 @@ const config: StorybookConfig = {
 	],
 	addons: [
 		"@storybook/addon-links",
-		"@storybook/addon-essentials",
-		"@storybook/addon-interactions",
-		"@storybook/addon-svelte-csf",
+		{
+			name: "@storybook/addon-svelte-csf",
+			options: {
+				legacyTemplate: true
+			}
+		},
 		"@storybook/addon-a11y",
-		"@chromatic-com/storybook",
-		"storybook-dark-mode"
+		"@chromatic-com/storybook"
 	],
 	framework: {
 		name: "@storybook/svelte-vite",

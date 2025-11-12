@@ -3,7 +3,7 @@
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import Table from "./shared/Table.svelte";
 	import { within } from "@testing-library/dom";
-	import { userEvent } from "@storybook/test";
+	import { userEvent } from "storybook/test";
 	import { get } from "svelte/store";
 	import { format } from "svelte-i18n";
 	import Image from "@gradio/image";

@@ -1,7 +1,7 @@
 <script context="module">
 	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import JSON from "./Index.svelte";
-	import { userEvent, within } from "@storybook/test";
+	import { userEvent, within } from "storybook/test";
 
 	const example_json = {
 		items: {

@@ -12,7 +12,7 @@
 	import { Gradio } from "@gradio/utils";
 	import { merge_elements } from "./shared/utils";
 	import type { HighlightedTextProps, HighlightedTextEvents } from "./types";
-	import { merge } from "@storybook/manager-api";
+	import { merge } from "storybook/manager-api";
 
 	const props = $props();
 	const gradio = new Gradio<HighlightedTextEvents, HighlightedTextProps>(props);

@@ -6,7 +6,5 @@
 	"author": "",
 	"license": "ISC",
 	"private": true,
-	"dependencies": {
-		"storybook-dark-mode": "^4.0.2"
-	}
+	"dependencies": {}
 }
