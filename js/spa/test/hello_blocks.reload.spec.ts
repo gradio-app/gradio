@@ -440,7 +440,7 @@ if __name__ == "__main__":
 			}
 		});
 
-		await expect(page.getByText("Error")).toBeVisible();
+		await expect(page.getByTestId("toast-body").first()).toContainText("Error");
 
 		const demo4 = `
 import gradio as gr

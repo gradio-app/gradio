@@ -165,6 +165,12 @@ class BaseReloader(ABC):
         demo.is_running = True
         demo.allowed_paths = self.running_app.blocks.allowed_paths
         demo.blocked_paths = self.running_app.blocks.blocked_paths
+        demo.theme = self.running_app.blocks.theme
+        demo.head_paths = self.running_app.blocks.head_paths
+        demo.css = self.running_app.blocks.css
+        demo.head = self.running_app.blocks.head
+        demo.css_paths = self.running_app.blocks.css_paths
+        demo._set_html_css_theme_variables()
         self.running_app.state_holder.set_blocks(demo)
         for session in self.running_app.state_holder.session_data.values():
             session.blocks_config = copy.copy(demo.default_config)
