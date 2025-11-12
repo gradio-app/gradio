@@ -68,7 +68,7 @@
 			add_selected_choice(input_text);
 			input_text = "";
 		}
-
+		gradio.dispatch("blur");
 		show_options = false;
 		active_index = null;
 	}

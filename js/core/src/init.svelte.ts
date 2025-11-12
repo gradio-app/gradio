@@ -17,7 +17,6 @@ import type {
 import type { SharedProps } from "@gradio/utils";
 import { allowed_shared_props } from "@gradio/utils";
 import { Client } from "@gradio/client";
-import { t } from "svelte-i18n";
 
 type client_return = Awaited<ReturnType<typeof Client.connect>>;
 
