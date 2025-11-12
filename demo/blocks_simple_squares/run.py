@@ -1,6 +1,6 @@
 import gradio as gr
 
-demo = gr.Blocks(css="""#btn {color: red} .abc {font-family: "Comic Sans MS", "Comic Sans", cursive !important}""")
+demo = gr.Blocks()
 
 with demo:
     default_json = {"a": "a"}
@@ -20,4 +20,4 @@ with demo:
     btn.click(increase, [num, stats], [num, squared, stats, table])
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(css="""#btn {color: red} .abc {font-family: "Comic Sans MS", "Comic Sans", cursive !important}""")

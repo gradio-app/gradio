@@ -38,7 +38,7 @@ css = """.my-group {max-width: 600px !important; max-height: 600 !important;}
                       .my-column {display: flex !important; justify-content: center !important; align-items: center !important};"""
 
 
-with gr.Blocks(css=css) as demo:
+with gr.Blocks() as demo:
     gr.HTML(
         """
     <h1 style='text-align: center'>
@@ -69,4 +69,4 @@ with gr.Blocks(css=css) as demo:
         )
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(css=css)

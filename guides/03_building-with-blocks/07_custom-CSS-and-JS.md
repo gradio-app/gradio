@@ -4,30 +4,36 @@ Gradio allows you to customize your demo in several ways. You can customize the 
 
 ## Adding custom CSS to your demo
 
-Gradio themes are the easiest way to customize the look and feel of your app. You can choose from a variety of themes, or create your own. To do so, pass the `theme=` kwarg to the `Blocks` constructor. For example:
+Gradio themes are the easiest way to customize the look and feel of your app. You can choose from a variety of themes, or create your own. To do so, pass the `theme=` kwarg to the `launch()` method of the `Blocks` constructor. For example:
 
 ```python
-with gr.Blocks(theme=gr.themes.Glass()):
+with gr.Blocks() as demo:
+    ... # your code here
+demo.launch(theme=gr.themes.Glass())
     ...
 ```
 
 Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [Theming guide](/guides/theming-guide) for more details.
 
-For additional styling ability, you can pass any CSS to your app as a string using the `css=` kwarg. You can also pass a pathlib.Path to a css file or a list of such paths to the `css_paths=` kwarg.
+For additional styling ability, you can pass any CSS to your app as a string using the `css=` kwarg in the `launch()` method. You can also pass a pathlib.Path to a css file or a list of such paths to the `css_paths=` kwarg in the `launch()` method.
 
 **Warning**: The use of query selectors in custom JS and CSS is _not_ guaranteed to work across Gradio versions that bind to Gradio's own HTML elements as the Gradio HTML DOM may change. We recommend using query selectors sparingly.
 
 The base class for the Gradio app is `gradio-container`, so here's an example that changes the background color of the Gradio app:
 
 ```python
-with gr.Blocks(css=".gradio-container {background-color: red}") as demo:
+with gr.Blocks() as demo:
+    ... # your code here
+demo.launch(css=".gradio-container {background-color: red}")
     ...
 ```
 
 If you'd like to reference external files in your css, preface the file path (which can be a relative or absolute path) with `"/gradio_api/file="`, for example:
 
 ```python
-with gr.Blocks(css=".gradio-container {background: url('/gradio_api/file=clouds.jpg')}") as demo:
+with gr.Blocks() as demo:
+    ... # your code here
+demo.launch(css=".gradio-container {background: url('/gradio_api/file=clouds.jpg')}")
     ...
 ```
 
@@ -44,9 +50,10 @@ css = """
 .feedback textarea {font-size: 24px !important}
 """
 
-with gr.Blocks(css=css) as demo:
+with gr.Blocks() as demo:
     box1 = gr.Textbox(value="Good Job", elem_classes="feedback")
     box2 = gr.Textbox(value="Failure", elem_id="warning", elem_classes="feedback")
+demo.launch(css=css)
 ```
 
 The CSS `#warning` ruleset will only target the second Textbox, while the `.feedback` ruleset will target both. Note that when targeting classes, you might need to put the `!important` selector to override the default Gradio styles.
@@ -82,10 +89,10 @@ head = f"""
 </script>
 """
 
-with gr.Blocks(head=head) as demo:
+with gr.Blocks() as demo:
     gr.HTML("<h1>My App</h1>")
 
-demo.launch()
+demo.launch(head=head)
 ```
 
 The `head` parameter accepts any HTML tags you would normally insert into the `<head>` of a page. For example, you can also include `<meta>` tags to `head` in order to update the social sharing preview for your Gradio app like this:
@@ -115,10 +122,10 @@ custom_head = """
 <meta property="twitter:url" content="https://example.com">  
 """
 
-with gr.Blocks(title="My App", head=custom_head) as demo:
+with gr.Blocks(title="My App") as demo:
     gr.HTML("<h1>My App</h1>")
 
-demo.launch()
+demo.launch(head=custom_head)
 ```
 
 
@@ -146,11 +153,11 @@ document.addEventListener('keypress', shortcuts, false);
 </script>
 """
 
-with gr.Blocks(head=shortcut_js) as demo:
+with gr.Blocks() as demo:
     action_button = gr.Button(value="Name", elem_id="my_btn")
     textbox = gr.Textbox()
     action_button.click(lambda : "button pressed", None, textbox)
     
-demo.launch()
+demo.launch(head=shortcut_js)
 ```
 

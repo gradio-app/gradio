@@ -55,7 +55,7 @@ with gr.Blocks() as demo:
         lambda: {
             "background": None,
             "layers": None,
-            "composite": str(dir_ / "cheetah.jpg"),
+            "composite": "https://huggingface.co/datasets/freddyaboulton/bucket/resolve/main/cheetah-003.jpg",
         },
         None,
         im,
@@ -71,7 +71,7 @@ with gr.Blocks() as demo:
 
     gr.Examples(
         examples=[
-            str(dir_ / "cheetah.jpg"),
+            "https://huggingface.co/datasets/freddyaboulton/bucket/resolve/main/TheCheethcat.jpg",
             {
                 "background": str(dir_ / "cheetah.jpg"),
                 "layers": [str(dir_ / "layer1.png")],

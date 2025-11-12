@@ -24,13 +24,14 @@ export const SPECS: Record<string, SPEC> = {
 
 /**
  * file size from https://github.com/hustcc/filesize.js
- * @param bytes
- * @param fixed
- * @param spec
+ * @param bytes - The number of bytes to convert to human-readable format
+ * @param fixed - Number of decimal places to display (default: 1)
+ * @param spec - Size specification to use: "si", "iec", or "jedec" (default: "jedec")
+ * @returns Human-readable file size string
  */
 export function filesize(bytes: number, fixed = 1, spec = "jedec"): string {
 	bytes = Math.abs(bytes);
-	const { radix, unit } = SPECS[spec];
+	const { radix, unit } = SPECS[spec] || SPECS.jedec;
 	let loop = 0;
 	while (bytes >= radix) {
 		bytes /= radix;
