@@ -45,7 +45,6 @@ with gr.Walkthrough(selected=1) as walkthrough:
 {#if walkthrough_obj.demos && walkthrough_obj.demos.length > 0}
 <!--- Demos -->
 ### Demos 
-<DemosSection demos={walkthrough_obj.demos} />
 {/if}
 
 {#if walkthrough_obj.fns && walkthrough_obj.fns.length > 0}

@@ -56,7 +56,6 @@ demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
 {#if simple_csv_logger_obj.demos && simple_csv_logger_obj.demos.length > 0}
 <!--- Demos -->
 ### Demos 
-<DemosSection demos={simple_csv_logger_obj.demos} />
 {/if}
 
 {#if simple_csv_logger_obj.fns && simple_csv_logger_obj.fns.length > 0}
@@ -110,7 +109,6 @@ demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
 {#if csv_logger_obj.demos && csv_logger_obj.demos.length > 0}
 <!--- Demos -->
 ### Demos 
-<DemosSection demos={csv_logger_obj.demos} />
 {/if}
 
 {#if csv_logger_obj.fns && csv_logger_obj.fns.length > 0}
