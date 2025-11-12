@@ -1,5 +1,38 @@
 # @gradio/core
 
+## 1.0.0-dev.1
+
+### Features
+
+- [#12168](https://github.com/gradio-app/gradio/pull/12168) [`60b16b3`](https://github.com/gradio-app/gradio/commit/60b16b35d818a3950e71d3b1fcfde959dc59ede8) - Copy as markdown button in API docs.  Thanks @aliabd!
+
+### Fixes
+
+- [#12240](https://github.com/gradio-app/gradio/pull/12240) [`6a0cff1`](https://github.com/gradio-app/gradio/commit/6a0cff18ef6a9a580c26d3ed5f95d1f9de3a55c1) - Fixed several hardcoded UI labels in the chat_interface that did not implement i18n.  Thanks @arterm-sedov!
+
+### Dependency updates
+
+- @gradio/textbox@0.11.2-dev.0
+- @gradio/atoms@0.18.2-dev.0
+- @gradio/upload@0.17.2-dev.1
+- @gradio/utils@0.10.3-dev.0
+- @gradio/image@0.23.2-dev.1
+- @gradio/button@0.5.14-dev.1
+- @gradio/column@0.2.2
+- @gradio/tabs@0.5.2-dev.0
+- @gradio/statustracker@0.12.0-dev.0
+- @gradio/icons@0.15.0-dev.0
+- @gradio/checkbox@0.5.0-dev.0
+- @gradio/paramviewer@0.9.0-dev.0
+- @gradio/code@0.15.1-dev.1
+- @gradio/tabitem@0.6.2-dev.0
+- @gradio/theme@0.5.0-dev.0
+- @gradio/video@0.17.0-dev.1
+- @gradio/gallery@0.15.35-dev.2
+- @gradio/plot@0.9.25-dev.0
+- @gradio/dropdown@0.10.6-dev.0
+- @gradio/file@0.13.1-dev.1
+
 ## 1.0.0-dev.0
 
 ### Features
