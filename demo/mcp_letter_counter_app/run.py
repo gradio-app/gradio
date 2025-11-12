@@ -24,11 +24,11 @@ def app_html():
     visual = """
     <div id="letter-card-container"></div>
     <script>
-        (function() {
+        const container = document.getElementById('letter-card-container');
+
+        function render() {
             const word = window.openai?.toolInput?.word || "strawberry";
             const letter = window.openai?.toolInput?.letter || "r";
-
-            const container = document.getElementById('letter-card-container');
 
             let letterHTML = '';
             for (let i = 0; i < word.length; i++) {
@@ -61,7 +61,13 @@ def app_html():
                     </div>
                 </div>
             `;
-        })();
+        }
+        render();
+        window.addEventListener("openai:set_globals", (event) => {
+            if (event.detail?.globals?.toolInput) {
+                render();
+            }
+        }, { passive: true });
     </script>
     """
     return visual

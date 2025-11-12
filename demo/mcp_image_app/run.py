@@ -12,7 +12,7 @@ import numpy as np
     }
 )
 
-def power_law_image(input_path: str, gamma: float = 0.75) -> str:
+def power_law_image(input_path: str, gamma: float = 0.5) -> str:
     """
     Applies a power-law (gamma) transformation to an image file and saves
     the result to a temporary file.
@@ -40,8 +40,79 @@ def power_law_image(input_path: str, gamma: float = 0.75) -> str:
 @gr.mcp.resource("ui://widget/app.html", mime_type="text/html+skybridge")
 def app_html():
     visual = """
-    <div id="image-upscaler"></div>
+    <style>
+        #image-container {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+        }
+        #image-display {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 8px;
+        }
+        #brighten-btn {
+            position: absolute;
+            bottom: 16px;
+            right: 26px;
+            padding: 12px 24px;
+            background: #1a1a1a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        #brighten-btn:hover {
+            background: #000000;
+        }
+    </style>
+    <div id="image-container">
+        <img id="image-display" alt="Processed image" />
+        <button id="brighten-btn">Brighten</button>
+    </div>
     <script>
+        const imageEl = document.getElementById('image-display');
+        const btnEl = document.getElementById('brighten-btn');
+
+        function extractImageUrl(data) {
+            if (data?.text?.startsWith('Image URL: ')) {
+                return data.text.substring('Image URL: '.length).trim();
+            }
+            if (data?.content) {
+                for (const item of data.content) {
+                    if (item.type === 'text' && item.text?.startsWith('Image URL: ')) {
+                        return item.text.substring('Image URL: '.length).trim();
+                    }
+                }
+            }
+        }
+
+        function render() {
+            const url = extractImageUrl(window.openai?.toolOutput);
+            if (url) imageEl.src = url;
+        }
+
+        async function brightenImage() {
+            btnEl.disabled = true;
+            btnEl.textContent = 'Brightening...';
+            const result = await window.openai.callTool('power_law_image', {
+                input_path: imageEl.src
+            });
+            const newUrl = extractImageUrl(result);
+            if (newUrl) imageEl.src = newUrl;
+            btnEl.disabled = false;
+            btnEl.textContent = 'Brighten';
+        }
+
+        btnEl.addEventListener('click', brightenImage);
+        window.addEventListener("openai:set_globals", (event) => {
+            if (event.detail?.globals?.toolOutput) render();
+        }, { passive: true });
+
+        render();
     </script>
     """
     return visual

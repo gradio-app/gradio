@@ -78,11 +78,11 @@ def app_html():
     visual = """
     <div id="letter-card-container"></div>
     <script>
-        (function() {
+        const container = document.getElementById('letter-card-container');
+
+        function render() {
             const word = window.openai?.toolInput?.word || "strawberry";
             const letter = window.openai?.toolInput?.letter || "r";
-
-            const container = document.getElementById('letter-card-container');
 
             let letterHTML = '';
             for (let i = 0; i < word.length; i++) {
@@ -115,13 +115,19 @@ def app_html():
                     </div>
                 </div>
             `;
-        })();
+        }
+        render();
+        window.addEventListener("openai:set_globals", (event) => {
+            if (event.detail?.globals?.toolInput) {
+                render();
+            }
+        }, { passive: true });
     </script>
     """
     return visual
 ```
 
-Note that we've provided a URI for the `gr.mcp.resource` at `ui://widget/app.html`. This is arbitrary, but we'll need to use the same URI later on. We also need to specify the mimetype of the resource to be `mime_type="text/html+skybridge"`.
+Note that we've provided a URI for the `gr.mcp.resource` at `ui://widget/app.html`. This is arbitrary, but we'll need to use the same URI later on. We also need to specify the mimetype of the resource to be `mime_type="text/html+skybridge"`. Finally, note that we attached an event listener in the JavaScript for "openai:set_globals", which is generally a good practice as it allows the widget to update whenever a new tool call is triggered. 
 
 5. Create an event in your Gradio app corresponding to the resource function. This is necessary because your Gradio app only picks up MCP tools, resources, prompts, etc. if they are associated with a Gradio event. Typically, the convention is to simply display the code for your MCP resource in a `gr.Code` component, e.g. like this:
 
@@ -161,7 +167,7 @@ This will print a public URL that your Gradio app will be running on.
 
 And that's it! Once the Connector has been created, you can start prompting it by saying something like, "Use @letter-counter to count the number of r's in Gradio."
 
-### Example 2: An interactive blurrer
+### Example 2: An 
 
 
 
