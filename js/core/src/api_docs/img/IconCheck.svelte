@@ -3,7 +3,7 @@
 </script>
 
 <svg
-	class="icon-size"
+	class={classNames || "icon-size"}
 	xmlns="http://www.w3.org/2000/svg"
 	aria-hidden="true"
 	height="16"

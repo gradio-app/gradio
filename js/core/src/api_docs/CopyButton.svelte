@@ -3,7 +3,7 @@
 	import IconCheck from "./img/IconCheck.svelte";
 
 	export let code: string;
-	
+
 	let copied = false;
 
 	function copy(): void {
@@ -21,16 +21,16 @@
 	<span
 		class="inline-flex items-center justify-center rounded-md p-0.5 max-sm:p-0"
 	>
-	{#if copied}
-		<IconCheck classNames="w-3 h-3 max-sm:w-2.5 max-sm:h-2.5" />
-	{:else}
-		<IconCopy classNames="w-3 h-3 max-sm:w-2.5 max-sm:h-2.5" />
-	{/if}
+		{#if copied}
+			<IconCheck classNames="w-3 h-3 max-sm:w-2.5 max-sm:h-2.5" />
+		{:else}
+			<IconCopy classNames="w-3 h-3 max-sm:w-2.5 max-sm:h-2.5" />
+		{/if}
 	</span>
 </button>
 
 <style>
-		.copy-button {
+	.copy-button {
 		display: inline-flex;
 		align-items: center;
 		gap: 4px;

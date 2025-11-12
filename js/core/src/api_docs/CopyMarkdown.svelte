@@ -29,14 +29,13 @@
 	export let info: any;
 	export let js_info: any;
 
-	
 	let markdown_content: Record<string, string> = {
 		python: "",
 		javascript: "",
 		bash: "",
 		mcp: ""
 	};
-	/* eslint-enable complexity */
+	/* eslint-disable complexity */
 	$: markdown_content.python = `
 # Python API documentation for ${space_id || root}
 API Endpoints: ${api_count}
@@ -52,8 +51,7 @@ pip install gradio_client
 ${dependencies
 	.filter(
 		(d) =>
-			d.api_visibility === "public" &&
-			info.named_endpoints["/" + d.api_name]
+			d.api_visibility === "public" && info.named_endpoints["/" + d.api_name]
 	)
 	.map(
 		(d) =>
@@ -104,8 +102,7 @@ npm i -D @gradio/client
 ${dependencies
 	.filter(
 		(d) =>
-			d.api_visibility === "public" &&
-			info.named_endpoints["/" + d.api_name]
+			d.api_visibility === "public" && info.named_endpoints["/" + d.api_name]
 	)
 	.map(
 		(d) =>
@@ -157,8 +154,7 @@ Making a prediction and getting a result requires 2 requests: a POST and a GET r
 ${dependencies
 	.filter(
 		(d) =>
-			d.api_visibility === "public" &&
-			info.named_endpoints["/" + d.api_name]
+			d.api_visibility === "public" && info.named_endpoints["/" + d.api_name]
 	)
 	.map(
 		(d) =>
@@ -303,16 +299,28 @@ Read more about the MCP in the [Gradio docs](${mcp_docs}).
 `;
 	/* eslint-enable complexity */
 
-	let current_language_label = current_language === "python" ? "Python" : current_language === "javascript" ? "JavaScript" : current_language === "bash" ? "Bash" : "MCP";
+	let current_language_label =
+		current_language === "python"
+			? "Python"
+			: current_language === "javascript"
+				? "JavaScript"
+				: current_language === "bash"
+					? "Bash"
+					: "MCP";
 
 	$: current_language;
-	$: current_language_label = current_language === "python" ? "Python" : current_language === "javascript" ? "JavaScript" : current_language === "bash" ? "Bash" : "MCP";
-
-
+	$: current_language_label =
+		current_language === "python"
+			? "Python"
+			: current_language === "javascript"
+				? "JavaScript"
+				: current_language === "bash"
+					? "Bash"
+					: "MCP";
 
 	let label = `Copy ${current_language_label} Docs as Markdown for LLMs`;
 	$: label = `Copy ${current_language_label} Docs as Markdown for LLMs`;
-	
+
 	let copied = false;
 	$: copied;
 
@@ -323,7 +331,7 @@ Read more about the MCP in the [Gradio docs](${mcp_docs}).
 
 	const isClient = typeof window !== "undefined";
 
-	function openMenu() {
+	function openMenu(): void {
 		open = true;
 		if (isClient && triggerEl) {
 			void tick().then(() => {
@@ -337,33 +345,33 @@ Read more about the MCP in the [Gradio docs](${mcp_docs}).
 		}
 	}
 
-	function closeMenu() {
+	function closeMenu(): void {
 		open = false;
 	}
 
-	function toggleMenu() {
+	function toggleMenu(): void {
 		open ? closeMenu() : openMenu();
 	}
 
-	function buildUrl() {
-				const encodedPromptText = encodeURIComponent(
-					`--------------------------------
+	function buildUrl(): string {
+		const encodedPromptText = encodeURIComponent(
+			`--------------------------------
 ${markdown_content[current_language]}
 --------------------------------
 
 Read the documentation above so I can ask questions about it.`
-				);
-				return `https://huggingface.co/chat/?prompt=${encodedPromptText}`;
-		}
+		);
+		return `https://huggingface.co/chat/?prompt=${encodedPromptText}`;
+	}
 
-	function openHuggingChat() {
+	function openHuggingChat(): void {
 		if (isClient) {
 			window.open(buildUrl(), "_blank", "noopener,noreferrer");
 		}
 		closeMenu();
 	}
 
-	function handleWindowPointer(event: MouseEvent) {
+	function handleWindowPointer(event: MouseEvent): void {
 		if (!open || !isClient) return;
 		const targetNode = event.target as Node;
 		if (menuEl?.contains(targetNode) || triggerEl?.contains(targetNode)) {
@@ -372,22 +380,23 @@ Read the documentation above so I can ask questions about it.`
 		closeMenu();
 	}
 
-	function handleWindowKeydown(event: KeyboardEvent) {
+	function handleWindowKeydown(event: KeyboardEvent): void {
 		if (event.key === "Escape" && open) {
 			closeMenu();
 		}
 	}
 
-	function handleWindowResize() {
+	function handleWindowResize(): void {
 		if (open) closeMenu();
 	}
 
-	function handleWindowScroll() {
+	function handleWindowScroll(): void {
 		if (open) closeMenu();
 	}
 
-
-	async function copyMarkdown(current_language: "python" | "javascript" | "bash" | "mcp"): Promise<void> {
+	async function copyMarkdown(
+		current_language: "python" | "javascript" | "bash" | "mcp"
+	): Promise<void> {
 		try {
 			if (!markdown_content[current_language]) {
 				console.warn("Nothing to copy");
@@ -425,15 +434,21 @@ Read the documentation above so I can ask questions about it.`
 
 <div class="container-wrapper">
 	<div bind:this={triggerEl} class="trigger-wrapper">
-		<button on:click={() => copyMarkdown(current_language)} class="copy-button" aria-live="polite">
+		<button
+			on:click={() => copyMarkdown(current_language)}
+			class="copy-button"
+			aria-live="polite"
+		>
 			<span class="icon-wrapper">
-			{#if copied}
-				<IconCheck />
-			{:else}
-				<IconCopy />
-			{/if}
+				{#if copied}
+					<IconCheck />
+				{:else}
+					<IconCopy />
+				{/if}
 			</span>
-			<span>{copied ? `Copied ${current_language_label} Docs!` : "Copy Page"}</span>
+			<span
+				>{copied ? `Copied ${current_language_label} Docs!` : "Copy Page"}</span
+			>
 		</button>
 		<button
 			on:click={toggleMenu}
@@ -474,9 +489,7 @@ Read the documentation above so I can ask questions about it.`
 					<IconCopy classNames="menu-icon" />
 				</div>
 				<div class="menu-text-container">
-					<div class="menu-text-primary">
-						Copy Page
-					</div>
+					<div class="menu-text-primary">Copy Page</div>
 					<div class="menu-text-secondary">
 						{label}
 					</div>
@@ -499,14 +512,14 @@ Read the documentation above so I can ask questions about it.`
 						Open in HuggingChat
 						<IconArrowUpRight classNames="menu-icon-arrow" />
 					</div>
-					<div class="menu-text-secondary">Ask Questions About The {current_language_label} Docs</div>
+					<div class="menu-text-secondary">
+						Ask Questions About The {current_language_label} Docs
+					</div>
 				</div>
 			</button>
-
 		</div>
 	{/if}
 </div>
-
 
 <style>
 	.container-wrapper {
@@ -641,12 +654,6 @@ Read the documentation above so I can ask questions about it.`
 		}
 	}
 
-	.menu-icon {
-		width: 1rem;
-		height: 1rem;
-		flex-shrink: 0;
-	}
-
 	.menu-text-container {
 		display: flex;
 		flex-direction: column;
@@ -677,19 +684,6 @@ Read the documentation above so I can ask questions about it.`
 	@media (prefers-color-scheme: dark) {
 		.menu-text-secondary {
 			color: rgb(156, 163, 175);
-		}
-	}
-
-	.menu-icon-arrow {
-		width: 1rem;
-		height: 1rem;
-		color: rgb(107, 114, 128);
-		flex-shrink: 0;
-	}
-
-	@media (prefers-color-scheme: dark) {
-		.menu-icon-arrow {
-			color: rgb(209, 213, 219);
 		}
 	}
 

@@ -3,7 +3,7 @@
 </script>
 
 <svg
-	class="icon-size"
+	class={classNames || "icon-size"}
 	width="1em"
 	height="1em"
 	viewBox="5 5 22 22"
@@ -46,17 +46,17 @@
 		}
 	}
 
-    .menu-icon {
-        width: 1rem;
-        height: 1rem;
-        flex-shrink: 0;
-    }
+	.menu-icon {
+		width: 1rem;
+		height: 1rem;
+		flex-shrink: 0;
+	}
 
-    .hidden {
-        display: none;
-    }
+	.hidden {
+		display: none;
+	}
 
-    .block {
-        display: block;
-    }
+	.block {
+		display: block;
+	}
 </style>
