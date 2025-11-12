@@ -199,7 +199,7 @@ with demo:
                 value=invisible_df[COLS],  # type: ignore
                 headers=COLS,
                 datatype=TYPES,
-                visible=False,
+                visible="hidden",
             )
             search_bar.submit(
                 update_table,
