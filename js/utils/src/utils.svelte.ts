@@ -392,7 +392,8 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		this.last_update = tick();
 	}
 
-	set_data(data: Partial<U & SharedProps>): void {
+	async set_data(data: Partial<U & SharedProps>): Promise<void> {
+		await this.last_update;
 		for (const key in data) {
 			if (this.shared_props.includes(key as keyof SharedProps)) {
 				const _key = key as keyof SharedProps;

@@ -310,7 +310,7 @@ export class AppTree {
 	 * @param id the ID of the component to update
 	 * @param new_state the new state to set
 	 * */
-	update_state(
+	async update_state(
 		id: number,
 		new_state: Partial<SharedProps> & Record<string, unknown>,
 		check_visibility: boolean = true
