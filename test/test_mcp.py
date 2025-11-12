@@ -390,6 +390,7 @@ async def test_tool_selection_via_query_params():
 
 
 @pytest.mark.asyncio
+@pytest.mark.serial
 async def test_mcp_streamable_http_client():
     def double(word: str) -> str:
         """
@@ -424,5 +425,64 @@ async def test_mcp_streamable_http_client():
                 result = await session.call_tool(tool.name, arguments={"word": "Hello"})
                 assert len(result.content) == 1
                 assert result.content[0].text == "HelloHello"
+    finally:
+        demo.close()
+
+
+@pytest.mark.serial
+@pytest.mark.asyncio
+async def test_mcp_streamable_http_client_with_progress_callback():
+    progress_updates = []
+
+    def slow_processor(text: str, progress=gr.Progress()) -> str:
+        """
+        Processes text slowly with progress updates.
+
+        Parameters:
+            text: The text to process
+        Returns:
+            The processed text
+        """
+        total = len(text)
+        for i in range(total):
+            progress((i + 1) / total, desc=f"Processing character {i + 1}/{total}")
+        return text.upper()
+
+    with gr.Blocks() as demo:
+        input_box = gr.Textbox(label="Input")
+        output_box = gr.Textbox(label="Output")
+        input_box.submit(slow_processor, input_box, output_box, api_name="process")
+
+    demo.queue()
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, mcp_server=True)
+    mcp_url = f"{local_url}gradio_api/mcp/"
+
+    try:
+        async with streamablehttp_client(mcp_url) as (read_stream, write_stream, _):
+            async with ClientSession(read_stream, write_stream) as session:
+                await session.initialize()
+
+                tools_response = await session.list_tools()
+                assert len(tools_response.tools) == 1
+                tool = tools_response.tools[0]
+                assert "process" in tool.name
+
+                async def progress_callback(
+                    progress: float, total: float | None, message: str | None
+                ):
+                    progress_updates.append(
+                        {"progress": progress, "total": total, "message": message}
+                    )
+
+                result = await session.call_tool(
+                    tool.name,
+                    arguments={"text": "test"},
+                    progress_callback=progress_callback,
+                    meta={"progressToken": "test-token-123"},
+                )
+
+                assert len(result.content) == 1
+                assert result.content[0].text == "TEST"
+                assert len(progress_updates) > 0, "Expected to receive progress updates"
     finally:
         demo.close()

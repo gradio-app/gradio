@@ -403,7 +403,9 @@ class GradioMCPServer:
             if progress_token is None:
                 output_data = await self._execute_tool_without_progress(job)
             else:
-                output_data = await self._execute_tool_with_progress(job, progress_token)
+                output_data = await self._execute_tool_with_progress(
+                    job, progress_token
+                )
 
             self.pop_returned_state(block_fn.inputs, processed_args)
 
