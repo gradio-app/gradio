@@ -1,13 +1,5 @@
-<script lang="ts" context="module">
-	import {
-		create_dataframe_context,
-		type SortDirection,
-		type FilterDatatype
-	} from "./context/dataframe_context";
-</script>
-
 <script lang="ts">
-	import { afterUpdate, createEventDispatcher, tick, onMount } from "svelte";
+	import { createEventDispatcher, setContext, tick, onMount } from "svelte";
 	import { dequal } from "dequal/lite";
 	import { Upload } from "@gradio/upload";
 
@@ -24,7 +16,7 @@
 		Headers,
 		DataframeValue,
 		Datatype,
-		EditData
+		EditData,
 	} from "./utils/utils";
 	import CellMenu from "./CellMenu.svelte";
 	import Toolbar from "./Toolbar.svelte";
@@ -34,95 +26,186 @@
 		should_show_cell_menu,
 		get_current_indices,
 		handle_click_outside as handle_click_outside_util,
-		calculate_selection_positions
+		calculate_selection_positions,
+		handle_selection
 	} from "./utils/selection_utils";
 	import {
 		copy_table_data,
 		get_max,
-		handle_file_upload
+		handle_file_upload,
 	} from "./utils/table_utils";
 	import { make_headers, process_data } from "./utils/data_processing";
-	import { handle_keydown, handle_cell_blur } from "./utils/keyboard_utils";
+	import {
+		handle_keydown,
+		handle_cell_blur,
+		type KeyboardContext,
+	} from "./utils/keyboard_utils";
 	import {
 		create_drag_handlers,
 		type DragState,
-		type DragHandlers
+		type DragHandlers,
 	} from "./utils/drag_utils";
 	import { sort_data_and_preserve_selection } from "./utils/sort_utils";
-	import { filter_data_and_preserve_selection } from "./utils/filter_utils";
+	import {
+		filter_data_and_preserve_selection,
+		type FilterDatatype,
+	} from "./utils/filter_utils";
+	import {
+		DataframeStore,
+		DATAFRAME_STORE_KEY,
+		type RowView,
+		type SortDirection,
+	} from "./state/DataframeStore.svelte";
 
-	export let datatype: Datatype | Datatype[];
-	export let label: string | null = null;
-	export let show_label = true;
-	export let headers: Headers = [];
-	export let values: CellValue[][] = [];
-	export let col_count: [number, "fixed" | "dynamic"];
-	export let row_count: [number, "fixed" | "dynamic"];
-	export let latex_delimiters: {
-		left: string;
-		right: string;
-		display: boolean;
-	}[];
-	export let components: Record<string, any> = {};
+	type TableCell = { id: string; value: CellValue; display_value?: string };
+	type TableCellMatrix = TableCell[][];
+	type DataSnapshot = {
+		data: TableCellMatrix;
+		display_value: string[][] | null;
+		styling: string[][] | null;
+	};
 
-	export let editable = true;
-	export let wrap = false;
-	export let root: string;
-	export let i18n: I18nFormatter;
+	type TableProps = {
+		datatype: Datatype | Datatype[];
+		label?: string | null;
+		show_label?: boolean;
+		headers?: Headers;
+		values?: CellValue[][];
+		col_count: [number, "fixed" | "dynamic"];
+		row_count: [number, "fixed" | "dynamic"];
+		latex_delimiters: {
+			left: string;
+			right: string;
+			display: boolean;
+		}[];
+		components?: Record<string, any>;
+		editable?: boolean;
+		wrap?: boolean;
+		root: string;
+		i18n: I18nFormatter;
+		max_height?: number;
+		line_breaks?: boolean;
+		column_widths?: string[];
+		show_row_numbers?: boolean;
+		upload: Client["upload"];
+		stream_handler: Client["stream"];
+		buttons?: string[] | null;
+		value_is_output?: boolean;
+		max_chars?: number;
+		show_search?: "none" | "search" | "filter";
+		pinned_columns?: number;
+		static_columns?: (string | number)[];
+		fullscreen?: boolean;
+		display_value?: string[][] | null;
+		styling?: string[][] | null;
+	};
 
-	export let max_height = 500;
-	export let line_breaks = true;
-	export let column_widths: string[] = [];
-	export let show_row_numbers = false;
-	export let upload: Client["upload"];
-	export let stream_handler: Client["stream"];
-	export let buttons: string[] | null = null;
-	export let value_is_output = false;
-	export let max_chars: number | undefined = undefined;
-	export let show_search: "none" | "search" | "filter" = "none";
-	export let pinned_columns = 0;
-	export let static_columns: (string | number)[] = [];
-	export let fullscreen = false;
+	let {
+		datatype,
+		label = null,
+		show_label = true,
+		headers = [],
+		values = [],
+		col_count,
+		row_count,
+		latex_delimiters,
+		components = {},
+		editable = true,
+		wrap = false,
+		root,
+		i18n,
+		max_height = 500,
+		line_breaks = true,
+		column_widths = [],
+		show_row_numbers = false,
+		upload,
+		stream_handler,
+		buttons = null,
+		value_is_output = $bindable(false),
+		max_chars = undefined,
+		show_search = "none",
+		pinned_columns = 0,
+		static_columns = [],
+		fullscreen = false,
+		display_value = null,
+		styling = null,
+	}: TableProps = $props();
 
-	const df_ctx = create_dataframe_context({
-		show_fullscreen_button:
-			buttons === null ? true : buttons.includes("fullscreen"),
-		show_copy_button: buttons === null ? true : buttons.includes("copy"),
-		show_search,
-		show_row_numbers,
-		editable,
+	const dataframeStore = new DataframeStore({
+		value: {
+			data: values,
+			headers,
+			metadata: display_value || styling ? { display_value, styling } : null,
+		},
+		datatype,
 		pinned_columns,
-		show_label,
-		line_breaks,
-		wrap,
-		max_height,
 		column_widths,
-		max_chars,
-		static_columns
+		max_height,
 	});
 
-	const { state: df_state, actions: df_actions } = df_ctx;
+	setContext(DATAFRAME_STORE_KEY, dataframeStore);
 
-	$: selected_cells = $df_state.ui_state.selected_cells;
-	$: selected = $df_state.ui_state.selected;
-	$: editing = $df_state.ui_state.editing;
-	$: header_edit = $df_state.ui_state.header_edit;
-	$: selected_header = $df_state.ui_state.selected_header;
-	$: active_cell_menu = $df_state.ui_state.active_cell_menu;
-	$: active_header_menu = $df_state.ui_state.active_header_menu;
-	$: copy_flash = $df_state.ui_state.copy_flash;
+	const incomingValue = $derived<DataframeValue>({
+		data: values,
+		headers,
+		metadata: display_value || styling ? { display_value, styling } : null,
+	});
 
-	$: actual_pinned_columns =
+	let els: Record<
+		string,
+		{ cell: null | HTMLTableCellElement; input: null | HTMLTextAreaElement }
+	> = {};
+	let previous_incoming_value: DataframeValue | null = null;
+	let data_binding: Record<string, (typeof data)[0][0]> = {};
+	let _headers = make_headers(headers, col_count, els, make_id);
+	let old_headers: string[] = headers;
+	let data: TableCellMatrix = $state([[]]);
+	let sort_initial_data: DataSnapshot | null = null;
+	let filter_initial_data: DataSnapshot | null = null;
+	let old_val: undefined | CellValue[][] = undefined;
+	let dragging = false;
+	let color_accent_copied: string;
+	$effect(() => {
+		if (
+			!previous_incoming_value ||
+			!dequal(previous_incoming_value, incomingValue)
+		) {
+			previous_incoming_value = JSON.parse(
+				JSON.stringify(incomingValue),
+			) as DataframeValue;
+			dataframeStore.setValue(previous_incoming_value);
+		}
+	});
+
+	$effect(() => {
+		dataframeStore.config.pinned_columns = pinned_columns ?? 0;
+		dataframeStore.config.column_widths = column_widths ?? [];
+		dataframeStore.config.max_height = max_height ?? 500;
+	});
+
+	const selected_cells = $derived(dataframeStore.selection.cells);
+	const selected = $derived(dataframeStore.selectedCell || false);
+	const editing = $derived(dataframeStore.selection.editing || false);
+	const header_edit = $derived(dataframeStore.selection.headerEdit || false);
+	const selected_header = $derived(
+		dataframeStore.selection.selectedHeader || false,
+	);
+	const active_cell_menu = $derived(dataframeStore.ui.activeCellMenu);
+	const active_header_menu = $derived(dataframeStore.ui.activeHeaderMenu);
+	const copy_flash = $derived(dataframeStore.ui.copyFlash);
+
+	const actual_pinned_columns = $derived(
 		pinned_columns && data?.[0]?.length
 			? Math.min(pinned_columns, data[0].length)
-			: 0;
+			: 0,
+	);
+
+	const sort_columns = $derived(dataframeStore.sort.columns);
+	const filter_columns = $derived(dataframeStore.filter.columns);
+	const current_search_query = $derived(dataframeStore.search.query);
+	let selected_index: number | false = $state(false);
 
 	onMount(() => {
-		df_ctx.parent_element = parent;
-		df_ctx.get_data_at = get_data_at;
-		df_ctx.get_column = get_column;
-		df_ctx.get_row = get_row;
-		df_ctx.dispatch = dispatch;
 		init_drag_handlers();
 
 		const observer = new IntersectionObserver((entries) => {
@@ -152,16 +235,6 @@
 		};
 	});
 
-	$: {
-		if (data || _headers || els) {
-			df_ctx.data = data;
-			df_ctx.headers = _headers;
-			df_ctx.els = els;
-			df_ctx.display_value = display_value;
-			df_ctx.styling = styling;
-		}
-	}
-
 	const dispatch = createEventDispatcher<{
 		change: DataframeValue;
 		input: undefined;
@@ -170,24 +243,243 @@
 		edit: EditData;
 	}>();
 
-	let els: Record<
-		string,
-		{ cell: null | HTMLTableCellElement; input: null | HTMLTextAreaElement }
-	> = {};
-	let data_binding: Record<string, (typeof data)[0][0]> = {};
-	let _headers = make_headers(headers, col_count, els, make_id);
-	let old_headers: string[] = headers;
-	let data: { id: string; value: CellValue; display_value?: string }[][] = [[]];
-	let old_val: undefined | CellValue[][] = undefined;
-	let search_results: {
-		id: string;
-		value: CellValue;
-		display_value?: string;
-		styling?: string;
-	}[][] = [[]];
-	let dragging = false;
-	let color_accent_copied: string;
-	let filtered_to_original_map: number[] = [];
+	const visible_rows = $derived(dataframeStore.visibleRows);
+
+	const search_results = $derived(
+		visible_rows.length === 0
+			? []
+			: visible_rows.map((row) => data[row.rowIndex] ?? []),
+	);
+	const filtered_to_original_map = $derived(
+		visible_rows.map((row) => row.rowIndex),
+	);
+
+	function snapshotCurrentData(): DataSnapshot {
+		return {
+			data: data.map((row) => row.map((cell) => ({ ...cell }))),
+			display_value: display_value
+				? JSON.parse(JSON.stringify(display_value))
+				: null,
+			styling: styling ? JSON.parse(JSON.stringify(styling)) : null,
+		};
+	}
+
+	function restoreFromSnapshot(snapshot: DataSnapshot | null): void {
+		if (!snapshot) return;
+		data = snapshot.data.map((row) => row.map((cell) => ({ ...cell })));
+	}
+
+	function resetSortStateAction(): void {
+		restoreFromSnapshot(sort_initial_data);
+		sort_initial_data = null;
+		dataframeStore.clearSort();
+	}
+
+	function resetFilterStateAction(): void {
+		restoreFromSnapshot(filter_initial_data);
+		filter_initial_data = null;
+		dataframeStore.clearFilters();
+	}
+
+	function handleSortAction(col: number, direction: SortDirection): void {
+		if (!sort_initial_data && sort_columns.length === 0) {
+			sort_initial_data = snapshotCurrentData();
+		}
+		dataframeStore.setSort(col, direction);
+		if (dataframeStore.sort.columns.length === 0) {
+			resetSortStateAction();
+			return;
+		}
+	}
+
+	function handleFilterAction(
+		col: number,
+		datatype: FilterDatatype,
+		filter: string,
+		value: string,
+	): void {
+		if (!filter_initial_data && filter_columns.length === 0) {
+			filter_initial_data = snapshotCurrentData();
+		}
+		dataframeStore.toggleFilter({ col, datatype, filter, value });
+		if (dataframeStore.filter.columns.length === 0) {
+			resetFilterStateAction();
+		}
+	}
+
+	function handleSearchAction(query: string | null): void {
+		dataframeStore.setSearch(query);
+	}
+
+	const df_actions = {
+		reset_sort_state: resetSortStateAction,
+		handle_sort: handleSortAction,
+		update_row_order: () => {},
+		reset_filter_state: resetFilterStateAction,
+		handle_filter: handleFilterAction,
+		handle_search: handleSearchAction,
+		set_header_edit: (index: number | false) =>
+			dataframeStore.setHeaderEdit(index),
+		set_editing: (coords: CellCoordinate | false) =>
+			dataframeStore.setEditing(coords),
+		handle_header_click: (col: number, editable: boolean) => {
+			if (!editable) return;
+			dataframeStore.setActiveCellMenu(null);
+			dataframeStore.setActiveHeaderMenu(null);
+			dataframeStore.setSelected(false);
+			dataframeStore.setSelectedCells([]);
+			dataframeStore.setSelectedHeader(col);
+			dataframeStore.setHeaderEdit(col);
+		},
+		end_header_edit: (key: string) => {
+			if (["Escape", "Enter", "Tab"].includes(key)) {
+				dataframeStore.setSelected(false);
+				dataframeStore.setHeaderEdit(false);
+			}
+		},
+		add_col: (
+			matrix: TableCellMatrix,
+			headerValues: Headers,
+			makeId: () => string,
+			index?: number,
+		) => {
+			const newHeaders = [...headerValues, `Header ${headerValues.length + 1}`];
+			const newData = matrix.map((row) => [
+				...row,
+				{ id: makeId(), value: "" },
+			]);
+			if (index !== undefined) {
+				newHeaders.splice(index, 0, newHeaders.pop()!);
+				newData.forEach((row) => row.splice(index, 0, row.pop()!));
+			}
+			return { data: newData, headers: newHeaders };
+		},
+		clear_ui_state: () => dataframeStore.clearUIState(),
+		set_copy_flash: (value: boolean) => dataframeStore.setCopyFlash(value),
+		set_active_header_menu: (
+			menu: { col: number; x: number; y: number } | null,
+		) => dataframeStore.setActiveHeaderMenu(menu),
+		set_active_cell_menu: (
+			menu: {
+				row: number;
+				col: number;
+				x: number;
+				y: number;
+			} | null,
+		) => dataframeStore.setActiveCellMenu(menu),
+		set_selected_cells: (cells: CellCoordinate[]) =>
+			dataframeStore.setSelectedCells(cells),
+		set_selected: (cell: CellCoordinate | false) =>
+			dataframeStore.setSelected(cell),
+		delete_col_at: (
+			matrix: TableCellMatrix,
+			headerValues: Headers,
+			index: number,
+		) => {
+			if (!matrix[0] || index < 0 || index >= matrix[0].length) {
+				return { data: matrix, headers: headerValues };
+			}
+			const nextData = matrix.map((row) => [
+				...row.slice(0, index),
+				...row.slice(index + 1),
+			]);
+			const nextHeaders = [
+				...headerValues.slice(0, index),
+				...headerValues.slice(index + 1),
+			];
+			return { data: nextData, headers: nextHeaders };
+		},
+		delete_row_at: (matrix: TableCellMatrix, index: number) => {
+			if (index < 0 || index >= matrix.length) return matrix;
+			const next = [...matrix];
+			next.splice(index, 1);
+			return next;
+		},
+		handle_cell_click: (event: MouseEvent, row: number, col: number) => {
+			event.preventDefault();
+			event.stopPropagation();
+			const cells = handle_selection([row, col], selected_cells, event);
+			dataframeStore.setActiveCellMenu(null);
+			dataframeStore.setActiveHeaderMenu(null);
+			dataframeStore.setSelectedCells(cells);
+			dataframeStore.setSelected(cells[0] ?? false);
+			dataframeStore.setHeaderEdit(false);
+			dataframeStore.setSelectedHeader(false);
+			if (editable && cells.length === 1) {
+				dataframeStore.setEditing([row, col]);
+				tick().then(() => {
+					const cellId = data[row][col].id;
+					els[cellId]?.input?.focus();
+				});
+			} else {
+				dataframeStore.setEditing(false);
+			}
+			dispatch("select", {
+				index: [row, col],
+				col_value: get_column(col),
+				row_value: get_row(row),
+				value: get_data_at(row, col),
+			});
+		},
+		toggle_cell_menu: (event: MouseEvent, row: number, col: number) => {
+			event.stopPropagation();
+			const current_menu = active_cell_menu;
+			if (current_menu?.row === row && current_menu.col === col) {
+				dataframeStore.setActiveCellMenu(null);
+				return;
+			}
+			const cell = (event.target as HTMLElement).closest("td");
+			if (cell) {
+				const rect = cell.getBoundingClientRect();
+				dataframeStore.setActiveCellMenu({
+					row,
+					col,
+					x: rect.right,
+					y: rect.bottom,
+				});
+			}
+		},
+		handle_select_column: (col: number) => {
+			if (!data) return;
+			const cells = data.map(
+				(_, rowIndex) => [rowIndex, col] as CellCoordinate,
+			);
+			dataframeStore.setSelectedCells(cells);
+			dataframeStore.setSelected(cells[0] ?? false);
+			dataframeStore.setEditing(false);
+		},
+		handle_select_row: (rowIndex: number) => {
+			if (!data || !data[0]) return;
+			const cells = data[0].map((_, col) => [rowIndex, col] as CellCoordinate);
+			dataframeStore.setSelectedCells(cells);
+			dataframeStore.setSelected(cells[0] ?? false);
+			dataframeStore.setEditing(false);
+		},
+		trigger_change: (
+			currentData: TableCellMatrix,
+			currentHeaders: { value: string }[],
+			previous_data: CellValue[][],
+			previous_headers: string[],
+			value_is_output: boolean,
+			dispatch: (event: "change" | "input", detail?: any) => void,
+		) => {
+			const headersValues = currentHeaders.map((h) => h.value);
+			const plainData = currentData.map((row) => row.map((cell) => cell.value));
+			if (
+				!dequal(plainData, previous_data) ||
+				!dequal(headersValues, previous_headers)
+			) {
+				dispatch("change", {
+					data: plainData,
+					headers: headersValues,
+					metadata: null,
+				});
+				if (!value_is_output) {
+					dispatch("input");
+				}
+			}
+		},
+	};
 
 	onMount(() => {
 		const color = getComputedStyle(document.documentElement)
@@ -196,7 +488,7 @@
 		color_accent_copied = color + "40"; // 80 is 50% opacity in hex
 		document.documentElement.style.setProperty(
 			"--color-accent-copied",
-			color_accent_copied
+			color_accent_copied,
 		);
 	});
 
@@ -209,23 +501,42 @@
 	const get_row = (row: number): CellValue[] =>
 		data?.[row]?.map((cell) => cell.value) ?? [];
 
-	$: {
+	$effect(() => {
 		if (!dequal(headers, old_headers)) {
 			_headers = make_headers(headers, col_count, els, make_id);
 			old_headers = JSON.parse(JSON.stringify(headers));
 		}
-	}
+	});
 
 	function make_id(): string {
 		return Math.random().toString(36).substring(2, 15);
 	}
 
-	export let display_value: string[][] | null = null;
-	export let styling: string[][] | null = null;
+	$effect(() => {
+		if (!dequal(values, old_val)) {
+			if (parent) {
+				// only clear column widths when the data structure changes
+				const is_reset =
+					values.length === 0 ||
+					(values.length === 1 && values[0].length === 0);
+				const is_different_structure =
+					old_val !== undefined &&
+					(values.length !== old_val.length ||
+						(values[0] &&
+							old_val[0] &&
+							values[0].length !== old_val[0].length));
 
-	$: if (!dequal(values, old_val)) {
-		if (parent) {
-			// only clear column widths when the data structure changes
+				if (is_reset || is_different_structure) {
+					for (let i = 0; i < 50; i++) {
+						parent.style.removeProperty(`--cell-width-${i}`);
+					}
+					last_width_data_length = 0;
+					last_width_column_count = 0;
+					width_calculated = false;
+				}
+			}
+
+			// only reset sort state when values are changed
 			const is_reset =
 				values.length === 0 || (values.length === 1 && values[0].length === 0);
 			const is_different_structure =
@@ -233,107 +544,45 @@
 				(values.length !== old_val.length ||
 					(values[0] && old_val[0] && values[0].length !== old_val[0].length));
 
+			data = process_data(
+				values as CellValue[][],
+				els,
+				data_binding,
+				make_id,
+				display_value,
+				datatype,
+			);
+			old_val = JSON.parse(JSON.stringify(values)) as CellValue[][];
+
 			if (is_reset || is_different_structure) {
-				for (let i = 0; i < 50; i++) {
-					parent.style.removeProperty(`--cell-width-${i}`);
-				}
-				last_width_data_length = 0;
-				last_width_column_count = 0;
+				df_actions.reset_sort_state();
+			} else if (sort_columns.length > 0) {
+				sort_data(data, display_value, styling);
+			} else {
+				df_actions.handle_sort(-1, "asc");
+				df_actions.reset_sort_state();
+			}
+
+			if (filter_columns.length > 0) {
+				filter_data(data, display_value, styling);
+			} else {
+				df_actions.reset_filter_state();
+			}
+
+			if (current_search_query) {
+				handle_search(null);
+			}
+
+			if (parent && cells.length > 0 && (is_reset || is_different_structure)) {
 				width_calculated = false;
 			}
 		}
-
-		// only reset sort state when values are changed
-		const is_reset =
-			values.length === 0 || (values.length === 1 && values[0].length === 0);
-		const is_different_structure =
-			old_val !== undefined &&
-			(values.length !== old_val.length ||
-				(values[0] && old_val[0] && values[0].length !== old_val[0].length));
-
-		data = process_data(
-			values as CellValue[][],
-			els,
-			data_binding,
-			make_id,
-			display_value,
-			datatype
-		);
-		old_val = JSON.parse(JSON.stringify(values)) as CellValue[][];
-
-		if (is_reset || is_different_structure) {
-			df_actions.reset_sort_state();
-		} else if ($df_state.sort_state.sort_columns.length > 0) {
-			sort_data(data, display_value, styling);
-		} else {
-			df_actions.handle_sort(-1, "asc");
-			df_actions.reset_sort_state();
-		}
-
-		if ($df_state.filter_state.filter_columns.length > 0) {
-			filter_data(data, display_value, styling);
-		} else {
-			df_actions.reset_filter_state();
-		}
-
-		if ($df_state.current_search_query) {
-			df_actions.handle_search(null);
-		}
-
-		if (parent && cells.length > 0 && (is_reset || is_different_structure)) {
-			width_calculated = false;
-		}
-	}
-
-	$: if ($df_state.current_search_query !== undefined) {
-		const cell_map = new Map();
-		filtered_to_original_map = [];
-
-		data.forEach((row, row_idx) => {
-			if (
-				row.some((cell) =>
-					String(cell?.value)
-						.toLowerCase()
-						.includes($df_state.current_search_query?.toLowerCase() || "")
-				)
-			) {
-				filtered_to_original_map.push(row_idx);
-			}
-			row.forEach((cell, col_idx) => {
-				cell_map.set(cell.id, {
-					value: cell.value,
-					display_value:
-						cell.display_value !== undefined
-							? cell.display_value
-							: String(cell.value),
-					styling: styling?.[row_idx]?.[col_idx] || ""
-				});
-			});
-		});
-
-		const filtered = df_actions.filter_data(data);
-
-		search_results = filtered.map((row) =>
-			row.map((cell) => {
-				const original = cell_map.get(cell.id);
-				return {
-					...cell,
-					display_value:
-						original?.display_value !== undefined
-							? original.display_value
-							: String(cell.value),
-					styling: original?.styling || ""
-				};
-			})
-		);
-	} else {
-		filtered_to_original_map = [];
-	}
+	});
 
 	let previous_headers = _headers.map((h) => h.value);
 	let previous_data = data.map((row) => row.map((cell) => cell.value));
 
-	$: {
+	$effect(() => {
 		if (data || _headers) {
 			df_actions.trigger_change(
 				data,
@@ -341,15 +590,18 @@
 				previous_data,
 				previous_headers,
 				value_is_output,
-				dispatch
+				dispatch,
 			);
 			previous_data = data.map((row) => row.map((cell) => cell.value));
 			previous_headers = _headers.map((h) => h.value);
 		}
-	}
+	});
 
 	function handle_sort(col: number, direction: SortDirection): void {
 		df_actions.handle_sort(col, direction);
+		if (dataframeStore.sort.columns.length === 0) {
+			return;
+		}
 		sort_data(data, display_value, styling);
 	}
 
@@ -358,22 +610,22 @@
 		sort_data(data, display_value, styling);
 	}
 
-	$: {
-		if ($df_state.filter_state.filter_columns.length > 0) {
+	$effect(() => {
+		if (filter_columns.length > 0) {
 			filter_data(data, display_value, styling);
 		}
 
-		if ($df_state.sort_state.sort_columns.length > 0) {
+		if (sort_columns.length > 0) {
 			sort_data(data, display_value, styling);
 			df_actions.update_row_order(data);
 		}
-	}
+	});
 
 	function handle_filter(
 		col: number,
 		datatype: FilterDatatype,
 		filter: string,
-		value: string
+		value: string,
 	): void {
 		df_actions.handle_filter(col, datatype, filter, value);
 		filter_data(data, display_value, styling);
@@ -382,6 +634,10 @@
 	function clear_filter(): void {
 		df_actions.reset_filter_state();
 		filter_data(data, display_value, styling);
+	}
+
+	function handle_search(query: string | null): void {
+		df_actions.handle_search(query);
 	}
 
 	async function edit_header(i: number, _select = false): Promise<void> {
@@ -427,8 +683,19 @@
 		} else {
 			data.push(new_row);
 		}
+		const insertIndex =
+			index !== undefined && index >= 0 && index <= data.length - 1
+				? index
+				: data.length - 1;
+		dataframeStore.addRow(insertIndex);
 
-		selected = [index !== undefined ? index : data.length - 1, 0];
+		const new_selection: CellCoordinate = [
+			index !== undefined ? index : data.length - 1,
+			0,
+		];
+		dataframeStore.setSelectedCells([new_selection]);
+		dataframeStore.setSelected(new_selection);
+		dataframeStore.setEditing(new_selection);
 	}
 
 	async function add_col(index?: number): Promise<void> {
@@ -447,6 +714,7 @@
 
 		data = result.data;
 		headers = result.headers;
+		dataframeStore.addColumn(index);
 
 		await tick();
 
@@ -460,39 +728,72 @@
 	function handle_click_outside(event: Event): void {
 		if (handle_click_outside_util(event, parent)) {
 			df_actions.clear_ui_state();
-			header_edit = false;
-			selected_header = false;
 		}
 	}
 
-	$: max = get_max(data);
+	const max = $derived(get_max(data));
 
 	let width_calc_timeout: ReturnType<typeof setTimeout>;
-	$: if (cells[0] && cells[0]?.clientWidth) {
-		clearTimeout(width_calc_timeout);
-		width_calc_timeout = setTimeout(() => set_cell_widths(), 100);
-	}
+	$effect(() => {
+		if (cells[0] && cells[0]?.clientWidth) {
+			clearTimeout(width_calc_timeout);
+			width_calc_timeout = setTimeout(() => set_cell_widths(), 100);
+		}
+	});
 
 	let width_calculated = false;
-	$: if (cells[0] && !width_calculated) {
-		set_cell_widths();
-		width_calculated = true;
-	}
+	$effect(() => {
+		if (cells[0] && !width_calculated) {
+			set_cell_widths();
+			width_calculated = true;
+		}
+	});
 	let cells: HTMLTableCellElement[] = [];
 	let parent: HTMLDivElement;
 	let table: HTMLTableElement;
 	let last_width_data_length = 0;
 	let last_width_column_count = 0;
 
+	const emitKeyboardEvent = (event: "change" | "input", detail?: any): void => {
+		if (event === "change") {
+			dispatch("change", detail);
+			return;
+		}
+		dispatch("input");
+	};
+
+	const keyboard_context: KeyboardContext = {
+		get data() {
+			return data;
+		},
+		get headers() {
+			return _headers;
+		},
+		get els() {
+			return els;
+		},
+		get parent_element() {
+			return parent;
+		},
+		dispatch: emitKeyboardEvent,
+		store: dataframeStore,
+		get editable() {
+			return editable;
+		},
+		get static_columns() {
+			return static_columns;
+		},
+	};
+
 	function set_cell_widths(): void {
 		const column_count = data[0]?.length || 0;
-		if ($df_state.filter_state.filter_columns.length > 0) {
+		if (filter_columns.length > 0) {
 			return;
 		}
 		if (
 			last_width_data_length === data.length &&
 			last_width_column_count === column_count &&
-			$df_state.sort_state.sort_columns.length > 0
+			sort_columns.length > 0
 		) {
 			return;
 		}
@@ -542,42 +843,49 @@
 	function sort_data(
 		_data: typeof data,
 		_display_value: string[][] | null,
-		_styling: string[][] | null
+		_styling: string[][] | null,
 	): void {
 		const result = sort_data_and_preserve_selection(
 			_data,
 			_display_value,
 			_styling,
-			$df_state.sort_state.sort_columns,
+			dataframeStore.sort.columns,
 			selected,
-			get_current_indices
+			get_current_indices,
 		);
 
 		data = result.data;
-		selected = result.selected;
+		dataframeStore.setSelected(result.selected || false);
 	}
 
 	function filter_data(
 		_data: typeof data,
 		_display_value: string[][] | null,
-		_styling: string[][] | null
+		_styling: string[][] | null,
 	): void {
 		const result = filter_data_and_preserve_selection(
 			_data,
 			_display_value,
 			_styling,
-			$df_state.filter_state.filter_columns,
+			dataframeStore.filter.columns,
 			selected,
 			get_current_indices,
-			$df_state.filter_state.initial_data?.data,
-			$df_state.filter_state.initial_data?.display_value,
-			$df_state.filter_state.initial_data?.styling
+			filter_initial_data?.data,
+			filter_initial_data?.display_value,
+			filter_initial_data?.styling,
 		);
 		data = result.data;
-		selected = result.selected;
+		dataframeStore.setSelected(result.selected || false);
 	}
 
-	$: selected_index = !!selected && selected[0];
+	$effect(() => {
+		if (selected === false) {
+			selected_index = false;
+		} else {
+			const mapped_index = filtered_to_original_map.indexOf(selected[0]);
+			selected_index = mapped_index !== -1 ? mapped_index : false;
+		}
+	});
 
 	let is_visible = false;
 
@@ -590,21 +898,25 @@
 
 	let previous_selected_cells: [number, number][] = [];
 
-	$: {
+	$effect(() => {
 		if (copy_flash && !dequal(selected_cells, previous_selected_cells)) {
 			set_copy_flash(false);
 		}
 		previous_selected_cells = selected_cells;
-	}
+	});
 
-	function handle_blur(
+	async function handle_blur(
 		event: CustomEvent<{
 			blur_event: FocusEvent;
 			coords: [number, number];
-		}>
-	): void {
+		}>,
+	): Promise<void> {
 		const { blur_event, coords } = event.detail;
-		handle_cell_blur(blur_event, df_ctx, coords);
+		await handle_cell_blur(blur_event, keyboard_context, coords);
+		dataframeStore.updateCell(
+			coords,
+			data?.[coords[0]]?.[coords[1]]?.value ?? "",
+		);
 	}
 
 	function toggle_header_menu(event: MouseEvent, col: number): void {
@@ -618,15 +930,11 @@
 				df_actions.set_active_header_menu({
 					col,
 					x: rect.right,
-					y: rect.bottom
+					y: rect.bottom,
 				});
 			}
 		}
 	}
-
-	afterUpdate(() => {
-		value_is_output = false;
-	});
 
 	function delete_col_at(index: number): void {
 		if (col_count[1] !== "dynamic") return;
@@ -641,37 +949,45 @@
 		df_actions.set_selected(false);
 		df_actions.set_selected_cells([]);
 		df_actions.set_editing(false);
+		dataframeStore.deleteColumn(index);
 	}
 
 	function delete_row_at(index: number): void {
 		data = df_actions.delete_row_at(data, index);
 		df_actions.set_active_cell_menu(null);
 		df_actions.set_active_header_menu(null);
+		dataframeStore.deleteRow(index);
 	}
 
 	let selected_cell_coords: CellCoordinate;
-	$: if (selected !== false) selected_cell_coords = selected;
+	$effect(() => {
+		if (selected !== false) {
+			selected_cell_coords = selected;
+		}
+	});
 
-	$: if (selected !== false) {
-		const positions = calculate_selection_positions(
-			selected,
-			data,
-			els,
-			parent,
-			table
-		);
-		document.documentElement.style.setProperty(
-			"--selected-col-pos",
-			positions.col_pos
-		);
-		document.documentElement.style.setProperty(
-			"--selected-row-pos",
-			positions.row_pos || "0px"
-		);
-	}
+	$effect(() => {
+		if (selected !== false) {
+			const positions = calculate_selection_positions(
+				selected,
+				data,
+				els,
+				parent,
+				table,
+			);
+			document.documentElement.style.setProperty(
+				"--selected-col-pos",
+				positions.col_pos,
+			);
+			document.documentElement.style.setProperty(
+				"--selected-row-pos",
+				positions.row_pos || "0px",
+			);
+		}
+	});
 
 	function commit_filter(): void {
-		if ($df_state.current_search_query && show_search === "filter") {
+		if (current_search_query && show_search === "filter") {
 			const filtered_data: CellValue[][] = [];
 			const filtered_display_values: string[][] = [];
 			const filtered_styling: string[][] = [];
@@ -686,7 +1002,7 @@
 					display_row.push(
 						cell.display_value !== undefined
 							? cell.display_value
-							: String(cell.value)
+							: String(cell.value),
 					);
 					styling_row.push(cell.styling || "");
 				});
@@ -701,8 +1017,8 @@
 				headers: _headers.map((h) => h.value),
 				metadata: {
 					display_value: filtered_display_values,
-					styling: filtered_styling
-				}
+					styling: filtered_styling,
+				},
 			};
 
 			dispatch("change", change_payload);
@@ -711,7 +1027,7 @@
 				dispatch("input");
 			}
 
-			df_actions.handle_search(null);
+			handle_search(null);
 		}
 	}
 
@@ -720,16 +1036,16 @@
 
 	function scroll_to_top(): void {
 		viewport.scrollTo({
-			top: 0
+			top: 0,
 		});
 	}
 
 	function handle_resize(): void {
 		df_actions.set_active_cell_menu(null);
 		df_actions.set_active_header_menu(null);
-		selected_cells = [];
-		selected = false;
-		editing = false;
+		dataframeStore.setSelectedCells([]);
+		dataframeStore.setSelected(false);
+		dataframeStore.setEditing(false);
 		width_calculated = false;
 		set_cell_widths();
 	}
@@ -737,15 +1053,15 @@
 	function add_row_at(index: number, position: "above" | "below"): void {
 		const row_index = position === "above" ? index : index + 1;
 		add_row(row_index);
-		active_cell_menu = null;
-		active_header_menu = null;
+		dataframeStore.setActiveCellMenu(null);
+		dataframeStore.setActiveHeaderMenu(null);
 	}
 
 	function add_col_at(index: number, position: "left" | "right"): void {
 		const col_index = position === "left" ? index : index + 1;
 		add_col(col_index);
-		active_cell_menu = null;
-		active_header_menu = null;
+		dataframeStore.setActiveCellMenu(null);
+		dataframeStore.setActiveHeaderMenu(null);
 	}
 
 	export function reset_sort_state(): void {
@@ -758,7 +1074,7 @@
 			if (new_row[col]) {
 				new_row[col] = {
 					...new_row[col],
-					value: checked
+					value: checked,
 				};
 			}
 			return new_row;
@@ -772,16 +1088,19 @@
 	const drag_state: DragState = {
 		is_dragging,
 		drag_start,
-		mouse_down_pos
+		mouse_down_pos,
 	};
 
-	$: {
+	$effect(() => {
 		is_dragging = drag_state.is_dragging;
 		drag_start = drag_state.drag_start;
 		mouse_down_pos = drag_state.mouse_down_pos;
-	}
+	});
 
 	let drag_handlers: DragHandlers;
+	let handle_mouse_down: DragHandlers["handle_mouse_down"] = () => {};
+	let handle_mouse_move: DragHandlers["handle_mouse_move"] = () => {};
+	let handle_mouse_up: DragHandlers["handle_mouse_up"] = () => {};
 
 	function init_drag_handlers(): void {
 		drag_handlers = create_drag_handlers(
@@ -791,18 +1110,22 @@
 			(cell) => df_actions.set_selected(cell),
 			(event, row, col) => df_actions.handle_cell_click(event, row, col),
 			show_row_numbers,
-			parent
+			parent,
 		);
 	}
 
-	$: if (parent) init_drag_handlers();
+	$effect(() => {
+		if (parent) init_drag_handlers();
+	});
 
-	$: handle_mouse_down = drag_handlers?.handle_mouse_down || (() => {});
-	$: handle_mouse_move = drag_handlers?.handle_mouse_move || (() => {});
-	$: handle_mouse_up = drag_handlers?.handle_mouse_up || (() => {});
+	$effect(() => {
+		handle_mouse_down = drag_handlers?.handle_mouse_down || (() => {});
+		handle_mouse_move = drag_handlers?.handle_mouse_move || (() => {});
+		handle_mouse_up = drag_handlers?.handle_mouse_up || (() => {});
+	});
 
 	function get_cell_display_value(row: number, col: number): string {
-		const is_search_active = $df_state.current_search_query !== undefined;
+		const is_search_active = Boolean(current_search_query);
 
 		if (is_search_active && search_results?.[row]?.[col]) {
 			return search_results[row][col].display_value !== undefined
@@ -838,10 +1161,10 @@
 				on_copy={async () => await copy_table_data(data, null)}
 				show_copy_button={buttons === null ? true : buttons.includes("copy")}
 				{show_search}
-				on:search={(e) => df_actions.handle_search(e.detail)}
+				on:search={(e) => handle_search(e.detail)}
 				on:fullscreen
 				on_commit_filter={commit_filter}
-				current_search_query={$df_state.current_search_query}
+				{current_search_query}
 			/>
 		</div>
 	{/if}
@@ -851,7 +1174,7 @@
 		class:dragging={is_dragging}
 		class:no-wrap={!wrap}
 		class:menu-open={active_cell_menu || active_header_menu}
-		on:keydown={(e) => handle_keydown(e, df_ctx)}
+		on:keydown={(e) => handle_keydown(e, keyboard_context)}
 		on:mousemove={handle_mouse_move}
 		on:mouseup={handle_mouse_up}
 		on:mouseleave={handle_mouse_up}
@@ -879,8 +1202,8 @@
 							{handle_header_click}
 							{toggle_header_menu}
 							{end_header_edit}
-							sort_columns={$df_state.sort_state.sort_columns}
-							filter_columns={$df_state.filter_state.filter_columns}
+							{sort_columns}
+							{filter_columns}
 							{latex_delimiters}
 							{line_breaks}
 							{max_chars}
@@ -944,20 +1267,20 @@
 							head.map((h) => h ?? ""),
 							col_count,
 							els,
-							make_id
+							make_id,
 						);
 						return _headers;
 					},
 					(vals) => {
 						values = vals;
-					}
+					},
 				)}
 			bind:dragging
 			aria_label={i18n("dataframe.drop_to_upload")}
 		>
 			<div class="table-wrap">
 				<VirtualTable
-					bind:items={search_results}
+					items={search_results}
 					{max_height}
 					bind:actual_height={table_height}
 					bind:table_scrollbar_width={scrollbar_width}
@@ -985,8 +1308,8 @@
 								{handle_header_click}
 								{toggle_header_menu}
 								{end_header_edit}
-								sort_columns={$df_state.sort_state.sort_columns}
-								filter_columns={$df_state.filter_state.filter_columns}
+								{sort_columns}
+								{filter_columns}
 								{latex_delimiters}
 								{line_breaks}
 								{max_chars}
@@ -1009,7 +1332,7 @@
 							<TableCell
 								bind:value={search_results[index][j].value}
 								display_value={get_cell_display_value(index, j)}
-								index={$df_state.current_search_query !== undefined &&
+								index={current_search_query &&
 								filtered_to_original_map[index] !== undefined
 									? filtered_to_original_map[index]
 									: index}
@@ -1068,12 +1391,12 @@
 		on_add_column_left={() =>
 			add_col_at(
 				active_cell_menu?.col ?? active_header_menu?.col ?? -1,
-				"left"
+				"left",
 			)}
 		on_add_column_right={() =>
 			add_col_at(
 				active_cell_menu?.col ?? active_header_menu?.col ?? -1,
-				"right"
+				"right",
 			)}
 		on_delete_row={() => delete_row_at(active_cell_menu?.row ?? -1)}
 		on_delete_col={() =>
@@ -1097,13 +1420,13 @@
 				}
 			: undefined}
 		sort_direction={active_header_menu
-			? ($df_state.sort_state.sort_columns.find(
-					(item) => item.col === (active_header_menu?.col ?? -1)
+			? (sort_columns.find(
+					(item) => item.col === (active_header_menu?.col ?? -1),
 				)?.direction ?? null)
 			: null}
 		sort_priority={active_header_menu
-			? $df_state.sort_state.sort_columns.findIndex(
-					(item) => item.col === (active_header_menu?.col ?? -1)
+			? sort_columns.findIndex(
+					(item) => item.col === (active_header_menu?.col ?? -1),
 				) + 1 || null
 			: null}
 		on_filter={active_header_menu
@@ -1121,9 +1444,7 @@
 				}
 			: undefined}
 		filter_active={active_header_menu
-			? $df_state.filter_state.filter_columns.some(
-					(c) => c.col === (active_header_menu?.col ?? -1)
-				)
+			? filter_columns.some((c) => c.col === (active_header_menu?.col ?? -1))
 			: null}
 	/>
 {/if}

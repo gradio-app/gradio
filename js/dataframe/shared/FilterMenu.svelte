@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { Check, DropdownArrow } from "@gradio/icons";
-	import type { FilterDatatype } from "./context/dataframe_context";
+	import type { FilterDatatype } from "./utils/filter_utils";
 
 	export let on_filter: (
 		datatype: FilterDatatype,
