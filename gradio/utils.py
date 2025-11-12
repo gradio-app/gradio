@@ -346,7 +346,7 @@ def watchfn_spaces(reloader: SpacesReloader):
     if version.parse(spaces_version) < min_version:
         raise RuntimeError(f"Spaces hot-reloading requires `spaces>{min_version}`")
 
-    from spaces.reloading import start_reload_server # ty: ignore[unresolved-import] # noqa: I001
+    from spaces.reloading import start_reload_server  # ty: ignore[unresolved-import] # noqa: I001
 
     start_reload_server(
         prerun=reloader.prerun,
