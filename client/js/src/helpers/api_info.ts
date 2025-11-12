@@ -355,8 +355,9 @@ export function handle_message(
 					type: "update",
 					status: {
 						queue,
-						title: (data.title as string | null) ?? "Error",
-						message: (data.output.error as string | null) ?? "An error occurred",
+						title: (data.output.title as string | null) ?? "Error",
+						message:
+							(data.output.error as string | null) ?? "An error occurred",
 						visible: data.output.visible as boolean,
 						duration: data.output.duration as number,
 						stage: "error",
