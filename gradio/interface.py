@@ -92,7 +92,7 @@ class Interface(Blocks):
         cache_mode: Literal["eager", "lazy"] | None = None,
         examples_per_page: int = 10,
         example_labels: list[str] | None = None,
-        preload_example: int | Literal[False] = False,
+        preload_example: int | Literal[False] = 0,
         live: bool = False,
         title: str | I18nData | None = None,
         description: str | None = None,
@@ -136,7 +136,7 @@ class Interface(Blocks):
             cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If None, will use the GRADIO_CACHE_EXAMPLES environment variable, which should be either "true" or "false". In HuggingFace Spaces, this parameter defaults to True (as long as `fn` and `outputs` are also provided).  Note that examples are cached separately from Gradio's queue() so certain features, such as gr.Progress(), gr.Info(), gr.Warning(), etc. will not be displayed in Gradio's UI for cached examples.
             cache_mode: if "lazy", examples are cached after their first use. If "eager", all examples are cached at app launch. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager". In HuggingFace Spaces, this parameter defaults to "eager" except for ZeroGPU Spaces, in which case it defaults to "lazy".
             examples_per_page: if examples are provided, how many to display per page.
-            preload_example: If an integer is provided (and examples are being cached), the example at that index in the examples list will be preloaded when the Gradio app is first loaded. If False, no example will be preloaded.
+            preload_example: If an integer is provided (and examples are being cached eagerly and none of the input components have a developer-provided `value`), the example at that index in the examples list will be preloaded when the Gradio app is first loaded. If False, no example will be preloaded.
             live: whether the interface should automatically rerun if any of the inputs change.
             title: a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.
