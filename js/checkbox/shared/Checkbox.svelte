@@ -6,6 +6,8 @@
 	export let label = "Checkbox";
 	export let interactive: boolean;
 	export let indeterminate = false;
+	export let show_label = true;
+	export let info: string | undefined = undefined;
 
 	const dispatch = createEventDispatcher<{
 		change: boolean;
@@ -42,34 +44,48 @@
 	}
 </script>
 
-<label class:disabled>
+<label class="checkbox-container">
 	<input
 		bind:checked={value}
 		bind:indeterminate
 		on:keydown={handle_enter}
 		on:input={handle_input}
-		{disabled}
+		disabled={!interactive}
 		type="checkbox"
 		name="test"
 		data-testid="checkbox"
 	/>
-	<span>{label}</span>
+	{#if show_label || info}
+		<span class="label-text">
+			{#if show_label && label}
+				{label}
+			{/if}
+			{#if info}
+				<span class="info">{info}</span>
+			{/if}
+		</span>
+	{/if}
 </label>
 
 <style>
-	label {
+	.checkbox-container {
 		display: flex;
 		align-items: center;
-		transition: var(--button-transition);
+		gap: var(--spacing-lg);
 		cursor: pointer;
-		color: var(--checkbox-label-text-color);
-		font-weight: var(--checkbox-label-text-weight);
-		font-size: var(--checkbox-label-text-size);
-		line-height: var(--line-md);
 	}
 
-	label > * + * {
-		margin-left: var(--size-2);
+	.label-text {
+		color: var(--body-text-color);
+		font-size: var(--text-sm);
+		line-height: var(--line-sm);
+	}
+
+	.info {
+		display: block;
+		color: var(--body-text-color-subdued);
+		font-size: var(--text-xs);
+		margin-top: var(--spacing-xs);
 	}
 
 	input {
@@ -80,6 +96,7 @@
 		border-radius: var(--checkbox-border-radius);
 		background-color: var(--checkbox-background-color);
 		line-height: var(--line-sm);
+		flex-shrink: 0;
 	}
 
 	input:checked,
@@ -134,12 +151,11 @@
 		border-color: var(--checkbox-border-color-focus);
 	}
 
-	input[disabled],
-	.disabled {
-		cursor: not-allowed !important;
+	input[disabled] {
+		cursor: not-allowed;
 	}
 
-	input:hover {
+	input:not([disabled]):hover {
 		cursor: pointer;
 	}
 </style>

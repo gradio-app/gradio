@@ -80,10 +80,7 @@ css = """
 """
 
 with gr.Blocks(  # noqa: SIM117
-    theme=gr.themes.Base(),
-    css=css,
     title="Gradio Theme Builder",
-    head="<style id='theme_css'></style>",
 ) as demo:
     with gr.Row():
         with gr.Column(scale=1, elem_id="controls", min_width=400):
@@ -720,7 +717,9 @@ import gradio as gr
 
 theme = gr.themes.{base_theme_name}({newline if core_diffs_code or font_diffs_code else ""}{core_diffs_code}{font_diffs_code}){vars_diff_code}
 
-with gr.Blocks(theme=theme) as demo:
+with gr.Blocks() as demo:
+    ... # your code here
+demo.launch(theme=theme)
     ..."""
             return output
 
@@ -1013,4 +1012,4 @@ with gr.Blocks(theme=theme) as demo:
 
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(theme=gr.themes.Base(), css=css, head="<style id='theme_css'></style>")
