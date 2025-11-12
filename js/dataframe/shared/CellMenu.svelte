@@ -3,10 +3,8 @@
 	import CellMenuIcons from "./CellMenuIcons.svelte";
 	import FilterMenu from "./FilterMenu.svelte";
 	import type { I18nFormatter } from "@gradio/utils";
-	import type {
-		SortDirection,
-		FilterDatatype
-	} from "./context/dataframe_context";
+	import type { SortDirection } from "./state/DataframeStore.svelte";
+	import type { FilterDatatype } from "./utils/filter_utils";
 
 	export let x: number;
 	export let y: number;

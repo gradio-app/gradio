@@ -6,9 +6,9 @@
 	import Padlock from "./icons/Padlock.svelte";
 	import SortArrowUp from "./icons/SortArrowUp.svelte";
 	import SortArrowDown from "./icons/SortArrowDown.svelte";
-	import type { SortDirection } from "./context/dataframe_context";
+	import type { SortDirection } from "./state/DataframeStore.svelte";
 	import CellMenuIcons from "./CellMenuIcons.svelte";
-	import type { FilterDatatype } from "./context/dataframe_context";
+	import type { FilterDatatype } from "./utils/filter_utils";
 	import type { Datatype } from "./utils/utils";
 	import { BaseCheckbox } from "@gradio/checkbox";
 	export let value: string;
