@@ -5,6 +5,7 @@ import pathlib
 
 log_file = pathlib.Path(__file__).parent / "cancel_events_output_log.txt"
 
+
 def fake_diffusion(steps):
     log_file.write_text("")
     for i in range(steps):
@@ -14,9 +15,11 @@ def fake_diffusion(steps):
         time.sleep(0.2)
         yield str(i)
 
+
 def long_prediction(*args, **kwargs):
     time.sleep(4)
     return 42, 42
+
 
 with gr.Blocks() as demo:
     with gr.Row():
@@ -27,8 +30,12 @@ with gr.Blocks() as demo:
             stop = gr.Button(value="Stop Iterating")
         with gr.Column():
             textbox = gr.Textbox(label="Prompt")
-            loading_box = gr.Textbox(label="Loading indicator for expensive calculation")
-            loading_box2 = gr.Textbox(label="Loading indicator for expensive calculation")
+            loading_box = gr.Textbox(
+                label="Loading indicator for expensive calculation"
+            )
+            loading_box2 = gr.Textbox(
+                label="Loading indicator for expensive calculation"
+            )
             prediction = gr.Number(label="Expensive Calculation")
             prediction2 = gr.Number(label="Expensive Calculation")
             run_pred = gr.Button(value="Run Expensive Calculation")
@@ -53,7 +60,10 @@ with gr.Blocks() as demo:
     click_event = run.click(fake_diffusion, n, output)
     stop.click(fn=None, inputs=None, outputs=None, cancels=[click_event])
     pred_event = run_pred.click(
-        fn=long_prediction, inputs=[textbox], outputs=[prediction, prediction2], show_progress_on=[loading_box, loading_box2]
+        fn=long_prediction,
+        inputs=[textbox],
+        outputs=[prediction, prediction2],
+        show_progress_on=[loading_box, loading_box2],
     )
 
     cancel_on_change.change(None, None, None, cancels=[click_event, pred_event])
@@ -64,7 +74,7 @@ with gr.Blocks() as demo:
     video.start_recording(None, None, None, cancels=[click_event, pred_event])
 
     demo.queue(max_size=20)
-    atexit.register(lambda: log_file.unlink())
+    atexit.register(lambda: log_file.unlink(True))
 
 if __name__ == "__main__":
     demo.launch()

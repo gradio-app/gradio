@@ -42,90 +42,91 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			}
 		},
 		resolve: {
-			conditions: ["gradio"]
+			conditions: ["gradio", "browser"]
+		},
+		ssr: {
+			resolve: {
+				conditions: ["gradio"]
+			},
+			noExternal: ["@gradio/*", "@huggingface/space-header"]
 		},
 		build: {
 			rollupOptions: {
-				external: [
-					"/svelte/svelte.js",
-					"/svelte/svelte-submodules.js",
-					"./svelte/svelte-submodules.js",
-					"./svelte/svelte.js"
-				]
+				// external: [
+				// 	"/svelte/svelte.js",
+				// 	"/svelte/svelte-submodules.js",
+				// 	"./svelte/svelte-submodules.js",
+				// 	"./svelte/svelte.js"
+				// ]
 			},
-			minify: true,
+			minify: false,
 			sourcemap: true
 		},
+
 		define: {
-			BROWSER_BUILD: JSON.stringify(isSsrBuild),
+			// BROWSER_BUILD: JSON.stringify(isSsrBuild),
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
 			BACKEND_URL: production
 				? JSON.stringify("")
 				: JSON.stringify("http://127.0.0.1:7860/"),
 			GRADIO_VERSION: JSON.stringify(version)
 		},
-		css: {
-			postcss: {
-				plugins: [
-					prefixer({
-						prefix: `.gradio-container-${version}`,
-						// @ts-ignore
-						transform(prefix, selector, prefixedSelector, fileName) {
-							if (selector.indexOf("gradio-container") > -1) {
-								return prefix;
-							} else if (
-								selector.indexOf(":root") > -1 ||
-								selector.indexOf("dark") > -1 ||
-								selector.indexOf("body") > -1 ||
-								fileName.indexOf(".svelte") > -1
-							) {
-								return selector;
-							}
-							return prefixedSelector;
-						}
-					}),
-					custom_media()
-				]
-			}
-		},
-		ssr: {
-			noExternal: ["@gradio/*", "@huggingface/space-header"],
-			external: mode === "development" ? [] : ["svelte", "svelte/*"]
-		},
-		optimizeDeps: {
-			exclude: [
-				"@gradio/*",
-				"svelte",
-				"svelte/*",
-				"./svelte/svelte-submodules.js",
-				"./svelte/svelte.js"
-			]
-		},
+		// css: {
+		// 	postcss: {
+		// 		plugins: [
+		// 			prefixer({
+		// 				prefix: `.gradio-container-${version}`,
+		// 				// @ts-ignore
+		// 				transform(prefix, selector, prefixedSelector, fileName) {
+		// 					if (selector.indexOf("gradio-container") > -1) {
+		// 						return prefix;
+		// 					} else if (
+		// 						selector.indexOf(":root") > -1 ||
+		// 						selector.indexOf("dark") > -1 ||
+		// 						selector.indexOf("body") > -1 ||
+		// 						fileName.indexOf(".svelte") > -1
+		// 					) {
+		// 						return selector;
+		// 					}
+		// 					return prefixedSelector;
+		// 				}
+		// 			}),
+		// 			custom_media()
+		// 		]
+		// 	}
+		// },
+		// ssr: {
+		// 	noExternal: ["@gradio/*", "@huggingface/space-header"]
+		// 	// external: mode === "development" ? [] : ["svelte", "svelte/*"]
+		// },
+		// optimizeDeps: {
+		// 	exclude: ["@gradio/*"]
+		// },
 		plugins: [
 			sveltekit(),
 
-			inject_component_loader({ mode }),
-			{
-				name: "resolve_svelte",
-				enforce: "pre",
-				resolveId(id, importer, options) {
-					if (development) {
-						return null;
-					}
+			inject_component_loader({ mode })
+			// {
+			// 	name: "resolve_svelte",
+			// 	enforce: "pre",
+			// 	resolveId(id, importer, options) {
+			// 		if (development) {
+			// 			return null;
+			// 		}
 
-					if (!options?.ssr) {
-						if (id === "svelte" || id === "svelte/internal") {
-							return { id: "../../../svelte/svelte.js", external: true };
-						}
-						if (id.startsWith("svelte/")) {
-							return {
-								id: "../../../svelte/svelte-submodules.js",
-								external: true
-							};
-						}
-					}
-				}
-			}
+			// 		// if (!options?.ssr) {
+			// 		// 	if (id === "svelte" || id === "svelte/internal") {
+			// 		// 		return { id: "../../../svelte/svelte.js", external: true };
+			// 		// 	}
+			// 		// 	if (id.startsWith("svelte/")) {
+			// 		// 		return {
+			// 		// 			id: "../../../svelte/svelte-submodules.js",
+			// 		// 			external: true
+			// 		// 		};
+			// 		// 	}
+			// 		// }
+			// 	}
+			// }
 		]
 	};
 });

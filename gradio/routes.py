@@ -1097,6 +1097,7 @@ class App(FastAPI):
         async def _(event_id: str):
             event = app.get_blocks()._queue.event_ids_to_events[event_id]
             event.run_time = math.inf
+            event.closed = True
             event.signal.set()
             return {"msg": "success"}
 
@@ -2549,24 +2550,15 @@ def mount_gradio_app(
                 node_path=blocks.node_path,
             )
         )
-    blocks.theme: Theme = utils.get_theme(theme)
-    blocks.theme_css = blocks.theme._get_theme_css()
-    blocks.stylesheets = blocks.theme._stylesheets
-    theme_hasher = hashlib.sha256()
-    theme_hasher.update(blocks.theme_css.encode("utf-8"))
-    blocks.theme_hash = theme_hasher.hexdigest()
+    blocks.theme = utils.get_theme(theme)
     blocks.css = css or ""
-    css_paths = utils.none_or_singleton_to_list(css_paths)
-    for css_path in css_paths or []:
-        with open(css_path, encoding="utf-8") as css_file:
-            blocks.css += "\n" + css_file.read()
     blocks.js = js or ""
     blocks.head = head or ""
-    head_paths = utils.none_or_singleton_to_list(head_paths)
-    for head_path in head_paths or []:
-        with open(head_path, encoding="utf-8") as head_file:
-            blocks.head += "\n" + head_file.read()
+    blocks.head_paths = head_paths or []
+    blocks.css_paths = css_paths or []
+    blocks._set_html_css_theme_variables()
 
+    blocks.transpile_to_js()
     gradio_app = App.create_app(
         blocks,
         app_kwargs=app_kwargs,
