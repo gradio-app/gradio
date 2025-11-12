@@ -284,7 +284,7 @@ class GradioMCPServer:
             The output data as a list.
         """
         result = await run_sync(job.result)
-        return [result] if not isinstance(result, (list, tuple)) else result
+        return [result]
 
     @staticmethod
     def _format_progress_message(update: StatusUpdate) -> str | None:
@@ -327,10 +327,9 @@ class GradioMCPServer:
         Iterates through job updates to send progress notifications to the client.
 
         Returns:
-            The output dictionary with a "data" key containing the results.
+            The output data as a list.
         """
         step = 0
-        output = {"data": []}
         async for update in job:
             if update.type == "status":
                 update = cast(StatusUpdate, update)
@@ -363,7 +362,7 @@ class GradioMCPServer:
                     raise RuntimeError(msg)
         if job.exception():
             raise job.exception()
-        return output
+        return output["data"]
 
     def create_mcp_server(self) -> "Server":
         """
@@ -404,8 +403,7 @@ class GradioMCPServer:
             if progress_token is None:
                 output_data = await self._execute_tool_without_progress(job)
             else:
-                output = await self._execute_tool_with_progress(job, progress_token)
-                output_data = output["data"]
+                output_data = await self._execute_tool_with_progress(job, progress_token)
 
             self.pop_returned_state(block_fn.inputs, processed_args)
 
