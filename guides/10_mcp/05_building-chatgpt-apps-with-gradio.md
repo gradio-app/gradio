@@ -10,7 +10,6 @@ Building a ChatGPT app requires doing two things:
 
 * Building a custom UI with HTML, JavaScript, and CSS that will be displayed when your tool is called, an exposing that as an MCP resource. 
 
-
 We will walk through the steps in more detail below.
 
 ### Prerequisites
@@ -167,8 +166,45 @@ This will print a public URL that your Gradio app will be running on.
 
 And that's it! Once the Connector has been created, you can start prompting it by saying something like, "Use @letter-counter to count the number of r's in Gradio."
 
-### Example 2: An 
+### Example 2: An Image Brightener
 
+Next, let's see a more complex ChatGPT app for image enhancement. The ChatGPT app includes a "Brighten" button that lets the user call the tool directly from the app UI.
 
+<video src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/mcp-image-app.mp4" controls></video>
 
+Here's the complete code for this app:
 
+$code_mcp_image_app
+
+We won't break down the code in as much detail since many of the pieces are the same. But note the following differences from the earlier example:
+
+* Calling tools from the widget: The app uses `window.openai.callTool()` to invoke the MCP tool directly from a button click, without requiring ChatGPT to call it:
+
+```javascript
+const result = await window.openai.callTool('power_law_image', {
+    input_path: imageEl.src
+});
+```
+
+* Parsing tool call results: The result from `callTool()` contains a `content` array that needs to be parsed to extract data:
+
+```javascript
+function extractImageUrl(data) {
+    if (data?.content) {
+        for (const item of data.content) {
+            if (item.type === 'text' && item.text?.startsWith('Image URL: ')) {
+                return item.text.substring('Image URL: '.length).trim();
+            }
+        }
+    }
+}
+```
+
+* Updating UI based on tool results: After calling the tool, the app immediately updates the displayed image with the new result:
+
+```javascript
+const newUrl = extractImageUrl(result);
+if (newUrl) imageEl.src = newUrl;
+```
+
+With these examples, you've seen how to build both simple reactive widgets and more advanced interactive apps that can call tools directly from the UI. By combining Gradio's MCP server capabilities with the OpenAI Apps SDK, it's time to start create richer ChatGPT integrations that enhance the conversational experience with custom visualizations and user interactions!
