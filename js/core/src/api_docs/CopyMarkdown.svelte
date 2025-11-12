@@ -85,8 +85,6 @@ ${info?.named_endpoints["/" + d.api_name]?.returns
 		return `${info?.named_endpoints["/" + d.api_name]?.returns?.length > 1 ? `[${i}]: ` : ""}- Type: ${type}\n- The output value that appears in the "${r.label}" ${r.component} component.`;
 	})
 	.join("\n\n")}
-
-
 `
 	)
 	.join("\n\n\n")}
@@ -189,7 +187,6 @@ ${info?.named_endpoints["/" + d.api_name]?.returns
 		return `${info?.named_endpoints["/" + d.api_name]?.returns?.length > 1 ? `[${i}]: ` : ""}- Type: ${type}\n- The output value that appears in the "${r.label}" ${r.component} component.`;
 	})
 	.join("\n\n")}
-
 `
 	)
 	.join("\n\n\n")}
@@ -323,7 +320,6 @@ Read more about the MCP in the [Gradio docs](${mcp_docs}).
 	let triggerEl: HTMLDivElement | null = null;
 	let menuEl: HTMLDivElement | null = null;
 	let menuStyle = "";
-	let closeTimeout: ReturnType<typeof setTimeout> | null = null;
 
 	const isClient = typeof window !== "undefined";
 
@@ -349,13 +345,23 @@ Read more about the MCP in the [Gradio docs](${mcp_docs}).
 		open ? closeMenu() : openMenu();
 	}
 
-	// function launchExternal(option: ExternalOption) {
-	// 	ensurePromptAndUrl();
-	// 	if (isClient) {
-	// 		window.open(option.buildUrl(), "_blank", "noopener,noreferrer");
-	// 	}
-	// 	closeMenu();
-	// }
+	function buildUrl() {
+				const encodedPromptText = encodeURIComponent(
+					`--------------------------------
+${markdown_content[current_language]}
+--------------------------------
+
+Read the documentation above so I can ask questions about it.`
+				);
+				return `https://huggingface.co/chat/?prompt=${encodedPromptText}`;
+		}
+
+	function openHuggingChat() {
+		if (isClient) {
+			window.open(buildUrl(), "_blank", "noopener,noreferrer");
+		}
+		closeMenu();
+	}
 
 	function handleWindowPointer(event: MouseEvent) {
 		if (!open || !isClient) return;
@@ -480,7 +486,7 @@ Read more about the MCP in the [Gradio docs](${mcp_docs}).
 			<button
 				role="menuitem"
 				on:click={() => {
-					copyMarkdown(current_language);
+					openHuggingChat();
 					closeMenu();
 				}}
 				class="base-menu-item"
@@ -493,7 +499,7 @@ Read more about the MCP in the [Gradio docs](${mcp_docs}).
 						Open in HuggingChat
 						<IconArrowUpRight classNames="menu-icon-arrow" />
 					</div>
-					<div class="menu-text-secondary">Ask Questions About This Page</div>
+					<div class="menu-text-secondary">Ask Questions About The {current_language_label} Docs</div>
 				</div>
 			</button>
 
