@@ -3,7 +3,7 @@
 	import type { CheckboxProps, CheckboxEvents } from "../types";
 
 	let {
-		value,
+		value = $bindable(),
 		interactive = true,
 		label,
 		on_change,

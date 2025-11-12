@@ -28,12 +28,12 @@
 	/>
 	{#if gradio}
 		<BaseCheckbox
-			value={gradio.props.value}
+			bind:value={gradio.props.value}
 			interactive={gradio.shared.interactive}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
 			on_change={() => gradio.dispatch("change")}
-			on_select={() => gradio.dispatch("select")}
+			on_select={(val: any) => gradio.dispatch("select", val)}
 			on_input={() => gradio.dispatch("input")}
 		/>
 		{#if gradio.props.info}
