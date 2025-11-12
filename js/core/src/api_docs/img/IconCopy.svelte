@@ -24,3 +24,17 @@
 		height="32"
 	/>
 </svg>
+
+<style>
+	.icon-size {
+		width: 0.75rem;
+		height: 0.75rem;
+	}
+
+	@media (max-width: 640px) {
+		.icon-size {
+			width: 0.625rem;
+			height: 0.625rem;
+		}
+	}
+</style>
