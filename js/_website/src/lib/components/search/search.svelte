@@ -131,19 +131,20 @@
 <svelte:window on:keydown={handle_key_down} on:click={on_click} />
 
 <button class="search-button" bind:this={search_button_elem}>
-	<SearchIcon />
-	<span class="pl-1 pr-5">Search</span>
-	<div class="shortcut">
-		<div class="text-sm">
-			{meta_key}K
-		</div>
-	</div>
+	<span class="text-gray-700 dark:text-gray-300 text-sm">Search</span>
+	<span
+		class="shortcut text-xs opacity-70 text-gray-700 dark:text-gray-300 ml-2"
+	>
+		{meta_key}K
+	</span>
 </button>
 
 {#if open}
 	<div class="overlay" />
-	<div class="content" bind:this={content_elem}>
-		<div class="search-bar">
+	<div class="content bg-white dark:bg-neutral-900" bind:this={content_elem}>
+		<div
+			class="search-bar border-b border-gray-100 dark:border-neutral-800 text-gray-500 dark:text-gray-400"
+		>
 			{#if search === "load"}
 				<div class="loader"></div>
 			{:else}
@@ -161,12 +162,13 @@
 				type="search"
 				use:focus_input
 				id="search-input"
+				class="text-black dark:text-white !bg-transparent"
 			/>
 			<button
 				on:click={() => {
 					open = false;
 				}}
-				class="text-xs font-semibold rounded-md p-1 border-gray-300 border"
+				class="text-xs font-semibold rounded-md p-1 border-gray-300 dark:border-neutral-700 border bg-white dark:bg-neutral-800 text-gray-700 dark:text-gray-300"
 			>
 				ESC
 			</button>
@@ -184,9 +186,13 @@
 								>
 									<p
 										class:text-green-700={result.type == "DOCS"}
+										class:dark:text-green-400={result.type == "DOCS"}
 										class:bg-green-100={result.type == "DOCS"}
+										class:dark:bg-green-900={result.type == "DOCS"}
 										class:text-orange-700={result.type == "GUIDE"}
+										class:dark:text-orange-400={result.type == "GUIDE"}
 										class:bg-orange-100={result.type == "GUIDE"}
+										class:dark:bg-orange-900={result.type == "GUIDE"}
 										class="float-left text-xs font-semibold rounded-md p-1 px-2 mx-1 mt-[3px]"
 									>
 										{result.type}
@@ -208,19 +214,21 @@
 			{:else}
 				{#if search_term}
 					{#if search === "load"}
-						<p class="mx-auto w-fit text-gray-500">Searching for results...</p>
+						<p class="mx-auto w-fit text-gray-500 dark:text-gray-400">
+							Searching for results...
+						</p>
 					{:else}
-						<p class="mx-auto w-fit text-gray-500">
+						<p class="mx-auto w-fit text-gray-500 dark:text-gray-400">
 							No results found. Try using a different term.
 						</p>
 					{/if}
 				{/if}
 				<ul>
-					<p class="">Suggestions</p>
+					<p class="text-gray-900 dark:text-gray-100">Suggestions</p>
 					<li>
 						<a class="res-block first-res" href="/quickstart">
 							<p
-								class="float-left text-xs mx-1 font-semibold text-orange-700 bg-orange-100 rounded-md p-1 px-2 mt-[3px]"
+								class="float-left text-xs mx-1 font-semibold text-orange-700 dark:text-orange-400 bg-orange-100 dark:bg-orange-900 rounded-md p-1 px-2 mt-[3px]"
 							>
 								GUIDE
 							</p>
@@ -233,7 +241,7 @@
 					<li>
 						<a class="res-block" href="/docs/gradio/interface">
 							<p
-								class="float-left text-xs font-semibold text-green-700 bg-green-100 rounded-md p-1 px-2 mx-1 mt-[3px]"
+								class="float-left text-xs font-semibold text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900 rounded-md p-1 px-2 mx-1 mt-[3px]"
 							>
 								DOCS
 							</p>
@@ -246,7 +254,7 @@
 					<li>
 						<a class="res-block" href="/docs/gradio/blocks">
 							<p
-								class="float-left text-xs font-semibold text-green-700 bg-green-100 rounded-md p-1 px-2 mx-1 mt-[3px]"
+								class="float-left text-xs font-semibold text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900 rounded-md p-1 px-2 mx-1 mt-[3px]"
 							>
 								DOCS
 							</p>
@@ -268,17 +276,17 @@
 	}
 
 	.search-bar {
-		@apply font-sans text-lg z-10 px-4 relative flex flex-none items-center border-b border-gray-100 text-gray-500;
+		@apply font-sans text-lg z-10 px-4 relative flex flex-none items-center;
 	}
 
 	.search-bar input {
-		@apply text-lg appearance-none h-14 text-black mx-1	flex-auto min-w-0 border-none cursor-text;
+		@apply text-lg appearance-none h-14 mx-1	flex-auto min-w-0 border-none cursor-text;
 		outline: none;
 		box-shadow: none;
 	}
 
 	.content {
-		@apply fixed left-1/2 top-[7%] -translate-x-1/2 mx-auto w-[95vw] max-w-3xl flex flex-col min-h-0 rounded-lg shadow-2xl bg-white z-40;
+		@apply fixed left-1/2 top-[7%] -translate-x-1/2 mx-auto w-[95vw] max-w-3xl flex flex-col min-h-0 rounded-lg shadow-2xl z-40;
 	}
 
 	.results {
@@ -301,7 +309,13 @@
 	}
 
 	.search-button {
-		@apply flex flex-row rounded-full items-center cursor-pointer px-2 text-gray-400 border-gray-300 border text-lg outline-none font-sans;
+		@apply flex flex-row rounded-lg items-center cursor-pointer px-4 py-1.5 bg-transparent hover:bg-white/10 border text-sm outline-none font-sans transition-colors;
+		--tw-border-opacity: 1;
+		border-color: rgb(229 231 235 / var(--tw-border-opacity));
+	}
+
+	:global(.dark) .search-button {
+		border-color: rgb(64 64 68 / var(--tw-border-opacity));
 	}
 
 	:global(.res-content .mark) {
@@ -311,11 +325,20 @@
 	:global(.res-content) {
 		@apply text-gray-500;
 	}
+	:global(.dark .res-content) {
+		@apply text-gray-400;
+	}
 	:global(.res-block) {
 		@apply m-2 p-2 border border-gray-100 rounded-md bg-gray-50 hover:bg-gray-100 hover:scale-[1.01] focus:bg-gray-100 focus:scale-[1.01] focus:outline-none;
 	}
+	:global(.dark .res-block) {
+		@apply border-neutral-800 bg-neutral-800 hover:bg-neutral-700 focus:bg-neutral-700;
+	}
 	:global(.first-res) {
 		@apply bg-gray-100 scale-[1.01];
+	}
+	:global(.dark .first-res) {
+		@apply bg-neutral-700;
 	}
 
 	:global(.res-block:focus .enter) {
@@ -331,6 +354,10 @@
 
 	.enter {
 		@apply text-xs font-semibold rounded-md p-1 border-gray-300 border text-gray-500 font-sans bg-white;
+	}
+
+	:global(.dark) .enter {
+		@apply border-neutral-700 text-gray-300 bg-neutral-800;
 	}
 
 	.loader {

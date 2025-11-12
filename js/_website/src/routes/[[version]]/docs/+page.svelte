@@ -19,13 +19,15 @@
 	<div class="float-right">
 		<DropDown />
 	</div>
-	<h1 class="mb-4 flex items-center text-2xl font-light">
+	<h1
+		class="mb-4 flex items-center text-2xl font-light text-gray-900 dark:text-gray-100"
+	>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			xmlns:xlink="http://www.w3.org/1999/xlink"
 			aria-hidden="true"
 			role="img"
-			class="mr-1.5 text-gray-400 text-3xl"
+			class="mr-1.5 text-gray-400 dark:text-gray-500 text-3xl"
 			width="1em"
 			height="1em"
 			preserveAspectRatio="xMidYMid meet"
@@ -54,9 +56,13 @@
 
 	<div class="grid grid-cols-1 gap-5 lg:grid-cols-2 mt-8">
 		<div
-			class="shadow-alternate hover:scale-[1.02] group group flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-gradient-to-br px-3 pb-4 pt-6 from-orange-100 via-orange-50 hover:shadow-alternate to-white shadow-none transition-shadow"
+			class="shadow-alternate hover:scale-[1.02] group group flex flex-col overflow-hidden md:first:row-span-3 rounded-xl px-3 pb-4 pt-6 bg-orange-50 dark:bg-orange-900 hover:shadow-alternate shadow-none transition-shadow"
 		>
-			<a class="mt-auto mb-2 flex-grow" href="./docs/gradio" target="_self">
+			<a
+				class="mt-auto mb-2 flex-grow text-gray-900 dark:text-gray-100"
+				href="./docs/gradio"
+				target="_self"
+			>
 				<div class="text-lg">
 					<p class="font-semibold">Gradio</p>
 				</div>
@@ -71,43 +77,43 @@
 				<a
 					href="./docs/gradio/interface"
 					target="_self"
-					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
+					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white dark:text-gray-900 bg-orange-300 hover:drop-shadow-md"
 					>Interface
 				</a>
 				<a
 					href="./docs/gradio/blocks"
 					target="_self"
-					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
+					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white dark:text-gray-900 bg-orange-300 hover:drop-shadow-md"
 					>Blocks
 				</a>
 				<a
 					href="./docs/gradio/chatinterface"
 					target="_self"
-					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
+					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white dark:text-gray-900 bg-orange-300 hover:drop-shadow-md"
 					>ChatInterface
 				</a>
 				<a
 					href="./docs/gradio/textbox"
 					target="_self"
-					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
+					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white dark:text-gray-900 bg-orange-300 hover:drop-shadow-md"
 					>Textbox
 				</a>
 				<a
 					href="./docs/gradio/image"
 					target="_self"
-					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
+					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white dark:text-gray-900 bg-orange-300 hover:drop-shadow-md"
 					>Image
 				</a>
 				<a
 					href="./docs/gradio/audio"
 					target="_self"
-					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
+					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white dark:text-gray-900 bg-orange-300 hover:drop-shadow-md"
 					>Audio
 				</a>
 				<a
 					href="./docs/gradio/dataframe"
 					target="_self"
-					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
+					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white dark:text-gray-900 bg-orange-300 hover:drop-shadow-md"
 					>Dataframe
 				</a>
 			</div>
@@ -115,8 +121,8 @@
 		<a
 			href="./docs/python-client"
 			target="_self"
-			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
-				.COLOR_SETS[1]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
+			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl px-3 py-4 bg-gradient-to-r from-{data
+				.COLOR_SETS[1]}-50 to-white dark:from-neutral-800 dark:to-neutral-800 hover:shadow-alternate shadow-none transition-shadow dark:hover:bg-neutral-900 text-gray-900 dark:text-gray-100"
 		>
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>Python Client</span>
@@ -131,8 +137,8 @@
 		<a
 			href="./docs/js-client"
 			target="_self"
-			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
-				.COLOR_SETS[0]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
+			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl px-3 py-4 bg-gradient-to-r from-{data
+				.COLOR_SETS[0]}-50 to-white dark:from-neutral-800 dark:to-neutral-800 hover:shadow-alternate shadow-none transition-shadow dark:hover:bg-neutral-900 text-gray-900 dark:text-gray-100"
 		>
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>Javascript Client</span>
@@ -147,8 +153,8 @@
 		<a
 			href="./docs/third-party-clients"
 			target="_self"
-			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
-				.COLOR_SETS[3]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
+			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl px-3 py-4 bg-gradient-to-r from-{data
+				.COLOR_SETS[3]}-50 to-white dark:from-neutral-800 dark:to-neutral-800 hover:shadow-alternate shadow-none transition-shadow dark:hover:bg-neutral-900 text-gray-900 dark:text-gray-100"
 		>
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>Third Party Clients</span>
@@ -164,8 +170,8 @@
 		<a
 			href="./docs/js"
 			target="_self"
-			class="w-full shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
-				.COLOR_SETS[4]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
+			class="w-full shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl px-3 py-4 bg-gradient-to-r from-{data
+				.COLOR_SETS[4]}-50 to-white dark:from-neutral-800 dark:to-neutral-800 hover:shadow-alternate shadow-none transition-shadow dark:hover:bg-neutral-900 text-gray-900 dark:text-gray-100"
 		>
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>Javascript Components</span>
@@ -179,8 +185,8 @@
 		<a
 			href="../guides/custom-components-in-five-minutes"
 			target="_self"
-			class="w-full shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
-				.COLOR_SETS[2]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
+			class="w-full shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl px-3 py-4 bg-gradient-to-r from-{data
+				.COLOR_SETS[2]}-50 to-white dark:from-neutral-800 dark:to-neutral-800 hover:shadow-alternate shadow-none transition-shadow dark:hover:bg-neutral-900 text-gray-900 dark:text-gray-100"
 		>
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>Custom Components</span>
@@ -192,13 +198,15 @@
 		</a>
 	</div>
 
-	<h1 class="mb-4 flex items-center text-2xl font-light mt-8">
+	<h1
+		class="mb-4 flex items-center text-2xl font-light mt-8 text-gray-900 dark:text-gray-100"
+	>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			xmlns:xlink="http://www.w3.org/1999/xlink"
 			aria-hidden="true"
 			role="img"
-			class="mr-1.5 text-gray-400 text-3xl"
+			class="mr-1.5 text-gray-400 dark:text-gray-500 text-3xl"
 			width="0.75em"
 			height="0.75em"
 			preserveAspectRatio="xMidYMid meet"
@@ -222,16 +230,18 @@
 
 	{#each data.guides_by_category as { category, guides }, i (category)}
 		<div class="category py-4">
-			<h2 class="mb-4 text-xl font-normal block">
+			<h2
+				class="mb-4 text-xl font-normal block text-gray-900 dark:text-gray-100"
+			>
 				{category}
 			</h2>
 			<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 				{#each guides as guide (guide.name)}
 					<a
-						class="shadow-alternate hover:scale-[1.04] guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl bg-gradient-to-r px-3 py-4 from-{data
+						class="shadow-alternate hover:scale-[1.04] guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl px-3 py-4 bg-gradient-to-r from-{data
 							.COLOR_SETS[
 							i
-						]}-50 hover:shadow-alternate to-white shadow-none transition-shadow"
+						]}-50 to-white dark:from-neutral-800 dark:to-neutral-800 hover:shadow-alternate shadow-none transition-shadow dark:hover:bg-neutral-900 text-gray-900 dark:text-gray-100"
 						href=".{guide.url}"
 					>
 						<div class="flex flex-col p-4 h-min">
@@ -240,7 +250,7 @@
 							</h2>
 							<div class="tags-holder">
 								{#if guide.tags}
-									<p class="text-gray-600">
+									<p class="text-gray-600 dark:text-gray-400">
 										<!--
                     -->{#each guide.tags as tag, j (tag)}<!--
                     -->{tag}{#if j !== guide.tags.length - 1},&nbsp;{/if}<!--

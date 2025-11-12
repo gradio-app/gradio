@@ -1,4 +1,5 @@
 export { default as gradio_logo } from "./gradio.svg";
+export { default as gradio_logo_dark } from "./gradiodark.svg";
 export { default as twitter } from "./img/twitter.svg";
 export { default as github } from "./img/github.svg";
 export { default as github_black } from "./img/github-black.svg";

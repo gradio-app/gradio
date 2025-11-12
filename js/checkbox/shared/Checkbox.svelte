@@ -8,7 +8,8 @@
 		label,
 		on_change,
 		on_select,
-		on_input
+		on_input,
+		show_label = true
 	} = $props();
 	// const gradio: Gradio<CheckboxEvents, CheckboxProps> = props.gradio;
 
@@ -51,7 +52,7 @@
 	}
 </script>
 
-<label class:disabled>
+<label class="checkbox-container">
 	<input
 		bind:checked={value}
 		on:keydown={handle_enter}
@@ -61,23 +62,32 @@
 		name="test"
 		data-testid="checkbox"
 	/>
-	<span>{label}</span>
+	{#if label && show_label}
+		<span class="label-text">
+			{label}
+		</span>
+	{/if}
 </label>
 
 <style>
-	label {
+	.checkbox-container {
 		display: flex;
 		align-items: center;
-		transition: var(--button-transition);
+		gap: var(--spacing-lg);
 		cursor: pointer;
-		color: var(--checkbox-label-text-color);
-		font-weight: var(--checkbox-label-text-weight);
-		font-size: var(--checkbox-label-text-size);
-		line-height: var(--line-md);
 	}
 
-	label > * + * {
-		margin-left: var(--size-2);
+	.label-text {
+		color: var(--body-text-color);
+		font-size: var(--text-sm);
+		line-height: var(--line-sm);
+	}
+
+	.info {
+		display: block;
+		color: var(--body-text-color-subdued);
+		font-size: var(--text-xs);
+		margin-top: var(--spacing-xs);
 	}
 
 	input {
@@ -88,6 +98,7 @@
 		border-radius: var(--checkbox-border-radius);
 		background-color: var(--checkbox-background-color);
 		line-height: var(--line-sm);
+		flex-shrink: 0;
 	}
 
 	input:checked,
@@ -142,12 +153,11 @@
 		border-color: var(--checkbox-border-color-focus);
 	}
 
-	input[disabled],
-	.disabled {
-		cursor: not-allowed !important;
+	input[disabled] {
+		cursor: not-allowed;
 	}
 
-	input:hover {
+	input:not([disabled]):hover {
 		cursor: pointer;
 	}
 </style>
