@@ -16,7 +16,7 @@
 		Headers,
 		DataframeValue,
 		Datatype,
-		EditData,
+		EditData
 	} from "./utils/utils";
 	import CellMenu from "./CellMenu.svelte";
 	import Toolbar from "./Toolbar.svelte";
@@ -26,30 +26,30 @@
 		should_show_cell_menu,
 		handle_click_outside as handle_click_outside_util,
 		calculate_selection_positions,
-		handle_selection,
+		handle_selection
 	} from "./utils/selection_utils";
 	import {
 		copy_table_data,
 		get_max,
-		handle_file_upload,
+		handle_file_upload
 	} from "./utils/table_utils";
 	import { make_headers } from "./utils/data_processing";
 	import {
 		handle_keydown,
 		handle_cell_blur,
-		type KeyboardContext,
+		type KeyboardContext
 	} from "./utils/keyboard_utils";
 	import {
 		create_drag_handlers,
 		type DragState,
-		type DragHandlers,
+		type DragHandlers
 	} from "./utils/drag_utils";
 	import type { FilterDatatype } from "./utils/filter_utils";
 	import {
 		DataframeStore,
 		DATAFRAME_STORE_KEY,
 		type RowView,
-		type SortDirection,
+		type SortDirection
 	} from "./state/DataframeStore.svelte";
 
 	type TableProps = {
@@ -115,19 +115,19 @@
 		static_columns = [],
 		fullscreen = false,
 		display_value = null,
-		styling = null,
+		styling = null
 	}: TableProps = $props();
 
 	const dataframeStore = new DataframeStore({
 		value: {
 			data: values,
 			headers,
-			metadata: display_value || styling ? { display_value, styling } : null,
+			metadata: display_value || styling ? { display_value, styling } : null
 		},
 		datatype,
 		pinned_columns,
 		column_widths,
-		max_height,
+		max_height
 	});
 
 	setContext(DATAFRAME_STORE_KEY, dataframeStore);
@@ -135,7 +135,7 @@
 	const incomingValue = $derived<DataframeValue>({
 		data: values,
 		headers,
-		metadata: display_value || styling ? { display_value, styling } : null,
+		metadata: display_value || styling ? { display_value, styling } : null
 	});
 	const data = $derived(dataframeStore.data);
 	const header_values = $derived(dataframeStore.headers);
@@ -156,7 +156,7 @@
 			!dequal(previous_incoming_value, incomingValue)
 		) {
 			previous_incoming_value = JSON.parse(
-				JSON.stringify(incomingValue),
+				JSON.stringify(incomingValue)
 			) as DataframeValue;
 			dataframeStore.setValue(previous_incoming_value);
 		}
@@ -191,7 +191,7 @@
 	const editing = $derived(dataframeStore.selection.editing || false);
 	const header_edit = $derived(dataframeStore.selection.headerEdit || false);
 	const selected_header = $derived(
-		dataframeStore.selection.selectedHeader || false,
+		dataframeStore.selection.selectedHeader || false
 	);
 	const active_cell_menu = $derived(dataframeStore.ui.activeCellMenu);
 	const active_header_menu = $derived(dataframeStore.ui.activeHeaderMenu);
@@ -200,7 +200,7 @@
 	const actual_pinned_columns = $derived(
 		pinned_columns && data?.[0]?.length
 			? Math.min(pinned_columns, data[0].length)
-			: 0,
+			: 0
 	);
 
 	const sort_columns = $derived(dataframeStore.sort.columns);
@@ -250,7 +250,7 @@
 		return {
 			data: dataframeStore.data.map((row) => row.map((cell) => cell.value)),
 			headers: dataframeStore.headers.map((header) => header ?? ""),
-			metadata: null,
+			metadata: null
 		};
 	}
 
@@ -265,10 +265,10 @@
 	const visible_rows = $derived(dataframeStore.visibleRows);
 
 	const search_results = $derived(
-		visible_rows.length === 0 ? [] : visible_rows.map((row) => row.cells),
+		visible_rows.length === 0 ? [] : visible_rows.map((row) => row.cells)
 	);
 	const filtered_to_original_map = $derived(
-		visible_rows.map((row) => row.rowIndex),
+		visible_rows.map((row) => row.rowIndex)
 	);
 
 	function handleSortAction(col: number, direction: SortDirection): void {
@@ -279,7 +279,7 @@
 		col: number,
 		datatype: FilterDatatype,
 		filter: string,
-		value: string,
+		value: string
 	): void {
 		dataframeStore.toggleFilter({ col, datatype, filter, value });
 	}
@@ -321,7 +321,7 @@
 		clear_ui_state: () => dataframeStore.clearUIState(),
 		set_copy_flash: (value: boolean) => dataframeStore.setCopyFlash(value),
 		set_active_header_menu: (
-			menu: { col: number; x: number; y: number } | null,
+			menu: { col: number; x: number; y: number } | null
 		) => dataframeStore.setActiveHeaderMenu(menu),
 		set_active_cell_menu: (
 			menu: {
@@ -329,7 +329,7 @@
 				col: number;
 				x: number;
 				y: number;
-			} | null,
+			} | null
 		) => dataframeStore.setActiveCellMenu(menu),
 		set_selected_cells: (cells: CellCoordinate[]) =>
 			dataframeStore.setSelectedCells(cells),
@@ -358,7 +358,7 @@
 				index: [row, col],
 				col_value: get_column(col),
 				row_value: get_row(row),
-				value: get_data_at(row, col),
+				value: get_data_at(row, col)
 			});
 		},
 		toggle_cell_menu: (event: MouseEvent, row: number, col: number) => {
@@ -375,14 +375,14 @@
 					row,
 					col,
 					x: rect.right,
-					y: rect.bottom,
+					y: rect.bottom
 				});
 			}
 		},
 		handle_select_column: (col: number) => {
 			if (!data) return;
 			const cells = data.map(
-				(_, rowIndex) => [rowIndex, col] as CellCoordinate,
+				(_, rowIndex) => [rowIndex, col] as CellCoordinate
 			);
 			dataframeStore.setSelectedCells(cells);
 			dataframeStore.setSelected(cells[0] ?? false);
@@ -394,7 +394,7 @@
 			dataframeStore.setSelectedCells(cells);
 			dataframeStore.setSelected(cells[0] ?? false);
 			dataframeStore.setEditing(false);
-		},
+		}
 	};
 
 	onMount(() => {
@@ -404,7 +404,7 @@
 		color_accent_copied = color + "40"; // 80 is 50% opacity in hex
 		document.documentElement.style.setProperty(
 			"--color-accent-copied",
-			color_accent_copied,
+			color_accent_copied
 		);
 	});
 
@@ -423,7 +423,7 @@
 
 	let last_data_structure = {
 		rows: data.length,
-		cols: data[0]?.length ?? 0,
+		cols: data[0]?.length ?? 0
 	};
 
 	$effect(() => {
@@ -463,7 +463,7 @@
 		col: number,
 		datatype: FilterDatatype,
 		filter: string,
-		value: string,
+		value: string
 	): void {
 		df_actions.handle_filter(col, datatype, filter, value);
 	}
@@ -574,7 +574,7 @@
 
 	const emitKeyboardEvent = (
 		event: "change" | "input",
-		detail?: DataframeValue,
+		detail?: DataframeValue
 	): void => {
 		if (event === "change") {
 			emitTableChange(detail);
@@ -603,7 +603,7 @@
 		},
 		get static_columns() {
 			return static_columns;
-		},
+		}
 	};
 
 	function set_cell_widths(): void {
@@ -693,13 +693,13 @@
 		event: CustomEvent<{
 			blur_event: FocusEvent;
 			coords: [number, number];
-		}>,
+		}>
 	): Promise<void> {
 		const { blur_event, coords } = event.detail;
 		await handle_cell_blur(blur_event, keyboard_context, coords);
 		dataframeStore.updateCell(
 			coords,
-			data?.[coords[0]]?.[coords[1]]?.value ?? "",
+			data?.[coords[0]]?.[coords[1]]?.value ?? ""
 		);
 	}
 
@@ -714,7 +714,7 @@
 				df_actions.set_active_header_menu({
 					col,
 					x: rect.right,
-					y: rect.bottom,
+					y: rect.bottom
 				});
 			}
 		}
@@ -756,15 +756,15 @@
 				data,
 				els,
 				parent,
-				table,
+				table
 			);
 			document.documentElement.style.setProperty(
 				"--selected-col-pos",
-				positions.col_pos,
+				positions.col_pos
 			);
 			document.documentElement.style.setProperty(
 				"--selected-row-pos",
-				positions.row_pos || "0px",
+				positions.row_pos || "0px"
 			);
 		}
 	});
@@ -786,7 +786,7 @@
 					display_row.push(
 						cell.display_value !== undefined
 							? cell.display_value
-							: String(cell.value),
+							: String(cell.value)
 					);
 					styling_row.push(cell.styling || "");
 				});
@@ -801,8 +801,8 @@
 				headers: _headers.map((h) => h.value),
 				metadata: {
 					display_value: filtered_display_values,
-					styling: filtered_styling,
-				},
+					styling: filtered_styling
+				}
 			};
 
 			emitTableChange(change_payload);
@@ -816,7 +816,7 @@
 
 	function scroll_to_top(): void {
 		viewport.scrollTo({
-			top: 0,
+			top: 0
 		});
 	}
 
@@ -864,7 +864,7 @@
 	const drag_state: DragState = {
 		is_dragging,
 		drag_start,
-		mouse_down_pos,
+		mouse_down_pos
 	};
 
 	$effect(() => {
@@ -886,7 +886,7 @@
 			(cell) => df_actions.set_selected(cell),
 			(event, row, col) => df_actions.handle_cell_click(event, row, col),
 			show_row_numbers,
-			parent,
+			parent
 		);
 	}
 
@@ -920,7 +920,7 @@
 
 	async function _handle_keydown(
 		e: KeyboardEvent,
-		context: KeyboardContext,
+		context: KeyboardContext
 	): Promise<void> {
 		const result = await handle_keydown(e, context);
 
@@ -1063,12 +1063,12 @@
 						const nextValue: DataframeValue = {
 							data: vals,
 							headers: nextHeaders.map((header) => header ?? ""),
-							metadata: null,
+							metadata: null
 						};
 						dataframeStore.setValue(nextValue);
 						emitTableChange(nextValue);
 						pendingUploadHeaders = [];
-					},
+					}
 				)}
 			bind:dragging
 			aria_label={i18n("dataframe.drop_to_upload")}
@@ -1186,12 +1186,12 @@
 		on_add_column_left={() =>
 			add_col_at(
 				active_cell_menu?.col ?? active_header_menu?.col ?? -1,
-				"left",
+				"left"
 			)}
 		on_add_column_right={() =>
 			add_col_at(
 				active_cell_menu?.col ?? active_header_menu?.col ?? -1,
-				"right",
+				"right"
 			)}
 		on_delete_row={() => delete_row_at(active_cell_menu?.row ?? -1)}
 		on_delete_col={() =>
@@ -1216,12 +1216,12 @@
 			: undefined}
 		sort_direction={active_header_menu
 			? (sort_columns.find(
-					(item) => item.col === (active_header_menu?.col ?? -1),
+					(item) => item.col === (active_header_menu?.col ?? -1)
 				)?.direction ?? null)
 			: null}
 		sort_priority={active_header_menu
 			? sort_columns.findIndex(
-					(item) => item.col === (active_header_menu?.col ?? -1),
+					(item) => item.col === (active_header_menu?.col ?? -1)
 				) + 1 || null
 			: null}
 		on_filter={active_header_menu

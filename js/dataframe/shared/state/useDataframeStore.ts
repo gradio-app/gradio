@@ -1,8 +1,5 @@
 import { getContext } from "svelte";
-import {
-	DataframeStore,
-	DATAFRAME_STORE_KEY
-} from "./DataframeStore.svelte";
+import { DataframeStore, DATAFRAME_STORE_KEY } from "./DataframeStore.svelte";
 
 export function getDataframeStore(): DataframeStore {
 	const store = getContext<DataframeStore | null>(DATAFRAME_STORE_KEY);
