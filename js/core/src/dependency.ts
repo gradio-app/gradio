@@ -89,14 +89,20 @@ export class Dependency {
 	> {
 		let _data_payload = data_payload;
 
+		// if the function is backend_js, then it's the entire event
+		// no need to chain frontend and backend
+		if (this.functions.backend_js) {
+			const data = await this.functions.backend_js(..._data_payload);
+			return { type: "data", data };
+		}
+
+		// If it has a js implementation, the correct behavior
+		// is to run that and pass the output to the backend
 		if (this.functions.frontend) {
 			_data_payload = await this.functions.frontend(data_payload);
 		}
 
-		if (this.functions.backend_js) {
-			const data = await this.functions.backend_js(..._data_payload);
-			return { type: "data", data };
-		} else if (this.functions.backend) {
+		if (this.functions.backend) {
 			return {
 				type: "submit",
 				data: client.submit(this.id, _data_payload, event_data, target_id)
@@ -232,32 +238,16 @@ export class DependencyManager {
 	}
 
 	async update_loading_stati_state() {
-		for (const [_, dep] of Object.entries(this.loading_stati.current)) {
-			const dep_id = dep.fn_index;
-			const dependency = this.dependencies_by_fn.get(dep_id);
-			if (dependency) {
-				for (const output_id of dependency.outputs) {
-					await this.update_state_cb(
-						output_id,
-						{
-							loading_status: { ...dep, type: "output" }
-						},
-						false
-					);
-				}
-
-				for (const input_id of dependency.inputs) {
-					if (dependency.connection_type === "stream") {
-						await this.update_state_cb(
-							input_id,
-							{
-								loading_status: { ...dep, type: "input" }
-							},
-							false
-						);
-					}
-				}
-			}
+		for (const [component_id, loading_status] of Object.entries(
+			this.loading_stati.current
+		)) {
+			this.update_state_cb(
+				Number(component_id),
+				{
+					loading_status: loading_status
+				},
+				false
+			);
 		}
 	}
 
@@ -320,7 +310,7 @@ export class DependencyManager {
 						fn_index: dep.id,
 						stream_state: null
 					});
-					await this.update_loading_stati_state();
+					this.update_loading_stati_state();
 				}
 
 				const data_payload = await this.gather_state(dep.inputs);

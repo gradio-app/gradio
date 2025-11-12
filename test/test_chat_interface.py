@@ -194,7 +194,10 @@ class TestInit:
             if comp.get_config().get("name") == "accordion"
         ][0]
         assert accordion.get_config().get("open") is False
-        assert accordion.get_config().get("label") == "Additional Inputs"
+        assert (
+            accordion.get_config().get("label").key # type: ignore
+            == "chat_interface.additional_inputs"
+        )
 
     def test_setting_accordion_params(self, monkeypatch):
         chatbot = gr.ChatInterface(
