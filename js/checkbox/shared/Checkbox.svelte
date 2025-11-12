@@ -47,7 +47,7 @@
 		bind:checked={gradio.props.value}
 		on:keydown={handle_enter}
 		on:input={handle_input}
-		disabled={disabled}
+		{disabled}
 		type="checkbox"
 		name="test"
 		data-testid="checkbox"
