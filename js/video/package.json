@@ -7,8 +7,8 @@
 	"license": "ISC",
 	"private": false,
 	"dependencies": {
-		"@ffmpeg/ffmpeg": "^0.12.7",
-		"@ffmpeg/util": "^0.12.1",
+		"@ffmpeg/ffmpeg": "^0.12.15",
+		"@ffmpeg/util": "^0.12.2",
 		"@gradio/atoms": "workspace:^",
 		"@gradio/client": "workspace:^",
 		"@gradio/icons": "workspace:^",
@@ -16,8 +16,8 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"hls.js": "^1.5.13",
-		"mrmime": "^2.0.0"
+		"hls.js": "^1.6.13",
+		"mrmime": "^2.0.1"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
@@ -46,7 +46,7 @@
 		}
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.43.4"
 	},
 	"main": "index.ts",
 	"main_changeset": true,

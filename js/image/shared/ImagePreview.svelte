@@ -48,7 +48,7 @@
 	Icon={ImageIcon}
 	label={!show_label ? "" : label || i18n("image.image")}
 />
-{#if value === null || !value.url}
+{#if value == null || !value?.url}
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
 	<div class="image-container" bind:this={image_container}>
@@ -80,7 +80,11 @@
 		</IconButtonWrapper>
 		<button on:click={handle_click}>
 			<div class:selectable class="image-frame">
-				<Image src={value.url} alt="" loading="lazy" on:load />
+				<Image
+					src={value.url}
+					restProps={{ loading: "lazy", alt: "" }}
+					on:load
+				/>
 			</div>
 		</button>
 	</div>

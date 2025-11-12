@@ -38,9 +38,7 @@ with gr.Blocks() as demo:
     set_layers.click(
         lambda: {
             "background": None,
-            "layers": [
-                "https://nationalzoo.si.edu/sites/default/files/animals/cheetah-003.jpg"
-            ],
+            "layers": [str(dir_ / "cheetah.jpg")],
             "composite": None,
         },
         None,

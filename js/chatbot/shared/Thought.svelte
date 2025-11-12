@@ -9,46 +9,63 @@
 	import { slide } from "svelte/transition";
 	import { MarkdownCode as Markdown } from "@gradio/markdown-code";
 
-	export let thought: NormalisedMessage;
-	export let rtl = false;
-	export let sanitize_html: boolean;
-	export let latex_delimiters: {
-		left: string;
-		right: string;
-		display: boolean;
-	}[];
-	export let render_markdown: boolean;
-	export let _components: Record<string, ComponentType<SvelteComponent>>;
-	export let upload: Client["upload"];
-	export let thought_index: number;
-	export let target: HTMLElement | null;
-	export let theme_mode: "light" | "dark" | "system";
-	export let _fetch: typeof fetch;
-	export let scroll: () => void;
-	export let allow_file_downloads: boolean;
-	export let display_consecutive_in_same_bubble: boolean;
-	export let i18n: I18nFormatter;
-	export let line_breaks: boolean;
-	export let allow_tags: string[] | boolean = false;
+	let {
+		thought,
+		rtl,
+		sanitize_html,
+		latex_delimiters,
+		render_markdown,
+		_components,
+		upload,
+		thought_index,
+		target,
+		theme_mode,
+		_fetch,
+		scroll,
+		allow_file_downloads,
+		display_consecutive_in_same_bubble,
+		i18n,
+		line_breaks,
+		allow_tags
+	}: {
+		thought: NormalisedMessage;
+		rtl: boolean;
+		sanitize_html: boolean;
+		latex_delimiters: { left: string; right: string; display: boolean }[];
+		render_markdown: boolean;
+		_components: Record<string, ComponentType<SvelteComponent>>;
+		upload: Client["upload"];
+		thought_index: number;
+		target: HTMLElement | null;
+		theme_mode: "light" | "dark" | "system";
+		_fetch: typeof fetch;
+		scroll: () => void;
+		allow_file_downloads: boolean;
+		display_consecutive_in_same_bubble: boolean;
+		i18n: I18nFormatter;
+		line_breaks: boolean;
+		allow_tags: string[] | boolean;
+	} = $props();
 
 	function is_thought_node(msg: NormalisedMessage): msg is ThoughtNode {
 		return "children" in msg;
 	}
 
-	let thought_node: ThoughtNode;
-	let expanded = false;
-	let user_expanded_toggled = false;
+	let user_expanded_toggled = $state(false);
 	let content_preview_element: HTMLElement;
-	let user_is_scrolling = false;
-
-	$: thought_node = {
+	let user_is_scrolling = $state(false);
+	let thought_node: ThoughtNode = $derived.by(() => ({
 		...thought,
 		children: is_thought_node(thought) ? thought.children : []
-	} as ThoughtNode;
+	}));
 
-	$: if (!user_expanded_toggled) {
-		expanded = thought_node?.metadata?.status !== "done";
-	}
+	let expanded = $state(false);
+
+	$effect(() => {
+		if (!user_expanded_toggled) {
+			expanded = thought_node?.metadata?.status !== "done";
+		}
+	});
 
 	function toggleExpanded(): void {
 		expanded = !expanded;
@@ -73,13 +90,10 @@
 		}
 	}
 
-	$: if (
-		thought_node.content &&
-		content_preview_element &&
-		thought_node.metadata?.status !== "done"
-	) {
-		setTimeout(scrollToBottom, 0);
-	}
+	$effect(() => {
+		if (thought_node.content && thought_node.metadata?.status !== "done")
+			setTimeout(scrollToBottom, 0);
+	});
 </script>
 
 <div class="thought-group">
@@ -103,7 +117,7 @@
 			{render_markdown}
 			{latex_delimiters}
 			{sanitize_html}
-			{allow_tags}
+			allow_tags={allow_tags || false}
 		/>
 		{#if thought_node.metadata?.status === "pending"}
 			<span class="loading-spinner"></span>
@@ -159,7 +173,7 @@
 					{#each thought_node.children as child, index}
 						<svelte:self
 							thought={child}
-							{rtl}
+							rtc={rtl || false}
 							{sanitize_html}
 							{latex_delimiters}
 							{render_markdown}

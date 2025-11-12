@@ -110,6 +110,7 @@ class TestChatbot:
             "examples": None,
             "watermark": None,
             "reasoning_tags": None,
+            "like_user_message": False,
         }
 
     def test_avatar_images_are_moved_to_cache(self):
