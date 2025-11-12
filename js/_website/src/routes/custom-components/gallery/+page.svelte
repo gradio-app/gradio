@@ -4,6 +4,7 @@
 	import { onMount, tick } from "svelte";
 	import type { ComponentData } from "./utils";
 	import { clickOutside } from "./utils";
+	import { theme } from "$lib/stores/theme";
 
 	const API = "https://gradio-custom-component-gallery-backend.hf.space/";
 
@@ -15,12 +16,12 @@
 	let components_length: number = 0;
 
 	const COLOR_SETS = [
-		"from-red-50 via-red-100 to-red-50",
-		"from-green-50 via-green-100 to-green-50",
-		"from-yellow-50 via-yellow-100 to-yellow-50",
-		"from-pink-50 via-pink-100 to-pink-50",
-		"from-blue-50 via-blue-100 to-blue-50",
-		"from-purple-50 via-purple-100 to-purple-50"
+		"from-red-50 via-red-100 to-red-50 dark:from-red-950 dark:via-red-900 dark:to-red-950",
+		"from-green-50 via-green-100 to-green-50 dark:from-green-950 dark:via-green-900 dark:to-green-950",
+		"from-yellow-50 via-yellow-100 to-yellow-50 dark:from-yellow-950 dark:via-yellow-900 dark:to-yellow-950",
+		"from-pink-50 via-pink-100 to-pink-50 dark:from-pink-950 dark:via-pink-900 dark:to-pink-950",
+		"from-blue-50 via-blue-100 to-blue-50 dark:from-blue-950 dark:via-blue-900 dark:to-blue-950",
+		"from-purple-50 via-purple-100 to-purple-50 dark:from-purple-950 dark:via-purple-900 dark:to-purple-950"
 	];
 
 	let color_mapping: { [key: string]: string } = {};
@@ -89,16 +90,16 @@
 <div class="container mx-auto px-4 relative pt-8 mb-0">
 	<input
 		type="text"
-		class="w-full border border-gray-200 p-1 rounded-md outline-none text-center text-lg mb-1 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0"
+		class="w-full border border-gray-200 dark:border-gray-700 dark:bg-neutral-800 dark:text-gray-200 p-1 rounded-md outline-none text-center text-lg mb-1 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0"
 		placeholder="What are you looking for?"
 		autocomplete="off"
 		on:keyup={handle_keypress}
 		bind:value={selection}
 	/>
-	<div class="text-gray-600 mb-0 mx-auto w-fit text-sm">
+	<div class="text-gray-600 dark:text-gray-300 mb-0 mx-auto w-fit text-sm">
 		Search through {components_length} components by name, keyword or description.
 		<a
-			class="link text-gray-600"
+			class="link text-gray-600 dark:text-gray-300"
 			href="https://www.gradio.app/guides/five-minute-guide"
 			>Read more about Custom Components.</a
 		>
@@ -113,7 +114,7 @@
 				class=" cursor-pointer px-3 pt-3 h-40 group font:thin relative rounded-xl shadow-sm transform hover:scale-[1.02] hover:shadow-alternate transition bg-gradient-to-tr {component.background_color}"
 			>
 				<h2
-					class="text-md font-semibold text-gray-700 max-w-full truncate py-1"
+					class="text-md font-semibold text-gray-700 dark:text-gray-200 max-w-full truncate py-1"
 				>
 					{component.name.startsWith("gradio_")
 						? component.name.slice(7)
@@ -126,7 +127,7 @@
 						style="position: absolute; top: 5%; right: 5%"
 					>
 						<span
-							class="bg-white p-1 rounded-md text-gray-700 inline-flex align-middle"
+							class="bg-white dark:bg-neutral-800 p-1 rounded-md text-gray-700 dark:text-gray-200 inline-flex align-middle"
 						>
 							<svg
 								class="mr-1 self-center"
@@ -155,7 +156,9 @@
 					class="text-sm font-light py-1"
 					style="position: absolute; bottom: 5%; left: 5%"
 				>
-					<span class="bg-white p-1 rounded-md text-gray-700">
+					<span
+						class="bg-white dark:bg-neutral-800 p-1 rounded-md text-gray-700 dark:text-gray-200"
+					>
 						@{component.author}
 					</span>
 				</p>
@@ -164,7 +167,9 @@
 						class="text-sm font-light py-1"
 						style="position: absolute; bottom: 5%; right: 5%"
 					>
-						<span class="bg-white p-1 rounded-md text-gray-700">
+						<span
+							class="bg-white dark:bg-neutral-800 p-1 rounded-md text-gray-700 dark:text-gray-200"
+						>
 							{component.template}
 						</span>
 					</p>
@@ -176,7 +181,7 @@
 
 {#each components as component (component.id)}
 	<div
-		class="details-panel open border border-gray-200 shadow-xl rounded-xl bg-white p-5"
+		class="details-panel open border border-gray-200 dark:border-gray-700 shadow-xl rounded-xl bg-white dark:bg-neutral-900 p-5"
 		class:hidden={!(selected_component == component)}
 		class:flex={selected_component == component}
 		use:clickOutside={() => {
@@ -190,13 +195,13 @@
 						link_copied = true;
 						copy_link(component.id);
 					}}
-					class="rounded-md w-fit px-3.5 py-1 text-sm font-semibold text-white bg-orange-300 hover:drop-shadow-sm mr-4"
+					class="rounded-md w-fit px-3.5 py-1 text-sm font-semibold text-white dark:text-gray-900 bg-orange-300 hover:drop-shadow-sm mr-4"
 				>
 					Share
 				</button>
 			{:else}
 				<span
-					class="rounded-md w-fit px-3.5 py-1 text-sm font-semibold text-white bg-orange-300 hover:drop-shadow-sm mr-4"
+					class="rounded-md w-fit px-3.5 py-1 text-sm font-semibold text-white dark:text-gray-900 bg-orange-300 hover:drop-shadow-sm mr-4"
 				>
 					Link copied to clipboard!
 				</span>
@@ -204,13 +209,13 @@
 			<a
 				href={`https://huggingface.co/spaces/${component.id}`}
 				target="_blank"
-				class="rounded-md w-fit px-3.5 py-1 text-sm font-semibold text-white bg-orange-300 hover:drop-shadow-sm"
+				class="rounded-md w-fit px-3.5 py-1 text-sm font-semibold text-white dark:text-gray-900 bg-orange-300 hover:drop-shadow-sm"
 			>
 				Go to Space <span aria-hidden="true">→</span>
 			</a>
 		</div>
 		<iframe
-			src={`https://${component.subdomain}.hf.space?__theme=light`}
+			src={`https://${component.subdomain}.hf.space?__theme=${$theme}`}
 			height="100%"
 			width="100%"
 		></iframe>

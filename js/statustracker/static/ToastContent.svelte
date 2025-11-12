@@ -7,7 +7,7 @@
 
 	export let type: ToastMessage["type"];
 	export let messages: ToastMessage[] = [];
-	export let expanded = false;
+	export let expanded = true;
 
 	const dispatch = createEventDispatcher();
 
