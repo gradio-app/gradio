@@ -20,17 +20,21 @@ for _ in range(25):
     end = time.time()
     times.append(end - start)
 
+print("Serial result was", result)
 print(f"Serial average: {sum(times) / len(times)} seconds")
 
 parallel_times = []
+results = []
 lock = threading.Lock()
 
 def make_request():
+    client = Client(url, verbose=False)
     start = time.time()
-    Client(url, verbose=False).predict("Hello")
+    result = client.predict("Hello")
     end = time.time()
     with lock:
         parallel_times.append(end - start)
+        results.append(result)
 
 threads = []
 for _ in range(25):
@@ -41,4 +45,5 @@ for _ in range(25):
 for t in threads:
     t.join()
 
+print("Parallel result was", results[0] if results else None)
 print(f"Parallel average: {sum(parallel_times) / len(parallel_times)} seconds")
