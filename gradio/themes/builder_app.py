@@ -317,7 +317,7 @@ with gr.Blocks(  # noqa: SIM117
                             placeholder="Leave blank to automatically update version.",
                         )
                     upload_to_hub_btn = gr.Button("Upload to Hub")
-                    theme_upload_status = gr.Markdown(visible=False)
+                    theme_upload_status = gr.Markdown(visible="hidden")
 
                 gr.Markdown("Below this panel is a dummy app to demo your theme.")
 
@@ -386,24 +386,24 @@ with gr.Blocks(  # noqa: SIM117
                         btn2 = gr.UploadButton(size="sm")
                         stop_btn = gr.Button("Stop", variant="stop", size="sm")
 
-            # gr.Examples(
-            #     examples=[
-            #         [
-            #             "A",
-            #             "Option 1",
-            #             ["Option B"],
-            #             True,
-            #         ],
-            #         [
-            #             "B",
-            #             "Option 2",
-            #             ["Option B", "Option C"],
-            #             False,
-            #         ],
-            #     ],
-            #     inputs=[radio, drop, drop_2, check],
-            #     label="Examples",
-            # )
+            gr.Examples(
+                examples=[
+                    [
+                        "A",
+                        "Option 1",
+                        ["Option B"],
+                        True,
+                    ],
+                    [
+                        "B",
+                        "Option 2",
+                        ["Option B", "Option C"],
+                        False,
+                    ],
+                ],
+                inputs=[radio, drop, drop_2, check],
+                label="Examples",
+            )
 
             with gr.Row():
                 # gr.Dataframe(value=[[1, 2, 3], [4, 5, 6], [7, 8, 9]], label="Dataframe")
@@ -468,27 +468,27 @@ with gr.Blocks(  # noqa: SIM117
 
         # Event Listeners
 
-        secret_css = gr.Textbox(visible=False)
-        secret_font = gr.JSON(visible=False)
+        secret_css = gr.Textbox(visible="hidden")
+        secret_font = gr.JSON(visible="hidden")
 
-        # demo.load(  # doing this via python was not working for some reason, so using this hacky method for now
-        #     None,
-        #     None,
-        #     None,
-        #     js="""() => {
-        #         let evt_listener = window.setTimeout(
-        #             () => {
-        #                 load_theme_btn = document.querySelector('#load_theme');
-        #                 if (load_theme_btn) {
-        #                     load_theme_btn.click();
-        #                     window.clearTimeout(evt_listener);
-        #                 }
-        #             },
-        #             100
-        #         );
-        #     }""",
-        #     api_visibility="undocumented",
-        # )
+        demo.load(  # doing this via python was not working for some reason, so using this hacky method for now
+            None,
+            None,
+            None,
+            js="""() => {
+                let evt_listener = window.setTimeout(
+                    () => {
+                        load_theme_btn = document.querySelector('#load_theme');
+                        if (load_theme_btn) {
+                            load_theme_btn.click();
+                            window.clearTimeout(evt_listener);
+                        }
+                    },
+                    100
+                );
+            }""",
+            api_visibility="undocumented",
+        )
 
         theme_inputs = (
             [primary_hue, secondary_hue, neutral_hue]
@@ -917,14 +917,14 @@ with gr.Blocks(theme=theme) as demo:
             ).then
         )
 
-        # attach_rerender(
+        attach_rerender(
         load_theme_btn.click(
             load_theme,
             base_theme_dropdown,
             theme_inputs,
             api_visibility="undocumented",
+        ).then
         )
-        # )
 
         for theme_box in (
             text_sizes + spacing_sizes + radius_sizes + main_fonts + mono_fonts

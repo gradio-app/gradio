@@ -238,35 +238,17 @@ export class DependencyManager {
 	}
 
 	async update_loading_stati_state() {
-		// const promises = [];
-		// for (const [_, dep] of Object.entries(this.loading_stati.current)) {
-		// 	const dep_id = dep.fn_index;
-		// 	const dependency = this.dependencies_by_fn.get(dep_id);
-		// 	if (dependency) {
-		// 		for (const output_id of dependency.outputs) {
-		// 			this.update_state_cb(
-		// 				output_id,
-		// 				{
-		// 					loading_status: { ...dep, type: "output" }
-		// 				},
-		// 				false
-		// 			);
-		// 		}
-
-		// 		for (const input_id of dependency.inputs) {
-		// 			if (dependency.connection_type === "stream") {
-		// 				this.update_state_cb(
-		// 					input_id,
-		// 					{
-		// 						loading_status: { ...dep, type: "input" }
-		// 					},
-		// 					false
-		// 				);
-		// 			}
-		// 		}
-		// 	}
-		// }
-		// await Promise.all(promises);
+		for (const [component_id, loading_status] of Object.entries(
+			this.loading_stati.current
+		)) {
+			this.update_state_cb(
+				Number(component_id),
+				{
+					loading_status: loading_status
+				},
+				false
+			);
+		}
 	}
 
 	dispatch_state_change_events(result: StatusMessage): void {
@@ -306,7 +288,6 @@ export class DependencyManager {
 
 		for (let i = 0; i < (deps?.length || 0); i++) {
 			const dep = deps ? deps[i] : undefined;
-			console.log("Dispatching dependency:", dep);
 			if (dep) {
 				this.cancel(dep.cancels);
 
@@ -329,7 +310,7 @@ export class DependencyManager {
 						fn_index: dep.id,
 						stream_state: null
 					});
-					await this.update_loading_stati_state();
+					this.update_loading_stati_state();
 				}
 
 				const data_payload = await this.gather_state(dep.inputs);
@@ -399,7 +380,6 @@ export class DependencyManager {
 						let index = 0;
 						// fn for this?
 						submit_loop: for await (const result of dep_submission.data) {
-							console.log("INDEX:", index, "RESULT:", result.type, result);
 							if (index === 0) {
 								// Clear out previously set validation errors
 								dep.inputs.forEach((input_id) => {
@@ -447,7 +427,7 @@ export class DependencyManager {
 										fn_index: dep.id,
 										stream_state
 									});
-									await this.update_loading_stati_state();
+									this.update_loading_stati_state();
 									break submit_loop;
 								} else if (result.stage === "generating") {
 									this.dispatch_state_change_events(result);
@@ -511,7 +491,7 @@ export class DependencyManager {
 										fn_index: dep.id,
 										stream_state
 									});
-									await this.update_loading_stati_state();
+									this.update_loading_stati_state();
 								}
 							}
 
@@ -576,7 +556,7 @@ export class DependencyManager {
 						queue: false,
 						stream_state: null
 					});
-					await this.update_loading_stati_state();
+					this.update_loading_stati_state();
 					this.submissions.delete(dep.id);
 					failure.forEach((dep_id) => {
 						this.dispatch({
@@ -753,11 +733,9 @@ export class DependencyManager {
 	}
 
 	dispatch_load_events() {
-		console.log("Dispatching load events for all dependencies.");
 		this.dependencies_by_fn.forEach((dep) => {
 			dep.targets.forEach(([target_id, event_name]) => {
 				if (event_name === "load") {
-					console.log("Dispatching load event for dependency:", dep);
 					this.dispatch({
 						type: "fn",
 						fn_index: dep.id,

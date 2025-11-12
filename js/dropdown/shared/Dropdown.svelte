@@ -137,8 +137,6 @@
 			gradio.dispatch("change");
 		}
 	});
-
-
 </script>
 
 <div class:container={gradio.shared.container}>
