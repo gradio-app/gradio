@@ -144,7 +144,9 @@ ${demos
 		const css_path = `'${join(ROOT, "demo", obj.dir_name, "custom_css.css")}'`;
 		return `app = gr.mount_gradio_app(app, ${obj.dir_name}, path="/${obj.dir_name}", max_file_size=${
 			obj.dir_name == "upload_file_limit_test" ? "'15kb'" : "None"
-		}, css_paths=${obj.dir_name == "custom_css" ? css_path : "None"})`;
+		}, css_paths=${obj.dir_name == "custom_css" || obj.dir_name == "theme_builder" ? css_path : "None"},
+			head=${obj.dir_name == "theme_builder" ? "\"<style id='theme_css'></style>\"" : "None"},
+			theme=${obj.dir_name == "theme_builder" ? "gr.themes.Base()" : "None"})`;
 	})
 	.join("\n")}
 
