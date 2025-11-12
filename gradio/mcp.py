@@ -379,7 +379,7 @@ class GradioMCPServer:
         @server.call_tool()
         async def call_tool(
             name: str, arguments: dict[str, Any]
-        ) -> list[self.types.TextContent | self.types.ImageContent]:
+        ) -> self.types.CallToolResult:
             """
             Call a tool on the Gradio app.
 
@@ -414,7 +414,16 @@ class GradioMCPServer:
                 route_path=route_path,
                 root_path=self.root_path,
             )
-            return self.postprocess_output_data(output_data, root_url)
+            content = self.postprocess_output_data(output_data, root_url)
+            if getattr(block_fn.fn, "_mcp_structured_output", False):
+                structured_content = {"result": content}
+            else:
+                structured_content = None
+            return self.types.CallToolResult(
+                content=content,
+                structuredContent=structured_content,
+                _meta=getattr(block_fn.fn, "_mcp_meta", None),
+            )
 
         @server.list_tools()
         async def list_tools() -> list[self.types.Tool]:
@@ -441,11 +450,14 @@ class GradioMCPServer:
 
                 description, parameters = self.get_fn_description(block_fn, tool_name)
                 schema, _ = self.get_input_schema(tool_name, parameters)
+                tool_meta = getattr(block_fn.fn, "_mcp_meta", None)
+
                 tools.append(
                     self.types.Tool(
                         name=tool_name,
                         description=description,
                         inputSchema=schema,
+                        _meta=tool_meta,
                     )
                 )
             return tools
@@ -456,6 +468,7 @@ class GradioMCPServer:
             List all available resources.
             """
             resources = []
+
             selected_tools = self.get_selected_tools_from_request()
             for tool_name, endpoint_name in self.tool_to_endpoint.items():
                 if selected_tools is not None and tool_name not in selected_tools:
@@ -575,7 +588,7 @@ class GradioMCPServer:
                                 break
 
                         mime_type = block_fn.fn._mcp_mime_type
-                        if mime_type != "text/plain":
+                        if mime_type and not mime_type.startswith("text/"):
                             result = base64.b64decode(result.encode("ascii"))
                         return [
                             self.ReadResourceContents(
@@ -1182,13 +1195,29 @@ def prompt(name: str | None = None, description: str | None = None):
     return decorator
 
 
-def tool(name: str | None = None, description: str | None = None):
-    """Decorator to mark a function as an MCP tool (optional, since functions are registered as tools by default)."""
+def tool(
+    name: str | None = None,
+    description: str | None = None,
+    structured_output: bool = False,
+    _meta: dict[str, Any] | None = None,
+):
+    """
+    Decorator to mark a function as an MCP tool (optional, since functions are registered as tools by default).
+    Can be used to configure various aspects of the tool.
+
+    Parameters:
+        name: The name of the tool. Overrides the default name of the function.
+        description: The description of the tool. Overrides the default description from the function's docstring.
+        structured_output: Whether the tool should return structured output (implementation is quite limited at the moment). If True, the output will be wrapped in a dictionary with the key "result" and the value being the output of the function. Recommended to keep this False unless you have a specific reason to need the structured output.
+        _meta: Additional metadata for the tool.
+    """
 
     def decorator(fn):
         fn._mcp_type = "tool"
         fn._mcp_name = name
+        fn._mcp_structured_output = structured_output
         fn._mcp_description = description
+        fn._mcp_meta = _meta
         return fn
 
     return decorator
