@@ -19,6 +19,7 @@ import uuid
 import warnings
 from collections.abc import AsyncGenerator, Callable
 from concurrent.futures import Future
+from contextvars import copy_context
 from dataclasses import dataclass
 from datetime import datetime
 from functools import partial
@@ -557,7 +558,7 @@ class Client:
             end_to_end_fn = endpoint.make_end_to_end_fn(helper)
         else:
             raise ValueError("Unknown protocol: " + endpoint.protocol)
-        future = self.executor.submit(end_to_end_fn, *args)
+        future = self.executor.submit(copy_context().run, end_to_end_fn, *args)
 
         cancel_fn = endpoint.make_cancel(helper)
 
@@ -748,8 +749,9 @@ class Client:
         """
         Adds the x-ip-token header to the headers dictionary to pass it to a Zero-GPU Space. This allows a user's
         ZeroGPU quota to be tracked and used by the underlying Space. For the x-ip-token header to be present,
-        this method needs to be called when a Gradio app's LocalContext is defined. i.e. must be called from directly inside
-        a Gradio app's event listener function or will not have any effect.
+        this method needs to be called when a Gradio app's LocalContext is defined. i.e. this method needs to be called
+        when a Gradio app's LocalContext is defined. i.e. must be called from inside a Gradio app's
+        event listener function or will not have any effect.
         """
         if not self.space_id:
             return headers
