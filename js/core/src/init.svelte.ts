@@ -129,7 +129,6 @@ export class AppTree {
 		this.#get_callbacks.set(id, _get_data);
 		this.components_to_register.delete(id);
 		if (this.components_to_register.size === 0 && !this.resolved) {
-			console.log("All components registered, app is ready.");
 			this.resolved = true;
 			this.ready_resolve();
 		}

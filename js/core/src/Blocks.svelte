@@ -379,9 +379,7 @@
 
 		app_tree.ready.then(() => {
 			ready = true;
-			console.log("App is ready.");
 			dep_manager.dispatch_load_events();
-			console.log("Dispatched load events for all dependencies.");
 		});
 
 		return () => {

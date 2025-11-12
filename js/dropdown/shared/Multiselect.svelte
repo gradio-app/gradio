@@ -145,7 +145,7 @@
 		) {
 			show_options = true;
 		}
-		// gradio.dispatch("focus");
+		gradio.dispatch("focus");
 		show_options = true;
 	}
 
