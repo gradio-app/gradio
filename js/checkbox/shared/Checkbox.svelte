@@ -4,49 +4,58 @@
 	import type { Gradio } from "@gradio/utils";
 	import type { CheckboxProps, CheckboxEvents } from "../types";
 
-	const props = $props();
-	const gradio: Gradio<CheckboxEvents, CheckboxProps> = props.gradio;
+	let {
+		value,
+		interactive = true,
+		label,
+		on_change,
+		on_select,
+		on_input,
+	} = $props();
+	// const gradio: Gradio<CheckboxEvents, CheckboxProps> = props.gradio;
 
-	let disabled = $derived(!gradio.shared.interactive);
+	let disabled = $derived(!interactive);
 
-	let old_value = $state(gradio.props.value);
+	let old_value = value;
+
+	// $inspect(gradio?.props);
 
 	$effect(() => {
-		if (old_value !== gradio.props.value) {
-			old_value = gradio.props.value;
-			gradio.dispatch("change", $state.snapshot(gradio.props.value));
+		if (old_value !== value) {
+			old_value = value;
+			on_change($state.snapshot(value));
 		}
 	});
 
 	async function handle_enter(
-		event: KeyboardEvent & { currentTarget: EventTarget & HTMLInputElement }
+		event: KeyboardEvent & { currentTarget: EventTarget & HTMLInputElement },
 	): Promise<void> {
 		if (event.key === "Enter") {
-			gradio.props.value = !gradio.props.value;
-			gradio.dispatch("select", {
+			value = !value;
+			on_select({
 				index: 0,
 				value: event.currentTarget.checked,
-				selected: event.currentTarget.checked
+				selected: event.currentTarget.checked,
 			});
 		}
 	}
 
 	async function handle_input(
-		event: Event & { currentTarget: EventTarget & HTMLInputElement }
+		event: Event & { currentTarget: EventTarget & HTMLInputElement },
 	): Promise<void> {
-		gradio.props.value = event.currentTarget.checked;
-		gradio.dispatch("select", {
+		value = event.currentTarget.checked;
+		on_select({
 			index: 0,
 			value: event.currentTarget.checked,
-			selected: event.currentTarget.checked
+			selected: event.currentTarget.checked,
 		});
-		gradio.dispatch("input");
+		on_input();
 	}
 </script>
 
 <label class:disabled>
 	<input
-		bind:checked={gradio.props.value}
+		bind:checked={value}
 		on:keydown={handle_enter}
 		on:input={handle_input}
 		{disabled}
@@ -54,7 +63,7 @@
 		name="test"
 		data-testid="checkbox"
 	/>
-	<span>{gradio.shared.label}</span>
+	<span>{label}</span>
 </label>
 
 <style>

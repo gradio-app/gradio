@@ -28,6 +28,7 @@ export class Dependency {
 	event_args: Record<string, unknown> = {};
 	targets: [number, string][] = [];
 	connection_type: "stream" | "sse";
+	fn_type: DependencyTypes = { generator: false, cancel: false };
 
 	// if this dependency has any then, success or failure triggers
 	triggers: [number, "success" | "failure" | "all"][] = [];
@@ -49,6 +50,7 @@ export class Dependency {
 		this.inputs = dep_config.inputs;
 		this.outputs = dep_config.outputs;
 		this.connection_type = dep_config.connection;
+		this.fn_type = dep_config.types;
 		this.functions = {
 			frontend: dep_config.js
 				? process_frontend_fn(
@@ -296,14 +298,17 @@ export class DependencyManager {
 			);
 		}
 
+		if (`${event_meta.event_name}-${event_meta.target_id}` === "change-5") {
+			console.trace(
+				"Dispatching dependency",
+				`${event_meta.event_name}-${event_meta.target_id}`,
+				event_meta
+			);
+		}
+
 		for (let i = 0; i < (deps?.length || 0); i++) {
 			const dep = deps ? deps[i] : undefined;
 			if (dep) {
-				console.log(
-					"Dispatching dependency",
-					`${event_meta.event_name}-${event_meta.target_id}`,
-					event_meta
-				);
 				this.cancel(dep.cancels);
 
 				const dispatch_status = should_dispatch(
@@ -323,7 +328,8 @@ export class DependencyManager {
 					this.loading_stati.update({
 						status: "pending",
 						fn_index: dep.id,
-						stream_state: null
+						stream_state: null,
+						fn_type: dep.fn_type
 					});
 					await this.update_loading_stati_state();
 				}
@@ -438,6 +444,7 @@ export class DependencyManager {
 									// @ts-ignore
 									this.loading_stati.update({
 										...status,
+										fn_type: dep.fn_type,
 										status: status.stage,
 										fn_index: dep.id,
 										stream_state
@@ -504,6 +511,7 @@ export class DependencyManager {
 										...status,
 										status: status.stage,
 										fn_index: dep.id,
+										fn_type: dep.fn_type,
 										stream_state
 									});
 									this.update_loading_stati_state();
@@ -569,7 +577,8 @@ export class DependencyManager {
 						fn_index: dep.id,
 						eta: 0,
 						queue: false,
-						stream_state: null
+						stream_state: null,
+						fn_type: dep.fn_type
 					});
 					this.update_loading_stati_state();
 					this.submissions.delete(dep.id);

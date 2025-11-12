@@ -43,7 +43,8 @@ export class LoadingStatus {
 				message,
 				progress,
 				stream_state,
-				time_limit
+				time_limit,
+				fn_type
 			}) => {
 				this.current[id] = {
 					queue: args.queue || false,
@@ -55,7 +56,8 @@ export class LoadingStatus {
 					progress: progress || undefined,
 					status,
 					fn_index: args.fn_index,
-					time_limit
+					time_limit,
+					fn_type
 				};
 			}
 		);
@@ -75,7 +77,8 @@ export class LoadingStatus {
 			message = null,
 			progress = null,
 			stream_state = null,
-			time_limit = null
+			time_limit = null,
+			fn_type = undefined
 		} = args;
 
 		const outputs = this.fn_outputs[fn_index];
@@ -116,7 +119,8 @@ export class LoadingStatus {
 				message: message,
 				progress: progress,
 				stream_state: stream_state,
-				time_limit
+				time_limit,
+				fn_type
 			};
 		});
 	}

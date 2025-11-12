@@ -34,13 +34,15 @@ async function save_cell_value(
 	col: number
 ): Promise<void> {
 	if (!ctx.data || !ctx.data[row] || !ctx.data[row][col]) return;
-
+	console.log("SAVE -- save_cell_value", { row, col, input_value });
 	const cell = ctx.data[row][col];
-	const old_value = cell.value;
+	const old_value = String(cell.value);
 	cell.value = input_value;
 	if (cell.display_value !== undefined) {
 		cell.display_value = input_value;
 	}
+
+	console.log("TRY -- save_cell_value", { row, col, old_value, input_value });
 
 	if (old_value !== input_value && ctx.dispatch) {
 		ctx.dispatch("change", {
@@ -261,6 +263,7 @@ async function handle_cell_navigation(
 	event: KeyboardEvent,
 	ctx: KeyboardContext
 ): Promise<boolean> {
+	await tick();
 	const data = ctx.data;
 	if (!data) return false;
 
@@ -306,8 +309,10 @@ async function handle_cell_navigation(
 export async function handle_keydown(
 	event: KeyboardEvent,
 	context: KeyboardContext
-): Promise<void> {
-	if (handle_header_navigation(event, context)) return;
-	if (handle_delete_operation(event, context)) return;
-	await handle_cell_navigation(event, context);
+): Promise<boolean> {
+	console.trace("keydown", event.key);
+
+	if (handle_header_navigation(event, context)) return true;
+	if (handle_delete_operation(event, context)) return true;
+	return await handle_cell_navigation(event, context);
 }

@@ -6,7 +6,7 @@
 </script>
 
 <script lang="ts">
-	import type { SelectData } from "@gradio/utils";
+	import type { SelectData, SharedProps } from "@gradio/utils";
 	import { Gradio } from "@gradio/utils";
 	import { Block } from "@gradio/atoms";
 	import Table from "./shared/Table.svelte";
@@ -15,10 +15,28 @@
 	import type { Datatype, DataframeValue } from "./shared/utils/utils";
 	import type { DataframeProps, DataframeEvents } from "./types";
 	import Image from "@gradio/image";
+	import { dequal } from "dequal";
+
+	let prev_data: any = null;
+
+	class DataframeGradio extends Gradio<DataframeEvents, DataframeProps> {
+		async set_data(data: Partial<DataframeProps & SharedProps>): Promise<void> {
+			// this.dispatch("change");
+			super.set_data(data);
+			if (data.value && dequal(data.value, JSON.parse(prev_data)) === false) {
+				console.log("DF --SET DATA CALLED WITH VALUE:", data.value);
+				// console.trace("DataFrame set_data value:", data.value);
+				this.dispatch("change");
+				prev_data = JSON.stringify(data.value);
+			}
+
+			// console.log("DataFrame set_data", data);
+		}
+	}
 
 	let props = $props();
 
-	let gradio = new Gradio<DataframeEvents, DataframeProps>(props);
+	let gradio = new DataframeGradio(props);
 </script>
 
 <Block
@@ -36,6 +54,9 @@
 		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
 		{...gradio.shared.loading_status}
+		show_progress={gradio?.shared.loading_status?.fn_type?.generator
+			? "hidden"
+			: "full"}
 		on:clear_status={() =>
 			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
