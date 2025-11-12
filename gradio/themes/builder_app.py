@@ -281,11 +281,11 @@ with gr.Blocks(  # noqa: SIM117
                                     if "*" + variable in suggestions:
                                         suggestions.remove("*" + variable)
                                     break
-                            dropdown = gr.Textbox(
+                            dropdown = gr.Dropdown(
                                 label=variable,
                                 info=get_docstr(variable),
-                                # choices=suggestions,
-                                # allow_custom_value=True,
+                                choices=suggestions,
+                                allow_custom_value=True,
                             )
                             theme_var_input.append(dropdown)
 
@@ -918,12 +918,12 @@ with gr.Blocks(theme=theme) as demo:
         )
 
         attach_rerender(
-        load_theme_btn.click(
-            load_theme,
-            base_theme_dropdown,
-            theme_inputs,
-            api_visibility="undocumented",
-        ).then
+            load_theme_btn.click(
+                load_theme,
+                base_theme_dropdown,
+                theme_inputs,
+                api_visibility="undocumented",
+            ).then
         )
 
         for theme_box in (
