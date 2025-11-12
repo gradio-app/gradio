@@ -46,6 +46,11 @@ pip install gradio_client
 2. Find the API endpoint below corresponding to your desired function in the app. Copy the code snippet, replacing the placeholder values with your own input data. ${space_id ? "If this is a private Space, you may need to pass your Hugging Face token as well. [Read more](" + py_docs + spaces_docs_suffix + ")." : ""}
 
 ${dependencies
+	.filter(
+		(d) =>
+			d.api_visibility === "public" &&
+			info.named_endpoints["/" + d.api_name]
+	)
 	.map(
 		(d) =>
 			`### API Name: /${d.api_name}
@@ -93,6 +98,11 @@ npm i -D @gradio/client
 2. Find the API endpoint below corresponding to your desired function in the app. Copy the code snippet, replacing the placeholder values with your own input data. ${space_id ? "If this is a private Space, you may need to pass your Hugging Face token as well. [Read more](" + js_docs + spaces_docs_suffix + ")." : ""}
 
 ${dependencies
+	.filter(
+		(d) =>
+			d.api_visibility === "public" &&
+			info.named_endpoints["/" + d.api_name]
+	)
 	.map(
 		(d) =>
 			`### API Name: /${d.api_name}
@@ -139,6 +149,11 @@ curl --version
 Making a prediction and getting a result requires 2 requests: a POST and a GET request. The POST request returns an EVENT_ID, which is used in the second GET request to fetch the results. In these snippets, we've used awk and read to parse the results, combining these two requests into one command for ease of use. See [curl docs](${bash_docs}).
 
 ${dependencies
+	.filter(
+		(d) =>
+			d.api_visibility === "public" &&
+			info.named_endpoints["/" + d.api_name]
+	)
 	.map(
 		(d) =>
 			`### API Name: /${d.api_name}
