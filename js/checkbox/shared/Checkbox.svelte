@@ -8,7 +8,7 @@
 		label,
 		on_change,
 		on_select,
-		on_input,
+		on_input
 	} = $props();
 	// const gradio: Gradio<CheckboxEvents, CheckboxProps> = props.gradio;
 
@@ -26,26 +26,26 @@
 	});
 
 	async function handle_enter(
-		event: KeyboardEvent & { currentTarget: EventTarget & HTMLInputElement },
+		event: KeyboardEvent & { currentTarget: EventTarget & HTMLInputElement }
 	): Promise<void> {
 		if (event.key === "Enter") {
 			value = !value;
 			on_select({
 				index: 0,
 				value: event.currentTarget.checked,
-				selected: event.currentTarget.checked,
+				selected: event.currentTarget.checked
 			});
 		}
 	}
 
 	async function handle_input(
-		event: Event & { currentTarget: EventTarget & HTMLInputElement },
+		event: Event & { currentTarget: EventTarget & HTMLInputElement }
 	): Promise<void> {
 		value = event.currentTarget.checked;
 		on_select({
 			index: 0,
 			value: event.currentTarget.checked,
-			selected: event.currentTarget.checked,
+			selected: event.currentTarget.checked
 		});
 		on_input();
 	}

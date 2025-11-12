@@ -47,7 +47,7 @@
 	function truncate_text(
 		text: CellValue,
 		max_length: number | null = null,
-		is_image = false,
+		is_image = false
 	): string {
 		if (is_image) return String(text);
 		const str = String(text);
@@ -79,7 +79,7 @@
 	function handle_blur(event: FocusEvent): void {
 		dispatch("blur", {
 			blur_event: event,
-			coords: coords,
+			coords: coords
 		});
 	}
 

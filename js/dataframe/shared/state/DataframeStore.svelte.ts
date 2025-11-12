@@ -71,11 +71,18 @@ export class DataframeStore {
 	});
 
 	ui = $state({
-		activeCellMenu: null as
-			| { row: number; col: number; x: number; y: number }
-			| null,
+		activeCellMenu: null as {
+			row: number;
+			col: number;
+			x: number;
+			y: number;
+		} | null,
 		activeHeaderMenu: null as { col: number; x: number; y: number } | null,
-		activeButton: null as { type: "header" | "cell"; row?: number; col: number } | null,
+		activeButton: null as {
+			type: "header" | "cell";
+			row?: number;
+			col: number;
+		} | null,
 		copyFlash: false
 	});
 
@@ -165,7 +172,10 @@ export class DataframeStore {
 			return;
 		}
 
-		const updated = [...this.sort.columns.filter((item) => item.col !== column), next];
+		const updated = [
+			...this.sort.columns.filter((item) => item.col !== column),
+			next
+		];
 		this.sort.columns = updated.slice(-3);
 	}
 
@@ -201,9 +211,15 @@ export class DataframeStore {
 
 	addRow(insertIndex?: number): void {
 		const columnCount = this.data[0]?.length ?? this.headers.length ?? 1;
-		const newRow = Array.from({ length: columnCount }, () => this.createCell(""));
+		const newRow = Array.from({ length: columnCount }, () =>
+			this.createCell("")
+		);
 
-		if (insertIndex === undefined || insertIndex < 0 || insertIndex > this.data.length) {
+		if (
+			insertIndex === undefined ||
+			insertIndex < 0 ||
+			insertIndex > this.data.length
+		) {
 			this.data = [...this.data, newRow];
 		} else {
 			this.data = [
@@ -285,14 +301,12 @@ export class DataframeStore {
 	}
 
 	setActiveCellMenu(
-		menu:
-			| {
-					row: number;
-					col: number;
-					x: number;
-					y: number;
-			  }
-			| null
+		menu: {
+			row: number;
+			col: number;
+			x: number;
+			y: number;
+		} | null
 	): void {
 		this.ui.activeCellMenu = menu;
 	}
@@ -340,7 +354,9 @@ export class DataframeStore {
 		if (!target) return rows;
 		return rows.filter((row) =>
 			row.cells.some((cell) =>
-				String(cell?.value ?? "").toLowerCase().includes(target)
+				String(cell?.value ?? "")
+					.toLowerCase()
+					.includes(target)
 			)
 		);
 	}
@@ -373,10 +389,7 @@ export class DataframeStore {
 	private transpose(rows: StoreCell[][]): StoreCell[][] {
 		if (!rows.length) return [];
 		const colCount = rows[0].length;
-		const columns: StoreCell[][] = Array.from(
-			{ length: colCount },
-			() => []
-		);
+		const columns: StoreCell[][] = Array.from({ length: colCount }, () => []);
 		for (const row of rows) {
 			for (let col = 0; col < colCount; col++) {
 				columns[col].push(row[col]);
@@ -392,7 +405,10 @@ export class DataframeStore {
 		}));
 	}
 
-	private matchFilter(cell: StoreCell | undefined, column: FilterColumn): boolean {
+	private matchFilter(
+		cell: StoreCell | undefined,
+		column: FilterColumn
+	): boolean {
 		const value = cell?.value;
 		const stringValue = String(value ?? "");
 		if (column.datatype === "number") {
