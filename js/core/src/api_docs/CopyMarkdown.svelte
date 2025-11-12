@@ -1,5 +1,6 @@
 <script lang="ts">
 	import IconCopy from "./img/IconCopy.svelte";
+	import IconCheck from "./img/IconCheck.svelte";
 	import { represent_value } from "./utils";
 	import type { Dependency } from "../types";
 
@@ -331,7 +332,11 @@ Read more about the MCP in the [Gradio docs](${mcp_docs}).
 	<span
 		class="inline-flex items-center justify-center rounded-md p-0.5 max-sm:p-0"
 	>
+	{#if copied}
+		<IconCheck classNames="w-3 h-3 max-sm:w-2.5 max-sm:h-2.5" />
+	{:else}
 		<IconCopy classNames="w-3 h-3 max-sm:w-2.5 max-sm:h-2.5" />
+	{/if}
 	</span>
 	<span>{copied ? "Copied!" : label}</span>
 </button>
