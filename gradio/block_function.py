@@ -58,6 +58,7 @@ class BlockFunction:
         stream_every: float = 0.5,
         like_user_message: bool = False,
         event_specific_args: list[str] | None = None,
+        component_prop_inputs: list[int] | None = None,
         page: str = "",
         js_implementation: str | None = None,
         key: str | int | tuple[int | str, ...] | None = None,
@@ -112,6 +113,7 @@ class BlockFunction:
         self.connection = connection
         self.like_user_message = like_user_message
         self.event_specific_args = event_specific_args
+        self.component_prop_inputs = component_prop_inputs or []
         self.key = key
 
         self.spaces_auto_wrap()
@@ -171,5 +173,6 @@ class BlockFunction:
             "stream_every": self.stream_every,
             "like_user_message": self.like_user_message,
             "event_specific_args": self.event_specific_args,
+            "component_prop_inputs": self.component_prop_inputs,
             "js_implementation": getattr(self.fn, "__js_implementation__", None),
         }

@@ -1613,7 +1613,7 @@ class App(FastAPI):
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail="Function not found.",
                 )
-            processed_input, _, _ = special_args(
+            processed_input, _, _, _ = special_args(
                 fn,
                 [body.data],
                 request,  # type: ignore

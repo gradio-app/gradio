@@ -19,7 +19,7 @@ import webbrowser
 from collections import defaultdict
 from collections.abc import AsyncIterator, Callable, Coroutine, Sequence, Set
 from pathlib import Path
-from types import ModuleType
+from types import ModuleType, SimpleNamespace
 from typing import TYPE_CHECKING, Any, Literal, Union, cast
 from urllib.parse import urlparse, urlunparse
 
@@ -720,8 +720,8 @@ class BlocksConfig:
             )
 
         fn_to_analyze = renderable.fn if renderable else fn
-        _, progress_index, event_data_index = (
-            special_args(fn_to_analyze) if fn_to_analyze else (None, None, None)
+        _, progress_index, event_data_index, component_prop_indices = (
+            special_args(fn_to_analyze) if fn_to_analyze else (None, None, None, [])
         )
 
         # If api_name is None or empty string, use the function name
@@ -816,6 +816,7 @@ class BlocksConfig:
             stream_every=stream_every,
             like_user_message=like_user_message,
             event_specific_args=event_specific_args,
+            component_prop_inputs=component_prop_indices,
             page=self.root_block.current_page,
             js_implementation=js_implementation,
             key=key,
@@ -1557,11 +1558,19 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             fn_to_analyze = (
                 block_fn.renderable.fn if block_fn.renderable else block_fn.fn
             )
-            processed_input, progress_index, _ = special_args(
+            component_props = {}
+            for idx in block_fn.component_prop_inputs:
+                if idx < len(processed_input) and isinstance(
+                    processed_input[idx], dict
+                ):
+                    component_props[idx] = processed_input[idx]
+
+            processed_input, progress_index, _, _ = special_args(
                 fn_to_analyze,
                 processed_input,
                 request,  # type: ignore
                 event_data,  # type: ignore
+                component_props=component_props,
             )
             progress_tracker = (
                 processed_input[progress_index] if progress_index is not None else None
@@ -1705,29 +1714,37 @@ Received inputs:
             else:
                 if block._id in state:
                     block = state[block._id]
-                inputs_cached = await processing_utils.async_move_files_to_cache(
-                    inputs[i],
-                    block,
-                    check_in_upload_folder=not explicit_call,
-                )
-                if getattr(block, "data_model", None) and inputs_cached is not None:
-                    data_model = cast(
-                        Union[GradioModel, GradioRootModel], block.data_model
-                    )
-                    inputs_cached = data_model.model_validate(
-                        inputs_cached, context={"validate_meta": True}
-                    )
-                if isinstance(inputs_cached, (GradioModel, GradioRootModel)):
-                    inputs_serialized = inputs_cached.model_dump()
+
+                if i in block_fn.component_prop_inputs:
+                    processed_input.append(inputs[i])
+                    if block._id not in state:
+                        state[block._id] = block
+                    if isinstance(inputs[i], dict) and "value" in inputs[i]:
+                        state._update_value_in_config(block._id, inputs[i]["value"])
                 else:
-                    inputs_serialized = inputs_cached
-                if block._id not in state:
-                    state[block._id] = block
-                state._update_value_in_config(block._id, inputs_serialized)
-                if block_fn.preprocess:
-                    processed_input.append(block.preprocess(inputs_cached))
-                else:
-                    processed_input.append(inputs_serialized)
+                    inputs_cached = await processing_utils.async_move_files_to_cache(
+                        inputs[i],
+                        block,
+                        check_in_upload_folder=not explicit_call,
+                    )
+                    if getattr(block, "data_model", None) and inputs_cached is not None:
+                        data_model = cast(
+                            Union[GradioModel, GradioRootModel], block.data_model
+                        )
+                        inputs_cached = data_model.model_validate(
+                            inputs_cached, context={"validate_meta": True}
+                        )
+                    if isinstance(inputs_cached, (GradioModel, GradioRootModel)):
+                        inputs_serialized = inputs_cached.model_dump()
+                    else:
+                        inputs_serialized = inputs_cached
+                    if block._id not in state:
+                        state[block._id] = block
+                    state._update_value_in_config(block._id, inputs_serialized)
+                    if block_fn.preprocess:
+                        processed_input.append(block.preprocess(inputs_cached))
+                    else:
+                        processed_input.append(inputs_serialized)
         return processed_input
 
     def validate_outputs(self, block_fn: BlockFunction, predictions: Any | list[Any]):
@@ -1830,6 +1847,15 @@ Received inputs:
                 if isinstance(prediction_value, Block):
                     prediction_value = prediction_value.constructor_args.copy()
                     prediction_value["__type__"] = "update"
+                elif isinstance(prediction_value, SimpleNamespace) and getattr(
+                    prediction_value, "_is_component_update", False
+                ):
+                    prediction_value = vars(prediction_value).copy()
+                    keys = inspect.signature(block.__class__.__init__).parameters.keys()
+                    prediction_value = {
+                        k: v for k, v in prediction_value.items() if k in keys
+                    }
+                    prediction_value["__type__"] = "update"
                 if utils.is_prop_update(prediction_value):
                     kwargs = state[block._id].constructor_args.copy()
                     kwargs.update(prediction_value)
@@ -1837,6 +1863,7 @@ Received inputs:
                     kwargs.pop("__type__")
                     kwargs["render"] = False
 
+                    print(">>", kwargs)
                     state[block._id] = block.__class__(**kwargs)
                     state._update_config(block._id)
                     prediction_value = postprocess_update_dict(

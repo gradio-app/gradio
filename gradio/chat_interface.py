@@ -1027,7 +1027,9 @@ class ChatInterface(Blocks):
     async def _examples_fn(
         self, message: ExampleMessage | str, *args
     ) -> list[MessageDict]:
-        inputs, _, _ = special_args(self.fn, inputs=[message, [], *args], request=None)
+        inputs, _, _, _ = special_args(
+            self.fn, inputs=[message, [], *args], request=None
+        )
         if self.is_async:
             response = await self.fn(*inputs)
         else:
@@ -1039,7 +1041,9 @@ class ChatInterface(Blocks):
         message: str,
         *args,
     ) -> AsyncGenerator:
-        inputs, _, _ = special_args(self.fn, inputs=[message, [], *args], request=None)
+        inputs, _, _, _ = special_args(
+            self.fn, inputs=[message, [], *args], request=None
+        )
 
         if self.is_async:
             generator = self.fn(*inputs)
