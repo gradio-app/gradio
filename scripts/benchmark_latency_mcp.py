@@ -33,13 +33,14 @@ async def make_serial_requests():
                 end = time.time()
                 times.append(end - start)
 
-    print("Serial result was", result)
+    print("Serial result was: ", result.content[0].text)
     print(f"Serial average: {sum(times) / len(times)} seconds")
 
 asyncio.run(make_serial_requests())
 
 async def make_parallel_requests():
     parallel_times = []
+    results = []
 
     async def make_request():
         async with streamablehttp_client(mcp_url) as (read_stream, write_stream, _):
@@ -48,14 +49,15 @@ async def make_parallel_requests():
                 tools = await session.list_tools()
                 tool_name = tools.tools[0].name
                 start = time.time()
-                await session.call_tool(tool_name, arguments={"word": "Hello"})
+                result = await session.call_tool(tool_name, arguments={"word": "Hello"})
                 end = time.time()
                 parallel_times.append(end - start)
+                results.append(result)
 
     tasks = [make_request() for _ in range(25)]
     await asyncio.gather(*tasks)
 
-    print("Parallel result was", result)
+    print("Parallel result was: ", results[0].content[0].text)
     print(f"Parallel average: {sum(parallel_times) / len(parallel_times)} seconds")
 
 asyncio.run(make_parallel_requests())
