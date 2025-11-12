@@ -343,6 +343,7 @@
 					Choose one of the following ways to interact with the API.
 				</p>
 				<CopyMarkdown
+					{current_language}
 					{space_id}
 					{root}
 					{api_count}

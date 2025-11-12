@@ -4,6 +4,7 @@
 	import { represent_value } from "./utils";
 	import type { Dependency } from "../types";
 
+	export let current_language: "python" | "javascript" | "bash" | "mcp";
 	export let space_id: string | null;
 	export let root: string;
 	export let api_count: number;
@@ -22,21 +23,17 @@
 	export let info: any;
 	export let js_info: any;
 
-	let markdown_content = "";
-
-	/* eslint-disable complexity */
-	$: markdown_content = `
-# API documentation for ${space_id || root}
+	
+	let markdown_content: Record<string, string> = {
+		python: "",
+		javascript: "",
+		bash: "",
+		mcp: ""
+	};
+	/* eslint-enable complexity */
+	$: markdown_content.python = `
+# Python API documentation for ${space_id || root}
 API Endpoints: ${api_count}
-MCP Tools: ${tools.length}
-
-Choose one of the following ways to interact with the API:
-- Python
-- JavaScript
-- cURL
-- MCP
-
-## Python Documentation: 
 
 1. Install the Python client [docs](${py_docs}) if you don't already have it installed. 
 
@@ -87,8 +84,10 @@ ${info?.named_endpoints["/" + d.api_name]?.returns
 `
 	)
 	.join("\n\n\n")}
-
-## JavaScript Documentation: 
+`;
+	$: markdown_content.javascript = `
+# JavaScript API documentation for ${space_id || root}
+API Endpoints: ${api_count}
 
 1. Install the JavaScript client [docs](${js_docs}) if you don't already have it installed. 
 
@@ -136,8 +135,10 @@ ${info?.named_endpoints["/" + d.api_name]?.returns
 	.join("\n\n")}`
 	)
 	.join("\n\n\n")}
-
-## Bash Documentation: 
+`;
+	$: markdown_content.bash = `
+# Bash API documentation for ${space_id || root}
+API Endpoints: ${api_count}
 
 1. Confirm that you have cURL installed on your system.
 
@@ -186,8 +187,11 @@ ${info?.named_endpoints["/" + d.api_name]?.returns
 `
 	)
 	.join("\n\n\n")}
+`;
+	$: markdown_content.mcp = `
+# MCP documentation for ${space_id || root}
+MCP Tools: ${tools.length}
 
-## MCP Documentation: 
 ${
 	!mcp_server_active
 		? `This Gradio app can also serve as an MCP server, with an MCP tool corresponding to each API endpoint. 
@@ -296,12 +300,22 @@ Read more about the MCP in the [Gradio docs](${mcp_docs}).
 `;
 	/* eslint-enable complexity */
 
-	let label = "Copy page as Markdown for LLMs";
-	let copied = false;
+	let current_language_label = current_language === "python" ? "Python" : current_language === "javascript" ? "JavaScript" : current_language === "bash" ? "Bash" : "MCP";
 
-	async function copyMarkdown(): Promise<void> {
+	$: current_language;
+	$: current_language_label = current_language === "python" ? "Python" : current_language === "javascript" ? "JavaScript" : current_language === "bash" ? "Bash" : "MCP";
+
+
+
+	let label = `Copy ${current_language_label} docs as Markdown for LLMs`;
+	$: label = `Copy ${current_language_label} docs as Markdown for LLMs`;
+	
+	let copied = false;
+	$: copied;
+
+	async function copyMarkdown(current_language: "python" | "javascript" | "bash" | "mcp"): Promise<void> {
 		try {
-			if (!markdown_content) {
+			if (!markdown_content[current_language]) {
 				console.warn("Nothing to copy");
 				return;
 			}
@@ -312,7 +326,7 @@ Read more about the MCP in the [Gradio docs](${mcp_docs}).
 				typeof navigator.clipboard.writeText === "function";
 
 			if (hasNavigatorClipboard) {
-				await navigator.clipboard.writeText(markdown_content);
+				await navigator.clipboard.writeText(markdown_content[current_language]);
 			} else {
 				console.warn("Clipboard API unavailable");
 				return;
@@ -321,14 +335,14 @@ Read more about the MCP in the [Gradio docs](${mcp_docs}).
 			copied = true;
 			setTimeout(() => {
 				copied = false;
-			}, 1000);
+			}, 1500);
 		} catch (error) {
 			console.error("Failed to write to clipboard", error);
 		}
 	}
 </script>
 
-<button on:click={copyMarkdown} class="copy-button" aria-live="polite">
+<button on:click={() => copyMarkdown(current_language)} class="copy-button" aria-live="polite">
 	<span
 		class="inline-flex items-center justify-center rounded-md p-0.5 max-sm:p-0"
 	>
@@ -338,7 +352,7 @@ Read more about the MCP in the [Gradio docs](${mcp_docs}).
 		<IconCopy classNames="w-3 h-3 max-sm:w-2.5 max-sm:h-2.5" />
 	{/if}
 	</span>
-	<span>{copied ? "Copied!" : label}</span>
+	<span>{copied ? `Copied ${current_language_label} docs!` : label}</span>
 </button>
 
 <style>
