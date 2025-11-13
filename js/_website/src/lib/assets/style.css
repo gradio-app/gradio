@@ -161,12 +161,6 @@
 	@apply mb-2 text-lg text-gray-900 dark:text-gray-100;
 }
 
-/* playground */
-
-.current-playground-demo {
-	@apply text-orange-500 pl-4;
-}
-
 /* docs */
 .selected-demo {
 	@apply font-semibold bg-gray-50 rounded text-orange-500;
@@ -425,11 +419,4 @@ summary::after {
 	background: var(--table-odd-background-fill);
 	height: 90%;
 	padding-top: 14px;
-}
-
-@media (min-width: 768px) {
-	body:has(.playground) .main-header,
-	body:has(.playground) .main-footer {
-		display: none;
-	}
 }

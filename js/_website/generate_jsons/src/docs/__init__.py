@@ -102,34 +102,11 @@ def add_guides():
 add_guides()
 
 
-def generate_playground_link(demo_name):
-    playground_url = "https://gradio.app/playground?demo=Blank"
-    with open(os.path.join(DEMOS_DIR, demo_name, "run.py")) as f:
-        demo_code = f.read()
-        encoded_code = base64.b64encode(demo_code.encode('utf-8')).decode('utf-8')
-        encoded_code_url = urllib.parse.quote(encoded_code, safe='')
-        playground_url += "&code=" + encoded_code_url
-    if "requirements.txt" in os.listdir(os.path.join(DEMOS_DIR, demo_name)):
-        with open(os.path.join(DEMOS_DIR, demo_name, "requirements.txt")) as f:
-            requirements = f.read()
-            if requirements:
-                encoded_reqs = base64.b64encode(requirements.encode('utf-8')).decode('utf-8')
-                encoded_reqs_url = urllib.parse.quote(encoded_reqs, safe='')
-                playground_url += "&reqs=" + encoded_reqs_url
-    return f"[demo/{demo_name}]({playground_url})"
-
-
 def escape_parameters(parameters):
     new_parameters = []
     for param in parameters:
         param = param.copy()  # Manipulating the list item directly causes issues, so copy it first
         param["doc"] = html.escape(param["doc"]) if param["doc"] else param["doc"]
-        if param["doc"] and "$demo/" in param["doc"]:
-            param["doc"] = re.sub(
-                    r"\$demo/(\w+)",
-                    lambda m: generate_playground_link(m.group(1)),
-                    param["doc"],
-                )
         new_parameters.append(param)
     assert len(new_parameters) == len(parameters)
     return new_parameters
