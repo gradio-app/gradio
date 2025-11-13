@@ -271,6 +271,8 @@
 {/if}
 
 <style>
+	@reference "../../assets/style.css";
+
 	.overlay {
 		@apply fixed inset-0 z-30 backdrop-blur-sm bg-black/20;
 	}
