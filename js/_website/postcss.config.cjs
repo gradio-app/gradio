@@ -1,4 +1,4 @@
 module.exports = {
 	extract: "themes.css",
-	plugins: [require("@tailwindcss/postcss")]
+	plugins: [require("tailwindcss/nesting"), require("tailwindcss")]
 };

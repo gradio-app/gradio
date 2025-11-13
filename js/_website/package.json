@@ -15,12 +15,11 @@
 		"@sveltejs/adapter-static": "^3.0.10",
 		"@sveltejs/kit": "^2.46.2",
 		"@tailwindcss/forms": "^0.5.10",
-		"@tailwindcss/postcss": "^4.1.14",
 		"@tailwindcss/typography": "^0.5.19",
 		"@types/prismjs": "^1.26.5",
 		"flexsearch": "^0.8.212",
 		"prismjs": "^1.30.0",
-		"tailwindcss": "^4.1.14"
+		"tailwindcss": "^3.1.6"
 	},
 	"type": "module",
 	"engines": {
