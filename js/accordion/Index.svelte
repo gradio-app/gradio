@@ -11,6 +11,8 @@
 
 	let props = $props();
 	const gradio = new Gradio<AccordionEvents, AccordionProps>(props);
+
+	let label = $derived(gradio.shared.label || "");
 </script>
 
 <Block
@@ -27,7 +29,7 @@
 	{/if}
 
 	<Accordion
-		label={gradio.shared.label}
+		{label}
 		open={gradio.props.open}
 		on:expand={() => gradio.dispatch("expand")}
 		on:collapse={() => gradio.dispatch("collapse")}

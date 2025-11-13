@@ -44,7 +44,7 @@
 	{#if gradio.shared.show_label}
 		<BlockLabel
 			Icon={LabelIcon}
-			label={gradio.shared.label}
+			label={gradio.shared.label || gradio.i18n("label.label")}
 			disable={gradio.shared.container === false}
 			float={gradio.props.show_heading === true}
 		/>

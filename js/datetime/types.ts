@@ -3,6 +3,7 @@ export interface DateTimeProps {
 	include_time: boolean;
 	type: "timestamp" | "datetime" | "string";
 	timezone: string | null;
+	info: string;
 }
 
 export interface DateTimeEvents {

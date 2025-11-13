@@ -85,7 +85,7 @@
 				</button>
 			</div>
 		{:else if gradio.shared.show_label}
-			{gradio.shared.label}
+			{gradio.shared.label || gradio.i18n("checkbox.checkbox_group")}
 		{/if}
 	</BlockTitle>
 

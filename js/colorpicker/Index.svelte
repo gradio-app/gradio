@@ -14,6 +14,9 @@
 
 	let props = $props();
 	const gradio = new Gradio<ColorPickerEvents, ColorPickerProps>(props);
+	let label = $derived(
+		gradio.shared.label || gradio.i18n("colorpicker.color_picker")
+	);
 </script>
 
 <Block
@@ -34,7 +37,7 @@
 
 	<Colorpicker
 		bind:value={gradio.props.value}
-		label={gradio.shared.label}
+		{label}
 		info={gradio.props.info}
 		show_label={gradio.shared.show_label}
 		disabled={!gradio.shared.interactive}

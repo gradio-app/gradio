@@ -140,7 +140,7 @@
 		bind:active_source
 		{file_types_string}
 		root={gradio.shared.root}
-		label={gradio.shared.label}
+		label={gradio.shared.label || "MultimodalTextbox"}
 		info={gradio.props.info}
 		show_label={gradio.shared.show_label}
 		lines={gradio.props.lines}
