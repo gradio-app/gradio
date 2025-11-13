@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { createEventDispatcher, setContext, tick, onMount } from "svelte";
+	import {
+		createEventDispatcher,
+		setContext,
+		tick,
+		onMount,
+		untrack,
+	} from "svelte";
 	import { dequal } from "dequal/lite";
 	import { Upload } from "@gradio/upload";
 
@@ -16,7 +22,7 @@
 		Headers,
 		DataframeValue,
 		Datatype,
-		EditData
+		EditData,
 	} from "./utils/utils";
 	import CellMenu from "./CellMenu.svelte";
 	import Toolbar from "./Toolbar.svelte";
@@ -26,30 +32,30 @@
 		should_show_cell_menu,
 		handle_click_outside as handle_click_outside_util,
 		calculate_selection_positions,
-		handle_selection
+		handle_selection,
 	} from "./utils/selection_utils";
 	import {
 		copy_table_data,
 		get_max,
-		handle_file_upload
+		handle_file_upload,
 	} from "./utils/table_utils";
 	import { make_headers } from "./utils/data_processing";
 	import {
 		handle_keydown,
 		handle_cell_blur,
-		type KeyboardContext
+		type KeyboardContext,
 	} from "./utils/keyboard_utils";
 	import {
 		create_drag_handlers,
 		type DragState,
-		type DragHandlers
+		type DragHandlers,
 	} from "./utils/drag_utils";
 	import type { FilterDatatype } from "./utils/filter_utils";
 	import {
 		DataframeStore,
 		DATAFRAME_STORE_KEY,
 		type RowView,
-		type SortDirection
+		type SortDirection,
 	} from "./state/DataframeStore.svelte";
 
 	type TableProps = {
@@ -115,19 +121,19 @@
 		static_columns = [],
 		fullscreen = false,
 		display_value = null,
-		styling = null
+		styling = null,
 	}: TableProps = $props();
 
 	const dataframeStore = new DataframeStore({
 		value: {
 			data: values,
 			headers,
-			metadata: display_value || styling ? { display_value, styling } : null
+			metadata: display_value || styling ? { display_value, styling } : null,
 		},
 		datatype,
 		pinned_columns,
 		column_widths,
-		max_height
+		max_height,
 	});
 
 	setContext(DATAFRAME_STORE_KEY, dataframeStore);
@@ -135,19 +141,19 @@
 	const incomingValue = $derived<DataframeValue>({
 		data: values,
 		headers,
-		metadata: display_value || styling ? { display_value, styling } : null
+		metadata: display_value || styling ? { display_value, styling } : null,
 	});
-	const data = $derived(dataframeStore.data);
-	const header_values = $derived(dataframeStore.headers);
+
+	// const header_values = $derived(dataframeStore.headers);
 
 	let els: Record<
 		string,
 		{ cell: null | HTMLTableCellElement; input: null | HTMLTextAreaElement }
 	> = {};
 	let previous_incoming_value: DataframeValue | null = null;
-	let _headers = make_headers(headers, col_count, els, make_id);
+	let _headers = $state(make_headers(headers, col_count, els, make_id));
 	let old_headers: string[] = JSON.parse(JSON.stringify(headers));
-	let dragging = false;
+	let dragging = $state(false);
 	let color_accent_copied: string;
 
 	$effect(() => {
@@ -155,57 +161,63 @@
 			!previous_incoming_value ||
 			!dequal(previous_incoming_value, incomingValue)
 		) {
+			console.log("boo");
 			previous_incoming_value = JSON.parse(
-				JSON.stringify(incomingValue)
+				JSON.stringify(incomingValue),
 			) as DataframeValue;
 			dataframeStore.setValue(previous_incoming_value);
 		}
 	});
 
 	$effect(() => {
+		console.log("config effect");
 		dataframeStore.config.pinned_columns = pinned_columns ?? 0;
 		dataframeStore.config.column_widths = column_widths ?? [];
 		dataframeStore.config.max_height = max_height ?? 500;
 	});
 
-	$effect(() => {
-		const next_headers = header_values ?? [];
-		if (!dequal(next_headers, old_headers)) {
-			_headers = make_headers(next_headers, col_count, els, make_id);
-			old_headers = JSON.parse(JSON.stringify(next_headers));
-		}
-	});
+	// $effect(() => {
+	// 	console.log("headers effect");
+	// 	const next_headers = dataframeStore.headers ?? [];
+	// 	if (!dequal(next_headers, old_headers)) {
+	// 		untrack(() => {
+	// 			_headers = make_headers(next_headers, col_count, els, make_id);
+	// 			old_headers = JSON.parse(JSON.stringify(next_headers));
+	// 		});
+	// 	}
+	// });
 
-	$effect(() => {
-		for (const row of data) {
-			for (const cell of row) {
-				if (!els[cell.id]) {
-					els[cell.id] = { cell: null, input: null };
-				}
-			}
-		}
-	});
+	// $effect(() => {
+	// 	console.log("els effect");
+	// 	for (const row of dataframeStore.data) {
+	// 		for (const cell of row) {
+	// 			if (!els[cell.id]) {
+	// 				els[cell.id] = { cell: null, input: null };
+	// 			}
+	// 		}
+	// 	}
+	// });
 
-	const selected_cells = $derived(dataframeStore.selection.cells);
-	const selected = $derived(dataframeStore.selectedCell || false);
-	const editing = $derived(dataframeStore.selection.editing || false);
-	const header_edit = $derived(dataframeStore.selection.headerEdit || false);
-	const selected_header = $derived(
-		dataframeStore.selection.selectedHeader || false
-	);
-	const active_cell_menu = $derived(dataframeStore.ui.activeCellMenu);
-	const active_header_menu = $derived(dataframeStore.ui.activeHeaderMenu);
-	const copy_flash = $derived(dataframeStore.ui.copyFlash);
+	// const selected_cells = $derived(dataframeStore.selection.cells);
+	// const selected = $derived(dataframeStore.selectedCell || false);
+	// const editing = $derived(dataframeStore.selection.editing || false);
+	// const header_edit = $derived(dataframeStore.selection.headerEdit || false);
+	// const selected_header = $derived(
+	// 	dataframeStore.selection.selectedHeader || false,
+	// );
+	// const active_cell_menu = $derived(dataframeStore.ui.activeCellMenu);
+	// const active_header_menu = $derived(dataframeStore.ui.activeHeaderMenu);
+	// const copy_flash = $derived(dataframeStore.ui.copyFlash);
 
 	const actual_pinned_columns = $derived(
-		pinned_columns && data?.[0]?.length
-			? Math.min(pinned_columns, data[0].length)
-			: 0
+		pinned_columns && dataframeStore.data?.[0]?.length
+			? Math.min(pinned_columns, dataframeStore.data[0].length)
+			: 0,
 	);
 
-	const sort_columns = $derived(dataframeStore.sort.columns);
-	const filter_columns = $derived(dataframeStore.filter.columns);
-	const current_search_query = $derived(dataframeStore.search.query);
+	// const sort_columns = $derived(dataframeStore.sort.columns);
+	// const filter_columns = $derived(dataframeStore.filter.columns);
+	// const current_search_query = $derived(dataframeStore.search.query);
 	let selected_index: number | false = $state(false);
 
 	onMount(() => {
@@ -250,7 +262,7 @@
 		return {
 			data: dataframeStore.data.map((row) => row.map((cell) => cell.value)),
 			headers: dataframeStore.headers.map((header) => header ?? ""),
-			metadata: null
+			metadata: null,
 		};
 	}
 
@@ -262,13 +274,15 @@
 		}
 	}
 
-	const visible_rows = $derived(dataframeStore.visibleRows);
+	// const visible_rows = $derived(dataframeStore.visibleRows);
 
 	const search_results = $derived(
-		visible_rows.length === 0 ? [] : visible_rows.map((row) => row.cells)
+		dataframeStore.visibleRows.length === 0
+			? []
+			: dataframeStore.visibleRows.map((row) => row.cells),
 	);
 	const filtered_to_original_map = $derived(
-		visible_rows.map((row) => row.rowIndex)
+		dataframeStore.visibleRows.map((row) => row.rowIndex),
 	);
 
 	function handleSortAction(col: number, direction: SortDirection): void {
@@ -279,7 +293,7 @@
 		col: number,
 		datatype: FilterDatatype,
 		filter: string,
-		value: string
+		value: string,
 	): void {
 		dataframeStore.toggleFilter({ col, datatype, filter, value });
 	}
@@ -300,6 +314,7 @@
 		set_editing: (coords: CellCoordinate | false) =>
 			dataframeStore.setEditing(coords),
 		handle_header_click: (col: number, editable: boolean) => {
+			console.log("handle_header_click", { col, editable });
 			if (!editable) return;
 			dataframeStore.setActiveCellMenu(null);
 			dataframeStore.setActiveHeaderMenu(null);
@@ -321,7 +336,7 @@
 		clear_ui_state: () => dataframeStore.clearUIState(),
 		set_copy_flash: (value: boolean) => dataframeStore.setCopyFlash(value),
 		set_active_header_menu: (
-			menu: { col: number; x: number; y: number } | null
+			menu: { col: number; x: number; y: number } | null,
 		) => dataframeStore.setActiveHeaderMenu(menu),
 		set_active_cell_menu: (
 			menu: {
@@ -329,41 +344,85 @@
 				col: number;
 				x: number;
 				y: number;
-			} | null
+			} | null,
 		) => dataframeStore.setActiveCellMenu(menu),
 		set_selected_cells: (cells: CellCoordinate[]) =>
 			dataframeStore.setSelectedCells(cells),
 		set_selected: (cell: CellCoordinate | false) =>
 			dataframeStore.setSelected(cell),
 		handle_cell_click: (event: MouseEvent, row: number, col: number) => {
+			console.time("handle_cell_click");
+			console.log("handle_cell_click", { event, row, col });
+			console.time("handle_cell_click");
+
 			event.preventDefault();
 			event.stopPropagation();
-			const cells = handle_selection([row, col], selected_cells, event);
+			console.log("after propagation");
+			console.time("handle_cell_click");
+
+			const cells = handle_selection(
+				[row, col],
+				dataframeStore.selection.cells,
+				event,
+			);
+			console.log("selected cells", cells);
+			console.time("handle_cell_click");
+
 			dataframeStore.setActiveCellMenu(null);
+			console.log("after clear menu");
+			console.timeLog("handle_cell_click");
+
 			dataframeStore.setActiveHeaderMenu(null);
+			console.log("after clear header menu");
+			console.timeLog("handle_cell_click");
+
 			dataframeStore.setSelectedCells(cells);
+			console.log("after set selected cells");
+			console.timeLog("handle_cell_click");
+
 			dataframeStore.setSelected(cells[0] ?? false);
+			console.log("after set selected");
+			console.timeLog("handle_cell_click");
+
 			dataframeStore.setHeaderEdit(false);
+			console.log("after set header edit");
+			console.timeLog("handle_cell_click");
+
 			dataframeStore.setSelectedHeader(false);
+			console.log("after set selected header");
+			console.timeLog("handle_cell_click");
+
 			if (editable && cells.length === 1) {
 				dataframeStore.setEditing([row, col]);
+				console.log("after set editing -- before tick");
+				console.timeLog("handle_cell_click");
+
 				tick().then(() => {
-					const cellId = data[row][col].id;
+					const cellId = dataframeStore.data[row][col].id;
 					els[cellId]?.input?.focus();
+					console.log("after tick + focus");
+					console.timeLog("handle_cell_click");
 				});
 			} else {
 				dataframeStore.setEditing(false);
+				console.log("after set editing false");
+				console.timeLog("handle_cell_click");
 			}
+			console.log("after set editing");
+			console.timeLog("handle_cell_click");
+
 			dispatch("select", {
 				index: [row, col],
 				col_value: get_column(col),
 				row_value: get_row(row),
-				value: get_data_at(row, col)
+				value: get_data_at(row, col),
 			});
+			console.log("after dispatch select");
+			console.timeEnd("handle_cell_click");
 		},
 		toggle_cell_menu: (event: MouseEvent, row: number, col: number) => {
 			event.stopPropagation();
-			const current_menu = active_cell_menu;
+			const current_menu = dataframeStore.selection.activeCellMenu;
 			if (current_menu?.row === row && current_menu.col === col) {
 				dataframeStore.setActiveCellMenu(null);
 				return;
@@ -375,26 +434,30 @@
 					row,
 					col,
 					x: rect.right,
-					y: rect.bottom
+					y: rect.bottom,
 				});
 			}
 		},
 		handle_select_column: (col: number) => {
-			if (!data) return;
-			const cells = data.map(
-				(_, rowIndex) => [rowIndex, col] as CellCoordinate
+			console.log("handle_select_column", col);
+			if (!dataframeStore.data) return;
+			const cells = dataframeStore.data.map(
+				(_, rowIndex) => [rowIndex, col] as CellCoordinate,
 			);
 			dataframeStore.setSelectedCells(cells);
 			dataframeStore.setSelected(cells[0] ?? false);
 			dataframeStore.setEditing(false);
 		},
 		handle_select_row: (rowIndex: number) => {
-			if (!data || !data[0]) return;
-			const cells = data[0].map((_, col) => [rowIndex, col] as CellCoordinate);
+			console.log("handle_select_row", rowIndex);
+			if (!dataframeStore.data || !dataframeStore.data[0]) return;
+			const cells = dataframeStore.data[0].map(
+				(_, col) => [rowIndex, col] as CellCoordinate,
+			);
 			dataframeStore.setSelectedCells(cells);
 			dataframeStore.setSelected(cells[0] ?? false);
 			dataframeStore.setEditing(false);
-		}
+		},
 	};
 
 	onMount(() => {
@@ -404,46 +467,47 @@
 		color_accent_copied = color + "40"; // 80 is 50% opacity in hex
 		document.documentElement.style.setProperty(
 			"--color-accent-copied",
-			color_accent_copied
+			color_accent_copied,
 		);
 	});
 
 	const get_data_at = (row: number, col: number): CellValue =>
-		data?.[row]?.[col]?.value;
+		dataframeStore.data?.[row]?.[col]?.value;
 
 	const get_column = (col: number): CellValue[] =>
-		data?.map((row) => row[col]?.value) ?? [];
+		dataframeStore.data?.map((row) => row[col]?.value) ?? [];
 
 	const get_row = (row: number): CellValue[] =>
-		data?.[row]?.map((cell) => cell.value) ?? [];
+		dataframeStore.data?.[row]?.map((cell) => cell.value) ?? [];
 
 	function make_id(): string {
 		return Math.random().toString(36).substring(2, 15);
 	}
 
 	let last_data_structure = {
-		rows: data.length,
-		cols: data[0]?.length ?? 0
+		rows: dataframeStore.data.length,
+		cols: dataframeStore.data[0]?.length ?? 0,
 	};
 
-	$effect(() => {
-		const rows = data.length;
-		const cols = data[0]?.length ?? 0;
-		const is_reset = rows === 0 || (rows === 1 && cols === 0);
-		const changed =
-			rows !== last_data_structure.rows || cols !== last_data_structure.cols;
+	// $effect(() => {
+	// 	console.log("data structure effect");
+	// 	const rows = dataframeStore.data.length;
+	// 	const cols = dataframeStore.data[0]?.length ?? 0;
+	// 	const is_reset = rows === 0 || (rows === 1 && cols === 0);
+	// 	const changed =
+	// 		rows !== last_data_structure.rows || cols !== last_data_structure.cols;
 
-		if (parent && (is_reset || changed)) {
-			for (let i = 0; i < 50; i++) {
-				parent.style.removeProperty(`--cell-width-${i}`);
-			}
-			last_width_data_length = 0;
-			last_width_column_count = 0;
-			width_calculated = false;
-		}
+	// 	if (parent && (is_reset || changed)) {
+	// 		for (let i = 0; i < 50; i++) {
+	// 			parent.style.removeProperty(`--cell-width-${i}`);
+	// 		}
+	// 		last_width_data_length = 0;
+	// 		last_width_column_count = 0;
+	// 		width_calculated = false;
+	// 	}
 
-		last_data_structure = { rows, cols };
-	});
+	// 	last_data_structure = { rows, cols };
+	// });
 
 	function handle_sort(col: number, direction: SortDirection): void {
 		df_actions.handle_sort(col, direction);
@@ -453,17 +517,18 @@
 		df_actions.reset_sort_state();
 	}
 
-	$effect(() => {
-		if (sort_columns.length > 0) {
-			df_actions.update_row_order();
-		}
-	});
+	// $effect(() => {
+	// 	console.log("sort_columns effect");
+	// 	if (dataframeStore.sort.columns.length > 0) {
+	// 		df_actions.update_row_order();
+	// 	}
+	// });
 
 	function handle_filter(
 		col: number,
 		datatype: FilterDatatype,
 		filter: string,
-		value: string
+		value: string,
 	): void {
 		df_actions.handle_filter(col, datatype, filter, value);
 	}
@@ -477,7 +542,12 @@
 	}
 
 	async function edit_header(i: number, _select = false): Promise<void> {
-		if (!editable || header_edit === i || col_count[1] !== "dynamic") return;
+		if (
+			!editable ||
+			dataframeStore.selection.headerEdit === i ||
+			col_count[1] !== "dynamic"
+		)
+			return;
 		df_actions.set_header_edit(i);
 	}
 
@@ -504,7 +574,7 @@
 
 		if (row_count[1] !== "dynamic") return;
 
-		const currentLength = data.length;
+		const currentLength = dataframeStore.data.length;
 		const insertIndex =
 			index !== undefined && index >= 0 && index <= currentLength
 				? index
@@ -522,7 +592,8 @@
 		parent.focus();
 		if (col_count[1] !== "dynamic") return;
 
-		const currentCols = data[0]?.length ?? header_values.length ?? 0;
+		const currentCols =
+			dataframeStore.data[0]?.length ?? dataframeStore.headers.length ?? 0;
 		const insertIndex =
 			index !== undefined && index >= 0 && index <= currentCols
 				? index
@@ -534,7 +605,7 @@
 		await tick();
 
 		requestAnimationFrame(() => {
-			const totalCols = data[0]?.length ?? 0;
+			const totalCols = dataframeStore.data[0]?.length ?? 0;
 			const targetIndex =
 				insertIndex !== undefined ? insertIndex : Math.max(totalCols - 1, 0);
 			edit_header(targetIndex, true);
@@ -544,29 +615,38 @@
 	}
 
 	function handle_click_outside(event: Event): void {
+		console.log("handle_click_outside");
 		if (handle_click_outside_util(event, parent)) {
+			console.log("Click outside detected");
 			df_actions.clear_ui_state();
 		}
 	}
 
-	const max = $derived(get_max(data));
+	const max = $derived(get_max(dataframeStore.data));
 
-	let width_calc_timeout: ReturnType<typeof setTimeout>;
 	$effect(() => {
+		console.log("width_calc effect");
 		if (cells[0] && cells[0]?.clientWidth) {
-			clearTimeout(width_calc_timeout);
-			width_calc_timeout = setTimeout(() => set_cell_widths(), 100);
+			run_width();
 		}
 	});
+
+	async function run_width() {
+		console.time("width_calc effect");
+		await tick();
+		set_cell_widths();
+		console.timeEnd("width_calc effect");
+	}
 
 	let width_calculated = false;
-	$effect(() => {
-		if (cells[0] && !width_calculated) {
-			set_cell_widths();
-			width_calculated = true;
-		}
-	});
-	let cells: HTMLTableCellElement[] = [];
+	// $effect(() => {
+	// 	console.log("width_calculated effect");
+	// 	if (cells[0] && !width_calculated) {
+	// 		set_cell_widths();
+	// 		width_calculated = true;
+	// 	}
+	// });
+	let cells: HTMLTableCellElement[] = $state([]);
 	let parent: HTMLDivElement;
 	let table: HTMLTableElement;
 	let last_width_data_length = 0;
@@ -574,7 +654,7 @@
 
 	const emitKeyboardEvent = (
 		event: "change" | "input",
-		detail?: DataframeValue
+		detail?: DataframeValue,
 	): void => {
 		if (event === "change") {
 			emitTableChange(detail);
@@ -585,7 +665,7 @@
 
 	const keyboard_context: KeyboardContext = {
 		get data() {
-			return data;
+			return dataframeStore.data;
 		},
 		get headers() {
 			return _headers;
@@ -603,18 +683,18 @@
 		},
 		get static_columns() {
 			return static_columns;
-		}
+		},
 	};
 
 	function set_cell_widths(): void {
-		const column_count = data[0]?.length || 0;
-		if (filter_columns.length > 0) {
+		const column_count = dataframeStore.data[0]?.length || 0;
+		if (dataframeStore.filter.columns.length > 0) {
 			return;
 		}
 		if (
-			last_width_data_length === data.length &&
+			last_width_data_length === dataframeStore.data.length &&
 			last_width_column_count === column_count &&
-			sort_columns.length > 0
+			dataframeStore.sort.columns.length > 0
 		) {
 			return;
 		}
@@ -623,7 +703,7 @@
 			return;
 		}
 
-		last_width_data_length = data.length;
+		last_width_data_length = dataframeStore.data.length;
 		last_width_column_count = column_count;
 
 		const widths = cells.map((el) => el?.clientWidth || 0);
@@ -657,19 +737,21 @@
 		return `var(--cell-width-${index})`;
 	}
 
-	let table_height: number =
-		values.slice(0, (max_height / values.length) * 37).length * 37 + 37;
-	let scrollbar_width = 0;
+	let table_height: number = $state(
+		values.slice(0, (max_height / values.length) * 37).length * 37 + 37,
+	);
+	let scrollbar_width = $state(0);
 	let pendingUploadHeaders: string[] = [];
 
-	$effect(() => {
-		if (selected === false) {
-			selected_index = false;
-		} else {
-			const mapped_index = filtered_to_original_map.indexOf(selected[0]);
-			selected_index = mapped_index !== -1 ? mapped_index : false;
-		}
-	});
+	// $effect(() => {
+	// 	console.log("selected effect");
+	// 	if (selected === false) {
+	// 		selected_index = false;
+	// 	} else {
+	// 		const mapped_index = filtered_to_original_map.indexOf(selected[0]);
+	// 		selected_index = mapped_index !== -1 ? mapped_index : false;
+	// 	}
+	// });
 
 	let is_visible = false;
 
@@ -682,30 +764,34 @@
 
 	let previous_selected_cells: [number, number][] = [];
 
-	$effect(() => {
-		if (copy_flash && !dequal(selected_cells, previous_selected_cells)) {
-			set_copy_flash(false);
-		}
-		// previous_selected_cells = selected_cells;
-	});
+	// $effect(() => {
+	// 	console.log("copy_flash effect");
+	// 	if (dataframeStore.ui.copyFlash && !dequal(dataframeStore.selection.cells, previous_selected_cells)) {
+	// 		set_copy_flash(false);
+	// 	}
+	// 	previous_selected_cells = dataframeStore.selection.cells;
+	// });
 
 	async function handle_blur(
 		event: CustomEvent<{
 			blur_event: FocusEvent;
 			coords: [number, number];
-		}>
+		}>,
 	): Promise<void> {
 		const { blur_event, coords } = event.detail;
 		await handle_cell_blur(blur_event, keyboard_context, coords);
 		dataframeStore.updateCell(
 			coords,
-			data?.[coords[0]]?.[coords[1]]?.value ?? ""
+			dataframeStore.data?.[coords[0]]?.[coords[1]]?.value ?? "",
 		);
 	}
 
 	function toggle_header_menu(event: MouseEvent, col: number): void {
 		event.stopPropagation();
-		if (active_header_menu && active_header_menu.col === col) {
+		if (
+			dataframeStore.ui.activeHeaderMenu &&
+			dataframeStore.ui.activeHeaderMenu.col === col
+		) {
 			df_actions.set_active_header_menu(null);
 		} else {
 			const header = (event.target as HTMLElement).closest("th");
@@ -714,7 +800,7 @@
 				df_actions.set_active_header_menu({
 					col,
 					x: rect.right,
-					y: rect.bottom
+					y: rect.bottom,
 				});
 			}
 		}
@@ -722,7 +808,7 @@
 
 	function delete_col_at(index: number): void {
 		if (col_count[1] !== "dynamic") return;
-		const columnCount = data[0]?.length ?? 0;
+		const columnCount = dataframeStore.data[0]?.length ?? 0;
 		if (columnCount <= 1 || index < 0 || index >= columnCount) return;
 
 		dataframeStore.deleteColumn(index);
@@ -735,43 +821,47 @@
 	}
 
 	function delete_row_at(index: number): void {
-		if (index < 0 || index >= data.length) return;
+		if (index < 0 || index >= dataframeStore.data.length) return;
 		df_actions.set_active_cell_menu(null);
 		df_actions.set_active_header_menu(null);
 		dataframeStore.deleteRow(index);
 		emitTableChange();
 	}
 
-	let selected_cell_coords: CellCoordinate;
-	$effect(() => {
-		if (selected !== false) {
-			selected_cell_coords = selected;
-		}
-	});
+	let selected_cell_coords: CellCoordinate = $state([0, 0]);
+	// $effect(() => {
+	// 	console.log("selected coords effect");
+	// 	if (selected !== false) {
+	// 		untrack(() => {
+	// 			selected_cell_coords = selected;
+	// 		});
+	// 	}
+	// });
 
-	$effect(() => {
-		if (selected !== false) {
-			const positions = calculate_selection_positions(
-				selected,
-				data,
-				els,
-				parent,
-				table
-			);
-			document.documentElement.style.setProperty(
-				"--selected-col-pos",
-				positions.col_pos
-			);
-			document.documentElement.style.setProperty(
-				"--selected-row-pos",
-				positions.row_pos || "0px"
-			);
-		}
-	});
+	// $effect(() => {
+	// 	console.log("selected positions effect");
+	// 	if (selected !== false) {
+	// 		const positions = calculate_selection_positions(
+	// 			selected,
+	// 			dataframeStore.data,
+	// 			els,
+	// 			parent,
+	// 			table,
+	// 		);
+	// 		document.documentElement.style.setProperty(
+	// 			"--selected-col-pos",
+	// 			positions.col_pos,
+	// 		);
+	// 		document.documentElement.style.setProperty(
+	// 			"--selected-row-pos",
+	// 			positions.row_pos || "0px",
+	// 		);
+	// 	}
+	// });
 
 	function commit_filter(): void {
 		console.log("commit filter");
-		if (current_search_query && show_search === "filter") {
+		if (dataframeStore.search.query && show_search === "filter") {
 			const filtered_data: CellValue[][] = [];
 			const filtered_display_values: string[][] = [];
 			const filtered_styling: string[][] = [];
@@ -786,7 +876,7 @@
 					display_row.push(
 						cell.display_value !== undefined
 							? cell.display_value
-							: String(cell.value)
+							: String(cell.value),
 					);
 					styling_row.push(cell.styling || "");
 				});
@@ -801,8 +891,8 @@
 				headers: _headers.map((h) => h.value),
 				metadata: {
 					display_value: filtered_display_values,
-					styling: filtered_styling
-				}
+					styling: filtered_styling,
+				},
 			};
 
 			emitTableChange(change_payload);
@@ -811,16 +901,17 @@
 		}
 	}
 
-	let viewport: HTMLTableElement;
-	let show_scroll_button = false;
+	let viewport: HTMLTableElement | null = $state(null);
+	let show_scroll_button = $state(false);
 
 	function scroll_to_top(): void {
 		viewport.scrollTo({
-			top: 0
+			top: 0,
 		});
 	}
 
 	function handle_resize(): void {
+		console.log("handle_resize");
 		df_actions.set_active_cell_menu(null);
 		df_actions.set_active_header_menu(null);
 		dataframeStore.setSelectedCells([]);
@@ -849,7 +940,7 @@
 	}
 
 	function handle_select_all(col: number, checked: boolean): void {
-		data.forEach((row, rowIndex) => {
+		dataframeStore.data.forEach((row, rowIndex) => {
 			if (row[col]) {
 				dataframeStore.updateCell([rowIndex, col], checked);
 			}
@@ -857,26 +948,37 @@
 		emitTableChange();
 	}
 
-	let is_dragging = false;
+	let is_dragging = $state(false);
 	let drag_start: [number, number] | null = null;
 	let mouse_down_pos: { x: number; y: number } | null = null;
 
 	const drag_state: DragState = {
 		is_dragging,
 		drag_start,
-		mouse_down_pos
+		mouse_down_pos,
 	};
 
 	$effect(() => {
+		console.log("drag state effect");
 		is_dragging = drag_state.is_dragging;
 		drag_start = drag_state.drag_start;
 		mouse_down_pos = drag_state.mouse_down_pos;
 	});
 
 	let drag_handlers: DragHandlers;
-	let handle_mouse_down: DragHandlers["handle_mouse_down"] = () => {};
-	let handle_mouse_move: DragHandlers["handle_mouse_move"] = () => {};
-	let handle_mouse_up: DragHandlers["handle_mouse_up"] = () => {};
+	// let handle_mouse_down: DragHandlers["handle_mouse_down"] = () => {};
+	// let handle_mouse_move: DragHandlers["handle_mouse_move"] = () => {};
+	// let handle_mouse_up: DragHandlers["handle_mouse_up"] = () => {};
+
+	function handle_mouse_down(event: MouseEvent, row: number, col: number) {
+		drag_handlers?.handle_mouse_down(event, row, col);
+	}
+	function handle_mouse_move(event: MouseEvent) {
+		drag_handlers?.handle_mouse_move(event);
+	}
+	function handle_mouse_up(event: MouseEvent) {
+		drag_handlers?.handle_mouse_up(event);
+	}
 
 	function init_drag_handlers(): void {
 		drag_handlers = create_drag_handlers(
@@ -886,22 +988,23 @@
 			(cell) => df_actions.set_selected(cell),
 			(event, row, col) => df_actions.handle_cell_click(event, row, col),
 			show_row_numbers,
-			parent
+			parent,
 		);
 	}
 
 	$effect(() => {
+		console.log("drag state effect");
 		if (parent) init_drag_handlers();
 	});
 
-	$effect(() => {
-		handle_mouse_down = drag_handlers?.handle_mouse_down || (() => {});
-		handle_mouse_move = drag_handlers?.handle_mouse_move || (() => {});
-		handle_mouse_up = drag_handlers?.handle_mouse_up || (() => {});
-	});
+	// $effect(() => {
+	// 	handle_mouse_down = drag_handlers?.handle_mouse_down || (() => {});
+	// 	handle_mouse_move = drag_handlers?.handle_mouse_move || (() => {});
+	// 	handle_mouse_up = drag_handlers?.handle_mouse_up || (() => {});
+	// });
 
 	function get_cell_display_value(row: number, col: number): string {
-		const is_search_active = Boolean(current_search_query);
+		const is_search_active = Boolean(dataframeStore.search.query);
 
 		if (is_search_active && search_results?.[row]?.[col]) {
 			return search_results[row][col].display_value !== undefined
@@ -909,10 +1012,10 @@
 				: String(search_results[row][col].value);
 		}
 
-		if (data?.[row]?.[col]) {
-			return data[row][col].display_value !== undefined
-				? data[row][col].display_value
-				: String(data[row][col].value);
+		if (dataframeStore.data?.[row]?.[col]) {
+			return dataframeStore.data[row][col].display_value !== undefined
+				? dataframeStore.data[row][col].display_value
+				: String(dataframeStore.data[row][col].value);
 		}
 
 		return "";
@@ -920,7 +1023,7 @@
 
 	async function _handle_keydown(
 		e: KeyboardEvent,
-		context: KeyboardContext
+		context: KeyboardContext,
 	): Promise<void> {
 		const result = await handle_keydown(e, context);
 
@@ -929,7 +1032,7 @@
 		// }
 	}
 
-	$inspect("Selected Cells", selected_cells);
+	$effect(() => console.log("Selected Cells", dataframeStore.selection.cells));
 </script>
 
 <svelte:window on:resize={() => set_cell_widths()} />
@@ -947,13 +1050,13 @@
 					? true
 					: buttons.includes("fullscreen")}
 				{fullscreen}
-				on_copy={async () => await copy_table_data(data, null)}
+				on_copy={async () => await copy_table_data(dataframeStore.data, null)}
 				show_copy_button={buttons === null ? true : buttons.includes("copy")}
 				{show_search}
 				on:search={(e) => handle_search(e.detail)}
 				on:fullscreen
 				on_commit_filter={commit_filter}
-				{current_search_query}
+				current_search_query={dataframeStore.search.query}
 			/>
 		</div>
 	{/if}
@@ -962,7 +1065,8 @@
 		class="table-wrap"
 		class:dragging={is_dragging}
 		class:no-wrap={!wrap}
-		class:menu-open={active_cell_menu || active_header_menu}
+		class:menu-open={dataframeStore.ui.activeCellMenu ||
+			dataframeStore.ui.activeHeaderMenu}
 		on:keydown={(e) => _handle_keydown(e, keyboard_context)}
 		on:mousemove={handle_mouse_move}
 		on:mouseup={handle_mouse_up}
@@ -984,15 +1088,15 @@
 							value={_headers[i].value}
 							{i}
 							{actual_pinned_columns}
-							{header_edit}
-							{selected_header}
-							headers={header_values}
+							header_edit={dataframeStore.selection.headerEdit}
+							selected_header={dataframeStore.selection.selectedHeader}
+							headers={dataframeStore.headers}
 							{get_cell_width}
 							{handle_header_click}
 							{toggle_header_menu}
 							{end_header_edit}
-							{sort_columns}
-							{filter_columns}
+							sort_columns={dataframeStore.sort.columns}
+							filter_columns={dataframeStore.filter.columns}
 							{latex_delimiters}
 							{line_breaks}
 							{max_chars}
@@ -1002,7 +1106,7 @@
 							bind:el={els[id].input}
 							{col_count}
 							datatype={Array.isArray(datatype) ? datatype[i] : datatype}
-							{data}
+							data={dataframeStore.data}
 							on_select_all={handle_select_all}
 						/>
 					{/each}
@@ -1025,9 +1129,10 @@
 									el={null}
 									{editable}
 									{i18n}
-									show_selection_buttons={selected_cells.length === 1 &&
-										selected_cells[0][0] === 0 &&
-										selected_cells[0][1] === j}
+									show_selection_buttons={dataframeStore.selection.cells
+										.length === 1 &&
+										dataframeStore.selection.cells[0][0] === 0 &&
+										dataframeStore.selection.cells[0][1] === j}
 									coords={selected_cell_coords}
 									on_select_column={df_actions.handle_select_column}
 									on_select_row={df_actions.handle_select_row}
@@ -1063,12 +1168,12 @@
 						const nextValue: DataframeValue = {
 							data: vals,
 							headers: nextHeaders.map((header) => header ?? ""),
-							metadata: null
+							metadata: null,
 						};
 						dataframeStore.setValue(nextValue);
 						emitTableChange(nextValue);
 						pendingUploadHeaders = [];
-					}
+					},
 				)}
 			bind:dragging
 			aria_label={i18n("dataframe.drop_to_upload")}
@@ -1080,8 +1185,8 @@
 					bind:actual_height={table_height}
 					bind:table_scrollbar_width={scrollbar_width}
 					selected={selected_index}
-					disable_scroll={active_cell_menu !== null ||
-						active_header_menu !== null}
+					disable_scroll={dataframeStore.ui.activeCellMenu !== null ||
+						dataframeStore.ui.activeHeaderMenu !== null}
 					bind:viewport
 					bind:show_scroll_button
 					{label}
@@ -1096,15 +1201,15 @@
 								value={_headers[i].value}
 								{i}
 								{actual_pinned_columns}
-								{header_edit}
-								{selected_header}
-								headers={header_values}
+								header_edit={dataframeStore.selection.headerEdit}
+								selected_header={dataframeStore.selection.selectedHeader}
+								headers={dataframeStore.headers}
 								{get_cell_width}
 								{handle_header_click}
 								{toggle_header_menu}
 								{end_header_edit}
-								{sort_columns}
-								{filter_columns}
+								sort_columns={dataframeStore.sort.columns}
+								filter_columns={dataframeStore.filter.columns}
 								{latex_delimiters}
 								{line_breaks}
 								{max_chars}
@@ -1114,7 +1219,7 @@
 								bind:el={els[id].input}
 								{col_count}
 								datatype={Array.isArray(datatype) ? datatype[i] : datatype}
-								{data}
+								data={dataframeStore.data}
 								on_select_all={handle_select_all}
 							/>
 						{/each}
@@ -1127,7 +1232,7 @@
 							<TableCell
 								{value}
 								display_value={get_cell_display_value(index, j)}
-								index={current_search_query &&
+								index={dataframeStore.search.query &&
 								filtered_to_original_map[index] !== undefined
 									? filtered_to_original_map[index]
 									: index}
@@ -1139,14 +1244,14 @@
 								toggle_cell_menu={df_actions.toggle_cell_menu}
 								{is_cell_selected}
 								{should_show_cell_menu}
-								{selected_cells}
-								{copy_flash}
-								{active_cell_menu}
+								selected_cells={dataframeStore.selection.cells}
+								copy_flash={dataframeStore.ui.copyFlash}
+								active_cell_menu={dataframeStore.ui.activeCellMenu}
 								styling={search_results[index][j].styling}
 								{latex_delimiters}
 								{line_breaks}
 								datatype={Array.isArray(datatype) ? datatype[j] : datatype}
-								{editing}
+								editing={dataframeStore.selection.editing}
 								{max_chars}
 								{editable}
 								is_static={static_columns.includes(j)}
@@ -1170,76 +1275,106 @@
 		{/if}
 	</div>
 </div>
-{#if data.length === 0 && editable && row_count[1] === "dynamic"}
+{#if dataframeStore.data.length === 0 && editable && row_count[1] === "dynamic"}
 	<EmptyRowButton on_click={() => add_row()} />
 {/if}
 
-{#if active_cell_menu || active_header_menu}
+{#if dataframeStore.ui.activeCellMenu || dataframeStore.ui.activeHeaderMenu}
 	<CellMenu
-		x={active_cell_menu?.x ?? active_header_menu?.x ?? 0}
-		y={active_cell_menu?.y ?? active_header_menu?.y ?? 0}
-		row={active_header_menu ? -1 : (active_cell_menu?.row ?? 0)}
+		x={dataframeStore.ui.activeCellMenu?.x ??
+			dataframeStore.ui.activeHeaderMenu?.x ??
+			0}
+		y={dataframeStore.ui.activeCellMenu?.y ??
+			dataframeStore.ui.activeHeaderMenu?.y ??
+			0}
+		row={dataframeStore.ui.activeHeaderMenu
+			? -1
+			: (dataframeStore.ui.activeCellMenu?.row ?? 0)}
 		{col_count}
 		{row_count}
-		on_add_row_above={() => add_row_at(active_cell_menu?.row ?? -1, "above")}
-		on_add_row_below={() => add_row_at(active_cell_menu?.row ?? -1, "below")}
+		on_add_row_above={() =>
+			add_row_at(dataframeStore.ui.activeCellMenu?.row ?? -1, "above")}
+		on_add_row_below={() =>
+			add_row_at(dataframeStore.ui.activeCellMenu?.row ?? -1, "below")}
 		on_add_column_left={() =>
 			add_col_at(
-				active_cell_menu?.col ?? active_header_menu?.col ?? -1,
-				"left"
+				dataframeStore.ui.activeCellMenu?.col ??
+					dataframeStore.ui.activeHeaderMenu?.col ??
+					-1,
+				"left",
 			)}
 		on_add_column_right={() =>
 			add_col_at(
-				active_cell_menu?.col ?? active_header_menu?.col ?? -1,
-				"right"
+				dataframeStore.ui.activeCellMenu?.col ??
+					dataframeStore.ui.activeHeaderMenu?.col ??
+					-1,
+				"right",
 			)}
-		on_delete_row={() => delete_row_at(active_cell_menu?.row ?? -1)}
+		on_delete_row={() =>
+			delete_row_at(dataframeStore.ui.activeCellMenu?.row ?? -1)}
 		on_delete_col={() =>
-			delete_col_at(active_cell_menu?.col ?? active_header_menu?.col ?? -1)}
+			delete_col_at(
+				dataframeStore.ui.activeCellMenu?.col ??
+					dataframeStore.ui.activeHeaderMenu?.col ??
+					-1,
+			)}
 		{editable}
-		can_delete_rows={!active_header_menu && data.length > 1 && editable}
-		can_delete_cols={data.length > 0 && data[0]?.length > 1 && editable}
+		can_delete_rows={!dataframeStore.ui.activeHeaderMenu &&
+			dataframeStore.data.length > 1 &&
+			editable}
+		can_delete_cols={dataframeStore.data.length > 0 &&
+			dataframeStore.data[0]?.length > 1 &&
+			editable}
 		{i18n}
-		on_sort={active_header_menu
+		on_sort={dataframeStore.ui.activeHeaderMenu
 			? (direction) => {
-					if (active_header_menu) {
-						handle_sort(active_header_menu.col, direction);
+					if (dataframeStore.ui.activeHeaderMenu) {
+						handle_sort(dataframeStore.ui.activeHeaderMenu.col, direction);
 						df_actions.set_active_header_menu(null);
 					}
 				}
 			: undefined}
-		on_clear_sort={active_header_menu
+		on_clear_sort={dataframeStore.ui.activeHeaderMenu
 			? () => {
 					clear_sort();
 					df_actions.set_active_header_menu(null);
 				}
 			: undefined}
-		sort_direction={active_header_menu
-			? (sort_columns.find(
-					(item) => item.col === (active_header_menu?.col ?? -1)
+		sort_direction={dataframeStore.ui.activeHeaderMenu
+			? (dataframeStore.sort.columns.find(
+					(item) =>
+						item.col === (dataframeStore.ui.activeHeaderMenu?.col ?? -1),
 				)?.direction ?? null)
 			: null}
-		sort_priority={active_header_menu
-			? sort_columns.findIndex(
-					(item) => item.col === (active_header_menu?.col ?? -1)
+		sort_priority={dataframeStore.ui.activeHeaderMenu
+			? dataframeStore.sort.columns.findIndex(
+					(item) =>
+						item.col === (dataframeStore.ui.activeHeaderMenu?.col ?? -1),
 				) + 1 || null
 			: null}
-		on_filter={active_header_menu
+		on_filter={dataframeStore.ui.activeHeaderMenu
 			? (datatype, filter, value) => {
-					if (active_header_menu) {
-						handle_filter(active_header_menu.col, datatype, filter, value);
+					if (dataframeStore.ui.activeHeaderMenu) {
+						handle_filter(
+							dataframeStore.ui.activeHeaderMenu.col,
+							datatype,
+							filter,
+							value,
+						);
 						df_actions.set_active_header_menu(null);
 					}
 				}
 			: undefined}
-		on_clear_filter={active_header_menu
+		on_clear_filter={dataframeStore.ui.activeHeaderMenu
 			? () => {
 					clear_filter();
 					df_actions.set_active_header_menu(null);
 				}
 			: undefined}
-		filter_active={active_header_menu
-			? filter_columns.some((c) => c.col === (active_header_menu?.col ?? -1))
+		filter_active={dataframeStore.ui.activeHeaderMenu
+			? dataframeStore.filter.columns.some(
+					(c) => c.col === (dataframeStore.ui.activeHeaderMenu?.col ?? -1),
+				)
 			: null}
 	/>
 {/if}

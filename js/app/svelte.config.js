@@ -42,6 +42,8 @@ const config = {
 		})
 	},
 	compilerOptions: {
+		// hmr: false,
+		// dev: false,
 		experimental: {
 			async: true
 		}

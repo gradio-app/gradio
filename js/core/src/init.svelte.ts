@@ -332,9 +332,17 @@ export class AppTree {
 	 */
 	async get_state(id: number): Promise<Record<string, unknown> | null> {
 		const _get_data = this.#get_callbacks.get(id);
-		if (!_get_data) return null;
-
-		return await _get_data();
+		const component = this.#component_payload.find((c) => c.id === id);
+		console.log("GET STATE FOR ID:", id, {
+			_get_data,
+			value: component?.props.value
+		});
+		if (!_get_data && !component) return null;
+		if (_get_data) return await _get_data();
+		console.log("retying static state for ID:", id);
+		if (component) return Promise.resolve({ value: component.props.value });
+		console.warn("Component with ID", id, "not found");
+		return null;
 	}
 }
 
