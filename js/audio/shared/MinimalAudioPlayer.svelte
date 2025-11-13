@@ -40,6 +40,7 @@
 			barRadius: 2,
 			normalize: true,
 			interact: true,
+			dragToSeek: true,
 			hideScrollbar: true
 		});
 
@@ -50,6 +51,9 @@
 			waveform_ready = true;
 		});
 		waveform.on("audioprocess", () => {
+			currentTime = waveform?.getCurrentTime() || 0;
+		});
+		waveform.on("interaction", () => {
 			currentTime = waveform?.getCurrentTime() || 0;
 		});
 		waveform.on("finish", () => {
@@ -131,8 +135,8 @@
 	}
 
 	.play-btn:hover {
+		color: var(--color-accent);
 		opacity: 1;
-		background: var(--background-fill-primary);
 	}
 
 	.play-btn:active {
@@ -163,7 +167,7 @@
 		font-variant-numeric: tabular-nums;
 		flex-shrink: 0;
 		min-width: 40px;
-		text-align: right;
+		text-align: center;
 	}
 
 	@media (prefers-reduced-motion: reduce) {

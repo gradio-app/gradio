@@ -26,6 +26,7 @@
 	export let i18n: I18nFormatter;
 	export let display_icon_button_wrapper_top_corner = false;
 	export let fullscreen = false;
+	export let show_button_background = true;
 
 	const dispatch = createEventDispatcher<{
 		change: string;
@@ -54,6 +55,7 @@
 	<div class="image-container" bind:this={image_container}>
 		<IconButtonWrapper
 			display_top_corner={display_icon_button_wrapper_top_corner}
+			show_background={show_button_background}
 		>
 			{#if buttons === null ? true : buttons.includes("fullscreen")}
 				<FullscreenButton {fullscreen} on:fullscreen />
