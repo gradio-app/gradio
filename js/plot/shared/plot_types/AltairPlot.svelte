@@ -47,14 +47,12 @@
 			);
 		}
 
-		// Update old_spec and spec_width when spec changes
 		untrack(() => {
 			if (old_spec !== parsed_spec) {
 				old_spec = parsed_spec;
 				spec_width = parsed_spec.width;
 			}
 
-			// Apply config if chart is specified
 			if (value.chart && parsed_spec) {
 				parsed_spec = set_config(
 					parsed_spec,
@@ -64,8 +62,6 @@
 				);
 			}
 		});
-
-		console.log("Altair spec prepared:", parsed_spec);
 
 		return parsed_spec;
 	});
