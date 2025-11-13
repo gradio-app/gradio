@@ -45,10 +45,8 @@
 	let disabled = $derived(!gradio.shared.interactive);
 
 	// All of these are indices with respect to the choices array
-	let [filtered_indices, active_index] = $derived.by(() => {
-		const filtered = handle_filter(gradio.props.choices, input_text);
-		return [filtered, filtered.length > 0 ? filtered[0] : null];
-	});
+	let filtered_indices = $state(gradio.props.choices.map((_, i) => i));
+	let active_index: number | null = $state(null);
 
 	// Setting the initial value of the dropdown
 	if (gradio.props.value) {
@@ -80,7 +78,6 @@
 		});
 		show_options = false;
 		active_index = null;
-		filtered_indices = gradio.props.choices.map((_, i) => i);
 		filter_input.blur();
 	}
 
@@ -99,11 +96,15 @@
 		}
 		show_options = false;
 		active_index = null;
+		// last_input_text = input_text;
+		filtered_indices = gradio.props.choices.map((_, i) => i);
 		gradio.dispatch("blur");
 		gradio.dispatch("input");
 	}
 
 	function handle_key_down(e: KeyboardEvent): void {
+		filtered_indices = handle_filter(gradio.props.choices, input_text);
+		active_index = filtered_indices.length > 0 ? filtered_indices[0] : null;
 		[show_options, active_index] = handle_shared_keys(
 			e,
 			active_index,

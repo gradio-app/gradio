@@ -73,7 +73,6 @@
 	>
 		<a class="thin-link" href="/guides/quickstart">Quickstart</a>
 		<a class="thin-link" href="/docs">Docs</a>
-		<a class="thin-link" href="/playground">Playground</a>
 		<a class="thin-link" href="/custom-components/gallery">Custom Components</a>
 		<div
 			class="help-menu-container flex flex-col gap-3 lg:group lg:relative lg:flex lg:cursor-pointer lg:items-center lg:gap-3"

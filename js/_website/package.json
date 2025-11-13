@@ -19,7 +19,7 @@
 		"@types/prismjs": "^1.26.5",
 		"flexsearch": "^0.8.212",
 		"prismjs": "^1.30.0",
-		"tailwindcss": "^4.1.14"
+		"tailwindcss": "^3.1.6"
 	},
 	"type": "module",
 	"engines": {
@@ -27,7 +27,7 @@
 	},
 	"dependencies": {
 		"@gradio/code": "workspace:^",
-		"@gradio/paramviewer": "workspace:^",
+		"@gradio/paramviewer": "0.8.1",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/tabitem": "workspace:^",
 		"@gradio/tabs": "workspace:^",
