@@ -114,9 +114,9 @@ class Dataframe(Component):
             value: Default value to display in the DataFrame. Supports pandas, numpy, polars, and list of lists. If a Styler is provided, it will be used to set the displayed value in the DataFrame (e.g. to set precision of numbers) if the `interactive` is False. If a Callable function is provided, the function will be called whenever the app loads to set the initial value of the component.
             headers: List of str header names. These are used to set the column headers of the dataframe if the value does not have headers. If None, no headers are shown.
             row_count: The number of rows to initially display in the dataframe. If None, the number of rows is determined automatically based on the `value`.
-            row_limits: A tuple of two integers specifying the minimum and maximum number of rows that can be created in the dataframe via theUI. If the first element is None, there is no minimum number of rows. If the second element is None, there is no maximum number of rows. Only applies if `interactive` is True.
+            row_limits: A tuple of two integers specifying the minimum and maximum number of rows that can be created in the dataframe via the UI. If the first element is None, there is no minimum number of rows. If the second element is None, there is no maximum number of rows. Only applies if `interactive` is True.
             column_count: The number of columns to initially display in the dataframe. If None, the number of columns is determined automatically based on the `value`.
-            column_limits: A tuple of two integers specifying the minimum and maximum number of columns that can be created in the dataframe via theUI. If the first element is None, there is no minimum number of columns. If the second element is None, there is no maximum number of columns. Only applies if `interactive` is True.
+            column_limits: A tuple of two integers specifying the minimum and maximum number of columns that can be created in the dataframe via the UI. If the first element is None, there is no minimum number of columns. If the second element is None, there is no maximum number of columns. Only applies if `interactive` is True.
             datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", "date", and "markdown". Boolean columns will display as checkboxes. If the datatype "auto" is used, the column datatypes are automatically selected based on the value input if possible.
             type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, "polars" for polars dataframe, or "array" for a Python list of lists.
             label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
@@ -146,9 +146,22 @@ class Dataframe(Component):
             static_columns: List of column indices (int) that should not be editable. Only applies when interactive=True. When specified, col_count is automatically set to "fixed" and columns cannot be inserted or deleted.
         """
         self.wrap = wrap
-        self.row_count = row_count
+        # TODO: This is a temporary fix to ensure that the row_count and column_count are processed correctly.
+        # with the older version of the dataframe js component. Once we migrate the dataframe js component to 
+        # Svelte 5, we'll remove self.__process_counts and drop self.col_count.
+        self.row_count = self.__process_counts(row_count)
+        if row_limits is not None:
+            warnings.warn(
+                "The `row_limits` parameter is not yet implemented.",
+                UserWarning,
+            )
         self.row_limits = row_limits
-        self.column_count = column_count
+        self.col_count = self.column_count = self.__process_counts(column_count)
+        if column_limits is not None:
+            warnings.warn(
+                "The `column_limits` parameter is not yet implemented.",
+                UserWarning,
+            )
         self.column_limits = column_limits
         self.static_columns = static_columns or []
 
@@ -583,6 +596,15 @@ class Dataframe(Component):
                 f"The column count is set to {column_count} but `headers` has {len(headers)} items. "
                 f"Check the values passed to `column_count` and `headers`."
             )
+
+    @staticmethod
+    def __process_counts(count, default=3) -> tuple[int, str]:
+        if count is None:
+            return (default, "dynamic")
+        if isinstance(count, (int, float)):
+            return (int(count), "dynamic")
+        else:
+            return count
 
     def process_example(
         self,
