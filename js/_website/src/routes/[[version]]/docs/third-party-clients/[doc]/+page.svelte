@@ -41,22 +41,18 @@
 	$: module = data.module.default;
 
 	$: flattened_pages = pages.map((category: any) => category.pages).flat();
+
+	let component_name = $page.params?.doc;
+	$: component_name = $page.params?.doc;
+
 	$: prev_obj =
 		flattened_pages[
-			flattened_pages.findIndex(
-				(page: any) => page.name === $page.params?.doc
-			) - 1
+			flattened_pages.findIndex((page: any) => page.name === component_name) - 1
 		];
 	$: next_obj =
 		flattened_pages[
-			flattened_pages.findIndex(
-				(page: any) => page.name === $page.params?.doc
-			) + 1
+			flattened_pages.findIndex((page: any) => page.name === component_name) + 1
 		];
-
-	let component_name = $page.params?.doc;
-
-	$: component_name = $page.params?.doc;
 
 	function get_headers() {
 		let headers: any[] = [];
@@ -119,7 +115,7 @@
 		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
 			<div>
 				<p
-					class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left lg:ml-10"
+					class="bg-orange-100 dark:bg-orange-900 border border-orange-200 dark:border-orange-700 px-4 py-1 mr-2 rounded-full text-orange-800 dark:text-orange-200 mb-1 w-fit float-left lg:ml-10"
 				>
 					New to Gradio? Start here: <a class="link" href="/quickstart"
 						>Getting Started</a

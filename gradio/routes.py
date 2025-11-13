@@ -18,7 +18,7 @@ import sys
 import time
 import traceback
 import warnings
-from collections.abc import AsyncIterator, Callable
+from collections.abc import AsyncIterator, Callable, Sequence
 from pathlib import Path
 from queue import Empty as EmptyQueue
 from typing import (
@@ -52,7 +52,6 @@ from fastapi.responses import (
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
-from fastapi.websockets import WebSocket, WebSocketDisconnect
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import ServerMessage
@@ -63,7 +62,12 @@ from starlette.datastructures import UploadFile as StarletteUploadFile
 from starlette.responses import RedirectResponse
 
 import gradio
-from gradio import ranged_response, route_utils, utils
+from gradio import (
+    ranged_response,
+    route_utils,
+    themes,
+    utils,
+)
 from gradio.brotli_middleware import BrotliMiddleware
 from gradio.context import Context
 from gradio.data_classes import (
@@ -112,6 +116,7 @@ from gradio.server_messages import (
     UnexpectedErrorMessage,
 )
 from gradio.state_holder import StateHolder
+from gradio.themes import ThemeClass as Theme
 from gradio.utils import (
     cancel_tasks,
     get_node_path,
@@ -164,6 +169,20 @@ XSS_SAFE_MIMETYPES = {
 DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
     Path(tempfile.gettempdir()) / "gradio"
 )
+
+BUILT_IN_THEMES: dict[str, Theme] = {
+    t.name: t
+    for t in [
+        themes.Base(),
+        themes.Default(),
+        themes.Monochrome(),
+        themes.Soft(),
+        themes.Glass(),
+        themes.Origin(),
+        themes.Citrus(),
+        themes.Ocean(),
+    ]
+}
 
 
 class ORJSONResponse(JSONResponse):
@@ -306,7 +325,6 @@ class App(FastAPI):
                 self.auth = auth
         else:
             self.auth = None
-
         self.blocks = blocks
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
@@ -331,8 +349,8 @@ class App(FastAPI):
             raise PermissionError("This URL cannot be proxied.")
         is_hf_url = url.host.endswith(".hf.space")
         headers = {}
-        if Context.hf_token is not None and is_hf_url:
-            headers["Authorization"] = f"Bearer {Context.hf_token}"
+        if Context.token is not None and is_hf_url:
+            headers["Authorization"] = f"Bearer {Context.token}"
         rp_req = client.build_request("GET", url, headers=headers)
         return rp_req
 
@@ -798,7 +816,7 @@ class App(FastAPI):
             }
 
             for endpoint_path, endpoint_info in info.get("named_endpoints", {}).items():  # type: ignore
-                if not endpoint_info.get("show_api", True):
+                if endpoint_info.get("api_visibility", "public") == "private":
                     continue
                 path_item = {
                     "post": {
@@ -1075,27 +1093,11 @@ class App(FastAPI):
             event.signal.set()
             return {"msg": "success"}
 
-        @router.websocket("/stream/{event_id}")
-        async def websocket_endpoint(websocket: WebSocket, event_id: str):
-            await websocket.accept()
-            try:
-                while True:
-                    data = await websocket.receive_json()
-                    body = PredictBody(**data)  # type: ignore
-                    event = app.get_blocks()._queue.event_ids_to_events[event_id]
-                    body_internal = PredictBodyInternal(  # type: ignore
-                        **body.model_dump(), request=None
-                    )
-                    event.data = body_internal
-                    event.signal.set()
-                    await websocket.send_json({"msg": "success"})
-            except WebSocketDisconnect:
-                pass
-
         @router.post("/stream/{event_id}/close")
         async def _(event_id: str):
             event = app.get_blocks()._queue.event_ids_to_events[event_id]
             event.run_time = math.inf
+            event.closed = True
             event.signal.set()
             return {"msg": "success"}
 
@@ -2414,7 +2416,8 @@ def mount_gradio_app(
     path: str,
     server_name: str = "0.0.0.0",
     server_port: int = 7860,
-    show_api: bool | None = None,
+    footer_links: list[Literal["api", "gradio", "settings"] | dict[str, str]]
+    | None = None,
     app_kwargs: dict[str, Any] | None = None,
     *,
     auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,
@@ -2433,6 +2436,12 @@ def mount_gradio_app(
     pwa: bool | None = None,
     i18n: I18n | None = None,
     mcp_server: bool | None = None,
+    theme: Theme | str | None = None,
+    css: str | None = None,
+    css_paths: str | Path | Sequence[str | Path] | None = None,
+    js: str | Literal[True] | None = None,
+    head: str | None = None,
+    head_paths: str | Path | Sequence[str | Path] | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -2452,12 +2461,18 @@ def mount_gradio_app(
         favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for this gradio app's page.
         show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log. Otherwise, errors will only be visible in the terminal session running the Gradio app.
         max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
-        show_api: If False, hides the "Use via API" button on the Gradio interface.
+        footer_links: The links to display in the footer of the app. Accepts a list, where each element of the list must be one of "api", "gradio", or "settings" corresponding to the API docs, "built with Gradio", and settings pages respectively. If None, all three links will be shown in the footer. An empty list means that no footer is shown.
         ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
         node_server_name: The name of the Node server to use for SSR. If None, will use GRADIO_NODE_SERVER_NAME environment variable or search for a node binary in the system.
         i18n: If provided, the i18n instance to use for this gradio app.
         node_port: The port on which the Node server should run. If None, will use GRADIO_NODE_SERVER_PORT environment variable or find a free port.
         mcp_server: If True, the MCP server will be launched on the gradio app. If None, will use GRADIO_MCP_SERVER environment variable or default to False.
+        theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
+        css: Custom css as a code string. This css will be included in the demo webpage.
+        css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
+        js: Custom js as a code string. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
+        head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
+        head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
     Example:
         from fastapi import FastAPI
         import gradio as gr
@@ -2476,8 +2491,9 @@ def mount_gradio_app(
         )
 
     blocks.dev_mode = False
-    if show_api is not None:
-        blocks.show_api = show_api
+    if footer_links is None:
+        footer_links = ["api", "gradio", "settings"]
+    blocks.footer_links = footer_links
     blocks.max_file_size = utils._parse_file_size(max_file_size)
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
@@ -2534,7 +2550,15 @@ def mount_gradio_app(
                 node_path=blocks.node_path,
             )
         )
+    blocks.theme = utils.get_theme(theme)
+    blocks.css = css or ""
+    blocks.js = js or ""
+    blocks.head = head or ""
+    blocks.head_paths = head_paths or []
+    blocks.css_paths = css_paths or []
+    blocks._set_html_css_theme_variables()
 
+    blocks.transpile_to_js()
     gradio_app = App.create_app(
         blocks,
         app_kwargs=app_kwargs,

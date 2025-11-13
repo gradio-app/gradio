@@ -19,7 +19,7 @@
 	export let allow_file_downloads: boolean;
 	export let display_icon_button_wrapper_top_corner = false;
 
-	$: console.log("props.label", props.label);
+	$: console.log("Rendering component of type:", type, components[type]);
 </script>
 
 {#if type === "gallery"}
@@ -142,5 +142,6 @@
 		show_share_button={true}
 		gradio={{ dispatch: () => {}, i18n }}
 		on:load
+		{i18n}
 	/>
 {/if}

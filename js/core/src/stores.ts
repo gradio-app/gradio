@@ -1,27 +1,27 @@
 import { type Writable, writable, get } from "svelte/store";
 
-export interface LoadingStatus {
-	eta: number | null;
-	status: "pending" | "error" | "complete" | "generating" | "streaming";
-	queue: boolean;
-	queue_position: number | null;
-	queue_size?: number;
-	fn_index: number;
-	message?: string | null;
-	scroll_to_output?: boolean;
-	show_progress?: "full" | "minimal" | "hidden";
-	time_limit?: number | null | undefined;
-	progress?: {
-		progress: number | null;
-		index: number | null;
-		length: number | null;
-		unit: string | null;
-		desc: string | null;
-	}[];
-	validation_error?: string | null;
-}
+// export interface LoadingStatus {
+// 	eta: number | null;
+// 	status: "pending" | "error" | "complete" | "generating" | "streaming";
+// 	queue: boolean;
+// 	queue_position: number | null;
+// 	queue_size?: number;
+// 	fn_index: number;
+// 	message?: string | null;
+// 	scroll_to_output?: boolean;
+// 	show_progress?: "full" | "minimal" | "hidden";
+// 	time_limit?: number | null | undefined;
+// 	progress?: {
+// 		progress: number | null;
+// 		index: number | null;
+// 		length: number | null;
+// 		unit: string | null;
+// 		desc: string | null;
+// 	}[];
+// 	validation_error?: string | null;
+// }
 
-export type LoadingStatusCollection = Record<number, LoadingStatus>;
+// export type LoadingStatusCollection = Record<number, LoadingStatus>;
 
 interface LoadingStatusStore {
 	update: (status: LoadingStatus) => void;

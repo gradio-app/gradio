@@ -4,6 +4,7 @@
 	import { Copy, Check } from "@gradio/icons";
 	import { IconButton } from "@gradio/atoms";
 	import type { CopyData } from "@gradio/utils";
+	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	const dispatch = createEventDispatcher<{
 		change: undefined;
 		copy: CopyData;
@@ -12,6 +13,7 @@
 	let copied = false;
 	export let value: string;
 	export let watermark: string | null = null;
+	export let i18n: I18nFormatter;
 	let timer: NodeJS.Timeout;
 
 	function copy_feedback(): void {
@@ -57,6 +59,6 @@
 
 <IconButton
 	on:click={handle_copy}
-	label={copied ? "Copied message" : "Copy message"}
+	label={copied ? i18n("chatbot.copied_message") : i18n("chatbot.copy_message")}
 	Icon={copied ? Check : Copy}
 />

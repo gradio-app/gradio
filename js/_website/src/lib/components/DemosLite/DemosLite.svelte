@@ -996,7 +996,7 @@
 										generate_code(user_query, selected_demo.name);
 									});
 								}}
-								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 hover:shadow"
+								class="flex items-center w-fit min-w-fit bg-orange-100 dark:bg-orange-900 border border-orange-200 dark:border-orange-700 px-4 py-0.5 rounded-full text-orange-800 hover:shadow"
 							>
 								<div class="enter">Ask AI</div>
 							</button>
@@ -1120,6 +1120,8 @@
 </div>
 
 <style>
+	@reference "../../assets/style.css";
+
 	:global(div.code-editor div.block) {
 		height: calc(100% - 2rem);
 		border-radius: 0;

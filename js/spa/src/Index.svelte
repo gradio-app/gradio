@@ -25,7 +25,7 @@
 		version: string;
 		space_id: string | null;
 		is_colab: boolean;
-		show_api: boolean;
+		footer_links: string[];
 		stylesheets?: string[];
 		app_id?: string;
 		fill_height?: boolean;
@@ -506,7 +506,6 @@
 			if (header) spaceheader = header.element;
 		}
 	}
-
 	onDestroy(() => {
 		spaceheader?.remove();
 	});
@@ -584,15 +583,15 @@
 			<Blocks
 				{app}
 				{...config}
+				bind:ready
 				fill_height={!is_embed && config.fill_height}
 				theme_mode={active_theme_mode}
 				{control_page_title}
 				target={wrapper}
 				{autoscroll}
-				bind:ready
 				bind:render_complete
 				bind:add_new_message={new_message_fn}
-				show_footer={!is_embed}
+				footer_links={is_embed ? [] : config.footer_links}
 				{app_mode}
 				{version}
 				api_prefix={config.api_prefix || ""}

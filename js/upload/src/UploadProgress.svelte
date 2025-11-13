@@ -174,7 +174,8 @@
 		width: 14px;
 		height: 14px;
 		border-radius: 50%;
-		background: radial-gradient(
+		background:
+			radial-gradient(
 				closest-side,
 				var(--block-background-fill) 64%,
 				transparent 53% 100%
