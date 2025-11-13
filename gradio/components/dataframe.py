@@ -150,7 +150,7 @@ class Dataframe(Component):
         self.wrap = wrap
         # TODO: This is a temporary fix to ensure that the row_count and column_count are processed correctly.
         # with the older version of the dataframe js component. Once we migrate the dataframe js component to
-        # Svelte 5, we'll remove self.__process_counts.
+        # Svelte 5, we'll remove self.__process_counts and drop self.col_count.
         self.row_count = self.__process_counts(row_count)
         if row_limits is not None:
             warnings.warn(
@@ -166,7 +166,6 @@ class Dataframe(Component):
                 "The `col_count` parameter is deprecated and will be removed. Please use `column_count` instead.",
                 UserWarning,
             )
-            self.column_count = self.col_count = self.__process_counts(col_count, len(headers) if headers else 3)
         if column_limits is not None:
             warnings.warn(
                 "The `column_limits` parameter is not yet implemented.",
@@ -242,7 +241,6 @@ class Dataframe(Component):
             if type == "numpy"
             else "a polars dataframe"
         )
-
 
     def preprocess(
         self, payload: DataframeData
