@@ -8,14 +8,13 @@
 	const props = $props();
 	const gradio = new Gradio<NumberEvents, NumberProps>(props);
 
-	if (gradio.props.value == null && gradio.props.placeholder === "") {
-		gradio.props.value = 0;
-	}
+	gradio.props.value ??= 0;
 
 	let old_value = $state(gradio.props.value);
 
 	$effect(() => {
 		if (old_value != gradio.props.value) {
+			//@ts-ignore
 			old_value = gradio.props.value;
 			gradio.dispatch("change");
 		}
@@ -60,7 +59,7 @@
 
 		<input
 			class:validation-error={gradio.shared.loading_status?.validation_error}
-			aria-label={gradio.shared.label}
+			aria-label={gradio.shared.label || "Number"}
 			type="number"
 			bind:value={gradio.props.value}
 			min={gradio.props.minimum}
