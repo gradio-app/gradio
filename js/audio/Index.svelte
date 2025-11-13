@@ -14,6 +14,7 @@
 
 	let props = $props();
 	let upload_promise = $state<Promise<any>>();
+
 	props.props.stream_every = 0.1; // default to 0.1s stream interval
 
 	class AudioGradio extends Gradio<AudioEvents, AudioProps> {
@@ -30,6 +31,8 @@
 	}
 
 	const gradio = new AudioGradio(props);
+	let label = $derived(gradio.shared.label || gradio.i18n("audio.audio"));
+
 	// let uploading = $state(false);
 	let active_source = $derived.by(() =>
 		gradio.props.sources ? gradio.props.sources[0] : null
@@ -136,7 +139,7 @@
 			buttons={gradio.props.buttons ?? ["download", "share"]}
 			value={gradio.props.value}
 			subtitles={gradio.props.subtitles}
-			label={gradio.shared.label}
+			label={label}
 			loop={gradio.props.loop}
 			{waveform_settings}
 			waveform_options={gradio.props.waveform_options}
@@ -172,7 +175,7 @@
 		/>
 		<InteractiveAudio
 			bind:upload_promise
-			label={gradio.shared.label}
+			label={label}
 			show_label={gradio.shared.show_label}
 			buttons={gradio.props.buttons ?? []}
 			value={gradio.props.value}

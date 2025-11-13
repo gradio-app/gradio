@@ -45,7 +45,7 @@
 	/>
 
 	<BlockTitle show_label={gradio.shared.show_label} info={gradio.props.info}
-		>{gradio.shared.label}</BlockTitle
+		>{gradio.shared.label || gradio.i18n("radio.radio")}</BlockTitle
 	>
 
 	<div class="wrap">

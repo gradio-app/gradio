@@ -11,4 +11,5 @@ export interface CheckboxGroupEvents {
 	change: (string | number)[];
 	input: (string | number)[];
 	select: SelectData;
+	clear_status: void;
 }

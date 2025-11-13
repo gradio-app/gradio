@@ -18,6 +18,7 @@
 	let active: string | null = $state(null);
 	let image_container: HTMLElement;
 	let fullscreen = $state(false);
+	let label = $derived(gradio.shared.label || gradio.i18n("annotated_image.annotated_image"));
 
 	$effect(() => {
 		if (old_value != gradio.props.value) {
@@ -63,7 +64,7 @@
 	<BlockLabel
 		show_label={gradio.shared.show_label}
 		Icon={Image}
-		label={gradio.shared.label || gradio.i18n("image.image")}
+		label={label}
 	/>
 
 	<div class="container">

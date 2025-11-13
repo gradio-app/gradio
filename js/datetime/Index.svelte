@@ -152,8 +152,8 @@
 	padding={true}
 >
 	<div class="label-content">
-		<BlockTitle show_label={gradio.shared.show_label} info={gradio.shared.info}
-			>{gradio.shared.label}</BlockTitle
+		<BlockTitle show_label={gradio.shared.show_label} info={gradio.props.info}
+			>{gradio.shared.label || "Date"}</BlockTitle
 		>
 	</div>
 	<div class="timebox">
