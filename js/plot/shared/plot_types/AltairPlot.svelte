@@ -1,47 +1,82 @@
 <script lang="ts">
 	//@ts-nocheck
 	import { set_config } from "./altair_utils";
-	import { onMount, onDestroy } from "svelte";
+	import { onMount, onDestroy, untrack } from "svelte";
 	import type { TopLevelSpec as Spec } from "vega-lite";
-	// import vegaEmbed from "vega-embed";
+	import vegaEmbed from "vega-embed";
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import type { View } from "vega";
 
-	export let value;
-	export let colors: string[] = [];
-	export let caption: string;
-	export let show_actions_button: bool;
-	export let gradio: Gradio<{
-		select: SelectData;
-	}>;
+	let {
+		value,
+		colors = [],
+		caption,
+		show_actions_button,
+		gradio,
+		_selectable
+	}: {
+		value: any;
+		colors?: string[];
+		caption: string;
+		show_actions_button: boolean;
+		gradio: Gradio<{
+			select: SelectData;
+		}>;
+		_selectable: boolean;
+	} = $props();
+
 	let element: HTMLElement;
 	let parent_element: HTMLElement;
 	let view: View;
-	export let _selectable: bool;
 
 	let computed_style = window.getComputedStyle(document.body);
 
-	let old_spec: Spec;
-	let spec_width: number;
-	$: plot = value?.plot;
-	$: spec = JSON.parse(plot) as Spec;
-	$: if (spec && spec.params && !_selectable) {
-		spec.params = spec.params.filter((param) => param.name !== "brush");
-	}
-	$: if (old_spec !== spec) {
-		old_spec = spec;
-		spec_width = spec.width;
-	}
+	let old_spec: Spec = $state(null);
+	let spec_width: number = $state(0);
 
-	$: if (value.chart) {
-		spec = set_config(spec, computed_style, value.chart as string, colors);
-	}
-	$: fit_width_to_parent =
-		spec.encoding?.column?.field ||
-		spec.encoding?.row?.field ||
-		value.chart === undefined
+	let plot = $derived(value?.plot);
+	console.log(0);
+	let spec = $derived.by(() => {
+		if (!plot) return null;
+		let parsed_spec = JSON.parse(plot) as Spec;
+
+		// Filter out brush param if not selectable
+		if (parsed_spec && parsed_spec.params && !_selectable) {
+			parsed_spec.params = parsed_spec.params.filter(
+				(param) => param.name !== "brush"
+			);
+		}
+
+		// Update old_spec and spec_width when spec changes
+		untrack(() => {
+			if (old_spec !== parsed_spec) {
+				old_spec = parsed_spec;
+				spec_width = parsed_spec.width;
+			}
+
+			// Apply config if chart is specified
+			if (value.chart && parsed_spec) {
+				parsed_spec = set_config(
+					parsed_spec,
+					computed_style,
+					value.chart as string,
+					colors
+				);
+			}
+		});
+
+		console.log("Altair spec prepared:", parsed_spec);
+
+		return parsed_spec;
+	});
+
+	let fit_width_to_parent = $derived(
+		spec?.encoding?.column?.field ||
+			spec?.encoding?.row?.field ||
+			value.chart === undefined
 			? false
-			: true; // vega seems to glitch with width when orientation is set
+			: true
+	);
 
 	const get_width = (): number => {
 		return Math.min(
