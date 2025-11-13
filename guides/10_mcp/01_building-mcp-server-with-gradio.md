@@ -185,6 +185,8 @@ $code_mcp_progress
 
 [Here are the docs](https://www.gradio.app/docs/gradio/progress) for the `gr.Progress` class, which can also automatically track `tqdm` calls.
 
+Note: by default, progress notifications are enabled for all MCP tools, even if the corresponding Gradio functions do not include a `gr.Progress`. However, this can add some overhead to the MCP tool (typically ~500ms). To disable progress notification, you can set `queue=False` in your Gradio event handler to skip the overhead related to subscribing to the queue's progress updates.
+
 
 ## Modifying Tool Descriptions
 
