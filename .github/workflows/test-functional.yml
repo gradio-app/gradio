@@ -22,7 +22,7 @@ jobs:
       contents: read
       pull-requests: read
     name: "changes"
-    runs-on: ubuntu-20.04-16core
+    runs-on: ubuntu-latest
     outputs:
       should_run: ${{ steps.changes.outputs.should_run }}
       sha: ${{ steps.changes.outputs.sha }}
@@ -40,7 +40,7 @@ jobs:
     name: "functional-test-SSR=${{ matrix.SSR }}"
     permissions:
       contents: read
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04-16core
     needs: changes
     strategy:
       matrix:
