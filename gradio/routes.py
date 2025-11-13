@@ -1457,7 +1457,7 @@ class App(FastAPI):
                             )
 
                         heartbeat_rate = 15
-                        check_rate = 0.05
+                        check_rate = 0.001
                         message = None
                         try:
                             messages = blocks._queue.pending_messages_per_session[

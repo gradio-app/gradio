@@ -44,6 +44,7 @@ runs:
         cache-dependency-path: |
           client/python/requirements.txt
           requirements.txt
+          requirements-mcp.txt
           test/requirements.txt
     - name: Install uv (linux)
       if: ${{ inputs.os == 'ubuntu-latest' }}
