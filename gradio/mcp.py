@@ -406,7 +406,7 @@ class GradioMCPServer:
                 *processed_args, api_name=endpoint_name, headers=request_headers
             )
 
-            if progress_token is None:
+            if progress_token is None or not block_fn.queue:
                 output_data = await self._execute_tool_without_progress(job)
             else:
                 output_data = await self._execute_tool_with_progress(
