@@ -284,6 +284,10 @@
 		margin-top: 0;
 	}
 
+	.message + .message {
+		margin-top: var(--spacing-sm);
+	}
+
 	/* avatar styles */
 	.avatar-container {
 		flex-shrink: 0;
