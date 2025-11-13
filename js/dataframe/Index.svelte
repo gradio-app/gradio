@@ -125,8 +125,8 @@
 				show_search: gradio.props.show_search,
 				pinned_columns: gradio.props.pinned_columns,
 				static_columns: gradio.props.static_columns,
-				fullscreen: gradio.props.fullscreen,
-			},
+				fullscreen: gradio.props.fullscreen
+			}
 		});
 	});
 
@@ -139,7 +139,7 @@
 			console.log("Dispatching", name, detail);
 			gradio.dispatch(name, detail);
 		},
-		autoscroll: gradio.shared.autoscroll,
+		autoscroll: gradio.shared.autoscroll
 	};
 	$effect(() => {
 		if (Component) {
@@ -171,7 +171,7 @@
 				show_search: gradio.props.show_search,
 				pinned_columns: gradio.props.pinned_columns,
 				static_columns: gradio.props.static_columns,
-				fullscreen: gradio.props.fullscreen,
+				fullscreen: gradio.props.fullscreen
 			});
 		}
 	});
