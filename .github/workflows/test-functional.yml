@@ -22,7 +22,7 @@ jobs:
       contents: read
       pull-requests: read
     name: "changes"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04-16core
     outputs:
       should_run: ${{ steps.changes.outputs.should_run }}
       sha: ${{ steps.changes.outputs.sha }}
@@ -67,7 +67,7 @@ jobs:
           GRADIO_SSR_MODE: ${{ matrix.ssr }}
         run: |
           . venv/bin/activate
-          CI=1 pnpm test:browser
+          pnpm test:browser
       - name: upload screenshots
         uses: actions/upload-artifact@v4
         if: always()
