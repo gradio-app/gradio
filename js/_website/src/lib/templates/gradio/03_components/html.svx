@@ -9,6 +9,7 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
+
     let obj = get_object("html");
 
     let embedded_demo = "<p style='margin-top: 1rem, margin-bottom: 1rem'>This <em>example</em> was <strong>written</strong> in <a href='https://en.wikipedia.org/wiki/HTML' _target='blank'>HTML</a> </p>"
@@ -22,16 +23,6 @@
 gradio.HTML(···)
 ```
 
-<!-- Embedded Component -->
-<div class="embedded-component">
-<gradio-lite shared-worker>
-import gradio as gr 
-with gr.Blocks() as demo:
-    with gr.Group():
-        gr.HTML(value="{embedded_demo}")
-demo.launch()
-</gradio-lite>
-</div>
 
 <!--- Description -->
 ### Description

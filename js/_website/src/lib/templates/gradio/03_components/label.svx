@@ -9,6 +9,7 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
+
     let obj = get_object("label");
     let embedded_demo_value = `{"First Label": 0.7, "Second Label": 0.2, "Third Label": 0.1}`
 </script>
@@ -21,15 +22,6 @@
 gradio.Label(···)
 ```
 
-<!-- Embedded Component -->
-<div class="embedded-component">
-<gradio-lite shared-worker>
-import gradio as gr 
-with gr.Blocks() as demo:
-    gr.Label(value={embedded_demo_value})
-demo.launch()
-</gradio-lite>
-</div>
 
 <!--- Description -->
 ### Description
