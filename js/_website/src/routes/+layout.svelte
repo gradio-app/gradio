@@ -18,10 +18,11 @@
 
 	import WHEEL from "$lib/json/wheel.json";
 
-	import { media_query } from "../lib/utils";
-	store = media_query();
-
 	import { browser } from "$app/environment";
+	import { media_query } from "../lib/utils";
+
+	const mediaQueryStore = media_query();
+	store = mediaQueryStore;
 	import { theme } from "$lib/stores/theme";
 
 	if (browser) {
