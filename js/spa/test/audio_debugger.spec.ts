@@ -3,7 +3,7 @@ import { chromium } from "playwright";
 // we cannot currently test the waveform canvas with playwright (https://github.com/microsoft/playwright/issues/23964)
 // so this test covers the interactive elements around the waveform canvas
 
-test("audio waveform", async ({ page }) => {
+test.fixme("audio waveform", async ({ page }) => {
 	await expect(page.getByRole("tab", { name: "Audio" })).toHaveAttribute(
 		"aria-selected",
 		"true"

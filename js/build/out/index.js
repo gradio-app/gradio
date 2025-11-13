@@ -152,7 +152,8 @@ var ignore_list = [
   "wasm",
   "sanitize",
   "markdown-code",
-  "spa"
+  "spa",
+  "dataframe-interim"
 ];
 function generate_component_imports() {
   const exports = readdirSync(join(__dirname, "..", "..")).map((dir) => {

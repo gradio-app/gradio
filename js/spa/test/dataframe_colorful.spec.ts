@@ -1,6 +1,6 @@
 import { test, expect } from "@self/tootils";
 
-test.fixme("table rows are highlighted correctly", async ({ page }) => {
+test("table rows are highlighted correctly", async ({ page }) => {
 	const first_tr = await page.locator("tbody tr").first();
 	await expect(first_tr).toHaveCSS("background-color", "rgb(255, 255, 255)");
 
