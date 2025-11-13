@@ -8,19 +8,14 @@
 	const props = $props();
 	const gradio = new Gradio<NumberEvents, NumberProps>(props);
 
-	let value = $derived.by(() => {
-		if (gradio.props.value == null && gradio.props.placeholder === "") {
-			return 0;
-		}
-		return gradio.props.value;
-	});
+	gradio.props.value ??= 0;
 
-	let old_value = $state(value);
+	let old_value = $state(gradio.props.value);
 
 	$effect(() => {
-		if (old_value != value) {
-			old_value = value;
-			gradio.props.value = value;
+		if (old_value != gradio.props.value) {
+			//@ts-ignore
+			old_value = gradio.props.value;
 			gradio.dispatch("change");
 		}
 	});
@@ -66,7 +61,7 @@
 			class:validation-error={gradio.shared.loading_status?.validation_error}
 			aria-label={gradio.shared.label || "Number"}
 			type="number"
-			bind:value
+			bind:value={gradio.props.value}
 			min={gradio.props.minimum}
 			max={gradio.props.maximum}
 			step={gradio.props.step}
