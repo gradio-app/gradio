@@ -391,6 +391,7 @@ class ChatInterface(Blocks):
                 cache_mode=cast(Literal["eager", "lazy"], self.cache_mode),
                 visible=self._additional_inputs_in_examples,
                 preprocess=self._additional_inputs_in_examples,
+                preload=False,
             )
 
         any_unrendered_inputs = any(

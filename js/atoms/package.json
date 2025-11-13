@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/atoms",
-	"version": "0.18.1",
+	"version": "0.18.2-dev.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "src/index.ts",
@@ -29,6 +29,6 @@
 		"directory": "js/atoms"
 	},
 	"scripts": {
-		"sv-pkg": "svelte-package --input=. --cwd=../../.config/"
+		"sv-package": "svelte-package --input=. --tsconfig=../../tsconfig.json"
 	}
 }
