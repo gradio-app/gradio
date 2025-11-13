@@ -396,6 +396,8 @@ class GradioMCPServer:
                 self._prepare_tool_call_args(name, arguments)
             )
 
+            processed_args = self.insert_empty_state(block_fn.inputs, processed_args)
+
             job = client.submit(
                 *processed_args, api_name=endpoint_name, headers=request_headers
             )
@@ -407,7 +409,7 @@ class GradioMCPServer:
                     job, progress_token
                 )
 
-            self.pop_returned_state(block_fn.inputs, processed_args)
+            output_data = self.pop_returned_state(block_fn.outputs, output_data)
 
             context_request: Request | None = self.mcp_server.request_context.request
             route_path = self.get_route_path(context_request)
@@ -811,14 +813,17 @@ class GradioMCPServer:
 
     @staticmethod
     def pop_returned_state(
-        inputs: Sequence["Component | BlockContext"], data: list
+        components: Sequence["Component | BlockContext"], data: Any
     ) -> list:
         """
         Remove any values corresponding to State output components from the data
-        as State outputs are not included in the endpoint schema.
+        as State outputs are not included in the endpoint schema. Also wraps
+        a single output in a list.
         """
-        for i, input_component_type in enumerate(inputs):
-            if isinstance(input_component_type, State):
+        if len(components) == 1:
+            data = [data]
+        for i, component_type in enumerate(components):
+            if isinstance(component_type, State):
                 data.pop(i)
         return data
 
