@@ -11,6 +11,7 @@
 	let props = $props();
 
 	const gradio: Gradio<DropdownEvents, DropdownProps> = props.gradio;
+	let label = $derived(gradio.shared.label || "Dropdown");
 
 	let filter_input: HTMLElement;
 
@@ -142,7 +143,7 @@
 
 <div class:container={gradio.shared.container}>
 	<BlockTitle show_label={gradio.shared.show_label} info={gradio.props.info}
-		>{gradio.shared.label}</BlockTitle
+		>{label}</BlockTitle
 	>
 
 	<div class="wrap">
@@ -152,7 +153,7 @@
 					role="listbox"
 					aria-controls="dropdown-options"
 					aria-expanded={show_options}
-					aria-label={gradio.shared.label}
+					aria-label={label}
 					class="border-none"
 					class:subdued={!choices_names.includes(input_text) &&
 						!gradio.props.allow_custom_value}
