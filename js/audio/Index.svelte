@@ -32,6 +32,7 @@
 
 	const gradio = new AudioGradio(props);
 	let label = $derived(gradio.shared.label || gradio.i18n("audio.audio"));
+	let minimal = $derived((props as any).minimal ?? (gradio.props as any).minimal ?? false);
 
 	// let uploading = $state(false);
 	let active_source = $derived.by(() =>
@@ -144,7 +145,7 @@
 			{waveform_settings}
 			waveform_options={gradio.props.waveform_options}
 			editable={gradio.props.editable}
-			minimal={gradio.props.minimal}
+			{minimal}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 			on:play={() => gradio.dispatch("play")}
