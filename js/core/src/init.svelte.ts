@@ -315,14 +315,22 @@ export class AppTree {
 		new_state: Partial<SharedProps> & Record<string, unknown>,
 		check_visibility: boolean = true
 	) {
+		// Visibility is tricky 😅
+		// If the component is not visible, it has not been rendered
+		// and so it has no _set_data callback
+		// Therefore, we need to traverse the tree and set the visible prop to true
+		// and then render it and its children. After that, we can call the _set_data callback
+		if (check_visibility) {
+			console.log("Re-evaluating visibility for component ID:", id, new_state);
+			this.root = this.traverse(this.root!, [
+				//@ts-ignore
+				(n) => set_visibility_for_updated_node(n, id, new_state.visible),
+				(n) => handle_visibility(n, this.#config.root)
+			]);
+		}
 		const _set_data = this.#set_callbacks.get(id);
 		if (!_set_data) return;
 		_set_data(new_state);
-		if (!check_visibility) return;
-		console.log("Re-evaluating visibility for component ID:", id);
-		this.root = this.traverse(this.root!, (n) =>
-			handle_visibility(n, this.#config.root)
-		);
 	}
 
 	/**
@@ -442,6 +450,12 @@ function handle_visibility(
 	root: string
 ): ProcessedComponentMeta {
 	// Check if the node is visible
+	console.log(
+		"Checking visibility for node:",
+		node.id,
+		node.props.shared_props.visible,
+		node.component
+	);
 	if (node.props.shared_props.visible && !node.component) {
 		const result: ProcessedComponentMeta = {
 			...node,
@@ -458,6 +472,17 @@ function handle_visibility(
 	} else {
 		return node;
 	}
+}
+
+function set_visibility_for_updated_node(
+	node: ProcessedComponentMeta,
+	id: number,
+	visible: boolean
+): ProcessedComponentMeta {
+	if (node.id == id) {
+		node.props.shared_props.visible = visible;
+	}
+	return node;
 }
 
 function handle_empty_forms(
