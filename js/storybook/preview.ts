@@ -5,7 +5,7 @@ import { Gradio, formatter } from "../core/src/gradio_helper";
 import "../theme/src/reset.css";
 import "../theme/src/global.css";
 import { locale } from "svelte-i18n";
-import { themes } from "@storybook/theming";
+import { themes } from "storybook/theming";
 import gradioThemeLight from "./themeLight";
 import gradioThemeDark from "./themeDark";
 

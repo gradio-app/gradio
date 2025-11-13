@@ -1,4 +1,4 @@
-import { create } from "@storybook/theming/create";
+import { create } from "storybook/theming/create";
 import LogoDark from "./public/gradio-dark.svg";
 
 export default create({

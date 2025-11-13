@@ -15,8 +15,8 @@ export default defineConfig({
 	plugins: [
 		svelte({
 			inspector: false,
-			hot: {
-				preserveLocalState: true
+			compilerOptions: {
+				hmr: true
 			},
 			preprocess: sveltePreprocess({
 				sourceMap: false,
