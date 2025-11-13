@@ -321,12 +321,14 @@ export class AppTree {
 		// Therefore, we need to traverse the tree and set the visible prop to true
 		// and then render it and its children. After that, we can call the _set_data callback
 		if (check_visibility) {
-			console.log("Re-evaluating visibility for component ID:", id, new_state);
-			this.root = this.traverse(this.root!, [
-				//@ts-ignore
-				(n) => set_visibility_for_updated_node(n, id, new_state.visible),
-				(n) => handle_visibility(n, this.#config.root)
-			]);
+			const node = find_node_by_id(this.root!, id);
+			if (!node || node.props.shared_props.visible === false) {
+				this.root = this.traverse(this.root!, [
+					//@ts-ignore
+					(n) => set_visibility_for_updated_node(n, id, new_state.visible),
+					(n) => handle_visibility(n, this.#config.root)
+				]);
+			}
 		}
 		const _set_data = this.#set_callbacks.get(id);
 		if (!_set_data) return;
@@ -341,10 +343,6 @@ export class AppTree {
 	async get_state(id: number): Promise<Record<string, unknown> | null> {
 		const _get_data = this.#get_callbacks.get(id);
 		const component = this.#component_payload.find((c) => c.id === id);
-		console.log("GET STATE FOR ID:", id, {
-			_get_data,
-			value: component?.props.value
-		});
 		if (!_get_data && !component) return null;
 		if (_get_data) return await _get_data();
 
