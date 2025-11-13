@@ -4,7 +4,6 @@
 	import { Copy, Check, Send, Plus, Trash } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import { BaseDropdown, BaseDropdownOptions } from "@gradio/dropdown";
-	import type { DropdownProps, DropdownEvents } from "@gradio/dropdown";
 	import { Gradio } from "@gradio/utils";
 	import type { DialogueLine } from "./utils";
 	import Switch from "./Switch.svelte";
@@ -39,8 +38,15 @@
 		}
 	});
 
+	let buttons = $derived(gradio.props.buttons || ["copy"]);
+
+	let old_value = $state(gradio.props.value);
+
 	$effect(() => {
-		gradio.dispatch("change", $state.snapshot(gradio.props.value));
+		if (old_value != gradio.props.value) {
+			old_value = gradio.props.value;
+			gradio.dispatch("change");
+		}
 	});
 
 	let dialogue_container_element: HTMLDivElement;
@@ -396,7 +402,7 @@
 <svelte:window on:click={handle_click_outside} />
 
 <label class:container={gradio.shared.container}>
-	{#if gradio.shared.show_label && gradio.props.buttons.includes("copy")}
+	{#if gradio.shared.show_label && buttons.includes("copy")}
 		<IconButtonWrapper>
 			<IconButton
 				Icon={copied ? Check : Copy}
@@ -407,7 +413,7 @@
 	{/if}
 
 	<BlockTitle show_label={gradio.shared.show_label} info={gradio.props.info}
-		>{gradio.shared.label}</BlockTitle
+		>{gradio.shared.label || "Dialogue"}</BlockTitle
 	>
 	{#if gradio.props.ui_mode === "both"}
 		<div
@@ -476,7 +482,7 @@
 								readonly
 							/>
 						{:else}
-							{@const dd_props = new Gradio<DropdownEvents, DropdownProps>({
+							{@const dd_props = new Gradio({
 								shared_props: {
 									container: true,
 									show_label: false,

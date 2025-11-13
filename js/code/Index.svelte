@@ -8,7 +8,7 @@
 
 <script lang="ts">
 	import { Gradio } from "@gradio/utils";
-	import type { CodeProps, CodeEvents } from "./shared/types";
+	import type { CodeProps, CodeEvents } from "./types";
 	import { StatusTracker } from "@gradio/statustracker";
 
 	import Code from "./shared/Code.svelte";
@@ -21,8 +21,14 @@
 
 	let dark_mode = gradio.shared.theme === "dark";
 
+	let label = $derived(gradio.shared.label || gradio.i18n("code.code"));
+	let old_value = $state(gradio.props.value);
+
 	$effect(() => {
-		gradio.dispatch("change", $state.snapshot(gradio.props.value));
+		if (old_value != gradio.props.value) {
+			old_value = gradio.props.value;
+			gradio.dispatch("change");
+		}
 	});
 </script>
 
@@ -48,7 +54,7 @@
 		<BlockLabel
 			Icon={CodeIcon}
 			show_label={gradio.shared.show_label}
-			label={gradio.shared.label}
+			{label}
 			float={false}
 		/>
 	{/if}

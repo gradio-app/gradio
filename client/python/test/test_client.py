@@ -840,8 +840,8 @@ class TestAPIInfo:
                     {
                         "label": "num1",
                         "parameter_name": "num1",
-                        "parameter_has_default": True,
-                        "parameter_default": 0,
+                        "parameter_has_default": False,
+                        "parameter_default": None,
                         "type": {"type": "number"},
                         "python_type": {"type": "float", "description": ""},
                         "component": "Number",
@@ -867,8 +867,8 @@ class TestAPIInfo:
                     {
                         "label": "num2",
                         "parameter_name": "num2",
-                        "parameter_has_default": True,
-                        "parameter_default": 0,
+                        "parameter_has_default": False,
+                        "parameter_default": None,
                         "type": {"type": "number"},
                         "python_type": {"type": "float", "description": ""},
                         "component": "Number",
