@@ -431,7 +431,7 @@ def from_model(
             type="pandas",
             headers=col_names,
             column_count=len(col_names),
-            column_limits=[len(col_names), len(col_names)],
+            column_limits=(len(col_names), len(col_names)),
             render=False,
         )
         outputs = components.Dataframe(

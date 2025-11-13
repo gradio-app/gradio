@@ -10,7 +10,7 @@ demo = gr.Interface(
         datatype=["str", "number"],
         row_count=3,
         column_count=2,
-        column_limits=[2, 2],
+        column_limits=(2, 2),
         type="polars"
     ),
     "dataframe",

@@ -11,7 +11,7 @@ demo = gr.Interface(
             datatype=["str", "number", "str"],
             row_count=5,
             column_count=3,
-            column_limits=[3, 3],
+            column_limits=(3, 3),
         ),
         gr.Dropdown(["M", "F", "O"]),
     ],

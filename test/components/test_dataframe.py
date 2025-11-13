@@ -39,9 +39,10 @@ class TestDataframe:
             "key": None,
             "preserved_by_key": ["value"],
             "headers": ["Name", "Age", "Member"],
-            "row_count": 1,
+            "row_count": (3, "dynamic"),
             "row_limits": None,
-            "column_count": 3,
+            "col_count": (3, "dynamic"),
+            "column_count": (3, "dynamic"),
             "column_limits": None,
             "datatype": "str",
             "type": "pandas",
@@ -92,9 +93,10 @@ class TestDataframe:
             "key": None,
             "preserved_by_key": ["value"],
             "headers": ["1", "2", "3"],
-            "row_count": 1,
+            "row_count": (3, "dynamic"),
             "row_limits": None,
-            "column_count": 3,
+            "col_count": (3, "dynamic"),
+            "column_count": (3, "dynamic"),
             "column_limits": None,
             "datatype": "str",
             "type": "pandas",
@@ -420,7 +422,7 @@ class TestDataframe:
         # when static_columns is specified with column_count
         dataframe = gr.Dataframe(column_count=4, static_columns=[0, 1])
         assert dataframe.static_columns == [0, 1]
-        assert dataframe.column_count == 4
+        assert dataframe.column_count == (4, "dynamic")
 
         # when static_columns is empty
         dataframe = gr.Dataframe(column_count=4, static_columns=[])
