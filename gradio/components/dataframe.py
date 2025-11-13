@@ -148,7 +148,7 @@ class Dataframe(Component):
         self.wrap = wrap
         # TODO: This is a temporary fix to ensure that the row_count and column_count are processed correctly.
         # with the older version of the dataframe js component. Once we migrate the dataframe js component to
-        # Svelte 5, we'll remove self.__process_counts and drop self.col_count.
+        # Svelte 5, we'll remove self.__process_counts.
         self.row_count = self.__process_counts(row_count)
         if row_limits is not None:
             warnings.warn(
@@ -156,7 +156,7 @@ class Dataframe(Component):
                 UserWarning,
             )
         self.row_limits = row_limits
-        self.col_count = self.column_count = self.__process_counts(
+        self.column_count = self.__process_counts(
             column_count, len(headers) if headers else 3
         )
         if column_limits is not None:
@@ -235,6 +235,7 @@ class Dataframe(Component):
             else "a polars dataframe"
         )
 
+    # TODO: Remove this method once we migrate the dataframe js component to Svelte 5.
     def get_config(self, cls: None = None) -> dict[str, Any]:  # noqa: ARG002
         config = super().get_config(self.__class__)
         config["col_count"] = self.column_count
