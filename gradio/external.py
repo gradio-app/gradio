@@ -430,7 +430,8 @@ def from_model(
             label="Input Rows",
             type="pandas",
             headers=col_names,
-            col_count=(len(col_names), "fixed"),
+            column_count=len(col_names),
+            column_limits=(len(col_names), len(col_names)),
             render=False,
         )
         outputs = components.Dataframe(
