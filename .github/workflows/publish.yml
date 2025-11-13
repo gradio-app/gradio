@@ -28,11 +28,11 @@ jobs:
         with:
           python_version: "3.12"
           skip_build: "false"
-      - name: Build packages
-        run: |
-          . venv/bin/activate
-          pnpm package
-          pnpm --filter @gradio/client --filter @gradio/preview build
+      # - name: Build packages
+      #   run: |
+      #     . venv/bin/activate
+      #     pnpm package
+      #     pnpm --filter @gradio/client --filter @gradio/preview build
       - name: update npm
         run: npm i -g npm@latest
       - name: check node version
@@ -46,7 +46,7 @@ jobs:
           version: pnpm ci:version
           commit: "chore: update versions"
           title: "chore: update versions"
-          publish: pnpm ci:publish
+          # publish: pnpm ci:publish
         env:
           GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }}
       - name: Upload npm logs
