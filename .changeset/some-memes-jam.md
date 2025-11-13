@@ -1,6 +1,8 @@
 ---
+"@gradio/atoms": minor
 "@gradio/audio": minor
 "@gradio/chatbot": minor
+"@gradio/image": minor
 "gradio": minor
 ---
 
