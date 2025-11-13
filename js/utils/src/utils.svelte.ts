@@ -308,29 +308,20 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	props = $state<U>({} as U) as U;
 	i18n: I18nFormatter = $state<any>({}) as any;
 	dispatcher!: Function;
-	register: ((id: number, set_data: (data: U & SharedProps) => void, get_data: Function) => void) | null = null;
 	last_update: ReturnType<typeof tick> | null = null;
 	shared_props: (keyof SharedProps)[] = allowed_shared_props;
 
 	constructor(
-		_props: { shared_props?: SharedProps; props?: U } | U,
+		_props: { shared_props: SharedProps; props: U },
 		default_values?: Partial<U>
 	) {
-		// Normalize input: handle both { shared_props, props } and direct props
-		const normalized = 'shared_props' in _props || 'props' in _props 
-			? _props as { shared_props?: SharedProps; props?: U }
-			: { props: _props as U };
-		
-		const shared_props = normalized.shared_props || ({} as SharedProps);
-		const props = normalized.props || ({} as U);
-
-		for (const key in shared_props) {
+		for (const key in _props.shared_props) {
 			// @ts-ignore i'm not doing pointless typescript gymanstics
-			this.shared[key] = shared_props[key];
+			this.shared[key] = _props.shared_props[key];
 		}
-		for (const key in props) {
+		for (const key in _props.props) {
 			// @ts-ignore same here
-			this.props[key] = props[key];
+			this.props[key] = _props.props[key];
 		}
 
 		if (default_values) {
@@ -345,66 +336,44 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		// @ts-ignore same here
 		this.i18n = this.props.i18n;
 
-		this.load_component = this.shared.load_component || (() => Promise.resolve({ default: null as any }));
+		this.load_component = this.shared.load_component;
 
 		if (!is_browser) return;
-		try {
-			const context = getContext<{
-				register: (
-					id: number,
-					set_data: (data: U & SharedProps) => void,
-					get_data: Function
-				) => void;
-				dispatcher: Function;
-			}>(GRADIO_ROOT);
+		const { register, dispatcher } = getContext<{
+			register: (
+				id: number,
+				set_data: (data: U & SharedProps) => void,
+				get_data: Function
+			) => void;
+			dispatcher: Function;
+		}>(GRADIO_ROOT);
 
-			this.register = context.register;
-			this.dispatcher = context.dispatcher;
+		register(
+			_props.shared_props.id,
+			this.set_data.bind(this),
+			this.get_data.bind(this)
+		);
 
-			// Only register if we have an id
-			if (shared_props.id !== undefined) {
-				this.register(
-					shared_props.id,
-					this.set_data.bind(this),
-					this.get_data.bind(this)
-				);
-			}
-		} catch (e) {
-			// Context not available (e.g., component used outside of Gradio app)
-			// Provide a no-op dispatcher
-			this.dispatcher = () => {};
-			this.register = null;
-		}
+		this.dispatcher = dispatcher;
 
 		$effect(() => {
 			// Need to update the props here
 			// otherwise UI won't reflect latest state from render
-			const normalized = 'shared_props' in _props || 'props' in _props 
-				? _props as { shared_props?: SharedProps; props?: U }
-				: { props: _props as U };
-			
-			const shared_props_effect = normalized.shared_props || ({} as SharedProps);
-			const props_effect = normalized.props || ({} as U);
-
-			for (const key in shared_props_effect) {
+			for (const key in _props.shared_props) {
 				// @ts-ignore i'm not doing pointless typescript gymanstics
-				this.shared[key] = shared_props_effect[key];
+				this.shared[key] = _props.shared_props[key];
 			}
-			for (const key in props_effect) {
+			for (const key in _props.props) {
 				// @ts-ignore same here
-				this.props[key] = props_effect[key];
+				this.props[key] = _props.props[key];
 			}
-			if (this.register && shared_props_effect.id !== undefined) {
-				this.register(
-					shared_props_effect.id,
-					this.set_data.bind(this),
-					this.get_data.bind(this)
-				);
-			}
+			register(
+				_props.shared_props.id,
+				this.set_data.bind(this),
+				this.get_data.bind(this)
+			);
 			untrack(() => {
-				if (shared_props_effect.id !== undefined) {
-					this.shared.id = shared_props_effect.id;
-				}
+				this.shared.id = _props.shared_props.id;
 			});
 		});
 	}

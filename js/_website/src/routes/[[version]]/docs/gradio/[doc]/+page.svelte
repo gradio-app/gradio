@@ -19,9 +19,6 @@
 	let module = data.module.default;
 	$: module = data.module.default;
 
-	// Note: Removed onDestroy cleanup as header_targets will be
-	// garbage collected when component is destroyed
-
 	let current_target: HTMLElement;
 
 	$: for (const target in header_targets) {

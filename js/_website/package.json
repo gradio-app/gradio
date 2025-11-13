@@ -27,7 +27,7 @@
 	},
 	"dependencies": {
 		"@gradio/code": "workspace:^",
-		"@gradio/paramviewer": "workspace:^",
+		"@gradio/paramviewer": "0.8.1",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/tabitem": "workspace:^",
 		"@gradio/tabs": "workspace:^",
