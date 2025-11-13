@@ -23,7 +23,7 @@
 		detail: null | FileData | FileData[],
 		event: "change" | "upload" | "click"
 	): Promise<void> {
-		value = detail;
+		gradio.props.value = detail;
 		gradio.dispatch(event);
 	}
 
