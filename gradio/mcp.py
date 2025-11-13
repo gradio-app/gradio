@@ -223,7 +223,11 @@ class GradioMCPServer:
                 root_path=self.root_path,
             )
             self._client_instance = Client(
-                self.local_url or root_url, download_files=False, verbose=False
+                self.local_url or root_url,
+                download_files=False,
+                verbose=False,
+                analytics_enabled=False,
+                ssl_verify=False,
             )
         return self._client_instance
 
