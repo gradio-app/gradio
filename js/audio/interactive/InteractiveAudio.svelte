@@ -46,6 +46,7 @@
 	export let recording = false;
 	export let class_name = "";
 	export let upload_promise: Promise<any> | null = null;
+	export let initial_value: FileData | null = null;
 
 	export let time_limit: number | null = null;
 	export let stream_state: "open" | "waiting" | "closed" = "closed";
@@ -95,6 +96,7 @@
 	): Promise<void> => {
 		let _audio_blob = new File(blobs, "audio.wav");
 		const val = await prepare_files([_audio_blob], event === "stream");
+		initial_value = value;
 		value = (
 			(await upload(val, root, undefined, max_file_size || undefined))?.filter(
 				Boolean
@@ -295,7 +297,7 @@
 			{waveform_settings}
 			{waveform_options}
 			{trim_region_settings}
-			handle_reset_value={() => value}
+			handle_reset_value={handle_reset_value}
 			{editable}
 			{loop}
 			interactive
