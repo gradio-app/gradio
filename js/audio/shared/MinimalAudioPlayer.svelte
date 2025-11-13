@@ -83,7 +83,11 @@
 	};
 </script>
 
-<div class="minimal-audio-player" aria-label={label}>
+<div
+	class="minimal-audio-player"
+	aria-label={label}
+	data-testid={label ? "waveform-" + label : "unlabelled-audio"}
+>
 	<button
 		class="play-btn"
 		on:click={togglePlay}
