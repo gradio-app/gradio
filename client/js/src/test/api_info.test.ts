@@ -209,8 +209,11 @@ describe("handle_message", () => {
 			msg: "process_completed",
 			success: false,
 			code: 500,
+			duration: undefined,
 			progress_data: { current: 100, total: 100 },
-			output: { error: "Some error message" }
+			output: { error: "Some error message" },
+			title: "Error",
+			visible: undefined
 		};
 		const last_status = "pending";
 		const result = handle_message(data, last_status);
@@ -221,7 +224,10 @@ describe("handle_message", () => {
 				message: "Some error message",
 				stage: "error",
 				code: 500,
-				success: false
+				success: false,
+				duration: undefined,
+				title: "Error",
+				visible: undefined
 			}
 		});
 	});
