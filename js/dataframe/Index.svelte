@@ -21,16 +21,11 @@
 
 	class DataframeGradio extends Gradio<DataframeEvents, DataframeProps> {
 		async set_data(data: Partial<DataframeProps & SharedProps>): Promise<void> {
-			// this.dispatch("change");
 			super.set_data(data);
 			if (data.value && dequal(data.value, JSON.parse(prev_data)) === false) {
-				console.log("DF --SET DATA CALLED WITH VALUE:", data.value);
-				// console.trace("DataFrame set_data value:", data.value);
 				this.dispatch("change");
 				prev_data = JSON.stringify(data.value);
 			}
-
-			// console.log("DataFrame set_data", data);
 		}
 	}
 

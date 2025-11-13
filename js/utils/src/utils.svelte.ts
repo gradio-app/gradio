@@ -384,7 +384,9 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 
 	async get_data() {
 		await this.last_update;
-		return $state.snapshot(this.props);
+		const x = $state.snapshot(this.props);
+		console.log("get_data", x);
+		return x;
 	}
 
 	update(data: Partial<U & SharedProps>): void {
@@ -409,6 +411,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 				this.props[key] = data[key];
 			}
 		}
+		this.last_update = tick();
 	}
 }
 

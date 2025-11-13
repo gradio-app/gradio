@@ -53,7 +53,7 @@
 	$: select_all_state = (() => {
 		if (!is_bool_column || data.length === 0) return "unchecked";
 		const true_count = data.filter(
-			(row) => row[i]?.value === true || row[i]?.value === "true"
+			(row) => row[i]?.value === true || row[i]?.value === "true",
 		).length;
 		if (true_count === 0) return "unchecked";
 		if (true_count === data.length) return "checked";
@@ -144,7 +144,7 @@
 			>
 				<EditableCell
 					{max_chars}
-					bind:value
+					{value}
 					bind:el
 					{latex_delimiters}
 					{line_breaks}

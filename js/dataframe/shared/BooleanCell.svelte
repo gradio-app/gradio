@@ -14,10 +14,12 @@
 
 <div class="bool-cell" role="button" tabindex="-1">
 	<BaseCheckbox
-		bind:value
+		{value}
 		label=""
 		interactive={editable}
-		on:change={handle_change}
+		on_change={handle_change}
+		on_input={() => {}}
+		on_select={() => {}}
 	/>
 </div>
 

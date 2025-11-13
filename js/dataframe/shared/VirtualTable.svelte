@@ -47,9 +47,12 @@
 	}
 
 	async function refresh_height_map(): Promise<void> {
+		console.log("try refresh_height_map", { viewport });
 		if (!viewport) {
 			return;
 		}
+
+		console.log("refresh_height_map");
 
 		if (sortedItems.length < start) {
 			await scroll_to_index(sortedItems.length - 1, { behavior: "auto" });
@@ -163,7 +166,7 @@
 	export async function scroll_to_index(
 		index: number,
 		opts: ScrollToOptions,
-		align_end = false
+		align_end = false,
 	): Promise<void> {
 		await tick();
 
@@ -182,7 +185,7 @@
 		const _opts = {
 			top: distance,
 			behavior: "smooth" as ScrollBehavior,
-			...opts
+			...opts,
 		};
 
 		viewport.scrollTo(_opts);
