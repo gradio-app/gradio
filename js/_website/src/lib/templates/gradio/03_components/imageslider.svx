@@ -9,6 +9,7 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
+
     let obj = get_object("imageslider");
 </script>
 
@@ -20,15 +21,6 @@
 gradio.ImageSlider(···)
 ```
 
-<!-- Embedded Component -->
-<div class="embedded-component">
-<gradio-lite shared-worker>
-import gradio as gr
-with gr.Blocks() as demo:
-    gr.ImageSlider(("https://raw.githubusercontent.com/gradio-app/gradio/refs/heads/main/js/_website/src/lib/assets/img/header-image.jpg", "https://raw.githubusercontent.com/gradio-app/gradio/refs/heads/main/js/_website/src/lib/assets/img/header-faded.jpg"))
-demo.launch()
-</gradio-lite>
-</div>
 
 <!--- Description -->
 ### Description

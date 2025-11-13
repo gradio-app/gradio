@@ -9,6 +9,7 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
+
     let obj = get_object("video");
     let webcam_options_obj = get_object("webcamoptions")
     let validator_obj = get_object("is_video_correct_length")
@@ -21,15 +22,6 @@
 ```python
 gradio.Video(···)
 ```
-<!-- Embedded Component -->
-<div class="embedded-component">
-<gradio-lite shared-worker>
-import gradio as gr 
-with gr.Blocks() as demo:
-    gr.Video()
-demo.launch()
-</gradio-lite>
-</div>
 
 
 <!--- Description -->
