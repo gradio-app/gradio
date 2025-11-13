@@ -156,7 +156,9 @@ class Dataframe(Component):
                 UserWarning,
             )
         self.row_limits = row_limits
-        self.col_count = self.column_count = self.__process_counts(column_count)
+        self.col_count = self.column_count = self.__process_counts(
+            column_count, len(headers) if headers else 3
+        )
         if column_limits is not None:
             warnings.warn(
                 "The `column_limits` parameter is not yet implemented.",
