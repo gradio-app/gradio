@@ -3,6 +3,8 @@ import gradio as gr
 from gradio_client import Client
 import threading
 
+SHOW_RESULTS = False
+
 with gr.Blocks() as demo:
     input = gr.Textbox(label="Input")
     output = gr.Textbox(label="Output")
@@ -20,7 +22,8 @@ for _ in range(25):
     end = time.time()
     times.append(end - start)
 
-print("Serial result was", result)
+if SHOW_RESULTS:
+    print("Serial result was", result)
 print(f"Serial average: {sum(times) / len(times)} seconds")
 
 parallel_times = []
@@ -44,5 +47,6 @@ for _ in range(25):
 for t in threads:
     t.join()
 
-print("Parallel result was", results[0] if results else None)
+if SHOW_RESULTS:
+    print("Parallel result was", results[0] if results else None)
 print(f"Parallel average: {sum(parallel_times) / len(parallel_times)} seconds")
