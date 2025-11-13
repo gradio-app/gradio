@@ -38,6 +38,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			open: "/",
 			proxy: {
 				"/manifest.json": "http://localhost:7860",
+				"^.*/theme\\.css": "http://localhost:7860",
 				"^/static/.*": "http://localhost:7860"
 			}
 		},
