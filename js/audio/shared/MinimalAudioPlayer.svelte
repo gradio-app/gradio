@@ -85,8 +85,8 @@
 
 <div
 	class="minimal-audio-player"
-	aria-label={label}
-	data-testid={label ? "waveform-" + label : "unlabelled-audio"}
+	aria-label={label || "Audio"}
+	data-testid={label && label.trim() ? "waveform-" + label : "unlabelled-audio"}
 >
 	<button
 		class="play-btn"
