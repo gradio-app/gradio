@@ -149,6 +149,11 @@ export class AppTree {
 	postprocess(tree: ProcessedComponentMeta) {
 		this.root = this.traverse(tree, [
 			(node) => handle_visibility(node, this.#config.root),
+			(node) => untrack_children_of_invisible_parents(
+				node,
+				this.#config.root,
+				this.components_to_register
+			),
 			(node) =>
 				handle_empty_forms(
 					node,
@@ -320,19 +325,23 @@ export class AppTree {
 		// and so it has no _set_data callback
 		// Therefore, we need to traverse the tree and set the visible prop to true
 		// and then render it and its children. After that, we can call the _set_data callback
-		if (check_visibility) {
-			const node = find_node_by_id(this.root!, id);
-			if (!node || node.props.shared_props.visible === false) {
-				this.root = this.traverse(this.root!, [
-					//@ts-ignore
-					(n) => set_visibility_for_updated_node(n, id, new_state.visible),
-					(n) => handle_visibility(n, this.#config.root)
-				]);
-			}
+		const node = find_node_by_id(this.root!, id);
+		let already_updated_visibility = false;
+		if (check_visibility && !node?.component) {
+			this.root = this.traverse(this.root!, [
+				//@ts-ignore
+				(n) => set_visibility_for_updated_node(n, id, new_state.visible),
+				(n) => handle_visibility(n, this.#config.root),
+			]);
+			already_updated_visibility = true;
 		}
 		const _set_data = this.#set_callbacks.get(id);
 		if (!_set_data) return;
 		_set_data(new_state);
+		if (!check_visibility || already_updated_visibility) return;
+		this.root = this.traverse(this.root!, (n) =>
+			handle_visibility(n, this.#config.root)
+		);
 	}
 
 	/**
@@ -487,6 +496,28 @@ function set_visibility_for_updated_node(
 ): ProcessedComponentMeta {
 	if (node.id == id) {
 		node.props.shared_props.visible = visible;
+	}
+	return node;
+}
+
+function _untrack(node: ProcessedComponentMeta, components_to_register: Set<number>): void {
+	components_to_register.delete(node.id);
+	if (node.children) {
+		node.children.forEach((child) => _untrack(child, components_to_register));
+	}
+	return;
+}
+
+
+function untrack_children_of_invisible_parents(
+	node: ProcessedComponentMeta,
+	root: string,
+	components_to_register: Set<number>
+): ProcessedComponentMeta {
+	// Check if the node is visible
+	if (node.props.shared_props.visible !== true) {
+		console.log("Untracking children of invisible parent:", node.id, node.children);
+		_untrack(node, components_to_register);
 	}
 	return node;
 }
