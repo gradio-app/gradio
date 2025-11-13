@@ -1,6 +1,8 @@
 ---
+"@gradio/core": minor
 "@gradio/dropdown": minor
+"@gradio/utils": minor
 "gradio": minor
 ---
 
-feat:Fix Dropdown filtered indices bug
+feat:Fix textbox updates
