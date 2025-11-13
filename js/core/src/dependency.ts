@@ -659,7 +659,7 @@ export class DependencyManager {
 						{
 							[update_key]: update_value
 						},
-						update_key === "visible"
+						false
 					);
 				}
 				if (pending_visibility_update) {
