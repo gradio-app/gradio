@@ -16,13 +16,22 @@
 	const gradio = new Gradio<TextboxEvents, TextboxProps>(_props);
 
 	let label = $derived(gradio.shared.label || "Textbox");
+	// Need to set the value to "" otherwise a change event gets
+	// dispatched when the child sets it to ""
+	gradio.props.value = gradio.props.value ?? "";
+	let old_value = $state(gradio.props.value);
+
+	$effect(() => {
+		if (old_value !== gradio.props.value) {
+			old_value = gradio.props.value;
+			gradio.dispatch("change", $state.snapshot(gradio.props.value));
+		}
+	});
 
 	function handle_change(value: string): void {
 		if (!gradio.shared || !gradio.props) return;
 		gradio.set_data({ validation_error: null });
 		gradio.set_data({ value });
-
-		gradio.dispatch("change", value);
 	}
 </script>
 

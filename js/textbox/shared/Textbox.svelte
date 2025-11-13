@@ -90,10 +90,8 @@
 	async function handle_change(): void {
 		await tick();
 		dispatch("change", value);
-		if (!value_is_output) {
-			dispatch("input");
-		}
 	}
+
 	afterUpdate(() => {
 		if (autofocus) {
 			el.focus();
@@ -148,6 +146,7 @@
 			await tick();
 			dispatch("submit");
 		}
+		dispatch("input");
 	}
 
 	function handle_scroll(event: Event): void {
