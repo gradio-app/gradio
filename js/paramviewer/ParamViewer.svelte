@@ -2,6 +2,10 @@
 	import "./prism.css";
 
 	import Prism from "prismjs";
+	// Set Prism as global for component files that expect it
+	if (typeof globalThis !== "undefined") {
+		(globalThis as any).Prism = Prism;
+	}
 	import "prismjs/components/prism-python";
 	import "prismjs/components/prism-typescript";
 
@@ -36,6 +40,12 @@
 	}
 
 	function highlight(code: string, lang: "python" | "typescript"): string {
+		// Check if the language grammar is loaded
+		if (!Prism.languages[lang]) {
+			// If language grammar is not available, return code as-is
+			return code;
+		}
+		
 		let highlighted = Prism.highlight(code, Prism.languages[lang], lang);
 
 		for (const link of linkify) {

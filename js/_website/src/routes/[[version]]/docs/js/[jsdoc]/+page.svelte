@@ -12,16 +12,18 @@
 	let js_components = js_pages.filter((c) => c !== "js-client");
 	$: name = data.name;
 
+	$: current_jsdoc = $page.params?.jsdoc;
+
 	$: prev_obj =
-		$page.params?.jsdoc === "atoms"
+		current_jsdoc === "atoms"
 			? "storybook"
 			: js_components[
-					js_components.findIndex((page: any) => page === $page.params?.jsdoc) -
+					js_components.findIndex((page: any) => page === current_jsdoc) -
 						1
 				];
 	$: next_obj =
 		js_components[
-			js_components.findIndex((page: any) => page === $page.params?.jsdoc) + 1
+			js_components.findIndex((page: any) => page === current_jsdoc) + 1
 		];
 
 	$: readme_html = data.readme_html;

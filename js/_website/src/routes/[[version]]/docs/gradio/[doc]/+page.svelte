@@ -1,7 +1,6 @@
 <script lang="ts">
 	import DocsNav from "$lib/components/DocsNav.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
-	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
 	import { onNavigate } from "$app/navigation";
 	import '$lib/assets/theme.css';
@@ -19,9 +18,9 @@
 	let target_elem: HTMLElement;
 	let module = data.module.default;
 	$: module = data.module.default;
-	onDestroy(() => {
-		header_targets = {};
-	});
+
+	// Note: Removed onDestroy cleanup as header_targets will be
+	// garbage collected when component is destroyed
 
 	let current_target: HTMLElement;
 
@@ -48,19 +47,18 @@
 	$: page_path = data.page_path;
 
 	$: flattened_pages = pages.map((category: any) => category.pages).flat();
+
+	let component_name = $page.params?.doc;
+	$: component_name = $page.params?.doc;
+
 	$: prev_obj =
 	flattened_pages[
-		flattened_pages.findIndex((page: any) => page.name === $page.params?.doc) - 1
+		flattened_pages.findIndex((page: any) => page.name === component_name) - 1
 		];
 	$: next_obj =
 		flattened_pages[
-			flattened_pages.findIndex((page: any) => page.name === $page.params?.doc) + 1
+			flattened_pages.findIndex((page: any) => page.name === component_name) + 1
 		];
-
-
-	let component_name = $page.params?.doc;
-
-	$: component_name = $page.params?.doc;
 	
 	function get_headers() {
 		let headers : any[] = []
