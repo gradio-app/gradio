@@ -2,7 +2,6 @@
 	import { theme } from "$lib/stores/theme";
 	import "$lib/assets/theme.css";
 
-
 	export let name: string;
 	export let code: string;
 	export let highlighted_code: string;
@@ -11,15 +10,14 @@
 	$: url_version;
 </script>
 
-
 <div class="">
 	{#key name}
 		<div class:dark={$theme === "dark"}>
-		{#if url_version === "main"}
-		<gradio-app space={"gradio/" + name + "_main"} theme_mode={$theme}/>
-		{:else}
-			<gradio-app space={"gradio/" + name} theme_mode={$theme} />
-		{/if}
+			{#if url_version === "main"}
+				<gradio-app space={"gradio/" + name + "_main"} theme_mode={$theme} />
+			{:else}
+				<gradio-app space={"gradio/" + name} theme_mode={$theme} />
+			{/if}
 		</div>
 	{/key}
 </div>
