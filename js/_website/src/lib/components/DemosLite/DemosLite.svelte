@@ -1120,6 +1120,8 @@
 </div>
 
 <style>
+	@reference "../../assets/style.css";
+
 	:global(div.code-editor div.block) {
 		height: calc(100% - 2rem);
 		border-radius: 0;
