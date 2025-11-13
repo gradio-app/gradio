@@ -79,6 +79,7 @@
 		});
 		show_options = false;
 		active_index = null;
+		filtered_indices = gradio.props.choices.map((_, i) => i);
 		filter_input.blur();
 	}
 
