@@ -13,8 +13,7 @@
 			return 0;
 		}
 		return gradio.props.value;
-	}
-	);
+	});
 
 	let old_value = $state(value);
 
@@ -67,7 +66,7 @@
 			class:validation-error={gradio.shared.loading_status?.validation_error}
 			aria-label={gradio.shared.label || "Number"}
 			type="number"
-			bind:value={value}
+			bind:value
 			min={gradio.props.minimum}
 			max={gradio.props.maximum}
 			step={gradio.props.step}

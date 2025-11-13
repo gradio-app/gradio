@@ -139,7 +139,7 @@
 			buttons={gradio.props.buttons ?? ["download", "share"]}
 			value={gradio.props.value}
 			subtitles={gradio.props.subtitles}
-			label={label}
+			{label}
 			loop={gradio.props.loop}
 			{waveform_settings}
 			waveform_options={gradio.props.waveform_options}
@@ -175,7 +175,7 @@
 		/>
 		<InteractiveAudio
 			bind:upload_promise
-			label={label}
+			{label}
 			show_label={gradio.shared.show_label}
 			buttons={gradio.props.buttons ?? []}
 			value={gradio.props.value}

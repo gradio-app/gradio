@@ -29,7 +29,7 @@
 	{/if}
 
 	<Accordion
-		label={label}
+		{label}
 		open={gradio.props.open}
 		on:expand={() => gradio.dispatch("expand")}
 		on:collapse={() => gradio.dispatch("collapse")}

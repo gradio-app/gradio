@@ -56,7 +56,8 @@
 		{#if gradio.shared.label && gradio.shared.show_label}
 			<BlockLabel
 				Icon={TextHighlight}
-				label={gradio.shared.label || gradio.i18n("highlighted_text.highlighted_text");}
+				label={gradio.shared.label ||
+					gradio.i18n("highlighted_text.highlighted_text")}
 				float={false}
 				disable={gradio.shared.container === false}
 				show_label={gradio.shared.show_label}

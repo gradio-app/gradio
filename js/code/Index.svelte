@@ -54,7 +54,7 @@
 		<BlockLabel
 			Icon={CodeIcon}
 			show_label={gradio.shared.show_label}
-			label={label}
+			{label}
 			float={false}
 		/>
 	{/if}
