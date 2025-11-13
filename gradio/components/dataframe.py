@@ -73,8 +73,10 @@ class Dataframe(Component):
         | None = None,
         *,
         headers: list[str] | None = None,
-        row_count: int | tuple[int, str] = (1, "dynamic"),
-        col_count: int | tuple[int, str] | None = None,
+        row_count: int | None = 1,
+        row_limits: tuple[int | None, int | None] | None = None,
+        column_count: int | None = 3,
+        column_limits: tuple[int | None, int | None] | None = None,
         datatype: Literal[
             "str", "number", "bool", "date", "markdown", "html", "image", "auto"
         ]
@@ -111,8 +113,10 @@ class Dataframe(Component):
         Parameters:
             value: Default value to display in the DataFrame. Supports pandas, numpy, polars, and list of lists. If a Styler is provided, it will be used to set the displayed value in the DataFrame (e.g. to set precision of numbers) if the `interactive` is False. If a Callable function is provided, the function will be called whenever the app loads to set the initial value of the component.
             headers: List of str header names. These are used to set the column headers of the dataframe if the value does not have headers. If None, no headers are shown.
-            row_count: Limit number of rows for input and decide whether user can create new rows or delete existing rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
-            col_count: Limit number of columns for input and decide whether user can create new columns or delete existing columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
+            row_count: The number of rows to initially display in the dataframe. If None, the number of rows is determined automatically based on the `value`.
+            row_limits: A tuple of two integers specifying the minimum and maximum number of rows that can be created in the dataframe via theUI. If the first element is None, there is no minimum number of rows. If the second element is None, there is no maximum number of rows. Only applies if `interactive` is True.
+            column_count: The number of columns to initially display in the dataframe. If None, the number of columns is determined automatically based on the `value`.
+            column_limits: A tuple of two integers specifying the minimum and maximum number of columns that can be created in the dataframe via theUI. If the first element is None, there is no minimum number of columns. If the second element is None, there is no maximum number of columns. Only applies if `interactive` is True.
             datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", "date", and "markdown". Boolean columns will display as checkboxes. If the datatype "auto" is used, the column datatypes are automatically selected based on the value input if possible.
             type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, "polars" for polars dataframe, or "array" for a Python list of lists.
             label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
@@ -142,22 +146,18 @@ class Dataframe(Component):
             static_columns: List of column indices (int) that should not be editable. Only applies when interactive=True. When specified, col_count is automatically set to "fixed" and columns cannot be inserted or deleted.
         """
         self.wrap = wrap
-        self.row_count = self.__process_counts(row_count)
+        self.row_count = row_count
+        self.row_limits = row_limits
+        self.column_count = column_count
+        self.column_limits = column_limits
         self.static_columns = static_columns or []
 
-        self.col_count = self.__process_counts(
-            col_count, len(headers) if headers else 3
-        )
-
-        if self.static_columns and isinstance(self.col_count, tuple):
-            self.col_count = (self.col_count[0], "fixed")
-
-        self.__validate_headers(headers, self.col_count[0])
+        self.__validate_headers(headers, self.column_count)
 
         self.headers = (
             headers
             if headers is not None
-            else [str(i) for i in (range(1, self.col_count[0] + 1))]
+            else [str(i) for i in (range(1, self.column_count + 1))]
         )
 
         valid_types = ["pandas", "numpy", "array", "polars"]
@@ -193,15 +193,7 @@ class Dataframe(Component):
         self.max_chars = max_chars
         self.show_search = show_search
         self.pinned_columns = pinned_columns
-        if (
-            pinned_columns is not None
-            and isinstance(col_count, tuple)
-            and col_count[1] == "fixed"
-            and pinned_columns > self.col_count[0]
-        ):
-            raise ValueError(
-                f"pinned_columns ({pinned_columns}) cannot exceed the total number of columns ({self.col_count[0]}) when using fixed columns"
-            )
+
         super().__init__(
             label=label,
             every=every,
@@ -584,21 +576,12 @@ class Dataframe(Component):
         return metadata
 
     @staticmethod
-    def __process_counts(count, default=3) -> tuple[int, str]:
-        if count is None:
-            return (default, "dynamic")
-        if isinstance(count, (int, float)):
-            return (int(count), "dynamic")
-        else:
-            return count
-
-    @staticmethod
-    def __validate_headers(headers: list[str] | None, col_count: int):
-        if headers is not None and len(headers) != col_count:
+    def __validate_headers(headers: list[str] | None, column_count: int):
+        if headers is not None and len(headers) != column_count:
             raise ValueError(
-                f"The length of the headers list must be equal to the col_count int.\n"
-                f"The column count is set to {col_count} but `headers` has {len(headers)} items. "
-                f"Check the values passed to `col_count` and `headers`."
+                f"The length of the headers list must be equal to the column_count.\n"
+                f"The column count is set to {column_count} but `headers` has {len(headers)} items. "
+                f"Check the values passed to `column_count` and `headers`."
             )
 
     def process_example(
