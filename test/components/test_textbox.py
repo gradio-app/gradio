@@ -24,7 +24,7 @@ class TestTextbox:
             "buttons": None,
             "show_label": True,
             "type": "text",
-            "label": "Textbox",
+            "label": None,
             "container": True,
             "min_width": 160,
             "scale": None,
