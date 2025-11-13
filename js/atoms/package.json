@@ -29,6 +29,6 @@
 		"directory": "js/atoms"
 	},
 	"scripts": {
-		"sv-pkg": "svelte-package --input=. --cwd=../../.config/"
+		"sv-package": "svelte-package --input=. --tsconfig=../../tsconfig.json"
 	}
 }
