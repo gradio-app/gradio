@@ -47,7 +47,7 @@
 		lang_extension = ext;
 	}
 
-	$: reconfigure(), lang_extension, readonly;
+	$: (reconfigure(), lang_extension, readonly);
 	$: set_doc(value);
 	$: update_lines();
 

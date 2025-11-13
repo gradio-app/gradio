@@ -4,75 +4,55 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio, CopyData } from "@gradio/utils";
+	import { Gradio } from "@gradio/utils";
 	import Markdown from "./shared/Markdown.svelte";
-	import type { ThemeMode } from "@gradio/core";
 
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
 	import { Block } from "@gradio/atoms";
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let value = "";
-	export let loading_status: LoadingStatus;
-	export let rtl = false;
-	export let sanitize_html = true;
-	export let line_breaks = false;
-	export let gradio: Gradio<{
-		change: never;
-		copy: CopyData;
-		clear_status: LoadingStatus;
-	}>;
-	export let latex_delimiters: {
-		left: string;
-		right: string;
-		display: boolean;
-	}[];
-	export let header_links = false;
-	export let height: number | string | undefined;
-	export let min_height: number | string | undefined;
-	export let max_height: number | string | undefined;
-	export let show_copy_button = false;
-	export let container = false;
-	export let theme_mode: ThemeMode;
-	export let padding = false;
+	import type { MarkdownProps, MarkdownEvents } from "./types";
+
+	let props = $props();
+	const gradio = new Gradio<MarkdownEvents, MarkdownProps>(props);
 </script>
 
 <Block
-	{visible}
-	{elem_id}
-	{elem_classes}
-	{container}
+	visible={gradio.shared.visible}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+	container={gradio.shared.container}
 	allow_overflow={true}
 	overflow_behavior="auto"
-	{height}
-	{min_height}
-	{max_height}
+	height={gradio.props.height}
+	min_height={gradio.props.min_height}
+	max_height={gradio.props.max_height}
 >
 	<StatusTracker
-		autoscroll={gradio.autoscroll}
+		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
-		{...loading_status}
+		{...gradio.shared.loading_status}
 		variant="center"
-		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+		on:clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
-	<div class:padding class:pending={loading_status?.status === "pending"}>
+	<div
+		class:padding={gradio.props.padding}
+		class:pending={gradio.shared.loading_status?.status === "pending"}
+	>
 		<Markdown
-			{value}
-			{elem_classes}
-			{visible}
-			{rtl}
+			value={gradio.props.value}
+			elem_classes={gradio.shared.elem_classes}
+			visible={gradio.shared.visible}
+			rtl={gradio.props.rtl}
 			on:change={() => gradio.dispatch("change")}
 			on:copy={(e) => gradio.dispatch("copy", e.detail)}
-			{latex_delimiters}
-			{sanitize_html}
-			{line_breaks}
-			{header_links}
-			{show_copy_button}
-			{loading_status}
-			{theme_mode}
+			latex_delimiters={gradio.props.latex_delimiters}
+			sanitize_html={gradio.props.sanitize_html}
+			line_breaks={gradio.props.line_breaks}
+			header_links={gradio.props.header_links}
+			show_copy_button={gradio.props.buttons?.includes("copy")}
+			loading_status={gradio.shared.loading_status}
+			theme_mode={gradio.shared.theme_mode}
 		/>
 	</div>
 </Block>

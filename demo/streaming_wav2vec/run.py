@@ -20,7 +20,8 @@ demo = gr.Interface(
         "textbox",
         "state"
     ],
-    live=True
+    live=True,
+    api_name="predict"
 )
 
 if __name__ == "__main__":

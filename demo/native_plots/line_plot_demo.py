@@ -14,14 +14,14 @@ with gr.Blocks() as line_plots:
         temp_sensor_data,
         x="time",
         y="temperature",
-        show_export_button=True,
+        buttons=["export"],
     )
     temp_by_time_location = gr.LinePlot(
         temp_sensor_data,
         x="time",
         y="temperature",
         color="location",
-        show_export_button=True,
+        buttons=["export"],
     )
 
     time_graphs = [temp_by_time, temp_by_time_location]
@@ -49,22 +49,26 @@ with gr.Blocks() as line_plots:
         food_rating_data,
         x="cuisine",
         y="price",
-        show_export_button=True,
+        buttons=["export"],
     )
     with gr.Row():
         price_by_rating = gr.LinePlot(
             food_rating_data,
+            title="Price by Rating (for Ratings >2)",
             x="rating",
             y="price",
-            show_export_button=True,
+            x_lim=[2, None],
+            buttons=["export"],
         )
         price_by_rating_color = gr.LinePlot(
             food_rating_data,
+            title="Price by Rating (for Ratings <4)",
             x="rating",
             y="price",
+            x_lim=[None, 4],
             color="cuisine",
             color_map={"Italian": "red", "Mexican": "green", "Chinese": "blue"},
-            show_export_button=True,
+            buttons=["export"],
         )
 
 if __name__ == "__main__":

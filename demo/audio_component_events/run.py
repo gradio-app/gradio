@@ -29,7 +29,6 @@ with gr.Blocks() as demo:
             input_audio.change(lambda n: n + 1, input_num_change, input_num_change)
             input_audio.play(lambda n: n + 1, input_num_play, input_num_play)
             input_audio.pause(lambda n: n + 1, input_num_pause, input_num_pause)
-            input_audio.change(lambda n: n + 1, input_num_change, input_num_change)
             input_audio.input(lambda n: n + 1, input_num_input, input_num_input)
 
             input_audio.start_recording(lambda n: n + 1, input_record, input_record)

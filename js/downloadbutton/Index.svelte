@@ -3,39 +3,26 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio } from "@gradio/utils";
-	import { type FileData } from "@gradio/client";
-
+	import { Gradio } from "@gradio/utils";
 	import DownloadButton from "./shared/DownloadButton.svelte";
+	import type { DownloadButtonProps, DownloadButtonEvents } from "./types";
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let value: null | FileData;
-	export let variant: "primary" | "secondary" | "stop" = "secondary";
-	export let interactive: boolean;
-	export let size: "sm" | "lg" = "lg";
-	export let scale: number | null = null;
-	export let icon: null | FileData = null;
-	export let min_width: number | undefined = undefined;
-	export let label: string | null = null;
-	export let gradio: Gradio<{
-		click: never;
-	}>;
+	const props = $props();
+	const gradio = new Gradio<DownloadButtonEvents, DownloadButtonProps>(props);
 </script>
 
 <DownloadButton
-	{value}
-	{variant}
-	{elem_id}
-	{elem_classes}
-	{size}
-	{scale}
-	{icon}
-	{min_width}
-	{visible}
-	disabled={!interactive}
+	value={gradio.props.value}
+	variant={gradio.props.variant}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+	size={gradio.props.size}
+	scale={gradio.shared.scale}
+	icon={gradio.props.icon}
+	min_width={gradio.shared.min_width}
+	visible={gradio.shared.visible}
+	disabled={!gradio.shared.interactive}
 	on:click={() => gradio.dispatch("click")}
 >
-	{label ?? ""}
+	{gradio.shared.label ?? ""}
 </DownloadButton>

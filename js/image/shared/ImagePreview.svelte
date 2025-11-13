@@ -21,11 +21,9 @@
 	export let value: null | FileData;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
-	export let show_download_button = true;
+	export let buttons: string[] | null = null;
 	export let selectable = false;
-	export let show_share_button = false;
 	export let i18n: I18nFormatter;
-	export let show_fullscreen_button = true;
 	export let display_icon_button_wrapper_top_corner = false;
 	export let fullscreen = false;
 
@@ -50,23 +48,23 @@
 	Icon={ImageIcon}
 	label={!show_label ? "" : label || i18n("image.image")}
 />
-{#if value === null || !value.url}
+{#if value == null || !value?.url}
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
 	<div class="image-container" bind:this={image_container}>
 		<IconButtonWrapper
 			display_top_corner={display_icon_button_wrapper_top_corner}
 		>
-			{#if show_fullscreen_button}
+			{#if buttons === null ? true : buttons.includes("fullscreen")}
 				<FullscreenButton {fullscreen} on:fullscreen />
 			{/if}
 
-			{#if show_download_button}
+			{#if buttons === null ? true : buttons.includes("download")}
 				<DownloadLink href={value.url} download={value.orig_name || "image"}>
 					<IconButton Icon={Download} label={i18n("common.download")} />
 				</DownloadLink>
 			{/if}
-			{#if show_share_button}
+			{#if buttons === null ? true : buttons.includes("share")}
 				<ShareButton
 					{i18n}
 					on:share
@@ -82,7 +80,11 @@
 		</IconButtonWrapper>
 		<button on:click={handle_click}>
 			<div class:selectable class="image-frame">
-				<Image src={value.url} alt="" loading="lazy" on:load />
+				<Image
+					src={value.url}
+					restProps={{ loading: "lazy", alt: "" }}
+					on:load
+				/>
 			</div>
 		</button>
 	</div>

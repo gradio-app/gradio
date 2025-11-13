@@ -1,5 +1,35 @@
 # @self/app
 
+## 2.0.0-dev.2
+
+### Features
+
+- [#12098](https://github.com/gradio-app/gradio/pull/12098) [`3965abe`](https://github.com/gradio-app/gradio/commit/3965abe584fef88e23501ffb67145fd47e517633) - gr.HTML "custom components".  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/theme@0.5.0-dev.0
+- @gradio/core@1.0.0-dev.1
+- @self/build@0.4.1-dev.0
+
+## 2.0.0-dev.1
+
+### Features
+
+- [#12069](https://github.com/gradio-app/gradio/pull/12069) [`9de88ca`](https://github.com/gradio-app/gradio/commit/9de88ca470ce529366d259f0deaa955f658000b9) - Rename show_api.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.1
+- @gradio/core@1.0.0-dev.0
+
+## 1.52.2-dev.0
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.0
+- @gradio/core@0.29.2
+
 ## 1.52.1
 
 ### Dependency updates

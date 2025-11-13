@@ -41,7 +41,6 @@
 	export let show_edit: boolean;
 	export let show_retry: boolean;
 	export let show_undo: boolean;
-	export let msg_format: "tuples" | "messages";
 	export let handle_action: (selected: string | null) => void;
 	export let scroll: () => void;
 	export let allow_file_downloads: boolean;
@@ -140,7 +139,7 @@
 		in_edit_mode,
 		generating,
 		show_copy_button,
-		message: msg_format === "tuples" ? messages[0] : messages,
+		message: messages,
 		position: role === "user" ? "right" : "left",
 		avatar: avatar_img,
 		layout,

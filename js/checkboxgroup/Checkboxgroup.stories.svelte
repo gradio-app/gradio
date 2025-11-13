@@ -4,12 +4,12 @@
 </script>
 
 <Meta
-	title="Components/Checkboxgroup"
+	title="Components/CheckboxGroup"
 	component={Checkboxgroup}
 	argTypes={{
 		disabled: {
 			control: [true, false],
-			description: "Whether the checkbox group is disabled",
+			description: "Whether the CheckboxGroup is disabled",
 			name: "interactive",
 			value: false
 		}
@@ -21,27 +21,120 @@
 </Template>
 
 <Story
-	name="Checkbox Group"
+	name="Basic Checkbox Group"
 	args={{
 		value: ["swim", "run"],
 		choices: [
-			["run", "run"],
-			["swim", "swim"],
-			["jump", "jump"]
+			["Run", "run"],
+			["Swim", "swim"],
+			["Jump", "jump"]
 		],
-		label: "Checkbox Group"
+		label: "Select your activities",
+		interactive: true,
+		show_label: true
 	}}
 />
+
 <Story
-	name="Checkbox Group with Different Names and Values"
+	name="CheckboxGroup with info"
 	args={{
-		value: ["jump", "jump again"],
+		value: ["swim"],
 		choices: [
-			["run", "run"],
-			["swim", "swim"],
-			["jump", "jump"],
-			["jump", "jump again"]
+			["Run", "run"],
+			["Swim", "swim"],
+			["Jump", "jump"],
+			["Bike", "bike"]
 		],
-		label: "Multiselect Dropdown"
+		label: "Select your activities",
+		info: "Choose all the activities you enjoy",
+		interactive: true,
+		show_label: true
+	}}
+/>
+
+<Story
+	name="CheckboxGroup with select all"
+	args={{
+		value: ["run"],
+		choices: [
+			["Run", "run"],
+			["Swim", "swim"],
+			["Jump", "jump"],
+			["Bike", "bike"],
+			["Dance", "dance"]
+		],
+		label: "Select your activities",
+		info: "Choose all the activities you enjoy",
+		interactive: true,
+		show_label: true,
+		show_select_all: true
+	}}
+/>
+
+<Story
+	name="CheckboxGroup without label"
+	args={{
+		value: ["swim", "run"],
+		choices: [
+			["Run", "run"],
+			["Swim", "swim"],
+			["Jump", "jump"]
+		],
+		label: "Select your activities",
+		interactive: true,
+		show_label: false
+	}}
+/>
+
+<Story
+	name="CheckboxGroup disabled"
+	args={{
+		value: ["swim", "run"],
+		choices: [
+			["Run", "run"],
+			["Swim", "swim"],
+			["Jump", "jump"]
+		],
+		label: "Select your activities",
+		interactive: false,
+		show_label: true
+	}}
+/>
+
+<Story
+	name="CheckboxGroup with many options"
+	args={{
+		value: ["python", "javascript"],
+		choices: [
+			["Python", "python"],
+			["JavaScript", "javascript"],
+			["TypeScript", "typescript"],
+			["Java", "java"],
+			["C++", "cpp"],
+			["Go", "go"],
+			["Rust", "rust"],
+			["Ruby", "ruby"]
+		],
+		label: "Select programming languages",
+		info: "Select all languages you're familiar with",
+		interactive: true,
+		show_label: true
+	}}
+/>
+
+<Story
+	name="CheckboxGroup with different display and internal values"
+	args={{
+		value: ["jump", "jump_again"],
+		choices: [
+			["Running (Cardio)", "run"],
+			["Swimming (Full Body)", "swim"],
+			["Jumping (Beginner)", "jump"],
+			["Jumping (Advanced)", "jump_again"]
+		],
+		label: "Exercise Selection",
+		info: "Internal values differ from display text",
+		interactive: true,
+		show_label: true
 	}}
 />

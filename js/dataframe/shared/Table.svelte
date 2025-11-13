@@ -76,8 +76,7 @@
 	export let show_row_numbers = false;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
-	export let show_fullscreen_button = false;
-	export let show_copy_button = false;
+	export let buttons: string[] | null = null;
 	export let value_is_output = false;
 	export let max_chars: number | undefined = undefined;
 	export let show_search: "none" | "search" | "filter" = "none";
@@ -86,8 +85,9 @@
 	export let fullscreen = false;
 
 	const df_ctx = create_dataframe_context({
-		show_fullscreen_button,
-		show_copy_button,
+		show_fullscreen_button:
+			buttons === null ? true : buttons.includes("fullscreen"),
+		show_copy_button: buttons === null ? true : buttons.includes("copy"),
 		show_search,
 		show_row_numbers,
 		editable,
@@ -758,7 +758,7 @@
 			if (new_row[col]) {
 				new_row[col] = {
 					...new_row[col],
-					value: checked.toString()
+					value: checked
 				};
 			}
 			return new_row;
@@ -823,7 +823,7 @@
 <svelte:window on:resize={() => set_cell_widths()} />
 
 <div class="table-container">
-	{#if (label && label.length !== 0 && show_label) || show_fullscreen_button || show_copy_button || show_search !== "none"}
+	{#if (label && label.length !== 0 && show_label) || (buttons === null ? true : buttons.includes("fullscreen")) || (buttons === null ? true : buttons.includes("copy")) || show_search !== "none"}
 		<div class="header-row">
 			{#if label && label.length !== 0 && show_label}
 				<div class="label">
@@ -831,10 +831,12 @@
 				</div>
 			{/if}
 			<Toolbar
-				{show_fullscreen_button}
+				show_fullscreen_button={buttons === null
+					? true
+					: buttons.includes("fullscreen")}
 				{fullscreen}
 				on_copy={async () => await copy_table_data(data, null)}
-				{show_copy_button}
+				show_copy_button={buttons === null ? true : buttons.includes("copy")}
 				{show_search}
 				on:search={(e) => df_actions.handle_search(e.detail)}
 				on:fullscreen
@@ -1058,7 +1060,7 @@
 	<CellMenu
 		x={active_cell_menu?.x ?? active_header_menu?.x ?? 0}
 		y={active_cell_menu?.y ?? active_header_menu?.y ?? 0}
-		row={active_header_menu ? -1 : active_cell_menu?.row ?? 0}
+		row={active_header_menu ? -1 : (active_cell_menu?.row ?? 0)}
 		{col_count}
 		{row_count}
 		on_add_row_above={() => add_row_at(active_cell_menu?.row ?? -1, "above")}
@@ -1095,9 +1097,9 @@
 				}
 			: undefined}
 		sort_direction={active_header_menu
-			? $df_state.sort_state.sort_columns.find(
+			? ($df_state.sort_state.sort_columns.find(
 					(item) => item.col === (active_header_menu?.col ?? -1)
-				)?.direction ?? null
+				)?.direction ?? null)
 			: null}
 		sort_priority={active_header_menu
 			? $df_state.sort_state.sort_columns.findIndex(

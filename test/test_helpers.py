@@ -155,7 +155,7 @@ def test_setting_cache_dir_env_variable(monkeypatch, connect):
 @patch("gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp()))
 class TestExamplesDataset:
     def test_no_headers(self, patched_cache_folder):
-        examples = gr.Examples("test/test_files/images_log", [gr.Image(), gr.Text()])
+        examples = gr.Examples("test/test_files/images_log", [gr.Image(), gr.Number()])
         assert examples.dataset.headers == []
 
     def test_all_headers(self, patched_cache_folder):
@@ -167,7 +167,7 @@ class TestExamplesDataset:
 
     def test_some_headers(self, patched_cache_folder):
         examples = gr.Examples(
-            "test/test_files/images_log", [gr.Image(label="im"), gr.Text()]
+            "test/test_files/images_log", [gr.Image(label="im"), gr.Number()]
         )
         assert examples.dataset.headers == ["im", ""]
 
@@ -568,7 +568,6 @@ class TestProcessExamples:
                 "autoscroll": True,
                 "elem_classes": [],
                 "rtl": False,
-                "show_copy_button": False,
                 "__type__": "update",
                 "visible": True,
                 "preserved_by_key": ["value"],
@@ -591,7 +590,6 @@ class TestProcessExamples:
                 "elem_classes": [],
                 "rtl": False,
                 "preserved_by_key": ["value"],
-                "show_copy_button": False,
                 "__type__": "update",
                 "visible": True,
                 "value": "Michael",
@@ -965,6 +963,7 @@ def test_examples_no_cache_optional_inputs():
         "json",
         cache_examples=False,
         examples=[["a", "b", None, "d"], ["a", "b", None, "de"]],
+        api_name="predict",
     )
 
     try:

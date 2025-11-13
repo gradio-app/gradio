@@ -14,7 +14,7 @@ def spectrogram(audio):
     plt.pcolormesh(times, frequencies, np.log10(spectrogram_data))
     return plt
 
-demo = gr.Interface(spectrogram, "audio", "plot")
+demo = gr.Interface(spectrogram, "audio", "plot", api_name="predict")
 
 if __name__ == "__main__":
     demo.launch()

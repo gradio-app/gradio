@@ -1,16 +1,20 @@
 import gradio as gr
 import subprocess
-import os
 
 # get_audio returns the path to the audio file
 audio_file = gr.get_audio("cantina.wav")
 
 with gr.Blocks() as demo:
     with gr.Tab("Audio"):
-        gr.Audio(audio_file)
+        gr.Audio(audio_file, buttons=["download"])
     with gr.Tab("Interface"):
         gr.Interface(
-            lambda x: x, "audio", "audio", examples=[audio_file], cache_examples=True
+            lambda x: x,
+            gr.Audio(),
+            gr.Audio(),
+            examples=[audio_file],
+            cache_examples=True,
+            api_name="predict"
         )
     with gr.Tab("Streaming"):
         gr.Interface(
@@ -19,6 +23,7 @@ with gr.Blocks() as demo:
             "audio",
             examples=[audio_file],
             cache_examples=True,
+            api_name="predict"
         )
     with gr.Tab("console"):
         ip = gr.Textbox(label="User IP Address")
@@ -28,6 +33,7 @@ with gr.Blocks() as demo:
             .strip(),
             "text",
             "text",
+            api_name="predict"
         )
 
     def get_ip(request: gr.Request):
