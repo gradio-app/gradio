@@ -73,9 +73,9 @@ class Dataframe(Component):
         | None = None,
         *,
         headers: list[str] | None = None,
-        row_count: int | None = 1,
+        row_count: int | None = None,
         row_limits: tuple[int | None, int | None] | None = None,
-        column_count: int | None = 3,
+        column_count: int | None = None,
         column_limits: tuple[int | None, int | None] | None = None,
         datatype: Literal[
             "str", "number", "bool", "date", "markdown", "html", "image", "auto"
