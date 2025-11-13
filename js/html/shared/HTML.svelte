@@ -1,16 +1,19 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount, tick } from "svelte";
+	import { createEventDispatcher, tick } from "svelte";
 	import Handlebars from "handlebars";
 
-	export let elem_classes: string[] = [];
-	export let props: Record<string, any>;
-	let old_props = props;
-	export let html_template = "${value}";
-	export let css_template = "";
-	export let js_on_load: string | null = null;
-	export let visible: boolean | "hidden" = true;
-	export let autoscroll = false;
-	export let apply_default_css = true;
+	let {
+		elem_classes = [],
+		props = {},
+		html_template = "${value}",
+		css_template = "",
+		js_on_load = null,
+		visible = true,
+		autoscroll = false,
+		apply_default_css = true
+	} = $props();
+
+	let old_props = $state(props);
 
 	const dispatch = createEventDispatcher<{
 		event: { type: "click" | "submit"; data: any };
@@ -29,9 +32,10 @@
 	let random_id = `html-${Math.random().toString(36).substring(2, 11)}`;
 	let style_element: HTMLStyleElement | null = null;
 	let reactiveProps: Record<string, any> = {};
-	let currentHtml = "";
-	let currentCss = "";
-	let renderScheduled = false;
+	let currentHtml = $state("");
+	let currentCss = $state("");
+	let renderScheduled = $state(false);
+	let mounted = $state(false);
 
 	function get_scrollable_parent(element: HTMLElement): HTMLElement | null {
 		let parent = element.parentElement;
@@ -244,7 +248,11 @@
 		}
 	}
 
-	onMount(() => {
+	// Mount effect
+	$effect(() => {
+		if (!element || mounted) return;
+		mounted = true;
+
 		reactiveProps = new Proxy(
 			{ ...props },
 			{
@@ -287,26 +295,23 @@
 				console.error("Error executing js_on_load:", error);
 			}
 		}
-
-		return () => {
-			if (style_element && style_element.parentNode) {
-				style_element.parentNode.removeChild(style_element);
-			}
-		};
 	});
 
-	$: if (
-		reactiveProps &&
-		props &&
-		JSON.stringify(old_props) !== JSON.stringify(props)
-	) {
-		for (const key in props) {
-			if (reactiveProps[key] !== props[key]) {
-				reactiveProps[key] = props[key];
+	// Props update effect
+	$effect(() => {
+		if (
+			reactiveProps &&
+			props &&
+			JSON.stringify(old_props) !== JSON.stringify(props)
+		) {
+			for (const key in props) {
+				if (reactiveProps[key] !== props[key]) {
+					reactiveProps[key] = props[key];
+				}
 			}
+			old_props = props;
 		}
-		old_props = props;
-	}
+	});
 </script>
 
 <div
