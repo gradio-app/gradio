@@ -5,9 +5,9 @@ import gradio as gr
 
 
 @gr.mcp.tool()  # Not needed as functions are registered as tools by default
-def add(a: int, b: int) -> tuple[int, int]:
-    """Add two numbers and subtract the second from the first"""
-    return a + b, a - b
+def add(a: int, b: int) -> int:
+    """Add two numbers"""
+    return a + b
 
 
 @gr.mcp.resource("greeting://{name}")
