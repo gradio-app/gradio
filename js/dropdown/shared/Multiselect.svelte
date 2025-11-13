@@ -13,6 +13,7 @@
 
 	let filter_input: HTMLElement;
 	let input_text = $state("");
+	let label = $derived(gradio.shared.label || "Multiselect");
 
 	let choices_names: string[] = $derived.by(() => {
 		return gradio.props.choices.map((c) => c[0]);
@@ -186,7 +187,7 @@
 
 <label class:container={gradio.shared.container}>
 	<BlockTitle show_label={gradio.shared.show_label} info={gradio.props.info}
-		>{gradio.shared.label}</BlockTitle
+		>{label}</BlockTitle
 	>
 
 	<div class="wrap">
