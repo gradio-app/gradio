@@ -28,7 +28,6 @@ results = []
 lock = threading.Lock()
 
 def make_request():
-    client = Client(url, verbose=False)
     start = time.time()
     result = client.predict("Hello")
     end = time.time()

@@ -821,11 +821,8 @@ class GradioMCPServer:
     ) -> list:
         """
         Remove any values corresponding to State output components from the data
-        as State outputs are not included in the endpoint schema. Also wraps
-        a single output in a list.
+        as State outputs are not included in the endpoint schema.
         """
-        if len(components) == 1:
-            data = [data]
         for i, component_type in enumerate(components):
             if isinstance(component_type, State):
                 data.pop(i)
