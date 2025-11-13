@@ -22,15 +22,6 @@
 gradio.Audio(···)
 ```
 
-<!-- Embedded Component -->
-<div class="embedded-component">
-<gradio-lite shared-worker>
-import gradio as gr
-with gr.Blocks() as demo:
-    gr.Audio("https://cdn.pixabay.com/download/audio/2022/03/09/audio_7e096b862f.mp3")
-demo.launch()
-</gradio-lite>
-</div>
 
 <!--- Description -->
 ### Description
