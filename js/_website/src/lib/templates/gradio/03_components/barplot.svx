@@ -9,6 +9,7 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
+
     let obj = get_object("barplot");
 </script>
 
@@ -20,42 +21,6 @@
 gradio.BarPlot(···)
 ```
 
-<!-- Embedded Component -->
-<div class="embedded-component">
-<gradio-lite shared-worker>
-import gradio as gr
-import pandas as pd
-import numpy as np
-simple = pd.DataFrame(np.array(
-    [
-        ["A", 28],
-        ["B", 55],
-        ["C", 43],
-        ["D", 91],
-        ["E", 81],
-        ["F", 53],
-        ["G", 19],
-        ["H", 87],
-        ["I", 52],
-        
-    ]
-), columns=["item", "inventory"])
-with gr.Blocks() as demo:
-    gr.BarPlot(
-        value=simple,
-        x="item",
-        y="inventory",
-        title="Simple Bar Plot",
-        container=True,
-        width=400
-    )
-demo.launch()
-<gradio-requirements>
-pandas
-</gradio-requirements>
-</gradio-lite>
-
-</div>
 
 <!--- Description -->
 ### Description
