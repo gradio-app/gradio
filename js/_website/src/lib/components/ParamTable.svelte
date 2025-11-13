@@ -72,7 +72,6 @@
 		: anchor_links}
 />
 
-
 <style>
 	:global(.header) {
 		display: flex;

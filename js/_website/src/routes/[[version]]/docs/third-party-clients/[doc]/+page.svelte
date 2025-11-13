@@ -47,15 +47,11 @@
 
 	$: prev_obj =
 		flattened_pages[
-			flattened_pages.findIndex(
-				(page: any) => page.name === component_name
-			) - 1
+			flattened_pages.findIndex((page: any) => page.name === component_name) - 1
 		];
 	$: next_obj =
 		flattened_pages[
-			flattened_pages.findIndex(
-				(page: any) => page.name === component_name
-			) + 1
+			flattened_pages.findIndex((page: any) => page.name === component_name) + 1
 		];
 
 	function get_headers() {

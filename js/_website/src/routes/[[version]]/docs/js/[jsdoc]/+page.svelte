@@ -18,8 +18,7 @@
 		current_jsdoc === "atoms"
 			? "storybook"
 			: js_components[
-					js_components.findIndex((page: any) => page === current_jsdoc) -
-						1
+					js_components.findIndex((page: any) => page === current_jsdoc) - 1
 				];
 	$: next_obj =
 		js_components[
