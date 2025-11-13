@@ -75,6 +75,7 @@ class Dataframe(Component):
         headers: list[str] | None = None,
         row_count: int | None = 1,
         row_limits: tuple[int | None, int | None] | None = None,
+        col_count: int | None = None,
         column_count: int | None = 3,
         column_limits: tuple[int | None, int | None] | None = None,
         datatype: Literal[
@@ -115,6 +116,7 @@ class Dataframe(Component):
             headers: List of str header names. These are used to set the column headers of the dataframe if the value does not have headers. If None, no headers are shown.
             row_count: The number of rows to initially display in the dataframe. If None, the number of rows is determined automatically based on the `value`.
             row_limits: A tuple of two integers specifying the minimum and maximum number of rows that can be created in the dataframe via the UI. If the first element is None, there is no minimum number of rows. If the second element is None, there is no maximum number of rows. Only applies if `interactive` is True.
+            col_count: This parameter is deprecated. Please use `column_count` instead.
             column_count: The number of columns to initially display in the dataframe. If None, the number of columns is determined automatically based on the `value`.
             column_limits: A tuple of two integers specifying the minimum and maximum number of columns that can be created in the dataframe via the UI. If the first element is None, there is no minimum number of columns. If the second element is None, there is no maximum number of columns. Only applies if `interactive` is True.
             datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", "date", and "markdown". Boolean columns will display as checkboxes. If the datatype "auto" is used, the column datatypes are automatically selected based on the value input if possible.
@@ -150,6 +152,11 @@ class Dataframe(Component):
         # with the older version of the dataframe js component. Once we migrate the dataframe js component to 
         # Svelte 5, we'll remove self.__process_counts and drop self.col_count.
         self.row_count = self.__process_counts(row_count)
+        if col_count is not None:
+            warnings.warn(
+                "The `col_count` parameter is deprecated. Please use `column_count` instead.",
+                UserWarning,
+            )
         if row_limits is not None:
             warnings.warn(
                 "The `row_limits` parameter is not yet implemented.",
@@ -165,12 +172,12 @@ class Dataframe(Component):
         self.column_limits = column_limits
         self.static_columns = static_columns or []
 
-        self.__validate_headers(headers, self.column_count)
+        self.__validate_headers(headers, self.column_count[0])
 
         self.headers = (
             headers
             if headers is not None
-            else [str(i) for i in (range(1, self.column_count + 1))]
+            else [str(i) for i in (range(1, self.column_count[0] + 1))]
         )
 
         valid_types = ["pandas", "numpy", "array", "polars"]
