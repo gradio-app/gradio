@@ -5,6 +5,7 @@
 	import { handle_filter, handle_shared_keys } from "./utils";
 	import type { Gradio } from "@gradio/utils";
 	import type { DropdownEvents, DropdownProps, Item } from "../types.ts";
+	import { tick } from "svelte";
 
 	const is_browser = typeof window !== "undefined";
 
@@ -102,7 +103,8 @@
 		gradio.dispatch("input");
 	}
 
-	function handle_key_down(e: KeyboardEvent): void {
+	async function handle_key_down(e: KeyboardEvent): Promise<void> {
+		await tick();
 		filtered_indices = handle_filter(gradio.props.choices, input_text);
 		active_index = filtered_indices.length > 0 ? filtered_indices[0] : null;
 		[show_options, active_index] = handle_shared_keys(
