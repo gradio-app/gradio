@@ -76,6 +76,7 @@ from gradio.data_classes import (
     ComponentServerJSONBody,
     DataWithFiles,
     DeveloperPath,
+    JsonData,
     PredictBody,
     PredictBodyInternal,
     ResetBody,
@@ -189,11 +190,17 @@ class ORJSONResponse(JSONResponse):
     media_type = "application/json"
 
     @staticmethod
+    def default(content: Any) -> str:
+        if isinstance(content, JsonData):
+            return content.model_dump()
+        return str(content)
+
+    @staticmethod
     def _render(content: Any) -> bytes:
         return orjson.dumps(
             content,
             option=orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_PASSTHROUGH_DATETIME,
-            default=str,
+            default=ORJSONResponse.default,
         )
 
     def render(self, content: Any) -> bytes:
@@ -1539,7 +1546,6 @@ class App(FastAPI):
             request: fastapi.Request,
         ) -> Union[ComponentServerJSONBody, ComponentServerBlobBody]:
             content_type = request.headers.get("Content-Type")
-            print("content_type", content_type)
 
             if isinstance(content_type, str) and content_type.startswith(
                 "multipart/form-data"
