@@ -1,16 +1,11 @@
 import gradio as gr
-from gradio.media import get_audio, get_file
-from pathlib import Path
+from gradio.media import get_audio, get_file, MEDIA_PATHS
+
 
 a = get_audio("cate_blanch.mp3")
 b = get_audio("cate_blanch_2.mp3")
 s1 = get_file("s1.srt")
 s2 = get_file("s2.vtt")
-
-p = Path(__file__).parent.parent.parent
-demo_path = Path(p, "gradio/media_assets/").resolve()
-
-print(demo_path)
 
 
 def add_subtitles_to_audio(audio, subtitles=None):
@@ -35,4 +30,4 @@ demo = gr.Interface(
 )
 
 if __name__ == "__main__":
-    demo.launch(allowed_paths=[demo_path])
+    demo.launch(allowed_paths=[MEDIA_PATHS])
