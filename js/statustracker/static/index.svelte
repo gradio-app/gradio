@@ -50,75 +50,106 @@
 </script>
 
 <script lang="ts">
-	import { onDestroy } from "svelte";
-
 	import Loader from "./Loader.svelte";
 	import type { LoadingStatus } from "./types";
 	import type { I18nFormatter } from "@gradio/utils";
-	import { createEventDispatcher } from "svelte";
 
 	import { IconButton } from "@gradio/atoms";
 	import { Clear } from "@gradio/icons";
 
-	const dispatch = createEventDispatcher();
+	interface Props {
+		i18n: I18nFormatter;
+		eta?: number | null;
+		queue_position: number | null;
+		queue_size: number | null;
+		status:
+			| "complete"
+			| "pending"
+			| "error"
+			| "generating"
+			| "streaming"
+			| null;
+		scroll_to_output?: boolean;
+		timer?: boolean;
+		show_progress?: "full" | "minimal" | "hidden";
+		message?: string | null;
+		progress?: LoadingStatus["progress"] | null | undefined;
+		variant?: "default" | "center";
+		loading_text?: string;
+		absolute?: boolean;
+		translucent?: boolean;
+		border?: boolean;
+		autoscroll: boolean;
+		validation_error?: string | null;
+		show_validation_error?: boolean;
+		type?: "input" | "output" | null;
+		on_clear_status?: () => void;
+	}
 
-	export let i18n: I18nFormatter;
-	export let eta: number | null = null;
-	export let queue_position: number | null;
-	export let queue_size: number | null;
-	export let status:
-		| "complete"
-		| "pending"
-		| "error"
-		| "generating"
-		| "streaming"
-		| null;
-	export let scroll_to_output = false;
-	export let timer = true;
-	export let show_progress: "full" | "minimal" | "hidden" = "full";
-	export let message: string | null = null;
-	export let progress: LoadingStatus["progress"] | null | undefined = null;
-	export let variant: "default" | "center" = "default";
-	export let loading_text = "Loading...";
-	export let absolute = true;
-	export let translucent = false;
-	export let border = false;
-	export let autoscroll: boolean;
-	export let validation_error: string | null = null;
-	export let show_validation_error = true;
-	export let type: "input" | "outputs" | null = null;
-
-	$: should_hide =
-		type === "input" ||
-		!status ||
-		status === "complete" ||
-		show_progress === "hidden" ||
-		status == "streaming" ||
-		(show_validation_error && validation_error);
+	let {
+		i18n,
+		eta = null,
+		queue_position,
+		queue_size,
+		status,
+		scroll_to_output = false,
+		timer = true,
+		show_progress = "full",
+		message = null,
+		progress = null,
+		variant = "default",
+		loading_text = "Loading...",
+		absolute = true,
+		translucent = false,
+		border = false,
+		autoscroll,
+		validation_error = null,
+		show_validation_error = true,
+		type = null,
+		on_clear_status
+	}: Props = $props();
 
 	let el: HTMLDivElement;
 
-	let _timer = false;
-	let timer_start = 0;
-	let timer_diff = 0;
-	let old_eta: number | null = null;
-	let eta_from_start: number | null = null;
-	let message_visible = false;
-	let eta_level: number | null = 0;
-	let progress_level: (number | undefined)[] | null = null;
-	let last_progress_level: number | undefined = undefined;
-	let progress_bar: HTMLElement | null = null;
-	let show_eta_bar = true;
+	let _timer = $state(false);
+	let timer_start = $state(0);
+	let timer_diff = $state(0);
+	let old_eta = $state<number | null>(null);
+	let eta_from_start = $state<number | null>(null);
+	let message_visible = $state(false);
+	let progress_level = $state<(number | undefined)[] | null>(null);
+	let last_progress_level = $state<number | undefined>(undefined);
+	let progress_bar = $state<HTMLElement | null>(null);
+	let show_eta_bar = $state(true);
+	let formatted_eta = $state<string | null>(null);
+	let show_message_timeout = $state<NodeJS.Timeout | null>(null);
 
-	$: eta_level =
+	const should_hide = $derived(
+		type === "input" ||
+			!status ||
+			status === "complete" ||
+			show_progress === "hidden" ||
+			status == "streaming" ||
+			!!(show_validation_error && validation_error)
+	);
+
+	const eta_level = $derived(
 		eta_from_start === null || eta_from_start <= 0 || !timer_diff
 			? null
-			: Math.min(timer_diff / eta_from_start, 1);
-	$: if (progress != null) {
-		show_eta_bar = false;
-	}
+			: Math.min(timer_diff / eta_from_start, 1)
+	);
 
-	$: {
+	const formatted_timer = $derived(timer_diff.toFixed(1));
+
+	$effect(() => {
+		if (progress != null) {
+			show_eta_bar = false;
+		} else {
+			show_eta_bar = true;
+		}
+	});
+
+	$effect(() => {
 		if (progress != null) {
 			progress_level = progress.map((p) => {
 				if (p.index != null && p.length != null) {
@@ -144,15 +175,7 @@
 		} else {
 			last_progress_level = undefined;
 		}
-	}
-
-	const start_timer = (): void => {
-		eta = old_eta = formatted_eta = null;
-		timer_start = performance.now();
-		timer_diff = 0;
-		_timer = true;
-		run();
-	};
+	});
 
 	function run(): void {
 		raf(() => {
@@ -161,33 +184,44 @@
 		});
 	}
 
+	function start_timer(): void {
+		old_eta = formatted_eta = null;
+		timer_start = performance.now();
+		timer_diff = 0;
+		_timer = true;
+		run();
+	}
+
 	function stop_timer(): void {
 		timer_diff = 0;
-		eta = old_eta = formatted_eta = null;
-
+		old_eta = formatted_eta = null;
 		if (!_timer) return;
 		_timer = false;
 	}
 
-	onDestroy(() => {
-		if (_timer) stop_timer();
-	});
-
-	$: {
+	$effect(() => {
 		if (status === "pending") {
 			start_timer();
 		} else {
 			stop_timer();
 		}
-	}
 
-	$: el &&
-		scroll_to_output &&
-		(status === "pending" || status === "complete") &&
-		scroll_into_view(el, autoscroll);
+		return () => {
+			if (_timer) stop_timer();
+		};
+	});
 
-	let formatted_eta: string | null = null;
-	$: {
+	$effect(() => {
+		if (
+			el &&
+			scroll_to_output &&
+			(status === "pending" || status === "complete")
+		) {
+			scroll_into_view(el, autoscroll);
+		}
+	});
+
+	$effect(() => {
 		if (eta === null) {
 			eta = old_eta;
 		}
@@ -196,21 +230,21 @@
 			formatted_eta = eta_from_start.toFixed(1);
 			old_eta = eta;
 		}
-	}
-	let show_message_timeout: NodeJS.Timeout | null = null;
+	});
+
 	function close_message(): void {
 		message_visible = false;
 		if (show_message_timeout !== null) {
 			clearTimeout(show_message_timeout);
 		}
 	}
-	$: {
+
+	$effect(() => {
 		close_message();
 		if (status === "error" && message) {
 			message_visible = true;
 		}
-	}
-	$: formatted_timer = timer_diff.toFixed(1);
+	});
 </script>
 
 <div
@@ -240,7 +274,7 @@
 					background="var(--background-fill-primary)"
 					color="var(--error-background-text)"
 					border="var(--border-color-primary)"
-					on:click={() => (validation_error = null)}
+					onclick={() => (validation_error = null)}
 				/></button
 			>
 		</div>
@@ -324,8 +358,8 @@
 				Icon={Clear}
 				label={i18n("common.clear")}
 				disabled={false}
-				on:click={() => {
-					dispatch("clear_status");
+				onclick={() => {
+					on_clear_status?.();
 				}}
 			/>
 		</div>
