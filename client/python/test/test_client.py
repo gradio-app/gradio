@@ -507,8 +507,13 @@ class TestClientPredictions:
             assert demo.predict(api_name="/predict") == "\ta\nb" * 90000
 
     def test_queue_full_raises_error(self):
+        import time
+
         demo = gr.Interface(
-            lambda s: f"Hello {s}", "textbox", "textbox", api_name="predict"
+            lambda s: time.sleep(1) or f"Hello {s}",
+            "textbox",
+            "textbox",
+            api_name="predict",
         ).queue(max_size=1)
         with connect(demo) as client:
             with pytest.raises(QueueError):

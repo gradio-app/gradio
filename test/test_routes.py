@@ -2017,3 +2017,20 @@ def test_slugify():
     )
     for value, expected_output in items:
         assert slugify(value) == expected_output
+
+
+def test_json_postprocessing_with_queue_false(connect):
+    with gr.Blocks() as demo:
+        d = gr.Button()
+        j = gr.JSON()
+
+        d.click(
+            lambda: {"epochs": 20, "learning_rate": 0.001, "batch_size": 32},
+            None,
+            j,
+            queue=False,
+        )
+
+    with connect(demo) as client:
+        output = client.predict(api_name="/lambda")
+        assert output == {"epochs": 20, "learning_rate": 0.001, "batch_size": 32}
