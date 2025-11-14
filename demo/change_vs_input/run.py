@@ -10,71 +10,71 @@ with gr.Blocks() as demo:
         gr.Markdown("# ON:INPUT/UPLOAD")
         gr.Markdown("# ON:CHANGE")
         gr.Markdown("# ON:CHANGE x2")
-    # with gr.Row():
-    #     text = gr.Textbox()
-    #     text_in = gr.Textbox()
-    #     text_ch = gr.Textbox()
-    #     text_ch2 = gr.Textbox()
-    # with gr.Row():
-    #     num = gr.Number()
-    #     num_in = gr.Number()
-    #     num_ch = gr.Number()
-    #     num_ch2 = gr.Number()
-    # with gr.Row():
-    #     slider = gr.Slider()
-    #     slider_in = gr.Slider()
-    #     slider_ch = gr.Slider()
-    #     slider_ch2 = gr.Slider()
-    # with gr.Row():
-    #     checkbox = gr.Checkbox()
-    #     checkbox_in = gr.Checkbox()
-    #     checkbox_ch = gr.Checkbox()
-    #     checkbox_ch2 = gr.Checkbox()
+    with gr.Row():
+        text = gr.Textbox()
+        text_in = gr.Textbox()
+        text_ch = gr.Textbox()
+        text_ch2 = gr.Textbox()
+    with gr.Row():
+        num = gr.Number()
+        num_in = gr.Number()
+        num_ch = gr.Number()
+        num_ch2 = gr.Number()
+    with gr.Row():
+        slider = gr.Slider()
+        slider_in = gr.Slider()
+        slider_ch = gr.Slider()
+        slider_ch2 = gr.Slider()
+    with gr.Row():
+        checkbox = gr.Checkbox()
+        checkbox_in = gr.Checkbox()
+        checkbox_ch = gr.Checkbox()
+        checkbox_ch2 = gr.Checkbox()
     with gr.Row():
         checkbox_group = gr.CheckboxGroup(["a", "b", "c"])
         checkbox_group_in = gr.CheckboxGroup(["a", "b", "c"])
         checkbox_group_ch = gr.CheckboxGroup(["a", "b", "c"])
         checkbox_group_ch2 = gr.CheckboxGroup(["a", "b", "c"])
-    # with gr.Row():
-    #     radio = gr.Radio(["a", "b", "c"])
-    #     radio_in = gr.Radio(["a", "b", "c"])
-    #     radio_ch = gr.Radio(["a", "b", "c"])
-    #     radio_ch2 = gr.Radio(["a", "b", "c"])
-    # with gr.Row():
-    #     dropdown = gr.Dropdown(["a", "b", "c"])
-    #     dropdown_in = gr.Dropdown(["a", "b", "c"])
-    #     dropdown_ch = gr.Dropdown(["a", "b", "c"])
-    #     dropdown_ch2 = gr.Dropdown(["a", "b", "c"])
-    # with gr.Row():
-    #     colorpicker = gr.ColorPicker()
-    #     colorpicker_in = gr.ColorPicker()
-    #     colorpicker_ch = gr.ColorPicker()
-    #     colorpicker_ch2 = gr.ColorPicker()
-    # with gr.Row():
-    #     code = gr.Code()
-    #     code_in = gr.Code()
-    #     code_ch = gr.Code()
-    #     code_ch2 = gr.Code()
-    # with gr.Row():
-    #     dataframe = gr.Dataframe()
-    #     dataframe_in = gr.Dataframe()
-    #     dataframe_ch = gr.Dataframe()
-    #     dataframe_ch2 = gr.Dataframe()
-    # with gr.Row():
-    #     image = gr.Image(elem_id="image-original")
-    #     image_up = gr.Image(elem_id="image-upload")
-    #     image_ch = gr.Image(elem_id="image-change")
-    #     image_ch2 = gr.Image(elem_id="image-change-2")
-    # with gr.Row():
-    #     audio = gr.Audio(elem_id="audio-original")
-    #     audio_up = gr.Audio(elem_id="audio-upload")
-    #     audio_ch = gr.Audio(elem_id="audio-change")
-    #     audio_ch2 = gr.Audio(elem_id="audio-change-2")
-    # with gr.Row():
-    #     video = gr.Video(elem_id="video-original")
-    #     video_up = gr.Video(elem_id="video-upload")
-    #     video_ch = gr.Video(elem_id="video-change")
-    #     video_ch2 = gr.Video(elem_id="video-change-2")
+    with gr.Row():
+        radio = gr.Radio(["a", "b", "c"])
+        radio_in = gr.Radio(["a", "b", "c"])
+        radio_ch = gr.Radio(["a", "b", "c"])
+        radio_ch2 = gr.Radio(["a", "b", "c"])
+    with gr.Row():
+        dropdown = gr.Dropdown(["a", "b", "c"])
+        dropdown_in = gr.Dropdown(["a", "b", "c"])
+        dropdown_ch = gr.Dropdown(["a", "b", "c"])
+        dropdown_ch2 = gr.Dropdown(["a", "b", "c"])
+    with gr.Row():
+        colorpicker = gr.ColorPicker()
+        colorpicker_in = gr.ColorPicker()
+        colorpicker_ch = gr.ColorPicker()
+        colorpicker_ch2 = gr.ColorPicker()
+    with gr.Row():
+        code = gr.Code()
+        code_in = gr.Code()
+        code_ch = gr.Code()
+        code_ch2 = gr.Code()
+    with gr.Row():
+        dataframe = gr.Dataframe()
+        dataframe_in = gr.Dataframe()
+        dataframe_ch = gr.Dataframe()
+        dataframe_ch2 = gr.Dataframe()
+    with gr.Row():
+        image = gr.Image(elem_id="image-original")
+        image_up = gr.Image(elem_id="image-upload")
+        image_ch = gr.Image(elem_id="image-change")
+        image_ch2 = gr.Image(elem_id="image-change-2")
+    with gr.Row():
+        audio = gr.Audio(elem_id="audio-original")
+        audio_up = gr.Audio(elem_id="audio-upload")
+        audio_ch = gr.Audio(elem_id="audio-change")
+        audio_ch2 = gr.Audio(elem_id="audio-change-2")
+    with gr.Row():
+        video = gr.Video(elem_id="video-original")
+        video_up = gr.Video(elem_id="video-upload")
+        video_ch = gr.Video(elem_id="video-change")
+        video_ch2 = gr.Video(elem_id="video-change-2")
 
     lion = get_image("lion.jpg")
     cantina = get_audio("cantina.wav")
