@@ -584,7 +584,10 @@ class Numpy(components.Dataframe):
         *,
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
+        row_limits: tuple[int | None, int | None] | None = None,
         col_count: int | tuple[int, str] | None = None,
+        column_count: int | tuple[int, str] | None = None,
+        column_limits: tuple[int | None, int | None] | None = None,
         datatype: (
             Literal["str", "number", "bool", "date", "markdown", "html"]
             | Sequence[Literal["str", "number", "bool", "date", "markdown", "html"]]
@@ -624,7 +627,10 @@ class Numpy(components.Dataframe):
             value=value,
             headers=headers,
             row_count=row_count,
+            row_limits=row_limits,
             col_count=col_count,
+            column_count=column_count,
+            column_limits=column_limits,
             datatype=datatype,
             type=type,
             label=label,
@@ -667,7 +673,10 @@ class Matrix(components.Dataframe):
         *,
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
+        row_limits: tuple[int | None, int | None] | None = None,
         col_count: int | tuple[int, str] | None = None,
+        column_count: int | tuple[int, str] | None = None,
+        column_limits: tuple[int | None, int | None] | None = None,
         datatype: (
             Literal["str", "number", "bool", "date", "markdown", "html"]
             | Sequence[Literal["str", "number", "bool", "date", "markdown", "html"]]
@@ -707,7 +716,10 @@ class Matrix(components.Dataframe):
             value=value,
             headers=headers,
             row_count=row_count,
+            row_limits=row_limits,
             col_count=col_count,
+            column_count=column_count,
+            column_limits=column_limits,
             datatype=datatype,
             type=type,
             label=label,
@@ -750,7 +762,10 @@ class List(components.Dataframe):
         *,
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
+        row_limits: tuple[int | None, int | None] | None = None,
         col_count: Literal[1] = 1,
+        column_count: Literal[1] | None = None,
+        column_limits: tuple[int | None, int | None] | None = None,
         datatype: (
             Literal["str", "number", "bool", "date", "markdown", "html"]
             | Sequence[Literal["str", "number", "bool", "date", "markdown", "html"]]
@@ -790,7 +805,10 @@ class List(components.Dataframe):
             value=value,
             headers=headers,
             row_count=row_count,
+            row_limits=row_limits,
             col_count=col_count,
+            column_count=column_count,
+            column_limits=column_limits,
             datatype=datatype,
             type=type,
             label=label,

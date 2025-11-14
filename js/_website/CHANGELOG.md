@@ -1,5 +1,11 @@
 # website
 
+## 0.66.0-dev.2
+
+### Features
+
+- [#12325](https://github.com/gradio-app/gradio/pull/12325) [`47a0855`](https://github.com/gradio-app/gradio/commit/47a08559e125dbf68662c20557dd43c87b263c65) - Remove lite across website and use embedded spaces.  Thanks @aliabd!
+
 ## 0.66.0-dev.1
 
 ### Features

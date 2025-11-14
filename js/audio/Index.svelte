@@ -91,7 +91,6 @@
 	}
 
 	let old_value = $state(gradio.props.value);
-
 	$effect(() => {
 		if (old_value != gradio.props.value) {
 			old_value = gradio.props.value;
@@ -179,6 +178,7 @@
 		/>
 		<InteractiveAudio
 			bind:upload_promise
+			bind:initial_value
 			{label}
 			show_label={gradio.shared.show_label}
 			buttons={gradio.props.buttons ?? []}
