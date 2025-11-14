@@ -297,7 +297,7 @@
 			{waveform_settings}
 			{waveform_options}
 			{trim_region_settings}
-			handle_reset_value={handle_reset_value}
+			{handle_reset_value}
 			{editable}
 			{loop}
 			interactive
