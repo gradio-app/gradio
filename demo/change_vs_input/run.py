@@ -20,11 +20,11 @@ with gr.Blocks() as demo:
     #     num_in = gr.Number()
     #     num_ch = gr.Number()
     #     num_ch2 = gr.Number()
-    with gr.Row():
-        slider = gr.Slider()
-        slider_in = gr.Slider()
-        slider_ch = gr.Slider()
-        slider_ch2 = gr.Slider()
+    # with gr.Row():
+    #     slider = gr.Slider()
+    #     slider_in = gr.Slider()
+    #     slider_ch = gr.Slider()
+    #     slider_ch2 = gr.Slider()
     # with gr.Row():
     #     checkbox = gr.Checkbox()
     #     checkbox_in = gr.Checkbox()
@@ -50,11 +50,11 @@ with gr.Blocks() as demo:
     #     colorpicker_in = gr.ColorPicker()
     #     colorpicker_ch = gr.ColorPicker()
     #     colorpicker_ch2 = gr.ColorPicker()
-    # with gr.Row():
-    #     code = gr.Code()
-    #     code_in = gr.Code()
-    #     code_ch = gr.Code()
-    #     code_ch2 = gr.Code()
+    with gr.Row():
+        code = gr.Code()
+        code_in = gr.Code()
+        code_ch = gr.Code()
+        code_ch2 = gr.Code()
     # with gr.Row():
     #     dataframe = gr.Dataframe()
     #     dataframe_in = gr.Dataframe()

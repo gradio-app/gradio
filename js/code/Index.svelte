@@ -78,9 +78,7 @@
 			readonly={!gradio.shared.interactive}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
-			on:change={() => {
-				gradio.dispatch("input");
-			}}
+			on:input={() => gradio.dispatch("input")}
 		/>
 	{/if}
 </Block>
