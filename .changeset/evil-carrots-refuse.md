@@ -1,6 +1,7 @@
 ---
 "@gradio/checkboxgroup": minor
 "@gradio/code": minor
+"@gradio/colorpicker": minor
 "@gradio/dataframe": minor
 "@gradio/dataframe-interim": minor
 "@gradio/slider": minor
