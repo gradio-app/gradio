@@ -2,12 +2,15 @@
 	import { createEventDispatcher } from "svelte";
 	export let value: boolean;
 	export let disabled: boolean;
-	const dispatch = createEventDispatcher<{ change: boolean }>();
+	const dispatch = createEventDispatcher<{
+		change: { checked: boolean; shiftKey: boolean };
+	}>();
 </script>
 
 <input
 	bind:checked={value}
-	on:input={() => dispatch("change", !value)}
+	on:click={(e) =>
+		dispatch("change", { checked: !value, shiftKey: e.shiftKey })}
 	type="checkbox"
 	{disabled}
 	class:disabled={disabled && !value}
