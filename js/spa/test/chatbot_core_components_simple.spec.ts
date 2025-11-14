@@ -18,7 +18,7 @@ test(`Audio component properly displayed`, async ({ page }) => {
 	await page.getByTestId("textbox").click();
 	await page.getByTestId("textbox").fill("audio");
 	await page.keyboard.press("Enter");
-	await expect(page.getByTestId("unlabelled-audio")).toBeAttached();
+	await expect(page.getByTestId("unlabelled-audio")).toBeVisible();
 });
 
 test(`Video component properly displayed`, async ({ page }) => {
