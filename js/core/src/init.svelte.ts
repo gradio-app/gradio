@@ -149,11 +149,12 @@ export class AppTree {
 	postprocess(tree: ProcessedComponentMeta) {
 		this.root = this.traverse(tree, [
 			(node) => handle_visibility(node, this.#config.root),
-			(node) => untrack_children_of_invisible_parents(
-				node,
-				this.#config.root,
-				this.components_to_register
-			),
+			(node) =>
+				untrack_children_of_invisible_parents(
+					node,
+					this.#config.root,
+					this.components_to_register
+				),
 			(node) =>
 				handle_empty_forms(
 					node,
@@ -331,7 +332,7 @@ export class AppTree {
 			this.root = this.traverse(this.root!, [
 				//@ts-ignore
 				(n) => set_visibility_for_updated_node(n, id, new_state.visible),
-				(n) => handle_visibility(n, this.#config.root),
+				(n) => handle_visibility(n, this.#config.root)
 			]);
 			already_updated_visibility = true;
 		}
@@ -500,14 +501,16 @@ function set_visibility_for_updated_node(
 	return node;
 }
 
-function _untrack(node: ProcessedComponentMeta, components_to_register: Set<number>): void {
+function _untrack(
+	node: ProcessedComponentMeta,
+	components_to_register: Set<number>
+): void {
 	components_to_register.delete(node.id);
 	if (node.children) {
 		node.children.forEach((child) => _untrack(child, components_to_register));
 	}
 	return;
 }
-
 
 function untrack_children_of_invisible_parents(
 	node: ProcessedComponentMeta,
@@ -516,7 +519,6 @@ function untrack_children_of_invisible_parents(
 ): ProcessedComponentMeta {
 	// Check if the node is visible
 	if (node.props.shared_props.visible !== true) {
-		console.log("Untracking children of invisible parent:", node.id, node.children);
 		_untrack(node, components_to_register);
 	}
 	return node;
