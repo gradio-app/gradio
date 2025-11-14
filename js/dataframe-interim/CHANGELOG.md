@@ -1,3 +1,11 @@
+# @gradio/dataframe-interim
+
+## 0.21.0-dev.2
+
+### Features
+
+- [#12357](https://github.com/gradio-app/gradio/pull/12357) [`c9cf634`](https://github.com/gradio-app/gradio/commit/c9cf634a9cd34b4adadde1a6a98d60faf732639a) - Fix various event issues.  Thanks @pngwn!
+
 # @gradio/dataframe
 
 ## 0.21.0-dev.1

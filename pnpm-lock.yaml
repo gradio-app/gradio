@@ -842,6 +842,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      dequal:
+        specifier: ^2.0.3
+        version: 2.0.3
       svelte:
         specifier: ^5.43.4
         version: 5.43.6
