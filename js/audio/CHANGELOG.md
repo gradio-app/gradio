@@ -1,5 +1,11 @@
 # @gradio/audio
 
+## 0.19.4-dev.3
+
+### Fixes
+
+- [#12344](https://github.com/gradio-app/gradio/pull/12344) [`9bf6bfb`](https://github.com/gradio-app/gradio/commit/9bf6bfb61dfb6fe620339319e89062f3c5bb78f2) - Fix dropdown filtering.  Thanks @freddyaboulton!
+
 ## 0.19.4-dev.2
 
 ### Fixes

@@ -1,5 +1,20 @@
 # gradio
 
+## 6.0.0-dev.4
+
+### Features
+
+- [#12359](https://github.com/gradio-app/gradio/pull/12359) [`9040fd5`](https://github.com/gradio-app/gradio/commit/9040fd5e2c7de9c806debdc801e230edf6589802) - fix input.  Thanks @pngwn!
+- [#12357](https://github.com/gradio-app/gradio/pull/12357) [`c9cf634`](https://github.com/gradio-app/gradio/commit/c9cf634a9cd34b4adadde1a6a98d60faf732639a) - Fix various event issues.  Thanks @pngwn!
+- [#12337](https://github.com/gradio-app/gradio/pull/12337) [`83d92fd`](https://github.com/gradio-app/gradio/commit/83d92fd81c43a97f4d81c52f4a985f5e044ce817) - Fix statustracker for generating outputs.  Thanks @freddyaboulton!
+- [#12336](https://github.com/gradio-app/gradio/pull/12336) [`a8f784b`](https://github.com/gradio-app/gradio/commit/a8f784babf95c8e01137f1fbcc2a44bf5450b49a) - clean up some console logs.  Thanks @abidlabs!
+- [#12360](https://github.com/gradio-app/gradio/pull/12360) [`bcb6efd`](https://github.com/gradio-app/gradio/commit/bcb6efd8d53183c283a9b4e3a1974e7b49c340a1) - fix colopicker.  Thanks @pngwn!
+- [#12343](https://github.com/gradio-app/gradio/pull/12343) [`a5b6676`](https://github.com/gradio-app/gradio/commit/a5b6676e77bad5224a8ce661cb35d763904306a3) - Fix json postprocessing with queue=False.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#12344](https://github.com/gradio-app/gradio/pull/12344) [`9bf6bfb`](https://github.com/gradio-app/gradio/commit/9bf6bfb61dfb6fe620339319e89062f3c5bb78f2) - Fix dropdown filtering.  Thanks @freddyaboulton!
+
 ## 6.0.0-dev.3
 
 ### Features

@@ -1,5 +1,11 @@
 # @gradio/dropdown
 
+## 0.10.6-dev.1
+
+### Fixes
+
+- [#12344](https://github.com/gradio-app/gradio/pull/12344) [`9bf6bfb`](https://github.com/gradio-app/gradio/commit/9bf6bfb61dfb6fe620339319e89062f3c5bb78f2) - Fix dropdown filtering.  Thanks @freddyaboulton!
+
 ## 0.10.6-dev.0
 
 ### Dependency updates

@@ -86,6 +86,7 @@
   },
   "changesets": [
     "afraid-signs-judge",
+    "angry-pets-jump",
     "brave-planets-fetch",
     "breezy-webs-accept",
     "busy-turtles-think",
@@ -97,6 +98,7 @@
     "dull-otters-double",
     "eighty-peaches-itch",
     "every-candies-wonder",
+    "evil-carrots-refuse",
     "fast-crabs-sneeze",
     "free-lemons-sneeze",
     "fruity-humans-watch",
@@ -105,12 +107,15 @@
     "gold-beers-sit",
     "great-suns-talk",
     "hip-wombats-pick",
+    "honest-ducks-lick",
     "hot-doodles-laugh",
     "lemon-geese-lay",
     "light-lizards-talk",
     "loud-taxes-juggle",
+    "petite-books-hunt",
     "petite-cougars-lie",
     "petite-lies-unite",
+    "pink-nights-film",
     "plain-aliens-float",
     "plain-eels-invite",
     "poor-buckets-sleep",
@@ -118,6 +123,7 @@
     "ready-olives-pay",
     "ripe-sloths-post",
     "rotten-ravens-hide",
+    "shaky-cloths-shine",
     "sixty-showers-watch",
     "sour-islands-arrive",
     "sour-sides-attend",
@@ -133,6 +139,7 @@
     "whole-chicken-work",
     "whole-months-refuse",
     "wide-teeth-throw",
-    "wild-crabs-sleep"
+    "wild-crabs-sleep",
+    "yummy-birds-fall"
   ]
 }
