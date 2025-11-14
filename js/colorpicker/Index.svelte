@@ -6,6 +6,7 @@
 </script>
 
 <script lang="ts">
+	import { tick } from "svelte";
 	import { Gradio } from "@gradio/utils";
 	import Colorpicker from "./shared/Colorpicker.svelte";
 	import { Block } from "@gradio/atoms";
@@ -17,6 +18,11 @@
 	let label = $derived(
 		gradio.shared.label || gradio.i18n("colorpicker.color_picker")
 	);
+
+	async function handle_change(): Promise<void> {
+		await tick();
+		gradio.dispatch("change");
+	}
 </script>
 
 <Block
@@ -41,7 +47,7 @@
 		info={gradio.props.info}
 		show_label={gradio.shared.show_label}
 		disabled={!gradio.shared.interactive}
-		on:change={() => gradio.dispatch("change")}
+		on:change={handle_change}
 		on:input={() => gradio.dispatch("input")}
 		on:submit={() => gradio.dispatch("submit")}
 		on:blur={() => gradio.dispatch("blur")}
