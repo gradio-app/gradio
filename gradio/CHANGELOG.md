@@ -1,5 +1,18 @@
 # gradio
 
+## 6.0.0-dev.3
+
+### Features
+
+- [#12330](https://github.com/gradio-app/gradio/pull/12330) [`11b9d8d`](https://github.com/gradio-app/gradio/commit/11b9d8ddb86c4535c7bc1265374c0ed5a369f25e) - Change `gr.Dataframe` component constructor parameters.  Thanks @abidlabs!
+- [#12296](https://github.com/gradio-app/gradio/pull/12296) [`a96e98b`](https://github.com/gradio-app/gradio/commit/a96e98b2ff7b33d8bb65f98ca8409b4e5543217c) - Improving performance of queue, especially for MCP.  Thanks @abidlabs!
+- [#12326](https://github.com/gradio-app/gradio/pull/12326) [`ea23f20`](https://github.com/gradio-app/gradio/commit/ea23f20335ab46950e4ec92a4a006c0ec35f3ee2) - Fix changesets?.  Thanks @freddyaboulton!
+- [#12324](https://github.com/gradio-app/gradio/pull/12324) [`c389664`](https://github.com/gradio-app/gradio/commit/c389664a3b54f0f1fc7269ed855afa4ae88f16f3) - Trigger creation of dev release pr.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#12327](https://github.com/gradio-app/gradio/pull/12327) [`a8158eb`](https://github.com/gradio-app/gradio/commit/a8158eb61c4a2fc88b196c0b23390a55e158bf92) - Fix Undo in Audio component.  Thanks @dawoodkhan82!
+
 ## 6.0.0-dev.2
 
 ### Features
