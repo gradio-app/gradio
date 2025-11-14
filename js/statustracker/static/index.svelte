@@ -82,7 +82,7 @@
 		autoscroll: boolean;
 		validation_error?: string | null;
 		show_validation_error?: boolean;
-		type?: "input" | "outputs" | null;
+		type?: "input" | "output" | null;
 		on_clear_status?: () => void;
 	}
 
@@ -130,7 +130,7 @@
 			status === "complete" ||
 			show_progress === "hidden" ||
 			status == "streaming" ||
-			(show_validation_error && validation_error)
+			!!(show_validation_error && validation_error)
 	);
 
 	const eta_level = $derived(
