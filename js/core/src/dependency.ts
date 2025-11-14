@@ -431,6 +431,14 @@ export class DependencyManager {
 									break submit_loop;
 								} else if (result.stage === "generating") {
 									this.dispatch_state_change_events(result);
+									// @ts-ignore
+									this.loading_stati.update({
+										...status,
+										status: status.stage,
+										fn_index: dep.id,
+										stream_state
+									});
+									this.update_loading_stati_state();
 								} else if (result.stage === "error") {
 									if (Array.isArray(result?.message)) {
 										result.message.forEach((m: ValidationError, i) => {
