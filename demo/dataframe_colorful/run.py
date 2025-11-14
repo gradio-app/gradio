@@ -14,7 +14,7 @@ df = pd.DataFrame(
 t = df.style.highlight_max(color="lightgreen", axis=0)
 
 with gr.Blocks() as demo:
-    gr.Dataframe()
+    gr.Dataframe(t)
 
 if __name__ == "__main__":
     demo.launch()
