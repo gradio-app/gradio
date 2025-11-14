@@ -24,7 +24,8 @@
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
-		"@gradio/utils": "workspace:^"
+		"@gradio/utils": "workspace:^",
+		"dequal": "^2.0.3"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
