@@ -66,7 +66,7 @@
 		stop: undefined;
 		blur: undefined;
 		select: SelectData;
-		input: undefined;
+		input: string;
 		focus: undefined;
 		copy: CopyData;
 	}>();
@@ -87,7 +87,7 @@
 		}
 	};
 
-	async function handle_change(): void {
+	async function handle_change(): Promise<void> {
 		await tick();
 		dispatch("change", value);
 	}
@@ -146,7 +146,8 @@
 			await tick();
 			dispatch("submit");
 		}
-		dispatch("input");
+		await tick();
+		dispatch("input", value);
 	}
 
 	function handle_scroll(event: Event): void {
