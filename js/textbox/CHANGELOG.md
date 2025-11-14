@@ -1,5 +1,11 @@
 # @gradio/textbox
 
+## 0.12.0-dev.1
+
+### Features
+
+- [#12359](https://github.com/gradio-app/gradio/pull/12359) [`9040fd5`](https://github.com/gradio-app/gradio/commit/9040fd5e2c7de9c806debdc801e230edf6589802) - fix input.  Thanks @pngwn!
+
 ## 0.11.2-dev.0
 
 ### Dependency updates
