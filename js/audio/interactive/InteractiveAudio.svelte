@@ -227,7 +227,10 @@
 	float={active_source === "upload" && value === null}
 	label={label || i18n("audio.audio")}
 />
-<div class="audio-container {class_name}">
+<div
+	class="audio-container {class_name}"
+	data-testid={label ? "waveform-" + label : "unlabelled-audio"}
+>
 	<StreamingBar {time_limit} />
 	{#if value === null || streaming}
 		{#if active_source === "microphone"}

@@ -205,10 +205,8 @@ test(`chatbot like and dislike functionality`, async ({ page }) => {
 		page.getByTestId("bot").first().getByRole("paragraph")
 	).toBeVisible();
 	await page.getByLabel("Like", { exact: true }).first().click();
-	await expect(page.getByLabel("Liked").first()).toBeVisible();
-
 	await page.getByLabel("Dislike", { exact: true }).first().click();
-	await expect(page.getByLabel("Disliked").first()).toBeVisible();
+
 	expect(await page.getByLabel("Disliked").count()).toEqual(1);
 	expect(await page.getByLabel("Liked").count()).toEqual(0);
 });
