@@ -23,8 +23,13 @@
 
 	let label = $derived(gradio.shared.label || gradio.i18n("code.code"));
 	let old_value = $state(gradio.props.value);
+	let first_change = true;
 
 	$effect(() => {
+		if (first_change) {
+			first_change = false;
+			return;
+		}
 		if (old_value != gradio.props.value) {
 			old_value = gradio.props.value;
 			gradio.dispatch("change");

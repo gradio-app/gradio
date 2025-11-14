@@ -129,13 +129,13 @@
 
 	function handle_change(vu: ViewUpdate): void {
 		if (!vu.docChanged) return;
+
 		const doc = vu.state.doc;
 		const text = doc.toString();
 		value = text;
 
 		const user_change = is_user_input(vu);
 		if (user_change) {
-			console.log("PROGRAMMATIC CHANGE");
 			dispatch("change", text);
 			dispatch("input");
 		} else {
