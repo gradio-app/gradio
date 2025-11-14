@@ -6,9 +6,7 @@ theme = gr.themes.Default(primary_hue="blue").set(
     slider_color="#FF0000",
 )
 
-with gr.Blocks(
-    theme=theme
-) as demo:
+with gr.Blocks() as demo:
     textbox = gr.Textbox(label="Name")
     slider = gr.Slider(label="Count", minimum=0, maximum=100, step=1)
     with gr.Row():
@@ -23,4 +21,4 @@ with gr.Blocks(
     button.click(repeat, [textbox, slider], output)
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(theme=theme)

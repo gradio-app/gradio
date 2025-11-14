@@ -1,0 +1,21 @@
+.gradio-container {
+    overflow: visible !important;
+    max-width: none !important;
+}
+#controls {
+    max-height: 100vh;
+    flex-wrap: unset;
+    overflow-y: scroll;
+    position: sticky;
+    top: 0;
+}
+#controls::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 7px;
+}
+
+#controls::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, .5);
+  box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+}

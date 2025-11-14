@@ -113,13 +113,16 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			}
 		},
 		plugins: [
-			resolve_svelte(development),
+			// resolve_svelte(development),
 			svelte({
 				inspector: false,
 				compilerOptions: {
 					dev: true,
 					discloseVersion: false,
-					accessors: true
+					accessors: true,
+					experimental: {
+						async: true
+					}
 				},
 				hot: !process.env.VITEST && !production,
 				preprocess: [
@@ -134,9 +137,9 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 					})
 				]
 			}),
-			generate_dev_entry({
-				enable: !development && mode !== "test"
-			}),
+			// generate_dev_entry({
+			// 	enable: !development && mode !== "test"
+			// }),
 			inject_ejs(),
 			generate_cdn_entry({ version: GRADIO_VERSION, cdn_base: CDN_BASE }),
 			handle_ce_css(),
@@ -148,7 +151,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"]
 		},
 		resolve: {
-			conditions: ["gradio"]
+			conditions: ["gradio", "browser"]
 		},
 		test: {
 			setupFiles: [resolve(__dirname, "../../.config/setup_vite_tests.ts")],

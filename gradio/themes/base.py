@@ -169,21 +169,21 @@ class ThemeClass:
         Path(filename).write_text(json.dumps(self.to_dict(), cls=fonts.FontEncoder))
 
     @classmethod
-    def from_hub(cls, repo_name: str, hf_token: str | None = None):
+    def from_hub(cls, repo_name: str, token: str | None = None):
         """Load a theme from the hub.
 
         This DOES NOT require a HuggingFace account for downloading publicly available themes.
 
         Parameters:
             repo_name: string of the form <author>/<theme-name>@<semantic-version-expression>.  If a semantic version expression is omitted, the latest version will be fetched.
-            hf_token: HuggingFace Token. Only needed to download private themes.
+            token: HuggingFace Token. Only needed to download private themes.
         """
         if "@" not in repo_name:
             name, version = repo_name, None
         else:
             name, version = repo_name.split("@")
 
-        api = huggingface_hub.HfApi(token=hf_token)
+        api = huggingface_hub.HfApi(token=token)
 
         try:
             space_info = api.space_info(name)
@@ -226,7 +226,7 @@ class ThemeClass:
         repo_name: str,
         org_name: str | None = None,
         version: str | None = None,
-        hf_token: str | None = None,
+        token: str | None = None,
         theme_name: str | None = None,
         description: str | None = None,
         private: bool = False,
@@ -239,7 +239,7 @@ class ThemeClass:
             repo_name: The name of the repository to store the theme assets, e.g. 'my_theme' or 'sunset'.
             org_name: The name of the org to save the space in. If None (the default), the username corresponding to the logged in user, or hƒ_token is used.
             version: A semantic version tag for theme. Bumping the version tag lets you publish updates to a theme without changing the look of applications that already loaded your theme.
-            hf_token: API token for your HuggingFace account
+            token: API token for your HuggingFace account
             theme_name: Name for the name. If None, defaults to repo_name
             description: A long form description to your theme.
         """
@@ -248,7 +248,7 @@ class ThemeClass:
 
         api = huggingface_hub.HfApi()
 
-        if not hf_token:
+        if not token:
             try:
                 author = huggingface_hub.whoami()["name"]
             except OSError as e:
@@ -258,7 +258,7 @@ class ThemeClass:
                     "see https://huggingface.co/docs/huggingface_hub/quick-start#login"
                 ) from e
         else:
-            author = huggingface_hub.whoami(token=hf_token)["name"]
+            author = huggingface_hub.whoami(token=token)["name"]
 
         space_id = f"{org_name or author}/{repo_name}"
 
@@ -325,7 +325,7 @@ class ThemeClass:
             space_id,
             repo_type="space",
             space_sdk="gradio",
-            token=hf_token,
+            token=token,
             exist_ok=True,
             private=private,
         )
@@ -335,7 +335,7 @@ class ThemeClass:
             commit_message="Updating theme",
             repo_type="space",
             operations=operations,
-            token=hf_token,
+            token=token,
         )
         url = f"https://huggingface.co/spaces/{space_id}"
         print(f"See your theme here! {url}")

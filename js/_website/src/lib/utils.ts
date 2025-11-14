@@ -1,4 +1,3 @@
-import { onDestroy } from "svelte";
 import { writable } from "svelte/store";
 
 const sizes = {
@@ -37,16 +36,16 @@ export const media_query = () => {
 
 			listeners[key] = [mql, listener];
 		}
-
-		onDestroy(() => {
-			for (const key in listeners) {
-				const [_mql, _listener] = listeners[key];
-				_mql.removeEventListener("change", _listener);
-			}
-		});
 	}
 
-	return { subscribe };
+	const cleanup = () => {
+		for (const key in listeners) {
+			const [_mql, _listener] = listeners[key];
+			_mql.removeEventListener("change", _listener);
+		}
+	};
+
+	return { subscribe, cleanup };
 };
 
 import slugify from "@sindresorhus/slugify";

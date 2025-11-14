@@ -67,6 +67,7 @@ class Event:
         self.progress: ProgressMessage | None = None
         self.progress_pending: bool = False
         self.alive = True
+        self.closed = False
         self.n_calls = 0
         self.run_time: float = 0
         self.signal = asyncio.Event()
@@ -79,6 +80,8 @@ class Event:
     def is_finished(self):
         if not self.streaming:
             raise ValueError("Cannot access if_finished during a non-streaming event")
+        if self.closed:
+            return True
         if self.fn.time_limit is None:
             return False
         return self.run_time >= self.fn.time_limit
@@ -134,8 +137,8 @@ class Queue:
             ProcessTime
         )
         self.live_updates = live_updates
-        self.sleep_when_free = 0.05
-        self.progress_update_sleep_when_free = 0.1
+        self.sleep_when_free = 0.001
+        self.progress_update_sleep_when_free = 0.01
         self.max_size = max_size
         self.blocks = blocks
         self._asyncio_tasks: list[asyncio.Task] = []
@@ -308,7 +311,8 @@ class Queue:
             )
             validator_fn = BlockFunction(
                 fn=fn.validator,
-                api_name=False,
+                api_name=None,
+                api_visibility="undocumented",
                 batch=fn.batch,
                 concurrency_id=None,
                 concurrency_limit=None,

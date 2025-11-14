@@ -1,5 +1,49 @@
 # @gradio/chatbot
 
+## 0.28.0-dev.2
+
+### Fixes
+
+- [#12240](https://github.com/gradio-app/gradio/pull/12240) [`6a0cff1`](https://github.com/gradio-app/gradio/commit/6a0cff18ef6a9a580c26d3ed5f95d1f9de3a55c1) - Fixed several hardcoded UI labels in the chat_interface that did not implement i18n.  Thanks @arterm-sedov!
+
+### Dependency updates
+
+- @gradio/atoms@0.18.2-dev.0
+- @gradio/upload@0.17.2-dev.1
+- @gradio/utils@0.10.3-dev.0
+- @gradio/image@0.23.2-dev.1
+- @gradio/statustracker@0.12.0-dev.0
+- @gradio/icons@0.15.0-dev.0
+- @gradio/theme@0.5.0-dev.0
+- @gradio/video@0.17.0-dev.1
+- @gradio/gallery@0.15.35-dev.2
+- @gradio/plot@0.9.25-dev.0
+
+## 0.28.0-dev.1
+
+### Features
+
+- [#12051](https://github.com/gradio-app/gradio/pull/12051) [`15458a8`](https://github.com/gradio-app/gradio/commit/15458a87ac63346ed3443f4abc54cdf2b9ac267e) - Extend Chatbot Message Format.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.1
+- @gradio/gallery@0.15.35-dev.1
+
+## 0.28.0-dev.0
+
+### Features
+
+- [#12012](https://github.com/gradio-app/gradio/pull/12012) [`4356fe7`](https://github.com/gradio-app/gradio/commit/4356fe7d609333a4150533fcb9a4eaafbc2ba561) - Remove tuples format from the chatbot.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/upload@0.17.2-dev.0
+- @gradio/client@2.0.0-dev.0
+- @gradio/gallery@0.15.35-dev.0
+- @gradio/image@0.23.2-dev.0
+- @gradio/video@0.17.0-dev.0
+
 ## 0.27.0
 
 ### Dependency updates

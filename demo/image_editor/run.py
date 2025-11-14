@@ -15,7 +15,6 @@ with gr.Blocks() as demo:
     with gr.Row():
         im = gr.ImageEditor(
             type="numpy",
-            crop_size="1:1",
         )
         im_preview = gr.Image()
     n_upload = gr.Number(0, label="Number of upload events", step=1)

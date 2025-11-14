@@ -2,8 +2,6 @@ import { test, expect, go_to_testcase } from "@self/tootils";
 
 const cases = [
 	"messages",
-	"tuples_examples",
-	"multimodal_tuples_examples",
 	"multimodal_messages_examples",
 	"eager_caching_examples",
 	"lazy_caching_examples"

@@ -9,6 +9,7 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
+
     let obj = get_object("scatterplot");
 </script>
 
@@ -20,43 +21,6 @@
 gradio.ScatterPlot(···)
 ```
 
-<!-- Embedded Component -->
-<div class="embedded-component">
-<gradio-lite shared-worker>
-import gradio as gr
-import pandas as pd
-import numpy as np
-simple = pd.DataFrame(np.array(
-    [
-        [1, 23, "USA", "Ford Mustang"],
-        [2, 40, "USA", "Chrysler New Yorker Brougham"],
-        [3, 32, "Japan", "Toyota Corolla"],
-        [4, 32, "Europe", "Mercedes Benz"],
-        [5, 15, "USA", "AMC Matador"],
-        [6, 35, "Europe", "BMW X5"],
-        [7, 28, "Japan", "Honda Civic"],
-        [8, 15, "Japan", "Honda Accord"],
-        [9, 41, "Europe", "Peugeot 208"],
-    ]
-), columns=["Age", "Miles Per Gallon", "Origin of Car", "Name"])
-with gr.Blocks() as demo:
-    gr.ScatterPlot(
-        value=simple,
-        x="Age",
-        y="Miles Per Gallon",
-        title="Car Data",
-        container=True,
-        width=400,
-        color="Origin of Car",
-        tooltip="Name"
-    )
-demo.launch()
-<gradio-requirements>
-pandas
-numpy
-</gradio-requirements>
-</gradio-lite>
-</div>
 
 <!--- Description -->
 ### Description

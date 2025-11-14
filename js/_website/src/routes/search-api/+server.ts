@@ -1,4 +1,5 @@
 import { json } from "@sveltejs/kit";
+import { render } from "svelte/server";
 
 export const prerender = true;
 
@@ -26,8 +27,9 @@ export async function GET() {
 	);
 	const gradio_doc_pages = await Promise.all(
 		Object.entries(gradio_doc_paths).map(async ([path, content]) => {
-			content = await content();
-			content = content.default.render().html;
+			const module = await content();
+			const rendered = render(module.default, { props: {} });
+			content = rendered.body;
 			let match = content.match(/<h1[^>]*>(.*?)<\/h1>/i);
 			let title = "";
 			if (match && match[1]) {
@@ -64,8 +66,9 @@ export async function GET() {
 	);
 	const client_doc_pages = await Promise.all(
 		Object.entries(client_doc_paths).map(async ([path, content]) => {
-			content = await content();
-			content = content.default.render().html;
+			const module = await content();
+			const rendered = render(module.default, { props: {} });
+			content = rendered.body;
 			let match = content.match(/<h1[^>]*>(.*?)<\/h1>/i);
 			let title = "";
 			if (match && match[1]) {

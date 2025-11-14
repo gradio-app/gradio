@@ -22,26 +22,8 @@
 	let video_source: HTMLVideoElement;
 	let available_video_devices: MediaDeviceInfo[] = [];
 	let selected_device: MediaDeviceInfo | null = null;
-	let time_limit: number | null = null;
-	let stream_state: "open" | "waiting" | "closed" = "closed";
 
-	export const modify_stream: (state: "open" | "closed" | "waiting") => void = (
-		state: "open" | "closed" | "waiting"
-	) => {
-		if (state === "closed") {
-			time_limit = null;
-			stream_state = "closed";
-			value = null;
-		} else if (state === "waiting") {
-			stream_state = "waiting";
-		} else {
-			stream_state = "open";
-		}
-	};
-
-	export const set_time_limit = (time: number): void => {
-		if (recording) time_limit = time;
-	};
+	export let stream_state: "open" | "waiting" | "closed" = "closed";
 
 	let canvas: HTMLCanvasElement;
 	export let streaming = false;
@@ -56,7 +38,7 @@
 	export let i18n: I18nFormatter;
 	export let upload: Client["upload"];
 	export let value: FileData | null | Base64File = null;
-
+	export let time_limit: number | null = null;
 	const dispatch = createEventDispatcher<{
 		stream: Blob | string;
 		capture: FileData | Blob | null;
@@ -131,12 +113,13 @@
 	}
 
 	function take_picture(): void {
-		var context = canvas.getContext("2d")!;
 		if (
 			(!streaming || (streaming && recording)) &&
 			video_source.videoWidth &&
 			video_source.videoHeight
 		) {
+			console.log("Taking picture from webcam");
+			var context = canvas.getContext("2d")!;
 			canvas.width = video_source.videoWidth;
 			canvas.height = video_source.videoHeight;
 			context.drawImage(
@@ -241,13 +224,6 @@
 
 		if (!recording && stream) {
 			dispatch("close_stream");
-			stream.getTracks().forEach((track) => track.stop());
-			video_source.srcObject = null;
-			webcam_accessed = false;
-			window.setTimeout(() => {
-				value = null;
-			}, 500);
-			value = null;
 		}
 	}
 
@@ -360,12 +336,12 @@
 				use:click_outside={handle_click_outside}
 				on:change={handle_device_change}
 			>
-				<button
+				<!-- <button
 					class="inset-icon"
 					on:click|stopPropagation={() => (options_open = false)}
 				>
 					<DropdownArrow />
-				</button>
+				</button> -->
 				{#if available_video_devices.length === 0}
 					<option value="">{i18n("common.no_devices")}</option>
 				{:else}

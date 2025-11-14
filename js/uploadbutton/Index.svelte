@@ -3,65 +3,56 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio } from "@gradio/utils";
+	import type { UploadButtonProps, UploadButtonEvents } from "./types";
 	import type { FileData } from "@gradio/client";
+	import { Gradio } from "@gradio/utils";
 	import UploadButton from "./shared/UploadButton.svelte";
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let label: string | null;
-	export let value: null | FileData | FileData[];
-	export let file_count: string;
-	export let file_types: string[] = [];
-	export let root: string;
-	export let size: "sm" | "lg" = "lg";
-	export let scale: number | null = null;
-	export let icon: FileData | null = null;
-	export let min_width: number | undefined = undefined;
-	export let variant: "primary" | "secondary" | "stop" = "secondary";
-	export let gradio: Gradio<{
-		change: never;
-		upload: never;
-		click: never;
-		error: string;
-	}>;
-	export let interactive: boolean;
+	const props = $props();
+	const gradio = new Gradio<UploadButtonEvents, UploadButtonProps>(props);
 
-	$: disabled = !interactive;
+	let value = $state(gradio.props.value);
+
+	$effect(() => {
+		if (value !== gradio.props.value) {
+			gradio.props.value = value;
+		}
+	});
 
 	async function handle_event(
 		detail: null | FileData | FileData[],
 		event: "change" | "upload" | "click"
 	): Promise<void> {
-		value = detail;
+		gradio.props.value = detail;
 		gradio.dispatch(event);
 	}
+
+	const disabled = $derived(!gradio.shared.interactive);
 </script>
 
 <UploadButton
-	{elem_id}
-	{elem_classes}
-	{visible}
-	{file_count}
-	{file_types}
-	{size}
-	{scale}
-	{icon}
-	{min_width}
-	{root}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+	visible={gradio.shared.visible}
+	file_count={gradio.props.file_count}
+	file_types={gradio.props.file_types}
+	size={gradio.props.size}
+	scale={gradio.shared.scale}
+	icon={gradio.props.icon}
+	min_width={gradio.shared.min_width}
+	root={gradio.shared.root}
 	{value}
 	{disabled}
-	{variant}
-	{label}
-	max_file_size={gradio.max_file_size}
+	variant={gradio.props.variant}
+	label={gradio.shared.label}
+	max_file_size={gradio.shared.max_file_size}
 	on:click={() => gradio.dispatch("click")}
 	on:change={({ detail }) => handle_event(detail, "change")}
 	on:upload={({ detail }) => handle_event(detail, "upload")}
 	on:error={({ detail }) => {
 		gradio.dispatch("error", detail);
 	}}
-	upload={(...args) => gradio.client.upload(...args)}
+	upload={(...args) => gradio.shared.client.upload(...args)}
 >
-	{label ?? ""}
+	{gradio.shared.label ?? ""}
 </UploadButton>

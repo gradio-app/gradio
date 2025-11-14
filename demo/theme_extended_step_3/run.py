@@ -1,11 +1,7 @@
 import gradio as gr
 import time
 
-with gr.Blocks(
-    theme=gr.themes.Default(
-        font=[gr.themes.GoogleFont("Inconsolata"), "Arial", "sans-serif"]
-    )
-) as demo:
+with gr.Blocks() as demo:
     textbox = gr.Textbox(label="Name")
     slider = gr.Slider(label="Count", minimum=0, maximum=100, step=1)
     with gr.Row():
@@ -20,4 +16,8 @@ with gr.Blocks(
     button.click(repeat, [textbox, slider], output)
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(
+    theme=gr.themes.Default(
+        font=[gr.themes.GoogleFont("Inconsolata"), "Arial", "sans-serif"]
+    )
+)

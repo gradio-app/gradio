@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, afterUpdate, onMount, tick } from "svelte";
+	import { createEventDispatcher, onMount, tick } from "svelte";
 	import tinycolor from "tinycolor2";
 	import { BlockTitle } from "@gradio/atoms";
 	import { click_outside } from "./events";
@@ -7,7 +7,6 @@
 	import { hsva_to_rgba, format_color } from "./utils";
 
 	export let value = "#000000";
-	export let value_is_output = false;
 	export let label: string;
 	export let info: string | undefined = undefined;
 	export let disabled = false;
@@ -59,6 +58,7 @@
 		hue = _hue;
 
 		value = hsva_to_rgba({ h: _hue, s: sl[0], v: sl[1], a: 1 });
+		dispatch("input");
 	}
 
 	function update_color_from_mouse(x: number, y: number): void {
@@ -76,6 +76,7 @@
 		sl = [_hsva.s, _hsva.v];
 
 		value = hsva_to_rgba(_hsva);
+		dispatch("input");
 	}
 
 	function handle_sl_down(
@@ -128,6 +129,7 @@
 		eyeDropper.open().then((result: { sRGBHex: string }) => {
 			value = result.sRGBHex;
 		});
+		dispatch("input");
 	}
 
 	const modes = [
@@ -148,19 +150,7 @@
 		dialog_open = false;
 	}
 
-	function handle_change(): void {
-		dispatch("change", value);
-		if (!value_is_output) {
-			dispatch("input");
-		}
-	}
-
-	afterUpdate(() => {
-		value_is_output = false;
-	});
-
 	$: update_mouse_from_color(value);
-	$: value, handle_change();
 
 	function handle_click(): void {
 		dispatch("selected", color_string);
@@ -218,7 +208,9 @@
 					<input
 						type="text"
 						bind:value={color_string}
-						on:change={(e) => (value = e.currentTarget.value)}
+						on:change={(e) => {
+							value = e.currentTarget.value;
+						}}
 					/>
 					<button class="eyedropper" on:click={request_eyedropper}>
 						{#if eyedropper_supported}
@@ -340,7 +332,8 @@
 	.color-gradient {
 		position: relative;
 		--hue: white;
-		background: linear-gradient(rgba(0, 0, 0, 0), #000),
+		background:
+			linear-gradient(rgba(0, 0, 0, 0), #000),
 			linear-gradient(90deg, #fff, hsl(var(--hue), 100%, 50%));
 		width: 100%;
 		height: 150px;

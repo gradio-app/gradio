@@ -22,7 +22,7 @@
 	export let root: string;
 	export let loop: boolean;
 	export let show_label = true;
-	export let show_download_button = false;
+	export let buttons: string[] = ["download", "share"];
 	export let sources:
 		| ["microphone"]
 		| ["upload"]
@@ -41,30 +41,15 @@
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
-	export let stream_every: number;
+	export let stream_every: number = 0.1;
 	export let uploading = false;
 	export let recording = false;
 	export let class_name = "";
+	export let upload_promise: Promise<any> | null = null;
+	export let initial_value: FileData | null = null;
 
-	let time_limit: number | null = null;
-	let stream_state: "open" | "waiting" | "closed" = "closed";
-
-	export const modify_stream: (state: "open" | "closed" | "waiting") => void = (
-		state: "open" | "closed" | "waiting"
-	) => {
-		if (state === "closed") {
-			time_limit = null;
-			stream_state = "closed";
-		} else if (state === "waiting") {
-			stream_state = "waiting";
-		} else {
-			stream_state = "open";
-		}
-	};
-
-	export const set_time_limit = (time: number): void => {
-		if (recording) time_limit = time;
-	};
+	export let time_limit: number | null = null;
+	export let stream_state: "open" | "waiting" | "closed" = "closed";
 
 	$: dispatch("drag", dragging);
 
@@ -111,6 +96,7 @@
 	): Promise<void> => {
 		let _audio_blob = new File(blobs, "audio.wav");
 		const val = await prepare_files([_audio_blob], event === "stream");
+		initial_value = value;
 		value = (
 			(await upload(val, root, undefined, max_file_size || undefined))?.filter(
 				Boolean
@@ -142,11 +128,11 @@
 			throw err;
 		}
 		if (stream == null) return;
-
 		if (streaming) {
 			recorder = new streaming_media_recorder(stream, {
 				mimeType: "audio/wav"
 			});
+
 			recorder.addEventListener("dataavailable", handle_chunk);
 		} else {
 			recorder = new MediaRecorder(stream);
@@ -194,6 +180,7 @@
 		recording = true;
 		dispatch("start_recording");
 		if (!inited) await prepare_audio();
+
 		header = undefined;
 		if (streaming && recorder.state != "recording") {
 			recorder.start(stream_every * 1000);
@@ -273,6 +260,7 @@
 		{:else if active_source === "upload"}
 			<!-- explicitly listed out audio mimetypes due to iOS bug not recognizing audio/* -->
 			<Upload
+				bind:upload_promise
 				filetype="audio/aac,audio/midi,audio/mpeg,audio/ogg,audio/wav,audio/x-wav,audio/opus,audio/webm,audio/flac,audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
 				on:load={handle_load}
 				bind:dragging
@@ -292,7 +280,11 @@
 			{i18n}
 			on:clear={clear}
 			on:edit={() => (mode = "edit")}
-			download={show_download_button ? value.url : null}
+			download={buttons === null
+				? value.url
+				: buttons.includes("download")
+					? value.url
+					: null}
 		/>
 
 		<AudioPlayer

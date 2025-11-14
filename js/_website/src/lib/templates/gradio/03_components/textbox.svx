@@ -9,6 +9,7 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
+
     let obj = get_object("textbox");
 </script>
 
@@ -20,15 +21,6 @@
 gradio.Textbox(···)
 ```
 
-<!-- Embedded Component -->
-<div class="embedded-component">
-<gradio-lite shared-worker>
-import gradio as gr 
-with gr.Blocks() as demo:
-    gr.Textbox()
-demo.launch()
-</gradio-lite>
-</div>
 
 
 <!--- Description -->

@@ -52,7 +52,7 @@ jobs:
           ref: ${{ needs.changes.outputs.source_branch }}
           repository: ${{ needs.changes.outputs.source_repo }}
       - name: install dependencies
-        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@6.0-dev"
         with:
           skip_build: true
           python_version: "3.10"

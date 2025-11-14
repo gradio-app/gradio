@@ -23,6 +23,7 @@
 	export let stream_handler: Client["stream"];
 	export let uploading = false;
 	export let allow_reordering = false;
+	export let upload_promise: Promise<(FileData | null)[]> | null = null;
 
 	async function handle_upload({
 		detail
@@ -65,6 +66,7 @@
 		{#if !(file_count === "single" && (Array.isArray(value) ? value.length > 0 : value !== null))}
 			<IconButton Icon={UploadIcon} label={i18n("common.upload")}>
 				<Upload
+					bind:upload_promise
 					icon_upload={true}
 					on:load={handle_upload}
 					filetype={file_types}
@@ -102,6 +104,7 @@
 	/>
 {:else}
 	<Upload
+		bind:upload_promise
 		on:load={handle_upload}
 		filetype={file_types}
 		{file_count}

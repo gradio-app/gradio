@@ -9,6 +9,7 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
+
     let obj = get_object("multimodaltextbox");
 </script>
 
@@ -20,15 +21,6 @@
 gradio.MultimodalTextbox(···)
 ```
 
-<!-- Embedded Component -->
-<div class="embedded-component">
-<gradio-lite shared-worker>
-import gradio as gr
-with gr.Blocks() as demo:
-    gr.MultimodalTextbox(interactive=True)
-demo.launch()
-</gradio-lite>
-</div>
 
 <!--- Description -->
 ### Description

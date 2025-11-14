@@ -18,9 +18,11 @@
 	export let dragging: boolean;
 	export let max_height: number;
 	export let max_file_size: number | null = null;
+	export let upload_promise: Promise<any> | null = null;
 </script>
 
 <Image
+	bind:upload_promise
 	slider_color="var(--border-color-primary)"
 	position={0.5}
 	bind:value

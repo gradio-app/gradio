@@ -62,6 +62,13 @@
 				description: "Whether to show the share button in the gallery",
 				control: { type: "boolean" },
 				defaultValue: false
+			},
+			fit_columns: {
+				options: [true, false],
+				description:
+					"Whether the columns should fit the width of the container",
+				control: { type: "boolean" },
+				defaultValue: true
 			}
 		},
 		parameters: {
@@ -275,5 +282,23 @@
 		rows: 2,
 		height: 400,
 		show_download_button: true
+	}}
+/>
+<Story
+	name="Gallery with fit_columns false"
+	args={{
+		label: "My Cheetah Gallery",
+		columns: 10,
+		show_download_button: true,
+		fit_columns: false
+	}}
+/>
+<Story
+	name="Gallery with fit_columns true"
+	args={{
+		label: "My Cheetah Gallery",
+		columns: 10,
+		show_download_button: true,
+		fit_columns: true
 	}}
 />

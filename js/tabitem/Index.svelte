@@ -3,34 +3,25 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
+	import { Gradio } from "@gradio/utils";
 	import TabItem from "./shared/TabItem.svelte";
+	import type { TabItemProps, TabItemEvents } from "./types";
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let label: string;
-	export let id: string | number;
-	export let gradio:
-		| Gradio<{
-				select: SelectData;
-		  }>
-		| undefined;
-	export let visible: boolean | "hidden" = true;
-	export let interactive = true;
-	export let order: number;
-	export let scale: number;
+	let props = $props();
+
+	const gradio = new Gradio<TabItemEvents, TabItemProps>(props);
 </script>
 
 <TabItem
-	{elem_id}
-	{elem_classes}
-	{label}
-	{visible}
-	{interactive}
-	{id}
-	{order}
-	{scale}
-	on:select={({ detail }) => gradio?.dispatch("select", detail)}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+	label={gradio.shared.label}
+	visible={gradio.shared.visible}
+	interactive={gradio.shared.interactive}
+	id={gradio.props.id}
+	order={gradio.props.order}
+	scale={gradio.props.scale}
+	on:select={({ detail }) => gradio.dispatch("select", detail)}
 >
 	<slot />
 </TabItem>

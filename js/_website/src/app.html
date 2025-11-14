@@ -4,6 +4,25 @@
 		<meta charset="utf-8" />
 		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
 		<meta name="viewport" content="width=device-width" />
+		<script>
+			// prevents the flash of light mode by applying theme before page renders
+			(function () {
+				let theme = localStorage.getItem("theme");
+				if (!theme) {
+					if (
+						window.matchMedia &&
+						window.matchMedia("(prefers-color-scheme: dark)").matches
+					) {
+						theme = "dark";
+					} else {
+						theme = "light";
+					}
+				}
+				if (theme === "dark") {
+					document.documentElement.classList.add("dark");
+				}
+			})();
+		</script>
 		<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 		%sveltekit.head%
 	</head>

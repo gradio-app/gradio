@@ -92,7 +92,7 @@
 
 	const debounced_close_preview = debounce(handle_close_preview, 1000);
 
-	$: selected_size, selected_color, handle_preview();
+	$: (selected_size, selected_color, handle_preview());
 
 	function handle_select(color: string): void {
 		selected_color = color;

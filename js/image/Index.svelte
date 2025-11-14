@@ -9,98 +9,42 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio, SelectData, ValueData } from "@gradio/utils";
+	import { tick } from "svelte";
+	import { Gradio } from "@gradio/utils";
 	import StaticImage from "./shared/ImagePreview.svelte";
 	import ImageUploader from "./shared/ImageUploader.svelte";
-	import { afterUpdate } from "svelte";
-	import type { WebcamOptions } from "./shared/types";
-
 	import { Block, Empty, UploadText } from "@gradio/atoms";
 	import { Image } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
-	import { upload, type FileData } from "@gradio/client";
-	import type { LoadingStatus } from "@gradio/statustracker";
+	import type { ImageProps, ImageEvents } from "./shared/types";
 
-	type sources = "upload" | "webcam" | "clipboard" | null;
-
-	let stream_state = "closed";
-	let _modify_stream: (state: "open" | "closed" | "waiting") => void = () => {};
-	export function modify_stream_state(
-		state: "open" | "closed" | "waiting"
-	): void {
-		stream_state = state;
-		_modify_stream(state);
-	}
-	export const get_stream_state: () => void = () => stream_state;
-	export let set_time_limit: (arg0: number) => void;
-	export let value_is_output = false;
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let value: null | FileData = null;
-	let old_value: null | FileData = null;
-	export let label: string;
-	export let show_label: boolean;
-	export let show_download_button: boolean;
-	export let root: string;
-
-	export let height: number | undefined;
-	export let width: number | undefined;
-	export let stream_every: number;
-
-	export let _selectable = false;
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let loading_status: LoadingStatus;
-	export let show_share_button = false;
-	export let sources: ("clipboard" | "webcam" | "upload")[] = [
-		"upload",
-		"clipboard",
-		"webcam"
-	];
-	export let interactive: boolean;
-	export let streaming: boolean;
-	export let pending: boolean;
-	export let placeholder: string | undefined = undefined;
-	export let show_fullscreen_button: boolean;
-	export let input_ready: boolean;
-	export let webcam_options: WebcamOptions;
-	let fullscreen = false;
-
-	let uploading = false;
-	$: input_ready = !uploading;
-	export let gradio: Gradio<{
-		input: never;
-		change: never;
-		error: string;
-		edit: never;
-		stream: ValueData;
-		drag: never;
-		upload: never;
-		clear: never;
-		select: SelectData;
-		share: ShareData;
-		clear_status: LoadingStatus;
-		close_stream: string;
-	}>;
-
-	$: {
-		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
-			old_value = value;
-			gradio.dispatch("change");
-			if (!value_is_output) {
-				gradio.dispatch("input");
+	let stream_data = { value: null };
+	let upload_promise = $state<Promise<any>>();
+	class ImageGradio extends Gradio<ImageEvents, ImageProps> {
+		async get_data() {
+			if (upload_promise) {
+				await upload_promise;
+				await tick();
 			}
+
+			const data = await super.get_data();
+			if (props.props.streaming) {
+				data.value = stream_data.value;
+			}
+
+			return data;
 		}
 	}
 
-	afterUpdate(() => {
-		value_is_output = false;
-	});
+	const props = $props();
+	const gradio = new ImageGradio(props);
 
-	let dragging: boolean;
-	let active_source: sources = null;
+	let fullscreen = $state(false);
+	let dragging = $state(false);
+	let active_source = $derived.by(() =>
+		gradio.props.sources ? gradio.props.sources[0] : null
+	);
+
 	let upload_component: ImageUploader;
 	const handle_drag_event = (event: Event): void => {
 		const drag_event = event as DragEvent;
@@ -114,7 +58,7 @@
 	};
 
 	const handle_drop = (event: Event): void => {
-		if (interactive) {
+		if (gradio.shared.interactive) {
 			const drop_event = event as DragEvent;
 			drop_event.preventDefault();
 			drop_event.stopPropagation();
@@ -125,28 +69,39 @@
 			}
 		}
 	};
+
+	let old_value = $state(gradio.props.value);
+
+	$effect(() => {
+		if (old_value != gradio.props.value) {
+			old_value = gradio.props.value;
+			gradio.dispatch("change");
+		}
+	});
+
+	let status = $derived(gradio?.shared?.loading_status.stream_state);
 </script>
 
-{#if !interactive}
+{#if !gradio.shared.interactive}
 	<Block
-		{visible}
+		visible={gradio.shared.visible}
 		variant={"solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
-		{elem_id}
-		{elem_classes}
-		height={height || undefined}
-		{width}
+		elem_id={gradio.shared.elem_id}
+		elem_classes={gradio.shared.elem_classes}
+		height={gradio.props.height || undefined}
+		width={gradio.props.width}
 		allow_overflow={false}
-		{container}
-		{scale}
-		{min_width}
+		container={gradio.shared.container}
+		scale{gradio.shared.scale}
+		min_width={gradio.shared.min_width}
 		bind:fullscreen
 	>
 		<StatusTracker
-			autoscroll={gradio.autoscroll}
+			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
-			{...loading_status}
+			{...gradio.shared.loading_status}
 		/>
 		<StaticImage
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
@@ -156,89 +111,103 @@
 				fullscreen = detail;
 			}}
 			{fullscreen}
-			{value}
-			{label}
-			{show_label}
-			{show_download_button}
-			selectable={_selectable}
-			{show_share_button}
+			value={gradio.props.value}
+			label={gradio.shared.label}
+			show_label={gradio.shared.show_label}
+			selectable={gradio.props._selectable}
 			i18n={gradio.i18n}
-			{show_fullscreen_button}
+			buttons={gradio.props.buttons}
 		/>
 	</Block>
 {:else}
 	<Block
-		{visible}
-		variant={value === null ? "dashed" : "solid"}
+		visible={gradio.shared.visible}
+		variant={gradio.props.value === null ? "dashed" : "solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
-		{elem_id}
-		{elem_classes}
-		height={height || undefined}
-		{width}
+		elem_id={gradio.shared.elem_id}
+		elem_classes={gradio.shared.elem_classes}
+		height={gradio.props.height || undefined}
+		width={gradio.props.width}
 		allow_overflow={false}
-		{container}
-		{scale}
-		{min_width}
+		container={gradio.shared.container}
+		scale={gradio.shared.scale}
+		min_width={gradio.shared.min_width}
 		bind:fullscreen
 		on:dragenter={handle_drag_event}
 		on:dragleave={handle_drag_event}
 		on:dragover={handle_drag_event}
 		on:drop={handle_drop}
 	>
-		<StatusTracker
-			autoscroll={gradio.autoscroll}
-			i18n={gradio.i18n}
-			{...loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
-		/>
-
+		{#if gradio.shared.loading_status.type === "output"}
+			<StatusTracker
+				autoscroll={gradio.shared.autoscroll}
+				i18n={gradio.i18n}
+				{...gradio.shared.loading_status}
+				on:clear_status={() =>
+					gradio.dispatch("clear_status", gradio.shared.loading_status)}
+			/>
+		{/if}
 		<ImageUploader
+			bind:upload_promise
 			bind:this={upload_component}
-			bind:uploading
 			bind:active_source
-			bind:value
+			bind:value={gradio.props.value}
 			bind:dragging
-			selectable={_selectable}
-			{root}
-			{sources}
+			selectable={gradio.props._selectable}
+			root={gradio.shared.root}
+			sources={gradio.props.sources}
 			{fullscreen}
+			show_fullscreen_button={gradio.props.buttons === null
+				? true
+				: gradio.props.buttons.includes("fullscreen")}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => {
 				fullscreen = false;
 				gradio.dispatch("clear");
+				gradio.dispatch("input");
 			}}
-			on:stream={({ detail }) => gradio.dispatch("stream", detail)}
+			on:stream={({ detail }) => {
+				stream_data = detail;
+				gradio.dispatch("stream", detail);
+			}}
 			on:drag={({ detail }) => (dragging = detail)}
-			on:upload={() => gradio.dispatch("upload")}
+			on:upload={() => {
+				gradio.dispatch("upload");
+				gradio.dispatch("input");
+			}}
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
 			on:share={({ detail }) => gradio.dispatch("share", detail)}
 			on:error={({ detail }) => {
-				loading_status = loading_status || {};
-				loading_status.status = "error";
+				gradio.shared.loading_status.status = "error";
 				gradio.dispatch("error", detail);
 			}}
 			on:close_stream={() => {
-				gradio.dispatch("close_stream", "stream");
+				gradio.dispatch("close_stream");
 			}}
 			on:fullscreen={({ detail }) => {
 				fullscreen = detail;
 			}}
-			{label}
-			{show_label}
-			{pending}
-			{streaming}
-			{webcam_options}
-			{stream_every}
-			bind:modify_stream={_modify_stream}
-			bind:set_time_limit
-			max_file_size={gradio.max_file_size}
+			label={gradio.shared.label}
+			show_label={gradio.shared.show_label}
+			pending={gradio.shared.loading_status?.status === "pending" ||
+				gradio.shared.loading_status?.status === "streaming"}
+			streaming={gradio.props.streaming}
+			webcam_options={gradio.props.webcam_options}
+			stream_every={gradio.props.stream_every}
+			time_limit={gradio.shared.loading_status?.time_limit}
+			max_file_size={gradio.shared.max_file_size}
 			i18n={gradio.i18n}
-			upload={(...args) => gradio.client.upload(...args)}
-			stream_handler={gradio.client?.stream}
+			upload={(...args) => gradio.shared.client.upload(...args)}
+			stream_handler={gradio.shared.client?.stream}
+			stream_state={status}
 		>
 			{#if active_source === "upload" || !active_source}
-				<UploadText i18n={gradio.i18n} type="image" {placeholder} />
+				<UploadText
+					i18n={gradio.i18n}
+					type="image"
+					placeholder={gradio.props.placeholder}
+				/>
 			{:else if active_source === "clipboard"}
 				<UploadText i18n={gradio.i18n} type="clipboard" mode="short" />
 			{:else}

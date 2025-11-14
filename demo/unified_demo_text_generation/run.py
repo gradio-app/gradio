@@ -9,7 +9,7 @@ def generate_text(text_prompt):
 
 textbox = gr.Textbox()
 
-demo = gr.Interface(generate_text, textbox, textbox)
+demo = gr.Interface(generate_text, textbox, textbox, api_name="predict")
 
 if __name__ == "__main__":
     demo.launch()

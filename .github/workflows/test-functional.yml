@@ -40,7 +40,7 @@ jobs:
     name: "functional-test-SSR=${{ matrix.SSR }}"
     permissions:
       contents: read
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04-16core
     needs: changes
     strategy:
       matrix:
@@ -50,7 +50,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: install dependencies
         id: install_deps
-        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@6.0-dev"
         with:
           python_version: "3.10"
           test: true
@@ -67,7 +67,7 @@ jobs:
           GRADIO_SSR_MODE: ${{ matrix.ssr }}
         run: |
           . venv/bin/activate
-          CI=1 pnpm test:browser
+          pnpm test:browser
       - name: upload screenshots
         uses: actions/upload-artifact@v4
         if: always()

@@ -4,36 +4,38 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 
-	import Column from "@gradio/column";
-	import type { Gradio } from "@gradio/utils";
+	import { BaseColumn } from "@gradio/column";
+	import { Gradio } from "@gradio/utils";
 
-	export let label: string;
-	export let elem_id: string;
-	export let elem_classes: string[];
-	export let visible: boolean | "hidden" = true;
-	export let open = true;
-	export let loading_status: LoadingStatus;
-	export let gradio: Gradio<{
-		expand: never;
-		collapse: never;
-	}>;
+	import type { AccordionProps, AccordionEvents } from "./types";
+
+	let props = $props();
+	const gradio = new Gradio<AccordionEvents, AccordionProps>(props);
+
+	let label = $derived(gradio.shared.label || "");
 </script>
 
-<Block {elem_id} {elem_classes} {visible}>
-	<StatusTracker
-		autoscroll={gradio.autoscroll}
-		i18n={gradio.i18n}
-		{...loading_status}
-	/>
+<Block
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+	visible={gradio.shared.visible}
+>
+	{#if gradio.shared.loading_status}
+		<StatusTracker
+			autoscroll={gradio.shared.autoscroll}
+			i18n={gradio.i18n}
+			{...gradio.shared.loading_status}
+		/>
+	{/if}
 
 	<Accordion
 		{label}
-		bind:open
+		open={gradio.props.open}
 		on:expand={() => gradio.dispatch("expand")}
 		on:collapse={() => gradio.dispatch("collapse")}
 	>
-		<Column>
+		<BaseColumn>
 			<slot />
-		</Column>
+		</BaseColumn>
 	</Accordion>
 </Block>

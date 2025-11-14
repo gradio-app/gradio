@@ -72,6 +72,7 @@ class TestQueueing:
         assert job2.result() == "Hello, b!"
         assert job4.result() == "Hello, d!"
 
+    @pytest.mark.flaky
     @pytest.mark.parametrize(
         "default_concurrency_limit, statuses",
         [

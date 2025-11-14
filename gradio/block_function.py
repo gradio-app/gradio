@@ -35,7 +35,7 @@ class BlockFunction:
         concurrency_limit: int | None | Literal["default"] = "default",
         concurrency_id: str | None = None,
         tracks_progress: bool = False,
-        api_name: str | Literal[False] = False,
+        api_name: str | None = None,
         api_description: str | None | Literal[False] = None,
         js: str | Literal[True] | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
@@ -48,7 +48,7 @@ class BlockFunction:
         trigger_mode: Literal["always_last", "once", "multiple"] = "once",
         queue: bool = True,
         scroll_to_output: bool = False,
-        show_api: bool = True,
+        api_visibility: Literal["public", "private", "undocumented"] = "public",
         renderable: Renderable | None = None,
         rendered_in: Renderable | None = None,
         render_iteration: int | None = None,
@@ -56,7 +56,6 @@ class BlockFunction:
         connection: Literal["stream", "sse"] = "sse",
         time_limit: float | None = None,
         stream_every: float = 0.5,
-        like_user_message: bool = False,
         event_specific_args: list[str] | None = None,
         page: str = "",
         js_implementation: str | None = None,
@@ -92,7 +91,7 @@ class BlockFunction:
         self.trigger_mode = trigger_mode
         self.queue = False if fn is None else queue
         self.scroll_to_output = False if utils.get_space() else scroll_to_output
-        self.show_api = show_api
+        self.api_visibility = api_visibility
         self.types_generator = inspect.isgeneratorfunction(
             self.fn
         ) or inspect.isasyncgenfunction(self.fn)
@@ -110,7 +109,6 @@ class BlockFunction:
         self.time_limit = time_limit
         self.stream_every = stream_every
         self.connection = connection
-        self.like_user_message = like_user_message
         self.event_specific_args = event_specific_args
         self.key = key
 
@@ -163,13 +161,12 @@ class BlockFunction:
             "trigger_only_on_success": self.trigger_only_on_success,
             "trigger_only_on_failure": self.trigger_only_on_failure,
             "trigger_mode": self.trigger_mode,
-            "show_api": self.show_api,
+            "api_visibility": self.api_visibility,
             "rendered_in": self.rendered_in._id if self.rendered_in else None,
             "render_id": self.renderable._id if self.renderable else None,
             "connection": self.connection,
             "time_limit": self.time_limit,
             "stream_every": self.stream_every,
-            "like_user_message": self.like_user_message,
             "event_specific_args": self.event_specific_args,
             "js_implementation": getattr(self.fn, "__js_implementation__", None),
         }

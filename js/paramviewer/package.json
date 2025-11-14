@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/paramviewer",
-	"version": "0.8.1",
+	"version": "0.9.0-dev.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -27,11 +27,11 @@
 		"prismjs": "^1.30.0"
 	},
 	"devDependencies": {
-		"@types/prismjs": "^1.26.3",
-		"@gradio/preview": "workspace:^"
+		"@gradio/preview": "workspace:^",
+		"@types/prismjs": "^1.26.5"
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.43.4"
 	},
 	"repository": {
 		"type": "git",

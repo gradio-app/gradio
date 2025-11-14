@@ -109,6 +109,7 @@ demo = gr.Interface(
     flagging_mode="never",
     live=False,
     examples=examples,
+    api_name="predict",
 )
 
 if __name__ == "__main__":

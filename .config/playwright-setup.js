@@ -140,12 +140,14 @@ ${demos.map((obj) => `from demo.${obj.module_name} import demo as ${obj.dir_name
 
 app = FastAPI()
 ${demos
-	.map(
-		(obj) =>
-			`app = gr.mount_gradio_app(app, ${obj.dir_name}, path="/${obj.dir_name}", max_file_size=${
-				obj.dir_name == "upload_file_limit_test" ? "'15kb'" : "None"
-			})`
-	)
+	.map((obj) => {
+		const css_path = `'${join(ROOT, "demo", obj.dir_name, "custom_css.css")}'`;
+		return `app = gr.mount_gradio_app(app, ${obj.dir_name}, path="/${obj.dir_name}", max_file_size=${
+			obj.dir_name == "upload_file_limit_test" ? "'15kb'" : "None"
+		}, css_paths=${obj.dir_name == "custom_css" || obj.dir_name == "theme_builder" ? css_path : "None"},
+			head=${obj.dir_name == "theme_builder" ? "\"<style id='theme_css'></style>\"" : "None"},
+			theme=${obj.dir_name == "theme_builder" ? "gr.themes.Base()" : "None"})`;
+	})
 	.join("\n")}
 
 config = uvicorn.Config(app, port=${port}, log_level="info")

@@ -45,21 +45,23 @@ with gr.Blocks() as demo:
         md = gr.Markdown(show_label=False)
         label = gr.Label(show_label=False)
         highlight = gr.HighlightedText(show_label=False)
-        gr.Dataframe(interactive=True, col_count=(3, "fixed"), label="Dataframe")
-        gr.Dataframe(interactive=True, col_count=4, label="Dataframe")
+        gr.Dataframe(interactive=True, column_count=3, column_limits=(3, 3), label="Dataframe")
+        gr.Dataframe(interactive=True, column_count=4, label="Dataframe")
         gr.Dataframe(
             interactive=True, headers=["One", "Two", "Three", "Four"], label="Dataframe"
         )
         gr.Dataframe(
             interactive=True,
             headers=["One", "Two", "Three", "Four"],
-            col_count=(4, "fixed"),
-            row_count=(7, "fixed"),
+            column_count=4,
+            column_limits=(4, 4),
+            row_count=7,
+            row_limits=(7, 7),
             value=[[0, 0, 0, 0]],
             label="Dataframe",
         )
         gr.Dataframe(
-            interactive=True, headers=["One", "Two", "Three", "Four"], col_count=4
+            interactive=True, headers=["One", "Two", "Three", "Four"], column_count=4
         )
         df = gr.DataFrame(
             [

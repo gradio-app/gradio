@@ -20,9 +20,10 @@
 	export let space_id: string | null;
 	export let endpoint_parameters: any;
 	export let username: string | null;
-	export let current_language: "python" | "javascript" | "bash";
+	export let current_language: "python" | "javascript" | "bash" | "mcp";
 	export let api_description: string | null = null;
 	export let analytics: Record<string, any>;
+	export let markdown_code_snippets: Record<string, Record<string, string>>;
 
 	let python_code: HTMLElement;
 	let js_code: HTMLElement;
@@ -39,6 +40,14 @@
 
 	$: normalised_api_prefix = api_prefix ? api_prefix : "/";
 	$: normalised_root = root.replace(/\/$/, "");
+
+	$: markdown_code_snippets[
+		dependency.api_name as keyof typeof markdown_code_snippets
+	] = {
+		python: python_code?.innerText || "",
+		javascript: js_code?.innerText || "",
+		bash: bash_post_code?.innerText || ""
+	};
 </script>
 
 <div class="container">
@@ -47,7 +56,7 @@
 		description={api_description}
 		{analytics}
 	/>
-	{#if current_language === "python"}
+	<div class:hidden={current_language !== "python"}>
 		<Block>
 			<code>
 				<div class="copy">
@@ -82,7 +91,8 @@ result = client.<span class="highlight">predict</span
 				</div>
 			</code>
 		</Block>
-	{:else if current_language === "javascript"}
+	</div>
+	<div class:hidden={current_language !== "javascript"}>
 		<Block>
 			<code>
 				<div class="copy">
@@ -131,7 +141,8 @@ result = client.<span class="highlight">predict</span
 				</div>
 			</code>
 		</Block>
-	{:else if current_language === "bash"}
+	</div>
+	<div class:hidden={current_language !== "bash"}>
 		<Block>
 			<code>
 				<div class="copy">
@@ -155,7 +166,7 @@ result = client.<span class="highlight">predict</span
 				</div>
 			</code>
 		</Block>
-	{/if}
+	</div>
 </div>
 
 <style>
@@ -198,5 +209,9 @@ result = client.<span class="highlight">predict</span
 
 	.api-name {
 		color: var(--color-accent);
+	}
+
+	.hidden {
+		display: none;
 	}
 </style>

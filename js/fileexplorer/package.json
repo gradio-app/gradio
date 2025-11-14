@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/fileexplorer",
-	"version": "0.5.41",
+	"version": "0.5.42-dev.1",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -14,7 +14,7 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"dequal": "^2.0.2"
+		"dequal": "^2.0.3"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
@@ -34,7 +34,7 @@
 		"./package.json": "./package.json"
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.43.4"
 	},
 	"repository": {
 		"type": "git",

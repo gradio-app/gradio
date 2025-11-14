@@ -86,6 +86,15 @@
 	export let autoscroll: boolean;
 	export let validation_error: string | null = null;
 	export let show_validation_error = true;
+	export let type: "input" | "outputs" | null = null;
+
+	$: should_hide =
+		type === "input" ||
+		!status ||
+		status === "complete" ||
+		show_progress === "hidden" ||
+		status == "streaming" ||
+		(show_validation_error && validation_error);
 
 	let el: HTMLDivElement;
 
@@ -206,11 +215,8 @@
 
 <div
 	class="wrap {variant} {show_progress}"
-	class:hide={(!status ||
-		status === "complete" ||
-		show_progress === "hidden" ||
-		status == "streaming") &&
-		!validation_error}
+	class:no-click={validation_error && show_validation_error}
+	class:hide={should_hide}
 	class:translucent={(variant === "center" &&
 		(status === "pending" || status === "error")) ||
 		translucent ||
@@ -340,6 +346,8 @@
 		background: var(--block-background-fill);
 		padding: 0 var(--size-6);
 		overflow: hidden;
+	}
+	.no-click {
 		pointer-events: none;
 	}
 

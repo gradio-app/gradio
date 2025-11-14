@@ -4,6 +4,9 @@
 
 	export let api_calls: Payload[] = [];
 	export let dependencies: Dependency[];
+
+	$: console.log("API CALLS UPDATED:", api_calls);
+	$: console.log("DEPENDENCIES:", dependencies);
 </script>
 
 <div id="api-recorder">

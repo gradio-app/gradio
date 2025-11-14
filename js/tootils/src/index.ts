@@ -32,7 +32,7 @@ const test_normal = base.extend<{ setup: void }>({
 			if (process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true") {
 				await page.waitForSelector("#svelte-announcer");
 			}
-
+			await page.waitForLoadState("load");
 			await use();
 		},
 		{ auto: true }

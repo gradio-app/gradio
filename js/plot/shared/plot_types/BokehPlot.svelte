@@ -1,11 +1,10 @@
 <script lang="ts">
 	//@ts-nocheck
-	import { onDestroy, createEventDispatcher } from "svelte";
+	import { onDestroy } from "svelte";
 
 	export let value;
 	export let bokeh_version: string | null;
 	const div_id = `bokehDiv-${Math.random().toString(5).substring(2)}`;
-	const dispatch = createEventDispatcher<{ load: undefined }>();
 	$: plot = value?.plot;
 
 	async function embed_bokeh(_plot: Record<string, any>): void {
@@ -17,11 +16,7 @@
 		if (window.Bokeh) {
 			load_bokeh();
 			let plotObj = JSON.parse(_plot);
-			const y = await window.Bokeh.embed.embed_item(plotObj, div_id);
-			y._roots.forEach(async (p) => {
-				await p.ready;
-				dispatch("load");
-			});
+			await window.Bokeh.embed.embed_item(plotObj, div_id);
 		}
 	}
 

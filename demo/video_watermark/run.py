@@ -11,7 +11,7 @@ def generate_video(original_video, watermark, position):
 
 
 demo = gr.Interface(generate_video, [gr.Video(), gr.File(), gr.Dropdown(["top-left", "top-right", "bottom-left", "bottom-right"], label="Position")], gr.Video(),
-                    examples=[[a, w1, "top-left"], [b, w2, "bottom-right"]])
+                    examples=[[a, w1, "top-left"], [b, w2, "bottom-right"]], api_name="predict")
 
 if __name__ == "__main__":
     demo.launch()

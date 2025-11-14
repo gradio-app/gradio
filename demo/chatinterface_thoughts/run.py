@@ -42,7 +42,6 @@ def simulate_thinking_chat(message, history):
 demo = gr.ChatInterface(
     simulate_thinking_chat,
     title="Thinking LLM Chat Interface 🤔",
-    type="messages",
 )
 
 if __name__ == "__main__":

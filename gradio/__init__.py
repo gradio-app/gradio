@@ -5,7 +5,7 @@ import gradio.image_utils
 import gradio.processing_utils
 import gradio.sketch
 import gradio.templates
-from gradio import components, layouts, mcp, themes
+from gradio import components, layouts, mcp, themes, validators
 from gradio.blocks import Blocks
 from gradio.chat_interface import ChatInterface
 from gradio.cli import deploy
@@ -138,6 +138,7 @@ from gradio.templates import (
 from gradio.themes import Base as Theme
 from gradio.utils import NO_RELOAD, FileSize, get_package_version, set_static_paths
 
+# this is the verion:
 __version__ = get_package_version()
 
 __all__ = [
@@ -277,4 +278,5 @@ __all__ = [
     "get_video",
     "get_model3d",
     "get_file",
+    "validators",
 ]

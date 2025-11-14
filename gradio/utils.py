@@ -64,6 +64,7 @@ from gradio_client.exceptions import AppError
 from typing_extensions import ParamSpec
 
 import gradio
+from gradio import themes
 from gradio.context import get_blocks_context
 from gradio.data_classes import (
     BlocksConfigDict,
@@ -72,6 +73,8 @@ from gradio.data_classes import (
     UserProvidedPath,
 )
 from gradio.exceptions import Error, InvalidPathError
+from gradio.themes import Default as DefaultTheme
+from gradio.themes import ThemeClass as Theme
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext, Blocks
@@ -81,6 +84,20 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 P = ParamSpec("P")
 T = TypeVar("T")
+
+BUILT_IN_THEMES: dict[str, Theme] = {
+    t.name: t
+    for t in [
+        themes.Base(),
+        themes.Default(),
+        themes.Monochrome(),
+        themes.Soft(),
+        themes.Glass(),
+        themes.Origin(),
+        themes.Citrus(),
+        themes.Ocean(),
+    ]
+}
 
 
 def get_package_version() -> str:
@@ -148,6 +165,12 @@ class BaseReloader(ABC):
         demo.is_running = True
         demo.allowed_paths = self.running_app.blocks.allowed_paths
         demo.blocked_paths = self.running_app.blocks.blocked_paths
+        demo.theme = self.running_app.blocks.theme
+        demo.head_paths = self.running_app.blocks.head_paths
+        demo.css = self.running_app.blocks.css
+        demo.head = self.running_app.blocks.head
+        demo.css_paths = self.running_app.blocks.css_paths
+        demo._set_html_css_theme_variables()
         self.running_app.state_holder.set_blocks(demo)
         for session in self.running_app.state_holder.session_data.values():
             session.blocks_config = copy.copy(demo.default_config)
@@ -470,6 +493,21 @@ def get_space() -> str | None:
 
 def is_zero_gpu_space() -> bool:
     return os.getenv("SPACES_ZERO_GPU") == "true"
+
+
+def get_theme(theme: Theme | str | None) -> Theme:
+    if theme is None:
+        theme = DefaultTheme()
+    elif isinstance(theme, str):
+        if theme.lower() in BUILT_IN_THEMES:
+            theme = BUILT_IN_THEMES[theme.lower()]
+        else:
+            try:
+                theme = Theme.from_hub(theme)
+            except Exception as e:
+                warnings.warn(f"Cannot load {theme}. Caught Exception: {str(e)}")
+                theme = DefaultTheme()
+    return theme
 
 
 def download_if_url(article: str) -> str:

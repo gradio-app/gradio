@@ -2,10 +2,10 @@ import copy
 import json
 import os
 import tempfile
-import time
 
-import httpx
 import pytest
+from mcp import ClientSession
+from mcp.client.streamable_http import streamablehttp_client
 from PIL import Image
 from starlette.requests import Request
 
@@ -167,150 +167,6 @@ def test_tool_prefix_character_replacement(test_mcp_app):
             os.environ.pop("SPACE_ID", None)
 
 
-@pytest.mark.serial
-def test_mcp_sse_transport(test_mcp_app):
-    _, url, _ = test_mcp_app.launch(mcp_server=True, prevent_thread_lock=True)
-
-    with httpx.Client(timeout=5) as client:
-        config_url = f"{url}config"
-        config_response = client.get(config_url)
-        assert config_response.is_success
-        assert config_response.json()["mcp_server"] is True
-
-        schema_url = f"{url}gradio_api/mcp/schema"
-        sse_url = f"{url}gradio_api/mcp/sse"
-
-        response = client.get(schema_url)
-        assert response.is_success
-        assert response.json() == [
-            {
-                "name": "test_tool",
-                "description": "This is a test tool. Returns: - the original value as a string",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {"x": {"type": "string", "description": ""}},
-                },
-                "meta": {
-                    "file_data_present": False,
-                    "mcp_type": "tool",
-                    "endpoint_name": "test_tool",
-                },
-            }
-        ]
-
-        with client.stream("GET", sse_url) as response:
-            assert response.is_success
-
-            terminate_next = False
-            line = ""
-            for line in response.iter_lines():
-                if terminate_next:
-                    break
-                if line.startswith("event: endpoint"):
-                    terminate_next = True
-
-            messages_path = line[5:].strip()
-            messages_url = f"{url.rstrip('/')}{messages_path}"
-
-            message_response = client.post(
-                messages_url,
-                json={
-                    "method": "initialize",
-                    "params": {
-                        "protocolVersion": "2025-03-26",
-                        "capabilities": {},
-                    },
-                    "jsonrpc": "2.0",
-                    "id": 0,
-                },
-                headers={"Content-Type": "application/json"},
-            )
-
-            assert message_response.is_success, (
-                f"Failed with status {message_response.status_code}: {message_response.text}"
-            )
-
-
-def make_app():
-    import uvicorn
-    from fastapi import FastAPI
-
-    from gradio.routes import mount_gradio_app
-
-    with gr.Blocks() as app:
-        t1 = gr.Textbox(label="Test Textbox")
-        t2 = gr.Textbox(label="Test Textbox 2")
-        t1.submit(lambda x: x, t1, t2, api_name="test_tool")
-
-    fastapi_app = FastAPI()
-    mount_gradio_app(fastapi_app, app, path="/test", mcp_server=True)
-    uvicorn.run(fastapi_app, port=6868)
-
-
-@pytest.mark.serial
-def test_mcp_mount_gradio_app():
-    import multiprocessing
-
-    process = multiprocessing.Process(target=make_app)
-    try:
-        process.start()
-        max_retries = 4
-        retry_delay = 2
-
-        for attempt in range(max_retries):
-            try:
-                with httpx.Client(timeout=1) as test_client:
-                    test_response = test_client.get("http://localhost:6868/test/")
-                    if test_response.status_code == 200:
-                        break
-            except (httpx.ConnectError, httpx.TimeoutException):
-                if attempt == max_retries - 1:
-                    raise Exception("Gradio app did not start") from None
-                time.sleep(retry_delay * (2**attempt))
-
-        with httpx.Client(timeout=5) as client:
-            config_url = "http://localhost:6868/test/config"
-            config_response = client.get(config_url)
-            assert config_response.is_success
-            assert config_response.json()["mcp_server"] is True
-
-            sse_url = "http://localhost:6868/test/gradio_api/mcp/sse"
-
-            with client.stream("GET", sse_url) as response:
-                assert response.is_success
-
-                terminate_next = False
-                line = ""
-                for line in response.iter_lines():
-                    if terminate_next:
-                        break
-                    if line.startswith("event: endpoint"):
-                        terminate_next = True
-
-                messages_path = line[5:].strip()
-                messages_url = f"http://localhost:6868{messages_path}"
-
-                message_response = client.post(
-                    messages_url,
-                    json={
-                        "method": "initialize",
-                        "params": {
-                            "protocolVersion": "2025-03-26",
-                            "capabilities": {},
-                        },
-                        "jsonrpc": "2.0",
-                        "id": 0,
-                    },
-                    headers={"Content-Type": "application/json"},
-                )
-
-                assert message_response.is_success, (
-                    f"Failed with status {message_response.status_code}: {message_response.text}"
-                )
-    finally:
-        process.terminate()
-
-
 @pytest.mark.asyncio
 async def test_associative_keyword_in_schema():
     def test_tool(x):
@@ -385,3 +241,102 @@ async def test_tool_selection_via_query_params():
     schema = json.loads(schema)
     assert len(schema) == 1
     assert schema[0]["name"] == "tool_2"
+
+
+@pytest.mark.asyncio
+@pytest.mark.serial
+async def test_mcp_streamable_http_client():
+    def double(word: str) -> str:
+        """
+        Doubles the input word.
+
+        Parameters:
+            word: The word to double
+        Returns:
+            The doubled word
+        """
+        return word * 2
+
+    with gr.Blocks() as demo:
+        input_box = gr.Textbox(label="Input")
+        output_box = gr.Textbox(label="Output")
+        input_box.change(double, input_box, output_box, api_name="double")
+
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, mcp_server=True)
+    mcp_url = f"{local_url}gradio_api/mcp/"
+
+    try:
+        async with streamablehttp_client(mcp_url) as (read_stream, write_stream, _):
+            async with ClientSession(read_stream, write_stream) as session:
+                await session.initialize()
+
+                tools_response = await session.list_tools()
+                assert len(tools_response.tools) == 1
+                tool = tools_response.tools[0]
+                assert "double" in tool.name
+                assert "Doubles the input word" in tool.description
+
+                result = await session.call_tool(tool.name, arguments={"word": "Hello"})
+                assert len(result.content) == 1
+                assert result.content[0].text == "HelloHello"
+    finally:
+        demo.close()
+
+
+@pytest.mark.serial
+@pytest.mark.asyncio
+async def test_mcp_streamable_http_client_with_progress_callback():
+    progress_updates = []
+
+    def slow_processor(text: str, progress=gr.Progress()) -> str:
+        """
+        Processes text slowly with progress updates.
+
+        Parameters:
+            text: The text to process
+        Returns:
+            The processed text
+        """
+        total = len(text)
+        for i in range(total):
+            progress((i + 1) / total, desc=f"Processing character {i + 1}/{total}")
+        return text.upper()
+
+    with gr.Blocks() as demo:
+        input_box = gr.Textbox(label="Input")
+        output_box = gr.Textbox(label="Output")
+        input_box.submit(slow_processor, input_box, output_box, api_name="process")
+
+    demo.queue()
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, mcp_server=True)
+    mcp_url = f"{local_url}gradio_api/mcp/"
+
+    try:
+        async with streamablehttp_client(mcp_url) as (read_stream, write_stream, _):
+            async with ClientSession(read_stream, write_stream) as session:
+                await session.initialize()
+
+                tools_response = await session.list_tools()
+                assert len(tools_response.tools) == 1
+                tool = tools_response.tools[0]
+                assert "process" in tool.name
+
+                async def progress_callback(
+                    progress: float, total: float | None, message: str | None
+                ):
+                    progress_updates.append(
+                        {"progress": progress, "total": total, "message": message}
+                    )
+
+                result = await session.call_tool(
+                    tool.name,
+                    arguments={"text": "test"},
+                    progress_callback=progress_callback,
+                    meta={"progressToken": "test-token-123"},
+                )
+
+                assert len(result.content) == 1
+                assert result.content[0].text == "TEST"
+                assert len(progress_updates) > 0, "Expected to receive progress updates"
+    finally:
+        demo.close()

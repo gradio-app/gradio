@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount, onDestroy } from "svelte";
 	import { Pause } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
@@ -20,15 +21,13 @@
 	export let show_recording_waveform: boolean | undefined;
 	export let timing = false;
 
-	$: record.on("record-start", () => {
-		record.startMic();
-
+	const handleRecordStart = (): void => {
 		recordButton.style.display = "none";
 		stopButton.style.display = "flex";
 		pauseButton.style.display = "block";
-	});
+	};
 
-	$: record.on("record-end", () => {
+	const handleRecordEnd = (): void => {
 		if (record.isPaused()) {
 			record.resumeRecording();
 			record.stopRecording();
@@ -39,27 +38,46 @@
 		stopButton.style.display = "none";
 		pauseButton.style.display = "none";
 		recordButton.disabled = false;
-	});
+	};
 
-	$: record.on("record-pause", () => {
+	const handleRecordPause = (): void => {
 		pauseButton.style.display = "none";
 		resumeButton.style.display = "block";
 		stopButton.style.display = "none";
 		stopButtonPaused.style.display = "flex";
-	});
+	};
 
-	$: record.on("record-resume", () => {
+	const handleRecordResume = (): void => {
 		pauseButton.style.display = "block";
 		resumeButton.style.display = "none";
 		recordButton.style.display = "none";
 		stopButton.style.display = "flex";
 		stopButtonPaused.style.display = "none";
+	};
+
+	onMount(() => {
+		record.on("record-start", handleRecordStart);
+		record.on("record-end", handleRecordEnd);
+		record.on("record-pause", handleRecordPause);
+		record.on("record-resume", handleRecordResume);
+	});
+
+	onDestroy(() => {
+		record.un("record-start", handleRecordStart);
+		record.un("record-end", handleRecordEnd);
+		record.un("record-pause", handleRecordPause);
+		record.un("record-resume", handleRecordResume);
 	});
 
 	$: if (recording && !recording_ongoing) {
-		record.startRecording();
-		recording_ongoing = true;
-	} else {
+		record.startMic().then(() => {
+			record.startRecording();
+			recording_ongoing = true;
+		});
+	} else if (!recording && recording_ongoing) {
+		if (record.isPaused()) {
+			record.resumeRecording();
+		}
 		record.stopRecording();
 		recording_ongoing = false;
 	}

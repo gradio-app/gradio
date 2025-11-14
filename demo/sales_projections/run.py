@@ -29,6 +29,7 @@ demo = gr.Interface(
     ),
     ["dataframe", "plot", "numpy"],
     description="Enter sales figures for employees to predict sales trajectory over year.",
+    api_name="predict"
 )
 if __name__ == "__main__":
     demo.launch()

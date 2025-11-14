@@ -9,6 +9,7 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
+
     let obj = get_object("lineplot");
     let demo_code = `{
             'week': x,
@@ -24,41 +25,6 @@
 gradio.LinePlot(···)
 ```
 
-<!-- Embedded Component -->
-<div class="embedded-component">
-<gradio-lite shared-worker>
-import gradio as gr
-import pandas as pd
-import numpy as np
-simple = pd.DataFrame(np.array(
-    [
-        [1, 28],
-        [2, 55],
-        [3, 43],
-        [4, 91],
-        [5, 81],
-        [6, 53],
-        [7, 19],
-        [8, 87],
-        [9, 52],
-    ]
-), columns=["week", "price"])
-with gr.Blocks() as demo:
-    gr.LinePlot(
-        value=simple,
-        x="week",
-        y="price",
-        title="Stock Price Chart",
-        container=True,
-        width=400
-    )
-demo.launch()
-<gradio-requirements>
-pandas
-numpy
-</gradio-requirements>
-</gradio-lite>
-</div>
 
 <!--- Description -->
 ### Description

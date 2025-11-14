@@ -28,8 +28,11 @@ module.exports = defineConfig((pollen) => {
 			size: {
 				...pollen.size,
 				0.5: "2px",
+				"0-5": "2px",
 				1.5: "6px",
+				"1-5": "6px",
 				2.5: "10px",
+				"2-5": "10px",
 				"screen-h": "100vh"
 			},
 			color: {

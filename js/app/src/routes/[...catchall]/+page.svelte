@@ -25,7 +25,7 @@
 		version: string;
 		space_id: string | null;
 		is_colab: boolean;
-		show_api: boolean;
+		footer_links: string[];
 		stylesheets?: string[];
 		app_id?: string;
 		fill_height?: boolean;
@@ -362,13 +362,19 @@
 		}
 	}
 
-	onDestroy(() => {
-		spaceheader?.remove();
-	});
+	// onDestroy(() => {
+	// 	if (spaceheader) {
+	// 		spaceheader.remove();
+	// 		spaceheader = undefined;
+	// 	}
+	// });
 </script>
 
 <svelte:head>
-	<link rel="stylesheet" href={"./theme.css?v=" + config?.theme_hash} />
+	<link
+		rel="stylesheet"
+		href={config?.root + "/theme.css?v=" + config?.theme_hash}
+	/>
 	{#if config?.stylesheets}
 		{#each config.stylesheets as stylesheet}
 			{#if stylesheet.startsWith("http:") || stylesheet.startsWith("https:")}
@@ -415,7 +421,7 @@
 			bind:ready
 			bind:render_complete
 			bind:add_new_message={new_message_fn}
-			show_footer={!is_embed}
+			footer_links={is_embed ? [] : config.footer_links}
 			{app_mode}
 			{version}
 			search_params={$page.url.searchParams}

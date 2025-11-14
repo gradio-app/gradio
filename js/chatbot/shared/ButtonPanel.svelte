@@ -56,6 +56,7 @@
 						value={message_text}
 						on:copy={(e) => dispatch("copy", e.detail)}
 						{watermark}
+						{i18n}
 					/>
 				{/if}
 				{#if show_retry}

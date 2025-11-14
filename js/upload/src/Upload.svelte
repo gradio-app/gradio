@@ -25,10 +25,12 @@
 	export let icon_upload = false;
 	export let height: number | string | undefined = undefined;
 	export let aria_label: string | undefined = undefined;
+	export let upload_promise: Promise<(FileData | null)[]> | null = null;
+
 	export function open_upload(): void {
 		_open_file_upload();
 	}
-	let upload_id: string;
+	let upload_id: string = "";
 	let file_data: FileData[];
 	let accept_file_types: string | null;
 	let use_post_upload_validation: boolean | null = null;
@@ -95,30 +97,42 @@
 		_open_file_upload();
 	}
 
-	async function handle_upload(
+	function handle_upload(
 		file_data: FileData[],
-		upload_id?: string
+		_upload_id?: string
 	): Promise<(FileData | null)[]> {
-		await tick();
-		if (!upload_id) {
-			upload_id = Math.random().toString(36).substring(2, 15);
-		}
-		uploading = true;
-		try {
-			const _file_data = await upload(
-				file_data,
-				root,
-				upload_id,
-				max_file_size ?? Infinity
-			);
-			dispatch("load", file_count === "single" ? _file_data?.[0] : _file_data);
-			uploading = false;
-			return _file_data || [];
-		} catch (e) {
-			dispatch("error", (e as Error).message);
-			uploading = false;
-			return [];
-		}
+		upload_promise = new Promise(async (resolve, rej) => {
+			await tick();
+			if (!_upload_id) {
+				upload_id = Math.random().toString(36).substring(2, 15);
+			} else {
+				upload_id = _upload_id;
+			}
+
+			uploading = true;
+
+			try {
+				const _file_data = await upload(
+					file_data,
+					root,
+					upload_id,
+					max_file_size ?? Infinity
+				);
+				dispatch(
+					"load",
+					file_count === "single" ? _file_data?.[0] : _file_data
+				);
+				resolve(_file_data || []);
+				uploading = false;
+				return _file_data || [];
+			} catch (e) {
+				dispatch("error", (e as Error).message);
+				uploading = false;
+				resolve([]);
+			}
+		});
+
+		return upload_promise;
 	}
 
 	function is_valid_mimetype(
@@ -232,7 +246,6 @@
 			dispatch("error", `Invalid file type only ${filetype} allowed.`);
 			return false;
 		});
-
 		if (format != "blob") {
 			await load_files(files_to_load);
 		} else {
