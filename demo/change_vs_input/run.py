@@ -30,11 +30,11 @@ with gr.Blocks() as demo:
     #     checkbox_in = gr.Checkbox()
     #     checkbox_ch = gr.Checkbox()
     #     checkbox_ch2 = gr.Checkbox()
-    # with gr.Row():
-    #     checkbox_group = gr.CheckboxGroup(["a", "b", "c"])
-    #     checkbox_group_in = gr.CheckboxGroup(["a", "b", "c"])
-    #     checkbox_group_ch = gr.CheckboxGroup(["a", "b", "c"])
-    #     checkbox_group_ch2 = gr.CheckboxGroup(["a", "b", "c"])
+    with gr.Row():
+        checkbox_group = gr.CheckboxGroup(["a", "b", "c"])
+        checkbox_group_in = gr.CheckboxGroup(["a", "b", "c"])
+        checkbox_group_ch = gr.CheckboxGroup(["a", "b", "c"])
+        checkbox_group_ch2 = gr.CheckboxGroup(["a", "b", "c"])
     # with gr.Row():
     #     radio = gr.Radio(["a", "b", "c"])
     #     radio_in = gr.Radio(["a", "b", "c"])
@@ -55,11 +55,11 @@ with gr.Blocks() as demo:
     #     code_in = gr.Code()
     #     code_ch = gr.Code()
     #     code_ch2 = gr.Code()
-    with gr.Row():
-        dataframe = gr.Dataframe()
-        dataframe_in = gr.Dataframe()
-        dataframe_ch = gr.Dataframe()
-        dataframe_ch2 = gr.Dataframe()
+    # with gr.Row():
+    #     dataframe = gr.Dataframe()
+    #     dataframe_in = gr.Dataframe()
+    #     dataframe_ch = gr.Dataframe()
+    #     dataframe_ch2 = gr.Dataframe()
     # with gr.Row():
     #     image = gr.Image(elem_id="image-original")
     #     image_up = gr.Image(elem_id="image-upload")
