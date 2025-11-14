@@ -38,7 +38,7 @@
 	let upload_component: ImageUploader;
 
 	let normalised_slider_position = $derived(
-		Math.max(0, Math.min(100, gradio.props.slider_position)) / 100
+		Math.max(0, Math.min(100, gradio.props.slider_position)) / 100,
 	);
 
 	$effect(() => {
