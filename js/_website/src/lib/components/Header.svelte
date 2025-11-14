@@ -24,13 +24,13 @@
 		<div class="flex flex-wrap items-center gap-x-4 gap-y-2 flex-grow">
 			<div class="flex flex-wrap items-center gap-x-4 gap-y-2 mx-auto">
 				<p class="text-md leading-6 text-gray-700 text-center mx-auto">
-					<strong class="font-semibold">Gradio Agents & MCP Hackathon </strong>
+					<strong class="font-semibold">MCP's 1st Birthday Hackathon</strong>
 				</p>
 				<a
-					href="/hackathon-winners"
+					href="https://www.youtube.com/watch?v=6C2JRt2Wi5o"
 					target="_blank"
 					class="mx-auto flex-none rounded-full px-3.5 py-1 text-sm font-semibold text-white bg-gradient-to-br from-orange-300 via-orange-500 to-orange-300 hover:drop-shadow-md"
-					>Winners <span aria-hidden="true">&rarr;</span></a
+					>Watch Now <span aria-hidden="true">&rarr;</span></a
 				>
 			</div>
 		</div>
