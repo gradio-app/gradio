@@ -150,12 +150,7 @@
 		dialog_open = false;
 	}
 
-	function handle_change(): void {
-		dispatch("change", value);
-	}
-
 	$: update_mouse_from_color(value);
-	$: (value, handle_change());
 
 	function handle_click(): void {
 		dispatch("selected", color_string);

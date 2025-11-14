@@ -7,6 +7,7 @@
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { SliderEvents, SliderProps } from "./types";
+	import { tick } from "svelte";
 
 	let props = $props();
 	let gradio = new Gradio<SliderEvents, SliderProps>(props);
@@ -38,12 +39,13 @@
 		range_input.value = gradio.props.value.toString();
 	});
 
-	function handle_change(): void {
+	async function handle_change() {
+		await tick();
 		gradio.dispatch("change");
-		gradio.dispatch("input");
 	}
 
-	function handle_release(e: MouseEvent): void {
+	async function handle_release(e: MouseEvent): Promise<void> {
+		await tick();
 		gradio.dispatch("release", gradio.props.value);
 	}
 	function clamp(): void {
@@ -70,6 +72,11 @@
 		gradio.props.value = INITIAL_VALUE;
 		gradio.dispatch("change");
 		gradio.dispatch("release", gradio.props.value);
+	}
+
+	async function handle_input(): Promise<void> {
+		await tick();
+		gradio.dispatch("input");
 	}
 </script>
 
@@ -107,6 +114,7 @@
 					bind:this={number_input}
 					min={gradio.props.minimum}
 					max={gradio.props.maximum}
+					on:input={handle_input}
 					on:blur={clamp}
 					step={gradio.props.step}
 					{disabled}
@@ -136,6 +144,7 @@
 				bind:this={range_input}
 				min={gradio.props.minimum}
 				max={gradio.props.maximum}
+				on:input={handle_input}
 				step={gradio.props.step}
 				{disabled}
 				on:pointerup={handle_release}
