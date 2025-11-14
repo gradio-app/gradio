@@ -6,72 +6,10 @@
 </script>
 
 <script lang="ts">
-	// import DF from "@gradio/dataframe-interim";
-	// import "@gradio/dataframe-interim/css";
-	// import type { Gradio, SelectData } from "@gradio/utils";
-	// import { Block } from "@gradio/atoms";
-	// import Table from "./shared/Table.svelte";
-	// import { StatusTracker } from "@gradio/statustracker";
-	// import type { LoadingStatus } from "@gradio/statustracker";
-	// import type { Datatype, DataframeValue } from "./shared/utils/utils";
-
-	// import Image from "@gradio/image";
-	// import { onMount } from "svelte";
-
-	// export let elem_id = "";
-	// export let elem_classes: string[] = [];
-	// export let visible: boolean | "hidden" = true;
-	// export let value: DataframeValue = {
-	// 	data: [["", "", ""]],
-	// 	headers: ["1", "2", "3"],
-	// 	metadata: null,
-	// };
-	// export let value_is_output = false;
-	// export let col_count: [number, "fixed" | "dynamic"];
-	// export let row_count: [number, "fixed" | "dynamic"];
-	// export let label: string | null = null;
-	// export let show_label = true;
-	// export let wrap: boolean;
-	// export let datatype: Datatype | Datatype[];
-	// export let scale: number | null = null;
-	// export let min_width: number | undefined = undefined;
-	// export let root: string;
-
-	// export let line_breaks = true;
-	// export let column_widths: string[] = [];
-	// export let gradio: Gradio<{
-	// 	change: never;
-	// 	select: SelectData;
-	// 	input: never;
-	// 	clear_status: LoadingStatus;
-	// 	search: string | null;
-	// 	edit: SelectData;
-	// }>;
-	// export let latex_delimiters: {
-	// 	left: string;
-	// 	right: string;
-	// 	display: boolean;
-	// }[];
-	// export let max_height: number | undefined = undefined;
-	// export let loading_status: LoadingStatus;
-	// export let interactive: boolean;
-	// export let buttons: string[] | null = null;
-	// export let max_chars: number | undefined = undefined;
-	// export let show_row_numbers = false;
-	// export let show_search: "none" | "search" | "filter" = "none";
-	// export let pinned_columns = 0;
-	// export let static_columns: (string | number)[] = [];
-	// export let fullscreen = false;
-
-	import type { SelectData, SharedProps } from "@gradio/utils";
+	import type { SharedProps } from "@gradio/utils";
 	import { Gradio } from "@gradio/utils";
-	import { Block } from "@gradio/atoms";
-	import Table from "./shared/Table.svelte";
-	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
-	import type { Datatype, DataframeValue } from "./shared/utils/utils";
+
 	import type { DataframeProps, DataframeEvents } from "./types";
-	import Image from "@gradio/image";
 	import { dequal } from "dequal";
 	import { onMount } from "svelte";
 	import DF from "@gradio/dataframe-interim";
@@ -79,8 +17,15 @@
 
 	let prev_data: any = null;
 
+	let changed = false;
+
 	class DataframeGradio extends Gradio<DataframeEvents, DataframeProps> {
 		async set_data(data: Partial<DataframeProps & SharedProps>): Promise<void> {
+			console.log("DataframeGradio set_data called", data);
+			if (data.value) {
+				changed = true;
+			}
+
 			super.set_data(data);
 			if (data.value && dequal(data.value, JSON.parse(prev_data)) === false) {
 				// this.dispatch("change");
@@ -130,13 +75,15 @@
 		});
 	});
 
-	// $inspect(gradio.props, "gradio.props");
-	// $inspect(gradio.shared, "gradio.shared");
 	const compat_gradio = {
 		i18n: gradio.i18n,
 		client: gradio.shared.client,
 		dispatch(name: keyof DataframeEvents, detail?: any) {
-			console.log("Dispatching", name, detail);
+			if (name === "input" && changed) {
+				console.log("Skipping duplicate input event");
+				changed = false;
+				return;
+			}
 			gradio.dispatch(name, detail);
 		},
 		autoscroll: gradio.shared.autoscroll

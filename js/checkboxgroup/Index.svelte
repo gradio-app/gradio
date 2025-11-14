@@ -4,6 +4,7 @@
 	import { Gradio } from "@gradio/utils";
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
+	import { dequal } from "dequal";
 	import type { CheckboxGroupProps, CheckboxGroupEvents } from "./types";
 
 	let props = $props();
@@ -41,8 +42,14 @@
 	});
 
 	let disabled = $derived(!gradio.shared.interactive);
-
+	let old_value = gradio.props.value;
 	$effect(() => {
+		gradio.props.value;
+		if (dequal(old_value, gradio.props.value)) {
+			return;
+		}
+
+		old_value = gradio.props.value;
 		gradio.dispatch("change", $state.snapshot(gradio.props.value));
 	});
 </script>

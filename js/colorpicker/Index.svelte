@@ -15,14 +15,20 @@
 
 	let props = $props();
 	const gradio = new Gradio<ColorPickerEvents, ColorPickerProps>(props);
+	gradio.props.value = gradio.props.value ?? "#000000";
+	let old_value = $state(gradio.props.value);
 	let label = $derived(
-		gradio.shared.label || gradio.i18n("colorpicker.color_picker")
+		gradio.shared.label || gradio.i18n("color_picker.color_picker")
 	);
 
-	async function handle_change(): Promise<void> {
-		await tick();
-		gradio.dispatch("change");
-	}
+	$effect(() => {
+		console.log("EFFECT: checking for change", gradio.props.value, old_value);
+		if (old_value !== gradio.props.value) {
+			console.log("EFFECT: value changed, dispatching change");
+			old_value = gradio.props.value;
+			gradio.dispatch("change");
+		}
+	});
 </script>
 
 <Block
@@ -47,7 +53,6 @@
 		info={gradio.props.info}
 		show_label={gradio.shared.show_label}
 		disabled={!gradio.shared.interactive}
-		on:change={handle_change}
 		on:input={() => gradio.dispatch("input")}
 		on:submit={() => gradio.dispatch("submit")}
 		on:blur={() => gradio.dispatch("blur")}
