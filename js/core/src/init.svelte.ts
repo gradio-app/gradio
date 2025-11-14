@@ -466,12 +466,6 @@ function handle_visibility(
 	root: string
 ): ProcessedComponentMeta {
 	// Check if the node is visible
-	console.log(
-		"Checking visibility for node:",
-		node.id,
-		node.props.shared_props.visible,
-		node.component
-	);
 	if (node.props.shared_props.visible && !node.component) {
 		const result: ProcessedComponentMeta = {
 			...node,
