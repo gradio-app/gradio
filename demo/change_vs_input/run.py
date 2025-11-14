@@ -50,16 +50,16 @@ with gr.Blocks() as demo:
     #     colorpicker_in = gr.ColorPicker()
     #     colorpicker_ch = gr.ColorPicker()
     #     colorpicker_ch2 = gr.ColorPicker()
-    with gr.Row():
-        code = gr.Code()
-        code_in = gr.Code()
-        code_ch = gr.Code()
-        code_ch2 = gr.Code()
     # with gr.Row():
-    #     dataframe = gr.Dataframe()
-    #     dataframe_in = gr.Dataframe()
-    #     dataframe_ch = gr.Dataframe()
-    #     dataframe_ch2 = gr.Dataframe()
+    #     code = gr.Code()
+    #     code_in = gr.Code()
+    #     code_ch = gr.Code()
+    #     code_ch2 = gr.Code()
+    with gr.Row():
+        dataframe = gr.Dataframe()
+        dataframe_in = gr.Dataframe()
+        dataframe_ch = gr.Dataframe()
+        dataframe_ch2 = gr.Dataframe()
     # with gr.Row():
     #     image = gr.Image(elem_id="image-original")
     #     image_up = gr.Image(elem_id="image-upload")

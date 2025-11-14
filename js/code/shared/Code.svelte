@@ -5,7 +5,7 @@
 		ViewUpdate,
 		keymap,
 		placeholder as placeholderExt,
-		lineNumbers,
+		lineNumbers
 	} from "@codemirror/view";
 	import { StateEffect, EditorState, type Extension } from "@codemirror/state";
 	import { indentWithTab } from "@codemirror/commands";
@@ -58,8 +58,8 @@
 				changes: {
 					from: 0,
 					to: view.state.doc.length,
-					insert: new_doc,
-				},
+					insert: new_doc
+				}
 			});
 		}
 	}
@@ -73,7 +73,7 @@
 	function create_editor_view(): EditorView {
 		const editorView = new EditorView({
 			parent: element,
-			state: create_editor_state(value),
+			state: create_editor_state(value)
 		});
 		editorView.dom.addEventListener("focus", handle_focus, true);
 		editorView.dom.addEventListener("blur", handle_blur, true);
@@ -123,7 +123,7 @@
 
 	function is_user_input(update: ViewUpdate): boolean {
 		return update.transactions.some(
-			(tr) => tr.annotation(Transaction.userEvent) != null,
+			(tr) => tr.annotation(Transaction.userEvent) != null
 		);
 	}
 
@@ -153,11 +153,11 @@
 				placeholder,
 				readonly,
 				lang_extension,
-				show_line_numbers,
+				show_line_numbers
 			),
 			FontTheme,
 			...get_theme(),
-			...extensions,
+			...extensions
 		];
 		return stateExtensions;
 	}
@@ -165,52 +165,52 @@
 	const FontTheme = EditorView.theme({
 		"&": {
 			fontSize: "var(--text-sm)",
-			backgroundColor: "var(--border-color-secondary)",
+			backgroundColor: "var(--border-color-secondary)"
 		},
 		".cm-content": {
 			paddingTop: "5px",
 			paddingBottom: "5px",
 			color: "var(--body-text-color)",
 			fontFamily: "var(--font-mono)",
-			minHeight: "100%",
+			minHeight: "100%"
 		},
 		".cm-gutterElement": {
-			marginRight: "var(--spacing-xs)",
+			marginRight: "var(--spacing-xs)"
 		},
 		".cm-gutters": {
 			marginRight: "1px",
 			borderRight: "1px solid var(--border-color-primary)",
 			backgroundColor: "var(--block-background-fill);",
-			color: "var(--body-text-color-subdued)",
+			color: "var(--body-text-color-subdued)"
 		},
 		".cm-focused": {
-			outline: "none",
+			outline: "none"
 		},
 		".cm-scroller": {
-			height: "auto",
+			height: "auto"
 		},
 		".cm-cursor": {
-			borderLeftColor: "var(--body-text-color)",
-		},
+			borderLeftColor: "var(--body-text-color)"
+		}
 	});
 
 	const AutocompleteTheme = EditorView.theme({
 		".cm-tooltip-autocomplete": {
 			"& > ul": {
 				backgroundColor: "var(--background-fill-primary)",
-				color: "var(--body-text-color)",
+				color: "var(--body-text-color)"
 			},
 			"& > ul > li[aria-selected]": {
 				backgroundColor: "var(--color-accent-soft)",
-				color: "var(--body-text-color)",
-			},
-		},
+				color: "var(--body-text-color)"
+			}
+		}
 	});
 
 	function create_editor_state(_value: string | null | undefined): EditorState {
 		return EditorState.create({
 			doc: _value ?? undefined,
-			extensions: get_extensions(),
+			extensions: get_extensions()
 		});
 	}
 
@@ -220,12 +220,12 @@
 		placeholder: string | HTMLElement | null | undefined,
 		readonly: boolean,
 		lang: Extension | null | undefined,
-		show_line_numbers: boolean,
+		show_line_numbers: boolean
 	): Extension[] {
 		const extensions: Extension[] = [
 			EditorView.editable.of(!readonly),
 			EditorState.readOnly.of(readonly),
-			EditorView.contentAttributes.of({ "aria-label": "Code input container" }),
+			EditorView.contentAttributes.of({ "aria-label": "Code input container" })
 		];
 
 		if (basic) {
@@ -233,7 +233,7 @@
 		}
 		if (use_tab) {
 			extensions.push(
-				keymap.of([{ key: "Tab", run: acceptCompletion }, indentWithTab]),
+				keymap.of([{ key: "Tab", run: acceptCompletion }, indentWithTab])
 			);
 		}
 		if (placeholder) {
@@ -271,7 +271,7 @@
 
 	function reconfigure(): void {
 		view?.dispatch({
-			effects: StateEffect.reconfigure.of(get_extensions()),
+			effects: StateEffect.reconfigure.of(get_extensions())
 		});
 	}
 
