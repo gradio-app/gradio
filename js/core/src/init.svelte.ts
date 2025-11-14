@@ -465,12 +465,6 @@ function handle_visibility(
 	root: string
 ): ProcessedComponentMeta {
 	// Check if the node is visible
-	console.log(
-		"Checking visibility for node:",
-		node.id,
-		node.props.shared_props.visible,
-		node.component
-	);
 	if (node.props.shared_props.visible && !node.component) {
 		const result: ProcessedComponentMeta = {
 			...node,
@@ -516,7 +510,6 @@ function untrack_children_of_invisible_parents(
 ): ProcessedComponentMeta {
 	// Check if the node is visible
 	if (node.props.shared_props.visible !== true) {
-		console.log("Untracking children of invisible parent:", node.id, node.children);
 		_untrack(node, components_to_register);
 	}
 	return node;
