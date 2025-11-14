@@ -1,5 +1,11 @@
 # gradio
 
+## 5.49.2
+
+### Fixes
+
+- [#12124](https://github.com/gradio-app/gradio/pull/12124) [`ce39568`](https://github.com/gradio-app/gradio/commit/ce395687484f1c4f6a8e90d168dffdf5d83c873c) - Add python 3.14 support.  Thanks @aliabid94!
+
 ## 5.49.1
 
 ### Fixes
