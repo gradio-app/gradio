@@ -890,24 +890,3 @@ except ValueError as e:
     print(f"Value error: {e}")
 ```
 
-Or catch both:
-
-```python
-try:
-    client = Client("username/space-name")
-    result = client.predict("/predict", inputs)
-except (AppError, ValueError) as e:
-    # Catches both AppError and ValueError
-    print(f"Error: {e}")
-```
-
-**Note:** If you want to catch all exceptions from the client, you can use `Exception`:
-
-```python
-try:
-    client = Client("username/space-name")
-    result = client.predict("/predict", inputs)
-except Exception as e:
-    # Catches all exceptions including AppError
-    print(f"Error: {e}")
-```
