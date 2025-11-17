@@ -298,6 +298,14 @@ class Video(StreamingOutput, Component):
             processed_files = (self._format_video(value), None)
 
         elif isinstance(value, (tuple, list)):
+            warnings.warn(
+                "Returning a tuple of (video, subtitles) from a function will be removed in Gradio 6.0. "
+                "You will need to use the Video component directly with the subtitles parameter instead. "
+                "For example: return gr.Video(value=video_path, subtitles=subtitle_path)",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            
             if len(value) != 2:
                 raise ValueError(
                     f"Expected lists of length 2 or tuples of length 2. Received: {value}"
