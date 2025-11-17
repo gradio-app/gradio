@@ -323,6 +323,27 @@ class Chatbot(Component):
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
         self.latex_delimiters = latex_delimiters
+        if show_share_button is not None:
+            warnings.warn(
+                "The 'show_share_button' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'buttons=[\"share\"]' instead.",
+                DeprecationWarning,
+                stacklevel=3,
+            )
+        if show_copy_button is not False:
+            warnings.warn(
+                "The 'show_copy_button' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'buttons=[\"copy\"]' instead.",
+                DeprecationWarning,
+                stacklevel=3,
+            )
+        if show_copy_all_button is not False:
+            warnings.warn(
+                "The 'show_copy_all_button' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'buttons=[\"copy_all\"]' instead.",
+                DeprecationWarning,
+                stacklevel=3,
+            )
         self.show_share_button = (
             (utils.get_space() is not None)
             if show_share_button is None

@@ -144,6 +144,13 @@ class Textbox(FormComponent):
                 )
                 max_lines = 1
 
+        if show_copy_button is not False:
+            warnings.warn(
+                "The 'show_copy_button' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'buttons=[\"copy\"]' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         self.lines = lines
         self.max_lines = max_lines
         self.placeholder = placeholder

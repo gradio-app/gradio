@@ -183,6 +183,20 @@ class Audio(
         self.format = format and format.lower()
         self.autoplay = autoplay
         self.loop = loop
+        if show_download_button is not None:
+            warnings.warn(
+                "The 'show_download_button' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'buttons=[\"download\"]' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        if show_share_button is not None:
+            warnings.warn(
+                "The 'show_share_button' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'buttons=[\"share\"]' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         self.show_download_button = show_download_button
         self.show_share_button = (
             (utils.get_space() is not None)
