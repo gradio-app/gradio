@@ -198,7 +198,10 @@ class Audio(
             self.waveform_options = waveform_options
         if self.waveform_options.show_controls is not False:
             warnings.warn(
-                "The `show_controls` parameter is deprecated and will be removed in a future release. Use `show_recording_waveform` instead."
+                "The 'show_controls' parameter in WaveformOptions will be removed in Gradio 6.0. "
+                "You will need to use 'show_recording_waveform' instead.",
+                DeprecationWarning,
+                stacklevel=2,
             )
         self.min_length = min_length
         self.max_length = max_length
