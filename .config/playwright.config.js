@@ -15,11 +15,11 @@ const base = defineConfig({
 		}
 	},
 	expect: { timeout: 10000 },
-	timeout: 30_000,
+	timeout: 10000,
 	testMatch: /.*\.spec\.ts/,
 	testDir: "..",
 	workers: process.env.CI ? 6 : undefined,
-	retries: 3
+	retries: 0
 });
 
 // There are Firefox-specific issues such as https://github.com/gradio-app/gradio/pull/9528 so we want to run the tests on Firefox, but Firefox sometimes fails to start in the GitHub Actions environment so we disable it on CI.
