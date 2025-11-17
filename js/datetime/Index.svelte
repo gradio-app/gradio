@@ -3,65 +3,49 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio } from "@gradio/utils";
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { Calendar } from "@gradio/icons";
 	import { onDestroy } from "svelte";
 	import DateTimePicker from "./DateTimePicker.svelte";
 	import { format_date, date_is_valid_format, parse_date_value } from "./utils";
+	import { Gradio } from "@gradio/utils";
+	import type { DateTimeProps, DateTimeEvents } from "./types";
 
-	export let gradio: Gradio<{
-		change: undefined;
-		submit: undefined;
-	}>;
-	export let label = "Time";
-	export let show_label = true;
-	export let info: string | undefined = undefined;
-	export let interactive: boolean;
-	$: disabled = !interactive;
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let value = "";
-	let old_value = value;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let include_time = true;
+	const props = $props();
+	const gradio = new Gradio<DateTimeEvents, DateTimeProps>(props);
 
-	let show_picker = false;
+	let old_value = $state(gradio.props.value);
+	let show_picker = $state(false);
+	let entered_value = $state(gradio.props.value);
 	let picker_ref: HTMLDivElement;
 	let input_ref: HTMLInputElement;
 	let calendar_button_ref: HTMLButtonElement;
-	let picker_position = { top: 0, left: 0 };
+	let picker_position = $state({ top: 0, left: 0 });
 
-	$: if (value !== old_value) {
-		old_value = value;
-		entered_value = value;
-		update_picker_from_value();
-		gradio.dispatch("change");
-	}
+	let current_year = $state(new Date().getFullYear());
+	let current_month = $state(new Date().getMonth());
+	let selected_date = $state(new Date());
+	let selected_hour = $state(new Date().getHours());
+	let selected_minute = $state(new Date().getMinutes());
+	let selected_second = $state(new Date().getSeconds());
+	let is_pm = $state(selected_hour >= 12);
 
-	let entered_value = value;
+	let valid = $derived.by(() =>
+		date_is_valid_format(entered_value, gradio.props.include_time)
+	);
+	let disabled = $derived(!gradio.shared.interactive);
 
-	$: valid = date_is_valid_format(entered_value, include_time);
-
-	const submit_values = (): void => {
-		if (entered_value === value) return;
-		if (!date_is_valid_format(entered_value, include_time)) return;
-		old_value = value = entered_value;
-		gradio.dispatch("change");
-	};
-
-	let current_year = new Date().getFullYear();
-	let current_month = new Date().getMonth();
-	let selected_date = new Date();
-	let selected_hour = new Date().getHours();
-	let selected_minute = new Date().getMinutes();
-	let selected_second = new Date().getSeconds();
-	let is_pm = selected_hour >= 12;
+	$effect(() => {
+		if (old_value != gradio.props.value) {
+			old_value = gradio.props.value;
+			entered_value = gradio.props.value;
+			update_picker_from_value();
+			gradio.dispatch("change");
+		}
+	});
 
 	const update_picker_from_value = (): void => {
-		const parsed = parse_date_value(entered_value, include_time);
+		const parsed = parse_date_value(entered_value, gradio.props.include_time);
 		selected_date = parsed.selected_date;
 		current_year = parsed.current_year;
 		current_month = parsed.current_month;
@@ -69,6 +53,13 @@
 		selected_minute = parsed.selected_minute;
 		selected_second = parsed.selected_second;
 		is_pm = parsed.is_pm;
+	};
+
+	const submit_values = (): void => {
+		if (entered_value === gradio.props.value) return;
+		if (!date_is_valid_format(entered_value, gradio.props.include_time)) return;
+		old_value = gradio.props.value = entered_value;
+		gradio.dispatch("change");
 	};
 
 	const calculate_picker_position = (): void => {
@@ -136,7 +127,7 @@
 
 	const handle_picker_clear = (): void => {
 		entered_value = "";
-		value = "";
+		gradio.props.value = "";
 		close_picker();
 		gradio.dispatch("change");
 	};
@@ -152,16 +143,18 @@
 </script>
 
 <Block
-	{visible}
-	{elem_id}
-	{elem_classes}
-	{scale}
-	{min_width}
+	visible={gradio.shared.visible}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+	scale={gradio.shared.scale}
+	min_width={gradio.shared.min_width}
 	allow_overflow={false}
 	padding={true}
 >
 	<div class="label-content">
-		<BlockTitle {show_label} {info}>{label}</BlockTitle>
+		<BlockTitle show_label={gradio.shared.show_label} info={gradio.props.info}
+			>{gradio.shared.label || "Date"}</BlockTitle
+		>
 	</div>
 	<div class="timebox">
 		<input
@@ -177,10 +170,12 @@
 			}}
 			on:blur={submit_values}
 			{disabled}
-			placeholder={include_time ? "YYYY-MM-DD HH:MM:SS" : "YYYY-MM-DD"}
+			placeholder={gradio.props.include_time
+				? "YYYY-MM-DD HH:MM:SS"
+				: "YYYY-MM-DD"}
 		/>
 
-		{#if interactive}
+		{#if gradio.shared.interactive}
 			<button
 				bind:this={calendar_button_ref}
 				class="calendar"
@@ -202,7 +197,7 @@
 				bind:selected_minute
 				bind:selected_second
 				bind:is_pm
-				{include_time}
+				include_time={gradio.props.include_time}
 				position={picker_position}
 				on:update={handle_picker_update}
 				on:clear={handle_picker_clear}

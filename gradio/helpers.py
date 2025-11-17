@@ -57,7 +57,7 @@ def create_examples(
     *,
     example_labels: list[str] | None = None,
     visible: bool | Literal["hidden"] = True,
-    preload: int | Literal[False] = False,
+    preload: int | Literal[False] = 0,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
     examples_obj = Examples(
@@ -121,7 +121,7 @@ class Examples:
         *,
         example_labels: list[str] | None = None,
         visible: bool | Literal["hidden"] = True,
-        preload: int | Literal[False] = False,
+        preload: int | Literal[False] = 0,
         _initiated_directly: bool = True,
     ):
         """
@@ -144,11 +144,11 @@ class Examples:
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is not False.
             example_labels: A list of labels for each example. If provided, the length of this list should be the same as the number of examples, and these labels will be used in the UI instead of rendering the example values.
             visible: If False, the examples component will be hidden in the UI.
-            preload: If an integer is provided (and examples are being cached), the example at that index in the examples list will be preloaded when the Gradio app is loaded. If False, no example will be preloaded.
+            preload: If an integer is provided (and examples are being cached eagerly and none of the input components have a developer-provided `value`), the example at that index in the examples list will be preloaded when the Gradio app is first loaded. If False, no example will be preloaded.
         """
         if _initiated_directly:
             warnings.warn(
-                "Please use gr.Examples(...) instead of gr.examples.Examples(...) to create the Examples.",
+                "Please use gr.Examples(...) instead of gr.helpers.Examples(...) to create the Examples.",
             )
 
         self.cache_examples = False
@@ -392,6 +392,10 @@ class Examples:
                     self.preload is not False
                     and self.cache_examples != "lazy"
                     and self.root_block
+                    and not any(
+                        "value" in inp.constructor_args
+                        for inp in self.inputs_with_examples
+                    )
                 ):
                     self.root_block.load(
                         load_example_input,

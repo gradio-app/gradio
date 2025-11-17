@@ -362,13 +362,19 @@
 		}
 	}
 
-	onDestroy(() => {
-		spaceheader?.remove();
-	});
+	// onDestroy(() => {
+	// 	if (spaceheader) {
+	// 		spaceheader.remove();
+	// 		spaceheader = undefined;
+	// 	}
+	// });
 </script>
 
 <svelte:head>
-	<link rel="stylesheet" href={"./theme.css?v=" + config?.theme_hash} />
+	<link
+		rel="stylesheet"
+		href={config?.root + "/theme.css?v=" + config?.theme_hash}
+	/>
 	{#if config?.stylesheets}
 		{#each config.stylesheets as stylesheet}
 			{#if stylesheet.startsWith("http:") || stylesheet.startsWith("https:")}

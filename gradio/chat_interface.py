@@ -10,9 +10,8 @@ import dataclasses
 import inspect
 import os
 import warnings
-from collections.abc import AsyncGenerator, Callable, Generator, Sequence
+from collections.abc import AsyncGenerator, Callable, Generator
 from functools import wraps
-from pathlib import Path
 from typing import Any, Literal, Union, cast
 
 from anyio.to_thread import run_sync
@@ -47,7 +46,6 @@ from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args, update
 from gradio.i18n import I18nData
 from gradio.layouts import Accordion, Column, Group, Row
-from gradio.themes import ThemeClass as Theme
 
 
 @document()
@@ -89,15 +87,9 @@ class ChatInterface(Blocks):
         cache_mode: Literal["eager", "lazy"] | None = None,
         title: str | I18nData | None = None,
         description: str | None = None,
-        theme: Theme | str | None = None,
         flagging_mode: Literal["never", "manual"] | None = None,
         flagging_options: list[str] | tuple[str, ...] | None = ("Like", "Dislike"),
         flagging_dir: str = ".gradio/flagged",
-        css: str | None = None,
-        css_paths: str | Path | Sequence[str | Path] | None = None,
-        js: str | Literal[True] | None = None,
-        head: str | None = None,
-        head_paths: str | Path | Sequence[str | Path] | None = None,
         analytics_enabled: bool | None = None,
         autofocus: bool = True,
         autoscroll: bool = True,
@@ -132,15 +124,9 @@ class ChatInterface(Blocks):
             run_examples_on_click: if True, clicking on an example will run the example through the chatbot fn and the response will be displayed in the chatbot. If False, clicking on an example will only populate the chatbot input with the example message. Has no effect if `cache_examples` is True
             title: a title for the interface; if provided, appears above chatbot in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the chatbot and beneath the title in regular font. Accepts Markdown and HTML content.
-            theme: a Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             flagging_mode: one of "never", "manual". If "never", users will not see a button to flag an input and output. If "manual", users will see a button to flag.
             flagging_options: a list of strings representing the options that users can choose from when flagging a message. Defaults to ["Like", "Dislike"]. These two case-sensitive strings will render as "thumbs up" and "thumbs down" icon respectively next to each bot message, but any other strings appear under a separate flag icon.
             flagging_dir: path to the the directory where flagged data is stored. If the directory does not exist, it will be created.
-            css: Custom css as a code string. This css will be included in the demo webpage.
-            css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
-            js: Custom js as a code string. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
-            head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
-            head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             autofocus: if True, autofocuses to the textbox when the page loads.
             autoscroll: If True, will automatically scroll to the bottom of the chatbot when a new message appears, unless the user scrolls up. If False, will not scroll to the bottom of the chatbot automatically.
@@ -161,12 +147,6 @@ class ChatInterface(Blocks):
             analytics_enabled=analytics_enabled,
             mode="chat_interface",
             title=title or "Gradio",
-            theme=theme,
-            css=css,
-            css_paths=css_paths,
-            js=js,
-            head=head,
-            head_paths=head_paths,
             fill_height=fill_height,
             fill_width=fill_width,
             delete_cache=delete_cache,
@@ -210,7 +190,7 @@ class ChatInterface(Blocks):
         self.additional_outputs = utils.none_or_singleton_to_list(additional_outputs)
         if additional_inputs_accordion is None:
             self.additional_inputs_accordion_params = {
-                "label": "Additional Inputs",
+                "label": I18nData("chat_interface.additional_inputs"),
                 "open": False,
             }
         elif isinstance(additional_inputs_accordion, str):
@@ -316,7 +296,7 @@ class ChatInterface(Blocks):
     def _render_history_area(self):
         with Column(scale=1, min_width=100):
             self.new_chat_button = Button(
-                "New chat",
+                I18nData("chat_interface.new_chat"),
                 variant="primary",
                 size="md",
                 icon=utils.get_icon_path("plus.svg"),
@@ -350,7 +330,7 @@ class ChatInterface(Blocks):
             self.chatbot._setup_examples()
         else:
             self.chatbot = Chatbot(
-                label="Chatbot",
+                label=I18nData("chat_interface.chatbot"),
                 scale=1,
                 height=400 if self.fill_height else None,
                 autoscroll=self.autoscroll,
@@ -377,7 +357,7 @@ class ChatInterface(Blocks):
                     self.textbox = textbox_component(
                         show_label=False,
                         label="",
-                        placeholder="Type a message...",
+                        placeholder=I18nData("chat_interface.message_placeholder"),
                         scale=7,
                         autofocus=self.autofocus,
                         submit_btn=submit_btn,
@@ -411,6 +391,7 @@ class ChatInterface(Blocks):
                 cache_mode=cast(Literal["eager", "lazy"], self.cache_mode),
                 visible=self._additional_inputs_in_examples,
                 preprocess=self._additional_inputs_in_examples,
+                preload=False,
             )
 
         any_unrendered_inputs = any(
@@ -475,7 +456,7 @@ class ChatInterface(Blocks):
                         title += "📎 "
         if len(title) > 40:
             title = title[:40] + "..."
-        return title or "Conversation"
+        return title or str(I18nData("chat_interface.conversation"))
 
     @staticmethod
     def serialize_components(

@@ -2,11 +2,7 @@
 import { browser } from "$app/environment";
 
 import { Client } from "@gradio/client";
-import {
-	create_components,
-	type ComponentMeta,
-	type Dependency
-} from "@gradio/core";
+import { AppTree, type ComponentMeta, type Dependency } from "@gradio/core";
 import { get } from "svelte/store";
 import type { Config } from "@gradio/client";
 import { MISSING_CREDENTIALS_MSG } from "@gradio/client";
@@ -14,6 +10,9 @@ import { setupi18n } from "@gradio/core";
 
 import Blocks from "@gradio/core/blocks";
 import Login from "@gradio/core/login";
+import { page } from "$app/state";
+
+export let ssr = false;
 
 export async function load({
 	url,
@@ -90,27 +89,36 @@ export async function load({
 
 	let page_config = app.get_url_config(url.toString());
 
-	const { create_layout, layout } = create_components();
+	// const { create_layout, layout } = create_components();
 
-	await create_layout({
-		app,
-		components: page_config.components,
-		dependencies: page_config.dependencies,
-		layout: page_config.layout,
-		root: app.config.root + app.config.api_prefix,
-		options: {
-			fill_height: app.config.fill_height ?? false
-		}
-	});
+	// const Tree = new AppTree(
+	// 	page_config.components,
+	// 	page_config.layout,
+	// 	page_config.dependencies,
+	// 	{ ...app.config }
+	// );
+	// Tree.process();
+	// console.log("boo")
 
-	const layouts = get(layout);
+	// const layouts = Tree.root;
+	// await create_layout({
+	// 	app,
+	// 	components: page_config.components,
+	// 	dependencies: page_config.dependencies,
+	// 	layout: page_config.layout,
+	// 	root: app.config.root + app.config.api_prefix,
+	// 	options: {
+	// 		fill_height: app.config.fill_height ?? false
+	// 	}
+	// });
+
+	// const layouts = get(layout);
 	await setupi18n(app.config?.i18n_translations || undefined, accept_language);
-
 	return {
 		Render: app.config?.auth_required ? Login : Blocks,
 		config: page_config,
 		api_url,
-		layout: layouts,
+		// layout: layouts,
 		app
 	};
 }

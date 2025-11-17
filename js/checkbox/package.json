@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/checkbox",
-	"version": "0.4.31",
+	"version": "0.5.0-dev.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -30,7 +30,7 @@
 		"@gradio/preview": "workspace:^"
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.43.4"
 	},
 	"repository": {
 		"type": "git",

@@ -261,7 +261,6 @@
 	.wrap {
 		padding: 0rem;
 		border-radius: 5px;
-		border: 1px solid #eee;
 		overflow: hidden;
 		position: relative;
 		margin: 0;

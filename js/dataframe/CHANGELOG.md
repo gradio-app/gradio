@@ -1,5 +1,31 @@
 # @gradio/dataframe
 
+## 0.21.0-dev.2
+
+### Features
+
+- [#12357](https://github.com/gradio-app/gradio/pull/12357) [`c9cf634`](https://github.com/gradio-app/gradio/commit/c9cf634a9cd34b4adadde1a6a98d60faf732639a) - Fix various event issues.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/dataframe-interim@0.21.0-dev.2
+
+## 0.21.0-dev.1
+
+### Features
+
+- [#12110](https://github.com/gradio-app/gradio/pull/12110) [`e80fc6f`](https://github.com/gradio-app/gradio/commit/e80fc6f9eba1b895680b19803bbd15e7e303d969) - Fix issue with boolean columns in dataframe.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.18.2-dev.0
+- @gradio/upload@0.17.2-dev.1
+- @gradio/utils@0.10.3-dev.0
+- @gradio/button@0.5.14-dev.1
+- @gradio/statustracker@0.12.0-dev.0
+- @gradio/icons@0.15.0-dev.0
+- @gradio/checkbox@0.5.0-dev.0
+
 ## 0.20.2-dev.0
 
 ### Dependency updates

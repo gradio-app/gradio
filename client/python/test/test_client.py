@@ -507,8 +507,13 @@ class TestClientPredictions:
             assert demo.predict(api_name="/predict") == "\ta\nb" * 90000
 
     def test_queue_full_raises_error(self):
+        import time
+
         demo = gr.Interface(
-            lambda s: f"Hello {s}", "textbox", "textbox", api_name="predict"
+            lambda s: time.sleep(1) or f"Hello {s}",
+            "textbox",
+            "textbox",
+            api_name="predict",
         ).queue(max_size=1)
         with connect(demo) as client:
             with pytest.raises(QueueError):
@@ -595,12 +600,12 @@ class TestClientPredictionsWithKwargs:
             result = client.predict(num2=33, operation="multiply", api_name="/predict")
             assert result == 330
 
-    def test_missing_params(self, calculator_demo):
-        with connect(calculator_demo) as client:
+    def test_missing_params(self, hello_world_demo):
+        with connect(hello_world_demo) as client:
             with pytest.raises(
-                TypeError, match="No value provided for required argument: num2"
+                TypeError, match="No value provided for required argument: punctuation"
             ):
-                client.predict(num1=3, operation="add", api_name="/predict")
+                client.predict(name="Alice", api_name="/greet")
 
     def test_chatbot_message_format(self, chatbot_message_format):
         with connect(chatbot_message_format) as client:

@@ -12,7 +12,7 @@
 	import { Image } from "@gradio/image/shared";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { FileData, Client } from "@gradio/client";
-	import type { WaveformOptions } from "../../audio/shared/types";
+	import type { WaveformOptions } from "@gradio/audio";
 	import {
 		Clear,
 		File,
@@ -24,7 +24,7 @@
 		Microphone
 	} from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
-	import InteractiveAudio from "../../audio/interactive/InteractiveAudio.svelte";
+	import { BaseInteractiveAudio as InteractiveAudio } from "@gradio/audio";
 	import type { InputHTMLAttributes } from "./types";
 
 	export let value: { text: string; files: FileData[] } = {
@@ -65,6 +65,7 @@
 		| "microphone,upload" = "upload";
 	export let active_source: "microphone" | null = null;
 	export let html_attributes: InputHTMLAttributes | null = null;
+	export let upload_promise: Promise<any> | null = null;
 
 	let upload_component: Upload;
 	let el: HTMLTextAreaElement | HTMLInputElement;
@@ -102,7 +103,7 @@
 	}
 
 	$: if (value === null) value = { text: "", files: [] };
-	$: value, el && lines !== max_lines && resize(el, lines, max_lines);
+	$: (value, el && lines !== max_lines && resize(el, lines, max_lines));
 
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
@@ -169,9 +170,9 @@
 	}
 
 	async function handle_keypress(e: KeyboardEvent): Promise<void> {
-		await tick();
 		if (e.key === "Enter" && e.shiftKey && lines > 1) {
 			e.preventDefault();
+			await tick();
 			dispatch("submit");
 		} else if (
 			e.key === "Enter" &&
@@ -180,6 +181,7 @@
 			max_lines >= 1
 		) {
 			e.preventDefault();
+			await tick();
 			dispatch("submit");
 			active_source = null;
 			add_mic_audio_to_files();
@@ -374,6 +376,7 @@
 		{/if}
 		{#if show_upload}
 			<Upload
+				bind:upload_promise
 				bind:this={upload_component}
 				on:load={handle_upload}
 				{file_count}
@@ -418,14 +421,16 @@
 							role="listitem"
 							aria-label="File thumbnail"
 						>
-							<button class="thumbnail-item thumbnail-small">
+							<div class="thumbnail-item thumbnail-small">
 								{#if file.mime_type && file.mime_type.includes("image")}
 									<Image
 										src={file.url}
-										title={null}
-										alt=""
-										loading="lazy"
-										class={"thumbnail-image"}
+										restProps={{
+											title: null,
+											alt: "",
+											loading: "lazy",
+											class: "thumbnail-image"
+										}}
 									/>
 								{:else if file.mime_type && file.mime_type.includes("audio")}
 									<Music />
@@ -441,7 +446,7 @@
 								>
 									<Clear />
 								</button>
-							</button>
+							</div>
 						</span>
 					{/each}
 					{#if uploading}

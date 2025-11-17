@@ -42,7 +42,7 @@
 
 	$: {
 		if (mounted && viewport_height && viewport.offsetParent) {
-			sortedItems, raf(refresh_height_map);
+			(sortedItems, raf(refresh_height_map));
 		}
 	}
 

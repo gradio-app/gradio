@@ -1,2 +1,2 @@
 export * from "./color.js";
-export * from "./utils.js";
+export * from "./utils.svelte.js";

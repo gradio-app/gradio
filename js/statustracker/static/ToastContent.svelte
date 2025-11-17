@@ -7,7 +7,7 @@
 
 	export let type: ToastMessage["type"];
 	export let messages: ToastMessage[] = [];
-	export let expanded = false;
+	export let expanded = true;
 
 	const dispatch = createEventDispatcher();
 
@@ -136,7 +136,7 @@
 		<div class="toast-messages" transition:slide={{ duration: 200 }}>
 			{#each messages as message, i (message.id)}
 				<div class="toast-message-item {type}">
-					<div class="toast-message-text {type}">
+					<div class="toast-message-text {type}" data-testid="toast-text">
 						{@html sanitize(message.message)}
 					</div>
 				</div>
@@ -152,6 +152,7 @@
 	{/if}
 </div>
 
+<!-- s-csdrBJqpTpqa  -->
 <style>
 	.toast-body {
 		display: flex;
@@ -160,7 +161,7 @@
 		right: 0;
 		left: 0;
 		margin: auto;
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-sm);
 		overflow: hidden;
 		pointer-events: auto;
 		background: var(--background-fill-secondary);
