@@ -3,6 +3,7 @@
 </script>
 
 <script lang="ts">
+	import { tick } from "svelte";
 	let {
 		selected = $bindable(),
 		display_value,
@@ -13,11 +14,12 @@
 	} = $props();
 	let is_selected = $derived(selected === internal_value);
 
-	function handle_input(
-		e: Event & { currentTarget: EventTarget & HTMLInputElement }
-	): void {
-		is_selected = e.currentTarget.checked;
-		if (e.currentTarget.checked) {
+	async function handle_input(
+		e: Event & { target: EventTarget & HTMLInputElement }
+	): Promise<void> {
+		is_selected = e.target.checked;
+		if (is_selected) {
+			await tick();
 			on_input();
 		}
 	}
