@@ -366,7 +366,7 @@ class Chatbot(Component):
         self.allow_file_downloads = allow_file_downloads
         self.feedback_options = feedback_options
         self.feedback_value = feedback_value
-        
+
         if allow_tags is not True:
             warnings.warn(
                 "The default value of 'allow_tags' in gr.Chatbot will be changed from False to True in Gradio 6.0. "
@@ -374,7 +374,7 @@ class Chatbot(Component):
                 DeprecationWarning,
                 stacklevel=3,
             )
-        
+
         self.allow_tags = allow_tags if allow_tags else False
         super().__init__(
             label=label,
