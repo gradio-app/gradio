@@ -134,11 +134,11 @@
 			// trigger_share(title, description);
 			// TODO: lets combine all of the into a log type with levels
 		} else if (event === "error") {
-			new_message("Error", data, -1, event);
+			new_message("Error", data, -1, event, 10, true);
 		} else if (event === "warning") {
-			new_message("Warning", data, -1, event);
+			new_message("Warning", data, -1, event, 10, true);
 		} else if (event === "info") {
-			new_message("Info", data, -1, event);
+			new_message("Info", data, -1, event, 10, true);
 		} else if (event == "clear_status") {
 			app_tree.update_state(
 				id,
