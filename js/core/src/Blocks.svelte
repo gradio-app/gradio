@@ -134,11 +134,11 @@
 			// trigger_share(title, description);
 			// TODO: lets combine all of the into a log type with levels
 		} else if (event === "error") {
-			new_message("Error", data, -1, event);
+			new_message("Error", data, -1, event, 10, true);
 		} else if (event === "warning") {
-			new_message("Warning", data, -1, event);
+			new_message("Warning", data, -1, event, 10, true);
 		} else if (event === "info") {
-			new_message("Info", data, -1, event);
+			new_message("Info", data, -1, event, 10, true);
 		} else if (event == "clear_status") {
 			app_tree.update_state(
 				id,
@@ -286,8 +286,9 @@
 		fn_index: number,
 		type: ToastMessage["type"],
 		duration: number | null = 10,
-		visible = true
+		visible = false
 	): void {
+		if (!visible) return;
 		messages.push({
 			title,
 			message,
@@ -297,14 +298,6 @@
 			duration,
 			visible
 		});
-	}
-
-	export function add_new_message(
-		title: string,
-		message: string,
-		type: ToastMessage["type"]
-	): void {
-		messages = [new_message(title, message, -1, type), ...messages];
 	}
 
 	let _error_id = -1;

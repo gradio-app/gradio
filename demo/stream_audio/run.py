@@ -1,9 +1,7 @@
 import gradio as gr
 import numpy as np
-import time
 
 def add_to_stream(audio, instream):
-    time.sleep(1)
     if audio is None:
         return gr.Audio(), instream
     if instream is None:
