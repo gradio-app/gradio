@@ -75,10 +75,18 @@ def _setup_config(
 
     abs_current = Path.cwd().absolute()
     if str(abs_current).strip() and abs_current not in watching_dirs:
-        watching_dirs.append(abs_current)
-        if message_change_count == 1:
-            message += ","
-        message += f" '{abs_current}'"
+        try:
+            gradio_folder.relative_to(abs_current)
+            is_subdir = True
+        except ValueError:
+            is_subdir = False
+        if is_subdir and not watch_library:
+            pass
+        else:
+            watching_dirs.append(abs_current)
+            if message_change_count == 1:
+                message += ","
+            message += f" '{abs_current}'"
 
     for wd in additional_watch_dirs or []:
         if Path(wd) not in watching_dirs:

@@ -267,6 +267,7 @@ class SourceFileReloader(ServerReloader):
         self.watch_module_name = watch_module_name
         self._stop_event = stop_event
         self.demo_name = self.get_demo_name(watch_module, demo_name)
+        print("Watching demo:", self.demo_name)
         self.demo_file = Path(demo_file)
         self.watch_module = watch_module
         self.encoding = encoding
