@@ -107,6 +107,7 @@ export interface ChatbotEvents {
 }
 
 export interface ChatbotProps {
+	autoscroll: boolean;
 	messages: Message[];
 	examples: ExampleMessage[] | null;
 	allow_undo: boolean;
