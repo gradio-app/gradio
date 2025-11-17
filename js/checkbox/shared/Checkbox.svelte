@@ -70,7 +70,7 @@
 
 	.label-text {
 		color: var(--body-text-color);
-		font-size: var(--text-sm);
+		font-size: var(--checkbox-label-text-size);
 		line-height: var(--line-sm);
 	}
 
