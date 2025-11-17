@@ -34,6 +34,11 @@ type Tab = {
 	scale: number | null;
 	order?: number;
 };
+
+const type_map = {
+	walkthrough: "tabs",
+	walkthroughstep: "tabitem"
+};
 export class AppTree {
 	/** the raw component structure received from the backend */
 	#component_payload: ComponentMeta[];
@@ -163,6 +168,7 @@ export class AppTree {
 					this.components_to_register
 				),
 			(node) => translate_props(node, this.#config.root),
+			// (node) => this.process_walkthrough(node),
 			(node) => apply_initial_tabs(node, this.#config.root, this.initial_tabs),
 			(node) => this.find_attached_events(node, this.#dependency_payload)
 		]);
@@ -266,9 +272,12 @@ export class AppTree {
 			{ ...this.#config }
 		);
 
+		const type =
+			type_map[component.type as keyof typeof type_map] || component.type;
+
 		const node = {
 			id: opts.id,
-			type: component.type,
+			type: type,
 			props: processed_props,
 			children: [],
 			show_progress_on: null,
@@ -343,7 +352,7 @@ export class AppTree {
 		_set_data(new_state);
 		if (!check_visibility || already_updated_visibility) return;
 		// need to let the UI settle before traversing again
-		// otherwise there could be 
+		// otherwise there could be
 		await tick();
 		this.root = this.traverse(this.root!, (n) =>
 			handle_visibility(n, this.#config.root)
@@ -367,6 +376,16 @@ export class AppTree {
 	}
 }
 
+function process_walkthrough(
+	node: ProcessedComponentMeta
+): ProcessedComponentMeta {
+	// Implement the walkthrough processing logic here
+	console.log("Processing walkthrough for node:", node);
+	if (node.props.shared_props.name === "walkthrough") {
+	}
+	// if (node.props.shared_props.walkthrough_step) {
+	return node;
+}
 /**
  * Process the server function names and return a dictionary of functions
  * @param id the component id
