@@ -4,6 +4,7 @@ import {
 	get_inputs_outputs
 } from "./init_utils";
 import { translate_if_needed } from "./i18n";
+import { tick } from "svelte";
 
 import type {
 	ComponentMeta,
@@ -329,6 +330,7 @@ export class AppTree {
 		const node = find_node_by_id(this.root!, id);
 		let already_updated_visibility = false;
 		if (check_visibility && !node?.component) {
+			await tick();
 			this.root = this.traverse(this.root!, [
 				//@ts-ignore
 				(n) => set_visibility_for_updated_node(n, id, new_state.visible),
@@ -340,6 +342,9 @@ export class AppTree {
 		if (!_set_data) return;
 		_set_data(new_state);
 		if (!check_visibility || already_updated_visibility) return;
+		// need to let the UI settle before traversing again
+		// otherwise there could be 
+		await tick();
 		this.root = this.traverse(this.root!, (n) =>
 			handle_visibility(n, this.#config.root)
 		);
