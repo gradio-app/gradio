@@ -417,7 +417,11 @@ function gather_props(
 	for (const key in props) {
 		// For Tabs (or any component that already has an id prop)
 		// Set the id to the props so that it doesn't get overwritten
-		if (key === "id") {
+		if (key === "id" || key === "autoscroll") {
+			console.log("gather_props setting id/autoscroll", {
+				key,
+				value: props[key]
+			});
 			_props[key] = props[key];
 		} else if (allowed_shared_props.includes(key as keyof SharedProps)) {
 			const _key = key as keyof SharedProps;
@@ -599,9 +603,9 @@ function _gather_initial_tabs(
 		}
 		initial_tabs[parent_tab_id].push({
 			label: node.props.shared_props.label as string,
-			id: node.props.props.id,
+			id: node.props.props.id as string,
 			elem_id: node.props.shared_props.elem_id,
-			visible: node.props.shared_props.visible,
+			visible: node.props.shared_props.visible as boolean,
 			interactive: node.props.shared_props.interactive,
 			scale: node.props.shared_props.scale || null
 		});
@@ -630,7 +634,8 @@ function gather_initial_tabs(
 				_gather_initial_tabs(
 					child,
 					initial_tabs,
-					node.type === "tabs" ? node.id : null
+					node.type === "tabs" ? node.id : null,
+					null
 				)
 			);
 		}

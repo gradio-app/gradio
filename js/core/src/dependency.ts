@@ -453,6 +453,7 @@ export class DependencyManager {
 												false
 											);
 										});
+
 										// Manually set the output statuses to null
 										// Doing this in update_loading_stati_state would
 										// validation errors set above
