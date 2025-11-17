@@ -34,6 +34,11 @@ type Tab = {
 	scale: number | null;
 	order?: number;
 };
+
+const type_map = {
+	walkthrough: "tabs",
+	walkthroughstep: "tabitem"
+};
 export class AppTree {
 	/** the raw component structure received from the backend */
 	#component_payload: ComponentMeta[];
@@ -266,9 +271,12 @@ export class AppTree {
 			{ ...this.#config }
 		);
 
+		const type =
+			type_map[component.type as keyof typeof type_map] || component.type;
+
 		const node = {
 			id: opts.id,
-			type: component.type,
+			type: type,
 			props: processed_props,
 			children: [],
 			show_progress_on: null,
