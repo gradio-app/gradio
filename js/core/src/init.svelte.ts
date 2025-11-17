@@ -376,16 +376,6 @@ export class AppTree {
 	}
 }
 
-function process_walkthrough(
-	node: ProcessedComponentMeta
-): ProcessedComponentMeta {
-	// Implement the walkthrough processing logic here
-	console.log("Processing walkthrough for node:", node);
-	if (node.props.shared_props.name === "walkthrough") {
-	}
-	// if (node.props.shared_props.walkthrough_step) {
-	return node;
-}
 /**
  * Process the server function names and return a dictionary of functions
  * @param id the component id
