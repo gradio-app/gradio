@@ -108,17 +108,17 @@
 		background-color: white;
 	}
 
-	input:hover {
+	input:hover:not([disabled]) {
 		border-color: var(--checkbox-border-color-hover);
 		background-color: var(--checkbox-background-color-hover);
 	}
 
-	input:focus {
+	input:focus:not([disabled]) {
 		border-color: var(--checkbox-border-color-focus);
 		background-color: var(--checkbox-background-color-focus);
 	}
 
-	input:checked:focus {
+	input:checked:focus:not([disabled]) {
 		border-color: var(--checkbox-border-color-focus);
 		background-image: var(--radio-circle);
 		background-color: var(--checkbox-background-color-selected);
@@ -127,5 +127,9 @@
 	input[disabled],
 	.disabled {
 		cursor: not-allowed;
+	}
+
+	input[disabled] {
+		opacity: 0.75;
 	}
 </style>
