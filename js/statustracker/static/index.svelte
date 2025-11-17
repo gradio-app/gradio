@@ -237,7 +237,6 @@
 	});
 
 	function close_message(): void {
-		console.log("close_message called");
 		message_visible = false;
 		if (show_message_timeout !== null) {
 			clearTimeout(show_message_timeout);
