@@ -557,6 +557,20 @@ chatbot = gr.Chatbot(resizable=True)
 
 **`show_controls`** - This parameter in `WaveformOptions` has been removed. Use `show_recording_waveform` instead.
 
+**`min_length` and `max_length`** - These parameters have been removed. Use validators instead.
+
+**Before (Gradio 5.x):**
+```python
+audio = gr.Audio(min_length=1, max_length=10)
+```
+
+**After (Gradio 6.x):**
+```python
+audio = gr.Audio(
+    validator=lambda audio: gr.validators.is_audio_correct_length(audio, min_length=1, max_length=10)
+)
+```
+
 **Before (Gradio 5.x):**
 ```python
 audio = gr.Audio(
@@ -647,6 +661,20 @@ video = gr.Video(watermark="watermark.png")
 video = gr.Video(watermark=gr.WatermarkOptions(watermark="watermark.png"))
 ```
 
+**`min_length` and `max_length`** - These parameters have been removed. Use validators instead.
+
+**Before (Gradio 5.x):**
+```python
+video = gr.Video(min_length=1, max_length=10)
+```
+
+**After (Gradio 6.x):**
+```python
+video = gr.Video(
+    validator=lambda video: gr.validators.is_video_correct_length(video, min_length=1, max_length=10)
+)
+```
+
 #### `gr.ImageEditor` removed parameters
 
 **`crop_size`** - This parameter has been removed. Use `canvas_size` instead.
@@ -673,6 +701,49 @@ logout_btn = gr.LogoutButton()
 **After (Gradio 6.x):**
 ```python
 login_btn = gr.LoginButton()
+```
+
+#### Native plot components removed parameters
+
+The following parameters have been removed from `gr.LinePlot`, `gr.BarPlot`, and `gr.ScatterPlot`:
+
+- `overlay_point` - This parameter has been removed.
+- `width` - This parameter has been removed. Use CSS styling or container width instead.
+- `stroke_dash` - This parameter has been removed.
+- `interactive` - This parameter has been removed.
+- `show_actions_button` - This parameter has been removed.
+- `color_legend_title` - This parameter has been removed. Use `color_title` instead.
+
+**Before (Gradio 5.x):**
+```python
+plot = gr.LinePlot(
+    value=data,
+    x="date",
+    y="downloads",
+    overlay_point=True,
+    width=900
+)
+```
+
+**After (Gradio 6.x):**
+```python
+plot = gr.LinePlot(
+    value=data,
+    x="date",
+    y="downloads"
+)
+```
+
+**Note:** For `color_legend_title`, use `color_title` instead:
+
+**Before (Gradio 5.x):**
+```python
+plot = gr.ScatterPlot(color_legend_title="Category")
+```
+
+**After (Gradio 6.x):**
+```python
+plot = gr.ScatterPlot(color_title="Category")
 ```
 
 ### `gr.HTML` `padding` parameter default changed to `False`

@@ -172,7 +172,9 @@ class NativePlot(Component):
                 "width",
             ]:
                 warnings.warn(
-                    f"Argument '{key_}' has been deprecated.", DeprecationWarning
+                    f"The '{key_}' parameter will be removed in Gradio 6.0.",
+                    DeprecationWarning,
+                    stacklevel=2,
                 )
 
     def get_block_name(self) -> str:
