@@ -168,7 +168,6 @@ export class AppTree {
 					this.components_to_register
 				),
 			(node) => translate_props(node, this.#config.root),
-			// (node) => this.process_walkthrough(node),
 			(node) => apply_initial_tabs(node, this.#config.root, this.initial_tabs),
 			(node) => this.find_attached_events(node, this.#dependency_payload)
 		]);
