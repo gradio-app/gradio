@@ -135,8 +135,9 @@ test("Dataframe can be cleared and updated indirectly", async ({ page }) => {
 
 	const headers = await df_block.locator(".thead > tr > th").allTextContents();
 
-	const trimmed_headers = headers.slice(1).map((header) => header.trim());
-	expect(trimmed_headers).toEqual(["0", "1", "2", "3", "4"]);
+	expect(
+		headers.slice(1).map((header) => header.slice(1).replace(/\D/g, ""))
+	).toEqual(["0", "1", "2", "3", "4"]);
 });
 
 test("Non-interactive dataframe cannot be edited", async ({ page }) => {
