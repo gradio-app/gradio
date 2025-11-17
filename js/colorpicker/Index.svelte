@@ -22,9 +22,7 @@
 	);
 
 	$effect(() => {
-		console.log("EFFECT: checking for change", gradio.props.value, old_value);
 		if (old_value !== gradio.props.value) {
-			console.log("EFFECT: value changed, dispatching change");
 			old_value = gradio.props.value;
 			gradio.dispatch("change");
 		}
