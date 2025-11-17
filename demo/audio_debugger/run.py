@@ -4,7 +4,7 @@ from gradio.media import get_audio, MEDIA_PATHS
 
 # get_audio returns the path to the audio file
 audio_file = get_audio("cantina.wav")
-print(f"Using audio file at: {audio_file}", MEDIA_PATHS)
+
 with gr.Blocks() as demo:
     with gr.Tab("Audio"):
         gr.Audio(audio_file, buttons=["download"])
