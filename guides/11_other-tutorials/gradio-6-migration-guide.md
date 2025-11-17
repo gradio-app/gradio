@@ -10,7 +10,7 @@ Here, we walk through the breaking changes that were introduced in Gradio 6. Cod
 
 ### App-level parameters have been moved from `Blocks` to `launch()`
 
-The `gr.Blocks` class constructor contained several parameters that applied to your entire Gradio app, specifically:
+The `gr.Blocks` class constructor previously contained several parameters that applied to your entire Gradio app, specifically:
 
 * `theme`: The theme for your Gradio app
 * `css`: Custom CSS code as a string
@@ -164,7 +164,7 @@ The default API endpoint names for `gr.Interface` and `gr.ChatInterface` have ch
 - Both `gr.Interface` and `gr.ChatInterface` now use the name of the function you pass in as the default API endpoint name
 - This makes the API more descriptive and consistent with `gr.Blocks` behavior
 
-**Before (Gradio 5.x):**
+E.g. if your Gradio app is:
 
 ```python
 import gradio as gr
@@ -176,21 +176,7 @@ demo = gr.Interface(fn=generate_text, inputs="text", outputs="text")
 demo.launch()
 ```
 
-The API endpoint would be: `/predict`
-
-**After (Gradio 6.x):**
-
-```python
-import gradio as gr
-
-def generate_text(prompt):
-    return f"Generated: {prompt}"
-
-demo = gr.Interface(fn=generate_text, inputs="text", outputs="text")
-demo.launch()
-```
-
-The API endpoint will be: `/generate_text`
+Previously, the API endpoint that Gradio generated would be: `/predict`. Now, the API endpoint will be: `/generate_text`
 
 **To maintain the old endpoint names:**
 
@@ -416,44 +402,26 @@ demo = gr.Interface(
 demo.launch()
 ```
 
-Or if using `gr.Blocks`:
+### `gr.HTML` `padding` parameter default changed to `False`
+
+The default value of the `padding` parameter in `gr.HTML` has been changed from `True` to `False` for consistency with `gr.Markdown`.
+
+**In Gradio 5.x:**
+- `padding=True` was the default for `gr.HTML`
+- HTML components had padding by default
+
+**In Gradio 6.x:**
+- `padding=False` is the default for `gr.HTML`
+- This matches the default behavior of `gr.Markdown` for consistency
+
+**To maintain the old behavior:**
+
+If you want to keep the padding that was present in Gradio 5.x, explicitly set `padding=True`:
 
 ```python
-import gradio as gr
-
-def process_video(input):
-    video = "output.mp4"
-    subtitle = "subtitles.srt"
-    return gr.Video(value=video, subtitles=subtitle)
-
-with gr.Blocks() as demo:
-    input_text = gr.Textbox()
-    output_video = gr.Video()
-    btn = gr.Button("Generate")
-    btn.click(fn=process_video, inputs=input_text, outputs=output_video)
-
-demo.launch()
+html = gr.HTML("<div>Content</div>", padding=True)
 ```
 
-### `gr.ImageEditor` `crop_size` parameter renamed to `canvas_size`
-
-The `crop_size` parameter in `gr.ImageEditor` has been renamed to `canvas_size` to better reflect its purpose.
-
-**Before (Gradio 5.x):**
-
-```python
-import gradio as gr
-
-editor = gr.ImageEditor(crop_size=(512, 512))
-```
-
-**After (Gradio 6.x):**
-
-```python
-import gradio as gr
-
-editor = gr.ImageEditor(canvas_size=(512, 512))
-```
 
 ### `gr.Dataframe` `row_count` and `col_count` parameters restructured
 
@@ -523,7 +491,7 @@ df = gr.Dataframe(row_count=5, row_limits=(3, 10), column_count=3, column_limits
 - `col_count=(3, "dynamic")` → `column_count=3, column_limits=None`
 - `col_count=3` → `column_count=3, column_limits=None` (same behavior)
 
-### Removed component parameters
+### Other removed component parameters
 
 Several component parameters have been removed in Gradio 6.0. These parameters were previously deprecated and have now been fully removed.
 
@@ -531,15 +499,6 @@ Several component parameters have been removed in Gradio 6.0. These parameters w
 
 **`bubble_full_width`** - This parameter has been removed as it no longer has any effect.
 
-**Before (Gradio 5.x):**
-```python
-chatbot = gr.Chatbot(bubble_full_width=False)
-```
-
-**After (Gradio 6.x):**
-```python
-chatbot = gr.Chatbot()
-```
 
 **`resizeable`** - This parameter (with the typo) has been removed. Use `resizable` instead.
 
@@ -856,43 +815,6 @@ slider = gr.Slider(show_reset_button=True)
 slider = gr.Slider(buttons=["reset"])
 ```
 
-### `gr.HTML` `padding` parameter default changed to `False`
-
-The default value of the `padding` parameter in `gr.HTML` has been changed from `True` to `False` for consistency with `gr.Markdown`.
-
-**In Gradio 5.x:**
-- `padding=True` was the default for `gr.HTML`
-- HTML components had padding by default
-
-**In Gradio 6.x:**
-- `padding=False` is the default for `gr.HTML`
-- This matches the default behavior of `gr.Markdown` for consistency
-
-**Before (Gradio 5.x):**
-
-```python
-import gradio as gr
-
-html = gr.HTML("<div>Content</div>")
-# Had padding by default
-```
-
-**After (Gradio 6.x):**
-
-```python
-import gradio as gr
-
-html = gr.HTML("<div>Content</div>")
-# No padding by default (consistent with gr.Markdown)
-```
-
-**To maintain the old behavior:**
-
-If you want to keep the padding that was present in Gradio 5.x, explicitly set `padding=True`:
-
-```python
-html = gr.HTML("<div>Content</div>", padding=True)
-```
 
 ## Python Client Changes
 
