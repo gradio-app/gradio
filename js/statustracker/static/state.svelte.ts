@@ -60,13 +60,13 @@ export class LoadingStatus {
 		const {
 			fn_index,
 			status,
-			size = 0,
+			size = undefined,
 			position = null,
 			eta = null,
 			message = null,
-			progress = null,
 			stream_state = null,
-			time_limit = null
+			time_limit = null,
+			progress_data = null
 		} = args;
 
 		const outputs = this.fn_outputs[fn_index];
@@ -119,7 +119,7 @@ export class LoadingStatus {
 					eta: eta,
 					status: new_status,
 					message: message,
-					progress: progress,
+					progress: progress_data,
 					stream_state: stream_state,
 					time_limit,
 					type: type

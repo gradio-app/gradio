@@ -29,7 +29,7 @@ export interface LoadingStatusArgs {
 	position?: ILoadingStatus["queue_position"];
 	eta?: ILoadingStatus["eta"];
 	message?: ILoadingStatus["message"];
-	progress?: ILoadingStatus["progress"];
+	progress_data?: ILoadingStatus["progress"];
 	time_limit?: ILoadingStatus["time_limit"];
 	type?: "input" | "output";
 	stream_state: "open" | "closed" | "waiting" | null;
