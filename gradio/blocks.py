@@ -714,6 +714,23 @@ class BlocksConfig:
         if fn is not None and not cancels:
             check_function_inputs_match(fn, inputs, inputs_as_dict)
 
+        if show_api is not True:
+            warnings.warn(
+                "The 'show_api' parameter in event listeners will be removed in Gradio 6.0. "
+                "You will need to use the 'api_visibility' parameter instead. "
+                "To replicate show_api=False, in Gradio 6.0, use api_visibility='undocumented'.",
+                DeprecationWarning,
+                stacklevel=4,
+            )
+
+        if api_name is False:
+            warnings.warn(
+                "Setting 'api_name=False' in event listeners will be removed in Gradio 6.0. "
+                "You will need to use 'api_visibility=\"private\"' instead.",
+                DeprecationWarning,
+                stacklevel=4,
+            )
+
         if _targets and trigger_mode is None:
             if _targets[0][1] in ["change", "key_up"]:
                 trigger_mode = "always_last"
