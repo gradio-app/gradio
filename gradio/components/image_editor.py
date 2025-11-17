@@ -342,7 +342,10 @@ class ImageEditor(Component):
 
         if crop_size is not None and canvas_size is None:
             warnings.warn(
-                "`crop_size` parameter is deprecated. Please use `canvas_size` instead."
+                "The 'crop_size' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'canvas_size' instead.",
+                DeprecationWarning,
+                stacklevel=2,
             )
             if isinstance(crop_size, str):
                 # convert ratio to tuple

@@ -257,3 +257,272 @@ chatbot = gr.Chatbot(allow_tags=["thinking", "tool_call"])
 
 This will only preserve `<thinking>` and `<tool_call>` tags while removing all other custom tags.
 
+### `gr.Chatbot` and `gr.ChatInterface` tuple format removed
+
+The tuple format for chatbot messages has been removed in Gradio 6.0. You must now use the messages format with dictionaries containing "role" and "content" keys.
+
+**In Gradio 5.x:**
+- You could use `type="tuples"` or the default tuple format: `[["user message", "assistant message"], ...]`
+- The tuple format was a list of lists where each inner list had two elements: `[user_message, assistant_message]`
+
+**In Gradio 6.x:**
+- Only the messages format is supported: `type="messages"`
+- Messages must be dictionaries with "role" and "content" keys: `[{"role": "user", "content": "Hello"}, {"role": "assistant", "content": "Hi there!"}]`
+
+**Before (Gradio 5.x):**
+
+```python
+import gradio as gr
+
+# Using tuple format
+chatbot = gr.Chatbot(value=[["Hello", "Hi there!"]])
+```
+
+Or with `type="tuples"`:
+
+```python
+chatbot = gr.Chatbot(value=[["Hello", "Hi there!"]], type="tuples")
+```
+
+**After (Gradio 6.x):**
+
+```python
+import gradio as gr
+
+# Must use messages format
+chatbot = gr.Chatbot(
+    value=[
+        {"role": "user", "content": "Hello"},
+        {"role": "assistant", "content": "Hi there!"}
+    ],
+    type="messages"
+)
+```
+
+Similarly for `gr.ChatInterface`, if you were manually setting the chat history:
+
+```python
+# Before (Gradio 5.x)
+demo = gr.ChatInterface(
+    fn=chat_function,
+    examples=[["Hello", "Hi there!"]]
+)
+
+# After (Gradio 6.x)
+demo = gr.ChatInterface(
+    fn=chat_function,
+    examples=[{"role": "user", "content": "Hello"}, {"role": "assistant", "content": "Hi there!"}]
+)
+```
+
+**Note:** If you're using `gr.ChatInterface` with a function that returns messages, the function should return messages in the new format. The tuple format is no longer supported.
+
+### `gr.ChatInterface` `history` format now uses structured content
+
+The `history` format in `gr.ChatInterface` has been updated to consistently use OpenAI-style structured content format. Content is now always a list of content blocks, even for simple text messages.
+
+**In Gradio 5.x:**
+- Content could be a simple string: `{"role": "user", "content": "Hello"}`
+- Simple text messages used a string directly
+
+**In Gradio 6.x:**
+- Content is always a list of content blocks: `{"role": "user", "content": [{"type": "text", "text": "Hello"}]}`
+- This format is consistent with OpenAI's message format and supports multimodal content (text, images, etc.)
+
+**Before (Gradio 5.x):**
+
+```python
+history = [
+    {"role": "user", "content": "What is the capital of France?"},
+    {"role": "assistant", "content": "Paris"}
+]
+```
+
+**After (Gradio 6.x):**
+
+```python
+history = [
+    {"role": "user", "content": [{"type": "text", "text": "What is the capital of France?"}]},
+    {"role": "assistant", "content": [{"type": "text", "text": "Paris"}]}
+]
+```
+
+**With files:**
+
+When files are uploaded in the chat, they are represented as content blocks with `"type": "file"`. All content blocks (files and text) are grouped together in the same message's content array:
+
+```python
+history = [
+    {
+        "role": "user",
+        "content": [
+            {"type": "file", "file": {"path": "cat1.png"}},
+            {"type": "file", "file": {"path": "cat2.png"}},
+            {"type": "text", "text": "What's the difference between these two images?"}
+        ]
+    }
+]
+```
+
+This structured format allows for multimodal content (text, images, files, etc.) in chat messages, making it consistent with OpenAI's API format. All files uploaded in a single message are grouped together in the `content` array along with any text content.
+
+## Component-level Changes
+
+### `gr.Video` no longer accepts tuple values for video and subtitles
+
+The tuple format for returning video with subtitles has been deprecated. Instead of returning a tuple `(video_path, subtitle_path)`, you should now use the `gr.Video` component directly with the `subtitles` parameter.
+
+**In Gradio 5.x:**
+- You could return a tuple of `(video_path, subtitle_path)` from a function
+- The tuple format was `(str | Path, str | Path | None)`
+
+**In Gradio 6.x:**
+- Return a `gr.Video` component instance with the `subtitles` parameter
+- This provides more flexibility and consistency with other components
+
+**Before (Gradio 5.x):**
+
+```python
+import gradio as gr
+
+def generate_video_with_subtitles(input):
+    video_path = "output.mp4"
+    subtitle_path = "subtitles.srt"
+    return (video_path, subtitle_path)
+
+demo = gr.Interface(
+    fn=generate_video_with_subtitles,
+    inputs="text",
+    outputs=gr.Video()
+)
+demo.launch()
+```
+
+**After (Gradio 6.x):**
+
+```python
+import gradio as gr
+
+def generate_video_with_subtitles(input):
+    video_path = "output.mp4"
+    subtitle_path = "subtitles.srt"
+    return gr.Video(value=video_path, subtitles=subtitle_path)
+
+demo = gr.Interface(
+    fn=generate_video_with_subtitles,
+    inputs="text",
+    outputs=gr.Video()
+)
+demo.launch()
+```
+
+Or if using `gr.Blocks`:
+
+```python
+import gradio as gr
+
+def process_video(input):
+    video = "output.mp4"
+    subtitle = "subtitles.srt"
+    return gr.Video(value=video, subtitles=subtitle)
+
+with gr.Blocks() as demo:
+    input_text = gr.Textbox()
+    output_video = gr.Video()
+    btn = gr.Button("Generate")
+    btn.click(fn=process_video, inputs=input_text, outputs=output_video)
+
+demo.launch()
+```
+
+### `gr.ImageEditor` `crop_size` parameter renamed to `canvas_size`
+
+The `crop_size` parameter in `gr.ImageEditor` has been renamed to `canvas_size` to better reflect its purpose.
+
+**Before (Gradio 5.x):**
+
+```python
+import gradio as gr
+
+editor = gr.ImageEditor(crop_size=(512, 512))
+```
+
+**After (Gradio 6.x):**
+
+```python
+import gradio as gr
+
+editor = gr.ImageEditor(canvas_size=(512, 512))
+```
+
+### `gr.Dataframe` `row_count` and `col_count` parameters restructured
+
+The `row_count` and `col_count` parameters in `gr.Dataframe` have been restructured to provide more flexibility and clarity. The tuple format for specifying fixed/dynamic behavior has been replaced with separate parameters for initial counts and limits.
+
+**In Gradio 5.x:**
+- `row_count: int | tuple[int, str]` - Could be an int or tuple like `(5, "fixed")` or `(5, "dynamic")`
+- `col_count: int | tuple[int, str] | None` - Could be an int or tuple like `(3, "fixed")` or `(3, "dynamic")`
+
+**In Gradio 6.x:**
+- `row_count: int | None` - Just the initial number of rows to display
+- `row_limits: tuple[int | None, int | None] | None` - Tuple specifying (min_rows, max_rows) constraints
+- `column_count: int | None` - The initial number of columns to display
+- `column_limits: tuple[int | None, int | None] | None` - Tuple specifying (min_columns, max_columns) constraints
+
+**Before (Gradio 5.x):**
+
+```python
+import gradio as gr
+
+# Fixed number of rows (users can't add/remove rows)
+df = gr.Dataframe(row_count=(5, "fixed"), col_count=(3, "dynamic"))
+```
+
+Or with dynamic rows:
+
+```python
+# Dynamic rows (users can add/remove rows)
+df = gr.Dataframe(row_count=(5, "dynamic"), col_count=(3, "fixed"))
+```
+
+Or with just integers (defaults to dynamic):
+
+```python
+df = gr.Dataframe(row_count=5, col_count=3)
+```
+
+**After (Gradio 6.x):**
+
+```python
+import gradio as gr
+
+# Fixed number of rows (users can't add/remove rows)
+df = gr.Dataframe(row_count=5, row_limits=(5, 5), column_count=3, column_limits=None)
+```
+
+Or with dynamic rows (users can add/remove rows):
+
+```python
+# Dynamic rows with no limits
+df = gr.Dataframe(row_count=5, row_limits=None, column_count=3, column_limits=None)
+```
+
+Or with min/max constraints:
+
+```python
+# Rows between 3 and 10, columns between 2 and 5
+df = gr.Dataframe(row_count=5, row_limits=(3, 10), column_count=3, column_limits=(2, 5))
+```
+
+**Migration examples:**
+
+- `row_count=(5, "fixed")` → `row_count=5, row_limits=(5, 5)`
+- `row_count=(5, "dynamic")` → `row_count=5, row_limits=None`
+- `row_count=5` → `row_count=5, row_limits=None` (same behavior)
+- `col_count=(3, "fixed")` → `column_count=3, column_limits=(3, 3)`
+- `col_count=(3, "dynamic")` → `column_count=3, column_limits=None`
+- `col_count=3` → `column_count=3, column_limits=None` (same behavior)
+
+
+
+## Python Client Changes
