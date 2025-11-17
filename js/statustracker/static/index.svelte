@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-	import { tick } from "svelte";
+	import { tick, untrack } from "svelte";
 	import { pretty_si } from "./utils";
 
 	let items: HTMLDivElement[] = [];
@@ -13,7 +13,7 @@
 
 	async function scroll_into_view(
 		el: HTMLDivElement,
-		enable: boolean | null = true
+		enable: boolean | null = true,
 	): Promise<void> {
 		if (
 			window.__gradio_mode__ === "website" ||
@@ -86,6 +86,12 @@
 		on_clear_status?: () => void;
 	}
 
+	interface ProgressLevel {
+		progress_level: (number | undefined)[] | null;
+		last_progress_level: number | undefined;
+		progress_bar_transition: string;
+	}
+
 	let {
 		i18n,
 		eta = null,
@@ -106,21 +112,16 @@
 		validation_error = null,
 		show_validation_error = true,
 		type = null,
-		on_clear_status
+		on_clear_status,
 	}: Props = $props();
 
 	let el: HTMLDivElement;
 
-	let _timer = $state(false);
+	let _timer = false;
 	let timer_start = $state(0);
-	let timer_diff = $state(0);
 	let old_eta = $state<number | null>(null);
 	let eta_from_start = $state<number | null>(null);
 	let message_visible = $state(false);
-	let progress_level = $state<(number | undefined)[] | null>(null);
-	let last_progress_level = $state<number | undefined>(undefined);
-	let progress_bar = $state<HTMLElement | null>(null);
-	let show_eta_bar = $state(true);
 	let formatted_eta = $state<string | null>(null);
 	let show_message_timeout = $state<NodeJS.Timeout | null>(null);
 
@@ -130,52 +131,20 @@
 			status === "complete" ||
 			show_progress === "hidden" ||
 			status == "streaming" ||
-			!!(show_validation_error && validation_error)
+			!!(show_validation_error && validation_error),
 	);
+
+	let timer_diff = $state(0);
 
 	const eta_level = $derived(
 		eta_from_start === null || eta_from_start <= 0 || !timer_diff
-			? null
-			: Math.min(timer_diff / eta_from_start, 1)
+			? 0
+			: Math.min(timer_diff / eta_from_start, 1),
 	);
 
 	const formatted_timer = $derived(timer_diff.toFixed(1));
 
-	$effect(() => {
-		if (progress != null) {
-			show_eta_bar = false;
-		} else {
-			show_eta_bar = true;
-		}
-	});
-
-	$effect(() => {
-		if (progress != null) {
-			progress_level = progress.map((p) => {
-				if (p.index != null && p.length != null) {
-					return p.index / p.length;
-				} else if (p.progress != null) {
-					return p.progress;
-				}
-				return undefined;
-			});
-		} else {
-			progress_level = null;
-		}
-
-		if (progress_level) {
-			last_progress_level = progress_level[progress_level.length - 1];
-			if (progress_bar) {
-				if (last_progress_level === 0) {
-					progress_bar.style.transition = "0";
-				} else {
-					progress_bar.style.transition = "150ms";
-				}
-			}
-		} else {
-			last_progress_level = undefined;
-		}
-	});
+	let show_eta_bar = $derived(progress != null ? false : true);
 
 	function run(): void {
 		raf(() => {
@@ -184,16 +153,53 @@
 		});
 	}
 
+	let progress_level = $derived.by<ProgressLevel>(() => {
+		let _progress_level: (number | undefined)[] | null = null;
+		if (progress != null) {
+			_progress_level = progress.map((p) => {
+				if (p.index != null && p.length != null) {
+					return p.index / p.length;
+				} else if (p.progress != null) {
+					return p.progress;
+				}
+				return undefined;
+			});
+		} else {
+			_progress_level = null;
+		}
+
+		let _last_progress_level: number | undefined;
+		let transition = "";
+		if (_progress_level) {
+			_last_progress_level = _progress_level[_progress_level.length - 1];
+
+			if (_last_progress_level === 0) {
+				transition = "0";
+			} else {
+				transition = "150ms";
+			}
+		} else {
+			_last_progress_level = undefined;
+		}
+
+		return {
+			progress_level: _progress_level,
+			last_progress_level: _last_progress_level,
+			progress_bar_transition: transition,
+		};
+	});
+
 	function start_timer(): void {
+		if (_timer) return;
+
 		old_eta = formatted_eta = null;
 		timer_start = performance.now();
-		timer_diff = 0;
+
 		_timer = true;
 		run();
 	}
 
 	function stop_timer(): void {
-		timer_diff = 0;
 		old_eta = formatted_eta = null;
 		if (!_timer) return;
 		_timer = false;
@@ -203,12 +209,10 @@
 		if (status === "pending") {
 			start_timer();
 		} else {
-			stop_timer();
+			untrack(() => {
+				stop_timer();
+			});
 		}
-
-		return () => {
-			if (_timer) stop_timer();
-		};
 	});
 
 	$effect(() => {
@@ -233,6 +237,7 @@
 	});
 
 	function close_message(): void {
+		console.log("close_message called");
 		message_visible = false;
 		if (show_message_timeout !== null) {
 			clearTimeout(show_message_timeout);
@@ -240,7 +245,10 @@
 	}
 
 	$effect(() => {
-		close_message();
+		untrack(() => {
+			close_message();
+		});
+
 		if (status === "error" && message) {
 			message_visible = true;
 		}
@@ -313,23 +321,23 @@
 			{/if}
 		</div>
 
-		{#if last_progress_level != null}
+		{#if progress_level.last_progress_level != null}
 			<div class="progress-level">
 				<div class="progress-level-inner">
 					{#if progress != null}
 						{#each progress as p, i}
-							{#if p.desc != null || (progress_level && progress_level[i] != null)}
+							{#if p.desc != null || (progress_level.progress_level && progress_level.progress_level[i] != null)}
 								{#if i !== 0}
 									&nbsp;/
 								{/if}
 								{#if p.desc != null}
 									{p.desc}
 								{/if}
-								{#if p.desc != null && progress_level && progress_level[i] != null}
+								{#if p.desc != null && progress_level.progress_level && progress_level.progress_level[i] != null}
 									-
 								{/if}
-								{#if progress_level != null}
-									{(100 * (progress_level[i] || 0)).toFixed(1)}%
+								{#if progress_level.progress_level != null}
+									{(100 * (progress_level.progress_level[i] || 0)).toFixed(1)}%
 								{/if}
 							{/if}
 						{/each}
@@ -338,9 +346,9 @@
 
 				<div class="progress-bar-wrap">
 					<div
-						bind:this={progress_bar}
 						class="progress-bar"
-						style:width="{last_progress_level * 100}%"
+						style:width="{progress_level.last_progress_level * 100}%"
+						style:transition={progress_level.progress_bar_transition}
 					/>
 				</div>
 			</div>
