@@ -553,9 +553,35 @@ chatbot = gr.Chatbot(resizeable=True)
 chatbot = gr.Chatbot(resizable=True)
 ```
 
+**`show_copy_button`, `show_copy_all_button`, `show_share_button`** - These parameters have been removed. Use the `buttons` parameter instead.
+
+**Before (Gradio 5.x):**
+```python
+chatbot = gr.Chatbot(show_copy_button=True, show_copy_all_button=True, show_share_button=True)
+```
+
+**After (Gradio 6.x):**
+```python
+chatbot = gr.Chatbot(buttons=["copy", "copy_all", "share"])
+```
+
 #### `gr.Audio` / `WaveformOptions` removed parameters
 
 **`show_controls`** - This parameter in `WaveformOptions` has been removed. Use `show_recording_waveform` instead.
+
+**Before (Gradio 5.x):**
+```python
+audio = gr.Audio(
+    waveform_options=gr.WaveformOptions(show_controls=False)
+)
+```
+
+**After (Gradio 6.x):**
+```python
+audio = gr.Audio(
+    waveform_options=gr.WaveformOptions(show_recording_waveform=False)
+)
+```
 
 **`min_length` and `max_length`** - These parameters have been removed. Use validators instead.
 
@@ -571,19 +597,19 @@ audio = gr.Audio(
 )
 ```
 
+**`show_download_button`, `show_share_button`** - These parameters have been removed. Use the `buttons` parameter instead.
+
 **Before (Gradio 5.x):**
 ```python
-audio = gr.Audio(
-    waveform_options=gr.WaveformOptions(show_controls=False)
-)
+audio = gr.Audio(show_download_button=True, show_share_button=True)
 ```
 
 **After (Gradio 6.x):**
 ```python
-audio = gr.Audio(
-    waveform_options=gr.WaveformOptions(show_recording_waveform=False)
-)
+audio = gr.Audio(buttons=["download", "share"])
 ```
+
+**Note:** For components where `show_share_button` had a default of `None` (which would show the button on Spaces), you can use `buttons=["share"]` to always show it, or omit it from the list to hide it.
 
 #### `gr.Image` removed parameters
 
@@ -621,6 +647,18 @@ image = gr.Image(watermark="watermark.png")
 **After (Gradio 6.x):**
 ```python
 image = gr.Image(watermark=gr.WatermarkOptions(watermark="watermark.png"))
+```
+
+**`show_download_button`, `show_share_button`, `show_fullscreen_button`** - These parameters have been removed. Use the `buttons` parameter instead.
+
+**Before (Gradio 5.x):**
+```python
+image = gr.Image(show_download_button=True, show_share_button=True, show_fullscreen_button=True)
+```
+
+**After (Gradio 6.x):**
+```python
+image = gr.Image(buttons=["download", "share", "fullscreen"])
 ```
 
 #### `gr.Video` removed parameters
@@ -675,6 +713,18 @@ video = gr.Video(
 )
 ```
 
+**`show_download_button`, `show_share_button`** - These parameters have been removed. Use the `buttons` parameter instead.
+
+**Before (Gradio 5.x):**
+```python
+video = gr.Video(show_download_button=True, show_share_button=True)
+```
+
+**After (Gradio 6.x):**
+```python
+video = gr.Video(buttons=["download", "share"])
+```
+
 #### `gr.ImageEditor` removed parameters
 
 **`crop_size`** - This parameter has been removed. Use `canvas_size` instead.
@@ -713,6 +763,7 @@ The following parameters have been removed from `gr.LinePlot`, `gr.BarPlot`, and
 - `interactive` - This parameter has been removed.
 - `show_actions_button` - This parameter has been removed.
 - `color_legend_title` - This parameter has been removed. Use `color_title` instead.
+- `show_fullscreen_button`, `show_export_button` - These parameters have been removed. Use the `buttons` parameter instead.
 
 **Before (Gradio 5.x):**
 ```python
@@ -721,7 +772,9 @@ plot = gr.LinePlot(
     x="date",
     y="downloads",
     overlay_point=True,
-    width=900
+    width=900,
+    show_fullscreen_button=True,
+    show_export_button=True
 )
 ```
 
@@ -730,7 +783,8 @@ plot = gr.LinePlot(
 plot = gr.LinePlot(
     value=data,
     x="date",
-    y="downloads"
+    y="downloads",
+    buttons=["fullscreen", "export"]
 )
 ```
 
@@ -744,6 +798,62 @@ plot = gr.ScatterPlot(color_legend_title="Category")
 **After (Gradio 6.x):**
 ```python
 plot = gr.ScatterPlot(color_title="Category")
+```
+
+#### `gr.Textbox` removed parameters
+
+**`show_copy_button`** - This parameter has been removed. Use the `buttons` parameter instead.
+
+**Before (Gradio 5.x):**
+```python
+text = gr.Textbox(show_copy_button=True)
+```
+
+**After (Gradio 6.x):**
+```python
+text = gr.Textbox(buttons=["copy"])
+```
+
+#### `gr.Markdown` removed parameters
+
+**`show_copy_button`** - This parameter has been removed. Use the `buttons` parameter instead.
+
+**Before (Gradio 5.x):**
+```python
+markdown = gr.Markdown(show_copy_button=True)
+```
+
+**After (Gradio 6.x):**
+```python
+markdown = gr.Markdown(buttons=["copy"])
+```
+
+#### `gr.Dataframe` removed parameters
+
+**`show_copy_button`, `show_fullscreen_button`** - These parameters have been removed. Use the `buttons` parameter instead.
+
+**Before (Gradio 5.x):**
+```python
+df = gr.Dataframe(show_copy_button=True, show_fullscreen_button=True)
+```
+
+**After (Gradio 6.x):**
+```python
+df = gr.Dataframe(buttons=["copy", "fullscreen"])
+```
+
+#### `gr.Slider` removed parameters
+
+**`show_reset_button`** - This parameter has been removed. Use the `buttons` parameter instead.
+
+**Before (Gradio 5.x):**
+```python
+slider = gr.Slider(show_reset_button=True)
+```
+
+**After (Gradio 6.x):**
+```python
+slider = gr.Slider(buttons=["reset"])
 ```
 
 ### `gr.HTML` `padding` parameter default changed to `False`

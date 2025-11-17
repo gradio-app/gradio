@@ -216,6 +216,20 @@ class Dataframe(Component):
             else f"{w}px"
             for w in (column_widths or [])
         ]
+        if show_fullscreen_button is not False:
+            warnings.warn(
+                "The 'show_fullscreen_button' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'buttons=[\"fullscreen\"]' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        if show_copy_button is not False:
+            warnings.warn(
+                "The 'show_copy_button' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'buttons=[\"copy\"]' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         self.show_fullscreen_button = show_fullscreen_button
         self.show_copy_button = show_copy_button
         self.show_row_numbers = show_row_numbers

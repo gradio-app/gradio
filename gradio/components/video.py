@@ -191,12 +191,26 @@ class Video(StreamingOutput, Component):
         self.include_audio = (
             include_audio if include_audio is not None else "upload" in self.sources
         )
+        if show_download_button is not None:
+            warnings.warn(
+                "The 'show_download_button' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'buttons=[\"download\"]' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        if show_share_button is not None:
+            warnings.warn(
+                "The 'show_share_button' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'buttons=[\"share\"]' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        self.show_download_button = show_download_button
         self.show_share_button = (
             (utils.get_space() is not None)
             if show_share_button is None
             else show_share_button
         )
-        self.show_download_button = show_download_button
         if min_length is not None:
             warnings.warn(
                 "The 'min_length' parameter will be removed in Gradio 6.0. "

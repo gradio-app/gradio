@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import warnings
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -90,6 +91,13 @@ class Markdown(Component):
         self.sanitize_html = sanitize_html
         self.line_breaks = line_breaks
         self.header_links = header_links
+        if show_copy_button is not False:
+            warnings.warn(
+                "The 'show_copy_button' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'buttons=[\"copy\"]' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         self.height = height
         self.max_height = max_height
         self.min_height = min_height
