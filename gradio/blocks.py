@@ -1056,6 +1056,54 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width. Only applies if this is the outermost `Blocks` in your Gradio app.
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
         """
+        if theme is not None:
+            warnings.warn(
+                "The 'theme' parameter in the Blocks constructor will be removed in Gradio 6.0. "
+                "You will need to pass 'theme' to Blocks.launch() instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
+        if css is not None:
+            warnings.warn(
+                "The 'css' parameter in the Blocks constructor will be removed in Gradio 6.0. "
+                "You will need to pass 'css' to Blocks.launch() instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
+        if css_paths is not None:
+            warnings.warn(
+                "The 'css_paths' parameter in the Blocks constructor will be removed in Gradio 6.0. "
+                "You will need to pass 'css_paths' to Blocks.launch() instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
+        if js is not None:
+            warnings.warn(
+                "The 'js' parameter in the Blocks constructor will be removed in Gradio 6.0. "
+                "You will need to pass 'js' to Blocks.launch() instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
+        if head is not None:
+            warnings.warn(
+                "The 'head' parameter in the Blocks constructor will be removed in Gradio 6.0. "
+                "You will need to pass 'head' to Blocks.launch() instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
+        if head_paths is not None:
+            warnings.warn(
+                "The 'head_paths' parameter in the Blocks constructor will be removed in Gradio 6.0. "
+                "You will need to pass 'head_paths' to Blocks.launch() instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         self.limiter = None
         if theme is None:
             theme = DefaultTheme()
@@ -1091,6 +1139,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.fill_width = fill_width
         self.delete_cache = delete_cache
         self.extra_startup_events: list[Callable[..., Coroutine[Any, Any, Any]]] = []
+
         self.css = css or ""
         css_paths = utils.none_or_singleton_to_list(css_paths)
         for css_path in css_paths or []:
@@ -2540,6 +2589,16 @@ Received inputs:
             self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         else:
             self.root_path = root_path
+
+        if show_api is not True:
+            warnings.warn(
+                "The 'show_api' parameter in launch() will be removed in Gradio 6.0. "
+                "You will need to use the 'footer_links' parameter instead. "
+                "To replicate show_api=False, In Gradio 6.0, use footer_links=['gradio', 'settings'].",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         self.show_api = show_api
 
         if allowed_paths:
