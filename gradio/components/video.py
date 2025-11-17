@@ -197,6 +197,20 @@ class Video(StreamingOutput, Component):
             else show_share_button
         )
         self.show_download_button = show_download_button
+        if min_length is not None:
+            warnings.warn(
+                "The 'min_length' parameter will be removed in Gradio 6.0. "
+                "You will need to use validators instead. See gr.validators.is_video_correct_length() for more information.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        if max_length is not None:
+            warnings.warn(
+                "The 'max_length' parameter will be removed in Gradio 6.0. "
+                "You will need to use validators instead. See gr.validators.is_video_correct_length() for more information.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         self.min_length = min_length
         self.max_length = max_length
         self.streaming = streaming
@@ -317,7 +331,7 @@ class Video(StreamingOutput, Component):
                 DeprecationWarning,
                 stacklevel=2,
             )
-            
+
             if len(value) != 2:
                 raise ValueError(
                     f"Expected lists of length 2 or tuples of length 2. Received: {value}"

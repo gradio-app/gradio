@@ -203,6 +203,20 @@ class Audio(
                 DeprecationWarning,
                 stacklevel=2,
             )
+        if min_length is not None:
+            warnings.warn(
+                "The 'min_length' parameter will be removed in Gradio 6.0. "
+                "You will need to use validators instead. See gr.validators.is_audio_correct_length() for more information.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        if max_length is not None:
+            warnings.warn(
+                "The 'max_length' parameter will be removed in Gradio 6.0. "
+                "You will need to use validators instead. See gr.validators.is_audio_correct_length() for more information.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         self.min_length = min_length
         self.max_length = max_length
         self.recording = recording
