@@ -1552,6 +1552,7 @@ def error_payload(
             content["title"] = error.title
         else:
             content["error"] = str(error)
+            content["visible"] = True
     return content
 
 
