@@ -1,6 +1,7 @@
 import gradio as gr
 import time
 import os
+from gradio import get_image
 
 
 def greet():
@@ -11,7 +12,7 @@ def greet():
     raise Exception("test")
 
 
-im = os.path.join(os.path.dirname(__file__), "cheetah.jpg")
+im = get_image("cheetah.jpg")
 
 with gr.Blocks() as demo:
     with gr.Tab("Accordions"):
