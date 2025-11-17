@@ -523,6 +523,288 @@ df = gr.Dataframe(row_count=5, row_limits=(3, 10), column_count=3, column_limits
 - `col_count=(3, "dynamic")` → `column_count=3, column_limits=None`
 - `col_count=3` → `column_count=3, column_limits=None` (same behavior)
 
+### Removed component parameters
 
+Several component parameters have been removed in Gradio 6.0. These parameters were previously deprecated and have now been fully removed.
+
+#### `gr.Chatbot` removed parameters
+
+**`bubble_full_width`** - This parameter has been removed as it no longer has any effect.
+
+**Before (Gradio 5.x):**
+```python
+chatbot = gr.Chatbot(bubble_full_width=False)
+```
+
+**After (Gradio 6.x):**
+```python
+chatbot = gr.Chatbot()
+```
+
+**`resizeable`** - This parameter (with the typo) has been removed. Use `resizable` instead.
+
+**Before (Gradio 5.x):**
+```python
+chatbot = gr.Chatbot(resizeable=True)
+```
+
+**After (Gradio 6.x):**
+```python
+chatbot = gr.Chatbot(resizable=True)
+```
+
+#### `gr.Audio` / `WaveformOptions` removed parameters
+
+**`show_controls`** - This parameter in `WaveformOptions` has been removed. Use `show_recording_waveform` instead.
+
+**Before (Gradio 5.x):**
+```python
+audio = gr.Audio(
+    waveform_options=gr.WaveformOptions(show_controls=False)
+)
+```
+
+**After (Gradio 6.x):**
+```python
+audio = gr.Audio(
+    waveform_options=gr.WaveformOptions(show_recording_waveform=False)
+)
+```
+
+#### `gr.Image` removed parameters
+
+**`mirror_webcam`** - This parameter has been removed. Use `webcam_options` with `gr.WebcamOptions` instead.
+
+**Before (Gradio 5.x):**
+```python
+image = gr.Image(mirror_webcam=True)
+```
+
+**After (Gradio 6.x):**
+```python
+image = gr.Image(webcam_options=gr.WebcamOptions(mirror=True))
+```
+
+**`webcam_constraints`** - This parameter has been removed. Use `webcam_options` with `gr.WebcamOptions` instead.
+
+**Before (Gradio 5.x):**
+```python
+image = gr.Image(webcam_constraints={"facingMode": "user"})
+```
+
+**After (Gradio 6.x):**
+```python
+image = gr.Image(webcam_options=gr.WebcamOptions(constraints={"facingMode": "user"}))
+```
+
+**`watermark` (as string/Path/PIL.Image/numpy array)** - Passing a string, Path, PIL.Image, or numpy array directly to `watermark` has been removed. Use `gr.WatermarkOptions` instead.
+
+**Before (Gradio 5.x):**
+```python
+image = gr.Image(watermark="watermark.png")
+```
+
+**After (Gradio 6.x):**
+```python
+image = gr.Image(watermark=gr.WatermarkOptions(watermark="watermark.png"))
+```
+
+#### `gr.Video` removed parameters
+
+**`mirror_webcam`** - This parameter has been removed. Use `webcam_options` with `gr.WebcamOptions` instead.
+
+**Before (Gradio 5.x):**
+```python
+video = gr.Video(mirror_webcam=True)
+```
+
+**After (Gradio 6.x):**
+```python
+video = gr.Video(webcam_options=gr.WebcamOptions(mirror=True))
+```
+
+**`webcam_constraints`** - This parameter has been removed. Use `webcam_options` with `gr.WebcamOptions` instead.
+
+**Before (Gradio 5.x):**
+```python
+video = gr.Video(webcam_constraints={"facingMode": "user"})
+```
+
+**After (Gradio 6.x):**
+```python
+video = gr.Video(webcam_options=gr.WebcamOptions(constraints={"facingMode": "user"}))
+```
+
+**`watermark` (as string/Path)** - Passing a string or Path directly to `watermark` has been removed. Use `gr.WatermarkOptions` instead.
+
+**Before (Gradio 5.x):**
+```python
+video = gr.Video(watermark="watermark.png")
+```
+
+**After (Gradio 6.x):**
+```python
+video = gr.Video(watermark=gr.WatermarkOptions(watermark="watermark.png"))
+```
+
+#### `gr.ImageEditor` removed parameters
+
+**`crop_size`** - This parameter has been removed. Use `canvas_size` instead.
+
+**Before (Gradio 5.x):**
+```python
+editor = gr.ImageEditor(crop_size=(512, 512))
+```
+
+**After (Gradio 6.x):**
+```python
+editor = gr.ImageEditor(canvas_size=(512, 512))
+```
+
+#### Removed components
+
+**`gr.LogoutButton`** - This component has been removed. Use `gr.LoginButton` instead, which handles both login and logout processes.
+
+**Before (Gradio 5.x):**
+```python
+logout_btn = gr.LogoutButton()
+```
+
+**After (Gradio 6.x):**
+```python
+login_btn = gr.LoginButton()
+```
+
+### `gr.HTML` `padding` parameter default changed to `False`
+
+The default value of the `padding` parameter in `gr.HTML` has been changed from `True` to `False` for consistency with `gr.Markdown`.
+
+**In Gradio 5.x:**
+- `padding=True` was the default for `gr.HTML`
+- HTML components had padding by default
+
+**In Gradio 6.x:**
+- `padding=False` is the default for `gr.HTML`
+- This matches the default behavior of `gr.Markdown` for consistency
+
+**Before (Gradio 5.x):**
+
+```python
+import gradio as gr
+
+html = gr.HTML("<div>Content</div>")
+# Had padding by default
+```
+
+**After (Gradio 6.x):**
+
+```python
+import gradio as gr
+
+html = gr.HTML("<div>Content</div>")
+# No padding by default (consistent with gr.Markdown)
+```
+
+**To maintain the old behavior:**
+
+If you want to keep the padding that was present in Gradio 5.x, explicitly set `padding=True`:
+
+```python
+html = gr.HTML("<div>Content</div>", padding=True)
+```
 
 ## Python Client Changes
+
+### `hf_token` parameter renamed to `token` in `Client`
+
+The `hf_token` parameter in the `Client` class has been renamed to `token` for consistency and simplicity.
+
+**Before (Gradio 5.x):**
+
+```python
+from gradio_client import Client
+
+client = Client("abidlabs/my-private-space", hf_token="hf_...")
+```
+
+**After (Gradio 6.x):**
+
+```python
+from gradio_client import Client
+
+client = Client("abidlabs/my-private-space", token="hf_...")
+```
+
+### `deploy_discord` method deprecated
+
+The `deploy_discord` method in the `Client` class has been deprecated and will be removed in Gradio 6.0. This method was used to deploy Gradio apps as Discord bots.
+
+**Before (Gradio 5.x):**
+
+```python
+from gradio_client import Client
+
+client = Client("username/space-name")
+client.deploy_discord(discord_bot_token="...")
+```
+
+**After (Gradio 6.x):**
+
+The `deploy_discord` method is no longer available. Please see the [documentation on creating a Discord bot with Gradio](https://www.gradio.app/guides/creating-a-discord-bot-from-a-gradio-app) for alternative approaches.
+
+### `AppError` now subclasses `Exception` instead of `ValueError`
+
+The `AppError` exception class in the Python client now subclasses `Exception` directly instead of `ValueError`. This is a breaking change if you have code that specifically catches `ValueError` to handle `AppError` instances.
+
+**Before (Gradio 5.x):**
+
+```python
+from gradio_client import Client
+from gradio_client.exceptions import AppError
+
+try:
+    client = Client("username/space-name")
+    result = client.predict("/predict", inputs)
+except ValueError as e:
+    # This would catch AppError in Gradio 5.x
+    print(f"Error: {e}")
+```
+
+**After (Gradio 6.x):**
+
+```python
+from gradio_client import Client
+from gradio_client.exceptions import AppError
+
+try:
+    client = Client("username/space-name")
+    result = client.predict("/predict", inputs)
+except AppError as e:
+    # Explicitly catch AppError
+    print(f"App error: {e}")
+except ValueError as e:
+    # This will no longer catch AppError
+    print(f"Value error: {e}")
+```
+
+Or catch both:
+
+```python
+try:
+    client = Client("username/space-name")
+    result = client.predict("/predict", inputs)
+except (AppError, ValueError) as e:
+    # Catches both AppError and ValueError
+    print(f"Error: {e}")
+```
+
+**Note:** If you want to catch all exceptions from the client, you can use `Exception`:
+
+```python
+try:
+    client = Client("username/space-name")
+    result = client.predict("/predict", inputs)
+except Exception as e:
+    # Catches all exceptions including AppError
+    print(f"Error: {e}")
+```

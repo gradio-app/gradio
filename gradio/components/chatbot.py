@@ -308,7 +308,8 @@ class Chatbot(Component):
         self.height = height
         if resizeable is not False:
             warnings.warn(
-                "The 'resizeable' parameter is deprecated and will be removed in a future version. Please use the 'resizable' (note the corrected spelling) parameter instead.",
+                "The 'resizeable' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'resizable' (note the corrected spelling) instead.",
                 DeprecationWarning,
                 stacklevel=3,
             )
@@ -333,7 +334,7 @@ class Chatbot(Component):
         self.sanitize_html = sanitize_html
         if bubble_full_width is not None:
             warnings.warn(
-                "The 'bubble_full_width' parameter is deprecated and will be removed in a future version. This parameter no longer has any effect.",
+                "The 'bubble_full_width' parameter will be removed in Gradio 6.0. This parameter no longer has any effect.",
                 DeprecationWarning,
                 stacklevel=3,
             )

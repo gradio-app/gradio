@@ -138,19 +138,28 @@ class Image(StreamingInput, Component):
 
         if isinstance(watermark, (str, Path, PIL.Image.Image, np.ndarray)):
             warnings.warn(
-                "The `watermark` parameter is updated to use WatermarkOptions. Please use the `watermark` parameter with a `gr.WatermarkOptions` instance instead."
+                "Passing a string, Path, PIL.Image, or numpy array to 'watermark' will be removed in Gradio 6.0. "
+                "You will need to use 'watermark' with a 'gr.WatermarkOptions' instance instead.",
+                DeprecationWarning,
+                stacklevel=2,
             )
             self.watermark.watermark = watermark
 
         if mirror_webcam is not None:
             warnings.warn(
-                "The `mirror_webcam` parameter is deprecated. Please use the `webcam_options` parameter with a `gr.WebcamOptions` instance instead."
+                "The 'mirror_webcam' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'webcam_options' with a 'gr.WebcamOptions' instance instead.",
+                DeprecationWarning,
+                stacklevel=2,
             )
             self.webcam_options.mirror = mirror_webcam
 
         if webcam_constraints is not None:
             warnings.warn(
-                "The `webcam_constraints` parameter is deprecated. Please use the `webcam_options` parameter with a `gr.WebcamOptions` instance instead."
+                "The 'webcam_constraints' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'webcam_options' with a 'gr.WebcamOptions' instance instead.",
+                DeprecationWarning,
+                stacklevel=2,
             )
             self.webcam_options.constraints = webcam_constraints
 
