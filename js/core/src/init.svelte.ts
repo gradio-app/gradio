@@ -343,7 +343,7 @@ export class AppTree {
 		_set_data(new_state);
 		if (!check_visibility || already_updated_visibility) return;
 		// need to let the UI settle before traversing again
-		// otherwise there could be 
+		// otherwise there could be
 		await tick();
 		this.root = this.traverse(this.root!, (n) =>
 			handle_visibility(n, this.#config.root)
