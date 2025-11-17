@@ -90,16 +90,27 @@
 		close_stream: undefined;
 	}>();
 
+	const to_blob_parts = (parts: Uint8Array[] | Blob[]): BlobPart[] =>
+		parts.map((part) => {
+			if (part instanceof Blob) return part;
+			return part.slice();
+		});
+
 	const dispatch_blob = async (
 		blobs: Uint8Array[] | Blob[],
-		event: "stream" | "change" | "stop_recording"
+		event: "stream" | "change" | "stop_recording",
 	): Promise<void> => {
-		let _audio_blob = new File(blobs, "audio.wav");
+		let _audio_blob = new File(to_blob_parts(blobs), "audio.wav", {
+			type: "audio/wav",
+		});
+		if (_audio_blob.size === 0) {
+			return;
+		}
 		const val = await prepare_files([_audio_blob], event === "stream");
 		initial_value = value;
 		value = (
 			(await upload(val, root, undefined, max_file_size || undefined))?.filter(
-				Boolean
+				Boolean,
 			) as FileData[]
 		)[0];
 		dispatch(event, value);
@@ -130,7 +141,7 @@
 		if (stream == null) return;
 		if (streaming) {
 			recorder = new streaming_media_recorder(stream, {
-				mimeType: "audio/wav"
+				mimeType: "audio/wav",
 			});
 
 			recorder.addEventListener("dataavailable", handle_chunk);
@@ -142,7 +153,7 @@
 		}
 		recorder.addEventListener("stop", async () => {
 			recording = false;
-			// recorder.stop();
+			recorder.stop();
 			await dispatch_blob(audio_chunks, "change");
 			await dispatch_blob(audio_chunks, "stop_recording");
 			audio_chunks = [];
