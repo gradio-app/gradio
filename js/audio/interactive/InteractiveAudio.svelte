@@ -98,10 +98,10 @@
 
 	const dispatch_blob = async (
 		blobs: Uint8Array[] | Blob[],
-		event: "stream" | "change" | "stop_recording",
+		event: "stream" | "change" | "stop_recording"
 	): Promise<void> => {
 		let _audio_blob = new File(to_blob_parts(blobs), "audio.wav", {
-			type: "audio/wav",
+			type: "audio/wav"
 		});
 		if (_audio_blob.size === 0) {
 			return;
@@ -110,7 +110,7 @@
 		initial_value = value;
 		value = (
 			(await upload(val, root, undefined, max_file_size || undefined))?.filter(
-				Boolean,
+				Boolean
 			) as FileData[]
 		)[0];
 		dispatch(event, value);
@@ -141,7 +141,7 @@
 		if (stream == null) return;
 		if (streaming) {
 			recorder = new streaming_media_recorder(stream, {
-				mimeType: "audio/wav",
+				mimeType: "audio/wav"
 			});
 
 			recorder.addEventListener("dataavailable", handle_chunk);
