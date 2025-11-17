@@ -9,6 +9,7 @@ test("Textbox change and input events work correctly", async ({ page }) => {
 	const textbox = page.getByLabel("TB Input");
 
 	await textbox.fill("hello");
+	await page.waitForTimeout(500);
 	await textbox.press("Enter");
 
 	expect(page.getByLabel("Change counter")).toHaveValue("1");
