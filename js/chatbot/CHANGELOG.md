@@ -1,5 +1,24 @@
 # @gradio/chatbot
 
+## 0.28.0-dev.2
+
+### Fixes
+
+- [#12240](https://github.com/gradio-app/gradio/pull/12240) [`6a0cff1`](https://github.com/gradio-app/gradio/commit/6a0cff18ef6a9a580c26d3ed5f95d1f9de3a55c1) - Fixed several hardcoded UI labels in the chat_interface that did not implement i18n.  Thanks @arterm-sedov!
+
+### Dependency updates
+
+- @gradio/atoms@0.18.2-dev.0
+- @gradio/upload@0.17.2-dev.1
+- @gradio/utils@0.10.3-dev.0
+- @gradio/image@0.23.2-dev.1
+- @gradio/statustracker@0.12.0-dev.0
+- @gradio/icons@0.15.0-dev.0
+- @gradio/theme@0.5.0-dev.0
+- @gradio/video@0.17.0-dev.1
+- @gradio/gallery@0.15.35-dev.2
+- @gradio/plot@0.9.25-dev.0
+
 ## 0.28.0-dev.1
 
 ### Features

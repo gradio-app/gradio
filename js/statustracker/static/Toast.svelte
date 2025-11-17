@@ -4,6 +4,7 @@
 	import { spring } from "svelte/motion";
 
 	export let messages: ToastMessage[] = [];
+	export let on_close: (id: number) => void;
 	const top = spring(0, { stiffness: 0.4, damping: 0.5 });
 
 	let grouped_messages: GroupedToastMessage[] = [];
@@ -20,7 +21,7 @@
 				groups.set(key, {
 					type: msg.type,
 					messages: [],
-					expanded: false
+					expanded: true
 				});
 			}
 			groups.get(key)!.messages.push(msg);
@@ -61,7 +62,7 @@
 				messages={group.messages}
 				expanded={group.expanded}
 				on:toggle={() => toggle_group(group.type)}
-				on:close
+				on:close={(e) => on_close(e.detail)}
 			/>
 		</div>
 	{/each}

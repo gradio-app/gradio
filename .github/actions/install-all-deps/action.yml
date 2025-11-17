@@ -44,6 +44,7 @@ runs:
         cache-dependency-path: |
           client/python/requirements.txt
           requirements.txt
+          requirements-mcp.txt
           test/requirements.txt
     - name: Install uv (linux)
       if: ${{ inputs.os == 'ubuntu-latest' }}
@@ -77,7 +78,7 @@ runs:
       shell: bash
       run: |
         . ${{ env.VENV_ACTIVATE }}
-        uv pip install -r test/requirements.txt
+        uv pip install -r test/requirements.txt --torch-backend cpu
         uv pip install -r client/python/test/requirements.txt
     - name: Install Gradio and Client Libraries Locally (Linux)
       shell: bash

@@ -56,7 +56,9 @@
 		);
 	}
 
-	$: value, update_components();
+	$: component_names = get_components_from_messages(value).sort().join(", ");
+
+	$: (component_names, update_components());
 
 	export let latex_delimiters: {
 		left: string;

@@ -41,30 +41,15 @@
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
-	export let stream_every: number;
+	export let stream_every: number = 0.1;
 	export let uploading = false;
 	export let recording = false;
 	export let class_name = "";
+	export let upload_promise: Promise<any> | null = null;
+	export let initial_value: FileData | null = null;
 
-	let time_limit: number | null = null;
-	let stream_state: "open" | "waiting" | "closed" = "closed";
-
-	export const modify_stream: (state: "open" | "closed" | "waiting") => void = (
-		state: "open" | "closed" | "waiting"
-	) => {
-		if (state === "closed") {
-			time_limit = null;
-			stream_state = "closed";
-		} else if (state === "waiting") {
-			stream_state = "waiting";
-		} else {
-			stream_state = "open";
-		}
-	};
-
-	export const set_time_limit = (time: number): void => {
-		if (recording) time_limit = time;
-	};
+	export let time_limit: number | null = null;
+	export let stream_state: "open" | "waiting" | "closed" = "closed";
 
 	$: dispatch("drag", dragging);
 
@@ -105,12 +90,24 @@
 		close_stream: undefined;
 	}>();
 
+	const to_blob_parts = (parts: Uint8Array[] | Blob[]): BlobPart[] =>
+		parts.map((part) => {
+			if (part instanceof Blob) return part;
+			return part.slice();
+		});
+
 	const dispatch_blob = async (
 		blobs: Uint8Array[] | Blob[],
 		event: "stream" | "change" | "stop_recording"
 	): Promise<void> => {
-		let _audio_blob = new File(blobs, "audio.wav");
+		let _audio_blob = new File(to_blob_parts(blobs), "audio.wav", {
+			type: "audio/wav"
+		});
+		if (_audio_blob.size === 0) {
+			return;
+		}
 		const val = await prepare_files([_audio_blob], event === "stream");
+		initial_value = value;
 		value = (
 			(await upload(val, root, undefined, max_file_size || undefined))?.filter(
 				Boolean
@@ -142,11 +139,11 @@
 			throw err;
 		}
 		if (stream == null) return;
-
 		if (streaming) {
 			recorder = new streaming_media_recorder(stream, {
 				mimeType: "audio/wav"
 			});
+
 			recorder.addEventListener("dataavailable", handle_chunk);
 		} else {
 			recorder = new MediaRecorder(stream);
@@ -156,7 +153,7 @@
 		}
 		recorder.addEventListener("stop", async () => {
 			recording = false;
-			// recorder.stop();
+			recorder.stop();
 			await dispatch_blob(audio_chunks, "change");
 			await dispatch_blob(audio_chunks, "stop_recording");
 			audio_chunks = [];
@@ -194,6 +191,7 @@
 		recording = true;
 		dispatch("start_recording");
 		if (!inited) await prepare_audio();
+
 		header = undefined;
 		if (streaming && recorder.state != "recording") {
 			recorder.start(stream_every * 1000);
@@ -273,6 +271,7 @@
 		{:else if active_source === "upload"}
 			<!-- explicitly listed out audio mimetypes due to iOS bug not recognizing audio/* -->
 			<Upload
+				bind:upload_promise
 				filetype="audio/aac,audio/midi,audio/mpeg,audio/ogg,audio/wav,audio/x-wav,audio/opus,audio/webm,audio/flac,audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
 				on:load={handle_load}
 				bind:dragging

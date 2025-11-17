@@ -636,7 +636,6 @@ class BlocksConfig:
         connection: Literal["stream", "sse"] = "sse",
         time_limit: float | None = None,
         stream_every: float = 0.5,
-        like_user_message: bool = False,
         event_specific_args: list[str] | None = None,
         js_implementation: str | None = None,
         key: str | int | tuple[int | str, ...] | None = None,
@@ -814,7 +813,6 @@ class BlocksConfig:
             connection=connection,
             time_limit=time_limit,
             stream_every=stream_every,
-            like_user_message=like_user_message,
             event_specific_args=event_specific_args,
             page=self.root_block.current_page,
             js_implementation=js_implementation,
@@ -1106,6 +1104,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.js = None
         self.head = None
         self.theme = None
+        self.head_paths = None
 
         if self.analytics_enabled:
             data = {
@@ -2347,6 +2346,24 @@ Received inputs:
                     )
                 navbar_pages.add(block.page)
 
+    def _set_html_css_theme_variables(self):
+        self.theme_css = self.theme._get_theme_css()
+        self.stylesheets = self.theme._stylesheets
+        theme_hasher = hashlib.sha256()
+        theme_hasher.update(self.theme_css.encode("utf-8"))
+        self.theme_hash = theme_hasher.hexdigest()
+        css_paths = utils.none_or_singleton_to_list(self.css_paths)
+        for css_path in css_paths or []:
+            self.css = self.css or ""
+            with open(css_path, encoding="utf-8") as css_file:
+                self.css += "\n" + css_file.read()
+
+        head_paths = utils.none_or_singleton_to_list(self.head_paths)
+        for head_path in head_paths or []:
+            self.head = self.head or ""
+            with open(head_path, encoding="utf-8") as head_file:
+                self.head += "\n" + head_file.read()
+
     def launch(
         self,
         inline: bool | None = None,
@@ -2471,22 +2488,12 @@ Received inputs:
             return None, None, None  # type: ignore
 
         self.theme: Theme = utils.get_theme(theme)
-        self.theme_css = self.theme._get_theme_css()
-        self.stylesheets = self.theme._stylesheets
-        theme_hasher = hashlib.sha256()
-        theme_hasher.update(self.theme_css.encode("utf-8"))
-        self.theme_hash = theme_hasher.hexdigest()
         self.css = css
-        css_paths = utils.none_or_singleton_to_list(css_paths)
-        for css_path in css_paths or []:
-            with open(css_path, encoding="utf-8") as css_file:
-                self.css += "\n" + css_file.read()
+        self.css_paths = css_paths or []
         self.js = js
         self.head = head
-        head_paths = utils.none_or_singleton_to_list(head_paths)
-        for head_path in head_paths or []:
-            with open(head_path, encoding="utf-8") as head_file:
-                self.head += "\n" + head_file.read()
+        self.head_paths = head_paths
+        self._set_html_css_theme_variables()
 
         if not self.exited:
             self.__exit__()
@@ -2759,8 +2766,7 @@ Received inputs:
         if self.mcp_server:
             print(
                 "\n🔨 Launching MCP server:"
-                f"\n** Streamable HTTP URL: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/"
-                f"\n* [Deprecated] SSE URL: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/sse"
+                f"\n* Streamable HTTP URL: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/"
             )
 
         if inbrowser:
@@ -2841,8 +2847,8 @@ Received inputs:
                 "is_custom_theme": is_custom_theme,
                 "custom_js": self.js is not None,
                 "custom_head": self.head is not None,
-                "custom_css_paths": len(css_paths) > 0 if css_paths else False,
-                "custom_head_paths": len(head_paths) > 0 if head_paths else False,
+                "custom_css_paths": bool(self.css_paths),
+                "custom_head_paths": bool(head_paths),
             }
             analytics.launched_analytics(self, data)
 

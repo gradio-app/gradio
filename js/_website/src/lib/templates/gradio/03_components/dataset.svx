@@ -9,6 +9,7 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
+
     let obj = get_object("dataset");
 </script>
 
@@ -20,25 +21,6 @@
 gradio.Dataset(···)
 ```
 
-<!-- Embedded Component -->
-<div class="embedded-component">
-<gradio-lite shared-worker>
-import gradio as gr
-with gr.Blocks() as demo:
-    gr.Dataset(components=[gr.Textbox(visible=False)],
-        label="Text Dataset",
-        samples=[
-            ["The quick brown fox jumps over the lazy dog"],
-            ["Build & share delightful machine learning apps"],
-            ["She sells seashells by the seashore"],
-            ["Supercalifragilisticexpialidocious"],
-            ["Lorem ipsum"],
-            ["That's all folks!"]
-        ],
-    )
-demo.launch()
-</gradio-lite>
-</div>
 
 
 <!--- Description -->

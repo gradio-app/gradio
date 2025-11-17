@@ -27,6 +27,7 @@
 	export let max_file_size: number | null = null;
 	export let i18n: I18nFormatter;
 	export let max_height: number;
+	export let upload_promise: Promise<any> | null = null;
 
 	let value_: [FileData | null, FileData | null] = value || [null, null];
 
@@ -117,6 +118,7 @@
 			{#if !value_?.[0]}
 				<div class="wrap" class:half-wrap={upload_count === 1}>
 					<Upload
+						bind:upload_promise
 						bind:dragging
 						filetype="image/*"
 						on:load={(e) => handle_upload(e, 0)}
@@ -142,6 +144,7 @@
 
 			{#if !value_?.[1] && upload_count === 2}
 				<Upload
+					bind:upload_promise
 					bind:dragging
 					filetype="image/*"
 					on:load={(e) => handle_upload(e, 1)}

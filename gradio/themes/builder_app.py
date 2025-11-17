@@ -97,7 +97,6 @@ with gr.Blocks(  # noqa: SIM117
                     base_theme_dropdown = gr.Dropdown(
                         [theme.__name__ for theme in themes],
                         value="Base",
-                        show_label=False,
                         label="Theme",
                     )
                     load_theme_btn = gr.Button("Load Theme", elem_id="load_theme")
@@ -315,7 +314,7 @@ with gr.Blocks(  # noqa: SIM117
                             placeholder="Leave blank to automatically update version.",
                         )
                     upload_to_hub_btn = gr.Button("Upload to Hub")
-                    theme_upload_status = gr.Markdown(visible=False)
+                    theme_upload_status = gr.Markdown(visible="hidden")
 
                 gr.Markdown("Below this panel is a dummy app to demo your theme.")
 
@@ -327,7 +326,7 @@ with gr.Blocks(  # noqa: SIM117
                 interactive=True,
             )
 
-            gr.Interface(lambda x: x, "number", "textbox")
+            # gr.Interface(lambda x: x, "number", "textbox")
 
             with gr.Row():
                 slider1 = gr.Slider(label="Slider 1")
@@ -404,8 +403,8 @@ with gr.Blocks(  # noqa: SIM117
             )
 
             with gr.Row():
-                gr.Dataframe(value=[[1, 2, 3], [4, 5, 6], [7, 8, 9]], label="Dataframe")
-                gr.JSON(
+                # gr.Dataframe(value=[[1, 2, 3], [4, 5, 6], [7, 8, 9]], label="Dataframe")
+                gr.Json(
                     value={"a": 1, "b": 2, "c": {"test": "a", "test2": [1, 2, 3]}},
                     label="JSON",
                 )
@@ -466,8 +465,8 @@ with gr.Blocks(  # noqa: SIM117
 
         # Event Listeners
 
-        secret_css = gr.Textbox(visible=False)
-        secret_font = gr.JSON(visible=False)
+        secret_css = gr.Textbox(visible="hidden")
+        secret_font = gr.JSON(visible="hidden")
 
         demo.load(  # doing this via python was not working for some reason, so using this hacky method for now
             None,
@@ -1009,6 +1008,8 @@ demo.launch(theme=theme)
             [theme_upload_status, upload_to_hub_btn],
             api_visibility="undocumented",
         )
+
+        demo.load(lambda: print("FOO"))
 
 
 if __name__ == "__main__":

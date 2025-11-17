@@ -1,5 +1,12 @@
 # gradio_client
 
+## 2.0.0-dev.2
+
+### Features
+
+- [#12243](https://github.com/gradio-app/gradio/pull/12243) [`cb49168`](https://github.com/gradio-app/gradio/commit/cb49168b1d52b39e47f1faeda93d150e048bd625) - [Client] Fix ZeroGPU headers forwarding.  Thanks @cbensimon!
+- [#12217](https://github.com/gradio-app/gradio/pull/12217) [`681fa11`](https://github.com/gradio-app/gradio/commit/681fa11357de520f0b05605cbd300d9e276d8736) - Update ZeroGPU guide to reflect best practices on manually passing an IP token.  Thanks @dawoodkhan82!
+
 ## 2.0.0-dev.1
 
 ### Features
