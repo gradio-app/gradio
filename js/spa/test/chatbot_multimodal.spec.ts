@@ -72,7 +72,7 @@ test(`audio uploaded by a user should be shown in the chatbot`, async ({
 		.textContent();
 
 	await expect(
-		page.getByTestId("user").getByTestId("unlabelled-audio")
+		page.getByTestId("user").getByTestId("waveform-Audio")
 	).toBeVisible();
 	expect(bot_message).toBeTruthy();
 });
