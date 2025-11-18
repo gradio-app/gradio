@@ -206,7 +206,11 @@
 
 	input[disabled],
 	.disabled {
-		cursor: not-allowed;
+		cursor: not-allowed !important;
+	}
+
+	input[disabled] {
+		opacity: 0.75;
 	}
 
 	input:hover {

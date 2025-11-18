@@ -43,7 +43,7 @@
 	}
 </script>
 
-<label class="checkbox-container">
+<label class="checkbox-container" class:disabled>
 	<input
 		bind:checked={gradio.props.value}
 		on:keydown={handle_enter}
@@ -70,7 +70,7 @@
 
 	.label-text {
 		color: var(--body-text-color);
-		font-size: var(--text-sm);
+		font-size: var(--checkbox-label-text-size);
 		line-height: var(--line-sm);
 	}
 
@@ -145,6 +145,11 @@
 	}
 
 	input[disabled] {
+		cursor: not-allowed;
+		opacity: 0.75;
+	}
+
+	label.disabled {
 		cursor: not-allowed;
 	}
 
