@@ -71,7 +71,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			open: "/"
 		},
 		build: {
-			sourcemap: true,
+			sourcemap: false,
 			target: "esnext",
 			minify: production,
 			outDir: "../../gradio/templates/frontend",
