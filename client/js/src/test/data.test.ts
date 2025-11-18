@@ -380,7 +380,7 @@ describe("handle_payload", () => {
 		expect(result).toEqual(["hello"]);
 	});
 
-	it("should return an ouput payload without the two state component values when with_null_state is false", () => {
+	it("should return an output payload without the two state component values when with_null_state is false", () => {
 		const resolved_payload = ["hello", null, "world", null];
 		const dependency = {
 			outputs: [2, 3, 4, 5]
@@ -403,7 +403,7 @@ describe("handle_payload", () => {
 		expect(result).toEqual(["hello", "world"]);
 	});
 
-	it("should return an ouput payload with the two state component values when with_null_state is true", () => {
+	it("should return an output payload with the two state component values when with_null_state is true", () => {
 		const resolved_payload = ["hello", null, "world", null];
 		const dependency = {
 			outputs: [2, 3, 4, 5]
