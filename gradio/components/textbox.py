@@ -143,7 +143,6 @@ class Textbox(FormComponent):
                     "The `max_lines` parameter must be None or 1 for `type` of 'password' or 'email'. Setting `max_lines` to 1."
                 )
                 max_lines = 1
-
         self.lines = lines
         self.max_lines = max_lines
         self.placeholder = placeholder
