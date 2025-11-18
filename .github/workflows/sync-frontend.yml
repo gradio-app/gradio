@@ -1,0 +1,34 @@
+name: "sync-frontend"
+
+on:
+  push:
+    branches:
+      - changeset-release/main
+      - lazy-load-cc-frontend-templates
+      - changeset-release/6.0-dev
+
+permissions: {}
+
+env:
+  CI: true
+
+jobs:
+  sync-frontend:
+    permissions:
+      contents: read
+    environment: deploy_spaces
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pip
+        run: python -m pip install pip wheel requests
+      - name: Install Hub Client Library
+        run: pip install huggingface-hub
+      - name: Sync Front End Files To Hub
+        run: |
+          python scripts/sync_frontend.py \
+          ${{ secrets.SPACES_DEPLOY_TOKEN }}
