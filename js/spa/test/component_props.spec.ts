@@ -39,4 +39,30 @@ test("component props", async ({ page }) => {
 	await expect(outputJson).toContainText('"value": 7');
 	await expect(outputJson).toContainText('"maximum": 10');
 	await expect(outputJson).toContainText('"minimum": 0');
+
+	const imageOutputJson = page.locator("#image-output");
+	const showImagePropsBtn = page.getByRole("button", {
+		name: "Show Image Props"
+	});
+	const changeImageSizeBtn = page.getByRole("button", {
+		name: "Change Image Size"
+	});
+	const resetImageBtn = page.getByRole("button", {
+		name: "Reset Image"
+	});
+
+	await showImagePropsBtn.click();
+	await expect(imageOutputJson).toContainText('"width": 300');
+	await expect(imageOutputJson).toContainText('"height": 300');
+	await expect(imageOutputJson).toContainText('"type": "filepath"');
+	await expect(imageOutputJson).toContainText("cheetah.jpg");
+
+	await changeImageSizeBtn.click();
+	await expect(imageOutputJson).toContainText('"width": 400');
+	await expect(imageOutputJson).toContainText('"height": 400');
+
+	await resetImageBtn.click();
+	await expect(imageOutputJson).toContainText('"width": 300');
+	await expect(imageOutputJson).toContainText('"height": 300');
+	await expect(imageOutputJson).toContainText("cheetah.jpg");
 });

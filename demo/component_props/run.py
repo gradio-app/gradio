@@ -21,7 +21,7 @@ with gr.Blocks() as demo:
         x.value = (x.value or 0) * 2
         x.info = f"Enter a number between 0 and {x.maximum}"
         return x
-    
+
     double_btn.click(double_value_and_max, a, a).then(
         process_with_props, a, output_a
     )
@@ -34,6 +34,43 @@ with gr.Blocks() as demo:
 
     reset_btn.click(reset, a, a).then(
         process_with_props, a, output_a
+    )
+
+    # Image component demo
+    gr.Markdown("## Image Component Props")
+    b = gr.Image(value="cheetah.jpg", label="Input Image", width=300, height=300, type="filepath")
+    output_b = gr.JSON(label="Image Props Output", elem_id="image-output")
+    with gr.Row():
+        show_image_props_btn = gr.Button("Show Image Props")
+        change_image_size_btn = gr.Button("Change Image Size")
+        reset_image_btn = gr.Button("Reset Image")
+
+    def show_image_props(x: gr.Image):
+        return {
+            "value": x.value if x.value is None else str(x.value),
+            "width": x.width,
+            "height": x.height,
+            "type": x.type,
+        }
+    show_image_props_btn.click(show_image_props, b, output_b)
+
+    def change_image_size(x: gr.Image):
+        x.width = 400
+        x.height = 400
+        return x
+
+    change_image_size_btn.click(change_image_size, b, b).then(
+        show_image_props, b, output_b
+    )
+
+    def reset_image(x: gr.Image):
+        x.width = 300
+        x.height = 300
+        x.value = "cheetah.jpg"
+        return x
+
+    reset_image_btn.click(reset_image, b, b).then(
+        show_image_props, b, output_b
     )
 
 

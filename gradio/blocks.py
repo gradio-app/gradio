@@ -1713,36 +1713,42 @@ Received inputs:
                 if block._id in state:
                     block = state[block._id]
 
-                if i in block_fn.component_prop_inputs:
-                    processed_input.append(inputs[i])
-                    if block._id not in state:
-                        state[block._id] = block
-                    if isinstance(inputs[i], dict) and "value" in inputs[i]:
-                        state._update_value_in_config(block._id, inputs[i]["value"])
-                else:
-                    inputs_cached = await processing_utils.async_move_files_to_cache(
-                        inputs[i],
-                        block,
-                        check_in_upload_folder=not explicit_call,
+                # Determine what to process
+                is_prop_input = i in block_fn.component_prop_inputs
+                value_to_process = inputs[i]["value"] if is_prop_input else inputs[i]
+
+                inputs_cached = await processing_utils.async_move_files_to_cache(
+                    value_to_process,
+                    block,
+                    check_in_upload_folder=not explicit_call,
+                )
+                if getattr(block, "data_model", None) and inputs_cached is not None:
+                    data_model = cast(
+                        Union[GradioModel, GradioRootModel], block.data_model
                     )
-                    if getattr(block, "data_model", None) and inputs_cached is not None:
-                        data_model = cast(
-                            Union[GradioModel, GradioRootModel], block.data_model
-                        )
-                        inputs_cached = data_model.model_validate(
-                            inputs_cached, context={"validate_meta": True}
-                        )
-                    if isinstance(inputs_cached, (GradioModel, GradioRootModel)):
-                        inputs_serialized = inputs_cached.model_dump()
-                    else:
-                        inputs_serialized = inputs_cached
-                    if block._id not in state:
-                        state[block._id] = block
-                    state._update_value_in_config(block._id, inputs_serialized)
-                    if block_fn.preprocess:
-                        processed_input.append(block.preprocess(inputs_cached))
-                    else:
-                        processed_input.append(inputs_serialized)
+                    inputs_cached = data_model.model_validate(
+                        inputs_cached, context={"validate_meta": True}
+                    )
+                if isinstance(inputs_cached, (GradioModel, GradioRootModel)):
+                    inputs_serialized = inputs_cached.model_dump()
+                else:
+                    inputs_serialized = inputs_cached
+
+                if block._id not in state:
+                    state[block._id] = block
+                state._update_value_in_config(block._id, inputs_serialized)
+
+                # Preprocess and append
+                if block_fn.preprocess:
+                    processed_value = block.preprocess(inputs_cached)
+                else:
+                    processed_value = inputs_serialized
+
+                if is_prop_input:
+                    inputs[i]["value"] = processed_value
+                    processed_input.append(inputs[i])
+                else:
+                    processed_input.append(processed_value)
         return processed_input
 
     def validate_outputs(self, block_fn: BlockFunction, predictions: Any | list[Any]):
@@ -1861,7 +1867,6 @@ Received inputs:
                     kwargs.pop("__type__")
                     kwargs["render"] = False
 
-                    print(">>", kwargs)
                     state[block._id] = block.__class__(**kwargs)
                     state._update_config(block._id)
                     prediction_value = postprocess_update_dict(

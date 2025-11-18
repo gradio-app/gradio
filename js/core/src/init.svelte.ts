@@ -349,6 +349,7 @@ export class AppTree {
 		const _set_data = this.#set_callbacks.get(id);
 		if (!_set_data) return;
 		_set_data(new_state);
+		console.log("END update state");
 		if (!check_visibility || already_updated_visibility) return;
 		// need to let the UI settle before traversing again
 		// otherwise there could be
