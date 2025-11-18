@@ -127,24 +127,11 @@
 	$: selected_tools_array = Array.from(selected_tools);
 	$: selected_tools_without_prefix =
 		selected_tools_array.map(remove_tool_prefix);
-	$: mcp_server_url = `${root}gradio_api/mcp/sse`;
 	$: mcp_server_url_streamable =
 		selected_tools_array.length > 0 &&
 		selected_tools_array.length < tools.length
 			? `${root}gradio_api/mcp/?tools=${selected_tools_without_prefix.join(",")}`
 			: `${root}gradio_api/mcp/`;
-
-	$: if (mcp_json_sse && selected_tools.size > 0) {
-		const baseUrl =
-			selected_tools_array.length > 0 &&
-			selected_tools_array.length < tools.length
-				? `${root}gradio_api/mcp/sse?tools=${selected_tools_without_prefix.join(",")}`
-				: `${root}gradio_api/mcp/sse`;
-		mcp_json_sse.mcpServers.gradio.url = baseUrl;
-		if (mcp_json_stdio) {
-			mcp_json_stdio.mcpServers.gradio.args[1] = baseUrl;
-		}
-	}
 
 	interface ToolParameter {
 		title?: string;
@@ -168,7 +155,6 @@
 
 	let tools: Tool[] = [];
 	let headers: string[] = [];
-	let mcp_json_sse: any;
 	let mcp_json_stdio: any;
 	let file_data_present = false;
 	let selected_tools: Set<string> = new Set();
@@ -213,29 +199,15 @@
 			selected_tools = new Set(tools.map((tool) => tool.name));
 			headers = schema.map((tool: any) => tool.meta?.headers || []).flat();
 			if (headers.length > 0) {
-				mcp_json_sse = {
-					mcpServers: {
-						gradio: {
-							url: mcp_server_url,
-							headers: headers.reduce(
-								(accumulator: Record<string, string>, current_key: string) => {
-									accumulator[current_key] = "<YOUR_HEADER_VALUE>";
-									return accumulator;
-								},
-								{}
-							)
-						}
-					}
-				};
 				mcp_json_stdio = {
 					mcpServers: {
 						gradio: {
 							command: "npx",
 							args: [
 								"mcp-remote",
-								mcp_server_url,
+								mcp_server_url_streamable,
 								"--transport",
-								"sse-only",
+								"streamable-http",
 								...headers
 									.map((header) => [
 										"--header",
@@ -247,24 +219,15 @@
 					}
 				};
 			} else {
-				mcp_json_sse = {
-					mcpServers: {
-						gradio: {
-							url: mcp_server_url
-						}
-					}
-				};
 				mcp_json_stdio = {
 					mcpServers: {
 						gradio: {
 							command: "npx",
-							args: ["mcp-remote", mcp_server_url, "--transport", "sse-only"]
+							args: ["mcp-remote", mcp_server_url_streamable, "--transport", "streamable-http"]
 						}
 					}
 				};
 				if (file_data_present) {
-					mcp_json_sse.mcpServers.upload_files_to_gradio =
-						upload_file_mcp_server;
 					mcp_json_stdio.mcpServers.upload_files_to_gradio =
 						upload_file_mcp_server;
 				}
@@ -298,7 +261,7 @@
 		}
 
 		// Check MCP server status and fetch tools if active
-		fetch(mcp_server_url, { signal: signal })
+		fetch(mcp_server_url_streamable, { signal: signal })
 			.then((response) => {
 				mcp_server_active = response.ok;
 				if (mcp_server_active) {
@@ -354,7 +317,6 @@
 					{mcp_docs}
 					{spaces_docs_suffix}
 					{mcp_server_active}
-					{mcp_server_url}
 					{mcp_server_url_streamable}
 					{config_snippets}
 					{markdown_code_snippets}
@@ -432,12 +394,10 @@
 					<div class:hidden={current_language !== "mcp"}>
 						<MCPSnippet
 							{mcp_server_active}
-							{mcp_server_url}
 							{mcp_server_url_streamable}
 							tools={tools.filter((tool) => selected_tools.has(tool.name))}
 							all_tools={tools}
 							bind:selected_tools
-							{mcp_json_sse}
 							{mcp_json_stdio}
 							{file_data_present}
 							{mcp_docs}
