@@ -714,6 +714,15 @@ class BlocksConfig:
         if fn is not None and not cancels:
             check_function_inputs_match(fn, inputs, inputs_as_dict)
 
+        if like_user_message is not False:
+            warnings.warn(
+                "The 'like_user_message' parameter in the '.like()' event will be removed in Gradio 6.0. "
+                "You will need to use 'like_user_message' in the Chatbot constructor instead. "
+                "For example: chatbot = gr.Chatbot(like_user_message=True)",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         if show_api is not True:
             warnings.warn(
                 "The 'show_api' parameter in event listeners will be removed in Gradio 6.0. "
