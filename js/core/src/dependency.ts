@@ -103,7 +103,6 @@ export class Dependency {
 		}
 
 		if (this.functions.backend) {
-			console.log("_DATA PAYLOAD IN RUN", _data_payload);
 			return {
 				type: "submit",
 				data: client.submit(this.id, _data_payload, event_data, target_id)
@@ -298,8 +297,6 @@ export class DependencyManager {
 			);
 		}
 
-		console.log("DEPS", deps);
-
 		for (let i = 0; i < (deps?.length || 0); i++) {
 			const dep = deps ? deps[i] : undefined;
 			if (dep) {
@@ -328,7 +325,6 @@ export class DependencyManager {
 				}
 
 				const data_payload = await this.gather_state(dep.inputs);
-				console.log("DATA PAYLOAD", data_payload);
 				const unset_args = await Promise.all(
 					dep.targets.map(([output_id]) =>
 						this.set_event_args(output_id, dep.event_args)
@@ -369,7 +365,6 @@ export class DependencyManager {
 						event_data: event_meta.event_data,
 						trigger_id: target_id
 					});
-					console.log("Submitting dependency", dep.id, data_payload);
 					const dep_submission = await dep.run(
 						this.client,
 						data_payload,
@@ -711,7 +706,6 @@ export class DependencyManager {
 	async gather_state(ids: number[]): Promise<(unknown | null)[]> {
 		return (await Promise.all(ids.map((id) => this.get_state_cb(id)))).map(
 			(state) => {
-				console.log("GATHERED STATE", state);
 				return state?.value ?? null;
 			}
 		);

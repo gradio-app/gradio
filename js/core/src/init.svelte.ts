@@ -414,9 +414,7 @@ export class AppTree {
 	 */
 	async get_state(id: number): Promise<Record<string, unknown> | null> {
 		const _get_data = this.#get_callbacks.get(id);
-		console.log("GET STATE CALLED FOR ID", id, _get_data);
 		const component = this.#component_payload.find((c) => c.id === id);
-		console.log("FOUND COMPONENT", component);
 		if (!_get_data && !component) return null;
 		if (_get_data) return await _get_data();
 
@@ -477,10 +475,6 @@ function gather_props(
 		// For Tabs (or any component that already has an id prop)
 		// Set the id to the props so that it doesn't get overwritten
 		if (key === "id" || key === "autoscroll") {
-			console.log("gather_props setting id/autoscroll", {
-				key,
-				value: props[key]
-			});
 			_props[key] = props[key];
 		} else if (allowed_shared_props.includes(key as keyof SharedProps)) {
 			const _key = key as keyof SharedProps;
