@@ -41,7 +41,7 @@ const type_map = {
 };
 export class AppTree {
 	/** the raw component structure received from the backend */
-	#component_payload: ComponentMeta[];
+	#component_payload: ComponentMeta[] = $state([]);
 	/** the raw layout node structure received from the backend */
 	#layout_payload: LayoutNode;
 	/** the raw dependency structure received from the backend */
@@ -53,7 +53,7 @@ export class AppTree {
 	client: client_return;
 
 	/** the root node of the processed layout tree */
-	root = $state<ProcessedComponentMeta>();
+	root = $derived<ProcessedComponentMeta>(this.prepare());
 
 	/** a set of all component IDs that are inputs to dependencies */
 	#input_ids: Set<number> = new Set();
@@ -65,7 +65,7 @@ export class AppTree {
 
 	#get_callbacks = new Map<number, get_data_type>();
 	#set_callbacks = new Map<number, set_data_type>();
-	component_ids: number[];
+	component_ids!: number[];
 	initial_tabs: Record<number, Tab[]> = {};
 
 	components_to_register: Set<number> = new Set();
@@ -90,39 +90,7 @@ export class AppTree {
 		this.#component_payload = components;
 		this.#layout_payload = layout;
 		this.#dependency_payload = dependencies;
-		this.root = this.create_node(
-			{ id: layout.id, children: [] },
-			new Map(),
-			true
-		);
-		for (const comp of components) {
-			if (comp.props.visible != false) this.components_to_register.add(comp.id);
-		}
-
 		this.client = app;
-
-		this.prepare();
-
-		const component_map = components.reduce((map, comp) => {
-			map.set(comp.id, comp);
-			return map;
-		}, new Map<number, ComponentMeta>());
-
-		this.root!.children = this.#layout_payload.children.map((node) =>
-			this.traverse(node, (node) => {
-				const new_node = this.create_node(
-					node,
-					component_map,
-					false,
-					this.reactive_formatter
-				);
-				return new_node;
-			})
-		);
-		this.component_ids = components.map((c) => c.id);
-		this.initial_tabs = {};
-		gather_initial_tabs(this.root!, this.initial_tabs);
-		this.postprocess(this.root!);
 	}
 
 	reload(
@@ -192,17 +160,48 @@ export class AppTree {
 	/**
 	 * Preprocess the payloads to get the correct state read to build the tree
 	 */
-	prepare() {
+	prepare(): ProcessedComponentMeta {
+		console.log("PREPARING APP TREE");
+		const root = this.create_node(
+		{ id: this.#layout_payload.id, children: [] },
+			new Map(),
+			true
+		);
+		for (const comp of this.#component_payload) {
+			if (comp.props.visible != false) this.components_to_register.add(comp.id);
+		}
+
 		const [inputs, outputs] = get_inputs_outputs(this.#dependency_payload);
 		this.#input_ids = inputs;
 		this.#output_ids = outputs;
+
+		const component_map = this.#component_payload.reduce((map, comp) => {
+			map.set(comp.id, comp);
+			return map;
+		}, new Map<number, ComponentMeta>());
+
+		root!.children = this.#layout_payload.children.map((node) =>
+			this.traverse(node, (node) => {
+				const new_node = this.create_node(
+					node,
+					component_map,
+					false,
+					this.reactive_formatter
+				);
+				return new_node;
+			})
+		);
+		this.component_ids = this.#component_payload.map((c) => c.id);
+		this.initial_tabs = {};
+		gather_initial_tabs(root!, this.initial_tabs);
+		return this.postprocess(root!);
 	}
 
 	/** Processes the layout payload into a tree of components */
 	process() {}
 
 	postprocess(tree: ProcessedComponentMeta) {
-		this.root = this.traverse(tree, [
+		return this.traverse(tree, [
 			(node) => handle_visibility(node, this.#config.root),
 			(node) =>
 				untrack_children_of_invisible_parents(
@@ -309,15 +308,15 @@ export class AppTree {
 		if (!component) {
 			throw new Error(`Component with ID ${opts.id} not found`);
 		}
-		if (reactive_formatter) {
-			component.props.i18n = reactive_formatter;
-		}
+		// if (reactive_formatter) {
+		// 	component.props.i18n = reactive_formatter;
+		// }
 		const processed_props = gather_props(
 			opts.id,
 			component.props,
 			[this.#input_ids, this.#output_ids],
 			this.client,
-			{ ...this.#config }
+			{ ...this.#config, i18n: reactive_formatter ? reactive_formatter : undefined }
 		);
 
 		const type =
