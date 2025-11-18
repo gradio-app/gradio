@@ -162,29 +162,63 @@ class Video(StreamingOutput, Component):
         )
 
         if isinstance(watermark, (str, Path)):
-            warnings.warn(
-                "The `watermark` parameter is updated to use WatermarkOptions. Please use the `watermark` parameter with a `gr.WatermarkOptions` instance instead."
-            )
             self.watermark.watermark = watermark
 
         if mirror_webcam is not None:
             warnings.warn(
-                "The `mirror_webcam` parameter is deprecated. Please use the `webcam_options` parameter with a `gr.WebcamOptions` instance instead."
+                "The 'mirror_webcam' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'webcam_options' with a 'gr.WebcamOptions' instance instead.",
+                DeprecationWarning,
+                stacklevel=2,
             )
             self.webcam_options.mirror = mirror_webcam
 
         if webcam_constraints is not None:
+            warnings.warn(
+                "The 'webcam_constraints' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'webcam_options' with a 'gr.WebcamOptions' instance instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             self.webcam_options.constraints = webcam_constraints
 
         self.include_audio = (
             include_audio if include_audio is not None else "upload" in self.sources
         )
+        if show_download_button is not None:
+            warnings.warn(
+                "The 'show_download_button' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'buttons=[\"download\"]' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        if show_share_button is not None:
+            warnings.warn(
+                "The 'show_share_button' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'buttons=[\"share\"]' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        self.show_download_button = show_download_button
         self.show_share_button = (
             (utils.get_space() is not None)
             if show_share_button is None
             else show_share_button
         )
-        self.show_download_button = show_download_button
+        if min_length is not None:
+            warnings.warn(
+                "The 'min_length' parameter will be removed in Gradio 6.0. "
+                "You will need to use validators instead. See gr.validators.is_video_correct_length() for more information.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        if max_length is not None:
+            warnings.warn(
+                "The 'max_length' parameter will be removed in Gradio 6.0. "
+                "You will need to use validators instead. See gr.validators.is_video_correct_length() for more information.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         self.min_length = min_length
         self.max_length = max_length
         self.streaming = streaming
@@ -298,6 +332,14 @@ class Video(StreamingOutput, Component):
             processed_files = (self._format_video(value), None)
 
         elif isinstance(value, (tuple, list)):
+            warnings.warn(
+                "Returning a tuple of (video, subtitles) from a function will be removed in Gradio 6.0. "
+                "You will need to use the Video component directly with the subtitles parameter instead. "
+                "For example: return gr.Video(value=video_path, subtitles=subtitle_path)",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
             if len(value) != 2:
                 raise ValueError(
                     f"Expected lists of length 2 or tuples of length 2. Received: {value}"

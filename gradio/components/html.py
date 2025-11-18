@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -65,6 +66,14 @@ class HTML(Component):
             padding: If True, the HTML component will have a certain padding (set by the `--block-padding` CSS variable) in all directions. Default is True.
             autoscroll: If True, will automatically scroll to the bottom of the component when the content changes, unless the user has scrolled up. If False, will not scroll to the bottom when the content changes.
         """
+        if padding is True:
+            warnings.warn(
+                "The default value of 'padding' in gr.HTML will be changed from True to False in Gradio 6.0. "
+                "You will need to explicitly set padding=True if you want to keep the padding.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         self.min_height = min_height
         self.max_height = max_height
         self.padding = padding

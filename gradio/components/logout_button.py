@@ -48,7 +48,10 @@ class LogoutButton(Button):
         min_width: int | None = None,
     ):
         warnings.warn(
-            "The `gr.LogoutButton` component is deprecated. Please use `gr.LoginButton` instead which handles both the login and logout processes."
+            "The 'gr.LogoutButton' component will be removed in Gradio 6.0. "
+            "You will need to use 'gr.LoginButton' instead, which handles both the login and logout processes.",
+            DeprecationWarning,
+            stacklevel=2,
         )
         super().__init__(
             value,

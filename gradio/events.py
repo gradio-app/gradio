@@ -4,6 +4,7 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 from __future__ import annotations
 
 import dataclasses
+import warnings
 from collections.abc import Callable, Sequence, Set
 from functools import partial, wraps
 from typing import (
@@ -685,6 +686,23 @@ class EventListener(str):
 
             from gradio.components.base import StreamingInput
 
+            if show_api is not True:
+                warnings.warn(
+                    "The 'show_api' parameter in event listeners will be removed in Gradio 6.0. "
+                    "You will need to use the 'api_visibility' parameter instead. "
+                    "To replicate show_api=False, in Gradio 6.0, use api_visibility='undocumented'.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+
+            if api_name is False:
+                warnings.warn(
+                    "Setting 'api_name=False' in event listeners will be removed in Gradio 6.0. "
+                    "You will need to use 'api_visibility=\"private\"' instead.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+
             if isinstance(block, StreamingInput) and "stream" in block.events:
                 block.check_streamable()  # type: ignore
             if isinstance(show_progress, bool):
@@ -886,6 +904,23 @@ def on(
             return inner
 
         return Dependency(None, {}, None, wrapper)
+
+    if show_api is not True:
+        warnings.warn(
+            "The 'show_api' parameter in event listeners will be removed in Gradio 6.0. "
+            "You will need to use the 'api_visibility' parameter instead. "
+            "To replicate show_api=False, in Gradio 6.0, use api_visibility='undocumented'.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+    if api_name is False:
+        warnings.warn(
+            "Setting 'api_name=False' in event listeners will be removed in Gradio 6.0. "
+            "You will need to use 'api_visibility=\"private\"' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     root_block = get_blocks_context()
     if root_block is None:

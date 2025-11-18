@@ -137,20 +137,23 @@ class Image(StreamingInput, Component):
         )
 
         if isinstance(watermark, (str, Path, PIL.Image.Image, np.ndarray)):
-            warnings.warn(
-                "The `watermark` parameter is updated to use WatermarkOptions. Please use the `watermark` parameter with a `gr.WatermarkOptions` instance instead."
-            )
             self.watermark.watermark = watermark
 
         if mirror_webcam is not None:
             warnings.warn(
-                "The `mirror_webcam` parameter is deprecated. Please use the `webcam_options` parameter with a `gr.WebcamOptions` instance instead."
+                "The 'mirror_webcam' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'webcam_options' with a 'gr.WebcamOptions' instance instead.",
+                DeprecationWarning,
+                stacklevel=2,
             )
             self.webcam_options.mirror = mirror_webcam
 
         if webcam_constraints is not None:
             warnings.warn(
-                "The `webcam_constraints` parameter is deprecated. Please use the `webcam_options` parameter with a `gr.WebcamOptions` instance instead."
+                "The 'webcam_constraints' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'webcam_options' with a 'gr.WebcamOptions' instance instead.",
+                DeprecationWarning,
+                stacklevel=2,
             )
             self.webcam_options.constraints = webcam_constraints
 
@@ -178,6 +181,27 @@ class Image(StreamingInput, Component):
                     f"`sources` must a list consisting of elements in {valid_sources}"
                 )
         self.streaming = streaming
+        if show_download_button is not True:
+            warnings.warn(
+                "The 'show_download_button' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'buttons=[\"download\"]' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        if show_share_button is not None:
+            warnings.warn(
+                "The 'show_share_button' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'buttons=[\"share\"]' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        if show_fullscreen_button is not True:
+            warnings.warn(
+                "The 'show_fullscreen_button' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'buttons=[\"fullscreen\"]' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         self.show_download_button = show_download_button
         if streaming and self.sources != ["webcam"]:
             raise ValueError(
