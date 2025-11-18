@@ -7,12 +7,11 @@ import pathlib
 import shutil
 import tempfile
 import textwrap
-import requests
 import time
 import warnings
 
-
 import huggingface_hub
+import requests
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DIR = os.path.dirname(__file__)
@@ -23,9 +22,16 @@ GRADIO_DEMO_DIR = os.path.abspath(os.path.join(ROOT, "demo"))
 # 2. reset_components includes media files that are only present in all_demos (only for PRs)
 # 3. custom_path doesn't have .launch since the point is to show how to launch with uvicorn
 # 4. The same reason as 2 for kitchen_sink_random and blocks_kitchen_sink
-DEMOS_TO_SKIP = {"all_demos", "clear_components", "custom_path", "kitchen_sink_random", "blocks_kitchen_sink"}
+DEMOS_TO_SKIP = {
+    "all_demos",
+    "clear_components",
+    "custom_path",
+    "kitchen_sink_random",
+    "blocks_kitchen_sink",
+}
 
 api = huggingface_hub.HfApi()
+
 
 def space_exists(space_id):
     url = f"https://huggingface.co/spaces/{space_id}"
@@ -41,13 +47,14 @@ def space_exists(space_id):
         return False
     return False
 
+
 def upload_demo_to_space(
-    demo_name: str, 
-    space_id: str, 
-    hf_token: str, 
-    gradio_version: str | None, 
+    demo_name: str,
+    space_id: str,
+    hf_token: str,
+    gradio_version: str | None,
     gradio_wheel_url: str | None = None,
-    gradio_client_url: str | None = None
+    gradio_client_url: str | None = None,
 ):
     """Upload a demo in the demo directory to a huggingface space.
     Parameters:
@@ -88,9 +95,11 @@ def upload_demo_to_space(
                     content = f.read()
                 with open(os.path.join(requirements_path), "w") as f:
                     f.seek(0, 0)
-                    f.write(gradio_client_url + "\n" + gradio_wheel_url + "\n" + content)
-        
-        try: 
+                    f.write(
+                        gradio_client_url + "\n" + gradio_wheel_url + "\n" + content
+                    )
+
+        try:
             if not space_exists(space_id):
                 print(f"Creating space {space_id}")
                 api.create_repo(
@@ -113,8 +122,15 @@ def upload_demo_to_space(
             return
     return f"https://huggingface.co/spaces/{space_id}"
 
+
 demos = os.listdir(GRADIO_DEMO_DIR)
-demos = [demo for demo in demos if demo not in DEMOS_TO_SKIP and os.path.isdir(os.path.join(GRADIO_DEMO_DIR, demo)) and  os.path.exists(os.path.join(GRADIO_DEMO_DIR, demo, "run.py"))]
+demos = [
+    demo
+    for demo in demos
+    if demo not in DEMOS_TO_SKIP
+    and os.path.isdir(os.path.join(GRADIO_DEMO_DIR, demo))
+    and os.path.exists(os.path.join(GRADIO_DEMO_DIR, demo, "run.py"))
+]
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -124,10 +140,24 @@ if __name__ == "__main__":
     parser.add_argument("--GRADIO_VERSION", type=str, help="gradio version")
     args = parser.parse_args()
     gradio_wheel_url = args.WHEEL_URL + f"gradio-{args.GRADIO_VERSION}-py3-none-any.whl"
-    
+
     if args.AUTH_TOKEN is not None:
-        hello_world_version = str(huggingface_hub.space_info("gradio/hello_world").cardData["sdk_version"])
+        hello_world_version = str(
+            huggingface_hub.space_info("gradio/hello_world").cardData["sdk_version"]
+        )
         for demo in demos:
             if hello_world_version != args.GRADIO_VERSION:
-                upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo, hf_token=args.AUTH_TOKEN, gradio_version=args.GRADIO_VERSION)
-            upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo + "_main", hf_token=args.AUTH_TOKEN, gradio_version=args.GRADIO_VERSION, gradio_wheel_url=gradio_wheel_url, gradio_client_url=args.CLIENT_URL)
+                upload_demo_to_space(
+                    demo_name=demo,
+                    space_id="gradio/" + demo,
+                    hf_token=args.AUTH_TOKEN,
+                    gradio_version=args.GRADIO_VERSION,
+                )
+            upload_demo_to_space(
+                demo_name=demo,
+                space_id="gradio/" + demo + "_main",
+                hf_token=args.AUTH_TOKEN,
+                gradio_version=args.GRADIO_VERSION,
+                gradio_wheel_url=gradio_wheel_url,
+                gradio_client_url=args.CLIENT_URL,
+            )
