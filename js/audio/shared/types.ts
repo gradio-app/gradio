@@ -35,6 +35,7 @@ export interface AudioProps {
 	streaming: boolean;
 	stream_every: number;
 	input_ready: boolean;
+	minimal?: boolean;
 }
 
 export interface AudioEvents {

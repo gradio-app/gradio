@@ -91,6 +91,11 @@
 				timeRef && (timeRef.textContent = format_time(currentTime))
 		);
 
+		waveform?.on("interaction", () => {
+			const currentTime = waveform?.getCurrentTime() || 0;
+			timeRef && (timeRef.textContent = format_time(currentTime));
+		});
+
 		waveform?.on("ready", () => {
 			if (!waveform_settings.autoplay) {
 				waveform?.stop();

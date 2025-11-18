@@ -72,7 +72,7 @@ test(`audio uploaded by a user should be shown in the chatbot`, async ({
 		.textContent();
 
 	await expect(
-		page.getByTestId("user").getByTestId("unlabelled-audio")
+		page.getByTestId("user").getByTestId("waveform-Audio")
 	).toBeVisible();
 	expect(bot_message).toBeTruthy();
 });
@@ -207,8 +207,8 @@ test(`chatbot like and dislike functionality`, async ({ page }) => {
 	await page.getByLabel("Like", { exact: true }).first().click();
 	await page.getByLabel("Dislike", { exact: true }).first().click();
 
-	expect(await page.getByLabel("clicked dislike").count()).toEqual(1);
-	expect(await page.getByLabel("clicked like").count()).toEqual(0);
+	expect(await page.getByLabel("Disliked", { exact: true }).count()).toEqual(1);
+	expect(await page.getByLabel("Liked", { exact: true }).count()).toEqual(0);
 });
 
 test(`Users can upload multiple images and they will be shown as thumbnails`, async ({
