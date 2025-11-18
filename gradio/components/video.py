@@ -162,12 +162,6 @@ class Video(StreamingOutput, Component):
         )
 
         if isinstance(watermark, (str, Path)):
-            warnings.warn(
-                "Passing a string or Path to 'watermark' will be removed in Gradio 6.0. "
-                "You will need to use 'watermark' with a 'gr.WatermarkOptions' instance instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
             self.watermark.watermark = watermark
 
         if mirror_webcam is not None:

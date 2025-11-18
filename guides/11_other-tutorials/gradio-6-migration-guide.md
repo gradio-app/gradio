@@ -596,18 +596,6 @@ image = gr.Image(webcam_constraints={"facingMode": "user"})
 image = gr.Image(webcam_options=gr.WebcamOptions(constraints={"facingMode": "user"}))
 ```
 
-**`watermark` (as string/Path/PIL.Image/numpy array)** - Passing a string, Path, PIL.Image, or numpy array directly to `watermark` has been removed. Use `gr.WatermarkOptions` instead.
-
-**Before (Gradio 5.x):**
-```python
-image = gr.Image(watermark="watermark.png")
-```
-
-**After (Gradio 6.x):**
-```python
-image = gr.Image(watermark=gr.WatermarkOptions(watermark="watermark.png"))
-```
-
 **`show_download_button`, `show_share_button`, `show_fullscreen_button`** - These parameters have been removed. Use the `buttons` parameter instead.
 
 **Before (Gradio 5.x):**
@@ -644,18 +632,6 @@ video = gr.Video(webcam_constraints={"facingMode": "user"})
 **After (Gradio 6.x):**
 ```python
 video = gr.Video(webcam_options=gr.WebcamOptions(constraints={"facingMode": "user"}))
-```
-
-**`watermark` (as string/Path)** - Passing a string or Path directly to `watermark` has been removed. Use `gr.WatermarkOptions` instead.
-
-**Before (Gradio 5.x):**
-```python
-video = gr.Video(watermark="watermark.png")
-```
-
-**After (Gradio 6.x):**
-```python
-video = gr.Video(watermark=gr.WatermarkOptions(watermark="watermark.png"))
 ```
 
 **`min_length` and `max_length`** - These parameters have been removed. Use validators instead.
