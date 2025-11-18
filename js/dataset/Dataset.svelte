@@ -125,124 +125,126 @@
 	// Saw this when rendering examples in a gr.render block
 	$: selected_samples_json = JSON.stringify(selected_samples || []);
 
-	$: get_component_meta(selected_samples_json);
+	// $: get_component_meta(selected_samples_json);
 </script>
 
-{#if gallery}
-	<div class="gallery">
-		{#each selected_samples as sample_row, i}
-			{#if sample_row[0] != null}
-				<button
-					class="gallery-item"
-					on:click={() => {
-						value = i + page * samples_per_page;
-						onclick({ index: value, value: sample_row });
-						onselect({ index: value, value: sample_row });
-					}}
-					on:mouseenter={() => handle_mouseenter(i)}
-					on:mouseleave={() => handle_mouseleave()}
-				>
-					{#if sample_labels}
-						<BaseExample
-							value={sample_row[0]}
-							selected={current_hover === i}
-							type="gallery"
-						/>
-					{:else if component_meta.length}
-						{#await component_meta[0][0].component then component}
-							{#key sample_row[0]}
-								<svelte:component
-									this={component.default}
-									{...component_props[0]}
-									value={sample_row[0]}
-									{samples_dir}
-									type="gallery"
-									selected={current_hover === i}
-									index={i}
-									{root}
-								/>
-							{/key}
-						{/await}
-					{/if}
-				</button>
-			{/if}
-		{/each}
-	</div>
-{:else if selected_samples.length > 0}
-	<div class="table-wrap">
-		<table tabindex="0" role="grid">
-			<thead>
-				<tr class="tr-head">
-					{#each headers as header}
-						<th>
-							{header}
-						</th>
-					{/each}
-				</tr>
-			</thead>
-			<tbody>
-				{#each component_meta as sample_row, i}
-					<tr
-						class="tr-body"
+{#await get_component_meta(selected_samples_json) then _}
+	{#if gallery}
+		<div class="gallery">
+			{#each selected_samples as sample_row, i}
+				{#if sample_row[0] != null}
+					<button
+						class="gallery-item"
 						on:click={() => {
 							value = i + page * samples_per_page;
 							onclick({ index: value, value: sample_row });
-							onselect({
-								index: value,
-								value: selected_samples[i]
-							});
+							onselect({ index: value, value: sample_row });
 						}}
 						on:mouseenter={() => handle_mouseenter(i)}
 						on:mouseleave={() => handle_mouseleave()}
 					>
-						{#each sample_row as { value, component }, j}
-							{@const component_name = components[j]}
-
-							{#if component_name !== undefined}
-								<td
-									style="max-width: {component_name === 'textbox'
-										? '35ch'
-										: 'auto'}"
-									class={component_name}
-								>
-									{#await component then component}
-										<svelte:component
-											this={component.default}
-											{...component_props[j]}
-											{value}
-											{samples_dir}
-											type="table"
-											selected={current_hover === i}
-											index={i}
-											{root}
-										/>
-									{/await}
-								</td>
-							{/if}
+						{#if sample_labels}
+							<BaseExample
+								value={sample_row[0]}
+								selected={current_hover === i}
+								type="gallery"
+							/>
+						{:else if component_meta.length}
+							{#await component_meta[0][0].component then component}
+								{#key sample_row[0]}
+									<svelte:component
+										this={component.default}
+										{...component_props[0]}
+										value={sample_row[0]}
+										{samples_dir}
+										type="gallery"
+										selected={current_hover === i}
+										index={i}
+										{root}
+									/>
+								{/key}
+							{/await}
+						{/if}
+					</button>
+				{/if}
+			{/each}
+		</div>
+	{:else if selected_samples.length > 0}
+		<div class="table-wrap">
+			<table tabindex="0" role="grid">
+				<thead>
+					<tr class="tr-head">
+						{#each headers as header}
+							<th>
+								{header}
+							</th>
 						{/each}
 					</tr>
-				{/each}
-			</tbody>
-		</table>
-	</div>
-{/if}
-{#if paginate}
-	<div class="paginate">
-		Pages:
-		{#each visible_pages as visible_page}
-			{#if visible_page === -1}
-				<div>...</div>
-			{:else}
-				<button
-					class:current-page={page === visible_page}
-					on:click={() => (page = visible_page)}
-				>
-					{visible_page + 1}
-				</button>
-			{/if}
-		{/each}
-	</div>
-{/if}
+				</thead>
+				<tbody>
+					{#each component_meta as sample_row, i}
+						<tr
+							class="tr-body"
+							on:click={() => {
+								value = i + page * samples_per_page;
+								onclick({ index: value, value: sample_row });
+								onselect({
+									index: value,
+									value: selected_samples[i]
+								});
+							}}
+							on:mouseenter={() => handle_mouseenter(i)}
+							on:mouseleave={() => handle_mouseleave()}
+						>
+							{#each sample_row as { value, component }, j}
+								{@const component_name = components[j]}
+
+								{#if component_name !== undefined}
+									<td
+										style="max-width: {component_name === 'textbox'
+											? '35ch'
+											: 'auto'}"
+										class={component_name}
+									>
+										{#await component then component}
+											<svelte:component
+												this={component.default}
+												{...component_props[j]}
+												{value}
+												{samples_dir}
+												type="table"
+												selected={current_hover === i}
+												index={i}
+												{root}
+											/>
+										{/await}
+									</td>
+								{/if}
+							{/each}
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+	{/if}
+	{#if paginate}
+		<div class="paginate">
+			Pages:
+			{#each visible_pages as visible_page}
+				{#if visible_page === -1}
+					<div>...</div>
+				{:else}
+					<button
+						class:current-page={page === visible_page}
+						on:click={() => (page = visible_page)}
+					>
+						{visible_page + 1}
+					</button>
+				{/if}
+			{/each}
+		</div>
+	{/if}
+{/await}
 
 <style>
 	.wrap {
