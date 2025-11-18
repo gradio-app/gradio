@@ -20,7 +20,7 @@
 		"hls.js": "1.5.13",
 		"resize-observer-polyfill": "1.5.1",
 		"svelte-range-slider-pips": "4.1.0",
-		"wavesurfer.js": "7.4.2"
+		"wavesurfer.js": "7.11.0"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
