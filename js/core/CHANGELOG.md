@@ -1,5 +1,18 @@
 # @gradio/core
 
+## 1.0.0-dev.2
+
+### Features
+
+- [#12337](https://github.com/gradio-app/gradio/pull/12337) [`83d92fd`](https://github.com/gradio-app/gradio/commit/83d92fd81c43a97f4d81c52f4a985f5e044ce817) - Fix statustracker for generating outputs.  Thanks @freddyaboulton!
+- [#12336](https://github.com/gradio-app/gradio/pull/12336) [`a8f784b`](https://github.com/gradio-app/gradio/commit/a8f784babf95c8e01137f1fbcc2a44bf5450b49a) - clean up some console logs.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/textbox@0.12.0-dev.1
+- @gradio/dropdown@0.10.6-dev.1
+- @gradio/code@0.16.0-dev.2
+
 ## 1.0.0-dev.1
 
 ### Features

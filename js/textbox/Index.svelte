@@ -6,6 +6,7 @@
 </script>
 
 <script lang="ts">
+	import { tick } from "svelte";
 	import TextBox from "./shared/Textbox.svelte";
 	import StatusTracker from "@gradio/statustracker";
 	import { Block } from "@gradio/atoms";
@@ -21,17 +22,30 @@
 	gradio.props.value = gradio.props.value ?? "";
 	let old_value = $state(gradio.props.value);
 
-	$effect(() => {
+	async function dispatch_change() {
 		if (old_value !== gradio.props.value) {
 			old_value = gradio.props.value;
+			await tick();
 			gradio.dispatch("change", $state.snapshot(gradio.props.value));
 		}
+	}
+
+	async function handle_input(value: string): Promise<void> {
+		if (!gradio.shared || !gradio.props) return;
+		gradio.props.validation_error = null;
+		gradio.props.value = value;
+		await tick();
+		gradio.dispatch("input");
+	}
+
+	$effect(() => {
+		dispatch_change();
 	});
 
 	function handle_change(value: string): void {
 		if (!gradio.shared || !gradio.props) return;
-		gradio.set_data({ validation_error: null });
-		gradio.set_data({ value });
+		gradio.props.validation_error = null;
+		gradio.props.value = value;
 	}
 </script>
 
@@ -77,7 +91,7 @@
 		validation_error={gradio.shared?.loading_status?.validation_error ||
 			gradio.shared?.validation_error}
 		on:change={(e) => handle_change(e.detail)}
-		on:input={() => gradio.dispatch("input")}
+		on:input={(e) => handle_input(e.detail)}
 		on:submit={() => {
 			gradio.shared.validation_error = null;
 			gradio.dispatch("submit");

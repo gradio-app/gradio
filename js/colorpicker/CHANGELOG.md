@@ -1,5 +1,12 @@
 # @gradio/colorpicker
 
+## 0.5.0-dev.1
+
+### Features
+
+- [#12357](https://github.com/gradio-app/gradio/pull/12357) [`c9cf634`](https://github.com/gradio-app/gradio/commit/c9cf634a9cd34b4adadde1a6a98d60faf732639a) - Fix various event issues.  Thanks @pngwn!
+- [#12360](https://github.com/gradio-app/gradio/pull/12360) [`bcb6efd`](https://github.com/gradio-app/gradio/commit/bcb6efd8d53183c283a9b4e3a1974e7b49c340a1) - fix colopicker.  Thanks @pngwn!
+
 ## 0.4.30-dev.0
 
 ### Dependency updates

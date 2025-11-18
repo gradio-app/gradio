@@ -32,7 +32,7 @@ class TestReload:
     def config(self, monkeypatch, argv) -> Config:
         monkeypatch.setattr("sys.argv", ["gradio"] + argv)
         name = argv[1].replace("--demo-name", "").strip() if len(argv) > 1 else "demo"
-        return Config(*_setup_config(argv[0], name))
+        return Config(*_setup_config(argv[0]), demo_name=name)  # ty: ignore error[parameter-already-assigned]
 
     @pytest.fixture(params=[{}])
     def reloader(self, config):

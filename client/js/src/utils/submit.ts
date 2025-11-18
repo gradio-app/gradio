@@ -200,7 +200,7 @@ export function submit(
 						session_hash
 					}
 				)
-					.then(([output, status_code]: any) => {
+					.then(async ([output, status_code]: any) => {
 						const data = output.data;
 
 						if (status_code == 200) {
@@ -220,7 +220,7 @@ export function submit(
 								trigger_id
 							});
 							if (output.render_config) {
-								handle_render_config(output.render_config);
+								await handle_render_config(output.render_config);
 							}
 
 							fire_event({
@@ -442,7 +442,8 @@ export function submit(
 							queue: true,
 							endpoint: _endpoint,
 							fn_index,
-							time: new Date()
+							time: new Date(),
+							visible: true
 						});
 					} else if (status === 422) {
 						fire_event({
@@ -453,7 +454,8 @@ export function submit(
 							endpoint: _endpoint,
 							fn_index,
 							code: "validation_error",
-							time: new Date()
+							time: new Date(),
+							visible: true
 						});
 						close();
 					} else if (status !== 200) {
@@ -465,7 +467,8 @@ export function submit(
 							queue: true,
 							endpoint: _endpoint,
 							fn_index,
-							time: new Date()
+							time: new Date(),
+							visible: true
 						});
 					} else {
 						event_id = response.event_id as string;

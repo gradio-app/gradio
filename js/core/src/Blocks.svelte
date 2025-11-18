@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick, onMount, setContext, settled } from "svelte";
+	import { tick, onMount, setContext, settled, untrack } from "svelte";
 	import { _ } from "svelte-i18n";
 	import { Client } from "@gradio/client";
 	import { writable } from "svelte/store";
@@ -66,7 +66,8 @@
 		vibe_mode,
 		search_params,
 		render_complete = false,
-		ready = $bindable(false)
+		ready = $bindable(false),
+		reload_count = $bindable(0)
 	}: {
 		root: string;
 		components: ComponentMeta[];
@@ -93,6 +94,7 @@
 		search_params: URLSearchParams;
 		render_complete: boolean;
 		ready: boolean;
+		reload_count: number;
 	} = $props();
 
 	components.forEach((comp) => {
@@ -134,11 +136,11 @@
 			// trigger_share(title, description);
 			// TODO: lets combine all of the into a log type with levels
 		} else if (event === "error") {
-			new_message("Error", data, -1, event);
+			new_message("Error", data, -1, event, 10, true);
 		} else if (event === "warning") {
-			new_message("Warning", data, -1, event);
+			new_message("Warning", data, -1, event, 10, true);
 		} else if (event === "info") {
-			new_message("Info", data, -1, event);
+			new_message("Info", data, -1, event, 10, true);
 		} else if (event == "clear_status") {
 			app_tree.update_state(
 				id,
@@ -178,7 +180,7 @@
 		api_calls = [...api_calls, payload];
 	};
 
-	const dep_manager = new DependencyManager(
+	let dep_manager = new DependencyManager(
 		dependencies,
 		app,
 		app_tree.update_state.bind(app_tree),
@@ -188,16 +190,26 @@
 		add_to_api_calls
 	);
 
-	let old_dependencies = dependencies;
-	// $: if (
-	// 	dependencies !== old_dependencies &&
-	// 	render_complete &&
-	// 	!layout_creating
-	// ) {
-	// 	// re-run load triggers in SSR mode when page changes
-	// 	// handle_load_triggers();
-	// 	old_dependencies = dependencies;
-	// }
+	$effect(() => {
+		reload_count;
+		untrack(() => {
+			app_tree.reload(components, layout, dependencies, {
+				root,
+				theme: theme_mode,
+				version,
+				api_prefix,
+				max_file_size,
+				autoscroll
+			});
+			dep_manager.reload(
+				dependencies,
+				app_tree.update_state.bind(app_tree),
+				app_tree.get_state.bind(app_tree),
+				app_tree.rerender.bind(app_tree),
+				app
+			);
+		});
+	});
 
 	let vibe_editor_width = 350;
 
@@ -286,8 +298,9 @@
 		fn_index: number,
 		type: ToastMessage["type"],
 		duration: number | null = 10,
-		visible = true
+		visible = false
 	): void {
+		if (!visible) return;
 		messages.push({
 			title,
 			message,
@@ -297,14 +310,6 @@
 			duration,
 			visible
 		});
-	}
-
-	export function add_new_message(
-		title: string,
-		message: string,
-		type: ToastMessage["type"]
-	): void {
-		messages = [new_message(title, message, -1, type), ...messages];
 	}
 
 	let _error_id = -1;

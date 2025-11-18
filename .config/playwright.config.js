@@ -14,7 +14,7 @@ const base = defineConfig({
 			]
 		}
 	},
-	expect: { timeout: 10000 },
+	expect: { timeout: 10_000 },
 	timeout: 30_000,
 	testMatch: /.*\.spec\.ts/,
 	testDir: "..",

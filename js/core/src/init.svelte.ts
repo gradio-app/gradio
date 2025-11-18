@@ -4,6 +4,7 @@ import {
 	get_inputs_outputs
 } from "./init_utils";
 import { translate_if_needed } from "./i18n";
+import { tick } from "svelte";
 
 import type {
 	ComponentMeta,
@@ -32,6 +33,11 @@ type Tab = {
 	elem_id: string | undefined;
 	scale: number | null;
 	order?: number;
+};
+
+const type_map = {
+	walkthrough: "tabs",
+	walkthroughstep: "tabitem"
 };
 export class AppTree {
 	/** the raw component structure received from the backend */
@@ -104,7 +110,56 @@ export class AppTree {
 
 		this.root!.children = this.#layout_payload.children.map((node) =>
 			this.traverse(node, (node) => {
-				const new_node = this.create_node(node, component_map);
+				const new_node = this.create_node(
+					node,
+					component_map,
+					false,
+					this.reactive_formatter
+				);
+				return new_node;
+			})
+		);
+		this.component_ids = components.map((c) => c.id);
+		this.initial_tabs = {};
+		gather_initial_tabs(this.root!, this.initial_tabs);
+		this.postprocess(this.root!);
+	}
+
+	reload(
+		components: ComponentMeta[],
+		layout: LayoutNode,
+		dependencies: Dependency[],
+		config: AppConfig
+	) {
+		this.#layout_payload = layout;
+		this.#component_payload = components;
+		this.#config = config;
+		this.#dependency_payload = dependencies;
+
+		this.root = this.create_node(
+			{ id: layout.id, children: [] },
+			new Map(),
+			true
+		);
+		for (const comp of components) {
+			if (comp.props.visible != false) this.components_to_register.add(comp.id);
+		}
+
+		this.prepare();
+
+		const component_map = components.reduce((map, comp) => {
+			map.set(comp.id, comp);
+			return map;
+		}, new Map<number, ComponentMeta>());
+
+		this.root!.children = this.#layout_payload.children.map((node) =>
+			this.traverse(node, (node) => {
+				const new_node = this.create_node(
+					node,
+					component_map,
+					false,
+					this.reactive_formatter
+				);
 				return new_node;
 			})
 		);
@@ -265,9 +320,12 @@ export class AppTree {
 			{ ...this.#config }
 		);
 
+		const type =
+			type_map[component.type as keyof typeof type_map] || component.type;
+
 		const node = {
 			id: opts.id,
-			type: component.type,
+			type: type,
 			props: processed_props,
 			children: [],
 			show_progress_on: null,
@@ -329,6 +387,7 @@ export class AppTree {
 		const node = find_node_by_id(this.root!, id);
 		let already_updated_visibility = false;
 		if (check_visibility && !node?.component) {
+			await tick();
 			this.root = this.traverse(this.root!, [
 				//@ts-ignore
 				(n) => set_visibility_for_updated_node(n, id, new_state.visible),
@@ -340,6 +399,9 @@ export class AppTree {
 		if (!_set_data) return;
 		_set_data(new_state);
 		if (!check_visibility || already_updated_visibility) return;
+		// need to let the UI settle before traversing again
+		// otherwise there could be
+		await tick();
 		this.root = this.traverse(this.root!, (n) =>
 			handle_visibility(n, this.#config.root)
 		);
@@ -412,7 +474,7 @@ function gather_props(
 	for (const key in props) {
 		// For Tabs (or any component that already has an id prop)
 		// Set the id to the props so that it doesn't get overwritten
-		if (key === "id") {
+		if (key === "id" || key === "autoscroll") {
 			_props[key] = props[key];
 		} else if (allowed_shared_props.includes(key as keyof SharedProps)) {
 			const _key = key as keyof SharedProps;
@@ -594,9 +656,9 @@ function _gather_initial_tabs(
 		}
 		initial_tabs[parent_tab_id].push({
 			label: node.props.shared_props.label as string,
-			id: node.props.props.id,
+			id: node.props.props.id as string,
 			elem_id: node.props.shared_props.elem_id,
-			visible: node.props.shared_props.visible,
+			visible: node.props.shared_props.visible as boolean,
 			interactive: node.props.shared_props.interactive,
 			scale: node.props.shared_props.scale || null
 		});
@@ -625,7 +687,8 @@ function gather_initial_tabs(
 				_gather_initial_tabs(
 					child,
 					initial_tabs,
-					node.type === "tabs" ? node.id : null
+					node.type === "tabs" ? node.id : null,
+					null
 				)
 			);
 		}

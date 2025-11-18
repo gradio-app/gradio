@@ -1,5 +1,11 @@
 # @gradio/checkboxgroup
 
+## 0.8.0-dev.1
+
+### Features
+
+- [#12357](https://github.com/gradio-app/gradio/pull/12357) [`c9cf634`](https://github.com/gradio-app/gradio/commit/c9cf634a9cd34b4adadde1a6a98d60faf732639a) - Fix various event issues.  Thanks @pngwn!
+
 ## 0.7.1-dev.0
 
 ### Dependency updates

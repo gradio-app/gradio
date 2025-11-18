@@ -109,7 +109,7 @@
 			avatar_images={gradio.props.avatar_images}
 			sanitize_html={gradio.props.sanitize_html}
 			line_breaks={gradio.props.line_breaks}
-			autoscroll={gradio.shared.autoscroll}
+			autoscroll={gradio.props.autoscroll}
 			layout={gradio.props.layout}
 			placeholder={gradio.props.placeholder}
 			examples={gradio.props.examples}

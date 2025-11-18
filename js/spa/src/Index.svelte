@@ -296,6 +296,8 @@
 		pending_deep_link_error = false;
 	}
 
+	let reload_count: number = 0;
+
 	onMount(async () => {
 		active_theme_mode = handle_theme_mode(wrapper);
 
@@ -408,6 +410,7 @@
 					await add_custom_html_head(config.head);
 					css_ready = true;
 					window.__is_colab__ = config.is_colab;
+					reload_count += 1;
 					dispatch("loaded");
 				});
 			}, 200);
@@ -598,6 +601,7 @@
 				max_file_size={config.max_file_size}
 				initial_layout={undefined}
 				search_params={new URLSearchParams(window.location.search)}
+				{reload_count}
 			/>
 		{/if}
 	{/if}

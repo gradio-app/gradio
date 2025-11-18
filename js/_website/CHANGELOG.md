@@ -1,5 +1,11 @@
 # website
 
+## 0.66.0-dev.3
+
+### Dependency updates
+
+- @gradio/code@0.16.0-dev.2
+
 ## 0.66.0-dev.2
 
 ### Features
