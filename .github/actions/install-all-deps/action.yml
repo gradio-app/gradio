@@ -78,7 +78,7 @@ runs:
       shell: bash
       run: |
         . ${{ env.VENV_ACTIVATE }}
-        uv pip install -r test/requirements.txt
+        uv pip install -r test/requirements.txt --torch-backend cpu
         uv pip install -r client/python/test/requirements.txt
     - name: Install Gradio and Client Libraries Locally (Linux)
       shell: bash
