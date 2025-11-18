@@ -376,7 +376,6 @@ class Chatbot(Component):
             )
 
         self.allow_tags = allow_tags if allow_tags else False
-        self.like_user_message = like_user_message
         super().__init__(
             label=label,
             every=every,
