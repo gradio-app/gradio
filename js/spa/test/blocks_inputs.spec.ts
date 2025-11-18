@@ -1,14 +1,9 @@
 import { test, expect } from "@self/tootils";
 
 test("renders the correct elements", async ({ page }) => {
-	const textboxes = await page.getByLabel("Input");
-
-	const textboxOne = await textboxes.first();
-	const textboxTwo = await textboxes.last();
-
-	await textboxOne.fill("hi");
-	await textboxTwo.fill("dawood");
+	await page.getByLabel("Input", { exact: true }).fill("hi");
+	await page.getByLabel("Input 2", { exact: true }).first().fill("dawood");
 	await page.click('text="Submit"');
 
-	await expect(await page.getByLabel("Output")).toHaveValue("hi dawood");
+	await expect(page.getByLabel("Output")).toHaveValue("hi dawood");
 });

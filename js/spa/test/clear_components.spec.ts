@@ -4,7 +4,7 @@ test("Components value can be set via callable to a non-None value", async ({
 	page
 }) => {
 	await page.waitForTimeout(500);
-	expect(await page.getByLabel(`component_00`).inputValue()).not.toEqual("");
+	expect(page.getByLabel(`component_00`).inputValue()).not.toEqual("");
 
 	const sliderValue = await page.getByLabel(`component_01`).inputValue();
 	expect(parseFloat(sliderValue)).toBeGreaterThan(0);
