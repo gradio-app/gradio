@@ -6,7 +6,7 @@ Gradio 6 includes several breaking changes that were made in order to standardiz
 
 Here, we walk through the breaking changes that were introduced in Gradio 6. Code snippets are provided, allowing you to migrate your code easily to Gradio 6. You can also copy-paste this document as Markdown if you are using an LLM to help migrate your code. 
 
-## Breaking Changes
+## App-level Changes
 
 ### App-level parameters have been moved from `Blocks` to `launch()`
 
@@ -152,6 +152,23 @@ To replicate the old behavior:
 - `show_api=False` → `api_visibility="undocumented"`
 - `api_name=False` → `api_visibility="private"`
 
+### `like_user_message` moved from `.like()` event to constructor 
+
+The `like_user_message` parameter has been moved from the `.like()` event listener to the Chatbot constructor.
+
+**Before (Gradio 5.x):**
+```python
+chatbot = gr.Chatbot()
+chatbot.like(print_like_dislike, None, None, like_user_message=True)
+```
+
+**After (Gradio 6.x):**
+```python
+chatbot = gr.Chatbot(like_user_message=True)
+chatbot.like(print_like_dislike, None, None)
+```
+
+
 ### Default API names for `Interface` and `ChatInterface` now use function names
 
 The default API endpoint names for `gr.Interface` and `gr.ChatInterface` have changed to be consistent with how `gr.Blocks` events work and to better support MCP (Model Context Protocol) tools.
@@ -191,57 +208,6 @@ Similarly for `ChatInterface`:
 ```python
 demo = gr.ChatInterface(fn=chat_function, api_name="chat")
 ```
-
-### `allow_tags=True` is now the default for `gr.Chatbot`
-
-Due to the rise in LLMs returning HTML, markdown tags, and custom tags (such as `<thinking>` tags), the default value of `allow_tags` in `gr.Chatbot` has changed from `False` to `True` in Gradio 6.
-
-**In Gradio 5.x:**
-- `allow_tags=False` was the default
-- All HTML and custom tags were sanitized/removed from chatbot messages (unless explicitly allowed)
-
-**In Gradio 6.x:**
-- `allow_tags=True` is the default
-- All custom tags (non-standard HTML tags) are preserved in chatbot messages
-- Standard HTML tags are still sanitized for security unless `sanitize_html=False`
-
-**Before (Gradio 5.x):**
-
-```python
-import gradio as gr
-
-chatbot = gr.Chatbot()
-```
-
-This would remove all tags from messages, including custom tags like `<thinking>`.
-
-**After (Gradio 6.x):**
-
-```python
-import gradio as gr
-
-chatbot = gr.Chatbot()
-```
-
-This will now preserve custom tags like `<thinking>` in the messages.
-
-**To maintain the old behavior:**
-
-If you want to continue removing all tags from chatbot messages (the old default behavior), explicitly set `allow_tags=False`:
-
-```python
-import gradio as gr
-
-chatbot = gr.Chatbot(allow_tags=False)
-```
-
-**Note:** You can also specify a list of specific tags to allow:
-
-```python
-chatbot = gr.Chatbot(allow_tags=["thinking", "tool_call"])
-```
-
-This will only preserve `<thinking>` and `<tool_call>` tags while removing all other custom tags.
 
 ### `gr.Chatbot` and `gr.ChatInterface` tuple format removed
 
@@ -490,6 +456,59 @@ df = gr.Dataframe(row_count=5, row_limits=(3, 10), column_count=3, column_limits
 - `col_count=(3, "fixed")` → `column_count=3, column_limits=(3, 3)`
 - `col_count=(3, "dynamic")` → `column_count=3, column_limits=None`
 - `col_count=3` → `column_count=3, column_limits=None` (same behavior)
+
+### `allow_tags=True` is now the default for `gr.Chatbot`
+
+Due to the rise in LLMs returning HTML, markdown tags, and custom tags (such as `<thinking>` tags), the default value of `allow_tags` in `gr.Chatbot` has changed from `False` to `True` in Gradio 6.
+
+**In Gradio 5.x:**
+- `allow_tags=False` was the default
+- All HTML and custom tags were sanitized/removed from chatbot messages (unless explicitly allowed)
+
+**In Gradio 6.x:**
+- `allow_tags=True` is the default
+- All custom tags (non-standard HTML tags) are preserved in chatbot messages
+- Standard HTML tags are still sanitized for security unless `sanitize_html=False`
+
+**Before (Gradio 5.x):**
+
+```python
+import gradio as gr
+
+chatbot = gr.Chatbot()
+```
+
+This would remove all tags from messages, including custom tags like `<thinking>`.
+
+**After (Gradio 6.x):**
+
+```python
+import gradio as gr
+
+chatbot = gr.Chatbot()
+```
+
+This will now preserve custom tags like `<thinking>` in the messages.
+
+**To maintain the old behavior:**
+
+If you want to continue removing all tags from chatbot messages (the old default behavior), explicitly set `allow_tags=False`:
+
+```python
+import gradio as gr
+
+chatbot = gr.Chatbot(allow_tags=False)
+```
+
+**Note:** You can also specify a list of specific tags to allow:
+
+```python
+chatbot = gr.Chatbot(allow_tags=["thinking", "tool_call"])
+```
+
+This will only preserve `<thinking>` and `<tool_call>` tags while removing all other custom tags.
+
+
 
 ### Other removed component parameters
 
