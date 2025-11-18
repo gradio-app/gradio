@@ -180,6 +180,8 @@
 		api_calls = [...api_calls, payload];
 	};
 
+	$inspect("components", components);
+
 	let dep_manager = new DependencyManager(
 		dependencies,
 		app,
@@ -193,21 +195,21 @@
 	$effect(() => {
 		reload_count;
 		untrack(() => {
-			app_tree.reload(components, layout, dependencies, {
-				root,
-				theme: theme_mode,
-				version,
-				api_prefix,
-				max_file_size,
-				autoscroll
-			});
-			dep_manager.reload(
-				dependencies,
-				app_tree.update_state.bind(app_tree),
-				app_tree.get_state.bind(app_tree),
-				app_tree.rerender.bind(app_tree),
-				app
-			);
+			// app_tree.reload(components, layout, dependencies, {
+			// 	root,
+			// 	theme: theme_mode,
+			// 	version,
+			// 	api_prefix,
+			// 	max_file_size,
+			// 	autoscroll
+			// });
+			// dep_manager.reload(
+			// 	dependencies,
+			// 	app_tree.update_state.bind(app_tree),
+			// 	app_tree.get_state.bind(app_tree),
+			// 	app_tree.rerender.bind(app_tree),
+			// 	app
+			// );
 		});
 	});
 
