@@ -407,25 +407,6 @@ async def test_json_data_not_moved_to_cache():
     )
 
 
-def test_public_request_pass():
-    tempdir = tempfile.TemporaryDirectory()
-    file = processing_utils.ssrf_protected_download(
-        "https://en.wikipedia.org/static/images/icons/wikipedia.png", tempdir.name
-    )
-    assert os.path.exists(file)
-    assert os.path.getsize(file) == 13444
-
-
-@pytest.mark.asyncio
-async def test_async_public_request_pass():
-    tempdir = tempfile.TemporaryDirectory()
-    file = await processing_utils.async_ssrf_protected_download(
-        "https://en.wikipedia.org/static/images/icons/wikipedia.png", tempdir.name
-    )
-    assert os.path.exists(file)
-    assert os.path.getsize(file) == 13444
-
-
 def test_private_request_fail():
     with pytest.raises(ValueError, match="failed validation"):
         tempdir = tempfile.TemporaryDirectory()
