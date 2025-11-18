@@ -284,6 +284,7 @@ class Chatbot(Component):
             allow_file_downloads: If True, will show a download button for chatbot messages that contain media. Defaults to True.
             group_consecutive_messages: If True, will display consecutive messages from the same role in the same bubble. If False, will display each message in a separate bubble. Defaults to True.
             allow_tags: If a list of tags is provided, these tags will be preserved in the output chatbot messages, even if `sanitize_html` is `True`. For example, if this list is ["thinking"], the tags `<thinking>` and `</thinking>` will not be removed. If True, all custom tags (non-standard HTML tags) will be preserved. If False, no tags will be preserved (default behavior).
+            like_user_message: If True, will display like buttons for user messages in the chatbot. Defaults to False.
         """
         if type is None:
             warnings.warn(
@@ -308,7 +309,8 @@ class Chatbot(Component):
         self.height = height
         if resizeable is not False:
             warnings.warn(
-                "The 'resizeable' parameter is deprecated and will be removed in a future version. Please use the 'resizable' (note the corrected spelling) parameter instead.",
+                "The 'resizeable' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'resizable' (note the corrected spelling) instead.",
                 DeprecationWarning,
                 stacklevel=3,
             )
@@ -322,6 +324,27 @@ class Chatbot(Component):
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
         self.latex_delimiters = latex_delimiters
+        if show_share_button is not None:
+            warnings.warn(
+                "The 'show_share_button' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'buttons=[\"share\"]' instead.",
+                DeprecationWarning,
+                stacklevel=3,
+            )
+        if show_copy_button is not False:
+            warnings.warn(
+                "The 'show_copy_button' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'buttons=[\"copy\"]' instead.",
+                DeprecationWarning,
+                stacklevel=3,
+            )
+        if show_copy_all_button is not False:
+            warnings.warn(
+                "The 'show_copy_all_button' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'buttons=[\"copy_all\"]' instead.",
+                DeprecationWarning,
+                stacklevel=3,
+            )
         self.show_share_button = (
             (utils.get_space() is not None)
             if show_share_button is None
@@ -333,7 +356,7 @@ class Chatbot(Component):
         self.sanitize_html = sanitize_html
         if bubble_full_width is not None:
             warnings.warn(
-                "The 'bubble_full_width' parameter is deprecated and will be removed in a future version. This parameter no longer has any effect.",
+                "The 'bubble_full_width' parameter will be removed in Gradio 6.0. This parameter no longer has any effect.",
                 DeprecationWarning,
                 stacklevel=3,
             )
@@ -344,7 +367,17 @@ class Chatbot(Component):
         self.allow_file_downloads = allow_file_downloads
         self.feedback_options = feedback_options
         self.feedback_value = feedback_value
+
+        if allow_tags is not True:
+            warnings.warn(
+                "The default value of 'allow_tags' in gr.Chatbot will be changed from False to True in Gradio 6.0. "
+                "You will need to explicitly set allow_tags=False if you want to disable tags in your chatbot.",
+                DeprecationWarning,
+                stacklevel=3,
+            )
+
         self.allow_tags = allow_tags if allow_tags else False
+        self.like_user_message = like_user_message
         super().__init__(
             label=label,
             every=every,

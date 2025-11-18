@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import math
 import random
+import warnings
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -90,6 +91,13 @@ class Slider(FormComponent):
             self.step = 10**power
         else:
             self.step = step
+        if show_reset_button is not True:
+            warnings.warn(
+                "The 'show_reset_button' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'buttons=[\"reset\"]' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         self.show_reset_button = show_reset_button
         if randomize:
             value = self.get_random_value
