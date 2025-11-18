@@ -110,7 +110,56 @@ export class AppTree {
 
 		this.root!.children = this.#layout_payload.children.map((node) =>
 			this.traverse(node, (node) => {
-				const new_node = this.create_node(node, component_map);
+				const new_node = this.create_node(
+					node,
+					component_map,
+					false,
+					this.reactive_formatter
+				);
+				return new_node;
+			})
+		);
+		this.component_ids = components.map((c) => c.id);
+		this.initial_tabs = {};
+		gather_initial_tabs(this.root!, this.initial_tabs);
+		this.postprocess(this.root!);
+	}
+
+	reload(
+		components: ComponentMeta[],
+		layout: LayoutNode,
+		dependencies: Dependency[],
+		config: AppConfig
+	) {
+		this.#layout_payload = layout;
+		this.#component_payload = components;
+		this.#config = config;
+		this.#dependency_payload = dependencies;
+
+		this.root = this.create_node(
+			{ id: layout.id, children: [] },
+			new Map(),
+			true
+		);
+		for (const comp of components) {
+			if (comp.props.visible != false) this.components_to_register.add(comp.id);
+		}
+
+		this.prepare();
+
+		const component_map = components.reduce((map, comp) => {
+			map.set(comp.id, comp);
+			return map;
+		}, new Map<number, ComponentMeta>());
+
+		this.root!.children = this.#layout_payload.children.map((node) =>
+			this.traverse(node, (node) => {
+				const new_node = this.create_node(
+					node,
+					component_map,
+					false,
+					this.reactive_formatter
+				);
 				return new_node;
 			})
 		);
@@ -365,7 +414,9 @@ export class AppTree {
 	 */
 	async get_state(id: number): Promise<Record<string, unknown> | null> {
 		const _get_data = this.#get_callbacks.get(id);
+		console.log("GET STATE CALLED FOR ID", id, _get_data);
 		const component = this.#component_payload.find((c) => c.id === id);
+		console.log("FOUND COMPONENT", component);
 		if (!_get_data && !component) return null;
 		if (_get_data) return await _get_data();
 

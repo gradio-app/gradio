@@ -103,6 +103,7 @@ export class Dependency {
 		}
 
 		if (this.functions.backend) {
+			console.log("_DATA PAYLOAD IN RUN", _data_payload);
 			return {
 				type: "submit",
 				data: client.submit(this.id, _data_payload, event_data, target_id)
@@ -204,25 +205,36 @@ export class DependencyManager {
 		) => void,
 		add_to_api_calls: (payload: Payload) => void
 	) {
-		const { by_id, by_event } = this.create(dependencies);
+		this.add_to_api_calls = add_to_api_calls;
+		this.client = client;
+		this.log_cb = log_cb;
+		// this.update_state_cb = update_state_cb;
+		// this.get_state_cb = get_state_cb;
+		// this.rerender_cb = rerender_cb;
+		this.reload(dependencies, update_state_cb, get_state_cb, rerender_cb);
+	}
 
+	reload(
+		dependencies: IDependency[],
+		update_state,
+		get_state,
+		rerender,
+		client
+	) {
+		const { by_id, by_event } = this.create(dependencies);
 		this.dependencies_by_event = by_event;
 		this.dependencies_by_fn = by_id;
-		this.client = client;
-		this.update_state_cb = update_state_cb;
-		this.get_state_cb = get_state_cb;
-		this.rerender_cb = rerender_cb;
-		this.log_cb = log_cb;
-		this.add_to_api_calls = add_to_api_calls;
-
 		for (const [dep_id, dep] of this.dependencies_by_fn) {
 			for (const [output_id] of dep.targets) {
 				this.set_event_args(output_id, dep.event_args);
 			}
 		}
+		this.client = client;
+		this.update_state_cb = update_state;
+		this.get_state_cb = get_state;
+		this.rerender_cb = rerender;
 		this.register_loading_stati(by_id);
 	}
-
 	register_loading_stati(deps: Map<number, Dependency>): void {
 		for (const [_, dep] of deps) {
 			this.loading_stati.register(
@@ -286,6 +298,8 @@ export class DependencyManager {
 			);
 		}
 
+		console.log("DEPS", deps);
+
 		for (let i = 0; i < (deps?.length || 0); i++) {
 			const dep = deps ? deps[i] : undefined;
 			if (dep) {
@@ -314,6 +328,7 @@ export class DependencyManager {
 				}
 
 				const data_payload = await this.gather_state(dep.inputs);
+				console.log("DATA PAYLOAD", data_payload);
 				const unset_args = await Promise.all(
 					dep.targets.map(([output_id]) =>
 						this.set_event_args(output_id, dep.event_args)
@@ -354,6 +369,7 @@ export class DependencyManager {
 						event_data: event_meta.event_data,
 						trigger_id: target_id
 					});
+					console.log("Submitting dependency", dep.id, data_payload);
 					const dep_submission = await dep.run(
 						this.client,
 						data_payload,
@@ -695,6 +711,7 @@ export class DependencyManager {
 	async gather_state(ids: number[]): Promise<(unknown | null)[]> {
 		return (await Promise.all(ids.map((id) => this.get_state_cb(id)))).map(
 			(state) => {
+				console.log("GATHERED STATE", state);
 				return state?.value ?? null;
 			}
 		);
