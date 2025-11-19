@@ -950,6 +950,8 @@ def special_args(
         signature = inspect.signature(fn)
     except ValueError:
         return inputs or [], None, None, []
+    from gradio.components.base import Component
+
     type_hints = utils.get_type_hints(fn)
     positional_args = []
     for param in signature.parameters.values():
@@ -1054,12 +1056,7 @@ def special_args(
         elif (
             type_hint
             and inspect.isclass(type_hint)
-            and hasattr(type_hint, "__mro__")
-            and any(
-                base.__name__ == "Component"
-                and base.__module__.startswith("gradio.components")
-                for base in type_hint.__mro__
-            )
+            and issubclass(type_hint, Component)
         ):
             component_prop_indices.append(i)
             if inputs is not None and component_props and i in component_props:
