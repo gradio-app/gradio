@@ -77,34 +77,30 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 				: JSON.stringify("http://127.0.0.1:7860/"),
 			GRADIO_VERSION: JSON.stringify(version)
 		},
-		// css: {
-		// 	postcss: {
-		// 		plugins: [
-		// 			prefixer({
-		// 				prefix: `.gradio-container-${version}`,
-		// 				// @ts-ignore
-		// 				transform(prefix, selector, prefixedSelector, fileName) {
-		// 					if (selector.indexOf("gradio-container") > -1) {
-		// 						return prefix;
-		// 					} else if (
-		// 						selector.indexOf(":root") > -1 ||
-		// 						selector.indexOf("dark") > -1 ||
-		// 						selector.indexOf("body") > -1 ||
-		// 						fileName.indexOf(".svelte") > -1
-		// 					) {
-		// 						return selector;
-		// 					}
-		// 					return prefixedSelector;
-		// 				}
-		// 			}),
-		// 			custom_media()
-		// 		]
-		// 	}
-		// },
-		// ssr: {
-		// 	noExternal: ["@gradio/*", "@huggingface/space-header"]
-		// 	// external: mode === "development" ? [] : ["svelte", "svelte/*"]
-		// },
+		css: {
+			postcss: {
+				plugins: [
+					prefixer({
+						prefix: `.gradio-container-${version}`,
+						// @ts-ignore
+						transform(prefix, selector, prefixedSelector, fileName) {
+							if (selector.indexOf("gradio-container") > -1) {
+								return prefix;
+							} else if (
+								selector.indexOf(":root") > -1 ||
+								selector.indexOf("dark") > -1 ||
+								selector.indexOf("body") > -1 ||
+								fileName.indexOf(".svelte") > -1
+							) {
+								return selector;
+							}
+							return prefixedSelector;
+						}
+					}),
+					custom_media()
+				]
+			}
+		},
 		optimizeDeps: {
 			exclude: ["@gradio/*"]
 		},

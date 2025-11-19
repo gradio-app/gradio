@@ -464,8 +464,8 @@ importers:
         specifier: workspace:^
         version: link:../code
       '@gradio/paramviewer':
-        specifier: 0.8.1
-        version: 0.8.1(svelte@5.43.6)
+        specifier: workspace:^
+        version: link:../paramviewer
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
@@ -1242,37 +1242,37 @@ importers:
   js/dataframe-interim:
     dependencies:
       '@gradio/atoms':
-        specifier: ^0.18.1
+        specifier: npm:@gradio/atoms@0.18.1
         version: 0.18.1(svelte@4.2.20)
       '@gradio/button':
-        specifier: ^0.5.13
+        specifier: npm:@gradio/button@0.5.13
         version: 0.5.13(@types/node@24.10.0)(svelte@4.2.20)
       '@gradio/checkbox':
-        specifier: ^0.4.30
-        version: 0.4.31(svelte@4.2.20)
+        specifier: npm:@gradio/checkbox@0.4.30
+        version: 0.4.30(svelte@4.2.20)
       '@gradio/client':
-        specifier: ^1.19.0
-        version: 1.19.1(@types/node@24.10.0)
+        specifier: npm:@gradio/client@1.19.0
+        version: 1.19.0(@types/node@24.10.0)
       '@gradio/dataframe-npm':
         specifier: npm:@gradio/dataframe@0.20.1
         version: '@gradio/dataframe@0.20.1(@types/node@24.10.0)(svelte@4.2.20)'
       '@gradio/icons':
-        specifier: ^0.14.0
+        specifier: npm:@gradio/icons@0.14.0
         version: 0.14.0(svelte@4.2.20)
       '@gradio/image':
-        specifier: 0.23.1
+        specifier: npm:@gradio/image@0.23.1
         version: 0.23.1(@types/node@24.10.0)(svelte@4.2.20)
       '@gradio/markdown-code':
-        specifier: ^0.5.2
+        specifier: npm:@gradio/markdown-code@0.5.2
         version: 0.5.2(svelte@4.2.20)
       '@gradio/statustracker':
-        specifier: ^0.11.1
+        specifier: npm:@gradio/statustracker@0.11.1
         version: 0.11.1(svelte@4.2.20)
       '@gradio/upload':
-        specifier: ^0.17.1
+        specifier: npm:@gradio/upload@0.17.1
         version: 0.17.1(@types/node@24.10.0)(svelte@4.2.20)
       '@gradio/utils':
-        specifier: ^0.10.2
+        specifier: npm:@gradio/utils@0.10.2
         version: 0.10.2(svelte@4.2.20)
       '@sveltejs/vite-plugin-svelte':
         specifier: ^3.1.2
@@ -3638,13 +3638,13 @@ packages:
     peerDependencies:
       svelte: ^4.0.0
 
-  '@gradio/checkbox@0.4.31':
-    resolution: {integrity: sha512-PrXq3S0U0EptIEfZEq/3ZA7bjgSXPo7lvZjRULoBZysrV0oDGBP7VYIWVYNuxXk9engMDfQByHMC0KGOl+4s8A==}
+  '@gradio/checkbox@0.4.30':
+    resolution: {integrity: sha512-uPJ7hjuCMpAVLQes7Xz89L/NzKTbv9wczNoLxppv4gODiLqWUsMfpmpdjGZHU1mO/JjV5eN+JNDiUcUOS9llUg==}
     peerDependencies:
       svelte: ^4.0.0
 
-  '@gradio/client@1.19.1':
-    resolution: {integrity: sha512-gzqm46Al412v2kgALSPUxY08Y7PdxA/SY7jJlxd69TWdLqAyzyfTjxxEKYBP2ku0+kz4RhVw8OqkfWMjOtwAuQ==}
+  '@gradio/client@1.19.0':
+    resolution: {integrity: sha512-ZmW2irnSB9+aYjgawBBGq9LZv0fw/UKAW46ZBRUtOxDTDHdxlMzCI8ZCZhoiiKg0bizzd8XbmAa7Jny2JfbaKw==}
     engines: {node: '>=18.0.0'}
 
   '@gradio/dataframe@0.20.1':
@@ -3664,11 +3664,6 @@ packages:
 
   '@gradio/markdown-code@0.5.2':
     resolution: {integrity: sha512-ahomIIKDQMzpXNWAoC36Y5oKQPdmOFtIzTKxnfN5DJoBx29jUktb64rjKfxVjyvLbIrHp+eCAekHcT/B6kA9AQ==}
-    peerDependencies:
-      svelte: ^4.0.0
-
-  '@gradio/paramviewer@0.8.1':
-    resolution: {integrity: sha512-Z/TqjSvXqxh4ynoqEHU4aZyLGO70i8KN/B4KaalAWUgrc+LhNJtUsyLEovCBQWk2dnRTq4ze/1Ka2UYR1TYeFQ==}
     peerDependencies:
       svelte: ^4.0.0
 
@@ -9487,18 +9482,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@gradio/atoms@0.18.1(svelte@5.43.6)':
-    dependencies:
-      '@gradio/icons': 0.14.0(svelte@5.43.6)
-      '@gradio/markdown-code': 0.5.2(svelte@5.43.6)
-      '@gradio/utils': 0.10.2(svelte@5.43.6)
-      svelte: 5.43.6
-    transitivePeerDependencies:
-      - supports-color
-
   '@gradio/button@0.5.13(@types/node@24.10.0)(svelte@4.2.20)':
     dependencies:
-      '@gradio/client': 1.19.1(@types/node@24.10.0)
+      '@gradio/client': 1.19.0(@types/node@24.10.0)
       '@gradio/image': 0.23.1(@types/node@24.10.0)(svelte@4.2.20)
       '@gradio/upload': 0.17.1(@types/node@24.10.0)(svelte@4.2.20)
       '@gradio/utils': 0.10.2(svelte@4.2.20)
@@ -9508,7 +9494,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@gradio/checkbox@0.4.31(svelte@4.2.20)':
+  '@gradio/checkbox@0.4.30(svelte@4.2.20)':
     dependencies:
       '@gradio/atoms': 0.18.1(svelte@4.2.20)
       '@gradio/statustracker': 0.11.1(svelte@4.2.20)
@@ -9517,7 +9503,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@gradio/client@1.19.1(@types/node@24.10.0)':
+  '@gradio/client@1.19.0(@types/node@24.10.0)':
     dependencies:
       '@types/eventsource': 1.1.15
       bufferutil: 4.0.9
@@ -9536,8 +9522,8 @@ snapshots:
     dependencies:
       '@gradio/atoms': 0.18.1(svelte@4.2.20)
       '@gradio/button': 0.5.13(@types/node@24.10.0)(svelte@4.2.20)
-      '@gradio/checkbox': 0.4.31(svelte@4.2.20)
-      '@gradio/client': 1.19.1(@types/node@24.10.0)
+      '@gradio/checkbox': 0.4.30(svelte@4.2.20)
+      '@gradio/client': 1.19.0(@types/node@24.10.0)
       '@gradio/icons': 0.14.0(svelte@4.2.20)
       '@gradio/markdown-code': 0.5.2(svelte@4.2.20)
       '@gradio/statustracker': 0.11.1(svelte@4.2.20)
@@ -9557,14 +9543,10 @@ snapshots:
     dependencies:
       svelte: 4.2.20
 
-  '@gradio/icons@0.14.0(svelte@5.43.6)':
-    dependencies:
-      svelte: 5.43.6
-
   '@gradio/image@0.23.1(@types/node@24.10.0)(svelte@4.2.20)':
     dependencies:
       '@gradio/atoms': 0.18.1(svelte@4.2.20)
-      '@gradio/client': 1.19.1(@types/node@24.10.0)
+      '@gradio/client': 1.19.0(@types/node@24.10.0)
       '@gradio/icons': 0.14.0(svelte@4.2.20)
       '@gradio/statustracker': 0.11.1(svelte@4.2.20)
       '@gradio/upload': 0.17.1(@types/node@24.10.0)(svelte@4.2.20)
@@ -9594,32 +9576,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@gradio/markdown-code@0.5.2(svelte@5.43.6)':
-    dependencies:
-      '@gradio/sanitize': 0.2.0
-      '@types/katex': 0.16.7
-      '@types/prismjs': 1.26.4
-      github-slugger: 2.0.0
-      katex: 0.16.25
-      marked: 12.0.2
-      marked-gfm-heading-id: 3.2.0(marked@12.0.2)
-      marked-highlight: 2.2.3(marked@12.0.2)
-      mermaid: 11.12.1
-      prismjs: 1.30.0
-      svelte: 5.43.6
-    transitivePeerDependencies:
-      - supports-color
-
-  '@gradio/paramviewer@0.8.1(svelte@5.43.6)':
-    dependencies:
-      '@gradio/atoms': 0.18.1(svelte@5.43.6)
-      '@gradio/statustracker': 0.11.1(svelte@5.43.6)
-      '@gradio/utils': 0.10.2(svelte@5.43.6)
-      prismjs: 1.30.0
-      svelte: 5.43.6
-    transitivePeerDependencies:
-      - supports-color
-
   '@gradio/sanitize@0.2.0':
     dependencies:
       amuchina: 1.0.12
@@ -9635,28 +9591,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@gradio/statustracker@0.11.1(svelte@5.43.6)':
-    dependencies:
-      '@gradio/atoms': 0.18.1(svelte@5.43.6)
-      '@gradio/icons': 0.14.0(svelte@5.43.6)
-      '@gradio/sanitize': 0.2.0
-      '@gradio/utils': 0.10.2(svelte@5.43.6)
-      svelte: 5.43.6
-    transitivePeerDependencies:
-      - supports-color
-
   '@gradio/theme@0.4.0(svelte@4.2.20)':
     dependencies:
       svelte: 4.2.20
 
-  '@gradio/theme@0.4.0(svelte@5.43.6)':
-    dependencies:
-      svelte: 5.43.6
-
   '@gradio/upload@0.17.1(@types/node@24.10.0)(svelte@4.2.20)':
     dependencies:
       '@gradio/atoms': 0.18.1(svelte@4.2.20)
-      '@gradio/client': 1.19.1(@types/node@24.10.0)
+      '@gradio/client': 1.19.0(@types/node@24.10.0)
       '@gradio/icons': 0.14.0(svelte@4.2.20)
       '@gradio/utils': 0.10.2(svelte@4.2.20)
       svelte: 4.2.20
@@ -9669,13 +9611,6 @@ snapshots:
     dependencies:
       '@gradio/theme': 0.4.0(svelte@4.2.20)
       svelte-i18n: 3.7.4(svelte@4.2.20)
-    transitivePeerDependencies:
-      - svelte
-
-  '@gradio/utils@0.10.2(svelte@5.43.6)':
-    dependencies:
-      '@gradio/theme': 0.4.0(svelte@5.43.6)
-      svelte-i18n: 3.7.4(svelte@5.43.6)
     transitivePeerDependencies:
       - svelte
 
@@ -13955,17 +13890,6 @@ snapshots:
       intl-messageformat: 9.13.0
       sade: 1.8.1
       svelte: 4.2.20
-      tiny-glob: 0.2.9
-
-  svelte-i18n@3.7.4(svelte@5.43.6):
-    dependencies:
-      cli-color: 2.0.4
-      deepmerge: 4.3.1
-      esbuild: 0.19.12
-      estree-walker: 2.0.2
-      intl-messageformat: 9.13.0
-      sade: 1.8.1
-      svelte: 5.43.6
       tiny-glob: 0.2.9
 
   svelte-i18n@4.0.1(svelte@5.43.6):

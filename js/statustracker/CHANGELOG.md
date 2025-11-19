@@ -1,5 +1,17 @@
 # @gradio/statustracker
 
+## 0.12.0-dev.1
+
+### Features
+
+- [#12358](https://github.com/gradio-app/gradio/pull/12358) [`4552df4`](https://github.com/gradio-app/gradio/commit/4552df4e3698b39c58fc86d3023e434db6aeec1e) - Fix status tracker iterative image.  Thanks @freddyaboulton!
+- [#12381](https://github.com/gradio-app/gradio/pull/12381) [`36d5657`](https://github.com/gradio-app/gradio/commit/36d5657128a81739a78d6b11b3f5a632a9027ab1) - Fix full width toast issue.  Thanks @freddyaboulton!
+- [#12370](https://github.com/gradio-app/gradio/pull/12370) [`f632b87`](https://github.com/gradio-app/gradio/commit/f632b87f83ff283817e21ce679b70d2406074ea2) - Fix progress in StatusTracker.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.19.0-dev.1
+
 ## 0.12.0-dev.0
 
 ### Features

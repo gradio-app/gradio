@@ -87,7 +87,7 @@
 		width: 100%;
 	}
 
-	@media (--screen-sm) {
+	@media (min-width: 640px) {
 		.toast-wrap {
 			left: auto;
 			width: calc(var(--size-96) + var(--size-10));

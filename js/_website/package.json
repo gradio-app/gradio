@@ -1,6 +1,6 @@
 {
 	"name": "website",
-	"version": "0.66.0-dev.3",
+	"version": "0.66.0-dev.4",
 	"private": true,
 	"scripts": {
 		"dev": "pip install boto3 markdown && python generate_jsons/generate.py && python ../../scripts/generate_theme.py --outfile ./src/lib/assets/theme.css && vite dev",
@@ -27,7 +27,7 @@
 	},
 	"dependencies": {
 		"@gradio/code": "workspace:^",
-		"@gradio/paramviewer": "0.8.1",
+		"@gradio/paramviewer": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/tabitem": "workspace:^",
 		"@gradio/tabs": "workspace:^",
