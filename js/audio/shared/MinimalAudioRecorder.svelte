@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { onMount, onDestroy, createEventDispatcher } from "svelte";
+	import { onMount, onDestroy, createEventDispatcher, tick } from "svelte";
 	import WaveSurfer from "wavesurfer.js";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 	import { format_time } from "@gradio/utils";
 	import { process_audio } from "./utils";
 	import type { FileData } from "@gradio/client";
+	import { Square } from "@gradio/icons";
 
 	export let label: string;
 	export let waveform_settings: Record<string, any> = {};
@@ -23,6 +24,9 @@
 	let interval: NodeJS.Timeout;
 	let is_recording = false;
 	let has_started = false;
+	let mic_devices: MediaDeviceInfo[] = [];
+	let selected_device_id: string = "";
+	let show_device_selection = false;
 
 	const start_interval = (): void => {
 		clearInterval(interval);
@@ -107,7 +111,21 @@
 	};
 
 	onMount(async () => {
-		await create_waveform();
+		try {
+			const devices = await RecordPlugin.getAvailableAudioDevices();
+			mic_devices = devices.filter((device) => device.deviceId);
+			if (mic_devices.length > 0) {
+				selected_device_id = mic_devices[0].deviceId;
+			}
+
+			if (mic_devices.length > 1) {
+				show_device_selection = true;
+			} else {
+				await create_waveform();
+			}
+		} catch (err) {
+			await create_waveform();
+		}
 	});
 
 	onDestroy(() => {
@@ -120,8 +138,14 @@
 		}
 	});
 
-	$: if (recording && !is_recording && record && has_started === false) {
-		record.startMic().then(() => {
+	$: if (
+		recording &&
+		!is_recording &&
+		record &&
+		has_started === false &&
+		mic_devices.length <= 1
+	) {
+		record.startMic({ deviceId: selected_device_id }).then(() => {
 			record?.startRecording();
 		});
 	} else if (!recording && is_recording && record) {
@@ -129,17 +153,22 @@
 		seconds = 0;
 	}
 
-	const toggleRecording = (): void => {
+	async function startRecording(): Promise<void> {
+		show_device_selection = false;
+		has_started = true;
+
+		await tick();
+		await create_waveform();
+
 		if (!record) return;
 
-		if (is_recording) {
-			record.stopRecording();
-		} else {
-			record.startMic().then(() => {
-				record?.startRecording();
-			});
+		try {
+			await record.startMic({ deviceId: selected_device_id });
+			record.startRecording();
+		} catch (err) {
+			console.error("Error starting recording:", err);
 		}
-	};
+	}
 </script>
 
 <div
@@ -147,9 +176,39 @@
 	aria-label={label || "Audio Recorder"}
 	data-testid="minimal-audio-recorder"
 >
-	<div class="waveform-wrapper" bind:this={container}></div>
-
-	<div class="timestamp">{format_time(seconds)}</div>
+	{#if show_device_selection}
+		<div class="device-selection-wrapper">
+			{#if mic_devices.length > 1}
+				<select
+					bind:value={selected_device_id}
+					class="device-select-large"
+					aria-label="Select input device"
+				>
+					{#each mic_devices as device}
+						<option value={device.deviceId}>{device.label}</option>
+					{/each}
+				</select>
+			{/if}
+			<button
+				class="record-button"
+				on:click={startRecording}
+				aria-label="Start recording"
+			>
+			</button>
+		</div>
+	{:else}
+		<div class="waveform-wrapper" bind:this={container}></div>
+		<div class="timestamp">{format_time(seconds)}</div>
+		<button
+			class="stop-button"
+			on:click={() => {
+				recording = false;
+			}}
+			aria-label="Stop recording"
+		>
+			<Square />
+		</button>
+	{/if}
 </div>
 
 <style>
@@ -162,9 +221,19 @@
 		padding: var(--spacing-sm);
 	}
 
+	.device-selection-wrapper {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		gap: var(--spacing-md);
+		width: 100%;
+	}
+
 	.waveform-wrapper {
 		flex: 1 1 auto;
-		width: auto;
+		min-width: 0;
+		width: 100%;
 	}
 
 	.waveform-wrapper :global(::part(wrapper)) {
@@ -180,6 +249,80 @@
 		flex-shrink: 0;
 		min-width: 40px;
 		text-align: center;
+	}
+
+	.device-select-large {
+		max-width: var(--size-60);
+		font-size: var(--text-sm);
+		padding: var(--spacing-sm) var(--spacing-md);
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-md);
+		background: var(--background-fill-secondary);
+		color: var(--body-text-color);
+		cursor: pointer;
+		height: var(--size-9);
+	}
+
+	.record-button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: var(--size-9);
+		width: var(--size-9);
+		padding: 0;
+		flex-shrink: 0;
+		background-color: var(--block-background-fill);
+		color: var(--body-text-color);
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-md);
+		cursor: pointer;
+	}
+
+	.record-button::before {
+		content: "";
+		height: var(--size-4);
+		width: var(--size-4);
+		border-radius: var(--radius-full);
+		background: var(--primary-600);
+		flex-shrink: 0;
+	}
+
+	.record-button:hover {
+		background-color: var(--block-background-fill);
+		border-color: var(--border-color-accent);
+	}
+
+	.record-button:active {
+		transform: scale(0.98);
+	}
+
+	.stop-button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: var(--size-9);
+		height: var(--size-9);
+		padding: 0;
+		border: var(--size-px) solid var(--border-color-primary);
+		border-radius: var(--radius-md);
+		background: var(--button-secondary-background-fill);
+		color: var(--error-500);
+		cursor: pointer;
+		flex-shrink: 0;
+	}
+
+	.stop-button:hover {
+		background: var(--button-secondary-background-fill-hover);
+		color: var(--error-600);
+	}
+
+	.stop-button:active {
+		transform: scale(0.95);
+	}
+
+	.stop-button :global(svg) {
+		width: var(--size-5);
+		height: var(--size-5);
 	}
 
 	@media (prefers-reduced-motion: reduce) {

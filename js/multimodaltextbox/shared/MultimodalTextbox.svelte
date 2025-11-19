@@ -368,15 +368,6 @@
 								mic_audio = null;
 							}}
 						/>
-						<button
-							class="stop-button"
-							on:click={() => {
-								recording = false;
-							}}
-							aria-label="Stop recording"
-						>
-							<Square />
-						</button>
 					</div>
 				{:else}
 					<div class="recording-content">
