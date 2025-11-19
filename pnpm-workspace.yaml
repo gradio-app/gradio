@@ -1,6 +1,9 @@
 packages:
-  - 'js/*'
-  - "gradio"
-  - "client/*"
-  - "client/*/*"
-  - "js/preview/test/**/*"
+  - js/*
+  - gradio
+  - client/*
+  - client/*/*
+  - js/preview/test/**/*
+
+patchedDependencies:
+  '@sveltejs/package': patches/@sveltejs__package.patch

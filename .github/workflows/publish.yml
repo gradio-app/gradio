@@ -28,11 +28,11 @@ jobs:
         with:
           python_version: "3.12"
           skip_build: "false"
-      # - name: Build packages
-      #   run: |
-      #     . venv/bin/activate
-      #     pnpm package
-      #     pnpm --filter @gradio/client --filter @gradio/preview build
+      - name: Build packages
+        run: |
+          . venv/bin/activate
+          pnpm package
+          pnpm --filter @gradio/client --filter @gradio/preview build
       - name: update npm
         run: npm i -g npm@latest
       - name: check node version
