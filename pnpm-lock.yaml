@@ -64,9 +64,6 @@ importers:
       '@types/testing-library__jest-dom':
         specifier: ^6.0.0
         version: 6.0.0
-      '@types/wavesurfer.js':
-        specifier: ^6.0.12
-        version: 6.0.12
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.46.0
         version: 8.46.4(@typescript-eslint/parser@8.46.4(eslint@9.39.1(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.1(jiti@1.21.7))(typescript@5.9.3)
@@ -665,9 +662,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
-      '@types/wavesurfer.js':
-        specifier: 6.0.10
-        version: 6.0.10
       extendable-media-recorder:
         specifier: 9.0.0
         version: 9.0.0
@@ -4747,9 +4741,6 @@ packages:
   '@types/d3@7.4.3':
     resolution: {integrity: sha512-lZXZ9ckh5R8uiFVt8ogUNf+pIrK4EsWrx2Np75WvF/eTpJ0FMHNhjXk8CKEx/+gpHbNQyJWehbFaTvqmHWB3ww==}
 
-  '@types/debounce@1.2.4':
-    resolution: {integrity: sha512-jBqiORIzKDOToaF63Fm//haOCHuwQuLa2202RK4MozpA6lh93eCBc+/8+wZn5OzjJt3ySdc+74SXWXB55Ewtyw==}
-
   '@types/deep-eql@4.0.2':
     resolution: {integrity: sha512-c9h9dVVMigMPc4bwTvC5dxqtqJZwQPePsWjPlpSOnojbor6pGqdk541lfA7AqFQr5pB1BRdq0juY9db81BwyFw==}
 
@@ -4838,12 +4829,6 @@ packages:
 
   '@types/uuid@9.0.8':
     resolution: {integrity: sha512-jg+97EGIcY9AGHJJRaaPVgetKDsrTgbRjQ5Msgjh/DQKEFl0DtyRr/VCOyD1T2R1MNeWPK/u7JoGhlDZnKBAfA==}
-
-  '@types/wavesurfer.js@6.0.10':
-    resolution: {integrity: sha512-LEzDaKM8L/fx8lwh7SQROD8s5MuEtimChhEQ2HwDFJApPmZFALxSwwUMlEj0mT71EstWZuLhijY2uUiNRZtzqg==}
-
-  '@types/wavesurfer.js@6.0.12':
-    resolution: {integrity: sha512-oM9hYlPIVms4uwwoaGs9d0qp7Xk7IjSGkdwgmhUymVUIIilRfjtSQvoOgv4dpKiW0UozWRSyXfQqTobi0qWyCw==}
 
   '@types/whatwg-mimetype@3.0.2':
     resolution: {integrity: sha512-c2AKvDT8ToxLIOUlN51gTiHXflsfIFisS4pO7pDPoKouJCESkhZnEy623gwP9laCy5lnLDAw1vAzu2vM2YLOrA==}
@@ -10879,8 +10864,6 @@ snapshots:
       '@types/d3-transition': 3.0.9
       '@types/d3-zoom': 3.0.8
 
-  '@types/debounce@1.2.4': {}
-
   '@types/deep-eql@4.0.2': {}
 
   '@types/earcut@3.0.0': {}
@@ -10954,14 +10937,6 @@ snapshots:
   '@types/unist@3.0.3': {}
 
   '@types/uuid@9.0.8': {}
-
-  '@types/wavesurfer.js@6.0.10':
-    dependencies:
-      '@types/debounce': 1.2.4
-
-  '@types/wavesurfer.js@6.0.12':
-    dependencies:
-      '@types/debounce': 1.2.4
 
   '@types/whatwg-mimetype@3.0.2': {}
 
