@@ -437,7 +437,7 @@
 					{#if show_upload}
 						<button
 							data-testid="upload-button"
-							class="upload-button mobile-thumbnail-add"
+							class="upload-button thumbnail-add"
 							{disabled}
 							on:click={handle_upload_click}
 							aria-label="Upload a file"
@@ -662,7 +662,6 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		border: var(--size-px) solid var(--border-color-primary);
 		border-radius: var(--radius-md);
 		background: var(--background-fill-secondary);
 		width: var(--size-full);
@@ -748,7 +747,6 @@
 		transform: scaleX(-1);
 	}
 
-	.mobile-thumbnail-add,
 	.microphone-button {
 		color: var(--body-text-color);
 		cursor: pointer;
@@ -758,14 +756,33 @@
 		align-items: center;
 		flex-shrink: 0;
 		border-radius: var(--radius-md);
-		transition:
-			background 0.2s var(--easing-standard),
-			border-color 0.2s var(--easing-standard);
 	}
 
-	.mobile-thumbnail-add {
+	.thumbnail-add {
+		background: var(--button-secondary-background-fill);
+		cursor: pointer;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		flex-shrink: 0;
 		width: var(--size-10);
 		height: var(--size-10);
+		border-radius: var(--radius-md);
+		z-index: var(--layer-1);
+	}
+
+	.thumbnail-add:hover:not(:disabled) {
+		background: var(--button-secondary-background-fill-hover);
+	}
+
+	.thumbnail-add:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.thumbnail-add :global(svg) {
+		width: var(--size-5);
+		height: var(--size-5);
 	}
 
 	.microphone-button {
@@ -773,19 +790,15 @@
 		height: var(--size-9);
 	}
 
-	.mobile-thumbnail-add:hover:not(:disabled),
 	.microphone-button:hover:not(:disabled) {
-		background: var(--button-secondary-background-fill-hover);
-		border-color: var(--border-color-primary);
+		background: var(--button-secondary-background-fill);
 	}
 
-	.mobile-thumbnail-add:disabled,
 	.microphone-button:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
 	}
 
-	.mobile-thumbnail-add :global(svg),
 	.microphone-button :global(svg) {
 		width: var(--size-5);
 		height: var(--size-5);
@@ -793,7 +806,6 @@
 
 	.submit-button,
 	.stop-button {
-		border: var(--size-px) solid var(--border-color-primary);
 		background: var(--button-secondary-background-fill);
 		cursor: pointer;
 		display: flex;
@@ -804,9 +816,6 @@
 		height: var(--size-9);
 		border-radius: var(--radius-md);
 		z-index: var(--layer-1);
-		transition:
-			background 0.2s var(--easing-standard),
-			border-color 0.2s var(--easing-standard);
 	}
 
 	.submit-button:hover:not(:disabled),
@@ -911,7 +920,6 @@
 		width: var(--size-9);
 		height: var(--size-9);
 		padding: 0;
-		border: var(--size-px) solid var(--border-color-primary);
 		border-radius: var(--radius-md);
 		cursor: pointer;
 		flex-shrink: 0;
@@ -974,7 +982,7 @@
 		}
 
 		.thumbnail-small,
-		.mobile-thumbnail-add {
+		.thumbnail-add {
 			width: var(--size-9);
 			height: var(--size-9);
 		}
