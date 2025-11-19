@@ -3,7 +3,10 @@ import gradio as gr
 
 class ColoredCheckboxGroup(gr.HTML):
     def __init__(
-        self, choices: list[str], *, value: list[str] | None = None, colors: list[str]
+        self,
+        choices: list[str], *,
+        value: list[str] | None = None, 
+        colors: list[str]
     ):
         html_template = """
         <div class="colored-checkbox-group">

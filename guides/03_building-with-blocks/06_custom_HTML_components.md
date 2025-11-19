@@ -1,15 +1,15 @@
-# Creating new components with gr.HTML
+# Custom Components with `gr.HTML`
 
 If you wish to create custom HTML in your app, use the `gr.HTML` component. Here's a basic "HTML-only" example:
 
 ```python
-gr.HTML("<h1>Hello World!</h1>")
+gr.HTML(value="<h1>Hello World!</h1>")
 ```
 
 You can also use html-templates to organize your HTML. Take a look at the example below:
 
 ```python
-gr.HTML("John", "<h1>Hello, {{value}}!</h1><p>${value.length} letters</p>")
+gr.HTML(value="John", html_template"<h1>Hello, {{value}}!</h1><p>${value.length} letters</p>")
 ```
 
 "John" becomes `value` when injected into the template, resulting in:
@@ -23,7 +23,7 @@ Notice how we support two types of templating syntaxes: `${}` for custom JavaScr
 Let's look at another example for displaying a list of items:
 
 ```python
-gr.HTML(["apple", "banana", "cherry"], """
+gr.HTML(value=["apple", "banana", "cherry"], html_templates="""
     <h1>${value.length} fruits:</h1>
     <ul>
       {{#each value}}
@@ -95,6 +95,10 @@ If you are reusing the same HTML component in multiple places, you can create a 
 
 $code_star_rating_component
 $demo_star_rating_component
+
+### Adding a Data Model
+
+One of the benefits of using 
 
 ## Security Considerations
 
