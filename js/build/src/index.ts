@@ -334,6 +334,72 @@ export function inject_component_loader({ mode }: { mode: string }): Plugin {
 	};
 }
 
+export function inject_svelte_init_code({ mode }: { mode: string }): Plugin {
+	const v_id = "virtual:svelte-init";
+	const resolved_v_id = "\0" + v_id;
+	
+
+	return {
+		name: "inject-component-loader",
+		enforce: "pre",
+		resolveId(id: string) {
+			if (id === v_id) return resolved_v_id;
+		},
+		load(id: string) {
+			
+			if (id === resolved_v_id) {
+				return load_virtual_component_loader(mode);
+			}
+		}
+	}
+}
+
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const svelte = require("svelte/package.json");
+export const svelte_exports = Object.keys(svelte.exports).map(
+	(entry) => "svelte" + entry.replace(/^\./, "svelte")
+);
+export const svelte_exports_transformed = Object.keys(svelte.exports).map(
+	(entry) => entry.replace(/^\./, "svelte").split("/").join("_") + ".js"
+);
+
+
+
+function make_init_code(): string {
+	const import_strings = svelte_exports
+		.map(
+			(entry: string) =>
+				`import * as ${entry
+					.replace(/\.js$/, "")
+					.replace(/-/g, "_")
+					.replace(/\//g, "_")} from "svelte/${entry}";`
+		)
+		.join("\n");
+	return `${import_strings}
+	
+const is_browser = typeof window !== "undefined";
+if (is_browser) {
+	const o = {
+		SvelteComponent: svelte.SvelteComponent
+	};
+	for (const key in svelte) {
+		// if (key === "SvelteComponent") continue;
+		// if (key === "SvelteComponentDev") {
+		// 	//@ts-ignore
+		// 	o[key] = o["SvelteComponent"];
+		// } else {
+		// @ts-ignore
+		o[key] = svelte[key];
+		// }
+	}
+	window.__gradio__svelte__internal = o;
+	window.__gradio__svelte__internal["globals"] = {};
+	window.globals = window;
+}
+`;
+}
+
 export function resolve_svelte(enable: boolean): Plugin {
 	return {
 		enforce: "pre",

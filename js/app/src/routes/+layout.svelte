@@ -4,7 +4,7 @@
 	import "@gradio/theme/pollen.css";
 	import "@gradio/theme/typography.css";
 	import "@gradio/theme/gradio-style.scss";
-	import "./svelte_init";
+	import "virtual:load-svelte";
 </script>
 
 <slot></slot>

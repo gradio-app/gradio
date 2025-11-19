@@ -11,8 +11,8 @@ const svelte_codes_to_ignore: Record<string, string> = {
 };
 
 const RE_SVELTE_IMPORT =
-	/import\s+([\w*{},\s]+)\s+from\s+['"](svelte|svelte\/internal)['"]/g;
-const RE_BARE_SVELTE_IMPORT = /import ("|')svelte(\/\w+)*("|')(;)*/g;
+	/import\s+(?:([ -~]*)\s+from\s+){0,1}['"](svelte(?:\/[ -~]+){0,3})['"]/g;
+// const RE_BARE_SVELTE_IMPORT = /import ("|')svelte(\/\w+)*("|')(;)*/g;
 export function plugins(config: ComponentConfig): PluginOption[] {
 	const _additional_plugins = config.plugins || [];
 	const _additional_svelte_preprocess = config.svelte?.preprocess || [];
@@ -84,18 +84,19 @@ export function make_gradio_plugin({
 		name: "gradio",
 		enforce: "pre",
 		transform(code) {
-			const new_code = code
-				.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
-					if ($1.trim().startsWith("type")) return str;
-					const identifier = $1.trim().startsWith("* as")
-						? $1.replace("* as", "").trim()
-						: $1.trim();
-					return `const ${identifier.replace(
-						" as ",
-						": "
-					)} = window.__gradio__svelte__internal;`;
-				})
-				.replace(RE_BARE_SVELTE_IMPORT, "");
+			const new_code = code.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
+				if ($1.trim().startsWith("type")) return str;
+				if ($1.trim() === "") return "";
+				const path = $2.split("/").join("_");
+				const identifier = $1.trim().startsWith("* as")
+					? $1.replace("* as", "").trim()
+					: $1.trim();
+				return `const ${identifier.replace(
+					" as ",
+					": "
+				)} = window.__gradio__svelte__.${path};`;
+			});
+
 			return {
 				code: new_code,
 				map: null

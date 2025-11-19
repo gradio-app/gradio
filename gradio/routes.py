@@ -1497,13 +1497,10 @@ class App(FastAPI):
                                 # It's possible that the event_id has already been removed
                                 # for example, the user sent two duplicate `/cancel` requests.
                                 # The first one would have removed the event_id from pending_event_ids_session
-                                if (
-                                    message.event_id
-                                    in (
-                                        blocks._queue.pending_event_ids_session[
-                                            session_hash
-                                        ]
-                                    )
+                                if message.event_id in (
+                                    blocks._queue.pending_event_ids_session[
+                                        session_hash
+                                    ]
                                 ):
                                     blocks._queue.pending_event_ids_session[
                                         session_hash
@@ -1806,8 +1803,8 @@ class App(FastAPI):
 
         @app.get("/manifest.json")
         def manifest_json():
-            if not blocks.pwa:
-                raise HTTPException(status_code=404, detail="PWA not enabled.")
+            # if not blocks.pwa:
+            #     raise HTTPException(status_code=404, detail="PWA not enabled.")
 
             favicon_path = blocks.favicon_path
             if isinstance(favicon_path, Path):
@@ -2422,8 +2419,9 @@ def mount_gradio_app(
     path: str,
     server_name: str = "0.0.0.0",
     server_port: int = 7860,
-    footer_links: list[Literal["api", "gradio", "settings"] | dict[str, str]]
-    | None = None,
+    footer_links: (
+        list[Literal["api", "gradio", "settings"] | dict[str, str]] | None
+    ) = None,
     app_kwargs: dict[str, Any] | None = None,
     *,
     auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,
