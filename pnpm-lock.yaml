@@ -1248,37 +1248,37 @@ importers:
   js/dataframe-interim:
     dependencies:
       '@gradio/atoms':
-        specifier: ^0.18.1
+        specifier: npm:@gradio/atoms@0.18.1
         version: 0.18.1(svelte@4.2.20)
       '@gradio/button':
-        specifier: ^0.5.13
+        specifier: npm:@gradio/button@0.5.13
         version: 0.5.13(@types/node@24.10.0)(svelte@4.2.20)
       '@gradio/checkbox':
-        specifier: ^0.4.30
-        version: 0.4.31(svelte@4.2.20)
+        specifier: npm:@gradio/checkbox@0.4.30
+        version: 0.4.30(svelte@4.2.20)
       '@gradio/client':
-        specifier: ^1.19.0
-        version: 1.19.1(@types/node@24.10.0)
+        specifier: npm:@gradio/client@1.19.0
+        version: 1.19.0(@types/node@24.10.0)
       '@gradio/dataframe-npm':
         specifier: npm:@gradio/dataframe@0.20.1
         version: '@gradio/dataframe@0.20.1(@types/node@24.10.0)(svelte@4.2.20)'
       '@gradio/icons':
-        specifier: ^0.14.0
+        specifier: npm:@gradio/icons@0.14.0
         version: 0.14.0(svelte@4.2.20)
       '@gradio/image':
-        specifier: 0.23.1
+        specifier: npm:@gradio/image@0.23.1
         version: 0.23.1(@types/node@24.10.0)(svelte@4.2.20)
       '@gradio/markdown-code':
-        specifier: ^0.5.2
+        specifier: npm:@gradio/markdown-code@0.5.2
         version: 0.5.2(svelte@4.2.20)
       '@gradio/statustracker':
-        specifier: ^0.11.1
+        specifier: npm:@gradio/statustracker@0.11.1
         version: 0.11.1(svelte@4.2.20)
       '@gradio/upload':
-        specifier: ^0.17.1
+        specifier: npm:@gradio/upload@0.17.1
         version: 0.17.1(@types/node@24.10.0)(svelte@4.2.20)
       '@gradio/utils':
-        specifier: ^0.10.2
+        specifier: npm:@gradio/utils@0.10.2
         version: 0.10.2(svelte@4.2.20)
       '@sveltejs/vite-plugin-svelte':
         specifier: ^3.1.2
@@ -3644,13 +3644,13 @@ packages:
     peerDependencies:
       svelte: ^4.0.0
 
-  '@gradio/checkbox@0.4.31':
-    resolution: {integrity: sha512-PrXq3S0U0EptIEfZEq/3ZA7bjgSXPo7lvZjRULoBZysrV0oDGBP7VYIWVYNuxXk9engMDfQByHMC0KGOl+4s8A==}
+  '@gradio/checkbox@0.4.30':
+    resolution: {integrity: sha512-uPJ7hjuCMpAVLQes7Xz89L/NzKTbv9wczNoLxppv4gODiLqWUsMfpmpdjGZHU1mO/JjV5eN+JNDiUcUOS9llUg==}
     peerDependencies:
       svelte: ^4.0.0
 
-  '@gradio/client@1.19.1':
-    resolution: {integrity: sha512-gzqm46Al412v2kgALSPUxY08Y7PdxA/SY7jJlxd69TWdLqAyzyfTjxxEKYBP2ku0+kz4RhVw8OqkfWMjOtwAuQ==}
+  '@gradio/client@1.19.0':
+    resolution: {integrity: sha512-ZmW2irnSB9+aYjgawBBGq9LZv0fw/UKAW46ZBRUtOxDTDHdxlMzCI8ZCZhoiiKg0bizzd8XbmAa7Jny2JfbaKw==}
     engines: {node: '>=18.0.0'}
 
   '@gradio/dataframe@0.20.1':
@@ -9499,7 +9499,7 @@ snapshots:
 
   '@gradio/button@0.5.13(@types/node@24.10.0)(svelte@4.2.20)':
     dependencies:
-      '@gradio/client': 1.19.1(@types/node@24.10.0)
+      '@gradio/client': 1.19.0(@types/node@24.10.0)
       '@gradio/image': 0.23.1(@types/node@24.10.0)(svelte@4.2.20)
       '@gradio/upload': 0.17.1(@types/node@24.10.0)(svelte@4.2.20)
       '@gradio/utils': 0.10.2(svelte@4.2.20)
@@ -9509,7 +9509,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@gradio/checkbox@0.4.31(svelte@4.2.20)':
+  '@gradio/checkbox@0.4.30(svelte@4.2.20)':
     dependencies:
       '@gradio/atoms': 0.18.1(svelte@4.2.20)
       '@gradio/statustracker': 0.11.1(svelte@4.2.20)
@@ -9518,7 +9518,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@gradio/client@1.19.1(@types/node@24.10.0)':
+  '@gradio/client@1.19.0(@types/node@24.10.0)':
     dependencies:
       '@types/eventsource': 1.1.15
       bufferutil: 4.0.9
@@ -9537,8 +9537,8 @@ snapshots:
     dependencies:
       '@gradio/atoms': 0.18.1(svelte@4.2.20)
       '@gradio/button': 0.5.13(@types/node@24.10.0)(svelte@4.2.20)
-      '@gradio/checkbox': 0.4.31(svelte@4.2.20)
-      '@gradio/client': 1.19.1(@types/node@24.10.0)
+      '@gradio/checkbox': 0.4.30(svelte@4.2.20)
+      '@gradio/client': 1.19.0(@types/node@24.10.0)
       '@gradio/icons': 0.14.0(svelte@4.2.20)
       '@gradio/markdown-code': 0.5.2(svelte@4.2.20)
       '@gradio/statustracker': 0.11.1(svelte@4.2.20)
@@ -9561,7 +9561,7 @@ snapshots:
   '@gradio/image@0.23.1(@types/node@24.10.0)(svelte@4.2.20)':
     dependencies:
       '@gradio/atoms': 0.18.1(svelte@4.2.20)
-      '@gradio/client': 1.19.1(@types/node@24.10.0)
+      '@gradio/client': 1.19.0(@types/node@24.10.0)
       '@gradio/icons': 0.14.0(svelte@4.2.20)
       '@gradio/statustracker': 0.11.1(svelte@4.2.20)
       '@gradio/upload': 0.17.1(@types/node@24.10.0)(svelte@4.2.20)
@@ -9613,7 +9613,7 @@ snapshots:
   '@gradio/upload@0.17.1(@types/node@24.10.0)(svelte@4.2.20)':
     dependencies:
       '@gradio/atoms': 0.18.1(svelte@4.2.20)
-      '@gradio/client': 1.19.1(@types/node@24.10.0)
+      '@gradio/client': 1.19.0(@types/node@24.10.0)
       '@gradio/icons': 0.14.0(svelte@4.2.20)
       '@gradio/utils': 0.10.2(svelte@4.2.20)
       svelte: 4.2.20
