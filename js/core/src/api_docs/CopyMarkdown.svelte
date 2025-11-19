@@ -21,7 +21,6 @@
 	export let mcp_docs: string;
 	export let spaces_docs_suffix: string;
 	export let mcp_server_active: boolean;
-	export let mcp_server_url: string;
 	export let mcp_server_url_streamable: string;
 	export let config_snippets: Record<string, string>;
 	export let markdown_code_snippets: Record<string, Record<string, string>>;
@@ -197,7 +196,7 @@ ${
 To enable this, launch this Gradio app with \`.launch(mcp_server=True)\` or set the \`.launch(mcp_server=True)\`or set the \`GRADIO_MCP_SERVER\` env variable to \`"True"\`.`
 		: `
 
-This page documents three transports: Streamable HTTP, SSE, and STDIO.
+This page documents two transports: Streamable HTTP and STDIO.
 
 ### Streamable HTTP
 
@@ -221,42 +220,10 @@ ${Object.keys(tool.parameters)
 	)
 	.join("\n\n")}
 
-Stremable HTTP Transport: To add this MCP to clients that support Streamable HTTP, simply add the following configuration to your MCP config.
+Streamable HTTP Transport: To add this MCP to clients that support Streamable HTTP, simply add the following configuration to your MCP config.
 
 \`\`\`json
 ${config_snippets.streamable_http}
-\`\`\`
-
-The \`upload_files_to_gradio\` tool uploads files from your local \`UPLOAD_DIRECTORY\` (or any of its subdirectories) to the Gradio app. 
-This is needed because MCP servers require files to be provided as URLs. You can omit this tool if you prefer to upload files manually. This tool requires [uv](https://docs.astral.sh/uv/getting-started/installation/) to be installed.
-
-### SSE Transport
-
-MCP Server URL (SSE): ${mcp_server_url}
-
-${tools.length} available MCP tools, resources, and prompts: 
-
-${tools
-	.map(
-		(tool) =>
-			`### ${tool.name}
-Type: ${tool.meta.mcp_type}
-Description: ${tool.description ? tool.description : "No description provided in function docstring"}
-Parameters: ${Object.keys(tool.parameters).length}
-${Object.keys(tool.parameters)
-	.map((parameter) => {
-		return `- ${parameter} (${tool.parameters[parameter].type}): ${tool.parameters[parameter].description ? tool.parameters[parameter].description : "No description provided in function docstring"}`;
-	})
-	.join("\n")}
-`
-	)
-	.join("\n\n")}
-
-
-SSE Transport: The SSE transport has been deprecated by the MCP spec. We recommend using the Streamable HTTP transport instead. But to add this MCP to clients that only support server-sent events (SSE), simply add the following configuration to your MCP config.
-
-\`\`\`json
-${config_snippets.sse}
 \`\`\`
 
 The \`upload_files_to_gradio\` tool uploads files from your local \`UPLOAD_DIRECTORY\` (or any of its subdirectories) to the Gradio app. 
