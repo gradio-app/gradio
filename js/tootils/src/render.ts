@@ -3,8 +3,8 @@ import {
 	prettyDOM,
 	fireEvent as dtlFireEvent
 } from "@testing-library/dom";
-import { tick } from "svelte";
-import type { SvelteComponent } from "svelte";
+import { tick, mount, unmount } from "svelte";
+import type { SvelteComponent, Component } from "svelte";
 
 import type {
 	queries,
@@ -14,16 +14,15 @@ import type {
 	FireObject
 } from "@testing-library/dom";
 import { spy, type Spy } from "tinyspy";
-import { Gradio } from "@gradio/utils";
+import { GRADIO_ROOT, allowed_shared_props } from "@gradio/utils";
 import type { LoadingStatus } from "@gradio/statustracker";
+import { get } from "svelte/store";
+import { _ } from "svelte-i18n";
 
 const containerCache = new Map();
 const componentCache = new Set();
 
-type ComponentType<T extends SvelteComponent, Props> = new (args: {
-	target: any;
-	props?: Props;
-}) => T;
+type ComponentType<T extends SvelteComponent, Props> = Component<Props>;
 
 export type RenderResult<
 	C extends SvelteComponent,
@@ -77,50 +76,73 @@ export async function render<
 
 	const target = container.appendChild(document.createElement("div"));
 
-	const ComponentConstructor: ComponentType<
-		T,
-		Props & { gradio: typeof Gradio<X> }
-	> =
+	const ComponentConstructor: ComponentType<T, Props> =
 		//@ts-ignore
 		Component.default || Component;
 
 	const id = Math.floor(Math.random() * 1000000);
 
-	const component = new ComponentConstructor({
+	const mockRegister = (): void => {
+	};
+
+	const mockDispatcher = (_id: number, event: string, data: any): void => {
+		const e = new CustomEvent("gradio", {
+			bubbles: true,
+			detail: { data, id: _id, event }
+		});
+		target.dispatchEvent(e);
+	};
+
+	const i18nFormatter = (s: string | null | undefined): string => s ?? "";
+
+	const shared_props_obj: Record<string, any> = {
+		id,
 		target,
-		//@ts-ignore
-		props: {
-			loading_status,
-			...(props || {}),
-			//@ts-ignore
-			gradio: new Gradio(
-				id,
-				target,
-				"light",
-				"2.0.0",
-				"http://localhost:8000",
-				false,
-				null,
-				//@ts-ignore
-				(s) => s,
-				// @ts-ignore
-				{ client: {} },
-				() => {}
-			)
+		theme_mode: "light" as const,
+		version: "2.0.0",
+		formatter: i18nFormatter,
+		client: {} as any,
+		load_component: () => Promise.resolve({ default: {} as any }),
+		show_progress: true,
+		api_prefix: "",
+		server: {} as any,
+		show_label: true
+	};
+
+	const component_props_obj: Record<string, any> = {
+		i18n: i18nFormatter
+	};
+
+	if (props) {
+		for (const key in props) {
+			const value = (props as any)[key];
+			if (allowed_shared_props.includes(key as any)) {
+				shared_props_obj[key] = value;
+			} else {
+				component_props_obj[key] = value;
+			}
 		}
-	});
+	}
+
+	const componentProps = {
+		shared_props: shared_props_obj,
+		props: {
+			...component_props_obj,
+		}
+	};
+
+	const component = mount(ComponentConstructor, {
+		target,
+		props: componentProps,
+		context: new Map([[GRADIO_ROOT, { register: mockRegister, dispatcher: mockDispatcher }]])
+	}) as T;
 
 	containerCache.set(container, { target, component });
 	componentCache.add(component);
 
-	component.$$.on_destroy.push(() => {
-		componentCache.delete(component);
-	});
-
 	await tick();
 
-	type extractGeneric<Type> = Type extends Gradio<infer X> ? X : null;
-	type event_name = keyof extractGeneric<Props["gradio"]>;
+	type event_name = string;
 
 	function listen(event: event_name): Spy {
 		const mock = spy();
@@ -155,7 +177,9 @@ export async function render<
 		//@ts-ignore
 		debug: (el = container): void => console.warn(prettyDOM(el)),
 		unmount: (): void => {
-			if (componentCache.has(component)) component.$destroy();
+			if (componentCache.has(component)) {
+				unmount(component);
+			}
 		},
 		...getQueriesForElement(container),
 		listen,
@@ -166,7 +190,9 @@ export async function render<
 const cleanupAtContainer = (container: HTMLElement): void => {
 	const { target, component } = containerCache.get(container);
 
-	if (componentCache.has(component)) component.$destroy();
+	if (componentCache.has(component)) {
+		unmount(component);
+	}
 
 	if (target.parentNode === document.body) {
 		document.body.removeChild(target);

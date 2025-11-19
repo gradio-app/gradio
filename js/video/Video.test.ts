@@ -12,6 +12,17 @@ import { spyOn } from "tinyspy";
 import { cleanup, render } from "@self/tootils";
 import { setupi18n } from "../core/src/i18n";
 
+// Mock FFmpeg before imports - it doesn't work in Node.js
+vi.mock("@ffmpeg/ffmpeg", () => ({
+	FFmpeg: class MockFFmpeg {
+		load = vi.fn(() => Promise.resolve());
+		writeFile = vi.fn(() => Promise.resolve());
+		readFile = vi.fn(() => Promise.resolve(new Uint8Array()));
+		exec = vi.fn(() => Promise.resolve(0));
+		terminate = vi.fn(() => Promise.resolve());
+	}
+}));
+
 import Video from "./Index.svelte";
 
 import type { LoadingStatus } from "@gradio/statustracker";
@@ -167,7 +178,7 @@ describe("Video", () => {
 	});
 
 	test("when autoplay is true `media.play` should be called in static mode when the Video data is updated", async () => {
-		const { component, getByTestId } = await render(Video, {
+		const { getByTestId, unmount } = await render(Video, {
 			show_label: true,
 			loading_status,
 			interactive: false,
@@ -186,14 +197,31 @@ describe("Video", () => {
 				constraints: null
 			}
 		});
-		const startButton = getByTestId("test-player") as HTMLVideoElement;
+		let startButton = getByTestId("test-player") as HTMLVideoElement;
 		const fn = spyOn(startButton, "play");
 		startButton.dispatchEvent(new Event("loadeddata"));
-		component.$set({
+		assert.equal(fn.callCount, 1);
+		unmount();
+
+		const result = await render(Video, {
+			show_label: true,
+			loading_status,
+			interactive: false,
 			value: {
 				path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
+			},
+			root: "foo",
+			proxy_url: null,
+			streaming: false,
+			pending: false,
+			sources: ["upload"],
+			autoplay: true,
+			webcam_options: {
+				mirror: true,
+				constraints: null
 			}
 		});
+		startButton = result.getByTestId("test-player") as HTMLVideoElement;
 		startButton.dispatchEvent(new Event("loadeddata"));
 		assert.equal(fn.callCount, 2);
 	});
