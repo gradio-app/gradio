@@ -5,7 +5,7 @@
 	"type": "module",
 	"author": "",
 	"license": "ISC",
-	"private": false,
+	"private": true,
 	"main_changeset": true,
 	"main": "./Index.svelte",
 	"scripts": {
