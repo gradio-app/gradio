@@ -65,8 +65,8 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			rollupOptions: {
 				external: svelte_exports
 			},
-			minify: false,
-			sourcemap: true
+			minify: true,
+			sourcemap: false
 		},
 
 		define: {

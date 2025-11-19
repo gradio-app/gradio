@@ -90,6 +90,22 @@
 		return `a component of type ${message.content.component ?? "unknown"}`;
 	}
 
+	function get_file(messages: NormalisedMessage[]): FileData | null {
+		for (const message of messages) {
+			if (
+				message.type === "component" &&
+				(message.content.component === "audio" ||
+					message.content.component === "video" ||
+					message.content.component === "image" ||
+					message.content.component === "file") &&
+				message.content.value
+			) {
+				return message.content.value as FileData;
+			}
+		}
+		return null;
+	}
+
 	type ButtonPanelProps = {
 		handle_action: (selected: string | null) => void;
 		likeable: boolean;
@@ -107,6 +123,9 @@
 		dispatch: any;
 		current_feedback: string | null;
 		watermark: string | null;
+		file: FileData | null;
+		show_download_button: boolean;
+		show_share_button: boolean;
 	};
 
 	let button_panel_props: ButtonPanelProps;
@@ -126,7 +145,10 @@
 		layout,
 		dispatch,
 		current_feedback,
-		watermark
+		watermark,
+		file: get_file(messages),
+		show_download_button: allow_file_downloads,
+		show_share_button: true
 	};
 </script>
 
@@ -256,11 +278,14 @@
 	.message {
 		position: relative;
 		width: 100%;
-		margin-top: var(--spacing-sm);
 	}
 
 	.message.display_consecutive_in_same_bubble {
 		margin-top: 0;
+	}
+
+	.message + .message {
+		margin-top: var(--spacing-sm);
 	}
 
 	/* avatar styles */
