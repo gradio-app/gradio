@@ -17,7 +17,8 @@
 		"@rollup/plugin-json": "^6.1.0",
 		"@rollup/plugin-node-resolve": "^16.0.2",
 		"@rollup/plugin-typescript": "^12.1.4",
-		"rollup": "^4.52.4"
+		"rollup": "^4.52.4",
+		"svelte": "^5.43.4"
 	},
 	"dependencies": {
 		"@originjs/vite-plugin-commonjs": "^1.0.3",
@@ -37,9 +38,6 @@
 		"vite": "^7.1.9",
 		"which": "5.0.0",
 		"yootils": "^0.3.1"
-	},
-	"optionalDependencies": {
-		"svelte": "^5.43.4"
 	},
 	"exports": {
 		".": {

@@ -2152,7 +2152,6 @@ importers:
       rollup:
         specifier: ^4.52.4
         version: 4.53.2
-    optionalDependencies:
       svelte:
         specifier: ^5.43.4
         version: 5.43.6
