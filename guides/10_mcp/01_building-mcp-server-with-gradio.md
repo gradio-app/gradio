@@ -408,7 +408,7 @@ def prime_factors(n: str):
 
 **3. Ensure that your MCP Client Supports Streamable HTTP**
 
-Some MCP Clients, notably [Claude Desktop](https://claude.ai/download), do not yet support streamable HTTP-based MCP Servers. In those cases, you can use a tool such as [mcp-remote](https://github.com/geelen/mcp-remote). First install [Node.js](https://nodejs.org/en/download/). Then, add the following to your own MCP Client config:
+Some MCP Clients do not yet support streamable HTTP-based MCP Servers. In those cases, you can use a tool such as [mcp-remote](https://github.com/geelen/mcp-remote). First install [Node.js](https://nodejs.org/en/download/). Then, add the following to your own MCP Client config:
 
 ```
 {
