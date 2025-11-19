@@ -19,6 +19,8 @@ core = [
 ]
 
 
+@pytest.mark.serial
+@pytest.mark.flaky
 @pytest.mark.parametrize(
     "template",
     core,
