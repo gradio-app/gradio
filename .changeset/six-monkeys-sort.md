@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Enhancements to DX for Custom HTML components
+feat:Enhancements to DX/Docs for Custom HTML components
