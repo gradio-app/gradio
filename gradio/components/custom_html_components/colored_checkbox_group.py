@@ -4,12 +4,14 @@ import gradio as gr
 class ColoredCheckboxGroup(gr.HTML):
     def __init__(
         self,
-        choices: list[str], *,
+        choices: list[str],
+        *,
         value: list[str] | None = None,
         colors: list[str],
         label: str | None = None,
         **kwargs,
     ):
+        self.choices = choices
         html_template = """
         <div class="colored-checkbox-container">
             ${label ? `<label class="container-label">${label}</label>` : ''}
@@ -59,6 +61,14 @@ class ColoredCheckboxGroup(gr.HTML):
             **kwargs
         )
 
+    def api_info(self):
+        return {
+            "items": {"enum": self.choices, "type": "string"},
+            "title": "Checkbox Group",
+            "type": "array",
+        }
+
+
 if __name__ == "__main__":
     def update_colors(color: str):
         if color.startswith('rgb'):
@@ -91,7 +101,7 @@ if __name__ == "__main__":
                     label="Select options"
                 )
                 gr.Interface(
-                    fn=lambda x: x,
+                    fn=lambda x: " ".join(x),
                     inputs=cg,
                     outputs=gr.Textbox(label="output"),
                 )

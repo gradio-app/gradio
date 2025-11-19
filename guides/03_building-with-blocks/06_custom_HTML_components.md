@@ -96,7 +96,12 @@ If you are reusing the same HTML component in multiple places, you can create a 
 $code_star_rating_component
 $demo_star_rating_component
 
-We've created several custom HTML components as reusable components as examples
+Note: Gradio requires all components to accept certain arguments, such as `render`. You do not need
+to handle these arguments, but you do need to accept them in your component constructor and pass
+them to the parent `gr.HTML` class. Otherwise, your component may not behave correctly. The easiest
+way is to add `**kwargs` to your `__init__` method and pass it to `super().__init__()`, just like in the code example above.
+
+We've created several custom HTML components as reusable components as examples you can reference in [this directory](https://github.com/gradio-app/gradio/tree/main/gradio/components/custom_html_components).
 
 ### Adding a Data Model
 
@@ -110,4 +115,4 @@ You should also expect that any Python event listeners that take your `gr.HTML` 
 
 ## Next Steps
 
-If you'd like to see more examples of custom components that you can build:
+Check out some examples of custom components that you can build in [this directory](https://github.com/gradio-app/gradio/tree/main/gradio/components/custom_html_components).
