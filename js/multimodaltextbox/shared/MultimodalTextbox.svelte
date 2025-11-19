@@ -186,10 +186,10 @@
 			max_lines >= 1
 		) {
 			e.preventDefault();
+			add_mic_audio_to_files();
+			active_source = null;
 			await tick();
 			dispatch("submit");
-			active_source = null;
-			add_mic_audio_to_files();
 		}
 	}
 
@@ -246,13 +246,14 @@
 			value.files.push(mic_audio);
 			value = value;
 			mic_audio = null;
+			dispatch("change", value);
 		}
 	}
 
 	function handle_submit(): void {
-		dispatch("submit");
-		active_source = null;
 		add_mic_audio_to_files();
+		active_source = null;
+		dispatch("submit");
 	}
 
 	async function handle_paste(event: ClipboardEvent): Promise<void> {
@@ -355,6 +356,10 @@
 							label={label || "Audio"}
 							{waveform_settings}
 							{recording}
+							{upload}
+							{root}
+							{max_file_size}
+							bind:upload_promise
 							on:change={({ detail }) => {
 								mic_audio = detail;
 							}}

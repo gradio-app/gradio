@@ -4,12 +4,16 @@
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 	import { format_time } from "@gradio/utils";
 	import { process_audio } from "./utils";
-	import type { FileData } from "@gradio/client";
+	import { prepare_files, type FileData, type Client } from "@gradio/client";
 	import { Square } from "@gradio/icons";
 
 	export let label: string;
 	export let waveform_settings: Record<string, any> = {};
 	export let recording = false;
+	export let upload: Client["upload"];
+	export let root: string;
+	export let max_file_size: number | null = null;
+	export let upload_promise: Promise<any> | null = null;
 
 	const dispatch = createEventDispatcher<{
 		change: FileData;
@@ -79,34 +83,42 @@
 			clearInterval(interval);
 			is_recording = false;
 
-			try {
-				const array_buffer = await blob.arrayBuffer();
-				const context = new AudioContext({
-					sampleRate: waveform_settings.sampleRate || 44100
-				});
-				const audio_buffer = await context.decodeAudioData(array_buffer);
+			upload_promise = (async () => {
+				try {
+					const array_buffer = await blob.arrayBuffer();
+					const context = new AudioContext({
+						sampleRate: waveform_settings.sampleRate || 44100
+					});
+					const audio_buffer = await context.decodeAudioData(array_buffer);
 
-				if (audio_buffer) {
-					const audio = await process_audio(audio_buffer);
-					const audio_blob = new Blob([audio], { type: "audio/wav" });
-					const url = URL.createObjectURL(audio_blob);
+					if (audio_buffer) {
+						const audio = await process_audio(audio_buffer);
+						const audio_blob = new File([audio], "audio.wav", {
+							type: "audio/wav"
+						});
 
-					const file_data: FileData = {
-						url,
-						path: "audio.wav",
-						orig_name: "audio.wav",
-						size: audio.length,
-						mime_type: "audio/wav",
-						is_stream: false,
-						meta: { _type: "gradio.FileData" }
-					};
+						const prepared_files = await prepare_files([audio_blob], false);
+						const uploaded_files = await upload(
+							prepared_files,
+							root,
+							undefined,
+							max_file_size || undefined
+						);
+						const file_data = uploaded_files?.[0];
 
-					dispatch("change", file_data);
-					dispatch("stop_recording");
+						if (file_data) {
+							dispatch("change", file_data);
+							dispatch("stop_recording");
+						}
+					}
+				} catch (e) {
+					console.error("Error processing audio:", e);
+				} finally {
+					upload_promise = null;
 				}
-			} catch (e) {
-				console.error("Error processing audio:", e);
-			}
+			})();
+
+			await upload_promise;
 		});
 	};
 
