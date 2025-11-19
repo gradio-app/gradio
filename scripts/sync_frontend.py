@@ -52,6 +52,31 @@ def copy_js_code(root: str | pathlib.Path, hf_token: str | None = None):
                 ],
                 token=hf_token,
             )
+    upload_folder(
+        repo_id="gradio/frontend",
+        repo_type="dataset",
+        folder_path=str(pathlib.Path(root) / "client" / "js"),
+        path_in_repo=f"{version}/client",
+        ignore_patterns=[
+            "CHANGELOG*",
+            "README.md",
+            "*/node_modules/*",  # Matches content within node_modules folders
+            "*.test.*",
+            "*.stories.*",
+            "*.spec.*",
+            ".svelte-kit/*",
+            "dist/**",
+        ],
+        allow_patterns=[
+            "*.ts",
+            "*.svelte",
+            "*.json",
+            "**/*.ts",
+            "**/*.svelte",
+            "**/*.json",
+        ],
+        token=hf_token,
+            )
 
 
 if __name__ == "__main__":
