@@ -32,9 +32,7 @@ def test_special_args_creates_namespace_with_props():
         0: {"value": 5, "minimum": 0, "maximum": 10, "label": "Test Number"}
     }
 
-    inputs, *_ = helpers.special_args(
-        func, inputs=[5], component_props=component_props
-    )
+    inputs, *_ = helpers.special_args(func, inputs=[5], component_props=component_props)
 
     # Check that the input is a SimpleNamespace with all props
     assert hasattr(inputs[0], "value")
