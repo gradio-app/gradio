@@ -121,7 +121,7 @@
 		align-items: center;
 		gap: var(--spacing-sm);
 		border-radius: var(--radius-sm);
-		width: var(--size-52);
+		width: 100%;
 		padding: var(--spacing-sm);
 	}
 
