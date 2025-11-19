@@ -58,7 +58,7 @@ class ColoredCheckboxGroup(gr.HTML):
             choices=choices,
             colors=colors,
             label=label,
-            **kwargs
+            **kwargs,
         )
 
     def api_info(self):
@@ -70,10 +70,17 @@ class ColoredCheckboxGroup(gr.HTML):
 
 
 if __name__ == "__main__":
+
     def update_colors(color: str):
-        if color.startswith('rgb'):
-            rgb_values = color.replace('rgba', '').replace('rgb', '').strip('()').split(',')
-            r, g, b = int(float(rgb_values[0])), int(float(rgb_values[1])), int(float(rgb_values[2]))
+        if color.startswith("rgb"):
+            rgb_values = (
+                color.replace("rgba", "").replace("rgb", "").strip("()").split(",")
+            )
+            r, g, b = (
+                int(float(rgb_values[0])),
+                int(float(rgb_values[1])),
+                int(float(rgb_values[2])),
+            )
             medium = f"#{r:02x}{g:02x}{b:02x}"
         else:
             r = int(color[1:3], 16)
@@ -81,13 +88,13 @@ if __name__ == "__main__":
             b = int(color[5:7], 16)
             medium = color
 
-        dark = f"#{int(r*0.6):02x}{int(g*0.6):02x}{int(b*0.6):02x}"
-        light = f"#{int(r + (255-r)*0.4):02x}{int(g + (255-g)*0.4):02x}{int(b + (255-b)*0.4):02x}"
+        dark = f"#{int(r * 0.6):02x}{int(g * 0.6):02x}{int(b * 0.6):02x}"
+        light = f"#{int(r + (255 - r) * 0.4):02x}{int(g + (255 - g) * 0.4):02x}{int(b + (255 - b) * 0.4):02x}"
 
         return ColoredCheckboxGroup(
             choices=["a", "b", "c"],
             colors=[dark, medium, light],
-            label="Select options"
+            label="Select options",
         )
 
     with gr.Blocks() as demo:
@@ -98,7 +105,7 @@ if __name__ == "__main__":
                 cg = ColoredCheckboxGroup(
                     choices=["a", "b", "c"],
                     colors=["#990000", "#FF0000", "#FF6666"],
-                    label="Select options"
+                    label="Select options",
                 )
                 gr.Interface(
                     fn=lambda x: " ".join(x),

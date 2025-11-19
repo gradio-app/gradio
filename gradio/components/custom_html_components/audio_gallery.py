@@ -13,7 +13,7 @@ class AudioGallery(gr.HTML):
         **kwargs,
     ):
         self.audio_urls = audio_urls
-        
+
         html_template = """
         <div class="audio-gallery-container">
             ${label ? `<label class="container-label">${label}</label>` : ''}
@@ -124,7 +124,7 @@ class AudioGallery(gr.HTML):
             labels=labels,
             columns=columns,
             label=label,
-            **kwargs
+            **kwargs,
         )
 
     def api_info(self):
@@ -137,7 +137,7 @@ class AudioGallery(gr.HTML):
 if __name__ == "__main__":
     with gr.Blocks() as demo:
         gr.Markdown("# Audio Gallery Demo")
-        
+
         gallery = AudioGallery(
             audio_urls=[
                 "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav",
@@ -147,18 +147,24 @@ if __name__ == "__main__":
                 "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav",
                 "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav",
             ],
-            labels=["Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6"],
+            labels=[
+                "Sample 1",
+                "Sample 2",
+                "Sample 3",
+                "Sample 4",
+                "Sample 5",
+                "Sample 6",
+            ],
             columns=3,
-            label="Select an audio file"
+            label="Select an audio file",
         )
-        
+
         output = gr.Textbox(label="Selected Audio URL")
-        
+
         gr.Interface(
             fn=lambda x: x,
             inputs=gallery,
             outputs=output,
         )
-        
-    demo.launch()
 
+    demo.launch()
