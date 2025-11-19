@@ -17,7 +17,7 @@ with gr.Blocks() as demo:
     show_value_btn.click(process_with_props, a, output_a)
 
     def double_value_and_max(x: gr.Number):
-        x.maximum *= 2
+        x.maximum *= 2  # type: ignore
         x.value = (x.value or 0) * 2
         x.info = f"Enter a number between 0 and {x.maximum}"
         return x
