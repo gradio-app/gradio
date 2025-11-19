@@ -1,5 +1,18 @@
 # @gradio/dataset
 
+## 0.5.0-dev.3
+
+### Features
+
+- [#12383](https://github.com/gradio-app/gradio/pull/12383) [`6505763`](https://github.com/gradio-app/gradio/commit/650576399bad10f03aaa03dd9437f03b47ba378b) - Fix Reload Mode in 6.0.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.19.0-dev.1
+- @gradio/client@2.0.0-dev.2
+- @gradio/upload@0.17.2-dev.2
+- @gradio/textbox@0.12.0-dev.2
+
 ## 0.4.35-dev.2
 
 ### Dependency updates

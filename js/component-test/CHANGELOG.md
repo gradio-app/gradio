@@ -4,6 +4,13 @@
 
 ### Dependency updates
 
+- @self/build@0.5.0-dev.1
+- @gradio/video@0.17.0-dev.2
+
+## 0.5.33-dev.0
+
+### Dependency updates
+
 - @gradio/video@0.17.0-dev.1
 - @self/build@0.4.1-dev.0
 

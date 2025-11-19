@@ -1,5 +1,38 @@
 # @gradio/core
 
+## 1.0.0-dev.3
+
+### Features
+
+- [#12371](https://github.com/gradio-app/gradio/pull/12371) [`9e8a313`](https://github.com/gradio-app/gradio/commit/9e8a313b94259354da649310125d0142bb953fad) - Fix Walkthrough component.  Thanks @pngwn!
+- [#12393](https://github.com/gradio-app/gradio/pull/12393) [`02ce6d5`](https://github.com/gradio-app/gradio/commit/02ce6d5b768ddf68241bee92e11a166e97fd9b2d) - Remove SSE transport from MCP docs.  Thanks @abidlabs!
+- [#12383](https://github.com/gradio-app/gradio/pull/12383) [`6505763`](https://github.com/gradio-app/gradio/commit/650576399bad10f03aaa03dd9437f03b47ba378b) - Fix Reload Mode in 6.0.  Thanks @freddyaboulton!
+- [#12358](https://github.com/gradio-app/gradio/pull/12358) [`4552df4`](https://github.com/gradio-app/gradio/commit/4552df4e3698b39c58fc86d3023e434db6aeec1e) - Fix status tracker iterative image.  Thanks @freddyaboulton!
+- [#12374](https://github.com/gradio-app/gradio/pull/12374) [`c72972e`](https://github.com/gradio-app/gradio/commit/c72972e7c38d4a3511978c412759b9ac34bffcc4) - Ensure `show_error` is always respected.  Thanks @pngwn!
+- [#12372](https://github.com/gradio-app/gradio/pull/12372) [`a8c26e4`](https://github.com/gradio-app/gradio/commit/a8c26e406aa82e6e30f1556e62e54f99f64668bd) - Fix Chatbot autoscroll.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.19.0-dev.1
+- @gradio/client@2.0.0-dev.2
+- @gradio/statustracker@0.12.0-dev.1
+- @gradio/button@0.5.14-dev.2
+- @gradio/upload@0.17.2-dev.2
+- @gradio/textbox@0.12.0-dev.2
+- @gradio/code@0.16.0-dev.3
+- @gradio/paramviewer@0.9.0-dev.1
+- @gradio/tabitem@0.6.2-dev.0
+- @gradio/tabs@0.5.2-dev.0
+- @gradio/gallery@0.15.35-dev.3
+- @gradio/plot@0.9.25-dev.1
+- @gradio/audio@0.20.0-dev.4
+- @gradio/image@0.24.0-dev.2
+- @gradio/video@0.17.0-dev.2
+- @gradio/column@0.2.2
+- @gradio/checkbox@0.5.0-dev.1
+- @gradio/dropdown@0.10.6-dev.2
+- @gradio/file@0.13.1-dev.2
+
 ## 1.0.0-dev.2
 
 ### Features

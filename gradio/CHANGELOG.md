@@ -1,5 +1,30 @@
 # gradio
 
+## 6.0.0-dev.5
+
+### Features
+
+- [#12371](https://github.com/gradio-app/gradio/pull/12371) [`9e8a313`](https://github.com/gradio-app/gradio/commit/9e8a313b94259354da649310125d0142bb953fad) - Fix Walkthrough component.  Thanks @pngwn!
+- [#12393](https://github.com/gradio-app/gradio/pull/12393) [`02ce6d5`](https://github.com/gradio-app/gradio/commit/02ce6d5b768ddf68241bee92e11a166e97fd9b2d) - Remove SSE transport from MCP docs.  Thanks @abidlabs!
+- [#12383](https://github.com/gradio-app/gradio/pull/12383) [`6505763`](https://github.com/gradio-app/gradio/commit/650576399bad10f03aaa03dd9437f03b47ba378b) - Fix Reload Mode in 6.0.  Thanks @freddyaboulton!
+- [#12358](https://github.com/gradio-app/gradio/pull/12358) [`4552df4`](https://github.com/gradio-app/gradio/commit/4552df4e3698b39c58fc86d3023e434db6aeec1e) - Fix status tracker iterative image.  Thanks @freddyaboulton!
+- [#12374](https://github.com/gradio-app/gradio/pull/12374) [`c72972e`](https://github.com/gradio-app/gradio/commit/c72972e7c38d4a3511978c412759b9ac34bffcc4) - Ensure `show_error` is always respected.  Thanks @pngwn!
+- [#12372](https://github.com/gradio-app/gradio/pull/12372) [`a8c26e4`](https://github.com/gradio-app/gradio/commit/a8c26e406aa82e6e30f1556e62e54f99f64668bd) - Fix Chatbot autoscroll.  Thanks @pngwn!
+- [#12377](https://github.com/gradio-app/gradio/pull/12377) [`568644a`](https://github.com/gradio-app/gradio/commit/568644a88c4dbe1b6ad9468906b1e45ed07657f3) - Add a 6.0 migration guide and add deprecation warnings.  Thanks @abidlabs!
+- [#12381](https://github.com/gradio-app/gradio/pull/12381) [`36d5657`](https://github.com/gradio-app/gradio/commit/36d5657128a81739a78d6b11b3f5a632a9027ab1) - Fix full width toast issue.  Thanks @freddyaboulton!
+- [#11821](https://github.com/gradio-app/gradio/pull/11821) [`9ea6686`](https://github.com/gradio-app/gradio/commit/9ea6686924278f4e5b562c33059931f309c92c93) - Spaces hot reloading.  Thanks @cbensimon!
+- [#12389](https://github.com/gradio-app/gradio/pull/12389) [`61e5aeb`](https://github.com/gradio-app/gradio/commit/61e5aeb4fe539e51fe07777750ee222444801829) - Download frontend templates for custom components.  Thanks @freddyaboulton!
+- [#12373](https://github.com/gradio-app/gradio/pull/12373) [`017eaf0`](https://github.com/gradio-app/gradio/commit/017eaf0a9a783d0f9f2fbf7fe2e30c855c9dd9cd) - Fix audio errors when streaming.  Thanks @pngwn!
+- [#12391](https://github.com/gradio-app/gradio/pull/12391) [`5ba7e1e`](https://github.com/gradio-app/gradio/commit/5ba7e1e7d502017551c5899db175bcc9c6fb5eaa) - Reduce files in build.  Thanks @freddyaboulton!
+- [#12398](https://github.com/gradio-app/gradio/pull/12398) [`04e2581`](https://github.com/gradio-app/gradio/commit/04e258106f6f6a07facbacd9f43a307fc0cb64c9) - fix publish.  Thanks @pngwn!
+- [#12375](https://github.com/gradio-app/gradio/pull/12375) [`2043967`](https://github.com/gradio-app/gradio/commit/2043967b958be9d51c4ee25272afa84bf0dbea08) - fix font.  Thanks @pngwn!
+- [#12370](https://github.com/gradio-app/gradio/pull/12370) [`f632b87`](https://github.com/gradio-app/gradio/commit/f632b87f83ff283817e21ce679b70d2406074ea2) - Fix progress in StatusTracker.  Thanks @pngwn!
+- [#12363](https://github.com/gradio-app/gradio/pull/12363) [`4845bfd`](https://github.com/gradio-app/gradio/commit/4845bfdab53096a609d80485e87d5cc70f3f0521) - Fix queue false render issue.  Thanks @freddyaboulton!
+- [#12378](https://github.com/gradio-app/gradio/pull/12378) [`f5e5344`](https://github.com/gradio-app/gradio/commit/f5e5344db61eba28253719928577dc2c495958e1) - Fix some e2e tests.  Thanks @freddyaboulton!
+- [#12397](https://github.com/gradio-app/gradio/pull/12397) [`f2a47fe`](https://github.com/gradio-app/gradio/commit/f2a47fe4f155a1ed93ad3e8f18504e9427ba61d2) - fix custom components.  Thanks @pngwn!
+- [#12387](https://github.com/gradio-app/gradio/pull/12387) [`4a8ee36`](https://github.com/gradio-app/gradio/commit/4a8ee367fabb786248693833454aa69484623d97) - Sync JS Files to Hub.  Thanks @freddyaboulton!
+- [#12102](https://github.com/gradio-app/gradio/pull/12102) [`baa1cd6`](https://github.com/gradio-app/gradio/commit/baa1cd67573292f95d4b4263c8f15fe89fbeeaa1) - Improve audio player UI in gr.Chatbot.  Thanks @hannahblair!
+
 ## 6.0.0-dev.4
 
 ### Features
