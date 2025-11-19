@@ -48,5 +48,10 @@
 			"types": "./dist/index.d.ts"
 		},
 		"./package.json": "./package.json"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/preview"
 	}
 }
