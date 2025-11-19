@@ -60,8 +60,8 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 				// 	"./svelte/svelte.js"
 				// ]
 			},
-			minify: false,
-			sourcemap: true
+			minify: true,
+			sourcemap: false
 		},
 
 		define: {

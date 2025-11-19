@@ -9,6 +9,8 @@ import textwrap
 from pathlib import Path
 from typing import Literal
 
+from huggingface_hub import snapshot_download
+
 import gradio
 
 
@@ -271,7 +273,7 @@ def _modify_js_deps(
         # if curent working directory is the gradio repo, use the local version of the dependency'
         if not _in_test_dir() and dep.startswith("@gradio/"):
             package_json[key][dep] = _get_js_dependency_version(
-                dep, gradio_dir / "_frontend_code"
+                dep, gradio_dir / "_frontend_code" / gradio.__version__
             )
     return package_json
 
@@ -286,6 +288,17 @@ def delete_contents(directory: str | Path) -> None:
             shutil.rmtree(child)
 
 
+def _download_from_hub(destination: Path):
+    version = gradio.__version__
+
+    snapshot_download(
+        repo_id="gradio/frontend",
+        allow_patterns=f"{version}/**",
+        local_dir=destination,
+        repo_type="dataset",
+    )
+
+
 def _create_frontend(
     name: str,  # noqa: ARG001
     component: ComponentFiles,
@@ -296,6 +309,11 @@ def _create_frontend(
     frontend.mkdir(exist_ok=True)
 
     p = Path(inspect.getfile(gradio)).parent
+
+    component_source = p / "_frontend_code"
+    if not component_source.exists():
+        component_source.mkdir(exist_ok=True)
+        _download_from_hub(component_source)
 
     def ignore(_src, names):
         ignored = []
@@ -310,8 +328,9 @@ def _create_frontend(
                 ignored.append(n)
         return ignored
 
+    # Replace once we figure out bug with svelte-package
     shutil.copytree(
-        str(p / "_frontend_code" / component.js_dir),
+        str(p / "_frontend_code" / gradio.__version__ / component.js_dir),
         frontend,
         dirs_exist_ok=True,
         ignore=ignore,
