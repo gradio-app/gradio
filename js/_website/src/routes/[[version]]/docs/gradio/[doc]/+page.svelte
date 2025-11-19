@@ -1,7 +1,6 @@
 <script lang="ts">
 	import DocsNav from "$lib/components/DocsNav.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
-	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
 	import { onNavigate } from "$app/navigation";
 	import '$lib/assets/theme.css';
@@ -19,9 +18,6 @@
 	let target_elem: HTMLElement;
 	let module = data.module.default;
 	$: module = data.module.default;
-	onDestroy(() => {
-		header_targets = {};
-	});
 
 	let current_target: HTMLElement;
 
@@ -48,19 +44,18 @@
 	$: page_path = data.page_path;
 
 	$: flattened_pages = pages.map((category: any) => category.pages).flat();
+
+	let component_name = $page.params?.doc;
+	$: component_name = $page.params?.doc;
+
 	$: prev_obj =
 	flattened_pages[
-		flattened_pages.findIndex((page: any) => page.name === $page.params?.doc) - 1
+		flattened_pages.findIndex((page: any) => page.name === component_name) - 1
 		];
 	$: next_obj =
 		flattened_pages[
-			flattened_pages.findIndex((page: any) => page.name === $page.params?.doc) + 1
+			flattened_pages.findIndex((page: any) => page.name === component_name) + 1
 		];
-
-
-	let component_name = $page.params?.doc;
-
-	$: component_name = $page.params?.doc;
 	
 	function get_headers() {
 		let headers : any[] = []
@@ -187,11 +182,11 @@
 					{#if prev_obj}
 						<a
 							href="./{prev_obj.name}"
-							class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+							class="lg:ml-10 text-left px-4 py-1 bg-gray-50 dark:bg-neutral-700 rounded-full hover:underline max-w-[48%]"
 						>
 							<div class="flex text-lg">
 								<span class="text-orange-500 mr-1">&#8592;</span>
-								<p class="whitespace-nowrap overflow-hidden text-ellipsis">{prev_obj.pretty_name}</p>
+								<p class="whitespace-nowrap overflow-hidden text-ellipsis text-gray-900 dark:text-gray-100">{prev_obj.pretty_name}</p>
 							</div>
 						</a>
 					{:else}
@@ -200,10 +195,10 @@
 					{#if next_obj}
 						<a
 							href="./{next_obj.name}"
-							class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+							class="text-right px-4 py-1 bg-gray-50 dark:bg-neutral-700 rounded-full hover:underline max-w-[48%]"
 						>
 							<div class="flex text-lg">
-								<p class="whitespace-nowrap overflow-hidden text-ellipsis">{next_obj.pretty_name}</p>
+								<p class="whitespace-nowrap overflow-hidden text-ellipsis text-gray-900 dark:text-gray-100">{next_obj.pretty_name}</p>
 								<span class="text-orange-500 ml-1">&#8594;</span>
 							</div>
 						</a>
@@ -224,11 +219,11 @@
 					{#if prev_obj}
 						<a
 							href="./{prev_obj.name}"
-							class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+							class="lg:ml-10 text-left px-4 py-1 bg-gray-50 dark:bg-neutral-700 rounded-full hover:underline max-w-[48%]"
 						>
 							<div class="flex text-lg">
 								<span class="text-orange-500 mr-1">&#8592;</span>
-								<p class="whitespace-nowrap overflow-hidden text-ellipsis">{prev_obj.pretty_name}</p>
+								<p class="whitespace-nowrap overflow-hidden text-ellipsis text-gray-900 dark:text-gray-100">{prev_obj.pretty_name}</p>
 							</div>
 						</a>
 					{:else}
@@ -237,10 +232,10 @@
 					{#if next_obj}
 						<a
 							href="./{next_obj.name}"
-							class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+							class="text-right px-4 py-1 bg-gray-50 dark:bg-neutral-700 rounded-full hover:underline max-w-[48%]"
 						>
 							<div class="flex text-lg">
-								<p class="whitespace-nowrap overflow-hidden text-ellipsis">{next_obj.pretty_name}</p>
+								<p class="whitespace-nowrap overflow-hidden text-ellipsis text-gray-900 dark:text-gray-100">{next_obj.pretty_name}</p>
 								<span class="text-orange-500 ml-1">&#8594;</span>
 							</div>
 						</a>

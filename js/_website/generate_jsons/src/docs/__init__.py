@@ -2,13 +2,13 @@ import html
 import json
 import os
 import re
+
 import requests
-
-
-
 from gradio_client.documentation import document_cls, generate_documentation
+
 import gradio
-from ..guides import guides, guide_names
+
+from ..guides import guide_names, guides
 
 DIR = os.path.dirname(__file__)
 DEMOS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../demo"))
@@ -75,8 +75,8 @@ def create_events_matrix():
                     if event == fn["name"]:
                         component_event_list.append(event)
             component_events[component["name"]] = component_event_list
-    
-    
+
+
     return list(events), component_events
 
 events, component_events = create_events_matrix()
@@ -100,22 +100,11 @@ def add_guides():
 add_guides()
 
 
-def generate_demo_link(demo_name):
-    github_url = f"https://github.com/gradio-app/gradio/tree/main/demo/{demo_name}"
-    return f"[demo/{demo_name}]({github_url})"
-
-
 def escape_parameters(parameters):
     new_parameters = []
     for param in parameters:
         param = param.copy()  # Manipulating the list item directly causes issues, so copy it first
         param["doc"] = html.escape(param["doc"]) if param["doc"] else param["doc"]
-        if param["doc"] and "$demo/" in param["doc"]:
-            param["doc"] = re.sub(
-                    r"\$demo/(\w+)",
-                    lambda m: generate_demo_link(m.group(1)),
-                    param["doc"],
-                )
         new_parameters.append(param)
     assert len(new_parameters) == len(parameters)
     return new_parameters
@@ -184,10 +173,10 @@ def organize_docs(d):
             elif mode == "py-client":
                 organized["python-client"][c["name"].lower()] = c
             elif mode in ["helpers", "routes", "chatinterface", "modals"]:
-                organized["gradio"][mode][c["name"].lower()] = c                
+                organized["gradio"][mode][c["name"].lower()] = c
             else:
                 organized["gradio"]["building"][c["name"].lower()] = c
-    
+
 
     def format_name(page_name):
         index = None
@@ -202,14 +191,14 @@ def organize_docs(d):
             for category in organized[library]:
                 if page_name in organized[library][category]:
                     return index, page_name, organized[library][category][page_name]["name"], page_path
-        if page_name == "chatinterface": 
-            pretty_page_name =  "ChatInterface"              
+        if page_name == "chatinterface":
+            pretty_page_name =  "ChatInterface"
         return index, page_name, pretty_page_name, page_path
-    
-    
-    def organize_pages(): 
+
+
+    def organize_pages():
         pages = {"gradio": [], "python-client": [], "third-party-clients": []}
-        absolute_index = -1;
+        absolute_index = -1
         for library in pages:
             library_templates_dir = os.path.join(TEMPLATES_DIR, library)
             page_folders = sorted(os.listdir(library_templates_dir))
@@ -281,27 +270,27 @@ for key in gradio_docs:
     if "name" in key:
         o = gradio_docs[key]
         signature = f"""{o['name']}({', '.join([
-            p['name'] + 
+            p['name'] +
             ': ' + p['annotation']
             + (' = ' + p['default'] if 'default' in p else '')
             for p in o['parameters']])})"""
         FALLBACK_PROMPT += f"{signature}\n"
         FALLBACK_PROMPT += f"{o['description']}\n\n"
 
-    else: 
+    else:
         for c in gradio_docs[key]:
             o = gradio_docs[key][c]
             signature = f"""{o['name']}({', '.join([
-                p['name'] + 
+                p['name'] +
                 ': ' + p['annotation']
                 + (' = ' + p['default'] if 'default' in p else '')
-                for p in o['parameters']])})"""          
+                for p in o['parameters']])})"""
             FALLBACK_PROMPT += f"{signature}\n"
             FALLBACK_PROMPT += f"{o['description']}\n\n"
             if "fns" in o and key != "components":
                 for f in o["fns"]:
                     signature = f"""{o['name']}.{f['name']}({', '.join([
-                        p['name'] + 
+                        p['name'] +
                         ': ' + p['annotation']
                         + (' = ' + p['default'] if 'default' in p else '')
                         for p in f['parameters']])})"""
@@ -314,7 +303,7 @@ FALLBACK_PROMPT += "All event listeners have the same signature:\n"
 
 f = gradio_docs["components"]["audio"]["fns"][0]
 signature = f"""<component_name>.<event_name>({', '.join([
-                        p['name'] + 
+                        p['name'] +
                         ': ' + p['annotation']
                         + (' = ' + p['default'] if 'default' in p else '')
                         for p in f['parameters']])})"""
@@ -335,7 +324,7 @@ very_important_demos = ["blocks_essay_simple", "blocks_flipper", "blocks_form", 
 def length(demo):
     if os.path.exists(os.path.join(DEMOS_DIR, demo, "run.py")):
         demo_file = os.path.join(DEMOS_DIR, demo, "run.py")
-    else: 
+    else:
         return 0
     with open(demo_file) as run_py:
         demo_code = run_py.read()
@@ -348,7 +337,7 @@ def length(demo):
 for demo in important_demos:
     if os.path.exists(os.path.join(DEMOS_DIR, demo, "run.py")):
         demo_file = os.path.join(DEMOS_DIR, demo, "run.py")
-    else: 
+    else:
         continue
     with open(demo_file) as run_py:
         demo_code = run_py.read()
@@ -360,7 +349,7 @@ for demo in important_demos:
 for demo in very_important_demos:
     if os.path.exists(os.path.join(DEMOS_DIR, demo, "run.py")):
         demo_file = os.path.join(DEMOS_DIR, demo, "run.py")
-    else: 
+    else:
         continue
     with open(demo_file) as run_py:
         demo_code = run_py.read()

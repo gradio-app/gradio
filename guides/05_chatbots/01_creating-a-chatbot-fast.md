@@ -132,7 +132,7 @@ Tip: Even though you are yielding the latest message at each iteration, Gradio o
 If you're familiar with Gradio's `gr.Interface` class, the `gr.ChatInterface` includes many of the same arguments that you can use to customize the look and feel of your Chatbot. For example, you can:
 
 - add a title and description above your chatbot using `title` and `description` arguments.
-- add a theme or custom css using `theme` and `css` arguments respectively.
+- add a theme or custom css using `theme` and `css` arguments respectively in the `launch()` method.
 - add `examples` and even enable `cache_examples`, which make your Chatbot easier for users to try it out.
 - customize the chatbot (e.g. to change the height or add a placeholder) or textbox (e.g. to add a max number of characters or add a placeholder).
 
@@ -163,10 +163,9 @@ gr.ChatInterface(
     textbox=gr.Textbox(placeholder="Ask me a yes or no question", container=False, scale=7),
     title="Yes Man",
     description="Ask Yes Man any question",
-    theme="ocean",
     examples=["Hello", "Am I cool?", "Are tomatoes vegetables?"],
     cache_examples=True,
-).launch()
+).launch(theme="ocean")
 ```
 
 Here's another example that adds a "placeholder" for your chat interface, which appears before the user has started chatting. The `placeholder` argument of `gr.Chatbot` accepts Markdown or HTML:

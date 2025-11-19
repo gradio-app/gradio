@@ -50,11 +50,11 @@
 
 <div
 	class:shadow={show_nav}
-	class="w-full mx-auto p-1.5 flex flex-wrap justify-between flex-row sticky top-4 items-center text-base z-40 lg:gap-6 rounded-[10px] mb-4 transition-all duration-300 {is_scrolled
-		? 'backdrop-blur-sm bg-gray-50/80 dark:bg-neutral-800/80 lg:w-[80%] lg:max-w-5xl lg:px-4 lg:py-2.5'
-		: 'lg:w-[95%] lg:max-w-7xl lg:px-6 lg:py-3'}"
+	class="w-full lg:w-[95%] lg:max-w-7xl mx-auto p-1.5 flex flex-wrap justify-between flex-row sticky top-4 items-center text-base z-40 lg:px-6 lg:py-1.5 lg:gap-6 rounded-[10px] mb-4 transition-all duration-300 {is_scrolled
+		? 'backdrop-blur-sm bg-gray-50/80 dark:bg-neutral-800/80'
+		: ''}"
 >
-	<a href="/" class="lg:flex-shrink-0" on:contextmenu={handle_logo_contextmenu}>
+	<a href="/" class="lg:flex-shrink-0">
 		<img src={current_logo} alt="Gradio logo" class="h-10" />
 	</a>
 	{#if !show_nav}

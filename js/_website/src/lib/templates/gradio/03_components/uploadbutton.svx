@@ -9,6 +9,7 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
+
     let obj = get_object("uploadbutton");
 </script>
 
@@ -20,20 +21,6 @@
 gradio.UploadButton(···)
 ```
 
-<!-- Embedded Component -->
-<div class="embedded-component">
-<gradio-lite shared-worker>
-import gradio as gr
-def upload_file(files):
-    file_paths = [file.name for file in files]
-    return file_paths
-with gr.Blocks() as demo:
-    file_output = gr.File()
-    upload_button = gr.UploadButton("Click to Upload an Image or Video File", file_types=["image", "video"], file_count="multiple")
-    upload_button.upload(upload_file, upload_button, file_output)
-demo.launch()
-</gradio-lite>
-</div>
 
 
 <!--- Description -->

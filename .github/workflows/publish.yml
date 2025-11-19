@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: install dependencies
-        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@6.0-dev"
         with:
           python_version: "3.12"
           skip_build: "false"
@@ -46,7 +46,7 @@ jobs:
           version: pnpm ci:version
           commit: "chore: update versions"
           title: "chore: update versions"
-          publish: pnpm ci:publish
+          # publish: pnpm ci:publish
         env:
           GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }}
       - name: Upload npm logs

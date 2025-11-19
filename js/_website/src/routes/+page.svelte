@@ -2,6 +2,8 @@
 	import version_json from "$lib/json/version.json";
 	import DemosLanding from "$lib/components/DemosLanding.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
+	import gradio_banner from "$lib/assets/img/header-image.png";
+	import "$lib/assets/theme.css";
 	export let data: {
 		logos: {
 			img: string;
@@ -44,18 +46,19 @@
 	<div class="container relative mx-auto px-4 pt-20 pb-32 lg:pt-32 lg:pb-40">
 		<div class="max-w-4xl mx-auto text-center">
 			<div
-				class="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full bg-gray-50/80 dark:bg-neutral-800/80 backdrop-blur-sm border border-gray-200 dark:border-neutral-700 shadow-sm"
+				class="mb-10 text-4xl font-bold capitalize text-gray-900 dark:text-gray-100 xl:-ml-52 xl:text-5xl 2xl:text-6xl"
 			>
 				<span class="text-sm font-medium text-gray-700 dark:text-gray-300">
 					The fastest way to build ML web apps
 				</span>
 			</div>
-			<h1
-				class="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-6 leading-tight"
-			>
-				Build & Share
-				<span
-					class="bg-gradient-to-r from-orange-500 via-orange-600 to-yellow-500 bg-clip-text text-transparent"
+			<div class="lg:pl-12">
+				<p class="mx-auto mb-12 text-xl text-gray-600 dark:text-gray-300">
+					Gradio is the fastest way to demo your machine learning model with a
+					friendly web interface so that anyone can use it, anywhere!
+				</p>
+				<div
+					class="flex flex-col md:flex-row space-x-4 justify-center lg:justify-start"
 				>
 					Delightful
 				</span>
@@ -82,157 +85,10 @@
 						stroke="currentColor"
 						viewBox="0 0 24 24"
 					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M13 7l5 5m0 0l-5 5m5-5H6"
-						/>
-					</svg>
-				</a>
-
-				<a
-					href="https://github.com/gradio-app/gradio"
-					class="group px-8 py-4 rounded-xl bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white font-semibold text-lg border-2 border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600 shadow-sm hover:shadow-md transform hover:scale-105 transition-all duration-200 flex items-center gap-3"
-				>
-					<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-						<path
-							d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-						/>
-					</svg>
-					<span class="flex items-center gap-2">
-						Star on GitHub
-						<span
-							class="px-2 py-0.5 text-sm bg-gray-100 dark:bg-neutral-700 rounded-full"
-							>{data.star_count}</span
-						>
-					</span>
-				</a>
-			</div>
-			<div
-				class="inline-block bg-gray-900 dark:bg-neutral-800 rounded-lg px-6 py-4 shadow-lg"
-			>
-				<code class="text-sm font-mono text-gray-100 dark:text-gray-300">
-					<span class="text-gray-400">$</span> pip install gradio
-				</code>
-			</div>
-		</div>
-	</div>
-</div>
-
-<div class="relative overflow-hidden py-20">
-	<div class="absolute inset-0 bg-gray-50 dark:bg-neutral-950 -z-10"></div>
-	<div
-		class="absolute top-20 left-1/4 w-72 h-72 bg-orange-500/5 dark:bg-orange-500/10 rounded-full blur-3xl pointer-events-none"
-	></div>
-	<div
-		class="absolute bottom-0 right-1/4 w-72 h-72 bg-yellow-500/5 dark:bg-yellow-500/10 rounded-full blur-3xl pointer-events-none"
-	></div>
-
-	<div class="relative">
-		<div class="container mx-auto px-4 mb-12">
-			<div class="text-center max-w-3xl mx-auto">
-				<div class="inline-block mb-4">
-					<span
-						class="px-4 py-2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full text-sm font-medium"
-					>
-						Interactive Examples
-					</span>
-				</div>
-				<h2
-					class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4"
-				>
-					See Gradio in Action
-				</h2>
-				<p class="text-lg md:text-xl text-gray-600 dark:text-gray-400">
-					Explore live demos built with just a few lines of Python code
-				</p>
-			</div>
-		</div>
-		<DemosLanding />
-	</div>
-</div>
-
-<div class="relative overflow-hidden py-24">
-	<div
-		class="absolute inset-0 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-neutral-950 dark:to-neutral-900 -z-10"
-	></div>
-	<div class="absolute inset-0 overflow-hidden pointer-events-none">
-		<div
-			class="absolute top-20 left-10 w-72 h-72 bg-orange-500/5 dark:bg-orange-500/10 rounded-full blur-3xl animate-pulse-slow"
-		></div>
-		<div
-			class="absolute bottom-20 right-10 w-96 h-96 bg-yellow-500/5 dark:bg-yellow-500/10 rounded-full blur-3xl animate-pulse-slow"
-			style="animation-delay: 1s;"
-		></div>
-	</div>
-
-	<div class="container mx-auto px-4 relative">
-		<div class="text-center max-w-4xl mx-auto mb-20">
-			<div class="inline-block mb-4">
-				<span
-					class="px-4 py-2 bg-gradient-to-r from-orange-100 to-yellow-100 dark:from-orange-900/30 dark:to-yellow-900/30 text-orange-600 dark:text-orange-400 rounded-full text-sm font-semibold"
-				>
-					Why Choose Gradio
-				</span>
-			</div>
-			<h2
-				class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6"
-			>
-				Build ML apps in
-				<span class="relative inline-block">
-					<span
-						class="relative z-10 bg-gradient-to-r from-orange-500 via-orange-600 to-yellow-500 bg-clip-text text-transparent"
-						>minutes</span
-					>
-					<svg
-						class="absolute -bottom-2 left-0 w-full h-3"
-						viewBox="0 0 200 12"
-						preserveAspectRatio="none"
-					>
-						<path
-							d="M0,7 Q50,0 100,7 T200,7"
-							fill="none"
-							stroke="url(#gradient)"
-							stroke-width="3"
-							class="animate-draw"
-						/>
-						<defs>
-							<linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-								<stop
-									offset="0%"
-									style="stop-color:rgb(249,115,22);stop-opacity:0.5"
-								/>
-								<stop
-									offset="100%"
-									style="stop-color:rgb(234,179,8);stop-opacity:0.5"
-								/>
-							</linearGradient>
-						</defs>
-					</svg>
-				</span>
-				not days
-			</h2>
-			<p
-				class="text-xl md:text-2xl text-gray-600 dark:text-gray-400 leading-relaxed"
-			>
-				Everything you need to share your ML models with the world
-			</p>
-		</div>
-		<div
-			class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-		>
-			<div
-				class="lg:col-span-2 group relative bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-neutral-800 dark:to-neutral-900/50 rounded-3xl p-8 md:p-10 border border-gray-200 dark:border-neutral-700 hover:border-orange-500/50 dark:hover:border-orange-500/50 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden"
-			>
-				<div
-					class="absolute inset-0 bg-gradient-to-br from-orange-500/0 to-yellow-500/0 group-hover:from-orange-500/5 group-hover:to-yellow-500/5 transition-all duration-500 rounded-3xl"
-				></div>
-
-				<div class="relative z-10">
-					<div class="flex items-start justify-between mb-8">
-						<div
-							class="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300"
+					<div class="flex items-center justify-center">
+						<a
+							href="https://github.com/gradio-app/gradio"
+							class="cursor-pointer select-none inline-flex justify-center items-center whitespace-nowrap px-3 py-1 rounded-lg border bg-gradient-to-b focus:outline-none focus:ring text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-700 from-white to-gray-100 dark:from-neutral-800 dark:to-neutral-900 hover:shadow-inner font-bold text-lg -mr-1"
 						>
 							<svg
 								class="w-8 h-8 text-white"
@@ -250,7 +106,12 @@
 						</div>
 						<div class="text-right">
 							<div
-								class="text-4xl font-bold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent"
+								class="absolute z-[-1] -left-1 top-3 h-3 w-3 bg-gradient-to-t from-gray-100 to-white dark:from-neutral-900 dark:to-neutral-800 rounded-sm border border-gray-200 dark:border-gray-700 flex-none transform rotate-45"
+							/>
+							<a
+								id="star-count"
+								class="inset-0 cursor-pointer select-none inline-flex justify-center items-center whitespace-nowrap px-3 py-1 rounded-lg border bg-gradient-to-b focus:outline-none focus:ring text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-700 from-white to-gray-100 dark:from-neutral-800 dark:to-neutral-900 hover:shadow-inner font-bold text-lg dark:hover:text-yellow-500 relative"
+								href="https://github.com/gradio-app/gradio">{data.star_count}</a
 							>
 								&lt; 5 min
 							</div>
@@ -508,44 +369,172 @@
 		</div>
 	</div>
 </div>
-
-<div class="relative py-24">
-	<div class="absolute inset-0 bg-gray-50 dark:bg-neutral-950 -z-10"></div>
-	<div class="container mx-auto px-4">
-		<div class="text-center max-w-3xl mx-auto mb-16">
-			<h2
-				class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4"
+<DemosLanding />
+<div
+	class="relative mx-auto container space-y-6 px-4 py-24 md:flex md:space-y-0 md:space-x-8 text-lg"
+>
+	<div
+		class="shadow-alternate flex-1 rounded-xl border border-gray-100 dark:border-gray-800 dark:bg-neutral-900 p-6"
+	>
+		<h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-gray-100">
+			<svg
+				class="mr-2 mb-3 text-2xl text-gray-800 dark:text-gray-200"
+				xmlns="http://www.w3.org/2000/svg"
+				xmlns:xlink="http://www.w3.org/1999/xlink"
+				aria-hidden="true"
+				fill="currentColor"
+				focusable="false"
+				role="img"
+				width="1em"
+				height="1em"
+				preserveAspectRatio="xMidYMid meet"
+				viewBox="0 0 32 32"
 			>
-				Loved by the ML Community
-			</h2>
-			<p class="text-lg text-gray-600 dark:text-gray-400">
-				See what developers and researchers are building with Gradio
-			</p>
-		</div>
-
+				<rect
+					class="text-orange-500"
+					x="6.34"
+					y="19"
+					width="11.31"
+					height="2"
+					transform="translate(-10.63 14.34) rotate(-45)"
+				/>
+				<path
+					d="M17,30a1,1,0,0,1-.37-.07,1,1,0,0,1-.62-.79l-1-7,2-.28.75,5.27L21,24.52V17a1,1,0,0,1,.29-.71l4.07-4.07A8.94,8.94,0,0,0,28,5.86V4H26.14a8.94,8.94,0,0,0-6.36,2.64l-4.07,4.07A1,1,0,0,1,15,11H7.48L4.87,14.26l5.27.75-.28,2-7-1a1,1,0,0,1-.79-.62,1,1,0,0,1,.15-1l4-5A1,1,0,0,1,7,9h7.59l3.77-3.78A10.92,10.92,0,0,1,26.14,2H28a2,2,0,0,1,2,2V5.86a10.92,10.92,0,0,1-3.22,7.78L23,17.41V25a1,1,0,0,1-.38.78l-5,4A1,1,0,0,1,17,30Z"
+				/>
+			</svg>
+			Fast, easy setup
+		</h2>
+		<p class="mb-3 text-gray-600 dark:text-gray-300">
+			Gradio can be <a class="text-link" href="/guides/quickstart"
+				>installed with pip</a
+			>. Creating a Gradio interface only requires adding a couple lines of code
+			to your project.
+		</p>
+		<p class="text-gray-600 dark:text-gray-300">
+			Seamlessly use any python library on your computer. If you can write a
+			python function, gradio can run it.
+		</p>
+	</div>
+	<div
+		class="shadow-alternate flex-1 rounded-xl border border-t border-gray-100 dark:border-gray-800 dark:bg-neutral-900 p-6"
+	>
+		<h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-gray-100">
+			<svg
+				width="1em"
+				height="1em"
+				class="mr-2 mb-3 fill-current text-2xl text-gray-800 dark:text-gray-200"
+				viewBox="0 0 1 1"
+				fill="none"
+				xmlns="http://www.w3.org/2000/svg"
+			>
+				<path
+					d="M0.675 0.590576H0.73125V0.731201H0.675V0.590576ZM0.5625 0.449951H0.61875V0.731201H0.5625V0.449951Z"
+				/>
+				<path
+					class="text-orange-500"
+					d="M0.210183 0.689964C0.236545 0.716326 0.272288 0.731157 0.30957 0.731201C0.346866 0.731201 0.382635 0.716385 0.409007 0.690013C0.43538 0.663641 0.450195 0.627872 0.450195 0.590576C0.450195 0.55328 0.43538 0.517512 0.409007 0.491139C0.382635 0.464767 0.346866 0.449951 0.30957 0.449951V0.506201C0.326258 0.506201 0.342571 0.51115 0.356447 0.520421C0.370322 0.529692 0.381137 0.54287 0.387523 0.558287C0.393909 0.573705 0.39558 0.59067 0.392324 0.607037C0.389068 0.623404 0.381032 0.638438 0.369232 0.650238C0.357432 0.662038 0.342398 0.670074 0.326031 0.67333C0.309664 0.676586 0.292699 0.674915 0.277281 0.668529C0.261864 0.662142 0.248686 0.651328 0.239415 0.637452C0.230144 0.623577 0.225195 0.607264 0.225195 0.590576H0.168945C0.16899 0.627859 0.18382 0.663601 0.210183 0.689964Z"
+				/>
+				<path
+					d="M0.787402 0.0561523H0.112402C0.0974885 0.0561672 0.0831897 0.0620983 0.072644 0.072644C0.0620983 0.0831897 0.0561672 0.0974885 0.0561523 0.112402V0.787402C0.0561672 0.802316 0.0620983 0.816615 0.072644 0.827161C0.0831897 0.837706 0.0974885 0.843637 0.112402 0.843652H0.787402C0.802314 0.84363 0.816608 0.837697 0.827152 0.827152C0.837697 0.816608 0.84363 0.802314 0.843652 0.787402V0.112402C0.843637 0.0974885 0.837706 0.0831897 0.827161 0.072644C0.816615 0.0620983 0.802316 0.0561672 0.787402 0.0561523ZM0.787402 0.309277H0.393652V0.112402H0.787402V0.309277ZM0.337402 0.112402V0.309277H0.112402V0.112402H0.337402ZM0.112402 0.787402V0.365527H0.787402L0.787459 0.787402H0.112402Z"
+				/>
+			</svg>
+			Present and share
+		</h2>
+		<p class="mb-3 text-gray-600 dark:text-gray-300">
+			Gradio can be embedded in <a
+				href="https://colab.research.google.com/drive/1T70IHFbztf_F0-HggwvM1PN7jBmS_wPN"
+				class="text-link">Python notebooks</a
+			>
+			or presented as a
+			<a
+				href="https://huggingface.co/spaces/akhaliq/AnimeGANv2"
+				class="text-link">webpage</a
+			>.
+		</p>
+		<p class="text-gray-600 dark:text-gray-300">
+			A Gradio interface can automatically generate a public link you can share
+			with colleagues that lets them interact with the model on your computer
+			remotely from their own devices.
+		</p>
+	</div>
+	<div
+		class="shadow-alternate flex-1 rounded-xl border border-gray-100 dark:border-gray-800 dark:bg-neutral-900 p-6"
+	>
+		<h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-gray-100">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				xmlns:xlink="http://www.w3.org/1999/xlink"
+				aria-hidden="true"
+				role="img"
+				class="mr-2 mb-3 text-2xl text-gray-800 dark:text-gray-200"
+				width="1em"
+				height="1em"
+				preserveAspectRatio="xMidYMid meet"
+				viewBox="0 0 32 32"
+			>
+				<path
+					fill="currentColor"
+					d="M16 2a8 8 0 1 0 8 8a8.01 8.01 0 0 0-8-8zm5.91 7h-2.438a15.246 15.246 0 0 0-.791-4.36A6.009 6.009 0 0 1 21.91 9zm-5.888 6.999h-.008c-.38-.12-1.309-1.821-1.479-4.999h2.93c-.17 3.176-1.094 4.877-1.443 4.999zM14.535 9c.17-3.176 1.094-4.877 1.443-4.999h.008c.38.12 1.309 1.821 1.479 4.999zM13.32 4.64A15.246 15.246 0 0 0 12.528 9H10.09a6.009 6.009 0 0 1 3.23-4.36zM10.09 11h2.437a15.246 15.246 0 0 0 .792 4.36A6.009 6.009 0 0 1 10.09 11zm8.59 4.36a15.246 15.246 0 0 0 .792-4.36h2.438a6.009 6.009 0 0 1-3.23 4.36zM28 30H4a2.002 2.002 0 0 1-2-2v-6a2.002 2.002 0 0 1 2-2h24a2.002 2.002 0 0 1 2 2v6a2.002 2.002 0 0 1-2 2zM4 22v6h24v-6z"
+				/>
+				<circle cx="7" cy="25" r="1" class="fill-current text-orange-500" />
+			</svg>
+			Permanent hosting
+		</h2>
+		<p class="mb-3 text-gray-600 dark:text-gray-300">
+			Once you've created an interface, you can permanently host it on Hugging
+			Face.
+		</p>
+		<p class="text-gray-600 dark:text-gray-300">
+			<a href="https://huggingface.co/spaces" class="text-link"
+				>Hugging Face Spaces</a
+			> will host the interface on its servers and provide you with a link you can
+			share.
+		</p>
+	</div>
+</div>
+<div class="text-center">
+	<h2 class="mb-2 inline-block bg-white dark:bg-gray-950 px-5 text-gray-400">
+		Used by
+	</h2>
+	<div
+		class="border-t border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-neutral-900 px-4 pt-24 pb-32"
+		style="margin-top: -1.2rem;"
+	>
 		<div
-			class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto"
+			class="mx-auto grid container grid-cols-3 justify-items-center gap-x-3 gap-y-8 grayscale sm:gap-x-4 md:grid-cols-5"
 		>
-			{#each data.tweets as tweet}
-				<a
-					href={tweet["link"]}
-					class="group relative bg-gray-50 dark:bg-neutral-800 rounded-2xl border border-gray-200 dark:border-neutral-700 p-6 hover:shadow-xl hover:border-orange-500/50 dark:hover:border-orange-500/50 transition-all duration-300"
-				>
-					<div class="flex justify-between items-start mb-4">
-						<div class="flex items-center gap-3">
-							<img
-								class="h-12 w-12 rounded-full ring-2 ring-gray-100 dark:ring-neutral-700"
-								src={tweet.profile_pic}
-								alt={tweet.name}
-							/>
-							<div class="text-sm">
-								<div class="font-bold text-gray-900 dark:text-white">
-									{tweet["name"]}
-								</div>
-								<div class="text-gray-500 dark:text-gray-400">
-									@{tweet["handle"]}
-								</div>
-							</div>
+			{#each data.logos as logo}
+				<img
+					class:constrast-0={logo.contrast}
+					class="logo h-4 sm:h-5"
+					src={logo.img}
+					alt={logo.description}
+				/>
+			{/each}
+		</div>
+	</div>
+</div>
+<div class="pt-12 md:pt-20 mx-auto container px-4">
+	<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+		{#each data.tweets as tweet}
+			<a
+				href={tweet["link"]}
+				class="rounded-xl border border-gray-200 bg-white p-4 hover:shadow dark:border-gray-800 dark:bg-neutral-800"
+			>
+				<div class="flex justify-between">
+					<div class="flex items-center gap-2">
+						<img
+							class="h-11 w-11 rounded-full"
+							src={tweet.profile_pic}
+							alt=""
+						/>
+						<div class="ml-1.5 text-sm leading-tight">
+							<span class="block font-bold text-black dark:text-white"
+								>{tweet["name"]}</span
+							>
+							<span class="block font-normal text-gray-500 dark:text-gray-400"
+								>@{tweet["handle"]}</span
+							>
 						</div>
 						<svg
 							class="w-5 h-5 text-gray-400 dark:text-neutral-600 group-hover:text-orange-500 transition-colors"

@@ -26,6 +26,7 @@
 	export let i18n: I18nFormatter;
 	export let display_icon_button_wrapper_top_corner = false;
 	export let fullscreen = false;
+	export let show_button_background = true;
 
 	const dispatch = createEventDispatcher<{
 		change: string;
@@ -48,12 +49,13 @@
 	Icon={ImageIcon}
 	label={!show_label ? "" : label || i18n("image.image")}
 />
-{#if value === null || !value.url}
+{#if value == null || !value?.url}
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
 	<div class="image-container" bind:this={image_container}>
 		<IconButtonWrapper
 			display_top_corner={display_icon_button_wrapper_top_corner}
+			show_background={show_button_background}
 		>
 			{#if buttons === null ? true : buttons.includes("fullscreen")}
 				<FullscreenButton {fullscreen} on:fullscreen />
@@ -80,7 +82,11 @@
 		</IconButtonWrapper>
 		<button on:click={handle_click}>
 			<div class:selectable class="image-frame">
-				<Image src={value.url} alt="" loading="lazy" on:load />
+				<Image
+					src={value.url}
+					restProps={{ loading: "lazy", alt: "" }}
+					on:load
+				/>
 			</div>
 		</button>
 	</div>

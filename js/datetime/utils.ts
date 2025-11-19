@@ -21,7 +21,7 @@ export const date_is_valid_format = (
 	date: string | null,
 	include_time: boolean
 ): boolean => {
-	if (date === null || date === "") return true;
+	if (date == null || date === "") return true;
 	const valid_regex = include_time
 		? /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/
 		: /^\d{4}-\d{2}-\d{2}$/;

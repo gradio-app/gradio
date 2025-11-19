@@ -296,6 +296,8 @@
 		pending_deep_link_error = false;
 	}
 
+	let reload_count: number = 0;
+
 	onMount(async () => {
 		active_theme_mode = handle_theme_mode(wrapper);
 
@@ -408,6 +410,7 @@
 					await add_custom_html_head(config.head);
 					css_ready = true;
 					window.__is_colab__ = config.is_colab;
+					reload_count += 1;
 					dispatch("loaded");
 				});
 			}, 200);
@@ -506,7 +509,6 @@
 			if (header) spaceheader = header.element;
 		}
 	}
-
 	onDestroy(() => {
 		spaceheader?.remove();
 	});
@@ -584,12 +586,12 @@
 			<Blocks
 				{app}
 				{...config}
+				bind:ready
 				fill_height={!is_embed && config.fill_height}
 				theme_mode={active_theme_mode}
 				{control_page_title}
 				target={wrapper}
 				{autoscroll}
-				bind:ready
 				bind:render_complete
 				bind:add_new_message={new_message_fn}
 				footer_links={is_embed ? [] : config.footer_links}
@@ -599,6 +601,7 @@
 				max_file_size={config.max_file_size}
 				initial_layout={undefined}
 				search_params={new URLSearchParams(window.location.search)}
+				{reload_count}
 			/>
 		{/if}
 	{/if}

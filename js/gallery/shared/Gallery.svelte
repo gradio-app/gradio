@@ -56,6 +56,7 @@
 	export let upload: Client["upload"] | undefined = undefined;
 	export let stream_handler: Client["stream"] | undefined = undefined;
 	export let fit_columns = true;
+	export let upload_promise: Promise<any> | null = null;
 
 	let is_full_screen = false;
 	let image_container: HTMLElement;
@@ -69,6 +70,7 @@
 		delete: { file: FileData; index: number };
 		upload: FileData | FileData[];
 		error: string;
+		clear: undefined;
 	}>();
 
 	// tracks whether the value of the gallery was reset
@@ -280,7 +282,7 @@
 			window.removeEventListener("resize", check_thumbnails_overflow);
 	});
 
-	$: resolved_value, check_thumbnails_overflow();
+	$: (resolved_value, check_thumbnails_overflow());
 	$: if (container_element) {
 		check_thumbnails_overflow();
 	}
@@ -321,7 +323,7 @@
 {:else}
 	<div class="gallery-container" bind:this={image_container}>
 		{#if selected_media && allow_preview}
-			<button
+			<span
 				on:keydown={on_keydown}
 				class="preview"
 				class:minimal={mode === "minimal"}
@@ -387,12 +389,14 @@
 				>
 					{#if "image" in selected_media}
 						<Image
-							data-testid="detailed-image"
+							restProps={{
+								alt: selected_media.caption || "",
+								title: selected_media.caption || null,
+								class: selected_media.caption && "with-caption",
+								loading: "lazy"
+							}}
 							src={selected_media.image.url}
-							alt={selected_media.caption || ""}
-							title={selected_media.caption || null}
-							class={selected_media.caption && "with-caption"}
-							loading="lazy"
+							data_testid="detailed-image"
 						/>
 					{:else}
 						<Video
@@ -434,10 +438,13 @@
 							{#if "image" in media}
 								<Image
 									src={media.image.url}
-									title={media.caption || null}
-									data-testid={"thumbnail " + (i + 1)}
-									alt=""
-									loading="lazy"
+									restProps={{
+										title: media.caption || null,
+										alt: "",
+										class: "with-caption",
+										loading: "lazy"
+									}}
+									data_testid={`thumbnail ${i + 1}`}
 								/>
 							{:else}
 								<Play />
@@ -454,7 +461,7 @@
 						</button>
 					{/each}
 				</div>
-			</button>
+			</span>
 		{/if}
 
 		<div
@@ -465,10 +472,17 @@
 			style:height={height !== "auto" ? height + "px" : null}
 		>
 			{#if interactive && selected_index === null}
-				<ModifyUpload {i18n} on:clear={() => (value = [])}>
+				<ModifyUpload
+					{i18n}
+					on:clear={() => {
+						value = [];
+						dispatch("clear");
+					}}
+				>
 					{#if upload && stream_handler}
 						<IconButton Icon={UploadIcon} label={i18n("common.upload")}>
 							<UploadComponent
+								bind:upload_promise
 								icon_upload={true}
 								on:load={(e) => dispatch("upload", e.detail)}
 								filetype={file_types}

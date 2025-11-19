@@ -178,6 +178,11 @@ class EventData:
         self.target = target
         self._data = _data
 
+    def __getattr__(self, name):
+        if name in self._data:
+            return self._data[name]
+        raise AttributeError(f"'EventData' object has no attribute '{name}'")
+
 
 @document()
 class SelectData(EventData):
@@ -619,7 +624,6 @@ class EventListener(str):
             api_visibility: Literal["public", "private", "undocumented"] = "public",
             time_limit: int | None = None,
             stream_every: float = 0.5,
-            like_user_message: bool = False,
             key: int | str | tuple[int | str, ...] | None = None,
             validator: Callable | None = None,
         ) -> Dependency:
@@ -726,7 +730,6 @@ class EventListener(str):
                 connection=_connection,
                 time_limit=time_limit,
                 stream_every=stream_every,
-                like_user_message=like_user_message,
                 event_specific_args=[
                     d["name"]
                     for d in _event_specific_args
@@ -1178,13 +1181,6 @@ class Events:
         "like",
         config_data=lambda: {"likeable": False},
         callback=lambda block: setattr(block, "likeable", True),
-        event_specific_args=[
-            {
-                "name": "like_user_message",
-                "type": "bool = False",
-                "doc": "Whether to display the like buttons for user messages in the chatbot.",
-            }
-        ],
         doc="This listener is triggered when the user likes/dislikes from within the {{ component }}. This event has EventData of type gradio.LikeData that carries information, accessible through LikeData.index and LikeData.value. See EventData documentation on how to use this event data.",
     )
     example_select = EventListener(
@@ -1244,3 +1240,10 @@ class Events:
         "copy",
         doc="This listener is triggered when the user copies content from the {{ component }}. Uses event data gradio.CopyData to carry information about the copied content. See EventData documentation on how to use this event data",
     )
+
+
+all_events = [
+    event_listener
+    for _, event_listener in Events.__dict__.items()
+    if isinstance(event_listener, EventListener)
+]

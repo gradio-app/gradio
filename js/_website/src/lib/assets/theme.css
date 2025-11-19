@@ -89,8 +89,8 @@
 	--accordion-text-color: var(--body-text-color);
 	--table-text-color: var(--body-text-color);
 	--shadow-drop: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
-	--shadow-drop-lg: 0 1px 3px 0 rgb(0 0 0 / 0.1),
-		0 1px 2px -1px rgb(0 0 0 / 0.1);
+	--shadow-drop-lg:
+		0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 	--shadow-inset: rgba(0, 0, 0, 0.05) 0px 2px 4px 0px inset;
 	--shadow-spread: 3px;
 	--block-background-fill: var(--background-fill-primary);
@@ -179,8 +179,8 @@
 	--input-placeholder-color: var(--neutral-400);
 	--input-radius: var(--radius-sm);
 	--input-shadow: none;
-	--input-shadow-focus: 0 0 0 var(--shadow-spread) var(--secondary-50),
-		var(--shadow-inset);
+	--input-shadow-focus:
+		0 0 0 var(--shadow-spread) var(--secondary-50), var(--shadow-inset);
 	--input-text-size: var(--text-md);
 	--input-text-weight: 400;
 	--loader-color: var(--color-accent);
@@ -313,8 +313,8 @@
 	--input_border_width: None;
 	--input-placeholder-color: var(--neutral-500);
 	--input_shadow: None;
-	--input-shadow-focus: 0 0 0 var(--shadow-spread) var(--neutral-700),
-		var(--shadow-inset);
+	--input-shadow-focus:
+		0 0 0 var(--shadow-spread) var(--neutral-700), var(--shadow-inset);
 	--loader_color: None;
 	--slider_color: None;
 	--stat-background-fill: linear-gradient(
@@ -418,8 +418,8 @@
 	--embed-radius: var(--radius-sm);
 	--color-accent: var(--primary-500);
 	--shadow-drop: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
-	--shadow-drop-lg: 0 1px 3px 0 rgb(0 0 0 / 0.1),
-		0 1px 2px -1px rgb(0 0 0 / 0.1);
+	--shadow-drop-lg:
+		0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 	--shadow-inset: rgba(0, 0, 0, 0.05) 0px 2px 4px 0px inset;
 	--block-border-width: 1px;
 	--block-info-text-size: var(--text-sm);

@@ -109,6 +109,8 @@ class TestChatbot:
             "allow_tags": True,
             "examples": None,
             "watermark": None,
+            "reasoning_tags": None,
+            "like_user_message": False,
         }
 
     def test_avatar_images_are_moved_to_cache(self):
@@ -118,3 +120,261 @@ class TestChatbot:
             chatbot.avatar_images[0]["path"], chatbot.GRADIO_CACHE
         )
         assert chatbot.avatar_images[1] is None
+
+    def test_reasoning_tags_single_block(self):
+        """Test reasoning_tags with a single thinking block"""
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "<thinking>Let me think about this.</thinking>\nHere is my response.",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 2
+        assert result[0]["content"][0]["text"] == "Let me think about this."
+        assert result[0]["metadata"] == {"title": "Reasoning", "status": "done"}
+        assert result[1]["content"][0]["text"] == "Here is my response."
+        assert result[1]["metadata"] is None
+
+    def test_reasoning_tags_multiple_blocks(self):
+        """Test reasoning_tags with multiple thinking blocks"""
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "<thinking>First thought.</thinking>\nFirst response.\n<thinking>Second thought.</thinking>\nSecond response.",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 4
+        assert result[0]["content"][0]["text"] == "First thought."
+        assert result[0]["metadata"] == {"title": "Reasoning", "status": "done"}
+        assert result[1]["content"][0]["text"] == "First response."
+        assert result[1]["metadata"] is None
+        assert result[2]["content"][0]["text"] == "Second thought."
+        assert result[2]["metadata"] == {"title": "Reasoning", "status": "done"}
+        assert result[3]["content"][0]["text"] == "Second response."
+        assert result[3]["metadata"] is None
+
+    def test_reasoning_tags_only_thinking(self):
+        """Test reasoning_tags with only thinking content, no prose"""
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "<thinking>Only thinking here.</thinking>",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 1
+        assert result[0]["content"][0]["text"] == "Only thinking here."
+        assert result[0]["metadata"] == {"title": "Reasoning", "status": "done"}
+
+    def test_reasoning_tags_multiple_tag_types(self):
+        """Test reasoning_tags with multiple tag types like <reasoning>"""
+        chatbot = gr.Chatbot(
+            reasoning_tags=[
+                ("<thinking>", "</thinking>"),
+                ("<reasoning>", "</reasoning>"),
+            ]
+        )
+        messages = [
+            {
+                "role": "assistant",
+                "content": "<thinking>Thinking block.</thinking>\nFirst response.\n<reasoning>Reasoning block.</reasoning>\nSecond response.",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 4
+        assert result[0]["content"][0]["text"] == "Thinking block."
+        assert result[0]["metadata"] == {"title": "Reasoning", "status": "done"}
+        assert result[1]["content"][0]["text"] == "First response."
+        assert result[1]["metadata"] is None
+        assert result[2]["content"][0]["text"] == "Reasoning block."
+        assert result[2]["metadata"] == {"title": "Reasoning", "status": "done"}
+        assert result[3]["content"][0]["text"] == "Second response."
+        assert result[3]["metadata"] is None
+
+    def test_reasoning_tags_no_thinking_tags(self):
+        """Test reasoning_tags when no thinking tags are present"""
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "Just a regular response with no thinking.",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 1
+        assert (
+            result[0]["content"][0]["text"]
+            == "Just a regular response with no thinking."
+        )
+        assert result[0]["metadata"] is None
+
+    def test_reasoning_tags_disabled(self):
+        """Test that reasoning_tags=None doesn't extract anything"""
+        chatbot = gr.Chatbot(reasoning_tags=None)
+        messages = [
+            {
+                "role": "assistant",
+                "content": "<thinking>This should not be extracted.</thinking>\nRegular response.",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 1
+        assert (
+            result[0]["content"][0]["text"]
+            == "<thinking>This should not be extracted.</thinking>\nRegular response."
+        )
+        assert result[0]["metadata"] is None
+
+    def test_reasoning_tags_preserves_order(self):
+        """Test that reasoning_tags preserves the order of thinking and prose"""
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "Intro.\n<thinking>Think 1.</thinking>\nMiddle 1.\n<thinking>Think 2.</thinking>\nMiddle 2.\n<thinking>Think 3.</thinking>\nConclusion.",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 7
+        assert result[0]["content"][0]["text"] == "Intro."
+        assert result[0]["metadata"] is None
+        assert result[1]["content"][0]["text"] == "Think 1."
+        assert result[1]["metadata"] == {"title": "Reasoning", "status": "done"}
+        assert result[2]["content"][0]["text"] == "Middle 1."
+        assert result[2]["metadata"] is None
+        assert result[3]["content"][0]["text"] == "Think 2."
+        assert result[3]["metadata"] == {"title": "Reasoning", "status": "done"}
+        assert result[4]["content"][0]["text"] == "Middle 2."
+        assert result[4]["metadata"] is None
+        assert result[5]["content"][0]["text"] == "Think 3."
+        assert result[5]["metadata"] == {"title": "Reasoning", "status": "done"}
+        assert result[6]["content"][0]["text"] == "Conclusion."
+        assert result[6]["metadata"] is None
+
+    def test_reasoning_tags_consecutive_thinking_blocks(self):
+        """Test consecutive thinking blocks with no prose between them"""
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "<thinking>Think 1.</thinking><thinking>Think 2.</thinking>Prose.<thinking>Think 3.</thinking><thinking>Think 4.</thinking>",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 5
+        assert result[0]["content"][0]["text"] == "Think 1."
+        assert result[0]["metadata"] == {"title": "Reasoning", "status": "done"}
+        assert result[1]["content"][0]["text"] == "Think 2."
+        assert result[1]["metadata"] == {"title": "Reasoning", "status": "done"}
+        assert result[2]["content"][0]["text"] == "Prose."
+        assert result[2]["metadata"] is None
+        assert result[3]["content"][0]["text"] == "Think 3."
+        assert result[3]["metadata"] == {"title": "Reasoning", "status": "done"}
+        assert result[4]["content"][0]["text"] == "Think 4."
+        assert result[4]["metadata"] == {"title": "Reasoning", "status": "done"}
+
+    def test_reasoning_tags_consecutive_prose_sections(self):
+        """Test that consecutive prose sections get merged into one message"""
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "Prose 1. Prose 2.<thinking>Think 1.</thinking>Prose 3. Prose 4.",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 3
+        assert result[0]["content"][0]["text"] == "Prose 1. Prose 2."
+        assert result[0]["metadata"] is None
+        assert result[1]["content"][0]["text"] == "Think 1."
+        assert result[1]["metadata"] == {"title": "Reasoning", "status": "done"}
+        assert result[2]["content"][0]["text"] == "Prose 3. Prose 4."
+        assert result[2]["metadata"] is None
+
+    def test_reasoning_tags_prose_before_thinking(self):
+        """Test prose at the start followed by thinking blocks"""
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "Starting with prose.<thinking>Then thinking.</thinking>Then more prose.",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 3
+        assert result[0]["content"][0]["text"] == "Starting with prose."
+        assert result[0]["metadata"] is None
+        assert result[1]["content"][0]["text"] == "Then thinking."
+        assert result[1]["metadata"] == {"title": "Reasoning", "status": "done"}
+        assert result[2]["content"][0]["text"] == "Then more prose."
+        assert result[2]["metadata"] is None
+
+    def test_reasoning_tags_sets_pending_correctly(self):
+        """Test prose at the start followed by thinking blocks"""
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "Starting with prose.<thinking>Then thinking",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 2
+        assert result[0]["content"][0]["text"] == "Starting with prose."
+        assert result[0]["metadata"] is None
+        assert result[1]["content"][0]["text"] == "Then thinking"
+        assert result[1]["metadata"] == {"title": "Reasoning", "status": "pending"}
+
+    def test_reasoning_tags_sets_pending_correctly_multiple_thinking(self):
+        """Test prose at the start followed by thinking blocks"""
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "Starting with prose.<thinking>Then thinking</thinking><thinking>More thinking",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 3
+        assert result[0]["content"][0]["text"] == "Starting with prose."
+        assert result[0]["metadata"] is None
+        assert result[1]["content"][0]["text"] == "Then thinking"
+        assert result[1]["metadata"] == {"title": "Reasoning", "status": "done"}
+        assert result[2]["content"][0]["text"] == "More thinking"
+        assert result[2]["metadata"] == {"title": "Reasoning", "status": "pending"}
+
+    def test_reasoning_tags_multiple_thinking_only(self):
+        """Test multiple consecutive thinking blocks with no prose at all"""
+        chatbot = gr.Chatbot(reasoning_tags=[("<thinking>", "</thinking>")])
+        messages = [
+            {
+                "role": "assistant",
+                "content": "<thinking>Think 1.</thinking><thinking>Think 2.</thinking><thinking>Think 3.</thinking>",
+            }
+        ]
+        result = chatbot.postprocess(messages).model_dump()
+
+        assert len(result) == 3
+        assert result[0]["content"][0]["text"] == "Think 1."
+        assert result[0]["metadata"] == {"title": "Reasoning", "status": "done"}
+        assert result[1]["content"][0]["text"] == "Think 2."
+        assert result[1]["metadata"] == {"title": "Reasoning", "status": "done"}
+        assert result[2]["content"][0]["text"] == "Think 3."
+        assert result[2]["metadata"] == {"title": "Reasoning", "status": "done"}

@@ -6,101 +6,94 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio, SelectData, CopyData } from "@gradio/utils";
+	import { tick } from "svelte";
 	import TextBox from "./shared/Textbox.svelte";
+	import StatusTracker from "@gradio/statustracker";
 	import { Block } from "@gradio/atoms";
-	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
-	import type { InputHTMLAttributes } from "./shared/types";
+	import { Gradio } from "@gradio/utils";
+	import type { TextboxProps, TextboxEvents } from "./types";
 
-	export let gradio: Gradio<{
-		change: string;
-		submit: never;
-		blur: never;
-		select: SelectData;
-		input: never;
-		focus: never;
-		stop: never;
-		clear_status: LoadingStatus;
-		copy: CopyData;
-	}>;
-	export let label = "Textbox";
-	export let info: string | undefined = undefined;
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let value = "";
-	export let lines: number;
-	export let placeholder = "";
-	export let show_label: boolean;
-	export let max_lines: number | undefined = undefined;
-	export let type: "text" | "password" | "email" = "text";
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let submit_btn: string | boolean | null = null;
-	export let stop_btn: string | boolean | null = null;
-	export let buttons: string[] | null = null;
-	export let loading_status: LoadingStatus | undefined = undefined;
-	export let value_is_output = false;
-	export let rtl = false;
-	export let text_align: "left" | "right" | undefined = undefined;
-	export let autofocus = false;
-	export let autoscroll = true;
-	export let interactive: boolean;
-	export let max_length: number | undefined = undefined;
-	export let html_attributes: InputHTMLAttributes | null = null;
-	export let validation_error: string | null = null;
+	let _props = $props();
+	const gradio = new Gradio<TextboxEvents, TextboxProps>(_props);
+
+	let label = $derived(gradio.shared.label || "Textbox");
+	// Need to set the value to "" otherwise a change event gets
+	// dispatched when the child sets it to ""
+	gradio.props.value = gradio.props.value ?? "";
+	let old_value = $state(gradio.props.value);
+
+	async function dispatch_change() {
+		if (old_value !== gradio.props.value) {
+			old_value = gradio.props.value;
+			await tick();
+			gradio.dispatch("change", $state.snapshot(gradio.props.value));
+		}
+	}
+
+	async function handle_input(value: string): Promise<void> {
+		if (!gradio.shared || !gradio.props) return;
+		gradio.props.validation_error = null;
+		gradio.props.value = value;
+		await tick();
+		gradio.dispatch("input");
+	}
+
+	$effect(() => {
+		dispatch_change();
+	});
 
 	function handle_change(value: string): void {
-		gradio.dispatch("change", value);
+		if (!gradio.shared || !gradio.props) return;
+		gradio.props.validation_error = null;
+		gradio.props.value = value;
 	}
 </script>
 
 <Block
-	{visible}
-	{elem_id}
-	{elem_classes}
-	{scale}
-	{min_width}
+	visible={gradio.shared.visible}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+	scale={gradio.shared.scale}
+	min_width={gradio.shared.min_width}
 	allow_overflow={false}
-	padding={container}
+	padding={gradio.shared.container}
 >
-	{#if loading_status}
+	{#if gradio.shared.loading_status}
 		<StatusTracker
-			autoscroll={gradio.autoscroll}
+			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
-			{...loading_status}
+			{...gradio.shared.loading_status}
 			show_validation_error={false}
-			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+			on:clear_status={() =>
+				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 	{/if}
 
 	<TextBox
-		bind:value
-		bind:value_is_output
+		value={gradio.props.value}
 		{label}
-		{info}
-		{show_label}
-		{lines}
-		{type}
-		{rtl}
-		{text_align}
-		{max_lines}
-		{placeholder}
-		{submit_btn}
-		{stop_btn}
-		show_copy_button={buttons?.includes("copy") ?? false}
-		{autofocus}
-		{container}
-		{autoscroll}
-		{max_length}
-		{html_attributes}
-		validation_error={loading_status?.validation_error || validation_error}
+		info={gradio.props.info}
+		show_label={gradio.shared.show_label}
+		lines={gradio.props.lines}
+		type={gradio.props.type}
+		rtl={gradio.props.rtl}
+		text_align={gradio.props.text_align}
+		max_lines={gradio.props.max_lines}
+		placeholder={gradio.props.placeholder}
+		submit_btn={gradio.props.submit_btn}
+		stop_btn={gradio.props.stop_btn}
+		show_copy_button={gradio.props.show_copy_button}
+		autofocus={gradio.props.autofocus}
+		container={gradio.shared.container}
+		autoscroll={gradio.shared.autoscroll}
+		max_length={gradio.props.max_length}
+		html_attributes={gradio.props.html_attributes}
+		validation_error={gradio.shared?.loading_status?.validation_error ||
+			gradio.shared?.validation_error}
 		on:change={(e) => handle_change(e.detail)}
-		on:input={() => gradio.dispatch("input")}
+		on:input={(e) => handle_input(e.detail)}
 		on:submit={() => {
-			validation_error = null;
+			gradio.shared.validation_error = null;
 			gradio.dispatch("submit");
 		}}
 		on:blur={() => gradio.dispatch("blur")}
@@ -108,6 +101,8 @@
 		on:focus={() => gradio.dispatch("focus")}
 		on:stop={() => gradio.dispatch("stop")}
 		on:copy={(e) => gradio.dispatch("copy", e.detail)}
-		disabled={!interactive}
+		disabled={!gradio.shared.interactive}
 	/>
 </Block>
+
+<!-- bind:value_is_output={gradio.props.value_is_output} -->

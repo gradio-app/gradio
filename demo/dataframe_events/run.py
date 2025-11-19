@@ -2,38 +2,54 @@ import gradio as gr
 import pandas as pd
 import numpy as np
 
+
 def update_dataframe():
-    regular_df = pd.DataFrame(np.random.randint(1, 10, size=(5, 5)), columns=pd.Index([str(i) for i in range(5)]))
-    wide_df = pd.DataFrame([
-        [5, 22, 91, 17, 73, 38, 84, 46, 65, 10, 155, 122, 11, 144, 133],
-        [81, 42, 13, 97, 33, 77, 59, 100, 29, 61, 213, 195, 142, 118, 127],
-        [37, 71, 63, 102, 28, 94, 19, 55, 88, 44, 116, 139, 122, 150, 147],
-        [104, 52, 49, 26, 83, 67, 31, 92, 79, 18, 241, 115, 159, 123, 137],
-        [16, 95, 74, 68, 43, 101, 27, 85, 39, 57, 129, 148, 132, 111, 156]
-    ], columns=pd.Index([f"col_{i}" for i in range(15)]))
+    regular_df = pd.DataFrame(
+        np.random.randint(1, 10, size=(5, 5)),
+        columns=pd.Index([str(i) for i in range(5)]),
+    )
+    wide_df = pd.DataFrame(
+        [
+            [5, 22, 91, 17, 73, 38, 84, 46, 65, 10, 155, 122, 11, 144, 133],
+            [81, 42, 13, 97, 33, 77, 59, 100, 29, 61, 213, 195, 142, 118, 127],
+            [37, 71, 63, 102, 28, 94, 19, 55, 88, 44, 116, 139, 122, 150, 147],
+            [104, 52, 49, 26, 83, 67, 31, 92, 79, 18, 241, 115, 159, 123, 137],
+            [16, 95, 74, 68, 43, 101, 27, 85, 39, 57, 129, 148, 132, 111, 156],
+        ],
+        columns=pd.Index([f"col_{i}" for i in range(15)]),
+    )
     return regular_df, wide_df
+
 
 def clear_dataframes():
     regular_empty_df = pd.DataFrame([], columns=pd.Index([str(i) for i in range(5)]))
     wide_empty_df = pd.DataFrame([], columns=pd.Index([f"col_{i}" for i in range(15)]))
     return regular_empty_df, wide_empty_df
 
+
 def increment_select_counter(evt: gr.SelectData, count):
     count_val = 1 if count is None else count + 1
     return count_val, evt.index, evt.value
 
+
 def edit_dataframe(evt: gr.EditData, count):
-    event_data = ", ".join([
-        f"index: {evt.index}",
-        f"value: {evt.value}",
-        f"previous_value: {evt.previous_value}",
-    ])
+    event_data = ", ".join(
+        [
+            f"index: {evt.index}",
+            f"value: {evt.value}",
+            f"previous_value: {evt.previous_value}",
+        ]
+    )
     return event_data, count + 1
+
 
 with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column(scale=1):
-            initial_regular_df = pd.DataFrame(np.zeros((5, 5), dtype=int), columns=pd.Index([str(i) for i in range(5)]))
+            initial_regular_df = pd.DataFrame(
+                np.zeros((5, 5), dtype=int),
+                columns=pd.Index([str(i) for i in range(5)]),
+            )
 
             df = gr.Dataframe(
                 value=initial_regular_df,
@@ -44,11 +60,14 @@ with gr.Blocks() as demo:
                 show_search="filter",
                 buttons=["copy"],
                 show_row_numbers=True,
-                static_columns=[4]
+                static_columns=[4],
             )
 
         with gr.Column(scale=1):
-            initial_wide_df = pd.DataFrame(np.zeros((5, 15), dtype=int), columns=pd.Index([f"col_{i}" for i in range(15)]))
+            initial_wide_df = pd.DataFrame(
+                np.zeros((5, 15), dtype=int),
+                columns=pd.Index([f"col_{i}" for i in range(15)]),
+            )
 
             df_view = gr.Dataframe(
                 value=initial_wide_df,
@@ -84,9 +103,7 @@ with gr.Blocks() as demo:
     tall_df_value = {
         "data": tall_df_value,
         "headers": ["Model", "% Correct (LeetCode Hard)", "Is Open Source"],
-        "metadata": {
-            "display_value": display_value
-        }
+        "metadata": {"display_value": display_value},
     }
 
     with gr.Row():
@@ -105,10 +122,12 @@ with gr.Blocks() as demo:
             )
 
             df_tall_selected_cell_index = gr.Textbox(
-                label="Tall dataframe selected cell index", elem_id="tall_selected_cell_index"
+                label="Tall dataframe selected cell index",
+                elem_id="tall_selected_cell_index",
             )
             df_tall_selected_cell_value = gr.Textbox(
-                label="Tall dataframe selected cell value", elem_id="tall_selected_cell_value"
+                label="Tall dataframe selected cell value",
+                elem_id="tall_selected_cell_value",
             )
 
     with gr.Row():
@@ -133,12 +152,10 @@ with gr.Blocks() as demo:
         selected_cell_value = gr.Textbox(
             label="Selected cell value", elem_id="selected_cell_value"
         )
-        edit_data = gr.Textbox(
-            label="Edit event data", elem_id="edit_data"
-        )
+        edit_data = gr.Textbox(label="Edit event data", elem_id="edit_data")
 
     update_btn.click(fn=update_dataframe, outputs=[df, df_view])
-    clear_btn.click(fn=clear_dataframes, outputs=[df, df_view, df_tall])
+    clear_btn.click(fn=clear_dataframes, outputs=[df, df_view])
     df.change(fn=lambda x: x + 1, inputs=[change_events], outputs=[change_events])
     df.edit(edit_dataframe, inputs=[edit_events], outputs=[edit_data, edit_events])
     df.input(fn=lambda x: x + 1, inputs=[input_events], outputs=[input_events])
@@ -151,7 +168,11 @@ with gr.Blocks() as demo:
     df_tall.select(
         fn=increment_select_counter,
         inputs=[select_events],
-        outputs=[select_events, df_tall_selected_cell_index, df_tall_selected_cell_value],
+        outputs=[
+            select_events,
+            df_tall_selected_cell_index,
+            df_tall_selected_cell_value,
+        ],
     )
 
 if __name__ == "__main__":

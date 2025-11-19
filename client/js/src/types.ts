@@ -103,6 +103,9 @@ export interface SubmitIterable<T> extends AsyncIterable<T> {
 	[Symbol.asyncIterator](): AsyncIterator<T>;
 	cancel: () => Promise<void>;
 	event_id: () => string;
+	send_chunk: (payload: Record<string, unknown>) => void;
+	wait_for_id: () => Promise<string | null>;
+	close_stream: () => void;
 }
 
 export type PredictReturn = {
@@ -170,7 +173,7 @@ export interface Config {
 	enable_queue: boolean;
 	show_error: boolean;
 	layout: any;
-	mode: "blocks" | "interface";
+	mode: "blocks" | "interface" | "chat_interface";
 	root: string;
 	root_url?: string;
 	theme: string;
@@ -352,7 +355,7 @@ export type GradioEvent = {
 export interface Log {
 	log: string;
 	title: string;
-	level: "warning" | "info" | "success";
+	level: "warning" | "info" | "success" | "error";
 }
 export interface Render {
 	data: {

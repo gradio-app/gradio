@@ -9,7 +9,6 @@ import json
 import os
 import warnings
 from collections.abc import Callable, Sequence
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
@@ -33,7 +32,6 @@ from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.i18n import I18nData
 from gradio.layouts import Accordion, Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
-from gradio.themes import ThemeClass as Theme
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from diffusers import DiffusionPipeline  # type: ignore
@@ -94,12 +92,11 @@ class Interface(Blocks):
         cache_mode: Literal["eager", "lazy"] | None = None,
         examples_per_page: int = 10,
         example_labels: list[str] | None = None,
-        preload_example: int | Literal[False] = False,
+        preload_example: int | Literal[False] = 0,
         live: bool = False,
         title: str | I18nData | None = None,
         description: str | None = None,
         article: str | None = None,
-        theme: Theme | str | None = None,
         flagging_mode: Literal["never"]
         | Literal["auto"]
         | Literal["manual"]
@@ -116,11 +113,6 @@ class Interface(Blocks):
         _api_mode: bool = False,
         allow_duplication: bool = False,
         concurrency_limit: int | None | Literal["default"] = "default",
-        css: str | None = None,
-        css_paths: str | Path | Sequence[str | Path] | None = None,
-        js: str | Literal[True] | None = None,
-        head: str | None = None,
-        head_paths: str | Path | Sequence[str | Path] | None = None,
         additional_inputs: str | Component | Sequence[str | Component] | None = None,
         additional_inputs_accordion: str | Accordion | None = None,
         submit_btn: str | Button = "Submit",
@@ -144,12 +136,11 @@ class Interface(Blocks):
             cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If None, will use the GRADIO_CACHE_EXAMPLES environment variable, which should be either "true" or "false". In HuggingFace Spaces, this parameter defaults to True (as long as `fn` and `outputs` are also provided).  Note that examples are cached separately from Gradio's queue() so certain features, such as gr.Progress(), gr.Info(), gr.Warning(), etc. will not be displayed in Gradio's UI for cached examples.
             cache_mode: if "lazy", examples are cached after their first use. If "eager", all examples are cached at app launch. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager". In HuggingFace Spaces, this parameter defaults to "eager" except for ZeroGPU Spaces, in which case it defaults to "lazy".
             examples_per_page: if examples are provided, how many to display per page.
-            preload_example: If an integer is provided (and examples are being cached), the example at that index in the examples list will be preloaded when the Gradio app is first loaded. If False, no example will be preloaded.
+            preload_example: If an integer is provided (and examples are being cached eagerly and none of the input components have a developer-provided `value`), the example at that index in the examples list will be preloaded when the Gradio app is first loaded. If False, no example will be preloaded.
             live: whether the interface should automatically rerun if any of the inputs change.
             title: a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.
             article: an expanded article explaining the interface; if provided, appears below the input and output components in regular font. Accepts Markdown and HTML content. If it is an HTTP(S) link to a downloadable remote file, the content of this file is displayed.
-            theme: a Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             flagging_mode: one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every input the user submits will be automatically flagged, along with the generated output. If "manual", both the input and outputs are flagged when the user clicks flag button. This parameter can be set with environmental variable GRADIO_FLAGGING_MODE; otherwise defaults to "manual".
             flagging_options: if provided, allows user to select from the list of options when flagging. Only applies if flagging_mode is "manual". Can either be a list of tuples of the form (label, value), where label is the string that will be displayed on the button and value is the string that will be stored in the flagging CSV; or it can be a list of strings ["X", "Y"], in which case the values will be the list of strings and the labels will ["Flag as X", "Flag as Y"], etc.
             flagging_dir: path to the directory where flagged data is stored. If the directory does not exist, it will be created.
@@ -162,11 +153,6 @@ class Interface(Blocks):
             api_visibility: Controls the visibility of the prediction endpoint. Can be "public" (shown in API docs and callable), "private" (hidden from API docs and not callable), or "undocumented" (hidden from API docs but callable).
             allow_duplication: if True, then will show a 'Duplicate Spaces' button on Hugging Face Spaces.
             concurrency_limit: if set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which itself is 1 by default).
-            css: Custom css as a code string. This css will be included in the demo webpage.
-            css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
-            js: Custom js as a code string. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
-            head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
-            head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
             additional_inputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. These components will be rendered in an accordion below the main input components. By default, no additional input components will be displayed.
             additional_inputs_accordion: if a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
             submit_btn: the button to use for submitting inputs. Defaults to a `gr.Button("Submit", variant="primary")`. This parameter does not apply if the Interface is output-only, in which case the submit button always displays "Generate". Can be set to a string (which becomes the button label) or a `gr.Button` object (which allows for more customization).
@@ -186,12 +172,6 @@ class Interface(Blocks):
             analytics_enabled=analytics_enabled,
             mode="interface",
             title=title or "Gradio",
-            theme=theme,
-            css=css,
-            css_paths=css_paths,
-            js=js,
-            head=head,
-            head_paths=head_paths,
             delete_cache=delete_cache,
             fill_width=fill_width,
             **kwargs,
@@ -976,7 +956,6 @@ class TabbedInterface(Blocks):
     """
     A TabbedInterface is created by providing a list of Interfaces or Blocks, each of which gets
     rendered in a separate tab. Only the components from the Interface/Blocks will be rendered in the tab.
-    Certain high-level attributes of the Blocks (e.g. custom `css`, `js`, and `head` attributes) will not be loaded.
 
     Demos: tabbed_interface_lite
     """
@@ -986,33 +965,21 @@ class TabbedInterface(Blocks):
         interface_list: Sequence[Blocks],
         tab_names: list[str] | None = None,
         title: str | None = None,
-        theme: Theme | str | None = None,
         analytics_enabled: bool | None = None,
-        css: str | None = None,
-        js: str | Literal[True] | None = None,
-        head: str | None = None,
     ):
         """
         Parameters:
             interface_list: A list of Interfaces (or Blocks) to be rendered in the tabs.
             tab_names: A list of tab names. If None, the tab names will be "Tab 1", "Tab 2", etc.
             title: The tab title to display when this demo is opened in a browser window.
-            theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
-            css: Custom css as a string or path to a css file. This css will be included in the demo webpage.
-            js: Custom js as a string or path to a js file. The custom js should in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
-            head: Custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
         Returns:
             a Gradio Tabbed Interface for the given interfaces
         """
         super().__init__(
             title=title or "Gradio",
-            theme=theme,
             analytics_enabled=analytics_enabled,
             mode="tabbed_interface",
-            css=css,
-            js=js,
-            head=head,
             fill_height=True,
         )
         if tab_names is None:

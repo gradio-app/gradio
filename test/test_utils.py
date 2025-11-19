@@ -748,7 +748,7 @@ def test_error_payload():
     assert result == {"error": None}
 
     result = error_payload(Exception("test error"), True)
-    assert result == {"error": "test error"}
+    assert result == {"error": "test error", "visible": True}
 
     gr_error = Error("custom error", duration=1.5, visible=True, title="Error Title")
     result = error_payload(gr_error, False)

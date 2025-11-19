@@ -1,5 +1,18 @@
 # @gradio/statustracker
 
+## 0.12.0-dev.0
+
+### Features
+
+- [#12291](https://github.com/gradio-app/gradio/pull/12291) [`881d8fb`](https://github.com/gradio-app/gradio/commit/881d8fbaa7827bbe0f56b9e89c6ab81258cb21b7) - Change gr.Toast expanded to true by default.  Thanks @hannahblair!
+- [#12099](https://github.com/gradio-app/gradio/pull/12099) [`e2a5768`](https://github.com/gradio-app/gradio/commit/e2a5768f5f133d0c23549eb3388582bfcf40e5e6) - Improve gr.Toast in mobile.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.18.2-dev.0
+- @gradio/utils@0.10.3-dev.0
+- @gradio/icons@0.15.0-dev.0
+
 ## 0.11.1
 
 ### Dependency updates
