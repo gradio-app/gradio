@@ -32,7 +32,7 @@ def test_special_args_creates_namespace_with_props():
         0: {"value": 5, "minimum": 0, "maximum": 10, "label": "Test Number"}
     }
 
-    inputs, _, _, _ = helpers.special_args(
+    inputs, *_ = helpers.special_args(
         func, inputs=[5], component_props=component_props
     )
 
