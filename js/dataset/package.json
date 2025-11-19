@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/dataset",
-	"version": "0.4.35-dev.2",
+	"version": "0.5.0-dev.3",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
