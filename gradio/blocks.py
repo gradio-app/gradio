@@ -1715,6 +1715,8 @@ Received inputs:
 
                 # Determine what to process
                 is_prop_input = i in block_fn.component_prop_inputs
+                if is_prop_input:
+                    processing_utils.check_all_files_in_cache(inputs[i])
                 value_to_process = inputs[i]["value"] if is_prop_input else inputs[i]
 
                 inputs_cached = await processing_utils.async_move_files_to_cache(
