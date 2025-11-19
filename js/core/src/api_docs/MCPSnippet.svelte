@@ -127,7 +127,8 @@
 		<Block>
 			<div class="mcp-url">
 				<label for="mcp-server-url"
-					><span class="status-indicator active">●</span>MCP Server URL (Streamable HTTP)</label
+					><span class="status-indicator active">●</span>MCP Server URL
+					(Streamable HTTP)</label
 				>
 				<div class="textbox">
 					<input id="mcp-server-url" type="text" readonly value={display_url} />

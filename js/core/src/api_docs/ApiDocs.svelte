@@ -223,7 +223,12 @@
 					mcpServers: {
 						gradio: {
 							command: "npx",
-							args: ["mcp-remote", mcp_server_url_streamable, "--transport", "streamable-http"]
+							args: [
+								"mcp-remote",
+								mcp_server_url_streamable,
+								"--transport",
+								"streamable-http"
+							]
 						}
 					}
 				};
@@ -260,8 +265,8 @@
 			current_language = lang_param as "python" | "javascript" | "bash" | "mcp";
 		}
 
-		// Check MCP server status and fetch tools if active
-		fetch(mcp_server_url_streamable, { signal: signal })
+		const mcp_schema_url = `${root}gradio_api/mcp/schema`;
+		fetch(mcp_schema_url, { signal: signal })
 			.then((response) => {
 				mcp_server_active = response.ok;
 				if (mcp_server_active) {
