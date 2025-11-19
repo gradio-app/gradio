@@ -245,9 +245,7 @@
 	<StreamingBar {time_limit} />
 	{#if value === null || streaming}
 		{#if active_source === "microphone"}
-			{#if class_name !== "compact-audio"}
-				<ModifyUpload {i18n} on:clear={clear} />
-			{/if}
+			<ModifyUpload {i18n} on:clear={clear} />
 			{#if streaming}
 				<StreamAudio
 					{record}
@@ -292,18 +290,16 @@
 			</Upload>
 		{/if}
 	{:else}
-		{#if class_name !== "compact-audio"}
-			<ModifyUpload
-				{i18n}
-				on:clear={clear}
-				on:edit={() => (mode = "edit")}
-				download={buttons === null
+		<ModifyUpload
+			{i18n}
+			on:clear={clear}
+			on:edit={() => (mode = "edit")}
+			download={buttons === null
+				? value.url
+				: buttons.includes("download")
 					? value.url
-					: buttons.includes("download")
-						? value.url
-						: null}
-			/>
-		{/if}
+					: null}
+		/>
 
 		<AudioPlayer
 			bind:mode
@@ -325,9 +321,7 @@
 			on:edit
 		/>
 	{/if}
-	{#if class_name !== "compact-audio"}
-		<SelectSource {sources} bind:active_source handle_clear={clear} />
-	{/if}
+	<SelectSource {sources} bind:active_source handle_clear={clear} />
 </div>
 
 <style>
@@ -339,18 +333,28 @@
 	}
 
 	.audio-container.compact-audio {
-		margin-top: 0;
+		margin-top: calc(var(--size-8) * -1);
 		height: auto;
-		padding: 0;
-		gap: 0;
+		padding: 0px;
+		gap: var(--size-2);
+		min-height: var(--size-5);
+	}
+
+	.compact-audio :global(.audio-player) {
+		padding: 0px;
+	}
+
+	.compact-audio :global(.controls) {
+		gap: 0px;
+		padding: 0px;
+	}
+
+	.compact-audio :global(.waveform-container) {
+		height: var(--size-12) !important;
+	}
+
+	.compact-audio :global(.player-container) {
 		min-height: unset;
-	}
-
-	.compact-audio :global(.microphone) {
-		display: none;
-	}
-
-	.compact-audio :global(.device-select) {
-		display: none;
+		height: auto;
 	}
 </style>
