@@ -228,7 +228,7 @@
 	let ApiDocs: ComponentType<ApiDocsInterface> | null = null;
 	let ApiRecorder: ComponentType<ApiRecorderInterface> | null = null;
 	let Settings: ComponentType<SettingsInterface> | null = null;
-	let VibeEditor: ComponentType | null = null;
+	let VibeEditor: any = $state(null);
 
 	async function loadApiDocs(): Promise<void> {
 		if (!ApiDocs || !ApiRecorder) {
@@ -259,6 +259,12 @@
 			VibeEditor = vibe_editor_module.default;
 		}
 	}
+
+	$effect(() => {
+		if (vibe_mode) {
+			void loadVibeEditor();
+		}
+	});
 
 	async function set_api_docs_visible(visible: boolean): Promise<void> {
 		api_recorder_visible = false;
@@ -553,6 +559,10 @@
 				/>
 			</div>
 		</div>
+	{/if}
+
+	{#if vibe_mode && VibeEditor}
+		<svelte:component this={VibeEditor} {app} {root} />
 	{/if}
 </div>
 
