@@ -1,5 +1,16 @@
 # @gradio/colorpicker
 
+## 0.5.0-dev.2
+
+### Features
+
+- [#12363](https://github.com/gradio-app/gradio/pull/12363) [`4845bfd`](https://github.com/gradio-app/gradio/commit/4845bfdab53096a609d80485e87d5cc70f3f0521) - Fix queue false render issue.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.19.0-dev.1
+- @gradio/statustracker@0.12.0-dev.1
+
 ## 0.5.0-dev.1
 
 ### Features
