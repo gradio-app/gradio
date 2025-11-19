@@ -50,6 +50,7 @@
 		"@testing-library/jest-dom": "^6.9.1",
 		"@types/node": "^24.7.0",
 		"@types/testing-library__jest-dom": "^6.0.0",
+		"@types/wavesurfer.js": "^6.0.12",
 		"@typescript-eslint/eslint-plugin": "^8.46.0",
 		"@typescript-eslint/parser": "^8.46.0",
 		"autoprefixer": "^10.4.21",

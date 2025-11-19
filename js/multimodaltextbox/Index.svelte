@@ -39,8 +39,8 @@
 
 	const value = $derived(gradio.props.value || { text: "", files: [] });
 
-	let dragging = $state<boolean>(false);
-	let active_source = $state<"microphone" | null>(null);
+	let dragging: boolean;
+	let active_source: "microphone" | null = null;
 
 	let color_accent = "darkorange";
 
