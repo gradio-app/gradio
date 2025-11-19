@@ -1574,7 +1574,7 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_, progress_index, _ = helpers.special_args(
+        inputs_, progress_index, *_ = helpers.special_args(
             moo2, copy.deepcopy(inputs), request
         )
         assert inputs_ == inputs + [42, pr]
@@ -1582,7 +1582,7 @@ class TestAddRequests:
 
         inputs = [1, 2, 24]
         request = gr.Request()
-        inputs_, progress_index, _ = helpers.special_args(
+        inputs_, progress_index, *_ = helpers.special_args(
             moo2, copy.deepcopy(inputs), request
         )
         assert inputs_ == inputs + [pr]
@@ -1593,7 +1593,7 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_, progress_index, _ = helpers.special_args(
+        inputs_, progress_index, *_ = helpers.special_args(
             moo, copy.deepcopy(inputs), request
         )
         assert inputs_ == inputs + [pr, 42]
@@ -1615,7 +1615,7 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_, progress_index, _ = helpers.special_args(
+        inputs_, progress_index, *_ = helpers.special_args(
             moo, copy.deepcopy(inputs), request
         )
         assert inputs_ == inputs + [request, 42, pr]
@@ -1647,7 +1647,7 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_, progress_index, _ = helpers.special_args(
+        inputs_, progress_index, *_ = helpers.special_args(
             moo2, copy.deepcopy(inputs), request, event_data
         )
         assert len(inputs_) == 5
