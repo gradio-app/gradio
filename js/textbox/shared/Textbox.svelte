@@ -270,7 +270,7 @@
 					dir={rtl ? "rtl" : "ltr"}
 					bind:value
 					bind:this={el}
-					{placeholder}
+					placeholder={disabled ? "" : placeholder}
 					{disabled}
 					{autofocus}
 					maxlength={max_length}
@@ -295,7 +295,7 @@
 					class="scroll-hide"
 					bind:value
 					bind:this={el}
-					{placeholder}
+					placeholder={disabled ? "" : placeholder}
 					{disabled}
 					{autofocus}
 					maxlength={max_length}
@@ -319,7 +319,7 @@
 					class="scroll-hide"
 					bind:value
 					bind:this={el}
-					{placeholder}
+					placeholder={disabled ? "" : placeholder}
 					{disabled}
 					{autofocus}
 					maxlength={max_length}
@@ -345,7 +345,7 @@
 				class:no-label={!show_label && (submit_btn || stop_btn)}
 				bind:value
 				bind:this={el}
-				{placeholder}
+				placeholder={disabled ? "" : placeholder}
 				rows={lines}
 				{disabled}
 				{autofocus}
@@ -444,6 +444,7 @@
 	textarea:disabled {
 		-webkit-opacity: 1;
 		opacity: 1;
+		cursor: not-allowed;
 	}
 
 	label.container.show_textbox_border input:focus,

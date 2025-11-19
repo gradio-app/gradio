@@ -226,5 +226,6 @@ class ComponentMeta(ABCMeta):
             attrs["EVENTS"] = new_events
         component_class = super().__new__(cls, name, bases, attrs)
 
-        create_or_modify_pyi(component_class, name, events)
+        with no_raise_exception():
+            create_or_modify_pyi(component_class, name, events)
         return component_class

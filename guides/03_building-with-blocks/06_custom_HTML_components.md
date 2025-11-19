@@ -96,6 +96,8 @@ If you are reusing the same HTML component in multiple places, you can create a 
 $code_star_rating_component
 $demo_star_rating_component
 
+We've created several custom HTML components as reusable components as examples
+
 ### Adding a Data Model
 
 One of the benefits of using 
@@ -105,3 +107,7 @@ One of the benefits of using
 Keep in mind that using `gr.HTML` to create custom components involves injecting raw HTML and JavaScript into your Gradio app. Be cautious about using untrusted user input into `html_template` and `js_on_load`, as this could lead to cross-site scripting (XSS) vulnerabilities. 
 
 You should also expect that any Python event listeners that take your `gr.HTML` component as input could have any arbitrary value passed to them, not just the values you expect the frontend to be able to set for `value`. Sanitize and validate user input appropriately in public applications.
+
+## Next Steps
+
+If you'd like to see more examples of custom components that you can build:
