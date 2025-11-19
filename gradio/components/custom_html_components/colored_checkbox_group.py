@@ -61,8 +61,6 @@ class ColoredCheckboxGroup(gr.HTML):
 
 if __name__ == "__main__":
     def update_colors(color: str):
-        import time
-        time.sleep(1)
         if color.startswith('rgb'):
             rgb_values = color.replace('rgba', '').replace('rgb', '').strip('()').split(',')
             r, g, b = int(float(rgb_values[0])), int(float(rgb_values[1])), int(float(rgb_values[2]))
@@ -92,15 +90,10 @@ if __name__ == "__main__":
                     colors=["#990000", "#FF0000", "#FF6666"],
                     label="Select options"
                 )
-                def identity(x):
-                    import time
-                    time.sleep(1)
-                    return x
                 gr.Interface(
-                    fn=identity,
+                    fn=lambda x: x,
                     inputs=cg,
                     outputs=gr.Textbox(label="output"),
-                    show_progress="hidden"
                 )
         cp.change(update_colors, inputs=cp, outputs=cg, show_progress="hidden")
     demo.launch()
