@@ -442,7 +442,8 @@ export function submit(
 							queue: true,
 							endpoint: _endpoint,
 							fn_index,
-							time: new Date()
+							time: new Date(),
+							visible: true
 						});
 					} else if (status === 422) {
 						fire_event({
@@ -453,7 +454,8 @@ export function submit(
 							endpoint: _endpoint,
 							fn_index,
 							code: "validation_error",
-							time: new Date()
+							time: new Date(),
+							visible: true
 						});
 						close();
 					} else if (status !== 200) {
@@ -465,7 +467,8 @@ export function submit(
 							queue: true,
 							endpoint: _endpoint,
 							fn_index,
-							time: new Date()
+							time: new Date(),
+							visible: true
 						});
 					} else {
 						event_id = response.event_id as string;

@@ -206,25 +206,36 @@ export class DependencyManager {
 		) => void,
 		add_to_api_calls: (payload: Payload) => void
 	) {
-		const { by_id, by_event } = this.create(dependencies);
+		this.add_to_api_calls = add_to_api_calls;
+		this.client = client;
+		this.log_cb = log_cb;
+		// this.update_state_cb = update_state_cb;
+		// this.get_state_cb = get_state_cb;
+		// this.rerender_cb = rerender_cb;
+		this.reload(dependencies, update_state_cb, get_state_cb, rerender_cb);
+	}
 
+	reload(
+		dependencies: IDependency[],
+		update_state,
+		get_state,
+		rerender,
+		client
+	) {
+		const { by_id, by_event } = this.create(dependencies);
 		this.dependencies_by_event = by_event;
 		this.dependencies_by_fn = by_id;
-		this.client = client;
-		this.update_state_cb = update_state_cb;
-		this.get_state_cb = get_state_cb;
-		this.rerender_cb = rerender_cb;
-		this.log_cb = log_cb;
-		this.add_to_api_calls = add_to_api_calls;
-
 		for (const [dep_id, dep] of this.dependencies_by_fn) {
 			for (const [output_id] of dep.targets) {
 				this.set_event_args(output_id, dep.event_args);
 			}
 		}
+		this.client = client;
+		this.update_state_cb = update_state;
+		this.get_state_cb = get_state;
+		this.rerender_cb = rerender;
 		this.register_loading_stati(by_id);
 	}
-
 	register_loading_stati(deps: Map<number, Dependency>): void {
 		for (const [_, dep] of deps) {
 			this.loading_stati.register(

@@ -9,7 +9,6 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import BaseRadio from "./shared/Radio.svelte";
 	import type { RadioEvents, RadioProps } from "./types";
-	import Radio from "./shared/Radio.svelte";
 
 	const props = $props();
 
@@ -57,11 +56,11 @@
 				{disabled}
 				rtl={gradio.props.rtl}
 				on_input={() => {
+					gradio.dispatch("input");
 					gradio.dispatch("select", {
 						value: internal_value,
 						index: i
 					});
-					gradio.dispatch("input");
 				}}
 			/>
 		{/each}

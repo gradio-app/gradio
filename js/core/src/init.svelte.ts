@@ -110,7 +110,56 @@ export class AppTree {
 
 		this.root!.children = this.#layout_payload.children.map((node) =>
 			this.traverse(node, (node) => {
-				const new_node = this.create_node(node, component_map);
+				const new_node = this.create_node(
+					node,
+					component_map,
+					false,
+					this.reactive_formatter
+				);
+				return new_node;
+			})
+		);
+		this.component_ids = components.map((c) => c.id);
+		this.initial_tabs = {};
+		gather_initial_tabs(this.root!, this.initial_tabs);
+		this.postprocess(this.root!);
+	}
+
+	reload(
+		components: ComponentMeta[],
+		layout: LayoutNode,
+		dependencies: Dependency[],
+		config: AppConfig
+	) {
+		this.#layout_payload = layout;
+		this.#component_payload = components;
+		this.#config = config;
+		this.#dependency_payload = dependencies;
+
+		this.root = this.create_node(
+			{ id: layout.id, children: [] },
+			new Map(),
+			true
+		);
+		for (const comp of components) {
+			if (comp.props.visible != false) this.components_to_register.add(comp.id);
+		}
+
+		this.prepare();
+
+		const component_map = components.reduce((map, comp) => {
+			map.set(comp.id, comp);
+			return map;
+		}, new Map<number, ComponentMeta>());
+
+		this.root!.children = this.#layout_payload.children.map((node) =>
+			this.traverse(node, (node) => {
+				const new_node = this.create_node(
+					node,
+					component_map,
+					false,
+					this.reactive_formatter
+				);
 				return new_node;
 			})
 		);
@@ -426,10 +475,6 @@ function gather_props(
 		// For Tabs (or any component that already has an id prop)
 		// Set the id to the props so that it doesn't get overwritten
 		if (key === "id" || key === "autoscroll") {
-			console.log("gather_props setting id/autoscroll", {
-				key,
-				value: props[key]
-			});
 			_props[key] = props[key];
 		} else if (allowed_shared_props.includes(key as keyof SharedProps)) {
 			const _key = key as keyof SharedProps;
