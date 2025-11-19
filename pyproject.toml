@@ -78,9 +78,6 @@ artifacts = [
   "/gradio/py.typed",
 ]
 
-[tool.hatch.build.targets.wheel.hooks.custom]
-path = ".config/copy_frontend.py"
-
 [tool.hatch.build.targets.sdist]
 include = [
   "/gradio",
