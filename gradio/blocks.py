@@ -1740,7 +1740,6 @@ Received inputs:
                     state[block._id] = block
                 state._update_value_in_config(block._id, inputs_serialized)
 
-                # Preprocess and append
                 if block_fn.preprocess:
                     processed_value = block.preprocess(inputs_cached)
                 else:
