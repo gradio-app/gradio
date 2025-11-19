@@ -10,7 +10,8 @@
 		js_on_load = null,
 		visible = true,
 		autoscroll = false,
-		apply_default_css = true
+		apply_default_css = true,
+		component_class_name = "HTML"
 	} = $props();
 
 	let old_props = $state(props);
@@ -105,7 +106,23 @@
 			return templateFunc(...propValues);
 		} catch (e) {
 			console.error("Error evaluating template:", e);
-			return "--- Error rendering template ---";
+			const errorMessage = e instanceof Error ? e.message : String(e);
+			const escapedMessage = errorMessage
+				.replace(/&/g, "&amp;")
+				.replace(/</g, "&lt;")
+				.replace(/>/g, "&gt;")
+				.replace(/"/g, "&quot;")
+				.replace(/'/g, "&#39;");
+			const escapedClassName = component_class_name
+				.replace(/&/g, "&amp;")
+				.replace(/</g, "&lt;")
+				.replace(/>/g, "&gt;")
+				.replace(/"/g, "&quot;")
+				.replace(/'/g, "&#39;");
+			return `<div style="padding: 12px; background-color: #fee; border: 1px solid #fcc; border-radius: 4px; color: #c33; font-family: monospace; font-size: 13px;">
+				<strong style="display: block; margin-bottom: 8px;">Error rendering custom HTML component <code style="background-color: #fdd; padding: 2px 4px; border-radius: 2px;">${escapedClassName}</code>:</strong>
+				<code style="white-space: pre-wrap; word-break: break-word;">${escapedMessage}</code>
+			</div>`;
 		}
 	}
 

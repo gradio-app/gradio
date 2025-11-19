@@ -8,6 +8,7 @@ export interface HTMLProps {
 	min_height: number | undefined;
 	max_height: number | undefined;
 	props: Record<string, any>;
+	component_class_name: string;
 }
 
 export interface HTMLEvents {

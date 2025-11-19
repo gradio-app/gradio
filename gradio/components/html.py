@@ -102,6 +102,7 @@ class HTML(Component):
         self.padding = padding
         self.autoscroll = autoscroll
         self.props = props
+        self.component_class_name = self.__class__.__name__
 
         super().__init__(
             label=label,
@@ -147,11 +148,14 @@ class HTML(Component):
 
     def get_config(self) -> dict[str, Any]:
         if type(self) is not HTML:
-            return {
+            config = {
                 **super().get_config(),
                 **super().get_config(HTML),
             }
-        return super().get_config()
+        else:
+            config = super().get_config()
+        config["component_class_name"] = self.component_class_name
+        return config
 
     def get_block_name(self):
         return "html"
