@@ -11,6 +11,7 @@
 	import { Download, Music } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import AudioPlayer from "../player/AudioPlayer.svelte";
+	import MinimalAudioPlayer from "../shared/MinimalAudioPlayer.svelte";
 	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "@gradio/client";
 	import type { WaveformOptions, SubtitleData } from "../shared/types";
@@ -28,6 +29,7 @@
 	export let editable = true;
 	export let loop: boolean;
 	export let display_icon_button_wrapper_top_corner = false;
+	export let minimal = false;
 
 	const dispatch = createEventDispatcher<{
 		change: FileData;
@@ -48,48 +50,52 @@
 />
 
 {#if value !== null}
-	<IconButtonWrapper
-		display_top_corner={display_icon_button_wrapper_top_corner}
-	>
-		{#if buttons === null ? true : buttons.includes("download")}
-			<DownloadLink
-				href={value.is_stream
-					? value.url?.replace("playlist.m3u8", "playlist-file")
-					: value.url}
-				download={value.orig_name || value.path}
-			>
-				<IconButton Icon={Download} label={i18n("common.download")} />
-			</DownloadLink>
-		{/if}
-		{#if buttons === null ? true : buttons.includes("share")}
-			<ShareButton
-				{i18n}
-				on:error
-				on:share
-				formatter={async (value) => {
-					if (!value) return "";
-					let url = await uploadToHuggingFace(value.url, "url");
-					return `<audio controls src="${url}"></audio>`;
-				}}
-				{value}
-			/>
-		{/if}
-	</IconButtonWrapper>
+	{#if minimal}
+		<MinimalAudioPlayer {value} label={label || i18n("audio.audio")} {loop} />
+	{:else}
+		<IconButtonWrapper
+			display_top_corner={display_icon_button_wrapper_top_corner}
+		>
+			{#if buttons === null ? true : buttons.includes("download")}
+				<DownloadLink
+					href={value.is_stream
+						? value.url?.replace("playlist.m3u8", "playlist-file")
+						: value.url}
+					download={value.orig_name || value.path}
+				>
+					<IconButton Icon={Download} label={i18n("common.download")} />
+				</DownloadLink>
+			{/if}
+			{#if buttons === null ? true : buttons.includes("share")}
+				<ShareButton
+					{i18n}
+					on:error
+					on:share
+					formatter={async (value) => {
+						if (!value) return "";
+						let url = await uploadToHuggingFace(value.url, "url");
+						return `<audio controls src="${url}"></audio>`;
+					}}
+					{value}
+				/>
+			{/if}
+		</IconButtonWrapper>
 
-	<AudioPlayer
-		{value}
-		subtitles={Array.isArray(subtitles) ? subtitles : subtitles?.url}
-		{label}
-		{i18n}
-		{waveform_settings}
-		{waveform_options}
-		{editable}
-		{loop}
-		on:pause
-		on:play
-		on:stop
-		on:load
-	/>
+		<AudioPlayer
+			{value}
+			subtitles={Array.isArray(subtitles) ? subtitles : subtitles?.url}
+			{label}
+			{i18n}
+			{waveform_settings}
+			{waveform_options}
+			{editable}
+			{loop}
+			on:pause
+			on:play
+			on:stop
+			on:load
+		/>
+	{/if}
 {:else}
 	<Empty size="small">
 		<Music />

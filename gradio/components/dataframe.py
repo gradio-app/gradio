@@ -147,6 +147,32 @@ class Dataframe(Component):
             pinned_columns: If provided, will pin the specified number of columns from the left.
             static_columns: List of column indices (int) that should not be editable. Only applies when interactive=True. When specified, col_count is automatically set to "fixed" and columns cannot be inserted or deleted.
         """
+        if isinstance(row_count, tuple):
+            warnings.warn(
+                "Passing a tuple to 'row_count' will be removed in Gradio 6.0. "
+                "You will need to use 'row_count' for the initial row count and 'row_limits' for min/max constraints instead. "
+                "For example, row_count=(5, 'fixed') should become row_count=5, row_limits=(5, 5).",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
+        if col_count is not None:
+            warnings.warn(
+                "The 'col_count' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'column_count' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
+        if isinstance(col_count, tuple):
+            warnings.warn(
+                "Passing a tuple to 'col_count' will be removed in Gradio 6.0. "
+                "You will need to use 'column_count' for the initial column count and 'column_limits' for min/max constraints instead. "
+                "For example, col_count=(3, 'fixed') should become column_count=3, column_limits=(3, 3).",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         self.wrap = wrap
         # TODO: This is a temporary fix to ensure that the row_count and column_count are processed correctly.
         # with the older version of the dataframe js component. Once we migrate the dataframe js component to

@@ -1029,6 +1029,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width. Only applies if this is the outermost `Blocks` in your Gradio app.
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
         """
+
         self.limiter = None
         self.encrypt = False
         self.mcp_server_obj: None | GradioMCPServer = None
