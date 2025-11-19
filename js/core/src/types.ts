@@ -82,6 +82,7 @@ export interface Dependency {
 	like_user_message: boolean; // dno, this shouldnt be here surely
 	event_specific_args: ("time_limit" | "stream_every" | "like_user_message")[]; // `click(fn, some_arg=val)`
 	js_implementation: string | null; // pythong -> js transpilation
+	component_prop_inputs: number[]; // inputs that request all component props
 }
 
 interface TypeDescription {
