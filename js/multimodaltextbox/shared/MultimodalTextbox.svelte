@@ -372,6 +372,12 @@
 								recording = false;
 								mic_audio = null;
 							}}
+							on:error={({ detail }) => {
+								console.log("Failed to record:", detail);
+								active_source = null;
+								recording = false;
+								mic_audio = null;
+							}}
 						/>
 					</div>
 				{:else}

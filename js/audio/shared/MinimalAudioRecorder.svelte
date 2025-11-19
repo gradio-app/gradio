@@ -108,12 +108,12 @@
 
 						if (file_data) {
 							dispatch("change", file_data);
-							dispatch("stop_recording");
 						}
 					}
 				} catch (e) {
 					console.error("Error processing audio:", e);
 				} finally {
+					dispatch("stop_recording");
 					upload_promise = null;
 				}
 			})();
@@ -179,6 +179,9 @@
 			record.startRecording();
 		} catch (err) {
 			console.error("Error starting recording:", err);
+			show_device_selection = mic_devices.length > 1;
+			has_started = false;
+			recording = false;
 		}
 	}
 </script>
