@@ -1,5 +1,6 @@
 ---
 "@gradio/html": minor
+"@gradio/textbox": minor
 "gradio": minor
 ---
 
