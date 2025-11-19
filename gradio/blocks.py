@@ -1714,7 +1714,6 @@ Received inputs:
                 if block._id in state:
                     block = state[block._id]
 
-                # Determine what to process
                 is_prop_input = i in block_fn.component_prop_inputs
                 if is_prop_input:
                     processing_utils.check_all_files_in_cache(inputs[i])
