@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@sveltejs/package':
+    hash: 4db926aef3594fd34610af6b9f65cfea36a0e306967a58dd2937b7ed1a002a5d
+    path: patches/@sveltejs__package.patch
+
 importers:
 
   .:
@@ -40,7 +45,7 @@ importers:
         version: link:js/tootils
       '@sveltejs/package':
         specifier: ^2.5.4
-        version: 2.5.4(svelte@5.43.6)(typescript@5.9.3)
+        version: 2.5.4(patch_hash=4db926aef3594fd34610af6b9f65cfea36a0e306967a58dd2937b7ed1a002a5d)(svelte@5.43.6)(typescript@5.9.3)
       '@sveltejs/vite-plugin-svelte':
         specifier: ^6.2.1
         version: 6.2.1(svelte@5.43.6)(vite@7.2.2(@types/node@24.10.0)(jiti@1.21.7)(lightningcss@1.30.2)(sass@1.94.0)(stylus@0.64.0)(terser@5.44.1))
@@ -10577,7 +10582,7 @@ snapshots:
       svelte: 5.43.6
       vite: 7.2.2(@types/node@24.10.0)(jiti@1.21.7)(lightningcss@1.30.2)(sass@1.94.0)(stylus@0.64.0)(sugarss@5.0.1(postcss@8.5.6))(terser@5.44.1)
 
-  '@sveltejs/package@2.5.4(svelte@5.43.6)(typescript@5.9.3)':
+  '@sveltejs/package@2.5.4(patch_hash=4db926aef3594fd34610af6b9f65cfea36a0e306967a58dd2937b7ed1a002a5d)(svelte@5.43.6)(typescript@5.9.3)':
     dependencies:
       chokidar: 4.0.3
       kleur: 4.1.5
