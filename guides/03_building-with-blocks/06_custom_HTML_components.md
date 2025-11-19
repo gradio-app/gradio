@@ -103,9 +103,30 @@ way is to add `**kwargs` to your `__init__` method and pass it to `super().__ini
 
 We've created several custom HTML components as reusable components as examples you can reference in [this directory](https://github.com/gradio-app/gradio/tree/main/gradio/components/custom_html_components).
 
-### Adding a Data Model
+### API / MCP support
 
-One of the benefits of using 
+To make your custom HTML component work with Gradio's built-in support for API and MCP (Model Context Protocol) usage, you need to define how its data should be serialized. There are two ways to do this:
+
+**Option 1: Define an `api_info()` method**
+
+Add an `api_info()` method that returns a JSON schema dictionary describing your component's data format. This is what we do in the StarRating class above.
+
+**Option 2: Define a Pydantic data model**
+
+For more complex data structures, you can define a Pydantic model that inherits from `GradioModel` or `GradioRootModel`:
+
+```python
+from gradio.data_classes import GradioModel, GradioRootModel
+
+class MyComponentData(GradioModel):
+    items: List[str]
+    count: int
+
+class MyComponent(gr.HTML):
+    data_model = MyComponentData
+```
+
+Use `GradioModel` when your data is a dictionary with named fields, or `GradioRootModel` when your data is a simple type (string, list, etc.) that doesn't need to be wrapped in a dictionary. By defining a `data_model`, your component automatically implements API methods.
 
 ## Security Considerations
 
