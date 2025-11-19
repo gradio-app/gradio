@@ -154,6 +154,8 @@ class HTML(Component):
             }
         else:
             config = super().get_config()
+        # For custom HTML components, we use the component_class_name
+        # to identify the component in the frontend when reporting errors.
         config["component_class_name"] = self.component_class_name
         return config
 
