@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - changeset-release/main
-      - lazy-load-cc-frontend-templates
       - changeset-release/6.0-dev
 
 permissions: {}

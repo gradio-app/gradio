@@ -273,7 +273,7 @@ def _modify_js_deps(
         # if curent working directory is the gradio repo, use the local version of the dependency'
         if not _in_test_dir() and dep.startswith("@gradio/"):
             package_json[key][dep] = _get_js_dependency_version(
-                dep, gradio_dir / "_frontend_code" / "5.49.1"
+                dep, gradio_dir / "_frontend_code" / gradio.__version__
             )
     return package_json
 
@@ -289,7 +289,7 @@ def delete_contents(directory: str | Path) -> None:
 
 
 def _download_from_hub(destination: Path):
-    version = "5.49.1"
+    version = gradio.__version__
 
     snapshot_download(
         repo_id="gradio/frontend",
@@ -330,7 +330,7 @@ def _create_frontend(
 
     # Replace once we figure out bug with svelte-package
     shutil.copytree(
-        str(p / "_frontend_code" / "5.49.1" / component.js_dir),
+        str(p / "_frontend_code" / gradio.__version__ / component.js_dir),
         frontend,
         dirs_exist_ok=True,
         ignore=ignore,
