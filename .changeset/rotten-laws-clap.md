@@ -5,4 +5,4 @@
 "gradio": minor
 ---
 
-feat:12366
+feat:fix custom components
