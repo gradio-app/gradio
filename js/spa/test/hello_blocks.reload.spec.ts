@@ -55,7 +55,7 @@ test("gradio dev mode correctly reloads the page", async ({ page }) => {
 		console.log("Connected to port", port);
 
 		await page.goto(`http://localhost:${port}`);
-		await page.waitForTimeout(1_000);
+		await page.waitForTimeout(2_000);
 
 		await page.getByLabel("x").fill("abcde");
 		await expect(page.getByLabel("y")).toHaveValue("edcba");
@@ -176,7 +176,7 @@ test("gradio dev mode works with removing / changing existing elements", async (
 		console.log("Connected to port", port);
 
 		await page.goto(`http://localhost:${port}`);
-		await page.waitForTimeout(1000);
+		await page.waitForTimeout(2_000);
 
 		const demo = `
 import gradio as gr
@@ -332,7 +332,7 @@ test("gradio dev mode works when switching between interface / blocks / chatinte
 
 		await page.goto(`http://localhost:${port}`);
 
-		await page.waitForTimeout(1_000);
+		await page.waitForTimeout(2_000);
 
 		const demo1 = `
 import gradio as gr
@@ -494,7 +494,7 @@ test.fixme("gradio dev mode works with gr.render()", async ({ page }) => {
 		console.log("Connected to port", port);
 
 		await page.goto(`http://localhost:${port}`);
-		await page.waitForTimeout(1_000);
+		await page.waitForTimeout(2_000);
 
 		const demo1 = `
 import gradio as gr
