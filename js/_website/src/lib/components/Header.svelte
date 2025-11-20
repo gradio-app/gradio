@@ -35,9 +35,9 @@
 
 <div
 	class:shadow={show_nav}
-	class="w-full lg:w-[95%] lg:max-w-7xl mx-auto p-1.5 flex flex-wrap justify-between flex-row sticky top-4 items-center text-base z-40 lg:px-6 lg:py-1.5 lg:gap-6 rounded-[10px] mb-4 transition-all duration-300 {is_scrolled
-		? 'backdrop-blur-sm bg-gray-50/80 dark:bg-neutral-800/80'
-		: ''}"
+	class="w-full mx-auto p-1.5 flex flex-wrap justify-between flex-row sticky top-4 items-center text-base z-40 lg:px-6 lg:py-1.5 lg:gap-6 rounded-[10px] mb-4 transition-all duration-300 border {is_scrolled
+		? 'backdrop-blur-sm bg-gray-50/80 dark:bg-neutral-800/80 lg:w-[70%] lg:max-w-4xl border-gray-200 dark:border-neutral-700'
+		: 'lg:w-[95%] lg:max-w-7xl border-transparent'}"
 >
 	<a href="/" class="lg:flex-shrink-0">
 		<img src={current_logo} alt="Gradio logo" class="h-10" />
