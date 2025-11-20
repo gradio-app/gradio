@@ -9,6 +9,7 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
+
     let obj = get_object("image");
     let webcam_options_obj = get_object("webcamoptions")
 </script>
@@ -21,15 +22,6 @@
 gradio.Image(···)
 ```
 
-<!-- Embedded Component -->
-<div class="embedded-component">
-<gradio-lite shared-worker>
-import gradio as gr 
-with gr.Blocks() as demo:
-    gr.Image()
-demo.launch()
-</gradio-lite>
-</div>
 
 <!--- Description -->
 ### Description

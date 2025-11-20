@@ -10,11 +10,13 @@ demo = gr.Interface(
             headers=["name", "age", "gender"],
             datatype=["str", "number", "str"],
             row_count=5,
-            col_count=(3, "fixed"),
+            column_count=3,
+            column_limits=(3, 3),
         ),
         gr.Dropdown(["M", "F", "O"]),
     ],
     "dataframe",
+    api_name="predict",
     description="Enter gender as 'M', 'F', or 'O' for other.",
 )
 

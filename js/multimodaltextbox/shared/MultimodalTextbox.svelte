@@ -12,19 +12,24 @@
 	import { Image } from "@gradio/image/shared";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { FileData, Client } from "@gradio/client";
-	import type { WaveformOptions } from "../../audio/shared/types";
+	import type { WaveformOptions } from "@gradio/audio";
 	import {
 		Clear,
 		File,
 		Music,
 		Paperclip,
 		Video,
-		Send,
+		ArrowUp,
 		Square,
-		Microphone
+		Microphone,
+		Check
 	} from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
-	import InteractiveAudio from "../../audio/interactive/InteractiveAudio.svelte";
+	import { BaseInteractiveAudio as InteractiveAudio } from "@gradio/audio";
+	import {
+		MinimalAudioPlayer,
+		MinimalAudioRecorder
+	} from "@gradio/audio/shared";
 	import type { InputHTMLAttributes } from "./types";
 
 	export let value: { text: string; files: FileData[] } = {
@@ -65,6 +70,7 @@
 		| "microphone,upload" = "upload";
 	export let active_source: "microphone" | null = null;
 	export let html_attributes: InputHTMLAttributes | null = null;
+	export let upload_promise: Promise<any> | null = null;
 
 	let upload_component: Upload;
 	let el: HTMLTextAreaElement | HTMLInputElement;
@@ -88,6 +94,10 @@
 		? file_types_string.split(",").map((s) => s.trim())
 		: null;
 	$: dispatch("drag", dragging);
+	$: show_upload =
+		sources &&
+		sources.includes("upload") &&
+		!(file_count === "single" && value.files.length > 0);
 	let mic_audio: FileData | null = null;
 
 	let full_container: HTMLDivElement;
@@ -98,7 +108,7 @@
 	}
 
 	$: if (value === null) value = { text: "", files: [] };
-	$: value, el && lines !== max_lines && resize(el, lines, max_lines);
+	$: (value, el && lines !== max_lines && resize(el, lines, max_lines));
 
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
@@ -165,9 +175,9 @@
 	}
 
 	async function handle_keypress(e: KeyboardEvent): Promise<void> {
-		await tick();
 		if (e.key === "Enter" && e.shiftKey && lines > 1) {
 			e.preventDefault();
+			await tick();
 			dispatch("submit");
 		} else if (
 			e.key === "Enter" &&
@@ -176,13 +186,10 @@
 			max_lines >= 1
 		) {
 			e.preventDefault();
-			dispatch("submit");
+			add_mic_audio_to_files();
 			active_source = null;
-			if (mic_audio) {
-				value.files.push(mic_audio);
-				value = value;
-				mic_audio = null;
-			}
+			await tick();
+			dispatch("submit");
 		}
 	}
 
@@ -234,14 +241,19 @@
 		dispatch("stop");
 	}
 
-	function handle_submit(): void {
-		dispatch("submit");
-		active_source = null;
+	function add_mic_audio_to_files(): void {
 		if (mic_audio) {
 			value.files.push(mic_audio);
 			value = value;
 			mic_audio = null;
+			dispatch("change", value);
 		}
+	}
+
+	function handle_submit(): void {
+		add_mic_audio_to_files();
+		active_source = null;
+		dispatch("submit");
 	}
 
 	async function handle_paste(event: ClipboardEvent): Promise<void> {
@@ -335,80 +347,77 @@
 	aria-label="Multimedia input field"
 >
 	<BlockTitle {show_label} {info} {rtl}>{label}</BlockTitle>
-	{#if value.files.length > 0 || uploading}
-		<div
-			class="thumbnails scroll-hide"
-			aria-label="Uploaded files"
-			data-testid="container_el"
-			style="display: {value.files.length > 0 || uploading ? 'flex' : 'none'};"
-		>
-			{#each value.files as file, index}
-				<span role="listitem" aria-label="File thumbnail">
-					<button class="thumbnail-item thumbnail-small">
-						<button
-							class:disabled
-							class="delete-button"
-							on:click={(event) => remove_thumbnail(event, index)}
-							><Clear /></button
-						>
-						{#if file.mime_type && file.mime_type.includes("image")}
-							<Image
-								src={file.url}
-								title={null}
-								alt=""
-								loading="lazy"
-								class={"thumbnail-image"}
-							/>
-						{:else if file.mime_type && file.mime_type.includes("audio")}
-							<Music />
-						{:else if file.mime_type && file.mime_type.includes("video")}
-							<Video />
-						{:else}
-							<File />
-						{/if}
-					</button>
-				</span>
-			{/each}
-			{#if uploading}
-				<div class="loader" role="status" aria-label="Uploading"></div>
-			{/if}
-		</div>
-	{/if}
-	{#if sources && sources.includes("microphone") && active_source === "microphone"}
-		<InteractiveAudio
-			on:change={({ detail }) => {
-				if (detail !== null) {
-					mic_audio = detail;
-				}
-			}}
-			on:clear={() => {
-				active_source = null;
-			}}
-			on:start_recording={() => dispatch("start_recording")}
-			on:pause_recording={() => dispatch("pause_recording")}
-			on:stop_recording={() => dispatch("stop_recording")}
-			sources={["microphone"]}
-			class_name="compact-audio"
-			{recording}
-			{waveform_settings}
-			{waveform_options}
-			{i18n}
-			{active_source}
-			{upload}
-			{stream_handler}
-			stream_every={1}
-			editable={true}
-			{label}
-			{root}
-			loop={false}
-			show_label={false}
-			show_download_button={false}
-			dragging={false}
-		/>
-	{/if}
 	<div class="input-container">
-		{#if sources && sources.includes("upload") && !(file_count === "single" && value.files.length > 0)}
+		{#if sources && sources.includes("microphone") && active_source === "microphone"}
+			<div class="recording-overlay" class:has-audio={mic_audio !== null}>
+				{#if !mic_audio}
+					<div class="recording-content">
+						<MinimalAudioRecorder
+							label={label || "Audio"}
+							{waveform_settings}
+							{recording}
+							{upload}
+							{root}
+							{max_file_size}
+							bind:upload_promise
+							on:change={({ detail }) => {
+								mic_audio = detail;
+							}}
+							on:stop_recording={() => {
+								recording = false;
+								dispatch("stop_recording");
+							}}
+							on:clear={() => {
+								active_source = null;
+								recording = false;
+								mic_audio = null;
+							}}
+							on:error={({ detail }) => {
+								console.log("Failed to record:", detail);
+								active_source = null;
+								recording = false;
+								mic_audio = null;
+							}}
+						/>
+					</div>
+				{:else}
+					<div class="recording-content">
+						<MinimalAudioPlayer
+							value={mic_audio}
+							label={label || "Audio"}
+							loop={false}
+						/>
+						<div class="action-buttons">
+							<button
+								class="confirm-button"
+								on:click={() => {
+									add_mic_audio_to_files();
+									active_source = null;
+									recording = false;
+								}}
+								aria-label="Attach audio"
+							>
+								<Check />
+							</button>
+							<button
+								class="cancel-button"
+								on:click={() => {
+									active_source = null;
+									recording = false;
+									mic_audio = null;
+								}}
+								aria-label="Clear audio"
+							>
+								<Clear />
+							</button>
+						</div>
+					</div>
+				{/if}
+			</div>
+		{/if}
+		{#if show_upload}
 			<Upload
+				bind:upload_promise
 				bind:this={upload_component}
 				on:load={handle_upload}
 				{file_count}
@@ -424,87 +433,153 @@
 				{upload}
 				{stream_handler}
 			/>
-			<button
-				data-testid="upload-button"
-				class="upload-button"
-				{disabled}
-				on:click={disabled ? undefined : handle_upload_click}
-				><Paperclip /></button
-			>
 		{/if}
-		{#if sources && sources.includes("microphone")}
-			<button
-				data-testid="microphone-button"
-				class="microphone-button"
-				class:recording
-				{disabled}
-				on:click={disabled
-					? undefined
-					: () => {
-							active_source =
-								active_source !== "microphone" ? "microphone" : null;
+
+		<div
+			class="input-wrapper"
+			class:has-files={value.files.length > 0 || uploading}
+		>
+			{#if value.files.length > 0 || uploading || show_upload}
+				<div
+					class="thumbnails"
+					aria-label="Uploaded files"
+					data-testid="container_el"
+				>
+					{#if show_upload}
+						<button
+							data-testid="upload-button"
+							class="upload-button thumbnail-add"
+							{disabled}
+							on:click={handle_upload_click}
+							aria-label="Upload a file"
+						>
+							<Paperclip />
+						</button>
+					{/if}
+					{#each value.files as file, index}
+						<span
+							class="thumbnail-wrapper"
+							role="listitem"
+							aria-label="File thumbnail"
+						>
+							<div class="thumbnail-item thumbnail-small">
+								{#if file.mime_type && file.mime_type.includes("image")}
+									<Image
+										src={file.url}
+										restProps={{
+											title: null,
+											alt: "",
+											loading: "lazy",
+											class: "thumbnail-image"
+										}}
+									/>
+								{:else if file.mime_type && file.mime_type.includes("audio")}
+									<Music />
+								{:else if file.mime_type && file.mime_type.includes("video")}
+									<Video />
+								{:else}
+									<File />
+								{/if}
+								<button
+									class="delete-button"
+									on:click={(event) => remove_thumbnail(event, index)}
+									aria-label="Remove file"
+								>
+									<Clear />
+								</button>
+							</div>
+						</span>
+					{/each}
+					{#if uploading}
+						<div class="loader" role="status" aria-label="Uploading"></div>
+					{/if}
+				</div>
+			{/if}
+
+			<div class="input-row">
+				<textarea
+					data-testid="textbox"
+					use:text_area_resize={{
+						text: value.text,
+						lines: lines,
+						max_lines: max_lines
+					}}
+					class:no-label={!show_label}
+					dir={rtl ? "rtl" : "ltr"}
+					bind:value={value.text}
+					bind:this={el}
+					{placeholder}
+					rows={lines}
+					{disabled}
+					on:keypress={handle_keypress}
+					on:blur
+					on:select={handle_select}
+					on:focus
+					on:scroll={handle_scroll}
+					on:paste={handle_paste}
+					style={text_align ? "text-align: " + text_align : ""}
+					autocapitalize={html_attributes?.autocapitalize}
+					autocorrect={html_attributes?.autocorrect}
+					spellcheck={html_attributes?.spellcheck}
+					autocomplete={html_attributes?.autocomplete}
+					tabindex={html_attributes?.tabindex}
+					enterkeyhint={html_attributes?.enterkeyhint}
+					lang={html_attributes?.lang}
+				/>
+
+				{#if sources && sources.includes("microphone")}
+					<button
+						data-testid="microphone-button"
+						class="microphone-button"
+						class:recording
+						{disabled}
+						on:click={async () => {
+							if (active_source !== "microphone") {
+								active_source = "microphone";
+								await tick();
+								recording = true;
+							} else {
+								active_source = null;
+								recording = false;
+							}
 						}}
-			>
-				<Microphone />
-			</button>
-		{/if}
-		<textarea
-			data-testid="textbox"
-			use:text_area_resize={{
-				text: value.text,
-				lines: lines,
-				max_lines: max_lines
-			}}
-			class="scroll-hide"
-			class:no-label={!show_label}
-			dir={rtl ? "rtl" : "ltr"}
-			bind:value={value.text}
-			bind:this={el}
-			{placeholder}
-			rows={lines}
-			{disabled}
-			on:keypress={handle_keypress}
-			on:blur
-			on:select={handle_select}
-			on:focus
-			on:scroll={handle_scroll}
-			on:paste={handle_paste}
-			style={text_align ? "text-align: " + text_align : ""}
-			autocapitalize={html_attributes?.autocapitalize}
-			autocorrect={html_attributes?.autocorrect}
-			spellcheck={html_attributes?.spellcheck}
-			autocomplete={html_attributes?.autocomplete}
-			tabindex={html_attributes?.tabindex}
-			enterkeyhint={html_attributes?.enterkeyhint}
-			lang={html_attributes?.lang}
-		/>
-		{#if submit_btn}
-			<button
-				class="submit-button"
-				class:padded-button={submit_btn !== true}
-				{disabled}
-				on:click={disabled ? undefined : handle_submit}
-			>
-				{#if submit_btn === true}
-					<Send />
-				{:else}
-					{submit_btn}
+						aria-label="Record audio"
+					>
+						<Microphone />
+					</button>
 				{/if}
-			</button>
-		{/if}
-		{#if stop_btn}
-			<button
-				class="stop-button"
-				class:padded-button={stop_btn !== true}
-				on:click={handle_stop}
-			>
-				{#if stop_btn === true}
-					<Square fill={"none"} stroke_width={2.5} />
-				{:else}
-					{stop_btn}
+
+				{#if submit_btn}
+					<button
+						class="submit-button"
+						class:padded-button={submit_btn !== true}
+						{disabled}
+						on:click={handle_submit}
+						aria-label="Submit"
+					>
+						{#if submit_btn === true}
+							<ArrowUp />
+						{:else}
+							{submit_btn}
+						{/if}
+					</button>
 				{/if}
-			</button>
-		{/if}
+				{#if stop_btn}
+					<button
+						class="stop-button"
+						class:padded-button={stop_btn !== true}
+						on:click={handle_stop}
+						aria-label="Stop"
+					>
+						{#if stop_btn === true}
+							<Square fill={"none"} stroke_width={2.5} />
+						{:else}
+							{stop_btn}
+						{/if}
+					</button>
+				{/if}
+			</div>
+		</div>
 	</div>
 </div>
 
@@ -517,60 +592,149 @@
 	}
 
 	.full-container.dragging {
-		border: 1px solid var(--color-accent);
-		border-radius: calc(var(--radius-sm) - 1px);
+		border-color: var(--color-accent);
+		border-radius: calc(var(--radius-sm) - var(--size-px));
 	}
 
 	.full-container.dragging::after {
 		content: "";
 		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
+		inset: 0;
 		pointer-events: none;
 	}
 
 	.input-container {
 		display: flex;
 		position: relative;
+		flex-direction: column;
+		gap: 0;
+	}
+
+	.input-wrapper {
+		display: flex;
+		position: relative;
+		flex-direction: column;
+		gap: 0;
+		background: var(--block-background-fill);
+		border-radius: var(--radius-xl);
+		padding: var(--spacing-sm);
+		align-items: flex-start;
+		min-height: auto;
+	}
+
+	.input-wrapper.has-files {
+		padding-top: var(--spacing-xs);
+	}
+
+	.input-row {
+		display: flex;
 		align-items: flex-end;
+		gap: var(--spacing-sm);
+		width: 100%;
+	}
+
+	.thumbnails {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+		padding: var(--spacing-xs) 0;
+		margin-bottom: var(--spacing-xs);
+		overflow-x: auto;
+		overflow-y: hidden;
+		scrollbar-width: none;
+		-ms-overflow-style: none;
+		flex-wrap: nowrap;
+		-webkit-overflow-scrolling: touch;
+		scroll-behavior: smooth;
+		overflow-y: scroll;
+		width: 100%;
+	}
+
+	.thumbnails::-webkit-scrollbar,
+	.thumbnails::-webkit-scrollbar-track,
+	.thumbnails::-webkit-scrollbar-thumb {
+		display: none;
+	}
+
+	.thumbnails :global(img) {
+		width: var(--size-full);
+		height: var(--size-full);
+		object-fit: cover;
+		border-radius: var(--radius-md);
+	}
+
+	.thumbnail-wrapper {
+		position: relative;
+		flex-shrink: 0;
+	}
+
+	.thumbnail-item {
+		position: relative;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border-radius: var(--radius-md);
+		background: var(--background-fill-secondary);
+		width: var(--size-full);
+		height: var(--size-full);
+		cursor: default;
+		padding: 0;
+	}
+
+	.thumbnail-small {
+		width: var(--size-10);
+		height: var(--size-10);
+	}
+
+	.thumbnail-item :global(svg) {
+		width: var(--size-5);
+		height: var(--size-5);
+	}
+
+	.delete-button {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		color: var(--button-primary-text-color);
+		background: rgba(0, 0, 0, 0.6);
+		backdrop-filter: var(--blur-xs);
+		border-radius: var(--radius-md);
+		padding: 0;
+		z-index: var(--layer-1);
+		opacity: 0;
+		transition: opacity 0.1s var(--easing-standard);
+	}
+
+	.delete-button:hover {
+		background: rgba(0, 0, 0, 0.8);
+	}
+
+	.delete-button :global(svg) {
+		width: var(--size-5);
+		height: var(--size-5);
+	}
+
+	.thumbnail-item:hover .delete-button {
+		opacity: 1;
 	}
 
 	textarea {
 		flex-grow: 1;
 		outline: none !important;
-		background: var(--block-background-fill);
-		padding: var(--input-padding);
+		background: transparent;
+		padding: 0;
 		color: var(--body-text-color);
 		font-weight: var(--input-text-weight);
 		font-size: var(--input-text-size);
-		line-height: var(--line-sm);
 		border: none;
-		margin-top: 0px;
-		margin-bottom: 0px;
+		margin: 0;
 		resize: none;
 		position: relative;
-		z-index: 1;
+		z-index: var(--layer-1);
 		text-align: left;
-	}
-	textarea[dir="rtl"] {
-		text-align: right;
-	}
-
-	textarea[dir="rtl"] ~ .submit-button {
-		order: -1;
-		margin-left: 0;
-		margin-right: var(--spacing-sm);
-	}
-
-	textarea[dir="rtl"] ~ .submit-button :global(svg) {
-		transform: scaleX(-1);
-	}
-
-	textarea.no-label {
-		padding-top: 5px;
-		padding-bottom: 5px;
+		min-height: var(--size-9);
 	}
 
 	textarea:disabled {
@@ -582,172 +746,260 @@
 		color: var(--input-placeholder-color);
 	}
 
-	.microphone-button,
-	.upload-button,
-	.submit-button,
-	.stop-button {
-		border: none;
-		text-align: center;
-		text-decoration: none;
-		font-size: 14px;
+	textarea[dir="rtl"] {
+		text-align: right;
+	}
+
+	textarea[dir="rtl"] ~ .submit-button {
+		order: -1;
+	}
+
+	textarea[dir="rtl"] ~ .submit-button :global(svg) {
+		transform: scaleX(-1);
+	}
+
+	.microphone-button {
+		color: var(--body-text-color);
 		cursor: pointer;
-		border-radius: 15px;
-		min-width: 30px;
-		height: 30px;
-		flex-shrink: 0;
+		padding: var(--spacing-sm);
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		z-index: var(--layer-1);
-		margin-left: var(--spacing-sm);
-	}
-	.padded-button {
-		padding: 0 10px;
+		flex-shrink: 0;
+		border-radius: var(--radius-md);
 	}
 
-	.microphone-button,
-	.stop-button,
-	.upload-button,
-	.submit-button {
+	.thumbnail-add {
 		background: var(--button-secondary-background-fill);
+		cursor: pointer;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		flex-shrink: 0;
+		width: var(--size-10);
+		height: var(--size-10);
+		border-radius: var(--radius-md);
+		z-index: var(--layer-1);
 	}
 
-	.microphone-button:hover:not(:disabled),
-	.stop-button:hover:not(:disabled),
-	.upload-button:hover:not(:disabled),
-	.submit-button:hover:not(:disabled) {
+	.thumbnail-add:hover:not(:disabled) {
 		background: var(--button-secondary-background-fill-hover);
 	}
 
-	.microphone-button:disabled,
-	.stop-button:disabled,
-	.upload-button:disabled,
-	.submit-button:disabled {
-		background: var(--button-secondary-background-fill);
+	.thumbnail-add:disabled {
+		opacity: 0.5;
 		cursor: not-allowed;
 	}
-	.microphone-button:active,
-	.stop-button:active,
-	.upload-button:active,
-	.submit-button:active {
+
+	.thumbnail-add :global(svg) {
+		width: var(--size-5);
+		height: var(--size-5);
+	}
+
+	.microphone-button {
+		width: var(--size-9);
+		height: var(--size-9);
+	}
+
+	.microphone-button:hover:not(:disabled) {
+		background: var(--button-secondary-background-fill);
+	}
+
+	.microphone-button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.microphone-button :global(svg) {
+		width: var(--size-5);
+		height: var(--size-5);
+	}
+
+	.submit-button,
+	.stop-button {
+		background: var(--button-secondary-background-fill);
+		cursor: pointer;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		flex-shrink: 0;
+		width: var(--size-9);
+		height: var(--size-9);
+		border-radius: var(--radius-md);
+		z-index: var(--layer-1);
+	}
+
+	.submit-button:hover:not(:disabled),
+	.stop-button:hover:not(:disabled) {
+		background: var(--button-secondary-background-fill-hover);
+	}
+
+	.submit-button:active:not(:disabled),
+	.stop-button:active:not(:disabled) {
 		box-shadow: var(--button-shadow-active);
 	}
 
-	.submit-button :global(svg) {
-		height: 22px;
-		width: 22px;
-	}
-	.microphone-button :global(svg),
-	.upload-button :global(svg) {
-		height: 17px;
-		width: 17px;
+	.submit-button:disabled,
+	.stop-button:disabled {
+		cursor: not-allowed;
 	}
 
+	.submit-button :global(svg),
 	.stop-button :global(svg) {
-		height: 16px;
-		width: 16px;
+		width: var(--size-5);
+		height: var(--size-5);
+	}
+
+	.padded-button {
+		padding: 0 var(--spacing-lg);
+		width: auto;
+		border-radius: var(--radius-xl);
 	}
 
 	.loader {
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		--ring-color: transparent;
 		position: relative;
-		border: 5px solid #f3f3f3;
-		border-top: 5px solid var(--color-accent);
-		border-radius: 50%;
-		width: 25px;
-		height: 25px;
-		animation: spin 2s linear infinite;
+		border: var(--size-1) solid var(--border-color-primary);
+		border-top-color: var(--color-accent);
+		border-radius: var(--radius-100);
+		width: var(--size-5);
+		height: var(--size-5);
+		animation: spin 1s linear infinite;
+		flex-shrink: 0;
 	}
 
 	@keyframes spin {
-		0% {
-			transform: rotate(0deg);
-		}
-		100% {
+		to {
 			transform: rotate(360deg);
 		}
 	}
 
-	.thumbnails :global(img) {
-		width: var(--size-full);
-		height: var(--size-full);
-		object-fit: cover;
-		border-radius: var(--radius-lg);
+	.recording-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: var(--block-background-fill);
+		border-radius: var(--radius-xl);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: var(--layer-5);
+		padding: var(--spacing-lg);
+		backdrop-filter: blur(8px);
+		animation: fadeIn 0.2s var(--easing-standard);
 	}
 
-	.thumbnails {
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+
+	.recording-content {
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-lg);
-		overflow-x: scroll;
-		padding-top: var(--spacing-sm);
-		margin-bottom: 6px;
+		width: 100%;
+		max-width: 700px;
 	}
 
-	.thumbnail-item {
+	.recording-content :global(.minimal-audio-recorder),
+	.recording-content :global(.minimal-audio-player) {
+		flex: 1;
+	}
+
+	.action-buttons {
 		display: flex;
-		justify-content: center;
 		align-items: center;
-		--ring-color: transparent;
-		position: relative;
-		box-shadow:
-			0 0 0 2px var(--ring-color),
-			var(--shadow-drop);
-		border: 1px solid var(--border-color-primary);
-		border-radius: var(--radius-lg);
-		background: var(--background-fill-secondary);
-		aspect-ratio: var(--ratio-square);
-		width: var(--size-full);
-		height: var(--size-full);
-		cursor: default;
+		gap: var(--spacing-sm);
+		flex-shrink: 0;
 	}
 
-	.thumbnail-small {
-		flex: none;
-		transform: scale(0.9);
-		transition: 0.075s;
-		width: var(--size-12);
-		height: var(--size-12);
-	}
-
-	.thumbnail-item :global(svg) {
-		width: 30px;
-		height: 30px;
-	}
-
-	.delete-button {
+	.stop-button,
+	.confirm-button,
+	.cancel-button {
 		display: flex;
-		justify-content: center;
 		align-items: center;
-		position: absolute;
-		right: -7px;
-		top: -7px;
-		color: var(--button-secondary-text-color);
-		background: var(--button-secondary-background-fill);
-		border: none;
-		text-align: center;
-		text-decoration: none;
-		font-size: 10px;
+		justify-content: center;
+		width: var(--size-9);
+		height: var(--size-9);
+		padding: 0;
+		border-radius: var(--radius-md);
 		cursor: pointer;
-		border-radius: 50%;
-		width: 20px;
-		height: 20px;
+		flex-shrink: 0;
 	}
 
-	.disabled {
-		display: none;
+	.stop-button {
+		background: var(--button-secondary-background-fill);
+		border-color: var(--border-color-primary);
+		color: var(--error-500);
 	}
 
-	.delete-button :global(svg) {
-		width: 12px;
-		height: 12px;
+	.stop-button:hover {
+		background: var(--button-secondary-background-fill-hover);
+		color: var(--error-600);
 	}
 
-	.delete-button:hover {
-		filter: brightness(1.2);
-		border: 0.8px solid var(--color-grey-500);
+	.stop-button:active {
+		transform: scale(0.95);
+	}
+
+	.confirm-button {
+		background: var(--button-primary-background-fill);
+		border-color: var(--button-primary-border-color);
+		color: white;
+	}
+
+	.confirm-button:hover {
+		background: var(--button-primary-background-fill-hover);
+		color: var(--button-primary-text-color-hover);
+	}
+
+	.confirm-button:active {
+		transform: scale(0.95);
+	}
+
+	.cancel-button {
+		background: var(--button-secondary-background-fill);
+		color: var(--body-text-color);
+	}
+
+	.cancel-button:hover {
+		background: var(--button-secondary-background-fill-hover);
+	}
+
+	.stop-button :global(svg),
+	.confirm-button :global(svg),
+	.cancel-button :global(svg) {
+		width: var(--size-5);
+		height: var(--size-5);
+	}
+
+	@media (max-width: 768px) {
+		.input-wrapper {
+			padding: var(--spacing-xs);
+		}
+
+		.thumbnails {
+			padding: var(--spacing-xs) 0;
+			margin-bottom: var(--spacing-md);
+		}
+
+		.thumbnail-small,
+		.thumbnail-add {
+			width: var(--size-9);
+			height: var(--size-9);
+		}
+
+		.thumbnail-item:active .delete-button {
+			opacity: 1;
+		}
 	}
 </style>

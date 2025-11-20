@@ -20,7 +20,6 @@ def get_plot(period=1):
         x="x",
         y="y",
         title="Plot (updates every second)",
-        width=600,
         height=350,
     )
     plot_end += 0.1

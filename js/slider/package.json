@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/slider",
-	"version": "0.6.18",
+	"version": "0.7.0-dev.2",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -29,7 +29,7 @@
 		"@gradio/preview": "workspace:^"
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.43.4"
 	},
 	"repository": {
 		"type": "git",
