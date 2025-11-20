@@ -260,11 +260,6 @@
 		}
 	}
 
-	$effect(() => {
-		if (vibe_mode) {
-			void loadVibeEditor();
-		}
-	});
 
 	async function set_api_docs_visible(visible: boolean): Promise<void> {
 		api_recorder_visible = false;
@@ -392,6 +387,10 @@
 			ready = true;
 			dep_manager.dispatch_load_events();
 		});
+
+		if (vibe_mode) {
+			void loadVibeEditor();
+		}
 
 		return () => {
 			mut.disconnect();
