@@ -21,10 +21,15 @@
 		Video,
 		ArrowUp,
 		Square,
-		Microphone
+		Microphone,
+		Check
 	} from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 	import { BaseInteractiveAudio as InteractiveAudio } from "@gradio/audio";
+	import {
+		MinimalAudioPlayer,
+		MinimalAudioRecorder
+	} from "@gradio/audio/shared";
 	import type { InputHTMLAttributes } from "./types";
 
 	export let value: { text: string; files: FileData[] } = {
@@ -181,10 +186,10 @@
 			max_lines >= 1
 		) {
 			e.preventDefault();
+			add_mic_audio_to_files();
+			active_source = null;
 			await tick();
 			dispatch("submit");
-			active_source = null;
-			add_mic_audio_to_files();
 		}
 	}
 
@@ -241,13 +246,14 @@
 			value.files.push(mic_audio);
 			value = value;
 			mic_audio = null;
+			dispatch("change", value);
 		}
 	}
 
 	function handle_submit(): void {
-		dispatch("submit");
-		active_source = null;
 		add_mic_audio_to_files();
+		active_source = null;
+		dispatch("submit");
 	}
 
 	async function handle_paste(event: ClipboardEvent): Promise<void> {
@@ -343,36 +349,71 @@
 	<BlockTitle {show_label} {info} {rtl}>{label}</BlockTitle>
 	<div class="input-container">
 		{#if sources && sources.includes("microphone") && active_source === "microphone"}
-			<InteractiveAudio
-				on:change={({ detail }) => {
-					if (detail !== null) {
-						mic_audio = detail;
-					}
-				}}
-				on:clear={() => {
-					active_source = null;
-				}}
-				on:start_recording={() => dispatch("start_recording")}
-				on:pause_recording={() => dispatch("pause_recording")}
-				on:stop_recording={() => dispatch("stop_recording")}
-				sources={["microphone"]}
-				class_name="compact-audio"
-				{recording}
-				{waveform_settings}
-				{waveform_options}
-				{i18n}
-				{active_source}
-				{upload}
-				{stream_handler}
-				stream_every={1}
-				editable={true}
-				{label}
-				{root}
-				loop={false}
-				show_label={false}
-				buttons={[]}
-				dragging={false}
-			/>
+			<div class="recording-overlay" class:has-audio={mic_audio !== null}>
+				{#if !mic_audio}
+					<div class="recording-content">
+						<MinimalAudioRecorder
+							label={label || "Audio"}
+							{waveform_settings}
+							{recording}
+							{upload}
+							{root}
+							{max_file_size}
+							bind:upload_promise
+							on:change={({ detail }) => {
+								mic_audio = detail;
+							}}
+							on:stop_recording={() => {
+								recording = false;
+								dispatch("stop_recording");
+							}}
+							on:clear={() => {
+								active_source = null;
+								recording = false;
+								mic_audio = null;
+							}}
+							on:error={({ detail }) => {
+								console.log("Failed to record:", detail);
+								active_source = null;
+								recording = false;
+								mic_audio = null;
+							}}
+						/>
+					</div>
+				{:else}
+					<div class="recording-content">
+						<MinimalAudioPlayer
+							value={mic_audio}
+							label={label || "Audio"}
+							loop={false}
+						/>
+						<div class="action-buttons">
+							<button
+								class="confirm-button"
+								on:click={() => {
+									add_mic_audio_to_files();
+									active_source = null;
+									recording = false;
+								}}
+								aria-label="Attach audio"
+							>
+								<Check />
+							</button>
+							<button
+								class="cancel-button"
+								on:click={() => {
+									active_source = null;
+									recording = false;
+									mic_audio = null;
+								}}
+								aria-label="Clear audio"
+							>
+								<Clear />
+							</button>
+						</div>
+					</div>
+				{/if}
+			</div>
 		{/if}
 		{#if show_upload}
 			<Upload
@@ -407,7 +448,7 @@
 					{#if show_upload}
 						<button
 							data-testid="upload-button"
-							class="upload-button mobile-thumbnail-add"
+							class="upload-button thumbnail-add"
 							{disabled}
 							on:click={handle_upload_click}
 							aria-label="Upload a file"
@@ -492,9 +533,15 @@
 						class="microphone-button"
 						class:recording
 						{disabled}
-						on:click={() => {
-							active_source =
-								active_source !== "microphone" ? "microphone" : null;
+						on:click={async () => {
+							if (active_source !== "microphone") {
+								active_source = "microphone";
+								await tick();
+								recording = true;
+							} else {
+								active_source = null;
+								recording = false;
+							}
 						}}
 						aria-label="Record audio"
 					>
@@ -626,7 +673,6 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		border: var(--size-px) solid var(--border-color-primary);
 		border-radius: var(--radius-md);
 		background: var(--background-fill-secondary);
 		width: var(--size-full);
@@ -712,7 +758,6 @@
 		transform: scaleX(-1);
 	}
 
-	.mobile-thumbnail-add,
 	.microphone-button {
 		color: var(--body-text-color);
 		cursor: pointer;
@@ -722,14 +767,33 @@
 		align-items: center;
 		flex-shrink: 0;
 		border-radius: var(--radius-md);
-		transition:
-			background 0.2s var(--easing-standard),
-			border-color 0.2s var(--easing-standard);
 	}
 
-	.mobile-thumbnail-add {
+	.thumbnail-add {
+		background: var(--button-secondary-background-fill);
+		cursor: pointer;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		flex-shrink: 0;
 		width: var(--size-10);
 		height: var(--size-10);
+		border-radius: var(--radius-md);
+		z-index: var(--layer-1);
+	}
+
+	.thumbnail-add:hover:not(:disabled) {
+		background: var(--button-secondary-background-fill-hover);
+	}
+
+	.thumbnail-add:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.thumbnail-add :global(svg) {
+		width: var(--size-5);
+		height: var(--size-5);
 	}
 
 	.microphone-button {
@@ -737,19 +801,15 @@
 		height: var(--size-9);
 	}
 
-	.mobile-thumbnail-add:hover:not(:disabled),
 	.microphone-button:hover:not(:disabled) {
-		background: var(--button-secondary-background-fill-hover);
-		border-color: var(--border-color-primary);
+		background: var(--button-secondary-background-fill);
 	}
 
-	.mobile-thumbnail-add:disabled,
 	.microphone-button:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
 	}
 
-	.mobile-thumbnail-add :global(svg),
 	.microphone-button :global(svg) {
 		width: var(--size-5);
 		height: var(--size-5);
@@ -757,7 +817,6 @@
 
 	.submit-button,
 	.stop-button {
-		border: var(--size-px) solid var(--border-color-primary);
 		background: var(--button-secondary-background-fill);
 		cursor: pointer;
 		display: flex;
@@ -768,9 +827,6 @@
 		height: var(--size-9);
 		border-radius: var(--radius-md);
 		z-index: var(--layer-1);
-		transition:
-			background 0.2s var(--easing-standard),
-			border-color 0.2s var(--easing-standard);
 	}
 
 	.submit-button:hover:not(:disabled),
@@ -820,6 +876,112 @@
 		}
 	}
 
+	.recording-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: var(--block-background-fill);
+		border-radius: var(--radius-xl);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: var(--layer-5);
+		padding: var(--spacing-lg);
+		backdrop-filter: blur(8px);
+		animation: fadeIn 0.2s var(--easing-standard);
+	}
+
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+
+	.recording-content {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-lg);
+		width: 100%;
+		max-width: 700px;
+	}
+
+	.recording-content :global(.minimal-audio-recorder),
+	.recording-content :global(.minimal-audio-player) {
+		flex: 1;
+	}
+
+	.action-buttons {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+		flex-shrink: 0;
+	}
+
+	.stop-button,
+	.confirm-button,
+	.cancel-button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: var(--size-9);
+		height: var(--size-9);
+		padding: 0;
+		border-radius: var(--radius-md);
+		cursor: pointer;
+		flex-shrink: 0;
+	}
+
+	.stop-button {
+		background: var(--button-secondary-background-fill);
+		border-color: var(--border-color-primary);
+		color: var(--error-500);
+	}
+
+	.stop-button:hover {
+		background: var(--button-secondary-background-fill-hover);
+		color: var(--error-600);
+	}
+
+	.stop-button:active {
+		transform: scale(0.95);
+	}
+
+	.confirm-button {
+		background: var(--button-primary-background-fill);
+		border-color: var(--button-primary-border-color);
+		color: white;
+	}
+
+	.confirm-button:hover {
+		background: var(--button-primary-background-fill-hover);
+		color: var(--button-primary-text-color-hover);
+	}
+
+	.confirm-button:active {
+		transform: scale(0.95);
+	}
+
+	.cancel-button {
+		background: var(--button-secondary-background-fill);
+		color: var(--body-text-color);
+	}
+
+	.cancel-button:hover {
+		background: var(--button-secondary-background-fill-hover);
+	}
+
+	.stop-button :global(svg),
+	.confirm-button :global(svg),
+	.cancel-button :global(svg) {
+		width: var(--size-5);
+		height: var(--size-5);
+	}
+
 	@media (max-width: 768px) {
 		.input-wrapper {
 			padding: var(--spacing-xs);
@@ -831,7 +993,7 @@
 		}
 
 		.thumbnail-small,
-		.mobile-thumbnail-add {
+		.thumbnail-add {
 			width: var(--size-9);
 			height: var(--size-9);
 		}
