@@ -407,6 +407,7 @@
 							{file_data_present}
 							{mcp_docs}
 							{analytics}
+							{root}
 							bind:config_snippets
 						/>
 					</div>
