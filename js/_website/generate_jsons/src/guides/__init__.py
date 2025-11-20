@@ -1,6 +1,7 @@
 import json
 import os
 import re
+
 import markdown
 
 DIR = os.path.dirname(__file__)
@@ -74,7 +75,7 @@ for guide_folder in guide_folders:
         contributor = get_labeled_metadata("Contributed by", is_list=False)
 
         url = f"/guides/{guide_name}/"
-        
+
         guide_content = re.sub(
             r"\$code_([a-z _\-0-9]+)",
             lambda x: f"```python\n{demos[x.group(1)]}\n```",
@@ -87,24 +88,22 @@ for guide_folder in guide_folders:
         )
 
         guide_content = re.sub(
-            r"(\n\nTip: )(.*?)(?=\n\n|$)", 
+            r"\n\nTip: (.*?)(?=\n\n|$)",
             lambda x: f"""
             <div class='tip'>
-                <span class="inline-flex" style="align-items: baseline">
-                    <svg class="self-center w-5 h-5 mx-1" xmlns="http://www.w3.org/2000/svg" width="800px" height="800px" viewBox="0 0 24 24" fill="currentColor">
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M9.25 18.7089C9.25 18.2894 9.58579 17.9494 10 17.9494H14C14.4142 17.9494 14.75 18.2894 14.75 18.7089C14.75 19.1283 14.4142 19.4684 14 19.4684H10C9.58579 19.4684 9.25 19.1283 9.25 18.7089ZM9.91667 21.2405C9.91667 20.821 10.2525 20.481 10.6667 20.481H13.3333C13.7475 20.481 14.0833 20.821 14.0833 21.2405C14.0833 21.66 13.7475 22 13.3333 22H10.6667C10.2525 22 9.91667 21.66 9.91667 21.2405Z"/>
-                        <path d="M7.41058 13.8283L8.51463 14.8807C8.82437 15.1759 9 15.5875 9 16.0182C9 16.6653 9.518 17.1899 10.157 17.1899H13.843C14.482 17.1899 15 16.6653 15 16.0182C15 15.5875 15.1756 15.1759 15.4854 14.8807L16.5894 13.8283C18.1306 12.3481 18.9912 10.4034 18.9999 8.3817L19 8.29678C19 4.84243 15.866 2 12 2C8.13401 2 5 4.84243 5 8.29678L5.00007 8.3817C5.00875 10.4034 5.86939 12.3481 7.41058 13.8283Z"/>
-                    </svg>
-                <span><strong>Tip:</strong></span>
-                </span>
-                {markdown.markdown(x.group(2))}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/>
+                    <path d="M9 18h6"/>
+                    <path d="M10 22h4"/>
+                </svg>
+                <div>{markdown.markdown(x.group(1))}</div>
             </div>
                 """,
             guide_content,
         )
 
         guide_content = re.sub(
-            r"(\n\nWarning: )(.*?)(?=\n\n|$)", 
+            r"(\n\nWarning: )(.*?)(?=\n\n|$)",
             lambda x: f"""
             <div class='warning'>
                 <span class="inline-flex" style="align-items: baseline">
@@ -115,7 +114,7 @@ for guide_folder in guide_folders:
                 </span>
                 {markdown.markdown(x.group(2))}
             </div>
-                """, 
+                """,
             guide_content,
         )
 
@@ -128,7 +127,7 @@ for guide_folder in guide_folders:
                 if not any(line.startswith(label) for label in metadata_labels)
             ]
         )
-        
+
         guide_content = re.sub(
             r"```([a-z]+)\n",
             lambda x: f"<div class='codeblock'><pre><code class='lang-{x.group(1)}'>",
@@ -145,7 +144,7 @@ for guide_folder in guide_folders:
             lambda x: f"<gradio-app space='gradio/{x.group(1).replace('_', UNDERSCORE_TOKEN)}' />",
             guide_content,
         )
-        
+
 
 
         guide_data = {
@@ -174,7 +173,7 @@ def generate(json_path):
         json.dump({
             "guides_by_category": guides_by_category,
             }, f)
-    for guide in guides: 
+    for guide in guides:
         with open(json_path + guide["name"] + ".json", 'w+') as f:
             json.dump({
                 "guide": guide
