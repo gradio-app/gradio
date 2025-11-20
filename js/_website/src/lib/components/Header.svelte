@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { onNavigate } from "$app/navigation";
+	import { onNavigate, afterNavigate } from "$app/navigation";
+	import { onMount } from "svelte";
+	import { browser } from "$app/environment";
 	import { store } from "../../routes/+layout.svelte";
 
 	import { gradio_logo, gradio_logo_dark } from "../assets";
@@ -12,11 +14,28 @@
 	let show_help_menu = false;
 	let show_nav = false;
 	let is_scrolled = false;
+	let ready = false;
 	let show_logo_menu = false;
 	let logo_menu_x = 0;
 	let logo_menu_y = 0;
 	$: show_nav = click_nav || $store?.lg;
 	$: current_logo = $theme === "dark" ? gradio_logo_dark : gradio_logo;
+
+	$: if (browser && !ready) {
+		is_scrolled = window.scrollY > 50;
+		ready = true;
+	}
+
+	onMount(() => {
+		is_scrolled = window.scrollY > 50;
+		ready = true;
+	});
+
+	afterNavigate(() => {
+		if (browser) {
+			is_scrolled = window.scrollY > 50;
+		}
+	});
 
 	onNavigate(() => {
 		click_nav = false;
@@ -48,6 +67,7 @@
 
 <svelte:window on:click={handle_click_outside} on:scroll={handle_scroll} />
 
+{#if ready}
 <div
 	class:shadow={show_nav}
 	class="w-full mx-auto p-1.5 flex flex-wrap justify-between flex-row sticky top-4 items-center text-base z-40 lg:px-6 lg:py-1.5 lg:gap-6 rounded-[10px] mb-4 transition-all duration-300 border {is_scrolled
@@ -141,11 +161,11 @@
 						target="_blank"
 						href="https://discord.gg/feTf9x3ZSB">Discord</a
 					>
-					<a
+					<!-- <a
 						class="inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 lg:hover:bg-gray-100/80 dark:lg:hover:bg-neutral-700/50 transition-colors text-sm"
 						target="_blank"
 						href="https://gradio.curated.co/">Newsletter</a
-					>
+					> -->
 					<a
 						class="inline-block pl-8 lg:px-4 lg:pl-4 lg:py-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 lg:hover:bg-gray-100/80 dark:lg:hover:bg-neutral-700/50 transition-colors text-sm"
 						href="/brand">Brand</a
@@ -166,5 +186,6 @@
 		<ThemeToggle />
 	</div>
 </div>
+{/if}
 
 <LogoDownloadMenu bind:show={show_logo_menu} x={logo_menu_x} y={logo_menu_y} />
