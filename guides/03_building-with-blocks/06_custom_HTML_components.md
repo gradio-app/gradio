@@ -1,15 +1,15 @@
-# Creating new components with gr.HTML
+# Custom Components with `gr.HTML`
 
 If you wish to create custom HTML in your app, use the `gr.HTML` component. Here's a basic "HTML-only" example:
 
 ```python
-gr.HTML("<h1>Hello World!</h1>")
+gr.HTML(value="<h1>Hello World!</h1>")
 ```
 
 You can also use html-templates to organize your HTML. Take a look at the example below:
 
 ```python
-gr.HTML("John", "<h1>Hello, {{value}}!</h1><p>${value.length} letters</p>")
+gr.HTML(value="John", html_template"<h1>Hello, {{value}}!</h1><p>${value.length} letters</p>")
 ```
 
 "John" becomes `value` when injected into the template, resulting in:
@@ -23,7 +23,7 @@ Notice how we support two types of templating syntaxes: `${}` for custom JavaScr
 Let's look at another example for displaying a list of items:
 
 ```python
-gr.HTML(["apple", "banana", "cherry"], """
+gr.HTML(value=["apple", "banana", "cherry"], html_templates="""
     <h1>${value.length} fruits:</h1>
     <ul>
       {{#each value}}
@@ -96,8 +96,44 @@ If you are reusing the same HTML component in multiple places, you can create a 
 $code_star_rating_component
 $demo_star_rating_component
 
+Note: Gradio requires all components to accept certain arguments, such as `render`. You do not need
+to handle these arguments, but you do need to accept them in your component constructor and pass
+them to the parent `gr.HTML` class. Otherwise, your component may not behave correctly. The easiest
+way is to add `**kwargs` to your `__init__` method and pass it to `super().__init__()`, just like in the code example above.
+
+We've created several custom HTML components as reusable components as examples you can reference in [this directory](https://github.com/gradio-app/gradio/tree/main/gradio/components/custom_html_components).
+
+### API / MCP support
+
+To make your custom HTML component work with Gradio's built-in support for API and MCP (Model Context Protocol) usage, you need to define how its data should be serialized. There are two ways to do this:
+
+**Option 1: Define an `api_info()` method**
+
+Add an `api_info()` method that returns a JSON schema dictionary describing your component's data format. This is what we do in the StarRating class above.
+
+**Option 2: Define a Pydantic data model**
+
+For more complex data structures, you can define a Pydantic model that inherits from `GradioModel` or `GradioRootModel`:
+
+```python
+from gradio.data_classes import GradioModel, GradioRootModel
+
+class MyComponentData(GradioModel):
+    items: List[str]
+    count: int
+
+class MyComponent(gr.HTML):
+    data_model = MyComponentData
+```
+
+Use `GradioModel` when your data is a dictionary with named fields, or `GradioRootModel` when your data is a simple type (string, list, etc.) that doesn't need to be wrapped in a dictionary. By defining a `data_model`, your component automatically implements API methods.
+
 ## Security Considerations
 
 Keep in mind that using `gr.HTML` to create custom components involves injecting raw HTML and JavaScript into your Gradio app. Be cautious about using untrusted user input into `html_template` and `js_on_load`, as this could lead to cross-site scripting (XSS) vulnerabilities. 
 
 You should also expect that any Python event listeners that take your `gr.HTML` component as input could have any arbitrary value passed to them, not just the values you expect the frontend to be able to set for `value`. Sanitize and validate user input appropriately in public applications.
+
+## Next Steps
+
+Check out some examples of custom components that you can build in [this directory](https://github.com/gradio-app/gradio/tree/main/gradio/components/custom_html_components).
