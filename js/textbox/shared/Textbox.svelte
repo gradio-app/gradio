@@ -7,14 +7,13 @@
 	} from "svelte";
 	import { BlockTitle, IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import { Copy, Check, Send, Square } from "@gradio/icons";
-	import { fade } from "svelte/transition";
 	import type { SelectData, CopyData } from "@gradio/utils";
 	import type { InputHTMLAttributes } from "../types";
 
 	export let value = "";
 	export let value_is_output = false;
 	export let lines = 1;
-	export let placeholder = "Type here...";
+	export let placeholder = "";
 	export let label: string;
 	export let info: string | undefined = undefined;
 	export let disabled = false;
@@ -270,7 +269,7 @@
 					dir={rtl ? "rtl" : "ltr"}
 					bind:value
 					bind:this={el}
-					placeholder={disabled ? "" : placeholder}
+					{placeholder}
 					{disabled}
 					{autofocus}
 					maxlength={max_length}
@@ -295,7 +294,7 @@
 					class="scroll-hide"
 					bind:value
 					bind:this={el}
-					placeholder={disabled ? "" : placeholder}
+					{placeholder}
 					{disabled}
 					{autofocus}
 					maxlength={max_length}
@@ -319,7 +318,7 @@
 					class="scroll-hide"
 					bind:value
 					bind:this={el}
-					placeholder={disabled ? "" : placeholder}
+					{placeholder}
 					{disabled}
 					{autofocus}
 					maxlength={max_length}
@@ -345,7 +344,7 @@
 				class:no-label={!show_label && (submit_btn || stop_btn)}
 				bind:value
 				bind:this={el}
-				placeholder={disabled ? "" : placeholder}
+				{placeholder}
 				rows={lines}
 				{disabled}
 				{autofocus}
@@ -444,7 +443,6 @@
 	textarea:disabled {
 		-webkit-opacity: 1;
 		opacity: 1;
-		cursor: not-allowed;
 	}
 
 	label.container.show_textbox_border input:focus,
