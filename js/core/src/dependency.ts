@@ -210,6 +210,9 @@ export class DependencyManager {
 	) {
 		this.add_to_api_calls = add_to_api_calls;
 		this.log_cb = log_cb;
+		this.update_state_cb = update_state_cb;
+		this.get_state_cb = get_state_cb;
+		this.rerender_cb = rerender_cb;
 		this.reload(
 			dependencies,
 			update_state_cb,
@@ -741,7 +744,8 @@ export class DependencyManager {
 		args: Record<string, unknown>
 	): Promise<() => void> {
 		let current_args: Record<string, unknown> = {};
-		const current_state = await this.get_state_cb(id);
+		const current_state = await this.get_state_cb?.(id);
+		if (!current_state) return () => {};
 		for (const [key] of Object.entries(args)) {
 			current_args[key] = current_state?.[key] ?? null;
 		}
