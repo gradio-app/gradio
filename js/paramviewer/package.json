@@ -13,6 +13,11 @@
 			"svelte": "./dist/Index.svelte",
 			"types": "./dist/Index.svelte.d.ts"
 		},
+		"./ParamViewer": {
+			"gradio": "./ParamViewer.svelte",
+			"svelte": "./dist/ParamViewer.svelte",
+			"types": "./dist/ParamViewer.svelte.d.ts"
+		},
 		"./example": {
 			"gradio": "./Example.svelte",
 			"svelte": "./dist/Example.svelte",

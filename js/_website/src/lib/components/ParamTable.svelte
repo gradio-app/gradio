@@ -3,7 +3,7 @@
 	export let header = "Parameters";
 	export let anchor_links: string | boolean = true;
 
-	import ParamViewer from "../../../../paramviewer/dist/ParamViewer.svelte";
+	import ParamViewer from "@gradio/paramviewer/ParamViewer";
 
 	interface OriginalParam {
 		annotation: string | null;
