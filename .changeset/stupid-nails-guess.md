@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Api recorder fixes
+feat:Api docs bug fix and some enhancements to the page
