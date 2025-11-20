@@ -76,6 +76,7 @@
 			visible={gradio.shared.visible}
 			autoscroll={gradio.shared.autoscroll}
 			apply_default_css={gradio.props.apply_default_css}
+			component_class_name={gradio.props.component_class_name}
 			on:event={(e) => {
 				gradio.dispatch(e.detail.type, e.detail.data);
 			}}
