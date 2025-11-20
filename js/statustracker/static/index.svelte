@@ -267,6 +267,7 @@
 	class:border
 	style:position={absolute ? "absolute" : "static"}
 	style:padding={absolute ? "0" : "var(--size-8) 0"}
+	data-testid="status-tracker"
 	bind:this={el}
 >
 	{#if validation_error && show_validation_error}
