@@ -125,4 +125,5 @@ export interface AppConfig {
 	max_file_size?: number;
 	autoscroll: boolean;
 	api_prefix: string;
+	api_url: string;
 }

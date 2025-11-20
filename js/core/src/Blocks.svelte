@@ -9,7 +9,7 @@
 	import type {
 		ComponentMeta,
 		Dependency as IDependency,
-		LayoutNode
+		LayoutNode,
 	} from "./types";
 	// import type { UpdateTransaction } from "./_init";
 	import { setupi18n } from "./i18n";
@@ -25,6 +25,7 @@
 	import type ApiDocsInterface from "./api_docs/ApiDocs.svelte";
 	import type ApiRecorderInterface from "./api_docs/ApiRecorder.svelte";
 	import type SettingsInterface from "./api_docs/Settings.svelte";
+	import type VibeEditorInterface from "@gradio/vibeeditor";
 	// import type { ComponentType } from "svelte";
 
 	import logo from "./images/logo.svg";
@@ -40,6 +41,7 @@
 	import * as screen_recorder from "./screen_recorder";
 
 	import { DependencyManager } from "./dependency";
+	import type { SrvRecord } from "dns";
 
 	let {
 		root,
@@ -67,7 +69,7 @@
 		search_params,
 		render_complete = false,
 		ready = $bindable(false),
-		reload_count = $bindable(0)
+		reload_count = $bindable(0),
 	}: {
 		root: string;
 		components: ComponentMeta[];
@@ -113,15 +115,15 @@
 			version,
 			api_prefix,
 			max_file_size,
-			autoscroll
+			autoscroll,
 		},
 		app,
-		$reactive_formatter
+		$reactive_formatter,
 	);
 
 	setContext(GRADIO_ROOT, {
 		register: app_tree.register_component.bind(app_tree),
-		dispatcher: gradio_event_dispatcher
+		dispatcher: gradio_event_dispatcher,
 	});
 
 	let messages: (ToastMessage & { fn_index: number })[] = $state([]);
@@ -129,25 +131,25 @@
 	function gradio_event_dispatcher(
 		id: number,
 		event: string,
-		data: unknown
+		data: unknown,
 	): void {
 		if (event === "share") {
 			const { title, description } = data as ShareData;
 			// trigger_share(title, description);
 			// TODO: lets combine all of the into a log type with levels
 		} else if (event === "error") {
-			new_message("Error", data, -1, event, 10, true);
+			new_message("Error", data as string, -1, event, 10, true);
 		} else if (event === "warning") {
-			new_message("Warning", data, -1, event, 10, true);
+			new_message("Warning", data as string, -1, event, 10, true);
 		} else if (event === "info") {
-			new_message("Info", data, -1, event, 10, true);
+			new_message("Info", data as string, -1, event, 10, true);
 		} else if (event == "clear_status") {
 			app_tree.update_state(
 				id,
 				{
-					loading_status: {}
+					loading_status: {},
 				},
-				false
+				false,
 			);
 			dep_manager.clear_loading_status(id);
 			// TODO: the loading_status store should handle this via a method
@@ -161,13 +163,13 @@
 			// so we need to pull out the correct id here.
 			if (event === "select" && id in app_tree.initial_tabs) {
 				// this is the id of the selected tab
-				id = data.id;
+				id = (data as { id: number }).id;
 			}
 			dep_manager.dispatch({
 				type: "event",
 				event_name: event,
 				target_id: id,
-				event_data: data
+				event_data: data,
 			});
 		}
 	}
@@ -187,7 +189,7 @@
 		app_tree.get_state.bind(app_tree),
 		app_tree.rerender.bind(app_tree),
 		new_message,
-		add_to_api_calls
+		add_to_api_calls,
 	);
 
 	$effect(() => {
@@ -199,14 +201,14 @@
 				version,
 				api_prefix,
 				max_file_size,
-				autoscroll
+				autoscroll,
 			});
 			dep_manager.reload(
 				dependencies,
 				app_tree.update_state.bind(app_tree),
 				app_tree.get_state.bind(app_tree),
 				app_tree.rerender.bind(app_tree),
-				app
+				app,
 			);
 		});
 	});
@@ -215,27 +217,28 @@
 
 	// export let
 	let api_docs_visible = $derived(
-		search_params.get("view") === "api" && footer_links.includes("api")
+		search_params.get("view") === "api" && footer_links.includes("api"),
 	);
 	let settings_visible = $derived(search_params.get("view") === "settings");
 	let api_recorder_visible = $derived(
-		search_params.get("view") === "api-recorder" && footer_links.includes("api")
+		search_params.get("view") === "api-recorder" &&
+			footer_links.includes("api"),
 	);
 	let allow_zoom = true;
 	let allow_video_trim = true;
 
 	// Lazy component loading state
-	let ApiDocs: ComponentType<ApiDocsInterface> | null = null;
-	let ApiRecorder: ComponentType<ApiRecorderInterface> | null = null;
-	let Settings: ComponentType<SettingsInterface> | null = null;
-	let VibeEditor: ComponentType | null = null;
+	let ApiDocs: typeof ApiDocsInterface | null = null;
+	let ApiRecorder: typeof ApiRecorderInterface | null = null;
+	let Settings: typeof SettingsInterface | null = null;
+	let VibeEditor: typeof VibeEditorInterface | null = null;
 
 	async function loadApiDocs(): Promise<void> {
 		if (!ApiDocs || !ApiRecorder) {
 			const api_docs_module = await import("./api_docs/ApiDocs.svelte");
 			const api_recorder_module = await import("./api_docs/ApiRecorder.svelte");
-			if (!ApiDocs) ApiDocs = api_docs_module.default;
-			if (!ApiRecorder) ApiRecorder = api_recorder_module.default;
+			if (!ApiDocs) ApiDocs = api_docs_module?.default;
+			if (!ApiRecorder) ApiRecorder = api_recorder_module?.default;
 		}
 	}
 
@@ -298,7 +301,7 @@
 		fn_index: number,
 		type: ToastMessage["type"],
 		duration: number | null = 10,
-		visible = false
+		visible = false,
 	): void {
 		if (!visible) return;
 		messages.push({
@@ -308,7 +311,7 @@
 			type,
 			id: ++_error_id,
 			duration,
-			visible
+			visible,
 		});
 	}
 
@@ -365,7 +368,7 @@
 	onMount(() => {
 		is_mobile_device =
 			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-				navigator.userAgent
+				navigator.userAgent,
 			);
 
 		if ("parentIFrame" in window) {
@@ -378,7 +381,7 @@
 		mut.observe(root_container, {
 			childList: true,
 			subtree: true,
-			attributes: true
+			attributes: true,
 		});
 		res.observe(root_container);
 
