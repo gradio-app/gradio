@@ -1,7 +1,10 @@
 import { test, expect } from "@self/tootils";
 
 test.describe.configure({ mode: "serial" });
-test.skip(process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true", 'These tests flake in SSR MODE only in CI');
+test.skip(
+	process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true",
+	"These tests flake in SSR MODE only in CI"
+);
 
 test("clicking through tabs shows correct content", async ({ page }) => {
 	await page.waitForTimeout(1000);
