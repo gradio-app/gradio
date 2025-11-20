@@ -13,3 +13,52 @@
 		HighlightedText
 	</a>
 </div>
+
+<style>
+	/* Mini HighlightedText Component - Gradio styling */
+	.gradio-highlighted-text {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem;
+		font-size: 0.875rem;
+		line-height: 1.25rem;
+	}
+
+	.highlight-positive {
+		background-color: rgb(187 247 208);
+		color: rgb(22 101 52);
+		padding: 0.125rem 0.375rem;
+		border-radius: 0.25rem;
+	}
+
+	.highlight-neutral {
+		background-color: rgb(229 231 235);
+		color: rgb(31 41 55);
+		padding: 0.125rem 0.375rem;
+		border-radius: 0.25rem;
+	}
+
+	.highlight-negative {
+		background-color: rgb(254 202 202);
+		color: rgb(153 27 27);
+		padding: 0.125rem 0.375rem;
+		border-radius: 0.25rem;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.highlight-positive {
+			background-color: rgb(22 101 52);
+			color: rgb(187 247 208);
+		}
+
+		.highlight-neutral {
+			background-color: rgb(64 64 64);
+			color: rgb(229 231 235);
+		}
+
+		.highlight-negative {
+			background-color: rgb(153 27 27);
+			color: rgb(254 202 202);
+		}
+	}
+</style>

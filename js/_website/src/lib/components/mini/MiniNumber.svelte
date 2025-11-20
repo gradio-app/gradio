@@ -8,3 +8,36 @@
 		>Number</a
 	>
 </div>
+
+<style>
+	/* Mini Number Component - Gradio styling */
+	.gradio-number-input {
+		width: 100%;
+		padding: 0.5rem 0.75rem;
+		border: 1px solid rgb(209 213 219);
+		border-radius: 0.375rem;
+		background-color: white;
+		color: rgb(31 41 55);
+		font-size: 0.875rem;
+		line-height: 1.25rem;
+		transition: all 0.15s ease;
+	}
+
+	.gradio-number-input:focus {
+		outline: none;
+		border-color: rgb(249 115 22);
+		box-shadow: 0 0 0 1px rgb(249 115 22);
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.gradio-number-input {
+			border-color: rgb(64 64 64);
+			background-color: rgb(23 23 23);
+			color: rgb(229 231 235);
+		}
+
+		.gradio-number-input:focus {
+			border-color: rgb(249 115 22);
+		}
+	}
+</style>

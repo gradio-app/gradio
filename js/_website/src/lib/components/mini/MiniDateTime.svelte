@@ -18,3 +18,75 @@
 		>DateTime</a
 	>
 </div>
+
+<style>
+	/* Mini DateTime Component - Gradio styling */
+	.gradio-datetime {
+		display: flex;
+		width: 100%;
+		background: white;
+		border-radius: 0.375rem;
+		overflow: hidden;
+	}
+
+	.datetime-display {
+		flex: 1;
+		padding: 0.375rem 0.5rem;
+		border: 1px solid rgb(229 231 235);
+		border-right: none;
+		border-top-left-radius: 0.375rem;
+		border-bottom-left-radius: 0.375rem;
+		background: transparent;
+		color: rgb(31 41 55);
+		font-size: 0.75rem;
+		box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+		display: flex;
+		align-items: center;
+	}
+
+	.datetime-calendar-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0 0.5rem;
+		border: 1px solid rgb(229 231 235);
+		border-top-right-radius: 0.375rem;
+		border-bottom-right-radius: 0.375rem;
+		background: white;
+		color: rgb(107 114 128);
+		cursor: pointer;
+		box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+		transition: color 0.15s ease;
+	}
+
+	.datetime-calendar-btn:hover {
+		color: rgb(31 41 55);
+	}
+
+	.datetime-calendar-btn svg {
+		width: 0.875rem;
+		height: 0.875rem;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.gradio-datetime {
+			background: rgb(38 38 38);
+		}
+
+		.datetime-display {
+			background: rgb(38 38 38);
+			border-color: rgb(64 64 64);
+			color: rgb(229 231 235);
+		}
+
+		.datetime-calendar-btn {
+			background: rgb(38 38 38);
+			border-color: rgb(64 64 64);
+			color: rgb(156 163 175);
+		}
+
+		.datetime-calendar-btn:hover {
+			color: rgb(229 231 235);
+		}
+	}
+</style>

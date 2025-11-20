@@ -17,3 +17,61 @@
 		>FileExplorer</a
 	>
 </div>
+
+<style>
+	/* Mini FileExplorer Component - Gradio styling */
+	.gradio-fileexplorer {
+		width: 100%;
+		background-color: white;
+		border: 1px solid rgb(229 231 235);
+		border-radius: 0.375rem;
+		padding: 0.5rem;
+		font-size: 0.75rem;
+	}
+
+	.file-item {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.25rem 0.375rem;
+		border-radius: 0.25rem;
+		cursor: pointer;
+		transition: background-color 0.15s ease;
+	}
+
+	.file-item:hover {
+		background-color: rgb(243 244 246);
+	}
+
+	.file-indent {
+		padding-left: 1.25rem;
+	}
+
+	.file-icon {
+		font-size: 0.875rem;
+		flex-shrink: 0;
+	}
+
+	.file-name {
+		color: rgb(31 41 55);
+		font-size: 0.75rem;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.gradio-fileexplorer {
+			background-color: rgb(23 23 23);
+			border-color: rgb(64 64 64);
+		}
+
+		.file-item:hover {
+			background-color: rgb(38 38 38);
+		}
+
+		.file-name {
+			color: rgb(229 231 235);
+		}
+	}
+</style>

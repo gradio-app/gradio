@@ -20,3 +20,94 @@
 		Model3D
 	</a>
 </div>
+
+<style>
+	/* Mini Model3D Component - Gradio styling */
+	.gradio-model3d-container {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: linear-gradient(
+			135deg,
+			rgb(243 244 246) 0%,
+			rgb(229 231 235) 100%
+		);
+		border: 1px solid rgb(229 231 235);
+		border-radius: 0.5rem;
+		min-height: 85px;
+		pointer-events: none !important;
+	}
+
+	.model3d-scene {
+		width: 60px;
+		height: 60px;
+		position: relative;
+	}
+
+	.model3d-cube {
+		width: 100%;
+		height: 100%;
+		position: relative;
+		animation: rotate2d 4s linear infinite;
+		transform-origin: center center;
+	}
+
+	@keyframes rotate2d {
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
+	}
+
+	.cube-face {
+		position: absolute;
+		width: 60px;
+		height: 60px;
+		border: 2px solid rgb(249 115 22);
+		opacity: 0.9;
+		pointer-events: none !important;
+		background: linear-gradient(
+			135deg,
+			rgba(249, 115, 22, 0.8),
+			rgba(251, 146, 60, 0.6)
+		);
+	}
+
+	.cube-face.front {
+		top: 0;
+		left: 0;
+	}
+
+	.cube-face.back {
+		top: 0;
+		left: 0;
+		opacity: 0.3;
+	}
+
+	.cube-face.right {
+		display: none;
+	}
+
+	.cube-face.left {
+		display: none;
+	}
+
+	.cube-face.top {
+		display: none;
+	}
+
+	.cube-face.bottom {
+		display: none;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.gradio-model3d-container {
+			background: linear-gradient(135deg, rgb(38 38 38) 0%, rgb(23 23 23) 100%);
+			border-color: rgb(64 64 64);
+		}
+	}
+</style>

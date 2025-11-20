@@ -91,3 +91,19 @@
 		ImageSlider
 	</a>
 </div>
+
+<style>
+	/* ImageSlider Handle */
+	.image-slider-handle {
+		box-shadow: 0px 0px 5px 2px rgba(0, 0, 0, 0.3);
+		transition: opacity 0.2s;
+	}
+
+	.image-slider-container {
+		cursor: grab;
+	}
+
+	.image-slider-container:active {
+		cursor: grabbing;
+	}
+</style>

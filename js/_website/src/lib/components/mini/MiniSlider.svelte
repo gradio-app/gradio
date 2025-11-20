@@ -31,3 +31,87 @@
 		Slider
 	</a>
 </div>
+
+<style>
+	/* Gradio Slider Styling */
+	.gradio-slider {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 100%;
+		cursor: pointer;
+		outline: none;
+		border-radius: 9999px;
+		background: transparent;
+		height: 0.5rem;
+	}
+
+	/* Webkit track */
+	.gradio-slider::-webkit-slider-runnable-track {
+		height: 0.5rem;
+		border-radius: 9999px;
+		background: linear-gradient(
+			to right,
+			rgb(249 115 22) var(--range-progress),
+			rgb(229 231 235) var(--range-progress)
+		);
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.gradio-slider::-webkit-slider-runnable-track {
+			background: linear-gradient(
+				to right,
+				rgb(249 115 22) var(--range-progress),
+				rgb(64 64 64) var(--range-progress)
+			);
+		}
+	}
+
+	/* Webkit thumb */
+	.gradio-slider::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		height: 1rem;
+		width: 1rem;
+		background-color: white;
+		border-radius: 50%;
+		margin-top: -4px;
+		box-shadow:
+			0 0 0 1px rgba(247, 246, 246, 0.739),
+			1px 1px 4px rgba(0, 0, 0, 0.1);
+		cursor: pointer;
+	}
+
+	/* Firefox track */
+	.gradio-slider::-moz-range-track {
+		height: 0.5rem;
+		background: rgb(229 231 235);
+		border-radius: 9999px;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.gradio-slider::-moz-range-track {
+			background: rgb(64 64 64);
+		}
+	}
+
+	/* Firefox thumb */
+	.gradio-slider::-moz-range-thumb {
+		appearance: none;
+		height: 1rem;
+		width: 1rem;
+		background-color: white;
+		border-radius: 50%;
+		border: none;
+		box-shadow:
+			0 0 0 1px rgba(247, 246, 246, 0.739),
+			1px 1px 4px rgba(0, 0, 0, 0.1);
+		cursor: pointer;
+	}
+
+	/* Firefox progress */
+	.gradio-slider::-moz-range-progress {
+		height: 0.5rem;
+		background-color: rgb(249 115 22);
+		border-radius: 9999px;
+	}
+</style>

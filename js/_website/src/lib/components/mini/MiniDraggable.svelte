@@ -58,3 +58,88 @@
 		>Draggable</a
 	>
 </div>
+
+<style>
+	/* Mini Draggable Component - Gradio styling */
+	.gradio-draggable {
+		width: 100%;
+		background-color: white;
+		border: 1px solid rgb(229 231 235);
+		border-radius: 0.375rem;
+		padding: 0.5rem;
+	}
+
+	.draggable-item {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.375rem 0.5rem;
+		background-color: rgb(249 250 251);
+		border: 1px solid rgb(229 231 235);
+		border-radius: 0.25rem;
+		margin-bottom: 0.375rem;
+		cursor: move;
+		transition: all 0.15s ease;
+	}
+
+	.draggable-item:last-child {
+		margin-bottom: 0;
+	}
+
+	.draggable-item:hover {
+		background-color: rgb(243 244 246);
+		border-color: rgb(209 213 219);
+	}
+
+	.draggable-item.drag-over {
+		border-color: rgb(249 115 22);
+		background-color: rgba(249, 115, 22, 0.1);
+	}
+
+	.drag-handle {
+		color: rgb(156 163 175);
+		font-size: 0.75rem;
+		cursor: grab;
+		user-select: none;
+	}
+
+	.drag-handle:active {
+		cursor: grabbing;
+	}
+
+	.draggable-content {
+		color: rgb(31 41 55);
+		font-size: 0.75rem;
+		flex: 1;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.gradio-draggable {
+			background-color: rgb(23 23 23);
+			border-color: rgb(64 64 64);
+		}
+
+		.draggable-item {
+			background-color: rgb(38 38 38);
+			border-color: rgb(64 64 64);
+		}
+
+		.draggable-item:hover {
+			background-color: rgb(50 50 50);
+			border-color: rgb(82 82 82);
+		}
+
+		.draggable-item.drag-over {
+			border-color: rgb(249 115 22);
+			background-color: rgba(249, 115, 22, 0.15);
+		}
+
+		.drag-handle {
+			color: rgb(115 115 115);
+		}
+
+		.draggable-content {
+			color: rgb(229 231 235);
+		}
+	}
+</style>

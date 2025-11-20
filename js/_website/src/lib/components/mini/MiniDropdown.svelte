@@ -20,3 +20,57 @@
 		>Dropdown</a
 	>
 </div>
+
+<style>
+	/* Mini Dropdown Component - Gradio styling */
+	.gradio-dropdown {
+		position: relative;
+		width: 100%;
+		display: flex;
+		align-items: center;
+		background: white;
+		border: 1px solid rgb(209 213 219);
+		border-radius: 0.375rem;
+		box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+		user-select: none;
+	}
+
+	.dropdown-display {
+		flex: 1;
+		margin: 0.25rem;
+		padding: 0.25rem;
+		color: rgb(31 41 55);
+		font-size: 0.75rem;
+	}
+
+	.dropdown-arrow-icon {
+		position: absolute;
+		right: 0.625rem;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 0.875rem;
+		height: 0.875rem;
+		color: rgb(31 41 55);
+		pointer-events: none;
+	}
+
+	.dropdown-arrow-icon svg {
+		width: 100%;
+		height: 100%;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.gradio-dropdown {
+			background: rgb(38 38 38);
+			border-color: rgb(82 82 82);
+		}
+
+		.dropdown-display {
+			color: rgb(229 231 235);
+		}
+
+		.dropdown-arrow-icon {
+			color: rgb(229 231 235);
+		}
+	}
+</style>

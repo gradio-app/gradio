@@ -49,3 +49,95 @@
 		Gallery
 	</a>
 </div>
+
+<style>
+	/* Mini Gallery Component - Gradio styling */
+	.mini-gallery-container {
+		width: 100%;
+		height: 100%;
+		max-height: 120px;
+		position: relative;
+	}
+
+	.mini-gallery-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		grid-template-rows: repeat(2, 1fr);
+		gap: 0.5rem;
+		width: 100%;
+		height: 100%;
+	}
+
+	.mini-gallery-large {
+		width: 100%;
+		height: 100%;
+		border-radius: 0.375rem;
+		border: 2px solid rgb(249 115 22);
+		background: rgb(249 250 251);
+		overflow: hidden;
+		padding: 0;
+		cursor: pointer;
+		box-shadow:
+			inset 0 0 0 1px rgb(249 115 22),
+			0 2px 8px 0 rgba(249, 115, 22, 0.3);
+		transition: all 0.2s ease;
+	}
+
+	.mini-gallery-large:hover {
+		transform: scale(0.98);
+	}
+
+	.mini-gallery-large img {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		pointer-events: none;
+	}
+
+	.mini-gallery-item {
+		position: relative;
+		width: 100%;
+		height: 100%;
+		border-radius: 0.375rem;
+		border: 1px solid rgb(229 231 235);
+		background: rgb(249 250 251);
+		overflow: hidden;
+		box-shadow:
+			inset 0 0 0 1px transparent,
+			0 1px 3px 0 rgba(0, 0, 0, 0.1);
+		transition: all 0.15s ease;
+		padding: 0;
+		cursor: pointer;
+	}
+
+	.mini-gallery-item:hover {
+		border-color: rgb(249 115 22);
+		box-shadow:
+			inset 0 0 0 1px rgb(249 115 22),
+			0 1px 3px 0 rgba(0, 0, 0, 0.1);
+		filter: brightness(1.1);
+		transform: scale(1.05);
+	}
+
+	.mini-gallery-item img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		pointer-events: none;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.mini-gallery-large {
+			background: rgb(38 38 38);
+		}
+
+		.mini-gallery-item {
+			border-color: rgb(64 64 64);
+			background: rgb(38 38 38);
+		}
+
+		.mini-gallery-item:hover {
+			border-color: rgb(249 115 22);
+		}
+	}
+</style>

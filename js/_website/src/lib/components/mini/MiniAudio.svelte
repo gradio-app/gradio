@@ -22,3 +22,81 @@
 		>Audio</a
 	>
 </div>
+
+<style>
+	/* Mini Audio Component - Gradio styling */
+	.gradio-audio {
+		width: 100%;
+		background-color: white;
+		border: 1px solid rgb(229 231 235);
+		border-radius: 0.375rem;
+		padding: 0.5rem;
+	}
+
+	.audio-controls {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.audio-play-button {
+		width: 1.5rem;
+		height: 1.5rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background-color: rgb(249 115 22);
+		color: white;
+		border: none;
+		border-radius: 50%;
+		cursor: pointer;
+		font-size: 0.625rem;
+		flex-shrink: 0;
+		transition: background-color 0.15s ease;
+	}
+
+	.audio-play-button:hover {
+		background-color: rgb(234 88 12);
+	}
+
+	.audio-waveform {
+		flex: 1;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		height: 1.5rem;
+	}
+
+	.waveform {
+		flex: 1;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1px;
+		height: 1.5rem;
+	}
+
+	.waveform-bar {
+		background: rgb(249 115 22);
+		border-radius: 0.125rem;
+		width: 1px;
+	}
+
+	.audio-time {
+		color: rgb(107 114 128);
+		font-size: 0.625rem;
+		font-family: ui-monospace, monospace;
+		flex-shrink: 0;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.gradio-audio {
+			background-color: rgb(23 23 23);
+			border-color: rgb(64 64 64);
+		}
+
+		.audio-time {
+			color: rgb(156 163 175);
+		}
+	}
+</style>
