@@ -32,7 +32,7 @@ jobs:
       source_repo: ${{ steps.changes.outputs.source_repo }}
     steps:
       - uses: actions/checkout@v4
-      - uses: "gradio-app/gradio/.github/actions/changes@main"
+      - uses: "gradio-app/gradio/.github/actions/changes@6.0-dev"
         id: changes
         with:
           filter: "js"
