@@ -348,4 +348,10 @@
 			animation: none;
 		}
 	}
+
+	@media (max-width: 768px) {
+		.device-select-large {
+			max-width: var(--size-40);
+		}
+	}
 </style>
