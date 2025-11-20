@@ -9,7 +9,7 @@
 	import type {
 		ComponentMeta,
 		Dependency as IDependency,
-		LayoutNode,
+		LayoutNode
 	} from "./types";
 	// import type { UpdateTransaction } from "./_init";
 	import { setupi18n } from "./i18n";
@@ -69,7 +69,7 @@
 		search_params,
 		render_complete = false,
 		ready = $bindable(false),
-		reload_count = $bindable(0),
+		reload_count = $bindable(0)
 	}: {
 		root: string;
 		components: ComponentMeta[];
@@ -115,15 +115,15 @@
 			version,
 			api_prefix,
 			max_file_size,
-			autoscroll,
+			autoscroll
 		},
 		app,
-		$reactive_formatter,
+		$reactive_formatter
 	);
 
 	setContext(GRADIO_ROOT, {
 		register: app_tree.register_component.bind(app_tree),
-		dispatcher: gradio_event_dispatcher,
+		dispatcher: gradio_event_dispatcher
 	});
 
 	let messages: (ToastMessage & { fn_index: number })[] = $state([]);
@@ -131,7 +131,7 @@
 	function gradio_event_dispatcher(
 		id: number,
 		event: string,
-		data: unknown,
+		data: unknown
 	): void {
 		if (event === "share") {
 			const { title, description } = data as ShareData;
@@ -147,9 +147,9 @@
 			app_tree.update_state(
 				id,
 				{
-					loading_status: {},
+					loading_status: {}
 				},
-				false,
+				false
 			);
 			dep_manager.clear_loading_status(id);
 			// TODO: the loading_status store should handle this via a method
@@ -169,7 +169,7 @@
 				type: "event",
 				event_name: event,
 				target_id: id,
-				event_data: data,
+				event_data: data
 			});
 		}
 	}
@@ -189,7 +189,7 @@
 		app_tree.get_state.bind(app_tree),
 		app_tree.rerender.bind(app_tree),
 		new_message,
-		add_to_api_calls,
+		add_to_api_calls
 	);
 
 	$effect(() => {
@@ -201,14 +201,14 @@
 				version,
 				api_prefix,
 				max_file_size,
-				autoscroll,
+				autoscroll
 			});
 			dep_manager.reload(
 				dependencies,
 				app_tree.update_state.bind(app_tree),
 				app_tree.get_state.bind(app_tree),
 				app_tree.rerender.bind(app_tree),
-				app,
+				app
 			);
 		});
 	});
@@ -217,12 +217,11 @@
 
 	// export let
 	let api_docs_visible = $derived(
-		search_params.get("view") === "api" && footer_links.includes("api"),
+		search_params.get("view") === "api" && footer_links.includes("api")
 	);
 	let settings_visible = $derived(search_params.get("view") === "settings");
 	let api_recorder_visible = $derived(
-		search_params.get("view") === "api-recorder" &&
-			footer_links.includes("api"),
+		search_params.get("view") === "api-recorder" && footer_links.includes("api")
 	);
 	let allow_zoom = true;
 	let allow_video_trim = true;
@@ -301,7 +300,7 @@
 		fn_index: number,
 		type: ToastMessage["type"],
 		duration: number | null = 10,
-		visible = false,
+		visible = false
 	): void {
 		if (!visible) return;
 		messages.push({
@@ -311,7 +310,7 @@
 			type,
 			id: ++_error_id,
 			duration,
-			visible,
+			visible
 		});
 	}
 
@@ -368,7 +367,7 @@
 	onMount(() => {
 		is_mobile_device =
 			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-				navigator.userAgent,
+				navigator.userAgent
 			);
 
 		if ("parentIFrame" in window) {
@@ -381,7 +380,7 @@
 		mut.observe(root_container, {
 			childList: true,
 			subtree: true,
-			attributes: true,
+			attributes: true
 		});
 		res.observe(root_container);
 
