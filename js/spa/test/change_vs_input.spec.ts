@@ -1,5 +1,7 @@
 import { test, expect } from "@self/tootils";
 
+test.describe.configure({ mode: "serial" });
+
 test("Change counter is 0 on page load", async ({ page }) => {
 	const counter = page.getByLabel("Change counter");
 	await expect(counter).toHaveValue("0");
