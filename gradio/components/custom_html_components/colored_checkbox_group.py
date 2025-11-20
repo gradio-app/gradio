@@ -55,6 +55,7 @@ class ColoredCheckboxGroup(gr.HTML):
             html_template=html_template,
             css_template=css_template,
             js_on_load=js_on_load,
+            choices=choices,
             colors=colors,
             label=label,
             **kwargs,
