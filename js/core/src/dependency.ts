@@ -209,9 +209,9 @@ export class DependencyManager {
 		this.add_to_api_calls = add_to_api_calls;
 		this.client = client;
 		this.log_cb = log_cb;
-		// this.update_state_cb = update_state_cb;
-		// this.get_state_cb = get_state_cb;
-		// this.rerender_cb = rerender_cb;
+		this.update_state_cb = update_state_cb;
+		this.get_state_cb = get_state_cb;
+		this.rerender_cb = rerender_cb;
 		this.reload(dependencies, update_state_cb, get_state_cb, rerender_cb);
 	}
 
