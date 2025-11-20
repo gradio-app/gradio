@@ -744,7 +744,8 @@ export class DependencyManager {
 		args: Record<string, unknown>
 	): Promise<() => void> {
 		let current_args: Record<string, unknown> = {};
-		const current_state = await this.get_state_cb(id);
+		const current_state = await this.get_state_cb?.(id);
+		if (!current_state) return () => {};
 		for (const [key] of Object.entries(args)) {
 			current_args[key] = current_state?.[key] ?? null;
 		}
