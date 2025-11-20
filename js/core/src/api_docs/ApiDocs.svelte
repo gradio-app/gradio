@@ -55,27 +55,19 @@
 	export let api_calls: Payload[] = [];
 	let current_language: "python" | "javascript" | "bash" | "mcp" = "python";
 
-	$: sorted_dependencies =
-		info && last_api_call
-			? [
-					...dependencies.filter(
-						(dep) =>
-							dep.api_visibility === "public" &&
-							info.named_endpoints["/" + dep.api_name] &&
-							dep.id === last_api_call.fn_index
-					),
-					...dependencies.filter(
-						(dep) =>
-							dep.api_visibility === "public" &&
-							info.named_endpoints["/" + dep.api_name] &&
-							dep.id !== last_api_call.fn_index
-					)
-				]
-			: dependencies.filter(
-					(dep) =>
-						dep.api_visibility === "public" &&
-						info?.named_endpoints?.["/" + dep.api_name]
-				);
+	$: sorted_dependencies = (() => {
+		const valid = dependencies.filter(
+			(dep) =>
+				dep.api_visibility === "public" &&
+				info?.named_endpoints?.["/" + dep.api_name]
+		);
+		if (info && last_api_call) {
+			const mostRecent = valid.find((dep) => dep.id === last_api_call.fn_index);
+			const others = valid.filter((dep) => dep.id !== last_api_call.fn_index);
+			return mostRecent ? [mostRecent, ...others] : valid;
+		}
+		return valid;
+	})();
 
 	function set_query_param(key: string, value: string) {
 		const url = new URL(window.location.href);
