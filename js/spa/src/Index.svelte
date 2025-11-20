@@ -292,7 +292,7 @@
 	let new_message_fn: (title: string, message: string, type: string) => void;
 
 	$: if (new_message_fn && pending_deep_link_error) {
-		new_message_fn("Error", "Deep link was not valid", "error");
+		new_message_fn("Error", "Deep link was not valid", -1, "error", 10, true);
 		pending_deep_link_error = false;
 	}
 
@@ -387,7 +387,14 @@
 					// @ts-ignore
 					let event_data: string | undefined = e.data;
 					if (event_data) {
-						new_message_fn("Error", "Error reloading app", "error");
+						new_message_fn(
+							"Error",
+							"Error reloading app",
+							-1,
+							"error",
+							10,
+							true
+						);
 						console.error(JSON.parse(event_data));
 					}
 				});
