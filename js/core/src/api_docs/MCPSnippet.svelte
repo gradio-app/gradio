@@ -223,10 +223,6 @@
 								{@const endpoint_analytics = analytics[tool.meta.endpoint_name]}
 								{@const p50 =
 									endpoint_analytics.process_time_percentiles["50th"]}
-								{@const p90 =
-									endpoint_analytics.process_time_percentiles["90th"]}
-								{@const p99 =
-									endpoint_analytics.process_time_percentiles["99th"]}
 								<div class="tool-analytics-wrapper" style="margin-left: 1em;">
 									<span
 										class="tool-analytics"
@@ -236,9 +232,6 @@
 											success_rate * 100
 										)}% successful, p50: {format_latency(p50)})
 									</span>
-									<div class="analytics-tooltip">
-										<PercentileChart {p50} {p90} {p99} />
-									</div>
 								</div>
 							{/if}
 						</span>
@@ -356,24 +349,6 @@
 	.tool-analytics {
 		font-size: 0.95em;
 		color: var(--body-text-color-subdued);
-		cursor: help;
-	}
-
-	.analytics-tooltip {
-		position: absolute;
-		bottom: 100%;
-		left: 50%;
-		transform: translateX(-50%);
-		margin-bottom: var(--size-2);
-		opacity: 0;
-		pointer-events: none;
-		transition: opacity 0.2s ease;
-		z-index: 1000;
-	}
-
-	.tool-analytics-wrapper:hover .analytics-tooltip {
-		opacity: 1;
-		pointer-events: auto;
 	}
 
 	.transport-selection {
