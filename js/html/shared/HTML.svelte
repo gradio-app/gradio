@@ -37,7 +37,6 @@
 	let currentCss = $state("");
 	let renderScheduled = $state(false);
 	let mounted = $state(false);
-	let error_message = $state<string | null>(null);
 
 	function get_scrollable_parent(element: HTMLElement): HTMLElement | null {
 		let parent = element.parentElement;
@@ -92,8 +91,7 @@
 
 	function render_template(
 		template: string,
-		props: Record<string, any>,
-		isHtml: boolean = false
+		props: Record<string, any>
 	): string {
 		try {
 			const handlebarsTemplate = Handlebars.compile(template);
@@ -105,17 +103,26 @@
 				...propKeys,
 				`return \`${handlebarsRendered}\`;`
 			);
-			const result = templateFunc(...propValues);
-			if (isHtml) {
-				error_message = null;
-			}
-			return result;
+			return templateFunc(...propValues);
 		} catch (e) {
 			console.error("Error evaluating template:", e);
-			if (isHtml) {
-				error_message = e instanceof Error ? e.message : String(e);
-			}
-			return "";
+			const errorMessage = e instanceof Error ? e.message : String(e);
+			const escapedMessage = errorMessage
+				.replace(/&/g, "&amp;")
+				.replace(/</g, "&lt;")
+				.replace(/>/g, "&gt;")
+				.replace(/"/g, "&quot;")
+				.replace(/'/g, "&#39;");
+			const escapedClassName = component_class_name
+				.replace(/&/g, "&amp;")
+				.replace(/</g, "&lt;")
+				.replace(/>/g, "&gt;")
+				.replace(/"/g, "&quot;")
+				.replace(/'/g, "&#39;");
+			return `<div style="padding: 12px; background-color: #fee; border: 1px solid #fcc; border-radius: 4px; color: #c33; font-family: monospace; font-size: 13px;">
+				<strong style="display: block; margin-bottom: 8px;">Error rendering custom HTML component <code style="background-color: #fdd; padding: 2px 4px; border-radius: 2px;">${escapedClassName}</code>:</strong>
+				<code style="white-space: pre-wrap; word-break: break-word;">${escapedMessage}</code>
+			</div>`;
 		}
 	}
 
@@ -237,7 +244,7 @@
 			"re-rendering HTML with props:",
 			JSON.stringify(reactiveProps)
 		);
-		const newHtml = render_template(html_template, reactiveProps, true);
+		const newHtml = render_template(html_template, reactiveProps);
 		if (element) {
 			updateDOM(currentHtml, newHtml);
 		}
@@ -288,7 +295,7 @@
 			}
 		);
 
-		currentHtml = render_template(html_template, reactiveProps, true);
+		currentHtml = render_template(html_template, reactiveProps);
 		element.innerHTML = currentHtml;
 		update_css();
 
@@ -331,23 +338,7 @@
 		' '
 	)}"
 	class:hide={!visible}
->
-	{#if error_message}
-		<div
-			style="padding: 12px; background-color: #fee; border: 1px solid #fcc; border-radius: 4px; color: #c33; font-family: monospace; font-size: 13px;"
-		>
-			<strong style="display: block; margin-bottom: 8px;"
-				>Error rendering custom HTML component <code
-					style="background-color: #fdd; padding: 2px 4px; border-radius: 2px;"
-					>{component_class_name}</code
-				>:</strong
-			>
-			<code style="white-space: pre-wrap; word-break: break-word;"
-				>{error_message}</code
-			>
-		</div>
-	{/if}
-</div>
+></div>
 
 <style>
 	.hide {
