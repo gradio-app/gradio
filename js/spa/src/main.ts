@@ -8,7 +8,7 @@ import { Client } from "@gradio/client";
 import type Index from "./Index.svelte";
 import type { ThemeMode } from "@gradio/core";
 import { mount, unmount } from "svelte";
-
+import "virtual:load-svelte";
 declare let BUILD_MODE: string;
 declare let GRADIO_VERSION: string;
 
