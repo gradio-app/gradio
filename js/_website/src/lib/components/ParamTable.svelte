@@ -3,7 +3,7 @@
 	export let header = "Parameters";
 	export let anchor_links: string | boolean = true;
 
-	import ParamViewer from "@gradio/paramviewer";
+	import ParamViewer from "../../../../paramviewer/dist/ParamViewer.svelte";
 
 	interface OriginalParam {
 		annotation: string | null;
@@ -52,9 +52,11 @@
 		for (let param of original_parameters) {
 			new_parameters[param.name] = {
 				type: param.annotation
-					.replaceAll("Sequence[", "list[")
-					.replaceAll("AbstractSet[", "set[")
-					.replaceAll("Mapping[", "dict["),
+					? param.annotation
+							.replaceAll("Sequence[", "list[")
+							.replaceAll("AbstractSet[", "set[")
+							.replaceAll("Mapping[", "dict[")
+					: null,
 				description: decode_html_entities(param.doc),
 				default: param.default || null
 			};
@@ -65,7 +67,7 @@
 </script>
 
 <ParamViewer
-	value={new_parameters}
+	docs={new_parameters}
 	{header}
 	anchor_links={typeof anchor_links === "string"
 		? anchor_links.toLowerCase()
