@@ -397,6 +397,7 @@
 								{mcp_server_active}
 								{mcp_server_url}
 								{mcp_server_url_streamable}
+								{root}
 								tools={tools.filter((tool) => selected_tools.has(tool.name))}
 								all_tools={tools}
 								bind:selected_tools
