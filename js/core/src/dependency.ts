@@ -245,15 +245,15 @@ export class DependencyManager {
 		const { by_id, by_event } = this.create(dependencies);
 		this.dependencies_by_event = by_event;
 		this.dependencies_by_fn = by_id;
+		this.client = client;
+		this.update_state_cb = update_state;
+		this.get_state_cb = get_state;
+		this.rerender_cb = rerender;
 		for (const [dep_id, dep] of this.dependencies_by_fn) {
 			for (const [output_id] of dep.targets) {
 				this.set_event_args(output_id, dep.event_args);
 			}
 		}
-		this.client = client;
-		this.update_state_cb = update_state;
-		this.get_state_cb = get_state;
-		this.rerender_cb = rerender;
 		this.register_loading_stati(by_id);
 	}
 	register_loading_stati(deps: Map<number, Dependency>): void {
