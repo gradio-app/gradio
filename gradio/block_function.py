@@ -57,6 +57,7 @@ class BlockFunction:
         time_limit: float | None = None,
         stream_every: float = 0.5,
         event_specific_args: list[str] | None = None,
+        component_prop_inputs: list[int] | None = None,
         page: str = "",
         js_implementation: str | None = None,
         key: str | int | tuple[int | str, ...] | None = None,
@@ -110,6 +111,7 @@ class BlockFunction:
         self.stream_every = stream_every
         self.connection = connection
         self.event_specific_args = event_specific_args
+        self.component_prop_inputs = component_prop_inputs or []
         self.key = key
 
         self.spaces_auto_wrap()
@@ -168,5 +170,6 @@ class BlockFunction:
             "time_limit": self.time_limit,
             "stream_every": self.stream_every,
             "event_specific_args": self.event_specific_args,
+            "component_prop_inputs": self.component_prop_inputs,
             "js_implementation": getattr(self.fn, "__js_implementation__", None),
         }

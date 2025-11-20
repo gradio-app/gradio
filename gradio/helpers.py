@@ -14,7 +14,8 @@ import warnings
 from collections.abc import Callable, Iterable, Sequence
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Optional
+from types import SimpleNamespace
+from typing import TYPE_CHECKING, Any, Literal, Optional, get_origin
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
@@ -930,22 +931,27 @@ def special_args(
     inputs: list[Any] | None = None,
     request: routes.Request | None = None,
     event_data: EventData | None = None,
-) -> tuple[list, int | None, int | None]:
+    component_props: dict[int, dict[str, Any]] | None = None,
+) -> tuple[list, int | None, int | None, list[int]]:
     """
     Checks if function has special arguments Request or EventData (via annotation) or Progress (via default value).
+    Also checks if any parameters are type-hinted with gr.Component types, in which case all component props should be passed.
     If inputs is provided, these values will be loaded into the inputs array.
     Parameters:
         fn: function to check.
         inputs: array to load special arguments into.
         request: request to load into inputs.
         event_data: event-related data to load into inputs.
+        component_props: dictionary mapping input indices to their full component props.
     Returns:
-        updated inputs, progress index, event data index.
+        updated inputs, progress index, event data index, list of input indices that need component props.
     """
     try:
         signature = inspect.signature(fn)
     except ValueError:
-        return inputs or [], None, None
+        return inputs or [], None, None, []
+    from gradio.components.base import Component
+
     type_hints = utils.get_type_hints(fn)
     positional_args = []
     for param in signature.parameters.values():
@@ -954,6 +960,7 @@ def special_args(
         positional_args.append(param)
     progress_index = None
     event_data_index = None
+    component_prop_indices = []
     for i, param in enumerate(positional_args):
         type_hint = type_hints.get(param.name)
         if isinstance(param.default, Progress):
@@ -1047,6 +1054,17 @@ def special_args(
                 processing_utils.check_all_files_in_cache(event_data._data)
                 inputs.insert(i, type_hint(event_data.target, event_data._data))
         elif (
+            type_hint
+            and get_origin(type_hint) is None
+            and inspect.isclass(type_hint)
+            and issubclass(type_hint, Component)
+        ):
+            component_prop_indices.append(i)
+            if inputs is not None and component_props and i in component_props:
+                inputs[i] = SimpleNamespace(
+                    **component_props[i], _is_component_update=True
+                )
+        elif (
             param.default is not param.empty and inputs is not None and len(inputs) <= i
         ):
             inputs.insert(i, param.default)
@@ -1059,7 +1077,7 @@ def special_args(
                 inputs.append(None)
             else:
                 inputs.append(param.default)
-    return inputs or [], progress_index, event_data_index
+    return inputs or [], progress_index, event_data_index, component_prop_indices
 
 
 def update(

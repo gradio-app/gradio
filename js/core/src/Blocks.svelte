@@ -69,7 +69,8 @@
 		search_params,
 		render_complete = false,
 		ready = $bindable(false),
-		reload_count = $bindable(0)
+		reload_count = $bindable(0),
+		add_new_message = $bindable()
 	}: {
 		root: string;
 		components: ComponentMeta[];
@@ -97,6 +98,7 @@
 		render_complete: boolean;
 		ready: boolean;
 		reload_count: number;
+		add_new_message: (title: string, message: string, type: string) => void;
 	} = $props();
 
 	components.forEach((comp) => {
@@ -313,6 +315,8 @@
 			visible
 		});
 	}
+
+	add_new_message = new_message;
 
 	let _error_id = -1;
 
