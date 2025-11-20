@@ -1,9 +1,9 @@
 import { test, expect } from "@self/tootils";
 
 test.describe.configure({ mode: "serial" });
+test.skip(process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true", 'These tests flake in SSR MODE only in CI');
 
 test("clicking through tabs shows correct content", async ({ page }) => {
-	test.skip(process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true", 'Troll test in SSR mode');
 	await page.waitForTimeout(1000);
 	await page.getByRole("tab", { name: "Tab 2" }).click();
 	await expect(page.getByText("Text 1!")).toBeHidden();
