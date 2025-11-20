@@ -276,7 +276,7 @@
 			<button
 				><IconButton
 					Icon={Clear}
-					label={i18n("common.clear")}
+					label={i18n ? i18n("common.clear") : "Clear"}
 					disabled={false}
 					size="x-small"
 					background="var(--background-fill-primary)"
