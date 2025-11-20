@@ -6,6 +6,7 @@
 
 	export let mcp_server_active: boolean;
 	export let mcp_server_url_streamable: string;
+	export let root: string;
 	export let tools: Tool[];
 	export let all_tools: Tool[] = [];
 	export let selected_tools: Set<string> = new Set();
@@ -69,7 +70,7 @@
 					"gradio[mcp]",
 					"gradio",
 					"upload-mcp",
-					mcp_server_url_streamable,
+					root,
 					"<UPLOAD_DIRECTORY>"
 				]
 			};
