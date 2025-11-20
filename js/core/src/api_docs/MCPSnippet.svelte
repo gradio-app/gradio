@@ -5,12 +5,11 @@
 	import { format_latency, get_color_from_success_rate } from "./utils";
 
 	export let mcp_server_active: boolean;
-	export let mcp_server_url: string;
 	export let mcp_server_url_streamable: string;
+	export let root: string;
 	export let tools: Tool[];
 	export let all_tools: Tool[] = [];
 	export let selected_tools: Set<string> = new Set();
-	export let mcp_json_sse: any;
 	export let mcp_json_stdio: any;
 	export let file_data_present: boolean;
 	export let mcp_docs: string;
@@ -37,13 +36,12 @@
 		};
 	}
 
-	type Transport = "streamable_http" | "sse" | "stdio";
+	type Transport = "streamable_http" | "stdio";
 	let current_transport: Transport = "streamable_http";
 	let include_file_upload = true;
 
 	const transports = [
 		["streamable_http", "Streamable HTTP"],
-		["sse", "SSE"],
 		["stdio", "STDIO"]
 	] as const;
 
@@ -53,8 +51,7 @@
 		prompt: Prompt
 	};
 
-	$: display_url =
-		current_transport === "sse" ? mcp_server_url : mcp_server_url_streamable;
+	$: display_url = mcp_server_url_streamable;
 
 	// Helper function to add/remove file upload tool from config
 	function update_config_with_file_upload(
@@ -73,9 +70,7 @@
 					"gradio[mcp]",
 					"gradio",
 					"upload-mcp",
-					current_transport === "sse"
-						? mcp_server_url
-						: mcp_server_url_streamable,
+					root,
 					"<UPLOAD_DIRECTORY>"
 				]
 			};
@@ -88,13 +83,10 @@
 	}
 
 	$: mcp_json_streamable_http = update_config_with_file_upload(
-		mcp_json_sse
+		mcp_json_stdio
 			? {
-					...mcp_json_sse,
 					mcpServers: {
-						...mcp_json_sse.mcpServers,
 						gradio: {
-							...mcp_json_sse.mcpServers.gradio,
 							url: mcp_server_url_streamable
 						}
 					}
@@ -103,10 +95,6 @@
 		include_file_upload
 	);
 
-	$: mcp_json_sse_updated = update_config_with_file_upload(
-		mcp_json_sse,
-		include_file_upload
-	);
 	$: mcp_json_stdio_updated = update_config_with_file_upload(
 		mcp_json_stdio,
 		include_file_upload
@@ -114,7 +102,6 @@
 
 	$: config_snippets = {
 		streamable_http: JSON.stringify(mcp_json_streamable_http, null, 2),
-		sse: JSON.stringify(mcp_json_sse_updated, null, 2),
 		stdio: JSON.stringify(mcp_json_stdio_updated, null, 2)
 	};
 </script>
@@ -141,10 +128,8 @@
 		<Block>
 			<div class="mcp-url">
 				<label for="mcp-server-url"
-					><span class="status-indicator active">●</span>MCP Server URL ({current_transport ===
-					"sse"
-						? "SSE"
-						: "Streamable HTTP"})</label
+					><span class="status-indicator active">●</span>MCP Server URL
+					(Streamable HTTP)</label
 				>
 				<div class="textbox">
 					<input id="mcp-server-url" type="text" readonly value={display_url} />
@@ -309,23 +294,6 @@
 				</div>
 				<div>
 					<pre>{config_snippets.streamable_http}</pre>
-				</div>
-			</code>
-		</Block>
-	</div>
-	<div class:hidden={current_transport !== "sse"}>
-		<strong>SSE Transport</strong>: The SSE transport has been deprecated by the
-		MCP spec. We recommend using the Streamable HTTP transport instead. But to
-		add this MCP to clients that only support server-sent events (SSE), simply
-		add the following configuration to your MCP config.
-		<p>&nbsp;</p>
-		<Block>
-			<code>
-				<div class="copy">
-					<CopyButton code={config_snippets.sse} />
-				</div>
-				<div>
-					<pre>{config_snippets.sse}</pre>
 				</div>
 			</code>
 		</Block>

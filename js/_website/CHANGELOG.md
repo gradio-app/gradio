@@ -1,5 +1,20 @@
 # website
 
+## 0.66.0-dev.4
+
+### Features
+
+- [#12398](https://github.com/gradio-app/gradio/pull/12398) [`04e2581`](https://github.com/gradio-app/gradio/commit/04e258106f6f6a07facbacd9f43a307fc0cb64c9) - fix publish.  Thanks @pngwn!
+- [#12362](https://github.com/gradio-app/gradio/pull/12362) [`e3f80b8`](https://github.com/gradio-app/gradio/commit/e3f80b88ad8c69ef2f85ee68bc89c5019a40ebfd) - Add kickoff stream link to website banner.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.0-dev.1
+- @gradio/code@0.16.0-dev.3
+- @gradio/paramviewer@0.9.0-dev.1
+- @gradio/tabitem@0.6.2-dev.0
+- @gradio/tabs@0.5.2-dev.0
+
 ## 0.66.0-dev.3
 
 ### Dependency updates

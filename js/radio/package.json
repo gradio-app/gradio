@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/radio",
-	"version": "0.7.13-dev.0",
+	"version": "0.8.0-dev.1",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

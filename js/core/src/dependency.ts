@@ -36,6 +36,8 @@ export class Dependency {
 	// in the case of chained events, it would be the id of the initial trigger
 	original_trigger_id: number | null = null;
 	show_progress_on: number[] | null = null;
+	component_prop_inputs: number[] = [];
+	show_progress: "full" | "minimal" | "hidden";
 
 	functions: {
 		frontend?: (...args: unknown[]) => Promise<unknown[]>;
@@ -49,6 +51,7 @@ export class Dependency {
 		this.inputs = dep_config.inputs;
 		this.outputs = dep_config.outputs;
 		this.connection_type = dep_config.connection;
+		this.show_progress = dep_config.show_progress;
 		this.functions = {
 			frontend: dep_config.js
 				? process_frontend_fn(
@@ -70,6 +73,7 @@ export class Dependency {
 		this.cancels = dep_config.cancels;
 		this.trigger_modes = dep_config.trigger_mode;
 		this.show_progress_on = dep_config.show_progress_on || null;
+		this.component_prop_inputs = dep_config.component_prop_inputs || [];
 
 		for (let i = 0; i < dep_config.event_specific_args?.length || 0; i++) {
 			const key = dep_config.event_specific_args[i];
@@ -205,12 +209,17 @@ export class DependencyManager {
 		add_to_api_calls: (payload: Payload) => void
 	) {
 		this.add_to_api_calls = add_to_api_calls;
-		this.client = client;
 		this.log_cb = log_cb;
-		// this.update_state_cb = update_state_cb;
-		// this.get_state_cb = get_state_cb;
-		// this.rerender_cb = rerender_cb;
-		this.reload(dependencies, update_state_cb, get_state_cb, rerender_cb);
+		this.update_state_cb = update_state_cb;
+		this.get_state_cb = get_state_cb;
+		this.rerender_cb = rerender_cb;
+		this.reload(
+			dependencies,
+			update_state_cb,
+			get_state_cb,
+			rerender_cb,
+			client
+		);
 	}
 
 	reload(
@@ -239,7 +248,8 @@ export class DependencyManager {
 			this.loading_stati.register(
 				dep.id,
 				dep.show_progress_on || dep.outputs,
-				dep.inputs
+				dep.inputs,
+				dep.show_progress
 			);
 		}
 	}
@@ -324,7 +334,10 @@ export class DependencyManager {
 					this.update_loading_stati_state();
 				}
 
-				const data_payload = await this.gather_state(dep.inputs);
+				const data_payload = await this.gather_state(
+					dep.inputs,
+					dep.component_prop_inputs
+				);
 				const unset_args = await Promise.all(
 					dep.targets.map(([output_id]) =>
 						this.set_event_args(output_id, dep.event_args)
@@ -375,7 +388,7 @@ export class DependencyManager {
 					if (dep_submission.type === "void") {
 						unset_args.forEach((fn) => fn());
 					} else if (dep_submission.type === "data") {
-						this.handle_data(dep.outputs, dep_submission.data);
+						await this.handle_data(dep.outputs, dep_submission.data);
 						unset_args.forEach((fn) => fn());
 					} else {
 						let stream_state: "open" | "closed" | "waiting" | null = null;
@@ -408,7 +421,7 @@ export class DependencyManager {
 							index += 1;
 							if (result === null) continue;
 							if (result.type === "data") {
-								this.handle_data(dep.outputs, result.data);
+								await this.handle_data(dep.outputs, result.data);
 							}
 							if (result.type === "status") {
 								if (
@@ -660,52 +673,61 @@ export class DependencyManager {
 	 * @param data the data to update the components with
 	 * */
 	async handle_data(outputs: number[], data: unknown[]) {
-		outputs.forEach(async (output_id, i) => {
-			const _data = data[i] === undefined ? NOVALUE : data[i];
-			if (_data === NOVALUE) return;
+		await Promise.all(
+			outputs.map(async (output_id, i) => {
+				const _data = data[i] === undefined ? NOVALUE : data[i];
+				if (_data === NOVALUE) return;
 
-			if (is_prop_update(_data)) {
-				let pending_visibility_update = false;
-				let pending_visibility_value = null;
-				for (const [update_key, update_value] of Object.entries(_data)) {
-					if (update_key === "__type__") continue;
-					if (update_key === "visible") {
-						pending_visibility_update = true;
-						pending_visibility_value = update_value;
-						continue;
+				if (is_prop_update(_data)) {
+					let pending_visibility_update = false;
+					let pending_visibility_value = null;
+					for (const [update_key, update_value] of Object.entries(_data)) {
+						if (update_key === "__type__") continue;
+						if (update_key === "visible") {
+							pending_visibility_update = true;
+							pending_visibility_value = update_value;
+							continue;
+						}
+						await this.update_state_cb(
+							outputs[i],
+							{
+								[update_key]: update_value
+							},
+							false
+						);
 					}
-					await this.update_state_cb(
-						outputs[i],
-						{
-							[update_key]: update_value
-						},
-						false
-					);
+					if (pending_visibility_update) {
+						await this.update_state_cb(
+							outputs[i],
+							{
+								visible: pending_visibility_value
+							},
+							true
+						);
+					}
+				} else {
+					await this.update_state_cb(output_id, { value: _data }, false);
 				}
-				if (pending_visibility_update) {
-					await this.update_state_cb(
-						outputs[i],
-						{
-							visible: pending_visibility_value
-						},
-						true
-					);
-				}
-			} else {
-				await this.update_state_cb(output_id, { value: _data }, false);
-			}
-		});
+			})
+		);
 	}
 
 	/**
 	 * Gathers the current state of the inputs
 	 *
 	 * @param ids the ids of the components to gather state from
+	 * @param prop_indices the indices (relative to ids array) that should return all component props instead of just the value
 	 * @returns an array of the current state of the components, in the same order as the ids
 	 */
-	async gather_state(ids: number[]): Promise<(unknown | null)[]> {
+	async gather_state(
+		ids: number[],
+		prop_indices: number[] = []
+	): Promise<(unknown | null)[]> {
 		return (await Promise.all(ids.map((id) => this.get_state_cb(id)))).map(
-			(state) => {
+			(state, index) => {
+				if (prop_indices.includes(index)) {
+					return state ?? null;
+				}
 				return state?.value ?? null;
 			}
 		);
@@ -722,7 +744,8 @@ export class DependencyManager {
 		args: Record<string, unknown>
 	): Promise<() => void> {
 		let current_args: Record<string, unknown> = {};
-		const current_state = await this.get_state_cb(id);
+		const current_state = await this.get_state_cb?.(id);
+		if (!current_state) return () => {};
 		for (const [key] of Object.entries(args)) {
 			current_args[key] = current_state?.[key] ?? null;
 		}

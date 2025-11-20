@@ -1,5 +1,16 @@
 # @gradio/checkbox
 
+## 0.5.0-dev.1
+
+### Features
+
+- [#12375](https://github.com/gradio-app/gradio/pull/12375) [`2043967`](https://github.com/gradio-app/gradio/commit/2043967b958be9d51c4ee25272afa84bf0dbea08) - fix font.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.19.0-dev.1
+- @gradio/statustracker@0.12.0-dev.1
+
 ## 0.5.0-dev.0
 
 ### Features
