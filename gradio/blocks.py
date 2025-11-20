@@ -640,6 +640,7 @@ class BlocksConfig:
         js_implementation: str | None = None,
         key: str | int | tuple[int | str, ...] | None = None,
         validator: Callable | None = None,
+        component_prop_inputs: list[int] | None = None,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -722,6 +723,8 @@ class BlocksConfig:
         _, progress_index, event_data_index, component_prop_indices = (
             special_args(fn_to_analyze) if fn_to_analyze else (None, None, None, [])
         )
+        if component_prop_inputs is None:
+            component_prop_inputs = component_prop_indices or []
 
         # If api_name is None or empty string, use the function name
         if api_name is None or isinstance(api_name, str) and api_name.strip() == "":
@@ -814,7 +817,7 @@ class BlocksConfig:
             time_limit=time_limit,
             stream_every=stream_every,
             event_specific_args=event_specific_args,
-            component_prop_inputs=component_prop_indices,
+            component_prop_inputs=component_prop_inputs,
             page=self.root_block.current_page,
             js_implementation=js_implementation,
             key=key,

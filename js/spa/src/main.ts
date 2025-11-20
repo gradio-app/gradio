@@ -2,6 +2,7 @@ import "@gradio/theme/reset.css";
 import "@gradio/theme/global.css";
 import "@gradio/theme/pollen.css";
 import "@gradio/theme/typography.css";
+import "@gradio/theme/gradio-style.scss";
 //@ts-ignore
 // import * as svelte from "./svelte/svelte.js";
 import { Client } from "@gradio/client";

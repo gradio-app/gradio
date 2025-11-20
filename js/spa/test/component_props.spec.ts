@@ -7,7 +7,7 @@ test("component props", async ({ page }) => {
 	const doubleBtn = page.getByRole("button", {
 		name: "Double Value and Maximum"
 	});
-	const resetBtn = page.getByRole("button", { name: "Reset" });
+	const resetBtn = page.getByRole("button", { name: "Reset", exact: true });
 
 	await expect(numberInput).toHaveValue("5");
 

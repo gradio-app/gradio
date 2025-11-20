@@ -1981,8 +1981,10 @@ def mock_css_files():
         yield
 
 
-def test_css_and_css_paths_parameters(mock_css_files):
-    css_paths = ["file1.css", "file2.css"]
+def test_css_and_css_paths_parameters(gradio_temp_dir):
+    (gradio_temp_dir / "file1.css").write_text("h1 { font-size: 20px; }")
+    (gradio_temp_dir / "file2.css").write_text(".class { margin: 10px; }")
+    css_paths = [str(gradio_temp_dir / "file1.css"), str(gradio_temp_dir / "file2.css")]
     expected_css = """
 body { color: red; }
 h1 { font-size: 20px; }
