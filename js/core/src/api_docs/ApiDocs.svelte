@@ -29,6 +29,7 @@
 	export let space_id: string | null;
 	export let root_node: ComponentMeta;
 	export let username: string | null;
+	export let last_api_call: Payload | null = null;
 
 	const js_docs =
 		"https://www.gradio.app/guides/getting-started-with-the-js-client";
@@ -468,7 +469,10 @@
 				<div class:hidden={current_language === "mcp"}>
 					{#each dependencies as dependency}
 						{#if dependency.api_visibility === "public" && info.named_endpoints["/" + dependency.api_name]}
-							<div class="endpoint-container">
+							<div
+								class="endpoint-container"
+								class:highlighted={last_api_call?.fn_index === dependency.id}
+							>
 								<CodeSnippet
 									endpoint_parameters={info.named_endpoints[
 										"/" + dependency.api_name
@@ -483,6 +487,7 @@
 										"/" + dependency.api_name
 									].description}
 									{analytics}
+									{last_api_call}
 									bind:markdown_code_snippets
 								/>
 
@@ -619,6 +624,10 @@
 		border-radius: var(--radius-xl);
 		padding: var(--size-3);
 		padding-top: 0;
+	}
+
+	.endpoint-container.highlighted {
+		border: 2px solid #fd7b00;
 	}
 
 	a {
