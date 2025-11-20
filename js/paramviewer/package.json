@@ -7,24 +7,25 @@
 	"license": "ISC",
 	"private": false,
 	"main_changeset": true,
+	"main": "./Index.svelte",
 	"exports": {
 		".": {
+			"types": "./dist/Index.svelte.d.ts",
 			"gradio": "./Index.svelte",
 			"svelte": "./dist/Index.svelte",
-			"types": "./dist/Index.svelte.d.ts",
-			"default": "./Index.svelte"
+			"default": "./dist/Index.svelte"
 		},
 		"./ParamViewer": {
+			"types": "./dist/ParamViewer.svelte.d.ts",
 			"gradio": "./ParamViewer.svelte",
 			"svelte": "./dist/ParamViewer.svelte",
-			"types": "./dist/ParamViewer.svelte.d.ts",
-			"default": "./ParamViewer.svelte"
+			"default": "./dist/ParamViewer.svelte"
 		},
 		"./example": {
+			"types": "./dist/Example.svelte.d.ts",
 			"gradio": "./Example.svelte",
 			"svelte": "./dist/Example.svelte",
-			"types": "./dist/Example.svelte.d.ts",
-			"default": "./Example.svelte"
+			"default": "./dist/Example.svelte"
 		},
 		"./package.json": "./package.json"
 	},
