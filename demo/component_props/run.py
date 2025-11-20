@@ -1,4 +1,5 @@
 import gradio as gr
+from gradio.media import get_image
 
 with gr.Blocks() as demo:
     a = gr.Number(value=5, minimum=0, maximum=10, label="Input A", info="Enter a number between 0 and 10")
@@ -38,7 +39,7 @@ with gr.Blocks() as demo:
 
     # Image component demo
     gr.Markdown("## Image Component Props")
-    b = gr.Image(value="cheetah.jpg", label="Input Image", width=300, height=300, type="filepath")
+    b = gr.Image(value=get_image("cheetah.jpg"), label="Input Image", width=300, height=300, type="filepath")
     output_b = gr.JSON(label="Image Props Output", elem_id="image-output")
     with gr.Row():
         show_image_props_btn = gr.Button("Show Image Props")
@@ -66,7 +67,7 @@ with gr.Blocks() as demo:
     def reset_image(x: gr.Image):
         x.width = 300
         x.height = 300
-        x.value = "cheetah.jpg"
+        x.value = get_image("cheetah.jpg")
         return x
 
     reset_image_btn.click(reset_image, b, b).then(
