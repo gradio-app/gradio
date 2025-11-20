@@ -55,6 +55,28 @@
 	export let api_calls: Payload[] = [];
 	let current_language: "python" | "javascript" | "bash" | "mcp" = "python";
 
+	$: sorted_dependencies =
+		info && last_api_call
+			? [
+					...dependencies.filter(
+						(dep) =>
+							dep.api_visibility === "public" &&
+							info.named_endpoints["/" + dep.api_name] &&
+							dep.id === last_api_call.fn_index
+					),
+					...dependencies.filter(
+						(dep) =>
+							dep.api_visibility === "public" &&
+							info.named_endpoints["/" + dep.api_name] &&
+							dep.id !== last_api_call.fn_index
+					)
+				]
+			: dependencies.filter(
+					(dep) =>
+						dep.api_visibility === "public" &&
+						info?.named_endpoints?.["/" + dep.api_name]
+				);
+
 	function set_query_param(key: string, value: string) {
 		const url = new URL(window.location.href);
 		url.searchParams.set(key, value);
@@ -467,8 +489,8 @@
 				{/if}
 
 				<div class:hidden={current_language === "mcp"}>
-					{#each dependencies as dependency}
-						{#if dependency.api_visibility === "public" && info.named_endpoints["/" + dependency.api_name]}
+					{#each sorted_dependencies as dependency}
+						{#if info.named_endpoints["/" + dependency.api_name]}
 							<div
 								class="endpoint-container"
 								class:highlighted={last_api_call?.fn_index === dependency.id}

@@ -6,6 +6,7 @@
 	export let last_api_call: Payload | null = null;
 	export let dependency_id: number | null = null;
 	import { format_latency, get_color_from_success_rate } from "./utils";
+	import PercentileChart from "./PercentileChart.svelte";
 
 	const success_rate = api_name ? analytics[api_name]?.success_rate : 0;
 	const color = get_color_from_success_rate(success_rate);
@@ -22,7 +23,6 @@
 			{@const p50 = endpoint_analytics.process_time_percentiles["50th"]}
 			{@const p90 = endpoint_analytics.process_time_percentiles["90th"]}
 			{@const p99 = endpoint_analytics.process_time_percentiles["99th"]}
-			{@const max_latency = Math.max(p50, p90, p99)}
 			<span class="analytics-inline">
 				<span class="analytics-content">
 					<span class="analytics-text-wrapper">
@@ -31,41 +31,7 @@
 						)}% successful, p50: {format_latency(p50)})
 					</span>
 					<div class="analytics-tooltip">
-						<div class="tooltip-chart">
-							<div class="tooltip-arrow"></div>
-							<div class="chart-bars">
-								<div class="chart-bar-container">
-									<div class="chart-bar-label">p50</div>
-									<div class="chart-bar-wrapper">
-										<div
-											class="chart-bar"
-											style="width: {(p50 / max_latency) * 100}%"
-										></div>
-									</div>
-									<div class="chart-bar-value">{format_latency(p50)}</div>
-								</div>
-								<div class="chart-bar-container">
-									<div class="chart-bar-label">p90</div>
-									<div class="chart-bar-wrapper">
-										<div
-											class="chart-bar"
-											style="width: {(p90 / max_latency) * 100}%"
-										></div>
-									</div>
-									<div class="chart-bar-value">{format_latency(p90)}</div>
-								</div>
-								<div class="chart-bar-container">
-									<div class="chart-bar-label">p99</div>
-									<div class="chart-bar-wrapper">
-										<div
-											class="chart-bar"
-											style="width: {(p99 / max_latency) * 100}%"
-										></div>
-									</div>
-									<div class="chart-bar-value">{format_latency(p99)}</div>
-								</div>
-							</div>
-						</div>
+						<PercentileChart {p50} {p90} {p99} />
 					</div>
 				</span>
 				{#if is_most_recently_used}
@@ -127,84 +93,6 @@
 	.analytics-content:hover .analytics-tooltip {
 		opacity: 1;
 		pointer-events: auto;
-	}
-
-	.tooltip-chart {
-		background: var(--background-fill-primary);
-		border: 1px solid var(--border-color-primary);
-		border-radius: var(--radius-md);
-		padding: var(--size-3);
-		box-shadow: var(--shadow-drop-lg);
-		min-width: 200px;
-		position: relative;
-	}
-
-	.tooltip-arrow {
-		position: absolute;
-		bottom: -8px;
-		left: 50%;
-		transform: translateX(-50%);
-		width: 0;
-		height: 0;
-		border-left: 8px solid transparent;
-		border-right: 8px solid transparent;
-		border-top: 8px solid var(--border-color-primary);
-	}
-
-	.tooltip-arrow::after {
-		content: "";
-		position: absolute;
-		bottom: 1px;
-		left: 50%;
-		transform: translateX(-50%);
-		width: 0;
-		height: 0;
-		border-left: 7px solid transparent;
-		border-right: 7px solid transparent;
-		border-top: 7px solid var(--background-fill-primary);
-	}
-
-	.chart-bars {
-		display: flex;
-		flex-direction: column;
-		gap: var(--size-2);
-	}
-
-	.chart-bar-container {
-		display: flex;
-		align-items: center;
-		gap: var(--size-2);
-	}
-
-	.chart-bar-label {
-		font-size: var(--text-sm);
-		font-weight: var(--weight-semibold);
-		color: var(--body-text-color);
-		min-width: 30px;
-	}
-
-	.chart-bar-wrapper {
-		flex: 1;
-		height: 16px;
-		background: var(--background-fill-secondary);
-		border-radius: var(--radius-sm);
-		overflow: hidden;
-		position: relative;
-	}
-
-	.chart-bar {
-		height: 100%;
-		background: var(--color-accent);
-		border-radius: var(--radius-sm);
-		transition: width 0.3s ease;
-	}
-
-	.chart-bar-value {
-		font-size: var(--text-sm);
-		color: var(--body-text-color);
-		min-width: 50px;
-		text-align: right;
-		font-family: var(--font-mono);
 	}
 
 	.most-recently-used {
