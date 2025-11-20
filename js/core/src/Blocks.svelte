@@ -179,6 +179,7 @@
 	// We can't update a state variable from inside the DependencyManager because
 	// svelte won't see it and won't update the UI.
 	let add_to_api_calls = (payload: Payload): void => {
+		if (!api_recorder_visible) return;
 		api_calls = [...api_calls, payload];
 	};
 
