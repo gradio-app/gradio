@@ -331,30 +331,4 @@
 		flex-direction: column;
 		justify-content: space-between;
 	}
-
-	.audio-container.compact-audio {
-		margin-top: calc(var(--size-8) * -1);
-		height: auto;
-		padding: 0px;
-		gap: var(--size-2);
-		min-height: var(--size-5);
-	}
-
-	.compact-audio :global(.audio-player) {
-		padding: 0px;
-	}
-
-	.compact-audio :global(.controls) {
-		gap: 0px;
-		padding: 0px;
-	}
-
-	.compact-audio :global(.waveform-container) {
-		height: var(--size-12) !important;
-	}
-
-	.compact-audio :global(.player-container) {
-		min-height: unset;
-		height: auto;
-	}
 </style>
