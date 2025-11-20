@@ -102,6 +102,14 @@ class Client:
             httpx_kwargs: additional keyword arguments to pass to `httpx.Client`, `httpx.stream`, `httpx.get` and `httpx.post`. This can be used to set timeouts, proxies, http auth, etc.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
         """
+        if hf_token is not None:
+            warnings.warn(
+                "The 'hf_token' parameter will be removed in Gradio 6.0. "
+                "You will need to use 'token' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         self.verbose = verbose
         self.hf_token = hf_token
         self.download_files = download_files
@@ -994,7 +1002,11 @@ class Client:
             private: Whether the space hosting the discord bot is private. The visibility of the discord bot itself is set via the discord website. See https://huggingface.co/spaces/freddyaboulton/test-discord-bot-v1
         """
         warnings.warn(
-            "This method is deprecated and may be removed in the future. Please see the documentation on how to create a discord bot with Gradio: https://www.gradio.app/guides/creating-a-discord-bot-from-a-gradio-app"
+            "The 'deploy_discord' method will be removed in Gradio 6.0. "
+            "Please see the documentation on how to create a discord bot with Gradio: "
+            "https://www.gradio.app/guides/creating-a-discord-bot-from-a-gradio-app",
+            DeprecationWarning,
+            stacklevel=2,
         )
         if self.config["mode"] == "chat_interface" and not api_names:
             api_names = [("chat", "chat")]
