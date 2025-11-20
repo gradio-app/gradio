@@ -230,7 +230,7 @@
 	let ApiDocs: ComponentType<ApiDocsInterface> | null = null;
 	let ApiRecorder: ComponentType<ApiRecorderInterface> | null = null;
 	let Settings: ComponentType<SettingsInterface> | null = null;
-	let VibeEditor: ComponentType | null = null;
+	let VibeEditor: any = $state(null);
 
 	async function loadApiDocs(): Promise<void> {
 		if (!ApiDocs || !ApiRecorder) {
@@ -390,6 +390,10 @@
 			ready = true;
 			dep_manager.dispatch_load_events();
 		});
+
+		if (vibe_mode) {
+			void loadVibeEditor();
+		}
 
 		return () => {
 			mut.disconnect();
@@ -557,6 +561,10 @@
 				/>
 			</div>
 		</div>
+	{/if}
+
+	{#if vibe_mode && VibeEditor}
+		<svelte:component this={VibeEditor} {app} {root} />
 	{/if}
 </div>
 
