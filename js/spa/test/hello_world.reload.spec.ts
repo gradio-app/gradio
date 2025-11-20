@@ -64,7 +64,7 @@ if __name__ == "__main__":
     `;
 		// write contents of demo to a local 'run.py' file
 		await page.goto(`http://localhost:${port}`);
-		await page.waitForTimeout(2000);
+		await page.waitForTimeout(1_000);
 		spawnSync(`echo '${demo}' > ${join(process.cwd(), "run.py")}`, {
 			shell: true,
 			stdio: "pipe",
