@@ -50,23 +50,23 @@ class AudioGallery(gr.HTML):
 
         js_on_load = """
         const audioItems = element.querySelectorAll('.audio-item');
-        
+
         audioItems.forEach((item, index) => {
             const canvas = item.querySelector('.waveform-canvas');
             const audio = item.querySelector('audio');
             const playBtn = item.querySelector('.play-btn');
             const timeDisplay = item.querySelector('.time-display');
             const ctx = canvas.getContext('2d');
-            
+
             drawWaveform(canvas, ctx);
-            
+
             item.addEventListener('click', (e) => {
                 if (e.target === playBtn) return;
                 audioItems.forEach(i => i.removeAttribute('data-selected'));
                 item.setAttribute('data-selected', 'true');
                 props.value = audio.src;
             });
-            
+
             playBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (audio.paused) {
@@ -79,36 +79,36 @@ class AudioGallery(gr.HTML):
                     playBtn.textContent = '▶';
                 }
             });
-            
+
             audio.addEventListener('timeupdate', () => {
                 const currentTime = Math.floor(audio.currentTime);
                 const minutes = Math.floor(currentTime / 60);
                 const seconds = currentTime % 60;
                 timeDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                
+
                 const progress = audio.currentTime / audio.duration;
                 drawWaveform(canvas, ctx, progress);
             });
-            
+
             audio.addEventListener('ended', () => {
                 playBtn.textContent = '▶';
                 drawWaveform(canvas, ctx, 0);
             });
         });
-        
+
         function drawWaveform(canvas, ctx, progress = 0) {
             const width = canvas.width;
             const height = canvas.height;
             const bars = 50;
             const barWidth = width / bars;
-            
+
             ctx.clearRect(0, 0, width, height);
-            
+
             for (let i = 0; i < bars; i++) {
                 const barHeight = (Math.sin(i * 0.5) * 0.3 + Math.random() * 0.7) * height * 0.8;
                 const x = i * barWidth;
                 const y = (height - barHeight) / 2;
-                
+
                 ctx.fillStyle = i / bars < progress ? '#FF7C00' : '#ccc';
                 ctx.fillRect(x, y, barWidth - 2, barHeight);
             }
@@ -124,6 +124,7 @@ class AudioGallery(gr.HTML):
             labels=labels,
             columns=columns,
             label=label,
+            apply_default_css=False,
             **kwargs,
         )
 
