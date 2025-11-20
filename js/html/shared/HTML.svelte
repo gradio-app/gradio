@@ -37,6 +37,7 @@
 	let currentCss = $state("");
 	let renderScheduled = $state(false);
 	let mounted = $state(false);
+	let error_message: string | null = $state(null);
 
 	function get_scrollable_parent(element: HTMLElement): HTMLElement | null {
 		let parent = element.parentElement;
@@ -103,26 +104,12 @@
 				...propKeys,
 				`return \`${handlebarsRendered}\`;`
 			);
+			error_message = null;
 			return templateFunc(...propValues);
 		} catch (e) {
 			console.error("Error evaluating template:", e);
-			const errorMessage = e instanceof Error ? e.message : String(e);
-			const escapedMessage = errorMessage
-				.replace(/&/g, "&amp;")
-				.replace(/</g, "&lt;")
-				.replace(/>/g, "&gt;")
-				.replace(/"/g, "&quot;")
-				.replace(/'/g, "&#39;");
-			const escapedClassName = component_class_name
-				.replace(/&/g, "&amp;")
-				.replace(/</g, "&lt;")
-				.replace(/>/g, "&gt;")
-				.replace(/"/g, "&quot;")
-				.replace(/'/g, "&#39;");
-			return `<div style="padding: 12px; background-color: #fee; border: 1px solid #fcc; border-radius: 4px; color: #c33; font-family: monospace; font-size: 13px;">
-				<strong style="display: block; margin-bottom: 8px;">Error rendering custom HTML component <code style="background-color: #fdd; padding: 2px 4px; border-radius: 2px;">${escapedClassName}</code>:</strong>
-				<code style="white-space: pre-wrap; word-break: break-word;">${escapedMessage}</code>
-			</div>`;
+			error_message = e instanceof Error ? e.message : String(e);
+			return "";
 		}
 	}
 
@@ -331,17 +318,54 @@
 	});
 </script>
 
-<div
-	bind:this={element}
-	id={random_id}
-	class="{apply_default_css ? 'prose gradio-style' : ''} {elem_classes.join(
-		' '
-	)}"
-	class:hide={!visible}
-></div>
+{#if error_message}
+	<div class="error-container">
+		<strong class="error-title"
+			>Error rendering <code class="error-component-name"
+				>{component_class_name}</code
+			>:</strong
+		>
+		<code class="error-message">{error_message}</code>
+	</div>
+{:else}
+	<div
+		bind:this={element}
+		id={random_id}
+		class="{apply_default_css ? 'prose gradio-style' : ''} {elem_classes.join(
+			' '
+		)}"
+		class:hide={!visible}
+	></div>
+{/if}
 
 <style>
 	.hide {
 		display: none;
+	}
+
+	.error-container {
+		padding: 12px;
+		background-color: #fee;
+		border: 1px solid #fcc;
+		border-radius: 4px;
+		color: #c33;
+		font-family: monospace;
+		font-size: 13px;
+	}
+
+	.error-title {
+		display: block;
+		margin-bottom: 8px;
+	}
+
+	.error-component-name {
+		background-color: #fdd;
+		padding: 2px 4px;
+		border-radius: 2px;
+	}
+
+	.error-message {
+		white-space: pre-wrap;
+		word-break: break-word;
 	}
 </style>
