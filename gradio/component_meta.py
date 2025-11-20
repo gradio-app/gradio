@@ -112,7 +112,12 @@ def extract_class_source_code(
 def create_or_modify_pyi(
     component_class: type, class_name: str, events: list[str | EventListener]
 ):
-    source_file = Path(inspect.getfile(component_class))
+    try:
+        source_file = Path(inspect.getfile(component_class))
+    except OSError:
+        # This can happen if the component is not a file, e.g. a custom HTML component
+        # We don't want to need to create a pyi file for these components
+        return
 
     source_code = source_file.read_text(encoding="utf-8")
 

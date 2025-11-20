@@ -13,6 +13,7 @@ class TestHTML:
             "_undoable": False,
             "apply_default_css": True,
             "autoscroll": False,
+            "component_class_name": "HTML",
             "container": False,
             "css_template": "",
             "elem_classes": [],

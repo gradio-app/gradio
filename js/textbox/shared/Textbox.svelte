@@ -7,14 +7,13 @@
 	} from "svelte";
 	import { BlockTitle, IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import { Copy, Check, Send, Square } from "@gradio/icons";
-	import { fade } from "svelte/transition";
 	import type { SelectData, CopyData } from "@gradio/utils";
 	import type { InputHTMLAttributes } from "../types";
 
 	export let value = "";
 	export let value_is_output = false;
 	export let lines = 1;
-	export let placeholder = "Type here...";
+	export let placeholder = "";
 	export let label: string;
 	export let info: string | undefined = undefined;
 	export let disabled = false;

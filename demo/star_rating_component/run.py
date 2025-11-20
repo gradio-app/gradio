@@ -20,6 +20,9 @@ class StarRating(gr.HTML):
         """
         super().__init__(value=value, label=label, html_template=html_template, css_template=css_template, js_on_load=js_on_load, **kwargs)
 
+    def api_info(self):
+        return {"type": "integer", "minimum": 0, "maximum": 5}
+
 
 with gr.Blocks() as demo:
     gr.Markdown("# Restaurant Review")
