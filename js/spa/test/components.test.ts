@@ -59,8 +59,16 @@ const components = [
 		StaticAnnotatedImage,
 		{ height: 100, width: 100, value: null, interactive: false }
 	],
-	["InteractiveAudio", InteractiveAudio, { interactive: true, value: null, waveform_options: {} }],
-	["StaticAudio", StaticAudio, { interactive: false, value: null, waveform_options: {} }],
+	[
+		"InteractiveAudio",
+		InteractiveAudio,
+		{ interactive: true, value: null, waveform_options: {} }
+	],
+	[
+		"StaticAudio",
+		StaticAudio,
+		{ interactive: false, value: null, waveform_options: {} }
+	],
 
 	["StaticChatbot", StaticChatbot, { interactive: false, value: [] }],
 	["InteractiveCheckbox", InteractiveCheckbox, { interactive: true }],
@@ -152,11 +160,19 @@ const components = [
 
 	["StaticHTML", StaticHTML, { interactive: false, value: "" }],
 
-	["StaticHighlightedText", StaticHighlightedText, { interactive: false, value: null }],
+	[
+		"StaticHighlightedText",
+		StaticHighlightedText,
+		{ interactive: false, value: null }
+	],
 
 	["StaticJson", StaticJson, { interactive: false, value: null }],
 
-	["StaticLabel", StaticLabel, { interactive: false, value: { confidences: [] } }],
+	[
+		"StaticLabel",
+		StaticLabel,
+		{ interactive: false, value: { confidences: [] } }
+	],
 
 	["StaticMarkdown", StaticMarkdown, { interactive: false }],
 	["InteractiveModel3D", InteractiveModel3D, { interactive: true }],

@@ -6,7 +6,6 @@ import { setupi18n } from "../core/src/i18n";
 import Dropdown from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
 
-
 beforeAll(() => {
 	Element.prototype.animate = () =>
 		({
@@ -339,23 +338,20 @@ describe("Dropdown", () => {
 	});
 
 	test("setting a value should update the displayed value and selected indices", async () => {
-		const { getByLabelText, getAllByTestId } = await render(
-			Dropdown,
-			{
-				show_label: true,
-				loading_status,
-				value: "apple",
-				allow_custom_value: false,
-				label: "Dropdown",
-				choices: [
-					["apple", "apple"],
-					["zebra", "zebra"],
-					["pony", "pony"]
-				],
-				filterable: true,
-				interactive: true
-			}
-		);
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
+			show_label: true,
+			loading_status,
+			value: "apple",
+			allow_custom_value: false,
+			label: "Dropdown",
+			choices: [
+				["apple", "apple"],
+				["zebra", "zebra"],
+				["pony", "pony"]
+			],
+			filterable: true,
+			interactive: true
+		});
 
 		const item: HTMLInputElement = getByLabelText(
 			"Dropdown"
@@ -373,7 +369,6 @@ describe("Dropdown", () => {
 		expect(options[1]).toHaveClass("selected");
 	});
 
-	
 	test("blurring a dropdown should set the input text to the previously selected value", async () => {
 		const { getByLabelText, getAllByTestId, component } = await render(
 			Dropdown,

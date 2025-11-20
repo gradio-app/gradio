@@ -82,8 +82,7 @@ export async function render<
 
 	const id = Math.floor(Math.random() * 1000000);
 
-	const mockRegister = (): void => {
-	};
+	const mockRegister = (): void => {};
 
 	const mockDispatcher = (_id: number, event: string, data: any): void => {
 		const e = new CustomEvent("gradio", {
@@ -127,14 +126,16 @@ export async function render<
 	const componentProps = {
 		shared_props: shared_props_obj,
 		props: {
-			...component_props_obj,
+			...component_props_obj
 		}
 	};
 
 	const component = mount(ComponentConstructor, {
 		target,
 		props: componentProps,
-		context: new Map([[GRADIO_ROOT, { register: mockRegister, dispatcher: mockDispatcher }]])
+		context: new Map([
+			[GRADIO_ROOT, { register: mockRegister, dispatcher: mockDispatcher }]
+		])
 	}) as T;
 
 	containerCache.set(container, { target, component });

@@ -309,7 +309,6 @@ describe("Video", () => {
 		).toBeGreaterThan(0);
 	});
 
-
 	test.skip("video change event trigger fires when value is changed and only fires once", async () => {
 		// TODO: Fix this test, the test requires prop update using $set which is deprecated in Svelte 5.
 		const { component, listen } = await render(Video, {
