@@ -15,7 +15,7 @@ from collections.abc import Callable, Iterable, Sequence
 from functools import partial
 from pathlib import Path
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, Any, Literal, Optional
+from typing import TYPE_CHECKING, Any, Literal, Optional, get_origin
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
@@ -1055,6 +1055,7 @@ def special_args(
                 inputs.insert(i, type_hint(event_data.target, event_data._data))
         elif (
             type_hint
+            and get_origin(type_hint) is None
             and inspect.isclass(type_hint)
             and issubclass(type_hint, Component)
         ):
