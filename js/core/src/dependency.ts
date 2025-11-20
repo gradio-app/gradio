@@ -37,6 +37,7 @@ export class Dependency {
 	original_trigger_id: number | null = null;
 	show_progress_on: number[] | null = null;
 	component_prop_inputs: number[] = [];
+	show_progress: "full" | "minimal" | "hidden";
 
 	functions: {
 		frontend?: (...args: unknown[]) => Promise<unknown[]>;
@@ -50,6 +51,7 @@ export class Dependency {
 		this.inputs = dep_config.inputs;
 		this.outputs = dep_config.outputs;
 		this.connection_type = dep_config.connection;
+		this.show_progress = dep_config.show_progress;
 		this.functions = {
 			frontend: dep_config.js
 				? process_frontend_fn(
@@ -207,12 +209,14 @@ export class DependencyManager {
 		add_to_api_calls: (payload: Payload) => void
 	) {
 		this.add_to_api_calls = add_to_api_calls;
-		this.client = client;
 		this.log_cb = log_cb;
-		this.update_state_cb = update_state_cb;
-		this.get_state_cb = get_state_cb;
-		this.rerender_cb = rerender_cb;
-		this.reload(dependencies, update_state_cb, get_state_cb, rerender_cb);
+		this.reload(
+			dependencies,
+			update_state_cb,
+			get_state_cb,
+			rerender_cb,
+			client
+		);
 	}
 
 	reload(
@@ -241,7 +245,8 @@ export class DependencyManager {
 			this.loading_stati.register(
 				dep.id,
 				dep.show_progress_on || dep.outputs,
-				dep.inputs
+				dep.inputs,
+				dep.show_progress
 			);
 		}
 	}
