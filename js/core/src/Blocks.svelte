@@ -262,7 +262,6 @@
 		}
 	}
 
-
 	async function set_api_docs_visible(visible: boolean): Promise<void> {
 		api_recorder_visible = false;
 		if (visible) {
