@@ -3,8 +3,7 @@ const defaultTheme = require("tailwindcss/defaultTheme");
 module.exports = {
 	content: [
 		"./src/*.{html,js,css}",
-		"./src/**/*.{html,js,svelte,ts,css}",
-		"**/@gradio/**/*.{html,js,svelte,ts,css}"
+		"./src/**/*.{html,js,svelte,ts,css}"
 	],
 
 	theme: {
@@ -31,12 +30,6 @@ module.exports = {
 	},
 	mode: "jit",
 	darkMode: "class", // or 'media' or 'class'
-
-	variants: {
-		extend: {
-			visibility: ["group-hover"]
-		}
-	},
 
 	plugins: [require("@tailwindcss/forms"), require("@tailwindcss/typography")]
 };
