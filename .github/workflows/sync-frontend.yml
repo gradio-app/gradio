@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - changeset-release/main
-      - changeset-release/6.0-dev
 
 permissions: {}
 
