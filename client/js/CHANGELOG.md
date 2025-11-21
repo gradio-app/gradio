@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 2.0.0-dev.3
+
+### Features
+
+- [#12267](https://github.com/gradio-app/gradio/pull/12267) [`b1d89d5`](https://github.com/gradio-app/gradio/commit/b1d89d50931300f3fd2786637235b3e6dff3fcdd) - Pass component props as input.  Thanks @aliabid94!
+
 ## 2.0.0-dev.2
 
 ### Features

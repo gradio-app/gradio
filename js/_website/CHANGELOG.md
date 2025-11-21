@@ -1,5 +1,24 @@
 # website
 
+## 0.66.0-dev.5
+
+### Features
+
+- [#12413](https://github.com/gradio-app/gradio/pull/12413) [`358d76c`](https://github.com/gradio-app/gradio/commit/358d76c5819b889427aeee1df53c5a4607c387d8) - Fix website with param viewer.  Thanks @aliabd!
+- [#12414](https://github.com/gradio-app/gradio/pull/12414) [`cfbe2c0`](https://github.com/gradio-app/gradio/commit/cfbe2c0e21857c3ab9b605ce8f01b87d8d60a45f) - docs redesign: landing page and nav bar.  Thanks @hannahblair!
+- [#12425](https://github.com/gradio-app/gradio/pull/12425) [`75d039d`](https://github.com/gradio-app/gradio/commit/75d039d9ef39e3786a930a5f2f0fe0a1108080b9) - Fix website on 6.0.  Thanks @aliabd!
+- [#12430](https://github.com/gradio-app/gradio/pull/12430) [`a234dc8`](https://github.com/gradio-app/gradio/commit/a234dc87d4a456a90812cf8b778f3f71cc8ed790) - Add 6.0 migration guide to llms.txt.  Thanks @aliabd!
+- [#12431](https://github.com/gradio-app/gradio/pull/12431) [`fedd5a6`](https://github.com/gradio-app/gradio/commit/fedd5a664a33b5af65e0d6e168847848c966defb) - Fix broken python client and third party docs.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.0-dev.2
+- @gradio/paramviewer@0.9.0-dev.2
+- @gradio/button@0.5.14-dev.3
+- @gradio/code@0.16.0-dev.4
+- @gradio/tabitem@0.6.2-dev.1
+- @gradio/tabs@0.5.2-dev.1
+
 ## 0.66.0-dev.4
 
 ### Features

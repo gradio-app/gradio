@@ -1,5 +1,23 @@
 # gradio
 
+## 6.0.0-dev.6
+
+### Features
+
+- [#12409](https://github.com/gradio-app/gradio/pull/12409) [`3bb430e`](https://github.com/gradio-app/gradio/commit/3bb430e82bbc4790f5bf3d8c53738748d88211ec) - Fix browser component tests.  Thanks @freddyaboulton!
+- [#12267](https://github.com/gradio-app/gradio/pull/12267) [`b1d89d5`](https://github.com/gradio-app/gradio/commit/b1d89d50931300f3fd2786637235b3e6dff3fcdd) - Pass component props as input.  Thanks @aliabid94!
+- [#12421](https://github.com/gradio-app/gradio/pull/12421) [`7f9e483`](https://github.com/gradio-app/gradio/commit/7f9e48388f965b91ebeb6d294700cbd1a5b5a086) - Fix render status.  Thanks @freddyaboulton!
+- [#12410](https://github.com/gradio-app/gradio/pull/12410) [`38716f8`](https://github.com/gradio-app/gradio/commit/38716f8acafcd1be8108aa2361d5898e5b4fda78) - Fix show_progress not being respected.  Thanks @freddyaboulton!
+- [#12419](https://github.com/gradio-app/gradio/pull/12419) [`2bb4d1d`](https://github.com/gradio-app/gradio/commit/2bb4d1d4ee85ddec2ea04973744e0bf35e11f6ab) - Api docs bug fix and some enhancements to the page.  Thanks @abidlabs!
+- [#12412](https://github.com/gradio-app/gradio/pull/12412) [`dcf7267`](https://github.com/gradio-app/gradio/commit/dcf7267c81b3781e099cafa41ddbb71b1ee2c919) - fix: Using root instead of mcp_server_url for file upload config docs.  Thanks @frascuchon!
+- [#12408](https://github.com/gradio-app/gradio/pull/12408) [`2da9b83`](https://github.com/gradio-app/gradio/commit/2da9b83d1019b62f698e5d986d11fec2f4cf8423) - Fix vibe editor on 6.0.  Thanks @aliabd!
+- [#12411](https://github.com/gradio-app/gradio/pull/12411) [`ac6d3e8`](https://github.com/gradio-app/gradio/commit/ac6d3e8cc54cfca967e89a08c9eaf9c8e2d3c55c) - Add default gradio style to custom html in spa mode.  Thanks @aliabid94!
+- [#12423](https://github.com/gradio-app/gradio/pull/12423) [`8b0c5aa`](https://github.com/gradio-app/gradio/commit/8b0c5aab0894fc322ba9bebdce9cdbe6e0735251) - remove_placeholder_type_here.  Thanks @aliabid94!
+- [#12420](https://github.com/gradio-app/gradio/pull/12420) [`4b4eec6`](https://github.com/gradio-app/gradio/commit/4b4eec6bc744a07488ca8f76a808a3064ffb3e44) - Fix some plot issues in 6.0.  Thanks @aliabid94!
+- [#12413](https://github.com/gradio-app/gradio/pull/12413) [`358d76c`](https://github.com/gradio-app/gradio/commit/358d76c5819b889427aeee1df53c5a4607c387d8) - Fix website with param viewer.  Thanks @aliabd!
+- [#12399](https://github.com/gradio-app/gradio/pull/12399) [`2289355`](https://github.com/gradio-app/gradio/commit/22893558772e736c07d48e6b1d33b86bb0a9caaa) - Add minimal recording UI to gr.MultimodalTextbox.  Thanks @hannahblair!
+- [#12403](https://github.com/gradio-app/gradio/pull/12403) [`efa56d8`](https://github.com/gradio-app/gradio/commit/efa56d89fa1370a0e41f5928cd9e6dc5c1364498) - Enhancements to DX/Docs for Custom HTML components.  Thanks @abidlabs!
+
 ## 6.0.0-dev.5
 
 ### Features
