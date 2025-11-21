@@ -14,7 +14,7 @@
 		</div>
 	</div>
 	<a
-		href="/docs/model3d"
+		href="/docs/gradio/model3d"
 		class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-2 hover:text-orange-500 transition-colors"
 	>
 		Model3D
@@ -103,10 +103,8 @@
 		display: none;
 	}
 
-	@media (prefers-color-scheme: dark) {
-		.gradio-model3d-container {
-			background: linear-gradient(135deg, rgb(38 38 38) 0%, rgb(23 23 23) 100%);
-			border-color: rgb(64 64 64);
-		}
+	:global(.dark) .gradio-model3d-container {
+		background: linear-gradient(135deg, rgb(38 38 38) 0%, rgb(23 23 23) 100%);
+		border-color: rgb(64 64 64);
 	}
 </style>
