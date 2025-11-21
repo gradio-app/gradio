@@ -29,11 +29,11 @@
 	let guide_slug = data.guide_slug;
 
 	const COLORS = [
-		"bg-green-50",
-		"bg-yellow-50",
-		"bg-red-50",
-		"bg-pink-50",
-		"bg-purple-50"
+		"bg-green-50 dark:bg-green-900/30",
+		"bg-yellow-50 dark:bg-yellow-900/30",
+		"bg-red-50 dark:bg-red-900/30",
+		"bg-pink-50 dark:bg-pink-900/30",
+		"bg-purple-50 dark:bg-purple-900/30"
 	];
 
 	let show_all = false;
