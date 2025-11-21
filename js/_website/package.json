@@ -31,6 +31,7 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/tabitem": "workspace:^",
 		"@gradio/tabs": "workspace:^",
+		"@gradio/button": "workspace:^",
 		"@sindresorhus/slugify": "^3.0.0",
 		"@sveltejs/adapter-vercel": "^5.10.3",
 		"hast-util-to-string": "^3.0.1",

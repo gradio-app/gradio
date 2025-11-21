@@ -152,7 +152,7 @@
 		</div>
 	</div>
 	<a
-		href="/docs/plot"
+		href="/docs/gradio/plot"
 		class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-2 hover:text-orange-500 transition-colors"
 	>
 		Plot
