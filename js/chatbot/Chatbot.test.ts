@@ -256,9 +256,7 @@ describe("Chatbot", () => {
 
 		const botMessage = container.querySelector(".bot");
 		assert.exists(botMessage);
-		assert.isTrue(
-			botMessage?.textContent?.includes("processing query...")
-		);
+		assert.isTrue(botMessage?.textContent?.includes("processing query..."));
 	});
 
 	test("groups messages correctly when display_consecutive_in_same_bubble is true", () => {
