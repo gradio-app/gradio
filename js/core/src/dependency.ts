@@ -529,6 +529,12 @@ export class DependencyManager {
 							}
 
 							if (result.type === "render") {
+								this.loading_stati.update({
+									status: "complete",
+									fn_index: dep.id,
+									stream_state: null
+								});
+								this.update_loading_stati_state();
 								const { layout, components, render_id, dependencies } =
 									result.data;
 
