@@ -41,7 +41,18 @@ export async function make_build({
 				build: {
 					target: []
 				},
-				optimizeDeps: {}
+				optimizeDeps: {
+					exclude: [
+						"svelte",
+						"svelte/*",
+						"@gradio/utils",
+						"@gradio/atoms",
+						"@gradio/icons",
+						"@gradio/client",
+						"@gradio/upload",
+						"@gradio/statustracker"
+					]
+				}
 			};
 
 			if (
@@ -55,7 +66,8 @@ export async function make_build({
 				component_config.plugins = m.default.plugins || [];
 				component_config.svelte.preprocess = m.default.svelte?.preprocess || [];
 				component_config.build.target = m.default.build?.target || "modules";
-				component_config.optimizeDeps = m.default.optimizeDeps || {};
+				component_config.optimizeDeps =
+					m.default.optimizeDeps || component_config.optimizeDeps;
 			}
 
 			const exports: (string | any)[][] = [
@@ -77,7 +89,6 @@ export async function make_build({
 							conditions: ["gradio"]
 						},
 						build: {
-							target: component_config.build.target,
 							emptyOutDir: true,
 							outDir: join(template_dir, entry as string),
 							lib: {
@@ -87,6 +98,7 @@ export async function make_build({
 							},
 							minify: true,
 							rollupOptions: {
+								external: ["svelte", /^svelte(?:\/[ -~]+){0,3}$/],
 								output: {
 									entryFileNames: (chunkInfo: PreRenderedChunk) => {
 										if (chunkInfo.isEntry) {

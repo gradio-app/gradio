@@ -1,5 +1,9 @@
 import { defineConfig } from "vite";
-import { svelte, vitePreprocess } from "@sveltejs/vite-plugin-svelte";
+import type { Plugin } from "vite";
+import {
+	svelte as svelte_plugin,
+	vitePreprocess
+} from "@sveltejs/vite-plugin-svelte";
 import { sveltePreprocess } from "svelte-preprocess";
 // @ts-ignore
 import custom_media from "postcss-custom-media";
@@ -114,7 +118,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 		},
 		plugins: [
 			// resolve_svelte(development),
-			svelte({
+			svelte_plugin({
 				inspector: false,
 				compilerOptions: {
 					dev: true,
@@ -143,7 +147,11 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			inject_ejs(),
 			generate_cdn_entry({ version: GRADIO_VERSION, cdn_base: CDN_BASE }),
 			handle_ce_css(),
+			inject_svelte_init_code({ mode }),
+
 			inject_component_loader({ mode }),
+			resolve_svelte(mode === "production"),
+			handle_svelte_import({ development: mode === "development" }),
 			mode === "test" && mock_modules()
 		],
 
@@ -168,3 +176,117 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 		}
 	};
 });
+
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
+const svelte = require("svelte/package.json");
+const svelte_exports = Object.keys(svelte.exports)
+	.filter((p) => p.endsWith(".json"))
+	.map((entry) => entry.replace(/^\./, "svelte").split("/").join("_") + ".js");
+
+function handle_svelte_import({
+	development
+}: {
+	development: boolean;
+}): Plugin {
+	return {
+		name: "handle_svelte_import",
+		enforce: "pre",
+		resolveId(id, importer, options) {
+			if (development) {
+				return null;
+			}
+
+			if (!options?.ssr) {
+				if (id === "svelte") {
+					return {
+						id: "../../../svelte/svelte_svelte.js",
+						external: true
+					};
+				}
+				if (id.startsWith("svelte/")) {
+					return {
+						id: `../../../svelte/${id.split("/").join("_")}.js`,
+						external: true
+					};
+				}
+				return null;
+			}
+		}
+	};
+}
+
+export const _svelte_exports = Object.keys(svelte.exports)
+
+	.filter((entry) => {
+		const _entry = Object.keys(svelte.exports[entry]).filter(
+			(e) => e !== "types"
+		);
+		return (
+			_entry.length !== 0 &&
+			!entry.endsWith(".json") &&
+			entry !== "./internal" &&
+			entry !== "./compiler" &&
+			entry !== "./internal/disclose-version"
+		);
+	})
+	.map((entry) => "svelte" + entry.replace(/^\./, ""));
+export const svelte_exports_transformed = Object.keys(svelte.exports).map(
+	(entry) => entry.replace(/^\./, "svelte").split("/").join("_") + ".js"
+);
+
+export function inject_svelte_init_code({ mode }: { mode: string }): Plugin {
+	const v_id = "virtual:load-svelte";
+	const resolved_v_id = "\0" + v_id;
+
+	return {
+		name: "inject-component-loader",
+		enforce: "pre",
+		resolveId(id: string) {
+			if (id === v_id) return resolved_v_id;
+		},
+		load(id: string) {
+			if (id === resolved_v_id) {
+				const s = make_init_code();
+				console.log("Svelte init code:", s);
+				return s;
+			}
+		}
+	};
+}
+
+function make_init_code(): string {
+	const import_strings = _svelte_exports
+		.map(
+			(entry: string) =>
+				`import * as ${entry
+					.replace(/\.js$/, "")
+					.replace(/-/g, "_")
+					.replace(/\//g, "_")} from "${entry}";`
+		)
+		.join("\n");
+
+	const import_mappings = _svelte_exports
+		.map((entry: string) => {
+			const var_name = entry.replace(/\//g, "_");
+			return `o.${var_name} = {};
+	for (const key in ${var_name}) {
+		//@ts-ignore
+		o.${var_name}[key] = ${var_name}[key];
+	}`;
+		})
+		.join("\n");
+	return `${import_strings}
+	
+const is_browser = typeof window !== "undefined";
+if (is_browser) {
+	const o = {};
+	${import_mappings}
+
+	window.__gradio__svelte__ = o;
+	window.__gradio__svelte__["globals"] = {};
+	window.globals = window;
+}
+`;
+}

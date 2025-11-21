@@ -60,10 +60,8 @@ export async function create_server({
 			resolve: {
 				conditions: ["gradio"]
 			},
-			build: {
-				target: config.build.target
-			},
 			optimizeDeps: config.optimizeDeps,
+			cacheDir: join(component_dir, "frontend", "node_modules", ".vite"),
 			plugins: [
 				...plugins(config),
 				make_gradio_plugin({
@@ -154,7 +152,18 @@ async function generate_imports(
 		build: {
 			target: []
 		},
-		optimizeDeps: {}
+		optimizeDeps: {
+			exclude: [
+				"svelte",
+				"svelte/*",
+				"@gradio/utils",
+				"@gradio/atoms",
+				"@gradio/icons",
+				"@gradio/client",
+				"@gradio/upload",
+				"@gradio/statustracker"
+			]
+		}
 	};
 
 	await Promise.all(
@@ -170,7 +179,8 @@ async function generate_imports(
 				component_config.plugins = m.default.plugins || [];
 				component_config.svelte.preprocess = m.default.svelte?.preprocess || [];
 				component_config.build.target = m.default.build?.target || "modules";
-				component_config.optimizeDeps = m.default.optimizeDeps || {};
+				component_config.optimizeDeps =
+					m.default.optimizeDeps || component_config.optimizeDeps;
 			} else {
 			}
 		})
