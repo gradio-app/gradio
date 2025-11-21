@@ -44,20 +44,18 @@
 		border-radius: 0.25rem;
 	}
 
-	@media (prefers-color-scheme: dark) {
-		.highlight-positive {
-			background-color: rgb(22 101 52);
-			color: rgb(187 247 208);
-		}
+	:global(.dark) .highlight-positive {
+		background-color: rgb(22 101 52);
+		color: rgb(187 247 208);
+	}
 
-		.highlight-neutral {
-			background-color: rgb(64 64 64);
-			color: rgb(229 231 235);
-		}
+	:global(.dark) .highlight-neutral {
+		background-color: rgb(64 64 64);
+		color: rgb(229 231 235);
+	}
 
-		.highlight-negative {
-			background-color: rgb(153 27 27);
-			color: rgb(254 202 202);
-		}
+	:global(.dark) .highlight-negative {
+		background-color: rgb(153 27 27);
+		color: rgb(254 202 202);
 	}
 </style>

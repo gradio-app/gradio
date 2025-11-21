@@ -88,36 +88,34 @@
 		color: rgb(249 115 22);
 	}
 
-	@media (prefers-color-scheme: dark) {
-		.gradio-code-container {
-			background-color: rgb(23 23 23);
-			border-color: rgb(64 64 64);
-		}
+	:global(.dark) .gradio-code-container {
+		background-color: rgb(23 23 23);
+		border-color: rgb(64 64 64);
+	}
 
-		.gradio-code-gutter {
-			background-color: rgb(38 38 38);
-			border-color: rgb(64 64 64);
-			color: rgb(115 115 115);
-		}
+	:global(.dark) .gradio-code-gutter {
+		background-color: rgb(38 38 38);
+		border-color: rgb(64 64 64);
+		color: rgb(115 115 115);
+	}
 
-		.gradio-code-content {
-			color: rgb(229 231 235);
-		}
+	:global(.dark) .gradio-code-content {
+		color: rgb(229 231 235);
+	}
 
-		.code-keyword {
-			color: rgb(196 181 253);
-		}
+	:global(.dark) .code-keyword {
+		color: rgb(196 181 253);
+	}
 
-		.code-function {
-			color: rgb(147 197 253);
-		}
+	:global(.dark) .code-function {
+		color: rgb(147 197 253);
+	}
 
-		.code-string {
-			color: rgb(134 239 172);
-		}
+	:global(.dark) .code-string {
+		color: rgb(134 239 172);
+	}
 
-		.code-number {
-			color: rgb(251 146 60);
-		}
+	:global(.dark) .code-number {
+		color: rgb(251 146 60);
 	}
 </style>

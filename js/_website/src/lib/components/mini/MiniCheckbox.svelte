@@ -62,24 +62,22 @@
 		line-height: 1.25rem;
 	}
 
-	@media (prefers-color-scheme: dark) {
-		.gradio-checkbox {
-			border-color: rgb(64 64 64);
-			background-color: rgb(23 23 23);
-		}
+	:global(.dark) .gradio-checkbox {
+		border-color: rgb(64 64 64);
+		background-color: rgb(23 23 23);
+	}
 
-		.gradio-checkbox:hover {
-			border-color: rgb(82 82 82);
-			background-color: rgb(38 38 38);
-		}
+	:global(.dark) .gradio-checkbox:hover {
+		border-color: rgb(82 82 82);
+		background-color: rgb(38 38 38);
+	}
 
-		.gradio-checkbox:checked {
-			background-color: rgb(249 115 22);
-			border-color: rgb(249 115 22);
-		}
+	:global(.dark) .gradio-checkbox:checked {
+		background-color: rgb(249 115 22);
+		border-color: rgb(249 115 22);
+	}
 
-		.gradio-checkbox-label {
-			color: rgb(229 231 235);
-		}
+	:global(.dark) .gradio-checkbox-label {
+		color: rgb(229 231 235);
 	}
 </style>

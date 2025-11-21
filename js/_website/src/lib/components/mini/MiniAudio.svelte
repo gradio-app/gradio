@@ -87,14 +87,12 @@
 		flex-shrink: 0;
 	}
 
-	@media (prefers-color-scheme: dark) {
-		.gradio-audio {
-			background-color: rgb(23 23 23);
-			border-color: rgb(64 64 64);
-		}
+	:global(.dark) .gradio-audio {
+		background-color: rgb(23 23 23);
+		border-color: rgb(64 64 64);
+	}
 
-		.audio-time {
-			color: rgb(156 163 175);
-		}
+	:global(.dark) .audio-time {
+		color: rgb(156 163 175);
 	}
 </style>

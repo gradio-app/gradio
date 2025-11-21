@@ -80,21 +80,19 @@
 		text-align: left;
 	}
 
-	@media (prefers-color-scheme: dark) {
-		.gradio-chatbot-wrapper {
-			background: rgb(38 38 38);
-		}
+	:global(.dark) .gradio-chatbot-wrapper {
+		background: rgb(38 38 38);
+	}
 
-		.user-bubble {
-			background-color: rgba(249, 115, 22, 0.15);
-			border-color: rgba(249, 115, 22, 0.3);
-			color: rgb(229 231 235);
-		}
+	:global(.dark) .user-bubble {
+		background-color: rgba(249, 115, 22, 0.15);
+		border-color: rgba(249, 115, 22, 0.3);
+		color: rgb(229 231 235);
+	}
 
-		.bot-bubble {
-			background-color: rgb(38 38 38);
-			border-color: rgb(64 64 64);
-			color: rgb(229 231 235);
-		}
+	:global(.dark) .bot-bubble {
+		background-color: rgb(38 38 38);
+		border-color: rgb(64 64 64);
+		color: rgb(229 231 235);
 	}
 </style>
