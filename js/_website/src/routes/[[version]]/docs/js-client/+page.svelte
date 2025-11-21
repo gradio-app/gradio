@@ -80,7 +80,7 @@
 
 			<div class="w-full flex flex-wrap justify-between my-8 lg:ml-10">
 				<a
-					href="../python-client"
+					href="./python-client"
 					class="text-left px-4 py-2 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-gray-100 rounded-full hover:underline max-w-[48%] transition-colors"
 				>
 					<div class="flex text-lg items-center">
@@ -91,7 +91,7 @@
 					</div>
 				</a>
 				<a
-					href="../third-party-clients"
+					href="./third-party-clients"
 					class="text-right px-4 py-2 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-gray-100 rounded-full hover:underline max-w-[48%] transition-colors"
 				>
 					<div class="flex text-lg justify-end items-center">
