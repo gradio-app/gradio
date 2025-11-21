@@ -39,10 +39,10 @@
 	padding={true}
 	overflow_behavior="visible"
 >
-	{#if gradio.props.show_label}
+	{#if gradio.shared.show_label}
 		<BlockLabel
 			Icon={CodeIcon}
-			show_label={gradio.props.show_label}
+			show_label={gradio.shared.show_label}
 			label={gradio.shared.label}
 			float={false}
 		/>

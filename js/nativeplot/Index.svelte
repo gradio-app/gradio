@@ -303,7 +303,6 @@
 	}
 
 	$effect(() => {
-		console.log("effect 0 run");
 		_data = gradio.props.value
 			? reformat_data(gradio.props.value, x_start, x_end)
 			: [];
@@ -311,7 +310,6 @@
 
 	let old_value = $state<PlotData | null>(gradio.props.value);
 	$effect(() => {
-		console.log("effect 1 run");
 		if (old_value !== gradio.props.value && view) {
 			old_value = gradio.props.value;
 			view.data("data", _data).runAsync();
@@ -489,7 +487,6 @@
 		void computed_style;
 
 		if (mounted && chart_element) {
-			console.log("Reloading chart due to prop change");
 			untrack(() => {
 				load_chart();
 			});
@@ -646,7 +643,7 @@
 									legend: {
 										orient: "bottom",
 										title: gradio.props.color_title,
-										values: gradio.props.colors_in_legend || undefined
+										values: [...gradio.props.colors_in_legend] || undefined
 									},
 									scale:
 										gradio.props.value!.datatypes[gradio.props.color] ===
@@ -768,6 +765,7 @@
 			title: gradio.props.title || undefined
 		} as Spec;
 	}
+
 	/* eslint-enable complexity */
 </script>
 
@@ -806,8 +804,8 @@
 			{/if}
 		</IconButtonWrapper>
 	{/if}
-	<BlockTitle show_label={gradio.props.show_label} info={undefined}
-		>{gradio.props.label}</BlockTitle
+	<BlockTitle show_label={gradio.shared.show_label} info={undefined}
+		>{gradio.shared.label}</BlockTitle
 	>
 
 	{#if gradio.props.value && is_browser}
