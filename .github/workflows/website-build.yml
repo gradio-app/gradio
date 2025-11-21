@@ -58,10 +58,10 @@ jobs:
           python_version: "3.10"
       - name: build client
         run: pnpm --filter @gradio/client build
-      
+
       - name: build packages
         run: pnpm package
-      
+
       - name: build website
         run: VERCEL=1 pnpm --filter website build
 
