@@ -59,7 +59,7 @@ jobs:
       - name: build client
         run: pnpm --filter @gradio/client build
 
-      - name: build paramviewer package 
+      - name: build paramviewer package
         run: pnpm --filter @gradio/paramviewer exec svelte-package --input=. --tsconfig=../../tsconfig.json
 
       - name: build website
