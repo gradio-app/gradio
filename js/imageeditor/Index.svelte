@@ -106,7 +106,7 @@
 			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
 			{...gradio.shared.loading_status}
-			on:clear_status={() =>
+			on_clear_status={() =>
 				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 		<StaticImage
@@ -141,7 +141,7 @@
 			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
 			{...gradio.shared.loading_status}
-			on:clear_status={() =>
+			on_clear_status={() =>
 				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 

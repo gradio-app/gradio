@@ -6,7 +6,7 @@ export class LoadingStatus {
 	fn_inputs: Record<number, number[]> = {};
 	pending_outputs = new Map<number, number>();
 	fn_status: Record<number, ILoadingStatus["status"]> = {};
-	show_progress: "full" | "minimal" | "hidden" = "full";
+	show_progress: Record<number, "full" | "minimal" | "hidden"> = {};
 
 	register(
 		dependency_id: number,
@@ -16,7 +16,7 @@ export class LoadingStatus {
 	): void {
 		this.fn_outputs[dependency_id] = outputs;
 		this.fn_inputs[dependency_id] = inputs;
-		this.show_progress = show_progress;
+		this.show_progress[dependency_id] = show_progress;
 	}
 
 	clear(id: number): void {
@@ -54,7 +54,7 @@ export class LoadingStatus {
 					fn_index: args.fn_index,
 					time_limit,
 					type,
-					show_progress: this.show_progress
+					show_progress: this.show_progress[args.fn_index]
 				};
 			}
 		);

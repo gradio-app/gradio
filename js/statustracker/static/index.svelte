@@ -282,7 +282,7 @@
 					background="var(--background-fill-primary)"
 					color="var(--error-background-text)"
 					border="var(--border-color-primary)"
-					onclick={() => (validation_error = null)}
+					on:click={() => (validation_error = null)}
 				/></button
 			>
 		</div>
@@ -366,7 +366,7 @@
 				Icon={Clear}
 				label={i18n("common.clear")}
 				disabled={false}
-				onclick={() => {
+				on:click={() => {
 					on_clear_status?.();
 				}}
 			/>
