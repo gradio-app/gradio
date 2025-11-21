@@ -3,7 +3,7 @@
 		<input type="number" value="42" class="gradio-number-input" readonly />
 	</div>
 	<a
-		href="/docs/number"
+		href="/docs/gradio/number"
 		class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-2 hover:text-orange-500 transition-colors"
 		>Number</a
 	>
@@ -28,15 +28,13 @@
 		box-shadow: 0 0 0 1px rgb(249 115 22);
 	}
 
-	@media (prefers-color-scheme: dark) {
-		.gradio-number-input {
-			border-color: rgb(64 64 64);
-			background-color: rgb(23 23 23);
-			color: rgb(229 231 235);
-		}
+	:global(.dark) .gradio-number-input {
+		border-color: rgb(64 64 64);
+		background-color: rgb(23 23 23);
+		color: rgb(229 231 235);
+	}
 
-		.gradio-number-input:focus {
-			border-color: rgb(249 115 22);
-		}
+	:global(.dark) .gradio-number-input:focus {
+		border-color: rgb(249 115 22);
 	}
 </style>

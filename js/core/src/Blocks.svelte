@@ -175,11 +175,14 @@
 	}
 
 	let api_calls: Payload[] = $state([]);
+	let last_api_call: Payload | null = $state(null);
 	// We need a callback to add to api_calls from the DependencyManager
 	// We can't update a state variable from inside the DependencyManager because
 	// svelte won't see it and won't update the UI.
 	let add_to_api_calls = (payload: Payload): void => {
-		api_calls = [...api_calls, payload];
+		last_api_call = payload;
+		if (!api_recorder_visible) return;
+		api_calls = [...api_calls, last_api_call];
 	};
 
 	let dep_manager = new DependencyManager(
@@ -528,6 +531,7 @@
 					{space_id}
 					{api_calls}
 					{username}
+					{last_api_call}
 				/>
 			</div>
 		</div>

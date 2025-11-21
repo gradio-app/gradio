@@ -25,7 +25,7 @@
 		</div>
 	</div>
 	<a
-		href="/docs/slider"
+		href="/docs/gradio/slider"
 		class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-2 hover:text-orange-500 transition-colors"
 	>
 		Slider
@@ -54,14 +54,12 @@
 		);
 	}
 
-	@media (prefers-color-scheme: dark) {
-		.gradio-slider::-webkit-slider-runnable-track {
-			background: linear-gradient(
-				to right,
-				rgb(249 115 22) var(--range-progress),
-				rgb(64 64 64) var(--range-progress)
-			);
-		}
+	:global(.dark) .gradio-slider::-webkit-slider-runnable-track {
+		background: linear-gradient(
+			to right,
+			rgb(249 115 22) var(--range-progress),
+			rgb(64 64 64) var(--range-progress)
+		);
 	}
 
 	.gradio-slider::-webkit-slider-thumb {
@@ -85,10 +83,8 @@
 		border-radius: 9999px;
 	}
 
-	@media (prefers-color-scheme: dark) {
-		.gradio-slider::-moz-range-track {
-			background: rgb(64 64 64);
-		}
+	:global(.dark) .gradio-slider::-moz-range-track {
+		background: rgb(64 64 64);
 	}
 
 	.gradio-slider::-moz-range-thumb {

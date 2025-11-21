@@ -15,7 +15,7 @@
 		</div>
 	</div>
 	<a
-		href="/docs/datetime"
+		href="/docs/gradio/datetime"
 		class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-2 hover:text-orange-500 transition-colors"
 		>DateTime</a
 	>
@@ -68,25 +68,23 @@
 		height: 0.875rem;
 	}
 
-	@media (prefers-color-scheme: dark) {
-		.gradio-datetime {
-			background: rgb(38 38 38);
-		}
+	:global(.dark) .gradio-datetime {
+		background: rgb(38 38 38);
+	}
 
-		.datetime-input {
-			background: rgb(38 38 38);
-			border-color: rgb(64 64 64);
-			color: rgb(229 231 235);
-		}
+	:global(.dark) .datetime-input {
+		background: rgb(38 38 38);
+		border-color: rgb(64 64 64);
+		color: rgb(229 231 235);
+	}
 
-		.datetime-calendar-btn {
-			background: rgb(38 38 38);
-			border-color: rgb(64 64 64);
-			color: rgb(156 163 175);
-		}
+	:global(.dark) .datetime-calendar-btn {
+		background: rgb(38 38 38);
+		border-color: rgb(64 64 64);
+		color: rgb(156 163 175);
+	}
 
-		.datetime-calendar-btn:hover {
-			color: rgb(229 231 235);
-		}
+	:global(.dark) .datetime-calendar-btn:hover {
+		color: rgb(229 231 235);
 	}
 </style>
