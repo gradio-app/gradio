@@ -59,8 +59,8 @@ jobs:
       - name: build client
         run: pnpm --filter @gradio/client build
 
-      - name: build paramviewer and button packages
-        run: pnpm --filter @gradio/paramviewer exec svelte-package --input=. --tsconfig=../../tsconfig.json && pnpm --filter @gradio/button exec svelte-package --input=. --tsconfig=../../tsconfig.json
+      - name: build packages
+        run: pnpm package
 
       - name: build website
         run: VERCEL=1 pnpm --filter website build
