@@ -1,4 +1,15 @@
 # @gradio/downloadbutton
+## 0.4.13
+
+### Features
+
+- [#12438](https://github.com/gradio-app/gradio/pull/12438) [`25ffc03`](https://github.com/gradio-app/gradio/commit/25ffc0398f8feb43d817c02b2ab970c16de6d797) - Svelte5 migration and bugfix
+
+### Dependencies
+
+- @gradio/button@0.5.14
+- @gradio/client@2.0.0
+- @gradio/utils@0.10.3
 
 ## 0.4.13-dev.1
 

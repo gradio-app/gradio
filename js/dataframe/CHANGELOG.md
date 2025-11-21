@@ -1,4 +1,25 @@
 # @gradio/dataframe
+## 0.21.0
+
+### Features
+
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Fix issue with boolean columns in dataframe
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Fix various event issues
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - S5 df take3
+- [#12438](https://github.com/gradio-app/gradio/pull/12438) [`25ffc03`](https://github.com/gradio-app/gradio/commit/25ffc0398f8feb43d817c02b2ab970c16de6d797) - Svelte5 migration and bugfix
+
+### Dependencies
+
+- @gradio/atoms@0.19.0
+- @gradio/button@0.5.14
+- @gradio/checkbox@0.5.0
+- @gradio/client@2.0.0
+- @gradio/icons@0.15.0
+- @gradio/markdown-code@0.6.0
+- @gradio/statustracker@0.12.0
+- @gradio/upload@0.17.2
+- @gradio/utils@0.10.3
+- @gradio/dataframe-interim@0.21.0
 
 ## 0.21.0-dev.3
 

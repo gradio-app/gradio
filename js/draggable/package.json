@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/draggable",
-	"version": "0.2.1",
+	"version": "0.3.0",
 	"description": "Gradio Draggable layout component",
 	"type": "module",
 	"author": "",
