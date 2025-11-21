@@ -171,7 +171,9 @@
 			<div class="space-y-6 mt-12">
 				{#each guide_names as { category, guides } (category)}
 					<div>
-						<h2 class="text-xs font-bold uppercase tracking-wide text-gray-900 dark:text-gray-100 mb-3">
+						<h2
+							class="text-xs font-bold uppercase tracking-wide text-gray-900 dark:text-gray-100 mb-3"
+						>
 							{category}
 						</h2>
 						<ul class="space-y-2">
@@ -179,7 +181,8 @@
 								<li>
 									<a
 										href="..{guide.url}"
-										class="block text-sm transition-colors py-1 {guide.name === guide_page.name
+										class="block text-sm transition-colors py-1 {guide.name ===
+										guide_page.name
 											? 'text-orange-600 dark:text-orange-400 font-semibold'
 											: 'text-gray-600 dark:text-gray-400'}"
 									>
@@ -204,7 +207,9 @@
 		<div class="space-y-8">
 			{#each guide_names as { category, guides } (category)}
 				<div>
-					<h2 class="text-xs font-bold uppercase tracking-wide text-gray-900 dark:text-gray-100 mb-3">
+					<h2
+						class="text-xs font-bold uppercase tracking-wide text-gray-900 dark:text-gray-100 mb-3"
+					>
 						{category}
 					</h2>
 					<ul class="space-y-2">

@@ -17,12 +17,15 @@
 
 <div class="container mx-auto px-4 relative pt-8 mb-12">
 	<div class="flex gap-8">
-		<!-- Sidebar Navigation -->
-		<nav class="hidden lg:block w-64 flex-shrink-0 sticky top-8 self-start max-h-[calc(100vh-4rem)] overflow-y-auto">
+		<nav
+			class="hidden lg:block w-64 flex-shrink-0 sticky top-8 self-start max-h-[calc(100vh-4rem)] overflow-y-auto"
+		>
 			<div class="space-y-8">
 				{#each data.guides_by_category as { category, guides } (category)}
 					<div>
-						<h2 class="text-xs font-bold uppercase tracking-wide text-gray-900 dark:text-gray-100 mb-3">
+						<h2
+							class="text-xs font-bold uppercase tracking-wide text-gray-900 dark:text-gray-100 mb-3"
+						>
 							{category}
 						</h2>
 						<ul class="space-y-2">
@@ -42,7 +45,6 @@
 			</div>
 		</nav>
 
-		<!-- Main Content -->
 		<div class="flex-1">
 			<div class="mb-8">
 				<DropDown />
@@ -77,7 +79,8 @@
 
 			<div class="prose dark:prose-invert max-w-none">
 				<p class="text-xl text-gray-600 dark:text-gray-400 mb-8">
-					Learn how to build with Gradio through step-by-step guides and tutorials.
+					Learn how to build with Gradio through step-by-step guides and
+					tutorials.
 				</p>
 			</div>
 		</div>
