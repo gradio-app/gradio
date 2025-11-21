@@ -187,8 +187,8 @@
 			Everything you need to build
 		</h2>
 		<p class="text-lg text-gray-600 dark:text-gray-400">
-			Gradio handles the frontend so you can focus on the machine learning. From
-			prototypes to production-ready web apps.
+			Gradio handles the frontend so you can focus on building. From prototypes
+			to production-ready web apps.
 		</p>
 	</div>
 
