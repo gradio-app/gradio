@@ -52,7 +52,6 @@
 "@gradio/simpledropdown": minor
 "@gradio/simpleimage": minor
 "@gradio/simpletextbox": minor
-"@gradio/sketchbox": minor
 "@gradio/slider": minor
 "@gradio/state": minor
 "@gradio/statustracker": minor
