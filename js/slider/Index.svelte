@@ -84,6 +84,7 @@
 
 <Block
 	visible={gradio.shared.visible}
+	elem_id={gradio.shared.elem_id}
 	elem_classes={gradio.shared.elem_classes}
 	container={gradio.shared.container}
 	scale={gradio.shared.scale}
