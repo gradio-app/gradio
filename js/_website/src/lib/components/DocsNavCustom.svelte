@@ -68,16 +68,16 @@
 	use:clickOutside
 	on:click_outside={() => (show_nav = false)}
 	class:hidden={!show_nav}
-	class="min-w-[200px] navigation mobile-nav overflow-y-auto fixed backdrop-blur-lg z-50 bg-white dark:bg-neutral-900 pr-6 pl-4 py-4 -ml-4 h-full inset-0 w-5/6 lg:inset-auto lg:ml-0 lg:z-0 lg:backdrop-blur-none lg:navigation lg:p-0 lg:pb-4 lg:h-screen lg:leading-relaxed lg:sticky lg:top-0 lg:text-md lg:block rounded-t-xl lg:bg-white dark:lg:bg-neutral-900 lg:overflow-x-clip lg:w-2/12"
+	class="w-64 flex-shrink-0 max-h-[calc(100vh-4rem)] overflow-y-auto fixed inset-0 z-50 bg-white lg:bg-transparent dark:bg-neutral-900 lg:dark:bg-transparent p-6 lg:sticky lg:top-8 lg:self-start lg:block"
 	id="mobile-nav"
 >
 	<button
 		on:click={() => (show_nav = !show_nav)}
 		type="button"
-		class="absolute z-10 top-4 right-4 w-2/12 h-4 flex items-center justify-center text-grey-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300 p-4 lg:hidden"
+		class="absolute z-10 top-4 right-4 flex items-center justify-center text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 lg:hidden"
 		tabindex="0"
 	>
-		<svg viewBox="0 0 10 10" class="overflow-visible" style="width: 10px"
+		<svg viewBox="0 0 10 10" class="w-4 h-4"
 			><path
 				d="M0 0L10 10M10 0L0 10"
 				fill="none"
@@ -88,15 +88,20 @@
 		>
 	</button>
 
-
-	<p class="font-semibold px-4 my-2 block text-gray-900 dark:text-gray-100">
-		{title}
-	</p>
-	{#each Object.entries(items) as [name, url] (name)}
-		<a
-			class:current-nav-link={current_nav_link == name}
-			class="px-4 block thin-link"
-			href={url}>{name}</a
-		>
-	{/each}
+	<div class="space-y-2">
+		<h2 class="text-xs font-bold uppercase tracking-wide text-gray-900 dark:text-gray-100 mb-3">
+			{title}
+		</h2>
+		<ul class="space-y-2 list-none pl-0">
+			{#each Object.entries(items) as [name, url] (name)}
+				<li>
+					<a
+						class:current-nav-link={current_nav_link == name}
+						class="block text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors py-1"
+						href={url}>{name}</a
+					>
+				</li>
+			{/each}
+		</ul>
+	</div>
 </div>
