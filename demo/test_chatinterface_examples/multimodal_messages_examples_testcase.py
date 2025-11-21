@@ -18,7 +18,6 @@ demo = gr.ChatInterface(
         [{"text": "Can you explain briefly to me what is the Python programming language?"}],
     ],
     cache_examples=False,
-    type="messages",
     multimodal=True,
 )
 

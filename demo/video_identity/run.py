@@ -11,7 +11,8 @@ demo = gr.Interface(video_identity,
                     examples=[
                         get_video("world.mp4")
                     ],
-                    cache_examples=True)
+                    cache_examples=True,
+                    api_name="predict",)
 
 if __name__ == "__main__":
     demo.launch()

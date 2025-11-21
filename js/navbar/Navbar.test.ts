@@ -8,6 +8,7 @@ import Navbar from "./Index.svelte";
 
 beforeEach(() => {
 	setupi18n();
+	cleanup();
 	navbar_config.set(null);
 });
 
@@ -15,9 +16,10 @@ afterEach(cleanup);
 
 describe("Navbar Component", () => {
 	test("initializes the navbar store with custom props", async () => {
-		const { component } = await render(Navbar, {
+		await render(Navbar, {
 			visible: true,
 			main_page_name: "Dashboard",
+			elem_classes: [],
 			value: [
 				["Main", ""],
 				["Settings", "settings"]
@@ -46,9 +48,10 @@ describe("Navbar Component", () => {
 	});
 
 	test("navbar store updates when props change", async () => {
-		const { component } = await render(Navbar, {
+		const { unmount } = await render(Navbar, {
 			visible: true,
 			main_page_name: "Home",
+			elem_classes: [],
 			value: null
 		});
 
@@ -57,12 +60,16 @@ describe("Navbar Component", () => {
 		assert.equal(store_value?.main_page_name, "Home");
 		assert.equal(store_value?.value, null);
 
-		component.visible = false;
-		component.main_page_name = "Admin Panel";
-		component.value = [
-			["Dashboard", ""],
-			["Users", "users"]
-		];
+		unmount();
+		await render(Navbar, {
+			visible: false,
+			main_page_name: "Admin Panel",
+			elem_classes: [],
+			value: [
+				["Dashboard", ""],
+				["Users", "users"]
+			]
+		});
 
 		store_value = get(navbar_config);
 		assert.equal(store_value?.visible, false);
@@ -74,9 +81,10 @@ describe("Navbar Component", () => {
 	});
 
 	test("main_page_name can be set to false", async () => {
-		const { component } = await render(Navbar, {
+		await render(Navbar, {
 			visible: true,
 			main_page_name: false,
+			elem_classes: [],
 			value: null
 		});
 

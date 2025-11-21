@@ -35,6 +35,7 @@
 		change: string;
 		blur: undefined;
 		focus: undefined;
+		input: undefined;
 	}>();
 	let lang_extension: Extension | undefined;
 	let element: HTMLDivElement;
@@ -47,7 +48,7 @@
 		lang_extension = ext;
 	}
 
-	$: reconfigure(), lang_extension, readonly;
+	$: (reconfigure(), lang_extension, readonly);
 	$: set_doc(value);
 	$: update_lines();
 
@@ -118,13 +119,29 @@
 			scroller.style.maxHeight = `calc(${lineHeight} * ${max_lines + 1})`;
 	}
 
+	import { Transaction } from "@codemirror/state";
+
+	function is_user_input(update: ViewUpdate): boolean {
+		return update.transactions.some(
+			(tr) => tr.annotation(Transaction.userEvent) != null
+		);
+	}
+
 	function handle_change(vu: ViewUpdate): void {
-		if (vu.docChanged) {
-			const doc = vu.state.doc;
-			const text = doc.toString();
-			value = text;
+		if (!vu.docChanged) return;
+
+		const doc = vu.state.doc;
+		const text = doc.toString();
+		value = text;
+
+		const user_change = is_user_input(vu);
+		if (user_change) {
+			dispatch("change", text);
+			dispatch("input");
+		} else {
 			dispatch("change", text);
 		}
+
 		view.requestMeasure({ read: resize });
 	}
 

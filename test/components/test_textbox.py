@@ -21,7 +21,7 @@ class TestTextbox:
             "placeholder": None,
             "value": None,
             "name": "textbox",
-            "show_copy_button": False,
+            "buttons": None,
             "show_label": True,
             "type": "text",
             "label": None,

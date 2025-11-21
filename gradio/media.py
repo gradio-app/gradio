@@ -25,6 +25,13 @@ from pathlib import Path
 from typing import Optional
 
 MEDIA_ROOT = Path(__file__).parent / "media_assets"
+MEDIA_PATHS = [
+    MEDIA_ROOT / "images",
+    MEDIA_ROOT / "videos",
+    MEDIA_ROOT / "audio",
+    MEDIA_ROOT / "models3d",
+    MEDIA_ROOT / "data",
+]
 
 
 def _get_media_path(media_type: str, filename: Optional[str] = None) -> str:

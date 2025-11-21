@@ -73,8 +73,11 @@ class Dataframe(Component):
         | None = None,
         *,
         headers: list[str] | None = None,
-        row_count: int | tuple[int, str] = (1, "dynamic"),
-        col_count: int | tuple[int, str] | None = None,
+        row_count: int | None = None,
+        row_limits: tuple[int | None, int | None] | None = None,
+        col_count: None = None,
+        column_count: int | None = None,
+        column_limits: tuple[int | None, int | None] | None = None,
         datatype: Literal[
             "str", "number", "bool", "date", "markdown", "html", "image", "auto"
         ]
@@ -100,8 +103,7 @@ class Dataframe(Component):
         wrap: bool = False,
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
-        show_fullscreen_button: bool = False,
-        show_copy_button: bool = False,
+        buttons: list[Literal["fullscreen", "copy"]] | None = None,
         show_row_numbers: bool = False,
         max_chars: int | None = None,
         show_search: Literal["none", "search", "filter"] = "none",
@@ -112,8 +114,11 @@ class Dataframe(Component):
         Parameters:
             value: Default value to display in the DataFrame. Supports pandas, numpy, polars, and list of lists. If a Styler is provided, it will be used to set the displayed value in the DataFrame (e.g. to set precision of numbers) if the `interactive` is False. If a Callable function is provided, the function will be called whenever the app loads to set the initial value of the component.
             headers: List of str header names. These are used to set the column headers of the dataframe if the value does not have headers. If None, no headers are shown.
-            row_count: Limit number of rows for input and decide whether user can create new rows or delete existing rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
-            col_count: Limit number of columns for input and decide whether user can create new columns or delete existing columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
+            row_count: The number of rows to initially display in the dataframe. If None, the number of rows is determined automatically based on the `value`.
+            row_limits: A tuple of two integers specifying the minimum and maximum number of rows that can be created in the dataframe via the UI. If the first element is None, there is no minimum number of rows. If the second element is None, there is no maximum number of rows. Only applies if `interactive` is True.
+            col_count: This parameter is deprecated. Please use `column_count` instead.
+            column_count: The number of columns to initially display in the dataframe. If None, the number of columns is determined automatically based on the `value`.
+            column_limits: A tuple of two integers specifying the minimum and maximum number of columns that can be created in the dataframe via the UI. If the first element is None, there is no minimum number of columns. If the second element is None, there is no maximum number of columns. Only applies if `interactive` is True.
             datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", "date", and "markdown". Boolean columns will display as checkboxes. If the datatype "auto" is used, the column datatypes are automatically selected based on the value input if possible.
             type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, "polars" for polars dataframe, or "array" for a Python list of lists.
             label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
@@ -135,8 +140,7 @@ class Dataframe(Component):
             wrap: If True, the text in table cells will wrap when appropriate. If False and the `column_width` parameter is not set, the column widths will expand based on the cell contents and the table may need to be horizontally scrolled. If `column_width` is set, then any overflow text will be hidden.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies for columns of type "markdown."
             column_widths: An optional list representing the width of each column. The elements of the list should be in the format "100px" (ints are also accepted and converted to pixel values) or "10%". The percentage width is calculated based on the viewport width of the table. If not provided, the column widths will be automatically determined based on the content of the cells.
-            show_fullscreen_button: If True, will show a button to view the values in the table in fullscreen mode.
-            show_copy_button: If True, will show a button to copy the table data to the clipboard.
+            buttons: A list of buttons to show in the top right corner of the component. Valid options are "fullscreen" and "copy". The "fullscreen" button allows the user to view the table in fullscreen mode. The "copy" button allows the user to copy the table data to the clipboard. By default, all buttons are shown.
             show_row_numbers: If True, will display row numbers in a separate column.
             max_chars: Maximum number of characters to display in each cell before truncating (single-clicking a cell value will still reveal the full content). If None, no truncation is applied.
             show_search: Show a search input in the toolbar. If "search", a search input is shown. If "filter", a search input and filter buttons are shown. If "none", no search input is shown.
@@ -170,22 +174,38 @@ class Dataframe(Component):
             )
 
         self.wrap = wrap
+        # TODO: This is a temporary fix to ensure that the row_count and column_count are processed correctly.
+        # with the older version of the dataframe js component. Once we migrate the dataframe js component to
+        # Svelte 5, we'll remove self.__process_counts and drop self.col_count.
         self.row_count = self.__process_counts(row_count)
+        if row_limits is not None:
+            warnings.warn(
+                "The `row_limits` parameter is not yet implemented.",
+                UserWarning,
+            )
+        self.row_limits = row_limits
+        self.column_count = self.col_count = self.__process_counts(
+            column_count, len(headers) if headers else 3
+        )
+        if col_count is not None:
+            warnings.warn(
+                "The `col_count` parameter is deprecated and will be removed. Please use `column_count` instead.",
+                UserWarning,
+            )
+        if column_limits is not None:
+            warnings.warn(
+                "The `column_limits` parameter is not yet implemented.",
+                UserWarning,
+            )
+        self.column_limits = column_limits
         self.static_columns = static_columns or []
 
-        self.col_count = self.__process_counts(
-            col_count, len(headers) if headers else 3
-        )
-
-        if self.static_columns and isinstance(self.col_count, tuple):
-            self.col_count = (self.col_count[0], "fixed")
-
-        self.__validate_headers(headers, self.col_count[0])
+        self.__validate_headers(headers, self.column_count[0])
 
         self.headers = (
             headers
             if headers is not None
-            else [str(i) for i in (range(1, self.col_count[0] + 1))]
+            else [str(i) for i in (range(1, self.column_count[0] + 1))]
         )
 
         valid_types = ["pandas", "numpy", "array", "polars"]
@@ -216,35 +236,12 @@ class Dataframe(Component):
             else f"{w}px"
             for w in (column_widths or [])
         ]
-        if show_fullscreen_button is not False:
-            warnings.warn(
-                "The 'show_fullscreen_button' parameter will be removed in Gradio 6.0. "
-                "You will need to use 'buttons=[\"fullscreen\"]' instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-        if show_copy_button is not False:
-            warnings.warn(
-                "The 'show_copy_button' parameter will be removed in Gradio 6.0. "
-                "You will need to use 'buttons=[\"copy\"]' instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-        self.show_fullscreen_button = show_fullscreen_button
-        self.show_copy_button = show_copy_button
+        self.buttons = buttons
         self.show_row_numbers = show_row_numbers
         self.max_chars = max_chars
         self.show_search = show_search
         self.pinned_columns = pinned_columns
-        if (
-            pinned_columns is not None
-            and isinstance(col_count, tuple)
-            and col_count[1] == "fixed"
-            and pinned_columns > self.col_count[0]
-        ):
-            raise ValueError(
-                f"pinned_columns ({pinned_columns}) cannot exceed the total number of columns ({self.col_count[0]}) when using fixed columns"
-            )
+
         super().__init__(
             label=label,
             every=every,
@@ -294,7 +291,9 @@ class Dataframe(Component):
             polars = _import_polars()
             if payload.headers is not None:
                 return polars.DataFrame(
-                    [] if payload.data == [[]] else payload.data, schema=payload.headers
+                    [] if payload.data == [[]] else payload.data,
+                    schema=payload.headers,
+                    orient="row",
                 )
             else:
                 return polars.DataFrame(payload.data)
@@ -625,6 +624,15 @@ class Dataframe(Component):
         return metadata
 
     @staticmethod
+    def __validate_headers(headers: list[str] | None, column_count: int):
+        if headers is not None and len(headers) != column_count:
+            raise ValueError(
+                f"The length of the headers list must be equal to the column_count.\n"
+                f"The column count is set to {column_count} but `headers` has {len(headers)} items. "
+                f"Check the values passed to `column_count` and `headers`."
+            )
+
+    @staticmethod
     def __process_counts(count, default=3) -> tuple[int, str]:
         if count is None:
             return (default, "dynamic")
@@ -632,15 +640,6 @@ class Dataframe(Component):
             return (int(count), "dynamic")
         else:
             return count
-
-    @staticmethod
-    def __validate_headers(headers: list[str] | None, col_count: int):
-        if headers is not None and len(headers) != col_count:
-            raise ValueError(
-                f"The length of the headers list must be equal to the col_count int.\n"
-                f"The column count is set to {col_count} but `headers` has {len(headers)} items. "
-                f"Check the values passed to `col_count` and `headers`."
-            )
 
     def process_example(
         self,

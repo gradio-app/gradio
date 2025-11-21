@@ -199,7 +199,6 @@
 		) {
 			try {
 				await pending_bg;
-
 				await editor.add_layers_from_url(source.map((item) => item.url));
 				dispatch("change");
 				dispatch("input");
@@ -380,6 +379,7 @@
 
 		editor.on("change", () => {
 			dispatch("change");
+			dispatch("input");
 			full_history = editor.command_manager.history;
 		});
 
@@ -436,8 +436,6 @@
 		zoom.set_zoom("fit");
 		handle_tool_change({ tool: "draw" });
 		dispatch("upload");
-		dispatch("input");
-		dispatch("change");
 	}
 
 	$: background_image = can_undo && editor.command_manager.contains("AddImage");

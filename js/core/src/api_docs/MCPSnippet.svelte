@@ -3,18 +3,19 @@
 	import CopyButton from "./CopyButton.svelte";
 	import { Tool, Prompt, Resource } from "@gradio/icons";
 	import { format_latency, get_color_from_success_rate } from "./utils";
+	import PercentileChart from "./PercentileChart.svelte";
 
 	export let mcp_server_active: boolean;
-	export let mcp_server_url: string;
 	export let mcp_server_url_streamable: string;
+	export let root: string;
 	export let tools: Tool[];
 	export let all_tools: Tool[] = [];
 	export let selected_tools: Set<string> = new Set();
-	export let mcp_json_sse: any;
 	export let mcp_json_stdio: any;
 	export let file_data_present: boolean;
 	export let mcp_docs: string;
 	export let analytics: Record<string, any>;
+	export let config_snippets: Record<string, string>;
 
 	interface ToolParameter {
 		title?: string;
@@ -36,13 +37,12 @@
 		};
 	}
 
-	type Transport = "streamable_http" | "sse" | "stdio";
+	type Transport = "streamable_http" | "stdio";
 	let current_transport: Transport = "streamable_http";
 	let include_file_upload = true;
 
 	const transports = [
 		["streamable_http", "Streamable HTTP"],
-		["sse", "SSE"],
 		["stdio", "STDIO"]
 	] as const;
 
@@ -52,8 +52,7 @@
 		prompt: Prompt
 	};
 
-	$: display_url =
-		current_transport === "sse" ? mcp_server_url : mcp_server_url_streamable;
+	$: display_url = mcp_server_url_streamable;
 
 	// Helper function to add/remove file upload tool from config
 	function update_config_with_file_upload(
@@ -72,9 +71,7 @@
 					"gradio[mcp]",
 					"gradio",
 					"upload-mcp",
-					current_transport === "sse"
-						? mcp_server_url
-						: mcp_server_url_streamable,
+					root,
 					"<UPLOAD_DIRECTORY>"
 				]
 			};
@@ -87,13 +84,10 @@
 	}
 
 	$: mcp_json_streamable_http = update_config_with_file_upload(
-		mcp_json_sse
+		mcp_json_stdio
 			? {
-					...mcp_json_sse,
 					mcpServers: {
-						...mcp_json_sse.mcpServers,
 						gradio: {
-							...mcp_json_sse.mcpServers.gradio,
 							url: mcp_server_url_streamable
 						}
 					}
@@ -102,14 +96,15 @@
 		include_file_upload
 	);
 
-	$: mcp_json_sse_updated = update_config_with_file_upload(
-		mcp_json_sse,
-		include_file_upload
-	);
 	$: mcp_json_stdio_updated = update_config_with_file_upload(
 		mcp_json_stdio,
 		include_file_upload
 	);
+
+	$: config_snippets = {
+		streamable_http: JSON.stringify(mcp_json_streamable_http, null, 2),
+		stdio: JSON.stringify(mcp_json_stdio_updated, null, 2)
+	};
 </script>
 
 {#if mcp_server_active}
@@ -134,10 +129,8 @@
 		<Block>
 			<div class="mcp-url">
 				<label for="mcp-server-url"
-					><span class="status-indicator active">●</span>MCP Server URL ({current_transport ===
-					"sse"
-						? "SSE"
-						: "Streamable HTTP"})</label
+					><span class="status-indicator active">●</span>MCP Server URL
+					(Streamable HTTP)</label
 				>
 				<div class="textbox">
 					<input id="mcp-server-url" type="text" readonly value={display_url} />
@@ -227,34 +220,19 @@
 									: "⚠︎ No description provided in function docstring"}
 							</span>
 							{#if analytics[tool.meta.endpoint_name]}
-								<span
-									class="tool-analytics"
-									style="color: var(--body-text-color-subdued); margin-left: 1em;"
-								>
-									Total requests: {analytics[tool.meta.endpoint_name]
-										.total_requests}
-									<span style={color}
-										>({Math.round(success_rate * 100)}% successful)</span
+								{@const endpoint_analytics = analytics[tool.meta.endpoint_name]}
+								{@const p50 =
+									endpoint_analytics.process_time_percentiles["50th"]}
+								<div class="tool-analytics-wrapper" style="margin-left: 1em;">
+									<span
+										class="tool-analytics"
+										style="color: var(--body-text-color-subdued);"
 									>
-									&nbsp;|&nbsp; p50/p90/p99:
-									{format_latency(
-										analytics[tool.meta.endpoint_name].process_time_percentiles[
-											"50th"
-										]
-									)}
-									/
-									{format_latency(
-										analytics[tool.meta.endpoint_name].process_time_percentiles[
-											"90th"
-										]
-									)}
-									/
-									{format_latency(
-										analytics[tool.meta.endpoint_name].process_time_percentiles[
-											"99th"
-										]
-									)}
-								</span>
+										{endpoint_analytics.total_requests} requests ({Math.round(
+											success_rate * 100
+										)}% successful, p50: {format_latency(p50)})
+									</span>
+								</div>
 							{/if}
 						</span>
 						<span class="tool-arrow">{tool.expanded ? "▼" : "▶"}</span>
@@ -290,7 +268,7 @@
 	</div>
 	<p>&nbsp;</p>
 
-	{#if current_transport === "streamable_http"}
+	<div class:hidden={current_transport !== "streamable_http"}>
 		<strong>Streamable HTTP Transport</strong>: To add this MCP to clients that
 		support Streamable HTTP, simply add the following configuration to your MCP
 		config.
@@ -298,32 +276,15 @@
 		<Block>
 			<code>
 				<div class="copy">
-					<CopyButton
-						code={JSON.stringify(mcp_json_streamable_http, null, 2)}
-					/>
+					<CopyButton code={config_snippets.streamable_http} />
 				</div>
 				<div>
-					<pre>{JSON.stringify(mcp_json_streamable_http, null, 2)}</pre>
+					<pre>{config_snippets.streamable_http}</pre>
 				</div>
 			</code>
 		</Block>
-	{:else if current_transport === "sse"}
-		<strong>SSE Transport</strong>: The SSE transport has been deprecated by the
-		MCP spec. We recommend using the Streamable HTTP transport instead. But to
-		add this MCP to clients that only support server-sent events (SSE), simply
-		add the following configuration to your MCP config.
-		<p>&nbsp;</p>
-		<Block>
-			<code>
-				<div class="copy">
-					<CopyButton code={JSON.stringify(mcp_json_sse_updated, null, 2)} />
-				</div>
-				<div>
-					<pre>{JSON.stringify(mcp_json_sse_updated, null, 2)}</pre>
-				</div>
-			</code>
-		</Block>
-	{:else if current_transport === "stdio"}
+	</div>
+	<div class:hidden={current_transport !== "stdio"}>
 		<strong>STDIO Transport</strong>: For clients that only support stdio (e.g.
 		Claude Desktop), first
 		<a href="https://nodejs.org/en/download/" target="_blank">install Node.js</a
@@ -332,14 +293,14 @@
 		<Block>
 			<code>
 				<div class="copy">
-					<CopyButton code={JSON.stringify(mcp_json_stdio_updated, null, 2)} />
+					<CopyButton code={config_snippets.stdio} />
 				</div>
 				<div>
-					<pre>{JSON.stringify(mcp_json_stdio_updated, null, 2)}</pre>
+					<pre>{config_snippets.stdio}</pre>
 				</div>
 			</code>
 		</Block>
-	{/if}
+	</div>
 	{#if file_data_present}
 		<div class="file-upload-section">
 			<label class="checkbox-label">
@@ -380,10 +341,16 @@
 {/if}
 
 <style>
+	.tool-analytics-wrapper {
+		position: relative;
+		display: inline-block;
+	}
+
 	.tool-analytics {
 		font-size: 0.95em;
 		color: var(--body-text-color-subdued);
 	}
+
 	.transport-selection {
 		margin-bottom: var(--size-4);
 	}
@@ -664,5 +631,9 @@
 
 	a {
 		text-decoration: underline;
+	}
+
+	.hidden {
+		display: none;
 	}
 </style>

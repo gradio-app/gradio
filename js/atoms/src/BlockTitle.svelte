@@ -6,9 +6,9 @@
 </script>
 
 <span
-	class:sr-only={!show_label}
 	class:hide={!show_label}
 	class:has-info={info != null}
+	class:sr-only={!show_label}
 	data-testid="block-info"
 	dir={rtl ? "rtl" : "ltr"}
 >
@@ -47,5 +47,17 @@
 	.hide {
 		margin: 0;
 		height: 0;
+	}
+
+	.sr-only {
+		clip: rect(0, 0, 0, 0);
+		position: absolute;
+		margin: -1px;
+		border-width: 0;
+		padding: 0;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		white-space: nowrap;
 	}
 </style>

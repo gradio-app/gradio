@@ -25,7 +25,7 @@
 		version: string;
 		space_id: string | null;
 		is_colab: boolean;
-		show_api: boolean;
+		footer_links: string[];
 		stylesheets?: string[];
 		app_id?: string;
 		fill_height?: boolean;
@@ -212,6 +212,7 @@
 	let wrapper: HTMLDivElement;
 	let ready = false;
 	let render_complete = false;
+	let reload_count = 0;
 	$: config = data.config;
 
 	let intersecting: ReturnType<typeof create_intersection_store> = {
@@ -297,7 +298,14 @@
 					// @ts-ignore
 					let event_data: string | undefined = e.data;
 					if (event_data) {
-						new_message_fn("Error", "Error reloading app", "error");
+						new_message_fn(
+							"Error",
+							"Error reloading app",
+							-1,
+							"error",
+							10,
+							true
+						);
 						console.error(JSON.parse(event_data));
 					}
 				});
@@ -313,7 +321,7 @@
 					if (!app.config) {
 						throw new Error("Could not resolve app config");
 					}
-
+					reload_count += 1;
 					config = app.config;
 					window.__gradio_space__ = config.space_id;
 				});
@@ -324,7 +332,7 @@
 	let new_message_fn: (title: string, message: string, type: string) => void;
 
 	$: if (new_message_fn && pending_deep_link_error) {
-		new_message_fn("Error", "Deep link was not valid", "error");
+		new_message_fn("Error", "Deep link was not valid", -1, "error", 10, true);
 		pending_deep_link_error = false;
 	}
 
@@ -362,13 +370,19 @@
 		}
 	}
 
-	onDestroy(() => {
-		spaceheader?.remove();
-	});
+	// onDestroy(() => {
+	// 	if (spaceheader) {
+	// 		spaceheader.remove();
+	// 		spaceheader = undefined;
+	// 	}
+	// });
 </script>
 
 <svelte:head>
-	<link rel="stylesheet" href={"./theme.css?v=" + config?.theme_hash} />
+	<link
+		rel="stylesheet"
+		href={config?.root + "/theme.css?v=" + config?.theme_hash}
+	/>
 	{#if config?.stylesheets}
 		{#each config.stylesheets as stylesheet}
 			{#if stylesheet.startsWith("http:") || stylesheet.startsWith("https:")}
@@ -415,7 +429,7 @@
 			bind:ready
 			bind:render_complete
 			bind:add_new_message={new_message_fn}
-			show_footer={!is_embed}
+			footer_links={is_embed ? [] : config.footer_links}
 			{app_mode}
 			{version}
 			search_params={$page.url.searchParams}

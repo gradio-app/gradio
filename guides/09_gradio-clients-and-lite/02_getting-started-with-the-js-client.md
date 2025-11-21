@@ -80,12 +80,12 @@ import { Client } from "@gradio/client";
 const app = await Client.connect("abidlabs/en2fr"); // a Space that translates from English to French
 ```
 
-You can also connect to private Spaces by passing in your HF token with the `hf_token` property of the options parameter. You can get your HF token here: https://huggingface.co/settings/tokens
+You can also connect to private Spaces by passing in your HF token with the `token` property of the options parameter. You can get your HF token here: https://huggingface.co/settings/tokens
 
 ```js
 import { Client } from "@gradio/client";
 
-const app = await Client.connect("abidlabs/my-private-space", { hf_token: "hf_..." })
+const app = await Client.connect("abidlabs/my-private-space", { token: "hf_..." })
 ```
 
 ## Duplicating a Space for private use
@@ -102,7 +102,7 @@ const response = await fetch(
 );
 const audio_file = await response.blob();
 
-const app = await Client.duplicate("abidlabs/whisper", { hf_token: "hf_..." });
+const app = await Client.duplicate("abidlabs/whisper", { token: "hf_..." });
 const transcription = await app.predict("/predict", [handle_file(audio_file)]);
 ```
 
@@ -114,7 +114,7 @@ If you have previously duplicated a Space, re-running `Client.duplicate` will _n
 import { Client } from "@gradio/client";
 
 const app = await Client.duplicate("abidlabs/whisper", {
-	hf_token: "hf_...",
+	token: "hf_...",
 	timeout: 60,
 	hardware: "a10g-small"
 });

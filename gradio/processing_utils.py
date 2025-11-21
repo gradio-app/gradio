@@ -241,7 +241,8 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
 PUBLIC_HOSTNAME_WHITELIST = [
     "hf.co",
     "huggingface.co",
-    "cas-bridge-direct.xethub.hf.co",
+    "*.hf.co",
+    "*.huggingface.co",
 ]
 
 
@@ -307,7 +308,6 @@ async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
             domain_whitelist=PUBLIC_HOSTNAME_WHITELIST,
             _transport=async_transport,
         )
-
     if response.status_code != 200:
         raise Exception(f"Failed to download file. Status code: {response.status_code}")
 

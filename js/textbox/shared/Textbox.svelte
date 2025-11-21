@@ -7,14 +7,13 @@
 	} from "svelte";
 	import { BlockTitle, IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import { Copy, Check, Send, Square } from "@gradio/icons";
-	import { fade } from "svelte/transition";
 	import type { SelectData, CopyData } from "@gradio/utils";
-	import type { InputHTMLAttributes } from "./types";
+	import type { InputHTMLAttributes } from "../types";
 
 	export let value = "";
 	export let value_is_output = false;
 	export let lines = 1;
-	export let placeholder = "Type here...";
+	export let placeholder = "";
 	export let label: string;
 	export let info: string | undefined = undefined;
 	export let disabled = false;
@@ -54,9 +53,9 @@
 		_max_lines = Math.max(max_lines, lines);
 	}
 
-	$: value,
+	$: (value,
 		validation_error,
-		el && lines !== _max_lines && lines > 1 && resize({ target: el });
+		el && lines !== _max_lines && lines > 1 && resize({ target: el }));
 
 	$: if (value === null) value = "";
 
@@ -66,7 +65,7 @@
 		stop: undefined;
 		blur: undefined;
 		select: SelectData;
-		input: undefined;
+		input: string;
 		focus: undefined;
 		copy: CopyData;
 	}>();
@@ -87,12 +86,11 @@
 		}
 	};
 
-	function handle_change(): void {
+	async function handle_change(): Promise<void> {
+		await tick();
 		dispatch("change", value);
-		if (!value_is_output) {
-			dispatch("input");
-		}
 	}
+
 	afterUpdate(() => {
 		if (autofocus) {
 			el.focus();
@@ -102,7 +100,7 @@
 		}
 		value_is_output = false;
 	});
-	$: value, handle_change();
+	$: (value, handle_change());
 
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
@@ -133,9 +131,9 @@
 	}
 
 	async function handle_keypress(e: KeyboardEvent): Promise<void> {
-		await tick();
 		if (e.key === "Enter" && e.shiftKey && lines > 1) {
 			e.preventDefault();
+			await tick();
 			dispatch("submit");
 		} else if (
 			e.key === "Enter" &&
@@ -144,8 +142,11 @@
 			_max_lines >= 1
 		) {
 			e.preventDefault();
+			await tick();
 			dispatch("submit");
 		}
+		await tick();
+		dispatch("input", value);
 	}
 
 	function handle_scroll(event: Event): void {

@@ -9,12 +9,11 @@ describe("Group", () => {
 	});
 
 	test("setting visible to false hides the Group", async () => {
-		render(Group, {
-			elem_id: "group",
+		const { container } = await render(Group, {
 			visible: false
 		});
 
-		const groupElement = document.getElementById("group");
+		const groupElement = container.querySelector(".gr-group");
 
 		assert(groupElement !== null, "Group element not found.");
 		assert(

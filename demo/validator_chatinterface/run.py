@@ -13,7 +13,7 @@ def do_chat(message, history):
         yield "You typed: " + message[: i + 1]
 
 
-demo = gr.ChatInterface(fn=do_chat, validator=validate_input, type="messages", show_progress="full")
+demo = gr.ChatInterface(fn=do_chat, validator=validate_input, show_progress="full")
 
 
 if __name__ == "__main__":

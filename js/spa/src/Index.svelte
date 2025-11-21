@@ -25,7 +25,7 @@
 		version: string;
 		space_id: string | null;
 		is_colab: boolean;
-		show_api: boolean;
+		footer_links: string[];
 		stylesheets?: string[];
 		app_id?: string;
 		fill_height?: boolean;
@@ -292,9 +292,11 @@
 	let new_message_fn: (title: string, message: string, type: string) => void;
 
 	$: if (new_message_fn && pending_deep_link_error) {
-		new_message_fn("Error", "Deep link was not valid", "error");
+		new_message_fn("Error", "Deep link was not valid", -1, "error", 10, true);
 		pending_deep_link_error = false;
 	}
+
+	let reload_count: number = 0;
 
 	onMount(async () => {
 		active_theme_mode = handle_theme_mode(wrapper);
@@ -385,7 +387,14 @@
 					// @ts-ignore
 					let event_data: string | undefined = e.data;
 					if (event_data) {
-						new_message_fn("Error", "Error reloading app", "error");
+						new_message_fn(
+							"Error",
+							"Error reloading app",
+							-1,
+							"error",
+							10,
+							true
+						);
 						console.error(JSON.parse(event_data));
 					}
 				});
@@ -408,6 +417,7 @@
 					await add_custom_html_head(config.head);
 					css_ready = true;
 					window.__is_colab__ = config.is_colab;
+					reload_count += 1;
 					dispatch("loaded");
 				});
 			}, 200);
@@ -506,7 +516,6 @@
 			if (header) spaceheader = header.element;
 		}
 	}
-
 	onDestroy(() => {
 		spaceheader?.remove();
 	});
@@ -584,21 +593,22 @@
 			<Blocks
 				{app}
 				{...config}
+				bind:ready
 				fill_height={!is_embed && config.fill_height}
 				theme_mode={active_theme_mode}
 				{control_page_title}
 				target={wrapper}
 				{autoscroll}
-				bind:ready
 				bind:render_complete
 				bind:add_new_message={new_message_fn}
-				show_footer={!is_embed}
+				footer_links={is_embed ? [] : config.footer_links}
 				{app_mode}
 				{version}
 				api_prefix={config.api_prefix || ""}
 				max_file_size={config.max_file_size}
 				initial_layout={undefined}
 				search_params={new URLSearchParams(window.location.search)}
+				{reload_count}
 			/>
 		{/if}
 	{/if}

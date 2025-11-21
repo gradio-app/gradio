@@ -1,70 +1,58 @@
 <script lang="ts">
-	import type { Gradio } from "@gradio/utils";
+	import type { SimpleDropdownProps, SimpleDropdownEvents } from "./types";
+	import { Gradio } from "@gradio/utils";
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
 
-	export let label = "Dropdown";
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let value: string | number;
-	export let value_is_output = false;
-	export let choices: [string, string | number][];
-	export let show_label: boolean;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let loading_status: LoadingStatus;
-	export let gradio: Gradio<{
-		change: string;
-		input: never;
-		clear_status: LoadingStatus;
-	}>;
-	export let interactive: boolean;
+	const props = $props();
+	const gradio = new Gradio<SimpleDropdownEvents, SimpleDropdownProps>(props);
+
+	let display_value = $state("");
+	let candidate: [string, string | number][] = [];
+	let old_value = $state(gradio.props.value);
 
 	const container = true;
-	let display_value: string;
-	let candidate: [string, string | number][];
 
-	function handle_change(): void {
-		gradio.dispatch("change");
-		if (!value_is_output) {
+	$effect(() => {
+		if (display_value) {
+			candidate = gradio.props.choices.filter(
+				(choice) => choice[0] === display_value
+			);
+			gradio.props.value = candidate.length ? candidate[0][1] : "";
 			gradio.dispatch("input");
 		}
-	}
-
-	$: if (display_value) {
-		candidate = choices.filter((choice) => choice[0] === display_value);
-		value = candidate.length ? candidate[0][1] : "";
-	}
-
-	// When the value changes, dispatch the change event via handle_change()
-	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
-	$: value, handle_change();
+		if (old_value != gradio.props.value) {
+			old_value = gradio.props.value;
+			gradio.dispatch("change");
+		}
+	});
 </script>
 
 <Block
-	{visible}
-	{elem_id}
-	{elem_classes}
+	visible={gradio.shared.visible}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
 	padding={container}
 	allow_overflow={false}
-	{scale}
-	{min_width}
+	scale={gradio.shared.scale}
+	min_width={gradio.shared.min_width}
 >
-	{#if loading_status}
+	{#if gradio.shared.loading_status}
 		<StatusTracker
-			autoscroll={gradio.autoscroll}
+			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
-			{...loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+			{...gradio.shared.loading_status}
+			on_clear_status={() =>
+				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 	{/if}
 
 	<label class:container>
-		<BlockTitle {show_label} info={undefined}>{label}</BlockTitle>
-		<select disabled={!interactive} bind:value={display_value}>
-			{#each choices as choice}
+		<BlockTitle show_label={gradio.shared.show_label} info={undefined}
+			>{gradio.shared.label}</BlockTitle
+		>
+		<select disabled={!gradio.shared.interactive} bind:value={display_value}>
+			{#each gradio.props.choices as choice}
 				<option>{choice[0]}</option>
 			{/each}
 		</select>

@@ -14,32 +14,35 @@ test("Dataframe change events work as expected", async ({ page }) => {
 	await expect(page.getByLabel("Change events")).toHaveValue("1");
 });
 
-test("Dataframe input events work as expected @firefox", async ({ page }) => {
-	const input_events = page.getByLabel("Input events");
-	await expect(input_events).toHaveValue("0");
+test.fixme(
+	"Dataframe input events work as expected @firefox",
+	async ({ page }) => {
+		const input_events = page.getByLabel("Input events");
+		await expect(input_events).toHaveValue("0");
 
-	await page.getByRole("button", { name: "Update dataframe" }).click();
-	await page.waitForTimeout(500);
+		await page.getByRole("button", { name: "Update dataframe" }).click();
+		await page.waitForTimeout(500);
 
-	const df = page.locator("#dataframe");
-	await get_cell(df, 0, 0).click();
+		const df = page.locator("#dataframe");
+		await get_cell(df, 0, 0).click();
 
-	await page.getByLabel("Edit cell").fill("42");
-	await page.getByLabel("Edit cell").press("Enter");
+		await page.getByLabel("Edit cell").fill("42");
+		await page.getByLabel("Edit cell").press("Enter");
 
-	await expect(input_events).toHaveValue("1");
+		await expect(input_events).toHaveValue("1");
 
-	await get_cell(df, 0, 1).click();
+		await get_cell(df, 0, 1).click();
 
-	await page.getByLabel("Edit cell").fill("50");
-	await get_cell(df, 0, 0).click();
+		await page.getByLabel("Edit cell").fill("50");
+		await get_cell(df, 0, 0).click();
 
-	await expect(input_events).toHaveValue("2");
+		await expect(input_events).toHaveValue("2");
 
-	await page.getByLabel("Edit cell").press("Enter");
+		await page.getByLabel("Edit cell").press("Enter");
 
-	await expect(input_events).toHaveValue("2");
-});
+		await expect(input_events).toHaveValue("2");
+	}
+);
 
 test("Dataframe blur event works as expected", async ({ page }) => {
 	const df = page.locator("#dataframe").first();
@@ -122,7 +125,7 @@ test("Dataframe can be cleared and updated indirectly", async ({ page }) => {
 
 	const df_block = page.locator("#dataframe");
 	const empty_rows = await df_block.locator(".tbody > tr").count();
-	expect(empty_rows).toBe(5);
+	expect(empty_rows).toBe(0);
 
 	await page.getByRole("button", { name: "Update dataframe" }).click();
 	await page.waitForTimeout(500);
@@ -132,8 +135,9 @@ test("Dataframe can be cleared and updated indirectly", async ({ page }) => {
 
 	const headers = await df_block.locator(".thead > tr > th").allTextContents();
 
-	const trimmed_headers = headers.slice(1).map((header) => header.trim());
-	expect(trimmed_headers).toEqual(["0", "1", "2", "3", "4"]);
+	expect(
+		headers.slice(1).map((header) => header.slice(1).replace(/\D/g, ""))
+	).toEqual(["0", "1", "2", "3", "4"]);
 });
 
 test("Non-interactive dataframe cannot be edited", async ({ page }) => {

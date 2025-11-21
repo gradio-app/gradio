@@ -248,7 +248,7 @@ XRAY_CONFIG = {
     "space_id": None,
     "enable_queue": None,
     "show_error": True,
-    "show_api": True,
+    "show_in_view_api": True,
     "is_colab": False,
     "stylesheets": [
         "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600&display=swap",
@@ -599,7 +599,7 @@ XRAY_CONFIG_DIFF_IDS = {
     "space_id": None,
     "enable_queue": None,
     "show_error": True,
-    "show_api": True,
+    "show_in_view_api": True,
     "is_colab": False,
     "stylesheets": [
         "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600&display=swap",

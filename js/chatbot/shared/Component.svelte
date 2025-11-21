@@ -19,7 +19,17 @@
 	export let allow_file_downloads: boolean;
 	export let display_icon_button_wrapper_top_corner = false;
 
-	$: console.log("props.label", props.label);
+	let image_fullscreen = false;
+	let image_container: HTMLElement;
+
+	function handle_fullscreen(event: CustomEvent<boolean>): void {
+		image_fullscreen = event.detail;
+		if (image_fullscreen && image_container) {
+			image_container.requestFullscreen?.();
+		} else if (document.fullscreenElement) {
+			document.exitFullscreen?.();
+		}
+	}
 </script>
 
 {#if type === "gallery"}
@@ -27,7 +37,7 @@
 		this={components[type]}
 		{...props}
 		{value}
-		{display_icon_button_wrapper_top_corner}
+		display_icon_button_wrapper_top_corner={false}
 		show_label={props.label ? true : false}
 		{i18n}
 		{_fetch}
@@ -68,23 +78,22 @@
 		on:load
 	/>
 {:else if type === "audio"}
-	<div style="position: relative;">
-		<svelte:component
-			this={components[type]}
-			{...props}
-			{value}
-			show_label={props.label ? true : false}
-			show_share_button={true}
-			{i18n}
-			waveform_settings={{
-				...props.waveform_settings,
-				autoplay: props.autoplay
-			}}
-			show_download_button={allow_file_downloads}
-			{display_icon_button_wrapper_top_corner}
-			on:load
-		/>
-	</div>
+	<svelte:component
+		this={components[type]}
+		{...props}
+		{value}
+		show_label={props.label ? true : false}
+		show_share_button={false}
+		{i18n}
+		waveform_settings={{
+			...props.waveform_settings,
+			autoplay: props.autoplay
+		}}
+		show_download_button={false}
+		display_icon_button_wrapper_top_corner={false}
+		minimal={true}
+		on:load
+	/>
 {:else if type === "video"}
 	<svelte:component
 		this={components[type]}
@@ -92,33 +101,38 @@
 		autoplay={props.autoplay}
 		value={value.video || value}
 		show_label={props.label ? true : false}
-		show_share_button={true}
+		show_share_button={false}
 		{i18n}
 		{upload}
-		{display_icon_button_wrapper_top_corner}
-		show_download_button={allow_file_downloads}
+		display_icon_button_wrapper_top_corner={false}
+		show_download_button={false}
 		on:load
 	>
 		<track kind="captions" />
 	</svelte:component>
 {:else if type === "image"}
-	<svelte:component
-		this={components[type]}
-		{...props}
-		{value}
-		show_label={props.label ? true : false}
-		show_download_button={allow_file_downloads}
-		{display_icon_button_wrapper_top_corner}
-		on:load
-		{i18n}
-	/>
+	<div bind:this={image_container}>
+		<svelte:component
+			this={components[type]}
+			{...props}
+			{value}
+			show_label={props.label ? true : false}
+			display_icon_button_wrapper_top_corner={false}
+			buttons={["fullscreen"]}
+			fullscreen={image_fullscreen}
+			show_button_background={false}
+			on:fullscreen={handle_fullscreen}
+			on:load
+			{i18n}
+		/>
+	</div>
 {:else if type === "html"}
 	<svelte:component
 		this={components[type]}
 		{...props}
 		{value}
 		show_label={false}
-		show_share_button={true}
+		show_share_button={false}
 		{i18n}
 		gradio={{ dispatch: () => {} }}
 		on:load
@@ -139,8 +153,9 @@
 		show_label={props.label ? true : false}
 		root=""
 		interactive={false}
-		show_share_button={true}
+		show_share_button={false}
 		gradio={{ dispatch: () => {}, i18n }}
 		on:load
+		{i18n}
 	/>
 {/if}

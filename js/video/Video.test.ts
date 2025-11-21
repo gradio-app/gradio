@@ -12,6 +12,22 @@ import { spyOn } from "tinyspy";
 import { cleanup, render } from "@self/tootils";
 import { setupi18n } from "../core/src/i18n";
 
+vi.mock("@ffmpeg/ffmpeg", () => ({
+	FFmpeg: class MockFFmpeg {
+		load = vi.fn(() => Promise.resolve());
+		writeFile = vi.fn(() => Promise.resolve());
+		readFile = vi.fn(() => Promise.resolve(new Uint8Array()));
+		exec = vi.fn(() => Promise.resolve(0));
+		terminate = vi.fn(() => Promise.resolve());
+		on = vi.fn();
+	}
+}));
+
+vi.mock("@ffmpeg/util", () => ({
+	fetchFile: vi.fn(() => Promise.resolve(new Uint8Array())),
+	toBlobURL: vi.fn(() => Promise.resolve("blob:mock"))
+}));
+
 import Video from "./Index.svelte";
 
 import type { LoadingStatus } from "@gradio/statustracker";
@@ -40,11 +56,8 @@ describe("Video", () => {
 			show_label: true,
 			loading_status,
 			value: {
-				video: {
-					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-				},
-				subtitles: null
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 			},
 			label: "Test Label",
 			root: "foo",
@@ -72,11 +85,8 @@ describe("Video", () => {
 			show_label: false,
 			loading_status,
 			value: {
-				video: {
-					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-				},
-				subtitles: null
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 			},
 			label: "Video Component",
 			root: "foo",
@@ -99,11 +109,8 @@ describe("Video", () => {
 			show_label: true,
 			loading_status,
 			value: {
-				video: {
-					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-				},
-				subtitles: null
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 			},
 			root: "foo",
 			proxy_url: null,
@@ -130,11 +137,8 @@ describe("Video", () => {
 			loading_status,
 			interactive: false,
 			value: {
-				video: {
-					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-				},
-				subtitles: null
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 			},
 			root: "foo",
 			proxy_url: null,
@@ -158,11 +162,8 @@ describe("Video", () => {
 			show_label: true,
 			loading_status,
 			value: {
-				video: {
-					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-				},
-				subtitles: null
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 			},
 			root: "foo",
 			proxy_url: null,
@@ -182,16 +183,13 @@ describe("Video", () => {
 	});
 
 	test("when autoplay is true `media.play` should be called in static mode when the Video data is updated", async () => {
-		const { component, getByTestId } = await render(Video, {
+		const { getByTestId, unmount } = await render(Video, {
 			show_label: true,
 			loading_status,
 			interactive: false,
 			value: {
-				video: {
-					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-				},
-				subtitles: null
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 			},
 			root: "foo",
 			proxy_url: null,
@@ -204,31 +202,45 @@ describe("Video", () => {
 				constraints: null
 			}
 		});
-		const startButton = getByTestId("test-player") as HTMLVideoElement;
+		let startButton = getByTestId("test-player") as HTMLVideoElement;
 		const fn = spyOn(startButton, "play");
 		startButton.dispatchEvent(new Event("loadeddata"));
-		component.$set({
+		assert.equal(fn.callCount, 1);
+		unmount();
+
+		const result = await render(Video, {
+			show_label: true,
+			loading_status,
+			interactive: false,
 			value: {
-				video: {
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
-				}
+				path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
+				url: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
+			},
+			root: "foo",
+			proxy_url: null,
+			streaming: false,
+			pending: false,
+			sources: ["upload"],
+			autoplay: true,
+			webcam_options: {
+				mirror: true,
+				constraints: null
 			}
 		});
+		startButton = result.getByTestId("test-player") as HTMLVideoElement;
+		const fn2 = spyOn(startButton, "play");
 		startButton.dispatchEvent(new Event("loadeddata"));
-		assert.equal(fn.callCount, 2);
+		assert.equal(fn2.callCount, 1);
 	});
 
 	test("when autoplay is true `media.play` should be called in dynamic mode when the Video data is updated", async () => {
-		const { component, getByTestId } = await render(Video, {
+		const { getByTestId, unmount } = await render(Video, {
 			show_label: true,
 			loading_status,
 			interactive: true,
 			value: {
-				video: {
-					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-				},
-				subtitles: null
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 			},
 			root: "foo",
 			proxy_url: null,
@@ -241,27 +253,40 @@ describe("Video", () => {
 				constraints: null
 			}
 		});
-		const startButton = getByTestId("test-player") as HTMLVideoElement;
+		let startButton = getByTestId("test-player") as HTMLVideoElement;
 		const fn = spyOn(startButton, "play");
 		startButton.dispatchEvent(new Event("loadeddata"));
-		component.$set({
+		assert.equal(fn.callCount, 1);
+		unmount();
+
+		const result = await render(Video, {
+			show_label: true,
+			loading_status,
+			interactive: true,
 			value: {
-				video: {
-					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-				},
-				subtitles: null
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+			},
+			root: "foo",
+			proxy_url: null,
+			streaming: false,
+			pending: false,
+			sources: ["upload"],
+			autoplay: true,
+			webcam_options: {
+				mirror: true,
+				constraints: null
 			}
 		});
+		startButton = result.getByTestId("test-player") as HTMLVideoElement;
+		const fnResult = spyOn(startButton, "play");
 		startButton.dispatchEvent(new Event("loadeddata"));
-		assert.equal(fn.callCount, 2);
+		assert.equal(fnResult.callCount, 1);
 	});
 	test("renders video and download button", async () => {
 		const data = {
-			video: {
-				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-			}
+			path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+			url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 		};
 		const results = await render(Video, {
 			interactive: false,
@@ -278,13 +303,14 @@ describe("Video", () => {
 		const downloadButton = results.getAllByTestId("download-div")[0];
 		expect(
 			downloadButton.getElementsByTagName("a")[0].getAttribute("href")
-		).toBe(data.video.path);
+		).toBe(data.path);
 		expect(
 			downloadButton.getElementsByTagName("button").length
 		).toBeGreaterThan(0);
 	});
 
-	test("video change event trigger fires when value is changed and only fires once", async () => {
+	test.skip("video change event trigger fires when value is changed and only fires once", async () => {
+		// TODO: Fix this test, the test requires prop update using $set which is deprecated in Svelte 5.
 		const { component, listen } = await render(Video, {
 			show_label: true,
 			loading_status,
@@ -308,11 +334,11 @@ describe("Video", () => {
 
 		const mock = listen("change");
 
-		(component.value = [
+		((component.value = [
 			{
 				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/b.mp4"
 			}
 		]),
-			assert.equal(mock.callCount, 1);
+			assert.equal(mock.callCount, 1));
 	});
 });

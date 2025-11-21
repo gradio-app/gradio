@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/imageslider",
-	"version": "0.3.0",
+	"version": "0.3.1-dev.2",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -36,7 +36,7 @@
 	},
 	"main_changeset": true,
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.43.4"
 	},
 	"repository": {
 		"type": "git",

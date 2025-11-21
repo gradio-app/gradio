@@ -4,70 +4,47 @@
 </script>
 
 <script lang="ts">
-	import type { GalleryImage, GalleryVideo } from "./types";
+	import { tick } from "svelte";
 	import type { FileData } from "@gradio/client";
-	import type { Gradio, ShareData, SelectData } from "@gradio/utils";
 	import { Block, UploadText } from "@gradio/atoms";
 	import Gallery from "./shared/Gallery.svelte";
-	import type { LoadingStatus } from "@gradio/statustracker";
 	import { StatusTracker } from "@gradio/statustracker";
-	import { createEventDispatcher } from "svelte";
+	import { Gradio } from "@gradio/utils";
 	import { BaseFileUpload } from "@gradio/file";
+	import type { GalleryProps, GalleryEvents, GalleryData } from "./types";
 
-	type GalleryData = GalleryImage | GalleryVideo;
+	let upload_promise = $state<Promise<any>>();
 
-	export let loading_status: LoadingStatus;
-	export let show_label: boolean;
-	export let label: string;
-	export let root: string;
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let value: GalleryData[] | null = null;
-	export let file_types: string[] | null = ["image", "video"];
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let columns: number | number[] | undefined = [2];
-	export let rows: number | number[] | undefined = undefined;
-	export let height: number | "auto" = "auto";
-	export let preview: boolean;
-	export let allow_preview = true;
-	export let selected_index: number | null = null;
-	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
-		"cover";
-	export let show_share_button = false;
-	export let interactive: boolean;
-	export let show_download_button = false;
-	export let gradio: Gradio<{
-		change: typeof value;
-		upload: typeof value;
-		select: SelectData;
-		share: ShareData;
-		error: string;
-		delete: { file: FileData; index: number };
-		prop_change: Record<string, any>;
-		clear_status: LoadingStatus;
-		preview_open: never;
-		preview_close: never;
-	}>;
-	export let show_fullscreen_button = true;
-	export let fullscreen = false;
+	class GalleryGradio extends Gradio<GalleryEvents, GalleryProps> {
+		async get_data() {
+			if (upload_promise) {
+				await upload_promise;
+				await tick();
+			}
+			const data = await super.get_data();
 
-	const dispatch = createEventDispatcher();
+			return data;
+		}
+	}
 
-	$: no_value = value === null ? true : value.length === 0;
+	const props = $props();
+	const gradio = new GalleryGradio<GalleryEvents, GalleryProps>(props);
+
+	let fullscreen = $state(false);
+
+	let no_value = $derived(
+		gradio.props.value === null ? true : gradio.props.value.length === 0
+	);
 
 	function handle_delete(
 		event: CustomEvent<{ file: FileData; index: number }>
 	): void {
-		if (!value) return;
+		if (!gradio.props.value) return;
 		const { index } = event.detail;
 		gradio.dispatch("delete", event.detail);
-		value = value.filter((_, i) => i !== index);
-		gradio.dispatch("change", value);
+		gradio.props.value = gradio.props.value.filter((_, i) => i !== index);
+		gradio.dispatch("change", gradio.props.value);
 	}
-	$: selected_index, dispatch("prop_change", { selected_index });
 
 	async function process_upload_files(
 		files: FileData[]
@@ -95,44 +72,48 @@
 </script>
 
 <Block
-	{visible}
+	visible={gradio.shared.visible}
 	variant="solid"
 	padding={false}
-	{elem_id}
-	{elem_classes}
-	{container}
-	{scale}
-	{min_width}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+	container={gradio.shared.container}
+	scale={gradio.shared.scale}
+	min_width={gradio.shared.min_width}
 	allow_overflow={false}
-	height={typeof height === "number" ? height : undefined}
+	height={typeof gradio.props.height === "number"
+		? gradio.props.height
+		: undefined}
 	bind:fullscreen
 >
 	<StatusTracker
-		autoscroll={gradio.autoscroll}
+		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
-		{...loading_status}
-		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+		{...gradio.shared.loading_status}
+		on_clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
-	{#if interactive && no_value}
+	{#if gradio.shared.interactive && no_value}
 		<BaseFileUpload
+			bind:upload_promise
 			value={null}
-			{root}
-			{label}
-			max_file_size={gradio.max_file_size}
+			root={gradio.shared.root}
+			label={gradio.shared.label}
+			max_file_size={gradio.shared.max_file_size}
 			file_count={"multiple"}
-			{file_types}
+			file_types={gradio.props.file_types}
 			i18n={gradio.i18n}
-			upload={(...args) => gradio.client.upload(...args)}
-			stream_handler={(...args) => gradio.client.stream(...args)}
+			upload={(...args) => gradio.shared.client.upload(...args)}
+			stream_handler={(...args) => gradio.shared.client.stream(...args)}
 			on:upload={async (e) => {
 				const files = Array.isArray(e.detail) ? e.detail : [e.detail];
-				value = await process_upload_files(files);
-				gradio.dispatch("upload", value);
-				gradio.dispatch("change", value);
+				gradio.props.value = await process_upload_files(files);
+				gradio.dispatch("upload", gradio.props.value);
+				gradio.dispatch("change", gradio.props.value);
 			}}
 			on:error={({ detail }) => {
-				loading_status = loading_status || {};
-				loading_status.status = "error";
+				gradio.shared.loading_status = gradio.shared.loading_status || {};
+				gradio.shared.loading_status.status = "error";
 				gradio.dispatch("error", detail);
 			}}
 		>
@@ -140,7 +121,8 @@
 		</BaseFileUpload>
 	{:else}
 		<Gallery
-			on:change={() => gradio.dispatch("change", value)}
+			on:change={() => gradio.dispatch("change")}
+			on:clear={() => gradio.dispatch("change")}
 			on:select={(e) => gradio.dispatch("select", e.detail)}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
@@ -153,32 +135,35 @@
 			on:upload={async (e) => {
 				const files = Array.isArray(e.detail) ? e.detail : [e.detail];
 				const new_value = await process_upload_files(files);
-				value = value ? [...value, ...new_value] : new_value;
+				gradio.props.value = gradio.props.value
+					? [...gradio.props.value, ...new_value]
+					: new_value;
 				gradio.dispatch("upload", new_value);
-				gradio.dispatch("change", value);
+				gradio.dispatch("change", gradio.props.value);
 			}}
-			{label}
-			{show_label}
-			{columns}
-			{rows}
-			{height}
-			{preview}
-			{object_fit}
-			{interactive}
-			{allow_preview}
-			bind:selected_index
-			bind:value
-			{show_share_button}
-			{show_download_button}
+			label={gradio.shared.label}
+			show_label={gradio.shared.show_label}
+			columns={gradio.props.columns}
+			rows={gradio.props.rows}
+			height={gradio.props.height}
+			preview={gradio.props.preview}
+			object_fit={gradio.props.object_fit}
+			interactive={gradio.shared.interactive}
+			allow_preview={gradio.props.allow_preview}
+			bind:selected_index={gradio.props.selected_index}
+			bind:value={gradio.props.value}
+			show_share_button={gradio.props.buttons.includes("share")}
+			show_download_button={gradio.props.buttons.includes("download")}
+			fit_columns={gradio.props.fit_columns}
 			i18n={gradio.i18n}
-			_fetch={(...args) => gradio.client.fetch(...args)}
-			{show_fullscreen_button}
+			_fetch={(...args) => gradio.shared.client.fetch(...args)}
+			show_fullscreen_button={gradio.props.buttons.includes("fullscreen")}
 			{fullscreen}
-			{root}
-			{file_types}
-			max_file_size={gradio.max_file_size}
-			upload={(...args) => gradio.client.upload(...args)}
-			stream_handler={(...args) => gradio.client.stream(...args)}
+			root={gradio.shared.root}
+			file_types={gradio.props.file_types}
+			max_file_size={gradio.shared.max_file_size}
+			upload={(...args) => gradio.shared.client.upload(...args)}
+			stream_handler={(...args) => gradio.shared.client.stream(...args)}
 		/>
 	{/if}
 </Block>

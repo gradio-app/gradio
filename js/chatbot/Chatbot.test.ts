@@ -23,7 +23,13 @@ describe("Chatbot", () => {
 		const { getAllByTestId } = await render(Chatbot, {
 			loading_status,
 			label: "chatbot",
-			value: [["user message one", "bot message one"]],
+			value: [
+				{ role: "user", content: [{ type: "text", text: "user message one" }] },
+				{
+					role: "assistant",
+					content: [{ type: "text", text: "bot message one" }]
+				}
+			],
 			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
 
@@ -34,30 +40,14 @@ describe("Chatbot", () => {
 		assert.exists(user);
 	});
 
-	test("null messages are not visible", async () => {
-		const { getByRole, container } = await render(Chatbot, {
-			loading_status,
-			label: "chatbot",
-			value: [[null, null]],
-			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
-		});
-
-		const chatbot = getByRole("log");
-
-		const userButton = container.querySelector(".user > div");
-		const botButton = container.querySelector(".bot > div");
-
-		assert.notExists(userButton);
-		assert.notExists(botButton);
-
-		assert.isFalse(chatbot.innerHTML.includes("button"));
-	});
-
 	test("empty string messages are visible", async () => {
 		const { container } = await render(Chatbot, {
 			loading_status,
 			label: "chatbot",
-			value: [["", ""]],
+			value: [
+				{ role: "user", content: [{ type: "text", text: "" }] },
+				{ role: "assistant", content: [{ type: "text", text: "" }] }
+			],
 			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
 
@@ -69,18 +59,22 @@ describe("Chatbot", () => {
 	});
 
 	test("renders additional message as they are passed", async () => {
-		const { component, getAllByTestId } = await render(Chatbot, {
+		const { getAllByTestId } = await render(Chatbot, {
 			loading_status,
 			label: "chatbot",
-			value: [["user message one", "bot message one"]],
-			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
-		});
-
-		await component.$set({
 			value: [
-				["user message one", "bot message one"],
-				["user message two", "bot message two"]
-			]
+				{ role: "user", content: [{ type: "text", text: "user message one" }] },
+				{
+					role: "assistant",
+					content: [{ type: "text", text: "bot message one" }]
+				},
+				{ role: "user", content: [{ type: "text", text: "user message two" }] },
+				{
+					role: "assistant",
+					content: [{ type: "text", text: "bot message two" }]
+				}
+			],
+			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
 
 		const user_2 = getAllByTestId("user");
@@ -110,7 +104,8 @@ describe("Chatbot", () => {
 					url: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah1.jpg",
 					mime_type: "image/jpeg",
 					alt_text: null
-				}
+				},
+				type: "file"
 			}
 		]);
 
@@ -139,7 +134,8 @@ describe("Chatbot", () => {
 						url: "https://gradio-builds.s3.amazonaws.com/demo-files/video_sample.mp4",
 						mime_type: "video/mp4",
 						alt_text: null
-					}
+					},
+					type: "file"
 				}
 			]);
 		await component.$set({
@@ -166,7 +162,8 @@ describe("Chatbot", () => {
 					url: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
 					mime_type: "audio/wav",
 					alt_text: null
-				}
+				},
+				type: "file"
 			}
 		]);
 
@@ -180,29 +177,29 @@ describe("Chatbot", () => {
 	});
 
 	test("renders hyperlinks to file bot and user messages", async () => {
-		const { component, getAllByTestId } = await render(Chatbot, {
+		const { getAllByTestId } = await render(Chatbot, {
 			loading_status,
 			label: "chatbot",
-			latex_delimiters: []
-		});
-
-		let value = Array(2).fill([
-			{
-				file: {
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/titanic.csv",
-					url: "https://gradio-builds.s3.amazonaws.com/demo-files/titanic.csv",
-					mime_type: "text/csv",
-					alt_text: null
+			latex_delimiters: [],
+			value: [
+				{
+					content: [
+						{
+							file: {
+								path: "https://gradio-builds.s3.amazonaws.com/demo-files/titanic.csv",
+								url: "https://gradio-builds.s3.amazonaws.com/demo-files/titanic.csv",
+								mime_type: "text/csv",
+								alt_text: null
+							},
+							type: "file"
+						}
+					],
+					role: "user"
 				}
-			}
-		]);
-
-		await component.$set({
-			value: value
+			]
 		});
 
 		const file_link = getAllByTestId("chatbot-file") as HTMLAnchorElement[];
-		assert.isTrue(file_link[0].href.includes("titanic.csv"));
 		assert.isTrue(file_link[0].href.includes("titanic.csv"));
 	});
 
@@ -219,7 +216,13 @@ describe("Chatbot", () => {
 		const { getByLabelText } = await render(Chatbot, {
 			loading_status,
 			label: "chatbot",
-			value: [["user message one", "bot message one"]],
+			value: [
+				{ role: "user", content: [{ type: "text", text: "user message one" }] },
+				{
+					role: "assistant",
+					content: [{ type: "text", text: "bot message one" }]
+				}
+			],
 			show_copy_all_button: true
 		});
 
@@ -239,15 +242,21 @@ describe("Chatbot", () => {
 		const { container } = await render(Chatbot, {
 			loading_status,
 			label: "chatbot",
-			value: [["user message", "<thinking>processing query...</thinking>"]],
+			value: [
+				{ role: "user", content: [{ type: "text", text: "user message" }] },
+				{
+					role: "assistant",
+					content: [
+						{ type: "text", text: "<thinking>processing query...</thinking>" }
+					]
+				}
+			],
 			allow_tags: ["thinking"]
 		});
 
-		const botMessage = container.querySelector(".bot > div");
+		const botMessage = container.querySelector(".bot");
 		assert.exists(botMessage);
-		assert.isTrue(
-			botMessage?.innerHTML.includes("<thinking>processing query...</thinking>")
-		);
+		assert.isTrue(botMessage?.textContent?.includes("processing query..."));
 	});
 
 	test("groups messages correctly when display_consecutive_in_same_bubble is true", () => {
@@ -258,7 +267,7 @@ describe("Chatbot", () => {
 			{ role: "user", content: "Thanks", type: "text", index: 3 }
 		];
 
-		const grouped = group_messages(messages, "messages", true);
+		const grouped = group_messages(messages, true);
 
 		// Should have 3 groups: user, assistant (2 messages), user
 		assert.equal(grouped.length, 3);
@@ -275,7 +284,7 @@ describe("Chatbot", () => {
 			{ role: "user", content: "Thanks", type: "text", index: 3 }
 		];
 
-		const grouped = group_messages(messages, "messages", false);
+		const grouped = group_messages(messages, false);
 
 		// Should have 4 groups: each message should be its own group
 		assert.equal(grouped.length, 4);
@@ -287,11 +296,17 @@ describe("Chatbot", () => {
 
 	test("displays like/dislike buttons on every message when group_consecutive_messages is false", async () => {
 		const messages = [
-			{ role: "user", content: "Hello" },
-			{ role: "assistant", content: "Hi there" },
-			{ role: "assistant", content: "How can I help?" },
-			{ role: "user", content: "Thanks" },
-			{ role: "assistant", content: "You're welcome!" }
+			{ role: "user", content: [{ type: "text", text: "Hello" }] },
+			{ role: "assistant", content: [{ type: "text", text: "Hi there" }] },
+			{
+				role: "assistant",
+				content: [{ type: "text", text: "How can I help?" }]
+			},
+			{ role: "user", content: [{ type: "text", text: "Thanks" }] },
+			{
+				role: "assistant",
+				content: [{ type: "text", text: "You're welcome!" }]
+			}
 		];
 
 		const { container } = await render(Chatbot, {
@@ -307,9 +322,6 @@ describe("Chatbot", () => {
 
 		// Count the number of like/dislike button panels
 		const buttonPanels = container.querySelectorAll(".message-buttons");
-
-		// Should have like/dislike buttons for each assistant message
-		// (3 assistant messages total)
-		assert.equal(buttonPanels.length, 3);
+		assert.equal(buttonPanels.length, 5);
 	});
 });

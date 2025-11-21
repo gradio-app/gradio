@@ -6,52 +6,51 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio } from "@gradio/utils";
+	import { tick } from "svelte";
+	import { Gradio } from "@gradio/utils";
 	import Colorpicker from "./shared/Colorpicker.svelte";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
+	import type { ColorPickerProps, ColorPickerEvents } from "./types";
 
-	export let label = "ColorPicker";
-	export let info: string | undefined = undefined;
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let value: string;
-	export let value_is_output = false;
-	export let show_label: boolean;
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let loading_status: LoadingStatus;
-	export let gradio: Gradio<{
-		change: never;
-		input: never;
-		submit: never;
-		blur: never;
-		focus: never;
-		clear_status: LoadingStatus;
-	}>;
-	export let interactive: boolean;
-	export let disabled = false;
+	let props = $props();
+	const gradio = new Gradio<ColorPickerEvents, ColorPickerProps>(props);
+	gradio.props.value = gradio.props.value ?? "#000000";
+	let old_value = $state(gradio.props.value);
+	let label = $derived(
+		gradio.shared.label || gradio.i18n("color_picker.color_picker")
+	);
+
+	$effect(() => {
+		if (old_value !== gradio.props.value) {
+			old_value = gradio.props.value;
+			gradio.dispatch("change");
+		}
+	});
 </script>
 
-<Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
+<Block
+	visible={gradio.shared.visible}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+	container={gradio.shared.container}
+	scale={gradio.shared.scale}
+	min_width={gradio.shared.min_width}
+>
 	<StatusTracker
-		autoscroll={gradio.autoscroll}
+		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
-		{...loading_status}
-		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+		{...gradio.shared.loading_status}
+		on_clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 
 	<Colorpicker
-		bind:value
-		bind:value_is_output
+		bind:value={gradio.props.value}
 		{label}
-		{info}
-		{show_label}
-		disabled={!interactive || disabled}
-		on:change={() => gradio.dispatch("change")}
+		info={gradio.props.info}
+		show_label={gradio.shared.show_label}
+		disabled={!gradio.shared.interactive}
 		on:input={() => gradio.dispatch("input")}
 		on:submit={() => gradio.dispatch("submit")}
 		on:blur={() => gradio.dispatch("blur")}

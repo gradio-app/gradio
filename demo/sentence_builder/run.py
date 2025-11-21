@@ -18,6 +18,7 @@ demo = gr.Interface(
         gr.Checkbox(label="Morning", info="Did they do it in the morning?"),
     ],
     "text",
+    api_name="predict",
     examples=[
         [2, "cat", ["Japan", "Pakistan"], "park", ["ate", "swam"], True],
         [4, "dog", ["Japan"], "zoo", ["ate", "swam"], False],

@@ -7,97 +7,83 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio } from "@gradio/utils";
-	import { afterUpdate } from "svelte";
-
-	import type { LoadingStatus } from "@gradio/statustracker";
+	import { Gradio } from "@gradio/utils";
+	import type { CodeProps, CodeEvents } from "./types";
+	import { StatusTracker } from "@gradio/statustracker";
 
 	import Code from "./shared/Code.svelte";
 	import Widget from "./shared/Widgets.svelte";
-	import { StatusTracker } from "@gradio/statustracker";
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
 	import { Code as CodeIcon } from "@gradio/icons";
 
-	export let gradio: Gradio<{
-		change: typeof value;
-		input: never;
-		blur: never;
-		focus: never;
-		clear_status: LoadingStatus;
-	}>;
-	export let value = "";
-	export let value_is_output = false;
-	export let language = "";
-	export let lines = 5;
-	export let max_lines: number | undefined = undefined;
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let label = gradio.i18n("code.code");
-	export let show_label = true;
-	export let loading_status: LoadingStatus;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let wrap_lines = false;
-	export let show_line_numbers = true;
-	export let autocomplete = false;
+	const props = $props();
+	const gradio = new Gradio<CodeEvents, CodeProps>(props);
 
-	export let interactive: boolean;
+	let dark_mode = gradio.shared.theme === "dark";
 
-	let dark_mode = gradio.theme === "dark";
+	let label = $derived(gradio.shared.label || gradio.i18n("code.code"));
+	let old_value = $state(gradio.props.value);
+	let first_change = true;
 
-	function handle_change(): void {
-		gradio.dispatch("change", value);
-		if (!value_is_output) {
-			gradio.dispatch("input");
+	$effect(() => {
+		if (first_change) {
+			first_change = false;
+			return;
 		}
-	}
-	afterUpdate(() => {
-		value_is_output = false;
+		if (old_value != gradio.props.value) {
+			old_value = gradio.props.value;
+			gradio.dispatch("change");
+		}
 	});
-	$: value, handle_change();
 </script>
 
 <Block
-	height={max_lines && "fit-content"}
+	height={gradio.props.max_lines && "fit-content"}
 	variant={"solid"}
 	padding={false}
-	{elem_id}
-	{elem_classes}
-	{visible}
-	{scale}
-	{min_width}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+	visible={gradio.shared.visible}
+	scale={gradio.shared.scale}
+	min_width={gradio.shared.min_width}
 >
 	<StatusTracker
-		autoscroll={gradio.autoscroll}
+		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
-		{...loading_status}
-		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+		{...gradio.shared.loading_status}
+		on_clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 
-	{#if show_label}
-		<BlockLabel Icon={CodeIcon} {show_label} {label} float={false} />
+	{#if gradio.shared.show_label}
+		<BlockLabel
+			Icon={CodeIcon}
+			show_label={gradio.shared.show_label}
+			{label}
+			float={false}
+		/>
 	{/if}
 
-	{#if !value && !interactive}
+	{#if !gradio.props.value && !gradio.shared.interactive}
 		<Empty unpadded_box={true} size="large">
 			<CodeIcon />
 		</Empty>
 	{:else}
-		<Widget {language} {value} />
+		<Widget language={gradio.props.language} value={gradio.props.value} />
 
 		<Code
-			bind:value
-			{language}
-			{lines}
-			{max_lines}
+			bind:value={gradio.props.value}
+			language={gradio.props.language}
+			lines={gradio.props.lines}
+			max_lines={gradio.props.max_lines}
 			{dark_mode}
-			{wrap_lines}
-			{show_line_numbers}
-			{autocomplete}
-			readonly={!interactive}
+			wrap_lines={gradio.props.wrap_lines}
+			show_line_numbers={gradio.props.show_line_numbers}
+			autocomplete={gradio.props.autocomplete}
+			readonly={!gradio.shared.interactive}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
+			on:input={() => gradio.dispatch("input")}
 		/>
 	{/if}
 </Block>

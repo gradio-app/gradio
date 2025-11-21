@@ -7,6 +7,8 @@ import { make_slug_processor } from "$lib/utils";
 import { toString as to_string } from "hast-util-to-string";
 
 import Prism from "prismjs";
+// Set Prism as global for component files that expect it
+(globalThis as any).Prism = Prism;
 import "prismjs/components/prism-python";
 import "prismjs/components/prism-bash";
 import "prismjs/components/prism-json";

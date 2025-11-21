@@ -37,7 +37,6 @@ class TestImageEditor:
             "type": "numpy",
             "label": None,
             "show_label": True,
-            "show_download_button": True,
             "container": True,
             "scale": None,
             "min_width": 160,
@@ -46,7 +45,6 @@ class TestImageEditor:
             "elem_id": None,
             "elem_classes": [],
             "webcam_options": {"constraints": None, "mirror": True},
-            "show_share_button": False,
             "_selectable": False,
             "key": None,
             "preserved_by_key": ["value"],
@@ -75,7 +73,7 @@ class TestImageEditor:
             },
             "canvas_size": (800, 800),
             "placeholder": None,
-            "show_fullscreen_button": True,
+            "buttons": None,
             "fixed_canvas": False,
         }
 

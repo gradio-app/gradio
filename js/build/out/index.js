@@ -52,14 +52,14 @@ function generate_dev_entry({ enable }) {
   return {
     name: "generate-dev-entry",
     transform(code, id) {
-      if (!enable) return;
-      const new_code = code.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
-        return `const ${$1.replace(/\* as /, "").replace(/ as /g, ": ")} = window.__gradio__svelte__internal;`;
-      });
-      return {
-        code: new_code,
-        map: null
-      };
+      // if (!enable) return;
+      // const new_code = code.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
+      //   return `const ${$1.replace(/\* as /, "").replace(/ as /g, ": ")} = window.__gradio__svelte__internal;`;
+      // });
+      // return {
+      //   code: new_code,
+      //   map: null
+      // };
     }
   };
 }
@@ -152,7 +152,8 @@ var ignore_list = [
   "wasm",
   "sanitize",
   "markdown-code",
-  "spa"
+  "spa",
+  "dataframe-interim"
 ];
 function generate_component_imports() {
   const exports = readdirSync(join(__dirname, "..", "..")).map((dir) => {
@@ -286,21 +287,21 @@ function resolve_svelte(enable) {
     name: "resolve-svelte",
     async resolveId(id) {
       if (!enable) return;
-      if (id === "./svelte/svelte.js" || id === "svelte" || id === "svelte/internal") {
-        const mod = join(
-          __dirname,
-          "..",
-          "..",
-          "..",
-          "gradio",
-          "templates",
-          "frontend",
-          "assets",
-          "svelte",
-          "svelte.js"
-        );
-        return { id: mod, external: "absolute" };
-      }
+      // if (id === "./svelte/svelte.js" || id === "svelte" || id === "svelte/internal") {
+      //   const mod = join(
+      //     __dirname,
+      //     "..",
+      //     "..",
+      //     "..",
+      //     "gradio",
+      //     "templates",
+      //     "frontend",
+      //     "assets",
+      //     "svelte",
+      //     "svelte.js"
+      //   );
+      //   return { id: mod, external: "absolute" };
+      // }
     }
   };
 }

@@ -33,6 +33,7 @@
 	export let stream_handler: Client["stream"];
 	export let loop: boolean;
 	export let uploading = false;
+	export let upload_promise: Promise<any> | null = null;
 
 	let has_change_history = false;
 
@@ -78,10 +79,11 @@
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
 <div data-testid="video" class="video-container">
-	{#if value === null || value.url === undefined}
+	{#if value === null || value?.url === undefined}
 		<div class="upload-container">
 			{#if active_source === "upload"}
 				<Upload
+					bind:upload_promise
 					bind:dragging
 					bind:uploading
 					filetype="video/x-m4v,video/*"

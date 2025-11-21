@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/dialogue",
-	"version": "0.2.3",
+	"version": "0.2.4-dev.2",
 	"description": "Gradio dialogue component",
 	"type": "module",
 	"author": "Gradio",
@@ -32,7 +32,7 @@
 		"@gradio/preview": "workspace:^"
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.43.4"
 	},
 	"repository": {
 		"type": "git",

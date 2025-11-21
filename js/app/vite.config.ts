@@ -1,5 +1,5 @@
 import { sveltekit } from "@sveltejs/kit/vite";
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 
 // @ts-ignore
 import custom_media from "postcss-custom-media";
@@ -28,6 +28,15 @@ const version = version_raw.replace(/\./g, "-");
 const GRADIO_VERSION = version_raw || "asd_stub_asd";
 const CDN_BASE = "https://gradio.s3-us-west-2.amazonaws.com";
 
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
+const svelte = require("svelte/package.json");
+const svelte_exports = Object.keys(svelte.exports)
+	.filter((p) => p.endsWith(".json"))
+	.map((entry) => entry.replace(/^\./, "svelte").split("/").join("_") + ".js");
+console.log("Svelte exports:", svelte_exports);
+
 export default defineConfig(({ mode, isSsrBuild }) => {
 	const production = mode === "production";
 	const development = mode === "development";
@@ -38,26 +47,30 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			open: "/",
 			proxy: {
 				"/manifest.json": "http://localhost:7860",
+				"^.*/theme\\.css": "http://localhost:7860",
 				"^/static/.*": "http://localhost:7860"
 			}
 		},
 		resolve: {
-			conditions: ["gradio"]
+			conditions: ["gradio", "browser"]
+		},
+		ssr: {
+			resolve: {
+				conditions: ["gradio"]
+			},
+			noExternal: ["@gradio/*", "@huggingface/space-header"],
+			external: mode === "development" ? [] : ["svelte", "svelte/*"]
 		},
 		build: {
 			rollupOptions: {
-				external: [
-					"/svelte/svelte.js",
-					"/svelte/svelte-submodules.js",
-					"./svelte/svelte-submodules.js",
-					"./svelte/svelte.js"
-				]
+				external: svelte_exports
 			},
 			minify: true,
-			sourcemap: true
+			sourcemap: false
 		},
+
 		define: {
-			BROWSER_BUILD: JSON.stringify(isSsrBuild),
+			// BROWSER_BUILD: JSON.stringify(isSsrBuild),
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
 			BACKEND_URL: production
 				? JSON.stringify("")
@@ -88,44 +101,122 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 				]
 			}
 		},
-		ssr: {
-			noExternal: ["@gradio/*", "@huggingface/space-header"],
-			external: mode === "development" ? [] : ["svelte", "svelte/*"]
-		},
 		optimizeDeps: {
-			exclude: [
-				"@gradio/*",
-				"svelte",
-				"svelte/*",
-				"./svelte/svelte-submodules.js",
-				"./svelte/svelte.js"
-			]
+			exclude: ["@gradio/*"]
 		},
 		plugins: [
+			inject_svelte_init_code({ mode }),
 			sveltekit(),
 
 			inject_component_loader({ mode }),
-			{
-				name: "resolve_svelte",
-				enforce: "pre",
-				resolveId(id, importer, options) {
-					if (development) {
-						return null;
-					}
-
-					if (!options?.ssr) {
-						if (id === "svelte" || id === "svelte/internal") {
-							return { id: "../../../svelte/svelte.js", external: true };
-						}
-						if (id.startsWith("svelte/")) {
-							return {
-								id: "../../../svelte/svelte-submodules.js",
-								external: true
-							};
-						}
-					}
-				}
-			}
+			resolve_svelte(mode === "production"),
+			handle_svelte_import({ development: mode === "development" })
 		]
 	};
 });
+
+function handle_svelte_import({
+	development
+}: {
+	development: boolean;
+}): Plugin {
+	return {
+		name: "handle_svelte_import",
+		enforce: "pre",
+		resolveId(id, importer, options) {
+			if (development) {
+				return null;
+			}
+
+			if (!options?.ssr) {
+				if (id === "svelte") {
+					return {
+						id: "../../../svelte/svelte_svelte.js",
+						external: true
+					};
+				}
+				if (id.startsWith("svelte/")) {
+					return {
+						id: `../../../svelte/${id.split("/").join("_")}.js`,
+						external: true
+					};
+				}
+				return null;
+			}
+		}
+	};
+}
+
+export const _svelte_exports = Object.keys(svelte.exports)
+
+	.filter((entry) => {
+		const _entry = Object.keys(svelte.exports[entry]).filter(
+			(e) => e !== "types"
+		);
+		return (
+			_entry.length !== 0 &&
+			!entry.endsWith(".json") &&
+			entry !== "./internal" &&
+			entry !== "./compiler" &&
+			entry !== "./internal/disclose-version"
+		);
+	})
+	.map((entry) => "svelte" + entry.replace(/^\./, ""));
+export const svelte_exports_transformed = Object.keys(svelte.exports).map(
+	(entry) => entry.replace(/^\./, "svelte").split("/").join("_") + ".js"
+);
+
+export function inject_svelte_init_code({ mode }: { mode: string }): Plugin {
+	const v_id = "virtual:load-svelte";
+	const resolved_v_id = "\0" + v_id;
+
+	return {
+		name: "inject-component-loader",
+		enforce: "pre",
+		resolveId(id: string) {
+			if (id === v_id) return resolved_v_id;
+		},
+		load(id: string) {
+			if (id === resolved_v_id) {
+				const s = make_init_code();
+				console.log("Svelte init code:", s);
+				return s;
+			}
+		}
+	};
+}
+
+function make_init_code(): string {
+	const import_strings = _svelte_exports
+		.map(
+			(entry: string) =>
+				`import * as ${entry
+					.replace(/\.js$/, "")
+					.replace(/-/g, "_")
+					.replace(/\//g, "_")} from "${entry}";`
+		)
+		.join("\n");
+
+	const import_mappings = _svelte_exports
+		.map((entry: string) => {
+			const var_name = entry.replace(/\//g, "_");
+			return `o.${var_name} = {};
+	for (const key in ${var_name}) {
+		//@ts-ignore
+		o.${var_name}[key] = ${var_name}[key];
+	}`;
+		})
+		.join("\n");
+	return `${import_strings}
+	
+const is_browser = typeof window !== "undefined";
+if (is_browser) {
+	const o = {};
+	${import_mappings}
+
+	window.__gradio__svelte__ = o;
+	window.__gradio__svelte__["globals"] = {};
+	window.globals = window;
+}
+`;
+}

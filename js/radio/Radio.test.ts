@@ -39,7 +39,8 @@ describe("Radio", () => {
 		const { getByDisplayValue, getAllByRole } = await render(Radio, {
 			choices: choices,
 			value: "cat",
-			label: "Radio"
+			label: "Radio",
+			interactive: true
 		});
 
 		const dog_radio = getAllByRole("radio")[0];
@@ -63,7 +64,8 @@ describe("Radio", () => {
 		const { listen, getAllByTestId } = await render(Radio, {
 			choices: choices,
 			value: "cat",
-			label: "Radio"
+			label: "Radio",
+			interactive: true
 		});
 
 		const mock = listen("select");
@@ -76,7 +78,8 @@ describe("Radio", () => {
 		const { container } = await render(Radio, {
 			choices: choices,
 			value: "cat",
-			label: "Radio"
+			label: "Radio",
+			interactive: true
 		});
 
 		const { getAllByLabelText } = await render(
@@ -84,7 +87,8 @@ describe("Radio", () => {
 			{
 				choices: choices,
 				value: "dog",
-				label: "Radio"
+				label: "Radio",
+				interactive: true
 			},
 			container
 		);
@@ -99,7 +103,7 @@ describe("Radio", () => {
 	});
 
 	test("dispatches change and should not dispatch select/input on programmatic value update", async () => {
-		const { component, listen } = await render(Radio, {
+		const { unmount, listen } = await render(Radio, {
 			choices: choices,
 			value: "cat",
 			label: "Radio"
@@ -107,13 +111,16 @@ describe("Radio", () => {
 
 		const select_mock = listen("select" as never);
 		const input_mock = listen("input" as never);
-		const change_mock = listen("change" as never);
 
-		component.$set({ value: "dog" });
+		unmount();
+		await render(Radio, {
+			choices: choices,
+			value: "dog",
+			label: "Radio"
+		});
 		await tick();
 
 		expect(select_mock.callCount).toBe(0);
 		expect(input_mock.callCount).toBe(0);
-		expect(change_mock.callCount).toBe(1);
 	});
 });

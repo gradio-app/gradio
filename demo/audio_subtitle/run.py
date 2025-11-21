@@ -1,16 +1,19 @@
 import gradio as gr
-import os
+from gradio.media import get_audio, get_file, MEDIA_PATHS
 
-a = os.path.join(os.path.dirname(__file__), "files/a.mp3")
-b = os.path.join(os.path.dirname(__file__), "files/b.mp3")
-s1 = os.path.join(os.path.dirname(__file__), "files/s1.srt")
-s2 = os.path.join(os.path.dirname(__file__), "files/s2.vtt")
+
+a = get_audio("cate_blanch.mp3")
+b = get_audio("cate_blanch_2.mp3")
+s1 = get_file("s1.srt")
+s2 = get_file("s2.vtt")
+
 
 def add_subtitles_to_audio(audio, subtitles=None):
     if subtitles is None:
         return audio
     if subtitles is not None:
         return gr.Audio(label="Out", value=audio, subtitles=subtitles.name)
+
 
 demo = gr.Interface(
     fn=add_subtitles_to_audio,
@@ -23,7 +26,8 @@ demo = gr.Interface(
         [a, s1],
         [b, s2],
     ],
+    api_name="predict",
 )
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(allowed_paths=[MEDIA_PATHS])

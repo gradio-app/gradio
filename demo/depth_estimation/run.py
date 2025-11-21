@@ -112,6 +112,8 @@ iface = gr.Interface(fn=process_image,
                      description=description,
                      examples=examples,
                      flagging_mode="never",
-                     cache_examples=False)
+                     cache_examples=False,
+                     api_name="predict",
+                     )
 
 iface.launch(debug=True)

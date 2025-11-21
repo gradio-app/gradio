@@ -1,5 +1,50 @@
 # @self/app
 
+## 2.0.0-dev.3
+
+### Features
+
+- [#12383](https://github.com/gradio-app/gradio/pull/12383) [`6505763`](https://github.com/gradio-app/gradio/commit/650576399bad10f03aaa03dd9437f03b47ba378b) - Fix Reload Mode in 6.0.  Thanks @freddyaboulton!
+- [#12381](https://github.com/gradio-app/gradio/pull/12381) [`36d5657`](https://github.com/gradio-app/gradio/commit/36d5657128a81739a78d6b11b3f5a632a9027ab1) - Fix full width toast issue.  Thanks @freddyaboulton!
+- [#12391](https://github.com/gradio-app/gradio/pull/12391) [`5ba7e1e`](https://github.com/gradio-app/gradio/commit/5ba7e1e7d502017551c5899db175bcc9c6fb5eaa) - Reduce files in build.  Thanks @freddyaboulton!
+- [#12397](https://github.com/gradio-app/gradio/pull/12397) [`f2a47fe`](https://github.com/gradio-app/gradio/commit/f2a47fe4f155a1ed93ad3e8f18504e9427ba61d2) - fix custom components.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/core@1.0.0-dev.3
+- @gradio/client@2.0.0-dev.2
+- @self/build@0.5.0-dev.1
+
+## 2.0.0-dev.2
+
+### Features
+
+- [#12098](https://github.com/gradio-app/gradio/pull/12098) [`3965abe`](https://github.com/gradio-app/gradio/commit/3965abe584fef88e23501ffb67145fd47e517633) - gr.HTML "custom components".  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/theme@0.5.0-dev.0
+- @gradio/core@1.0.0-dev.1
+- @self/build@0.4.1-dev.0
+
+## 2.0.0-dev.1
+
+### Features
+
+- [#12069](https://github.com/gradio-app/gradio/pull/12069) [`9de88ca`](https://github.com/gradio-app/gradio/commit/9de88ca470ce529366d259f0deaa955f658000b9) - Rename show_api.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.1
+- @gradio/core@1.0.0-dev.0
+
+## 1.52.2-dev.0
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.0
+- @gradio/core@0.29.2
+
 ## 1.52.1
 
 ### Dependency updates

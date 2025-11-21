@@ -1,5 +1,54 @@
 # website
 
+## 0.66.0-dev.4
+
+### Features
+
+- [#12398](https://github.com/gradio-app/gradio/pull/12398) [`04e2581`](https://github.com/gradio-app/gradio/commit/04e258106f6f6a07facbacd9f43a307fc0cb64c9) - fix publish.  Thanks @pngwn!
+- [#12362](https://github.com/gradio-app/gradio/pull/12362) [`e3f80b8`](https://github.com/gradio-app/gradio/commit/e3f80b88ad8c69ef2f85ee68bc89c5019a40ebfd) - Add kickoff stream link to website banner.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.0-dev.1
+- @gradio/code@0.16.0-dev.3
+- @gradio/paramviewer@0.9.0-dev.1
+- @gradio/tabitem@0.6.2-dev.0
+- @gradio/tabs@0.5.2-dev.0
+
+## 0.66.0-dev.3
+
+### Dependency updates
+
+- @gradio/code@0.16.0-dev.2
+
+## 0.66.0-dev.2
+
+### Features
+
+- [#12325](https://github.com/gradio-app/gradio/pull/12325) [`47a0855`](https://github.com/gradio-app/gradio/commit/47a08559e125dbf68662c20557dd43c87b263c65) - Remove lite across website and use embedded spaces.  Thanks @aliabd!
+
+## 0.66.0-dev.1
+
+### Features
+
+- [#12217](https://github.com/gradio-app/gradio/pull/12217) [`681fa11`](https://github.com/gradio-app/gradio/commit/681fa11357de520f0b05605cbd300d9e276d8736) - Update ZeroGPU guide to reflect best practices on manually passing an IP token.  Thanks @dawoodkhan82!
+- [#12106](https://github.com/gradio-app/gradio/pull/12106) [`26bbdf8`](https://github.com/gradio-app/gradio/commit/26bbdf8b6a16d370d0314b03b3fa49de922ad2ff) - 🌙 Add dark mode to gradio docs.  Thanks @hannahblair!
+- [#12164](https://github.com/gradio-app/gradio/pull/12164) [`924ad65`](https://github.com/gradio-app/gradio/commit/924ad65ac8c664845e0f8b2542902469308c4d27) - Fix huggingface-hub issue in lite.  Thanks @vedo-avattay!
+
+### Dependency updates
+
+- @gradio/tabs@0.5.2-dev.0
+- @gradio/statustracker@0.12.0-dev.0
+- @gradio/paramviewer@0.9.0-dev.0
+- @gradio/code@0.15.1-dev.1
+- @gradio/tabitem@0.6.2-dev.0
+
+## 0.65.1-dev.0
+
+### Dependency updates
+
+- @gradio/code@0.15.1-dev.0
+
 ## 0.65.0
 
 ### Features

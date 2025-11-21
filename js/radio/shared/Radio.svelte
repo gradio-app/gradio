@@ -3,24 +3,24 @@
 </script>
 
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
-	export let display_value: string;
-	export let internal_value: string | number;
-	export let disabled = false;
-	export let selected: string | null = null;
-	export let rtl = false;
+	import { tick } from "svelte";
+	let {
+		selected = $bindable(),
+		display_value,
+		internal_value,
+		disabled,
+		rtl,
+		on_input
+	} = $props();
+	let is_selected = $derived(selected === internal_value);
 
-	const dispatch = createEventDispatcher<{ input: string | number }>();
-	let is_selected = false;
-
-	$: is_selected = selected === internal_value;
-
-	function handle_input(
-		e: Event & { currentTarget: EventTarget & HTMLInputElement }
-	): void {
-		is_selected = e.currentTarget.checked;
-		if (e.currentTarget.checked) {
-			dispatch("input", internal_value);
+	async function handle_input(
+		e: Event & { target: EventTarget & HTMLInputElement }
+	): Promise<void> {
+		is_selected = e.target.checked;
+		if (is_selected) {
+			await tick();
+			on_input();
 		}
 	}
 </script>
@@ -110,17 +110,17 @@
 		background-color: white;
 	}
 
-	input:hover {
+	input:hover:not([disabled]) {
 		border-color: var(--checkbox-border-color-hover);
 		background-color: var(--checkbox-background-color-hover);
 	}
 
-	input:focus {
+	input:focus:not([disabled]) {
 		border-color: var(--checkbox-border-color-focus);
 		background-color: var(--checkbox-background-color-focus);
 	}
 
-	input:checked:focus {
+	input:checked:focus:not([disabled]) {
 		border-color: var(--checkbox-border-color-focus);
 		background-image: var(--radio-circle);
 		background-color: var(--checkbox-background-color-selected);
@@ -129,5 +129,9 @@
 	input[disabled],
 	.disabled {
 		cursor: not-allowed;
+	}
+
+	input[disabled] {
+		opacity: 0.75;
 	}
 </style>

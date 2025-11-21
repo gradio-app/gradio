@@ -212,7 +212,7 @@ export const config_response: Config = {
 				visible: true,
 				interactive: true,
 				elem_classes: [],
-				show_api: false,
+				api_visibility: "undocumented",
 				name: "button",
 				_selectable: false
 			},
@@ -306,7 +306,7 @@ export const config_response: Config = {
 	space_id: "hmb/hello_world",
 	enable_queue: true,
 	show_error: false,
-	show_api: true,
+	footer_links: ["api", "gradio", "settings"],
 	is_colab: false,
 	stylesheets: [],
 	theme: "default",
@@ -402,7 +402,7 @@ export const config_response: Config = {
 			trigger_only_on_success: false,
 			trigger_only_on_failure: false,
 			trigger_mode: "once",
-			show_api: true,
+			api_visibility: "public",
 			zerogpu: false
 		},
 		{
@@ -429,7 +429,7 @@ export const config_response: Config = {
 			trigger_only_on_success: false,
 			trigger_only_on_failure: false,
 			trigger_mode: "once",
-			show_api: false,
+			api_visibility: "private",
 			zerogpu: false
 		},
 		{
@@ -456,7 +456,7 @@ export const config_response: Config = {
 			trigger_only_on_success: false,
 			trigger_only_on_failure: false,
 			trigger_mode: "once",
-			show_api: false,
+			api_visibility: "private",
 			zerogpu: false
 		}
 	],

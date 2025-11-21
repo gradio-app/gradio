@@ -22,11 +22,16 @@ const default_values = {
 	loading_status,
 	label: "music",
 	value: {
-		url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-		path: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-		orig_name: "SoundHelix-Song-1.mp3"
+		url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test/test_files/audio_sample.wav",
+		path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test/test_files/audio_sample.wav",
+		orig_name: "audio_sample.wav"
 	},
-	show_label: true
+	show_label: true,
+	waveform_options: {
+		trim_region_color: "#f97316",
+		show_recording_waveform: false,
+		show_controls: true
+	}
 };
 describe("Audio", () => {
 	setupi18n();

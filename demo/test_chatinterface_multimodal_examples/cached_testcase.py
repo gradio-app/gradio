@@ -8,10 +8,10 @@ def echo(message, history):
 
 demo = gr.ChatInterface(
     fn=echo,
-    type="messages",
     examples=[{"text": "hello"}, {"text": "hola", "files": [image]}, {"text": "merhaba", "files": [image, audio]}],
     title="Echo Bot",
     multimodal=True,
+    api_name="chat",
 )
 
 if __name__ == "__main__":

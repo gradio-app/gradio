@@ -215,7 +215,6 @@ with gr.Blocks(title="Multi-Component Demo with 10 Tabs") as demo:
 
             gr.ChatInterface(
                 fn=echo,
-                type="messages",
                 examples=["hello", "hola", "merhaba"],
                 title="Echo Bot",
             )

@@ -1,5 +1,27 @@
 # @gradio/dropdown
 
+## 0.10.6-dev.2
+
+### Dependency updates
+
+- @gradio/atoms@0.19.0-dev.1
+- @gradio/statustracker@0.12.0-dev.1
+
+## 0.10.6-dev.1
+
+### Fixes
+
+- [#12344](https://github.com/gradio-app/gradio/pull/12344) [`9bf6bfb`](https://github.com/gradio-app/gradio/commit/9bf6bfb61dfb6fe620339319e89062f3c5bb78f2) - Fix dropdown filtering.  Thanks @freddyaboulton!
+
+## 0.10.6-dev.0
+
+### Dependency updates
+
+- @gradio/atoms@0.18.2-dev.0
+- @gradio/utils@0.10.3-dev.0
+- @gradio/statustracker@0.12.0-dev.0
+- @gradio/icons@0.15.0-dev.0
+
 ## 0.10.5
 
 ### Fixes

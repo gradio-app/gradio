@@ -23,6 +23,3 @@ for (const lang of langs) {
 			lang_data?.common?.loading || "Loading...";
 	}
 }
-
-console.log(lang_names);
-console.log(lang_loading);

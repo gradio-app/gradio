@@ -4,10 +4,12 @@ Tags: THEMES
 
 ## Introduction
 
-Gradio features a built-in theming engine that lets you customize the look and feel of your app. You can choose from a variety of themes, or create your own. To do so, pass the `theme=` kwarg to the `Blocks` or `Interface` constructor. For example:
+Gradio features a built-in theming engine that lets you customize the look and feel of your app. You can choose from a variety of themes, or create your own. To do so, pass the `theme=` kwarg to the `launch()` method of `Blocks` or `Interface`. For example:
 
 ```python
-with gr.Blocks(theme=gr.themes.Soft()) as demo:
+with gr.Blocks() as demo:
+    ... # your code here
+demo.launch(theme=gr.themes.Soft())
     ...
 ```
 
@@ -68,15 +70,18 @@ The 3 color constructor arguments are:
 You could modify these values using their string shortcuts, such as
 
 ```python
-with gr.Blocks(theme=gr.themes.Default(primary_hue="red", secondary_hue="pink")) as demo:
+with gr.Blocks() as demo:
+    ... # your code here
+demo.launch(theme=gr.themes.Default(primary_hue="red", secondary_hue="pink"))
     ...
 ```
 
 or you could use the `Color` objects directly, like this:
 
 ```python
-with gr.Blocks(theme=gr.themes.Default(primary_hue=gr.themes.colors.red, secondary_hue=gr.themes.colors.pink)) as demo:
-    ...
+with gr.Blocks() as demo:
+    ... # your code here
+demo.launch(theme=gr.themes.Default(primary_hue=gr.themes.colors.red, secondary_hue=gr.themes.colors.pink))
 ```
 
 <div class="wrapper">
@@ -124,14 +129,18 @@ The next 3 constructor arguments set the sizing of the theme and are `gradio.the
 You could modify these values using their string shortcuts, such as
 
 ```python
-with gr.Blocks(theme=gr.themes.Default(spacing_size="sm", radius_size="none")) as demo:
+with gr.Blocks() as demo:
+    ... # your code here
+demo.launch(theme=gr.themes.Default(spacing_size="sm", radius_size="none"))
     ...
 ```
 
 or you could use the `Size` objects directly, like this:
 
 ```python
-with gr.Blocks(theme=gr.themes.Default(spacing_size=gr.themes.sizes.spacing_sm, radius_size=gr.themes.sizes.radius_none)) as demo:
+with gr.Blocks() as demo:
+    ... # your code here
+demo.launch(theme=gr.themes.Default(spacing_size=gr.themes.sizes.spacing_sm, radius_size=gr.themes.sizes.radius_none))
     ...
 ```
 
@@ -167,7 +176,9 @@ The final 2 constructor arguments set the fonts of the theme. You can pass a lis
 You could modify these values such as the following:
 
 ```python
-with gr.Blocks(theme=gr.themes.Default(font=[gr.themes.GoogleFont("Inconsolata"), "Arial", "sans-serif"])) as demo:
+with gr.Blocks() as demo:
+    ... # your code here
+demo.launch(theme=gr.themes.Default(font=[gr.themes.GoogleFont("Inconsolata"), "Arial", "sans-serif"]))
     ...
 ```
 
@@ -188,8 +199,9 @@ theme = gr.themes.Default(primary_hue="blue").set(
     slider_color="#FF0000",
 )
 
-with gr.Blocks(theme=theme) as demo:
-    ...
+with gr.Blocks() as demo:
+    ... # your code here
+demo.launch(theme=theme)
 ```
 
 In the example above, we've set the `loader_color` and `slider_color` variables to `#FF0000`, despite the overall `primary_color` using the blue color palette. You can set any CSS variable that is defined in the theme in this manner.
@@ -334,7 +346,7 @@ Each theme instance has a method called `push_to_hub` we can use to upload a the
 ```python
 seafoam.push_to_hub(repo_name="seafoam",
                     version="0.0.1",
-					hf_token="<token>")
+					token="<token>")
 ```
 
 - Via the command line
@@ -352,12 +364,12 @@ upload_theme\
 "seafoam.json"\
 "seafoam"\
 --version "0.0.1"\
---hf_token "<token>"
+--token "<token>"
 ```
 
 In order to upload a theme, you must have a HuggingFace account and pass your [Access Token](https://huggingface.co/docs/huggingface_hub/quick-start#login)
-as the `hf_token` argument. However, if you log in via the [HuggingFace command line](https://huggingface.co/docs/huggingface_hub/quick-start#login) (which comes installed with `gradio`),
-you can omit the `hf_token` argument.
+as the `token` argument. However, if you log in via the [HuggingFace command line](https://huggingface.co/docs/huggingface_hub/quick-start#login) (which comes installed with `gradio`),
+you can omit the `token` argument.
 
 The `version` argument lets you specify a valid [semantic version](https://www.geeksforgeeks.org/introduction-semantic-versioning/) string for your theme.
 That way your users are able to specify which version of your theme they want to use in their apps. This also lets you publish updates to your theme without worrying
@@ -397,18 +409,21 @@ To use a theme from the hub, use the `from_hub` method on the `ThemeClass` and p
 ```python
 my_theme = gr.Theme.from_hub("gradio/seafoam")
 
-with gr.Blocks(theme=my_theme) as demo:
-    ....
+with gr.Blocks() as demo:
+    ... # your code here
+demo.launch(theme=my_theme)
 ```
 
-You can also pass the theme string directly to `Blocks` or `Interface` (`gr.Blocks(theme="gradio/seafoam")`)
+You can also pass the theme string directly to the `launch()` method of `Blocks` or `Interface` (e.g. `demo.launch(theme="gradio/seafoam")`)
 
 You can pin your app to an upstream theme version by using semantic versioning expressions.
 
 For example, the following would ensure the theme we load from the `seafoam` repo was between versions `0.0.1` and `0.1.0`:
 
 ```python
-with gr.Blocks(theme="gradio/seafoam@>=0.0.1,<0.1.0") as demo:
+with gr.Blocks() as demo:
+    ... # your code here
+demo.launch(theme="gradio/seafoam@>=0.0.1,<0.1.0")
     ....
 ```
 

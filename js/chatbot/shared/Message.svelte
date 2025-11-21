@@ -41,7 +41,6 @@
 	export let show_edit: boolean;
 	export let show_retry: boolean;
 	export let show_undo: boolean;
-	export let msg_format: "tuples" | "messages";
 	export let handle_action: (selected: string | null) => void;
 	export let scroll: () => void;
 	export let allow_file_downloads: boolean;
@@ -91,6 +90,22 @@
 		return `a component of type ${message.content.component ?? "unknown"}`;
 	}
 
+	function get_file(messages: NormalisedMessage[]): FileData | null {
+		for (const message of messages) {
+			if (
+				message.type === "component" &&
+				(message.content.component === "audio" ||
+					message.content.component === "video" ||
+					message.content.component === "image" ||
+					message.content.component === "file") &&
+				message.content.value
+			) {
+				return message.content.value as FileData;
+			}
+		}
+		return null;
+	}
+
 	type ButtonPanelProps = {
 		handle_action: (selected: string | null) => void;
 		likeable: boolean;
@@ -108,6 +123,9 @@
 		dispatch: any;
 		current_feedback: string | null;
 		watermark: string | null;
+		file: FileData | null;
+		show_download_button: boolean;
+		show_share_button: boolean;
 	};
 
 	let button_panel_props: ButtonPanelProps;
@@ -121,13 +139,16 @@
 		in_edit_mode,
 		generating,
 		show_copy_button,
-		message: msg_format === "tuples" ? messages[0] : messages,
+		message: messages,
 		position: role === "user" ? "right" : "left",
 		avatar: avatar_img,
 		layout,
 		dispatch,
 		current_feedback,
-		watermark
+		watermark,
+		file: get_file(messages),
+		show_download_button: allow_file_downloads,
+		show_share_button: true
 	};
 </script>
 
@@ -257,11 +278,14 @@
 	.message {
 		position: relative;
 		width: 100%;
-		margin-top: var(--spacing-sm);
 	}
 
 	.message.display_consecutive_in_same_bubble {
 		margin-top: 0;
+	}
+
+	.message + .message {
+		margin-top: var(--spacing-sm);
 	}
 
 	/* avatar styles */

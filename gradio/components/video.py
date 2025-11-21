@@ -15,24 +15,19 @@ from gradio_client import handle_file
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
-import gradio as gr
 from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingOutput
 from gradio.components.image_editor import WatermarkOptions, WebcamOptions
-from gradio.data_classes import FileData, GradioModel, MediaStreamChunk
+from gradio.data_classes import FileData, MediaStreamChunk
 from gradio.events import Events
 from gradio.i18n import I18nData
+from gradio.utils import get_upload_folder
 
 if TYPE_CHECKING:
     from gradio.components import Timer
 
 
 from ffmpy import FFmpeg
-
-
-class VideoData(GradioModel):
-    video: FileData
-    subtitles: FileData | None = None
 
 
 @document()
@@ -47,7 +42,7 @@ class Video(StreamingOutput, Component):
     Demos: video_identity_2
     """
 
-    data_model = VideoData
+    data_model = FileData
 
     EVENTS = [
         Events.change,
@@ -63,9 +58,7 @@ class Video(StreamingOutput, Component):
 
     def __init__(
         self,
-        value: (
-            str | Path | tuple[str | Path, str | Path | None] | Callable | None
-        ) = None,
+        value: (str | Path | Callable | None) = None,
         *,
         format: str | None = None,
         sources: (
@@ -87,22 +80,18 @@ class Video(StreamingOutput, Component):
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
-        mirror_webcam: bool | None = None,
         webcam_options: WebcamOptions | None = None,
         include_audio: bool | None = None,
         autoplay: bool = False,
-        show_share_button: bool | None = None,
-        show_download_button: bool | None = None,
-        min_length: int | None = None,
-        max_length: int | None = None,
+        buttons: list[Literal["download", "share"]] | None = None,
         loop: bool = False,
         streaming: bool = False,
         watermark: WatermarkOptions | None = None,
-        webcam_constraints: dict[str, Any] | None = None,
+        subtitles: str | Path | list[dict[str, Any]] | None = None,
     ):
         """
         Parameters:
-            value: path or URL for the default value that Video component is going to take. Can also be a tuple consisting of (video filepath, subtitle filepath). If a subtitle file is provided, it should be of type .srt or .vtt. Or can be callable, in which case the function will be called whenever the app loads to set the initial value of the component.
+            value: path or URL for the default value that Video component is going to take. Or can be callable, in which case the function will be called whenever the app loads to set the initial value of the component.
             format: the file extension with which to save video, such as 'avi' or 'mp4'. This parameter applies both when this component is used as an input to determine which file format to convert user-provided video to, and when this component is used as an output to determine the format of video returned to the user. If None, no file format conversion is done and the video is kept as is. Use 'mp4' to ensure browser playability.
             sources: list of sources permitted for video. "upload" creates a box where user can drop a video file, "webcam" allows user to record a video from their webcam. If None, defaults to both ["upload, "webcam"].
             height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed video file, but will affect the displayed video.
@@ -123,14 +112,12 @@ class Video(StreamingOutput, Component):
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             include_audio: whether the component should record/retain the audio track for a video. By default, audio is excluded for webcam videos and included for uploaded videos.
             autoplay: whether to automatically play the video when the component is used as an output. Note: browsers will not autoplay video files if the user has not interacted with the page yet.
-            show_share_button: if True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
-            show_download_button: if True, will show a download icon in the corner of the component that allows user to download the output. If False, icon does not appear. By default, it will be True for output components and False for input components.
-            min_length: the minimum length of video (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
-            max_length: the maximum length of video (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
+            buttons: A list of buttons to show in the top right corner of the component. Valid options are "download" and "share". The "download" button allows the user to save the video to their device. The "share" button allows the user to share the video via Hugging Face Spaces Discussions. By default, no buttons are shown if the component is interactive and both buttons are shown if the component is not interactive.
             loop: if True, the video will loop when it reaches the end and continue playing from the beginning.
             streaming: when used set as an output, takes video chunks yielded from the backend and combines them into one streaming video output. Each chunk should be a video file with a .ts extension using an h.264 encoding. Mp4 files are also accepted but they will be converted to h.264 encoding.
             watermark: A `gr.WatermarkOptions` instance that includes an image file and position to be used as a watermark on the video. The image is not scaled and is displayed on the provided position on the video. Valid formats for the image are: jpeg, png.
             webcam_options: A `gr.WebcamOptions` instance that allows developers to specify custom media constraints for the webcam stream. This parameter provides flexibility to control the video stream's properties, such as resolution and front or rear camera on mobile devices. See $demo/webcam_constraints
+            subtitles: A subtitle file (srt, vtt, or json) for the video, or a list of subtitle dictionaries in the format [{"text": str, "timestamp": [start, end]}] where timestamps are in seconds. JSON files should contain an array of subtitle objects.
         """
         valid_sources: list[Literal["upload", "webcam"]] = ["upload", "webcam"]
         if sources is None:
@@ -164,64 +151,19 @@ class Video(StreamingOutput, Component):
         if isinstance(watermark, (str, Path)):
             self.watermark.watermark = watermark
 
-        if mirror_webcam is not None:
-            warnings.warn(
-                "The 'mirror_webcam' parameter will be removed in Gradio 6.0. "
-                "You will need to use 'webcam_options' with a 'gr.WebcamOptions' instance instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            self.webcam_options.mirror = mirror_webcam
-
-        if webcam_constraints is not None:
-            warnings.warn(
-                "The 'webcam_constraints' parameter will be removed in Gradio 6.0. "
-                "You will need to use 'webcam_options' with a 'gr.WebcamOptions' instance instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            self.webcam_options.constraints = webcam_constraints
-
         self.include_audio = (
             include_audio if include_audio is not None else "upload" in self.sources
         )
-        if show_download_button is not None:
-            warnings.warn(
-                "The 'show_download_button' parameter will be removed in Gradio 6.0. "
-                "You will need to use 'buttons=[\"download\"]' instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-        if show_share_button is not None:
-            warnings.warn(
-                "The 'show_share_button' parameter will be removed in Gradio 6.0. "
-                "You will need to use 'buttons=[\"share\"]' instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-        self.show_download_button = show_download_button
-        self.show_share_button = (
-            (utils.get_space() is not None)
-            if show_share_button is None
-            else show_share_button
-        )
-        if min_length is not None:
-            warnings.warn(
-                "The 'min_length' parameter will be removed in Gradio 6.0. "
-                "You will need to use validators instead. See gr.validators.is_video_correct_length() for more information.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-        if max_length is not None:
-            warnings.warn(
-                "The 'max_length' parameter will be removed in Gradio 6.0. "
-                "You will need to use validators instead. See gr.validators.is_video_correct_length() for more information.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-        self.min_length = min_length
-        self.max_length = max_length
+        self.buttons = buttons
         self.streaming = streaming
+        self.subtitles = None
+        if subtitles is not None:
+            if isinstance(subtitles, list):
+                self.subtitles = handle_file(
+                    self._process_json_subtitles(subtitles).path
+                )
+            else:
+                self.subtitles = self._format_subtitles(subtitles)
         super().__init__(
             label=label,
             every=every,
@@ -241,34 +183,21 @@ class Video(StreamingOutput, Component):
         )
         self._value_description = "a string filepath to a video"
 
-    def preprocess(self, payload: VideoData | None) -> str | None:
+    def preprocess(self, payload: FileData | None) -> str | None:
         """
         Parameters:
-            payload: An instance of VideoData containing the video and subtitle files.
+            payload: An instance of FileData containing the video file.
         Returns:
             Passes the uploaded video as a `str` filepath or URL whose extension can be modified by `format`.
         """
         if payload is None:
             return None
-        if not payload.video.path:
+        if not payload.path:
             raise ValueError("Payload path missing")
-        file_name = Path(payload.video.path)
+        file_name = Path(payload.path)
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format
         flip = self.sources == ["webcam"] and self.webcam_options.mirror
-
-        if self.min_length is not None or self.max_length is not None:
-            # With this if-clause, avoid unnecessary execution of `processing_utils.get_video_length`.
-            # This is necessary for the Wasm-mode, because it uses ffprobe, which is not available in the browser.
-            duration = processing_utils.get_video_length(file_name)
-            if self.min_length is not None and duration < self.min_length:
-                raise gr.Error(
-                    f"Video is too short, and must be at least {self.min_length} seconds"
-                )
-            if self.max_length is not None and duration > self.max_length:
-                raise gr.Error(
-                    f"Video is too long, and must be at most {self.max_length} seconds"
-                )
         # TODO: Check other image extensions to see if they work.
         valid_watermark_extensions = [".png", ".jpg", ".jpeg"]
         if self.watermark.watermark is not None:
@@ -315,54 +244,20 @@ class Video(StreamingOutput, Component):
         else:
             return str(file_name)
 
-    def postprocess(
-        self, value: str | Path | tuple[str | Path, str | Path | None] | None
-    ) -> VideoData | None:
+    def postprocess(self, value: str | Path | None) -> FileData | None:
         """
         Parameters:
             value: Expects a {str} or {pathlib.Path} filepath to a video which is displayed, or a {Tuple[str | pathlib.Path, str | pathlib.Path | None]} where the first element is a filepath to a video and the second element is an optional filepath to a subtitle file.
         Returns:
-            VideoData object containing the video and subtitle files.
+            FileData object containing the video file.
         """
         if self.streaming:
             return value  # type: ignore
         if value is None or value in ([None, None], (None, None)):
             return None
         if isinstance(value, (str, Path)):
-            processed_files = (self._format_video(value), None)
-
-        elif isinstance(value, (tuple, list)):
-            warnings.warn(
-                "Returning a tuple of (video, subtitles) from a function will be removed in Gradio 6.0. "
-                "You will need to use the Video component directly with the subtitles parameter instead. "
-                "For example: return gr.Video(value=video_path, subtitles=subtitle_path)",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-
-            if len(value) != 2:
-                raise ValueError(
-                    f"Expected lists of length 2 or tuples of length 2. Received: {value}"
-                )
-
-            if not (
-                isinstance(value[0], (str, Path)) and isinstance(value[1], (str, Path))
-            ):
-                raise TypeError(
-                    f"If a tuple is provided, both elements must be strings or Path objects. Received: {value}"
-                )
-            video = value[0]
-            subtitle = value[1]
-            processed_files = (
-                self._format_video(video),
-                self._format_subtitle(subtitle),
-            )
-
-        else:
-            raise Exception(f"Cannot process type as video: {type(value)}")
-        if not processed_files[0]:
-            raise ValueError("Video data missing")
-        return VideoData(video=processed_files[0], subtitles=processed_files[1])
+            processed_video = self._format_video(value)
+        return processed_video
 
     def _format_video(self, video: str | Path | None) -> FileData | None:
         """
@@ -446,10 +341,63 @@ class Video(StreamingOutput, Component):
 
         return FileData(path=video, orig_name=Path(video).name)
 
-    def _format_subtitle(self, subtitle: str | Path | None) -> FileData | None:
+    def _process_json_subtitles(self, subtitles: list[dict[str, Any]]) -> FileData:
+        """Convert JSON subtitles to VTT format."""
+
+        def seconds_to_vtt_timestamp(seconds: float) -> str:
+            """Convert seconds to VTT timestamp format (HH:MM:SS.mmm)"""
+            hours = int(seconds // 3600)
+            minutes = int((seconds % 3600) // 60)
+            secs = seconds % 60
+            return f"{hours:02d}:{minutes:02d}:{secs:06.3f}"
+
+        # Validate input
+        for i, subtitle in enumerate(subtitles):
+            if not isinstance(subtitle, dict):
+                raise ValueError(f"Subtitle at index {i} must be a dictionary")
+            if "text" not in subtitle:
+                raise ValueError(f"Subtitle at index {i} missing required 'text' field")
+            if "timestamp" not in subtitle:
+                raise ValueError(
+                    f"Subtitle at index {i} missing required 'timestamp' field"
+                )
+            if (
+                not isinstance(subtitle["timestamp"], (list, tuple))
+                or len(subtitle["timestamp"]) != 2
+            ):
+                raise ValueError(
+                    f"Subtitle at index {i} 'timestamp' must be a list/tuple of [start, end]"
+                )
+
+        # Create VTT file
+        temp_file = tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=".vtt",
+            dir=get_upload_folder(),
+            mode="w",
+            encoding="utf-8",
+        )
+
+        try:
+            temp_file.write("WEBVTT\n\n")
+            for subtitle in subtitles:
+                start_time = seconds_to_vtt_timestamp(subtitle["timestamp"][0])
+                end_time = seconds_to_vtt_timestamp(subtitle["timestamp"][1])
+                text = subtitle["text"]
+                temp_file.write(f"{start_time} --> {end_time}\n")
+                temp_file.write(f"{text}\n\n")
+            temp_file.close()
+            return FileData(path=str(temp_file.name))
+        except Exception as e:
+            temp_file.close()
+            raise ValueError(f"Error creating VTT file from JSON subtitles: {e}") from e
+
+    def _format_subtitles(self, subtitle: str | Path | None) -> FileData | None:
         """
         Convert subtitle format to VTT and process the video to ensure it meets the HTML5 requirements.
         """
+        import json
+        from pathlib import Path
 
         def srt_to_vtt(srt_file_path, vtt_file_path):
             """Convert an SRT subtitle file to a VTT subtitle file"""
@@ -465,10 +413,27 @@ class Video(StreamingOutput, Component):
                     vtt_file.write(f"{subtitle_timing} --> {subtitle_timing}\n")
                     vtt_file.write(f"{subtitle_text}\n\n")
 
+        file_path = Path(subtitle)
+        if file_path.suffix.lower() == ".json":
+            try:
+                with open(file_path, encoding="utf-8") as f:
+                    json_data = json.load(f)
+                if isinstance(json_data, list):
+                    return handle_file(self._process_json_subtitles(json_data).path)
+                else:
+                    raise ValueError(
+                        "JSON subtitle file must contain a list of subtitle objects"
+                    ) from None
+
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Invalid JSON format in subtitle file: {e}") from e
+            except Exception as e:
+                raise ValueError(f"Error reading JSON subtitle file: {e}") from e
+
         if subtitle is None:
             return None
 
-        valid_extensions = (".srt", ".vtt")
+        valid_extensions = (".srt", ".vtt", ".json")
 
         if Path(subtitle).suffix not in valid_extensions:
             raise ValueError(
@@ -478,20 +443,18 @@ class Video(StreamingOutput, Component):
         # HTML5 only support vtt format
         if Path(subtitle).suffix == ".srt":
             temp_file = tempfile.NamedTemporaryFile(
-                delete=False, suffix=".vtt", dir=self.GRADIO_CACHE
+                delete=False, suffix=".vtt", dir=get_upload_folder()
             )
 
             srt_to_vtt(subtitle, temp_file.name)
             subtitle = temp_file.name
 
-        return FileData(path=str(subtitle))
+        return handle_file(subtitle)
 
     def example_payload(self) -> Any:
-        return {
-            "video": handle_file(
-                "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/videos/world.mp4"
-            ),
-        }
+        return handle_file(
+            "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/videos/world.mp4"
+        )
 
     def example_value(self) -> Any:
         return "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/videos/world.mp4"
@@ -556,7 +519,7 @@ class Video(StreamingOutput, Component):
         stream: list[bytes],
         desired_output_format: str | None = None,  # noqa: ARG002
         only_file=False,
-    ) -> VideoData | FileData:
+    ) -> FileData:
         """Combine video chunks into a single video file.
 
         Do not take desired_output_format into consideration as
@@ -606,8 +569,7 @@ class Video(StreamingOutput, Component):
         if only_file:
             return video
 
-        output = VideoData(video=video)
-        return output
+        return video
 
     async def stream_output(
         self,

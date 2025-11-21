@@ -29,6 +29,7 @@ demo = gr.Interface(
         gr.Dropdown(["cross", "line", "circle"], label="Style"),
     ],
     gr.Plot(label="forecast", format="png"),
+    api_name="predict",
 )
 
 if __name__ == "__main__":

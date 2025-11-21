@@ -27,6 +27,7 @@ demo = gr.Interface(
         ],
     ],
     cache_examples=True,
+    api_name="predict",
 )
 
 if __name__ == "__main__":

@@ -12,16 +12,17 @@
 	let js_components = js_pages.filter((c) => c !== "js-client");
 	$: name = data.name;
 
+	$: current_jsdoc = $page.params?.jsdoc;
+
 	$: prev_obj =
-		$page.params?.jsdoc === "atoms"
+		current_jsdoc === "atoms"
 			? "storybook"
 			: js_components[
-					js_components.findIndex((page: any) => page === $page.params?.jsdoc) -
-						1
+					js_components.findIndex((page: any) => page === current_jsdoc) - 1
 				];
 	$: next_obj =
 		js_components[
-			js_components.findIndex((page: any) => page === $page.params?.jsdoc) + 1
+			js_components.findIndex((page: any) => page === current_jsdoc) + 1
 		];
 
 	$: readme_html = data.readme_html;
@@ -34,14 +35,14 @@
 	description={"How to use " + name + " in JS"}
 />
 
-<main class="container mx-auto px-4 flex flex-col gap-4">
+<main class="container mx-auto px-4 pt-8 flex flex-col gap-4">
 	<div class="flex w-full">
 		<JSDocsNav current_nav_link={name} {js_components} />
 
 		<div class="flex flex-col w-full min-w-full lg:w-10/12 lg:min-w-0">
 			<div>
 				<p
-					class="lg:ml-10 bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left"
+					class="lg:ml-10 bg-orange-100 dark:bg-orange-900 border border-orange-200 dark:border-orange-700 px-4 py-1 mr-2 rounded-full text-orange-800 dark:text-orange-200 mb-1 w-fit float-left"
 				>
 					New to Gradio? Start here: <a class="link" href="/quickstart"
 						>Getting Started</a
@@ -55,7 +56,7 @@
 			</div>
 			<div class="js_readme">
 				<div class="lg:ml-10 mt-5">
-					<div class="prose text-lg max-w-full">
+					<div class="prose dark:prose-invert text-lg max-w-full">
 						{@html readme_html}
 					</div>
 				</div>

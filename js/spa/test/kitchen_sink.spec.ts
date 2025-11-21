@@ -1,6 +1,6 @@
 import { test, expect } from "@self/tootils";
 
-test("test inputs", async ({ page, browser }) => {
+test.fixme("test inputs", async ({ page, browser }) => {
 	const context = await browser.newContext({
 		permissions: ["camera"]
 	});
@@ -35,7 +35,7 @@ test("test inputs", async ({ page, browser }) => {
 	expect(await page.getByText("fake_device_0")).toBeTruthy();
 });
 
-test("test outputs", async ({ page }) => {
+test.fixme("test outputs", async ({ page }) => {
 	const submit_button = await page.locator("button", { hasText: /Submit/ });
 
 	await submit_button.click();

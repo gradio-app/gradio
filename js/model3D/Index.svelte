@@ -5,143 +5,157 @@
 </script>
 
 <script lang="ts">
+	import { tick } from "svelte";
+	import type { Model3DProps, Model3DEvents } from "./types";
 	import type { FileData } from "@gradio/client";
+	import { Gradio } from "@gradio/utils";
 	import Model3D from "./shared/Model3D.svelte";
 	import Model3DUpload from "./shared/Model3DUpload.svelte";
 	import { BlockLabel, Block, Empty, UploadText } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
-
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
-	import type { Gradio } from "@gradio/utils";
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let value: null | FileData = null;
-	export let root: string;
-	export let display_mode: "solid" | "point_cloud" | "wireframe" = "solid";
-	export let clear_color: [number, number, number, number];
-	export let loading_status: LoadingStatus;
-	export let label: string;
-	export let show_label: boolean;
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let gradio: Gradio;
-	export let height: number | undefined = undefined;
-	export let zoom_speed = 1;
-	export let input_ready: boolean;
-	let uploading = false;
-	$: input_ready = !uploading;
-	export let has_change_history = false;
+	class Model3dGradio extends Gradio<Model3DEvents, Model3DProps> {
+		async get_data() {
+			if (upload_promise) {
+				await upload_promise;
+				await tick();
+			}
+			const data = await super.get_data();
 
-	// alpha, beta, radius
-	export let camera_position: [number | null, number | null, number | null] = [
-		null,
-		null,
-		null
-	];
-	export let interactive: boolean;
+			return data;
+		}
+	}
 
-	let dragging = false;
+	const props = $props();
+	const gradio = new Model3dGradio(props);
+
+	let old_value = $state(gradio.props.value);
+	let uploading = $state(false);
+	let dragging = $state(false);
+	let has_change_history = $state(false);
+	let upload_promise = $state<Promise<any>>();
+
 	const is_browser = typeof window !== "undefined";
+
+	$effect(() => {
+		if (old_value !== gradio.props.value) {
+			old_value = gradio.props.value;
+			gradio.dispatch("change");
+		}
+	});
+
+	function handle_change(detail: FileData | null) {
+		gradio.props.value = detail;
+		gradio.dispatch("change", detail);
+		has_change_history = true;
+	}
+
+	function handle_drag(detail: boolean) {
+		dragging = detail;
+	}
+
+	function handle_clear() {
+		gradio.props.value = null;
+		gradio.dispatch("clear");
+	}
+
+	function handle_load(detail: FileData) {
+		gradio.props.value = detail;
+		gradio.dispatch("upload");
+	}
+
+	function handle_error(detail: string) {
+		if (gradio.shared.loading_status)
+			gradio.shared.loading_status.status = "error";
+		gradio.dispatch("error", detail);
+	}
 </script>
 
-{#if !interactive}
+{#if !gradio.shared.interactive}
 	<Block
-		{visible}
-		variant={value === null ? "dashed" : "solid"}
+		visible={gradio.shared.visible}
+		variant={gradio.props.value === null ? "dashed" : "solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
-		{elem_id}
-		{elem_classes}
-		{container}
-		{scale}
-		{min_width}
-		{height}
+		elem_id={gradio.shared.elem_id}
+		elem_classes={gradio.shared.elem_classes}
+		container={gradio.shared.container}
+		scale={gradio.shared.scale}
+		min_width={gradio.shared.min_width}
+		height={gradio.props.height}
 	>
 		<StatusTracker
-			autoscroll={gradio.autoscroll}
+			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
-			{...loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+			{...gradio.shared.loading_status}
+			on_clear_status={() =>
+				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 
-		{#if value && is_browser}
+		{#if gradio.props.value && is_browser}
 			<Model3D
-				{value}
+				value={gradio.props.value}
 				i18n={gradio.i18n}
-				{display_mode}
-				{clear_color}
-				{label}
-				{show_label}
-				{camera_position}
-				{zoom_speed}
+				display_mode={gradio.props.display_mode}
+				clear_color={gradio.props.clear_color}
+				label={gradio.shared.label}
+				show_label={gradio.shared.show_label}
+				camera_position={gradio.props.camera_position}
+				zoom_speed={gradio.props.zoom_speed}
 				{has_change_history}
 			/>
 		{:else}
-			<!-- Not ideal but some bugs to work out before we can 
-				 make this consistent with other components -->
-
-			<BlockLabel {show_label} Icon={File} label={label || "3D Model"} />
+			<BlockLabel
+				show_label={gradio.shared.show_label}
+				Icon={File}
+				label={gradio.shared.label || "3D Model"}
+			/>
 
 			<Empty unpadded_box={true} size="large"><File /></Empty>
 		{/if}
 	</Block>
 {:else}
 	<Block
-		{visible}
-		variant={value === null ? "dashed" : "solid"}
+		visible={gradio.shared.visible}
+		variant={gradio.props.value === null ? "dashed" : "solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
-		{elem_id}
-		{elem_classes}
-		{container}
-		{scale}
-		{min_width}
-		{height}
+		elem_id={gradio.shared.elem_id}
+		elem_classes={gradio.shared.elem_classes}
+		container={gradio.shared.container}
+		scale={gradio.shared.scale}
+		min_width={gradio.shared.min_width}
+		height={gradio.props.height}
 	>
 		<StatusTracker
-			autoscroll={gradio.autoscroll}
+			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
-			{...loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+			{...gradio.shared.loading_status}
+			on_clear_status={() =>
+				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 
 		<Model3DUpload
-			{label}
-			{show_label}
-			{root}
-			{display_mode}
-			{clear_color}
-			{value}
-			{camera_position}
-			{zoom_speed}
+			bind:upload_promise
+			label={gradio.shared.label}
+			show_label={gradio.shared.show_label}
+			root={gradio.shared.root}
+			display_mode={gradio.props.display_mode}
+			clear_color={gradio.props.clear_color}
+			value={gradio.props.value}
+			camera_position={gradio.props.camera_position}
+			zoom_speed={gradio.props.zoom_speed}
 			bind:uploading
-			on:change={({ detail }) => (value = detail)}
-			on:drag={({ detail }) => (dragging = detail)}
-			on:change={({ detail }) => {
-				gradio.dispatch("change", detail);
-				has_change_history = true;
-			}}
-			on:clear={() => {
-				value = null;
-				gradio.dispatch("clear");
-			}}
-			on:load={({ detail }) => {
-				value = detail;
-				gradio.dispatch("upload");
-			}}
-			on:error={({ detail }) => {
-				loading_status = loading_status || {};
-				loading_status.status = "error";
-				gradio.dispatch("error", detail);
-			}}
+			on:change={({ detail }) => handle_change(detail)}
+			on:drag={({ detail }) => handle_drag(detail)}
+			on:clear={handle_clear}
+			on:load={({ detail }) => handle_load(detail)}
+			on:error={({ detail }) => handle_error(detail)}
 			i18n={gradio.i18n}
-			max_file_size={gradio.max_file_size}
-			upload={(...args) => gradio.client.upload(...args)}
-			stream_handler={(...args) => gradio.client.stream(...args)}
+			max_file_size={gradio.shared.max_file_size}
+			upload={(...args) => gradio.shared.client.upload(...args)}
+			stream_handler={(...args) => gradio.shared.client.stream(...args)}
 		>
 			<UploadText i18n={gradio.i18n} type="file" />
 		</Model3DUpload>

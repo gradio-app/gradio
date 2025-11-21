@@ -220,7 +220,7 @@
 		}
 	};
 
-	$: app, fetchCode();
+	$: (app, fetchCode());
 
 	$: if (activeTab === "chat") {
 		tick().then(() => scroll_to_bottom("auto"));

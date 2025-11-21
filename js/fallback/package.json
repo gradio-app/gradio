@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/fallback",
-	"version": "0.4.29",
+	"version": "0.4.30-dev.1",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -24,13 +24,13 @@
 		"@gradio/atoms": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@zerodevx/svelte-json-view": "^1.0.7"
+		"@zerodevx/svelte-json-view": "^1.0.11"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.43.4"
 	},
 	"repository": {
 		"type": "git",

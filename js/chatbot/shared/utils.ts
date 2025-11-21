@@ -2,14 +2,16 @@ import type { FileData } from "@gradio/client";
 import type { ComponentType, SvelteComponent } from "svelte";
 import { uploadToHuggingFace } from "@gradio/utils";
 import type {
-	TupleFormat,
 	ComponentMessage,
 	ComponentData,
 	TextMessage,
 	NormalisedMessage,
 	Message,
 	MessageRole,
-	ThoughtNode
+	ThoughtNode,
+	Text,
+	Component,
+	File
 } from "../types";
 import type { LoadedComponent } from "../../core/src/types";
 import { Gradio } from "@gradio/utils";
@@ -106,6 +108,7 @@ export interface EditData {
 	index: number | [number, number];
 	value: string;
 	previous_value: string;
+	_dispatch_value: { type: "text"; text: string }[];
 }
 
 const redirect_src_url = (src: string, root: string): string =>
@@ -140,7 +143,7 @@ function get_component_for_mime_type(
 }
 
 function convert_file_message_to_component_message(
-	message: any
+	message: File
 ): ComponentData {
 	const _file = Array.isArray(message.file) ? message.file[0] : message.file;
 	return {
@@ -152,6 +155,44 @@ function convert_file_message_to_component_message(
 	} as ComponentData;
 }
 
+function normalise_message(
+	message: Message,
+	content: Text | File | Component,
+	root: string,
+	i: number
+): NormalisedMessage {
+	let normalized: NormalisedMessage;
+	if (content.type === "text") {
+		normalized = {
+			role: message.role,
+			metadata: message.metadata,
+			content: redirect_src_url(content.text, root),
+			type: "text",
+			index: i,
+			options: message.options
+		};
+	} else if (content.type === "file") {
+		normalized = {
+			role: message.role,
+			metadata: message.metadata,
+			content: convert_file_message_to_component_message(content),
+			type: "component",
+			index: i,
+			options: message.options
+		};
+	} else {
+		normalized = {
+			role: message.role,
+			metadata: message.metadata,
+			content: content,
+			type: "component",
+			index: i,
+			options: message.options
+		};
+	}
+	return normalized;
+}
+
 export function normalise_messages(
 	messages: Message[] | null,
 	root: string
@@ -161,92 +202,32 @@ export function normalise_messages(
 	const thought_map = new Map<string, ThoughtNode>();
 
 	return messages
-		.map((message, i) => {
-			let normalized: NormalisedMessage =
-				typeof message.content === "string"
-					? {
-							role: message.role,
-							metadata: message.metadata,
-							content: redirect_src_url(message.content, root),
-							type: "text",
-							index: i,
-							options: message.options
+		.flatMap((message, i) => {
+			const normalized: NormalisedMessage[] = message.content.map((content) =>
+				normalise_message(message, content, root, i)
+			);
+			for (const msg of normalized) {
+				const { id, title, parent_id } = message.metadata || {};
+				if (parent_id) {
+					const parent = thought_map.get(String(parent_id));
+					if (parent) {
+						const thought = { ...msg, children: [] } as ThoughtNode;
+						parent.children.push(thought);
+						if (id && title) {
+							thought_map.set(String(id), thought);
 						}
-					: "file" in message.content
-						? {
-								content: convert_file_message_to_component_message(
-									message.content
-								),
-								metadata: message.metadata,
-								role: message.role,
-								type: "component",
-								index: i,
-								options: message.options
-							}
-						: ({ type: "component", ...message } as ComponentMessage);
-
-			// handle thoughts
-			const { id, title, parent_id } = message.metadata || {};
-			if (parent_id) {
-				const parent = thought_map.get(String(parent_id));
-				if (parent) {
-					const thought = { ...normalized, children: [] } as ThoughtNode;
-					parent.children.push(thought);
-					if (id && title) {
-						thought_map.set(String(id), thought);
+						return null;
 					}
-					return null;
+				}
+				if (id && title) {
+					const thought = { ...msg, children: [] } as ThoughtNode;
+					thought_map.set(String(id), thought);
+					return thought;
 				}
 			}
-			if (id && title) {
-				const thought = { ...normalized, children: [] } as ThoughtNode;
-				thought_map.set(String(id), thought);
-				return thought;
-			}
-
 			return normalized;
 		})
 		.filter((msg): msg is NormalisedMessage => msg !== null);
-}
-
-export function normalise_tuples(
-	messages: TupleFormat,
-	root: string
-): NormalisedMessage[] | null {
-	if (messages === null) return messages;
-	const msg = messages.flatMap((message_pair, i) => {
-		return message_pair.map((message, index) => {
-			if (message == null) return null;
-			const role = index == 0 ? "user" : "assistant";
-
-			if (typeof message === "string") {
-				return {
-					role: role,
-					type: "text",
-					content: redirect_src_url(message, root),
-					metadata: { title: null },
-					index: [i, index]
-				} as TextMessage;
-			}
-
-			if ("file" in message) {
-				return {
-					content: convert_file_message_to_component_message(message),
-					role: role,
-					type: "component",
-					index: [i, index]
-				} as ComponentMessage;
-			}
-
-			return {
-				role: role,
-				content: message,
-				type: "component",
-				index: [i, index]
-			} as ComponentMessage;
-		});
-	});
-	return msg.filter((message) => message != null) as NormalisedMessage[];
 }
 
 export function is_component_message(
@@ -271,7 +252,6 @@ export function is_last_bot_message(
 
 export function group_messages(
 	messages: NormalisedMessage[],
-	msg_format: "messages" | "tuples",
 	display_consecutive_in_same_bubble = true
 ): NormalisedMessage[][] {
 	const groupedMessages: NormalisedMessage[][] = [];
@@ -312,34 +292,15 @@ export async function load_components(
 	_components: Record<string, ComponentType<SvelteComponent>>,
 	load_component: Gradio["load_component"]
 ): Promise<Record<string, ComponentType<SvelteComponent>>> {
-	let names: string[] = [];
-	let components: ReturnType<typeof load_component>["component"][] = [];
-
-	component_names.forEach((component_name) => {
+	for (const component_name of component_names) {
 		if (_components[component_name] || component_name === "file") {
-			return;
+			continue;
 		}
-		const variant =
-			component_name === "dataframe" || component_name === "model3d"
-				? "component"
-				: "base";
-		const { name, component } = load_component(component_name, variant);
-		names.push(name);
-		components.push(component);
-		component_name;
-	});
-
-	const resolved_components = await Promise.allSettled(components);
-	const supported_components: [number, LoadedComponent][] = resolved_components
-		.map((result, index) =>
-			result.status === "fulfilled" ? [index, result.value] : null
-		)
-		.filter((item): item is [number, LoadedComponent] => item !== null);
-
-	supported_components.forEach(([originalIndex, component]) => {
-		_components[names[originalIndex]] = component.default;
-	});
-
+		const variant = component_name === "dataframe" ? "component" : "base";
+		const comp = await load_component(component_name, variant);
+		// @ts-ignore
+		_components[component_name] = comp.default;
+	}
 	return _components;
 }
 

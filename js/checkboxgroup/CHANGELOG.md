@@ -1,5 +1,30 @@
 # @gradio/checkboxgroup
 
+## 0.8.0-dev.2
+
+### Features
+
+- [#12375](https://github.com/gradio-app/gradio/pull/12375) [`2043967`](https://github.com/gradio-app/gradio/commit/2043967b958be9d51c4ee25272afa84bf0dbea08) - fix font.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.19.0-dev.1
+- @gradio/statustracker@0.12.0-dev.1
+
+## 0.8.0-dev.1
+
+### Features
+
+- [#12357](https://github.com/gradio-app/gradio/pull/12357) [`c9cf634`](https://github.com/gradio-app/gradio/commit/c9cf634a9cd34b4adadde1a6a98d60faf732639a) - Fix various event issues.  Thanks @pngwn!
+
+## 0.7.1-dev.0
+
+### Dependency updates
+
+- @gradio/atoms@0.18.2-dev.0
+- @gradio/utils@0.10.3-dev.0
+- @gradio/statustracker@0.12.0-dev.0
+
 ## 0.7.0
 
 ### Dependency updates

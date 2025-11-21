@@ -42,7 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: install dependencies
-        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@6.0-dev"
         with:
           python_version: "3.12"
       - name: install deps
@@ -61,6 +61,7 @@ jobs:
         with:
           gradio_version: "https://gradio-pypi-previews.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/gradio-${{ needs.changes.outputs.gradio_version }}-py3-none-any.whl"
           gradio_client_version: "gradio-client @ git+https://github.com/gradio-app/gradio@${{ needs.changes.outputs.sha }}#subdirectory=client/python"
+          config_path: ".config/demos.json"
       - name: upload demos
         uses: actions/upload-artifact@v4
         with:

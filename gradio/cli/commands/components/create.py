@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import shutil
 from pathlib import Path
 from typing import Annotated
@@ -10,6 +11,7 @@ from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 from tomlkit import dump, parse
 
+import gradio
 from gradio.analytics import custom_component_analytics
 
 from ..display import LivePanelDisplay
@@ -110,7 +112,13 @@ def _create(
 
         _create_utils._create_backend(name, component, directory, package_name)
         live.update(":snake: Created backend code", add_sleep=0.2)
-
+        p = Path(inspect.getfile(gradio)).parent
+        component_source = p / "_frontend_code"
+        if not component_source.exists():
+            live.update(
+                ":fast_down_button: Downloading frontend code from Hugging Face Hub. Set HF_HUB_DISABLE_PROGRESS_BARS to disable progress bars.",
+                add_sleep=0.2,
+            )
         _create_utils._create_frontend(
             name.lower(), component, directory=directory, package_name=package_name
         )

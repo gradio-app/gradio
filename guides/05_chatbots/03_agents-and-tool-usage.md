@@ -8,12 +8,14 @@ The Gradio Chatbot can natively display intermediate thoughts and tool usage in 
 
 ## The `ChatMessage` dataclass
 
-Each message in Gradio's chatbot is a dataclass of type `ChatMessage` (this is assuming that chatbot's `type="message"`, which is strongly recommended). The schema of `ChatMessage` is as follows:
+Every element of the chatbot value is a dictionary of `role` and `content` keys. You can always use plain python dictionaries to add new values to the chatbot but Gradio also provides the `ChatMessage` dataclass to help you with IDE autocompletion. The schema of `ChatMessage` is as follows:
 
  ```py
+MessageContent = Union[str, FileDataDict, FileData, Component]
+
 @dataclass
 class ChatMessage:
-    content: str | Component
+    content: MessageContent | [MessageContent]
     role: Literal["user", "assistant"]
     metadata: MetadataDict = None
     options: list[OptionDict] = None
@@ -40,7 +42,6 @@ import gradio as gr
 
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot(
-        type="messages",
         value=[
             gr.ChatMessage(
                 role="user", 
@@ -50,6 +51,7 @@ with gr.Blocks() as demo:
                 role="assistant", 
                 content="I need to use the weather API tool?",
                 metadata={"title":  "🧠 Thinking"}
+            )
         ]
     )
 
@@ -112,7 +114,6 @@ demo = gr.ChatInterface(
     interact_with_agent,
     chatbot= gr.Chatbot(
         label="Agent",
-        type="messages",
         avatar_images=(
             None,
             "https://em-content.zobj.net/source/twitter/53/robot-face_1f916.png",
@@ -122,7 +123,6 @@ demo = gr.ChatInterface(
         ["Generate an image of an astronaut riding an alligator"],
         ["I am writing a children's book for my daughter. Can you help me with some illustrations?"],
     ],
-    type="messages",
 )
 ```
 
@@ -191,7 +191,6 @@ async def interact_with_langchain_agent(prompt, messages):
 with gr.Blocks() as demo:
     gr.Markdown("# Chat with a LangChain Agent 🦜⛓️ and see its thoughts 💭")
     chatbot = gr.Chatbot(
-        type="messages",
         label="Agent",
         avatar_images=(
             None,
@@ -304,7 +303,6 @@ with gr.Blocks() as demo:
     gr.Markdown("# Chat with Gemini 2.0 Flash and See its Thoughts 💭")
     
     chatbot = gr.Chatbot(
-        type="messages",
         label="Gemini2.0 'Thinking' Chatbot",
         render_markdown=True,
     )
@@ -481,7 +479,7 @@ with gr.Blocks() as demo:
     
     with gr.Row(scale=1):
         with gr.Column(scale=4):
-            chatbot = gr.Chatbot(type="messages", bubble_full_width=False, show_label=False, scale=1)
+            chatbot = gr.Chatbot(bubble_full_width=False, show_label=False, scale=1)
             msg = gr.Textbox(placeholder="Enter your message here...", show_label=False, container=False)
             
         with gr.Column(scale=1):

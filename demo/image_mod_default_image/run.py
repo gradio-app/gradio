@@ -8,6 +8,7 @@ def image_mod(image):
 cheetah = get_image("cheetah1.jpg")
 
 demo = gr.Interface(image_mod, gr.Image(type="pil", value=cheetah), "image",
+                    api_name="predict",
     flagging_options=["blurry", "incorrect", "other"], examples=[
         get_image("lion.jpg"),
         get_image("logo.png")
