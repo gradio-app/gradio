@@ -5,7 +5,6 @@
 "@gradio/checkboxgroup": minor
 "@gradio/code": minor
 "@gradio/colorpicker": minor
-"@gradio/core": minor
 "@gradio/dialogue": minor
 "@gradio/dropdown": minor
 "@gradio/fallback": minor
