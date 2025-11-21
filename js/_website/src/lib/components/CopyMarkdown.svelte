@@ -84,6 +84,26 @@ Read the documentation above so I can ask questions about it.`
 		if (open) closeMenu();
 	}
 
+    function replaceTips() {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(markdown_content, "text/html");
+
+        const tips = doc.querySelectorAll("div.tip");
+
+        tips.forEach(tipEl => {
+            const p = tipEl.querySelector("p");
+            const text = p ? p.textContent.trim() : "";
+
+            const replacement = doc.createTextNode(`Tip: ${text}\n`);
+
+            tipEl.replaceWith(replacement);
+        });
+
+    return doc.body.innerHTML;
+    }
+
+    $: markdown_content = replaceTips();
+
 	async function copyMarkdown(): Promise<void> {
 		try {
 			if (!markdown_content) {
