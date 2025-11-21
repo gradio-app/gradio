@@ -211,7 +211,7 @@ code.language-bash {
 }
 
 .codeblock {
-	@apply relative bg-gray-50 dark:bg-neutral-800 mx-auto p-3 mt-2;
+	@apply relative bg-gray-50 dark:bg-neutral-800 mx-auto p-6 mt-2 rounded-lg;
 }
 .codeblock:hover > .clipboard-button {
 	@apply opacity-100 duration-200;
