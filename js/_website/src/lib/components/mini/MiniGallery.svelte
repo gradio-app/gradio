@@ -131,18 +131,16 @@
 		pointer-events: none;
 	}
 
-	@media (prefers-color-scheme: dark) {
-		.mini-gallery-large {
-			background: rgb(38 38 38);
-		}
+	:global(.dark) .mini-gallery-large {
+		background: rgb(38 38 38);
+	}
 
-		.mini-gallery-item {
-			border-color: rgb(64 64 64);
-			background: rgb(38 38 38);
-		}
+	:global(.dark) .mini-gallery-item {
+		border-color: rgb(64 64 64);
+		background: rgb(38 38 38);
+	}
 
-		.mini-gallery-item:hover {
-			border-color: rgb(249 115 22);
-		}
+	:global(.dark) .mini-gallery-item:hover {
+		border-color: rgb(249 115 22);
 	}
 </style>
