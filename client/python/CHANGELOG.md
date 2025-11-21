@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.14.0
+
+### Features
+
+- [#12377](https://github.com/gradio-app/gradio/pull/12377) [`568644a`](https://github.com/gradio-app/gradio/commit/568644a88c4dbe1b6ad9468906b1e45ed07657f3) - Add a 6.0 migration guide and add deprecation warnings.  Thanks @abidlabs!
+
 ## 1.13.3
 
 ### Fixes

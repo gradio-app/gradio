@@ -1,5 +1,16 @@
 # gradio
 
+## 5.50.0
+
+### Features
+
+- [#12377](https://github.com/gradio-app/gradio/pull/12377) [`568644a`](https://github.com/gradio-app/gradio/commit/568644a88c4dbe1b6ad9468906b1e45ed07657f3) - Add a 6.0 migration guide and add deprecation warnings.  Thanks @abidlabs!
+- [#12387](https://github.com/gradio-app/gradio/pull/12387) [`4a8ee36`](https://github.com/gradio-app/gradio/commit/4a8ee367fabb786248693833454aa69484623d97) - Sync JS Files to Hub.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#12124](https://github.com/gradio-app/gradio/pull/12124) [`ce39568`](https://github.com/gradio-app/gradio/commit/ce395687484f1c4f6a8e90d168dffdf5d83c873c) - Add python 3.14 support.  Thanks @aliabid94!
+
 ## 5.49.1
 
 ### Fixes
