@@ -85,9 +85,6 @@ export async function make_build({
 							make_gradio_plugin({ mode: "build", svelte_dir }),
 							deepmerge_plugin
 						],
-						resolve: {
-							conditions: ["gradio"]
-						},
 						build: {
 							emptyOutDir: true,
 							outDir: join(template_dir, entry as string),

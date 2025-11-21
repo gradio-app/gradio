@@ -84,14 +84,17 @@ export function make_gradio_plugin({
 				return resolved_v_id;
 			}
 			if (id === "svelte") {
-				return { id: `../../../../../svelte/svelte_svelte.js`, external: true };
+				return {
+					id: `../../../../../assets/svelte/svelte_svelte.js`,
+					external: true
+				};
 			}
 
 			if (id.startsWith("svelte/")) {
 				const subpath = id.slice("svelte/".length);
 
 				return {
-					id: `../../../../../svelte/svelte_${subpath.replace(/\//g, "_")}.js`,
+					id: `../../../../../assets/svelte/svelte_${subpath.replace(/\//g, "_")}.js`,
 					external: true
 				};
 			}

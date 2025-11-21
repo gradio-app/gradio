@@ -57,9 +57,6 @@ export async function create_server({
 					allow: [root_dir, component_dir]
 				}
 			},
-			resolve: {
-				conditions: ["gradio"]
-			},
 			optimizeDeps: config.optimizeDeps,
 			cacheDir: join(component_dir, "frontend", "node_modules", ".vite"),
 			plugins: [
