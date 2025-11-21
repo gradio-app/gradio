@@ -1,5 +1,40 @@
 # @gradio/core
 
+## 1.0.0-dev.4
+
+### Features
+
+- [#12409](https://github.com/gradio-app/gradio/pull/12409) [`3bb430e`](https://github.com/gradio-app/gradio/commit/3bb430e82bbc4790f5bf3d8c53738748d88211ec) - Fix browser component tests.  Thanks @freddyaboulton!
+- [#12267](https://github.com/gradio-app/gradio/pull/12267) [`b1d89d5`](https://github.com/gradio-app/gradio/commit/b1d89d50931300f3fd2786637235b3e6dff3fcdd) - Pass component props as input.  Thanks @aliabid94!
+- [#12421](https://github.com/gradio-app/gradio/pull/12421) [`7f9e483`](https://github.com/gradio-app/gradio/commit/7f9e48388f965b91ebeb6d294700cbd1a5b5a086) - Fix render status.  Thanks @freddyaboulton!
+- [#12410](https://github.com/gradio-app/gradio/pull/12410) [`38716f8`](https://github.com/gradio-app/gradio/commit/38716f8acafcd1be8108aa2361d5898e5b4fda78) - Fix show_progress not being respected.  Thanks @freddyaboulton!
+- [#12419](https://github.com/gradio-app/gradio/pull/12419) [`2bb4d1d`](https://github.com/gradio-app/gradio/commit/2bb4d1d4ee85ddec2ea04973744e0bf35e11f6ab) - Api docs bug fix and some enhancements to the page.  Thanks @abidlabs!
+- [#12412](https://github.com/gradio-app/gradio/pull/12412) [`dcf7267`](https://github.com/gradio-app/gradio/commit/dcf7267c81b3781e099cafa41ddbb71b1ee2c919) - fix: Using root instead of mcp_server_url for file upload config docs.  Thanks @frascuchon!
+- [#12408](https://github.com/gradio-app/gradio/pull/12408) [`2da9b83`](https://github.com/gradio-app/gradio/commit/2da9b83d1019b62f698e5d986d11fec2f4cf8423) - Fix vibe editor on 6.0.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/utils@0.11.0-dev.1
+- @gradio/atoms@0.19.0-dev.2
+- @gradio/client@2.0.0-dev.3
+- @gradio/statustracker@0.12.0-dev.2
+- @gradio/audio@0.20.0-dev.5
+- @gradio/image@0.24.0-dev.3
+- @gradio/upload@0.17.2-dev.3
+- @gradio/video@0.17.0-dev.3
+- @gradio/paramviewer@0.9.0-dev.2
+- @gradio/button@0.5.14-dev.3
+- @gradio/code@0.16.0-dev.4
+- @gradio/tabitem@0.6.2-dev.1
+- @gradio/tabs@0.5.2-dev.1
+- @gradio/column@0.2.2
+- @gradio/gallery@0.15.35-dev.4
+- @gradio/plot@0.9.25-dev.2
+- @gradio/checkbox@0.5.0-dev.2
+- @gradio/textbox@0.12.0-dev.3
+- @gradio/dropdown@0.10.6-dev.3
+- @gradio/file@0.13.1-dev.3
+
 ## 1.0.0-dev.3
 
 ### Features

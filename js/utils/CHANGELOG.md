@@ -1,5 +1,11 @@
 # @gradio/utils
 
+## 0.11.0-dev.1
+
+### Features
+
+- [#12409](https://github.com/gradio-app/gradio/pull/12409) [`3bb430e`](https://github.com/gradio-app/gradio/commit/3bb430e82bbc4790f5bf3d8c53738748d88211ec) - Fix browser component tests.  Thanks @freddyaboulton!
+
 ## 0.10.3-dev.0
 
 ### Dependency updates

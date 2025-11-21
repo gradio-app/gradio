@@ -1,5 +1,18 @@
 # @gradio/html
 
+## 0.8.0-dev.2
+
+### Features
+
+- [#12420](https://github.com/gradio-app/gradio/pull/12420) [`4b4eec6`](https://github.com/gradio-app/gradio/commit/4b4eec6bc744a07488ca8f76a808a3064ffb3e44) - Fix some plot issues in 6.0.  Thanks @aliabid94!
+- [#12403](https://github.com/gradio-app/gradio/pull/12403) [`efa56d8`](https://github.com/gradio-app/gradio/commit/efa56d89fa1370a0e41f5928cd9e6dc5c1364498) - Enhancements to DX/Docs for Custom HTML components.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/utils@0.11.0-dev.1
+- @gradio/atoms@0.19.0-dev.2
+- @gradio/statustracker@0.12.0-dev.2
+
 ## 0.8.0-dev.1
 
 ### Dependency updates
