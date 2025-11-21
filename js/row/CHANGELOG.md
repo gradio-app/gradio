@@ -1,4 +1,9 @@
 # @gradio/row
+## 0.3.0
+
+### Features
+
+- [#12438](https://github.com/gradio-app/gradio/pull/12438) [`25ffc03`](https://github.com/gradio-app/gradio/commit/25ffc0398f8feb43d817c02b2ab970c16de6d797) - Svelte5 migration and bugfix
 
 ## 0.2.2
 

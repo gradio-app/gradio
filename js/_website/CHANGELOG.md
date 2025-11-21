@@ -1,4 +1,32 @@
 # website
+## 0.66.0
+
+### Features
+
+- [#12436](https://github.com/gradio-app/gradio/pull/12436) [`ee0cf6c`](https://github.com/gradio-app/gradio/commit/ee0cf6c8bc5929701872c1b5e7e5d252412b86cd) - Fix website after changes
+- [#12162](https://github.com/gradio-app/gradio/pull/12162) [`81278c4`](https://github.com/gradio-app/gradio/commit/81278c41110b94e7bee9b4fe493b5df72afd4b13) - Fix huggingface-hub issue in lite
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Improve llms txt, add few guides at the top and organize
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Remove lite across website and use embedded spaces
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Fix website to work with svelte 5
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - docs redesign: landing page and nav bar
+- [#12362](https://github.com/gradio-app/gradio/pull/12362) [`e3f80b8`](https://github.com/gradio-app/gradio/commit/e3f80b88ad8c69ef2f85ee68bc89c5019a40ebfd) - Add kickoff stream link to website banner
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - fix publish
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Fix website with param viewer
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - docs redesign: docs and api pages
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Fix website on 6.0
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Add copy to markdown buttons to the guides
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Add 6.0 migration guide to llms.txt
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Fix broken python client and third party docs
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - 🌙 Add dark mode to gradio docs
+
+### Dependencies
+
+- @gradio/code@0.16.0
+- @gradio/paramviewer@0.9.0
+- @gradio/statustracker@0.12.0
+- @gradio/tabitem@0.6.2
+- @gradio/tabs@0.5.2
+- @gradio/button@0.5.14
 
 ## 0.66.0-dev.4
 

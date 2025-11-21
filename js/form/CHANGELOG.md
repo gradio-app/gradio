@@ -1,4 +1,15 @@
 # @gradio/form
+## 0.2.26
+
+### Features
+
+- [#12438](https://github.com/gradio-app/gradio/pull/12438) [`25ffc03`](https://github.com/gradio-app/gradio/commit/25ffc0398f8feb43d817c02b2ab970c16de6d797) - Svelte5 migration and bugfix
+
+### Dependencies
+
+- @gradio/atoms@0.19.0
+- @gradio/utils@0.10.3
+- @gradio/icons@0.15.0
 
 ## 0.2.26-dev.1
 
