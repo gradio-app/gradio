@@ -23,7 +23,6 @@
 	import MiniDateTime from "$lib/components/mini/MiniDateTime.svelte";
 
 	import "$lib/assets/theme.css";
-
 	export let data: {
 		logos: {
 			img: string;
