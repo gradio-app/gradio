@@ -8,6 +8,7 @@
 	import FancyDetails from "$lib/components/Details.svelte";
 	import { onNavigate } from "$app/navigation";
 	import { clickOutside } from "$lib/components/clickOutside.js";
+	import CopyMarkdown from "$lib/components/CopyMarkdown.svelte";
 
 	export let data: {
 		guide: any;
@@ -349,6 +350,7 @@
 			class="prose text-lg max-w-full dark:prose-invert"
 			bind:this={content_el}
 		>
+			<CopyMarkdown markdown_content={guide_page.content} />
 			{@html guide_page.new_html}
 		</div>
 		<div class="w-full flex flex-wrap justify-between my-4">
