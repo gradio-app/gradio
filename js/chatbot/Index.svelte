@@ -20,8 +20,6 @@
 		normalise_messages(gradio.props.value as Message[], gradio.shared.root)
 	);
 
-	$inspect("Show progress", gradio.shared.loading_status.show_progress);
-
 	let show_progress = $derived.by(() => {
 		if (gradio.shared.loading_status.status === "error") {
 			return "full";
