@@ -1,5 +1,17 @@
 # @gradio/statustracker
 
+## 0.12.0-dev.2
+
+### Features
+
+- [#12409](https://github.com/gradio-app/gradio/pull/12409) [`3bb430e`](https://github.com/gradio-app/gradio/commit/3bb430e82bbc4790f5bf3d8c53738748d88211ec) - Fix browser component tests.  Thanks @freddyaboulton!
+- [#12410](https://github.com/gradio-app/gradio/pull/12410) [`38716f8`](https://github.com/gradio-app/gradio/commit/38716f8acafcd1be8108aa2361d5898e5b4fda78) - Fix show_progress not being respected.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/utils@0.11.0-dev.1
+- @gradio/atoms@0.19.0-dev.2
+
 ## 0.12.0-dev.1
 
 ### Features

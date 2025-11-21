@@ -1,5 +1,17 @@
 # @gradio/paramviewer
 
+## 0.9.0-dev.2
+
+### Features
+
+- [#12413](https://github.com/gradio-app/gradio/pull/12413) [`358d76c`](https://github.com/gradio-app/gradio/commit/358d76c5819b889427aeee1df53c5a4607c387d8) - Fix website with param viewer.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/utils@0.11.0-dev.1
+- @gradio/atoms@0.19.0-dev.2
+- @gradio/statustracker@0.12.0-dev.2
+
 ## 0.9.0-dev.1
 
 ### Dependency updates

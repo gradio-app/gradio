@@ -1,5 +1,17 @@
 # @gradio/nativeplot
 
+## 0.9.0-dev.3
+
+### Features
+
+- [#12420](https://github.com/gradio-app/gradio/pull/12420) [`4b4eec6`](https://github.com/gradio-app/gradio/commit/4b4eec6bc744a07488ca8f76a808a3064ffb3e44) - Fix some plot issues in 6.0.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/utils@0.11.0-dev.1
+- @gradio/atoms@0.19.0-dev.2
+- @gradio/statustracker@0.12.0-dev.2
+
 ## 0.9.0-dev.2
 
 ### Dependency updates

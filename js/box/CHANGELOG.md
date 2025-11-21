@@ -4,6 +4,12 @@
 
 ### Dependency updates
 
+- @gradio/atoms@0.19.0-dev.2
+
+## 0.2.26-dev.1
+
+### Dependency updates
+
 - @gradio/atoms@0.19.0-dev.1
 
 ## 0.2.26-dev.0

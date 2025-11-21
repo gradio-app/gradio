@@ -1,5 +1,16 @@
 # @self/app
 
+## 2.0.0-dev.4
+
+### Features
+
+- [#12409](https://github.com/gradio-app/gradio/pull/12409) [`3bb430e`](https://github.com/gradio-app/gradio/commit/3bb430e82bbc4790f5bf3d8c53738748d88211ec) - Fix browser component tests.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/core@1.0.0-dev.4
+- @gradio/client@2.0.0-dev.3
+
 ## 2.0.0-dev.3
 
 ### Features

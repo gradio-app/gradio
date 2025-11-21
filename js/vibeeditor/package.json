@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/vibeeditor",
-	"version": "0.3.1-dev.2",
+	"version": "0.3.1-dev.3",
 	"description": "Gradio VibeEditor component",
 	"type": "module",
 	"author": "",

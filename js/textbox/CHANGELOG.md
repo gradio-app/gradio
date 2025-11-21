@@ -1,5 +1,18 @@
 # @gradio/textbox
 
+## 0.12.0-dev.3
+
+### Features
+
+- [#12423](https://github.com/gradio-app/gradio/pull/12423) [`8b0c5aa`](https://github.com/gradio-app/gradio/commit/8b0c5aab0894fc322ba9bebdce9cdbe6e0735251) - remove_placeholder_type_here.  Thanks @aliabid94!
+- [#12403](https://github.com/gradio-app/gradio/pull/12403) [`efa56d8`](https://github.com/gradio-app/gradio/commit/efa56d89fa1370a0e41f5928cd9e6dc5c1364498) - Enhancements to DX/Docs for Custom HTML components.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/utils@0.11.0-dev.1
+- @gradio/atoms@0.19.0-dev.2
+- @gradio/statustracker@0.12.0-dev.2
+
 ## 0.12.0-dev.2
 
 ### Dependency updates
