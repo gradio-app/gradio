@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - 6.0-dev
 
 env:
   CI: true
@@ -24,7 +23,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: install dependencies
-        uses: "gradio-app/gradio/.github/actions/install-all-deps@6.0-dev"
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           python_version: "3.12"
           skip_build: "false"
