@@ -39,8 +39,11 @@ class TestDataframe:
             "key": None,
             "preserved_by_key": ["value"],
             "headers": ["Name", "Age", "Member"],
-            "row_count": (1, "dynamic"),
+            "row_count": (3, "dynamic"),
+            "row_limits": None,
             "col_count": (3, "dynamic"),
+            "column_count": (3, "dynamic"),
+            "column_limits": None,
             "datatype": "str",
             "type": "pandas",
             "label": "Dataframe Input",
@@ -62,8 +65,7 @@ class TestDataframe:
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "line_breaks": True,
             "column_widths": [],
-            "show_fullscreen_button": False,
-            "show_copy_button": False,
+            "buttons": None,
             "max_chars": None,
         }
         dataframe_input = gr.Dataframe()
@@ -91,8 +93,11 @@ class TestDataframe:
             "key": None,
             "preserved_by_key": ["value"],
             "headers": ["1", "2", "3"],
-            "row_count": (1, "dynamic"),
+            "row_count": (3, "dynamic"),
+            "row_limits": None,
             "col_count": (3, "dynamic"),
+            "column_count": (3, "dynamic"),
+            "column_limits": None,
             "datatype": "str",
             "type": "pandas",
             "label": None,
@@ -114,9 +119,8 @@ class TestDataframe:
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "line_breaks": True,
             "column_widths": [],
-            "show_fullscreen_button": False,
+            "buttons": None,
             "max_chars": None,
-            "show_copy_button": False,
         }
 
         dataframe_input = gr.Dataframe(column_widths=["100px", 200, "50%"])
@@ -411,25 +415,26 @@ class TestDataframe:
         assert df.get_cell_data(styled_df) == [[1], [3]]
 
     def test_static_columns(self):
-        # when static_columns is specified, col_count should be fixed
+        # when static_columns is specified, it should be stored
         dataframe = gr.Dataframe(static_columns=[0, 1])
-        assert dataframe.col_count[1] == "fixed"
+        assert dataframe.static_columns == [0, 1]
 
-        # when static_columns is specified with dynamic col_count, it should be converted to fixed
-        dataframe = gr.Dataframe(col_count=(4, "dynamic"), static_columns=[0, 1])
-        assert dataframe.col_count[1] == "fixed"
+        # when static_columns is specified with column_count
+        dataframe = gr.Dataframe(column_count=4, static_columns=[0, 1])
+        assert dataframe.static_columns == [0, 1]
+        assert dataframe.column_count == (4, "dynamic")
 
-        # when static_columns is empty, col_count should remain as specified
-        dataframe = gr.Dataframe(col_count=(4, "dynamic"), static_columns=[])
-        assert dataframe.col_count[1] == "dynamic"
+        # when static_columns is empty
+        dataframe = gr.Dataframe(column_count=4, static_columns=[])
+        assert dataframe.static_columns == []
 
-        # when static_columns is None, col_count should remain as specified
-        dataframe = gr.Dataframe(col_count=(4, "dynamic"), static_columns=None)
-        assert dataframe.col_count[1] == "dynamic"
+        # when static_columns is None
+        dataframe = gr.Dataframe(column_count=4, static_columns=None)
+        assert dataframe.static_columns == []
 
-        # when static_columns is not specified at all, col_count should remain as specified
-        dataframe = gr.Dataframe(col_count=(4, "dynamic"))
-        assert dataframe.col_count[1] == "dynamic"
+        # when static_columns is not specified at all
+        dataframe = gr.Dataframe(column_count=4)
+        assert dataframe.static_columns == []
 
     def test_auto_datatype(self):
         df_headers = [

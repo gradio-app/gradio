@@ -9,7 +9,8 @@ demo = gr.Interface(
         headers=["Item", "Quantity"],
         datatype=["str", "number"],
         row_count=3,
-        col_count=(2, "fixed"),
+        column_count=2,
+        column_limits=(2, 2),
         type="polars"
     ),
     "dataframe",

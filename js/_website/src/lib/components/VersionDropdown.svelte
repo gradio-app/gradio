@@ -14,7 +14,7 @@
 	let match_name: RegExpMatchArray | null;
 	let docs_section: string;
 
-	$: match_name = $page.url.pathname.match(/\/docs\/([^/]+)/);
+	$: match_name = $page.url?.pathname?.match(/\/docs\/([^/]+)/);
 	$: if (match_name) {
 		docs_section = match_name[1];
 	}
@@ -29,7 +29,7 @@
 	}`;
 
 	$: path_parts = $page.route.id?.split("/") || [];
-	$: is_dynamic = path_parts[path_parts.length - 1].match(/\[.+\]/);
+	$: is_dynamic = path_parts[path_parts.length - 1]?.match(/\[.+\]/);
 
 	$: guide_url = `${value === version ? "" : `/${value}`}/guides/${
 		$page.params?.guide ||
@@ -55,7 +55,7 @@
 <select
 	bind:value
 	on:change={reload}
-	class="rounded-md border-gray-200 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0 text-xs mt-2 py-1 pl-2 pr-7 font-mono"
+	class="rounded-md border border-orange-200 dark:border-orange-800/50 bg-white dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0 text-xs mt-2 py-1 pl-2 pr-7 font-mono hover:border-orange-300 dark:hover:border-orange-700 transition-colors"
 >
 	{#each choices as choice}
 		<option value={choice}>{choice}</option>

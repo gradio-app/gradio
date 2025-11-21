@@ -1,10 +1,10 @@
 {
 	"name": "@self/app",
-	"version": "1.52.1",
+	"version": "2.0.0-dev.3",
 	"private": true,
 	"scripts": {
 		"dev": "vite dev",
-		"build": "vite build && node after_build.js",
+		"build": "vite build && node after_build.js && node cleanup_build.js",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
@@ -12,15 +12,14 @@
 		"format": "prettier --write ."
 	},
 	"devDependencies": {
-		"@sveltejs/adapter-auto": "^3.0.0",
-		"@sveltejs/kit": "^2.0.0",
-		"@sveltejs/vite-plugin-svelte": "^3.0.0",
-		"prettier": "^3.1.1",
-		"prettier-plugin-svelte": "^3.1.2",
-		"svelte": "^4.2.7",
-		"svelte-check": "^4.0.5",
-		"typescript": "^5.0.0",
-		"vite": "^5.0.3"
+		"@sveltejs/adapter-auto": "^7.0.0",
+		"@sveltejs/kit": "^2.48.3",
+		"@sveltejs/vite-plugin-svelte": "^6.2.1",
+		"prettier": "^3.6.2",
+		"prettier-plugin-svelte": "^3.4.0",
+		"svelte-check": "^4.3.3",
+		"typescript": "^5.9.3",
+		"vite": "^7.1.12"
 	},
 	"type": "module",
 	"dependencies": {
@@ -29,7 +28,7 @@
 		"@gradio/theme": "workspace:^",
 		"@huggingface/space-header": "^1.0.4",
 		"@self/build": "workspace:^",
-		"@sveltejs/adapter-node": "^5.2.2",
+		"@sveltejs/adapter-node": "^5.4.0",
 		"svelte-preprocess": "^6.0.3"
 	}
 }

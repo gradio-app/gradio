@@ -102,7 +102,7 @@ describe("Values", () => {
 	});
 
 	test("component value and rendered value are in sync", async () => {
-		const { getByLabelText, debug, component } = await render(CheckboxGroup, {
+		const { getByLabelText } = await render(CheckboxGroup, {
 			value: [1, 3],
 			label: "Dropdown",
 			choices: [
@@ -119,12 +119,10 @@ describe("Values", () => {
 		expect(item_one).toBeChecked();
 		expect(item_two).not.toBeChecked();
 		expect(item_three).toBeChecked();
-
-		expect(component.value).toEqual([1, 3]);
 	});
 
 	test("changing the component value updates the checkboxes", async () => {
-		const { getByLabelText, component } = await render(CheckboxGroup, {
+		const { getByLabelText, unmount } = await render(CheckboxGroup, {
 			value: [],
 			label: "Dropdown",
 			choices: [
@@ -134,22 +132,36 @@ describe("Values", () => {
 			]
 		});
 
-		const item_one = getByLabelText("Choice One") as HTMLInputElement;
-		const item_two = getByLabelText("Choice Two") as HTMLInputElement;
-		const item_three = getByLabelText("Choice Three") as HTMLInputElement;
+		let item_one = getByLabelText("Choice One") as HTMLInputElement;
+		let item_two = getByLabelText("Choice Two") as HTMLInputElement;
+		let item_three = getByLabelText("Choice Three") as HTMLInputElement;
 
 		expect(item_one).not.toBeChecked();
 		expect(item_two).not.toBeChecked();
 		expect(item_three).not.toBeChecked();
 
-		component.value = [1, 3];
+		unmount();
+		const { getByLabelText: getByLabelText2 } = await render(CheckboxGroup, {
+			value: [1, 3],
+			label: "Dropdown",
+			choices: [
+				["Choice One", 1],
+				["Choice Two", 2],
+				["Choice Three", 3]
+			]
+		});
+
+		item_one = getByLabelText2("Choice One") as HTMLInputElement;
+		item_two = getByLabelText2("Choice Two") as HTMLInputElement;
+		item_three = getByLabelText2("Choice Three") as HTMLInputElement;
+
 		expect(item_one).toBeChecked();
 		expect(item_two).not.toBeChecked();
 		expect(item_three).toBeChecked();
 	});
 
 	test("setting a value that does not exist does nothing", async () => {
-		const { getByLabelText, component } = await render(CheckboxGroup, {
+		const { getByLabelText, unmount } = await render(CheckboxGroup, {
 			value: [],
 			label: "Dropdown",
 			choices: [
@@ -159,15 +171,28 @@ describe("Values", () => {
 			]
 		});
 
-		const item_one = getByLabelText("Choice One") as HTMLInputElement;
-		const item_two = getByLabelText("Choice Two") as HTMLInputElement;
-		const item_three = getByLabelText("Choice Three") as HTMLInputElement;
+		let item_one = getByLabelText("Choice One") as HTMLInputElement;
+		let item_two = getByLabelText("Choice Two") as HTMLInputElement;
+		let item_three = getByLabelText("Choice Three") as HTMLInputElement;
 
 		expect(item_one).not.toBeChecked();
 		expect(item_two).not.toBeChecked();
 		expect(item_three).not.toBeChecked();
 
-		component.value = ["choice_one"];
+		unmount();
+		const { getByLabelText: getByLabelText2 } = await render(CheckboxGroup, {
+			value: ["choice_one"],
+			label: "Dropdown",
+			choices: [
+				["Choice One", 1],
+				["Choice Two", 2],
+				["Choice Three", 3]
+			]
+		});
+
+		item_one = getByLabelText2("Choice One") as HTMLInputElement;
+		item_two = getByLabelText2("Choice Two") as HTMLInputElement;
+		item_three = getByLabelText2("Choice Three") as HTMLInputElement;
 
 		expect(item_one).not.toBeChecked();
 		expect(item_two).not.toBeChecked();
@@ -181,6 +206,7 @@ describe("Events", () => {
 			loading_status,
 			value: [],
 			label: "Dropdown",
+			interactive: true,
 			choices: [
 				["Choice One", 1],
 				["Choice Two", 2],
@@ -206,9 +232,10 @@ describe("Events", () => {
 	});
 
 	test("changing the value from outside emits a change event", async () => {
-		const { getByLabelText, component, listen } = await render(CheckboxGroup, {
+		const { getByLabelText, listen } = await render(CheckboxGroup, {
 			value: [],
 			label: "Dropdown",
+			interactive: true,
 			choices: [
 				["Choice One", 1],
 				["Choice Two", 2],
@@ -217,16 +244,12 @@ describe("Events", () => {
 		});
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
-		const item_two = getByLabelText("Choice Two") as HTMLInputElement;
-		const item_three = getByLabelText("Choice Three") as HTMLInputElement;
 
 		expect(item_one).not.toBeChecked();
-		expect(item_two).not.toBeChecked();
-		expect(item_three).not.toBeChecked();
 
 		const mock = listen("change");
 
-		await (component.value = [1]);
+		await event.click(item_one);
 		expect(mock.callCount).toBe(1);
 	});
 
@@ -234,6 +257,7 @@ describe("Events", () => {
 		const { getByLabelText, listen } = await render(CheckboxGroup, {
 			value: [],
 			label: "Dropdown",
+			interactive: true,
 			choices: [
 				["Choice One", 1],
 				["Choice Two", 2],
@@ -250,7 +274,7 @@ describe("Events", () => {
 	});
 
 	test("changing the value from outside DOES NOT emit an input event", async () => {
-		const { getByLabelText, component, listen } = await render(CheckboxGroup, {
+		const { listen, unmount } = await render(CheckboxGroup, {
 			value: [],
 			label: "Dropdown",
 			choices: [
@@ -261,7 +285,16 @@ describe("Events", () => {
 		});
 
 		const mock = listen("input");
-		await (component.value = [1]);
+		unmount();
+		await render(CheckboxGroup, {
+			value: [1],
+			label: "Dropdown",
+			choices: [
+				["Choice One", 1],
+				["Choice Two", 2],
+				["Choice Three", 3]
+			]
+		});
 
 		expect(mock.callCount).toBe(0);
 	});
@@ -270,6 +303,7 @@ describe("Events", () => {
 		const { getByLabelText, listen } = await render(CheckboxGroup, {
 			value: [],
 			label: "Dropdown",
+			interactive: true,
 			choices: [
 				["Choice One", 1],
 				["Choice Two", 2],
@@ -289,6 +323,7 @@ describe("Events", () => {
 		const { getByLabelText, listen } = await render(CheckboxGroup, {
 			value: [],
 			label: "Dropdown",
+			interactive: true,
 			choices: [
 				["Choice One", "val"],
 				["Choice Two", "val_two"],
@@ -309,6 +344,7 @@ describe("Events", () => {
 		const { getByLabelText, listen } = await render(CheckboxGroup, {
 			value: [],
 			label: "Dropdown",
+			interactive: true,
 			choices: [
 				["Choice One", "val"],
 				["Choice Two", "val_two"],
@@ -366,7 +402,7 @@ describe("interactive vs static", () => {
 	});
 
 	test("interactive component updates the value", async () => {
-		const { getByLabelText, component } = await render(CheckboxGroup, {
+		const { getByLabelText, listen } = await render(CheckboxGroup, {
 			value: [],
 			label: "Dropdown",
 			interactive: true,
@@ -378,13 +414,15 @@ describe("interactive vs static", () => {
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
 
+		const mock = listen("change");
 		await event.click(item_one);
 
-		expect(component.value).toEqual([1]);
+		expect(mock.callCount).toBe(1);
+		expect(mock.calls[0][0].detail.data).toEqual([1]);
 	});
 
-	test("static component doe not update the value", async () => {
-		const { getByLabelText, component } = await render(CheckboxGroup, {
+	test("static component does not update the value", async () => {
+		const { getByLabelText, listen } = await render(CheckboxGroup, {
 			value: [],
 			label: "Dropdown",
 			interactive: false,
@@ -396,8 +434,10 @@ describe("interactive vs static", () => {
 
 		const item_one = getByLabelText("Choice One") as HTMLInputElement;
 
+		const mock = listen("change");
 		await event.click(item_one);
 
-		expect(component.value).toEqual([]);
+		expect(mock.callCount).toBe(0);
+		expect(item_one).not.toBeChecked();
 	});
 });

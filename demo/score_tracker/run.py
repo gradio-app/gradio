@@ -10,7 +10,8 @@ def track_score(score):
 demo = gr.Interface(
     track_score,
     gr.Number(label="Score"),
-    gr.JSON(label="Top Scores")
+    gr.JSON(label="Top Scores"),
+    api_name="predict"
 )
 if __name__ == "__main__":
     demo.launch()

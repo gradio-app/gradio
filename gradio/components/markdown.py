@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import inspect
-import warnings
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -55,7 +54,7 @@ class Markdown(Component):
         height: int | str | None = None,
         max_height: int | str | None = None,
         min_height: int | str | None = None,
-        show_copy_button: bool = False,
+        buttons: list[Literal["copy"]] | None = None,
         container: bool = False,
         padding: bool = False,
     ):
@@ -80,7 +79,7 @@ class Markdown(Component):
             height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If markdown content exceeds the height, the component will scroll.
             max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If markdown content exceeds the height, the component will scroll. If markdown content is shorter than the height, the component will shrink to fit the content. Will not have any effect if `height` is set and is smaller than `max_height`.
             min_height: The minimum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If markdown content exceeds the height, the component will expand to fit the content. Will not have any effect if `height` is set and is larger than `min_height`.
-            show_copy_button: If True, includes a copy button to copy the text in the Markdown component. Default is False.
+            buttons: A list of buttons to show for the component. Currently, the only valid option is "copy". The "copy" button allows the user to copy the text in the Markdown component. By default, no buttons are shown.
             container: If True, the Markdown component will be displayed in a container. Default is False.
             padding: If True, the Markdown component will have a certain padding (set by the `--block-padding` CSS variable) in all directions. Default is False.
         """
@@ -91,17 +90,10 @@ class Markdown(Component):
         self.sanitize_html = sanitize_html
         self.line_breaks = line_breaks
         self.header_links = header_links
-        if show_copy_button is not False:
-            warnings.warn(
-                "The 'show_copy_button' parameter will be removed in Gradio 6.0. "
-                "You will need to use 'buttons=[\"copy\"]' instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
         self.height = height
         self.max_height = max_height
         self.min_height = min_height
-        self.show_copy_button = show_copy_button
+        self.buttons = buttons
         self.padding = padding
 
         super().__init__(

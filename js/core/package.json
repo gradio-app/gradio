@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/core",
-	"version": "0.29.2",
+	"version": "1.0.0-dev.3",
 	"type": "module",
 	"devDependencies": {
 		"@gradio/accordion": "workspace:^",
@@ -49,7 +49,6 @@
 		"@gradio/simpledropdown": "workspace:^",
 		"@gradio/simpleimage": "workspace:^",
 		"@gradio/simpletextbox": "workspace:^",
-		"@gradio/sketchbox": "workspace:^",
 		"@gradio/slider": "workspace:^",
 		"@gradio/state": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
@@ -92,7 +91,7 @@
 		}
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.43.4"
 	},
 	"main": "./index.ts",
 	"repository": {
@@ -101,6 +100,6 @@
 		"directory": "js/core"
 	},
 	"dependencies": {
-		"dequal": "^2.0.2"
+		"dequal": "^2.0.3"
 	}
 }

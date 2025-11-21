@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - changeset-release/main
-      - lazy-load-cc-frontend-templates
       - changeset-release/6.0-dev
 
 permissions: {}
@@ -31,4 +30,4 @@ jobs:
       - name: Sync Front End Files To Hub
         run: |
           python scripts/sync_frontend.py \
-          ${{ secrets.SPACES_DEPLOY_TOKEN }}
+          ${{ secrets.SYNC_FRONTEND }}

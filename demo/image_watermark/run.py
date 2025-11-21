@@ -15,6 +15,7 @@ def generate_image(original_image, watermark_image):
 
 
 demo = gr.Interface(generate_image, [gr.Image(image_mode=None), gr.Image(image_mode=None)], gr.Image(),
+                    api_name="predict",
                     examples=[[base_a, watermark_a], [base_b, watermark_b], [base_a, watermark_c], [base_a, watermark_c]])
 
 if __name__ == "__main__":
