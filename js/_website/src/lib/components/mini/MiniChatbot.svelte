@@ -23,7 +23,6 @@
 </div>
 
 <style>
-	/* Mini Chatbot Component - Gradio styling */
 	.gradio-chatbot-wrapper {
 		width: 100%;
 		background: rgb(249 250 251);

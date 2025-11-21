@@ -33,7 +33,6 @@
 </div>
 
 <style>
-	/* Gradio Slider Styling */
 	.gradio-slider {
 		-webkit-appearance: none;
 		appearance: none;
@@ -45,7 +44,6 @@
 		height: 0.5rem;
 	}
 
-	/* Webkit track */
 	.gradio-slider::-webkit-slider-runnable-track {
 		height: 0.5rem;
 		border-radius: 9999px;
@@ -66,7 +64,6 @@
 		}
 	}
 
-	/* Webkit thumb */
 	.gradio-slider::-webkit-slider-thumb {
 		-webkit-appearance: none;
 		appearance: none;
@@ -94,7 +91,6 @@
 		}
 	}
 
-	/* Firefox thumb */
 	.gradio-slider::-moz-range-thumb {
 		appearance: none;
 		height: 1rem;

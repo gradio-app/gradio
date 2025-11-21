@@ -2,6 +2,26 @@
 	import version_json from "$lib/json/version.json";
 	import DemosLanding from "$lib/components/DemosLanding.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
+	import MiniButton from "$lib/components/mini/MiniButton.svelte";
+	import MiniPlot from "$lib/components/mini/MiniPlot.svelte";
+	import MiniDataframe from "$lib/components/mini/MiniDataframe.svelte";
+	import MiniImageSlider from "$lib/components/mini/MiniImageSlider.svelte";
+	import MiniSlider from "$lib/components/mini/MiniSlider.svelte";
+	import MiniGallery from "$lib/components/mini/MiniGallery.svelte";
+	import MiniCheckbox from "$lib/components/mini/MiniCheckbox.svelte";
+	import MiniCode from "$lib/components/mini/MiniCode.svelte";
+	import MiniChatbot from "$lib/components/mini/MiniChatbot.svelte";
+	import MiniHighlightedText from "$lib/components/mini/MiniHighlightedText.svelte";
+	import MiniModel3D from "$lib/components/mini/MiniModel3D.svelte";
+	import MiniRadio from "$lib/components/mini/MiniRadio.svelte";
+	import MiniNumber from "$lib/components/mini/MiniNumber.svelte";
+	import MiniFileExplorer from "$lib/components/mini/MiniFileExplorer.svelte";
+	import MiniDraggable from "$lib/components/mini/MiniDraggable.svelte";
+	import MiniAudio from "$lib/components/mini/MiniAudio.svelte";
+	import MiniAnnotatedImage from "$lib/components/mini/MiniAnnotatedImage.svelte";
+	import MiniDropdown from "$lib/components/mini/MiniDropdown.svelte";
+	import MiniDateTime from "$lib/components/mini/MiniDateTime.svelte";
+
 	import "$lib/assets/theme.css";
 
 	import MiniButton from "$lib/components/mini/MiniButton.svelte";
@@ -59,7 +79,6 @@
 
 <div class="container relative mx-auto px-4 pt-16 pb-12">
 	<div class="flex flex-col items-center text-center">
-		<!-- Version Pill Badge -->
 		<div class="mb-8">
 			<a
 				href="/changelog"
@@ -76,14 +95,12 @@
 			</a>
 		</div>
 
-		<!-- Main Heading -->
 		<h1
 			class="mb-6 text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-gray-100 max-w-4xl"
 		>
 			Build machine learning apps in Python
 		</h1>
 
-		<!-- Subtitle -->
 		<p
 			class="mx-auto mb-12 text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl"
 		>
@@ -91,7 +108,6 @@
 			share with anyone.
 		</p>
 
-		<!-- Buttons -->
 		<div
 			class="flex flex-col sm:flex-row gap-4 justify-center items-center w-full sm:w-auto mb-20"
 		>
@@ -117,25 +133,30 @@
 				>
 			</a>
 		</div>
-
-		<!-- Component Preview Carousel -->
 		<div class="w-full relative">
 			<div class="overflow-hidden carousel-fade-container">
 				<div class="animate-scroll-horizontal flex gap-4 py-4">
-					<!-- Component previews -->
 					{#each Array(16) as _, i}
 						<div
 							class="component-card flex-shrink-0 w-48 h-48 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-neutral-900 dark:to-neutral-800 flex items-center justify-center transition-all group p-4"
 						>
 							{#if i % 8 === 0}
-								<MiniButton />{:else if i % 8 === 1}
-								<MiniPlot />{:else if i % 8 === 2}
-								<MiniDataframe />{:else if i % 8 === 3}
-								<MiniImageSlider />{:else if i % 8 === 4}
-								<MiniSlider />{:else if i % 8 === 5}
-								<MiniGallery />{:else if i % 8 === 6}
-								<MiniCheckbox />{:else if i % 8 === 7}
-								<MiniCode />{/if}
+								<MiniButton />
+							{:else if i % 8 === 1}
+								<MiniPlot />
+							{:else if i % 8 === 2}
+								<MiniDataframe />
+							{:else if i % 8 === 3}
+								<MiniImageSlider />
+							{:else if i % 8 === 4}
+								<MiniSlider />
+							{:else if i % 8 === 5}
+								<MiniGallery />
+							{:else if i % 8 === 6}
+								<MiniCheckbox />
+							{:else if i % 8 === 7}
+								<MiniCode />
+							{/if}
 						</div>
 					{/each}
 				</div>
@@ -148,17 +169,28 @@
 							class="component-card flex-shrink-0 w-48 h-48 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-neutral-900 dark:to-neutral-800 flex items-center justify-center transition-all group p-4"
 						>
 							{#if i % 11 === 0}
-								<MiniChatbot />{:else if i % 11 === 1}
-								<MiniHighlightedText />{:else if i % 11 === 2}
-								<MiniModel3D />{:else if i % 11 === 3}
-								<MiniRadio />{:else if i % 11 === 4}
-								<MiniNumber />{:else if i % 11 === 5}
-								<MiniFileExplorer />{:else if i % 11 === 6}
-								<MiniDraggable />{:else if i % 11 === 7}
-								<MiniAudio />{:else if i % 11 === 8}
-								<MiniAnnotatedImage />{:else if i % 11 === 9}
-								<MiniDropdown />{:else if i % 11 === 10}
-								<MiniDateTime />{/if}
+								<MiniChatbot />
+							{:else if i % 11 === 1}
+								<MiniHighlightedText />
+							{:else if i % 11 === 2}
+								<MiniModel3D />
+							{:else if i % 11 === 3}
+								<MiniRadio />
+							{:else if i % 11 === 4}
+								<MiniNumber />
+							{:else if i % 11 === 5}
+								<MiniFileExplorer />
+							{:else if i % 11 === 6}
+								<MiniDraggable />
+							{:else if i % 11 === 7}
+								<MiniAudio />
+							{:else if i % 11 === 8}
+								<MiniAnnotatedImage />
+							{:else if i % 11 === 9}
+								<MiniDropdown />
+							{:else if i % 11 === 10}
+								<MiniDateTime />
+							{/if}
 						</div>
 					{/each}
 				</div>
@@ -253,7 +285,7 @@
 						/>
 					</svg>
 				</div>
-				<h3 class="text-2xl font-bold mb-2">30+ Components</h3>
+				<h3 class="text-2xl font-bold mb-2">40+ Components</h3>
 				<p class="text-gray-600 dark:text-gray-400 mb-6">
 					Input and output for any data type: Images, Audio, Video, 3D,
 					Dataframes, and more.
@@ -361,7 +393,7 @@
 						</div>
 
 						<div
-							class="bg-white dark:bg-neutral-800 rounded-lg shadow-lg border border-gray-200 dark:border-neutral-700 overflow-hidden w-full max-w-xs"
+							class="bg-white dark:bg-neutral-800 rounded-lg shadow-lg border border-gray-200 dark:border-neutral-700 overflow-hidden w-full max-w-sm"
 						>
 							<div
 								class="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-700"
@@ -388,7 +420,6 @@
 											</div>
 										</div>
 									</div>
-									<!-- Bot response -->
 									<div class="flex justify-start">
 										<div
 											class="bg-gray-200 dark:bg-neutral-800 rounded-lg px-2 py-1 max-w-[70%]"
@@ -398,7 +429,6 @@
 											</div>
 										</div>
 									</div>
-									<!-- User message -->
 									<div class="flex justify-end">
 										<div
 											class="bg-orange-100 dark:bg-orange-900/30 rounded-lg px-2 py-1 max-w-[70%]"
@@ -528,8 +558,6 @@
 		);
 	}
 
-
-	/* Component Card Hover */
 	.component-card {
 		overflow: hidden;
 		isolation: isolate;

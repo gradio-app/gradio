@@ -22,7 +22,6 @@
 </div>
 
 <style>
-	/* Mini Model3D Component - Gradio styling */
 	.gradio-model3d-container {
 		width: 100%;
 		height: 100%;

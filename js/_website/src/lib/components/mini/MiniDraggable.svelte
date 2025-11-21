@@ -60,7 +60,6 @@
 </div>
 
 <style>
-	/* Mini Draggable Component - Gradio styling */
 	.gradio-draggable {
 		width: 100%;
 		background-color: white;

@@ -5,7 +5,11 @@
 <div class="flex flex-col items-center w-full h-full pb-2">
 	<div class="flex-1 flex items-center justify-center w-full">
 		<label class="gradio-checkbox-container">
-			<input type="checkbox" bind:checked={checkbox_checked} class="gradio-checkbox" />
+			<input
+				type="checkbox"
+				bind:checked={checkbox_checked}
+				class="gradio-checkbox"
+			/>
 			<span class="gradio-checkbox-label">Accept terms</span>
 		</label>
 	</div>
@@ -18,7 +22,6 @@
 </div>
 
 <style>
-	/* Mini Checkbox Component - Gradio styling */
 	.gradio-checkbox-container {
 		display: flex;
 		align-items: center;
@@ -34,7 +37,6 @@
 		border: 1px solid rgb(209 213 219);
 		border-radius: 0.25rem;
 		background-color: white;
-		flex-shrink: 0;
 		cursor: pointer;
 		position: relative;
 		transition: all 0.15s ease;

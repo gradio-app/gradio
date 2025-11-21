@@ -1,7 +1,11 @@
 <div class="flex flex-col items-center w-full h-full pb-2">
 	<div class="flex-1 flex items-center justify-center w-full px-2">
 		<div class="gradio-fileexplorer">
-			<div class="file-item">
+			<div class="file-item folder-item">
+				<span class="file-icon">📁</span>
+				<span class="file-name">Documents</span>
+			</div>
+			<div class="file-item file-indent">
 				<span class="file-icon">📄</span>
 				<span class="file-name">file.txt</span>
 			</div>
@@ -19,7 +23,6 @@
 </div>
 
 <style>
-	/* Mini FileExplorer Component - Gradio styling */
 	.gradio-fileexplorer {
 		width: 100%;
 		background-color: white;

@@ -4,7 +4,6 @@
 			class="w-full bg-white dark:bg-neutral-800 rounded border border-gray-300 dark:border-neutral-700 p-2"
 		>
 			<svg viewBox="0 0 140 100" class="w-full h-20">
-				<!-- Axes -->
 				<line
 					x1="15"
 					y1="5"
@@ -23,8 +22,6 @@
 					stroke-width="1"
 					opacity="0.3"
 				/>
-
-				<!-- Grid lines -->
 				<line
 					x1="15"
 					y1="20"
@@ -53,13 +50,19 @@
 					opacity="0.1"
 				/>
 
-				<!-- Gradient fill -->
 				<defs>
 					<linearGradient id="plot-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-						<stop offset="0%" style="stop-color:rgb(249 115 22);stop-opacity:0.3" />
-						<stop offset="100%" style="stop-color:rgb(249 115 22);stop-opacity:0" />
+						<stop
+							offset="0%"
+							style="stop-color:rgb(249 115 22);stop-opacity:0.3"
+						/>
+						<stop
+							offset="100%"
+							style="stop-color:rgb(249 115 22);stop-opacity:0"
+						/>
 					</linearGradient>
 				</defs>
+
 				<polygon
 					points="20,65 35,50 55,58 75,35 95,40 115,25 115,80 20,80"
 					fill="url(#plot-gradient)"
@@ -69,6 +72,47 @@
 					fill="none"
 					stroke="rgb(249 115 22)"
 					stroke-width="2"
+				/>
+
+				{#each [[20, 65], [35, 50], [55, 58], [75, 35], [95, 40], [115, 25]] as [x, y]}
+					<circle cx={x} cy={y} r="2" fill="rgb(249 115 22)" />
+				{/each}
+
+				<line
+					x1="15"
+					y1="80"
+					x2="15"
+					y2="82"
+					stroke="currentColor"
+					stroke-width="0.5"
+					opacity="0.3"
+				/>
+				<line
+					x1="55"
+					y1="80"
+					x2="55"
+					y2="82"
+					stroke="currentColor"
+					stroke-width="0.5"
+					opacity="0.3"
+				/>
+				<line
+					x1="95"
+					y1="80"
+					x2="95"
+					y2="82"
+					stroke="currentColor"
+					stroke-width="0.5"
+					opacity="0.3"
+				/>
+				<line
+					x1="135"
+					y1="80"
+					x2="135"
+					y2="82"
+					stroke="currentColor"
+					stroke-width="0.5"
+					opacity="0.3"
 				/>
 
 				<!-- Axis labels -->
@@ -81,7 +125,7 @@
 					text-anchor="middle">0</text
 				>
 				<text
-					x="75"
+					x="55"
 					y="92"
 					font-size="6"
 					fill="currentColor"
@@ -89,7 +133,7 @@
 					text-anchor="middle">5</text
 				>
 				<text
-					x="135"
+					x="95"
 					y="92"
 					font-size="6"
 					fill="currentColor"
@@ -97,24 +141,8 @@
 					text-anchor="middle">10</text
 				>
 				<text
-					x="8"
-					y="82"
-					font-size="6"
-					fill="currentColor"
-					opacity="0.5"
-					text-anchor="middle">0</text
-				>
-				<text
-					x="8"
-					y="42"
-					font-size="6"
-					fill="currentColor"
-					opacity="0.5"
-					text-anchor="middle">10</text
-				>
-				<text
-					x="8"
-					y="7"
+					x="135"
+					y="92"
 					font-size="6"
 					fill="currentColor"
 					opacity="0.5"

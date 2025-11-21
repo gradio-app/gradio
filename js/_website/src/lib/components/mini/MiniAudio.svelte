@@ -1,13 +1,21 @@
 <div class="flex flex-col items-center w-full h-full pb-2">
 	<div class="flex-1 flex items-center justify-center w-full px-2">
 		<div class="gradio-audio">
-			<button class="audio-play-button">▶</button>
 			<div class="audio-controls">
-				<div class="waveform">
+				<button class="audio-play-btn">▶</button>
+				<div class="audio-waveform">
+					<div class="waveform-bar" style="height: 40%"></div>
+					<div class="waveform-bar" style="height: 70%"></div>
+					<div class="waveform-bar" style="height: 50%"></div>
+					<div class="waveform-bar" style="height: 90%"></div>
 					<div class="waveform-bar" style="height: 60%"></div>
 					<div class="waveform-bar" style="height: 80%"></div>
-					<div class="waveform-bar" style="height: 40%"></div>
-					<div class="waveform-bar" style="height: 90%"></div>
+					<div class="waveform-bar" style="height: 45%"></div>
+					<div class="waveform-bar" style="height: 65%"></div>
+					<div class="waveform-bar" style="height: 55%"></div>
+					<div class="waveform-bar" style="height: 75%"></div>
+					<div class="waveform-bar" style="height: 35%"></div>
+					<div class="waveform-bar" style="height: 85%"></div>
 					<div class="waveform-bar" style="height: 50%"></div>
 					<div class="waveform-bar" style="height: 70%"></div>
 					<div class="waveform-bar" style="height: 40%"></div>
@@ -24,7 +32,6 @@
 </div>
 
 <style>
-	/* Mini Audio Component - Gradio styling */
 	.gradio-audio {
 		width: 100%;
 		background-color: white;
@@ -39,7 +46,7 @@
 		gap: 0.5rem;
 	}
 
-	.audio-play-button {
+	.audio-play-btn {
 		width: 1.5rem;
 		height: 1.5rem;
 		display: flex;
@@ -55,7 +62,7 @@
 		transition: background-color 0.15s ease;
 	}
 
-	.audio-play-button:hover {
+	.audio-play-btn:hover {
 		background-color: rgb(234 88 12);
 	}
 
@@ -64,15 +71,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		height: 1.5rem;
-	}
-
-	.waveform {
-		flex: 1;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1px;
 		height: 1.5rem;
 	}
 

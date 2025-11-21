@@ -15,7 +15,6 @@
 </div>
 
 <style>
-	/* Mini HighlightedText Component - Gradio styling */
 	.gradio-highlighted-text {
 		display: flex;
 		flex-wrap: wrap;

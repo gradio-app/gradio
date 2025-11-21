@@ -46,40 +46,45 @@
 			aria-valuemin="0"
 			aria-valuemax="100"
 		>
-			<!-- Base image (blurred) -->
 			<img
 				src="/dog_blurred.jpg"
-				alt="Base"
-				class="absolute top-0 left-0 w-full h-full object-cover pointer-events-none"
+				alt="Blurred"
+				class="absolute inset-0 w-full h-full object-cover pointer-events-none"
 				draggable="false"
 			/>
 
-			<!-- Reveal image (sharp) -->
+			<img
+				src="/dog.jpg"
+				alt="Original"
+				class="absolute inset-0 w-full h-full object-cover pointer-events-none"
+				style="clip-path: inset(0 0 0 {image_slider_position}%)"
+				draggable="false"
+			/>
 			<div
-				class="absolute top-0 left-0 h-full overflow-hidden"
-				style="width: {image_slider_position}%"
-			>
-				<img
-					src="/dog.jpg"
-					alt="Reveal"
-					class="absolute top-0 left-0 w-full h-full object-cover pointer-events-none"
-					style="width: calc(100vw * 0.48)"
-					draggable="false"
-				/>
-			</div>
-
-			<!-- Slider handle -->
-			<div
-				class="absolute top-0 h-full w-1 bg-white image-slider-handle"
+				class="absolute top-0 bottom-0 w-px bg-orange-500 pointer-events-none"
 				style="left: {image_slider_position}%"
+			></div>
+
+			<div
+				class="absolute top-0 bottom-0 w-7 cursor-grab active:cursor-grabbing"
+				class:cursor-grabbing={is_dragging_image_slider}
+				style="left: calc({image_slider_position}% - 14px)"
 			>
 				<div
-					class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-white rounded-full border-2 border-gray-300 shadow-lg flex items-center justify-center"
+					class="image-slider-handle absolute top-1/2 -translate-x-[0%] -translate-y-1/2 w-7 h-6 rounded bg-orange-500 flex items-center justify-center shadow-md"
+					class:opacity-0={is_dragging_image_slider}
 				>
-					<div class="flex gap-0.5">
-						<div class="w-0.5 h-3 bg-gray-400 rounded"></div>
-						<div class="w-0.5 h-3 bg-gray-400 rounded"></div>
-					</div>
+					<span
+						class="text-white text-[9px] leading-none"
+						style="transform: rotate(135deg); text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.1);"
+						>◢</span
+					>
+					<span class="w-px h-full bg-white/10 mx-0.5"></span>
+					<span
+						class="text-white text-[9px] leading-none"
+						style="transform: rotate(-45deg); text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.1);"
+						>◢</span
+					>
 				</div>
 			</div>
 		</div>
@@ -93,7 +98,6 @@
 </div>
 
 <style>
-	/* ImageSlider Handle */
 	.image-slider-handle {
 		box-shadow: 0px 0px 5px 2px rgba(0, 0, 0, 0.3);
 		transition: opacity 0.2s;

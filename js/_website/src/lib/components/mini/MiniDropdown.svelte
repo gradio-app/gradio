@@ -22,7 +22,6 @@
 </div>
 
 <style>
-	/* Mini Dropdown Component - Gradio styling */
 	.gradio-dropdown {
 		position: relative;
 		width: 100%;

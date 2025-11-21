@@ -20,7 +20,10 @@
 				</button>
 			{:else}
 				<div class="mini-gallery-grid">
-					<button class="mini-gallery-item" on:click={(e) => select_gallery_image("/dog.jpg", e)}>
+					<button
+						class="mini-gallery-item"
+						on:click={(e) => select_gallery_image("/dog.jpg", e)}
+					>
 						<img src="/dog.jpg" alt="Gallery 1" />
 					</button>
 					<button
@@ -29,7 +32,10 @@
 					>
 						<img src="/dog_blurred.jpg" alt="Gallery 2" />
 					</button>
-					<button class="mini-gallery-item" on:click={(e) => select_gallery_image("/dog.jpg", e)}>
+					<button
+						class="mini-gallery-item"
+						on:click={(e) => select_gallery_image("/dog.jpg", e)}
+					>
 						<img src="/dog.jpg" alt="Gallery 3" />
 					</button>
 					<button
@@ -51,7 +57,6 @@
 </div>
 
 <style>
-	/* Mini Gallery Component - Gradio styling */
 	.mini-gallery-container {
 		width: 100%;
 		height: 100%;

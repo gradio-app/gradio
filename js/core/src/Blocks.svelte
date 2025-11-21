@@ -67,7 +67,8 @@
 		search_params,
 		render_complete = false,
 		ready = $bindable(false),
-		reload_count = $bindable(0)
+		reload_count = $bindable(0),
+		add_new_message = $bindable()
 	}: {
 		root: string;
 		components: ComponentMeta[];
@@ -95,6 +96,7 @@
 		render_complete: boolean;
 		ready: boolean;
 		reload_count: number;
+		add_new_message: (title: string, message: string, type: string) => void;
 	} = $props();
 
 	components.forEach((comp) => {
@@ -228,7 +230,7 @@
 	let ApiDocs: ComponentType<ApiDocsInterface> | null = null;
 	let ApiRecorder: ComponentType<ApiRecorderInterface> | null = null;
 	let Settings: ComponentType<SettingsInterface> | null = null;
-	let VibeEditor: ComponentType | null = null;
+	let VibeEditor: any = $state(null);
 
 	async function loadApiDocs(): Promise<void> {
 		if (!ApiDocs || !ApiRecorder) {
@@ -312,6 +314,8 @@
 		});
 	}
 
+	add_new_message = new_message;
+
 	let _error_id = -1;
 
 	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
@@ -386,6 +390,10 @@
 			ready = true;
 			dep_manager.dispatch_load_events();
 		});
+
+		if (vibe_mode) {
+			void loadVibeEditor();
+		}
 
 		return () => {
 			mut.disconnect();
@@ -553,6 +561,10 @@
 				/>
 			</div>
 		</div>
+	{/if}
+
+	{#if vibe_mode && VibeEditor}
+		<svelte:component this={VibeEditor} {app} {root} />
 	{/if}
 </div>
 

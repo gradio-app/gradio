@@ -1,23 +1,24 @@
 <div class="flex flex-col items-center w-full h-full pb-2">
 	<div class="flex-1 flex items-center justify-center w-full px-2">
-		<div class="mini-code-editor">
-			<div class="code-line-numbers">
-				<div class="line-number">1</div>
-				<div class="line-number">2</div>
-				<div class="line-number">3</div>
+		<div class="gradio-code-container">
+			<div class="gradio-code-gutter">
+				<span class="gradio-code-line-number">1</span>
+				<span class="gradio-code-line-number">2</span>
+				<span class="gradio-code-line-number">3</span>
 			</div>
-			<div class="code-content">
-				<div class="code-line">
-					<span class="code-keyword">print</span><span class="code-paren">(</span><span
-						class="code-string">"Hi"</span
-					><span class="code-paren">)</span>
+			<div class="gradio-code-content">
+				<div class="gradio-code-line">
+					<span class="code-keyword">def</span>
+					<span class="code-function">hello</span>():
 				</div>
-				<div class="code-line">
+				<div class="gradio-code-line">
+					<span class="code-keyword">print</span>(<span class="code-string"
+						>"Hi"</span
+					>)
+				</div>
+				<div class="gradio-code-line">
 					<span class="code-keyword">return</span>
 					<span class="code-number">42</span>
-				</div>
-				<div class="code-line">
-					<span class="code-comment"># code</span>
 				</div>
 			</div>
 		</div>
@@ -31,8 +32,7 @@
 </div>
 
 <style>
-	/* Mini Code Component - Gradio styling */
-	.mini-code-editor {
+	.gradio-code-container {
 		display: flex;
 		width: 100%;
 		background-color: rgb(243 244 246);
@@ -44,7 +44,7 @@
 		line-height: 1.25rem;
 	}
 
-	.code-line-numbers {
+	.gradio-code-gutter {
 		display: flex;
 		flex-direction: column;
 		background-color: rgb(249 250 251);
@@ -55,18 +55,18 @@
 		user-select: none;
 	}
 
-	.line-number {
+	.gradio-code-line-number {
 		display: block;
 		line-height: 1.25rem;
 	}
 
-	.code-content {
+	.gradio-code-content {
 		flex: 1;
 		padding: 0.25rem 0.5rem;
 		color: rgb(31 41 55);
 	}
 
-	.code-line {
+	.gradio-code-line {
 		line-height: 1.25rem;
 		white-space: nowrap;
 	}
@@ -88,28 +88,19 @@
 		color: rgb(249 115 22);
 	}
 
-	.code-paren {
-		color: rgb(31 41 55);
-	}
-
-	.code-comment {
-		color: rgb(107 114 128);
-		font-style: italic;
-	}
-
 	@media (prefers-color-scheme: dark) {
-		.mini-code-editor {
+		.gradio-code-container {
 			background-color: rgb(23 23 23);
 			border-color: rgb(64 64 64);
 		}
 
-		.code-line-numbers {
+		.gradio-code-gutter {
 			background-color: rgb(38 38 38);
 			border-color: rgb(64 64 64);
 			color: rgb(115 115 115);
 		}
 
-		.code-content {
+		.gradio-code-content {
 			color: rgb(229 231 235);
 		}
 
@@ -127,14 +118,6 @@
 
 		.code-number {
 			color: rgb(251 146 60);
-		}
-
-		.code-paren {
-			color: rgb(229 231 235);
-		}
-
-		.code-comment {
-			color: rgb(156 163 175);
 		}
 	}
 </style>

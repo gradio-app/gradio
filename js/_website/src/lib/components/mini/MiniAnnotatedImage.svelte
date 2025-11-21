@@ -1,8 +1,10 @@
 <div class="flex flex-col items-center w-full h-full pb-2">
-	<div class="flex-1 flex flex-col items-center justify-center w-full px-2 gap-1">
+	<div
+		class="flex-1 flex flex-col items-center justify-center w-full px-2 gap-1"
+	>
 		<div class="annotated-image-wrapper">
 			<div class="annotated-image-container">
-				<img src="/dog.jpg" alt="Annotated" class="annotated-image" />
+				<img src="/dog.jpg" alt="Annotated" class="annotated-base-image" />
 				<div class="annotation-mask annotation-mask-1"></div>
 				<div class="annotation-mask annotation-mask-2"></div>
 			</div>
@@ -20,7 +22,6 @@
 </div>
 
 <style>
-	/* Mini AnnotatedImage Component - Gradio styling */
 	.annotated-image-wrapper {
 		width: 100%;
 		position: relative;
@@ -35,7 +36,7 @@
 		border-radius: 0.5rem;
 	}
 
-	.annotated-image {
+	.annotated-base-image {
 		display: block;
 		width: 100%;
 		height: auto;

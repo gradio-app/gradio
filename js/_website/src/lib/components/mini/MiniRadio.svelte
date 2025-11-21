@@ -19,7 +19,6 @@
 </div>
 
 <style>
-	/* Mini Radio Component - Gradio styling */
 	.gradio-radio-group {
 		display: flex;
 		flex-direction: column;

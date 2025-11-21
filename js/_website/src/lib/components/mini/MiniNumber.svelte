@@ -10,9 +10,8 @@
 </div>
 
 <style>
-	/* Mini Number Component - Gradio styling */
 	.gradio-number-input {
-		width: 100%;
+		max-width: 6rem;
 		padding: 0.5rem 0.75rem;
 		border: 1px solid rgb(209 213 219);
 		border-radius: 0.375rem;
