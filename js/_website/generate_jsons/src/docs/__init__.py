@@ -264,7 +264,7 @@ SYSTEM_PROMPT = ""
 
 FALLBACK_PROMPT = SYSTEM_PROMPT
 
-FALLBACK_PROMPT += "Below are all the class and function signatures in the Gradio library: (these are what you will reference as docs)\n\n"
+FALLBACK_PROMPT += "# API Reference: \n\nBelow are all the class and function signatures in the Gradio library. \n\n"
 
 for key in gradio_docs:
     if key in ["events", "events_matrix"]:
@@ -315,7 +315,7 @@ for component in gradio_docs["events_matrix"]:
     FALLBACK_PROMPT += f"{component}: {', '.join(gradio_docs['events_matrix'][component])}\n\n"
 
 SYSTEM_PROMPT += "Below are examples of full end-to-end Gradio apps:\n\n"
-FALLBACK_PROMPT += "Below are examples of full end-to-end Gradio apps:\n\n"
+FALLBACK_PROMPT += "End to End Demos: \nBelow are examples of full end-to-end Gradio apps:\n\n"
 
 
 # 'audio_component_events', 'audio_mixer', 'blocks_essay', 'blocks_chained_events', 'blocks_xray', 'chatbot_multimodal', 'sentence_builder', 'custom_css', 'blocks_update', 'fake_gan'
@@ -360,13 +360,45 @@ for demo in very_important_demos:
     SYSTEM_PROMPT += "Code: \n\n"
     SYSTEM_PROMPT += f"{demo_code}\n\n"
 
+guides_llm_text = [
+    "gradio-6-migration-guide", 
+    "quickstart", 
+    "the-interface-class", 
+    "blocks-and-event-listeners", 
+    "controlling-layout",
+    "more-blocks-features",
+    "custom-CSS-and-JS",
+    "streaming-outputs",
+    "streaming-inputs",
+    "sharing-your-app"
+    ]
 
-for guide in guides:
-    if guide["name"] == "gradio-6-migration-guide":
-        gradio_6_migration_content = guide["content"]
-        break
+GUIDES_LLM_TEXT_CONTENT = ""
 
-FALLBACK_PROMPT = gradio_6_migration_content + "\n\n" + FALLBACK_PROMPT
+for guide_name in guides_llm_text:
+    for guide in guides:
+        if guide["name"] == guide_name:
+            GUIDES_LLM_TEXT_CONTENT += guide["content"] + "\n\n"
+            break
+    
+INTRO = f"""This page contains the documentation for the Gradio library. It is organized into the following sections:
+
+- {guides_llm_text[0].replace('-', ' ').title()}
+- {guides_llm_text[1].replace('-', ' ').title()}
+- {guides_llm_text[2].replace('-', ' ').title()}
+- {guides_llm_text[3].replace('-', ' ').title()}
+- {guides_llm_text[4].replace('-', ' ').title()}
+- {guides_llm_text[5].replace('-', ' ').title()}
+- {guides_llm_text[6].replace('-', ' ').title()}
+- {guides_llm_text[7].replace('-', ' ').title()}
+- {guides_llm_text[8].replace('-', ' ').title()}
+- API Reference: This section contains all the class and function signatures in the Gradio library.
+- End to End Demos: This section contains examples of full end-to-end Gradio apps.
+
+
+"""
+
+FALLBACK_PROMPT = INTRO + GUIDES_LLM_TEXT_CONTENT + "\n\n" + FALLBACK_PROMPT
 
 SYSTEM_PROMPT += "\n\n$INSERT_GUIDES_DOCS_DEMOS"
 
