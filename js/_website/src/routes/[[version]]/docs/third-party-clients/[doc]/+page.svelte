@@ -1,7 +1,6 @@
 <script lang="ts">
 	import DocsNav from "$lib/components/DocsNav.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
-	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
 
 	export let data: any = {};
@@ -12,10 +11,6 @@
 	let y: number;
 	let header_targets: { [key: string]: HTMLElement } = {};
 	let target_elem: HTMLElement;
-
-	onDestroy(() => {
-		header_targets = {};
-	});
 
 	let current_target: HTMLElement;
 
