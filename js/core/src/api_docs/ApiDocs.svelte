@@ -29,6 +29,7 @@
 	export let space_id: string | null;
 	export let root_node: ComponentMeta;
 	export let username: string | null;
+	export let last_api_call: Payload | null = null;
 
 	const js_docs =
 		"https://www.gradio.app/guides/getting-started-with-the-js-client";
@@ -53,6 +54,20 @@
 
 	export let api_calls: Payload[] = [];
 	let current_language: "python" | "javascript" | "bash" | "mcp" = "python";
+
+	$: sorted_dependencies = (() => {
+		const valid = dependencies.filter(
+			(dep) =>
+				dep.api_visibility === "public" &&
+				info?.named_endpoints?.["/" + dep.api_name]
+		);
+		if (info && last_api_call) {
+			const mostRecent = valid.find((dep) => dep.id === last_api_call.fn_index);
+			const others = valid.filter((dep) => dep.id !== last_api_call.fn_index);
+			return mostRecent ? [mostRecent, ...others] : valid;
+		}
+		return valid;
+	})();
 
 	function set_query_param(key: string, value: string) {
 		const url = new URL(window.location.href);
@@ -407,6 +422,7 @@
 							{file_data_present}
 							{mcp_docs}
 							{analytics}
+							{root}
 							bind:config_snippets
 						/>
 					</div>
@@ -465,8 +481,8 @@
 				{/if}
 
 				<div class:hidden={current_language === "mcp"}>
-					{#each dependencies as dependency}
-						{#if dependency.api_visibility === "public" && info.named_endpoints["/" + dependency.api_name]}
+					{#each sorted_dependencies as dependency}
+						{#if info.named_endpoints["/" + dependency.api_name]}
 							<div class="endpoint-container">
 								<CodeSnippet
 									endpoint_parameters={info.named_endpoints[
@@ -482,6 +498,7 @@
 										"/" + dependency.api_name
 									].description}
 									{analytics}
+									{last_api_call}
 									bind:markdown_code_snippets
 								/>
 

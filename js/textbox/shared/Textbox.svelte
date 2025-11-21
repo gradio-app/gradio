@@ -7,7 +7,6 @@
 	} from "svelte";
 	import { BlockTitle, IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import { Copy, Check, Send, Square } from "@gradio/icons";
-	import { fade } from "svelte/transition";
 	import type { SelectData, CopyData } from "@gradio/utils";
 	import type { InputHTMLAttributes } from "../types";
 

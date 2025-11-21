@@ -39,10 +39,10 @@
 	padding={true}
 	overflow_behavior="visible"
 >
-	{#if gradio.props.show_label}
+	{#if gradio.shared.show_label}
 		<BlockLabel
 			Icon={CodeIcon}
-			show_label={gradio.props.show_label}
+			show_label={gradio.shared.show_label}
 			label={gradio.shared.label}
 			float={false}
 		/>
@@ -76,6 +76,7 @@
 			visible={gradio.shared.visible}
 			autoscroll={gradio.shared.autoscroll}
 			apply_default_css={gradio.props.apply_default_css}
+			component_class_name={gradio.props.component_class_name}
 			on:event={(e) => {
 				gradio.dispatch(e.detail.type, e.detail.data);
 			}}
