@@ -1,5 +1,12 @@
 # website
 
+## 0.66.0
+
+### Features
+
+- [#12162](https://github.com/gradio-app/gradio/pull/12162) [`81278c4`](https://github.com/gradio-app/gradio/commit/81278c41110b94e7bee9b4fe493b5df72afd4b13) - Fix huggingface-hub issue in lite.  Thanks @aliabd!
+- [#12362](https://github.com/gradio-app/gradio/pull/12362) [`e3f80b8`](https://github.com/gradio-app/gradio/commit/e3f80b88ad8c69ef2f85ee68bc89c5019a40ebfd) - Add kickoff stream link to website banner.  Thanks @aliabd!
+
 ## 0.65.0
 
 ### Features
