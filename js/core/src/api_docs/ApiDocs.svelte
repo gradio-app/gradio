@@ -483,10 +483,7 @@
 				<div class:hidden={current_language === "mcp"}>
 					{#each sorted_dependencies as dependency}
 						{#if info.named_endpoints["/" + dependency.api_name]}
-							<div
-								class="endpoint-container"
-								class:highlighted={last_api_call?.fn_index === dependency.id}
-							>
+							<div class="endpoint-container">
 								<CodeSnippet
 									endpoint_parameters={info.named_endpoints[
 										"/" + dependency.api_name
@@ -640,9 +637,6 @@
 		padding-top: 0;
 	}
 
-	.endpoint-container.highlighted {
-		border: 2px solid #fd7b00;
-	}
 
 	a {
 		text-decoration: underline;
