@@ -97,6 +97,11 @@ class FileExplorer(Component):
             raise ValueError(
                 f"Invalid value for parameter `file_count`: {file_count}. Please choose from one of: {valid_file_count}"
             )
+        if file_count == "single":
+            if isinstance(value, Sequence) and not isinstance(value, str) and len(value) > 1:
+                raise ValueError(
+                    f'Invalid argument for paramter `value`: {value}. If `file_count = "single"`, you can not pass multiple files.'
+                )
         self.file_count = file_count
         self.height = height
         self.max_height = max_height
