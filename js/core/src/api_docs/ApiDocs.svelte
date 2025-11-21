@@ -637,7 +637,6 @@
 		padding-top: 0;
 	}
 
-
 	a {
 		text-decoration: underline;
 	}
