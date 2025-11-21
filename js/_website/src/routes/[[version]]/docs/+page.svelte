@@ -43,7 +43,7 @@
 	</div>
 	<div class="grid grid-cols-1 gap-5 lg:grid-cols-2 mb-12">
 		<div
-			class="card-hover group flex flex-col overflow-hidden lg:col-span-2 rounded-xl px-6 pb-6 pt-8 bg-gradient-to-br from-orange-100 via-orange-50 to-white dark:from-neutral-800 dark:to-neutral-800 border-2 border-orange-200 dark:border-orange-800 hover:border-orange-400 dark:hover:border-orange-600 hover:shadow-lg transition-all"
+			class="card-hover group flex flex-col overflow-hidden lg:col-span-2 rounded-xl px-6 pb-6 pt-8 bg-orange-50 dark:bg-neutral-800 border-2 border-orange-200 dark:border-orange-800 hover:border-orange-400 dark:hover:border-orange-600 hover:shadow-lg transition-all"
 		>
 			<div class="relative">
 				<a
@@ -148,7 +148,7 @@
 		<a
 			href="./docs/python-client"
 			target="_self"
-			class="card-hover group relative flex flex-col overflow-hidden rounded-xl px-5 py-5 bg-gradient-to-br from-green-100 via-green-50 to-white dark:from-neutral-800 dark:to-neutral-800 border-2 border-green-200 dark:border-green-900 hover:border-green-300 dark:hover:border-green-700 hover:shadow-lg transition-all text-gray-900 dark:text-gray-100"
+			class="card-hover group relative flex flex-col overflow-hidden rounded-xl px-5 py-5 bg-green-50 dark:bg-neutral-800 border-2 border-green-200 dark:border-green-900 hover:border-green-300 dark:hover:border-green-700 hover:shadow-lg transition-all text-gray-900 dark:text-gray-100"
 		>
 			<div class="mb-3">
 				<div class="text-xl font-bold">Python Client</div>
@@ -165,7 +165,7 @@
 		<a
 			href="./docs/js-client"
 			target="_self"
-			class="card-hover group relative flex flex-col overflow-hidden rounded-xl px-5 py-5 bg-gradient-to-br from-blue-100 via-blue-50 to-white dark:from-neutral-800 dark:to-neutral-800 border-2 border-blue-200 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-lg transition-all text-gray-900 dark:text-gray-100"
+			class="card-hover group relative flex flex-col overflow-hidden rounded-xl px-5 py-5 bg-blue-50 dark:bg-neutral-800 border-2 border-blue-200 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-lg transition-all text-gray-900 dark:text-gray-100"
 		>
 			<div class="mb-3">
 				<div class="text-xl font-bold">JavaScript Client</div>
@@ -182,7 +182,7 @@
 		<a
 			href="./docs/third-party-clients"
 			target="_self"
-			class="card-hover group relative flex flex-col overflow-hidden rounded-xl px-5 py-5 bg-gradient-to-br from-purple-100 via-purple-50 to-white dark:from-neutral-800 dark:to-neutral-800 border-2 border-purple-200 dark:border-purple-900 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-lg transition-all text-gray-900 dark:text-gray-100"
+			class="card-hover group relative flex flex-col overflow-hidden rounded-xl px-5 py-5 bg-purple-50 dark:bg-neutral-800 border-2 border-purple-200 dark:border-purple-900 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-lg transition-all text-gray-900 dark:text-gray-100"
 		>
 			<div class="mb-3">
 				<div class="text-xl font-bold">Third Party Clients</div>
@@ -206,7 +206,7 @@
 		<a
 			href="./docs/js"
 			target="_self"
-			class="card-hover group relative flex flex-col overflow-hidden rounded-xl px-5 py-5 bg-gradient-to-br from-pink-100 via-pink-50 to-white dark:from-neutral-800 dark:to-neutral-800 border-2 border-pink-200 dark:border-pink-900 hover:border-pink-300 dark:hover:border-pink-700 hover:shadow-lg transition-all text-gray-900 dark:text-gray-100"
+			class="card-hover group relative flex flex-col overflow-hidden rounded-xl px-5 py-5 bg-pink-50 dark:bg-neutral-800 border-2 border-pink-200 dark:border-pink-900 hover:border-pink-300 dark:hover:border-pink-700 hover:shadow-lg transition-all text-gray-900 dark:text-gray-100"
 		>
 			<div class="mb-3">
 				<div class="text-xl font-bold">JavaScript Components</div>
@@ -220,7 +220,7 @@
 		<a
 			href="../guides/custom-components-in-five-minutes"
 			target="_self"
-			class="card-hover group relative flex flex-col overflow-hidden rounded-xl px-5 py-5 bg-gradient-to-br from-yellow-100 via-yellow-50 to-white dark:from-neutral-800 dark:to-neutral-800 border-2 border-yellow-200 dark:border-yellow-900 hover:border-yellow-300 dark:hover:border-yellow-700 hover:shadow-lg transition-all text-gray-900 dark:text-gray-100"
+			class="card-hover group relative flex flex-col overflow-hidden rounded-xl px-5 py-5 bg-yellow-50 dark:bg-neutral-800 border-2 border-yellow-200 dark:border-yellow-900 hover:border-yellow-300 dark:hover:border-yellow-700 hover:shadow-lg transition-all text-gray-900 dark:text-gray-100"
 		>
 			<div class="mb-3">
 				<div class="text-xl font-bold">Custom Components</div>

@@ -53,7 +53,9 @@
 	<div class="space-y-8">
 		{#each library_pages as category_pages}
 			<div>
-				<h2 class="text-xs font-bold uppercase tracking-wide text-gray-900 dark:text-gray-100 mb-3">
+				<h2
+					class="text-xs font-bold uppercase tracking-wide text-gray-900 dark:text-gray-100 mb-3"
+				>
 					{category_pages.category}
 				</h2>
 				<ul class="space-y-2 list-none pl-0">

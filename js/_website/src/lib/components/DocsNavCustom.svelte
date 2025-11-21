@@ -89,7 +89,9 @@
 	</button>
 
 	<div class="space-y-2">
-		<h2 class="text-xs font-bold uppercase tracking-wide text-gray-900 dark:text-gray-100 mb-3">
+		<h2
+			class="text-xs font-bold uppercase tracking-wide text-gray-900 dark:text-gray-100 mb-3"
+		>
 			{title}
 		</h2>
 		<ul class="space-y-2 list-none pl-0">

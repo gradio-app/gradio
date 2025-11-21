@@ -134,9 +134,7 @@ Read the documentation above so I can ask questions about it.`
 					<IconCopy />
 				{/if}
 			</span>
-			<span
-				>{copied ? `Copied Page!` : "Copy Page"}</span
-			>
+			<span>{copied ? `Copied Page!` : "Copy Page"}</span>
 		</button>
 		<button
 			on:click={toggleMenu}
@@ -200,9 +198,7 @@ Read the documentation above so I can ask questions about it.`
 						Open in HuggingChat
 						<IconArrowUpRight classNames="menu-icon-arrow" />
 					</div>
-					<div class="menu-text-secondary">
-						Ask Questions About This Page
-					</div>
+					<div class="menu-text-secondary">Ask Questions About This Page</div>
 				</div>
 			</button>
 		</div>
@@ -355,7 +351,7 @@ Read the documentation above so I can ask questions about it.`
 		display: flex;
 		align-items: center;
 		gap: 0.25rem;
-        margin-bottom: -5px;
+		margin-bottom: -5px;
 	}
 
 	@media (prefers-color-scheme: dark) {
