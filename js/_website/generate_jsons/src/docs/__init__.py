@@ -360,74 +360,13 @@ for demo in very_important_demos:
     SYSTEM_PROMPT += "Code: \n\n"
     SYSTEM_PROMPT += f"{demo_code}\n\n"
 
-FALLBACK_PROMPT += """
-The latest verstion of Gradio includes some breaking changes, and important new features you should be aware of. Here is a list of the important changes:
 
-1. Audio files are no longer converted to .wav automatically
+for guide in guides:
+    if guide["name"] == "gradio-6-migration-guide":
+        gradio_6_migration_content = guide["content"]
+        break
 
-Previously, the default value of the format in the gr.Audio component was wav, meaning that audio files would be converted to the .wav format before being processed by a prediction function or being returned to the user. Now, the default value of format is None, which means any audio files that have an existing format are kept as is. 
-
-2. The 'every' parameter is no longer supported in event listeners
-
-Previously, if you wanted to run an event 'every' X seconds after a certain trigger, you could set `every=` in the event listener. This is no longer supported — do the following instead:
-
-- create a `gr.Timer` component, and
-- use the `.tick()` method to trigger the event.
-
-E.g., replace something like this:
-
-with gr.Blocks() as demo:
-    a = gr.Textbox()
-    b = gr.Textbox()
-    btn = gr.Button("Start")
-    btn.click(lambda x:x, a, b, every=1)
-
-with this:
-
-with gr.Blocks() as demo:
-    a = gr.Textbox()
-    b = gr.Textbox()
-    btn = gr.Button("Start")
-    t = gr.Timer(1, active=False)
-    t.tick(lambda x:x, a, b)
-    btn.click(lambda: gr.Timer(active=True), None, t)
-
-This makes it easy to configure the timer as well to change its frequency or stop the event, e.g.
-
-# some code...
-stop_btn = gr.Button("Stop")
-    stop_btn.click(lambda: gr.Timer(active=False), None, t) # deactivates timer
-fast_btn = gr.Button("Fast")
-    fast_btn.click(lambda: gr.Timer(0.1), None, t) # makes timer tick every 0.1s
-
-
-3. The `undo_btn`, `retry_btn` and `clear_btn` parameters of `ChatInterface` have been removed
-4. Passing a tuple to `gr.Code` is not supported
-5. The `concurrency_count` parameter has been removed from `.queue()`
-6. The `additional_inputs_accordion_name` parameter has been removed from `gr.ChatInterface`
-7. The `thumbnail` parameter has been removed from `gr.Interface`
-8. The `root` parameter in `gr.FileExplorer` has been removed 
-9. The `signed_in_value` parameter in `gr.LoginButton` has been removed
-10. The `gr.LogoutButton` component has been removed
-11. The `gr.make_waveform` method has been removed from the library
-12. SVGs are not accepted as input images into the `gr.Image` component unless `type=filepath` 
-13. The `height` parameter in `gr.DataFrame` has been renamed to `max_height` 
-14. The `likeable` parameter of `gr.Chatbot` has been removed. The chatbot will display like buttons whenever the `like` event is defined.
-15. By default user messages are not likeable in the `gr.Chatbot`. To display like buttons in the user message, set the `user_like_button` parameter of the `like` event to True.
-16. The argument for lazy-caching examples has been changed
-
-Previously, to lazy-cache examples, you would pass in “lazy” to the `cache_examples` parameter in `Interface`, `Chatinterface` , or `Examples`. Now, there is a separate `cache_mode` parameter, which governs whether caching should be `"lazy"` or `"eager"` . So if your code was previously:
-
-Now, your code should look like this:
-
-chatbot = gr.ChatInterface(
-    double,
-    examples=["hello", "hi"],
-    cache_examples=True,
-    cache_mode="lazy",
-)
-
-"""
+FALLBACK_PROMPT = gradio_6_migration_content + "\n\n" + FALLBACK_PROMPT
 
 SYSTEM_PROMPT += "\n\n$INSERT_GUIDES_DOCS_DEMOS"
 
