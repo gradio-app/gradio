@@ -582,6 +582,7 @@ export class DependencyManager {
 						}
 					}
 				} catch (error) {
+					console.error("Dependency error:", error, dep);
 					this.loading_stati.update({
 						status: "error",
 						fn_index: dep.id,
