@@ -205,7 +205,7 @@ parso==0.8.4
     # via jedi
 pexpect==4.9.0
     # via ipython
-pillow==11.1.0
+pillow==12.0
     # via
     #   diffusers
     #   gradio
