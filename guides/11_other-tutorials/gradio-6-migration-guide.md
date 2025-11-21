@@ -811,6 +811,20 @@ slider = gr.Slider(buttons=["reset"])
 ```
 
 
+## CLI Changes
+
+### `gradio sketch` command removed
+
+The `gradio sketch` command-line tool has been deprecated and completely removed in Gradio 6. This tool was used to create Gradio apps through a visual interface.
+
+**In Gradio 5.x:**
+- You could run `gradio sketch` to launch an interactive GUI for building Gradio apps
+- The tool would generate Python code visually
+
+**In Gradio 6.x:**
+- The `gradio sketch` command has been removed
+- Running `gradio sketch` will raise a `DeprecationWarning`
+
 ## Python Client Changes
 
 ### `hf_token` parameter renamed to `token` in `Client`
