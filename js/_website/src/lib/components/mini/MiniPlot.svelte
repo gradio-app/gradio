@@ -67,7 +67,6 @@
 					points="20,65 35,50 55,58 75,35 95,40 115,25 115,80 20,80"
 					fill="url(#plot-gradient)"
 				/>
-
 				<polyline
 					points="20,65 35,50 55,58 75,35 95,40 115,25"
 					fill="none"

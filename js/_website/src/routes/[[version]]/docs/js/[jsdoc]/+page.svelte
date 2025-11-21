@@ -35,7 +35,7 @@
 	description={"How to use " + name + " in JS"}
 />
 
-<main class="container mx-auto px-4 flex flex-col gap-4">
+<main class="container mx-auto px-4 pt-8 flex flex-col gap-4">
 	<div class="flex w-full">
 		<JSDocsNav current_nav_link={name} {js_components} />
 
@@ -56,7 +56,7 @@
 			</div>
 			<div class="js_readme">
 				<div class="lg:ml-10 mt-5">
-					<div class="prose text-lg max-w-full">
+					<div class="prose dark:prose-invert text-lg max-w-full">
 						{@html readme_html}
 					</div>
 				</div>

@@ -235,23 +235,35 @@ code.language-bash {
 }
 
 .tip {
-	@apply bg-green-50 dark:bg-green-900/30 border-green-50 dark:border-green-800 border-l-2 border-l-green-300 dark:border-l-green-600 text-green-700 dark:text-green-300 p-4 px-6;
+	@apply bg-orange-50 dark:bg-orange-950/40 border-2 border-orange-200 dark:border-orange-500/30 rounded-2xl text-gray-900 dark:text-gray-100 p-6 my-6 flex items-center gap-4 text-sm;
+}
+
+.tip-icon {
+	@apply flex items-center justify-center flex-shrink-0 -mt-1;
+}
+
+.tip-content {
+	@apply flex-1;
 }
 
 .tip strong {
-	@apply text-green-700 dark:text-green-300;
+	@apply text-orange-500 dark:text-orange-400 font-semibold;
 }
 
 .tip code {
-	@apply text-green-700 dark:text-green-300;
+	@apply text-orange-400 dark:text-orange-400 bg-orange-900/30 px-1.5 py-0.5 rounded text-sm;
 }
 
 .tip a {
-	@apply text-green-700 dark:text-green-300;
+	@apply text-orange-400 dark:text-orange-400 underline hover:text-orange-300 dark:hover:text-orange-300;
 }
 
 .tip p {
-	@apply inline;
+	@apply m-0 text-sm;
+}
+
+.tip svg {
+	@apply text-orange-500 dark:text-orange-500 flex-shrink-0 w-6 h-6;
 }
 
 .warning {

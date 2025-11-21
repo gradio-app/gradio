@@ -183,6 +183,7 @@
 		transition: transform 0.3s ease;
 		font-size: 0.7em;
 		opacity: 0.7;
+		background: transparent;
 	}
 
 	:global(details[open]) :global(.type)::after {
@@ -255,5 +256,63 @@
 
 	:global(.param-content) {
 		overflow-y: auto;
+	}
+
+	/* Dark mode overrides */
+	:global(.dark) :global(.wrap) {
+		background-color: var(--neutral-800);
+		border-color: var(--neutral-700);
+		color: var(--neutral-100);
+	}
+
+	:global(.dark) :global(.header) {
+		border-bottom-color: var(--neutral-700);
+	}
+
+	:global(.dark) :global(.title) {
+		color: var(--neutral-100);
+	}
+
+	:global(.dark) :global(.toggle-all) {
+		color: var(--neutral-100);
+	}
+
+	:global(.dark) :global(.type) {
+		background: var(--neutral-900);
+		border-bottom-color: var(--neutral-700);
+		color: var(--neutral-100);
+	}
+
+	:global(.dark) :global(.type) :global(pre),
+	:global(.dark) :global(.type) :global(code) {
+		color: var(--neutral-100);
+	}
+
+	:global(.dark) :global(.default) {
+		background: var(--neutral-800);
+		border-bottom-color: var(--neutral-700);
+		color: var(--neutral-100);
+	}
+
+	:global(.dark) :global(.default) :global(span) {
+		color: var(--neutral-300);
+	}
+
+	:global(.dark) :global(.description) {
+		background: var(--neutral-800);
+		color: var(--neutral-100);
+	}
+
+	:global(.dark) :global(.param) {
+		border-bottom-color: var(--neutral-700);
+	}
+
+	:global(.dark) :global(.param-link) {
+		color: var(--neutral-100);
+	}
+
+	:global(.dark) :global(.type)::after {
+		background: transparent;
+		color: var(--neutral-100);
 	}
 </style>
