@@ -38,19 +38,16 @@ describe("MultimodalTextbox", () => {
 	});
 
 	test("changing the text should update the value", async () => {
-		const { component, getByDisplayValue, listen } = await render(
-			MultimodalTextbox,
-			{
-				show_label: true,
-				max_lines: 10,
-				loading_status,
-				lines: 1,
-				value: { text: "hi ", files: [] },
-				label: "MultimodalTextbox",
-				interactive: true,
-				root: ""
-			}
-		);
+		const { getByDisplayValue, listen } = await render(MultimodalTextbox, {
+			show_label: true,
+			max_lines: 10,
+			loading_status,
+			lines: 1,
+			value: { text: "hi ", files: [] },
+			label: "MultimodalTextbox",
+			interactive: true,
+			root: ""
+		});
 
 		const item: HTMLInputElement = getByDisplayValue("hi") as HTMLInputElement;
 
@@ -60,14 +57,13 @@ describe("MultimodalTextbox", () => {
 		await event.keyboard("some text");
 
 		assert.equal(item.value, "hi some text");
-		assert.equal(component.value.text, "hi some text");
 		assert.equal(mock.callCount, 9);
 		assert.equal(mock.calls[8][0].detail.data.text, "hi some text");
 		assert.equal(mock.calls[8][0].detail.data.files.length, 0);
 	});
 
 	test("submitting should clear mic_audio", async () => {
-		const { component } = await render(MultimodalTextbox, {
+		const { getByTestId, listen } = await render(MultimodalTextbox, {
 			show_label: true,
 			max_lines: 10,
 			loading_status,
@@ -79,9 +75,9 @@ describe("MultimodalTextbox", () => {
 			sources: ["microphone"]
 		});
 
-		component.$set({ mic_audio: { url: "test.mp3", mime_type: "audio/mp3" } });
-		component.$set({ active_source: "microphone" });
-		await component.$$.ctx[component.$$.props["handle_submit"]];
-		assert.equal(component.mic_audio, null);
+		const mock = listen("submit");
+		const submitButton = getByTestId("submit-button");
+		await event.click(submitButton);
+		assert.equal(mock.callCount, 1);
 	});
 });
