@@ -28,7 +28,8 @@ describe("MultimodalTextbox", () => {
 			value: { text: "hello world", files: [] },
 			label: "Textbox",
 			interactive: false,
-			root: ""
+			root: "",
+			sources: []
 		});
 
 		const item: HTMLInputElement = getByDisplayValue(
@@ -46,7 +47,8 @@ describe("MultimodalTextbox", () => {
 			value: { text: "hi ", files: [] },
 			label: "MultimodalTextbox",
 			interactive: true,
-			root: ""
+			root: "",
+			sources: []
 		});
 
 		const item: HTMLInputElement = getByDisplayValue("hi") as HTMLInputElement;
@@ -72,7 +74,8 @@ describe("MultimodalTextbox", () => {
 			label: "MultimodalTextbox",
 			interactive: true,
 			root: "",
-			sources: ["microphone"]
+			sources: ["microphone"],
+			submit_btn: true
 		});
 
 		const mock = listen("submit");

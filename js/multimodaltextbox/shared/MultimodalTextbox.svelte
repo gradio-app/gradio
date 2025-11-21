@@ -552,6 +552,7 @@
 				{#if submit_btn}
 					<button
 						class="submit-button"
+						data-testid="submit-button"
 						class:padded-button={submit_btn !== true}
 						{disabled}
 						on:click={handle_submit}
