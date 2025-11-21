@@ -92,7 +92,9 @@
 		</p>
 
 		<div>
-			<h2 class="text-xs font-bold uppercase tracking-wide text-gray-900 dark:text-gray-100 mb-3">
+			<h2
+				class="text-xs font-bold uppercase tracking-wide text-gray-900 dark:text-gray-100 mb-3"
+			>
 				Components
 			</h2>
 			<ul class="space-y-2 list-none pl-0">
@@ -109,7 +111,9 @@
 		</div>
 
 		<div>
-			<h2 class="text-xs font-bold uppercase tracking-wide text-gray-900 dark:text-gray-100 mb-3">
+			<h2
+				class="text-xs font-bold uppercase tracking-wide text-gray-900 dark:text-gray-100 mb-3"
+			>
 				Client
 			</h2>
 			<ul class="space-y-2 list-none pl-0">

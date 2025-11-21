@@ -84,25 +84,25 @@ Read the documentation above so I can ask questions about it.`
 		if (open) closeMenu();
 	}
 
-    function replaceTips() {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(markdown_content, "text/html");
+	function replaceTips() {
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(markdown_content, "text/html");
 
-        const tips = doc.querySelectorAll("div.tip");
+		const tips = doc.querySelectorAll("div.tip");
 
-        tips.forEach(tipEl => {
-            const p = tipEl.querySelector("p");
-            const text = p ? p.textContent.trim() : "";
+		tips.forEach((tipEl) => {
+			const p = tipEl.querySelector("p");
+			const text = p ? p.textContent.trim() : "";
 
-            const replacement = doc.createTextNode(`Tip: ${text}\n`);
+			const replacement = doc.createTextNode(`Tip: ${text}\n`);
 
-            tipEl.replaceWith(replacement);
-        });
+			tipEl.replaceWith(replacement);
+		});
 
-    return doc.body.innerHTML;
-    }
+		return doc.body.innerHTML;
+	}
 
-    $: markdown_content = replaceTips();
+	$: markdown_content = replaceTips();
 
 	async function copyMarkdown(): Promise<void> {
 		try {
@@ -154,9 +154,7 @@ Read the documentation above so I can ask questions about it.`
 					<IconCopy />
 				{/if}
 			</span>
-			<span
-				>{copied ? `Copied Page!` : "Copy Page"}</span
-			>
+			<span>{copied ? `Copied Page!` : "Copy Page"}</span>
 		</button>
 		<button
 			on:click={toggleMenu}
@@ -220,9 +218,7 @@ Read the documentation above so I can ask questions about it.`
 						Open in HuggingChat
 						<IconArrowUpRight classNames="menu-icon-arrow" />
 					</div>
-					<div class="menu-text-secondary">
-						Ask Questions About This Page
-					</div>
+					<div class="menu-text-secondary">Ask Questions About This Page</div>
 				</div>
 			</button>
 		</div>
@@ -375,7 +371,7 @@ Read the documentation above so I can ask questions about it.`
 		display: flex;
 		align-items: center;
 		gap: 0.25rem;
-        margin-bottom: -5px;
+		margin-bottom: -5px;
 	}
 
 	@media (prefers-color-scheme: dark) {

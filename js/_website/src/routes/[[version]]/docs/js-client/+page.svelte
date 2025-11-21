@@ -85,7 +85,9 @@
 				>
 					<div class="flex text-lg items-center">
 						<span class="text-orange-500 mr-1">&#8592;</span>
-						<p class="whitespace-nowrap overflow-hidden text-ellipsis">Python Client</p>
+						<p class="whitespace-nowrap overflow-hidden text-ellipsis">
+							Python Client
+						</p>
 					</div>
 				</a>
 				<a
@@ -93,7 +95,9 @@
 					class="text-right px-4 py-2 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-gray-100 rounded-full hover:underline max-w-[48%] transition-colors"
 				>
 					<div class="flex text-lg justify-end items-center">
-						<p class="whitespace-nowrap overflow-hidden text-ellipsis">Third Party Clients</p>
+						<p class="whitespace-nowrap overflow-hidden text-ellipsis">
+							Third Party Clients
+						</p>
 						<span class="text-orange-500 ml-1">&#8594;</span>
 					</div>
 				</a>
