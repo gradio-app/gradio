@@ -24,25 +24,6 @@
 
 	import "$lib/assets/theme.css";
 
-	import MiniButton from "$lib/components/mini/MiniButton.svelte";
-	import MiniPlot from "$lib/components/mini/MiniPlot.svelte";
-	import MiniDataframe from "$lib/components/mini/MiniDataframe.svelte";
-	import MiniImageSlider from "$lib/components/mini/MiniImageSlider.svelte";
-	import MiniSlider from "$lib/components/mini/MiniSlider.svelte";
-	import MiniGallery from "$lib/components/mini/MiniGallery.svelte";
-	import MiniCheckbox from "$lib/components/mini/MiniCheckbox.svelte";
-	import MiniCode from "$lib/components/mini/MiniCode.svelte";
-	import MiniChatbot from "$lib/components/mini/MiniChatbot.svelte";
-	import MiniHighlightedText from "$lib/components/mini/MiniHighlightedText.svelte";
-	import MiniModel3D from "$lib/components/mini/MiniModel3D.svelte";
-	import MiniRadio from "$lib/components/mini/MiniRadio.svelte";
-	import MiniNumber from "$lib/components/mini/MiniNumber.svelte";
-	import MiniFileExplorer from "$lib/components/mini/MiniFileExplorer.svelte";
-	import MiniDraggable from "$lib/components/mini/MiniDraggable.svelte";
-	import MiniAudio from "$lib/components/mini/MiniAudio.svelte";
-	import MiniAnnotatedImage from "$lib/components/mini/MiniAnnotatedImage.svelte";
-	import MiniDropdown from "$lib/components/mini/MiniDropdown.svelte";
-	import MiniDateTime from "$lib/components/mini/MiniDateTime.svelte";
 	export let data: {
 		logos: {
 			img: string;
