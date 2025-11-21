@@ -267,6 +267,7 @@
 	class:border
 	style:position={absolute ? "absolute" : "static"}
 	style:padding={absolute ? "0" : "var(--size-8) 0"}
+	data-testid="status-tracker"
 	bind:this={el}
 >
 	{#if validation_error && show_validation_error}
@@ -275,7 +276,7 @@
 			<button
 				><IconButton
 					Icon={Clear}
-					label={i18n("common.clear")}
+					label={i18n ? i18n("common.clear") : "Clear"}
 					disabled={false}
 					size="x-small"
 					background="var(--background-fill-primary)"

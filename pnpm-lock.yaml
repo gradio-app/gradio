@@ -457,6 +457,9 @@ importers:
 
   js/_website:
     dependencies:
+      '@gradio/button':
+        specifier: workspace:^
+        version: link:../button
       '@gradio/code':
         specifier: workspace:^
         version: link:../code

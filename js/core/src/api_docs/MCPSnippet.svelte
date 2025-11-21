@@ -3,9 +3,11 @@
 	import CopyButton from "./CopyButton.svelte";
 	import { Tool, Prompt, Resource } from "@gradio/icons";
 	import { format_latency, get_color_from_success_rate } from "./utils";
+	import PercentileChart from "./PercentileChart.svelte";
 
 	export let mcp_server_active: boolean;
 	export let mcp_server_url_streamable: string;
+	export let root: string;
 	export let tools: Tool[];
 	export let all_tools: Tool[] = [];
 	export let selected_tools: Set<string> = new Set();
@@ -69,7 +71,7 @@
 					"gradio[mcp]",
 					"gradio",
 					"upload-mcp",
-					mcp_server_url_streamable,
+					root,
 					"<UPLOAD_DIRECTORY>"
 				]
 			};
@@ -218,34 +220,19 @@
 									: "⚠︎ No description provided in function docstring"}
 							</span>
 							{#if analytics[tool.meta.endpoint_name]}
-								<span
-									class="tool-analytics"
-									style="color: var(--body-text-color-subdued); margin-left: 1em;"
-								>
-									Total requests: {analytics[tool.meta.endpoint_name]
-										.total_requests}
-									<span style={color}
-										>({Math.round(success_rate * 100)}% successful)</span
+								{@const endpoint_analytics = analytics[tool.meta.endpoint_name]}
+								{@const p50 =
+									endpoint_analytics.process_time_percentiles["50th"]}
+								<div class="tool-analytics-wrapper" style="margin-left: 1em;">
+									<span
+										class="tool-analytics"
+										style="color: var(--body-text-color-subdued);"
 									>
-									&nbsp;|&nbsp; p50/p90/p99:
-									{format_latency(
-										analytics[tool.meta.endpoint_name].process_time_percentiles[
-											"50th"
-										]
-									)}
-									/
-									{format_latency(
-										analytics[tool.meta.endpoint_name].process_time_percentiles[
-											"90th"
-										]
-									)}
-									/
-									{format_latency(
-										analytics[tool.meta.endpoint_name].process_time_percentiles[
-											"99th"
-										]
-									)}
-								</span>
+										{endpoint_analytics.total_requests} requests ({Math.round(
+											success_rate * 100
+										)}% successful, p50: {format_latency(p50)})
+									</span>
+								</div>
 							{/if}
 						</span>
 						<span class="tool-arrow">{tool.expanded ? "▼" : "▶"}</span>
@@ -354,10 +341,16 @@
 {/if}
 
 <style>
+	.tool-analytics-wrapper {
+		position: relative;
+		display: inline-block;
+	}
+
 	.tool-analytics {
 		font-size: 0.95em;
 		color: var(--body-text-color-subdued);
 	}
+
 	.transport-selection {
 		margin-bottom: var(--size-4);
 	}
