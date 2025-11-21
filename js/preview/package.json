@@ -18,7 +18,7 @@
 		"@rollup/plugin-node-resolve": "^16.0.2",
 		"@rollup/plugin-typescript": "^12.1.4",
 		"rollup": "^4.52.4",
-		"svelte": "^5.43.4"
+		"svelte": "^5.43.14"
 	},
 	"dependencies": {
 		"@originjs/vite-plugin-commonjs": "^1.0.3",

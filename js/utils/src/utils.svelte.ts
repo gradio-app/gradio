@@ -43,7 +43,7 @@ export type LoadingComponent = Promise<{
 	default: Component;
 }>;
 
-export const GRADIO_ROOT = Symbol();
+export const GRADIO_ROOT = "GRADIO_ROOT";
 
 export interface ValueData {
 	value: any;

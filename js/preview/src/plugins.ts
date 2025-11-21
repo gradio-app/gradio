@@ -10,10 +10,6 @@ const svelte_codes_to_ignore: Record<string, string> = {
 	"reactive-component": "Icon"
 };
 
-const RE_SVELTE_IMPORT =
-	/import\s+(?:([ -~]*)\s+from\s+){0,1}['"](svelte(?:\/[ -~]+){0,3})['"]/g;
-const RE_TYPE_IMPORT = /type \w+\b/;
-
 export function plugins(config: ComponentConfig): PluginOption[] {
 	const _additional_plugins = config.plugins || [];
 	const _additional_svelte_preprocess = config.svelte?.preprocess || [];
@@ -80,46 +76,24 @@ export function make_gradio_plugin({
 }: GradioPluginOptions): Plugin {
 	const v_id = "virtual:component-loader";
 	const resolved_v_id = "\0" + v_id;
-	let types: { types: string[]; path: string }[] = [];
 	return {
 		name: "gradio",
-		enforce: "post",
-		transform(code) {
-			const new_code = code.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
-				let ident = $1;
-
-				if (!ident || ident.trim() === "") return "";
-				if (ident.trim().startsWith("type")) {
-					types.push({
-						types: ident.trim().replace(/^type/, "").trim(),
-						path: $2
-					});
-					return str;
-				}
-
-				if (RE_TYPE_IMPORT.test(ident)) {
-					ident = remove_types(ident);
-					types.push({ types: extract_types(ident), path: $2 });
-				}
-
-				const path = $2.split("/").join("_");
-				const identifier = ident.trim().startsWith("* as")
-					? ident.replace("* as", "").trim()
-					: ident.trim();
-				return `const ${identifier.replace(
-					" as ",
-					": "
-				)} = window.__gradio__svelte__.${path};`;
-			});
-
-			return {
-				code: new_code,
-				map: null
-			};
-		},
+		enforce: "pre",
 		resolveId(id) {
 			if (id === v_id) {
 				return resolved_v_id;
+			}
+			if (id === "svelte") {
+				return { id: `../../../../../svelte/svelte_svelte.js`, external: true };
+			}
+
+			if (id.startsWith("svelte/")) {
+				const subpath = id.slice("svelte/".length);
+
+				return {
+					id: `../../../../../svelte/svelte_${subpath.replace(/\//g, "_")}.js`,
+					external: true
+				};
 			}
 		},
 		load(id) {

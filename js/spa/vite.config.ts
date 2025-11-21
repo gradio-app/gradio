@@ -198,21 +198,19 @@ function handle_svelte_import({
 				return null;
 			}
 
-			if (!options?.ssr) {
-				if (id === "svelte") {
-					return {
-						id: "../../../svelte/svelte_svelte.js",
-						external: true
-					};
-				}
-				if (id.startsWith("svelte/")) {
-					return {
-						id: `../../../svelte/${id.split("/").join("_")}.js`,
-						external: true
-					};
-				}
-				return null;
+			if (id === "svelte") {
+				return {
+					id: "./svelte/svelte_svelte.js",
+					external: true
+				};
 			}
+			if (id.startsWith("svelte/")) {
+				return {
+					id: `./svelte/${id.split("/").join("_")}.js`,
+					external: true
+				};
+			}
+			return null;
 		}
 	};
 }

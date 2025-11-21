@@ -88,29 +88,7 @@ export async function load({
 	}
 
 	let page_config = app.get_url_config(url.toString());
-
-	// const { create_layout, layout } = create_components();
-
-	// const Tree = new AppTree(
-	// 	page_config.components,
-	// 	page_config.layout,
-	// 	page_config.dependencies,
-	// 	{ ...app.config }
-	// );
-	// Tree.process();
-	// console.log("boo")
-
-	// const layouts = Tree.root;
-	// await create_layout({
-	// 	app,
-	// 	components: page_config.components,
-	// 	dependencies: page_config.dependencies,
-	// 	layout: page_config.layout,
-	// 	root: app.config.root + app.config.api_prefix,
-	// 	options: {
-	// 		fill_height: app.config.fill_height ?? false
-	// 	}
-	// });
+	console.log("Page config:", page_config);
 
 	// const layouts = get(layout);
 	await setupi18n(app.config?.i18n_translations || undefined, accept_language);
@@ -118,7 +96,7 @@ export async function load({
 		Render: app.config?.auth_required ? Login : Blocks,
 		config: page_config,
 		api_url,
-		// layout: layouts,
+
 		app
 	};
 }

@@ -38,7 +38,7 @@
 		"./package.json": "./package.json"
 	},
 	"peerDependencies": {
-		"svelte": "^5.43.4"
+		"svelte": "^5.43.14"
 	},
 	"repository": {
 		"type": "git",

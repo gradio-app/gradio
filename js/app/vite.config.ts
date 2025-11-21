@@ -48,7 +48,8 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			proxy: {
 				"/manifest.json": "http://localhost:7860",
 				"^.*/theme\\.css": "http://localhost:7860",
-				"^/static/.*": "http://localhost:7860"
+				"^/static/.*": "http://localhost:7860",
+				"^.*/svelte/.*": "http://localhost:7860"
 			}
 		},
 		resolve: {
@@ -61,12 +62,14 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			noExternal: ["@gradio/*", "@huggingface/space-header"],
 			external: mode === "development" ? [] : ["svelte", "svelte/*"]
 		},
+
 		build: {
 			rollupOptions: {
-				external: svelte_exports
+				// external: svelte_exports
+				// makeAbsoluteExternalsRelative: false
 			},
-			minify: true,
-			sourcemap: false
+			minify: false,
+			sourcemap: true
 		},
 
 		define: {
@@ -102,7 +105,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			}
 		},
 		optimizeDeps: {
-			exclude: ["@gradio/*"]
+			exclude: ["@gradio/*", "/svelte", "/svelte/*"]
 		},
 		plugins: [
 			inject_svelte_init_code({ mode }),

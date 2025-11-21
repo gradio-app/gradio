@@ -98,8 +98,16 @@ export async function make_build({
 							},
 							minify: true,
 							rollupOptions: {
-								external: ["svelte", /^svelte(?:\/[ -~]+){0,3}$/],
 								output: {
+									assetFileNames: (chunkInfo) => {
+										console.log("chunkInfo:", chunkInfo);
+
+										if (chunkInfo.names[0].endsWith(".css")) {
+											return `style.css`;
+										}
+
+										return chunkInfo.names[0];
+									},
 									entryFileNames: (chunkInfo: PreRenderedChunk) => {
 										if (chunkInfo.isEntry) {
 											return "index.js";
