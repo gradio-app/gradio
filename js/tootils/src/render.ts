@@ -127,7 +127,8 @@ export async function render<
 		shared_props: shared_props_obj,
 		props: {
 			...component_props_obj
-		}
+		},
+		...shared_props_obj
 	};
 
 	const component = mount(ComponentConstructor, {
