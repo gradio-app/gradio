@@ -14,7 +14,7 @@
 		</label>
 	</div>
 	<a
-		href="/docs/checkbox"
+		href="/docs/gradio/checkbox"
 		class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-2 hover:text-orange-500 transition-colors"
 	>
 		Checkbox

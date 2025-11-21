@@ -7,7 +7,7 @@
 		<BaseButton variant="primary" size="md">Click Me</BaseButton>
 	</div>
 	<a
-		href="/docs/button"
+		href="/docs/gradio/button"
 		class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-2 hover:text-orange-500 transition-colors"
 	>
 		Button
