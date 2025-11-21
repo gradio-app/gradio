@@ -265,7 +265,7 @@
 						/>
 					</svg>
 				</div>
-				<h3 class="text-2xl font-bold mb-2">80+ Components</h3>
+				<h3 class="text-2xl font-bold mb-2">40+ Components</h3>
 				<p class="text-gray-600 dark:text-gray-400 mb-6">
 					Input and output for any data type: Images, Audio, Video, 3D,
 					Dataframes, and more.
