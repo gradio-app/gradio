@@ -36,4 +36,4 @@
 "gradio": minor
 ---
 
-feat:Clear statuses
+feat:Clear Error statuses
