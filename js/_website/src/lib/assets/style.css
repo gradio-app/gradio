@@ -235,7 +235,7 @@ code.language-bash {
 }
 
 .tip {
-	@apply bg-orange-950/40 dark:bg-orange-950/40 border-2 border-orange-500/30 dark:border-orange-500/30 rounded-2xl text-gray-100 dark:text-gray-100 p-6 my-6 flex items-center gap-4 text-sm;
+	@apply bg-orange-50 dark:bg-orange-950/40 border-2 border-orange-200 dark:border-orange-500/30 rounded-2xl text-gray-900 dark:text-gray-100 p-6 my-6 flex items-center gap-4 text-sm;
 }
 
 .tip-icon {

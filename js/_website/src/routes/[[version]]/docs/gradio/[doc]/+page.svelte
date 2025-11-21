@@ -116,7 +116,7 @@
 
 <svelte:window bind:scrollY={y} />
 
-<main class="container mx-auto px-4 flex flex-col gap-4">
+<main class="container mx-auto px-4 pt-8 flex flex-col gap-4">
 	<div class="flex items-center p-4 border-b border-t border-slate-900/10 lg:hidden dark:border-slate-50/[0.06]">
 		<button 
 		on:click={() => (show_nav = !show_nav)}
@@ -249,16 +249,16 @@
 			class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:block lg:w-2/12"
 		>
 			<div class="mx-8">
-				<a class="thin-link py-2 block text-lg" href="#{all_headers.page_title.id}">{all_headers.page_title.title}</a
+				<a class="block text-sm font-bold text-gray-900 dark:text-gray-100 py-2" href="#{all_headers.page_title.id}">{all_headers.page_title.title}</a
 				>
 				{#if all_headers.headers && all_headers.headers.length > 0}
-					<ul class="text-slate-700 text-lg leading-6 list-none">
+					<ul class="space-y-2 list-none">
 						{#each all_headers.headers as header}
 							<li>
 								<a
 									bind:this={header_targets[header.id]}
 									href="#{header.id}"
-									class="thin-link block py-2 font-light second-nav-link"
+									class="block text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors py-1"
 									>{header.title}</a
 								>
 							</li>

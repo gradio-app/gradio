@@ -99,7 +99,7 @@
 
 <svelte:window bind:scrollY={y} />
 
-<main class="container mx-auto px-4 flex gap-4">
+<main class="container mx-auto px-4 pt-8 flex gap-4">
 	<div class="flex w-full">
 		<DocsNav
 			current_nav_link={name}
@@ -127,7 +127,7 @@
 				{#if prev_obj}
 					<a
 						href="./{prev_obj.name}"
-						class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
+						class="lg:ml-10 text-left px-4 py-2 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-gray-100 rounded-full hover:underline transition-colors"
 					>
 						<div class="text-lg">
 							<span class="text-orange-500">&#8592;</span>
@@ -140,7 +140,7 @@
 				{#if next_obj}
 					<a
 						href="./{next_obj.name}"
-						class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
+						class="text-right px-4 py-2 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-gray-100 rounded-full hover:underline transition-colors"
 					>
 						<div class="text-lg">
 							{next_obj.pretty_name}
@@ -164,7 +164,7 @@
 				{#if prev_obj}
 					<a
 						href="./{prev_obj.name}"
-						class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
+						class="lg:ml-10 text-left px-4 py-2 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-gray-100 rounded-full hover:underline transition-colors"
 					>
 						<div class="text-lg">
 							<span class="text-orange-500">&#8592;</span>
@@ -177,7 +177,7 @@
 				{#if next_obj}
 					<a
 						href="./{next_obj.name}"
-						class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
+						class="text-right px-4 py-2 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-gray-100 rounded-full hover:underline transition-colors"
 					>
 						<div class="text-lg">
 							{next_obj.pretty_name}
@@ -195,17 +195,17 @@
 		>
 			<div class="mx-8">
 				<a
-					class="thin-link py-2 block text-lg"
+					class="block text-sm font-bold text-gray-900 dark:text-gray-100 py-2"
 					href="#{all_headers.page_title.id}">{all_headers.page_title.title}</a
 				>
 				{#if all_headers.headers && all_headers.headers.length > 0}
-					<ul class="text-slate-700 text-lg leading-6 list-none">
+					<ul class="space-y-2 list-none">
 						{#each all_headers.headers as header}
 							<li>
 								<a
 									bind:this={header_targets[header.id]}
 									href="#{header.id}"
-									class="thin-link block py-2 font-light second-nav-link"
+									class="block text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors py-1"
 									>{header.title}</a
 								>
 							</li>
