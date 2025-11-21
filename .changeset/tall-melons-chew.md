@@ -1,4 +1,5 @@
 ---
+"@gradio/multimodaltextbox": minor
 "@gradio/slider": minor
 "@self/tootils": minor
 "gradio": minor
