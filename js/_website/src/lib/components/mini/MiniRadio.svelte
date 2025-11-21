@@ -74,24 +74,22 @@
 		line-height: 1.25rem;
 	}
 
-	@media (prefers-color-scheme: dark) {
-		.gradio-radio {
-			border-color: rgb(64 64 64);
-			background-color: rgb(23 23 23);
-		}
+	:global(.dark) .gradio-radio {
+		border-color: rgb(64 64 64);
+		background-color: rgb(23 23 23);
+	}
 
-		.gradio-radio:hover {
-			border-color: rgb(82 82 82);
-			background-color: rgb(38 38 38);
-		}
+	:global(.dark) .gradio-radio:hover {
+		border-color: rgb(82 82 82);
+		background-color: rgb(38 38 38);
+	}
 
-		.gradio-radio:checked {
-			border-color: rgb(249 115 22);
-			background-color: rgb(23 23 23);
-		}
+	:global(.dark) .gradio-radio:checked {
+		border-color: rgb(249 115 22);
+		background-color: rgb(23 23 23);
+	}
 
-		.gradio-radio-label {
-			color: rgb(229 231 235);
-		}
+	:global(.dark) .gradio-radio-label {
+		color: rgb(229 231 235);
 	}
 </style>

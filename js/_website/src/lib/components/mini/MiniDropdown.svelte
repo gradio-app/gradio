@@ -58,18 +58,16 @@
 		height: 100%;
 	}
 
-	@media (prefers-color-scheme: dark) {
-		.gradio-dropdown {
-			background: rgb(38 38 38);
-			border-color: rgb(82 82 82);
-		}
+	:global(.dark) .gradio-dropdown {
+		background: rgb(38 38 38);
+		border-color: rgb(82 82 82);
+	}
 
-		.dropdown-display {
-			color: rgb(229 231 235);
-		}
+	:global(.dark) .dropdown-display {
+		color: rgb(229 231 235);
+	}
 
-		.dropdown-arrow-icon {
-			color: rgb(229 231 235);
-		}
+	:global(.dark) .dropdown-arrow-icon {
+		color: rgb(229 231 235);
 	}
 </style>

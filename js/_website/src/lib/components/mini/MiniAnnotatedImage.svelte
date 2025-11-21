@@ -111,9 +111,7 @@
 		background-color: hsla(120, 100%, 50%, 0.3);
 	}
 
-	@media (prefers-color-scheme: dark) {
-		.legend-item {
-			color: rgb(229 231 235);
-		}
+	:global(.dark) .legend-item {
+		color: rgb(229 231 235);
 	}
 </style>
