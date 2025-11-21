@@ -112,33 +112,31 @@
 		flex: 1;
 	}
 
-	@media (prefers-color-scheme: dark) {
-		.gradio-draggable {
-			background-color: rgb(23 23 23);
-			border-color: rgb(64 64 64);
-		}
+	:global(.dark) .gradio-draggable {
+		background-color: rgb(23 23 23);
+		border-color: rgb(64 64 64);
+	}
 
-		.draggable-item {
-			background-color: rgb(38 38 38);
-			border-color: rgb(64 64 64);
-		}
+	:global(.dark) .draggable-item {
+		background-color: rgb(38 38 38);
+		border-color: rgb(64 64 64);
+	}
 
-		.draggable-item:hover {
-			background-color: rgb(50 50 50);
-			border-color: rgb(82 82 82);
-		}
+	:global(.dark) .draggable-item:hover {
+		background-color: rgb(50 50 50);
+		border-color: rgb(82 82 82);
+	}
 
-		.draggable-item.drag-over {
-			border-color: rgb(249 115 22);
-			background-color: rgba(249, 115, 22, 0.15);
-		}
+	:global(.dark) .draggable-item.drag-over {
+		border-color: rgb(249 115 22);
+		background-color: rgba(249, 115, 22, 0.15);
+	}
 
-		.drag-handle {
-			color: rgb(115 115 115);
-		}
+	:global(.dark) .drag-handle {
+		color: rgb(115 115 115);
+	}
 
-		.draggable-content {
-			color: rgb(229 231 235);
-		}
+	:global(.dark) .draggable-content {
+		color: rgb(229 231 235);
 	}
 </style>

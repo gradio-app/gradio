@@ -63,18 +63,16 @@
 		text-overflow: ellipsis;
 	}
 
-	@media (prefers-color-scheme: dark) {
-		.gradio-fileexplorer {
-			background-color: rgb(23 23 23);
-			border-color: rgb(64 64 64);
-		}
+	:global(.dark) .gradio-fileexplorer {
+		background-color: rgb(23 23 23);
+		border-color: rgb(64 64 64);
+	}
 
-		.file-item:hover {
-			background-color: rgb(38 38 38);
-		}
+	:global(.dark) .file-item:hover {
+		background-color: rgb(38 38 38);
+	}
 
-		.file-name {
-			color: rgb(229 231 235);
-		}
+	:global(.dark) .file-name {
+		color: rgb(229 231 235);
 	}
 </style>
