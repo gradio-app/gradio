@@ -53,7 +53,7 @@
 		</div>
 	</div>
 	<a
-		href="/docs/dataframe"
+		href="/docs/gradio/dataframe"
 		class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-2 hover:text-orange-500 transition-colors"
 		>Draggable</a
 	>
