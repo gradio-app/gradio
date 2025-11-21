@@ -276,38 +276,6 @@
 				</ol>
 			{/if}
 		</div>
-		<div class="w-full flex flex-wrap justify-between my-4 mb-8">
-			{#if prev_guide}
-				<a
-					href="..{prev_guide.url}"
-					class="text-left px-4 py-1 bg-gray-50 dark:bg-neutral-800 rounded-full text-gray-900 dark:text-gray-100 hover:underline max-w-[48%]"
-				>
-					<div class="flex text-lg">
-						<span class="text-orange-500 mr-1">&#8592;</span>
-						<p class="whitespace-nowrap overflow-hidden text-ellipsis">
-							{prev_guide.pretty_name}
-						</p>
-					</div>
-				</a>
-			{:else}
-				<div />
-			{/if}
-			{#if next_guide}
-				<a
-					href="..{next_guide.url}"
-					class="text-right px-4 py-1 bg-gray-50 dark:bg-neutral-800 rounded-full text-gray-900 dark:text-gray-100 max-w-1/2 hover:underline max-w-[48%]"
-				>
-					<div class="flex text-lg">
-						<p class="whitespace-nowrap overflow-hidden text-ellipsis">
-							{next_guide.pretty_name}
-						</p>
-						<span class="text-orange-500 ml-1">&#8594;</span>
-					</div>
-				</a>
-			{:else}
-				<div />
-			{/if}
-		</div>
 
 		{#if guide_page.spaces.length}
 			<div id="spaces-holder" class="mb-4">
@@ -336,7 +304,7 @@
 		>
 			{@html guide_page.new_html}
 		</div>
-		<div class="w-full flex flex-wrap justify-between my-4 mb-8">
+		<div class="w-full flex flex-wrap justify-between mt-12 mb-8">
 			{#if prev_guide}
 				<a
 					href="..{prev_guide.url}"
