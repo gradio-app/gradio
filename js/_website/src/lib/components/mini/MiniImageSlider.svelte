@@ -90,7 +90,7 @@
 		</div>
 	</div>
 	<a
-		href="/docs/imageslider"
+		href="/docs/gradio/imageslider"
 		class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-2 hover:text-orange-500 transition-colors"
 	>
 		ImageSlider

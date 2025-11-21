@@ -3,7 +3,7 @@
 		<input type="number" value="42" class="gradio-number-input" readonly />
 	</div>
 	<a
-		href="/docs/number"
+		href="/docs/gradio/number"
 		class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-2 hover:text-orange-500 transition-colors"
 		>Number</a
 	>
