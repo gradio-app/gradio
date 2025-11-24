@@ -1,88 +1,81 @@
 <svelte:options immutable={true} />
 
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
+	import { Gradio } from "@gradio/utils";
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
+	import { dequal } from "dequal";
+	import type { CheckboxGroupProps, CheckboxGroupEvents } from "./types";
 
-	export let gradio: Gradio<{
-		change: never;
-		select: SelectData;
-		input: never;
-		clear_status: LoadingStatus;
-	}>;
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let value: (string | number)[] = [];
-	export let choices: [string, string | number][];
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let label = gradio.i18n("checkbox.checkbox_group");
-	export let info: string | undefined = undefined;
-	export let show_label = true;
-	export let show_select_all = false;
+	let props = $props();
 
-	export let loading_status: LoadingStatus;
-	export let interactive = true;
-	export let old_value = value.slice();
+	let gradio = new Gradio<CheckboxGroupEvents, CheckboxGroupProps>(props);
 
 	function toggle_choice(choice: string | number): void {
-		if (value.includes(choice)) {
-			value = value.filter((v) => v !== choice);
+		if (gradio.props.value.includes(choice)) {
+			gradio.props.value = gradio.props.value.filter((v) => v !== choice);
 		} else {
-			value = [...value, choice];
+			gradio.props.value = [...gradio.props.value, choice];
 		}
 		gradio.dispatch("input");
 	}
 
 	function toggle_select_all(): void {
-		const all_values = choices.map(([, internal_value]) => internal_value);
-		if (value.length === all_values.length) {
-			value = [];
+		const all_values = gradio.props.choices.map(
+			([, internal_value]) => internal_value
+		);
+		if (gradio.props.value.length === all_values.length) {
+			gradio.props.value = [];
 		} else {
-			value = all_values.slice();
+			gradio.props.value = all_values.slice();
 		}
 		gradio.dispatch("input");
 	}
 
-	$: select_all_state = (() => {
-		const all_values = choices.map(([, internal_value]) => internal_value);
-		if (value.length === 0) return "unchecked";
-		if (value.length === all_values.length) return "checked";
+	let select_all_state = $derived.by(() => {
+		const all_values = gradio.props.choices.map(
+			([, internal_value]) => internal_value
+		);
+		if (gradio.props.value.length === 0) return "unchecked";
+		if (gradio.props.value.length === all_values.length) return "checked";
 		return "indeterminate";
-	})();
+	});
 
-	$: disabled = !interactive;
+	let disabled = $derived(!gradio.shared.interactive);
+	let old_value = gradio.props.value;
+	$effect(() => {
+		gradio.props.value;
+		if (dequal(old_value, gradio.props.value)) {
+			return;
+		}
 
-	$: if (JSON.stringify(old_value) !== JSON.stringify(value)) {
-		old_value = value;
-		gradio.dispatch("change");
-	}
+		old_value = gradio.props.value;
+		gradio.dispatch("change", $state.snapshot(gradio.props.value));
+	});
 </script>
 
 <Block
-	{visible}
-	{elem_id}
-	{elem_classes}
+	visible={gradio.shared.visible}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
 	type="fieldset"
-	{container}
-	{scale}
-	{min_width}
+	container={gradio.shared.container}
+	scale={gradio.shared.scale}
+	min_width={gradio.shared.min_width}
 >
 	<StatusTracker
-		autoscroll={gradio.autoscroll}
+		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
-		{...loading_status}
-		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+		{...gradio.shared.loading_status}
+		on_clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 	<BlockTitle
-		show_label={show_label || (show_select_all && interactive)}
-		{info}
+		show_label={gradio.shared.show_label ||
+			(gradio.props.show_select_all && gradio.shared.interactive)}
+		info={gradio.props.info}
 	>
-		{#if show_select_all && interactive}
+		{#if gradio.props.show_select_all && gradio.shared.interactive}
 			<div class="select-all-container">
 				<label class="select-all-label">
 					<input
@@ -95,17 +88,20 @@
 					/>
 				</label>
 				<button type="button" class="label-text" on:click={toggle_select_all}>
-					{show_label ? label : "Select All"}
+					{gradio.shared.show_label ? gradio.shared.label : "Select All"}
 				</button>
 			</div>
-		{:else if show_label}
-			{label}
+		{:else if gradio.shared.show_label}
+			{gradio.shared.label || gradio.i18n("checkbox.checkbox_group")}
 		{/if}
 	</BlockTitle>
 
 	<div class="wrap" data-testid="checkbox-group">
-		{#each choices as [display_value, internal_value], i}
-			<label class:disabled class:selected={value.includes(internal_value)}>
+		{#each gradio.props.choices as [display_value, internal_value], i}
+			<label
+				class:disabled
+				class:selected={gradio.props.value.includes(internal_value)}
+			>
 				<input
 					{disabled}
 					on:change={() => toggle_choice(internal_value)}
@@ -121,11 +117,11 @@
 							gradio.dispatch("select", {
 								index: i,
 								value: internal_value,
-								selected: !value.includes(internal_value)
+								selected: !gradio.props.value.includes(internal_value)
 							});
 						}
 					}}
-					checked={value.includes(internal_value)}
+					checked={gradio.props.value.includes(internal_value)}
 					type="checkbox"
 					name={internal_value?.toString()}
 					title={internal_value?.toString()}
@@ -210,7 +206,11 @@
 
 	input[disabled],
 	.disabled {
-		cursor: not-allowed;
+		cursor: not-allowed !important;
+	}
+
+	input[disabled] {
+		opacity: 0.75;
 	}
 
 	input:hover {

@@ -1,10 +1,11 @@
 <script>
 	export let top_panel = true;
 	export let display_top_corner = false;
+	export let show_background = true;
 </script>
 
 <div
-	class={`icon-button-wrapper ${top_panel ? "top-panel" : ""} ${display_top_corner ? "display-top-corner" : "hide-top-corner"}`}
+	class={`icon-button-wrapper ${top_panel ? "top-panel" : ""} ${display_top_corner ? "display-top-corner" : "hide-top-corner"} ${!show_background ? "no-background" : ""}`}
 >
 	<slot></slot>
 </div>
@@ -73,5 +74,13 @@
 
 	.icon-button-wrapper :global(> *) {
 		height: 100%;
+	}
+
+	.icon-button-wrapper.no-background {
+		box-shadow: none;
+		border: none;
+		background: none;
+		padding: 0;
+		z-index: var(--layer-1);
 	}
 </style>

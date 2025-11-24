@@ -1,62 +1,70 @@
 <script lang="ts">
-	import { createEventDispatcher, tick, onMount } from "svelte";
+	import { onMount, tick } from "svelte";
 	import { BlockTitle, IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import { Copy, Check, Send, Plus, Trash } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import { BaseDropdown, BaseDropdownOptions } from "@gradio/dropdown";
-	import type { SelectData, CopyData } from "@gradio/utils";
+	import { Gradio } from "@gradio/utils";
 	import type { DialogueLine } from "./utils";
 	import Switch from "./Switch.svelte";
+	import type { DialogueEvents, DialogueProps } from "./types";
 
-	export let speakers: string[] = [];
-	export let tags: string[] = [];
-	export let value: DialogueLine[] | string = [];
-	export let value_is_output = false;
-	export let placeholder: string | undefined = undefined;
-	export let label: string;
-	export let info: string | undefined = undefined;
-	export let disabled = false;
-	export let show_label = true;
-	export let container = true;
-	export let max_lines: number | undefined = undefined;
-	export let show_copy_button = false;
-	export let show_submit_button = true;
-	export let color_map: Record<string, string> | null = null;
-	export let ui_mode: "dialogue" | "text" | "both" = "both";
-	let checked = ui_mode === "text";
+	const props = $props();
 
-	export let server: {
-		format: (body: DialogueLine[]) => Promise<string>;
-		unformat: (body: object) => Promise<DialogueLine[]>;
-	};
+	const gradio: Gradio<DialogueEvents, DialogueProps> = props.gradio;
 
-	let dialogue_lines: DialogueLine[] = [];
+	let checked = $derived(false);
+	let disabled = $derived(!gradio.shared.interactive);
 
-	if (value && value.length && typeof value !== "string") {
-		dialogue_lines = [...value];
-	} else if (value && typeof value !== "string") {
-		dialogue_lines = [
-			{ speaker: `${speakers.length ? speakers[0] : ""}`, text: "" }
-		];
-	}
+	let dialogue_lines: DialogueLine[] = $state([]);
+
+	$effect(() => {
+		if (
+			gradio.props.value &&
+			gradio.props.value.length &&
+			typeof gradio.props.value !== "string"
+		) {
+			dialogue_lines = [...gradio.props.value];
+		} else if (gradio.props.value && typeof gradio.props.value !== "string") {
+			dialogue_lines = [
+				{
+					speaker: `${gradio.props.speakers.length ? gradio.props.speakers[0] : ""}`,
+					text: ""
+				}
+			];
+		} else if (typeof gradio.props.value === "string") {
+			textbox_value = gradio.props.value;
+			checked = true;
+		}
+	});
+
+	let buttons = $derived(gradio.props.buttons || ["copy"]);
+
+	let old_value = $state(gradio.props.value);
+
+	$effect(() => {
+		if (old_value != gradio.props.value) {
+			old_value = gradio.props.value;
+			gradio.dispatch("change");
+		}
+	});
 
 	let dialogue_container_element: HTMLDivElement;
 
-	let showTagMenu = false;
-	let currentLineIndex = -1;
-	let selectedOptionIndex = 0;
-	let filtered_tags: string[] = [];
-	let input_elements: (HTMLInputElement | HTMLTextAreaElement)[] = [];
+	let showTagMenu = $state(false);
+	let currentLineIndex = $state(-1);
+	let selectedOptionIndex = $state(0);
+	let filtered_tags: string[] = $state([]);
+	let input_elements: (HTMLInputElement | HTMLTextAreaElement)[] = $state([]);
+
 	let textarea_element: HTMLTextAreaElement;
-	let old_value = JSON.stringify(value);
-	let offset_from_top = 0;
-	let copied = false;
+	let offset_from_top = $state(0);
+	let copied = $state(false);
 	let timer: any;
-	let textbox_value = "";
-	let hoveredSpeaker: string | null = null;
-	let is_unformatting = false;
-	let is_formatting = false;
-	let is_internal_update = false;
+	let textbox_value = $state("");
+	let hoveredSpeaker: string | null = $state(null);
+	let is_unformatting = $state(false);
+	let is_formatting = $state(false);
 
 	const defaultColorNames = [
 		"red",
@@ -84,46 +92,23 @@
 		pink: "rgba(252, 231, 243, 0.7)"
 	};
 
-	let speakerColors: Record<string, string> = {};
-	$: {
-		if (color_map) {
-			speakerColors = { ...color_map };
+	let speakerColors: Record<string, string> = $derived.by(() => {
+		let _speakerColors: Record<string, string> = {};
+		if (gradio.props.color_map) {
+			_speakerColors = { ...gradio.props.color_map };
 		} else {
-			speakerColors = {};
-			speakers.forEach((speaker, index) => {
+			_speakerColors = {};
+			gradio.props.speakers.forEach((speaker, index) => {
 				const colorName = defaultColorNames[index % defaultColorNames.length];
-				speakerColors[speaker] = colorNameToHex[colorName];
+				_speakerColors[speaker] = colorNameToHex[colorName];
 			});
 		}
-	}
-
-	if (speakers.length === 0) {
-		checked = true;
-		value = "";
-	}
-
-	$: {
-		if (dialogue_lines.length > input_elements.length) {
-			input_elements = [
-				...input_elements,
-				...Array(dialogue_lines.length - input_elements.length).fill(null)
-			];
-		} else if (dialogue_lines.length < input_elements.length) {
-			input_elements = input_elements.slice(0, dialogue_lines.length);
-		}
-
-		tick().then(() => {
-			input_elements.forEach((element) => {
-				if (element && element instanceof HTMLTextAreaElement) {
-					element.style.height = "auto";
-					element.style.height = element.scrollHeight + "px";
-				}
-			});
-		});
-	}
+		return _speakerColors;
+	});
 
 	function add_line(index: number): void {
-		const newSpeaker = speakers.length > 0 ? speakers[0] : "";
+		const newSpeaker =
+			gradio.props.speakers.length > 0 ? gradio.props.speakers[0] : "";
 		dialogue_lines = [
 			...dialogue_lines.slice(0, index + 1),
 			{ speaker: newSpeaker, text: "" },
@@ -135,6 +120,7 @@
 				input_elements[index + 1].focus();
 			}
 		});
+		gradio.props.value = [...dialogue_lines];
 	}
 
 	function delete_line(index: number): void {
@@ -142,6 +128,7 @@
 			...dialogue_lines.slice(0, index),
 			...dialogue_lines.slice(index + 1)
 		];
+		gradio.props.value = [...dialogue_lines];
 	}
 
 	function update_line(
@@ -151,6 +138,7 @@
 	): void {
 		dialogue_lines[index][key] = value;
 		dialogue_lines = [...dialogue_lines];
+		gradio.props.value = [...dialogue_lines];
 	}
 
 	function handle_input(event: Event, index: number): void {
@@ -168,7 +156,7 @@
 			currentLineIndex = index;
 			position_reference_index = cursor_position;
 			const search_text = get_tag_search_text(text, cursor_position);
-			filtered_tags = tags.filter(
+			filtered_tags = gradio.props.tags.filter(
 				(tag) =>
 					search_text === "" ||
 					tag.toLowerCase().includes(search_text.toLowerCase())
@@ -184,7 +172,7 @@
 				currentLineIndex = index;
 				position_reference_index = lastColonIndex + 1; // Position menu relative to the start of the potential tag
 				const searchText = text.substring(lastColonIndex + 1, cursor_position);
-				filtered_tags = tags.filter(
+				filtered_tags = gradio.props.tags.filter(
 					(tag) =>
 						searchText === "" ||
 						tag.toLowerCase().includes(searchText.toLowerCase())
@@ -208,6 +196,7 @@
 		} else {
 			showTagMenu = false;
 		}
+		gradio.dispatch("input");
 	}
 
 	function get_tag_search_text(text: string, cursorPosition: number): string {
@@ -240,10 +229,12 @@
 					// plain text mode: don't filter speaker tags
 					const newText = `${beforeColon}${tag} ${afterCursor}`;
 					textbox_value = newText;
-					if (speakers.length === 0) {
-						value = newText;
+					if (gradio.props.speakers.length === 0) {
+						gradio.props.value = newText;
 					} else {
-						value = await server.unformat({ text: newText });
+						gradio.props.value = await gradio.shared.server.unformat({
+							text: newText
+						});
 					}
 
 					tick().then(() => {
@@ -285,7 +276,7 @@
 	}
 
 	async function insert_tag(e: CustomEvent): Promise<void> {
-		const tag = tags[e.detail.target.dataset.index];
+		const tag = gradio.props.tags[e.detail.target.dataset.index];
 		if (tag) {
 			let text;
 			let currentInput;
@@ -306,10 +297,12 @@
 					// plain text mode: don't filter speaker tags
 					const newText = `${beforeColon}${tag} ${afterCursor}`;
 					textbox_value = newText;
-					if (speakers.length === 0) {
-						value = newText;
+					if (gradio.props.speakers.length === 0) {
+						gradio.props.value = newText;
 					} else {
-						value = await server.unformat({ text: newText });
+						gradio.props.value = await gradio.shared.server.unformat({
+							text: newText
+						});
 					}
 
 					tick().then(() => {
@@ -360,65 +353,19 @@
 		}
 	}
 
-	const dispatch = createEventDispatcher<{
-		change: DialogueLine[] | string;
-		submit: undefined;
-		blur: undefined;
-		select: SelectData;
-		input: undefined;
-		focus: undefined;
-		copy: CopyData;
-	}>();
-
-	function handle_change(): void {
-		dispatch("change", value);
-		if (!value_is_output) {
-			dispatch("input");
-		}
-	}
-
-	function sync_value(dialogueLines: DialogueLine[]): void {
-		if (speakers.length !== 0) {
-			is_internal_update = true;
-			value = [...dialogueLines];
-		}
-	}
-
-	$: sync_value(dialogue_lines);
-
-	$: if (JSON.stringify(value) !== old_value) {
-		if (value == null) {
-			dialogue_lines = [];
-		}
-		old_value = JSON.stringify(value);
-		if (typeof value === "string") {
-			textbox_value = value;
-		} else if (typeof value === "object" && Array.isArray(value)) {
-			dialogue_lines = [...value];
-			if (!is_internal_update || checked) {
-				value_to_string(dialogue_lines).then((result) => {
-					textbox_value = result;
-				});
-			}
-		}
-		is_internal_update = false;
-		handle_change();
-	}
-
 	async function value_to_string(
 		value: DialogueLine[] | string
 	): Promise<string> {
 		if (typeof value === "string") {
 			return value;
 		}
-		return await server.format(value);
+		return await gradio.shared.server.format(value);
 	}
 
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
-			const text = await value_to_string(value);
+			const text = await value_to_string(gradio.props.value);
 			await navigator.clipboard.writeText(text);
-			dispatch("copy", { value: text });
 			copy_feedback();
 		}
 	}
@@ -433,16 +380,18 @@
 
 	async function handle_submit(): Promise<void> {
 		if (checked) {
-			value = await server.unformat({ text: textbox_value });
+			gradio.props.value = await gradio.shared.server.unformat({
+				text: textbox_value
+			});
 		}
-		dispatch("submit");
+		gradio.dispatch("submit");
 	}
 
 	onMount(async () => {
-		if (typeof value === "string") {
-			textbox_value = value;
-		} else if (value && value.length > 0) {
-			const formatted = await value_to_string(value);
+		if (typeof gradio.props.value === "string") {
+			textbox_value = gradio.props.value;
+		} else if (gradio.props.value && gradio.props.value.length > 0) {
+			const formatted = await value_to_string(gradio.props.value);
 			textbox_value = formatted;
 		} else {
 			textbox_value = "";
@@ -452,8 +401,8 @@
 
 <svelte:window on:click={handle_click_outside} />
 
-<label class:container>
-	{#if show_label && show_copy_button}
+<label class:container={gradio.shared.container}>
+	{#if gradio.shared.show_label && buttons.includes("copy")}
 		<IconButtonWrapper>
 			<IconButton
 				Icon={copied ? Check : Copy}
@@ -463,8 +412,10 @@
 		</IconButtonWrapper>
 	{/if}
 
-	<BlockTitle {show_label} {info}>{label}</BlockTitle>
-	{#if speakers.length !== 0 && ui_mode === "both"}
+	<BlockTitle show_label={gradio.shared.show_label} info={gradio.props.info}
+		>{gradio.shared.label || "Dialogue"}</BlockTitle
+	>
+	{#if gradio.props.ui_mode === "both"}
 		<div
 			class="switch-container top-switch"
 			class:switch-disabled={is_formatting || is_unformatting}
@@ -477,8 +428,10 @@
 					if (!e.detail.checked) {
 						is_unformatting = true;
 						try {
-							value = await server.unformat({ text: textbox_value });
-							dialogue_lines = [...value];
+							gradio.props.value = await gradio.shared.server.unformat({
+								text: textbox_value
+							});
+							dialogue_lines = [...(gradio.props.value as DialogueLine[])];
 						} finally {
 							is_unformatting = false;
 						}
@@ -494,7 +447,7 @@
 			/>
 		</div>
 	{/if}
-	{#if !checked && ui_mode !== "text"}
+	{#if !checked && gradio.props.ui_mode !== "text"}
 		<div
 			class="dialogue-container"
 			bind:this={dialogue_container_element}
@@ -529,13 +482,22 @@
 								readonly
 							/>
 						{:else}
+							{@const dd_props = new Gradio({
+								shared_props: {
+									container: true,
+									show_label: false,
+									interactive: true,
+									label: ""
+								},
+								props: {
+									value: line.speaker,
+									choices: gradio.props.speakers.map((s) => [s, s])
+								}
+							})}
 							<BaseDropdown
-								bind:value={line.speaker}
-								on:change={() => update_line(i, "speaker", line.speaker)}
-								choices={speakers.map((s) => [s, s])}
-								show_label={false}
-								container={true}
-								label={""}
+								on_change={() =>
+									update_line(i, "speaker", dd_props.props.value as string)}
+								gradio={dd_props}
 							/>
 						{/if}
 					</div>
@@ -543,7 +505,7 @@
 						<div class="input-container">
 							<textarea
 								bind:value={line.text}
-								{placeholder}
+								placeholder={gradio.props.placeholder}
 								{disabled}
 								on:input={(event) => handle_input(event, i)}
 								on:focus={(event) => handle_input(event, i)}
@@ -583,11 +545,13 @@
 									transition:fade={{ duration: 100 }}
 								>
 									<BaseDropdownOptions
-										choices={tags.map((s, i) => [s, i])}
-										filtered_indices={filtered_tags.map((s) => tags.indexOf(s))}
-										active_index={filtered_tags.map((s) => tags.indexOf(s))[
-											selectedOptionIndex
-										]}
+										choices={gradio.props.tags.map((s, i) => [s, i])}
+										filtered_indices={filtered_tags.map((s) =>
+											gradio.props.tags.indexOf(s)
+										)}
+										active_index={filtered_tags.map((s) =>
+											gradio.props.tags.indexOf(s)
+										)[selectedOptionIndex]}
 										show_options={true}
 										on:change={(e) => insert_tag(e)}
 										{offset_from_top}
@@ -597,7 +561,7 @@
 							{/if}
 						</div>
 					</div>
-					{#if max_lines == undefined || (max_lines && i < max_lines - 1)}
+					{#if gradio.props.max_lines == undefined || (gradio.props.max_lines && i < gradio.props.max_lines - 1)}
 						<div class:action-column={i == 0} class:hidden={disabled}>
 							<button
 								class="add-button"
@@ -622,7 +586,7 @@
 				</div>
 			{/each}
 		</div>
-	{:else if checked && ui_mode !== "dialogue"}
+	{:else if checked || gradio.props.ui_mode !== "dialogue"}
 		<div class="textarea-container" class:loading={is_formatting}>
 			{#if is_formatting}
 				<div class="loading-overlay" transition:fade={{ duration: 200 }}>
@@ -633,11 +597,12 @@
 			<textarea
 				data-testid="textbox"
 				bind:value={textbox_value}
-				{placeholder}
+				placeholder={gradio.props.placeholder}
 				rows={5}
 				{disabled}
 				on:input={(event) => {
 					handle_input(event, 0);
+					gradio.props.value = textbox_value;
 				}}
 				on:focus={(event) => handle_input(event, 0)}
 				on:keydown={(event) => {
@@ -672,11 +637,13 @@
 					transition:fade={{ duration: 100 }}
 				>
 					<BaseDropdownOptions
-						choices={tags.map((s, i) => [s, i])}
-						filtered_indices={filtered_tags.map((s) => tags.indexOf(s))}
-						active_index={filtered_tags.map((s) => tags.indexOf(s))[
-							selectedOptionIndex
-						]}
+						choices={gradio.props.tags.map((s, i) => [s, i])}
+						filtered_indices={filtered_tags.map((s) =>
+							gradio.props.tags.indexOf(s)
+						)}
+						active_index={filtered_tags.map((s) =>
+							gradio.props.tags.indexOf(s)
+						)[selectedOptionIndex]}
 						show_options={true}
 						on:change={(e) => insert_tag(e)}
 					/>
@@ -685,10 +652,14 @@
 		</div>
 	{/if}
 
-	{#if show_submit_button && !disabled}
+	{#if gradio.props.submit_btn && !disabled}
 		<div class="submit-container">
 			<button class="submit-button" on:click={handle_submit} {disabled}>
-				<Send />
+				{#if typeof gradio.props.submit_btn === "string"}
+					{gradio.props.submit_btn}
+				{:else}
+					<Send />
+				{/if}
 			</button>
 		</div>
 	{/if}

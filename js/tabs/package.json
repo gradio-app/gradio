@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/tabs",
-	"version": "0.5.1",
+	"version": "0.5.2",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -23,7 +23,7 @@
 		"@gradio/preview": "workspace:^"
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.43.4"
 	},
 	"repository": {
 		"type": "git",

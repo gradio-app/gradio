@@ -1,6 +1,6 @@
 {
 	"name": "website",
-	"version": "0.65.0",
+	"version": "0.66.0",
 	"private": true,
 	"scripts": {
 		"dev": "pip install boto3 markdown && python generate_jsons/generate.py && python ../../scripts/generate_theme.py --outfile ./src/lib/assets/theme.css && vite dev",
@@ -11,13 +11,13 @@
 		"prepare": "svelte-kit sync"
 	},
 	"devDependencies": {
-		"@sveltejs/adapter-auto": "^3.2.2",
-		"@sveltejs/adapter-static": "^3.0.2",
-		"@sveltejs/kit": "^2.5.20",
-		"@tailwindcss/forms": "^0.5.0",
-		"@tailwindcss/typography": "^0.5.4",
-		"@types/prismjs": "^1.26.0",
-		"flexsearch": "^0.7.43",
+		"@sveltejs/adapter-auto": "^6.1.1",
+		"@sveltejs/adapter-static": "^3.0.10",
+		"@sveltejs/kit": "^2.46.2",
+		"@tailwindcss/forms": "^0.5.10",
+		"@tailwindcss/typography": "^0.5.19",
+		"@types/prismjs": "^1.26.5",
+		"flexsearch": "^0.8.212",
 		"prismjs": "^1.30.0",
 		"tailwindcss": "^3.1.6"
 	},
@@ -27,16 +27,17 @@
 	},
 	"dependencies": {
 		"@gradio/code": "workspace:^",
-		"@gradio/tabs": "workspace:^",
-		"@gradio/tabitem": "workspace:^",
-		"@gradio/statustracker": "workspace:^",
 		"@gradio/paramviewer": "workspace:^",
-		"@sindresorhus/slugify": "^2.2.0",
-		"@sveltejs/adapter-vercel": "^5.3.0",
-		"hast-util-to-string": "^3.0.0",
-		"mdsvex": "^0.11.0",
-		"postcss": "^8.4.27",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/tabitem": "workspace:^",
+		"@gradio/tabs": "workspace:^",
+		"@gradio/button": "workspace:^",
+		"@sindresorhus/slugify": "^3.0.0",
+		"@sveltejs/adapter-vercel": "^5.10.3",
+		"hast-util-to-string": "^3.0.1",
+		"mdsvex": "^0.12.6",
+		"postcss": "^8.5.6",
 		"prism-svelte": "^0.5.0",
-		"wrangler": "^3.73.0"
+		"wrangler": "^4.42.1"
 	}
 }

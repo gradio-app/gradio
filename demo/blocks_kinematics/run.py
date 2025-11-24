@@ -27,11 +27,9 @@ with demo:
     output = gr.LinePlot(
         x="x",
         y="y",
-        overlay_point=True,
         tooltip=["x", "y"],
         x_lim=[0, 100],
         y_lim=[0, 60],
-        width=350,
         height=300,
     )
     btn = gr.Button(value="Run")

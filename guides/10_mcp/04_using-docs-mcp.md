@@ -18,13 +18,13 @@ The server is running on Spaces and was launched entirely using Gradio, you can 
 
 ## Installing in the Clients 
 
-For clients that support SSE (e.g. Cursor, Windsurf, Cline), simply add the following configuration to your MCP config:
+For clients that support streamable HTTP (e.g. Cursor, Windsurf, Cline), simply add the following configuration to your MCP config:
 
 ```json
 {
   "mcpServers": {
     "gradio": {
-      "url": "https://gradio-docs-mcp.hf.space/gradio_api/mcp/sse"
+      "url": "https://gradio-docs-mcp.hf.space/gradio_api/mcp/"
     }
   }
 }
@@ -43,7 +43,7 @@ We've included step-by-step instructions for Cursor below, but you can consult t
 {
   "mcpServers": {
     "gradio": {
-      "url": "https://gradio-docs-mcp.hf.space/gradio_api/mcp/sse"
+      "url": "https://gradio-docs-mcp.hf.space/gradio_api/mcp/"
     }
   }
 }
@@ -64,9 +64,7 @@ We've included step-by-step instructions for Cursor below, but you can consult t
       "command": "npx",
       "args": [
         "mcp-remote",
-        "https://gradio-docs-mcp.hf.space/gradio_api/mcp/sse",
-        "--transport",
-        "sse-only"
+        "https://gradio-docs-mcp.hf.space/gradio_api/mcp/"
       ]
     }
   }

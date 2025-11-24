@@ -33,7 +33,10 @@
 		id={elem_id}
 	>
 		{#if icon}
-			<Image class="button-icon" src={icon.url} alt={`${value} icon`} />
+			<Image
+				src={icon.url}
+				restProps={{ alt: `${value} icon`, class: "button-icon" }}
+			/>
 		{/if}
 		<slot />
 	</a>
@@ -52,9 +55,9 @@
 	>
 		{#if icon}
 			<Image
-				class={`button-icon ${value ? "right-padded" : ""}`}
+				restProps={{ alt: `${value} icon` }}
+				class_names={[`button-icon ${value ? "right-padded" : ""}`]}
 				src={icon.url}
-				alt={`${value} icon`}
 			/>
 		{/if}
 		<slot />
