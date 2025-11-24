@@ -1,7 +1,6 @@
 <script lang="ts">
 	import DocsNav from "$lib/components/DocsNav.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
-	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
 
 	export let data: any = {};
@@ -16,10 +15,6 @@
 	let y: number;
 	let header_targets: { [key: string]: HTMLElement } = {};
 	let target_elem: HTMLElement;
-
-	onDestroy(() => {
-		header_targets = {};
-	});
 
 	let current_target: HTMLElement;
 
@@ -47,22 +42,18 @@
 	$: module = data.module.default;
 
 	$: flattened_pages = pages.map((category: any) => category.pages).flat();
+
+	let component_name = $page.params?.doc;
+	$: component_name = $page.params?.doc;
+
 	$: prev_obj =
 		flattened_pages[
-			flattened_pages.findIndex(
-				(page: any) => page.name === $page.params?.doc
-			) - 1
+			flattened_pages.findIndex((page: any) => page.name === component_name) - 1
 		];
 	$: next_obj =
 		flattened_pages[
-			flattened_pages.findIndex(
-				(page: any) => page.name === $page.params?.doc
-			) + 1
+			flattened_pages.findIndex((page: any) => page.name === component_name) + 1
 		];
-
-	let component_name = $page.params?.doc;
-
-	$: component_name = $page.params?.doc;
 
 	function get_headers() {
 		let headers: any[] = [];
@@ -118,14 +109,14 @@
 
 <svelte:window bind:scrollY={y} />
 
-<main class="container mx-auto px-4 flex gap-4">
+<main class="container mx-auto px-4 pt-8 flex gap-4">
 	<div class="flex w-full">
 		<DocsNav current_nav_link={name} library_pages={pages} />
 
 		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
 			<div>
 				<p
-					class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left lg:ml-10"
+					class="bg-orange-100 dark:bg-orange-900 border border-orange-200 dark:border-orange-700 px-4 py-1 mr-2 rounded-full text-orange-800 dark:text-orange-200 mb-1 w-fit float-left lg:ml-10"
 				>
 					New to Gradio? Start here: <a class="link" href="/quickstart"
 						>Getting Started</a
@@ -158,9 +149,9 @@
 				{#if prev_obj}
 					<a
 						href="./{prev_obj.name}"
-						class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+						class="lg:ml-10 text-left px-4 py-2 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-gray-100 rounded-full hover:underline max-w-[48%] transition-colors"
 					>
-						<div class="flex text-lg">
+						<div class="flex text-lg items-center">
 							<span class="text-orange-500 mr-1">&#8592;</span>
 							<p class="whitespace-nowrap overflow-hidden text-ellipsis">
 								{prev_obj.pretty_name}
@@ -173,9 +164,9 @@
 				{#if next_obj}
 					<a
 						href="./{next_obj.name}"
-						class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+						class="text-right px-4 py-2 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-gray-100 rounded-full hover:underline max-w-[48%] transition-colors"
 					>
-						<div class="flex text-lg">
+						<div class="flex text-lg items-center justify-end">
 							<p class="whitespace-nowrap overflow-hidden text-ellipsis">
 								{next_obj.pretty_name}
 							</p>
@@ -199,9 +190,9 @@
 				{#if prev_obj}
 					<a
 						href="./{prev_obj.name}"
-						class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+						class="lg:ml-10 text-left px-4 py-2 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-gray-100 rounded-full hover:underline max-w-[48%] transition-colors"
 					>
-						<div class="flex text-lg">
+						<div class="flex text-lg items-center">
 							<span class="text-orange-500 mr-1">&#8592;</span>
 							<p class="whitespace-nowrap overflow-hidden text-ellipsis">
 								{prev_obj.pretty_name}
@@ -214,9 +205,9 @@
 				{#if next_obj}
 					<a
 						href="./{next_obj.name}"
-						class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+						class="text-right px-4 py-2 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-gray-100 rounded-full hover:underline max-w-[48%] transition-colors"
 					>
-						<div class="flex text-lg">
+						<div class="flex text-lg items-center justify-end">
 							<p class="whitespace-nowrap overflow-hidden text-ellipsis">
 								{next_obj.pretty_name}
 							</p>
@@ -234,17 +225,17 @@
 		>
 			<div class="mx-8">
 				<a
-					class="thin-link py-2 block text-lg"
+					class="block text-sm font-bold text-gray-900 dark:text-gray-100 py-2"
 					href="#{all_headers.page_title.id}">{all_headers.page_title.title}</a
 				>
 				{#if all_headers.headers && all_headers.headers.length > 0}
-					<ul class="text-slate-700 text-lg leading-6 list-none">
+					<ul class="space-y-2 list-none">
 						{#each all_headers.headers as header}
 							<li>
 								<a
 									bind:this={header_targets[header.id]}
 									href="#{header.id}"
-									class="thin-link block py-2 font-light second-nav-link"
+									class="block text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors py-1"
 									>{header.title}</a
 								>
 							</li>

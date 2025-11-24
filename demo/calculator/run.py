@@ -28,6 +28,7 @@ demo = gr.Interface(
     ],
     title="Toy Calculator",
     description="Here's a sample toy calculator.",
+    api_name="predict"
 )
 
 if __name__ == "__main__":

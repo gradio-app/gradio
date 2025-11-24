@@ -3,8 +3,10 @@ import anchor from "$lib/assets/img/anchor.svg";
 import { make_slug_processor } from "$lib/utils";
 import { toString as to_string } from "hast-util-to-string";
 import Prism from "prismjs";
+// Set Prism as global for component files that expect it
+(globalThis as any).Prism = Prism;
 import "prismjs/components/prism-python";
-import "prismjs/components/prism-bash";
+// import "prismjs/components/prism-bash";
 import "prismjs/components/prism-json";
 import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-javascript";
@@ -24,10 +26,10 @@ function plugin() {
 const langs = {
 	python: "python",
 	py: "python",
-	bash: "bash",
+	// bash: "bash",
 	csv: "csv",
 	html: "html",
-	shell: "bash",
+	// shell: "bash",
 	json: "json",
 	typescript: "typescript",
 	ts: "typescript",

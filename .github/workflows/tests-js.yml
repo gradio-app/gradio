@@ -54,10 +54,10 @@ jobs:
         run: pnpm --filter @gradio/client build
       - name: format check
         run: pnpm format:check
-      - name: lint
-        run: pnpm lint
-      - name: typecheck
-        run: pnpm ts:check
+      # - name: lint
+      #   run: pnpm lint
+      # - name: typecheck
+      #   run: pnpm ts:check
       - name: unit tests
         run: pnpm test:run
       - name: client tests

@@ -4,7 +4,6 @@ on:
     types: [opened, synchronize, reopened, edited, labeled, unlabeled]
     branches:
       - main
-      - 6.0-dev
   issue_comment:
     types: [edited]
 

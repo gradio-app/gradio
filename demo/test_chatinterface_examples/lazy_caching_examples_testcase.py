@@ -19,7 +19,6 @@ demo = gr.ChatInterface(
     ],
     cache_examples=True,
     cache_mode="lazy",
-    type="messages",
 )
 
 

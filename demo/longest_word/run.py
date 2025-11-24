@@ -8,7 +8,8 @@ def longest_word(text):
 ex = "The quick brown fox jumped over the lazy dog."
 
 demo = gr.Interface(
-    longest_word, "textbox", "label", examples=[[ex]]
+    longest_word, "textbox", "label", examples=[[ex]],
+    api_name="predict",
 )
 
 if __name__ == "__main__":

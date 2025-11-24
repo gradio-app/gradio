@@ -103,6 +103,9 @@ export interface SubmitIterable<T> extends AsyncIterable<T> {
 	[Symbol.asyncIterator](): AsyncIterator<T>;
 	cancel: () => Promise<void>;
 	event_id: () => string;
+	send_chunk: (payload: Record<string, unknown>) => void;
+	wait_for_id: () => Promise<string | null>;
+	close_stream: () => void;
 }
 
 export type PredictReturn = {
@@ -170,7 +173,7 @@ export interface Config {
 	enable_queue: boolean;
 	show_error: boolean;
 	layout: any;
-	mode: "blocks" | "interface";
+	mode: "blocks" | "interface" | "chat_interface";
 	root: string;
 	root_url?: string;
 	theme: string;
@@ -179,7 +182,7 @@ export interface Config {
 	space_id: string | null;
 	is_space: boolean;
 	is_colab: boolean;
-	show_api: boolean;
+	footer_links: string[];
 	stylesheets: string[];
 	current_page: string;
 	page: Record<
@@ -270,7 +273,7 @@ export interface Dependency {
 	trigger_only_on_failure?: boolean;
 	trigger_mode: "once" | "multiple" | "always_last";
 	final_event: Payload | null;
-	show_api: boolean;
+	api_visibility: "public" | "private" | "undocumented";
 	rendered_in: number | null;
 	render_id: number | null;
 	connection: "stream" | "sse";
@@ -278,6 +281,7 @@ export interface Dependency {
 	stream_every: number;
 	like_user_message: boolean;
 	event_specific_args: string[];
+	component_prop_inputs: number[];
 	js_implementation: string | null;
 }
 
@@ -313,7 +317,7 @@ export interface DuplicateOptions extends ClientOptions {
 }
 
 export interface ClientOptions {
-	hf_token?: `hf_${string}`;
+	token?: `hf_${string}`;
 	status_callback?: SpaceStatusCallback | null;
 	auth?: [string, string] | null;
 	with_null_state?: boolean;
@@ -352,7 +356,7 @@ export type GradioEvent = {
 export interface Log {
 	log: string;
 	title: string;
-	level: "warning" | "info" | "success";
+	level: "warning" | "info" | "success" | "error";
 }
 export interface Render {
 	data: {
