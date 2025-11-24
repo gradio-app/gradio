@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/vibeeditor",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"description": "Gradio VibeEditor component",
 	"type": "module",
 	"author": "",
@@ -27,7 +27,7 @@
 		"@gradio/preview": "workspace:^"
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.43.4"
 	},
 	"repository": {
 		"type": "git",

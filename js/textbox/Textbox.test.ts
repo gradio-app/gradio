@@ -37,7 +37,7 @@ describe("Textbox", () => {
 	});
 
 	test("changing the text should update the value", async () => {
-		const { component, getByDisplayValue, listen } = await render(Textbox, {
+		const { getByDisplayValue, listen } = await render(Textbox, {
 			show_label: true,
 			max_lines: 10,
 			loading_status,
@@ -55,7 +55,6 @@ describe("Textbox", () => {
 		await event.keyboard("some text");
 
 		assert.equal(item.value, "hi some text");
-		assert.equal(component.value, "hi some text");
 		assert.equal(mock.callCount, 9);
 		assert.equal(mock.calls[8][0].detail.data, "hi some text");
 	});

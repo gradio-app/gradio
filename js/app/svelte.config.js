@@ -22,16 +22,15 @@ const config = {
 	// Consult https://kit.svelte.dev/docs/integrations#preprocessors
 	// for more information about preprocessors
 
-	preprocess: [
-		vitePreprocess(),
-		sveltePreprocess({
-			postcss: {
-				plugins: [global_data({ files: [theme_token_path] }), custom_media()]
-			}
-		})
-	],
+	preprocess: vitePreprocess(),
+	// sveltePreprocess({
+	// 	postcss: {
+	// 		plugins: [global_data({ files: [theme_token_path] }), custom_media()]
+	// 	}
+	// })
+
 	vitePlugin: {
-		hot: process.env.NODE_ENV === "development"
+		prebundleSvelteLibraries: false
 	},
 
 	kit: {
@@ -41,6 +40,11 @@ const config = {
 		adapter: adapter({
 			out: out_path
 		})
+	},
+	compilerOptions: {
+		experimental: {
+			async: true
+		}
 	}
 };
 

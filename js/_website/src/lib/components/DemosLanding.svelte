@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { hello } from "../assets/demo_code";
+	import "$lib/assets/theme.css";
+	import { theme } from "$lib/stores/theme";
 
 	let tabs = [
 		{
@@ -29,13 +31,13 @@
 
 <div class="container mx-auto mb-6 px-4 overflow-hidden">
 	<nav
-		class="flex lg:flex-wrap gap-3 overflow-x-auto py-1 lg:gap-6 whitespace-nowrap text-gray-600 md:text-lg mb-4 md:mb-0 lg:justify-center"
+		class="flex lg:flex-wrap gap-3 overflow-x-auto py-1 lg:gap-6 whitespace-nowrap text-gray-600 dark:text-gray-400 md:text-lg mb-4 md:mb-0 lg:justify-center"
 	>
 		{#each tabs as { title }, i}
 			<div
 				on:click={() => (current_selection = i)}
 				class:active-example-tab={current_selection == i}
-				class="demo-tab hover:text-gray-800 cursor-pointer px-3 py-1"
+				class="demo-tab hover:text-gray-800 dark:hover:text-gray-200 cursor-pointer px-3 py-1"
 			>
 				{title}
 			</div>
@@ -54,9 +56,9 @@
 			>
 				{@html code}
 			</div>
-			<div class="mx-auto max-w-5xl">
+			<div class="mx-auto max-w-5xl" class:dark={$theme === "dark"}>
 				{#key demo}
-					<gradio-app space={demo} />
+					<gradio-app space={demo} theme_mode={$theme} />
 				{/key}
 			</div>
 		</div>

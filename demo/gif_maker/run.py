@@ -35,6 +35,7 @@ demo = gr.Interface(
             os.path.join(os.path.dirname(__file__), "images/3.png"),
         ]],
     ],
+    api_name="predict"
 )
 
 if __name__ == "__main__":

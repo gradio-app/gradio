@@ -8,6 +8,7 @@ import copy
 import functools
 import hashlib
 import importlib
+import importlib.metadata
 import importlib.resources
 import importlib.util
 import inspect
@@ -61,9 +62,11 @@ import httpx
 import orjson
 from gradio_client.documentation import document
 from gradio_client.exceptions import AppError
+from packaging import version
 from typing_extensions import ParamSpec
 
 import gradio
+from gradio import themes
 from gradio.context import get_blocks_context
 from gradio.data_classes import (
     BlocksConfigDict,
@@ -72,6 +75,8 @@ from gradio.data_classes import (
     UserProvidedPath,
 )
 from gradio.exceptions import Error, InvalidPathError
+from gradio.themes import Default as DefaultTheme
+from gradio.themes import ThemeClass as Theme
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext, Blocks
@@ -81,6 +86,20 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 P = ParamSpec("P")
 T = TypeVar("T")
+
+BUILT_IN_THEMES: dict[str, Theme] = {
+    t.name: t
+    for t in [
+        themes.Base(),
+        themes.Default(),
+        themes.Monochrome(),
+        themes.Soft(),
+        themes.Glass(),
+        themes.Origin(),
+        themes.Citrus(),
+        themes.Ocean(),
+    ]
+}
 
 
 def get_package_version() -> str:
@@ -148,13 +167,89 @@ class BaseReloader(ABC):
         demo.is_running = True
         demo.allowed_paths = self.running_app.blocks.allowed_paths
         demo.blocked_paths = self.running_app.blocks.blocked_paths
+        demo.theme = self.running_app.blocks.theme
+        demo.head_paths = self.running_app.blocks.head_paths
+        demo.css = self.running_app.blocks.css
+        demo.head = self.running_app.blocks.head
+        demo.css_paths = self.running_app.blocks.css_paths
+        demo._set_html_css_theme_variables()
         self.running_app.state_holder.set_blocks(demo)
         for session in self.running_app.state_holder.session_data.values():
             session.blocks_config = copy.copy(demo.default_config)
         self.running_app.blocks = demo
 
 
-class SourceFileReloader(BaseReloader):
+class ServerReloader(BaseReloader):
+    @property
+    @abstractmethod
+    def stop_event(self) -> threading.Event:
+        pass
+
+    def stop(self) -> None:
+        self.stop_event.set()
+
+    def get_demo_name(self, module: ModuleType, default_name: str) -> str:
+        def log(*args):
+            print("GRADIO_HOT_RELOAD:", *args)
+
+        if (demo := self.running_app.blocks) is None:
+            log("Unexpected undefined blocks in launching app")
+            return default_name
+        if default_name:
+            if module.__dict__.get(default_name) is not demo:
+                log(f"'{default_name}' in {module.__name__} is not the launched demo")
+            return default_name
+        for name, value in module.__dict__.copy().items():
+            if value is demo:
+                if name != "demo":
+                    log(f"Using '{name}' for demo name")
+                return name
+        log(f"Launching demo not found in {module.__name__}. Using 'demo'")
+        return "demo"
+
+
+class SpacesReloader(ServerReloader):
+    def __init__(
+        self,
+        app: App,
+        watch_dirs: list[str],
+        watch_module: ModuleType,
+        stop_event: threading.Event,
+        demo_name: str,
+    ):
+        from gradio.cli.commands.reload import reload_thread
+
+        self.app = app
+        self.demo_name = self.get_demo_name(watch_module, demo_name)
+        self.watch_dirs = watch_dirs
+        self.watch_module = watch_module
+        self.reload_thread = reload_thread
+        self._stop_event = stop_event
+
+    @property
+    def running_app(self) -> App:
+        return self.app
+
+    @property
+    def stop_event(self) -> threading.Event:
+        return self._stop_event
+
+    def prerun(self, *_args, **_kwargs):
+        NO_RELOAD.set(False)
+        self.reload_thread.running_reload = True
+
+    def postrun(self, *_args, **_kwargs):
+        NO_RELOAD.set(True)
+        demo = getattr(self.watch_module, self.demo_name)
+        if demo is not self.running_app.blocks:
+            self.swap_blocks(demo)
+            # TODO: re-assign keys?
+            # TODO: re-assign config?
+            return True
+        return False
+
+
+class SourceFileReloader(ServerReloader):
     def __init__(
         self,
         app: App,
@@ -163,15 +258,16 @@ class SourceFileReloader(BaseReloader):
         demo_file: str,
         watch_module: ModuleType,
         stop_event: threading.Event,
-        demo_name: str = "demo",
+        demo_name: str,
         encoding="utf-8",
     ) -> None:
         super().__init__()
         self.app = app
         self.watch_dirs = watch_dirs
         self.watch_module_name = watch_module_name
-        self.stop_event = stop_event
-        self.demo_name = demo_name
+        self._stop_event = stop_event
+        self.demo_name = self.get_demo_name(watch_module, demo_name)
+        print("Watching demo:", self.demo_name)
         self.demo_file = Path(demo_file)
         self.watch_module = watch_module
         self.encoding = encoding
@@ -180,11 +276,12 @@ class SourceFileReloader(BaseReloader):
     def running_app(self) -> App:
         return self.app
 
+    @property
+    def stop_event(self) -> threading.Event:
+        return self._stop_event
+
     def should_watch(self) -> bool:
         return not self.stop_event.is_set()
-
-    def stop(self) -> None:
-        self.stop_event.set()
 
     def alert_change(self, change_type: Literal["reload", "error"] = "reload"):
         self.app.change_type = change_type
@@ -244,7 +341,28 @@ def _find_module(source_file: Path) -> ModuleType | None:
     return None
 
 
-def watchfn(reloader: SourceFileReloader):
+def watchfn_spaces(reloader: SpacesReloader):
+    try:
+        spaces_version = importlib.metadata.version("spaces")
+    except importlib.metadata.PackageNotFoundError:
+        raise RuntimeError(
+            "`spaces` package is required to run hot-reloading in Spaces"
+        ) from None
+
+    min_version = version.parse("0.43.0")
+    if version.parse(spaces_version) < min_version:
+        raise RuntimeError(f"Spaces hot-reloading requires `spaces>{min_version}`")
+
+    from spaces.reloading import start_reload_server  # ty: ignore[unresolved-import] # noqa: I001
+
+    start_reload_server(
+        prerun=reloader.prerun,
+        postrun=reloader.postrun,
+        stop_event=reloader.stop_event,
+    )
+
+
+def watchfn(reloader: SourceFileReloader) -> None:
     """Watch python files in a given module.
 
     get_changes is taken from uvicorn's default file watcher.
@@ -470,6 +588,21 @@ def get_space() -> str | None:
 
 def is_zero_gpu_space() -> bool:
     return os.getenv("SPACES_ZERO_GPU") == "true"
+
+
+def get_theme(theme: Theme | str | None) -> Theme:
+    if theme is None:
+        theme = DefaultTheme()
+    elif isinstance(theme, str):
+        if theme.lower() in BUILT_IN_THEMES:
+            theme = BUILT_IN_THEMES[theme.lower()]
+        else:
+            try:
+                theme = Theme.from_hub(theme)
+            except Exception as e:
+                warnings.warn(f"Cannot load {theme}. Caught Exception: {str(e)}")
+                theme = DefaultTheme()
+    return theme
 
 
 def download_if_url(article: str) -> str:
@@ -1514,6 +1647,7 @@ def error_payload(
             content["title"] = error.title
         else:
             content["error"] = str(error)
+            content["visible"] = show_error
     return content
 
 

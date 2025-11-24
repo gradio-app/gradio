@@ -48,7 +48,7 @@ def simulate_thinking_chat(message: str, history: list):
 
 with gr.Blocks() as demo:
     gr.Markdown("# Thinking LLM Demo 🤔")
-    chatbot = gr.Chatbot(type="messages", render_markdown=True)
+    chatbot = gr.Chatbot(render_markdown=True)
     msg = gr.Textbox(placeholder="Type your message...")
 
     msg.submit(

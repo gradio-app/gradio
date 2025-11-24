@@ -21,6 +21,7 @@
 	import ResponseSnippet from "./ResponseSnippet.svelte";
 	import mcp from "./img/mcp.svg";
 	import MCPSnippet from "./MCPSnippet.svelte";
+	import CopyMarkdown from "./CopyMarkdown.svelte";
 
 	export let dependencies: Dependency[];
 	export let root: string;
@@ -28,6 +29,7 @@
 	export let space_id: string | null;
 	export let root_node: ComponentMeta;
 	export let username: string | null;
+	export let last_api_call: Payload | null = null;
 
 	const js_docs =
 		"https://www.gradio.app/guides/getting-started-with-the-js-client";
@@ -40,7 +42,7 @@
 		"https://www.gradio.app/guides/building-mcp-server-with-gradio";
 
 	let api_count = dependencies.filter(
-		(dependency) => dependency.show_api
+		(dependency) => dependency.api_visibility === "public"
 	).length;
 
 	if (root === "") {
@@ -52,6 +54,20 @@
 
 	export let api_calls: Payload[] = [];
 	let current_language: "python" | "javascript" | "bash" | "mcp" = "python";
+
+	$: sorted_dependencies = (() => {
+		const valid = dependencies.filter(
+			(dep) =>
+				dep.api_visibility === "public" &&
+				info?.named_endpoints?.["/" + dep.api_name]
+		);
+		if (info && last_api_call) {
+			const mostRecent = valid.find((dep) => dep.id === last_api_call.fn_index);
+			const others = valid.filter((dep) => dep.id !== last_api_call.fn_index);
+			return mostRecent ? [mostRecent, ...others] : valid;
+		}
+		return valid;
+	})();
 
 	function set_query_param(key: string, value: string) {
 		const url = new URL(window.location.href);
@@ -126,24 +142,11 @@
 	$: selected_tools_array = Array.from(selected_tools);
 	$: selected_tools_without_prefix =
 		selected_tools_array.map(remove_tool_prefix);
-	$: mcp_server_url = `${root}gradio_api/mcp/sse`;
 	$: mcp_server_url_streamable =
 		selected_tools_array.length > 0 &&
 		selected_tools_array.length < tools.length
 			? `${root}gradio_api/mcp/?tools=${selected_tools_without_prefix.join(",")}`
 			: `${root}gradio_api/mcp/`;
-
-	$: if (mcp_json_sse && selected_tools.size > 0) {
-		const baseUrl =
-			selected_tools_array.length > 0 &&
-			selected_tools_array.length < tools.length
-				? `${root}gradio_api/mcp/sse?tools=${selected_tools_without_prefix.join(",")}`
-				: `${root}gradio_api/mcp/sse`;
-		mcp_json_sse.mcpServers.gradio.url = baseUrl;
-		if (mcp_json_stdio) {
-			mcp_json_stdio.mcpServers.gradio.args[1] = baseUrl;
-		}
-	}
 
 	interface ToolParameter {
 		title?: string;
@@ -167,7 +170,6 @@
 
 	let tools: Tool[] = [];
 	let headers: string[] = [];
-	let mcp_json_sse: any;
 	let mcp_json_stdio: any;
 	let file_data_present = false;
 	let selected_tools: Set<string> = new Set();
@@ -212,29 +214,15 @@
 			selected_tools = new Set(tools.map((tool) => tool.name));
 			headers = schema.map((tool: any) => tool.meta?.headers || []).flat();
 			if (headers.length > 0) {
-				mcp_json_sse = {
-					mcpServers: {
-						gradio: {
-							url: mcp_server_url,
-							headers: headers.reduce(
-								(accumulator: Record<string, string>, current_key: string) => {
-									accumulator[current_key] = "<YOUR_HEADER_VALUE>";
-									return accumulator;
-								},
-								{}
-							)
-						}
-					}
-				};
 				mcp_json_stdio = {
 					mcpServers: {
 						gradio: {
 							command: "npx",
 							args: [
 								"mcp-remote",
-								mcp_server_url,
+								mcp_server_url_streamable,
 								"--transport",
-								"sse-only",
+								"streamable-http",
 								...headers
 									.map((header) => [
 										"--header",
@@ -246,24 +234,20 @@
 					}
 				};
 			} else {
-				mcp_json_sse = {
-					mcpServers: {
-						gradio: {
-							url: mcp_server_url
-						}
-					}
-				};
 				mcp_json_stdio = {
 					mcpServers: {
 						gradio: {
 							command: "npx",
-							args: ["mcp-remote", mcp_server_url, "--transport", "sse-only"]
+							args: [
+								"mcp-remote",
+								mcp_server_url_streamable,
+								"--transport",
+								"streamable-http"
+							]
 						}
 					}
 				};
 				if (file_data_present) {
-					mcp_json_sse.mcpServers.upload_files_to_gradio =
-						upload_file_mcp_server;
 					mcp_json_stdio.mcpServers.upload_files_to_gradio =
 						upload_file_mcp_server;
 				}
@@ -273,6 +257,14 @@
 			tools = [];
 		}
 	}
+
+	let markdown_code_snippets: Record<string, Record<string, string>> = {};
+
+	$: markdown_code_snippets;
+
+	let config_snippets: Record<string, string> = {};
+
+	$: config_snippets;
 
 	onMount(() => {
 		const controller = new AbortController();
@@ -288,8 +280,8 @@
 			current_language = lang_param as "python" | "javascript" | "bash" | "mcp";
 		}
 
-		// Check MCP server status and fetch tools if active
-		fetch(mcp_server_url, { signal: signal })
+		const mcp_schema_url = `${root}gradio_api/mcp/schema`;
+		fetch(mcp_schema_url, { signal: signal })
 			.then((response) => {
 				mcp_server_active = response.ok;
 				if (mcp_server_active) {
@@ -326,10 +318,32 @@
 		</div>
 
 		<div class="docs-wrap">
-			<div class="client-doc">
+			<div
+				class="client-doc"
+				style="display: flex; align-items: center; justify-content: space-between;"
+			>
 				<p style="font-size: var(--text-lg);">
 					Choose one of the following ways to interact with the API.
 				</p>
+				<CopyMarkdown
+					{current_language}
+					{space_id}
+					{root}
+					{api_count}
+					{tools}
+					{py_docs}
+					{js_docs}
+					{bash_docs}
+					{mcp_docs}
+					{spaces_docs_suffix}
+					{mcp_server_active}
+					{mcp_server_url_streamable}
+					{config_snippets}
+					{markdown_code_snippets}
+					{dependencies}
+					{info}
+					{js_info}
+				/>
 			</div>
 			<div class="endpoint">
 				<div class="snippets">
@@ -392,24 +406,26 @@
 								href={current_language == "python" ? py_docs : js_docs}
 								target="_blank">docs</a
 							>) if you don't already have it installed.
-						{:else if current_language == "mcp"}
-							<MCPSnippet
-								{mcp_server_active}
-								{mcp_server_url}
-								{mcp_server_url_streamable}
-								tools={tools.filter((tool) => selected_tools.has(tool.name))}
-								all_tools={tools}
-								bind:selected_tools
-								{mcp_json_sse}
-								{mcp_json_stdio}
-								{file_data_present}
-								{mcp_docs}
-								{analytics}
-							/>
-						{:else}
+						{:else if current_language == "bash"}
 							1. Confirm that you have cURL installed on your system.
 						{/if}
 					</p>
+
+					<div class:hidden={current_language !== "mcp"}>
+						<MCPSnippet
+							{mcp_server_active}
+							{mcp_server_url_streamable}
+							tools={tools.filter((tool) => selected_tools.has(tool.name))}
+							all_tools={tools}
+							bind:selected_tools
+							{mcp_json_stdio}
+							{file_data_present}
+							{mcp_docs}
+							{analytics}
+							{root}
+							bind:config_snippets
+						/>
+					</div>
 
 					{#if current_language !== "mcp"}
 						<InstallSnippet {current_language} />
@@ -464,9 +480,9 @@
 					{/if}
 				{/if}
 
-				{#if current_language !== "mcp"}
-					{#each dependencies as dependency}
-						{#if dependency.show_api && info.named_endpoints["/" + dependency.api_name]}
+				<div class:hidden={current_language === "mcp"}>
+					{#each sorted_dependencies as dependency}
+						{#if info.named_endpoints["/" + dependency.api_name]}
 							<div class="endpoint-container">
 								<CodeSnippet
 									endpoint_parameters={info.named_endpoints[
@@ -482,6 +498,8 @@
 										"/" + dependency.api_name
 									].description}
 									{analytics}
+									{last_api_call}
+									bind:markdown_code_snippets
 								/>
 
 								<ParametersSnippet
@@ -506,7 +524,7 @@
 							</div>
 						{/if}
 					{/each}
-				{/if}
+				</div>
 			</div>
 		</div>
 	{:else}
@@ -700,5 +718,9 @@
 
 	.api-name {
 		color: var(--color-accent);
+	}
+
+	.hidden {
+		display: none;
 	}
 </style>
