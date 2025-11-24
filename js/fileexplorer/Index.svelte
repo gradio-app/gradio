@@ -20,7 +20,7 @@
 	let rerender_key = $derived([
 		gradio.props.root_dir,
 		gradio.props.glob,
-		gradio.props.ignore_glob,
+		gradio.props.ignore_glob
 	]);
 
 	$effect(() => {

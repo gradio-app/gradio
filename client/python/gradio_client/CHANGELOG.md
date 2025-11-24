@@ -33,31 +33,6 @@
 
 - [#11908](https://github.com/gradio-app/gradio/pull/11908) [`53d9098`](https://github.com/gradio-app/gradio/commit/53d9098cca378f6ebff9dec15d2faa8a3d2fb510) - [No Merge] Gradio 6.0.  Thanks @freddyaboulton!
 
-## 2.0.0-dev.3
-
-### Features
-
-- [#12377](https://github.com/gradio-app/gradio/pull/12377) [`568644a`](https://github.com/gradio-app/gradio/commit/568644a88c4dbe1b6ad9468906b1e45ed07657f3) - Add a 6.0 migration guide and add deprecation warnings.  Thanks @abidlabs!
-
-## 2.0.0-dev.2
-
-### Features
-
-- [#12243](https://github.com/gradio-app/gradio/pull/12243) [`cb49168`](https://github.com/gradio-app/gradio/commit/cb49168b1d52b39e47f1faeda93d150e048bd625) - [Client] Fix ZeroGPU headers forwarding.  Thanks @cbensimon!
-- [#12217](https://github.com/gradio-app/gradio/pull/12217) [`681fa11`](https://github.com/gradio-app/gradio/commit/681fa11357de520f0b05605cbd300d9e276d8736) - Update ZeroGPU guide to reflect best practices on manually passing an IP token.  Thanks @dawoodkhan82!
-
-## 2.0.0-dev.1
-
-### Features
-
-- [#12069](https://github.com/gradio-app/gradio/pull/12069) [`9de88ca`](https://github.com/gradio-app/gradio/commit/9de88ca470ce529366d259f0deaa955f658000b9) - Rename show_api.  Thanks @freddyaboulton!
-
-## 2.0.0-dev.0
-
-### Features
-
-- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`53d9098`](https://github.com/gradio-app/gradio/commit/53d9098cca378f6ebff9dec15d2faa8a3d2fb510) - [No Merge] Gradio 6.0.  Thanks @freddyaboulton!
-
 ## 1.13.3
 
 ### Fixes

@@ -16,7 +16,7 @@
 	$effect(() => {
 		if (display_value) {
 			candidate = gradio.props.choices.filter(
-				(choice) => choice[0] === display_value,
+				(choice) => choice[0] === display_value
 			);
 			gradio.props.value = candidate.length ? candidate[0][1] : "";
 			gradio.dispatch("input");

@@ -18,7 +18,7 @@
 	gradio.props.value = gradio.props.value ?? "#000000";
 	let old_value = $state(gradio.props.value);
 	let label = $derived(
-		gradio.shared.label || gradio.i18n("color_picker.color_picker"),
+		gradio.shared.label || gradio.i18n("color_picker.color_picker")
 	);
 
 	$effect(() => {

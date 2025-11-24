@@ -14,7 +14,7 @@
 
 	const search = () => {
 		let links = document.querySelectorAll(
-			".navigation a",
+			".navigation a"
 		) as NodeListOf<HTMLAnchorElement>;
 		links.forEach((link) => {
 			let linkText = link.innerText.toLowerCase();

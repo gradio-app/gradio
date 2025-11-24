@@ -59,7 +59,7 @@
 					gradio.dispatch("input");
 					gradio.dispatch("select", {
 						value: internal_value,
-						index: i,
+						index: i
 					});
 				}}
 			/>

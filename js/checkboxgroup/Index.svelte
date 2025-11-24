@@ -22,7 +22,7 @@
 
 	function toggle_select_all(): void {
 		const all_values = gradio.props.choices.map(
-			([, internal_value]) => internal_value,
+			([, internal_value]) => internal_value
 		);
 		if (gradio.props.value.length === all_values.length) {
 			gradio.props.value = [];
@@ -34,7 +34,7 @@
 
 	let select_all_state = $derived.by(() => {
 		const all_values = gradio.props.choices.map(
-			([, internal_value]) => internal_value,
+			([, internal_value]) => internal_value
 		);
 		if (gradio.props.value.length === 0) return "unchecked";
 		if (gradio.props.value.length === all_values.length) return "checked";
@@ -109,7 +109,7 @@
 						gradio.dispatch("select", {
 							index: i,
 							value: internal_value,
-							selected: evt.currentTarget.checked,
+							selected: evt.currentTarget.checked
 						})}
 					on:keydown={(event) => {
 						if (event.key === "Enter") {
@@ -117,7 +117,7 @@
 							gradio.dispatch("select", {
 								index: i,
 								value: internal_value,
-								selected: !gradio.props.value.includes(internal_value),
+								selected: !gradio.props.value.includes(internal_value)
 							});
 						}
 					}}

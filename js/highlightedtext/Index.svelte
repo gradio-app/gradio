@@ -29,7 +29,7 @@
 	let value = $derived.by(() =>
 		gradio.props.combine_adjacent
 			? merge_elements(gradio.props.value, "equal")
-			: gradio.props.value,
+			: gradio.props.value
 	);
 </script>
 

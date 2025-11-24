@@ -42,7 +42,7 @@
 		"https://www.gradio.app/guides/building-mcp-server-with-gradio";
 
 	let api_count = dependencies.filter(
-		(dependency) => dependency.api_visibility === "public",
+		(dependency) => dependency.api_visibility === "public"
 	).length;
 
 	if (root === "") {
@@ -59,7 +59,7 @@
 		const valid = dependencies.filter(
 			(dep) =>
 				dep.api_visibility === "public" &&
-				info?.named_endpoints?.["/" + dep.api_name],
+				info?.named_endpoints?.["/" + dep.api_name]
 		);
 		if (info && last_api_call) {
 			const mostRecent = valid.find((dep) => dep.id === last_api_call.fn_index);
@@ -88,7 +88,7 @@
 		["python", "Python", python],
 		["javascript", "JavaScript", javascript],
 		["bash", "cURL", bash],
-		["mcp", "MCP", mcp],
+		["mcp", "MCP", mcp]
 	] as const;
 
 	let is_running = false;
@@ -99,7 +99,7 @@
 		unnamed_endpoints: any;
 	}> {
 		let response = await fetch(
-			root.replace(/\/$/, "") + app.api_prefix + "/info",
+			root.replace(/\/$/, "") + app.api_prefix + "/info"
 		);
 		let data = await response.json();
 		return data;
@@ -190,8 +190,8 @@
 			"gradio",
 			"upload-mcp",
 			root,
-			"<UPLOAD_DIRECTORY>",
-		],
+			"<UPLOAD_DIRECTORY>"
+		]
 	};
 
 	async function fetch_mcp_tools() {
@@ -209,7 +209,7 @@
 				parameters: tool.inputSchema?.properties || {},
 				meta: tool.meta,
 				expanded: false,
-				endpoint_name: tool.endpoint_name,
+				endpoint_name: tool.endpoint_name
 			}));
 			selected_tools = new Set(tools.map((tool) => tool.name));
 			headers = schema.map((tool: any) => tool.meta?.headers || []).flat();
@@ -226,12 +226,12 @@
 								...headers
 									.map((header) => [
 										"--header",
-										`${header}: <YOUR_HEADER_VALUE>`,
+										`${header}: <YOUR_HEADER_VALUE>`
 									])
-									.flat(),
-							],
-						},
-					},
+									.flat()
+							]
+						}
+					}
 				};
 			} else {
 				mcp_json_stdio = {
@@ -242,10 +242,10 @@
 								"mcp-remote",
 								mcp_server_url_streamable,
 								"--transport",
-								"streamable-http",
-							],
-						},
-					},
+								"streamable-http"
+							]
+						}
+					}
 				};
 				if (file_data_present) {
 					mcp_json_stdio.mcpServers.upload_files_to_gradio =

@@ -52,7 +52,7 @@
 		type="module"
 		src="https://gradio.s3-us-west-2.amazonaws.com/{version.replace(
 			'b',
-			'-beta.',
+			'-beta.'
 		)}/gradio.js"
 	></script>
 </svelte:head>

@@ -34,7 +34,7 @@
 		"bg-yellow-50 dark:bg-yellow-900/30",
 		"bg-red-50 dark:bg-red-900/30",
 		"bg-pink-50 dark:bg-pink-900/30",
-		"bg-purple-50 dark:bg-purple-900/30",
+		"bg-purple-50 dark:bg-purple-900/30"
 	];
 
 	let show_all = false;
@@ -81,7 +81,7 @@
 		_details = Array.from(details).map((detail) => {
 			const summary_text = detail.querySelector("summary")?.innerHTML;
 			const detail_children = detail.querySelectorAll(
-				"details > *:not(summary)",
+				"details > *:not(summary)"
 			);
 
 			let detail_text = "";
@@ -96,8 +96,8 @@
 				target: new_el,
 				props: {
 					summary: summary_text,
-					content: detail_text,
-				},
+					content: detail_text
+				}
 			});
 			detail.replaceWith(new_el);
 

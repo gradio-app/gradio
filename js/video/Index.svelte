@@ -32,7 +32,7 @@
 	let uploading = $state(false);
 	let dragging = $state(false);
 	let active_source = $derived.by(() =>
-		gradio.props.sources ? gradio.props.sources[0] : undefined,
+		gradio.props.sources ? gradio.props.sources[0] : undefined
 	);
 	let initial_value: FileData | null = gradio.props.value;
 
@@ -102,7 +102,7 @@
 			loop={gradio.props.loop}
 			show_share_button={(gradio.props.buttons || []).includes("share")}
 			show_download_button={(gradio.props.buttons || ["download"]).includes(
-				"download",
+				"download"
 			)}
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}

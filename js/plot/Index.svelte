@@ -10,7 +10,7 @@
 		Block,
 		BlockLabel,
 		FullscreenButton,
-		IconButtonWrapper,
+		IconButtonWrapper
 	} from "@gradio/atoms";
 	import { Plot as PlotIcon } from "@gradio/icons";
 

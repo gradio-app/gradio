@@ -33,12 +33,12 @@
 	const gradio = new AudioGradio(props);
 	let label = $derived(gradio.shared.label || gradio.i18n("audio.audio"));
 	let minimal = $derived(
-		(props as any).minimal ?? (gradio.props as any).minimal ?? false,
+		(props as any).minimal ?? (gradio.props as any).minimal ?? false
 	);
 
 	// let uploading = $state(false);
 	let active_source = $derived.by(() =>
-		gradio.props.sources ? gradio.props.sources[0] : null,
+		gradio.props.sources ? gradio.props.sources[0] : null
 	);
 	let initial_value = gradio.props.value;
 
@@ -63,19 +63,19 @@
 		barRadius: 10,
 		dragToSeek: true,
 		normalize: true,
-		minPxPerSec: 20,
+		minPxPerSec: 20
 	});
 
 	const trim_region_settings = {
 		color: gradio.props.waveform_options.trim_region_color,
 		drag: true,
-		resize: true,
+		resize: true
 	};
 
 	function set_trim_region_colour(): void {
 		document.documentElement.style.setProperty(
 			"--trim-region-color",
-			trim_region_settings.color || color_accent,
+			trim_region_settings.color || color_accent
 		);
 	}
 
@@ -100,7 +100,7 @@
 
 	onMount(() => {
 		color_accent = getComputedStyle(document?.documentElement).getPropertyValue(
-			"--color-accent",
+			"--color-accent"
 		);
 		set_trim_region_colour();
 		waveform_settings.waveColor =

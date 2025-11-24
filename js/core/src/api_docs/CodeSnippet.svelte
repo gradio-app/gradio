@@ -32,11 +32,11 @@
 	let bash_get_code: HTMLElement;
 
 	let has_file_path = endpoint_parameters.some((param: EndpointParameter) =>
-		is_potentially_nested_file_data(param.example_input),
+		is_potentially_nested_file_data(param.example_input)
 	);
 	let blob_components = ["Audio", "File", "Image", "Video"];
 	let blob_examples: any[] = endpoint_parameters.filter(
-		(param: EndpointParameter) => blob_components.includes(param.component),
+		(param: EndpointParameter) => blob_components.includes(param.component)
 	);
 
 	$: normalised_api_prefix = api_prefix ? api_prefix : "/";
@@ -68,7 +68,7 @@
 	] = {
 		python: python_code?.innerText || "",
 		javascript: js_code?.innerText || "",
-		bash: bash_post_code?.innerText || "",
+		bash: bash_post_code?.innerText || ""
 	};
 </script>
 
@@ -105,7 +105,7 @@ result = client.<span class="highlight">predict</span
 								>{represent_value(
 									getParameterValue(param, i),
 									param.python_type.type,
-									"py",
+									"py"
 								)}</span
 							>,{/each}<!--
 
@@ -158,7 +158,7 @@ result = client.<span class="highlight">predict</span
 									>{param.parameter_name}: {represent_value(
 										getParameterValue(param, i),
 										param.python_type.type,
-										"js",
+										"js"
 									)}</span
 								>, <!--
 	--><!--
@@ -190,7 +190,7 @@ result = client.<span class="highlight">predict</span
 								>{represent_value(
 									getParameterValue(param, i),
 									param.python_type.type,
-									"bash",
+									"bash"
 								)}</span
 							>{#if i < endpoint_parameters.length - 1},
 							{/if}
