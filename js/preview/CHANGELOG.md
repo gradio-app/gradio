@@ -12,12 +12,6 @@
 
 - [#12397](https://github.com/gradio-app/gradio/pull/12397) [`f2a47fe`](https://github.com/gradio-app/gradio/commit/f2a47fe4f155a1ed93ad3e8f18504e9427ba61d2) - fix custom components.  Thanks @pngwn!
 
-## 0.15.0-dev.0
-
-### Features
-
-- [#12397](https://github.com/gradio-app/gradio/pull/12397) [`f2a47fe`](https://github.com/gradio-app/gradio/commit/f2a47fe4f155a1ed93ad3e8f18504e9427ba61d2) - fix custom components.  Thanks @pngwn!
-
 ## 0.14.0
 
 ### Features

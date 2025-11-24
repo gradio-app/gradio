@@ -43,35 +43,6 @@
 
 - @gradio/core@0.29.2
 
-## 0.2.2-dev.2
-
-### Dependency updates
-
-- @gradio/atoms@0.19.0-dev.1
-- @gradio/core@1.0.0-dev.3
-- @gradio/statustracker@0.12.0-dev.1
-
-## 0.2.2-dev.1
-
-### Dependency updates
-
-- @gradio/atoms@0.18.2-dev.0
-- @gradio/utils@0.10.3-dev.0
-- @gradio/statustracker@0.12.0-dev.0
-- @gradio/core@1.0.0-dev.1
-
-## 0.2.2-dev.0
-
-### Dependency updates
-
-- @gradio/core@1.0.0-dev.0
-
-## 0.2.1
-
-### Dependency updates
-
-- @gradio/core@0.29.2
-
 ## 0.2.1
 
 ### Dependency updates

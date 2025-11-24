@@ -17,12 +17,6 @@
 
 - @gradio/theme@0.5.0-dev.0
 
-## 0.10.3-dev.0
-
-### Dependency updates
-
-- @gradio/theme@0.5.0-dev.0
-
 ## 0.10.2
 
 ### Fixes

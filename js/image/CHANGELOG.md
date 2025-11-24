@@ -52,42 +52,6 @@
 - @gradio/upload@0.17.2-dev.0
 - @gradio/client@2.0.0-dev.0
 
-## 0.24.0-dev.2
-
-### Features
-
-- [#12102](https://github.com/gradio-app/gradio/pull/12102) [`baa1cd6`](https://github.com/gradio-app/gradio/commit/baa1cd67573292f95d4b4263c8f15fe89fbeeaa1) - Improve audio player UI in gr.Chatbot.  Thanks @hannahblair!
-
-### Dependency updates
-
-- @gradio/atoms@0.19.0-dev.1
-- @gradio/client@2.0.0-dev.2
-- @gradio/statustracker@0.12.0-dev.1
-- @gradio/upload@0.17.2-dev.2
-
-## 0.23.2-dev.1
-
-### Dependency updates
-
-- @gradio/atoms@0.18.2-dev.0
-- @gradio/upload@0.17.2-dev.1
-- @gradio/utils@0.10.3-dev.0
-- @gradio/statustracker@0.12.0-dev.0
-- @gradio/icons@0.15.0-dev.0
-
-## 0.23.2-dev.0
-
-### Dependency updates
-
-- @gradio/client@2.0.0-dev.1
-
-## 0.23.2-dev.0
-
-### Dependency updates
-
-- @gradio/upload@0.17.2-dev.0
-- @gradio/client@2.0.0-dev.0
-
 ## 0.23.1
 
 ### Dependency updates

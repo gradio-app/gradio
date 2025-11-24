@@ -66,49 +66,6 @@
 - @gradio/image@0.23.2-dev.0
 - @gradio/video@0.17.0-dev.0
 
-## 0.11.0-dev.2
-
-### Dependency updates
-
-- @gradio/atoms@0.19.0-dev.1
-- @gradio/client@2.0.0-dev.2
-- @gradio/statustracker@0.12.0-dev.1
-- @gradio/upload@0.17.2-dev.2
-- @gradio/audio@0.20.0-dev.4
-- @gradio/image@0.24.0-dev.2
-- @gradio/video@0.17.0-dev.2
-
-## 0.11.0-dev.1
-
-### Features
-
-- [#12088](https://github.com/gradio-app/gradio/pull/12088) [`199de34`](https://github.com/gradio-app/gradio/commit/199de3428291b799ae334474132f3d2ceef31e9d) - Improve gr.MultimodalTextbox in mobile.  Thanks @hannahblair!
-
-### Dependency updates
-
-- @gradio/atoms@0.18.2-dev.0
-- @gradio/upload@0.17.2-dev.1
-- @gradio/utils@0.10.3-dev.0
-- @gradio/image@0.23.2-dev.1
-- @gradio/statustracker@0.12.0-dev.0
-- @gradio/icons@0.15.0-dev.0
-- @gradio/video@0.17.0-dev.1
-
-## 0.10.22-dev.0
-
-### Dependency updates
-
-- @gradio/client@2.0.0-dev.1
-
-## 0.10.22-dev.0
-
-### Dependency updates
-
-- @gradio/upload@0.17.2-dev.0
-- @gradio/client@2.0.0-dev.0
-- @gradio/image@0.23.2-dev.0
-- @gradio/video@0.17.0-dev.0
-
 ## 0.10.21
 
 ### Fixes

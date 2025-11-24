@@ -25,20 +25,6 @@
 - @gradio/utils@0.10.3-dev.0
 - @gradio/icons@0.15.0-dev.0
 
-## 0.2.26-dev.1
-
-### Dependency updates
-
-- @gradio/atoms@0.19.0-dev.1
-
-## 0.2.26-dev.0
-
-### Dependency updates
-
-- @gradio/atoms@0.18.2-dev.0
-- @gradio/utils@0.10.3-dev.0
-- @gradio/icons@0.15.0-dev.0
-
 ## 0.2.25
 
 ### Dependency updates

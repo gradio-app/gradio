@@ -12,12 +12,6 @@
 
 - [#12099](https://github.com/gradio-app/gradio/pull/12099) [`e2a5768`](https://github.com/gradio-app/gradio/commit/e2a5768f5f133d0c23549eb3388582bfcf40e5e6) - Improve gr.Toast in mobile.  Thanks @hannahblair!
 
-## 0.15.0-dev.0
-
-### Features
-
-- [#12099](https://github.com/gradio-app/gradio/pull/12099) [`e2a5768`](https://github.com/gradio-app/gradio/commit/e2a5768f5f133d0c23549eb3388582bfcf40e5e6) - Improve gr.Toast in mobile.  Thanks @hannahblair!
-
 ## 0.14.0
 
 ### Features

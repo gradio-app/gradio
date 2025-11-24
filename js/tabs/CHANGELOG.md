@@ -15,12 +15,6 @@
 
 - @gradio/utils@0.10.3-dev.0
 
-## 0.5.2-dev.0
-
-### Dependency updates
-
-- @gradio/utils@0.10.3-dev.0
-
 ## 0.5.1
 
 ### Fixes
