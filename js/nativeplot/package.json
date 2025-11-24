@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/nativeplot",
-	"version": "0.8.0",
+	"version": "0.9.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -26,15 +26,15 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/theme": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"vega": "^5.23.0",
-		"vega-embed": "^6.25.0",
-		"vega-lite": "^5.17.0"
+		"vega": "^6.2.0",
+		"vega-embed": "^7.0.2",
+		"vega-lite": "^6.4.1"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.43.4"
 	},
 	"repository": {
 		"type": "git",

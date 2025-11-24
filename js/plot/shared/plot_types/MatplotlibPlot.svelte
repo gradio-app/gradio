@@ -1,15 +1,11 @@
 <script lang="ts">
-	export let value;
+	let { value }: { value: any } = $props();
 
-	$: plot = value?.plot;
+	let plot = $derived(value?.plot);
 </script>
 
 <div data-testid={"matplotlib"} class="matplotlib layout">
-	<img
-		src={plot}
-		alt={`${value.chart} plot visualising provided data`}
-		on:load
-	/>
+	<img src={plot} alt={`${value.chart} plot visualising provided data`} />
 </div>
 
 <style>

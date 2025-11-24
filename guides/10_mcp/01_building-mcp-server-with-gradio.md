@@ -34,7 +34,7 @@ Notice that we have: (1) included a detailed docstring for our function, and (2)
 
 The MCP server will be accessible at:
 ```
-http://your-server:port/gradio_api/mcp/sse
+http://your-server:port/gradio_api/mcp/
 ```
 
 Gradio automatically converts the `letter_counter` function into an MCP tool that can be used by LLMs. The docstring of the function and the type hints of arguments will be used to generate the description of the tool and its parameters. The name of the function will be used as the name of your tool. Any initial values you provide to your input components (e.g. "strawberry" and "r" in the `gr.Textbox` components above) will be used as the default values if your LLM doesn't specify a value for that particular input parameter.
@@ -45,7 +45,7 @@ Now, all you need to do is add this URL endpoint to your MCP Client (e.g. Claude
 {
   "mcpServers": {
     "gradio": {
-      "url": "http://your-server:port/gradio_api/mcp/sse"
+      "url": "http://your-server:port/gradio_api/mcp/"
     }
   }
 }
@@ -84,7 +84,7 @@ Now, all you need to do is add this URL endpoint to your MCP Client (e.g. Claude
 {
   "mcpServers": {
     "gradio": {
-      "url": "https://abidlabs-mcp-tools.hf.space/gradio_api/mcp/sse"
+      "url": "https://abidlabs-mcp-tools.hf.space/gradio_api/mcp/"
     }
   }
 }
@@ -111,7 +111,7 @@ You can use either a public Space or a private Space as an MCP server. If you'd 
 {
   "mcpServers": {
     "gradio": {
-      "url": "https://abidlabs-mcp-tools.hf.space/gradio_api/mcp/sse",
+      "url": "https://abidlabs-mcp-tools.hf.space/gradio_api/mcp/",
       "headers": {
         "Authorization": "Bearer <YOUR-HUGGING-FACE-TOKEN>"
       }
@@ -184,6 +184,8 @@ Here's an example of how to do this:
 $code_mcp_progress
 
 [Here are the docs](https://www.gradio.app/docs/gradio/progress) for the `gr.Progress` class, which can also automatically track `tqdm` calls.
+
+Note: by default, progress notifications are enabled for all MCP tools, even if the corresponding Gradio functions do not include a `gr.Progress`. However, this can add some overhead to the MCP tool (typically ~500ms). To disable progress notification, you can set `queue=False` in your Gradio event handler to skip the overhead related to subscribing to the queue's progress updates.
 
 
 ## Modifying Tool Descriptions
@@ -404,9 +406,9 @@ def prime_factors(n: str):
     return factors
 ```
 
-**3. Ensure that your MCP Client Supports SSE**
+**3. Ensure that your MCP Client Supports Streamable HTTP**
 
-Some MCP Clients, notably [Claude Desktop](https://claude.ai/download), do not yet support SSE-based MCP Servers. In those cases, you can use a tool such as [mcp-remote](https://github.com/geelen/mcp-remote). First install [Node.js](https://nodejs.org/en/download/). Then, add the following to your own MCP Client config:
+Some MCP Clients do not yet support streamable HTTP-based MCP Servers. In those cases, you can use a tool such as [mcp-remote](https://github.com/geelen/mcp-remote). First install [Node.js](https://nodejs.org/en/download/). Then, add the following to your own MCP Client config:
 
 ```
 {
@@ -415,7 +417,7 @@ Some MCP Clients, notably [Claude Desktop](https://claude.ai/download), do not y
       "command": "npx",
       "args": [
         "mcp-remote",
-        "http://your-server:port/gradio_api/mcp/sse"
+        "http://your-server:port/gradio_api/mcp/"
       ]
     }
   }

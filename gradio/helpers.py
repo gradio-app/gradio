@@ -14,7 +14,8 @@ import warnings
 from collections.abc import Callable, Iterable, Sequence
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Optional
+from types import SimpleNamespace
+from typing import TYPE_CHECKING, Any, Literal, Optional, get_origin
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
@@ -49,14 +50,14 @@ def create_examples(
     run_on_click: bool = False,
     preprocess: bool = True,
     postprocess: bool = True,
-    show_api: bool = False,
-    api_name: str | Literal[False] = "load_example",
+    api_visibility: Literal["public", "private", "undocumented"] = "undocumented",
+    api_name: str | None = "load_example",
     api_description: str | None | Literal[False] = None,
     batch: bool = False,
     *,
     example_labels: list[str] | None = None,
     visible: bool | Literal["hidden"] = True,
-    preload: int | Literal[False] = False,
+    preload: int | Literal[False] = 0,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
     examples_obj = Examples(
@@ -73,7 +74,7 @@ def create_examples(
         run_on_click=run_on_click,
         preprocess=preprocess,
         postprocess=postprocess,
-        show_api=show_api,
+        api_visibility=api_visibility,
         api_name=api_name,
         api_description=api_description,
         batch=batch,
@@ -113,14 +114,14 @@ class Examples:
         run_on_click: bool = False,
         preprocess: bool = True,
         postprocess: bool = True,
-        show_api: bool = False,
-        api_name: str | Literal[False] = "load_example",
+        api_visibility: Literal["public", "private", "undocumented"] = "undocumented",
+        api_name: str | None = "load_example",
         api_description: str | None | Literal[False] = None,
         batch: bool = False,
         *,
         example_labels: list[str] | None = None,
         visible: bool | Literal["hidden"] = True,
-        preload: int | Literal[False] = False,
+        preload: int | Literal[False] = 0,
         _initiated_directly: bool = True,
     ):
         """
@@ -137,17 +138,17 @@ class Examples:
             run_on_click: if cache_examples is False, clicking on an example does not run the function when an example is clicked. Set this to True to run the function when an example is clicked. Has no effect if cache_examples is True.
             preprocess: if True, preprocesses the example input before running the prediction function and caching the output. Only applies if `cache_examples` is not False.
             postprocess: if True, postprocesses the example output after running the prediction function and before caching. Only applies if `cache_examples` is not False.
-            show_api: Whether to show the event associated with clicking on the examples in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients.
-            api_name: Defines how the event associated with clicking on the examples appears in the API docs. Can be a string or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use the example function.
+            api_visibility: Controls the visibility of the event associated with clicking on the examples. Can be "public" (shown in API docs and callable), "private" (hidden from API docs and not callable), or "undocumented" (hidden from API docs but callable).
+            api_name: Defines how the event associated with clicking on the examples appears in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given name. If None, an auto-generated name will be used.
             api_description: Description of the event associated with clicking on the examples in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is not False.
             example_labels: A list of labels for each example. If provided, the length of this list should be the same as the number of examples, and these labels will be used in the UI instead of rendering the example values.
             visible: If False, the examples component will be hidden in the UI.
-            preload: If an integer is provided (and examples are being cached), the example at that index in the examples list will be preloaded when the Gradio app is loaded. If False, no example will be preloaded.
+            preload: If an integer is provided (and examples are being cached eagerly and none of the input components have a developer-provided `value`), the example at that index in the examples list will be preloaded when the Gradio app is first loaded. If False, no example will be preloaded.
         """
         if _initiated_directly:
             warnings.warn(
-                "Please use gr.Examples(...) instead of gr.examples.Examples(...) to create the Examples.",
+                "Please use gr.Examples(...) instead of gr.helpers.Examples(...) to create the Examples.",
             )
 
         self.cache_examples = False
@@ -158,12 +159,6 @@ class Examples:
                 and outputs is not None
             ):
                 self.cache_examples = True
-        elif cache_examples == "lazy":
-            warnings.warn(
-                "In future versions of Gradio, the `cache_examples` parameter will no longer accept a value of 'lazy'. To enable lazy caching in "
-                "Gradio, you should set `cache_examples=True`, and `cache_mode='lazy'` instead."
-            )
-            self.cache_examples = "lazy"
         elif cache_examples in [True, False]:
             self.cache_examples = cache_examples
         else:
@@ -268,8 +263,8 @@ class Examples:
         self._api_mode = _api_mode
         self.preprocess = preprocess
         self.postprocess = postprocess
-        self.show_api = show_api
-        self.api_name: str | Literal[False] = api_name
+        self.api_visibility = api_visibility
+        self.api_name: str | None = api_name
         self.api_description: str | None | Literal[False] = api_description
         self.batch = batch
         self.example_labels = example_labels
@@ -382,7 +377,7 @@ class Examples:
                     show_progress="hidden",
                     postprocess=False,
                     queue=False,
-                    show_api=False,
+                    api_visibility="undocumented",
                 ).then(
                     load_example_output,
                     inputs=[self.dataset],
@@ -390,13 +385,17 @@ class Examples:
                     postprocess=False,
                     api_name=self.api_name,
                     api_description=self.api_description,
-                    show_api=self.show_api,
+                    api_visibility=self.api_visibility,
                 )
 
                 if (
                     self.preload is not False
                     and self.cache_examples != "lazy"
                     and self.root_block
+                    and not any(
+                        "value" in inp.constructor_args
+                        for inp in self.inputs_with_examples
+                    )
                 ):
                     self.root_block.load(
                         load_example_input,
@@ -409,7 +408,7 @@ class Examples:
                         show_progress="hidden",
                         postprocess=False,
                         queue=False,
-                        show_api=False,
+                        api_visibility="undocumented",
                     )
                     self.root_block.load(
                         load_example_output,
@@ -421,7 +420,7 @@ class Examples:
                         outputs=self.outputs,
                         postprocess=False,
                         show_progress="hidden",
-                        show_api=False,
+                        api_visibility="undocumented",
                     )
 
             else:
@@ -451,7 +450,7 @@ class Examples:
                     queue=False,
                     api_name=self.api_name,
                     api_description=self.api_description,
-                    show_api=self.show_api,
+                    api_visibility=self.api_visibility,
                 )
 
                 if self.run_on_click:
@@ -463,7 +462,7 @@ class Examples:
                         self.fn,
                         inputs=self.inputs,
                         outputs=self.outputs,
-                        show_api=False,
+                        api_visibility="undocumented",
                     )
         else:
             warnings.warn(
@@ -932,22 +931,27 @@ def special_args(
     inputs: list[Any] | None = None,
     request: routes.Request | None = None,
     event_data: EventData | None = None,
-) -> tuple[list, int | None, int | None]:
+    component_props: dict[int, dict[str, Any]] | None = None,
+) -> tuple[list, int | None, int | None, list[int]]:
     """
     Checks if function has special arguments Request or EventData (via annotation) or Progress (via default value).
+    Also checks if any parameters are type-hinted with gr.Component types, in which case all component props should be passed.
     If inputs is provided, these values will be loaded into the inputs array.
     Parameters:
         fn: function to check.
         inputs: array to load special arguments into.
         request: request to load into inputs.
         event_data: event-related data to load into inputs.
+        component_props: dictionary mapping input indices to their full component props.
     Returns:
-        updated inputs, progress index, event data index.
+        updated inputs, progress index, event data index, list of input indices that need component props.
     """
     try:
         signature = inspect.signature(fn)
     except ValueError:
-        return inputs or [], None, None
+        return inputs or [], None, None, []
+    from gradio.components.base import Component
+
     type_hints = utils.get_type_hints(fn)
     positional_args = []
     for param in signature.parameters.values():
@@ -956,6 +960,7 @@ def special_args(
         positional_args.append(param)
     progress_index = None
     event_data_index = None
+    component_prop_indices = []
     for i, param in enumerate(positional_args):
         type_hint = type_hints.get(param.name)
         if isinstance(param.default, Progress):
@@ -1049,6 +1054,17 @@ def special_args(
                 processing_utils.check_all_files_in_cache(event_data._data)
                 inputs.insert(i, type_hint(event_data.target, event_data._data))
         elif (
+            type_hint
+            and get_origin(type_hint) is None
+            and inspect.isclass(type_hint)
+            and issubclass(type_hint, Component)
+        ):
+            component_prop_indices.append(i)
+            if inputs is not None and component_props and i in component_props:
+                inputs[i] = SimpleNamespace(
+                    **component_props[i], _is_component_update=True
+                )
+        elif (
             param.default is not param.empty and inputs is not None and len(inputs) <= i
         ):
             inputs.insert(i, param.default)
@@ -1061,7 +1077,7 @@ def special_args(
                 inputs.append(None)
             else:
                 inputs.append(param.default)
-    return inputs or [], progress_index, event_data_index
+    return inputs or [], progress_index, event_data_index, component_prop_indices
 
 
 def update(

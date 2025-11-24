@@ -26,9 +26,7 @@
 	{#if feedback_options.includes("Dislike")}
 		<IconButton
 			Icon={selected === "Dislike" ? ThumbDownActive : ThumbDownDefault}
-			label={selected === "Dislike"
-				? "clicked dislike"
-				: i18n("chatbot.dislike")}
+			label={selected === "Dislike" ? "Disliked" : i18n("chatbot.dislike")}
 			color={selected === "Dislike"
 				? "var(--color-accent)"
 				: "var(--block-label-text-color)"}
@@ -38,7 +36,7 @@
 	{#if feedback_options.includes("Like")}
 		<IconButton
 			Icon={selected === "Like" ? ThumbUpActive : ThumbUpDefault}
-			label={selected === "Like" ? "clicked like" : i18n("chatbot.like")}
+			label={selected === "Like" ? "Liked" : i18n("chatbot.like")}
 			color={selected === "Like"
 				? "var(--color-accent)"
 				: "var(--block-label-text-color)"}

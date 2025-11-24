@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/dataframe",
-	"version": "0.20.1",
+	"version": "0.21.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -12,16 +12,17 @@
 		"@gradio/atoms": "workspace:^",
 		"@gradio/button": "workspace:^",
 		"@gradio/checkbox": "workspace:^",
+		"@gradio/client": "workspace:^",
 		"@gradio/icons": "workspace:^",
 		"@gradio/markdown-code": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
-		"@gradio/client": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@types/d3-dsv": "^3.0.0",
-		"@types/katex": "^0.16.0",
+		"@types/d3-dsv": "^3.0.7",
+		"@types/katex": "^0.16.7",
 		"d3-dsv": "^3.0.1",
-		"dequal": "^2.0.2"
+		"dequal": "^2.0.3",
+		"@gradio/dataframe-interim": "workspace:^"
 	},
 	"exports": {
 		".": {
@@ -37,7 +38,7 @@
 		"./package.json": "./package.json"
 	},
 	"peerDependencies": {
-		"svelte": ">=4.0.0 <6.0.0"
+		"svelte": ">=5.0.0"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"

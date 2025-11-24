@@ -2,11 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="search"],
+.dark input[type="password"],
+.dark input[type="number"],
+.dark input[type="url"],
+.dark input[type="tel"],
+.dark textarea {
+	background-color: rgb(38, 38, 38);
+	color: rgb(245, 245, 245);
+	border-color: rgb(64, 64, 64);
+}
+
 .link {
 	@apply font-semibold hover:text-orange-500 transition-colors;
 }
 .thin-link {
-	@apply hover:text-orange-500 transition-colors;
+	@apply text-gray-900 dark:text-gray-300 hover:text-gray-600 dark:hover:text-gray-100 transition-colors;
 }
 .thinner-link {
 	@apply hover:text-orange-500 transition-colors;
@@ -48,40 +61,38 @@
 
 @layer base {
 	a.text-link {
-		@apply font-semibold text-gray-800 underline decoration-orange-500 underline-offset-2 hover:text-orange-500;
+		@apply font-semibold text-gray-800 dark:text-white underline decoration-orange-500 underline-offset-2 hover:text-orange-500;
 	}
 }
 
 @layer utilities {
-	@variants hover, focus {
-		.filter-none {
-			filter: none;
-		}
-		.filter-grayscale {
-			filter: grayscale(100%);
-		}
-		.shadow-alternate-sm {
-			box-shadow:
-				0px 5px 5px rgba(0, 0, 0, 0.03),
-				0px 2px 2px rgba(0, 0, 0, 0.03),
-				0px 0px 1px rgba(0, 0, 0, 0.03);
-			transition: transform 0.3s ease-in-out;
-		}
-		.shadow-alternate {
-			box-shadow:
-				0px 10px 20px rgba(0, 0, 0, 0.04),
-				0px 2px 6px rgba(0, 0, 0, 0.04),
-				0px 0px 1px rgba(0, 0, 0, 0.04);
-			transition: transform 0.3s ease-in-out;
-		}
-		.shadow-alternate-xl {
-			box-shadow:
-				0px 24px 32px rgba(0, 0, 0, 0.04),
-				0px 16px 24px rgba(0, 0, 0, 0.04),
-				0px 4px 8px rgba(0, 0, 0, 0.04),
-				0px 0px 1px rgba(0, 0, 0, 0.04);
-			transition: transform 0.3s ease-in-out;
-		}
+	.filter-none {
+		filter: none;
+	}
+	.filter-grayscale {
+		filter: grayscale(100%);
+	}
+	.shadow-alternate-sm {
+		box-shadow:
+			0px 5px 5px rgba(0, 0, 0, 0.03),
+			0px 2px 2px rgba(0, 0, 0, 0.03),
+			0px 0px 1px rgba(0, 0, 0, 0.03);
+		transition: transform 0.3s ease-in-out;
+	}
+	.shadow-alternate {
+		box-shadow:
+			0px 10px 20px rgba(0, 0, 0, 0.04),
+			0px 2px 6px rgba(0, 0, 0, 0.04),
+			0px 0px 1px rgba(0, 0, 0, 0.04);
+		transition: transform 0.3s ease-in-out;
+	}
+	.shadow-alternate-xl {
+		box-shadow:
+			0px 24px 32px rgba(0, 0, 0, 0.04),
+			0px 16px 24px rgba(0, 0, 0, 0.04),
+			0px 4px 8px rgba(0, 0, 0, 0.04),
+			0px 0px 1px rgba(0, 0, 0, 0.04);
+		transition: transform 0.3s ease-in-out;
 	}
 }
 
@@ -90,7 +101,7 @@
 }
 /* index */
 .active-example-tab {
-	@apply border-orange-500 rounded-full text-orange-500 ring-1 bg-orange-50 ring-orange-200 hover:!text-orange-500 cursor-pointer shadow shadow-orange-200;
+	@apply border-orange-500 rounded-full text-orange-500 ring-1 bg-orange-50 dark:bg-orange-900 ring-orange-200 dark:ring-orange-700 hover:!text-orange-500 cursor-pointer shadow shadow-orange-200 dark:shadow-orange-900;
 }
 
 /* guides */
@@ -132,26 +143,20 @@
 /* editable docs */
 
 .obj h1 {
-	@apply text-3xl font-light py-4;
+	@apply text-3xl font-light py-4 text-gray-900 dark:text-gray-100;
 }
 .obj h2 {
-	@apply mb-2 text-lg;
+	@apply mb-2 text-lg text-gray-900 dark:text-gray-100;
 }
 .obj h3 {
-	@apply mt-8 text-xl text-orange-500 font-light;
+	@apply mt-8 text-xl text-orange-500 dark:text-orange-400 font-light;
 }
 .obj h4 {
-	@apply mt-8 text-xl text-orange-500 font-light;
+	@apply mt-8 text-xl text-orange-500 dark:text-orange-400 font-light;
 }
 
 .obj p {
-	@apply mb-2 text-lg;
-}
-
-/* playground */
-
-.current-playground-demo {
-	@apply text-orange-500 pl-4;
+	@apply mb-2 text-lg text-gray-900 dark:text-gray-100;
 }
 
 /* docs */
@@ -206,7 +211,7 @@ code.language-bash {
 }
 
 .codeblock {
-	@apply relative bg-gray-50 mx-auto p-3 mt-2;
+	@apply relative bg-gray-50 dark:bg-neutral-800 mx-auto p-6 mt-2 rounded-lg;
 }
 .codeblock:hover > .clipboard-button {
 	@apply opacity-100 duration-200;
@@ -223,34 +228,46 @@ code.language-bash {
 
 /* demos */
 .selected-demo-tab {
-	@apply font-semibold text-orange-500 rounded-t-md border-2 border-gray-100 border-b-0 bg-white;
+	@apply font-semibold text-orange-500 rounded-t-md border-2 border-gray-100 dark:border-neutral-700 border-b-0 bg-white dark:bg-neutral-800;
 }
 .selected-demo-window {
 	@apply rounded-b-md border-2  border-gray-100 -mt-0.5;
 }
 
 .tip {
-	@apply bg-gradient-to-br from-green-50 to-white border-green-50 border-l-2 border-l-green-300 text-green-700 p-4 px-6;
+	@apply bg-orange-50 dark:bg-orange-950/40 border-2 border-orange-200 dark:border-orange-500/30 rounded-2xl text-gray-900 dark:text-gray-100 p-6 my-6 flex items-center gap-4 text-sm;
+}
+
+.tip-icon {
+	@apply flex items-center justify-center flex-shrink-0 -mt-1;
+}
+
+.tip-content {
+	@apply flex-1;
 }
 
 .tip strong {
-	@apply text-green-700;
+	@apply text-orange-500 dark:text-orange-400 font-semibold;
 }
 
 .tip code {
-	@apply text-green-700;
+	@apply text-orange-400 dark:text-orange-400 bg-orange-900/30 px-1.5 py-0.5 rounded text-sm;
 }
 
 .tip a {
-	@apply text-green-700;
+	@apply text-orange-400 dark:text-orange-400 underline hover:text-orange-300 dark:hover:text-orange-300;
 }
 
 .tip p {
-	@apply inline;
+	@apply m-0 text-sm;
+}
+
+.tip svg {
+	@apply text-orange-500 dark:text-orange-500 flex-shrink-0 w-6 h-6;
 }
 
 .warning {
-	@apply bg-gradient-to-br from-red-50 to-white border-red-50 border-l-2 border-l-red-300 text-red-700 p-4 px-6;
+	@apply bg-red-50 dark:bg-red-900/30 border-red-50 dark:border-red-800 border-l-2 border-l-red-300 dark:border-l-red-600 text-red-700 dark:text-red-300 p-4 px-6;
 }
 
 .warning strong {
@@ -290,6 +307,7 @@ li > ul {
 
 code {
 	font-size: 0.9em;
+	@apply text-gray-900 dark:text-gray-100;
 }
 
 pre > code {
@@ -324,12 +342,16 @@ h5 {
 
 strong {
 	font-weight: 600;
+	@apply text-gray-900 dark:text-gray-100;
 }
 
 .obj a {
 	color: var(--tw-prose-links);
 	text-decoration: underline;
 	font-weight: 500;
+}
+.dark .obj a {
+	@apply text-orange-400;
 }
 
 .codeblock > pre {
@@ -342,6 +364,9 @@ strong {
 .obj ol,
 .obj ul {
 	padding-inline-start: 40px;
+}
+.obj li {
+	@apply text-gray-900 dark:text-gray-100;
 }
 
 ol {
@@ -401,14 +426,7 @@ summary code {
 
 summary::after {
 	@apply pl-1 !opacity-100;
-	background: #f9fafb;
+	background: var(--table-odd-background-fill);
 	height: 90%;
 	padding-top: 14px;
-}
-
-@media (min-width: 768px) {
-	body:has(.playground) .main-header,
-	body:has(.playground) .main-footer {
-		display: none;
-	}
 }
