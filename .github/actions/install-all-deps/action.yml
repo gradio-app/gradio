@@ -87,7 +87,7 @@ runs:
         uv pip install -e client/python
         uv pip install -e ".[oauth, mcp]"
     - name: install-frontend
-      uses: "gradio-app/gradio/.github/actions/install-frontend-deps@6.0-dev"
+      uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
       with:
         skip_build: ${{ inputs.skip_build }}
     - name: generate json
