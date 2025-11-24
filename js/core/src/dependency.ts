@@ -226,6 +226,7 @@ export class DependencyManager {
 		this.update_state_cb = update_state_cb;
 		this.get_state_cb = get_state_cb;
 		this.rerender_cb = rerender_cb;
+		this.client = client;
 		this.reload(
 			dependencies,
 			update_state_cb,
