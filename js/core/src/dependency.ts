@@ -9,15 +9,11 @@ import { AsyncFunction } from "./init_utils";
 import { Client, type client_return } from "@gradio/client";
 import { LoadingStatus, type LoadingStatusArgs } from "@gradio/statustracker";
 import type { ToastMessage } from "@gradio/statustracker";
-<<<<<<< HEAD
 import type {
 	StatusMessage,
 	ValidationError,
 	LogMessage
 } from "@gradio/client";
-=======
-import type { StatusMessage, ValidationError } from "@gradio/client";
->>>>>>> main
 const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
 const NOVALUE = Symbol("NOVALUE");
@@ -158,7 +154,6 @@ interface DispatchEvent {
 	event_data: unknown;
 }
 
-<<<<<<< HEAD
 type UpdateStateCallback = (
 	id: number,
 	state: Record<string, unknown>,
@@ -178,8 +173,6 @@ type LogCallback = (
 	visible?: boolean
 ) => void;
 
-=======
->>>>>>> main
 /**
  * Manages all dependencies for an app acting as a bridge between app state and Dependencies
  * Responsible for registering dependencies and dispatching events to them
@@ -201,29 +194,11 @@ export class DependencyManager {
 	queue: Set<number> = new Set();
 	add_to_api_calls: (payload: Payload) => void;
 
-<<<<<<< HEAD
 	update_state_cb: UpdateStateCallback;
 	get_state_cb: GetStateCallback;
 	rerender_cb: RerenderCallback;
 	log_cb: LogCallback;
 
-=======
-	update_state_cb: (
-		id: number,
-		state: Record<string, unknown>,
-		check_visibility?: boolean
-	) => Promise<void>;
-	get_state_cb: (id: number) => Promise<Record<string, unknown> | null>;
-	rerender_cb: (components: ComponentMeta[], layout: LayoutNode) => void;
-	log_cb: (
-		title: string,
-		message: string,
-		fn_index: number,
-		type: ToastMessage["type"],
-		duration?: number | null,
-		visible?: boolean
-	) => void;
->>>>>>> main
 	loading_stati = new LoadingStatus();
 
 	constructor(
@@ -262,17 +237,10 @@ export class DependencyManager {
 
 	reload(
 		dependencies: IDependency[],
-<<<<<<< HEAD
 		update_state: UpdateStateCallback,
 		get_state: GetStateCallback,
 		rerender: RerenderCallback,
 		client: Client
-=======
-		update_state,
-		get_state,
-		rerender,
-		client
->>>>>>> main
 	) {
 		const { by_id, by_event } = this.create(dependencies);
 		this.dependencies_by_event = by_event;
@@ -412,11 +380,7 @@ export class DependencyManager {
 							data: data_payload,
 							event_data: event_meta.event_data
 						};
-<<<<<<< HEAD
 						submission!.send_chunk(payload as any);
-=======
-						submission!.send_chunk(payload);
->>>>>>> main
 						unset_args.forEach((fn) => fn());
 						continue;
 					}
@@ -557,14 +521,9 @@ export class DependencyManager {
 										(_, b) => b
 									);
 									this.log_cb(
-<<<<<<< HEAD
 										//@ts-ignore
 										result?._title ?? "Error",
 										_message || "",
-=======
-										result._title ?? "Error",
-										_message,
->>>>>>> main
 										fn_index,
 										"error",
 										status.duration,
@@ -584,15 +543,12 @@ export class DependencyManager {
 							}
 
 							if (result.type === "render") {
-<<<<<<< HEAD
-=======
 								this.loading_stati.update({
 									status: "complete",
 									fn_index: dep.id,
 									stream_state: null
 								});
 								this.update_loading_stati_state();
->>>>>>> main
 								const { layout, components, render_id, dependencies } =
 									result.data;
 

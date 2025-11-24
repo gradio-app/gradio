@@ -31,7 +31,7 @@
 			"&lt;": "<",
 			"&gt;": ">",
 			"&nbsp;": " ",
-			"&iexcl;": "¡"
+			"&iexcl;": "¡",
 		};
 
 		const decimal_regex = /&#(\d+);/g;
@@ -40,13 +40,13 @@
 
 		return text
 			.replace(decimal_regex, (_, code) =>
-				String.fromCharCode(parseInt(code, 10))
+				String.fromCharCode(parseInt(code, 10)),
 			)
 			.replace(hex_regex, (_, code) => String.fromCharCode(parseInt(code, 16)))
 			.replace(named_regex, (match) => entities[match]);
 	}
 	function convert_params(
-		original_parameters: OriginalParam[]
+		original_parameters: OriginalParam[],
 	): Record<string, NewParam> {
 		let new_parameters: Record<string, NewParam> = {};
 		for (let param of original_parameters) {
@@ -58,7 +58,7 @@
 							.replaceAll("Mapping[", "dict[")
 					: null,
 				description: decode_html_entities(param.doc),
-				default: param.default || null
+				default: param.default || null,
 			};
 		}
 		return new_parameters;
@@ -183,10 +183,7 @@
 		transition: transform 0.3s ease;
 		font-size: 0.7em;
 		opacity: 0.7;
-<<<<<<< HEAD
-=======
 		background: transparent;
->>>>>>> main
 	}
 
 	:global(details[open]) :global(.type)::after {
@@ -260,8 +257,6 @@
 	:global(.param-content) {
 		overflow-y: auto;
 	}
-<<<<<<< HEAD
-=======
 
 	/* Dark mode overrides */
 	:global(.dark) :global(.wrap) {
@@ -320,5 +315,4 @@
 		background: transparent;
 		color: var(--neutral-100);
 	}
->>>>>>> main
 </style>

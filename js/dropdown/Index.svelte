@@ -30,11 +30,7 @@
 		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
 		{...gradio.shared.loading_status}
-<<<<<<< HEAD
-		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
-=======
 		on_clear_status={() => gradio.dispatch("clear_status", loading_status)}
->>>>>>> main
 	/>
 
 	{#if gradio.props.multiselect}

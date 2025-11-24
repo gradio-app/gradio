@@ -211,11 +211,7 @@ code.language-bash {
 }
 
 .codeblock {
-<<<<<<< HEAD
-	@apply relative bg-gray-50 dark:bg-neutral-800 mx-auto p-3 mt-2;
-=======
 	@apply relative bg-gray-50 dark:bg-neutral-800 mx-auto p-6 mt-2 rounded-lg;
->>>>>>> main
 }
 .codeblock:hover > .clipboard-button {
 	@apply opacity-100 duration-200;
@@ -239,21 +235,6 @@ code.language-bash {
 }
 
 .tip {
-<<<<<<< HEAD
-	@apply bg-green-50 dark:bg-green-900/30 border-green-50 dark:border-green-800 border-l-2 border-l-green-300 dark:border-l-green-600 text-green-700 dark:text-green-300 p-4 px-6;
-}
-
-.tip strong {
-	@apply text-green-700 dark:text-green-300;
-}
-
-.tip code {
-	@apply text-green-700 dark:text-green-300;
-}
-
-.tip a {
-	@apply text-green-700 dark:text-green-300;
-=======
 	@apply bg-orange-50 dark:bg-orange-950/40 border-2 border-orange-200 dark:border-orange-500/30 rounded-2xl text-gray-900 dark:text-gray-100 p-6 my-6 flex items-center gap-4 text-sm;
 }
 
@@ -275,7 +256,6 @@ code.language-bash {
 
 .tip a {
 	@apply text-orange-400 dark:text-orange-400 underline hover:text-orange-300 dark:hover:text-orange-300;
->>>>>>> main
 }
 
 .tip p {

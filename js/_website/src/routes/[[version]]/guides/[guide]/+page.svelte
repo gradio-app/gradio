@@ -34,7 +34,7 @@
 		"bg-yellow-50 dark:bg-yellow-900/30",
 		"bg-red-50 dark:bg-red-900/30",
 		"bg-pink-50 dark:bg-pink-900/30",
-		"bg-purple-50 dark:bg-purple-900/30"
+		"bg-purple-50 dark:bg-purple-900/30",
 	];
 
 	let show_all = false;
@@ -81,7 +81,7 @@
 		_details = Array.from(details).map((detail) => {
 			const summary_text = detail.querySelector("summary")?.innerHTML;
 			const detail_children = detail.querySelectorAll(
-				"details > *:not(summary)"
+				"details > *:not(summary)",
 			);
 
 			let detail_text = "";
@@ -96,8 +96,8 @@
 				target: new_el,
 				props: {
 					summary: summary_text,
-					content: detail_text
-				}
+					content: detail_text,
+				},
 			});
 			detail.replaceWith(new_el);
 
@@ -149,11 +149,7 @@
 			use:clickOutside
 			on:click_outside={() => (show_nav = false)}
 			class:hidden={!show_nav}
-<<<<<<< HEAD
-			class="max-w-max min-w-[75%] navigation mobile-nav shadow overflow-y-auto fixed backdrop-blur-lg z-50 bg-white dark:bg-neutral-900 pr-6 pl-4 py-4 -ml-4 h-full inset-0 lg:inset-auto lg:shadow-none lg:ml-0 lg:z-0 lg:backdrop-blur-none lg:navigation lg:p-0 lg:pb-4 lg:h-screen lg:leading-relaxed lg:sticky lg:top-0 lg:text-md lg:block lg:rounded-t-xl lg:bg-white dark:lg:bg-neutral-900 lg:overflow-x-clip lg:w-2/12 lg:min-w-0"
-=======
 			class="max-w-max min-w-[75%] shadow overflow-y-auto fixed backdrop-blur-lg z-50 bg-white dark:bg-neutral-900 px-6 py-4 h-full inset-0"
->>>>>>> main
 			id="mobile-nav"
 		>
 			<button
@@ -173,70 +169,11 @@
 				>
 			</button>
 
-<<<<<<< HEAD
-			{#each guide_names as { category, guides } (category)}
-				<p
-					class="font-semibold px-4 my-2 block text-gray-900 dark:text-gray-100"
-				>
-					{category}
-				</p>
-				{#each guides as guide, i}
-					<a
-						class:current-nav-link={guide.name == guide_page.name}
-						class="thin-link px-4 block leading-8"
-						href="..{guide.url}">{guide.pretty_name}</a
-					>
-				{/each}
-			{/each}
-		</div>
-	</div>
-
-	<div
-		bind:this={sidebar}
-		class="side-navigation h-screen leading-relaxed sticky top-0 text-md overflow-y-auto overflow-x-hidden hidden lg:block rounded-t-xl bg-white dark:bg-neutral-900 lg:w-3/12"
-	>
-		<div class="sticky top-0 pr-2 float-right">
-			<DropDown></DropDown>
-		</div>
-		{#each guide_names as guides, i}
-			<div
-				class="category-link my-2 font-semibold px-4 pt-2 text-ellipsis block text-gray-900 dark:text-gray-100"
-				style="max-width: 12rem"
-			>
-				{guides.category}
-				{#if !show_all && i === guide_names.length - 1 && guides.category !== guide_page.category}
-					<button
-						class:hidden={show_all}
-						class="block show-guides"
-						on:click={() => (show_all = true)}
-					>
-						[ show ]
-					</button>
-				{/if}
-			</div>
-			{#each guides.guides as guide, j}
-				{#if guide.name == guide_page.name}
-					<a
-						bind:this={target_link}
-						class:hidden={!show_all &&
-							i === guide_names.length - 1 &&
-							guides.category !== guide_page.category}
-						class:current-nav-link={guide.name == guide_page.name}
-						class="guide-link -indent-2 ml-2 thin-link px-4 block overflow-hidden"
-						style="max-width: 12rem"
-						href="..{guide.url}">{guide.pretty_name}</a
-					>
-
-					{#if guide_slug.length > 0}
-						<div
-							class="navigation max-w-full bg-orange-50 dark:bg-orange-900 p-2 mx-2 border-l-2 border-orange-500 mb-2"
-=======
 			<div class="space-y-6 mt-12">
 				{#each guide_names as { category, guides } (category)}
 					<div>
 						<h2
 							class="text-xs font-bold uppercase tracking-wide text-gray-900 dark:text-gray-100 mb-3"
->>>>>>> main
 						>
 							{category}
 						</h2>
@@ -345,41 +282,6 @@
 				</ol>
 			{/if}
 		</div>
-<<<<<<< HEAD
-		<div class="w-full flex flex-wrap justify-between my-4">
-			{#if prev_guide}
-				<a
-					href="..{prev_guide.url}"
-					class="lg:ml-10 text-left px-4 py-1 bg-gray-50 dark:bg-neutral-800 rounded-full text-gray-900 dark:text-gray-100 hover:underline max-w-[48%]"
-				>
-					<div class="flex text-lg">
-						<span class="text-orange-500 mr-1">&#8592;</span>
-						<p class="whitespace-nowrap overflow-hidden text-ellipsis">
-							{prev_guide.pretty_name}
-						</p>
-					</div>
-				</a>
-			{:else}
-				<div />
-			{/if}
-			{#if next_guide}
-				<a
-					href="..{next_guide.url}"
-					class="text-right px-4 py-1 bg-gray-50 dark:bg-neutral-800 rounded-full text-gray-900 dark:text-gray-100 max-w-1/2 hover:underline max-w-[48%]"
-				>
-					<div class="flex text-lg">
-						<p class="whitespace-nowrap overflow-hidden text-ellipsis">
-							{next_guide.pretty_name}
-						</p>
-						<span class="text-orange-500 ml-1">&#8594;</span>
-					</div>
-				</a>
-			{:else}
-				<div />
-			{/if}
-		</div>
-=======
->>>>>>> main
 
 		{#if guide_page.spaces.length}
 			<div id="spaces-holder" class="mb-4">
@@ -406,21 +308,14 @@
 			class="prose text-lg max-w-full dark:prose-invert"
 			bind:this={content_el}
 		>
-<<<<<<< HEAD
-=======
 			<CopyMarkdown markdown_content={guide_page.content} />
->>>>>>> main
 			{@html guide_page.new_html}
 		</div>
 		<div class="w-full flex flex-wrap justify-between mt-12 mb-8">
 			{#if prev_guide}
 				<a
 					href="..{prev_guide.url}"
-<<<<<<< HEAD
-					class="lg:ml-10 text-left px-4 py-1 bg-gray-50 dark:bg-neutral-800 rounded-full text-gray-900 dark:text-gray-100 hover:underline max-w-[48%]"
-=======
 					class="text-left px-4 py-1 bg-gray-50 dark:bg-neutral-800 rounded-full text-gray-900 dark:text-gray-100 hover:underline max-w-[48%]"
->>>>>>> main
 				>
 					<div class="flex text-lg">
 						<span class="text-orange-500 mr-1">&#8592;</span>

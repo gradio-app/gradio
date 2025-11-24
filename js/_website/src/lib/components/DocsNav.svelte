@@ -18,11 +18,7 @@
 	use:clickOutside
 	on:click_outside={() => (show_nav = false)}
 	class:hidden={!show_nav}
-<<<<<<< HEAD
-	class="max-w-max min-w-[75%] navigation mobile-nav shadow overflow-y-auto fixed backdrop-blur-lg z-50 bg-white dark:bg-neutral-900 pr-6 pl-4 py-4 -ml-4 h-full inset-0 lg:inset-auto lg:shadow-none lg:ml-0 lg:z-0 lg:backdrop-blur-none lg:navigation lg:p-0 lg:pb-4 lg:h-screen lg:leading-relaxed lg:sticky lg:top-0 lg:text-md lg:block lg:rounded-t-xl lg:bg-white lg:dark:bg-neutral-900 lg:overflow-x-clip lg:w-2/12 lg:min-w-0"
-=======
 	class="w-64 flex-shrink-0 max-h-[calc(100vh-4rem)] overflow-y-auto fixed inset-0 z-50 bg-white lg:bg-transparent dark:bg-neutral-900 lg:dark:bg-transparent p-6 lg:sticky lg:top-8 lg:self-start lg:block"
->>>>>>> main
 	id="mobile-nav"
 >
 	<button
@@ -43,39 +39,17 @@
 	</button>
 
 	<p
-<<<<<<< HEAD
-		class="bg-orange-100 dark:bg-orange-900 border border-orange-200 dark:border-orange-700 px-4 py-1 mr-2 rounded-full text-orange-800 dark:text-orange-200 mb-1 w-fit text-xs ml-4"
-=======
 		class="bg-orange-100 dark:bg-orange-900 border border-orange-200 dark:border-orange-700 px-4 py-1 rounded-full text-orange-800 dark:text-orange-200 mb-4 w-fit text-xs"
->>>>>>> main
 	>
 		Use our <a class="link" href="/main/guides/using-docs-mcp">Docs MCP</a>
 	</p>
 
 	{#if show_dropdown}
-<<<<<<< HEAD
-		<div
-			class="w-full sticky top-0 bg-white dark:bg-neutral-900 z-10 hidden lg:block my-4 ml-4"
-		>
-=======
 		<div class="mb-4">
->>>>>>> main
 			<DropDown></DropDown>
 		</div>
 	{/if}
 
-<<<<<<< HEAD
-	{#each library_pages as category_pages}
-		<p class="font-semibold px-4 my-2 block text-gray-900 dark:text-gray-100">
-			{category_pages.category}
-		</p>
-		{#each category_pages.pages as page}
-			<a
-				class:current-nav-link={current_nav_link == page.name}
-				class="thin-link px-4 block leading-8"
-				href={page.name}>{page.pretty_name}</a
-			>
-=======
 	<div class="space-y-8">
 		{#each library_pages as category_pages}
 			<div>
@@ -96,7 +70,6 @@
 					{/each}
 				</ul>
 			</div>
->>>>>>> main
 		{/each}
 	</div>
 </div>

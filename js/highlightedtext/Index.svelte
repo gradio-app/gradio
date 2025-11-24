@@ -29,7 +29,7 @@
 	let value = $derived.by(() =>
 		gradio.props.combine_adjacent
 			? merge_elements(gradio.props.value, "equal")
-			: gradio.props.value
+			: gradio.props.value,
 	);
 </script>
 
@@ -50,11 +50,7 @@
 			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
 			{...gradio.shared.loading_status}
-<<<<<<< HEAD
-			on:clear_status={() =>
-=======
 			on_clear_status={() =>
->>>>>>> main
 				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 		{#if gradio.shared.label && gradio.shared.show_label}
@@ -100,11 +96,7 @@
 			autoscroll={gradio.shared.autoscroll}
 			{...gradio.shared.loading_status}
 			i18n={gradio.i18n}
-<<<<<<< HEAD
-			on:clear_status={() =>
-=======
 			on_clear_status={() =>
->>>>>>> main
 				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 		{#if gradio.shared.label && gradio.shared.show_label}

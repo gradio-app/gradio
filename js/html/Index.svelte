@@ -19,7 +19,7 @@
 		value: gradio.props.value || "",
 		label: gradio.shared.label,
 		visible: gradio.shared.visible,
-		...gradio.props.props
+		...gradio.props.props,
 	});
 
 	let old_value = $state(gradio.props.value);
@@ -39,17 +39,10 @@
 	padding={true}
 	overflow_behavior="visible"
 >
-<<<<<<< HEAD
-	{#if gradio.props.show_label}
-		<BlockLabel
-			Icon={CodeIcon}
-			show_label={gradio.props.show_label}
-=======
 	{#if gradio.shared.show_label}
 		<BlockLabel
 			Icon={CodeIcon}
 			show_label={gradio.shared.show_label}
->>>>>>> main
 			label={gradio.shared.label}
 			float={false}
 		/>

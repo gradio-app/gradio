@@ -62,20 +62,6 @@ describe("Chatbot", () => {
 		const { getAllByTestId } = await render(Chatbot, {
 			loading_status,
 			label: "chatbot",
-<<<<<<< HEAD
-			value: [
-				{ role: "user", content: [{ type: "text", text: "user message one" }] },
-				{
-					role: "assistant",
-					content: [{ type: "text", text: "bot message one" }]
-				}
-			],
-			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
-		});
-
-		await component.$set({
-=======
->>>>>>> main
 			value: [
 				{ role: "user", content: [{ type: "text", text: "user message one" }] },
 				{
@@ -87,12 +73,8 @@ describe("Chatbot", () => {
 					role: "assistant",
 					content: [{ type: "text", text: "bot message two" }]
 				}
-<<<<<<< HEAD
-			]
-=======
 			],
 			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
->>>>>>> main
 		});
 
 		const user_2 = getAllByTestId("user");
@@ -198,30 +180,6 @@ describe("Chatbot", () => {
 		const { getAllByTestId } = await render(Chatbot, {
 			loading_status,
 			label: "chatbot",
-<<<<<<< HEAD
-			latex_delimiters: []
-		});
-
-		let value = [
-			{
-				content: [
-					{
-						file: {
-							path: "https://gradio-builds.s3.amazonaws.com/demo-files/titanic.csv",
-							url: "https://gradio-builds.s3.amazonaws.com/demo-files/titanic.csv",
-							mime_type: "text/csv",
-							alt_text: null
-						},
-						type: "file"
-					}
-				],
-				role: "user"
-			}
-		];
-
-		await component.$set({
-			value: value
-=======
 			latex_delimiters: [],
 			value: [
 				{
@@ -239,7 +197,6 @@ describe("Chatbot", () => {
 					role: "user"
 				}
 			]
->>>>>>> main
 		});
 
 		const file_link = getAllByTestId("chatbot-file") as HTMLAnchorElement[];

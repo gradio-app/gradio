@@ -1,10 +1,6 @@
 {
 	"name": "@self/build",
-<<<<<<< HEAD
-	"version": "0.5.0-dev.1",
-=======
 	"version": "0.5.0",
->>>>>>> main
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "out/index.js",
@@ -20,11 +16,7 @@
 		"svelte-i18n": "^4.0.1"
 	},
 	"peerDependencies": {
-<<<<<<< HEAD
-		"svelte": "^5.43.14"
-=======
 		"svelte": "^5.43.4"
->>>>>>> main
 	},
 	"main_changeset": true,
 	"repository": {

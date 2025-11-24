@@ -42,7 +42,7 @@
 	let fullscreen = $state(false);
 	let dragging = $state(false);
 	let active_source = $derived.by(() =>
-		gradio.props.sources ? gradio.props.sources[0] : null
+		gradio.props.sources ? gradio.props.sources[0] : null,
 	);
 
 	let upload_component: ImageUploader;
@@ -102,11 +102,8 @@
 			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
 			{...gradio.shared.loading_status}
-<<<<<<< HEAD
-=======
 			on_clear_status={() =>
 				gradio.dispatch("clear_status", gradio.shared.loading_status)}
->>>>>>> main
 		/>
 		<StaticImage
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
@@ -149,11 +146,7 @@
 				autoscroll={gradio.shared.autoscroll}
 				i18n={gradio.i18n}
 				{...gradio.shared.loading_status}
-<<<<<<< HEAD
-				on:clear_status={() =>
-=======
 				on_clear_status={() =>
->>>>>>> main
 					gradio.dispatch("clear_status", gradio.shared.loading_status)}
 			/>
 		{/if}

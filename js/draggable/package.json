@@ -21,11 +21,7 @@
 		"@gradio/utils": "workspace:^"
 	},
 	"peerDependencies": {
-<<<<<<< HEAD
-		"svelte": "^5.43.14"
-=======
 		"svelte": "^5.43.4"
->>>>>>> main
 	},
 	"repository": {
 		"type": "git",

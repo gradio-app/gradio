@@ -65,11 +65,7 @@
 		status={pending_upload
 			? "generating"
 			: gradio.shared.loading_status?.status || "complete"}
-<<<<<<< HEAD
-		on:clear_status={() =>
-=======
 		on_clear_status={() =>
->>>>>>> main
 			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 	{#if !gradio.shared.interactive}

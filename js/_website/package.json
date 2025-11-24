@@ -1,10 +1,6 @@
 {
 	"name": "website",
-<<<<<<< HEAD
-	"version": "0.66.0-dev.4",
-=======
 	"version": "0.66.0",
->>>>>>> main
 	"private": true,
 	"scripts": {
 		"dev": "pip install boto3 markdown && python generate_jsons/generate.py && python ../../scripts/generate_theme.py --outfile ./src/lib/assets/theme.css && vite dev",
@@ -35,10 +31,7 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/tabitem": "workspace:^",
 		"@gradio/tabs": "workspace:^",
-<<<<<<< HEAD
-=======
 		"@gradio/button": "workspace:^",
->>>>>>> main
 		"@sindresorhus/slugify": "^3.0.0",
 		"@sveltejs/adapter-vercel": "^5.10.3",
 		"hast-util-to-string": "^3.0.1",

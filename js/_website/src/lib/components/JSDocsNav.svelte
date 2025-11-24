@@ -38,11 +38,7 @@
 	use:clickOutside
 	on:click_outside={() => (show_nav = false)}
 	class:hidden={!show_nav}
-<<<<<<< HEAD
-	class="min-w-[200px] navigation mobile-nav overflow-y-auto fixed backdrop-blur-lg z-50 bg-white dark:bg-neutral-900 pr-6 pl-4 py-4 -ml-4 h-full inset-0 w-5/6 lg:inset-auto lg:ml-0 lg:z-0 lg:backdrop-blur-none lg:navigation lg:p-0 lg:pb-4 lg:h-screen lg:leading-relaxed lg:sticky lg:top-0 lg:text-md lg:block rounded-t-xl lg:bg-white dark:lg:bg-neutral-900 lg:overflow-x-clip lg:w-2/12"
-=======
 	class="w-64 flex-shrink-0 max-h-[calc(100vh-4rem)] overflow-y-auto fixed inset-0 z-50 bg-white lg:bg-transparent dark:bg-neutral-900 lg:dark:bg-transparent p-6 lg:sticky lg:top-8 lg:self-start lg:block"
->>>>>>> main
 	id="mobile-nav"
 >
 	<button
@@ -62,31 +58,13 @@
 		>
 	</button>
 
-<<<<<<< HEAD
-	<div
-		class="w-full sticky top-0 bg-white dark:bg-neutral-900 z-10 hidden lg:block my-4 ml-4"
-	>
-=======
 	<div class="space-y-8">
->>>>>>> main
 		{#if version_dropdown}
 			<div class="mb-4">
 				<DropDown docs_type="js"></DropDown>
 			</div>
 		{/if}
 
-<<<<<<< HEAD
-	<p
-		class="mx-4 block bg-orange-100 dark:bg-orange-900 border border-orange-200 dark:border-orange-700 px-4 py-0.5 mr-2 rounded-full text-orange-800 dark:text-orange-200 mb-1 w-fit hover:shadow-lg"
-	>
-		<a class="inline-block" href="./storybook">
-			<svg
-				viewBox="0 0 20 20"
-				fill="none"
-				xmlns="http://www.w3.org/2000/svg"
-				role="presentation"
-				class="w-4 inline-block mb-1"
-=======
 		<p
 			class="bg-orange-100 dark:bg-orange-900 border border-orange-200 dark:border-orange-700 px-4 py-1 rounded-full text-orange-800 dark:text-orange-200 mb-4 w-fit text-xs"
 		>
@@ -110,7 +88,6 @@
 					></path>
 				</svg>
 				Storybook &rarr;</a
->>>>>>> main
 			>
 		</p>
 
@@ -133,27 +110,6 @@
 			</ul>
 		</div>
 
-<<<<<<< HEAD
-	<p class="font-semibold px-4 my-2 block text-gray-900 dark:text-gray-100">
-		Components
-	</p>
-
-	{#each js_components as name}
-		<a
-			class:current-nav-link={current_nav_link == name}
-			class="px-4 block thin-link"
-			href="./{name}/">{name}</a
-		>
-	{/each}
-	<p class="font-semibold px-4 my-2 block text-gray-900 dark:text-gray-100">
-		Client
-	</p>
-	<a
-		class:current-nav-link={current_nav_link == "js-client"}
-		class="px-4 block thin-link"
-		href="./js-client/">JS Client</a
-	>
-=======
 		<div>
 			<h2
 				class="text-xs font-bold uppercase tracking-wide text-gray-900 dark:text-gray-100 mb-3"
@@ -171,5 +127,4 @@
 			</ul>
 		</div>
 	</div>
->>>>>>> main
 </div>

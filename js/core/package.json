@@ -1,10 +1,6 @@
 {
 	"name": "@gradio/core",
-<<<<<<< HEAD
-	"version": "1.0.0-dev.3",
-=======
 	"version": "1.0.0",
->>>>>>> main
 	"type": "module",
 	"devDependencies": {
 		"@gradio/accordion": "workspace:^",
@@ -95,11 +91,7 @@
 		}
 	},
 	"peerDependencies": {
-<<<<<<< HEAD
-		"svelte": "^5.43.14"
-=======
 		"svelte": "^5.43.4"
->>>>>>> main
 	},
 	"main": "./index.ts",
 	"repository": {

@@ -1,10 +1,6 @@
 {
 	"name": "@gradio/fileexplorer",
-<<<<<<< HEAD
-	"version": "0.5.42-dev.2",
-=======
 	"version": "0.5.42",
->>>>>>> main
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -38,11 +34,7 @@
 		"./package.json": "./package.json"
 	},
 	"peerDependencies": {
-<<<<<<< HEAD
-		"svelte": "^5.43.14"
-=======
 		"svelte": "^5.43.4"
->>>>>>> main
 	},
 	"repository": {
 		"type": "git",

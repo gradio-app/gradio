@@ -18,7 +18,7 @@
 	gradio.props.value = gradio.props.value ?? "#000000";
 	let old_value = $state(gradio.props.value);
 	let label = $derived(
-		gradio.shared.label || gradio.i18n("color_picker.color_picker")
+		gradio.shared.label || gradio.i18n("color_picker.color_picker"),
 	);
 
 	$effect(() => {
@@ -41,11 +41,7 @@
 		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
 		{...gradio.shared.loading_status}
-<<<<<<< HEAD
-		on:clear_status={() =>
-=======
 		on_clear_status={() =>
->>>>>>> main
 			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 

@@ -14,7 +14,7 @@
 
 	const search = () => {
 		let links = document.querySelectorAll(
-			".navigation a"
+			".navigation a",
 		) as NodeListOf<HTMLAnchorElement>;
 		links.forEach((link) => {
 			let linkText = link.innerText.toLowerCase();
@@ -68,11 +68,7 @@
 	use:clickOutside
 	on:click_outside={() => (show_nav = false)}
 	class:hidden={!show_nav}
-<<<<<<< HEAD
-	class="min-w-[200px] navigation mobile-nav overflow-y-auto fixed backdrop-blur-lg z-50 bg-white dark:bg-neutral-900 pr-6 pl-4 py-4 -ml-4 h-full inset-0 w-5/6 lg:inset-auto lg:ml-0 lg:z-0 lg:backdrop-blur-none lg:navigation lg:p-0 lg:pb-4 lg:h-screen lg:leading-relaxed lg:sticky lg:top-0 lg:text-md lg:block rounded-t-xl lg:bg-white dark:lg:bg-neutral-900 lg:overflow-x-clip lg:w-2/12"
-=======
 	class="w-64 flex-shrink-0 max-h-[calc(100vh-4rem)] overflow-y-auto fixed inset-0 z-50 bg-white lg:bg-transparent dark:bg-neutral-900 lg:dark:bg-transparent p-6 lg:sticky lg:top-8 lg:self-start lg:block"
->>>>>>> main
 	id="mobile-nav"
 >
 	<button
@@ -92,34 +88,9 @@
 		>
 	</button>
 
-<<<<<<< HEAD
-	<div
-		class="w-full sticky top-0 bg-white dark:bg-neutral-900 z-10 hidden lg:block my-4 ml-4"
-	>
-		<input
-			bind:value={searchTerm}
-			on:input={search}
-			bind:this={searchBar}
-			id="search"
-			type="search"
-			class="w-4/5 rounded-md border-gray-200 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0"
-			placeholder="Search ⌘-k / ctrl-k"
-			autocomplete="off"
-		/>
-		<!-- <DropDown></DropDown> -->
-		<!-- <select
-			bind:value={docs_type}
-			on:change={() => {
-				if (docs_type == "js") {
-					window.location.href = "/main/docs/js/";
-				}
-			}}
-			class="rounded-md border-gray-200 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0 text-xs mt-2 py-1 pl-2 pr-7 font-mono"
-=======
 	<div class="space-y-2">
 		<h2
 			class="text-xs font-bold uppercase tracking-wide text-gray-900 dark:text-gray-100 mb-3"
->>>>>>> main
 		>
 			{title}
 		</h2>
@@ -135,18 +106,4 @@
 			{/each}
 		</ul>
 	</div>
-<<<<<<< HEAD
-
-	<p class="font-semibold px-4 my-2 block text-gray-900 dark:text-gray-100">
-		{title}
-	</p>
-	{#each Object.entries(items) as [name, url] (name)}
-		<a
-			class:current-nav-link={current_nav_link == name}
-			class="px-4 block thin-link"
-			href={url}>{name}</a
-		>
-	{/each}
-=======
->>>>>>> main
 </div>

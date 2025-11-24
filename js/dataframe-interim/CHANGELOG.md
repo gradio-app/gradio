@@ -1,6 +1,4 @@
 # @gradio/dataframe-interim
-<<<<<<< HEAD
-=======
 ## 0.21.0
 
 ### Features
@@ -21,7 +19,6 @@
 - @gradio/upload@0.17.2
 - @gradio/utils@0.10.3
 - @gradio/image@0.24.0
->>>>>>> main
 
 ## 0.21.0-dev.3
 

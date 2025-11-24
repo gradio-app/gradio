@@ -17,10 +17,8 @@
 	const gradio = new Gradio<ChatbotEvents, ChatbotProps>(props);
 
 	let _value: NormalisedMessage[] | null = $derived(
-		normalise_messages(gradio.props.value as Message[], gradio.shared.root)
+		normalise_messages(gradio.props.value as Message[], gradio.shared.root),
 	);
-<<<<<<< HEAD
-=======
 
 	let show_progress = $derived.by(() => {
 		if (gradio.shared.loading_status.status === "error") {
@@ -30,7 +28,6 @@
 			? "hidden"
 			: "minimal";
 	});
->>>>>>> main
 </script>
 
 <Block
@@ -53,15 +50,8 @@
 			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
 			{...gradio.shared.loading_status}
-<<<<<<< HEAD
-			show_progress={gradio.shared.loading_status.show_progress === "hidden"
-				? "hidden"
-				: "minimal"}
-			on:clear_status={() =>
-=======
 			{show_progress}
 			on_clear_status={() =>
->>>>>>> main
 				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 	{/if}
@@ -82,7 +72,7 @@
 			feedback_value={gradio.props.feedback_value}
 			show_share_button={(gradio.props.buttons ?? ["share"]).includes("share")}
 			show_copy_all_button={(gradio.props.buttons ?? ["copy_all"]).includes(
-				"copy_all"
+				"copy_all",
 			)}
 			value={_value}
 			latex_delimiters={gradio.props.latex_delimiters}
@@ -119,7 +109,7 @@
 					return;
 				//@ts-ignore
 				gradio.props.value[e.detail.index].content = [
-					{ text: e.detail.value, type: "text" }
+					{ text: e.detail.value, type: "text" },
 				];
 				gradio.dispatch("edit", e.detail);
 			}}

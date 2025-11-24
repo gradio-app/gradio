@@ -77,11 +77,7 @@ export class AppTree {
 		components: ComponentMeta[],
 		layout: LayoutNode,
 		dependencies: Dependency[],
-<<<<<<< HEAD
 		config: Omit<AppConfig, "api_url">,
-=======
-		config: AppConfig,
->>>>>>> main
 		app: client_return,
 		reactive_formatter: (str: string) => string
 	) {
@@ -89,15 +85,10 @@ export class AppTree {
 			this.ready_resolve = resolve;
 		});
 		this.reactive_formatter = reactive_formatter;
-<<<<<<< HEAD
 		this.#config = {
 			...config,
 			api_url: new URL(config.api_prefix, config.root).toString()
 		};
-=======
-
-		this.#config = config;
->>>>>>> main
 		this.#component_payload = components;
 		this.#layout_payload = layout;
 		this.#dependency_payload = dependencies;
@@ -140,7 +131,6 @@ export class AppTree {
 		components: ComponentMeta[],
 		layout: LayoutNode,
 		dependencies: Dependency[],
-<<<<<<< HEAD
 		config: Omit<AppConfig, "api_url">
 	) {
 		this.#layout_payload = layout;
@@ -149,13 +139,6 @@ export class AppTree {
 			...config,
 			api_url: new URL(config.api_prefix, config.root).toString()
 		};
-=======
-		config: AppConfig
-	) {
-		this.#layout_payload = layout;
-		this.#component_payload = components;
-		this.#config = config;
->>>>>>> main
 		this.#dependency_payload = dependencies;
 
 		this.root = this.create_node(
@@ -225,7 +208,6 @@ export class AppTree {
 
 	postprocess(tree: ProcessedComponentMeta) {
 		this.root = this.traverse(tree, [
-<<<<<<< HEAD
 			(node) => handle_visibility(node, this.#config.api_url),
 			(node) =>
 				untrack_children_of_invisible_parents(
@@ -235,23 +217,6 @@ export class AppTree {
 			(node) => handle_empty_forms(node, this.components_to_register),
 			(node) => translate_props(node),
 			(node) => apply_initial_tabs(node, this.initial_tabs),
-=======
-			(node) => handle_visibility(node, this.#config.root),
-			(node) =>
-				untrack_children_of_invisible_parents(
-					node,
-					this.#config.root,
-					this.components_to_register
-				),
-			(node) =>
-				handle_empty_forms(
-					node,
-					this.#config.root,
-					this.components_to_register
-				),
-			(node) => translate_props(node, this.#config.root),
-			(node) => apply_initial_tabs(node, this.#config.root, this.initial_tabs),
->>>>>>> main
 			(node) => this.find_attached_events(node, this.#dependency_payload)
 		]);
 	}
@@ -351,10 +316,7 @@ export class AppTree {
 			component.props,
 			[this.#input_ids, this.#output_ids],
 			this.client,
-<<<<<<< HEAD
 			this.#config.api_url,
-=======
->>>>>>> main
 			{ ...this.#config }
 		);
 
@@ -373,11 +335,7 @@ export class AppTree {
 					? get_component(
 							component.type,
 							component.component_class_id,
-<<<<<<< HEAD
 							this.#config.api_url || ""
-=======
-							this.#config.root || ""
->>>>>>> main
 						)
 					: null,
 			key: component.key,
@@ -433,11 +391,7 @@ export class AppTree {
 			this.root = this.traverse(this.root!, [
 				//@ts-ignore
 				(n) => set_visibility_for_updated_node(n, id, new_state.visible),
-<<<<<<< HEAD
 				(n) => handle_visibility(n, this.#config.api_url)
-=======
-				(n) => handle_visibility(n, this.#config.root)
->>>>>>> main
 			]);
 			already_updated_visibility = true;
 		}
@@ -449,11 +403,7 @@ export class AppTree {
 		// otherwise there could be
 		await tick();
 		this.root = this.traverse(this.root!, (n) =>
-<<<<<<< HEAD
 			handle_visibility(n, this.#config.api_url)
-=======
-			handle_visibility(n, this.#config.root)
->>>>>>> main
 		);
 	}
 
@@ -514,10 +464,7 @@ function gather_props(
 	props: ComponentMeta["props"],
 	dependencies: [Set<number>, Set<number>],
 	client: client_return,
-<<<<<<< HEAD
 	api_url: string,
-=======
->>>>>>> main
 	additional: Record<string, unknown> = {}
 ): {
 	shared_props: SharedProps;
@@ -562,17 +509,7 @@ function gather_props(
 	_shared_props.load_component = (
 		name: string,
 		variant: "base" | "component" | "example"
-<<<<<<< HEAD
 	) => get_component(name, "", api_url, variant) as LoadingComponent;
-=======
-	) =>
-		get_component(
-			name,
-			"",
-			_shared_props.root || "",
-			variant
-		) as LoadingComponent;
->>>>>>> main
 
 	_shared_props.visible =
 		_shared_props.visible === undefined ? true : _shared_props.visible;
@@ -583,31 +520,19 @@ function gather_props(
 
 function handle_visibility(
 	node: ProcessedComponentMeta,
-<<<<<<< HEAD
 	api_url: string
-=======
-	root: string
->>>>>>> main
 ): ProcessedComponentMeta {
 	// Check if the node is visible
 	if (node.props.shared_props.visible && !node.component) {
 		const result: ProcessedComponentMeta = {
 			...node,
-<<<<<<< HEAD
 			component: get_component(node.type, node.component_class_id, api_url),
-=======
-			component: get_component(node.type, node.component_class_id, root),
->>>>>>> main
 			children: []
 		};
 
 		if (node.children) {
 			result.children = node.children.map((child) =>
-<<<<<<< HEAD
 				handle_visibility(child, api_url)
-=======
-				handle_visibility(child, root)
->>>>>>> main
 			);
 		}
 		return result;
@@ -640,10 +565,6 @@ function _untrack(
 
 function untrack_children_of_invisible_parents(
 	node: ProcessedComponentMeta,
-<<<<<<< HEAD
-=======
-	root: string,
->>>>>>> main
 	components_to_register: Set<number>
 ): ProcessedComponentMeta {
 	// Check if the node is visible
@@ -655,10 +576,6 @@ function untrack_children_of_invisible_parents(
 
 function handle_empty_forms(
 	node: ProcessedComponentMeta,
-<<<<<<< HEAD
-=======
-	root: string,
->>>>>>> main
 	components_to_register: Set<number>
 ): ProcessedComponentMeta {
 	// Check if the node is visible
@@ -677,14 +594,7 @@ function handle_empty_forms(
 	return node;
 }
 
-<<<<<<< HEAD
 function translate_props(node: ProcessedComponentMeta): ProcessedComponentMeta {
-=======
-function translate_props(
-	node: ProcessedComponentMeta,
-	root: string
-): ProcessedComponentMeta {
->>>>>>> main
 	const supported_props = [
 		"description",
 		"info",
@@ -711,10 +621,6 @@ function translate_props(
 
 function apply_initial_tabs(
 	node: ProcessedComponentMeta,
-<<<<<<< HEAD
-=======
-	root: string,
->>>>>>> main
 	initial_tabs: Record<number, Tab[]>
 ): ProcessedComponentMeta {
 	if (node.type === "tabs" && node.id in initial_tabs) {

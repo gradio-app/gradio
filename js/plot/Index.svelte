@@ -10,7 +10,7 @@
 		Block,
 		BlockLabel,
 		FullscreenButton,
-		IconButtonWrapper
+		IconButtonWrapper,
 	} from "@gradio/atoms";
 	import { Plot as PlotIcon } from "@gradio/icons";
 
@@ -53,11 +53,7 @@
 		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
 		{...gradio.shared.loading_status}
-<<<<<<< HEAD
-		on:clear_status={() =>
-=======
 		on_clear_status={() =>
->>>>>>> main
 			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 	<Plot {gradio} />

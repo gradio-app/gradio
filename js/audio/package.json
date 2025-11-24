@@ -1,10 +1,6 @@
 {
 	"name": "@gradio/audio",
-<<<<<<< HEAD
-	"version": "0.20.0-dev.4",
-=======
 	"version": "0.20.0",
->>>>>>> main
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -54,11 +50,7 @@
 		}
 	},
 	"peerDependencies": {
-<<<<<<< HEAD
-		"svelte": "^5.43.14"
-=======
 		"svelte": "^5.43.4"
->>>>>>> main
 	},
 	"repository": {
 		"type": "git",
