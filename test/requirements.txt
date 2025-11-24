@@ -205,13 +205,6 @@ parso==0.8.4
     # via jedi
 pexpect==4.9.0
     # via ipython
-pillow==12.0
-    # via
-    #   diffusers
-    #   gradio
-    #   imageio
-    #   matplotlib
-    #   scikit-image
 pluggy==1.5.0
     # via pytest
 polars==1.31.0
