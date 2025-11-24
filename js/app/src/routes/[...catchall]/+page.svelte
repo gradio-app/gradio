@@ -81,6 +81,7 @@
 	import { _ } from "svelte-i18n";
 	import { Client } from "@gradio/client";
 	import { page } from "$app/stores";
+	import { setupi18n } from "@gradio/core";
 
 	import { init } from "@huggingface/space-header";
 	import { browser } from "$app/environment";
@@ -240,11 +241,14 @@
 	let pending_deep_link_error = false;
 
 	let gradio_dev_mode = "";
+	let i18n_ready = false;
+	setupi18n().then(() => {
+		i18n_ready = true;
+	});
 
 	onMount(async () => {
 		//@ts-ignore
 		config = data.config;
-		window.gradio_config = config;
 		window.gradio_config = data.config;
 		config = data.config;
 
@@ -252,7 +256,7 @@
 			pending_deep_link_error = true;
 		}
 
-		if (!app.config) {
+		if (!app?.config && !config.auth_required) {
 			throw new Error("Could not resolve app config");
 		}
 
@@ -415,6 +419,7 @@
 			root={config.root}
 			space_id={space}
 			{app_mode}
+			i18n={i18n_ready ? $_ : (s) => s}
 		/>
 	{:else if config && app}
 		<svelte:component
