@@ -1,4 +1,82 @@
 # @gradio/audio
+## 0.20.0
+
+### Features
+
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Clear Error statuses
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Fix audio errors when streaming
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Add minimal recording UI to gr.MultimodalTextbox
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Add back default values for labels
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Improve audio player UI in gr.Chatbot
+- [#12438](https://github.com/gradio-app/gradio/pull/12438) [`25ffc03`](https://github.com/gradio-app/gradio/commit/25ffc0398f8feb43d817c02b2ab970c16de6d797) - Svelte5 migration and bugfix
+
+### Fixes
+
+
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Fix dropdown filtering
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Fix Undo in Audio component
+
+### Dependencies
+
+- @gradio/atoms@0.19.0
+- @gradio/button@0.5.14
+- @gradio/client@2.0.0
+- @gradio/icons@0.15.0
+- @gradio/statustracker@0.12.0
+- @gradio/upload@0.17.2
+- @gradio/utils@0.10.3
+
+## 0.20.0-dev.4
+
+### Features
+
+- [#12373](https://github.com/gradio-app/gradio/pull/12373) [`017eaf0`](https://github.com/gradio-app/gradio/commit/017eaf0a9a783d0f9f2fbf7fe2e30c855c9dd9cd) - Fix audio errors when streaming.  Thanks @pngwn!
+- [#12102](https://github.com/gradio-app/gradio/pull/12102) [`baa1cd6`](https://github.com/gradio-app/gradio/commit/baa1cd67573292f95d4b4263c8f15fe89fbeeaa1) - Improve audio player UI in gr.Chatbot.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.19.0-dev.1
+- @gradio/client@2.0.0-dev.2
+- @gradio/statustracker@0.12.0-dev.1
+- @gradio/button@0.5.14-dev.2
+- @gradio/upload@0.17.2-dev.2
+
+## 0.19.4-dev.3
+
+### Fixes
+
+- [#12344](https://github.com/gradio-app/gradio/pull/12344) [`9bf6bfb`](https://github.com/gradio-app/gradio/commit/9bf6bfb61dfb6fe620339319e89062f3c5bb78f2) - Fix dropdown filtering.  Thanks @freddyaboulton!
+
+## 0.19.4-dev.2
+
+### Fixes
+
+- [#12327](https://github.com/gradio-app/gradio/pull/12327) [`a8158eb`](https://github.com/gradio-app/gradio/commit/a8158eb61c4a2fc88b196c0b23390a55e158bf92) - Fix Undo in Audio component.  Thanks @dawoodkhan82!
+
+## 0.19.4-dev.1
+
+### Dependency updates
+
+- @gradio/atoms@0.18.2-dev.0
+- @gradio/upload@0.17.2-dev.1
+- @gradio/utils@0.10.3-dev.0
+- @gradio/button@0.5.14-dev.1
+- @gradio/statustracker@0.12.0-dev.0
+- @gradio/icons@0.15.0-dev.0
+
+## 0.19.4-dev.0
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.1
+
+## 0.19.4-dev.0
+
+### Dependency updates
+
+- @gradio/upload@0.17.2-dev.0
+- @gradio/client@2.0.0-dev.0
+- @gradio/button@0.5.14-dev.0
 
 ## 0.20.0-dev.4
 

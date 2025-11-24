@@ -1,4 +1,44 @@
 # @gradio/checkboxgroup
+## 0.8.0
+
+### Features
+
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Clear Error statuses
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Fix various event issues
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - fix font
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Add back default values for labels
+- [#12438](https://github.com/gradio-app/gradio/pull/12438) [`25ffc03`](https://github.com/gradio-app/gradio/commit/25ffc0398f8feb43d817c02b2ab970c16de6d797) - Svelte5 migration and bugfix
+
+### Dependencies
+
+- @gradio/atoms@0.19.0
+- @gradio/statustracker@0.12.0
+- @gradio/utils@0.10.3
+
+## 0.8.0-dev.2
+
+### Features
+
+- [#12375](https://github.com/gradio-app/gradio/pull/12375) [`2043967`](https://github.com/gradio-app/gradio/commit/2043967b958be9d51c4ee25272afa84bf0dbea08) - fix font.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.19.0-dev.1
+- @gradio/statustracker@0.12.0-dev.1
+
+## 0.8.0-dev.1
+
+### Features
+
+- [#12357](https://github.com/gradio-app/gradio/pull/12357) [`c9cf634`](https://github.com/gradio-app/gradio/commit/c9cf634a9cd34b4adadde1a6a98d60faf732639a) - Fix various event issues.  Thanks @pngwn!
+
+## 0.7.1-dev.0
+
+### Dependency updates
+
+- @gradio/atoms@0.18.2-dev.0
+- @gradio/utils@0.10.3-dev.0
+- @gradio/statustracker@0.12.0-dev.0
 
 ## 0.8.0-dev.2
 

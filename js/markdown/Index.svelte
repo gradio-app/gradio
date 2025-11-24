@@ -32,7 +32,11 @@
 		i18n={gradio.i18n}
 		{...gradio.shared.loading_status}
 		variant="center"
+<<<<<<< HEAD
 		on:clear_status={() =>
+=======
+		on_clear_status={() =>
+>>>>>>> main
 			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 	<div

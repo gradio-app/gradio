@@ -1,6 +1,10 @@
 {
 	"name": "@gradio/nativeplot",
+<<<<<<< HEAD
 	"version": "0.9.0-dev.2",
+=======
+	"version": "0.9.0",
+>>>>>>> main
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -34,7 +38,11 @@
 		"@gradio/preview": "workspace:^"
 	},
 	"peerDependencies": {
+<<<<<<< HEAD
 		"svelte": "^5.43.14"
+=======
+		"svelte": "^5.43.4"
+>>>>>>> main
 	},
 	"repository": {
 		"type": "git",

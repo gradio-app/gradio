@@ -10,6 +10,12 @@ const svelte_codes_to_ignore: Record<string, string> = {
 	"reactive-component": "Icon"
 };
 
+<<<<<<< HEAD
+=======
+const RE_SVELTE_IMPORT =
+	/import\s+(?:([ -~]*)\s+from\s+){0,1}['"](svelte(?:\/[ -~]+){0,3})['"]/g;
+// const RE_BARE_SVELTE_IMPORT = /import ("|')svelte(\/\w+)*("|')(;)*/g;
+>>>>>>> main
 export function plugins(config: ComponentConfig): PluginOption[] {
 	const _additional_plugins = config.plugins || [];
 	const _additional_svelte_preprocess = config.svelte?.preprocess || [];

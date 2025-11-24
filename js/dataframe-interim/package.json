@@ -1,6 +1,10 @@
 {
 	"name": "@gradio/dataframe-interim",
+<<<<<<< HEAD
 	"version": "0.21.0-dev.3",
+=======
+	"version": "0.21.0",
+>>>>>>> main
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -60,4 +64,8 @@
 		"@gradio/utils": "npm:@gradio/utils@^0.10.2",
 		"@gradio/image": "npm:@gradio/image@0.23.1"
 	}
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> main

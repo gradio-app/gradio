@@ -39,10 +39,17 @@
 	padding={true}
 	overflow_behavior="visible"
 >
+<<<<<<< HEAD
 	{#if gradio.props.show_label}
 		<BlockLabel
 			Icon={CodeIcon}
 			show_label={gradio.props.show_label}
+=======
+	{#if gradio.shared.show_label}
+		<BlockLabel
+			Icon={CodeIcon}
+			show_label={gradio.shared.show_label}
+>>>>>>> main
 			label={gradio.shared.label}
 			float={false}
 		/>
@@ -53,7 +60,7 @@
 		i18n={gradio.i18n}
 		{...gradio.shared.loading_status}
 		variant="center"
-		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+		on_clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	<div
 		class="html-container"

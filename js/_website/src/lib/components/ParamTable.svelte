@@ -3,7 +3,7 @@
 	export let header = "Parameters";
 	export let anchor_links: string | boolean = true;
 
-	import ParamViewer from "@gradio/paramviewer";
+	import ParamViewer from "@gradio/paramviewer/ParamViewer";
 
 	interface OriginalParam {
 		annotation: string | null;
@@ -52,9 +52,11 @@
 		for (let param of original_parameters) {
 			new_parameters[param.name] = {
 				type: param.annotation
-					.replaceAll("Sequence[", "list[")
-					.replaceAll("AbstractSet[", "set[")
-					.replaceAll("Mapping[", "dict["),
+					? param.annotation
+							.replaceAll("Sequence[", "list[")
+							.replaceAll("AbstractSet[", "set[")
+							.replaceAll("Mapping[", "dict[")
+					: null,
 				description: decode_html_entities(param.doc),
 				default: param.default || null
 			};
@@ -65,7 +67,7 @@
 </script>
 
 <ParamViewer
-	value={new_parameters}
+	docs={new_parameters}
 	{header}
 	anchor_links={typeof anchor_links === "string"
 		? anchor_links.toLowerCase()
@@ -181,6 +183,10 @@
 		transition: transform 0.3s ease;
 		font-size: 0.7em;
 		opacity: 0.7;
+<<<<<<< HEAD
+=======
+		background: transparent;
+>>>>>>> main
 	}
 
 	:global(details[open]) :global(.type)::after {
@@ -254,4 +260,65 @@
 	:global(.param-content) {
 		overflow-y: auto;
 	}
+<<<<<<< HEAD
+=======
+
+	/* Dark mode overrides */
+	:global(.dark) :global(.wrap) {
+		background-color: var(--neutral-800);
+		border-color: var(--neutral-700);
+		color: var(--neutral-100);
+	}
+
+	:global(.dark) :global(.header) {
+		border-bottom-color: var(--neutral-700);
+	}
+
+	:global(.dark) :global(.title) {
+		color: var(--neutral-100);
+	}
+
+	:global(.dark) :global(.toggle-all) {
+		color: var(--neutral-100);
+	}
+
+	:global(.dark) :global(.type) {
+		background: var(--neutral-900);
+		border-bottom-color: var(--neutral-700);
+		color: var(--neutral-100);
+	}
+
+	:global(.dark) :global(.type) :global(pre),
+	:global(.dark) :global(.type) :global(code) {
+		color: var(--neutral-100);
+	}
+
+	:global(.dark) :global(.default) {
+		background: var(--neutral-800);
+		border-bottom-color: var(--neutral-700);
+		color: var(--neutral-100);
+	}
+
+	:global(.dark) :global(.default) :global(span) {
+		color: var(--neutral-300);
+	}
+
+	:global(.dark) :global(.description) {
+		background: var(--neutral-800);
+		color: var(--neutral-100);
+	}
+
+	:global(.dark) :global(.param) {
+		border-bottom-color: var(--neutral-700);
+	}
+
+	:global(.dark) :global(.param-link) {
+		color: var(--neutral-100);
+	}
+
+	:global(.dark) :global(.type)::after {
+		background: transparent;
+		color: var(--neutral-100);
+	}
+>>>>>>> main
 </style>

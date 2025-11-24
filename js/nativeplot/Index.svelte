@@ -303,7 +303,10 @@
 	}
 
 	$effect(() => {
+<<<<<<< HEAD
 		console.log("effect 0 run");
+=======
+>>>>>>> main
 		_data = gradio.props.value
 			? reformat_data(gradio.props.value, x_start, x_end)
 			: [];
@@ -311,7 +314,10 @@
 
 	let old_value = $state<PlotData | null>(gradio.props.value);
 	$effect(() => {
+<<<<<<< HEAD
 		console.log("effect 1 run");
+=======
+>>>>>>> main
 		if (old_value !== gradio.props.value && view) {
 			old_value = gradio.props.value;
 			view.data("data", _data).runAsync();
@@ -489,7 +495,10 @@
 		void computed_style;
 
 		if (mounted && chart_element) {
+<<<<<<< HEAD
 			console.log("Reloading chart due to prop change");
+=======
+>>>>>>> main
 			untrack(() => {
 				load_chart();
 			});
@@ -646,7 +655,11 @@
 									legend: {
 										orient: "bottom",
 										title: gradio.props.color_title,
+<<<<<<< HEAD
 										values: gradio.props.colors_in_legend || undefined
+=======
+										values: [...gradio.props.colors_in_legend] || undefined
+>>>>>>> main
 									},
 									scale:
 										gradio.props.value!.datatypes[gradio.props.color] ===
@@ -768,6 +781,10 @@
 			title: gradio.props.title || undefined
 		} as Spec;
 	}
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
 	/* eslint-enable complexity */
 </script>
 
@@ -787,7 +804,11 @@
 			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
 			{...gradio.shared.loading_status}
+<<<<<<< HEAD
 			on:clear_status={() =>
+=======
+			on_clear_status={() =>
+>>>>>>> main
 				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 	{/if}
@@ -806,8 +827,13 @@
 			{/if}
 		</IconButtonWrapper>
 	{/if}
+<<<<<<< HEAD
 	<BlockTitle show_label={gradio.props.show_label} info={undefined}
 		>{gradio.props.label}</BlockTitle
+=======
+	<BlockTitle show_label={gradio.shared.show_label} info={undefined}
+		>{gradio.shared.label}</BlockTitle
+>>>>>>> main
 	>
 
 	{#if gradio.props.value && is_browser}

@@ -1,4 +1,72 @@
 # @gradio/gallery
+## 0.15.35
+
+### Features
+
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Clear Error statuses
+- [#12438](https://github.com/gradio-app/gradio/pull/12438) [`25ffc03`](https://github.com/gradio-app/gradio/commit/25ffc0398f8feb43d817c02b2ab970c16de6d797) - Svelte5 migration and bugfix
+
+### Fixes
+
+
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Gallery: Allow empty columns when items < columns
+
+### Dependencies
+
+- @gradio/atoms@0.19.0
+- @gradio/client@2.0.0
+- @gradio/file@0.13.1
+- @gradio/icons@0.15.0
+- @gradio/image@0.24.0
+- @gradio/statustracker@0.12.0
+- @gradio/upload@0.17.2
+- @gradio/utils@0.10.3
+- @gradio/video@0.17.0
+
+## 0.15.35-dev.3
+
+### Dependency updates
+
+- @gradio/atoms@0.19.0-dev.1
+- @gradio/client@2.0.0-dev.2
+- @gradio/statustracker@0.12.0-dev.1
+- @gradio/upload@0.17.2-dev.2
+- @gradio/image@0.24.0-dev.2
+- @gradio/video@0.17.0-dev.2
+- @gradio/file@0.13.1-dev.2
+
+## 0.15.35-dev.2
+
+### Dependency updates
+
+- @gradio/atoms@0.18.2-dev.0
+- @gradio/upload@0.17.2-dev.1
+- @gradio/utils@0.10.3-dev.0
+- @gradio/image@0.23.2-dev.1
+- @gradio/statustracker@0.12.0-dev.0
+- @gradio/icons@0.15.0-dev.0
+- @gradio/video@0.17.0-dev.1
+- @gradio/file@0.13.1-dev.1
+
+## 0.15.35-dev.1
+
+### Fixes
+
+- [#12066](https://github.com/gradio-app/gradio/pull/12066) [`6a4757a`](https://github.com/gradio-app/gradio/commit/6a4757ab289e8e53b5503eb6887333d7ad26c9eb) - Gallery: Allow empty columns when items < columns.  Thanks @missionfloyd!
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.1
+
+## 0.15.35-dev.0
+
+### Dependency updates
+
+- @gradio/upload@0.17.2-dev.0
+- @gradio/client@2.0.0-dev.0
+- @gradio/image@0.23.2-dev.0
+- @gradio/file@0.13.1-dev.0
+- @gradio/video@0.17.0-dev.0
 
 ## 0.15.35-dev.3
 

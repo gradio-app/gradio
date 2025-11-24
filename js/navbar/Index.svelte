@@ -12,7 +12,11 @@
 	let navbar_props = $derived.by(() => {
 		return {
 			visible: gradio.shared.visible,
+<<<<<<< HEAD
 			main_page_name: gradio.props.main_page_name || "Home",
+=======
+			main_page_name: gradio.props.main_page_name ?? "Home",
+>>>>>>> main
 			value: gradio.props.value
 		};
 	});

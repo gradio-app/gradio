@@ -19,6 +19,18 @@
 	let _value: NormalisedMessage[] | null = $derived(
 		normalise_messages(gradio.props.value as Message[], gradio.shared.root)
 	);
+<<<<<<< HEAD
+=======
+
+	let show_progress = $derived.by(() => {
+		if (gradio.shared.loading_status.status === "error") {
+			return "full";
+		}
+		return gradio.shared.loading_status.show_progress === "hidden"
+			? "hidden"
+			: "minimal";
+	});
+>>>>>>> main
 </script>
 
 <Block
@@ -41,10 +53,15 @@
 			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
 			{...gradio.shared.loading_status}
+<<<<<<< HEAD
 			show_progress={gradio.shared.loading_status.show_progress === "hidden"
 				? "hidden"
 				: "minimal"}
 			on:clear_status={() =>
+=======
+			{show_progress}
+			on_clear_status={() =>
+>>>>>>> main
 				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 	{/if}

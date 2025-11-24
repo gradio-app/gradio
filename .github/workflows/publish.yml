@@ -5,7 +5,10 @@ on:
   push:
     branches:
       - main
+<<<<<<< HEAD
       - 6.0-dev
+=======
+>>>>>>> main
 
 env:
   CI: true

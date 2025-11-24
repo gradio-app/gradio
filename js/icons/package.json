@@ -1,6 +1,10 @@
 {
 	"name": "@gradio/icons",
+<<<<<<< HEAD
 	"version": "0.15.0-dev.0",
+=======
+	"version": "0.15.0",
+>>>>>>> main
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "src/index.ts",
@@ -14,7 +18,11 @@
 		"directory": "js/icons"
 	},
 	"peerDependencies": {
+<<<<<<< HEAD
 		"svelte": "^5.43.14"
+=======
+		"svelte": "^5.43.4"
+>>>>>>> main
 	},
 	"exports": {
 		".": {

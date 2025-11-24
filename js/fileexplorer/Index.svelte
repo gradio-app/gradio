@@ -51,7 +51,11 @@
 		{...gradio.shared.loading_status}
 		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
+<<<<<<< HEAD
 		on:clear_status={() =>
+=======
+		on_clear_status={() =>
+>>>>>>> main
 			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 	<BlockLabel

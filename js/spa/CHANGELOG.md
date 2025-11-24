@@ -1,4 +1,53 @@
 # @self/spa
+## 1.0.0
+
+### Features
+
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Fix browser component tests
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Rename show_api
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Add default gradio style to custom html in spa mode
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Fix Reload Mode in 6.0
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Reduce files in build
+- [#12438](https://github.com/gradio-app/gradio/pull/12438) [`25ffc03`](https://github.com/gradio-app/gradio/commit/25ffc0398f8feb43d817c02b2ab970c16de6d797) - Svelte5 migration and bugfix
+
+## 1.0.0-dev.1
+
+### Features
+
+- [#12383](https://github.com/gradio-app/gradio/pull/12383) [`6505763`](https://github.com/gradio-app/gradio/commit/650576399bad10f03aaa03dd9437f03b47ba378b) - Fix Reload Mode in 6.0.  Thanks @freddyaboulton!
+- [#12391](https://github.com/gradio-app/gradio/pull/12391) [`5ba7e1e`](https://github.com/gradio-app/gradio/commit/5ba7e1e7d502017551c5899db175bcc9c6fb5eaa) - Reduce files in build.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/core@1.0.0-dev.3
+- @gradio/client@2.0.0-dev.2
+- @self/build@0.5.0-dev.1
+
+## 1.0.0-dev.0
+
+### Dependency updates
+
+- @gradio/theme@0.5.0-dev.0
+- @gradio/core@1.0.0-dev.1
+- @self/build@0.4.1-dev.0
+
+## 1.0.0-dev.0
+
+### Features
+
+- [#12069](https://github.com/gradio-app/gradio/pull/12069) [`9de88ca`](https://github.com/gradio-app/gradio/commit/9de88ca470ce529366d259f0deaa955f658000b9) - Rename show_api.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.1
+- @gradio/core@1.0.0-dev.0
+
+## 0.12.1
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.0
+- @gradio/core@0.29.2
 
 ## 1.0.0-dev.1
 

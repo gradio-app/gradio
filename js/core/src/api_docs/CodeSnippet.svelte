@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ComponentMeta, Dependency } from "../types";
+	import type { ComponentMeta, Dependency, Payload } from "../types";
 	import CopyButton from "./CopyButton.svelte";
 	import { represent_value, is_potentially_nested_file_data } from "./utils";
 	import { Block } from "@gradio/atoms";
@@ -24,6 +24,10 @@
 	export let api_description: string | null = null;
 	export let analytics: Record<string, any>;
 	export let markdown_code_snippets: Record<string, Record<string, string>>;
+<<<<<<< HEAD
+=======
+	export let last_api_call: Payload | null = null;
+>>>>>>> main
 
 	let python_code: HTMLElement;
 	let js_code: HTMLElement;
@@ -41,6 +45,30 @@
 	$: normalised_api_prefix = api_prefix ? api_prefix : "/";
 	$: normalised_root = root.replace(/\/$/, "");
 
+<<<<<<< HEAD
+=======
+	$: is_most_recently_used = last_api_call?.fn_index === dependency.id;
+
+	$: actual_data =
+		is_most_recently_used && last_api_call?.data
+			? last_api_call.data.filter((d) => typeof d !== "undefined")
+			: null;
+
+	function getParameterValue(param: any, index: number): any {
+		if (
+			is_most_recently_used &&
+			actual_data &&
+			actual_data[index] !== undefined
+		) {
+			return actual_data[index];
+		}
+		return param.parameter_has_default !== undefined &&
+			param.parameter_has_default
+			? param.parameter_default
+			: param.example_input;
+	}
+
+>>>>>>> main
 	$: markdown_code_snippets[
 		dependency.api_name as keyof typeof markdown_code_snippets
 	] = {
@@ -55,6 +83,8 @@
 		api_name={dependency.api_name}
 		description={api_description}
 		{analytics}
+		{last_api_call}
+		dependency_id={dependency.id}
 	/>
 	<div class:hidden={current_language !== "python"}>
 		<Block>
@@ -71,14 +101,16 @@ client = Client(<span class="token string">"{space_id || root}"</span
 						>{#if username !== null}, auth=("{username}", **password**){/if})
 result = client.<span class="highlight">predict</span
 						>(<!--
--->{#each endpoint_parameters as { python_type, example_input, parameter_name, parameter_has_default, parameter_default }, i}<!--
+-->{#each endpoint_parameters as param, i}<!--
 		-->
-	{parameter_name
-								? parameter_name + "="
+	{param.parameter_name
+								? param.parameter_name + "="
 								: ""}<span
+								class:recent-value={is_most_recently_used &&
+									actual_data?.[i] !== undefined}
 								>{represent_value(
-									parameter_has_default ? parameter_default : example_input,
-									python_type.type,
+									getParameterValue(param, i),
+									param.python_type.type,
 									"py"
 								)}</span
 							>,{/each}<!--
@@ -112,22 +144,26 @@ result = client.<span class="highlight">predict</span
 	const result = await client.predict(<span class="api-name"
 							>"/{dependency.api_name}"</span
 						>, &lbrace; <!--
-	-->{#each endpoint_parameters as { label, parameter_name, type, python_type, component, example_input, serializer }, i}<!--
-			-->{#if blob_components.includes(component)}<!--
+	-->{#each endpoint_parameters as param, i}<!--
+			-->{#if blob_components.includes(param.component)}<!--
 		-->
 					<span
 									class="example-inputs"
-									>{parameter_name}: example{component}</span
+									>{param.parameter_name}: example{param.component}</span
 								>, <!--
 			--><span class="desc"><!--
 			--></span
 								><!--
 			-->{:else}<!--
 		-->		
-			<span class="example-inputs"
-									>{parameter_name}: {represent_value(
-										example_input,
-										python_type.type,
+			<span
+									class="example-inputs {is_most_recently_used &&
+									actual_data?.[i] !== undefined
+										? 'recent-value'
+										: ''}"
+									>{param.parameter_name}: {represent_value(
+										getParameterValue(param, i),
+										param.python_type.type,
 										"js"
 									)}</span
 								>, <!--
@@ -151,13 +187,18 @@ result = client.<span class="highlight">predict</span
 
 				<div bind:this={bash_post_code}>
 					<pre>curl -X POST {normalised_root}{normalised_api_prefix}/call/{dependency.api_name} -s -H "Content-Type: application/json" -d '{"{"}
-	"data": [{#each endpoint_parameters as { label, parameter_name, type, python_type, component, example_input, serializer }, i}
+	"data": [{#each endpoint_parameters as param, i}
 							<!-- 
-	-->{represent_value(
-								example_input,
-								python_type.type,
-								"bash"
-							)}{#if i < endpoint_parameters.length - 1},
+	--><span
+								class={is_most_recently_used && actual_data?.[i] !== undefined
+									? "recent-value"
+									: ""}
+								>{represent_value(
+									getParameterValue(param, i),
+									param.python_type.type,
+									"bash"
+								)}</span
+							>{#if i < endpoint_parameters.length - 1},
 							{/if}
 						{/each}
 	]{"}"}' \
@@ -211,6 +252,18 @@ result = client.<span class="highlight">predict</span
 		color: var(--color-accent);
 	}
 
+<<<<<<< HEAD
+=======
+	.recent-value {
+		color: #fd7b00;
+		background: #fff4e6;
+		border: 1px solid #ffd9b3;
+		border-radius: var(--radius-sm);
+		padding: 1px 4px;
+		font-weight: var(--weight-medium);
+	}
+
+>>>>>>> main
 	.hidden {
 		display: none;
 	}

@@ -40,7 +40,7 @@
 	export let value_is_output = false;
 	export let lines = 1;
 	export let i18n: I18nFormatter;
-	export let placeholder = "Type here...";
+	export let placeholder = "";
 	export let disabled = false;
 	export let label: string;
 	export let info: string | undefined = undefined;
@@ -552,6 +552,10 @@
 				{#if submit_btn}
 					<button
 						class="submit-button"
+<<<<<<< HEAD
+=======
+						data-testid="submit-button"
+>>>>>>> main
 						class:padded-button={submit_btn !== true}
 						{disabled}
 						on:click={handle_submit}

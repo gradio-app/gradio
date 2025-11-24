@@ -1,4 +1,30 @@
 # @gradio/tabitem
+## 0.6.2
+
+### Features
+
+- [#12438](https://github.com/gradio-app/gradio/pull/12438) [`25ffc03`](https://github.com/gradio-app/gradio/commit/25ffc0398f8feb43d817c02b2ab970c16de6d797) - Svelte5 migration and bugfix
+
+### Dependencies
+
+- @gradio/column@0.3.0
+- @gradio/tabs@0.5.2
+- @gradio/utils@0.10.3
+
+## 0.6.2-dev.0
+
+### Dependency updates
+
+- @gradio/tabs@0.5.2-dev.0
+- @gradio/column@0.2.2
+
+## 0.6.2-dev.0
+
+### Dependency updates
+
+- @gradio/utils@0.10.3-dev.0
+- @gradio/column@0.2.2
+- @gradio/tabs@0.5.2-dev.0
 
 ## 0.6.2-dev.0
 

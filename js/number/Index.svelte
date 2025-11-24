@@ -44,8 +44,14 @@
 		i18n={gradio.i18n}
 		{...gradio.shared.loading_status}
 		show_validation_error={false}
+<<<<<<< HEAD
 		on:clear_status={() =>
 			gradio.dispatch("clear_status", gradio.shared.loading_status)}
+=======
+		on_clear_status={() => {
+			gradio.dispatch("clear_status", gradio.shared.loading_status);
+		}}
+>>>>>>> main
 	/>
 	<label class="block" class:container={gradio.shared.container}>
 		<BlockTitle show_label={gradio.shared.show_label} info={gradio.props.info}

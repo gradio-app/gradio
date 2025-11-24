@@ -25,7 +25,10 @@
 	import type ApiDocsInterface from "./api_docs/ApiDocs.svelte";
 	import type ApiRecorderInterface from "./api_docs/ApiRecorder.svelte";
 	import type SettingsInterface from "./api_docs/Settings.svelte";
+<<<<<<< HEAD
 	import type VibeEditorInterface from "@gradio/vibeeditor";
+=======
+>>>>>>> main
 	// import type { ComponentType } from "svelte";
 
 	import logo from "./images/logo.svg";
@@ -41,7 +44,10 @@
 	import * as screen_recorder from "./screen_recorder";
 
 	import { DependencyManager } from "./dependency";
+<<<<<<< HEAD
 	import type { SrvRecord } from "dns";
+=======
+>>>>>>> main
 
 	let {
 		root,
@@ -140,11 +146,19 @@
 			// trigger_share(title, description);
 			// TODO: lets combine all of the into a log type with levels
 		} else if (event === "error") {
+<<<<<<< HEAD
 			new_message("Error", data as string, -1, event, 10, true);
 		} else if (event === "warning") {
 			new_message("Warning", data as string, -1, event, 10, true);
 		} else if (event === "info") {
 			new_message("Info", data as string, -1, event, 10, true);
+=======
+			new_message("Error", data, -1, event, 10, true);
+		} else if (event === "warning") {
+			new_message("Warning", data, -1, event, 10, true);
+		} else if (event === "info") {
+			new_message("Info", data, -1, event, 10, true);
+>>>>>>> main
 		} else if (event == "clear_status") {
 			app_tree.update_state(
 				id,
@@ -165,7 +179,11 @@
 			// so we need to pull out the correct id here.
 			if (event === "select" && id in app_tree.initial_tabs) {
 				// this is the id of the selected tab
+<<<<<<< HEAD
 				id = (data as { id: number }).id;
+=======
+				id = data.id;
+>>>>>>> main
 			}
 			dep_manager.dispatch({
 				type: "event",
@@ -177,11 +195,21 @@
 	}
 
 	let api_calls: Payload[] = $state([]);
+<<<<<<< HEAD
+=======
+	let last_api_call: Payload | null = $state(null);
+>>>>>>> main
 	// We need a callback to add to api_calls from the DependencyManager
 	// We can't update a state variable from inside the DependencyManager because
 	// svelte won't see it and won't update the UI.
 	let add_to_api_calls = (payload: Payload): void => {
+<<<<<<< HEAD
 		api_calls = [...api_calls, payload];
+=======
+		last_api_call = payload;
+		if (!api_recorder_visible) return;
+		api_calls = [...api_calls, last_api_call];
+>>>>>>> main
 	};
 
 	let dep_manager = new DependencyManager(
@@ -229,10 +257,17 @@
 	let allow_video_trim = true;
 
 	// Lazy component loading state
+<<<<<<< HEAD
 	let ApiDocs: typeof ApiDocsInterface | null = null;
 	let ApiRecorder: typeof ApiRecorderInterface | null = null;
 	let Settings: typeof SettingsInterface | null = null;
 	let VibeEditor: typeof VibeEditorInterface | null = $state(null);
+=======
+	let ApiDocs: ComponentType<ApiDocsInterface> | null = null;
+	let ApiRecorder: ComponentType<ApiRecorderInterface> | null = null;
+	let Settings: ComponentType<SettingsInterface> | null = null;
+	let VibeEditor: any = $state(null);
+>>>>>>> main
 
 	async function loadApiDocs(): Promise<void> {
 		if (!ApiDocs || !ApiRecorder) {
@@ -530,6 +565,10 @@
 					{space_id}
 					{api_calls}
 					{username}
+<<<<<<< HEAD
+=======
+					{last_api_call}
+>>>>>>> main
 				/>
 			</div>
 		</div>

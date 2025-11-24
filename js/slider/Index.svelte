@@ -52,7 +52,7 @@
 		gradio.dispatch("release", gradio.props.value);
 		gradio.props.value = Math.min(
 			Math.max(gradio.props.value, gradio.props.minimum),
-			gradio.props.maximum
+			gradio.props.maximum,
 		);
 	}
 
@@ -84,6 +84,7 @@
 
 <Block
 	visible={gradio.shared.visible}
+	elem_id={gradio.shared.elem_id}
 	elem_classes={gradio.shared.elem_classes}
 	container={gradio.shared.container}
 	scale={gradio.shared.scale}
@@ -93,7 +94,7 @@
 		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
 		{...gradio.shared.loading_status}
-		on:clear_status={() =>
+		on_clear_status={() =>
 			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 

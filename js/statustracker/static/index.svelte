@@ -13,7 +13,7 @@
 
 	async function scroll_into_view(
 		el: HTMLDivElement,
-		enable: boolean | null = true
+		enable: boolean | null = true,
 	): Promise<void> {
 		if (
 			window.__gradio_mode__ === "website" ||
@@ -112,7 +112,7 @@
 		validation_error = null,
 		show_validation_error = true,
 		type = null,
-		on_clear_status
+		on_clear_status,
 	}: Props = $props();
 
 	let el: HTMLDivElement;
@@ -131,7 +131,7 @@
 			status === "complete" ||
 			show_progress === "hidden" ||
 			status == "streaming" ||
-			!!(show_validation_error && validation_error)
+			!!(show_validation_error && validation_error),
 	);
 
 	let timer_diff = $state(0);
@@ -139,7 +139,7 @@
 	const eta_level = $derived(
 		eta_from_start === null || eta_from_start <= 0 || !timer_diff
 			? 0
-			: Math.min(timer_diff / eta_from_start, 1)
+			: Math.min(timer_diff / eta_from_start, 1),
 	);
 
 	const formatted_timer = $derived(timer_diff.toFixed(1));
@@ -185,7 +185,7 @@
 		return {
 			progress_level: _progress_level,
 			last_progress_level: _last_progress_level,
-			progress_bar_transition: transition
+			progress_bar_transition: transition,
 		};
 	});
 
@@ -366,7 +366,7 @@
 				Icon={Clear}
 				label={i18n("common.clear")}
 				disabled={false}
-				onclick={() => {
+				on:click={() => {
 					on_clear_status?.();
 				}}
 			/>
