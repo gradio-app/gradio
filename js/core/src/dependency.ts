@@ -9,7 +9,11 @@ import { AsyncFunction } from "./init_utils";
 import { Client, type client_return } from "@gradio/client";
 import { LoadingStatus, type LoadingStatusArgs } from "@gradio/statustracker";
 import type { ToastMessage } from "@gradio/statustracker";
-import type { StatusMessage, ValidationError } from "@gradio/client";
+import type {
+	StatusMessage,
+	ValidationError,
+	LogMessage
+} from "@gradio/client";
 const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
 const NOVALUE = Symbol("NOVALUE");
@@ -150,6 +154,25 @@ interface DispatchEvent {
 	event_data: unknown;
 }
 
+type UpdateStateCallback = (
+	id: number,
+	state: Record<string, unknown>,
+	check_visibility?: boolean
+) => Promise<void>;
+type GetStateCallback = (id: number) => Promise<Record<string, unknown> | null>;
+type RerenderCallback = (
+	components: ComponentMeta[],
+	layout: LayoutNode
+) => void;
+type LogCallback = (
+	title: string,
+	message: string,
+	fn_index: number,
+	type: ToastMessage["type"],
+	duration?: number | null,
+	visible?: boolean
+) => void;
+
 /**
  * Manages all dependencies for an app acting as a bridge between app state and Dependencies
  * Responsible for registering dependencies and dispatching events to them
@@ -171,21 +194,11 @@ export class DependencyManager {
 	queue: Set<number> = new Set();
 	add_to_api_calls: (payload: Payload) => void;
 
-	update_state_cb: (
-		id: number,
-		state: Record<string, unknown>,
-		check_visibility?: boolean
-	) => Promise<void>;
-	get_state_cb: (id: number) => Promise<Record<string, unknown> | null>;
-	rerender_cb: (components: ComponentMeta[], layout: LayoutNode) => void;
-	log_cb: (
-		title: string,
-		message: string,
-		fn_index: number,
-		type: ToastMessage["type"],
-		duration?: number | null,
-		visible?: boolean
-	) => void;
+	update_state_cb: UpdateStateCallback;
+	get_state_cb: GetStateCallback;
+	rerender_cb: RerenderCallback;
+	log_cb: LogCallback;
+
 	loading_stati = new LoadingStatus();
 
 	constructor(
@@ -213,6 +226,7 @@ export class DependencyManager {
 		this.update_state_cb = update_state_cb;
 		this.get_state_cb = get_state_cb;
 		this.rerender_cb = rerender_cb;
+		this.client = client;
 		this.reload(
 			dependencies,
 			update_state_cb,
@@ -224,10 +238,10 @@ export class DependencyManager {
 
 	reload(
 		dependencies: IDependency[],
-		update_state,
-		get_state,
-		rerender,
-		client
+		update_state: UpdateStateCallback,
+		get_state: GetStateCallback,
+		rerender: RerenderCallback,
+		client: Client
 	) {
 		const { by_id, by_event } = this.create(dependencies);
 		this.dependencies_by_event = by_event;
@@ -367,7 +381,7 @@ export class DependencyManager {
 							data: data_payload,
 							event_data: event_meta.event_data
 						};
-						submission!.send_chunk(payload);
+						submission!.send_chunk(payload as any);
 						unset_args.forEach((fn) => fn());
 						continue;
 					}
@@ -508,8 +522,9 @@ export class DependencyManager {
 										(_, b) => b
 									);
 									this.log_cb(
-										result._title ?? "Error",
-										_message,
+										//@ts-ignore
+										result?._title ?? "Error",
+										_message || "",
 										fn_index,
 										"error",
 										status.duration,

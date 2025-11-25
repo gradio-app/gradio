@@ -282,7 +282,7 @@
 					background="var(--background-fill-primary)"
 					color="var(--error-background-text)"
 					border="var(--border-color-primary)"
-					on:click={() => (validation_error = null)}
+					onclick={() => (validation_error = null)}
 				/></button
 			>
 		</div>
