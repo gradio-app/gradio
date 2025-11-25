@@ -42,16 +42,7 @@ export async function make_build({
 					target: []
 				},
 				optimizeDeps: {
-					exclude: [
-						"svelte",
-						"svelte/*",
-						"@gradio/utils",
-						"@gradio/atoms",
-						"@gradio/icons",
-						"@gradio/client",
-						"@gradio/upload",
-						"@gradio/statustracker"
-					]
+					exclude: ["svelte", "svelte/*"]
 				}
 			};
 

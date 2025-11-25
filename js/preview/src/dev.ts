@@ -18,6 +18,13 @@ logger.warn = (msg, options) => {
 	originalWarning(msg, options);
 };
 
+const originalError = logger.error;
+
+logger.error = (msg, options) => {
+	if (msg && msg.includes("Pre-transform error")) return;
+	originalError(msg, options);
+};
+
 interface ServerOptions {
 	component_dir: string;
 	root_dir: string;
@@ -150,16 +157,7 @@ async function generate_imports(
 			target: []
 		},
 		optimizeDeps: {
-			exclude: [
-				"svelte",
-				"svelte/*",
-				"@gradio/utils",
-				"@gradio/atoms",
-				"@gradio/icons",
-				"@gradio/client",
-				"@gradio/upload",
-				"@gradio/statustracker"
-			]
+			exclude: ["svelte", "svelte/*"]
 		}
 	};
 
