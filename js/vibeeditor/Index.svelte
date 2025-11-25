@@ -101,7 +101,6 @@
 				diffStats = responseData.diff_stats;
 
 				message_history = message_history.map((msg, index) => {
-					console.log(index, userMessageIndex, responseData.hash);
 					return index === userMessageIndex
 						? { ...msg, hash: responseData.hash }
 						: msg;

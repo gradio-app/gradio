@@ -40,7 +40,6 @@
 	import * as screen_recorder from "./screen_recorder";
 
 	import { DependencyManager } from "./dependency";
-
 	let {
 		root,
 		components,
@@ -138,11 +137,11 @@
 			// trigger_share(title, description);
 			// TODO: lets combine all of the into a log type with levels
 		} else if (event === "error") {
-			new_message("Error", data, -1, event, 10, true);
+			new_message("Error", data as string, -1, event, 10, true);
 		} else if (event === "warning") {
-			new_message("Warning", data, -1, event, 10, true);
+			new_message("Warning", data as string, -1, event, 10, true);
 		} else if (event === "info") {
-			new_message("Info", data, -1, event, 10, true);
+			new_message("Info", data as string, -1, event, 10, true);
 		} else if (event == "clear_status") {
 			app_tree.update_state(
 				id,
@@ -163,7 +162,7 @@
 			// so we need to pull out the correct id here.
 			if (event === "select" && id in app_tree.initial_tabs) {
 				// this is the id of the selected tab
-				id = data.id;
+				id = (data as { id: number }).id;
 			}
 			dep_manager.dispatch({
 				type: "event",
@@ -239,8 +238,8 @@
 		if (!ApiDocs || !ApiRecorder) {
 			const api_docs_module = await import("./api_docs/ApiDocs.svelte");
 			const api_recorder_module = await import("./api_docs/ApiRecorder.svelte");
-			if (!ApiDocs) ApiDocs = api_docs_module.default;
-			if (!ApiRecorder) ApiRecorder = api_recorder_module.default;
+			if (!ApiDocs) ApiDocs = api_docs_module?.default;
+			if (!ApiRecorder) ApiRecorder = api_recorder_module?.default;
 		}
 	}
 

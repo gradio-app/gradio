@@ -765,7 +765,6 @@
 			title: gradio.props.title || undefined
 		} as Spec;
 	}
-
 	/* eslint-enable complexity */
 </script>
 
