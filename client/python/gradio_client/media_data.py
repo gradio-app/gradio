@@ -1,9 +1,9 @@
-from pathlib import Path
 import inspect
-
+from pathlib import Path
 
 try:
     import gradio
+
     _REPO_ROOT = Path(inspect.getfile(gradio)).parent
 except Exception:
     _REPO_ROOT = Path(".")
