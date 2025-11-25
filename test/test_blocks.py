@@ -6,6 +6,7 @@ import os
 import pathlib
 import random
 import sys
+import threading
 import time
 import uuid
 import warnings
@@ -2040,3 +2041,25 @@ def test_multiple_navbar_components_in_same_page_raise_error():
     with demo.route("Page 2"):
         gr.Navbar()
         gr.Textbox()
+
+
+def test_blocks_close_closes_thread_properly():
+    a = gr.Blocks()
+
+    def poll():
+        start = time.time()
+        while time.time() - start < 1:
+            time.sleep(0.25)
+        print("Closing...")
+        a.close()
+
+    t = threading.Thread(target=poll, daemon=True)
+    t.start()
+
+    with a:
+        gr.Markdown("Testing close")
+    a.launch(prevent_thread_lock=True)
+
+    time.sleep(1.2)
+    assert not t.is_alive()
+    assert not a.is_running
