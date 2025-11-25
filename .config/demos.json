@@ -12,6 +12,7 @@
 	"chatinterface_streaming_echo",
 	"clear_components",
 	"code",
+	"diff_texts",
 	"fake_gan",
 	"fake_diffusion_with_gif",
 	"file_explorer_component_events",
