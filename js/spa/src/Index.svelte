@@ -330,7 +330,7 @@
 			app.close();
 		});
 
-		if (!app.config) {
+		if (!app.config && !config?.auth_required) {
 			throw new Error("Could not resolve app config");
 		}
 
@@ -587,6 +587,7 @@
 				auth_message={config.auth_message}
 				root={config.root}
 				space_id={space}
+				i18n={i18n_ready ? $_ : (s: string) => s}
 				{app_mode}
 			/>
 		{:else if config && Blocks && css_ready}
