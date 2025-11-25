@@ -12,7 +12,6 @@
 	import { Gradio } from "@gradio/utils";
 	import { merge_elements } from "./shared/utils";
 	import type { HighlightedTextProps, HighlightedTextEvents } from "./types";
-	import { merge } from "@storybook/manager-api";
 
 	const props = $props();
 	const gradio = new Gradio<HighlightedTextEvents, HighlightedTextProps>(props);
@@ -28,7 +27,7 @@
 
 	let value = $derived.by(() =>
 		gradio.props.combine_adjacent
-			? merge_elements(gradio.props.value, "equal")
+			? merge_elements(gradio.props.value || [], "equal")
 			: gradio.props.value
 	);
 </script>
