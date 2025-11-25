@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	import { writable } from "svelte/store";
 
 	import type { Client as ClientType } from "@gradio/client";
@@ -74,7 +74,9 @@
 </script>
 
 <script lang="ts">
-	import { onMount, createEventDispatcher, onDestroy } from "svelte";
+	import { run } from "svelte/legacy";
+
+	import { onMount, createEventDispatcher } from "svelte";
 	import type { SpaceStatus } from "@gradio/client";
 	import { Embed } from "@gradio/core";
 	import type { ThemeMode } from "@gradio/core";
@@ -86,24 +88,41 @@
 	import { browser } from "$app/environment";
 
 	const dispatch = createEventDispatcher();
-	export let data;
 
-	export let autoscroll = false;
-	export let version = GRADIO_VERSION;
-	export let initial_height: string;
-	export let app_mode = true;
-	export let is_embed = false;
-	export let theme_mode: ThemeMode | null = null;
-	export let control_page_title = true;
-	export let container: boolean;
 	let stream: EventSource;
+
+	interface Props {
+		data: any;
+		autoscroll?: boolean;
+		version?: any;
+		initial_height: string;
+		app_mode?: boolean;
+		is_embed?: boolean;
+		theme_mode?: ThemeMode | null;
+		control_page_title?: boolean;
+		container: boolean;
+		space: string | null;
+	}
+
+	let {
+		data,
+		autoscroll = false,
+		version = GRADIO_VERSION,
+		initial_height,
+		app_mode = true,
+		is_embed = false,
+		theme_mode = null,
+		control_page_title = true,
+		container,
+		space,
+	}: Props = $props();
 
 	function handle_theme_mode(target: HTMLElement): "light" | "dark" {
 		let new_theme_mode: ThemeMode;
 
 		const url = new URL(window.location.toString());
 		const url_color_mode: ThemeMode | null = url.searchParams.get(
-			"__theme"
+			"__theme",
 		) as ThemeMode | null;
 		new_theme_mode = theme_mode || url_color_mode || "system";
 
@@ -123,7 +142,7 @@
 
 		function update_scheme(): "light" | "dark" {
 			let _theme: "light" | "dark" = window?.matchMedia?.(
-				"(prefers-color-scheme: dark)"
+				"(prefers-color-scheme: dark)",
 			).matches
 				? "dark"
 				: "light";
@@ -146,19 +165,19 @@
 		}
 	}
 
-	let active_theme_mode: ThemeMode;
+	let active_theme_mode: ThemeMode = $state();
 
 	if (browser) {
 		active_theme_mode = handle_theme_mode(document.body);
 	}
 
 	async function add_custom_html_head(
-		head_string: string | null
+		head_string: string | null,
 	): Promise<void> {
 		if (head_string) {
 			const parser = new DOMParser();
 			const parsed_head_html = Array.from(
-				parser.parseFromString(head_string, "text/html").head.children
+				parser.parseFromString(head_string, "text/html").head.children,
 			);
 
 			if (parsed_head_html) {
@@ -175,7 +194,7 @@
 
 						if (propertyAttr || nameAttr) {
 							const domMetaList = Array.from(
-								document.head.getElementsByTagName("meta") ?? []
+								document.head.getElementsByTagName("meta") ?? [],
 							);
 
 							const matched = domMetaList.find((el) => {
@@ -203,41 +222,35 @@
 		}
 	}
 
-	export let space: string | null;
 	let _id = id++;
 
 	let loader_status: "pending" | "error" | "complete" | "generating" =
 		"complete";
-	let app_id: string | null = null;
-	let wrapper: HTMLDivElement;
-	let ready = false;
-	let render_complete = false;
+	let app_id: string | null = $state(null);
+	let wrapper: HTMLDivElement = $state();
+	let ready = $state(false);
+	let render_complete = $state(false);
 	let reload_count = 0;
-	$: config = data.config;
 
 	let intersecting: ReturnType<typeof create_intersection_store> = {
 		register: () => {},
-		subscribe: writable({}).subscribe
+		subscribe: writable({}).subscribe,
 	};
-
-	$: if (config?.app_id) {
-		app_id = config.app_id;
-	}
 
 	let status: SpaceStatus = {
 		message: "",
 		load_status: "pending",
 		status: "sleeping",
-		detail: "SLEEPING"
+		detail: "SLEEPING",
 	};
 
-	let app: ClientType = data.app;
+	let app: ClientType = $state(data.app);
 	let css_ready = false;
 	function handle_status(_status: SpaceStatus): void {
 		status = _status;
 	}
 	//@ts-ignore
-	let pending_deep_link_error = false;
+	let pending_deep_link_error = $state(false);
 
 	let gradio_dev_mode = "";
 
@@ -264,7 +277,7 @@
 			message: "",
 			load_status: "complete",
 			status: "running",
-			detail: "RUNNING"
+			detail: "RUNNING",
 		};
 
 		css_ready = true;
@@ -304,7 +317,7 @@
 							-1,
 							"error",
 							10,
-							true
+							true,
 						);
 						console.error(JSON.parse(event_data));
 					}
@@ -315,7 +328,7 @@
 						status_callback: handle_status,
 						with_null_state: true,
 						events: ["data", "log", "status", "render"],
-						session_hash: app.session_hash
+						session_hash: app.session_hash,
 					});
 
 					if (!app.config) {
@@ -329,36 +342,19 @@
 		}
 	});
 
-	let new_message_fn: (title: string, message: string, type: string) => void;
-
-	$: if (new_message_fn && pending_deep_link_error) {
-		new_message_fn("Error", "Deep link was not valid", -1, "error", 10, true);
-		pending_deep_link_error = false;
-	}
+	let new_message_fn: (title: string, message: string, type: string) => void =
+		$state();
 
 	onMount(async () => {
 		intersecting = create_intersection_store();
 		intersecting.register(_id, wrapper);
 	});
 
-	$: if (render_complete) {
-		wrapper.dispatchEvent(
-			new CustomEvent("render", {
-				bubbles: true,
-				cancelable: false,
-				composed: true
-			})
-		);
-	}
-
-	$: app?.config &&
-		browser &&
-		mount_space_header(app?.config?.space_id, is_embed);
 	let spaceheader: HTMLElement | undefined;
 
 	async function mount_space_header(
 		space_id: string | null | undefined,
-		is_embed: boolean
+		is_embed: boolean,
 	): Promise<void> {
 		if (space_id && !is_embed && window.self === window.top) {
 			if (spaceheader) {
@@ -376,6 +372,34 @@
 	// 		spaceheader = undefined;
 	// 	}
 	// });
+	let config = $derived(data.config);
+	run(() => {
+		if (config?.app_id) {
+			app_id = config.app_id;
+		}
+	});
+	run(() => {
+		if (new_message_fn && pending_deep_link_error) {
+			new_message_fn("Error", "Deep link was not valid", -1, "error", 10, true);
+			pending_deep_link_error = false;
+		}
+	});
+	run(() => {
+		if (render_complete) {
+			wrapper.dispatchEvent(
+				new CustomEvent("render", {
+					bubbles: true,
+					cancelable: false,
+					composed: true,
+				}),
+			);
+		}
+	});
+	run(() => {
+		app?.config &&
+			browser &&
+			mount_space_header(app?.config?.space_id, is_embed);
+	});
 </script>
 
 <svelte:head>
@@ -409,16 +433,14 @@
 	bind:wrapper
 >
 	{#if config?.auth_required}
-		<svelte:component
-			this={data.Render}
+		<data.Render
 			auth_message={config.auth_message}
 			root={config.root}
 			space_id={space}
 			{app_mode}
 		/>
 	{:else if config && app}
-		<svelte:component
-			this={data.Render}
+		<data.Render
 			{app}
 			{...config}
 			fill_height={!is_embed && config.fill_height}
