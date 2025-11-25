@@ -16,7 +16,7 @@
 		plotly: () => import("./plot_types/PlotlyPlot.svelte"),
 		bokeh: () => import("./plot_types/BokehPlot.svelte"),
 		matplotlib: () => import("./plot_types/MatplotlibPlot.svelte"),
-		altair: () => import("./plot_types/AltairPlot.svelte"),
+		altair: () => import("./plot_types/AltairPlot.svelte")
 	};
 
 	let loadedPlotTypeMapping = {};
