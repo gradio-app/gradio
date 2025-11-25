@@ -1,4 +1,11 @@
 # @gradio/dropdown
+
+## 0.10.6
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
 ## 0.10.6
 
 ### Features

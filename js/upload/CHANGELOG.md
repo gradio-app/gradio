@@ -1,4 +1,11 @@
 # @gradio/upload
+
+## 0.17.2
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
 ## 0.17.2
 
 ### Features

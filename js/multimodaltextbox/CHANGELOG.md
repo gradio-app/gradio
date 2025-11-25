@@ -1,4 +1,11 @@
 # @gradio/multimodaltextbox
+
+## 0.11.0
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
 ## 0.11.0
 
 ### Features

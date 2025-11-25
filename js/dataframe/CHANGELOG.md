@@ -1,4 +1,11 @@
 # @gradio/dataframe
+
+## 0.21.0
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
 ## 0.21.0
 
 ### Features

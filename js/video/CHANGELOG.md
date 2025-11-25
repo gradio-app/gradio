@@ -1,4 +1,11 @@
 # @gradio/video
+
+## 0.17.0
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
 ## 0.17.0
 
 ### Features

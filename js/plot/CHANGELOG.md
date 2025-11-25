@@ -1,4 +1,11 @@
 # @gradio/plot
+
+## 0.9.25
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
 ## 0.9.25
 
 ### Features

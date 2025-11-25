@@ -1,4 +1,11 @@
 # @gradio/fallback
+
+## 0.4.30
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
 ## 0.4.30
 
 ### Features

@@ -1,4 +1,11 @@
 # @gradio/utils
+
+## 0.10.4
+
+### Fixes
+
+- [#12416](https://github.com/gradio-app/gradio/pull/12416) [`7e867fd`](https://github.com/gradio-app/gradio/commit/7e867fde9070849fb474a08544c72f2522a9cbe9) - Fix custom components for gradio 6.  Thanks @pngwn!
+
 ## 0.10.3
 
 ### Features

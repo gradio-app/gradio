@@ -1,4 +1,11 @@
 # @self/tootils
+
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
 ## 0.8.1
 
 ### Features

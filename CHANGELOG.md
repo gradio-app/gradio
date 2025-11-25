@@ -1,5 +1,19 @@
 # gradio
 
+## 6.0.1
+
+### Features
+
+- [#12445](https://github.com/gradio-app/gradio/pull/12445) [`0f2fa10`](https://github.com/gradio-app/gradio/commit/0f2fa10887b5c2f7fe4a4080e8bcf7d91669a163) - chore(deps): ⬆️ update pillow from 11.1.0 to 12.0.  Thanks @onuralpszr!
+- [#12446](https://github.com/gradio-app/gradio/pull/12446) [`96efaab`](https://github.com/gradio-app/gradio/commit/96efaabb38a5b48c26011560634189388e83181a) - Update gradio_client version to 2.0.0.  Thanks @abidlabs!
+
+### Fixes
+
+- [#12460](https://github.com/gradio-app/gradio/pull/12460) [`f9e272d`](https://github.com/gradio-app/gradio/commit/f9e272dc120bb8f8f9f5fb2bd9f0a4eac0563d6e) - Fix bug where close method does not kill the thread.  Thanks @freddyaboulton!
+- [#12416](https://github.com/gradio-app/gradio/pull/12416) [`7e867fd`](https://github.com/gradio-app/gradio/commit/7e867fde9070849fb474a08544c72f2522a9cbe9) - Fix custom components for gradio 6.  Thanks @pngwn!
+- [#12461](https://github.com/gradio-app/gradio/pull/12461) [`9a86e80`](https://github.com/gradio-app/gradio/commit/9a86e8064787029bc20b086c6f3191879f786e0f) - Fix Login Gradio 6.  Thanks @freddyaboulton!
+- [#12473](https://github.com/gradio-app/gradio/pull/12473) [`f42628d`](https://github.com/gradio-app/gradio/commit/f42628d35c5597d83c57980d559f1daf7805b153) - Allow new custom components to use Gradio 6.  Thanks @freddyaboulton!
+
 ## 6.0.0-dev.5
 
 ### Features

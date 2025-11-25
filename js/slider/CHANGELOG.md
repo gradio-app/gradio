@@ -1,4 +1,11 @@
 # @gradio/slider
+
+## 0.7.0
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
 ## 0.7.0
 
 ### Features
