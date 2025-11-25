@@ -67,7 +67,7 @@
 			visible_pages = [];
 			selected_samples = samples.slice(
 				page * samples_per_page,
-				(page + 1) * samples_per_page
+				(page + 1) * samples_per_page,
 			);
 			page_count = Math.ceil(samples.length / samples_per_page);
 			[0, page, page_count - 1].forEach((anchor) => {
@@ -94,15 +94,10 @@
 	}[][] = [];
 
 	async function get_component_meta(
-		selected_samples_json: string
+		selected_samples_json: string,
 	): Promise<void> {
 		const _selected_samples: any[][] = JSON.parse(selected_samples_json);
-		console.log("+++++++++++++++++++++++++++++++++++++");
-		console.log(
-			"Getting component meta for samples:",
-			_selected_samples,
-			components
-		);
+
 		// @ts-ignore
 		component_meta = await Promise.all(
 			_selected_samples &&
@@ -110,14 +105,13 @@
 					async (sample_row) =>
 						await Promise.all(
 							sample_row.map(async (sample_cell, j) => {
-								console.log("Loading component:", components[j]);
 								return {
 									value: sample_cell,
-									component: load_component(components[j], "example")
+									component: load_component(components[j], "example"),
 								};
-							})
-						)
-				)
+							}),
+						),
+				),
 		);
 	}
 
@@ -190,7 +184,7 @@
 								onclick({ index: value, value: sample_row });
 								onselect({
 									index: value,
-									value: selected_samples[i]
+									value: selected_samples[i],
 								});
 							}}
 							on:mouseenter={() => handle_mouseenter(i)}

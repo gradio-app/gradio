@@ -88,8 +88,6 @@ export async function make_build({
 							rollupOptions: {
 								output: {
 									assetFileNames: (chunkInfo) => {
-										console.log("chunkInfo:", chunkInfo);
-
 										if (chunkInfo.names[0].endsWith(".css")) {
 											return `style.css`;
 										}

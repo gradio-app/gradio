@@ -88,7 +88,6 @@ export async function load({
 	}
 
 	let page_config = app.get_url_config(url.toString());
-	console.log("Page config:", page_config);
 
 	// const layouts = get(layout);
 	await setupi18n(app.config?.i18n_translations || undefined, accept_language);

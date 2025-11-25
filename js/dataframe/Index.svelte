@@ -21,7 +21,6 @@
 
 	class DataframeGradio extends Gradio<DataframeEvents, DataframeProps> {
 		async set_data(data: Partial<DataframeProps & SharedProps>): Promise<void> {
-			console.log("DataframeGradio set_data called", data);
 			if (data.value) {
 				changed = true;
 			}
@@ -70,8 +69,8 @@
 				show_search: gradio.props.show_search,
 				pinned_columns: gradio.props.pinned_columns,
 				static_columns: gradio.props.static_columns,
-				fullscreen: gradio.props.fullscreen
-			}
+				fullscreen: gradio.props.fullscreen,
+			},
 		});
 	});
 
@@ -80,13 +79,12 @@
 		client: gradio.shared.client,
 		dispatch(name: keyof DataframeEvents, detail?: any) {
 			if (name === "input" && changed) {
-				console.log("Skipping duplicate input event");
 				changed = false;
 				return;
 			}
 			gradio.dispatch(name, detail);
 		},
-		autoscroll: gradio.shared.autoscroll
+		autoscroll: gradio.shared.autoscroll,
 	};
 	$effect(() => {
 		if (Component) {
@@ -118,7 +116,7 @@
 				show_search: gradio.props.show_search,
 				pinned_columns: gradio.props.pinned_columns,
 				static_columns: gradio.props.static_columns,
-				fullscreen: gradio.props.fullscreen
+				fullscreen: gradio.props.fullscreen,
 			});
 		}
 	});
