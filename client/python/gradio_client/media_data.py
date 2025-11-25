@@ -1,6 +1,13 @@
 from pathlib import Path
+import inspect
 
-_REPO_ROOT = Path(__file__).parents[3]
+
+try:
+    import gradio
+    _REPO_ROOT = Path(inspect.getfile(gradio)).parent
+except Exception:
+    _REPO_ROOT = Path(".")
+
 
 BASE64_IMAGE = (  # test/test_files/bus.png
     "data:image/png;base64,"
