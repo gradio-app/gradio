@@ -1,10 +1,10 @@
 ---
-"@gradio/core": minor
-"@gradio/preview": minor
-"@gradio/utils": minor
-"@self/app": minor
-"@self/spa": minor
-"gradio": minor
+"@gradio/core": patch
+"@gradio/preview": patch
+"@gradio/utils": patch
+"@self/app": patch
+"@self/spa": patch
+"gradio": patch
 ---
 
-feat:Fix custom components for gradio 6.
+fix:Fix custom components for gradio 6.
