@@ -35,7 +35,6 @@ const svelte = require("svelte/package.json");
 const svelte_exports = Object.keys(svelte.exports)
 	.filter((p) => p.endsWith(".json"))
 	.map((entry) => entry.replace(/^\./, "svelte").split("/").join("_") + ".js");
-console.log("Svelte exports:", svelte_exports);
 
 export default defineConfig(({ mode, isSsrBuild }) => {
 	const production = mode === "production";
@@ -48,7 +47,8 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			proxy: {
 				"/manifest.json": "http://localhost:7860",
 				"^.*/theme\\.css": "http://localhost:7860",
-				"^/static/.*": "http://localhost:7860"
+				"^/static/.*": "http://localhost:7860",
+				"^.*/svelte/.*": "http://localhost:7860"
 			}
 		},
 		resolve: {
@@ -61,6 +61,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			noExternal: ["@gradio/*", "@huggingface/space-header"],
 			external: mode === "development" ? [] : ["svelte", "svelte/*"]
 		},
+
 		build: {
 			rollupOptions: {
 				external: svelte_exports
@@ -102,7 +103,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			}
 		},
 		optimizeDeps: {
-			exclude: ["@gradio/*"]
+			exclude: ["@gradio/*", "/svelte", "/svelte/*"]
 		},
 		plugins: [
 			inject_svelte_init_code({ mode }),
@@ -178,9 +179,7 @@ export function inject_svelte_init_code({ mode }: { mode: string }): Plugin {
 		},
 		load(id: string) {
 			if (id === resolved_v_id) {
-				const s = make_init_code();
-				console.log("Svelte init code:", s);
-				return s;
+				return make_init_code();
 			}
 		}
 	};

@@ -8,10 +8,7 @@ const __dirname = path.dirname(__filename);
 
 const dir = path.resolve(__dirname);
 
-console.log({ dir });
-
 function gradioPlugin(): Plugin {
-	console.log("Initializing gradio plugin");
 	return {
 		enforce: "pre",
 		name: "gradio",

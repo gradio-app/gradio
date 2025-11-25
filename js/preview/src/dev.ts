@@ -18,6 +18,13 @@ logger.warn = (msg, options) => {
 	originalWarning(msg, options);
 };
 
+const originalError = logger.error;
+
+logger.error = (msg, options) => {
+	if (msg && msg.includes("Pre-transform error")) return;
+	originalError(msg, options);
+};
+
 interface ServerOptions {
 	component_dir: string;
 	root_dir: string;
@@ -57,13 +64,8 @@ export async function create_server({
 					allow: [root_dir, component_dir]
 				}
 			},
-			resolve: {
-				conditions: ["gradio"]
-			},
-			build: {
-				target: config.build.target
-			},
 			optimizeDeps: config.optimizeDeps,
+			cacheDir: join(component_dir, "frontend", "node_modules", ".vite"),
 			plugins: [
 				...plugins(config),
 				make_gradio_plugin({
@@ -154,7 +156,9 @@ async function generate_imports(
 		build: {
 			target: []
 		},
-		optimizeDeps: {}
+		optimizeDeps: {
+			exclude: ["svelte", "svelte/*"]
+		}
 	};
 
 	await Promise.all(
@@ -170,7 +174,8 @@ async function generate_imports(
 				component_config.plugins = m.default.plugins || [];
 				component_config.svelte.preprocess = m.default.svelte?.preprocess || [];
 				component_config.build.target = m.default.build?.target || "modules";
-				component_config.optimizeDeps = m.default.optimizeDeps || {};
+				component_config.optimizeDeps =
+					m.default.optimizeDeps || component_config.optimizeDeps;
 			} else {
 			}
 		})

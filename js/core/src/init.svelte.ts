@@ -77,7 +77,7 @@ export class AppTree {
 		components: ComponentMeta[],
 		layout: LayoutNode,
 		dependencies: Dependency[],
-		config: AppConfig,
+		config: Omit<AppConfig, "api_url">,
 		app: client_return,
 		reactive_formatter: (str: string) => string
 	) {
@@ -85,8 +85,10 @@ export class AppTree {
 			this.ready_resolve = resolve;
 		});
 		this.reactive_formatter = reactive_formatter;
-
-		this.#config = config;
+		this.#config = {
+			...config,
+			api_url: new URL(config.api_prefix, config.root).toString()
+		};
 		this.#component_payload = components;
 		this.#layout_payload = layout;
 		this.#dependency_payload = dependencies;
@@ -129,11 +131,14 @@ export class AppTree {
 		components: ComponentMeta[],
 		layout: LayoutNode,
 		dependencies: Dependency[],
-		config: AppConfig
+		config: Omit<AppConfig, "api_url">
 	) {
 		this.#layout_payload = layout;
 		this.#component_payload = components;
-		this.#config = config;
+		this.#config = {
+			...config,
+			api_url: new URL(config.api_prefix, config.root).toString()
+		};
 		this.#dependency_payload = dependencies;
 
 		this.root = this.create_node(
@@ -203,21 +208,15 @@ export class AppTree {
 
 	postprocess(tree: ProcessedComponentMeta) {
 		this.root = this.traverse(tree, [
-			(node) => handle_visibility(node, this.#config.root),
+			(node) => handle_visibility(node, this.#config.api_url),
 			(node) =>
 				untrack_children_of_invisible_parents(
 					node,
-					this.#config.root,
 					this.components_to_register
 				),
-			(node) =>
-				handle_empty_forms(
-					node,
-					this.#config.root,
-					this.components_to_register
-				),
-			(node) => translate_props(node, this.#config.root),
-			(node) => apply_initial_tabs(node, this.#config.root, this.initial_tabs),
+			(node) => handle_empty_forms(node, this.components_to_register),
+			(node) => translate_props(node),
+			(node) => apply_initial_tabs(node, this.initial_tabs),
 			(node) => this.find_attached_events(node, this.#dependency_payload)
 		]);
 	}
@@ -317,6 +316,7 @@ export class AppTree {
 			component.props,
 			[this.#input_ids, this.#output_ids],
 			this.client,
+			this.#config.api_url,
 			{ ...this.#config }
 		);
 
@@ -335,7 +335,7 @@ export class AppTree {
 					? get_component(
 							component.type,
 							component.component_class_id,
-							this.#config.root || ""
+							this.#config.api_url || ""
 						)
 					: null,
 			key: component.key,
@@ -391,7 +391,7 @@ export class AppTree {
 			this.root = this.traverse(this.root!, [
 				//@ts-ignore
 				(n) => set_visibility_for_updated_node(n, id, new_state.visible),
-				(n) => handle_visibility(n, this.#config.root)
+				(n) => handle_visibility(n, this.#config.api_url)
 			]);
 			already_updated_visibility = true;
 		}
@@ -403,7 +403,7 @@ export class AppTree {
 		// otherwise there could be
 		await tick();
 		this.root = this.traverse(this.root!, (n) =>
-			handle_visibility(n, this.#config.root)
+			handle_visibility(n, this.#config.api_url)
 		);
 	}
 
@@ -464,6 +464,7 @@ function gather_props(
 	props: ComponentMeta["props"],
 	dependencies: [Set<number>, Set<number>],
 	client: client_return,
+	api_url: string,
 	additional: Record<string, unknown> = {}
 ): {
 	shared_props: SharedProps;
@@ -508,13 +509,7 @@ function gather_props(
 	_shared_props.load_component = (
 		name: string,
 		variant: "base" | "component" | "example"
-	) =>
-		get_component(
-			name,
-			"",
-			_shared_props.root || "",
-			variant
-		) as LoadingComponent;
+	) => get_component(name, "", api_url, variant) as LoadingComponent;
 
 	_shared_props.visible =
 		_shared_props.visible === undefined ? true : _shared_props.visible;
@@ -525,19 +520,19 @@ function gather_props(
 
 function handle_visibility(
 	node: ProcessedComponentMeta,
-	root: string
+	api_url: string
 ): ProcessedComponentMeta {
 	// Check if the node is visible
 	if (node.props.shared_props.visible && !node.component) {
 		const result: ProcessedComponentMeta = {
 			...node,
-			component: get_component(node.type, node.component_class_id, root),
+			component: get_component(node.type, node.component_class_id, api_url),
 			children: []
 		};
 
 		if (node.children) {
 			result.children = node.children.map((child) =>
-				handle_visibility(child, root)
+				handle_visibility(child, api_url)
 			);
 		}
 		return result;
@@ -570,7 +565,6 @@ function _untrack(
 
 function untrack_children_of_invisible_parents(
 	node: ProcessedComponentMeta,
-	root: string,
 	components_to_register: Set<number>
 ): ProcessedComponentMeta {
 	// Check if the node is visible
@@ -582,7 +576,6 @@ function untrack_children_of_invisible_parents(
 
 function handle_empty_forms(
 	node: ProcessedComponentMeta,
-	root: string,
 	components_to_register: Set<number>
 ): ProcessedComponentMeta {
 	// Check if the node is visible
@@ -601,10 +594,7 @@ function handle_empty_forms(
 	return node;
 }
 
-function translate_props(
-	node: ProcessedComponentMeta,
-	root: string
-): ProcessedComponentMeta {
+function translate_props(node: ProcessedComponentMeta): ProcessedComponentMeta {
 	const supported_props = [
 		"description",
 		"info",
@@ -631,7 +621,6 @@ function translate_props(
 
 function apply_initial_tabs(
 	node: ProcessedComponentMeta,
-	root: string,
 	initial_tabs: Record<number, Tab[]>
 ): ProcessedComponentMeta {
 	if (node.type === "tabs" && node.id in initial_tabs) {

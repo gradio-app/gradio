@@ -21,7 +21,6 @@
 
 	class DataframeGradio extends Gradio<DataframeEvents, DataframeProps> {
 		async set_data(data: Partial<DataframeProps & SharedProps>): Promise<void> {
-			console.log("DataframeGradio set_data called", data);
 			if (data.value) {
 				changed = true;
 			}
@@ -80,7 +79,6 @@
 		client: gradio.shared.client,
 		dispatch(name: keyof DataframeEvents, detail?: any) {
 			if (name === "input" && changed) {
-				console.log("Skipping duplicate input event");
 				changed = false;
 				return;
 			}

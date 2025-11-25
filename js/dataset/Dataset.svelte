@@ -97,12 +97,7 @@
 		selected_samples_json: string
 	): Promise<void> {
 		const _selected_samples: any[][] = JSON.parse(selected_samples_json);
-		console.log("+++++++++++++++++++++++++++++++++++++");
-		console.log(
-			"Getting component meta for samples:",
-			_selected_samples,
-			components
-		);
+
 		// @ts-ignore
 		component_meta = await Promise.all(
 			_selected_samples &&
@@ -110,7 +105,6 @@
 					async (sample_row) =>
 						await Promise.all(
 							sample_row.map(async (sample_cell, j) => {
-								console.log("Loading component:", components[j]);
 								return {
 									value: sample_cell,
 									component: load_component(components[j], "example")

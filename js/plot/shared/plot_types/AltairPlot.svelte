@@ -35,7 +35,6 @@
 	let spec_width: number = $state(0);
 
 	let plot = $derived(value?.plot);
-	console.log(0);
 	let spec = $derived.by(() => {
 		if (!plot) return null;
 		let parsed_spec = JSON.parse(plot) as Spec;

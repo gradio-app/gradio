@@ -82,7 +82,6 @@
 		img_blob: Blob | any,
 		event: "change" | "stream" | "upload"
 	): Promise<void> {
-		console.log("handle_save", { event, img_blob });
 		if (event === "stream") {
 			dispatch("stream", {
 				value: { url: img_blob } as Base64File,
@@ -104,7 +103,6 @@
 		];
 		pending = true;
 		const f = await upload_input.load_files([f_], upload_id);
-		console.log("uploaded file", f);
 		if (event === "change" || event === "upload") {
 			value = f?.[0] || null;
 			await tick();

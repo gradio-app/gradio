@@ -287,21 +287,6 @@ function resolve_svelte(enable) {
     name: "resolve-svelte",
     async resolveId(id) {
       if (!enable) return;
-      // if (id === "./svelte/svelte.js" || id === "svelte" || id === "svelte/internal") {
-      //   const mod = join(
-      //     __dirname,
-      //     "..",
-      //     "..",
-      //     "..",
-      //     "gradio",
-      //     "templates",
-      //     "frontend",
-      //     "assets",
-      //     "svelte",
-      //     "svelte.js"
-      //   );
-      //   return { id: mod, external: "absolute" };
-      // }
     }
   };
 }

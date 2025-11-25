@@ -41,7 +41,9 @@ export async function make_build({
 				build: {
 					target: []
 				},
-				optimizeDeps: {}
+				optimizeDeps: {
+					exclude: ["svelte", "svelte/*"]
+				}
 			};
 
 			if (
@@ -55,7 +57,8 @@ export async function make_build({
 				component_config.plugins = m.default.plugins || [];
 				component_config.svelte.preprocess = m.default.svelte?.preprocess || [];
 				component_config.build.target = m.default.build?.target || "modules";
-				component_config.optimizeDeps = m.default.optimizeDeps || {};
+				component_config.optimizeDeps =
+					m.default.optimizeDeps || component_config.optimizeDeps;
 			}
 
 			const exports: (string | any)[][] = [
@@ -73,11 +76,7 @@ export async function make_build({
 							make_gradio_plugin({ mode: "build", svelte_dir }),
 							deepmerge_plugin
 						],
-						resolve: {
-							conditions: ["gradio"]
-						},
 						build: {
-							target: component_config.build.target,
 							emptyOutDir: true,
 							outDir: join(template_dir, entry as string),
 							lib: {
@@ -88,6 +87,13 @@ export async function make_build({
 							minify: true,
 							rollupOptions: {
 								output: {
+									assetFileNames: (chunkInfo) => {
+										if (chunkInfo.names[0].endsWith(".css")) {
+											return `style.css`;
+										}
+
+										return chunkInfo.names[0];
+									},
 									entryFileNames: (chunkInfo: PreRenderedChunk) => {
 										if (chunkInfo.isEntry) {
 											return "index.js";

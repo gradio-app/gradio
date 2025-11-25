@@ -27,7 +27,6 @@
 	let _type = $state(null);
 
 	$effect(() => {
-		console.log("Plot value changed:", value);
 		let type = value?.type;
 		untrack(() => {
 			key = key + 1;

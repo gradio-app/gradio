@@ -43,10 +43,9 @@ export function plugins(config: ComponentConfig): PluginOption[] {
 				handler!(warning);
 			},
 			prebundleSvelteLibraries: false,
-			hot: true,
 			compilerOptions: {
 				discloseVersion: false,
-				hydratable: true
+				hmr: true
 			},
 			extensions: _svelte_extensions,
 			preprocess: [
@@ -83,35 +82,24 @@ export function make_gradio_plugin({
 	return {
 		name: "gradio",
 		enforce: "pre",
-		transform(code) {
-			const new_code = code.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
-				if ($1.trim().startsWith("type")) return str;
-				if ($1.trim() === "") return "";
-				const path = $2.split("/").join("_");
-				const identifier = $1.trim().startsWith("* as")
-					? $1.replace("* as", "").trim()
-					: $1.trim();
-				return `const ${identifier.replace(
-					" as ",
-					": "
-				)} = window.__gradio__svelte__.${path};`;
-			});
-
-			return {
-				code: new_code,
-				map: null
-			};
-		},
 		resolveId(id) {
 			if (id === v_id) {
 				return resolved_v_id;
 			}
-			if (
-				id !== "svelte" &&
-				id !== "svelte/internal" &&
-				id.startsWith("svelte/")
-			) {
-				return join(svelte_dir, "svelte-submodules.js");
+			if (id === "svelte") {
+				return {
+					id: `../../../../../assets/svelte/svelte_svelte.js`,
+					external: true
+				};
+			}
+
+			if (id.startsWith("svelte/")) {
+				const subpath = id.slice("svelte/".length);
+
+				return {
+					id: `../../../../../assets/svelte/svelte_${subpath.replace(/\//g, "_")}.js`,
+					external: true
+				};
 			}
 		},
 		load(id) {
@@ -148,3 +136,22 @@ export const deepmerge_plugin: Plugin = {
 		}
 	}
 };
+
+function extract_types(str: string): string[] {
+	const regex = /type (\w+\b)/g;
+	let m;
+	const out = [];
+	while ((m = regex.exec(str))) out.push(m[1]);
+
+	return out;
+}
+
+function remove_types(input: string): string {
+	const inner = input.slice(1, -1); // remove { }
+	const parts = inner
+		.split(",")
+		.map((s) => s.trim())
+		.filter((s) => s && !/^type\s+\w+\b$/.test(s));
+
+	return `{ ${parts.join(", ")} }`;
+}

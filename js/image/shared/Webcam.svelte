@@ -118,7 +118,6 @@
 			video_source.videoWidth &&
 			video_source.videoHeight
 		) {
-			console.log("Taking picture from webcam");
 			var context = canvas.getContext("2d")!;
 			canvas.width = video_source.videoWidth;
 			canvas.height = video_source.videoHeight;
