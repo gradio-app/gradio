@@ -1,14 +1,14 @@
 <script lang="ts">
-	import Form from "@gradio/form";
+	import { BaseForm } from "@gradio/form";
 	import { BaseTextbox as Textbox } from "@gradio/textbox";
 	import { BaseButton } from "@gradio/button";
-	import Column from "@gradio/column";
+	import { BaseColumn } from "@gradio/column";
 	import { Block } from "@gradio/atoms";
-	import { _ } from "svelte-i18n";
 	export let root: string;
 	export let auth_message: string | null;
 	export let app_mode: boolean;
 	export let space_id: string | null;
+	export let i18n: (s: string) => string;
 
 	let username = "";
 	let password = "";
@@ -34,23 +34,23 @@
 </script>
 
 <div class="wrap" class:min-h-screen={app_mode}>
-	<Column variant="panel" min_width={480}>
-		<h2>{$_("login.login")}</h2>
+	<BaseColumn variant="panel" min_width={480}>
+		<h2>{i18n("login.login")}</h2>
 		{#if auth_message}
 			<p class="auth">{@html auth_message}</p>
 		{/if}
 		{#if space_id}
 			<p class="auth">
-				{$_("login.enable_cookies")}
+				{i18n("login.enable_cookies")}
 			</p>
 		{/if}
 		{#if incorrect_credentials}
-			<p class="creds">{$_("login.incorrect_credentials")}</p>
+			<p class="creds">{i18n("login.incorrect_credentials")}</p>
 		{/if}
-		<Form>
+		<BaseForm>
 			<Block>
 				<Textbox
-					label={$_("login.username")}
+					label={i18n("login.username")}
 					lines={1}
 					show_label={true}
 					max_lines={1}
@@ -61,7 +61,7 @@
 
 			<Block>
 				<Textbox
-					label={$_("login.password")}
+					label={i18n("login.password")}
 					lines={1}
 					show_label={true}
 					max_lines={1}
@@ -70,12 +70,12 @@
 					bind:value={password}
 				/>
 			</Block>
-		</Form>
+		</BaseForm>
 
 		<BaseButton size="lg" variant="primary" on:click={submit}
-			>{$_("login.login")}</BaseButton
+			>{i18n("login.login")}</BaseButton
 		>
-	</Column>
+	</BaseColumn>
 </div>
 
 <style>
