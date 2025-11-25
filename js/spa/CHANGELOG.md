@@ -1,4 +1,16 @@
 # @self/spa
+
+## 1.0.1
+
+### Fixes
+
+- [#12416](https://github.com/gradio-app/gradio/pull/12416) [`7e867fd`](https://github.com/gradio-app/gradio/commit/7e867fde9070849fb474a08544c72f2522a9cbe9) - Fix custom components for gradio 6.  Thanks @pngwn!
+- [#12461](https://github.com/gradio-app/gradio/pull/12461) [`9a86e80`](https://github.com/gradio-app/gradio/commit/9a86e8064787029bc20b086c6f3191879f786e0f) - Fix Login Gradio 6.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/core@1.0.1
+
 ## 1.0.0
 
 ### Features

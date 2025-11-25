@@ -1,4 +1,11 @@
 # @gradio/html
+
+## 0.8.0
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
 ## 0.8.0
 
 ### Features

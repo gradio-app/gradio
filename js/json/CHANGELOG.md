@@ -1,4 +1,11 @@
 # @gradio/json
+
+## 0.5.32
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
 ## 0.5.32
 
 ### Features

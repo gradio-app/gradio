@@ -1,4 +1,11 @@
 # @gradio/dialogue
+
+## 0.2.4
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
 ## 0.2.4
 
 ### Features

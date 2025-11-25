@@ -1,4 +1,11 @@
 # @gradio/datetime
+
+## 0.3.23
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
 ## 0.3.23
 
 ### Features

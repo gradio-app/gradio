@@ -1,4 +1,11 @@
 # @gradio/model3d
+
+## 0.15.1
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
 ## 0.15.1
 
 ### Features

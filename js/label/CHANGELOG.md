@@ -1,4 +1,11 @@
 # @gradio/label
+
+## 0.5.22
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
 ## 0.5.22
 
 ### Features

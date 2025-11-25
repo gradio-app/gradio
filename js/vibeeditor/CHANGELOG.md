@@ -1,4 +1,11 @@
 # @gradio/vibeeditor
+
+## 0.3.1
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
 ## 0.3.1
 
 ### Features
