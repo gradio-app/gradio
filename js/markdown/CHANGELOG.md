@@ -1,4 +1,11 @@
 # @gradio/markdown
+
+## 0.13.23
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
 ## 0.13.23
 
 ### Features

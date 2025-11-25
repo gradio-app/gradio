@@ -1,4 +1,11 @@
 # @gradio/tabitem
+
+## 0.6.2
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
 ## 0.6.2
 
 ### Features

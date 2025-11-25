@@ -1,4 +1,11 @@
 # @gradio/simpletextbox
+
+## 0.3.31
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
 ## 0.3.31
 
 ### Features
