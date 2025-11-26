@@ -1,4 +1,11 @@
 # @gradio/sidebar
+
+## 0.1.24
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
 ## 0.1.24
 
 ### Features

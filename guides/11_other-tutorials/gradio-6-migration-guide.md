@@ -318,6 +318,50 @@ history = [
 
 This structured format allows for multimodal content (text, images, files, etc.) in chat messages, making it consistent with OpenAI's API format. All files uploaded in a single message are grouped together in the `content` array along with any text content.
 
+### `cache_examples` parameter updated and `cache_mode` introduced
+
+The `cache_examples` parameter (used in `Interface`, `ChatInterface`, and `Examples`) no longer accepts the string value `"lazy"`. It now strictly accepts boolean values (`True` or `False`). To control the caching strategy, a new `cache_mode` parameter has been introduced.
+
+**In Gradio 5.x:**
+- `cache_examples` accepted `True`, `False`, or `"lazy"`.
+
+**In Gradio 6.x:**
+- `cache_examples` only accepts `True` or `False`.
+- `cache_mode` accepts `"eager"` (default) or `"lazy"`.
+
+**Before (Gradio 5.x):**
+
+```python
+import gradio as gr
+
+demo = gr.Interface(
+    fn=predict, 
+    inputs="text", 
+    outputs="text", 
+    examples=["Hello", "World"],
+    cache_examples="lazy"
+)
+```
+
+**After (Gradio 6.x):**
+
+You must now set `cache_examples=True` and specify the mode separately:
+
+```python
+import gradio as gr
+
+demo = gr.Interface(
+    fn=predict, 
+    inputs="text", 
+    outputs="text", 
+    examples=["Hello", "World"],
+    cache_examples=True,
+    cache_mode="lazy"
+)
+```
+
+If you previously used `cache_examples=True` (which implied eager caching), no changes are required, as `cache_mode` defaults to `"eager"`.
+
 ## Component-level Changes
 
 ### `gr.Video` no longer accepts tuple values for video and subtitles

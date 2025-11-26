@@ -1,4 +1,11 @@
 # @gradio/fileexplorer
+
+## 0.5.42
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
 ## 0.5.42
 
 ### Features
