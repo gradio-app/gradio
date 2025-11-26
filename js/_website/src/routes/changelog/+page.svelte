@@ -23,11 +23,11 @@
 
 <div class="container mx-auto px-4 flex gap-4 relative">
 	<div
-		class="side-navigation h-screen leading-relaxed sticky top-0 text-md overflow-y-auto overflow-x-hidden hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50"
+		class="side-navigation h-screen leading-relaxed sticky top-0 text-md overflow-y-auto overflow-x-hidden hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50 dark:from-neutral-900 dark:to-neutral-800"
 		style="min-width: 18%"
 	>
 		<div
-			class="category-link my-2 font-semibold px-4 pt-2 text-ellipsis block"
+			class="category-link my-2 font-semibold px-4 pt-2 text-ellipsis block text-gray-900 dark:text-gray-100"
 			style="max-width: 12rem"
 		>
 			Version History
@@ -37,14 +37,14 @@
 				{#if heading.text == "4.0.0"}
 					<div class="flex">
 						<a
-							class="subheading block thin-link mr-1 px-2 rounded-lg w-min border border-orange-500"
+							class="subheading block thin-link mr-1 px-2 rounded-lg w-min border border-orange-500 text-gray-700 dark:text-gray-300"
 							href={heading.href}>{heading.text}</a
 						>
 						<p class="inline">🔥</p>
 					</div>
 				{:else}
 					<a
-						class="subheading block thin-link mr-2 px-2 rounded-lg"
+						class="subheading block thin-link mr-2 px-2 rounded-lg text-gray-700 dark:text-gray-300"
 						href={heading.href}>{heading.text}</a
 					>
 				{/if}
@@ -52,6 +52,6 @@
 		</div>
 	</div>
 	<div class="w-10/12 mx-auto">
-		<div class="prose text-lg max-w-full">{@html content}</div>
+		<div class="prose dark:prose-invert text-lg max-w-full">{@html content}</div>
 	</div>
 </div>

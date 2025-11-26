@@ -118,14 +118,15 @@
 			<div
 				class="help-menu-container flex flex-col gap-3 lg:group lg:relative lg:flex lg:cursor-pointer lg:items-center lg:gap-3"
 			>
-				<div
-					class="flex items-center gap-2 cursor-pointer"
+				<button
+					type="button"
+					class="flex items-center gap-2 cursor-pointer bg-transparent border-none p-0 font-inherit text-inherit"
 					on:click={() => (show_help_menu = !show_help_menu)}
 				>
 					<span>Community</span>
 					{#if show_help_menu}
 						<svg
-							class="h-4 w-4 text-gray-900 dark:text-gray-300"
+							class="h-4 w-4 text-gray-900 dark:text-gray-300 pointer-events-none"
 							xmlns="http://www.w3.org/2000/svg"
 							viewBox="0 0 20 20"
 							fill="currentColor"
@@ -138,7 +139,7 @@
 						</svg>
 					{:else}
 						<svg
-							class="h-4 w-4 text-gray-900 dark:text-gray-300"
+							class="h-4 w-4 text-gray-900 dark:text-gray-300 pointer-events-none"
 							xmlns="http://www.w3.org/2000/svg"
 							viewBox="0 0 20 20"
 							fill="currentColor"
@@ -148,7 +149,7 @@
 							/>
 						</svg>
 					{/if}
-				</div>
+				</button>
 				{#if show_help_menu}
 					<div
 						class="help-menu flex flex-col gap-0 lg:absolute lg:top-9 lg:w-48 bg-white dark:bg-neutral-800 lg:backdrop-blur-sm lg:shadow-lg lg:group-hover:flex lg:sm:right-0 lg:rounded-lg border border-gray-200 dark:border-neutral-700"
