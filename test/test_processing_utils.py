@@ -7,7 +7,6 @@ from unittest.mock import patch
 import ffmpy
 import numpy as np
 import pytest
-from gradio_client import media_data
 from PIL import Image, ImageCms
 
 from gradio import components, data_classes, processing_utils, utils
@@ -48,7 +47,7 @@ class TestTempFileManagement:
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
         assert Path(f).name == "cheetah1-copy.jpg"
 
-    def test_save_b64_to_cache(self, gradio_temp_dir):
+    def test_save_b64_to_cache(self, gradio_temp_dir, media_data):
         base64_file_1 = media_data.BASE64_IMAGE
         base64_file_2 = media_data.BASE64_AUDIO["data"]
 
