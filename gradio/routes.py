@@ -284,6 +284,7 @@ class App(FastAPI):
     @staticmethod
     async def proxy_to_node(
         request: fastapi.Request,
+        app: App,
         server_name: str,
         node_port: int,
         python_port: int,
@@ -301,6 +302,12 @@ class App(FastAPI):
         print("Real URL:", request.url)
         print("REFERRER:", request.headers.get("referer"))
 
+        root_path  = route_utils.get_root_url(
+                request=request,
+                route_path=request.url.path,
+                root_path=app.root_path,
+            )
+
         url = f"{scheme}://{server_name}:{node_port}{full_path}"
 
         server_url = f"{scheme}://{server_name}"
@@ -313,7 +320,7 @@ class App(FastAPI):
         headers["x-gradio-server"] = server_url
         headers["x-gradio-port"] = str(python_port)
         headers["x-gradio-mounted-path"] = mounted_path
-        headers["x-gradio-original-request"] = str(request.url)
+        headers["x-gradio-original-url"] = str(root_path)
 
         if os.getenv("GRADIO_LOCAL_DEV_MODE"):
             headers["x-gradio-local-dev-mode"] = "1"
@@ -475,6 +482,7 @@ class App(FastAPI):
                     try:
                         return await App.proxy_to_node(
                             request,
+                            app,
                             blocks.node_server_name or "0.0.0.0",
                             blocks.node_port,
                             App.app_port,

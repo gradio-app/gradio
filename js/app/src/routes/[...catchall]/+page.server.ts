@@ -16,7 +16,7 @@ export async function load({ request }: { request: Request }): Promise<{
 	const accept_language = request.headers.get("accept-language") || "en";
 	const mount_path = request.headers.get("x-gradio-mounted-path") || "/";
 	const real_url = new URL(
-		request.headers.get("x-gradio-original-request") || server
+		request.headers.get("x-gradio-original-url") || server
 	).origin;
 	const root_url = new URL(request.url).origin;
 
