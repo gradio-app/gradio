@@ -31,7 +31,6 @@ export async function load({
 	const deepLink = url.searchParams.get("deep_link");
 	const headers = new Headers();
 	if (!browser) {
-		headers.append("Origin", root_url);
 		headers.append("x-gradio-server", root_url);
 	}
 

@@ -312,6 +312,7 @@ class App(FastAPI):
         headers["x-gradio-server"] = server_url
         headers["x-gradio-port"] = str(python_port)
         headers["x-gradio-mounted-path"] = mounted_path
+        headers["x-gradio-original-request"] = str(request.url)
 
         if os.getenv("GRADIO_LOCAL_DEV_MODE"):
             headers["x-gradio-local-dev-mode"] = "1"

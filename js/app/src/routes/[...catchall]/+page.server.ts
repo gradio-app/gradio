@@ -13,14 +13,18 @@ export async function load({ request }: { request: Request }): Promise<{
 	const local_dev_mode =
 		request.headers.get("x-gradio-local-dev-mode") || dev ? "true" : undefined;
 	const accept_language = request.headers.get("accept-language") || "en";
-	const mount_path = request.headers.get("x-gradio-mount-path") || "/";
+	const mount_path = request.headers.get("x-gradio-mounted-path") || "/";
+	const real_url = new URL(
+		request.headers.get("x-gradio-original-request") || server
+	).origin;
 	const root_url = new URL(request.url).origin;
+
 	console.log("NODE SERVER REQUEST:");
 	console.log({ root_url, mount_path });
 
 	return {
 		server: server,
-		root_url: new URL(mount_path, root_url).href,
+		root_url: new URL(mount_path, real_url).href,
 		port: port,
 		local_dev_mode: local_dev_mode,
 		accept_language: accept_language
