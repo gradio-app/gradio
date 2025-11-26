@@ -14,7 +14,7 @@ export let ssr = true;
 
 export async function load({
 	url,
-	data: { server, port, local_dev_mode, accept_language },
+	data: { server, port, local_dev_mode, accept_language, root_url },
 	route
 }): Promise<{
 	Render: typeof Login | typeof Blocks;
@@ -23,6 +23,7 @@ export async function load({
 	layout: unknown;
 	app: Client | null;
 }> {
+	let normalized_root = root_url;
 	// for (const h of url.he) {
 	let app: Client;
 	const api_url =
@@ -30,8 +31,8 @@ export async function load({
 	const deepLink = url.searchParams.get("deep_link");
 	const headers = new Headers();
 	if (!browser) {
-		headers.append("Origin", server);
-		headers.append("x-gradio-server", server);
+		headers.append("Origin", root_url);
+		headers.append("x-gradio-server", root_url);
 	}
 	try {
 		app = await Client.connect(api_url, {
