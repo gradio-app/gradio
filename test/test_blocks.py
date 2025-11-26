@@ -21,7 +21,7 @@ import numpy as np
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from gradio_client import Client, media_data
+from gradio_client import Client
 from PIL import Image
 
 import gradio as gr
@@ -651,7 +651,7 @@ class TestBlocksPostprocessing:
         assert output[0] == 23
 
     @pytest.mark.asyncio
-    async def test_blocks_update_dict_without_postprocessing(self):
+    async def test_blocks_update_dict_without_postprocessing(self, media_data):
         def infer(x):
             return media_data.BASE64_IMAGE, gr.update(visible=True)
 
@@ -668,7 +668,7 @@ class TestBlocksPostprocessing:
 
     @pytest.mark.asyncio
     async def test_blocks_update_dict_does_not_postprocess_value_if_postprocessing_false(
-        self,
+        self, media_data
     ):
         def infer(x):
             return gr.Image(value=media_data.BASE64_IMAGE)
