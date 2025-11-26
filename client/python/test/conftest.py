@@ -501,3 +501,14 @@ def chatbot_message_format():
         msg.submit(respond, [msg, chatbot], [msg, chatbot], api_name="chat")
 
     return demo
+
+
+@pytest.fixture
+def media_data():
+    import sys
+    from pathlib import Path
+
+    sys.path.append(Path(".").resolve().as_posix())
+    from client.python.test import media_data
+
+    return media_data

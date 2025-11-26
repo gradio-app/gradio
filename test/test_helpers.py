@@ -7,7 +7,6 @@ from unittest.mock import patch
 
 import gradio_client as grc
 import pytest
-from gradio_client import media_data
 from gradio_client import utils as client_utils
 from pydub import AudioSegment
 from starlette.testclient import TestClient
@@ -21,7 +20,7 @@ from gradio.route_utils import API_PREFIX
 
 @patch("gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp()))
 class TestExamples:
-    def test_handle_single_input(self, patched_cache_folder):
+    def test_handle_single_input(self, patched_cache_folder, media_data):
         examples = gr.Examples(["hello", "hi"], gr.Textbox())
         assert examples.non_none_processed_examples.as_list() == [["hello"], ["hi"]]
 
@@ -36,7 +35,7 @@ class TestExamples:
             == media_data.BASE64_IMAGE
         )
 
-    def test_handle_multiple_inputs(self, patched_cache_folder):
+    def test_handle_multiple_inputs(self, patched_cache_folder, media_data):
         examples = gr.Examples(
             [["hello", "test/test_files/bus.png"]], [gr.Textbox(), gr.Image()]
         )
@@ -48,7 +47,7 @@ class TestExamples:
             == media_data.BASE64_IMAGE
         )
 
-    def test_handle_directory(self, patched_cache_folder):
+    def test_handle_directory(self, patched_cache_folder, media_data):
         examples = gr.Examples("test/test_files/images", gr.Image())
         assert len(examples.non_none_processed_examples.as_list()) == 2
         for row in examples.non_none_processed_examples.as_list():
@@ -58,7 +57,7 @@ class TestExamples:
                     == media_data.BASE64_IMAGE
                 )
 
-    def test_handle_directory_with_log_file(self, patched_cache_folder):
+    def test_handle_directory_with_log_file(self, patched_cache_folder, media_data):
         examples = gr.Examples(
             "test/test_files/images_log", [gr.Image(label="im"), gr.Text()]
         )
@@ -78,7 +77,7 @@ class TestExamples:
         examples = gr.Examples(["hello", "hi"], gr.Textbox(), examples_per_page=2)
         assert examples.dataset.get_config()["samples_per_page"] == 2
 
-    def test_no_preprocessing(self, patched_cache_folder, connect):
+    def test_no_preprocessing(self, patched_cache_folder, connect, media_data):
         with gr.Blocks() as demo:
             image = gr.Image()
             textbox = gr.Textbox()

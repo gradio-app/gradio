@@ -99,3 +99,14 @@ def test_mcp_app():
         t1.submit(test_tool, t1, t2)
 
     return app
+
+
+@pytest.fixture
+def media_data():
+    import sys
+    from pathlib import Path
+
+    sys.path.append(Path("..", "client", "python", "test").resolve().as_posix())
+    from client.python.test import media_data
+
+    return media_data

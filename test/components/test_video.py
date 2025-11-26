@@ -6,7 +6,6 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from gradio_client import media_data
 
 import gradio as gr
 from gradio import processing_utils
@@ -15,7 +14,7 @@ from gradio.data_classes import FileData
 
 class TestVideo:
     @pytest.mark.asyncio
-    async def test_component_functions(self):
+    async def test_component_functions(self, media_data):
         """
         Preprocess, serialize, deserialize, get_config
         """
@@ -118,7 +117,7 @@ class TestVideo:
         postprocessed_video["path"] = os.path.basename(postprocessed_video["path"])
         assert processed_video == postprocessed_video
 
-    def test_in_interface(self):
+    def test_in_interface(self, media_data):
         """
         Interface, process
         """
@@ -154,7 +153,7 @@ class TestVideo:
 
     @patch("pathlib.Path.exists", MagicMock(return_value=False))
     @patch("gradio.components.video.FFmpeg")
-    def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
+    def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg, media_data):
         # Ensures that the cached temp video file is not used so that ffmpeg is called for each test
         x_video = FileData(path=media_data.BASE64_VIDEO["path"])
         video_input = gr.Video(sources=["webcam"])

@@ -4,7 +4,6 @@ from typing import cast
 import numpy as np
 import PIL
 import pytest
-from gradio_client import media_data
 from gradio_client import utils as client_utils
 
 import gradio as gr
@@ -14,7 +13,7 @@ from gradio.media import get_image
 
 
 class TestImage:
-    def test_component_functions(self, gradio_temp_dir):
+    def test_component_functions(self, gradio_temp_dir, media_data):
         """
         Preprocess, postprocess, serialize, get_config, _segment_by_slic
         type: pil, file, filepath, numpy
@@ -97,7 +96,7 @@ class TestImage:
         iface = gr.Interface(generate_noise, ["slider", "slider"], "image")
         assert iface(10, 20).endswith(".webp")
 
-    def test_static(self):
+    def test_static(self, media_data):
         """
         postprocess
         """

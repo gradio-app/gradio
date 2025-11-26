@@ -20,7 +20,6 @@ import requests
 import starlette.routing
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
-from gradio_client import media_data
 
 import gradio as gr
 from gradio import (
@@ -244,7 +243,7 @@ class TestRoutes:
         output = dict(response.json())
         assert output["data"] == ["testtest", None]
 
-    def test_get_allowed_paths(self):
+    def test_get_allowed_paths(self, media_data):
         allowed_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
         allowed_file.write(media_data.BASE64_IMAGE)
         allowed_file.flush()
@@ -278,7 +277,7 @@ class TestRoutes:
         assert len(file_response.text) == len(media_data.BASE64_IMAGE)
         io.close()
 
-    def test_response_attachment_format(self):
+    def test_response_attachment_format(self, media_data):
         image_file = tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".png")
         image_file.write(media_data.BASE64_IMAGE)
         image_file.flush()
