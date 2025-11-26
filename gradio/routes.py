@@ -297,6 +297,9 @@ class App(FastAPI):
         if request.url.query:
             full_path += f"?{request.url.query}"
 
+        print("Proxying to node server:", f"{scheme}://{server_name}:{node_port}{full_path}")
+        print("Real URL:", request.url)
+
         url = f"{scheme}://{server_name}:{node_port}{full_path}"
 
         server_url = f"{scheme}://{server_name}"
