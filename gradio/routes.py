@@ -291,7 +291,7 @@ class App(FastAPI):
         scheme: str = "http",
         mounted_path: str = "",
     ) -> Response:
-        #  print all headers
+        
         full_path = request.url.path
         if mounted_path:
             full_path = full_path.replace(mounted_path, "")
@@ -301,12 +301,15 @@ class App(FastAPI):
         print("Proxying to node server:", f"{scheme}://{server_name}:{node_port}{full_path}")
         print("Real URL:", request.url)
         print("REFERRER:", request.headers.get("referer"))
+        #  print all headers
+        for name, value in request.headers.items():
+            print(f"Header: {name}={value}")
 
         root_path  = route_utils.get_root_url(
-                request=request,
-                route_path=request.url.path,
-                root_path=app.root_path,
-            )
+            request=request,
+            route_path=request.url.path,
+            root_path=app.root_path,
+        )
 
         url = f"{scheme}://{server_name}:{node_port}{full_path}"
 
