@@ -2,8 +2,7 @@
 import { browser } from "$app/environment";
 
 import { Client } from "@gradio/client";
-import { AppTree, type ComponentMeta, type Dependency } from "@gradio/core";
-import { get } from "svelte/store";
+
 import type { Config } from "@gradio/client";
 import { MISSING_CREDENTIALS_MSG } from "@gradio/client";
 import { setupi18n } from "@gradio/core";
@@ -15,7 +14,8 @@ export let ssr = true;
 
 export async function load({
 	url,
-	data: { server, port, local_dev_mode, accept_language }
+	data: { server, port, local_dev_mode, accept_language },
+	route
 }): Promise<{
 	Render: typeof Login | typeof Blocks;
 	config: Config;
@@ -27,11 +27,17 @@ export async function load({
 	const api_url =
 		browser && !local_dev_mode ? new URL(".", location.href).href : server;
 	const deepLink = url.searchParams.get("deep_link");
+	const headers = new Headers();
+	if (!browser) {
+		headers.append("Origin", url.href);
+	}
 	try {
 		app = await Client.connect(api_url, {
 			with_null_state: true,
 			events: ["data", "log", "status", "render"],
-			query_params: deepLink ? { deep_link: deepLink } : undefined
+			query_params: deepLink ? { deep_link: deepLink } : undefined,
+			headers
+			// dev_mode: local_dev_mode
 		});
 	} catch (error: any) {
 		const error_message = error.message || "";
