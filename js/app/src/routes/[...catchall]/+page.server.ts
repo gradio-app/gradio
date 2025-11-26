@@ -15,13 +15,9 @@ export async function load({ request }: { request: Request }): Promise<{
 	const accept_language = request.headers.get("accept-language") || "en";
 	const mount_path = request.headers.get("x-gradio-mount-path") || "/";
 	const root_url = new URL(request.url).origin;
-	console.log("NODE SERVER REQUEST HEADERS:");
-	console.log(request.url);
-	for (const [key, value] of request.headers) {
-		// Uncomment the following line to debug headers
-		console.log(`Header: ${key} = ${value}`);
-	}
-	console.log("--------------------------------");
+	console.log("NODE SERVER REQUEST:");
+	console.log({ root_url, mount_path });
+
 	return {
 		server: server,
 		root_url: new URL(mount_path, root_url).href,

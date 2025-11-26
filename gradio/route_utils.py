@@ -400,12 +400,17 @@ def get_request_origin(request: fastapi.Request, route_path: str) -> httpx.URL:
 
     The returned URL is a httpx.URL object without a trailing slash, e.g. "https://example.com"
     """
+    print("Getting request origin...")
     x_forwarded_host = get_first_header_value(request, "x-forwarded-host")
+    print("x_forwarded_host:", x_forwarded_host)
     x_gradio_server = get_first_header_value(request, "x-gradio-server")
+    print("x_gradio_server:", x_gradio_server)
     root_url = f"http://{x_forwarded_host}" if x_forwarded_host else str(x_gradio_server or request.url)
+    print("Initial root_url:", root_url)
     root_url = httpx.URL(root_url)
     root_url = root_url.copy_with(query=None)
     root_url = str(root_url).rstrip("/")
+    print("Stripped root_url:", root_url)
     if get_first_header_value(request, "x-forwarded-proto") == "https":
         root_url = root_url.replace("http://", "https://")
 

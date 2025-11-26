@@ -291,8 +291,6 @@ class App(FastAPI):
         mounted_path: str = "",
     ) -> Response:
         #  print all headers
-        for key, value in request.headers.items():
-            print(f"Header from proxy: {key} = {value}")
         full_path = request.url.path
         if mounted_path:
             full_path = full_path.replace(mounted_path, "")

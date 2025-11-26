@@ -23,8 +23,8 @@ export async function load({
 	layout: unknown;
 	app: Client | null;
 }> {
-	let normalized_root = root_url;
-	// for (const h of url.he) {
+	console.log("SERVER PAGE LOAD:");
+	console.log({ root_url });
 	let app: Client;
 	const api_url =
 		browser && !local_dev_mode ? new URL(".", location.href).href : server;
@@ -34,6 +34,7 @@ export async function load({
 		headers.append("Origin", root_url);
 		headers.append("x-gradio-server", root_url);
 	}
+
 	try {
 		app = await Client.connect(api_url, {
 			with_null_state: true,
