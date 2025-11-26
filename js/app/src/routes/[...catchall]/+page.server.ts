@@ -13,6 +13,11 @@ export async function load({ request }: { request: Request }): Promise<{
 		request.headers.get("x-gradio-local-dev-mode") || dev ? "true" : undefined;
 	const accept_language = request.headers.get("accept-language") || "en";
 
+	for (const [key, value] of request.headers) {
+		// Uncomment the following line to debug headers
+		console.log(`Header: ${key} = ${value}`);
+	}
+
 	return {
 		server: server,
 		port: port,

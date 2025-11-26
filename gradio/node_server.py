@@ -69,6 +69,7 @@ def start_node_server(
 
 GRADIO_LOCAL_DEV_MODE = os.getenv("GRADIO_LOCAL_DEV_MODE") is not None
 SSR_APP_PATH = Path(__file__).parent.joinpath("templates", "node", "build")
+import threading
 
 
 def start_node_process(
@@ -111,9 +112,22 @@ def start_node_process(
 
             node_process = subprocess.Popen(
                 [node_path, "--import", register_file, SSR_APP_PATH],
-                stdout=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 env=env,
             )
+
+            def _stream_stdout():
+                for line in iter(node_process.stdout.readline, ""):
+                    if not line:
+                        break
+                    # real filtering here
+                    print("test:", line.rstrip())
+
+            t = threading.Thread(target=_stream_stdout, daemon=True)
+            t.start()
+
+
 
             is_working = verify_server_startup(server_name, port, timeout=5)
             if is_working:

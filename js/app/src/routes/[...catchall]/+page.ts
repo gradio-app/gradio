@@ -23,13 +23,15 @@ export async function load({
 	layout: unknown;
 	app: Client | null;
 }> {
+	// for (const h of url.he) {
 	let app: Client;
 	const api_url =
 		browser && !local_dev_mode ? new URL(".", location.href).href : server;
 	const deepLink = url.searchParams.get("deep_link");
 	const headers = new Headers();
 	if (!browser) {
-		headers.append("Origin", url.href);
+		headers.append("Origin", server);
+		headers.append("x-gradio-server", server);
 	}
 	try {
 		app = await Client.connect(api_url, {
