@@ -14,7 +14,7 @@ export let ssr = true;
 
 export async function load({
 	url,
-	data: { server, port, local_dev_mode, accept_language, root_url },
+	data: { server, port, local_dev_mode, accept_language, root_url, mount_path },
 	route
 }): Promise<{
 	Render: typeof Login | typeof Blocks;
@@ -32,6 +32,11 @@ export async function load({
 	const headers = new Headers();
 	if (!browser) {
 		headers.append("x-gradio-server", root_url);
+	} else {
+		headers.append(
+			"x-gradio-server",
+			new URL(mount_path, location.origin).href
+		);
 	}
 
 	try {

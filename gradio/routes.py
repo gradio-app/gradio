@@ -299,6 +299,7 @@ class App(FastAPI):
 
         print("Proxying to node server:", f"{scheme}://{server_name}:{node_port}{full_path}")
         print("Real URL:", request.url)
+        print("REFERRER:", request.headers.get("referer"))
 
         url = f"{scheme}://{server_name}:{node_port}{full_path}"
 
@@ -469,6 +470,7 @@ class App(FastAPI):
                         App.app_port = request.url.port or int(
                             os.getenv("GRADIO_SERVER_PORT", "7860")
                         )
+                        print("Request", request)
 
                     try:
                         return await App.proxy_to_node(
