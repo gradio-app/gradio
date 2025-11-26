@@ -8,8 +8,6 @@
 	let disabled = $derived(!gradio.shared.interactive);
 
 	let old_value = $state(gradio.props.value);
-	let label = $derived(gradio.shared.label || gradio.i18n("checkbox.checkbox"));
-
 	$effect(() => {
 		if (old_value !== gradio.props.value) {
 			old_value = gradio.props.value;
@@ -55,7 +53,7 @@
 	/>
 	{#if gradio.shared.show_label}
 		<span class="label-text">
-			{label}
+			{gradio.shared.label}
 		</span>
 	{/if}
 </label>
