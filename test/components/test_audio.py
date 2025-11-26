@@ -5,7 +5,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from gradio_client import media_data
 from gradio_client import utils as client_utils
 
 import gradio as gr
@@ -16,7 +15,7 @@ from gradio.media import get_audio
 
 class TestAudio:
     @pytest.mark.asyncio
-    async def test_component_functions(self, gradio_temp_dir):
+    async def test_component_functions(self, gradio_temp_dir, media_data):
         """
         Preprocess, postprocess serialize, get_config, deserialize
         type: filepath, numpy, file
@@ -133,12 +132,12 @@ class TestAudio:
         output2 = audio_output.postprocess(Path(y_audio.name)).model_dump()  # type: ignore
         assert output1 == output2
 
-    def test_default_value_postprocess(self):
+    def test_default_value_postprocess(self, media_data):
         x_wav = deepcopy(media_data.BASE64_AUDIO)
         audio = gr.Audio(value=x_wav["path"])
         assert utils.is_in_or_equal(audio.value["path"], audio.GRADIO_CACHE)
 
-    def test_in_interface(self):
+    def test_in_interface(self, media_data):
         def reverse_audio(audio):
             sr, data = audio
             return (sr, np.flipud(data))
@@ -165,7 +164,7 @@ class TestAudio:
         iface = gr.Interface(generate_noise, "slider", "audio")
         assert iface(100).endswith(".wav")
 
-    def test_prepost_process_to_mp3(self, gradio_temp_dir):
+    def test_prepost_process_to_mp3(self, gradio_temp_dir, media_data):
         x_wav = FileData(
             path=processing_utils.save_base64_to_cache(
                 media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir
@@ -188,7 +187,7 @@ class TestAudio:
         )
 
     @pytest.mark.asyncio
-    async def test_combine_stream_audio(self, gradio_temp_dir):
+    async def test_combine_stream_audio(self, gradio_temp_dir, media_data):
         x_wav = FileData(
             path=processing_utils.save_base64_to_cache(
                 media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir
