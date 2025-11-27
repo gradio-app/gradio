@@ -49,7 +49,7 @@ class Checkbox(FormComponent):
         """
         Parameters:
             value: if True, checked by default. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
-            label: the label for this component, displayed above the component if `show_label` is `True` and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component corresponds to.
+            label: the label for this checkbox, displayed to the right of the checkbox if `show_label` is `True`.
             info: additional component description, appears below the label in smaller font. Supports markdown / HTML syntax.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
@@ -83,6 +83,14 @@ class Checkbox(FormComponent):
             preserved_by_key=preserved_by_key,
             value=value,
         )
+
+    def get_config(self) -> dict[str, Any]:
+        config = super().get_config()
+        if self.label is not None:
+            self.show_label = True
+        config["label"] = self.label
+        config["show_label"] = self.show_label
+        return config
 
     def api_info(self) -> dict[str, Any]:
         return {"type": "boolean"}
