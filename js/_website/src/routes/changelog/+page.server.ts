@@ -50,7 +50,7 @@ function highlight(code: string, lang: string | undefined) {
 	return highlighted;
 }
 
-let content = changelog_json.content;
+const raw_content = changelog_json.content;
 
 export async function load() {
 	const changelog_slug: object[] = [];
@@ -96,13 +96,13 @@ export async function load() {
 		};
 	}
 
-	const compiled = await compile(content, {
+	const compiled = await compile(raw_content, {
 		rehypePlugins: [plugin],
 		highlight: {
 			highlighter: highlight
 		}
 	});
-	content = (await compiled?.code) || "";
+	const content = (await compiled?.code) || "";
 
 	return {
 		content,
