@@ -48,7 +48,7 @@ export async function load({
 			// dev_mode: local_dev_mode
 		});
 		console.log("Connected to Gradio app:");
-		console.log(JSON.stringify(app.config, null, 2));
+		console.log("RAW ROOT: ", app.config?.root);
 	} catch (error: any) {
 		const error_message = error.message || "";
 		let auth_message = "";
@@ -105,8 +105,7 @@ export async function load({
 	let page_config = app.get_url_config(url.toString());
 
 	console.log("Page config:");
-	console.log(JSON.stringify(page_config, null, 2));
-
+	console.log("RAW ROOT from page: ", page_config.root);
 	// const layouts = get(layout);
 	await setupi18n(app.config?.i18n_translations || undefined, accept_language);
 	return {
