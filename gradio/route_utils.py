@@ -400,29 +400,29 @@ def get_request_origin(request: fastapi.Request, route_path: str) -> httpx.URL:
 
     The returned URL is a httpx.URL object without a trailing slash, e.g. "https://example.com"
     """
-    print("Getting request origin...")
+
     x_forwarded_host = get_first_header_value(request, "x-forwarded-host")
-    print("x_forwarded_host:", x_forwarded_host)
     x_gradio_server = get_first_header_value(request, "x-gradio-server")
-    print("x_gradio_server:", x_gradio_server)
-    root_url = f"http://{x_forwarded_host}" if x_forwarded_host else str(x_gradio_server or request.url)
-    print("Initial root_url:", root_url)
+    root_url = (
+        f"http://{x_forwarded_host}"
+        if x_forwarded_host
+        else str(x_gradio_server or request.url)
+    )
     root_url = httpx.URL(root_url)
     root_url = root_url.copy_with(query=None)
     root_url = str(root_url).rstrip("/")
-    print("Stripped root_url:", root_url)
+
     if get_first_header_value(request, "x-forwarded-proto") == "https":
         root_url = root_url.replace("http://", "https://")
 
     route_path = route_path.rstrip("/")
-    print("Final root_url:", root_url, route_path)
+
     if len(route_path) > 0 and not x_forwarded_host and root_url.endswith(route_path):
         root_url = root_url[: -len(route_path)]
-    print("Final final root_url:", root_url, route_path)
+
     root_url = root_url.rstrip("/")
-    
     root_url = httpx.URL(root_url)
-    
+
     return root_url
 
 
@@ -452,7 +452,6 @@ def get_api_call_path(request: fastapi.Request) -> str:
         f"Request url '{str(request.url)}' has an unknown api call pattern."
     )
 
-import traceback
 
 def get_root_url(
     request: fastapi.Request, route_path: str, root_path: str | None
@@ -470,9 +469,6 @@ def get_root_url(
     In cases (2) and (3), We also check to see if the x-forwarded-proto header is present, and if so, convert the root url to https.
     And if there are multiple hosts in the x-forwarded-host or multiple protocols in the x-forwarded-proto, the first one is used.
     """
-    #  traceback
-
-    traceback.print_stack()
 
     if root_path and client_utils.is_http_url_like(root_path):
         return root_path.rstrip("/")

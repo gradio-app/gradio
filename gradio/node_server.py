@@ -127,8 +127,6 @@ def start_node_process(
             t = threading.Thread(target=_stream_stdout, daemon=True)
             t.start()
 
-
-
             is_working = verify_server_startup(server_name, port, timeout=5)
             if is_working:
                 signal.signal(

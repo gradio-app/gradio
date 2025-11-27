@@ -20,9 +20,6 @@ export async function load({ request }: { request: Request }): Promise<{
 	).origin;
 	const root_url = new URL(request.url).origin;
 
-	console.log("NODE SERVER REQUEST:");
-	console.log({ root_url, mount_path });
-
 	return {
 		server: server,
 		root_url: new URL(mount_path, real_url).href,

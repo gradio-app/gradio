@@ -23,8 +23,6 @@ export async function load({
 	layout: unknown;
 	app: Client | null;
 }> {
-	console.log("SERVER PAGE LOAD:");
-	console.log({ root_url, server });
 	let app: Client;
 	const api_url =
 		browser && !local_dev_mode && root_url
@@ -41,8 +39,6 @@ export async function load({
 		);
 	}
 
-	console.log("API URL:", api_url);
-
 	try {
 		app = await Client.connect(api_url, {
 			with_null_state: true,
@@ -51,8 +47,6 @@ export async function load({
 			headers
 			// dev_mode: local_dev_mode
 		});
-		console.log("Connected to Gradio app:");
-		console.log("RAW ROOT: ", app.config?.root);
 	} catch (error: any) {
 		const error_message = error.message || "";
 		let auth_message = "";
@@ -108,9 +102,6 @@ export async function load({
 
 	let page_config = app.get_url_config(url.toString());
 
-	console.log("Page config:");
-	console.log("RAW ROOT from page: ", page_config.root);
-	// const layouts = get(layout);
 	await setupi18n(app.config?.i18n_translations || undefined, accept_language);
 	return {
 		Render: app.config?.auth_required ? Login : Blocks,

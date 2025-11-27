@@ -291,21 +291,13 @@ class App(FastAPI):
         scheme: str = "http",
         mounted_path: str = "",
     ) -> Response:
-        
         full_path = request.url.path
         if mounted_path:
             full_path = full_path.replace(mounted_path, "")
         if request.url.query:
             full_path += f"?{request.url.query}"
 
-        print("Proxying to node server:", f"{scheme}://{server_name}:{node_port}{full_path}")
-        print("Real URL:", request.url)
-        print("REFERRER:", request.headers.get("referer"))
-        #  print all headers
-        for name, value in request.headers.items():
-            print(f"Header: {name}={value}")
-
-        root_path  = route_utils.get_root_url(
+        root_path = route_utils.get_root_url(
             request=request,
             route_path=request.url.path,
             root_path=app.root_path,
@@ -466,8 +458,7 @@ class App(FastAPI):
             ):
                 # log request details for debugging
                 blocks = app.get_blocks()
-                
-               
+
                 custom_mount_path = blocks.custom_mount_path
                 path = (
                     request.url.path.replace(blocks.custom_mount_path or "", "")
@@ -484,9 +475,6 @@ class App(FastAPI):
                         App.app_port = request.url.port or int(
                             os.getenv("GRADIO_SERVER_PORT", "7860")
                         )
-                        for name, value in request.headers.items():
-                            print(f"  {name}: {value}")
-                        print("request method:", request.method)
 
                     try:
                         return await App.proxy_to_node(
