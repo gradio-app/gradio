@@ -1088,6 +1088,52 @@ class TestEndpoints:
         with pytest.raises(httpx.HTTPStatusError):
             client.endpoints[0]._download_file({"path": "https://example.com/foo"})  # type: ignore
 
+    def test_download_stream_file_uses_url_directly(self, monkeypatch, gradio_temp_dir):
+        """Test that stream files use the URL directly instead of constructing from path."""
+        client = Client(
+            src="gradio/zip_files",
+        )
+
+        # Mock response for stream file
+        mock_response = MagicMock()
+        mock_response.raise_for_status.return_value = None
+        mock_response.iter_bytes.return_value = [b"test content"]
+
+        def mock_stream(*args, **kwargs):
+            # Verify that the URL is used directly for streams
+            called_url = args[1]  # Second argument is the URL
+            assert called_url == "/api/stream/test_file.txt", (
+                f"Expected stream URL, got: {called_url}"
+            )
+            return mock_response
+
+        monkeypatch.setattr(httpx, "stream", mock_stream)
+
+        # Test stream file with URL
+        stream_file_data = {
+            "path": "some/wrong/path",  # This path should be ignored for streams
+            "url": "/api/stream/test_file.txt",  # This URL should be used directly
+            "is_stream": True,
+        }
+
+        with patch("pathlib.Path.resolve", return_value="/tmp/test_file.txt"):
+            result = client.endpoints[0]._download_file(stream_file_data)  # type: ignore
+
+        # Test non-stream file still uses path-based URL construction
+        regular_file_data = {"path": "regular/file.txt", "is_stream": False}
+
+        def mock_stream_regular(*args, **kwargs):
+            called_url = args[1]
+            assert called_url.endswith("file=regular/file.txt"), (
+                f"Expected path-based URL, got: {called_url}"
+            )
+            return mock_response
+
+        monkeypatch.setattr(httpx, "stream", mock_stream_regular)
+
+        with patch("pathlib.Path.resolve", return_value="/tmp/regular_file.txt"):
+            result = client.endpoints[0]._download_file(regular_file_data)  # type: ignore
+
 
 cpu = huggingface_hub.SpaceHardware.CPU_BASIC
 
