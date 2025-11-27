@@ -1,5 +1,5 @@
 ---
-"website": minor
+"website": patch
 ---
 
-feat:Fix and bring back cc gallery on website
+fix:Fix and bring back cc gallery on website
