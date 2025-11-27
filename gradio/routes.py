@@ -464,6 +464,10 @@ class App(FastAPI):
             async def conditional_routing_middleware(
                 request: fastapi.Request, call_next
             ):
+                # log request details for debugging
+                blocks = app.get_blocks()
+                
+               
                 custom_mount_path = blocks.custom_mount_path
                 path = (
                     request.url.path.replace(blocks.custom_mount_path or "", "")
@@ -480,7 +484,9 @@ class App(FastAPI):
                         App.app_port = request.url.port or int(
                             os.getenv("GRADIO_SERVER_PORT", "7860")
                         )
-                        print("Request", request)
+                        for name, value in request.headers.items():
+                            print(f"  {name}: {value}")
+                        print("request method:", request.method)
 
                     try:
                         return await App.proxy_to_node(

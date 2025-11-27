@@ -61,6 +61,7 @@ def setup_tunnel(
 
 
 def url_ok(url: str) -> bool:
+    print("Checking URL:", url)
     try:
         for _ in range(5):
             with warnings.catch_warnings():

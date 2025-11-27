@@ -419,6 +419,7 @@ def get_request_origin(request: fastapi.Request, route_path: str) -> httpx.URL:
         root_url = root_url[: -len(route_path)]
     root_url = root_url.rstrip("/")
     root_url = httpx.URL(root_url)
+    print("Final root_url:", root_url)
     return root_url
 
 
@@ -448,6 +449,7 @@ def get_api_call_path(request: fastapi.Request) -> str:
         f"Request url '{str(request.url)}' has an unknown api call pattern."
     )
 
+import traceback
 
 def get_root_url(
     request: fastapi.Request, route_path: str, root_path: str | None
@@ -465,6 +467,9 @@ def get_root_url(
     In cases (2) and (3), We also check to see if the x-forwarded-proto header is present, and if so, convert the root url to https.
     And if there are multiple hosts in the x-forwarded-host or multiple protocols in the x-forwarded-proto, the first one is used.
     """
+    #  traceback
+
+    traceback.print_stack()
 
     if root_path and client_utils.is_http_url_like(root_path):
         return root_path.rstrip("/")
