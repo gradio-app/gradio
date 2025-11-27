@@ -13,7 +13,8 @@
 
 	let dismissed = false;
 
-	$: badge_label = type === "announcement" ? "New" : type === "warning" ? "Update" : "Info";
+	$: badge_label =
+		type === "announcement" ? "New" : type === "warning" ? "Update" : "Info";
 
 	const STORAGE_KEY = `gradio-banner-dismissed-${id}`;
 
@@ -50,9 +51,18 @@
 		{#if link_text}
 			<span class="link-text">
 				{link_text}
-				<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M5 12h14"/>
-					<path d="m12 5 7 7-7 7"/>
+				<svg
+					width="10"
+					height="10"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2.5"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<path d="M5 12h14" />
+					<path d="m12 5 7 7-7 7" />
 				</svg>
 			</span>
 		{/if}
