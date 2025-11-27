@@ -11,7 +11,7 @@ import httpx
 import pytest
 from huggingface_hub import get_token
 
-from gradio_client import media_data, utils
+from gradio_client import utils
 
 types = json.loads(importlib.resources.read_text("gradio_client", "types.json"))
 types["MultipleFile"] = {
@@ -29,14 +29,14 @@ class TestEnum(Enum):
     VALUE3 = 42
 
 
-def test_encode_url_or_file_to_base64():
+def test_encode_url_or_file_to_base64(media_data):
     output_base64 = utils.encode_url_or_file_to_base64(
         Path(__file__).parents[3] / "gradio" / "test_data" / "test_image.png"
     )
     assert output_base64 == deepcopy(media_data.BASE64_IMAGE)
 
 
-def test_encode_file_to_base64():
+def test_encode_file_to_base64(media_data):
     output_base64 = utils.encode_file_to_base64(
         Path(__file__).parents[3] / "gradio" / "test_data" / "test_image.png"
     )
@@ -44,7 +44,7 @@ def test_encode_file_to_base64():
 
 
 @pytest.mark.flaky
-def test_encode_url_to_base64():
+def test_encode_url_to_base64(media_data):
     output_base64 = utils.encode_url_to_base64(
         "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/test_image.png"
     )
@@ -59,7 +59,7 @@ def test_encode_url_to_base64_doesnt_encode_errors(monkeypatch):
         utils.encode_url_to_base64("https://example.com/foo")
 
 
-def test_decode_base64_to_binary():
+def test_decode_base64_to_binary(media_data):
     binary = utils.decode_base64_to_binary(deepcopy(media_data.BASE64_IMAGE))
     assert deepcopy(media_data.BINARY_IMAGE) == binary
 
@@ -72,7 +72,7 @@ def test_decode_base64_to_binary():
     assert extension is None
 
 
-def test_decode_base64_to_file():
+def test_decode_base64_to_file(media_data):
     temp_file = utils.decode_base64_to_file(deepcopy(media_data.BASE64_IMAGE))
     assert isinstance(temp_file, tempfile._TemporaryFileWrapper)
 
