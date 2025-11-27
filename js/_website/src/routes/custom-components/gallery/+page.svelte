@@ -1,6 +1,7 @@
 <script lang="ts">
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { page } from "$app/stores";
+	import { browser } from "$app/environment";
 	import { onMount, tick } from "svelte";
 	import type { ComponentData } from "./utils";
 	import { clickOutside } from "./utils";
@@ -55,9 +56,11 @@
 			components_length = components.length;
 		}
 		components = components.sort((a, b) => b["likes"] - a["likes"]);
-		const id = $page.url.searchParams.get("id");
-		selected_component =
-			components.find((component) => component.id === id) ?? null;
+		if (browser) {
+			const id = $page.url.searchParams.get("id");
+			selected_component =
+				components.find((component) => component.id === id) ?? null;
+		}
 	}
 
 	onMount(fetch_components);
@@ -78,6 +81,8 @@
 			}, 1000);
 		});
 	}
+
+	$: fetch_components(selection.split(","));
 </script>
 
 <MetaTags
