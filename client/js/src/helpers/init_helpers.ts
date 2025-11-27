@@ -68,6 +68,7 @@ export async function resolve_config(
 	this: Client,
 	endpoint: string
 ): Promise<Config | undefined> {
+	console.log("resolve_config called with endpoint:", endpoint);
 	const headers: Record<string, string> = this.options.token
 		? { Authorization: `Bearer ${this.options.token}` }
 		: {};

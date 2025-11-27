@@ -415,11 +415,14 @@ def get_request_origin(request: fastapi.Request, route_path: str) -> httpx.URL:
         root_url = root_url.replace("http://", "https://")
 
     route_path = route_path.rstrip("/")
-    if len(route_path) > 0 and not x_forwarded_host:
+    print("Final root_url:", root_url, route_path)
+    if len(route_path) > 0 and not x_forwarded_host and root_url.endswith(route_path):
         root_url = root_url[: -len(route_path)]
+    print("Final final root_url:", root_url, route_path)
     root_url = root_url.rstrip("/")
+    
     root_url = httpx.URL(root_url)
-    print("Final root_url:", root_url)
+    
     return root_url
 
 

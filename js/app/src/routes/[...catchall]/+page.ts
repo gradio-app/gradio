@@ -24,10 +24,12 @@ export async function load({
 	app: Client | null;
 }> {
 	console.log("SERVER PAGE LOAD:");
-	console.log({ root_url });
+	console.log({ root_url, server });
 	let app: Client;
 	const api_url =
-		browser && !local_dev_mode ? new URL(".", location.href).href : server;
+		browser && !local_dev_mode && root_url
+			? new URL(mount_path || "/", root_url).href
+			: server;
 	const deepLink = url.searchParams.get("deep_link");
 	const headers = new Headers();
 	if (!browser) {
@@ -38,6 +40,8 @@ export async function load({
 			new URL(mount_path, location.origin).href
 		);
 	}
+
+	console.log("API URL:", api_url);
 
 	try {
 		app = await Client.connect(api_url, {
