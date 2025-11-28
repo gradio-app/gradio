@@ -2,6 +2,7 @@
 	import version_json from "$lib/json/version.json";
 	import DemosLanding from "$lib/components/DemosLanding.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
+	import Banner from "$lib/components/Banner.svelte";
 	import MiniButton from "$lib/components/mini/MiniButton.svelte";
 	import MiniPlot from "$lib/components/mini/MiniPlot.svelte";
 	import MiniDataframe from "$lib/components/mini/MiniDataframe.svelte";
@@ -59,20 +60,21 @@
 
 <div class="container relative mx-auto px-4 pt-16 pb-12">
 	<div class="flex flex-col items-center text-center">
-		<div class="mb-8">
-			<a
-				href="/changelog"
-				class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800/50 text-orange-600 dark:text-orange-400 text-xs font-semibold uppercase tracking-wide transition-all hover:border-orange-200 dark:hover:border-orange-700"
-			>
-				<span class="relative flex h-2 w-2">
-					<span
-						class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"
-					></span>
-					<span class="relative inline-flex rounded-full h-2 w-2 bg-orange-500"
-					></span>
-				</span>
-				v{version}
-			</a>
+		<div class="mb-8 flex flex-wrap items-center justify-center gap-3">
+			<Banner
+				id="gradio-6-release"
+				message="Gradio 6 is here!"
+				link_text="Learn more"
+				link_url="/docs/gradio"
+			/>
+			<Banner
+				id="hackathon-deadline"
+				message="Hackathon deadline approaching"
+				link_text="Submit now"
+				link_url="https://huggingface.co/spaces/MCP-1st-Birthday/gradio-hackathon-registration-winter25"
+				type="warning"
+				target="_blank"
+			/>
 		</div>
 
 		<h1
