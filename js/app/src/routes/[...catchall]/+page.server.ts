@@ -18,7 +18,6 @@ export async function load({ request }: { request: Request }): Promise<{
 	const real_url = new URL(
 		request.headers.get("x-gradio-original-url") || server
 	).origin;
-	const root_url = new URL(request.url).origin;
 
 	return {
 		server: server,

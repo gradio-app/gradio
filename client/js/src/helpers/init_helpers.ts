@@ -68,7 +68,6 @@ export async function resolve_config(
 	this: Client,
 	endpoint: string
 ): Promise<Config | undefined> {
-	console.log("resolve_config called with endpoint:", endpoint);
 	const headers: Record<string, string> = this.options.token
 		? { Authorization: `Bearer ${this.options.token}` }
 		: {};
@@ -140,7 +139,6 @@ async function handleConfigResponse(
 
 	if (response?.status === 200) {
 		let config = await response.json();
-		// config.root = endpoint;
 		config.dependencies?.forEach((dep: any, i: number) => {
 			if (dep.id === undefined) {
 				dep.id = i;
