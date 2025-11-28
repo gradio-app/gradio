@@ -1,6 +1,7 @@
 <script lang="ts">
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { page } from "$app/stores";
+	import { browser } from "$app/environment";
 	import { onMount, tick } from "svelte";
 	import type { ComponentData } from "./utils";
 	import { clickOutside } from "./utils";
@@ -55,9 +56,11 @@
 			components_length = components.length;
 		}
 		components = components.sort((a, b) => b["likes"] - a["likes"]);
-		const id = $page.url.searchParams.get("id");
-		selected_component =
-			components.find((component) => component.id === id) ?? null;
+		if (browser) {
+			const id = $page.url.searchParams.get("id");
+			selected_component =
+				components.find((component) => component.id === id) ?? null;
+		}
 	}
 
 	onMount(fetch_components);
@@ -78,6 +81,8 @@
 			}, 1000);
 		});
 	}
+
+	$: fetch_components(selection.split(","));
 </script>
 
 <MetaTags
@@ -179,11 +184,10 @@
 	</div>
 </div>
 
-{#each components as component (component.id)}
+{#if selected_component}
+	{@const component = selected_component}
 	<div
-		class="details-panel open border border-gray-200 dark:border-gray-700 shadow-xl rounded-xl bg-white dark:bg-neutral-900 p-5"
-		class:hidden={!(selected_component == component)}
-		class:flex={selected_component == component}
+		class="details-panel open border border-gray-200 dark:border-gray-700 shadow-xl rounded-xl bg-white dark:bg-neutral-900 p-5 flex"
 		use:clickOutside={() => {
 			selected_component = null;
 		}}
@@ -218,9 +222,10 @@
 			src={`https://${component.subdomain}.hf.space?__theme=${$theme}`}
 			height="100%"
 			width="100%"
+			loading="lazy"
 		></iframe>
 	</div>
-{/each}
+{/if}
 
 <style>
 	.close-button {
