@@ -6,7 +6,7 @@
 
 <div id="event-listeners-description">
 	<h4 class="mt-8 text-xl text-orange-500 font-light group">Description</h4>
-	<p class="mb-2 text-lg text-gray-600">
+	<p class="mb-2 text-lg text-gray-600 dark:text-gray-300">
 		Event listeners allow you to respond to user interactions with the UI
 		components you've defined in a Gradio Blocks app. When a user interacts with
 		an element, such as changing a slider value or uploading an image, a
@@ -21,7 +21,7 @@
 	>
 		Supported Event Listeners
 	</h4>
-	<p class="mb-4 text-lg text-gray-600">
+	<p class="mb-4 text-lg text-gray-600 dark:text-gray-300">
 		The <span class="font-mono">{fns[0].parent.replace("gradio.", "")}</span>
 		component supports the following event listeners. Each event listener takes the
 		same parameters, which are listed in the
@@ -30,18 +30,16 @@
 		> table below.
 	</p>
 
-	<table class="mb-4 table-fixed w-full">
+	<table class="mb-4 table-fixed w-full event-table">
 		<thead class="text-left">
 			<tr>
-				<th class="px-3 pb-3 text-gray-700 font-semibold w-2/5">Listener</th>
-				<th class="px-3 pb-3 text-gray-700 font-semibold">Description</th>
+				<th class="px-3 pb-3 font-semibold w-2/5">Listener</th>
+				<th class="px-3 pb-3 font-semibold">Description</th>
 			</tr>
 		</thead>
-		<tbody
-			class="text-left divide-y rounded-lg bg-gray-50 border border-gray-100 overflow-hidden"
-		>
+		<tbody class="text-left rounded-lg overflow-hidden">
 			{#each fns as fn}
-				<tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80 align-top">
+				<tr class="group align-top">
 					<td class="p-3 w-2/5 break-words">
 						<p>
 							<code class="lang-python"
@@ -49,7 +47,7 @@
 							>
 						</p>
 					</td>
-					<td class="p-3 break-words text-gray-700">
+					<td class="p-3 break-words">
 						<p>{@html style_formatted_text(fn.description)}</p>
 					</td>
 				</tr>
@@ -72,5 +70,37 @@
 <style>
 	code {
 		font-size: 0.9em;
+	}
+
+	.event-table thead th {
+		color: var(--body-text-color);
+	}
+
+	.event-table tbody {
+		border: 1px solid var(--table-border-color);
+	}
+
+	.event-table tbody tr {
+		border-bottom: 1px solid var(--table-border-color);
+	}
+
+	.event-table tbody tr:last-child {
+		border-bottom: none;
+	}
+
+	.event-table tbody tr:nth-child(odd) {
+		background: var(--table-odd-background-fill);
+	}
+
+	.event-table tbody tr:nth-child(even) {
+		background: var(--table-even-background-fill);
+	}
+
+	.event-table tbody tr:hover {
+		background: var(--table-row-focus);
+	}
+
+	.event-table tbody td {
+		color: var(--body-text-color);
 	}
 </style>

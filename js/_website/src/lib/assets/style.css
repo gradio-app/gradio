@@ -310,6 +310,10 @@ code {
 	@apply text-gray-900 dark:text-gray-100;
 }
 
+.prose :where(code):not(:where([class~="not-prose"] *)):not(pre code) {
+	@apply bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-200 px-1.5 py-0.5 rounded font-medium;
+}
+
 pre > code {
 	font-weight: 500 !important;
 	border-radius: 0.25rem;
@@ -429,4 +433,49 @@ summary::after {
 	background: var(--table-odd-background-fill);
 	height: 90%;
 	padding-top: 14px;
+}
+
+.dark .obj .max-h-96.overflow-y-scroll table thead th {
+	background: #0a0a0a !important;
+	color: #e5e5e5 !important;
+	border-top: 1px solid #404040 !important;
+	border-left: 1px solid #404040 !important;
+}
+
+.dark .obj .max-h-96.overflow-y-scroll table thead th:first-child {
+	border-top: none !important;
+	border-left: none !important;
+}
+
+.dark .obj .max-h-96.overflow-y-scroll table tbody {
+	border: 1px solid #404040 !important;
+}
+
+.dark .obj .max-h-96.overflow-y-scroll table tbody tr {
+	border-bottom: 1px solid #404040 !important;
+}
+
+.dark .obj .max-h-96.overflow-y-scroll table tbody tr:last-child {
+	border-bottom: none !important;
+}
+
+.dark .obj .max-h-96.overflow-y-scroll table tbody tr:nth-child(odd) {
+	background: #171717 !important;
+}
+
+.dark .obj .max-h-96.overflow-y-scroll table tbody tr:nth-child(even) {
+	background: #0a0a0a !important;
+}
+
+.dark .obj .max-h-96.overflow-y-scroll table tbody tr:hover {
+	background: #262626 !important;
+}
+
+.dark .obj .max-h-96.overflow-y-scroll table tbody th {
+	background: inherit !important;
+	color: #e5e5e5 !important;
+}
+
+.dark .obj .max-h-96.overflow-y-scroll table tbody td {
+	color: #e5e5e5 !important;
 }
