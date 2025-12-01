@@ -142,6 +142,9 @@
 			new_message("Warning", data as string, -1, event, 10, true);
 		} else if (event === "info") {
 			new_message("Info", data as string, -1, event, 10, true);
+		} else if (event === "gradio_expand" || event === "gradio_tab_select") {
+			const id_ = event === "gradio_expand" ? id : (data as { id: number }).id;
+			app_tree.render_previously_invisible_children(id_);
 		} else if (event == "clear_status") {
 			app_tree.update_state(
 				id,

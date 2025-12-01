@@ -217,7 +217,12 @@ export class AppTree {
 			(node) => handle_empty_forms(node, this.components_to_register),
 			(node) => translate_props(node),
 			(node) => apply_initial_tabs(node, this.initial_tabs),
-			(node) => this.find_attached_events(node, this.#dependency_payload)
+			(node) => this.find_attached_events(node, this.#dependency_payload),
+			(node) =>
+				untrack_children_of_closed_accordions_or_inactive_tabs(
+					node,
+					this.components_to_register
+				)
 		]);
 	}
 
@@ -422,6 +427,20 @@ export class AppTree {
 
 		return null;
 	}
+
+	async render_previously_invisible_children(id: number) {
+		this.root = this.traverse(this.root!, [
+			(node) => {
+				if (node.id === id) {
+					node.children.forEach((child) => {
+						child.props.shared_props.visible = true;
+					});
+				}
+				return node;
+			},
+			(node) => handle_visibility(node, this.#config.api_url)
+		]);
+	}
 }
 
 /**
@@ -570,6 +589,39 @@ function untrack_children_of_invisible_parents(
 	// Check if the node is visible
 	if (node.props.shared_props.visible !== true) {
 		_untrack(node, components_to_register);
+	}
+	return node;
+}
+
+function untrack_children_of_closed_accordions_or_inactive_tabs(
+	node: ProcessedComponentMeta,
+	components_to_register: Set<number>
+): ProcessedComponentMeta {
+	// Check if the node is an accordion or tabs
+	if (node.type === "accordion" && node.props.props.open === false) {
+		console.log("Untracking accordion children:", node.id);
+		_untrack(node, components_to_register);
+		if (node.children) {
+			node.children.forEach((child) => {
+				child.props.shared_props.visible = false;
+			});
+		}
+	}
+	if (node.type === "tabs") {
+		node.children.forEach((child) => {
+			if (
+				child.type === "tabitem" &&
+				child.props.shared_props.id !==
+					(node.props.props.selected || node.props.props.initial_tabs[0].id)
+			) {
+				_untrack(child, components_to_register);
+				if (child.children) {
+					child.children.forEach((grandchild) => {
+						grandchild.props.shared_props.visible = false;
+					});
+				}
+			}
+		});
 	}
 	return node;
 }
