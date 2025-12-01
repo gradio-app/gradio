@@ -599,7 +599,6 @@ function untrack_children_of_closed_accordions_or_inactive_tabs(
 ): ProcessedComponentMeta {
 	// Check if the node is an accordion or tabs
 	if (node.type === "accordion" && node.props.props.open === false) {
-		console.log("Untracking accordion children:", node.id);
 		_untrack(node, components_to_register);
 		if (node.children) {
 			node.children.forEach((child) => {
