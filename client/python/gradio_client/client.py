@@ -859,7 +859,12 @@ class Client:
         if api_name is not None:
             for i, d in enumerate(self.config["dependencies"]):
                 config_api_name = d.get("api_name")
-                if config_api_name is None or d.get("api_visibility") == "private":
+                # config_api_name may be false in 5.0 to indicate private APIs
+                if (
+                    config_api_name is None
+                    or config_api_name is False
+                    or d.get("api_visibility") == "private"
+                ):
                     continue
                 if "/" + config_api_name == api_name:
                     inferred_fn_index = d.get("id", i)
