@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:12485 fix mcp client issue
+fix:12485 fix mcp client issue
