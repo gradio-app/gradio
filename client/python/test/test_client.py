@@ -1117,7 +1117,7 @@ class TestEndpoints:
         }
 
         with patch("pathlib.Path.resolve", return_value="/tmp/test_file.txt"):
-            result = client.endpoints[0]._download_file(stream_file_data)  # type: ignore
+            client.endpoints[0]._download_file(stream_file_data)  # type: ignore
 
         # Test non-stream file still uses path-based URL construction
         regular_file_data = {"path": "regular/file.txt", "is_stream": False}
@@ -1132,7 +1132,7 @@ class TestEndpoints:
         monkeypatch.setattr(httpx, "stream", mock_stream_regular)
 
         with patch("pathlib.Path.resolve", return_value="/tmp/regular_file.txt"):
-            result = client.endpoints[0]._download_file(regular_file_data)  # type: ignore
+            client.endpoints[0]._download_file(regular_file_data)  # type: ignore
 
 
 cpu = huggingface_hub.SpaceHardware.CPU_BASIC
