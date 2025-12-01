@@ -340,3 +340,31 @@ async def test_mcp_streamable_http_client_with_progress_callback():
                 assert len(progress_updates) > 0, "Expected to receive progress updates"
     finally:
         demo.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.serial
+async def test_mcp_streamable_http_client_with_stateful_app(stateful_mcp_app):
+    _, local_url, _ = stateful_mcp_app.launch(prevent_thread_lock=True, mcp_server=True)
+    mcp_url = f"{local_url}gradio_api/mcp/"
+
+    try:
+        async with streamablehttp_client(mcp_url) as (read_stream, write_stream, _):
+            async with ClientSession(read_stream, write_stream) as session:
+                await session.initialize()
+
+                tools_response = await session.list_tools()
+                assert len(tools_response.tools) == 1
+                tool = tools_response.tools[0]
+
+                result = await session.call_tool(
+                    tool.name,
+                    arguments={"name": "test", "flag": True, "gallery_images": 42},
+                )
+                assert len(result.content) == 1
+                assert (
+                    result.content[0].text
+                    == "name=test, hidden_state=hidden_value, flag=True, gallery=42"
+                )
+    finally:
+        stateful_mcp_app.close()
