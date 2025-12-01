@@ -228,6 +228,7 @@ class GradioMCPServer:
                 verbose=False,
                 analytics_enabled=False,
                 ssl_verify=False,
+                _skip_components=False,
             )
         return self._client_instance
 
@@ -399,9 +400,7 @@ class GradioMCPServer:
             endpoint_name, processed_args, request_headers, block_fn = (
                 self._prepare_tool_call_args(name, arguments)
             )
-
             processed_args = self.insert_empty_state(block_fn.inputs, processed_args)
-
             job = client.submit(
                 *processed_args, api_name=endpoint_name, headers=request_headers
             )
