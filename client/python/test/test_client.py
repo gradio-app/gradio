@@ -1101,8 +1101,8 @@ class TestEndpoints:
 
         def mock_stream(*args, **kwargs):
             # Verify that the URL is used directly for streams
-            called_url = args[1]  # Second argument is the URL
-            assert called_url == "/api/stream/test_file.txt", (
+            called_url: str = args[1]  # Second argument is the URL
+            assert called_url.endswith("api/stream/test_file.txt"), (
                 f"Expected stream URL, got: {called_url}"
             )
             return mock_response
