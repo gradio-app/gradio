@@ -602,7 +602,7 @@ function untrack_children_of_closed_accordions_or_inactive_tabs(
 		_untrack(node, components_to_register);
 		if (node.children) {
 			node.children.forEach((child) => {
-				child.props.shared_props.visible = false;
+				if(child.props.shared_props.visible === true) child.props.shared_props.visible = false;
 			});
 		}
 	}
@@ -616,7 +616,7 @@ function untrack_children_of_closed_accordions_or_inactive_tabs(
 				_untrack(child, components_to_register);
 				if (child.children) {
 					child.children.forEach((grandchild) => {
-						grandchild.props.shared_props.visible = false;
+						if(grandchild.props.shared_props.visible === true) grandchild.props.shared_props.visible = false;
 					});
 				}
 			}
