@@ -56,16 +56,30 @@ pip install --upgrade gradio
 ```
 
 
-> [!TIP]
- > It is best to install Gradio in a virtual environment. Detailed installation instructions for all common operating systems <a href="https://www.gradio.app/main/guides/installing-gradio-in-a-virtual-environment">are provided here</a>. 
+>[!TIP]
+> It is best to install Gradio in a virtual environment. Detailed installation instructions for all common operating systems <a href="https://www.gradio.app/main/guides/installing-gradio-in-a-virtual-environment">are provided here</a>. 
 
-### Building Your First Demo
+For example, you can create and activate a virtual environment like this:
+
+**On macOS / Linux:**
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install --upgrade gradio
+```
+
+**On Windows:**
+
+```powershell
+py -m venv .venv
+.venv\Scripts\activate
+pip install --upgrade pip
+pip install --upgrade gradio
+```
 
 You can run Gradio in your favorite code editor, Jupyter notebook, Google Colab, or anywhere else you write Python. Let's write your first Gradio app:
-
-
-```python
-import gradio as gr
 
 def greet(name, intensity):
     return "Hello, " + name + "!" * int(intensity)
