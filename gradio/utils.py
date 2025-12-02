@@ -918,15 +918,31 @@ def sanitize_value_for_csv(value: str | float) -> str | float:
     Sanitizes a value that is being written to a CSV file to prevent CSV injection attacks.
     Reference: https://owasp.org/www-community/attacks/CSV_Injection
     """
+    # Numeric types are always safe for CSV and can't trigger formula execution.
     if isinstance(value, (float, int)):
         return value
+
+    # Be defensive: sometimes non-str types (e.g. tuples) can be passed in.
+    if not isinstance(value, str):
+        value = str(value)
+
     unsafe_prefixes = ["=", "+", "-", "@", "\t", "\n"]
     unsafe_sequences = [",=", ",+", ",-", ",@", ",\t", ",\n"]
+
+    # JSON-like strings (used for cached Plotly examples and other complex outputs)
+    # are later parsed with json.loads. Adding a leading quote to them would corrupt
+    # the JSON and cause decoding errors, so we skip sanitization for these.
+    if value.startswith("{") or value.startswith("["):
+        return value
+
+    # For normal string values, keep the existing CSV-injection protections.
     if any(value.startswith(prefix) for prefix in unsafe_prefixes) or any(
         sequence in value for sequence in unsafe_sequences
     ):
-        value = f"'{value}"
+        return f"'{value}"
+
     return value
+
 
 
 def sanitize_list_for_csv(values: list[Any]) -> list[Any]:
