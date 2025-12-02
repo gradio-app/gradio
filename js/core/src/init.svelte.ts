@@ -406,19 +406,23 @@ export class AppTree {
 			already_updated_visibility = true;
 		}
 		const _set_data = this.#set_callbacks.get(id);
-		if (!_set_data && !node?.props.shared_props.visible === false && "value" in new_state) {
+		if (
+			!_set_data &&
+			node?.props.shared_props.visible === false &&
+			"value" in new_state
+		) {
 			const old_value = node?.props.props.value;
-			console.log("old_state", old_value);
+			// @ts-ignore
 			const new_props = create_props_shared_props(new_state);
-			console.log("NEW PROPS", new_props);
-			node!.props.shared_props = {...node?.props.shared_props, ...new_props.shared_props};
-			node!.props.props = {...node?.props.props, ...new_props.props};
-			console.log("node.props.props", node!.props.props);
-			if (("value" in new_state) && !dequal(old_value, new_state.value)) {
-				console.log("Dispatching change for", id, "dispatcher");
+			node!.props.shared_props = {
+				...node?.props.shared_props,
+				...new_props.shared_props
+			};
+			node!.props.props = { ...node?.props.props, ...new_props.props };
+			if ("value" in new_state && !dequal(old_value, new_state.value)) {
 				this.#event_dispatcher(id, "change", null);
 			}
-		} else if (_set_data){
+		} else if (_set_data) {
 			_set_data(new_state);
 		}
 		if (!check_visibility || already_updated_visibility) return;
@@ -441,7 +445,8 @@ export class AppTree {
 		if (!_get_data && !component) return null;
 		if (_get_data) return await _get_data();
 
-		if (component) return Promise.resolve({ value: component.props.props.value });
+		if (component)
+			return Promise.resolve({ value: component.props.props.value });
 
 		return null;
 	}
@@ -450,15 +455,23 @@ export class AppTree {
 		this.root = this.traverse(this.root!, [
 			(node) => {
 				if (node.id === id) {
-					node.children.forEach((child) => {
-						child.props.shared_props.visible = true;
-					});
+					update_visibility(node, true);
 				}
 				return node;
 			},
 			(node) => handle_visibility(node, this.#config.api_url)
 		]);
 	}
+}
+
+function update_visibility(
+	node: ProcessedComponentMeta,
+	visible: boolean
+): void {
+	node.children.forEach((child) => {
+		child.props.shared_props.visible = visible;
+		update_visibility(child, visible);
+	});
 }
 
 /**
@@ -488,7 +501,10 @@ export function process_server_fn(
 	}, {} as ServerFunctions);
 }
 
-function create_props_shared_props(props: ComponentMeta["props"]): {shared_props: SharedProps; props: Record<string, unknown>} {
+function create_props_shared_props(props: ComponentMeta["props"]): {
+	shared_props: SharedProps;
+	props: Record<string, unknown>;
+} {
 	const _shared_props: Partial<SharedProps> = {};
 	const _props: Record<string, unknown> = {};
 	for (const key in props) {
@@ -525,25 +541,8 @@ function gather_props(
 	shared_props: SharedProps;
 	props: Record<string, unknown>;
 } {
-	// const _shared_props: Partial<SharedProps> = {};
-	// const _props: Record<string, unknown> = {};
-	// for (const key in props) {
-	// 	// For Tabs (or any component that already has an id prop)
-	// 	// Set the id to the props so that it doesn't get overwritten
-	// 	if (key === "id" || key === "autoscroll") {
-	// 		_props[key] = props[key];
-	// 	} else if (allowed_shared_props.includes(key as keyof SharedProps)) {
-	// 		const _key = key as keyof SharedProps;
-	// 		_shared_props[_key] = props[key];
-	// 		if (_key === "server_fns") {
-	// 			_shared_props.server = process_server_fn(id, props.server_fns, client);
-	// 		}
-	// 	} else {
-	// 		_props[key] = props[key];
-	// 	}
-	// }
-
-	const { shared_props: _shared_props, props: _props } = create_props_shared_props(props);
+	const { shared_props: _shared_props, props: _props } =
+		create_props_shared_props(props);
 	_shared_props.server = process_server_fn(id, props.server_fns, client);
 
 	for (const key in additional) {
@@ -641,7 +640,8 @@ function untrack_children_of_closed_accordions_or_inactive_tabs(
 		_untrack(node, components_to_register);
 		if (node.children) {
 			node.children.forEach((child) => {
-				if(child.props.shared_props.visible === true) child.props.shared_props.visible = false;
+				if (child.props.shared_props.visible === true)
+					update_visibility(child, false);
 			});
 		}
 	}
@@ -655,7 +655,8 @@ function untrack_children_of_closed_accordions_or_inactive_tabs(
 				_untrack(child, components_to_register);
 				if (child.children) {
 					child.children.forEach((grandchild) => {
-						if(grandchild.props.shared_props.visible === true) grandchild.props.shared_props.visible = false;
+						if (grandchild.props.shared_props.visible === true)
+							update_visibility(grandchild, false);
 					});
 				}
 			}

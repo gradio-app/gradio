@@ -202,8 +202,17 @@
 							on:click={() => {
 								if (t.id !== $selected_tab) {
 									change_tab(t.id);
-									console.log("Dispatching select for tab", t.id, t.component_id);
-									dispatch("select", { value: t.label, index: i, id: t.id, component_id: t.component_id});
+									console.log(
+										"Dispatching select for tab",
+										t.id,
+										t.component_id
+									);
+									dispatch("select", {
+										value: t.label,
+										index: i,
+										id: t.id,
+										component_id: t.component_id
+									});
 								}
 							}}
 						>
@@ -229,8 +238,14 @@
 					{#each overflow_tabs as t, i}
 						{#if t?.visible !== false}
 							<button
-								on:click={() => {change_tab(t?.id)
-									dispatch("select", { value: t.label, index: i, id: t.id, component_id: t.component_id})
+								on:click={() => {
+									change_tab(t?.id);
+									dispatch("select", {
+										value: t.label,
+										index: i,
+										id: t.id,
+										component_id: t.component_id
+									});
 								}}
 								class:selected={t?.id === $selected_tab}
 							>

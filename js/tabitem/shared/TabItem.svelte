@@ -33,7 +33,7 @@
 		visible,
 		interactive,
 		scale,
-		component_id,
+		component_id
 	});
 
 	$: tab_index = _register_tab(props_json, order);

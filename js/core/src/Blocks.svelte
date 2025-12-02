@@ -122,7 +122,10 @@
 		} else if (event === "info") {
 			new_message("Info", data as string, -1, event, 10, true);
 		} else if (event === "gradio_expand" || event === "gradio_tab_select") {
-			const id_ = event === "gradio_expand" ? id : (data as { component_id: number }).component_id;
+			const id_ =
+				event === "gradio_expand"
+					? id
+					: (data as { component_id: number }).component_id;
 			console.log("Expanding component", id_);
 			app_tree.render_previously_invisible_children(id_);
 		} else if (event == "clear_status") {
@@ -171,7 +174,7 @@
 		},
 		app,
 		$reactive_formatter,
-		gradio_event_dispatcher,
+		gradio_event_dispatcher
 	);
 
 	setContext(GRADIO_ROOT, {
