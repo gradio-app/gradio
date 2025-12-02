@@ -1,5 +1,11 @@
 # @gradio/slider
 
+## 0.7.1
+
+### Features
+
+- [#12476](https://github.com/gradio-app/gradio/pull/12476) [`4e9a330`](https://github.com/gradio-app/gradio/commit/4e9a330a85396659e8cf4d90f25d3dde82a685b3) - Fix slider css issue.  Thanks @freddyaboulton!
+
 ## 0.7.0
 
 ### Dependency updates
