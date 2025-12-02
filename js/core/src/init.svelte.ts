@@ -4,7 +4,8 @@ import {
 	get_inputs_outputs
 } from "./init_utils";
 import { translate_if_needed } from "./i18n";
-import { tick } from "svelte";
+import { tick, getContext } from "svelte";
+import { dequal } from "dequal";
 
 import type {
 	ComponentMeta,
@@ -15,7 +16,7 @@ import type {
 	AppConfig,
 	ServerFunctions
 } from "./types";
-import type { SharedProps } from "@gradio/utils";
+import { type SharedProps, GRADIO_ROOT } from "@gradio/utils";
 import { allowed_shared_props } from "@gradio/utils";
 import { Client } from "@gradio/client";
 
@@ -33,6 +34,7 @@ type Tab = {
 	elem_id: string | undefined;
 	scale: number | null;
 	order?: number;
+	component_id: number;
 };
 
 const type_map = {
@@ -65,6 +67,7 @@ export class AppTree {
 
 	#get_callbacks = new Map<number, get_data_type>();
 	#set_callbacks = new Map<number, set_data_type>();
+	#event_dispatcher: (id: number, event: string, data: unknown) => void;
 	component_ids: number[];
 	initial_tabs: Record<number, Tab[]> = {};
 
@@ -79,7 +82,8 @@ export class AppTree {
 		dependencies: Dependency[],
 		config: Omit<AppConfig, "api_url">,
 		app: client_return,
-		reactive_formatter: (str: string) => string
+		reactive_formatter: (str: string) => string,
+		event_dispatcher: (id: number, event: string, data: unknown) => void
 	) {
 		this.ready = new Promise<void>((resolve) => {
 			this.ready_resolve = resolve;
@@ -125,6 +129,7 @@ export class AppTree {
 		this.initial_tabs = {};
 		gather_initial_tabs(this.root!, this.initial_tabs);
 		this.postprocess(this.root!);
+		this.#event_dispatcher = event_dispatcher;
 	}
 
 	reload(
@@ -401,8 +406,21 @@ export class AppTree {
 			already_updated_visibility = true;
 		}
 		const _set_data = this.#set_callbacks.get(id);
-		if (!_set_data) return;
-		_set_data(new_state);
+		if (!_set_data && !node?.props.shared_props.visible === false && "value" in new_state) {
+			const old_value = node?.props.props.value;
+			console.log("old_state", old_value);
+			const new_props = create_props_shared_props(new_state);
+			console.log("NEW PROPS", new_props);
+			node!.props.shared_props = {...node?.props.shared_props, ...new_props.shared_props};
+			node!.props.props = {...node?.props.props, ...new_props.props};
+			console.log("node.props.props", node!.props.props);
+			if (("value" in new_state) && !dequal(old_value, new_state.value)) {
+				console.log("Dispatching change for", id, "dispatcher");
+				this.#event_dispatcher(id, "change", null);
+			}
+		} else if (_set_data){
+			_set_data(new_state);
+		}
 		if (!check_visibility || already_updated_visibility) return;
 		// need to let the UI settle before traversing again
 		// otherwise there could be
@@ -419,11 +437,11 @@ export class AppTree {
 	 */
 	async get_state(id: number): Promise<Record<string, unknown> | null> {
 		const _get_data = this.#get_callbacks.get(id);
-		const component = this.#component_payload.find((c) => c.id === id);
+		const component = find_node_by_id(this.root!, id);
 		if (!_get_data && !component) return null;
 		if (_get_data) return await _get_data();
 
-		if (component) return Promise.resolve({ value: component.props.value });
+		if (component) return Promise.resolve({ value: component.props.props.value });
 
 		return null;
 	}
@@ -470,6 +488,24 @@ export function process_server_fn(
 	}, {} as ServerFunctions);
 }
 
+function create_props_shared_props(props: ComponentMeta["props"]): {shared_props: SharedProps; props: Record<string, unknown>} {
+	const _shared_props: Partial<SharedProps> = {};
+	const _props: Record<string, unknown> = {};
+	for (const key in props) {
+		// For Tabs (or any component that already has an id prop)
+		// Set the id to the props so that it doesn't get overwritten
+		if (key === "id" || key === "autoscroll") {
+			_props[key] = props[key];
+		} else if (allowed_shared_props.includes(key as keyof SharedProps)) {
+			const _key = key as keyof SharedProps;
+			_shared_props[_key] = props[key];
+		} else {
+			_props[key] = props[key];
+		}
+	}
+	return { shared_props: _shared_props as SharedProps, props: _props };
+}
+
 /**
  * Gathers the props for a component
  * @param id the ID of the component
@@ -489,23 +525,26 @@ function gather_props(
 	shared_props: SharedProps;
 	props: Record<string, unknown>;
 } {
-	const _shared_props: Partial<SharedProps> = {};
-	const _props: Record<string, unknown> = {};
-	for (const key in props) {
-		// For Tabs (or any component that already has an id prop)
-		// Set the id to the props so that it doesn't get overwritten
-		if (key === "id" || key === "autoscroll") {
-			_props[key] = props[key];
-		} else if (allowed_shared_props.includes(key as keyof SharedProps)) {
-			const _key = key as keyof SharedProps;
-			_shared_props[_key] = props[key];
-			if (_key === "server_fns") {
-				_shared_props.server = process_server_fn(id, props.server_fns, client);
-			}
-		} else {
-			_props[key] = props[key];
-		}
-	}
+	// const _shared_props: Partial<SharedProps> = {};
+	// const _props: Record<string, unknown> = {};
+	// for (const key in props) {
+	// 	// For Tabs (or any component that already has an id prop)
+	// 	// Set the id to the props so that it doesn't get overwritten
+	// 	if (key === "id" || key === "autoscroll") {
+	// 		_props[key] = props[key];
+	// 	} else if (allowed_shared_props.includes(key as keyof SharedProps)) {
+	// 		const _key = key as keyof SharedProps;
+	// 		_shared_props[_key] = props[key];
+	// 		if (_key === "server_fns") {
+	// 			_shared_props.server = process_server_fn(id, props.server_fns, client);
+	// 		}
+	// 	} else {
+	// 		_props[key] = props[key];
+	// 	}
+	// }
+
+	const { shared_props: _shared_props, props: _props } = create_props_shared_props(props);
+	_shared_props.server = process_server_fn(id, props.server_fns, client);
 
 	for (const key in additional) {
 		if (allowed_shared_props.includes(key as keyof SharedProps)) {
@@ -610,7 +649,7 @@ function untrack_children_of_closed_accordions_or_inactive_tabs(
 		node.children.forEach((child) => {
 			if (
 				child.type === "tabitem" &&
-				child.props.shared_props.id !==
+				child.props.props.id !==
 					(node.props.props.selected || node.props.props.initial_tabs[0].id)
 			) {
 				_untrack(child, components_to_register);
@@ -677,6 +716,8 @@ function apply_initial_tabs(
 	if (node.type === "tabs" && node.id in initial_tabs) {
 		const tabs = initial_tabs[node.id].sort((a, b) => a.order! - b.order!);
 		node.props.props.initial_tabs = tabs;
+	} else if (node.type === "tabitem") {
+		node.props.props.component_id = node.id;
 	}
 	return node;
 }
@@ -700,7 +741,8 @@ function _gather_initial_tabs(
 			elem_id: node.props.shared_props.elem_id,
 			visible: node.props.shared_props.visible as boolean,
 			interactive: node.props.shared_props.interactive,
-			scale: node.props.shared_props.scale || null
+			scale: node.props.shared_props.scale || null,
+			component_id: node.id
 		});
 		node.props.props.order = order;
 	}

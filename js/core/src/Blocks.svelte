@@ -104,27 +104,6 @@
 		}
 	});
 
-	let app_tree = new AppTree(
-		components,
-		layout,
-		dependencies,
-		{
-			root,
-			theme: theme_mode,
-			version,
-			api_prefix,
-			max_file_size,
-			autoscroll
-		},
-		app,
-		$reactive_formatter
-	);
-
-	setContext(GRADIO_ROOT, {
-		register: app_tree.register_component.bind(app_tree),
-		dispatcher: gradio_event_dispatcher
-	});
-
 	let messages: (ToastMessage & { fn_index: number })[] = $state([]);
 
 	function gradio_event_dispatcher(
@@ -143,7 +122,8 @@
 		} else if (event === "info") {
 			new_message("Info", data as string, -1, event, 10, true);
 		} else if (event === "gradio_expand" || event === "gradio_tab_select") {
-			const id_ = event === "gradio_expand" ? id : (data as { id: number }).id;
+			const id_ = event === "gradio_expand" ? id : (data as { component_id: number }).component_id;
+			console.log("Expanding component", id_);
 			app_tree.render_previously_invisible_children(id_);
 		} else if (event == "clear_status") {
 			app_tree.update_state(
@@ -167,6 +147,7 @@
 				// this is the id of the selected tab
 				id = (data as { id: number }).id;
 			}
+			console.log("Dispatching event", event, "for component", id, data);
 			dep_manager.dispatch({
 				type: "event",
 				event_name: event,
@@ -175,6 +156,28 @@
 			});
 		}
 	}
+
+	let app_tree = new AppTree(
+		components,
+		layout,
+		dependencies,
+		{
+			root,
+			theme: theme_mode,
+			version,
+			api_prefix,
+			max_file_size,
+			autoscroll
+		},
+		app,
+		$reactive_formatter,
+		gradio_event_dispatcher,
+	);
+
+	setContext(GRADIO_ROOT, {
+		register: app_tree.register_component.bind(app_tree),
+		dispatcher: gradio_event_dispatcher
+	});
 
 	let api_calls: Payload[] = $state([]);
 	let last_api_call: Payload | null = $state(null);
