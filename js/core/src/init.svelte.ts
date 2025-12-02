@@ -406,11 +406,7 @@ export class AppTree {
 			already_updated_visibility = true;
 		}
 		const _set_data = this.#set_callbacks.get(id);
-		if (
-			!_set_data &&
-			node?.props.shared_props.visible === false &&
-			"value" in new_state
-		) {
+		if (!_set_data) {
 			const old_value = node?.props.props.value;
 			// @ts-ignore
 			const new_props = create_props_shared_props(new_state);
