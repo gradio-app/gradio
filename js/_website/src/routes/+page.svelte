@@ -69,10 +69,9 @@
 			/>
 			<Banner
 				id="hackathon-deadline"
-				message="Hackathon deadline approaching"
-				link_text="Submit now"
-				link_url="https://huggingface.co/spaces/MCP-1st-Birthday/gradio-hackathon-registration-winter25"
-				type="warning"
+				message="MCP Birthday Hackathon Completed!"
+				link_text="See Submissions"
+				link_url="https://huggingface.co/MCP-1st-Birthday/spaces"
 				target="_blank"
 			/>
 		</div>
