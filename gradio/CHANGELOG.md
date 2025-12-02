@@ -1,5 +1,19 @@
 # gradio
 
+## 6.0.2
+
+### Features
+
+- [#12475](https://github.com/gradio-app/gradio/pull/12475) [`c4c36c7`](https://github.com/gradio-app/gradio/commit/c4c36c7da3d14d60f4fd9b35bbe68d52f7b38bb9) - Fix highlighted text in 6.0.  Thanks @freddyaboulton!
+- [#12476](https://github.com/gradio-app/gradio/pull/12476) [`4e9a330`](https://github.com/gradio-app/gradio/commit/4e9a330a85396659e8cf4d90f25d3dde82a685b3) - Fix slider css issue.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#12480](https://github.com/gradio-app/gradio/pull/12480) [`b9732d1`](https://github.com/gradio-app/gradio/commit/b9732d10680ca66fa7b3f1e763d3cdd57b38c6ed) - [BUGFIX] Fix stream file download in gradio client.  Thanks @frascuchon!
+- [#12490](https://github.com/gradio-app/gradio/pull/12490) [`472e164`](https://github.com/gradio-app/gradio/commit/472e16439f2573b33d21b9635706416518405ddd) - Make client backwards compatible with version 5.  Thanks @freddyaboulton!
+- [#12489](https://github.com/gradio-app/gradio/pull/12489) [`2a2dd60`](https://github.com/gradio-app/gradio/commit/2a2dd60d5aa041d82640358a5ed6ba03f1b398e2) - 12485 fix mcp client issue.  Thanks @freddyaboulton!
+- [#12477](https://github.com/gradio-app/gradio/pull/12477) [`07fa494`](https://github.com/gradio-app/gradio/commit/07fa4949fa5b806732eb429f732037615f9f546e) - Checkbox Label Fix.  Thanks @dawoodkhan82!
+
 ## 6.0.1
 
 ### Features
