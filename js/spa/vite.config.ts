@@ -194,7 +194,8 @@ function handle_svelte_import({
 		name: "handle_svelte_import",
 		enforce: "pre",
 		resolveId(id, importer, options) {
-			if (development) {
+			// In development or test mode, let vite handle svelte imports normally
+			if (development || process.env.VITEST) {
 				return null;
 			}
 
