@@ -1,4 +1,15 @@
 # website
+
+## 0.67.0
+
+### Features
+
+- [#12479](https://github.com/gradio-app/gradio/pull/12479) [`28b49e3`](https://github.com/gradio-app/gradio/commit/28b49e3e74fc73dff938a2b7f53325d554fdf680) - add announcement pills to docs landing page.  Thanks @hannahblair!
+
+### Fixes
+
+- [#12481](https://github.com/gradio-app/gradio/pull/12481) [`99756eb`](https://github.com/gradio-app/gradio/commit/99756ebf689c8ae1a8d38b764d68f70544c35b93) - Fix and bring back cc gallery on website.  Thanks @aliabd!
+
 ## 0.66.0
 
 ### Features
