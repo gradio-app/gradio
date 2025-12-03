@@ -912,45 +912,40 @@ def no_raise_exception():
     except Exception:
         pass
 
-
-import json  # make sure this is at the top of the file
-
 def sanitize_value_for_csv(value: str | float) -> str | float:
     """
     Sanitizes a value that is being written to a CSV file to prevent CSV injection attacks.
     Reference: https://owasp.org/www-community/attacks/CSV_Injection
     """
-    # Numeric types are always safe for CSV and can't trigger formula execution.
+    # Numbers are always safe in CSV context
     if isinstance(value, (float, int)):
         return value
 
-    # Be defensive: sometimes non-str types (e.g. tuples) can be passed in.
+    # Coerce non-strings (e.g. tuples) to string defensively
     if not isinstance(value, str):
         value = str(value)
 
-    # If the value looks like JSON, try to parse it.
-    # If it's valid JSON, re-serialize it so it's guaranteed valid JSON text,
-    # and skip CSV injection sanitization on that string.
+    # Special handling for JSON-like values
     if value.startswith(("{", "[")):
         try:
             parsed = json.loads(value)
+            # Return normalized, safe JSON
             return json.dumps(parsed)
         except (json.JSONDecodeError, ValueError, TypeError):
-            # Not valid JSON, fall through to normal sanitization
+            # Not valid JSON → treat as normal string
             pass
 
+    # Typical CSV injection protection
     unsafe_prefixes = ["=", "+", "-", "@", "\t", "\n"]
     unsafe_sequences = [",=", ",+", ",-", ",@", ",\t", ",\n"]
 
+    # If starts with any unsafe prefix or contains an unsafe sequence
     if any(value.startswith(prefix) for prefix in unsafe_prefixes) or any(
         sequence in value for sequence in unsafe_sequences
     ):
         return f"'{value}"
 
     return value
-
-
-
 
 def sanitize_list_for_csv(values: list[Any]) -> list[Any]:
     """
