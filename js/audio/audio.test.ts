@@ -18,7 +18,19 @@ vi.mock("wavesurfer.js", () => ({
 			getCurrentTime: vi.fn(() => 0),
 			getDuration: vi.fn(() => 0),
 			setVolume: vi.fn(),
-			seekTo: vi.fn()
+			seekTo: vi.fn(),
+			registerPlugin: vi.fn(() => ({
+				on: vi.fn(),
+				addRegion: vi.fn(() => ({
+					start: 0,
+					end: 0,
+					play: vi.fn(),
+					remove: vi.fn(),
+					setOptions: vi.fn()
+				})),
+				getRegions: vi.fn(() => []),
+				clearRegions: vi.fn()
+			}))
 		}))
 	}
 }));
