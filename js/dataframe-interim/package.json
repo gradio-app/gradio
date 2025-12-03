@@ -7,7 +7,7 @@
 	"license": "ISC",
 	"private": true,
 	"main_changeset": true,
-	"main": "./Index.svelte",
+	"main": "./dist/index.js",
 	"scripts": {
 		"build": "vite build"
 	},
