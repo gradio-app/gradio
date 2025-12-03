@@ -1,4 +1,4 @@
-import { test, describe, assert, afterEach } from "vitest";
+import { test, describe, assert, afterEach, vi } from "vitest";
 import { cleanup, getByTestId, render } from "@self/tootils";
 import Audio from "./";
 import type { LoadingStatus } from "@gradio/statustracker";
@@ -6,6 +6,22 @@ import { setupi18n } from "../core/src/i18n";
 import ResizeObserver from "resize-observer-polyfill";
 
 global.ResizeObserver = ResizeObserver;
+
+vi.mock("wavesurfer.js", () => ({
+	default: {
+		create: vi.fn(() => ({
+			load: vi.fn(),
+			on: vi.fn(),
+			play: vi.fn(),
+			pause: vi.fn(),
+			destroy: vi.fn(),
+			getCurrentTime: vi.fn(() => 0),
+			getDuration: vi.fn(() => 0),
+			setVolume: vi.fn(),
+			seekTo: vi.fn()
+		}))
+	}
+}));
 
 const loading_status: LoadingStatus = {
 	eta: 0,
@@ -131,7 +147,12 @@ describe("Audio", () => {
 				path: "https://raw.githubusercontent.com/gradio-app/gradio/refs/heads/main/demo/video_subtitle/files/s2.vtt",
 				orig_name: "s2.vtt"
 			},
-			interactive: false
+			interactive: false,
+			waveform_options: {
+				trim_region_color: "#f97316",
+				show_recording_waveform: true,
+				show_controls: true
+			}
 		});
 		assert.equal(getByTestId("subtitle-display").textContent, "");
 	});

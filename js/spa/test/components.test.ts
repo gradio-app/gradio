@@ -109,20 +109,30 @@ const components = [
 		"InteractiveDataFrame",
 		InteractiveDataframe,
 		{
-			value: [[1, 2, 3]],
+			value: {
+				data: [[1, 2, 3]],
+				headers: [],
+				metadata: null
+			},
 			col_count: [3, "fixed"],
 			row_count: [3, "fixed"],
-			interactive: true
+			interactive: true,
+			static_columns: []
 		}
 	],
 	[
 		"StaticDataFrame",
 		StaticDataframe,
 		{
-			value: [[1, 2, 3]],
+			value: {
+				data: [[1, 2, 3]],
+				headers: [],
+				metadata: null
+			},
 			col_count: [3, "fixed"],
 			row_count: [3, "fixed"],
-			interactive: false
+			interactive: false,
+			static_columns: []
 		}
 	],
 	[

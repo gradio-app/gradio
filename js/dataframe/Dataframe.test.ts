@@ -1,10 +1,12 @@
-import { test, describe, assert, afterEach, vi } from "vitest";
+import { test, describe, assert, afterEach, beforeEach } from "vitest";
 import { cleanup, render } from "@self/tootils";
 import { setupi18n } from "../core/src/i18n";
 import Dataframe from "./Index.svelte";
 
 describe("Dataframe", () => {
-	beforeEach(setupi18n);
+	beforeEach(async () => {
+		await setupi18n();
+	});
 	afterEach(() => {
 		cleanup();
 	});
@@ -12,16 +14,20 @@ describe("Dataframe", () => {
 	test("changing value triggers change event", async () => {
 		await setupi18n();
 		const { component, listen } = await render(Dataframe, {
-			headers: ["A", "B", "C"],
-			values: [
-				["1", "2", "3"],
-				["4", "5", "6"]
-			],
+			value: {
+				data: [
+					["1", "2", "3"],
+					["4", "5", "6"]
+				],
+				headers: ["A", "B", "C"],
+				metadata: null
+			},
 			col_count: [3, "fixed"],
 			row_count: [2, "fixed"],
 			editable: true,
 			datatype: "str",
-			root: ""
+			root: "",
+			static_columns: []
 		});
 		const mock = listen("change");
 		component.value = {
@@ -30,7 +36,8 @@ describe("Dataframe", () => {
 				["44", "55", "66"]
 			],
 			headers: ["A", "B", "C"],
-			metadata: null
+			metadata: null,
+			static_columns: []
 		};
 		assert.equal(mock.callCount, 1);
 	});
