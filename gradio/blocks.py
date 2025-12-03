@@ -1075,7 +1075,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 f"The parameters have been moved from the Blocks constructor to the launch() method in Gradio 6.0: {param_list}. "
                 f"Please pass these parameters to launch() instead.",
                 DeprecationWarning,
-                stacklevel=2
+                stacklevel=2,
             )
         self._deprecated_theme = deprecated_kwargs.get("theme")
         self._deprecated_css = deprecated_kwargs.get("css")
@@ -2547,7 +2547,9 @@ Received inputs:
         css_paths = css_paths if css_paths is not None else self._deprecated_css_paths
         js = js if js is not None else self._deprecated_js
         head = head if head is not None else self._deprecated_head
-        head_paths = head_paths if head_paths is not None else self._deprecated_head_paths
+        head_paths = (
+            head_paths if head_paths is not None else self._deprecated_head_paths
+        )
 
         self.theme: Theme = utils.get_theme(theme)
         self.css = css
