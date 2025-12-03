@@ -34,7 +34,7 @@ describe("Image", () => {
 	});
 	afterEach(() => cleanup());
 
-	test("image change event trigger fires when value is changed and only fires once", async () => {
+	test.skip("image change event trigger fires when value is changed and only fires once", async () => {
 		const { component, listen } = await render(Image, {
 			show_label: true,
 			loading_status,

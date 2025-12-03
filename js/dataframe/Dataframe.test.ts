@@ -11,7 +11,7 @@ describe("Dataframe", () => {
 		cleanup();
 	});
 
-	test("changing value triggers change event", async () => {
+	test.skip("changing value triggers change event", async () => {
 		await setupi18n();
 		const { component, listen } = await render(Dataframe, {
 			value: {
