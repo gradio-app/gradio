@@ -67,15 +67,7 @@
 				link_text="Learn more"
 				link_url="/docs/gradio"
 			/>
-			<Banner
-				id="hackathon-deadline"
-				message="MCP Birthday Hackathon Completed!"
-				link_text="See Submissions"
-				link_url="https://huggingface.co/MCP-1st-Birthday/spaces"
-				target="_blank"
-			/>
 		</div>
-
 		<h1
 			class="mb-6 text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-gray-100 max-w-4xl"
 		>

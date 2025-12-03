@@ -48,13 +48,13 @@ const langs = {
 function highlight(code: string, lang: string | undefined) {
 	const _lang = langs[lang as keyof typeof langs] || "";
 
-	const highlighted = _lang
+	const highlighted = _lang && Prism.languages[_lang]
 		? `<pre class="language-${lang}"><code>${Prism.highlight(
 				code,
 				Prism.languages[_lang],
 				_lang
 			)}</code></pre>`
-		: code;
+		: `<pre class="language-${lang || 'text'}"><code>${code}</code></pre>`;
 
 	return highlighted;
 }

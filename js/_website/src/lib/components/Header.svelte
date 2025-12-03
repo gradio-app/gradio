@@ -10,8 +10,22 @@
 	import LogoDownloadMenu from "./LogoDownloadMenu.svelte";
 	import { theme } from "$lib/stores/theme";
 
+	import IconHamburger from "./icons/IconHamburger.svelte";
+	import IconCloseNav from "./icons/IconCloseNav.svelte";
+	import IconChevron from "./icons/IconChevron.svelte";
+	import IconTerminal from "./icons/IconTerminal.svelte";
+	import IconNetwork from "./icons/IconNetwork.svelte";
+	import IconGrid from "./icons/IconGrid.svelte";
+	import IconMessage from "./icons/IconMessage.svelte";
+	import IconTheme from "./icons/IconTheme.svelte";
+	import IconMcp from "./icons/IconMcp.svelte";
+	import IconTrackio from "./icons/IconTrackio.svelte";
+	import IconDocsWindow from "./icons/IconDocsWindow.svelte";
+	import IconApiKey from "./icons/IconApiKey.svelte";
+
 	let click_nav = false;
 	let show_help_menu = false;
+	let show_api_menu = false;
 	let show_nav = false;
 	let is_scrolled = false;
 	let ready = false;
@@ -40,6 +54,7 @@
 	onNavigate(() => {
 		click_nav = false;
 		show_help_menu = false;
+		show_api_menu = false;
 		show_logo_menu = false;
 	});
 
@@ -47,6 +62,9 @@
 		const target = event.target as HTMLElement;
 		if (show_help_menu && !target.closest(".help-menu-container")) {
 			show_help_menu = false;
+		}
+		if (show_api_menu && !target.closest(".api-menu-container")) {
+			show_api_menu = false;
 		}
 		if (show_logo_menu && !target.closest(".logo-container")) {
 			show_logo_menu = false;
@@ -82,39 +100,160 @@
 			<img src={current_logo} alt="Gradio logo" class="h-10" />
 		</a>
 		{#if !show_nav}
-			<svg
-				class="h-8 w-8 lg:hidden text-gray-900 dark:text-gray-300"
-				viewBox="-10 -10 20 20"
+			<button
+				type="button"
+				class="lg:hidden bg-transparent border-none p-0 cursor-pointer"
 				on:click={() => (click_nav = !click_nav)}
 			>
-				<rect x="-7" y="-6" width="14" height="2" fill="currentColor" />
-				<rect x="-7" y="-1" width="14" height="2" fill="currentColor" />
-				<rect x="-7" y="4" width="14" height="2" fill="currentColor" />
-			</svg>
+				<IconHamburger class="h-8 w-8 text-gray-900 dark:text-gray-300" />
+			</button>
 		{:else}
-			<svg
-				class="h-5 w-5 lg:hidden mr-2 text-gray-900 dark:text-gray-300"
-				viewBox="-10 -10 70 70"
-				width="50"
-				height="50"
-				stroke="currentColor"
-				stroke-width="10"
-				stroke-linecap="round"
+			<button
+				type="button"
+				class="lg:hidden mr-2 bg-transparent border-none p-0 cursor-pointer"
 				on:click={() => (click_nav = !click_nav)}
 			>
-				<line x1="0" y1="0" x2="50" y2="50" />
-				<line x1="50" y1="0" x2="0" y2="50" />
-			</svg>
+				<IconCloseNav class="h-5 w-5 text-gray-900 dark:text-gray-300" />
+			</button>
 		{/if}
 		<nav
 			class:hidden={!show_nav}
 			class="flex w-full flex-col gap-3 px-4 py-2 lg:flex lg:w-auto lg:flex-row lg:gap-6 text-gray-900 dark:text-gray-300 lg:items-center lg:justify-center lg:flex-1 lg:text-sm"
 		>
-			<a class="thin-link" href="/docs">API</a>
+			<div
+				class="api-menu-container flex flex-col gap-3 lg:group lg:relative lg:flex lg:cursor-pointer lg:items-center lg:gap-3"
+				on:mouseenter={() => (show_api_menu = true)}
+				on:mouseleave={() => (show_api_menu = false)}
+			>
+				<a
+					href="/docs"
+					class="flex items-center gap-2 cursor-pointer bg-transparent border-none p-0 font-inherit text-inherit"
+				>
+					<span>API</span>
+					<IconChevron
+						class="h-4 w-4 text-gray-900 dark:text-gray-300 pointer-events-none"
+						flipped={show_api_menu}
+					/>
+				</a>
+				{#if show_api_menu}
+					<div class="lg:absolute lg:top-5 lg:pt-4 lg:left-0">
+						<div
+							class="api-menu flex flex-col gap-0 lg:w-[800px] bg-white dark:bg-neutral-800 lg:backdrop-blur-sm lg:shadow-xl lg:group-hover:flex lg:rounded-xl border border-gray-200 dark:border-neutral-700 lg:p-6"
+						>
+							<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+								<a
+									href="/docs/gradio/interface"
+									class="group/card flex flex-col rounded-xl overflow-hidden hover:shadow-md transition-all duration-200 !cursor-pointer"
+								>
+									<div
+										class="h-28 bg-orange-100 dark:bg-orange-900 p-4 group-hover/card:bg-orange-200 dark:group-hover/card:bg-orange-800 transition-colors duration-200 flex items-center justify-center"
+									>
+										<IconDocsWindow class="w-20 h-16 pointer-events-none" />
+									</div>
+									<div
+										class="p-4 bg-gray-50 dark:bg-neutral-700/50 group-hover/card:bg-gray-100 dark:group-hover/card:bg-neutral-600/50 transition-colors duration-200 flex-1"
+									>
+										<h4
+											class="font-semibold text-gray-900 dark:text-gray-100 mb-1"
+										>
+											Gradio Docs
+										</h4>
+										<p class="text-xs text-gray-600 dark:text-gray-400">
+											Gradio's API reference.
+										</p>
+									</div>
+								</a>
+
+								<a
+									href="/docs/python-client"
+									class="group/card flex flex-col rounded-xl overflow-hidden hover:shadow-md transition-all duration-200 !cursor-pointer"
+								>
+									<div
+										class="h-28 bg-orange-200 dark:bg-orange-800 p-4 group-hover/card:bg-orange-300 dark:group-hover/card:bg-orange-700 transition-colors duration-200 flex items-center justify-center"
+									>
+										<IconApiKey class="w-20 h-16 pointer-events-none" />
+									</div>
+									<div
+										class="p-4 bg-gray-50 dark:bg-neutral-700/50 group-hover/card:bg-gray-100 dark:group-hover/card:bg-neutral-600/50 transition-colors duration-200 flex-1"
+									>
+										<h4
+											class="font-semibold text-gray-900 dark:text-gray-100 mb-1"
+										>
+											Client Libraries
+										</h4>
+										<p class="text-xs text-gray-600 dark:text-gray-400">
+											Query Gradio apps with Python, JavaScript, and more.
+										</p>
+									</div>
+								</a>
+							</div>
+
+							<div
+								class="border-t border-gray-200 dark:border-neutral-700 pt-4"
+							>
+								<div class="flex flex-wrap gap-x-6 gap-y-2">
+									<a
+										href="/docs/js-client"
+										class="flex items-center gap-2 px-2 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer"
+									>
+										<IconTerminal class="w-4 h-4" />
+										JS Client
+									</a>
+									<a
+										href="/docs/js"
+										class="flex items-center gap-2 px-2 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer"
+									>
+										<IconGrid class="w-4 h-4" />
+										JS Components
+									</a>
+									<a
+										href="/docs/third-party-clients"
+										class="flex items-center gap-2 px-2 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer"
+									>
+										<IconNetwork class="w-4 h-4" />
+										Third-Party Clients
+									</a>
+									<a
+										href="/llms.txt"
+										target="_blank"
+										class="flex items-center gap-2 px-2 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer"
+									>
+										<IconMessage class="w-4 h-4" />
+										llms.txt
+									</a>
+									<a
+										href="/guides/building-mcp-server-with-gradio"
+										class="flex items-center gap-2 px-2 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer"
+									>
+										<IconMcp class="w-4 h-4" />
+										MCP Server
+									</a>
+									<a
+										href="https://github.com/gradio-app/trackio"
+										target="_blank"
+										class="flex items-center gap-2 px-2 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer"
+									>
+										<IconTrackio class="w-4 h-4" />
+										Trackio
+									</a>
+									<!-- <a
+										href="/guides/theming-guide"
+										class="flex items-center gap-2 px-2 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer"
+									>
+										<IconTheme class="w-4 h-4" />
+										Theme Builder
+									</a> -->
+								</div>
+							</div>
+						</div>
+					</div>
+				{/if}
+			</div>
 			<a class="thin-link" href="/guides">Guides</a>
 			<a class="thin-link" href="/custom-components/gallery"
 				>Custom Components</a
 			>
+			<a class="thin-link" href="/changelog">Changelog</a>
 			<div
 				class="help-menu-container flex flex-col gap-3 lg:group lg:relative lg:flex lg:cursor-pointer lg:items-center lg:gap-3"
 			>
@@ -124,31 +263,10 @@
 					on:click={() => (show_help_menu = !show_help_menu)}
 				>
 					<span>Community</span>
-					{#if show_help_menu}
-						<svg
-							class="h-4 w-4 text-gray-900 dark:text-gray-300 pointer-events-none"
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 20 20"
-							fill="currentColor"
-						>
-							<path
-								d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
-								transform="scale (1, -1)"
-								transform-origin="center"
-							/>
-						</svg>
-					{:else}
-						<svg
-							class="h-4 w-4 text-gray-900 dark:text-gray-300 pointer-events-none"
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 20 20"
-							fill="currentColor"
-						>
-							<path
-								d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
-							/>
-						</svg>
-					{/if}
+					<IconChevron
+						class="h-4 w-4 text-gray-900 dark:text-gray-300 pointer-events-none"
+						flipped={show_help_menu}
+					/>
 				</button>
 				{#if show_help_menu}
 					<div
