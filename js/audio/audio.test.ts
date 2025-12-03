@@ -45,7 +45,7 @@ const default_values = {
 	show_label: true,
 	waveform_options: {
 		trim_region_color: "#f97316",
-		show_recording_waveform: false,
+		show_recording_waveform: true,
 		show_controls: true
 	}
 };
