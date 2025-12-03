@@ -1,5 +1,11 @@
 # @gradio/highlightedtext
 
+## 0.9.15
+
+### Features
+
+- [#12475](https://github.com/gradio-app/gradio/pull/12475) [`c4c36c7`](https://github.com/gradio-app/gradio/commit/c4c36c7da3d14d60f4fd9b35bbe68d52f7b38bb9) - Fix highlighted text in 6.0.  Thanks @freddyaboulton!
+
 ## 0.9.14
 
 ### Dependency updates

@@ -859,7 +859,12 @@ class Client:
         if api_name is not None:
             for i, d in enumerate(self.config["dependencies"]):
                 config_api_name = d.get("api_name")
-                if config_api_name is None or d.get("api_visibility") == "private":
+                # config_api_name may be false in 5.0 to indicate private APIs
+                if (
+                    config_api_name is None
+                    or config_api_name is False
+                    or d.get("api_visibility") == "private"
+                ):
                     continue
                 if "/" + config_api_name == api_name:
                     inferred_fn_index = d.get("id", i)
@@ -1271,7 +1276,7 @@ class Endpoint:
         else:
             return data
 
-    def _upload_file(self, f: dict, data_index: int) -> dict[str, str]:
+    def _upload_file(self, f: dict, data_index: int) -> dict[str, Any]:
         file_path = f["path"]
         orig_name = Path(file_path)
         if not utils.is_http_url_like(file_path):
@@ -1313,7 +1318,15 @@ class Endpoint:
         }
 
     def _download_file(self, x: dict) -> str:
-        url_path = self.root_url + "file=" + x["path"]
+        # For streams, use the URL directly if available, as streams are located at different paths
+        if x.get("is_stream", False) and "url" in x:
+            url_path = x["url"]
+            # If the URL is relative, prepend the root URL
+            if not url_path.startswith(("http://", "https://")):
+                url_path = self.root_url + url_path.lstrip("/")
+        else:
+            url_path = self.root_url + "file=" + x["path"]
+
         if self.client.output_dir is not None:
             os.makedirs(self.client.output_dir, exist_ok=True)
 
