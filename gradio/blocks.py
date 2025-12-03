@@ -1074,7 +1074,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             warnings.warn(
                 f"The parameters have been moved from the Blocks constructor to the launch() method in Gradio 6.0: {param_list}. "
                 f"Please pass these parameters to launch() instead.",
-                DeprecationWarning,
+                UserWarning,
                 stacklevel=2,
             )
         self._deprecated_theme = deprecated_kwargs.get("theme")
