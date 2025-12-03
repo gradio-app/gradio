@@ -1,4 +1,5 @@
 ---
+"@gradio/dataframe-interim": minor
 "@self/spa": minor
 "gradio": minor
 ---
