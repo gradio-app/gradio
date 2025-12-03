@@ -55,7 +55,7 @@ describe("Textbox", () => {
 		await event.keyboard("some text");
 
 		assert.equal(item.value, "hi some text");
-		await new Promise(resolve => setTimeout(resolve, 100));
+		await new Promise((resolve) => setTimeout(resolve, 100));
 		assert.equal(mock.callCount, 9);
 		assert.equal(mock.calls[8][0].detail.data, "hi some text");
 	});
