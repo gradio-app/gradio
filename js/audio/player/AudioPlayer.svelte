@@ -19,7 +19,7 @@
 	export let i18n: I18nFormatter;
 	export let dispatch_blob: (
 		blobs: Uint8Array[] | Blob[],
-		event: "stream" | "change" | "stop_recording",
+		event: "stream" | "change" | "stop_recording"
 	) => Promise<void> = () => Promise.resolve();
 	export let interactive = false;
 	export let editable = true;
@@ -65,7 +65,11 @@
 	$: use_waveform =
 		waveform_options.show_recording_waveform && !value?.is_stream;
 
-	$: if (waveform_ready && old_playback_position !== playback_position && audio_duration) {
+	$: if (
+		waveform_ready &&
+		old_playback_position !== playback_position &&
+		audio_duration
+	) {
 		waveform?.seekTo(playback_position / audio_duration);
 		old_playback_position = playback_position;
 	}
@@ -73,7 +77,7 @@
 	const create_waveform = (): void => {
 		waveform = WaveSurfer.create({
 			container: container,
-			...waveform_settings,
+			...waveform_settings
 		});
 
 		if (subtitles && waveform) {
@@ -150,7 +154,7 @@
 
 	const handle_trim_audio = async (
 		start: number,
-		end: number,
+		end: number
 	): Promise<void> => {
 		mode = "";
 		const decodedData = waveform?.getDecodedData();
@@ -159,7 +163,7 @@
 				decodedData,
 				start,
 				end,
-				waveform_settings.sampleRate,
+				waveform_settings.sampleRate
 			).then(async (trimmedBlob: Uint8Array) => {
 				await dispatch_blob([trimmedBlob], "change");
 				waveform?.destroy();
@@ -194,7 +198,7 @@
 			const hls = new Hls({
 				maxBufferLength: 1,
 				maxMaxBufferLength: 1,
-				lowLatencyMode: true,
+				lowLatencyMode: true
 			});
 			hls.loadSource(value.url);
 			hls.attachMedia(audio_player);
@@ -207,7 +211,7 @@
 					switch (data.type) {
 						case Hls.ErrorTypes.NETWORK_ERROR:
 							console.error(
-								"Fatal network error encountered, trying to recover",
+								"Fatal network error encountered, trying to recover"
 							);
 							hls.startLoad();
 							break;
@@ -256,7 +260,7 @@
 
 	async function add_subtitles_to_waveform(
 		wavesurfer: WaveSurfer,
-		subtitle_data: string | SubtitleData[],
+		subtitle_data: string | SubtitleData[]
 	): Promise<void> {
 		clear_subtitles();
 		try {
@@ -275,7 +279,7 @@
 					subtitle_container.style.display = "";
 					const audioProcessHandler = (time: number): void => {
 						const subtitle = subtitles.find(
-							(s) => time >= s.start && time <= s.end,
+							(s) => time >= s.start && time <= s.end
 						);
 						if (subtitle && subtitle.text !== current_subtitle) {
 							current_subtitle = subtitle.text;
