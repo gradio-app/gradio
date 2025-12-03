@@ -1067,6 +1067,23 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         self.enable_monitoring: bool | None = None
 
+        deprecated_params = ["theme", "css", "css_paths", "js", "head", "head_paths"]
+        deprecated_kwargs = {k: kwargs.pop(k) for k in deprecated_params if k in kwargs}
+        if deprecated_kwargs:
+            param_list = ", ".join(deprecated_kwargs.keys())
+            warnings.warn(
+                f"The parameters have been moved from the Blocks constructor to the launch() method in Gradio 6.0: {param_list}. "
+                f"Please pass these parameters to launch() instead.",
+                DeprecationWarning,
+                stacklevel=2
+            )
+        self._deprecated_theme = deprecated_kwargs.get("theme")
+        self._deprecated_css = deprecated_kwargs.get("css")
+        self._deprecated_css_paths = deprecated_kwargs.get("css_paths")
+        self._deprecated_js = deprecated_kwargs.get("js")
+        self._deprecated_head = deprecated_kwargs.get("head")
+        self._deprecated_head_paths = deprecated_kwargs.get("head_paths")
+
         self.default_config = BlocksConfig(self)
         super().__init__(render=False, **kwargs)
 
@@ -2524,6 +2541,13 @@ Received inputs:
         if self._is_running_in_reload_thread:
             # We have already launched the demo
             return None, None, None  # type: ignore
+
+        theme = theme if theme is not None else self._deprecated_theme
+        css = css if css is not None else self._deprecated_css
+        css_paths = css_paths if css_paths is not None else self._deprecated_css_paths
+        js = js if js is not None else self._deprecated_js
+        head = head if head is not None else self._deprecated_head
+        head_paths = head_paths if head_paths is not None else self._deprecated_head_paths
 
         self.theme: Theme = utils.get_theme(theme)
         self.css = css
