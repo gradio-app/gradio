@@ -913,6 +913,8 @@ def no_raise_exception():
         pass
 
 
+import json  # make sure this is at the top of the file
+
 def sanitize_value_for_csv(value: str | float) -> str | float:
     """
     Sanitizes a value that is being written to a CSV file to prevent CSV injection attacks.
@@ -926,22 +928,27 @@ def sanitize_value_for_csv(value: str | float) -> str | float:
     if not isinstance(value, str):
         value = str(value)
 
+    # If the value looks like JSON, try to parse it.
+    # If it's valid JSON, re-serialize it so it's guaranteed valid JSON text,
+    # and skip CSV injection sanitization on that string.
+    if value.startswith(("{", "[")):
+        try:
+            parsed = json.loads(value)
+            return json.dumps(parsed)
+        except (json.JSONDecodeError, ValueError, TypeError):
+            # Not valid JSON, fall through to normal sanitization
+            pass
+
     unsafe_prefixes = ["=", "+", "-", "@", "\t", "\n"]
     unsafe_sequences = [",=", ",+", ",-", ",@", ",\t", ",\n"]
 
-    # JSON-like strings (used for cached Plotly examples and other complex outputs)
-    # are later parsed with json.loads. Adding a leading quote to them would corrupt
-    # the JSON and cause decoding errors, so we skip sanitization for these.
-    if value.startswith("{") or value.startswith("["):
-        return value
-
-    # For normal string values, keep the existing CSV-injection protections.
     if any(value.startswith(prefix) for prefix in unsafe_prefixes) or any(
         sequence in value for sequence in unsafe_sequences
     ):
         return f"'{value}"
 
     return value
+
 
 
 
