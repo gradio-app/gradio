@@ -3039,7 +3039,7 @@ Received inputs:
     ) -> None:
         """Block main thread until interrupted by user."""
         try:
-            while True:
+            while self.is_running:
                 time.sleep(0.1)
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")

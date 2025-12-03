@@ -12,7 +12,7 @@ import gradio as gr
 from gradio import processing_utils, utils
 from gradio.data_classes import FileData
 from gradio.media import get_audio
-
+from gradio_client.test import media_data
 
 class TestAudio:
     @pytest.mark.asyncio
