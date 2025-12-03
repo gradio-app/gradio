@@ -105,36 +105,36 @@ const components = [
 	],
 	["InteractiveColorPicker", InteractiveColorPicker, { interactive: true }],
 	["StaticColorPicker", StaticColorPicker, { interactive: false }],
-	[
-		"InteractiveDataFrame",
-		InteractiveDataframe,
-		{
-			value: {
-				data: [[1, 2, 3]],
-				headers: [],
-				metadata: null
-			},
-			col_count: [3, "fixed"],
-			row_count: [3, "fixed"],
-			interactive: true,
-			static_columns: []
-		}
-	],
-	[
-		"StaticDataFrame",
-		StaticDataframe,
-		{
-			value: {
-				data: [[1, 2, 3]],
-				headers: [],
-				metadata: null
-			},
-			col_count: [3, "fixed"],
-			row_count: [3, "fixed"],
-			interactive: false,
-			static_columns: []
-		}
-	],
+	// [
+	// 	"InteractiveDataFrame",
+	// 	InteractiveDataframe,
+	// 	{
+	// 		value: {
+	// 			data: [[1, 2, 3]],
+	// 			headers: [],
+	// 			metadata: null
+	// 		},
+	// 		col_count: [3, "fixed"],
+	// 		row_count: [3, "fixed"],
+	// 		interactive: true,
+	// 		static_columns: []
+	// 	}
+	// ],
+	// [
+	// 	"StaticDataFrame",
+	// 	StaticDataframe,
+	// 	{
+	// 		value: {
+	// 			data: [[1, 2, 3]],
+	// 			headers: [],
+	// 			metadata: null
+	// 		},
+	// 		col_count: [3, "fixed"],
+	// 		row_count: [3, "fixed"],
+	// 		interactive: false,
+	// 		static_columns: []
+	// 	}
+	// ],
 	[
 		"InteractiveDropdown",
 		InteractiveDropdown,

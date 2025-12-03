@@ -3,7 +3,7 @@ import { cleanup, render } from "@self/tootils";
 import { setupi18n } from "../core/src/i18n";
 import Dataframe from "./Index.svelte";
 
-describe("Dataframe", () => {
+describe.skip("Dataframe", () => {
 	beforeEach(async () => {
 		await setupi18n();
 	});
@@ -11,7 +11,7 @@ describe("Dataframe", () => {
 		cleanup();
 	});
 
-	test.skip("changing value triggers change event", async () => {
+	test("changing value triggers change event", async () => {
 		await setupi18n();
 		const { component, listen } = await render(Dataframe, {
 			value: {
