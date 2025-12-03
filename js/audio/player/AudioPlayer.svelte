@@ -19,7 +19,7 @@
 	export let i18n: I18nFormatter;
 	export let dispatch_blob: (
 		blobs: Uint8Array[] | Blob[],
-		event: "stream" | "change" | "stop_recording"
+		event: "stream" | "change" | "stop_recording",
 	) => Promise<void> = () => Promise.resolve();
 	export let interactive = false;
 	export let editable = true;
@@ -29,9 +29,12 @@
 	export let mode = "";
 	export let loop: boolean;
 	export let handle_reset_value: () => void = () => {};
+	export let playback_position = 0;
+	let old_playback_position = 0;
 
 	let container: HTMLDivElement;
 	let waveform: WaveSurfer | undefined;
+	let waveform_ready = false;
 	let waveform_component_wrapper: HTMLDivElement;
 	let playing = false;
 
@@ -62,10 +65,15 @@
 	$: use_waveform =
 		waveform_options.show_recording_waveform && !value?.is_stream;
 
+	$: if (waveform_ready && old_playback_position !== playback_position && audio_duration) {
+		waveform?.seekTo(playback_position / audio_duration);
+		old_playback_position = playback_position;
+	}
+
 	const create_waveform = (): void => {
 		waveform = WaveSurfer.create({
 			container: container,
-			...waveform_settings
+			...waveform_settings,
 		});
 
 		if (subtitles && waveform) {
@@ -82,21 +90,28 @@
 
 		waveform?.on("decode", (duration: any) => {
 			audio_duration = duration;
+			console.log("Audio duration:", audio_duration);
 			durationRef && (durationRef.textContent = format_time(duration));
 		});
 
-		waveform?.on(
-			"timeupdate",
-			(currentTime: any) =>
-				timeRef && (timeRef.textContent = format_time(currentTime))
-		);
+		let firstTimeUpdate = true;
+		waveform?.on("timeupdate", (currentTime: any) => {
+			timeRef && (timeRef.textContent = format_time(currentTime));
+			if (firstTimeUpdate) {
+				firstTimeUpdate = false;
+				return;
+			}
+			old_playback_position = playback_position = currentTime;
+		});
 
 		waveform?.on("interaction", () => {
 			const currentTime = waveform?.getCurrentTime() || 0;
 			timeRef && (timeRef.textContent = format_time(currentTime));
+			old_playback_position = playback_position = currentTime;
 		});
 
 		waveform?.on("ready", () => {
+			waveform_ready = true;
 			if (!waveform_settings.autoplay) {
 				waveform?.stop();
 			} else {
@@ -135,7 +150,7 @@
 
 	const handle_trim_audio = async (
 		start: number,
-		end: number
+		end: number,
 	): Promise<void> => {
 		mode = "";
 		const decodedData = waveform?.getDecodedData();
@@ -144,7 +159,7 @@
 				decodedData,
 				start,
 				end,
-				waveform_settings.sampleRate
+				waveform_settings.sampleRate,
 			).then(async (trimmedBlob: Uint8Array) => {
 				await dispatch_blob([trimmedBlob], "change");
 				waveform?.destroy();
@@ -179,7 +194,7 @@
 			const hls = new Hls({
 				maxBufferLength: 1,
 				maxMaxBufferLength: 1,
-				lowLatencyMode: true
+				lowLatencyMode: true,
 			});
 			hls.loadSource(value.url);
 			hls.attachMedia(audio_player);
@@ -192,7 +207,7 @@
 					switch (data.type) {
 						case Hls.ErrorTypes.NETWORK_ERROR:
 							console.error(
-								"Fatal network error encountered, trying to recover"
+								"Fatal network error encountered, trying to recover",
 							);
 							hls.startLoad();
 							break;
@@ -241,7 +256,7 @@
 
 	async function add_subtitles_to_waveform(
 		wavesurfer: WaveSurfer,
-		subtitle_data: string | SubtitleData[]
+		subtitle_data: string | SubtitleData[],
 	): Promise<void> {
 		clear_subtitles();
 		try {
@@ -260,7 +275,7 @@
 					subtitle_container.style.display = "";
 					const audioProcessHandler = (time: number): void => {
 						const subtitle = subtitles.find(
-							(s) => time >= s.start && time <= s.end
+							(s) => time >= s.start && time <= s.end,
 						);
 						if (subtitle && subtitle.text !== current_subtitle) {
 							current_subtitle = subtitle.text;
@@ -341,7 +356,8 @@
 	on:ended={() => dispatch("stop")}
 	on:play={() => dispatch("play")}
 	preload="metadata"
-/>
+>
+</audio>
 {#if value === null}
 	<Empty size="small">
 		<Music />
