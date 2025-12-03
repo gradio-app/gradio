@@ -4,7 +4,7 @@ import {
 	get_inputs_outputs
 } from "./init_utils";
 import { translate_if_needed } from "./i18n";
-import { tick, getContext } from "svelte";
+import { tick } from "svelte";
 import { dequal } from "dequal";
 
 import type {
