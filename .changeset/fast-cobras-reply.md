@@ -1,6 +1,6 @@
 ---
-"@self/spa": minor
-"gradio": minor
+"@self/spa": patch
+"gradio": patch
 ---
 
-feat:JS unit test fix
+fix:JS unit test fix
