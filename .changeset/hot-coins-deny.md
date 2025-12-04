@@ -4,6 +4,7 @@
 "@gradio/core": patch
 "@gradio/tabitem": patch
 "@gradio/tabs": patch
+"@gradio/textbox": patch
 "gradio": patch
 ---
 
