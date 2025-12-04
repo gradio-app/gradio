@@ -47,6 +47,8 @@
 		gradio.props.validation_error = null;
 		gradio.props.value = value;
 	}
+
+	$inspect("Textbox value", gradio.props.value, "visible", gradio.shared.visible);
 </script>
 
 <Block

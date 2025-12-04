@@ -414,8 +414,11 @@ export class AppTree {
 			this.root = this.traverse(this.root!, [
 				//@ts-ignore
 				(n) => set_visibility_for_updated_node(n, id, new_state.visible),
+				//@ts-ignore
+				(n) => update_parent_visibility(n, id, new_state.visible),
 				(n) => handle_visibility(n, this.#config.api_url)
 			]);
+			await tick();
 			already_updated_visibility = true;
 		}
 		const _set_data = this.#set_callbacks.get(id);
@@ -438,6 +441,7 @@ export class AppTree {
 		// need to let the UI settle before traversing again
 		// otherwise there could be
 		await tick();
+		// Update the visibility 
 		// @ts-ignore
 		await this.update_visibility(node, new_state);
 	}
@@ -691,6 +695,17 @@ function handle_empty_forms(
 		}
 	}
 
+	return node;
+}
+
+function update_parent_visibility(
+	node: ProcessedComponentMeta,
+	child_made_visible: number,
+	visibility_state: boolean | "hidden"
+): ProcessedComponentMeta{
+	if (node.children.length == 1 && node.children[0].id == child_made_visible && visibility_state === true){
+		node.props.shared_props.visible = true;
+	}
 	return node;
 }
 
