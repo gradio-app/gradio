@@ -375,7 +375,15 @@
 		if (config.deep_link_state === "invalid") {
 			pending_deep_link_error = true;
 		}
-
+		if (config.js) {
+			try {
+				const script = document.createElement("script");
+				script.textContent = config.js;
+				document.head.appendChild(script);
+			} catch (e) {
+				console.error("Error executing custom JS:", e);
+			}
+		}
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(api_url);
