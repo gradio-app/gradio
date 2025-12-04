@@ -488,16 +488,6 @@
 
 	onMount(async () => {
 		intersecting.register(_id, wrapper);
-	});
-
-	$: if (render_complete) {
-		wrapper.dispatchEvent(
-			new CustomEvent("render", {
-				bubbles: true,
-				cancelable: false,
-				composed: true
-			})
-		);
 
 		if (config.js) {
 			try {
@@ -508,6 +498,16 @@
 				console.error("Error executing custom JS:", e);
 			}
 		}
+	});
+
+	$: if (render_complete) {
+		wrapper.dispatchEvent(
+			new CustomEvent("render", {
+				bubbles: true,
+				cancelable: false,
+				composed: true
+			})
+		);
 	}
 
 	$: app?.config && mount_space_header(app?.config?.space_id, is_embed);
