@@ -320,9 +320,6 @@ export class DependencyManager {
 				`${event_meta.event_name}-${event_meta.target_id}`
 			);
 		}
-
-		console.log("Dispatching event", event_meta, deps);
-
 		for (let i = 0; i < (deps?.length || 0); i++) {
 			const dep = deps ? deps[i] : undefined;
 			if (dep) {
@@ -729,7 +726,6 @@ export class DependencyManager {
 						);
 					}
 				} else {
-					console.log("Updating output", output_id, _data);
 					await this.update_state_cb(output_id, { value: _data }, false);
 				}
 			})

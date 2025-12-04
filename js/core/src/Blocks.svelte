@@ -126,7 +126,6 @@
 				event === "gradio_expand"
 					? id
 					: (data as { component_id: number }).component_id;
-			console.log("Expanding component", id_);
 			app_tree.render_previously_invisible_children(id_);
 		} else if (event == "clear_status") {
 			app_tree.update_state(
@@ -150,7 +149,6 @@
 				// this is the id of the selected tab
 				id = (data as { id: number }).id;
 			}
-			console.log("Dispatching event", event, "for component", id, data);
 			dep_manager.dispatch({
 				type: "event",
 				event_name: event,

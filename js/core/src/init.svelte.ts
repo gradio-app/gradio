@@ -379,6 +379,19 @@ export class AppTree {
 		n.children = subtree.children;
 	}
 
+	async update_visibility(
+		node: ProcessedComponentMeta,
+		new_state: any
+	): Promise<void> {
+		node.children.forEach((child) => {
+			const _set_data = this.#set_callbacks.get(child.id);
+			if (_set_data) {
+				_set_data(new_state);
+			}
+			this.update_visibility(child, new_state);
+		});
+	}
+
 	/*
 	 * Updates the state of a component by its ID
 	 * @param id the ID of the component to update
@@ -425,10 +438,8 @@ export class AppTree {
 		// need to let the UI settle before traversing again
 		// otherwise there could be
 		await tick();
-		this.root = this.traverse(this.root!, [
-			(n) => set_visibility_for_updated_node(n, id, new_state.visible),
-			(n) => handle_visibility(n, this.#config.api_url)
-		]);
+		// @ts-ignore
+		await this.update_visibility(node, new_state);
 	}
 
 	/**
