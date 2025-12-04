@@ -35,6 +35,8 @@ function createGradioAnimation() {
 
     return 'Animation created';
 }
+
+createGradioAnimation();
 """
 
 with gr.Blocks() as demo:
