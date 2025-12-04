@@ -794,6 +794,14 @@ export class DependencyManager {
 			const submission = this.submissions.get(id);
 			if (submission) {
 				await submission.cancel();
+				this.loading_stati.update({
+					status: "complete",
+					fn_index: id,
+					eta: 0,
+					queue: false,
+					stream_state: null
+				});
+				this.update_loading_stati_state();
 				this.submissions.delete(id);
 			}
 		}

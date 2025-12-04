@@ -1,5 +1,12 @@
 # gradio_client
 
+## 2.0.1
+
+### Fixes
+
+- [#12480](https://github.com/gradio-app/gradio/pull/12480) [`b9732d1`](https://github.com/gradio-app/gradio/commit/b9732d10680ca66fa7b3f1e763d3cdd57b38c6ed) - [BUGFIX] Fix stream file download in gradio client.  Thanks @frascuchon!
+- [#12490](https://github.com/gradio-app/gradio/pull/12490) [`472e164`](https://github.com/gradio-app/gradio/commit/472e16439f2573b33d21b9635706416518405ddd) - Make client backwards compatible with version 5.  Thanks @freddyaboulton!
+
 ## 2.0.0-dev.3
 
 ### Features
