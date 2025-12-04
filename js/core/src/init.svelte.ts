@@ -441,7 +441,9 @@ export class AppTree {
 		// need to let the UI settle before traversing again
 		// otherwise there could be
 		await tick();
-		// Update the visibility 
+		// Update the visibility in a way that does not
+		// re-render the root/tree. Doing that would nuke
+		// any values currently in the UI.
 		// @ts-ignore
 		await this.update_visibility(node, new_state);
 	}
@@ -480,6 +482,7 @@ function update_visibility(
 	node: ProcessedComponentMeta,
 	visible: boolean
 ): void {
+	node.props.shared_props.visible = visible;
 	node.children.forEach((child) => {
 		child.props.shared_props.visible = visible;
 		update_visibility(child, visible);
@@ -668,8 +671,20 @@ function untrack_children_of_closed_accordions_or_inactive_tabs(
 				_untrack(child, components_to_register);
 				if (child.children) {
 					child.children.forEach((grandchild) => {
-						if (grandchild.props.shared_props.visible === true)
+						console.log(
+							"GRANDCHILD",
+							grandchild.id,
+							grandchild.props.shared_props.visible
+						);
+						if (grandchild.props.shared_props.visible === true) {
+							console.log("UPDATING GRANDCHILD", grandchild.id);
 							update_visibility(grandchild, false);
+							console.log(
+								"GRANDCHILD UPDATED",
+								grandchild.id,
+								grandchild.props.shared_props.visible
+							);
+						}
 					});
 				}
 			}
@@ -702,8 +717,12 @@ function update_parent_visibility(
 	node: ProcessedComponentMeta,
 	child_made_visible: number,
 	visibility_state: boolean | "hidden"
-): ProcessedComponentMeta{
-	if (node.children.length == 1 && node.children[0].id == child_made_visible && visibility_state === true){
+): ProcessedComponentMeta {
+	if (
+		node.children.length == 1 &&
+		node.children[0].id == child_made_visible &&
+		visibility_state === true
+	) {
 		node.props.shared_props.visible = true;
 	}
 	return node;
