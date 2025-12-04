@@ -9,7 +9,6 @@ import StaticChatbot from "@gradio/chatbot";
 import StaticCheckbox from "@gradio/checkbox";
 import StaticCheckboxGroup from "@gradio/checkboxgroup";
 import StaticColorPicker from "@gradio/colorpicker";
-import StaticDataframe from "@gradio/dataframe";
 import StaticDropdown from "@gradio/dropdown";
 import StaticFile from "@gradio/file";
 import StaticGallery from "@gradio/gallery";
@@ -30,7 +29,6 @@ import InteractiveAudio from "@gradio/audio";
 import InteractiveCheckbox from "@gradio/checkbox";
 import InteractiveCheckboxGroup from "@gradio/checkboxgroup";
 import InteractiveColorPicker from "@gradio/colorpicker";
-import InteractiveDataframe from "@gradio/dataframe";
 import InteractiveDropdown from "@gradio/dropdown";
 import InteractiveFile from "@gradio/file";
 import InteractiveModel3D from "@gradio/model3d";
@@ -105,26 +103,36 @@ const components = [
 	],
 	["InteractiveColorPicker", InteractiveColorPicker, { interactive: true }],
 	["StaticColorPicker", StaticColorPicker, { interactive: false }],
-	[
-		"InteractiveDataFrame",
-		InteractiveDataframe,
-		{
-			value: [[1, 2, 3]],
-			col_count: [3, "fixed"],
-			row_count: [3, "fixed"],
-			interactive: true
-		}
-	],
-	[
-		"StaticDataFrame",
-		StaticDataframe,
-		{
-			value: [[1, 2, 3]],
-			col_count: [3, "fixed"],
-			row_count: [3, "fixed"],
-			interactive: false
-		}
-	],
+	// [
+	// 	"InteractiveDataFrame",
+	// 	InteractiveDataframe,
+	// 	{
+	// 		value: {
+	// 			data: [[1, 2, 3]],
+	// 			headers: [],
+	// 			metadata: null
+	// 		},
+	// 		col_count: [3, "fixed"],
+	// 		row_count: [3, "fixed"],
+	// 		interactive: true,
+	// 		static_columns: []
+	// 	}
+	// ],
+	// [
+	// 	"StaticDataFrame",
+	// 	StaticDataframe,
+	// 	{
+	// 		value: {
+	// 			data: [[1, 2, 3]],
+	// 			headers: [],
+	// 			metadata: null
+	// 		},
+	// 		col_count: [3, "fixed"],
+	// 		row_count: [3, "fixed"],
+	// 		interactive: false,
+	// 		static_columns: []
+	// 	}
+	// ],
 	[
 		"InteractiveDropdown",
 		InteractiveDropdown,
