@@ -10,10 +10,8 @@ import hashlib
 import importlib
 import importlib.metadata
 import importlib.resources
-import importlib.util
 import inspect
 import json
-import json.decoder
 import os
 import pkgutil
 import posixpath
@@ -912,6 +910,7 @@ def no_raise_exception():
     except Exception:
         pass
 
+
 def sanitize_value_for_csv(value: str | float) -> str | float:
     """
     Sanitizes a value that is being written to a CSV file to prevent CSV injection attacks.
@@ -946,6 +945,7 @@ def sanitize_value_for_csv(value: str | float) -> str | float:
         return f"'{value}"
 
     return value
+
 
 def sanitize_list_for_csv(values: list[Any]) -> list[Any]:
     """
