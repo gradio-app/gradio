@@ -1,7 +1,7 @@
 import { test, describe, assert, afterEach, beforeEach } from "vitest";
 import { cleanup, render } from "@self/tootils";
 import { setupi18n } from "../core/src/i18n";
-import Dataframe from "./Index.svelte";
+// import Dataframe from "./Index.svelte";
 
 describe.skip("Dataframe", () => {
 	beforeEach(async () => {
