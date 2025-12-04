@@ -498,6 +498,16 @@
 				composed: true
 			})
 		);
+
+		if (config.js) {
+			try {
+				const script = document.createElement("script");
+				script.textContent = config.js;
+				document.head.appendChild(script);
+			} catch (e) {
+				console.error("Error executing custom JS:", e);
+			}
+		}
 	}
 
 	$: app?.config && mount_space_header(app?.config?.space_id, is_embed);
