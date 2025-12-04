@@ -425,9 +425,10 @@ export class AppTree {
 		// need to let the UI settle before traversing again
 		// otherwise there could be
 		await tick();
-		this.root = this.traverse(this.root!, (n) =>
-			handle_visibility(n, this.#config.api_url)
-		);
+		this.root = this.traverse(this.root!, [
+			(n) => set_visibility_for_updated_node(n, id, new_state.visible),
+			(n) => handle_visibility(n, this.#config.api_url)
+		]);
 	}
 
 	/**
@@ -601,6 +602,7 @@ function set_visibility_for_updated_node(
 ): ProcessedComponentMeta {
 	if (node.id == id) {
 		node.props.shared_props.visible = visible;
+		update_visibility(node, visible);
 	}
 	return node;
 }
