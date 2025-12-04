@@ -118,6 +118,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 		},
 		plugins: [
 			// resolve_svelte(development),
+			handle_msw_imports(),
 			svelte_plugin({
 				inspector: false,
 				compilerOptions: {
@@ -159,7 +160,10 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"]
 		},
 		resolve: {
-			conditions: ["gradio", "browser"]
+			conditions:
+				mode === "test"
+					? ["gradio", "module", "node", "browser"]
+					: ["gradio", "browser"]
 		},
 		test: {
 			setupFiles: [resolve(__dirname, "../../.config/setup_vite_tests.ts")],
@@ -185,6 +189,30 @@ const svelte_exports = Object.keys(svelte.exports)
 	.filter((p) => p.endsWith(".json"))
 	.map((entry) => entry.replace(/^\./, "svelte").split("/").join("_") + ".js");
 
+function handle_msw_imports(): Plugin {
+	return {
+		name: "handle_msw_imports",
+		enforce: "pre",
+		resolveId(id, importer, options) {
+			if (!process.env.VITEST) {
+				return null;
+			}
+
+			if (id === "msw/node") {
+				try {
+					const mswPath = require.resolve("msw");
+					const mswDir = mswPath.substring(0, mswPath.lastIndexOf("msw") + 3);
+					return resolve(mswDir, "lib/node/index.mjs");
+				} catch (e) {
+					console.warn("Failed to resolve msw/node:", e);
+					return null;
+				}
+			}
+			return null;
+		}
+	};
+}
+
 function handle_svelte_import({
 	development
 }: {
@@ -194,7 +222,8 @@ function handle_svelte_import({
 		name: "handle_svelte_import",
 		enforce: "pre",
 		resolveId(id, importer, options) {
-			if (development) {
+			// In development or test mode, let vite handle svelte imports normally
+			if (development || process.env.VITEST) {
 				return null;
 			}
 

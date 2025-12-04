@@ -10,7 +10,7 @@ import {
 	determine_interactivity,
 	process_server_fn,
 	get_component
-} from "./init";
+} from "./_init";
 
 describe("process_frontend_fn", () => {
 	test("empty source code returns null", () => {

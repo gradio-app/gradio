@@ -5,7 +5,6 @@ import {
 	set_available_devices,
 	set_local_stream
 } from "./stream_utils";
-import * as stream_utils from "./stream_utils";
 
 let test_device: MediaDeviceInfo = {
 	deviceId: "test-device",
@@ -31,7 +30,41 @@ const mock_getUserMedia = vi.fn(async () => {
 	});
 });
 
-window.MediaStream = vi.fn().mockImplementation(() => ({}));
+class MockMediaStream extends EventTarget {
+	id: string;
+	active: boolean;
+
+	constructor() {
+		super();
+		this.id = "mock-stream-id";
+		this.active = true;
+	}
+
+	getTracks(): MediaStreamTrack[] {
+		return [];
+	}
+
+	getAudioTracks(): MediaStreamTrack[] {
+		return [];
+	}
+
+	getVideoTracks(): MediaStreamTrack[] {
+		return [];
+	}
+
+	addTrack(): void {}
+	removeTrack(): void {}
+	getTrackById(): MediaStreamTrack | null {
+		return null;
+	}
+
+	clone(): MediaStream {
+		return this as unknown as MediaStream;
+	}
+}
+
+// @ts-ignore - Override global MediaStream for testing
+window.MediaStream = MockMediaStream as any;
 
 Object.defineProperty(global.navigator, "mediaDevices", {
 	value: {
@@ -47,10 +80,10 @@ describe("stream_utils", () => {
 	});
 
 	test("set_local_stream should set the local stream to the video source", () => {
-		const mock_stream = {}; // mocked MediaStream obj as it's not available in a node env
+		const mock_stream = new MockMediaStream() as unknown as MediaStream;
 
 		const mock_video_source = {
-			srcObject: null,
+			srcObject: null as MediaStream | null,
 			muted: false,
 			play: vi.fn()
 		};
@@ -64,28 +97,27 @@ describe("stream_utils", () => {
 	});
 
 	test("get_video_stream requests user media with the correct constraints and sets the local stream", async () => {
-		const mock_video_source = document.createElement("video");
-		const mock_stream = new MediaStream();
+		const mock_video_source = {
+			srcObject: null as MediaStream | null,
+			muted: false,
+			play: vi.fn().mockResolvedValue(undefined)
+		} as unknown as HTMLVideoElement;
+		const mock_stream = new MockMediaStream() as unknown as MediaStream;
 
 		global.navigator.mediaDevices.getUserMedia = vi
 			.fn()
 			.mockResolvedValue(mock_stream);
 
-		await get_video_stream(true, mock_video_source);
+		await get_video_stream(true, mock_video_source, null);
 
 		expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({
 			video: { width: { ideal: 1920 }, height: { ideal: 1440 } },
 			audio: true
 		});
 
-		const spy_set_local_stream = vi.spyOn(stream_utils, "set_local_stream");
-		stream_utils.set_local_stream(mock_stream, mock_video_source);
-
-		expect(spy_set_local_stream).toHaveBeenCalledWith(
-			mock_stream,
-			mock_video_source
-		);
-		spy_set_local_stream.mockRestore();
+		expect(mock_video_source.srcObject).toBe(mock_stream);
+		expect(mock_video_source.muted).toBe(true);
+		expect(mock_video_source.play).toHaveBeenCalled();
 	});
 
 	test("set_available_devices should return only video input devices", () => {
