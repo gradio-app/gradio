@@ -1,7 +1,7 @@
 ---
-"@gradio/core": minor
-"@gradio/nativeplot": minor
-"gradio": minor
+"@gradio/core": patch
+"@gradio/nativeplot": patch
+"gradio": patch
 ---
 
-feat:Fix plot Rendering + visibility bug
+fix:Fix plot Rendering + visibility bug
