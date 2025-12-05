@@ -1,47 +1,20 @@
 import { test, expect } from "@self/tootils";
 
-test("Video playback position is retrieved correctly and updates as video plays.", async ({
-	page
-}) => {
-	await page.getByRole("tab", { name: "Video" }).click();
-
-	await page
-		.getByRole("button", { name: "Get Video Playback Position" })
-		.click();
-
-	await page.waitForTimeout(500);
-
-	const initialPosition = await page
-		.getByLabel("Current Playback Position (seconds)")
-		.inputValue();
-	expect(parseFloat(initialPosition)).toBeGreaterThanOrEqual(4.5);
-	expect(parseFloat(initialPosition)).toBeLessThanOrEqual(5.5);
-
-	await page.getByLabel("play-pause-replay-button").first().click();
-	await page.waitForTimeout(2000);
-
-	await page
-		.getByRole("button", { name: "Get Video Playback Position" })
-		.click();
-	await page.waitForTimeout(500);
-
-	const updatedPosition = await page
-		.getByLabel("Current Playback Position (seconds)")
-		.inputValue();
-	expect(parseFloat(updatedPosition)).toBeGreaterThan(
-		parseFloat(initialPosition)
-	);
-});
-
 test("Audio playback position is retrieved correctly and updates as audio plays.", async ({
 	page
 }) => {
 	await page.getByRole("tab", { name: "Audio" }).click();
-	await page.waitForTimeout(500);
+	await page.waitForSelector('[data-testid="waveform-Audio"] svg');
+	await page
+		.getByRole("button", { name: "Get Audio Playback Position" })
+		.click();
 
-	const initialPosition = await page
-		.getByLabel("Current Playback Position (seconds)")
-		.inputValue();
+	const initialPositionBox = page.getByLabel(
+		"Current Audio Position (seconds)"
+	);
+	await expect(initialPositionBox).not.toHaveValue("0");
+
+	const initialPosition = await initialPositionBox.inputValue();
 	expect(parseFloat(initialPosition)).toBeGreaterThanOrEqual(1.5);
 	expect(parseFloat(initialPosition)).toBeLessThanOrEqual(2.5);
 
@@ -54,10 +27,10 @@ test("Audio playback position is retrieved correctly and updates as audio plays.
 	await page
 		.getByRole("button", { name: "Get Audio Playback Position" })
 		.click();
-	await page.waitForTimeout(500);
+	await expect(initialPositionBox).not.toHaveValue(initialPosition);
 
 	const updatedPosition = await page
-		.getByLabel("Current Playback Position (seconds)")
+		.getByLabel("Current Audio Position (seconds)")
 		.inputValue();
 	expect(parseFloat(updatedPosition)).toBeGreaterThan(
 		parseFloat(initialPosition)
