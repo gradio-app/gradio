@@ -8,6 +8,7 @@
 		visible: boolean | "hidden";
 		interactive: boolean;
 		scale: number | null;
+		component_id: number;
 	}
 </script>
 
@@ -199,7 +200,12 @@
 							on:click={() => {
 								if (t.id !== $selected_tab) {
 									change_tab(t.id);
-									dispatch("select", { value: t.label, index: i, id: t.id });
+									dispatch("select", {
+										value: t.label,
+										index: i,
+										id: t.id,
+										component_id: t.component_id
+									});
 								}
 							}}
 						>
@@ -222,10 +228,18 @@
 					<OverflowIcon />
 				</button>
 				<div class="overflow-dropdown" class:hide={!overflow_menu_open}>
-					{#each overflow_tabs as t}
+					{#each overflow_tabs as t, i}
 						{#if t?.visible !== false}
 							<button
-								on:click={() => change_tab(t?.id)}
+								on:click={() => {
+									change_tab(t?.id);
+									dispatch("select", {
+										value: t.label,
+										index: i,
+										id: t.id,
+										component_id: t.component_id
+									});
+								}}
 								class:selected={t?.id === $selected_tab}
 							>
 								{t?.label}

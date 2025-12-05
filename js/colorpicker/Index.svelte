@@ -14,8 +14,9 @@
 	import type { ColorPickerProps, ColorPickerEvents } from "./types";
 
 	let props = $props();
-	const gradio = new Gradio<ColorPickerEvents, ColorPickerProps>(props);
-	gradio.props.value = gradio.props.value ?? "#000000";
+	const gradio = new Gradio<ColorPickerEvents, ColorPickerProps>(props, {
+		value: "#000000"
+	});
 	let old_value = $state(gradio.props.value);
 	let label = $derived(
 		gradio.shared.label || gradio.i18n("color_picker.color_picker")

@@ -9,6 +9,7 @@ export interface TabItemProps {
 	interactive: boolean;
 	order: number;
 	scale: number;
+	component_id: number;
 }
 
 export interface TabItemEvents {
