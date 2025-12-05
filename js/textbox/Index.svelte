@@ -82,7 +82,7 @@
 		placeholder={gradio.props.placeholder}
 		submit_btn={gradio.props.submit_btn}
 		stop_btn={gradio.props.stop_btn}
-		show_copy_button={gradio.props.show_copy_button}
+		buttons={gradio.props.buttons}
 		autofocus={gradio.props.autofocus}
 		container={gradio.shared.container}
 		autoscroll={gradio.shared.autoscroll}
