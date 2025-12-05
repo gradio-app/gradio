@@ -3,7 +3,7 @@
 
 	let {
 		label = "Checkbox",
-		value = $bindable(false),
+		value = $bindable(),
 		interactive = true,
 		show_label = true,
 		on_change,
@@ -26,7 +26,7 @@
 	$effect(() => {
 		if (old_value !== value) {
 			old_value = value;
-			on_change?.($state.snapshot(value));
+			on_change?.($state.snapshot(value as boolean));
 		}
 	});
 

@@ -11,7 +11,7 @@
 	let {
 		label = "Dropdown",
 		info = undefined,
-		value = $bindable<string | number | null>(null),
+		value = $bindable<string | number | null>(),
 		choices = [],
 		interactive = true,
 		show_label = true,
