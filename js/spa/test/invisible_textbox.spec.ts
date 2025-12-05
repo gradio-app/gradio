@@ -20,3 +20,17 @@ test("Textbox visibility can be toggled from the backend. Toggling visibility re
 	await page.click('text="Show"');
 	await expect(textbox).toHaveValue("Test value");
 });
+
+test("Component visibility is respected in inactive tabs. A component with visibility=False will not be shown when the tab is active", async ({
+	page
+}) => {
+	await page.getByRole("tab", { name: "Another Tab" }).click();
+
+	await page.click('text="Show Message"');
+
+	await expect(
+		page.getByText(
+			"This is another tab to demonstrate that invisible components work across tabs."
+		)
+	).toBeVisible();
+});
