@@ -1,5 +1,11 @@
 # @gradio/tabs
 
+## 0.5.3
+
+### Fixes
+
+- [#12491](https://github.com/gradio-app/gradio/pull/12491) [`4f6327b`](https://github.com/gradio-app/gradio/commit/4f6327be6815fc8d574b60272b02915c75359ace) - Load visible components in 6.0.  Thanks @freddyaboulton!
+
 ## 0.5.2
 
 ### Dependency updates
