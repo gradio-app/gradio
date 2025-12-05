@@ -30,8 +30,6 @@
 	let overflow_menu_open = false;
 	let overflow_menu: HTMLElement;
 
-	$: console.log("Tabs:", tabs);
-	$: console.log("visible_tabs", visible_tabs);
 	$: has_tabs = tabs.length > 0;
 
 	let tab_nav_el: HTMLDivElement;
@@ -202,11 +200,6 @@
 							on:click={() => {
 								if (t.id !== $selected_tab) {
 									change_tab(t.id);
-									console.log(
-										"Dispatching select for tab",
-										t.id,
-										t.component_id
-									);
 									dispatch("select", {
 										value: t.label,
 										index: i,

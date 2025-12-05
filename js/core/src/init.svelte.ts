@@ -671,19 +671,8 @@ function untrack_children_of_closed_accordions_or_inactive_tabs(
 				_untrack(child, components_to_register);
 				if (child.children) {
 					child.children.forEach((grandchild) => {
-						console.log(
-							"GRANDCHILD",
-							grandchild.id,
-							grandchild.props.shared_props.visible
-						);
 						if (grandchild.props.shared_props.visible === true) {
-							console.log("UPDATING GRANDCHILD", grandchild.id);
 							update_visibility(grandchild, false);
-							console.log(
-								"GRANDCHILD UPDATED",
-								grandchild.id,
-								grandchild.props.shared_props.visible
-							);
 						}
 					});
 				}
