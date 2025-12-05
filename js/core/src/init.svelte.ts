@@ -449,7 +449,7 @@ export class AppTree {
 		// @ts-ignore
 		await this.update_visibility(node, new_state);
 		const parent_node = find_parent(this.root!, id);
-\		if (parent_node)
+		if (parent_node)
 			// @ts-ignore
 			update_parent_visibility(parent_node, id, new_state.visible);
 	}
