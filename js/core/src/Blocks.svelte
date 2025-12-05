@@ -329,8 +329,10 @@
 
 	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
-	const DUPLICATE_MESSAGE = $_("blocks.long_requests_queue");
-	const MOBILE_QUEUE_WARNING = $_("blocks.connection_can_break");
+	const DUPLICATE_MESSAGE = $reactive_formatter("blocks.long_requests_queue");
+	const MOBILE_QUEUE_WARNING = $reactive_formatter(
+		"blocks.connection_can_break"
+	);
 	const LOST_CONNECTION_MESSAGE =
 		"Connection to the server was lost. Attempting reconnection...";
 	const CHANGED_CONNECTION_MESSAGE =
@@ -338,7 +340,9 @@
 	const RECONNECTION_MESSAGE = "Connection re-established.";
 	const SESSION_NOT_FOUND_MESSAGE =
 		"Session not found - this is likely because the machine you were connected to has changed. <a href=''>Refresh the page</a> to continue.";
-	const WAITING_FOR_INPUTS_MESSAGE = $_("blocks.waiting_for_inputs");
+	const WAITING_FOR_INPUTS_MESSAGE = $reactive_formatter(
+		"blocks.waiting_for_inputs"
+	);
 	const SHOW_DUPLICATE_MESSAGE_ON_ETA = 15;
 	const SHOW_MOBILE_QUEUE_WARNING_ON_ETA = 10;
 	let is_mobile_device = false;
@@ -447,11 +451,11 @@
 						class="show-api"
 					>
 						{#if app.config?.mcp_server}
-							{$_("errors.use_via_api_or_mcp")}
+							{$reactive_formatter("errors.use_via_api_or_mcp")}
 						{:else}
-							{$_("errors.use_via_api")}
+							{$reactive_formatter("errors.use_via_api")}
 						{/if}
-						<img src={api_logo} alt={$_("common.logo")} />
+						<img src={api_logo} alt={$reactive_formatter("common.logo")} />
 					</button>
 				{/if}
 				{#if footer_links.includes("gradio")}
@@ -462,8 +466,8 @@
 						target="_blank"
 						rel="noreferrer"
 					>
-						{$_("common.built_with_gradio")}
-						<img src={logo} alt={$_("common.logo")} />
+						{$reactive_formatter("common.built_with_gradio")}
+						<img src={logo} alt={$reactive_formatter("common.logo")} />
 					</a>
 				{/if}
 				<button
@@ -473,8 +477,11 @@
 					}}
 					class="record"
 				>
-					{$_("common.stop_recording")}
-					<img src={record_stop} alt={$_("common.stop_recording")} />
+					{$reactive_formatter("common.stop_recording")}
+					<img
+						src={record_stop}
+						alt={$reactive_formatter("common.stop_recording")}
+					/>
 				</button>
 				<div class="divider">·</div>
 				{#if footer_links.includes("settings")}
@@ -488,8 +495,11 @@
 						}}
 						class="settings"
 					>
-						{$_("common.settings")}
-						<img src={settings_logo} alt={$_("common.settings")} />
+						{$reactive_formatter("common.settings")}
+						<img
+							src={settings_logo}
+							alt={$reactive_formatter("common.settings")}
+						/>
 					</button>
 				{/if}
 			</footer>
@@ -559,15 +569,16 @@
 					this={Settings}
 					bind:allow_zoom
 					bind:allow_video_trim
-					on:close={() => {
+					onclose={() => {
 						set_settings_visible(false);
 					}}
-					on:start_recording={() => {
+					start_recording={() => {
 						screen_recording();
 					}}
 					pwa_enabled={app.config.pwa}
 					{root}
 					{space_id}
+					i18n={$reactive_formatter}
 				/>
 			</div>
 		</div>

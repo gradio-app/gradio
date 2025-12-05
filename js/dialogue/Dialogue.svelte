@@ -482,22 +482,14 @@
 								readonly
 							/>
 						{:else}
-							{@const dd_props = new Gradio({
-								shared_props: {
-									container: true,
-									show_label: false,
-									interactive: true,
-									label: ""
-								},
-								props: {
-									value: line.speaker,
-									choices: gradio.props.speakers.map((s) => [s, s])
-								}
-							})}
 							<BaseDropdown
-								on_change={() =>
-									update_line(i, "speaker", dd_props.props.value as string)}
-								gradio={dd_props}
+								label=""
+								show_label={false}
+								container={true}
+								interactive={true}
+								value={line.speaker}
+								choices={gradio.props.speakers.map((s) => [s, s])}
+								on_change={(val) => update_line(i, "speaker", val as string)}
 							/>
 						{/if}
 					</div>
