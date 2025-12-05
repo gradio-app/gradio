@@ -15,6 +15,15 @@
 
 	$effect(() => {
 		if (old_selected !== gradio.props.selected) {
+			const i = gradio.props.initial_tabs.findIndex(
+				(t) => t.id === gradio.props.selected
+			);
+			gradio.dispatch("gradio_tab_select", {
+				value: gradio.props.initial_tabs[i].label,
+				index: i,
+				id: gradio.props.initial_tabs[i].id,
+				component_id: gradio.props.initial_tabs[i].component_id
+			});
 			old_selected = gradio.props.selected;
 		}
 	});
@@ -27,7 +36,10 @@
 		elem_classes={gradio.shared.elem_classes}
 		bind:selected={gradio.props.selected}
 		on:change={() => gradio.dispatch("change")}
-		on:select={(e) => gradio.dispatch("select", e.detail)}
+		on:select={(e) => {
+			gradio.dispatch("select", e.detail);
+			gradio.dispatch("gradio_tab_select", e.detail);
+		}}
 		initial_tabs={gradio.props.initial_tabs}
 	>
 		<slot />
@@ -39,7 +51,10 @@
 		elem_classes={gradio.shared.elem_classes}
 		bind:selected={gradio.props.selected}
 		on:change={() => gradio.dispatch("change")}
-		on:select={(e) => gradio.dispatch("select", e.detail)}
+		on:select={(e) => {
+			gradio.dispatch("select", e.detail);
+			gradio.dispatch("gradio_tab_select", e.detail);
+		}}
 		initial_tabs={gradio.props.initial_tabs}
 	>
 		<slot />

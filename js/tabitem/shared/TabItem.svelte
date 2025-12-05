@@ -12,6 +12,7 @@
 	export let interactive: boolean;
 	export let order: number;
 	export let scale: number;
+	export let component_id: number;
 
 	const dispatch = createEventDispatcher<{ select: SelectData }>();
 
@@ -31,7 +32,8 @@
 		elem_id,
 		visible,
 		interactive,
-		scale
+		scale,
+		component_id
 	});
 
 	$: tab_index = _register_tab(props_json, order);

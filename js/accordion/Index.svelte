@@ -31,7 +31,10 @@
 	<Accordion
 		{label}
 		open={gradio.props.open}
-		on:expand={() => gradio.dispatch("expand")}
+		on:expand={() => {
+			gradio.dispatch("expand");
+			gradio.dispatch("gradio_expand");
+		}}
 		on:collapse={() => gradio.dispatch("collapse")}
 	>
 		<BaseColumn>
