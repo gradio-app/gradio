@@ -1,16 +1,14 @@
 import gradio as gr
-from pathlib import Path
+from gradio.media import get_audio, get_video
 
 # Get the directory where this script is located
-demo_dir = Path(__file__).parent
-
 with gr.Blocks() as demo:
     with gr.Tab("Audio"):
         gr.Markdown("## Audio Playback Position")
         gr.Markdown("Click the button to see the current playback position of the audio.")
 
         audio = gr.Audio(
-            value=str(demo_dir / "sax.wav"),
+            value=get_audio("sax.wav"),
             playback_position=2.0,
             elem_id="audio",
         )
@@ -33,7 +31,7 @@ with gr.Blocks() as demo:
         gr.Markdown("Click the button to see the current playback position of the video.")
 
         video = gr.Video(
-            value=str(demo_dir / "world.mp4"),
+            value=get_video("world.mp4"),
             playback_position=5.0,
             elem_id="video",
         )

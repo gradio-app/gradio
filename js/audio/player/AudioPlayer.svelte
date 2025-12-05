@@ -94,7 +94,6 @@
 
 		waveform?.on("decode", (duration: any) => {
 			audio_duration = duration;
-			console.log("Audio duration:", audio_duration);
 			durationRef && (durationRef.textContent = format_time(duration));
 		});
 
