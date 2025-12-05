@@ -352,9 +352,9 @@ export class AppTree {
 					: null,
 			key: component.key,
 			rendered_in: component.rendered_in,
-			documentation: component.documentation
+			documentation: component.documentation,
+			original_visibility: processed_props.shared_props.visible
 		};
-
 		return node;
 	}
 
@@ -475,7 +475,7 @@ export class AppTree {
 		this.root = this.traverse(this.root!, [
 			(node) => {
 				if (node.id === id) {
-					update_visibility(node, true);
+					update_visibility(node, node.original_visibility);
 				}
 				return node;
 			},
@@ -486,12 +486,12 @@ export class AppTree {
 
 function update_visibility(
 	node: ProcessedComponentMeta,
-	visible: boolean
+	visible: boolean | "hidden"
 ): void {
 	node.props.shared_props.visible = visible;
 	node.children.forEach((child) => {
-		child.props.shared_props.visible = visible;
-		update_visibility(child, visible);
+		child.props.shared_props.visible = child.original_visibility;
+		update_visibility(child, child.original_visibility);
 	});
 }
 
@@ -662,8 +662,7 @@ function untrack_children_of_closed_accordions_or_inactive_tabs(
 		_untrack(node, components_to_register);
 		if (node.children) {
 			node.children.forEach((child) => {
-				if (child.props.shared_props.visible === true)
-					update_visibility(child, false);
+				update_visibility(child, false);
 			});
 		}
 	}
@@ -677,9 +676,7 @@ function untrack_children_of_closed_accordions_or_inactive_tabs(
 				_untrack(child, components_to_register);
 				if (child.children) {
 					child.children.forEach((grandchild) => {
-						if (grandchild.props.shared_props.visible === true) {
-							update_visibility(grandchild, false);
-						}
+						update_visibility(grandchild, false);
 					});
 				}
 			}
