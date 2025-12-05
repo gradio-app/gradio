@@ -1,5 +1,17 @@
 # @gradio/core
 
+## 1.0.2
+
+### Fixes
+
+- [#12493](https://github.com/gradio-app/gradio/pull/12493) [`8a6cff6`](https://github.com/gradio-app/gradio/commit/8a6cff6738d09a6e708fc6351d806967fa82ca91) - Fix bug where cancelling an events shows an error in the UI.  Thanks @freddyaboulton!
+- [#12491](https://github.com/gradio-app/gradio/pull/12491) [`4f6327b`](https://github.com/gradio-app/gradio/commit/4f6327be6815fc8d574b60272b02915c75359ace) - Load visible components in 6.0.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/tabs@0.5.3
+- @gradio/tabitem@0.6.3
+
 ## 1.0.1
 
 ### Fixes

@@ -1,5 +1,11 @@
 # @gradio/textbox
 
+## 0.12.1
+
+### Fixes
+
+- [#12516](https://github.com/gradio-app/gradio/pull/12516) [`23c9bb5`](https://github.com/gradio-app/gradio/commit/23c9bb5d46909a07b4ff639655b59b4a979a0c06) - Fix copy button in `gr.Textbox`.  Thanks @dawoodkhan82!
+
 ## 0.12.0
 
 ### Dependency updates
