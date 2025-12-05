@@ -21,7 +21,7 @@
 	export let container = true;
 	export let max_lines: number | undefined = undefined;
 	export let type: "text" | "password" | "email" = "text";
-	export let show_copy_button = false;
+	export let buttons: string[] = [];
 	export let submit_btn: string | boolean | null = null;
 	export let stop_btn: string | boolean | null = null;
 	export let rtl = false;
@@ -243,7 +243,7 @@
 
 <!-- svelte-ignore a11y-autofocus -->
 <label class:container class:show_textbox_border>
-	{#if show_label && show_copy_button}
+	{#if show_label && buttons.includes("copy")}
 		<IconButtonWrapper>
 			<IconButton
 				Icon={copied ? Check : Copy}
