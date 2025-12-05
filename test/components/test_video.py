@@ -52,6 +52,7 @@ class TestVideo:
             "elem_id": None,
             "elem_classes": [],
             "visible": True,
+            "playback_position": 0,
             "value": None,
             "interactive": None,
             "proxy_url": None,

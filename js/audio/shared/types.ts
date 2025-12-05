@@ -36,6 +36,7 @@ export interface AudioProps {
 	stream_every: number;
 	input_ready: boolean;
 	minimal?: boolean;
+	playback_position: number;
 }
 
 export interface AudioEvents {

@@ -30,6 +30,7 @@
 	export let loop: boolean;
 	export let display_icon_button_wrapper_top_corner = false;
 	export let minimal = false;
+	export let playback_position = 0;
 
 	const dispatch = createEventDispatcher<{
 		change: FileData;
@@ -90,6 +91,7 @@
 			{waveform_options}
 			{editable}
 			{loop}
+			bind:playback_position
 			on:pause
 			on:play
 			on:stop

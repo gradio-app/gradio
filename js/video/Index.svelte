@@ -104,6 +104,7 @@
 			show_download_button={(gradio.props.buttons || ["download"]).includes(
 				"download"
 			)}
+			bind:playback_position={gradio.props.playback_position}
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}
 			on:stop={() => gradio.dispatch("stop")}
@@ -158,6 +159,7 @@
 			root={gradio.shared.root}
 			loop={gradio.props.loop}
 			{handle_reset_value}
+			bind:playback_position={gradio.props.playback_position}
 			on:clear={() => {
 				gradio.props.value = null;
 				gradio.dispatch("clear");

@@ -108,6 +108,7 @@ class Audio(
         loop: bool = False,
         recording: bool = False,
         subtitles: str | Path | list[dict[str, Any]] | None = None,
+        playback_position: float = 0,
     ):
         """
         Parameters:
@@ -137,6 +138,7 @@ class Audio(
             loop: If True, the audio will loop when it reaches the end and continue playing from the beginning.
             recording: If True, the audio component will be set to record audio from the microphone if the source is set to "microphone". Defaults to False.
             subtitles: A subtitle file (srt, vtt, or json) for the audio, or a list of subtitle dictionaries in the format [{"text": str, "timestamp": [start, end]}] where timestamps are in seconds. JSON files should contain an array of subtitle objects.
+            playback_position: The starting playback position in seconds. This value is also updated as the audio plays, reflecting the current playback position.
         """
         valid_sources: list[Literal["upload", "microphone"]] = ["upload", "microphone"]
         if sources is None:
@@ -182,6 +184,7 @@ class Audio(
         else:
             self.waveform_options = waveform_options
         self.recording = recording
+        self.playback_position = playback_position
         super().__init__(
             label=label,
             every=every,

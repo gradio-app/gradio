@@ -88,6 +88,7 @@ class Video(StreamingOutput, Component):
         streaming: bool = False,
         watermark: WatermarkOptions | None = None,
         subtitles: str | Path | list[dict[str, Any]] | None = None,
+        playback_position: float = 0,
     ):
         """
         Parameters:
@@ -118,6 +119,7 @@ class Video(StreamingOutput, Component):
             watermark: A `gr.WatermarkOptions` instance that includes an image file and position to be used as a watermark on the video. The image is not scaled and is displayed on the provided position on the video. Valid formats for the image are: jpeg, png.
             webcam_options: A `gr.WebcamOptions` instance that allows developers to specify custom media constraints for the webcam stream. This parameter provides flexibility to control the video stream's properties, such as resolution and front or rear camera on mobile devices. See $demo/webcam_constraints
             subtitles: A subtitle file (srt, vtt, or json) for the video, or a list of subtitle dictionaries in the format [{"text": str, "timestamp": [start, end]}] where timestamps are in seconds. JSON files should contain an array of subtitle objects.
+            playback_position: The starting playback position in seconds. This value is also updated as the video plays, reflecting the current playback position.
         """
         valid_sources: list[Literal["upload", "webcam"]] = ["upload", "webcam"]
         if sources is None:
@@ -156,6 +158,7 @@ class Video(StreamingOutput, Component):
         )
         self.buttons = buttons
         self.streaming = streaming
+        self.playback_position = playback_position
         self.subtitles = None
         if subtitles is not None:
             if isinstance(subtitles, list):

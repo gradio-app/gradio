@@ -147,6 +147,7 @@
 			waveform_options={gradio.props.waveform_options}
 			editable={gradio.props.editable}
 			{minimal}
+			bind:playback_position={gradio.props.playback_position}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 			on:play={() => gradio.dispatch("play")}
@@ -201,6 +202,7 @@
 			{handle_reset_value}
 			editable={gradio.props.editable}
 			bind:dragging
+			bind:playback_position={gradio.props.playback_position}
 			on:edit={() => gradio.dispatch("edit")}
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}
