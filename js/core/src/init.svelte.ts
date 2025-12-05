@@ -16,7 +16,7 @@ import type {
 	AppConfig,
 	ServerFunctions
 } from "./types";
-import { type SharedProps, GRADIO_ROOT } from "@gradio/utils";
+import { type SharedProps } from "@gradio/utils";
 import { allowed_shared_props } from "@gradio/utils";
 import { Client } from "@gradio/client";
 
@@ -56,6 +56,7 @@ export class AppTree {
 
 	/** the root node of the processed layout tree */
 	root = $state<ProcessedComponentMeta>();
+	root_untracked: ProcessedComponentMeta;
 
 	/** a set of all component IDs that are inputs to dependencies */
 	#input_ids: Set<number> = new Set();
@@ -130,6 +131,7 @@ export class AppTree {
 		gather_initial_tabs(this.root!, this.initial_tabs);
 		this.postprocess(this.root!);
 		this.#event_dispatcher = event_dispatcher;
+		this.root_untracked = this.root;
 	}
 
 	reload(
@@ -446,6 +448,10 @@ export class AppTree {
 		// any values currently in the UI.
 		// @ts-ignore
 		await this.update_visibility(node, new_state);
+		const parent_node = find_parent(this.root!, id);
+\		if (parent_node)
+			// @ts-ignore
+			update_parent_visibility(parent_node, id, new_state.visible);
 	}
 
 	/**
@@ -707,12 +713,24 @@ function update_parent_visibility(
 	child_made_visible: number,
 	visibility_state: boolean | "hidden"
 ): ProcessedComponentMeta {
+	// This function was added to address a tricky situation:
+	// Form components are wrapped in a Form component automatically.
+	// If all the children of the Form are invisible, the Form itself is marked invisible.
+	// in AppTree.postprocess -> handle_empty_forms
+	// This is to avoid rendering empty forms in the UI. They look ugly.
+	// So what happens when a child inside the Form is made visible again?
+	// The Form needs to become visible again too.
+	// If the child is made invisible, the form should be too if all other children are invisible.
+	// However, we are not doing this now since what we want to do is fetch the latest visibility of all
+	// the children from the UI. However, get_data only returns the props, not the shared props.
 	if (
-		node.children.length == 1 &&
-		node.children[0].id == child_made_visible &&
-		visibility_state === true
+		node.type === "form" &&
+		node.children.length &&
+		node.children.some((child) => child.id === child_made_visible)
 	) {
-		node.props.shared_props.visible = true;
+		if (visibility_state === true) node.props.shared_props.visible = true;
+		else if (!visibility_state && node.children.length === 1)
+			node.props.shared_props.visible = "hidden";
 	}
 	return node;
 }
@@ -828,5 +846,23 @@ function find_node_by_id(
 		}
 	}
 
+	return null;
+}
+
+function find_parent(
+	tree: ProcessedComponentMeta,
+	id: number
+): ProcessedComponentMeta | null {
+	if (tree.children) {
+		for (const child of tree.children) {
+			if (child.id === id) {
+				return tree;
+			}
+			const result = find_parent(child, id);
+			if (result) {
+				return result;
+			}
+		}
+	}
 	return null;
 }
