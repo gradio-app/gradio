@@ -1067,6 +1067,23 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         self.enable_monitoring: bool | None = None
 
+        deprecated_params = ["theme", "css", "css_paths", "js", "head", "head_paths"]
+        deprecated_kwargs = {k: kwargs.pop(k) for k in deprecated_params if k in kwargs}
+        if deprecated_kwargs:
+            param_list = ", ".join(deprecated_kwargs.keys())
+            warnings.warn(
+                f"The parameters have been moved from the Blocks constructor to the launch() method in Gradio 6.0: {param_list}. "
+                f"Please pass these parameters to launch() instead.",
+                UserWarning,
+                stacklevel=2,
+            )
+        self._deprecated_theme = deprecated_kwargs.get("theme")
+        self._deprecated_css = deprecated_kwargs.get("css")
+        self._deprecated_css_paths = deprecated_kwargs.get("css_paths")
+        self._deprecated_js = deprecated_kwargs.get("js")
+        self._deprecated_head = deprecated_kwargs.get("head")
+        self._deprecated_head_paths = deprecated_kwargs.get("head_paths")
+
         self.default_config = BlocksConfig(self)
         super().__init__(render=False, **kwargs)
 
@@ -2497,7 +2514,7 @@ Received inputs:
             theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             css: Custom css as a code string. This css will be included in the demo webpage.
             css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
-            js: Custom js as a code string. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
+            js: Custom js as a code string. The js code will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
             head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
         Returns:
@@ -2524,6 +2541,15 @@ Received inputs:
         if self._is_running_in_reload_thread:
             # We have already launched the demo
             return None, None, None  # type: ignore
+
+        theme = theme if theme is not None else self._deprecated_theme
+        css = css if css is not None else self._deprecated_css
+        css_paths = css_paths if css_paths is not None else self._deprecated_css_paths
+        js = js if js is not None else self._deprecated_js
+        head = head if head is not None else self._deprecated_head
+        head_paths = (
+            head_paths if head_paths is not None else self._deprecated_head_paths
+        )
 
         self.theme: Theme = utils.get_theme(theme)
         self.css = css
@@ -2647,7 +2673,6 @@ Received inputs:
             print(self.mcp_error)
 
         self.config = self.get_config_file()
-
         if self.is_running:
             if not isinstance(self.local_url, str):
                 raise ValueError(f"Invalid local_url: {self.local_url}")
