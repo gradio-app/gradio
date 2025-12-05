@@ -24,7 +24,7 @@ export interface TextboxProps {
 	placeholder: string;
 	submit_btn: string;
 	stop_btn: string;
-	show_copy_button: boolean;
+	buttons: string[];
 	autofocus: boolean;
 	autoscroll: boolean;
 	max_length: number;
