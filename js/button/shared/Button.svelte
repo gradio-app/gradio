@@ -10,6 +10,7 @@
 	export let size: "sm" | "md" | "lg" = "lg";
 	export let value: string | null = null;
 	export let link: string | null = null;
+	export let link_target: "_self" | "_blank" | "_parent" | "_top" = "_self";
 	export let icon: FileData | null = null;
 	export let disabled = false;
 	export let scale: number | null = null;
@@ -19,7 +20,8 @@
 {#if link && link.length > 0}
 	<a
 		href={link}
-		rel="noopener noreferrer"
+    	target={link_target}
+    	rel={link_target === "_blank" ? "noopener noreferrer" : undefined}
 		class:hidden={visible === false || visible === "hidden"}
 		class:disabled
 		aria-disabled={disabled}

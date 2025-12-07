@@ -11,7 +11,7 @@ from gradio_client.documentation import document
 from gradio.components.base import Component
 from gradio.events import Events
 from gradio.i18n import I18nData
-
+from typing import Literal
 if TYPE_CHECKING:
     from gradio.components import Timer
 
@@ -34,6 +34,7 @@ class Button(Component):
         size: Literal["sm", "md", "lg"] = "lg",
         icon: str | Path | None = None,
         link: str | None = None,
+        link_target: Literal["_self", "_blank", "_parent", "_top"] = "_self",
         visible: bool | Literal["hidden"] = True,
         interactive: bool = True,
         elem_id: str | None = None,
@@ -53,6 +54,7 @@ class Button(Component):
             size: size of the button. Can be "sm", "md", or "lg".
             icon: URL or path to the icon file to display within the button. If None, no icon will be displayed.
             link: URL to open when the button is clicked. If None, no link will be used.
+            link_target: determines where to open the linked URL. "_self" (default, same tab), "_blank" (new tab), "_parent" (parent frame), "_top" (top frame).
             visible: If False, component will be hidden. If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM
             interactive: if False, the Button will be in a disabled state.
             elem_id: an optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -81,6 +83,7 @@ class Button(Component):
         self.variant = variant
         self.size = size
         self.link = link
+        self.link_target = link_target
 
     @property
     def skip_api(self):
