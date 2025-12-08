@@ -1,13 +1,11 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
 	import { _ } from "svelte-i18n";
 	import settings_logo from "./img/settings-logo.svg";
 	import Clear from "./img/clear.svelte";
 	import { setupi18n } from "../i18n";
 
-	export let root: string;
+	let { root, onclose }: { root: string; onclose?: () => void } = $props();
 
-	const dispatch = createEventDispatcher();
 	setupi18n();
 </script>
 
@@ -21,7 +19,7 @@
 	</div>
 </h2>
 
-<button on:click={() => dispatch("close")}>
+<button on:click={() => onclose?.()}>
 	<Clear />
 </button>
 
