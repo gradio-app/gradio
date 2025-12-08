@@ -18,6 +18,7 @@ export interface VideoProps {
 	loop: boolean;
 	webcam_constraints: object;
 	subtitles: FileData | null;
+	playback_position: number;
 }
 
 export interface VideoEvents {

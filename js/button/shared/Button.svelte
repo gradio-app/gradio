@@ -20,8 +20,8 @@
 {#if link && link.length > 0}
 	<a
 		href={link}
-    	target={link_target}
-    	rel={link_target === "_blank" ? "noopener noreferrer" : undefined}
+		target={link_target}
+		rel={link_target === "_blank" ? "noopener noreferrer" : undefined}
 		class:hidden={visible === false || visible === "hidden"}
 		class:disabled
 		aria-disabled={disabled}

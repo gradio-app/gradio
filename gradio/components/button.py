@@ -11,7 +11,7 @@ from gradio_client.documentation import document
 from gradio.components.base import Component
 from gradio.events import Events
 from gradio.i18n import I18nData
-from typing import Literal
+
 if TYPE_CHECKING:
     from gradio.components import Timer
 

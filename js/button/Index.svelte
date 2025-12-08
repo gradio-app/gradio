@@ -28,6 +28,7 @@
 	min_width={gradio.shared.min_width}
 	visible={gradio.shared.visible}
 	disabled={!gradio.shared.interactive}
+	link_target={gradio.props.link_target}
 	on:click={handle_click}
 >
 	{gradio.props.value ?? ""}
