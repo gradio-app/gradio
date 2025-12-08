@@ -7,17 +7,18 @@
 	import { language_choices, changeLocale } from "../i18n";
 	import { locale, _ } from "svelte-i18n";
 	import record from "./img/record.svg";
-	import { createEventDispatcher } from "svelte";
 
 	let {
 		root,
 		space_id,
 		pwa_enabled,
 		allow_zoom = $bindable(),
-		allow_video_trim = $bindable()
+		allow_video_trim = $bindable(),
+		onclose,
+		start_recording,
+		i18n
 	} = $props();
 
-	const dispatch = createEventDispatcher();
 	if (root === "") {
 		root = location.protocol + "//" + location.host + location.pathname;
 	}
@@ -34,6 +35,7 @@
 			url.searchParams.set("__theme", theme);
 			current_theme = theme;
 		}
+		url.searchParams.delete("view");
 		window.location.href = url.toString();
 	}
 
@@ -59,8 +61,8 @@
 		}
 	});
 
-	function handleLanguageChange(e: CustomEvent): void {
-		const new_locale = e.detail;
+	function handleLanguageChange(value: string): void {
+		const new_locale = value;
 		changeLocale(new_locale);
 	}
 
@@ -74,54 +76,51 @@
 </script>
 
 <div class="banner-wrap">
-	<SettingsBanner on:close {root} />
+	<SettingsBanner onclose={() => onclose()} {root} />
 </div>
 {#if space_id === null}
 	<!-- on Spaces, the theme is set in HF settings -->
 	<div class="banner-wrap">
-		<h2>{$_("common.display_theme")}</h2>
-		<p class="padded theme-buttons">
+		<h2>{i18n("common.display_theme")}</h2>
+		<ul class="padded theme-buttons">
 			<li
 				class="theme-button {current_theme === 'light'
 					? 'current-theme'
 					: 'inactive-theme'}"
-				on:click={() => setTheme("light")}
 			>
-				<button>☀︎ &nbsp;Light</button>
+				<button on:click={() => setTheme("light")}>☀︎ &nbsp;Light</button>
 			</li>
 			<li
 				class="theme-button {current_theme === 'dark'
 					? 'current-theme'
 					: 'inactive-theme'}"
-				on:click={() => setTheme("dark")}
 			>
-				<button>⏾ &nbsp; Dark</button>
+				<button on:click={() => setTheme("dark")}>⏾ &nbsp; Dark</button>
 			</li>
 			<li
 				class="theme-button {current_theme === 'system'
 					? 'current-theme'
 					: 'inactive-theme'}"
-				on:click={() => setTheme("system")}
 			>
-				<button>🖥︎ &nbsp;System</button>
+				<button on:click={() => setTheme("system")}>🖥︎ &nbsp;System</button>
 			</li>
-		</p>
+		</ul>
 	</div>
 {/if}
 <div class="banner-wrap">
-	<h2>{$_("common.language")}</h2>
+	<h2>{i18n("common.language")}</h2>
 	<p class="padded">
 		<Dropdown
 			label="Language"
 			choices={language_choices}
 			show_label={false}
-			value={current_locale}
-			on:change={handleLanguageChange}
+			bind:value={current_locale}
+			on_change={() => handleLanguageChange(current_locale)}
 		/>
 	</p>
 </div>
 <div class="banner-wrap">
-	<h2>{$_("common.pwa")}</h2>
+	<h2>{i18n("common.pwa")}</h2>
 	<p class="padded">
 		{#if pwa_enabled}
 			You can install this app as a Progressive Web App on your device. Visit <a
@@ -135,7 +134,7 @@
 	</p>
 </div>
 <div class="banner-wrap">
-	<h2>{$_("common.screen_studio")} <span class="beta-tag">beta</span></h2>
+	<h2>{i18n("common.screen_studio")} <span class="beta-tag">beta</span></h2>
 	<p class="padded">
 		Screen Studio allows you to record your screen and generates a video of your
 		app with automatically adding zoom in and zoom out effects as well as
@@ -164,8 +163,8 @@
 	<button
 		class="record-button"
 		on:click={() => {
-			dispatch("close");
-			dispatch("start_recording");
+			onclose?.();
+			start_recording?.();
 		}}
 	>
 		<img src={record} alt="Start Recording" />
