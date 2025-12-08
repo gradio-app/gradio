@@ -19,6 +19,7 @@ import type {
 import { type SharedProps } from "@gradio/utils";
 import { allowed_shared_props } from "@gradio/utils";
 import { Client } from "@gradio/client";
+import type { promises } from "dns";
 
 type client_return = Awaited<ReturnType<typeof Client.connect>>;
 
@@ -76,6 +77,7 @@ export class AppTree {
 	ready: Promise<void>;
 	ready_resolve!: () => void;
 	resolved: boolean = false;
+	#hidden_on_startup: Set<number> = new Set();
 
 	constructor(
 		components: ComponentMeta[],
@@ -228,7 +230,8 @@ export class AppTree {
 			(node) =>
 				untrack_children_of_closed_accordions_or_inactive_tabs(
 					node,
-					this.components_to_register
+					this.components_to_register,
+					this.#hidden_on_startup
 				)
 		]);
 	}
@@ -352,8 +355,7 @@ export class AppTree {
 					: null,
 			key: component.key,
 			rendered_in: component.rendered_in,
-			documentation: component.documentation,
-			original_visibility: processed_props.shared_props.visible
+			documentation: component.documentation
 		};
 		return node;
 	}
@@ -475,7 +477,7 @@ export class AppTree {
 		this.root = this.traverse(this.root!, [
 			(node) => {
 				if (node.id === id) {
-					make_visible_if_not_rendered(node);
+					make_visible_if_not_rendered(node, this.#hidden_on_startup);
 				}
 				return node;
 			},
@@ -484,11 +486,16 @@ export class AppTree {
 	}
 }
 
-function make_visible_if_not_rendered(node: ProcessedComponentMeta): void {
-	if (!node.component && !node.props.shared_props.visible)
+function make_visible_if_not_rendered(
+	node: ProcessedComponentMeta,
+	hidden_on_startup: Set<number>
+): void {
+	if (hidden_on_startup.has(node.id)) {
 		node.props.shared_props.visible = true;
+		hidden_on_startup.delete(node.id);
+	}
 	node.children.forEach((child) => {
-		make_visible_if_not_rendered(child);
+		make_visible_if_not_rendered(child, hidden_on_startup);
 	});
 }
 
@@ -498,8 +505,8 @@ function update_visibility(
 ): void {
 	node.props.shared_props.visible = visible;
 	node.children.forEach((child) => {
-		child.props.shared_props.visible = child.original_visibility;
-		update_visibility(child, child.original_visibility);
+		child.props.shared_props.visible = visible;
+		update_visibility(child, visible);
 	});
 }
 
@@ -661,16 +668,31 @@ function untrack_children_of_invisible_parents(
 	return node;
 }
 
+function mark_component_invisible_if_visible(
+	node: ProcessedComponentMeta,
+	hidden_on_startup: Set<number>
+): ProcessedComponentMeta {
+	if (node.props.shared_props.visible === true) {
+		hidden_on_startup.add(node.id);
+		node.props.shared_props.visible = false;
+	}
+	node.children.forEach((child) => {
+		mark_component_invisible_if_visible(child, hidden_on_startup);
+	});
+	return node;
+}
+
 function untrack_children_of_closed_accordions_or_inactive_tabs(
 	node: ProcessedComponentMeta,
-	components_to_register: Set<number>
+	components_to_register: Set<number>,
+	hidden_on_startup: Set<number>
 ): ProcessedComponentMeta {
 	// Check if the node is an accordion or tabs
 	if (node.type === "accordion" && node.props.props.open === false) {
 		_untrack(node, components_to_register);
 		if (node.children) {
 			node.children.forEach((child) => {
-				update_visibility(child, false);
+				mark_component_invisible_if_visible(child, hidden_on_startup);
 			});
 		}
 	}
@@ -683,9 +705,7 @@ function untrack_children_of_closed_accordions_or_inactive_tabs(
 			) {
 				_untrack(child, components_to_register);
 				if (child.children) {
-					child.children.forEach((grandchild) => {
-						update_visibility(grandchild, false);
-					});
+					mark_component_invisible_if_visible(child, hidden_on_startup);
 				}
 			}
 		});

@@ -15,6 +15,5 @@ with gr.Blocks() as demo:
             msg = gr.Markdown("This is another tab to demonstrate that invisible components work across tabs.", visible=False)
             show_message = gr.Button("Show Message")
             show_message.click(lambda: gr.Markdown(visible=True), outputs=msg)
-
 if __name__ == "__main__":
     demo.launch()

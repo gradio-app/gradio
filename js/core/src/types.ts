@@ -25,7 +25,6 @@ export interface ProcessedComponentMeta {
 	type: string;
 	id: number;
 	props: { shared_props: SharedProps; props: Record<string, unknown> };
-	original_visibility: boolean | "hidden";
 	component: Component | LoadingComponent | null;
 	documentation?: Documentation;
 	children: ProcessedComponentMeta[];
