@@ -39,6 +39,7 @@ class DeepLinkButton(Button):
         size: Literal["sm", "md", "lg"] = "lg",
         icon: str | Path | None = utils.get_icon_path("link.svg"),
         link: str | None = None,
+        link_target: Literal["_self", "_blank", "_parent", "_top"] = "_self",
         visible: bool | Literal["hidden"] = True,
         interactive: bool = True,
         elem_id: str | None = None,  # noqa: ARG002
@@ -63,6 +64,7 @@ class DeepLinkButton(Button):
             size=size,
             icon=icon,
             link=link,
+            link_target=link_target,
             visible=visible,
             interactive=interactive,
             elem_id=f"gradio-share-link-button-{self.n_created}",
