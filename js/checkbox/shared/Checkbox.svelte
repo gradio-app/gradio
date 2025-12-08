@@ -1,19 +1,32 @@
 <script lang="ts">
-	import type { Gradio } from "@gradio/utils";
-	import type { CheckboxProps, CheckboxEvents } from "../types";
+	import type { SelectData } from "@gradio/utils";
 
-	const props = $props();
-	const gradio: Gradio<CheckboxEvents, CheckboxProps> = props.gradio;
+	let {
+		label = "Checkbox",
+		value = $bindable(),
+		interactive = true,
+		show_label = true,
+		on_change,
+		on_input,
+		on_select
+	}: {
+		label?: string;
+		value?: boolean;
+		interactive?: boolean;
+		show_label?: boolean;
+		on_change?: (value: boolean) => void;
+		on_input?: () => void;
+		on_select?: (data: SelectData) => void;
+	} = $props();
 
-	let disabled = $derived(!gradio.shared.interactive);
+	let disabled = $derived(!interactive);
 
-	let old_value = $state(gradio.props.value);
-	let label = $derived(gradio.shared.label || gradio.i18n("checkbox.checkbox"));
+	let old_value = $state(value);
 
 	$effect(() => {
-		if (old_value !== gradio.props.value) {
-			old_value = gradio.props.value;
-			gradio.dispatch("change", $state.snapshot(gradio.props.value));
+		if (old_value !== value) {
+			old_value = value;
+			on_change?.($state.snapshot(value as boolean));
 		}
 	});
 
@@ -21,8 +34,8 @@
 		event: KeyboardEvent & { currentTarget: EventTarget & HTMLInputElement }
 	): Promise<void> {
 		if (event.key === "Enter") {
-			gradio.props.value = !gradio.props.value;
-			gradio.dispatch("select", {
+			value = !value;
+			on_select?.({
 				index: 0,
 				value: event.currentTarget.checked,
 				selected: event.currentTarget.checked
@@ -33,19 +46,19 @@
 	async function handle_input(
 		event: Event & { currentTarget: EventTarget & HTMLInputElement }
 	): Promise<void> {
-		gradio.props.value = event.currentTarget.checked;
-		gradio.dispatch("select", {
+		value = event.currentTarget.checked;
+		on_select?.({
 			index: 0,
 			value: event.currentTarget.checked,
 			selected: event.currentTarget.checked
 		});
-		gradio.dispatch("input");
+		on_input?.();
 	}
 </script>
 
 <label class="checkbox-container" class:disabled>
 	<input
-		bind:checked={gradio.props.value}
+		bind:checked={value}
 		on:keydown={handle_enter}
 		on:input={handle_input}
 		{disabled}
@@ -53,7 +66,7 @@
 		name="test"
 		data-testid="checkbox"
 	/>
-	{#if gradio.shared.show_label}
+	{#if show_label}
 		<span class="label-text">
 			{label}
 		</span>

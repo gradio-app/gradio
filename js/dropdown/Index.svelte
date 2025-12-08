@@ -36,6 +36,22 @@
 	{#if gradio.props.multiselect}
 		<Multiselect {gradio} />
 	{:else}
-		<Dropdown {gradio} />
+		<Dropdown
+			label={gradio.shared.label}
+			info={gradio.props.info}
+			bind:value={gradio.props.value}
+			choices={gradio.props.choices}
+			interactive={gradio.shared.interactive}
+			show_label={gradio.shared.show_label}
+			container={gradio.shared.container}
+			allow_custom_value={gradio.props.allow_custom_value}
+			filterable={gradio.props.filterable}
+			on_change={() => gradio.dispatch("change")}
+			on_input={() => gradio.dispatch("input")}
+			on_select={(data) => gradio.dispatch("select", data)}
+			on_focus={() => gradio.dispatch("focus")}
+			on_blur={() => gradio.dispatch("blur")}
+			on_key_up={(data) => gradio.dispatch("key_up", data)}
+		/>
 	{/if}
 </Block>
