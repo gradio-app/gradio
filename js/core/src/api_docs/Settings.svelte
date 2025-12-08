@@ -35,6 +35,7 @@
 			url.searchParams.set("__theme", theme);
 			current_theme = theme;
 		}
+		url.searchParams.delete("view");
 		window.location.href = url.toString();
 	}
 
