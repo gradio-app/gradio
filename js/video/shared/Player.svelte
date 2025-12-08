@@ -25,6 +25,7 @@
 	export let value: FileData | null = null;
 	export let handle_clear: () => void = () => {};
 	export let has_change_history = false;
+	export let playback_position = 0;
 
 	const dispatch = createEventDispatcher<{
 		play: undefined;
@@ -100,6 +101,10 @@
 
 	$: time = time || 0;
 	$: duration = duration || 0;
+	$: playback_position = time;
+	$: if (playback_position !== time && video) {
+		video.currentTime = playback_position;
+	}
 </script>
 
 <div class="wrap">

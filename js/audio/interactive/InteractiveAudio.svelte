@@ -47,6 +47,7 @@
 	export let class_name = "";
 	export let upload_promise: Promise<any> | null = null;
 	export let initial_value: FileData | null = null;
+	export let playback_position = 0;
 
 	export let time_limit: number | null = null;
 	export let stream_state: "open" | "waiting" | "closed" = "closed";
@@ -314,6 +315,7 @@
 			{handle_reset_value}
 			{editable}
 			{loop}
+			bind:playback_position
 			interactive
 			on:stop
 			on:play

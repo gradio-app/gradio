@@ -29,9 +29,12 @@
 	export let mode = "";
 	export let loop: boolean;
 	export let handle_reset_value: () => void = () => {};
+	export let playback_position = 0;
+	let old_playback_position = 0;
 
 	let container: HTMLDivElement;
 	let waveform: WaveSurfer | undefined;
+	let waveform_ready = false;
 	let waveform_component_wrapper: HTMLDivElement;
 	let playing = false;
 
@@ -62,6 +65,15 @@
 	$: use_waveform =
 		waveform_options.show_recording_waveform && !value?.is_stream;
 
+	$: if (
+		waveform_ready &&
+		old_playback_position !== playback_position &&
+		audio_duration
+	) {
+		waveform?.seekTo(playback_position / audio_duration);
+		old_playback_position = playback_position;
+	}
+
 	const create_waveform = (): void => {
 		waveform = WaveSurfer.create({
 			container: container,
@@ -85,18 +97,24 @@
 			durationRef && (durationRef.textContent = format_time(duration));
 		});
 
-		waveform?.on(
-			"timeupdate",
-			(currentTime: any) =>
-				timeRef && (timeRef.textContent = format_time(currentTime))
-		);
+		let firstTimeUpdate = true;
+		waveform?.on("timeupdate", (currentTime: any) => {
+			timeRef && (timeRef.textContent = format_time(currentTime));
+			if (firstTimeUpdate) {
+				firstTimeUpdate = false;
+				return;
+			}
+			old_playback_position = playback_position = currentTime;
+		});
 
 		waveform?.on("interaction", () => {
 			const currentTime = waveform?.getCurrentTime() || 0;
 			timeRef && (timeRef.textContent = format_time(currentTime));
+			old_playback_position = playback_position = currentTime;
 		});
 
 		waveform?.on("ready", () => {
+			waveform_ready = true;
 			if (!waveform_settings.autoplay) {
 				waveform?.stop();
 			} else {
@@ -341,7 +359,8 @@
 	on:ended={() => dispatch("stop")}
 	on:play={() => dispatch("play")}
 	preload="metadata"
-/>
+>
+</audio>
 {#if value === null}
 	<Empty size="small">
 		<Music />

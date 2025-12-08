@@ -34,6 +34,7 @@
 	export let loop: boolean;
 	export let uploading = false;
 	export let upload_promise: Promise<any> | null = null;
+	export let playback_position = 0;
 
 	let has_change_history = false;
 
@@ -139,6 +140,7 @@
 				{show_download_button}
 				{handle_clear}
 				{has_change_history}
+				bind:playback_position
 			/>
 		{/key}
 	{:else if value.size}
