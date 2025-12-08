@@ -475,13 +475,21 @@ export class AppTree {
 		this.root = this.traverse(this.root!, [
 			(node) => {
 				if (node.id === id) {
-					update_visibility(node, node.original_visibility);
+					make_visible_if_not_rendered(node);
 				}
 				return node;
 			},
 			(node) => handle_visibility(node, this.#config.api_url)
 		]);
 	}
+}
+
+function make_visible_if_not_rendered(node: ProcessedComponentMeta): void {
+	if (!node.component && !node.props.shared_props.visible)
+		node.props.shared_props.visible = true;
+	node.children.forEach((child) => {
+		make_visible_if_not_rendered(child);
+	});
 }
 
 function update_visibility(
