@@ -32,6 +32,7 @@ export interface ProcessedComponentMeta {
 	component_class_id: string; // ?;
 	key: string | number | null; // ?;
 	rendered_in?: number; // ?;
+	original_visibility: boolean | "hidden";
 }
 
 /** Dictates whether a dependency is continous and/or a generator */
