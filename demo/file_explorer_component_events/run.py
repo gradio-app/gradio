@@ -15,10 +15,9 @@ with gr.Blocks() as demo:
             txt_only_glob = gr.Checkbox(label="Show only text files", value=False)
             ignore_txt_in_glob = gr.Checkbox(label="Ignore text files in glob", value=False)
 
-    btn = gr.Button("Programmatically select file")
-    fe = gr.FileExplorer(root_dir=str(base_root), value=None,
+    fe = gr.FileExplorer(root_dir=str(base_root),
                          glob="**/*", interactive=True)
-    btn.click(lambda: str(base_root / "dir1" / "bar.txt"), inputs=[], outputs=[fe])
+    textbox = gr.Textbox(label="Selected Directory")
     selected_file = gr.Textbox(label="Last Selected (via .select())")
     run = gr.Button("Run")
     total_changes = gr.Number(0, elem_id="total-changes", label="# of Change Events")
@@ -31,6 +30,7 @@ with gr.Blocks() as demo:
                             inputs=[ignore_txt_in_glob], outputs=[fe])
 
     dd.select(lambda s: gr.FileExplorer(root_dir=s), inputs=[dd], outputs=[fe])
+    run.click(lambda s: ",".join(s) if isinstance(s, list) else s, inputs=[fe], outputs=[textbox])
     fe.change(lambda num: num + 1, inputs=total_changes, outputs=total_changes)
     fe.input(lambda num: num + 1, inputs=total_inputs, outputs=total_inputs)
     def on_select(evt: gr.SelectData, num: int):

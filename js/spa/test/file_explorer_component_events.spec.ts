@@ -4,46 +4,70 @@ test("File Explorer is interactive and re-runs the server_fn when root is update
 	page
 }) => {
 	await page
-		.locator("span")
-		.filter({ hasText: "bar.txt" })
+		.getByRole("button", { name: "dir1", exact: true })
+		.locator("..")
+		.getByLabel("expand directory")
+		.click();
+
+	await page
+		.getByRole("button", { name: "bar.txt", exact: true })
+		.locator("..")
 		.getByRole("checkbox")
 		.check();
 	await page
-		.locator("span")
-		.filter({ hasText: "foo.txt" })
+		.getByRole("button", { name: "foo.txt", exact: true })
+		.locator("..")
 		.getByRole("checkbox")
 		.check();
 
 	await page.getByLabel("Select File Explorer Root").click();
 	await page.getByLabel(new RegExp("/dir2$"), { exact: true }).first().click();
 	await page
-		.locator("span")
-		.filter({ hasText: "baz.png" })
+		.getByRole("button", { name: "baz.png", exact: true })
+		.locator("..")
 		.getByRole("checkbox")
 		.check();
 	await page
-		.locator("span")
-		.filter({ hasText: "foo.png" })
+		.getByRole("button", { name: "foo.png", exact: true })
+		.locator("..")
 		.getByRole("checkbox")
 		.check();
 
 	await page.locator("#input-box").getByTestId("textbox").fill("test");
 
 	await expect(
-		page.locator("span").filter({ hasText: "baz.png" }).getByRole("checkbox")
+		page
+			.getByRole("button", { name: "baz.png", exact: true })
+			.locator("..")
+			.getByRole("checkbox")
 	).toBeChecked();
 
 	await expect(
-		page.locator("span").filter({ hasText: "foo.png" }).getByRole("checkbox")
+		page
+			.getByRole("button", { name: "foo.png", exact: true })
+			.locator("..")
+			.getByRole("checkbox")
 	).toBeChecked();
 
 	await page
-		.locator("span")
-		.filter({ hasText: "foo.png" })
+		.getByRole("button", { name: "foo.png", exact: true })
+		.locator("..")
 		.getByRole("checkbox")
 		.uncheck();
 
 	await expect(page.locator("#total-changes input")).toHaveValue("6");
+	await expect(page.locator("#total-inputs input")).toHaveValue("5");
+});
+
+test("File Explorer .select() event is triggered when clicking on file/folder name", async ({
+	page
+}) => {
+	await page.getByRole("button", { name: "dir1", exact: true }).click();
+
+	await expect(page.getByLabel("Last Selected (via .select())")).toHaveValue(
+		/Index:.*Value: dir1/
+	);
+	await expect(page.locator("#total-selects input")).toHaveValue("1");
 });
 
 test("File Explorer correctly displays both directories and files. Directories included in value.", async ({
@@ -99,18 +123,23 @@ test("File Explorer selects all children when top level directory is selected.",
 	await page.getByLabel(new RegExp("/dir3$"), { exact: true }).first().click();
 
 	await page
-		.locator("span")
+		.locator("li")
 		.filter({ hasText: "dir4" })
+		.first()
 		.getByRole("checkbox")
+		.first()
 		.check();
 
 	await page.getByRole("button", { name: "Run" }).click();
 
 	async function directory_paths_displayed() {
 		const value = await page.getByLabel("Selected Directory").inputValue();
-		const files_and_dirs = value.split(",");
-
-		return files_and_dirs.length === 7;
+		const files_and_dirs = value.split(",").filter((f) => f.length > 0);
+		return (
+			files_and_dirs.some((f) => f.includes("dir4")) &&
+			files_and_dirs.some((f) => f.includes("dir5_foo.txt")) &&
+			files_and_dirs.some((f) => f.includes("dir_4_foo.txt"))
+		);
 	}
 	await expect.poll(directory_paths_displayed).toBe(true);
 });
