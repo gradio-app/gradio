@@ -6,8 +6,8 @@ from __future__ import annotations
 
 import abc
 import hashlib
+import inspect
 import json
-import sys
 import warnings
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
@@ -123,8 +123,10 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
 
     @classmethod
     def get_component_class_id(cls) -> str:
-        module_name = cls.__module__
-        module_path = sys.modules[module_name].__file__
+        try:
+            module_path = inspect.getfile(cls)
+        except TypeError:
+            module_path = cls.__module__
         module_hash = hashlib.sha256(
             f"{cls.__name__}_{module_path}".encode()
         ).hexdigest()

@@ -11,7 +11,6 @@ class ColoredCheckboxGroup(gr.HTML):
         label: str | None = None,
         **kwargs,
     ):
-        self.choices = choices
         html_template = """
         <div class="colored-checkbox-container">
             ${label ? `<label class="container-label">${label}</label>` : ''}

@@ -316,7 +316,7 @@ def _remove_if_name_main_codeblock(file_path: str, encoding: str = "utf-8"):
             and len(expr.test.ops) == 1
             and isinstance(expr.test.ops[0], ast.Eq)
             and isinstance(expr.test.comparators[0], ast.Constant)
-            and expr.test.comparators[0].s == "__main__"
+            and expr.test.comparators[0].value == "__main__"
         )
 
     # Find the positions of the code blocks to load

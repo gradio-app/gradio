@@ -227,10 +227,6 @@
 	}
 
 	function renderHTML(): void {
-		console.trace(
-			"re-rendering HTML with props:",
-			JSON.stringify(reactiveProps)
-		);
 		const newHtml = render_template(html_template, reactiveProps);
 		if (element) {
 			updateDOM(currentHtml, newHtml);
