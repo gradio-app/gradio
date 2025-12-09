@@ -1,5 +1,17 @@
 # website
 
+## 0.67.1
+
+### Fixes
+
+- [#12495](https://github.com/gradio-app/gradio/pull/12495) [`0c5cec1`](https://github.com/gradio-app/gradio/commit/0c5cec175815344fcc6c8dfbdacf71b85fd3ad37) - Remove Hackathon deadline banner on website.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/button@0.6.0
+- @gradio/tabs@0.5.3
+- @gradio/tabitem@0.6.3
+
 ## 0.67.0
 
 ### Features

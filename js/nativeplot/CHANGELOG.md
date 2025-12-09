@@ -1,5 +1,11 @@
 # @gradio/nativeplot
 
+## 0.9.1
+
+### Fixes
+
+- [#12515](https://github.com/gradio-app/gradio/pull/12515) [`0892c29`](https://github.com/gradio-app/gradio/commit/0892c297b35742ed5cabf64d0846fd36ae02ecea) - Fix plot Rendering + visibility bug.  Thanks @freddyaboulton!
+
 ## 0.9.0
 
 ### Dependency updates

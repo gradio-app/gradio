@@ -1,5 +1,11 @@
 # @gradio/button
 
+## 0.6.0
+
+### Features
+
+- [#12524](https://github.com/gradio-app/gradio/pull/12524) [`d6be33e`](https://github.com/gradio-app/gradio/commit/d6be33e9f019979953991283edd6ddfa00b2207c) - feat: add link_target parameter to Button component.  Thanks @ujjwaltwri!
+
 ## 0.5.14
 
 ### Dependency updates
