@@ -76,7 +76,7 @@
 
 <!--- Usage -->
 ```python
-gradio.Chatbot(type="messages", ···)
+gradio.Chatbot(···)
 ```
 
 
@@ -108,7 +108,7 @@ history = [
 ]
 
 with gr.Blocks() as demo:
-    gr.Chatbot(history, type="messages")
+    gr.Chatbot(history)
 
 demo.launch()
 ```
@@ -125,7 +125,7 @@ history = [
 ]
 
 with gr.Blocks() as demo:
-    gr.Chatbot(history, type="messages")
+    gr.Chatbot(history)
 
 demo.launch()
 ```
