@@ -1,3 +1,4 @@
+import demo
 from gradio.themes.base import Base, ThemeClass
 from gradio.themes.citrus import Citrus
 from gradio.themes.default import Default
@@ -33,4 +34,33 @@ __all__ = [
 def builder(*args, **kwargs):
     from gradio.themes.builder_app import demo
 
-    return demo.launch(*args, **kwargs)
+    theme_css = """
+.gradio-container {
+    overflow: visible !important;
+    max-width: none !important;
+}
+#controls {
+    max-height: 100vh;
+    flex-wrap: unset;
+    overflow-y: scroll;
+    position: sticky;
+    top: 0;
+}
+#controls::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 7px;
+}
+
+#controls::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, .5);
+  box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+}
+"""
+    return demo.launch(
+        *args,
+        **kwargs,
+        theme=Base(),
+        css=theme_css,
+        head="<style id='theme_css'></style>",
+    )
