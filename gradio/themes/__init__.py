@@ -1,4 +1,3 @@
-import demo
 from gradio.themes.base import Base, ThemeClass
 from gradio.themes.citrus import Citrus
 from gradio.themes.default import Default
