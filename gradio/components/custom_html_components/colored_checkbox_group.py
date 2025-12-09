@@ -71,7 +71,7 @@ class ColoredCheckboxGroup(gr.HTML):
 
 if __name__ == "__main__":
 
-    def update_colors(color: str, s: int):
+    def update_colors(color: str):
         if color.startswith("rgb"):
             rgb_values = (
                 color.replace("rgba", "").replace("rgb", "").strip("()").split(",")
@@ -92,13 +92,12 @@ if __name__ == "__main__":
         light = f"#{int(r + (255 - r) * 0.4):02x}{int(g + (255 - g) * 0.4):02x}{int(b + (255 - b) * 0.4):02x}"
 
         return ColoredCheckboxGroup(
-            choices=[f"a ({s + 1})", f"b ({s + 1})", f"c ({s + 1})"],
+            choices=["a", "b", "c"],
             colors=[dark, medium, light],
-            label=f"Select options ({s + 1})",
-        ), s + 1
+            label="Select options",
+        )
 
     with gr.Blocks() as demo:
-        s = gr.State(0)
         with gr.Row():
             with gr.Column():
                 cp = gr.ColorPicker(value="#FF0000")
@@ -113,5 +112,5 @@ if __name__ == "__main__":
                     inputs=cg,
                     outputs=gr.Textbox(label="output"),
                 )
-        cp.change(update_colors, inputs=[cp, s], outputs=[cg, s], show_progress="hidden")
+        cp.change(update_colors, inputs=cp, outputs=cg, show_progress="hidden")
     demo.launch()
