@@ -175,9 +175,19 @@
 		gradio_event_dispatcher
 	);
 
+	function dispatch_to_target(target_id: number, event: string, data: unknown): void {
+		dep_manager.dispatch({
+			type: "event",
+			event_name: event,
+			target_id: target_id,
+			event_data: data
+		});
+	}
+
 	setContext(GRADIO_ROOT, {
 		register: app_tree.register_component.bind(app_tree),
-		dispatcher: gradio_event_dispatcher
+		dispatcher: gradio_event_dispatcher,
+		dispatch_to: dispatch_to_target
 	});
 
 	let api_calls: Payload[] = $state([]);

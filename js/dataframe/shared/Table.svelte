@@ -77,6 +77,11 @@
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let buttons: string[] | null = null;
+	export let custom_buttons: {
+		component_id: number;
+		value: string | null;
+		icon: { url: string } | null;
+	}[] | null = null;
 	export let value_is_output = false;
 	export let max_chars: number | undefined = undefined;
 	export let show_search: "none" | "search" | "filter" = "none";
@@ -823,7 +828,7 @@
 <svelte:window on:resize={() => set_cell_widths()} />
 
 <div class="table-container">
-	{#if (label && label.length !== 0 && show_label) || (buttons === null ? true : buttons.includes("fullscreen")) || (buttons === null ? true : buttons.includes("copy")) || show_search !== "none"}
+	{#if (label && label.length !== 0 && show_label) || (buttons === null ? true : buttons.includes("fullscreen")) || (buttons === null ? true : buttons.includes("copy")) || show_search !== "none" || (custom_buttons && custom_buttons.length > 0)}
 		<div class="header-row">
 			{#if label && label.length !== 0 && show_label}
 				<div class="label">
@@ -840,8 +845,10 @@
 				{show_search}
 				on:search={(e) => df_actions.handle_search(e.detail)}
 				on:fullscreen
+				on:custom_button_click
 				on_commit_filter={commit_filter}
 				current_search_query={$df_state.current_search_query}
+				{custom_buttons}
 			/>
 		</div>
 	{/if}
