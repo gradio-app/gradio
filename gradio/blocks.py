@@ -455,8 +455,10 @@ class BlockContext(Block):
 
     @classmethod
     def get_component_class_id(cls) -> str:
-        module_name = cls.__module__
-        module_path = sys.modules[module_name].__file__
+        try:
+            module_path = inspect.getfile(cls)
+        except (TypeError, OSError):
+            module_path = cls.__module__
         module_hash = hashlib.sha256(
             f"{cls.__name__}_{module_path}".encode()
         ).hexdigest()
