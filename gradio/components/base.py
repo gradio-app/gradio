@@ -125,7 +125,7 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     def get_component_class_id(cls) -> str:
         try:
             module_path = inspect.getfile(cls)
-        except (TypeError, OSError):
+        except TypeError:
             module_path = cls.__module__
         module_hash = hashlib.sha256(
             f"{cls.__name__}_{module_path}".encode()
