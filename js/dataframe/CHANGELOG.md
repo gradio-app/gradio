@@ -1,5 +1,12 @@
 # @gradio/dataframe
 
+## 0.21.1
+
+### Dependency updates
+
+- @gradio/button@0.6.0
+- @gradio/checkbox@0.5.1
+
 ## 0.21.0
 
 ### Dependency updates

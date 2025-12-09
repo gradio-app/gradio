@@ -1,5 +1,16 @@
 # @self/spa
 
+## 1.0.2
+
+### Fixes
+
+- [#12494](https://github.com/gradio-app/gradio/pull/12494) [`251add4`](https://github.com/gradio-app/gradio/commit/251add42b69b0c1f6c96559e2ecdefc40def79f4) - JS unit test fix.  Thanks @dawoodkhan82!
+- [#12508](https://github.com/gradio-app/gradio/pull/12508) [`0715279`](https://github.com/gradio-app/gradio/commit/0715279005cbd6fea3c8081996aa5afddbd27e34) - Fix custom `js` param.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/core@1.0.2
+
 ## 1.0.1
 
 ### Fixes

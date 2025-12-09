@@ -1,5 +1,25 @@
 # @gradio/core
 
+## 1.0.2
+
+### Fixes
+
+- [#12515](https://github.com/gradio-app/gradio/pull/12515) [`0892c29`](https://github.com/gradio-app/gradio/commit/0892c297b35742ed5cabf64d0846fd36ae02ecea) - Fix plot Rendering + visibility bug.  Thanks @freddyaboulton!
+- [#12493](https://github.com/gradio-app/gradio/pull/12493) [`8a6cff6`](https://github.com/gradio-app/gradio/commit/8a6cff6738d09a6e708fc6351d806967fa82ca91) - Fix bug where cancelling an events shows an error in the UI.  Thanks @freddyaboulton!
+- [#12518](https://github.com/gradio-app/gradio/pull/12518) [`e8efab2`](https://github.com/gradio-app/gradio/commit/e8efab2cb19860146cec7946e77b34a599ad6258) - Fix Settings.  Thanks @freddyaboulton!
+- [#12491](https://github.com/gradio-app/gradio/pull/12491) [`4f6327b`](https://github.com/gradio-app/gradio/commit/4f6327be6815fc8d574b60272b02915c75359ace) - Load visible components in 6.0.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/button@0.6.0
+- @gradio/dropdown@0.10.7
+- @gradio/textbox@0.12.1
+- @gradio/tabs@0.5.3
+- @gradio/tabitem@0.6.3
+- @gradio/audio@0.21.0
+- @gradio/video@0.18.0
+- @gradio/checkbox@0.5.1
+
 ## 1.0.1
 
 ### Fixes

@@ -1,5 +1,11 @@
 # @gradio/checkbox
 
+## 0.5.1
+
+### Fixes
+
+- [#12518](https://github.com/gradio-app/gradio/pull/12518) [`e8efab2`](https://github.com/gradio-app/gradio/commit/e8efab2cb19860146cec7946e77b34a599ad6258) - Fix Settings.  Thanks @freddyaboulton!
+
 ## 0.5.0
 
 ### Dependency updates

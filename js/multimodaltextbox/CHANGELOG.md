@@ -1,5 +1,12 @@
 # @gradio/multimodaltextbox
 
+## 0.11.1
+
+### Dependency updates
+
+- @gradio/audio@0.21.0
+- @gradio/video@0.18.0
+
 ## 0.11.0
 
 ### Dependency updates

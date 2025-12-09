@@ -1,5 +1,15 @@
 # @self/app
 
+## 2.0.2
+
+### Fixes
+
+- [#12508](https://github.com/gradio-app/gradio/pull/12508) [`0715279`](https://github.com/gradio-app/gradio/commit/0715279005cbd6fea3c8081996aa5afddbd27e34) - Fix custom `js` param.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/core@1.0.2
+
 ## 2.0.1
 
 ### Fixes
