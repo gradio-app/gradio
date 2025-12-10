@@ -6,7 +6,9 @@ relative_path = "path/to/file"
 absolute_path = (current_file_path.parent / ".." / ".." / "gradio").resolve()
 
 def get_file_content(file):
-    return (file,)
+    if file:
+        return Path(file).read_text()
+    return None
 
 with gr.Blocks() as demo:
     gr.Markdown('### `FileExplorer` to `FileExplorer` -- `file_count="multiple"`')
