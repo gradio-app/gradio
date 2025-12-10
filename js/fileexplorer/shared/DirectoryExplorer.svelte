@@ -1,12 +1,20 @@
 <script lang="ts">
 	import FileTree from "./FileTree.svelte";
 	import type { FileNode } from "./types";
+	import type { SelectData } from "@gradio/utils";
+	import { createEventDispatcher } from "svelte";
 
 	export let interactive: boolean;
 	export let file_count: "single" | "multiple" = "multiple";
 	export let value: string[][] = [];
+	export let selectable: boolean = false;
 	export let ls_fn: (path: string[]) => Promise<FileNode[]>;
 	let selected_folders: string[][] = [];
+
+	const dispatch = createEventDispatcher<{
+		select: SelectData;
+		input: void;
+	}>();
 
 	const paths_equal = (path: string[], path_2: string[]): boolean => {
 		return path.join("/") === path_2.join("/");
@@ -27,6 +35,7 @@
 		selected_files={value}
 		{selected_folders}
 		{interactive}
+		{selectable}
 		{ls_fn}
 		{file_count}
 		valid_for_selection={false}
@@ -57,7 +66,9 @@
 					value = value.filter((x) => !paths_equal(x, path));
 				}
 			}
+			dispatch("input");
 		}}
+		on:select={(e) => dispatch("select", e.detail)}
 	/>
 </div>
 
