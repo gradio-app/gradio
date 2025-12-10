@@ -165,11 +165,21 @@ class BaseReloader(ABC):
         demo.is_running = True
         demo.allowed_paths = self.running_app.blocks.allowed_paths
         demo.blocked_paths = self.running_app.blocks.blocked_paths
-        demo.theme = self.running_app.blocks.theme
-        demo.head_paths = self.running_app.blocks.head_paths
-        demo.css = self.running_app.blocks.css
-        demo.head = self.running_app.blocks.head
-        demo.css_paths = self.running_app.blocks.css_paths
+
+        demo.theme = demo.theme if demo.theme is not None else demo._deprecated_theme
+        demo.css = demo.css if demo.css is not None else demo._deprecated_css
+        demo.css_paths = (
+            demo.css_paths
+            if hasattr(demo, "css_paths") and demo.css_paths is not None
+            else demo._deprecated_css_paths
+        )
+        demo.js = demo.js if demo.js is not None else demo._deprecated_js
+        demo.head = demo.head if demo.head is not None else demo._deprecated_head
+        demo.head_paths = (
+            demo.head_paths
+            if demo.head_paths is not None
+            else demo._deprecated_head_paths
+        )
         demo._set_html_css_theme_variables()
         self.running_app.state_holder.set_blocks(demo)
         for session in self.running_app.state_holder.session_data.values():
