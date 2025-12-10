@@ -4,6 +4,12 @@
 
 ### Dependency updates
 
+- @gradio/checkbox@0.5.1
+
+## 0.5.42
+
+### Dependency updates
+
 - @gradio/utils@0.10.4
 
 ## 0.5.42
