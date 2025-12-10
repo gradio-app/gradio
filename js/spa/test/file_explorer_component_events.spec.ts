@@ -123,12 +123,12 @@ test("File Explorer selects all children when top level directory is selected.",
 	await page.getByLabel(new RegExp("/dir3$"), { exact: true }).first().click();
 
 	await page
-		.locator("li")
+		.locator("span")
 		.filter({ hasText: "dir4" })
-		.first()
 		.getByRole("checkbox")
-		.first()
 		.check();
+
+	await page.getByRole("button", { name: "dir_4_foo.txt" }).waitFor();
 
 	await page.getByRole("button", { name: "Run" }).click();
 
