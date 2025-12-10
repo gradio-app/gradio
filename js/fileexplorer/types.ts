@@ -1,5 +1,4 @@
 import type { LoadingStatus } from "@gradio/statustracker";
-import type { SelectData } from "@gradio/utils";
 import type { FileNode } from "./shared/types";
 
 export interface FileExplorerProps {
@@ -11,7 +10,6 @@ export interface FileExplorerProps {
 	root_dir: string;
 	glob: string;
 	ignore_glob: string;
-	_selectable: boolean;
 	server: {
 		ls: (path: string[]) => Promise<FileNode[]>;
 	};
@@ -19,7 +17,5 @@ export interface FileExplorerProps {
 
 export interface FileExplorerEvents {
 	change: never;
-	input: never;
-	select: SelectData;
 	clear_status: LoadingStatus;
 }

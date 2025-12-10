@@ -65,10 +65,7 @@
 			bind:value={gradio.props.value}
 			file_count={gradio.props.file_count}
 			interactive={gradio.shared.interactive}
-			selectable={gradio.props._selectable}
 			ls_fn={gradio.shared.server.ls}
-			on:input={() => gradio.dispatch("input")}
-			on:select={(e) => gradio.dispatch("select", e.detail)}
 		/>
 	{/key}
 </Block>

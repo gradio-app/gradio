@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { FileNode } from "./types";
-	import type { SelectData } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
 
 	import Arrow from "./ArrowIcon.svelte";
@@ -9,12 +8,10 @@
 	import FolderIcon from "../icons/light-folder.svg";
 
 	export let path: string[] = [];
-	export let index_path: number[] = [];
 	export let selected_files: string[][] = [];
 	export let selected_folders: string[][] = [];
 	export let is_selected_entirely = false;
 	export let interactive: boolean;
-	export let selectable: boolean = false;
 	export let ls_fn: (path: string[]) => Promise<FileNode[]>;
 	export let file_count: "single" | "multiple" = "multiple";
 	export let valid_for_selection: boolean;
@@ -63,49 +60,33 @@
 
 	const dispatch = createEventDispatcher<{
 		check: { path: string[]; checked: boolean; type: "file" | "folder" };
-		select: SelectData;
 	}>();
-
-	function handle_select(
-		full_index_path: number[],
-		item_path: string[],
-		type: "file" | "folder"
-	): void {
-		dispatch("select", {
-			index: full_index_path as any,
-			value: item_path.join("/"),
-			selected: true
-		});
-	}
 </script>
 
-<ul class:no-checkboxes={!interactive} class:root={path.length === 0}>
+<ul>
 	{#each content as { type, name, valid }, i}
-		{@const is_selected = (
-			type === "file" ? selected_files : selected_folders
-		).some((x) => x[0] === name && x.length === 1)}
 		<li>
-			<span class="wrap" class:selected={!interactive && is_selected}>
-				{#if interactive}
-					{#if type === "folder" && file_count === "single"}
-						<span class="no-checkbox" aria-hidden="true"></span>
-					{:else}
-						<Checkbox
-							disabled={false}
-							value={is_selected}
-							on:change={(e) => {
-								let checked = e.detail;
-								dispatch("check", {
-									path: [...path, name],
-									checked,
-									type
-								});
-								if (type === "folder" && checked) {
-									open_folder(i);
-								}
-							}}
-						/>
-					{/if}
+			<span class="wrap">
+				{#if type === "folder" && file_count === "single"}
+					<span class="no-checkbox" aria-hidden="true"></span>
+				{:else}
+					<Checkbox
+						disabled={!interactive}
+						value={(type === "file" ? selected_files : selected_folders).some(
+							(x) => x[0] === name && x.length === 1
+						)}
+						on:change={(e) => {
+							let checked = e.detail;
+							dispatch("check", {
+								path: [...path, name],
+								checked,
+								type
+							});
+							if (type === "folder" && checked) {
+								open_folder(i);
+							}
+						}}
+					/>
 				{/if}
 
 				{#if type === "folder"}
@@ -127,27 +108,11 @@
 						<img src={name === "." ? FolderIcon : FileIcon} alt="file icon" />
 					</span>
 				{/if}
-				<span
-					class="item-name"
-					class:selectable
-					role={selectable ? "button" : undefined}
-					tabindex={selectable ? 0 : undefined}
-					on:click|stopPropagation={() => {
-						if (selectable) {
-							handle_select([...index_path, i], [...path, name], type);
-						}
-					}}
-					on:keydown={({ key }) => {
-						if (selectable && (key === " " || key === "Enter")) {
-							handle_select([...index_path, i], [...path, name], type);
-						}
-					}}>{name}</span
-				>
+				{name}
 			</span>
 			{#if type === "folder" && opened_folders.includes(i)}
 				<svelte:self
 					path={[...path, name]}
-					index_path={[...index_path, i]}
 					selected_files={selected_files
 						.filter((x) => x[0] === name)
 						.map((x) => x.slice(1))}
@@ -158,12 +123,10 @@
 						(x) => x[0] === name && x.length === 1
 					)}
 					{interactive}
-					{selectable}
 					{ls_fn}
 					{file_count}
 					valid_for_selection={valid}
 					on:check
-					on:select
 				/>
 			{/if}
 		</li>
@@ -236,14 +199,6 @@
 		list-style: none;
 	}
 
-	ul.root {
-		margin-left: 8px;
-	}
-
-	ul.no-checkboxes:not(.root) {
-		margin-left: 20px;
-	}
-
 	li {
 		margin-left: 0;
 		padding-left: 0;
@@ -259,27 +214,5 @@
 		display: flex;
 		gap: 8px;
 		align-items: center;
-	}
-
-	.wrap.selected {
-		background-color: var(--background-fill-secondary);
-		border-radius: var(--radius-sm);
-		margin-left: -4px;
-		padding-left: 4px;
-	}
-
-	.item-name {
-		flex: 1;
-		padding: 2px 4px;
-		border-radius: var(--radius-sm);
-		margin-right: -4px;
-	}
-
-	.item-name.selectable {
-		cursor: pointer;
-	}
-
-	.item-name.selectable:hover {
-		background-color: var(--color-accent-soft);
 	}
 </style>
