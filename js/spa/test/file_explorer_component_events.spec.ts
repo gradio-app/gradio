@@ -3,6 +3,7 @@ import { test, expect } from "@self/tootils";
 test("File Explorer is interactive and re-runs the server_fn when root is updated", async ({
 	page
 }) => {
+	await page.getByRole("button", { name: "dir1", exact: true }).waitFor();
 	await page
 		.getByRole("button", { name: "dir1", exact: true })
 		.locator("..")
@@ -62,6 +63,7 @@ test("File Explorer is interactive and re-runs the server_fn when root is update
 test("File Explorer .select() event is triggered when clicking on file/folder name", async ({
 	page
 }) => {
+	await page.getByRole("button", { name: "dir1", exact: true }).waitFor();
 	await page.getByRole("button", { name: "dir1", exact: true }).click();
 
 	await expect(page.getByLabel("Last Selected (via .select())")).toHaveValue(
