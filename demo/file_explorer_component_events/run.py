@@ -15,7 +15,7 @@ with gr.Blocks() as demo:
             txt_only_glob = gr.Checkbox(label="Show only text files", value=False)
             ignore_txt_in_glob = gr.Checkbox(label="Ignore text files in glob", value=False)
 
-    fe = gr.FileExplorer(root_dir=str(base_root), value=[str(base_root / "run.py")],
+    fe = gr.FileExplorer(root_dir=str(base_root),
                          glob="**/*", interactive=True)
     textbox = gr.Textbox(label="Selected Directory")
     selected_file = gr.Textbox(label="Last Selected (via .select())")
