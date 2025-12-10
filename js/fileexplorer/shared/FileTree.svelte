@@ -85,7 +85,23 @@
 			type === "file" ? selected_files : selected_folders
 		).some((x) => x[0] === name && x.length === 1)}
 		<li>
-			<span class="wrap" class:selected={!interactive && is_selected}>
+			<span
+				class="wrap"
+				class:selected={!interactive && is_selected}
+				class:selectable
+				role={selectable ? "button" : undefined}
+				tabindex={selectable ? 0 : undefined}
+				on:click|stopPropagation={() => {
+					if (selectable) {
+						handle_select([...index_path, i], [...path, name], type);
+					}
+				}}
+				on:keydown={({ key }) => {
+					if (selectable && (key === " " || key === "Enter")) {
+						handle_select([...index_path, i], [...path, name], type);
+					}
+				}}
+			>
 				{#if interactive}
 					{#if type === "folder" && file_count === "single"}
 						<span class="no-checkbox" aria-hidden="true"></span>
@@ -100,6 +116,9 @@
 									checked,
 									type
 								});
+								if (selectable) {
+									handle_select([...index_path, i], [...path, name], type);
+								}
 								if (type === "folder" && checked) {
 									open_folder(i);
 								}
@@ -127,22 +146,7 @@
 						<img src={name === "." ? FolderIcon : FileIcon} alt="file icon" />
 					</span>
 				{/if}
-				<span
-					class="item-name"
-					class:selectable
-					role={selectable ? "button" : undefined}
-					tabindex={selectable ? 0 : undefined}
-					on:click|stopPropagation={() => {
-						if (selectable) {
-							handle_select([...index_path, i], [...path, name], type);
-						}
-					}}
-					on:keydown={({ key }) => {
-						if (selectable && (key === " " || key === "Enter")) {
-							handle_select([...index_path, i], [...path, name], type);
-						}
-					}}>{name}</span
-				>
+				<span class="item-name">{name}</span>
 			</span>
 			{#if type === "folder" && opened_folders.includes(i)}
 				<svelte:self
@@ -272,18 +276,22 @@
 		padding-left: 4px;
 	}
 
+	.wrap.selectable {
+		cursor: pointer;
+		border-radius: var(--radius-sm);
+		margin-left: -4px;
+		padding-left: 4px;
+		padding-right: 4px;
+	}
+
+	.wrap.selectable:hover {
+		background-color: var(--border-color-accent);
+	}
+
 	.item-name {
 		flex: 1;
 		padding: 2px 4px;
 		border-radius: var(--radius-sm);
 		margin-right: -4px;
-	}
-
-	.item-name.selectable {
-		cursor: pointer;
-	}
-
-	.item-name.selectable:hover {
-		background-color: var(--color-accent-soft);
 	}
 </style>
