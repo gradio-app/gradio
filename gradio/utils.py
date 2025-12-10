@@ -155,6 +155,17 @@ class BaseReloader(ABC):
     def running_app(self) -> App:
         pass
 
+    def get_attribute(self, attr: str, demo) -> Any:
+        if (
+            hasattr(demo, f"_deprecated_{attr}")
+            and getattr(demo, f"_deprecated_{attr}") is not None
+        ):
+            return getattr(demo, f"_deprecated_{attr}")
+        elif hasattr(demo, attr) and getattr(demo, attr) is not None:
+            return getattr(demo, attr)
+        else:
+            return getattr(self.running_app.blocks, attr)
+
     def swap_blocks(self, demo: Blocks):
         assert self.running_app.blocks  # noqa: S101
         # Copy over the blocks to get new components and events but
@@ -166,20 +177,12 @@ class BaseReloader(ABC):
         demo.allowed_paths = self.running_app.blocks.allowed_paths
         demo.blocked_paths = self.running_app.blocks.blocked_paths
 
-        demo.theme = demo.theme if demo.theme is not None else demo._deprecated_theme
-        demo.css = demo.css if demo.css is not None else demo._deprecated_css
-        demo.css_paths = (
-            demo.css_paths
-            if hasattr(demo, "css_paths") and demo.css_paths is not None
-            else demo._deprecated_css_paths
-        )
-        demo.js = demo.js if demo.js is not None else demo._deprecated_js
-        demo.head = demo.head if demo.head is not None else demo._deprecated_head
-        demo.head_paths = (
-            demo.head_paths
-            if demo.head_paths is not None
-            else demo._deprecated_head_paths
-        )
+        demo.theme = self.get_attribute("theme", demo)
+        demo.css = self.get_attribute("css", demo)
+        demo.css_paths = self.get_attribute("css_paths", demo)
+        demo.js = self.get_attribute("js", demo)
+        demo.head = self.get_attribute("head", demo)
+        demo.head_paths = self.get_attribute("head_paths", demo)
         demo._set_html_css_theme_variables()
         self.running_app.state_holder.set_blocks(demo)
         for session in self.running_app.state_holder.session_data.values():
