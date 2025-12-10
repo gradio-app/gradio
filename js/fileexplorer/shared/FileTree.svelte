@@ -262,7 +262,7 @@
 	}
 
 	.wrap.selected {
-		background-color: var(--background-fill-secondary);
+		background-color: var(--color-accent-soft);
 		border-radius: var(--radius-sm);
 		margin-left: -4px;
 		padding-left: 4px;
