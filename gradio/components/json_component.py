@@ -17,6 +17,7 @@ from gradio_client.documentation import document
 from gradio.components.base import Component
 from gradio.data_classes import JsonData
 from gradio.events import Events
+from gradio.exceptions import Error
 from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
@@ -140,7 +141,10 @@ class JSON(Component):
             )
 
         if isinstance(value, str):
-            return JsonData(root=orjson.loads(value))
+            try:
+                return JsonData(root=orjson.loads(value))
+            except orjson.JSONDecodeError as e:
+                raise Error(f"Invalid JSON string: {e}") from e
         else:
             # Use orjson to convert NumPy arrays and datetime objects to JSON.
             # This ensures a backward compatibility with the previous behavior.
