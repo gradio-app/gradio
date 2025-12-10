@@ -225,6 +225,10 @@
 		height: 18px;
 	}
 
+	ul.root .no-checkbox {
+		display: none;
+	}
+
 	.hidden :global(> *) {
 		transform: rotate(0);
 		color: var(--body-text-color-subdued);
