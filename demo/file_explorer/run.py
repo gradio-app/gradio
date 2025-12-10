@@ -32,13 +32,10 @@ with gr.Blocks() as demo:
     with gr.Row():
         file_3 = gr.FileExplorer(
             scale=1,
-            glob="**/components/**/*.py",
+            glob="**/components/*.py",
             value=["components/file_explorer.py"],
             file_count="single",
             root_dir=absolute_path,
-            ignore_glob="**/__init__.py",
-            elem_id="file",
-            interactive=True,
         )
 
         code = gr.Code(lines=30, scale=2, language="python")
