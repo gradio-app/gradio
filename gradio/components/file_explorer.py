@@ -12,6 +12,7 @@ from gradio_client.documentation import document
 
 from gradio.components.base import Component, server
 from gradio.data_classes import DeveloperPath, GradioRootModel, UserProvidedPath
+from gradio.events import Events
 from gradio.i18n import I18nData
 from gradio.utils import safe_join
 
@@ -32,7 +33,7 @@ class FileExplorer(Component):
     it also allows users to select files to be used as input to a function, while as an output component, it displays selected files.
     """
 
-    EVENTS = ["change"]
+    EVENTS = [Events.change, Events.input, Events.select]
     data_model = FileExplorerData
 
     def __init__(
