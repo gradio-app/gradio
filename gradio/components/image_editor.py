@@ -320,6 +320,7 @@ class ImageEditor(Component):
             self.sources = []
 
         self.buttons = buttons
+        [btn.unrender() for btn in (self.buttons or []) if isinstance(btn, Button)]
 
         self.transforms = transforms
         self.eraser = Eraser() if eraser is None else eraser

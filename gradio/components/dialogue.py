@@ -127,6 +127,7 @@ class Dialogue(Component):
         self.separator = separator
         self.color_map = color_map
         self.buttons = buttons
+        [btn.unrender() for btn in (self.buttons or []) if isinstance(btn, Button)]
         self.submit_btn = submit_btn
         if not interactive:
             self.info = None
