@@ -12,14 +12,16 @@ with gr.Blocks() as demo:
     gr.Markdown("""
     # Textbox with Custom Buttons Demo
     
-    This demo showcases custom buttons in a Textbox component that can trigger both:
+    This demo showcases custom buttons in a Textbox component that can trigger either (or both):
     - **Python functions** 
     - **JS functions** (with and without input parameters)
+    
+    You can use emojis, text, or icons for the buttons.
     """)
     
     gr.Markdown("### Textbox with Custom Buttons")
     refresh_btn = gr.Button("Refresh")
-    alert_btn = gr.Button("⚠️")
+    alert_btn = gr.Button("⚠️ Alert")
     clear_btn = gr.Button("🗑️")
     
     textbox = gr.Textbox(

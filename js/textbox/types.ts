@@ -1,12 +1,5 @@
-import { type SelectData, type CopyData } from "@gradio/utils";
+import { type SelectData, type CopyData, type CustomButton } from "@gradio/utils";
 import type { LoadingStatus } from "@gradio/statustracker";
-import type { FileData } from "@gradio/client";
-
-export interface CustomButton {
-	id: number;
-	value: string | null;
-	icon: FileData | null;
-}
 
 export interface TextboxEvents {
 	change: string;
