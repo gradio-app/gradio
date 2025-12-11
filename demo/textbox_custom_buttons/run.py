@@ -20,15 +20,13 @@ with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
             gr.Markdown("### Textbox with Custom Buttons")
-            export_btn = gr.Button("Export (Python)", icon="https://cdn-icons-png.flaticon.com/512/724/724933.png")
-            refresh_btn = gr.Button("Refresh (Python)")
-            alert_btn = gr.Button("Show Alert (JS)", variant="secondary")
-            timestamp_btn = gr.Button("Show Time (JS)", variant="secondary")
-            clear_btn = gr.Button("Clear (JS)", variant="stop")
+            refresh_btn = gr.Button("Refresh")
+            alert_btn = gr.Button("⚠️")
+            clear_btn = gr.Button("🗑️")
             
             textbox = gr.Textbox(
                 value="Sample text content that can be exported, refreshed, or transformed.",
-                buttons=["copy", export_btn, refresh_btn, alert_btn, timestamp_btn, clear_btn],
+                buttons=["copy", refresh_btn, alert_btn, clear_btn],
                 label="Sample Text",
                 lines=5
             )
@@ -47,7 +45,6 @@ with gr.Blocks() as demo:
             Notice how the JavaScript functions (alerts) appear instantly without a server roundtrip!
             """)
     
-    export_btn.click(export_data, inputs=textbox, outputs=output)
     refresh_btn.click(refresh_data, outputs=textbox)
     
     alert_btn.click(
@@ -57,12 +54,6 @@ with gr.Blocks() as demo:
         js="(text) => { alert('This is a JavaScript alert!\\n\\nTextbox content: ' + text); return []; }"
     )
     
-    timestamp_btn.click(
-        None,
-        inputs=[],
-        outputs=[],
-        js="() => { const now = new Date(); alert('Current browser time (JavaScript):\\n\\n' + now.toLocaleString()); return []; }"
-    )
     
     clear_btn.click(
         None,
