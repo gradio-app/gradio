@@ -14,7 +14,6 @@
 		"@gradio/checkbox": "workspace:^",
 		"@gradio/client": "workspace:^",
 		"@gradio/icons": "workspace:^",
-		"@gradio/image": "workspace:^",
 		"@gradio/markdown-code": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",

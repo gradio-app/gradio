@@ -17,33 +17,20 @@ with gr.Blocks() as demo:
     - **JavaScript functions** (client-side processing, instant updates)
     """)
     
-    with gr.Row():
-        with gr.Column():
-            gr.Markdown("### Textbox with Custom Buttons")
-            refresh_btn = gr.Button("Refresh")
-            alert_btn = gr.Button("⚠️")
-            clear_btn = gr.Button("🗑️")
-            
-            textbox = gr.Textbox(
-                value="Sample text content that can be exported, refreshed, or transformed.",
-                buttons=["copy", refresh_btn, alert_btn, clear_btn],
-                label="Sample Text",
-                lines=5
-            )
-            
-            output = gr.Textbox(label="Output (Python Function Result)")
+    gr.Markdown("### Textbox with Custom Buttons")
+    refresh_btn = gr.Button("Refresh")
+    alert_btn = gr.Button("⚠️")
+    clear_btn = gr.Button("🗑️")
+    
+    textbox = gr.Textbox(
+        value="Sample text content that can be exported, refreshed, or transformed.",
+        buttons=["copy", refresh_btn, alert_btn, clear_btn],
+        label="Sample Text",
+        lines=5
+    )
+    
+    output = gr.Textbox(label="Output (Python Function Result)")
         
-        with gr.Column():
-            gr.Markdown("### Instructions")
-            gr.Markdown("""
-            - **Export (Python)**: Sends text to server, processes it, and returns result
-            - **Refresh (Python)**: Generates new random content on the server
-            - **Show Alert (JS)**: Shows a browser alert popup (JavaScript only!)
-            - **Show Time (JS)**: Shows current browser time in an alert (JavaScript only!)
-            - **Clear (JS)**: Clears the textbox instantly in the browser
-            
-            Notice how the JavaScript functions (alerts) appear instantly without a server roundtrip!
-            """)
     
     refresh_btn.click(refresh_data, outputs=textbox)
     
