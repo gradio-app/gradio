@@ -2,11 +2,7 @@
 	import { onDestroy, createEventDispatcher, tick } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import { prepare_files, type FileData, type Client } from "@gradio/client";
-	import {
-		BlockLabel,
-		ShareButton,
-		CustomButton
-	} from "@gradio/atoms";
+	import { BlockLabel, ShareButton, CustomButton } from "@gradio/atoms";
 	import { Music } from "@gradio/icons";
 	import { uploadToHuggingFace } from "@gradio/utils";
 	import { StreamingBar } from "@gradio/statustracker";
