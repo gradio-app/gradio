@@ -74,7 +74,8 @@ class Image(StreamingInput, Component):
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
-        buttons: list[Literal["download", "share", "fullscreen"] | Button] | None = None,
+        buttons: list[Literal["download", "share", "fullscreen"] | Button]
+        | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,

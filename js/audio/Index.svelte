@@ -147,6 +147,9 @@
 			waveform_options={gradio.props.waveform_options}
 			editable={gradio.props.editable}
 			{minimal}
+			on_custom_button_click={(id) => {
+				gradio.dispatch_to(id, "click", null);
+			}}
 			bind:playback_position={gradio.props.playback_position}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
@@ -183,6 +186,9 @@
 			{label}
 			show_label={gradio.shared.show_label}
 			buttons={gradio.props.buttons ?? []}
+			on_custom_button_click={(id) => {
+				gradio.dispatch_to(id, "click", null);
+			}}
 			value={gradio.props.value}
 			subtitles={gradio.props.subtitles}
 			on:change={({ detail }) => (gradio.props.value = detail)}

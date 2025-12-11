@@ -6,8 +6,10 @@
 		IconButton,
 		BlockLabel,
 		DownloadLink,
-		IconButtonWrapper
+		IconButtonWrapper,
+		CustomButton
 	} from "@gradio/atoms";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 	import { Download, Music } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import AudioPlayer from "../player/AudioPlayer.svelte";
@@ -20,7 +22,8 @@
 	export let subtitles: null | FileData | SubtitleData[] = null;
 	export let label: string;
 	export let show_label = true;
-	export let buttons: string[] | null = null;
+	export let buttons: (string | CustomButtonType)[] | null = null;
+	export let on_custom_button_click: ((id: number) => void) | null = null;
 	export let i18n: I18nFormatter;
 	export let waveform_settings: Record<string, any> = {};
 	export let waveform_options: WaveformOptions = {
@@ -57,29 +60,42 @@
 		<IconButtonWrapper
 			display_top_corner={display_icon_button_wrapper_top_corner}
 		>
-			{#if buttons === null ? true : buttons.includes("download")}
-				<DownloadLink
-					href={value.is_stream
-						? value.url?.replace("playlist.m3u8", "playlist-file")
-						: value.url}
-					download={value.orig_name || value.path}
-				>
-					<IconButton Icon={Download} label={i18n("common.download")} />
-				</DownloadLink>
-			{/if}
-			{#if buttons === null ? true : buttons.includes("share")}
-				<ShareButton
-					{i18n}
-					on:error
-					on:share
-					formatter={async (value) => {
-						if (!value) return "";
-						let url = await uploadToHuggingFace(value.url, "url");
-						return `<audio controls src="${url}"></audio>`;
-					}}
-					{value}
-				/>
-			{/if}
+			{#each buttons || (buttons === null ? ["download", "share"] : []) as btn}
+				{#if typeof btn === "string"}
+					{#if btn === "download"}
+						<DownloadLink
+							href={value.is_stream
+								? value.url?.replace("playlist.m3u8", "playlist-file")
+								: value.url}
+							download={value.orig_name || value.path}
+						>
+							<IconButton Icon={Download} label={i18n("common.download")} />
+						</DownloadLink>
+					{/if}
+					{#if btn === "share"}
+						<ShareButton
+							{i18n}
+							on:error
+							on:share
+							formatter={async (value) => {
+								if (!value) return "";
+								let url = await uploadToHuggingFace(value.url, "url");
+								return `<audio controls src="${url}"></audio>`;
+							}}
+							{value}
+						/>
+					{/if}
+				{:else}
+					<CustomButton
+						button={btn}
+						on_click={(id) => {
+							if (on_custom_button_click) {
+								on_custom_button_click(id);
+							}
+						}}
+					/>
+				{/if}
+			{/each}
 		</IconButtonWrapper>
 
 		<AudioPlayer

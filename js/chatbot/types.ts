@@ -130,7 +130,8 @@ export interface ChatbotProps {
 	likeable: boolean;
 	feedback_options: string[];
 	feedback_value: (string | null)[] | null;
-	buttons: string[] | null;
+	import type { CustomButton } from "@gradio/utils";
+	buttons: (string | CustomButton)[] | null;
 	rtl: boolean;
 	sanitize_html: boolean;
 	layout: "bubble" | "panel";

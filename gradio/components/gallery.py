@@ -107,7 +107,8 @@ class Gallery(Component):
         object_fit: (
             Literal["contain", "cover", "fill", "none", "scale-down"] | None
         ) = None,
-        buttons: list[Literal["share", "download", "fullscreen"] | Button] | None = None,
+        buttons: list[Literal["share", "download", "fullscreen"] | Button]
+        | None = None,
         interactive: bool | None = None,
         type: Literal["numpy", "pil", "filepath"] = "filepath",
         fit_columns: bool = True,

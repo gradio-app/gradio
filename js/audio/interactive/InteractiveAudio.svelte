@@ -22,7 +22,9 @@
 	export let root: string;
 	export let loop: boolean;
 	export let show_label = true;
-	export let buttons: string[] = ["download", "share"];
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
+	export let buttons: (string | CustomButtonType)[] = ["download", "share"];
+	export let on_custom_button_click: ((id: number) => void) | null = null;
 	export let sources:
 		| ["microphone"]
 		| ["upload"]
@@ -297,7 +299,7 @@
 			on:edit={() => (mode = "edit")}
 			download={buttons === null
 				? value.url
-				: buttons.includes("download")
+				: buttons.some(btn => typeof btn === "string" && btn === "download")
 					? value.url
 					: null}
 		/>

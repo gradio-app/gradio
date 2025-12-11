@@ -1,4 +1,5 @@
 import { FileData } from "@gradio/client";
+import type { CustomButton } from "@gradio/utils";
 
 export type WaveformOptions = {
 	waveform_color?: string;
@@ -25,7 +26,7 @@ export interface AudioProps {
 	value: FileData | null;
 	type: "numpy" | "filepath";
 	autoplay: boolean;
-	buttons: ("play" | "download")[];
+	buttons: ("play" | "download" | "share" | CustomButton)[];
 	recording: boolean;
 	loop: boolean;
 	subtitles: FileData | SubtitleData[] | null;
