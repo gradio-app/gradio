@@ -18,7 +18,8 @@ export interface ImageProps {
 	width: number;
 	webcam_options: WebcamOptions;
 	value: FileData | null;
-	buttons: string[];
+	import type { CustomButton } from "@gradio/utils";
+	buttons: (string | CustomButton)[];
 	pending: boolean;
 	streaming: boolean;
 	stream_every: number;

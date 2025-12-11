@@ -1,6 +1,8 @@
+import type { CustomButton } from "@gradio/utils";
+
 export interface DialogueProps {
 	value: { speaker: string; text: string }[] | string;
-	buttons: string[];
+	buttons: (string | CustomButton)[];
 	ui_mode: "dialogue" | "text" | "both";
 	max_lines: number;
 	tags: string[];

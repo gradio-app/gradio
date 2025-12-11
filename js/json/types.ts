@@ -8,7 +8,8 @@ export interface JSONProps {
 	min_height: number | string | undefined;
 	max_height: number | string | undefined;
 	theme_mode: "system" | "light" | "dark";
-	buttons: string[];
+	import type { CustomButton } from "@gradio/utils";
+	buttons: (string | CustomButton)[];
 }
 
 export interface JSONEvents {

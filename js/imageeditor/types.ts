@@ -29,7 +29,8 @@ export interface ImageEditorProps {
 	border_region?: number;
 	webcam_options?: WebcamOptions;
 	value?: EditorData | null;
-	buttons?: string[] | null;
+	import type { CustomButton } from "@gradio/utils";
+	buttons?: (string | CustomButton)[] | null;
 	height?: number;
 	width?: number;
 	_selectable?: boolean;

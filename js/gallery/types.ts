@@ -22,7 +22,8 @@ export interface GalleryProps {
 	allow_preview: boolean;
 	selected_index: number | null;
 	object_fit: "contain" | "cover" | "fill" | "none" | "scale-down";
-	buttons: string[];
+	import type { CustomButton } from "@gradio/utils";
+	buttons: (string | CustomButton)[];
 	type: "numpy" | "pil" | "filepath";
 	fit_columns: boolean;
 }

@@ -64,6 +64,9 @@
 				loading_status: gradio.shared.loading_status,
 				interactive: gradio.shared.interactive,
 				buttons: gradio.props.buttons,
+				on_custom_button_click: (id: number) => {
+					gradio.dispatch_to(id, "click", null);
+				},
 				max_chars: gradio.props.max_chars,
 				show_row_numbers: gradio.props.show_row_numbers,
 				show_search: gradio.props.show_search,
@@ -111,6 +114,9 @@
 				loading_status: gradio.shared.loading_status,
 				interactive: gradio.shared.interactive,
 				buttons: gradio.props.buttons,
+				on_custom_button_click: (id: number) => {
+					gradio.dispatch_to(id, "click", null);
+				},
 				max_chars: gradio.props.max_chars,
 				show_row_numbers: gradio.props.show_row_numbers,
 				show_search: gradio.props.show_search,

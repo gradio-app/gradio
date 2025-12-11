@@ -835,7 +835,7 @@
 			<Toolbar
 				show_fullscreen_button={buttons === null
 					? true
-					: buttons.includes("fullscreen")}
+					: buttons.some(btn => typeof btn === "string" && btn === "fullscreen")}
 				{fullscreen}
 				on_copy={async () => await copy_table_data(data, null)}
 				show_copy_button={buttons === null ? true : buttons.some(btn => typeof btn === "string" && btn === "copy")}

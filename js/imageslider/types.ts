@@ -22,7 +22,8 @@ export interface ImageSliderProps {
 	height: number | undefined;
 	width: number | undefined;
 	placeholder: string | undefined;
-	buttons: string[];
+	import type { CustomButton } from "@gradio/utils";
+	buttons: (string | CustomButton)[];
 	input_ready: boolean;
 	slider_position: number;
 	upload_count: number;

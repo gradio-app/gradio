@@ -87,6 +87,20 @@
 		{#if show_fullscreen_button}
 			<FullscreenButton {fullscreen} on:fullscreen />
 		{/if}
+		{#if buttons}
+			{#each buttons as btn}
+				{#if typeof btn !== "string"}
+					<CustomButton
+						button={btn}
+						on_click={(id) => {
+							if (on_custom_button_click) {
+								on_custom_button_click(id);
+							}
+						}}
+					/>
+				{/if}
+			{/each}
+		{/if}
 	</div>
 </div>
 
