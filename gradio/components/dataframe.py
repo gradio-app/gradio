@@ -17,6 +17,7 @@ import semantic_version
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
+from gradio.components.button import Button
 from gradio.data_classes import GradioModel
 from gradio.events import Events
 from gradio.i18n import I18nData
@@ -103,7 +104,7 @@ class Dataframe(Component):
         wrap: bool = False,
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
-        buttons: list[Literal["fullscreen", "copy"]] | None = None,
+        buttons: list[Literal["fullscreen", "copy"] | Button] | None = None,
         show_row_numbers: bool = False,
         max_chars: int | None = None,
         show_search: Literal["none", "search", "filter"] = "none",
@@ -140,7 +141,7 @@ class Dataframe(Component):
             wrap: If True, the text in table cells will wrap when appropriate. If False and the `column_width` parameter is not set, the column widths will expand based on the cell contents and the table may need to be horizontally scrolled. If `column_width` is set, then any overflow text will be hidden.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies for columns of type "markdown."
             column_widths: An optional list representing the width of each column. The elements of the list should be in the format "100px" (ints are also accepted and converted to pixel values) or "10%". The percentage width is calculated based on the viewport width of the table. If not provided, the column widths will be automatically determined based on the content of the cells.
-            buttons: A list of buttons to show in the top right corner of the component. Valid options are "fullscreen" and "copy". The "fullscreen" button allows the user to view the table in fullscreen mode. The "copy" button allows the user to copy the table data to the clipboard. By default, all buttons are shown.
+            buttons: A list of buttons to show in the top right corner of the component. Valid options are "fullscreen", "copy", or a gr.Button() instance. The "fullscreen" button allows the user to view the table in fullscreen mode. The "copy" button allows the user to copy the table data to the clipboard. Custom gr.Button() instances will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button. By default, all buttons are shown.
             show_row_numbers: If True, will display row numbers in a separate column.
             max_chars: Maximum number of characters to display in each cell before truncating (single-clicking a cell value will still reveal the full content). If None, no truncation is applied.
             show_search: Show a search input in the toolbar. If "search", a search input is shown. If "filter", a search input and filter buttons are shown. If "none", no search input is shown.

@@ -147,7 +147,8 @@ class Textbox(FormComponent):
         self.lines = lines
         self.max_lines = max_lines
         self.placeholder = placeholder
-        self.buttons = buttons
+        self.buttons = buttons or []
+        [btn.unrender() for btn in self.buttons if isinstance(btn, Button)]
         self.submit_btn = submit_btn
         self.stop_btn = stop_btn
         self.autofocus = autofocus
