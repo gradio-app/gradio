@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { Copy, Check } from "@gradio/icons";
-	import { FullscreenButton } from "@gradio/atoms";
+	import { FullscreenButton, CustomButton } from "@gradio/atoms";
 	import { onDestroy } from "svelte";
 	import { createEventDispatcher } from "svelte";
 	import { IconButton } from "@gradio/atoms";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 
 	export let show_fullscreen_button = false;
 	export let show_copy_button = false;
@@ -11,6 +12,8 @@
 	export let fullscreen = false;
 	export let on_copy: () => Promise<void>;
 	export let on_commit_filter: () => void;
+	export let buttons: (string | CustomButtonType)[] | null = null;
+	export let on_custom_button_click: ((id: number) => void) | null = null;
 
 	const dispatch = createEventDispatcher<{
 		search: string | null;

@@ -88,8 +88,8 @@
 
 	const df_ctx = create_dataframe_context({
 		show_fullscreen_button:
-			buttons === null ? true : buttons.includes("fullscreen"),
-		show_copy_button: buttons === null ? true : buttons.includes("copy"),
+			buttons === null ? true : buttons.some(btn => typeof btn === "string" && btn === "fullscreen"),
+		show_copy_button: buttons === null ? true : buttons.some(btn => typeof btn === "string" && btn === "copy"),
 		show_search,
 		show_row_numbers,
 		editable,
@@ -838,7 +838,9 @@
 					: buttons.includes("fullscreen")}
 				{fullscreen}
 				on_copy={async () => await copy_table_data(data, null)}
-				show_copy_button={buttons === null ? true : buttons.includes("copy")}
+				show_copy_button={buttons === null ? true : buttons.some(btn => typeof btn === "string" && btn === "copy")}
+				buttons={buttons}
+				on_custom_button_click={on_custom_button_click}
 				{show_search}
 				on:search={(e) => df_actions.handle_search(e.detail)}
 				on:fullscreen
