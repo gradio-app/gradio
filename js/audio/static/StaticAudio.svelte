@@ -60,7 +60,7 @@
 		<IconButtonWrapper
 			display_top_corner={display_icon_button_wrapper_top_corner}
 		>
-			{#each buttons || (buttons === null ? ["download", "share"] : []) as btn}
+			{#each buttons || (buttons === null ? ["download", "share"] : [] as btn}
 				{#if typeof btn === "string"}
 					{#if btn === "download"}
 						<DownloadLink
