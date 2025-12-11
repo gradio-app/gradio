@@ -4,6 +4,7 @@ import asyncio
 import copy
 import inspect
 import os
+import platform
 import random
 import time
 import traceback
@@ -137,8 +138,10 @@ class Queue:
             ProcessTime
         )
         self.live_updates = live_updates
-        self.sleep_when_free = 0.001
-        self.progress_update_sleep_when_free = 0.01
+        self.sleep_when_free = 0.05 if platform.system() == "Windows" else 0.001
+        self.progress_update_sleep_when_free = (
+            0.05 if platform.system() == "Windows" else 0.01
+        )
         self.max_size = max_size
         self.blocks = blocks
         self._asyncio_tasks: list[asyncio.Task] = []
