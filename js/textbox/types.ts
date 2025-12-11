@@ -31,8 +31,7 @@ export interface TextboxProps {
 	placeholder: string;
 	submit_btn: string;
 	stop_btn: string;
-	buttons: string[];
-	custom_buttons: CustomButton[] | null;
+	buttons: (string | CustomButton)[] | null;
 	autofocus: boolean;
 	autoscroll: boolean;
 	max_length: number;

@@ -22,8 +22,7 @@
 	export let container = true;
 	export let max_lines: number | undefined = undefined;
 	export let type: "text" | "password" | "email" = "text";
-	export let buttons: string[] = [];
-	export let custom_buttons: CustomButton[] | null = null;
+	export let buttons: (string | CustomButton)[] | null = null;
 	export let submit_btn: string | boolean | null = null;
 	export let stop_btn: string | boolean | null = null;
 	export let rtl = false;
@@ -250,17 +249,18 @@
 
 <!-- svelte-ignore a11y-autofocus -->
 <label class:container class:show_textbox_border>
-	{#if show_label && (buttons.includes("copy") || (custom_buttons && custom_buttons.length > 0))}
+	{#if show_label && buttons && buttons.length > 0}
 		<IconButtonWrapper>
-			{#if buttons.includes("copy")}
-				<IconButton
-					Icon={copied ? Check : Copy}
-					on:click={handle_copy}
-					label={copied ? "Copied" : "Copy"}
-				/>
-			{/if}
-			{#if custom_buttons}
-				{#each custom_buttons as btn}
+			{#each buttons as btn}
+				{#if typeof btn === "string"}
+					{#if btn === "copy"}
+						<IconButton
+							Icon={copied ? Check : Copy}
+							on:click={handle_copy}
+							label={copied ? "Copied" : "Copy"}
+						/>
+					{/if}
+				{:else}
 					<button
 						class="custom-button"
 						on:click={() => handle_custom_button_click(btn.component_id)}
@@ -278,8 +278,8 @@
 							<span class="custom-button-label">{btn.value}</span>
 						{/if}
 					</button>
-				{/each}
-			{/if}
+				{/if}
+			{/each}
 		</IconButtonWrapper>
 	{/if}
 	<BlockTitle show_label={validation_error ? true : show_label} {info}

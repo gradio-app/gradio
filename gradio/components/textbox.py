@@ -147,15 +147,7 @@ class Textbox(FormComponent):
         self.lines = lines
         self.max_lines = max_lines
         self.placeholder = placeholder
-        self._builtin_buttons: list[str] = []
-        self._custom_buttons: list[Button] = []
-        if buttons:
-            for btn in buttons:
-                if isinstance(btn, str):
-                    self._builtin_buttons.append(btn)
-                elif isinstance(btn, Button):
-                    self._custom_buttons.append(btn)
-        self.buttons = self._builtin_buttons if self._builtin_buttons else None
+        self.buttons = buttons
         self.submit_btn = submit_btn
         self.stop_btn = stop_btn
         self.autofocus = autofocus
@@ -211,16 +203,3 @@ class Textbox(FormComponent):
 
     def example_value(self) -> Any:
         return "Hello!!"
-
-    def get_config(self):
-        config = super().get_config()
-        if self._custom_buttons:
-            config["custom_buttons"] = [
-                {
-                    "component_id": btn._id,
-                    "value": btn.value,
-                    "icon": btn.icon,
-                }
-                for btn in self._custom_buttons
-            ]
-        return config

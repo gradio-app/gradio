@@ -83,7 +83,6 @@
 		submit_btn={gradio.props.submit_btn}
 		stop_btn={gradio.props.stop_btn}
 		buttons={gradio.props.buttons}
-		custom_buttons={gradio.props.custom_buttons}
 		autofocus={gradio.props.autofocus}
 		container={gradio.shared.container}
 		autoscroll={gradio.shared.autoscroll}

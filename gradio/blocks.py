@@ -280,6 +280,13 @@ class Block:
                 value = getattr(self, parameter.name)
                 if dataclasses.is_dataclass(value):
                     value = dataclasses.asdict(value)  # type: ignore
+                elif isinstance(value, Block):
+                    value = value.get_config()
+                elif isinstance(value, (list, tuple)):
+                    value = [
+                        item.get_config() if isinstance(item, Block) else item
+                        for item in value
+                    ]
                 config[parameter.name] = value
         for e in self.events:
             to_add = e.config_data()
