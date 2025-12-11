@@ -203,16 +203,3 @@ class Textbox(FormComponent):
 
     def example_value(self) -> Any:
         return "Hello!!"
-
-    def get_config(self):
-        config = super().get_config()
-        if self._custom_buttons:
-            config["custom_buttons"] = [
-                {
-                    "component_id": btn._id,
-                    "value": btn.value,
-                    "icon": btn.icon,
-                }
-                for btn in self._custom_buttons
-            ]
-        return config
