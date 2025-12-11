@@ -1,4 +1,5 @@
 ---
+"@gradio/atoms": minor
 "@gradio/core": minor
 "@gradio/textbox": minor
 "@gradio/utils": minor
