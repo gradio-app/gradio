@@ -14,7 +14,7 @@
 	import type { TextboxProps, TextboxEvents } from "./types";
 
 	let _props = $props();
-	const gradio = new Gradio<TextboxEvents, TextboxProps>(_props);
+	const gradio = new Gradio<TextboxEvents | "custom_button_click", TextboxProps>(_props);
 
 	let label = $derived(gradio.shared.label || "Textbox");
 	// Need to set the value to "" otherwise a change event gets
@@ -83,6 +83,7 @@
 		submit_btn={gradio.props.submit_btn}
 		stop_btn={gradio.props.stop_btn}
 		buttons={gradio.props.buttons}
+		custom_buttons={gradio.props.custom_buttons}
 		autofocus={gradio.props.autofocus}
 		container={gradio.shared.container}
 		autoscroll={gradio.shared.autoscroll}
@@ -101,6 +102,11 @@
 		on:focus={() => gradio.dispatch("focus")}
 		on:stop={() => gradio.dispatch("stop")}
 		on:copy={(e) => gradio.dispatch("copy", e.detail)}
+		on:custom_button_click={(e) => {
+			if (e.detail?.component_id !== undefined) {
+				gradio.dispatch_to(e.detail.component_id, "click", null);
+			}
+		}}
 		disabled={!gradio.shared.interactive}
 	/>
 </Block>

@@ -64,7 +64,6 @@
 				loading_status: gradio.shared.loading_status,
 				interactive: gradio.shared.interactive,
 				buttons: gradio.props.buttons,
-				custom_buttons: gradio.props.custom_buttons,
 				max_chars: gradio.props.max_chars,
 				show_row_numbers: gradio.props.show_row_numbers,
 				show_search: gradio.props.show_search,
@@ -78,16 +77,12 @@
 	const compat_gradio = {
 		i18n: gradio.i18n,
 		client: gradio.shared.client,
-		dispatch(name: keyof DataframeEvents | "custom_button_click", detail?: any) {
+		dispatch(name: keyof DataframeEvents, detail?: any) {
 			if (name === "input" && changed) {
 				changed = false;
 				return;
 			}
-			if (name === "custom_button_click" && detail?.component_id !== undefined) {
-				gradio.dispatch_to(detail.component_id, "click", null);
-				return;
-			}
-			gradio.dispatch(name as keyof DataframeEvents, detail);
+			gradio.dispatch(name, detail);
 		},
 		autoscroll: gradio.shared.autoscroll
 	};
@@ -116,7 +111,6 @@
 				loading_status: gradio.shared.loading_status,
 				interactive: gradio.shared.interactive,
 				buttons: gradio.props.buttons,
-				custom_buttons: gradio.props.custom_buttons,
 				max_chars: gradio.props.max_chars,
 				show_row_numbers: gradio.props.show_row_numbers,
 				show_search: gradio.props.show_search,

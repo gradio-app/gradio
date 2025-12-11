@@ -4,14 +4,6 @@
 	import { onDestroy } from "svelte";
 	import { createEventDispatcher } from "svelte";
 	import { IconButton } from "@gradio/atoms";
-	import { Image } from "@gradio/image/shared";
-	import type { FileData } from "@gradio/client";
-
-	export interface CustomButton {
-		component_id: number;
-		value: string | null;
-		icon: FileData | null;
-	}
 
 	export let show_fullscreen_button = false;
 	export let show_copy_button = false;
@@ -19,21 +11,15 @@
 	export let fullscreen = false;
 	export let on_copy: () => Promise<void>;
 	export let on_commit_filter: () => void;
-	export let custom_buttons: CustomButton[] | null = null;
 
 	const dispatch = createEventDispatcher<{
 		search: string | null;
-		custom_button_click: { component_id: number };
 	}>();
 
 	let copied = false;
 	let timer: ReturnType<typeof setTimeout>;
 	export let current_search_query: string | null = null;
 	let input_value = "";
-
-	function handle_custom_button_click(component_id: number): void {
-		dispatch("custom_button_click", { component_id });
-	}
 
 	function handle_search_input(e: Event): void {
 		const target = e.target as HTMLTextAreaElement;
@@ -97,27 +83,6 @@
 		{/if}
 		{#if show_fullscreen_button}
 			<FullscreenButton {fullscreen} on:fullscreen />
-		{/if}
-		{#if custom_buttons}
-			{#each custom_buttons as btn}
-				<button
-					class="toolbar-button custom-button"
-					on:click={() => handle_custom_button_click(btn.component_id)}
-					title={btn.value || ""}
-					aria-label={btn.value || "Custom action"}
-				>
-					{#if btn.icon}
-						<Image
-							src={btn.icon.url}
-							class_names={["custom-button-icon"]}
-							restProps={{ alt: btn.value || "button icon" }}
-						/>
-					{/if}
-					{#if btn.value}
-						<span class="custom-button-label">{btn.value}</span>
-					{/if}
-				</button>
-			{/each}
 		{/if}
 	</div>
 </div>
@@ -229,36 +194,5 @@
 		color: var(--body-text-color) !important;
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-sm) !important;
-	}
-
-	.custom-button {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: var(--size-1);
-		height: var(--size-6);
-		padding: var(--size-1) var(--size-2);
-		border: none;
-		border-radius: var(--radius-sm);
-		background: transparent;
-		color: var(--body-text-color-subdued);
-		cursor: pointer;
-		transition: all 0.2s;
-		font-size: var(--text-sm);
-	}
-
-	.custom-button:hover {
-		background: var(--background-fill-secondary);
-		color: var(--body-text-color);
-	}
-
-	:global(.custom-button-icon) {
-		width: var(--size-4);
-		height: var(--size-4);
-		object-fit: contain;
-	}
-
-	.custom-button-label {
-		white-space: nowrap;
 	}
 </style>
