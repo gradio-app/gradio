@@ -237,8 +237,8 @@ class Dataframe(Component):
             else f"{w}px"
             for w in (column_widths or [])
         ]
-        self.buttons = buttons
-        [btn.unrender() for btn in (self.buttons or []) if isinstance(btn, Button)]
+        self.buttons = buttons or []
+        [btn.unrender() for btn in self.buttons if isinstance(btn, Button)]
         self.show_row_numbers = show_row_numbers
         self.max_chars = max_chars
         self.show_search = show_search

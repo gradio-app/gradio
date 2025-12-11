@@ -33,7 +33,7 @@ class TestImageEditor:
             "height": None,
             "width": None,
             "image_mode": "RGBA",
-            "sources": ("upload", "webcam", "clipboard"),
+            "sources": ["upload", "webcam", "clipboard"],
             "type": "numpy",
             "label": None,
             "show_label": True,
@@ -48,7 +48,7 @@ class TestImageEditor:
             "_selectable": False,
             "key": None,
             "preserved_by_key": ["value"],
-            "transforms": ("crop", "resize"),
+            "transforms": ["crop", "resize"],
             "eraser": {"default_size": "auto"},
             "brush": {
                 "default_size": "auto",
@@ -71,9 +71,9 @@ class TestImageEditor:
                 "layers": ["Layer 1"],
                 "disabled": False,
             },
-            "canvas_size": (800, 800),
+            "canvas_size": [800, 800],
             "placeholder": None,
-            "buttons": None,
+            "buttons": [],
             "fixed_canvas": False,
         }
 
