@@ -60,7 +60,8 @@
 			display_top_corner={display_icon_button_wrapper_top_corner}
 			show_background={show_button_background}
 		>
-			{#each buttons || (buttons === null ? ["download", "share", "fullscreen"] : []) as btn}
+			<!-- prettier-ignore -->
+			{#each (buttons || (buttons === null ? ["download", "share", "fullscreen"] : [])) as btn}
 				{#if typeof btn === "string"}
 					{#if btn === "fullscreen"}
 						<FullscreenButton {fullscreen} on:fullscreen />
