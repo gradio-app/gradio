@@ -15,6 +15,7 @@ import orjson
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
+from gradio.components.button import Button
 from gradio.data_classes import JsonData
 from gradio.events import Events
 from gradio.exceptions import Error
@@ -56,7 +57,7 @@ class JSON(Component):
         height: int | str | None = None,
         max_height: int | str | None = 500,
         min_height: int | str | None = None,
-        buttons: list[Literal["copy"]] | None = None,
+        buttons: list[Literal["copy"] | Button] | None = None,
     ):
         """
         Parameters:
@@ -77,7 +78,7 @@ class JSON(Component):
             open: If True, all JSON nodes will be expanded when rendered. By default, node levels deeper than 3 are collapsed.
             show_indices: Whether to show numerical indices when displaying the elements of a list within the JSON object.
             height: Height of the JSON component in pixels if a number is passed, or in CSS units if a string is passed. Overflow will be scrollable. If None, the height will be automatically adjusted to fit the content.
-            buttons: A list of buttons to show for the component. Currently, the only valid option is "copy". The "copy" button allows users to copy the JSON to the clipboard. By default, the copy button is shown.
+            buttons: A list of buttons to show for the component. Valid options are "copy" or a gr.Button() instance. The "copy" button allows users to copy the JSON to the clipboard. Custom gr.Button() instances will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button. By default, the copy button is shown.
         """
         super().__init__(
             label=label,

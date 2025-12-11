@@ -98,7 +98,7 @@ class AnnotatedImage(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
-            buttons: A list of buttons to show for the component. Valid options are "fullscreen" or a gr.Button() instance. The "fullscreen" button allows the user to view the image in fullscreen mode. Custom gr.Button() instances will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button. By default, all buttons are shown.
+            buttons: A list of buttons to show for the component. Valid options in the list are "fullscreen" or a gr.Button() instance. The "fullscreen" button allows the user to view the image in fullscreen mode. Custom gr.Button() instances will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button. By default, the fullscreen button is shown, and this can hidden by providing an empty list.
         """
         self.format = format
         self.show_legend = show_legend
