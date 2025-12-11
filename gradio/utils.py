@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import ast
 import asyncio
 import copy
 import functools
@@ -307,51 +306,6 @@ class SourceFileReloader(ServerReloader):
         self.alert_change("reload")
 
 
-def _remove_if_name_main_codeblock(file_path: str, encoding: str = "utf-8"):
-    """Parse the file, remove the gr.no_reload code blocks, and write the file back to disk.
-
-    Parameters:
-        file_path (str): The path to the file to remove the no_reload code blocks from.
-    """
-
-    with open(file_path, encoding=encoding) as file:
-        code = file.read()
-
-    tree = ast.parse(code)
-
-    def _is_if_name_main(expr: ast.AST) -> bool:
-        """Find the if __name__ == '__main__': block."""
-        return (
-            isinstance(expr, ast.If)
-            and isinstance(expr.test, ast.Compare)
-            and isinstance(expr.test.left, ast.Name)
-            and expr.test.left.id == "__name__"
-            and len(expr.test.ops) == 1
-            and isinstance(expr.test.ops[0], ast.Eq)
-            and isinstance(expr.test.comparators[0], ast.Constant)
-            and expr.test.comparators[0].value == "__main__"
-        )
-
-    # Find the positions of the code blocks to load
-    for node in ast.walk(tree):
-        if _is_if_name_main(node):
-            assert isinstance(node, ast.If)  # noqa: S101
-            node.body = [ast.Pass(lineno=node.lineno, col_offset=node.col_offset)]
-
-    # convert tree to string
-    code_removed = compile(tree, filename=file_path, mode="exec")
-    return code_removed
-
-
-def _find_module(source_file: Path) -> ModuleType | None:
-    for s, v in sys.modules.items():
-        if s not in {"__main__", "__mp_main__"} and getattr(v, "__file__", None) == str(
-            source_file
-        ):
-            return v
-    return None
-
-
 def watchfn_spaces(reloader: SpacesReloader):
     try:
         spaces_version = importlib.metadata.version("spaces")
@@ -435,8 +389,8 @@ def watchfn(reloader: SourceFileReloader) -> None:
     # Need to import the module in this thread so that the
     # module is available in the namespace of this thread
     module = reloader.watch_module
-    no_reload_source_code = _remove_if_name_main_codeblock(
-        str(reloader.demo_file), encoding=reloader.encoding
+    no_reload_source_code = Path(str(reloader.demo_file)).read_text(
+        encoding=reloader.encoding
     )
     # Reset the context to id 0 so that the loaded module is the same as the original
     # See https://github.com/gradio-app/gradio/issues/10253
@@ -469,8 +423,8 @@ def watchfn(reloader: SourceFileReloader) -> None:
 
                 NO_RELOAD.set(False)
                 # Remove the gr.no_reload code blocks and exec in the new module's dict
-                no_reload_source_code = _remove_if_name_main_codeblock(
-                    str(reloader.demo_file), encoding=reloader.encoding
+                no_reload_source_code = Path(str(reloader.demo_file)).read_text(
+                    encoding=reloader.encoding
                 )
                 exec(no_reload_source_code, module.__dict__)
 
