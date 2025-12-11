@@ -320,6 +320,7 @@ class Chatbot(Component):
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
         self.latex_delimiters = latex_delimiters
         self.buttons = buttons
+        [btn.unrender() for btn in (self.buttons or []) if isinstance(btn, Button)]
         self.render_markdown = render_markdown
         self.watermark = watermark
         self.sanitize_html = sanitize_html
