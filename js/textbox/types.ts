@@ -3,7 +3,7 @@ import type { LoadingStatus } from "@gradio/statustracker";
 import type { FileData } from "@gradio/client";
 
 export interface CustomButton {
-	component_id: number;
+	id: number;
 	value: string | null;
 	icon: FileData | null;
 }

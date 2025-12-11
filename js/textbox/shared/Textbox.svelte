@@ -263,7 +263,7 @@
 				{:else}
 					<button
 						class="custom-button"
-						on:click={() => handle_custom_button_click(btn.component_id)}
+						on:click={() => handle_custom_button_click(btn.id)}
 						title={btn.value || ""}
 						aria-label={btn.value || "Custom action"}
 					>

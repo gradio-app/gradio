@@ -13,8 +13,8 @@ with gr.Blocks() as demo:
     # Textbox with Custom Buttons Demo
     
     This demo showcases custom buttons in a Textbox component that can trigger both:
-    - **Python functions** (server-side processing)
-    - **JavaScript functions** (client-side processing, instant updates)
+    - **Python functions** 
+    - **JS functions** (with and without input parameters)
     """)
     
     gr.Markdown("### Textbox with Custom Buttons")
