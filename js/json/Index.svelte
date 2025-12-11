@@ -68,7 +68,11 @@
 		show_indices={gradio.props.show_indices}
 		show_copy_button={gradio.props.buttons == null
 			? true
-			: gradio.props.buttons.includes("copy")}
+			: gradio.props.buttons.some(btn => typeof btn === "string" && btn === "copy")}
+		buttons={gradio.props.buttons}
+		on_custom_button_click={(id) => {
+			gradio.dispatch_to(id, "click", null);
+		}}
 		{label_height}
 	/>
 </Block>

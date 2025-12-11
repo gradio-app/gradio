@@ -110,9 +110,13 @@
 			bind:value={gradio.props.value}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
-			show_download_button={gradio.props.buttons.includes("download")}
+			show_download_button={gradio.props.buttons.some(btn => typeof btn === "string" && btn === "download")}
 			i18n={gradio.i18n}
-			show_fullscreen_button={gradio.props.buttons.includes("fullscreen")}
+			show_fullscreen_button={gradio.props.buttons.some(btn => typeof btn === "string" && btn === "fullscreen")}
+			buttons={gradio.props.buttons}
+			on_custom_button_click={(id) => {
+				gradio.dispatch_to(id, "click", null);
+			}}
 			position={normalised_slider_position}
 			slider_color={gradio.props.slider_color}
 			max_height={gradio.props.max_height}

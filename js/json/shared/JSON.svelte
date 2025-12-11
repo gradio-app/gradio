@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { onDestroy } from "svelte";
 	import { JSON as JSONIcon } from "@gradio/icons";
-	import { Empty, IconButtonWrapper, IconButton } from "@gradio/atoms";
+	import { Empty, IconButtonWrapper, IconButton, CustomButton } from "@gradio/atoms";
 	import JSONNode from "./JSONNode.svelte";
 	import { Copy, Check } from "@gradio/icons";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 
 	export let value: any = {};
 	export let open = false;
@@ -12,6 +13,8 @@
 	export let label_height: number;
 	export let interactive = true;
 	export let show_copy_button = true;
+	export let buttons: (string | CustomButtonType)[] | null = null;
+	export let on_custom_button_click: ((id: number) => void) | null = null;
 
 	$: json_max_height = `calc(100% - ${label_height}px)`;
 
@@ -47,17 +50,33 @@
 	});
 </script>
 
-{#if value && value !== '""' && !is_empty(value)}
-	{#if show_copy_button}
-		<IconButtonWrapper>
-			<IconButton
-				show_label={false}
-				label={copied ? "Copied" : "Copy"}
-				Icon={copied ? Check : Copy}
-				on:click={() => handle_copy()}
-			/>
-		</IconButtonWrapper>
-	{/if}
+	{#if value && value !== '""' && !is_empty(value)}
+		{#if show_copy_button || (buttons && buttons.some(btn => typeof btn !== "string"))}
+			<IconButtonWrapper>
+				{#if show_copy_button}
+					<IconButton
+						show_label={false}
+						label={copied ? "Copied" : "Copy"}
+						Icon={copied ? Check : Copy}
+						on:click={() => handle_copy()}
+					/>
+				{/if}
+				{#if buttons}
+					{#each buttons as btn}
+						{#if typeof btn !== "string"}
+							<CustomButton
+								button={btn}
+								on_click={(id) => {
+									if (on_custom_button_click) {
+										on_custom_button_click(id);
+									}
+								}}
+							/>
+						{/if}
+					{/each}
+				{/if}
+			</IconButtonWrapper>
+		{/if}
 	<div class="json-holder" style:max-height={json_max_height}>
 		<JSONNode
 			{value}

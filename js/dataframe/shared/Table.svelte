@@ -825,7 +825,7 @@
 <svelte:window on:resize={() => set_cell_widths()} />
 
 <div class="table-container">
-	{#if (label && label.length !== 0 && show_label) || (buttons === null ? true : buttons.includes("fullscreen")) || (buttons === null ? true : buttons.includes("copy")) || show_search !== "none"}
+	{#if (label && label.length !== 0 && show_label) || (buttons === null ? true : buttons.some(btn => typeof btn === "string" && (btn === "fullscreen" || btn === "copy"))) || buttons?.some(btn => typeof btn !== "string") || show_search !== "none"}
 		<div class="header-row">
 			{#if label && label.length !== 0 && show_label}
 				<div class="label">

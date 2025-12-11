@@ -9,8 +9,10 @@
 		ShareButton,
 		IconButtonWrapper,
 		FullscreenButton,
-		DownloadLink
+		DownloadLink,
+		CustomButton
 	} from "@gradio/atoms";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 	import { Download, Image as ImageIcon } from "@gradio/icons";
 	import { get_coordinates_of_clicked_image } from "./utils";
 	import Image from "./Image.svelte";
@@ -21,7 +23,8 @@
 	export let value: null | FileData;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
-	export let buttons: string[] | null = null;
+	export let buttons: (string | CustomButtonType)[] | null = null;
+	export let on_custom_button_click: ((id: number) => void) | null = null;
 	export let selectable = false;
 	export let i18n: I18nFormatter;
 	export let display_icon_button_wrapper_top_corner = false;
@@ -57,28 +60,40 @@
 			display_top_corner={display_icon_button_wrapper_top_corner}
 			show_background={show_button_background}
 		>
-			{#if buttons === null ? true : buttons.includes("fullscreen")}
-				<FullscreenButton {fullscreen} on:fullscreen />
-			{/if}
-
-			{#if buttons === null ? true : buttons.includes("download")}
-				<DownloadLink href={value.url} download={value.orig_name || "image"}>
-					<IconButton Icon={Download} label={i18n("common.download")} />
-				</DownloadLink>
-			{/if}
-			{#if buttons === null ? true : buttons.includes("share")}
-				<ShareButton
-					{i18n}
-					on:share
-					on:error
-					formatter={async (value) => {
-						if (!value) return "";
-						let url = await uploadToHuggingFace(value, "url");
-						return `<img src="${url}" />`;
-					}}
-					{value}
-				/>
-			{/if}
+			{#each buttons || (buttons === null ? ["download", "share", "fullscreen"] : []) as btn}
+				{#if typeof btn === "string"}
+					{#if btn === "fullscreen"}
+						<FullscreenButton {fullscreen} on:fullscreen />
+					{/if}
+					{#if btn === "download"}
+						<DownloadLink href={value.url} download={value.orig_name || "image"}>
+							<IconButton Icon={Download} label={i18n("common.download")} />
+						</DownloadLink>
+					{/if}
+					{#if btn === "share"}
+						<ShareButton
+							{i18n}
+							on:share
+							on:error
+							formatter={async (value) => {
+								if (!value) return "";
+								let url = await uploadToHuggingFace(value, "url");
+								return `<img src="${url}" />`;
+							}}
+							{value}
+						/>
+					{/if}
+				{:else}
+					<CustomButton
+						button={btn}
+						on_click={(id) => {
+							if (on_custom_button_click) {
+								on_custom_button_click(id);
+							}
+						}}
+					/>
+				{/if}
+			{/each}
 		</IconButtonWrapper>
 		<button on:click={handle_click}>
 			<div class:selectable class="image-frame">
