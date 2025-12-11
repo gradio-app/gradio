@@ -1,4 +1,4 @@
-import type { SelectData, ValueData, ShareData } from "@gradio/utils";
+import type { SelectData, ValueData, ShareData, CustomButton } from "@gradio/utils";
 import type { LoadingStatus } from "@gradio/statustracker";
 import type { FileData } from "@gradio/client";
 
@@ -22,7 +22,6 @@ export interface ImageSliderProps {
 	height: number | undefined;
 	width: number | undefined;
 	placeholder: string | undefined;
-	import type { CustomButton } from "@gradio/utils";
 	buttons: (string | CustomButton)[];
 	input_ready: boolean;
 	slider_position: number;

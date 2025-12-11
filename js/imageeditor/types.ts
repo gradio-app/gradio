@@ -1,4 +1,4 @@
-import type { SelectData, ShareData } from "@gradio/utils";
+import type { SelectData, ShareData, CustomButton } from "@gradio/utils";
 import type { LoadingStatus } from "@gradio/statustracker";
 import type { CommandNode } from "./shared/core/commands";
 import type {
@@ -29,7 +29,6 @@ export interface ImageEditorProps {
 	border_region?: number;
 	webcam_options?: WebcamOptions;
 	value?: EditorData | null;
-	import type { CustomButton } from "@gradio/utils";
 	buttons?: (string | CustomButton)[] | null;
 	height?: number;
 	width?: number;
