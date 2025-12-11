@@ -60,13 +60,16 @@
 			display_top_corner={display_icon_button_wrapper_top_corner}
 			show_background={show_button_background}
 		>
-			{#each buttons || (buttons === null ? ["download", "share", "fullscreen"] : []) as btn}
+			{#each buttons || (buttons === null ? ["download", "share", "fullscreen"] : [] as btn}
 				{#if typeof btn === "string"}
 					{#if btn === "fullscreen"}
 						<FullscreenButton {fullscreen} on:fullscreen />
 					{/if}
 					{#if btn === "download"}
-						<DownloadLink href={value.url} download={value.orig_name || "image"}>
+						<DownloadLink
+							href={value.url}
+							download={value.orig_name || "image"}
+						>
 							<IconButton Icon={Download} label={i18n("common.download")} />
 						</DownloadLink>
 					{/if}

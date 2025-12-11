@@ -299,7 +299,7 @@
 			on:edit={() => (mode = "edit")}
 			download={buttons === null
 				? value.url
-				: buttons.some(btn => typeof btn === "string" && btn === "download")
+				: buttons.some((btn) => typeof btn === "string" && btn === "download")
 					? value.url
 					: null}
 		/>

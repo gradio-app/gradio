@@ -175,7 +175,11 @@
 		gradio_event_dispatcher
 	);
 
-	function dispatch_to_target(target_id: number, event: string, data: unknown): void {
+	function dispatch_to_target(
+		target_id: number,
+		event: string,
+		data: unknown
+	): void {
 		dep_manager.dispatch({
 			type: "event",
 			event_name: event,

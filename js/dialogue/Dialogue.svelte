@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { onMount, tick } from "svelte";
-	import { BlockTitle, IconButton, IconButtonWrapper, CustomButton } from "@gradio/atoms";
+	import {
+		BlockTitle,
+		IconButton,
+		IconButtonWrapper,
+		CustomButton
+	} from "@gradio/atoms";
 	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 	import { Copy, Check, Send, Plus, Trash } from "@gradio/icons";
 	import { fade } from "svelte/transition";
@@ -406,9 +411,9 @@
 <svelte:window on:click={handle_click_outside} />
 
 <label class:container={gradio.shared.container}>
-	{#if gradio.shared.show_label && (buttons.some(btn => typeof btn === "string" && btn === "copy") || buttons.some(btn => typeof btn !== "string"))}
+	{#if gradio.shared.show_label && (buttons.some((btn) => typeof btn === "string" && btn === "copy") || buttons.some((btn) => typeof btn !== "string"))}
 		<IconButtonWrapper>
-			{#if buttons.some(btn => typeof btn === "string" && btn === "copy")}
+			{#if buttons.some((btn) => typeof btn === "string" && btn === "copy")}
 				<IconButton
 					Icon={copied ? Check : Copy}
 					on:click={handle_copy}

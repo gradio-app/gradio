@@ -1,4 +1,8 @@
-import { type SelectData, type CopyData, type CustomButton } from "@gradio/utils";
+import {
+	type SelectData,
+	type CopyData,
+	type CustomButton
+} from "@gradio/utils";
 import type { LoadingStatus } from "@gradio/statustracker";
 
 export interface TextboxEvents {

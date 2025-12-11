@@ -5,4 +5,3 @@ export interface CustomButton {
 	value: string | null;
 	icon: FileData | null;
 }
-

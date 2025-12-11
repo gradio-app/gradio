@@ -70,8 +70,12 @@
 			likeable={gradio.props.likeable}
 			feedback_options={gradio.props.feedback_options}
 			feedback_value={gradio.props.feedback_value}
-			show_share_button={(gradio.props.buttons ?? ["share"]).some(btn => typeof btn === "string" && btn === "share")}
-			show_copy_all_button={(gradio.props.buttons ?? ["copy_all"]).some(btn => typeof btn === "string" && btn === "copy_all")}
+			show_share_button={(gradio.props.buttons ?? ["share"]).some(
+				(btn) => typeof btn === "string" && btn === "share"
+			)}
+			show_copy_all_button={(gradio.props.buttons ?? ["copy_all"]).some(
+				(btn) => typeof btn === "string" && btn === "copy_all"
+			)}
 			value={_value}
 			latex_delimiters={gradio.props.latex_delimiters}
 			display_consecutive_in_same_bubble={gradio.props
@@ -82,7 +86,9 @@
 			pending_message={gradio.shared.loading_status?.status === "pending"}
 			generating={gradio.shared.loading_status?.status === "generating"}
 			rtl={gradio.props.rtl}
-			show_copy_button={(gradio.props.buttons ?? ["copy"]).some(btn => typeof btn === "string" && btn === "copy")}
+			show_copy_button={(gradio.props.buttons ?? ["copy"]).some(
+				(btn) => typeof btn === "string" && btn === "copy"
+			)}
 			buttons={gradio.props.buttons}
 			on_custom_button_click={(id) => {
 				gradio.dispatch_to(id, "click", null);

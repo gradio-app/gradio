@@ -208,7 +208,9 @@
 			webcam_options={gradio.props.webcam_options}
 			show_download_button={gradio.props.buttons === null
 				? true
-				: gradio.props.buttons.some(btn => typeof btn === "string" && btn === "download")}
+				: gradio.props.buttons.some(
+						(btn) => typeof btn === "string" && btn === "download"
+					)}
 			theme_mode={gradio.shared.theme_mode}
 			on:download_error={(e) => gradio.dispatch("error", e.detail)}
 		></InteractiveImageEditor>

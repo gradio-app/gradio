@@ -165,7 +165,9 @@
 			{fullscreen}
 			show_fullscreen_button={gradio.props.buttons === null
 				? true
-				: gradio.props.buttons.some(btn => typeof btn === "string" && btn === "fullscreen")}
+				: gradio.props.buttons.some(
+						(btn) => typeof btn === "string" && btn === "fullscreen"
+					)}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => {
 				fullscreen = false;

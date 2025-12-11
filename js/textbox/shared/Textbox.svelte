@@ -5,9 +5,18 @@
 		createEventDispatcher,
 		tick
 	} from "svelte";
-	import { BlockTitle, IconButton, IconButtonWrapper, CustomButton } from "@gradio/atoms";
+	import {
+		BlockTitle,
+		IconButton,
+		IconButtonWrapper,
+		CustomButton
+	} from "@gradio/atoms";
 	import { Copy, Check, Send, Square } from "@gradio/icons";
-	import type { SelectData, CopyData, CustomButton as CustomButtonType } from "@gradio/utils";
+	import type {
+		SelectData,
+		CopyData,
+		CustomButton as CustomButtonType
+	} from "@gradio/utils";
 	import type { InputHTMLAttributes } from "../types";
 
 	export let value = "";
@@ -537,5 +546,4 @@
 			0 0 3px 1px var(--error-icon-color),
 			var(--shadow-inset) !important;
 	}
-
 </style>

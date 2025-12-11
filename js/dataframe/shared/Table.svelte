@@ -88,8 +88,15 @@
 
 	const df_ctx = create_dataframe_context({
 		show_fullscreen_button:
-			buttons === null ? true : buttons.some(btn => typeof btn === "string" && btn === "fullscreen"),
-		show_copy_button: buttons === null ? true : buttons.some(btn => typeof btn === "string" && btn === "copy"),
+			buttons === null
+				? true
+				: buttons.some(
+						(btn) => typeof btn === "string" && btn === "fullscreen"
+					),
+		show_copy_button:
+			buttons === null
+				? true
+				: buttons.some((btn) => typeof btn === "string" && btn === "copy"),
 		show_search,
 		show_row_numbers,
 		editable,
@@ -825,7 +832,7 @@
 <svelte:window on:resize={() => set_cell_widths()} />
 
 <div class="table-container">
-	{#if (label && label.length !== 0 && show_label) || (buttons === null ? true : buttons.some(btn => typeof btn === "string" && (btn === "fullscreen" || btn === "copy"))) || buttons?.some(btn => typeof btn !== "string") || show_search !== "none"}
+	{#if (label && label.length !== 0 && show_label) || (buttons === null ? true : buttons.some((btn) => typeof btn === "string" && (btn === "fullscreen" || btn === "copy"))) || buttons?.some((btn) => typeof btn !== "string") || show_search !== "none"}
 		<div class="header-row">
 			{#if label && label.length !== 0 && show_label}
 				<div class="label">
@@ -835,12 +842,16 @@
 			<Toolbar
 				show_fullscreen_button={buttons === null
 					? true
-					: buttons.some(btn => typeof btn === "string" && btn === "fullscreen")}
+					: buttons.some(
+							(btn) => typeof btn === "string" && btn === "fullscreen"
+						)}
 				{fullscreen}
 				on_copy={async () => await copy_table_data(data, null)}
-				show_copy_button={buttons === null ? true : buttons.some(btn => typeof btn === "string" && btn === "copy")}
-				buttons={buttons}
-				on_custom_button_click={on_custom_button_click}
+				show_copy_button={buttons === null
+					? true
+					: buttons.some((btn) => typeof btn === "string" && btn === "copy")}
+				{buttons}
+				{on_custom_button_click}
 				{show_search}
 				on:search={(e) => df_actions.handle_search(e.detail)}
 				on:fullscreen
