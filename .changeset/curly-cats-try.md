@@ -1,6 +1,5 @@
 ---
 "@gradio/core": minor
-"@gradio/dataframe": minor
 "@gradio/textbox": minor
 "@gradio/utils": minor
 "gradio": minor
