@@ -24,15 +24,25 @@ with gr.Blocks() as demo:
     alert_btn = gr.Button("⚠️ Alert")
     clear_btn = gr.Button("🗑️")
     
-    textbox = gr.Textbox(
-        value="Sample text content that can be exported, refreshed, or transformed.",
-        buttons=["copy", refresh_btn, alert_btn, clear_btn],
-        label="Sample Text",
-        lines=5
+    audio = gr.Audio(
+        value="https://github.com/rafaelreis-hotmart/Audio-Sample-files/raw/master/sample.mp3",
+        buttons=["download", alert_btn],
+        label="Sample Audio",
     )
-    
-    output = gr.Textbox(label="Output (Python Function Result)")
-        
+
+    textbox = gr.Textbox(
+        buttons=["copy", alert_btn],
+        label="Sample Text",
+    )
+
+    gr.Markdown("### Textbox with Custom Buttons")
+
+    textbox2 = gr.Textbox(
+        buttons=["copy", alert_btn],
+        label="Sample Text",
+    )
+
+
     
     refresh_btn.click(refresh_data, outputs=textbox)
     

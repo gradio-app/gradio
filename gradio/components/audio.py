@@ -176,8 +176,8 @@ class Audio(
         self.format = format and format.lower()
         self.autoplay = autoplay
         self.loop = loop
-        self.buttons = buttons
-        [btn.unrender() for btn in (self.buttons or []) if isinstance(btn, Button)]
+        self.buttons = buttons or []
+        [btn.unrender() for btn in self.buttons if isinstance(btn, Button)]
         self.editable = editable
         if waveform_options is None:
             self.waveform_options = WaveformOptions()

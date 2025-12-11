@@ -76,9 +76,7 @@
 	export let show_row_numbers = false;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
-	import type { CustomButton as CustomButtonType } from "@gradio/utils";
-	export let buttons: (string | CustomButtonType)[] | null = null;
-	export let on_custom_button_click: ((id: number) => void) | null = null;
+	export let buttons: string[] | null = null;
 	export let value_is_output = false;
 	export let max_chars: number | undefined = undefined;
 	export let show_search: "none" | "search" | "filter" = "none";
@@ -88,15 +86,8 @@
 
 	const df_ctx = create_dataframe_context({
 		show_fullscreen_button:
-			buttons === null
-				? true
-				: buttons.some(
-						(btn) => typeof btn === "string" && btn === "fullscreen"
-					),
-		show_copy_button:
-			buttons === null
-				? true
-				: buttons.some((btn) => typeof btn === "string" && btn === "copy"),
+			buttons === null ? true : buttons.includes("fullscreen"),
+		show_copy_button: buttons === null ? true : buttons.includes("copy"),
 		show_search,
 		show_row_numbers,
 		editable,
@@ -832,7 +823,7 @@
 <svelte:window on:resize={() => set_cell_widths()} />
 
 <div class="table-container">
-	{#if (label && label.length !== 0 && show_label) || (buttons === null ? true : buttons.some((btn) => typeof btn === "string" && (btn === "fullscreen" || btn === "copy"))) || buttons?.some((btn) => typeof btn !== "string") || show_search !== "none"}
+	{#if (label && label.length !== 0 && show_label) || (buttons === null ? true : buttons.includes("fullscreen")) || (buttons === null ? true : buttons.includes("copy")) || show_search !== "none"}
 		<div class="header-row">
 			{#if label && label.length !== 0 && show_label}
 				<div class="label">
@@ -842,16 +833,10 @@
 			<Toolbar
 				show_fullscreen_button={buttons === null
 					? true
-					: buttons.some(
-							(btn) => typeof btn === "string" && btn === "fullscreen"
-						)}
+					: buttons.includes("fullscreen")}
 				{fullscreen}
 				on_copy={async () => await copy_table_data(data, null)}
-				show_copy_button={buttons === null
-					? true
-					: buttons.some((btn) => typeof btn === "string" && btn === "copy")}
-				{buttons}
-				{on_custom_button_click}
+				show_copy_button={buttons === null ? true : buttons.includes("copy")}
 				{show_search}
 				on:search={(e) => df_actions.handle_search(e.detail)}
 				on:fullscreen

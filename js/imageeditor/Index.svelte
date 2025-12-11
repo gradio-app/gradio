@@ -119,9 +119,6 @@
 			buttons={gradio.props.buttons}
 			selectable={gradio.props._selectable}
 			i18n={gradio.i18n}
-			on_custom_button_click={(id) => {
-				gradio.dispatch_to(id, "click", null);
-			}}
 		/>
 	</Block>
 {:else}
@@ -208,9 +205,7 @@
 			webcam_options={gradio.props.webcam_options}
 			show_download_button={gradio.props.buttons === null
 				? true
-				: gradio.props.buttons.some(
-						(btn) => typeof btn === "string" && btn === "download"
-					)}
+				: gradio.props.buttons.includes("download")}
 			theme_mode={gradio.shared.theme_mode}
 			on:download_error={(e) => gradio.dispatch("error", e.detail)}
 		></InteractiveImageEditor>
