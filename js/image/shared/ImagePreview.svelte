@@ -45,6 +45,8 @@
 	};
 
 	let image_container: HTMLElement;
+
+	$: buttons_to_render = buttons && buttons.length > 0 ? buttons : ["download", "share", "fullscreen"];
 </script>
 
 <BlockLabel
@@ -60,8 +62,7 @@
 			display_top_corner={display_icon_button_wrapper_top_corner}
 			show_background={show_button_background}
 		>
-			<!-- prettier-ignore -->
-			{#each (buttons || (buttons === null ? ["download", "share", "fullscreen"] : [])) as btn}
+			{#each buttons_to_render as btn}
 				{#if typeof btn === "string"}
 					{#if btn === "fullscreen"}
 						<FullscreenButton {fullscreen} on:fullscreen />

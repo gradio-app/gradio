@@ -44,6 +44,8 @@
 	}>();
 
 	$: value && dispatch("change", value);
+
+	$: buttons_to_render = buttons && buttons.length > 0 ? buttons : ["download", "share"];
 </script>
 
 <BlockLabel
@@ -60,8 +62,7 @@
 		<IconButtonWrapper
 			display_top_corner={display_icon_button_wrapper_top_corner}
 		>
-			<!-- prettier-ignore -->
-			{#each (buttons || (buttons === null ? ["download", "share"] : [])) as btn}
+			{#each buttons_to_render as btn}
 				{#if typeof btn === "string"}
 					{#if btn === "download"}
 						<DownloadLink
