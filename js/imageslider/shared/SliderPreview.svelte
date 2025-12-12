@@ -7,8 +7,10 @@
 		IconButton,
 		IconButtonWrapper,
 		FullscreenButton,
-		DownloadLink
+		DownloadLink,
+		CustomButton
 	} from "@gradio/atoms";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 	import { Image, Download, Undo, Clear } from "@gradio/icons";
 	import { type FileData } from "@gradio/client";
 	import type { I18nFormatter } from "@gradio/utils";
@@ -28,6 +30,8 @@
 	export let slider_color: string;
 	export let show_fullscreen_button = true;
 	export let fullscreen = false;
+	export let buttons: (string | CustomButtonType)[] | null = null;
+	export let on_custom_button_click: ((id: number) => void) | null = null;
 	export let el_width = 0;
 	export let max_height: number;
 	export let interactive = true;
@@ -162,6 +166,20 @@
 						event.stopPropagation();
 					}}
 				/>
+			{/if}
+			{#if buttons}
+				{#each buttons as btn}
+					{#if typeof btn !== "string"}
+						<CustomButton
+							button={btn}
+							on_click={(id) => {
+								if (on_custom_button_click) {
+									on_custom_button_click(id);
+								}
+							}}
+						/>
+					{/if}
+				{/each}
 			{/if}
 		</IconButtonWrapper>
 		<div

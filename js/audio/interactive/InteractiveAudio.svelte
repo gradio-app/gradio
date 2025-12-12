@@ -2,8 +2,9 @@
 	import { onDestroy, createEventDispatcher, tick } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import { prepare_files, type FileData, type Client } from "@gradio/client";
-	import { BlockLabel } from "@gradio/atoms";
+	import { BlockLabel, ShareButton, CustomButton } from "@gradio/atoms";
 	import { Music } from "@gradio/icons";
+	import { uploadToHuggingFace } from "@gradio/utils";
 	import { StreamingBar } from "@gradio/statustracker";
 	import AudioPlayer from "../player/AudioPlayer.svelte";
 
@@ -22,7 +23,9 @@
 	export let root: string;
 	export let loop: boolean;
 	export let show_label = true;
-	export let buttons: string[] = ["download", "share"];
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
+	export let buttons: (string | CustomButtonType)[] = ["download", "share"];
+	export let on_custom_button_click: ((id: number) => void) | null = null;
 	export let sources:
 		| ["microphone"]
 		| ["upload"]
@@ -297,10 +300,39 @@
 			on:edit={() => (mode = "edit")}
 			download={buttons === null
 				? value.url
-				: buttons.includes("download")
+				: buttons.some((btn) => typeof btn === "string" && btn === "download")
 					? value.url
 					: null}
-		/>
+		>
+			{#if value !== null && buttons}
+				{#each buttons as btn}
+					{#if typeof btn === "string"}
+						{#if btn === "share"}
+							<ShareButton
+								{i18n}
+								on:error
+								on:share
+								formatter={async (value) => {
+									if (!value) return "";
+									let url = await uploadToHuggingFace(value.url, "url");
+									return `<audio controls src="${url}"></audio>`;
+								}}
+								{value}
+							/>
+						{/if}
+					{:else}
+						<CustomButton
+							button={btn}
+							on_click={(id) => {
+								if (on_custom_button_click) {
+									on_custom_button_click(id);
+								}
+							}}
+						/>
+					{/if}
+				{/each}
+			{/if}
+		</ModifyUpload>
 
 		<AudioPlayer
 			bind:mode

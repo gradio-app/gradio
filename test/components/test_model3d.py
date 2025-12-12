@@ -24,7 +24,7 @@ class TestModel3D:
             "proxy_url": None,
             "interactive": None,
             "name": "model3d",
-            "camera_position": (None, None, None),
+            "camera_position": [None, None, None],
             "height": None,
             "zoom_speed": 1,
             "pan_speed": 1,

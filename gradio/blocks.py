@@ -280,6 +280,20 @@ class Block:
                 value = getattr(self, parameter.name)
                 if dataclasses.is_dataclass(value):
                     value = dataclasses.asdict(value)  # type: ignore
+                elif isinstance(value, Block):
+                    block_instance = value
+                    value = block_instance.get_config()
+                    value["id"] = block_instance._id
+                elif isinstance(value, (list, tuple)):
+                    serialized_list = []
+                    for item in value:
+                        if isinstance(item, Block):
+                            item_config = item.get_config()
+                            item_config["id"] = item._id
+                            serialized_list.append(item_config)
+                        else:
+                            serialized_list.append(item)
+                    value = serialized_list
                 config[parameter.name] = value
         for e in self.events:
             to_add = e.config_data()

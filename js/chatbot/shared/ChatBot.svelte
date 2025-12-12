@@ -23,7 +23,8 @@
 	} from "svelte";
 
 	import { Trash, Community, ScrollDownArrow } from "@gradio/icons";
-	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
+	import { IconButtonWrapper, IconButton, CustomButton } from "@gradio/atoms";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { ExampleMessage } from "../types";
 	import type { FileData, Client } from "@gradio/client";
@@ -76,6 +77,8 @@
 	export let show_copy_all_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
+	export let buttons: (string | CustomButtonType)[] | null = null;
+	export let on_custom_button_click: ((id: number) => void) | null = null;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 	export let sanitize_html = true;
 	export let render_markdown = true;
@@ -269,6 +272,20 @@
 		></IconButton>
 		{#if show_copy_all_button}
 			<CopyAll {value} {watermark} />
+		{/if}
+		{#if buttons}
+			{#each buttons as btn}
+				{#if typeof btn !== "string"}
+					<CustomButton
+						button={btn}
+						on_click={(id) => {
+							if (on_custom_button_click) {
+								on_custom_button_click(id);
+							}
+						}}
+					/>
+				{/if}
+			{/each}
 		{/if}
 	</IconButtonWrapper>
 {/if}
