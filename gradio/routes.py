@@ -19,6 +19,7 @@ import time
 import traceback
 import warnings
 from collections.abc import AsyncIterator, Callable, Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from queue import Empty as EmptyQueue
 from typing import (
@@ -235,6 +236,70 @@ client = httpx.AsyncClient(
 file_upload_statuses = FileUploadProgress()
 
 
+@dataclass
+class NodeProxyCacheEntry:
+    ready: asyncio.Event
+    head: bytearray
+    subs: list[asyncio.Queue[bytes | None]]
+    resp: httpx.Response | None = None
+
+
+class NodeProxyCache:
+    def __init__(self, client: httpx.AsyncClient):
+        self.client = client
+        self.cache: dict[str, NodeProxyCacheEntry | None] = {}
+
+    async def get(
+        self,
+        method: str,
+        url: str,
+        headers: dict[str, str],
+    ):
+        key = f"{method} {url}"  # TODO: include headers used by Node
+        res: asyncio.Queue[bytes | None] = asyncio.Queue()
+        if (entry := self.cache.get(key, None)) is None:
+            entry = NodeProxyCacheEntry(asyncio.Event(), bytearray(), [])
+            asyncio.create_task(self.fetch(key, entry, method, url, headers))
+            self.cache[key] = entry
+        entry.subs.append(res)
+        head = bytes(entry.head)
+        await entry.ready.wait()
+        assert entry.resp is not None  # noqa: S101
+        return (
+            entry.resp.status_code,
+            entry.resp.headers,
+            NodeProxyCache.iter_body(head, res),
+        )
+
+    async def fetch(
+        self,
+        key: str,
+        entry: NodeProxyCacheEntry,
+        method: str,
+        url: str,
+        headers: dict[str, str],
+    ):
+        request = self.client.build_request(method, httpx.URL(url), headers=headers)
+        response = await self.client.send(request, stream=True)
+        entry.resp = response
+        entry.ready.set()
+        async for bytes_chunk in response.aiter_raw():
+            entry.head.extend(bytes_chunk)
+            for sub in entry.subs:
+                sub.put_nowait(bytes_chunk)
+        for sub in entry.subs:
+            sub.put_nowait(None)
+        del self.cache[key]
+        await response.aclose()
+
+    @staticmethod
+    async def iter_body(head: bytes, queue: asyncio.Queue[bytes | None]):
+        if len(head) > 0:
+            yield head
+        while (chunk := await queue.get()) is not None:
+            yield chunk
+
+
 class App(FastAPI):
     """
     FastAPI App Wrapper
@@ -280,6 +345,7 @@ class App(FastAPI):
     # We're not overriding any defaults here
 
     client = httpx.AsyncClient()
+    prox_cache = NodeProxyCache(client)
 
     @staticmethod
     async def proxy_to_node(
@@ -311,16 +377,14 @@ class App(FastAPI):
         if os.getenv("GRADIO_LOCAL_DEV_MODE"):
             headers["x-gradio-local-dev-mode"] = "1"
 
-        new_request = App.client.build_request(
-            request.method, httpx.URL(url), headers=headers
+        status, response_hedaers, aiter_raw = await App.prox_cache.get(
+            request.method, url, headers
         )
-        node_response = await App.client.send(new_request, stream=True)
 
         return StreamingResponse(
-            node_response.aiter_raw(),
-            status_code=node_response.status_code,
-            headers=node_response.headers,
-            background=BackgroundTask(node_response.aclose),
+            aiter_raw,
+            status_code=status,
+            headers=response_hedaers,
         )
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
