@@ -102,8 +102,8 @@ class JSON(Component):
         self.height = height
         self.max_height = max_height
         self.min_height = min_height
-        self.buttons = buttons
-        [btn.unrender() for btn in (self.buttons or []) if isinstance(btn, Button)]
+        self.buttons = ["copy"] if buttons is None else buttons
+        [btn.unrender() for btn in self.buttons if isinstance(btn, Button)]
 
     def preprocess(self, payload: dict | list | None) -> dict | list | None:
         """
