@@ -1,5 +1,11 @@
 # @gradio/fileexplorer
 
+## 0.6.0
+
+### Features
+
+- [#12537](https://github.com/gradio-app/gradio/pull/12537) [`f753b0c`](https://github.com/gradio-app/gradio/commit/f753b0c97400068b7c0aa306e5d03fb500eec5fb) - Add `.select()` and `.input()` events to `gr.FileExplorer`.  Thanks @abidlabs!
+
 ## 0.5.42
 
 ### Dependency updates

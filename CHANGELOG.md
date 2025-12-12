@@ -1,5 +1,17 @@
 # gradio
 
+## 6.2.0
+
+### Features
+
+- [#12537](https://github.com/gradio-app/gradio/pull/12537) [`f753b0c`](https://github.com/gradio-app/gradio/commit/f753b0c97400068b7c0aa306e5d03fb500eec5fb) - Add `.select()` and `.input()` events to `gr.FileExplorer`.  Thanks @abidlabs!
+
+### Fixes
+
+- [#12547](https://github.com/gradio-app/gradio/pull/12547) [`81b7960`](https://github.com/gradio-app/gradio/commit/81b7960dedb9505b03a2f346f72baa9b633d1736) - Add error handling to gr.JSON.  Thanks @hannahblair!
+- [#12556](https://github.com/gradio-app/gradio/pull/12556) [`b3a3683`](https://github.com/gradio-app/gradio/commit/b3a3683da041b28cee4f13642f1d2efe074ed493) - Use a slower check rate on windows, otherwise windows locks up.  Thanks @freddyaboulton!
+- [#12536](https://github.com/gradio-app/gradio/pull/12536) [`653f47b`](https://github.com/gradio-app/gradio/commit/653f47b8f57f548e75b5c87c407a211b8ead3b06) - Fix Theme Builder Function.  Thanks @freddyaboulton!
+
 ## 6.1.0
 
 ### Features
