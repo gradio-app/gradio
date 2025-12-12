@@ -46,7 +46,10 @@
 
 	let image_container: HTMLElement;
 
-	$: buttons_to_render = buttons && buttons.length > 0 ? buttons : ["download", "share", "fullscreen"];
+	$: buttons_to_render =
+		buttons && buttons.length > 0
+			? buttons
+			: ["download", "share", "fullscreen"];
 </script>
 
 <BlockLabel
