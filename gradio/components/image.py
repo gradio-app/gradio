@@ -141,7 +141,9 @@ class Image(StreamingInput, Component):
         self.height = height
         self.width = width
         self.image_mode = image_mode
-        self.buttons = ["download", "share", "fullscreen"] if buttons is None else buttons
+        self.buttons = (
+            ["download", "share", "fullscreen"] if buttons is None else buttons
+        )
         [btn.unrender() for btn in self.buttons if isinstance(btn, Button)]
         valid_sources = ["upload", "webcam", "clipboard"]
         if sources is None:
