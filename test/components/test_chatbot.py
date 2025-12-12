@@ -100,7 +100,7 @@ class TestChatbot:
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "likeable": False,
             "rtl": False,
-            "buttons": [],
+            "buttons": ["share", "copy", "copy_all"],
             "avatar_images": [None, None],
             "sanitize_html": True,
             "render_markdown": True,
