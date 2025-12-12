@@ -157,7 +157,7 @@ class Gallery(Component):
             )
         self.type = type
         self.file_types = file_types
-        self.buttons = buttons or ["download", "fullscreen"]
+        self.buttons = ["share", "download", "fullscreen"] if buttons is None else buttons
         [btn.unrender() for btn in self.buttons if isinstance(btn, Button)]
         self.fit_columns = fit_columns
 
