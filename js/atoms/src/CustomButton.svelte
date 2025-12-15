@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Image } from "@gradio/image/shared";
 	import type { CustomButton } from "@gradio/utils";
 
 	export let button: CustomButton;
@@ -12,13 +11,6 @@
 	title={button.value || ""}
 	aria-label={button.value || "Custom action"}
 >
-	{#if button.icon}
-		<Image
-			src={button.icon.url}
-			class_names={["custom-button-icon"]}
-			restProps={{ alt: button.value || "button icon" }}
-		/>
-	{/if}
 	{#if button.value}
 		<span class="custom-button-label">{button.value}</span>
 	{/if}
@@ -45,12 +37,6 @@
 	.custom-button:hover {
 		background: var(--background-fill-secondary);
 		color: var(--body-text-color);
-	}
-
-	:global(.custom-button-icon) {
-		width: var(--size-4);
-		height: var(--size-4);
-		object-fit: contain;
 	}
 
 	.custom-button-label {
