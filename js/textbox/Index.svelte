@@ -14,10 +14,7 @@
 	import type { TextboxProps, TextboxEvents } from "./types";
 
 	let _props = $props();
-	const gradio = new Gradio<
-		TextboxEvents | "custom_button_click",
-		TextboxProps
-	>(_props);
+	const gradio = new Gradio<TextboxEvents, TextboxProps>(_props);
 
 	let label = $derived(gradio.shared.label || "Textbox");
 	// Need to set the value to "" otherwise a change event gets
@@ -105,7 +102,7 @@
 		on:stop={() => gradio.dispatch("stop")}
 		on:copy={(e) => gradio.dispatch("copy", e.detail)}
 		on_custom_button_click={(id) => {
-			gradio.dispatch_to(id, "click", null);
+			gradio.dispatch("custom_button_click", { id });
 		}}
 		disabled={!gradio.shared.interactive}
 	/>

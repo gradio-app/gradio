@@ -45,7 +45,7 @@
 
 	let buttons = $derived(gradio.props.buttons || ["copy"]);
 	let on_custom_button_click = (id: number) => {
-		gradio.dispatch_to(id, "click", null);
+		gradio.dispatch("custom_button_click", { id });
 	};
 
 	let old_value = $state(gradio.props.value);

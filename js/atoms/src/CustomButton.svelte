@@ -35,7 +35,7 @@
 		border: none;
 		border-radius: var(--radius-sm);
 		background: transparent;
-		color: var(--body-text-color-subdued);
+		color: var(--block-title-text-color);
 		cursor: pointer;
 		transition: all 0.2s;
 		font-size: var(--text-sm);

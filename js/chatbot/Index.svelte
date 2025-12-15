@@ -91,7 +91,7 @@
 			)}
 			buttons={gradio.props.buttons}
 			on_custom_button_click={(id) => {
-				gradio.dispatch_to(id, "click", null);
+				gradio.dispatch("custom_button_click", { id });
 			}}
 			like_user_message={gradio.props.like_user_message}
 			show_progress={gradio.shared.loading_status?.show_progress || "full"}

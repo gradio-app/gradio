@@ -140,6 +140,9 @@
 			// update_status(id, "complete", data);
 		} else if (event == "close_stream") {
 			dep_manager.close_stream(id);
+		} else if (event === "custom_button_click") {
+			const button_id = (data as { id: number }).id;
+			dispatch_to_target(button_id, "click", null);
 		} else {
 			// Tabs are a bit weird. The Tabs component dispatches 'select' events
 			// but the target id corresponds to the child Tab component that was selected.
@@ -190,8 +193,7 @@
 
 	setContext(GRADIO_ROOT, {
 		register: app_tree.register_component.bind(app_tree),
-		dispatcher: gradio_event_dispatcher,
-		dispatch_to: dispatch_to_target
+		dispatcher: gradio_event_dispatcher
 	});
 
 	let api_calls: Payload[] = $state([]);

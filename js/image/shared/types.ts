@@ -40,4 +40,5 @@ export interface ImageEvents {
 	error: any;
 	close_stream: void;
 	edit: void;
+	custom_button_click: { id: number };
 }

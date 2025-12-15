@@ -23,4 +23,5 @@ export interface AnnotatedImageProps {
 export interface AnnotatedImageEvents {
 	change: never;
 	select: { index: number; value: string };
+	custom_button_click: { id: number };
 }

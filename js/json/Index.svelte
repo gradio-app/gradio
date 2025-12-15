@@ -73,7 +73,7 @@
 				)}
 		buttons={gradio.props.buttons}
 		on_custom_button_click={(id) => {
-			gradio.dispatch_to(id, "click", null);
+			gradio.dispatch("custom_button_click", { id });
 		}}
 		{label_height}
 	/>

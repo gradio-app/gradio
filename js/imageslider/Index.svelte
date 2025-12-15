@@ -119,7 +119,7 @@
 			)}
 			buttons={gradio.props.buttons}
 			on_custom_button_click={(id) => {
-				gradio.dispatch_to(id, "click", null);
+				gradio.dispatch("custom_button_click", { id });
 			}}
 			position={normalised_slider_position}
 			slider_color={gradio.props.slider_color}

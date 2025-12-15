@@ -15,6 +15,7 @@ export interface TextboxEvents {
 	stop: never;
 	clear_status: LoadingStatus;
 	copy: CopyData;
+	custom_button_click: { id: number };
 }
 
 export interface TextboxProps {

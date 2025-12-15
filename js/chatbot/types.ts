@@ -110,6 +110,7 @@ export interface ChatbotEvents {
 	undo: UndoRetryData;
 	clear: null;
 	copy: CopyData;
+	custom_button_click: { id: number };
 }
 
 export interface ChatbotProps {

@@ -20,6 +20,7 @@ export interface ImageSliderEvents {
 	share: ShareData;
 	clear_status: LoadingStatus;
 	close_stream: string;
+	custom_button_click: { id: number };
 }
 
 export interface ImageSliderProps {

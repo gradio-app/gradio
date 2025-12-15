@@ -19,4 +19,5 @@ export interface DialogueEvents {
 	input: never;
 	submit: never;
 	clear_status: any;
+	custom_button_click: { id: number };
 }

@@ -15,4 +15,5 @@ export interface JSONProps {
 export interface JSONEvents {
 	change: never;
 	clear_status: LoadingStatus;
+	custom_button_click: { id: number };
 }

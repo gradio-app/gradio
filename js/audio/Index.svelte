@@ -148,7 +148,7 @@
 			editable={gradio.props.editable}
 			{minimal}
 			on_custom_button_click={(id) => {
-				gradio.dispatch_to(id, "click", null);
+				gradio.dispatch("custom_button_click", { id });
 			}}
 			bind:playback_position={gradio.props.playback_position}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
@@ -187,7 +187,7 @@
 			show_label={gradio.shared.show_label}
 			buttons={gradio.props.buttons ?? []}
 			on_custom_button_click={(id) => {
-				gradio.dispatch_to(id, "click", null);
+				gradio.dispatch("custom_button_click", { id });
 			}}
 			value={gradio.props.value}
 			subtitles={gradio.props.subtitles}

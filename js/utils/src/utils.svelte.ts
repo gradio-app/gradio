@@ -308,7 +308,6 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	props = $state<U>({} as U) as U;
 	i18n: I18nFormatter = $state<any>({}) as any;
 	dispatcher!: Function;
-	dispatch_to_fn!: (target_id: number, event: string, data: unknown) => void;
 	last_update: ReturnType<typeof tick> | null = null;
 	shared_props: (keyof SharedProps)[] = allowed_shared_props;
 
@@ -340,14 +339,13 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		this.load_component = this.shared.load_component;
 
 		if (!is_browser || _props.props?.__GRADIO_BROWSER_TEST__) return;
-		const { register, dispatcher, dispatch_to } = getContext<{
+		const { register, dispatcher } = getContext<{
 			register: (
 				id: number,
 				set_data: (data: U & SharedProps) => void,
 				get_data: Function
 			) => void;
 			dispatcher: Function;
-			dispatch_to: (target_id: number, event: string, data: unknown) => void;
 		}>(GRADIO_ROOT);
 
 		register(
@@ -357,7 +355,6 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		);
 
 		this.dispatcher = dispatcher;
-		this.dispatch_to_fn = dispatch_to;
 
 		$effect(() => {
 			// Need to update the props here
@@ -383,10 +380,6 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 
 	dispatch<E extends keyof T>(event_name: E, data?: T[E]): void {
 		this.dispatcher(this.shared.id, event_name, data);
-	}
-
-	dispatch_to(target_id: number, event_name: string, data?: unknown): void {
-		this.dispatch_to_fn?.(target_id, event_name, data);
 	}
 
 	async get_data() {

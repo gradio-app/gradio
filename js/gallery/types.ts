@@ -38,4 +38,5 @@ export interface GalleryEvents {
 	clear_status: any;
 	share: any;
 	error: any;
+	custom_button_click: { id: number };
 }
