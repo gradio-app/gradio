@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:feat: cache NodeJS proxied requests
+fix:feat: cache NodeJS proxied requests
