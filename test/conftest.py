@@ -110,3 +110,40 @@ def media_data():
     from client.python.test import media_data
 
     return media_data
+
+
+@pytest.fixture
+def stateful_mcp_app():
+    def process(name: str, hidden_state: str, flag: bool, gallery_images):
+        """
+        Process inputs and return a result.
+
+        Args:
+        name: A text input from user
+        hidden_state: A value from gr.State (hidden from MCP)
+        flag: A boolean checkbox
+        gallery_images: Gallery images list
+
+        Returns:
+        str: Result showing all received values
+        """
+        return f"name={name}, hidden_state={hidden_state}, flag={flag}, gallery={gallery_images}"
+
+    with gr.Blocks() as demo:
+        gr.Markdown("# Gradio MCP Bug: gr.State breaks parameter order")
+
+        name_input = gr.Textbox(label="Name", value="test")
+        hidden_state = gr.State(value="hidden_value")
+        flag_input = gr.Checkbox(label="Flag", value=True)
+        gallery = gr.Number(label="Images")
+
+        output = gr.Textbox(label="Result")
+
+        btn = gr.Button("Process")
+        btn.click(
+            process,
+            inputs=[name_input, hidden_state, flag_input, gallery],
+            outputs=[output],
+            api_visibility="public",
+        )
+    return demo

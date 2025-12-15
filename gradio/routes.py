@@ -13,6 +13,7 @@ import json
 import math
 import mimetypes
 import os
+import platform
 import secrets
 import sys
 import time
@@ -1477,7 +1478,7 @@ class App(FastAPI):
                             )
 
                         heartbeat_rate = 15
-                        check_rate = 0.001
+                        check_rate = 0.05 if platform.system() == "Windows" else 0.001
                         message = None
                         try:
                             messages = blocks._queue.pending_messages_per_session[

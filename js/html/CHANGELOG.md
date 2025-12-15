@@ -1,5 +1,11 @@
 # @gradio/html
 
+## 0.8.1
+
+### Fixes
+
+- [#12531](https://github.com/gradio-app/gradio/pull/12531) [`8aaa209`](https://github.com/gradio-app/gradio/commit/8aaa209278a1898951a764812c237d1a514cc066) - Allow custom HTML components to be defined in jupyter notebooks.  Thanks @abidlabs!
+
 ## 0.8.0
 
 ### Dependency updates

@@ -643,7 +643,9 @@
 									legend: {
 										orient: "bottom",
 										title: gradio.props.color_title,
-										values: [...gradio.props.colors_in_legend] || undefined
+										values: gradio.props.colors_in_legend?.length
+											? [...gradio.props.colors_in_legend]
+											: undefined
 									},
 									scale:
 										gradio.props.value!.datatypes[gradio.props.color] ===
@@ -766,6 +768,7 @@
 		} as Spec;
 	}
 	/* eslint-enable complexity */
+	$inspect("visible", gradio.shared.visible);
 </script>
 
 <Block

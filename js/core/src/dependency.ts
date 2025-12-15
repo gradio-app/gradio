@@ -320,7 +320,6 @@ export class DependencyManager {
 				`${event_meta.event_name}-${event_meta.target_id}`
 			);
 		}
-
 		for (let i = 0; i < (deps?.length || 0); i++) {
 			const dep = deps ? deps[i] : undefined;
 			if (dep) {
@@ -791,6 +790,14 @@ export class DependencyManager {
 			const submission = this.submissions.get(id);
 			if (submission) {
 				await submission.cancel();
+				this.loading_stati.update({
+					status: "complete",
+					fn_index: id,
+					eta: 0,
+					queue: false,
+					stream_state: null
+				});
+				this.update_loading_stati_state();
 				this.submissions.delete(id);
 			}
 		}

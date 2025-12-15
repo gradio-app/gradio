@@ -10,10 +10,8 @@ import hashlib
 import importlib
 import importlib.metadata
 import importlib.resources
-import importlib.util
 import inspect
 import json
-import json.decoder
 import os
 import pkgutil
 import posixpath
@@ -318,7 +316,7 @@ def _remove_if_name_main_codeblock(file_path: str, encoding: str = "utf-8"):
             and len(expr.test.ops) == 1
             and isinstance(expr.test.ops[0], ast.Eq)
             and isinstance(expr.test.comparators[0], ast.Constant)
-            and expr.test.comparators[0].s == "__main__"
+            and expr.test.comparators[0].value == "__main__"
         )
 
     # Find the positions of the code blocks to load
@@ -920,14 +918,34 @@ def sanitize_value_for_csv(value: str | float) -> str | float:
     Sanitizes a value that is being written to a CSV file to prevent CSV injection attacks.
     Reference: https://owasp.org/www-community/attacks/CSV_Injection
     """
+    # Numbers are always safe in CSV context
     if isinstance(value, (float, int)):
         return value
+
+    # Coerce non-strings (e.g. tuples) to string defensively
+    if not isinstance(value, str):
+        value = str(value)
+
+    # Special handling for JSON-like values
+    if value.startswith(("{", "[")):
+        try:
+            parsed = json.loads(value)
+            # Return normalized, safe JSON
+            return json.dumps(parsed)
+        except (json.JSONDecodeError, ValueError, TypeError):
+            # Not valid JSON → treat as normal string
+            pass
+
+    # Typical CSV injection protection
     unsafe_prefixes = ["=", "+", "-", "@", "\t", "\n"]
     unsafe_sequences = [",=", ",+", ",-", ",@", ",\t", ",\n"]
+
+    # If starts with any unsafe prefix or contains an unsafe sequence
     if any(value.startswith(prefix) for prefix in unsafe_prefixes) or any(
         sequence in value for sequence in unsafe_sequences
     ):
-        value = f"'{value}"
+        return f"'{value}"
+
     return value
 
 

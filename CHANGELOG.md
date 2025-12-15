@@ -1,5 +1,39 @@
 # gradio
 
+## 6.1.0
+
+### Features
+
+- [#12504](https://github.com/gradio-app/gradio/pull/12504) [`4476400`](https://github.com/gradio-app/gradio/commit/44764009dfebecf894298efe80366e42578ea65d) - Add `playback_position` to gr.Audio and gr.Video, which can be updated and read.  Thanks @aliabid94!
+- [#12524](https://github.com/gradio-app/gradio/pull/12524) [`d6be33e`](https://github.com/gradio-app/gradio/commit/d6be33e9f019979953991283edd6ddfa00b2207c) - feat: add link_target parameter to Button component.  Thanks @ujjwaltwri!
+- [#12502](https://github.com/gradio-app/gradio/pull/12502) [`d3966ca`](https://github.com/gradio-app/gradio/commit/d3966ca9df13be7e7bd0d6eb09cf6be24206ea58) - Restore Blocks constructor args deprecated in 6.0 (theme, css, etc.).  Thanks @aliabid94!
+
+### Fixes
+
+- [#12515](https://github.com/gradio-app/gradio/pull/12515) [`0892c29`](https://github.com/gradio-app/gradio/commit/0892c297b35742ed5cabf64d0846fd36ae02ecea) - Fix plot Rendering + visibility bug.  Thanks @freddyaboulton!
+- [#12493](https://github.com/gradio-app/gradio/pull/12493) [`8a6cff6`](https://github.com/gradio-app/gradio/commit/8a6cff6738d09a6e708fc6351d806967fa82ca91) - Fix bug where cancelling an events shows an error in the UI.  Thanks @freddyaboulton!
+- [#12518](https://github.com/gradio-app/gradio/pull/12518) [`e8efab2`](https://github.com/gradio-app/gradio/commit/e8efab2cb19860146cec7946e77b34a599ad6258) - Fix Settings.  Thanks @freddyaboulton!
+- [#12494](https://github.com/gradio-app/gradio/pull/12494) [`251add4`](https://github.com/gradio-app/gradio/commit/251add42b69b0c1f6c96559e2ecdefc40def79f4) - JS unit test fix.  Thanks @dawoodkhan82!
+- [#12491](https://github.com/gradio-app/gradio/pull/12491) [`4f6327b`](https://github.com/gradio-app/gradio/commit/4f6327be6815fc8d574b60272b02915c75359ace) - Load visible components in 6.0.  Thanks @freddyaboulton!
+- [#12508](https://github.com/gradio-app/gradio/pull/12508) [`0715279`](https://github.com/gradio-app/gradio/commit/0715279005cbd6fea3c8081996aa5afddbd27e34) - Fix custom `js` param.  Thanks @dawoodkhan82!
+- [#12531](https://github.com/gradio-app/gradio/pull/12531) [`8aaa209`](https://github.com/gradio-app/gradio/commit/8aaa209278a1898951a764812c237d1a514cc066) - Allow custom HTML components to be defined in jupyter notebooks.  Thanks @abidlabs!
+- [#12499](https://github.com/gradio-app/gradio/pull/12499) [`af3ffa0`](https://github.com/gradio-app/gradio/commit/af3ffa057fe9e21e2aa658ca251b7f696b0a24ac) - Fix: avoid corrupting JSON-like values in CSV sanitization.  Thanks @ujjwaltwri!
+- [#12516](https://github.com/gradio-app/gradio/pull/12516) [`23c9bb5`](https://github.com/gradio-app/gradio/commit/23c9bb5d46909a07b4ff639655b59b4a979a0c06) - Fix copy button in `gr.Textbox`.  Thanks @dawoodkhan82!
+
+## 6.0.2
+
+### Features
+
+- [#12475](https://github.com/gradio-app/gradio/pull/12475) [`c4c36c7`](https://github.com/gradio-app/gradio/commit/c4c36c7da3d14d60f4fd9b35bbe68d52f7b38bb9) - Fix highlighted text in 6.0.  Thanks @freddyaboulton!
+- [#12476](https://github.com/gradio-app/gradio/pull/12476) [`4e9a330`](https://github.com/gradio-app/gradio/commit/4e9a330a85396659e8cf4d90f25d3dde82a685b3) - Fix slider css issue.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#12480](https://github.com/gradio-app/gradio/pull/12480) [`b9732d1`](https://github.com/gradio-app/gradio/commit/b9732d10680ca66fa7b3f1e763d3cdd57b38c6ed) - [BUGFIX] Fix stream file download in gradio client.  Thanks @frascuchon!
+- [#12490](https://github.com/gradio-app/gradio/pull/12490) [`472e164`](https://github.com/gradio-app/gradio/commit/472e16439f2573b33d21b9635706416518405ddd) - Make client backwards compatible with version 5.  Thanks @freddyaboulton!
+- [#12489](https://github.com/gradio-app/gradio/pull/12489) [`2a2dd60`](https://github.com/gradio-app/gradio/commit/2a2dd60d5aa041d82640358a5ed6ba03f1b398e2) - 12485 fix mcp client issue.  Thanks @freddyaboulton!
+- [#12477](https://github.com/gradio-app/gradio/pull/12477) [`07fa494`](https://github.com/gradio-app/gradio/commit/07fa4949fa5b806732eb429f732037615f9f546e) - Checkbox Label Fix.  Thanks @dawoodkhan82!
+
 ## 6.0.1
 
 ### Features
