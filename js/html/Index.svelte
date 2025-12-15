@@ -7,7 +7,7 @@
 	import { Gradio } from "@gradio/utils";
 	import HTML from "./shared/HTML.svelte";
 	import { StatusTracker } from "@gradio/statustracker";
-	import { Block, BlockLabel } from "@gradio/atoms";
+	import { Block, BlockLabel, IconButtonWrapper } from "@gradio/atoms";
 	import { Code as CodeIcon } from "@gradio/icons";
 	import { css_units } from "@gradio/utils";
 	import type { HTMLProps, HTMLEvents } from "./types.ts";
@@ -39,6 +39,14 @@
 	padding={true}
 	overflow_behavior="visible"
 >
+	{#if gradio.shared.show_label && gradio.props.buttons && gradio.props.buttons.length > 0}
+		<IconButtonWrapper
+			buttons={gradio.props.buttons}
+			on_custom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
+		/>
+	{/if}
 	{#if gradio.shared.show_label}
 		<BlockLabel
 			Icon={CodeIcon}

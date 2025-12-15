@@ -1,4 +1,5 @@
 import type { LoadingStatus } from "js/statustracker";
+import type { CustomButton } from "@gradio/utils";
 
 export interface NumberProps {
 	value: number | null;
@@ -7,6 +8,7 @@ export interface NumberProps {
 	maximum: number | undefined;
 	step: number | null;
 	info: string | undefined;
+	buttons: (string | CustomButton)[] | null;
 }
 
 export interface NumberEvents {
@@ -16,4 +18,5 @@ export interface NumberEvents {
 	blur: never;
 	focus: never;
 	clear_status: LoadingStatus;
+	custom_button_click: { id: number };
 }
