@@ -20,6 +20,7 @@ from gradio.data_classes import JsonData
 from gradio.events import Events
 from gradio.exceptions import Error
 from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -102,8 +103,7 @@ class JSON(Component):
         self.height = height
         self.max_height = max_height
         self.min_height = min_height
-        self.buttons = ["copy"] if buttons is None else buttons
-        [btn.unrender() for btn in self.buttons if isinstance(btn, Button)]
+        self.buttons = set_default_buttons(buttons, ["copy"])
 
     def preprocess(self, payload: dict | list | None) -> dict | list | None:
         """

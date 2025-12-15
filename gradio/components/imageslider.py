@@ -16,6 +16,7 @@ from gradio.components.base import Component
 from gradio.components.button import Button
 from gradio.data_classes import GradioRootModel, ImageData
 from gradio.events import Events
+from gradio.utils import set_default_buttons
 
 
 class SliderData(GradioRootModel):
@@ -127,8 +128,7 @@ class ImageSlider(Component):
         self.height = height
         self.width = width
         self.image_mode = image_mode
-        self.buttons = ["download", "fullscreen"] if buttons is None else buttons
-        [btn.unrender() for btn in self.buttons if isinstance(btn, Button)]
+        self.buttons = set_default_buttons(buttons, ["download", "fullscreen"])
 
         super().__init__(
             label=label,

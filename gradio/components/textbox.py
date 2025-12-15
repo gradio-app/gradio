@@ -13,6 +13,7 @@ from gradio.components.base import Component, FormComponent
 from gradio.components.button import Button
 from gradio.events import Events
 from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -147,8 +148,7 @@ class Textbox(FormComponent):
         self.lines = lines
         self.max_lines = max_lines
         self.placeholder = placeholder
-        self.buttons = buttons or []
-        [btn.unrender() for btn in self.buttons if isinstance(btn, Button)]
+        self.buttons = set_default_buttons(buttons, None)
         self.submit_btn = submit_btn
         self.stop_btn = stop_btn
         self.autofocus = autofocus

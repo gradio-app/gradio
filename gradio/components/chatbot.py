@@ -26,6 +26,7 @@ from gradio.components import (
 )
 from gradio.components.base import Component
 from gradio.components.button import Button
+from gradio.utils import set_default_buttons
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
 from gradio.exceptions import Error
@@ -319,8 +320,7 @@ class Chatbot(Component):
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
         self.latex_delimiters = latex_delimiters
-        self.buttons = ["share", "copy", "copy_all"] if buttons is None else buttons
-        [btn.unrender() for btn in self.buttons if isinstance(btn, Button)]
+        self.buttons = set_default_buttons(buttons, ["share", "copy", "copy_all"])
         self.render_markdown = render_markdown
         self.watermark = watermark
         self.sanitize_html = sanitize_html

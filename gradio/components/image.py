@@ -18,6 +18,7 @@ from gradio.components.image_editor import WatermarkOptions, WebcamOptions
 from gradio.data_classes import Base64ImageData, ImageData
 from gradio.events import Events
 from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -141,10 +142,6 @@ class Image(StreamingInput, Component):
         self.height = height
         self.width = width
         self.image_mode = image_mode
-        self.buttons = (
-            ["download", "share", "fullscreen"] if buttons is None else buttons
-        )
-        [btn.unrender() for btn in self.buttons if isinstance(btn, Button)]
         valid_sources = ["upload", "webcam", "clipboard"]
         if sources is None:
             self.sources = (
@@ -160,7 +157,7 @@ class Image(StreamingInput, Component):
                     f"`sources` must a list consisting of elements in {valid_sources}"
                 )
         self.streaming = streaming
-        self.buttons = buttons or ["download", "share", "fullscreen"]
+        self.buttons = set_default_buttons(buttons, ["download", "share", "fullscreen"])
         if streaming and self.sources != ["webcam"]:
             raise ValueError(
                 "Image streaming only available if sources is ['webcam']. Streaming not supported with multiple sources."

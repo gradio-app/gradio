@@ -17,11 +17,12 @@ from gradio_client.documentation import document
 
 from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingOutput
+from gradio.components.button import Button
 from gradio.components.image_editor import WatermarkOptions, WebcamOptions
 from gradio.data_classes import FileData, MediaStreamChunk
 from gradio.events import Events
 from gradio.i18n import I18nData
-from gradio.utils import get_upload_folder
+from gradio.utils import get_upload_folder, set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -83,7 +84,7 @@ class Video(StreamingOutput, Component):
         webcam_options: WebcamOptions | None = None,
         include_audio: bool | None = None,
         autoplay: bool = False,
-        buttons: list[Literal["download", "share"]] | None = None,
+        buttons: list[Literal["download", "share"] | Button] | None = None,
         loop: bool = False,
         streaming: bool = False,
         watermark: WatermarkOptions | None = None,
@@ -113,7 +114,7 @@ class Video(StreamingOutput, Component):
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             include_audio: whether the component should record/retain the audio track for a video. By default, audio is excluded for webcam videos and included for uploaded videos.
             autoplay: whether to automatically play the video when the component is used as an output. Note: browsers will not autoplay video files if the user has not interacted with the page yet.
-            buttons: A list of buttons to show in the top right corner of the component. Valid options are "download" and "share". The "download" button allows the user to save the video to their device. The "share" button allows the user to share the video via Hugging Face Spaces Discussions. By default, no buttons are shown if the component is interactive and both buttons are shown if the component is not interactive.
+            buttons: A list of buttons to show in the top right corner of the component. Valid options are "download", "share", or a gr.Button() instance. The "download" button allows the user to save the video to their device. The "share" button allows the user to share the video via Hugging Face Spaces Discussions. Custom gr.Button() instances will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button. By default, no buttons are shown if the component is interactive and both buttons are shown if the component is not interactive.
             loop: if True, the video will loop when it reaches the end and continue playing from the beginning.
             streaming: when used set as an output, takes video chunks yielded from the backend and combines them into one streaming video output. Each chunk should be a video file with a .ts extension using an h.264 encoding. Mp4 files are also accepted but they will be converted to h.264 encoding.
             watermark: A `gr.WatermarkOptions` instance that includes an image file and position to be used as a watermark on the video. The image is not scaled and is displayed on the provided position on the video. Valid formats for the image are: jpeg, png.
@@ -156,7 +157,7 @@ class Video(StreamingOutput, Component):
         self.include_audio = (
             include_audio if include_audio is not None else "upload" in self.sources
         )
-        self.buttons = buttons
+        self.buttons = set_default_buttons(buttons, None)
         self.streaming = streaming
         self.playback_position = playback_position
         self.subtitles = None

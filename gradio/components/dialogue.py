@@ -9,6 +9,7 @@ from gradio.components.base import Component, server
 from gradio.components.button import Button
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Events
+from gradio.utils import set_default_buttons
 
 
 class DialogueLine(GradioModel):
@@ -126,8 +127,7 @@ class Dialogue(Component):
         self.unformatter = unformatter
         self.separator = separator
         self.color_map = color_map
-        self.buttons = buttons or []
-        [btn.unrender() for btn in (self.buttons or []) if isinstance(btn, Button)]
+        self.buttons = set_default_buttons(buttons, None)
         self.submit_btn = submit_btn
         if not interactive:
             self.info = None

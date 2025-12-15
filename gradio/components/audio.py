@@ -22,6 +22,7 @@ from gradio.components.button import Button
 from gradio.data_classes import FileData, FileDataDict, MediaStreamChunk
 from gradio.events import Events
 from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -176,8 +177,7 @@ class Audio(
         self.format = format and format.lower()
         self.autoplay = autoplay
         self.loop = loop
-        self.buttons = ["download", "share"] if buttons is None else buttons
-        [btn.unrender() for btn in self.buttons if isinstance(btn, Button)]
+        self.buttons = set_default_buttons(buttons, ["download", "share"])
         self.editable = editable
         if waveform_options is None:
             self.waveform_options = WaveformOptions()
