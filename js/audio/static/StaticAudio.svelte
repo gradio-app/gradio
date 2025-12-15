@@ -6,8 +6,7 @@
 		IconButton,
 		BlockLabel,
 		DownloadLink,
-		IconButtonWrapper,
-		CustomButton
+		IconButtonWrapper
 	} from "@gradio/atoms";
 	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 	import { Download, Music } from "@gradio/icons";
@@ -62,43 +61,32 @@
 	{:else}
 		<IconButtonWrapper
 			display_top_corner={display_icon_button_wrapper_top_corner}
+			buttons={buttons_to_render}
+			on_custom_button_click={on_custom_button_click}
 		>
-			{#each buttons_to_render as btn}
-				{#if typeof btn === "string"}
-					{#if btn === "download"}
-						<DownloadLink
-							href={value.is_stream
-								? value.url?.replace("playlist.m3u8", "playlist-file")
-								: value.url}
-							download={value.orig_name || value.path}
-						>
-							<IconButton Icon={Download} label={i18n("common.download")} />
-						</DownloadLink>
-					{/if}
-					{#if btn === "share"}
-						<ShareButton
-							{i18n}
-							on:error
-							on:share
-							formatter={async (value) => {
-								if (!value) return "";
-								let url = await uploadToHuggingFace(value.url, "url");
-								return `<audio controls src="${url}"></audio>`;
-							}}
-							{value}
-						/>
-					{/if}
-				{:else}
-					<CustomButton
-						button={btn}
-						on_click={(id) => {
-							if (on_custom_button_click) {
-								on_custom_button_click(id);
-							}
-						}}
-					/>
-				{/if}
-			{/each}
+			{#if buttons_to_render.some((btn) => typeof btn === "string" && btn === "download")}
+				<DownloadLink
+					href={value.is_stream
+						? value.url?.replace("playlist.m3u8", "playlist-file")
+						: value.url}
+					download={value.orig_name || value.path}
+				>
+					<IconButton Icon={Download} label={i18n("common.download")} />
+				</DownloadLink>
+			{/if}
+			{#if buttons_to_render.some((btn) => typeof btn === "string" && btn === "share")}
+				<ShareButton
+					{i18n}
+					on:error
+					on:share
+					formatter={async (value) => {
+						if (!value) return "";
+						let url = await uploadToHuggingFace(value.url, "url");
+						return `<audio controls src="${url}"></audio>`;
+					}}
+					{value}
+				/>
+			{/if}
 		</IconButtonWrapper>
 
 		<AudioPlayer

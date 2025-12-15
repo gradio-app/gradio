@@ -5,8 +5,7 @@
 		ShareButton,
 		IconButton,
 		IconButtonWrapper,
-		FullscreenButton,
-		CustomButton
+		FullscreenButton
 	} from "@gradio/atoms";
 	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 	import { ModifyUpload, Upload as UploadComponent } from "@gradio/upload";
@@ -334,6 +333,8 @@
 			>
 				<IconButtonWrapper
 					display_top_corner={display_icon_button_wrapper_top_corner}
+					{buttons}
+					on_custom_button_click={on_custom_button_click}
 				>
 					{#if show_download_button}
 						<IconButton
@@ -379,20 +380,6 @@
 								dispatch("preview_close");
 							}}
 						/>
-					{/if}
-					{#if buttons}
-						{#each buttons as btn}
-							{#if typeof btn !== "string"}
-								<CustomButton
-									button={btn}
-									on_click={(id) => {
-										if (on_custom_button_click) {
-											on_custom_button_click(id);
-										}
-									}}
-								/>
-							{/if}
-						{/each}
 					{/if}
 				</IconButtonWrapper>
 				<button

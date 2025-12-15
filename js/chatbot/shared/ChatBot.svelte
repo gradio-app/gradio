@@ -23,7 +23,7 @@
 	} from "svelte";
 
 	import { Trash, Community, ScrollDownArrow } from "@gradio/icons";
-	import { IconButtonWrapper, IconButton, CustomButton } from "@gradio/atoms";
+	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { ExampleMessage } from "../types";
@@ -246,7 +246,7 @@
 </script>
 
 {#if value !== null && value.length > 0}
-	<IconButtonWrapper>
+	<IconButtonWrapper {buttons} on_custom_button_click={on_custom_button_click}>
 		{#if show_share_button}
 			<IconButton
 				Icon={Community}
@@ -272,20 +272,6 @@
 		></IconButton>
 		{#if show_copy_all_button}
 			<CopyAll {value} {watermark} />
-		{/if}
-		{#if buttons}
-			{#each buttons as btn}
-				{#if typeof btn !== "string"}
-					<CustomButton
-						button={btn}
-						on_click={(id) => {
-							if (on_custom_button_click) {
-								on_custom_button_click(id);
-							}
-						}}
-					/>
-				{/if}
-			{/each}
 		{/if}
 	</IconButtonWrapper>
 {/if}

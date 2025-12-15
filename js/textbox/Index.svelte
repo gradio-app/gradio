@@ -104,10 +104,8 @@
 		on:focus={() => gradio.dispatch("focus")}
 		on:stop={() => gradio.dispatch("stop")}
 		on:copy={(e) => gradio.dispatch("copy", e.detail)}
-		on:custom_button_click={(e) => {
-			if (e.detail?.component_id !== undefined) {
-				gradio.dispatch_to(e.detail.component_id, "click", null);
-			}
+		on_custom_button_click={(id) => {
+			gradio.dispatch_to(id, "click", null);
 		}}
 		disabled={!gradio.shared.interactive}
 	/>

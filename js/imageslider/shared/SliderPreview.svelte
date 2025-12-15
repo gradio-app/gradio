@@ -7,8 +7,7 @@
 		IconButton,
 		IconButtonWrapper,
 		FullscreenButton,
-		DownloadLink,
-		CustomButton
+		DownloadLink
 	} from "@gradio/atoms";
 	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 	import { Image, Download, Undo, Clear } from "@gradio/icons";
@@ -137,7 +136,7 @@
 	<Empty unpadded_box={true} size="large"><Image /></Empty>
 {:else}
 	<div class="image-container" bind:this={image_container}>
-		<IconButtonWrapper>
+		<IconButtonWrapper {buttons} on_custom_button_click={on_custom_button_click}>
 			<IconButton
 				Icon={Undo}
 				label={i18n("common.undo")}
@@ -166,20 +165,6 @@
 						event.stopPropagation();
 					}}
 				/>
-			{/if}
-			{#if buttons}
-				{#each buttons as btn}
-					{#if typeof btn !== "string"}
-						<CustomButton
-							button={btn}
-							on_click={(id) => {
-								if (on_custom_button_click) {
-									on_custom_button_click(id);
-								}
-							}}
-						/>
-					{/if}
-				{/each}
 			{/if}
 		</IconButtonWrapper>
 		<div

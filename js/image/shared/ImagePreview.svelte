@@ -9,8 +9,7 @@
 		ShareButton,
 		IconButtonWrapper,
 		FullscreenButton,
-		DownloadLink,
-		CustomButton
+		DownloadLink
 	} from "@gradio/atoms";
 	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 	import { Download, Image as ImageIcon } from "@gradio/icons";
@@ -64,44 +63,33 @@
 		<IconButtonWrapper
 			display_top_corner={display_icon_button_wrapper_top_corner}
 			show_background={show_button_background}
+			buttons={buttons_to_render}
+			on_custom_button_click={on_custom_button_click}
 		>
-			{#each buttons_to_render as btn}
-				{#if typeof btn === "string"}
-					{#if btn === "fullscreen"}
-						<FullscreenButton {fullscreen} on:fullscreen />
-					{/if}
-					{#if btn === "download"}
-						<DownloadLink
-							href={value.url}
-							download={value.orig_name || "image"}
-						>
-							<IconButton Icon={Download} label={i18n("common.download")} />
-						</DownloadLink>
-					{/if}
-					{#if btn === "share"}
-						<ShareButton
-							{i18n}
-							on:share
-							on:error
-							formatter={async (value) => {
-								if (!value) return "";
-								let url = await uploadToHuggingFace(value, "url");
-								return `<img src="${url}" />`;
-							}}
-							{value}
-						/>
-					{/if}
-				{:else}
-					<CustomButton
-						button={btn}
-						on_click={(id) => {
-							if (on_custom_button_click) {
-								on_custom_button_click(id);
-							}
-						}}
-					/>
-				{/if}
-			{/each}
+			{#if buttons_to_render.some((btn) => typeof btn === "string" && btn === "fullscreen")}
+				<FullscreenButton {fullscreen} on:fullscreen />
+			{/if}
+			{#if buttons_to_render.some((btn) => typeof btn === "string" && btn === "download")}
+				<DownloadLink
+					href={value.url}
+					download={value.orig_name || "image"}
+				>
+					<IconButton Icon={Download} label={i18n("common.download")} />
+				</DownloadLink>
+			{/if}
+			{#if buttons_to_render.some((btn) => typeof btn === "string" && btn === "share")}
+				<ShareButton
+					{i18n}
+					on:share
+					on:error
+					formatter={async (value) => {
+						if (!value) return "";
+						let url = await uploadToHuggingFace(value, "url");
+						return `<img src="${url}" />`;
+					}}
+					{value}
+				/>
+			{/if}
 		</IconButtonWrapper>
 		<button on:click={handle_click}>
 			<div class:selectable class="image-frame">

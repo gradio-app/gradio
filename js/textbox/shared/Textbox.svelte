@@ -8,8 +8,7 @@
 	import {
 		BlockTitle,
 		IconButton,
-		IconButtonWrapper,
-		CustomButton
+		IconButtonWrapper
 	} from "@gradio/atoms";
 	import { Copy, Check, Send, Square } from "@gradio/icons";
 	import type {
@@ -31,6 +30,7 @@
 	export let max_lines: number | undefined = undefined;
 	export let type: "text" | "password" | "email" = "text";
 	export let buttons: (string | CustomButtonType)[] | null = null;
+	export let on_custom_button_click: ((id: number) => void) | null = null;
 	export let submit_btn: string | boolean | null = null;
 	export let stop_btn: string | boolean | null = null;
 	export let rtl = false;
@@ -182,9 +182,6 @@
 		dispatch("submit");
 	}
 
-	function handle_custom_button_click(component_id: number): void {
-		dispatch("custom_button_click", { component_id });
-	}
 
 	async function resize(
 		event: Event | { target: HTMLTextAreaElement | HTMLInputElement }
@@ -258,20 +255,14 @@
 <!-- svelte-ignore a11y-autofocus -->
 <label class:container class:show_textbox_border>
 	{#if show_label && buttons && buttons.length > 0}
-		<IconButtonWrapper>
-			{#each buttons as btn}
-				{#if typeof btn === "string"}
-					{#if btn === "copy"}
-						<IconButton
-							Icon={copied ? Check : Copy}
-							on:click={handle_copy}
-							label={copied ? "Copied" : "Copy"}
-						/>
-					{/if}
-				{:else}
-					<CustomButton button={btn} on_click={handle_custom_button_click} />
-				{/if}
-			{/each}
+		<IconButtonWrapper {buttons} on_custom_button_click={on_custom_button_click}>
+			{#if buttons.some((btn) => typeof btn === "string" && btn === "copy")}
+				<IconButton
+					Icon={copied ? Check : Copy}
+					on:click={handle_copy}
+					label={copied ? "Copied" : "Copy"}
+				/>
+			{/if}
 		</IconButtonWrapper>
 	{/if}
 	<BlockTitle show_label={validation_error ? true : show_label} {info}
