@@ -157,7 +157,9 @@ class Gallery(Component):
             )
         self.type = type
         self.file_types = file_types
-        self.buttons = utils.set_default_buttons(buttons, ["share", "download", "fullscreen"])
+        self.buttons = utils.set_default_buttons(
+            buttons, ["share", "download", "fullscreen"]
+        )
         self.fit_columns = fit_columns
 
         super().__init__(
