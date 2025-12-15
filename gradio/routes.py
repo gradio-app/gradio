@@ -238,10 +238,9 @@ file_upload_statuses = FileUploadProgress()
 
 @dataclass
 class NodeProxyCacheEntry:
-    ready: asyncio.Event
     head: bytearray
     subs: list[asyncio.Queue[bytes | None]]
-    resp: httpx.Response | None = None
+    resp: asyncio.Future[httpx.Response | None]
 
 
 class NodeProxyCache:
@@ -255,21 +254,19 @@ class NodeProxyCache:
         url: str,
         headers: dict[str, str],
     ):
-        key = f"{method} {url}"  # TODO: include headers used by Node
+        key = f"{method} {url}"
+        key += "::".join(map(":".join, headers.items()))
         res: asyncio.Queue[bytes | None] = asyncio.Queue()
         if (entry := self.cache.get(key, None)) is None:
-            entry = NodeProxyCacheEntry(asyncio.Event(), bytearray(), [])
+            loop = asyncio.get_running_loop()
+            entry = NodeProxyCacheEntry(bytearray(), [], loop.create_future())
             asyncio.create_task(self.fetch(key, entry, method, url, headers))
             self.cache[key] = entry
         entry.subs.append(res)
         head = bytes(entry.head)
-        await entry.ready.wait()
-        assert entry.resp is not None  # noqa: S101
-        return (
-            entry.resp.status_code,
-            entry.resp.headers,
-            NodeProxyCache.iter_body(head, res),
-        )
+        if (resp := await entry.resp) is None:
+            raise Error("Error while proxying request to Node server")
+        return resp.status_code, resp.headers, NodeProxyCache.iter_body(head, res)
 
     async def fetch(
         self,
@@ -280,15 +277,20 @@ class NodeProxyCache:
         headers: dict[str, str],
     ):
         request = self.client.build_request(method, httpx.URL(url), headers=headers)
-        response = await self.client.send(request, stream=True)
-        entry.resp = response
-        entry.ready.set()
-        async for bytes_chunk in response.aiter_raw():
-            entry.head.extend(bytes_chunk)
+        try:
+            response = await self.client.send(request, stream=True)
+        except Exception:
+            entry.resp.set_result(None)
+            raise
+        entry.resp.set_result(response)
+        try:
+            async for bytes_chunk in response.aiter_raw():
+                entry.head.extend(bytes_chunk)
+                for sub in entry.subs:
+                    sub.put_nowait(bytes_chunk)
+        finally:
             for sub in entry.subs:
-                sub.put_nowait(bytes_chunk)
-        for sub in entry.subs:
-            sub.put_nowait(None)
+                sub.put_nowait(None)
         del self.cache[key]
         await response.aclose()
 
@@ -370,12 +372,15 @@ class App(FastAPI):
         if mounted_path:
             server_url += mounted_path
 
-        headers = dict(request.headers)
+        headers = {}  # Do not include arbitrary headers from original request so NodeProxyCache can be effective
         headers["x-gradio-server"] = server_url
         headers["x-gradio-port"] = str(python_port)
 
         if os.getenv("GRADIO_LOCAL_DEV_MODE"):
             headers["x-gradio-local-dev-mode"] = "1"
+
+        if (accept_language := request.headers.get("accept-language")) is not None:
+            headers["accept-language"] = accept_language
 
         status, response_hedaers, aiter_raw = await App.prox_cache.get(
             request.method, url, headers
