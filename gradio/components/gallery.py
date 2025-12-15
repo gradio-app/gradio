@@ -20,14 +20,13 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import is_http_url_like
 
-from gradio import image_utils, processing_utils
+from gradio import image_utils, processing_utils, utils
 from gradio.components.base import Component
 from gradio.components.button import Button
 from gradio.data_classes import FileData, GradioModel, GradioRootModel, ImageData
 from gradio.events import EventListener, Events
 from gradio.exceptions import Error
 from gradio.i18n import I18nData
-from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -158,7 +157,7 @@ class Gallery(Component):
             )
         self.type = type
         self.file_types = file_types
-        self.buttons = set_default_buttons(buttons, ["share", "download", "fullscreen"])
+        self.buttons = utils.set_default_buttons(buttons, ["share", "download", "fullscreen"])
         self.fit_columns = fit_columns
 
         super().__init__(
