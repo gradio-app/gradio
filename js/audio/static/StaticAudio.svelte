@@ -62,7 +62,7 @@
 		<IconButtonWrapper
 			display_top_corner={display_icon_button_wrapper_top_corner}
 			buttons={buttons_to_render}
-			on_custom_button_click={on_custom_button_click}
+			{on_custom_button_click}
 		>
 			{#if buttons_to_render.some((btn) => typeof btn === "string" && btn === "download")}
 				<DownloadLink

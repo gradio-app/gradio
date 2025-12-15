@@ -63,15 +63,12 @@
 </script>
 
 {#if show_label && buttons && buttons.length > 0}
-	<IconButtonWrapper
-		{buttons}
-		on_custom_button_click={on_custom_button_click}
-	/>
+	<IconButtonWrapper {buttons} {on_custom_button_click} />
 {/if}
 <BlockLabel {show_label} Icon={File} float={!value} label={label || "File"} />
 
 {#if value && (Array.isArray(value) ? value.length > 0 : true)}
-	<IconButtonWrapper buttons={buttons || []} on_custom_button_click={on_custom_button_click}>
+	<IconButtonWrapper buttons={buttons || []} {on_custom_button_click}>
 		{#if !(file_count === "single" && (Array.isArray(value) ? value.length > 0 : value !== null))}
 			<IconButton Icon={UploadIcon} label={i18n("common.upload")}>
 				<Upload

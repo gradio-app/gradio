@@ -11,7 +11,13 @@
 	import { Gradio } from "@gradio/utils";
 	import Model3D from "./shared/Model3D.svelte";
 	import Model3DUpload from "./shared/Model3DUpload.svelte";
-	import { BlockLabel, Block, Empty, UploadText, IconButtonWrapper } from "@gradio/atoms";
+	import {
+		BlockLabel,
+		Block,
+		Empty,
+		UploadText,
+		IconButtonWrapper
+	} from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
 

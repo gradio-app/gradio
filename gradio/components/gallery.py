@@ -23,11 +23,11 @@ from gradio_client.utils import is_http_url_like
 from gradio import image_utils, processing_utils
 from gradio.components.base import Component
 from gradio.components.button import Button
-from gradio.utils import set_default_buttons
 from gradio.data_classes import FileData, GradioModel, GradioRootModel, ImageData
 from gradio.events import EventListener, Events
 from gradio.exceptions import Error
 from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer

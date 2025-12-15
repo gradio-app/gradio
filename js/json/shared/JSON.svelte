@@ -1,11 +1,7 @@
 <script lang="ts">
 	import { onDestroy } from "svelte";
 	import { JSON as JSONIcon } from "@gradio/icons";
-	import {
-		Empty,
-		IconButtonWrapper,
-		IconButton
-	} from "@gradio/atoms";
+	import { Empty, IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import JSONNode from "./JSONNode.svelte";
 	import { Copy, Check } from "@gradio/icons";
 	import type { CustomButton as CustomButtonType } from "@gradio/utils";
@@ -56,7 +52,7 @@
 
 {#if value && value !== '""' && !is_empty(value)}
 	{#if show_copy_button || (buttons && buttons.some((btn) => typeof btn !== "string"))}
-		<IconButtonWrapper {buttons} on_custom_button_click={on_custom_button_click}>
+		<IconButtonWrapper {buttons} {on_custom_button_click}>
 			{#if show_copy_button}
 				<IconButton
 					show_label={false}

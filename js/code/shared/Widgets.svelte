@@ -10,7 +10,7 @@
 	export let on_custom_button_click: ((id: number) => void) | null = null;
 </script>
 
-<IconButtonWrapper {buttons} on_custom_button_click={on_custom_button_click}>
+<IconButtonWrapper {buttons} {on_custom_button_click}>
 	{#if buttons?.some((btn) => typeof btn === "string" && btn === "download")}
 		<Download {value} {language} />
 	{/if}

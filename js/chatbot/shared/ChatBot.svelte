@@ -246,7 +246,7 @@
 </script>
 
 {#if value !== null && value.length > 0}
-	<IconButtonWrapper {buttons} on_custom_button_click={on_custom_button_click}>
+	<IconButtonWrapper {buttons} {on_custom_button_click}>
 		{#if show_share_button}
 			<IconButton
 				Icon={Community}

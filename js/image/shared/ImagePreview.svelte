@@ -64,16 +64,13 @@
 			display_top_corner={display_icon_button_wrapper_top_corner}
 			show_background={show_button_background}
 			buttons={buttons_to_render}
-			on_custom_button_click={on_custom_button_click}
+			{on_custom_button_click}
 		>
 			{#if buttons_to_render.some((btn) => typeof btn === "string" && btn === "fullscreen")}
 				<FullscreenButton {fullscreen} on:fullscreen />
 			{/if}
 			{#if buttons_to_render.some((btn) => typeof btn === "string" && btn === "download")}
-				<DownloadLink
-					href={value.url}
-					download={value.orig_name || "image"}
-				>
+				<DownloadLink href={value.url} download={value.orig_name || "image"}>
 					<IconButton Icon={Download} label={i18n("common.download")} />
 				</DownloadLink>
 			{/if}

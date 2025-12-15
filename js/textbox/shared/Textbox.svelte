@@ -5,11 +5,7 @@
 		createEventDispatcher,
 		tick
 	} from "svelte";
-	import {
-		BlockTitle,
-		IconButton,
-		IconButtonWrapper
-	} from "@gradio/atoms";
+	import { BlockTitle, IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import { Copy, Check, Send, Square } from "@gradio/icons";
 	import type {
 		SelectData,
@@ -182,7 +178,6 @@
 		dispatch("submit");
 	}
 
-
 	async function resize(
 		event: Event | { target: HTMLTextAreaElement | HTMLInputElement }
 	): Promise<void> {
@@ -255,7 +250,7 @@
 <!-- svelte-ignore a11y-autofocus -->
 <label class:container class:show_textbox_border>
 	{#if show_label && buttons && buttons.length > 0}
-		<IconButtonWrapper {buttons} on_custom_button_click={on_custom_button_click}>
+		<IconButtonWrapper {buttons} {on_custom_button_click}>
 			{#if buttons.some((btn) => typeof btn === "string" && btn === "copy")}
 				<IconButton
 					Icon={copied ? Check : Copy}

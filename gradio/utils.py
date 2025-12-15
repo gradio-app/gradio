@@ -1969,8 +1969,8 @@ async def safe_aclose_iterator(iterator, timeout=60.0, retry_interval=0.05):
 
 
 def set_default_buttons(
-    buttons: list[str | "Button"] | None = None, default_buttons: list[str] | None = None
-) -> list[str | "Button"]:
+    buttons: list[str | Button] | None = None, default_buttons: list[str] | None = None
+) -> list[str | Button]:
     from gradio.components.button import Button
 
     if buttons is None:

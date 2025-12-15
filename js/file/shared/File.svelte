@@ -19,10 +19,7 @@
 </script>
 
 {#if show_label && buttons && buttons.length > 0}
-	<IconButtonWrapper
-		{buttons}
-		on_custom_button_click={on_custom_button_click}
-	/>
+	<IconButtonWrapper {buttons} {on_custom_button_click} />
 {/if}
 <BlockLabel
 	{show_label}

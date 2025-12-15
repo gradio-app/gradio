@@ -3,7 +3,11 @@
 	import { BlockTitle, IconButtonWrapper } from "@gradio/atoms";
 	import { DropdownArrow } from "@gradio/icons";
 	import { handle_filter, handle_shared_keys } from "./utils";
-	import type { SelectData, KeyUpData, CustomButton as CustomButtonType } from "@gradio/utils";
+	import type {
+		SelectData,
+		KeyUpData,
+		CustomButton as CustomButtonType
+	} from "@gradio/utils";
 	import { tick } from "svelte";
 
 	const is_browser = typeof window !== "undefined";
@@ -166,10 +170,7 @@
 
 <div class:container>
 	{#if show_label && buttons && buttons.length > 0}
-		<IconButtonWrapper
-			{buttons}
-			on_custom_button_click={on_custom_button_click}
-		/>
+		<IconButtonWrapper {buttons} {on_custom_button_click} />
 	{/if}
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 

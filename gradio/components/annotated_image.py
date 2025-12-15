@@ -14,10 +14,10 @@ from gradio_client.documentation import document
 from gradio import processing_utils, utils
 from gradio.components.base import Component
 from gradio.components.button import Button
-from gradio.utils import set_default_buttons
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
 from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer

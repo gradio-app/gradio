@@ -136,7 +136,7 @@
 	<Empty unpadded_box={true} size="large"><Image /></Empty>
 {:else}
 	<div class="image-container" bind:this={image_container}>
-		<IconButtonWrapper {buttons} on_custom_button_click={on_custom_button_click}>
+		<IconButtonWrapper {buttons} {on_custom_button_click}>
 			<IconButton
 				Icon={Undo}
 				label={i18n("common.undo")}
