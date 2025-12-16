@@ -69,8 +69,8 @@
 				pinned_columns: gradio.props.pinned_columns,
 				static_columns: gradio.props.static_columns,
 				fullscreen: gradio.props.fullscreen,
-				show_copy_button: (gradio.props.buttons.includes("copy")),
-				show_fullscreen_button: (gradio.props.buttons.includes("fullscreen")),
+				show_copy_button: gradio.props.buttons.includes("copy"),
+				show_fullscreen_button: gradio.props.buttons.includes("fullscreen")
 			}
 		});
 	});
