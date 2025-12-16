@@ -23,6 +23,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     BinaryIO,
+    NamedTuple,
     Union,
 )
 from urllib.parse import urlparse
@@ -1057,3 +1058,76 @@ def slugify(value):
     )
     value = re.sub(r"[^\w\s-]", "", value.lower())
     return re.sub(r"[-\s]+", "-", value).strip("-_")
+
+
+class NodeProxyCache:
+    """
+    Fan-out streaming cache for NodeJS requests proxying
+    """
+
+    @python_dataclass
+    class CacheEntry:
+        head: bytearray
+        subs: list[asyncio.Queue[bytes | None]]
+        resp: asyncio.Future[httpx.Response | None]
+
+    class ProxyReq(NamedTuple):
+        method: str
+        url: str
+        headers: dict[str, str]
+
+    def __init__(self, client: httpx.AsyncClient):
+        self.client = client
+        self.cache: dict[str, NodeProxyCache.CacheEntry | None] = {}
+
+    async def get(self, req: ProxyReq):
+        key = f"{req.method} {req.url}"
+        key += "::".join(map(":".join, req.headers.items()))
+        res: asyncio.Queue[bytes | None] = asyncio.Queue()
+        if (entry := self.cache.get(key, None)) is None:
+            loop = asyncio.get_running_loop()
+            entry = NodeProxyCache.CacheEntry(bytearray(), [], loop.create_future())
+            asyncio.create_task(self.fetch(key, entry, req))
+            self.cache[key] = entry
+        entry.subs.append(res)
+        head = bytes(entry.head)
+        if (resp := await entry.resp) is None:
+            raise Error("Error while proxying request to Node server")
+        return resp.status_code, resp.headers, NodeProxyCache.iter_body(head, res)
+
+    async def _fetch(self, entry: CacheEntry, req: ProxyReq):
+        try:
+            response = await self.client.send(
+                self.client.build_request(
+                    method=req.method,
+                    url=httpx.URL(req.url),
+                    headers=req.headers,
+                ),
+                stream=True,
+            )
+        except Exception:
+            entry.resp.set_result(None)
+            raise
+        entry.resp.set_result(response)
+        try:
+            async for bytes_chunk in response.aiter_raw():
+                entry.head.extend(bytes_chunk)
+                for sub in entry.subs:
+                    sub.put_nowait(bytes_chunk)
+        finally:
+            for sub in entry.subs:
+                sub.put_nowait(None)
+            await response.aclose()
+
+    async def fetch(self, key: str, entry: CacheEntry, req: ProxyReq):
+        try:
+            await self._fetch(entry, req)
+        finally:
+            del self.cache[key]
+
+    @staticmethod
+    async def iter_body(head: bytes, queue: asyncio.Queue[bytes | None]):
+        if len(head) > 0:
+            yield head
+        while (chunk := await queue.get()) is not None:
+            yield chunk
