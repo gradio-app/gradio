@@ -115,7 +115,7 @@ def test_template_component_configs(io_components):
         template_keys = set(template_config.keys())
         missing_keys = parent_keys - template_keys
         if missing_keys:
-            assert False, (
+            raise AssertionError(
                 f"Template {component.__name__} is missing keys from parent {component_parent_class.__name__}: {missing_keys}"
             )
 
