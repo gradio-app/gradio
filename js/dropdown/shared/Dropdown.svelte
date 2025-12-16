@@ -117,8 +117,6 @@
 		if (!allow_custom_value) {
 			input_text =
 				choices_names[choices_values.indexOf(value as string | number)];
-		} else {
-			value = input_text;
 		}
 		show_options = false;
 		active_index = null;
