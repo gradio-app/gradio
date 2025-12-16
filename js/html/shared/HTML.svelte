@@ -299,11 +299,7 @@
 
 	// Props update effect
 	$effect(() => {
-		if (
-			reactiveProps &&
-			props &&
-			JSON.stringify(old_props) !== JSON.stringify(props)
-		) {
+		if (reactiveProps && props && old_props !== props) {
 			for (const key in props) {
 				if (reactiveProps[key] !== props[key]) {
 					reactiveProps[key] = props[key];
