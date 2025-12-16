@@ -4,4 +4,4 @@
 "gradio": patch
 ---
 
-feat:Fix custom components in SSR Mode + Custom Component Examples
+fix:Fix custom components in SSR Mode + Custom Component Examples
