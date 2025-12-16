@@ -452,75 +452,75 @@
 		style:margin-right={vibe_mode ? `${vibe_editor_width}px` : "0"}
 	>
 		<MountComponents node={app_tree.root} />
+	</div>
 
-		{#if footer_links.length > 0}
-			<footer bind:clientHeight={footer_height}>
-				{#if footer_links.includes("api")}
-					<button
-						on:click={() => {
-							set_api_docs_visible(!api_docs_visible);
-						}}
-						on:mouseenter={() => {
-							loadApiDocs();
-							loadApiRecorder();
-						}}
-						class="show-api"
-					>
-						{#if app.config?.mcp_server}
-							{$reactive_formatter("errors.use_via_api_or_mcp")}
-						{:else}
-							{$reactive_formatter("errors.use_via_api")}
-						{/if}
-						<img src={api_logo} alt={$reactive_formatter("common.logo")} />
-					</button>
-				{/if}
-				{#if footer_links.includes("gradio")}
-					<div class="divider show-api-divider">·</div>
-					<a
-						href="https://gradio.app"
-						class="built-with"
-						target="_blank"
-						rel="noreferrer"
-					>
-						{$reactive_formatter("common.built_with_gradio")}
-						<img src={logo} alt={$reactive_formatter("common.logo")} />
-					</a>
-				{/if}
+	{#if footer_links.length > 0}
+		<footer bind:clientHeight={footer_height}>
+			{#if footer_links.includes("api")}
 				<button
-					class:hidden={!$is_screen_recording}
 					on:click={() => {
-						screen_recording();
+						set_api_docs_visible(!api_docs_visible);
 					}}
-					class="record"
+					on:mouseenter={() => {
+						loadApiDocs();
+						loadApiRecorder();
+					}}
+					class="show-api"
 				>
-					{$reactive_formatter("common.stop_recording")}
+					{#if app.config?.mcp_server}
+						{$reactive_formatter("errors.use_via_api_or_mcp")}
+					{:else}
+						{$reactive_formatter("errors.use_via_api")}
+					{/if}
+					<img src={api_logo} alt={$reactive_formatter("common.logo")} />
+				</button>
+			{/if}
+			{#if footer_links.includes("gradio")}
+				<div class="divider show-api-divider">·</div>
+				<a
+					href="https://gradio.app"
+					class="built-with"
+					target="_blank"
+					rel="noreferrer"
+				>
+					{$reactive_formatter("common.built_with_gradio")}
+					<img src={logo} alt={$reactive_formatter("common.logo")} />
+				</a>
+			{/if}
+			<button
+				class:hidden={!$is_screen_recording}
+				on:click={() => {
+					screen_recording();
+				}}
+				class="record"
+			>
+				{$reactive_formatter("common.stop_recording")}
+				<img
+					src={record_stop}
+					alt={$reactive_formatter("common.stop_recording")}
+				/>
+			</button>
+			<div class="divider">·</div>
+			{#if footer_links.includes("settings")}
+				<div class="divider" class:hidden={!$is_screen_recording}>·</div>
+				<button
+					on:click={() => {
+						set_settings_visible(!settings_visible);
+					}}
+					on:mouseenter={() => {
+						loadSettings();
+					}}
+					class="settings"
+				>
+					{$reactive_formatter("common.settings")}
 					<img
-						src={record_stop}
-						alt={$reactive_formatter("common.stop_recording")}
+						src={settings_logo}
+						alt={$reactive_formatter("common.settings")}
 					/>
 				</button>
-				<div class="divider">·</div>
-				{#if footer_links.includes("settings")}
-					<div class="divider" class:hidden={!$is_screen_recording}>·</div>
-					<button
-						on:click={() => {
-							set_settings_visible(!settings_visible);
-						}}
-						on:mouseenter={() => {
-							loadSettings();
-						}}
-						class="settings"
-					>
-						{$reactive_formatter("common.settings")}
-						<img
-							src={settings_logo}
-							alt={$reactive_formatter("common.settings")}
-						/>
-					</button>
-				{/if}
-			</footer>
-		{/if}
-	</div>
+			{/if}
+		</footer>
+	{/if}
 	{#if api_recorder_visible && ApiRecorder}
 		<!-- TODO: fix -->
 		<!-- svelte-ignore a11y-click-events-have-key-events-->
