@@ -31,6 +31,7 @@ class TestModel3D:
             "_selectable": False,
             "key": None,
             "preserved_by_key": ["value"],
+            "buttons": [],
         }
 
         file = "test/test_files/Box.gltf"

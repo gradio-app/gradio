@@ -111,7 +111,13 @@ def test_template_component_configs(io_components):
         component_parent_class = inspect.getmro(component)[1]
         template_config = component().get_config()
         parent_config = component_parent_class().get_config()
-        assert set(parent_config.keys()).issubset(set(template_config.keys()))
+        parent_keys = set(parent_config.keys())
+        template_keys = set(template_config.keys())
+        missing_keys = parent_keys - template_keys
+        if missing_keys:
+            assert False, (
+                f"Template {component.__name__} is missing keys from parent {component_parent_class.__name__}: {missing_keys}"
+            )
 
 
 def test_component_example_values(io_components):
