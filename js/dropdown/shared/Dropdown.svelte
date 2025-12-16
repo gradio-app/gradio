@@ -3,10 +3,10 @@
 	import { BlockTitle, IconButtonWrapper } from "@gradio/atoms";
 	import { DropdownArrow } from "@gradio/icons";
 	import { handle_filter, handle_shared_keys } from "./utils";
-	import type {
-		SelectData,
-		KeyUpData,
-		CustomButton as CustomButtonType
+	import {
+		type SelectData,
+		type KeyUpData,
+		type CustomButton as CustomButtonType
 	} from "@gradio/utils";
 	import { tick } from "svelte";
 
@@ -79,6 +79,9 @@
 			return ["", null];
 		}
 	});
+	// Use last_typed_value to track when the user has typed
+	// on_blur we only want to update value if the user has typed
+	let last_typed_value = input_text;
 	let initialized = $state(false);
 	let disabled = $derived(!interactive);
 
@@ -96,6 +99,7 @@
 
 		let [_input_text, _value] = choices[selected_index];
 		input_text = _input_text;
+		last_typed_value = input_text;
 		value = _value;
 		on_select?.({
 			index: selected_index,
@@ -104,7 +108,7 @@
 		});
 		show_options = false;
 		active_index = null;
-		filter_input.blur();
+		on_input?.();
 	}
 
 	function handle_focus(e: FocusEvent): void {
@@ -117,6 +121,8 @@
 		if (!allow_custom_value) {
 			input_text =
 				choices_names[choices_values.indexOf(value as string | number)];
+		} else if (last_typed_value !== input_text) {
+			value = input_text;
 		}
 		show_options = false;
 		active_index = null;
@@ -135,6 +141,7 @@
 			filtered_indices
 		);
 		if (e.key === "Enter") {
+			last_typed_value = input_text;
 			if (active_index !== null) {
 				selected_index = active_index;
 				value = choices_values[active_index];
