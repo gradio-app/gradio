@@ -1117,7 +1117,7 @@ class NodeProxyCache:
         finally:
             for sub in entry.subs:
                 sub.put_nowait(None)
-            await response.aclose()
+            asyncio.create_task(response.aclose())
 
     async def fetch(self, key: str, entry: CacheEntry, req: ProxyReq):
         try:
