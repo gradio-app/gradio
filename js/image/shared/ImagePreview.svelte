@@ -11,6 +11,7 @@
 		FullscreenButton,
 		DownloadLink
 	} from "@gradio/atoms";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 	import { Download, Image as ImageIcon } from "@gradio/icons";
 	import { get_coordinates_of_clicked_image } from "./utils";
 	import Image from "./Image.svelte";
@@ -21,7 +22,8 @@
 	export let value: null | FileData;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
-	export let buttons: string[] | null = null;
+	export let buttons: (string | CustomButtonType)[] | null = null;
+	export let on_custom_button_click: ((id: number) => void) | null = null;
 	export let selectable = false;
 	export let i18n: I18nFormatter;
 	export let display_icon_button_wrapper_top_corner = false;
@@ -42,6 +44,11 @@
 	};
 
 	let image_container: HTMLElement;
+
+	$: buttons_to_render =
+		buttons && buttons.length > 0
+			? buttons
+			: ["download", "share", "fullscreen"];
 </script>
 
 <BlockLabel
@@ -56,17 +63,18 @@
 		<IconButtonWrapper
 			display_top_corner={display_icon_button_wrapper_top_corner}
 			show_background={show_button_background}
+			buttons={buttons_to_render}
+			{on_custom_button_click}
 		>
-			{#if buttons === null ? true : buttons.includes("fullscreen")}
+			{#if buttons_to_render.some((btn) => typeof btn === "string" && btn === "fullscreen")}
 				<FullscreenButton {fullscreen} on:fullscreen />
 			{/if}
-
-			{#if buttons === null ? true : buttons.includes("download")}
+			{#if buttons_to_render.some((btn) => typeof btn === "string" && btn === "download")}
 				<DownloadLink href={value.url} download={value.orig_name || "image"}>
 					<IconButton Icon={Download} label={i18n("common.download")} />
 				</DownloadLink>
 			{/if}
-			{#if buttons === null ? true : buttons.includes("share")}
+			{#if buttons_to_render.some((btn) => typeof btn === "string" && btn === "share")}
 				<ShareButton
 					{i18n}
 					on:share

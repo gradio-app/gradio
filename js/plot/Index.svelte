@@ -39,14 +39,21 @@
 		label={gradio.shared.label || gradio.i18n("plot.plot")}
 		Icon={PlotIcon}
 	/>
-	{#if gradio.props.show_fullscreen_button}
-		<IconButtonWrapper>
-			<FullscreenButton
-				{fullscreen}
-				on:fullscreen={({ detail }) => {
-					fullscreen = detail;
-				}}
-			/>
+	{#if (gradio.props.buttons && gradio.props.buttons.length > 0) || gradio.props.show_fullscreen_button}
+		<IconButtonWrapper
+			buttons={gradio.props.buttons ?? []}
+			on_custom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
+		>
+			{#if gradio.props.show_fullscreen_button}
+				<FullscreenButton
+					{fullscreen}
+					on:fullscreen={({ detail }) => {
+						fullscreen = detail;
+					}}
+				/>
+			{/if}
 		</IconButtonWrapper>
 	{/if}
 	<StatusTracker
