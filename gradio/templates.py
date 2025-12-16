@@ -550,6 +550,7 @@ class Files(components.File):
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
         allow_reordering: bool = False,
+        buttons: list[components.Button] | None = None,
     ):
         super().__init__(
             value,
@@ -571,6 +572,7 @@ class Files(components.File):
             render=render,
             key=key,
             preserved_by_key=preserved_by_key,
+            buttons=buttons,
             allow_reordering=allow_reordering,
         )
 

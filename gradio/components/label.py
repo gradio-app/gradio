@@ -11,9 +11,11 @@ from typing import TYPE_CHECKING, Any, Literal, Union
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
+from gradio.components.button import Button
 from gradio.data_classes import GradioModel
 from gradio.events import Events
 from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -62,6 +64,7 @@ class Label(Component):
         preserved_by_key: list[str] | str | None = "value",
         color: str | None = None,
         show_heading: bool = True,
+        buttons: list[Button] | None = None,
     ):
         """
         Parameters:
@@ -82,6 +85,7 @@ class Label(Component):
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             color: The background color of the label (either a valid css color name or hexadecimal string).
             show_heading: If False, the heading will not be displayed if a dictionary of labels and confidences is provided. The heading will still be visible if the value is a string or number.
+            buttons: A list of gr.Button() instances to show in the top right corner of the component. Custom buttons will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button.
         """
         self.num_top_classes = num_top_classes
         self.color = color
@@ -102,6 +106,7 @@ class Label(Component):
             preserved_by_key=preserved_by_key,
             value=value,
         )
+        self.buttons = set_default_buttons(buttons, None)
         self._value_description = "a dictionary mapping string categories to float values that represent confidence from 0 - 1."
 
     def preprocess(

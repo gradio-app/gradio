@@ -79,6 +79,7 @@ from gradio.themes import ThemeClass as Theme
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext, Blocks
     from gradio.components import Component
+    from gradio.components.button import Button
     from gradio.routes import App, Request
     from gradio.state_holder import SessionState
 
@@ -1965,3 +1966,16 @@ async def safe_aclose_iterator(iterator, timeout=60.0, retry_interval=0.05):
                     raise
     else:
         iterator.aclose()
+
+
+def set_default_buttons(
+    buttons: Sequence[str | Button] | None = None,
+    default_buttons: list[str] | None = None,
+) -> Sequence[str | Button]:
+    from gradio.components.button import Button
+
+    if buttons is None:
+        return default_buttons or []
+    else:
+        [btn.unrender() for btn in buttons if isinstance(btn, Button)]
+        return buttons

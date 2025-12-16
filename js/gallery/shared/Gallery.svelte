@@ -7,6 +7,7 @@
 		IconButtonWrapper,
 		FullscreenButton
 	} from "@gradio/atoms";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 	import { ModifyUpload, Upload as UploadComponent } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
 	import { Image } from "@gradio/image/shared";
@@ -57,6 +58,8 @@
 	export let stream_handler: Client["stream"] | undefined = undefined;
 	export let fit_columns = true;
 	export let upload_promise: Promise<any> | null = null;
+	export let buttons: (string | CustomButtonType)[] | null = null;
+	export let on_custom_button_click: ((id: number) => void) | null = null;
 
 	let is_full_screen = false;
 	let image_container: HTMLElement;
@@ -330,6 +333,8 @@
 			>
 				<IconButtonWrapper
 					display_top_corner={display_icon_button_wrapper_top_corner}
+					{buttons}
+					{on_custom_button_click}
 				>
 					{#if show_download_button}
 						<IconButton

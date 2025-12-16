@@ -1,9 +1,13 @@
 <script lang="ts">
 	import DropdownOptions from "./DropdownOptions.svelte";
-	import { BlockTitle } from "@gradio/atoms";
+	import { BlockTitle, IconButtonWrapper } from "@gradio/atoms";
 	import { DropdownArrow } from "@gradio/icons";
 	import { handle_filter, handle_shared_keys } from "./utils";
-	import type { SelectData, KeyUpData } from "@gradio/utils";
+	import type {
+		SelectData,
+		KeyUpData,
+		CustomButton as CustomButtonType
+	} from "@gradio/utils";
 	import { tick } from "svelte";
 
 	const is_browser = typeof window !== "undefined";
@@ -18,6 +22,8 @@
 		container = true,
 		allow_custom_value = false,
 		filterable = true,
+		buttons = null,
+		on_custom_button_click = null,
 		on_change,
 		on_input,
 		on_select,
@@ -34,6 +40,8 @@
 		container?: boolean;
 		allow_custom_value?: boolean;
 		filterable?: boolean;
+		buttons?: (string | CustomButtonType)[] | null;
+		on_custom_button_click?: ((id: number) => void) | null;
 		on_change?: (value: string | number | null) => void;
 		on_input?: () => void;
 		on_select?: (data: SelectData) => void;
@@ -161,6 +169,9 @@
 </script>
 
 <div class:container>
+	{#if show_label && buttons && buttons.length > 0}
+		<IconButtonWrapper {buttons} {on_custom_button_click} />
+	{/if}
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	<div class="wrap">
