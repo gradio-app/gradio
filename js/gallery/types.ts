@@ -1,4 +1,5 @@
 import type { FileData, SelectData } from "@gradio/client";
+import type { CustomButton } from "@gradio/utils";
 
 export interface GalleryImage {
 	image: FileData;
@@ -22,7 +23,7 @@ export interface GalleryProps {
 	allow_preview: boolean;
 	selected_index: number | null;
 	object_fit: "contain" | "cover" | "fill" | "none" | "scale-down";
-	buttons: string[];
+	buttons: (string | CustomButton)[];
 	type: "numpy" | "pil" | "filepath";
 	fit_columns: boolean;
 }
@@ -37,4 +38,5 @@ export interface GalleryEvents {
 	clear_status: any;
 	share: any;
 	error: any;
+	custom_button_click: { id: number };
 }

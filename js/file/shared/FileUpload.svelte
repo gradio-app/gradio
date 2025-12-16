@@ -7,6 +7,7 @@
 
 	import FilePreview from "./FilePreview.svelte";
 	import type { I18nFormatter } from "@gradio/utils";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 
 	export let value: null | FileData | FileData[];
 
@@ -24,6 +25,8 @@
 	export let uploading = false;
 	export let allow_reordering = false;
 	export let upload_promise: Promise<(FileData | null)[]> | null = null;
+	export let buttons: (string | CustomButtonType)[] | null = null;
+	export let on_custom_button_click: ((id: number) => void) | null = null;
 
 	async function handle_upload({
 		detail
@@ -59,10 +62,13 @@
 	$: dispatch("drag", dragging);
 </script>
 
+{#if show_label && buttons && buttons.length > 0}
+	<IconButtonWrapper {buttons} {on_custom_button_click} />
+{/if}
 <BlockLabel {show_label} Icon={File} float={!value} label={label || "File"} />
 
 {#if value && (Array.isArray(value) ? value.length > 0 : true)}
-	<IconButtonWrapper>
+	<IconButtonWrapper buttons={buttons || []} {on_custom_button_click}>
 		{#if !(file_count === "single" && (Array.isArray(value) ? value.length > 0 : value !== null))}
 			<IconButton Icon={UploadIcon} label={i18n("common.upload")}>
 				<Upload

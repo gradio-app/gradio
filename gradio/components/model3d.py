@@ -10,9 +10,11 @@ from gradio_client import handle_file
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
+from gradio.components.button import Button
 from gradio.data_classes import FileData
 from gradio.events import Events
 from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -60,6 +62,7 @@ class Model3D(Component):
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
+        buttons: list[Button] | None = None,
     ):
         """
         Parameters:
@@ -84,6 +87,7 @@ class Model3D(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
+            buttons: A list of gr.Button() instances to show in the top right corner of the component. Custom buttons will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button.
         """
         self.display_mode = display_mode
         self.clear_color = clear_color or [0, 0, 0, 0]
@@ -108,6 +112,7 @@ class Model3D(Component):
             preserved_by_key=preserved_by_key,
             value=value,
         )
+        self.buttons = set_default_buttons(buttons, None)
         self._value_description = (
             "a string path to a (.obj, .glb, .stl, .gltf, .splat, or .ply) file."
         )

@@ -13,10 +13,12 @@ from gradio_client.documentation import document
 
 from gradio import image_utils
 from gradio.components.base import Component, StreamingInput
+from gradio.components.button import Button
 from gradio.components.image_editor import WatermarkOptions, WebcamOptions
 from gradio.data_classes import Base64ImageData, ImageData
 from gradio.events import Events
 from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -73,7 +75,8 @@ class Image(StreamingInput, Component):
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
-        buttons: list[Literal["download", "share", "fullscreen"]] | None = None,
+        buttons: list[Literal["download", "share", "fullscreen"] | Button]
+        | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
@@ -102,7 +105,7 @@ class Image(StreamingInput, Component):
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
-            buttons: A list of buttons to show in the corner of the component. Valid options are "download" to download the image, "share" to share to Hugging Face Spaces Discussions, and "fullscreen" to view in fullscreen mode. By default, all buttons are shown.
+            buttons: A list of buttons to show in the corner of the component. Valid options are "download", "share", "fullscreen", or a gr.Button() instance. The "download" button allows the user to download the image. The "share" button allows the user to share to Hugging Face Spaces Discussions. The "fullscreen" button allows the user to view in fullscreen mode. Custom gr.Button() instances will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button. by default, all of the built-in buttons are shown.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
@@ -139,10 +142,6 @@ class Image(StreamingInput, Component):
         self.height = height
         self.width = width
         self.image_mode = image_mode
-        self.buttons = buttons or [
-            "download",
-            "fullscreen",
-        ]
         valid_sources = ["upload", "webcam", "clipboard"]
         if sources is None:
             self.sources = (
@@ -158,7 +157,7 @@ class Image(StreamingInput, Component):
                     f"`sources` must a list consisting of elements in {valid_sources}"
                 )
         self.streaming = streaming
-        self.buttons = buttons or ["download", "share", "fullscreen"]
+        self.buttons = set_default_buttons(buttons, ["download", "share", "fullscreen"])
         if streaming and self.sources != ["webcam"]:
             raise ValueError(
                 "Image streaming only available if sources is ['webcam']. Streaming not supported with multiple sources."

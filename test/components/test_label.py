@@ -63,6 +63,7 @@ class TestLabel:
             "key": None,
             "preserved_by_key": ["value"],
             "show_heading": True,
+            "buttons": [],
         }
 
     def test_color_argument(self):

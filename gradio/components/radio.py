@@ -8,9 +8,11 @@ from typing import TYPE_CHECKING, Any, Literal
 from gradio_client.documentation import document
 
 from gradio.components.base import Component, FormComponent
+from gradio.components.button import Button
 from gradio.events import Events
 from gradio.exceptions import Error
 from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -49,6 +51,7 @@ class Radio(FormComponent):
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
         rtl: bool = False,
+        buttons: list[Button] | None = None,
     ):
         """
         Parameters:
@@ -71,6 +74,7 @@ class Radio(FormComponent):
             key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             rtl: If True, the radio buttons will be displayed in right-to-left order. Default is False.
+            buttons: A list of gr.Button() instances to show in the top right corner of the component. Custom buttons will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button.
         """
         self.choices = (
             # Although we expect choices to be a list of tuples, it can be a list of tuples if the Gradio app
@@ -104,6 +108,7 @@ class Radio(FormComponent):
             preserved_by_key=preserved_by_key,
             value=value,
         )
+        self.buttons = set_default_buttons(buttons, None)
         self._value_description = (
             f"one of {[c[1] if isinstance(c, tuple) else c for c in self.choices]}"
         )

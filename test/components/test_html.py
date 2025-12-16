@@ -36,6 +36,7 @@ class TestHTML:
             "streamable": False,
             "value": "#Welcome onboard",
             "visible": True,
+            "buttons": [],
         }
 
     def test_in_interface(self):

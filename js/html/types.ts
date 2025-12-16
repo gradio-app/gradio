@@ -1,3 +1,5 @@
+import type { CustomButton } from "@gradio/utils";
+
 export interface HTMLProps {
 	value: string;
 	html_template: string;
@@ -9,10 +11,12 @@ export interface HTMLProps {
 	max_height: number | undefined;
 	props: Record<string, any>;
 	component_class_name: string;
+	buttons: (string | CustomButton)[] | null;
 }
 
 export interface HTMLEvents {
 	change: never;
 	click: never;
 	submit: never;
+	custom_button_click: { id: number };
 }

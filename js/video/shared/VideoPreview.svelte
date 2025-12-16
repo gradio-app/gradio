@@ -11,6 +11,7 @@
 	import type { FileData, Client } from "@gradio/client";
 	import { Video, Download } from "@gradio/icons";
 	import { uploadToHuggingFace } from "@gradio/utils";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 
 	import Player from "./Player.svelte";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
@@ -20,8 +21,8 @@
 	export let label: string | undefined = undefined;
 	export let show_label = true;
 	export let autoplay: boolean;
-	export let show_share_button = true;
-	export let show_download_button = true;
+	export let buttons: (string | CustomButtonType)[] | null = null;
+	export let on_custom_button_click: ((id: number) => void) | null = null;
 	export let loop: boolean;
 	export let i18n: I18nFormatter;
 	export let upload: Client["upload"];
@@ -91,8 +92,10 @@
 	<div data-testid="download-div">
 		<IconButtonWrapper
 			display_top_corner={display_icon_button_wrapper_top_corner}
+			buttons={buttons ?? ["download", "share"]}
+			{on_custom_button_click}
 		>
-			{#if show_download_button}
+			{#if buttons?.some((btn) => typeof btn === "string" && btn === "download")}
 				<DownloadLink
 					href={value.is_stream
 						? value.url?.replace("playlist.m3u8", "playlist-file")
@@ -102,7 +105,7 @@
 					<IconButton Icon={Download} label="Download" />
 				</DownloadLink>
 			{/if}
-			{#if show_share_button}
+			{#if buttons?.some((btn) => typeof btn === "string" && btn === "share")}
 				<ShareButton
 					{i18n}
 					on:error

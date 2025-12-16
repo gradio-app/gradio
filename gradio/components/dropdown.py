@@ -9,9 +9,11 @@ from typing import TYPE_CHECKING, Any, Literal
 from gradio_client.documentation import document
 
 from gradio.components.base import Component, FormComponent
+from gradio.components.button import Button
 from gradio.events import Events
 from gradio.exceptions import Error
 from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -76,6 +78,7 @@ class Dropdown(FormComponent):
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
+        buttons: list[Button] | None = None,
     ):
         """
         Parameters:
@@ -99,6 +102,7 @@ class Dropdown(FormComponent):
             elem_id: an optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: an optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: if False, component will not be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            buttons: A list of gr.Button() instances to show in the top right corner of the component. Custom buttons will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button.
         """
         self.choices = (
             # Although we expect choices to be a list of tuples, it can be a list of lists if the Gradio app
@@ -155,6 +159,7 @@ class Dropdown(FormComponent):
             preserved_by_key=preserved_by_key,
             value=value,
         )
+        self.buttons = set_default_buttons(buttons, None)
         self._value_description = f"one{' or more' if multiselect else ''} of {[c[1] if isinstance(c, tuple) else c for c in self.choices]}"
 
     def api_info(self) -> dict[str, Any]:

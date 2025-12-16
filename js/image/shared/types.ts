@@ -1,5 +1,6 @@
 import type { LoadingStatus } from "@gradio/statustracker";
 import type { FileData } from "@gradio/client";
+import type { CustomButton } from "@gradio/utils";
 
 export interface Base64File {
 	url: string;
@@ -18,7 +19,7 @@ export interface ImageProps {
 	width: number;
 	webcam_options: WebcamOptions;
 	value: FileData | null;
-	buttons: string[];
+	buttons: (string | CustomButton)[];
 	pending: boolean;
 	streaming: boolean;
 	stream_every: number;
@@ -39,4 +40,5 @@ export interface ImageEvents {
 	error: any;
 	close_stream: void;
 	edit: void;
+	custom_button_click: { id: number };
 }

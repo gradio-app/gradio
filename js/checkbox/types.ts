@@ -1,9 +1,10 @@
-import type { SelectData } from "@gradio/utils";
+import type { SelectData, CustomButton } from "@gradio/utils";
 import type { LoadingStatus } from "js/statustracker";
 
 export interface CheckboxProps {
 	value: boolean;
 	info: string;
+	buttons: (string | CustomButton)[] | null;
 }
 
 export interface CheckboxEvents {
@@ -11,4 +12,5 @@ export interface CheckboxEvents {
 	input: boolean;
 	select: SelectData;
 	clear_status: LoadingStatus;
+	custom_button_click: { id: number };
 }

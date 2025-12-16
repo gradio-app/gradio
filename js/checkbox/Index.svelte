@@ -4,7 +4,7 @@
 
 <script lang="ts">
 	import { Gradio } from "@gradio/utils";
-	import { Block, Info } from "@gradio/atoms";
+	import { Block, Info, IconButtonWrapper } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { CheckboxProps, CheckboxEvents } from "./types";
 	import BaseCheckbox from "./shared/Checkbox.svelte";
@@ -25,6 +25,14 @@
 		on_clear_status={() =>
 			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
+	{#if gradio.shared.show_label && gradio.props.buttons && gradio.props.buttons.length > 0}
+		<IconButtonWrapper
+			buttons={gradio.props.buttons}
+			on_custom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
+		/>
+	{/if}
 	<BaseCheckbox
 		label={gradio.shared.label || gradio.i18n("checkbox.checkbox")}
 		bind:value={gradio.props.value}

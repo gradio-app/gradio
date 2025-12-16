@@ -123,6 +123,7 @@ class TestHighlightedText:
             "combine_adjacent": False,
             "adjacent_separator": "",
             "interactive": None,
+            "buttons": [],
         }
 
     def test_in_interface(self):

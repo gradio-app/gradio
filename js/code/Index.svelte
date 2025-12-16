@@ -69,7 +69,14 @@
 			<CodeIcon />
 		</Empty>
 	{:else}
-		<Widget language={gradio.props.language} value={gradio.props.value} />
+		<Widget
+			language={gradio.props.language}
+			value={gradio.props.value}
+			buttons={gradio.props.buttons ?? ["copy", "download"]}
+			on_custom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
+		/>
 
 		<Code
 			bind:value={gradio.props.value}

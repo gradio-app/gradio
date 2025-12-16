@@ -13,11 +13,12 @@ from gradio_client.documentation import document
 
 from gradio import processing_utils
 from gradio.components.base import Component
+from gradio.components.button import Button
 from gradio.data_classes import FileData, ListFiles
 from gradio.events import Events
 from gradio.exceptions import Error
 from gradio.i18n import I18nData
-from gradio.utils import NamedString
+from gradio.utils import NamedString, set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -63,6 +64,7 @@ class File(Component):
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
         allow_reordering: bool = False,
+        buttons: list[Button] | None = None,
     ):
         """
         Parameters:
@@ -131,6 +133,7 @@ class File(Component):
         self.type = type
         self.height = height
         self.allow_reordering = allow_reordering
+        self.buttons = set_default_buttons(buttons, None)
         self._value_description = (
             "a string filepath"
             if self.file_count == "single"

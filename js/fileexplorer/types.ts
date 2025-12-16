@@ -1,5 +1,5 @@
 import type { LoadingStatus } from "@gradio/statustracker";
-import type { SelectData } from "@gradio/utils";
+import type { SelectData, CustomButton } from "@gradio/utils";
 import type { FileNode } from "./shared/types";
 
 export interface FileExplorerProps {
@@ -15,6 +15,7 @@ export interface FileExplorerProps {
 	server: {
 		ls: (path: string[]) => Promise<FileNode[]>;
 	};
+	buttons: (string | CustomButton)[] | null;
 }
 
 export interface FileExplorerEvents {
@@ -22,4 +23,5 @@ export interface FileExplorerEvents {
 	input: never;
 	select: SelectData;
 	clear_status: LoadingStatus;
+	custom_button_click: { id: number };
 }

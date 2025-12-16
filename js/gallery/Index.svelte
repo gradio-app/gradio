@@ -152,12 +152,22 @@
 			allow_preview={gradio.props.allow_preview}
 			bind:selected_index={gradio.props.selected_index}
 			bind:value={gradio.props.value}
-			show_share_button={gradio.props.buttons.includes("share")}
-			show_download_button={gradio.props.buttons.includes("download")}
+			show_share_button={gradio.props.buttons.some(
+				(btn) => typeof btn === "string" && btn === "share"
+			)}
+			show_download_button={gradio.props.buttons.some(
+				(btn) => typeof btn === "string" && btn === "download"
+			)}
 			fit_columns={gradio.props.fit_columns}
 			i18n={gradio.i18n}
 			_fetch={(...args) => gradio.shared.client.fetch(...args)}
-			show_fullscreen_button={gradio.props.buttons.includes("fullscreen")}
+			show_fullscreen_button={gradio.props.buttons.some(
+				(btn) => typeof btn === "string" && btn === "fullscreen"
+			)}
+			buttons={gradio.props.buttons}
+			on_custom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
 			{fullscreen}
 			root={gradio.shared.root}
 			file_types={gradio.props.file_types}
