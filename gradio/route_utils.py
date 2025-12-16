@@ -1065,8 +1065,7 @@ class NodeProxyCache:
     Fan-out streaming cache for NodeJS requests proxying
     """
 
-    @python_dataclass
-    class CacheEntry:
+    class CacheEntry(NamedTuple):
         head: bytearray
         subs: list[asyncio.Queue[bytes | None]]
         resp: asyncio.Future[httpx.Response | None]
