@@ -1095,7 +1095,7 @@ class NodeProxyCache:
             raise Error("Error while proxying request to Node server")
         return resp.status_code, resp.headers, NodeProxyCache.iter_body(head, res)
 
-    async def _fetch(self, entry: CacheEntry, req: ProxyReq):
+    async def fetch(self, key: str, entry: CacheEntry, req: ProxyReq):
         try:
             response = await self.client.send(
                 self.client.build_request(
@@ -1107,6 +1107,7 @@ class NodeProxyCache:
             )
         except Exception:
             entry.resp.set_result(None)
+            del self.cache[key]
             raise
         entry.resp.set_result(response)
         try:
@@ -1117,13 +1118,8 @@ class NodeProxyCache:
         finally:
             for sub in entry.subs:
                 sub.put_nowait(None)
-            asyncio.create_task(response.aclose())
-
-    async def fetch(self, key: str, entry: CacheEntry, req: ProxyReq):
-        try:
-            await self._fetch(entry, req)
-        finally:
             del self.cache[key]
+            await response.aclose()
 
     @staticmethod
     async def iter_body(head: bytes, queue: asyncio.Queue[bytes | None]):
