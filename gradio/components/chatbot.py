@@ -536,12 +536,12 @@ class Chatbot(Component):
         self, message: MessageDict | Message | ChatMessage | NormalizedMessageDict
     ) -> list[Message] | None:
         message = copy.deepcopy(message)
-        role = message["role"] if isinstance(message, dict) else message.role
+        role = message["role"] if isinstance(message, dict) else message.role  # type: ignore[possibly-unbound-attribute]
         metadata = (
-            message.get("metadata") if isinstance(message, dict) else message.metadata
+            message.get("metadata") if isinstance(message, dict) else message.metadata  # type: ignore[possibly-unbound-attribute]
         )
         options = (
-            message.get("options") if isinstance(message, dict) else message.options
+            message.get("options") if isinstance(message, dict) else message.options  # type: ignore[possibly-unbound-attribute]
         )
         if isinstance(message, dict) and not isinstance(message["content"], list):
             content_ = self._postprocess_content(

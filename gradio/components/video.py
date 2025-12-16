@@ -157,7 +157,7 @@ class Video(StreamingOutput, Component):
         self.include_audio = (
             include_audio if include_audio is not None else "upload" in self.sources
         )
-        self.buttons = set_default_buttons(buttons, None)
+        self.buttons = set_default_buttons(buttons, ["download"])
         self.streaming = streaming
         self.playback_position = playback_position
         self.subtitles = None
