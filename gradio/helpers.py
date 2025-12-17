@@ -580,7 +580,9 @@ class Examples:
                 output = prediction["data"]
                 if generated_values:
                     output = await merge_generated_values_into_output(
-                        self.outputs, generated_values, output  # type: ignore
+                        self.outputs,
+                        generated_values,
+                        output,  # type: ignore
                     )
                 if self.batch:
                     output = [value[0] for value in output]

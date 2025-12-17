@@ -580,12 +580,15 @@ class Chatbot(Component):
         messages: list[Message] = []
         if self.reasoning_tags:
             non_text_content = [
-                item for item in content_postprocessed if item.type != "text"  # type: ignore
+                item
+                for item in content_postprocessed
+                if item.type != "text"  # type: ignore
             ]
             for content_item in content_postprocessed:
                 if content_item.type == "text":  # type: ignore
                     segments = self._extract_thinking_blocks(
-                        content_item.text, self.reasoning_tags  # type: ignore
+                        content_item.text,
+                        self.reasoning_tags,  # type: ignore
                     )
                     for text, is_thinking, status in segments:
                         if is_thinking:

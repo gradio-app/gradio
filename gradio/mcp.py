@@ -409,7 +409,8 @@ class GradioMCPServer:
                 output_data = await self._execute_tool_without_progress(job)
             else:
                 output_data = await self._execute_tool_with_progress(  # type: ignore
-                    job, progress_token  # type: ignore
+                    job,
+                    progress_token,  # type: ignore
                 )
 
             output_data = self.pop_returned_state(block_fn.outputs, output_data)
