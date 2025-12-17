@@ -66,7 +66,8 @@
 	<div
 		class="html-container"
 		class:padding={gradio.shared.padding}
-		class:pending={gradio.shared.loading_status?.status === "pending"}
+		class:pending={gradio.shared.loading_status?.status === "pending" &&
+		gradio.shared.loading_status?.show_progress !== "hidden"}
 		style:min-height={gradio.props.min_height &&
 		gradio.shared.loading_status?.status !== "pending"
 			? css_units(gradio.props.min_height)
