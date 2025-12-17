@@ -572,10 +572,14 @@ class Examples:
                 if self.batch:
                     processed_input = [[value] for value in processed_input]
                 with utils.MatplotlibBackendMananger():
+                    # When caching examples lazily, set in_event_listener to False
+                    # so that all components are properly instantiated
+                    # See https://github.com/gradio-app/gradio/issues/12564
                     prediction = await self.root_block.process_api(
                         block_fn=self.root_block.default_config.fns[fn_index],
                         inputs=processed_input,
                         request=None,
+                        in_event_listener=self.cache_examples != "lazy",
                     )
                 output = prediction["data"]
                 if generated_values:
