@@ -174,7 +174,7 @@ DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
 )
 
 BUILT_IN_THEMES: dict[str, Theme] = {
-    t.name: t
+    t.name: t  # type: ignore
     for t in [
         themes.Base(),
         themes.Default(),
@@ -185,6 +185,7 @@ BUILT_IN_THEMES: dict[str, Theme] = {
         themes.Citrus(),
         themes.Ocean(),
     ]
+    if t.name is not None
 }
 
 
@@ -437,8 +438,8 @@ class App(FastAPI):
 
         app.configure_app(blocks)
 
-        app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
-        app.add_middleware(
+        app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)  # type: ignore
+        app.add_middleware(  # type: ignore
             BrotliMiddleware,
             quality=4,
             excluded_handlers=[mcp_subpath],
@@ -856,9 +857,9 @@ class App(FastAPI):
                     }
                 }
 
-                request_properties = path_item["post"]["requestBody"]["content"][
+                request_properties = path_item["post"]["requestBody"]["content"][  # type: ignore
                     "application/json"
-                ]["schema"]["properties"]
+                ]["schema"]["properties"]  # type: ignore
                 for param in endpoint_info.get("parameters", []):
                     param_name = param["parameter_name"]
                     param_type = param.get("type", {})
@@ -871,25 +872,25 @@ class App(FastAPI):
                         param_type = dict(param_type)
                         param_type["type"] = "object"
 
-                    request_properties[param_name] = param_type
+                    request_properties[param_name] = param_type  # type: ignore
 
                     if "example_input" in param:
                         if (
                             "examples"
-                            not in path_item["post"]["requestBody"]["content"][
+                            not in path_item["post"]["requestBody"]["content"][  # type: ignore
                                 "application/json"
                             ]
                         ):
-                            path_item["post"]["requestBody"]["content"][
+                            path_item["post"]["requestBody"]["content"][  # type: ignore
                                 "application/json"
                             ]["examples"] = {"example1": {"value": {}}}
-                        path_item["post"]["requestBody"]["content"]["application/json"][
+                        path_item["post"]["requestBody"]["content"]["application/json"][  # type: ignore
                             "examples"
-                        ]["example1"]["value"][param_name] = param["example_input"]
+                        ]["example1"]["value"][param_name] = param["example_input"]  # type: ignore
 
-                response_properties = path_item["post"]["responses"]["200"]["content"][
+                response_properties = path_item["post"]["responses"]["200"]["content"][  # type: ignore
                     "application/json"
-                ]["schema"]["properties"]
+                ]["schema"]["properties"]  # type: ignore
                 for i, ret in enumerate(endpoint_info.get("returns", [])):
                     ret_name = f"output_{i}" if i > 0 else "output"
                     ret_type = ret.get("type", {})
@@ -902,9 +903,9 @@ class App(FastAPI):
                         ret_type = dict(ret_type)
                         ret_type["type"] = "object"
 
-                    response_properties[ret_name] = ret_type
+                    response_properties[ret_name] = ret_type  # type: ignore
 
-                schema["paths"][f"/run{endpoint_path}"] = path_item
+                schema["paths"][f"/run{endpoint_path}"] = path_item  # type: ignore
 
             return schema
 

@@ -405,7 +405,7 @@ class PlayableVideo(components.Video):
     ):
         sources = ["upload"]
         super().__init__(
-            value=value,
+            value=value,  # type: ignore
             format=format,
             sources=sources,  # type: ignore
             height=height,
@@ -429,7 +429,7 @@ class PlayableVideo(components.Video):
             buttons=buttons,
             loop=loop,
             streaming=streaming,
-            watermark=watermark,
+            watermark=watermark,  # type: ignore
             webcam_options=webcam_options,
             subtitles=subtitles,
             playback_position=playback_position,
@@ -632,10 +632,10 @@ class Numpy(components.Dataframe):
         super().__init__(
             value=value,
             headers=headers,
-            row_count=row_count,
+            row_count=row_count,  # type: ignore
             row_limits=row_limits,
-            col_count=col_count,
-            column_count=column_count,
+            col_count=col_count,  # type: ignore
+            column_count=column_count,  # type: ignore
             column_limits=column_limits,
             datatype=datatype,
             type=type,

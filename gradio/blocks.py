@@ -797,8 +797,8 @@ class BlocksConfig:
 
         block_fn = BlockFunction(
             fn,
-            inputs,
-            outputs,
+            inputs,  # type: ignore
+            outputs,  # type: ignore
             preprocess,
             postprocess,
             _id=fn_id,
@@ -813,7 +813,7 @@ class BlocksConfig:
             api_description=api_description,
             js=js,
             show_progress=show_progress,
-            show_progress_on=show_progress_on
+            show_progress_on=show_progress_on  # type: ignore
             if isinstance(show_progress_on, (list, tuple)) or show_progress_on is None
             else [show_progress_on],
             cancels=cancels,
@@ -901,7 +901,7 @@ class BlocksConfig:
         for page_tuple in self.root_block.pages:
             page = page_tuple[0]
             if page not in config["page"]:
-                config["page"][page] = {
+                config["page"][page] = {  # type: ignore
                     "layout": {"id": self.root_block._id, "children": []},
                     "components": [],
                     "dependencies": [],
@@ -929,7 +929,7 @@ class BlocksConfig:
         for root_child in layout.get("children", []):
             if isinstance(root_child, dict) and root_child["id"] in self.blocks:
                 block = self.blocks[root_child["id"]]
-                config["page"][block.page]["layout"]["children"].append(root_child)
+                config["page"][block.page]["layout"]["children"].append(root_child)  # type: ignore
 
         blocks_items = list(
             self.blocks.items()
@@ -938,8 +938,8 @@ class BlocksConfig:
             block_config = self.config_for_block(_id, rendered_ids, block, renderable)
             if not block_config:
                 continue
-            config["components"].append(block_config)
-            config["page"][block.page]["components"].append(block._id)
+            config["components"].append(block_config)  # type: ignore
+            config["page"][block.page]["components"].append(block._id)  # type: ignore
 
         dependencies = []
         for fn in self.fns.values():
@@ -1141,7 +1141,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.css = None
         self.js = None
         self.head = None
-        self.theme = None
+        self.theme = None  # type: ignore
         self.head_paths = None
 
         if self.analytics_enabled:
@@ -2226,7 +2226,7 @@ Received inputs:
             else CapacityLimiter(total_tokens=self.max_threads)
         )
 
-    def get_config(self):
+    def get_config(self):  # type: ignore[override]
         return {"type": "column"}
 
     def get_config_file(self) -> BlocksConfigDict:
@@ -2253,7 +2253,7 @@ Received inputs:
             "stylesheets": getattr(self, "stylesheets", []),
             "theme": self.theme.name if self.theme is not None else None,
             "protocol": "sse_v3",
-            "body_css": {
+            "body_css": {  # type: ignore
                 "body_background_fill": self.theme._get_computed_value(
                     "body_background_fill"
                 ),
@@ -2269,9 +2269,9 @@ Received inputs:
             else None,
             "fill_height": self.fill_height,
             "fill_width": self.fill_width,
-            "theme_hash": getattr(self, "theme_hash", None),
+            "theme_hash": getattr(self, "theme_hash", None),  # type: ignore
             "pwa": self.pwa,
-            "pages": self.pages,
+            "pages": self.pages,  # type: ignore
             "page": {},
             "mcp_server": self.mcp_server,
             "i18n_translations": (
@@ -2296,7 +2296,7 @@ Received inputs:
             print("* Trying to transpile functions from Python -> JS for performance\n")
         for index, fn in enumerate(fns_to_transpile):
             if not quiet:
-                print(f"* ({index + 1}/{num_to_transpile}) {fn.__name__}: ", end="")
+                print(f"* ({index + 1}/{num_to_transpile}) {fn.__name__}: ", end="")  # type: ignore
             if getattr(fn, "__js_implementation__", None) is None:  # type: ignore
                 try:
                     fn.__js_implementation__ = transpile(fn, validate=True)  # type: ignore
@@ -2593,11 +2593,11 @@ Received inputs:
             self.auth = auth
 
         if self.auth and not callable(self.auth):
-            if any(not authenticable[0] for authenticable in self.auth):
+            if any(not authenticable[0] for authenticable in self.auth):  # type: ignore
                 warnings.warn(
                     "You have provided an empty username in `auth`. Please provide a valid username."
                 )
-            if any(not authenticable[1] for authenticable in self.auth):
+            if any(not authenticable[1] for authenticable in self.auth):  # type: ignore
                 warnings.warn(
                     "You have provided an empty password in `auth`. Please provide a valid password."
                 )

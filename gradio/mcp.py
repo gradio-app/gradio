@@ -83,7 +83,7 @@ class GradioMCPServer:
         self._local_url: str | None = None
         self._client_instance: Client | None = None
 
-        manager = self.StreamableHTTPSessionManager(
+        manager = self.StreamableHTTPSessionManager(  # type: ignore
             app=self.mcp_server, json_response=False, stateless=True
         )
 
@@ -379,12 +379,12 @@ class GradioMCPServer:
         Returns:
             The MCP server.
         """
-        server = self.Server(str(self.blocks.title or "Gradio App"))
+        server = self.Server(str(self.blocks.title or "Gradio App"))  # type: ignore
 
         @server.call_tool()
         async def call_tool(
             name: str, arguments: dict[str, Any]
-        ) -> self.types.CallToolResult:
+        ) -> self.types.CallToolResult:  # type: ignore
             """
             Call a tool on the Gradio app.
 
@@ -426,14 +426,14 @@ class GradioMCPServer:
                 structured_content = {"result": content}
             else:
                 structured_content = None
-            return self.types.CallToolResult(
+            return self.types.CallToolResult(  # type: ignore
                 content=content,
                 structuredContent=structured_content,
                 _meta=getattr(block_fn.fn, "_mcp_meta", None),
             )
 
         @server.list_tools()
-        async def list_tools() -> list[self.types.Tool]:
+        async def list_tools() -> list[self.types.Tool]:  # type: ignore
             """
             List all tools on the Gradio app.
             """
@@ -460,7 +460,7 @@ class GradioMCPServer:
                 tool_meta = getattr(block_fn.fn, "_mcp_meta", None)
 
                 tools.append(
-                    self.types.Tool(
+                    self.types.Tool(  # type: ignore
                         name=tool_name,
                         description=description,
                         inputSchema=schema,
@@ -470,7 +470,7 @@ class GradioMCPServer:
             return tools
 
         @server.list_resources()
-        async def list_resources() -> list[self.types.Resource]:
+        async def list_resources() -> list[self.types.Resource]:  # type: ignore
             """
             List all available resources.
             """
@@ -488,24 +488,24 @@ class GradioMCPServer:
                     and hasattr(block_fn.fn, "_mcp_type")
                     and block_fn.fn._mcp_type == "resource"
                 ):
-                    uri_template = block_fn.fn._mcp_uri_template
+                    uri_template = block_fn.fn._mcp_uri_template  # type: ignore
                     parameters = re.findall(r"\{([^}]+)\}", uri_template)
                     description, parameters, _ = utils.get_function_description(
                         block_fn.fn
                     )
                     if not parameters:
                         resources.append(
-                            self.types.Resource(
+                            self.types.Resource(  # type: ignore
                                 uri=uri_template,
-                                name=block_fn.fn.__name__,
+                                name=block_fn.fn.__name__,  # type: ignore
                                 description=description,
-                                mimeType=block_fn.fn._mcp_mime_type,
+                                mimeType=block_fn.fn._mcp_mime_type,  # type: ignore
                             )
                         )
             return resources
 
         @server.list_resource_templates()
-        async def list_resource_templates() -> list[self.types.ResourceTemplate]:
+        async def list_resource_templates() -> list[self.types.ResourceTemplate]:  # type: ignore
             """
             List all available resource templates.
             """
@@ -522,24 +522,24 @@ class GradioMCPServer:
                     and hasattr(block_fn.fn, "_mcp_type")
                     and block_fn.fn._mcp_type == "resource"
                 ):
-                    uri_template = block_fn.fn._mcp_uri_template
+                    uri_template = block_fn.fn._mcp_uri_template  # type: ignore
                     parameters = re.findall(r"\{([^}]+)\}", uri_template)
                     description, parameters, _ = utils.get_function_description(
                         block_fn.fn
                     )
                     if parameters:
                         templates.append(
-                            self.types.ResourceTemplate(
+                            self.types.ResourceTemplate(  # type: ignore
                                 uriTemplate=uri_template,
-                                name=block_fn.fn.__name__,
+                                name=block_fn.fn.__name__,  # type: ignore
                                 description=description,
-                                mimeType=block_fn.fn._mcp_mime_type,
+                                mimeType=block_fn.fn._mcp_mime_type,  # type: ignore
                             )
                         )
             return templates
 
         @server.read_resource()
-        async def read_resource(uri: AnyUrl | str) -> list[self.ReadResourceContents]:
+        async def read_resource(uri: AnyUrl | str) -> list[self.ReadResourceContents]:  # type: ignore
             """
             Read a specific resource by URI.
             """
@@ -589,16 +589,16 @@ class GradioMCPServer:
                         async for update in client.submit(
                             *processed_args, api_name=endpoint_name
                         ):
-                            if update.type == "output" and update.final:
-                                output = update.outputs
+                            if update.type == "output" and update.final:  # type: ignore
+                                output = update.outputs  # type: ignore
                                 result = output["data"][0]
                                 break
 
-                        mime_type = block_fn.fn._mcp_mime_type
+                        mime_type = block_fn.fn._mcp_mime_type  # type: ignore
                         if mime_type and not mime_type.startswith("text/"):
                             result = base64.b64decode(result.encode("ascii"))
                         return [
-                            self.ReadResourceContents(
+                            self.ReadResourceContents(  # type: ignore
                                 content=result, mime_type=mime_type
                             )
                         ]
@@ -606,7 +606,7 @@ class GradioMCPServer:
             raise ValueError(f"Resource not found: {uri}")
 
         @server.list_prompts()
-        async def list_prompts() -> list[self.types.Prompt]:
+        async def list_prompts() -> list[self.types.Prompt]:  # type: ignore
             """
             List all available prompts.
             """
@@ -628,7 +628,7 @@ class GradioMCPServer:
                     )
                     function_params = utils.get_function_params(block_fn.fn)
                     arguments = [
-                        self.types.PromptArgument(
+                        self.types.PromptArgument(  # type: ignore
                             name=param_name,
                             description=parameters.get(param_name, ""),
                             required=not has_default,
@@ -636,7 +636,7 @@ class GradioMCPServer:
                         for param_name, has_default, _, _ in function_params
                     ]
                     prompts.append(
-                        self.types.Prompt(
+                        self.types.Prompt(  # type: ignore
                             name=tool_name,
                             description=description,
                             arguments=arguments,
@@ -647,7 +647,7 @@ class GradioMCPServer:
         @server.get_prompt()
         async def get_prompt(
             name: str, arguments: dict[str, Any] | None = None
-        ) -> self.types.GetPromptResult:
+        ) -> self.types.GetPromptResult:  # type: ignore
             """
             Get a specific prompt with filled-in arguments.
             """
@@ -661,7 +661,7 @@ class GradioMCPServer:
                     and block_fn.fn
                     and hasattr(block_fn.fn, "_mcp_type")
                     and block_fn.fn._mcp_type == "prompt"
-                    and block_fn.fn._mcp_name == name
+                    and block_fn.fn._mcp_name == name  # type: ignore
                 ):
                     break
 
@@ -686,16 +686,16 @@ class GradioMCPServer:
                 processed_args = list(arguments.values())
 
             async for update in client.submit(*processed_args, api_name=endpoint_name):
-                if update.type == "output" and update.final:
-                    output = update.outputs
+                if update.type == "output" and update.final:  # type: ignore
+                    output = update.outputs  # type: ignore
                     result = output["data"][0]
                     break
 
-            return self.types.GetPromptResult(
+            return self.types.GetPromptResult(  # type: ignore
                 messages=[
-                    self.types.PromptMessage(
+                    self.types.PromptMessage(  # type: ignore
                         role="user",
-                        content=self.types.TextContent(type="text", text=str(result)),
+                        content=self.types.TextContent(type="text", text=str(result)),  # type: ignore
                     )
                 ]
             )
@@ -712,7 +712,7 @@ class GradioMCPServer:
             root_path: The root path of the Gradio Blocks app.
         """
         messages_path = "/messages/"
-        sse = self.SseServerTransport(messages_path)
+        sse = self.SseServerTransport(messages_path)  # type: ignore
         self.root_path = root_path
 
         async def handle_sse(request):
@@ -1165,7 +1165,7 @@ class GradioMCPServer:
                         )
                     ]
             else:
-                return_value = [self.types.TextContent(type="text", text=str(output))]
+                return_value = [self.types.TextContent(type="text", text=str(output))]  # type: ignore
             return_values.extend(return_value)
         return return_values
 

@@ -450,7 +450,7 @@ class ChatInterface(Blocks):
             if message["role"] == "user":
                 for content in message["content"]:
                     if content["type"] == "text":
-                        title += content["text"]
+                        title += content["text"]  # type: ignore
                         break
                     else:
                         title += "📎 "
@@ -704,7 +704,7 @@ class ChatInterface(Blocks):
             **save_fn_kwargs
         )
 
-        self.chatbot.clear(**synchronize_chat_state_kwargs).then(
+        self.chatbot.clear(**synchronize_chat_state_kwargs).then(  # type: ignore
             self._delete_conversation,
             [self.conversation_id, self.saved_conversations],
             [self.conversation_id, self.saved_conversations],
