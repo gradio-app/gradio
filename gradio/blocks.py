@@ -300,7 +300,7 @@ class Block:
             if to_add:
                 config = {**to_add, **config}
         config.pop("render", None)
-        config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_class()}
+        config = {**config, "proxy_url": getattr(self, "proxy_url", None), "name": self.get_block_class()}
         for event_attribute in ["_selectable", "_undoable", "_retryable", "likeable"]:
             if (attributable := getattr(self, event_attribute, None)) is not None:
                 config[event_attribute] = attributable
