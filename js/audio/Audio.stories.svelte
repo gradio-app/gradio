@@ -1,6 +1,7 @@
 <script context="module">
 	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import Audio from "./Index.svelte";
+	import IndexWrapper from "../storybook/helpers/IndexWrapper.svelte";
 	import { allModes } from "../storybook/modes";
 
 	export const meta = {
@@ -18,7 +19,18 @@
 </script>
 
 <Template let:args>
-	<Audio value="Audio" {...args} />
+	<IndexWrapper
+		component={Audio}
+		label="Audio"
+		waveform_options={{
+			waveform_color: "#9ca3af",
+			waveform_progress_color: "#f97316",
+			show_controls: true,
+			skip_length: 5,
+			trim_region_color: "#f97316"
+		}}
+		{...args}
+	/>
 </Template>
 
 <Story

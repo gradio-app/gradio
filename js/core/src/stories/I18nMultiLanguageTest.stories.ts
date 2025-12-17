@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/svelte";
+import type { Meta, StoryObj } from "@storybook/svelte-vite";
 import I18nMultiLanguageTestComponent from "./I18nMultiLanguageTestComponent.svelte";
 
 const meta = {

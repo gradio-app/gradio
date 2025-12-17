@@ -2,6 +2,7 @@
 	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import Column from "./Index.svelte";
 	import Button from "../button/shared/Button.svelte";
+	import IndexWrapper from "../storybook/helpers/IndexWrapper.svelte";
 	import { allModes } from "../storybook/modes";
 
 	export const meta = {
@@ -19,10 +20,10 @@
 </script>
 
 <Template let:args>
-	<Column {...args}>
+	<IndexWrapper component={Column} {...args}>
 		<Button elem_id="btn" size="lg">test</Button>
 		<Button elem_id="btn" size="lg">test</Button>
-	</Column>
+	</IndexWrapper>
 </Template>
 
 <Story name="Column Layout" />

@@ -1,6 +1,7 @@
 <script context="module">
 	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import Gallery from "./Index.svelte";
+	import IndexWrapper from "../storybook/helpers/IndexWrapper.svelte";
 	import { allModes } from "../storybook/modes";
 	import { within } from "@testing-library/dom";
 	import { userEvent } from "storybook/test";
@@ -83,7 +84,10 @@
 </script>
 
 <Template let:args>
-	<Gallery
+	<IndexWrapper
+		component={Gallery}
+		label="Gallery"
+		buttons={["download", "fullscreen"]}
 		value={[
 			{
 				image: {

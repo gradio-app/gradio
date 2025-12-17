@@ -1,12 +1,13 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import Slider from "./Index.svelte";
+	import IndexWrapper from "../storybook/helpers/IndexWrapper.svelte";
 </script>
 
 <Meta title="Components/Slider" component={Slider} />
 
 <Template let:args>
-	<Slider interactive={true} {...args} />
+	<IndexWrapper component={Slider} interactive={true} {...args} />
 </Template>
 
 <Story

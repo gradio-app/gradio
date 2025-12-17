@@ -1,6 +1,7 @@
 <script context="module">
 	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import Video from "./Index.svelte";
+	import IndexWrapper from "../storybook/helpers/IndexWrapper.svelte";
 	import { format } from "svelte-i18n";
 	import { get } from "svelte/store";
 	import { userEvent, within } from "storybook/test";
@@ -20,11 +21,9 @@
 	};
 </script>
 
-<div>
-	<Template let:args>
-		<Video i18n={get(format)} {...args} />
-	</Template>
-</div>
+<Template let:args>
+	<IndexWrapper component={Video} label="Video" i18n={get(format)} {...args} />
+</Template>
 
 <Story
 	name="Record from webcam"

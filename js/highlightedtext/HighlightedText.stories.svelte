@@ -1,12 +1,15 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import HighlightedText from "./Index.svelte";
+	import IndexWrapper from "../storybook/helpers/IndexWrapper.svelte";
 </script>
 
 <Meta title="Components/HighlightedText" component={HighlightedText} />
 
 <Template let:args>
-	<HighlightedText
+	<IndexWrapper
+		component={HighlightedText}
+		label="Highlighted Text"
 		value={[
 			{ token: "zebras", class_or_confidence: "+" },
 			{ token: "dogs", class_or_confidence: "-" },

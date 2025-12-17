@@ -1,6 +1,6 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import Button from "./Index.svelte";
+	import Button from "./shared/Button.svelte";
 </script>
 
 <Meta
@@ -52,7 +52,7 @@
 />
 
 <Template let:args>
-	<Button value="Gradio Button" {...args} />
+	<Button {...args}>{args.value || "Gradio Button"}</Button>
 </Template>
 
 <Story

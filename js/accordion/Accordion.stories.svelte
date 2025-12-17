@@ -1,6 +1,6 @@
 <script context="module">
 	import { Template, Story } from "@storybook/addon-svelte-csf";
-	import Accordion from "./Index.svelte";
+	import Accordion from "./shared/Accordion.svelte";
 	import Button from "../button/shared/Button.svelte";
 	import { allModes } from "../storybook/modes";
 

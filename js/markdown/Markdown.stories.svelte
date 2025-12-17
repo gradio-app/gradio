@@ -1,6 +1,6 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import Markdown from "./Index.svelte";
+	import Markdown from "./shared/Markdown.svelte";
 </script>
 
 <Meta
@@ -25,6 +25,7 @@
 	<Markdown
 		value="Here's some **bold** text. And some *italics* and some `code`"
 		latex_delimiters={[]}
+		theme_mode="light"
 		{...args}
 		height={args.height}
 	/>

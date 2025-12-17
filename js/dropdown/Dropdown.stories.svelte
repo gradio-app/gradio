@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import Dropdown from "./shared/Dropdown.svelte";
+	import SharedWrapper from "../storybook/helpers/SharedWrapper.svelte";
 </script>
 
 <Meta
@@ -17,7 +18,7 @@
 />
 
 <Template let:args>
-	<Dropdown {...args} />
+	<SharedWrapper component={Dropdown} {...args} />
 </Template>
 
 <Story

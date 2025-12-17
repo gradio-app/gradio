@@ -5,6 +5,5 @@
 	"type": "module",
 	"author": "",
 	"license": "ISC",
-	"private": true,
-	"dependencies": {}
+	"private": true
 }

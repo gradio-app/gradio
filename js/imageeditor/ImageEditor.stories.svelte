@@ -1,6 +1,7 @@
 <script context="module">
 	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import ImageEditor from "./Index.svelte";
+	import IndexWrapper from "../storybook/helpers/IndexWrapper.svelte";
 	import { format } from "svelte-i18n";
 	import { get } from "svelte/store";
 	import { allModes } from "../storybook/modes";
@@ -25,7 +26,9 @@
 		class="image-container"
 		style="width: 500px; position: relative;border-radius: var(--radius-lg);overflow: hidden;"
 	>
-		<ImageEditor
+		<IndexWrapper
+			component={ImageEditor}
+			label="Image Editor"
 			i18n={get(format)}
 			{...args}
 			server={{ accept_blobs: () => {} }}
@@ -54,6 +57,11 @@
 		webcam_options: {
 			mirror: true,
 			constraints: null
+		},
+		layers: {
+			allow_additional_layers: true,
+			layers: [],
+			disabled: false
 		}
 	}}
 />
@@ -140,6 +148,11 @@
 		webcam_options: {
 			mirror: true,
 			constraints: null
+		},
+		layers: {
+			allow_additional_layers: false,
+			layers: [],
+			disabled: false
 		}
 	}}
 />

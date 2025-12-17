@@ -8,6 +8,7 @@ const config: StorybookConfig = {
 		"../../js/**/*.@(mdx|stories.@(js|jsx|ts|tsx|svelte))",
 		"!../../js/**/dist/**"
 	],
+
 	addons: [
 		"@storybook/addon-links",
 		{
@@ -17,17 +18,22 @@ const config: StorybookConfig = {
 			}
 		},
 		"@storybook/addon-a11y",
-		"@chromatic-com/storybook"
+		"@chromatic-com/storybook",
+		"@storybook/addon-docs"
 	],
+
 	framework: {
 		name: "@storybook/svelte-vite",
 		options: {
 			builder: {
-				viteConfigPath: "js/storybook/vite.config.js"
+				viteConfigPath: "js/storybook/vite.config.js",
+				lazyCompilation: false
 			}
 		}
 	},
+
 	staticDirs: ["./public"],
+
 	async viteFinal(config, { configType }) {
 		return mergeConfig(config, {
 			plugins:
@@ -39,7 +45,6 @@ const config: StorybookConfig = {
 						]
 					: []
 		});
-	},
-	docs: {}
+	}
 };
 export default config;

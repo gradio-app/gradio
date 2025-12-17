@@ -1,7 +1,7 @@
 <script context="module">
 	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import { allModes } from "../storybook/modes";
-	import Label from "./Index.svelte";
+	import Label from "./shared/Label.svelte";
 
 	export const meta = {
 		title: "Components/Label",

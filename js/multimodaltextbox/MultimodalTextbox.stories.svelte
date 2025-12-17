@@ -1,6 +1,7 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import MultimodalTextbox from "./Index.svelte";
+	import IndexWrapper from "../storybook/helpers/IndexWrapper.svelte";
 </script>
 
 <Meta
@@ -53,7 +54,11 @@
 />
 
 <Template let:args>
-	<MultimodalTextbox {...args} />
+	<IndexWrapper
+		component={MultimodalTextbox}
+		label="MultimodalTextbox"
+		{...args}
+	/>
 </Template>
 
 <Story

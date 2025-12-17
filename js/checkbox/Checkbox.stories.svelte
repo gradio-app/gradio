@@ -1,12 +1,13 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import Checkbox from "./Index.svelte";
+	import Checkbox from "./shared/Checkbox.svelte";
+	import SharedWrapper from "../storybook/helpers/SharedWrapper.svelte";
 </script>
 
 <Meta title="Components/Checkbox" component={Checkbox} />
 
 <Template let:args>
-	<Checkbox {...args} />
+	<SharedWrapper component={Checkbox} {...args} />
 </Template>
 
 <Story

@@ -1,6 +1,6 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import UploadButton from "./Index.svelte";
+	import UploadButton from "./shared/UploadButton.svelte";
 </script>
 
 <Meta

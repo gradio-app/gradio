@@ -1,6 +1,7 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import Checkboxgroup from "./Index.svelte";
+	import IndexWrapper from "../storybook/helpers/IndexWrapper.svelte";
 </script>
 
 <Meta
@@ -17,7 +18,7 @@
 />
 
 <Template let:args>
-	<Checkboxgroup {...args} />
+	<IndexWrapper component={Checkboxgroup} label="Checkbox Group" {...args} />
 </Template>
 
 <Story

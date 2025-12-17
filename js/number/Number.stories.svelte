@@ -1,12 +1,13 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import Number from "./Index.svelte";
+	import IndexWrapper from "../storybook/helpers/IndexWrapper.svelte";
 </script>
 
 <Meta title="Components/Number" component={Number} />
 
 <Template let:args>
-	<Number {...args} />
+	<IndexWrapper component={Number} label="Number" {...args} />
 </Template>
 
 <Story

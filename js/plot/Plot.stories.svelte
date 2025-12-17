@@ -1,6 +1,7 @@
 <script context="module">
 	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import PlotComponent from "./Index.svelte";
+	import IndexWrapper from "../storybook/helpers/IndexWrapper.svelte";
 	import { allModes } from "../storybook/modes";
 	import { matplotlib_plot } from "./testplot";
 
@@ -19,7 +20,7 @@
 </script>
 
 <Template let:args>
-	<PlotComponent value="Plot" {...args} />
+	<IndexWrapper component={PlotComponent} label="Plot" {...args} />
 </Template>
 
 <Story

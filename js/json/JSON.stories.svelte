@@ -1,6 +1,6 @@
 <script context="module">
 	import { Template, Story } from "@storybook/addon-svelte-csf";
-	import JSON from "./Index.svelte";
+	import JSON from "./shared/JSON.svelte";
 	import { userEvent, within } from "storybook/test";
 
 	const example_json = {
@@ -35,7 +35,7 @@
 </script>
 
 <Template let:args>
-	<JSON value={example_json} {...args} />
+	<JSON value={example_json} label_height={0} theme_mode="light" {...args} />
 </Template>
 
 <Story name="Default JSON" args={{}} />

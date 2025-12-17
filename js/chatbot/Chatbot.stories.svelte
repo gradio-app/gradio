@@ -1,6 +1,7 @@
 <script context="module">
 	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import Chatbot from "./Index.svelte";
+	import IndexWrapper from "../storybook/helpers/IndexWrapper.svelte";
 	import { allModes } from "../storybook/modes";
 
 	export const meta = {
@@ -37,7 +38,9 @@
 </script>
 
 <Template let:args>
-	<Chatbot
+	<IndexWrapper
+		component={Chatbot}
+		label="Chatbot"
 		latex_delimiters={[{ left: "$$", right: "$$", display: true }]}
 		value={[
 			{

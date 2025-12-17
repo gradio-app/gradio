@@ -1,6 +1,7 @@
 <script context="module">
 	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import StaticImage from "./Index.svelte";
+	import IndexWrapper from "../storybook/helpers/IndexWrapper.svelte";
 	import { userEvent, within } from "storybook/test";
 	import { allModes } from "../storybook/modes";
 	import image_file_100x100 from "../storybook/test_files/image_100x100.webp";
@@ -27,7 +28,12 @@
 		class="image-container"
 		style="width: 300px; position: relative;border-radius: var(--radius-lg);overflow: hidden;"
 	>
-		<StaticImage {...args} />
+		<IndexWrapper
+			component={StaticImage}
+			label="Image"
+			buttons={["download", "fullscreen"]}
+			{...args}
+		/>
 	</div>
 </Template>
 

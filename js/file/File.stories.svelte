@@ -1,6 +1,7 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import File from "./Index.svelte";
+	import IndexWrapper from "../storybook/helpers/IndexWrapper.svelte";
 </script>
 
 <Meta
@@ -17,7 +18,7 @@
 />
 
 <Template let:args>
-	<File {...args} />
+	<IndexWrapper component={File} label="File" {...args} />
 </Template>
 
 <Story

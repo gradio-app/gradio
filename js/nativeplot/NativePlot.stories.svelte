@@ -1,6 +1,7 @@
 <script context="module">
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import NativePlot from "./Index.svelte";
+	import IndexWrapper from "../storybook/helpers/IndexWrapper.svelte";
 
 	export const meta = {
 		title: "Components/NativePlot",
@@ -13,7 +14,7 @@
 
 <Template let:args>
 	<div style="width: 600px; height: 400px;">
-		<NativePlot {...args} />
+		<IndexWrapper component={NativePlot} label="Native Plot" {...args} />
 	</div>
 </Template>
 
