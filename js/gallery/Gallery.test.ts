@@ -104,4 +104,41 @@ describe("Gallery", () => {
 		});
 		assert.equal(change_event.callCount, 0);
 	});
+
+	test("triggers preview_close event when pressing Escape key", async () => {
+		const { listen, getByTestId } = await render(Gallery, {
+			show_label: true,
+			label: "Gallery",
+			loading_status: loading_status,
+			preview: true,
+			buttons: ["share", "download", "fullscreen"],
+			value: [
+				{
+					image: {
+						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg",
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg"
+					},
+					caption: null
+				}
+			]
+		});
+
+		const preview_close_event = listen("preview_close");
+
+		// Find the preview container and dispatch Escape key event
+		const preview = document.querySelector(".preview");
+		if (preview) {
+			const escapeEvent = new KeyboardEvent("keydown", {
+				code: "Escape",
+				key: "Escape",
+				bubbles: true
+			});
+			preview.dispatchEvent(escapeEvent);
+		}
+
+		assert.isTrue(
+			preview_close_event.callCount >= 1,
+			"preview_close event should be triggered when pressing Escape"
+		);
+	});
 });
