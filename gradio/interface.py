@@ -205,7 +205,7 @@ class Interface(Blocks):
             if not isinstance(additional_inputs, Sequence):
                 additional_inputs = [additional_inputs]
             self.additional_input_components = [
-                get_component_instance(i, unrender=True)
+                get_component_instance(i, unrender=True)  # type: ignore
                 for i in additional_inputs  # type: ignore
             ]
 

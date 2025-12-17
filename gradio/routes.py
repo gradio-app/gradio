@@ -439,8 +439,8 @@ class App(FastAPI):
         app.configure_app(blocks)
 
         app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)  # type: ignore
-        app.add_middleware(  # type: ignore
-            BrotliMiddleware,
+        app.add_middleware(
+            BrotliMiddleware,  # type: ignore
             quality=4,
             excluded_handlers=[mcp_subpath],
         )

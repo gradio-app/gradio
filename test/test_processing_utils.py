@@ -239,8 +239,8 @@ class TestOutputPreprocessing:
         # Test all combinations of dtypes conversions
         dtype_combin = np.array(
             np.meshgrid(  # type: ignore
-                TestOutputPreprocessing.float_dtype_list,
-                TestOutputPreprocessing.float_dtype_list,
+                TestOutputPreprocessing.float_dtype_list,  # type: ignore
+                TestOutputPreprocessing.float_dtype_list,  # type: ignore
             )  # type: ignore
         ).T.reshape(-1, 2)
 

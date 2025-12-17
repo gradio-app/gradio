@@ -580,7 +580,7 @@ class Examples:
                 output = prediction["data"]
                 if generated_values:
                     output = await merge_generated_values_into_output(
-                        self.outputs,
+                        self.outputs,  # type: ignore
                         generated_values,
                         output,  # type: ignore
                     )
