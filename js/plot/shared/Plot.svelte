@@ -6,7 +6,29 @@
 	import type { PlotEvents, PlotProps } from "../types";
 	import { untrack } from "svelte";
 
-	let { gradio }: { gradio: Gradio<PlotEvents, PlotProps> } = $props();
+	let {
+		value,
+		theme_mode,
+		caption,
+		bokeh_version,
+		show_actions_button,
+		_selectable,
+		x_lim,
+		show_fullscreen_button,
+		show_label,
+		on_change
+	}: {
+		value: null | string;
+		theme_mode: ThemeMode;
+		caption: string;
+		bokeh_version: string | null;
+		show_actions_button: boolean;
+		_selectable: boolean;
+		x_lim: [number, number] | null;
+		show_fullscreen_button: boolean;
+		show_label: boolean;
+		on_change: () => void;
+	} = $props();
 
 	let PlotComponent: any = $state(null);
 	let loaded_plotly_css = $state(false);
@@ -22,8 +44,6 @@
 	let loadedPlotTypeMapping = {};
 
 	const is_browser = typeof window !== "undefined";
-
-	let value = $derived(gradio.props.value);
 	let _type = $state(null);
 
 	$effect(() => {
@@ -45,23 +65,22 @@
 			}
 			_type = type;
 		});
-		gradio.dispatch("change");
+		on_change();
 	});
 </script>
 
-{#if gradio.props.value && PlotComponent}
+{#if value && PlotComponent}
 	{#key key}
 		<PlotComponent
-			value={gradio.props.value}
+			{value}
 			colors={[]}
-			theme_mode={gradio.props.theme_mode}
-			show_label={gradio.shared.show_label}
-			caption={gradio.props.caption}
-			bokeh_version={gradio.props.bokeh_version}
-			show_actions_button={gradio.props.show_actions_button}
-			{gradio}
-			_selectable={gradio.props._selectable}
-			x_lim={gradio.props.x_lim}
+			{theme_mode}
+			{show_label}
+			{caption}
+			{bokeh_version}
+			{show_actions_button}
+			{_selectable}
+			{x_lim}
 			bind:loaded_plotly_css
 			on:select
 		/>
