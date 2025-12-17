@@ -28,8 +28,7 @@ export const process_audio = async (
 
 	let trimmedLength = audioBuffer.length;
 	let startOffset = 0;
-
-	if (start && end) {
+	if (start != null && end != null) {
 		startOffset = Math.round(start * sampleRate);
 		const endOffset = Math.round(end * sampleRate);
 		trimmedLength = endOffset - startOffset;
