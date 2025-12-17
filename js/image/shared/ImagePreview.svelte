@@ -46,7 +46,7 @@
 	let image_container: HTMLElement;
 
 	$: buttons_to_render =
-		buttons && buttons.length > 0
+		buttons && typeof buttons === "object"
 			? buttons
 			: ["download", "share", "fullscreen"];
 </script>
