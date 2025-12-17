@@ -109,6 +109,7 @@
 		show_options = false;
 		active_index = null;
 		on_input?.();
+		filter_input.blur();
 	}
 
 	function handle_focus(e: FocusEvent): void {
