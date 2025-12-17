@@ -63,5 +63,16 @@
 		on_clear_status={() =>
 			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
-	<Plot {gradio} />
+	<Plot
+		value={gradio.props.value}
+		theme_mode={gradio.props.theme_mode}
+		show_label={gradio.shared.show_label}
+		caption={gradio.props.caption}
+		bokeh_version={gradio.props.bokeh_version}
+		show_actions_button={gradio.props.show_actions_button}
+		_selectable={gradio.props._selectable}
+		x_lim={gradio.props.x_lim}
+		show_fullscreen_button={gradio.props.show_fullscreen_button}
+		on_change={() => gradio.dispatch("change")}
+	/>
 </Block>
