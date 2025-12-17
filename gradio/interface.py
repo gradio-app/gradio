@@ -909,10 +909,14 @@ class Interface(Blocks):
     def render_examples(self):
         if self.examples:
             non_state_inputs = [
-                c for c in self.input_components if not isinstance(c, State)  # type: ignore
+                c
+                for c in self.input_components
+                if not isinstance(c, State)  # type: ignore
             ]
             non_state_outputs = [
-                c for c in self.output_components if not isinstance(c, State)  # type: ignore
+                c
+                for c in self.output_components
+                if not isinstance(c, State)  # type: ignore
             ]
             self.examples_handler = Examples(
                 examples=self.examples,
