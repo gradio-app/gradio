@@ -2558,10 +2558,6 @@ Received inputs:
         """
         from gradio.routes import App
 
-        if self._is_running_in_reload_thread:
-            # We have already launched the demo
-            return None, None, None  # type: ignore
-
         theme = theme if theme is not None else self._deprecated_theme
         css = css if css is not None else self._deprecated_css
         css_paths = css_paths if css_paths is not None else self._deprecated_css_paths
@@ -2578,6 +2574,10 @@ Received inputs:
         self.head = head
         self.head_paths = head_paths
         self._set_html_css_theme_variables()
+
+        if self._is_running_in_reload_thread:
+            # We have already launched the demo
+            return None, None, None  # type: ignore
 
         if not self.exited:
             self.__exit__()
