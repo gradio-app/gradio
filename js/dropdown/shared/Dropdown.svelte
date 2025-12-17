@@ -122,8 +122,14 @@
 		if (!allow_custom_value) {
 			input_text =
 				choices_names[choices_values.indexOf(value as string | number)];
-		} else if (last_typed_value !== input_text) {
-			value = input_text;
+		} else {
+			if (choices_names.includes(input_text)) {
+				selected_index = choices_names.indexOf(input_text);
+				value = choices_values[selected_index];
+			} else if (input_text !== last_typed_value) {
+				value = input_text;
+				selected_index = null;
+			}
 		}
 		show_options = false;
 		active_index = null;
