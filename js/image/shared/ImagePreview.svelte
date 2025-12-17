@@ -22,7 +22,7 @@
 	export let value: null | FileData;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
-	export let buttons: (string | CustomButtonType)[] | null = null;
+	export let buttons: (string | CustomButtonType)[] = [];
 	export let on_custom_button_click: ((id: number) => void) | null = null;
 	export let selectable = false;
 	export let i18n: I18nFormatter;
@@ -44,11 +44,6 @@
 	};
 
 	let image_container: HTMLElement;
-
-	$: buttons_to_render =
-		buttons && buttons.length > 0
-			? buttons
-			: ["download", "share", "fullscreen"];
 </script>
 
 <BlockLabel
@@ -63,18 +58,18 @@
 		<IconButtonWrapper
 			display_top_corner={display_icon_button_wrapper_top_corner}
 			show_background={show_button_background}
-			buttons={buttons_to_render}
+			{buttons}
 			{on_custom_button_click}
 		>
-			{#if buttons_to_render.some((btn) => typeof btn === "string" && btn === "fullscreen")}
+			{#if buttons.some((btn) => typeof btn === "string" && btn === "fullscreen")}
 				<FullscreenButton {fullscreen} on:fullscreen />
 			{/if}
-			{#if buttons_to_render.some((btn) => typeof btn === "string" && btn === "download")}
+			{#if buttons.some((btn) => typeof btn === "string" && btn === "download")}
 				<DownloadLink href={value.url} download={value.orig_name || "image"}>
 					<IconButton Icon={Download} label={i18n("common.download")} />
 				</DownloadLink>
 			{/if}
-			{#if buttons_to_render.some((btn) => typeof btn === "string" && btn === "share")}
+			{#if buttons.some((btn) => typeof btn === "string" && btn === "share")}
 				<ShareButton
 					{i18n}
 					on:share

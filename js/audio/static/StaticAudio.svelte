@@ -21,7 +21,7 @@
 	export let subtitles: null | FileData | SubtitleData[] = null;
 	export let label: string;
 	export let show_label = true;
-	export let buttons: (string | CustomButtonType)[] | null = null;
+	export let buttons: (string | CustomButtonType)[] = [];
 	export let on_custom_button_click: ((id: number) => void) | null = null;
 	export let i18n: I18nFormatter;
 	export let waveform_settings: Record<string, any> = {};
@@ -43,9 +43,6 @@
 	}>();
 
 	$: value && dispatch("change", value);
-
-	$: buttons_to_render =
-		buttons && buttons.length > 0 ? buttons : ["download", "share"];
 </script>
 
 <BlockLabel
@@ -61,10 +58,10 @@
 	{:else}
 		<IconButtonWrapper
 			display_top_corner={display_icon_button_wrapper_top_corner}
-			buttons={buttons_to_render}
+			{buttons}
 			{on_custom_button_click}
 		>
-			{#if buttons_to_render.some((btn) => typeof btn === "string" && btn === "download")}
+			{#if buttons.some((btn) => typeof btn === "string" && btn === "download")}
 				<DownloadLink
 					href={value.is_stream
 						? value.url?.replace("playlist.m3u8", "playlist-file")
@@ -74,7 +71,7 @@
 					<IconButton Icon={Download} label={i18n("common.download")} />
 				</DownloadLink>
 			{/if}
-			{#if buttons_to_render.some((btn) => typeof btn === "string" && btn === "share")}
+			{#if buttons.some((btn) => typeof btn === "string" && btn === "share")}
 				<ShareButton
 					{i18n}
 					on:error
