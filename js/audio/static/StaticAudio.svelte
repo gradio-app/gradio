@@ -45,7 +45,7 @@
 	$: value && dispatch("change", value);
 
 	$: buttons_to_render =
-		buttons && buttons.length > 0 ? buttons : ["download", "share"];
+		buttons && typeof buttons === "object" ? buttons : ["download", "share"];
 </script>
 
 <BlockLabel
