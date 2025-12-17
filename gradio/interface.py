@@ -205,7 +205,7 @@ class Interface(Blocks):
             if not isinstance(additional_inputs, Sequence):
                 additional_inputs = [additional_inputs]
             self.additional_input_components = [
-                get_component_instance(i, unrender=True) for i in additional_inputs
+                get_component_instance(i, unrender=True) for i in additional_inputs  # type: ignore
             ]
 
         if not isinstance(inputs, (Sequence, Component)):
@@ -592,7 +592,7 @@ class Interface(Blocks):
                         if inspect.isgeneratorfunction(
                             self.fn
                         ) or inspect.isasyncgenfunction(self.fn):
-                            _stop_btn = Button(**self.stop_btn_parms)
+                            _stop_btn = Button(**self.stop_btn_parms)  # type: ignore  # type: ignore
                 elif self.interface_type == InterfaceTypes.UNIFIED:
                     _clear_btn = ClearButton(**self.clear_btn_params)  # type: ignore
                     _submit_btn = Button(**self.submit_btn_parms)  # type: ignore
@@ -602,7 +602,7 @@ class Interface(Blocks):
                         inspect.isgeneratorfunction(self.fn)
                         or inspect.isasyncgenfunction(self.fn)
                     ) and not self.live:
-                        _stop_btn = Button(**self.stop_btn_parms)
+                        _stop_btn = Button(**self.stop_btn_parms)  # type: ignore
                     if self.flagging_mode == "manual":
                         flag_btns = self.render_flag_btns()
                     elif self.flagging_mode == "auto":
@@ -634,7 +634,7 @@ class Interface(Blocks):
         )
 
         with Column():
-            for component in self.output_components:
+            for component in self.output_components:  # type: ignore
                 if not (isinstance(component, State)):
                     component.render()
             with Row():
@@ -652,7 +652,7 @@ class Interface(Blocks):
                         # is created. We use whether a generator function is provided
                         # as a proxy of whether the queue will be enabled.
                         # Using a generator function without the queue will raise an error.
-                        _stop_btn = Button(**self.stop_btn_parms)
+                        _stop_btn = Button(**self.stop_btn_parms)  # type: ignore
                 if self.flagging_mode == "manual":
                     flag_btns = self.render_flag_btns()
                 elif self.flagging_mode == "auto":
@@ -910,12 +910,12 @@ class Interface(Blocks):
         if self.examples:
             non_state_inputs = [
                 c
-                for c in self.input_components
+                for c in self.input_components  # type: ignore
                 if not isinstance(c, State)  # type: ignore
             ]
             non_state_outputs = [
                 c
-                for c in self.output_components
+                for c in self.output_components  # type: ignore
                 if not isinstance(c, State)  # type: ignore
             ]
             self.examples_handler = Examples(

@@ -384,7 +384,7 @@ class Chatbot(Component):
                                 file_data["mime_type"] = client_utils.get_mimetype(
                                     orig_name
                                 )
-                                file_data = FileDataDict(**file_data)
+                                file_data = FileDataDict(**file_data)  # type: ignore
                                 file_info[i] = file_data
 
     @staticmethod
@@ -466,7 +466,7 @@ class Chatbot(Component):
     @staticmethod
     def _get_alt_text(chat_message: dict | list | tuple | GradioComponent):
         if isinstance(chat_message, dict):
-            return chat_message.get("alt_text")
+            return chat_message.get("alt_text")  # type: ignore
         elif not isinstance(chat_message, GradioComponent) and len(chat_message) > 1:
             return chat_message[1]
 
@@ -566,7 +566,7 @@ class Chatbot(Component):
             else:
                 content_postprocessed = []
                 for content_item in message.content:
-                    item = self._postprocess_content(content_item)
+                    item = self._postprocess_content(content_item)  # type: ignore
                     if item:
                         content_postprocessed.append(item)
             if not content_postprocessed:
@@ -580,12 +580,12 @@ class Chatbot(Component):
         messages: list[Message] = []
         if self.reasoning_tags:
             non_text_content = [
-                item for item in content_postprocessed if item.type != "text"
+                item for item in content_postprocessed if item.type != "text"  # type: ignore
             ]
             for content_item in content_postprocessed:
-                if content_item.type == "text":
+                if content_item.type == "text":  # type: ignore
                     segments = self._extract_thinking_blocks(
-                        content_item.text, self.reasoning_tags
+                        content_item.text, self.reasoning_tags  # type: ignore
                     )
                     for text, is_thinking, status in segments:
                         if is_thinking:
@@ -610,7 +610,7 @@ class Chatbot(Component):
                 messages.append(
                     Message(
                         role=role,
-                        content=non_text_content,
+                        content=non_text_content,  # type: ignore
                         metadata=metadata,
                         options=options,
                     )
@@ -619,7 +619,7 @@ class Chatbot(Component):
             messages = [
                 Message(
                     role=role,
-                    content=content_postprocessed,
+                    content=content_postprocessed,  # type: ignore
                     metadata=metadata,
                     options=options,
                 )

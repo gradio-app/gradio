@@ -62,7 +62,7 @@ class ColoredCheckboxGroup(gr.HTML):
 
     def api_info(self):
         return {
-            "items": {"enum": self.choices, "type": "string"},
+            "items": {"enum": self.choices, "type": "string"},  # type: ignore
             "title": "Checkbox Group",
             "type": "array",
         }

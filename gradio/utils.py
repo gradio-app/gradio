@@ -86,7 +86,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 P = ParamSpec("P")
 T = TypeVar("T")
 
-BUILT_IN_THEMES: dict[str, Theme] = {
+BUILT_IN_THEMES: dict[str, Theme] = {  # type: ignore
     t.name: t
     for t in [
         themes.Base(),

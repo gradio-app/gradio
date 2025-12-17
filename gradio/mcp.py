@@ -125,7 +125,7 @@ class GradioMCPServer:
     def local_url(self) -> str | None:
         return self._local_url
 
-    def get_route_path(self, request: Request) -> str:
+    def get_route_path(self, request: Request) -> str:  # type: ignore
         """
         Gets the route path of the MCP server based on the incoming request.
         Can be different depending on whether the request is coming from the MCP SSE transport or the HTTP transport.
@@ -323,7 +323,7 @@ class GradioMCPServer:
             return "Processing"
         return None
 
-    async def _execute_tool_with_progress(
+    async def _execute_tool_with_progress(  # type: ignore
         self, job: Any, progress_token: str
     ) -> dict[str, Any]:
         """
@@ -408,18 +408,18 @@ class GradioMCPServer:
             if progress_token is None or not block_fn.queue:
                 output_data = await self._execute_tool_without_progress(job)
             else:
-                output_data = await self._execute_tool_with_progress(
-                    job, progress_token
+                output_data = await self._execute_tool_with_progress(  # type: ignore
+                    job, progress_token  # type: ignore
                 )
 
             output_data = self.pop_returned_state(block_fn.outputs, output_data)
 
             context_request: Request | None = self.mcp_server.request_context.request
-            route_path = self.get_route_path(context_request)
-            root_url = route_utils.get_root_url(
-                request=context_request,
-                route_path=route_path,
-                root_path=self.root_path,
+            route_path = self.get_route_path(context_request)  # type: ignore
+            root_url = route_utils.get_root_url(  # type: ignore
+                request=context_request,  # type: ignore
+                route_path=route_path,  # type: ignore
+                root_path=self.root_path,  # type: ignore
             )
             content = self.postprocess_output_data(output_data, root_url)
             if getattr(block_fn.fn, "_mcp_structured_output", False):
@@ -427,9 +427,9 @@ class GradioMCPServer:
             else:
                 structured_content = None
             return self.types.CallToolResult(  # type: ignore
-                content=content,
-                structuredContent=structured_content,
-                _meta=getattr(block_fn.fn, "_mcp_meta", None),
+                content=content,  # type: ignore
+                structuredContent=structured_content,  # type: ignore
+                _meta=getattr(block_fn.fn, "_mcp_meta", None),  # type: ignore
             )
 
         @server.list_tools()
@@ -464,7 +464,7 @@ class GradioMCPServer:
                         name=tool_name,
                         description=description,
                         inputSchema=schema,
-                        _meta=tool_meta,
+                        _meta=tool_meta,  # type: ignore
                     )
                 )
             return tools
@@ -554,8 +554,8 @@ class GradioMCPServer:
                     and hasattr(block_fn.fn, "_mcp_type")
                     and block_fn.fn._mcp_type == "resource"
                 ):
-                    uri_template = block_fn.fn._mcp_uri_template
-                    parameters = re.findall(r"\{([^}]+)\}", uri_template)
+                    uri_template = block_fn.fn._mcp_uri_template  # type: ignore
+                    parameters = re.findall(r"\{([^}]+)\}", uri_template)  # type: ignore
 
                     kwargs = {}
                     matched = False
@@ -1136,10 +1136,10 @@ class GradioMCPServer:
                 )
                 svg_url = f"{root_url}/gradio_api/file={svg_path}"
                 return_value = [
-                    self.types.ImageContent(
+                    self.types.ImageContent(  # type: ignore
                         type="image", data=base64_data, mimeType=mimetype
                     ),
-                    self.types.TextContent(
+                    self.types.TextContent(  # type: ignore
                         type="text",
                         text=f"SVG Image URL: {svg_url}",
                     ),
@@ -1150,17 +1150,17 @@ class GradioMCPServer:
                     base64_data = self.get_base64_data(image, image_format)
                     mimetype = f"image/{image_format.lower()}"
                     return_value = [
-                        self.types.ImageContent(
+                        self.types.ImageContent(  # type: ignore
                             type="image", data=base64_data, mimeType=mimetype
                         ),
-                        self.types.TextContent(
+                        self.types.TextContent(  # type: ignore
                             type="text",
                             text=f"Image URL: {output['url'] or output['path']}",
                         ),
                     ]
                 else:
                     return_value = [
-                        self.types.TextContent(
+                        self.types.TextContent(  # type: ignore
                             type="text", text=str(output["url"] or output["path"])
                         )
                     ]

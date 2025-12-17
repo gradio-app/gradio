@@ -946,7 +946,7 @@ class BlocksConfig:
             if renderable is None or fn.rendered_in == renderable:
                 dependency_config = fn.get_config()
                 dependencies.append(dependency_config)
-                config["page"][fn.page]["dependencies"].append(dependency_config["id"])
+                config["page"][fn.page]["dependencies"].append(dependency_config["id"])  # type: ignore
 
         config["dependencies"] = dependencies
         return config
