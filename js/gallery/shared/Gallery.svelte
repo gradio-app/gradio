@@ -164,6 +164,7 @@
 			case "Escape":
 				e.preventDefault();
 				selected_index = null;
+				dispatch("preview_close");
 				break;
 			case "ArrowLeft":
 				e.preventDefault();
