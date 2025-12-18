@@ -851,7 +851,7 @@ def on(
     triggers_typed = cast(Sequence[EventListener], triggers)
 
     if isinstance(inputs, Block):
-        inputs = [inputs]
+        inputs = [inputs]  # type: ignore
 
     if fn == "decorator":
 
@@ -895,7 +895,7 @@ def on(
         raise Exception("Cannot call on() outside of a gradio.Blocks context.")
     if triggers is None:
         methods = (
-            [EventListenerMethod(input, "change") for input in inputs]
+            [EventListenerMethod(input, "change") for input in inputs]  # type: ignore
             if inputs is not None
             else []
         ) + [EventListenerMethod(root_block, "load")]  # type: ignore

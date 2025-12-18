@@ -33,7 +33,7 @@ class Api(Component):
     def postprocess(self, value: Any) -> Any:
         return value
 
-    def api_info(self) -> dict[str, str]:
+    def api_info(self) -> dict[str, str]:  # type: ignore[override]
         return self._api_info
 
     def example_payload(self) -> Any:
