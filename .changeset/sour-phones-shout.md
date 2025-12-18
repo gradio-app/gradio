@@ -1,8 +1,8 @@
 ---
-"@gradio/client": minor
-"@gradio/core": minor
-"gradio": minor
-"gradio_client": minor
+"@gradio/client": patch
+"@gradio/core": patch
+"gradio": patch
+"gradio_client": patch
 ---
 
-feat:Add x-gradio-user-header
+fix:Add x-gradio-user-header
