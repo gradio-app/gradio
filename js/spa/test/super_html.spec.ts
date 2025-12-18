@@ -29,4 +29,16 @@ test("test HTML components", async ({ page }) => {
 
 	await expect(page.locator("#fruits")).toContainText("Apple");
 	await expect(page.locator("#vegetables")).toContainText("Carrot");
+
+	await page.getByRole("button", { name: "Make Ordered" }).click();
+	const fruitsOrderedHtml = await page.locator("#fruits").innerHTML();
+	const vegetablesOrderedHtml = await page.locator("#vegetables").innerHTML();
+	expect(fruitsOrderedHtml).toContain("<ol>");
+	expect(vegetablesOrderedHtml).toContain("<ol>");
+
+	await page.getByRole("button", { name: "Make Unordered" }).click();
+	const fruitsUnorderedHtml = await page.locator("#fruits").innerHTML();
+	const vegetablesUnorderedHtml = await page.locator("#vegetables").innerHTML();
+	expect(fruitsUnorderedHtml).toContain("<ul>");
+	expect(vegetablesUnorderedHtml).toContain("<ul>");
 });
