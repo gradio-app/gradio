@@ -3,7 +3,7 @@
 	import Video from "./Index.svelte";
 	import { format } from "svelte-i18n";
 	import { get } from "svelte/store";
-	import { userEvent, within } from "@storybook/test";
+	import { userEvent, within } from "storybook/test";
 	import { allModes } from "../storybook/modes";
 
 	export const meta = {

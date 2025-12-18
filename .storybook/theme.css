@@ -1,0 +1,114 @@
+/* Gradio theme variables for Storybook */
+:root {
+	/* Colors */
+	--primary-50: #fff7ed;
+	--primary-100: #ffedd5;
+	--primary-200: #ffddb3;
+	--primary-300: #fdba74;
+	--primary-400: #fb923c;
+	--primary-500: #f97316;
+	--primary-600: #ea580c;
+	--primary-700: #c2410c;
+	--primary-800: #9a3412;
+	--primary-900: #7c2d12;
+	--primary-950: #6c2e12;
+
+	--neutral-50: #fafafa;
+	--neutral-100: #f4f4f5;
+	--neutral-200: #e4e4e7;
+	--neutral-300: #d4d4d8;
+	--neutral-400: #bbbbc2;
+	--neutral-500: #71717a;
+	--neutral-600: #52525b;
+	--neutral-700: #3f3f46;
+	--neutral-800: #27272a;
+	--neutral-900: #18181b;
+	--neutral-950: #0f0f11;
+
+	/* Spacing */
+	--spacing-xxs: 1px;
+	--spacing-xs: 2px;
+	--spacing-sm: 4px;
+	--spacing-md: 6px;
+	--spacing-lg: 8px;
+	--spacing-xl: 10px;
+	--spacing-xxl: 16px;
+
+	/* Radius */
+	--radius-xxs: 1px;
+	--radius-xs: 2px;
+	--radius-sm: 4px;
+	--radius-md: 6px;
+	--radius-lg: 8px;
+	--radius-xl: 12px;
+	--radius-xxl: 22px;
+
+	/* Text */
+	--text-xxs: 9px;
+	--text-xs: 10px;
+	--text-sm: 12px;
+	--text-md: 14px;
+	--text-lg: 16px;
+	--text-xl: 22px;
+	--text-xxl: 26px;
+
+	/* Button */
+	--button-border-width: 0px;
+	--button-transform-hover: none;
+	--button-transform-active: none;
+	--button-transition: all 0.2s ease;
+
+	/* Button sizes */
+	--button-large-padding: var(--spacing-lg) calc(2 * var(--spacing-lg));
+	--button-large-radius: var(--radius-md);
+	--button-large-text-size: var(--text-lg);
+	--button-large-text-weight: 600;
+
+	--button-medium-padding: var(--spacing-md) calc(1.5 * var(--spacing-lg));
+	--button-medium-radius: var(--radius-md);
+	--button-medium-text-size: var(--text-md);
+	--button-medium-text-weight: 500;
+
+	--button-small-padding: var(--spacing-sm) calc(1.5 * var(--spacing-sm));
+	--button-small-radius: var(--radius-md);
+	--button-small-text-size: var(--text-sm);
+	--button-small-text-weight: 400;
+
+	/* Primary button */
+	--button-primary-background-fill: var(--primary-500);
+	--button-primary-background-fill-hover: var(--primary-600);
+	--button-primary-border-color: var(--primary-500);
+	--button-primary-border-color-hover: var(--primary-500);
+	--button-primary-text-color: white;
+	--button-primary-text-color-hover: white;
+	--button-primary-shadow: none;
+	--button-primary-shadow-hover: none;
+	--button-primary-shadow-active: none;
+
+	/* Secondary button */
+	--button-secondary-background-fill: var(--neutral-200);
+	--button-secondary-background-fill-hover: var(--neutral-300);
+	--button-secondary-border-color: var(--neutral-200);
+	--button-secondary-border-color-hover: var(--neutral-200);
+	--button-secondary-text-color: black;
+	--button-secondary-text-color-hover: black;
+	--button-secondary-shadow: none;
+	--button-secondary-shadow-hover: none;
+	--button-secondary-shadow-active: none;
+
+	/* Cancel/Stop button */
+	--button-cancel-background-fill: #ef4444;
+	--button-cancel-background-fill-hover: #dc2626;
+	--button-cancel-border-color: #ef4444;
+	--button-cancel-border-color-hover: #dc2626;
+	--button-cancel-text-color: white;
+	--button-cancel-text-color-hover: white;
+	--button-cancel-shadow: none;
+	--button-cancel-shadow-hover: none;
+	--button-cancel-shadow-active: none;
+}
+
+/* Base styles */
+body {
+	font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+}

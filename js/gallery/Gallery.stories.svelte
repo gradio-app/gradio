@@ -3,7 +3,7 @@
 	import Gallery from "./Index.svelte";
 	import { allModes } from "../storybook/modes";
 	import { within } from "@testing-library/dom";
-	import { userEvent } from "@storybook/test";
+	import { userEvent } from "storybook/test";
 
 	export const meta = {
 		title: "Components/Gallery",
