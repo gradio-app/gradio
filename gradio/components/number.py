@@ -158,7 +158,7 @@ class Number(FormComponent):
             return None
         return self.round_to_precision(value, self.precision)
 
-    def api_info(self) -> dict[str, str]:
+    def api_info(self) -> dict[str, str]:  # type: ignore[override]
         if self.precision == 0:
             return {"type": "integer"}
         return {"type": "number"}

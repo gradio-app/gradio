@@ -136,10 +136,10 @@ class Dataset(Component):
         self.samples_per_page = samples_per_page
         self.sample_labels = sample_labels
 
-    def api_info(self) -> dict[str, str]:
+    def api_info(self) -> dict[str, str]:  # type: ignore[override]
         return {"type": "integer", "description": "index of selected example"}
 
-    def get_config(self):
+    def get_config(self):  # type: ignore[override]
         config = super().get_config()
 
         config["components"] = []

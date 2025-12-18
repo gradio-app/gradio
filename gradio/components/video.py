@@ -417,7 +417,7 @@ class Video(StreamingOutput, Component):
                     vtt_file.write(f"{subtitle_timing} --> {subtitle_timing}\n")
                     vtt_file.write(f"{subtitle_text}\n\n")
 
-        file_path = Path(subtitle)
+        file_path = Path(subtitle)  # type: ignore
         if file_path.suffix.lower() == ".json":
             try:
                 with open(file_path, encoding="utf-8") as f:

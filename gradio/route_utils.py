@@ -635,10 +635,12 @@ class GradioMultiPartParser:
 
     def on_part_end(self) -> None:
         if self._current_part.file is None:
+            data = self._current_part.data
+            data_bytes = bytes(data) if isinstance(data, bytearray) else data
             self.items.append(
                 (
                     self._current_part.field_name,
-                    _user_safe_decode(self._current_part.data, str(self._charset)),
+                    _user_safe_decode(data_bytes, str(self._charset)),
                 )
             )
         else:
@@ -1028,7 +1030,7 @@ class MediaStream:
             return
 
         segment_id = str(uuid.uuid4())
-        self.segments.append({"id": segment_id, **data})
+        self.segments.append({"id": segment_id, **data})  # type: ignore
         self.max_duration = max(self.max_duration, data["duration"]) + 1
 
     def end_stream(self):

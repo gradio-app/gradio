@@ -347,6 +347,7 @@ traitlets==5.14.3
     #   matplotlib-inline
 transformers==4.48.1
     # via -r test/requirements.in
+ty==0.0.2
 typer==0.15.1
     # via gradio
 typing-extensions==4.12.2

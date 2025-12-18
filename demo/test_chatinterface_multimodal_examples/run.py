@@ -8,7 +8,7 @@ def echo(message, history):
 
 demo = gr.ChatInterface(
     fn=echo,
-    examples=[{"text": "hello"}, {"text": "hola", "files": [image]}, {"text": "merhaba", "files": [image, audio]}],
+    examples=[{"text": "hello"}, {"text": "hola", "files": [image]}, {"text": "merhaba", "files": [image, audio]}],  # type: ignore
     title="Echo Bot",
     multimodal=True,
     api_name="chat",

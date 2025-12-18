@@ -12,7 +12,7 @@ import gradio
 from gradio.analytics import custom_component_analytics
 from gradio.cli.commands.components.install_component import _get_executable_path
 
-gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"
+gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"  # type: ignore
 
 
 def _dev(

@@ -10,10 +10,10 @@ def print_like_dislike(x: gr.LikeData):
 
 def add_message(history, message):
     user_msg = {"role": "user", "content": []}
-    for x in message["files"]:
-        user_msg["content"].append({"path": x})
-    if message["text"] is not None:
-       user_msg["content"].append(message["text"])
+    for x in message["files"]:  # type: ignore
+        user_msg["content"].append({"path": x})  # type: ignore
+    if message["text"] is not None:  # type: ignore
+       user_msg["content"].append(message["text"])  # type: ignore
     history.append(user_msg)
     return history, gr.MultimodalTextbox(value=None, interactive=False)
 

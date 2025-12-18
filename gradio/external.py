@@ -767,7 +767,7 @@ def format_conversation(
                     {
                         "type": "image_url",
                         "image_url": {
-                            "url": encode_url_or_file_to_base64(content["file"]["path"])
+                            "url": encode_url_or_file_to_base64(content["file"]["path"])  # type: ignore
                         },
                     }
                 )

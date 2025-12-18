@@ -714,7 +714,7 @@ class TestSafeDeepCopy:
         assert copied == original
         assert copied is not original
         assert copied[2] is not original[2]
-        assert copied[2][2] is not original[2][2]
+        assert copied[2][2] is not original[2][2]  # type: ignore
 
     def test_safe_deepcopy_custom_object(self):
         class CustomClass:

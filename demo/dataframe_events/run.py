@@ -112,7 +112,7 @@ with gr.Blocks() as demo:
                 value=tall_df_value,
                 interactive=False,
                 label="Tall Dataframe (Scroll Vertically)",
-                datatype=["str", "number", "bool"],
+                datatype=["str", "number", "bool"],  # type: ignore
                 max_height=200,
                 show_label=True,
                 elem_id="dataframe_tall",

@@ -457,9 +457,9 @@ def get_component_instance(
     if isinstance(comp, str):
         component_obj = component(comp, render=render)
     elif isinstance(comp, dict):
-        name = comp.pop("name")
+        name = comp.pop("name")  # type: ignore
         component_cls = utils.component_or_layout_class(name)
-        component_obj = component_cls(**comp, render=render)
+        component_obj = component_cls(**comp, render=render)  # type: ignore
         if isinstance(component_obj, BlockContext):
             raise ValueError(f"Invalid component: {name}")
     elif isinstance(comp, Component):

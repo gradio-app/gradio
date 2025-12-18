@@ -404,7 +404,7 @@ class TestExampleMessages:
     def test_setup_example_messages_with_multimodal(self):
         chat = gr.ChatInterface(
             double,
-            examples=[
+            examples=[  # type: ignore
                 {"text": "hello", "files": ["file1.txt"]},
                 {"text": "hi", "files": ["file2.txt", "file3.txt"]},
                 {"text": "", "files": ["file4.txt"]},

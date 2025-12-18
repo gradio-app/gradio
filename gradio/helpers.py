@@ -479,7 +479,7 @@ class Examples:
         import gradio as gr
 
         with gr.Blocks() as demo:
-            [output.render() for output in self.outputs]
+            [output.render() for output in self.outputs]  # type: ignore
             demo.load(self.fn, self.inputs, self.outputs)
         demo.unrender()
         return await demo.postprocess_data(demo.default_config.fns[0], output, None)
@@ -522,7 +522,7 @@ class Examples:
             )
         else:
             print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
-            self.cache_logger.setup(self.outputs, self.cached_folder)
+            self.cache_logger.setup(self.outputs, self.cached_folder)  # type: ignore
             generated_values = []
             if inspect.isgeneratorfunction(self.fn):
 
@@ -584,7 +584,9 @@ class Examples:
                 output = prediction["data"]
                 if generated_values:
                     output = await merge_generated_values_into_output(
-                        self.outputs, generated_values, output
+                        self.outputs,  # type: ignore
+                        generated_values,
+                        output,  # type: ignore
                     )
                 if self.batch:
                     output = [value[0] for value in output]
@@ -616,7 +618,7 @@ class Examples:
         output = []
         if self.outputs is None:
             raise ValueError("self.outputs is missing")
-        for component, value in zip(self.outputs, example, strict=False):
+        for component, value in zip(self.outputs, example, strict=False):  # type: ignore
             value_to_use = value
             try:
                 value_as_dict = ast.literal_eval(value)

@@ -205,7 +205,8 @@ class Interface(Blocks):
             if not isinstance(additional_inputs, Sequence):
                 additional_inputs = [additional_inputs]
             self.additional_input_components = [
-                get_component_instance(i, unrender=True) for i in additional_inputs
+                get_component_instance(i, unrender=True)  # type: ignore
+                for i in additional_inputs  # type: ignore
             ]
 
         if not isinstance(inputs, (Sequence, Component)):
@@ -592,7 +593,7 @@ class Interface(Blocks):
                         if inspect.isgeneratorfunction(
                             self.fn
                         ) or inspect.isasyncgenfunction(self.fn):
-                            _stop_btn = Button(**self.stop_btn_parms)
+                            _stop_btn = Button(**self.stop_btn_parms)  # type: ignore  # type: ignore
                 elif self.interface_type == InterfaceTypes.UNIFIED:
                     _clear_btn = ClearButton(**self.clear_btn_params)  # type: ignore
                     _submit_btn = Button(**self.submit_btn_parms)  # type: ignore
@@ -602,7 +603,7 @@ class Interface(Blocks):
                         inspect.isgeneratorfunction(self.fn)
                         or inspect.isasyncgenfunction(self.fn)
                     ) and not self.live:
-                        _stop_btn = Button(**self.stop_btn_parms)
+                        _stop_btn = Button(**self.stop_btn_parms)  # type: ignore
                     if self.flagging_mode == "manual":
                         flag_btns = self.render_flag_btns()
                     elif self.flagging_mode == "auto":
@@ -634,7 +635,7 @@ class Interface(Blocks):
         )
 
         with Column():
-            for component in self.output_components:
+            for component in self.output_components:  # type: ignore
                 if not (isinstance(component, State)):
                     component.render()
             with Row():
@@ -652,7 +653,7 @@ class Interface(Blocks):
                         # is created. We use whether a generator function is provided
                         # as a proxy of whether the queue will be enabled.
                         # Using a generator function without the queue will raise an error.
-                        _stop_btn = Button(**self.stop_btn_parms)
+                        _stop_btn = Button(**self.stop_btn_parms)  # type: ignore
                 if self.flagging_mode == "manual":
                     flag_btns = self.render_flag_btns()
                 elif self.flagging_mode == "auto":
@@ -701,7 +702,7 @@ class Interface(Blocks):
             else:
                 events: list[Callable] = []
                 streaming_event = False
-                for component in self.input_components:
+                for component in self.input_components:  # type: ignore
                     if component.has_event("stream") and component.streaming:  # type: ignore
                         events.append(component.stream)  # type: ignore
                         streaming_event = True
@@ -731,11 +732,11 @@ class Interface(Blocks):
 
             triggers = [_submit_btn.click] + [
                 component.submit  # type: ignore
-                for component in self.input_components
+                for component in self.input_components  # type: ignore
                 if component.has_event(Events.submit)
             ]
 
-            for component in self.input_components:
+            for component in self.input_components:  # type: ignore
                 if getattr(component, "streaming", None):
                     warnings.warn(
                         "Streaming components are only supported in live interfaces."
@@ -817,7 +818,7 @@ class Interface(Blocks):
         _clear_btn: ClearButton,
         input_component_column: Column | None,
     ):
-        _clear_btn.add(self.input_components + self.output_components)
+        _clear_btn.add(self.input_components + self.output_components)  # type: ignore
         _clear_btn.click(
             None,
             [],
@@ -860,7 +861,7 @@ class Interface(Blocks):
             )
             _submit_event.success(
                 flag_method,
-                inputs=self.input_components + self.output_components,
+                inputs=self.input_components + self.output_components,  # type: ignore
                 outputs=None,
                 preprocess=False,
                 queue=False,
@@ -869,9 +870,9 @@ class Interface(Blocks):
             return
 
         if self.interface_type == InterfaceTypes.UNIFIED:
-            flag_components = self.input_components
+            flag_components = self.input_components  # type: ignore
         else:
-            flag_components = self.input_components + self.output_components
+            flag_components = self.input_components + self.output_components  # type: ignore
 
         for flag_btn, (label, value) in zip(
             flag_btns, self.flagging_options, strict=False
@@ -909,10 +910,14 @@ class Interface(Blocks):
     def render_examples(self):
         if self.examples:
             non_state_inputs = [
-                c for c in self.input_components if not isinstance(c, State)
+                c
+                for c in self.input_components  # type: ignore
+                if not isinstance(c, State)  # type: ignore
             ]
             non_state_outputs = [
-                c for c in self.output_components if not isinstance(c, State)
+                c
+                for c in self.output_components  # type: ignore
+                if not isinstance(c, State)  # type: ignore
             ]
             self.examples_handler = Examples(
                 examples=self.examples,
@@ -922,7 +927,7 @@ class Interface(Blocks):
                 cache_examples=self.cache_examples,
                 cache_mode=self.cache_mode,
                 examples_per_page=self.examples_per_page,
-                _api_mode=self.api_mode,
+                _api_mode=self.api_mode or False,  # type: ignore
                 batch=self.batch,
                 example_labels=self.example_labels,
                 preload=self.preload_example,
@@ -943,10 +948,10 @@ class Interface(Blocks):
         repr = f"Gradio Interface for: {self.__name__}"
         repr += f"\n{'-' * len(repr)}"
         repr += "\ninputs:"
-        for component in self.input_components:
+        for component in self.input_components:  # type: ignore
             repr += f"\n|-{component}"
         repr += "\noutputs:"
-        for component in self.output_components:
+        for component in self.output_components:  # type: ignore
             repr += f"\n|-{component}"
         return repr
 

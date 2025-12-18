@@ -274,11 +274,11 @@ async def test_mcp_streamable_http_client():
                 assert len(tools_response.tools) == 1
                 tool = tools_response.tools[0]
                 assert "double" in tool.name
-                assert "Doubles the input word" in tool.description
+                assert "Doubles the input word" in tool.description  # type: ignore
 
-                result = await session.call_tool(tool.name, arguments={"word": "Hello"})
-                assert len(result.content) == 1
-                assert result.content[0].text == "HelloHello"
+                result = await session.call_tool(tool.name, arguments={"word": "Hello"})  # type: ignore
+                assert len(result.content) == 1  # type: ignore
+                assert result.content[0].text == "HelloHello"  # type: ignore
     finally:
         demo.close()
 
@@ -335,8 +335,8 @@ async def test_mcp_streamable_http_client_with_progress_callback():
                     meta={"progressToken": "test-token-123"},
                 )
 
-                assert len(result.content) == 1
-                assert result.content[0].text == "TEST"
+                assert len(result.content) == 1  # type: ignore
+                assert result.content[0].text == "TEST"  # type: ignore
                 assert len(progress_updates) > 0, "Expected to receive progress updates"
     finally:
         demo.close()
@@ -361,9 +361,9 @@ async def test_mcp_streamable_http_client_with_stateful_app(stateful_mcp_app):
                     tool.name,
                     arguments={"name": "test", "flag": True, "gallery_images": 42},
                 )
-                assert len(result.content) == 1
+                assert len(result.content) == 1  # type: ignore
                 assert (
-                    result.content[0].text
+                    result.content[0].text  # type: ignore
                     == "name=test, hidden_state=hidden_value, flag=True, gallery=42"
                 )
     finally:

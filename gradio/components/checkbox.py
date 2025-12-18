@@ -89,7 +89,7 @@ class Checkbox(FormComponent):
         )
         self.buttons = set_default_buttons(buttons, None)
 
-    def get_config(self) -> dict[str, Any]:
+    def get_config(self) -> dict[str, Any]:  # type: ignore[override]
         config = super().get_config()
         if self.label is not None:
             self.show_label = True
