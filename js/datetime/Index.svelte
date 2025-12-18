@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-	import { Block, BlockTitle } from "@gradio/atoms";
+	import { Block, BlockTitle, IconButtonWrapper } from "@gradio/atoms";
 	import { Calendar } from "@gradio/icons";
 	import { onDestroy } from "svelte";
 	import DateTimePicker from "./DateTimePicker.svelte";
@@ -152,6 +152,14 @@
 	padding={true}
 >
 	<div class="label-content">
+		{#if gradio.shared.show_label && gradio.props.buttons && gradio.props.buttons.length > 0}
+			<IconButtonWrapper
+				buttons={gradio.props.buttons}
+				on_custom_button_click={(id) => {
+					gradio.dispatch("custom_button_click", { id });
+				}}
+			/>
+		{/if}
 		<BlockTitle show_label={gradio.shared.show_label} info={gradio.props.info}
 			>{gradio.shared.label || "Date"}</BlockTitle
 		>

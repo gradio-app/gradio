@@ -18,9 +18,11 @@ from pydub import AudioSegment
 
 from gradio import processing_utils
 from gradio.components.base import Component, StreamingInput, StreamingOutput
+from gradio.components.button import Button
 from gradio.data_classes import FileData, FileDataDict, MediaStreamChunk
 from gradio.events import Events
 from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -103,7 +105,7 @@ class Audio(
         format: Literal["wav", "mp3"] | None = None,
         autoplay: bool = False,
         editable: bool = True,
-        buttons: list[Literal["download", "share"]] | None = None,
+        buttons: list[Literal["download", "share"] | Button] | None = None,
         waveform_options: WaveformOptions | dict | None = None,
         loop: bool = False,
         recording: bool = False,
@@ -132,7 +134,7 @@ class Audio(
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             format: the file extension with which to save audio files. Either 'wav' or 'mp3'. wav files are lossless but will tend to be larger files. mp3 files tend to be smaller. This parameter applies both when this component is used as an input (and `type` is "filepath") to determine which file format to convert user-provided audio to, and when this component is used as an output to determine the format of audio returned to the user. If None, no file format conversion is done and the audio is kept as is. In the case where output audio is returned from the prediction function as numpy array and no `format` is provided, it will be returned as a "wav" file.
             autoplay: Whether to automatically play the audio when the component is used as an output. Note: browsers will not autoplay audio files if the user has not interacted with the page yet.
-            buttons: A list of buttons to show in the top right corner of the component. Valid options are "download" and "share". The "download" button allows the user to save the audio to their device. The "share" button allows the user to share the audio via Hugging Face Spaces Discussions. By default, all buttons are shown.
+            buttons: A list of buttons to show in the top right corner of the component. Valid options are "download", "share", or a gr.Button() instance. The "download" button allows the user to save the audio to their device. The "share" button allows the user to share the audio via Hugging Face Spaces Discussions. Custom gr.Button() instances will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button. By default, only the "download" and "share" buttons are shown.
             editable: If True, allows users to manipulate the audio file if the component is interactive. Defaults to True.
             waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), skip_length (int), trim_region_color (str). Default is None, which uses the default values for these options. [See `gr.WaveformOptions` docs](#waveform-options).
             loop: If True, the audio will loop when it reaches the end and continue playing from the beginning.
@@ -175,7 +177,7 @@ class Audio(
         self.format = format and format.lower()
         self.autoplay = autoplay
         self.loop = loop
-        self.buttons = buttons
+        self.buttons = set_default_buttons(buttons, ["download", "share"])
         self.editable = editable
         if waveform_options is None:
             self.waveform_options = WaveformOptions()

@@ -10,8 +10,10 @@ from typing import TYPE_CHECKING, Any, Literal
 from gradio_client.documentation import document
 
 from gradio.components.base import Component, FormComponent
+from gradio.components.button import Button
 from gradio.events import Events
 from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -92,7 +94,7 @@ class Textbox(FormComponent):
         preserved_by_key: list[str] | str | None = "value",
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
-        buttons: list[Literal["copy"]] | None = None,
+        buttons: list[Literal["copy"] | Button] | None = None,
         max_length: int | None = None,
         submit_btn: str | bool | None = False,
         stop_btn: str | bool | None = False,
@@ -123,7 +125,7 @@ class Textbox(FormComponent):
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             text_align: How to align the text in the textbox, can be: "left", "right", or None (default). If None, the alignment is left if `rtl` is False, or right if `rtl` is True. Can only be changed if `type` is "text".
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
-            buttons: A list of buttons to show for the component. Currently, the only valid option is "copy". The "copy" button allows the user to copy the text in the textbox. Only applies if show_label is True. By default, no buttons are shown.
+            buttons: A list of buttons to show for the component. The only built-in button for this component is "copy", which allows the user to copy the text in the textbox. Custom gr.Button() can also provided, they will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button. Only applies if show_label is True. By default, no buttons are shown.
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
             max_length: maximum number of characters (including newlines) allowed in the textbox. If None, there is no maximum length.
             submit_btn: If False, will not show a submit button. If True, will show a submit button with an icon. If a string, will use that string as the submit button text. When the submit button is shown, the border of the textbox will be removed, which is useful for creating a chat interface.
@@ -146,7 +148,7 @@ class Textbox(FormComponent):
         self.lines = lines
         self.max_lines = max_lines
         self.placeholder = placeholder
-        self.buttons = buttons
+        self.buttons = set_default_buttons(buttons, None)
         self.submit_btn = submit_btn
         self.stop_btn = stop_btn
         self.autofocus = autofocus

@@ -78,6 +78,10 @@
 			show_label={gradio.shared.show_label}
 			height={gradio.props.height}
 			i18n={gradio.i18n}
+			buttons={gradio.props.buttons}
+			on_custom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
 		/>
 	{:else}
 		<FileUpload
@@ -94,6 +98,10 @@
 			root={gradio.shared.root}
 			allow_reordering={gradio.props.allow_reordering}
 			max_file_size={gradio.shared.max_file_size}
+			buttons={gradio.props.buttons}
+			on_custom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
 			on:change={({ detail }) => {
 				gradio.props.value = detail;
 			}}
