@@ -54,7 +54,9 @@ test("test HTML components", async ({ page }) => {
 
 	await expect(page.locator("body")).toContainText("Zalue is not defined");
 
-	const secondTodoCheckbox = page.locator("#todo input[type='checkbox']").nth(1);
+	const secondTodoCheckbox = page
+		.locator("#todo input[type='checkbox']")
+		.nth(1);
 	const secondTodoItem = page.locator("#todo li").nth(1);
 
 	await expect(secondTodoItem).toHaveCSS("text-decoration", /line-through/);
