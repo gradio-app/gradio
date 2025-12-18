@@ -78,7 +78,9 @@ export type SubmitFunction = (
 	endpoint: string | number,
 	data?: unknown[] | Record<string, unknown>,
 	event_data?: unknown,
-	trigger_id?: number | null
+	trigger_id?: number | null,
+	all_events?: boolean,
+	additional_headers?: Record<string, string>
 ) => SubmitIterable<GradioEvent>;
 
 export type PredictFunction = (
