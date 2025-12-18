@@ -1,4 +1,8 @@
-import { type SelectData, type CopyData } from "@gradio/utils";
+import {
+	type SelectData,
+	type CopyData,
+	type CustomButton
+} from "@gradio/utils";
 import type { LoadingStatus } from "@gradio/statustracker";
 
 export interface TextboxEvents {
@@ -11,6 +15,7 @@ export interface TextboxEvents {
 	stop: never;
 	clear_status: LoadingStatus;
 	copy: CopyData;
+	custom_button_click: { id: number };
 }
 
 export interface TextboxProps {
@@ -24,7 +29,7 @@ export interface TextboxProps {
 	placeholder: string;
 	submit_btn: string;
 	stop_btn: string;
-	buttons: string[];
+	buttons: (string | CustomButton)[] | null;
 	autofocus: boolean;
 	autoscroll: boolean;
 	max_length: number;

@@ -72,6 +72,7 @@
 		{value}
 		{target}
 		{theme_mode}
+		on_change={() => {}}
 		bokeh_version={props.bokeh_version}
 		caption={props.caption || ""}
 		show_actions_button={true}

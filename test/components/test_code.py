@@ -50,6 +50,7 @@ class TestCode:
             "preserved_by_key": ["value"],
             "show_line_numbers": True,
             "autocomplete": False,
+            "buttons": ["copy", "download"],
         }
 
     def test_process_example(self):

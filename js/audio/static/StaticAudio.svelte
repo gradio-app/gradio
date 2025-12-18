@@ -8,6 +8,7 @@
 		DownloadLink,
 		IconButtonWrapper
 	} from "@gradio/atoms";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 	import { Download, Music } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import AudioPlayer from "../player/AudioPlayer.svelte";
@@ -20,7 +21,8 @@
 	export let subtitles: null | FileData | SubtitleData[] = null;
 	export let label: string;
 	export let show_label = true;
-	export let buttons: string[] | null = null;
+	export let buttons: (string | CustomButtonType)[] = [];
+	export let on_custom_button_click: ((id: number) => void) | null = null;
 	export let i18n: I18nFormatter;
 	export let waveform_settings: Record<string, any> = {};
 	export let waveform_options: WaveformOptions = {
@@ -30,6 +32,7 @@
 	export let loop: boolean;
 	export let display_icon_button_wrapper_top_corner = false;
 	export let minimal = false;
+	export let playback_position = 0;
 
 	const dispatch = createEventDispatcher<{
 		change: FileData;
@@ -55,8 +58,10 @@
 	{:else}
 		<IconButtonWrapper
 			display_top_corner={display_icon_button_wrapper_top_corner}
+			{buttons}
+			{on_custom_button_click}
 		>
-			{#if buttons === null ? true : buttons.includes("download")}
+			{#if buttons.some((btn) => typeof btn === "string" && btn === "download")}
 				<DownloadLink
 					href={value.is_stream
 						? value.url?.replace("playlist.m3u8", "playlist-file")
@@ -66,7 +71,7 @@
 					<IconButton Icon={Download} label={i18n("common.download")} />
 				</DownloadLink>
 			{/if}
-			{#if buttons === null ? true : buttons.includes("share")}
+			{#if buttons.some((btn) => typeof btn === "string" && btn === "share")}
 				<ShareButton
 					{i18n}
 					on:error
@@ -90,6 +95,7 @@
 			{waveform_options}
 			{editable}
 			{loop}
+			bind:playback_position
 			on:pause
 			on:play
 			on:stop

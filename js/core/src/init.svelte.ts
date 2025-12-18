@@ -76,6 +76,7 @@ export class AppTree {
 	ready: Promise<void>;
 	ready_resolve!: () => void;
 	resolved: boolean = false;
+	#hidden_on_startup: Set<number> = new Set();
 
 	constructor(
 		components: ComponentMeta[],
@@ -228,7 +229,8 @@ export class AppTree {
 			(node) =>
 				untrack_children_of_closed_accordions_or_inactive_tabs(
 					node,
-					this.components_to_register
+					this.components_to_register,
+					this.#hidden_on_startup
 				)
 		]);
 	}
@@ -352,9 +354,9 @@ export class AppTree {
 					: null,
 			key: component.key,
 			rendered_in: component.rendered_in,
-			documentation: component.documentation
+			documentation: component.documentation,
+			original_visibility: processed_props.shared_props.visible
 		};
-
 		return node;
 	}
 
@@ -475,7 +477,7 @@ export class AppTree {
 		this.root = this.traverse(this.root!, [
 			(node) => {
 				if (node.id === id) {
-					update_visibility(node, true);
+					make_visible_if_not_rendered(node, this.#hidden_on_startup);
 				}
 				return node;
 			},
@@ -484,14 +486,15 @@ export class AppTree {
 	}
 }
 
-function update_visibility(
+function make_visible_if_not_rendered(
 	node: ProcessedComponentMeta,
-	visible: boolean
+	hidden_on_startup: Set<number>
 ): void {
-	node.props.shared_props.visible = visible;
+	node.props.shared_props.visible = hidden_on_startup.has(node.id)
+		? true
+		: node.props.shared_props.visible;
 	node.children.forEach((child) => {
-		child.props.shared_props.visible = visible;
-		update_visibility(child, visible);
+		make_visible_if_not_rendered(child, hidden_on_startup);
 	});
 }
 
@@ -626,7 +629,6 @@ function set_visibility_for_updated_node(
 ): ProcessedComponentMeta {
 	if (node.id == id) {
 		node.props.shared_props.visible = visible;
-		update_visibility(node, visible);
 	}
 	return node;
 }
@@ -653,17 +655,31 @@ function untrack_children_of_invisible_parents(
 	return node;
 }
 
+function mark_component_invisible_if_visible(
+	node: ProcessedComponentMeta,
+	hidden_on_startup: Set<number>
+): ProcessedComponentMeta {
+	if (node.props.shared_props.visible === true) {
+		hidden_on_startup.add(node.id);
+		node.props.shared_props.visible = false;
+	}
+	node.children.forEach((child) => {
+		mark_component_invisible_if_visible(child, hidden_on_startup);
+	});
+	return node;
+}
+
 function untrack_children_of_closed_accordions_or_inactive_tabs(
 	node: ProcessedComponentMeta,
-	components_to_register: Set<number>
+	components_to_register: Set<number>,
+	hidden_on_startup: Set<number>
 ): ProcessedComponentMeta {
 	// Check if the node is an accordion or tabs
 	if (node.type === "accordion" && node.props.props.open === false) {
 		_untrack(node, components_to_register);
 		if (node.children) {
 			node.children.forEach((child) => {
-				if (child.props.shared_props.visible === true)
-					update_visibility(child, false);
+				mark_component_invisible_if_visible(child, hidden_on_startup);
 			});
 		}
 	}
@@ -675,13 +691,7 @@ function untrack_children_of_closed_accordions_or_inactive_tabs(
 					(node.props.props.selected || node.props.props.initial_tabs[0].id)
 			) {
 				_untrack(child, components_to_register);
-				if (child.children) {
-					child.children.forEach((grandchild) => {
-						if (grandchild.props.shared_props.visible === true) {
-							update_visibility(grandchild, false);
-						}
-					});
-				}
+				mark_component_invisible_if_visible(child, hidden_on_startup);
 			}
 		});
 	}

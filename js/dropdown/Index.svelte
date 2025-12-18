@@ -9,7 +9,7 @@
 	import { Gradio } from "@gradio/utils";
 	import Multiselect from "./shared/Multiselect.svelte";
 	import Dropdown from "./shared/Dropdown.svelte";
-	import { Block } from "@gradio/atoms";
+	import { Block, IconButtonWrapper } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { DropdownProps, DropdownEvents } from "./types.ts";
 
@@ -36,6 +36,26 @@
 	{#if gradio.props.multiselect}
 		<Multiselect {gradio} />
 	{:else}
-		<Dropdown {gradio} />
+		<Dropdown
+			label={gradio.shared.label}
+			info={gradio.props.info}
+			bind:value={gradio.props.value}
+			choices={gradio.props.choices}
+			interactive={gradio.shared.interactive}
+			show_label={gradio.shared.show_label}
+			container={gradio.shared.container}
+			allow_custom_value={gradio.props.allow_custom_value}
+			filterable={gradio.props.filterable}
+			buttons={gradio.props.buttons}
+			on_custom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
+			on_change={() => gradio.dispatch("change")}
+			on_input={() => gradio.dispatch("input")}
+			on_select={(data) => gradio.dispatch("select", data)}
+			on_focus={() => gradio.dispatch("focus")}
+			on_blur={() => gradio.dispatch("blur")}
+			on_key_up={(data) => gradio.dispatch("key_up", data)}
+		/>
 	{/if}
 </Block>

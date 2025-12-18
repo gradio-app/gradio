@@ -1,5 +1,7 @@
 import { test, expect, go_to_testcase } from "@self/tootils";
 
+test.describe.configure({ mode: "serial" });
+
 const cases = [
 	"messages",
 	"multimodal_messages",

@@ -1,5 +1,6 @@
 import type { FileData } from "@gradio/client";
 import type { LoadingStatus } from "js/statustracker";
+import type { CustomButton } from "@gradio/utils";
 
 export interface Model3DProps {
 	value: null | FileData;
@@ -9,6 +10,7 @@ export interface Model3DProps {
 	zoom_speed: number;
 	has_change_history: boolean;
 	camera_position: [number | null, number | null, number | null];
+	buttons: (string | CustomButton)[] | null;
 }
 
 export interface Model3DEvents {
@@ -18,4 +20,5 @@ export interface Model3DEvents {
 	clear: never;
 	clear_status: LoadingStatus;
 	error: string;
+	custom_button_click: { id: number };
 }

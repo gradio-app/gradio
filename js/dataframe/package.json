@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/dataframe",
-	"version": "0.21.0",
+	"version": "0.21.1",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -21,8 +21,7 @@
 		"@types/d3-dsv": "^3.0.7",
 		"@types/katex": "^0.16.7",
 		"d3-dsv": "^3.0.1",
-		"dequal": "^2.0.3",
-		"@gradio/dataframe-interim": "workspace:^"
+		"dequal": "^2.0.3"
 	},
 	"exports": {
 		".": {
@@ -41,7 +40,8 @@
 		"svelte": ">=5.0.0"
 	},
 	"devDependencies": {
-		"@gradio/preview": "workspace:^"
+		"@gradio/preview": "workspace:^",
+		"@gradio/dataframe-interim": "workspace:^"
 	},
 	"repository": {
 		"type": "git",

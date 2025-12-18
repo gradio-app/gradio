@@ -140,6 +140,9 @@
 			// update_status(id, "complete", data);
 		} else if (event == "close_stream") {
 			dep_manager.close_stream(id);
+		} else if (event === "custom_button_click") {
+			const button_id = (data as { id: number }).id;
+			dispatch_to_target(button_id, "click", null);
 		} else {
 			// Tabs are a bit weird. The Tabs component dispatches 'select' events
 			// but the target id corresponds to the child Tab component that was selected.
@@ -174,6 +177,19 @@
 		$reactive_formatter,
 		gradio_event_dispatcher
 	);
+
+	function dispatch_to_target(
+		target_id: number,
+		event: string,
+		data: unknown
+	): void {
+		dep_manager.dispatch({
+			type: "event",
+			event_name: event,
+			target_id: target_id,
+			event_data: data
+		});
+	}
 
 	setContext(GRADIO_ROOT, {
 		register: app_tree.register_component.bind(app_tree),
@@ -329,8 +345,10 @@
 
 	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
-	const DUPLICATE_MESSAGE = $_("blocks.long_requests_queue");
-	const MOBILE_QUEUE_WARNING = $_("blocks.connection_can_break");
+	const DUPLICATE_MESSAGE = $reactive_formatter("blocks.long_requests_queue");
+	const MOBILE_QUEUE_WARNING = $reactive_formatter(
+		"blocks.connection_can_break"
+	);
 	const LOST_CONNECTION_MESSAGE =
 		"Connection to the server was lost. Attempting reconnection...";
 	const CHANGED_CONNECTION_MESSAGE =
@@ -338,7 +356,9 @@
 	const RECONNECTION_MESSAGE = "Connection re-established.";
 	const SESSION_NOT_FOUND_MESSAGE =
 		"Session not found - this is likely because the machine you were connected to has changed. <a href=''>Refresh the page</a> to continue.";
-	const WAITING_FOR_INPUTS_MESSAGE = $_("blocks.waiting_for_inputs");
+	const WAITING_FOR_INPUTS_MESSAGE = $reactive_formatter(
+		"blocks.waiting_for_inputs"
+	);
 	const SHOW_DUPLICATE_MESSAGE_ON_ETA = 15;
 	const SHOW_MOBILE_QUEUE_WARNING_ON_ETA = 10;
 	let is_mobile_device = false;
@@ -432,69 +452,75 @@
 		style:margin-right={vibe_mode ? `${vibe_editor_width}px` : "0"}
 	>
 		<MountComponents node={app_tree.root} />
-
-		{#if footer_links.length > 0}
-			<footer bind:clientHeight={footer_height}>
-				{#if footer_links.includes("api")}
-					<button
-						on:click={() => {
-							set_api_docs_visible(!api_docs_visible);
-						}}
-						on:mouseenter={() => {
-							loadApiDocs();
-							loadApiRecorder();
-						}}
-						class="show-api"
-					>
-						{#if app.config?.mcp_server}
-							{$_("errors.use_via_api_or_mcp")}
-						{:else}
-							{$_("errors.use_via_api")}
-						{/if}
-						<img src={api_logo} alt={$_("common.logo")} />
-					</button>
-				{/if}
-				{#if footer_links.includes("gradio")}
-					<div class="divider show-api-divider">·</div>
-					<a
-						href="https://gradio.app"
-						class="built-with"
-						target="_blank"
-						rel="noreferrer"
-					>
-						{$_("common.built_with_gradio")}
-						<img src={logo} alt={$_("common.logo")} />
-					</a>
-				{/if}
-				<button
-					class:hidden={!$is_screen_recording}
-					on:click={() => {
-						screen_recording();
-					}}
-					class="record"
-				>
-					{$_("common.stop_recording")}
-					<img src={record_stop} alt={$_("common.stop_recording")} />
-				</button>
-				<div class="divider">·</div>
-				{#if footer_links.includes("settings")}
-					<div class="divider" class:hidden={!$is_screen_recording}>·</div>
-					<button
-						on:click={() => {
-							set_settings_visible(!settings_visible);
-						}}
-						on:mouseenter={() => {
-							loadSettings();
-						}}
-						class="settings"
-					>
-						{$_("common.settings")}
-						<img src={settings_logo} alt={$_("common.settings")} />
-					</button>
-				{/if}
-			</footer>
-		{/if}
 	</div>
+
+	{#if footer_links.length > 0}
+		<footer bind:clientHeight={footer_height}>
+			{#if footer_links.includes("api")}
+				<button
+					on:click={() => {
+						set_api_docs_visible(!api_docs_visible);
+					}}
+					on:mouseenter={() => {
+						loadApiDocs();
+						loadApiRecorder();
+					}}
+					class="show-api"
+				>
+					{#if app.config?.mcp_server}
+						{$reactive_formatter("errors.use_via_api_or_mcp")}
+					{:else}
+						{$reactive_formatter("errors.use_via_api")}
+					{/if}
+					<img src={api_logo} alt={$reactive_formatter("common.logo")} />
+				</button>
+			{/if}
+			{#if footer_links.includes("gradio")}
+				<div class="divider show-api-divider">·</div>
+				<a
+					href="https://gradio.app"
+					class="built-with"
+					target="_blank"
+					rel="noreferrer"
+				>
+					{$reactive_formatter("common.built_with_gradio")}
+					<img src={logo} alt={$reactive_formatter("common.logo")} />
+				</a>
+			{/if}
+			<button
+				class:hidden={!$is_screen_recording}
+				on:click={() => {
+					screen_recording();
+				}}
+				class="record"
+			>
+				{$reactive_formatter("common.stop_recording")}
+				<img
+					src={record_stop}
+					alt={$reactive_formatter("common.stop_recording")}
+				/>
+			</button>
+			<div class="divider">·</div>
+			{#if footer_links.includes("settings")}
+				<div class="divider" class:hidden={!$is_screen_recording}>·</div>
+				<button
+					on:click={() => {
+						set_settings_visible(!settings_visible);
+					}}
+					on:mouseenter={() => {
+						loadSettings();
+					}}
+					class="settings"
+				>
+					{$reactive_formatter("common.settings")}
+					<img
+						src={settings_logo}
+						alt={$reactive_formatter("common.settings")}
+					/>
+				</button>
+			{/if}
+		</footer>
+	{/if}
 	{#if api_recorder_visible && ApiRecorder}
 		<!-- TODO: fix -->
 		<!-- svelte-ignore a11y-click-events-have-key-events-->
@@ -559,15 +585,16 @@
 					this={Settings}
 					bind:allow_zoom
 					bind:allow_video_trim
-					on:close={() => {
+					onclose={() => {
 						set_settings_visible(false);
 					}}
-					on:start_recording={() => {
+					start_recording={() => {
 						screen_recording();
 					}}
 					pwa_enabled={app.config.pwa}
 					{root}
 					{space_id}
+					i18n={$reactive_formatter}
 				/>
 			</div>
 		</div>

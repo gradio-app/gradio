@@ -401,6 +401,7 @@ class PlayableVideo(components.Video):
         streaming: bool = False,
         watermark: str | Path | None = None,
         subtitles: str | Path | None = None,
+        playback_position: int = 0,
     ):
         sources = ["upload"]
         super().__init__(
@@ -431,6 +432,7 @@ class PlayableVideo(components.Video):
             watermark=watermark,
             webcam_options=webcam_options,
             subtitles=subtitles,
+            playback_position=playback_position,
         )
 
 
@@ -479,6 +481,7 @@ class Microphone(components.Audio):
         loop: bool = False,
         recording: bool = False,
         subtitles: str | Path | None = None,
+        playback_position: int = 0,
     ):
         sources = ["microphone"]
         super().__init__(
@@ -508,6 +511,7 @@ class Microphone(components.Audio):
             loop=loop,
             recording=recording,
             subtitles=subtitles,
+            playback_position=playback_position,
         )
 
 
@@ -546,6 +550,7 @@ class Files(components.File):
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
         allow_reordering: bool = False,
+        buttons: list[components.Button] | None = None,
     ):
         super().__init__(
             value,
@@ -567,6 +572,7 @@ class Files(components.File):
             render=render,
             key=key,
             preserved_by_key=preserved_by_key,
+            buttons=buttons,
             allow_reordering=allow_reordering,
         )
 

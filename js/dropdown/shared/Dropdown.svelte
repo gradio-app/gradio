@@ -1,18 +1,54 @@
 <script lang="ts">
 	import DropdownOptions from "./DropdownOptions.svelte";
-	import { BlockTitle } from "@gradio/atoms";
+	import { BlockTitle, IconButtonWrapper } from "@gradio/atoms";
 	import { DropdownArrow } from "@gradio/icons";
 	import { handle_filter, handle_shared_keys } from "./utils";
-	import type { Gradio } from "@gradio/utils";
-	import type { DropdownEvents, DropdownProps, Item } from "../types.ts";
+	import type {
+		SelectData,
+		KeyUpData,
+		CustomButton as CustomButtonType
+	} from "@gradio/utils";
 	import { tick } from "svelte";
 
 	const is_browser = typeof window !== "undefined";
 
-	let props = $props();
-
-	const gradio: Gradio<DropdownEvents, DropdownProps> = props.gradio;
-	let label = $derived(gradio.shared.label || "Dropdown");
+	let {
+		label = "Dropdown",
+		info = undefined,
+		value = $bindable<string | number | null>(),
+		choices = [],
+		interactive = true,
+		show_label = true,
+		container = true,
+		allow_custom_value = false,
+		filterable = true,
+		buttons = null,
+		on_custom_button_click = null,
+		on_change,
+		on_input,
+		on_select,
+		on_focus,
+		on_blur,
+		on_key_up
+	}: {
+		label?: string;
+		info?: string;
+		value?: string | number | null;
+		choices?: [string, string | number][];
+		interactive?: boolean;
+		show_label?: boolean;
+		container?: boolean;
+		allow_custom_value?: boolean;
+		filterable?: boolean;
+		buttons?: (string | CustomButtonType)[] | null;
+		on_custom_button_click?: ((id: number) => void) | null;
+		on_change?: (value: string | number | null) => void;
+		on_input?: () => void;
+		on_select?: (data: SelectData) => void;
+		on_focus?: () => void;
+		on_blur?: () => void;
+		on_key_up?: (data: KeyUpData) => void;
+	} = $props();
 
 	let filter_input: HTMLElement;
 
@@ -20,46 +56,35 @@
 		return is_browser && filter_input === document.activeElement;
 	});
 	let choices_names: string[] = $derived.by(() => {
-		return gradio.props.choices.map((c) => c[0]);
+		return choices.map((c) => c[0]);
 	});
 	let choices_values: (string | number)[] = $derived.by(() => {
-		return gradio.props.choices.map((c) => c[1]);
+		return choices.map((c) => c[1]);
 	});
 	let [input_text, selected_index] = $derived.by(() => {
 		if (
-			gradio.props.value === undefined ||
-			(Array.isArray(gradio.props.value) && gradio.props.value.length === 0)
+			value === undefined ||
+			value === null ||
+			(Array.isArray(value) && value.length === 0)
 		) {
 			return ["", null];
-		} else if (choices_values.includes(gradio.props.value as string)) {
+		} else if (choices_values.includes(value as string | number)) {
 			return [
-				choices_names[choices_values.indexOf(gradio.props.value as string)],
-				choices_values.indexOf(gradio.props.value as string)
+				choices_names[choices_values.indexOf(value as string | number)],
+				choices_values.indexOf(value as string | number)
 			];
-		} else if (gradio.props.allow_custom_value) {
-			return [gradio.props.value as string, null];
+		} else if (allow_custom_value) {
+			return [value as string, null];
 		} else {
 			return ["", null];
 		}
 	});
 	let initialized = $state(false);
-	let disabled = $derived(!gradio.shared.interactive);
+	let disabled = $derived(!interactive);
 
 	// All of these are indices with respect to the choices array
-	let filtered_indices = $state(gradio.props.choices.map((_, i) => i));
+	let filtered_indices = $state(choices.map((_, i) => i));
 	let active_index: number | null = $state(null);
-
-	// Setting the initial value of the dropdown
-	if (gradio.props.value) {
-		selected_index = gradio.props.choices
-			.map((c) => c[1])
-			.indexOf(gradio.props.value as string);
-		if (selected_index === -1) {
-			selected_index = null;
-		} else {
-			input_text = gradio.props.choices[selected_index][0];
-		}
-	}
 
 	function handle_option_selected(e: any): void {
 		selected_index = parseInt(e.detail.target.dataset.index);
@@ -69,10 +94,10 @@
 			return;
 		}
 
-		let [_input_text, _value] = gradio.props.choices[selected_index];
+		let [_input_text, _value] = choices[selected_index];
 		input_text = _input_text;
-		gradio.props.value = _value;
-		gradio.dispatch("select", {
+		value = _value;
+		on_select?.({
 			index: selected_index,
 			value: choices_values[selected_index],
 			selected: true
@@ -83,29 +108,28 @@
 	}
 
 	function handle_focus(e: FocusEvent): void {
-		filtered_indices = gradio.props.choices.map((_, i) => i);
+		filtered_indices = choices.map((_, i) => i);
 		show_options = true;
-		gradio.dispatch("focus");
+		on_focus?.();
 	}
 
 	function handle_blur(): void {
-		if (!gradio.props.allow_custom_value) {
+		if (!allow_custom_value) {
 			input_text =
-				choices_names[choices_values.indexOf(gradio.props.value as string)];
+				choices_names[choices_values.indexOf(value as string | number)];
 		} else {
-			gradio.props.value = input_text;
+			value = input_text;
 		}
 		show_options = false;
 		active_index = null;
-		// last_input_text = input_text;
-		filtered_indices = gradio.props.choices.map((_, i) => i);
-		gradio.dispatch("blur");
-		gradio.dispatch("input");
+		filtered_indices = choices.map((_, i) => i);
+		on_blur?.();
+		on_input?.();
 	}
 
 	async function handle_key_down(e: KeyboardEvent): Promise<void> {
 		await tick();
-		filtered_indices = handle_filter(gradio.props.choices, input_text);
+		filtered_indices = handle_filter(choices, input_text);
 		active_index = filtered_indices.length > 0 ? filtered_indices[0] : null;
 		[show_options, active_index] = handle_shared_keys(
 			e,
@@ -115,18 +139,18 @@
 		if (e.key === "Enter") {
 			if (active_index !== null) {
 				selected_index = active_index;
-				gradio.props.value = choices_values[active_index];
+				value = choices_values[active_index];
 				show_options = false;
 				filter_input.blur();
 				active_index = null;
 			} else if (choices_names.includes(input_text)) {
 				selected_index = choices_names.indexOf(input_text);
-				gradio.props.value = choices_values[selected_index];
+				value = choices_values[selected_index];
 				show_options = false;
 				active_index = null;
 				filter_input.blur();
-			} else if (gradio.props.allow_custom_value) {
-				gradio.props.value = input_text;
+			} else if (allow_custom_value) {
+				value = input_text;
 				selected_index = null;
 				show_options = false;
 				active_index = null;
@@ -135,19 +159,20 @@
 		}
 	}
 
-	let old_value = $state(gradio.props.value);
+	let old_value = $state(value);
 	$effect(() => {
-		if (old_value !== gradio.props.value) {
-			old_value = gradio.props.value;
-			gradio.dispatch("change");
+		if (old_value !== value) {
+			old_value = value;
+			on_change?.(value);
 		}
 	});
 </script>
 
-<div class:container={gradio.shared.container}>
-	<BlockTitle show_label={gradio.shared.show_label} info={gradio.props.info}
-		>{label}</BlockTitle
-	>
+<div class:container>
+	{#if show_label && buttons && buttons.length > 0}
+		<IconButtonWrapper {buttons} {on_custom_button_click} />
+	{/if}
+	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	<div class="wrap">
 		<div class="wrap-inner" class:show_options>
@@ -159,21 +184,21 @@
 					aria-label={label}
 					class="border-none"
 					class:subdued={!choices_names.includes(input_text) &&
-						!gradio.props.allow_custom_value}
+						!allow_custom_value}
 					autocomplete="off"
 					{disabled}
 					bind:value={input_text}
 					bind:this={filter_input}
 					on:keydown={handle_key_down}
 					on:keyup={(e) => {
-						gradio.dispatch("key_up", {
+						on_key_up?.({
 							key: e.key,
 							input_value: input_text
 						});
 					}}
 					on:blur={handle_blur}
 					on:focus={handle_focus}
-					readonly={!gradio.props.filterable}
+					readonly={!filterable}
 				/>
 				{#if !disabled}
 					<div class="icon-wrap">
@@ -184,7 +209,7 @@
 		</div>
 		<DropdownOptions
 			{show_options}
-			choices={gradio.props.choices}
+			{choices}
 			{filtered_indices}
 			{disabled}
 			selected_indices={selected_index === null ? [] : [selected_index]}

@@ -1,5 +1,6 @@
 import type { FileData } from "@gradio/client";
 import type { LoadingStatus } from "@gradio/statustracker";
+import type { CustomButton } from "@gradio/utils";
 import type { WebcamOptions } from "./shared/utils";
 
 export interface VideoProps {
@@ -7,7 +8,7 @@ export interface VideoProps {
 	height: number | undefined;
 	width: number | undefined;
 	autoplay: boolean;
-	buttons: ("share" | "download" | "fullscreen")[];
+	buttons: ("share" | "download" | "fullscreen" | CustomButton)[];
 	sources:
 		| ["webcam"]
 		| ["upload"]
@@ -18,6 +19,7 @@ export interface VideoProps {
 	loop: boolean;
 	webcam_constraints: object;
 	subtitles: FileData | null;
+	playback_position: number;
 }
 
 export interface VideoEvents {
@@ -34,4 +36,5 @@ export interface VideoEvents {
 	share: any;
 	error: any;
 	warning: any;
+	custom_button_click: { id: number };
 }

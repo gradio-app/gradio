@@ -1,5 +1,15 @@
 # @gradio/audio
 
+## 0.21.0
+
+### Features
+
+- [#12504](https://github.com/gradio-app/gradio/pull/12504) [`4476400`](https://github.com/gradio-app/gradio/commit/44764009dfebecf894298efe80366e42578ea65d) - Add `playback_position` to gr.Audio and gr.Video, which can be updated and read.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/button@0.6.0
+
 ## 0.20.0
 
 ### Dependency updates

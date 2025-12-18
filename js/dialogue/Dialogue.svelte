@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from "svelte";
 	import { BlockTitle, IconButton, IconButtonWrapper } from "@gradio/atoms";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 	import { Copy, Check, Send, Plus, Trash } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import { BaseDropdown, BaseDropdownOptions } from "@gradio/dropdown";
@@ -39,6 +40,9 @@
 	});
 
 	let buttons = $derived(gradio.props.buttons || ["copy"]);
+	let on_custom_button_click = (id: number) => {
+		gradio.dispatch("custom_button_click", { id });
+	};
 
 	let old_value = $state(gradio.props.value);
 
@@ -402,13 +406,15 @@
 <svelte:window on:click={handle_click_outside} />
 
 <label class:container={gradio.shared.container}>
-	{#if gradio.shared.show_label && buttons.includes("copy")}
-		<IconButtonWrapper>
-			<IconButton
-				Icon={copied ? Check : Copy}
-				on:click={handle_copy}
-				label={copied ? "Copied" : "Copy"}
-			/>
+	{#if gradio.shared.show_label && (buttons.some((btn) => typeof btn === "string" && btn === "copy") || buttons.some((btn) => typeof btn !== "string"))}
+		<IconButtonWrapper {buttons} {on_custom_button_click}>
+			{#if buttons.some((btn) => typeof btn === "string" && btn === "copy")}
+				<IconButton
+					Icon={copied ? Check : Copy}
+					on:click={handle_copy}
+					label={copied ? "Copied" : "Copy"}
+				/>
+			{/if}
 		</IconButtonWrapper>
 	{/if}
 
@@ -482,22 +488,14 @@
 								readonly
 							/>
 						{:else}
-							{@const dd_props = new Gradio({
-								shared_props: {
-									container: true,
-									show_label: false,
-									interactive: true,
-									label: ""
-								},
-								props: {
-									value: line.speaker,
-									choices: gradio.props.speakers.map((s) => [s, s])
-								}
-							})}
 							<BaseDropdown
-								on_change={() =>
-									update_line(i, "speaker", dd_props.props.value as string)}
-								gradio={dd_props}
+								label=""
+								show_label={false}
+								container={true}
+								interactive={true}
+								value={line.speaker}
+								choices={gradio.props.speakers.map((s) => [s, s])}
+								on_change={(val) => update_line(i, "speaker", val as string)}
 							/>
 						{/if}
 					</div>
