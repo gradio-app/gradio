@@ -1,65 +1,44 @@
 <script lang="ts">
-	import type { I18nFormatter } from "@gradio/utils";
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, onMount } from "svelte";
+	import HTML from "../shared/HTML.svelte";
 
+	// Props passed directly by Chatbot
 	export let value: string = "";
-	export let label: string | undefined = undefined;
-	export let show_label = false;
-	export let show_share_button = false;
 	export let elem_classes: string[] = [];
-	export let visible = true;
-	export let i18n: I18nFormatter | undefined = undefined;
-	export let gradio: { dispatch: () => void } | undefined = undefined;
+	export let html_template: string = "${value}";
+	export let css_template: string = "";
+	export let js_on_load: string | null = null;
+	export let visible: boolean = true;
+	export let autoscroll: boolean = false;
+	export let apply_default_css: boolean = true;
+	export let component_class_name: string = "HTML";
+
+	// Props Chatbot passes that we accept but don't use
+	export let show_label: boolean = false;
+	export let show_share_button: boolean = false;
+	export let i18n: any = undefined;
+	export let gradio: any = undefined;
 
 	const dispatch = createEventDispatcher<{ load: undefined }>();
 
-	$: if (value !== undefined) {
+	onMount(() => {
 		dispatch("load");
-	}
+	});
+
+	// Build the props object that shared/HTML.svelte expects
+	$: htmlProps = { value };
 </script>
 
-{#if visible}
-	<div
-		class="prose gradio-html {elem_classes.join(' ')}"
-		class:hide={!visible}
-	>
-		{@html value}
-	</div>
-{/if}
-
-<style>
-	.hide {
-		display: none;
-	}
-
-	.gradio-html {
-		word-break: break-word;
-	}
-
-	.gradio-html :global(h1) {
-		font-size: var(--text-xxl);
-		font-weight: 600;
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.gradio-html :global(h2) {
-		font-size: var(--text-xl);
-		font-weight: 600;
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.gradio-html :global(h3) {
-		font-size: var(--text-lg);
-		font-weight: 600;
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.gradio-html :global(p) {
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.gradio-html :global(a) {
-		color: var(--color-text-link);
-		text-decoration: underline;
-	}
-</style>
+<HTML
+	props={htmlProps}
+	{elem_classes}
+	{html_template}
+	{css_template}
+	{js_on_load}
+	{visible}
+	{autoscroll}
+	{apply_default_css}
+	{component_class_name}
+	on:event
+	on:update_value
+/>
