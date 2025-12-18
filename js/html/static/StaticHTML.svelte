@@ -12,7 +12,6 @@
 	export let apply_default_css: boolean = true;
 	export let component_class_name: string = "HTML";
 
-	// Props Chatbot passes that we accept but don't use
 	export let show_label: boolean = false;
 	export let show_share_button: boolean = false;
 	export let i18n: any = undefined;
