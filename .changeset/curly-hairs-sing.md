@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Two fixed for gr.HTML
+feat:Two bugs for gr.HTML
