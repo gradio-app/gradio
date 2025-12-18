@@ -2,7 +2,6 @@
 	import { createEventDispatcher, onMount } from "svelte";
 	import HTML from "../shared/HTML.svelte";
 
-	// Props passed directly by Chatbot
 	export let value: string = "";
 	export let elem_classes: string[] = [];
 	export let html_template: string = "${value}";
@@ -25,7 +24,6 @@
 		dispatch("load");
 	});
 
-	// Build the props object that shared/HTML.svelte expects
 	$: htmlProps = { value };
 </script>
 
