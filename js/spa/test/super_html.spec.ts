@@ -31,14 +31,24 @@ test("test HTML components", async ({ page }) => {
 	await expect(page.locator("#vegetables")).toContainText("Carrot");
 
 	await page.getByRole("button", { name: "Make Ordered" }).click();
-	const fruitsOrderedHtml = await page.locator("#fruits").innerHTML();
-	const vegetablesOrderedHtml = await page.locator("#vegetables").innerHTML();
-	expect(fruitsOrderedHtml).toContain("<ol>");
-	expect(vegetablesOrderedHtml).toContain("<ol>");
+	await expect(async () => {
+		const fruitsOrderedHtml = await page.locator("#fruits").innerHTML();
+		expect(fruitsOrderedHtml).toContain("<ol>");
+	}).toPass();
+	await expect(async () => {
+		const vegetablesOrderedHtml = await page.locator("#vegetables").innerHTML();
+		expect(vegetablesOrderedHtml).toContain("<ol>");
+	}).toPass();
 
 	await page.getByRole("button", { name: "Make Unordered" }).click();
-	const fruitsUnorderedHtml = await page.locator("#fruits").innerHTML();
-	const vegetablesUnorderedHtml = await page.locator("#vegetables").innerHTML();
-	expect(fruitsUnorderedHtml).toContain("<ul>");
-	expect(vegetablesUnorderedHtml).toContain("<ul>");
+	await expect(async () => {
+		const fruitsUnorderedHtml = await page.locator("#fruits").innerHTML();
+		expect(fruitsUnorderedHtml).toContain("<ul>");
+	}).toPass();
+	await expect(async () => {
+		const vegetablesUnorderedHtml = await page
+			.locator("#vegetables")
+			.innerHTML();
+		expect(vegetablesUnorderedHtml).toContain("<ul>");
+	}).toPass();
 });
