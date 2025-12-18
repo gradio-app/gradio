@@ -3,6 +3,7 @@ import { join, dirname } from "path";
 
 const config: StorybookConfig = {
 	stories: [
+		"./stories/**/*.stories.@(js|ts|svelte)",
 		"../js/!(dataframe-interim|_*|core)/*.stories.@(js|ts|svelte)",
 		"../js/core/src/*.stories.@(js|ts|svelte)"
 	],
