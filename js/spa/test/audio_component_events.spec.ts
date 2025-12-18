@@ -21,7 +21,7 @@ test("Audio events are dispatched correctly. File downloading works and file has
 	await expect(page.getByLabel("# Input Upload Events")).toHaveValue("2");
 
 	const downloadPromise = page.waitForEvent("download");
-	await page.getByLabel("Download").click();
+	await page.getByLabel("Download").nth(1).click();
 	const download = await downloadPromise;
 	await expect(download.suggestedFilename()).toBe("audio_sample.wav");
 });

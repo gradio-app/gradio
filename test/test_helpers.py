@@ -574,6 +574,7 @@ class TestProcessExamples:
                 "type": "text",
                 "stop_btn": False,
                 "submit_btn": False,
+                "buttons": [],
             }
         ]
 
@@ -595,6 +596,7 @@ class TestProcessExamples:
                 "type": "text",
                 "stop_btn": False,
                 "submit_btn": False,
+                "buttons": [],
             }
         ]
 

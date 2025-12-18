@@ -280,13 +280,31 @@ class Block:
                 value = getattr(self, parameter.name)
                 if dataclasses.is_dataclass(value):
                     value = dataclasses.asdict(value)  # type: ignore
+                elif isinstance(value, Block):
+                    block_instance = value
+                    value = block_instance.get_config()
+                    value["id"] = block_instance._id
+                elif isinstance(value, (list, tuple)):
+                    serialized_list = []
+                    for item in value:
+                        if isinstance(item, Block):
+                            item_config = item.get_config()
+                            item_config["id"] = item._id
+                            serialized_list.append(item_config)
+                        else:
+                            serialized_list.append(item)
+                    value = serialized_list
                 config[parameter.name] = value
         for e in self.events:
             to_add = e.config_data()
             if to_add:
                 config = {**to_add, **config}
         config.pop("render", None)
-        config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_class()}
+        config = {
+            **config,
+            "proxy_url": getattr(self, "proxy_url", None),
+            "name": self.get_block_class(),
+        }
         for event_attribute in ["_selectable", "_undoable", "_retryable", "likeable"]:
             if (attributable := getattr(self, event_attribute, None)) is not None:
                 config[event_attribute] = attributable
@@ -2540,10 +2558,6 @@ Received inputs:
         """
         from gradio.routes import App
 
-        if self._is_running_in_reload_thread:
-            # We have already launched the demo
-            return None, None, None  # type: ignore
-
         theme = theme if theme is not None else self._deprecated_theme
         css = css if css is not None else self._deprecated_css
         css_paths = css_paths if css_paths is not None else self._deprecated_css_paths
@@ -2560,6 +2574,10 @@ Received inputs:
         self.head = head
         self.head_paths = head_paths
         self._set_html_css_theme_variables()
+
+        if self._is_running_in_reload_thread:
+            # We have already launched the demo
+            return None, None, None  # type: ignore
 
         if not self.exited:
             self.__exit__()

@@ -13,6 +13,7 @@ import json
 import math
 import mimetypes
 import os
+import platform
 import secrets
 import sys
 import time
@@ -101,6 +102,7 @@ from gradio.route_utils import (  # noqa: F401
     GradioMultiPartParser,
     GradioUploadFile,
     MultiPartException,
+    NodeProxyCache,
     Request,
     compare_passwords_securely,
     create_lifespan_handler,
@@ -280,6 +282,7 @@ class App(FastAPI):
     # We're not overriding any defaults here
 
     client = httpx.AsyncClient()
+    proxy_cache = NodeProxyCache(client)
 
     @staticmethod
     async def proxy_to_node(
@@ -304,23 +307,23 @@ class App(FastAPI):
         if mounted_path:
             server_url += mounted_path
 
-        headers = dict(request.headers)
+        headers = {}  # Do not include arbitrary headers from original request so NodeProxyCache can be effective
         headers["x-gradio-server"] = server_url
         headers["x-gradio-port"] = str(python_port)
 
         if os.getenv("GRADIO_LOCAL_DEV_MODE"):
             headers["x-gradio-local-dev-mode"] = "1"
 
-        new_request = App.client.build_request(
-            request.method, httpx.URL(url), headers=headers
-        )
-        node_response = await App.client.send(new_request, stream=True)
+        if (accept_language := request.headers.get("accept-language")) is not None:
+            headers["accept-language"] = accept_language
+
+        proxy_req = App.proxy_cache.ProxyReq(request.method, url, headers)
+        status, response_headers, aiter_raw = await App.proxy_cache.get(proxy_req)
 
         return StreamingResponse(
-            node_response.aiter_raw(),
-            status_code=node_response.status_code,
-            headers=node_response.headers,
-            background=BackgroundTask(node_response.aclose),
+            aiter_raw,
+            status_code=status,
+            headers=response_headers,
         )
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
@@ -1464,7 +1467,7 @@ class App(FastAPI):
                             )
 
                         heartbeat_rate = 15
-                        check_rate = 0.001
+                        check_rate = 0.05 if platform.system() == "Windows" else 0.001
                         message = None
                         try:
                             messages = blocks._queue.pending_messages_per_session[

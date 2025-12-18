@@ -9,7 +9,7 @@
 	import { Gradio } from "@gradio/utils";
 	import Multiselect from "./shared/Multiselect.svelte";
 	import Dropdown from "./shared/Dropdown.svelte";
-	import { Block } from "@gradio/atoms";
+	import { Block, IconButtonWrapper } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { DropdownProps, DropdownEvents } from "./types.ts";
 
@@ -46,6 +46,10 @@
 			container={gradio.shared.container}
 			allow_custom_value={gradio.props.allow_custom_value}
 			filterable={gradio.props.filterable}
+			buttons={gradio.props.buttons}
+			on_custom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
 			on_change={() => gradio.dispatch("change")}
 			on_input={() => gradio.dispatch("input")}
 			on_select={(data) => gradio.dispatch("select", data)}
