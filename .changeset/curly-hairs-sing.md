@@ -1,5 +1,6 @@
 ---
+"@gradio/html": minor
 "gradio": minor
 ---
 
-feat:Fix custom gr.HTML updates
+feat:Two fixed for gr.HTML
