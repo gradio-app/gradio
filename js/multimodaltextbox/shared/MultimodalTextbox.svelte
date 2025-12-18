@@ -438,7 +438,7 @@
 			class="input-wrapper"
 			class:has-files={value.files.length > 0 || uploading}
 		>
-			{#if value.files.length > 0 || uploading || show_upload}
+			{#if value.files.length > 0 || uploading}
 				<div
 					class="thumbnails"
 					aria-label="Uploaded files"
@@ -496,6 +496,17 @@
 			{/if}
 
 			<div class="input-row">
+				{#if show_upload && value.files.length === 0 && !uploading}
+					<button
+						data-testid="upload-button"
+						class="upload-button icon-button"
+						{disabled}
+						on:click={handle_upload_click}
+						aria-label="Upload a file"
+					>
+						<Paperclip />
+					</button>
+				{/if}
 				<textarea
 					data-testid="textbox"
 					use:text_area_resize={{
@@ -758,7 +769,8 @@
 		transform: scaleX(-1);
 	}
 
-	.microphone-button {
+	.microphone-button,
+	.icon-button {
 		color: var(--body-text-color);
 		cursor: pointer;
 		padding: var(--spacing-sm);
@@ -796,21 +808,25 @@
 		height: var(--size-5);
 	}
 
-	.microphone-button {
+	.microphone-button,
+	.icon-button {
 		width: var(--size-9);
 		height: var(--size-9);
 	}
 
-	.microphone-button:hover:not(:disabled) {
+	.microphone-button:hover:not(:disabled),
+	.icon-button:hover:not(:disabled) {
 		background: var(--button-secondary-background-fill);
 	}
 
-	.microphone-button:disabled {
+	.microphone-button:disabled,
+	.icon-button:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
 	}
 
-	.microphone-button :global(svg) {
+	.microphone-button :global(svg),
+	.icon-button :global(svg) {
 		width: var(--size-5);
 		height: var(--size-5);
 	}
