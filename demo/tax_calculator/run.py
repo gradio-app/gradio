@@ -24,7 +24,7 @@ demo = gr.Interface(
         gr.Radio(["Single", "Married", "Divorced"]),
         gr.Dataframe(
             headers=["Item", "Cost", "Deductible"],
-            datatype=["str", "number", "bool"],
+            datatype=["str", "number", "bool"],  # type: ignore
             label="Assets Purchased this Year",
         ),
     ],

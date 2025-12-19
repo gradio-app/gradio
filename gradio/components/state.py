@@ -92,7 +92,7 @@ class State(Component):
     def skip_api(self):
         return True
 
-    def get_config(self):
+    def get_config(self):  # type: ignore[override]
         config = super().get_config()
         del config["value"]
         return config
