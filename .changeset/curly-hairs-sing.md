@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fix custom gr.HTML updates
+fix:Fix custom gr.HTML updates
