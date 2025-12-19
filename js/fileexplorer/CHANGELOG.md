@@ -1,5 +1,22 @@
 # @gradio/fileexplorer
 
+## 0.6.0
+
+### Features
+
+- [#12539](https://github.com/gradio-app/gradio/pull/12539) [`f1d83fa`](https://github.com/gradio-app/gradio/commit/f1d83fac3d6e4bad60cf896a026fa2d572f26073) - Add ability to add custom buttons to components.  Thanks @abidlabs!
+- [#12537](https://github.com/gradio-app/gradio/pull/12537) [`f753b0c`](https://github.com/gradio-app/gradio/commit/f753b0c97400068b7c0aa306e5d03fb500eec5fb) - Add `.select()` and `.input()` events to `gr.FileExplorer`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/checkbox@0.6.0
+- @gradio/utils@0.11.0
+- @gradio/client@2.0.1
+- @gradio/statustracker@0.12.1
+- @gradio/upload@0.17.3
+- @gradio/file@0.14.0
+
 ## 0.5.42
 
 ### Dependency updates
