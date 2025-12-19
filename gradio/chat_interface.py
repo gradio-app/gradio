@@ -446,12 +446,15 @@ class ChatInterface(Blocks):
         and truncating it to 40 characters. If files are present, add a 📎 to the title.
         """
         title = ""
+        found = False
         for message in conversation:
+            if found:
+                break
             if message["role"] == "user":
                 for content in message["content"]:
                     if content["type"] == "text":
                         title += content["text"]  # type: ignore
-                        break
+                        found = True
                     else:
                         title += "📎 "
         if len(title) > 40:
