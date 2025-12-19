@@ -1,5 +1,22 @@
 # @gradio/html
 
+## 0.9.0
+
+### Features
+
+- [#12539](https://github.com/gradio-app/gradio/pull/12539) [`f1d83fa`](https://github.com/gradio-app/gradio/commit/f1d83fac3d6e4bad60cf896a026fa2d572f26073) - Add ability to add custom buttons to components.  Thanks @abidlabs!
+
+### Fixes
+
+- [#12599](https://github.com/gradio-app/gradio/pull/12599) [`184c596`](https://github.com/gradio-app/gradio/commit/184c596bc12dcb6cfdd05e98539fc6aee123db1d) - Two bugs for gr.HTML.  Thanks @aliabid94!
+- [#12584](https://github.com/gradio-app/gradio/pull/12584) [`cf27938`](https://github.com/gradio-app/gradio/commit/cf2793856a989ba51d1d1bdde5d8c80fb37b61c7) - Fix issue with HTML status shading even when `"show_progress='hidden'"`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/utils@0.11.0
+- @gradio/statustracker@0.12.1
+
 ## 0.8.1
 
 ### Fixes

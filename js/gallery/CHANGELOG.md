@@ -1,5 +1,26 @@
 # @gradio/gallery
 
+## 0.16.0
+
+### Features
+
+- [#12539](https://github.com/gradio-app/gradio/pull/12539) [`f1d83fa`](https://github.com/gradio-app/gradio/commit/f1d83fac3d6e4bad60cf896a026fa2d572f26073) - Add ability to add custom buttons to components.  Thanks @abidlabs!
+
+### Fixes
+
+- [#12577](https://github.com/gradio-app/gradio/pull/12577) [`b4c00d2`](https://github.com/gradio-app/gradio/commit/b4c00d2f531d38e2677ea76cfeb412a7bd3bb1a3) - Fix Gallery preview_close event not firing on ESC key.  Thanks @majiayu000!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/utils@0.11.0
+- @gradio/client@2.0.1
+- @gradio/statustracker@0.12.1
+- @gradio/upload@0.17.3
+- @gradio/file@0.14.0
+- @gradio/image@0.25.0
+- @gradio/video@0.19.0
+
 ## 0.15.36
 
 ### Dependency updates

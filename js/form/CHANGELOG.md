@@ -1,5 +1,12 @@
 # @gradio/form
 
+## 0.2.28
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/utils@0.11.0
+
 ## 0.2.27
 
 ### Fixes

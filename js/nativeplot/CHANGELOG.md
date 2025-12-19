@@ -1,5 +1,13 @@
 # @gradio/nativeplot
 
+## 0.9.2
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/utils@0.11.0
+- @gradio/statustracker@0.12.1
+
 ## 0.9.1
 
 ### Fixes

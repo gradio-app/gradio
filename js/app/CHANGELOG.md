@@ -2,6 +2,13 @@
 
 ## 2.0.2
 
+### Dependency updates
+
+- @gradio/client@2.0.1
+- @gradio/core@1.1.0
+
+## 2.0.2
+
 ### Fixes
 
 - [#12508](https://github.com/gradio-app/gradio/pull/12508) [`0715279`](https://github.com/gradio-app/gradio/commit/0715279005cbd6fea3c8081996aa5afddbd27e34) - Fix custom `js` param.  Thanks @dawoodkhan82!
