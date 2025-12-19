@@ -113,7 +113,14 @@ export class Dependency {
 		if (this.functions.backend) {
 			return {
 				type: "submit",
-				data: client.submit(this.id, _data_payload, event_data, target_id)
+				data: client.submit(
+					this.id,
+					_data_payload,
+					event_data,
+					target_id,
+					undefined,
+					{ "x-gradio-user": "app" }
+				)
 			};
 		} else if (this.functions.frontend) {
 			return { type: "data", data: _data_payload };

@@ -368,3 +368,34 @@ async def test_mcp_streamable_http_client_with_stateful_app(stateful_mcp_app):
                 )
     finally:
         stateful_mcp_app.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.serial
+async def test_x_gradio_user_mcp_gets_set():
+    def fn(name: str, request: gr.Request) -> str:
+        return f"Hello, {name}! Your x-gradio-user is {request.headers.get('x-gradio-user', 'not provided')}"
+
+    app = gr.Interface(fn, "text", "text")
+    _, local_url, _ = app.launch(prevent_thread_lock=True, mcp_server=True)
+    mcp_url = f"{local_url}gradio_api/mcp/"
+
+    try:
+        async with streamablehttp_client(mcp_url) as (read_stream, write_stream, _):
+            async with ClientSession(read_stream, write_stream) as session:
+                await session.initialize()
+
+                tools_response = await session.list_tools()
+                tool = tools_response.tools[0]
+
+                result = await session.call_tool(
+                    tool.name,
+                    arguments={"name": "Gradio"},
+                )
+                assert len(result.content) == 1  # type: ignore
+                assert (
+                    result.content[0].text  # type: ignore
+                    == "Hello, Gradio! Your x-gradio-user is mcp"
+                )
+    finally:
+        app.close()
