@@ -557,11 +557,15 @@ def postprocess_update_dict(
         update_dict: The original update dictionary
         postprocess: Whether to postprocess the "value" key of the update dictionary.
     """
+    from gradio.components import HTML
+
     value = update_dict.pop("value", components._Keywords.NO_VALUE)
 
     props = None
-    if hasattr(block, "props"):
-        props = {k: v for k, v in update_dict.items() if not hasattr(block, k)}
+    if isinstance(block, HTML):
+        sig = inspect.signature(HTML.__init__)
+        constructor_params = set(sig.parameters.keys())
+        props = {k: v for k, v in update_dict.items() if k not in constructor_params}
     update_dict = {k: getattr(block, k) for k in update_dict if hasattr(block, k)}
     if props:
         update_dict["props"] = props

@@ -130,23 +130,29 @@ with gr.Blocks() as demo:
     You can create your own Components by extending the gr.HTML class.
     """)
     class ListComponent(gr.HTML):
-        def __init__(self, container=True, label="List", **kwargs):
+        def __init__(self, container=True, label="List", ordered=False, **kwargs):
+            self.ordered = ordered
             super().__init__(
                 html_template="""
                 <h2>${label}</h2>
-                <ul>
+                ${ordered ? `<ol>` : `<ul>`}
                     ${value.map(item => `<li>${item}</li>`).join('')}
-                </ul>
+                ${ordered ? `</ol>` : `</ul>`}
                 """,
                 container=container,
                 label=label,
+                ordered=ordered,
                 **kwargs
             )
 
-    ListComponent(label="Fruits", value=["Apple", "Banana", "Cherry"], elem_id="fruits")
-    ListComponent(label="Vegetables", value=["Carrot", "Broccoli", "Spinach"], elem_id="vegetables")
+    l1 = ListComponent(label="Fruits", value=["Apple", "Banana", "Cherry"], elem_id="fruits")
+    l2 = ListComponent(label="Vegetables", value=["Carrot", "Broccoli", "Spinach"], elem_id="vegetables")
 
+    make_ordered_btn = gr.Button("Make Ordered")
+    make_unordered_btn = gr.Button("Make Unordered")
 
+    make_ordered_btn.click(lambda: [ListComponent(ordered=True), ListComponent(ordered=True)], outputs=[l1, l2])
+    make_unordered_btn.click(lambda: [ListComponent(ordered=False), ListComponent(ordered=False)], outputs=[l1, l2])
 
 if __name__ == "__main__":
     demo.launch()
