@@ -229,6 +229,7 @@ class GradioMCPServer:
                 analytics_enabled=False,
                 ssl_verify=False,
                 _skip_components=False,
+                headers={"x-gradio-user": "mcp"},
             )
         return self._client_instance
 
@@ -275,6 +276,7 @@ class GradioMCPServer:
             )
         request_headers = dict(context_request.headers.items())
         request_headers.pop("content-length", None)
+        request_headers.pop("x-gradio-user", None)
 
         return endpoint_name, processed_args, request_headers, block_fn
 
