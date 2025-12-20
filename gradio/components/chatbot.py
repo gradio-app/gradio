@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import inspect
+import html
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -493,7 +494,8 @@ class Chatbot(Component):
         | TextMessageDict,
     ) -> Union[TextMessage, FileMessage, ComponentMessage, None]:
         if isinstance(chat_message, str):
-            return TextMessage(text=inspect.cleandoc(chat_message))
+            sanitized_html = html.escape(inspect.cleandoc(chat_message))
+            return TextMessage(text=sanitized_html)
         elif isinstance(chat_message, (FileMessage, ComponentMessage)):
             return chat_message
         elif isinstance(chat_message, FileData):
@@ -521,7 +523,11 @@ class Chatbot(Component):
                 alt_text=chat_message.get("alt_text"),
             )
         elif isinstance(chat_message, dict) and chat_message.get("type") == "text":
-            return TextMessage(**chat_message)  # type: ignore
+            escaped_dict = {
+            "text": html.escape(inspect.cleandoc(chat_message["text"])),
+            "type": "text"
+            }
+            return TextMessage(**escaped_dict)  # type: ignore
         elif isinstance(chat_message, dict) and chat_message.get("type") == "component":
             return ComponentMessage(**chat_message)  # type: ignore
         elif isinstance(chat_message, dict) and chat_message.get("type") == "file":
