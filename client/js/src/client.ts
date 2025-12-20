@@ -113,9 +113,11 @@ export class Client {
 			headers.append("Cookie", this.cookies);
 		}
 		if (this && this.options.headers) {
-			for (const name in this.options.headers) {
-				headers.append(name, this.options.headers[name]);
-			}
+			let additional_headers = new Headers(this.options.headers);
+
+			additional_headers.forEach((value, name) => {
+				headers.append(name, value);
+			});
 		}
 
 		return fetch(input, { ...init, headers });
@@ -127,9 +129,11 @@ export class Client {
 			headers.append("Cookie", this.cookies);
 		}
 		if (this && this.options.headers) {
-			for (const name in this.options.headers) {
-				headers.append(name, this.options.headers[name]);
-			}
+			let additional_headers = new Headers(this.options.headers);
+
+			additional_headers.forEach((value, name) => {
+				headers.append(name, value);
+			});
 		}
 		if (this && this.options.token) {
 			headers.append("Authorization", `Bearer ${this.options.token}`);

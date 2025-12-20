@@ -288,6 +288,7 @@ class App(FastAPI):
     @staticmethod
     async def proxy_to_node(
         request: fastapi.Request,
+        app: App,
         server_name: str,
         node_port: int,
         python_port: int,
@@ -300,6 +301,12 @@ class App(FastAPI):
         if request.url.query:
             full_path += f"?{request.url.query}"
 
+        root_path = route_utils.get_root_url(
+            request=request,
+            route_path=request.url.path,
+            root_path=app.root_path,
+        )
+
         url = f"{scheme}://{server_name}:{node_port}{full_path}"
 
         server_url = f"{scheme}://{server_name}"
@@ -311,6 +318,8 @@ class App(FastAPI):
         headers = {}  # Do not include arbitrary headers from original request so NodeProxyCache can be effective
         headers["x-gradio-server"] = server_url
         headers["x-gradio-port"] = str(python_port)
+        headers["x-gradio-mounted-path"] = mounted_path
+        headers["x-gradio-original-url"] = str(root_path)
 
         if os.getenv("GRADIO_LOCAL_DEV_MODE"):
             headers["x-gradio-local-dev-mode"] = "1"
@@ -451,6 +460,9 @@ class App(FastAPI):
             async def conditional_routing_middleware(
                 request: fastapi.Request, call_next
             ):
+                # log request details for debugging
+                blocks = app.get_blocks()
+
                 custom_mount_path = blocks.custom_mount_path
                 path = (
                     request.url.path.replace(blocks.custom_mount_path or "", "")
@@ -471,6 +483,7 @@ class App(FastAPI):
                     try:
                         return await App.proxy_to_node(
                             request,
+                            app,
                             blocks.node_server_name or "0.0.0.0",
                             blocks.node_port,
                             App.app_port,
