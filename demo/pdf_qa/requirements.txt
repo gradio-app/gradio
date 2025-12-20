@@ -1,0 +1,3 @@
+pypdf
+sentence-transformers
+faiss-cpu
