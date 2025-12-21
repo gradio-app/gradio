@@ -408,26 +408,28 @@
 		width: 100%;
 	}
 
-	input,
+	input[type="text"],
+	input[type="password"],
+	input[type="email"],
 	textarea {
-		flex-grow: 1;
-		outline: none !important;
-		margin-top: 0px;
-		margin-bottom: 0px;
-		resize: none;
-		z-index: 1;
-		display: block;
-		position: relative;
-		outline: none !important;
-		background: var(--input-background-fill);
-		padding: var(--input-padding);
-		width: 100%;
-		color: var(--body-text-color);
-		font-weight: var(--input-text-weight);
-		font-size: var(--input-text-size);
-		line-height: var(--line-sm);
-		border: none;
-	}
+	flex-grow: 1;
+	outline: none !important;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	resize: none;
+	z-index: 1;
+	display: block;
+	position: relative;
+	outline: none !important;
+	background: var(--input-background-fill);
+	padding: var(--input-padding);
+	width: 100%;
+	color: var(--body-text-color);
+	font-weight: var(--input-text-weight);
+	font-size: var(--input-text-size);
+	line-height: var(--line-sm);
+	border: none;
+}
 
 	textarea.no-label {
 		padding-top: 5px;
