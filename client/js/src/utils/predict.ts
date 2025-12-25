@@ -1,11 +1,11 @@
 import { Client } from "../client";
 import type { Dependency, PredictReturn } from "../types";
 
-export async function predict(
+export async function predict<T = unknown>(
 	this: Client,
 	endpoint: string | number,
 	data: unknown[] | Record<string, unknown> = {}
-): Promise<PredictReturn> {
+): Promise<PredictReturn<T>> {
 	let data_returned = false;
 	let status_complete = false;
 	let dependency: Dependency;
@@ -30,7 +30,7 @@ export async function predict(
 		for await (const message of app) {
 			if (message.type === "data") {
 				if (status_complete) {
-					resolve(result as PredictReturn);
+					resolve(result as PredictReturn<T>);
 				}
 				data_returned = true;
 				result = message;
@@ -42,7 +42,7 @@ export async function predict(
 					status_complete = true;
 					// if complete message comes after data, resolve here
 					if (data_returned) {
-						resolve(result as PredictReturn);
+						resolve(result as PredictReturn<T>);
 					}
 				}
 			}
