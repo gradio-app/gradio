@@ -1,5 +1,15 @@
 <script lang="ts">
-	let { visible, scale, min_width } = $props();
+	let {
+		visible,
+		scale,
+		min_width,
+		label = undefined
+	}: {
+		visible: boolean | "hidden";
+		scale: number | null;
+		min_width: number;
+		label?: string;
+	} = $props();
 </script>
 
 <div
@@ -8,6 +18,8 @@
 	class:hidden-css={visible === "hidden"}
 	style:flex-grow={scale}
 	style:min-width={`calc(min(${min_width}px, 100%))`}
+	role="group"
+	aria-label={label}
 >
 	<slot />
 </div>

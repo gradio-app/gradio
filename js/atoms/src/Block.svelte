@@ -21,6 +21,7 @@
 	export let resizable = false;
 	export let rtl = false;
 	export let fullscreen = false;
+	export let label: string | undefined = undefined;
 	let old_fullscreen = fullscreen;
 
 	let element: HTMLElement;
@@ -129,6 +130,8 @@
 		style:border-width="var(--block-border-width)"
 		class:auto-margin={scale === null}
 		dir={rtl ? "rtl" : "ltr"}
+		role={type === "fieldset" ? "group" : undefined}
+		aria-label={label}
 	>
 		<slot />
 		{#if resizable}
