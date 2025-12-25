@@ -14,23 +14,27 @@ When you create a Gradio application, the API endpoint names are automatically g
 btn.click(add, [num1, num2], output, api_name="addition")
 ```
 
-**Hiding API endpoints**
+**API visibility**
 
-When building a complex Gradio app, you might want to hide certain API endpoints from appearing on the view API page, e.g. if they correspond to functions that simply update the UI. You can set the  `show_api` parameter to `False` in any `Blocks` event listener to achieve this, e.g. 
+When building a complex Gradio app, you might want to control which API endpoints appear on the view API page and how they can be accessed. You can use the `api_visibility` parameter in any `Blocks` event listener with three possible values:
 
-```python
-btn.click(add, [num1, num2], output, show_api=False)
-```
+- `"public"` (default): The endpoint appears in the API documentation and can be called by clients, MCP, and `gr.load()`.
+- `"undocumented"`: The endpoint is hidden from the API documentation but can still be called via `gr.load()`.
+- `"private"`: The endpoint is completely hidden and disabled - it won't appear in docs and cannot be called externally.
 
-**Disabling API endpoints**
-
-Hiding the API endpoint doesn't disable it. A user can still programmatically call the API endpoint if they know the name. If you want to disable an API endpoint altogether, set `api_name=False`, e.g. 
+For example, to hide an endpoint from the API documentation while still allowing it to be accessed programmatically:
 
 ```python
-btn.click(add, [num1, num2], output, api_name=False)
+btn.click(add, [num1, num2], output, api_visibility="undocumented")
 ```
 
-Note: setting an `api_name=False` also means that downstream apps will not be able to load your Gradio app using `gr.load()` as this function uses the Gradio API under the hood.
+To completely disable an API endpoint:
+
+```python
+btn.click(add, [num1, num2], output, api_visibility="private")
+```
+
+Note: setting `api_visibility="private"` means that downstream apps will not be able to load your Gradio app using `gr.load()` as this function uses the Gradio API under the hood. You can also achieve this by setting `api_name=False`.
 
 **Adding API endpoints**
 
@@ -69,7 +73,7 @@ print(result)
 
 ## The Clients
 
-This API page not only lists all of the endpoints that can be used to query the Gradio app, but also shows the usage of both [the Gradio Python client](https://gradio.app/guides/getting-started-with-the-python-client/), and [the Gradio JavaScript client](https://gradio.app/guides/getting-started-with-the-js-client/). 
+This API page not only lists all of the endpoints that can be used to query the Gradio app, but also shows the usage of both [the Gradio Python client](https://gradio.app/guides/getting-started-with-the-python-client/), and [the Gradio JavaScript client](https://gradio.app/guides/getting-started-with-the-js-client/).
 
 For each endpoint, Gradio automatically generates a complete code snippet with the parameters and their types, as well as example inputs, allowing you to immediately test an endpoint. Here's an example showing an image file input and `str` output:
 
@@ -84,7 +88,7 @@ Instead of reading through the view API page, you can also use Gradio's built-in
 
 ## MCP Server
 
-The API page also includes instructions on how to use the Gradio app as an Model Context Protocol (MCP) server, which is a standardized way to expose functions as tools so that they can be used by LLMs. 
+The API page also includes instructions on how to use the Gradio app as an Model Context Protocol (MCP) server, which is a standardized way to expose functions as tools so that they can be used by LLMs.
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/view-api-mcp.png)
 
