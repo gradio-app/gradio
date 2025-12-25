@@ -45,3 +45,38 @@ class TestState:
         assert result["prediction"] == 1
         result = await demo.call_function(0, [result["prediction"]])
         assert result["prediction"] == 2
+
+    @pytest.mark.asyncio
+    async def test_update_with_gr_update(self):
+        """Test that gr.update(value=...) works with gr.State components."""
+        with gr.Blocks() as demo:
+            state = gr.State(value=False)
+            btn = gr.Button()
+            # First function sets state to True using gr.update
+            btn.click(lambda: gr.update(value=True), None, state)
+            # Second function returns the current state value
+            btn2 = gr.Button()
+            btn2.click(lambda x: x, state, state)
+
+        # Call first function to set state to True
+        result = await demo.call_function(0, [])
+        # The prediction is the raw return value (gr.update dict)
+        assert result["prediction"] == {"__type__": "update", "value": True}
+
+        # Call second function to verify state was actually updated
+        result = await demo.call_function(1, [True])  # Pass True as current state
+        assert result["prediction"] is True
+
+    @pytest.mark.asyncio
+    async def test_update_with_gr_update_complex_value(self):
+        """Test that gr.update(value=...) works with complex values."""
+        with gr.Blocks() as demo:
+            state = gr.State(value={"count": 0})
+            btn = gr.Button()
+            btn.click(
+                lambda x: gr.update(value={"count": x["count"] + 1}), state, state
+            )
+
+        result = await demo.call_function(0, [{"count": 5}])
+        # The prediction is the raw return value (gr.update dict)
+        assert result["prediction"] == {"__type__": "update", "value": {"count": 6}}

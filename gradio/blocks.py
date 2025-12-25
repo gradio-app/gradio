@@ -1883,8 +1883,13 @@ Received inputs:
                 ) from err
 
             if block.stateful:
-                if not utils.is_prop_update(predictions[i]):
-                    state[block._id] = predictions[i]
+                prediction_value = predictions[i]
+                if utils.is_prop_update(prediction_value):
+                    # Support gr.update(value=...) for State components
+                    if "value" in prediction_value:
+                        state[block._id] = prediction_value["value"]
+                else:
+                    state[block._id] = prediction_value
                 output.append(None)
             else:
                 prediction_value = predictions[i]
