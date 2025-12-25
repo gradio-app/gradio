@@ -663,7 +663,7 @@ export function submit(
 			return new Promise((resolve) => resolvers.push(resolve));
 		}
 
-		const iterator = {
+		const iterator: SubmitIterable<GradioEvent> = {
 			[Symbol.asyncIterator]: () => iterator,
 			next,
 			throw: async (value: unknown) => {
