@@ -445,17 +445,21 @@
 </svelte:head>
 
 <div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
-	<div
+	<main
 		class="contain"
 		style:flex-grow={app_mode ? "1" : "auto"}
 		bind:this={root_container}
 		style:margin-right={vibe_mode ? `${vibe_editor_width}px` : "0"}
+		aria-label={title || "Gradio app"}
 	>
 		<MountComponents node={app_tree.root} />
-	</div>
+	</main>
 
 	{#if footer_links.length > 0}
-		<footer bind:clientHeight={footer_height}>
+		<footer
+			bind:clientHeight={footer_height}
+			aria-label="Gradio footer navigation"
+		>
 			{#if footer_links.includes("api")}
 				<button
 					on:click={() => {
@@ -537,7 +541,12 @@
 	{/if}
 
 	{#if api_docs_visible && app_tree.root && ApiDocs}
-		<div class="api-docs">
+		<div
+			class="api-docs"
+			role="dialog"
+			aria-modal="true"
+			aria-label={$reactive_formatter("errors.use_via_api")}
+		>
 			<!-- TODO: fix -->
 			<!-- svelte-ignore a11y-click-events-have-key-events-->
 			<!-- svelte-ignore a11y-no-static-element-interactions-->
@@ -547,7 +556,7 @@
 					set_api_docs_visible(false);
 				}}
 			/>
-			<div class="api-docs-wrap">
+			<div class="api-docs-wrap" role="document">
 				<svelte:component
 					this={ApiDocs}
 					root_node={app_tree.root}
@@ -570,7 +579,12 @@
 	{/if}
 
 	{#if settings_visible && app.config && app_tree.root && Settings}
-		<div class="api-docs">
+		<div
+			class="api-docs"
+			role="dialog"
+			aria-modal="true"
+			aria-label={$reactive_formatter("common.settings")}
+		>
 			<!-- TODO: fix -->
 			<!-- svelte-ignore a11y-click-events-have-key-events-->
 			<!-- svelte-ignore a11y-no-static-element-interactions-->
@@ -580,7 +594,7 @@
 					set_settings_visible(false);
 				}}
 			/>
-			<div class="api-docs-wrap">
+			<div class="api-docs-wrap" role="document">
 				<svelte:component
 					this={Settings}
 					bind:allow_zoom
@@ -619,7 +633,7 @@
 		font-size: var(--body-text-size);
 	}
 
-	.contain {
+	main.contain {
 		display: flex;
 		flex-direction: column;
 	}
