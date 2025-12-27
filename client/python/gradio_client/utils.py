@@ -646,9 +646,10 @@ def download_tmp_copy_of_file(
 
 
 def get_mimetype(filename: str) -> str | None:
-    if filename.endswith(".vtt"):
+    filename_lower = filename.lower()
+    if filename_lower.endswith(".vtt"):
         return "text/vtt"
-    if filename.endswith(".webp"):
+    if filename_lower.endswith(".webp"):
         return "image/webp"
     mimetype = mimetypes.guess_type(filename)[0]
     if mimetype is not None:

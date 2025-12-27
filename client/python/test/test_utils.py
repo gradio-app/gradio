@@ -86,10 +86,31 @@ def test_decode_base64_to_file(media_data):
         ("C:\\Users\\user\\documents\\example.png", ["file"], True),
         ("/home/user/documents/example.pdf", [".json", "text", ".mp3"], False),
         ("https://example.com/avatar/xxxx.mp4", ["audio", ".png", ".jpg"], False),
+        # WebP support - case insensitive
+        ("/home/user/images/photo.webp", ["image"], True),
+        ("/home/user/images/photo.WEBP", ["image"], True),
+        ("/home/user/images/photo.WebP", ["image"], True),
+        ("C:\\Users\\user\\images\\photo.webp", ["image", "video"], True),
+        ("C:\\Users\\user\\images\\photo.WEBP", ["image", "video"], True),
     ],
 )
 def test_is_valid_file_type(path_or_url, file_types, expected_result):
     assert utils.is_valid_file(path_or_url, file_types) is expected_result
+
+
+@pytest.mark.parametrize(
+    "filename, expected_mimetype",
+    [
+        ("photo.webp", "image/webp"),
+        ("photo.WEBP", "image/webp"),
+        ("photo.WebP", "image/webp"),
+        ("video.vtt", "text/vtt"),
+        ("video.VTT", "text/vtt"),
+        ("image.png", "image/png"),
+    ],
+)
+def test_get_mimetype(filename, expected_mimetype):
+    assert utils.get_mimetype(filename) == expected_mimetype
 
 
 @pytest.mark.parametrize(
