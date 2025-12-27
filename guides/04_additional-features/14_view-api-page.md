@@ -14,23 +14,29 @@ When you create a Gradio application, the API endpoint names are automatically g
 btn.click(add, [num1, num2], output, api_name="addition")
 ```
 
-**Hiding API endpoints**
+**Controlling API endpoint visibility**
 
-When building a complex Gradio app, you might want to hide certain API endpoints from appearing on the view API page, e.g. if they correspond to functions that simply update the UI. You can set the  `show_api` parameter to `False` in any `Blocks` event listener to achieve this, e.g. 
+When building a complex Gradio app, you might want to control how API endpoints appear or behave. Use the `api_visibility` parameter in any `Blocks` event listener to control this:
+
+- `"public"` (default): The endpoint is shown in API docs and accessible to all
+- `"undocumented"`: The endpoint is hidden from API docs but still accessible to downstream apps
+- `"private"`: The endpoint is completely disabled and inaccessible
+
+To hide an API endpoint from the documentation while still allowing programmatic access:
 
 ```python
-btn.click(add, [num1, num2], output, show_api=False)
+btn.click(add, [num1, num2], output, api_visibility="undocumented")
 ```
 
 **Disabling API endpoints**
 
-Hiding the API endpoint doesn't disable it. A user can still programmatically call the API endpoint if they know the name. If you want to disable an API endpoint altogether, set `api_name=False`, e.g. 
+If you want to disable an API endpoint altogether so that no one can access it programmatically, set `api_visibility="private"`:
 
 ```python
-btn.click(add, [num1, num2], output, api_name=False)
+btn.click(add, [num1, num2], output, api_visibility="private")
 ```
 
-Note: setting an `api_name=False` also means that downstream apps will not be able to load your Gradio app using `gr.load()` as this function uses the Gradio API under the hood.
+Note: setting `api_visibility="private"` also means that downstream apps will not be able to load your Gradio app using `gr.load()` as this function uses the Gradio API under the hood.
 
 **Adding API endpoints**
 
