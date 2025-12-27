@@ -6,6 +6,7 @@
 	import { dequal } from "dequal";
 	import type Canvas3DGS from "./Canvas3DGS.svelte";
 	import type Canvas3D from "./Canvas3D.svelte";
+	import { isGaussianSplatPly } from "./utils";
 
 	export let value: FileData | null;
 	export let display_mode: "solid" | "point_cloud" | "wireframe" = "solid";
@@ -26,6 +27,7 @@
 	let current_settings = { camera_position, zoom_speed, pan_speed };
 
 	let use_3dgs = false;
+	let is_pointcloud_ply = false;
 	let Canvas3DGSComponent: typeof Canvas3DGS;
 	let Canvas3DComponent: typeof Canvas3D;
 	async function loadCanvas3D(): Promise<typeof Canvas3D> {
@@ -36,17 +38,41 @@
 		const module = await import("./Canvas3DGS.svelte");
 		return module.default;
 	}
-	$: if (value) {
-		use_3dgs = value.path.endsWith(".splat") || value.path.endsWith(".ply");
-		if (use_3dgs) {
+
+	async function determineRenderer(fileValue: FileData): Promise<void> {
+		const path = fileValue.path.toLowerCase();
+		if (path.endsWith(".splat")) {
+			use_3dgs = true;
+			is_pointcloud_ply = false;
 			loadCanvas3DGS().then((component) => {
 				Canvas3DGSComponent = component;
 			});
+		} else if (path.endsWith(".ply")) {
+			const isGaussianSplat = await isGaussianSplatPly(fileValue.url || "");
+			if (isGaussianSplat) {
+				use_3dgs = true;
+				is_pointcloud_ply = false;
+				loadCanvas3DGS().then((component) => {
+					Canvas3DGSComponent = component;
+				});
+			} else {
+				use_3dgs = false;
+				is_pointcloud_ply = true;
+				loadCanvas3D().then((component) => {
+					Canvas3DComponent = component;
+				});
+			}
 		} else {
+			use_3dgs = false;
+			is_pointcloud_ply = false;
 			loadCanvas3D().then((component) => {
 				Canvas3DComponent = component;
 			});
 		}
+	}
+
+	$: if (value) {
+		determineRenderer(value);
 	}
 
 	let canvas3d: Canvas3D | undefined;
@@ -64,6 +90,9 @@
 			current_settings = { camera_position, zoom_speed, pan_speed };
 		}
 	}
+
+	// For point cloud PLY files, force point_cloud display mode
+	$: effective_display_mode = is_pointcloud_ply ? "point_cloud" : display_mode;
 </script>
 
 <BlockLabel
@@ -104,7 +133,7 @@
 				this={Canvas3DComponent}
 				bind:this={canvas3d}
 				{value}
-				{display_mode}
+				display_mode={effective_display_mode}
 				{clear_color}
 				{camera_position}
 				{zoom_speed}

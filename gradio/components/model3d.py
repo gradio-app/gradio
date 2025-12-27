@@ -67,7 +67,7 @@ class Model3D(Component):
         """
         Parameters:
             value: path to (.obj, .glb, .stl, .gltf, .splat, or .ply) file to show in model3D viewer. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
-            display_mode: the display mode of the 3D model in the scene. Can be "solid" (which renders the model as a solid object), "point_cloud", or "wireframe". For .splat, or .ply files, this parameter is ignored, as those files can only be rendered as solid objects.
+            display_mode: the display mode of the 3D model in the scene. Can be "solid" (which renders the model as a solid object), "point_cloud", or "wireframe". For .splat files, this parameter is ignored. For .ply files, the format is auto-detected: Gaussian splat PLY files are rendered as splats, while regular point cloud PLY files are rendered using the Babylon.js engine with point_cloud mode enabled by default.
             clear_color: background color of scene, should be a tuple of 4 floats between 0 and 1 representing RGBA values.
             camera_position: initial camera position of scene, provided as a tuple of `(alpha, beta, radius)`. Each value is optional. If provided, `alpha` and `beta` should be in degrees reflecting the angular position along the longitudinal and latitudinal axes, respectively. Radius corresponds to the distance from the center of the object to the camera.
             zoom_speed: the speed of zooming in and out of the scene when the cursor wheel is rotated or when screen is pinched on a mobile device. Should be a positive float, increase this value to make zooming faster, decrease to make it slower. Affects the wheelPrecision property of the camera.
