@@ -21,6 +21,8 @@
 
 	onMount(() => {
 		const initViewer = async (): Promise<void> => {
+			// Import PLY loader to register it with Babylon.js
+			await import("@babylonjs/loaders/PLY");
 			BABYLON_VIEWER = await import("@babylonjs/viewer");
 			BABYLON_VIEWER.CreateViewerForCanvas(canvas, {
 				clearColor: clear_color,
@@ -57,6 +59,10 @@
 					.loadModel(url, {
 						pluginOptions: {
 							obj: {
+								importVertexColors: true
+							},
+							ply: {
+								// Enable vertex colors for point cloud PLY files
 								importVertexColors: true
 							}
 						}
