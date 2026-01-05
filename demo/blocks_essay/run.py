@@ -47,5 +47,23 @@ with gr.Blocks() as demo:
     )
     num.submit(lambda x: x, num, out)
 
+    with gr.Row():
+        with gr.Column(elem_id="test-column") as test_col:
+            gr.Textbox("Content inside column", label="Column Content")
+            gr.Markdown("This column should hide/show when button is clicked")
+        toggle_btn = gr.Button("Toggle Column Visibility", elem_id="toggle-col-btn")
+
+    col_visible = gr.State(True)
+
+    def toggle_column(visible):
+        new_visible = not visible
+        return gr.Column(visible=new_visible), new_visible
+
+    toggle_btn.click(
+        toggle_column,
+        inputs=col_visible,
+        outputs=[test_col, col_visible]
+    )
+
 if __name__ == "__main__":
     demo.launch()
