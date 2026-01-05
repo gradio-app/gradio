@@ -1,15 +1,15 @@
 import gradio as gr
 
-
-def greet(name):
-    return "Hello " + name + "!"
-
-
 with gr.Blocks() as demo:
-    name = gr.Textbox(label="Name")
-    output = gr.Textbox(label="Output Box")
-    greet_btn = gr.Button("Greet")
-    greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
+        with gr.Row():
+            with gr.Column() as col:
+                with gr.Row():
+                    text = gr.Textbox("Hello")
+            with gr.Column() as col2:
+                with gr.Row():
+                    gr.Textbox("Column 2")
+        btn = gr.Button("Click")
 
-if __name__ == "__main__":
-    demo.launch()
+        btn.click(lambda: gr.Column(visible=False), outputs=col)
+
+demo.launch(server_name="0.0.0.0")

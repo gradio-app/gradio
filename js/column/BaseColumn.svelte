@@ -5,18 +5,14 @@
 	let props = $props();
 	let el;
 
-	let scale: number | null = $state(props.scale || null);
-	let min_width = $state(props.min_width || 0);
-	let elem_id = $state(props.elem_id || "");
-	let elem_classes: string[] = $state(props.elem_classes || []);
-	let visible: boolean | "hidden" = $state(props.visible || true);
-	let variant: "default" | "panel" | "compact" = $state(
-		props.variant || "default"
-	);
-	let loading_status: LoadingStatus | undefined = $state(
-		props.loading_status || undefined
-	);
-	let show_progress = $state(props.show_progress || false);
+	let scale = $derived(props.scale ?? null);
+	let min_width = $derived(props.min_width ?? 0);
+	let elem_id = $derived(props.elem_id ?? "");
+	let elem_classes = $derived(props.elem_classes ?? []);
+	let visible = $derived(props.visible ?? true);
+	let variant = $derived(props.variant ?? "default");
+	let loading_status = $derived(props.loading_status);
+	let show_progress = $derived(props.show_progress ?? false);
 </script>
 
 <div
