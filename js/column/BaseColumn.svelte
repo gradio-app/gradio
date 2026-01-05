@@ -5,13 +5,17 @@
 	let props = $props();
 	let el;
 
-	let scale = $derived(props.scale ?? null);
-	let min_width = $derived(props.min_width ?? 0);
-	let elem_id = $derived(props.elem_id ?? "");
-	let elem_classes = $derived(props.elem_classes ?? []);
-	let visible = $derived(props.visible ?? true);
-	let variant = $derived(props.variant ?? "default");
-	let loading_status = $derived(props.loading_status);
+	let scale: number | null = $derived(props.scale ?? null);
+	let min_width: number = $derived(props.min_width ?? 0);
+	let elem_id: string = $derived(props.elem_id ?? "");
+	let elem_classes: string[] = $derived(props.elem_classes ?? []);
+	let visible: boolean | "hidden" = $derived(props.visible ?? true);
+	let variant: "default" | "panel" | "compact" = $derived(
+		props.variant ?? "default",
+	);
+	let loading_status: LoadingStatus | undefined = $derived(
+		props.loading_status,
+	);
 	let show_progress = $derived(props.show_progress ?? false);
 </script>
 
