@@ -18,7 +18,7 @@ with gr.Blocks() as demo:
     radio = gr.Radio(
         ["short", "long", "none"], label="What kind of essay would you like to write?"
     )
-    text = gr.Textbox(lines=2, interactive=True, buttons=["copy"])
+    text = gr.Textbox(lines=2, interactive=True, buttons=["copy"], elem_id="essay-textbox")
 
     with gr.Row():
         num = gr.Number(minimum=0, maximum=100, label="input")
