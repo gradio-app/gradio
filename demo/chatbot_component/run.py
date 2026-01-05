@@ -1,7 +1,7 @@
 import gradio as gr
 
 with gr.Blocks() as demo:
-    gr.Chatbot(value=[
+    gr.Chatbot(value=[  # type: ignore
         {"role": "user", "content": "Hello World"},
         {"role": "assistant", "content": "Hey Gradio!"},
         {"role": "user", "content": "❤️"},

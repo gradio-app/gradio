@@ -4,6 +4,7 @@
 	import { Empty, IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import JSONNode from "./JSONNode.svelte";
 	import { Copy, Check } from "@gradio/icons";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 
 	export let value: any = {};
 	export let open = false;
@@ -12,6 +13,8 @@
 	export let label_height: number;
 	export let interactive = true;
 	export let show_copy_button = true;
+	export let buttons: (string | CustomButtonType)[] | null = null;
+	export let on_custom_button_click: ((id: number) => void) | null = null;
 
 	$: json_max_height = `calc(100% - ${label_height}px)`;
 
@@ -48,14 +51,16 @@
 </script>
 
 {#if value && value !== '""' && !is_empty(value)}
-	{#if show_copy_button}
-		<IconButtonWrapper>
-			<IconButton
-				show_label={false}
-				label={copied ? "Copied" : "Copy"}
-				Icon={copied ? Check : Copy}
-				on:click={() => handle_copy()}
-			/>
+	{#if show_copy_button || (buttons && buttons.some((btn) => typeof btn !== "string"))}
+		<IconButtonWrapper {buttons} {on_custom_button_click}>
+			{#if show_copy_button}
+				<IconButton
+					show_label={false}
+					label={copied ? "Copied" : "Copy"}
+					Icon={copied ? Check : Copy}
+					on:click={() => handle_copy()}
+				/>
+			{/if}
 		</IconButtonWrapper>
 	{/if}
 	<div class="json-holder" style:max-height={json_max_height}>

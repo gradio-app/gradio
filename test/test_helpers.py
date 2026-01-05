@@ -339,7 +339,7 @@ class TestProcessExamples:
             prediction = io.examples_handler.load_from_cache(0)
         assert prediction == [
             {"lines": 4, "__type__": "update", "interactive": False},
-            gr.Label.data_model(**{"label": "lion", "confidences": None}),
+            gr.Label.data_model(**{"label": "lion", "confidences": None}),  # type: ignore
         ]
 
     def test_caching_with_generators(self, patched_cache_folder, connect):
@@ -574,6 +574,7 @@ class TestProcessExamples:
                 "type": "text",
                 "stop_btn": False,
                 "submit_btn": False,
+                "buttons": [],
             }
         ]
 
@@ -595,6 +596,7 @@ class TestProcessExamples:
                 "type": "text",
                 "stop_btn": False,
                 "submit_btn": False,
+                "buttons": [],
             }
         ]
 

@@ -1,5 +1,12 @@
 # gradio_client
 
+## 2.0.2
+
+### Fixes
+
+- [#12585](https://github.com/gradio-app/gradio/pull/12585) [`1724a02`](https://github.com/gradio-app/gradio/commit/1724a02f37118af098cd9f51472955bf8ef8d794) - Remove checkmark from windows.  Thanks @freddyaboulton!
+- [#12600](https://github.com/gradio-app/gradio/pull/12600) [`1fafaba`](https://github.com/gradio-app/gradio/commit/1fafabaace315b1c699855cadb69eb17488de957) - Add x-gradio-user-header.  Thanks @freddyaboulton!
+
 ## 2.0.1
 
 ### Fixes

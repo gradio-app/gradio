@@ -101,6 +101,9 @@
 		on:focus={() => gradio.dispatch("focus")}
 		on:stop={() => gradio.dispatch("stop")}
 		on:copy={(e) => gradio.dispatch("copy", e.detail)}
+		on_custom_button_click={(id) => {
+			gradio.dispatch("custom_button_click", { id });
+		}}
 		disabled={!gradio.shared.interactive}
 	/>
 </Block>

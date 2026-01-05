@@ -119,6 +119,9 @@
 			selectable={gradio.props._selectable}
 			i18n={gradio.i18n}
 			buttons={gradio.props.buttons}
+			on_custom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
 		/>
 	</Block>
 {:else}
@@ -162,7 +165,9 @@
 			{fullscreen}
 			show_fullscreen_button={gradio.props.buttons === null
 				? true
-				: gradio.props.buttons.includes("fullscreen")}
+				: gradio.props.buttons.some(
+						(btn) => typeof btn === "string" && btn === "fullscreen"
+					)}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => {
 				fullscreen = false;

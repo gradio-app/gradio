@@ -1198,9 +1198,6 @@ importers:
       '@gradio/client':
         specifier: workspace:^
         version: link:../../client/js
-      '@gradio/dataframe-interim':
-        specifier: workspace:^
-        version: link:../dataframe-interim
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
@@ -1232,6 +1229,9 @@ importers:
         specifier: '>=5.0.0'
         version: 5.43.6
     devDependencies:
+      '@gradio/dataframe-interim':
+        specifier: workspace:^
+        version: link:../dataframe-interim
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview

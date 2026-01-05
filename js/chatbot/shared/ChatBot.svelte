@@ -24,6 +24,7 @@
 
 	import { Trash, Community, ScrollDownArrow } from "@gradio/icons";
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { ExampleMessage } from "../types";
 	import type { FileData, Client } from "@gradio/client";
@@ -76,6 +77,8 @@
 	export let show_copy_all_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
+	export let buttons: (string | CustomButtonType)[] | null = null;
+	export let on_custom_button_click: ((id: number) => void) | null = null;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 	export let sanitize_html = true;
 	export let render_markdown = true;
@@ -243,7 +246,7 @@
 </script>
 
 {#if value !== null && value.length > 0}
-	<IconButtonWrapper>
+	<IconButtonWrapper {buttons} {on_custom_button_click}>
 		{#if show_share_button}
 			<IconButton
 				Icon={Community}

@@ -280,13 +280,31 @@ class Block:
                 value = getattr(self, parameter.name)
                 if dataclasses.is_dataclass(value):
                     value = dataclasses.asdict(value)  # type: ignore
+                elif isinstance(value, Block):
+                    block_instance = value
+                    value = block_instance.get_config()
+                    value["id"] = block_instance._id
+                elif isinstance(value, (list, tuple)):
+                    serialized_list = []
+                    for item in value:
+                        if isinstance(item, Block):
+                            item_config = item.get_config()
+                            item_config["id"] = item._id
+                            serialized_list.append(item_config)
+                        else:
+                            serialized_list.append(item)
+                    value = serialized_list
                 config[parameter.name] = value
         for e in self.events:
             to_add = e.config_data()
             if to_add:
                 config = {**to_add, **config}
         config.pop("render", None)
-        config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_class()}
+        config = {
+            **config,
+            "proxy_url": getattr(self, "proxy_url", None),
+            "name": self.get_block_class(),
+        }
         for event_attribute in ["_selectable", "_undoable", "_retryable", "likeable"]:
             if (attributable := getattr(self, event_attribute, None)) is not None:
                 config[event_attribute] = attributable
@@ -539,11 +557,15 @@ def postprocess_update_dict(
         update_dict: The original update dictionary
         postprocess: Whether to postprocess the "value" key of the update dictionary.
     """
+    from gradio.components import HTML
+
     value = update_dict.pop("value", components._Keywords.NO_VALUE)
 
     props = None
-    if hasattr(block, "props"):
-        props = {k: v for k, v in update_dict.items() if not hasattr(block, k)}
+    if isinstance(block, HTML):
+        sig = inspect.signature(HTML.__init__)
+        constructor_params = set(sig.parameters.keys())
+        props = {k: v for k, v in update_dict.items() if k not in constructor_params}
     update_dict = {k: getattr(block, k) for k in update_dict if hasattr(block, k)}
     if props:
         update_dict["props"] = props
@@ -783,8 +805,8 @@ class BlocksConfig:
 
         block_fn = BlockFunction(
             fn,
-            inputs,
-            outputs,
+            inputs,  # type: ignore
+            outputs,  # type: ignore
             preprocess,
             postprocess,
             _id=fn_id,
@@ -799,7 +821,7 @@ class BlocksConfig:
             api_description=api_description,
             js=js,
             show_progress=show_progress,
-            show_progress_on=show_progress_on
+            show_progress_on=show_progress_on  # type: ignore
             if isinstance(show_progress_on, (list, tuple)) or show_progress_on is None
             else [show_progress_on],
             cancels=cancels,
@@ -887,7 +909,7 @@ class BlocksConfig:
         for page_tuple in self.root_block.pages:
             page = page_tuple[0]
             if page not in config["page"]:
-                config["page"][page] = {
+                config["page"][page] = {  # type: ignore
                     "layout": {"id": self.root_block._id, "children": []},
                     "components": [],
                     "dependencies": [],
@@ -915,7 +937,7 @@ class BlocksConfig:
         for root_child in layout.get("children", []):
             if isinstance(root_child, dict) and root_child["id"] in self.blocks:
                 block = self.blocks[root_child["id"]]
-                config["page"][block.page]["layout"]["children"].append(root_child)
+                config["page"][block.page]["layout"]["children"].append(root_child)  # type: ignore
 
         blocks_items = list(
             self.blocks.items()
@@ -924,15 +946,15 @@ class BlocksConfig:
             block_config = self.config_for_block(_id, rendered_ids, block, renderable)
             if not block_config:
                 continue
-            config["components"].append(block_config)
-            config["page"][block.page]["components"].append(block._id)
+            config["components"].append(block_config)  # type: ignore
+            config["page"][block.page]["components"].append(block._id)  # type: ignore
 
         dependencies = []
         for fn in self.fns.values():
             if renderable is None or fn.rendered_in == renderable:
                 dependency_config = fn.get_config()
                 dependencies.append(dependency_config)
-                config["page"][fn.page]["dependencies"].append(dependency_config["id"])
+                config["page"][fn.page]["dependencies"].append(dependency_config["id"])  # type: ignore
 
         config["dependencies"] = dependencies
         return config
@@ -1127,7 +1149,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.css = None
         self.js = None
         self.head = None
-        self.theme = None
+        self.theme = None  # type: ignore
         self.head_paths = None
 
         if self.analytics_enabled:
@@ -2212,7 +2234,7 @@ Received inputs:
             else CapacityLimiter(total_tokens=self.max_threads)
         )
 
-    def get_config(self):
+    def get_config(self):  # type: ignore[override]
         return {"type": "column"}
 
     def get_config_file(self) -> BlocksConfigDict:
@@ -2239,7 +2261,7 @@ Received inputs:
             "stylesheets": getattr(self, "stylesheets", []),
             "theme": self.theme.name if self.theme is not None else None,
             "protocol": "sse_v3",
-            "body_css": {
+            "body_css": {  # type: ignore
                 "body_background_fill": self.theme._get_computed_value(
                     "body_background_fill"
                 ),
@@ -2255,9 +2277,9 @@ Received inputs:
             else None,
             "fill_height": self.fill_height,
             "fill_width": self.fill_width,
-            "theme_hash": getattr(self, "theme_hash", None),
+            "theme_hash": getattr(self, "theme_hash", None),  # type: ignore
             "pwa": self.pwa,
-            "pages": self.pages,
+            "pages": self.pages,  # type: ignore
             "page": {},
             "mcp_server": self.mcp_server,
             "i18n_translations": (
@@ -2282,7 +2304,7 @@ Received inputs:
             print("* Trying to transpile functions from Python -> JS for performance\n")
         for index, fn in enumerate(fns_to_transpile):
             if not quiet:
-                print(f"* ({index + 1}/{num_to_transpile}) {fn.__name__}: ", end="")
+                print(f"* ({index + 1}/{num_to_transpile}) {fn.__name__}: ", end="")  # type: ignore
             if getattr(fn, "__js_implementation__", None) is None:  # type: ignore
                 try:
                     fn.__js_implementation__ = transpile(fn, validate=True)  # type: ignore
@@ -2540,10 +2562,6 @@ Received inputs:
         """
         from gradio.routes import App
 
-        if self._is_running_in_reload_thread:
-            # We have already launched the demo
-            return None, None, None  # type: ignore
-
         theme = theme if theme is not None else self._deprecated_theme
         css = css if css is not None else self._deprecated_css
         css_paths = css_paths if css_paths is not None else self._deprecated_css_paths
@@ -2560,6 +2578,10 @@ Received inputs:
         self.head = head
         self.head_paths = head_paths
         self._set_html_css_theme_variables()
+
+        if self._is_running_in_reload_thread:
+            # We have already launched the demo
+            return None, None, None  # type: ignore
 
         if not self.exited:
             self.__exit__()
@@ -2579,11 +2601,11 @@ Received inputs:
             self.auth = auth
 
         if self.auth and not callable(self.auth):
-            if any(not authenticable[0] for authenticable in self.auth):
+            if any(not authenticable[0] for authenticable in self.auth):  # type: ignore
                 warnings.warn(
                     "You have provided an empty username in `auth`. Please provide a valid username."
                 )
-            if any(not authenticable[1] for authenticable in self.auth):
+            if any(not authenticable[1] for authenticable in self.auth):  # type: ignore
                 warnings.warn(
                     "You have provided an empty password in `auth`. Please provide a valid password."
                 )

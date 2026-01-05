@@ -9,6 +9,7 @@
 		FullscreenButton,
 		DownloadLink
 	} from "@gradio/atoms";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 	import { Image, Download, Undo, Clear } from "@gradio/icons";
 	import { type FileData } from "@gradio/client";
 	import type { I18nFormatter } from "@gradio/utils";
@@ -28,6 +29,8 @@
 	export let slider_color: string;
 	export let show_fullscreen_button = true;
 	export let fullscreen = false;
+	export let buttons: (string | CustomButtonType)[] | null = null;
+	export let on_custom_button_click: ((id: number) => void) | null = null;
 	export let el_width = 0;
 	export let max_height: number;
 	export let interactive = true;
@@ -133,7 +136,7 @@
 	<Empty unpadded_box={true} size="large"><Image /></Empty>
 {:else}
 	<div class="image-container" bind:this={image_container}>
-		<IconButtonWrapper>
+		<IconButtonWrapper {buttons} {on_custom_button_click}>
 			<IconButton
 				Icon={Undo}
 				label={i18n("common.undo")}

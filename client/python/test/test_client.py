@@ -1229,3 +1229,16 @@ def test_httpx_kwargs(increment_demo):
             with pytest.raises(Exception):
                 client.predict(1, api_name="/increment_with_queue")
             assert mock_post.call_args.kwargs["timeout"] == 5
+
+
+def test_x_gradio_user_header():
+    def fn(name: str, request: gr.Request) -> str:
+        return f"Hello, {name}! Your x-gradio-user is {request.headers.get('x-gradio-user', 'not provided')}"
+
+    app = gr.Interface(fn, "text", "text")
+
+    with connect(app) as client:
+        res = client.submit(
+            "Gradio", headers={"x-gradio-user": "test-user"}, api_name="/fn"
+        ).result()
+        assert res == "Hello, Gradio! Your x-gradio-user is api"

@@ -1,9 +1,13 @@
 <script lang="ts">
 	import DropdownOptions from "./DropdownOptions.svelte";
-	import { BlockTitle } from "@gradio/atoms";
+	import { BlockTitle, IconButtonWrapper } from "@gradio/atoms";
 	import { DropdownArrow } from "@gradio/icons";
 	import { handle_filter, handle_shared_keys } from "./utils";
-	import type { SelectData, KeyUpData } from "@gradio/utils";
+	import {
+		type SelectData,
+		type KeyUpData,
+		type CustomButton as CustomButtonType
+	} from "@gradio/utils";
 	import { tick } from "svelte";
 
 	const is_browser = typeof window !== "undefined";
@@ -18,6 +22,8 @@
 		container = true,
 		allow_custom_value = false,
 		filterable = true,
+		buttons = null,
+		on_custom_button_click = null,
 		on_change,
 		on_input,
 		on_select,
@@ -34,6 +40,8 @@
 		container?: boolean;
 		allow_custom_value?: boolean;
 		filterable?: boolean;
+		buttons?: (string | CustomButtonType)[] | null;
+		on_custom_button_click?: ((id: number) => void) | null;
 		on_change?: (value: string | number | null) => void;
 		on_input?: () => void;
 		on_select?: (data: SelectData) => void;
@@ -71,6 +79,9 @@
 			return ["", null];
 		}
 	});
+	// Use last_typed_value to track when the user has typed
+	// on_blur we only want to update value if the user has typed
+	let last_typed_value = input_text;
 	let initialized = $state(false);
 	let disabled = $derived(!interactive);
 
@@ -88,6 +99,7 @@
 
 		let [_input_text, _value] = choices[selected_index];
 		input_text = _input_text;
+		last_typed_value = input_text;
 		value = _value;
 		on_select?.({
 			index: selected_index,
@@ -96,6 +108,7 @@
 		});
 		show_options = false;
 		active_index = null;
+		on_input?.();
 		filter_input.blur();
 	}
 
@@ -110,7 +123,13 @@
 			input_text =
 				choices_names[choices_values.indexOf(value as string | number)];
 		} else {
-			value = input_text;
+			if (choices_names.includes(input_text)) {
+				selected_index = choices_names.indexOf(input_text);
+				value = choices_values[selected_index];
+			} else if (input_text !== last_typed_value) {
+				value = input_text;
+				selected_index = null;
+			}
 		}
 		show_options = false;
 		active_index = null;
@@ -129,6 +148,7 @@
 			filtered_indices
 		);
 		if (e.key === "Enter") {
+			last_typed_value = input_text;
 			if (active_index !== null) {
 				selected_index = active_index;
 				value = choices_values[active_index];
@@ -161,6 +181,9 @@
 </script>
 
 <div class:container>
+	{#if show_label && buttons && buttons.length > 0}
+		<IconButtonWrapper {buttons} {on_custom_button_click} />
+	{/if}
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	<div class="wrap">

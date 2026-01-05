@@ -8,8 +8,10 @@ from typing import TYPE_CHECKING, Any, Literal
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
+from gradio.components.button import Button
 from gradio.events import all_events
 from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -67,6 +69,7 @@ class HTML(Component):
         container: bool = False,
         padding: bool = False,
         autoscroll: bool = False,
+        buttons: list[Button] | None = None,
         **props: Any,
     ):
         """
@@ -91,6 +94,7 @@ class HTML(Component):
             container: If True, the HTML component will be displayed in a container. Default is False.
             padding: If True, the HTML component will have a certain padding (set by the `--block-padding` CSS variable) in all directions. Default is False.
             autoscroll: If True, will automatically scroll to the bottom of the component when the content changes, unless the user has scrolled up. If False, will not scroll to the bottom when the content changes.
+            buttons: A list of gr.Button() instances to show in the top right corner of the component. Custom buttons will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button.
             props: Additional keyword arguments to pass into the HTML and CSS templates for rendering.
         """
         self.html_template = html_template
@@ -118,6 +122,7 @@ class HTML(Component):
             value=value,
             container=container,
         )
+        self.buttons = set_default_buttons(buttons, None)
 
     def example_payload(self) -> Any:
         return "<p>Hello</p>"
@@ -146,7 +151,7 @@ class HTML(Component):
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
 
-    def get_config(self) -> dict[str, Any]:
+    def get_config(self) -> dict[str, Any]:  # type: ignore[override]
         if type(self) is not HTML:
             config = {
                 **super().get_config(),
