@@ -83,11 +83,11 @@ export type SubmitFunction = (
 	additional_headers?: Record<string, string>
 ) => SubmitIterable<GradioEvent>;
 
-export type PredictFunction = (
+export type PredictFunction = <T = unknown>(
 	endpoint: string | number,
 	data?: unknown[] | Record<string, unknown>,
 	event_data?: unknown
-) => Promise<PredictReturn>;
+) => Promise<PredictReturn<T>>;
 
 export type client_return = {
 	config: Config | undefined;
@@ -102,7 +102,10 @@ export type client_return = {
 };
 
 export interface SubmitIterable<T> extends AsyncIterable<T> {
-	[Symbol.asyncIterator](): AsyncIterator<T>;
+	[Symbol.asyncIterator](): SubmitIterable<T>;
+	next: () => Promise<IteratorResult<T, unknown>>;
+	throw: (value: unknown) => Promise<IteratorResult<T, unknown>>;
+	return: () => Promise<IteratorReturnResult<undefined>>;
 	cancel: () => Promise<void>;
 	event_id: () => string;
 	send_chunk: (payload: Record<string, unknown>) => void;
@@ -110,10 +113,10 @@ export interface SubmitIterable<T> extends AsyncIterable<T> {
 	close_stream: () => void;
 }
 
-export type PredictReturn = {
+export type PredictReturn<T = unknown> = {
 	type: EventType;
 	time: Date;
-	data: unknown;
+	data: T;
 	endpoint: string;
 	fn_index: number;
 };
