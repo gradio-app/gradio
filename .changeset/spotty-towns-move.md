@@ -1,6 +1,6 @@
 ---
-"@gradio/core": minor
-"gradio": minor
+"@gradio/core": patch
+"gradio": patch
 ---
 
-feat:Fix bug where tabs don't work inside gr.render
+fix:Fix bug where tabs don't work inside gr.render
