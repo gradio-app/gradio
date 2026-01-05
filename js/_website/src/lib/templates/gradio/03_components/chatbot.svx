@@ -87,15 +87,9 @@ gradio.Chatbot(···)
 <!-- Behavior -->
 ### Behavior
 
-The data format accepted by the Chatbot is dictated by the `type` parameter.
-This parameter can take two values, `'tuples'` and `'messages'`. 
-The `'tuples'` type is deprecated and will be removed in a future version of Gradio.
+The Chatbot component accepts a list of messages, where each message is a dictionary with `role` and `content` keys. This format is compatible with the message format expected by most LLM APIs (OpenAI, Claude, HuggingChat, etc.), making it easy to pipe model outputs directly into the component.
 
-### Message format
-
-If the `type` is `'messages'`, then the data sent to/from the chatbot will be a list of dictionaries
-with `role` and `content` keys. This format is compliant with the format expected by most LLM APIs (HuggingChat, OpenAI, Claude).
-The `role` key is either `'user'` or `'assistant'` and the `content` key can be one of the following should be a  string (rendered as markdown/html) or a Gradio component (useful for displaying files).
+The `role` key should be either `'user'` or `'assistant'`, and the `content` key can be a string (rendered as markdown/HTML) or a Gradio component (useful for displaying files, images, plots, and other media).
 
 As an example:
 
@@ -144,9 +138,9 @@ demo.launch()
 
 ### Examples
 
-** Displaying Thoughts/Tool Usage **
+**Displaying Thoughts/Tool Usage**
 
-When `type` is `messages`, you can provide additional metadata regarding any tools used to generate the response.
+You can provide additional metadata regarding any tools used to generate the response.
 This is useful for displaying the thought process of LLM agents. For example,
 
 ```python
@@ -177,15 +171,18 @@ def generate_response(history):
 
 **Using Gradio Components Inside `gr.Chatbot`**
 
-The `Chatbot` component supports using many of the core Gradio components (such as `gr.Image`, `gr.Plot`, `gr.Audio`, and `gr.HTML`) inside of the chatbot. Simply include one of these components in your list of tuples. Here's an example:
+The `Chatbot` component supports using many of the core Gradio components (such as `gr.Image`, `gr.Plot`, `gr.Audio`, and `gr.HTML`) inside of the chatbot. Simply include one of these components as the `content` of a message. Here's an example:
 
 ```py
 import gradio as gr
 
 def load():
     return [
-        ("Here's an audio", gr.Audio("https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/audio/audio_sample.wav")),
-        ("Here's an video", gr.Video("https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/videos/world.mp4"))
+        {"role": "user", "content": "Can you show me some media?"},
+        {"role": "assistant", "content": "Here's an audio clip:"},
+        {"role": "assistant", "content": gr.Audio("https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/audio/audio_sample.wav")},
+        {"role": "assistant", "content": "And here's a video:"},
+        {"role": "assistant", "content": gr.Video("https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/videos/world.mp4")}
     ]
 
 with gr.Blocks() as demo:
