@@ -11,10 +11,10 @@
 	let elem_classes: string[] = $derived(props.elem_classes ?? []);
 	let visible: boolean | "hidden" = $derived(props.visible ?? true);
 	let variant: "default" | "panel" | "compact" = $derived(
-		props.variant ?? "default",
+		props.variant ?? "default"
 	);
 	let loading_status: LoadingStatus | undefined = $derived(
-		props.loading_status,
+		props.loading_status
 	);
 	let show_progress = $derived(props.show_progress ?? false);
 </script>
