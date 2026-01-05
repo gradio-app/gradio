@@ -1,6 +1,6 @@
 ---
-"@gradio/client": minor
-"gradio": minor
+"@gradio/client": patch
+"gradio": patch
 ---
 
-feat:feat(client): add generic type parameter to predict() method
+fix:feat(client): add generic type parameter to predict() method
