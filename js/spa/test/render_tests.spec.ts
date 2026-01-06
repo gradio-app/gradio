@@ -66,9 +66,9 @@ test("Test keyed event listeners in render", async ({ page }) => {
 	await expect(page.getByLabel("box-b")).toHaveValue("abc");
 });
 
-
 test("Test Tabs Rendered Correctly in gr.render", async ({ page }) => {
 	await page.getByRole("button", { name: "Render Tab" }).click();
-	await expect(page.getByLabel("Rendered Tab", { exact: true })).toHaveValue("This is a rendered tab");
-
+	await expect(page.getByLabel("Rendered Tab", { exact: true })).toHaveValue(
+		"This is a rendered tab"
+	);
 });
