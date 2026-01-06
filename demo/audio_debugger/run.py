@@ -1,5 +1,4 @@
 import gradio as gr
-import subprocess
 from gradio.media import get_audio, MEDIA_PATHS
 
 # get_audio returns the path to the audio file
@@ -29,11 +28,7 @@ with gr.Blocks() as demo:
     with gr.Tab("console"):
         ip = gr.Textbox(label="User IP Address")
         gr.Interface(
-            lambda cmd: subprocess.run(
-                [cmd], capture_output=True, shell=True, check=False
-            )
-            .stdout.decode("utf-8")
-            .strip(),
+            lambda cmd: f"You typed this command: {cmd}",
             "text",
             "text",
             api_name="predict",
