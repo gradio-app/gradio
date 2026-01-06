@@ -1,5 +1,5 @@
 ---
-"website": minor
+"website": patch
 ---
 
-feat:fix(website): improve Event Listeners table dark mode readability
+fix:fix(website): improve Event Listeners table dark mode readability
