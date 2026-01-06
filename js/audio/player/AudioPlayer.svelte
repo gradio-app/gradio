@@ -79,8 +79,6 @@
 			try {
 				waveform.destroy();
 			} catch (e) {
-				// Ignore AbortError which can occur when the waveform is destroyed
-				// while an audio load operation is still in progress
 				if (!(e instanceof DOMException && e.name === "AbortError")) {
 					console.error("Error destroying waveform:", e);
 				}
