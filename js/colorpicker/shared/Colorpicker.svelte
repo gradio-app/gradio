@@ -6,14 +6,22 @@
 	import { Eyedropper } from "@gradio/icons";
 	import { hsva_to_rgba, format_color } from "./utils";
 
-	export let value = "#000000";
-	export let label: string;
-	export let info: string | undefined = undefined;
-	export let disabled = false;
-	export let show_label = true;
+	let {
+		value = $bindable(),
+		label,
+		info,
+		disabled,
+		show_label
+	}: {
+		value: string;
+		label: string;
+		info?: string;
+		disabled: boolean;
+		show_label: boolean;
+	} = $props();
 
-	export let current_mode: "hex" | "rgb" | "hsl" = "hex";
-	export let dialog_open = false;
+	let dialog_open = $state(false);
+	let current_mode: "hex" | "rgb" | "hsl" = $state("hex");
 
 	let eyedropper_supported = false;
 
@@ -138,8 +146,7 @@
 		["HSL", "hsl"]
 	] as const;
 
-	$: color_string = format_color(value, current_mode);
-	$: color_string && dispatch("selected", color_string);
+	let color_string = $derived.by(() => format_color(value, current_mode));
 
 	onMount(async () => {
 		// @ts-ignore
@@ -150,7 +157,9 @@
 		dialog_open = false;
 	}
 
-	$: update_mouse_from_color(value);
+	$effect(() => {
+		update_mouse_from_color(value);
+	});
 
 	function handle_click(): void {
 		dispatch("selected", color_string);
@@ -224,7 +233,9 @@
 						<button
 							class="button"
 							class:active={current_mode === value}
-							on:click={() => (current_mode = value)}>{label}</button
+							on:click={() => {
+								current_mode = value;
+							}}>{label}</button
 						>
 					{/each}
 				</div>

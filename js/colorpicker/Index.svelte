@@ -6,7 +6,6 @@
 </script>
 
 <script lang="ts">
-	import { tick } from "svelte";
 	import { Gradio } from "@gradio/utils";
 	import Colorpicker from "./shared/Colorpicker.svelte";
 	import { Block } from "@gradio/atoms";
