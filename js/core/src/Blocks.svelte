@@ -66,7 +66,6 @@
 		search_params,
 		render_complete = false,
 		ready = $bindable(false),
-		reload_count = $bindable(0),
 		add_new_message = $bindable()
 	}: {
 		root: string;
@@ -94,7 +93,6 @@
 		search_params: URLSearchParams;
 		render_complete: boolean;
 		ready: boolean;
-		reload_count: number;
 		add_new_message: (title: string, message: string, type: string) => void;
 	} = $props();
 
@@ -162,17 +160,17 @@
 	}
 
 	let app_tree = new AppTree(
-		components,
-		layout,
-		dependencies,
-		{
+		() => components,
+		() => layout,
+		() => dependencies,
+		() => ({
 			root,
 			theme: theme_mode,
 			version,
 			api_prefix,
 			max_file_size,
 			autoscroll
-		},
+		}),
 		app,
 		$reactive_formatter,
 		gradio_event_dispatcher
@@ -217,17 +215,10 @@
 		add_to_api_calls
 	);
 
+	// When app_tree rebuilds (reload_count changes), reload the dependency manager
 	$effect(() => {
-		reload_count;
+		app_tree.reload_count;
 		untrack(() => {
-			app_tree.reload(components, layout, dependencies, {
-				root,
-				theme: theme_mode,
-				version,
-				api_prefix,
-				max_file_size,
-				autoscroll
-			});
 			dep_manager.reload(
 				dependencies,
 				app_tree.update_state.bind(app_tree),

@@ -1,0 +1,30 @@
+[
+	{
+		"demo": "chatbot_multimodal",
+		"timestamp": "2025-11-20T20:43:25.658Z",
+		"navigation": {
+			"dnsTime": 0,
+			"tcpTime": 0,
+			"requestTime": 22.19999998807907,
+			"responseTime": 0.10000002384185791,
+			"domProcessing": 72.80000001192093,
+			"totalLoadTime": 112.70000004768372
+		},
+		"coreWebVitals": {
+			"firstContentfulPaint": 176,
+			"largestContentfulPaint": 0,
+			"timeToInteractive": 39.90000003576279,
+			"totalBlockingTime": 0,
+			"cumulativeLayoutShift": 0
+		},
+		"memory": {
+			"usedJSHeapSize": 10000000,
+			"totalJSHeapSize": 13400000,
+			"jsHeapSizeLimit": 3760000000
+		},
+		"customMetrics": {
+			"timeToFirstComponent": -1763671403612.8,
+			"timeToAllComponentsVisible": 1022.6999999880791
+		}
+	}
+]

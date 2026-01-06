@@ -42,21 +42,27 @@ const type_map = {
 	walkthroughstep: "tabitem"
 };
 export class AppTree {
-	/** the raw component structure received from the backend */
-	#component_payload: ComponentMeta[];
-	/** the raw layout node structure received from the backend */
-	#layout_payload: LayoutNode;
-	/** the raw dependency structure received from the backend */
-	#dependency_payload: Dependency[];
+	/** Callback to get the raw component structure from the parent */
+	#get_components = $state<() => ComponentMeta[]>();
+	/** Callback to get the raw layout node structure from the parent */
+	#get_layout = $state<() => LayoutNode>();
+	/** Callback to get the raw dependency structure from the parent */
+	#get_dependencies = $state<() => Dependency[]>();
+	/** Callback to get the config from the parent */
+	#get_config = $state<() => Omit<AppConfig, "api_url">>();
 	/** Need this to set i18n in re-render */
 	reactive_formatter: (str: string) => string = (str: string) => str;
-	/** the config for the app */
-	#config: AppConfig;
+
 	client: client_return;
 
 	/** the root node of the processed layout tree */
 	root = $state<ProcessedComponentMeta>();
-	root_untracked: ProcessedComponentMeta;
+
+	/** Counter that increments on each reload - used to trigger DependencyManager updates */
+	reload_count = $state(0);
+
+	/** Derived value that triggers rebuild when callbacks' values change */
+	#derived_root = $derived.by(() => this.#build_root());
 
 	/** a set of all component IDs that are inputs to dependencies */
 	#input_ids: Set<number> = new Set();
@@ -69,7 +75,7 @@ export class AppTree {
 	#get_callbacks = new Map<number, get_data_type>();
 	#set_callbacks = new Map<number, set_data_type>();
 	#event_dispatcher: (id: number, event: string, data: unknown) => void;
-	component_ids: number[];
+	component_ids: number[] = [];
 	initial_tabs: Record<number, Tab[]> = {};
 
 	components_to_register: Set<number> = new Set();
@@ -77,12 +83,13 @@ export class AppTree {
 	ready_resolve!: () => void;
 	resolved: boolean = false;
 	#hidden_on_startup: Set<number> = new Set();
+	#initialized = false;
 
 	constructor(
-		components: ComponentMeta[],
-		layout: LayoutNode,
-		dependencies: Dependency[],
-		config: Omit<AppConfig, "api_url">,
+		get_components: () => ComponentMeta[],
+		get_layout: () => LayoutNode,
+		get_dependencies: () => Dependency[],
+		get_config: () => Omit<AppConfig, "api_url">,
 		app: client_return,
 		reactive_formatter: (str: string) => string,
 		event_dispatcher: (id: number, event: string, data: unknown) => void
@@ -91,95 +98,134 @@ export class AppTree {
 			this.ready_resolve = resolve;
 		});
 		this.reactive_formatter = reactive_formatter;
-		this.#config = {
-			...config,
-			api_url: new URL(config.api_prefix, config.root).toString()
-		};
-		this.#component_payload = components;
-		this.#layout_payload = layout;
-		this.#dependency_payload = dependencies;
-		this.root = this.create_node(
-			{ id: layout.id, children: [] },
-			new Map(),
-			true
-		);
-		for (const comp of components) {
-			if (comp.props.visible != false) this.components_to_register.add(comp.id);
-		}
-
+		this.#get_components = get_components;
+		this.#get_layout = get_layout;
+		this.#get_dependencies = get_dependencies;
+		this.#get_config = get_config;
 		this.client = app;
-
-		this.prepare();
-
-		const component_map = components.reduce((map, comp) => {
-			map.set(comp.id, comp);
-			return map;
-		}, new Map<number, ComponentMeta>());
-
-		this.root!.children = this.#layout_payload.children.map((node) =>
-			this.traverse(node, (node) => {
-				const new_node = this.create_node(
-					node,
-					component_map,
-					false,
-					this.reactive_formatter
-				);
-				return new_node;
-			})
-		);
-		this.component_ids = components.map((c) => c.id);
-		this.initial_tabs = {};
-		gather_initial_tabs(this.root!, this.initial_tabs);
-		this.postprocess(this.root!);
 		this.#event_dispatcher = event_dispatcher;
-		this.root_untracked = this.root;
+
+		// Initial build
+		this.root = this.#build_root();
+		this.#initialized = true;
+
+		// Set up effect to rebuild root when callbacks' values change
+		$effect(() => {
+			// Access the derived to track dependencies on the callbacks
+			const new_root = this.#derived_root;
+			if (this.#initialized && new_root) {
+				this.root = new_root;
+				this.reload_count++;
+			}
+		});
 	}
 
-	reload(
-		components: ComponentMeta[],
-		layout: LayoutNode,
-		dependencies: Dependency[],
-		config: Omit<AppConfig, "api_url">
-	) {
-		this.#layout_payload = layout;
-		this.#component_payload = components;
-		this.#config = {
+	/**
+	 * Builds the root node from the current callback values.
+	 * This is called by $derived to reactively rebuild when inputs change.
+	 */
+	#build_root(): ProcessedComponentMeta | undefined {
+		if (
+			!this.#get_components ||
+			!this.#get_layout ||
+			!this.#get_dependencies ||
+			!this.#get_config
+		) {
+			return undefined;
+		}
+
+		const components = this.#get_components();
+		const layout = this.#get_layout();
+		const dependencies = this.#get_dependencies();
+		const config = this.#get_config();
+
+		const full_config: AppConfig = {
 			...config,
 			api_url: new URL(config.api_prefix, config.root).toString()
 		};
-		this.#dependency_payload = dependencies;
 
-		this.root = this.create_node(
+		// Prepare input/output IDs from dependencies
+		const [inputs, outputs] = get_inputs_outputs(dependencies);
+		this.#input_ids = inputs;
+		this.#output_ids = outputs;
+
+		// Build root node
+		let root = this.create_node(
 			{ id: layout.id, children: [] },
 			new Map(),
-			true
+			true,
+			undefined,
+			full_config
 		);
+
+		// Track components to register
 		for (const comp of components) {
 			if (comp.props.visible != false) this.components_to_register.add(comp.id);
 		}
 
-		this.prepare();
-
+		// Build component map
 		const component_map = components.reduce((map, comp) => {
 			map.set(comp.id, comp);
 			return map;
 		}, new Map<number, ComponentMeta>());
 
-		this.root!.children = this.#layout_payload.children.map((node) =>
+		// Build children
+		root.children = layout.children.map((node) =>
 			this.traverse(node, (node) => {
 				const new_node = this.create_node(
 					node,
 					component_map,
 					false,
-					this.reactive_formatter
+					this.reactive_formatter,
+					full_config
 				);
 				return new_node;
 			})
 		);
+
 		this.component_ids = components.map((c) => c.id);
 		this.initial_tabs = {};
-		gather_initial_tabs(this.root!, this.initial_tabs);
-		this.postprocess(this.root!);
+		gather_initial_tabs(root, this.initial_tabs);
+
+		// Postprocess the tree
+		root = this.#postprocess_root(root, full_config);
+
+		return root;
+	}
+
+	/**
+	 * Postprocess helper that returns the processed tree instead of assigning to this.root
+	 */
+	#postprocess_root(
+		tree: ProcessedComponentMeta,
+		config: AppConfig
+	): ProcessedComponentMeta {
+		return this.traverse(tree, [
+			(node) => handle_visibility(node, config.api_url),
+			(node) =>
+				untrack_children_of_invisible_parents(
+					node,
+					this.components_to_register
+				),
+			(node) => handle_empty_forms(node, this.components_to_register),
+			(node) => translate_props(node),
+			(node) => apply_initial_tabs(node, this.initial_tabs),
+			(node) => this.find_attached_events(node, this.#get_dependencies!()),
+			(node) =>
+				untrack_children_of_closed_accordions_or_inactive_tabs(
+					node,
+					this.components_to_register,
+					this.#hidden_on_startup
+				)
+		]);
+	}
+
+	/**
+	 * Triggers a reload by incrementing the reload_count.
+	 * This can be used to signal to DependencyManager that it needs to update.
+	 */
+	trigger_reload(): void {
+		this.reload_count++;
 	}
 
 	/**
@@ -203,36 +249,14 @@ export class AppTree {
 	}
 
 	/**
-	 * Preprocess the payloads to get the correct state read to build the tree
+	 * Gets the current config with computed api_url
 	 */
-	prepare() {
-		const [inputs, outputs] = get_inputs_outputs(this.#dependency_payload);
-		this.#input_ids = inputs;
-		this.#output_ids = outputs;
-	}
-
-	/** Processes the layout payload into a tree of components */
-	process() {}
-
-	postprocess(tree: ProcessedComponentMeta) {
-		this.root = this.traverse(tree, [
-			(node) => handle_visibility(node, this.#config.api_url),
-			(node) =>
-				untrack_children_of_invisible_parents(
-					node,
-					this.components_to_register
-				),
-			(node) => handle_empty_forms(node, this.components_to_register),
-			(node) => translate_props(node),
-			(node) => apply_initial_tabs(node, this.initial_tabs),
-			(node) => this.find_attached_events(node, this.#dependency_payload),
-			(node) =>
-				untrack_children_of_closed_accordions_or_inactive_tabs(
-					node,
-					this.components_to_register,
-					this.#hidden_on_startup
-				)
-		]);
+	#get_current_config(): AppConfig {
+		const config = this.#get_config!();
+		return {
+			...config,
+			api_url: new URL(config.api_prefix, config.root).toString()
+		};
 	}
 
 	find_attached_events(
@@ -293,14 +317,18 @@ export class AppTree {
 	 * Creates a processed component node from a layout node
 	 * @param opts the layout node options
 	 * @param root whether this is the root node
+	 * @param config optional config - if not provided, will use current config from callback
 	 * @returns the processed component node
 	 */
 	create_node(
 		opts: LayoutNode,
 		component_map: Map<number, ComponentMeta>,
 		root = false,
-		reactive_formatter?: (str: string) => string
+		reactive_formatter?: (str: string) => string,
+		config?: AppConfig
 	): ProcessedComponentMeta {
+		const _config = config || this.#get_current_config();
+
 		let component: ComponentMeta | undefined;
 		if (!root) {
 			component = component_map.get(opts.id);
@@ -330,8 +358,8 @@ export class AppTree {
 			component.props,
 			[this.#input_ids, this.#output_ids],
 			this.client,
-			this.#config.api_url,
-			{ ...this.#config }
+			_config.api_url,
+			{ ..._config }
 		);
 
 		const type =
@@ -349,7 +377,7 @@ export class AppTree {
 					? get_component(
 							component.type,
 							component.component_class_id,
-							this.#config.api_url || ""
+							_config.api_url || ""
 						)
 					: null,
 			key: component.key,
@@ -414,13 +442,14 @@ export class AppTree {
 		const node = find_node_by_id(this.root!, id);
 		let already_updated_visibility = false;
 		if (check_visibility && !node?.component) {
+			const config = this.#get_current_config();
 			await tick();
 			this.root = this.traverse(this.root!, [
 				//@ts-ignore
 				(n) => set_visibility_for_updated_node(n, id, new_state.visible),
 				//@ts-ignore
 				(n) => update_parent_visibility(n, id, new_state.visible),
-				(n) => handle_visibility(n, this.#config.api_url)
+				(n) => handle_visibility(n, config.api_url)
 			]);
 			await tick();
 			already_updated_visibility = true;
@@ -474,6 +503,7 @@ export class AppTree {
 	}
 
 	async render_previously_invisible_children(id: number) {
+		const config = this.#get_current_config();
 		this.root = this.traverse(this.root!, [
 			(node) => {
 				if (node.id === id) {
@@ -481,7 +511,7 @@ export class AppTree {
 				}
 				return node;
 			},
-			(node) => handle_visibility(node, this.#config.api_url)
+			(node) => handle_visibility(node, config.api_url)
 		]);
 	}
 }
