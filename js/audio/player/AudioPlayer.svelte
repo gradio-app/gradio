@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, onDestroy } from "svelte";
 	import { Music } from "@gradio/icons";
 	import { format_time, type I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
@@ -74,6 +74,22 @@
 		old_playback_position = playback_position;
 	}
 
+	const destroy_waveform = (): void => {
+		if (waveform) {
+			try {
+				waveform.destroy();
+			} catch (e) {
+				// Ignore AbortError which can occur when the waveform is destroyed
+				// while an audio load operation is still in progress
+				if (!(e instanceof DOMException && e.name === "AbortError")) {
+					console.error("Error destroying waveform:", e);
+				}
+			}
+			waveform = undefined;
+			waveform_ready = false;
+		}
+	};
+
 	const create_waveform = (): void => {
 		waveform = WaveSurfer.create({
 			container: container,
@@ -89,7 +105,11 @@
 		}
 
 		if (value?.url && waveform) {
-			waveform.load(value?.url);
+			waveform.load(value?.url).catch((e: Error) => {
+				if (!(e instanceof DOMException && e.name === "AbortError")) {
+					console.error("Error loading audio:", e);
+				}
+			});
 		}
 
 		waveform?.on("decode", (duration: any) => {
@@ -145,7 +165,7 @@
 	};
 
 	$: if (use_waveform && container !== undefined && container !== null) {
-		if (waveform !== undefined) waveform.destroy();
+		destroy_waveform();
 		container.innerHTML = "";
 		create_waveform();
 		playing = false;
@@ -165,7 +185,7 @@
 				waveform_settings.sampleRate
 			).then(async (trimmedBlob: Uint8Array) => {
 				await dispatch_blob([trimmedBlob], "change");
-				waveform?.destroy();
+				destroy_waveform();
 				container.innerHTML = "";
 			});
 		dispatch("edit");
@@ -175,7 +195,11 @@
 		stream_active = false;
 
 		if (waveform_options.show_recording_waveform) {
-			waveform?.load(data);
+			waveform?.load(data).catch((e: Error) => {
+				if (!(e instanceof DOMException && e.name === "AbortError")) {
+					console.error("Error loading audio:", e);
+				}
+			});
 		} else if (audio_player) {
 			audio_player.src = data;
 		}
@@ -255,6 +279,10 @@
 				skip_audio(waveform, -0.1);
 			}
 		});
+	});
+
+	onDestroy(() => {
+		destroy_waveform();
 	});
 
 	async function add_subtitles_to_waveform(
