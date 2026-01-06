@@ -103,4 +103,11 @@
 	.event-table tbody td {
 		color: var(--body-text-color);
 	}
+
+	.event-table tbody td code {
+		color: var(--body-text-color);
+		background: var(--code-background-fill);
+		padding: 0.125rem 0.25rem;
+		border-radius: 0.25rem;
+	}
 </style>
