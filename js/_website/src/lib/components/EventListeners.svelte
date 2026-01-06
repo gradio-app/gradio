@@ -104,10 +104,31 @@
 		color: var(--body-text-color);
 	}
 
+	.event-table tbody td p {
+		color: var(--body-text-color);
+	}
+
 	.event-table tbody td code {
 		color: var(--body-text-color);
 		background: var(--code-background-fill);
 		padding: 0.125rem 0.25rem;
 		border-radius: 0.25rem;
+	}
+
+	/* Ensure inline code within descriptions is also readable */
+	.event-table tbody td :global(code) {
+		color: var(--body-text-color);
+		background: var(--code-background-fill);
+		padding: 0.125rem 0.25rem;
+		border-radius: 0.25rem;
+	}
+
+	/* Style links within descriptions for dark mode */
+	.event-table tbody td :global(a) {
+		color: var(--link-text-color);
+	}
+
+	.event-table tbody td :global(a:hover) {
+		color: var(--link-text-color-hover);
 	}
 </style>
