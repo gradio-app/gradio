@@ -1,6 +1,7 @@
 ---
-"@gradio/nativeplot": minor
-"gradio": minor
+"@gradio/dropdown": patch
+"@gradio/nativeplot": patch
+"gradio": patch
 ---
 
-feat:Add custom buttons to `gr.LinePlot` and other native plots
+fix:Add custom buttons to `gr.Dropdown(multiselect=True)` and `gr.LinePlot` and other native plots
