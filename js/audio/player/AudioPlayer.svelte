@@ -189,11 +189,7 @@
 		stream_active = false;
 
 		if (waveform_options.show_recording_waveform) {
-			waveform?.load(data).catch((e: Error) => {
-				if (!(e instanceof DOMException && e.name === "AbortError")) {
-					console.error("Error loading audio:", e);
-				}
-			});
+			waveform?.load(data);
 		} else if (audio_player) {
 			audio_player.src = data;
 		}
