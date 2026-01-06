@@ -166,7 +166,6 @@ pre.gradio-code {
 	color: #9a6e3a;
 }
 
-/* Python-specific tokens */
 .token.keyword-argument {
 	color: #e36209;
 	font-style: italic;
