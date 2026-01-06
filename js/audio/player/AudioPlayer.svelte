@@ -103,11 +103,7 @@
 		}
 
 		if (value?.url && waveform) {
-			waveform.load(value?.url).catch((e: Error) => {
-				if (!(e instanceof DOMException && e.name === "AbortError")) {
-					console.error("Error loading audio:", e);
-				}
-			});
+			waveform.load(value?.url);
 		}
 
 		waveform?.on("decode", (duration: any) => {
