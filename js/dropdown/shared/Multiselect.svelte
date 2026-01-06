@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
-	import { BlockTitle } from "@gradio/atoms";
+	import { BlockTitle, IconButtonWrapper } from "@gradio/atoms";
 	import { Remove, DropdownArrow } from "@gradio/icons";
 	import type { Gradio } from "@gradio/utils";
 	import DropdownOptions from "./DropdownOptions.svelte";
@@ -14,6 +14,7 @@
 	let filter_input: HTMLElement;
 	let input_text = $state("");
 	let label = $derived(gradio.shared.label || "Multiselect");
+	let buttons = $derived(gradio.props.buttons);
 
 	let choices_names: string[] = $derived.by(() => {
 		return gradio.props.choices.map((c) => c[0]);
@@ -183,9 +184,16 @@
 			gradio.dispatch("change");
 		}
 	});
+
+	function on_custom_button_click(id: number) {
+		gradio.dispatch("custom_button_click", { id });
+	}
 </script>
 
 <label class:container={gradio.shared.container}>
+	{#if gradio.shared.show_label && buttons && buttons.length > 0}
+		<IconButtonWrapper {buttons} {on_custom_button_click} />
+	{/if}
 	<BlockTitle show_label={gradio.shared.show_label} info={gradio.props.info}
 		>{label}</BlockTitle
 	>

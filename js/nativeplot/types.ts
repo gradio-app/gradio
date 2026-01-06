@@ -1,4 +1,4 @@
-import type { Gradio, SelectData } from "@gradio/utils";
+import type { Gradio, SelectData, CustomButton } from "@gradio/utils";
 import type { LoadingStatus } from "@gradio/statustracker";
 
 export interface PlotData {
@@ -29,7 +29,7 @@ export interface NativePlotProps {
 	caption: string | null;
 	sort: "x" | "y" | "-x" | "-y" | string[] | null;
 	tooltip: "axis" | "none" | "all" | string[];
-	buttons: string[] | null;
+	buttons: (string | CustomButton)[] | null;
 	_selectable: boolean;
 	label: string;
 	elem_id: string;
@@ -46,4 +46,5 @@ export interface NativePlotEvents {
 	select: SelectData;
 	double_click: undefined;
 	clear_status: LoadingStatus;
+	custom_button_click: { id: number };
 }
