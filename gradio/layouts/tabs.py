@@ -69,7 +69,7 @@ class Tab(BlockContext, metaclass=ComponentMeta):
         EventListener(
             "select",
             callback=lambda block: setattr(block, "_selectable", True),
-            doc="Event listener for when the user selects the Tab. Uses event data gradio.SelectData to carry `value` referring to the label of the Tab, and `selected` to refer to state of the Tab. See EventData documentation on how to use this event data",
+            doc="Event listener for when the user selects the Tab. Uses event data gradio.SelectData to carry `value` referring to the label of the Tab, and `selected` to refer to state of the Tab. See [EventData](docs/gradio/eventdata) documentation for more details.",
         )
     ]
 
