@@ -84,6 +84,14 @@ def set_cancel_events(
 
 @document()
 class Dependency(dict):
+    """
+    The Dependency object is usualy not created directly but is returned when an event listener is set up. It contains the configuration
+    data for the event listener, and can be used to set up additional event listeners that depend on the completion of the current event
+    listener using .then(), .success(), and .failure().
+
+    Demos: chatbot_consecutive, blocks_chained_events
+    """
+
     def __init__(
         self,
         trigger,
@@ -92,14 +100,6 @@ class Dependency(dict):
         fn,
         associated_timer: Timer | None = None,
     ):
-        """
-        The Dependency object is usualy not created directly but is returned when an event listener is set up. It contains the configuration
-        data for the event listener, and can be used to set up additional event listeners that depend on the completion of the current event
-        listener using .then(), .success(), and .failure().
-
-        Demos: chatbot_consecutive, blocks_chained_events
-        """
-
         super().__init__(key_vals)
         self.fn = fn
         self.associated_timer = associated_timer
