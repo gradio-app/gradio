@@ -1,0 +1,30 @@
+[
+	{
+		"demo": "dataframe_events",
+		"timestamp": "2025-11-20T20:47:13.519Z",
+		"navigation": {
+			"dnsTime": 0,
+			"tcpTime": 0,
+			"requestTime": 16.400000035762787,
+			"responseTime": 0.19999998807907104,
+			"domProcessing": 74.89999997615814,
+			"totalLoadTime": 114.89999997615814
+		},
+		"coreWebVitals": {
+			"firstContentfulPaint": 188,
+			"largestContentfulPaint": 0,
+			"timeToInteractive": 40,
+			"totalBlockingTime": 0,
+			"cumulativeLayoutShift": 0
+		},
+		"memory": {
+			"usedJSHeapSize": 19300000,
+			"totalJSHeapSize": 26000000,
+			"jsHeapSizeLimit": 3760000000
+		},
+		"customMetrics": {
+			"timeToFirstComponent": -1763671631352.9,
+			"timeToAllComponentsVisible": 1082.1000000238419
+		}
+	}
+]

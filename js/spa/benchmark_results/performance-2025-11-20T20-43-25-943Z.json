@@ -1,0 +1,30 @@
+[
+	{
+		"demo": "kitchen_sink",
+		"timestamp": "2025-11-20T20:43:25.900Z",
+		"navigation": {
+			"dnsTime": 0,
+			"tcpTime": 0,
+			"requestTime": 16.69999998807907,
+			"responseTime": 1.899999976158142,
+			"domProcessing": 72.80000001192093,
+			"totalLoadTime": 112.70000004768372
+		},
+		"coreWebVitals": {
+			"firstContentfulPaint": 176,
+			"largestContentfulPaint": 0,
+			"timeToInteractive": 39.90000003576279,
+			"totalBlockingTime": 0,
+			"cumulativeLayoutShift": 0
+		},
+		"memory": {
+			"usedJSHeapSize": 24500000,
+			"totalJSHeapSize": 39600000,
+			"jsHeapSizeLimit": 3760000000
+		},
+		"customMetrics": {
+			"timeToFirstComponent": -1763671403369.6,
+			"timeToAllComponentsVisible": 1264.300000011921
+		}
+	}
+]

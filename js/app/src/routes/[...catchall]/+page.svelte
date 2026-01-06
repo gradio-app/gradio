@@ -213,7 +213,6 @@
 	let wrapper: HTMLDivElement;
 	let ready = false;
 	let render_complete = false;
-	let reload_count = 0;
 	$: config = data.config;
 
 	let intersecting: ReturnType<typeof create_intersection_store> = {
@@ -335,7 +334,6 @@
 					if (!app.config) {
 						throw new Error("Could not resolve app config");
 					}
-					reload_count += 1;
 					config = app.config;
 					window.__gradio_space__ = config.space_id;
 				});

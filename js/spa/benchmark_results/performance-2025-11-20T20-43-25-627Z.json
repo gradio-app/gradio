@@ -1,0 +1,30 @@
+[
+	{
+		"demo": "hello_blocks",
+		"timestamp": "2025-11-20T20:43:25.597Z",
+		"navigation": {
+			"dnsTime": 0,
+			"tcpTime": 0,
+			"requestTime": 21.80000001192093,
+			"responseTime": 0.30000001192092896,
+			"domProcessing": 72.80000001192093,
+			"totalLoadTime": 111.30000001192093
+		},
+		"coreWebVitals": {
+			"firstContentfulPaint": 172,
+			"largestContentfulPaint": 0,
+			"timeToInteractive": 38.5,
+			"totalBlockingTime": 0,
+			"cumulativeLayoutShift": 0
+		},
+		"memory": {
+			"usedJSHeapSize": 10000000,
+			"totalJSHeapSize": 11900000,
+			"jsHeapSizeLimit": 3760000000
+		},
+		"customMetrics": {
+			"timeToFirstComponent": -1763671403676.5,
+			"timeToAllComponentsVisible": 960.3000000119209
+		}
+	}
+]
