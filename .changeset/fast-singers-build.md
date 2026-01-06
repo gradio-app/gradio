@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:changes
+fix:Fix Bug Where Invisible Columns Take Up Space
