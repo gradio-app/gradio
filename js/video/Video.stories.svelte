@@ -1,12 +1,15 @@
-<script context="module">
-	import { Template, Story } from "@storybook/addon-svelte-csf";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import Video from "./Index.svelte";
-	import { format } from "svelte-i18n";
-	import { get } from "svelte/store";
-	import { userEvent, within } from "@storybook/test";
+	import { userEvent, within } from "storybook/test";
 	import { allModes } from "../storybook/modes";
+	import { wrapProps } from "../storybook/wrapProps";
+	import { wrapProps } from "../storybook/wrapProps";
 
-	export const meta = {
+	const { Story } = defineMeta({
+	const { Story } = defineMeta({
 		title: "Components/Video",
 		component: Video,
 		parameters: {
@@ -17,14 +20,9 @@
 				}
 			}
 		}
-	};
+	});
+	});
 </script>
-
-<div>
-	<Template let:args>
-		<Video i18n={get(format)} {...args} />
-	</Template>
-</div>
 
 <Story
 	name="Record from webcam"
@@ -35,12 +33,13 @@
 		interactive: true,
 		height: 400,
 		width: 400,
-		webcam_options: {
-			mirror: true,
-			constraints: null
-		}
+		webcam_options: { mirror: true, constraints: null }
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Video {...wrapProps(args)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Static video"
@@ -56,12 +55,14 @@
 		interactive: false,
 		height: 200,
 		width: 400,
-		webcam_options: {
-			mirror: true,
-			constraints: null
-		}
+		webcam_options: { mirror: true, constraints: null }
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Video {...wrapProps(args)} />
+	{/snippet}
+</Story>
+
 <Story
 	name="Static video with vertical video"
 	args={{
@@ -76,12 +77,13 @@
 		interactive: false,
 		height: 200,
 		width: 400,
-		webcam_options: {
-			mirror: true,
-			constraints: null
-		}
+		webcam_options: { mirror: true, constraints: null }
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Video {...wrapProps(args)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Upload video"
@@ -93,12 +95,13 @@
 		width: 400,
 		height: 400,
 		value: null,
-		webcam_options: {
-			mirror: true,
-			constraints: null
-		}
+		webcam_options: { mirror: true, constraints: null }
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Video {...wrapProps(args)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Upload video with download button"
@@ -115,12 +118,13 @@
 			url: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
 			orig_name: "world.mp4"
 		},
-		webcam_options: {
-			mirror: true,
-			constraints: null
-		}
+		webcam_options: { mirror: true, constraints: null }
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Video {...wrapProps(args)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Trim video"
@@ -135,14 +139,15 @@
 		interactive: "true",
 		sources: ["upload"],
 		width: 400,
-		webcam_options: {
-			mirror: true,
-			constraints: null
-		}
+		webcam_options: { mirror: true, constraints: null }
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
 		const trimButton = canvas.getByLabelText("Trim video to selection");
 		userEvent.click(trimButton);
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Video {...wrapProps(args)} />
+	{/snippet}
+</Story>
