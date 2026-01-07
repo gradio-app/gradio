@@ -446,12 +446,15 @@ class ChatInterface(Blocks):
         and truncating it to 40 characters. If files are present, add a 📎 to the title.
         """
         title = ""
+        found = False
         for message in conversation:
+            if found:
+                break
             if message["role"] == "user":
                 for content in message["content"]:
                     if content["type"] == "text":
-                        title += content["text"]
-                        break
+                        title += content["text"]  # type: ignore
+                        found = True
                     else:
                         title += "📎 "
         if len(title) > 40:
@@ -704,7 +707,7 @@ class ChatInterface(Blocks):
             **save_fn_kwargs
         )
 
-        self.chatbot.clear(**synchronize_chat_state_kwargs).then(
+        self.chatbot.clear(**synchronize_chat_state_kwargs).then(  # type: ignore
             self._delete_conversation,
             [self.conversation_id, self.saved_conversations],
             [self.conversation_id, self.saved_conversations],
@@ -876,16 +879,16 @@ class ChatInterface(Blocks):
             elif (
                 isinstance(msg, dict) and "content" in msg
             ):  # in MessageDict format already
-                msg["role"] = role
+                msg["role"] = role  # type: ignore
                 message_dicts.append(msg)
             else:  # in MultimodalPostprocess format
                 multimodal_message = {"role": role, "content": []}
-                for x in msg.get("files", []):
+                for x in msg.get("files", []):  # type: ignore
                     if isinstance(x, dict):
                         x = x.get("path")
-                    multimodal_message["content"].append({"path": x})
-                if msg["text"]:
-                    multimodal_message["content"].append(msg["text"])
+                    multimodal_message["content"].append({"path": x})  # type: ignore
+                if msg["text"]:  # type: ignore
+                    multimodal_message["content"].append(msg["text"])  # type: ignore
                 message_dicts.append(multimodal_message)
         return message_dicts
 
@@ -899,7 +902,7 @@ class ChatInterface(Blocks):
         if self.is_async:
             response = await self.fn(*inputs)
         else:
-            response = await run_sync(self.fn, *inputs, limiter=self.limiter)
+            response = await run_sync(self.fn, *inputs, limiter=self.limiter)  # type: ignore
         if self.additional_outputs:
             response, *additional_outputs = response
         else:
@@ -923,7 +926,7 @@ class ChatInterface(Blocks):
         if self.is_async:
             generator = self.fn(*inputs)
         else:
-            generator = await run_sync(self.fn, *inputs, limiter=self.limiter)
+            generator = await run_sync(self.fn, *inputs, limiter=self.limiter)  # type: ignore
             generator = utils.SyncToAsyncIterator(generator, self.limiter)
 
         history = self._append_message_to_history(message, history, "user")
@@ -1034,7 +1037,7 @@ class ChatInterface(Blocks):
         if self.is_async:
             response = await self.fn(*inputs)
         else:
-            response = await run_sync(self.fn, *inputs, limiter=self.limiter)
+            response = await run_sync(self.fn, *inputs, limiter=self.limiter)  # type: ignore
         return self._process_example(message, response)  # type: ignore
 
     async def _examples_stream_fn(
@@ -1049,7 +1052,7 @@ class ChatInterface(Blocks):
         if self.is_async:
             generator = self.fn(*inputs)
         else:
-            generator = await run_sync(self.fn, *inputs, limiter=self.limiter)
+            generator = await run_sync(self.fn, *inputs, limiter=self.limiter)  # type: ignore
             generator = utils.SyncToAsyncIterator(generator, self.limiter)
         async for response in generator:
             yield self._process_example(message, response)

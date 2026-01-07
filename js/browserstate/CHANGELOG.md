@@ -1,5 +1,11 @@
 # @gradio/browserstate
 
+## 0.3.4
+
+### Dependency updates
+
+- @gradio/utils@0.11.0
+
 ## 0.3.3
 
 ### Dependency updates

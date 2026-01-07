@@ -130,23 +130,76 @@ with gr.Blocks() as demo:
     You can create your own Components by extending the gr.HTML class.
     """)
     class ListComponent(gr.HTML):
-        def __init__(self, container=True, label="List", **kwargs):
+        def __init__(self, container=True, label="List", ordered=False, **kwargs):
+            self.ordered = ordered
             super().__init__(
                 html_template="""
                 <h2>${label}</h2>
-                <ul>
+                ${ordered ? `<ol>` : `<ul>`}
                     ${value.map(item => `<li>${item}</li>`).join('')}
-                </ul>
+                ${ordered ? `</ol>` : `</ul>`}
                 """,
                 container=container,
                 label=label,
+                ordered=ordered,
                 **kwargs
             )
 
-    ListComponent(label="Fruits", value=["Apple", "Banana", "Cherry"], elem_id="fruits")
-    ListComponent(label="Vegetables", value=["Carrot", "Broccoli", "Spinach"], elem_id="vegetables")
+    l1 = ListComponent(label="Fruits", value=["Apple", "Banana", "Cherry"], elem_id="fruits")
+    l2 = ListComponent(label="Vegetables", value=["Carrot", "Broccoli", "Spinach"], elem_id="vegetables")
 
+    make_ordered_btn = gr.Button("Make Ordered")
+    make_unordered_btn = gr.Button("Make Unordered")
 
+    make_ordered_btn.click(lambda: [ListComponent(ordered=True), ListComponent(ordered=True)], outputs=[l1, l2])
+    make_unordered_btn.click(lambda: [ListComponent(ordered=False), ListComponent(ordered=False)], outputs=[l1, l2])
+
+    failed_template = gr.HTML(
+        value=None,
+        html_template="""
+          ${Zalue}
+        """,
+    )
+
+    class TodoList(gr.HTML):
+        def __init__(self, value: list[str] | None = None, completed: list[int] | None = None, **kwargs):
+            self.completed = completed or []
+            super().__init__(
+                html_template="""
+                <h2>Todo List</h2>
+                <ul>
+                    ${value.map((item, index) => `
+                        <li style="text-decoration: ${completed.includes(index) ? 'line-through' : 'none'};">
+                            <input type="checkbox" ${completed.includes(index) ? 'checked' : ''} data-index="${index}" />
+                            ${item}
+                        </li>
+                    `).join('')}
+                </ul>
+                """,
+                js_on_load="""
+                const checkboxes = element.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(checkbox => {
+                    checkbox.addEventListener('change', () => {
+                        const index = parseInt(checkbox.getAttribute('data-index'));
+                        let completed = props.completed || [];
+                        if (checkbox.checked) {
+                            if (!completed.includes(index)) {
+                                completed.push(index);
+                            }
+                        } else {
+                            completed = completed.filter(i => i !== index);
+                        }
+                        props.completed = [...completed];
+                        console.log(JSON.stringify(props.completed))
+                    });
+                });
+                """,
+                completed=self.completed,
+                value=value,
+                **kwargs
+            )
+
+    todo_list = TodoList(value=["Buy groceries", "Walk the dog", "Read a book"], completed=[1], elem_id="todo")
 
 if __name__ == "__main__":
     demo.launch()

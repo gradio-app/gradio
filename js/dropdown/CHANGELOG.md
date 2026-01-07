@@ -1,5 +1,21 @@
 # @gradio/dropdown
 
+## 0.11.0
+
+### Features
+
+- [#12539](https://github.com/gradio-app/gradio/pull/12539) [`f1d83fa`](https://github.com/gradio-app/gradio/commit/f1d83fac3d6e4bad60cf896a026fa2d572f26073) - Add ability to add custom buttons to components.  Thanks @abidlabs!
+
+### Fixes
+
+- [#12572](https://github.com/gradio-app/gradio/pull/12572) [`5cf1ae5`](https://github.com/gradio-app/gradio/commit/5cf1ae5f35276b65eb139f14d80beea7ecbd4532) - Fix Dropdown change event when allow_custom_value is true.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/utils@0.11.0
+- @gradio/statustracker@0.12.1
+
 ## 0.10.7
 
 ### Fixes
