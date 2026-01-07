@@ -4,7 +4,7 @@
 	import { MarkdownCode as Markdown } from "@gradio/markdown-code";
 	import type { NormalisedMessage } from "../types";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
-	import type { Client } from "@gradio/client";
+	import type { Client, FileData } from "@gradio/client";
 	import type { ComponentType, SvelteComponent } from "svelte";
 
 	export let latex_delimiters: {
@@ -60,40 +60,35 @@
 		{allow_file_downloads}
 	/>
 {:else if message.type === "component" && message.content.component === "file"}
-	<div class="file-container">
-		<div class="file-icon">
-			<File />
-		</div>
-		<div class="file-info">
-			<a
-				data-testid="chatbot-file"
-				class="file-link"
-				href={message.content.value.url}
-				target="_blank"
-				download={window.__is_colab__
-					? null
-					: message.content.value?.orig_name ||
-						message.content.value?.path.split("/").pop() ||
-						"file"}
-			>
-				<span class="file-name"
-					>{message.content.value?.orig_name ||
-						message.content.value?.path.split("/").pop() ||
-						"file"}</span
+	{#each message.content.value as file_}
+		{@const file: FileData = file_ as FileData}
+		<div class="file-container">
+			<div class="file-icon">
+				<File />
+			</div>
+			<div class="file-info">
+				<a
+					data-testid="chatbot-file"
+					class="file-link"
+					href={file.url}
+					target="_blank"
+					download={window.__is_colab__
+						? null
+						: file?.orig_name || file?.path.split("/").pop() || "file"}
 				>
-			</a>
-			<span class="file-type"
-				>{(
-					message.content.value?.orig_name ||
-					message.content.value?.path ||
-					""
-				)
-					.split(".")
-					.pop()
-					.toUpperCase()}</span
-			>
+					<span class="file-name"
+						>{file?.orig_name || file?.path.split("/").pop() || "file"}</span
+					>
+				</a>
+				<span class="file-type"
+					>{(file.orig_name || file.path || "")
+						.split(".")
+						.pop()
+						.toUpperCase()}</span
+				>
+			</div>
 		</div>
-	</div>
+	{/each}
 {/if}
 
 <style>

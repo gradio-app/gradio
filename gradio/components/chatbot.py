@@ -506,9 +506,18 @@ class Chatbot(Component):
                 component = chat_message.__class__(**chat_message.constructor_args)
                 chat_message.constructor_args.pop("value", None)
                 config = component.get_config()
+                component_name = type(chat_message).__name__.lower()
+                value = config.get("value", None)
+                # Ensure that file components have value as a list
+                if (
+                    component_name == "file"
+                    and value is not None
+                    and not isinstance(value, list)
+                ):
+                    value = [value]
                 return ComponentMessage(
-                    component=type(chat_message).__name__.lower(),
-                    value=config.get("value", None),
+                    component=component_name,
+                    value=value,
                     constructor_args=chat_message.constructor_args,
                     props=config,
                 )
