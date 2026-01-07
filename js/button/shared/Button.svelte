@@ -4,7 +4,7 @@
 
 	let {
 		elem_id,
-		elem_classes,
+		elem_classes = [],
 		visible,
 		variant,
 		size,
