@@ -1,10 +1,11 @@
-<script context="module">
-	import { Template, Story } from "@storybook/addon-svelte-csf";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import Button from "./shared/Button.svelte";
 
-	export const meta = {
+	const { Story } = defineMeta({
 		title: "Components/Button",
 		component: Button,
+		tags: ["autodocs"],
 		argTypes: {
 			value: {
 				control: "text",
@@ -38,59 +39,59 @@
 				description: "URL to navigate to when clicked"
 			}
 		}
-	};
+	});
 </script>
 
-<Template let:args>
-	<Button {...args}>{args.value || "Gradio Button"}</Button>
-</Template>
+<Story name="Primary" args={{ variant: "primary", size: "lg", value: "Primary Button" }}>
+	{#snippet template(args)}
+		<Button {...args}>{args.value}</Button>
+	{/snippet}
+</Story>
 
-<Story
-	name="Primary"
-	args={{ variant: "primary", size: "lg", value: "Primary Button" }}
-/>
+<Story name="Secondary" args={{ variant: "secondary", size: "lg", value: "Secondary Button" }}>
+	{#snippet template(args)}
+		<Button {...args}>{args.value}</Button>
+	{/snippet}
+</Story>
 
-<Story
-	name="Secondary"
-	args={{ variant: "secondary", size: "lg", value: "Secondary Button" }}
-/>
+<Story name="Stop" args={{ variant: "stop", size: "lg", value: "Stop Button" }}>
+	{#snippet template(args)}
+		<Button {...args}>{args.value}</Button>
+	{/snippet}
+</Story>
 
-<Story
-	name="Stop"
-	args={{ variant: "stop", size: "lg", value: "Stop Button" }}
-/>
+<Story name="Small" args={{ variant: "primary", size: "sm", value: "Small Button" }}>
+	{#snippet template(args)}
+		<Button {...args}>{args.value}</Button>
+	{/snippet}
+</Story>
 
-<Story
-	name="Small"
-	args={{ variant: "primary", size: "sm", value: "Small Button" }}
-/>
+<Story name="Medium" args={{ variant: "primary", size: "md", value: "Medium Button" }}>
+	{#snippet template(args)}
+		<Button {...args}>{args.value}</Button>
+	{/snippet}
+</Story>
 
-<Story
-	name="Medium"
-	args={{ variant: "primary", size: "md", value: "Medium Button" }}
-/>
+<Story name="Disabled" args={{ variant: "primary", size: "lg", disabled: true, value: "Disabled Button" }}>
+	{#snippet template(args)}
+		<Button {...args}>{args.value}</Button>
+	{/snippet}
+</Story>
 
-<Story
-	name="Disabled"
-	args={{ variant: "primary", size: "lg", value: "Disabled Button", disabled: true }}
-/>
+<Story name="Button with link" args={{ variant: "primary", size: "lg", link: "https://huggingface.co", value: "Link Button" }}>
+	{#snippet template(args)}
+		<Button {...args}>{args.value}</Button>
+	{/snippet}
+</Story>
 
-<Story
-	name="Button with link"
-	args={{
-		variant: "primary",
-		size: "lg",
-		value: "Link Button",
-		link: "https://huggingface.co"
-	}}
-/>
+<Story name="Huggingface variant" args={{ variant: "huggingface", size: "lg", value: "Huggingface Button" }}>
+	{#snippet template(args)}
+		<Button {...args}>{args.value}</Button>
+	{/snippet}
+</Story>
 
-<Story
-	name="Huggingface variant"
-	args={{ variant: "huggingface", size: "lg", value: "Huggingface Button" }}
-/>
-
-<Story
-	name="Hidden"
-	args={{ variant: "primary", value: "Hidden Button", visible: false }}
-/>
+<Story name="Hidden" args={{ variant: "primary", visible: false, value: "Hidden Button" }}>
+	{#snippet template(args)}
+		<Button {...args}>{args.value}</Button>
+	{/snippet}
+</Story>

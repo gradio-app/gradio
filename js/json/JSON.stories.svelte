@@ -1,7 +1,13 @@
-<script context="module">
-	import { Template, Story } from "@storybook/addon-svelte-csf";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import JSON from "./Index.svelte";
 	import { userEvent, within } from "storybook/test";
+	import { wrapProps } from "../storybook/wrapProps";
+
+	const { Story } = defineMeta({
+		title: "Components/JSON",
+		component: JSON
+	});
 
 	const example_json = {
 		items: {
@@ -27,60 +33,41 @@
 		{ name: "fourth item", type: "object" },
 		["nested", "array", "example"]
 	];
-
-	export const meta = {
-		title: "Components/JSON",
-		component: JSON
-	};
 </script>
 
-<Template let:args>
-	<JSON value={example_json} {...args} />
-</Template>
+<Story name="Default JSON" args={{}}>
+	{#snippet template(args)}
+		<JSON {...wrapProps({ value: example_json, ...args })} />
+	{/snippet}
+</Story>
 
-<Story name="Default JSON" args={{}} />
+<Story name="with interactivity" args={{ value: example_json, interactive: true }} play={async ({ canvasElement }) => {
+	const canvas = within(canvasElement);
+	const toggles = within(canvasElement).getAllByRole("button");
+	await userEvent.click(toggles[1]);
+	await userEvent.click(toggles[1]);
+	await userEvent.click(toggles[2]);
+	await userEvent.click(canvas.getAllByText("Object(2)")[0]);
+}}>
+	{#snippet template(args)}
+		<JSON {...wrapProps({ value: example_json, ...args })} />
+	{/snippet}
+</Story>
 
-<Story
-	name="with interactivity"
-	args={{
-		value: example_json,
-		interactive: true
-	}}
-	play={async ({ canvasElement }) => {
-		const canvas = within(canvasElement);
+<Story name="with show_indices and height" args={{ value: example_json, show_indices: true, height: 200 }}>
+	{#snippet template(args)}
+		<JSON {...wrapProps({ value: example_json, ...args })} />
+	{/snippet}
+</Story>
 
-		const toggles = within(canvasElement).getAllByRole("button");
-		await userEvent.click(toggles[1]);
-		await userEvent.click(toggles[1]);
+<Story name="with array and show_indices" args={{ value: example_arr, show_indices: true, open: true }}>
+	{#snippet template(args)}
+		<JSON {...wrapProps(args)} />
+	{/snippet}
+</Story>
 
-		await userEvent.click(toggles[2]);
-		await userEvent.click(canvas.getAllByText("Object(2)")[0]);
-	}}
-/>
-
-<Story
-	name="with show_indices and height"
-	args={{
-		value: example_json,
-		show_indices: true,
-		height: 200
-	}}
-/>
-
-<Story
-	name="with array and show_indices"
-	args={{
-		value: example_arr,
-		show_indices: true,
-		open: true
-	}}
-/>
-
-<Story
-	name="with array and hidden indices"
-	args={{
-		value: example_arr,
-		show_indices: false,
-		open: true
-	}}
-/>
+<Story name="with array and hidden indices" args={{ value: example_arr, show_indices: false, open: true }}>
+	{#snippet template(args)}
+		<JSON {...wrapProps(args)} />
+	{/snippet}
+</Story>
