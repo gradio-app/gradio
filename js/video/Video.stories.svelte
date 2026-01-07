@@ -1,14 +1,10 @@
 <script module>
 	import { defineMeta } from "@storybook/addon-svelte-csf";
-<script module>
-	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import Video from "./Index.svelte";
 	import { userEvent, within } from "storybook/test";
 	import { allModes } from "../storybook/modes";
 	import { wrapProps } from "../storybook/wrapProps";
-	import { wrapProps } from "../storybook/wrapProps";
 
-	const { Story } = defineMeta({
 	const { Story } = defineMeta({
 		title: "Components/Video",
 		component: Video,
@@ -20,7 +16,6 @@
 				}
 			}
 		}
-	});
 	});
 </script>
 
