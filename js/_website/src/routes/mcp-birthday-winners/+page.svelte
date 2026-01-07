@@ -455,7 +455,7 @@
 	</a>
 
 	<h1 class="mb-4 flex items-center text-xl align-middle font-light right-0">
-		<img src={openai_logo} alt="OpenAI Logo" class="w-20 mr-2" />
+		<img src={openai_logo} alt="OpenAI Logo" class="w-20 mr-2 dark:invert" />
 		Category Awards <span class="ml-1 font-semibold"> Winner</span>
 	</h1>
 
