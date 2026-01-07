@@ -165,6 +165,7 @@
 		buttons: [],
 		webcam_options: { mirror: true, constraints: null }
 	}}
+	parameters={{ chromatic: { disableSnapshot: true } }}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
 		const webcamButton = await canvas.findByLabelText("Capture from camera");

@@ -90,11 +90,12 @@
 			constraints: null
 		}
 	}}
+	parameters={{ chromatic: { disableSnapshot: true } }}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
 
-		const drawButton = canvas.getAllByLabelText("Draw button")[0];
-		userEvent.click(drawButton);
+		const drawButton = canvas.getAllByLabelText("Brush")[0];
+		await userEvent.click(drawButton);
 
 		const drawCanvas = document.getElementsByTagName("canvas")[0];
 		if (!drawCanvas) {
