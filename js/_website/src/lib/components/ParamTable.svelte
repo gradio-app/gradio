@@ -69,6 +69,7 @@
 <ParamViewer
 	docs={new_parameters}
 	{header}
+	collapsed={true}
 	anchor_links={typeof anchor_links === "string"
 		? anchor_links.toLowerCase()
 		: anchor_links}

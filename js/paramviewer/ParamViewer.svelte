@@ -5,7 +5,7 @@
 	import "prismjs/components/prism-python";
 	import "prismjs/components/prism-typescript";
 
-	import { onMount } from "svelte";
+	import { onMount, tick } from "svelte";
 
 	interface Param {
 		type: string | null;
@@ -14,18 +14,27 @@
 		name?: string;
 	}
 
-	export let docs: Record<string, Param>;
-	export let lang: "python" | "typescript" = "python";
-	export let linkify: string[] = [];
-	export let header: string | null;
-	export let anchor_links: string | boolean = false;
-	export let max_height: number | string | undefined = undefined;
+	let {
+		docs,
+		linkify = [],
+		header,
+		anchor_links,
+		max_height,
+		collapsed
+	}: {
+		docs: Record<string, Param>;
+		linkify: string[];
+		header: string | null;
+		anchor_links: string | boolean;
+		max_height: number | string | undefined;
+		collapsed: boolean;
+	} = $props();
 
 	let component_root: HTMLElement;
-	let _docs: Param[];
-	let all_open = false;
+	let all_open = $state(false);
+	let lang: string = "python";
 
-	$: _docs = highlight_code(docs, lang);
+	let _docs = $derived(highlight_code(docs, lang));
 
 	function create_slug(name: string, anchor_links: string | boolean): string {
 		let prefix = "param-";
@@ -69,7 +78,12 @@
 		);
 	}
 
-	function toggle_all(): void {
+	async function toggle_all() {
+		if (collapsed) {
+			collapsed = false;
+			await tick();
+			return;
+		}
 		all_open = !all_open;
 		const details = component_root.querySelectorAll(".param");
 		details.forEach((detail) => {
@@ -135,19 +149,19 @@
 	bind:this={component_root}
 	style:max-height={get_dimension(max_height)}
 >
-	{#if header !== null}
-		<div class="header">
+	<div class="header">
+		{#if header !== null}
 			<span class="title">{header}</span>
-			<button
-				class="toggle-all"
-				on:click={toggle_all}
-				title={all_open ? "Close All" : "Open All"}
-			>
-				▼
-			</button>
-		</div>
-	{/if}
-	{#if _docs}
+		{/if}
+		<button
+			class="toggle-all"
+			on:click={toggle_all}
+			title={all_open ? "Close All" : "Open All"}
+		>
+			{all_open ? "▲" : "▼"}
+		</button>
+	</div>
+	{#if _docs && !collapsed}
 		<div class="param-content">
 			{#each _docs as { type, description, default: _default, name } (name)}
 				<details

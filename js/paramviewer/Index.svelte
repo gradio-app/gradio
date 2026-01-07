@@ -13,4 +13,5 @@
 	header={gradio.props.header}
 	anchor_links={gradio.props.anchor_links}
 	max_height={gradio.props.max_height}
+	collapsed={gradio.props.collapsed}
 />
