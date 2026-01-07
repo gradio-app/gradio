@@ -8,17 +8,81 @@
 	});
 
 	const basicTabs = [
-		{ label: "Image Tab", id: "tab-1", elem_id: undefined, visible: true, interactive: true, scale: null, component_id: 1 },
-		{ label: "Hidden Tab", id: "tab-2", elem_id: undefined, visible: false, interactive: true, scale: null, component_id: 2 },
-		{ label: "Visible Tab", id: "tab-3", elem_id: undefined, visible: true, interactive: true, scale: null, component_id: 3 }
+		{
+			label: "Image Tab",
+			id: "tab-1",
+			elem_id: undefined,
+			visible: true,
+			interactive: true,
+			scale: null,
+			component_id: 1
+		},
+		{
+			label: "Hidden Tab",
+			id: "tab-2",
+			elem_id: undefined,
+			visible: false,
+			interactive: true,
+			scale: null,
+			component_id: 2
+		},
+		{
+			label: "Visible Tab",
+			id: "tab-3",
+			elem_id: undefined,
+			visible: true,
+			interactive: true,
+			scale: null,
+			component_id: 3
+		}
 	];
 
 	const manyTabs = [
-		{ label: "Tab 1", id: "tab-1", elem_id: undefined, visible: true, interactive: true, scale: null, component_id: 1 },
-		{ label: "Tab 2", id: "tab-2", elem_id: undefined, visible: true, interactive: true, scale: null, component_id: 2 },
-		{ label: "Tab 3", id: "tab-3", elem_id: undefined, visible: true, interactive: true, scale: null, component_id: 3 },
-		{ label: "Invisible Tab 4", id: "tab-4", elem_id: undefined, visible: false, interactive: true, scale: null, component_id: 4 },
-		{ label: "Invisible Tab 5", id: "tab-5", elem_id: undefined, visible: false, interactive: true, scale: null, component_id: 5 }
+		{
+			label: "Tab 1",
+			id: "tab-1",
+			elem_id: undefined,
+			visible: true,
+			interactive: true,
+			scale: null,
+			component_id: 1
+		},
+		{
+			label: "Tab 2",
+			id: "tab-2",
+			elem_id: undefined,
+			visible: true,
+			interactive: true,
+			scale: null,
+			component_id: 2
+		},
+		{
+			label: "Tab 3",
+			id: "tab-3",
+			elem_id: undefined,
+			visible: true,
+			interactive: true,
+			scale: null,
+			component_id: 3
+		},
+		{
+			label: "Invisible Tab 4",
+			id: "tab-4",
+			elem_id: undefined,
+			visible: false,
+			interactive: true,
+			scale: null,
+			component_id: 4
+		},
+		{
+			label: "Invisible Tab 5",
+			id: "tab-5",
+			elem_id: undefined,
+			visible: false,
+			interactive: true,
+			scale: null,
+			component_id: 5
+		}
 	];
 </script>
 
@@ -36,12 +100,13 @@
 	{/snippet}
 </Story>
 
-<Story name="TabsLastInvisible" args={{ initial_tabs: manyTabs, selected: "tab-1" }}>
+<Story
+	name="TabsLastInvisible"
+	args={{ initial_tabs: manyTabs, selected: "tab-1" }}
+>
 	{#snippet template(args)}
 		<BaseTabs {...args}>
-			<div style="padding: 1rem;">
-				Tab content goes here
-			</div>
+			<div style="padding: 1rem;">Tab content goes here</div>
 		</BaseTabs>
 	{/snippet}
 </Story>

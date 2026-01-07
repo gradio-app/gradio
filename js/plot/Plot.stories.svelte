@@ -19,18 +19,24 @@
 	});
 </script>
 
-<Story name="with matplotlib value" args={{
-	value: matplotlib_plot,
-	label: "Plot"
-}}>
+<Story
+	name="with matplotlib value"
+	args={{
+		value: matplotlib_plot,
+		label: "Plot"
+	}}
+>
 	{#snippet template(args)}
 		<PlotComponent {...wrapProps(args)} />
 	{/snippet}
 </Story>
 
-<Story name="with no value" args={{
-	label: "Plot"
-}}>
+<Story
+	name="with no value"
+	args={{
+		label: "Plot"
+	}}
+>
 	{#snippet template(args)}
 		<PlotComponent {...wrapProps(args)} />
 	{/snippet}

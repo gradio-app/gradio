@@ -26,7 +26,10 @@
 	});
 </script>
 
-<Story name="Slider with min and max" args={{ minimum: 0, maximum: 100, interactive: true }}>
+<Story
+	name="Slider with min and max"
+	args={{ minimum: 0, maximum: 100, interactive: true }}
+>
 	{#snippet template(args)}
 		<Slider {...wrapProps(args)} />
 	{/snippet}
@@ -38,13 +41,25 @@
 	{/snippet}
 </Story>
 
-<Story name="Slider with hidden label and negative value" args={{ value: -50, minimum: -100, maximum: 0, show_label: false, interactive: true }}>
+<Story
+	name="Slider with hidden label and negative value"
+	args={{
+		value: -50,
+		minimum: -100,
+		maximum: 0,
+		show_label: false,
+		interactive: true
+	}}
+>
 	{#snippet template(args)}
 		<Slider {...wrapProps(args)} />
 	{/snippet}
 </Story>
 
-<Story name="Slider with min, max, and default value" args={{ value: 50, minimum: 0, maximum: 100, interactive: true }}>
+<Story
+	name="Slider with min, max, and default value"
+	args={{ value: 50, minimum: 0, maximum: 100, interactive: true }}
+>
 	{#snippet template(args)}
 		<Slider {...wrapProps(args)} />
 	{/snippet}
@@ -56,7 +71,16 @@
 	{/snippet}
 </Story>
 
-<Story name="Slider with reset button hidden" args={{ value: 50, minimum: 10, maximum: 100, show_reset_button: false, interactive: true }}>
+<Story
+	name="Slider with reset button hidden"
+	args={{
+		value: 50,
+		minimum: 10,
+		maximum: 100,
+		show_reset_button: false,
+		interactive: true
+	}}
+>
 	{#snippet template(args)}
 		<Slider {...wrapProps(args)} />
 	{/snippet}

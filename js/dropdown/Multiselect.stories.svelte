@@ -16,33 +16,39 @@
 	});
 </script>
 
-<Story name="Multiselect Interactive" args={{
-	value: ["swim", "run"],
-	choices: [
-		["run", "run"],
-		["swim", "swim"],
-		["jump", "jump"]
-	],
-	label: "Multiselect Dropdown",
-	multiselect: true,
-	interactive: true
-}}>
+<Story
+	name="Multiselect Interactive"
+	args={{
+		value: ["swim", "run"],
+		choices: [
+			["run", "run"],
+			["swim", "swim"],
+			["jump", "jump"]
+		],
+		label: "Multiselect Dropdown",
+		multiselect: true,
+		interactive: true
+	}}
+>
 	{#snippet template(args)}
 		<Dropdown {...wrapProps(args)} />
 	{/snippet}
 </Story>
 
-<Story name="Multiselect Static" args={{
-	value: ["swim", "run"],
-	choices: [
-		["run", "run"],
-		["swim", "swim"],
-		["jump", "jump"]
-	],
-	label: "Multiselect Dropdown",
-	multiselect: true,
-	interactive: false
-}}>
+<Story
+	name="Multiselect Static"
+	args={{
+		value: ["swim", "run"],
+		choices: [
+			["run", "run"],
+			["swim", "swim"],
+			["jump", "jump"]
+		],
+		label: "Multiselect Dropdown",
+		multiselect: true,
+		interactive: false
+	}}
+>
 	{#snippet template(args)}
 		<Dropdown {...wrapProps(args)} />
 	{/snippet}

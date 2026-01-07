@@ -21,17 +21,27 @@
 		}
 	});
 
-	const defaultValue = "Here's some **bold** text. And some *italics* and some `code`";
+	const defaultValue =
+		"Here's some **bold** text. And some *italics* and some `code`";
 </script>
 
 <Story name="Simple inline Markdown" args={{}}>
 	{#snippet template(args)}
-		<Markdown {...wrapProps({ value: defaultValue, latex_delimiters: [], height: args.height, ...args })} />
+		<Markdown
+			{...wrapProps({
+				value: defaultValue,
+				latex_delimiters: [],
+				height: args.height,
+				...args
+			})}
+		/>
 	{/snippet}
 </Story>
 
-<Story name="Multiline Markdown" args={{
-	value: `
+<Story
+	name="Multiline Markdown"
+	args={{
+		value: `
 This should
 all be in one line.
 
@@ -40,83 +50,124 @@ all be in one line.
 This should be
 
 in two separate lines.`
-}}>
+	}}
+>
 	{#snippet template(args)}
-		<Markdown {...wrapProps({ latex_delimiters: [], height: args.height, ...args })} />
+		<Markdown
+			{...wrapProps({ latex_delimiters: [], height: args.height, ...args })}
+		/>
 	{/snippet}
 </Story>
 
-<Story name="Markdown with Mermaid" args={{
-	value: `
+<Story
+	name="Markdown with Mermaid"
+	args={{
+		value: `
 \`\`\`mermaid
 graph TD
 A --> B
 \`\`\`
 `
-}}>
+	}}
+>
 	{#snippet template(args)}
-		<Markdown {...wrapProps({ latex_delimiters: [], height: args.height, ...args })} />
+		<Markdown
+			{...wrapProps({ latex_delimiters: [], height: args.height, ...args })}
+		/>
 	{/snippet}
 </Story>
 
-<Story name="Markdown with Wide Content (Horizontal Scrolling)" args={{
-	value: `| ids                 | ids                 | ids                 |
+<Story
+	name="Markdown with Wide Content (Horizontal Scrolling)"
+	args={{
+		value: `| ids                 | ids                 | ids                 |
 | ---------------------------------- | ---------------------------------- | ---------------------------------- |
 | abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz   | abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz   | abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz   |
 | abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz   | abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz   | abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz   |
 | abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz   | abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz   | abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz   |
 `
-}}>
+	}}
+>
 	{#snippet template(args)}
-		<Markdown {...wrapProps({ latex_delimiters: [], height: args.height, ...args })} />
+		<Markdown
+			{...wrapProps({ latex_delimiters: [], height: args.height, ...args })}
+		/>
 	{/snippet}
 </Story>
 
 <Story name="Right aligned Markdown" args={{ rtl: true }}>
 	{#snippet template(args)}
-		<Markdown {...wrapProps({ value: defaultValue, latex_delimiters: [], height: args.height, ...args })} />
+		<Markdown
+			{...wrapProps({
+				value: defaultValue,
+				latex_delimiters: [],
+				height: args.height,
+				...args
+			})}
+		/>
 	{/snippet}
 </Story>
 
-<Story name="Markdown with LaTeX" args={{
-	value: "What is the solution of $y=x^2$?",
-	latex_delimiters: [{ left: "$", right: "$", display: false }]
-}}>
+<Story
+	name="Markdown with LaTeX"
+	args={{
+		value: "What is the solution of $y=x^2$?",
+		latex_delimiters: [{ left: "$", right: "$", display: false }]
+	}}
+>
 	{#snippet template(args)}
 		<Markdown {...wrapProps({ height: args.height, ...args })} />
 	{/snippet}
 </Story>
 
-<Story name="Markdown with header links" args={{
-	value: "# Visit [Gradio](https://gradio.app) for more information",
-	header_links: true
-}}>
+<Story
+	name="Markdown with header links"
+	args={{
+		value: "# Visit [Gradio](https://gradio.app) for more information",
+		header_links: true
+	}}
+>
 	{#snippet template(args)}
-		<Markdown {...wrapProps({ latex_delimiters: [], height: args.height, ...args })} />
+		<Markdown
+			{...wrapProps({ latex_delimiters: [], height: args.height, ...args })}
+		/>
 	{/snippet}
 </Story>
 
-<Story name="Markdown with Long Content (Vertical Scrolling)" args={{
-	value: `# Heading\n${"This is some text.\n".repeat(100)}`,
-	height: "200px"
-}}>
+<Story
+	name="Markdown with Long Content (Vertical Scrolling)"
+	args={{
+		value: `# Heading\n${"This is some text.\n".repeat(100)}`,
+		height: "200px"
+	}}
+>
 	{#snippet template(args)}
-		<Markdown {...wrapProps({ latex_delimiters: [], height: args.height, ...args })} />
+		<Markdown
+			{...wrapProps({ latex_delimiters: [], height: args.height, ...args })}
+		/>
 	{/snippet}
 </Story>
 
-<Story name="Markdown with Copy Button and Container" args={{
-	value: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat.",
-	show_copy_button: true,
-	container: true
-}}>
+<Story
+	name="Markdown with Copy Button and Container"
+	args={{
+		value:
+			"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat.",
+		show_copy_button: true,
+		container: true
+	}}
+>
 	{#snippet template(args)}
-		<Markdown {...wrapProps({ latex_delimiters: [], height: args.height, ...args })} />
+		<Markdown
+			{...wrapProps({ latex_delimiters: [], height: args.height, ...args })}
+		/>
 	{/snippet}
 </Story>
 
-<Story name="Markdown Several Coding languages" args={{
-	value: `
+<Story
+	name="Markdown Several Coding languages"
+	args={{
+		value: `
 #### Python
 \`\`\`python
 def hello_world():
@@ -174,10 +225,13 @@ fn main() {
 }
 \`\`\`
 `,
-	show_copy_button: true,
-	container: true
-}}>
+		show_copy_button: true,
+		container: true
+	}}
+>
 	{#snippet template(args)}
-		<Markdown {...wrapProps({ latex_delimiters: [], height: args.height, ...args })} />
+		<Markdown
+			{...wrapProps({ latex_delimiters: [], height: args.height, ...args })}
+		/>
 	{/snippet}
 </Story>

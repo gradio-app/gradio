@@ -67,58 +67,30 @@
 	});
 </script>
 
-<Story name="Basic Standalone" args={{
-	value: {
-		data: [
-			["Alice Johnson", 28, "Engineer", 75000, true],
-			["Bob Smith", 35, "Designer", 65000, false],
-			["Carol Wilson", 42, "Manager", 85000, true],
-			["David Brown", 31, "Developer", 70000, true],
-			["Eva Davis", 29, "Analyst", 60000, false]
-		],
-		headers: ["Name", "Age", "Role", "Salary", "Remote"],
-		metadata: null
-	},
-	datatype: ["str", "number", "str", "number", "bool"],
-	interactive: true,
-	show_label: true,
-	label: "Employee Data",
-	max_height: 400,
-	show_search: "search",
-	show_copy_button: true,
-	show_fullscreen_button: true
-}}>
-	{#snippet template(args)}
-		<div class="standalone-container">
-			<StandaloneDataframe {...args} />
-		</div>
-	{/snippet}
-</Story>
-
-<Story name="Large Dataset Performance" args={{
-	value: {
-		data: Array.from({ length: 100 }, (_, i) => [
-			`User ${i + 1}`,
-			Math.floor(Math.random() * 50) + 20,
-			["Engineer", "Designer", "Manager", "Developer", "Analyst"][
-				Math.floor(Math.random() * 5)
+<Story
+	name="Basic Standalone"
+	args={{
+		value: {
+			data: [
+				["Alice Johnson", 28, "Engineer", 75000, true],
+				["Bob Smith", 35, "Designer", 65000, false],
+				["Carol Wilson", 42, "Manager", 85000, true],
+				["David Brown", 31, "Developer", 70000, true],
+				["Eva Davis", 29, "Analyst", 60000, false]
 			],
-			Math.floor(Math.random() * 50000) + 50000,
-			Math.random() > 0.5,
-			`City ${Math.floor(Math.random() * 20) + 1}`,
-			Math.floor(Math.random() * 100)
-		]),
-		headers: ["Name", "Age", "Role", "Salary", "Remote", "Location", "Score"],
-		metadata: null
-	},
-	datatype: ["str", "number", "str", "number", "bool", "str", "number"],
-	interactive: false,
-	show_label: true,
-	label: "Large Dataset (100 rows)",
-	max_height: 400,
-	show_row_numbers: true,
-	column_widths: ["120px", "60px", "100px", "80px", "70px", "100px", "70px"]
-}}>
+			headers: ["Name", "Age", "Role", "Salary", "Remote"],
+			metadata: null
+		},
+		datatype: ["str", "number", "str", "number", "bool"],
+		interactive: true,
+		show_label: true,
+		label: "Employee Data",
+		max_height: 400,
+		show_search: "search",
+		show_copy_button: true,
+		show_fullscreen_button: true
+	}}
+>
 	{#snippet template(args)}
 		<div class="standalone-container">
 			<StandaloneDataframe {...args} />
@@ -126,43 +98,80 @@
 	{/snippet}
 </Story>
 
-<Story name="Styled with Custom Colors" args={{
-	value: {
-		data: [
-			[95, 87, 92],
-			[78, 94, 89],
-			[88, 91, 85],
-			[92, 76, 94]
-		],
-		headers: ["Math", "Science", "English"],
-		metadata: {
-			styling: [
-				[
-					"background-color: #dcfce7; color: #166534;",
-					"",
-					"background-color: #dbeafe; color: #1e40af;"
+<Story
+	name="Large Dataset Performance"
+	args={{
+		value: {
+			data: Array.from({ length: 100 }, (_, i) => [
+				`User ${i + 1}`,
+				Math.floor(Math.random() * 50) + 20,
+				["Engineer", "Designer", "Manager", "Developer", "Analyst"][
+					Math.floor(Math.random() * 5)
 				],
-				["", "background-color: #dcfce7; color: #166534;", ""],
-				[
-					"background-color: #fef3c7; color: #92400e;",
-					"",
-					"background-color: #fef3c7; color: #92400e;"
-				],
-				[
-					"background-color: #dcfce7; color: #166534;",
-					"",
-					"background-color: #dcfce7; color: #166534;"
+				Math.floor(Math.random() * 50000) + 50000,
+				Math.random() > 0.5,
+				`City ${Math.floor(Math.random() * 20) + 1}`,
+				Math.floor(Math.random() * 100)
+			]),
+			headers: ["Name", "Age", "Role", "Salary", "Remote", "Location", "Score"],
+			metadata: null
+		},
+		datatype: ["str", "number", "str", "number", "bool", "str", "number"],
+		interactive: false,
+		show_label: true,
+		label: "Large Dataset (100 rows)",
+		max_height: 400,
+		show_row_numbers: true,
+		column_widths: ["120px", "60px", "100px", "80px", "70px", "100px", "70px"]
+	}}
+>
+	{#snippet template(args)}
+		<div class="standalone-container">
+			<StandaloneDataframe {...args} />
+		</div>
+	{/snippet}
+</Story>
+
+<Story
+	name="Styled with Custom Colors"
+	args={{
+		value: {
+			data: [
+				[95, 87, 92],
+				[78, 94, 89],
+				[88, 91, 85],
+				[92, 76, 94]
+			],
+			headers: ["Math", "Science", "English"],
+			metadata: {
+				styling: [
+					[
+						"background-color: #dcfce7; color: #166534;",
+						"",
+						"background-color: #dbeafe; color: #1e40af;"
+					],
+					["", "background-color: #dcfce7; color: #166534;", ""],
+					[
+						"background-color: #fef3c7; color: #92400e;",
+						"",
+						"background-color: #fef3c7; color: #92400e;"
+					],
+					[
+						"background-color: #dcfce7; color: #166534;",
+						"",
+						"background-color: #dcfce7; color: #166534;"
+					]
 				]
-			]
-		}
-	},
-	datatype: ["number", "number", "number"],
-	interactive: false,
-	show_label: true,
-	label: "Test Scores with Custom Styling",
-	max_height: 250,
-	show_row_numbers: true
-}}>
+			}
+		},
+		datatype: ["number", "number", "number"],
+		interactive: false,
+		show_label: true,
+		label: "Test Scores with Custom Styling",
+		max_height: 250,
+		show_row_numbers: true
+	}}
+>
 	{#snippet template(args)}
 		<div class="standalone-container">
 			<StandaloneDataframe {...args} />

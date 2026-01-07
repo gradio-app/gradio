@@ -144,115 +144,249 @@
 	];
 </script>
 
-<Story name="Gallery with label" args={{ label: "My Cheetah Gallery", show_label: true, buttons: ["fullscreen", "download", "share"] }} play={async ({ canvasElement }) => {
-	const canvas = within(canvasElement);
-	const image = canvas.getByLabelText("Thumbnail 1 of 8");
-	await userEvent.click(image);
-	const expand_btn = canvas.getByRole("button", { name: "Fullscreen" });
-	await userEvent.click(expand_btn);
-}}>
+<Story
+	name="Gallery with label"
+	args={{
+		label: "My Cheetah Gallery",
+		show_label: true,
+		buttons: ["fullscreen", "download", "share"]
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		const image = canvas.getByLabelText("Thumbnail 1 of 8");
+		await userEvent.click(image);
+		const expand_btn = canvas.getByRole("button", { name: "Fullscreen" });
+		await userEvent.click(expand_btn);
+	}}
+>
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
 	{/snippet}
 </Story>
 
-<Story name="Gallery without label" args={{ label: "My Cheetah Gallery", show_label: false, buttons: [] }}>
+<Story
+	name="Gallery without label"
+	args={{ label: "My Cheetah Gallery", show_label: false, buttons: [] }}
+>
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
 	{/snippet}
 </Story>
 
-<Story name="Gallery with rows=3 and columns=3" args={{ label: "My Cheetah Gallery", show_label: true, rows: 3, columns: 3, buttons: [] }}>
+<Story
+	name="Gallery with rows=3 and columns=3"
+	args={{
+		label: "My Cheetah Gallery",
+		show_label: true,
+		rows: 3,
+		columns: 3,
+		buttons: []
+	}}
+>
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
 	{/snippet}
 </Story>
 
-<Story name="Gallery with columns=4" args={{ label: "My Cheetah Gallery", show_label: true, columns: 4, buttons: [] }}>
+<Story
+	name="Gallery with columns=4"
+	args={{
+		label: "My Cheetah Gallery",
+		show_label: true,
+		columns: 4,
+		buttons: []
+	}}
+>
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
 	{/snippet}
 </Story>
 
-<Story name="Gallery with height=600" args={{ label: "My Cheetah Gallery", height: 600, buttons: [] }}>
+<Story
+	name="Gallery with height=600"
+	args={{ label: "My Cheetah Gallery", height: 600, buttons: [] }}
+>
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
 	{/snippet}
 </Story>
 
-<Story name="Gallery with allow_preview=false" args={{ label: "My Cheetah Gallery", show_label: true, allow_preview: false, buttons: [] }}>
+<Story
+	name="Gallery with allow_preview=false"
+	args={{
+		label: "My Cheetah Gallery",
+		show_label: true,
+		allow_preview: false,
+		buttons: []
+	}}
+>
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
 	{/snippet}
 </Story>
 
-<Story name="Gallery with preview" args={{ label: "My Cheetah Gallery", show_label: true, preview: true, buttons: [] }}>
+<Story
+	name="Gallery with preview"
+	args={{
+		label: "My Cheetah Gallery",
+		show_label: true,
+		preview: true,
+		buttons: []
+	}}
+>
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
 	{/snippet}
 </Story>
 
-<Story name="Gallery with object_fit=scale-down" args={{ label: "My Cheetah Gallery", show_label: true, object_fit: "scale-down", buttons: [] }}>
+<Story
+	name="Gallery with object_fit=scale-down"
+	args={{
+		label: "My Cheetah Gallery",
+		show_label: true,
+		object_fit: "scale-down",
+		buttons: []
+	}}
+>
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
 	{/snippet}
 </Story>
 
-<Story name="Gallery with object_fit=contain" args={{ label: "My Cheetah Gallery", show_label: true, object_fit: "contain", buttons: [] }}>
+<Story
+	name="Gallery with object_fit=contain"
+	args={{
+		label: "My Cheetah Gallery",
+		show_label: true,
+		object_fit: "contain",
+		buttons: []
+	}}
+>
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
 	{/snippet}
 </Story>
 
-<Story name="Gallery with object_fit=cover" args={{ label: "My Cheetah Gallery", show_label: true, object_fit: "cover", buttons: [] }}>
+<Story
+	name="Gallery with object_fit=cover"
+	args={{
+		label: "My Cheetah Gallery",
+		show_label: true,
+		object_fit: "cover",
+		buttons: []
+	}}
+>
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
 	{/snippet}
 </Story>
 
-<Story name="Gallery with object_fit=none" args={{ label: "My Cheetah Gallery", show_label: true, object_fit: "none", buttons: [] }}>
+<Story
+	name="Gallery with object_fit=none"
+	args={{
+		label: "My Cheetah Gallery",
+		show_label: true,
+		object_fit: "none",
+		buttons: []
+	}}
+>
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
 	{/snippet}
 </Story>
 
-<Story name="Gallery with object_fit=fill" args={{ label: "My Cheetah Gallery", show_label: true, object_fit: "fill", buttons: [] }}>
+<Story
+	name="Gallery with object_fit=fill"
+	args={{
+		label: "My Cheetah Gallery",
+		show_label: true,
+		object_fit: "fill",
+		buttons: []
+	}}
+>
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
 	{/snippet}
 </Story>
 
-<Story name="Gallery with share button" args={{ label: "My Cheetah Gallery", show_label: true, buttons: ["share"] }}>
+<Story
+	name="Gallery with share button"
+	args={{ label: "My Cheetah Gallery", show_label: true, buttons: ["share"] }}
+>
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
 	{/snippet}
 </Story>
 
-<Story name="Gallery with overflow of images" args={{ label: "My Cheetah Gallery", show_label: true, rows: 2, columns: 2, height: 400, buttons: [] }}>
+<Story
+	name="Gallery with overflow of images"
+	args={{
+		label: "My Cheetah Gallery",
+		show_label: true,
+		rows: 2,
+		columns: 2,
+		height: 400,
+		buttons: []
+	}}
+>
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
 	{/snippet}
 </Story>
 
-<Story name="Gallery with overflow of images and short height" args={{ label: "My Cheetah Gallery", show_label: true, rows: 2, columns: 2, height: 200, buttons: [] }}>
+<Story
+	name="Gallery with overflow of images and short height"
+	args={{
+		label: "My Cheetah Gallery",
+		show_label: true,
+		rows: 2,
+		columns: 2,
+		height: 200,
+		buttons: []
+	}}
+>
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
 	{/snippet}
 </Story>
 
-<Story name="Gallery with download button" args={{ label: "My Cheetah Gallery", rows: 2, height: 400, buttons: ["download"] }}>
+<Story
+	name="Gallery with download button"
+	args={{
+		label: "My Cheetah Gallery",
+		rows: 2,
+		height: 400,
+		buttons: ["download"]
+	}}
+>
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
 	{/snippet}
 </Story>
 
-<Story name="Gallery with fit_columns false" args={{ label: "My Cheetah Gallery", columns: 10, buttons: ["download"], fit_columns: false }}>
+<Story
+	name="Gallery with fit_columns false"
+	args={{
+		label: "My Cheetah Gallery",
+		columns: 10,
+		buttons: ["download"],
+		fit_columns: false
+	}}
+>
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
 	{/snippet}
 </Story>
 
-<Story name="Gallery with fit_columns true" args={{ label: "My Cheetah Gallery", columns: 10, buttons: ["download"], fit_columns: true }}>
+<Story
+	name="Gallery with fit_columns true"
+	args={{
+		label: "My Cheetah Gallery",
+		columns: 10,
+		buttons: ["download"],
+		fit_columns: true
+	}}
+>
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
 	{/snippet}

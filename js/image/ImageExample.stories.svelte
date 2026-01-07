@@ -8,21 +8,27 @@
 	});
 </script>
 
-<Story name="Image file" args={{
-	value: {
-		path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-		url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-		orig_name: "cheetah.jpg"
-	}
-}}>
+<Story
+	name="Image file"
+	args={{
+		value: {
+			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			orig_name: "cheetah.jpg"
+		}
+	}}
+>
 	{#snippet template(args)}
 		<Image {...args} />
 	{/snippet}
 </Story>
 
-<Story name="Null" args={{
-	value: null
-}}>
+<Story
+	name="Null"
+	args={{
+		value: null
+	}}
+>
 	{#snippet template(args)}
 		<Image {...args} />
 	{/snippet}

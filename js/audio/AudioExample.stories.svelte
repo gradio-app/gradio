@@ -8,17 +8,23 @@
 	});
 </script>
 
-<Story name="Audio file" args={{
-	value: "cantina.mp3"
-}}>
+<Story
+	name="Audio file"
+	args={{
+		value: "cantina.mp3"
+	}}
+>
 	{#snippet template(args)}
 		<Audio {...args} />
 	{/snippet}
 </Story>
 
-<Story name="Null" args={{
-	value: null
-}}>
+<Story
+	name="Null"
+	args={{
+		value: null
+	}}
+>
 	{#snippet template(args)}
 		<Audio {...args} />
 	{/snippet}

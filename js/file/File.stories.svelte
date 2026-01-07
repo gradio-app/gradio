@@ -17,49 +17,58 @@
 	});
 </script>
 
-<Story name="Single File" args={{
-	value: [
-		{
-			path: "cheetah.jpg",
-			orig_name: "cheetah.jpg",
-			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			size: 10000
-		}
-	]
-}}>
+<Story
+	name="Single File"
+	args={{
+		value: [
+			{
+				path: "cheetah.jpg",
+				orig_name: "cheetah.jpg",
+				url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+				size: 10000
+			}
+		]
+	}}
+>
 	{#snippet template(args)}
 		<File {...wrapProps(args)} />
 	{/snippet}
 </Story>
 
-<Story name="Multiple files, with height set to 150px and reordering enabled" args={{
-	value: [
-		{
-			path: "cheetah.jpg",
-			orig_name: "cheetah.jpgz",
-			url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
-			size: 10000
-		},
-		{
-			path: "cheetah.jpgs",
-			orig_name: "cheetah.jpg",
-			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			size: 10000
-		}
-	],
-	height: 150,
-	allow_reordering: true
-}}>
+<Story
+	name="Multiple files, with height set to 150px and reordering enabled"
+	args={{
+		value: [
+			{
+				path: "cheetah.jpg",
+				orig_name: "cheetah.jpgz",
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+				size: 10000
+			},
+			{
+				path: "cheetah.jpgs",
+				orig_name: "cheetah.jpg",
+				url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+				size: 10000
+			}
+		],
+		height: 150,
+		allow_reordering: true
+	}}
+>
 	{#snippet template(args)}
 		<File {...wrapProps(args)} />
 	{/snippet}
 </Story>
 
-<Story name="File upload with height set to 400px" args={{
-	interactive: true,
-	value: null,
-	height: 400
-}}>
+<Story
+	name="File upload with height set to 400px"
+	args={{
+		interactive: true,
+		value: null,
+		height: 400
+	}}
+>
 	{#snippet template(args)}
 		<File {...wrapProps(args)} />
 	{/snippet}

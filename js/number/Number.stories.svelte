@@ -25,7 +25,10 @@
 	});
 </script>
 
-<Story name="Number with min 0 and max 100" args={{ minimum: 0, maximum: 100, interactive: true }}>
+<Story
+	name="Number with min 0 and max 100"
+	args={{ minimum: 0, maximum: 100, interactive: true }}
+>
 	{#snippet template(args)}
 		<Number {...wrapProps(args)} />
 	{/snippet}
@@ -43,7 +46,10 @@
 	{/snippet}
 </Story>
 
-<Story name="Number with hidden label" args={{ show_label: false, interactive: true }}>
+<Story
+	name="Number with hidden label"
+	args={{ show_label: false, interactive: true }}
+>
 	{#snippet template(args)}
 		<Number {...wrapProps(args)} />
 	{/snippet}
