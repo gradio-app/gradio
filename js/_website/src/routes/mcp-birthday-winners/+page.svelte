@@ -30,7 +30,8 @@
 	<a
 		href="https://huggingface.co/spaces/MCP-1st-Birthday/cite-before-act-mcp"
 		target="_blank"
-		class="flex-grow shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-green-50 border border-green-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow align-middle slg:flex-[1.4]"
+		rel="noopener noreferrer"
+		class="flex-grow shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-green-50 border border-green-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow align-middle lg:flex-[1.4]"
 	>
 		<div class="lg:absolute top-0 right-0 mr-4" style="font-size: 2.5rem;">
 			<span class="text-xl font-light p-1 rounded-md dark:text-gray-200"
@@ -55,6 +56,7 @@
 		<a
 			href="https://huggingface.co/spaces/MCP-1st-Birthday/MCEPTION"
 			target="_blank"
+			rel="noopener noreferrer"
 			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-blue-50 border border-blue-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow lg:flex-[1] my-8"
 		>
 			<div class="lg:absolute top-0 right-0 mr-4" style="font-size: 2.5rem;">
@@ -76,6 +78,7 @@
 		<a
 			href="https://huggingface.co/spaces/MCP-1st-Birthday/Finance-Portfolio-Intelligence-Platform"
 			target="_blank"
+			rel="noopener noreferrer"
 			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-purple-50 border border-purple-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow lg:ml-2 lg:flex-[1] my-8"
 		>
 			<div class="lg:absolute top-0 right-0 mr-4" style="font-size: 2.5rem;">
@@ -97,6 +100,7 @@
 		<a
 			href="https://huggingface.co/spaces/MCP-1st-Birthday/GameContextProtocol"
 			target="_blank"
+			rel="noopener noreferrer"
 			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-orange-50 border border-orange-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow lg:ml-2 lg:flex-[1] my-8"
 		>
 			<div class="lg:absolute top-0 right-0 mr-4" style="font-size: 2.5rem;">
@@ -131,7 +135,8 @@
 	<a
 		href="https://huggingface.co/spaces/MCP-1st-Birthday/Vehicle-Diagnostic-Assistant"
 		target="_blank"
-		class="flex-grow shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-green-50 border border-green-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow align-middle slg:flex-[1.4]"
+		rel="noopener noreferrer"
+		class="flex-grow shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-green-50 border border-green-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow align-middle lg:flex-[1.4]"
 	>
 		<div class="lg:absolute top-0 right-0 mr-4" style="font-size: 2.5rem;">
 			<span class="text-xl font-light p-1 rounded-md dark:text-gray-200"></span>
@@ -155,6 +160,7 @@
 		<a
 			href="https://huggingface.co/spaces/MCP-1st-Birthday/devrel-agent-gradio"
 			target="_blank"
+			rel="noopener noreferrer"
 			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-blue-50 border border-blue-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow lg:flex-[1] my-8"
 		>
 			<div class="lg:absolute top-0 right-0 mr-4" style="font-size: 2.5rem;">
@@ -174,6 +180,7 @@
 		<a
 			href="https://huggingface.co/spaces/MCP-1st-Birthday/datapass"
 			target="_blank"
+			rel="noopener noreferrer"
 			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-purple-50 border border-purple-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow lg:ml-2 lg:flex-[1] my-8"
 		>
 			<div class="lg:absolute top-0 right-0 mr-4" style="font-size: 2.5rem;">
@@ -193,6 +200,7 @@
 		<a
 			href="https://huggingface.co/spaces/MCP-1st-Birthday/fleetmind-in-action"
 			target="_blank"
+			rel="noopener noreferrer"
 			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-orange-50 border border-orange-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow lg:ml-2 lg:flex-[1] my-8"
 		>
 			<div class="lg:absolute top-0 right-0 mr-4" style="font-size: 2.5rem;">
@@ -218,7 +226,8 @@
 	<a
 		href="https://huggingface.co/spaces/MCP-1st-Birthday/MCP-Blockly"
 		target="_blank"
-		class="flex-grow shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-green-50 border border-green-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow align-middle slg:flex-[1.4]"
+		rel="noopener noreferrer"
+		class="flex-grow shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-green-50 border border-green-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow align-middle lg:flex-[1.4]"
 	>
 		<div class="lg:absolute top-0 right-0 mr-4" style="font-size: 2.5rem;">
 			<span class="text-xl font-light p-1 rounded-md dark:text-gray-200"></span>
@@ -240,6 +249,7 @@
 		<a
 			href="https://huggingface.co/spaces/MCP-1st-Birthday/Drone-Control-MCP-Server"
 			target="_blank"
+			rel="noopener noreferrer"
 			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-blue-50 border border-blue-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow lg:flex-[1] my-8"
 		>
 			<div class="lg:absolute top-0 right-0 mr-4" style="font-size: 2.5rem;">
@@ -259,6 +269,7 @@
 		<a
 			href="https://huggingface.co/spaces/MCP-1st-Birthday/directors-cut"
 			target="_blank"
+			rel="noopener noreferrer"
 			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-purple-50 border border-purple-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow lg:ml-2 lg:flex-[1] my-8"
 		>
 			<div class="lg:absolute top-0 right-0 mr-4" style="font-size: 2.5rem;">
@@ -281,6 +292,7 @@
 		<a
 			href="https://huggingface.co/spaces/MCP-1st-Birthday/snowman-ai"
 			target="_blank"
+			rel="noopener noreferrer"
 			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-orange-50 border border-orange-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow lg:ml-2 lg:flex-[1] my-8"
 		>
 			<div class="lg:absolute top-0 right-0 mr-4" style="font-size: 2.5rem;">
@@ -307,7 +319,8 @@
 	<a
 		href="https://huggingface.co/spaces/MCP-1st-Birthday/vidzly"
 		target="_blank"
-		class="flex-grow shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-green-50 border border-green-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow align-middle slg:flex-[1.4]"
+		rel="noopener noreferrer"
+		class="flex-grow shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-green-50 border border-green-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow align-middle lg:flex-[1.4]"
 	>
 		<div class="lg:absolute top-0 right-0 mr-4" style="font-size: 2.5rem;">
 			<span class="text-xl font-light p-1 rounded-md dark:text-gray-200"></span>
@@ -331,6 +344,7 @@
 		<a
 			href="https://huggingface.co/spaces/MCP-1st-Birthday/the-emergent-show"
 			target="_blank"
+			rel="noopener noreferrer"
 			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-blue-50 border border-blue-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow lg:flex-[1] my-8"
 		>
 			<div class="lg:absolute top-0 right-0 mr-4" style="font-size: 2.5rem;">
@@ -353,6 +367,7 @@
 		<a
 			href="https://huggingface.co/spaces/MCP-1st-Birthday/reachy-beat-bot"
 			target="_blank"
+			rel="noopener noreferrer"
 			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-purple-50 border border-purple-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow lg:ml-2 lg:flex-[1] my-8"
 		>
 			<div class="lg:absolute top-0 right-0 mr-4" style="font-size: 2.5rem;">
@@ -375,6 +390,7 @@
 		<a
 			href="https://huggingface.co/spaces/MCP-1st-Birthday/mythforge"
 			target="_blank"
+			rel="noopener noreferrer"
 			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-orange-50 border border-orange-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow lg:ml-2 lg:flex-[1] my-8"
 		>
 			<div class="lg:absolute top-0 right-0 mr-4" style="font-size: 2.5rem;">
@@ -412,7 +428,8 @@
 	<a
 		href="https://huggingface.co/spaces/MCP-1st-Birthday/legacy_code_modernizer"
 		target="_blank"
-		class="mb-8 flex-grow shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-green-50 border border-green-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow align-middle slg:flex-[1.4]"
+		rel="noopener noreferrer"
+		class="mb-8 flex-grow shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-green-50 border border-green-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow align-middle lg:flex-[1.4]"
 	>
 		<div class="lg:absolute top-1 right-0 mr-4" style="font-size: 2.5rem;">
 			🏅
@@ -438,7 +455,8 @@
 	<a
 		href="https://huggingface.co/spaces/MCP-1st-Birthday/DungeonMaster-AI"
 		target="_blank"
-		class="mb-4 flex-grow shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-blue-50 border border-blue-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow align-middle slg:flex-[1.4]"
+		rel="noopener noreferrer"
+		class="mb-4 flex-grow shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-blue-50 border border-blue-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow align-middle lg:flex-[1.4]"
 	>
 		<div class="lg:absolute top-1 right-0 mr-4" style="font-size: 2.5rem;">
 			🏅
@@ -462,7 +480,8 @@
 	<a
 		href="https://huggingface.co/spaces/MCP-1st-Birthday/Brand-Identity-Generator"
 		target="_blank"
-		class="mb-4 flex-grow shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-purple-50 border border-purple-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow align-middle slg:flex-[1.4]"
+		rel="noopener noreferrer"
+		class="mb-4 flex-grow shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-purple-50 border border-purple-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow align-middle lg:flex-[1.4]"
 	>
 		<div class="lg:absolute top-0 right-0 mr-4" style="font-size: 2.5rem;">
 			<span class="text-xl font-light p-1 rounded-md dark:text-gray-200"
@@ -487,7 +506,8 @@
 	<a
 		href="https://huggingface.co/spaces/MCP-1st-Birthday/dental-chatgpt-app"
 		target="_blank"
-		class="mb-8 flex-grow shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-yellow-50 border border-yellow-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow align-middle slg:flex-[1.4]"
+		rel="noopener noreferrer"
+		class="mb-8 flex-grow shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-yellow-50 border border-yellow-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow align-middle lg:flex-[1.4]"
 	>
 		<div class="lg:absolute top-0 right-0 mr-4" style="font-size: 2.5rem;">
 			<span class="text-xl font-light p-1 rounded-md dark:text-gray-200"
@@ -513,7 +533,8 @@
 	<a
 		href="https://huggingface.co/spaces/MCP-1st-Birthday/BlaxML-Agent"
 		target="_blank"
-		class="mb-4 flex-grow shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-orange-50 border border-orange-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow align-middle slg:flex-[1.4]"
+		rel="noopener noreferrer"
+		class="mb-4 flex-grow shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-orange-50 border border-orange-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow align-middle lg:flex-[1.4]"
 	>
 		<div class="lg:absolute top-1 right-0 mr-4" style="font-size: 2.5rem;">
 			🏅
@@ -531,9 +552,3 @@
 		</div>
 	</a>
 </div>
-
-<style>
-	.quick-link {
-		transition: transform 0.1s ease-in-out;
-	}
-</style>
