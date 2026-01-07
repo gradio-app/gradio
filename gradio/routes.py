@@ -654,7 +654,9 @@ class App(FastAPI):
 
             @app.get(f"/{page}/")
             def page_redirect():
-                return RedirectResponse(url=f"/{page}", status_code=status.HTTP_301_MOVED_PERMANENTLY)
+                return RedirectResponse(
+                    url=f"/{page}", status_code=status.HTTP_301_MOVED_PERMANENTLY
+                )
 
         for pageset in blocks.pages:
             page = pageset[0]
