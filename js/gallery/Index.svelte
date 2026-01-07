@@ -28,7 +28,9 @@
 	}
 
 	const props = $props();
-	const gradio = new GalleryGradio<GalleryEvents, GalleryProps>(props);
+	const gradio = new GalleryGradio<GalleryEvents, GalleryProps>(props, {
+		selected_index: null
+	});
 
 	let fullscreen = $state(false);
 
@@ -126,7 +128,9 @@
 			on:select={(e) => gradio.dispatch("select", e.detail)}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
-			on:preview_open={() => gradio.dispatch("preview_open")}
+			on_preview_open={() => {
+				gradio.dispatch("preview_open");
+			}}
 			on:preview_close={() => gradio.dispatch("preview_close")}
 			on:fullscreen={({ detail }) => {
 				fullscreen = detail;
