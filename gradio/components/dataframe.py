@@ -376,7 +376,7 @@ class Dataframe(Component):
         elif _is_polars_available() and isinstance(value, _import_polars().DataFrame):
             return list(value.columns)
         elif isinstance(value, dict):
-            return value.get("headers", [])
+            return value.get("headers", [])  # type: ignore
         elif isinstance(value, (list, np.ndarray)):
             return []
         return []
@@ -400,7 +400,7 @@ class Dataframe(Component):
         from pandas.io.formats.style import Styler
 
         if isinstance(value, dict):
-            return value.get("data", [[]])
+            return value.get("data", [[]])  # type: ignore
         if isinstance(value, (str, pd.DataFrame)):
             if isinstance(value, str):
                 value = pd.read_csv(value)  # type: ignore
@@ -426,7 +426,7 @@ class Dataframe(Component):
                 if isinstance(value[0], tuple):
                     return [list(v) for v in value]
                 return [[v] for v in value]
-            return value
+            return value  # type: ignore
         else:
             raise ValueError(
                 f"Cannot process value of type {type(value)} in gr.Dataframe"
@@ -454,7 +454,7 @@ class Dataframe(Component):
                 value, [int(c) for c in getattr(value, "hidden_columns", [])]
             )
         elif isinstance(value, dict):
-            return value.get("metadata", None)
+            return value.get("metadata", None)  # type: ignore
         return None
 
     def postprocess(

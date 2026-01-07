@@ -408,7 +408,9 @@
 		width: 100%;
 	}
 
-	input,
+	input[type="text"],
+	input[type="password"],
+	input[type="email"],
 	textarea {
 		flex-grow: 1;
 		outline: none !important;

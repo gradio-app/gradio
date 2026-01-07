@@ -1,155 +1,165 @@
-<script context="module">
-	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import NativePlot from "./Index.svelte";
+	import { wrapProps } from "../storybook/wrapProps";
 
-	export const meta = {
+	const { Story } = defineMeta({
 		title: "Components/NativePlot",
 		component: NativePlot,
 		parameters: {
 			chromatic: { delay: 500 }
 		}
-	};
+	});
 </script>
 
-<Template let:args>
-	<div style="width: 600px; height: 400px;">
-		<NativePlot {...args} />
-	</div>
-</Template>
-
-<Story
-	name="Scatter Plot"
-	args={{
-		value: {
-			columns: ["x", "y", "category"],
-			data: [
-				[1, 2, "A"],
-				[2, 4, "A"],
-				[3, 1, "B"],
-				[4, 5, "B"],
-				[5, 3, "C"],
-				[6, 6, "C"]
-			],
-			datatypes: {
-				x: "quantitative",
-				y: "quantitative",
-				category: "nominal"
-			},
-			mark: "point"
+<Story name="Scatter Plot" args={{
+	value: {
+		columns: ["x", "y", "category"],
+		data: [
+			[1, 2, "A"],
+			[2, 4, "A"],
+			[3, 1, "B"],
+			[4, 5, "B"],
+			[5, 3, "C"],
+			[6, 6, "C"]
+		],
+		datatypes: {
+			x: "quantitative",
+			y: "quantitative",
+			category: "nominal"
 		},
-		x: "x",
-		y: "y",
-		color: "category",
-		title: "Sample Scatter Plot",
-		x_title: "X Axis",
-		y_title: "Y Axis",
-		color_title: "Categories",
-		label: "Scatter Plot",
-		show_label: true,
-		tooltip: "all"
-	}}
-/>
+		mark: "point"
+	},
+	x: "x",
+	y: "y",
+	color: "category",
+	title: "Sample Scatter Plot",
+	x_title: "X Axis",
+	y_title: "Y Axis",
+	color_title: "Categories",
+	label: "Scatter Plot",
+	show_label: true,
+	tooltip: "all"
+}}>
+	{#snippet template(args)}
+		<div style="width: 600px; height: 400px;">
+			<NativePlot {...wrapProps(args)} />
+		</div>
+	{/snippet}
+</Story>
 
-<Story
-	name="Line Plot"
-	args={{
-		value: {
-			columns: ["time", "value"],
-			data: [
-				[1, 10],
-				[2, 15],
-				[3, 13],
-				[4, 17],
-				[5, 14],
-				[6, 20]
-			],
-			datatypes: {
-				time: "quantitative",
-				value: "quantitative"
-			},
-			mark: "line"
+<Story name="Line Plot" args={{
+	value: {
+		columns: ["time", "value"],
+		data: [
+			[1, 10],
+			[2, 15],
+			[3, 13],
+			[4, 17],
+			[5, 14],
+			[6, 20]
+		],
+		datatypes: {
+			time: "quantitative",
+			value: "quantitative"
 		},
-		x: "time",
-		y: "value",
-		title: "Sample Line Plot",
-		x_title: "Time",
-		y_title: "Value",
-		label: "Line Plot",
-		show_label: true
-	}}
-/>
+		mark: "line"
+	},
+	x: "time",
+	y: "value",
+	title: "Sample Line Plot",
+	x_title: "Time",
+	y_title: "Value",
+	label: "Line Plot",
+	show_label: true
+}}>
+	{#snippet template(args)}
+		<div style="width: 600px; height: 400px;">
+			<NativePlot {...wrapProps(args)} />
+		</div>
+	{/snippet}
+</Story>
 
-<Story
-	name="Line Plot with height"
-	args={{
-		value: {
-			columns: ["time", "value"],
-			data: [
-				[1, 10],
-				[2, 15],
-				[3, 13],
-				[4, 17],
-				[5, 14],
-				[6, 20]
-			],
-			datatypes: {
-				time: "quantitative",
-				value: "quantitative"
-			},
-			mark: "line"
+<Story name="Line Plot with height" args={{
+	value: {
+		columns: ["time", "value"],
+		data: [
+			[1, 10],
+			[2, 15],
+			[3, 13],
+			[4, 17],
+			[5, 14],
+			[6, 20]
+		],
+		datatypes: {
+			time: "quantitative",
+			value: "quantitative"
 		},
-		x: "time",
-		y: "value",
-		title: "Sample Line Plot",
-		x_title: "Time",
-		y_title: "Value",
-		height: 250,
-		label: "Line Plot",
-		show_label: true
-	}}
-/>
+		mark: "line"
+	},
+	x: "time",
+	y: "value",
+	title: "Sample Line Plot",
+	x_title: "Time",
+	y_title: "Value",
+	height: 250,
+	label: "Line Plot",
+	show_label: true
+}}>
+	{#snippet template(args)}
+		<div style="width: 600px; height: 400px;">
+			<NativePlot {...wrapProps(args)} />
+		</div>
+	{/snippet}
+</Story>
 
-<Story
-	name="Colors In Legend Test"
-	args={{
-		value: {
-			columns: ["x", "y", "category"],
-			data: [
-				[1, 2, "A"],
-				[2, 4, "A"],
-				[3, 1, "B"],
-				[4, 5, "B"],
-				[5, 3, "C"],
-				[6, 6, "C"],
-				[7, 4, "D"],
-				[8, 7, "D"]
-			],
-			datatypes: {
-				x: "quantitative",
-				y: "quantitative",
-				category: "nominal"
-			},
-			mark: "point"
+<Story name="Colors In Legend Test" args={{
+	value: {
+		columns: ["x", "y", "category"],
+		data: [
+			[1, 2, "A"],
+			[2, 4, "A"],
+			[3, 1, "B"],
+			[4, 5, "B"],
+			[5, 3, "C"],
+			[6, 6, "C"],
+			[7, 4, "D"],
+			[8, 7, "D"]
+		],
+		datatypes: {
+			x: "quantitative",
+			y: "quantitative",
+			category: "nominal"
 		},
-		x: "x",
-		y: "y",
-		color: "category",
-		colors_in_legend: ["A", "C"],
-		title: "Plot with Filtered Legend (only A and C shown)",
-		x_title: "X Axis",
-		y_title: "Y Axis",
-		color_title: "Categories",
-		label: "Filtered Legend Plot",
-		show_label: true,
-		tooltip: "all"
-	}}
-/>
+		mark: "point"
+	},
+	x: "x",
+	y: "y",
+	color: "category",
+	colors_in_legend: ["A", "C"],
+	title: "Plot with Filtered Legend (only A and C shown)",
+	x_title: "X Axis",
+	y_title: "Y Axis",
+	color_title: "Categories",
+	label: "Filtered Legend Plot",
+	show_label: true,
+	tooltip: "all"
+}}>
+	{#snippet template(args)}
+		<div style="width: 600px; height: 400px;">
+			<NativePlot {...wrapProps(args)} />
+		</div>
+	{/snippet}
+</Story>
 
-<Story
-	name="Empty Plot"
-	args={{
-		value: null,
-		label: "Empty Plot",
-		show_label: true
-	}}
-/>
+<Story name="Empty Plot" args={{
+	value: null,
+	label: "Empty Plot",
+	show_label: true
+}}>
+	{#snippet template(args)}
+		<div style="width: 600px; height: 400px;">
+			<NativePlot {...wrapProps(args)} />
+		</div>
+	{/snippet}
+</Story>

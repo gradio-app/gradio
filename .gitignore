@@ -106,3 +106,4 @@ CLAUDE.md
 # docs upload
 scripts/docs.json
 tmp_input
+*storybook.log

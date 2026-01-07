@@ -851,7 +851,7 @@ def on(
     triggers_typed = cast(Sequence[EventListener], triggers)
 
     if isinstance(inputs, Block):
-        inputs = [inputs]
+        inputs = [inputs]  # type: ignore
 
     if fn == "decorator":
 
@@ -895,7 +895,7 @@ def on(
         raise Exception("Cannot call on() outside of a gradio.Blocks context.")
     if triggers is None:
         methods = (
-            [EventListenerMethod(input, "change") for input in inputs]
+            [EventListenerMethod(input, "change") for input in inputs]  # type: ignore
             if inputs is not None
             else []
         ) + [EventListenerMethod(root_block, "load")]  # type: ignore
@@ -1154,7 +1154,7 @@ class Events:
     select = EventListener(
         "select",
         callback=lambda block: setattr(block, "_selectable", True),
-        doc="Event listener for when the user selects or deselects the {{ component }}. Uses event data gradio.SelectData to carry `value` referring to the label of the {{ component }}, and `selected` to refer to state of the {{ component }}. See EventData documentation on how to use this event data",
+        doc="Event listener for when the user selects or deselects the {{ component }}. Uses event data gradio.SelectData to carry `value` referring to the label of the {{ component }}, and `selected` to refer to state of the {{ component }}. See https://www.gradio.app/main/docs/gradio/eventdata for more details.",
     )
     stream = EventListener(
         "stream",

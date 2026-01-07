@@ -1,48 +1,49 @@
-<script>
-	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import Multiselect from "./shared/Multiselect.svelte";
-	import { format } from "svelte-i18n";
-	import { get } from "svelte/store";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
+	import Dropdown from "./Index.svelte";
+	import { wrapProps } from "../storybook/wrapProps";
+
+	const { Story } = defineMeta({
+		title: "Components/Multiselect",
+		component: Dropdown,
+		argTypes: {
+			multiselect: {
+				control: [true, false],
+				name: "multiselect",
+				value: false
+			}
+		}
+	});
 </script>
 
-<Meta
-	title="Components/Multiselect"
-	component={Multiselect}
-	argTypes={{
-		multiselect: {
-			control: [true, false],
-			name: "multiselect",
-			value: false
-		}
-	}}
-/>
+<Story name="Multiselect Interactive" args={{
+	value: ["swim", "run"],
+	choices: [
+		["run", "run"],
+		["swim", "swim"],
+		["jump", "jump"]
+	],
+	label: "Multiselect Dropdown",
+	multiselect: true,
+	interactive: true
+}}>
+	{#snippet template(args)}
+		<Dropdown {...wrapProps(args)} />
+	{/snippet}
+</Story>
 
-<Template let:args>
-	<Multiselect {...args} i18n={get(format)} />
-</Template>
-
-<Story
-	name="Multiselect Interactive"
-	args={{
-		value: ["swim", "run"],
-		choices: [
-			["run", "run"],
-			["swim", "swim"],
-			["jump", "jump"]
-		],
-		label: "Multiselect Dropdown"
-	}}
-/>
-<Story
-	name="Multiselect Static"
-	args={{
-		value: ["swim", "run"],
-		choices: [
-			["run", "run"],
-			["swim", "swim"],
-			["jump", "jump"]
-		],
-		label: "Multiselect Dropdown",
-		disabled: true
-	}}
-/>
+<Story name="Multiselect Static" args={{
+	value: ["swim", "run"],
+	choices: [
+		["run", "run"],
+		["swim", "swim"],
+		["jump", "jump"]
+	],
+	label: "Multiselect Dropdown",
+	multiselect: true,
+	interactive: false
+}}>
+	{#snippet template(args)}
+		<Dropdown {...wrapProps(args)} />
+	{/snippet}
+</Story>

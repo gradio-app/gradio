@@ -307,7 +307,7 @@ class ImageEditor(Component):
         self.image_mode = image_mode
         valid_sources = ["upload", "webcam", "clipboard"]
         if isinstance(sources, str):
-            sources = [sources]
+            sources = [sources]  # type: ignore
         if sources is not None:
             for source in sources:
                 if source not in valid_sources:

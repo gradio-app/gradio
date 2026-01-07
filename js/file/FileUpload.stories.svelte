@@ -1,12 +1,11 @@
-<script context="module">
-	import { Template, Story } from "@storybook/addon-svelte-csf";
-	import { format } from "svelte-i18n";
-	import FileUpload from "./shared/FileUpload.svelte";
-	import { get } from "svelte/store";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
+	import File from "./Index.svelte";
+	import { wrapProps } from "../storybook/wrapProps";
 
-	export const meta = {
+	const { Story } = defineMeta({
 		title: "Components/FileUpload",
-		component: FileUpload,
+		component: File,
 		argTypes: {
 			value: {
 				control: "text",
@@ -22,43 +21,55 @@
 				value: "single"
 			}
 		}
-	};
+	});
 </script>
 
-<Template let:args>
-	<FileUpload {...args} i18n={get(format)} />
-</Template>
-
-<Story
-	name="Single File"
-	args={{
-		value: [
-			{
-				path: "cheetah.jpg",
-				orig_name: "cheetah.jpg",
-				url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-				size: 10000
-			}
-		],
-		file_count: "single"
-	}}
-/>
-<Story
-	name="Multiple files"
-	args={{
-		value: Array(2).fill({
+<Story name="Single File" args={{
+	value: [
+		{
 			path: "cheetah.jpg",
 			orig_name: "cheetah.jpg",
 			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
 			size: 10000
-		}),
-		file_count: "multiple"
-	}}
-/>
-<Story
-	name="No value"
-	args={{
-		value: null,
-		file_count: "multiple"
-	}}
-/>
+		}
+	],
+	file_count: "single",
+	interactive: true
+}}>
+	{#snippet template(args)}
+		<File {...wrapProps(args)} />
+	{/snippet}
+</Story>
+
+<Story name="Multiple files" args={{
+	value: [
+		{
+			path: "cheetah1.jpg",
+			orig_name: "cheetah1.jpg",
+			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			size: 10000
+		},
+		{
+			path: "cheetah2.jpg",
+			orig_name: "cheetah2.jpg",
+			url: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
+			size: 10000
+		}
+	],
+	file_count: "multiple",
+	interactive: true
+}}>
+	{#snippet template(args)}
+		<File {...wrapProps(args)} />
+	{/snippet}
+</Story>
+
+<Story name="No value" args={{
+	value: null,
+	file_count: "multiple",
+	interactive: true
+}}>
+	{#snippet template(args)}
+		<File {...wrapProps(args)} />
+	{/snippet}
+</Story>

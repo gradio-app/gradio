@@ -14,7 +14,7 @@
 		component_class_name = "HTML"
 	} = $props();
 
-	let old_props = $state(props);
+	let old_props = $state(JSON.parse(JSON.stringify(props)));
 
 	const dispatch = createEventDispatcher<{
 		event: { type: "click" | "submit"; data: any };
@@ -37,7 +37,8 @@
 	let currentCss = $state("");
 	let renderScheduled = $state(false);
 	let mounted = $state(false);
-	let error_message: string | null = $state(null);
+	let html_error_message: string | null = $state(null);
+	let css_error_message: string | null = $state(null);
 
 	function get_scrollable_parent(element: HTMLElement): HTMLElement | null {
 		let parent = element.parentElement;
@@ -92,7 +93,8 @@
 
 	function render_template(
 		template: string,
-		props: Record<string, any>
+		props: Record<string, any>,
+		language: "html" | "css" = "html"
 	): string {
 		try {
 			const handlebarsTemplate = Handlebars.compile(template);
@@ -104,11 +106,19 @@
 				...propKeys,
 				`return \`${handlebarsRendered}\`;`
 			);
-			error_message = null;
+			if (language === "html") {
+				html_error_message = null;
+			} else if (language === "css") {
+				css_error_message = null;
+			}
 			return templateFunc(...propValues);
 		} catch (e) {
 			console.error("Error evaluating template:", e);
-			error_message = e instanceof Error ? e.message : String(e);
+			if (language === "html") {
+				html_error_message = e instanceof Error ? e.message : String(e);
+			} else if (language === "css") {
+				css_error_message = e instanceof Error ? e.message : String(e);
+			}
 			return "";
 		}
 	}
@@ -119,7 +129,7 @@
 			style_element = document.createElement("style");
 			document.head.appendChild(style_element);
 		}
-		currentCss = render_template(css_template, reactiveProps);
+		currentCss = render_template(css_template, reactiveProps, "css");
 		if (currentCss) {
 			style_element.textContent = `#${random_id} { ${currentCss} }`;
 		} else {
@@ -227,7 +237,7 @@
 	}
 
 	function renderHTML(): void {
-		const newHtml = render_template(html_template, reactiveProps);
+		const newHtml = render_template(html_template, reactiveProps, "html");
 		if (element) {
 			updateDOM(currentHtml, newHtml);
 		}
@@ -278,7 +288,7 @@
 			}
 		);
 
-		currentHtml = render_template(html_template, reactiveProps);
+		currentHtml = render_template(html_template, reactiveProps, "html");
 		element.innerHTML = currentHtml;
 		update_css();
 
@@ -314,14 +324,14 @@
 	});
 </script>
 
-{#if error_message}
+{#if html_error_message || css_error_message}
 	<div class="error-container">
 		<strong class="error-title"
 			>Error rendering <code class="error-component-name"
 				>{component_class_name}</code
 			>:</strong
 		>
-		<code class="error-message">{error_message}</code>
+		<code class="error-message">{html_error_message || css_error_message}</code>
 	</div>
 {:else}
 	<div
