@@ -1,6 +1,6 @@
 ---
-"@gradio/colorpicker": minor
-"gradio": minor
+"@gradio/colorpicker": patch
+"gradio": patch
 ---
 
-feat:Upgrade color picker to Svelte 5 syntax
+fix:Upgrade color picker to Svelte 5 syntax
