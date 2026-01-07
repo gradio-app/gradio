@@ -11,6 +11,7 @@ export interface ParamViewerProps {
 	header: string | null;
 	anchor_links: boolean | string;
 	max_height: number | string | undefined;
+	collapsed: boolean;
 }
 
 export interface ParamViewerEvents {

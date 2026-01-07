@@ -45,6 +45,7 @@ class ParamViewer(Component):
         header: str | None = "Parameters",
         anchor_links: bool | str = False,
         max_height: int | str | None = None,
+        collapsed: bool = False,
     ):
         """
         Parameters:
@@ -59,6 +60,7 @@ class ParamViewer(Component):
             header: The header to display above the table of parameters, also includes a toggle button that closes/opens all details at once. If None, no header will be displayed.
             anchor_links: If True, creates anchor links for each parameter that can be used to link directly to that parameter. If a string, creates anchor links with the given string as the prefix to prevent conflicts with other ParamViewer components.
             max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If content exceeds the height, the parameter table will scroll vertically while the header remains fixed in place. If content is shorter than the height, the component will shrink to fit the content.
+            collapsed: Whether the parameter table is collapsed by default.
         """
         self.value = value or {}
         self.language = language
@@ -66,6 +68,7 @@ class ParamViewer(Component):
         self.header = header
         self.anchor_links = anchor_links
         self.max_height = max_height
+        self.collapsed = collapsed
         super().__init__(
             every=every,
             inputs=inputs,
