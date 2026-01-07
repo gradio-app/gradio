@@ -65,10 +65,10 @@ def test_transformers_load_from_pipeline():
 
     pipe = pipeline(model="deepset/roberta-base-squad2")  # type: ignore
     io = gr.Interface.from_pipeline(pipe)
-    assert io.input_components[0].label == "Context"
-    assert io.input_components[1].label == "Question"
-    assert io.output_components[0].label == "Answer"
-    assert io.output_components[1].label == "Score"
+    assert io.input_components[0].label == "Context"  # type: ignore
+    assert io.input_components[1].label == "Question"  # type: ignore
+    assert io.output_components[0].label == "Answer"  # type: ignore
+    assert io.output_components[1].label == "Score"  # type: ignore
 
 
 class TestHandleTransformersPipelines(unittest.TestCase):

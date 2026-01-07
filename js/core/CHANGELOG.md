@@ -1,5 +1,39 @@
 # @gradio/core
 
+## 1.1.0
+
+### Features
+
+- [#12539](https://github.com/gradio-app/gradio/pull/12539) [`f1d83fa`](https://github.com/gradio-app/gradio/commit/f1d83fac3d6e4bad60cf896a026fa2d572f26073) - Add ability to add custom buttons to components.  Thanks @abidlabs!
+
+### Fixes
+
+- [#12569](https://github.com/gradio-app/gradio/pull/12569) [`9daf193`](https://github.com/gradio-app/gradio/commit/9daf1932291bea1fcbbe20096d28018657242295) - Add footer to bottom of page.  Thanks @freddyaboulton!
+- [#12600](https://github.com/gradio-app/gradio/pull/12600) [`1fafaba`](https://github.com/gradio-app/gradio/commit/1fafabaace315b1c699855cadb69eb17488de957) - Add x-gradio-user-header.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/checkbox@0.6.0
+- @gradio/utils@0.11.0
+- @gradio/client@2.0.1
+- @gradio/statustracker@0.12.1
+- @gradio/upload@0.17.3
+- @gradio/button@0.6.1
+- @gradio/gallery@0.16.0
+- @gradio/plot@0.10.0
+- @gradio/dropdown@0.11.0
+- @gradio/textbox@0.13.0
+- @gradio/file@0.14.0
+- @gradio/image@0.25.0
+- @gradio/video@0.19.0
+- @gradio/column@0.3.0
+- @gradio/audio@0.22.0
+- @gradio/code@0.17.0
+- @gradio/paramviewer@0.9.1
+- @gradio/tabitem@0.6.4
+- @gradio/tabs@0.5.4
+
 ## 1.0.2
 
 ### Fixes

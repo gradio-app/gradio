@@ -1,5 +1,21 @@
 # @gradio/dataframe
 
+## 0.21.2
+
+### Fixes
+
+- [#12550](https://github.com/gradio-app/gradio/pull/12550) [`efb2549`](https://github.com/gradio-app/gradio/commit/efb2549a1c2c4d0254a5c2b5b46b824322395854) - Fix Dataframe Package.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/checkbox@0.6.0
+- @gradio/utils@0.11.0
+- @gradio/client@2.0.1
+- @gradio/statustracker@0.12.1
+- @gradio/upload@0.17.3
+- @gradio/button@0.6.1
+
 ## 0.21.1
 
 ### Dependency updates

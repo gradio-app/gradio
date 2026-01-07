@@ -792,11 +792,16 @@
 		/>
 	{/if}
 	{#if gradio.props.buttons?.length}
-		<IconButtonWrapper>
-			{#if gradio.props.buttons?.includes("export")}
+		<IconButtonWrapper
+			buttons={gradio.props.buttons}
+			on_custom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
+		>
+			{#if gradio.props.buttons?.some((btn) => typeof btn === "string" && btn === "export")}
 				<IconButton Icon={Download} label="Export" on:click={export_chart} />
 			{/if}
-			{#if gradio.props.buttons?.includes("fullscreen")}
+			{#if gradio.props.buttons?.some((btn) => typeof btn === "string" && btn === "fullscreen")}
 				<FullscreenButton
 					{fullscreen}
 					on:fullscreen={({ detail }) => {

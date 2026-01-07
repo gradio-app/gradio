@@ -1,28 +1,29 @@
-<script>
-	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import Image from "./Example.svelte";
+
+	const { Story } = defineMeta({
+		title: "Components/Image/Example",
+		component: Image
+	});
 </script>
 
-<Meta title="Components/Image/Example" component={Image} />
+<Story name="Image file" args={{
+	value: {
+		path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+		url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+		orig_name: "cheetah.jpg"
+	}
+}}>
+	{#snippet template(args)}
+		<Image {...args} />
+	{/snippet}
+</Story>
 
-<Template let:args>
-	<Image {...args} />
-</Template>
-
-<Story
-	name="Image file"
-	args={{
-		value: {
-			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			orig_name: "cheetah.jpg"
-		}
-	}}
-/>
-
-<Story
-	name="Null"
-	args={{
-		value: null
-	}}
-/>
+<Story name="Null" args={{
+	value: null
+}}>
+	{#snippet template(args)}
+		<Image {...args} />
+	{/snippet}
+</Story>

@@ -1,4 +1,11 @@
 # @gradio/client
+
+## 2.0.1
+
+### Fixes
+
+- [#12600](https://github.com/gradio-app/gradio/pull/12600) [`1fafaba`](https://github.com/gradio-app/gradio/commit/1fafabaace315b1c699855cadb69eb17488de957) - Add x-gradio-user-header.  Thanks @freddyaboulton!
+
 ## 2.0.0
 
 ### Features
