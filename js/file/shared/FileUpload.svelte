@@ -33,7 +33,7 @@
 		onupload,
 		onerror,
 		ondelete,
-		onselect,
+		onselect
 	}: {
 		value: null | FileData | FileData[];
 		label: string;
