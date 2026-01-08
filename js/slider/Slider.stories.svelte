@@ -35,7 +35,7 @@
 	{/snippet}
 </Story>
 
-<Story name="Slider with step of 10" args={{ step: 10, interactive: true }}>
+<Story name="Slider with step of 10" args={{ minimum: 0, maximum: 100, step: 10, interactive: true }}>
 	{#snippet template(args)}
 		<Slider {...wrapProps(args)} />
 	{/snippet}
@@ -65,7 +65,7 @@
 	{/snippet}
 </Story>
 
-<Story name="Non-interactive Slider" args={{ value: 30, interactive: false }}>
+<Story name="Non-interactive Slider" args={{ value: 30, minimum: 0, maximum: 100, interactive: false }}>
 	{#snippet template(args)}
 		<Slider {...wrapProps(args)} />
 	{/snippet}
