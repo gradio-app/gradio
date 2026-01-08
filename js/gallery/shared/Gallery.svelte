@@ -9,11 +9,10 @@
 	} from "@gradio/atoms";
 	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 	import { ModifyUpload, Upload as UploadComponent } from "@gradio/upload";
-	import type { SelectData } from "@gradio/utils";
 	import { Image } from "@gradio/image/shared";
 	import { Video } from "@gradio/video/shared";
 	import { dequal } from "dequal";
-	import { createEventDispatcher, onMount } from "svelte";
+	import { onMount } from "svelte";
 	import { tick } from "svelte";
 	import type { GalleryImage, GalleryVideo } from "../types";
 
@@ -241,7 +240,7 @@
 	});
 
 	$effect(() => {
-		if (allow_preview) {
+		if (allow_preview && container_element) {
 			scroll_to_img(selected_index);
 		}
 	});
@@ -254,6 +253,7 @@
 		await tick();
 
 		if (el[index] === undefined) return;
+		if (!container_element) return;
 
 		el[index]?.focus();
 
