@@ -426,16 +426,15 @@ export class AppTree {
 			already_updated_visibility = true;
 		}
 		const _set_data = this.#set_callbacks.get(id);
-		const old_value = node?.props.props.value;
-		// @ts-ignore
-		const new_props = create_props_shared_props(new_state);
-		node!.props.shared_props = {
-			...node?.props.shared_props,
-			...new_props.shared_props
-		};
-		node!.props.props = { ...node?.props.props, ...new_props.props };
-		await tick();
 		if (!_set_data) {
+			const old_value = node?.props.props.value;
+			// @ts-ignore
+			const new_props = create_props_shared_props(new_state);
+			node!.props.shared_props = {
+				...node?.props.shared_props,
+				...new_props.shared_props
+			};
+			node!.props.props = { ...node?.props.props, ...new_props.props };
 			if ("value" in new_state && !dequal(old_value, new_state.value)) {
 				this.#event_dispatcher(id, "change", null);
 			}
