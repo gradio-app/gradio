@@ -9,12 +9,12 @@ test("Video click-to-upload uploads video successfuly. Clear, play, and pause bu
 	]);
 	await fileChooser.setFiles(["./test/files/av1-video.mp4"]);
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
-
-	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
+	await expect(page.getByLabel("# Input Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 
 	await page.getByLabel("Clear").click();
 	await expect(page.getByLabel("# Change Events")).toHaveValue("2");
+	await expect(page.getByLabel("# Input Events")).toHaveValue("2");
 
 	const [fileChooser_two] = await Promise.all([
 		page.waitForEvent("filechooser"),
@@ -24,6 +24,7 @@ test("Video click-to-upload uploads video successfuly. Clear, play, and pause bu
 	await fileChooser_two.setFiles(["./test/files/av1-video.mp4"]);
 
 	await expect(page.getByLabel("# Change Events")).toHaveValue("3");
+	await expect(page.getByLabel("# Input Events")).toHaveValue("3");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("2");
 
 	const downloadPromise = page.waitForEvent("download");
