@@ -1,6 +1,6 @@
 ---
-"@gradio/downloadbutton": minor
-"gradio": minor
+"@gradio/downloadbutton": patch
+"gradio": patch
 ---
 
-feat:Migrate DownloadButton to Svelte 5
+fix:Migrate DownloadButton to Svelte 5
