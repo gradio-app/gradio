@@ -25,7 +25,7 @@ export function wrapProps(componentProps) {
 			show_progress: "full",
 			api_prefix: "",
 			root: "",
-			visible: true,
+			visible: componentProps.visible ?? true,
 			interactive: componentProps.interactive ?? true,
 			show_label: componentProps.show_label ?? true,
 			label: componentProps.label ?? "",
