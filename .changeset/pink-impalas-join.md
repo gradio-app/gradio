@@ -1,8 +1,8 @@
 ---
-"@gradio/atoms": minor
-"@gradio/core": minor
-"@gradio/form": minor
-"gradio": minor
+"@gradio/atoms": patch
+"@gradio/core": patch
+"@gradio/form": patch
+"gradio": patch
 ---
 
-feat:feat: add ARIA landmarks for accessibility
+fix:feat: add ARIA landmarks for accessibility
