@@ -392,7 +392,7 @@
 		background-color: var(--background-fill-secondary);
 		box-shadow: var(--shadow-drop);
 		align-self: flex-start;
-		text-align: right;
+		text-align: left;
 		border-bottom-left-radius: 0;
 		padding: var(--spacing-sm) var(--spacing-xl);
 	}
@@ -401,10 +401,6 @@
 		border: none;
 		box-shadow: none;
 		background: none;
-	}
-
-	.panel .user :global(*) {
-		text-align: right;
 	}
 
 	/* Colors */
@@ -464,10 +460,6 @@
 
 	.panel .panel-full-width {
 		width: 100%;
-	}
-
-	.panel .user :global(*) {
-		text-align: right;
 	}
 
 	/* message content */
@@ -637,7 +629,7 @@
 
 	.panel .user :global(*),
 	.panel .bot :global(*) {
-		text-align: left;
+		text-align: inherit;
 	}
 
 	.panel .user {
