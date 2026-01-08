@@ -1,6 +1,6 @@
 ---
-"@gradio/model3d": minor
-"gradio": minor
+"@gradio/model3d": patch
+"gradio": patch
 ---
 
-feat:Migrate Model3D to Svelte 5
+fix:Migrate Model3D to Svelte 5
