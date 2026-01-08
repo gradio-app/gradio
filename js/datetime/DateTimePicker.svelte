@@ -192,7 +192,7 @@
 							min="0"
 							max="59"
 							bind:value={selected_minute}
-							on:input={update_time}
+							oninput={update_time}
 						/>
 					</div>
 					<div class="time-input-group">
@@ -203,7 +203,7 @@
 							min="0"
 							max="59"
 							bind:value={selected_second}
-							on:input={update_time}
+							oninput={update_time}
 						/>
 					</div>
 					<div class="time-input-group">
@@ -211,7 +211,7 @@
 						<button
 							type="button"
 							class="am-pm-toggle"
-							on:click={toggle_am_pm}
+							onclick={toggle_am_pm}
 							aria-label="Toggle AM/PM"
 						>
 							{is_pm ? "PM" : "AM"}
