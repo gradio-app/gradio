@@ -17,11 +17,11 @@
 	$inspect("gradio.props.selected", gradio.props.selected);
 
 	$effect(() => {
-		console.log("Here");
 		// console.log("Selected tab changed effect triggered", "selected:", gradio.props.selected, "old_selected:", old_selected);
 		// if (old_selected !== gradio.props.selected) {
 		if (gradio.props.selected) {
 			untrack(() => {
+				console.log("Here");
 				const i = gradio.props.initial_tabs.findIndex(
 					(t) => t.id === gradio.props.selected
 				);
