@@ -57,7 +57,16 @@
 		fit_columns = true,
 		buttons = null,
 		on_custom_button_click = null,
-		on_preview_open = () => {}
+		on_preview_open = () => {},
+		on_change = () => {},
+		on_clear = () => {},
+		on_select = (data) => {},
+		on_share = (data) => {},
+		on_error = (error) => {},
+		on_preview_close = () => {},
+		on_fullscreen = () => {},
+		on_delete = () => {},
+		on_upload = () => {}
 	}: {
 		show_label: boolean;
 		label: string;
@@ -74,7 +83,6 @@
 		selected_index: number | null;
 		interactive: boolean;
 		_fetch: typeof fetch;
-		mode: "normal" | "minimal";
 		show_fullscreen_button: boolean;
 		fullscreen: boolean;
 		root: string;
@@ -83,10 +91,18 @@
 		upload: Client["upload"] | undefined;
 		stream_handler: Client["stream"] | undefined;
 		fit_columns: boolean;
-		upload_promise: Promise<any> | null;
 		buttons: (string | CustomButtonType)[] | null;
 		on_custom_button_click: ((id: number) => void) | null;
 		on_preview_open: () => void;
+		on_change: () => void;
+		on_clear: () => void;
+		on_select: (data: any) => void;
+		on_share: (data: any) => void;
+		on_error: (error: any) => void;
+		on_preview_close: () => void;
+		on_fullscreen: (is_fullscreen: boolean) => void;
+		on_delete: (data: { file: FileData; index: number }) => void;
+		on_upload: (data: FileData | FileData[]) => void;
 	} = $props();
 
 	let upload_promise: Promise<any> | null = null;
@@ -171,7 +187,7 @@
 					selected_index = null;
 				}
 			}
-			dispatch("change");
+			on_change();
 			prev_value = value;
 		}
 	});
@@ -203,7 +219,7 @@
 			case "Escape":
 				e.preventDefault();
 				selected_index = null;
-				dispatch("preview_close");
+				on_preview_close();
 				break;
 			case "ArrowLeft":
 				e.preventDefault();
@@ -228,7 +244,7 @@
 						Math.min(selected_index, resolved_value.length - 1)
 					);
 				}
-				dispatch("select", {
+				on_select({
 					index: selected_index,
 					value: resolved_value?.[selected_index]
 				});
@@ -355,7 +371,7 @@
 		}
 
 		if (deleted_file_data) {
-			dispatch("delete", deleted_file_data);
+			on_delete(deleted_file_data);
 		}
 	}
 
@@ -403,15 +419,22 @@
 					{/if}
 
 					{#if show_fullscreen_button}
-						<FullscreenButton {fullscreen} on:fullscreen />
+						<FullscreenButton
+							{fullscreen}
+							on:fullscreen={() => on_fullscreen(!fullscreen)}
+						/>
 					{/if}
 
 					{#if show_share_button}
 						<div class="icon-button">
 							<ShareButton
 								{i18n}
-								on:share
-								on:error
+								on:share={(detail) => {
+									on_share(detail);
+								}}
+								on:error={(detail) => {
+									on_error(detail);
+								}}
 								value={resolved_value}
 								formatter={format_gallery_for_sharing}
 							/>
@@ -423,7 +446,7 @@
 							label="Close"
 							on:click={() => {
 								selected_index = null;
-								dispatch("preview_close");
+								on_preview_close();
 							}}
 						/>
 					{/if}
@@ -527,7 +550,7 @@
 					{i18n}
 					on:clear={() => {
 						value = [];
-						dispatch("clear");
+						on_clear();
 					}}
 				>
 					{#if upload && stream_handler}
@@ -535,13 +558,13 @@
 							<UploadComponent
 								bind:upload_promise
 								icon_upload={true}
-								on:load={(e) => dispatch("upload", e.detail)}
+								on:load={(e) => on_upload(e.detail)}
 								filetype={file_types}
 								file_count="multiple"
 								{max_file_size}
 								{root}
 								bind:uploading
-								on:error={(e) => dispatch("error", e.detail)}
+								on:error={(e) => on_error(e.detail)}
 								{stream_handler}
 								{upload}
 							/>
