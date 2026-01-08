@@ -39,7 +39,7 @@
 
 	const manyTabs = [
 		{
-			label: "Tab 1",
+			label: "This is visible tab 1",
 			id: "tab-1",
 			elem_id: undefined,
 			visible: true,
@@ -48,7 +48,7 @@
 			component_id: 1
 		},
 		{
-			label: "Tab 2",
+			label: "This is visible tab 2",
 			id: "tab-2",
 			elem_id: undefined,
 			visible: true,
@@ -57,7 +57,7 @@
 			component_id: 2
 		},
 		{
-			label: "Tab 3",
+			label: "This is visible tab 3",
 			id: "tab-3",
 			elem_id: undefined,
 			visible: true,
@@ -66,7 +66,7 @@
 			component_id: 3
 		},
 		{
-			label: "Invisible Tab 4",
+			label: "This is invisible tab 4",
 			id: "tab-4",
 			elem_id: undefined,
 			visible: false,
@@ -75,7 +75,7 @@
 			component_id: 4
 		},
 		{
-			label: "Invisible Tab 5",
+			label: "This is invisible tab 5",
 			id: "tab-5",
 			elem_id: undefined,
 			visible: false,
