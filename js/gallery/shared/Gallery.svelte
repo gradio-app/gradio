@@ -64,7 +64,7 @@
 		on_share = (data) => {},
 		on_error = (error) => {},
 		on_preview_close = () => {},
-		on_fullscreen = () => {},
+		on_fullscreen = (data) => {},
 		on_delete = () => {},
 		on_upload = () => {}
 	}: {
@@ -100,8 +100,8 @@
 		on_share: (data: any) => void;
 		on_error: (error: any) => void;
 		on_preview_close: () => void;
-		on_fullscreen: (is_fullscreen: boolean) => void;
-		on_delete: (data: { file: FileData; index: number }) => void;
+		on_fullscreen: (data: any) => void;
+		on_delete: (data: any) => void;
 		on_upload: (data: FileData | FileData[]) => void;
 	} = $props();
 
@@ -110,18 +110,6 @@
 	let display_icon_button_wrapper_top_corner = false;
 	let is_full_screen = false;
 	let image_container: HTMLElement;
-
-	const dispatch = createEventDispatcher<{
-		change: undefined;
-		select: SelectData;
-		preview_open: undefined;
-		preview_close: undefined;
-		fullscreen: boolean;
-		delete: { file: FileData; index: number };
-		upload: FileData | FileData[];
-		error: string;
-		clear: undefined;
-	}>();
 
 	let was_reset: boolean = $state(false);
 
@@ -421,7 +409,7 @@
 					{#if show_fullscreen_button}
 						<FullscreenButton
 							{fullscreen}
-							on:fullscreen={() => on_fullscreen(!fullscreen)}
+							on:fullscreen={(e) => on_fullscreen(e)}
 						/>
 					{/if}
 
