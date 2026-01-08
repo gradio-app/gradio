@@ -1,5 +1,5 @@
 <script lang="ts">
-	export let value: string | null;
+	let { value }: { value: string | null } = $props();
 </script>
 
 {value || ""}

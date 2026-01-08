@@ -1,9 +1,15 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/client";
 
-	export let value: FileData | null;
-	export let type: "gallery" | "table";
-	export let selected = false;
+	let {
+		value,
+		type,
+		selected = false
+	}: {
+		value: FileData | null;
+		type: "gallery" | "table";
+		selected: boolean;
+	} = $props();
 </script>
 
 <div
