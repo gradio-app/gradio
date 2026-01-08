@@ -88,12 +88,24 @@
 			<div
 				style="padding: 20px; font-family: var(--font-sans, system-ui, sans-serif);"
 			>
-				<h2 style="margin: 0 0 0.5rem; font-size: 1rem; font-weight: 700;">
-					Page Content
-				</h2>
-				<p style="margin: 0; color: var(--body-text-color-subdued, #6b7280);">
-					This is the content area below the navbar.
-				</p>
+				<h3 style="margin: 0 0 0.5rem; font-size: 1rem; font-weight: 700;">
+					Navbar Storybook Demo
+				</h3>
+				<p style="margin: 0 0 0.5rem;">The navbar above shows:</p>
+				<ul style="margin: 0; padding-left: 1.5rem;">
+					<li>
+						<strong>Visibility:</strong>
+						{args.visible ? "Visible" : "Hidden"}
+					</li>
+					<li><strong>Main Page Name:</strong> {args.main_page_name}</li>
+					<li>
+						<strong>Custom Pages:</strong>
+						{args.value ? JSON.stringify(args.value) : "None"}
+					</li>
+				</ul>
+				<p
+					style="margin-top: 1rem; color: var(--body-text-color-subdued, #6b7280);"
+				></p>
 			</div>
 		</div>
 	{/key}
