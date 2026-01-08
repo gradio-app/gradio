@@ -31,11 +31,11 @@
 	<Accordion
 		{label}
 		open={gradio.props.open}
-		on:expand={() => {
+		onexpand={() => {
 			gradio.dispatch("expand");
 			gradio.dispatch("gradio_expand");
 		}}
-		on:collapse={() => gradio.dispatch("collapse")}
+		oncollapse={() => gradio.dispatch("collapse")}
 	>
 		<BaseColumn>
 			<slot />

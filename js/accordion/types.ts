@@ -5,4 +5,5 @@ export interface AccordionProps {
 export interface AccordionEvents {
 	expand: never;
 	collapse: never;
+	gradio_expand: never;
 }
