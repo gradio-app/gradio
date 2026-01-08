@@ -645,13 +645,18 @@ class App(FastAPI):
 
         def attach_page(page):
             @app.get(f"/{page}", response_class=HTMLResponse)
-            @app.get(f"/{page}/", response_class=HTMLResponse)
             def page_route(
                 request: fastapi.Request,
                 user: str = Depends(get_current_user),
                 deep_link: str = "",
             ):
                 return main(request, user, page, deep_link)
+
+            @app.get(f"/{page}/")
+            def page_redirect():
+                return RedirectResponse(
+                    url=f"/{page}", status_code=status.HTTP_301_MOVED_PERMANENTLY
+                )
 
         for pageset in blocks.pages:
             page = pageset[0]
