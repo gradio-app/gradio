@@ -1,22 +1,35 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
 	import { type FileData } from "@gradio/client";
 	import { BaseButton } from "@gradio/button";
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let variant: "primary" | "secondary" | "stop" = "secondary";
-	export let size: "sm" | "md" | "lg" = "lg";
-	export let value: null | FileData;
-	export let icon: null | FileData;
-	export let disabled = false;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	const dispatch = createEventDispatcher();
+	let {
+		elem_id = "",
+		elem_classes = [],
+		visible = true,
+		variant = "secondary",
+		size = "lg",
+		value,
+		icon,
+		disabled = false,
+		scale = null,
+		min_width = undefined,
+		on_click
+	}: {
+		elem_id?: string;
+		elem_classes?: string[];
+		visible?: boolean | "hidden";
+		variant?: "primary" | "secondary" | "stop";
+		size?: "sm" | "md" | "lg";
+		value: FileData | null;
+		icon: FileData | null;
+		disabled?: boolean;
+		scale?: number | null;
+		min_width?: number | undefined;
+		on_click?: () => void;
+	} = $props();
 
 	function download_file(): void {
-		dispatch("click");
+		on_click?.();
 		if (!value?.url) {
 			return;
 		}
