@@ -13,11 +13,12 @@
 	import FileUpload from "./shared/FileUpload.svelte";
 	import { Block, UploadText } from "@gradio/atoms";
 	import type { FileEvents, FileProps } from "./types";
+	import type { SelectData } from "@gradio/utils";
 	import { StatusTracker } from "@gradio/statustracker";
 	import { tick } from "svelte";
 
 	const props = $props();
-	let upload_promise = $state<Promise<any>>();
+	let upload_promise = $state<Promise<any> | null>(null);
 
 	let dragging = $state(false);
 	let pending_upload = $state(false);
@@ -94,7 +95,7 @@
 			file_count={gradio.props.file_count}
 			file_types={gradio.props.file_types}
 			selectable={gradio.props._selectable}
-			height={gradio.props.height}
+			height={gradio.props.height ?? undefined}
 			root={gradio.shared.root}
 			allow_reordering={gradio.props.allow_reordering}
 			max_file_size={gradio.shared.max_file_size}
@@ -102,19 +103,19 @@
 			on_custom_button_click={(id) => {
 				gradio.dispatch("custom_button_click", { id });
 			}}
-			on:change={({ detail }) => {
+			onchange={( detail ) => {
 				gradio.props.value = detail;
 			}}
-			on:drag={({ detail }) => (dragging = detail)}
-			on:clear={() => gradio.dispatch("clear")}
-			on:select={({ detail }) => gradio.dispatch("select", detail)}
-			on:upload={() => gradio.dispatch("upload")}
-			on:error={({ detail }) => {
+			ondrag={( detail ) => (dragging = detail)}
+			onclear={() => gradio.dispatch("clear")}
+			onselect={( detail: SelectData ) => gradio.dispatch("select", detail)}
+			onupload={() => gradio.dispatch("upload")}
+			onerror={( error ) => {
 				gradio.shared.loading_status = gradio.shared.loading_status || {};
 				gradio.shared.loading_status.status = "error";
 				gradio.dispatch("error", detail);
 			}}
-			on:delete={({ detail }) => {
+			ondelete={({ detail }) => {
 				gradio.dispatch("delete", detail);
 			}}
 			i18n={gradio.i18n}
