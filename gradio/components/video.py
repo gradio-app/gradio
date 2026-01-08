@@ -55,6 +55,7 @@ class Video(StreamingOutput, Component):
         Events.pause,
         Events.end,
         Events.upload,
+        Events.input,
     ]
 
     def __init__(
