@@ -36,7 +36,9 @@
 	} = $props();
 
 	let display_hour = $derived(calculate_display_hour(selected_hour, is_pm));
-	let calendar_days = $derived(generate_calendar_days(current_year, current_month));
+	let calendar_days = $derived(
+		generate_calendar_days(current_year, current_month)
+	);
 
 	const select_date = (day: number): void => {
 		selected_date = new Date(
@@ -220,22 +222,14 @@
 		{/if}
 
 		<div class="picker-actions">
-			<button
-				type="button"
-				class="action-button"
-				onclick={onclear}
-			>
+			<button type="button" class="action-button" onclick={onclear}>
 				Clear
 			</button>
 			<div class="picker-actions-right">
 				<button type="button" class="action-button" onclick={handle_now}>
 					Now
 				</button>
-				<button
-					type="button"
-					class="action-button"
-					onclick={onclose}
-				>
+				<button type="button" class="action-button" onclick={onclose}>
 					Done
 				</button>
 			</div>

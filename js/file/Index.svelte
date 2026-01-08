@@ -103,14 +103,14 @@
 			on_custom_button_click={(id) => {
 				gradio.dispatch("custom_button_click", { id });
 			}}
-			onchange={( detail ) => {
+			onchange={(detail) => {
 				gradio.props.value = detail;
 			}}
-			ondrag={( detail ) => (dragging = detail)}
+			ondrag={(detail) => (dragging = detail)}
 			onclear={() => gradio.dispatch("clear")}
-			onselect={( detail: SelectData ) => gradio.dispatch("select", detail)}
+			onselect={(detail: SelectData) => gradio.dispatch("select", detail)}
 			onupload={() => gradio.dispatch("upload")}
-			onerror={( error ) => {
+			onerror={(error) => {
 				gradio.shared.loading_status = gradio.shared.loading_status || {};
 				gradio.shared.loading_status.status = "error";
 				gradio.dispatch("error", detail);

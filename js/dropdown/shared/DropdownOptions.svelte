@@ -32,7 +32,7 @@
 	let input_width = $state(0);
 	let refElement: HTMLDivElement;
 	let listElement: HTMLUListElement;
-	let top: string | null = $state(null)
+	let top: string | null = $state(null);
 	let bottom: string | null = $state(null);
 	let max_height: number = $state(0);
 	let innerHeight = $state(0);
