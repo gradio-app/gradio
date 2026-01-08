@@ -121,6 +121,7 @@
 	allow_overflow={false}
 	padding={false}
 	border_mode={dragging ? "focus" : "base"}
+	rtl={gradio.props.rtl}
 >
 	{#if gradio.shared.loading_status}
 		<StatusTracker

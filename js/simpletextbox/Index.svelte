@@ -39,6 +39,7 @@
 	min_width={gradio.shared.min_width}
 	allow_overflow={false}
 	padding={true}
+	rtl={gradio.props.rtl}
 >
 	{#if gradio.shared.loading_status}
 		<StatusTracker
