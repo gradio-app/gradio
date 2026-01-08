@@ -1,11 +1,11 @@
 ---
-"@gradio/chatbot": minor
-"@gradio/highlightedtext": minor
-"@gradio/markdown": minor
-"@gradio/multimodaltextbox": minor
-"@gradio/simpletextbox": minor
-"@gradio/textbox": minor
-"gradio": minor
+"@gradio/chatbot": patch
+"@gradio/highlightedtext": patch
+"@gradio/markdown": patch
+"@gradio/multimodaltextbox": patch
+"@gradio/simpletextbox": patch
+"@gradio/textbox": patch
+"gradio": patch
 ---
 
-feat:Restore RTL prop to gradio components 
+fix:Restore RTL prop to gradio components 
