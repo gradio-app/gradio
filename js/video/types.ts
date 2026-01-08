@@ -32,6 +32,7 @@ export interface VideoEvents {
 	end: never;
 	start_recording: never;
 	stop_recording: never;
+	input: any;
 	clear_status: LoadingStatus;
 	share: any;
 	error: any;

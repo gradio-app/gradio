@@ -1099,7 +1099,7 @@ def update(
     the visibility of an `Row`) by returning a component and passing in the parameters to update in
     the constructor of the component. Alternatively, you can return `gr.update(...)` with any arbitrary
     parameters to update. (This is useful as a shorthand or if the same function can be called with different
-    components to update.) This method does not work with the `gr.State` component.
+    components to update.) For `gr.State` components, only the `value` parameter is supported.
 
     Parameters:
         elem_id: Use this to update the id of the component in the HTML DOM

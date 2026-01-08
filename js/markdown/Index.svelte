@@ -26,6 +26,7 @@
 	height={gradio.props.height}
 	min_height={gradio.props.min_height}
 	max_height={gradio.props.max_height}
+	rtl={gradio.props.rtl}
 >
 	<StatusTracker
 		autoscroll={gradio.shared.autoscroll}
