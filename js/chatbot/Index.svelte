@@ -44,6 +44,7 @@
 	allow_overflow={true}
 	flex={true}
 	overflow_behavior="auto"
+	rtl={gradio.props.rtl}
 >
 	{#if gradio.shared.loading_status}
 		<StatusTracker

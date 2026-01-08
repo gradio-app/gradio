@@ -22,7 +22,7 @@
 	min_width={gradio.shared.min_width}
 	visible={gradio.shared.visible}
 	disabled={!gradio.shared.interactive}
-	on:click={() => gradio.dispatch("click")}
+	on_click={() => gradio.dispatch("click")}
 >
 	{gradio.shared.label ?? ""}
 </DownloadButton>

@@ -47,6 +47,20 @@
 	$: show_navbar =
 		pages.length > 1 && (navbar === null || navbar.visible !== false);
 
+	function normalize_path(path: string): string {
+		// Remove query parameters, hash fragments, and leading/trailing slashes from the path
+		let normalized = path.split("?")[0].split("#")[0];
+		normalized = normalized.replace(/^\/+|\/+$/g, "");
+		return normalized;
+	}
+
+	function is_active_route(route: string, current: string): boolean {
+		if (route.startsWith("http://") || route.startsWith("https://")) {
+			return false;
+		}
+		return normalize_path(route) === normalize_path(current);
+	}
+
 	$: effective_pages = (() => {
 		let visible_pages = pages.filter(([route, label, show], index) => {
 			if (index === 0 && route === "") {
@@ -100,7 +114,7 @@
 						href={route.startsWith("http://") || route.startsWith("https://")
 							? route
 							: `${root}/${route}`}
-						class:active={route === current_page}
+						class:active={is_active_route(route, current_page)}
 						data-sveltekit-reload
 						target={route.startsWith("http://") || route.startsWith("https://")
 							? "_blank"

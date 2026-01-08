@@ -166,10 +166,14 @@
 			on:clear={() => {
 				gradio.props.value = null;
 				gradio.dispatch("clear");
+				gradio.dispatch("input");
 			}}
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}
-			on:upload={() => gradio.dispatch("upload")}
+			on:upload={() => {
+				gradio.dispatch("upload");
+				gradio.dispatch("input");
+			}}
 			on:stop={() => gradio.dispatch("stop")}
 			on:end={() => gradio.dispatch("end")}
 			on:start_recording={() => gradio.dispatch("start_recording")}
