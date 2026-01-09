@@ -1,6 +1,6 @@
 ---
-"@gradio/textbox": minor
-"gradio": minor
+"@gradio/textbox": patch
+"gradio": patch
 ---
 
-feat:Migrate Textbox to Svelte 5
+fix:Migrate Textbox to Svelte 5
