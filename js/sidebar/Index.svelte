@@ -20,8 +20,8 @@
 		bind:open={gradio.props.open}
 		bind:position={gradio.props.position}
 		width={gradio.props.width}
-		on:expand={() => gradio.dispatch("expand")}
-		on:collapse={() => gradio.dispatch("collapse")}
+		onexpand={() => gradio.dispatch("expand")}
+		oncollapse={() => gradio.dispatch("collapse")}
 		elem_classes={gradio.shared.elem_classes}
 		elem_id={gradio.shared.elem_id}
 	>
