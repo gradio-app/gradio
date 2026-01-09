@@ -1,5 +1,15 @@
 # @gradio/column
 
+## 0.3.1
+
+### Fixes
+
+- [#12626](https://github.com/gradio-app/gradio/pull/12626) [`3a39ee4`](https://github.com/gradio-app/gradio/commit/3a39ee4a9af660636f6ce7cd383634d48e4030a3) - Fix Bug Where Invisible Columns Take Up Space.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+
 ## 0.3.0
 
 ### Dependency updates

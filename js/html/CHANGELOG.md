@@ -2,6 +2,12 @@
 
 ## 0.9.0
 
+### Dependency updates
+
+- @gradio/utils@0.11.1
+
+## 0.9.0
+
 ### Features
 
 - [#12539](https://github.com/gradio-app/gradio/pull/12539) [`f1d83fa`](https://github.com/gradio-app/gradio/commit/f1d83fac3d6e4bad60cf896a026fa2d572f26073) - Add ability to add custom buttons to components.  Thanks @abidlabs!

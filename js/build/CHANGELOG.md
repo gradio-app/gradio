@@ -1,4 +1,11 @@
 # @self/build
+
+## 0.5.1
+
+### Dependency updates
+
+- @gradio/theme@0.6.0
+
 ## 0.5.0
 
 ### Features
