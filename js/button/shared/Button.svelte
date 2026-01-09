@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { type FileData } from "@gradio/client";
 	import { Image } from "@gradio/image/shared";
+	import { type Snippet } from "svelte";
 
 	let {
 		elem_id,
@@ -15,7 +16,8 @@
 		disabled,
 		scale,
 		min_width,
-		on_click = () => {}
+		on_click = () => {},
+		children
 	}: {
 		elem_id: string | null;
 		elem_classes: string[] | null;
@@ -30,6 +32,7 @@
 		scale: number | null;
 		min_width: number | undefined;
 		on_click: () => void;
+		children?: Snippet;
 	} = $props();
 </script>
 
@@ -56,7 +59,9 @@
 				restProps={{ alt: `${value} icon`, class: "button-icon" }}
 			/>
 		{/if}
-		<slot />
+		{#if children}
+			{@render children()}
+		{/if}
 	</a>
 {:else}
 	<button
@@ -78,7 +83,9 @@
 				src={icon.url}
 			/>
 		{/if}
-		<slot />
+		{#if children}
+			{@render children()}
+		{/if}
 	</button>
 {/if}
 

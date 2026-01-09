@@ -26,7 +26,7 @@
 				size="sm"
 				variant="secondary"
 				elem_id="start-api-recorder"
-				on:click={() => dispatch("close", { api_recorder_visible: true })}
+				on_click={() => dispatch("close", { api_recorder_visible: true })}
 			>
 				<div class="loading-dot self-baseline"></div>
 				<p class="self-baseline btn-text">API Recorder</p>
