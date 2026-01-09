@@ -26,7 +26,7 @@
 	let overlap_amount = $state(0);
 
 	let width_css = $derived(typeof width === "number" ? `${width}px` : width);
-	let prefersReducedMotion = $state<boolean>(false);
+	let prefersReducedMotion = $state(false);
 
 	// Check if the sidebar overlaps with the main content
 	function check_overlap(): void {
