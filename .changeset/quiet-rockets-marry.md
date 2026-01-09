@@ -1,6 +1,6 @@
 ---
-"@gradio/gallery": minor
-"gradio": minor
+"@gradio/gallery": patch
+"gradio": patch
 ---
 
-feat:Migrate Gallery to Svelte 5
+fix:Migrate Gallery to Svelte 5
