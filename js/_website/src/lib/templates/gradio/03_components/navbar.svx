@@ -6,6 +6,7 @@
     import FunctionsSection from "$lib/components/FunctionsSection.svelte";
     import GuidesSection from "$lib/components/GuidesSection.svelte";
     import CopyButton from "$lib/components/CopyButton.svelte";
+    import BehaviorSection from "$lib/components/BehaviorSection.svelte";
     import { style_formatted_text } from "$lib/text";
 
     let obj = get_object("navbar");
@@ -25,27 +26,8 @@ gradio.Navbar(···)
 
 <!-- Behavior -->
 ### Behavior
-## **As input component**: {@html style_formatted_text(obj.preprocess.return_doc.doc)}
-##### Your function should accept one of these types:
 
-```python
-def predict(
-	value: list[tuple[str, str]] | None
-)
-	...
-```
-
-<br>
-
-## **As output component**: {@html style_formatted_text(obj.postprocess.parameter_doc[0].doc)}
-##### Your function should return one of these types:
-
-```python
-def predict(···) -> list[tuple[str, str]] | None
-	...	
-	return value
-```
-
+<BehaviorSection name={obj.name} preprocess={obj.preprocess} postprocess={obj.postprocess} />
 
 <!--- Initialization -->
 ### Initialization
