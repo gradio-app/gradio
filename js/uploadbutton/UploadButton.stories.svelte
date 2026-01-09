@@ -55,9 +55,39 @@
 	<UploadButton {...wrapProps({ value: "Gradio Button", ...args })} />
 {/snippet}
 
-<Story name="Primary" args={{ label: "Upload", variant: "primary", size: "lg", scale: 1 }} {template} />
-<Story name="Secondary" args={{ label: "Upload", variant: "secondary", size: "lg" }} {template} />
-<Story name="Stop" args={{ label: "Upload", variant: "stop", size: "lg" }} {template} />
-<Story name="Button with external image icon" args={{ label: "Upload", icon: { path: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg", url: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg" } }} {template} />
-<Story name="Button with visible equal to false" args={{ label: "Upload", visible: false }} {template} />
-<Story name="Button with null label (should be collapsed)" args={{ label: null }} {template} />
+<Story
+	name="Primary"
+	args={{ label: "Upload", variant: "primary", size: "lg", scale: 1 }}
+	{template}
+/>
+<Story
+	name="Secondary"
+	args={{ label: "Upload", variant: "secondary", size: "lg" }}
+	{template}
+/>
+<Story
+	name="Stop"
+	args={{ label: "Upload", variant: "stop", size: "lg" }}
+	{template}
+/>
+<Story
+	name="Button with external image icon"
+	args={{
+		label: "Upload",
+		icon: {
+			path: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
+			url: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg"
+		}
+	}}
+	{template}
+/>
+<Story
+	name="Button with visible equal to false"
+	args={{ label: "Upload", visible: false }}
+	{template}
+/>
+<Story
+	name="Button with null label (should be collapsed)"
+	args={{ label: null }}
+	{template}
+/>

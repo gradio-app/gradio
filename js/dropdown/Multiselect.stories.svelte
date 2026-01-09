@@ -20,5 +20,33 @@
 	<Dropdown {...wrapProps(args)} />
 {/snippet}
 
-<Story name="Multiselect Interactive" args={{ value: ["swim", "run"], choices: [["run", "run"], ["swim", "swim"], ["jump", "jump"]], label: "Multiselect Dropdown", multiselect: true, interactive: true }} {template} />
-<Story name="Multiselect Static" args={{ value: ["swim", "run"], choices: [["run", "run"], ["swim", "swim"], ["jump", "jump"]], label: "Multiselect Dropdown", multiselect: true, interactive: false }} {template} />
+<Story
+	name="Multiselect Interactive"
+	args={{
+		value: ["swim", "run"],
+		choices: [
+			["run", "run"],
+			["swim", "swim"],
+			["jump", "jump"]
+		],
+		label: "Multiselect Dropdown",
+		multiselect: true,
+		interactive: true
+	}}
+	{template}
+/>
+<Story
+	name="Multiselect Static"
+	args={{
+		value: ["swim", "run"],
+		choices: [
+			["run", "run"],
+			["swim", "swim"],
+			["jump", "jump"]
+		],
+		label: "Multiselect Dropdown",
+		multiselect: true,
+		interactive: false
+	}}
+	{template}
+/>

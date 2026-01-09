@@ -30,9 +30,45 @@
 	<Slider {...wrapProps(args)} />
 {/snippet}
 
-<Story name="Slider with min and max" args={{ minimum: 0, maximum: 100, interactive: true }} {template} />
-<Story name="Slider with step of 10" args={{ minimum: 0, maximum: 100, step: 10, interactive: true }} {template} />
-<Story name="Slider with hidden label and negative value" args={{ value: -50, minimum: -100, maximum: 0, show_label: false, interactive: true }} {template} />
-<Story name="Slider with min, max, and default value" args={{ value: 50, minimum: 0, maximum: 100, interactive: true }} {template} />
-<Story name="Non-interactive Slider" args={{ value: 30, minimum: 0, maximum: 100, interactive: false }} {template} />
-<Story name="Slider with reset button hidden" args={{ value: 50, minimum: 10, maximum: 100, show_reset_button: false, interactive: true }} {template} />
+<Story
+	name="Slider with min and max"
+	args={{ minimum: 0, maximum: 100, interactive: true }}
+	{template}
+/>
+<Story
+	name="Slider with step of 10"
+	args={{ minimum: 0, maximum: 100, step: 10, interactive: true }}
+	{template}
+/>
+<Story
+	name="Slider with hidden label and negative value"
+	args={{
+		value: -50,
+		minimum: -100,
+		maximum: 0,
+		show_label: false,
+		interactive: true
+	}}
+	{template}
+/>
+<Story
+	name="Slider with min, max, and default value"
+	args={{ value: 50, minimum: 0, maximum: 100, interactive: true }}
+	{template}
+/>
+<Story
+	name="Non-interactive Slider"
+	args={{ value: 30, minimum: 0, maximum: 100, interactive: false }}
+	{template}
+/>
+<Story
+	name="Slider with reset button hidden"
+	args={{
+		value: 50,
+		minimum: 10,
+		maximum: 100,
+		show_reset_button: false,
+		interactive: true
+	}}
+	{template}
+/>

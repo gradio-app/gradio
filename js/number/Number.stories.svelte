@@ -29,7 +29,23 @@
 	<Number {...wrapProps(args)} />
 {/snippet}
 
-<Story name="Number with min 0 and max 100" args={{ minimum: 0, maximum: 100, interactive: true }} {template} />
-<Story name="Number with step of 10" args={{ step: 10, interactive: true }} {template} />
-<Story name="Number in disabled state" args={{ interactive: false }} {template} />
-<Story name="Number with hidden label" args={{ show_label: false, interactive: true }} {template} />
+<Story
+	name="Number with min 0 and max 100"
+	args={{ minimum: 0, maximum: 100, interactive: true }}
+	{template}
+/>
+<Story
+	name="Number with step of 10"
+	args={{ step: 10, interactive: true }}
+	{template}
+/>
+<Story
+	name="Number in disabled state"
+	args={{ interactive: false }}
+	{template}
+/>
+<Story
+	name="Number with hidden label"
+	args={{ show_label: false, interactive: true }}
+	{template}
+/>
