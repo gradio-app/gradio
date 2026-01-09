@@ -228,9 +228,7 @@
 			<div class="volume-control-wrapper">
 				<button
 					class="icon volume-button"
-					style:color={show_volume_slider
-						? "var(--color-accent)"
-						: "white"}
+					style:color={show_volume_slider ? "var(--color-accent)" : "white"}
 					aria-label="Adjust volume"
 					on:click={() => (show_volume_slider = !show_volume_slider)}
 				>
