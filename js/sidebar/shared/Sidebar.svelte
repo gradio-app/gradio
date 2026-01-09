@@ -1,24 +1,32 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount } from "svelte";
-	const dispatch = createEventDispatcher<{
-		expand: void;
-		collapse: void;
-	}>();
+	import { onMount } from "svelte";
 
-	export let open = true;
-	export let width: number | string;
-	export let position: "left" | "right" = "left";
-	export let elem_classes: string[] = [];
-	export let elem_id = "";
+	let {
+		open = $bindable(true),
+		width,
+		position = $bindable<"left" | "right">("left"),
+		elem_classes = [],
+		elem_id = "",
+		on_expand,
+		on_collapse
+	}: {
+		open?: boolean;
+		width: number | string;
+		position?: "left" | "right";
+		elem_classes?: string[];
+		elem_id?: string;
+		on_expand?: () => void;
+		on_collapse?: () => void;
+	} = $props();
 
 	// Using a temporary variable to animate the sidebar opening at the start
-	let mounted = false;
-	let _open = false;
+	let mounted = $state(false);
+	let _open = $state(false);
 	let sidebar_div: HTMLElement;
-	let overlap_amount = 0;
+	let overlap_amount = $state(0);
 
-	let width_css = typeof width === "number" ? `${width}px` : width;
-	let prefersReducedMotion: boolean;
+	let width_css = $derived(typeof width === "number" ? `${width}px` : width);
+	let prefersReducedMotion = $state<boolean>(false);
 
 	// Check if the sidebar overlaps with the main content
 	function check_overlap(): void {
@@ -59,9 +67,11 @@
 
 	// We need to wait for the component to be mounted before we can set the open state
 	// so that it animates correctly.
-	$: if (mounted) _open = open;
+	$effect(() => {
+		if (mounted) _open = open;
+	});
 
-	$: _elem_classes = elem_classes?.join(" ") || "";
+	let _elem_classes = $derived(elem_classes?.join(" ") || "");
 </script>
 
 <div
@@ -74,13 +84,13 @@
 	style="width: {width_css}; {position}: calc({width_css} * -1)"
 >
 	<button
-		on:click={() => {
+		onclick={() => {
 			_open = !_open;
 			open = _open;
 			if (_open) {
-				dispatch("expand");
+				on_expand?.();
 			} else {
-				dispatch("collapse");
+				on_collapse?.();
 			}
 		}}
 		class="toggle-button"
