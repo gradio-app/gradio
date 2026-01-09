@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { type FileData } from "@gradio/client";
 	import { BaseButton } from "@gradio/button";
+	import { type Snippet } from "svelte";
 
 	let {
 		elem_id = "",
@@ -13,7 +14,8 @@
 		disabled = false,
 		scale = null,
 		min_width = undefined,
-		on_click
+		on_click,
+		children
 	}: {
 		elem_id?: string;
 		elem_classes?: string[];
@@ -26,6 +28,7 @@
 		scale?: number | null;
 		min_width?: number | undefined;
 		on_click?: () => void;
+		children?: Snippet;
 	} = $props();
 
 	function download_file(): void {
@@ -56,7 +59,7 @@
 	{elem_id}
 	{elem_classes}
 	{visible}
-	on:click={download_file}
+	onclick={download_file}
 	{scale}
 	{min_width}
 	{disabled}
@@ -64,7 +67,9 @@
 	{#if icon}
 		<img class="button-icon" src={icon.url} alt={`${value} icon`} />
 	{/if}
-	<slot />
+	{#if children}
+		{@render children()}
+	{/if}
 </BaseButton>
 
 <style>
