@@ -393,6 +393,7 @@ def check_all_files_in_cache(data: JsonData):
             (path := d.get("path", ""))
             and not client_utils.is_http_url_like(path)
             and not is_in_or_equal(path, get_upload_folder())
+            and not utils.is_static_file(path)
         ):
             raise Error(
                 f"File {path} is not in the cache folder and cannot be accessed."
