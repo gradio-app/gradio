@@ -1,5 +1,8 @@
 ---
 "@gradio/button": patch
+"@gradio/core": patch
+"@gradio/downloadbutton": patch
+"@gradio/uploadbutton": patch
 "gradio": patch
 ---
 
