@@ -1,5 +1,15 @@
 # @gradio/markdown
 
+## 0.13.25
+
+### Fixes
+
+- [#12692](https://github.com/gradio-app/gradio/pull/12692) [`3b3eaf0`](https://github.com/gradio-app/gradio/commit/3b3eaf0dcb0690cc815eb2b3c40ca335c9a47a11) - Restore RTL prop to gradio components.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+
 ## 0.13.24
 
 ### Dependency updates
