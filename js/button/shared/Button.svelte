@@ -14,7 +14,8 @@
 		icon,
 		disabled,
 		scale,
-		min_width
+		min_width,
+		on_click = () => {}
 	}: {
 		elem_id: string | null;
 		elem_classes: string[] | null;
@@ -28,6 +29,7 @@
 		disabled: boolean;
 		scale: number | null;
 		min_width: number | undefined;
+		on_click: () => void;
 	} = $props();
 </script>
 
@@ -58,7 +60,7 @@
 	</a>
 {:else}
 	<button
-		on:click
+		on:click={on_click}
 		class:hidden={visible === false || visible === "hidden"}
 		class="{size} {variant} {elem_classes.join(' ')}"
 		style:flex-grow={scale}
