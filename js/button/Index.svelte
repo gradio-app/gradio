@@ -41,7 +41,7 @@
 	visible={gradio.shared.visible}
 	disabled={!gradio.shared.interactive}
 	link_target={gradio.props.link_target}
-	on_click={handle_click}
+	onclick={handle_click}
 >
 	{gradio.props.value ?? ""}
 </Button>

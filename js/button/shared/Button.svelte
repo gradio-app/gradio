@@ -16,7 +16,7 @@
 		disabled,
 		scale,
 		min_width,
-		on_click = () => {},
+		onclick = () => {},
 		children
 	}: {
 		elem_id: string | null;
@@ -31,7 +31,7 @@
 		disabled: boolean;
 		scale: number | null;
 		min_width: number | undefined;
-		on_click: () => void;
+		onclick: () => void;
 		children?: Snippet;
 	} = $props();
 </script>
@@ -65,7 +65,7 @@
 	</a>
 {:else}
 	<button
-		on:click={on_click}
+		{onclick}
 		class:hidden={visible === false || visible === "hidden"}
 		class="{size} {variant} {elem_classes.join(' ')}"
 		style:flex-grow={scale}

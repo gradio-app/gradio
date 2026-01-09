@@ -59,7 +59,7 @@
 	{elem_id}
 	{elem_classes}
 	{visible}
-	on_click={download_file}
+	onclick={download_file}
 	{scale}
 	{min_width}
 	{disabled}

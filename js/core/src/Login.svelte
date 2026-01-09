@@ -72,7 +72,7 @@
 			</Block>
 		</BaseForm>
 
-		<BaseButton size="lg" variant="primary" on_click={submit}
+		<BaseButton size="lg" variant="primary" onclick={submit}
 			>{i18n("login.login")}</BaseButton
 		>
 	</BaseColumn>
