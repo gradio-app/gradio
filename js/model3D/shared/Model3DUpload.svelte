@@ -24,11 +24,11 @@
 		camera_position = [null, null, null],
 		upload,
 		stream_handler,
-		on_change,
-		on_clear,
-		on_drag,
-		on_load,
-		on_error
+		onchange,
+		onclear,
+		ondrag,
+		onload,
+		onerror
 	}: {
 		value?: FileData | null;
 		display_mode?: "solid" | "point_cloud" | "wireframe";
@@ -45,11 +45,11 @@
 		camera_position?: [number | null, number | null, number | null];
 		upload: Client["upload"];
 		stream_handler: Client["stream"];
-		on_change?: (value: FileData | null) => void;
-		on_clear?: () => void;
-		on_drag?: (dragging: boolean) => void;
-		on_load?: (value: FileData) => void;
-		on_error?: (error: string) => void;
+		onchange?: (value: FileData | null) => void;
+		onclear?: () => void;
+		ondrag?: (dragging: boolean) => void;
+		onload?: (value: FileData) => void;
+		onerror?: (error: string) => void;
 	} = $props();
 
 	let use_3dgs = $state(false);
@@ -83,7 +83,7 @@
 	});
 
 	$effect(() => {
-		on_drag?.(dragging);
+		ondrag?.(dragging);
 	});
 
 	async function handle_upload({
@@ -91,15 +91,15 @@
 	}: CustomEvent<FileData>): Promise<void> {
 		value = detail;
 		await tick();
-		on_change?.(value);
-		on_load?.(value as FileData);
+		onchange?.(value);
+		onload?.(value as FileData);
 	}
 
 	async function handle_clear(): Promise<void> {
 		value = null;
 		await tick();
-		on_clear?.();
-		on_change?.(null);
+		onclear?.();
+		onchange?.(null);
 	}
 
 	async function handle_undo(): Promise<void> {
@@ -107,7 +107,7 @@
 	}
 
 	function handle_error({ detail }: CustomEvent<string>): void {
-		on_error?.(detail);
+		onerror?.(detail);
 	}
 </script>
 
