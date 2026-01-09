@@ -327,7 +327,7 @@ export interface ClientOptions {
 	auth?: [string, string] | null;
 	with_null_state?: boolean;
 	events?: EventType[];
-	headers?: Record<string, string>;
+	headers?: Record<string, string> | Headers;
 	query_params?: Record<string, string>;
 	session_hash?: string;
 }

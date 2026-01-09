@@ -29,7 +29,13 @@ const test_normal = base.extend<{ setup: void }>({
 			const test_name = path.basename(file, ".spec.ts");
 
 			await page.goto(`localhost:${port}/${test_name}`);
-			if (process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true") {
+			if (
+				process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true" &&
+				!(
+					test_name.includes("multipage") ||
+					test_name.includes("chatinterface_deep_link")
+				)
+			) {
 				await page.waitForSelector("#svelte-announcer");
 			}
 			await page.waitForLoadState("load");
