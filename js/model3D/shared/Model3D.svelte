@@ -7,27 +7,36 @@
 	import type Canvas3DGS from "./Canvas3DGS.svelte";
 	import type Canvas3D from "./Canvas3D.svelte";
 
-	export let value: FileData | null;
-	export let display_mode: "solid" | "point_cloud" | "wireframe" = "solid";
-	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
-	export let label = "";
-	export let show_label: boolean;
-	export let i18n: I18nFormatter;
-	export let zoom_speed = 1;
-	export let pan_speed = 1;
-	// alpha, beta, radius
-	export let camera_position: [number | null, number | null, number | null] = [
-		null,
-		null,
-		null
-	];
-	export let has_change_history = false;
+	let {
+		value,
+		display_mode = "solid",
+		clear_color = [0, 0, 0, 0],
+		label = "",
+		show_label,
+		i18n,
+		zoom_speed = 1,
+		pan_speed = 1,
+		camera_position = [null, null, null],
+		has_change_history = false
+	}: {
+		value: FileData | null;
+		display_mode?: "solid" | "point_cloud" | "wireframe";
+		clear_color?: [number, number, number, number];
+		label?: string;
+		show_label: boolean;
+		i18n: I18nFormatter;
+		zoom_speed?: number;
+		pan_speed?: number;
+		camera_position?: [number | null, number | null, number | null];
+		has_change_history?: boolean;
+	} = $props();
 
-	let current_settings = { camera_position, zoom_speed, pan_speed };
+	let current_settings = $state({ camera_position, zoom_speed, pan_speed });
+	let use_3dgs = $state(false);
+	let Canvas3DGSComponent = $state<typeof Canvas3DGS>();
+	let Canvas3DComponent = $state<typeof Canvas3D>();
+	let canvas3d = $state<Canvas3D | undefined>();
 
-	let use_3dgs = false;
-	let Canvas3DGSComponent: typeof Canvas3DGS;
-	let Canvas3DComponent: typeof Canvas3D;
 	async function loadCanvas3D(): Promise<typeof Canvas3D> {
 		const module = await import("./Canvas3D.svelte");
 		return module.default;
@@ -36,25 +45,27 @@
 		const module = await import("./Canvas3DGS.svelte");
 		return module.default;
 	}
-	$: if (value) {
-		use_3dgs = value.path.endsWith(".splat") || value.path.endsWith(".ply");
-		if (use_3dgs) {
-			loadCanvas3DGS().then((component) => {
-				Canvas3DGSComponent = component;
-			});
-		} else {
-			loadCanvas3D().then((component) => {
-				Canvas3DComponent = component;
-			});
-		}
-	}
 
-	let canvas3d: Canvas3D | undefined;
+	$effect(() => {
+		if (value) {
+			use_3dgs = value.path.endsWith(".splat") || value.path.endsWith(".ply");
+			if (use_3dgs) {
+				loadCanvas3DGS().then((component) => {
+					Canvas3DGSComponent = component;
+				});
+			} else {
+				loadCanvas3D().then((component) => {
+					Canvas3DComponent = component;
+				});
+			}
+		}
+	});
+
 	function handle_undo(): void {
 		canvas3d?.reset_camera_position();
 	}
 
-	$: {
+	$effect(() => {
 		if (
 			!dequal(current_settings.camera_position, camera_position) ||
 			current_settings.zoom_speed !== zoom_speed ||
@@ -63,7 +74,7 @@
 			canvas3d?.update_camera(camera_position, zoom_speed, pan_speed);
 			current_settings = { camera_position, zoom_speed, pan_speed };
 		}
-	}
+	});
 </script>
 
 <BlockLabel
@@ -79,7 +90,7 @@
 				<IconButton
 					Icon={Undo}
 					label="Undo"
-					on:click={() => handle_undo()}
+					onclick={() => handle_undo()}
 					disabled={!has_change_history}
 				/>
 			{/if}
