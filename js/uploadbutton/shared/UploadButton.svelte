@@ -99,7 +99,7 @@
 	{elem_id}
 	{elem_classes}
 	{visible}
-	on:click={open_file_upload}
+	onclick={open_file_upload}
 	{scale}
 	{min_width}
 	{disabled}
