@@ -365,7 +365,7 @@ export class AppTree {
 			map.set(comp.id, comp);
 			return map;
 		}, new Map<number, ComponentMeta>());
-		const subtree = this.traverse(layout, (node) => {
+		const _subtree = this.traverse(layout, (node) => {
 			const new_node = this.create_node(
 				node,
 				component_map,
@@ -374,7 +374,10 @@ export class AppTree {
 			);
 			return new_node;
 		});
-
+		gather_initial_tabs(_subtree, this.initial_tabs);
+		const subtree = this.traverse(_subtree, (node) =>
+			apply_initial_tabs(node, this.initial_tabs)
+		);
 		const n = find_node_by_id(this.root!, subtree.id);
 
 		if (!n) {
