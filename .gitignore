@@ -93,6 +93,8 @@ client/js/test.js
 # storybook
 storybook-static
 build-storybook.log
+js/storybook/theme.css
+*storybook.log
 
 # playwright
 .config/playwright/.cache
@@ -105,4 +107,3 @@ CLAUDE.md
 # docs upload
 scripts/docs.json
 tmp_input
-*storybook.log
