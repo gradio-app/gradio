@@ -1,6 +1,6 @@
 ---
-"@gradio/datetime": minor
-"gradio": minor
+"@gradio/datetime": patch
+"gradio": patch
 ---
 
-feat:migrate datetime
+fix:migrate datetime
