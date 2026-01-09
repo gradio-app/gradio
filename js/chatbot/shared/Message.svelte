@@ -403,6 +403,10 @@
 		background: none;
 	}
 
+	.panel .user :global(*) {
+		text-align: right;
+	}
+
 	/* Colors */
 
 	.message-row {
@@ -462,6 +466,10 @@
 		width: 100%;
 	}
 
+	.panel .user :global(*) {
+		text-align: right;
+	}
+
 	/* message content */
 	.flex-wrap {
 		display: flex;
@@ -507,16 +515,12 @@
 	}
 
 	.bot-row.bubble > .avatar-container {
-		margin-left: var(--spacing-xxl);
+		margin-right: var(--spacing-xxl);
+		margin-left: 0;
 	}
 
 	.panel.user-row > .avatar-container {
 		order: 0;
-	}
-
-	.bot-row.bubble > .avatar-container {
-		margin-right: var(--spacing-xxl);
-		margin-left: 0;
 	}
 
 	.avatar-container:not(.thumbnail-item) :global(img) {
@@ -638,7 +642,7 @@
 
 	.panel .user-row {
 		background-color: var(--color-accent-soft);
-		align-self: flex-start;
+		align-self: start;
 	}
 
 	.panel .message {
