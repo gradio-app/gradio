@@ -11,14 +11,9 @@
 	});
 </script>
 
-<Story name="Open Sidebar" args={{ open: true, width: 300 }}>
-	{#snippet template(args)}
-		<Sidebar {...args} />
-	{/snippet}
-</Story>
+{#snippet template(args)}
+	<Sidebar {...args} />
+{/snippet}
 
-<Story name="Closed Sidebar" args={{ open: false, width: 300 }}>
-	{#snippet template(args)}
-		<Sidebar {...args} />
-	{/snippet}
-</Story>
+<Story name="Open Sidebar" args={{ open: true, width: 300 }} {template} />
+<Story name="Closed Sidebar" args={{ open: false, width: 300 }} {template} />

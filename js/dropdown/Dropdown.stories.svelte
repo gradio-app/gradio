@@ -35,77 +35,11 @@
 	});
 </script>
 
-<Story
-	name="Single-select"
-	args={{
-		value: "swim",
-		choices: [
-			["run", "run"],
-			["swim", "swim"],
-			["jump", "jump"]
-		],
-		label: "Single-select Dropdown",
-		info: "This is a single-select dropdown"
-	}}
->
-	{#snippet template(args)}
-		<Dropdown {...args} />
-	{/snippet}
-</Story>
+{#snippet template(args)}
+	<Dropdown {...args} />
+{/snippet}
 
-<Story
-	name="Single-select Static"
-	args={{
-		value: "swim",
-		choices: [
-			["run", "run"],
-			["swim", "swim"],
-			["jump", "jump"]
-		],
-		disabled: true,
-		label: "Single-select Dropdown"
-	}}
->
-	{#snippet template(args)}
-		<Dropdown {...args} />
-	{/snippet}
-</Story>
-
-<Story
-	name="Empty initial value"
-	args={{
-		interactive: true,
-		choices: [
-			["run", "run"],
-			["swim", "swim"],
-			["jump", "jump"]
-		],
-		label: "Empty Dropdown"
-	}}
->
-	{#snippet template(args)}
-		<Dropdown {...args} />
-	{/snippet}
-</Story>
-
-<Story
-	name="With many options"
-	args={{
-		value: "python",
-		choices: [
-			["Python", "python"],
-			["JavaScript", "javascript"],
-			["TypeScript", "typescript"],
-			["Java", "java"],
-			["C++", "cpp"],
-			["Go", "go"],
-			["Rust", "rust"],
-			["Ruby", "ruby"]
-		],
-		label: "Programming Language"
-	}}
->
-	{#snippet template(args)}
-		<Dropdown {...args} />
-	{/snippet}
-</Story>
+<Story name="Single-select" args={{ value: "swim", choices: [["run", "run"], ["swim", "swim"], ["jump", "jump"]], label: "Single-select Dropdown", info: "This is a single-select dropdown" }} {template} />
+<Story name="Single-select Static" args={{ value: "swim", choices: [["run", "run"], ["swim", "swim"], ["jump", "jump"]], disabled: true, label: "Single-select Dropdown" }} {template} />
+<Story name="Empty initial value" args={{ interactive: true, choices: [["run", "run"], ["swim", "swim"], ["jump", "jump"]], label: "Empty Dropdown" }} {template} />
+<Story name="With many options" args={{ value: "python", choices: [["Python", "python"], ["JavaScript", "javascript"], ["TypeScript", "typescript"], ["Java", "java"], ["C++", "cpp"], ["Go", "go"], ["Rust", "rust"], ["Ruby", "ruby"]], label: "Programming Language" }} {template} />

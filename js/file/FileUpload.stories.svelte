@@ -24,61 +24,10 @@
 	});
 </script>
 
-<Story
-	name="Single File"
-	args={{
-		value: [
-			{
-				path: "cheetah.jpg",
-				orig_name: "cheetah.jpg",
-				url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-				size: 10000
-			}
-		],
-		file_count: "single",
-		interactive: true
-	}}
->
-	{#snippet template(args)}
-		<File {...wrapProps(args)} />
-	{/snippet}
-</Story>
+{#snippet template(args)}
+	<File {...wrapProps(args)} />
+{/snippet}
 
-<Story
-	name="Multiple files"
-	args={{
-		value: [
-			{
-				path: "cheetah1.jpg",
-				orig_name: "cheetah1.jpg",
-				url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-				size: 10000
-			},
-			{
-				path: "cheetah2.jpg",
-				orig_name: "cheetah2.jpg",
-				url: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
-				size: 10000
-			}
-		],
-		file_count: "multiple",
-		interactive: true
-	}}
->
-	{#snippet template(args)}
-		<File {...wrapProps(args)} />
-	{/snippet}
-</Story>
-
-<Story
-	name="No value"
-	args={{
-		value: null,
-		file_count: "multiple",
-		interactive: true
-	}}
->
-	{#snippet template(args)}
-		<File {...wrapProps(args)} />
-	{/snippet}
-</Story>
+<Story name="Single File" args={{ value: [{ path: "cheetah.jpg", orig_name: "cheetah.jpg", url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg", size: 10000 }], file_count: "single", interactive: true }} {template} />
+<Story name="Multiple files" args={{ value: [{ path: "cheetah1.jpg", orig_name: "cheetah1.jpg", url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg", size: 10000 }, { path: "cheetah2.jpg", orig_name: "cheetah2.jpg", url: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg", size: 10000 }], file_count: "multiple", interactive: true }} {template} />
+<Story name="No value" args={{ value: null, file_count: "multiple", interactive: true }} {template} />

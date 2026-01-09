@@ -42,90 +42,16 @@
 	});
 </script>
 
-<Story
-	name="Primary"
-	args={{ variant: "primary", size: "lg", value: "Primary Button" }}
->
-	{#snippet template(args)}
-		<Button {...args}>{args.value}</Button>
-	{/snippet}
-</Story>
+{#snippet template(args)}
+	<Button {...args}>{args.value}</Button>
+{/snippet}
 
-<Story
-	name="Secondary"
-	args={{ variant: "secondary", size: "lg", value: "Secondary Button" }}
->
-	{#snippet template(args)}
-		<Button {...args}>{args.value}</Button>
-	{/snippet}
-</Story>
-
-<Story name="Stop" args={{ variant: "stop", size: "lg", value: "Stop Button" }}>
-	{#snippet template(args)}
-		<Button {...args}>{args.value}</Button>
-	{/snippet}
-</Story>
-
-<Story
-	name="Small"
-	args={{ variant: "primary", size: "sm", value: "Small Button" }}
->
-	{#snippet template(args)}
-		<Button {...args}>{args.value}</Button>
-	{/snippet}
-</Story>
-
-<Story
-	name="Medium"
-	args={{ variant: "primary", size: "md", value: "Medium Button" }}
->
-	{#snippet template(args)}
-		<Button {...args}>{args.value}</Button>
-	{/snippet}
-</Story>
-
-<Story
-	name="Disabled"
-	args={{
-		variant: "primary",
-		size: "lg",
-		disabled: true,
-		value: "Disabled Button"
-	}}
->
-	{#snippet template(args)}
-		<Button {...args}>{args.value}</Button>
-	{/snippet}
-</Story>
-
-<Story
-	name="Button with link"
-	args={{
-		variant: "primary",
-		size: "lg",
-		link: "https://huggingface.co",
-		value: "Link Button"
-	}}
->
-	{#snippet template(args)}
-		<Button {...args}>{args.value}</Button>
-	{/snippet}
-</Story>
-
-<Story
-	name="Huggingface variant"
-	args={{ variant: "huggingface", size: "lg", value: "Huggingface Button" }}
->
-	{#snippet template(args)}
-		<Button {...args}>{args.value}</Button>
-	{/snippet}
-</Story>
-
-<Story
-	name="Hidden"
-	args={{ variant: "primary", visible: false, value: "Hidden Button" }}
->
-	{#snippet template(args)}
-		<Button {...args}>{args.value}</Button>
-	{/snippet}
-</Story>
+<Story name="Primary" args={{ variant: "primary", size: "lg", value: "Primary Button" }} {template} />
+<Story name="Secondary" args={{ variant: "secondary", size: "lg", value: "Secondary Button" }} {template} />
+<Story name="Stop" args={{ variant: "stop", size: "lg", value: "Stop Button" }} {template} />
+<Story name="Small" args={{ variant: "primary", size: "sm", value: "Small Button" }} {template} />
+<Story name="Medium" args={{ variant: "primary", size: "md", value: "Medium Button" }} {template} />
+<Story name="Disabled" args={{ variant: "primary", size: "lg", disabled: true, value: "Disabled Button" }} {template} />
+<Story name="Button with link" args={{ variant: "primary", size: "lg", link: "https://huggingface.co", value: "Link Button" }} {template} />
+<Story name="Huggingface variant" args={{ variant: "huggingface", size: "lg", value: "Huggingface Button" }} {template} />
+<Story name="Hidden" args={{ variant: "primary", visible: false, value: "Hidden Button" }} {template} />
