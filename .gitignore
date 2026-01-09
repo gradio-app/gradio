@@ -93,7 +93,6 @@ client/js/test.js
 # storybook
 storybook-static
 build-storybook.log
-js/storybook/theme.css
 
 # playwright
 .config/playwright/.cache
