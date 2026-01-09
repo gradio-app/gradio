@@ -1,35 +1,40 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount, tick } from "svelte";
+	import { onMount, tick } from "svelte";
 	import tinycolor from "tinycolor2";
 	import { BlockTitle } from "@gradio/atoms";
 	import { click_outside } from "./events";
 	import { Eyedropper } from "@gradio/icons";
 	import { hsva_to_rgba, format_color } from "./utils";
 
-	export let value = "#000000";
-	export let label: string;
-	export let info: string | undefined = undefined;
-	export let disabled = false;
-	export let show_label = true;
+	let {
+		value = $bindable(),
+		label,
+		info,
+		disabled,
+		show_label,
+		on_input = () => {},
+		on_submit = () => {},
+		on_blur = () => {},
+		on_focus = () => {}
+	}: {
+		value: string;
+		label: string;
+		info?: string;
+		disabled: boolean;
+		show_label: boolean;
+		on_input?: () => void;
+		on_submit?: () => void;
+		on_blur?: () => void;
+		on_focus?: () => void;
+	} = $props();
 
-	export let current_mode: "hex" | "rgb" | "hsl" = "hex";
-	export let dialog_open = false;
+	let dialog_open = $state(false);
+	let current_mode: "hex" | "rgb" | "hsl" = $state("hex");
 
 	let eyedropper_supported = false;
 
 	let sl_wrap: HTMLDivElement;
 	let hue_wrap: HTMLDivElement;
-
-	const dispatch = createEventDispatcher<{
-		change: string;
-		click_outside: void;
-		input: undefined;
-		submit: undefined;
-		blur: undefined;
-		focus: undefined;
-		selected: string;
-		close: void;
-	}>();
 
 	let sl_marker_pos = [0, 0];
 	let sl_rect: DOMRect | null = null;
@@ -58,7 +63,7 @@
 		hue = _hue;
 
 		value = hsva_to_rgba({ h: _hue, s: sl[0], v: sl[1], a: 1 });
-		dispatch("input");
+		on_input();
 	}
 
 	function update_color_from_mouse(x: number, y: number): void {
@@ -76,7 +81,7 @@
 		sl = [_hsva.s, _hsva.v];
 
 		value = hsva_to_rgba(_hsva);
-		dispatch("input");
+		on_input();
 	}
 
 	function handle_sl_down(
@@ -129,7 +134,7 @@
 		eyeDropper.open().then((result: { sRGBHex: string }) => {
 			value = result.sRGBHex;
 		});
-		dispatch("input");
+		on_input();
 	}
 
 	const modes = [
@@ -138,8 +143,7 @@
 		["HSL", "hsl"]
 	] as const;
 
-	$: color_string = format_color(value, current_mode);
-	$: color_string && dispatch("selected", color_string);
+	let color_string = $derived.by(() => format_color(value, current_mode));
 
 	onMount(async () => {
 		// @ts-ignore
@@ -150,12 +154,9 @@
 		dialog_open = false;
 	}
 
-	$: update_mouse_from_color(value);
-
-	function handle_click(): void {
-		dispatch("selected", color_string);
-		dispatch("close");
-	}
+	$effect(() => {
+		update_mouse_from_color(value);
+	});
 </script>
 
 <BlockTitle {show_label} {info}>{label}</BlockTitle>
@@ -201,8 +202,7 @@
 		</div>
 
 		<div class="input">
-			<button class="swatch" style:background={value} on:click={handle_click}
-			></button>
+			<button class="swatch" style:background={value}></button>
 			<div>
 				<div class="input-wrap">
 					<input
@@ -224,7 +224,9 @@
 						<button
 							class="button"
 							class:active={current_mode === value}
-							on:click={() => (current_mode = value)}>{label}</button
+							on:click={() => {
+								current_mode = value;
+							}}>{label}</button
 						>
 					{/each}
 				</div>
