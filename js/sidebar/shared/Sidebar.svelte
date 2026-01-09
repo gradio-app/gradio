@@ -7,8 +7,8 @@
 		position = $bindable<"left" | "right">("left"),
 		elem_classes = [],
 		elem_id = "",
-		on_expand,
-		on_collapse
+		on_expand = () => {},
+		on_collapse = () => {}
 	}: {
 		open?: boolean;
 		width: number | string;
