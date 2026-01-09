@@ -7,16 +7,16 @@
 		position = $bindable<"left" | "right">("left"),
 		elem_classes = [],
 		elem_id = "",
-		on_expand = () => {},
-		on_collapse = () => {}
+		onexpand = () => {},
+		oncollapse = () => {}
 	}: {
 		open?: boolean;
 		width: number | string;
 		position?: "left" | "right";
 		elem_classes?: string[];
 		elem_id?: string;
-		on_expand?: () => void;
-		on_collapse?: () => void;
+		onexpand?: () => void;
+		oncollapse?: () => void;
 	} = $props();
 
 	// Using a temporary variable to animate the sidebar opening at the start
@@ -88,9 +88,9 @@
 			_open = !_open;
 			open = _open;
 			if (_open) {
-				on_expand?.();
+				onexpand?.();
 			} else {
-				on_collapse?.();
+				oncollapse?.();
 			}
 		}}
 		class="toggle-button"
