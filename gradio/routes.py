@@ -2554,11 +2554,7 @@ def mount_gradio_app(
     if root_path is not None:
         blocks.root_path = root_path
 
-    blocks.ssr_mode = (
-        ssr_mode
-        if ssr_mode is not None
-        else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
-    )
+    blocks.ssr_mode = blocks._resolve_ssr_mode(ssr_mode)
 
     if blocks.ssr_mode:
         blocks.node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
@@ -2602,7 +2598,6 @@ def mount_gradio_app(
 
     app.router.lifespan_context = new_lifespan  # type: ignore
 
-    print("new", path)
     app.mount(path, gradio_app)
     return app
 
