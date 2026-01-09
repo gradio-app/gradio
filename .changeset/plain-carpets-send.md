@@ -1,6 +1,6 @@
 ---
-"@gradio/accordion": minor
-"gradio": minor
+"@gradio/accordion": patch
+"gradio": patch
 ---
 
-feat:Migrate accordion to svelte 5
+fix:Migrate accordion to svelte 5
