@@ -315,7 +315,9 @@ class App(FastAPI):
         if mounted_path:
             server_url += mounted_path
 
-        headers = {}  # Do not include arbitrary headers from original request so NodeProxyCache can be effective
+        headers = (
+            {}
+        )  # Do not include arbitrary headers from original request so NodeProxyCache can be effective
         headers["x-gradio-server"] = server_url
         headers["x-gradio-port"] = str(python_port)
         headers["x-gradio-mounted-path"] = mounted_path
@@ -460,9 +462,7 @@ class App(FastAPI):
             async def conditional_routing_middleware(
                 request: fastapi.Request, call_next
             ):
-                # log request details for debugging
                 blocks = app.get_blocks()
-
                 custom_mount_path = blocks.custom_mount_path
                 path = (
                     request.url.path.replace(blocks.custom_mount_path or "", "")
@@ -872,7 +872,11 @@ class App(FastAPI):
 
                 request_properties = path_item["post"]["requestBody"]["content"][  # type: ignore
                     "application/json"
-                ]["schema"]["properties"]  # type: ignore
+                ][
+                    "schema"
+                ][
+                    "properties"
+                ]  # type: ignore
                 for param in endpoint_info.get("parameters", []):
                     param_name = param["parameter_name"]
                     param_type = param.get("type", {})
@@ -899,11 +903,23 @@ class App(FastAPI):
                             ]["examples"] = {"example1": {"value": {}}}
                         path_item["post"]["requestBody"]["content"]["application/json"][  # type: ignore
                             "examples"
-                        ]["example1"]["value"][param_name] = param["example_input"]  # type: ignore
+                        ][
+                            "example1"
+                        ][
+                            "value"
+                        ][
+                            param_name
+                        ] = param[
+                            "example_input"
+                        ]  # type: ignore
 
                 response_properties = path_item["post"]["responses"]["200"]["content"][  # type: ignore
                     "application/json"
-                ]["schema"]["properties"]  # type: ignore
+                ][
+                    "schema"
+                ][
+                    "properties"
+                ]  # type: ignore
                 for i, ret in enumerate(endpoint_info.get("returns", [])):
                     ret_name = f"output_{i}" if i > 0 else "output"
                     ret_type = ret.get("type", {})
@@ -1514,13 +1530,10 @@ class App(FastAPI):
                                 # It's possible that the event_id has already been removed
                                 # for example, the user sent two duplicate `/cancel` requests.
                                 # The first one would have removed the event_id from pending_event_ids_session
-                                if (
-                                    message.event_id
-                                    in (
-                                        blocks._queue.pending_event_ids_session[
-                                            session_hash
-                                        ]
-                                    )
+                                if message.event_id in (
+                                    blocks._queue.pending_event_ids_session[
+                                        session_hash
+                                    ]
                                 ):
                                     blocks._queue.pending_event_ids_session[
                                         session_hash
