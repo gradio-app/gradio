@@ -20,7 +20,7 @@ describe("BaseForm Accessibility", () => {
 		}
 	});
 
-	test("renders with role='group' for accessibility", async () => {
+	test("renders without role='group' by default", async () => {
 		component = mount(BaseForm, {
 			target,
 			props: {
@@ -31,7 +31,7 @@ describe("BaseForm Accessibility", () => {
 		});
 		await tick();
 		const form = target.querySelector(".form");
-		assert.equal(form?.getAttribute("role"), "group");
+		assert.isNull(form?.getAttribute("role"));
 	});
 
 	test("renders with aria-label when label prop is provided", async () => {
@@ -47,6 +47,7 @@ describe("BaseForm Accessibility", () => {
 		await tick();
 		const form = target.querySelector(".form");
 		assert.equal(form?.getAttribute("aria-label"), "Form Section");
+		assert.equal(form?.getAttribute("role"), "group");
 	});
 
 	test("renders without aria-label when label is not provided", async () => {

@@ -18,7 +18,7 @@
 	class:hidden-css={visible === "hidden"}
 	style:flex-grow={scale}
 	style:min-width={`calc(min(${min_width}px, 100%))`}
-	role="group"
+	role={label ? "group" : undefined}
 	aria-label={label}
 >
 	<slot />
