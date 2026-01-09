@@ -1,6 +1,6 @@
-const { defineConfig } = require("pollen-css/utils");
+import { defineConfig } from "pollen-css/utils";
 
-module.exports = defineConfig((pollen) => {
+export default defineConfig((pollen) => {
 	return {
 		selector: ":root",
 		output: "./src/pollen.css",
