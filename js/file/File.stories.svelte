@@ -1,24 +1,25 @@
-<script>
-	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import File from "./Index.svelte";
+	import { wrapProps } from "../storybook/wrapProps";
+
+	const { Story } = defineMeta({
+		title: "Components/File",
+		component: File,
+		argTypes: {
+			value: {
+				control: "text",
+				description: "The URL or filepath (or list of URLs or filepaths)",
+				name: "value",
+				value: []
+			}
+		}
+	});
 </script>
 
-<Meta
-	title="Components/File"
-	component={File}
-	argTypes={{
-		value: {
-			control: "text",
-			description: "The URL or filepath (or list of URLs or filepaths)",
-			name: "value",
-			value: []
-		}
-	}}
-/>
-
-<Template let:args>
-	<File {...args} />
-</Template>
+{#snippet template(args)}
+	<File {...wrapProps(args)} />
+{/snippet}
 
 <Story
 	name="Single File"
@@ -32,6 +33,7 @@
 			}
 		]
 	}}
+	{template}
 />
 <Story
 	name="Multiple files, with height set to 150px and reordering enabled"
@@ -53,12 +55,10 @@
 		height: 150,
 		allow_reordering: true
 	}}
+	{template}
 />
 <Story
 	name="File upload with height set to 400px"
-	args={{
-		interactive: true,
-		value: null,
-		height: 400
-	}}
+	args={{ interactive: true, value: null, height: 400 }}
+	{template}
 />

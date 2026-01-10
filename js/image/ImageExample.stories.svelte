@@ -1,13 +1,12 @@
-<script>
-	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import Image from "./Example.svelte";
+
+	const { Story } = defineMeta({
+		title: "Components/Image/Example",
+		component: Image
+	});
 </script>
-
-<Meta title="Components/Image/Example" component={Image} />
-
-<Template let:args>
-	<Image {...args} />
-</Template>
 
 <Story
 	name="Image file"
@@ -18,11 +17,19 @@
 			orig_name: "cheetah.jpg"
 		}
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Image {...args} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Null"
 	args={{
 		value: null
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Image {...args} />
+	{/snippet}
+</Story>

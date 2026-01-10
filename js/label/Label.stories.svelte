@@ -1,9 +1,10 @@
-<script context="module">
-	import { Template, Story } from "@storybook/addon-svelte-csf";
-	import { allModes } from "../storybook/modes";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import Label from "./Index.svelte";
+	import { allModes } from "../storybook/modes";
+	import { wrapProps } from "../storybook/wrapProps";
 
-	export const meta = {
+	const { Story } = defineMeta({
 		title: "Components/Label",
 		component: Label,
 		parameters: {
@@ -13,13 +14,19 @@
 					mobile: allModes["mobile"]
 				}
 			}
+		},
+		argTypes: {
+			show_heading: {
+				control: "boolean",
+				description: "Whether to show heading"
+			}
 		}
-	};
+	});
 </script>
 
-<Template let:args>
-	<Label {...args} />
-</Template>
+{#snippet template(args)}
+	<Label {...wrapProps(args)} />
+{/snippet}
 
 <Story
 	name="Long and space-separated label text"
@@ -34,10 +41,10 @@
 			]
 		}
 	}}
+	{template}
 />
-
 <Story
-	name="Multiple label text with show_heading set to false (heading not visible)"
+	name="Multiple label text with show_heading set to false"
 	args={{
 		show_heading: false,
 		value: {
@@ -48,12 +55,13 @@
 			]
 		}
 	}}
+	{template}
 />
-
 <Story
-	name="Single label text with show_heading set to false (heading still visible)"
+	name="Single label text with show_heading set to false"
 	args={{
 		show_heading: false,
 		value: { label: "Test label", confidence: 0.8 }
 	}}
+	{template}
 />

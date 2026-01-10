@@ -392,7 +392,7 @@
 		background-color: var(--background-fill-secondary);
 		box-shadow: var(--shadow-drop);
 		align-self: flex-start;
-		text-align: right;
+		text-align: left;
 		border-bottom-left-radius: 0;
 		padding: var(--spacing-sm) var(--spacing-xl);
 	}
@@ -515,16 +515,12 @@
 	}
 
 	.bot-row.bubble > .avatar-container {
-		margin-left: var(--spacing-xxl);
+		margin-right: var(--spacing-xxl);
+		margin-left: 0;
 	}
 
 	.panel.user-row > .avatar-container {
 		order: 0;
-	}
-
-	.bot-row.bubble > .avatar-container {
-		margin-right: var(--spacing-xxl);
-		margin-left: 0;
 	}
 
 	.avatar-container:not(.thumbnail-item) :global(img) {
@@ -637,7 +633,7 @@
 
 	.panel .user :global(*),
 	.panel .bot :global(*) {
-		text-align: left;
+		text-align: inherit;
 	}
 
 	.panel .user {
@@ -646,7 +642,7 @@
 
 	.panel .user-row {
 		background-color: var(--color-accent-soft);
-		align-self: flex-start;
+		align-self: start;
 	}
 
 	.panel .message {

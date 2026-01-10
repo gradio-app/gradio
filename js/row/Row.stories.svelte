@@ -1,10 +1,11 @@
-<script context="module">
-	import { Template, Story } from "@storybook/addon-svelte-csf";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import Row from "./Index.svelte";
 	import Button from "../button/shared/Button.svelte";
 	import { allModes } from "../storybook/modes";
+	import { wrapProps } from "../storybook/wrapProps";
 
-	export const meta = {
+	const { Story } = defineMeta({
 		title: "Layout Elements/Row",
 		component: Row,
 		parameters: {
@@ -15,14 +16,24 @@
 				}
 			}
 		}
-	};
+	});
 </script>
 
-<Template let:args>
-	<Row {...args}>
-		<Button elem_id="btn" size="lg">test</Button>
-		<Button elem_id="btn" size="lg">test</Button>
-	</Row>
-</Template>
+<Story name="Row Layout">
+	{#snippet template(args)}
+		<Row {...wrapProps(args)}>
+			<Button elem_id="btn" size="lg">test</Button>
+			<Button elem_id="btn" size="lg">test</Button>
+		</Row>
+	{/snippet}
+</Story>
 
-<Story name="Row Layout" />
+<Story name="Row with multiple items">
+	{#snippet template(args)}
+		<Row {...wrapProps(args)}>
+			<Button elem_id="btn1" size="lg">Button 1</Button>
+			<Button elem_id="btn2" size="lg">Button 2</Button>
+			<Button elem_id="btn3" size="lg">Button 3</Button>
+		</Row>
+	{/snippet}
+</Story>

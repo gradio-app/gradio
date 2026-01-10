@@ -1,12 +1,17 @@
-<script context="module">
-	import { Template, Story } from "@storybook/addon-svelte-csf";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import StaticImage from "./Index.svelte";
-	import { userEvent, within } from "@storybook/test";
+	import { userEvent, within } from "storybook/test";
 	import { allModes } from "../storybook/modes";
-	import image_file_100x100 from "../storybook/test_files/image_100x100.webp";
-	import image_file_100x1000 from "../storybook/test_files/image_100x100.webp";
+	import { wrapProps } from "../storybook/wrapProps";
 
-	export const meta = {
+	// Test image URLs
+	const image_file_100x100 =
+		"https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg";
+	const image_file_100x1000 =
+		"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah3.webp";
+
+	const { Story } = defineMeta({
 		title: "Components/Image",
 		component: StaticImage,
 		parameters: {
@@ -17,19 +22,10 @@
 				}
 			}
 		}
-	};
+	});
 
 	let md = `# a heading! /n a new line! `;
 </script>
-
-<Template let:args>
-	<div
-		class="image-container"
-		style="width: 300px; position: relative;border-radius: var(--radius-lg);overflow: hidden;"
-	>
-		<StaticImage {...args} />
-	</div>
-</Template>
 
 <Story
 	name="static with label, info and download button"
@@ -42,20 +38,24 @@
 		show_label: true,
 		placeholder: "This is a cheetah",
 		show_download_button: true,
-		webcam_options: {
-			mirror: true,
-			constraints: null
-		}
+		buttons: ["fullscreen", "download"],
+		webcam_options: { mirror: true, constraints: null }
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
-
-		const expand_btn = canvas.getByRole("button", {
-			name: "Fullscreen"
-		});
+		const expand_btn = canvas.getByRole("button", { name: "Fullscreen" });
 		await userEvent.click(expand_btn);
 	}}
-/>
+>
+	{#snippet template(args)}
+		<div
+			class="image-container"
+			style="width: 300px; position: relative;border-radius: var(--radius-lg);overflow: hidden;"
+		>
+			<StaticImage {...wrapProps(args)} />
+		</div>
+	{/snippet}
+</Story>
 
 <Story
 	name="static with no label or download button"
@@ -67,12 +67,19 @@
 		},
 		show_label: false,
 		show_download_button: false,
-		webcam_options: {
-			mirror: true,
-			constraints: null
-		}
+		buttons: [],
+		webcam_options: { mirror: true, constraints: null }
 	}}
-/>
+>
+	{#snippet template(args)}
+		<div
+			class="image-container"
+			style="width: 300px; position: relative;border-radius: var(--radius-lg);overflow: hidden;"
+		>
+			<StaticImage {...wrapProps(args)} />
+		</div>
+	{/snippet}
+</Story>
 
 <Story
 	name="static with a vertically long image"
@@ -82,12 +89,19 @@
 			url: image_file_100x1000,
 			orig_name: "image.webp"
 		},
-		webcam_options: {
-			mirror: true,
-			constraints: null
-		}
+		buttons: [],
+		webcam_options: { mirror: true, constraints: null }
 	}}
-/>
+>
+	{#snippet template(args)}
+		<div
+			class="image-container"
+			style="width: 300px; position: relative;border-radius: var(--radius-lg);overflow: hidden;"
+		>
+			<StaticImage {...wrapProps(args)} />
+		</div>
+	{/snippet}
+</Story>
 
 <Story
 	name="static with a vertically long image and a fixed height"
@@ -98,12 +112,19 @@
 			orig_name: "image.webp"
 		},
 		height: "500px",
-		webcam_options: {
-			mirror: true,
-			constraints: null
-		}
+		buttons: [],
+		webcam_options: { mirror: true, constraints: null }
 	}}
-/>
+>
+	{#snippet template(args)}
+		<div
+			class="image-container"
+			style="width: 300px; position: relative;border-radius: var(--radius-lg);overflow: hidden;"
+		>
+			<StaticImage {...wrapProps(args)} />
+		</div>
+	{/snippet}
+</Story>
 
 <Story
 	name="static with a small image and a fixed height"
@@ -114,12 +135,19 @@
 			orig_name: "image.webp"
 		},
 		height: "500px",
-		webcam_options: {
-			mirror: true,
-			constraints: null
-		}
+		buttons: [],
+		webcam_options: { mirror: true, constraints: null }
 	}}
-/>
+>
+	{#snippet template(args)}
+		<div
+			class="image-container"
+			style="width: 300px; position: relative;border-radius: var(--radius-lg);overflow: hidden;"
+		>
+			<StaticImage {...wrapProps(args)} />
+		</div>
+	{/snippet}
+</Story>
 
 <Story
 	name="interactive with upload, clipboard, and webcam"
@@ -134,22 +162,28 @@
 		show_download_button: false,
 		interactive: true,
 		placeholder: md,
-		webcam_options: {
-			mirror: true,
-			constraints: null
-		}
+		buttons: [],
+		webcam_options: { mirror: true, constraints: null }
 	}}
+	parameters={{ chromatic: { disableSnapshot: true } }}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
-
 		const webcamButton = await canvas.findByLabelText("Capture from camera");
 		userEvent.click(webcamButton);
-
 		userEvent.click(await canvas.findByTitle("grant webcam access"));
 		userEvent.click(await canvas.findByLabelText("Upload file"));
 		userEvent.click(await canvas.findByLabelText("Paste from clipboard"));
 	}}
-/>
+>
+	{#snippet template(args)}
+		<div
+			class="image-container"
+			style="width: 300px; position: relative;border-radius: var(--radius-lg);overflow: hidden;"
+		>
+			<StaticImage {...wrapProps(args)} />
+		</div>
+	{/snippet}
+</Story>
 
 <Story
 	name="interactive with webcam"
@@ -157,21 +191,38 @@
 		sources: ["webcam"],
 		show_download_button: true,
 		interactive: true,
-		webcam_options: {
-			mirror: true,
-			constraints: null
-		}
+		buttons: ["download"],
+		webcam_options: { mirror: true, constraints: null }
 	}}
-/>
+>
+	{#snippet template(args)}
+		<div
+			class="image-container"
+			style="width: 300px; position: relative;border-radius: var(--radius-lg);overflow: hidden;"
+		>
+			<StaticImage {...wrapProps(args)} />
+		</div>
+	{/snippet}
+</Story>
 
 <Story
 	name="interactive with clipboard"
 	args={{
 		sources: ["clipboard"],
 		show_download_button: true,
-		interactive: true
+		interactive: true,
+		buttons: ["download"]
 	}}
-/>
+>
+	{#snippet template(args)}
+		<div
+			class="image-container"
+			style="width: 300px; position: relative;border-radius: var(--radius-lg);overflow: hidden;"
+		>
+			<StaticImage {...wrapProps(args)} />
+		</div>
+	{/snippet}
+</Story>
 
 <Story
 	name="interactive webcam with streaming"
@@ -185,9 +236,16 @@
 			orig_name: "cheetah.jpg"
 		},
 		streaming: true,
-		webcam_options: {
-			mirror: true,
-			constraints: null
-		}
+		buttons: ["download"],
+		webcam_options: { mirror: true, constraints: null }
 	}}
-/>
+>
+	{#snippet template(args)}
+		<div
+			class="image-container"
+			style="width: 300px; position: relative;border-radius: var(--radius-lg);overflow: hidden;"
+		>
+			<StaticImage {...wrapProps(args)} />
+		</div>
+	{/snippet}
+</Story>

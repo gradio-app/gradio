@@ -234,12 +234,12 @@
 
 	.example-text-content {
 		margin-top: var(--spacing-sm);
-		text-align: left;
+		text-align: start;
 	}
 
 	.example-text {
 		font-size: var(--text-md);
-		text-align: left;
+		text-align: start;
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}

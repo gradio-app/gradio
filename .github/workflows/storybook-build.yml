@@ -63,7 +63,7 @@ jobs:
       - name: build storybook
         run: |
           . venv/bin/activate
-          pnpm build-storybook --quiet
+          pnpm build-storybook --quiet --stats-json
       - name: upload  storybook
         uses: actions/upload-artifact@v4
         with:

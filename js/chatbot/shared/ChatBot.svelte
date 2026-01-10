@@ -476,6 +476,7 @@
 		flex-direction: column;
 		justify-content: space-between;
 		margin-bottom: var(--spacing-xxl);
+		direction: ltr;
 	}
 
 	.panel-wrap :global(.message-row:first-child) {
@@ -510,7 +511,7 @@
 		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 		gap: var(--spacing-xxl);
 		max-width: calc(min(4 * 200px + 5 * var(--spacing-xxl), 100%));
-		justify-content: end;
+		justify-content: flex-end;
 	}
 
 	.option {
