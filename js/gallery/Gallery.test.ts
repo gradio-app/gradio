@@ -31,6 +31,7 @@ describe("Gallery", () => {
 			loading_status: loading_status,
 			preview: true,
 			buttons: ["share", "download", "fullscreen"],
+			selected_index: 0,
 			value: [
 				{
 					image: {
@@ -55,6 +56,7 @@ describe("Gallery", () => {
 			loading_status: loading_status,
 			preview: true,
 			buttons: ["share", "download", "fullscreen"],
+			selected_index: 0,
 			value: [
 				{
 					video: {
@@ -112,6 +114,7 @@ describe("Gallery", () => {
 			loading_status: loading_status,
 			preview: true,
 			buttons: ["share", "download", "fullscreen"],
+			selected_index: 0,
 			value: [
 				{
 					image: {
