@@ -1,40 +1,40 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 
-	export let currentVolume = 1;
+	export let current_volume = 1;
 	export let show_volume_slider = false;
 
-	let volumeElement: HTMLInputElement;
+	let volume_element: HTMLInputElement;
 
 	onMount(() => {
 		adjustSlider();
 	});
 
 	const adjustSlider = (): void => {
-		let slider = volumeElement;
+		let slider = volume_element;
 		if (!slider) return;
 
 		slider.style.background = `linear-gradient(to right, white ${
-			currentVolume * 100
-		}%, rgba(255, 255, 255, 0.3) ${currentVolume * 100}%)`;
+			current_volume * 100
+		}%, rgba(255, 255, 255, 0.3) ${current_volume * 100}%)`;
 	};
 
-	$: (currentVolume, adjustSlider());
+	$: (current_volume, adjustSlider());
 </script>
 
 <input
-	bind:this={volumeElement}
+	bind:this={volume_element}
 	id="volume"
 	class="volume-slider"
 	type="range"
 	min="0"
 	max="1"
 	step="0.01"
-	value={currentVolume}
+	value={current_volume}
 	on:focusout={() => (show_volume_slider = false)}
 	on:input={(e) => {
 		if (e.target instanceof HTMLInputElement) {
-			currentVolume = parseFloat(e.target.value);
+			current_volume = parseFloat(e.target.value);
 		}
 	}}
 />

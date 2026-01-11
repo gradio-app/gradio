@@ -43,8 +43,8 @@
 	let video: HTMLVideoElement;
 	let processingVideo = false;
 	let show_volume_slider = false;
-	let currentVolume = 1;
-	let isFullscreen = false;
+	let current_volume = 1;
+	let is_fullscreen = false;
 
 	function handleMove(e: TouchEvent | MouseEvent): void {
 		if (!duration) return;
@@ -101,7 +101,7 @@
 	};
 
 	function open_full_screen(): void {
-		if (!isFullscreen) {
+		if (!is_fullscreen) {
 			video.requestFullscreen();
 		} else {
 			document.exitFullscreen();
@@ -109,21 +109,21 @@
 	}
 
 	function handleFullscreenChange(): void {
-		isFullscreen = document.fullscreenElement === video;
+		is_fullscreen = document.fullscreenElement === video;
 		if (video) {
-			video.controls = isFullscreen;
+			video.controls = is_fullscreen;
 		}
 	}
 
-	let lastSyncedVolume = 1;
-	let previousVideo: HTMLVideoElement | undefined;
+	let last_synced_volume = 1;
+	let previous_video: HTMLVideoElement | undefined;
 	// Tolerance for floating-point comparison of volume values
 	const VOLUME_EPSILON = 0.001;
 
 	function handleVolumeChange(): void {
-		if (video && Math.abs(video.volume - lastSyncedVolume) > VOLUME_EPSILON) {
-			currentVolume = video.volume;
-			lastSyncedVolume = video.volume;
+		if (video && Math.abs(video.volume - last_synced_volume) > VOLUME_EPSILON) {
+			current_volume = video.volume;
+			last_synced_volume = video.volume;
 		}
 	}
 
@@ -140,12 +140,12 @@
 		}
 	});
 
-	$: if (video && video !== previousVideo) {
-		if (previousVideo) {
-			previousVideo.removeEventListener("volumechange", handleVolumeChange);
+	$: if (video && video !== previous_video) {
+		if (previous_video) {
+			previous_video.removeEventListener("volumechange", handleVolumeChange);
 		}
 		video.addEventListener("volumechange", handleVolumeChange);
-		previousVideo = video;
+		previous_video = video;
 	}
 
 	$: time = time || 0;
@@ -154,15 +154,15 @@
 	$: if (playback_position !== time && video) {
 		video.currentTime = playback_position;
 	}
-	$: if (video && !isFullscreen) {
-		if (Math.abs(video.volume - currentVolume) > VOLUME_EPSILON) {
-			video.volume = currentVolume;
-			lastSyncedVolume = currentVolume;
+	$: if (video && !is_fullscreen) {
+		if (Math.abs(video.volume - current_volume) > VOLUME_EPSILON) {
+			video.volume = current_volume;
+			last_synced_volume = current_volume;
 		}
 		video.controls = false;
 	}
-	$: if (video && isFullscreen) {
-		lastSyncedVolume = video.volume;
+	$: if (video && is_fullscreen) {
+		last_synced_volume = video.volume;
 	}
 </script>
 
@@ -174,7 +174,7 @@
 			{autoplay}
 			{loop}
 			{is_stream}
-			controls={isFullscreen}
+			controls={is_fullscreen}
 			on:click={play_pause}
 			on:play
 			on:pause
@@ -232,11 +232,11 @@
 					aria-label="Adjust volume"
 					on:click={() => (show_volume_slider = !show_volume_slider)}
 				>
-					<VolumeLevels {currentVolume} />
+					<VolumeLevels currentVolume={current_volume} />
 				</button>
 
 				{#if show_volume_slider}
-					<VolumeControl bind:currentVolume bind:show_volume_slider />
+					<VolumeControl bind:current_volume={current_volume} bind:show_volume_slider />
 				{/if}
 			</div>
 
