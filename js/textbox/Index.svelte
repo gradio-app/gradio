@@ -71,7 +71,7 @@
 	{/if}
 
 	<TextBox
-		value={gradio.props.value}
+		bind:value={gradio.props.value}
 		{label}
 		info={gradio.props.info}
 		show_label={gradio.shared.show_label}
@@ -91,17 +91,17 @@
 		html_attributes={gradio.props.html_attributes}
 		validation_error={gradio.shared?.loading_status?.validation_error ||
 			gradio.shared?.validation_error}
-		on:change={(e) => handle_change(e.detail)}
-		on:input={(e) => handle_input(e.detail)}
-		on:submit={() => {
+		on_change={handle_change}
+		on_input={handle_input}
+		on_submit={() => {
 			gradio.shared.validation_error = null;
 			gradio.dispatch("submit");
 		}}
-		on:blur={() => gradio.dispatch("blur")}
-		on:select={(e) => gradio.dispatch("select", e.detail)}
-		on:focus={() => gradio.dispatch("focus")}
-		on:stop={() => gradio.dispatch("stop")}
-		on:copy={(e) => gradio.dispatch("copy", e.detail)}
+		on_blur={() => gradio.dispatch("blur")}
+		on_select={(data) => gradio.dispatch("select", data)}
+		on_focus={() => gradio.dispatch("focus")}
+		on_stop={() => gradio.dispatch("stop")}
+		on_copy={(data) => gradio.dispatch("copy", data)}
 		on_custom_button_click={(id) => {
 			gradio.dispatch("custom_button_click", { id });
 		}}
