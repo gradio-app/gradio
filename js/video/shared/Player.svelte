@@ -235,11 +235,12 @@
 					<VolumeLevels currentVolume={current_volume} />
 				</button>
 
-				{#if show_volume_slider}
-					<VolumeControl bind:current_volume={current_volume} bind:show_volume_slider />
-				{/if}
-			</div>
+			{#if show_volume_slider}
+				<VolumeControl bind:current_volume={current_volume} bind:show_volume_slider />
+			{/if}
+		</div>
 
+		{#if !show_volume_slider}
 			<div
 				role="button"
 				tabindex="0"
@@ -250,6 +251,7 @@
 			>
 				<Maximize />
 			</div>
+		{/if}
 		</div>
 	</div>
 </div>
