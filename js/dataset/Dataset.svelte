@@ -5,7 +5,7 @@
 	import { BaseExample } from "@gradio/textbox";
 	import type { load_component as load_component_type } from "@gradio/utils";
 
-	export let components: string[];
+	export let components: {name: string; class_id: string}[];
 	export let component_props: Record<string, any>[];
 	let component_map: Map<
 		string,
@@ -107,7 +107,7 @@
 							sample_row.map(async (sample_cell, j) => {
 								return {
 									value: sample_cell,
-									component: load_component(components[j], "example")
+									component: load_component(components[j].name, "example", components[j].class_id)
 								};
 							})
 						)
