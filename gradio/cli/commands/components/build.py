@@ -19,7 +19,7 @@ from gradio.cli.commands.components.docs import run_command
 from gradio.cli.commands.components.install_component import _get_executable_path
 from gradio.cli.commands.display import LivePanelDisplay
 
-gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"
+gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"  # type: ignore
 
 
 def _build(

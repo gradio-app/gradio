@@ -9,9 +9,11 @@ from typing import TYPE_CHECKING, Any, Literal
 from gradio_client.documentation import document
 
 from gradio.components.base import Component, FormComponent
+from gradio.components.button import Button
 from gradio.events import Events
 from gradio.exceptions import Error
 from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -47,6 +49,7 @@ class Number(FormComponent):
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
+        buttons: list[Button] | None = None,
         precision: int | None = None,
         minimum: float | None = None,
         maximum: float | None = None,
@@ -75,6 +78,7 @@ class Number(FormComponent):
             minimum: Minimum value. Only applied when component is used as an input. If a user provides a smaller value, a gr.Error exception is raised by the backend.
             maximum: Maximum value. Only applied when component is used as an input. If a user provides a larger value, a gr.Error exception is raised by the backend.
             step: The interval between allowed numbers in the component. Can be used along with optional parameters `minimum` and `maximum` to create a range of legal values starting from `minimum` and incrementing according to this parameter.
+            buttons: A list of gr.Button() instances to show in the top right corner of the component. Custom buttons will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button.
         """
         self.precision = precision
         self.minimum = minimum
@@ -100,6 +104,7 @@ class Number(FormComponent):
             preserved_by_key=preserved_by_key,
             value=value,
         )
+        self.buttons = set_default_buttons(buttons, None)
 
     @staticmethod
     def round_to_precision(num: float | int, precision: int | None) -> float | int:
@@ -153,7 +158,7 @@ class Number(FormComponent):
             return None
         return self.round_to_precision(value, self.precision)
 
-    def api_info(self) -> dict[str, str]:
+    def api_info(self) -> dict[str, str]:  # type: ignore[override]
         if self.precision == 0:
             return {"type": "integer"}
         return {"type": "number"}

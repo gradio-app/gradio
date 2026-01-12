@@ -1,5 +1,44 @@
 # @gradio/chatbot
 
+## 0.29.1
+
+### Fixes
+
+- [#12675](https://github.com/gradio-app/gradio/pull/12675) [`3aee8ae`](https://github.com/gradio-app/gradio/commit/3aee8aeb74dfe41b24a6626a8e30582e654dc457) - Allow multiple file messages to be displayed in Chatbot.  Thanks @freddyaboulton!
+- [#12692](https://github.com/gradio-app/gradio/pull/12692) [`3b3eaf0`](https://github.com/gradio-app/gradio/commit/3b3eaf0dcb0690cc815eb2b3c40ca335c9a47a11) - Restore RTL prop to gradio components.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+- @gradio/client@2.0.2
+- @gradio/theme@0.6.0
+- @gradio/gallery@0.16.1
+- @gradio/plot@0.10.1
+- @gradio/video@0.20.0
+
+## 0.29.0
+
+### Features
+
+- [#12539](https://github.com/gradio-app/gradio/pull/12539) [`f1d83fa`](https://github.com/gradio-app/gradio/commit/f1d83fac3d6e4bad60cf896a026fa2d572f26073) - Add ability to add custom buttons to components.  Thanks @abidlabs!
+
+### Fixes
+
+- [#12565](https://github.com/gradio-app/gradio/pull/12565) [`b4c69af`](https://github.com/gradio-app/gradio/commit/b4c69af0f5d9461259dbb8ad40a98315428539c0) - Fix Plot display in chatbot.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/utils@0.11.0
+- @gradio/client@2.0.1
+- @gradio/statustracker@0.12.1
+- @gradio/upload@0.17.3
+- @gradio/gallery@0.16.0
+- @gradio/plot@0.10.0
+- @gradio/image@0.25.0
+- @gradio/video@0.19.0
+- @gradio/audio@0.22.0
+
 ## 0.28.0
 
 ### Dependency updates

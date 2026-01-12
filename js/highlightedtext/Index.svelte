@@ -6,7 +6,7 @@
 <script lang="ts">
 	import StaticHighlightedText from "./shared/StaticHighlightedtext.svelte";
 	import InteractiveHighlightedText from "./shared/InteractiveHighlightedtext.svelte";
-	import { Block, BlockLabel, Empty } from "@gradio/atoms";
+	import { Block, BlockLabel, Empty, IconButtonWrapper } from "@gradio/atoms";
 	import { TextHighlight } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
 	import { Gradio } from "@gradio/utils";
@@ -90,6 +90,7 @@
 		container={gradio.shared.container}
 		scale={gradio.shared.scale}
 		min_width={gradio.shared.min_width}
+		rtl={gradio.props.rtl}
 	>
 		<StatusTracker
 			autoscroll={gradio.shared.autoscroll}
@@ -98,6 +99,14 @@
 			on_clear_status={() =>
 				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
+		{#if gradio.shared.label && gradio.shared.show_label && gradio.props.buttons && gradio.props.buttons.length > 0}
+			<IconButtonWrapper
+				buttons={gradio.props.buttons}
+				on_custom_button_click={(id) => {
+					gradio.dispatch("custom_button_click", { id });
+				}}
+			/>
+		{/if}
 		{#if gradio.shared.label && gradio.shared.show_label}
 			<BlockLabel
 				Icon={TextHighlight}

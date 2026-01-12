@@ -100,10 +100,10 @@
 			show_label={gradio.shared.show_label}
 			autoplay={gradio.props.autoplay}
 			loop={gradio.props.loop}
-			show_share_button={(gradio.props.buttons || []).includes("share")}
-			show_download_button={(gradio.props.buttons || ["download"]).includes(
-				"download"
-			)}
+			buttons={gradio.props.buttons ?? ["download", "share"]}
+			on_custom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
 			bind:playback_position={gradio.props.playback_position}
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}
@@ -150,7 +150,10 @@
 			bind:uploading
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
-			show_download_button={(gradio.props.buttons || []).includes("download")}
+			buttons={gradio.props.buttons ?? ["download", "share"]}
+			on_custom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
 			sources={gradio.props.sources}
 			{active_source}
 			webcam_options={gradio.props.webcam_options}
@@ -163,10 +166,14 @@
 			on:clear={() => {
 				gradio.props.value = null;
 				gradio.dispatch("clear");
+				gradio.dispatch("input");
 			}}
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}
-			on:upload={() => gradio.dispatch("upload")}
+			on:upload={() => {
+				gradio.dispatch("upload");
+				gradio.dispatch("input");
+			}}
 			on:stop={() => gradio.dispatch("stop")}
 			on:end={() => gradio.dispatch("end")}
 			on:start_recording={() => gradio.dispatch("start_recording")}

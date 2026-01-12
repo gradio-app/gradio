@@ -57,6 +57,7 @@
 	min_width={gradio.shared.min_width}
 	allow_overflow={false}
 	padding={gradio.shared.container}
+	rtl={gradio.props.rtl}
 >
 	{#if gradio.shared.loading_status}
 		<StatusTracker
@@ -101,6 +102,9 @@
 		on:focus={() => gradio.dispatch("focus")}
 		on:stop={() => gradio.dispatch("stop")}
 		on:copy={(e) => gradio.dispatch("copy", e.detail)}
+		on_custom_button_click={(id) => {
+			gradio.dispatch("custom_button_click", { id });
+		}}
 		disabled={!gradio.shared.interactive}
 	/>
 </Block>

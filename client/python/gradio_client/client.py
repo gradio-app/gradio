@@ -154,7 +154,7 @@ class Client:
                 "Please contact the owner to fix this."
             )
         if self.verbose:
-            print(f"Loaded as API: {self.src} ✔")
+            print(f"Loaded as API: {self.src}")
 
         if auth is not None:
             self._login(auth)
@@ -554,6 +554,8 @@ class Client:
             "sse_v2.1",
             "sse_v3",
         ):
+            headers = headers or {}
+            headers["x-gradio-user"] = "api"
             helper = self.new_helper(inferred_fn_index, headers=headers)
             end_to_end_fn = endpoint.make_end_to_end_fn(helper)
         else:

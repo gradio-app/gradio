@@ -1,5 +1,24 @@
 # @gradio/nativeplot
 
+## 0.9.3
+
+### Fixes
+
+- [#12627](https://github.com/gradio-app/gradio/pull/12627) [`fa75712`](https://github.com/gradio-app/gradio/commit/fa75712a3257e0e09bfce7abbd4f40fa54f6db98) - Add custom buttons to `gr.Dropdown(multiselect=True)` and `gr.LinePlot` and other native plots.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+- @gradio/theme@0.6.0
+
+## 0.9.2
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/utils@0.11.0
+- @gradio/statustracker@0.12.1
+
 ## 0.9.1
 
 ### Fixes

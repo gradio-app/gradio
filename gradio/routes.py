@@ -13,6 +13,7 @@ import json
 import math
 import mimetypes
 import os
+import platform
 import secrets
 import sys
 import time
@@ -101,6 +102,7 @@ from gradio.route_utils import (  # noqa: F401
     GradioMultiPartParser,
     GradioUploadFile,
     MultiPartException,
+    NodeProxyCache,
     Request,
     compare_passwords_securely,
     create_lifespan_handler,
@@ -172,7 +174,7 @@ DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
 )
 
 BUILT_IN_THEMES: dict[str, Theme] = {
-    t.name: t
+    t.name: t  # type: ignore
     for t in [
         themes.Base(),
         themes.Default(),
@@ -183,6 +185,7 @@ BUILT_IN_THEMES: dict[str, Theme] = {
         themes.Citrus(),
         themes.Ocean(),
     ]
+    if t.name is not None
 }
 
 
@@ -280,10 +283,12 @@ class App(FastAPI):
     # We're not overriding any defaults here
 
     client = httpx.AsyncClient()
+    proxy_cache = NodeProxyCache(client)
 
     @staticmethod
     async def proxy_to_node(
         request: fastapi.Request,
+        app: App,
         server_name: str,
         node_port: int,
         python_port: int,
@@ -296,6 +301,12 @@ class App(FastAPI):
         if request.url.query:
             full_path += f"?{request.url.query}"
 
+        root_path = route_utils.get_root_url(
+            request=request,
+            route_path=request.url.path,
+            root_path=app.root_path,
+        )
+
         url = f"{scheme}://{server_name}:{node_port}{full_path}"
 
         server_url = f"{scheme}://{server_name}"
@@ -304,23 +315,25 @@ class App(FastAPI):
         if mounted_path:
             server_url += mounted_path
 
-        headers = dict(request.headers)
+        headers = {}  # Do not include arbitrary headers from original request so NodeProxyCache can be effective
         headers["x-gradio-server"] = server_url
         headers["x-gradio-port"] = str(python_port)
+        headers["x-gradio-mounted-path"] = mounted_path
+        headers["x-gradio-original-url"] = str(root_path)
 
         if os.getenv("GRADIO_LOCAL_DEV_MODE"):
             headers["x-gradio-local-dev-mode"] = "1"
 
-        new_request = App.client.build_request(
-            request.method, httpx.URL(url), headers=headers
-        )
-        node_response = await App.client.send(new_request, stream=True)
+        if (accept_language := request.headers.get("accept-language")) is not None:
+            headers["accept-language"] = accept_language
+
+        proxy_req = App.proxy_cache.ProxyReq(request.method, url, headers)
+        status, response_headers, aiter_raw = await App.proxy_cache.get(proxy_req)
 
         return StreamingResponse(
-            node_response.aiter_raw(),
-            status_code=node_response.status_code,
-            headers=node_response.headers,
-            background=BackgroundTask(node_response.aclose),
+            aiter_raw,
+            status_code=status,
+            headers=response_headers,
         )
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
@@ -434,9 +447,9 @@ class App(FastAPI):
 
         app.configure_app(blocks)
 
-        app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
+        app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)  # type: ignore
         app.add_middleware(
-            BrotliMiddleware,
+            BrotliMiddleware,  # type: ignore
             quality=4,
             excluded_handlers=[mcp_subpath],
         )
@@ -447,6 +460,7 @@ class App(FastAPI):
             async def conditional_routing_middleware(
                 request: fastapi.Request, call_next
             ):
+                blocks = app.get_blocks()
                 custom_mount_path = blocks.custom_mount_path
                 path = (
                     request.url.path.replace(blocks.custom_mount_path or "", "")
@@ -467,6 +481,7 @@ class App(FastAPI):
                     try:
                         return await App.proxy_to_node(
                             request,
+                            app,
                             blocks.node_server_name or "0.0.0.0",
                             blocks.node_port,
                             App.app_port,
@@ -641,13 +656,18 @@ class App(FastAPI):
 
         def attach_page(page):
             @app.get(f"/{page}", response_class=HTMLResponse)
-            @app.get(f"/{page}/", response_class=HTMLResponse)
             def page_route(
                 request: fastapi.Request,
                 user: str = Depends(get_current_user),
                 deep_link: str = "",
             ):
                 return main(request, user, page, deep_link)
+
+            @app.get(f"/{page}/")
+            def page_redirect():
+                return RedirectResponse(
+                    url=f"/{page}", status_code=status.HTTP_301_MOVED_PERMANENTLY
+                )
 
         for pageset in blocks.pages:
             page = pageset[0]
@@ -853,9 +873,9 @@ class App(FastAPI):
                     }
                 }
 
-                request_properties = path_item["post"]["requestBody"]["content"][
+                request_properties = path_item["post"]["requestBody"]["content"][  # type: ignore
                     "application/json"
-                ]["schema"]["properties"]
+                ]["schema"]["properties"]  # type: ignore
                 for param in endpoint_info.get("parameters", []):
                     param_name = param["parameter_name"]
                     param_type = param.get("type", {})
@@ -868,25 +888,25 @@ class App(FastAPI):
                         param_type = dict(param_type)
                         param_type["type"] = "object"
 
-                    request_properties[param_name] = param_type
+                    request_properties[param_name] = param_type  # type: ignore
 
                     if "example_input" in param:
                         if (
                             "examples"
-                            not in path_item["post"]["requestBody"]["content"][
+                            not in path_item["post"]["requestBody"]["content"][  # type: ignore
                                 "application/json"
                             ]
                         ):
-                            path_item["post"]["requestBody"]["content"][
+                            path_item["post"]["requestBody"]["content"][  # type: ignore
                                 "application/json"
                             ]["examples"] = {"example1": {"value": {}}}
-                        path_item["post"]["requestBody"]["content"]["application/json"][
+                        path_item["post"]["requestBody"]["content"]["application/json"][  # type: ignore
                             "examples"
-                        ]["example1"]["value"][param_name] = param["example_input"]
+                        ]["example1"]["value"][param_name] = param["example_input"]  # type: ignore
 
-                response_properties = path_item["post"]["responses"]["200"]["content"][
+                response_properties = path_item["post"]["responses"]["200"]["content"][  # type: ignore
                     "application/json"
-                ]["schema"]["properties"]
+                ]["schema"]["properties"]  # type: ignore
                 for i, ret in enumerate(endpoint_info.get("returns", [])):
                     ret_name = f"output_{i}" if i > 0 else "output"
                     ret_type = ret.get("type", {})
@@ -899,9 +919,9 @@ class App(FastAPI):
                         ret_type = dict(ret_type)
                         ret_type["type"] = "object"
 
-                    response_properties[ret_name] = ret_type
+                    response_properties[ret_name] = ret_type  # type: ignore
 
-                schema["paths"][f"/run{endpoint_path}"] = path_item
+                schema["paths"][f"/run{endpoint_path}"] = path_item  # type: ignore
 
             return schema
 
@@ -1464,7 +1484,7 @@ class App(FastAPI):
                             )
 
                         heartbeat_rate = 15
-                        check_rate = 0.001
+                        check_rate = 0.05 if platform.system() == "Windows" else 0.001
                         message = None
                         try:
                             messages = blocks._queue.pending_messages_per_session[
@@ -2539,11 +2559,7 @@ def mount_gradio_app(
     if root_path is not None:
         blocks.root_path = root_path
 
-    blocks.ssr_mode = (
-        ssr_mode
-        if ssr_mode is not None
-        else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
-    )
+    blocks.ssr_mode = blocks._resolve_ssr_mode(ssr_mode)
 
     if blocks.ssr_mode:
         blocks.node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
@@ -2587,7 +2603,6 @@ def mount_gradio_app(
 
     app.router.lifespan_context = new_lifespan  # type: ignore
 
-    print("new", path)
     app.mount(path, gradio_app)
     return app
 

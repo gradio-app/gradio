@@ -11,9 +11,11 @@ from typing import (
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
+from gradio.components.button import Button
 from gradio.data_classes import GradioModel
 from gradio.events import Events
 from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -73,7 +75,7 @@ class NativePlot(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        buttons: list[Literal["fullscreen", "export"]] | None = None,
+        buttons: list[Literal["fullscreen", "export"] | Button] | None = None,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
     ):
@@ -112,7 +114,7 @@ class NativePlot(Component):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            buttons: A list of buttons to show for the component. Valid options are "fullscreen" and "export". The "fullscreen" button allows the user to view the plot in fullscreen mode. The "export" button allows the user to export and download the current view of the plot as a PNG image. By default, no buttons are shown.
+            buttons: A list of buttons to show for the component. Valid options are "fullscreen", "export", or a gr.Button() instance. The "fullscreen" button allows the user to view the plot in fullscreen mode. The "export" button allows the user to export and download the current view of the plot as a PNG image. Custom gr.Button() instances will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button. By default, no buttons are shown.
             key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
         """
@@ -135,7 +137,7 @@ class NativePlot(Component):
         self.sort = sort
         self.tooltip = tooltip
         self.height = height
-        self.buttons = buttons
+        self.buttons = set_default_buttons(buttons, None)
         self.colors_in_legend = colors_in_legend
 
         if label is None and show_label is None:

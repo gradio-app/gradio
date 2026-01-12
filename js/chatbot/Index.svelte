@@ -44,6 +44,7 @@
 	allow_overflow={true}
 	flex={true}
 	overflow_behavior="auto"
+	rtl={gradio.props.rtl}
 >
 	{#if gradio.shared.loading_status}
 		<StatusTracker
@@ -70,9 +71,11 @@
 			likeable={gradio.props.likeable}
 			feedback_options={gradio.props.feedback_options}
 			feedback_value={gradio.props.feedback_value}
-			show_share_button={(gradio.props.buttons ?? ["share"]).includes("share")}
-			show_copy_all_button={(gradio.props.buttons ?? ["copy_all"]).includes(
-				"copy_all"
+			show_share_button={(gradio.props.buttons ?? ["share"]).some(
+				(btn) => typeof btn === "string" && btn === "share"
+			)}
+			show_copy_all_button={(gradio.props.buttons ?? ["copy_all"]).some(
+				(btn) => typeof btn === "string" && btn === "copy_all"
 			)}
 			value={_value}
 			latex_delimiters={gradio.props.latex_delimiters}
@@ -84,7 +87,13 @@
 			pending_message={gradio.shared.loading_status?.status === "pending"}
 			generating={gradio.shared.loading_status?.status === "generating"}
 			rtl={gradio.props.rtl}
-			show_copy_button={(gradio.props.buttons ?? ["copy"]).includes("copy")}
+			show_copy_button={(gradio.props.buttons ?? ["copy"]).some(
+				(btn) => typeof btn === "string" && btn === "copy"
+			)}
+			buttons={gradio.props.buttons}
+			on_custom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
 			like_user_message={gradio.props.like_user_message}
 			show_progress={gradio.shared.loading_status?.show_progress || "full"}
 			on:change={() => (

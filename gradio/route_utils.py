@@ -23,6 +23,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     BinaryIO,
+    NamedTuple,
     Union,
 )
 from urllib.parse import urlparse
@@ -400,19 +401,29 @@ def get_request_origin(request: fastapi.Request, route_path: str) -> httpx.URL:
 
     The returned URL is a httpx.URL object without a trailing slash, e.g. "https://example.com"
     """
+
     x_forwarded_host = get_first_header_value(request, "x-forwarded-host")
-    root_url = f"http://{x_forwarded_host}" if x_forwarded_host else str(request.url)
+    x_gradio_server = get_first_header_value(request, "x-gradio-server")
+    root_url = (
+        f"http://{x_forwarded_host}"
+        if x_forwarded_host
+        else str(x_gradio_server or request.url)
+    )
     root_url = httpx.URL(root_url)
     root_url = root_url.copy_with(query=None)
     root_url = str(root_url).rstrip("/")
+
     if get_first_header_value(request, "x-forwarded-proto") == "https":
         root_url = root_url.replace("http://", "https://")
 
     route_path = route_path.rstrip("/")
-    if len(route_path) > 0 and not x_forwarded_host:
+
+    if len(route_path) > 0 and not x_forwarded_host and root_url.endswith(route_path):
         root_url = root_url[: -len(route_path)]
+
     root_url = root_url.rstrip("/")
     root_url = httpx.URL(root_url)
+
     return root_url
 
 
@@ -634,10 +645,12 @@ class GradioMultiPartParser:
 
     def on_part_end(self) -> None:
         if self._current_part.file is None:
+            data = self._current_part.data
+            data_bytes = bytes(data) if isinstance(data, bytearray) else data
             self.items.append(
                 (
                     self._current_part.field_name,
-                    _user_safe_decode(self._current_part.data, str(self._charset)),
+                    _user_safe_decode(data_bytes, str(self._charset)),
                 )
             )
         else:
@@ -1027,7 +1040,7 @@ class MediaStream:
             return
 
         segment_id = str(uuid.uuid4())
-        self.segments.append({"id": segment_id, **data})
+        self.segments.append({"id": segment_id, **data})  # type: ignore
         self.max_duration = max(self.max_duration, data["duration"]) + 1
 
     def end_stream(self):
@@ -1057,3 +1070,71 @@ def slugify(value):
     )
     value = re.sub(r"[^\w\s-]", "", value.lower())
     return re.sub(r"[-\s]+", "-", value).strip("-_")
+
+
+class NodeProxyCache:
+    """
+    Fan-out streaming cache for NodeJS requests proxying
+    """
+
+    class CacheEntry(NamedTuple):
+        head: bytearray
+        subs: list[asyncio.Queue[bytes | None]]
+        resp: asyncio.Future[httpx.Response | None]
+
+    class ProxyReq(NamedTuple):
+        method: str
+        url: str
+        headers: dict[str, str]
+
+    def __init__(self, client: httpx.AsyncClient):
+        self.client = client
+        self.cache: dict[str, NodeProxyCache.CacheEntry | None] = {}
+
+    async def get(self, req: ProxyReq):
+        key = f"{req.method} {req.url}"
+        key += "::".join(map(":".join, req.headers.items()))
+        res: asyncio.Queue[bytes | None] = asyncio.Queue()
+        if (entry := self.cache.get(key, None)) is None:
+            loop = asyncio.get_running_loop()
+            entry = NodeProxyCache.CacheEntry(bytearray(), [], loop.create_future())
+            asyncio.create_task(self.fetch(key, entry, req))
+            self.cache[key] = entry
+        entry.subs.append(res)
+        head = bytes(entry.head)
+        if (resp := await entry.resp) is None:
+            raise Error("Error while proxying request to Node server")
+        return resp.status_code, resp.headers, NodeProxyCache.iter_body(head, res)
+
+    async def fetch(self, key: str, entry: CacheEntry, req: ProxyReq):
+        try:
+            response = await self.client.send(
+                self.client.build_request(
+                    method=req.method,
+                    url=httpx.URL(req.url),
+                    headers=req.headers,
+                ),
+                stream=True,
+            )
+        except Exception:
+            entry.resp.set_result(None)
+            del self.cache[key]
+            raise
+        entry.resp.set_result(response)
+        try:
+            async for bytes_chunk in response.aiter_raw():
+                entry.head.extend(bytes_chunk)
+                for sub in entry.subs:
+                    sub.put_nowait(bytes_chunk)
+        finally:
+            for sub in entry.subs:
+                sub.put_nowait(None)
+            del self.cache[key]
+            await response.aclose()
+
+    @staticmethod
+    async def iter_body(head: bytes, queue: asyncio.Queue[bytes | None]):
+        if len(head) > 0:
+            yield head
+        while (chunk := await queue.get()) is not None:
+            yield chunk

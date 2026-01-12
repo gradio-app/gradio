@@ -30,4 +30,4 @@ demo = gr.Interface(
 )
 
 if __name__ == "__main__":
-    demo.launch(allowed_paths=[MEDIA_PATHS])
+    demo.launch(allowed_paths=[MEDIA_PATHS])  # type: ignore

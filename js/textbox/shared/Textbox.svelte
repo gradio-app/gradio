@@ -7,7 +7,11 @@
 	} from "svelte";
 	import { BlockTitle, IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import { Copy, Check, Send, Square } from "@gradio/icons";
-	import type { SelectData, CopyData } from "@gradio/utils";
+	import type {
+		SelectData,
+		CopyData,
+		CustomButton as CustomButtonType
+	} from "@gradio/utils";
 	import type { InputHTMLAttributes } from "../types";
 
 	export let value = "";
@@ -21,7 +25,8 @@
 	export let container = true;
 	export let max_lines: number | undefined = undefined;
 	export let type: "text" | "password" | "email" = "text";
-	export let buttons: string[] = [];
+	export let buttons: (string | CustomButtonType)[] | null = null;
+	export let on_custom_button_click: ((id: number) => void) | null = null;
 	export let submit_btn: string | boolean | null = null;
 	export let stop_btn: string | boolean | null = null;
 	export let rtl = false;
@@ -68,6 +73,7 @@
 		input: string;
 		focus: undefined;
 		copy: CopyData;
+		custom_button_click: { component_id: number };
 	}>();
 
 	beforeUpdate(() => {
@@ -243,13 +249,15 @@
 
 <!-- svelte-ignore a11y-autofocus -->
 <label class:container class:show_textbox_border>
-	{#if show_label && buttons.includes("copy")}
-		<IconButtonWrapper>
-			<IconButton
-				Icon={copied ? Check : Copy}
-				on:click={handle_copy}
-				label={copied ? "Copied" : "Copy"}
-			/>
+	{#if show_label && buttons && buttons.length > 0}
+		<IconButtonWrapper {buttons} {on_custom_button_click}>
+			{#if buttons.some((btn) => typeof btn === "string" && btn === "copy")}
+				<IconButton
+					Icon={copied ? Check : Copy}
+					on:click={handle_copy}
+					label={copied ? "Copied" : "Copy"}
+				/>
+			{/if}
 		</IconButtonWrapper>
 	{/if}
 	<BlockTitle show_label={validation_error ? true : show_label} {info}
@@ -400,7 +408,9 @@
 		width: 100%;
 	}
 
-	input,
+	input[type="text"],
+	input[type="password"],
+	input[type="email"],
 	textarea {
 		flex-grow: 1;
 		outline: none !important;

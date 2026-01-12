@@ -1,5 +1,25 @@
 # @gradio/sidebar
 
+## 0.2.0
+
+### Features
+
+- [#12756](https://github.com/gradio-app/gradio/pull/12756) [`2b4176c`](https://github.com/gradio-app/gradio/commit/2b4176c2edad6988cea12850c2ea04ce868723ed) - Migrate Sidebar to Svelte 5.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+- @gradio/column@0.3.1
+
+## 0.1.25
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/utils@0.11.0
+- @gradio/statustracker@0.12.1
+- @gradio/column@0.3.0
+
 ## 0.1.24
 
 ### Dependency updates

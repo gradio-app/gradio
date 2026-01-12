@@ -11,7 +11,13 @@
 	import { Gradio } from "@gradio/utils";
 	import Model3D from "./shared/Model3D.svelte";
 	import Model3DUpload from "./shared/Model3DUpload.svelte";
-	import { BlockLabel, Block, Empty, UploadText } from "@gradio/atoms";
+	import {
+		BlockLabel,
+		Block,
+		Empty,
+		UploadText,
+		IconButtonWrapper
+	} from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
 
@@ -106,6 +112,14 @@
 				{has_change_history}
 			/>
 		{:else}
+			{#if gradio.shared.show_label && gradio.props.buttons && gradio.props.buttons.length > 0}
+				<IconButtonWrapper
+					buttons={gradio.props.buttons}
+					on_custom_button_click={(id) => {
+						gradio.dispatch("custom_button_click", { id });
+					}}
+				/>
+			{/if}
 			<BlockLabel
 				show_label={gradio.shared.show_label}
 				Icon={File}
@@ -143,15 +157,15 @@
 			root={gradio.shared.root}
 			display_mode={gradio.props.display_mode}
 			clear_color={gradio.props.clear_color}
-			value={gradio.props.value}
+			bind:value={gradio.props.value}
 			camera_position={gradio.props.camera_position}
 			zoom_speed={gradio.props.zoom_speed}
 			bind:uploading
-			on:change={({ detail }) => handle_change(detail)}
-			on:drag={({ detail }) => handle_drag(detail)}
-			on:clear={handle_clear}
-			on:load={({ detail }) => handle_load(detail)}
-			on:error={({ detail }) => handle_error(detail)}
+			onchange={handle_change}
+			ondrag={handle_drag}
+			onclear={handle_clear}
+			onload={handle_load}
+			onerror={handle_error}
 			i18n={gradio.i18n}
 			max_file_size={gradio.shared.max_file_size}
 			upload={(...args) => gradio.shared.client.upload(...args)}
