@@ -76,5 +76,14 @@ with gr.Blocks() as demo:
         gr.Number(value=round(time.time(), 2))
 
 
+    render_tab = gr.Button("Render Tab")
+    @gr.render(triggers=[render_tab.click])
+    def test_render():
+        with gr.Tabs():
+            with gr.Tab():
+                gr.Textbox("This is a rendered tab", label="Rendered Tab")
+            with gr.Tab():
+                gr.Textbox("Another Tab", label="Another Tab")
+
 if __name__ == '__main__':
     demo.launch()

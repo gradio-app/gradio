@@ -118,10 +118,8 @@
 		}
 	};
 
-	const handle_picker_update = (
-		event: CustomEvent<{ date: Date; formatted: string }>
-	): void => {
-		entered_value = event.detail.formatted;
+	const handle_picker_update = (formatted: string): void => {
+		entered_value = formatted;
 		submit_values();
 	};
 
@@ -170,13 +168,13 @@
 			class="time"
 			bind:value={entered_value}
 			class:invalid={!valid}
-			on:keydown={(evt) => {
+			onkeydown={(evt) => {
 				if (evt.key === "Enter") {
 					submit_values();
 					gradio.dispatch("submit");
 				}
 			}}
-			on:blur={submit_values}
+			onblur={submit_values}
 			{disabled}
 			placeholder={gradio.props.include_time
 				? "YYYY-MM-DD HH:MM:SS"
@@ -188,7 +186,7 @@
 				bind:this={calendar_button_ref}
 				class="calendar"
 				{disabled}
-				on:click={toggle_picker}
+				onclick={toggle_picker}
 			>
 				<Calendar />
 			</button>
@@ -207,9 +205,9 @@
 				bind:is_pm
 				include_time={gradio.props.include_time}
 				position={picker_position}
-				on:update={handle_picker_update}
-				on:clear={handle_picker_clear}
-				on:close={close_picker}
+				onupdate={handle_picker_update}
+				onclear={handle_picker_clear}
+				onclose={close_picker}
 			/>
 		</div>
 	{/if}
