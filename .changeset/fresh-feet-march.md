@@ -1,6 +1,6 @@
 ---
-"@gradio/video": minor
-"gradio": minor
+"@gradio/video": patch
+"gradio": patch
 ---
 
-feat:Add volume control to gr.Video
+fix:Add volume control to gr.Video
