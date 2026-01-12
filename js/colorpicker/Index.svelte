@@ -6,7 +6,6 @@
 </script>
 
 <script lang="ts">
-	import { tick } from "svelte";
 	import { Gradio } from "@gradio/utils";
 	import Colorpicker from "./shared/Colorpicker.svelte";
 	import { Block } from "@gradio/atoms";
@@ -52,9 +51,9 @@
 		info={gradio.props.info}
 		show_label={gradio.shared.show_label}
 		disabled={!gradio.shared.interactive}
-		on:input={() => gradio.dispatch("input")}
-		on:submit={() => gradio.dispatch("submit")}
-		on:blur={() => gradio.dispatch("blur")}
-		on:focus={() => gradio.dispatch("focus")}
+		on_input={() => gradio.dispatch("input")}
+		on_submit={() => gradio.dispatch("submit")}
+		on_blur={() => gradio.dispatch("blur")}
+		on_focus={() => gradio.dispatch("focus")}
 	/>
 </Block>

@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	import { writable } from "svelte/store";
 
 	import type { Client as ClientType } from "@gradio/client";
@@ -74,7 +74,9 @@
 </script>
 
 <script lang="ts">
-	import { onMount, createEventDispatcher, onDestroy } from "svelte";
+	import { run } from "svelte/legacy";
+
+	import { onMount, createEventDispatcher } from "svelte";
 	import type { SpaceStatus } from "@gradio/client";
 	import { Embed } from "@gradio/core";
 	import type { ThemeMode } from "@gradio/core";
@@ -87,17 +89,34 @@
 	import { browser } from "$app/environment";
 
 	const dispatch = createEventDispatcher();
-	export let data;
 
-	export let autoscroll = false;
-	export let version = GRADIO_VERSION;
-	export let initial_height: string;
-	export let app_mode = true;
-	export let is_embed = false;
-	export let theme_mode: ThemeMode | null = null;
-	export let control_page_title = true;
-	export let container: boolean;
 	let stream: EventSource;
+
+	interface Props {
+		data: any;
+		autoscroll?: boolean;
+		version?: any;
+		initial_height: string;
+		app_mode?: boolean;
+		is_embed?: boolean;
+		theme_mode?: ThemeMode | null;
+		control_page_title?: boolean;
+		container: boolean;
+		space: string | null;
+	}
+
+	let {
+		data,
+		autoscroll = false,
+		version = GRADIO_VERSION,
+		initial_height,
+		app_mode = true,
+		is_embed = false,
+		theme_mode = null,
+		control_page_title = true,
+		container,
+		space
+	}: Props = $props();
 
 	function handle_theme_mode(target: HTMLElement): "light" | "dark" {
 		let new_theme_mode: ThemeMode;
@@ -147,7 +166,7 @@
 		}
 	}
 
-	let active_theme_mode: ThemeMode;
+	let active_theme_mode: ThemeMode = $state();
 
 	if (browser) {
 		active_theme_mode = handle_theme_mode(document.body);
@@ -204,26 +223,20 @@
 		}
 	}
 
-	export let space: string | null;
 	let _id = id++;
 
 	let loader_status: "pending" | "error" | "complete" | "generating" =
 		"complete";
-	let app_id: string | null = null;
-	let wrapper: HTMLDivElement;
-	let ready = false;
-	let render_complete = false;
+	let app_id: string | null = $state(null);
+	let wrapper: HTMLDivElement = $state();
+	let ready = $state(false);
+	let render_complete = $state(false);
 	let reload_count = 0;
-	$: config = data.config;
 
 	let intersecting: ReturnType<typeof create_intersection_store> = {
 		register: () => {},
 		subscribe: writable({}).subscribe
 	};
-
-	$: if (config?.app_id) {
-		app_id = config.app_id;
-	}
 
 	let status: SpaceStatus = {
 		message: "",
@@ -232,13 +245,13 @@
 		detail: "SLEEPING"
 	};
 
-	let app: ClientType = data.app;
+	let app: ClientType = $state(data.app);
 	let css_ready = false;
 	function handle_status(_status: SpaceStatus): void {
 		status = _status;
 	}
 	//@ts-ignore
-	let pending_deep_link_error = false;
+	let pending_deep_link_error = $state(false);
 
 	let gradio_dev_mode = "";
 	let i18n_ready = false;
@@ -343,31 +356,14 @@
 		}
 	});
 
-	let new_message_fn: (title: string, message: string, type: string) => void;
-
-	$: if (new_message_fn && pending_deep_link_error) {
-		new_message_fn("Error", "Deep link was not valid", -1, "error", 10, true);
-		pending_deep_link_error = false;
-	}
+	let new_message_fn: (title: string, message: string, type: string) => void =
+		$state();
 
 	onMount(async () => {
 		intersecting = create_intersection_store();
 		intersecting.register(_id, wrapper);
 	});
 
-	$: if (render_complete) {
-		wrapper.dispatchEvent(
-			new CustomEvent("render", {
-				bubbles: true,
-				cancelable: false,
-				composed: true
-			})
-		);
-	}
-
-	$: app?.config &&
-		browser &&
-		mount_space_header(app?.config?.space_id, is_embed);
 	let spaceheader: HTMLElement | undefined;
 
 	async function mount_space_header(
@@ -390,13 +386,45 @@
 	// 		spaceheader = undefined;
 	// 	}
 	// });
+	let config = $derived(data.config);
+	let root = $derived.by(() => {
+		if (!browser) return config.root;
+		const current_url = new URL(window.location.toString());
+		const root_url = new URL(config.root);
+
+		return new URL(root_url.pathname, current_url).toString();
+	});
+	run(() => {
+		if (config?.app_id) {
+			app_id = config.app_id;
+		}
+	});
+	run(() => {
+		if (new_message_fn && pending_deep_link_error) {
+			new_message_fn("Error", "Deep link was not valid", -1, "error", 10, true);
+			pending_deep_link_error = false;
+		}
+	});
+	run(() => {
+		if (render_complete) {
+			wrapper.dispatchEvent(
+				new CustomEvent("render", {
+					bubbles: true,
+					cancelable: false,
+					composed: true
+				})
+			);
+		}
+	});
+	run(() => {
+		app?.config &&
+			browser &&
+			mount_space_header(app?.config?.space_id, is_embed);
+	});
 </script>
 
 <svelte:head>
-	<link
-		rel="stylesheet"
-		href={config?.root + "/theme.css?v=" + config?.theme_hash}
-	/>
+	<link rel="stylesheet" href={root + "/theme.css?v=" + config?.theme_hash} />
 	{#if config?.stylesheets}
 		{#each config.stylesheets as stylesheet}
 			{#if stylesheet.startsWith("http:") || stylesheet.startsWith("https:")}
@@ -423,8 +451,7 @@
 	bind:wrapper
 >
 	{#if config?.auth_required}
-		<svelte:component
-			this={data.Render}
+		<data.Render
 			auth_message={config.auth_message}
 			root={config.root}
 			space_id={space}
@@ -432,8 +459,7 @@
 			i18n={i18n_ready ? $_ : (s) => s}
 		/>
 	{:else if config && app}
-		<svelte:component
-			this={data.Render}
+		<data.Render
 			{app}
 			{...config}
 			fill_height={!is_embed && config.fill_height}
