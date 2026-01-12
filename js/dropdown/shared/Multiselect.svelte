@@ -190,7 +190,7 @@
 	}
 </script>
 
-<label class:container={gradio.shared.container}>
+<div class:container={gradio.shared.container}>
 	{#if gradio.shared.show_label && buttons && buttons.length > 0}
 		<IconButtonWrapper {buttons} {on_custom_button_click} />
 	{/if}
@@ -281,7 +281,7 @@
 			on:change={handle_option_selected}
 		/>
 	</div>
-</label>
+</div>
 
 <style>
 	.icon-wrap {
