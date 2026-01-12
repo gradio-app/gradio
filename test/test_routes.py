@@ -1144,6 +1144,17 @@ def test_config_show_api_reflects_mount_flag():
     assert config["footer_links"] == ["gradio", "settings"]
 
 
+def test_empty_footer_links():
+    with gr.Blocks() as demo:
+        gr.Markdown("Hello")
+
+    app, _, _ = demo.launch(prevent_thread_lock=True, footer_links=[])
+    client = TestClient(app)
+    config = client.get("/config").json()
+    assert config["footer_links"] == []
+    demo.close()
+
+
 def test_orjson_serialization():
     df = pd.DataFrame(
         {
