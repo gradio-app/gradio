@@ -116,8 +116,8 @@
 		);
 	}
 
-	function handle_option_selected(e: any): void {
-		const option_index = parseInt(e.detail.target.dataset.index);
+	function handle_option_selected(index: any): void {
+		const option_index = parseInt(index);
 		add_or_remove_index(option_index);
 	}
 
@@ -278,7 +278,7 @@
 			{selected_indices}
 			{active_index}
 			remember_scroll={true}
-			on:change={handle_option_selected}
+			onchange={handle_option_selected}
 		/>
 	</div>
 </label>
