@@ -1,5 +1,18 @@
 # website
 
+## 0.68.0
+
+### Features
+
+- [#12685](https://github.com/gradio-app/gradio/pull/12685) [`3c831d3`](https://github.com/gradio-app/gradio/commit/3c831d35e041ac7cc30c76a975341fcc2d905903) - Create MCP birthday winners page.  Thanks @aliabd!
+- [#12691](https://github.com/gradio-app/gradio/pull/12691) [`d81ff6f`](https://github.com/gradio-app/gradio/commit/d81ff6fce23ab3bfef14e626f1e15b4301ac65fe) - Add Community choice award winner to website.  Thanks @freddyaboulton!
+- [#12624](https://github.com/gradio-app/gradio/pull/12624) [`06d657b`](https://github.com/gradio-app/gradio/commit/06d657b27143538c58a64f425943f7dfa9a5e032) - Remove type parameter from Chatbot Docs.  Thanks @freddyaboulton!
+- [#12678](https://github.com/gradio-app/gradio/pull/12678) [`4eb5d63`](https://github.com/gradio-app/gradio/commit/4eb5d633e00b18d84f8beb1d76896c803325e5eb) - Extend Python syntax highlighting patterns in the docs.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/button@0.6.2
+
 ## 0.67.2
 
 ### Dependency updates

@@ -1,5 +1,16 @@
 # @gradio/highlightedtext
 
+## 0.10.1
+
+### Fixes
+
+- [#12692](https://github.com/gradio-app/gradio/pull/12692) [`3b3eaf0`](https://github.com/gradio-app/gradio/commit/3b3eaf0dcb0690cc815eb2b3c40ca335c9a47a11) - Restore RTL prop to gradio components.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+- @gradio/theme@0.6.0
+
 ## 0.10.0
 
 ### Features
