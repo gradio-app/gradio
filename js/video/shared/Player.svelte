@@ -1,8 +1,10 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, onMount, onDestroy } from "svelte";
 	import { Play, Pause, Maximize, Undo } from "@gradio/icons";
 	import Video from "./Video.svelte";
 	import VideoControls from "./VideoControls.svelte";
+	import VolumeControl from "./VolumeControl.svelte";
+	import VolumeLevels from "../../audio/shared/VolumeLevels.svelte";
 	import type { FileData, Client } from "@gradio/client";
 	import { prepare_files } from "@gradio/client";
 	import { format_time } from "@gradio/utils";
@@ -40,6 +42,9 @@
 	let paused = true;
 	let video: HTMLVideoElement;
 	let processingVideo = false;
+	let show_volume_slider = false;
+	let current_volume = 1;
+	let is_fullscreen = false;
 
 	function handleMove(e: TouchEvent | MouseEvent): void {
 		if (!duration) return;
@@ -96,7 +101,51 @@
 	};
 
 	function open_full_screen(): void {
-		video.requestFullscreen();
+		if (!is_fullscreen) {
+			video.requestFullscreen();
+		} else {
+			document.exitFullscreen();
+		}
+	}
+
+	function handleFullscreenChange(): void {
+		is_fullscreen = document.fullscreenElement === video;
+		if (video) {
+			video.controls = is_fullscreen;
+		}
+	}
+
+	let last_synced_volume = 1;
+	let previous_video: HTMLVideoElement | undefined;
+	// Tolerance for floating-point comparison of volume values
+	const VOLUME_EPSILON = 0.001;
+
+	function handleVolumeChange(): void {
+		if (video && Math.abs(video.volume - last_synced_volume) > VOLUME_EPSILON) {
+			current_volume = video.volume;
+			last_synced_volume = video.volume;
+		}
+	}
+
+	onMount(() => {
+		document.addEventListener("fullscreenchange", handleFullscreenChange);
+		return () => {
+			document.removeEventListener("fullscreenchange", handleFullscreenChange);
+		};
+	});
+
+	onDestroy(() => {
+		if (video) {
+			video.removeEventListener("volumechange", handleVolumeChange);
+		}
+	});
+
+	$: if (video && video !== previous_video) {
+		if (previous_video) {
+			previous_video.removeEventListener("volumechange", handleVolumeChange);
+		}
+		video.addEventListener("volumechange", handleVolumeChange);
+		previous_video = video;
 	}
 
 	$: time = time || 0;
@@ -104,6 +153,16 @@
 	$: playback_position = time;
 	$: if (playback_position !== time && video) {
 		video.currentTime = playback_position;
+	}
+	$: if (video && !is_fullscreen) {
+		if (Math.abs(video.volume - current_volume) > VOLUME_EPSILON) {
+			video.volume = current_volume;
+			last_synced_volume = current_volume;
+		}
+		video.controls = false;
+	}
+	$: if (video && is_fullscreen) {
+		last_synced_volume = video.volume;
 	}
 </script>
 
@@ -115,6 +174,7 @@
 			{autoplay}
 			{loop}
 			{is_stream}
+			controls={is_fullscreen}
 			on:click={play_pause}
 			on:play
 			on:pause
@@ -165,16 +225,33 @@
 				on:click|stopPropagation|preventDefault={handle_click}
 			/>
 
-			<div
-				role="button"
-				tabindex="0"
-				class="icon"
-				aria-label="full-screen"
-				on:click={open_full_screen}
-				on:keypress={open_full_screen}
-			>
-				<Maximize />
+			<div class="volume-control-wrapper">
+				<button
+					class="icon volume-button"
+					style:color={show_volume_slider ? "var(--color-accent)" : "white"}
+					aria-label="Adjust volume"
+					on:click={() => (show_volume_slider = !show_volume_slider)}
+				>
+					<VolumeLevels currentVolume={current_volume} />
+				</button>
+
+				{#if show_volume_slider}
+					<VolumeControl bind:current_volume bind:show_volume_slider />
+				{/if}
 			</div>
+
+			{#if !show_volume_slider}
+				<div
+					role="button"
+					tabindex="0"
+					class="icon"
+					aria-label="full-screen"
+					on:click={open_full_screen}
+					on:keypress={open_full_screen}
+				>
+					<Maximize />
+				</div>
+			{/if}
 		</div>
 	</div>
 </div>
@@ -236,9 +313,13 @@
 		padding: var(--size-2) var(--size-1);
 		width: calc(100% - 0.375rem * 2);
 		width: calc(100% - var(--size-2) * 2);
+		z-index: 10;
 	}
 	.wrap:hover .controls {
 		opacity: 1;
+	}
+	:global(:fullscreen) .controls {
+		display: none;
 	}
 
 	.inner {
@@ -257,6 +338,25 @@
 		cursor: pointer;
 		width: var(--size-6);
 		color: white;
+	}
+
+	.volume-control-wrapper {
+		position: relative;
+		display: flex;
+		align-items: center;
+		margin-right: var(--spacing-md);
+	}
+
+	.volume-button {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		cursor: pointer;
+		width: var(--size-6);
+		color: white;
+		border: none;
+		background: none;
+		padding: 0;
 	}
 
 	.time {
