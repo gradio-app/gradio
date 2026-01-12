@@ -1,5 +1,12 @@
 # @gradio/plot
 
+## 0.10.1
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+- @gradio/theme@0.6.0
+
 ## 0.10.0
 
 ### Features

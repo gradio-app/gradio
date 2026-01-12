@@ -288,6 +288,7 @@ class App(FastAPI):
     @staticmethod
     async def proxy_to_node(
         request: fastapi.Request,
+        app: App,
         server_name: str,
         node_port: int,
         python_port: int,
@@ -300,6 +301,12 @@ class App(FastAPI):
         if request.url.query:
             full_path += f"?{request.url.query}"
 
+        root_path = route_utils.get_root_url(
+            request=request,
+            route_path=request.url.path,
+            root_path=app.root_path,
+        )
+
         url = f"{scheme}://{server_name}:{node_port}{full_path}"
 
         server_url = f"{scheme}://{server_name}"
@@ -311,6 +318,8 @@ class App(FastAPI):
         headers = {}  # Do not include arbitrary headers from original request so NodeProxyCache can be effective
         headers["x-gradio-server"] = server_url
         headers["x-gradio-port"] = str(python_port)
+        headers["x-gradio-mounted-path"] = mounted_path
+        headers["x-gradio-original-url"] = str(root_path)
 
         if os.getenv("GRADIO_LOCAL_DEV_MODE"):
             headers["x-gradio-local-dev-mode"] = "1"
@@ -451,6 +460,7 @@ class App(FastAPI):
             async def conditional_routing_middleware(
                 request: fastapi.Request, call_next
             ):
+                blocks = app.get_blocks()
                 custom_mount_path = blocks.custom_mount_path
                 path = (
                     request.url.path.replace(blocks.custom_mount_path or "", "")
@@ -471,6 +481,7 @@ class App(FastAPI):
                     try:
                         return await App.proxy_to_node(
                             request,
+                            app,
                             blocks.node_server_name or "0.0.0.0",
                             blocks.node_port,
                             App.app_port,
@@ -645,13 +656,18 @@ class App(FastAPI):
 
         def attach_page(page):
             @app.get(f"/{page}", response_class=HTMLResponse)
-            @app.get(f"/{page}/", response_class=HTMLResponse)
             def page_route(
                 request: fastapi.Request,
                 user: str = Depends(get_current_user),
                 deep_link: str = "",
             ):
                 return main(request, user, page, deep_link)
+
+            @app.get(f"/{page}/")
+            def page_redirect():
+                return RedirectResponse(
+                    url=f"/{page}", status_code=status.HTTP_301_MOVED_PERMANENTLY
+                )
 
         for pageset in blocks.pages:
             page = pageset[0]
@@ -2543,11 +2559,7 @@ def mount_gradio_app(
     if root_path is not None:
         blocks.root_path = root_path
 
-    blocks.ssr_mode = (
-        ssr_mode
-        if ssr_mode is not None
-        else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
-    )
+    blocks.ssr_mode = blocks._resolve_ssr_mode(ssr_mode)
 
     if blocks.ssr_mode:
         blocks.node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
@@ -2591,7 +2603,6 @@ def mount_gradio_app(
 
     app.router.lifespan_context = new_lifespan  # type: ignore
 
-    print("new", path)
     app.mount(path, gradio_app)
     return app
 

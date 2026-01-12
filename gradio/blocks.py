@@ -1883,8 +1883,13 @@ Received inputs:
                 ) from err
 
             if block.stateful:
-                if not utils.is_prop_update(predictions[i]):
-                    state[block._id] = predictions[i]
+                prediction_value = predictions[i]
+                if utils.is_prop_update(prediction_value):
+                    # Support gr.update(value=...) for State components
+                    if "value" in prediction_value:
+                        state[block._id] = prediction_value["value"]
+                else:
+                    state[block._id] = prediction_value
                 output.append(None)
             else:
                 prediction_value = predictions[i]
@@ -2443,6 +2448,21 @@ Received inputs:
             with open(head_path, encoding="utf-8") as head_file:
                 self.head += "\n" + head_file.read()
 
+    def _resolve_ssr_mode(
+        self, ssr_mode: bool | None, disable_when_multi_page: bool = True
+    ) -> bool:
+        if disable_when_multi_page and len(self.config.get("pages", [])) > 1:
+            warnings.warn(
+                "SSR mode is not supported with multi-page apps when mounting on a FastAPI app. Disabling SSR mode.",
+                UserWarning,
+            )
+            return False
+        return (
+            ssr_mode
+            if ssr_mode is not None
+            else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
+        )
+
     def launch(
         self,
         inline: bool | None = None,
@@ -2662,12 +2682,9 @@ Received inputs:
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
         self.transpile_to_js(quiet=quiet)
+        self.config = self.get_config_file()
 
-        self.ssr_mode = (
-            ssr_mode
-            if ssr_mode is not None
-            else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
-        )
+        self.ssr_mode = self._resolve_ssr_mode(ssr_mode, disable_when_multi_page=False)
         if self.ssr_mode:
             self.node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
             self.node_server_name, self.node_process, self.node_port = (
@@ -2696,7 +2713,6 @@ Received inputs:
         if self.mcp_error and not quiet:
             print(self.mcp_error)
 
-        self.config = self.get_config_file()
         if self.is_running:
             if not isinstance(self.local_url, str):
                 raise ValueError(f"Invalid local_url: {self.local_url}")
