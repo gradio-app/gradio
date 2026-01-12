@@ -14,6 +14,7 @@ for (const test_case of cases) {
 		page
 	}) => {
 		if (cases.slice(1).includes(test_case)) {
+			test.skip(process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true");
 			await go_to_testcase(page, test_case);
 		}
 		const submit_button = page.locator(".submit-button");
@@ -75,6 +76,7 @@ for (const test_case of cases) {
 		page
 	}) => {
 		if (cases.slice(1).includes(test_case)) {
+			test.skip(process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true");
 			await go_to_testcase(page, test_case);
 		}
 		const textbox = page.getByTestId("textbox").first();

@@ -5,6 +5,8 @@ export async function load({ request }: { request: Request }): Promise<{
 	port: string;
 	local_dev_mode: string | undefined;
 	accept_language: string;
+	root_url: string;
+	mount_path: string;
 }> {
 	const server =
 		request.headers.get("x-gradio-server") || "http://127.0.0.1:7860";
@@ -12,9 +14,15 @@ export async function load({ request }: { request: Request }): Promise<{
 	const local_dev_mode =
 		request.headers.get("x-gradio-local-dev-mode") || dev ? "true" : undefined;
 	const accept_language = request.headers.get("accept-language") || "en";
+	const mount_path = request.headers.get("x-gradio-mounted-path") || "/";
+	const real_url = new URL(
+		request.headers.get("x-gradio-original-url") || server
+	).origin;
 
 	return {
 		server: server,
+		root_url: new URL(mount_path, real_url).href,
+		mount_path: mount_path,
 		port: port,
 		local_dev_mode: local_dev_mode,
 		accept_language: accept_language
