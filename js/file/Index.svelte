@@ -113,9 +113,9 @@
 			onerror={(error) => {
 				gradio.shared.loading_status = gradio.shared.loading_status || {};
 				gradio.shared.loading_status.status = "error";
-				gradio.dispatch("error", detail);
+				gradio.dispatch("error", error);
 			}}
-			ondelete={({ detail }) => {
+			ondelete={(detail) => {
 				gradio.dispatch("delete", detail);
 			}}
 			i18n={gradio.i18n}

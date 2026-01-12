@@ -57,7 +57,7 @@
 		ondrag?: (dragging: boolean) => void;
 		onupload?: (event_data: FileData[] | FileData) => void;
 		onerror?: (error: string) => void;
-		ondelete?: () => void;
+		ondelete?: (event_data: FileData) => void;
 		onselect?: (event_data: SelectData) => void;
 	} = $props();
 
