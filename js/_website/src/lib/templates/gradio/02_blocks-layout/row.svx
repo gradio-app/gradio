@@ -41,6 +41,21 @@ demo.launch()
 ### Initialization
 <ParamTable parameters={obj.parameters} anchor_links={obj.name}/>
 
+### Controlling Width 
+
+The widths of elements in a `Row` can be controlled via a combination of `scale` and `min_width` arguments that are present in every component.
+
+- `scale` is an integer that defines how an element will take up space in a `Row`. If `scale` is set to 0, the element will not expand to take up space. If `scale` is set to 1 or greater, the element will expand. Multiple elements in a row will expand proportional to their scale. Below, `btn2` will expand twice as much as `btn1`, while `btn0` will not expand at all:
+
+```python
+with gr.Blocks() as demo:
+    with gr.Row():
+        btn0 = gr.Button("Button 0", scale=0)
+        btn1 = gr.Button("Button 1", scale=1)
+        btn2 = gr.Button("Button 2", scale=2)
+```
+
+- `min_width` will set the minimum width the element will take. The Row will wrap if there isn't sufficient space to satisfy all `min_width` values.
 
 {#if obj.demos && obj.demos.length > 0}
 <!--- Demos -->
