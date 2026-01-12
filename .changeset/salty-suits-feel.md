@@ -1,4 +1,5 @@
 ---
+"@gradio/dialogue": patch
 "@gradio/dropdown": patch
 "gradio": patch
 ---
