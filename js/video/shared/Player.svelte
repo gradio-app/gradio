@@ -235,23 +235,23 @@
 					<VolumeLevels currentVolume={current_volume} />
 				</button>
 
-			{#if show_volume_slider}
-				<VolumeControl bind:current_volume={current_volume} bind:show_volume_slider />
-			{/if}
-		</div>
-
-		{#if !show_volume_slider}
-			<div
-				role="button"
-				tabindex="0"
-				class="icon"
-				aria-label="full-screen"
-				on:click={open_full_screen}
-				on:keypress={open_full_screen}
-			>
-				<Maximize />
+				{#if show_volume_slider}
+					<VolumeControl bind:current_volume bind:show_volume_slider />
+				{/if}
 			</div>
-		{/if}
+
+			{#if !show_volume_slider}
+				<div
+					role="button"
+					tabindex="0"
+					class="icon"
+					aria-label="full-screen"
+					on:click={open_full_screen}
+					on:keypress={open_full_screen}
+				>
+					<Maximize />
+				</div>
+			{/if}
 		</div>
 	</div>
 </div>
