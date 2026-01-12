@@ -16,8 +16,8 @@
 		choices: [string, string | number][];
 		filtered_indices: number[];
 		show_options: boolean;
-		disabled: boolean;
-		selected_indices: (string | number)[];
+		disabled?: boolean;
+		selected_indices?: (string | number)[];
 		active_index: number | null;
 		remember_scroll?: boolean;
 		offset_from_top?: number;

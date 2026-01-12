@@ -9,6 +9,7 @@
 	import type { DialogueLine } from "./utils";
 	import Switch from "./Switch.svelte";
 	import type { DialogueEvents, DialogueProps } from "./types";
+	import { parse } from "path";
 
 	const props = $props();
 
@@ -279,8 +280,9 @@
 		}
 	}
 
-	async function insert_tag(e: CustomEvent): Promise<void> {
-		const tag = gradio.props.tags[e.detail.target.dataset.index];
+	async function insert_tag(index: any): Promise<void> {
+		index = parseInt(index);
+		const tag = gradio.props.tags[index];
 		if (tag) {
 			let text;
 			let currentInput;
@@ -551,7 +553,7 @@
 											gradio.props.tags.indexOf(s)
 										)[selectedOptionIndex]}
 										show_options={true}
-										on:change={(e) => insert_tag(e)}
+										onchange={(e) => insert_tag(e)}
 										{offset_from_top}
 										from_top={true}
 									/>

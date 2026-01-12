@@ -23,7 +23,7 @@
 		allow_custom_value = false,
 		filterable = true,
 		buttons = null,
-		on_custom_button_click = null,
+		oncustom_button_click = null,
 		on_change,
 		on_input,
 		on_select,
@@ -41,7 +41,7 @@
 		allow_custom_value: boolean;
 		filterable: boolean;
 		buttons: (string | CustomButtonType)[] | null;
-		on_custom_button_click?: ((id: number) => void) | null;
+		oncustom_button_click?: ((id: number) => void) | null;
 		on_change?: (value: string | number | null) => void;
 		on_input?: () => void;
 		on_select?: (data: SelectData) => void;
@@ -182,7 +182,7 @@
 
 <div class:container>
 	{#if show_label && buttons && buttons.length > 0}
-		<IconButtonWrapper {buttons} {on_custom_button_click} />
+		<IconButtonWrapper {buttons} {oncustom_button_click} />
 	{/if}
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
