@@ -1,4 +1,5 @@
-import { compile, code_highlighter } from "mdsvex";
+import { compile } from "mdsvex";
+import { highlight } from "$lib/prism";
 import anchor from "$lib/assets/img/anchor.svg";
 import { make_slug_processor } from "$lib/utils";
 import { toString as to_string } from "hast-util-to-string";
@@ -85,16 +86,8 @@ export async function load({ params, url, parent }) {
 
 	const compiled = await compile(guide.content, {
 		rehypePlugins: [plugin],
-		highlight: {
-			highlighter: async (code, lang) => {
-				const h = (await code_highlighter(code, lang, "")).replace(
-					/\{@html `|`\}/g,
-					""
-				);
-				return `<div class="codeblock">${h}</div>`;
-			}
-		},
-		smartypants: false // This option converts `"` to `“` and `”` which breaks the code inside `<gradio-lite>` tags, so we disable it.
+		highlight: { highlighter: highlight },
+		smartypants: false // This option converts `"` to `"` and `"` which breaks the code inside `<gradio-lite>` tags, so we disable it.
 	});
 	guide.new_html = compiled?.code;
 

@@ -1,5 +1,11 @@
 # gradio_client
 
+## 2.0.3
+
+### Fixes
+
+- [#12614](https://github.com/gradio-app/gradio/pull/12614) [`6222192`](https://github.com/gradio-app/gradio/commit/622219242412400df57a73aebfd3de96bb8499de) - fix(client): make WebP and VTT MIME type detection case-insensitive.  Thanks @majiayu000!
+
 ## 2.0.2
 
 ### Fixes
