@@ -54,7 +54,7 @@
 					lines={1}
 					show_label={true}
 					max_lines={1}
-					on:submit={submit}
+					onsubmit={submit}
 					bind:value={username}
 				/>
 			</Block>
@@ -66,13 +66,13 @@
 					show_label={true}
 					max_lines={1}
 					type="password"
-					on:submit={submit}
+					onsubmit={submit}
 					bind:value={password}
 				/>
 			</Block>
 		</BaseForm>
 
-		<BaseButton size="lg" variant="primary" on:click={submit}
+		<BaseButton size="lg" variant="primary" onclick={submit}
 			>{i18n("login.login")}</BaseButton
 		>
 	</BaseColumn>

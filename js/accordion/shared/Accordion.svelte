@@ -1,21 +1,24 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
-	const dispatch = createEventDispatcher<{
-		expand: void;
-		collapse: void;
-	}>();
-
-	export let open = true;
-	export let label = "";
+	let {
+		open = $bindable(true),
+		label = "",
+		onexpand,
+		oncollapse
+	}: {
+		open: boolean;
+		label: string;
+		onexpand?: () => void;
+		oncollapse?: () => void;
+	} = $props();
 </script>
 
 <button
-	on:click={() => {
+	onclick={() => {
 		open = !open;
 		if (open) {
-			dispatch("expand");
+			onexpand?.();
 		} else {
-			dispatch("collapse");
+			oncollapse?.();
 		}
 	}}
 	class="label-wrap"
