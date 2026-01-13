@@ -1,10 +1,5 @@
 <script lang="ts">
-	import {
-		beforeUpdate,
-		afterUpdate,
-		createEventDispatcher,
-		tick
-	} from "svelte";
+	import { tick } from "svelte";
 	import { BlockTitle, IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import { Copy, Check, Send, Square } from "@gradio/icons";
 	import type {
@@ -14,69 +9,105 @@
 	} from "@gradio/utils";
 	import type { InputHTMLAttributes } from "../types";
 
-	export let value = "";
-	export let value_is_output = false;
-	export let lines = 1;
-	export let placeholder = "";
-	export let label: string;
-	export let info: string | undefined = undefined;
-	export let disabled = false;
-	export let show_label = true;
-	export let container = true;
-	export let max_lines: number | undefined = undefined;
-	export let type: "text" | "password" | "email" = "text";
-	export let buttons: (string | CustomButtonType)[] | null = null;
-	export let on_custom_button_click: ((id: number) => void) | null = null;
-	export let submit_btn: string | boolean | null = null;
-	export let stop_btn: string | boolean | null = null;
-	export let rtl = false;
-	export let autofocus = false;
-	export let text_align: "left" | "right" | undefined = undefined;
-	export let autoscroll = true;
-	export let max_length: number | undefined = undefined;
-	export let html_attributes: InputHTMLAttributes | null = null;
-	export let validation_error: string | null | undefined = undefined;
+	let {
+		value = $bindable(""),
+		value_is_output = $bindable(false),
+		lines = 1,
+		placeholder = "",
+		label,
+		info = undefined,
+		disabled = false,
+		show_label = true,
+		container = true,
+		max_lines = undefined,
+		type = "text",
+		buttons = null,
+		oncustombuttonclick = null,
+		submit_btn = null,
+		stop_btn = null,
+		rtl = false,
+		autofocus = false,
+		text_align = undefined,
+		autoscroll = true,
+		max_length = undefined,
+		html_attributes = null,
+		validation_error = undefined,
+		onchange,
+		onsubmit,
+		onstop,
+		onblur,
+		onselect,
+		oninput,
+		onfocus,
+		oncopy
+	}: {
+		value?: string;
+		value_is_output?: boolean;
+		lines?: number;
+		placeholder?: string;
+		label: string;
+		info?: string | undefined;
+		disabled?: boolean;
+		show_label?: boolean;
+		container?: boolean;
+		max_lines?: number | undefined;
+		type?: "text" | "password" | "email";
+		buttons?: (string | CustomButtonType)[] | null;
+		oncustombuttonclick?: ((id: number) => void) | null;
+		submit_btn?: string | boolean | null;
+		stop_btn?: string | boolean | null;
+		rtl?: boolean;
+		autofocus?: boolean;
+		text_align?: "left" | "right" | undefined;
+		autoscroll?: boolean;
+		max_length?: number | undefined;
+		html_attributes?: InputHTMLAttributes | null;
+		validation_error?: string | null | undefined;
+		onchange?: (value: string) => void;
+		onsubmit?: () => void;
+		onstop?: () => void;
+		onblur?: () => void;
+		onselect?: (data: SelectData) => void;
+		oninput?: (value: string) => void;
+		onfocus?: () => void;
+		oncopy?: (data: CopyData) => void;
+	} = $props();
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
-	let copied = false;
+	let copied = $state(false);
 	let timer: NodeJS.Timeout;
-	let can_scroll: boolean;
-	let previous_scroll_top = 0;
-	let user_has_scrolled_up = false;
-	let _max_lines: number;
-	let ghost_element: HTMLTextAreaElement | null = null;
+	let can_scroll = $state(false);
+	let previous_scroll_top = $state(0);
+	let user_has_scrolled_up = $state(false);
+	let _max_lines = $state(1);
 
 	const show_textbox_border = !submit_btn;
 
-	$: if (max_lines === undefined || max_lines === null) {
-		if (type === "text") {
-			_max_lines = Math.max(lines, 20);
+	$effect(() => {
+		if (max_lines === undefined || max_lines === null) {
+			if (type === "text") {
+				_max_lines = Math.max(lines, 20);
+			} else {
+				_max_lines = 1;
+			}
 		} else {
-			_max_lines = 1;
+			_max_lines = Math.max(max_lines, lines);
 		}
-	} else {
-		_max_lines = Math.max(max_lines, lines);
-	}
+	});
 
-	$: (value,
-		validation_error,
-		el && lines !== _max_lines && lines > 1 && resize({ target: el }));
+	$effect(() => {
+		value;
+		validation_error;
+		if (el && lines !== _max_lines && lines > 1) {
+			resize({ target: el });
+		}
+	});
 
-	$: if (value === null) value = "";
+	$effect(() => {
+		if (value === null) value = "";
+	});
 
-	const dispatch = createEventDispatcher<{
-		change: string;
-		submit: undefined;
-		stop: undefined;
-		blur: undefined;
-		select: SelectData;
-		input: string;
-		focus: undefined;
-		copy: CopyData;
-		custom_button_click: { component_id: number };
-	}>();
-
-	beforeUpdate(() => {
+	$effect.pre(() => {
 		if (
 			!user_has_scrolled_up &&
 			el &&
@@ -94,11 +125,11 @@
 
 	async function handle_change(): Promise<void> {
 		await tick();
-		dispatch("change", value);
+		onchange?.(value);
 	}
 
-	afterUpdate(() => {
-		if (autofocus) {
+	$effect(() => {
+		if (autofocus && el) {
 			el.focus();
 		}
 		if (can_scroll && autoscroll) {
@@ -106,12 +137,16 @@
 		}
 		value_is_output = false;
 	});
-	$: (value, handle_change());
+
+	$effect(() => {
+		value;
+		handle_change();
+	});
 
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
 			await navigator.clipboard.writeText(value);
-			dispatch("copy", { value: value });
+			oncopy?.({ value: value });
 			copy_feedback();
 		}
 	}
@@ -133,14 +168,14 @@
 			target.selectionStart as number,
 			target.selectionEnd as number
 		];
-		dispatch("select", { value: text.substring(...index), index: index });
+		onselect?.({ value: text.substring(...index), index: index });
 	}
 
 	async function handle_keypress(e: KeyboardEvent): Promise<void> {
 		if (e.key === "Enter" && e.shiftKey && lines > 1) {
 			e.preventDefault();
 			await tick();
-			dispatch("submit");
+			onsubmit?.();
 		} else if (
 			e.key === "Enter" &&
 			!e.shiftKey &&
@@ -149,10 +184,10 @@
 		) {
 			e.preventDefault();
 			await tick();
-			dispatch("submit");
+			onsubmit?.();
 		}
 		await tick();
-		dispatch("input", value);
+		oninput?.(value);
 	}
 
 	function handle_scroll(event: Event): void {
@@ -171,11 +206,11 @@
 	}
 
 	function handle_stop(): void {
-		dispatch("stop");
+		onstop?.();
 	}
 
 	function handle_submit(): void {
-		dispatch("submit");
+		onsubmit?.();
 	}
 
 	async function resize(
@@ -235,11 +270,12 @@
 	): any | undefined {
 		if (lines === _max_lines || (lines === 1 && _max_lines === 1)) return;
 
-		_el.style.overflowY = "scroll";
 		_el.addEventListener("input", resize);
 
-		if (!_value.trim()) return;
-		resize({ target: _el });
+		if (_value.trim()) {
+			_el.style.overflowY = "scroll";
+			resize({ target: _el });
+		}
 
 		return {
 			destroy: () => _el.removeEventListener("input", resize)
@@ -250,11 +286,11 @@
 <!-- svelte-ignore a11y-autofocus -->
 <label class:container class:show_textbox_border>
 	{#if show_label && buttons && buttons.length > 0}
-		<IconButtonWrapper {buttons} {on_custom_button_click}>
+		<IconButtonWrapper {buttons} {oncustombuttonclick}>
 			{#if buttons.some((btn) => typeof btn === "string" && btn === "copy")}
 				<IconButton
 					Icon={copied ? Check : Copy}
-					on:click={handle_copy}
+					onclick={handle_copy}
 					label={copied ? "Copied" : "Copy"}
 				/>
 			{/if}
@@ -281,10 +317,10 @@
 					{disabled}
 					{autofocus}
 					maxlength={max_length}
-					on:keypress={handle_keypress}
-					on:blur
-					on:select={handle_select}
-					on:focus
+					onkeypress={handle_keypress}
+					onblur={() => onblur?.()}
+					onselect={handle_select}
+					onfocus={() => onfocus?.()}
 					class:validation-error={validation_error}
 					style={text_align ? "text-align: " + text_align : ""}
 					autocapitalize={html_attributes?.autocapitalize}
@@ -306,10 +342,10 @@
 					{disabled}
 					{autofocus}
 					maxlength={max_length}
-					on:keypress={handle_keypress}
-					on:blur
-					on:select={handle_select}
-					on:focus
+					onkeypress={handle_keypress}
+					onblur={() => onblur?.()}
+					onselect={handle_select}
+					onfocus={() => onfocus?.()}
 					class:validation-error={validation_error}
 					autocomplete=""
 					autocapitalize={html_attributes?.autocapitalize}
@@ -330,10 +366,10 @@
 					{disabled}
 					{autofocus}
 					maxlength={max_length}
-					on:keypress={handle_keypress}
-					on:blur
-					on:select={handle_select}
-					on:focus
+					onkeypress={handle_keypress}
+					onblur={() => onblur?.()}
+					onselect={handle_select}
+					onfocus={() => onfocus?.()}
 					class:validation-error={validation_error}
 					autocomplete="email"
 					autocapitalize={html_attributes?.autocapitalize}
@@ -357,11 +393,11 @@
 				{disabled}
 				{autofocus}
 				maxlength={max_length}
-				on:keypress={handle_keypress}
-				on:blur
-				on:select={handle_select}
-				on:focus
-				on:scroll={handle_scroll}
+				onkeypress={handle_keypress}
+				onblur={() => onblur?.()}
+				onselect={handle_select}
+				onfocus={() => onfocus?.()}
+				onscroll={handle_scroll}
 				class:validation-error={validation_error}
 				style={text_align ? "text-align: " + text_align : ""}
 				autocapitalize={html_attributes?.autocapitalize}
@@ -377,7 +413,7 @@
 			<button
 				class="submit-button"
 				class:padded-button={submit_btn !== true}
-				on:click={handle_submit}
+				onclick={handle_submit}
 			>
 				{#if submit_btn === true}
 					<Send />
@@ -390,7 +426,7 @@
 			<button
 				class="stop-button"
 				class:padded-button={stop_btn !== true}
-				on:click={handle_stop}
+				onclick={handle_stop}
 			>
 				{#if stop_btn === true}
 					<Square fill="none" stroke_width={2.5} />
