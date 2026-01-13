@@ -1,26 +1,45 @@
 <script lang="ts">
-	import { afterUpdate, tick, onMount } from "svelte";
+	import { onMount, tick } from "svelte";
 	import { create_marked } from "./utils";
 	import { sanitize } from "@gradio/sanitize";
 	import "./prism.css";
 	import { standardHtmlAndSvgTags } from "./html-tags";
 	import type { ThemeMode } from "@gradio/core";
 
-	export let chatbot = true;
-	export let message: string;
-	export let sanitize_html = true;
-	export let latex_delimiters: {
-		left: string;
-		right: string;
-		display: boolean;
-	}[] = [];
-	export let render_markdown = true;
-	export let line_breaks = true;
-	export let header_links = false;
-	export let allow_tags: string[] | boolean = false;
-	export let theme_mode: ThemeMode = "system";
+	let {
+		chatbot = true,
+		message,
+		sanitize_html = true,
+		latex_delimiters = [],
+		render_markdown = true,
+		line_breaks = true,
+		header_links = false,
+		allow_tags = false,
+		theme_mode = "system"
+	}: {
+		chatbot?: boolean;
+		message: string;
+		sanitize_html?: boolean;
+		latex_delimiters?: {
+			left: string;
+			right: string;
+			display: boolean;
+		}[];
+		render_markdown?: boolean | undefined;
+		line_breaks?: boolean;
+		header_links?: boolean;
+		allow_tags?: string[] | boolean | undefined;
+		theme_mode?: ThemeMode;
+	} = $props();
+
 	let el: HTMLSpanElement;
-	let html: string;
+	let html: string = $derived.by(() => {
+		if (message && message.trim()) {
+			return process_message(message);
+		} else {
+			return "";
+		}
+	});
 	let katex_loaded = false;
 
 	const marked = create_marked({
@@ -115,12 +134,6 @@
 		return parsedValue;
 	}
 
-	$: if (message && message.trim()) {
-		html = process_message(message);
-	} else {
-		html = "";
-	}
-
 	async function render_html(value: string): Promise<void> {
 		if (latex_delimiters.length > 0 && value && has_math_syntax(value)) {
 			if (!katex_loaded) {
@@ -163,9 +176,9 @@
 		}
 	}
 
-	afterUpdate(async () => {
+	$effect(() => {
 		if (el && document.body.contains(el)) {
-			await render_html(message);
+			render_html(message);
 		} else {
 			console.error("Element is not in the DOM");
 		}
