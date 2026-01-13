@@ -72,14 +72,7 @@ export async function resolve_config(
 		? { Authorization: `Bearer ${this.options.token}` }
 		: {};
 
-	console.log({ endpoint });
-
 	headers["Content-Type"] = "application/json";
-	console.log(
-		typeof window !== "undefined"
-		// location.origin,
-		// window.BUILD_MODE
-	);
 
 	if (typeof window !== "undefined" && window?.gradio_config?.current_page) {
 		endpoint = endpoint.substring(0, endpoint.lastIndexOf("/"));
@@ -117,7 +110,6 @@ async function handleConfigResponse(
 
 	if (response?.status === 200) {
 		let config = await response.json();
-		console.log({ config });
 		config.dependencies?.forEach((dep: any, i: number) => {
 			if (dep.id === undefined) {
 				dep.id = i;
