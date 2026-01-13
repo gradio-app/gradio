@@ -182,7 +182,7 @@
 
 <div class:container>
 	{#if show_label && buttons && buttons.length > 0}
-		<IconButtonWrapper {buttons} {oncustom_button_click} />
+		<IconButtonWrapper {buttons} on_custom_button_click={oncustom_button_click} />
 	{/if}
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
