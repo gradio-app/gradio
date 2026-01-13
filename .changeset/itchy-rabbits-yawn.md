@@ -1,6 +1,6 @@
 ---
-"@gradio/chatbot": minor
-"gradio": minor
+"@gradio/chatbot": patch
+"gradio": patch
 ---
 
-feat:Prevent empty button wrappers from rendering in gr.Chatbot
+fix:Prevent empty button wrappers from rendering in gr.Chatbot
