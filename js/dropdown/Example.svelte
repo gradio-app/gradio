@@ -1,8 +1,15 @@
 <script lang="ts">
-	export let value: string | string[] | null;
-	export let type: "gallery" | "table";
-	export let selected = false;
-	export let choices: [string, string | number][];
+	let {
+		value,
+		type,
+		selected = false,
+		choices
+	}: {
+		value: string | string[] | null;
+		type: "gallery" | "table";
+		selected?: boolean;
+		choices: [string, string | number][];
+	} = $props();
 
 	let value_array = value ? (Array.isArray(value) ? value : [value]) : [];
 	let names = value_array

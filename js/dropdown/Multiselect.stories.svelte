@@ -1,25 +1,24 @@
-<script>
-	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import Multiselect from "./shared/Multiselect.svelte";
-	import { format } from "svelte-i18n";
-	import { get } from "svelte/store";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
+	import Dropdown from "./Index.svelte";
+	import { wrapProps } from "../storybook/wrapProps";
+
+	const { Story } = defineMeta({
+		title: "Components/Multiselect",
+		component: Dropdown,
+		argTypes: {
+			multiselect: {
+				control: [true, false],
+				name: "multiselect",
+				value: false
+			}
+		}
+	});
 </script>
 
-<Meta
-	title="Components/Multiselect"
-	component={Multiselect}
-	argTypes={{
-		multiselect: {
-			control: [true, false],
-			name: "multiselect",
-			value: false
-		}
-	}}
-/>
-
-<Template let:args>
-	<Multiselect {...args} i18n={get(format)} />
-</Template>
+{#snippet template(args)}
+	<Dropdown {...wrapProps(args)} />
+{/snippet}
 
 <Story
 	name="Multiselect Interactive"
@@ -30,8 +29,11 @@
 			["swim", "swim"],
 			["jump", "jump"]
 		],
-		label: "Multiselect Dropdown"
+		label: "Multiselect Dropdown",
+		multiselect: true,
+		interactive: true
 	}}
+	{template}
 />
 <Story
 	name="Multiselect Static"
@@ -43,6 +45,8 @@
 			["jump", "jump"]
 		],
 		label: "Multiselect Dropdown",
-		disabled: true
+		multiselect: true,
+		interactive: false
 	}}
+	{template}
 />

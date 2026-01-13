@@ -1,24 +1,43 @@
-<script lang="ts">
-	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import Dropdown from "./shared/Dropdown.svelte";
+	import { allModes } from "../storybook/modes";
+
+	const { Story } = defineMeta({
+		title: "Components/Dropdown",
+		component: Dropdown,
+		parameters: {
+			chromatic: {
+				modes: {
+					desktop: allModes["desktop"],
+					mobile: allModes["mobile"]
+				}
+			}
+		},
+		argTypes: {
+			label: {
+				control: "text",
+				description: "The dropdown label"
+			},
+			info: {
+				control: "text",
+				description: "Additional info text"
+			},
+			multiselect: {
+				control: "boolean",
+				description: "Whether to allow multiple selections"
+			},
+			disabled: {
+				control: "boolean",
+				description: "Whether the dropdown is disabled"
+			}
+		}
+	});
 </script>
 
-<Meta
-	title="Components/Dropdown"
-	component={Dropdown}
-	argTypes={{
-		multiselect: {
-			control: [true, false],
-			description: "Whether to autoplay the video on load",
-			name: "multiselect",
-			value: false
-		}
-	}}
-/>
-
-<Template let:args>
+{#snippet template(args)}
 	<Dropdown {...args} />
-</Template>
+{/snippet}
 
 <Story
 	name="Single-select"
@@ -32,6 +51,7 @@
 		label: "Single-select Dropdown",
 		info: "This is a single-select dropdown"
 	}}
+	{template}
 />
 <Story
 	name="Single-select Static"
@@ -45,8 +65,8 @@
 		disabled: true,
 		label: "Single-select Dropdown"
 	}}
+	{template}
 />
-
 <Story
 	name="Empty initial value"
 	args={{
@@ -58,4 +78,23 @@
 		],
 		label: "Empty Dropdown"
 	}}
+	{template}
+/>
+<Story
+	name="With many options"
+	args={{
+		value: "python",
+		choices: [
+			["Python", "python"],
+			["JavaScript", "javascript"],
+			["TypeScript", "typescript"],
+			["Java", "java"],
+			["C++", "cpp"],
+			["Go", "go"],
+			["Rust", "rust"],
+			["Ruby", "ruby"]
+		],
+		label: "Programming Language"
+	}}
+	{template}
 />

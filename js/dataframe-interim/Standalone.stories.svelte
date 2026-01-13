@@ -1,77 +1,71 @@
-<script lang="ts">
-	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
+<script module lang="ts">
+	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import StandaloneDataframe from "./standalone/Index.svelte";
-</script>
 
-<Meta
-	title="Components/Standalone Dataframe"
-	component={StandaloneDataframe}
-	parameters={{
-		test: {
-			dangerouslyIgnoreUnhandledErrors: true
+	const { Story } = defineMeta({
+		title: "Components/Standalone Dataframe (Interim)",
+		component: StandaloneDataframe,
+		parameters: {
+			test: {
+				dangerouslyIgnoreUnhandledErrors: true
+			},
+			docs: {
+				description: {
+					component:
+						"Standalone DataFrame component that can be used independently outside of Gradio apps. Includes comprehensive CSS variables for theming and dark mode support. Use the dark mode toggle in the toolbar to test dark mode variables."
+				}
+			}
 		},
-		docs: {
-			description: {
-				component:
-					"Standalone DataFrame component that can be used independently outside of Gradio apps. Includes comprehensive CSS variables for theming and dark mode support. Use the dark mode toggle in the toolbar to test dark mode variables."
+		argTypes: {
+			interactive: {
+				control: "boolean",
+				description: "Whether the DataFrame is editable",
+				defaultValue: true
+			},
+			show_label: {
+				control: "boolean",
+				description: "Whether to show the label",
+				defaultValue: true
+			},
+			label: {
+				control: "text",
+				description: "Label for the DataFrame",
+				defaultValue: "DataFrame"
+			},
+			max_height: {
+				control: "number",
+				description: "Maximum height in pixels",
+				defaultValue: 500
+			},
+			show_search: {
+				control: "select",
+				options: ["none", "search", "filter"],
+				description: "Type of search/filter to show",
+				defaultValue: "none"
+			},
+			show_copy_button: {
+				control: "boolean",
+				description: "Whether to show the copy button",
+				defaultValue: false
+			},
+			show_fullscreen_button: {
+				control: "boolean",
+				description: "Whether to show the fullscreen button",
+				defaultValue: false
+			},
+			show_row_numbers: {
+				control: "boolean",
+				description: "Whether to show row numbers",
+				defaultValue: false
+			},
+			wrap: {
+				control: "boolean",
+				description: "Whether text should wrap or truncate with ellipsis",
+				defaultValue: false
 			}
 		}
-	}}
-	argTypes={{
-		interactive: {
-			control: "boolean",
-			description: "Whether the DataFrame is editable",
-			defaultValue: true
-		},
-		show_label: {
-			control: "boolean",
-			description: "Whether to show the label",
-			defaultValue: true
-		},
-		label: {
-			control: "text",
-			description: "Label for the DataFrame",
-			defaultValue: "DataFrame"
-		},
-		max_height: {
-			control: "number",
-			description: "Maximum height in pixels",
-			defaultValue: 500
-		},
-		show_search: {
-			control: "select",
-			options: ["none", "search", "filter"],
-			description: "Type of search/filter to show",
-			defaultValue: "none"
-		},
-		show_copy_button: {
-			control: "boolean",
-			description: "Whether to show the copy button",
-			defaultValue: false
-		},
-		show_fullscreen_button: {
-			control: "boolean",
-			description: "Whether to show the fullscreen button",
-			defaultValue: false
-		},
-		show_row_numbers: {
-			control: "boolean",
-			description: "Whether to show row numbers",
-			defaultValue: false
-		},
-		wrap: {
-			control: "boolean",
-			description: "Whether text should wrap or truncate with ellipsis",
-			defaultValue: false
-		}
-	}}
-/>
-
-<Template let:args>
-	<div class="standalone-container">
-		<StandaloneDataframe {...args} />
-	</div>
-</Template>
+	});
+</script>
 
 <Story
 	name="Basic Standalone"
@@ -96,7 +90,13 @@
 		show_copy_button: true,
 		show_fullscreen_button: true
 	}}
-/>
+>
+	{#snippet template(args)}
+		<div class="standalone-container">
+			<StandaloneDataframe {...args} />
+		</div>
+	{/snippet}
+</Story>
 
 <Story
 	name="Large Dataset Performance"
@@ -124,7 +124,13 @@
 		show_row_numbers: true,
 		column_widths: ["120px", "60px", "100px", "80px", "70px", "100px", "70px"]
 	}}
-/>
+>
+	{#snippet template(args)}
+		<div class="standalone-container">
+			<StandaloneDataframe {...args} />
+		</div>
+	{/snippet}
+</Story>
 
 <Story
 	name="Styled with Custom Colors"
@@ -165,4 +171,10 @@
 		max_height: 250,
 		show_row_numbers: true
 	}}
-/>
+>
+	{#snippet template(args)}
+		<div class="standalone-container">
+			<StandaloneDataframe {...args} />
+		</div>
+	{/snippet}
+</Story>
