@@ -29,11 +29,6 @@ export async function view_api(this: Client): Promise<any> {
 		if (typeof window !== "undefined" && window.gradio_api_info) {
 			api_info = window.gradio_api_info;
 		} else {
-			console.log({
-				root: config.root,
-				api_prefix: this.api_prefix,
-				info_url: API_INFO_URL
-			});
 			const url = join_urls(config.root, this.api_prefix, API_INFO_URL);
 			response = await this.fetch(url, {
 				headers,
