@@ -47,7 +47,7 @@
 			allow_custom_value={gradio.props.allow_custom_value}
 			filterable={gradio.props.filterable}
 			buttons={gradio.props.buttons}
-			on_custom_button_click={(id) => {
+			oncustom_button_click={(id) => {
 				gradio.dispatch("custom_button_click", { id });
 			}}
 			on_change={() => gradio.dispatch("change")}
