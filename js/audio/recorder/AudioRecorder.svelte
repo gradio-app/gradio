@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import type { I18nFormatter } from "@gradio/utils";
-	import { createEventDispatcher } from "svelte";
 	import WaveSurfer from "wavesurfer.js";
 	import { skip_audio, process_audio } from "../shared/utils";
 	import WSRecord from "wavesurfer.js/dist/plugins/record.js";
@@ -11,19 +10,42 @@
 	import type { WaveformOptions } from "../shared/types";
 	import { format_time } from "@gradio/utils";
 
-	export let mode: string;
-	export let i18n: I18nFormatter;
-	export let dispatch_blob: (
-		blobs: Uint8Array[] | Blob[],
-		event: "stream" | "change" | "stop_recording"
-	) => Promise<void> | undefined;
-	export let waveform_settings: Record<string, any>;
-	export let waveform_options: WaveformOptions = {
-		show_recording_waveform: true
-	};
-	export let handle_reset_value: () => void;
-	export let editable = true;
-	export let recording = false;
+	let {
+		mode = $bindable(""),
+		i18n,
+		dispatch_blob,
+		waveform_settings,
+		waveform_options = { show_recording_waveform: true },
+		handle_reset_value,
+		editable = true,
+		recording = false,
+		onstartrecording,
+		onpauserecording,
+		onstoprecording,
+		onstop,
+		onplay,
+		onpause,
+		onedit
+	}: {
+		mode?: string;
+		i18n: I18nFormatter;
+		dispatch_blob: (
+			blobs: Uint8Array[] | Blob[],
+			event: "stream" | "change" | "stop_recording"
+		) => Promise<void> | undefined;
+		waveform_settings: Record<string, any>;
+		waveform_options?: WaveformOptions;
+		handle_reset_value: () => void;
+		editable?: boolean;
+		recording?: boolean;
+		onstartrecording?: () => void;
+		onpauserecording?: () => void;
+		onstoprecording?: () => void;
+		onstop?: () => void;
+		onplay?: () => void;
+		onpause?: () => void;
+		onedit?: () => void;
+	} = $props();
 
 	let micWaveform: WaveSurfer;
 	let recordingWaveform: WaveSurfer;
@@ -52,21 +74,10 @@
 		}, 1000);
 	};
 
-	const dispatch = createEventDispatcher<{
-		start_recording: undefined;
-		pause_recording: undefined;
-		stop_recording: undefined;
-		stop: undefined;
-		play: undefined;
-		pause: undefined;
-		end: undefined;
-		edit: undefined;
-	}>();
-
 	function record_start_callback(): void {
 		start_interval();
 		timing = true;
-		dispatch("start_recording");
+		onstartrecording?.();
 		if (waveform_options.show_recording_waveform) {
 			let waveformCanvas = microphoneContainer;
 			if (waveformCanvas) waveformCanvas.style.display = "block";
@@ -94,34 +105,46 @@
 		}
 	}
 
-	$: record?.on("record-resume", () => {
-		start_interval();
+	$effect(() => {
+		record?.on("record-resume", () => {
+			start_interval();
+		});
 	});
 
-	$: recordingWaveform?.on("decode", (duration: any) => {
-		audio_duration = duration;
-		durationRef && (durationRef.textContent = format_time(duration));
+	$effect(() => {
+		recordingWaveform?.on("decode", (duration: any) => {
+			audio_duration = duration;
+			durationRef && (durationRef.textContent = format_time(duration));
+		});
 	});
 
-	$: recordingWaveform?.on(
-		"timeupdate",
-		(currentTime: any) =>
-			timeRef && (timeRef.textContent = format_time(currentTime))
-	);
-
-	$: recordingWaveform?.on("pause", () => {
-		dispatch("pause");
-		playing = false;
+	$effect(() => {
+		recordingWaveform?.on(
+			"timeupdate",
+			(currentTime: any) =>
+				timeRef && (timeRef.textContent = format_time(currentTime))
+		);
 	});
 
-	$: recordingWaveform?.on("play", () => {
-		dispatch("play");
-		playing = true;
+	$effect(() => {
+		recordingWaveform?.on("pause", () => {
+			onpause?.();
+			playing = false;
+		});
 	});
 
-	$: recordingWaveform?.on("finish", () => {
-		dispatch("stop");
-		playing = false;
+	$effect(() => {
+		recordingWaveform?.on("play", () => {
+			onplay?.();
+			playing = true;
+		});
+	});
+
+	$effect(() => {
+		recordingWaveform?.on("finish", () => {
+			onstop?.();
+			playing = false;
+		});
 	});
 
 	let record_mounted = false;
@@ -140,7 +163,7 @@
 		record?.on("record-end", record_end_callback);
 		record?.on("record-start", record_start_callback);
 		record?.on("record-pause", () => {
-			dispatch("pause_recording");
+			onpauserecording?.();
 			clearInterval(interval);
 		});
 
@@ -184,7 +207,7 @@
 					create_recording_waveform();
 				}
 			);
-		dispatch("edit");
+		onedit?.();
 	};
 
 	onMount(() => {

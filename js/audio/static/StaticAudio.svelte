@@ -13,36 +13,58 @@
 	import type { I18nFormatter } from "@gradio/utils";
 	import AudioPlayer from "../player/AudioPlayer.svelte";
 	import MinimalAudioPlayer from "../shared/MinimalAudioPlayer.svelte";
-	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "@gradio/client";
 	import type { WaveformOptions, SubtitleData } from "../shared/types";
 
-	export let value: null | FileData = null;
-	export let subtitles: null | FileData | SubtitleData[] = null;
-	export let label: string;
-	export let show_label = true;
-	export let buttons: (string | CustomButtonType)[] = [];
-	export let on_custom_button_click: ((id: number) => void) | null = null;
-	export let i18n: I18nFormatter;
-	export let waveform_settings: Record<string, any> = {};
-	export let waveform_options: WaveformOptions = {
-		show_recording_waveform: true
-	};
-	export let editable = true;
-	export let loop: boolean;
-	export let display_icon_button_wrapper_top_corner = false;
-	export let minimal = false;
-	export let playback_position = 0;
+	let {
+		value = null,
+		subtitles = null,
+		label,
+		show_label = true,
+		buttons = [],
+		on_custom_button_click = null,
+		i18n,
+		waveform_settings = {},
+		waveform_options = { show_recording_waveform: true },
+		editable = true,
+		loop,
+		display_icon_button_wrapper_top_corner = false,
+		minimal = false,
+		playback_position = $bindable(0),
+		onchange,
+		onplay,
+		onpause,
+		onstop,
+		onshare,
+		onerror
+	}: {
+		value?: null | FileData;
+		subtitles?: null | FileData | SubtitleData[];
+		label: string;
+		show_label?: boolean;
+		buttons?: (string | CustomButtonType)[];
+		on_custom_button_click?: ((id: number) => void) | null;
+		i18n: I18nFormatter;
+		waveform_settings?: Record<string, any>;
+		waveform_options?: WaveformOptions;
+		editable?: boolean;
+		loop?: boolean;
+		display_icon_button_wrapper_top_corner?: boolean;
+		minimal?: boolean;
+		playback_position?: number;
+		onchange?: (value: FileData) => void;
+		onplay?: () => void;
+		onpause?: () => void;
+		onstop?: () => void;
+		onshare?: (detail: any) => void;
+		onerror?: (detail: any) => void;
+	} = $props();
 
-	const dispatch = createEventDispatcher<{
-		change: FileData;
-		play: undefined;
-		pause: undefined;
-		end: undefined;
-		stop: undefined;
-	}>();
-
-	$: value && dispatch("change", value);
+	$effect(() => {
+		if (value) {
+			onchange?.(value);
+		}
+	});
 </script>
 
 <BlockLabel
@@ -74,11 +96,11 @@
 			{#if buttons.some((btn) => typeof btn === "string" && btn === "share")}
 				<ShareButton
 					{i18n}
-					on:error
-					on:share
-					formatter={async (value) => {
-						if (!value) return "";
-						let url = await uploadToHuggingFace(value.url, "url");
+					onerror={onerror}
+					onshare={onshare}
+					formatter={async (fileData: FileData) => {
+						if (!fileData || !fileData.url) return "";
+						let url = await uploadToHuggingFace(fileData.url, "url");
 						return `<audio controls src="${url}"></audio>`;
 					}}
 					{value}
@@ -96,10 +118,10 @@
 			{editable}
 			{loop}
 			bind:playback_position
-			on:pause
-			on:play
-			on:stop
-			on:load
+			onpause={onpause}
+			onplay={onplay}
+			onstop={onstop}
+			onload={() => {}}
 		/>
 	{/if}
 {:else}
