@@ -1148,10 +1148,10 @@ def test_empty_footer_links():
     with gr.Blocks() as demo:
         gr.Markdown("Hello")
     try:
-       app, _, _ = demo.launch(prevent_thread_lock=True, footer_links=[])
-       client = TestClient(app)
-       config = client.get("/config").json()
-       assert config["footer_links"] == []
+        app, _, _ = demo.launch(prevent_thread_lock=True, footer_links=[])
+        client = TestClient(app)
+        config = client.get("/config").json()
+        assert config["footer_links"] == []
     finally:
         demo.close()
     with gr.Blocks() as demo:
