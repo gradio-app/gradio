@@ -10,8 +10,7 @@
 		open = false,
 		theme_mode = "system" as "system" | "light" | "dark",
 		show_indices = false,
-		interactive = true,
-		ontoggle = () => {}
+		interactive = true
 	}: {
 		value: any;
 		depth?: number;
@@ -22,21 +21,11 @@
 		theme_mode?: "system" | "light" | "dark";
 		show_indices?: boolean;
 		interactive?: boolean;
-		ontoggle?: (detail: { collapsed: boolean; depth: number }) => void;
 	} = $props();
 
 	let root_element = $state<HTMLElement>();
 	let collapsed = $state(open ? false : depth >= 3);
 	let child_nodes = $state<any[]>([]);
-
-	// Update collapsed when open or depth props change
-	$effect(() => {
-		if (open) {
-			collapsed = false;
-		} else if (depth >= 3) {
-			collapsed = true;
-		}
-	});
 
 	function is_collapsible(val: any): boolean {
 		return val !== null && (typeof val === "object" || Array.isArray(val));
@@ -45,7 +34,6 @@
 	async function toggle_collapse(): Promise<void> {
 		collapsed = !collapsed;
 		await tick();
-		ontoggle({ collapsed, depth });
 	}
 
 	function get_collapsed_preview(val: any): string {
@@ -102,7 +90,7 @@
 					aria-label={collapsed ? "Expand" : "Collapse"}
 					class="toggle"
 					disabled={!interactive}
-					on:click={toggle_collapse}
+					onclick={toggle_collapse}
 				/>
 			{/if}
 			{#if key !== null}
@@ -117,7 +105,7 @@
 					>{Array.isArray(value) ? "[" : "{"}</span
 				>
 				{#if collapsed}
-					<button on:click={toggle_collapse} class="preview">
+					<button onclick={toggle_collapse} class="preview">
 						{get_collapsed_preview(value)}
 					</button>
 					<span
@@ -155,7 +143,6 @@
 					{theme_mode}
 					{show_indices}
 					{interactive}
-					{ontoggle}
 				/>
 			{/each}
 			<div class="line">
