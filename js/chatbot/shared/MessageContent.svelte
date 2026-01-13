@@ -38,7 +38,7 @@
 			{sanitize_html}
 			{render_markdown}
 			{line_breaks}
-			on:load={scroll}
+			onload={scroll}
 			{allow_tags}
 			{theme_mode}
 		/>
