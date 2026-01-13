@@ -1,20 +1,42 @@
 <script lang="ts">
-	import { onMount, createEventDispatcher, tick, afterUpdate } from "svelte";
+	import { tick } from "svelte";
 
-	export let value: any;
-	export let depth = 0;
-	export let is_root = false;
-	export let is_last_item = true;
-	export let key: string | number | null = null;
-	export let open = false;
-	export let theme_mode: "system" | "light" | "dark" = "system";
-	export let show_indices = false;
-	export let interactive = true;
+	let {
+		value,
+		depth = 0,
+		is_root = false,
+		is_last_item = true,
+		key = null,
+		open = false,
+		theme_mode = "system" as "system" | "light" | "dark",
+		show_indices = false,
+		interactive = true,
+		ontoggle = () => {}
+	}: {
+		value: any;
+		depth?: number;
+		is_root?: boolean;
+		is_last_item?: boolean;
+		key?: string | number | null;
+		open?: boolean;
+		theme_mode?: "system" | "light" | "dark";
+		show_indices?: boolean;
+		interactive?: boolean;
+		ontoggle?: (detail: { collapsed: boolean; depth: number }) => void;
+	} = $props();
 
-	const dispatch = createEventDispatcher();
-	let root_element: HTMLElement;
-	$: collapsed = open ? false : depth >= 3;
-	let child_nodes: any[] = [];
+	let root_element = $state<HTMLElement>();
+	let collapsed = $state(open ? false : depth >= 3);
+	let child_nodes = $state<any[]>([]);
+
+	// Update collapsed when open or depth props change
+	$effect(() => {
+		if (open) {
+			collapsed = false;
+		} else if (depth >= 3) {
+			collapsed = true;
+		}
+	});
 
 	function is_collapsible(val: any): boolean {
 		return val !== null && (typeof val === "object" || Array.isArray(val));
@@ -23,7 +45,7 @@
 	async function toggle_collapse(): Promise<void> {
 		collapsed = !collapsed;
 		await tick();
-		dispatch("toggle", { collapsed, depth });
+		ontoggle({ collapsed, depth });
 	}
 
 	function get_collapsed_preview(val: any): string {
@@ -33,16 +55,16 @@
 		return String(val);
 	}
 
-	$: if (is_collapsible(value)) {
-		child_nodes = Object.entries(value);
-	} else {
-		child_nodes = [];
-	}
-	$: if (is_root && root_element) {
-		updateLineNumbers();
-	}
+	$effect(() => {
+		if (is_collapsible(value)) {
+			child_nodes = Object.entries(value);
+		} else {
+			child_nodes = [];
+		}
+	});
 
 	function updateLineNumbers(): void {
+		if (!root_element) return;
 		const lines = root_element.querySelectorAll(".line");
 		lines.forEach((line, index) => {
 			const line_number = line.querySelector(".line-number");
@@ -57,14 +79,8 @@
 		});
 	}
 
-	onMount(() => {
-		if (is_root) {
-			updateLineNumbers();
-		}
-	});
-
-	afterUpdate(() => {
-		if (is_root) {
+	$effect.pre(() => {
+		if (is_root && root_element) {
 			updateLineNumbers();
 		}
 	});
@@ -75,7 +91,6 @@
 	class:root={is_root}
 	class:dark-mode={theme_mode === "dark"}
 	bind:this={root_element}
-	on:toggle
 	style="--depth: {depth};"
 >
 	<div class="line" class:collapsed>
@@ -139,7 +154,8 @@
 					{open}
 					{theme_mode}
 					{show_indices}
-					on:toggle
+					{interactive}
+					{ontoggle}
 				/>
 			{/each}
 			<div class="line">
