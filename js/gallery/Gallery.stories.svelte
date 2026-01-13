@@ -6,6 +6,11 @@
 	import { userEvent } from "storybook/test";
 	import { wrapProps } from "../storybook/wrapProps";
 
+	const cheetah = "/cheetah.jpg";
+	const lion = "/lion.jpg";
+	const bus = "/bus.png";
+	const video_sample = "/video_sample.mp4";
+
 	const { Story } = defineMeta({
 		title: "Components/Gallery",
 		component: Gallery,
@@ -85,60 +90,60 @@
 	const galleryValue = [
 		{
 			image: {
-				path: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah_running.avif",
-				url: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah_running.avif",
-				orig_name: "cheetah_running.avif"
+				path: cheetah,
+				url: cheetah,
+				orig_name: "cheetah.jpg"
 			},
 			caption: "A fast cheetah"
 		},
 		{
 			video: {
-				path: "https://gradio-builds.s3.amazonaws.com/demo-files/world.mp4",
-				url: "https://gradio-builds.s3.amazonaws.com/demo-files/world.mp4",
-				orig_name: "world.mp4"
+				path: video_sample,
+				url: video_sample,
+				orig_name: "video_sample.mp4"
 			},
-			caption: "The world"
+			caption: "Sample video"
 		},
 		{
 			image: {
-				path: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
-				url: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
-				orig_name: "cheetah-002.jpg"
+				path: lion,
+				url: lion,
+				orig_name: "lion.jpg"
 			}
 		},
 		{
 			image: {
-				path: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-003.jpg",
-				url: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-003.jpg",
-				orig_name: "cheetah-003.jpg"
+				path: bus,
+				url: bus,
+				orig_name: "bus.png"
 			}
 		},
 		{
 			image: {
-				path: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah3.webp",
-				url: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah3.webp",
-				orig_name: "cheetah3.webp"
+				path: cheetah,
+				url: cheetah,
+				orig_name: "cheetah.jpg"
 			}
 		},
 		{
 			image: {
-				path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-				url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-				orig_name: "ghepardo-primo-piano.jpg"
+				path: lion,
+				url: lion,
+				orig_name: "lion.jpg"
 			}
 		},
 		{
 			image: {
-				path: "https://gradio-builds.s3.amazonaws.com/demo-files/main-qimg-0bbf31c18a22178cb7a8dd53640a3d05-lq.jpeg",
-				url: "https://gradio-builds.s3.amazonaws.com/demo-files/main-qimg-0bbf31c18a22178cb7a8dd53640a3d05-lq.jpeg",
-				orig_name: "main-qimg-0bbf31c18a22178cb7a8dd53640a3d05-lq.jpeg"
+				path: bus,
+				url: bus,
+				orig_name: "bus.png"
 			}
 		},
 		{
 			image: {
-				path: "https://gradio-builds.s3.amazonaws.com/demo-files/TheCheethcat.jpg",
-				url: "https://gradio-builds.s3.amazonaws.com/demo-files/TheCheethcat.jpg",
-				orig_name: "TheCheethcat.jpg"
+				path: cheetah,
+				url: cheetah,
+				orig_name: "cheetah.jpg"
 			}
 		}
 	];

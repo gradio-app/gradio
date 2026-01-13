@@ -5,11 +5,8 @@
 	import { allModes } from "../storybook/modes";
 	import { wrapProps } from "../storybook/wrapProps";
 
-	// Test image URLs
-	const image_file_100x100 =
-		"https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg";
-	const image_file_100x1000 =
-		"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah3.webp";
+	const cheetah = "/cheetah.jpg";
+	const lion = "/lion.jpg";
 
 	const { Story } = defineMeta({
 		title: "Components/Image",
@@ -31,13 +28,12 @@
 	name="static with label, info and download button"
 	args={{
 		value: {
-			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			path: cheetah,
+			url: cheetah,
 			orig_name: "cheetah.jpg"
 		},
 		show_label: true,
 		placeholder: "This is a cheetah",
-		show_download_button: true,
 		buttons: ["fullscreen", "download"],
 		webcam_options: { mirror: true, constraints: null }
 	}}
@@ -61,12 +57,11 @@
 	name="static with no label or download button"
 	args={{
 		value: {
-			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			path: cheetah,
+			url: cheetah,
 			orig_name: "cheetah.jpg"
 		},
 		show_label: false,
-		show_download_button: false,
 		buttons: [],
 		webcam_options: { mirror: true, constraints: null }
 	}}
@@ -85,9 +80,9 @@
 	name="static with a vertically long image"
 	args={{
 		value: {
-			path: image_file_100x1000,
-			url: image_file_100x1000,
-			orig_name: "image.webp"
+			path: lion,
+			url: lion,
+			orig_name: "lion.jpg"
 		},
 		buttons: [],
 		webcam_options: { mirror: true, constraints: null }
@@ -107,9 +102,9 @@
 	name="static with a vertically long image and a fixed height"
 	args={{
 		value: {
-			path: image_file_100x1000,
-			url: image_file_100x1000,
-			orig_name: "image.webp"
+			path: lion,
+			url: lion,
+			orig_name: "lion.jpg"
 		},
 		height: "500px",
 		buttons: [],
@@ -130,9 +125,9 @@
 	name="static with a small image and a fixed height"
 	args={{
 		value: {
-			path: image_file_100x100,
-			url: image_file_100x100,
-			orig_name: "image.webp"
+			path: cheetah,
+			url: cheetah,
+			orig_name: "cheetah.jpg"
 		},
 		height: "500px",
 		buttons: [],
@@ -154,12 +149,11 @@
 	args={{
 		sources: ["upload", "clipboard", "webcam"],
 		value: {
-			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			path: cheetah,
+			url: cheetah,
 			orig_name: "cheetah.jpg"
 		},
 		show_label: false,
-		show_download_button: false,
 		interactive: true,
 		placeholder: md,
 		buttons: [],
@@ -189,7 +183,6 @@
 	name="interactive with webcam"
 	args={{
 		sources: ["webcam"],
-		show_download_button: true,
 		interactive: true,
 		buttons: ["download"],
 		webcam_options: { mirror: true, constraints: null }
@@ -209,7 +202,6 @@
 	name="interactive with clipboard"
 	args={{
 		sources: ["clipboard"],
-		show_download_button: true,
 		interactive: true,
 		buttons: ["download"]
 	}}
@@ -228,11 +220,10 @@
 	name="interactive webcam with streaming"
 	args={{
 		sources: ["webcam"],
-		show_download_button: true,
 		interactive: true,
 		value: {
-			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			path: cheetah,
+			url: cheetah,
 			orig_name: "cheetah.jpg"
 		},
 		streaming: true,

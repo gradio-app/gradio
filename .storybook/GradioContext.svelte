@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { setContext, onMount } from "svelte";
+	import { setContext } from "svelte";
 	import type { Snippet } from "svelte";
 	import { init, addMessages } from "svelte-i18n";
 	import en from "../js/core/src/lang/en.json";

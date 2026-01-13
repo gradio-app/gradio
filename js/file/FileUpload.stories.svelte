@@ -3,6 +3,9 @@
 	import File from "./Index.svelte";
 	import { wrapProps } from "../storybook/wrapProps";
 
+	const cheetah = "/cheetah.jpg";
+	const lion = "/lion.jpg";
+
 	const { Story } = defineMeta({
 		title: "Components/FileUpload",
 		component: File,
@@ -33,9 +36,9 @@
 	args={{
 		value: [
 			{
-				path: "cheetah.jpg",
+				path: cheetah,
 				orig_name: "cheetah.jpg",
-				url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+				url: cheetah,
 				size: 10000
 			}
 		],
@@ -49,15 +52,15 @@
 	args={{
 		value: [
 			{
-				path: "cheetah1.jpg",
-				orig_name: "cheetah1.jpg",
-				url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+				path: cheetah,
+				orig_name: "cheetah.jpg",
+				url: cheetah,
 				size: 10000
 			},
 			{
-				path: "cheetah2.jpg",
-				orig_name: "cheetah2.jpg",
-				url: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
+				path: lion,
+				orig_name: "lion.jpg",
+				url: lion,
 				size: 10000
 			}
 		],

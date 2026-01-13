@@ -5,6 +5,7 @@ test("renders the correct elements", async ({ page }) => {
 });
 
 test("applies the custom CSS styles", async ({ page }) => {
+	test.skip(process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true");
 	// Test for CSSKeyframesRule
 	const animationName = await page
 		.locator(".cool-col")

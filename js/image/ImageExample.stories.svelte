@@ -2,6 +2,8 @@
 	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import Image from "./Example.svelte";
 
+	const cheetah = "/cheetah.jpg";
+
 	const { Story } = defineMeta({
 		title: "Components/Image/Example",
 		component: Image
@@ -12,8 +14,8 @@
 	name="Image file"
 	args={{
 		value: {
-			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			path: cheetah,
+			url: cheetah,
 			orig_name: "cheetah.jpg"
 		}
 	}}

@@ -4,6 +4,9 @@
 	import { allModes } from "../storybook/modes";
 	import { wrapProps } from "../storybook/wrapProps";
 
+	const bus = "/bus.png";
+	const cheetah = "/cheetah.jpg";
+
 	const { Story } = defineMeta({
 		title: "Components/Chatbot",
 		component: Chatbot,
@@ -224,7 +227,7 @@
 				content: [
 					{
 						type: "text",
-						text: "![A cheetah](https://cdn.britannica.com/02/92702-120-6A02E613/Cheetah.jpg)"
+						text: `![A cheetah](${cheetah})`
 					}
 				]
 			}
@@ -311,7 +314,7 @@
 				files: [
 					{
 						mime_type: "image/jpeg",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+						url: bus,
 						orig_name: "bus.png"
 					}
 				]
@@ -331,17 +334,17 @@
 				files: [
 					{
 						mime_type: "image/jpeg",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+						url: bus,
 						orig_name: "image1.jpg"
 					},
 					{
 						mime_type: "image/jpeg",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+						url: bus,
 						orig_name: "image2.jpg"
 					},
 					{
 						mime_type: "image/jpeg",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+						url: bus,
 						orig_name: "image3.jpg"
 					}
 				]
@@ -371,12 +374,12 @@
 				files: [
 					{
 						mime_type: "image/jpeg",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+						url: bus,
 						orig_name: "visualization.jpg"
 					},
 					{
 						mime_type: "image/jpeg",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+						url: bus,
 						orig_name: "visualization.jpg"
 					},
 					{
@@ -436,7 +439,7 @@
 				files: [
 					{
 						mime_type: "image/jpeg",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+						url: bus,
 						orig_name: "bus.png"
 					}
 				]
