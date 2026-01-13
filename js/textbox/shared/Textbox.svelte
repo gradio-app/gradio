@@ -22,7 +22,7 @@
 		max_lines = undefined,
 		type = "text",
 		buttons = null,
-		on_custom_button_click = null,
+		oncustombuttonclick = null,
 		submit_btn = null,
 		stop_btn = null,
 		rtl = false,
@@ -32,14 +32,14 @@
 		max_length = undefined,
 		html_attributes = null,
 		validation_error = undefined,
-		on_change,
-		on_submit,
-		on_stop,
-		on_blur,
-		on_select,
-		on_input,
-		on_focus,
-		on_copy
+		onchange,
+		onsubmit,
+		onstop,
+		onblur,
+		onselect,
+		oninput,
+		onfocus,
+		oncopy
 	}: {
 		value?: string;
 		value_is_output?: boolean;
@@ -53,7 +53,7 @@
 		max_lines?: number | undefined;
 		type?: "text" | "password" | "email";
 		buttons?: (string | CustomButtonType)[] | null;
-		on_custom_button_click?: ((id: number) => void) | null;
+		oncustombuttonclick?: ((id: number) => void) | null;
 		submit_btn?: string | boolean | null;
 		stop_btn?: string | boolean | null;
 		rtl?: boolean;
@@ -63,14 +63,14 @@
 		max_length?: number | undefined;
 		html_attributes?: InputHTMLAttributes | null;
 		validation_error?: string | null | undefined;
-		on_change?: (value: string) => void;
-		on_submit?: () => void;
-		on_stop?: () => void;
-		on_blur?: () => void;
-		on_select?: (data: SelectData) => void;
-		on_input?: (value: string) => void;
-		on_focus?: () => void;
-		on_copy?: (data: CopyData) => void;
+		onchange?: (value: string) => void;
+		onsubmit?: () => void;
+		onstop?: () => void;
+		onblur?: () => void;
+		onselect?: (data: SelectData) => void;
+		oninput?: (value: string) => void;
+		onfocus?: () => void;
+		oncopy?: (data: CopyData) => void;
 	} = $props();
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
@@ -126,7 +126,7 @@
 
 	async function handle_change(): Promise<void> {
 		await tick();
-		on_change?.(value);
+		onchange?.(value);
 	}
 
 	$effect(() => {
@@ -147,7 +147,7 @@
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
 			await navigator.clipboard.writeText(value);
-			on_copy?.({ value: value });
+			oncopy?.({ value: value });
 			copy_feedback();
 		}
 	}
@@ -169,14 +169,14 @@
 			target.selectionStart as number,
 			target.selectionEnd as number
 		];
-		on_select?.({ value: text.substring(...index), index: index });
+		onselect?.({ value: text.substring(...index), index: index });
 	}
 
 	async function handle_keypress(e: KeyboardEvent): Promise<void> {
 		if (e.key === "Enter" && e.shiftKey && lines > 1) {
 			e.preventDefault();
 			await tick();
-			on_submit?.();
+			onsubmit?.();
 		} else if (
 			e.key === "Enter" &&
 			!e.shiftKey &&
@@ -185,10 +185,10 @@
 		) {
 			e.preventDefault();
 			await tick();
-			on_submit?.();
+			onsubmit?.();
 		}
 		await tick();
-		on_input?.(value);
+		oninput?.(value);
 	}
 
 	function handle_scroll(event: Event): void {
@@ -207,11 +207,11 @@
 	}
 
 	function handle_stop(): void {
-		on_stop?.();
+		onstop?.();
 	}
 
 	function handle_submit(): void {
-		on_submit?.();
+		onsubmit?.();
 	}
 
 	async function resize(
@@ -286,7 +286,7 @@
 <!-- svelte-ignore a11y-autofocus -->
 <label class:container class:show_textbox_border>
 	{#if show_label && buttons && buttons.length > 0}
-		<IconButtonWrapper {buttons} {on_custom_button_click}>
+		<IconButtonWrapper {buttons} {oncustombuttonclick}>
 			{#if buttons.some((btn) => typeof btn === "string" && btn === "copy")}
 				<IconButton
 					Icon={copied ? Check : Copy}
@@ -318,9 +318,9 @@
 					{autofocus}
 					maxlength={max_length}
 					onkeypress={handle_keypress}
-					onblur={() => on_blur?.()}
+					onblur={() => onblur?.()}
 					onselect={handle_select}
-					onfocus={() => on_focus?.()}
+					onfocus={() => onfocus?.()}
 					class:validation-error={validation_error}
 					style={text_align ? "text-align: " + text_align : ""}
 					autocapitalize={html_attributes?.autocapitalize}
@@ -343,9 +343,9 @@
 					{autofocus}
 					maxlength={max_length}
 					onkeypress={handle_keypress}
-					onblur={() => on_blur?.()}
+					onblur={() => onblur?.()}
 					onselect={handle_select}
-					onfocus={() => on_focus?.()}
+					onfocus={() => onfocus?.()}
 					class:validation-error={validation_error}
 					autocomplete=""
 					autocapitalize={html_attributes?.autocapitalize}
@@ -367,9 +367,9 @@
 					{autofocus}
 					maxlength={max_length}
 					onkeypress={handle_keypress}
-					onblur={() => on_blur?.()}
+					onblur={() => onblur?.()}
 					onselect={handle_select}
-					onfocus={() => on_focus?.()}
+					onfocus={() => onfocus?.()}
 					class:validation-error={validation_error}
 					autocomplete="email"
 					autocapitalize={html_attributes?.autocapitalize}
@@ -394,9 +394,9 @@
 				{autofocus}
 				maxlength={max_length}
 				onkeypress={handle_keypress}
-				onblur={() => on_blur?.()}
+				onblur={() => onblur?.()}
 				onselect={handle_select}
-				onfocus={() => on_focus?.()}
+				onfocus={() => onfocus?.()}
 				onscroll={handle_scroll}
 				class:validation-error={validation_error}
 				style={text_align ? "text-align: " + text_align : ""}

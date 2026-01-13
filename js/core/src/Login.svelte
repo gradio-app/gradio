@@ -54,7 +54,7 @@
 					lines={1}
 					show_label={true}
 					max_lines={1}
-					on:submit={submit}
+					onsubmit={submit}
 					bind:value={username}
 				/>
 			</Block>
@@ -66,7 +66,7 @@
 					show_label={true}
 					max_lines={1}
 					type="password"
-					on:submit={submit}
+					onsubmit={submit}
 					bind:value={password}
 				/>
 			</Block>

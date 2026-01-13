@@ -91,18 +91,18 @@
 		html_attributes={gradio.props.html_attributes}
 		validation_error={gradio.shared?.loading_status?.validation_error ||
 			gradio.shared?.validation_error}
-		on_change={handle_change}
-		on_input={handle_input}
-		on_submit={() => {
+		onchange={handle_change}
+		oninput={handle_input}
+		onsubmit={() => {
 			gradio.shared.validation_error = null;
 			gradio.dispatch("submit");
 		}}
-		on_blur={() => gradio.dispatch("blur")}
-		on_select={(data) => gradio.dispatch("select", data)}
-		on_focus={() => gradio.dispatch("focus")}
-		on_stop={() => gradio.dispatch("stop")}
-		on_copy={(data) => gradio.dispatch("copy", data)}
-		on_custom_button_click={(id) => {
+		onblur={() => gradio.dispatch("blur")}
+		onselect={(data) => gradio.dispatch("select", data)}
+		onfocus={() => gradio.dispatch("focus")}
+		onstop={() => gradio.dispatch("stop")}
+		oncopy={(data) => gradio.dispatch("copy", data)}
+		oncustombuttonclick={(id) => {
 			gradio.dispatch("custom_button_click", { id });
 		}}
 		disabled={!gradio.shared.interactive}
