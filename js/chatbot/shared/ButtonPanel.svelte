@@ -40,7 +40,7 @@
 	$: show_copy = show_copy_button && message && is_all_text(message);
 </script>
 
-{#if show_copy || show_retry || show_undo || show_edit || likeable || show_download_button || show_share_button}
+{#if show_copy || show_retry || show_undo || show_edit || likeable || (show_download_button && file?.url) || (show_share_button && file)}
 	<div
 		class="message-buttons-{position} {layout} message-buttons {avatar !==
 			null && 'with-avatar'}"
