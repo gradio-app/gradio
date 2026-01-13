@@ -6,11 +6,7 @@ const config: StorybookConfig = {
 		"../js/storybook/**/*.mdx",
 		"../js/!(dataframe|dataframe-interim|core)/**/*.stories.svelte"
 	],
-	staticDirs: [
-		"../js/spa/public",
-		"../js/storybook/public",
-		"./test_files"
-	],
+	staticDirs: ["../js/spa/public", "../js/storybook/public", "./test_files"],
 	addons: [
 		{
 			name: "@storybook/addon-svelte-csf",

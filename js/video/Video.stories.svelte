@@ -5,6 +5,8 @@
 	import { allModes } from "../storybook/modes";
 	import { wrapProps } from "../storybook/wrapProps";
 
+	const video_sample = "/video_sample.mp4";
+
 	const { Story } = defineMeta({
 		title: "Components/Video",
 		component: Video,
@@ -40,9 +42,9 @@
 	name="Static video"
 	args={{
 		value: {
-			path: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
-			url: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
-			orig_name: "world.mp4"
+			path: video_sample,
+			url: video_sample,
+			orig_name: "video_sample.mp4"
 		},
 		label: "world video",
 		show_label: true,
@@ -58,9 +60,9 @@
 	name="Static video with vertical video"
 	args={{
 		value: {
-			path: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world_vertical.mp4",
-			url: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world_vertical.mp4",
-			orig_name: "world_vertical.mp4"
+			path: video_sample,
+			url: video_sample,
+			orig_name: "video_sample.mp4"
 		},
 		label: "world video",
 		show_label: true,
@@ -97,9 +99,9 @@
 		width: 400,
 		height: 400,
 		value: {
-			path: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
-			url: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
-			orig_name: "world.mp4"
+			path: video_sample,
+			url: video_sample,
+			orig_name: "video_sample.mp4"
 		},
 		webcam_options: { mirror: true, constraints: null }
 	}}
@@ -109,9 +111,9 @@
 	name="Trim video"
 	args={{
 		value: {
-			path: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
-			url: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
-			orig_name: "world.mp4"
+			path: video_sample,
+			url: video_sample,
+			orig_name: "video_sample.mp4"
 		},
 		label: "world video",
 		show_label: true,

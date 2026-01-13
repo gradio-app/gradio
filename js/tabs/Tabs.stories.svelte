@@ -2,6 +2,8 @@
 	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import { BaseTabs } from "./Index.svelte";
 
+	const cheetah = "/cheetah.jpg";
+
 	const { Story } = defineMeta({
 		title: "Components/Tabs",
 		component: BaseTabs
@@ -90,11 +92,7 @@
 	{#snippet template(args)}
 		<BaseTabs {...args}>
 			<div style="padding: 1rem;">
-				<img
-					style="width: 200px;"
-					alt="Cheetah"
-					src="https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg"
-				/>
+				<img style="width: 200px;" alt="Cheetah" src={cheetah} />
 			</div>
 		</BaseTabs>
 	{/snippet}

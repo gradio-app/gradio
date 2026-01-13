@@ -4,6 +4,8 @@
 	import { allModes } from "../storybook/modes";
 	import { wrapProps } from "../storybook/wrapProps";
 
+	const audio_sample = "/audio_sample.mp3";
+
 	const { Story } = defineMeta({
 		title: "Components/Audio",
 		component: Audio,
@@ -36,9 +38,9 @@
 	name="Audio Player"
 	args={{
 		value: {
-			path: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
-			url: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
-			orig_name: "sample-0.mp3"
+			path: audio_sample,
+			url: audio_sample,
+			orig_name: "audio_sample.mp3"
 		},
 		label: "Audio Player",
 		waveform_options: { show_recording_waveform: true },
@@ -50,9 +52,9 @@
 	name="Audio Player without recording waveform"
 	args={{
 		value: {
-			path: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
-			url: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
-			orig_name: "sample-0.mp3"
+			path: audio_sample,
+			url: audio_sample,
+			orig_name: "audio_sample.mp3"
 		},
 		waveform_options: { show_recording_waveform: false },
 		label: "Audio Player",
@@ -75,9 +77,9 @@
 	name="Audio Recorder with download button"
 	args={{
 		value: {
-			path: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
-			url: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
-			orig_name: "sample-0.mp3"
+			path: audio_sample,
+			url: audio_sample,
+			orig_name: "audio_sample.mp3"
 		},
 		interactive: true,
 		buttons: ["download"],
@@ -91,9 +93,9 @@
 	name="Output with hidden download button"
 	args={{
 		value: {
-			path: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
-			url: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
-			orig_name: "sample-0.mp3"
+			path: audio_sample,
+			url: audio_sample,
+			orig_name: "audio_sample.mp3"
 		},
 		interactive: false,
 		buttons: [],
@@ -118,9 +120,9 @@
 	name="With autoplay"
 	args={{
 		value: {
-			path: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
-			url: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
-			orig_name: "sample-0.mp3"
+			path: audio_sample,
+			url: audio_sample,
+			orig_name: "audio_sample.mp3"
 		},
 		interactive: true,
 		sources: ["microphone", "upload"],
@@ -134,9 +136,9 @@
 	name="Upload with disabled editing"
 	args={{
 		value: {
-			path: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
-			url: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
-			orig_name: "sample-0.mp3"
+			path: audio_sample,
+			url: audio_sample,
+			orig_name: "audio_sample.mp3"
 		},
 		interactive: true,
 		sources: ["microphone", "upload"],

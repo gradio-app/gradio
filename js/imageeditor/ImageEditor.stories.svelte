@@ -5,6 +5,8 @@
 	import { allModes } from "../storybook/modes";
 	import { wrapProps } from "../storybook/wrapProps";
 
+	const cheetah = "/cheetah.jpg";
+
 	const { Story } = defineMeta({
 		title: "Components/Image Editor",
 		component: ImageEditor,
@@ -62,8 +64,8 @@
 	args={{
 		value: {
 			background: {
-				path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-				url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+				path: cheetah,
+				url: cheetah,
 				orig_name: "cheetah.jpg"
 			},
 			layers: [],
@@ -135,8 +137,8 @@
 	args={{
 		value: {
 			composite: {
-				path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-				url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+				path: cheetah,
+				url: cheetah,
 				size: null,
 				orig_name: null,
 				mime_type: null,

@@ -3,6 +3,8 @@
 	import MultimodalTextbox from "./Index.svelte";
 	import { wrapProps } from "../storybook/wrapProps";
 
+	const cheetah = "/cheetah.jpg";
+
 	const { Story } = defineMeta({
 		title: "Components/MultimodalTextbox",
 		component: MultimodalTextbox,
@@ -64,8 +66,8 @@
 			text: "sample text",
 			files: [
 				{
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-					url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+					path: cheetah,
+					url: cheetah,
 					orig_name: "cheetah.jpg"
 				}
 			]
@@ -115,8 +117,8 @@
 			text: "sample text",
 			files: [
 				{
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-					url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+					path: cheetah,
+					url: cheetah,
 					orig_name: "cheetah.jpg"
 				}
 			]
