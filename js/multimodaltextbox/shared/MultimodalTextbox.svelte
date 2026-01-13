@@ -639,7 +639,7 @@
 
 	.input-row {
 		display: flex;
-		align-items: flex-end;
+		align-items: center;
 		gap: var(--spacing-sm);
 		width: 100%;
 	}
@@ -735,7 +735,7 @@
 		flex-grow: 1;
 		outline: none !important;
 		background: transparent;
-		padding: 0;
+		padding: var(--spacing-sm) 0;
 		color: var(--body-text-color);
 		font-weight: var(--input-text-weight);
 		font-size: var(--input-text-size);
