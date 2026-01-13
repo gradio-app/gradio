@@ -74,59 +74,30 @@ export async function resolve_config(
 
 	headers["Content-Type"] = "application/json";
 
-	if (
-		typeof window !== "undefined" &&
-		window.gradio_config &&
-		location.origin !== "http://localhost:9876"
-	) {
-		if (window.gradio_config.current_page) {
-			endpoint = endpoint.substring(0, endpoint.lastIndexOf("/"));
-		}
-		if (window.gradio_config.dev_mode) {
-			let config_url = join_urls(
-				endpoint,
-				this.deep_link
-					? CONFIG_URL + "?deep_link=" + this.deep_link
-					: CONFIG_URL
-			);
-			const response = await this.fetch(config_url, {
-				headers,
-				credentials: "include"
-			});
-			const config = await handleConfigResponse(
-				response,
-				endpoint,
-				!!this.options.auth
-			);
-			// @ts-ignore
-			window.gradio_config = {
-				...config,
-				current_page: window.gradio_config.current_page
-			};
-		}
-		window.gradio_config.root = endpoint;
-		// @ts-ignore
-		return { ...window.gradio_config } as Config;
-	} else if (endpoint) {
-		let config_url = join_urls(
-			endpoint,
-			this.deep_link ? CONFIG_URL + "?deep_link=" + this.deep_link : CONFIG_URL
-		);
-
-		const response = await this.fetch(config_url, {
-			headers,
-			credentials: "include"
-		});
-
-		return handleConfigResponse(response, endpoint, !!this.options.auth);
+	if (typeof window !== "undefined" && window?.gradio_config?.current_page) {
+		endpoint = endpoint.substring(0, endpoint.lastIndexOf("/"));
 	}
 
-	throw new Error(CONFIG_ERROR_MSG);
+	let config_url = join_urls(
+		endpoint,
+		this.deep_link ? CONFIG_URL + "?deep_link=" + this.deep_link : CONFIG_URL
+	);
+
+	const response = await this.fetch(config_url, {
+		headers,
+		credentials: "include"
+	});
+	const config = await handleConfigResponse(response, !!this.options.auth);
+
+	if (typeof window !== "undefined" && window?.BUILD_MODE === "dev") {
+		config.root = endpoint || config.root;
+	}
+
+	return config;
 }
 
 async function handleConfigResponse(
 	response: Response,
-	endpoint: string,
 	authorized: boolean
 ): Promise<Config> {
 	if (response?.status === 401 && !authorized) {

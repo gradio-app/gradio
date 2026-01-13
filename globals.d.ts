@@ -18,6 +18,7 @@ declare global {
 			) => void;
 		};
 		supports_zerogpu_headers?: boolean;
+		BUILD_MODE?: "dev" | "production";
 	}
 }
 
