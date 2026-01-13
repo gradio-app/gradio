@@ -14,7 +14,7 @@
 
 	const gradio: Gradio<DialogueEvents, DialogueProps> = props.gradio;
 
-	let checked = $derived(false);
+	let checked = $state(false);
 	let disabled = $derived(!gradio.shared.interactive);
 
 	let dialogue_lines: DialogueLine[] = $state([]);
@@ -279,8 +279,9 @@
 		}
 	}
 
-	async function insert_tag(e: CustomEvent): Promise<void> {
-		const tag = gradio.props.tags[e.detail.target.dataset.index];
+	async function insert_tag(index: any): Promise<void> {
+		index = parseInt(index);
+		const tag = gradio.props.tags[index];
 		if (tag) {
 			let text;
 			let currentInput;
@@ -405,7 +406,7 @@
 
 <svelte:window on:click={handle_click_outside} />
 
-<label class:container={gradio.shared.container}>
+<div class:container={gradio.shared.container}>
 	{#if gradio.shared.show_label && (buttons.some((btn) => typeof btn === "string" && btn === "copy") || buttons.some((btn) => typeof btn !== "string"))}
 		<IconButtonWrapper {buttons} {on_custom_button_click}>
 			{#if buttons.some((btn) => typeof btn === "string" && btn === "copy")}
@@ -551,7 +552,7 @@
 											gradio.props.tags.indexOf(s)
 										)[selectedOptionIndex]}
 										show_options={true}
-										on:change={(e) => insert_tag(e)}
+										onchange={(e) => insert_tag(e)}
 										{offset_from_top}
 										from_top={true}
 									/>
@@ -661,10 +662,10 @@
 			</button>
 		</div>
 	{/if}
-</label>
+</div>
 
 <style>
-	label {
+	div.container {
 		display: block;
 		width: 100%;
 	}

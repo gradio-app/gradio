@@ -761,10 +761,6 @@
 		text-align: right;
 	}
 
-	textarea[dir="rtl"] ~ .submit-button {
-		order: -1;
-	}
-
 	textarea[dir="rtl"] ~ .submit-button :global(svg) {
 		transform: scaleX(-1);
 	}
