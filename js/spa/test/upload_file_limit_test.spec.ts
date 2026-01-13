@@ -1,12 +1,5 @@
 import { test, expect } from "@self/tootils";
 
-test.describe.configure({
-	mode:
-		process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true"
-			? "serial"
-			: "parallel"
-});
-
 async function error_modal_showed(page) {
 	const toast = page.getByTestId("toast-body");
 	expect(toast).toContainText("Error");

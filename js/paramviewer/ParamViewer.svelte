@@ -76,7 +76,7 @@
 		);
 	}
 
-	function toggle_all() {
+	function toggle_all(): void {
 		all_open = !all_open;
 		const details = component_root.querySelectorAll(".param");
 		details.forEach((detail) => {
