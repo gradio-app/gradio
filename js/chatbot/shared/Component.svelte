@@ -131,11 +131,7 @@
 	<svelte:component
 		this={components[type]}
 		{...props}
-		{value}
-		show_label={false}
-		show_share_button={false}
-		{i18n}
-		gradio={{ dispatch: () => {} }}
+		props={{ value }}
 		on:load
 	/>
 {:else if type === "model3d"}

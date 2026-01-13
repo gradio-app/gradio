@@ -30,9 +30,9 @@
 			"types": "./dist/Example.svelte.d.ts"
 		},
 		"./base": {
-			"gradio": "./Index.svelte",
-			"svelte": "./dist/Index.svelte",
-			"types": "./dist/Index.svelte.d.ts"
+			"gradio": "./shared/HTML.svelte",
+			"svelte": "./dist/shared/HTML.svelte",
+			"types": "./dist/shared/HTML.svelte.d.ts"
 		}
 	},
 	"peerDependencies": {
