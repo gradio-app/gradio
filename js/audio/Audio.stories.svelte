@@ -23,10 +23,6 @@
 			interactive: {
 				control: "boolean",
 				description: "Whether the component is interactive"
-			},
-			show_download_button: {
-				control: "boolean",
-				description: "Whether to show download button"
 			}
 		}
 	});
@@ -84,7 +80,7 @@
 			orig_name: "sample-0.mp3"
 		},
 		interactive: true,
-		show_download_button: true,
+		buttons: ["download"],
 		sources: ["microphone"],
 		label: "Audio Recorder",
 		waveform_options: { show_recording_waveform: true }
@@ -100,7 +96,7 @@
 			orig_name: "sample-0.mp3"
 		},
 		interactive: false,
-		show_download_button: false,
+		buttons: [],
 		label: "Audio Recorder",
 		waveform_options: { show_recording_waveform: true },
 		sources: ["upload"]
