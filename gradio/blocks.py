@@ -2641,7 +2641,9 @@ Received inputs:
             self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         else:
             self.root_path = root_path
-        self.footer_links = footer_links or ["api", "gradio", "settings"]
+        self.footer_links = (
+            footer_links if footer_links is not None else ["api", "gradio", "settings"]
+        )
 
         if allowed_paths:
             self.allowed_paths = allowed_paths
