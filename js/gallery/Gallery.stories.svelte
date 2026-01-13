@@ -1,11 +1,17 @@
-<script context="module">
-	import { Template, Story } from "@storybook/addon-svelte-csf";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import Gallery from "./Index.svelte";
 	import { allModes } from "../storybook/modes";
 	import { within } from "@testing-library/dom";
-	import { userEvent } from "@storybook/test";
+	import { userEvent } from "storybook/test";
+	import { wrapProps } from "../storybook/wrapProps";
 
-	export const meta = {
+	const cheetah = "/cheetah.jpg";
+	const lion = "/lion.jpg";
+	const bus = "/bus.png";
+	const video_sample = "/video_sample.mp4";
+
+	const { Story } = defineMeta({
 		title: "Components/Gallery",
 		component: Gallery,
 		argTypes: {
@@ -79,181 +85,243 @@
 				}
 			}
 		}
-	};
-</script>
+	});
 
-<Template let:args>
-	<Gallery
-		value={[
-			{
-				image: {
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah_running.avif",
-					url: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah_running.avif",
-					orig_name: "cheetah_running.avif"
-				},
-				caption: "A fast cheetah"
+	const galleryValue = [
+		{
+			image: {
+				path: cheetah,
+				url: cheetah,
+				orig_name: "cheetah.jpg"
 			},
-			{
-				video: {
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/world.mp4",
-					url: "https://gradio-builds.s3.amazonaws.com/demo-files/world.mp4",
-					orig_name: "world.mp4"
-				},
-				caption: "The world"
+			caption: "A fast cheetah"
+		},
+		{
+			video: {
+				path: video_sample,
+				url: video_sample,
+				orig_name: "video_sample.mp4"
 			},
-			{
-				image: {
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
-					url: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
-					orig_name: "cheetah-002.jpg"
-				}
-			},
-			{
-				image: {
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-003.jpg",
-					url: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-003.jpg",
-					orig_name: "cheetah-003.jpg"
-				}
-			},
-			{
-				image: {
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah3.webp",
-					url: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah3.webp",
-					orig_name: "cheetah3.webp"
-				}
-			},
-			{
-				image: {
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-					url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-					orig_name: "ghepardo-primo-piano.jpg"
-				}
-			},
-			{
-				image: {
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/main-qimg-0bbf31c18a22178cb7a8dd53640a3d05-lq.jpeg",
-					url: "https://gradio-builds.s3.amazonaws.com/demo-files/main-qimg-0bbf31c18a22178cb7a8dd53640a3d05-lq.jpeg",
-					orig_name: "main-qimg-0bbf31c18a22178cb7a8dd53640a3d05-lq.jpeg"
-				}
-			},
-			{
-				image: {
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/TheCheethcat.jpg",
-					url: "https://gradio-builds.s3.amazonaws.com/demo-files/TheCheethcat.jpg",
-					orig_name: "TheCheethcat.jpg"
-				}
+			caption: "Sample video"
+		},
+		{
+			image: {
+				path: lion,
+				url: lion,
+				orig_name: "lion.jpg"
 			}
-		]}
-		{...args}
-	/>
-</Template>
+		},
+		{
+			image: {
+				path: bus,
+				url: bus,
+				orig_name: "bus.png"
+			}
+		},
+		{
+			image: {
+				path: cheetah,
+				url: cheetah,
+				orig_name: "cheetah.jpg"
+			}
+		},
+		{
+			image: {
+				path: lion,
+				url: lion,
+				orig_name: "lion.jpg"
+			}
+		},
+		{
+			image: {
+				path: bus,
+				url: bus,
+				orig_name: "bus.png"
+			}
+		},
+		{
+			image: {
+				path: cheetah,
+				url: cheetah,
+				orig_name: "cheetah.jpg"
+			}
+		}
+	];
+</script>
 
 <Story
 	name="Gallery with label"
-	args={{ label: "My Cheetah Gallery", show_label: true }}
+	args={{
+		label: "My Cheetah Gallery",
+		show_label: true,
+		buttons: ["fullscreen", "download", "share"]
+	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
-
 		const image = canvas.getByLabelText("Thumbnail 1 of 8");
 		await userEvent.click(image);
-		const expand_btn = canvas.getByRole("button", {
-			name: "Fullscreen"
-		});
+		const expand_btn = canvas.getByRole("button", { name: "Fullscreen" });
 		await userEvent.click(expand_btn);
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
+	{/snippet}
+</Story>
+
 <Story
 	name="Gallery without label"
-	args={{ label: "My Cheetah Gallery", show_label: false }}
-/>
+	args={{ label: "My Cheetah Gallery", show_label: false, buttons: [] }}
+>
+	{#snippet template(args)}
+		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
+	{/snippet}
+</Story>
+
 <Story
 	name="Gallery with rows=3 and columns=3"
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
 		rows: 3,
-		columns: 3
+		columns: 3,
+		buttons: []
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
+	{/snippet}
+</Story>
+
 <Story
 	name="Gallery with columns=4"
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
-		columns: 4
+		columns: 4,
+		buttons: []
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
+	{/snippet}
+</Story>
+
 <Story
 	name="Gallery with height=600"
-	args={{
-		label: "My Cheetah Gallery",
-		height: 600
-	}}
-/>
+	args={{ label: "My Cheetah Gallery", height: 600, buttons: [] }}
+>
+	{#snippet template(args)}
+		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
+	{/snippet}
+</Story>
+
 <Story
 	name="Gallery with allow_preview=false"
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
-		allow_preview: false
+		allow_preview: false,
+		buttons: []
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
+	{/snippet}
+</Story>
+
 <Story
 	name="Gallery with preview"
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
-		preview: true
+		preview: true,
+		buttons: []
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
+	{/snippet}
+</Story>
+
 <Story
 	name="Gallery with object_fit=scale-down"
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
-		object_fit: "scale-down"
+		object_fit: "scale-down",
+		buttons: []
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
+	{/snippet}
+</Story>
+
 <Story
 	name="Gallery with object_fit=contain"
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
-		object_fit: "contain"
+		object_fit: "contain",
+		buttons: []
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
+	{/snippet}
+</Story>
+
 <Story
 	name="Gallery with object_fit=cover"
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
-		object_fit: "cover"
+		object_fit: "cover",
+		buttons: []
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
+	{/snippet}
+</Story>
+
 <Story
 	name="Gallery with object_fit=none"
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
-		object_fit: "none"
+		object_fit: "none",
+		buttons: []
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
+	{/snippet}
+</Story>
+
 <Story
 	name="Gallery with object_fit=fill"
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
-		object_fit: "fill"
+		object_fit: "fill",
+		buttons: []
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
+	{/snippet}
+</Story>
+
 <Story
 	name="Gallery with share button"
-	args={{
-		label: "My Cheetah Gallery",
-		show_label: true,
-		show_share_button: true
-	}}
-/>
+	args={{ label: "My Cheetah Gallery", show_label: true, buttons: ["share"] }}
+>
+	{#snippet template(args)}
+		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Gallery with overflow of images"
@@ -262,9 +330,15 @@
 		show_label: true,
 		rows: 2,
 		columns: 2,
-		height: 400
+		height: 400,
+		buttons: []
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
+	{/snippet}
+</Story>
+
 <Story
 	name="Gallery with overflow of images and short height"
 	args={{
@@ -272,33 +346,53 @@
 		show_label: true,
 		rows: 2,
 		columns: 2,
-		height: 200
+		height: 200,
+		buttons: []
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
+	{/snippet}
+</Story>
+
 <Story
 	name="Gallery with download button"
 	args={{
 		label: "My Cheetah Gallery",
 		rows: 2,
 		height: 400,
-		show_download_button: true
+		buttons: ["download"]
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
+	{/snippet}
+</Story>
+
 <Story
 	name="Gallery with fit_columns false"
 	args={{
 		label: "My Cheetah Gallery",
 		columns: 10,
-		show_download_button: true,
+		buttons: ["download"],
 		fit_columns: false
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
+	{/snippet}
+</Story>
+
 <Story
 	name="Gallery with fit_columns true"
 	args={{
 		label: "My Cheetah Gallery",
 		columns: 10,
-		show_download_button: true,
+		buttons: ["download"],
 		fit_columns: true
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
+	{/snippet}
+</Story>

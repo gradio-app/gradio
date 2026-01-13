@@ -1,10 +1,11 @@
-<script context="module">
-	import { Template, Story } from "@storybook/addon-svelte-csf";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import PlotComponent from "./Index.svelte";
 	import { allModes } from "../storybook/modes";
 	import { matplotlib_plot } from "./testplot";
+	import { wrapProps } from "../storybook/wrapProps";
 
-	export const meta = {
+	const { Story } = defineMeta({
 		title: "Components/Plot",
 		component: PlotComponent,
 		parameters: {
@@ -15,12 +16,8 @@
 				}
 			}
 		}
-	};
+	});
 </script>
-
-<Template let:args>
-	<PlotComponent value="Plot" {...args} />
-</Template>
 
 <Story
 	name="with matplotlib value"
@@ -28,52 +25,19 @@
 		value: matplotlib_plot,
 		label: "Plot"
 	}}
-/>
-
-<!-- 
-<Story
-	name="with line plot value"
-	args={{
-		value: line_plot
-	}}
-	parameters={{
-		chromatic: { delay: 1000  }
-	}}
-/>
-
-<Story
-	name="with multi-line plot value"
-	args={{
-		value: multi_line_plot
-	}}
-	parameters={{
-		chromatic: { delay: 1000  }
-	}}
-/>
-
-<Story
-	name="with scatter plot value"
-	args={{
-		value: scatter_plot
-	}}
-	parameters={{
-		chromatic: { delay: 1000  }
-	}}
-/>
-
-<Story
-	name="with bar plot value"
-	args={{
-		value: bar_plot
-	}}
-	parameters={{
-		chromatic: { delay: 1000  }
-	}}
-/> -->
+>
+	{#snippet template(args)}
+		<PlotComponent {...wrapProps(args)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="with no value"
 	args={{
 		label: "Plot"
 	}}
-/>
+>
+	{#snippet template(args)}
+		<PlotComponent {...wrapProps(args)} />
+	{/snippet}
+</Story>
