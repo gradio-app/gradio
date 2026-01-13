@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Migrate js/json to svelte5
+feat: Migrate js/json to svelte5
