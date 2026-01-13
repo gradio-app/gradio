@@ -9,13 +9,12 @@
 	import type { DialogueLine } from "./utils";
 	import Switch from "./Switch.svelte";
 	import type { DialogueEvents, DialogueProps } from "./types";
-	import { parse } from "path";
 
 	const props = $props();
 
 	const gradio: Gradio<DialogueEvents, DialogueProps> = props.gradio;
 
-	let checked = $derived(false);
+	let checked = $state(false);
 	let disabled = $derived(!gradio.shared.interactive);
 
 	let dialogue_lines: DialogueLine[] = $state([]);
@@ -407,7 +406,7 @@
 
 <svelte:window on:click={handle_click_outside} />
 
-<label class:container={gradio.shared.container}>
+<div class:container={gradio.shared.container}>
 	{#if gradio.shared.show_label && (buttons.some((btn) => typeof btn === "string" && btn === "copy") || buttons.some((btn) => typeof btn !== "string"))}
 		<IconButtonWrapper {buttons} {on_custom_button_click}>
 			{#if buttons.some((btn) => typeof btn === "string" && btn === "copy")}
@@ -663,10 +662,10 @@
 			</button>
 		</div>
 	{/if}
-</label>
+</div>
 
 <style>
-	label {
+	div.container {
 		display: block;
 		width: 100%;
 	}
