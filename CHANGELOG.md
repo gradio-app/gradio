@@ -1,5 +1,34 @@
 # gradio
 
+## 6.3.0
+
+### Features
+
+- [#12680](https://github.com/gradio-app/gradio/pull/12680) [`c99a50b`](https://github.com/gradio-app/gradio/commit/c99a50b9434bf66282a5308d442beeb97f6cf6bb) - Add .input() to Video.  Thanks @hysts!
+- [#12762](https://github.com/gradio-app/gradio/pull/12762) [`51b7010`](https://github.com/gradio-app/gradio/commit/51b7010a507e2eca138993fbc0a8c8d2ac2a12f0) - pollen css fix.  Thanks @dawoodkhan82!
+- [#12756](https://github.com/gradio-app/gradio/pull/12756) [`2b4176c`](https://github.com/gradio-app/gradio/commit/2b4176c2edad6988cea12850c2ea04ce868723ed) - Migrate Sidebar to Svelte 5.  Thanks @dawoodkhan82!
+- [#12677](https://github.com/gradio-app/gradio/pull/12677) [`6f37743`](https://github.com/gradio-app/gradio/commit/6f377433e4c64f1d962eef0f9eff74676c72032b) - Make check for active page in navbar robust.  Thanks @abidlabs!
+
+### Fixes
+
+- [#12614](https://github.com/gradio-app/gradio/pull/12614) [`6222192`](https://github.com/gradio-app/gradio/commit/622219242412400df57a73aebfd3de96bb8499de) - fix(client): make WebP and VTT MIME type detection case-insensitive.  Thanks @majiayu000!
+- [#12688](https://github.com/gradio-app/gradio/pull/12688) [`5206d47`](https://github.com/gradio-app/gradio/commit/5206d47b7730e6ffc8efd90d8157dd5388c18dc5) - Migrate Model3D to Svelte 5.  Thanks @dawoodkhan82!
+- [#12686](https://github.com/gradio-app/gradio/pull/12686) [`aa362c4`](https://github.com/gradio-app/gradio/commit/aa362c45a0b65b31d86041ba10e06c8ef456b84f) - Allow static files when handling events.  Thanks @hannahblair!
+- [#12626](https://github.com/gradio-app/gradio/pull/12626) [`3a39ee4`](https://github.com/gradio-app/gradio/commit/3a39ee4a9af660636f6ce7cd383634d48e4030a3) - Fix Bug Where Invisible Columns Take Up Space.  Thanks @aliabid94!
+- [#12605](https://github.com/gradio-app/gradio/pull/12605) [`48f580b`](https://github.com/gradio-app/gradio/commit/48f580b508c1f7fe121929aceecc31b2af15c189) - fix: Fix Textbox white background in dark mode.  Thanks @Godkunn!
+- [#12608](https://github.com/gradio-app/gradio/pull/12608) [`ab20c59`](https://github.com/gradio-app/gradio/commit/ab20c592e1fab33e96ab2698bbbb942d0972501b) - feat(client): add generic type parameter to predict() method.  Thanks @majiayu000!
+- [#12689](https://github.com/gradio-app/gradio/pull/12689) [`be89f8c`](https://github.com/gradio-app/gradio/commit/be89f8c4272a2d2c3da9345c3e26df5505307428) - Migrate DownloadButton to Svelte 5.  Thanks @dawoodkhan82!
+- [#12675](https://github.com/gradio-app/gradio/pull/12675) [`3aee8ae`](https://github.com/gradio-app/gradio/commit/3aee8aeb74dfe41b24a6626a8e30582e654dc457) - Allow multiple file messages to be displayed in Chatbot.  Thanks @freddyaboulton!
+- [#12695](https://github.com/gradio-app/gradio/pull/12695) [`6eadb5b`](https://github.com/gradio-app/gradio/commit/6eadb5bf8c48b32fa9960b0e9e7c09a2ee30141c) - Migrate accordion to svelte 5.  Thanks @aliabid94!
+- [#12692](https://github.com/gradio-app/gradio/pull/12692) [`3b3eaf0`](https://github.com/gradio-app/gradio/commit/3b3eaf0dcb0690cc815eb2b3c40ca335c9a47a11) - Restore RTL prop to gradio components.  Thanks @hannahblair!
+- [#12636](https://github.com/gradio-app/gradio/pull/12636) [`3194f29`](https://github.com/gradio-app/gradio/commit/3194f294e142508b7dc7d28d35fdf33627bb5993) - Fix docs for Tab select event.  Thanks @freddyaboulton!
+- [#12681](https://github.com/gradio-app/gradio/pull/12681) [`ba46c2d`](https://github.com/gradio-app/gradio/commit/ba46c2df1405c11e495304af8f91acfdf69d0b18) - Migrate Button to Svelte 5.  Thanks @freddyaboulton!
+- [#12627](https://github.com/gradio-app/gradio/pull/12627) [`fa75712`](https://github.com/gradio-app/gradio/commit/fa75712a3257e0e09bfce7abbd4f40fa54f6db98) - Add custom buttons to `gr.Dropdown(multiselect=True)` and `gr.LinePlot` and other native plots.  Thanks @abidlabs!
+- [#12606](https://github.com/gradio-app/gradio/pull/12606) [`6a80a07`](https://github.com/gradio-app/gradio/commit/6a80a07c4d336c20d868b90343aa9a30c390e1a5) - fix: support gr.update() for gr.State + update api_visibility docs.  Thanks @majiayu000!
+- [#12625](https://github.com/gradio-app/gradio/pull/12625) [`7fb79d4`](https://github.com/gradio-app/gradio/commit/7fb79d45bdc3597bf6b095ff64c420939257fba9) - Fix bug where tabs don't work inside gr.render.  Thanks @freddyaboulton!
+- [#12676](https://github.com/gradio-app/gradio/pull/12676) [`57dd086`](https://github.com/gradio-app/gradio/commit/57dd0864c17f039474a2aa31e9f3132f4555fd97) - Upgrade color picker to Svelte 5 syntax.  Thanks @freddyaboulton!
+- [#12601](https://github.com/gradio-app/gradio/pull/12601) [`5fae6b7`](https://github.com/gradio-app/gradio/commit/5fae6b7e36ef126a71b38a207593323e4cc40f3b) - Fix Infinite Change Event in Browser History.  Thanks @freddyaboulton!
+
 ## 6.2.0
 
 ### Features

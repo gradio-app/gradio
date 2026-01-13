@@ -1,5 +1,27 @@
 # @gradio/core
 
+## 1.1.1
+
+### Features
+
+- [#12677](https://github.com/gradio-app/gradio/pull/12677) [`6f37743`](https://github.com/gradio-app/gradio/commit/6f377433e4c64f1d962eef0f9eff74676c72032b) - Make check for active page in navbar robust.  Thanks @abidlabs!
+
+### Fixes
+
+- [#12681](https://github.com/gradio-app/gradio/pull/12681) [`ba46c2d`](https://github.com/gradio-app/gradio/commit/ba46c2df1405c11e495304af8f91acfdf69d0b18) - Migrate Button to Svelte 5.  Thanks @freddyaboulton!
+- [#12625](https://github.com/gradio-app/gradio/pull/12625) [`7fb79d4`](https://github.com/gradio-app/gradio/commit/7fb79d45bdc3597bf6b095ff64c420939257fba9) - Fix bug where tabs don't work inside gr.render.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+- @gradio/button@0.6.2
+- @gradio/client@2.0.2
+- @gradio/column@0.3.1
+- @gradio/theme@0.6.0
+- @gradio/gallery@0.16.1
+- @gradio/plot@0.10.1
+- @gradio/video@0.20.0
+
 ## 1.1.0
 
 ### Features

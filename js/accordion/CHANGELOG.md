@@ -1,5 +1,16 @@
 # @gradio/accordion
 
+## 0.5.28
+
+### Fixes
+
+- [#12695](https://github.com/gradio-app/gradio/pull/12695) [`6eadb5b`](https://github.com/gradio-app/gradio/commit/6eadb5bf8c48b32fa9960b0e9e7c09a2ee30141c) - Migrate accordion to svelte 5.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+- @gradio/column@0.3.1
+
 ## 0.5.27
 
 ### Dependency updates
