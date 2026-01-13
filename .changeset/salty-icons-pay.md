@@ -1,8 +1,8 @@
 ---
-"@gradio/chatbot": minor
-"@gradio/markdown": minor
-"@gradio/markdown-code": minor
-"gradio": minor
+"@gradio/chatbot": patch
+"@gradio/markdown": patch
+"@gradio/markdown-code": patch
+"gradio": patch
 ---
 
-feat:Migrate Markdown components to svelte 5
+fix:Migrate Markdown components to svelte 5
