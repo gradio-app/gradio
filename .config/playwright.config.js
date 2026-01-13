@@ -18,7 +18,12 @@ const base = defineConfig({
 	timeout: 30_000,
 	testMatch: /.*\.spec\.ts/,
 	testDir: "..",
-	workers: process.env.CUSTOM_TEST ? 1 : process.env.CI ? 4 : undefined,
+	workers:
+		process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true"
+			? 2
+			: process.env.CI
+				? 4
+				: undefined,
 	retries: 3,
 	fullyParallel: true
 });
