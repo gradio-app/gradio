@@ -182,7 +182,7 @@ class Audio(
         if waveform_options is None:
             self.waveform_options = WaveformOptions()
         elif isinstance(waveform_options, dict):
-            self.waveform_options = WaveformOptions(**waveform_options)
+            self.waveform_options = WaveformOptions(**waveform_options)  # type: ignore
         else:
             self.waveform_options = waveform_options
         self.recording = recording

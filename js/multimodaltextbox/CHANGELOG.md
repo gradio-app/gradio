@@ -1,5 +1,30 @@
 # @gradio/multimodaltextbox
 
+## 0.11.3
+
+### Fixes
+
+- [#12692](https://github.com/gradio-app/gradio/pull/12692) [`3b3eaf0`](https://github.com/gradio-app/gradio/commit/3b3eaf0dcb0690cc815eb2b3c40ca335c9a47a11) - Restore RTL prop to gradio components.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+- @gradio/client@2.0.2
+- @gradio/video@0.20.0
+
+## 0.11.2
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/utils@0.11.0
+- @gradio/client@2.0.1
+- @gradio/statustracker@0.12.1
+- @gradio/upload@0.17.3
+- @gradio/image@0.25.0
+- @gradio/video@0.19.0
+- @gradio/audio@0.22.0
+
 ## 0.11.1
 
 ### Dependency updates

@@ -401,19 +401,29 @@ def get_request_origin(request: fastapi.Request, route_path: str) -> httpx.URL:
 
     The returned URL is a httpx.URL object without a trailing slash, e.g. "https://example.com"
     """
+
     x_forwarded_host = get_first_header_value(request, "x-forwarded-host")
-    root_url = f"http://{x_forwarded_host}" if x_forwarded_host else str(request.url)
+    x_gradio_server = get_first_header_value(request, "x-gradio-server")
+    root_url = (
+        f"http://{x_forwarded_host}"
+        if x_forwarded_host
+        else str(x_gradio_server or request.url)
+    )
     root_url = httpx.URL(root_url)
     root_url = root_url.copy_with(query=None)
     root_url = str(root_url).rstrip("/")
+
     if get_first_header_value(request, "x-forwarded-proto") == "https":
         root_url = root_url.replace("http://", "https://")
 
     route_path = route_path.rstrip("/")
-    if len(route_path) > 0 and not x_forwarded_host:
+
+    if len(route_path) > 0 and not x_forwarded_host and root_url.endswith(route_path):
         root_url = root_url[: -len(route_path)]
+
     root_url = root_url.rstrip("/")
     root_url = httpx.URL(root_url)
+
     return root_url
 
 
@@ -635,10 +645,12 @@ class GradioMultiPartParser:
 
     def on_part_end(self) -> None:
         if self._current_part.file is None:
+            data = self._current_part.data
+            data_bytes = bytes(data) if isinstance(data, bytearray) else data
             self.items.append(
                 (
                     self._current_part.field_name,
-                    _user_safe_decode(self._current_part.data, str(self._charset)),
+                    _user_safe_decode(data_bytes, str(self._charset)),
                 )
             )
         else:
@@ -1028,7 +1040,7 @@ class MediaStream:
             return
 
         segment_id = str(uuid.uuid4())
-        self.segments.append({"id": segment_id, **data})
+        self.segments.append({"id": segment_id, **data})  # type: ignore
         self.max_duration = max(self.max_duration, data["duration"]) + 1
 
     def end_stream(self):

@@ -113,9 +113,11 @@ export class Client {
 			headers.append("Cookie", this.cookies);
 		}
 		if (this && this.options.headers) {
-			for (const name in this.options.headers) {
-				headers.append(name, this.options.headers[name]);
-			}
+			let additional_headers = new Headers(this.options.headers);
+
+			additional_headers.forEach((value, name) => {
+				headers.append(name, value);
+			});
 		}
 
 		return fetch(input, { ...init, headers });
@@ -127,9 +129,11 @@ export class Client {
 			headers.append("Cookie", this.cookies);
 		}
 		if (this && this.options.headers) {
-			for (const name in this.options.headers) {
-				headers.append(name, this.options.headers[name]);
-			}
+			let additional_headers = new Headers(this.options.headers);
+
+			additional_headers.forEach((value, name) => {
+				headers.append(name, value);
+			});
 		}
 		if (this && this.options.token) {
 			headers.append("Authorization", `Bearer ${this.options.token}`);
@@ -175,11 +179,11 @@ export class Client {
 		trigger_id?: number | null,
 		all_events?: boolean
 	) => SubmitIterable<GradioEvent>;
-	predict: (
+	predict: <T = unknown>(
 		endpoint: string | number,
 		data: unknown[] | Record<string, unknown> | undefined,
 		event_data?: unknown
-	) => Promise<PredictReturn>;
+	) => Promise<PredictReturn<T>>;
 	open_stream: () => Promise<void>;
 	private resolve_config: (endpoint: string) => Promise<Config | undefined>;
 	private resolve_cookies: () => Promise<void>;
@@ -200,7 +204,7 @@ export class Client {
 		this.handle_blob = handle_blob.bind(this);
 		this.post_data = post_data.bind(this);
 		this.submit = submit.bind(this);
-		this.predict = predict.bind(this);
+		this.predict = predict.bind(this) as typeof this.predict;
 		this.open_stream = open_stream.bind(this);
 		this.resolve_config = resolve_config.bind(this);
 		this.resolve_cookies = resolve_cookies.bind(this);

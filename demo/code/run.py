@@ -18,7 +18,7 @@ def code(language, code):
 io = gr.Interface(lambda x: x, "code", "code", api_name="predict")
 
 with gr.Blocks() as demo:
-    lang = gr.Dropdown(value="python", choices=gr.Code.languages)
+    lang = gr.Dropdown(value="python", choices=gr.Code.languages)  # type: ignore
     with gr.Row():
         code_in = gr.Code(
             language="python",

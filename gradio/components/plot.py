@@ -102,7 +102,7 @@ class Plot(Component):
         )
         self.buttons = set_default_buttons(buttons, None)
 
-    def get_config(self):
+    def get_config(self):  # type: ignore[override]
         try:
             import bokeh  # type: ignore
 

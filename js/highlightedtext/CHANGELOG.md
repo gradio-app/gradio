@@ -1,5 +1,28 @@
 # @gradio/highlightedtext
 
+## 0.10.1
+
+### Fixes
+
+- [#12692](https://github.com/gradio-app/gradio/pull/12692) [`3b3eaf0`](https://github.com/gradio-app/gradio/commit/3b3eaf0dcb0690cc815eb2b3c40ca335c9a47a11) - Restore RTL prop to gradio components.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+- @gradio/theme@0.6.0
+
+## 0.10.0
+
+### Features
+
+- [#12539](https://github.com/gradio-app/gradio/pull/12539) [`f1d83fa`](https://github.com/gradio-app/gradio/commit/f1d83fac3d6e4bad60cf896a026fa2d572f26073) - Add ability to add custom buttons to components.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/utils@0.11.0
+- @gradio/statustracker@0.12.1
+
 ## 0.9.15
 
 ### Features

@@ -3,10 +3,10 @@
 	import { BlockTitle, IconButtonWrapper } from "@gradio/atoms";
 	import { DropdownArrow } from "@gradio/icons";
 	import { handle_filter, handle_shared_keys } from "./utils";
-	import type {
-		SelectData,
-		KeyUpData,
-		CustomButton as CustomButtonType
+	import {
+		type SelectData,
+		type KeyUpData,
+		type CustomButton as CustomButtonType
 	} from "@gradio/utils";
 	import { tick } from "svelte";
 
@@ -23,7 +23,7 @@
 		allow_custom_value = false,
 		filterable = true,
 		buttons = null,
-		on_custom_button_click = null,
+		oncustom_button_click = null,
 		on_change,
 		on_input,
 		on_select,
@@ -31,17 +31,17 @@
 		on_blur,
 		on_key_up
 	}: {
-		label?: string;
+		label: string;
 		info?: string;
-		value?: string | number | null;
-		choices?: [string, string | number][];
-		interactive?: boolean;
-		show_label?: boolean;
-		container?: boolean;
-		allow_custom_value?: boolean;
-		filterable?: boolean;
-		buttons?: (string | CustomButtonType)[] | null;
-		on_custom_button_click?: ((id: number) => void) | null;
+		value: string | number | null;
+		choices: [string, string | number][];
+		interactive: boolean;
+		show_label: boolean;
+		container: boolean;
+		allow_custom_value: boolean;
+		filterable: boolean;
+		buttons: (string | CustomButtonType)[] | null;
+		oncustom_button_click?: ((id: number) => void) | null;
 		on_change?: (value: string | number | null) => void;
 		on_input?: () => void;
 		on_select?: (data: SelectData) => void;
@@ -79,6 +79,9 @@
 			return ["", null];
 		}
 	});
+	// Use last_typed_value to track when the user has typed
+	// on_blur we only want to update value if the user has typed
+	let last_typed_value = input_text;
 	let initialized = $state(false);
 	let disabled = $derived(!interactive);
 
@@ -86,8 +89,8 @@
 	let filtered_indices = $state(choices.map((_, i) => i));
 	let active_index: number | null = $state(null);
 
-	function handle_option_selected(e: any): void {
-		selected_index = parseInt(e.detail.target.dataset.index);
+	function handle_option_selected(index: any): void {
+		selected_index = parseInt(index);
 		if (isNaN(selected_index)) {
 			// This is the case when the user clicks on the scrollbar
 			selected_index = null;
@@ -96,6 +99,7 @@
 
 		let [_input_text, _value] = choices[selected_index];
 		input_text = _input_text;
+		last_typed_value = input_text;
 		value = _value;
 		on_select?.({
 			index: selected_index,
@@ -104,6 +108,7 @@
 		});
 		show_options = false;
 		active_index = null;
+		on_input?.();
 		filter_input.blur();
 	}
 
@@ -118,7 +123,13 @@
 			input_text =
 				choices_names[choices_values.indexOf(value as string | number)];
 		} else {
-			value = input_text;
+			if (choices_names.includes(input_text)) {
+				selected_index = choices_names.indexOf(input_text);
+				value = choices_values[selected_index];
+			} else if (input_text !== last_typed_value) {
+				value = input_text;
+				selected_index = null;
+			}
 		}
 		show_options = false;
 		active_index = null;
@@ -137,6 +148,7 @@
 			filtered_indices
 		);
 		if (e.key === "Enter") {
+			last_typed_value = input_text;
 			if (active_index !== null) {
 				selected_index = active_index;
 				value = choices_values[active_index];
@@ -170,7 +182,7 @@
 
 <div class:container>
 	{#if show_label && buttons && buttons.length > 0}
-		<IconButtonWrapper {buttons} {on_custom_button_click} />
+		<IconButtonWrapper {buttons} {oncustom_button_click} />
 	{/if}
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
@@ -189,15 +201,15 @@
 					{disabled}
 					bind:value={input_text}
 					bind:this={filter_input}
-					on:keydown={handle_key_down}
-					on:keyup={(e) => {
+					onkeydown={handle_key_down}
+					onkeyup={(e) => {
 						on_key_up?.({
 							key: e.key,
 							input_value: input_text
 						});
 					}}
-					on:blur={handle_blur}
-					on:focus={handle_focus}
+					onblur={handle_blur}
+					onfocus={handle_focus}
 					readonly={!filterable}
 				/>
 				{#if !disabled}
@@ -214,8 +226,8 @@
 			{disabled}
 			selected_indices={selected_index === null ? [] : [selected_index]}
 			{active_index}
-			on:change={handle_option_selected}
-			on:load={() => (initialized = true)}
+			onchange={handle_option_selected}
+			onload={() => (initialized = true)}
 		/>
 	</div>
 </div>

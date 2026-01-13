@@ -70,8 +70,8 @@
 			<Banner
 				id="hackathon-deadline"
 				message="MCP Birthday Hackathon Completed!"
-				link_text="See Submissions"
-				link_url="https://huggingface.co/MCP-1st-Birthday/spaces"
+				link_text="See Winners"
+				link_url="/mcp-birthday-winners"
 				target="_blank"
 			/>
 		</div>

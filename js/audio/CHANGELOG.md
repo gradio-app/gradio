@@ -1,5 +1,33 @@
 # @gradio/audio
 
+## 0.22.0
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+- @gradio/button@0.6.2
+- @gradio/client@2.0.2
+
+## 0.22.0
+
+### Features
+
+- [#12539](https://github.com/gradio-app/gradio/pull/12539) [`f1d83fa`](https://github.com/gradio-app/gradio/commit/f1d83fac3d6e4bad60cf896a026fa2d572f26073) - Add ability to add custom buttons to components.  Thanks @abidlabs!
+
+### Fixes
+
+- [#12580](https://github.com/gradio-app/gradio/pull/12580) [`b27e2cb`](https://github.com/gradio-app/gradio/commit/b27e2cbb07ef3c977b72d77b2d0922e6f33521e2) - Audio Trim Fix.  Thanks @dawoodkhan82!
+- [#12575](https://github.com/gradio-app/gradio/pull/12575) [`7498fac`](https://github.com/gradio-app/gradio/commit/7498fac6a1c575ff04920ad5178853843a3b270e) - Fix image buttons default value.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/utils@0.11.0
+- @gradio/client@2.0.1
+- @gradio/statustracker@0.12.1
+- @gradio/upload@0.17.3
+- @gradio/button@0.6.1
+
 ## 0.21.0
 
 ### Features
