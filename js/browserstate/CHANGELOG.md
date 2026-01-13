@@ -1,5 +1,21 @@
 # @gradio/browserstate
 
+## 0.3.5
+
+### Fixes
+
+- [#12601](https://github.com/gradio-app/gradio/pull/12601) [`5fae6b7`](https://github.com/gradio-app/gradio/commit/5fae6b7e36ef126a71b38a207593323e4cc40f3b) - Fix Infinite Change Event in Browser History.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+
+## 0.3.4
+
+### Dependency updates
+
+- @gradio/utils@0.11.0
+
 ## 0.3.3
 
 ### Dependency updates

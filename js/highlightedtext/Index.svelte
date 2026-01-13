@@ -90,6 +90,7 @@
 		container={gradio.shared.container}
 		scale={gradio.shared.scale}
 		min_width={gradio.shared.min_width}
+		rtl={gradio.props.rtl}
 	>
 		<StatusTracker
 			autoscroll={gradio.shared.autoscroll}

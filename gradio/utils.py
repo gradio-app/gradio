@@ -85,7 +85,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 P = ParamSpec("P")
 T = TypeVar("T")
 
-BUILT_IN_THEMES: dict[str, Theme] = {
+BUILT_IN_THEMES: dict[str, Theme] = {  # type: ignore
     t.name: t
     for t in [
         themes.Base(),
@@ -319,7 +319,9 @@ def watchfn_spaces(reloader: SpacesReloader):
     if version.parse(spaces_version) < min_version:
         raise RuntimeError(f"Spaces hot-reloading requires `spaces>{min_version}`")
 
-    from spaces.reloading import start_reload_server  # ty: ignore[unresolved-import] # noqa: I001
+    from spaces.reloading import (  # ty: ignore[unresolved-import] # noqa: I001
+        start_reload_server,
+    )
 
     start_reload_server(
         prerun=reloader.prerun,

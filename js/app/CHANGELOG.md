@@ -1,5 +1,25 @@
 # @self/app
 
+## 2.0.3
+
+### Fixes
+
+- [#12679](https://github.com/gradio-app/gradio/pull/12679) [`45cb6be`](https://github.com/gradio-app/gradio/commit/45cb6be9bedfbfcdad9b3ac4df26342f29143c73) - Fix SSR mode styling by enabling PostCSS custom media preprocessing.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/client@2.0.2
+- @gradio/theme@0.6.0
+- @gradio/core@1.1.1
+- @self/build@0.5.1
+
+## 2.0.2
+
+### Dependency updates
+
+- @gradio/client@2.0.1
+- @gradio/core@1.1.0
+
 ## 2.0.2
 
 ### Fixes

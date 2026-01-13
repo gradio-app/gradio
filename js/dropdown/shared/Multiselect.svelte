@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
-	import { BlockTitle } from "@gradio/atoms";
+	import { BlockTitle, IconButtonWrapper } from "@gradio/atoms";
 	import { Remove, DropdownArrow } from "@gradio/icons";
 	import type { Gradio } from "@gradio/utils";
 	import DropdownOptions from "./DropdownOptions.svelte";
@@ -14,6 +14,7 @@
 	let filter_input: HTMLElement;
 	let input_text = $state("");
 	let label = $derived(gradio.shared.label || "Multiselect");
+	let buttons = $derived(gradio.props.buttons);
 
 	let choices_names: string[] = $derived.by(() => {
 		return gradio.props.choices.map((c) => c[0]);
@@ -115,8 +116,8 @@
 		);
 	}
 
-	function handle_option_selected(e: any): void {
-		const option_index = parseInt(e.detail.target.dataset.index);
+	function handle_option_selected(index: any): void {
+		const option_index = parseInt(index);
 		add_or_remove_index(option_index);
 	}
 
@@ -183,9 +184,16 @@
 			gradio.dispatch("change");
 		}
 	});
+
+	function oncustom_button_click(id: number) {
+		gradio.dispatch("custom_button_click", { id });
+	}
 </script>
 
 <label class:container={gradio.shared.container}>
+	{#if gradio.shared.show_label && buttons && buttons.length > 0}
+		<IconButtonWrapper {buttons} {oncustom_button_click} />
+	{/if}
 	<BlockTitle show_label={gradio.shared.show_label} info={gradio.props.info}
 		>{label}</BlockTitle
 	>
@@ -270,7 +278,7 @@
 			{selected_indices}
 			{active_index}
 			remember_scroll={true}
-			on:change={handle_option_selected}
+			onchange={handle_option_selected}
 		/>
 	</div>
 </label>

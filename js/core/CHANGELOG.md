@@ -1,5 +1,61 @@
 # @gradio/core
 
+## 1.1.1
+
+### Features
+
+- [#12677](https://github.com/gradio-app/gradio/pull/12677) [`6f37743`](https://github.com/gradio-app/gradio/commit/6f377433e4c64f1d962eef0f9eff74676c72032b) - Make check for active page in navbar robust.  Thanks @abidlabs!
+
+### Fixes
+
+- [#12681](https://github.com/gradio-app/gradio/pull/12681) [`ba46c2d`](https://github.com/gradio-app/gradio/commit/ba46c2df1405c11e495304af8f91acfdf69d0b18) - Migrate Button to Svelte 5.  Thanks @freddyaboulton!
+- [#12625](https://github.com/gradio-app/gradio/pull/12625) [`7fb79d4`](https://github.com/gradio-app/gradio/commit/7fb79d45bdc3597bf6b095ff64c420939257fba9) - Fix bug where tabs don't work inside gr.render.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+- @gradio/button@0.6.2
+- @gradio/client@2.0.2
+- @gradio/column@0.3.1
+- @gradio/theme@0.6.0
+- @gradio/gallery@0.16.1
+- @gradio/plot@0.10.1
+- @gradio/video@0.20.0
+
+## 1.1.0
+
+### Features
+
+- [#12539](https://github.com/gradio-app/gradio/pull/12539) [`f1d83fa`](https://github.com/gradio-app/gradio/commit/f1d83fac3d6e4bad60cf896a026fa2d572f26073) - Add ability to add custom buttons to components.  Thanks @abidlabs!
+
+### Fixes
+
+- [#12569](https://github.com/gradio-app/gradio/pull/12569) [`9daf193`](https://github.com/gradio-app/gradio/commit/9daf1932291bea1fcbbe20096d28018657242295) - Add footer to bottom of page.  Thanks @freddyaboulton!
+- [#12600](https://github.com/gradio-app/gradio/pull/12600) [`1fafaba`](https://github.com/gradio-app/gradio/commit/1fafabaace315b1c699855cadb69eb17488de957) - Add x-gradio-user-header.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/checkbox@0.6.0
+- @gradio/utils@0.11.0
+- @gradio/client@2.0.1
+- @gradio/statustracker@0.12.1
+- @gradio/upload@0.17.3
+- @gradio/button@0.6.1
+- @gradio/gallery@0.16.0
+- @gradio/plot@0.10.0
+- @gradio/dropdown@0.11.0
+- @gradio/textbox@0.13.0
+- @gradio/file@0.14.0
+- @gradio/image@0.25.0
+- @gradio/video@0.19.0
+- @gradio/column@0.3.0
+- @gradio/audio@0.22.0
+- @gradio/code@0.17.0
+- @gradio/paramviewer@0.9.1
+- @gradio/tabitem@0.6.4
+- @gradio/tabs@0.5.4
+
 ## 1.0.2
 
 ### Fixes
