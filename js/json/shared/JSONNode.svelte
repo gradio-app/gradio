@@ -79,7 +79,7 @@
 		});
 	}
 
-	$effect.pre(() => {
+	$effect(() => {
 		if (is_root && root_element) {
 			updateLineNumbers();
 		}
