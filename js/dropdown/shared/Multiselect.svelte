@@ -192,7 +192,10 @@
 
 <label class:container={gradio.shared.container}>
 	{#if gradio.shared.show_label && buttons && buttons.length > 0}
-		<IconButtonWrapper {buttons} on_custom_button_click={oncustom_button_click} />
+		<IconButtonWrapper
+			{buttons}
+			on_custom_button_click={oncustom_button_click}
+		/>
 	{/if}
 	<BlockTitle show_label={gradio.shared.show_label} info={gradio.props.info}
 		>{label}</BlockTitle
