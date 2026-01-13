@@ -270,10 +270,12 @@
 	): any | undefined {
 		if (lines === _max_lines || (lines === 1 && _max_lines === 1)) return;
 
-		if (!_value.trim()) return;
-		_el.style.overflowY = "scroll";
 		_el.addEventListener("input", resize);
-		resize({ target: _el });
+
+		if (_value.trim()) {
+			_el.style.overflowY = "scroll";
+			resize({ target: _el });
+		}
 
 		return {
 			destroy: () => _el.removeEventListener("input", resize)
