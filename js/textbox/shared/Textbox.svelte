@@ -80,7 +80,6 @@
 	let previous_scroll_top = $state(0);
 	let user_has_scrolled_up = $state(false);
 	let _max_lines = $state(1);
-	let ghost_element: HTMLTextAreaElement | null = null;
 
 	const show_textbox_border = !submit_btn;
 
@@ -271,10 +270,9 @@
 	): any | undefined {
 		if (lines === _max_lines || (lines === 1 && _max_lines === 1)) return;
 
+		if (!_value.trim()) return;
 		_el.style.overflowY = "scroll";
 		_el.addEventListener("input", resize);
-
-		if (!_value.trim()) return;
 		resize({ target: _el });
 
 		return {
