@@ -24,7 +24,7 @@
 		stream_handler,
 		uploading = $bindable(false),
 		allow_reordering = false,
-		upload_promise = $bindable<Promise<(FileData | null)[]> | null>(null),
+		upload_promise = $bindable<Promise<(FileData | null)[]> | null>(),
 		buttons = null,
 		on_custom_button_click = null,
 		onchange,
@@ -37,20 +37,20 @@
 	}: {
 		value: null | FileData | FileData[];
 		label: string;
-		show_label: boolean;
+		show_label?: boolean;
 		file_count: "single" | "multiple" | "directory";
 		file_types: string[] | null;
-		selectable: boolean;
+		selectable?: boolean;
 		root: string;
-		height: number | undefined;
+		height?: number | undefined;
 		i18n: I18nFormatter;
 		max_file_size: number | null;
 		upload: Client["upload"];
 		stream_handler: Client["stream"];
-		uploading: boolean;
-		allow_reordering: boolean;
-		upload_promise: Promise<(FileData | null)[]> | null;
-		buttons: (string | CustomButtonType)[] | null;
+		uploading?: boolean;
+		allow_reordering?: boolean;
+		upload_promise?: Promise<(FileData | null)[]> | null;
+		buttons?: (string | CustomButtonType)[] | null;
 		on_custom_button_click?: ((id: number) => void) | null;
 		onchange?: (event_data: FileData[] | FileData | null) => void;
 		onclear?: () => void;
@@ -83,9 +83,9 @@
 	}
 
 	let dragging = $state(false);
-	$effect(() => {
-		ondrag?.(dragging);
-	});
+	// $effect(() => {
+	// 	ondrag?.(dragging);
+	// });
 </script>
 
 {#if show_label && buttons && buttons.length > 0}
