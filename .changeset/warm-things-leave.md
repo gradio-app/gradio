@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:Restore gr.Textbox resize listener
+fix:Restore gr.Textbox resize listener
