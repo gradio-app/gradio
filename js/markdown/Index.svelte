@@ -45,8 +45,8 @@
 			elem_classes={gradio.shared.elem_classes}
 			visible={gradio.shared.visible}
 			rtl={gradio.props.rtl}
-			on:change={() => gradio.dispatch("change")}
-			on:copy={(e) => gradio.dispatch("copy", e.detail)}
+			onchange={() => gradio.dispatch("change")}
+			oncopy={(e) => gradio.dispatch("copy", e.detail)}
 			latex_delimiters={gradio.props.latex_delimiters}
 			sanitize_html={gradio.props.sanitize_html}
 			line_breaks={gradio.props.line_breaks}
