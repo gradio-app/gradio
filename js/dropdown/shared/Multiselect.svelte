@@ -292,14 +292,6 @@
 		margin-right: var(--size-2);
 		width: var(--size-5);
 	}
-	label:not(.container),
-	label:not(.container) .wrap,
-	label:not(.container) .wrap-inner,
-	label:not(.container) .secondary-wrap,
-	label:not(.container) .token,
-	label:not(.container) input {
-		height: 100%;
-	}
 	.container .wrap {
 		box-shadow: var(--input-shadow);
 		border: var(--input-border-width) solid var(--border-color-primary);
