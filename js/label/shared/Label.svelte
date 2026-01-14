@@ -1,17 +1,22 @@
 <script lang="ts">
 	import type { SelectData } from "@gradio/utils";
-	import { createEventDispatcher } from "svelte";
 
-	export let value: {
-		label?: string;
-		confidences?: { label: string; confidence: number }[];
-	};
-
-	const dispatch = createEventDispatcher<{ select: SelectData }>();
-
-	export let color: string | undefined = undefined;
-	export let selectable = false;
-	export let show_heading = true;
+	let {
+		value,
+		color = undefined,
+		selectable = false,
+		show_heading = true,
+		onselect
+	}: {
+		value: {
+			label?: string;
+			confidences?: { label: string; confidence: number }[];
+		};
+		color?: string | undefined;
+		selectable?: boolean;
+		show_heading?: boolean;
+		onselect?: (detail: SelectData) => void;
+	} = $props();
 
 	function get_aria_referenceable_id(elem_id: string): string {
 		// `aria-labelledby` interprets the value as a space-separated id reference list,
@@ -39,8 +44,8 @@
 				class="confidence-set group"
 				data-testid={`${confidence_set.label}-confidence-set`}
 				class:selectable
-				on:click={() => {
-					dispatch("select", { index: i, value: confidence_set.label });
+				onclick={() => {
+					onselect?.({ index: i, value: confidence_set.label });
 				}}
 			>
 				<div class="inner-wrap">
