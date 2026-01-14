@@ -1,6 +1,6 @@
 ---
-"@gradio/markdown-code": minor
-"gradio": minor
+"@gradio/markdown-code": patch
+"gradio": patch
 ---
 
-feat:Fix markdown migration
+fix:Fix markdown migration
