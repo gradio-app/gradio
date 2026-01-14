@@ -54,7 +54,5 @@
 	}}
 	upload={(...args) => gradio.shared.client.upload(...args)}
 >
-	{#snippet children()}
-		{gradio.shared.label ?? ""}
-	{/snippet}
+	{gradio.shared.label ?? ""}
 </UploadButton>
