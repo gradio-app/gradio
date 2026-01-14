@@ -1,6 +1,6 @@
 ---
-"@gradio/label": minor
-"gradio": minor
+"@gradio/label": patch
+"gradio": patch
 ---
 
-feat:Migrate js/label to svelte5
+fix:Migrate js/label to svelte5
