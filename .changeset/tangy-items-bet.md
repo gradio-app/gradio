@@ -1,6 +1,7 @@
 ---
 "@gradio/label": minor
+"@self/tootils": minor
 "gradio": minor
 ---
 
-feat:Migrate js/label to svelte5
+feat:Split e2e tests into independent apps
