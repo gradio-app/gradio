@@ -1,9 +1,9 @@
 ---
-"@gradio/atoms": minor
-"@gradio/audio": minor
-"@gradio/multimodaltextbox": minor
-"@gradio/upload": minor
-"gradio": minor
+"@gradio/atoms": patch
+"@gradio/audio": patch
+"@gradio/multimodaltextbox": patch
+"@gradio/upload": patch
+"gradio": patch
 ---
 
-feat:Migrate Audio + Upload to Svelte 5
+fix:Migrate Audio + Upload to Svelte 5
