@@ -628,7 +628,7 @@
 		gap: 0;
 		background: var(--block-background-fill);
 		border-radius: var(--radius-xl);
-		padding: var(--spacing-sm);
+		padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-sm) 0;
 		align-items: flex-start;
 		min-height: auto;
 	}
@@ -639,7 +639,7 @@
 
 	.input-row {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		gap: var(--spacing-sm);
 		width: 100%;
 	}
@@ -745,7 +745,6 @@
 		position: relative;
 		z-index: var(--layer-1);
 		text-align: left;
-		min-height: var(--size-9);
 	}
 
 	textarea:disabled {
