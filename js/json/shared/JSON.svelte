@@ -1,25 +1,36 @@
 <script lang="ts">
-	import { onDestroy } from "svelte";
 	import { JSON as JSONIcon } from "@gradio/icons";
 	import { Empty, IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import JSONNode from "./JSONNode.svelte";
 	import { Copy, Check } from "@gradio/icons";
 	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 
-	export let value: any = {};
-	export let open = false;
-	export let theme_mode: "system" | "light" | "dark" = "system";
-	export let show_indices = false;
-	export let label_height: number;
-	export let interactive = true;
-	export let show_copy_button = true;
-	export let buttons: (string | CustomButtonType)[] | null = null;
-	export let on_custom_button_click: ((id: number) => void) | null = null;
+	let {
+		value = {},
+		open = false,
+		theme_mode = "system" as "system" | "light" | "dark",
+		show_indices = false,
+		label_height,
+		interactive = true,
+		show_copy_button = true,
+		buttons = null,
+		on_custom_button_click = null
+	}: {
+		value?: any;
+		open?: boolean;
+		theme_mode?: "system" | "light" | "dark";
+		show_indices?: boolean;
+		label_height: number;
+		interactive?: boolean;
+		show_copy_button?: boolean;
+		buttons?: (string | CustomButtonType)[] | null;
+		on_custom_button_click?: ((id: number) => void) | null;
+	} = $props();
 
-	$: json_max_height = `calc(100% - ${label_height}px)`;
+	let json_max_height = $derived(`calc(100% - ${label_height}px)`);
 
-	let copied = false;
-	let timer: NodeJS.Timeout;
+	let copied = $state(false);
+	let timer = $state<NodeJS.Timeout>();
 
 	function copy_feedback(): void {
 		copied = true;
@@ -45,8 +56,10 @@
 		);
 	}
 
-	onDestroy(() => {
-		if (timer) clearTimeout(timer);
+	$effect(() => {
+		return () => {
+			if (timer) clearTimeout(timer);
+		};
 	});
 </script>
 
