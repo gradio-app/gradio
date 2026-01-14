@@ -33,6 +33,13 @@
 	} = $props();
 
 	let el: HTMLSpanElement;
+
+	const marked = create_marked({
+		header_links,
+		line_breaks,
+		latex_delimiters: latex_delimiters || []
+	});
+
 	let html: string = $derived.by(() => {
 		if (message && message.trim()) {
 			return process_message(message);
@@ -41,12 +48,6 @@
 		}
 	});
 	let katex_loaded = false;
-
-	const marked = create_marked({
-		header_links,
-		line_breaks,
-		latex_delimiters: latex_delimiters || []
-	});
 
 	function has_math_syntax(text: string): boolean {
 		if (!latex_delimiters || latex_delimiters.length === 0) {
