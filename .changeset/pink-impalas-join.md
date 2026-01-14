@@ -5,4 +5,4 @@
 "gradio": patch
 ---
 
-fix:feat: add ARIA landmarks for accessibility
+fix:fix: add ARIA landmarks for accessibility
