@@ -190,7 +190,7 @@
 	}
 </script>
 
-<label class:container={gradio.shared.container}>
+<div class:container={gradio.shared.container}>
 	{#if gradio.shared.show_label && buttons && buttons.length > 0}
 		<IconButtonWrapper
 			{buttons}
@@ -284,21 +284,13 @@
 			onchange={handle_option_selected}
 		/>
 	</div>
-</label>
+</div>
 
 <style>
 	.icon-wrap {
 		color: var(--body-text-color);
 		margin-right: var(--size-2);
 		width: var(--size-5);
-	}
-	label:not(.container),
-	label:not(.container) .wrap,
-	label:not(.container) .wrap-inner,
-	label:not(.container) .secondary-wrap,
-	label:not(.container) .token,
-	label:not(.container) input {
-		height: 100%;
 	}
 	.container .wrap {
 		box-shadow: var(--input-shadow);
