@@ -60,8 +60,7 @@
 				class="icon"
 				class:selected={active_source === "clipboard"}
 				aria-label="Paste from clipboard"
-				onclick={() => handle_select_source("clipboard")}
-				><ImagePaste /></button
+				onclick={() => handle_select_source("clipboard")}><ImagePaste /></button
 			>
 		{/if}
 	</span>

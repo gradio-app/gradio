@@ -252,7 +252,7 @@
 
 	{#if record_mounted && !recordedAudio}
 		<WaveformRecordControls
-			record={record}
+			{record}
 			{i18n}
 			{timing}
 			{recording}

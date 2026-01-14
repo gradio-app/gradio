@@ -14,10 +14,4 @@
 	} = $props();
 </script>
 
-<audio
-	{src}
-	{...restProps}
-	onplay={onplay}
-	onpause={onpause}
-	onended={onended}
-/>
+<audio {src} {...restProps} {onplay} {onpause} {onended} />

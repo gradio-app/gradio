@@ -139,7 +139,10 @@
 					"aria-label",
 					"Drag to adjust start time"
 				);
-				rightRegionHandle?.setAttribute("aria-label", "Drag to adjust end time");
+				rightRegionHandle?.setAttribute(
+					"aria-label",
+					"Drag to adjust end time"
+				);
 				leftRegionHandle?.setAttribute("tabindex", "0");
 				rightRegionHandle?.setAttribute("tabindex", "0");
 
@@ -353,8 +356,7 @@
 				</button>
 			{:else}
 				<button class="text-button" onclick={trimAudio}>Trim</button>
-				<button class="text-button" onclick={toggleTrimmingMode}>Cancel</button
-				>
+				<button class="text-button" onclick={toggleTrimmingMode}>Cancel</button>
 			{/if}
 		{/if}
 	</div>

@@ -382,7 +382,7 @@
 	class:hidden={use_waveform}
 	controls
 	autoplay={waveform_settings.autoplay}
-	onload={onload}
+	{onload}
 	bind:this={audio_player}
 	onended={() => onstop?.()}
 	onplay={() => onplay?.()}

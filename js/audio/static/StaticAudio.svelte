@@ -96,8 +96,8 @@
 			{#if buttons.some((btn) => typeof btn === "string" && btn === "share")}
 				<ShareButton
 					{i18n}
-					onerror={onerror}
-					onshare={onshare}
+					{onerror}
+					{onshare}
 					formatter={async (fileData: FileData) => {
 						if (!fileData || !fileData.url) return "";
 						let url = await uploadToHuggingFace(fileData.url, "url");
@@ -118,9 +118,9 @@
 			{editable}
 			{loop}
 			bind:playback_position
-			onpause={onpause}
-			onplay={onplay}
-			onstop={onstop}
+			{onpause}
+			{onplay}
+			{onstop}
 			onload={() => {}}
 		/>
 	{/if}

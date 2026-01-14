@@ -116,16 +116,16 @@
 						);
 						const file_data = uploaded_files?.[0];
 
-					if (file_data) {
-						onchange?.(file_data);
+						if (file_data) {
+							onchange?.(file_data);
+						}
 					}
+				} catch (e) {
+					console.error("Error processing audio:", e);
+				} finally {
+					onstoprecording?.();
+					upload_promise = null;
 				}
-			} catch (e) {
-				console.error("Error processing audio:", e);
-			} finally {
-				onstoprecording?.();
-				upload_promise = null;
-			}
 			})();
 
 			await upload_promise;

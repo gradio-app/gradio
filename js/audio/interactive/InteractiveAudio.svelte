@@ -373,7 +373,7 @@
 						{#if btn === "share"}
 							<ShareButton
 								{i18n}
-								onerror={onerror}
+								{onerror}
 								onshare={() => {}}
 								formatter={async (fileData: FileData) => {
 									if (!fileData || !fileData.url) return "";
@@ -412,10 +412,10 @@
 			{loop}
 			bind:playback_position
 			interactive
-			onstop={onstop}
-			onplay={onplay}
-			onpause={onpause}
-			onedit={onedit}
+			{onstop}
+			{onplay}
+			{onpause}
+			{onedit}
 		/>
 	{/if}
 	<SelectSource {sources} bind:active_source handle_clear={clear} />
