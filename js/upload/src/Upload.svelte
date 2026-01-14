@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, tick, getContext } from "svelte";
+	import { tick } from "svelte";
 	import type { FileData } from "@gradio/client";
 	import { prepare_files, type Client } from "@gradio/client";
 	import UploadProgress from "./UploadProgress.svelte";
@@ -7,32 +7,61 @@
 
 	const { drag, open_file_upload: _open_file_upload } = create_drag();
 
-	export let filetype: string | string[] | null = null;
-	export let dragging = false;
-	export let boundedheight = true;
-	export let center = true;
-	export let flex = true;
-	export let file_count: "single" | "multiple" | "directory" = "single";
-	export let disable_click = false;
-	export let root: string;
-	export let hidden = false;
-	export let format: "blob" | "file" = "file";
-	export let uploading = false;
-	export let show_progress = true;
-	export let max_file_size: number | null = null;
-	export let upload: Client["upload"];
-	export let stream_handler: Client["stream"];
-	export let icon_upload = false;
-	export let height: number | string | undefined = undefined;
-	export let aria_label: string | undefined = undefined;
-	export let upload_promise: Promise<(FileData | null)[]> | null = null;
+	let {
+		filetype = null,
+		dragging = $bindable(false),
+		boundedheight = true,
+		center = true,
+		flex = true,
+		file_count = "single",
+		disable_click = false,
+		root,
+		hidden = false,
+		format = "file",
+		uploading = $bindable(false),
+		show_progress = true,
+		max_file_size = null,
+		upload,
+		stream_handler,
+		icon_upload = false,
+		height = undefined,
+		aria_label = undefined,
+		upload_promise = $bindable(),
+		onload,
+		onerror,
+		children
+	}: {
+		filetype?: string | string[] | null;
+		dragging?: boolean;
+		boundedheight?: boolean;
+		center?: boolean;
+		flex?: boolean;
+		file_count?: "single" | "multiple" | "directory";
+		disable_click?: boolean;
+		root: string;
+		hidden?: boolean;
+		format?: "blob" | "file";
+		uploading?: boolean;
+		show_progress?: boolean;
+		max_file_size?: number | null;
+		upload: Client["upload"];
+		stream_handler: Client["stream"];
+		icon_upload?: boolean;
+		height?: number | string | undefined;
+		aria_label?: string | undefined;
+		upload_promise?: Promise<(FileData | null)[]>;
+		onload?: (data: FileData | FileData[] | Blob | File) => void;
+		onerror?: (error: string) => void;
+		children?: import("svelte").Snippet;
+	} = $props();
 
 	export function open_upload(): void {
 		_open_file_upload();
 	}
+
 	let upload_id: string = "";
 	let file_data: FileData[];
-	let accept_file_types: string | null;
+	let accept_file_types: string | null = $state(null);
 	let use_post_upload_validation: boolean | null = null;
 
 	const get_ios = (): boolean => {
@@ -43,9 +72,8 @@
 		return false;
 	};
 
-	$: ios = get_ios();
+	let ios = get_ios();
 
-	const dispatch = createEventDispatcher();
 	const validFileTypes = ["image", "video", "audio", "text", "file"];
 	const process_file_type = (type: string): string => {
 		if (ios && type.startsWith(".")) {
@@ -64,16 +92,18 @@
 		return "." + type;
 	};
 
-	$: if (filetype == null) {
-		accept_file_types = null;
-	} else if (typeof filetype === "string") {
-		accept_file_types = process_file_type(filetype);
-	} else if (ios && filetype.includes("file/*")) {
-		accept_file_types = "*";
-	} else {
-		filetype = filetype.map(process_file_type);
-		accept_file_types = filetype.join(", ");
-	}
+	$effect(() => {
+		if (filetype == null) {
+			accept_file_types = null;
+		} else if (typeof filetype === "string") {
+			accept_file_types = process_file_type(filetype);
+		} else if (ios && filetype.includes("file/*")) {
+			accept_file_types = "*";
+		} else {
+			const processed = filetype.map(process_file_type);
+			accept_file_types = processed.join(", ");
+		}
+	});
 
 	export function paste_clipboard(): void {
 		navigator.clipboard.read().then(async (items) => {
@@ -118,15 +148,12 @@
 					upload_id,
 					max_file_size ?? Infinity
 				);
-				dispatch(
-					"load",
-					file_count === "single" ? _file_data?.[0] : _file_data
-				);
+				onload?.(file_count === "single" ? _file_data?.[0] : _file_data);
 				resolve(_file_data || []);
 				uploading = false;
 				return _file_data || [];
 			} catch (e) {
-				dispatch("error", (e as Error).message);
+				onerror?.((e as Error).message);
 				uploading = false;
 				resolve([]);
 			}
@@ -186,10 +213,7 @@
 				if (is_valid_file(file)) {
 					return true;
 				}
-				dispatch(
-					"error",
-					`Invalid file type: ${file.name}. Only ${filetype} allowed.`
-				);
+				onerror?.(`Invalid file type: ${file.name}. Only ${filetype} allowed.`);
 				return false;
 			});
 
@@ -243,17 +267,17 @@
 			) {
 				return true;
 			}
-			dispatch("error", `Invalid file type only ${filetype} allowed.`);
+			onerror?.(`Invalid file type only ${filetype} allowed.`);
 			return false;
 		});
 		if (format != "blob") {
 			await load_files(files_to_load);
 		} else {
 			if (file_count === "single") {
-				dispatch("load", files_to_load[0]);
+				onload?.(files_to_load[0]);
 				return;
 			}
-			dispatch("load", files_to_load);
+			onload?.(files_to_load);
 		}
 	}
 
@@ -268,10 +292,10 @@
 			await load_files(files_to_load);
 		} else {
 			if (file_count === "single") {
-				dispatch("load", files_to_load[0]);
+				onload?.(files_to_load[0]);
 				return;
 			}
-			dispatch("load", files_to_load);
+			onload?.(files_to_load);
 		}
 	}
 </script>
@@ -291,10 +315,10 @@
 					: height
 				: "100%"}
 		tabindex={hidden ? -1 : 0}
-		on:click={paste_clipboard}
+		onclick={paste_clipboard}
 		aria-label={aria_label || "Paste from clipboard"}
 	>
-		<slot />
+		{#if children}{@render children()}{/if}
 	</button>
 {:else if uploading && show_progress}
 	{#if !hidden}
@@ -317,7 +341,7 @@
 				: "100%"}
 		tabindex={hidden ? -1 : 0}
 		use:drag={{
-			on_drag_change: (dragging) => (dragging = dragging),
+			on_drag_change: (d) => (dragging = d),
 			on_files: (files) => load_files_from_upload(files),
 			accepted_types: accept_file_types,
 			mode: file_count,
@@ -326,7 +350,7 @@
 		aria-label={aria_label || "Click to upload or drop files"}
 		aria-dropeffect="copy"
 	>
-		<slot />
+		{#if children}{@render children()}{/if}
 	</button>
 {/if}
 

@@ -40,7 +40,7 @@
 	let active_source = $derived.by(() =>
 		gradio.props.sources ? gradio.props.sources[0] : null
 	);
-	let initial_value = gradio.props.value;
+	let initial_value = $state(gradio.props.value);
 
 	const handle_reset_value = (): void => {
 		if (initial_value === null || gradio.props.value === initial_value) {
@@ -49,7 +49,16 @@
 		gradio.props.value = initial_value;
 	};
 
-	let dragging: boolean;
+	let dragging = $state(false);
+	let recording = $state(gradio.props.recording ?? false);
+	let playback_position = $state(gradio.props.playback_position ?? 0);
+
+	$effect(() => {
+		gradio.props.recording = recording;
+	});
+	$effect(() => {
+		gradio.props.playback_position = playback_position;
+	});
 
 	let color_accent = "darkorange";
 
@@ -154,7 +163,7 @@
 			on_custom_button_click={(id) => {
 				gradio.dispatch("custom_button_click", { id });
 			}}
-			bind:playback_position={gradio.props.playback_position}
+			bind:playback_position
 			onshare={(detail) => gradio.dispatch("share", detail)}
 			onerror={(e) => gradio.dispatch("error", e.detail)}
 			onplay={() => gradio.dispatch("play")}
@@ -206,13 +215,13 @@
 			active_source={active_source || undefined}
 			pending={gradio.shared.loading_status.pending}
 			streaming={gradio.props.streaming}
-			bind:recording={gradio.props.recording}
+			bind:recording
 			loop={gradio.props.loop}
 			max_file_size={gradio.shared.max_file_size}
 			{handle_reset_value}
 			editable={gradio.props.editable}
 			bind:dragging
-			bind:playback_position={gradio.props.playback_position}
+			bind:playback_position
 			onedit={() => gradio.dispatch("edit")}
 			onplay={() => gradio.dispatch("play")}
 			onpause={() => gradio.dispatch("pause")}

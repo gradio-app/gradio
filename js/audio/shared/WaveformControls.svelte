@@ -18,53 +18,82 @@
 	import VolumeLevels from "./VolumeLevels.svelte";
 	import VolumeControl from "./VolumeControl.svelte";
 
-	export let waveform: WaveSurfer | undefined;
-	export let audio_duration: number;
-	export let i18n: I18nFormatter;
-	export let playing: boolean;
-	export let show_redo = false;
-	export let interactive = false;
-	export let handle_trim_audio: (start: number, end: number) => void;
-	export let mode = "";
-	export let container: HTMLDivElement;
-	export let handle_reset_value: () => void;
-	export let waveform_options: WaveformOptions = {};
-	export let trim_region_settings: WaveformOptions = {};
-	export let show_volume_slider = false;
-	export let editable = true;
-	export let subtitles_toggle = true;
-	export let show_subtitles = false;
-	export let trimDuration = 0;
+	let {
+		waveform,
+		audio_duration,
+		i18n,
+		playing,
+		show_redo = false,
+		interactive = false,
+		handle_trim_audio,
+		mode = $bindable(),
+		container,
+		handle_reset_value,
+		waveform_options = {},
+		trim_region_settings = {},
+		show_volume_slider = $bindable(),
+		editable = true,
+		subtitles_toggle = $bindable(),
+		show_subtitles = false,
+		trimDuration = $bindable()
+	}: {
+		waveform: WaveSurfer | undefined;
+		audio_duration: number;
+		i18n: I18nFormatter;
+		playing: boolean;
+		show_redo?: boolean;
+		interactive?: boolean;
+		handle_trim_audio: (start: number, end: number) => void;
+		mode?: string;
+		container: HTMLDivElement;
+		handle_reset_value: () => void;
+		waveform_options?: WaveformOptions;
+		trim_region_settings?: WaveformOptions;
+		show_volume_slider?: boolean;
+		editable?: boolean;
+		subtitles_toggle?: boolean;
+		show_subtitles?: boolean;
+		trimDuration?: number;
+	} = $props();
 
 	let playbackSpeeds = [0.5, 1, 1.5, 2];
-	let playbackSpeed = playbackSpeeds[1];
+	let playbackSpeed = $state(playbackSpeeds[1]);
 
-	let trimRegion: RegionsPlugin | null = null;
-	let activeRegion: Region | null = null;
+	let trimRegion: RegionsPlugin | null = $state(null);
+	let activeRegion: Region | null = $state(null);
 
-	let leftRegionHandle: HTMLDivElement | null;
-	let rightRegionHandle: HTMLDivElement | null;
-	let activeHandle = "";
+	let leftRegionHandle: HTMLDivElement | null = $state(null);
+	let rightRegionHandle: HTMLDivElement | null = $state(null);
+	let activeHandle = $state("");
 
-	let currentVolume = 1;
+	let currentVolume = $state(1);
 
-	$: trimRegion =
-		container && waveform
-			? waveform.registerPlugin(RegionsPlugin.create())
-			: null;
-
-	$: trimRegion?.on("region-out", (region) => {
-		region.play();
+	$effect(() => {
+		if (container && waveform) {
+			trimRegion = waveform.registerPlugin(RegionsPlugin.create());
+		} else {
+			trimRegion = null;
+		}
 	});
 
-	$: trimRegion?.on("region-updated", (region) => {
-		trimDuration = region.end - region.start;
+	$effect(() => {
+		trimRegion?.on("region-out", (region) => {
+			region.play();
+		});
 	});
 
-	$: trimRegion?.on("region-clicked", (region, e) => {
-		e.stopPropagation(); // prevent triggering a click on the waveform
-		activeRegion = region;
-		region.play();
+	$effect(() => {
+		trimRegion?.on("region-updated", (region) => {
+			trimDuration = region.end - region.start;
+		});
+	});
+
+	$effect(() => {
+		trimRegion?.on("region-clicked", (region, e) => {
+			e.stopPropagation(); // prevent triggering a click on the waveform
+			activeRegion = region;
+			region.play();
+		});
 	});
 
 	const addTrimRegion = (): void => {
@@ -78,29 +107,34 @@
 		trimDuration = activeRegion.end - activeRegion.start;
 	};
 
-	$: if (activeRegion) {
-		const shadowRoot = container.children[0]!.shadowRoot!;
+	$effect(() => {
+		if (activeRegion) {
+			const shadowRoot = container.children[0]!.shadowRoot!;
 
-		rightRegionHandle = shadowRoot.querySelector('[data-resize="right"]');
-		leftRegionHandle = shadowRoot.querySelector('[data-resize="left"]');
+			rightRegionHandle = shadowRoot.querySelector('[data-resize="right"]');
+			leftRegionHandle = shadowRoot.querySelector('[data-resize="left"]');
 
-		if (leftRegionHandle && rightRegionHandle) {
-			leftRegionHandle.setAttribute("role", "button");
-			rightRegionHandle.setAttribute("role", "button");
-			leftRegionHandle?.setAttribute("aria-label", "Drag to adjust start time");
-			rightRegionHandle?.setAttribute("aria-label", "Drag to adjust end time");
-			leftRegionHandle?.setAttribute("tabindex", "0");
-			rightRegionHandle?.setAttribute("tabindex", "0");
+			if (leftRegionHandle && rightRegionHandle) {
+				leftRegionHandle.setAttribute("role", "button");
+				rightRegionHandle.setAttribute("role", "button");
+				leftRegionHandle?.setAttribute(
+					"aria-label",
+					"Drag to adjust start time"
+				);
+				rightRegionHandle?.setAttribute("aria-label", "Drag to adjust end time");
+				leftRegionHandle?.setAttribute("tabindex", "0");
+				rightRegionHandle?.setAttribute("tabindex", "0");
 
-			leftRegionHandle.addEventListener("focus", () => {
-				if (trimRegion) activeHandle = "left";
-			});
+				leftRegionHandle.addEventListener("focus", () => {
+					if (trimRegion) activeHandle = "left";
+				});
 
-			rightRegionHandle.addEventListener("focus", () => {
-				if (trimRegion) activeHandle = "right";
-			});
+				rightRegionHandle.addEventListener("focus", () => {
+					if (trimRegion) activeHandle = "right";
+				});
+			}
 		}
-	}
+	});
 
 	const trimAudio = (): void => {
 		if (waveform && trimRegion) {
@@ -166,14 +200,21 @@
 		trimDuration = activeRegion.end - activeRegion.start;
 	};
 
-	$: trimRegion &&
-		window.addEventListener("keydown", (e) => {
-			if (e.key === "ArrowLeft") {
-				adjustRegionHandles(activeHandle, "ArrowLeft");
-			} else if (e.key === "ArrowRight") {
-				adjustRegionHandles(activeHandle, "ArrowRight");
-			}
-		});
+	$effect(() => {
+		if (trimRegion) {
+			const handleKeydown = (e: KeyboardEvent): void => {
+				if (e.key === "ArrowLeft") {
+					adjustRegionHandles(activeHandle, "ArrowLeft");
+				} else if (e.key === "ArrowRight") {
+					adjustRegionHandles(activeHandle, "ArrowRight");
+				}
+			};
+			window.addEventListener("keydown", handleKeydown);
+			return () => {
+				window.removeEventListener("keydown", handleKeydown);
+			};
+		}
+	});
 </script>
 
 <div class="controls" data-testid="waveform-controls">

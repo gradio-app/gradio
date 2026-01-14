@@ -360,19 +360,14 @@
 							{root}
 							{max_file_size}
 							bind:upload_promise
-							on:change={({ detail }) => {
-								mic_audio = detail;
+							onchange={(value) => {
+								mic_audio = value;
 							}}
-							on:stop_recording={() => {
+							onstoprecording={() => {
 								recording = false;
 								dispatch("stop_recording");
 							}}
-							on:clear={() => {
-								active_source = null;
-								recording = false;
-								mic_audio = null;
-							}}
-							on:error={({ detail }) => {
+							onclear={() => {
 								active_source = null;
 								recording = false;
 								mic_audio = null;

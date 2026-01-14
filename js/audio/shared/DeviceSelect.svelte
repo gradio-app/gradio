@@ -1,36 +1,41 @@
 <script lang="ts">
+	import { onMount } from "svelte";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 	import type { I18nFormatter } from "@gradio/utils";
-	import { createEventDispatcher } from "svelte";
 
-	export let i18n: I18nFormatter;
-	export let micDevices: MediaDeviceInfo[] = [];
+	let {
+		i18n,
+		micDevices = $bindable(),
+		onerror
+	}: {
+		i18n: I18nFormatter;
+		micDevices?: MediaDeviceInfo[];
+		onerror?: (error: string) => void;
+	} = $props();
 
-	const dispatch = createEventDispatcher<{
-		error: string;
-	}>();
-
-	$: if (typeof window !== "undefined") {
-		try {
-			let tempDevices: MediaDeviceInfo[] = [];
-			RecordPlugin.getAvailableAudioDevices().then(
-				(devices: MediaDeviceInfo[]) => {
-					micDevices = devices;
-					devices.forEach((device) => {
-						if (device.deviceId) {
-							tempDevices.push(device);
-						}
-					});
-					micDevices = tempDevices;
+	onMount(() => {
+		if (typeof window !== "undefined") {
+			try {
+				let tempDevices: MediaDeviceInfo[] = [];
+				RecordPlugin.getAvailableAudioDevices().then(
+					(devices: MediaDeviceInfo[]) => {
+						micDevices = devices;
+						devices.forEach((device) => {
+							if (device.deviceId) {
+								tempDevices.push(device);
+							}
+						});
+						micDevices = tempDevices;
+					}
+				);
+			} catch (err) {
+				if (err instanceof DOMException && err.name == "NotAllowedError") {
+					onerror?.(i18n("audio.allow_recording_access"));
 				}
-			);
-		} catch (err) {
-			if (err instanceof DOMException && err.name == "NotAllowedError") {
-				dispatch("error", i18n("audio.allow_recording_access"));
+				throw err;
 			}
-			throw err;
 		}
-	}
+	});
 </script>
 
 <select

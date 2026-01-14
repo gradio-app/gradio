@@ -71,13 +71,13 @@
 	let durationRef: HTMLTimeElement;
 	let audio_duration: number;
 
-	let trimDuration = 0;
+	let trimDuration = $state(0);
 
-	let show_volume_slider = false;
+	let show_volume_slider = $state(false);
 	let audio_player: HTMLAudioElement;
 
 	let stream_active = false;
-	let subtitles_toggle = true;
+	let subtitles_toggle = $state(true);
 	let subtitle_event_handlers: (() => void)[] = [];
 
 	let use_waveform = $derived(

@@ -45,8 +45,8 @@
 		uploading = $bindable(false),
 		recording = $bindable(false),
 		class_name = "",
-		upload_promise = $bindable(null),
-		initial_value = $bindable(null),
+		upload_promise = $bindable(),
+		initial_value = $bindable(),
 		playback_position = $bindable(0),
 		time_limit = null,
 		stream_state = "closed",
@@ -123,7 +123,7 @@
 	// TODO: make use of this
 	// export let type: "normal" | "numpy" = "normal";
 	let recorder: IMediaRecorder;
-	let mode = "";
+	let mode = $state("");
 	let header: Uint8Array | undefined = undefined;
 	let pending_stream: Uint8Array[] = [];
 	let submit_pending_stream_on_pending_end = false;
@@ -233,14 +233,16 @@
 		}
 	}
 
-	$: if (submit_pending_stream_on_pending_end && pending === false) {
-		submit_pending_stream_on_pending_end = false;
-		if (header && pending_stream) {
-			let blobParts: Uint8Array[] = [header].concat(pending_stream);
-			pending_stream = [];
-			dispatch_blob(blobParts, "stream");
+	$effect(() => {
+		if (submit_pending_stream_on_pending_end && pending === false) {
+			submit_pending_stream_on_pending_end = false;
+			if (header && pending_stream) {
+				let blobParts: Uint8Array[] = [header].concat(pending_stream);
+				pending_stream = [];
+				dispatch_blob(blobParts, "stream");
+			}
 		}
-	}
+	});
 
 	async function record(): Promise<void> {
 		recording = true;
@@ -283,8 +285,13 @@
 		}
 	}
 
-	$: if (!recording && recorder) stop();
-	$: if (recording && recorder) record();
+	$effect(() => {
+		if (!recording && recorder) stop();
+	});
+
+	$effect(() => {
+		if (recording && recorder) record();
+	});
 </script>
 
 <BlockLabel
@@ -298,7 +305,7 @@
 	data-testid={label ? "waveform-" + label : "unlabelled-audio"}
 >
 	<StreamingBar {time_limit} />
-	{#if value === null || streaming}
+	{#if value == null || streaming}
 		{#if active_source === "microphone"}
 			<ModifyUpload {i18n} onclear={clear} />
 			{#if streaming}

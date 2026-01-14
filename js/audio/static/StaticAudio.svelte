@@ -30,7 +30,7 @@
 		loop,
 		display_icon_button_wrapper_top_corner = false,
 		minimal = false,
-		playback_position = $bindable(0),
+		playback_position = $bindable(),
 		onchange,
 		onplay,
 		onpause,

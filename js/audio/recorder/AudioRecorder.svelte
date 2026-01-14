@@ -65,7 +65,7 @@
 	let interval: NodeJS.Timeout;
 	let timing = false;
 	// trimming
-	let trimDuration = 0;
+	let trimDuration = $state(0);
 
 	const start_interval = (): void => {
 		clearInterval(interval);
@@ -253,7 +253,7 @@
 
 	{#if microphoneContainer && !recordedAudio && record_mounted}
 		<WaveformRecordControls
-			bind:record
+			record={record}
 			{i18n}
 			{timing}
 			{recording}
@@ -264,7 +264,7 @@
 
 	{#if recordingWaveform && recordedAudio}
 		<WaveformControls
-			bind:waveform={recordingWaveform}
+			waveform={recordingWaveform}
 			container={recordingContainer}
 			{playing}
 			{audio_duration}

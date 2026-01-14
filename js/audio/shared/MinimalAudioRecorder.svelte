@@ -10,11 +10,11 @@
 	let {
 		label,
 		waveform_settings = {},
-		recording = $bindable(false),
+		recording = $bindable(),
 		upload,
 		root,
 		max_file_size = null,
-		upload_promise = $bindable(null),
+		upload_promise = $bindable(),
 		onchange,
 		onstoprecording,
 		onclear
