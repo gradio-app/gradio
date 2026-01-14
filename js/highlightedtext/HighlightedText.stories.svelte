@@ -1,24 +1,43 @@
-<script>
-	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import HighlightedText from "./Index.svelte";
+	import { wrapProps } from "../storybook/wrapProps";
+
+	const { Story } = defineMeta({
+		title: "Components/HighlightedText",
+		component: HighlightedText
+	});
+
+	const defaultValue = [
+		{ token: "zebras", class_or_confidence: "+" },
+		{ token: "dogs", class_or_confidence: "-" },
+		{ token: "elephants", class_or_confidence: "+" }
+	];
 </script>
 
-<Meta title="Components/HighlightedText" component={HighlightedText} />
+{#snippet template(args)}
+	<HighlightedText {...wrapProps(args)} />
+{/snippet}
 
-<Template let:args>
-	<HighlightedText
-		value={[
-			{ token: "zebras", class_or_confidence: "+" },
-			{ token: "dogs", class_or_confidence: "-" },
-			{ token: "elephants", class_or_confidence: "+" }
-		]}
-		{...args}
-	/>
-</Template>
+{#snippet templateWithDefault(args)}
+	<HighlightedText {...wrapProps({ value: defaultValue, ...args })} />
+{/snippet}
 
-<Story name="Highlighted Text Default" />
-<Story name="Highlighted Text with legend" args={{ show_legend: true }} />
-<Story name="Highlighted Text with label" args={{ label: "animals" }} />
+<Story
+	name="Highlighted Text Default"
+	args={{}}
+	template={templateWithDefault}
+/>
+<Story
+	name="Highlighted Text with legend"
+	args={{ show_legend: true }}
+	template={templateWithDefault}
+/>
+<Story
+	name="Highlighted Text with label"
+	args={{ label: "animals" }}
+	template={templateWithDefault}
+/>
 <Story
 	name="Highlighted Text with new lines"
 	args={{
@@ -30,12 +49,13 @@
 			{ token: "elephants", class_or_confidence: "+" }
 		]
 	}}
+	{template}
 />
 <Story
 	name="Highlighted Text with color map"
 	args={{ color_map: { "+": "green", "-": "red" } }}
+	template={templateWithDefault}
 />
-
 <Story
 	name="Highlighted Text with combine adjacent"
 	args={{
@@ -50,8 +70,8 @@
 		],
 		combine_adjacent: true
 	}}
+	{template}
 />
-
 <Story
 	name="Highlighted Text without combine adjacent"
 	args={{
@@ -65,8 +85,8 @@
 			{ token: "lazy dog", class_or_confidence: "object" }
 		]
 	}}
+	{template}
 />
-
 <Story
 	name="Highlighted Text with combine adjacent and new lines"
 	args={{
@@ -81,11 +101,10 @@
 			{ token: "over the", class_or_confidence: null },
 			{ token: "lazy dog", class_or_confidence: "object" }
 		],
-
 		combine_adjacent: true
 	}}
+	{template}
 />
-
 <Story
 	name="Highlighted Text in scores mode"
 	args={{
@@ -96,8 +115,8 @@
 		],
 		show_legend: true
 	}}
+	{template}
 />
-
 <Story
 	name="Highlighted Text with hidden inline category"
 	args={{
@@ -110,8 +129,8 @@
 		show_inline_category: false,
 		interactive: false
 	}}
+	{template}
 />
-
 <Story
 	name="Highlighted Text with RTL"
 	args={{
@@ -124,4 +143,5 @@
 		rtl: true,
 		color_map: { greeting: "green", subject: "blue" }
 	}}
+	{template}
 />

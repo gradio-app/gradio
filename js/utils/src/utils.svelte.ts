@@ -338,7 +338,11 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 
 		this.load_component = this.shared.load_component;
 
-		if (!is_browser || _props.props?.__GRADIO_BROWSER_TEST__) return;
+		if (!is_browser || _props.props?.__GRADIO_BROWSER_TEST__) {
+			// Provide a no-op dispatcher for test environments
+			this.dispatcher = () => {};
+			return;
+		}
 		const { register, dispatcher } = getContext<{
 			register: (
 				id: number,
