@@ -24,17 +24,24 @@ const ROOT_DIR = path.resolve(
 );
 
 // Extract testcase name from test title if present
-// Test titles like "case eager_caching_examples: ..." indicate a testcase
+// Test titles can be:
+//   - "case eager_caching_examples: ..."
+//   - "test case multimodal_messages chatinterface works..."
 function extractTestcaseFromTitle(
 	title: string,
 	demoName: string
 ): string | undefined {
-	const caseMatch = title.match(/^case\s+(\w+):/);
-	if (caseMatch) {
-		const caseName = caseMatch[1];
-		// Check if this is a testcase (not the main demo)
-		if (hasTestcase(demoName, caseName)) {
-			return caseName;
+	// Try pattern: "case <name>:" or "test case <name> "
+	const patterns = [/^case\s+(\w+):/, /^test case\s+(\w+)\s/];
+
+	for (const pattern of patterns) {
+		const match = title.match(pattern);
+		if (match) {
+			const caseName = match[1];
+			// Check if this is a testcase (not the main demo)
+			if (hasTestcase(demoName, caseName)) {
+				return caseName;
+			}
 		}
 	}
 	return undefined;
