@@ -3,7 +3,10 @@ import net from "net";
 import path from "path";
 import fs from "fs";
 import os from "os";
-import { ROOT_DIR, type DemoConfig, getDemoConfig } from "./demo-config";
+import url from "url";
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+const ROOT_DIR = path.resolve(__dirname, "../../..");
 
 export interface GradioApp {
 	port: number;
@@ -71,49 +74,12 @@ export function hasTestcase(demoName: string, testcaseName: string): boolean {
 	return fs.existsSync(testcaseFile);
 }
 
-function generateLaunchScript(
-	demoName: string,
-	port: number,
-	config?: DemoConfig,
-	testcaseName?: string
-): string {
-	// Build launch parameters
-	const maxFileSize = config?.max_file_size
-		? `"${config.max_file_size}"`
-		: "None";
-	const cssPaths = config?.css_paths
-		? `[${config.css_paths.map((p) => `"${p}"`).join(", ")}]`
-		: "None";
-	const head = config?.head ? `"${config.head}"` : "None";
-	const theme = config?.theme || "None";
-
-	// Determine which module to import
-	const moduleName = testcaseName
-		? `demo.${demoName}.${testcaseName}_testcase`
-		: `demo.${demoName}.run`;
-
-	// Need to import gradio if we're using theme parameter
-	const needsGradioImport = theme !== "None";
-
-	// Simple launch - each test gets its own app instance
-	return `
-import sys
-import os
-sys.path.insert(0, "${ROOT_DIR}")
-os.chdir("${ROOT_DIR}")
-${needsGradioImport ? "\nimport gradio as gr" : ""}
-
-from ${moduleName} import demo
-
-if __name__ == "__main__":
-    demo.launch(
-        server_port=${port},
-        max_file_size=${maxFileSize},
-        css_paths=${cssPaths},
-        head=${head},
-        theme=${theme}
-    )
-`;
+// Get the path to a demo's Python file
+function getDemoFilePath(demoName: string, testcaseName?: string): string {
+	if (testcaseName) {
+		return path.join(ROOT_DIR, "demo", demoName, `${testcaseName}_testcase.py`);
+	}
+	return path.join(ROOT_DIR, "demo", demoName, "run.py");
 }
 
 export async function launchGradioApp(
@@ -122,22 +88,17 @@ export async function launchGradioApp(
 	timeout: number = 60000,
 	testcaseName?: string
 ): Promise<GradioApp> {
-	const config = getDemoConfig(demoName);
-
 	// Partition ports by worker index to avoid collisions
 	const basePort = 7860 + workerIndex * 100;
 	const port = await findFreePort(basePort, basePort + 99);
 
-	const script = generateLaunchScript(demoName, port, config, testcaseName);
+	// Get the path to the demo file
+	const demoFilePath = getDemoFilePath(demoName, testcaseName);
 
-	// Write script to temp file
+	// Create unique directories for this instance to avoid cache conflicts
 	const instanceId = testcaseName
 		? `${demoName}_${testcaseName}_${port}`
 		: `${demoName}_${port}`;
-	const scriptPath = path.join(os.tmpdir(), `gradio_test_${instanceId}.py`);
-	fs.writeFileSync(scriptPath, script);
-
-	// Create unique directories for this instance to avoid cache conflicts
 	const instanceDir = path.join(os.tmpdir(), `gradio_test_${instanceId}`);
 	const cacheDir = path.join(instanceDir, "cached_examples");
 	const tempDir = path.join(instanceDir, "temp");
@@ -146,7 +107,9 @@ export async function launchGradioApp(
 		fs.mkdirSync(instanceDir, { recursive: true });
 	}
 
-	const childProcess = spawn("python", [scriptPath], {
+	// Run the demo file directly - the demo's own if __name__ == "__main__" block
+	// has the correct launch parameters (show_error, etc.)
+	const childProcess = spawn("python", [demoFilePath], {
 		stdio: "pipe",
 		cwd: ROOT_DIR,
 		env: {
@@ -155,6 +118,8 @@ export async function launchGradioApp(
 			GRADIO_ANALYTICS_ENABLED: "False",
 			GRADIO_IS_E2E_TEST: "1",
 			GRADIO_RESET_EXAMPLES_CACHE: "True",
+			// Control the port via environment variable
+			GRADIO_SERVER_PORT: port.toString(),
 			// Use unique directories per instance to avoid conflicts
 			GRADIO_EXAMPLES_CACHE: cacheDir,
 			GRADIO_TEMP_DIR: tempDir
@@ -168,12 +133,6 @@ export async function launchGradioApp(
 	return new Promise<GradioApp>((resolve, reject) => {
 		const timeoutId = setTimeout(() => {
 			killGradioApp(childProcess);
-			// Clean up temp file
-			try {
-				fs.unlinkSync(scriptPath);
-			} catch {
-				// Ignore cleanup errors
-			}
 			reject(
 				new Error(`Gradio app ${demoName} failed to start within ${timeout}ms`)
 			);
@@ -198,22 +157,12 @@ export async function launchGradioApp(
 
 		childProcess.on("error", (err) => {
 			clearTimeout(timeoutId);
-			try {
-				fs.unlinkSync(scriptPath);
-			} catch {
-				// Ignore cleanup errors
-			}
 			reject(err);
 		});
 
 		childProcess.on("exit", (code) => {
 			if (code !== 0 && code !== null) {
 				clearTimeout(timeoutId);
-				try {
-					fs.unlinkSync(scriptPath);
-				} catch {
-					// Ignore cleanup errors
-				}
 				reject(
 					new Error(
 						`Gradio app ${demoName} exited with code ${code}.\nOutput: ${output}`
