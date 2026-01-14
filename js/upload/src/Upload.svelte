@@ -127,20 +127,19 @@
 		_open_file_upload();
 	}
 
-	function handle_upload(
+	async function handle_upload(
 		file_data: FileData[],
 		_upload_id?: string
 	): Promise<(FileData | null)[]> {
-		upload_promise = new Promise(async (resolve, rej) => {
-			await tick();
-			if (!_upload_id) {
-				upload_id = Math.random().toString(36).substring(2, 15);
-			} else {
-				upload_id = _upload_id;
-			}
+		if (!_upload_id) {
+			upload_id = Math.random().toString(36).substring(2, 15);
+		} else {
+			upload_id = _upload_id;
+		}
 
-			uploading = true;
-
+		await tick();
+		uploading = true;
+		upload_promise = new Promise(async (resolve) => {
 			try {
 				const _file_data = await upload(
 					file_data,
@@ -151,7 +150,6 @@
 				onload?.(file_count === "single" ? _file_data?.[0] : _file_data);
 				resolve(_file_data || []);
 				uploading = false;
-				return _file_data || [];
 			} catch (e) {
 				onerror?.((e as Error).message);
 				uploading = false;
