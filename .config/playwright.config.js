@@ -27,7 +27,7 @@ const base = defineConfig({
 const localOnly = (project) => (process.env.CI ? undefined : project);
 
 const normal = defineConfig(base, {
-	globalSetup: process.env.CUSTOM_TEST ? undefined : "./playwright-setup.js",
+	// globalSetup removed - each test file now launches its own Gradio app via fixture
 	projects: [
 		localOnly({
 			name: "firefox",

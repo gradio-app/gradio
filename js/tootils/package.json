@@ -16,7 +16,9 @@
 	},
 	"exports": {
 		".": "./src/index.ts",
-		"./render": "./src/render.ts"
+		"./render": "./src/render.ts",
+		"./app-launcher": "./src/app-launcher.ts",
+		"./demo-config": "./src/demo-config.ts"
 	},
 	"scripts": {
 		"package": "svelte-package --input=. --tsconfig=../../tsconfig.json"
