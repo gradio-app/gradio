@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onDestroy, tick } from "svelte";
+	import { onDestroy } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import { prepare_files, type FileData, type Client } from "@gradio/client";
 	import { BlockLabel, ShareButton, CustomButton } from "@gradio/atoms";
@@ -47,7 +47,7 @@
 		class_name = "",
 		upload_promise = $bindable(),
 		initial_value = $bindable(),
-		playback_position = $bindable(0),
+		playback_position = $bindable(),
 		time_limit = null,
 		stream_state = "closed",
 		onchange,
@@ -63,7 +63,8 @@
 		onstart_recording,
 		onpause_recording,
 		onstop_recording,
-		onclose_stream
+		onclose_stream,
+		children
 	}: {
 		value?: null | FileData;
 		subtitles?: null | FileData | SubtitleData[];
@@ -114,6 +115,7 @@
 		onpause_recording?: () => void;
 		onstop_recording?: () => void;
 		onclose_stream?: () => void;
+		children?: import("svelte").Snippet;
 	} = $props();
 
 	$effect(() => {
@@ -348,7 +350,7 @@
 				{stream_handler}
 				aria_label={i18n("audio.drop_to_upload")}
 			>
-				<slot />
+				{#if children}{@render children()}{/if}
 			</Upload>
 		{/if}
 	{:else}

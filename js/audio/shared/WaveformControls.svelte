@@ -17,6 +17,7 @@
 	import type { WaveformOptions } from "./types";
 	import VolumeLevels from "./VolumeLevels.svelte";
 	import VolumeControl from "./VolumeControl.svelte";
+	import { onMount } from "svelte";
 
 	let {
 		waveform,
@@ -68,32 +69,49 @@
 
 	let currentVolume = $state(1);
 
-	$effect(() => {
-		if (container && waveform) {
+	function ensureTrimRegion(): void {
+		if (container && waveform && !trimRegion) {
 			trimRegion = waveform.registerPlugin(RegionsPlugin.create());
-		} else {
-			trimRegion = null;
 		}
+	}
+
+	onMount(() => {
+		ensureTrimRegion();
 	});
 
 	$effect(() => {
-		trimRegion?.on("region-out", (region) => {
+		if (!trimRegion) return;
+		const handler = (region: Region): void => {
 			region.play();
-		});
+		};
+		trimRegion.on("region-out", handler);
+		return () => {
+			trimRegion?.un("region-out", handler);
+		};
 	});
 
 	$effect(() => {
-		trimRegion?.on("region-updated", (region) => {
+		if (!trimRegion) return;
+		const handler = (region: Region): void => {
 			trimDuration = region.end - region.start;
-		});
+		};
+		trimRegion.on("region-updated", handler);
+		return () => {
+			trimRegion?.un("region-updated", handler);
+		};
 	});
 
 	$effect(() => {
-		trimRegion?.on("region-clicked", (region, e) => {
-			e.stopPropagation(); // prevent triggering a click on the waveform
+		if (!trimRegion) return;
+		const handler = (region: Region, e: Event): void => {
+			e.stopPropagation();
 			activeRegion = region;
 			region.play();
-		});
+		};
+		trimRegion.on("region-clicked", handler);
+		return () => {
+			trimRegion?.un("region-clicked", handler);
+		};
 	});
 
 	const addTrimRegion = (): void => {
@@ -157,10 +175,11 @@
 
 	const toggleTrimmingMode = (): void => {
 		clearRegions();
-		if (mode === "edit") {
+		if (mode) {
 			mode = "";
 		} else {
 			mode = "edit";
+			ensureTrimRegion();
 			addTrimRegion();
 		}
 	};
@@ -225,7 +244,7 @@
 				? "var(--color-accent)"
 				: "var(--neutral-400)"}
 			aria-label="Adjust volume"
-			on:click={() => (show_volume_slider = !show_volume_slider)}
+			onclick={() => (show_volume_slider = !show_volume_slider)}
 		>
 			<VolumeLevels {currentVolume} />
 		</button>
@@ -242,7 +261,7 @@
 					(playbackSpeeds.indexOf(playbackSpeed) + 1) % playbackSpeeds.length
 				]
 			}x`}
-			on:click={() => {
+			onclick={() => {
 				playbackSpeed =
 					playbackSpeeds[
 						(playbackSpeeds.indexOf(playbackSpeed) + 1) % playbackSpeeds.length
@@ -262,7 +281,7 @@
 				audio_duration,
 				waveform_options.skip_length
 			)} seconds`}
-			on:click={() =>
+			onclick={() =>
 				waveform?.skip(
 					get_skip_rewind_amount(audio_duration, waveform_options.skip_length) *
 						-1
@@ -272,7 +291,7 @@
 		</button>
 		<button
 			class="play-pause-button icon"
-			on:click={() => waveform?.playPause()}
+			onclick={() => waveform?.playPause()}
 			aria-label={playing ? i18n("audio.pause") : i18n("audio.play")}
 		>
 			{#if playing}
@@ -287,7 +306,7 @@
 				audio_duration,
 				waveform_options.skip_length
 			)} seconds"
-			on:click={() =>
+			onclick={() =>
 				waveform?.skip(
 					get_skip_rewind_amount(audio_duration, waveform_options.skip_length)
 				)}
@@ -304,17 +323,17 @@
 				style="color: {subtitles_toggle
 					? 'var(--color-accent)'
 					: 'var(--neutral-400)'}"
-				on:click={toggleSubtitles}
+				onclick={toggleSubtitles}
 			>
 				<ClosedCaption /></button
 			>
 		{/if}
 		{#if editable && interactive}
-			{#if show_redo && mode === ""}
+			{#if show_redo && !mode}
 				<button
 					class="action icon"
 					aria-label="Reset audio"
-					on:click={() => {
+					onclick={() => {
 						handle_reset_value();
 						clearRegions();
 						mode = "";
@@ -324,17 +343,17 @@
 				</button>
 			{/if}
 
-			{#if mode === ""}
+			{#if !mode}
 				<button
 					class="action icon"
 					aria-label="Trim audio to selection"
-					on:click={toggleTrimmingMode}
+					onclick={toggleTrimmingMode}
 				>
 					<Trim />
 				</button>
 			{:else}
-				<button class="text-button" on:click={trimAudio}>Trim</button>
-				<button class="text-button" on:click={toggleTrimmingMode}>Cancel</button
+				<button class="text-button" onclick={trimAudio}>Trim</button>
+				<button class="text-button" onclick={toggleTrimmingMode}>Cancel</button
 				>
 			{/if}
 		{/if}

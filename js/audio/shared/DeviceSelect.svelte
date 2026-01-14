@@ -41,9 +41,9 @@
 <select
 	class="mic-select"
 	aria-label="Select input device"
-	disabled={micDevices.length === 0}
+	disabled={!micDevices || micDevices.length === 0}
 >
-	{#if micDevices.length === 0}
+	{#if !micDevices || micDevices.length === 0}
 		<option value="">{i18n("audio.no_microphone")}</option>
 	{:else}
 		{#each micDevices as micDevice}

@@ -11,7 +11,7 @@
 	import { format_time } from "@gradio/utils";
 
 	let {
-		mode = $bindable(""),
+		mode = $bindable(),
 		i18n,
 		dispatch_blob,
 		waveform_settings,
@@ -48,24 +48,25 @@
 	} = $props();
 
 	let micWaveform: WaveSurfer;
-	let recordingWaveform: WaveSurfer;
-	let playing = false;
+	let recordingWaveform = $state<WaveSurfer | undefined>(undefined);
+	let playing = $state(false);
 
 	let recordingContainer: HTMLDivElement;
 	let microphoneContainer: HTMLDivElement;
 
-	let record: WSRecord;
-	let recordedAudio: string | null = null;
+	let record = $state<WSRecord | undefined>(undefined);
+	let recordedAudio = $state<string | null>(null);
 
 	// timestamps
 	let timeRef: HTMLTimeElement;
 	let durationRef: HTMLTimeElement;
-	let audio_duration: number;
-	let seconds = 0;
+	let audio_duration = $state(0);
+	let seconds = $state(0);
 	let interval: NodeJS.Timeout;
-	let timing = false;
+	let timing = $state(false);
 	// trimming
 	let trimDuration = $state(0);
+	let record_mounted = $state(false);
 
 	const start_interval = (): void => {
 		clearInterval(interval);
@@ -147,8 +148,6 @@
 		});
 	});
 
-	let record_mounted = false;
-
 	const create_mic_waveform = (): void => {
 		if (microphoneContainer) microphoneContainer.innerHTML = "";
 		if (micWaveform !== undefined) micWaveform.destroy();
@@ -197,13 +196,13 @@
 		end: number
 	): Promise<void> => {
 		mode = "edit";
-		const decodedData = recordingWaveform.getDecodedData();
+		const decodedData = recordingWaveform?.getDecodedData();
 		if (decodedData)
 			await process_audio(decodedData, start, end).then(
 				async (trimmedAudio: Uint8Array) => {
 					await dispatch_blob([trimmedAudio], "change");
 					await dispatch_blob([trimmedAudio], "stop_recording");
-					recordingWaveform.destroy();
+					recordingWaveform?.destroy();
 					create_recording_waveform();
 				}
 			);
@@ -251,7 +250,7 @@
 		</div>
 	{/if}
 
-	{#if microphoneContainer && !recordedAudio && record_mounted}
+	{#if record_mounted && !recordedAudio}
 		<WaveformRecordControls
 			record={record}
 			{i18n}

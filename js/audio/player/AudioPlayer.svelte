@@ -22,10 +22,10 @@
 		trim_region_settings = {},
 		waveform_settings,
 		waveform_options,
-		mode = $bindable(""),
+		mode = $bindable(),
 		loop,
 		handle_reset_value = () => {},
-		playback_position = $bindable(0),
+		playback_position = $bindable(),
 		onstop,
 		onplay,
 		onpause,
@@ -63,7 +63,7 @@
 	let waveform: WaveSurfer | undefined;
 	let waveform_ready = false;
 	let waveform_component_wrapper: HTMLDivElement;
-	let playing = false;
+	let playing = $state(false);
 
 	let subtitle_container: HTMLDivElement;
 
@@ -166,9 +166,10 @@
 	};
 
 	$effect(() => {
-		if (use_waveform && container !== undefined && container !== null) {
+		if (use_waveform && container !== undefined && container !== null && url) {
 			if (waveform !== undefined) waveform.destroy();
 			container.innerHTML = "";
+			waveform_ready = false;
 			create_waveform();
 			playing = false;
 		}
@@ -180,17 +181,15 @@
 	): Promise<void> => {
 		mode = "";
 		const decodedData = waveform?.getDecodedData();
-		if (decodedData)
-			await process_audio(
+		if (decodedData) {
+			const trimmedBlob = await process_audio(
 				decodedData,
 				start,
 				end,
 				waveform_settings.sampleRate
-			).then(async (trimmedBlob: Uint8Array) => {
-				await dispatch_blob([trimmedBlob], "change");
-				waveform?.destroy();
-				container.innerHTML = "";
-			});
+			);
+			await dispatch_blob([trimmedBlob], "change");
+		}
 		onedit?.();
 	};
 
@@ -259,7 +258,7 @@
 	}
 
 	$effect(() => {
-		if (audio_player && url) {
+		if (audio_player && url && waveform_ready && url) {
 			load_audio(url);
 		}
 	});
