@@ -46,13 +46,15 @@
 	variant={gradio.props.variant}
 	label={gradio.shared.label}
 	max_file_size={gradio.shared.max_file_size}
-	on:click={() => gradio.dispatch("click")}
-	on:change={({ detail }) => handle_event(detail, "change")}
-	on:upload={({ detail }) => handle_event(detail, "upload")}
-	on:error={({ detail }) => {
+	onclick={() => gradio.dispatch("click")}
+	onchange={(detail) => handle_event(detail, "change")}
+	onupload={(detail) => handle_event(detail, "upload")}
+	onerror={(detail) => {
 		gradio.dispatch("error", detail);
 	}}
 	upload={(...args) => gradio.shared.client.upload(...args)}
 >
-	{gradio.shared.label ?? ""}
+	{#snippet children()}
+		{gradio.shared.label ?? ""}
+	{/snippet}
 </UploadButton>
