@@ -10,6 +10,7 @@
 		type ColorPair
 	} from "./utils";
 	import LabelInput from "./LabelInput.svelte";
+	import { Clear } from "@gradio/icons";
 
 	const is_browser = typeof window !== "undefined";
 
@@ -244,7 +245,7 @@
 									aria-label="Remove label"
 									onclick={() => remove_highlight(i)}
 								>
-									×
+									<Clear />
 								</button>
 							{/if}
 						</span>
@@ -305,7 +306,7 @@
 							aria-label="Remove label"
 							onclick={() => remove_highlight(i)}
 						>
-							×
+							<Clear />
 						</button>
 					{/if}
 				</span>
@@ -419,6 +420,11 @@
 		cursor: pointer;
 		justify-content: center;
 		align-items: center;
+	}
+
+	.remove-btn :global(svg) {
+		width: var(--size-2);
+		height: var(--size-2);
 	}
 
 	.remove-btn:hover {

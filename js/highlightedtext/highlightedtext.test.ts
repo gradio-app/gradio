@@ -45,7 +45,7 @@ describe("HighlightedText", () => {
 	});
 
 	test("renders labels with remove label buttons which trigger change", async () => {
-		const { getAllByText, listen } = await render(HighlightedText, {
+		const { getAllByLabelText, listen } = await render(HighlightedText, {
 			interactive: true,
 			loading_status,
 			value: [
@@ -61,7 +61,7 @@ describe("HighlightedText", () => {
 
 		const mock = listen("change");
 
-		const removeButtons = getAllByText("×");
+		const removeButtons = getAllByLabelText("Remove label");
 
 		assert.equal(removeButtons.length, 5);
 
