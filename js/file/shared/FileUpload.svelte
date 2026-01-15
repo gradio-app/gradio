@@ -28,9 +28,7 @@
 	export let buttons: (string | CustomButtonType)[] | null = null;
 	export let on_custom_button_click: ((id: number) => void) | null = null;
 
-	async function handle_upload(
-		detail: FileData | FileData[]
-	): Promise<void> {
+	async function handle_upload(detail: FileData | FileData[]): Promise<void> {
 		if (Array.isArray(value)) {
 			value = [...value, ...(Array.isArray(detail) ? detail : [detail])];
 		} else if (value) {

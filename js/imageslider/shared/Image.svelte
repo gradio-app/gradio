@@ -35,10 +35,7 @@
 	let el_width: number;
 	let el_height: number;
 
-	async function handle_upload(
-		detail: FileData[],
-		n: number
-	): Promise<void> {
+	async function handle_upload(detail: FileData[], n: number): Promise<void> {
 		const new_value = [value[0], value[1]] as [
 			FileData | null,
 			FileData | null
