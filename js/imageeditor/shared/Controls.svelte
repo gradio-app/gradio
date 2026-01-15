@@ -151,7 +151,7 @@
 			disabled={!can_save}
 			Icon={Check}
 			label="Save changes"
-			on:click={(event) => {
+			onclick={(event) => {
 				dispatch("save");
 				event.stopPropagation();
 			}}
