@@ -169,6 +169,29 @@ XSS_SAFE_MIMETYPES = {
     "application/json",
 }
 
+SVELTE_IMPORTS = [
+    "svelte",
+    "svelte/animate",
+    "svelte/attachments",
+    "svelte/compiler",
+    "svelte/easing",
+    "svelte/events",
+    "svelte/internal/client",
+    "svelte/internal/disclose-version",
+    "svelte/internal/flags/async",
+    "svelte/internal/flags/legacy",
+    "svelte/internal/flags/tracing",
+    "svelte/internal/server",
+    "svelte/internal",
+    "svelte/legacy",
+    "svelte/motion",
+    "svelte/reactivity/window",
+    "svelte/reactivity",
+    "svelte/server",
+    "svelte/store",
+    "svelte/transition",
+]
+
 DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
     Path(tempfile.gettempdir()) / "gradio"
 )
@@ -769,6 +792,17 @@ class App(FastAPI):
                 template = (
                     "frontend/share.html" if blocks.share else "frontend/index.html"
                 )
+                imports = {
+                    "imports": {
+                        re.sub(
+                            r"^\./", "svelte/", s
+                        ): f"{root}/svelte/{s.replace('/', '_')}.js"
+                        for s in SVELTE_IMPORTS
+                    }
+                }
+
+                imports["imports"]["svelte"] = f"{root}/svelte/svelte_svelte.js"
+                print(json.dumps(imports, indent=2))
                 gradio_api_info = api_info(request)
                 resp = templates.TemplateResponse(
                     request=request,
@@ -776,6 +810,7 @@ class App(FastAPI):
                     context={
                         "config": config,
                         "gradio_api_info": gradio_api_info,
+                        "gradio_import_map": imports,
                     },
                 )
                 return resp

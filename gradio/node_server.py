@@ -75,11 +75,14 @@ def start_node_process(
     node_path: str | None,
     server_name: str,
     server_ports: list[int] | range,
+    # root: str
 ) -> tuple[subprocess.Popen[bytes] | None, int | None]:
     if GRADIO_LOCAL_DEV_MODE:
         return None, 9876
     if not node_path:
         return None, None
+
+    # print(generate_import_map("/node_modules"))
 
     node_process = None
 

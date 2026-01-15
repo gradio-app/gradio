@@ -25,6 +25,29 @@ logger.error = (msg, options) => {
 	originalError(msg, options);
 };
 
+const svelte_imports = [
+	"svelte",
+	"svelte/animate",
+	"svelte/attachments",
+	"svelte/compiler",
+	"svelte/easing",
+	"svelte/events",
+	"svelte/internal/client",
+	"svelte/internal/disclose-version",
+	"svelte/internal/flags/async",
+	"svelte/internal/flags/legacy",
+	"svelte/internal/flags/tracing",
+	"svelte/internal/server",
+	"svelte/internal",
+	"svelte/legacy",
+	"svelte/motion",
+	"svelte/reactivity/window",
+	"svelte/reactivity",
+	"svelte/server",
+	"svelte/store",
+	"svelte/transition"
+];
+
 interface ServerOptions {
 	component_dir: string;
 	root_dir: string;
@@ -64,6 +87,12 @@ export async function create_server({
 					allow: [root_dir, component_dir]
 				}
 			},
+			build: {
+				rollupOptions: {
+					external: svelte_imports
+				}
+			},
+
 			optimizeDeps: config.optimizeDeps,
 			cacheDir: join(component_dir, "frontend", "node_modules", ".vite"),
 			plugins: [
@@ -157,7 +186,7 @@ async function generate_imports(
 			target: []
 		},
 		optimizeDeps: {
-			exclude: ["svelte", "svelte/*"]
+			exclude: svelte_imports
 		}
 	};
 
