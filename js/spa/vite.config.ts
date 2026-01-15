@@ -35,6 +35,15 @@ function convert_to_pypi_prerelease(version: string) {
 	);
 }
 
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
+const svelte = require("svelte/package.json");
+const svelte_exports = Object.keys(svelte.exports)
+	.filter((p) => !p.endsWith(".json"))
+	.map((entry) => `svelte${entry.replace(/^\./, "")}`);
+
+console.log("Svelte exports:", svelte_exports);
 const python_version = convert_to_pypi_prerelease(version_raw);
 
 const client_version_path = resolve(
@@ -80,7 +89,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			minify: production,
 			outDir: "../../gradio/templates/frontend",
 			rollupOptions: {
-				external: ["./svelte/svelte.js"],
+				external: svelte_exports,
 				makeAbsoluteExternalsRelative: false
 			}
 		},
@@ -148,10 +157,10 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			inject_ejs(),
 			generate_cdn_entry({ version: GRADIO_VERSION, cdn_base: CDN_BASE }),
 			handle_ce_css(),
-			inject_svelte_init_code({ mode }),
+			// inject_svelte_init_code({ mode }),
 
 			inject_component_loader({ mode }),
-			resolve_svelte(mode === "production"),
+			// resolve_svelte(mode === "production"),
 			handle_svelte_import({ development: mode === "development" }),
 			mode === "test" && mock_modules()
 		],
@@ -180,14 +189,6 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 		}
 	};
 });
-
-import { createRequire } from "module";
-
-const require = createRequire(import.meta.url);
-const svelte = require("svelte/package.json");
-const svelte_exports = Object.keys(svelte.exports)
-	.filter((p) => p.endsWith(".json"))
-	.map((entry) => entry.replace(/^\./, "svelte").split("/").join("_") + ".js");
 
 function handle_msw_imports(): Plugin {
 	return {
@@ -229,13 +230,13 @@ function handle_svelte_import({
 
 			if (id === "svelte") {
 				return {
-					id: "./svelte/svelte_svelte.js",
+					id,
 					external: true
 				};
 			}
 			if (id.startsWith("svelte/")) {
 				return {
-					id: `./svelte/${id.split("/").join("_")}.js`,
+					id,
 					external: true
 				};
 			}
