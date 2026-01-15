@@ -98,7 +98,7 @@
 	$effect(() => {
 		value;
 		validation_error;
-		if (el && lines !== _max_lines && lines > 1) {
+		if (el && lines !== _max_lines && _max_lines > 1) {
 			resize({ target: el });
 		}
 	});
