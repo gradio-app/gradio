@@ -6,6 +6,7 @@
 		generate_color_map,
 		merge_elements,
 		get_score_color,
+		is_transparent,
 		type HighlightedToken,
 		type ColorPair
 	} from "./utils";
@@ -147,6 +148,11 @@
 		if (active_legend && active_legend !== class_or_confidence) return "";
 		return resolved_color_map[class_or_confidence]?.primary ?? "";
 	}
+
+	function get_text_color(class_or_confidence: string | number | null): string {
+		const bg = get_background_color(class_or_confidence);
+		return is_transparent(bg) ? "" : "black";
+	}
 </script>
 
 <div class="container">
@@ -182,8 +188,9 @@
 								style:background-color={get_background_color(
 									class_or_confidence
 								)}
-								role={interactive ? "button" : undefined}
-								tabindex={interactive ? 0 : undefined}
+								style:color={get_text_color(class_or_confidence)}
+								role="button"
+								tabindex={0}
 								onclick={() => {
 									if (interactive) {
 										if (class_or_confidence !== null) {
@@ -274,14 +281,34 @@
 				<span class="token-container">
 					<span
 						class="token score-token"
+						class:highlighted={score !== null}
 						style:background-color={get_score_color(score)}
-						role={interactive ? "button" : undefined}
-						tabindex={interactive ? 0 : undefined}
+						role="button"
+						tabindex={0}
 						onmouseenter={() => (active_element_index = i)}
 						onfocus={() => (active_element_index = i)}
-						onclick={() => interactive && (label_to_edit = i)}
-						onkeydown={(e) =>
-							interactive && e.key === "Enter" && (label_to_edit = i)}
+						onclick={() => {
+							if (interactive) {
+								label_to_edit = i;
+							} else {
+								onselect?.({
+									index: i,
+									value: [token, class_or_confidence]
+								});
+							}
+						}}
+						onkeydown={(e) => {
+							if (e.key === "Enter") {
+								if (interactive) {
+									label_to_edit = i;
+								} else {
+									onselect?.({
+										index: i,
+										value: [token, class_or_confidence]
+									});
+								}
+							}
+						}}
 					>
 						<span class="text">{token}</span>
 
@@ -364,11 +391,11 @@
 	.token {
 		transition: 150ms;
 		border-radius: var(--radius-xs);
-		padding: 2.5px var(--size-1) 3.5px;
-		color: black;
+		cursor: pointer;
 	}
 
 	.token.highlighted {
+		padding: var(--size-0-5) var(--size-1);
 		margin-left: var(--size-1);
 		margin-right: var(--size-2);
 	}
@@ -383,11 +410,6 @@
 
 	.text.unlabeled {
 		color: var(--body-text-color);
-	}
-
-	.score-token {
-		margin-right: var(--size-1);
-		padding: var(--size-1);
 	}
 
 	.score-token .text {
