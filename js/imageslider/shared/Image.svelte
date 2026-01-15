@@ -36,7 +36,7 @@
 	let el_height: number;
 
 	async function handle_upload(
-		{ detail }: CustomEvent<FileData[]>,
+		detail: FileData[],
 		n: number
 	): Promise<void> {
 		const new_value = [value[0], value[1]] as [
@@ -121,7 +121,7 @@
 						bind:upload_promise
 						bind:dragging
 						filetype="image/*"
-						on:load={(e) => handle_upload(e, 0)}
+						onload={(e) => handle_upload(e, 0)}
 						disable_click={!!value?.[0]}
 						{root}
 						file_count="multiple"
@@ -147,7 +147,7 @@
 					bind:upload_promise
 					bind:dragging
 					filetype="image/*"
-					on:load={(e) => handle_upload(e, 1)}
+					onload={(e) => handle_upload(e, 1)}
 					disable_click={!!value?.[1]}
 					{root}
 					file_count="multiple"
