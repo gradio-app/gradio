@@ -1,7 +1,7 @@
 ---
-"@gradio/file": minor
-"@gradio/gallery": minor
-"gradio": minor
+"@gradio/file": patch
+"@gradio/gallery": patch
+"gradio": patch
 ---
 
-feat:Migrates gr.File
+fix:Migrates gr.File
