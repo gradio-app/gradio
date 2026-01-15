@@ -1,6 +1,6 @@
 ---
-"@gradio/uploadbutton": minor
-"gradio": minor
+"@gradio/uploadbutton": patch
+"gradio": patch
 ---
 
-feat:Migrate UploadButton
+fix:Migrate UploadButton
