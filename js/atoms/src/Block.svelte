@@ -130,7 +130,7 @@
 		style:border-width="var(--block-border-width)"
 		class:auto-margin={scale === null}
 		dir={rtl ? "rtl" : "ltr"}
-		role={type === "fieldset" ? "group" : undefined}
+
 		aria-label={label}
 	>
 		<slot />
