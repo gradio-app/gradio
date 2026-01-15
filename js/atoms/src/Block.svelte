@@ -130,7 +130,6 @@
 		style:border-width="var(--block-border-width)"
 		class:auto-margin={scale === null}
 		dir={rtl ? "rtl" : "ltr"}
-
 		aria-label={label}
 	>
 		<slot />
