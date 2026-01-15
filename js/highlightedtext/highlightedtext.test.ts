@@ -153,9 +153,7 @@ describe("HighlightedText", () => {
 				interactive: false,
 				loading_status,
 				show_legend: false,
-				value: [
-					{ token: "Hello", class_or_confidence: "greeting" }
-				]
+				value: [{ token: "Hello", class_or_confidence: "greeting" }]
 			});
 
 			const legend = queryByTestId("highlighted-text:category-legend");
@@ -168,9 +166,7 @@ describe("HighlightedText", () => {
 			const { getByText, listen } = await render(HighlightedText, {
 				interactive: true,
 				loading_status,
-				value: [
-					{ token: "clickable", class_or_confidence: "label" }
-				]
+				value: [{ token: "clickable", class_or_confidence: "label" }]
 			});
 
 			const mock = listen("select");
@@ -189,9 +185,7 @@ describe("HighlightedText", () => {
 			const { getByText, listen } = await render(HighlightedText, {
 				interactive: false,
 				loading_status,
-				value: [
-					{ token: "clickable", class_or_confidence: "label" }
-				]
+				value: [{ token: "clickable", class_or_confidence: "label" }]
 			});
 
 			const mock = listen("select");
@@ -208,9 +202,7 @@ describe("HighlightedText", () => {
 			const { getByText, container } = await render(HighlightedText, {
 				interactive: true,
 				loading_status,
-				value: [
-					{ token: "editable", class_or_confidence: "original" }
-				]
+				value: [{ token: "editable", class_or_confidence: "original" }]
 			});
 
 			const token = getByText("editable");
@@ -225,9 +217,7 @@ describe("HighlightedText", () => {
 			const { getByText, container, listen } = await render(HighlightedText, {
 				interactive: true,
 				loading_status,
-				value: [
-					{ token: "editable", class_or_confidence: "original" }
-				]
+				value: [{ token: "editable", class_or_confidence: "original" }]
 			});
 
 			const changeMock = listen("change");
@@ -248,9 +238,7 @@ describe("HighlightedText", () => {
 			const { getByText, container } = await render(HighlightedText, {
 				interactive: false,
 				loading_status,
-				value: [
-					{ token: "not-editable", class_or_confidence: "label" }
-				]
+				value: [{ token: "not-editable", class_or_confidence: "label" }]
 			});
 
 			const token = getByText("not-editable");
