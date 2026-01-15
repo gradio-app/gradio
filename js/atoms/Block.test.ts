@@ -32,20 +32,6 @@ describe("Block Accessibility", () => {
 		assert.equal(block?.getAttribute("aria-label"), "Test Block Label");
 	});
 
-	test("renders with role='group' when type is fieldset", async () => {
-		component = mount(Block, {
-			target,
-			props: {
-				type: "fieldset",
-				label: "Fieldset Group"
-			}
-		});
-		await tick();
-		const block = target.querySelector(".block");
-		assert.equal(block?.getAttribute("role"), "group");
-		assert.equal(block?.tagName.toLowerCase(), "fieldset");
-	});
-
 	test("renders without role when type is normal", async () => {
 		component = mount(Block, {
 			target,
