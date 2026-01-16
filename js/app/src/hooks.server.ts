@@ -22,6 +22,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 				event.request.headers.get("x-gradio-original-url") || server
 			).origin;
 
+			console.error(
+				`%c[Gradio Info] %cmount_path: ${mount_path}, real_url: ${real_url}, server: ${server}`,
+				"color: #28a745; font-weight: bold;",
+				"color: #0366d6;"
+			);
+
 			if (!gradio_import_map) {
 				gradio_import_map = make_import_map_script(real_url + mount_path);
 			}
@@ -55,6 +61,11 @@ const svelte_imports = [
 ];
 
 function make_import_map_script(base_url: string): string {
+	console.error(
+		`%c[Gradio Import Map] %cGenerating import map with base URL: ${base_url}`,
+		"color: #17a2b8; font-weight: bold;",
+		"color: #0366d6;"
+	);
 	const imports = svelte_imports.reduce(
 		(map, specifier) => {
 			map[`${specifier}`] =
