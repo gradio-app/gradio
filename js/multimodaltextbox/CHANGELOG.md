@@ -1,5 +1,18 @@
 # @gradio/multimodaltextbox
 
+## 0.11.4
+
+### Fixes
+
+- [#12594](https://github.com/gradio-app/gradio/pull/12594) [`c2f0f19`](https://github.com/gradio-app/gradio/commit/c2f0f1949d453bc850fa65e5b140067008a83e22) - add conditional rendering for the upload button in multimodal textbox.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.1
+- @gradio/upload@0.17.4
+- @gradio/client@2.0.3
+- @gradio/video@0.20.1
+
 ## 0.11.3
 
 ### Fixes

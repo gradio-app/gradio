@@ -1,5 +1,16 @@
 # @gradio/markdown
 
+## 0.13.26
+
+### Fixes
+
+- [#12771](https://github.com/gradio-app/gradio/pull/12771) [`404f6a5`](https://github.com/gradio-app/gradio/commit/404f6a55be4cd0c1ece4af6edb8a7769473fb650) - Migrate Markdown components to svelte 5.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.1
+- @gradio/markdown-code@0.6.1
+
 ## 0.13.25
 
 ### Fixes

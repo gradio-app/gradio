@@ -2,6 +2,12 @@
 
 ## 0.9.3
 
+### Dependency updates
+
+- @gradio/atoms@0.20.1
+
+## 0.9.3
+
 ### Fixes
 
 - [#12627](https://github.com/gradio-app/gradio/pull/12627) [`fa75712`](https://github.com/gradio-app/gradio/commit/fa75712a3257e0e09bfce7abbd4f40fa54f6db98) - Add custom buttons to `gr.Dropdown(multiselect=True)` and `gr.LinePlot` and other native plots.  Thanks @abidlabs!

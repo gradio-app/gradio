@@ -1,5 +1,11 @@
 # @gradio/tabs
 
+## 0.5.5
+
+### Fixes
+
+- [#12693](https://github.com/gradio-app/gradio/pull/12693) [`b48da51`](https://github.com/gradio-app/gradio/commit/b48da517d2daa62d3b201f9a84bef9352d485b38) - Fix bug where Walkthrough Component Freezes.  Thanks @freddyaboulton!
+
 ## 0.5.4
 
 ### Dependency updates

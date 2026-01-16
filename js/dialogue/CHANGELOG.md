@@ -1,5 +1,17 @@
 # @gradio/dialogue
 
+## 0.3.1
+
+### Fixes
+
+- [#12697](https://github.com/gradio-app/gradio/pull/12697) [`c471e96`](https://github.com/gradio-app/gradio/commit/c471e96eff66997846cbaf4fb9f94509c61c5449) - Migrates dropdown.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.1
+- @gradio/textbox@0.13.2
+- @gradio/dropdown@0.11.2
+
 ## 0.3.0
 
 ### Dependency updates
