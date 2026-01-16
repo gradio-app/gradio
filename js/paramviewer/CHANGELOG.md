@@ -1,5 +1,15 @@
 # @gradio/paramviewer
 
+## 0.9.2
+
+### Fixes
+
+- [#12761](https://github.com/gradio-app/gradio/pull/12761) [`2afffc2`](https://github.com/gradio-app/gradio/commit/2afffc2944f4418df7d81cceaeaffa7713bb899a) - Migrate ParamTable syntax to svelte 5.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.1
+
 ## 0.9.1
 
 ### Dependency updates

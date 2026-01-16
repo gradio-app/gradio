@@ -1,5 +1,16 @@
 # @gradio/uploadbutton
 
+## 0.9.17
+
+### Fixes
+
+- [#12782](https://github.com/gradio-app/gradio/pull/12782) [`8a262d6`](https://github.com/gradio-app/gradio/commit/8a262d652ad8f33a2c09f3f98f501978ae416cf0) - Migrate UploadButton.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/upload@0.17.4
+- @gradio/client@2.0.3
+
 ## 0.9.16
 
 ### Fixes

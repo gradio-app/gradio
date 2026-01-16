@@ -1,5 +1,23 @@
 # @gradio/core
 
+## 1.1.2
+
+### Fixes
+
+- [#12757](https://github.com/gradio-app/gradio/pull/12757) [`6d9c2d7`](https://github.com/gradio-app/gradio/commit/6d9c2d7d81e4b0936c15fac2eae9e7640ab22777) - Migrate Textbox to Svelte 5.  Thanks @dawoodkhan82!
+- [#12607](https://github.com/gradio-app/gradio/pull/12607) [`299728b`](https://github.com/gradio-app/gradio/commit/299728b707c88e7afbc6a60f1f266a9013fa424d) - fix: add ARIA landmarks for accessibility.  Thanks @majiayu000!
+
+### Dependency updates
+
+- @gradio/paramviewer@0.9.2
+- @gradio/tabs@0.5.5
+- @gradio/atoms@0.20.1
+- @gradio/upload@0.17.4
+- @gradio/client@2.0.3
+- @gradio/textbox@0.13.2
+- @gradio/dropdown@0.11.2
+- @gradio/video@0.20.1
+
 ## 1.1.1
 
 ### Features

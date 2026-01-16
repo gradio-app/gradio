@@ -2,6 +2,13 @@
 
 ## 0.6.2
 
+### Dependency updates
+
+- @gradio/upload@0.17.4
+- @gradio/client@2.0.3
+
+## 0.6.2
+
 ### Fixes
 
 - [#12681](https://github.com/gradio-app/gradio/pull/12681) [`ba46c2d`](https://github.com/gradio-app/gradio/commit/ba46c2df1405c11e495304af8f91acfdf69d0b18) - Migrate Button to Svelte 5.  Thanks @freddyaboulton!

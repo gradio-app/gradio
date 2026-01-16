@@ -1,5 +1,16 @@
 # @gradio/upload
 
+## 0.17.4
+
+### Fixes
+
+- [#12637](https://github.com/gradio-app/gradio/pull/12637) [`e202750`](https://github.com/gradio-app/gradio/commit/e202750b1deb5d4583c07d7d9d1b86f6b3dfef4b) - Fix bug where UploadProgress initializes with a null upload_id.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.1
+- @gradio/client@2.0.3
+
 ## 0.17.3
 
 ### Dependency updates

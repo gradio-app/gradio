@@ -1,5 +1,15 @@
 # @gradio/atoms
 
+## 0.20.1
+
+### Fixes
+
+- [#12607](https://github.com/gradio-app/gradio/pull/12607) [`299728b`](https://github.com/gradio-app/gradio/commit/299728b707c88e7afbc6a60f1f266a9013fa424d) - fix: add ARIA landmarks for accessibility.  Thanks @majiayu000!
+
+### Dependency updates
+
+- @gradio/markdown-code@0.6.1
+
 ## 0.20.0
 
 ### Dependency updates

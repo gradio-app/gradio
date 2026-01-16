@@ -2,6 +2,14 @@
 
 ## 0.16.1
 
+### Dependency updates
+
+- @gradio/atoms@0.20.1
+- @gradio/upload@0.17.4
+- @gradio/client@2.0.3
+
+## 0.16.1
+
 ### Fixes
 
 - [#12688](https://github.com/gradio-app/gradio/pull/12688) [`5206d47`](https://github.com/gradio-app/gradio/commit/5206d47b7730e6ffc8efd90d8157dd5388c18dc5) - Migrate Model3D to Svelte 5.  Thanks @dawoodkhan82!

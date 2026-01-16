@@ -1,5 +1,15 @@
 # @gradio/json
 
+## 0.7.0
+
+### Features
+
+- [#12778](https://github.com/gradio-app/gradio/pull/12778) [`263c065`](https://github.com/gradio-app/gradio/commit/263c065b850febf8e3a0480ccd43d23eef10c22f) - Migrate js/json to svelte5.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.1
+
 ## 0.6.0
 
 ### Dependency updates

@@ -1,5 +1,15 @@
 # @gradio/datetime
 
+## 0.4.1
+
+### Fixes
+
+- [#12696](https://github.com/gradio-app/gradio/pull/12696) [`eb13299`](https://github.com/gradio-app/gradio/commit/eb13299a4e7873de9ac775b91364137dee7555b1) - migrate datetime.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.1
+
 ## 0.4.0
 
 ### Dependency updates

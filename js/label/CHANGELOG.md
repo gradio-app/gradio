@@ -1,5 +1,15 @@
 # @gradio/label
 
+## 0.6.1
+
+### Fixes
+
+- [#12776](https://github.com/gradio-app/gradio/pull/12776) [`c2be5a2`](https://github.com/gradio-app/gradio/commit/c2be5a224ef2386cae02fa10ce8301b0d364be68) - Migrate js/label to svelte5.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.1
+
 ## 0.6.0
 
 ### Dependency updates

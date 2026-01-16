@@ -1,5 +1,16 @@
 # @self/app
 
+## 2.0.4
+
+### Fixes
+
+- [#12472](https://github.com/gradio-app/gradio/pull/12472) [`9a2bc0d`](https://github.com/gradio-app/gradio/commit/9a2bc0dacdd2b3f670fae815093c61ad08eee7e3) - Re-enable SSR mode.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/client@2.0.3
+- @gradio/core@1.1.2
+
 ## 2.0.3
 
 ### Fixes

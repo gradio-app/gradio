@@ -1,5 +1,37 @@
 # gradio
 
+## 6.4.0
+
+### Features
+
+- [#12778](https://github.com/gradio-app/gradio/pull/12778) [`263c065`](https://github.com/gradio-app/gradio/commit/263c065b850febf8e3a0480ccd43d23eef10c22f) - Migrate js/json to svelte5.  Thanks @aliabid94!
+
+### Fixes
+
+- [#12770](https://github.com/gradio-app/gradio/pull/12770) [`3115258`](https://github.com/gradio-app/gradio/commit/3115258d5dcbc00e91025eaa84ae01ff5db03978) - Remove textbox scrollbar if value is empty.  Thanks @freddyaboulton!
+- [#12757](https://github.com/gradio-app/gradio/pull/12757) [`6d9c2d7`](https://github.com/gradio-app/gradio/commit/6d9c2d7d81e4b0936c15fac2eae9e7640ab22777) - Migrate Textbox to Svelte 5.  Thanks @dawoodkhan82!
+- [#12784](https://github.com/gradio-app/gradio/pull/12784) [`565f07f`](https://github.com/gradio-app/gradio/commit/565f07fdc7888ad74452d3ed027807b670aec714) - Fix gr.Textbox auto-resize regression when lines=1.  Thanks @hysts!
+- [#12775](https://github.com/gradio-app/gradio/pull/12775) [`e023cac`](https://github.com/gradio-app/gradio/commit/e023cac0ae8c69ee12400f61abda616de9db67ce) - Restore gr.Textbox resize listener.  Thanks @hannahblair!
+- [#12696](https://github.com/gradio-app/gradio/pull/12696) [`eb13299`](https://github.com/gradio-app/gradio/commit/eb13299a4e7873de9ac775b91364137dee7555b1) - migrate datetime.  Thanks @aliabid94!
+- [#12758](https://github.com/gradio-app/gradio/pull/12758) [`fb4b92a`](https://github.com/gradio-app/gradio/commit/fb4b92afe9cf43c0d35ba0293496058d967ad818) - Add volume control to gr.Video.  Thanks @hysts!
+- [#12761](https://github.com/gradio-app/gradio/pull/12761) [`2afffc2`](https://github.com/gradio-app/gradio/commit/2afffc2944f4418df7d81cceaeaffa7713bb899a) - Migrate ParamTable syntax to svelte 5.  Thanks @freddyaboulton!
+- [#12774](https://github.com/gradio-app/gradio/pull/12774) [`f02c58e`](https://github.com/gradio-app/gradio/commit/f02c58efc9fb8a97cc602c5e07ec13736f34322e) - Prevent empty button wrappers from rendering in gr.Chatbot.  Thanks @hannahblair!
+- [#12596](https://github.com/gradio-app/gradio/pull/12596) [`5f654d7`](https://github.com/gradio-app/gradio/commit/5f654d74fb59ca7c1caf1d5965a768fac293c584) - Ensure HTML renders in gr.Chatbot.  Thanks @hannahblair!
+- [#12607](https://github.com/gradio-app/gradio/pull/12607) [`299728b`](https://github.com/gradio-app/gradio/commit/299728b707c88e7afbc6a60f1f266a9013fa424d) - fix: add ARIA landmarks for accessibility.  Thanks @majiayu000!
+- [#12772](https://github.com/gradio-app/gradio/pull/12772) [`31cf0a6`](https://github.com/gradio-app/gradio/commit/31cf0a6e74d09ae2d12155a7df35dcfbe0c5dac0) - Fix custom button click event triggers in dropdown.  Thanks @freddyaboulton!
+- [#12769](https://github.com/gradio-app/gradio/pull/12769) [`976cd11`](https://github.com/gradio-app/gradio/commit/976cd11838371d25405e8db62f05ede25083a5de) - Fix html in Multiselect component.  Thanks @freddyaboulton!
+- [#12693](https://github.com/gradio-app/gradio/pull/12693) [`b48da51`](https://github.com/gradio-app/gradio/commit/b48da517d2daa62d3b201f9a84bef9352d485b38) - Fix bug where Walkthrough Component Freezes.  Thanks @freddyaboulton!
+- [#12767](https://github.com/gradio-app/gradio/pull/12767) [`a52be3f`](https://github.com/gradio-app/gradio/commit/a52be3ff75dee9df90244d8ab68ebec57bd592da) - Hide footer links when set to empty.  Thanks @hannahblair!
+- [#12771](https://github.com/gradio-app/gradio/pull/12771) [`404f6a5`](https://github.com/gradio-app/gradio/commit/404f6a55be4cd0c1ece4af6edb8a7769473fb650) - Migrate Markdown components to svelte 5.  Thanks @freddyaboulton!
+- [#12697](https://github.com/gradio-app/gradio/pull/12697) [`c471e96`](https://github.com/gradio-app/gradio/commit/c471e96eff66997846cbaf4fb9f94509c61c5449) - Migrates dropdown.  Thanks @aliabid94!
+- [#12637](https://github.com/gradio-app/gradio/pull/12637) [`e202750`](https://github.com/gradio-app/gradio/commit/e202750b1deb5d4583c07d7d9d1b86f6b3dfef4b) - Fix bug where UploadProgress initializes with a null upload_id.  Thanks @freddyaboulton!
+- [#12773](https://github.com/gradio-app/gradio/pull/12773) [`6edcea5`](https://github.com/gradio-app/gradio/commit/6edcea5d74be661d37c70ccca08900be2ceb8e1e) - Fix dev mode.  Thanks @pngwn!
+- [#12472](https://github.com/gradio-app/gradio/pull/12472) [`9a2bc0d`](https://github.com/gradio-app/gradio/commit/9a2bc0dacdd2b3f670fae815093c61ad08eee7e3) - Re-enable SSR mode.  Thanks @pngwn!
+- [#12777](https://github.com/gradio-app/gradio/pull/12777) [`65f94fb`](https://github.com/gradio-app/gradio/commit/65f94fbff75dffe5399c9663745106e959866a3f) - Fix markdown migration.  Thanks @aliabid94!
+- [#12776](https://github.com/gradio-app/gradio/pull/12776) [`c2be5a2`](https://github.com/gradio-app/gradio/commit/c2be5a224ef2386cae02fa10ce8301b0d364be68) - Migrate js/label to svelte5.  Thanks @aliabid94!
+- [#12594](https://github.com/gradio-app/gradio/pull/12594) [`c2f0f19`](https://github.com/gradio-app/gradio/commit/c2f0f1949d453bc850fa65e5b140067008a83e22) - add conditional rendering for the upload button in multimodal textbox.  Thanks @hannahblair!
+- [#12782](https://github.com/gradio-app/gradio/pull/12782) [`8a262d6`](https://github.com/gradio-app/gradio/commit/8a262d652ad8f33a2c09f3f98f501978ae416cf0) - Migrate UploadButton.  Thanks @freddyaboulton!
+
 ## 6.3.0
 
 ### Features

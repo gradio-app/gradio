@@ -2,6 +2,12 @@
 
 ## 0.4.16
 
+### Dependency updates
+
+- @gradio/client@2.0.3
+
+## 0.4.16
+
 ### Fixes
 
 - [#12689](https://github.com/gradio-app/gradio/pull/12689) [`be89f8c`](https://github.com/gradio-app/gradio/commit/be89f8c4272a2d2c3da9345c3e26df5505307428) - Migrate DownloadButton to Svelte 5.  Thanks @dawoodkhan82!

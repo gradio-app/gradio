@@ -2,6 +2,12 @@
 
 ## 0.5.3
 
+### Dependency updates
+
+- @gradio/atoms@0.20.1
+
+## 0.5.3
+
 ### Fixes
 
 - [#12676](https://github.com/gradio-app/gradio/pull/12676) [`57dd086`](https://github.com/gradio-app/gradio/commit/57dd0864c17f039474a2aa31e9f3132f4555fd97) - Upgrade color picker to Svelte 5 syntax.  Thanks @freddyaboulton!

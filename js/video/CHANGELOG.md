@@ -1,5 +1,17 @@
 # @gradio/video
 
+## 0.20.1
+
+### Fixes
+
+- [#12758](https://github.com/gradio-app/gradio/pull/12758) [`fb4b92a`](https://github.com/gradio-app/gradio/commit/fb4b92afe9cf43c0d35ba0293496058d967ad818) - Add volume control to gr.Video.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.1
+- @gradio/upload@0.17.4
+- @gradio/client@2.0.3
+
 ## 0.20.0
 
 ### Features

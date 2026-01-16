@@ -1,5 +1,15 @@
 # @gradio/html
 
+## 0.9.1
+
+### Fixes
+
+- [#12596](https://github.com/gradio-app/gradio/pull/12596) [`5f654d7`](https://github.com/gradio-app/gradio/commit/5f654d74fb59ca7c1caf1d5965a768fac293c584) - Ensure HTML renders in gr.Chatbot.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.1
+
 ## 0.9.0
 
 ### Dependency updates

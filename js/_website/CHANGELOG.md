@@ -1,5 +1,16 @@
 # website
 
+## 0.69.0
+
+### Features
+
+- [#12755](https://github.com/gradio-app/gradio/pull/12755) [`78a8dd4`](https://github.com/gradio-app/gradio/commit/78a8dd46018951c194fa05259db63dacd712aa37) - Add controlling width to Row docs.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/paramviewer@0.9.2
+- @gradio/tabs@0.5.5
+
 ## 0.68.0
 
 ### Features
