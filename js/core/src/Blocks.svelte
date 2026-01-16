@@ -450,7 +450,6 @@
 		style:flex-grow={app_mode ? "1" : "auto"}
 		bind:this={root_container}
 		style:margin-right={vibe_mode ? `${vibe_editor_width}px` : "0"}
-		aria-label={title || "Gradio app"}
 	>
 		<MountComponents node={app_tree.root} />
 	</main>
