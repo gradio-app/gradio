@@ -6,6 +6,13 @@ let gradio_import_map: null | string = null;
 export const handle: Handle = async ({ event, resolve }) => {
 	return await resolve(event, {
 		transformPageChunk: ({ html }) => {
+			event.request.headers.forEach((value, key) => {
+				console.error(
+					`%c[Gradio Header] %c${key}: ${value}`,
+					"color: #6f42c1; font-weight: bold;",
+					"color: #0366d6;"
+				);
+			});
 			const server =
 				event.request.headers.get("x-gradio-server") || "http://127.0.0.1:7860";
 

@@ -5,7 +5,11 @@
 	"scripts": {
 		"dev": "pnpm css && pnpm --filter @gradio/preview build && pnpm --filter=@gradio/dataframe-interim build && pnpm --filter @self/app dev",
 		"css": "pnpm --filter @gradio/theme generate",
-		"build": "pnpm css && pnpm --filter=@gradio/dataframe-interim build && cross-env NODE_OPTIONS='--max-old-space-size=8192' pnpm --filter @self/app build --emptyOutDir && pnpm --filter @self/spa build --emptyOutDir && pnpm --filter @gradio/preview build",
+		"build": "pnpm css && pnpm build:prepare && pnpm build:app && pnpm build:spa && pnpm build:preview",
+		"build:prepare": "pnpm css && pnpm --filter=@gradio/dataframe-interim build",
+		"build:app": "cross-env NODE_OPTIONS='--max-old-space-size=8192' pnpm --filter @self/app build",
+		"build:spa": "pnpm --filter @self/spa build",
+		"build:preview": "pnpm --filter @gradio/preview build",
 		"format:check": "prettier --ignore-path .config/.prettierignore --check --config .config/.prettierrc.json --plugin prettier-plugin-svelte .",
 		"format:write": "prettier --ignore-path .config/.prettierignore --write --config .config/.prettierrc.json --plugin prettier-plugin-svelte .",
 		"lint": "ESLINT_USE_FLAT_CONFIG=true eslint -c .config/eslint.config.js js client/js",
