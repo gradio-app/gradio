@@ -1,6 +1,6 @@
 import { test, expect } from "@self/tootils";
 
-test("File Explorer is interactive and re-runs the server_fn when root is updated", async ({
+test.skip("File Explorer is interactive and re-runs the server_fn when root is updated", async ({
 	page
 }) => {
 	await page

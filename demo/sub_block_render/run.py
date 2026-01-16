@@ -74,4 +74,4 @@ with gr.Blocks() as demo:
     block.render()
 
 if __name__ == "__main__":
-    demo.queue(max_size=10, api_open=False).launch(show_view_api=False)
+    demo.queue(max_size=10, api_open=False).launch()

@@ -20,14 +20,14 @@ const base = defineConfig({
 	testDir: "..",
 	workers: process.env.CUSTOM_TEST ? 1 : process.env.CI ? 4 : undefined,
 	retries: 3,
-	fullyParallel: true
+	fullyParallel: false
 });
 
 // There are Firefox-specific issues such as https://github.com/gradio-app/gradio/pull/9528 so we want to run the tests on Firefox, but Firefox sometimes fails to start in the GitHub Actions environment so we disable it on CI.
 const localOnly = (project) => (process.env.CI ? undefined : project);
 
 const normal = defineConfig(base, {
-	globalSetup: process.env.CUSTOM_TEST ? undefined : "./playwright-setup.js",
+	// globalSetup removed - each test file now launches its own Gradio app via fixture
 	projects: [
 		localOnly({
 			name: "firefox",
