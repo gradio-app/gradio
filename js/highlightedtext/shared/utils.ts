@@ -1,77 +1,80 @@
 import { colors } from "@gradio/theme";
 
-export function name_to_rgba(
-	name: string,
-	a: number,
-	ctx: CanvasRenderingContext2D | null
-): string {
-	if (!ctx) {
-		var canvas = document.createElement("canvas");
-		ctx = canvas.getContext("2d")!;
-	}
+export interface HighlightedToken {
+	token: string;
+	class_or_confidence: string | number | null;
+}
+
+export interface ColorPair {
+	primary: string;
+	secondary: string;
+}
+
+function name_to_rgba(name: string, alpha: number): string {
+	const canvas = document.createElement("canvas");
+	const ctx = canvas.getContext("2d")!;
 	ctx.fillStyle = name;
 	ctx.fillRect(0, 0, 1, 1);
 	const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
-	ctx.clearRect(0, 0, 1, 1);
-	return `rgba(${r}, ${g}, ${b}, ${255 / a})`;
+	return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-export function correct_color_map(
+export function generate_color_map(
 	color_map: Record<string, string>,
-	_color_map: Record<string, { primary: string; secondary: string }>,
-	browser: any,
-	ctx: CanvasRenderingContext2D | null
-): void {
-	for (const col in color_map) {
-		const _c = color_map[col].trim();
+	is_browser: boolean
+): Record<string, ColorPair> {
+	const result: Record<string, ColorPair> = {};
 
-		if (_c in colors) {
-			_color_map[col] = colors[_c as keyof typeof colors];
+	for (const key in color_map) {
+		const color = color_map[key].trim();
+
+		if (color in colors) {
+			result[key] = colors[color as keyof typeof colors];
 		} else {
-			_color_map[col] = {
-				primary: browser
-					? name_to_rgba(color_map[col], 1, ctx)
-					: color_map[col],
-				secondary: browser
-					? name_to_rgba(color_map[col], 0.5, ctx)
-					: color_map[col]
+			result[key] = {
+				primary: is_browser ? name_to_rgba(color, 1) : color,
+				secondary: is_browser ? name_to_rgba(color, 0.5) : color
 			};
 		}
 	}
+
+	return result;
 }
 
 export function merge_elements(
-	value: { token: string; class_or_confidence: string | number | null }[],
-	mergeMode: "empty" | "equal"
-): { token: string; class_or_confidence: string | number | null }[] {
-	let result: typeof value = [];
-	let tempStr: string | null = null;
-	let tempVal: string | number | null = null;
+	value: HighlightedToken[],
+	merge_mode: "empty" | "equal"
+): HighlightedToken[] {
+	if (value.length === 0) return [];
 
-	for (const val of value) {
-		if (
-			(mergeMode === "empty" && val.class_or_confidence === null) ||
-			(mergeMode === "equal" && tempVal === val.class_or_confidence)
-		) {
-			tempStr = tempStr ? tempStr + val.token : val.token;
+	const result: HighlightedToken[] = [];
+	let current_token = value[0].token;
+	let current_class = value[0].class_or_confidence;
+
+	for (let i = 1; i < value.length; i++) {
+		const { token, class_or_confidence } = value[i];
+		const should_merge =
+			merge_mode === "empty"
+				? class_or_confidence === null
+				: current_class === class_or_confidence;
+
+		if (should_merge) {
+			current_token += token;
 		} else {
-			if (tempStr !== null) {
-				result.push({
-					token: tempStr,
-					class_or_confidence: tempVal
-				});
-			}
-			tempStr = val.token;
-			tempVal = val.class_or_confidence;
+			result.push({ token: current_token, class_or_confidence: current_class });
+			current_token = token;
+			current_class = class_or_confidence;
 		}
 	}
 
-	if (tempStr !== null) {
-		result.push({
-			token: tempStr,
-			class_or_confidence: tempVal
-		});
-	}
-
+	result.push({ token: current_token, class_or_confidence: current_class });
 	return result;
+}
+
+export function get_score_color(score: number | null): string {
+	if (score === null) return "";
+	if (score < 0) {
+		return `rgba(128, 90, 213, ${-score})`;
+	}
+	return `rgba(239, 68, 60, ${score})`;
 }
