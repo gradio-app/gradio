@@ -86,7 +86,7 @@ class ThemeClass:
             + "\n}"
         )
         dark_css_code = (
-            "\n:root .dark {\n"
+            "\n:root.dark, :root .dark {\n"
             + "\n".join([f"  --{attr}: {val};" for attr, val in dark_css.items()])
             + "\n}"
         )
