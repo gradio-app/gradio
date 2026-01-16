@@ -145,3 +145,39 @@
 	}}
 	{template}
 />
+<Story
+	name="Highlighted Text with transparent labels"
+	args={{
+		value: [
+			{ token: "Click ", class_or_confidence: null },
+			{ token: "any", class_or_confidence: "clickable" },
+			{ token: " ", class_or_confidence: null },
+			{ token: "word", class_or_confidence: "clickable" },
+			{ token: " to select it. ", class_or_confidence: null },
+			{ token: "All", class_or_confidence: "clickable" },
+			{ token: " ", class_or_confidence: null },
+			{ token: "words", class_or_confidence: "clickable" },
+			{ token: " are clickable.", class_or_confidence: null }
+		],
+		color_map: { clickable: "transparent" },
+		show_inline_category: false,
+		interactive: false
+	}}
+	{template}
+/>
+<Story
+	name="Highlighted Text with all null labels"
+	args={{
+		value: [
+			{ token: "Every ", class_or_confidence: null },
+			{ token: "word ", class_or_confidence: null },
+			{ token: "is ", class_or_confidence: null },
+			{ token: "clickable ", class_or_confidence: null },
+			{ token: "without ", class_or_confidence: null },
+			{ token: "any ", class_or_confidence: null },
+			{ token: "highlighting.", class_or_confidence: null }
+		],
+		interactive: false
+	}}
+	{template}
+/>

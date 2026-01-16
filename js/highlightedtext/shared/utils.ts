@@ -19,6 +19,13 @@ function name_to_rgba(name: string, alpha: number): string {
 	return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+export function is_transparent(color: string): boolean {
+	if (!color) return true;
+	const c = color.toLowerCase().trim();
+	// 9 chars + ends with 00 = #RRGGBBAA format with 0 alpha
+	return c === "transparent" || (c.length === 9 && c.endsWith("00"));
+}
+
 export function generate_color_map(
 	color_map: Record<string, string>,
 	is_browser: boolean
@@ -30,6 +37,11 @@ export function generate_color_map(
 
 		if (color in colors) {
 			result[key] = colors[color as keyof typeof colors];
+		} else if (is_transparent(color)) {
+			result[key] = {
+				primary: "transparent",
+				secondary: "transparent"
+			};
 		} else {
 			result[key] = {
 				primary: is_browser ? name_to_rgba(color, 1) : color,
