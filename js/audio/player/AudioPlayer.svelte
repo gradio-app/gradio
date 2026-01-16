@@ -57,7 +57,7 @@
 	} = $props();
 
 	let url = $derived(value?.url);
-	let old_playback_position = 0;
+	let old_playback_position = $state(0);
 
 	let container: HTMLDivElement;
 	let waveform: WaveSurfer | undefined;
