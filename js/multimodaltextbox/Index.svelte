@@ -160,24 +160,24 @@
 		file_count={gradio.props.file_count}
 		{sources_string}
 		max_file_size={gradio.shared.max_file_size}
-		on:change={(e) => (
-			(gradio.props.value = e.detail),
-			gradio.dispatch("change", gradio.props.value)
-		)}
-		on:input={() => gradio.dispatch("input")}
-		on:submit={() => gradio.dispatch("submit")}
-		on:stop={() => gradio.dispatch("stop")}
-		on:blur={() => gradio.dispatch("blur")}
-		on:select={(e) => gradio.dispatch("select", e.detail)}
-		on:focus={() => gradio.dispatch("focus")}
-		on:error={({ detail }) => {
+		onchange={(e) => {
+			gradio.props.value = e;
+			gradio.dispatch("change", gradio.props.value);
+		}}
+		oninput={() => gradio.dispatch("input")}
+		onsubmit={() => gradio.dispatch("submit")}
+		onstop={() => gradio.dispatch("stop")}
+		onblur={() => gradio.dispatch("blur")}
+		onselect={(e) => gradio.dispatch("select", e)}
+		onfocus={() => gradio.dispatch("focus")}
+		onerror={(detail) => {
 			gradio.dispatch("error", detail);
 		}}
-		on:start_recording={() => gradio.dispatch("start_recording")}
-		on:pause_recording={() => gradio.dispatch("pause_recording")}
-		on:stop_recording={() => gradio.dispatch("stop_recording")}
-		on:upload={(e) => gradio.dispatch("upload", e.detail)}
-		on:clear={() => gradio.dispatch("clear")}
+		onstart_recording={() => gradio.dispatch("start_recording")}
+		onpause_recording={() => gradio.dispatch("pause_recording")}
+		onstop_recording={() => gradio.dispatch("stop_recording")}
+		onupload={(e) => gradio.dispatch("upload", e)}
+		onclear={() => gradio.dispatch("clear")}
 		disabled={!gradio.shared.interactive}
 		upload={upload_fn}
 		stream_handler={stream_handler_fn}
