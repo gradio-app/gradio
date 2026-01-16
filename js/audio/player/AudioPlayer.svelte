@@ -125,13 +125,15 @@
 				firstTimeUpdate = false;
 				return;
 			}
-			old_playback_position = playback_position = currentTime;
+			playback_position = currentTime;
+			old_playback_position = currentTime;
 		});
 
 		waveform?.on("interaction", () => {
 			const currentTime = waveform?.getCurrentTime() || 0;
 			timeRef && (timeRef.textContent = format_time(currentTime));
-			old_playback_position = playback_position = currentTime;
+			playback_position = currentTime;
+			old_playback_position = currentTime;
 		});
 
 		waveform?.on("ready", () => {
