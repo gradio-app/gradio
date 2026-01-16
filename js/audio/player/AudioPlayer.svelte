@@ -61,7 +61,7 @@
 
 	let container: HTMLDivElement;
 	let waveform: WaveSurfer | undefined;
-	let waveform_ready = false;
+	let waveform_ready = $state(false);
 	let waveform_component_wrapper: HTMLDivElement;
 	let playing = $state(false);
 
@@ -69,7 +69,7 @@
 
 	let timeRef: HTMLTimeElement;
 	let durationRef: HTMLTimeElement;
-	let audio_duration: number;
+	let audio_duration = $state<number>(0);
 
 	let trimDuration = $state(0);
 
