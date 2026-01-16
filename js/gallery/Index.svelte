@@ -123,20 +123,20 @@
 		</BaseFileUpload>
 	{:else}
 		<Gallery
-			on_change={() => gradio.dispatch("change")}
-			on_clear={() => gradio.dispatch("change")}
-			on_select={(e) => gradio.dispatch("select", e)}
-			on_share={(e) => gradio.dispatch("share", e.detail)}
-			on_error={(e) => gradio.dispatch("error", e.detail)}
-			on_preview_open={() => {
+			onchange={() => gradio.dispatch("change")}
+			onclear={() => gradio.dispatch("change")}
+			onselect={(e) => gradio.dispatch("select", e)}
+			onshare={(e) => gradio.dispatch("share", e.detail)}
+			onerror={(e) => gradio.dispatch("error", e.detail)}
+			oonpreview_open={() => {
 				gradio.dispatch("preview_open");
 			}}
-			on_preview_close={() => gradio.dispatch("preview_close")}
-			on_fullscreen={({ detail }) => {
+			onpreview_close={() => gradio.dispatch("preview_close")}
+			onfullscreen={({ detail }) => {
 				fullscreen = detail;
 			}}
-			on_delete={handle_delete}
-			on_upload={async (e) => {
+			ondelete={handle_delete}
+			onupload={async (e) => {
 				const files = Array.isArray(e.detail) ? e.detail : [e.detail];
 				const new_value = await process_upload_files(files);
 				gradio.props.value = gradio.props.value

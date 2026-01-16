@@ -27,6 +27,7 @@
 	import type { Client } from "@gradio/client";
 	import { format_gallery_for_sharing } from "./utils";
 	import type { I18nFormatter } from "@gradio/utils";
+	import { on } from "svelte/events";
 
 	type GalleryData = GalleryImage | GalleryVideo;
 
@@ -55,17 +56,17 @@
 		stream_handler,
 		fit_columns = true,
 		buttons = null,
-		on_custom_button_click = null,
-		on_preview_open = () => {},
-		on_change = () => {},
-		on_clear = () => {},
-		on_select = (data) => {},
-		on_share = (data) => {},
-		on_error = (error) => {},
-		on_preview_close = () => {},
-		on_fullscreen = (data) => {},
-		on_delete = () => {},
-		on_upload = () => {}
+		oncustom_button_click = null,
+		onpreview_open = () => {},
+		onchange = () => {},
+		onclear = () => {},
+		onselect = (data) => {},
+		onshare = (data) => {},
+		onerror = (error) => {},
+		onpreview_close = () => {},
+		onfullscreen = (data) => {},
+		ondelete = () => {},
+		onupload = () => {}
 	}: {
 		show_label: boolean;
 		label: string;
@@ -91,17 +92,17 @@
 		stream_handler: Client["stream"] | undefined;
 		fit_columns: boolean;
 		buttons: (string | CustomButtonType)[] | null;
-		on_custom_button_click: ((id: number) => void) | null;
-		on_preview_open: () => void;
-		on_change: () => void;
-		on_clear: () => void;
-		on_select: (data: any) => void;
-		on_share: (data: any) => void;
-		on_error: (error: any) => void;
-		on_preview_close: () => void;
-		on_fullscreen: (data: any) => void;
-		on_delete: (data: any) => void;
-		on_upload: (data: FileData | FileData[]) => void;
+		oncustom_button_click: ((id: number) => void) | null;
+		onpreview_open: () => void;
+		onchange: () => void;
+		onclear: () => void;
+		onselect: (data: any) => void;
+		onshare: (data: any) => void;
+		onerror: (error: any) => void;
+		onpreview_close: () => void;
+		onfullscreen: (data: any) => void;
+		ondelete: (data: any) => void;
+		onupload: (data: FileData | FileData[]) => void;
 	} = $props();
 
 	let upload_promise: Promise<any> | null = null;
@@ -174,7 +175,7 @@
 					selected_index = null;
 				}
 			}
-			on_change();
+			onchange();
 			prev_value = value;
 		}
 	});
@@ -187,6 +188,8 @@
 	let next = $derived.by(
 		() => ((selected_index ?? 0) + 1) % (resolved_value?.length ?? 0)
 	);
+
+	$inspect("selected_index", selected_index);
 
 	function handle_preview_click(event: MouseEvent): void {
 		const element = event.target as HTMLElement;
@@ -202,11 +205,12 @@
 	}
 
 	function on_keydown(e: KeyboardEvent): void {
+		console.log("e.code", e.code);
 		switch (e.code) {
 			case "Escape":
 				e.preventDefault();
 				selected_index = null;
-				on_preview_close();
+				onpreview_close();
 				break;
 			case "ArrowLeft":
 				e.preventDefault();
@@ -231,7 +235,7 @@
 						Math.min(selected_index, resolved_value.length - 1)
 					);
 				}
-				on_select({
+				onselect({
 					index: selected_index,
 					value: resolved_value?.[selected_index]
 				});
@@ -246,7 +250,7 @@
 	});
 
 	let el: HTMLButtonElement[] = [];
-	let container_element: HTMLDivElement;
+	let container_element: HTMLDivElement | undefined = $state();
 
 	async function scroll_to_img(index: number | null): Promise<void> {
 		if (typeof index !== "number") return;
@@ -359,7 +363,7 @@
 		}
 
 		if (deleted_file_data) {
-			on_delete(deleted_file_data);
+			ondelete(deleted_file_data);
 		}
 	}
 
@@ -384,7 +388,7 @@
 				<IconButtonWrapper
 					display_top_corner={display_icon_button_wrapper_top_corner}
 					{buttons}
-					{on_custom_button_click}
+					on_custom_button_click={oncustom_button_click}
 				>
 					{#if show_download_button}
 						<IconButton
@@ -409,7 +413,7 @@
 					{#if show_fullscreen_button}
 						<FullscreenButton
 							{fullscreen}
-							on:fullscreen={(e) => on_fullscreen(e)}
+							on:fullscreen={(e) => onfullscreen(e)}
 						/>
 					{/if}
 
@@ -418,10 +422,10 @@
 							<ShareButton
 								{i18n}
 								on:share={(detail) => {
-									on_share(detail);
+									onshare(detail);
 								}}
 								on:error={(detail) => {
-									on_error(detail);
+									onerror(detail);
 								}}
 								value={resolved_value}
 								formatter={format_gallery_for_sharing}
@@ -434,7 +438,7 @@
 							label="Close"
 							on:click={() => {
 								selected_index = null;
-								on_preview_close();
+								onpreview_close();
 							}}
 						/>
 					{/if}
@@ -538,7 +542,7 @@
 					{i18n}
 					on:clear={() => {
 						value = [];
-						on_clear();
+						onclear();
 					}}
 				>
 					{#if upload && stream_handler}
@@ -546,13 +550,13 @@
 							<UploadComponent
 								bind:upload_promise
 								icon_upload={true}
-								on:load={(e) => on_upload(e.detail)}
+								on:load={(e) => onupload(e.detail)}
 								filetype={file_types}
 								file_count="multiple"
 								{max_file_size}
 								{root}
 								bind:uploading
-								on:error={(e) => on_error(e.detail)}
+								on:error={(e) => onerror(e.detail)}
 								{stream_handler}
 								{upload}
 							/>
@@ -572,7 +576,7 @@
 							class:selected={selected_index === i}
 							on:click={() => {
 								if (selected_index === null && allow_preview) {
-									on_preview_open();
+									onpreview_open();
 								}
 								selected_index = i;
 							}}
