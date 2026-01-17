@@ -60,7 +60,7 @@
 		<IconButton
 			Icon={Download}
 			label="Download"
-			on:click={(event) => {
+			onclick={(event) => {
 				dispatch("download");
 				event.stopPropagation();
 			}}
@@ -70,7 +70,7 @@
 	<IconButton
 		Icon={Pan}
 		label="Pan"
-		on:click={(e) => {
+		onclick={(e) => {
 			e.stopPropagation();
 			dispatch("pan");
 		}}
@@ -84,7 +84,7 @@
 	<IconButton
 		Icon={ZoomOut}
 		label="Zoom out"
-		on:click={(event) => {
+		onclick={(event) => {
 			dispatch("zoom_out");
 			event.stopPropagation();
 		}}
@@ -92,7 +92,7 @@
 	<IconButton
 		Icon={ZoomIn}
 		label="Zoom in"
-		on:click={(event) => {
+		onclick={(event) => {
 			dispatch("zoom_in");
 			event.stopPropagation();
 		}}
@@ -129,7 +129,7 @@
 	<IconButton
 		Icon={Undo}
 		label="Undo"
-		on:click={(event) => {
+		onclick={(event) => {
 			dispatch("undo");
 			event.stopPropagation();
 		}}
@@ -139,7 +139,7 @@
 	<IconButton
 		Icon={Redo}
 		label="Redo"
-		on:click={(event) => {
+		onclick={(event) => {
 			dispatch("redo");
 			event.stopPropagation();
 		}}
@@ -151,7 +151,7 @@
 			disabled={!can_save}
 			Icon={Check}
 			label="Save changes"
-			on:click={(event) => {
+			onclick={(event) => {
 				dispatch("save");
 				event.stopPropagation();
 			}}
@@ -162,7 +162,7 @@
 	<IconButton
 		Icon={Trash}
 		label="Clear canvas"
-		on:click={(event) => {
+		onclick={(event) => {
 			dispatch("remove_image");
 			event.stopPropagation();
 		}}

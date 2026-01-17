@@ -14,12 +14,12 @@
 	<IconButton
 		Icon={Minimize}
 		label="Exit fullscreen mode"
-		on:click={() => dispatch("fullscreen", false)}
+		onclick={() => dispatch("fullscreen", false)}
 	/>
 {:else}
 	<IconButton
 		Icon={Maximize}
 		label="Fullscreen"
-		on:click={() => dispatch("fullscreen", true)}
+		onclick={() => dispatch("fullscreen", true)}
 	/>
 {/if}

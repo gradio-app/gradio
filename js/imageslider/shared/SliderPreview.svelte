@@ -141,7 +141,7 @@
 				Icon={Undo}
 				label={i18n("common.undo")}
 				disabled={$transform.z === 1}
-				on:click={() => zoomable_image?.reset_zoom()}
+				onclick={() => zoomable_image?.reset_zoom()}
 			/>
 			{#if show_fullscreen_button}
 				<FullscreenButton {fullscreen} on:fullscreen />
@@ -159,7 +159,7 @@
 				<IconButton
 					Icon={Clear}
 					label="Remove Image"
-					on:click={(event) => {
+					onclick={(event) => {
 						value = [null, null];
 						dispatch("clear");
 						event.stopPropagation();

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { VolumeMuted, VolumeHigh, VolumeLow } from "@gradio/icons";
-	export let currentVolume: number;
+
+	let { currentVolume }: { currentVolume: number } = $props();
 </script>
 
 {#if currentVolume == 0}

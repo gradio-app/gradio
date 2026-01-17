@@ -51,7 +51,7 @@
 		stop_recording?: never;
 	}>();
 
-	function handle_load({ detail }: CustomEvent<FileData | null>): void {
+	function handle_load(detail: FileData | null): void {
 		value = detail;
 		dispatch("change", detail);
 		dispatch("upload", detail!);
@@ -88,9 +88,9 @@
 					bind:dragging
 					bind:uploading
 					filetype="video/x-m4v,video/*"
-					on:load={handle_load}
+					onload={handle_load}
 					{max_file_size}
-					on:error={({ detail }) => dispatch("error", detail)}
+					onerror={(detail) => dispatch("error", detail)}
 					{root}
 					{upload}
 					{stream_handler}

@@ -17,54 +17,101 @@
 	import type { WaveformOptions } from "./types";
 	import VolumeLevels from "./VolumeLevels.svelte";
 	import VolumeControl from "./VolumeControl.svelte";
+	import { onMount } from "svelte";
 
-	export let waveform: WaveSurfer | undefined;
-	export let audio_duration: number;
-	export let i18n: I18nFormatter;
-	export let playing: boolean;
-	export let show_redo = false;
-	export let interactive = false;
-	export let handle_trim_audio: (start: number, end: number) => void;
-	export let mode = "";
-	export let container: HTMLDivElement;
-	export let handle_reset_value: () => void;
-	export let waveform_options: WaveformOptions = {};
-	export let trim_region_settings: WaveformOptions = {};
-	export let show_volume_slider = false;
-	export let editable = true;
-	export let subtitles_toggle = true;
-	export let show_subtitles = false;
-	export let trimDuration = 0;
+	let {
+		waveform,
+		audio_duration,
+		i18n,
+		playing,
+		show_redo = false,
+		interactive = false,
+		handle_trim_audio,
+		mode = $bindable(),
+		container,
+		handle_reset_value,
+		waveform_options = {},
+		trim_region_settings = {},
+		show_volume_slider = $bindable(),
+		editable = true,
+		subtitles_toggle = $bindable(),
+		show_subtitles = false,
+		trimDuration = $bindable()
+	}: {
+		waveform: WaveSurfer | undefined;
+		audio_duration: number;
+		i18n: I18nFormatter;
+		playing: boolean;
+		show_redo?: boolean;
+		interactive?: boolean;
+		handle_trim_audio: (start: number, end: number) => void;
+		mode?: string;
+		container: HTMLDivElement;
+		handle_reset_value: () => void;
+		waveform_options?: WaveformOptions;
+		trim_region_settings?: WaveformOptions;
+		show_volume_slider?: boolean;
+		editable?: boolean;
+		subtitles_toggle?: boolean;
+		show_subtitles?: boolean;
+		trimDuration?: number;
+	} = $props();
 
 	let playbackSpeeds = [0.5, 1, 1.5, 2];
-	let playbackSpeed = playbackSpeeds[1];
+	let playbackSpeed = $state(playbackSpeeds[1]);
 
-	let trimRegion: RegionsPlugin | null = null;
-	let activeRegion: Region | null = null;
+	let trimRegion: RegionsPlugin | null = $state(null);
+	let activeRegion: Region | null = $state(null);
 
-	let leftRegionHandle: HTMLDivElement | null;
-	let rightRegionHandle: HTMLDivElement | null;
-	let activeHandle = "";
+	let leftRegionHandle: HTMLDivElement | null = $state(null);
+	let rightRegionHandle: HTMLDivElement | null = $state(null);
+	let activeHandle = $state("");
 
-	let currentVolume = 1;
+	let currentVolume = $state(1);
 
-	$: trimRegion =
-		container && waveform
-			? waveform.registerPlugin(RegionsPlugin.create())
-			: null;
+	function ensureTrimRegion(): void {
+		if (container && waveform && !trimRegion) {
+			trimRegion = waveform.registerPlugin(RegionsPlugin.create());
+		}
+	}
 
-	$: trimRegion?.on("region-out", (region) => {
-		region.play();
+	onMount(() => {
+		ensureTrimRegion();
 	});
 
-	$: trimRegion?.on("region-updated", (region) => {
-		trimDuration = region.end - region.start;
+	$effect(() => {
+		if (!trimRegion) return;
+		const handler = (region: Region): void => {
+			region.play();
+		};
+		trimRegion.on("region-out", handler);
+		return () => {
+			trimRegion?.un("region-out", handler);
+		};
 	});
 
-	$: trimRegion?.on("region-clicked", (region, e) => {
-		e.stopPropagation(); // prevent triggering a click on the waveform
-		activeRegion = region;
-		region.play();
+	$effect(() => {
+		if (!trimRegion) return;
+		const handler = (region: Region): void => {
+			trimDuration = region.end - region.start;
+		};
+		trimRegion.on("region-updated", handler);
+		return () => {
+			trimRegion?.un("region-updated", handler);
+		};
+	});
+
+	$effect(() => {
+		if (!trimRegion) return;
+		const handler = (region: Region, e: Event): void => {
+			e.stopPropagation();
+			activeRegion = region;
+			region.play();
+		};
+		trimRegion.on("region-clicked", handler);
+		return () => {
+			trimRegion?.un("region-clicked", handler);
+		};
 	});
 
 	const addTrimRegion = (): void => {
@@ -78,29 +125,37 @@
 		trimDuration = activeRegion.end - activeRegion.start;
 	};
 
-	$: if (activeRegion) {
-		const shadowRoot = container.children[0]!.shadowRoot!;
+	$effect(() => {
+		if (activeRegion) {
+			const shadowRoot = container.children[0]!.shadowRoot!;
 
-		rightRegionHandle = shadowRoot.querySelector('[data-resize="right"]');
-		leftRegionHandle = shadowRoot.querySelector('[data-resize="left"]');
+			rightRegionHandle = shadowRoot.querySelector('[data-resize="right"]');
+			leftRegionHandle = shadowRoot.querySelector('[data-resize="left"]');
 
-		if (leftRegionHandle && rightRegionHandle) {
-			leftRegionHandle.setAttribute("role", "button");
-			rightRegionHandle.setAttribute("role", "button");
-			leftRegionHandle?.setAttribute("aria-label", "Drag to adjust start time");
-			rightRegionHandle?.setAttribute("aria-label", "Drag to adjust end time");
-			leftRegionHandle?.setAttribute("tabindex", "0");
-			rightRegionHandle?.setAttribute("tabindex", "0");
+			if (leftRegionHandle && rightRegionHandle) {
+				leftRegionHandle.setAttribute("role", "button");
+				rightRegionHandle.setAttribute("role", "button");
+				leftRegionHandle?.setAttribute(
+					"aria-label",
+					"Drag to adjust start time"
+				);
+				rightRegionHandle?.setAttribute(
+					"aria-label",
+					"Drag to adjust end time"
+				);
+				leftRegionHandle?.setAttribute("tabindex", "0");
+				rightRegionHandle?.setAttribute("tabindex", "0");
 
-			leftRegionHandle.addEventListener("focus", () => {
-				if (trimRegion) activeHandle = "left";
-			});
+				leftRegionHandle.addEventListener("focus", () => {
+					if (trimRegion) activeHandle = "left";
+				});
 
-			rightRegionHandle.addEventListener("focus", () => {
-				if (trimRegion) activeHandle = "right";
-			});
+				rightRegionHandle.addEventListener("focus", () => {
+					if (trimRegion) activeHandle = "right";
+				});
+			}
 		}
-	}
+	});
 
 	const trimAudio = (): void => {
 		if (waveform && trimRegion) {
@@ -123,10 +178,11 @@
 
 	const toggleTrimmingMode = (): void => {
 		clearRegions();
-		if (mode === "edit") {
+		if (mode) {
 			mode = "";
 		} else {
 			mode = "edit";
+			ensureTrimRegion();
 			addTrimRegion();
 		}
 	};
@@ -166,14 +222,21 @@
 		trimDuration = activeRegion.end - activeRegion.start;
 	};
 
-	$: trimRegion &&
-		window.addEventListener("keydown", (e) => {
-			if (e.key === "ArrowLeft") {
-				adjustRegionHandles(activeHandle, "ArrowLeft");
-			} else if (e.key === "ArrowRight") {
-				adjustRegionHandles(activeHandle, "ArrowRight");
-			}
-		});
+	$effect(() => {
+		if (trimRegion) {
+			const handleKeydown = (e: KeyboardEvent): void => {
+				if (e.key === "ArrowLeft") {
+					adjustRegionHandles(activeHandle, "ArrowLeft");
+				} else if (e.key === "ArrowRight") {
+					adjustRegionHandles(activeHandle, "ArrowRight");
+				}
+			};
+			window.addEventListener("keydown", handleKeydown);
+			return () => {
+				window.removeEventListener("keydown", handleKeydown);
+			};
+		}
+	});
 </script>
 
 <div class="controls" data-testid="waveform-controls">
@@ -184,7 +247,7 @@
 				? "var(--color-accent)"
 				: "var(--neutral-400)"}
 			aria-label="Adjust volume"
-			on:click={() => (show_volume_slider = !show_volume_slider)}
+			onclick={() => (show_volume_slider = !show_volume_slider)}
 		>
 			<VolumeLevels {currentVolume} />
 		</button>
@@ -201,7 +264,7 @@
 					(playbackSpeeds.indexOf(playbackSpeed) + 1) % playbackSpeeds.length
 				]
 			}x`}
-			on:click={() => {
+			onclick={() => {
 				playbackSpeed =
 					playbackSpeeds[
 						(playbackSpeeds.indexOf(playbackSpeed) + 1) % playbackSpeeds.length
@@ -221,7 +284,7 @@
 				audio_duration,
 				waveform_options.skip_length
 			)} seconds`}
-			on:click={() =>
+			onclick={() =>
 				waveform?.skip(
 					get_skip_rewind_amount(audio_duration, waveform_options.skip_length) *
 						-1
@@ -231,7 +294,7 @@
 		</button>
 		<button
 			class="play-pause-button icon"
-			on:click={() => waveform?.playPause()}
+			onclick={() => waveform?.playPause()}
 			aria-label={playing ? i18n("audio.pause") : i18n("audio.play")}
 		>
 			{#if playing}
@@ -246,7 +309,7 @@
 				audio_duration,
 				waveform_options.skip_length
 			)} seconds"
-			on:click={() =>
+			onclick={() =>
 				waveform?.skip(
 					get_skip_rewind_amount(audio_duration, waveform_options.skip_length)
 				)}
@@ -263,17 +326,17 @@
 				style="color: {subtitles_toggle
 					? 'var(--color-accent)'
 					: 'var(--neutral-400)'}"
-				on:click={toggleSubtitles}
+				onclick={toggleSubtitles}
 			>
 				<ClosedCaption /></button
 			>
 		{/if}
 		{#if editable && interactive}
-			{#if show_redo && mode === ""}
+			{#if show_redo && !mode}
 				<button
 					class="action icon"
 					aria-label="Reset audio"
-					on:click={() => {
+					onclick={() => {
 						handle_reset_value();
 						clearRegions();
 						mode = "";
@@ -283,18 +346,17 @@
 				</button>
 			{/if}
 
-			{#if mode === ""}
+			{#if !mode}
 				<button
 					class="action icon"
 					aria-label="Trim audio to selection"
-					on:click={toggleTrimmingMode}
+					onclick={toggleTrimmingMode}
 				>
 					<Trim />
 				</button>
 			{:else}
-				<button class="text-button" on:click={trimAudio}>Trim</button>
-				<button class="text-button" on:click={toggleTrimmingMode}>Cancel</button
-				>
+				<button class="text-button" onclick={trimAudio}>Trim</button>
+				<button class="text-button" onclick={toggleTrimmingMode}>Cancel</button>
 			{/if}
 		{/if}
 	</div>

@@ -16,12 +16,13 @@
 	export let offset = 0;
 	export let label_position: "left" | "right" = "left";
 	export let roundedness: "quite" | "very" = "quite";
+	export let onclick: ((event: MouseEvent) => void) | undefined = undefined;
 	$: _color = highlight ? "var(--color-accent)" : color.toString();
 </script>
 
 <button
 	{disabled}
-	on:click
+	{onclick}
 	aria-label={label}
 	aria-haspopup={hasPopup}
 	title={label}
