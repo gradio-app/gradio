@@ -4,6 +4,7 @@ import { join } from "path";
 import { writeFileSync } from "fs";
 import * as url from "url";
 import { readdirSync, existsSync, readFileSync, statSync } from "fs";
+
 function inject_ejs() {
   return {
     name: "inject-ejs",
@@ -12,14 +13,18 @@ function inject_ejs() {
       const replace_gradio_info_info_html = html.replace(
         /%gradio_api_info%/,
         `<script>window.gradio_api_info = {{ gradio_api_info | toorjson }};</script>`
-      );
-      return replace_gradio_info_info_html.replace(
+      ).replace(
+        /%gradio_import_map%/,
+        `<script type="importmap">{{ gradio_import_map | toorjson }}</script>`
+      ).replace(
         /%gradio_config%/,
         `<script>window.gradio_config = {{ config | toorjson }};</script>`
       );
+      return replace_gradio_info_info_html;
     }
   };
 }
+
 function generate_cdn_entry({
   version,
   cdn_base

@@ -48,7 +48,9 @@ class Server(uvicorn.Server):
         self,
         config: Config,
         reloader: _ServerReloaderT | None = None,
-        watchfn: Callable[[_ServerReloaderT], None] = watchfn,  # ty: ignore[invalid-parameter-default]
+        watchfn: Callable[
+            [_ServerReloaderT], None
+        ] = watchfn,  # ty: ignore[invalid-parameter-default]
     ) -> None:
         self.running_app = config.app
         super().__init__(config)

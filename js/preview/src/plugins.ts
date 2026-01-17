@@ -88,16 +88,14 @@ export function make_gradio_plugin({
 			}
 			if (id === "svelte") {
 				return {
-					id: `../../../../../assets/svelte/svelte_svelte.js`,
+					id: id,
 					external: true
 				};
 			}
 
 			if (id.startsWith("svelte/")) {
-				const subpath = id.slice("svelte/".length);
-
 				return {
-					id: `../../../../../assets/svelte/svelte_${subpath.replace(/\//g, "_")}.js`,
+					id: id,
 					external: true
 				};
 			}

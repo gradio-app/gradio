@@ -33,8 +33,10 @@ import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const svelte = require("svelte/package.json");
 const svelte_exports = Object.keys(svelte.exports)
-	.filter((p) => p.endsWith(".json"))
-	.map((entry) => entry.replace(/^\./, "svelte").split("/").join("_") + ".js");
+	.filter((p) => !p.endsWith(".json"))
+	.map((entry) => `svelte${entry.replace(/^\./, "")}`);
+
+console.log("Svelte exports:", svelte_exports);
 
 export default defineConfig(({ mode, isSsrBuild }) => {
 	const production = mode === "production";
@@ -59,7 +61,10 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 				conditions: ["gradio"]
 			},
 			noExternal: ["@gradio/*", "@huggingface/space-header"],
-			external: mode === "development" ? [] : ["svelte", "svelte/*"]
+			external: svelte_exports
+			// optimizeDeps: {
+			// 	exclude: ["@gradio/*", "/svelte", ...svelte_exports]
+			// }
 		},
 
 		build: {
@@ -103,14 +108,14 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			}
 		},
 		optimizeDeps: {
-			exclude: ["@gradio/*", "/svelte", "/svelte/*"]
+			exclude: ["@gradio/*", "/svelte", ...svelte_exports]
 		},
 		plugins: [
-			inject_svelte_init_code({ mode }),
+			// inject_svelte_init_code({ mode }),
 			sveltekit(),
 
 			inject_component_loader({ mode }),
-			resolve_svelte(mode === "production"),
+			// resolve_svelte(mode === "production")
 			handle_svelte_import({ development: mode === "development" })
 		]
 	};
@@ -129,22 +134,22 @@ function handle_svelte_import({
 				return null;
 			}
 
-			if (!options?.ssr) {
-				if (id === "svelte") {
-					return {
-						id: "../../../svelte/svelte_svelte.js",
-						external: true
-					};
-				}
-				if (id.startsWith("svelte/")) {
-					return {
-						id: `../../../svelte/${id.split("/").join("_")}.js`,
-						external: true
-					};
-				}
-				return null;
+			// if (!options?.ssr) {
+			if (id === "svelte") {
+				return {
+					id,
+					external: true
+				};
 			}
+			if (id.startsWith("svelte/")) {
+				return {
+					id,
+					external: true
+				};
+			}
+			return null;
 		}
+		// }
 	};
 }
 
@@ -191,7 +196,7 @@ function make_init_code(): string {
 			(entry: string) =>
 				`import * as ${entry
 					.replace(/\.js$/, "")
-					.replace(/-/g, "_")
+
 					.replace(/\//g, "_")} from "${entry}";`
 		)
 		.join("\n");

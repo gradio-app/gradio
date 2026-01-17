@@ -11,6 +11,29 @@ interface BuildOptions {
 	python_path: string;
 }
 
+const svelte_imports = [
+	"svelte",
+	"svelte/animate",
+	"svelte/attachments",
+	"svelte/compiler",
+	"svelte/easing",
+	"svelte/events",
+	"svelte/internal/client",
+	"svelte/internal/disclose-version",
+	"svelte/internal/flags/async",
+	"svelte/internal/flags/legacy",
+	"svelte/internal/flags/tracing",
+	"svelte/internal/server",
+	"svelte/internal",
+	"svelte/legacy",
+	"svelte/motion",
+	"svelte/reactivity/window",
+	"svelte/reactivity",
+	"svelte/server",
+	"svelte/store",
+	"svelte/transition"
+];
+
 export async function make_build({
 	component_dir,
 	root_dir,
@@ -42,7 +65,7 @@ export async function make_build({
 					target: []
 				},
 				optimizeDeps: {
-					exclude: ["svelte", "svelte/*"]
+					exclude: svelte_imports
 				}
 			};
 
@@ -79,6 +102,7 @@ export async function make_build({
 						build: {
 							emptyOutDir: true,
 							outDir: join(template_dir, entry as string),
+
 							lib: {
 								entry: join(source_dir, (path as any).gradio),
 								fileName: "index.js",
@@ -86,6 +110,7 @@ export async function make_build({
 							},
 							minify: true,
 							rollupOptions: {
+								external: svelte_imports,
 								output: {
 									assetFileNames: (chunkInfo) => {
 										if (chunkInfo.names[0].endsWith(".css")) {
