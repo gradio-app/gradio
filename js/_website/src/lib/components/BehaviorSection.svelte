@@ -63,7 +63,7 @@
     import gradio as gr 
 
     def predict(text) -> {postprocess.parameter_doc[0].annotation}
-            # process value to return to the AnnotatedImage component
+            # process value to return to the {name} component
         return value
     
     interface = gr.Interface(predict, gr.Textbox(), gr.{name}())
