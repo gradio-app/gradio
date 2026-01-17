@@ -1,9 +1,17 @@
 <script lang="ts">
 	import { style_formatted_text } from "$lib/text";
+	import { browser } from "$app/environment";
+    import Prism from "prismjs";
 
 	export let name = null as any;
 	export let preprocess = null as any;
 	export let postprocess = null as any;
+
+    $: if (browser && name && preprocess && postprocess) {
+		setTimeout(() => {
+			Prism.highlightAll();
+		}, 0);
+	}
 </script>
 
 <p><strong>Using {name} as an input component.</strong></p>
@@ -12,10 +20,9 @@
 
 <p>
 	<span style="font-weight: 500">Type: </span>
-
-	<code class="language-python !bg-transparent">
-		{preprocess.return_doc.annotation}
-	</code>
+    <code class="language-python !bg-transparent">
+        {preprocess.return_doc.annotation}
+    </code>
 </p>
 
 <p>
@@ -26,12 +33,12 @@
 
 <pre class="language-python">
     <code class="language-python">
-    import gradio as gr 
+    import gradio as gr
 
     def predict(
         value: {preprocess.return_doc.annotation}
     ):
-            # process value from the {name} component
+        # process value from the {name} component
         return "prediction"
 
     interface = gr.Interface(predict, gr.{name}(), gr.Textbox())
@@ -60,12 +67,12 @@
 <h5 class="mb-2">Example Code</h5>
 <pre class="language-python">
     <code class="language-python">
-    import gradio as gr 
+    import gradio as gr
 
     def predict(text) -> {postprocess.parameter_doc[0].annotation}
-            # process value to return to the {name} component
+        # process value to return to the {name} component
         return value
-    
+
     interface = gr.Interface(predict, gr.Textbox(), gr.{name}())
     interface.launch()
 </code>
