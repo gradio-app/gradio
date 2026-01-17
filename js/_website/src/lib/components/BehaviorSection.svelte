@@ -50,7 +50,7 @@
 
 <p><strong>Using {name} as an output component</strong></p>
 
-<p>How {name} expects its value from your function:</p>
+<p>How {name} expects you to return a value:</p>
 
 <p>
 	<span style="font-weight: 500">Type: </span>
