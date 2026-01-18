@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 2.0.2
+
+### Fixes
+
+- [#12608](https://github.com/gradio-app/gradio/pull/12608) [`ab20c59`](https://github.com/gradio-app/gradio/commit/ab20c592e1fab33e96ab2698bbbb942d0972501b) - feat(client): add generic type parameter to predict() method.  Thanks @majiayu000!
+
 ## 2.0.1
 
 ### Fixes
