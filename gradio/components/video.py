@@ -252,7 +252,7 @@ class Video(StreamingOutput, Component):
     def postprocess(self, value: str | Path | None) -> FileData | None:
         """
         Parameters:
-            value: Expects a {str} or {pathlib.Path} filepath to a video which is displayed, or a {Tuple[str | pathlib.Path, str | pathlib.Path | None]} where the first element is a filepath to a video and the second element is an optional filepath to a subtitle file.
+            value: Expects one of either: \\n- a {str} or {pathlib.Path} filepath to a video which is displayed \\n- a {Tuple[str | pathlib.Path, str | pathlib.Path | None]} where the first element is a filepath to a video and the second element is an optional filepath to a subtitle file.
         Returns:
             FileData object containing the video file.
         """

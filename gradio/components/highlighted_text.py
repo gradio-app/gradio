@@ -133,7 +133,7 @@ class HighlightedText(Component):
         Parameters:
             payload: An instance of HighlightedTextData
         Returns:
-            Passes the value as a list of tuples as a `list[tuple]` into the function. Each `tuple` consists of a `str` substring of the text (so the entire text is included) and `str | float | None` label, which is the category or confidence of that substring.
+            Passes the value as a list of tuples: `list[tuple]`. Each `tuple` consists of: \\n- a `str` substring of the text (so the entire text is included) \\n- a `str | float | None` label, which is the category or confidence of that substring.
         """
         if payload is None:
             return None
@@ -144,7 +144,7 @@ class HighlightedText(Component):
     ) -> HighlightedTextData | None:
         """
         Parameters:
-            value: Expects a list of (word, category) tuples, or a dictionary of two keys: "text", and "entities", which itself is a list of dictionaries, each of which have the keys: "entity" (or "entity_group"), "start", and "end"
+            value: Expects either of: \\n- a list of (word, category) tuples \\n- a dictionary of two keys: "text", and "entities".  \\n-- "entities" itself is a list of dictionaries, each of which have the keys: "entity" (or "entity_group"), "start", and "end"
         Returns:
             An instance of HighlightedTextData
         """

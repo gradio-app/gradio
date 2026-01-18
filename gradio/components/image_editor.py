@@ -393,7 +393,7 @@ class ImageEditor(Component):
         Parameters:
             payload: An instance of `EditorData` consisting of the background image, layers, and composite image.
         Returns:
-            Passes the uploaded images as an instance of EditorValue, which is just a `dict` with keys: 'background', 'layers', and 'composite'. The values corresponding to 'background' and 'composite' are images, while 'layers' is a `list` of images. The images are of type `PIL.Image`, `np.array`, or `str` filepath, depending on the `type` parameter.
+            Passes the uploaded images as an instance of EditorValue, which is just a `dict` with keys: 'background', 'layers', and 'composite'.  \\n- The values corresponding to 'background' and 'composite' are images \\n- the value corresponding to  'layers' is a `list` of images. \\n Depending on the `type` parameter, the images are of type: \\n- `PIL.Image` \\n- `np.array` \\n- `str` filepath.
         """
         if payload is None:
             return payload
@@ -437,7 +437,7 @@ class ImageEditor(Component):
     def postprocess(self, value: EditorValue | ImageType | None) -> EditorData | None:
         """
         Parameters:
-            value: Expects a EditorValue, which is just a dictionary with keys: 'background', 'layers', and 'composite'. The values corresponding to 'background' and 'composite' should be images or None, while `layers` should be a list of images. Images can be of type `PIL.Image`, `np.array`, or `str` filepath/URL. Or, the value can be simply a single image (`ImageType`), in which case it will be used as the background.
+            value: Expects a EditorValue, which is just a dictionary with keys: 'background', 'layers', and 'composite'. \\n- The values corresponding to 'background' and 'composite' should be images or None \\n- the value corresponding to `layers` should be a list of images. \\n Images can be of type: \\n- `PIL.Image` \\n- `np.array` \\n- `str` filepath/URL \\n Or, the value can be simply a single image (`ImageType`), in which case it will be used as the background.
         Returns:
             An instance of `EditorData` consisting of the background image, layers, and composite image.
         """

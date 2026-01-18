@@ -177,7 +177,7 @@ class NativePlot(Component):
     def postprocess(self, value: pd.DataFrame | dict | None) -> PlotData | None:
         """
         Parameters:
-            value: Expects a pandas DataFrame containing the data to display in the line plot. The DataFrame should contain at least two columns, one for the x-axis (corresponding to this component's `x` argument) and one for the y-axis (corresponding to `y`).
+            value: Expects a pandas DataFrame containing the data to display in the line plot. The DataFrame should contain at least two columns: \\n- one for the x-axis (corresponding to this component's `x` argument) \\n- one for the y-axis (corresponding to `y`).
         Returns:
             The data to display in a line plot, in the form of an AltairPlotData dataclass, which includes the plot information as a JSON string, as well as the type of plot (in this case, "line").
         """
