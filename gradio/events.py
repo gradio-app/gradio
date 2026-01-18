@@ -168,6 +168,7 @@ class EventData:
             textbox.select(on_select, textbox, statement)
         demo.launch()
     Demos: gallery_selections, tictactoe
+    Guides: blocks-and-event-listeners
     """
 
     def __init__(self, target: Block | None, _data: Any):
@@ -315,6 +316,7 @@ class LikeData(EventData):
             c.like(test, c, t)
         demo.launch()
     Demos: chatbot_core_components_simple
+    Guides: chatbot-specific-events
     """
 
     def __init__(self, target: Block | None, data: Any):
@@ -353,6 +355,7 @@ class RetryData(EventData):
             chatbot = gr.Chatbot()
             chatbot.retry(retry, chatbot, chatbot)
         demo.launch()
+    Guides: chatbot-specific-events
     """
 
     def __init__(self, target: Block | None, data: Any):
@@ -416,6 +419,7 @@ class EditData(EventData):
             chatbot = gr.Chatbot()
             chatbot.undo(edit, chatbot, chatbot)
         demo.launch()
+    Guides: chatbot-specific-events
     """
 
     def __init__(self, target: Block | None, data: Any):
@@ -843,6 +847,7 @@ def on(
                 outputs=[output]
             )
         demo.launch()
+    Guides: blocks-and-event-listeners
     """
     from gradio.blocks import Block
 
@@ -996,6 +1001,7 @@ def api(
                 api_name="/add_and_slice"
         )
         print(result)
+    Guides: building-mcp-server-with-gradio
     """
     if fn == "decorator":
 

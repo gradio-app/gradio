@@ -96,7 +96,7 @@ class Examples:
     components. Optionally handles example caching for fast inference.
 
     Demos: calculator_blocks
-    Guides: more-on-examples-and-flagging, using-hugging-face-integrations, image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, create-your-own-friends-with-a-gan
+    Guides: more-on-examples-and-flagging
     """
 
     def __init__(
@@ -703,6 +703,7 @@ class Progress(Iterable):
                 time.sleep(0.1)
             return x
         gr.Interface(my_function, gr.Textbox(), gr.Textbox()).launch()
+    Guides: progress-bars
     """
 
     def __init__(
@@ -1196,6 +1197,7 @@ def Warning(  # noqa: N802
             md = gr.Markdown()
             demo.load(hello_world, inputs=None, outputs=[md])
         demo.launch()
+    Guides: alerts
     """
     log_message(
         message, title=title, level="warning", duration=duration, visible=visible
@@ -1226,6 +1228,7 @@ def Info(  # noqa: N802
             md = gr.Markdown()
             demo.load(hello_world, inputs=None, outputs=[md])
         demo.launch()
+    Guides: alerts
     """
     log_message(message, title=title, level="info", duration=duration, visible=visible)
 

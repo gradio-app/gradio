@@ -65,7 +65,7 @@ class ChatInterface(Blocks):
         demo = gr.ChatInterface(fn=echo, examples=[{"text": "hello", "text": "hola", "text": "merhaba"}], title="Echo Bot")
         demo.launch()
     Demos: chatinterface_random_response, chatinterface_streaming_echo, chatinterface_artifacts
-    Guides: creating-a-chatbot-fast, sharing-your-app
+    Guides: creating-a-chatbot-fast, chatinterface-examples, agents-and-tool-usage, chatbot-specific-events
     """
 
     def __init__(

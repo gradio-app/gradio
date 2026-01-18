@@ -66,6 +66,7 @@ def load(
         import gradio as gr
         demo = gr.load("gradio/question-answering", src="spaces")
         demo.launch()
+    Guides: using-hugging-face-integrations
     """
     if src is None:
         # Separate the repo type (e.g. "model") from repo name (e.g. "google/vit-base-patch16-224")
@@ -846,6 +847,7 @@ def load_chat(
             file_types=["text_encoded", "image"],
             system_message="You are a silly assistant.",
         ).launch()
+    Guides: creating-a-chatbot-fast
     """
     try:
         from openai import OpenAI
