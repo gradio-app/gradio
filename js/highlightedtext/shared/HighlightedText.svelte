@@ -422,14 +422,17 @@
 		padding: 1px 5px;
 		color: var(--color-white);
 		font-weight: var(--weight-bold);
-		font-size: var(--text-sm);
 		text-transform: uppercase;
+		font-size: 70%;
+		vertical-align: middle;
+		bottom: 1px;
+		position: relative;
 	}
 
 	.remove-btn {
 		display: none;
 		position: absolute;
-		top: -6px;
+		top: -8px;
 		right: 0px;
 		width: 14px;
 		height: 14px;
