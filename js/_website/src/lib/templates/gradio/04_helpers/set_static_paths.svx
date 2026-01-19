@@ -10,6 +10,11 @@
     import { style_formatted_text } from "$lib/text";
 
     let obj = get_object("set_static_paths");
+
+    obj.guides = [{
+        "url": "/guides/file-access",
+        "pretty_name": "File Access"
+    }]
 </script>
 
 <!--- Title -->

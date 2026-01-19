@@ -10,6 +10,11 @@
     import { style_formatted_text } from "$lib/text";
 
     let obj = get_object("mount_gradio_app");
+
+    obj.guides = [{
+        "url": "/guides/sharing-your-app",
+        "pretty_name": "Sharing Your App"
+    }]
 </script>
 
 <!--- Title -->

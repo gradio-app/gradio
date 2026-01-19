@@ -10,6 +10,11 @@
     import { style_formatted_text } from "$lib/text";
 
     let obj = get_object("api");
+
+    obj.guides = [{
+        "url": "/guides/building-mcp-server-with-gradio",
+        "pretty_name": "Building MCP Server With Gradio"
+    }]
 </script>
 
 <!--- Title -->

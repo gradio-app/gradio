@@ -10,6 +10,11 @@
     import { style_formatted_text } from "$lib/text";
 
     let obj = get_object("load");
+    
+    obj.guides = [{
+        "url": "/guides/using-hugging-face-integradions",
+        "pretty_name": "Using HuggingFace Integrations"
+    }]
 </script>
 
 <!--- Title -->
