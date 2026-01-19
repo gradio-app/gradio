@@ -2510,7 +2510,6 @@ def mount_gradio_app(
         io = gr.Interface(lambda x: "Hello, " + x + "!", "textbox", "textbox")
         app = gr.mount_gradio_app(app, io, path="/gradio")
         # Then run `uvicorn run:app` from the terminal and navigate to http://localhost:8000/gradio.
-    Guides: sharing-your-app
     """
     if favicon_path is not None and path != "/":
         warnings.warn(

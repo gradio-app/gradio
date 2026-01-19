@@ -847,7 +847,6 @@ def on(
                 outputs=[output]
             )
         demo.launch()
-    Guides: blocks-and-event-listeners
     """
     from gradio.blocks import Block
 
@@ -1001,7 +1000,6 @@ def api(
                 api_name="/add_and_slice"
         )
         print(result)
-    Guides: building-mcp-server-with-gradio
     """
     if fn == "decorator":
 

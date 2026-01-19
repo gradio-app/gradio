@@ -1297,7 +1297,6 @@ def set_static_paths(paths: str | Path | list[str | Path]) -> None:
         )
 
         demo.launch()
-    Guides: file-access
     """
     from gradio.data_classes import _StaticFiles
 

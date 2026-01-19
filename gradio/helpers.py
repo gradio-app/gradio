@@ -1197,7 +1197,6 @@ def Warning(  # noqa: N802
             md = gr.Markdown()
             demo.load(hello_world, inputs=None, outputs=[md])
         demo.launch()
-    Guides: alerts
     """
     log_message(
         message, title=title, level="warning", duration=duration, visible=visible
@@ -1228,7 +1227,6 @@ def Info(  # noqa: N802
             md = gr.Markdown()
             demo.load(hello_world, inputs=None, outputs=[md])
         demo.launch()
-    Guides: alerts
     """
     log_message(message, title=title, level="info", duration=duration, visible=visible)
 
