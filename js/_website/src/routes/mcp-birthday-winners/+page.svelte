@@ -4,6 +4,7 @@
 	import llamaindex_logo from "$lib/assets/img/llamaindex-logo.png";
 	import openai_logo from "$lib/assets/img/openai-logo.png";
 	import blaxel_logo from "$lib/assets/img/blaxel-logo.png";
+	import elevenlabs_logo from "$lib/assets/img/eleven-labs-logo.png";
 	import hf_logo from "$lib/assets/logos/hf-logo.svg";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { page } from "$app/stores";
@@ -659,7 +660,44 @@
 	</a>
 
 	<h1
-		class="mb-8 flex items-center text-xl align-middle font-light text-gray-900 dark:text-gray-100 right-0"
+		class="mb-8 mt-8 flex items-center text-xl align-middle font-light text-gray-900 dark:text-gray-100 right-0"
+	>
+		<img
+			src={elevenlabs_logo}
+			alt="Blaxel Logo"
+			class="w-32 mr-2 dark:invert"
+		/>
+		Category Award <span class="ml-1 font-semibold"> Winner</span>
+	</h1>
+
+	<a
+		href="https://huggingface.co/spaces/MCP-1st-Birthday/Murder.Ai"
+		target="_blank"
+		rel="noopener noreferrer"
+		class="mb-4 flex-grow shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-orange-50 border border-orange-200 dark:bg-gray-800 dark:border-gray-700 px-3 pb-4 lg:pt-6 hover:shadow-alternate shadow-none transition-shadow align-middle lg:flex-[1.4]"
+	>
+		<div class="lg:absolute top-1 right-0 mr-4" style="font-size: 2.5rem;">
+			🏅
+		</div>
+		<div
+			class="relative mb-2 flex items-center text-lg font-semibold text-gray-900 dark:text-gray-100"
+		>
+			<span>Murder.Ai</span>
+		</div>
+		<code class="font-light text-md mb-2 text-gray-500 dark:text-gray-300"
+			>Justxd22</code
+		>
+		<div
+			class="relative pr-4 text-lg font-light text-gray-600 dark:text-gray-200"
+		>
+			Murder.Ai is an immersive, LLM-powered detective game where you
+			interrogate suspects, gather evidence, and solve procedurally generated
+			murder mysteries.
+		</div>
+	</a>
+
+	<h1
+		class="mb-8 mt-8 flex items-center text-xl align-middle font-light text-gray-900 dark:text-gray-100 right-0"
 	>
 		<img src={hf_logo} alt="Hugging Face Logo" class="w-7 mr-2" />
 		Community Choice Award <span class="ml-1 font-semibold"> Winner</span>
