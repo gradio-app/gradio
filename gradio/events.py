@@ -89,9 +89,9 @@ class Dependency(dict):
     data for the event listener, and can be used to set up additional event listeners that depend on the completion of the current event
     listener using .then(), .success(), and .failure().
 
-    Example: 
+    Example:
         import gradio as gr
-        with gr.Blocks() as demo: 
+        with gr.Blocks() as demo:
             first_textbox = gr.Textbox()
             second_textbox = gr.Textbox()
             button = gr.Button("Submit")
@@ -101,6 +101,7 @@ class Dependency(dict):
         demo.launch()
     Demos: chatbot_consecutive, blocks_chained_events
     """
+
     def __init__(
         self,
         trigger,
