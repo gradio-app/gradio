@@ -238,7 +238,8 @@ def organize_docs(d):
                     latest_npm = f" [v{latest_npm}](https://www.npmjs.com/package/@gradio/{js_component})"
                     readme_content = readme_content.split("\n")
                     readme_content = "\n".join([readme_content[0], latest_npm, *readme_content[1:]])
-                except TypeError:
+                except TypeError and KeyError: 
+                    # KeyError because gradio 5 docs still looking for deprecated components
                     pass
 
                 js[js_component] = readme_content
