@@ -77,6 +77,7 @@
 	let can_scroll: boolean;
 	let previous_scroll_top = 0;
 	let user_has_scrolled_up = false;
+	let show_fade = false;
 	export let dragging = false;
 	let uploading = false;
 	// value can be null in multimodalchatinterface when loading a deep link
@@ -109,6 +110,17 @@
 
 	$: if (value === null) value = { text: "", files: [] };
 	$: (value, el && lines !== max_lines && resize(el, lines, max_lines));
+
+	function update_fade(): void {
+		if (!el) return;
+		const has_overflow = el.scrollHeight > el.clientHeight;
+		const at_bottom = el.scrollTop >= el.scrollHeight - el.clientHeight - 1;
+		show_fade = has_overflow && !at_bottom;
+	}
+
+	$: if (el && value.text !== undefined) {
+		tick().then(update_fade);
+	}
 
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
@@ -206,6 +218,7 @@
 		if (user_has_scrolled_to_bottom) {
 			user_has_scrolled_up = false;
 		}
+		update_fade();
 	}
 
 	async function handle_upload({
@@ -507,15 +520,16 @@
 						<Paperclip />
 					</button>
 				{/if}
-				<textarea
-					data-testid="textbox"
+				<div class="textarea-wrapper">
+					<textarea
+						data-testid="textbox"
 					use:text_area_resize={{
 						text: value.text,
 						lines: lines,
 						max_lines: max_lines
 					}}
-					class:no-label={!show_label}
-					dir={rtl ? "rtl" : "ltr"}
+						class:no-label={!show_label}
+						dir={rtl ? "rtl" : "ltr"}
 					bind:value={value.text}
 					bind:this={el}
 					{placeholder}
@@ -534,8 +548,12 @@
 					autocomplete={html_attributes?.autocomplete}
 					tabindex={html_attributes?.tabindex}
 					enterkeyhint={html_attributes?.enterkeyhint}
-					lang={html_attributes?.lang}
-				/>
+						lang={html_attributes?.lang}
+					/>
+					{#if show_fade}
+						<div class="scroll-fade"></div>
+					{/if}
+				</div>
 
 				{#if sources && sources.includes("microphone")}
 					<button
@@ -763,6 +781,7 @@
 	textarea[dir="rtl"] ~ .submit-button :global(svg) {
 		transform: scaleX(-1);
 	}
+
 
 	.microphone-button,
 	.icon-button {
@@ -1012,5 +1031,25 @@
 		.thumbnail-item:active .delete-button {
 			opacity: 1;
 		}
+	}
+
+	.textarea-wrapper {
+		position: relative;
+		flex-grow: 1;
+	}
+
+	.textarea-wrapper textarea {
+		width: 100%;
+	}
+
+	.scroll-fade {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		height: 40px;
+		background: linear-gradient(to top, var(--block-background-fill) 20%, transparent);
+		pointer-events: none;
+		z-index: var(--layer-2);
 	}
 </style>
