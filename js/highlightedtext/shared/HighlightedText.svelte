@@ -435,7 +435,7 @@
 		height: 14px;
 		border: none;
 		border-radius: 50%;
-		background: var(--color-red-400);
+		background: var(--neutral-400);
 		color: white;
 		font-size: 10px;
 		line-height: 1;
@@ -444,13 +444,22 @@
 		align-items: center;
 	}
 
+	:global(.dark) .remove-btn {
+		background: var(--neutral-500);
+		color: var(--neutral-950);
+	}
+
 	.remove-btn :global(svg) {
 		width: var(--size-2);
 		height: var(--size-2);
 	}
 
 	.remove-btn:hover {
-		background: var(--color-red-500);
+		background: var(--neutral-500);
+	}
+
+	:global(.dark) .remove-btn:hover {
+		background: var(--neutral-400);
 	}
 
 	.token-container:hover .remove-btn,
