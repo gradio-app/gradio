@@ -12,7 +12,7 @@
     let obj = get_object("load");
     
     obj.guides = [{
-        "url": "/guides/using-hugging-face-integradions",
+        "url": "/guides/using-hugging-face-integrations",
         "pretty_name": "Using HuggingFace Integrations"
     }]
 </script>
