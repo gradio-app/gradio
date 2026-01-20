@@ -4,16 +4,39 @@
 </script>
 
 <script lang="ts">
-	import { Gradio } from "@gradio/utils";
+	import { tick } from "svelte";
+	import { Gradio, should_show_scroll_fade } from "@gradio/utils";
 	import Markdown from "./shared/Markdown.svelte";
 
 	import { StatusTracker } from "@gradio/statustracker";
-	import { Block } from "@gradio/atoms";
+	import { Block, ScrollFade } from "@gradio/atoms";
 
 	import type { MarkdownProps, MarkdownEvents } from "./types";
 
 	let props = $props();
 	const gradio = new Gradio<MarkdownEvents, MarkdownProps>(props);
+
+	let wrapper: HTMLDivElement;
+	let show_fade = $state(false);
+
+	function update_fade(): void {
+		if (!gradio.props.height) return;
+		show_fade = should_show_scroll_fade(
+			wrapper?.closest(".block") as HTMLElement | null,
+		);
+	}
+
+	$effect(() => {
+		const container = wrapper?.closest(".block") as HTMLElement | null;
+		if (!container || !gradio.props.height) return;
+		container.addEventListener("scroll", update_fade);
+		tick().then(update_fade);
+		return () => container.removeEventListener("scroll", update_fade);
+	});
+
+	$effect(() => {
+		if (gradio.props.value !== undefined) tick().then(update_fade);
+	});
 </script>
 
 <Block
@@ -37,6 +60,7 @@
 			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 	<div
+		bind:this={wrapper}
 		class:padding={gradio.props.padding}
 		class:pending={gradio.shared.loading_status?.status === "pending"}
 	>
@@ -56,6 +80,7 @@
 			theme_mode={gradio.shared.theme_mode}
 		/>
 	</div>
+	<ScrollFade visible={show_fade} />
 </Block>
 
 <style>

@@ -4,10 +4,10 @@
 		beforeUpdate,
 		afterUpdate,
 		createEventDispatcher,
-		tick
+		tick,
 	} from "svelte";
 	import { text_area_resize, resize } from "../shared/utils";
-	import { BlockTitle } from "@gradio/atoms";
+	import { BlockTitle, ScrollFade } from "@gradio/atoms";
 	import { Upload } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
@@ -22,19 +22,19 @@
 		ArrowUp,
 		Square,
 		Microphone,
-		Check
+		Check,
 	} from "@gradio/icons";
-	import type { SelectData } from "@gradio/utils";
+	import { should_show_scroll_fade, type SelectData } from "@gradio/utils";
 	import { BaseInteractiveAudio as InteractiveAudio } from "@gradio/audio";
 	import {
 		MinimalAudioPlayer,
-		MinimalAudioRecorder
+		MinimalAudioRecorder,
 	} from "@gradio/audio/shared";
 	import type { InputHTMLAttributes } from "./types";
 
 	export let value: { text: string; files: FileData[] } = {
 		text: "",
-		files: []
+		files: [],
 	};
 
 	export let value_is_output = false;
@@ -61,7 +61,7 @@
 	export let max_plain_text_length = 1000;
 	export let waveform_settings: Record<string, any>;
 	export let waveform_options: WaveformOptions = {
-		show_recording_waveform: true
+		show_recording_waveform: true,
 	};
 	export let sources_string:
 		| "upload"
@@ -112,10 +112,7 @@
 	$: (value, el && lines !== max_lines && resize(el, lines, max_lines));
 
 	function update_fade(): void {
-		if (!el) return;
-		const has_overflow = el.scrollHeight > el.clientHeight;
-		const at_bottom = el.scrollTop >= el.scrollHeight - el.clientHeight - 1;
-		show_fade = has_overflow && !at_bottom;
+		show_fade = should_show_scroll_fade(el);
 	}
 
 	$: if (el && value.text !== undefined) {
@@ -181,7 +178,7 @@
 		const text = target.value;
 		const index: [number, number] = [
 			target.selectionStart as number,
-			target.selectionEnd as number
+			target.selectionEnd as number,
 		];
 		dispatch("select", { value: text.substring(...index), index: index });
 	}
@@ -222,7 +219,7 @@
 	}
 
 	async function handle_upload({
-		detail
+		detail,
 	}: CustomEvent<FileData>): Promise<void> {
 		handle_change();
 		if (Array.isArray(detail)) {
@@ -278,7 +275,7 @@
 			event.preventDefault();
 			const file = new window.File([text], "pasted_text.txt", {
 				type: "text/plain",
-				lastModified: Date.now()
+				lastModified: Date.now(),
 			});
 			if (upload_component) {
 				upload_component.load_files([file]);
@@ -334,7 +331,7 @@
 				if (invalid_files > 0) {
 					dispatch(
 						"error",
-						`${invalid_files} file(s) were rejected. Accepted formats: ${file_types.join(", ")}`
+						`${invalid_files} file(s) were rejected. Accepted formats: ${file_types.join(", ")}`,
 					);
 				}
 
@@ -482,7 +479,7 @@
 											title: null,
 											alt: "",
 											loading: "lazy",
-											class: "thumbnail-image"
+											class: "thumbnail-image",
 										}}
 									/>
 								{:else if file.mime_type && file.mime_type.includes("audio")}
@@ -523,36 +520,34 @@
 				<div class="textarea-wrapper">
 					<textarea
 						data-testid="textbox"
-					use:text_area_resize={{
-						text: value.text,
-						lines: lines,
-						max_lines: max_lines
-					}}
+						use:text_area_resize={{
+							text: value.text,
+							lines: lines,
+							max_lines: max_lines,
+						}}
 						class:no-label={!show_label}
 						dir={rtl ? "rtl" : "ltr"}
-					bind:value={value.text}
-					bind:this={el}
-					{placeholder}
-					rows={lines}
-					{disabled}
-					on:keypress={handle_keypress}
-					on:blur
-					on:select={handle_select}
-					on:focus
-					on:scroll={handle_scroll}
-					on:paste={handle_paste}
-					style={text_align ? "text-align: " + text_align : ""}
-					autocapitalize={html_attributes?.autocapitalize}
-					autocorrect={html_attributes?.autocorrect}
-					spellcheck={html_attributes?.spellcheck}
-					autocomplete={html_attributes?.autocomplete}
-					tabindex={html_attributes?.tabindex}
-					enterkeyhint={html_attributes?.enterkeyhint}
+						bind:value={value.text}
+						bind:this={el}
+						{placeholder}
+						rows={lines}
+						{disabled}
+						on:keypress={handle_keypress}
+						on:blur
+						on:select={handle_select}
+						on:focus
+						on:scroll={handle_scroll}
+						on:paste={handle_paste}
+						style={text_align ? "text-align: " + text_align : ""}
+						autocapitalize={html_attributes?.autocapitalize}
+						autocorrect={html_attributes?.autocorrect}
+						spellcheck={html_attributes?.spellcheck}
+						autocomplete={html_attributes?.autocomplete}
+						tabindex={html_attributes?.tabindex}
+						enterkeyhint={html_attributes?.enterkeyhint}
 						lang={html_attributes?.lang}
 					/>
-					{#if show_fade}
-						<div class="scroll-fade"></div>
-					{/if}
+					<ScrollFade visible={show_fade} position="absolute" />
 				</div>
 
 				{#if sources && sources.includes("microphone")}
@@ -781,7 +776,6 @@
 	textarea[dir="rtl"] ~ .submit-button :global(svg) {
 		transform: scaleX(-1);
 	}
-
 
 	.microphone-button,
 	.icon-button {
@@ -1040,16 +1034,5 @@
 
 	.textarea-wrapper textarea {
 		width: 100%;
-	}
-
-	.scroll-fade {
-		position: absolute;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		height: 40px;
-		background: linear-gradient(to top, var(--block-background-fill) 20%, transparent);
-		pointer-events: none;
-		z-index: var(--layer-2);
 	}
 </style>
