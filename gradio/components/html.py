@@ -40,7 +40,7 @@ class HTML(Component):
         demo.launch()
         ```
     Demos: super_html
-    Guides: custom_HTML
+    Guides: custom-HTML-components, custom-CSS-and-JS
     """
 
     EVENTS = all_events

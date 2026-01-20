@@ -234,6 +234,7 @@ class BarPlot(NativePlot):
     Creates a bar plot component to display data from a pandas DataFrame.
 
     Demos: bar_plot_demo
+    Guides: creating-plots, time-plots
     """
 
     def get_block_name(self) -> str:
@@ -249,6 +250,7 @@ class LinePlot(NativePlot):
     Creates a line plot component to display data from a pandas DataFrame.
 
     Demos: line_plot_demo
+    Guides: creating-plots, connecting-to-a-database
     """
 
     def get_block_name(self) -> str:
@@ -264,6 +266,7 @@ class ScatterPlot(NativePlot):
     Creates a scatter plot component to display data from a pandas DataFrame.
 
     Demos: scatter_plot_demo
+    Guides: creating-plots
     """
 
     def get_block_name(self) -> str:

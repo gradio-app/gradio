@@ -24,7 +24,7 @@ class State(Component):
     Special hidden component that stores session state across runs of the demo by the
     same user. Can attach .change listeners that trigger when the state changes.
     Demos: interface_state, blocks_simple_squares, state_cleanup
-    Guides: real-time-speech-recognition
+    Guides: interface-state, state-in-blocks
     """
 
     allow_string_shortcut = False
