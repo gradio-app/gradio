@@ -128,7 +128,7 @@
 			onselect={(e) => gradio.dispatch("select", e)}
 			onshare={(e) => gradio.dispatch("share", e.detail)}
 			onerror={(e) => gradio.dispatch("error", e.detail)}
-			oonpreview_open={() => {
+			onpreview_open={() => {
 				gradio.dispatch("preview_open");
 			}}
 			onpreview_close={() => gradio.dispatch("preview_close")}
