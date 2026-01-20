@@ -205,7 +205,6 @@
 	}
 
 	function on_keydown(e: KeyboardEvent): void {
-		console.log("e.code", e.code);
 		switch (e.code) {
 			case "Escape":
 				e.preventDefault();
