@@ -3,6 +3,16 @@ import type { Client } from "@gradio/client";
 import type { ComponentType, SvelteComponent } from "svelte";
 import { getContext, tick, untrack } from "svelte";
 import type { Component } from "svelte";
+import { locale } from "svelte-i18n";
+
+const I18N_MARKER = "__i18n__";
+const TRANSLATABLE_PROPS = [
+	"label",
+	"info",
+	"placeholder",
+	"description",
+	"title"
+];
 
 export interface SharedProps {
 	elem_id?: string;
@@ -302,6 +312,11 @@ export const allowed_shared_props: (keyof SharedProps)[] = [
 ] as const;
 
 export type I18nFormatter = any;
+
+function has_i18n_marker(value: unknown): value is string {
+	return typeof value === "string" && value.includes(I18N_MARKER);
+}
+
 export class Gradio<T extends object = {}, U extends object = {}> {
 	load_component: load_component;
 	shared: SharedProps = $state<SharedProps>({} as SharedProps) as SharedProps;
@@ -310,6 +325,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	dispatcher!: Function;
 	last_update: ReturnType<typeof tick> | null = null;
 	shared_props: (keyof SharedProps)[] = allowed_shared_props;
+	i18n_originals: Record<string, string> = {};
 
 	constructor(
 		_props: { shared_props: SharedProps; props: U },
@@ -335,6 +351,9 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		}
 		// @ts-ignore same here
 		this.i18n = this.props.i18n;
+
+		// Store originals and translate props with i18n markers
+		this.#store_and_translate_i18n_props(_props);
 
 		this.load_component = this.shared.load_component;
 
@@ -380,6 +399,49 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 				this.shared.id = _props.shared_props.id;
 			});
 		});
+
+		if (Object.keys(this.i18n_originals).length > 0) {
+			locale.subscribe(() => {
+				this.#retranslate_i18n_props();
+			});
+		}
+	}
+
+	#store_and_translate_i18n_props(_props: {
+		shared_props: SharedProps;
+		props: U;
+	}): void {
+		for (const key of TRANSLATABLE_PROPS) {
+			const value = _props.shared_props[key as keyof SharedProps];
+			if (has_i18n_marker(value)) {
+				this.i18n_originals[`shared.${key}`] = value;
+				// @ts-ignore
+				this.shared[key] = this.i18n(value);
+			}
+		}
+
+		for (const key of TRANSLATABLE_PROPS) {
+			const value = _props.props[key as keyof U];
+			if (has_i18n_marker(value)) {
+				this.i18n_originals[`props.${key}`] = value;
+				// @ts-ignore
+				this.props[key] = this.i18n(value);
+			}
+		}
+	}
+
+	#retranslate_i18n_props(): void {
+		for (const fullKey of Object.keys(this.i18n_originals)) {
+			const original = this.i18n_originals[fullKey];
+			const [target, key] = fullKey.split(".");
+			if (target === "shared") {
+				// @ts-ignore
+				this.shared[key] = this.i18n(original);
+			} else {
+				// @ts-ignore
+				this.props[key] = this.i18n(original);
+			}
+		}
 	}
 
 	dispatch<E extends keyof T>(event_name: E, data?: T[E]): void {

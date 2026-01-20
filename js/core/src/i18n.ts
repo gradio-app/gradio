@@ -183,11 +183,16 @@ export async function setupi18n(
 		return;
 	}
 
-	previous_translations = custom_translations;
+	const translations_to_use =
+		custom_translations ?? previous_translations ?? {};
+
+	if (custom_translations !== undefined) {
+		previous_translations = custom_translations;
+	}
 
 	load_translations({
 		processed_langs,
-		custom_translations: custom_translations ?? {}
+		custom_translations: translations_to_use
 	});
 
 	let initial_locale: string | null = null;
