@@ -591,7 +591,7 @@ importers:
         specifier: ^7.0.0
         version: 7.0.0(@sveltejs/kit@2.50.0(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.47.1)(vite@7.3.1(@types/node@24.10.9)(jiti@1.21.7)(lightningcss@1.31.0)(sass@1.97.2)(stylus@0.64.0)(terser@5.46.0)))(svelte@5.47.1)(typescript@5.9.3)(vite@7.3.1(@types/node@24.10.9)(jiti@1.21.7)(lightningcss@1.31.0)(sass@1.97.2)(stylus@0.64.0)(terser@5.46.0)))
       '@sveltejs/kit':
-        specifier: ^2.48.3
+        specifier: ^2.49.5
         version: 2.50.0(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.47.1)(vite@7.3.1(@types/node@24.10.9)(jiti@1.21.7)(lightningcss@1.31.0)(sass@1.97.2)(stylus@0.64.0)(terser@5.46.0)))(svelte@5.47.1)(typescript@5.9.3)(vite@7.3.1(@types/node@24.10.9)(jiti@1.21.7)(lightningcss@1.31.0)(sass@1.97.2)(stylus@0.64.0)(terser@5.46.0))
       '@sveltejs/vite-plugin-svelte':
         specifier: ^6.2.1
