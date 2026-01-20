@@ -2,8 +2,10 @@
 	import type { HTMLAnchorAttributes } from "svelte/elements";
 	import { createEventDispatcher } from "svelte";
 
-	interface DownloadLinkAttributes
-		extends Omit<HTMLAnchorAttributes, "target"> {
+	interface DownloadLinkAttributes extends Omit<
+		HTMLAnchorAttributes,
+		"target"
+	> {
 		download: NonNullable<HTMLAnchorAttributes["download"]>;
 	}
 	type $$Props = DownloadLinkAttributes;
