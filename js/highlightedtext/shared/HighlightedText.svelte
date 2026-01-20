@@ -258,7 +258,7 @@
 						</span>
 					{/if}
 					{#if j < lines.length - 1}
-						<br />
+						<span class="line-break"></span>
 					{/if}
 				{/each}
 			{/each}
@@ -384,6 +384,11 @@
 		flex-wrap: wrap;
 		line-height: var(--scale-4);
 		word-break: break-all;
+	}
+
+	.line-break {
+		flex-basis: 100%;
+		height: 0;
 	}
 
 	.token-container {
