@@ -405,14 +405,15 @@
 	.token.highlighted.transparent {
 		padding: var(--size-0-5) var(--size-0-5);
 		margin: 0;
+		outline: 1px solid transparent;
 	}
 
 	.token.highlighted.transparent:hover {
-		outline: 1px solid var(--neutral-400);
+		outline-color: var(--neutral-400);
 	}
 
 	:global(.dark) .token.highlighted.transparent:hover {
-		outline: 1px solid var(--neutral-500);
+		outline-color: var(--neutral-500);
 	}
 
 	.token.dimmed {
