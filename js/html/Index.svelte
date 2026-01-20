@@ -19,7 +19,7 @@
 		value: gradio.props.value || "",
 		label: gradio.shared.label,
 		visible: gradio.shared.visible,
-		...gradio.props.props
+		...gradio.props.props,
 	});
 
 	let old_value = $state(gradio.props.value);
@@ -36,7 +36,6 @@
 	elem_id={gradio.shared.elem_id}
 	elem_classes={gradio.shared.elem_classes}
 	container={gradio.shared.container}
-	padding={true}
 	overflow_behavior="visible"
 >
 	{#if gradio.shared.show_label && gradio.props.buttons && gradio.props.buttons.length > 0}
@@ -52,7 +51,7 @@
 			Icon={CodeIcon}
 			show_label={gradio.shared.show_label}
 			label={gradio.shared.label}
-			float={false}
+			float={true}
 		/>
 	{/if}
 
@@ -65,7 +64,6 @@
 	/>
 	<div
 		class="html-container"
-		class:padding={gradio.shared.padding}
 		class:pending={gradio.shared.loading_status?.status === "pending" &&
 			gradio.shared.loading_status?.show_progress !== "hidden"}
 		style:min-height={gradio.props.min_height &&
@@ -75,6 +73,7 @@
 		style:max-height={gradio.props.max_height
 			? css_units(gradio.props.max_height)
 			: undefined}
+		style:overflow-y={gradio.props.max_height ? "auto" : undefined}
 	>
 		<HTML
 			props={_props}
@@ -103,7 +102,7 @@
 </Block>
 
 <style>
-	.padding {
+	.html-container {
 		padding: var(--block-padding);
 	}
 
