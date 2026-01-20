@@ -1,6 +1,6 @@
 ---
-"gradio": minor
-"website": minor
+"gradio": patch
+"website": patch
 ---
 
-feat:Add better related guides section to docs
+fix:Add better related guides section to docs
