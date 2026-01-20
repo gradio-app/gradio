@@ -59,6 +59,8 @@ class NativePlot(Component):
         y_lim: list[float | None] = None,
         x_label_angle: float = 0,
         y_label_angle: float = 0,
+        x_axis_format: str | None = None,
+        y_axis_format: str | None = None,
         x_axis_labels_visible: bool | Literal["hidden"] = True,
         caption: str | I18nData | None = None,
         sort: Literal["x", "y", "-x", "-y"] | list[str] | None = None,
@@ -98,6 +100,8 @@ class NativePlot(Component):
             y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max]. To fix only one of these values, set the other to None, e.g. [0, None] to scale from 0 to the maximum to value.
             x_label_angle: The angle of the x-axis labels in degrees offset clockwise.
             y_label_angle: The angle of the y-axis labels in degrees offset clockwise.
+            x_axis_format: A d3 format string for the x-axis labels (e.g., ".2e" for scientific notation, "~g" for general format). By default, uses "~g" for quantitative axes which automatically chooses between fixed and exponential notation.
+            y_axis_format: A d3 format string for the y-axis labels (e.g., ".2e" for scientific notation, "~g" for general format). By default, uses "~g" for quantitative axes which automatically chooses between fixed and exponential notation.
             x_axis_labels_visible: Whether the x-axis labels should be visible. Can be hidden when many x-axis labels are present.
             caption: The (optional) caption to display below the plot.
             sort: The sorting order of the x values, if x column is type string/category. Can be "x", "y", "-x", "-y", or list of strings that represent the order of the categories.
@@ -132,6 +136,8 @@ class NativePlot(Component):
         self.y_lim = y_lim
         self.x_label_angle = x_label_angle
         self.y_label_angle = y_label_angle
+        self.x_axis_format = x_axis_format
+        self.y_axis_format = y_axis_format
         self.x_axis_labels_visible = x_axis_labels_visible
         self.caption = caption
         self.sort = sort
