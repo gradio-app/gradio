@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, untrack } from "svelte";
 	import { Music } from "@gradio/icons";
 	import { format_time, type I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
@@ -100,7 +100,6 @@
 			container: container,
 			...waveform_settings
 		});
-
 		if (subtitles && waveform) {
 			if (subtitles_toggle) {
 				add_subtitles_to_waveform(waveform, subtitles);
@@ -109,10 +108,9 @@
 			}
 		}
 
-		if (value?.url && waveform) {
-			waveform.load(value?.url);
-		}
-
+		waveform?.on("init", () => {
+			waveform_ready = true;
+		});
 		waveform?.on("decode", (duration: any) => {
 			audio_duration = duration;
 			durationRef && (durationRef.textContent = format_time(duration));
@@ -137,7 +135,6 @@
 		});
 
 		waveform?.on("ready", () => {
-			waveform_ready = true;
 			if (!waveform_settings.autoplay) {
 				waveform?.stop();
 			} else {
@@ -168,12 +165,16 @@
 	};
 
 	$effect(() => {
-		if (use_waveform && container !== undefined && container !== null && url) {
-			if (waveform !== undefined) waveform.destroy();
-			container.innerHTML = "";
-			waveform_ready = false;
-			create_waveform();
-			playing = false;
+		if (url && waveform_ready) {
+			untrack(() => {
+				if (value?.url && waveform) {
+					waveform.load(value.url).catch((e) => {
+						if (e.name !== "AbortError") {
+							console.error("Waveform load error:", e);
+						}
+					});
+				}
+			});
 		}
 	});
 
@@ -272,7 +273,8 @@
 	});
 
 	onMount(() => {
-		window.addEventListener("keydown", (e) => {
+		create_waveform();
+		const handleKeydown = (e: KeyboardEvent): void => {
 			if (!waveform || show_volume_slider) return;
 
 			const is_focused_in_waveform =
@@ -284,7 +286,13 @@
 			} else if (e.key === "ArrowLeft" && mode !== "edit") {
 				skip_audio(waveform, -0.1);
 			}
-		});
+		};
+		window.addEventListener("keydown", handleKeydown);
+
+		return () => {
+			waveform?.destroy();
+			window.removeEventListener("keydown", handleKeydown);
+		};
 	});
 
 	async function add_subtitles_to_waveform(

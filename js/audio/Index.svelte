@@ -1,11 +1,9 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
-	import { tick } from "svelte";
+	import { onMount, tick } from "svelte";
 	import { Gradio } from "@gradio/utils";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
-	import { onMount } from "svelte";
 
 	import StaticAudio from "./static/StaticAudio.svelte";
 	import InteractiveAudio from "./interactive/InteractiveAudio.svelte";
@@ -36,7 +34,6 @@
 		(props as any).minimal ?? (gradio.props as any).minimal ?? false
 	);
 
-	// let uploading = $state(false);
 	let active_source = $derived.by(() =>
 		gradio.props.sources ? gradio.props.sources[0] : null
 	);
@@ -51,13 +48,8 @@
 
 	let dragging = $state(false);
 	let recording = $state(gradio.props.recording ?? false);
-	let playback_position = $state(gradio.props.playback_position ?? 0);
-
 	$effect(() => {
 		gradio.props.recording = recording;
-	});
-	$effect(() => {
-		gradio.props.playback_position = playback_position;
 	});
 
 	let color_accent = "darkorange";
@@ -73,10 +65,11 @@
 		dragToSeek: true,
 		normalize: true,
 		minPxPerSec: 20,
-		waveColor: "",
-		progressColor: "",
-		mediaControls: false,
-		sampleRate: 44100
+		waveColor: gradio.props.waveform_options.waveform_color || "#9ca3af",
+		progressColor:
+			gradio.props.waveform_options.waveform_progress_color || color_accent,
+		mediaControls: gradio.props.waveform_options.show_controls ?? false,
+		sampleRate: gradio.props.waveform_options.sample_rate || 44100
 	});
 
 	const trim_region_settings = {
@@ -112,18 +105,7 @@
 	});
 
 	onMount(() => {
-		color_accent = getComputedStyle(document?.documentElement).getPropertyValue(
-			"--color-accent"
-		);
 		set_trim_region_colour();
-		waveform_settings.waveColor =
-			gradio.props.waveform_options.waveform_color || "#9ca3af";
-		waveform_settings.progressColor =
-			gradio.props.waveform_options.waveform_progress_color || color_accent;
-		waveform_settings.mediaControls =
-			gradio.props.waveform_options.show_controls ?? false;
-		waveform_settings.sampleRate =
-			gradio.props.waveform_options.sample_rate || 44100;
 	});
 </script>
 
@@ -163,7 +145,7 @@
 			on_custom_button_click={(id) => {
 				gradio.dispatch("custom_button_click", { id });
 			}}
-			bind:playback_position
+			bind:playback_position={gradio.props.playback_position}
 			onshare={(detail) => gradio.dispatch("share", detail)}
 			onerror={(e) => gradio.dispatch("error", e.detail)}
 			onplay={() => gradio.dispatch("play")}
@@ -221,7 +203,7 @@
 			{handle_reset_value}
 			editable={gradio.props.editable}
 			bind:dragging
-			bind:playback_position
+			bind:playback_position={gradio.props.playback_position}
 			onedit={() => gradio.dispatch("edit")}
 			onplay={() => gradio.dispatch("play")}
 			onpause={() => gradio.dispatch("pause")}
