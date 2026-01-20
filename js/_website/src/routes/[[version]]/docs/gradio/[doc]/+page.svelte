@@ -274,4 +274,7 @@
 	.sub-link {
 		border-color: #f3f4f6 !important;
 	}
+	:global(.embedded-component) {
+		display: none;
+	}
 </style>
