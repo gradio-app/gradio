@@ -128,7 +128,7 @@
 			</nav>
 		</div>
 	{/if}
-	<main class="fillable" class:fill_width class:app={!display && !is_embed}>
+	<div class="main fillable" class:fill_width class:app={!display && !is_embed}>
 		<slot />
 		<div>
 			{#if display && space && info}
@@ -153,7 +153,7 @@
 				</div>
 			{/if}
 		</div>
-	</main>
+	</div>
 </div>
 
 <style>
@@ -201,11 +201,11 @@
 		padding-bottom: var(--size-7);
 	}
 
-	.embed-container > main {
+	.embed-container > .main {
 		padding: var(--size-4);
 	}
 
-	main {
+	.main {
 		display: flex;
 		flex-grow: 1;
 		flex-direction: column;
@@ -327,7 +327,7 @@
 		height: 12px;
 	}
 
-	main a:hover {
+	.main a:hover {
 		text-decoration: underline;
 	}
 </style>
