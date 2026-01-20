@@ -18,6 +18,7 @@
 "@gradio/simpleimage": patch
 "@gradio/upload": patch
 "@gradio/video": patch
+"@self/app": patch
 "gradio": patch
 ---
 
