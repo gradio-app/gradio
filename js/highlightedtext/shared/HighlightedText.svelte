@@ -6,6 +6,7 @@
 		generate_color_map,
 		merge_elements,
 		get_score_color,
+		is_transparent,
 		type HighlightedToken,
 		type ColorPair
 	} from "./utils";
@@ -147,6 +148,11 @@
 		if (active_legend && active_legend !== class_or_confidence) return "";
 		return resolved_color_map[class_or_confidence]?.primary ?? "";
 	}
+
+	function get_text_color(class_or_confidence: string | number | null): string {
+		const bg = get_background_color(class_or_confidence);
+		return is_transparent(bg) ? "" : "black";
+	}
 </script>
 
 <div class="container">
@@ -173,25 +179,26 @@
 				{@const lines = token.split("\n")}
 				{#each lines as line, j}
 					{#if line.trim()}
+						{@const bg_color = get_background_color(class_or_confidence)}
 						<span class="token-container">
 							<span
 								class="token"
 								class:highlighted={class_or_confidence !== null}
+								class:transparent={class_or_confidence !== null &&
+									is_transparent(bg_color)}
 								class:dimmed={active_legend &&
 									active_legend !== class_or_confidence}
-								style:background-color={get_background_color(
-									class_or_confidence
-								)}
-								role={interactive ? "button" : undefined}
-								tabindex={interactive ? 0 : undefined}
+								style:background-color={bg_color}
+								style:color={get_text_color(class_or_confidence)}
+								role={class_or_confidence !== null ? "button" : undefined}
+								tabindex={class_or_confidence !== null ? 0 : undefined}
 								onclick={() => {
+									if (class_or_confidence === null) return;
 									if (interactive) {
-										if (class_or_confidence !== null) {
-											onselect?.({
-												index: i,
-												value: [token, class_or_confidence]
-											});
-										}
+										onselect?.({
+											index: i,
+											value: [token, class_or_confidence]
+										});
 										label_to_edit = i;
 									} else {
 										onselect?.({
@@ -251,7 +258,7 @@
 						</span>
 					{/if}
 					{#if j < lines.length - 1}
-						<br />
+						<span class="line-break"></span>
 					{/if}
 				{/each}
 			{/each}
@@ -274,14 +281,34 @@
 				<span class="token-container">
 					<span
 						class="token score-token"
+						class:highlighted={score !== null}
 						style:background-color={get_score_color(score)}
-						role={interactive ? "button" : undefined}
-						tabindex={interactive ? 0 : undefined}
+						role="button"
+						tabindex={0}
 						onmouseenter={() => (active_element_index = i)}
 						onfocus={() => (active_element_index = i)}
-						onclick={() => interactive && (label_to_edit = i)}
-						onkeydown={(e) =>
-							interactive && e.key === "Enter" && (label_to_edit = i)}
+						onclick={() => {
+							if (interactive) {
+								label_to_edit = i;
+							} else {
+								onselect?.({
+									index: i,
+									value: [token, class_or_confidence]
+								});
+							}
+						}}
+						onkeydown={(e) => {
+							if (e.key === "Enter") {
+								if (interactive) {
+									label_to_edit = i;
+								} else {
+									onselect?.({
+										index: i,
+										value: [token, class_or_confidence]
+									});
+								}
+							}
+						}}
 					>
 						<span class="text">{token}</span>
 
@@ -353,8 +380,15 @@
 	}
 
 	.textfield {
+		display: flex;
+		flex-wrap: wrap;
 		line-height: var(--scale-4);
 		word-break: break-all;
+	}
+
+	.line-break {
+		flex-basis: 100%;
+		height: 0;
 	}
 
 	.token-container {
@@ -364,13 +398,27 @@
 	.token {
 		transition: 150ms;
 		border-radius: var(--radius-xs);
-		padding: 2.5px var(--size-1) 3.5px;
-		color: black;
 	}
 
 	.token.highlighted {
+		cursor: pointer;
+		padding: var(--size-0-5) var(--size-1);
 		margin-left: var(--size-1);
 		margin-right: var(--size-2);
+	}
+
+	.token.highlighted.transparent {
+		padding: var(--size-0-5) var(--size-0-5);
+		margin: 0;
+		outline: 1px solid transparent;
+	}
+
+	.token.highlighted.transparent:hover {
+		outline-color: var(--neutral-400);
+	}
+
+	:global(.dark) .token.highlighted.transparent:hover {
+		outline-color: var(--neutral-500);
 	}
 
 	.token.dimmed {
@@ -385,11 +433,6 @@
 		color: var(--body-text-color);
 	}
 
-	.score-token {
-		margin-right: var(--size-1);
-		padding: var(--size-1);
-	}
-
 	.score-token .text {
 		color: var(--body-text-color);
 	}
@@ -400,35 +443,46 @@
 		padding: 1px 5px;
 		color: var(--color-white);
 		font-weight: var(--weight-bold);
-		font-size: var(--text-sm);
 		text-transform: uppercase;
+		font-size: 70%;
+		vertical-align: middle;
+		bottom: 1px;
+		position: relative;
 	}
 
 	.remove-btn {
 		display: none;
 		position: absolute;
-		top: -6px;
-		right: 0px;
-		width: 14px;
-		height: 14px;
+		top: 0;
+		right: 0;
+		width: var(--size-3);
+		height: var(--size-3);
 		border: none;
 		border-radius: 50%;
-		background: var(--color-red-400);
+		background: var(--neutral-400);
 		color: white;
 		font-size: 10px;
-		line-height: 1;
 		cursor: pointer;
 		justify-content: center;
 		align-items: center;
 	}
 
+	:global(.dark) .remove-btn {
+		background: var(--neutral-500);
+		color: var(--neutral-950);
+	}
+
 	.remove-btn :global(svg) {
-		width: var(--size-2);
-		height: var(--size-2);
+		width: var(--size-1-5);
+		height: var(--size-1-5);
 	}
 
 	.remove-btn:hover {
-		background: var(--color-red-500);
+		background: var(--neutral-500);
+	}
+
+	:global(.dark) .remove-btn:hover {
+		background: var(--neutral-400);
 	}
 
 	.token-container:hover .remove-btn,
