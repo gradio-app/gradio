@@ -208,7 +208,7 @@ class Chatbot(Component):
     component is usually used as an output component.
 
     Demos: chatbot_simple, chatbot_streaming, chatbot_with_tools, chatbot_core_components
-    Guides: chatbot-specific-events, conversational-chatbot, creating-a-chatbot-fast, creating-a-custom-chatbot-with-blocks
+    Guides: chatbot-specific-events, conversational-chatbot, creating-a-chatbot-fast, creating-a-custom-chatbot-with-blocks, agents-and-tool-usage
     """
 
     data_model = ChatbotDataMessages

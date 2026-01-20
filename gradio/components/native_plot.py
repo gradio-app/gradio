@@ -244,7 +244,7 @@ class LinePlot(NativePlot):
     Creates a line plot component to display data from a pandas DataFrame.
 
     Demos: line_plot_demo
-    Guides: creating-plots
+    Guides: creating-plots, connecting-to-a-database
     """
 
     def get_block_name(self) -> str:
