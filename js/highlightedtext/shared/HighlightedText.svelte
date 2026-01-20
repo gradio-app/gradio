@@ -179,26 +179,26 @@
 				{@const lines = token.split("\n")}
 				{#each lines as line, j}
 					{#if line.trim()}
+						{@const bg_color = get_background_color(class_or_confidence)}
 						<span class="token-container">
 							<span
 								class="token"
 								class:highlighted={class_or_confidence !== null}
+								class:transparent={class_or_confidence !== null &&
+									is_transparent(bg_color)}
 								class:dimmed={active_legend &&
 									active_legend !== class_or_confidence}
-								style:background-color={get_background_color(
-									class_or_confidence
-								)}
+								style:background-color={bg_color}
 								style:color={get_text_color(class_or_confidence)}
-								role="button"
-								tabindex={0}
+								role={class_or_confidence !== null ? "button" : undefined}
+								tabindex={class_or_confidence !== null ? 0 : undefined}
 								onclick={() => {
+									if (class_or_confidence === null) return;
 									if (interactive) {
-										if (class_or_confidence !== null) {
-											onselect?.({
-												index: i,
-												value: [token, class_or_confidence]
-											});
-										}
+										onselect?.({
+											index: i,
+											value: [token, class_or_confidence]
+										});
 										label_to_edit = i;
 									} else {
 										onselect?.({
@@ -380,6 +380,8 @@
 	}
 
 	.textfield {
+		display: flex;
+		flex-wrap: wrap;
 		line-height: var(--scale-4);
 		word-break: break-all;
 	}
@@ -391,13 +393,26 @@
 	.token {
 		transition: 150ms;
 		border-radius: var(--radius-xs);
-		cursor: pointer;
 	}
 
 	.token.highlighted {
+		cursor: pointer;
 		padding: var(--size-0-5) var(--size-1);
 		margin-left: var(--size-1);
 		margin-right: var(--size-2);
+	}
+
+	.token.highlighted.transparent {
+		padding: var(--size-0-5) var(--size-0-5);
+		margin: 0;
+	}
+
+	.token.highlighted.transparent:hover {
+		outline: 1px solid var(--neutral-400);
+	}
+
+	:global(.dark) .token.highlighted.transparent:hover {
+		outline: 1px solid var(--neutral-500);
 	}
 
 	.token.dimmed {
@@ -432,7 +447,7 @@
 	.remove-btn {
 		display: none;
 		position: absolute;
-		top: -8px;
+		top: -7px;
 		right: 0px;
 		width: 14px;
 		height: 14px;
