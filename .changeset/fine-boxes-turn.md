@@ -1,6 +1,6 @@
 ---
-"@gradio/html": minor
-"gradio": minor
+"@gradio/html": patch
+"gradio": patch
 ---
 
-feat:Fix label in gr.HTML
+fix:Fix label in gr.HTML
