@@ -1,7 +1,7 @@
 ---
-"@gradio/core": minor
-"@gradio/utils": minor
-"gradio": minor
+"@gradio/core": patch
+"@gradio/utils": patch
+"gradio": patch
 ---
 
-feat:Refactor translation logic
+fix:Refactor translation logic
