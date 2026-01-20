@@ -1,9 +1,9 @@
 ---
-"@gradio/atoms": minor
-"@gradio/markdown": minor
-"@gradio/multimodaltextbox": minor
-"@gradio/utils": minor
-"gradio": minor
+"@gradio/atoms": patch
+"@gradio/markdown": patch
+"@gradio/multimodaltextbox": patch
+"@gradio/utils": patch
+"gradio": patch
 ---
 
-feat:Add fade effect to overflowing text
+fix:Add fade effect to overflowing text
