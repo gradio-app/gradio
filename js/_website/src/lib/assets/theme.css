@@ -106,10 +106,8 @@
 	--block-label-text-color: var(--neutral-500);
 	--block-label-margin: 0;
 	--block-label-padding: var(--spacing-sm) var(--spacing-lg);
-	--block-label-radius: calc(var(--radius-sm) - 1px) 0
-		calc(var(--radius-sm) - 1px) 0;
-	--block-label-right-radius: 0 calc(var(--radius-sm) - 1px) 0
-		calc(var(--radius-sm) - 1px);
+	--block-label-radius: calc(var(--radius-sm) - 1px) 0 calc(var(--radius-sm) - 1px) 0;
+	--block-label-right-radius: 0 calc(var(--radius-sm) - 1px) 0 calc(var(--radius-sm) - 1px);
 	--block-label-text-size: var(--text-sm);
 	--block-label-text-weight: 400;
 	--block-padding: var(--spacing-xl) calc(var(--spacing-xl) + 2px);
@@ -146,9 +144,7 @@
 	--checkbox-border-width: var(--input-border-width);
 	--checkbox-label-background-fill: var(--background-fill-primary);
 	--checkbox-label-background-fill-hover: var(--background-fill-secondary);
-	--checkbox-label-background-fill-selected: var(
-		--checkbox-label-background-fill
-	);
+	--checkbox-label-background-fill-selected: var(--checkbox-label-background-fill);
 	--checkbox-label-border-color: var(--border-color-primary);
 	--checkbox-label-border-color-hover: var(--checkbox-label-border-color);
 	--checkbox-label-border-color-selected: var(--checkbox-label-border-color);
@@ -188,11 +184,9 @@
 	--prose-text-weight: 400;
 	--prose-header-text-weight: 600;
 	--slider-color: var(--color-accent);
-	--stat-background-fill: linear-gradient(
-		to right,
-		var(--primary-400),
-		var(--primary-200)
-	);
+	--stat-background-fill: linear-gradient(to right,
+			var(--primary-400),
+			var(--primary-200));
 	--table-border-color: var(--neutral-300);
 	--table-even-background-fill: white;
 	--table-odd-background-fill: var(--neutral-50);
@@ -202,9 +196,7 @@
 	--button-cancel-background-fill: #ef4444;
 	--button-cancel-background-fill-hover: #dc2626;
 	--button-cancel-border-color: var(--button-secondary-border-color);
-	--button-cancel-border-color-hover: var(
-		--button-secondary-border-color-hover
-	);
+	--button-cancel-border-color-hover: var(--button-secondary-border-color-hover);
 	--button-cancel-text-color: white;
 	--button-cancel-text-color-hover: white;
 	--button-cancel-shadow: var(--button-secondary-shadow);
@@ -245,6 +237,7 @@
 	--button-medium-text-weight: 600;
 }
 
+:root.dark,
 :root .dark {
 	--body-background-fill: var(--background-fill-primary);
 	--body-text-color: var(--neutral-100);
@@ -290,9 +283,7 @@
 	--checkbox-border-width: var(--input-border-width);
 	--checkbox-label-background-fill: var(--neutral-800);
 	--checkbox-label-background-fill-hover: var(--checkbox-label-background-fill);
-	--checkbox-label-background-fill-selected: var(
-		--checkbox-label-background-fill
-	);
+	--checkbox-label-background-fill-selected: var(--checkbox-label-background-fill);
 	--checkbox-label-border-color: var(--border-color-primary);
 	--checkbox-label-border-color-hover: var(--checkbox-label-border-color);
 	--checkbox-label-border-color-selected: var(--checkbox-label-border-color);
@@ -317,11 +308,9 @@
 		0 0 0 var(--shadow-spread) var(--neutral-700), var(--shadow-inset);
 	--loader_color: None;
 	--slider_color: None;
-	--stat-background-fill: linear-gradient(
-		to right,
-		var(--primary-400),
-		var(--primary-600)
-	);
+	--stat-background-fill: linear-gradient(to right,
+			var(--primary-400),
+			var(--primary-600));
 	--table-border-color: var(--neutral-700);
 	--table-even-background-fill: var(--neutral-950);
 	--table-odd-background-fill: var(--neutral-900);
@@ -330,9 +319,7 @@
 	--button-cancel-background-fill: #b91c1c;
 	--button-cancel-background-fill-hover: #991b1b;
 	--button-cancel-border-color: var(--button-secondary-border-color);
-	--button-cancel-border-color-hover: var(
-		--button-secondary-border-color-hover
-	);
+	--button-cancel-border-color-hover: var(--button-secondary-border-color-hover);
 	--button-cancel-text-color: white;
 	--button-cancel-text-color-hover: white;
 	--button-cancel-shadow: var(--button-secondary-shadow);
@@ -428,10 +415,8 @@
 	--block-label-shadow: var(--block-shadow);
 	--block-label-margin: 0;
 	--block-label-padding: var(--spacing-sm) var(--spacing-lg);
-	--block-label-radius: calc(var(--radius-sm) - 1px) 0
-		calc(var(--radius-sm) - 1px) 0;
-	--block-label-right-radius: 0 calc(var(--radius-sm) - 1px) 0
-		calc(var(--radius-sm) - 1px);
+	--block-label-radius: calc(var(--radius-sm) - 1px) 0 calc(var(--radius-sm) - 1px) 0;
+	--block-label-right-radius: 0 calc(var(--radius-sm) - 1px) 0 calc(var(--radius-sm) - 1px);
 	--block-label-text-size: var(--text-sm);
 	--block-label-text-weight: 400;
 	--block-padding: var(--spacing-xl) calc(var(--spacing-xl) + 2px);
