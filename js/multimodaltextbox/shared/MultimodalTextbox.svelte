@@ -438,7 +438,7 @@
 			class="input-wrapper"
 			class:has-files={value.files.length > 0 || uploading}
 		>
-			{#if value.files.length > 0 || uploading || show_upload}
+			{#if value.files.length > 0 || uploading}
 				<div
 					class="thumbnails"
 					aria-label="Uploaded files"
@@ -496,6 +496,17 @@
 			{/if}
 
 			<div class="input-row">
+				{#if show_upload && value.files.length === 0 && !uploading}
+					<button
+						data-testid="upload-button"
+						class="upload-button icon-button"
+						{disabled}
+						on:click={handle_upload_click}
+						aria-label="Upload a file"
+					>
+						<Paperclip />
+					</button>
+				{/if}
 				<textarea
 					data-testid="textbox"
 					use:text_area_resize={{
@@ -617,7 +628,7 @@
 		gap: 0;
 		background: var(--block-background-fill);
 		border-radius: var(--radius-xl);
-		padding: var(--spacing-sm);
+		padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-sm) 0;
 		align-items: flex-start;
 		min-height: auto;
 	}
@@ -628,7 +639,7 @@
 
 	.input-row {
 		display: flex;
-		align-items: flex-end;
+		align-items: flex-start;
 		gap: var(--spacing-sm);
 		width: 100%;
 	}
@@ -724,7 +735,7 @@
 		flex-grow: 1;
 		outline: none !important;
 		background: transparent;
-		padding: 0;
+		padding: var(--spacing-sm) 0;
 		color: var(--body-text-color);
 		font-weight: var(--input-text-weight);
 		font-size: var(--input-text-size);
@@ -734,7 +745,6 @@
 		position: relative;
 		z-index: var(--layer-1);
 		text-align: left;
-		min-height: var(--size-9);
 	}
 
 	textarea:disabled {
@@ -750,15 +760,12 @@
 		text-align: right;
 	}
 
-	textarea[dir="rtl"] ~ .submit-button {
-		order: -1;
-	}
-
 	textarea[dir="rtl"] ~ .submit-button :global(svg) {
 		transform: scaleX(-1);
 	}
 
-	.microphone-button {
+	.microphone-button,
+	.icon-button {
 		color: var(--body-text-color);
 		cursor: pointer;
 		padding: var(--spacing-sm);
@@ -796,21 +803,25 @@
 		height: var(--size-5);
 	}
 
-	.microphone-button {
+	.microphone-button,
+	.icon-button {
 		width: var(--size-9);
 		height: var(--size-9);
 	}
 
-	.microphone-button:hover:not(:disabled) {
+	.microphone-button:hover:not(:disabled),
+	.icon-button:hover:not(:disabled) {
 		background: var(--button-secondary-background-fill);
 	}
 
-	.microphone-button:disabled {
+	.microphone-button:disabled,
+	.icon-button:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
 	}
 
-	.microphone-button :global(svg) {
+	.microphone-button :global(svg),
+	.icon-button :global(svg) {
 		width: var(--size-5);
 		height: var(--size-5);
 	}
