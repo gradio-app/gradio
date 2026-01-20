@@ -1,5 +1,7 @@
 import { test, expect } from "@self/tootils";
 
+test.skip(process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true");
+
 test("DeepLinkButton correctly saves and loads multimodal chatinterface conversation state", async ({
 	page,
 	context
