@@ -68,5 +68,5 @@ with gr.Blocks() as demo:
 {/if}
 
 <!--- Guides -->
-### Guides
+<!--- the guide section below is still necessary to scrape the guides on the side navigation -->
 <GuidesSection guides={guides}/>

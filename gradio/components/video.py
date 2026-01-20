@@ -41,6 +41,7 @@ class Video(StreamingOutput, Component):
     If the conversion fails, the original video is returned.
 
     Demos: video_identity_2
+    Guides: streaming-inputs, streaming-outputs, object-detection-from-video
     """
 
     data_model = FileData

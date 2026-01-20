@@ -13,6 +13,7 @@ from gradio.i18n import I18nData
 class Tabs(BlockContext, metaclass=ComponentMeta):
     """
     Tabs is a layout element within Blocks that can contain multiple "Tab" Components.
+    Guides: controlling-layout
     """
 
     EVENTS = [Events.change, Events.select]
