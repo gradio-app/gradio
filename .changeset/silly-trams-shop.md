@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Fix native plots SSR mode
+feat:Add `axis_format` parameters for native plots, and fix SSR mode
