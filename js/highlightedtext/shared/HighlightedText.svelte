@@ -453,16 +453,15 @@
 	.remove-btn {
 		display: none;
 		position: absolute;
-		top: -7px;
-		right: 0px;
-		width: 14px;
-		height: 14px;
+		top: 0;
+		right: 0;
+		width: var(--size-3);
+		height: var(--size-3);
 		border: none;
 		border-radius: 50%;
 		background: var(--neutral-400);
 		color: white;
 		font-size: 10px;
-		line-height: 1;
 		cursor: pointer;
 		justify-content: center;
 		align-items: center;
@@ -474,8 +473,8 @@
 	}
 
 	.remove-btn :global(svg) {
-		width: var(--size-2);
-		height: var(--size-2);
+		width: var(--size-1-5);
+		height: var(--size-1-5);
 	}
 
 	.remove-btn:hover {
