@@ -28,7 +28,9 @@
 	}
 
 	const props = $props();
-	const gradio = new GalleryGradio<GalleryEvents, GalleryProps>(props);
+	const gradio = new GalleryGradio<GalleryEvents, GalleryProps>(props, {
+		selected_index: null
+	});
 
 	let fullscreen = $state(false);
 
@@ -121,18 +123,20 @@
 		</BaseFileUpload>
 	{:else}
 		<Gallery
-			on:change={() => gradio.dispatch("change")}
-			on:clear={() => gradio.dispatch("change")}
-			on:select={(e) => gradio.dispatch("select", e.detail)}
-			on:share={(e) => gradio.dispatch("share", e.detail)}
-			on:error={(e) => gradio.dispatch("error", e.detail)}
-			on:preview_open={() => gradio.dispatch("preview_open")}
-			on:preview_close={() => gradio.dispatch("preview_close")}
-			on:fullscreen={({ detail }) => {
+			onchange={() => gradio.dispatch("change")}
+			onclear={() => gradio.dispatch("change")}
+			onselect={(e) => gradio.dispatch("select", e)}
+			onshare={(e) => gradio.dispatch("share", e.detail)}
+			onerror={(e) => gradio.dispatch("error", e.detail)}
+			onpreview_open={() => {
+				gradio.dispatch("preview_open");
+			}}
+			onpreview_close={() => gradio.dispatch("preview_close")}
+			onfullscreen={({ detail }) => {
 				fullscreen = detail;
 			}}
-			on:delete={handle_delete}
-			on:upload={async (e) => {
+			ondelete={handle_delete}
+			onupload={async (e) => {
 				const files = Array.isArray(e.detail) ? e.detail : [e.detail];
 				const new_value = await process_upload_files(files);
 				gradio.props.value = gradio.props.value

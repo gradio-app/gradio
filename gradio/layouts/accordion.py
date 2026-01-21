@@ -20,6 +20,7 @@ class Accordion(BlockContext, metaclass=ComponentMeta):
     Example:
         with gr.Accordion("See Details"):
             gr.Markdown("lorem ipsum")
+    Guides: controlling-layout
     """
 
     EVENTS = [Events.expand, Events.collapse]
