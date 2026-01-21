@@ -412,7 +412,7 @@
 			{#if buttons.some((btn) => typeof btn === "string" && btn === "copy")}
 				<IconButton
 					Icon={copied ? Check : Copy}
-					on:click={handle_copy}
+					onclick={handle_copy}
 					label={copied ? "Copied" : "Copy"}
 				/>
 			{/if}

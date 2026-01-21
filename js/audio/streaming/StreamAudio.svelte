@@ -7,23 +7,32 @@
 	import type { WaveformOptions } from "../shared/types";
 	import DeviceSelect from "../shared/DeviceSelect.svelte";
 
-	export let recording = false;
-	export let paused_recording = false;
-	export let stop: () => void;
-	export let record: () => void;
-	export let i18n: I18nFormatter;
-	export let waveform_settings: Record<string, any>;
-	export let waveform_options: WaveformOptions = {
-		show_recording_waveform: true
-	};
-	export let waiting = false;
+	let {
+		recording = false,
+		paused_recording = false,
+		stop,
+		record,
+		i18n,
+		waveform_settings,
+		waveform_options = { show_recording_waveform: true },
+		waiting = false
+	}: {
+		recording?: boolean;
+		paused_recording?: boolean;
+		stop: () => void;
+		record: () => void;
+		i18n: I18nFormatter;
+		waveform_settings: Record<string, any>;
+		waveform_options?: WaveformOptions;
+		waiting?: boolean;
+	} = $props();
 
 	let micWaveform: WaveSurfer;
 	let waveformRecord: RecordPlugin;
 
 	let microphoneContainer: HTMLDivElement;
 
-	let micDevices: MediaDeviceInfo[] = [];
+	let micDevices: MediaDeviceInfo[] = $state([]);
 
 	onMount(() => {
 		create_mic_waveform();
@@ -53,7 +62,7 @@
 		{#if recording && !waiting}
 			<button
 				class={paused_recording ? "stop-button-paused" : "stop-button"}
-				on:click={() => {
+				onclick={() => {
 					waveformRecord?.stopMic();
 					stop();
 				}}
@@ -67,7 +76,7 @@
 		{:else if recording && waiting}
 			<button
 				class="spinner-button"
-				on:click={() => {
+				onclick={() => {
 					stop();
 				}}
 			>
@@ -79,7 +88,7 @@
 		{:else}
 			<button
 				class="record-button"
-				on:click={() => {
+				onclick={() => {
 					waveformRecord?.startMic();
 					record();
 				}}

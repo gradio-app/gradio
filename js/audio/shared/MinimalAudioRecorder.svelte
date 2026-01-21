@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy, createEventDispatcher, tick } from "svelte";
+	import { onMount, onDestroy, tick } from "svelte";
 	import WaveSurfer from "wavesurfer.js";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 	import { format_time } from "@gradio/utils";
@@ -7,19 +7,29 @@
 	import { prepare_files, type FileData, type Client } from "@gradio/client";
 	import { Square } from "@gradio/icons";
 
-	export let label: string;
-	export let waveform_settings: Record<string, any> = {};
-	export let recording = false;
-	export let upload: Client["upload"];
-	export let root: string;
-	export let max_file_size: number | null = null;
-	export let upload_promise: Promise<any> | null = null;
-
-	const dispatch = createEventDispatcher<{
-		change: FileData;
-		stop_recording: undefined;
-		clear: undefined;
-	}>();
+	let {
+		label,
+		waveform_settings = {},
+		recording = $bindable(),
+		upload,
+		root,
+		max_file_size = null,
+		upload_promise = $bindable(),
+		onchange,
+		onstoprecording,
+		onclear
+	}: {
+		label: string;
+		waveform_settings?: Record<string, any>;
+		recording?: boolean;
+		upload: Client["upload"];
+		root: string;
+		max_file_size?: number | null;
+		upload_promise?: Promise<any> | null;
+		onchange?: (value: FileData) => void;
+		onstoprecording?: () => void;
+		onclear?: () => void;
+	} = $props();
 
 	let container: HTMLDivElement;
 	let waveform: WaveSurfer | undefined;
@@ -107,13 +117,13 @@
 						const file_data = uploaded_files?.[0];
 
 						if (file_data) {
-							dispatch("change", file_data);
+							onchange?.(file_data);
 						}
 					}
 				} catch (e) {
 					console.error("Error processing audio:", e);
 				} finally {
-					dispatch("stop_recording");
+					onstoprecording?.();
 					upload_promise = null;
 				}
 			})();
@@ -150,20 +160,22 @@
 		}
 	});
 
-	$: if (
-		recording &&
-		!is_recording &&
-		record &&
-		has_started === false &&
-		mic_devices.length <= 1
-	) {
-		record.startMic({ deviceId: selected_device_id }).then(() => {
-			record?.startRecording();
-		});
-	} else if (!recording && is_recording && record) {
-		record.stopRecording();
-		seconds = 0;
-	}
+	$effect(() => {
+		if (
+			recording &&
+			!is_recording &&
+			record &&
+			has_started === false &&
+			mic_devices.length <= 1
+		) {
+			record.startMic({ deviceId: selected_device_id }).then(() => {
+				record?.startRecording();
+			});
+		} else if (!recording && is_recording && record) {
+			record.stopRecording();
+			seconds = 0;
+		}
+	});
 
 	async function startRecording(): Promise<void> {
 		show_device_selection = false;
@@ -206,7 +218,7 @@
 			{/if}
 			<button
 				class="record-button"
-				on:click={startRecording}
+				onclick={startRecording}
 				aria-label="Start recording"
 			>
 			</button>
@@ -216,7 +228,7 @@
 		<div class="timestamp">{format_time(seconds)}</div>
 		<button
 			class="stop-button"
-			on:click={() => {
+			onclick={() => {
 				recording = false;
 			}}
 			aria-label="Stop recording"

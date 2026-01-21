@@ -808,7 +808,7 @@
 				color="white"
 				background="var(--color-green-500)"
 				label_position="right"
-				on:click={handle_crop_confirm}
+				onclick={handle_crop_confirm}
 			/>
 		</div>
 	{/if}

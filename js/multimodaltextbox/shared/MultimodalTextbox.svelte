@@ -208,9 +208,7 @@
 		}
 	}
 
-	async function handle_upload({
-		detail
-	}: CustomEvent<FileData>): Promise<void> {
+	async function handle_upload(detail: FileData | FileData[]): Promise<void> {
 		handle_change();
 		if (Array.isArray(detail)) {
 			for (let file of detail) {
@@ -360,19 +358,14 @@
 							{root}
 							{max_file_size}
 							bind:upload_promise
-							on:change={({ detail }) => {
-								mic_audio = detail;
+							onchange={(value) => {
+								mic_audio = value;
 							}}
-							on:stop_recording={() => {
+							onstoprecording={() => {
 								recording = false;
 								dispatch("stop_recording");
 							}}
-							on:clear={() => {
-								active_source = null;
-								recording = false;
-								mic_audio = null;
-							}}
-							on:error={({ detail }) => {
+							onclear={() => {
 								active_source = null;
 								recording = false;
 								mic_audio = null;
@@ -418,7 +411,7 @@
 			<Upload
 				bind:upload_promise
 				bind:this={upload_component}
-				on:load={handle_upload}
+				onload={handle_upload}
 				{file_count}
 				filetype={file_types}
 				{root}
@@ -427,7 +420,7 @@
 				bind:uploading
 				show_progress={false}
 				disable_click={true}
-				on:error
+				onerror={(e) => dispatch("error", e)}
 				hidden={true}
 				{upload}
 				{stream_handler}

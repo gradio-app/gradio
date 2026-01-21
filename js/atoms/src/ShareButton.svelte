@@ -21,7 +21,7 @@
 	Icon={Community}
 	label={i18n("common.share")}
 	{pending}
-	on:click={async () => {
+	onclick={async () => {
 		try {
 			pending = true;
 			const formatted = await formatter(value);

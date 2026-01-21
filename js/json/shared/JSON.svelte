@@ -71,7 +71,7 @@
 					show_label={false}
 					label={copied ? "Copied" : "Copy"}
 					Icon={copied ? Check : Copy}
-					on:click={() => handle_copy()}
+					onclick={() => handle_copy()}
 				/>
 			{/if}
 		</IconButtonWrapper>

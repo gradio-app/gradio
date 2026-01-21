@@ -57,5 +57,6 @@ export interface AudioEvents {
 	clear_status: any;
 	close_stream: any;
 	edit: any;
+	share: any;
 	custom_button_click: { id: number };
 }

@@ -4,18 +4,25 @@
 	import { Edit, Clear, Undo, Download } from "@gradio/icons";
 	import { DownloadLink } from "@gradio/atoms";
 
-	import { createEventDispatcher } from "svelte";
-
-	export let editable = false;
-	export let undoable = false;
-	export let download: string | null = null;
-	export let i18n: I18nFormatter;
-
-	const dispatch = createEventDispatcher<{
-		edit?: never;
-		clear?: never;
-		undo?: never;
-	}>();
+	let {
+		editable = false,
+		undoable = false,
+		download = null,
+		i18n,
+		onedit,
+		onclear,
+		onundo,
+		children
+	}: {
+		editable?: boolean;
+		undoable?: boolean;
+		download?: string | null;
+		i18n: I18nFormatter;
+		onedit?: () => void;
+		onclear?: () => void;
+		onundo?: () => void;
+		children?: import("svelte").Snippet;
+	} = $props();
 </script>
 
 <IconButtonWrapper>
@@ -23,7 +30,7 @@
 		<IconButton
 			Icon={Edit}
 			label={i18n("common.edit")}
-			on:click={() => dispatch("edit")}
+			onclick={() => onedit?.()}
 		/>
 	{/if}
 
@@ -31,7 +38,7 @@
 		<IconButton
 			Icon={Undo}
 			label={i18n("common.undo")}
-			on:click={() => dispatch("undo")}
+			onclick={() => onundo?.()}
 		/>
 	{/if}
 
@@ -41,13 +48,13 @@
 		</DownloadLink>
 	{/if}
 
-	<slot />
+	{#if children}{@render children()}{/if}
 
 	<IconButton
 		Icon={Clear}
 		label={i18n("common.clear")}
-		on:click={(event) => {
-			dispatch("clear");
+		onclick={(event) => {
+			onclear?.();
 			event.stopPropagation();
 		}}
 	/>

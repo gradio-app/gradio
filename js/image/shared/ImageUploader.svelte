@@ -38,6 +38,7 @@
 	export let show_fullscreen_button = true;
 	export let stream_state: "open" | "waiting" | "closed" = "closed";
 	export let upload_promise: Promise<any> | null = null;
+	export let onerror: ((error: string) => void) | undefined = undefined;
 
 	let upload_input: Upload;
 	export let uploading = false;
@@ -47,9 +48,7 @@
 	let files: FileData[] = [];
 	let upload_id: string;
 
-	async function handle_upload({
-		detail
-	}: CustomEvent<FileData>): Promise<void> {
+	async function handle_upload(detail: FileData): Promise<void> {
 		if (!streaming) {
 			if (detail.path?.toLowerCase().endsWith(".svg") && detail.url) {
 				const response = await fetch(detail.url);
@@ -190,7 +189,7 @@
 			<IconButton
 				Icon={Clear}
 				label="Remove Image"
-				on:click={handle_remove_image_click}
+				onclick={handle_remove_image_click}
 			/>
 		{/if}
 	</IconButtonWrapper>
@@ -209,8 +208,8 @@
 			bind:uploading
 			bind:dragging
 			filetype={active_source === "clipboard" ? "clipboard" : "image/*"}
-			on:load={handle_upload}
-			on:error
+			onload={handle_upload}
+			{onerror}
 			{root}
 			{max_file_size}
 			disable_click={!sources.includes("upload") || value !== null}

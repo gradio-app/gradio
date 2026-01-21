@@ -78,7 +78,7 @@
 			<IconButton
 				Icon={copied ? Check : Copy}
 				label={copied ? "Copied to clipboard" : "Copy table data"}
-				on:click={handle_copy}
+				onclick={handle_copy}
 			/>
 		{/if}
 		{#if show_fullscreen_button}

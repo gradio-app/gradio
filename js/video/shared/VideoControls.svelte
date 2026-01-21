@@ -98,7 +98,7 @@
 
 <ModifyUpload
 	{i18n}
-	on:clear={() => handle_clear()}
+	onclear={() => handle_clear()}
 	download={show_download_button ? value?.url : null}
 >
 	{#if showRedo && mode === ""}
@@ -106,7 +106,7 @@
 			Icon={Undo}
 			label="Reset video to initial value"
 			disabled={processingVideo || !has_change_history}
-			on:click={() => {
+			onclick={() => {
 				handle_reset_value();
 				mode = "";
 			}}
@@ -118,7 +118,7 @@
 			Icon={Trim}
 			label="Trim video to selection"
 			disabled={processingVideo}
-			on:click={toggleTrimmingMode}
+			onclick={toggleTrimmingMode}
 		/>
 	{/if}
 </ModifyUpload>
