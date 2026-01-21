@@ -547,6 +547,7 @@
 					{i18n}
 					on:clear={() => {
 						value = [];
+						onsource_change("upload");
 						onclear();
 					}}
 				>
