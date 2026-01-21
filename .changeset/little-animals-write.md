@@ -22,4 +22,4 @@
 "gradio": patch
 ---
 
-fix:Migrate Audio + Upload to Svelte 5
+fix:Migrate Audio + Upload + Atoms to Svelte 5
