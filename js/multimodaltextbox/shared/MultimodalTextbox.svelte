@@ -7,7 +7,7 @@
 		tick
 	} from "svelte";
 	import { text_area_resize, resize } from "../shared/utils";
-	import { BlockTitle } from "@gradio/atoms";
+	import { BlockTitle, ScrollFade } from "@gradio/atoms";
 	import { Upload } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
@@ -24,7 +24,7 @@
 		Microphone,
 		Check
 	} from "@gradio/icons";
-	import type { SelectData } from "@gradio/utils";
+	import { should_show_scroll_fade, type SelectData } from "@gradio/utils";
 	import { BaseInteractiveAudio as InteractiveAudio } from "@gradio/audio";
 	import {
 		MinimalAudioPlayer,
@@ -77,6 +77,7 @@
 	let can_scroll: boolean;
 	let previous_scroll_top = 0;
 	let user_has_scrolled_up = false;
+	let show_fade = false;
 	export let dragging = false;
 	let uploading = false;
 	// value can be null in multimodalchatinterface when loading a deep link
@@ -109,6 +110,14 @@
 
 	$: if (value === null) value = { text: "", files: [] };
 	$: (value, el && lines !== max_lines && resize(el, lines, max_lines));
+
+	function update_fade(): void {
+		show_fade = should_show_scroll_fade(el);
+	}
+
+	$: if (el && value.text !== undefined) {
+		tick().then(update_fade);
+	}
 
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
@@ -206,11 +215,10 @@
 		if (user_has_scrolled_to_bottom) {
 			user_has_scrolled_up = false;
 		}
+		update_fade();
 	}
 
-	async function handle_upload({
-		detail
-	}: CustomEvent<FileData>): Promise<void> {
+	async function handle_upload(detail: FileData | FileData[]): Promise<void> {
 		handle_change();
 		if (Array.isArray(detail)) {
 			for (let file of detail) {
@@ -360,19 +368,14 @@
 							{root}
 							{max_file_size}
 							bind:upload_promise
-							on:change={({ detail }) => {
-								mic_audio = detail;
+							onchange={(value) => {
+								mic_audio = value;
 							}}
-							on:stop_recording={() => {
+							onstoprecording={() => {
 								recording = false;
 								dispatch("stop_recording");
 							}}
-							on:clear={() => {
-								active_source = null;
-								recording = false;
-								mic_audio = null;
-							}}
-							on:error={({ detail }) => {
+							onclear={() => {
 								active_source = null;
 								recording = false;
 								mic_audio = null;
@@ -418,7 +421,7 @@
 			<Upload
 				bind:upload_promise
 				bind:this={upload_component}
-				on:load={handle_upload}
+				onload={handle_upload}
 				{file_count}
 				filetype={file_types}
 				{root}
@@ -427,7 +430,7 @@
 				bind:uploading
 				show_progress={false}
 				disable_click={true}
-				on:error
+				onerror={(e) => dispatch("error", e)}
 				hidden={true}
 				{upload}
 				{stream_handler}
@@ -507,35 +510,38 @@
 						<Paperclip />
 					</button>
 				{/if}
-				<textarea
-					data-testid="textbox"
-					use:text_area_resize={{
-						text: value.text,
-						lines: lines,
-						max_lines: max_lines
-					}}
-					class:no-label={!show_label}
-					dir={rtl ? "rtl" : "ltr"}
-					bind:value={value.text}
-					bind:this={el}
-					{placeholder}
-					rows={lines}
-					{disabled}
-					on:keypress={handle_keypress}
-					on:blur
-					on:select={handle_select}
-					on:focus
-					on:scroll={handle_scroll}
-					on:paste={handle_paste}
-					style={text_align ? "text-align: " + text_align : ""}
-					autocapitalize={html_attributes?.autocapitalize}
-					autocorrect={html_attributes?.autocorrect}
-					spellcheck={html_attributes?.spellcheck}
-					autocomplete={html_attributes?.autocomplete}
-					tabindex={html_attributes?.tabindex}
-					enterkeyhint={html_attributes?.enterkeyhint}
-					lang={html_attributes?.lang}
-				/>
+				<div class="textarea-wrapper">
+					<textarea
+						data-testid="textbox"
+						use:text_area_resize={{
+							text: value.text,
+							lines: lines,
+							max_lines: max_lines
+						}}
+						class:no-label={!show_label}
+						dir={rtl ? "rtl" : "ltr"}
+						bind:value={value.text}
+						bind:this={el}
+						{placeholder}
+						rows={lines}
+						{disabled}
+						on:keypress={handle_keypress}
+						on:blur
+						on:select={handle_select}
+						on:focus
+						on:scroll={handle_scroll}
+						on:paste={handle_paste}
+						style={text_align ? "text-align: " + text_align : ""}
+						autocapitalize={html_attributes?.autocapitalize}
+						autocorrect={html_attributes?.autocorrect}
+						spellcheck={html_attributes?.spellcheck}
+						autocomplete={html_attributes?.autocomplete}
+						tabindex={html_attributes?.tabindex}
+						enterkeyhint={html_attributes?.enterkeyhint}
+						lang={html_attributes?.lang}
+					/>
+					<ScrollFade visible={show_fade} position="absolute" />
+				</div>
 
 				{#if sources && sources.includes("microphone")}
 					<button
@@ -1012,5 +1018,14 @@
 		.thumbnail-item:active .delete-button {
 			opacity: 1;
 		}
+	}
+
+	.textarea-wrapper {
+		position: relative;
+		flex-grow: 1;
+	}
+
+	.textarea-wrapper textarea {
+		width: 100%;
 	}
 </style>

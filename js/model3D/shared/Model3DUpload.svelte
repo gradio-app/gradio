@@ -86,9 +86,7 @@
 		ondrag?.(dragging);
 	});
 
-	async function handle_upload({
-		detail
-	}: CustomEvent<FileData>): Promise<void> {
+	async function handle_upload(detail: FileData): Promise<void> {
 		value = detail;
 		await tick();
 		onchange?.(value);
@@ -106,8 +104,8 @@
 		canvas3d?.reset_camera_position();
 	}
 
-	function handle_error({ detail }: CustomEvent<string>): void {
-		onerror?.(detail);
+	function handle_error(error: string): void {
+		onerror?.(error);
 	}
 </script>
 
@@ -118,13 +116,13 @@
 		bind:upload_promise
 		{upload}
 		{stream_handler}
-		on:load={handle_upload}
+		onload={handle_upload}
 		{root}
 		{max_file_size}
 		filetype={[".stl", ".obj", ".gltf", ".glb", "model/obj", ".splat", ".ply"]}
 		bind:dragging
 		bind:uploading
-		on:error={handle_error}
+		onerror={handle_error}
 		aria_label={i18n("model3d.drop_to_upload")}
 	>
 		<slot />
@@ -133,9 +131,9 @@
 	<div class="input-model">
 		<ModifyUpload
 			undoable={!use_3dgs}
-			on:clear={handle_clear}
+			onclear={handle_clear}
 			{i18n}
-			on:undo={handle_undo}
+			onundo={handle_undo}
 		/>
 
 		{#if use_3dgs}

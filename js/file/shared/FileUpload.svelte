@@ -61,9 +61,7 @@
 		onselect?: (event_data: SelectData) => void;
 	} = $props();
 
-	async function handle_upload({
-		detail
-	}: CustomEvent<FileData | FileData[]>): Promise<void> {
+	async function handle_upload(detail: FileData | FileData[]): Promise<void> {
 		if (Array.isArray(value)) {
 			value = [...value, ...(Array.isArray(detail) ? detail : [detail])];
 		} else if (value) {
@@ -97,16 +95,14 @@
 				<Upload
 					bind:upload_promise
 					icon_upload={true}
-					on:load={handle_upload}
+					onload={handle_upload}
 					filetype={file_types}
 					{file_count}
 					{max_file_size}
 					{root}
 					bind:dragging
 					bind:uploading
-					on:error={(event) => {
-						onerror?.(event.detail);
-					}}
+					onerror={(e) => dispatch("error", e)}
 					{stream_handler}
 					{upload}
 				/>
@@ -115,7 +111,8 @@
 		<IconButton
 			Icon={Clear}
 			label={i18n("common.clear")}
-			on:click={(event) => {
+			onclick={(event) => {
+				dispatch("clear");
 				event.stopPropagation();
 				handle_clear();
 			}}
@@ -135,16 +132,14 @@
 {:else}
 	<Upload
 		bind:upload_promise
-		on:load={handle_upload}
+		onload={handle_upload}
 		filetype={file_types}
 		{file_count}
 		{max_file_size}
 		{root}
 		bind:dragging
 		bind:uploading
-		on:error={(event) => {
-			onerror?.(event.detail);
-		}}
+		onerror={(e) => dispatch("error", e)}
 		{stream_handler}
 		{upload}
 		{height}
