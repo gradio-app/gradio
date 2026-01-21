@@ -83,9 +83,6 @@
 	}
 
 	let dragging = $state(false);
-	// $effect(() => {
-	// 	ondrag?.(dragging);
-	// });
 </script>
 
 {#if show_label && buttons && buttons.length > 0}
