@@ -1,25 +1,26 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
 	import { IconButton } from "@gradio/atoms";
 	import { Maximize, Minimize } from "@gradio/icons";
 
-	const dispatch = createEventDispatcher<{
+	let {
+		fullscreen,
+		onclick
+	}: {
 		fullscreen: boolean;
-	}>();
-
-	export let fullscreen;
+		onclick: (fullscreen: boolean) => void;
+	} = $props();
 </script>
 
 {#if fullscreen}
 	<IconButton
 		Icon={Minimize}
 		label="Exit fullscreen mode"
-		onclick={() => dispatch("fullscreen", false)}
+		onclick={() => onclick(false)}
 	/>
 {:else}
 	<IconButton
 		Icon={Maximize}
 		label="Fullscreen"
-		onclick={() => dispatch("fullscreen", true)}
+		onclick={() => onclick(true)}
 	/>
 {/if}
