@@ -74,6 +74,7 @@
 			? css_units(gradio.props.max_height)
 			: undefined}
 		style:overflow-y={gradio.props.max_height ? "auto" : undefined}
+		class:label-padding={gradio.shared.show_label ?? undefined}
 	>
 		<HTML
 			props={_props}
@@ -104,6 +105,10 @@
 <style>
 	.html-container {
 		padding: var(--block-padding);
+	}
+
+	.label-padding {
+		padding-top: var(--spacing-xxl);
 	}
 
 	div {
