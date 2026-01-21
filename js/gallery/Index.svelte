@@ -13,7 +13,7 @@
 	import { BaseFileUpload } from "@gradio/file";
 	import type { GalleryProps, GalleryEvents, GalleryData } from "./types";
 
-	let upload_promise = $state<Promise<any>>();
+	let upload_promise = $state<Promise<(FileData | null)[]>>();
 
 	class GalleryGradio extends Gradio<GalleryEvents, GalleryProps> {
 		async get_data() {
@@ -107,16 +107,16 @@
 			i18n={gradio.i18n}
 			upload={(...args) => gradio.shared.client.upload(...args)}
 			stream_handler={(...args) => gradio.shared.client.stream(...args)}
-			on:upload={async (e) => {
-				const files = Array.isArray(e.detail) ? e.detail : [e.detail];
+			onupload={async (event_data) => {
+				const files = Array.isArray(event_data) ? event_data : [event_data];
 				gradio.props.value = await process_upload_files(files);
 				gradio.dispatch("upload", gradio.props.value);
 				gradio.dispatch("change", gradio.props.value);
 			}}
-			on:error={({ detail }) => {
+			onerror={(event_data) => {
 				gradio.shared.loading_status = gradio.shared.loading_status || {};
 				gradio.shared.loading_status.status = "error";
-				gradio.dispatch("error", detail);
+				gradio.dispatch("error", event_data);
 			}}
 		>
 			<UploadText i18n={gradio.i18n} type="gallery" />
