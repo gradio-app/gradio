@@ -21,13 +21,15 @@
 		Image as ImageIcon,
 		Clear,
 		Play,
-		Upload as UploadIcon
+		Upload as UploadIcon,
+		Webcam,
+		Video as VideoIcon,
+		Copy
 	} from "@gradio/icons";
 	import { FileData } from "@gradio/client";
 	import type { Client } from "@gradio/client";
 	import { format_gallery_for_sharing } from "./utils";
 	import type { I18nFormatter } from "@gradio/utils";
-	import { on } from "svelte/events";
 
 	type GalleryData = GalleryImage | GalleryVideo;
 
@@ -51,6 +53,7 @@
 		fullscreen = false,
 		root = "",
 		file_types = ["image", "video"],
+		sources,
 		max_file_size = null,
 		upload,
 		stream_handler,
@@ -66,7 +69,8 @@
 		onpreview_close = () => {},
 		onfullscreen = (data) => {},
 		ondelete = () => {},
-		onupload = () => {}
+		onupload = () => {},
+		onsource_change = () => {}
 	}: {
 		show_label: boolean;
 		label: string;
@@ -87,6 +91,7 @@
 		fullscreen: boolean;
 		root: string;
 		file_types: string[] | null;
+		sources: ("upload" | "webcam" | "clipboard" | "webcam-video")[];
 		max_file_size: number | null;
 		upload: Client["upload"] | undefined;
 		stream_handler: Client["stream"] | undefined;
@@ -103,6 +108,7 @@
 		onfullscreen: (data: any) => void;
 		ondelete: (data: any) => void;
 		onupload: (data: FileData | FileData[]) => void;
+		onsource_change: (source: string) => void;
 	} = $props();
 
 	let upload_promise: Promise<any> | null = null;
@@ -560,6 +566,33 @@
 								{upload}
 							/>
 						</IconButton>
+					{/if}
+					{#if sources.includes("webcam")}
+						<IconButton
+							Icon={Webcam}
+							label={i18n("common.webcam")}
+							on:click={() => {
+								onsource_change("webcam");
+							}}
+						/>
+					{/if}
+					{#if sources.includes("webcam-video")}
+						<IconButton
+							Icon={VideoIcon}
+							label={i18n("common.video")}
+							on:click={() => {
+								onsource_change("webcam-video");
+							}}
+						/>
+					{/if}
+					{#if sources.includes("clipboard")}
+						<IconButton
+							Icon={Copy}
+							label={i18n("common.clipboard")}
+							on:click={() => {
+								onsource_change("clipboard");
+							}}
+						/>
 					{/if}
 				</ModifyUpload>
 			{/if}
