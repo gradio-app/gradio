@@ -3,14 +3,19 @@
 
 	type source_types = "upload" | "microphone" | "webcam" | "clipboard" | null;
 
-	export let sources: Partial<source_types>[];
-	export let active_source: Partial<source_types>;
-	export let handle_clear: () => void = () => {};
-	export let handle_select: (
-		source_type: Partial<source_types>
-	) => void = () => {};
+	let {
+		sources,
+		active_source = $bindable(),
+		handle_clear = () => {},
+		handle_select = () => {}
+	}: {
+		sources: Partial<source_types>[];
+		active_source?: Partial<source_types>;
+		handle_clear?: () => void;
+		handle_select?: (source_type: Partial<source_types>) => void;
+	} = $props();
 
-	$: unique_sources = [...new Set(sources)];
+	let unique_sources = $derived([...new Set(sources)]);
 
 	async function handle_select_source(
 		source: Partial<source_types>
@@ -28,7 +33,7 @@
 				class="icon"
 				class:selected={active_source === "upload" || !active_source}
 				aria-label="Upload file"
-				on:click={() => handle_select_source("upload")}><Upload /></button
+				onclick={() => handle_select_source("upload")}><Upload /></button
 			>
 		{/if}
 
@@ -37,7 +42,7 @@
 				class="icon"
 				class:selected={active_source === "microphone"}
 				aria-label="Record audio"
-				on:click={() => handle_select_source("microphone")}
+				onclick={() => handle_select_source("microphone")}
 				><Microphone /></button
 			>
 		{/if}
@@ -47,7 +52,7 @@
 				class="icon"
 				class:selected={active_source === "webcam"}
 				aria-label="Capture from camera"
-				on:click={() => handle_select_source("webcam")}><Webcam /></button
+				onclick={() => handle_select_source("webcam")}><Webcam /></button
 			>
 		{/if}
 		{#if sources.includes("clipboard")}
@@ -55,8 +60,7 @@
 				class="icon"
 				class:selected={active_source === "clipboard"}
 				aria-label="Paste from clipboard"
-				on:click={() => handle_select_source("clipboard")}
-				><ImagePaste /></button
+				onclick={() => handle_select_source("clipboard")}><ImagePaste /></button
 			>
 		{/if}
 	</span>

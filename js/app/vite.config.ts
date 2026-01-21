@@ -48,7 +48,8 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 				"/manifest.json": "http://localhost:7860",
 				"^.*/theme\\.css": "http://localhost:7860",
 				"^/static/.*": "http://localhost:7860",
-				"^.*/svelte/.*": "http://localhost:7860"
+				"^.*/svelte/.*": "http://localhost:7860",
+				"^/gradio_api/.*": "http://localhost:7860"
 			}
 		},
 		resolve: {
