@@ -328,6 +328,20 @@
 		);
 	} else {
 		filtered_to_original_map = [];
+		// When there's no search query, sync search_results directly from data
+		// This ensures the UI stays in sync with data changes (e.g., from handle_select_all)
+		if (data && data.length > 0 && data[0]?.length > 0) {
+			search_results = data.map((row, row_idx) =>
+				row.map((cell, col_idx) => ({
+					...cell,
+					display_value:
+						cell.display_value !== undefined
+							? cell.display_value
+							: String(cell.value),
+					styling: styling?.[row_idx]?.[col_idx] || ""
+				}))
+			);
+		}
 	}
 
 	let previous_headers = _headers.map((h) => h.value);
@@ -753,6 +767,7 @@
 	}
 
 	function handle_select_all(col: number, checked: boolean): void {
+		// Update data for the specific column only
 		data = data.map((row) => {
 			const new_row = [...row];
 			if (new_row[col]) {
@@ -763,6 +778,19 @@
 			}
 			return new_row;
 		});
+
+		// Sync search_results with data to ensure UI reflects the changes
+		// This prevents stale values in search_results from being written back via two-way binding
+		search_results = data.map((row, row_idx) =>
+			row.map((cell, col_idx) => ({
+				...cell,
+				display_value:
+					cell.display_value !== undefined
+						? cell.display_value
+						: String(cell.value),
+				styling: styling?.[row_idx]?.[col_idx] || ""
+			}))
+		);
 	}
 
 	let is_dragging = false;
