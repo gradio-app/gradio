@@ -16,7 +16,7 @@
 
 <div id="event-listeners-list">
 	<h4
-		class="text-xl text-orange-500 font-light group"
+		class="text-xl text-orange-500 font-light group mb-4"
 		id="supported-event-listeners"
 	>
 		Supported Event Listeners
@@ -30,35 +30,30 @@
 		> table below.
 	</p>
 
-	<table class="mb-4 table-fixed w-full event-table">
-		<thead class="text-left">
-			<tr>
-				<th class="px-3 pb-3 font-semibold w-2/5">Listener</th>
-				<th class="px-3 pb-3 font-semibold">Description</th>
-			</tr>
-		</thead>
-		<tbody class="text-left rounded-lg overflow-hidden">
+	<div class="mb-4 event-card">
+		<div class="event-header">
+			<span class="event-title">Listeners</span>
+		</div>
+		<div class="event-content">
 			{#each fns as fn}
-				<tr class="group align-top">
-					<td class="p-3 w-2/5 break-words">
-						<p>
-							<code class="lang-python"
+				<details class="event-item">
+					<summary class="event-listener">
+						<pre class="listener-code"><code
 								>{fn.parent.replace("gradio.", "")}.{fn.name}(fn, ···)</code
-							>
-						</p>
-					</td>
-					<td class="p-3 break-words">
+							></pre>
+					</summary>
+					<div class="event-description">
 						<p>{@html style_formatted_text(fn.description)}</p>
-					</td>
-				</tr>
+					</div>
+				</details>
 			{/each}
-		</tbody>
-	</table>
+		</div>
+	</div>
 </div>
 
 <div id="event-listeners-arguments">
 	<h4
-		class="text-xl text-orange-500 font-light group"
+		class="text-xl text-orange-500 font-light group mb-4"
 		id="event-listener-arguments"
 	>
 		Event Parameters
@@ -68,39 +63,113 @@
 </div>
 
 <style>
-	code {
-		font-size: 0.9em;
+	.event-card {
+		border-radius: var(--block-radius);
+		overflow: hidden;
+		border: var(--block-border-width) solid var(--table-border-color);
+		background: var(--block-background-fill);
 	}
 
-	.event-table thead th {
+	.event-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: var(--spacing-xl) var(--spacing-xxl);
+		border-bottom: var(--block-border-width) solid var(--table-border-color);
+		background: var(--block-background-fill);
+	}
+
+	.event-title {
+		font-size: var(--text-lg);
+		font-weight: 600;
 		color: var(--body-text-color);
 	}
 
-	.event-table tbody {
-		border: 1px solid var(--table-border-color);
+	.event-content {
+		overflow-y: auto;
 	}
 
-	.event-table tbody tr {
-		border-bottom: 1px solid var(--table-border-color);
+	.event-item {
+		border-bottom: var(--block-border-width) solid var(--table-border-color);
 	}
 
-	.event-table tbody tr:last-child {
+	.event-item:last-child {
 		border-bottom: none;
 	}
 
-	.event-table tbody tr:nth-child(odd) {
+	.event-listener {
+		position: relative;
+		padding: var(--spacing-xl) var(--spacing-xxl);
+		padding-right: 2.5rem;
 		background: var(--table-odd-background-fill);
+		border-bottom: 0px solid var(--table-border-color);
+		list-style: none;
+		cursor: pointer;
 	}
 
-	.event-table tbody tr:nth-child(even) {
-		background: var(--table-even-background-fill);
+	.event-listener::-webkit-details-marker {
+		display: none;
 	}
 
-	.event-table tbody tr:hover {
-		background: var(--table-row-focus);
-	}
-
-	.event-table tbody td {
+	.event-listener::after {
+		content: "▼";
+		position: absolute;
+		top: 50%;
+		right: var(--spacing-xxl);
+		transform: translateY(-50%);
+		transition: transform 0.3s ease;
+		font-size: var(--text-xs);
+		opacity: 0.7;
 		color: var(--body-text-color);
+	}
+
+	details[open] .event-listener::after {
+		transform: translateY(-50%) rotate(180deg);
+	}
+
+	details[open] .event-listener {
+		border-bottom-width: var(--block-border-width);
+	}
+
+	.listener-code {
+		margin: 0;
+		background: transparent;
+		font-family: var(--font-mono);
+		font-size: var(--text-md);
+	}
+
+	.listener-code code {
+		background: none;
+		font-family: var(--font-mono);
+		color: var(--body-text-color);
+	}
+
+	.event-description {
+		padding: var(--spacing-xl) var(--spacing-xxl);
+		font-size: var(--text-md);
+		background: var(--block-background-fill);
+		color: var(--body-text-color);
+	}
+
+	.event-description p {
+		margin: 0;
+		color: var(--body-text-color);
+	}
+
+	.event-description :global(code) {
+		color: var(--body-text-color);
+		background: var(--code-background-fill);
+		padding: var(--spacing-xs) var(--spacing-sm);
+		border-radius: var(--radius-sm);
+		font-family: var(--font-mono);
+		font-size: var(--text-md);
+	}
+
+	.event-description :global(a) {
+		color: var(--link-text-color);
+	}
+
+	.event-description :global(a:hover) {
+		color: var(--link-text-color-hover);
 	}
 </style>
