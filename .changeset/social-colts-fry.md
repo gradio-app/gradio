@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Restore padding in gr.HTML
+feat:Restore padding param in gr.HTML
