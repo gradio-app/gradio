@@ -95,6 +95,13 @@ def get_latest_release():
                 make_dir(WEBSITE_DIR, "src/lib/templates_4-44-1"),
             )
 
+            print("Downloading templates from S3: 5.49.1")
+            download_from_s3(
+                "gradio-docs-json",
+                "5.49.1/templates/",
+                make_dir(WEBSITE_DIR, "src/lib/templates_5-49-1"),
+            )
+
 
 def create_dir_if_not_exists(path):
     if not os.path.exists(path):

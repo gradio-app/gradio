@@ -58,7 +58,7 @@ with gr.Walkthrough(selected=1) as walkthrough:
 
 {#if walkthrough_obj.guides && walkthrough_obj.guides.length > 0}
 <!--- Guides -->
-### Guides
+<!--- the guide section below is still necessary to scrape the guides on the side navigation -->
 <GuidesSection guides={walkthrough_obj.guides}/>
 {/if}
 
@@ -87,6 +87,6 @@ gradio.Step(···)
 
 {#if step_obj.guides && step_obj.guides.length > 0}
 <!--- Guides -->
-### Guides
+<!--- the guide section below is still necessary to scrape the guides on the side navigation -->
 <GuidesSection guides={step_obj.guides}/>
 {/if}
