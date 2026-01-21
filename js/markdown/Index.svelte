@@ -22,7 +22,7 @@
 	function update_fade(): void {
 		if (!gradio.props.height) return;
 		show_fade = should_show_scroll_fade(
-			wrapper?.closest(".block") as HTMLElement | null,
+			wrapper?.closest(".block") as HTMLElement | null
 		);
 	}
 

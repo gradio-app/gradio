@@ -1,7 +1,7 @@
 <script lang="ts">
 	let {
 		visible = false,
-		position = "sticky",
+		position = "sticky"
 	}: {
 		visible: boolean;
 		position?: "sticky" | "absolute";
