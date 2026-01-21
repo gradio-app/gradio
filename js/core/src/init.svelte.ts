@@ -41,6 +41,20 @@ const type_map = {
 	walkthrough: "tabs",
 	walkthroughstep: "tabitem"
 };
+
+function get_api_url(config: Omit<AppConfig, "api_url">): string {
+	// Handle api_prefix correctly when app is mounted at a subpath
+	// Since get_root_url() returns root without trailing slash, we need to manually
+	// append api_prefix to root's pathname to ensure correct URL construction
+	const rootUrl = new URL(config.root);
+	const rootPath = rootUrl.pathname.endsWith("/")
+		? rootUrl.pathname
+		: rootUrl.pathname + "/";
+	const apiPrefix = config.api_prefix.startsWith("/")
+		? config.api_prefix
+		: "/" + config.api_prefix;
+	return new URL(rootPath.slice(0, -1) + apiPrefix, rootUrl.origin).toString();
+}
 export class AppTree {
 	/** the raw component structure received from the backend */
 	#component_payload: ComponentMeta[];
@@ -91,9 +105,10 @@ export class AppTree {
 			this.ready_resolve = resolve;
 		});
 		this.reactive_formatter = reactive_formatter;
+		const api_url = get_api_url(config);
 		this.#config = {
 			...config,
-			api_url: new URL(config.api_prefix, config.root).toString()
+			api_url
 		};
 		this.#component_payload = components;
 		this.#layout_payload = layout;
@@ -143,9 +158,10 @@ export class AppTree {
 	) {
 		this.#layout_payload = layout;
 		this.#component_payload = components;
+		const api_url = get_api_url(config);
 		this.#config = {
 			...config,
-			api_url: new URL(config.api_prefix, config.root).toString()
+			api_url
 		};
 		this.#dependency_payload = dependencies;
 
