@@ -1,6 +1,6 @@
 ---
-"@gradio/gallery": minor
-"gradio": minor
+"@gradio/gallery": patch
+"gradio": patch
 ---
 
-feat:Fix Gallery upload after it has been populated
+fix:Fix Gallery upload after it has been populated
