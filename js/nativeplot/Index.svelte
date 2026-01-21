@@ -814,7 +814,7 @@
 			}}
 		>
 			{#if gradio.props.buttons?.some((btn) => typeof btn === "string" && btn === "export")}
-				<IconButton Icon={Download} label="Export" on:click={export_chart} />
+				<IconButton Icon={Download} label="Export" onclick={export_chart} />
 			{/if}
 			{#if gradio.props.buttons?.some((btn) => typeof btn === "string" && btn === "fullscreen")}
 				<FullscreenButton

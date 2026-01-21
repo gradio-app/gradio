@@ -393,7 +393,7 @@
 						<IconButton
 							Icon={Download}
 							label={i18n("common.download")}
-							on:click={() => {
+							onclick={() => {
 								const image =
 									"image" in selected_media
 										? selected_media?.image
@@ -435,7 +435,7 @@
 						<IconButton
 							Icon={Clear}
 							label="Close"
-							on:click={() => {
+							onclick={() => {
 								selected_index = null;
 								onpreview_close();
 							}}
@@ -539,7 +539,7 @@
 			{#if interactive && selected_index === null}
 				<ModifyUpload
 					{i18n}
-					on:clear={() => {
+					onclear={() => {
 						value = [];
 						onclear();
 					}}
