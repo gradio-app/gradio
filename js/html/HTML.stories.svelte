@@ -10,9 +10,9 @@
 			max_height: {
 				description: "Maximum height of the HTML component",
 				control: { type: "text" },
-				defaultValue: "200px",
-			},
-		},
+				defaultValue: "200px"
+			}
+		}
 	});
 
 	const simpleValue = "<p>This is some <strong>HTML</strong> content.</p>";
@@ -29,7 +29,7 @@
 			{...wrapProps({
 				value: simpleValue,
 				show_label: false,
-				...args,
+				...args
 			})}
 		/>
 	{/snippet}
@@ -42,7 +42,7 @@
 				value: simpleValue,
 				show_label: true,
 				label: "HTML Output",
-				...args,
+				...args
 			})}
 		/>
 	{/snippet}
@@ -51,7 +51,7 @@
 <Story
 	name="Long Content (No Label)"
 	args={{
-		max_height: "200px",
+		max_height: "200px"
 	}}
 >
 	{#snippet template(args)}
@@ -59,7 +59,7 @@
 			{...wrapProps({
 				value: longValue,
 				show_label: false,
-				...args,
+				...args
 			})}
 		/>
 	{/snippet}
@@ -68,7 +68,7 @@
 <Story
 	name="Long Content (With Label)"
 	args={{
-		max_height: "200px",
+		max_height: "200px"
 	}}
 >
 	{#snippet template(args)}
@@ -77,7 +77,7 @@
 				value: longValue,
 				show_label: true,
 				label: "HTML Output",
-				...args,
+				...args
 			})}
 		/>
 	{/snippet}

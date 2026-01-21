@@ -19,7 +19,7 @@
 		value: gradio.props.value || "",
 		label: gradio.shared.label,
 		visible: gradio.shared.visible,
-		...gradio.props.props,
+		...gradio.props.props
 	});
 
 	let old_value = $state(gradio.props.value);
