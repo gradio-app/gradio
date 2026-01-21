@@ -36,7 +36,7 @@
 	elem_id={gradio.shared.elem_id}
 	elem_classes={gradio.shared.elem_classes}
 	container={gradio.shared.container}
-	padding={true}
+	padding={gradio.props.padding !== false}
 	overflow_behavior="visible"
 >
 	{#if gradio.shared.show_label && gradio.props.buttons && gradio.props.buttons.length > 0}
