@@ -102,7 +102,7 @@
 					{root}
 					bind:dragging
 					bind:uploading
-					onerror={(e) => dispatch("error", e)}
+					{onerror}
 					{stream_handler}
 					{upload}
 				/>
@@ -112,7 +112,6 @@
 			Icon={Clear}
 			label={i18n("common.clear")}
 			onclick={(event) => {
-				dispatch("clear");
 				event.stopPropagation();
 				handle_clear();
 			}}
@@ -139,7 +138,7 @@
 		{root}
 		bind:dragging
 		bind:uploading
-		onerror={(e) => dispatch("error", e)}
+		{onerror}
 		{stream_handler}
 		{upload}
 		{height}
