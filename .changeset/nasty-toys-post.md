@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:Migrate js/fileexplorer to svelte5
+fix:Migrate js/fileexplorer to svelte5
