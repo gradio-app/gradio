@@ -1,6 +1,6 @@
 ---
-"@gradio/code": minor
-"gradio": minor
+"@gradio/code": patch
+"gradio": patch
 ---
 
-feat:Migrate js/code
+fix:Migrate js/code
