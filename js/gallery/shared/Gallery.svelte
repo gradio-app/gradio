@@ -7,7 +7,7 @@
 		IconButtonWrapper,
 		FullscreenButton
 	} from "@gradio/atoms";
-	import type { CustomButton as CustomButtonType } from "@gradio/utils";
+	import { type CustomButton as CustomButtonType } from "@gradio/utils";
 	import { ModifyUpload, Upload as UploadComponent } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
 	import { Video } from "@gradio/video/shared";
@@ -194,8 +194,6 @@
 	let next = $derived.by(
 		() => ((selected_index ?? 0) + 1) % (resolved_value?.length ?? 0)
 	);
-
-	$inspect("selected_index", selected_index);
 
 	function handle_preview_click(event: MouseEvent): void {
 		const element = event.target as HTMLElement;
@@ -416,10 +414,7 @@
 					{/if}
 
 					{#if show_fullscreen_button}
-						<FullscreenButton
-							{fullscreen}
-							on:fullscreen={(e) => onfullscreen(e)}
-						/>
+						<FullscreenButton {fullscreen} onclick={(e) => onfullscreen(e)} />
 					{/if}
 
 					{#if show_share_button}
@@ -575,7 +570,7 @@
 						<IconButton
 							Icon={Webcam}
 							label={i18n("common.webcam")}
-							on:click={() => {
+							onclick={() => {
 								onsource_change("webcam");
 							}}
 						/>
@@ -584,7 +579,7 @@
 						<IconButton
 							Icon={VideoIcon}
 							label={i18n("common.video")}
-							on:click={() => {
+							onclick={() => {
 								onsource_change("webcam-video");
 							}}
 						/>
@@ -592,7 +587,7 @@
 					{#if sources.includes("clipboard")}
 						<IconButton
 							label={i18n("upload_text.paste_clipboard")}
-							on:click={() => {
+							onclick={() => {
 								onsource_change("clipboard");
 							}}
 							Icon={ImagePaste}

@@ -112,8 +112,7 @@ class Gallery(Component):
         interactive: bool | None = None,
         type: Literal["numpy", "pil", "filepath"] = "filepath",
         fit_columns: bool = True,
-        sources: list[Literal["upload", "webcam", "webcam-video", "clipboard"]]
-        | None = None,
+        sources: list[Literal["upload", "webcam", "clipboard"]] | None = None,
     ):
         """
         Parameters:

@@ -31,14 +31,11 @@
 
 	const props = $props();
 	const gradio = new GalleryGradio<GalleryEvents, GalleryProps>(props, {
-		selected_index: null
+		selected_index: null,
+		file_types: ["image", "video"]
 	});
 
 	let fullscreen = $state(false);
-
-	let no_value = $derived(
-		gradio.props.value === null ? true : gradio.props.value.length === 0
-	);
 
 	function handle_delete(
 		event: CustomEvent<{ file: FileData; index: number }>
@@ -79,6 +76,21 @@
 	let active_source = $state<
 		"upload" | "webcam" | "webcam-video" | "clipboard" | null
 	>(gradio.props.sources ? gradio.props.sources[0] : "upload");
+
+	let no_value = $derived(
+		gradio.props.value === null ? true : gradio.props.value.length === 0
+	);
+
+	let sources = $derived.by(() => {
+		if (
+			gradio.props.file_types?.includes("video") &&
+			gradio.props.sources.includes("webcam")
+		) {
+			return gradio.props.sources.concat(["webcam-video"]);
+		} else {
+			return gradio.props.sources;
+		}
+	});
 
 	async function paste_clipboard(): Promise<void> {
 		navigator.clipboard.read().then(async (items) => {
@@ -158,32 +170,10 @@
 	/>
 	{#if gradio.shared.interactive && no_value}
 		<div
-			class={!gradio.props.value || (active_source && active_source.includes("webcam"))
+			class={!gradio.props.value ||
+			(active_source && active_source.includes("webcam"))
 				? "hidden-upload-input"
 				: ""}
-		>
-		<BaseFileUpload
-			bind:upload_promise
-			value={null}
-			root={gradio.shared.root}
-			label={gradio.shared.label}
-			max_file_size={gradio.shared.max_file_size}
-			file_count={"multiple"}
-			file_types={gradio.props.file_types}
-			i18n={gradio.i18n}
-			upload={(...args) => gradio.shared.client.upload(...args)}
-			stream_handler={(...args) => gradio.shared.client.stream(...args)}
-			onupload={async (event_data) => {
-				const files = Array.isArray(event_data) ? event_data : [event_data];
-				gradio.props.value = await process_upload_files(files);
-				gradio.dispatch("upload", gradio.props.value);
-				gradio.dispatch("change", gradio.props.value);
-			}}
-			onerror={(event_data) => {
-				gradio.shared.loading_status = gradio.shared.loading_status || {};
-				gradio.shared.loading_status.status = "error";
-				gradio.dispatch("error", event_data);
-			}}
 		>
 			<BaseFileUpload
 				bind:upload_promise
@@ -197,8 +187,8 @@
 				i18n={gradio.i18n}
 				upload={(...args) => gradio.shared.client.upload(...args)}
 				stream_handler={(...args) => gradio.shared.client.stream(...args)}
-				on:upload={async (e) => {
-					const files = Array.isArray(e.detail) ? e.detail : [e.detail];
+				onupload={async (e) => {
+					const files = Array.isArray(e) ? e : [e];
 					gradio.props.value = await process_upload_files(files);
 					active_source = null;
 					gradio.dispatch("upload", gradio.props.value);
@@ -221,8 +211,6 @@
 					const f = await handle_save(e.detail, (f) =>
 						gradio.shared.client.upload(f, gradio.shared.root)
 					);
-					console.log("value", f);
-					console.log("value", await process_upload_files(f));
 					const processed_files = await process_upload_files(f);
 					gradio.props.value?.push(...processed_files);
 					active_source = null;
@@ -243,9 +231,6 @@
 				root={gradio.shared.root}
 				value={null}
 				on:capture={async (e) => {
-					// {const f = await handle_save(e.detail, (f) => gradio.shared.client.upload(f, gradio.shared.root));
-					// console.log("value", f);
-					// console.log("value", await process_upload_files(f))
 					const f = { ...e.detail };
 					f.mime_type = "video/webm";
 					const processed_files = await process_upload_files([f]);
@@ -264,9 +249,9 @@
 				upload={(...args) => gradio.shared.client.upload(...args)}
 			/>
 		{/if}
-		{#if gradio.props.sources.length > 1 || gradio.props.sources.includes("clipboard")}
+		{#if sources.length > 1 || sources.includes("clipboard")}
 			<SelectSource
-				sources={gradio.props.sources}
+				{sources}
 				bind:active_source
 				handle_clear={() => gradio.dispatch("clear")}
 				handle_select={handle_select_source}
@@ -290,14 +275,13 @@
 			onupload={async (e) => {
 				const files = Array.isArray(e) ? e : [e];
 				const new_value = await process_upload_files(files);
-				console.log("new_value", new_value);
 				gradio.props.value = gradio.props.value
 					? [...gradio.props.value, ...new_value]
 					: new_value;
 				gradio.dispatch("upload", new_value);
 				gradio.dispatch("change", gradio.props.value);
 			}}
-			sources={gradio.props.sources}
+			{sources}
 			{onsource_change}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
