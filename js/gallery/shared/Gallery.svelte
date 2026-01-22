@@ -545,17 +545,20 @@
 					}}
 				>
 					{#if upload && stream_handler}
-						<IconButton Icon={UploadIcon} label={i18n("common.upload")}>
+						<IconButton
+							Icon={UploadIcon}
+							label={i18n("upload_text.click_to_upload")}
+						>
 							<UploadComponent
 								bind:upload_promise
 								icon_upload={true}
-								on:load={(e) => onupload(e.detail)}
+								onload={(e) => onupload(e)}
 								filetype={file_types}
 								file_count="multiple"
 								{max_file_size}
 								{root}
 								bind:uploading
-								on:error={(e) => onerror(e.detail)}
+								onerror={(e) => onerror(e)}
 								{stream_handler}
 								{upload}
 							/>

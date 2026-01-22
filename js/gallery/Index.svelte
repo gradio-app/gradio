@@ -137,7 +137,7 @@
 			}}
 			ondelete={handle_delete}
 			onupload={async (e) => {
-				const files = Array.isArray(e.detail) ? e.detail : [e.detail];
+				const files = Array.isArray(e) ? e : [e];
 				const new_value = await process_upload_files(files);
 				gradio.props.value = gradio.props.value
 					? [...gradio.props.value, ...new_value]
