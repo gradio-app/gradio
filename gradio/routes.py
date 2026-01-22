@@ -679,12 +679,7 @@ class App(FastAPI):
         ):
             components = config["components"]
             try:
-                user_path = (
-                    Path(app.uploaded_file_dir)
-                    / "deep_links"
-                    / deep_link
-                    / "state.json"
-                )
+                user_path = Path("deep_links") / deep_link / "state.json"
                 path = Path(
                     routes_safe_join(
                         DeveloperPath(app.uploaded_file_dir),
