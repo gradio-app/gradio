@@ -194,7 +194,7 @@
 					gradio.dispatch("upload", gradio.props.value);
 					gradio.dispatch("change", gradio.props.value);
 				}}
-				on:error={({ detail }) => {
+				onerror={({ detail }) => {
 					gradio.shared.loading_status = gradio.shared.loading_status || {};
 					gradio.shared.loading_status.status = "error";
 					gradio.dispatch("error", detail);
