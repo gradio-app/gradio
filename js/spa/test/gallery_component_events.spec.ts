@@ -79,6 +79,26 @@ test("Gallery preview_open and close events work correctly", async ({
 	await expect(page.getByLabel("Preview Open?")).toHaveValue("0");
 });
 
+test("Gallery subsequent upload via upload button works correctly", async ({
+	page
+}) => {
+	const [fileChooser] = await Promise.all([
+		page.waitForEvent("filechooser"),
+		page.getByLabel("Click to upload or drop files").first().click()
+	]);
+	await fileChooser.setFiles(["./test/files/cheetah1.jpg"]);
+
+	await expect(page.getByLabel("Num Upload")).toHaveValue("1");
+
+	const [fileChooser2] = await Promise.all([
+		page.waitForEvent("filechooser"),
+		page.getByLabel("Click to Upload", { exact: true }).first().click()
+	]);
+	await fileChooser2.setFiles(["./test/files/cheetah1.jpg"]);
+
+	await expect(page.getByLabel("Num Upload")).toHaveValue("2");
+});
+
 test("Gallery paste from clipboard works after initial upload", async ({
 	page
 }) => {

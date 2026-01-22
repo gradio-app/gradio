@@ -10,14 +10,19 @@
 		| "webcam-video"
 		| null;
 
-	export let sources: Partial<source_types>[];
-	export let active_source: Partial<source_types>;
-	export let handle_clear: () => void = () => {};
-	export let handle_select: (
-		source_type: Partial<source_types>
-	) => void = () => {};
+	let {
+		sources,
+		active_source = $bindable(),
+		handle_clear = () => {},
+		handle_select = () => {}
+	}: {
+		sources: Partial<source_types>[];
+		active_source?: Partial<source_types>;
+		handle_clear?: () => void;
+		handle_select?: (source_type: Partial<source_types>) => void;
+	} = $props();
 
-	$: unique_sources = [...new Set(sources)];
+	let unique_sources = $derived([...new Set(sources)]);
 
 	async function handle_select_source(
 		source: Partial<source_types>

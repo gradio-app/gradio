@@ -431,5 +431,15 @@ export const css_units = (dimension_value: string | number): string => {
 		: dimension_value;
 };
 
+export function should_show_scroll_fade(
+	container: HTMLElement | null
+): boolean {
+	if (!container) return false;
+	const has_overflow = container.scrollHeight > container.clientHeight;
+	const at_bottom =
+		container.scrollTop >= container.scrollHeight - container.clientHeight - 1;
+	return has_overflow && !at_bottom;
+}
+
 type MappedProps<T> = { [K in keyof T]: T[K] };
 type MappedProp<T, K extends keyof T> = { [P in K]: T[P] };

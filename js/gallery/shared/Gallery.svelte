@@ -399,7 +399,7 @@
 						<IconButton
 							Icon={Download}
 							label={i18n("common.download")}
-							on:click={() => {
+							onclick={() => {
 								const image =
 									"image" in selected_media
 										? selected_media?.image
@@ -441,7 +441,7 @@
 						<IconButton
 							Icon={Clear}
 							label="Close"
-							on:click={() => {
+							onclick={() => {
 								selected_index = null;
 								onpreview_close();
 							}}
@@ -545,24 +545,27 @@
 			{#if interactive && selected_index === null}
 				<ModifyUpload
 					{i18n}
-					on:clear={() => {
+					onclear={() => {
 						value = [];
 						onsource_change("upload");
 						onclear();
 					}}
 				>
 					{#if upload && stream_handler}
-						<IconButton Icon={UploadIcon} label={i18n("common.upload")}>
+						<IconButton
+							Icon={UploadIcon}
+							label={i18n("upload_text.click_to_upload")}
+						>
 							<UploadComponent
 								bind:upload_promise
 								icon_upload={true}
-								on:load={(e) => onupload(e.detail)}
+								onload={(e) => onupload(e)}
 								filetype={file_types}
 								file_count="multiple"
 								{max_file_size}
 								{root}
 								bind:uploading
-								on:error={(e) => onerror(e.detail)}
+								onerror={(e) => onerror(e)}
 								{stream_handler}
 								{upload}
 							/>
