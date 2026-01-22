@@ -1,6 +1,6 @@
 ---
-"@gradio/html": minor
-"gradio": minor
+"@gradio/html": patch
+"gradio": patch
 ---
 
-feat:Restore padding param in gr.HTML
+fix:Restore padding param in gr.HTML
