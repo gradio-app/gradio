@@ -1,6 +1,6 @@
 ---
-"@gradio/fileexplorer": minor
-"gradio": minor
+"@gradio/fileexplorer": patch
+"gradio": patch
 ---
 
 feat:Migrate js/fileexplorer to svelte5
