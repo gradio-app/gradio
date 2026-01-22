@@ -82,3 +82,36 @@
 		/>
 	{/snippet}
 </Story>
+
+<Story
+	name="HTML with no padding and a label"
+	args={{
+		value: `<div style="background: red;">${simpleValue}</div>`,
+		padding: false
+	}}
+>
+	{#snippet template(args)}
+		<HTML
+			{...wrapProps({
+				...args
+			})}
+		/>
+	{/snippet}
+</Story>
+
+<Story
+	name="HTML with no padding, no label"
+	args={{
+		show_label: false,
+		value: `<div style="background: red;">${simpleValue}</div>`,
+		padding: false
+	}}
+>
+	{#snippet template(args)}
+		<HTML
+			{...wrapProps({
+				...args
+			})}
+		/>
+	{/snippet}
+</Story>

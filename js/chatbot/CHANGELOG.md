@@ -1,5 +1,31 @@
 # @gradio/chatbot
 
+## 0.29.2
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12774](https://github.com/gradio-app/gradio/pull/12774) [`f02c58e`](https://github.com/gradio-app/gradio/commit/f02c58efc9fb8a97cc602c5e07ec13736f34322e) - Prevent empty button wrappers from rendering in gr.Chatbot.  Thanks @hannahblair!
+- [#12779](https://github.com/gradio-app/gradio/pull/12779) [`ea2d3e9`](https://github.com/gradio-app/gradio/commit/ea2d3e985a8b42d188e551f517c5825c00790628) - Migrate Audio + Upload + Atoms to Svelte 5.  Thanks @dawoodkhan82!
+- [#12596](https://github.com/gradio-app/gradio/pull/12596) [`5f654d7`](https://github.com/gradio-app/gradio/commit/5f654d74fb59ca7c1caf1d5965a768fac293c584) - Ensure HTML renders in gr.Chatbot.  Thanks @hannahblair!
+- [#12771](https://github.com/gradio-app/gradio/pull/12771) [`404f6a5`](https://github.com/gradio-app/gradio/commit/404f6a55be4cd0c1ece4af6edb8a7769473fb650) - Migrate Markdown components to svelte 5.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.2
+- @gradio/atoms@0.20.1
+- @gradio/utils@0.11.2
+- @gradio/icons@0.15.1
+- @gradio/upload@0.17.4
+- @gradio/client@2.0.3
+- @gradio/markdown-code@0.6.1
+- @gradio/image@0.25.1
+- @gradio/gallery@0.16.2
+- @gradio/plot@0.10.2
+- @gradio/theme@0.6.1
+- @gradio/video@0.20.1
+- @gradio/audio@0.22.1
+
 ## 0.29.1
 
 ### Fixes
