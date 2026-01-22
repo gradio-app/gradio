@@ -14,10 +14,10 @@
 	import type { WaveformOptions } from "../audio/shared/types";
 	import type {
 		MultimodalTextboxProps,
-		MultimodalTextboxEvents
+		MultimodalTextboxEvents,
 	} from "./types";
 
-	let upload_promise = $state<Promise<any>>();
+	let upload_promise = $state<Promise<any> | null>(null);
 
 	class MultimodalTextboxGradio extends Gradio<
 		MultimodalTextboxEvents,
@@ -37,7 +37,7 @@
 	let props = $props();
 	const gradio = new MultimodalTextboxGradio(props);
 
-	const value = $derived(gradio.props.value || { text: "", files: [] });
+	gradio.props.value = gradio.props.value ?? { text: "", files: [] };
 
 	let dragging = $state<boolean>(false);
 	let active_source = $state<"microphone" | null>(null);
@@ -58,12 +58,12 @@
 		waveColor: "",
 		progressColor: "",
 		mediaControls: false as boolean | undefined,
-		sampleRate: 44100
+		sampleRate: 44100,
 	};
 
 	onMount(() => {
 		color_accent = getComputedStyle(document?.documentElement).getPropertyValue(
-			"--color-accent"
+			"--color-accent",
 		);
 		set_trim_region_colour();
 		waveform_settings.waveColor =
@@ -79,13 +79,13 @@
 	const trim_region_settings = {
 		color: gradio.props?.waveform_options?.trim_region_color,
 		drag: true,
-		resize: true
+		resize: true,
 	};
 
 	function set_trim_region_colour(): void {
 		document.documentElement.style.setProperty(
 			"--trim-region-color",
-			trim_region_settings.color || color_accent
+			trim_region_settings.color || color_accent,
 		);
 	}
 
@@ -104,11 +104,11 @@
 			| "upload"
 			| "upload,microphone"
 			| "microphone"
-			| "microphone,upload"
+			| "microphone,upload",
 	);
 
 	let file_types_string = $derived.by(
-		() => (gradio.props.file_types || []).join(",") || null
+		() => (gradio.props.file_types || []).join(",") || null,
 	);
 </script>
 
@@ -135,7 +135,7 @@
 
 	<MultimodalTextbox
 		bind:upload_promise
-		{value}
+		bind:value={gradio.props.value}
 		value_is_output
 		bind:dragging
 		bind:active_source
@@ -173,8 +173,6 @@
 		onerror={(detail) => {
 			gradio.dispatch("error", detail);
 		}}
-		onstart_recording={() => gradio.dispatch("start_recording")}
-		onpause_recording={() => gradio.dispatch("pause_recording")}
 		onstop_recording={() => gradio.dispatch("stop_recording")}
 		onupload={(e) => gradio.dispatch("upload", e)}
 		onclear={() => gradio.dispatch("clear")}

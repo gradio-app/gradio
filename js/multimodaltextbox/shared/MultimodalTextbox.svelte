@@ -16,18 +16,18 @@
 		ArrowUp,
 		Square,
 		Microphone,
-		Check
+		Check,
 	} from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 	import {
 		MinimalAudioPlayer,
-		MinimalAudioRecorder
+		MinimalAudioRecorder,
 	} from "@gradio/audio/shared";
 	import type { InputHTMLAttributes } from "./types";
 
 	let {
-		value = $bindable({ text: "", files: [] }),
-		value_is_output = $bindable(false),
+		value = $bindable<{ text: string; files: FileData[] }>(),
+		value_is_output = false,
 		lines = 1,
 		i18n: _i18n,
 		placeholder = "",
@@ -52,10 +52,10 @@
 		waveform_settings,
 		waveform_options: _waveform_options = { show_recording_waveform: true },
 		sources_string = "upload",
-		active_source = $bindable<"microphone" | null>(null),
+		active_source = $bindable<"microphone" | null>(),
 		html_attributes = null,
-		upload_promise = $bindable<Promise<any> | null>(null),
-		dragging = $bindable(false),
+		upload_promise = $bindable<Promise<any> | null>(),
+		dragging = $bindable<boolean>(),
 		onchange,
 		onsubmit,
 		onstop,
@@ -68,9 +68,7 @@
 		onclear,
 		onload: _onload,
 		onerror,
-		onstart_recording: _onstart_recording,
-		onpause_recording: _onpause_recording,
-		onstop_recording
+		onstop_recording,
 	}: {
 		value?: { text: string; files: FileData[] };
 		value_is_output?: boolean;
@@ -142,17 +140,19 @@
 			.filter((s) => s === "upload" || s === "microphone") as (
 			| "upload"
 			| "microphone"
-		)[]
+		)[],
 	);
 
 	let file_types = $derived(
-		file_types_string ? file_types_string.split(",").map((s) => s.trim()) : null
+		file_types_string
+			? file_types_string.split(",").map((s) => s.trim())
+			: null,
 	);
 
 	let show_upload = $derived(
 		sources &&
 			sources.includes("upload") &&
-			!(file_count === "single" && value.files.length > 0)
+			!(file_count === "single" && value?.files?.length > 0),
 	);
 
 	$effect(() => {
@@ -167,7 +167,9 @@
 	});
 
 	$effect(() => {
-		if (value === null) value = { text: "", files: [] };
+		if (value == null) {
+			value = { text: "", files: [] };
+		}
 	});
 
 	$effect(() => {
@@ -214,7 +216,7 @@
 		const text = target.value;
 		const index: [number, number] = [
 			target.selectionStart as number,
-			target.selectionEnd as number
+			target.selectionEnd as number,
 		];
 		onselect?.({ value: text.substring(...index), index: index });
 	}
@@ -308,7 +310,7 @@
 			event.preventDefault();
 			const file = new window.File([text], "pasted_text.txt", {
 				type: "text/plain",
-				lastModified: Date.now()
+				lastModified: Date.now(),
 			});
 			if (upload_component) {
 				upload_component.load_files([file]);
@@ -363,7 +365,7 @@
 				const invalid_files = files.length - valid_files.length;
 				if (invalid_files > 0) {
 					onerror?.(
-						`${invalid_files} file(s) were rejected. Accepted formats: ${file_types.join(", ")}`
+						`${invalid_files} file(s) were rejected. Accepted formats: ${file_types.join(", ")}`,
 					);
 				}
 
@@ -512,7 +514,7 @@
 											title: null,
 											alt: "",
 											loading: "lazy",
-											class: "thumbnail-image"
+											class: "thumbnail-image",
 										}}
 									/>
 								{:else if file.mime_type && file.mime_type.includes("audio")}
@@ -555,7 +557,7 @@
 					use:text_area_resize={{
 						text: value.text,
 						lines: lines,
-						max_lines: max_lines
+						max_lines: max_lines,
 					}}
 					class:no-label={!show_label}
 					dir={rtl ? "rtl" : "ltr"}
