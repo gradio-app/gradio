@@ -27,4 +27,4 @@
 	});
 </script>
 
-<IconButton Icon={copied ? Check : Copy} on:click={handle_copy} />
+<IconButton Icon={copied ? Check : Copy} onclick={handle_copy} />

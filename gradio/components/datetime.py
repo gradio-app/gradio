@@ -20,6 +20,8 @@ from gradio.utils import set_default_buttons
 class DateTime(FormComponent):
     """
     Component to select a date and (optionally) a time.
+
+    Guides: time-plots
     """
 
     EVENTS = [

@@ -30,7 +30,7 @@
 			color={selected === "Dislike"
 				? "var(--color-accent)"
 				: "var(--block-label-text-color)"}
-			on:click={() => toggleSelection("Dislike")}
+			onclick={() => toggleSelection("Dislike")}
 		/>
 	{/if}
 	{#if feedback_options.includes("Like")}
@@ -40,7 +40,7 @@
 			color={selected === "Like"
 				? "var(--color-accent)"
 				: "var(--block-label-text-color)"}
-			on:click={() => toggleSelection("Like")}
+			onclick={() => toggleSelection("Like")}
 		/>
 	{/if}
 {/if}
