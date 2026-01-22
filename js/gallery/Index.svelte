@@ -108,8 +108,10 @@
 				}
 			}
 			if (file) {
-				const f = await handle_save(file, (f) =>
-					gradio.shared.client.upload(f, gradio.shared.root)
+				const f = await handle_save(
+					file,
+					(f) => gradio.shared.client.upload(f, gradio.shared.root),
+					"clipboard_upload"
 				);
 				const processed_files = await process_upload_files(f);
 				gradio.props.value?.push(...processed_files);
@@ -208,8 +210,10 @@
 				root={gradio.shared.root}
 				value={null}
 				on:capture={async (e) => {
-					const f = await handle_save(e.detail, (f) =>
-						gradio.shared.client.upload(f, gradio.shared.root)
+					const f = await handle_save(
+						e.detail,
+						(f) => gradio.shared.client.upload(f, gradio.shared.root),
+						"webcam_upload"
 					);
 					const processed_files = await process_upload_files(f);
 					gradio.props.value?.push(...processed_files);

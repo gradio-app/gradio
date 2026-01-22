@@ -6,7 +6,6 @@
 		| "microphone"
 		| "webcam"
 		| "clipboard"
-		| "webcam-image"
 		| "webcam-video"
 		| null;
 
