@@ -24,7 +24,7 @@
 		Upload as UploadIcon,
 		Webcam,
 		Video as VideoIcon,
-		Copy
+		ImagePaste
 	} from "@gradio/icons";
 	import { FileData } from "@gradio/client";
 	import type { Client } from "@gradio/client";
@@ -588,11 +588,11 @@
 					{/if}
 					{#if sources.includes("clipboard")}
 						<IconButton
-							Icon={Copy}
-							label={i18n("common.clipboard")}
+							label={i18n("upload_text.paste_clipboard")}
 							on:click={() => {
 								onsource_change("clipboard");
 							}}
+							Icon={ImagePaste}
 						/>
 					{/if}
 				</ModifyUpload>

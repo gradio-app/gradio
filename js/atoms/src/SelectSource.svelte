@@ -35,7 +35,7 @@
 				class="icon"
 				class:selected={active_source === "upload" || !active_source}
 				aria-label="Upload file"
-				on:click={() => handle_select_source("upload")}><Upload /></button
+				onclick={() => handle_select_source("upload")}><Upload /></button
 			>
 		{/if}
 
@@ -44,7 +44,7 @@
 				class="icon"
 				class:selected={active_source === "microphone"}
 				aria-label="Record audio"
-				on:click={() => handle_select_source("microphone")}
+				onclick={() => handle_select_source("microphone")}
 				><Microphone /></button
 			>
 		{/if}
@@ -54,7 +54,7 @@
 				class="icon"
 				class:selected={active_source === "webcam"}
 				aria-label="Capture from camera"
-				on:click={() => handle_select_source("webcam")}><Webcam /></button
+				onclick={() => handle_select_source("webcam")}><Webcam /></button
 			>
 		{/if}
 		{#if sources.includes("webcam-video")}
@@ -62,7 +62,7 @@
 				class="icon"
 				class:selected={active_source === "webcam-video"}
 				aria-label="Record video from camera"
-				on:click={() => handle_select_source("webcam-video")}><Video /></button
+				onclick={() => handle_select_source("webcam-video")}><Video /></button
 			>
 		{/if}
 		{#if sources.includes("clipboard")}
@@ -70,8 +70,7 @@
 				class="icon"
 				class:selected={active_source === "clipboard"}
 				aria-label="Paste from clipboard"
-				on:click={() => handle_select_source("clipboard")}
-				><ImagePaste /></button
+				onclick={() => handle_select_source("clipboard")}><ImagePaste /></button
 			>
 		{/if}
 	</span>

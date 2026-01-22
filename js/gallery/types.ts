@@ -40,4 +40,5 @@ export interface GalleryEvents {
 	share: any;
 	error: any;
 	custom_button_click: { id: number };
+	warning: string;
 }

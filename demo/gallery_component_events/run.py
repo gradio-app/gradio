@@ -8,7 +8,8 @@ with gr.Blocks() as demo:
     ]
     with gr.Row():
         with gr.Column():
-            gal = gr.Gallery(columns=4, interactive=True, label="Input Gallery")
+            gal = gr.Gallery(columns=4, interactive=True, label="Input Gallery",
+                             sources=["upload", "webcam", "webcam-video", "clipboard"])
             btn = gr.Button()
         with gr.Column():
             output_gal = gr.Gallery(columns=4, interactive=True, label="Output Gallery")

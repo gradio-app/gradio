@@ -77,15 +77,44 @@
 	let upload_input: BaseFileUpload;
 
 	let active_source = $state<
-		"upload" | "webcam" | "webcam-video" | "clipboard"
+		"upload" | "webcam" | "webcam-video" | "clipboard" | null
 	>(gradio.props.sources ? gradio.props.sources[0] : "upload");
+
+	async function paste_clipboard(): Promise<void> {
+		navigator.clipboard.read().then(async (items) => {
+			let file: File | null = null;
+			for (let i = 0; i < items.length; i++) {
+				const type = items[i].types.find((t) =>
+					(gradio.props.file_types || ["image"]).some((ft) =>
+						t.startsWith(ft + "/")
+					)
+				);
+				if (type) {
+					const blob = await items[i].getType(type);
+					file = new File([blob], `clipboard.${type.replace("image/", "")}`);
+					break;
+				}
+			}
+			if (file) {
+				const f = await handle_save(file, (f) =>
+					gradio.shared.client.upload(f, gradio.shared.root)
+				);
+				const processed_files = await process_upload_files(f);
+				gradio.props.value?.push(...processed_files);
+				gradio.dispatch("change", gradio.props.value);
+				active_source = null;
+			} else {
+				gradio.dispatch("warning", "No image or video found in clipboard");
+			}
+		});
+	}
 
 	async function handle_select_source(
 		source: "upload" | "webcam" | "clipboard"
 	): Promise<void> {
 		switch (source) {
 			case "clipboard":
-				upload_input.paste_clipboard();
+				await paste_clipboard();
 				break;
 			default:
 				break;
@@ -95,13 +124,17 @@
 	async function onsource_change(
 		source: "upload" | "webcam" | "webcam-video" | "clipboard"
 	): Promise<void> {
-		active_source = source;
 		await tick();
 		if (source === "clipboard") {
-			upload_input.paste_clipboard();
+			await paste_clipboard();
+		} else {
+			active_source = source;
+			no_value = true;
 		}
 	}
-	$inspect("gradio.props.value", gradio.props.value);
+
+	$inspect("no_value", no_value);
+	$inspect("active_source", active_source);
 </script>
 
 <Block
@@ -126,9 +159,9 @@
 		on_clear_status={() =>
 			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
-	{#if gradio.shared.interactive && active_source !== null}
+	{#if gradio.shared.interactive && no_value}
 		<div
-			class={!gradio.props.value || active_source.includes("webcam")
+			class={!gradio.props.value || (active_source && active_source.includes("webcam"))
 				? "hidden-upload-input"
 				: ""}
 		>
