@@ -43,9 +43,9 @@ const type_map = {
 };
 
 function get_api_url(config: Omit<AppConfig, "api_url">): string {
-	// Handle api_prefix correctly when app is mounted at a subpath
-	// Since get_root_url() returns root without trailing slash, we need to manually
-	// append api_prefix to root's pathname to ensure correct URL construction
+	// Handle api_prefix correctly when app is mounted at a subpath.
+	// config.root may not include a trailing slash, so we normalize its pathname
+	// before appending api_prefix to ensure correct URL construction.
 	const rootUrl = new URL(config.root);
 	const rootPath = rootUrl.pathname.endsWith("/")
 		? rootUrl.pathname
