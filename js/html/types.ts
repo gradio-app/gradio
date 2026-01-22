@@ -12,6 +12,7 @@ export interface HTMLProps {
 	props: Record<string, any>;
 	component_class_name: string;
 	buttons: (string | CustomButton)[] | null;
+	padding: boolean;
 }
 
 export interface HTMLEvents {
