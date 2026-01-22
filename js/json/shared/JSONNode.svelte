@@ -69,6 +69,9 @@
 	}
 
 	$effect(() => {
+		value;
+		collapsed;
+
 		if (is_root && root_element) {
 			tick().then(() => {
 				updateLineNumbers();
