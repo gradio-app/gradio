@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fix DeepLink Bug
+fix:Fix DeepLink Bug
