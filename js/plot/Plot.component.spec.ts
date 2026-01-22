@@ -14,46 +14,45 @@ const loading_status: LoadingStatus = {
 	show_progress: "full"
 };
 
-test.fixme(
-	"gr.Plot triggers load and change events correctly",
-	async ({ mount }) => {
-		const events = {
-			change: 0
-		};
+test.fixme("gr.Plot triggers load and change events correctly", async ({
+	mount
+}) => {
+	const events = {
+		change: 0
+	};
 
-		function event(name: "change") {
-			events[name] += 1;
-		}
-
-		// Don't know how to mock dispatch events yet
-		const component = await mount(Plot, {
-			props: {
-				props: {
-					value: { plot: matplotlib_plot, type: "matplotlib" },
-					theme_mode: "light",
-					caption: "",
-					bokeh_version: null,
-					show_actions_button: false,
-					_selectable: false,
-					x_lim: null,
-					__GRADIO_BROWSER_TEST__: true
-				},
-				shared_props: {
-					label: "My Plot",
-					show_label: true,
-					loading_status: loading_status
-				}
-			}
-		});
-
-		await component.update({
-			props: {
-				props: {
-					value: { plot: "fooo", type: "matplotlib" }
-				}
-			}
-		});
-
-		expect(events.change).toEqual(1);
+	function event(name: "change") {
+		events[name] += 1;
 	}
-);
+
+	// Don't know how to mock dispatch events yet
+	const component = await mount(Plot, {
+		props: {
+			props: {
+				value: { plot: matplotlib_plot, type: "matplotlib" },
+				theme_mode: "light",
+				caption: "",
+				bokeh_version: null,
+				show_actions_button: false,
+				_selectable: false,
+				x_lim: null,
+				__GRADIO_BROWSER_TEST__: true
+			},
+			shared_props: {
+				label: "My Plot",
+				show_label: true,
+				loading_status: loading_status
+			}
+		}
+	});
+
+	await component.update({
+		props: {
+			props: {
+				value: { plot: "fooo", type: "matplotlib" }
+			}
+		}
+	});
+
+	expect(events.change).toEqual(1);
+});

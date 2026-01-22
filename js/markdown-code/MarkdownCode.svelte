@@ -149,9 +149,8 @@
 					});
 				});
 			} else {
-				const { default: render_math_in_element } = await import(
-					"katex/contrib/auto-render"
-				);
+				const { default: render_math_in_element } =
+					await import("katex/contrib/auto-render");
 				render_math_in_element(el, {
 					delimiters: latex_delimiters,
 					throwOnError: false

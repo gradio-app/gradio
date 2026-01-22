@@ -19,7 +19,7 @@
 		"@gradio/atoms": "workspace:^"
 	},
 	"peerDependencies": {
-		"svelte": "^5.43.4"
+		"svelte": "^5.48.0"
 	},
 	"repository": {
 		"type": "git",
