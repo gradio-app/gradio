@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/theme",
-	"version": "0.6.0",
+	"version": "0.6.1",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "src/index.ts",
