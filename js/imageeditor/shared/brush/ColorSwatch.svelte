@@ -89,7 +89,7 @@
 				{#if color_picker}
 					<IconButton
 						Icon={Plus}
-						on:click={() => dispatch("add_color")}
+						onclick={() => dispatch("add_color")}
 						roundedness="very"
 						background={get_color(selected_color)}
 						color="white"

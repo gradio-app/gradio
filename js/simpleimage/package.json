@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/simpleimage",
-	"version": "0.9.2",
+	"version": "0.9.3",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -41,7 +41,7 @@
 		}
 	},
 	"peerDependencies": {
-		"svelte": "^5.43.4"
+		"svelte": "^5.48.0"
 	},
 	"repository": {
 		"type": "git",

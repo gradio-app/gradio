@@ -23,7 +23,7 @@
 		label={i18n("dataframe.sort_ascending")}
 		Icon={SortButtonUp}
 		highlight={direction === "asc"}
-		on:click={(event) => {
+		onclick={(event) => {
 			event.stopPropagation();
 			dispatch("sort", "asc");
 		}}
@@ -33,7 +33,7 @@
 		label={i18n("dataframe.sort_descending")}
 		Icon={SortButtonDown}
 		highlight={direction === "desc"}
-		on:click={(event) => {
+		onclick={(event) => {
 			event.stopPropagation();
 			dispatch("sort", "desc");
 		}}

@@ -13,7 +13,7 @@
 	import { BaseFileUpload } from "@gradio/file";
 	import type { GalleryProps, GalleryEvents, GalleryData } from "./types";
 
-	let upload_promise = $state<Promise<any>>();
+	let upload_promise = $state<Promise<(FileData | null)[]>>();
 
 	class GalleryGradio extends Gradio<GalleryEvents, GalleryProps> {
 		async get_data() {
@@ -28,7 +28,9 @@
 	}
 
 	const props = $props();
-	const gradio = new GalleryGradio<GalleryEvents, GalleryProps>(props);
+	const gradio = new GalleryGradio<GalleryEvents, GalleryProps>(props, {
+		selected_index: null
+	});
 
 	let fullscreen = $state(false);
 
@@ -105,35 +107,37 @@
 			i18n={gradio.i18n}
 			upload={(...args) => gradio.shared.client.upload(...args)}
 			stream_handler={(...args) => gradio.shared.client.stream(...args)}
-			on:upload={async (e) => {
-				const files = Array.isArray(e.detail) ? e.detail : [e.detail];
+			onupload={async (event_data) => {
+				const files = Array.isArray(event_data) ? event_data : [event_data];
 				gradio.props.value = await process_upload_files(files);
 				gradio.dispatch("upload", gradio.props.value);
 				gradio.dispatch("change", gradio.props.value);
 			}}
-			on:error={({ detail }) => {
+			onerror={(event_data) => {
 				gradio.shared.loading_status = gradio.shared.loading_status || {};
 				gradio.shared.loading_status.status = "error";
-				gradio.dispatch("error", detail);
+				gradio.dispatch("error", event_data);
 			}}
 		>
 			<UploadText i18n={gradio.i18n} type="gallery" />
 		</BaseFileUpload>
 	{:else}
 		<Gallery
-			on:change={() => gradio.dispatch("change")}
-			on:clear={() => gradio.dispatch("change")}
-			on:select={(e) => gradio.dispatch("select", e.detail)}
-			on:share={(e) => gradio.dispatch("share", e.detail)}
-			on:error={(e) => gradio.dispatch("error", e.detail)}
-			on:preview_open={() => gradio.dispatch("preview_open")}
-			on:preview_close={() => gradio.dispatch("preview_close")}
-			on:fullscreen={({ detail }) => {
+			onchange={() => gradio.dispatch("change")}
+			onclear={() => gradio.dispatch("change")}
+			onselect={(e) => gradio.dispatch("select", e)}
+			onshare={(e) => gradio.dispatch("share", e.detail)}
+			onerror={(e) => gradio.dispatch("error", e.detail)}
+			onpreview_open={() => {
+				gradio.dispatch("preview_open");
+			}}
+			onpreview_close={() => gradio.dispatch("preview_close")}
+			onfullscreen={({ detail }) => {
 				fullscreen = detail;
 			}}
-			on:delete={handle_delete}
-			on:upload={async (e) => {
-				const files = Array.isArray(e.detail) ? e.detail : [e.detail];
+			ondelete={handle_delete}
+			onupload={async (e) => {
+				const files = Array.isArray(e) ? e : [e];
 				const new_value = await process_upload_files(files);
 				gradio.props.value = gradio.props.value
 					? [...gradio.props.value, ...new_value]

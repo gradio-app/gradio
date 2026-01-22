@@ -25,7 +25,6 @@ class Slider(FormComponent):
     Creates a slider that ranges from {minimum} to {maximum} with a step size of {step}.
 
     Demos: sentence_builder, slider_release, interface_random_slider, blocks_random_slider
-    Guides: create-your-own-friends-with-a-gan
     """
 
     EVENTS = [Events.change, Events.input, Events.release]

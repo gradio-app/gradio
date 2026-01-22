@@ -1,5 +1,15 @@
 # @gradio/utils
 
+## 0.11.2
+
+### Fixes
+
+- [#12795](https://github.com/gradio-app/gradio/pull/12795) [`184968a`](https://github.com/gradio-app/gradio/commit/184968aa13636b5afe78f8ae443cd7fc29635bfa) - Add fade effect to overflowing text.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/theme@0.6.1
+
 ## 0.11.1
 
 ### Dependency updates

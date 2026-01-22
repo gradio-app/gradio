@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { tick } from "svelte";
 	import { text_area_resize, resize } from "../shared/utils";
-	import { BlockTitle } from "@gradio/atoms";
+	import { BlockTitle, ScrollFade } from "@gradio/atoms";
 	import { Upload } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
@@ -18,7 +18,7 @@
 		Microphone,
 		Check,
 	} from "@gradio/icons";
-	import type { SelectData } from "@gradio/utils";
+import { should_show_scroll_fade, type SelectData } from "@gradio/utils";
 	import {
 		MinimalAudioPlayer,
 		MinimalAudioRecorder,
@@ -126,6 +126,7 @@
 	let can_scroll = $state(false);
 	let previous_scroll_top = $state(0);
 	let user_has_scrolled_up = $state(false);
+	let show_fade = $state(false);
 	let uploading = $state(false);
 	// value can be null in multimodalchatinterface when loading a deep link
 	let oldValue = $state(value?.text ?? "");
@@ -154,6 +155,16 @@
 			sources.includes("upload") &&
 			!(file_count === "single" && value?.files?.length > 0),
 	);
+
+	function update_fade(): void {
+		show_fade = should_show_scroll_fade(el);
+	}
+
+	$effect(() => {
+		if (el && value?.text !== undefined) {
+			tick().then(update_fade);
+		}
+	});
 
 	$effect(() => {
 		ondrag?.(dragging);
@@ -253,6 +264,7 @@
 		if (user_has_scrolled_to_bottom) {
 			user_has_scrolled_up = false;
 		}
+		update_fade();
 	}
 
 	async function handle_upload(detail: FileData | FileData[]): Promise<void> {
@@ -417,11 +429,6 @@
 								mic_audio = null;
 								onclear?.();
 							}}
-							onerror={() => {
-								active_source = null;
-								recording = false;
-								mic_audio = null;
-							}}
 						/>
 					</div>
 				{:else}
@@ -552,35 +559,38 @@
 						<Paperclip />
 					</button>
 				{/if}
-				<textarea
-					data-testid="textbox"
-					use:text_area_resize={{
-						text: value.text,
-						lines: lines,
-						max_lines: max_lines,
-					}}
-					class:no-label={!show_label}
-					dir={rtl ? "rtl" : "ltr"}
-					bind:value={value.text}
-					bind:this={el}
-					{placeholder}
-					rows={lines}
-					{disabled}
-					onkeypress={handle_keypress}
-					onblur={() => onblur?.()}
-					onselect={handle_select}
-					onfocus={() => onfocus?.()}
-					onscroll={handle_scroll}
-					onpaste={handle_paste}
-					style={text_align ? "text-align: " + text_align : ""}
-					autocapitalize={html_attributes?.autocapitalize}
-					autocorrect={html_attributes?.autocorrect}
-					spellcheck={html_attributes?.spellcheck}
-					autocomplete={html_attributes?.autocomplete}
-					tabindex={html_attributes?.tabindex}
-					enterkeyhint={html_attributes?.enterkeyhint}
-					lang={html_attributes?.lang}
-				/>
+			<div class="textarea-wrapper">
+					<textarea
+						data-testid="textbox"
+						use:text_area_resize={{
+							text: value.text,
+							lines: lines,
+							max_lines: max_lines,
+						}}
+						class:no-label={!show_label}
+						dir={rtl ? "rtl" : "ltr"}
+						bind:value={value.text}
+						bind:this={el}
+						{placeholder}
+						rows={lines}
+						{disabled}
+						onkeypress={handle_keypress}
+						onblur={() => onblur?.()}
+						onselect={handle_select}
+						onfocus={() => onfocus?.()}
+						onscroll={handle_scroll}
+						onpaste={handle_paste}
+						style={text_align ? "text-align: " + text_align : ""}
+						autocapitalize={html_attributes?.autocapitalize}
+						autocorrect={html_attributes?.autocorrect}
+						spellcheck={html_attributes?.spellcheck}
+						autocomplete={html_attributes?.autocomplete}
+						tabindex={html_attributes?.tabindex}
+						enterkeyhint={html_attributes?.enterkeyhint}
+						lang={html_attributes?.lang}
+					/>
+					<ScrollFade visible={show_fade} position="absolute" />
+				</div>
 
 				{#if sources && sources.includes("microphone")}
 					<button
@@ -1057,5 +1067,14 @@
 		.thumbnail-item:active .delete-button {
 			opacity: 1;
 		}
+	}
+
+	.textarea-wrapper {
+		position: relative;
+		flex-grow: 1;
+	}
+
+	.textarea-wrapper textarea {
+		width: 100%;
 	}
 </style>

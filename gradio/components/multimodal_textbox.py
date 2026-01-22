@@ -44,7 +44,7 @@ class MultimodalTextbox(FormComponent):
     Creates a textarea for users to enter string input or display string output and also allows for the uploading of multimedia files.
 
     Demos: chatbot_multimodal
-    Guides: creating-a-chatbot
+    Guides: creating-a-custom-chatbot-with-blocks
     """
 
     data_model = MultimodalData
