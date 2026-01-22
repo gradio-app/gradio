@@ -679,13 +679,18 @@ class App(FastAPI):
         ):
             components = config["components"]
             try:
-                path = (
+                user_path = (
                     Path(app.uploaded_file_dir)
                     / "deep_links"
                     / deep_link
                     / "state.json"
                 )
-
+                path = Path(
+                    routes_safe_join(
+                        DeveloperPath(app.uploaded_file_dir),
+                        UserProvidedPath(str(user_path)),
+                    )
+                )
                 if path.exists():
                     components = orjson.loads(path.read_bytes())
                     deep_link_state = "valid"
