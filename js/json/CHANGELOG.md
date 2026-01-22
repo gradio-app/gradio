@@ -1,5 +1,24 @@
 # @gradio/json
 
+## 0.7.0
+
+### Features
+
+- [#12808](https://github.com/gradio-app/gradio/pull/12808) [`d035856`](https://github.com/gradio-app/gradio/commit/d035856a358aa15d9cb5b936c96f3799b6278cae) - Fixes gr.JSON lines.  Thanks @aliabid94!
+- [#12778](https://github.com/gradio-app/gradio/pull/12778) [`263c065`](https://github.com/gradio-app/gradio/commit/263c065b850febf8e3a0480ccd43d23eef10c22f) - Migrate js/json to svelte5.  Thanks @aliabid94!
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12779](https://github.com/gradio-app/gradio/pull/12779) [`ea2d3e9`](https://github.com/gradio-app/gradio/commit/ea2d3e985a8b42d188e551f517c5825c00790628) - Migrate Audio + Upload + Atoms to Svelte 5.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.2
+- @gradio/atoms@0.20.1
+- @gradio/utils@0.11.2
+- @gradio/icons@0.15.1
+
 ## 0.6.0
 
 ### Dependency updates

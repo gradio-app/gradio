@@ -1,5 +1,26 @@
 # @gradio/multimodaltextbox
 
+## 0.11.4
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12779](https://github.com/gradio-app/gradio/pull/12779) [`ea2d3e9`](https://github.com/gradio-app/gradio/commit/ea2d3e985a8b42d188e551f517c5825c00790628) - Migrate Audio + Upload + Atoms to Svelte 5.  Thanks @dawoodkhan82!
+- [#12795](https://github.com/gradio-app/gradio/pull/12795) [`184968a`](https://github.com/gradio-app/gradio/commit/184968aa13636b5afe78f8ae443cd7fc29635bfa) - Add fade effect to overflowing text.  Thanks @hannahblair!
+- [#12594](https://github.com/gradio-app/gradio/pull/12594) [`c2f0f19`](https://github.com/gradio-app/gradio/commit/c2f0f1949d453bc850fa65e5b140067008a83e22) - add conditional rendering for the upload button in multimodal textbox.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.2
+- @gradio/atoms@0.20.1
+- @gradio/utils@0.11.2
+- @gradio/icons@0.15.1
+- @gradio/upload@0.17.4
+- @gradio/client@2.0.3
+- @gradio/image@0.25.1
+- @gradio/video@0.20.1
+- @gradio/audio@0.22.1
+
 ## 0.11.3
 
 ### Fixes

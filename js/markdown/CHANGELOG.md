@@ -1,5 +1,22 @@
 # @gradio/markdown
 
+## 0.13.26
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12779](https://github.com/gradio-app/gradio/pull/12779) [`ea2d3e9`](https://github.com/gradio-app/gradio/commit/ea2d3e985a8b42d188e551f517c5825c00790628) - Migrate Audio + Upload + Atoms to Svelte 5.  Thanks @dawoodkhan82!
+- [#12771](https://github.com/gradio-app/gradio/pull/12771) [`404f6a5`](https://github.com/gradio-app/gradio/commit/404f6a55be4cd0c1ece4af6edb8a7769473fb650) - Migrate Markdown components to svelte 5.  Thanks @freddyaboulton!
+- [#12795](https://github.com/gradio-app/gradio/pull/12795) [`184968a`](https://github.com/gradio-app/gradio/commit/184968aa13636b5afe78f8ae443cd7fc29635bfa) - Add fade effect to overflowing text.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.2
+- @gradio/atoms@0.20.1
+- @gradio/utils@0.11.2
+- @gradio/icons@0.15.1
+- @gradio/markdown-code@0.6.1
+
 ## 0.13.25
 
 ### Fixes

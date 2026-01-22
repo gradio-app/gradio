@@ -1,5 +1,16 @@
 # @gradio/tabs
 
+## 0.5.5
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12693](https://github.com/gradio-app/gradio/pull/12693) [`b48da51`](https://github.com/gradio-app/gradio/commit/b48da517d2daa62d3b201f9a84bef9352d485b38) - Fix bug where Walkthrough Component Freezes.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/utils@0.11.2
+
 ## 0.5.4
 
 ### Dependency updates
