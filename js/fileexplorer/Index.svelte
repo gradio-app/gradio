@@ -1,5 +1,3 @@
-<svelte:options accessors={true} />
-
 <script lang="ts">
 	import type { FileExplorerProps, FileExplorerEvents } from "./types";
 	import { Gradio } from "@gradio/utils";
@@ -15,6 +13,7 @@
 	const props = $props();
 	const gradio = new Gradio<FileExplorerEvents, FileExplorerProps>(props);
 
+	gradio.props.value = gradio.props.value ?? [];
 	let old_value = $state(gradio.props.value);
 
 	let rerender_key = $derived([
@@ -22,6 +21,16 @@
 		gradio.props.glob,
 		gradio.props.ignore_glob
 	]);
+
+	// Reset value when rerender_key changes
+	// svelte-ignore state_referenced_locally
+	let old_rerender_key = $state(rerender_key);
+	$effect(() => {
+		if (JSON.stringify(old_rerender_key) != JSON.stringify(rerender_key) && old_value == gradio.props.value) {
+			old_rerender_key = rerender_key;
+			gradio.props.value = [];
+		}
+	});
 
 	$effect(() => {
 		if (old_value != gradio.props.value) {
@@ -75,8 +84,8 @@
 			interactive={gradio.shared.interactive}
 			selectable={gradio.props._selectable}
 			ls_fn={gradio.shared.server.ls}
-			on:input={() => gradio.dispatch("input")}
-			on:select={(e) => gradio.dispatch("select", e.detail)}
+			oninput={() => gradio.dispatch("input")}
+			onselect={(detail) => gradio.dispatch("select", detail)}
 		/>
 	{/key}
 </Block>

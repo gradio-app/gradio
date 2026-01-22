@@ -1,26 +1,45 @@
 <script lang="ts">
 	import type { FileNode } from "./types";
 	import type { SelectData } from "@gradio/utils";
-	import { createEventDispatcher } from "svelte";
 
 	import Arrow from "./ArrowIcon.svelte";
 	import Checkbox from "./Checkbox.svelte";
+	import Self from "./FileTree.svelte";
 	import FileIcon from "../icons/light-file.svg";
 	import FolderIcon from "../icons/light-folder.svg";
 
-	export let path: string[] = [];
-	export let index_path: number[] = [];
-	export let selected_files: string[][] = [];
-	export let selected_folders: string[][] = [];
-	export let is_selected_entirely = false;
-	export let interactive: boolean;
-	export let selectable: boolean = false;
-	export let ls_fn: (path: string[]) => Promise<FileNode[]>;
-	export let file_count: "single" | "multiple" = "multiple";
-	export let valid_for_selection: boolean;
+	interface Props {
+		path?: string[];
+		index_path?: number[];
+		selected_files?: string[][];
+		selected_folders?: string[][];
+		is_selected_entirely?: boolean;
+		interactive: boolean;
+		selectable?: boolean;
+		ls_fn: (path: string[]) => Promise<FileNode[]>;
+		file_count?: "single" | "multiple";
+		valid_for_selection: boolean;
+		oncheck?: (detail: { path: string[]; checked: boolean; type: "file" | "folder" }) => void;
+		onselect?: (detail: SelectData) => void;
+	}
 
-	let content: FileNode[] = [];
-	let opened_folders: number[] = [];
+	let {
+		path = [],
+		index_path = [],
+		selected_files = [],
+		selected_folders = [],
+		is_selected_entirely = false,
+		interactive,
+		selectable = false,
+		ls_fn,
+		file_count = "multiple",
+		valid_for_selection,
+		oncheck,
+		onselect
+	}: Props = $props();
+
+	let content = $state<FileNode[]>([]);
+	let opened_folders = $state<number[]>([]);
 
 	const toggle_open_folder = (i: number): void => {
 		if (opened_folders.includes(i)) {
@@ -51,27 +70,24 @@
 			.filter((x): x is number => x !== null);
 	})();
 
-	$: if (is_selected_entirely) {
-		content.forEach((x) => {
-			dispatch("check", {
-				path: [...path, x.name],
-				checked: true,
-				type: x.type
+	$effect(() => {
+		if (is_selected_entirely) {
+			content.forEach((x) => {
+				oncheck?.({
+					path: [...path, x.name],
+					checked: true,
+					type: x.type
+				});
 			});
-		});
-	}
-
-	const dispatch = createEventDispatcher<{
-		check: { path: string[]; checked: boolean; type: "file" | "folder" };
-		select: SelectData;
-	}>();
+		}
+	});
 
 	function handle_select(
 		full_index_path: number[],
 		item_path: string[],
-		type: "file" | "folder"
+		_type: "file" | "folder"
 	): void {
-		dispatch("select", {
+		onselect?.({
 			index: full_index_path as any,
 			value: item_path.join("/"),
 			selected: true
@@ -91,13 +107,14 @@
 				class:selectable
 				role={selectable ? "button" : undefined}
 				tabindex={selectable ? 0 : undefined}
-				on:click|stopPropagation={() => {
+				onclick={(e) => {
+					e.stopPropagation();
 					if (selectable) {
 						handle_select([...index_path, i], [...path, name], type);
 					}
 				}}
-				on:keydown={({ key }) => {
-					if (selectable && (key === " " || key === "Enter")) {
+				onkeydown={(e) => {
+					if (selectable && (e.key === " " || e.key === "Enter")) {
 						handle_select([...index_path, i], [...path, name], type);
 					}
 				}}
@@ -109,9 +126,8 @@
 						<Checkbox
 							disabled={false}
 							value={is_selected}
-							on:change={(e) => {
-								let checked = e.detail;
-								dispatch("check", {
+							onchange={(checked) => {
+								oncheck?.({
 									path: [...path, name],
 									checked,
 									type
@@ -131,12 +147,15 @@
 					<span
 						class="icon"
 						class:hidden={!opened_folders.includes(i)}
-						on:click|stopPropagation={() => toggle_open_folder(i)}
+						onclick={(e) => {
+							e.stopPropagation();
+							toggle_open_folder(i);
+						}}
 						role="button"
 						aria-label="expand directory"
 						tabindex="0"
-						on:keydown={({ key }) => {
-							if (key === " " || key === "Enter") {
+						onkeydown={(e) => {
+							if (e.key === " " || e.key === "Enter") {
 								toggle_open_folder(i);
 							}
 						}}><Arrow /></span
@@ -149,7 +168,7 @@
 				<span class="item-name">{name}</span>
 			</span>
 			{#if type === "folder" && opened_folders.includes(i)}
-				<svelte:self
+				<Self
 					path={[...path, name]}
 					index_path={[...index_path, i]}
 					selected_files={selected_files
@@ -165,9 +184,9 @@
 					{selectable}
 					{ls_fn}
 					{file_count}
-					valid_for_selection={valid}
-					on:check
-					on:select
+					valid_for_selection={valid ?? false}
+					{oncheck}
+					{onselect}
 				/>
 			{/if}
 		</li>
