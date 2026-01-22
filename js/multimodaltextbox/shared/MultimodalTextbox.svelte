@@ -16,12 +16,12 @@
 		ArrowUp,
 		Square,
 		Microphone,
-		Check,
+		Check
 	} from "@gradio/icons";
-import { should_show_scroll_fade, type SelectData } from "@gradio/utils";
+	import { should_show_scroll_fade, type SelectData } from "@gradio/utils";
 	import {
 		MinimalAudioPlayer,
-		MinimalAudioRecorder,
+		MinimalAudioRecorder
 	} from "@gradio/audio/shared";
 	import type { InputHTMLAttributes } from "./types";
 
@@ -68,7 +68,7 @@ import { should_show_scroll_fade, type SelectData } from "@gradio/utils";
 		onclear,
 		onload: _onload,
 		onerror,
-		onstop_recording,
+		onstop_recording
 	}: {
 		value?: { text: string; files: FileData[] };
 		value_is_output?: boolean;
@@ -141,19 +141,17 @@ import { should_show_scroll_fade, type SelectData } from "@gradio/utils";
 			.filter((s) => s === "upload" || s === "microphone") as (
 			| "upload"
 			| "microphone"
-		)[],
+		)[]
 	);
 
 	let file_types = $derived(
-		file_types_string
-			? file_types_string.split(",").map((s) => s.trim())
-			: null,
+		file_types_string ? file_types_string.split(",").map((s) => s.trim()) : null
 	);
 
 	let show_upload = $derived(
 		sources &&
 			sources.includes("upload") &&
-			!(file_count === "single" && value?.files?.length > 0),
+			!(file_count === "single" && value?.files?.length > 0)
 	);
 
 	function update_fade(): void {
@@ -227,7 +225,7 @@ import { should_show_scroll_fade, type SelectData } from "@gradio/utils";
 		const text = target.value;
 		const index: [number, number] = [
 			target.selectionStart as number,
-			target.selectionEnd as number,
+			target.selectionEnd as number
 		];
 		onselect?.({ value: text.substring(...index), index: index });
 	}
@@ -322,7 +320,7 @@ import { should_show_scroll_fade, type SelectData } from "@gradio/utils";
 			event.preventDefault();
 			const file = new window.File([text], "pasted_text.txt", {
 				type: "text/plain",
-				lastModified: Date.now(),
+				lastModified: Date.now()
 			});
 			if (upload_component) {
 				upload_component.load_files([file]);
@@ -377,7 +375,7 @@ import { should_show_scroll_fade, type SelectData } from "@gradio/utils";
 				const invalid_files = files.length - valid_files.length;
 				if (invalid_files > 0) {
 					onerror?.(
-						`${invalid_files} file(s) were rejected. Accepted formats: ${file_types.join(", ")}`,
+						`${invalid_files} file(s) were rejected. Accepted formats: ${file_types.join(", ")}`
 					);
 				}
 
@@ -521,7 +519,7 @@ import { should_show_scroll_fade, type SelectData } from "@gradio/utils";
 											title: null,
 											alt: "",
 											loading: "lazy",
-											class: "thumbnail-image",
+											class: "thumbnail-image"
 										}}
 									/>
 								{:else if file.mime_type && file.mime_type.includes("audio")}
@@ -559,13 +557,13 @@ import { should_show_scroll_fade, type SelectData } from "@gradio/utils";
 						<Paperclip />
 					</button>
 				{/if}
-			<div class="textarea-wrapper">
+				<div class="textarea-wrapper">
 					<textarea
 						data-testid="textbox"
 						use:text_area_resize={{
 							text: value.text,
 							lines: lines,
-							max_lines: max_lines,
+							max_lines: max_lines
 						}}
 						class:no-label={!show_label}
 						dir={rtl ? "rtl" : "ltr"}
