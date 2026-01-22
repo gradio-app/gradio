@@ -116,8 +116,6 @@
 		onclear?: () => void;
 		onload?: (files: FileData[] | FileData) => void;
 		onerror?: (error: string) => void;
-		onstart_recording?: () => void;
-		onpause_recording?: () => void;
 		onstop_recording?: () => void;
 	} = $props();
 
