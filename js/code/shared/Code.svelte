@@ -72,6 +72,8 @@
 	});
 
 	$effect(() => {
+		lang_extension;
+		readonly;
 		reconfigure();
 	});
 
