@@ -148,7 +148,7 @@ jobs:
         shell: bash
         run: |
           . ${{ env.VENV_ACTIVATE }}
-          uv pip install gradio[oauth,mcp] --find-links dist/
+          uv pip install "$(ls dist/*.whl)[oauth,mcp]"
       - name: uv pip freeze
         shell: bash
         run: |
