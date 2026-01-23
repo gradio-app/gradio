@@ -17,7 +17,9 @@ def build_packages():
 
     # Check if wheels already exist (e.g., copied from CI artifacts)
     existing_wheels = [f for f in os.listdir(file_dir) if f.endswith(".whl")]
-    has_gradio_wheel = any("gradio-" in f and "gradio_client" not in f for f in existing_wheels)
+    has_gradio_wheel = any(
+        "gradio-" in f and "gradio_client" not in f for f in existing_wheels
+    )
     has_client_wheel = any("gradio_client-" in f for f in existing_wheels)
 
     if not (has_gradio_wheel and has_client_wheel):
@@ -43,7 +45,9 @@ def build_packages():
                 text=True,
             )
         except subprocess.CalledProcessError as e:
-            raise RuntimeError(f"Error during python build: {e.stderr} | {e.stdout}") from e
+            raise RuntimeError(
+                f"Error during python build: {e.stderr} | {e.stdout}"
+            ) from e
 
     wheel_files = [f for f in os.listdir(file_dir) if f.endswith(".whl")]
     test_folders = [
