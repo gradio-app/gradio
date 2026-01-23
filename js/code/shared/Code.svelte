@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount } from "svelte";
+	import { onMount } from "svelte";
 	import {
 		EditorView,
 		ViewUpdate,
@@ -16,41 +16,72 @@
 	import { basicSetup } from "./extensions";
 	import { getLanguageExtension } from "./language";
 
-	export let class_names = "";
-	export let value = "";
-	export let dark_mode: boolean;
-	export let basic = true;
-	export let language: string;
-	export let lines = 5;
-	export let max_lines: number | null = null;
-	export let extensions: Extension[] = [];
-	export let use_tab = true;
-	export let readonly = false;
-	export let placeholder: string | HTMLElement | null | undefined = undefined;
-	export let wrap_lines = false;
-	export let show_line_numbers = true;
-	export let autocomplete = false;
+	interface Props {
+		class_names?: string;
+		value?: string;
+		dark_mode: boolean;
+		basic?: boolean;
+		language: string;
+		lines?: number;
+		max_lines?: number | null;
+		extensions?: Extension[];
+		use_tab?: boolean;
+		readonly?: boolean;
+		placeholder?: string | HTMLElement | null | undefined;
+		wrap_lines?: boolean;
+		show_line_numbers?: boolean;
+		autocomplete?: boolean;
+		onchange?: (value: string) => void;
+		onblur?: () => void;
+		onfocus?: () => void;
+		oninput?: () => void;
+	}
 
-	const dispatch = createEventDispatcher<{
-		change: string;
-		blur: undefined;
-		focus: undefined;
-		input: undefined;
-	}>();
-	let lang_extension: Extension | undefined;
+	let {
+		class_names = "",
+		value = $bindable(),
+		dark_mode,
+		basic = true,
+		language,
+		lines = 5,
+		max_lines = null,
+		extensions = [],
+		use_tab = true,
+		readonly = false,
+		placeholder = undefined,
+		wrap_lines = false,
+		show_line_numbers = true,
+		autocomplete = false,
+		onchange,
+		onblur,
+		onfocus,
+		oninput
+	}: Props = $props();
+
+	let lang_extension: Extension | undefined = $state();
 	let element: HTMLDivElement;
 	let view: EditorView;
-
-	$: get_lang(language);
 
 	async function get_lang(val: string): Promise<void> {
 		const ext = await getLanguageExtension(val);
 		lang_extension = ext;
 	}
 
-	$: (reconfigure(), lang_extension, readonly);
-	$: set_doc(value);
-	$: update_lines();
+	$effect(() => {
+		get_lang(language);
+	});
+
+	$effect(() => {
+		lang_extension;
+		readonly;
+		reconfigure();
+	});
+
+	$effect(() => {
+		set_doc(value);
+	});
+
+	update_lines();
 
 	function set_doc(new_doc: string): void {
 		if (view && new_doc !== view.state.doc.toString()) {
@@ -81,11 +112,11 @@
 	}
 
 	function handle_focus(): void {
-		dispatch("focus");
+		onfocus?.();
 	}
 
 	function handle_blur(): void {
-		dispatch("blur");
+		onblur?.();
 	}
 
 	function getGutterLineHeight(_view: EditorView): string | null {
@@ -136,10 +167,10 @@
 
 		const user_change = is_user_input(vu);
 		if (user_change) {
-			dispatch("change", text);
-			dispatch("input");
+			onchange?.(text);
+			oninput?.();
 		} else {
-			dispatch("change", text);
+			onchange?.(text);
 		}
 
 		view.requestMeasure({ read: resize });
