@@ -26,7 +26,7 @@
 	import type { InputHTMLAttributes } from "./types";
 
 	let {
-		value = $bindable<{ text: string; files: FileData[] }>(),
+		value = $bindable(),
 		value_is_output = false,
 		lines = 1,
 		i18n: _i18n,
@@ -126,7 +126,6 @@
 	let user_has_scrolled_up = $state(false);
 	let show_fade = $state(false);
 	let uploading = $state(false);
-	// value can be null in multimodalchatinterface when loading a deep link
 	let oldValue = $state(value?.text ?? "");
 	let recording = $state(false);
 	let mic_audio = $state<FileData | null>(null);
@@ -167,20 +166,14 @@
 	});
 
 	$effect(() => {
-		if (oldValue !== value.text) {
+		if (value && oldValue !== value.text) {
 			onchange?.(value);
 			oldValue = value.text;
 		}
 	});
 
 	$effect(() => {
-		if (value == null) {
-			value = { text: "", files: [] };
-		}
-	});
-
-	$effect(() => {
-		if (value && el && lines !== max_lines) {
+		if (el && lines !== max_lines) {
 			resize(el, lines, max_lines);
 		}
 	});
@@ -484,9 +477,9 @@
 
 		<div
 			class="input-wrapper"
-			class:has-files={value.files.length > 0 || uploading}
+			class:has-files={(value?.files?.length ?? 0) > 0 || uploading}
 		>
-			{#if value.files.length > 0 || uploading}
+			{#if (value?.files?.length ?? 0) > 0 || uploading}
 				<div
 					class="thumbnails"
 					aria-label="Uploaded files"
@@ -503,7 +496,7 @@
 							<Paperclip />
 						</button>
 					{/if}
-					{#each value.files as file, index}
+					{#each value?.files ?? [] as file, index}
 						<span
 							class="thumbnail-wrapper"
 							role="listitem"
@@ -544,7 +537,7 @@
 			{/if}
 
 			<div class="input-row">
-				{#if show_upload && value.files.length === 0 && !uploading}
+				{#if show_upload && (value?.files?.length ?? 0) === 0 && !uploading}
 					<button
 						data-testid="upload-button"
 						class="upload-button icon-button"
