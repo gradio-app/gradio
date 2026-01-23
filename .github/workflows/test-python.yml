@@ -163,9 +163,8 @@ jobs:
       - name: Remove local gradio source to use installed wheel
         shell: bash
         run: |
-          # Keep media_assets and .pyi files, but remove .py source files so gradio imports from wheel
-          find gradio -type f -name "*.py" -delete
-          rm -rf gradio/templates gradio/_frontend_code gradio/node
+          # Remove __init__.py files so Python doesn't treat gradio/ as a package
+          find gradio -name "__init__.py" -delete
       - name: Run parallel tests
         shell: bash
         run: |
