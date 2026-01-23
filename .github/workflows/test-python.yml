@@ -113,7 +113,7 @@ jobs:
       - name: Set venv activate path (windows)
         if: matrix.os == 'windows-latest'
         shell: bash
-        run: echo "VENV_ACTIVATE=venv\\Scripts\\activate" >> $GITHUB_ENV
+        run: echo "VENV_ACTIVATE=venv/Scripts/activate" >> $GITHUB_ENV
       - name: Install Python
         uses: actions/setup-python@v5
         with:
