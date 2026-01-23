@@ -1,6 +1,6 @@
 ---
-"@gradio/statustracker": minor
-"gradio": minor
+"@gradio/statustracker": patch
+"gradio": patch
 ---
 
-feat:Migrate StatusTracker to Svelte 5
+fix:Migrate StatusTracker to Svelte 5
