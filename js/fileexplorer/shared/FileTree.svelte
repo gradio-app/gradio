@@ -19,7 +19,11 @@
 		ls_fn: (path: string[]) => Promise<FileNode[]>;
 		file_count?: "single" | "multiple";
 		valid_for_selection: boolean;
-		oncheck?: (detail: { path: string[]; checked: boolean; type: "file" | "folder" }) => void;
+		oncheck?: (detail: {
+			path: string[];
+			checked: boolean;
+			type: "file" | "folder";
+		}) => void;
 		onselect?: (detail: SelectData) => void;
 	}
 

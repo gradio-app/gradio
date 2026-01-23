@@ -11,9 +11,10 @@
 	import { _ } from "svelte-i18n";
 
 	const props = $props();
-	const gradio = new Gradio<FileExplorerEvents, FileExplorerProps>(props);
+	const gradio = new Gradio<FileExplorerEvents, FileExplorerProps>(props, {
+		value: []
+	});
 
-	gradio.props.value = gradio.props.value ?? [];
 	let old_value = $state(gradio.props.value);
 
 	let rerender_key = $derived([
@@ -26,7 +27,10 @@
 	// svelte-ignore state_referenced_locally
 	let old_rerender_key = $state(rerender_key);
 	$effect(() => {
-		if (JSON.stringify(old_rerender_key) != JSON.stringify(rerender_key) && old_value == gradio.props.value) {
+		if (
+			JSON.stringify(old_rerender_key) != JSON.stringify(rerender_key) &&
+			old_value == gradio.props.value
+		) {
 			old_rerender_key = rerender_key;
 			gradio.props.value = [];
 		}

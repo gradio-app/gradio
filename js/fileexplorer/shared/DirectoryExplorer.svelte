@@ -77,7 +77,7 @@
 			}
 			oninput?.();
 		}}
-		onselect={onselect}
+		{onselect}
 	/>
 </div>
 
