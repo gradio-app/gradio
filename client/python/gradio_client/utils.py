@@ -740,6 +740,9 @@ def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> st
     """
     name, ext = os.path.splitext(filename)
     name = "".join([char for char in name if char.isalnum() or char in "._-, "])
+    # Also sanitize the extension (excluding the leading dot)
+    if ext:
+        ext = "." + "".join([char for char in ext[1:] if char.isalnum() or char in "._-"])
     filename = name + ext
     filename_len = len(filename.encode())
     if filename_len > max_bytes:
