@@ -14,29 +14,36 @@ from requests.exceptions import ConnectionError, RequestException
 def build_packages():
     file_dir = os.path.dirname(os.path.abspath(__file__))
     gradio_dir = os.path.dirname(os.path.dirname(file_dir))
-    try:
-        subprocess.run(
-            ["python", "-m", "build", "--wheel", gradio_dir, "--outdir", file_dir],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        subprocess.run(
-            [
-                "python",
-                "-m",
-                "build",
-                "--wheel",
-                os.path.join(gradio_dir, "client/python/"),
-                "--outdir",
-                file_dir,
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-    except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"Error during python build: {e.stderr} | {e.stdout}") from e
+
+    # Check if wheels already exist (e.g., copied from CI artifacts)
+    existing_wheels = [f for f in os.listdir(file_dir) if f.endswith(".whl")]
+    has_gradio_wheel = any("gradio-" in f and "gradio_client" not in f for f in existing_wheels)
+    has_client_wheel = any("gradio_client-" in f for f in existing_wheels)
+
+    if not (has_gradio_wheel and has_client_wheel):
+        try:
+            subprocess.run(
+                ["python", "-m", "build", "--wheel", gradio_dir, "--outdir", file_dir],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                [
+                    "python",
+                    "-m",
+                    "build",
+                    "--wheel",
+                    os.path.join(gradio_dir, "client/python/"),
+                    "--outdir",
+                    file_dir,
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"Error during python build: {e.stderr} | {e.stdout}") from e
 
     wheel_files = [f for f in os.listdir(file_dir) if f.endswith(".whl")]
     test_folders = [

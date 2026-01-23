@@ -160,6 +160,11 @@ jobs:
           . ${{ env.VENV_ACTIVATE }}
           # Import gradio to generate .pyi files in local directory
           python -c "import gradio"
+      - name: Copy wheels for docker tests
+        shell: bash
+        run: |
+          cp dist/*.whl test/test_docker/
+          cp client-dist/*.whl test/test_docker/
       - name: Remove local gradio source to use installed wheel
         shell: bash
         run: |
