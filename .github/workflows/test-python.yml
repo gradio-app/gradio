@@ -154,14 +154,21 @@ jobs:
         run: |
           . ${{ env.VENV_ACTIVATE }}
           uv pip freeze
+      - name: Remove local gradio source to use installed wheel
+        shell: bash
+        run: |
+          # Keep media_assets but remove Python source files so gradio imports from wheel
+          find gradio -type f -name "*.py" -delete
+          find gradio -type f -name "*.pyi" -delete
+          rm -rf gradio/templates gradio/_frontend_code gradio/node
       - name: Run parallel tests
         shell: bash
         run: |
           . ${{ env.VENV_ACTIVATE }}
-          python -I -m pytest -n auto -m "${{ matrix.test-type }} and not serial"
+          python -m pytest -n auto -m "${{ matrix.test-type }} and not serial"
       - name: Run non-flaky serial tests
         if: matrix.test-type == 'not flaky'
         shell: bash
         run: |
           . ${{ env.VENV_ACTIVATE }}
-          python -I -m pytest -m "${{ matrix.test-type }} and serial"
+          python -m pytest -m "${{ matrix.test-type }} and serial"
