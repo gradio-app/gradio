@@ -1,6 +1,6 @@
 ---
-"@gradio/dataset": minor
-"gradio": minor
+"@gradio/dataset": patch
+"gradio": patch
 ---
 
-feat:Migrate Dataset to Svelte 5
+fix:Migrate Dataset to Svelte 5
