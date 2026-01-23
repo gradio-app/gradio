@@ -1,5 +1,19 @@
 # @gradio/datetime
 
+## 0.4.1
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12696](https://github.com/gradio-app/gradio/pull/12696) [`eb13299`](https://github.com/gradio-app/gradio/commit/eb13299a4e7873de9ac775b91364137dee7555b1) - migrate datetime.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.2
+- @gradio/atoms@0.20.1
+- @gradio/utils@0.11.2
+- @gradio/icons@0.15.1
+
 ## 0.4.0
 
 ### Dependency updates

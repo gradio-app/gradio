@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/form",
-	"version": "0.2.28",
+	"version": "0.2.29",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -25,7 +25,7 @@
 		"./package.json": "./package.json"
 	},
 	"peerDependencies": {
-		"svelte": "^5.43.4"
+		"svelte": "^5.48.0"
 	},
 	"repository": {
 		"type": "git",

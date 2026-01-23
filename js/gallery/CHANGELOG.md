@@ -1,5 +1,27 @@
 # @gradio/gallery
 
+## 0.16.2
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12698](https://github.com/gradio-app/gradio/pull/12698) [`db86165`](https://github.com/gradio-app/gradio/commit/db86165535386991701ea89b2083ef5e60cd23e8) - Migrates gr.File.  Thanks @aliabid94!
+- [#12806](https://github.com/gradio-app/gradio/pull/12806) [`3b3b035`](https://github.com/gradio-app/gradio/commit/3b3b0350e90756e937fc0908446f66ae1412c89f) - Fix Gallery upload after it has been populated.  Thanks @freddyaboulton!
+- [#12779](https://github.com/gradio-app/gradio/pull/12779) [`ea2d3e9`](https://github.com/gradio-app/gradio/commit/ea2d3e985a8b42d188e551f517c5825c00790628) - Migrate Audio + Upload + Atoms to Svelte 5.  Thanks @dawoodkhan82!
+- [#12684](https://github.com/gradio-app/gradio/pull/12684) [`1373713`](https://github.com/gradio-app/gradio/commit/1373713646e34078188265eb07c4bff5a048e9a2) - Migrate Gallery to Svelte 5.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.2
+- @gradio/atoms@0.20.1
+- @gradio/utils@0.11.2
+- @gradio/icons@0.15.1
+- @gradio/upload@0.17.4
+- @gradio/client@2.0.3
+- @gradio/image@0.25.1
+- @gradio/file@0.14.1
+- @gradio/video@0.20.1
+
 ## 0.16.1
 
 ### Dependency updates
