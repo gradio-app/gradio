@@ -154,6 +154,12 @@ jobs:
         run: |
           . ${{ env.VENV_ACTIVATE }}
           uv pip freeze
+      - name: Generate .pyi files
+        shell: bash
+        run: |
+          . ${{ env.VENV_ACTIVATE }}
+          # Import gradio to generate .pyi files in local directory
+          python -c "import gradio"
       - name: Remove local gradio source to use installed wheel
         shell: bash
         run: |
