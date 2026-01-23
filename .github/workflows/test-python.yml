@@ -36,55 +36,11 @@ jobs:
         with:
           filter: "gradio"
           token: ${{ secrets.GITHUB_TOKEN }}
-  build:
-    permissions:
-      contents: read
-    name: "build"
-    needs: changes
-    if: needs.changes.outputs.should_run == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: install dependencies
-        id: install_deps
-        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
-        with:
-          python_version: "3.10"
-          os: "ubuntu-latest"
-          test: true
-      - name: Lint
-        run: |
-          . venv/bin/activate
-          ./scripts/lint_backend.sh
-      - name: Typecheck
-        run: |
-          . venv/bin/activate
-          ./scripts/type_check_backend.sh
-      - name: Build wheel
-        run: |
-          . venv/bin/activate
-          uv pip install build
-          python -m build
-      - name: Build gradio_client wheel
-        run: |
-          . venv/bin/activate
-          cd client/python
-          python -m build
-      - name: Upload gradio wheel
-        uses: actions/upload-artifact@v4
-        with:
-          name: gradio-wheel
-          path: dist/*.whl
-      - name: Upload gradio_client wheel
-        uses: actions/upload-artifact@v4
-        with:
-          name: gradio-client-wheel
-          path: client/python/dist/*.whl
   test:
     permissions:
       contents: read
     name: "test-${{ matrix.os }}-${{ matrix.test-type == 'flaky' && 'flaky' || 'not-flaky'}}"
-    needs: [changes, build]
+    needs: changes
     if: needs.changes.outputs.should_run == 'true'
     strategy:
       matrix:
@@ -97,78 +53,33 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
-      - name: Download gradio wheel
-        uses: actions/download-artifact@v4
+      - name: install dependencies
+        id: install_deps
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
-          name: gradio-wheel
-          path: dist/
-      - name: Download gradio_client wheel
-        uses: actions/download-artifact@v4
-        with:
-          name: gradio-client-wheel
-          path: client-dist/
-      - name: Set venv activate path (linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: echo "VENV_ACTIVATE=venv/bin/activate" >> $GITHUB_ENV
-      - name: Set venv activate path (windows)
-        if: matrix.os == 'windows-latest'
-        shell: bash
-        run: echo "VENV_ACTIVATE=venv\\Scripts\\activate" >> $GITHUB_ENV
-      - name: Install Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-      - name: Install uv (linux)
-        if: matrix.os == 'ubuntu-latest'
+          python_version: "3.10"
+          os: ${{ matrix.os }}
+          test: true
+      - name: Lint
+        if: runner.os == 'Linux'
         run: |
-          curl -LsSf https://astral.sh/uv/0.9.2/install.sh | sh
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-      - name: Install uv (windows)
-        if: matrix.os == 'windows-latest'
-        shell: bash
+          . venv/bin/activate
+          ./scripts/lint_backend.sh
+      - name: Typecheck
+        if: runner.os == 'Linux'
         run: |
-          powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/0.9.2/install.ps1 | iex"
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-      - name: Create venv
-        run: uv venv venv --python=3.10
-      - name: Install ffmpeg
-        uses: FedericoCarboni/setup-ffmpeg@583042d32dd1cabb8bd09df03bde06080da5c87c # @v2
-      - name: Install test dependencies
-        shell: bash
-        run: |
-          . ${{ env.VENV_ACTIVATE }}
-          uv pip install -r test/requirements.txt --torch-backend cpu
-          uv pip install -r client/python/test/requirements.txt
-      - name: Install gradio_client wheel
-        shell: bash
-        run: |
-          . ${{ env.VENV_ACTIVATE }}
-          uv pip install client-dist/*.whl
-      - name: Install gradio wheel
-        shell: bash
-        run: |
-          . ${{ env.VENV_ACTIVATE }}
-          uv pip install "$(ls dist/*.whl)[oauth,mcp]"
+          . venv/bin/activate
+          ./scripts/type_check_backend.sh
       - name: uv pip freeze
-        shell: bash
         run: |
-          . ${{ env.VENV_ACTIVATE }}
+          . ${{steps.install_deps.outputs.venv_activate}}
           uv pip freeze
-      - name: Remove local gradio source to use installed wheel
-        shell: bash
-        run: |
-          # Keep media_assets but remove Python source files so gradio imports from wheel
-          find gradio -type f -name "*.py" -delete
-          find gradio -type f -name "*.pyi" -delete
-          rm -rf gradio/templates gradio/_frontend_code gradio/node
       - name: Run parallel tests
-        shell: bash
         run: |
-          . ${{ env.VENV_ACTIVATE }}
+          . ${{steps.install_deps.outputs.venv_activate}}
           python -m pytest -n auto -m "${{ matrix.test-type }} and not serial"
       - name: Run non-flaky serial tests
         if: matrix.test-type == 'not flaky'
-        shell: bash
         run: |
-          . ${{ env.VENV_ACTIVATE }}
+          . ${{steps.install_deps.outputs.venv_activate}}
           python -m pytest -m "${{ matrix.test-type }} and serial"
