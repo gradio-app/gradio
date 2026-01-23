@@ -26,6 +26,7 @@ export interface GalleryProps {
 	buttons: (string | CustomButton)[];
 	type: "numpy" | "pil" | "filepath";
 	fit_columns: boolean;
+	sources: ("upload" | "webcam-video" | "webcam" | "clipboard")[];
 }
 
 export interface GalleryEvents {
@@ -39,4 +40,5 @@ export interface GalleryEvents {
 	share: any;
 	error: any;
 	custom_button_click: { id: number };
+	warning: string;
 }

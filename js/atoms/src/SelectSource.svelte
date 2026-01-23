@@ -1,7 +1,13 @@
 <script lang="ts">
-	import { Microphone, Upload, Webcam, ImagePaste } from "@gradio/icons";
+	import { Microphone, Upload, Webcam, ImagePaste, Video } from "@gradio/icons";
 
-	type source_types = "upload" | "microphone" | "webcam" | "clipboard" | null;
+	type source_types =
+		| "upload"
+		| "microphone"
+		| "webcam"
+		| "clipboard"
+		| "webcam-video"
+		| null;
 
 	let {
 		sources,
@@ -53,6 +59,14 @@
 				class:selected={active_source === "webcam"}
 				aria-label="Capture from camera"
 				onclick={() => handle_select_source("webcam")}><Webcam /></button
+			>
+		{/if}
+		{#if sources.includes("webcam-video")}
+			<button
+				class="icon"
+				class:selected={active_source === "webcam-video"}
+				aria-label="Record video from camera"
+				onclick={() => handle_select_source("webcam-video")}><Video /></button
 			>
 		{/if}
 		{#if sources.includes("clipboard")}
