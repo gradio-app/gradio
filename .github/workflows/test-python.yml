@@ -158,10 +158,10 @@ jobs:
         shell: bash
         run: |
           . ${{ env.VENV_ACTIVATE }}
-          python -m pytest -n auto -m "${{ matrix.test-type }} and not serial"
+          python -I -m pytest -n auto -m "${{ matrix.test-type }} and not serial"
       - name: Run non-flaky serial tests
         if: matrix.test-type == 'not flaky'
         shell: bash
         run: |
           . ${{ env.VENV_ACTIVATE }}
-          python -m pytest -m "${{ matrix.test-type }} and serial"
+          python -I -m pytest -m "${{ matrix.test-type }} and serial"
