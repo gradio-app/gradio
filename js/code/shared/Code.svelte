@@ -39,7 +39,7 @@
 
 	let {
 		class_names = "",
-		value = $bindable(""),
+		value = $bindable(),
 		dark_mode,
 		basic = true,
 		language,
