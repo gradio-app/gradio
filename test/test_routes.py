@@ -5,6 +5,7 @@ import inspect
 import json
 import os
 import pickle
+import sys
 import tempfile
 import time
 from contextlib import asynccontextmanager, closing
@@ -1950,6 +1951,9 @@ def test_get_request_origin_with_headers(headers, server, route_path, expected_o
     assert origin == expected_origin
 
 
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="Skipped on Windows due to port conflicts"
+)
 def test_deep_link_unique_per_session():
     import requests
     from gradio_client import Client
