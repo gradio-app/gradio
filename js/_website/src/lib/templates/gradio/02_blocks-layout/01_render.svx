@@ -1,12 +1,9 @@
-
 <script lang="ts">
     import {get_object} from "../../process_json.ts";
     import ParamTable from "$lib/components/ParamTable.svelte";
-    import ShortcutTable from "$lib/components/ShortcutTable.svelte";
     import DemosSection from "$lib/components/DemosSection.svelte";
     import FunctionsSection from "$lib/components/FunctionsSection.svelte";
     import GuidesSection from "$lib/components/GuidesSection.svelte";
-    import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
     let obj = get_object("render");
@@ -25,28 +22,39 @@ def hello(···):
 
 <!--- Description -->
 ### Description
+
+Use `render` when you need your app's interface to change while it's running.
+
+With `render`, you can:
+- Show or hide components
+- Change text or layout
+- Create components based on what users enter
+
+How it works:  
+The function you decorate with `render` runs again each time its input values change, which updates the interface.
+
+The full API reference is shown below.
+
 ## {@html style_formatted_text(obj.description)}
 
 <!-- Example Usage --> 
 
 {#if obj.example}
-### Example Usage
+### Example
 ```python
 import gradio as gr
 
 with gr.Blocks() as demo:
-    input_text = gr.Textbox()
+    textbox = gr.Textbox(label="Enter text")
 
-    @gr.render(inputs=input_text)
-    def show_split(text):
-        if len(text) == 0:
-            gr.Markdown("## No Input Provided")
+    @gr.render(inputs=textbox)
+    def show_message(text):
+        if not text:
+            gr.Markdown("Please enter some text.")
         else:
-            for letter in text:
-                with gr.Row():
-                    text = gr.Textbox(letter)
-                    btn = gr.Button("Clear")
-                    btn.click(lambda: gr.Textbox(value=""), None, text)
+            gr.Markdown(f"You entered: {text}")
+
+demo.launch()
 ```
 {/if}
 
