@@ -14,7 +14,15 @@ export let ssr = true;
 
 export async function load({
 	url,
-	data: { server, port, local_dev_mode, accept_language, root_url, mount_path, cookies },
+	data: {
+		server,
+		port,
+		local_dev_mode,
+		accept_language,
+		root_url,
+		mount_path,
+		cookies
+	},
 	route
 }): Promise<{
 	Render: typeof Login | typeof Blocks;
