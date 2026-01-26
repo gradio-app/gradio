@@ -92,7 +92,9 @@
 	}: Props = $props();
 
 	let has_change_history = $state(false);
-	let active_source = $state<"webcam" | "upload">(initial_active_source ?? "webcam");
+	let active_source = $state<"webcam" | "upload">(
+		initial_active_source ?? "webcam"
+	);
 
 	$effect(() => {
 		if (initial_active_source) {
@@ -188,13 +190,13 @@
 				onerror={(error) => onerror?.(error)}
 				mirror={webcam_options.mirror && active_source === "webcam"}
 				{label}
-				handle_change={handle_change}
+				{handle_change}
 				{handle_reset_value}
 				{loop}
 				{value}
 				{i18n}
 				{show_download_button}
-				handle_clear={handle_clear}
+				{handle_clear}
 				{has_change_history}
 				bind:playback_position
 			/>
@@ -206,7 +208,7 @@
 		</div>
 	{/if}
 
-	<SelectSource {sources} bind:active_source handle_clear={handle_clear} />
+	<SelectSource {sources} bind:active_source {handle_clear} />
 </div>
 
 <style>
