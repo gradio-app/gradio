@@ -1,17 +1,19 @@
 <script lang="ts">
-	import { onMount } from "svelte";
 	import { Image } from "@gradio/image/shared";
 	import { Video } from "@gradio/video/shared";
 	import type { FileData } from "@gradio/client";
 
-	export let value: { text: string; files: FileData[] } = {
-		text: "",
-		files: []
-	};
-	export let type: "gallery" | "table";
-	export let selected = false;
+	let {
+		value = { text: "", files: [] },
+		type,
+		selected = false
+	}: {
+		value?: { text: string; files: FileData[] };
+		type: "gallery" | "table";
+		selected?: boolean;
+	} = $props();
 
-	let size: number;
+	let size = $state<number>(0);
 	let el: HTMLDivElement;
 
 	function set_styles(element: HTMLElement, el_width: number): void {
@@ -22,8 +24,10 @@
 		element.style.whiteSpace = "unset";
 	}
 
-	onMount(() => {
-		set_styles(el, size);
+	$effect(() => {
+		if (el && size) {
+			set_styles(el, size);
+		}
 	});
 </script>
 
