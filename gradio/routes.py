@@ -325,8 +325,8 @@ class App(FastAPI):
             headers["x-gradio-local-dev-mode"] = "1"
 
         new_request = App.client.build_request(
-                    request.method, httpx.URL(url), headers=headers
-                )
+            request.method, httpx.URL(url), headers=headers
+        )
         node_response = await App.client.send(new_request, stream=True)
 
         return StreamingResponse(
