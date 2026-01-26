@@ -327,6 +327,10 @@ class App(FastAPI):
         if (accept_language := request.headers.get("accept-language")) is not None:
             headers["accept-language"] = accept_language
 
+        # Forward cookies for authentication
+        if (cookie := request.headers.get("cookie")) is not None:
+            headers["cookie"] = cookie
+
         proxy_req = App.proxy_cache.ProxyReq(request.method, url, headers)
         status, response_headers, aiter_raw = await App.proxy_cache.get(proxy_req)
 
