@@ -1,7 +1,7 @@
 ---
-"@gradio/client": minor
-"@self/app": minor
-"gradio": minor
+"@gradio/client": patch
+"@self/app": patch
+"gradio": patch
 ---
 
-feat:Fix private spaces
+fix:Fix private spaces
