@@ -198,6 +198,7 @@
 	}
 
 	$effect(() => {
+		value;
 		if (autofocus && el) {
 			el.focus();
 		}
