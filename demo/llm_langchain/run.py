@@ -3,7 +3,7 @@
 # export OPENAI_API_KEY="your-openai-api-key"
 
 from langchain_openai import ChatOpenAI  # type: ignore
-from langchain.schema import AIMessage, HumanMessage  # type: ignore
+from langchain.messages import AIMessage, HumanMessage  # type: ignore
 import gradio as gr
 
 model = ChatOpenAI(model="gpt-4o-mini")
