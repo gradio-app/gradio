@@ -42,9 +42,7 @@
 		proxy_url ? `/proxy=${proxy_url}file=` : `${root}/file=`
 	);
 
-	let page = $state(0);
 	let current_hover = $state(-1);
-	let old_samples_json = $state("");
 
 	let gallery = $derived(
 		(components.length < 2 || sample_labels !== null) && layout !== "table"
@@ -57,13 +55,11 @@
 		return samples ?? [];
 	});
 
-	// Reset page when samples change
-	$effect(() => {
-		const current_json = JSON.stringify(effective_samples);
-		if (current_json !== old_samples_json) {
-			page = 0;
-			old_samples_json = current_json;
-		}
+	// page resets to 0 whenever effective_samples changes,
+	// but can still be overwritten by user clicks
+	let page = $derived.by(() => {
+		effective_samples;
+		return 0;
 	});
 
 	let paginate = $derived(effective_samples.length > samples_per_page);
