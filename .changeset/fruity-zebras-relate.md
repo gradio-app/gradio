@@ -1,6 +1,6 @@
 ---
-"@gradio/video": minor
-"gradio": minor
+"@gradio/video": patch
+"gradio": patch
 ---
 
-feat:`Video` to Svelte 5
+fix:`Video` to Svelte 5
