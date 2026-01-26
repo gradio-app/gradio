@@ -11,7 +11,8 @@ const TRANSLATABLE_PROPS = [
 	"info",
 	"placeholder",
 	"description",
-	"title"
+	"title",
+	"value"
 ];
 
 export interface SharedProps {
@@ -322,10 +323,10 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	shared: SharedProps = $state<SharedProps>({} as SharedProps) as SharedProps;
 	props = $state<U>({} as U) as U;
 	i18n: I18nFormatter = $state<any>({}) as any;
+	translatable_props: Record<string, string> = {};
 	dispatcher!: Function;
 	last_update: ReturnType<typeof tick> | null = null;
 	shared_props: (keyof SharedProps)[] = allowed_shared_props;
-	i18n_originals: Record<string, string> = {};
 
 	constructor(
 		_props: { shared_props: SharedProps; props: U },
@@ -383,10 +384,13 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 			// Need to update the props here
 			// otherwise UI won't reflect latest state from render
 			for (const key in _props.shared_props) {
+				if (this.#is_i18n_managed(`shared.${key}`, _props.shared_props[key]))
+					continue;
 				// @ts-ignore i'm not doing pointless typescript gymanstics
 				this.shared[key] = _props.shared_props[key];
 			}
 			for (const key in _props.props) {
+				if (this.#is_i18n_managed(`props.${key}`, _props.props[key])) continue;
 				// @ts-ignore same here
 				this.props[key] = _props.props[key];
 			}
@@ -400,11 +404,22 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 			});
 		});
 
-		if (Object.keys(this.i18n_originals).length > 0) {
+		if (Object.keys(this.translatable_props).length > 0) {
 			locale.subscribe(() => {
 				this.#retranslate_i18n_props();
 			});
 		}
+	}
+
+	// check if props are translatable
+	#is_i18n_managed(key: string, new_value: unknown): boolean {
+		const original_marker = this.translatable_props[key];
+		if (!original_marker) return false;
+		if (new_value === original_marker) return true;
+
+		// if value changed then remove key
+		delete this.translatable_props[key];
+		return false;
 	}
 
 	#store_and_translate_i18n_props(_props: {
@@ -414,7 +429,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		for (const key of TRANSLATABLE_PROPS) {
 			const value = _props.shared_props[key as keyof SharedProps];
 			if (has_i18n_marker(value)) {
-				this.i18n_originals[`shared.${key}`] = value;
+				this.translatable_props[`shared.${key}`] = value;
 				// @ts-ignore
 				this.shared[key] = this.i18n(value);
 			}
@@ -423,7 +438,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		for (const key of TRANSLATABLE_PROPS) {
 			const value = _props.props[key as keyof U];
 			if (has_i18n_marker(value)) {
-				this.i18n_originals[`props.${key}`] = value;
+				this.translatable_props[`props.${key}`] = value;
 				// @ts-ignore
 				this.props[key] = this.i18n(value);
 			}
@@ -431,8 +446,8 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	}
 
 	#retranslate_i18n_props(): void {
-		for (const fullKey of Object.keys(this.i18n_originals)) {
-			const original = this.i18n_originals[fullKey];
+		for (const fullKey of Object.keys(this.translatable_props)) {
+			const original = this.translatable_props[fullKey];
 			const [target, key] = fullKey.split(".");
 			if (target === "shared") {
 				// @ts-ignore

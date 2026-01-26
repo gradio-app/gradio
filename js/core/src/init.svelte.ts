@@ -222,7 +222,6 @@ export class AppTree {
 					this.components_to_register
 				),
 			(node) => handle_empty_forms(node, this.components_to_register),
-			(node) => translate_props(node),
 			(node) => apply_initial_tabs(node, this.initial_tabs),
 			(node) => this.find_attached_events(node, this.#dependency_payload),
 			(node) =>
