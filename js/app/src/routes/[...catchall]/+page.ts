@@ -7,9 +7,6 @@ import type { Config } from "@gradio/client";
 import { MISSING_CREDENTIALS_MSG } from "@gradio/client";
 import { setupi18n } from "@gradio/core";
 
-import Blocks from "@gradio/core/blocks";
-import Login from "@gradio/core/login";
-
 export let ssr = true;
 
 export async function load({
@@ -21,11 +18,11 @@ export async function load({
 		accept_language,
 		root_url,
 		mount_path,
-		cookies
+		cookie,
+		auth_required
 	},
 	route
 }): Promise<{
-	Render: typeof Login | typeof Blocks;
 	config: Config;
 	api_url: string;
 	layout: unknown;
@@ -40,11 +37,58 @@ export async function load({
 	const headers = new Headers();
 	if (!browser) {
 		headers.append("x-gradio-server", root_url);
+		if (cookie) {
+			headers.append("Cookie", cookie);
+		}
 	} else {
 		headers.append(
 			"x-gradio-server",
 			new URL(mount_path, location.origin).href
 		);
+	}
+
+	// If the server-side check determined auth is required, skip Client.connect
+	// This prevents the 401 error on the client during hydration
+	if (auth_required) {
+		return {
+			config: {
+				auth_required: true,
+				auth_message: "",
+				components: [],
+				current_page: "",
+				dependencies: [],
+				layout: {},
+				pages: [],
+				page: {},
+				root: root_url,
+				space_id: null,
+				analytics_enabled: false,
+				connect_heartbeat: false,
+				css: "",
+				js: "",
+				theme_hash: 0,
+				head: "",
+				dev_mode: false,
+				enable_queue: false,
+				show_error: false,
+				fill_height: false,
+				fill_width: false,
+				mode: "blocks",
+				theme: "default",
+				title: "",
+				version: "",
+				api_prefix: "",
+				is_space: false,
+				is_colab: false,
+				footer_links: ["gradio", "settings"],
+				stylesheets: [],
+				protocol: "sse_v3",
+				username: ""
+			},
+			api_url,
+			layout: {},
+			app: null
+		};
 	}
 
 	try {
@@ -62,7 +106,6 @@ export async function load({
 			auth_message = error_message.replace(/^Error:?\s*/, "");
 		}
 		return {
-			Render: Login,
 			config: {
 				auth_message: auth_message,
 				auth_required: true,
@@ -72,7 +115,7 @@ export async function load({
 				layout: {},
 				pages: [],
 				page: {},
-				root: url.origin,
+				root: root_url,
 				space_id: null,
 				analytics_enabled: false,
 				connect_heartbeat: false,
@@ -112,7 +155,6 @@ export async function load({
 
 	await setupi18n(app.config?.i18n_translations || undefined, accept_language);
 	return {
-		Render: app.config?.auth_required ? Login : Blocks,
 		config: page_config,
 		api_url,
 		app
