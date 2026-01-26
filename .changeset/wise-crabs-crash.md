@@ -1,8 +1,8 @@
 ---
 "@gradio/client": patch
+"@gradio/core": patch
 "@self/app": patch
-"@self/tootils": patch
 "gradio": patch
 ---
 
-fix:Re-enable SSR mode
+fix:Fix Login

@@ -1,5 +1,28 @@
 # website
 
+## 0.69.0
+
+### Features
+
+- [#12793](https://github.com/gradio-app/gradio/pull/12793) [`47ffecf`](https://github.com/gradio-app/gradio/commit/47ffecfdebf59a47f884089335fecc4ee6ee8d6e) - Add Gradio 5 docs to website.  Thanks @aliabd!
+- [#12755](https://github.com/gradio-app/gradio/pull/12755) [`78a8dd4`](https://github.com/gradio-app/gradio/commit/78a8dd46018951c194fa05259db63dacd712aa37) - Add controlling width to Row docs.  Thanks @aliabd!
+- [#12790](https://github.com/gradio-app/gradio/pull/12790) [`fb1aec5`](https://github.com/gradio-app/gradio/commit/fb1aec5b9ec7616d9cc5f3602825119ea187a96f) - Add ElevenLabs winner to hackathon winners page.  Thanks @aliabd!
+
+### Fixes
+
+- [#12794](https://github.com/gradio-app/gradio/pull/12794) [`0954db4`](https://github.com/gradio-app/gradio/commit/0954db4d618e72a6404bd3904988e5307f22d7d0) - Fix Dependency docs.  Thanks @aliabd!
+- [#12630](https://github.com/gradio-app/gradio/pull/12630) [`44817db`](https://github.com/gradio-app/gradio/commit/44817dbe89612578b5d5c02caa33f48a1fe08dfc) - fix(website): improve Event Listeners table dark mode readability.  Thanks @DanielDerefaka!
+- [#12791](https://github.com/gradio-app/gradio/pull/12791) [`7f2cf84`](https://github.com/gradio-app/gradio/commit/7f2cf84fb79bf4f1d9157acdef4ab4a7024678b2) - Add better related guides section to docs.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/button@0.6.3
+- @gradio/code@0.17.1
+- @gradio/paramviewer@0.9.2
+- @gradio/statustracker@0.12.2
+- @gradio/tabitem@0.6.5
+- @gradio/tabs@0.5.5
+
 ## 0.68.0
 
 ### Features
