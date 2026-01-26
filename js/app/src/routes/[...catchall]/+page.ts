@@ -14,7 +14,7 @@ export let ssr = true;
 
 export async function load({
 	url,
-	data: { server, port, local_dev_mode, accept_language, root_url, mount_path },
+	data: { server, port, local_dev_mode, accept_language, root_url, mount_path, cookies },
 	route
 }): Promise<{
 	Render: typeof Login | typeof Blocks;
@@ -44,7 +44,8 @@ export async function load({
 			with_null_state: true,
 			events: ["data", "log", "status", "render"],
 			query_params: deepLink ? { deep_link: deepLink } : undefined,
-			headers
+			headers,
+			cookies: cookies || undefined
 		});
 	} catch (error: any) {
 		const error_message = error.message || "";

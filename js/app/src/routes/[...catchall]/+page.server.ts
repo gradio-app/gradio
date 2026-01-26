@@ -7,6 +7,7 @@ export async function load({ request }: { request: Request }): Promise<{
 	accept_language: string;
 	root_url: string;
 	mount_path: string;
+	cookies: string | null;
 }> {
 	const server =
 		request.headers.get("x-gradio-server") || "http://127.0.0.1:7860";
@@ -18,6 +19,7 @@ export async function load({ request }: { request: Request }): Promise<{
 	const real_url = new URL(
 		request.headers.get("x-gradio-original-url") || server
 	).origin;
+	const cookies = request.headers.get("cookie");
 
 	return {
 		server: server,
@@ -25,6 +27,7 @@ export async function load({ request }: { request: Request }): Promise<{
 		mount_path: mount_path,
 		port: port,
 		local_dev_mode: local_dev_mode,
-		accept_language: accept_language
+		accept_language: accept_language,
+		cookies: cookies
 	};
 }
