@@ -1,36 +1,67 @@
 <script lang="ts">
-	import { createEventDispatcher, tick } from "svelte";
+	import { tick } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import type { FileData, Client } from "@gradio/client";
 	import { BlockLabel, IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import { File, Clear, Upload as UploadIcon } from "@gradio/icons";
 
 	import FilePreview from "./FilePreview.svelte";
-	import type { I18nFormatter } from "@gradio/utils";
+	import type { I18nFormatter, SelectData } from "@gradio/utils";
 	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 
-	export let value: null | FileData | FileData[];
+	let {
+		value = $bindable<null | FileData | FileData[]>(),
+		label,
+		show_label = true,
+		file_count = "single",
+		file_types = null,
+		selectable = false,
+		root,
+		height = undefined,
+		i18n,
+		max_file_size = null,
+		upload,
+		stream_handler,
+		uploading = $bindable(false),
+		allow_reordering = false,
+		upload_promise = $bindable<Promise<(FileData | null)[]> | null>(),
+		buttons = null,
+		on_custom_button_click = null,
+		onchange,
+		onclear,
+		ondrag,
+		onupload,
+		onerror,
+		ondelete,
+		onselect
+	}: {
+		value: null | FileData | FileData[];
+		label: string;
+		show_label?: boolean;
+		file_count: "single" | "multiple" | "directory";
+		file_types: string[] | null;
+		selectable?: boolean;
+		root: string;
+		height?: number | undefined;
+		i18n: I18nFormatter;
+		max_file_size: number | null;
+		upload: Client["upload"];
+		stream_handler: Client["stream"];
+		uploading?: boolean;
+		allow_reordering?: boolean;
+		upload_promise?: Promise<(FileData | null)[]> | null;
+		buttons?: (string | CustomButtonType)[] | null;
+		on_custom_button_click?: ((id: number) => void) | null;
+		onchange?: (event_data: FileData[] | FileData | null) => void;
+		onclear?: () => void;
+		ondrag?: (dragging: boolean) => void;
+		onupload?: (event_data: FileData[] | FileData) => void;
+		onerror?: (error: string) => void;
+		ondelete?: (event_data: FileData) => void;
+		onselect?: (event_data: SelectData) => void;
+	} = $props();
 
-	export let label: string;
-	export let show_label = true;
-	export let file_count: "single" | "multiple" | "directory" = "single";
-	export let file_types: string[] | null = null;
-	export let selectable = false;
-	export let root: string;
-	export let height: number | undefined = undefined;
-	export let i18n: I18nFormatter;
-	export let max_file_size: number | null = null;
-	export let upload: Client["upload"];
-	export let stream_handler: Client["stream"];
-	export let uploading = false;
-	export let allow_reordering = false;
-	export let upload_promise: Promise<(FileData | null)[]> | null = null;
-	export let buttons: (string | CustomButtonType)[] | null = null;
-	export let on_custom_button_click: ((id: number) => void) | null = null;
-
-	async function handle_upload({
-		detail
-	}: CustomEvent<FileData | FileData[]>): Promise<void> {
+	async function handle_upload(detail: FileData | FileData[]): Promise<void> {
 		if (Array.isArray(value)) {
 			value = [...value, ...(Array.isArray(detail) ? detail : [detail])];
 		} else if (value) {
@@ -39,27 +70,17 @@
 			value = detail;
 		}
 		await tick();
-		dispatch("change", value);
-		dispatch("upload", detail);
+		onchange?.(value);
+		onupload?.(value);
 	}
 
 	function handle_clear(): void {
 		value = null;
-		dispatch("change", null);
-		dispatch("clear");
+		onchange?.(null);
+		onclear?.();
 	}
 
-	const dispatch = createEventDispatcher<{
-		change: FileData[] | FileData | null;
-		clear: undefined;
-		drag: boolean;
-		upload: FileData[] | FileData;
-		load: FileData[] | FileData;
-		error: string;
-	}>();
-
-	let dragging = false;
-	$: dispatch("drag", dragging);
+	let dragging = $state(false);
 </script>
 
 {#if show_label && buttons && buttons.length > 0}
@@ -74,14 +95,14 @@
 				<Upload
 					bind:upload_promise
 					icon_upload={true}
-					on:load={handle_upload}
+					onload={handle_upload}
 					filetype={file_types}
 					{file_count}
 					{max_file_size}
 					{root}
 					bind:dragging
 					bind:uploading
-					on:error
+					{onerror}
 					{stream_handler}
 					{upload}
 				/>
@@ -90,8 +111,7 @@
 		<IconButton
 			Icon={Clear}
 			label={i18n("common.clear")}
-			on:click={(event) => {
-				dispatch("clear");
+			onclick={(event) => {
 				event.stopPropagation();
 				handle_clear();
 			}}
@@ -100,25 +120,25 @@
 
 	<FilePreview
 		{i18n}
-		on:select
+		{onselect}
 		{selectable}
 		{value}
 		{height}
-		on:change
-		on:delete
+		{onchange}
+		{ondelete}
 		{allow_reordering}
 	/>
 {:else}
 	<Upload
 		bind:upload_promise
-		on:load={handle_upload}
+		onload={handle_upload}
 		filetype={file_types}
 		{file_count}
 		{max_file_size}
 		{root}
 		bind:dragging
 		bind:uploading
-		on:error
+		{onerror}
 		{stream_handler}
 		{upload}
 		{height}

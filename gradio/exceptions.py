@@ -68,6 +68,7 @@ class Error(AppError):
                 raise gr.Error("Cannot divide by zero!")
         gr.Interface(divide, ["number", "number"], "number").launch()
     Demos: calculator, blocks_chained_events
+    Guides: alerts
     """
 
     def __init__(
