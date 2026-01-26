@@ -11,7 +11,7 @@
 	import type { FileData } from "@gradio/client";
 
 	interface Props {
-		videoElement: HTMLVideoElement;
+		videoElement?: HTMLVideoElement;
 		showRedo?: boolean;
 		interactive?: boolean;
 		mode?: string;
@@ -26,7 +26,7 @@
 	}
 
 	let {
-		videoElement,
+		videoElement = undefined,
 		showRedo = false,
 		interactive = true,
 		mode = $bindable(""),
@@ -61,7 +61,9 @@
 	const toggleTrimmingMode = (): void => {
 		if (mode === "edit") {
 			mode = "";
-			trimmedDuration = videoElement.duration;
+			if (videoElement) {
+				trimmedDuration = videoElement.duration;
+			}
 		} else {
 			mode = "edit";
 		}
@@ -69,7 +71,7 @@
 </script>
 
 <div class="container" class:hidden={mode !== "edit"}>
-	{#if mode === "edit"}
+	{#if mode === "edit" && videoElement}
 		<div class="timeline-wrapper">
 			<VideoTimeline
 				{videoElement}
@@ -92,6 +94,7 @@
 					class:hidden={loadingTimeline}
 					class="text-button"
 					onclick={() => {
+						if (!videoElement) return;
 						mode = "";
 						processingVideo = true;
 						trimVideo(ffmpeg, dragStart, dragEnd, videoElement)

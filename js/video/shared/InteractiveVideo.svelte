@@ -55,7 +55,7 @@
 	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 
 	let {
-		value = null,
+		value = $bindable(null),
 		subtitle = null,
 		sources = ["webcam", "upload"],
 		label = undefined,
@@ -66,15 +66,15 @@
 		autoplay,
 		root,
 		i18n,
-		active_source = $bindable("webcam"),
+		active_source: initial_active_source = "webcam",
 		handle_reset_value = () => {},
 		max_file_size = null,
 		upload,
 		stream_handler,
 		loop,
-		uploading = $bindable(false),
-		upload_promise = $bindable(null),
-		playback_position = $bindable(0),
+		uploading = $bindable(),
+		upload_promise = $bindable(),
+		playback_position = $bindable(),
 		buttons = null,
 		on_custom_button_click = null,
 		onchange,
@@ -92,6 +92,13 @@
 	}: Props = $props();
 
 	let has_change_history = $state(false);
+	let active_source = $state<"webcam" | "upload">(initial_active_source ?? "webcam");
+
+	$effect(() => {
+		if (initial_active_source) {
+			active_source = initial_active_source;
+		}
+	});
 
 	function handle_load(detail: FileData | null): void {
 		value = detail;
@@ -154,10 +161,10 @@
 					webcam_constraints={webcam_options.constraints}
 					{include_audio}
 					mode="video"
-					onerror={(detail) => onerror?.(detail)}
-					oncapture={handle_capture}
-					onstart_recording={() => onstart_recording?.()}
-					onstop_recording={() => onstop_recording?.()}
+					on:error={({ detail }) => onerror?.(detail)}
+					on:capture={handle_capture}
+					on:start_recording={() => onstart_recording?.()}
+					on:stop_recording={() => onstop_recording?.()}
 					{i18n}
 					{upload}
 					stream_every={1}

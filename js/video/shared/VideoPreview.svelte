@@ -51,7 +51,7 @@
 		i18n,
 		upload,
 		display_icon_button_wrapper_top_corner = false,
-		playback_position = $bindable(0),
+		playback_position = $bindable(),
 		onplay,
 		onpause,
 		onend,

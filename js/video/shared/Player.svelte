@@ -57,7 +57,7 @@
 		value = null,
 		handle_clear = () => {},
 		has_change_history = false,
-		playback_position = $bindable(0),
+		playback_position = $bindable(),
 		onplay,
 		onpause,
 		onstop,
