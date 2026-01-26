@@ -1,6 +1,6 @@
 ---
-"gradio": patch
-"gradio_client": patch
+"gradio": minor
+"gradio_client": minor
 ---
 
-fix:`huggingface_hub` version upgrade
+feat:`huggingface_hub` version upgrade
