@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Upload, ModifyUpload } from "@gradio/upload";
+	import { Upload } from "@gradio/upload";
 	import type { FileData, Client } from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Webcam } from "@gradio/image";
@@ -92,14 +92,8 @@
 	}: Props = $props();
 
 	let has_change_history = $state(false);
-	let active_source = $state<"webcam" | "upload">(
-		initial_active_source ?? "webcam"
-	);
-
-	$effect(() => {
-		if (initial_active_source) {
-			active_source = initial_active_source;
-		}
+	let active_source = $derived.by(() => {
+		return initial_active_source ?? "webcam";
 	});
 
 	function handle_load(detail: FileData | null): void {
