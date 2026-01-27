@@ -5,15 +5,18 @@ export { Gradio } from "@gradio/utils";
 
 export type I18nFormatter = typeof formatter;
 
-
-function translate_i18n_marker(value: string, translate: (key: string) => string): string {
+function translate_i18n_marker(
+	value: string,
+	translate: (key: string) => string
+): string {
 	const marker_index = value.indexOf(i18n_marker);
 	if (marker_index === -1) {
 		return value;
 	}
 
 	try {
-		const before_marker = marker_index > 0 ? value.substring(0, marker_index) : "";
+		const before_marker =
+			marker_index > 0 ? value.substring(0, marker_index) : "";
 		const json_start = value.indexOf("{", marker_index + i18n_marker.length);
 		let json_end = -1;
 		let bracket_count = 0;
@@ -37,11 +40,13 @@ function translate_i18n_marker(value: string, translate: (key: string) => string
 
 		if (metadata && metadata.key) {
 			const translated = translate(metadata.key);
-			return before_marker + (translated !== metadata.key ? translated : metadata.key) + after_json;
+			return (
+				before_marker +
+				(translated !== metadata.key ? translated : metadata.key) +
+				after_json
+			);
 		}
-	} catch {
-
-	}
+	} catch {}
 
 	return value;
 }
