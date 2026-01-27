@@ -96,7 +96,8 @@ export async function load({
 			with_null_state: true,
 			events: ["data", "log", "status", "render"],
 			query_params: deepLink ? { deep_link: deepLink } : undefined,
-			headers
+			headers,
+			cookies: cookie || undefined
 		});
 	} catch (error: any) {
 		const error_message = error.message || "";
