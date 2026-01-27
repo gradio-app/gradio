@@ -13,12 +13,14 @@
 	const gradio = new Gradio<AccordionEvents, AccordionProps>(props);
 
 	let label = $derived(gradio.shared.label || "");
+
+	let visibility: boolean | "hidden" = $derived(gradio.shared.visible === true ? true : "hidden");
 </script>
 
 <Block
 	elem_id={gradio.shared.elem_id}
 	elem_classes={gradio.shared.elem_classes}
-	visible={gradio.shared.visible}
+	visible={visibility}
 >
 	{#if gradio.shared.loading_status}
 		<StatusTracker

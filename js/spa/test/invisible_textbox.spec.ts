@@ -61,3 +61,22 @@ test("Making accordion visible does not show all children automatically", async 
 	await page.click('text="Hide Number"');
 	await expect(page.locator("#hidden-number")).toHaveCount(0);
 });
+
+test("Hiding accordion retains textbox value when accordion is shown again", async ({
+	page
+}) => {
+	await page.getByRole("tab", { name: "Third Tab" }).click();
+
+	await page.click('text="Show Accordion"');
+
+	const textbox = page.getByLabel("Visible Textbox");
+	await expect(textbox).toBeVisible();
+	await textbox.fill("Hello there");
+
+	await page.click('text="Hide Accordion"');
+	await expect(textbox).not.toBeVisible();
+
+	await page.click('text="Show Accordion"');
+	await expect(textbox).toBeVisible();
+	await expect(textbox).toHaveValue("Hello there");
+});
