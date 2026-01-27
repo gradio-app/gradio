@@ -1,6 +1,6 @@
 {
 	"name": "@self/tootils",
-	"version": "0.8.2",
+	"version": "0.9.0",
 	"description": "Internal test utilities",
 	"type": "module",
 	"main": "src/index.ts",
@@ -12,7 +12,7 @@
 		"@gradio/utils": "workspace:^"
 	},
 	"peerDependencies": {
-		"svelte": "^5.43.4"
+		"svelte": "^5.48.0"
 	},
 	"exports": {
 		".": "./src/index.ts",

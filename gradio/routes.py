@@ -327,6 +327,10 @@ class App(FastAPI):
         if (accept_language := request.headers.get("accept-language")) is not None:
             headers["accept-language"] = accept_language
 
+        # Forward cookies for authentication
+        if (cookie := request.headers.get("cookie")) is not None:
+            headers["cookie"] = cookie
+
         proxy_req = App.proxy_cache.ProxyReq(request.method, url, headers)
         status, response_headers, aiter_raw = await App.proxy_cache.get(proxy_req)
 
@@ -679,13 +683,13 @@ class App(FastAPI):
         ):
             components = config["components"]
             try:
-                path = (
-                    Path(app.uploaded_file_dir)
-                    / "deep_links"
-                    / deep_link
-                    / "state.json"
+                user_path = Path("deep_links") / deep_link / "state.json"
+                path = Path(
+                    routes_safe_join(
+                        DeveloperPath(app.uploaded_file_dir),
+                        UserProvidedPath(str(user_path)),
+                    )
                 )
-
                 if path.exists():
                     components = orjson.loads(path.read_bytes())
                     deep_link_state = "valid"

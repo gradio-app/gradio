@@ -3,8 +3,13 @@
 	import { Copy, Check } from "@gradio/icons";
 	import { IconButton } from "@gradio/atoms";
 
-	let copied = false;
-	export let value: string;
+	interface Props {
+		value: string;
+	}
+
+	let { value }: Props = $props();
+
+	let copied = $state(false);
 	let timer: NodeJS.Timeout;
 
 	function copy_feedback(): void {
@@ -27,4 +32,4 @@
 	});
 </script>
 
-<IconButton Icon={copied ? Check : Copy} on:click={handle_copy} />
+<IconButton Icon={copied ? Check : Copy} onclick={handle_copy} />
