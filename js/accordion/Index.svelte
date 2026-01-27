@@ -14,7 +14,9 @@
 
 	let label = $derived(gradio.shared.label || "");
 
-	let visibility: boolean | "hidden" = $derived(gradio.shared.visible === true ? true : "hidden");
+	let visibility: boolean | "hidden" = $derived(
+		gradio.shared.visible === true ? true : "hidden"
+	);
 </script>
 
 <Block
