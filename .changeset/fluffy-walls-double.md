@@ -1,7 +1,7 @@
 ---
-"@gradio/client": minor
-"@self/app": minor
-"gradio": minor
+"@gradio/client": patch
+"@self/app": patch
+"gradio": patch
 ---
 
-feat:Fix CSS root in spaces
+fix:Fix CSS root in spaces
