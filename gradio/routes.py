@@ -315,7 +315,7 @@ class App(FastAPI):
         if mounted_path:
             server_url += mounted_path
 
-        headers = {}  # Do not include arbitrary headers from original request so NodeProxyCache can be effective
+        headers = dict(request.headers)
         headers["x-gradio-server"] = server_url
         headers["x-gradio-port"] = str(python_port)
         headers["x-gradio-mounted-path"] = mounted_path
@@ -324,16 +324,16 @@ class App(FastAPI):
         if os.getenv("GRADIO_LOCAL_DEV_MODE"):
             headers["x-gradio-local-dev-mode"] = "1"
 
-        if (accept_language := request.headers.get("accept-language")) is not None:
-            headers["accept-language"] = accept_language
-
-        proxy_req = App.proxy_cache.ProxyReq(request.method, url, headers)
-        status, response_headers, aiter_raw = await App.proxy_cache.get(proxy_req)
+        new_request = App.client.build_request(
+            request.method, httpx.URL(url), headers=headers
+        )
+        node_response = await App.client.send(new_request, stream=True)
 
         return StreamingResponse(
-            aiter_raw,
-            status_code=status,
-            headers=response_headers,
+            node_response.aiter_raw(),
+            status_code=node_response.status_code,
+            headers=node_response.headers,
+            background=BackgroundTask(node_response.aclose),
         )
 
     def configure_app(self, blocks: gradio.Blocks) -> None:

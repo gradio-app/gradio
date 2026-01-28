@@ -88,6 +88,9 @@
 	import { init } from "@huggingface/space-header";
 	import { browser } from "$app/environment";
 
+	import Blocks from "@gradio/core/blocks";
+	import Login from "@gradio/core/login";
+
 	const dispatch = createEventDispatcher();
 
 	let stream: EventSource;
@@ -259,6 +262,11 @@
 		i18n_ready = true;
 	});
 
+	// Set window.gradio_config early so the load function can check it during hydration
+	if (browser && data.config) {
+		window.gradio_config = data.config;
+	}
+
 	onMount(async () => {
 		//@ts-ignore
 		config = data.config;
@@ -274,7 +282,9 @@
 		}
 
 		window.__gradio_space__ = config.space_id;
-		window.__gradio_session_hash__ = app.session_hash; // type: ignore
+		if (app) {
+			window.__gradio_session_hash__ = app.session_hash; // type: ignore
+		}
 		gradio_dev_mode = window?.__GRADIO_DEV__;
 
 		status = {
@@ -451,7 +461,7 @@
 	bind:wrapper
 >
 	{#if config?.auth_required}
-		<data.Render
+		<Login
 			auth_message={config.auth_message}
 			root={config.root}
 			space_id={space}
@@ -459,7 +469,7 @@
 			i18n={i18n_ready ? $_ : (s) => s}
 		/>
 	{:else if config && app}
-		<data.Render
+		<Blocks
 			{app}
 			{...config}
 			fill_height={!is_embed && config.fill_height}
