@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { style_formatted_text } from "$lib/text";
 	import { browser } from "$app/environment";
-    import Prism from "prismjs";
+	import Prism from "prismjs";
 
 	export let name = null as any;
 	export let preprocess = null as any;
 	export let postprocess = null as any;
 
-    $: if (browser && name && preprocess && postprocess) {
+	$: if (browser && name && preprocess && postprocess) {
 		setTimeout(() => {
 			Prism.highlightAll();
 		}, 0);
@@ -20,9 +20,9 @@
 
 <p>
 	<span style="font-weight: 500">Type: </span>
-    <code class="language-python !bg-transparent">
-        {preprocess.return_doc.annotation}
-    </code>
+	<code class="language-python !bg-transparent">
+		{preprocess.return_doc.annotation}
+	</code>
 </p>
 
 <p>

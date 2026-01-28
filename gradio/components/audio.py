@@ -231,7 +231,10 @@ class Audio(
         Parameters:
             payload: audio data as a FileData object, or None.
         Returns:
-            Passes audio as one of these formats (depending on `type`): \\n- `str` filepath \\n- `tuple` of (sample rate in Hz, audio data as numpy array). \\n-- The audio data is a 16-bit `int` array whose values range from -32768 to 32767 and shape of the audio data array is (samples,) for mono audio or (samples, channels) for multi-channel audio.
+            Passes audio as one of these formats (depending on `type`):
+            - `str` filepath
+            - `tuple` of (sample rate in Hz, audio data as numpy array).
+            -- The audio data is a 16-bit `int` array whose values range from -32768 to 32767 and shape of the audio data array is (samples,) for mono audio or (samples, channels) for multi-channel audio.
         """
         if payload is None:
             return payload
@@ -267,7 +270,13 @@ class Audio(
     ) -> FileData | bytes | None:
         """
         Parameters:
-            value: Expects audio data in any of these formats: \\n- `str` \\n- `pathlib.Path` filepath \\n- URL to an audio file \\n- `bytes` object (recommended for streaming) \\n- `tuple` of (sample rate in Hz, audio data as numpy array). \\n-- Note: if audio is supplied as a numpy array, the audio will be normalized by its peak value to avoid distortion or clipping in the resulting audio.
+            value: Expects audio data in any of these formats:
+                - `str`
+                - `pathlib.Path` filepath
+                - URL to an audio file
+                - `bytes` object (recommended for streaming)
+                - `tuple` of (sample rate in Hz, audio data as numpy array).
+                -- Note: if audio is supplied as a numpy array, the audio will be normalized by its peak value to avoid distortion or clipping in the resulting audio.
         Returns:
             FileData object, bytes, or None.
         """
