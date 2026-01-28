@@ -1,5 +1,17 @@
 # @gradio/code
 
+## 0.17.2
+
+### Fixes
+
+- [#12809](https://github.com/gradio-app/gradio/pull/12809) [`8409b7a`](https://github.com/gradio-app/gradio/commit/8409b7ab51fb36d8973d2a3f1bc3557489f7e1c5) - Migrate js/code.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/atoms@0.21.0
+- @gradio/statustracker@0.12.3
+- @gradio/upload@0.17.5
+
 ## 0.17.1
 
 ### Fixes

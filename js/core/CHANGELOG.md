@@ -1,5 +1,27 @@
 # @gradio/core
 
+## 1.1.3
+
+### Fixes
+
+- [#12817](https://github.com/gradio-app/gradio/pull/12817) [`05acc66`](https://github.com/gradio-app/gradio/commit/05acc6627de866db6a742e0540c2733041d76a86) - Fix Login.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.21.0
+- @gradio/client@2.0.4
+- @gradio/statustracker@0.12.3
+- @gradio/file@0.14.2
+- @gradio/image@0.25.2
+- @gradio/upload@0.17.5
+- @gradio/video@0.20.2
+- @gradio/textbox@0.13.3
+- @gradio/checkbox@0.6.2
+- @gradio/audio@0.22.2
+- @gradio/gallery@0.17.0
+- @gradio/plot@0.10.3
+- @gradio/dropdown@0.11.3
+
 ## 1.1.2
 
 ### Fixes
