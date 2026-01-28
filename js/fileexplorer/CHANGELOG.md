@@ -1,5 +1,20 @@
 # @gradio/fileexplorer
 
+## 0.6.2
+
+### Fixes
+
+- [#12810](https://github.com/gradio-app/gradio/pull/12810) [`7ed6dfa`](https://github.com/gradio-app/gradio/commit/7ed6dfaad6fa9c8e76a5596b20007dc97ae27ca7) - Migrate js/fileexplorer to svelte5.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/atoms@0.21.0
+- @gradio/client@2.0.4
+- @gradio/statustracker@0.12.3
+- @gradio/file@0.14.2
+- @gradio/upload@0.17.5
+- @gradio/checkbox@0.6.2
+
 ## 0.6.1
 
 ### Fixes
