@@ -1,18 +1,29 @@
 <script lang="ts">
 	import CustomButton from "./CustomButton.svelte";
 	import type { CustomButton as CustomButtonType } from "@gradio/utils";
+	import type { Snippet } from "svelte";
 
-	export let top_panel = true;
-	export let display_top_corner = false;
-	export let show_background = true;
-	export let buttons: (string | CustomButtonType)[] | null = null;
-	export let on_custom_button_click: ((id: number) => void) | null = null;
+	let {
+		top_panel = true,
+		display_top_corner = false,
+		show_background = true,
+		buttons = null,
+		on_custom_button_click = null,
+		children
+	}: {
+		top_panel?: boolean;
+		display_top_corner?: boolean;
+		show_background?: boolean;
+		buttons?: (string | CustomButtonType)[] | null;
+		on_custom_button_click?: ((id: number) => void) | null;
+		children?: Snippet;
+	} = $props();
 </script>
 
 <div
 	class={`icon-button-wrapper ${top_panel ? "top-panel" : ""} ${display_top_corner ? "display-top-corner" : "hide-top-corner"} ${!show_background ? "no-background" : ""}`}
 >
-	<slot></slot>
+	{#if children}{@render children()}{/if}
 	{#if buttons}
 		{#each buttons as btn}
 			{#if typeof btn !== "string"}

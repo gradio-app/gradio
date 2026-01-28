@@ -1,27 +1,36 @@
 <script lang="ts">
 	import { FileData, type Client } from "@gradio/client";
-	import { onMount, createEventDispatcher, onDestroy } from "svelte";
+	import { onMount, onDestroy } from "svelte";
 
 	type FileDataWithProgress = FileData & { progress: number };
 
-	export let upload_id: string;
-	export let root: string;
-	export let files: FileData[];
-	export let stream_handler: Client["stream"];
+	let {
+		upload_id,
+		root,
+		files,
+		stream_handler,
+		ondone
+	}: {
+		upload_id: string;
+		root: string;
+		files: FileData[];
+		stream_handler: Client["stream"];
+		ondone?: () => void;
+	} = $props();
 
 	let stream: Awaited<ReturnType<Client["stream"]>>;
-	let progress = false;
-	let current_file_upload: FileDataWithProgress;
-	let file_to_display: FileDataWithProgress;
+	let progress = $state(false);
+	let current_file_upload = $state<FileDataWithProgress>();
+	let file_to_display = $derived(current_file_upload || files_with_progress[0]);
 
-	let files_with_progress: FileDataWithProgress[] = files.map((file) => {
-		return {
-			...file,
-			progress: 0
-		};
-	});
-
-	const dispatch = createEventDispatcher();
+	let files_with_progress = $state<FileDataWithProgress[]>(
+		files.map((file) => {
+			return {
+				...file,
+				progress: 0
+			};
+		})
+	);
 
 	function handleProgress(filename: string, chunk_size: number): void {
 		// Find the corresponding file in the array and update its progress
@@ -52,22 +61,23 @@
 			if (_data.msg === "done") {
 				// the stream will close itself but is here for clarity; remove .close() in 5.0
 				stream?.close();
-				dispatch("done");
+				ondone?.();
 			} else {
 				current_file_upload = _data;
 				handleProgress(_data.orig_name, _data.chunk_size);
 			}
 		};
 	});
+
 	onDestroy(() => {
 		// the stream will close itself but is here for clarity; remove .close() in 5.0
 		if (stream != null || stream != undefined) stream.close();
 	});
 
-	function calculateTotalProgress(files: FileData[]): number {
+	function calculateTotalProgress(files: FileDataWithProgress[]): number {
 		let totalProgress = 0;
 		files.forEach((file) => {
-			totalProgress += getProgress(file as FileDataWithProgress);
+			totalProgress += getProgress(file);
 		});
 
 		document.documentElement.style.setProperty(
@@ -78,9 +88,9 @@
 		return totalProgress / files.length;
 	}
 
-	$: calculateTotalProgress(files_with_progress);
-
-	$: file_to_display = current_file_upload || files_with_progress[0];
+	$effect(() => {
+		calculateTotalProgress(files_with_progress);
+	});
 </script>
 
 <div class="wrap" class:progress>

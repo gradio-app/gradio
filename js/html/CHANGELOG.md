@@ -1,5 +1,28 @@
 # @gradio/html
 
+## 0.9.2
+
+### Dependency updates
+
+- @gradio/atoms@0.21.0
+- @gradio/statustracker@0.12.3
+
+## 0.9.1
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12796](https://github.com/gradio-app/gradio/pull/12796) [`c833708`](https://github.com/gradio-app/gradio/commit/c8337086e17528f4f262b5c838e285584deb521f) - Fix label in gr.HTML.  Thanks @hannahblair!
+- [#12596](https://github.com/gradio-app/gradio/pull/12596) [`5f654d7`](https://github.com/gradio-app/gradio/commit/5f654d74fb59ca7c1caf1d5965a768fac293c584) - Ensure HTML renders in gr.Chatbot.  Thanks @hannahblair!
+- [#12805](https://github.com/gradio-app/gradio/pull/12805) [`f4a14e7`](https://github.com/gradio-app/gradio/commit/f4a14e7287850c505a1a88d34db795074bb52b7c) - Restore padding param in gr.HTML.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.2
+- @gradio/atoms@0.20.1
+- @gradio/utils@0.11.2
+- @gradio/icons@0.15.1
+
 ## 0.9.0
 
 ### Dependency updates

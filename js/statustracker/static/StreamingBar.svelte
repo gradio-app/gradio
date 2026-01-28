@@ -1,5 +1,9 @@
 <script lang="ts">
-	export let time_limit: number | null;
+	interface Props {
+		time_limit: number | null;
+	}
+
+	let { time_limit }: Props = $props();
 </script>
 
 {#if time_limit}

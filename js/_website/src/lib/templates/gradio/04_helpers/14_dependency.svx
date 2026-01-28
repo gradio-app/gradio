@@ -24,7 +24,18 @@
 {#if obj.example}
 ### Example Usage
 ```python
-None
+import gradio as gr
+
+with gr.Blocks() as demo: 
+    first_textbox = gr.Textbox()
+    second_textbox = gr.Textbox()
+    button = gr.Button("Submit")
+
+    dependency = button.click(lambda x: "Hello, " + x, first_textbox, second_textbox)
+    dependency.success(lambda: gr.Info("Greeting successful"), None, None)
+    dependency.failure(lambda: gr.Warning("Greeting failed"), None, None)
+
+demo.launch()
 ```
 {/if}
 
@@ -43,6 +54,6 @@ None
 
 {#if obj.guides && obj.guides.length > 0}
 <!--- Guides -->
-### Guides
+<!--- the guide section below is still necessary to scrape the guides on the side navigation -->
 <GuidesSection guides={obj.guides}/>
 {/if}
