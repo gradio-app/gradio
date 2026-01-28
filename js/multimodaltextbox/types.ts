@@ -14,8 +14,6 @@ export interface MultimodalTextboxEvents {
 	focus: never;
 	error: string;
 	clear_status: LoadingStatus;
-	start_recording: never;
-	pause_recording: never;
 	stop_recording: never;
 	upload: FileData[] | FileData;
 	clear: undefined;
