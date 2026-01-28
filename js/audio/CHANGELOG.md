@@ -1,5 +1,31 @@
 # @gradio/audio
 
+## 0.22.2
+
+### Dependency updates
+
+- @gradio/atoms@0.21.0
+- @gradio/client@2.0.4
+- @gradio/statustracker@0.12.3
+- @gradio/upload@0.17.5
+
+## 0.22.1
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12779](https://github.com/gradio-app/gradio/pull/12779) [`ea2d3e9`](https://github.com/gradio-app/gradio/commit/ea2d3e985a8b42d188e551f517c5825c00790628) - Migrate Audio + Upload + Atoms to Svelte 5.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/button@0.6.3
+- @gradio/statustracker@0.12.2
+- @gradio/atoms@0.20.1
+- @gradio/utils@0.11.2
+- @gradio/icons@0.15.1
+- @gradio/upload@0.17.4
+- @gradio/client@2.0.3
+
 ## 0.22.0
 
 ### Dependency updates

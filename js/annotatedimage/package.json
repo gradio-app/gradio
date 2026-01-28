@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/annotatedimage",
-	"version": "0.11.0",
+	"version": "0.11.2",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -19,7 +19,7 @@
 		"@gradio/preview": "workspace:^"
 	},
 	"peerDependencies": {
-		"svelte": "^5.43.4"
+		"svelte": "^5.48.0"
 	},
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",

@@ -7,7 +7,7 @@
 		IconButtonWrapper,
 		FullscreenButton
 	} from "@gradio/atoms";
-	import type { CustomButton as CustomButtonType } from "@gradio/utils";
+	import { type CustomButton as CustomButtonType } from "@gradio/utils";
 	import { ModifyUpload, Upload as UploadComponent } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
 	import { Video } from "@gradio/video/shared";
@@ -21,13 +21,15 @@
 		Image as ImageIcon,
 		Clear,
 		Play,
-		Upload as UploadIcon
+		Upload as UploadIcon,
+		Webcam,
+		Video as VideoIcon,
+		ImagePaste
 	} from "@gradio/icons";
 	import { FileData } from "@gradio/client";
 	import type { Client } from "@gradio/client";
 	import { format_gallery_for_sharing } from "./utils";
 	import type { I18nFormatter } from "@gradio/utils";
-	import { on } from "svelte/events";
 
 	type GalleryData = GalleryImage | GalleryVideo;
 
@@ -51,6 +53,7 @@
 		fullscreen = false,
 		root = "",
 		file_types = ["image", "video"],
+		sources,
 		max_file_size = null,
 		upload,
 		stream_handler,
@@ -66,7 +69,8 @@
 		onpreview_close = () => {},
 		onfullscreen = (data) => {},
 		ondelete = () => {},
-		onupload = () => {}
+		onupload = () => {},
+		onsource_change = () => {}
 	}: {
 		show_label: boolean;
 		label: string;
@@ -87,6 +91,7 @@
 		fullscreen: boolean;
 		root: string;
 		file_types: string[] | null;
+		sources: ("upload" | "webcam" | "clipboard" | "webcam-video")[];
 		max_file_size: number | null;
 		upload: Client["upload"] | undefined;
 		stream_handler: Client["stream"] | undefined;
@@ -103,6 +108,7 @@
 		onfullscreen: (data: any) => void;
 		ondelete: (data: any) => void;
 		onupload: (data: FileData | FileData[]) => void;
+		onsource_change: (source: string) => void;
 	} = $props();
 
 	let upload_promise: Promise<any> | null = null;
@@ -188,8 +194,6 @@
 	let next = $derived.by(
 		() => ((selected_index ?? 0) + 1) % (resolved_value?.length ?? 0)
 	);
-
-	$inspect("selected_index", selected_index);
 
 	function handle_preview_click(event: MouseEvent): void {
 		const element = event.target as HTMLElement;
@@ -393,7 +397,7 @@
 						<IconButton
 							Icon={Download}
 							label={i18n("common.download")}
-							on:click={() => {
+							onclick={() => {
 								const image =
 									"image" in selected_media
 										? selected_media?.image
@@ -410,10 +414,7 @@
 					{/if}
 
 					{#if show_fullscreen_button}
-						<FullscreenButton
-							{fullscreen}
-							on:fullscreen={(e) => onfullscreen(e)}
-						/>
+						<FullscreenButton {fullscreen} onclick={(e) => onfullscreen(e)} />
 					{/if}
 
 					{#if show_share_button}
@@ -435,7 +436,7 @@
 						<IconButton
 							Icon={Clear}
 							label="Close"
-							on:click={() => {
+							onclick={() => {
 								selected_index = null;
 								onpreview_close();
 							}}
@@ -539,27 +540,58 @@
 			{#if interactive && selected_index === null}
 				<ModifyUpload
 					{i18n}
-					on:clear={() => {
+					onclear={() => {
 						value = [];
+						onsource_change("upload");
 						onclear();
 					}}
 				>
 					{#if upload && stream_handler}
-						<IconButton Icon={UploadIcon} label={i18n("common.upload")}>
+						<IconButton
+							Icon={UploadIcon}
+							label={i18n("upload_text.click_to_upload")}
+						>
 							<UploadComponent
 								bind:upload_promise
 								icon_upload={true}
-								on:load={(e) => onupload(e.detail)}
+								onload={(e) => onupload(e)}
 								filetype={file_types}
 								file_count="multiple"
 								{max_file_size}
 								{root}
 								bind:uploading
-								on:error={(e) => onerror(e.detail)}
+								onerror={(e) => onerror(e)}
 								{stream_handler}
 								{upload}
 							/>
 						</IconButton>
+					{/if}
+					{#if sources.includes("webcam")}
+						<IconButton
+							Icon={Webcam}
+							label={i18n("common.webcam")}
+							onclick={() => {
+								onsource_change("webcam");
+							}}
+						/>
+					{/if}
+					{#if sources.includes("webcam-video")}
+						<IconButton
+							Icon={VideoIcon}
+							label={i18n("common.video")}
+							onclick={() => {
+								onsource_change("webcam-video");
+							}}
+						/>
+					{/if}
+					{#if sources.includes("clipboard")}
+						<IconButton
+							label={i18n("upload_text.paste_clipboard")}
+							onclick={() => {
+								onsource_change("clipboard");
+							}}
+							Icon={ImagePaste}
+						/>
 					{/if}
 				</ModifyUpload>
 			{/if}

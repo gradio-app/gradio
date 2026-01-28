@@ -1,5 +1,33 @@
 # @self/app
 
+## 2.0.5
+
+### Fixes
+
+- [#12828](https://github.com/gradio-app/gradio/pull/12828) [`151cbd1`](https://github.com/gradio-app/gradio/commit/151cbd1aac0da3aeb5f0b7b33585223d2bc47138) - Fix private spaces.  Thanks @freddyaboulton!
+- [#12835](https://github.com/gradio-app/gradio/pull/12835) [`5ecf6d2`](https://github.com/gradio-app/gradio/commit/5ecf6d27c50a20e2329c1aca0634924479ceb6cd) - Fix CSS root in spaces.  Thanks @freddyaboulton!
+- [#12817](https://github.com/gradio-app/gradio/pull/12817) [`05acc66`](https://github.com/gradio-app/gradio/commit/05acc6627de866db6a742e0540c2733041d76a86) - Fix Login.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/client@2.0.4
+- @gradio/core@1.1.3
+
+## 2.0.4
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12779](https://github.com/gradio-app/gradio/pull/12779) [`ea2d3e9`](https://github.com/gradio-app/gradio/commit/ea2d3e985a8b42d188e551f517c5825c00790628) - Migrate Audio + Upload + Atoms to Svelte 5.  Thanks @dawoodkhan82!
+- [#12472](https://github.com/gradio-app/gradio/pull/12472) [`9a2bc0d`](https://github.com/gradio-app/gradio/commit/9a2bc0dacdd2b3f670fae815093c61ad08eee7e3) - Re-enable SSR mode.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/client@2.0.3
+- @gradio/theme@0.6.1
+- @gradio/core@1.1.2
+- @self/build@0.5.2
+
 ## 2.0.3
 
 ### Fixes

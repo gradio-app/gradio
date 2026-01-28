@@ -1,5 +1,33 @@
 # @gradio/dataframe
 
+## 0.21.4
+
+### Dependency updates
+
+- @gradio/atoms@0.21.0
+- @gradio/client@2.0.4
+- @gradio/statustracker@0.12.3
+- @gradio/upload@0.17.5
+- @gradio/checkbox@0.6.2
+
+## 0.21.3
+
+### Fixes
+
+- [#12779](https://github.com/gradio-app/gradio/pull/12779) [`ea2d3e9`](https://github.com/gradio-app/gradio/commit/ea2d3e985a8b42d188e551f517c5825c00790628) - Migrate Audio + Upload + Atoms to Svelte 5.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/button@0.6.3
+- @gradio/statustracker@0.12.2
+- @gradio/atoms@0.20.1
+- @gradio/utils@0.11.2
+- @gradio/icons@0.15.1
+- @gradio/upload@0.17.4
+- @gradio/client@2.0.3
+- @gradio/markdown-code@0.6.1
+- @gradio/checkbox@0.6.1
+
 ## 0.21.2
 
 ### Dependency updates

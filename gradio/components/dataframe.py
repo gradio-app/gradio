@@ -53,6 +53,7 @@ class Dataframe(Component):
     """
     This component displays a table of value spreadsheet-like component. Can be used to display data as an output component, or as an input to collect data from the user.
     Demos: filter_records, matrix_transpose, tax_calculator, sort_records
+    Guides: styling-the-gradio-dataframe, filters-tables-and-stats
     """
 
     EVENTS = [Events.change, Events.input, Events.select, Events.edit]

@@ -1,5 +1,31 @@
 # @gradio/dialogue
 
+## 0.3.2
+
+### Dependency updates
+
+- @gradio/atoms@0.21.0
+- @gradio/statustracker@0.12.3
+- @gradio/textbox@0.13.3
+- @gradio/dropdown@0.11.3
+
+## 0.3.1
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12779](https://github.com/gradio-app/gradio/pull/12779) [`ea2d3e9`](https://github.com/gradio-app/gradio/commit/ea2d3e985a8b42d188e551f517c5825c00790628) - Migrate Audio + Upload + Atoms to Svelte 5.  Thanks @dawoodkhan82!
+- [#12697](https://github.com/gradio-app/gradio/pull/12697) [`c471e96`](https://github.com/gradio-app/gradio/commit/c471e96eff66997846cbaf4fb9f94509c61c5449) - Migrates dropdown.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.2
+- @gradio/atoms@0.20.1
+- @gradio/utils@0.11.2
+- @gradio/icons@0.15.1
+- @gradio/textbox@0.13.2
+- @gradio/dropdown@0.11.2
+
 ## 0.3.0
 
 ### Dependency updates

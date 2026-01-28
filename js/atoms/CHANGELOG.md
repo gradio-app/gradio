@@ -1,5 +1,26 @@
 # @gradio/atoms
 
+## 0.21.0
+
+### Features
+
+- [#12804](https://github.com/gradio-app/gradio/pull/12804) [`fc366b4`](https://github.com/gradio-app/gradio/commit/fc366b485325c900b0c2b85ba05b7d23a81a0dee) - Allow webcam uploads and clipboard paste for gallery.  Thanks @freddyaboulton!
+
+## 0.20.1
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12779](https://github.com/gradio-app/gradio/pull/12779) [`ea2d3e9`](https://github.com/gradio-app/gradio/commit/ea2d3e985a8b42d188e551f517c5825c00790628) - Migrate Audio + Upload + Atoms to Svelte 5.  Thanks @dawoodkhan82!
+- [#12607](https://github.com/gradio-app/gradio/pull/12607) [`299728b`](https://github.com/gradio-app/gradio/commit/299728b707c88e7afbc6a60f1f266a9013fa424d) - fix: add ARIA landmarks for accessibility.  Thanks @majiayu000!
+- [#12795](https://github.com/gradio-app/gradio/pull/12795) [`184968a`](https://github.com/gradio-app/gradio/commit/184968aa13636b5afe78f8ae443cd7fc29635bfa) - Add fade effect to overflowing text.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/utils@0.11.2
+- @gradio/icons@0.15.1
+- @gradio/markdown-code@0.6.1
+
 ## 0.20.0
 
 ### Dependency updates
