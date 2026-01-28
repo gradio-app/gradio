@@ -695,7 +695,6 @@ function untrack_children_of_closed_accordions_or_inactive_tabs(
 	return node;
 }
 
-
 function translate_props(node: ProcessedComponentMeta): ProcessedComponentMeta {
 	const supported_props = [
 		"description",
