@@ -184,10 +184,16 @@
 		}
 	});
 
+	// $effect(() => {
+	// 	time = time || 0;
+	// });
+
+	// $effect(() => {
+	// 	duration = duration || 0;
+	// });
+
 	$effect(() => {
-		if (playback_position !== time) {
-			playback_position = time;
-		}
+		playback_position = time;
 	});
 
 	$effect(() => {
