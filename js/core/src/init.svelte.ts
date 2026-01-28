@@ -222,7 +222,6 @@ export class AppTree {
 					node,
 					this.components_to_register
 				),
-			(node) => handle_empty_forms(node, this.components_to_register),
 			(node) => translate_props(node),
 			(node) => apply_initial_tabs(node, this.initial_tabs),
 			(node) => this.find_attached_events(node, this.#dependency_payload),
@@ -422,7 +421,6 @@ export class AppTree {
 				//@ts-ignore
 				(n) => set_visibility_for_updated_node(n, id, new_state.visible),
 				//@ts-ignore
-				(n) => update_parent_visibility(n, id, new_state.visible),
 				(n) => handle_visibility(n, this.#config.api_url)
 			]);
 			await tick();
@@ -453,10 +451,6 @@ export class AppTree {
 		// any values currently in the UI.
 		// @ts-ignore
 		await this.update_visibility(node, new_state);
-		const parent_node = find_parent(this.root!, id);
-		if (parent_node)
-			// @ts-ignore
-			update_parent_visibility(parent_node, id, new_state.visible);
 	}
 
 	/**
@@ -701,52 +695,6 @@ function untrack_children_of_closed_accordions_or_inactive_tabs(
 	return node;
 }
 
-function handle_empty_forms(
-	node: ProcessedComponentMeta,
-	components_to_register: Set<number>
-): ProcessedComponentMeta {
-	// Check if the node is visible
-	if (node.type === "form") {
-		const all_children_invisible = node.children.every(
-			(child) => child.props.shared_props.visible === false
-		);
-
-		if (all_children_invisible) {
-			node.props.shared_props.visible = false;
-			components_to_register.delete(node.id);
-			return node;
-		}
-	}
-
-	return node;
-}
-
-function update_parent_visibility(
-	node: ProcessedComponentMeta,
-	child_made_visible: number,
-	visibility_state: boolean | "hidden"
-): ProcessedComponentMeta {
-	// This function was added to address a tricky situation:
-	// Form components are wrapped in a Form component automatically.
-	// If all the children of the Form are invisible, the Form itself is marked invisible.
-	// in AppTree.postprocess -> handle_empty_forms
-	// This is to avoid rendering empty forms in the UI. They look ugly.
-	// So what happens when a child inside the Form is made visible again?
-	// The Form needs to become visible again too.
-	// If the child is made invisible, the form should be too if all other children are invisible.
-	// However, we are not doing this now since what we want to do is fetch the latest visibility of all
-	// the children from the UI. However, get_data only returns the props, not the shared props.
-	if (
-		node.type === "form" &&
-		node.children.length &&
-		node.children.some((child) => child.id === child_made_visible)
-	) {
-		if (visibility_state === true) node.props.shared_props.visible = true;
-		else if (!visibility_state && node.children.length === 1)
-			node.props.shared_props.visible = "hidden";
-	}
-	return node;
-}
 
 function translate_props(node: ProcessedComponentMeta): ProcessedComponentMeta {
 	const supported_props = [
