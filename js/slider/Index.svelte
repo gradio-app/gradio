@@ -61,7 +61,9 @@
 	// When the value changes, dispatch the change event via handle_change()
 	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
 	$effect(() => {
-		gradio.props.value && handle_change();
+		if (gradio.props.value != null) {
+			handle_change();
+		}
 	});
 
 	function handle_resize(): void {
