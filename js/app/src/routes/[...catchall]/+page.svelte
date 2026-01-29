@@ -395,9 +395,7 @@
 	// });
 	let config = $derived(data.config);
 	let root = $derived.by(() => {
-		// For auth-required pages, always use config.root directly (the backend URL)
-		// This ensures CSS loads from the correct server and login POSTs to the right place
-		if (!browser || config?.auth_required) return config.root;
+		if (!browser) return config.root;
 		const current_url = new URL(window.location.toString());
 		const root_url = new URL(config.root);
 
