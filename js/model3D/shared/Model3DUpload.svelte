@@ -7,6 +7,7 @@
 	import type { I18nFormatter } from "@gradio/utils";
 	import type Canvas3DGS from "./Canvas3DGS.svelte";
 	import type Canvas3D from "./Canvas3D.svelte";
+	import { isGaussianSplatPly } from "./utils";
 
 	let {
 		value = $bindable(),
@@ -53,6 +54,7 @@
 	} = $props();
 
 	let use_3dgs = $state(false);
+	let is_pointcloud_ply = $state(false);
 	let Canvas3DGSComponent = $state<typeof Canvas3DGS>();
 	let Canvas3DComponent = $state<typeof Canvas3D>();
 	let canvas3d = $state<Canvas3D | undefined>();
@@ -69,12 +71,32 @@
 
 	$effect(() => {
 		if (value) {
-			use_3dgs = value.path.endsWith(".splat") || value.path.endsWith(".ply");
-			if (use_3dgs) {
+			const path = value.path.toLowerCase();
+			if (path.endsWith(".splat")) {
+				use_3dgs = true;
+				is_pointcloud_ply = false;
 				loadCanvas3DGS().then((component) => {
 					Canvas3DGSComponent = component;
 				});
+			} else if (path.endsWith(".ply")) {
+				isGaussianSplatPly(value.url || "").then((isGaussianSplat) => {
+					if (isGaussianSplat) {
+						use_3dgs = true;
+						is_pointcloud_ply = false;
+						loadCanvas3DGS().then((component) => {
+							Canvas3DGSComponent = component;
+						});
+					} else {
+						use_3dgs = false;
+						is_pointcloud_ply = true;
+						loadCanvas3D().then((component) => {
+							Canvas3DComponent = component;
+						});
+					}
+				});
 			} else {
+				use_3dgs = false;
+				is_pointcloud_ply = false;
 				loadCanvas3D().then((component) => {
 					Canvas3DComponent = component;
 				});
@@ -100,6 +122,8 @@
 		onchange?.(null);
 	}
 
+	// For point cloud PLY files, force point_cloud display mode
+	let effective_display_mode = $derived(is_pointcloud_ply ? "point_cloud" : display_mode);
 	async function handle_undo(): Promise<void> {
 		canvas3d?.reset_camera_position();
 	}
@@ -148,7 +172,7 @@
 				this={Canvas3DComponent}
 				bind:this={canvas3d}
 				{value}
-				{display_mode}
+				display_mode={effective_display_mode}
 				{clear_color}
 				{camera_position}
 				{zoom_speed}
