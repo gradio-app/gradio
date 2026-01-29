@@ -161,7 +161,9 @@
 		const canvas = within(canvasElement);
 		const image = await canvas.findByLabelText("Thumbnail 1 of 8");
 		await userEvent.click(image);
-		const expand_btn = await canvas.findByRole("button", { name: "Fullscreen" });
+		const expand_btn = await canvas.findByRole("button", {
+			name: "Fullscreen"
+		});
 		await userEvent.click(expand_btn);
 	}}
 >
@@ -172,7 +174,12 @@
 
 <Story
 	name="Gallery without label"
-	args={{ label: "My Cheetah Gallery", show_label: false, buttons: [], sources: ["upload"] }}
+	args={{
+		label: "My Cheetah Gallery",
+		show_label: false,
+		buttons: [],
+		sources: ["upload"]
+	}}
 >
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
@@ -212,7 +219,12 @@
 
 <Story
 	name="Gallery with height=600"
-	args={{ label: "My Cheetah Gallery", height: 600, buttons: [], sources: ["upload"] }}
+	args={{
+		label: "My Cheetah Gallery",
+		height: 600,
+		buttons: [],
+		sources: ["upload"]
+	}}
 >
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
@@ -326,7 +338,12 @@
 
 <Story
 	name="Gallery with share button"
-	args={{ label: "My Cheetah Gallery", show_label: true, buttons: ["share"], sources: ["upload"] }}
+	args={{
+		label: "My Cheetah Gallery",
+		show_label: true,
+		buttons: ["share"],
+		sources: ["upload"]
+	}}
 >
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />

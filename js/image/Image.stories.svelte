@@ -39,7 +39,9 @@
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
-		const expand_btn = await canvas.findByRole("button", { name: "Fullscreen" });
+		const expand_btn = await canvas.findByRole("button", {
+			name: "Fullscreen"
+		});
 		expect(expand_btn).toBeTruthy();
 	}}
 >
