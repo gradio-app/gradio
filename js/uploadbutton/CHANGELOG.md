@@ -2,6 +2,13 @@
 
 ## 0.9.17
 
+### Dependency updates
+
+- @gradio/client@2.0.4
+- @gradio/upload@0.17.5
+
+## 0.9.17
+
 ### Fixes
 
 - [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
