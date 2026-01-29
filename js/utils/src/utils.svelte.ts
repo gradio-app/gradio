@@ -353,7 +353,6 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		// @ts-ignore same here
 		this.i18n = this.props.i18n;
 
-
 		this.#store_and_translate_i18n_props(_props);
 
 		this.load_component = this.shared.load_component;
