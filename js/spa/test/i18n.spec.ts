@@ -23,7 +23,6 @@ test("changing language via settings updates UI and persists selection", async (
 }) => {
 	await expect(page.getByLabel("Your Name")).toBeVisible();
 
-	// Open settings and change to Spanish
 	await page.locator("footer").getByText("Settings").click();
 	await expect(page.getByRole("dialog", { name: "Settings" })).toBeVisible();
 
@@ -36,11 +35,9 @@ test("changing language via settings updates UI and persists selection", async (
 	await page.keyboard.press("ArrowDown");
 	await page.keyboard.press("Enter");
 
-	// Close settings and verify UI updated
 	await page.locator(".backdrop").click();
 	await expect(page.getByLabel("Tu Nombre")).toBeVisible();
 
-	// Reopen settings and verify dropdown shows Spanish, not English
 	await page.locator("footer").getByText("Configuración").click();
 	await expect(
 		page.getByRole("dialog", { name: "Configuración" })
@@ -49,18 +46,15 @@ test("changing language via settings updates UI and persists selection", async (
 	const languageInputReopened = page.locator('input[aria-label="Language"]');
 	await expect(languageInputReopened).toHaveValue("Español");
 
-	// Change to German
 	await languageInputReopened.click();
 	await languageInputReopened.clear();
 	await languageInputReopened.pressSequentially("Deu");
 	await page.keyboard.press("ArrowDown");
 	await page.keyboard.press("Enter");
 
-	// Close settings and verify UI updated
 	await page.locator(".backdrop").click();
 	await expect(page.getByLabel("Dein Name")).toBeVisible();
 
-	// Reopen settings and verify dropdown shows German
 	await page.locator("footer").getByText("Einstellungen").click();
 	await expect(
 		page.getByRole("dialog", { name: "Einstellungen" })

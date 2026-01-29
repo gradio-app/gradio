@@ -16,6 +16,7 @@ import {
 	changeLocale,
 	is_translation_metadata
 } from "./i18n";
+import { formatter } from "./gradio_helper";
 import { loading } from "./lang/loading";
 
 const loading_count = Object.keys(loading).length;
@@ -27,8 +28,16 @@ vi.mock("svelte-i18n", () => ({
 	init: vi.fn().mockResolvedValue(undefined)
 }));
 
+const mock_translations: Record<string, string> = {
+	"common.submit": "Submit",
+	"common.name": "Name",
+	"common.greeting": "Hello",
+	"common.submit_es": "Enviar",
+	"common.name_es": "Nombre"
+};
+
 vi.mock("svelte/store", () => ({
-	get: vi.fn((store) => store),
+	get: vi.fn(() => (key: string) => mock_translations[key] ?? key),
 	derived: vi.fn()
 }));
 
@@ -145,6 +154,31 @@ describe("i18n", () => {
 			expect(Boolean(is_translation_metadata(null))).toBe(false);
 			expect(Boolean(is_translation_metadata(undefined))).toBe(false);
 			expect(Boolean(is_translation_metadata("not an object"))).toBe(false);
+		});
+	});
+
+	describe("formatter", () => {
+		test("translates i18n markers", () => {
+			expect(formatter('__i18n__{"key":"common.submit"}')).toBe("Submit");
+			expect(formatter('Click: __i18n__{"key":"common.submit"}')).toBe("Click: Submit");
+			expect(formatter('__i18n__{"key":"common.name"} field')).toBe("Name field");
+			expect(formatter('__i18n__{"key":"common.submit_es"}')).toBe("Enviar");
+		});
+
+		test("returns key when no translation exists", () => {
+			expect(formatter('__i18n__{"key":"unknown.key"}')).toBe("unknown.key");
+		});
+
+		test("handles null, undefined, and plain text", () => {
+			expect(formatter(null)).toBe("");
+			expect(formatter(undefined)).toBe("");
+			expect(formatter("Hello world")).toBe("Hello world");
+		});
+
+		test("handles malformed markers", () => {
+			expect(formatter("__i18n__")).toBe("__i18n__");
+			expect(formatter('__i18n__{"key":"test.key"')).toBe('__i18n__{"key":"test.key"');
+			expect(formatter("__i18n__{invalid}")).toBe("__i18n__{invalid}");
 		});
 	});
 });
