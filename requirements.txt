@@ -26,4 +26,4 @@ tomlkit>=0.12.0,<0.14.0
 typer>=0.12,<1.0
 typing_extensions~=4.0
 uvicorn>=0.14.0
-pytz==2025.2
+pytz>=2025.2
