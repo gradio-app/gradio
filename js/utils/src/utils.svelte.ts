@@ -442,7 +442,9 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		// retranslate props when locale changes
 		if (Object.keys(this.translatable_props).length > 0) {
 			locale.subscribe(() => {
-				for (const [full_key, original] of Object.entries(this.translatable_props)) {
+				for (const [full_key, original] of Object.entries(
+					this.translatable_props
+				)) {
 					const [target, key] = full_key.split(".");
 					const translated = this.i18n(original);
 					// @ts-ignore
@@ -464,7 +466,11 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		return false;
 	}
 
-	_translate_and_store(target: "shared" | "props", key: string, value: unknown): unknown {
+	_translate_and_store(
+		target: "shared" | "props",
+		key: string,
+		value: unknown
+	): unknown {
 		if (typeof value !== "string") return value;
 		const translated = this.i18n(value);
 		if (translated !== value) {
