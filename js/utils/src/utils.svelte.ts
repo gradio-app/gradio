@@ -374,7 +374,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 			}
 		}
 		// @ts-ignore same here
-		this.i18n = this.props.i18n;
+		this.i18n = this.props.i18n ?? ((v: string) => v);
 
 		for (const key of TRANSLATABLE_PROPS) {
 			// @ts-ignore
