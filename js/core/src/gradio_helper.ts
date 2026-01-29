@@ -9,42 +9,19 @@ function translate_i18n_marker(
 	value: string,
 	translate: (key: string) => string
 ): string {
-	const marker_index = value.indexOf(i18n_marker);
-	if (marker_index === -1) {
-		return value;
-	}
+	const start = value.indexOf(i18n_marker);
+	if (start === -1) return value;
+
+	const json_start = start + i18n_marker.length;
+	const json_end = value.indexOf("}", json_start) + 1;
+	if (json_end === 0) return value;
 
 	try {
-		const before_marker =
-			marker_index > 0 ? value.substring(0, marker_index) : "";
-		const json_start = value.indexOf("{", marker_index + i18n_marker.length);
-		let json_end = -1;
-		let bracket_count = 0;
-
-		for (let i = json_start; i < value.length; i++) {
-			if (value[i] === "{") bracket_count++;
-			if (value[i] === "}") bracket_count--;
-			if (bracket_count === 0) {
-				json_end = i + 1;
-				break;
-			}
-		}
-
-		if (json_end === -1) {
-			return value;
-		}
-
-		const metadata_json = value.substring(json_start, json_end);
-		const after_json = json_end < value.length ? value.substring(json_end) : "";
-		const metadata = JSON.parse(metadata_json);
-
-		if (metadata && metadata.key) {
+		const metadata = JSON.parse(value.slice(json_start, json_end));
+		if (metadata?.key) {
 			const translated = translate(metadata.key);
-			return (
-				before_marker +
-				(translated !== metadata.key ? translated : metadata.key) +
-				after_json
-			);
+			const result = translated !== metadata.key ? translated : metadata.key;
+			return value.slice(0, start) + result + value.slice(json_end);
 		}
 	} catch {}
 
