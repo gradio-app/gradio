@@ -96,17 +96,6 @@ export const language_choices: [string, string][] = Object.entries(
 let i18n_initialized = false;
 let previous_translations: Record<string, Record<string, string>> | undefined;
 
-const LOCALE_STORAGE_KEY = "gradio_locale";
-
-function getSavedLocale(): string | null {
-	try {
-		if (typeof localStorage !== "undefined") {
-			return localStorage.getItem(LOCALE_STORAGE_KEY);
-		}
-	} catch {}
-	return null;
-}
-
 function get_lang_from_preferred_locale(header: string): string | null {
 	const options = header
 		.split(",")
@@ -150,10 +139,7 @@ export async function setupi18n(
 	let initial_locale: string | null = null;
 	const browser_locale = getLocaleFromNavigator();
 
-	const saved_locale = getSavedLocale();
-	if (saved_locale && available_locales.includes(saved_locale)) {
-		initial_locale = saved_locale;
-	} else if (preferred_locale) {
+	if (preferred_locale) {
 		initial_locale = get_lang_from_preferred_locale(preferred_locale);
 	} else {
 		initial_locale =
@@ -180,11 +166,6 @@ export async function setupi18n(
 
 export function changeLocale(new_locale: string): void {
 	locale.set(new_locale);
-	try {
-		if (typeof localStorage !== "undefined") {
-			localStorage.setItem(LOCALE_STORAGE_KEY, new_locale);
-		}
-	} catch {}
 }
 
 export function get_initial_locale(
