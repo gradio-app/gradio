@@ -355,9 +355,17 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 
 		for (const key of TRANSLATABLE_PROPS) {
 			// @ts-ignore
-			this.shared[key] = this._translate_and_store("shared", key, _props.shared_props[key]);
+			this.shared[key] = this._translate_and_store(
+				"shared",
+				key,
+				_props.shared_props[key]
+			);
 			// @ts-ignore
-			this.props[key] = this._translate_and_store("props", key, _props.props[key]);
+			this.props[key] = this._translate_and_store(
+				"props",
+				key,
+				_props.props[key]
+			);
 		}
 
 		this.load_component = this.shared.load_component;
@@ -471,7 +479,11 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 				const _key = key as keyof SharedProps;
 				// @ts-ignore i'm not doing pointless typescript gymanstics
 
-				this.shared[_key] = this._translate_and_store("shared", key, data[_key]);
+				this.shared[_key] = this._translate_and_store(
+					"shared",
+					key,
+					data[_key]
+				);
 
 				continue;
 			}
