@@ -6,7 +6,6 @@ import {
 	register,
 	waitLocale
 } from "svelte-i18n";
-import { formatter } from "./gradio_helper";
 import { loading } from "./lang/loading";
 
 const lang_map = {
@@ -71,63 +70,7 @@ export function is_translation_metadata(obj: any): obj is I18nData {
 	return result;
 }
 
-export const i18n_marker = "__i18n__";
-
-// handles strings with embedded JSON metadata of shape "__i18n__{"key": "some.key"}"
-export function translate_if_needed(value: any): string {
-	if (typeof value !== "string") {
-		return value;
-	}
-
-	const marker_index = value.indexOf(i18n_marker);
-
-	if (marker_index === -1) {
-		return value;
-	}
-
-	try {
-		const before_marker =
-			marker_index > 0 ? value.substring(0, marker_index) : "";
-
-		const after_marker_index = marker_index + i18n_marker.length;
-		const json_start = value.indexOf("{", after_marker_index);
-		let json_end = -1;
-		let bracket_count = 0;
-
-		for (let i = json_start; i < value.length; i++) {
-			if (value[i] === "{") bracket_count++;
-			if (value[i] === "}") bracket_count--;
-			if (bracket_count === 0) {
-				json_end = i + 1;
-				break;
-			}
-		}
-
-		if (json_end === -1) {
-			console.error("Could not find end of JSON in i18n string");
-			return value;
-		}
-
-		const metadata_json = value.substring(json_start, json_end);
-		const after_json = json_end < value.length ? value.substring(json_end) : "";
-
-		try {
-			const metadata = JSON.parse(metadata_json);
-
-			if (metadata && metadata.key) {
-				const translated = formatter(metadata.key);
-				return before_marker + translated + after_json;
-			}
-		} catch (jsonError) {
-			console.error("Error parsing i18n JSON:", jsonError);
-		}
-
-		return value;
-	} catch (e) {
-		console.error("Error processing translation:", e);
-		return value;
-	}
-}
+export { I18N_MARKER as i18n_marker } from "@gradio/utils";
 
 export function process_langs(): LangsRecord {
 	const lazy_langs = Object.fromEntries(
@@ -149,8 +92,6 @@ const available_locales = Object.keys(processed_langs);
 export const language_choices: [string, string][] = Object.entries(
 	processed_langs
 ).map(([code]) => [lang_map[code as keyof typeof lang_map] || code, code]);
-
-export let all_common_keys: Set<string> = new Set();
 
 let i18n_initialized = false;
 let previous_translations: Record<string, Record<string, string>> | undefined;
@@ -183,15 +124,21 @@ export async function setupi18n(
 		return;
 	}
 
-	previous_translations = custom_translations;
+	const translations_to_use =
+		custom_translations ?? previous_translations ?? {};
+
+	if (custom_translations !== undefined) {
+		previous_translations = custom_translations;
+	}
 
 	load_translations({
 		processed_langs,
-		custom_translations: custom_translations ?? {}
+		custom_translations: translations_to_use
 	});
 
 	let initial_locale: string | null = null;
 	const browser_locale = getLocaleFromNavigator();
+
 	if (preferred_locale) {
 		initial_locale = get_lang_from_preferred_locale(preferred_locale);
 	} else {
