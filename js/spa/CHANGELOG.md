@@ -4,6 +4,13 @@
 
 ### Dependency updates
 
+- @gradio/client@2.0.4
+- @gradio/core@1.1.3
+
+## 1.0.2
+
+### Dependency updates
+
 - @gradio/client@2.0.3
 - @gradio/theme@0.6.1
 - @gradio/core@1.1.2
