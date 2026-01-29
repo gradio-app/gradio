@@ -353,7 +353,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		// @ts-ignore same here
 		this.i18n = this.props.i18n;
 
-		this.#store_and_translate_i18n_props(_props);
+		this._store_and_translate_i18n_props(_props);
 
 		this.load_component = this.shared.load_component;
 
@@ -383,13 +383,13 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 			// Need to update the props here
 			// otherwise UI won't reflect latest state from render
 			for (const key in _props.shared_props) {
-				if (this.#is_i18n_managed(`shared.${key}`, _props.shared_props[key]))
+				if (this._is_i18n_managed(`shared.${key}`, _props.shared_props[key]))
 					continue;
 				// @ts-ignore i'm not doing pointless typescript gymanstics
 				this.shared[key] = _props.shared_props[key];
 			}
 			for (const key in _props.props) {
-				if (this.#is_i18n_managed(`props.${key}`, _props.props[key])) continue;
+				if (this._is_i18n_managed(`props.${key}`, _props.props[key])) continue;
 				// @ts-ignore same here
 				this.props[key] = _props.props[key];
 			}
@@ -405,13 +405,13 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 
 		if (Object.keys(this.translatable_props).length > 0) {
 			locale.subscribe(() => {
-				this.#retranslate_i18n_props();
+				this._retranslate_i18n_props();
 			});
 		}
 	}
 
 	// check if props are translatable
-	#is_i18n_managed(key: string, new_value: unknown): boolean {
+	_is_i18n_managed(key: string, new_value: unknown): boolean {
 		const original_marker = this.translatable_props[key];
 		if (!original_marker) return false;
 		if (new_value === original_marker) return true;
@@ -421,7 +421,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		return false;
 	}
 
-	#store_and_translate_i18n_props(_props: {
+	_store_and_translate_i18n_props(_props: {
 		shared_props: SharedProps;
 		props: U;
 	}): void {
@@ -444,7 +444,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		}
 	}
 
-	#retranslate_i18n_props(): void {
+	_retranslate_i18n_props(): void {
 		for (const fullKey of Object.keys(this.translatable_props)) {
 			const original = this.translatable_props[fullKey];
 			const [target, key] = fullKey.split(".");
