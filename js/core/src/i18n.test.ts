@@ -160,8 +160,12 @@ describe("i18n", () => {
 	describe("formatter", () => {
 		test("translates i18n markers", () => {
 			expect(formatter('__i18n__{"key":"common.submit"}')).toBe("Submit");
-			expect(formatter('Click: __i18n__{"key":"common.submit"}')).toBe("Click: Submit");
-			expect(formatter('__i18n__{"key":"common.name"} field')).toBe("Name field");
+			expect(formatter('Click: __i18n__{"key":"common.submit"}')).toBe(
+				"Click: Submit"
+			);
+			expect(formatter('__i18n__{"key":"common.name"} field')).toBe(
+				"Name field"
+			);
 			expect(formatter('__i18n__{"key":"common.submit_es"}')).toBe("Enviar");
 		});
 
@@ -177,7 +181,9 @@ describe("i18n", () => {
 
 		test("handles malformed markers", () => {
 			expect(formatter("__i18n__")).toBe("__i18n__");
-			expect(formatter('__i18n__{"key":"test.key"')).toBe('__i18n__{"key":"test.key"');
+			expect(formatter('__i18n__{"key":"test.key"')).toBe(
+				'__i18n__{"key":"test.key"'
+			);
 			expect(formatter("__i18n__{invalid}")).toBe("__i18n__{invalid}");
 		});
 	});
