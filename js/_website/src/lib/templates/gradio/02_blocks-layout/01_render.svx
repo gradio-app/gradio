@@ -24,9 +24,6 @@ def hello(···):
 
 <!--- Description -->
 ### Description
-
-The full API reference is shown below.
-
 ## {@html style_formatted_text(obj.description)}
 
 <!-- Example Usage --> 
