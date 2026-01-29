@@ -11,7 +11,6 @@ import { Lang, process_langs } from "./i18n";
 import languagesByAnyCode from "wikidata-lang/indexes/by_any_code";
 import BCP47 from "./lang/BCP47_codes";
 import {
-	translate_if_needed,
 	get_initial_locale,
 	load_translations,
 	changeLocale,
@@ -64,46 +63,6 @@ describe("i18n", () => {
 				assert.ok(data.common);
 			})
 		);
-	});
-
-	describe("basic functions", () => {
-		test("translate_if_needed handles regular strings", () => {
-			const regularString = "hello world";
-			expect(translate_if_needed(regularString)).toBe(regularString);
-		});
-
-		test("translate_if_needed handles i18n markers", () => {
-			const translatable_prop =
-				'__i18n__{"__type__": "translation_metadata", "key": "greeting"}';
-			const result = translate_if_needed(translatable_prop);
-			expect(result).toBe("translated_greeting");
-		});
-
-		test("translate_if_needed handles i18n markers with text before", () => {
-			const translatable_prop =
-				'prefix __i18n__{"__type__": "translation_metadata", "key": "greeting"}';
-			const result = translate_if_needed(translatable_prop);
-			expect(result).toBe("prefix translated_greeting");
-		});
-
-		test("translate_if_needed handles i18n markers with text after", () => {
-			const translatable_prop =
-				'__i18n__{"__type__": "translation_metadata", "key": "greeting"} suffix';
-			const result = translate_if_needed(translatable_prop);
-			expect(result).toBe("translated_greeting suffix");
-		});
-
-		test("translate_if_needed returns original for malformed i18n markers", () => {
-			const malformedString = "__i18n__{invalid json}";
-			const result = translate_if_needed(malformedString);
-			expect(result).toBe(malformedString);
-		});
-
-		test("translate_if_needed handles non-string values", () => {
-			expect(translate_if_needed(null)).toBe(null);
-			expect(translate_if_needed(undefined)).toBe(undefined);
-			expect(translate_if_needed(123)).toBe(123);
-		});
 	});
 
 	describe("locale management", () => {

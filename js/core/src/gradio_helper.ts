@@ -1,4 +1,4 @@
-import { all_common_keys, i18n_marker } from "./i18n";
+import { i18n_marker } from "./i18n";
 import { _ } from "svelte-i18n";
 import { get, derived } from "svelte/store";
 export { Gradio } from "@gradio/utils";
@@ -62,25 +62,9 @@ export function formatter(value: string | null | undefined): string {
 		return translate_i18n_marker(string_value, translate);
 	}
 
-	let direct_translation = translate(string_value);
-
+	const direct_translation = translate(string_value);
 	if (direct_translation !== string_value) {
 		return direct_translation;
-	}
-
-	const lower_value = string_value.toLowerCase();
-
-	for (const common_key of all_common_keys) {
-		const key_name = common_key.substring(common_key.indexOf(".") + 1);
-
-		if (lower_value === key_name) {
-			const translation = translate(common_key);
-
-			if (translation !== common_key) {
-				return translation;
-			}
-			break;
-		}
 	}
 
 	return string_value;

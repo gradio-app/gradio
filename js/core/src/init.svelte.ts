@@ -5,6 +5,7 @@ import {
 } from "./init_utils";
 import { tick } from "svelte";
 import { dequal } from "dequal";
+import { i18n_marker } from "./i18n";
 
 import type {
 	ComponentMeta,
@@ -407,6 +408,14 @@ export class AppTree {
 		new_state: Partial<SharedProps> & Record<string, unknown>,
 		check_visibility: boolean = true
 	) {
+		for (const key in new_state) {
+			const val = new_state[key];
+			if (typeof val === "string" && val.includes(i18n_marker)) {
+				(new_state as Record<string, unknown>)[key] =
+					this.reactive_formatter(val);
+			}
+		}
+
 		// Visibility is tricky 😅
 		// If the component is not visible, it has not been rendered
 		// and so it has no _set_data callback
