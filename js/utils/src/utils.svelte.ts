@@ -318,6 +318,29 @@ export function has_i18n_marker(value: unknown): value is string {
 	return typeof value === "string" && value.includes(I18N_MARKER);
 }
 
+export function translate_i18n_marker(
+	value: string,
+	translate: (key: string) => string
+): string {
+	const start = value.indexOf(I18N_MARKER);
+	if (start === -1) return value;
+
+	const json_start = start + I18N_MARKER.length;
+	const json_end = value.indexOf("}", json_start) + 1;
+	if (json_end === 0) return value;
+
+	try {
+		const metadata = JSON.parse(value.slice(json_start, json_end));
+		if (metadata?.key) {
+			const translated = translate(metadata.key);
+			const result = translated !== metadata.key ? translated : metadata.key;
+			return value.slice(0, start) + result + value.slice(json_end);
+		}
+	} catch {}
+
+	return value;
+}
+
 export class Gradio<T extends object = {}, U extends object = {}> {
 	load_component: load_component;
 	shared: SharedProps = $state<SharedProps>({} as SharedProps) as SharedProps;
