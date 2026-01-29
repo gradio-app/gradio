@@ -416,9 +416,17 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 			});
 		});
 
+		// retranslate props when locale changes
 		if (Object.keys(this.translatable_props).length > 0) {
 			locale.subscribe(() => {
-				this._retranslate_i18n_props();
+				for (const [full_key, original] of Object.entries(this.translatable_props)) {
+					const [target, key] = full_key.split(".");
+					const translated = this.i18n(original);
+					// @ts-ignore
+					if (target === "shared") this.shared[key] = translated;
+					// @ts-ignore
+					else this.props[key] = translated;
+				}
 			});
 		}
 	}
@@ -428,37 +436,18 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		const original_marker = this.translatable_props[key];
 		if (!original_marker) return false;
 		if (new_value === original_marker) return true;
-
-		// if value changed then remove key
+		// if value has changed then remove key
 		delete this.translatable_props[key];
 		return false;
 	}
 
-	_translate_and_store(
-		target: "shared" | "props",
-		key: string,
-		value: unknown
-	): unknown {
+	_translate_and_store(target: "shared" | "props", key: string, value: unknown): unknown {
 		if (typeof value !== "string") return value;
 		const translated = this.i18n(value);
 		if (translated !== value) {
 			this.translatable_props[`${target}.${key}`] = value;
 		}
 		return translated;
-	}
-
-	_retranslate_i18n_props(): void {
-		for (const fullKey of Object.keys(this.translatable_props)) {
-			const original = this.translatable_props[fullKey];
-			const [target, key] = fullKey.split(".");
-			if (target === "shared") {
-				// @ts-ignore
-				this.shared[key] = this.i18n(original);
-			} else {
-				// @ts-ignore
-				this.props[key] = this.i18n(original);
-			}
-		}
 	}
 
 	dispatch<E extends keyof T>(event_name: E, data?: T[E]): void {
