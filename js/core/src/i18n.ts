@@ -70,7 +70,7 @@ export function is_translation_metadata(obj: any): obj is I18nData {
 	return result;
 }
 
-export const i18n_marker = "__i18n__";
+export { I18N_MARKER as i18n_marker } from "@gradio/utils";
 
 export function process_langs(): LangsRecord {
 	const lazy_langs = Object.fromEntries(
