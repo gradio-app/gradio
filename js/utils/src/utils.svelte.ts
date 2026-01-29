@@ -345,7 +345,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	load_component: load_component;
 	shared: SharedProps = $state<SharedProps>({} as SharedProps) as SharedProps;
 	props = $state<U>({} as U) as U;
-	i18n: I18nFormatter = $state<any>({}) as any;
+	i18n: I18nFormatter = $state<any>((v: string) => v) as any;
 	translatable_props: Record<string, string> = {};
 	dispatcher!: Function;
 	last_update: ReturnType<typeof tick> | null = null;
