@@ -493,20 +493,26 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 
 	set_data(data: Partial<U & SharedProps>): void {
 		for (const key in data) {
+			// @ts-ignore
+			const value = data[key];
+			const translated = has_i18n_marker(value)
+				? this._translate_and_store(
+						this.shared_props.includes(key as keyof SharedProps)
+							? "shared"
+							: "props",
+						key,
+						value
+					)
+				: value;
+
 			if (this.shared_props.includes(key as keyof SharedProps)) {
 				const _key = key as keyof SharedProps;
 				// @ts-ignore i'm not doing pointless typescript gymanstics
-
-				this.shared[_key] = this._translate_and_store(
-					"shared",
-					key,
-					data[_key]
-				);
-
+				this.shared[_key] = translated;
 				continue;
 			}
 			// @ts-ignore
-			this.props[key] = this._translate_and_store("props", key, data[key]);
+			this.props[key] = translated;
 		}
 	}
 }
