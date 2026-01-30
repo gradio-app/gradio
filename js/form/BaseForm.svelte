@@ -51,7 +51,7 @@
 		display: none !important;
 	}
 
-	div:not(:has(*)) {
+	div:not(:has(> :not(.hidden))) {
 		display: none;
 	}
 </style>
