@@ -1,5 +1,11 @@
 # website
 
+## 0.69.1
+
+### Features
+
+- [#12823](https://github.com/gradio-app/gradio/pull/12823) [`32b1d6f`](https://github.com/gradio-app/gradio/commit/32b1d6ffe9e753ad563cc3f4f77a0bfbf89c022c) - I’ve updated the render decorator documentation to be clearer and more practical.  Thanks @Ankith34!
+
 ## 0.69.0
 
 ### Dependency updates
