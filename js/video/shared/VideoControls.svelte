@@ -10,19 +10,35 @@
 	import { ModifyUpload } from "@gradio/upload";
 	import type { FileData } from "@gradio/client";
 
-	export let videoElement: HTMLVideoElement;
+	interface Props {
+		videoElement?: HTMLVideoElement;
+		showRedo?: boolean;
+		interactive?: boolean;
+		mode?: string;
+		handle_reset_value: () => void;
+		handle_trim_video: (videoBlob: Blob) => void;
+		processingVideo?: boolean;
+		i18n: (key: string) => string;
+		value?: FileData | null;
+		show_download_button?: boolean;
+		handle_clear?: () => void;
+		has_change_history?: boolean;
+	}
 
-	export let showRedo = false;
-	export let interactive = true;
-	export let mode = "";
-	export let handle_reset_value: () => void;
-	export let handle_trim_video: (videoBlob: Blob) => void;
-	export let processingVideo = false;
-	export let i18n: (key: string) => string;
-	export let value: FileData | null = null;
-	export let show_download_button = false;
-	export let handle_clear: () => void = () => {};
-	export let has_change_history = false;
+	let {
+		videoElement = undefined,
+		showRedo = false,
+		interactive = true,
+		mode = $bindable(""),
+		handle_reset_value,
+		handle_trim_video,
+		processingVideo = $bindable(false),
+		i18n,
+		value = null,
+		show_download_button = false,
+		handle_clear = () => {},
+		has_change_history = false
+	}: Props = $props();
 
 	let ffmpeg: FFmpeg;
 
@@ -30,19 +46,24 @@
 		ffmpeg = await loadFfmpeg();
 	});
 
-	$: if (mode === "edit" && trimmedDuration === null && videoElement)
-		trimmedDuration = videoElement.duration;
+	$effect(() => {
+		if (mode === "edit" && trimmedDuration === null && videoElement) {
+			trimmedDuration = videoElement.duration;
+		}
+	});
 
-	let trimmedDuration: number | null = null;
-	let dragStart = 0;
-	let dragEnd = 0;
+	let trimmedDuration = $state<number | null>(null);
+	let dragStart = $state(0);
+	let dragEnd = $state(0);
 
-	let loadingTimeline = false;
+	let loadingTimeline = $state(false);
 
 	const toggleTrimmingMode = (): void => {
 		if (mode === "edit") {
 			mode = "";
-			trimmedDuration = videoElement.duration;
+			if (videoElement) {
+				trimmedDuration = videoElement.duration;
+			}
 		} else {
 			mode = "edit";
 		}
@@ -50,7 +71,7 @@
 </script>
 
 <div class="container" class:hidden={mode !== "edit"}>
-	{#if mode === "edit"}
+	{#if mode === "edit" && videoElement}
 		<div class="timeline-wrapper">
 			<VideoTimeline
 				{videoElement}
@@ -72,7 +93,8 @@
 				<button
 					class:hidden={loadingTimeline}
 					class="text-button"
-					on:click={() => {
+					onclick={() => {
+						if (!videoElement) return;
 						mode = "";
 						processingVideo = true;
 						trimVideo(ffmpeg, dragStart, dragEnd, videoElement)
@@ -87,7 +109,7 @@
 				<button
 					class="text-button"
 					class:hidden={loadingTimeline}
-					on:click={toggleTrimmingMode}>Cancel</button
+					onclick={toggleTrimmingMode}>Cancel</button
 				>
 			</div>
 		{:else}

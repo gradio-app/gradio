@@ -1,27 +1,41 @@
 <script lang="ts">
 	import { onMount, onDestroy } from "svelte";
 
-	export let videoElement: HTMLVideoElement;
-	export let trimmedDuration: number | null;
-	export let dragStart: number;
-	export let dragEnd: number;
-	export let loadingTimeline: boolean;
+	interface Props {
+		videoElement: HTMLVideoElement;
+		trimmedDuration?: number | null;
+		dragStart?: number;
+		dragEnd?: number;
+		loadingTimeline?: boolean;
+	}
 
-	let thumbnails: string[] = [];
+	let {
+		videoElement,
+		trimmedDuration = $bindable(null),
+		dragStart = $bindable(0),
+		dragEnd = $bindable(0),
+		loadingTimeline = $bindable(false)
+	}: Props = $props();
+
+	let thumbnails = $state<string[]>([]);
 	let numberOfThumbnails = 10;
 	let intervalId: ReturnType<typeof setInterval> | undefined;
 	let videoDuration: number;
 
-	let leftHandlePosition = 0;
-	let rightHandlePosition = 100;
+	let leftHandlePosition = $state(0);
+	let rightHandlePosition = $state(100);
 
-	let dragging: string | null = null;
+	let dragging = $state<string | null>(null);
 
 	const startDragging = (side: string | null): void => {
 		dragging = side;
 	};
 
-	$: loadingTimeline = thumbnails.length !== numberOfThumbnails;
+	let loadingTimelineValue = $derived(thumbnails.length !== numberOfThumbnails);
+
+	$effect(() => {
+		loadingTimeline = loadingTimelineValue;
+	});
 
 	const stopDragging = (): void => {
 		dragging = null;
@@ -149,7 +163,7 @@
 </script>
 
 <div class="container">
-	{#if loadingTimeline}
+	{#if loadingTimelineValue}
 		<div class="load-wrap">
 			<span aria-label="loading timeline" class="loader" />
 		</div>
@@ -158,20 +172,20 @@
 			<button
 				aria-label="start drag handle for trimming video"
 				class="handle left"
-				on:mousedown={() => startDragging("left")}
-				on:blur={stopDragging}
-				on:keydown={(e) => {
+				onmousedown={() => startDragging("left")}
+				onblur={stopDragging}
+				onkeydown={(e) => {
 					if (e.key === "ArrowLeft" || e.key == "ArrowRight") {
 						startDragging("left");
 					}
 				}}
 				style="left: {leftHandlePosition}%;"
-			/>
+			></button>
 
 			<div
 				class="opaque-layer"
 				style="left: {leftHandlePosition}%; right: {100 - rightHandlePosition}%"
-			/>
+			></div>
 
 			{#each thumbnails as thumbnail, i (i)}
 				<img src={thumbnail} alt={`frame-${i}`} draggable="false" />
@@ -179,15 +193,15 @@
 			<button
 				aria-label="end drag handle for trimming video"
 				class="handle right"
-				on:mousedown={() => startDragging("right")}
-				on:blur={stopDragging}
-				on:keydown={(e) => {
+				onmousedown={() => startDragging("right")}
+				onblur={stopDragging}
+				onkeydown={(e) => {
 					if (e.key === "ArrowLeft" || e.key == "ArrowRight") {
 						startDragging("right");
 					}
 				}}
 				style="left: {rightHandlePosition}%;"
-			/>
+			></button>
 		</div>
 	{/if}
 </div>
