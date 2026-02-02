@@ -1,13 +1,9 @@
 import { test, expect } from "@self/tootils";
 
-// In SSR mode, i18n doesn't work so we see the keys instead of translated text
-const isSSR = process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true";
-const LOGIN_TITLE = isSSR ? "login.login" : "Login";
-const USERNAME_LABEL = isSSR ? "login.username" : "username";
-const PASSWORD_LABEL = isSSR ? "login.password" : "password";
-const INCORRECT_CREDENTIALS = isSSR
-	? "login.incorrect_credentials"
-	: "Incorrect Credentials";
+const LOGIN_TITLE = "Login";
+const USERNAME_LABEL = "username";
+const PASSWORD_LABEL = "password";
+const INCORRECT_CREDENTIALS = "Incorrect Credentials";
 
 test("shows login page when auth is required", async ({ page }) => {
 	// The login page should be shown initially

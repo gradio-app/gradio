@@ -83,8 +83,6 @@
 	import { _ } from "svelte-i18n";
 	import { Client } from "@gradio/client";
 	import { page } from "$app/stores";
-	import { setupi18n } from "@gradio/core";
-
 	import { init } from "@huggingface/space-header";
 	import { browser } from "$app/environment";
 
@@ -257,10 +255,6 @@
 	let pending_deep_link_error = $state(false);
 
 	let gradio_dev_mode = "";
-	let i18n_ready = false;
-	setupi18n().then(() => {
-		i18n_ready = true;
-	});
 
 	// Set window.gradio_config early so the load function can check it during hydration
 	if (browser && data.config) {
@@ -466,7 +460,7 @@
 			root={config.root}
 			space_id={space}
 			{app_mode}
-			i18n={i18n_ready ? $_ : (s) => s}
+			i18n={$_}
 		/>
 	{:else if config && app}
 		<Blocks

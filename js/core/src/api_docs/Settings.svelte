@@ -6,6 +6,7 @@
 	import { BaseCheckbox as Checkbox } from "@gradio/checkbox";
 	import { language_choices, changeLocale } from "../i18n";
 	import { locale, _ } from "svelte-i18n";
+	import { get } from "svelte/store";
 	import record from "./img/record.svg";
 
 	let {
@@ -52,14 +53,8 @@
 		};
 	});
 
-	let current_locale: string = $state("en");
+	let current_locale: string = $state(get(locale) ?? "en");
 	let current_theme: "light" | "dark" | "system" = $state("system");
-
-	locale.subscribe((value) => {
-		if (value) {
-			current_locale = value;
-		}
-	});
 
 	function handleLanguageChange(value: string): void {
 		const new_locale = value;

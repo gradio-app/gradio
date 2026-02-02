@@ -12,7 +12,6 @@
 		LayoutNode
 	} from "./types";
 	// import type { UpdateTransaction } from "./_init";
-	import { setupi18n } from "./i18n";
 	import type { ThemeMode, Payload } from "./types";
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";

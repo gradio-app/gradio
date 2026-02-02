@@ -3,7 +3,6 @@ import {
 	get_component,
 	get_inputs_outputs
 } from "./init_utils";
-import { translate_if_needed } from "./i18n";
 import { tick } from "svelte";
 import { dequal } from "dequal";
 
@@ -223,7 +222,6 @@ export class AppTree {
 					this.components_to_register
 				),
 			(node) => handle_empty_forms(node, this.components_to_register),
-			(node) => translate_props(node),
 			(node) => apply_initial_tabs(node, this.initial_tabs),
 			(node) => this.find_attached_events(node, this.#dependency_payload),
 			(node) =>
@@ -744,31 +742,6 @@ function update_parent_visibility(
 		if (visibility_state === true) node.props.shared_props.visible = true;
 		else if (!visibility_state && node.children.length === 1)
 			node.props.shared_props.visible = "hidden";
-	}
-	return node;
-}
-
-function translate_props(node: ProcessedComponentMeta): ProcessedComponentMeta {
-	const supported_props = [
-		"description",
-		"info",
-		"title",
-		"placeholder",
-		"value",
-		"label"
-	];
-	for (const attr of Object.keys(node.props.shared_props)) {
-		if (supported_props.includes(attr as string)) {
-			// @ts-ignore
-			node.props.shared_props[attr] = translate_if_needed(
-				node.props.shared_props[attr as keyof SharedProps]
-			);
-		}
-	}
-	for (const attr of Object.keys(node.props.props)) {
-		if (supported_props.includes(attr as string)) {
-			node.props.props[attr] = translate_if_needed(node.props.props[attr]);
-		}
 	}
 	return node;
 }
