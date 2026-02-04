@@ -1,4 +1,4 @@
-"""gr.HighlightedText() component."""
+"""gr.() component."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ class HighlightedToken(GradioModel):
     class_or_confidence: Union[str, float, None] = None
 
 
-class HighlightedTextData(GradioRootModel):
+class Data(GradioRootModel):
     root: list[HighlightedToken]
 
 
@@ -36,7 +36,7 @@ class HighlightedText(Component):
     Guides: named-entity-recognition
     """
 
-    data_model = HighlightedTextData
+    data_model = Data
     EVENTS = [Events.change, Events.select]
 
     def __init__(
@@ -44,11 +44,12 @@ class HighlightedText(Component):
         value: list[tuple[str, str | float | None]] | dict | Callable | None = None,
         *,
         color_map: dict[str, str]
-        | None = None,  # Parameter moved to HighlightedText.style()
+        | None = None,  # Parameter moved to .style()
         show_legend: bool = False,
         show_inline_category: bool = True,
         combine_adjacent: bool = False,
         adjacent_separator: str = "",
+        show_whitespaces: bool = False,
         label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
@@ -74,6 +75,7 @@ class HighlightedText(Component):
             show_inline_category: If False, will not display span category label. Only applies if show_legend=False and interactive=False.
             combine_adjacent: If True, will merge the labels of adjacent tokens belonging to the same category.
             adjacent_separator: Specifies the separator to be used between tokens if combine_adjacent is True.
+            show_whitespaces: If True, will preserve whitespace-only tokens in the display. If False, tokens containing only whitespace will be filtered out.
             label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
@@ -96,6 +98,7 @@ class HighlightedText(Component):
         self.show_inline_category = show_inline_category
         self.combine_adjacent = combine_adjacent
         self.adjacent_separator = adjacent_separator
+        self.show_whitespaces = show_whitespaces
         self.rtl = rtl
         super().__init__(
             label=label,
@@ -127,11 +130,11 @@ class HighlightedText(Component):
         return [("The", None), ("quick", "adj"), ("brown", "adj"), ("fox", "noun")]
 
     def preprocess(
-        self, payload: HighlightedTextData | None
+        self, payload: Data | None
     ) -> list[tuple[str, str | float | None]] | None:
         """
         Parameters:
-            payload: An instance of HighlightedTextData
+            payload: An instance of Data
         Returns:
             Passes the value as a list of tuples as a `list[tuple]` into the function. Each `tuple` consists of a `str` substring of the text (so the entire text is included) and `str | float | None` label, which is the category or confidence of that substring.
         """
@@ -141,12 +144,12 @@ class HighlightedText(Component):
 
     def postprocess(
         self, value: list[tuple[str, str | float | None]] | dict | None
-    ) -> HighlightedTextData | None:
+    ) -> Data | None:
         """
         Parameters:
             value: Expects a list of (word, category) tuples, or a dictionary of two keys: "text", and "entities", which itself is a list of dictionaries, each of which have the keys: "entity" (or "entity_group"), "start", and "end"
         Returns:
-            An instance of HighlightedTextData
+            An instance of Data
         """
         if value is None:
             return None
@@ -157,7 +160,7 @@ class HighlightedText(Component):
             except KeyError as ke:
                 raise ValueError(
                     "Expected a dictionary with keys 'text' and 'entities' "
-                    "for the value of the HighlightedText component."
+                    "for the value of the  component."
                 ) from ke
             if len(entities) == 0:
                 value = [(text, None)]
@@ -178,6 +181,9 @@ class HighlightedText(Component):
             output = []
             running_text, running_category = None, None
             for text, category in value:
+                # Skip whitespace-only tokens if show_whitespaces is False
+                if not self.show_whitespaces and text and not text.strip():
+                    continue
                 if running_text is None:
                     running_text = text
                     running_category = category
@@ -193,16 +199,24 @@ class HighlightedText(Component):
                     running_category = category
             if running_text is not None:
                 output.append((running_text, running_category))
-            return HighlightedTextData(
+            return Data(
                 root=[
                     HighlightedToken(token=o[0], class_or_confidence=o[1])
                     for o in output
                 ]
             )
         else:
-            return HighlightedTextData(
+            # Filter whitespace-only tokens if show_whitespaces is False
+            filtered_value = value
+            if not self.show_whitespaces:
+                filtered_value = [
+                    (text, category)
+                    for text, category in value
+                    if text.strip() or not text
+                ]
+            return Data(
                 root=[
                     HighlightedToken(token=o[0], class_or_confidence=o[1])
-                    for o in value
+                    for o in filtered_value
                 ]
             )

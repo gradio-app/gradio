@@ -11,6 +11,7 @@
 		class_or_confidence: string | number | null;
 	}[] = [];
 	export let show_legend = false;
+	export let show_whitespaces = false;
 	export let color_map: Record<string, string> = {};
 	export let selectable = false;
 
@@ -71,8 +72,10 @@
 			labelToEdit = tempValue.findIndex(({ flag }) => flag === tempFlag);
 			// tempValue[labelToEdit].pop();
 
-			// remove elements with empty labels
-			tempValue = tempValue.filter((item) => item.token.trim() !== "");
+			// remove elements with empty labels (unless show_whitespaces is True)
+			if (!show_whitespaces) {
+				tempValue = tempValue.filter((item) => item.token.trim() !== "");
+			}
 			value = tempValue.map(({ flag, ...rest }) => rest);
 
 			handleValueChange();
@@ -199,7 +202,7 @@
 		<div class="textfield">
 			{#each value as { token, class_or_confidence }, i}
 				{#each splitTextByNewline(token) as line, j}
-					{#if line.trim() !== ""}
+					{#if show_whitespaces || line.trim() !== ""}
 						<span class="text-class_or_confidence-container">
 							<span
 								role="button"

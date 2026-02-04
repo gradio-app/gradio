@@ -11,6 +11,7 @@
 	}[] = [];
 	export let show_legend = false;
 	export let show_inline_category = true;
+	export let show_whitespaces = false;
 	export let color_map: Record<string, string> = {};
 	export let selectable = false;
 
@@ -97,7 +98,7 @@
 		<div class="textfield">
 			{#each value as v, i}
 				{#each splitTextByNewline(v.token) as line, j}
-					{#if line.trim() !== ""}
+					{#if show_whitespaces || line.trim() !== ""}
 						<!-- TODO: fix -->
 						<!-- svelte-ignore a11y-no-static-element-interactions -->
 						<!-- svelte-ignore a11y-click-events-have-key-events-->
