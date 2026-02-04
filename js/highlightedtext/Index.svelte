@@ -76,6 +76,7 @@
 			interactive={gradio.shared.interactive}
 			show_legend={gradio.props.show_legend}
 			show_inline_category={gradio.props.show_inline_category}
+			show_whitespaces={gradio.props.show_whitespaces}
 			color_map={gradio.props.color_map}
 			onselect={(detail) => gradio.dispatch("select", detail)}
 			onchange={() => {

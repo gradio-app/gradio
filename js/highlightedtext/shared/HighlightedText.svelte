@@ -20,14 +20,17 @@
 		show_legend = false,
 		show_inline_category = true,
 		color_map = {},
+		show_whitespaces = true,
 		interactive = false,
 		onselect,
 		onchange
 	}: {
 		value?: HighlightedToken[];
+		
 		show_legend?: boolean;
 		show_inline_category?: boolean;
 		color_map?: Record<string, string>;
+		show_whitespaces?: boolean;
 		interactive?: boolean;
 		onselect?: (data: SelectData) => void;
 		onchange?: (data: HighlightedToken[]) => void;
@@ -77,7 +80,11 @@
 	});
 
 	function handle_selection_complete(): void {
-		if (!selection || !selection.toString().trim()) return;
+		if (!selection) return;
+		const text = selection.toString();
+		if (!text) return;
+		// In whitespace-preserving mode, allow selecting pure whitespace.
+		if (!show_whitespaces && !text.trim()) return;
 
 		const start = selection.getRangeAt(0).startOffset;
 		const end = selection.getRangeAt(0).endOffset;
@@ -101,7 +108,7 @@
 				class_or_confidence: mode === "scores" ? 1 : "label"
 			},
 			{ token: str.substring(end), class_or_confidence: null }
-		].filter((e) => e.token.trim() !== "");
+		].filter((e) => (show_whitespaces ? e.token !== "" : e.token.trim() !== ""));
 
 		value = [
 			...value.slice(0, active_element_index),
@@ -178,7 +185,7 @@
 			{#each value as { token, class_or_confidence }, i}
 				{@const lines = token.split("\n")}
 				{#each lines as line, j}
-					{#if line.trim()}
+					{#if show_whitespaces ? line !== "" : line.trim()}
 						{@const bg_color = get_background_color(class_or_confidence)}
 						<span class="token-container">
 							<span
