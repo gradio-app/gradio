@@ -50,6 +50,7 @@ export async function load({
 	// If the server-side check determined auth is required, skip Client.connect
 	// This prevents the 401 error on the client during hydration
 	if (auth_required) {
+		await setupi18n(undefined, accept_language);
 		return {
 			config: {
 				auth_required: true,
@@ -96,7 +97,8 @@ export async function load({
 			with_null_state: true,
 			events: ["data", "log", "status", "render"],
 			query_params: deepLink ? { deep_link: deepLink } : undefined,
-			headers
+			headers,
+			cookies: cookie || undefined
 		});
 	} catch (error: any) {
 		const error_message = error.message || "";
@@ -104,6 +106,7 @@ export async function load({
 		if (!error_message.includes(MISSING_CREDENTIALS_MSG)) {
 			auth_message = error_message.replace(/^Error:?\s*/, "");
 		}
+		await setupi18n(undefined, accept_language);
 		return {
 			config: {
 				auth_message: auth_message,
