@@ -183,6 +183,7 @@
 		box-shadow: var(--shadow-drop);
 		touch-action: pan-y;
 		user-select: none;
+		color: var(--body-text-color);
 	}
 
 	:global(.dark) .toast-body {
@@ -246,6 +247,7 @@
 		height: var(--size-4);
 		transition: transform 0.2s ease;
 		opacity: 0.6;
+		color: var(--body-text-color);
 	}
 
 	.chevron.visible {
@@ -262,6 +264,7 @@
 		font-weight: var(--weight-bold);
 		font-size: var(--text-lg);
 		line-height: var(--line-sm);
+		color: var(--toast-color);
 	}
 
 	.toast-count {
