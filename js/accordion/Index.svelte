@@ -30,7 +30,7 @@
 
 	<Accordion
 		{label}
-		open={gradio.props.open}
+		bind:open={gradio.props.open}
 		onexpand={() => {
 			gradio.dispatch("expand");
 			gradio.dispatch("gradio_expand");
