@@ -97,6 +97,9 @@ function handle_delete_operation(
 	if (!state.config.editable) return false;
 	if (event.key !== "Delete" && event.key !== "Backspace") return false;
 
+	// Allow default backspace/delete behavior when editing a header
+	if (state.ui_state.header_edit !== false) return false;
+
 	const editing = state.ui_state.editing;
 	const selected_cells = state.ui_state.selected_cells;
 
