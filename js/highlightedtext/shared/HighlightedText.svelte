@@ -393,6 +393,7 @@
 
 	.token-container {
 		position: relative;
+		display: inline-block;
 	}
 
 	.token {
@@ -465,6 +466,7 @@
 		cursor: pointer;
 		justify-content: center;
 		align-items: center;
+		z-index: 1;
 	}
 
 	:global(.dark) .remove-btn {
