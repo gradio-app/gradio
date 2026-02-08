@@ -137,7 +137,7 @@
 	let scroll_after_component_load = false;
 
 	async function scroll_on_value_update(): Promise<void> {
-		if (!autoscroll) return;
+		if (!autoscroll || !div) return;
 		if (is_at_bottom()) {
 			// Child components may be loaded asynchronously,
 			// so trigger the scroll again after they load.
