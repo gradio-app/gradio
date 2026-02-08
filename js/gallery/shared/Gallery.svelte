@@ -414,7 +414,7 @@
 					{/if}
 
 					{#if show_fullscreen_button}
-						<FullscreenButton {fullscreen} onclick={(e) => onfullscreen(e)} />
+						<FullscreenButton {fullscreen} onclick={(is_fullscreen) => onfullscreen({ detail: is_fullscreen })} />
 					{/if}
 
 					{#if show_share_button}
