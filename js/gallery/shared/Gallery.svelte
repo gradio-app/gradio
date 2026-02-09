@@ -157,9 +157,9 @@
 	);
 
 	let prev_value: GalleryData[] | null = $state(value);
-	// if (selected_index == null && preview && value?.length) {
-	// 	selected_index = 0;
-	// }
+	if (selected_index == null && preview && value?.length) {
+		selected_index = 0;
+	}
 	let old_selected_index: number | null = $state(selected_index);
 
 	$effect(() => {
