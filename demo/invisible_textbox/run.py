@@ -5,12 +5,16 @@ with gr.Blocks() as demo:
         with gr.Tab("Invisible Textbox Demo"):
             textbox = gr.Textbox(visible=False, interactive=True, elem_id="test-textbox")
 
-            make_visible_btn = gr.Button("Show")
-            hide = gr.Button("Hide")
+            with gr.Row():
+                make_visible_btn = gr.Button("Show")
+                hide = gr.Button("Hide")
+                make_invisible_btn = gr.Button("Make Invisible")
+
             def show():
                 return gr.Textbox(visible=True)
             make_visible_btn.click(fn=show, outputs=textbox)
             hide.click(lambda: gr.Textbox(visible=False), outputs=textbox)
+            make_invisible_btn.click(lambda: gr.Textbox(visible="hidden"), outputs=textbox)
         with gr.Tab("Another Tab"):
             msg = gr.Markdown("This is another tab to demonstrate that invisible components work across tabs.", visible=False)
             show_message = gr.Button("Show Message")
