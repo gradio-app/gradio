@@ -107,58 +107,34 @@ jobs:
         with:
           name: gradio-client-wheel
           path: client-dist/
-      - name: Set venv activate path (linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: echo "VENV_ACTIVATE=venv/bin/activate" >> $GITHUB_ENV
-      - name: Set venv activate path (windows)
-        if: matrix.os == 'windows-latest'
-        shell: bash
-        run: echo "VENV_ACTIVATE=venv/Scripts/activate" >> $GITHUB_ENV
-      - name: Install Python
-        uses: actions/setup-python@v5
+      - name: install dependencies
+        id: install_deps
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@fix-windows-tests"
         with:
-          python-version: "3.10"
-      - name: Install uv (linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          curl -LsSf https://astral.sh/uv/0.9.2/install.sh | sh
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-      - name: Install uv (windows)
-        if: matrix.os == 'windows-latest'
-        shell: bash
-        run: |
-          powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/0.9.2/install.ps1 | iex"
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-      - name: Create venv
-        run: uv venv venv --python=3.10
-      - name: Install ffmpeg
-        uses: FedericoCarboni/setup-ffmpeg@583042d32dd1cabb8bd09df03bde06080da5c87c # @v2
-      - name: Install test dependencies
-        shell: bash
-        run: |
-          . ${{ env.VENV_ACTIVATE }}
-          uv pip install -r test/requirements.txt --torch-backend cpu
-          uv pip install -r client/python/test/requirements.txt
+          python_version: "3.10"
+          os: ${{ matrix.os }}
+          test: true
+          skip_build: true
+          skip_gradio_install: true
       - name: Install gradio_client wheel
         shell: bash
         run: |
-          . ${{ env.VENV_ACTIVATE }}
+          . ${{steps.install_deps.outputs.venv_activate}}
           uv pip install client-dist/*.whl
       - name: Install gradio wheel
         shell: bash
         run: |
-          . ${{ env.VENV_ACTIVATE }}
+          . ${{steps.install_deps.outputs.venv_activate}}
           uv pip install "$(ls dist/*.whl)[oauth,mcp]"
       - name: uv pip freeze
         shell: bash
         run: |
-          . ${{ env.VENV_ACTIVATE }}
+          . ${{steps.install_deps.outputs.venv_activate}}
           uv pip freeze
       - name: Generate .pyi files
         shell: bash
         run: |
-          . ${{ env.VENV_ACTIVATE }}
-          # Import gradio to generate .pyi files in local directory
+          . ${{steps.install_deps.outputs.venv_activate}}
           python -c "import gradio"
       - name: Copy wheels for docker tests
         shell: bash
@@ -168,16 +144,15 @@ jobs:
       - name: Remove local gradio source to use installed wheel
         shell: bash
         run: |
-          # Remove __init__.py files so Python doesn't treat gradio/ as a package
           find gradio -name "__init__.py" -delete
       - name: Run parallel tests
         shell: bash
         run: |
-          . ${{ env.VENV_ACTIVATE }}
+          . ${{steps.install_deps.outputs.venv_activate}}
           python -m pytest -n auto -m "${{ matrix.test-type }} and not serial"
       - name: Run non-flaky serial tests
         if: matrix.test-type == 'not flaky'
         shell: bash
         run: |
-          . ${{ env.VENV_ACTIVATE }}
+          . ${{steps.install_deps.outputs.venv_activate}}
           python -m pytest -m "${{ matrix.test-type }} and serial"
