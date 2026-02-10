@@ -261,8 +261,6 @@ class SpacesReloader(ServerReloader):
         demo = getattr(self.watch_module, self.demo_name)
         if demo is not self.running_app.blocks:
             self.swap_blocks(demo)
-            # TODO: re-assign keys?
-            # TODO: re-assign config?
             return True
         return False
 
