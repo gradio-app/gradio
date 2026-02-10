@@ -365,7 +365,6 @@ export class DependencyManager {
 				);
 
 				const { success, failure, all } = dep.get_triggers();
-				console.log("success; failure; all", success, failure, all);
 
 				try {
 					let target_id: number | null = null;
