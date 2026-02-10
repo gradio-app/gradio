@@ -1,31 +1,71 @@
 <script lang="ts">
 	import type { HTMLVideoAttributes } from "svelte/elements";
-	import { createEventDispatcher } from "svelte";
 	import { loaded } from "./utils";
+	import type { Snippet } from "svelte";
 
 	import Hls from "hls.js";
 
-	export let src: HTMLVideoAttributes["src"] = undefined;
+	interface Props {
+		src?: HTMLVideoAttributes["src"];
+		muted?: HTMLVideoAttributes["muted"];
+		playsinline?: HTMLVideoAttributes["playsinline"];
+		preload?: HTMLVideoAttributes["preload"];
+		autoplay?: HTMLVideoAttributes["autoplay"];
+		controls?: HTMLVideoAttributes["controls"];
+		currentTime?: number;
+		duration?: number;
+		paused?: boolean;
+		node?: HTMLVideoElement;
+		loop: boolean;
+		is_stream: boolean;
+		processingVideo?: boolean;
+		onloadeddata?: () => void;
+		onclick?: () => void;
+		onplay?: () => void;
+		onpause?: () => void;
+		onended?: () => void;
+		onmouseover?: () => void;
+		onmouseout?: () => void;
+		onfocus?: () => void;
+		onblur?: () => void;
+		onerror?: (error: string) => void;
+		onloadstart?: () => void;
+		onloadedmetadata?: () => void;
+		"data-testid"?: string;
+		children?: Snippet;
+	}
 
-	export let muted: HTMLVideoAttributes["muted"] = undefined;
-	export let playsinline: HTMLVideoAttributes["playsinline"] = undefined;
-	export let preload: HTMLVideoAttributes["preload"] = undefined;
-	export let autoplay: HTMLVideoAttributes["autoplay"] = undefined;
-	export let controls: HTMLVideoAttributes["controls"] = undefined;
+	let {
+		src = undefined,
+		muted = undefined,
+		playsinline = undefined,
+		preload = undefined,
+		autoplay = undefined,
+		controls = undefined,
+		currentTime = $bindable(undefined),
+		duration = $bindable(undefined),
+		paused = $bindable(undefined),
+		node = $bindable(undefined),
+		loop,
+		is_stream,
+		processingVideo = false,
+		onloadeddata,
+		onclick,
+		onplay,
+		onpause,
+		onended,
+		onmouseover,
+		onmouseout,
+		onfocus,
+		onblur,
+		onerror,
+		onloadstart,
+		onloadedmetadata,
+		"data-testid": dataTestid,
+		children
+	}: Props = $props();
 
-	export let currentTime: number | undefined = undefined;
-	export let duration: number | undefined = undefined;
-	export let paused: boolean | undefined = undefined;
-
-	export let node: HTMLVideoElement | undefined = undefined;
-	export let loop: boolean;
-	export let is_stream;
-
-	export let processingVideo = false;
-
-	let stream_active = false;
-
-	const dispatch = createEventDispatcher();
+	let stream_active = $state(false);
 
 	function load_stream(
 		src: string | null | undefined,
@@ -70,11 +110,16 @@
 		}
 	}
 
-	$: (src, (stream_active = false));
+	$effect(() => {
+		src;
+		stream_active = false;
+	});
 
-	$: if (node && src && is_stream) {
-		load_stream(src, is_stream, node);
-	}
+	$effect(() => {
+		if (node && src && is_stream) {
+			load_stream(src, is_stream, node);
+		}
+	});
 </script>
 
 <!--
@@ -97,28 +142,29 @@ Then, even when `controls` is false, the compiled DOM would be `<video controls=
 	{autoplay}
 	{controls}
 	{loop}
-	on:loadeddata={dispatch.bind(null, "loadeddata")}
-	on:click={dispatch.bind(null, "click")}
-	on:play={dispatch.bind(null, "play")}
-	on:pause={dispatch.bind(null, "pause")}
-	on:ended={dispatch.bind(null, "ended")}
-	on:mouseover={dispatch.bind(null, "mouseover")}
-	on:mouseout={dispatch.bind(null, "mouseout")}
-	on:focus={dispatch.bind(null, "focus")}
-	on:blur={dispatch.bind(null, "blur")}
-	on:error={dispatch.bind(null, "error", "Video not playable")}
-	on:loadstart
-	on:loadeddata
-	on:loadedmetadata
+	onloadeddata={() => onloadeddata?.()}
+	onclick={() => onclick?.()}
+	onplay={() => onplay?.()}
+	onpause={() => onpause?.()}
+	onended={() => onended?.()}
+	onmouseover={() => onmouseover?.()}
+	onmouseout={() => onmouseout?.()}
+	onfocus={() => onfocus?.()}
+	onblur={() => onblur?.()}
+	onerror={() => onerror?.("Video not playable")}
+	onloadstart={() => onloadstart?.()}
+	onloadedmetadata={() => onloadedmetadata?.()}
 	bind:currentTime
 	bind:duration
 	bind:paused
 	bind:this={node}
 	use:loaded={{ autoplay: autoplay ?? false }}
-	data-testid={$$props["data-testid"]}
+	data-testid={dataTestid}
 	crossorigin="anonymous"
 >
-	<slot />
+	{#if children}
+		{@render children()}
+	{/if}
 </video>
 
 <style>

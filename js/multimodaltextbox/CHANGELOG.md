@@ -1,5 +1,21 @@
 # @gradio/multimodaltextbox
 
+## 0.11.5
+
+### Fixes
+
+- [#12789](https://github.com/gradio-app/gradio/pull/12789) [`af5e86f`](https://github.com/gradio-app/gradio/commit/af5e86f10d95cc71ee4cb950e455dbdc8e138983) - Migrate gr.MultimodalTextbox.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.21.0
+- @gradio/client@2.0.4
+- @gradio/statustracker@0.12.3
+- @gradio/image@0.25.2
+- @gradio/upload@0.17.5
+- @gradio/video@0.20.2
+- @gradio/audio@0.22.2
+
 ## 0.11.4
 
 ### Fixes
