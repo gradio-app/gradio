@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:fix(reloading): Re-assign config for `SpacesReloader`
+fix:fix(reloading): Re-assign config for `SpacesReloader`
