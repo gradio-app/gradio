@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix stop button not working in Audio streaming with live Interface
+fix:Fix stop button not working in Audio streaming
