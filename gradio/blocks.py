@@ -2489,8 +2489,8 @@ Received inputs:
         quiet: bool = False,
         footer_links: list[Literal["api", "gradio", "settings"] | dict[str, str]]
         | None = None,
-        allowed_paths: list[str] | list[Path] | None = None,
-        blocked_paths: list[str] | list[Path] | None = None,
+        allowed_paths: list[str] | None = None,
+        blocked_paths: list[str] | None = None,
         root_path: str | None = None,
         app_kwargs: dict[str, Any] | None = None,
         state_session_capacity: int = 10000,
