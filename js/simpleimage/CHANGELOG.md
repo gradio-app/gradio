@@ -1,5 +1,14 @@
 # @gradio/simpleimage
 
+## 0.9.4
+
+### Dependency updates
+
+- @gradio/atoms@0.21.0
+- @gradio/client@2.0.4
+- @gradio/statustracker@0.12.3
+- @gradio/upload@0.17.5
+
 ## 0.9.3
 
 ### Fixes

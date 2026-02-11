@@ -154,13 +154,16 @@
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
-		buttons: ["fullscreen", "download", "share"]
+		buttons: ["fullscreen", "download", "share"],
+		sources: ["upload"]
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
-		const image = canvas.getByLabelText("Thumbnail 1 of 8");
+		const image = await canvas.findByLabelText("Thumbnail 1 of 8");
 		await userEvent.click(image);
-		const expand_btn = canvas.getByRole("button", { name: "Fullscreen" });
+		const expand_btn = await canvas.findByRole("button", {
+			name: "Fullscreen"
+		});
 		await userEvent.click(expand_btn);
 	}}
 >
@@ -171,7 +174,12 @@
 
 <Story
 	name="Gallery without label"
-	args={{ label: "My Cheetah Gallery", show_label: false, buttons: [] }}
+	args={{
+		label: "My Cheetah Gallery",
+		show_label: false,
+		buttons: [],
+		sources: ["upload"]
+	}}
 >
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
@@ -185,7 +193,8 @@
 		show_label: true,
 		rows: 3,
 		columns: 3,
-		buttons: []
+		buttons: [],
+		sources: ["upload"]
 	}}
 >
 	{#snippet template(args)}
@@ -199,7 +208,8 @@
 		label: "My Cheetah Gallery",
 		show_label: true,
 		columns: 4,
-		buttons: []
+		buttons: [],
+		sources: ["upload"]
 	}}
 >
 	{#snippet template(args)}
@@ -209,7 +219,12 @@
 
 <Story
 	name="Gallery with height=600"
-	args={{ label: "My Cheetah Gallery", height: 600, buttons: [] }}
+	args={{
+		label: "My Cheetah Gallery",
+		height: 600,
+		buttons: [],
+		sources: ["upload"]
+	}}
 >
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
@@ -222,7 +237,8 @@
 		label: "My Cheetah Gallery",
 		show_label: true,
 		allow_preview: false,
-		buttons: []
+		buttons: [],
+		sources: ["upload"]
 	}}
 >
 	{#snippet template(args)}
@@ -236,7 +252,8 @@
 		label: "My Cheetah Gallery",
 		show_label: true,
 		preview: true,
-		buttons: []
+		buttons: [],
+		sources: ["upload"]
 	}}
 >
 	{#snippet template(args)}
@@ -250,7 +267,8 @@
 		label: "My Cheetah Gallery",
 		show_label: true,
 		object_fit: "scale-down",
-		buttons: []
+		buttons: [],
+		sources: ["upload"]
 	}}
 >
 	{#snippet template(args)}
@@ -264,7 +282,8 @@
 		label: "My Cheetah Gallery",
 		show_label: true,
 		object_fit: "contain",
-		buttons: []
+		buttons: [],
+		sources: ["upload"]
 	}}
 >
 	{#snippet template(args)}
@@ -278,7 +297,8 @@
 		label: "My Cheetah Gallery",
 		show_label: true,
 		object_fit: "cover",
-		buttons: []
+		buttons: [],
+		sources: ["upload"]
 	}}
 >
 	{#snippet template(args)}
@@ -292,7 +312,8 @@
 		label: "My Cheetah Gallery",
 		show_label: true,
 		object_fit: "none",
-		buttons: []
+		buttons: [],
+		sources: ["upload"]
 	}}
 >
 	{#snippet template(args)}
@@ -306,7 +327,8 @@
 		label: "My Cheetah Gallery",
 		show_label: true,
 		object_fit: "fill",
-		buttons: []
+		buttons: [],
+		sources: ["upload"]
 	}}
 >
 	{#snippet template(args)}
@@ -316,7 +338,12 @@
 
 <Story
 	name="Gallery with share button"
-	args={{ label: "My Cheetah Gallery", show_label: true, buttons: ["share"] }}
+	args={{
+		label: "My Cheetah Gallery",
+		show_label: true,
+		buttons: ["share"],
+		sources: ["upload"]
+	}}
 >
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
@@ -331,7 +358,8 @@
 		rows: 2,
 		columns: 2,
 		height: 400,
-		buttons: []
+		buttons: [],
+		sources: ["upload"]
 	}}
 >
 	{#snippet template(args)}
@@ -347,7 +375,8 @@
 		rows: 2,
 		columns: 2,
 		height: 200,
-		buttons: []
+		buttons: [],
+		sources: ["upload"]
 	}}
 >
 	{#snippet template(args)}
@@ -361,7 +390,8 @@
 		label: "My Cheetah Gallery",
 		rows: 2,
 		height: 400,
-		buttons: ["download"]
+		buttons: ["download"],
+		sources: ["upload"]
 	}}
 >
 	{#snippet template(args)}
@@ -375,7 +405,8 @@
 		label: "My Cheetah Gallery",
 		columns: 10,
 		buttons: ["download"],
-		fit_columns: false
+		fit_columns: false,
+		sources: ["upload"]
 	}}
 >
 	{#snippet template(args)}
@@ -389,7 +420,8 @@
 		label: "My Cheetah Gallery",
 		columns: 10,
 		buttons: ["download"],
-		fit_columns: true
+		fit_columns: true,
+		sources: ["upload"]
 	}}
 >
 	{#snippet template(args)}

@@ -2,6 +2,12 @@
 
 ## 0.9.0
 
+### Dependency updates
+
+- @gradio/statustracker@0.12.3
+
+## 0.9.0
+
 ### Features
 
 - [#12781](https://github.com/gradio-app/gradio/pull/12781) [`c64d861`](https://github.com/gradio-app/gradio/commit/c64d8613e96dedf80e47ad03a26a1b94a5761a5a) - Split e2e tests into independent apps.  Thanks @freddyaboulton!

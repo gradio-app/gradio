@@ -15,7 +15,6 @@
 	$effect(() => {
 		if (gradio.props.selected) {
 			untrack(() => {
-				console.log("Here");
 				const i = gradio.props.initial_tabs.findIndex(
 					(t) => t.id === gradio.props.selected
 				);
