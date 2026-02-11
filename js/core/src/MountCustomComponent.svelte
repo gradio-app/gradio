@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, onDestroy } from "svelte";
 	let { node, children, ...rest } = $props();
-
-	// $inspect(node);
 
 	let component = $derived(await node.component);
 	let runtime = $derived(
@@ -25,6 +23,12 @@
 					children
 				}
 			});
+		}
+	});
+
+	onDestroy(() => {
+		if (comp) {
+			runtime.umount(comp);
 		}
 	});
 </script>

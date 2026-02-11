@@ -29,7 +29,6 @@ export interface ProcessedComponentMeta {
 	runtime: false | typeof import("svelte");
 	documentation?: Documentation;
 	children: ProcessedComponentMeta[];
-	//	parent?: ProcessedComponentMeta;
 	component_class_id: string; // ?;
 	key: string | number | null; // ?;
 	rendered_in?: number; // ?;
