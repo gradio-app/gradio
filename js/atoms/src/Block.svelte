@@ -189,6 +189,7 @@
 	}
 
 	.hidden {
+		/* We use "hidden" class name in form/Index.svelte to hide parent forms, so if this class changes, edit form/Index.svelte accordingly */
 		display: none;
 	}
 

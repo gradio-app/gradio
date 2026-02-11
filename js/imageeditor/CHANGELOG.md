@@ -1,5 +1,15 @@
 # @gradio/imageeditor
 
+## 0.18.5
+
+### Dependency updates
+
+- @gradio/atoms@0.21.0
+- @gradio/client@2.0.4
+- @gradio/statustracker@0.12.3
+- @gradio/image@0.25.2
+- @gradio/upload@0.17.5
+
 ## 0.18.4
 
 ### Fixes

@@ -199,6 +199,11 @@ export class Client {
 
 		this.options = options;
 		this.current_payload = {};
+
+		if (options.cookies) {
+			this.cookies = options.cookies;
+		}
+
 		this.view_api = view_api.bind(this);
 		this.upload_files = upload_files.bind(this);
 		this.handle_blob = handle_blob.bind(this);

@@ -281,14 +281,14 @@
 			if (pending) {
 				submit_pending_stream_on_pending_end = true;
 			}
-			dispatch_blob(audio_chunks, "stop_recording");
+			await dispatch_blob(audio_chunks, "stop_recording");
 			onclear?.();
 			mode = "";
 		}
 	}
 
 	$effect(() => {
-		if (!recording && recorder) stop();
+		if (!recording && recorder && mode !== "") stop();
 	});
 
 	$effect(() => {

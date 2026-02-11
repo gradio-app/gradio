@@ -10,15 +10,25 @@ test("Textbox visibility can be toggled from the backend. Toggling visibility re
 	await expect(page.locator("#test-textbox")).toHaveCount(1);
 
 	const textbox = page.locator("#test-textbox textarea");
+	const form = page.locator(".form");
+
 	await textbox.fill("Test value");
 
 	await page.click('text="Hide"');
 
 	await expect(textbox).not.toBeVisible();
+	await expect(form).not.toBeVisible();
 	await expect(textbox).toHaveCount(0);
 
 	await page.click('text="Show"');
+	await expect(form).toBeVisible();
+	await expect(form).toHaveCount(1);
 	await expect(textbox).toHaveValue("Test value");
+
+	await page.click('text="Make Invisible"');
+	await expect(form).not.toBeVisible();
+	await expect(textbox).not.toBeVisible();
+	await expect(form).toHaveCount(1);
 });
 
 test("Component visibility is respected in inactive tabs. A component with visibility=False will not be shown when the tab is active", async ({
