@@ -10,16 +10,16 @@
 			chromatic: {
 				modes: {
 					desktop: allModes["desktop"],
-					mobile: allModes["mobile"],
-				},
-			},
+					mobile: allModes["mobile"]
+				}
+			}
 		},
 		argTypes: {
 			messages: {
 				control: "object",
-				description: "Array of toast messages to display",
-			},
-		},
+				description: "Array of toast messages to display"
+			}
+		}
 	});
 
 	function noop() {}
@@ -41,9 +41,9 @@
 				message: "Something went wrong. Please try again.",
 				id: 1,
 				duration: null,
-				visible: true,
-			},
-		],
+				visible: true
+			}
+		]
 	}}
 	{template}
 />
@@ -58,9 +58,9 @@
 				message: "This action may have unintended consequences.",
 				id: 1,
 				duration: null,
-				visible: true,
-			},
-		],
+				visible: true
+			}
+		]
 	}}
 	{template}
 />
@@ -75,9 +75,9 @@
 				message: "Here is some useful information.",
 				id: 1,
 				duration: null,
-				visible: true,
-			},
-		],
+				visible: true
+			}
+		]
 	}}
 	{template}
 />
@@ -92,9 +92,9 @@
 				message: "Operation completed successfully!",
 				id: 1,
 				duration: null,
-				visible: true,
-			},
-		],
+				visible: true
+			}
+		]
 	}}
 	{template}
 />
@@ -109,9 +109,9 @@
 				message: "This toast will auto close in 10 seconds.",
 				id: 1,
 				duration: 10,
-				visible: true,
-			},
-		],
+				visible: true
+			}
+		]
 	}}
 	{template}
 />
@@ -126,7 +126,7 @@
 				message: "First error message.",
 				id: 1,
 				duration: null,
-				visible: true,
+				visible: true
 			},
 			{
 				type: "error",
@@ -134,7 +134,7 @@
 				message: "Second error message.",
 				id: 2,
 				duration: null,
-				visible: true,
+				visible: true
 			},
 			{
 				type: "error",
@@ -142,9 +142,9 @@
 				message: "Third error message.",
 				id: 3,
 				duration: null,
-				visible: true,
-			},
-		],
+				visible: true
+			}
+		]
 	}}
 	{template}
 />
@@ -159,7 +159,7 @@
 				message: "An error occurred.",
 				id: 1,
 				duration: null,
-				visible: true,
+				visible: true
 			},
 			{
 				type: "warning",
@@ -167,7 +167,7 @@
 				message: "A warning to consider.",
 				id: 2,
 				duration: null,
-				visible: true,
+				visible: true
 			},
 			{
 				type: "success",
@@ -175,9 +175,9 @@
 				message: "Task completed.",
 				id: 3,
 				duration: null,
-				visible: true,
-			},
-		],
+				visible: true
+			}
+		]
 	}}
 	{template}
 />
@@ -193,9 +193,9 @@
 					"Click <a href='https://gradio.app' target='_blank'>here</a> for a link.",
 				id: 1,
 				duration: null,
-				visible: true,
-			},
-		],
+				visible: true
+			}
+		]
 	}}
 	{template}
 />
@@ -211,9 +211,9 @@
 					"This is a very long warning message. This is a very long warning message. This is a very long warning message. This is a very long warning message. This is a very long warning message.",
 				id: 1,
 				duration: null,
-				visible: true,
-			},
-		],
+				visible: true
+			}
+		]
 	}}
 	{template}
 />
@@ -228,7 +228,7 @@
 				message: "",
 				id: 1,
 				duration: null,
-				visible: true,
+				visible: true
 			},
 			{
 				type: "error",
@@ -236,7 +236,7 @@
 				message: null,
 				id: 2,
 				duration: null,
-				visible: true,
+				visible: true
 			},
 			{
 				type: "error",
@@ -244,9 +244,9 @@
 				message: undefined,
 				id: 3,
 				duration: null,
-				visible: true,
-			},
-		],
+				visible: true
+			}
+		]
 	}}
 	{template}
 />
