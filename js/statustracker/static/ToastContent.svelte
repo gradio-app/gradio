@@ -26,6 +26,13 @@
 	let is_dragging = $state(false);
 	let toast_element: HTMLElement;
 
+	const default_messages: Record<ToastMessage["type"], string> = {
+		error: "An error occurred.",
+		warning: "Warning.",
+		success: "Success.",
+		info: "Info."
+	};
+
 	let count = $derived(messages.length);
 	let first_message = $derived(messages[0]);
 	let type_label = $derived(type.charAt(0).toUpperCase() + type.slice(1));
@@ -151,7 +158,7 @@
 			{#each messages as message, i (message.id)}
 				<div class="toast-message-item {type}">
 					<div class="toast-message-text {type}" data-testid="toast-text">
-						{@html sanitize(message.message)}
+						{@html sanitize(message.message || default_messages[type])}
 					</div>
 				</div>
 				{#if i < messages.length - 1}
