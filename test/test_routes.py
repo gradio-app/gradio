@@ -2053,3 +2053,62 @@ def test_json_postprocessing_with_queue_false(connect):
     with connect(demo) as client:
         output = client.predict(api_name="/lambda")
         assert output == {"epochs": 20, "learning_rate": 0.001, "batch_size": 32}
+
+
+class TestOAuthSecurity:
+    def test_redirect_to_target_blocks_external_urls(self):
+        """_redirect_to_target should strip scheme/host to prevent open redirects."""
+        from gradio.oauth import _redirect_to_target
+
+        scope = {
+            "type": "http",
+            "method": "GET",
+            "headers": [],
+        }
+
+        # External URL should be stripped to just the path
+        scope["query_string"] = b"_target_url=https://evil.com/steal"
+        request = Request(scope)
+        response = _redirect_to_target(request)
+        assert response.headers["location"] == "/steal"
+
+        # Protocol-relative URL should be stripped
+        scope["query_string"] = b"_target_url=//evil.com/steal"
+        request = Request(scope)
+        response = _redirect_to_target(request)
+        assert response.headers["location"] == "/steal"
+
+        # Relative path should pass through unchanged
+        scope["query_string"] = b"_target_url=/my-page%3Ffoo%3Dbar"
+        request = Request(scope)
+        response = _redirect_to_target(request)
+        location = response.headers["location"]
+        assert location == "/my-page?foo=bar"
+
+        # Default target when no _target_url
+        scope["query_string"] = b""
+        request = Request(scope)
+        response = _redirect_to_target(request)
+        assert response.headers["location"] == "/"
+
+    def test_mocked_oauth_does_not_leak_real_token(self):
+        """_get_mocked_oauth_info should return a dummy token, not the real HF token."""
+        from unittest.mock import patch
+
+        from gradio.oauth import _get_mocked_oauth_info
+
+        with (
+            patch("gradio.oauth.get_token", return_value="hf_real_secret_token"),
+            patch(
+                "gradio.oauth.whoami",
+                return_value={
+                    "type": "user",
+                    "fullname": "Test User",
+                    "name": "testuser",
+                    "avatarUrl": "https://huggingface.co/avatar.png",
+                },
+            ),
+        ):
+            info = _get_mocked_oauth_info()
+            assert info["access_token"] != "hf_real_secret_token"
+            assert info["access_token"] == "mock-oauth-token-for-local-dev"
