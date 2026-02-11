@@ -9,19 +9,19 @@ import type { Dependency, LoadingComponent } from "./types";
  * @returns the loading component
  */
 export function get_component(
-  type: string,
-  class_id: string,
-  root: string,
-  variant: "component" | "example" | "base" = "component",
+	type: string,
+	class_id: string,
+	root: string,
+	variant: "component" | "example" | "base" = "component"
 ): { component: LoadingComponent; runtime: false | typeof import("svelte") } {
-  if (type === "api") type = "state";
+	if (type === "api") type = "state";
 
-  return load_component({
-    api_url: root,
-    name: type,
-    id: class_id,
-    variant,
-  });
+	return load_component({
+		api_url: root,
+		name: type,
+		id: class_id,
+		variant
+	});
 }
 
 /**
@@ -32,15 +32,15 @@ export function get_component(
  * @returns a tuple of the inputs and outputs
  */
 export function get_inputs_outputs(
-  dependencies: Dependency[],
+	dependencies: Dependency[]
 ): [Set<number>, Set<number>] {
-  const inputs = new Set<number>();
-  const outputs = new Set<number>();
-  for (const dep of dependencies) {
-    dep.inputs.forEach((input) => inputs.add(input));
-    dep.outputs.forEach((output) => outputs.add(output));
-  }
-  return [inputs, outputs];
+	const inputs = new Set<number>();
+	const outputs = new Set<number>();
+	for (const dep of dependencies) {
+		dep.inputs.forEach((input) => inputs.add(input));
+		dep.outputs.forEach((output) => outputs.add(output));
+	}
+	return [inputs, outputs];
 }
 
 /**
@@ -56,25 +56,25 @@ export function get_inputs_outputs(
  * @returns if the component is interactive
  */
 export function determine_interactivity(
-  id: number,
-  interactive_prop: boolean | undefined,
-  value: any,
-  dependencies: [Set<number>, Set<number>],
+	id: number,
+	interactive_prop: boolean | undefined,
+	value: any,
+	dependencies: [Set<number>, Set<number>]
 ): boolean {
-  const [inputs, outputs] = dependencies;
+	const [inputs, outputs] = dependencies;
 
-  if (interactive_prop === false) {
-    return false;
-  } else if (interactive_prop === true) {
-    return true;
-  } else if (
-    inputs.has(id) ||
-    (!outputs.has(id) && has_no_default_value(value))
-  ) {
-    return true;
-  }
+	if (interactive_prop === false) {
+		return false;
+	} else if (interactive_prop === true) {
+		return true;
+	} else if (
+		inputs.has(id) ||
+		(!outputs.has(id) && has_no_default_value(value))
+	) {
+		return true;
+	}
 
-  return false;
+	return false;
 }
 
 /**
@@ -83,17 +83,17 @@ export function determine_interactivity(
  * @returns default value boolean
  */
 function has_no_default_value(value: any): boolean {
-  return (
-    (Array.isArray(value) && value.length === 0) ||
-    value === "" ||
-    value === 0 ||
-    !value
-  );
+	return (
+		(Array.isArray(value) && value.length === 0) ||
+		value === "" ||
+		value === 0 ||
+		!value
+	);
 }
 
 /** An async version of 'new Function' */
 export const AsyncFunction: new (
-  ...args: string[]
+	...args: string[]
 ) => (...args: any[]) => Promise<any> = Object.getPrototypeOf(
-  async function () {},
+	async function () {}
 ).constructor;

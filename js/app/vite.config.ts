@@ -9,19 +9,19 @@ import { cpSync, readFileSync, writeFileSync } from "fs";
 import { resolve, join } from "path";
 
 import {
-  inject_ejs,
-  generate_cdn_entry,
-  generate_dev_entry,
-  handle_ce_css,
-  inject_component_loader,
-  resolve_svelte,
-  mock_modules,
+	inject_ejs,
+	generate_cdn_entry,
+	generate_dev_entry,
+	handle_ce_css,
+	inject_component_loader,
+	resolve_svelte,
+	mock_modules
 } from "@self/build";
 
 const version_path = resolve(__dirname, "../../gradio/package.json");
 // const theme_token_path = resolve(__dirname, "../theme/src/tokens.css");
 const version_raw = JSON.parse(
-  readFileSync(version_path, { encoding: "utf-8" }),
+	readFileSync(version_path, { encoding: "utf-8" })
 ).version.trim();
 const version = version_raw.replace(/\./g, "-");
 
@@ -33,88 +33,88 @@ import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const svelte = require("svelte/package.json");
 const svelte_exports = Object.keys(svelte.exports)
-  .filter((p) => p.endsWith(".json"))
-  .map((entry) => entry.replace(/^\./, "svelte").split("/").join("_") + ".js");
+	.filter((p) => p.endsWith(".json"))
+	.map((entry) => entry.replace(/^\./, "svelte").split("/").join("_") + ".js");
 
 export default defineConfig(({ mode }) => {
-  const production = mode === "production";
-  // const development = mode === "development";
-  return {
-    // plugins: [],
-    server: {
-      port: 9876,
-      open: "/",
-      proxy: {
-        "/manifest.json": "http://localhost:7860",
-        "^.*/theme\\.css": "http://localhost:7860",
-        "^/static/.*": "http://localhost:7860",
-        "^.*/svelte/.*": "http://localhost:7860",
-        "^/gradio_api/.*": "http://localhost:7860",
-      },
-    },
-    resolve: {
-      conditions: ["gradio", "browser"],
-    },
-    ssr: {
-      resolve: {
-        conditions: ["gradio"],
-      },
-      noExternal: ["@gradio/*", "@huggingface/space-header"],
-      external: mode === "development" ? [] : ["svelte", "svelte/*"],
-    },
+	const production = mode === "production";
+	// const development = mode === "development";
+	return {
+		// plugins: [],
+		server: {
+			port: 9876,
+			open: "/",
+			proxy: {
+				"/manifest.json": "http://localhost:7860",
+				"^.*/theme\\.css": "http://localhost:7860",
+				"^/static/.*": "http://localhost:7860",
+				"^.*/svelte/.*": "http://localhost:7860",
+				"^/gradio_api/.*": "http://localhost:7860"
+			}
+		},
+		resolve: {
+			conditions: ["gradio", "browser"]
+		},
+		ssr: {
+			resolve: {
+				conditions: ["gradio"]
+			},
+			noExternal: ["@gradio/*", "@huggingface/space-header"],
+			external: mode === "development" ? [] : ["svelte", "svelte/*"]
+		},
 
-    build: {
-      rollupOptions: {
-        external: svelte_exports,
-      },
-      minify: true,
-      sourcemap: true,
-    },
+		build: {
+			rollupOptions: {
+				external: svelte_exports
+			},
+			minify: true,
+			sourcemap: true
+		},
 
-    define: {
-      // BROWSER_BUILD: JSON.stringify(isSsrBuild),
-      BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
-      BACKEND_URL: production
-        ? JSON.stringify("")
-        : JSON.stringify("http://127.0.0.1:7860/"),
-      GRADIO_VERSION: JSON.stringify(version),
-    },
-    css: {
-      postcss: {
-        plugins: [
-          prefixer({
-            prefix: `.gradio-container-${version}`,
-            // @ts-ignore
-            transform(prefix, selector, prefixedSelector, fileName) {
-              if (selector.indexOf("gradio-container") > -1) {
-                return prefix;
-              } else if (
-                selector.indexOf(":root") > -1 ||
-                selector.indexOf("dark") > -1 ||
-                selector.indexOf("body") > -1 ||
-                fileName.indexOf(".svelte") > -1
-              ) {
-                return selector;
-              }
-              return prefixedSelector;
-            },
-          }),
-          custom_media(),
-        ],
-      },
-    },
-    optimizeDeps: {
-      exclude: ["@gradio/*", "/svelte", "/svelte/*"],
-    },
-    plugins: [
-      // inject_svelte_init_code({ mode }),
-      sveltekit(),
+		define: {
+			// BROWSER_BUILD: JSON.stringify(isSsrBuild),
+			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
+			BACKEND_URL: production
+				? JSON.stringify("")
+				: JSON.stringify("http://127.0.0.1:7860/"),
+			GRADIO_VERSION: JSON.stringify(version)
+		},
+		css: {
+			postcss: {
+				plugins: [
+					prefixer({
+						prefix: `.gradio-container-${version}`,
+						// @ts-ignore
+						transform(prefix, selector, prefixedSelector, fileName) {
+							if (selector.indexOf("gradio-container") > -1) {
+								return prefix;
+							} else if (
+								selector.indexOf(":root") > -1 ||
+								selector.indexOf("dark") > -1 ||
+								selector.indexOf("body") > -1 ||
+								fileName.indexOf(".svelte") > -1
+							) {
+								return selector;
+							}
+							return prefixedSelector;
+						}
+					}),
+					custom_media()
+				]
+			}
+		},
+		optimizeDeps: {
+			exclude: ["@gradio/*", "/svelte", "/svelte/*"]
+		},
+		plugins: [
+			// inject_svelte_init_code({ mode }),
+			sveltekit(),
 
-      inject_component_loader({ mode }),
-      // resolve_svelte(mode === "production"),
-      // handle_svelte_import({ development: mode === "development" })
-    ],
-  };
+			inject_component_loader({ mode })
+			// resolve_svelte(mode === "production"),
+			// handle_svelte_import({ development: mode === "development" })
+		]
+	};
 });
 
 // function handle_svelte_import({
