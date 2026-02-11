@@ -367,12 +367,9 @@ class App(FastAPI):
         )
         if not is_safe_url:
             raise PermissionError("This URL cannot be proxied.")
-        # Only allow proxying to Hugging Face Space URLs to prevent SSRF
-        # via malicious proxy_url values in untrusted configs.
-        if not url.host.endswith(".hf.space"):
-            raise PermissionError("This URL cannot be proxied.")
+        is_hf_url = url.host.endswith(".hf.space")
         headers = {}
-        if Context.token is not None:
+        if Context.token is not None and is_hf_url:
             headers["Authorization"] = f"Bearer {Context.token}"
         rp_req = client.build_request("GET", url, headers=headers)
         return rp_req
