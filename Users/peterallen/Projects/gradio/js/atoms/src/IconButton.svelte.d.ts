@@ -1,0 +1,21 @@
+import { type Component, type Snippet } from "svelte";
+type $$ComponentProps = {
+    Icon: Component;
+    label?: string;
+    show_label?: boolean;
+    pending?: boolean;
+    size?: "x-small" | "small" | "large" | "medium";
+    padded?: boolean;
+    highlight?: boolean;
+    disabled?: boolean;
+    hasPopup?: boolean;
+    color?: string;
+    transparent?: boolean;
+    background?: string;
+    border?: string;
+    onclick?: (event: MouseEvent) => void;
+    children?: Snippet;
+};
+declare const IconButton: Component<$$ComponentProps, {}, "">;
+type IconButton = ReturnType<typeof IconButton>;
+export default IconButton;
