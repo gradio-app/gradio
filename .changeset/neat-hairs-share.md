@@ -1,5 +1,5 @@
 ---
-"gradio": patch
+"gradio": minor
 ---
 
-fix:Validate proxy url host
+feat:Oauth fixes
