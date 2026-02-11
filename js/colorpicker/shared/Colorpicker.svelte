@@ -46,27 +46,6 @@
 	let hue_rect: DOMRect | null = null;
 	let hue_moving = false;
 
-	let component_focused = $state(false);
-
-	function handle_component_focusin(): void {
-		if (!component_focused) {
-			component_focused = true;
-			on_focus();
-		}
-	}
-
-	function handle_component_focusout(event: FocusEvent): void {
-		const related = event.relatedTarget as Node | null;
-		const wrapper = event.currentTarget as HTMLElement;
-		if (related && wrapper.contains(related)) {
-			return;
-		}
-		if (component_focused) {
-			component_focused = false;
-			on_blur();
-		}
-	}
-
 	function handle_hue_down(
 		event: MouseEvent & { currentTarget: HTMLDivElement }
 	): void {
@@ -180,97 +159,88 @@
 	});
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<div
-	class="color-picker-wrapper"
-	onfocusin={handle_component_focusin}
-	onfocusout={handle_component_focusout}
->
-	<BlockTitle {show_label} {info}>{label}</BlockTitle>
-	<button
-		class="dialog-button"
-		style:background={value}
-		{disabled}
-		onclick={() => {
-			update_mouse_from_color(value);
-			dialog_open = !dialog_open;
-		}}
-	/>
+<BlockTitle {show_label} {info}>{label}</BlockTitle>
+<button
+	class="dialog-button"
+	style:background={value}
+	{disabled}
+	onfocus={on_focus}
+	onblur={on_blur}
+	on:click={() => {
+		update_mouse_from_color(value);
+		dialog_open = !dialog_open;
+	}}
+/>
 
-	<svelte:window onmousemove={handle_move} onmouseup={handle_end} />
+<svelte:window on:mousemove={handle_move} on:mouseup={handle_end} />
 
-	{#if dialog_open}
+{#if dialog_open}
+	<div
+		class="color-picker"
+		use:click_outside={handle_click_outside}
+	>
+		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<div
-			class="color-picker"
-			use:click_outside={handle_click_outside}
+			class="color-gradient"
+			on:mousedown={handle_sl_down}
+			style="--hue:{hue}"
+			bind:this={sl_wrap}
 		>
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div
-				class="color-gradient"
-				onmousedown={handle_sl_down}
-				style="--hue:{hue}"
-				bind:this={sl_wrap}
-			>
-				<div
-					class="marker"
-					style:transform="translate({sl_marker_pos[0]}px,{sl_marker_pos[1]}px)"
-					style:background={value}
-				/>
-			</div>
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div class="hue-slider" onmousedown={handle_hue_down} bind:this={hue_wrap}>
-				<div
-					class="marker"
-					style:background={"hsl(" + hue + ", 100%, 50%)"}
-					style:transform="translateX({hue_marker_pos}px)"
-				/>
-			</div>
+				class="marker"
+				style:transform="translate({sl_marker_pos[0]}px,{sl_marker_pos[1]}px)"
+				style:background={value}
+			/>
+		</div>
+		<!-- svelte-ignore a11y-no-static-element-interactions -->
+		<div class="hue-slider" on:mousedown={handle_hue_down} bind:this={hue_wrap}>
+			<div
+				class="marker"
+				style:background={"hsl(" + hue + ", 100%, 50%)"}
+				style:transform="translateX({hue_marker_pos}px)"
+			/>
+		</div>
 
-			<div class="input">
-				<button class="swatch" style:background={value}></button>
-				<div>
-					<div class="input-wrap">
-						<input
-							type="text"
-							bind:value={color_string}
-							onchange={(e) => {
-								value = e.currentTarget.value;
-							}}
-							onkeydown={(e) => {
-								if (e.key === "Enter") {
-									on_submit();
-								}
-							}}
-						/>
-						<button class="eyedropper" onclick={request_eyedropper}>
-							{#if eyedropper_supported}
-								<Eyedropper />
-							{/if}
-						</button>
-					</div>
+		<div class="input">
+			<button class="swatch" style:background={value}></button>
+			<div>
+				<div class="input-wrap">
+					<input
+						type="text"
+						bind:value={color_string}
+						on:change={(e) => {
+							value = e.currentTarget.value;
+						}}
+						onkeydown={(e) => {
+							if (e.key === "Enter") {
+								on_submit();
+							}
+						}}
+					/>
+					<button class="eyedropper" on:click={request_eyedropper}>
+						{#if eyedropper_supported}
+							<Eyedropper />
+						{/if}
+					</button>
+				</div>
 
-					<div class="buttons">
-						{#each modes as [label, value]}
-							<button
-								class="button"
-								class:active={current_mode === value}
-								onclick={() => {
-									current_mode = value;
-								}}>{label}</button
-							>
-						{/each}
-					</div>
+				<div class="buttons">
+					{#each modes as [label, value]}
+						<button
+							class="button"
+							class:active={current_mode === value}
+							on:click={() => {
+								current_mode = value;
+							}}>{label}</button
+						>
+					{/each}
 				</div>
 			</div>
 		</div>
-	{/if}
-</div>
+	</div>
+{/if}
 
 <style>
-	.color-picker-wrapper {
-		display: contents;
-	}
-
 	.dialog-button {
 		display: block;
 		width: var(--size-10);
