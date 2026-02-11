@@ -27,14 +27,6 @@
       });
     }
   });
-
-  onMount(() => {
-    console.log("Mounted custom component", { component, runtime, el });
-
-    // return () => {
-    //   runtime.umount(component);
-    // };
-  });
 </script>
 
 <span bind:this={el}></span>
