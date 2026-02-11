@@ -405,14 +405,15 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		}
 
 		this.load_component = this.shared.load_component;
-		this.register_component = this.shared.register_component;
-		this.dispatcher = this.shared.dispatcher;
 
 		if (!is_browser || _props.props?.__GRADIO_BROWSER_TEST__) {
 			// Provide a no-op dispatcher for test environments
 			this.dispatcher = () => {};
 			return;
 		}
+
+		this.register_component = this.shared.register_component;
+		this.dispatcher = this.shared.dispatcher;
 
 		this.register_component(
 			_props.shared_props.id,
@@ -434,7 +435,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 				// @ts-ignore same here
 				this.props[key] = _props.props[key];
 			}
-			register(
+			this.register_component(
 				_props.shared_props.id,
 				this.set_data.bind(this),
 				this.get_data.bind(this)
@@ -461,12 +462,6 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		}
 	}
 
-	dispatch<E extends keyof T>(event_name: E, data?: T[E]): void {
-		this.dispatcher(this.shared.id, event_name, data);
-	}
-
-	// }
-
 	// check if props are translatable
 	_is_i18n_managed(key: string, new_value: unknown): boolean {
 		const original_marker = this.translatable_props[key];
@@ -488,6 +483,10 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 			this.translatable_props[`${target}.${key}`] = value;
 		}
 		return translated;
+	}
+
+	dispatch<E extends keyof T>(event_name: E, data?: T[E]): void {
+		this.dispatcher(this.shared.id, event_name, data);
 	}
 
 	async get_data() {
