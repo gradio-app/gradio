@@ -633,8 +633,8 @@ class TestRoutes:
             "https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
         )
         assert "authorization" in dict(r.headers)
-        r = app.build_proxy_request("https://google.com")
-        assert "authorization" not in dict(r.headers)
+        with pytest.raises(PermissionError):
+            app.build_proxy_request("https://google.com")
 
     def test_can_get_config_that_includes_non_pickle_able_objects(self):
         my_dict = {"a": 1, "b": 2, "c": 3}
