@@ -342,7 +342,16 @@ export class AppTree {
 
     const type =
       type_map[component.type as keyof typeof type_map] || component.type;
+    const loading_component =
+      processed_props.shared_props.visible !== false
+        ? get_component(
+            component.type,
+            component.component_class_id,
+            this.#config.api_url || "",
+          )
+        : null;
 
+    console.log({ loading_component });
     const node = {
       id: opts.id,
       type: type,
@@ -352,12 +361,9 @@ export class AppTree {
       component_class_id: component.component_class_id || component.type,
       component:
         processed_props.shared_props.visible !== false
-          ? get_component(
-              component.type,
-              component.component_class_id,
-              this.#config.api_url || "",
-            )
+          ? loading_component?.component || null
           : null,
+      runtime: loading_component?.runtime || (false as false),
       key: component.key,
       rendered_in: component.rendered_in,
       documentation: component.documentation,
@@ -581,6 +587,7 @@ function gather_props(
   for (const key in additional) {
     if (allowed_shared_props.includes(key as keyof SharedProps)) {
       const _key = key as keyof SharedProps;
+      //@ts-ignore
       _shared_props[_key] = additional[key];
     } else {
       _props[key] = additional[key];
@@ -599,7 +606,7 @@ function gather_props(
   _shared_props.load_component = (
     name: string,
     variant: "base" | "component" | "example",
-  ) => get_component(name, "", api_url, variant) as LoadingComponent;
+  ) => get_component(name, "", api_url, variant).component as LoadingComponent;
 
   _shared_props.visible =
     _shared_props.visible === undefined ? true : _shared_props.visible;
@@ -614,9 +621,15 @@ function handle_visibility(
 ): ProcessedComponentMeta {
   // Check if the node is visible
   if (node.props.shared_props.visible && !node.component) {
+    const loading_component = get_component(
+      node.type,
+      node.component_class_id,
+      api_url,
+    );
     const result: ProcessedComponentMeta = {
       ...node,
-      component: get_component(node.type, node.component_class_id, api_url),
+      component: loading_component.component,
+
       children: [],
     };
 
@@ -697,6 +710,7 @@ function untrack_children_of_closed_accordions_or_inactive_tabs(
       if (
         child.type === "tabitem" &&
         child.props.props.id !==
+          //@ts-ignore
           (node.props.props.selected || node.props.props.initial_tabs[0].id)
       ) {
         _untrack(child, components_to_register);

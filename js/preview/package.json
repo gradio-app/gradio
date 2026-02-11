@@ -1,57 +1,47 @@
 {
-	"name": "@gradio/preview",
-	"version": "0.15.2",
-	"description": "Gradio UI packages",
-	"type": "module",
-	"main": "dist/index.js",
-	"author": "",
-	"license": "ISC",
-	"private": false,
-	"scripts": {
-		"build:rollup": "rollup -c",
-		"build:vite": "vite build --ssr",
-		"build": "pnpm build:rollup && pnpm build:vite"
-	},
-	"devDependencies": {
-		"@rollup/plugin-commonjs": "^28.0.6",
-		"@rollup/plugin-json": "^6.1.0",
-		"@rollup/plugin-node-resolve": "^16.0.2",
-		"@rollup/plugin-typescript": "^12.1.4",
-		"rollup": "^4.52.4",
-		"svelte": "^5.48.0"
-	},
-	"dependencies": {
-		"@originjs/vite-plugin-commonjs": "^1.0.3",
-		"@rollup/plugin-sucrase": "^5.0.2",
-		"@rollup/plugin-terser": "^0.4.4",
-		"@sveltejs/vite-plugin-svelte": "^6.2.1",
-		"@types/which": "^3.0.4",
-		"coffeescript": "^2.7.0",
-		"lightningcss": "^1.30.2",
-		"pug": "^3.0.3",
-		"sass": "^1.93.2",
-		"stylus": "^0.64.0",
-		"sucrase": "^3.35.0",
-		"sugarss": "^5.0.1",
-		"svelte-preprocess": "^6.0.3",
-		"typescript": "^5.9.3",
-		"vite": "^7.1.9",
-		"which": "5.0.0",
-		"yootils": "^0.3.1"
-	},
-	"exports": {
-		".": {
-			"default": "./dist/index.js",
-			"import": "./dist/index.js",
-			"gradio": "./src/index.ts",
-			"svelte": "./dist/src/index.js",
-			"types": "./dist/index.d.ts"
-		},
-		"./package.json": "./package.json"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/gradio-app/gradio.git",
-		"directory": "js/preview"
-	}
+  "name": "@gradio/preview",
+  "version": "0.15.2",
+  "description": "Gradio UI packages",
+  "type": "module",
+  "main": "dist/index.js",
+  "author": "",
+  "license": "ISC",
+  "private": false,
+  "scripts": {
+    "build": "vite build --ssr"
+  },
+  "dependencies": {
+    "@originjs/vite-plugin-commonjs": "^1.0.3",
+    "@rollup/plugin-sucrase": "^5.0.2",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@sveltejs/vite-plugin-svelte": "^6.2.1",
+    "@types/which": "^3.0.4",
+    "coffeescript": "^2.7.0",
+    "lightningcss": "^1.30.2",
+    "pug": "^3.0.3",
+    "sass": "^1.93.2",
+    "stylus": "^0.64.0",
+    "sucrase": "^3.35.0",
+    "sugarss": "^5.0.1",
+    "svelte-preprocess": "^6.0.3",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.9",
+    "which": "5.0.0",
+    "yootils": "^0.3.1"
+  },
+  "exports": {
+    ".": {
+      "default": "./dist/index.js",
+      "import": "./dist/index.js",
+      "gradio": "./src/index.ts",
+      "svelte": "./dist/src/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gradio-app/gradio.git",
+    "directory": "js/preview"
+  }
 }
