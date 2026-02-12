@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudCRM - Customer Relationship Management</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header Styles */
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+        }
+
+        .tab-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        /* Main Content Area */
+        .content {
+            padding: 40px;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Dashboard Styles */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .stat-value {
+            font-size: 42px;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        /* Customer List Styles */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 14px 20px 14px 45px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102,126,234,0.5);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Table Styles */
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8f9fa;
+        }
+
+        th {
+            padding: 18px;
+            text-align: left;
+            font-weight: 600;
+            color: #667eea;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 18px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        tbody tr {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        tbody tr:hover {
+            background: #f8f9ff;
+            transform: scale(1.01);
+        }
+
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-active { background: #d4edda; color: #155724; }
+        .status-lead { background: #fff3cd; color: #856404; }
+        .status-prospect { background: #cce5ff; color: #004085; }
+        .status-inactive { background: #f8d7da; color: #721c24; }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-header h2 {
+            color: #667eea;
+            font-size: 26px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            box-shadow: 0 4px 15px rgba(108,117,125,0.4);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            box-shadow: 0 4px 15px rgba(220,53,69,0.4);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            table {
+                font-size: 14px;
+            }
+
+            th, td {
+                padding: 12px 8px;
+            }
+
+            .modal-content {
+                padding: 25px;
+                width: 95%;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <header>
+            <div class="logo">☁️ CloudCRM</div>
+            <div class="nav-tabs">
+                <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+                <button class="tab-btn" onclick="switchTab('customers')">Customers</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Customers</div>
+                        <div class="stat-value" id="totalCustomers">0</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <div class="stat-label">Active Deals</div>
+                        <div class="stat-value" id="activeDeals">0</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <div class="stat-label">New Leads</div>
+                        <div class="stat-value" id="newLeads">0</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                        <div class="stat-label">Revenue (YTD)</div>
+                        <div class="stat-value">$2.4M</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3 style="margin-bottom: 20px; color: #333;">Sales Pipeline Overview</h3>
+                    <canvas id="pipelineChart" height="80"></canvas>
+                </div>
+            </div>
+
+            <!-- Customers Tab -->
+            <div id="customers" class="tab-content">
+                <div class="toolbar">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Search customers..." onkeyup="searchCustomers()">
+                    </div>
+                    <button class="btn" onclick="openAddModal()">➕ Add Customer</button>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Company</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customerTable">
+                            <!-- Customer rows will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Customer Modal -->
+    <div id="customerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add New Customer</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="customerForm" onsubmit="saveCustomer(event)">
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" id="customerName" required>
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" id="customerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="tel" id="customerPhone">
+                </div>
+                <div class="form-group">
+                    <label>Company *</label>
+                    <input type="text" id="customerCompany" required>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="customerStatus">
+                        <option value="lead">Lead</option>
+                        <option value="prospect">Prospect</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="customerNotes" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="deleteBtn" onclick="deleteCustomer()" style="display: none;">Delete</button>
+                    <button type="submit" class="btn">Save Customer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Customer Data Management
+        let customers = [
+            { id: 1, name: "Sarah Johnson", email: "sarah.j@techcorp.com", phone: "+1 (555) 123-4567", company: "TechCorp Industries", status: "active", notes: "Key decision maker, interested in enterprise plan" },
+            { id: 2, name: "Michael Chen", email: "m.chen@innovate.io", phone: "+1 (555) 234-5678", company: "Innovate Solutions", status: "lead", notes: "Requested demo, follows up next week" },
+            { id: 3, name: "Emily Rodriguez", email: "emily.r@globaltech.com", phone: "+1 (555) 345-6789", company: "GlobalTech Systems", status: "prospect", notes: "Exploring options, budget approved" },
+            { id: 4, name: "David Kim", email: "david@startupventures.com", phone: "+1 (555) 456-7890", company: "Startup Ventures", status: "active", notes: "Recently upgraded to premium tier" },
+            { id: 5, name: "Lisa Thompson", email: "lisa.t@enterprisehub.com", phone: "+1 (555) 567-8901", company: "Enterprise Hub", status: "prospect", notes: "Comparing with competitors" },
+            { id: 6, name: "James Wilson", email: "j.wilson@cloudnine.com", phone: "+1 (555) 678-9012", company: "Cloud Nine Inc", status: "lead", notes: "Attended webinar, sent follow-up materials" },
+            { id: 7, name: "Maria Garcia", email: "maria@digitalwave.com", phone: "+1 (555) 789-0123", company: "Digital Wave Co", status: "active", notes: "Long-term customer, high satisfaction" },
+            { id: 8, name: "Robert Taylor", email: "r.taylor@nexusgroup.com", phone: "+1 (555) 890-1234", company: "Nexus Group", status: "inactive", notes: "Contract expired, needs renewal outreach" },
+            { id: 9, name: "Jennifer Lee", email: "jen.lee@futuretechs.com", phone: "+1 (555) 901-2345", company: "Future Technologies", status: "prospect", notes: "Scheduled for product demo next Tuesday" },
+            { id: 10, name: "Christopher Brown", email: "chris.b@megacorp.com", phone: "+1 (555) 012-3456", company: "MegaCorp International", status: "lead", notes: "Referred by existing customer, high potential" }
+        ];
+
+        let currentEditId = null;
+        let chartInstance = null;
+
+        // Initialize Dashboard
+        function initDashboard() {
+            updateStats();
+            renderPipelineChart();
+        }
+
+        // Update Dashboard Statistics
+        function updateStats() {
+            document.getElementById('totalCustomers').textContent = customers.length;
+            document.getElementById('activeDeals').textContent = customers.filter(c => c.status === 'active').length;
+            document.getElementById('newLeads').textContent = customers.filter(c => c.status === 'lead').length;
+        }
+
+        // Render Pipeline Chart
+        function renderPipelineChart() {
+            const ctx = document.getElementById('pipelineChart').getContext('2d');
+            
+            const statusCounts = {
+                lead: customers.filter(c => c.status === 'lead').length,
+                prospect: customers.filter(c => c.status === 'prospect').length,
+                active: customers.filter(c => c.status === 'active').length,
+                inactive: customers.filter(c => c.status === 'inactive').length
+            };
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Leads', 'Prospects', 'Active Customers', 'Inactive'],
+                    datasets: [{
+                        label: 'Number of Customers',
+                        data: [statusCounts.lead, statusCounts.prospect, statusCounts.active, statusCounts.inactive],
+                        backgroundColor: [
+                            'rgba(255, 193, 7, 0.8)',
+                            'rgba(0, 123, 255, 0.8)',
+                            'rgba(40, 167, 69, 0.8)',
+                            'rgba(220, 53, 69, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgb(255, 193, 7)',
+                            'rgb(0, 123, 255)',
+                            'rgb(40, 167, 69)',
+                            'rgb(220, 53, 69)'
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render Customer Table
+        function renderCustomers(customerList = customers) {
+            const tableBody = document.getElementById('customerTable');
+            tableBody.innerHTML = '';
+
+            customerList.forEach(customer => {
+                const row = document.createElement('tr');
+                row.onclick = () => openEditModal(customer.id);
+                
+                row.innerHTML = `
+                    <td><strong>${customer.name}</strong></td>
+                    <td>${customer.company}</td>
+                    <td>${customer.email}</td>
+                    <td>${customer.phone}</td>
+                    <td><span class="status-badge status-${customer.status}">${customer.status.toUpperCase()}</span></td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Search Customers
+        function searchCustomers() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = customers.filter(c => 
+                c.name.toLowerCase().includes(searchTerm) ||
+                c.email.toLowerCase().includes(searchTerm) ||
+                c.company.toLowerCase().includes(searchTerm) ||
+                c.phone.includes(searchTerm)
+            );
+            renderCustomers(filtered);
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+
+            if (tabName === 'dashboard') {
+                initDashboard();
+            }
+        }
+
+        // Modal Management
+        function openAddModal() {
+            currentEditId = null;
+            document.getElementById('modalTitle').textContent = 'Add New Customer';
+            document.getElementById('customerForm').reset();
+            document.getElementById('deleteBtn').style.display = 'none';
+            document.getElementById('customerModal').classList.add('active');
+        }
+
+        function openEditModal(customerId) {
+            currentEditId = customerId;
+            const customer = customers.find(c => c.id === customerId);
+            
+            document.getElementById('modalTitle').textContent = 'Edit Customer';
+            document.getElementById('customerName').value = customer.name;
+            document.getElementById('customerEmail').value = customer.email;
+            document.getElementById('customerPhone').value = customer.phone;
+            document.getElementById('customerCompany').value = customer.company;
+            document.getElementById('customerStatus').value = customer.status;
+            document.getElementById('customerNotes').value = customer.notes || '';
+            document.getElementById('deleteBtn').style.display = 'inline-block';
+            document.getElementById('customerModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('customerModal').classList.remove('active');
+            currentEditId = null;
+        }
+
+        // Save Customer
+        function saveCustomer(event) {
+            event.preventDefault();
+
+            const customerData = {
+                name: document.getElementById('customerName').value,
+                email: document.getElementById('customerEmail').value,
+                phone: document.getElementById('customerPhone').value,
+                company: document.getElementById('customerCompany').value,
+                status: document.getElementById('customerStatus').value,
+                notes: document.getElementById('customerNotes').value
+            };
+
+            if (currentEditId) {
+                // Update existing customer
+                const index = customers.findIndex(c => c.id === currentEditId);
+                customers[index] = { ...customers[index], ...customerData };
+            } else {
+                // Add new customer
+                const newId = Math.max(...customers.map(c => c.id), 0) + 1;
+                customers.push({ id: newId, ...customerData });
+            }
+
+            renderCustomers();
+            updateStats();
+            renderPipelineChart();
+            closeModal();
+        }
+
+        // Delete Customer
+        function deleteCustomer() {
+            if (confirm('Are you sure you want to delete this customer?')) {
+                customers = customers.filter(c => c.id !== currentEditId);
+                renderCustomers();
+                updateStats();
+                renderPipelineChart();
+                closeModal();
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('customerModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', function() {
+            initDashboard();
+            renderCustomers();
+        });
+    </script>
+</body>
+</html>
