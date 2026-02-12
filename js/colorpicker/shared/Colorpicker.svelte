@@ -166,7 +166,7 @@
 	{disabled}
 	onfocus={on_focus}
 	onblur={on_blur}
-	on:click={() => {
+	onclick={() => {
 		update_mouse_from_color(value);
 		dialog_open = !dialog_open;
 	}}
@@ -208,7 +208,7 @@
 					<input
 						type="text"
 						bind:value={color_string}
-						on:change={(e) => {
+						onchange={(e) => {
 							value = e.currentTarget.value;
 						}}
 						onkeydown={(e) => {
