@@ -1,0 +1,60 @@
+name: Qoder Assistant
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+jobs:
+  qoder-assistant:
+    if: |
+      contains(github.event.comment.body, '@qoder') && 
+      !endsWith(github.event.comment.user.login, '[bot]')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build Arguments
+        id: build_args
+        run: |
+          ARGS="REPO: ${{ github.repository }}
+          REQUEST_SOURCE: ${{ github.event_name }}
+          THREAD_ID: ${{ github.event.comment.node_id }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+          AUTHOR: ${{ github.event.comment.user.login }}
+          BODY: ${{ github.event.comment.body }}
+          URL: ${{ github.event.comment.html_url }}
+          IS_PR: ${{ github.event.issue.pull_request != null || github.event_name == 'pull_request_review_comment' }}
+          ISSUE_OR_PR_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}"
+          
+          if [ -n "${{ github.event.comment.pull_request_review_id }}" ]; then
+            ARGS="$ARGS
+          REVIEW_ID: ${{ github.event.comment.pull_request_review_id }}"
+          fi
+          
+          if [ -n "${{ github.event.comment.in_reply_to_id }}" ]; then
+            ARGS="$ARGS
+          REPLY_TO_COMMENT_ID: ${{ github.event.comment.in_reply_to_id }}"
+          fi
+          
+          echo "args<<EOF" >> $GITHUB_OUTPUT
+          echo "$ARGS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Run Qoder Assistant
+        uses: QoderAI/qoder-action@v0
+        with:
+          qoder_personal_access_token: ${{ secrets.QODER_PERSONAL_ACCESS_TOKEN }}
+          prompt: |
+            /assistant
+            ${{ steps.build_args.outputs.args }}
