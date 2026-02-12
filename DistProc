@@ -1,0 +1,46 @@
+//This is a piece of example code for parametric modeling. It has already established the Dist dependency relationships among the three opposite face pairs of a Box.
+//I now suddenly want to change these Dist dependencies to Parallel dependencies.
+class DepManager {
+  deps = new Map();
+  addDependency(source, target, procs, procName) {
+    this.deps.set(source, { target, procs, procName });
+  }
+}
+class DistProc {
+  execute(source, target) {
+    return source.position.distanceTo(target.position);
+  }
+}
+class ParallelProc {
+  execute(source, target) {
+    
+  }
+}
+class Plane {
+  constructor(position, normal) {
+    this.position = position;
+    this.normal = normal;
+  }
+}
+class Box {
+  procs = new Map();
+  constructor(depManager) {
+    this.depManager = depManager;
+    this.left = new Plane();
+    this.right = new Plane();
+    this.top = new Plane();
+    this.bottom = new Plane();
+    this.front = new Plane();
+    this.back = new Plane();
+ 
+    this.procs.set("dist", new DistProc());// todo
+ 
+    this.setupConstraints();
+  }
+ 
+  setupConstraints() {
+    this.depManager.addDependency(this.left, this.right, this.procs, "dist");
+    this.depManager.addDependency(this.right, this.left, this.procs, "dist");
+    this.depManager.addDependency(this.top, this.bottom, this.procs, "dist");
+  }
+}
