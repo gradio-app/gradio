@@ -815,7 +815,7 @@ export class DependencyManager {
 						type: "fn",
 						fn_index: dep_id,
 						event_data: null,
-						target_id: id as number | undefined
+						target_id: id
 					});
 				});
 				all.forEach((dep_id) => {
@@ -823,7 +823,7 @@ export class DependencyManager {
 						type: "fn",
 						fn_index: dep_id,
 						event_data: null,
-						target_id: id as number | undefined
+						target_id: id
 					});
 				});
 			}
