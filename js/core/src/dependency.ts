@@ -806,6 +806,26 @@ export class DependencyManager {
 				});
 				this.update_loading_stati_state();
 				this.submissions.delete(id);
+				// Need to trigger any dependencies that are waiting for this one to complete
+				const { failure, all } = this.dependencies_by_fn
+					.get(id)
+					?.get_triggers() || { failure: [], all: [] };
+				failure.forEach((dep_id) => {
+					this.dispatch({
+						type: "fn",
+						fn_index: dep_id,
+						event_data: null,
+						target_id: id
+					});
+				});
+				all.forEach((dep_id) => {
+					this.dispatch({
+						type: "fn",
+						fn_index: dep_id,
+						event_data: null,
+						target_id: id
+					});
+				});
 			}
 		}
 	}
