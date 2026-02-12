@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fix AttributeError in ColoredCheckboxGroup.api_info()
+fix:Fix AttributeError in ColoredCheckboxGroup.api_info()
