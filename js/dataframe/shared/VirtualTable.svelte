@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { onMount, tick } from "svelte";
-	import { _ } from "svelte-i18n";
+	import { onMount, tick, createEventDispatcher } from "svelte";
 
 	export let items: any[][] = [];
 
@@ -10,6 +9,15 @@
 	export let start = 0;
 	export let end = 20;
 	export let selected: number | false;
+	export let disable_scroll = false;
+	export let show_scroll_button = false;
+	export let viewport: HTMLTableElement;
+	export let label: string | null = null;
+
+	const dispatch = createEventDispatcher<{
+		scroll_top: number;
+	}>();
+
 	let height = "100%";
 
 	let average_height = 30;
@@ -21,7 +29,6 @@
 	let mounted: boolean;
 	let rows: HTMLCollectionOf<HTMLTableRowElement>;
 	let top = 0;
-	let viewport: HTMLTableElement;
 	let viewport_height = 200;
 	let visible: { index: number; data: any[] }[] = [];
 	let viewport_box: DOMRectReadOnly;
@@ -33,38 +40,57 @@
 		? window.requestAnimationFrame
 		: (cb: (...args: any[]) => void) => cb();
 
-	$: mounted && raf(() => refresh_height_map(sortedItems));
+	$: {
+		if (mounted && viewport_height && viewport.offsetParent) {
+			(sortedItems, raf(refresh_height_map));
+		}
+	}
 
-	let content_height = 0;
-	async function refresh_height_map(_items: typeof items): Promise<void> {
-		if (viewport_height === 0) {
+	async function refresh_height_map(): Promise<void> {
+		if (!viewport) {
 			return;
 		}
 
-		const { scrollTop } = viewport;
+		if (sortedItems.length < start) {
+			await scroll_to_index(sortedItems.length - 1, { behavior: "auto" });
+		}
+
+		const scrollTop = Math.max(0, viewport.scrollTop);
+		show_scroll_button = scrollTop > 100;
 		table_scrollbar_width = viewport.offsetWidth - viewport.clientWidth;
 
-		content_height = top - (scrollTop - head_height);
-		let i = start;
-
-		while (content_height < max_height && i < _items.length) {
-			let row = rows[i - start];
-			if (!row) {
-				end = i + 1;
-				await tick(); // render the newly visible row
-				row = rows[i - start];
+		// acquire height map for currently visible rows
+		for (let v = 0; v < rows.length; v += 1) {
+			height_map[start + v] = rows[v].getBoundingClientRect().height;
+		}
+		let i = 0;
+		let y = head_height;
+		// loop items to find new start
+		while (i < sortedItems.length) {
+			const row_height = height_map[i] || average_height;
+			// keep a page of rows buffered above
+			if (y + row_height > scrollTop - max_height) {
+				start = i;
+				top = y - head_height;
+				break;
 			}
-			let _h = row?.getBoundingClientRect().height;
-			if (!_h) {
-				_h = average_height;
-			}
-			const row_height = (height_map[i] = _h);
-			content_height += row_height;
+			y += row_height;
 			i += 1;
 		}
 
+		let content_height = head_height;
+		while (i < sortedItems.length) {
+			const row_height = height_map[i] || average_height;
+			content_height += row_height;
+			i += 1;
+			// keep a page of rows buffered below
+			if (content_height - head_height > 3 * max_height) {
+				break;
+			}
+		}
+
 		end = i;
-		const remaining = _items.length - end;
+		const remaining = sortedItems.length - end;
 
 		const scrollbar_height = viewport.offsetHeight - viewport.clientHeight;
 		if (scrollbar_height > 0) {
@@ -74,20 +100,22 @@
 		let filtered_height_map = height_map.filter((v) => typeof v === "number");
 		average_height =
 			filtered_height_map.reduce((a, b) => a + b, 0) /
-			filtered_height_map.length;
+				filtered_height_map.length || 30;
 
 		bottom = remaining * average_height;
-		height_map.length = _items.length;
-		await tick();
-		if (!max_height) {
-			actual_height = content_height + 1;
-		} else if (content_height < max_height) {
-			actual_height = content_height + 2;
-		} else {
-			actual_height = max_height;
+		if (!isFinite(bottom)) {
+			bottom = 200000;
 		}
-
-		await tick();
+		height_map.length = sortedItems.length;
+		while (i < sortedItems.length) {
+			i += 1;
+			height_map[i] = average_height;
+		}
+		if (max_height && content_height > max_height) {
+			actual_height = max_height;
+		} else {
+			actual_height = content_height;
+		}
 	}
 
 	$: scroll_and_render(selected);
@@ -130,82 +158,6 @@
 		}
 
 		return true;
-	}
-
-	function get_computed_px_amount(elem: HTMLElement, property: string): number {
-		if (!elem) {
-			return 0;
-		}
-		const compStyle = getComputedStyle(elem);
-
-		let x = parseInt(compStyle.getPropertyValue(property));
-		return x;
-	}
-
-	async function handle_scroll(e: Event): Promise<void> {
-		const scroll_top = viewport.scrollTop;
-
-		rows = contents.children as HTMLCollectionOf<HTMLTableRowElement>;
-		const is_start_overflow = sortedItems.length < start;
-
-		const row_top_border = get_computed_px_amount(rows[1], "border-top-width");
-
-		const actual_border_collapsed_width = 0;
-
-		if (is_start_overflow) {
-			await scroll_to_index(sortedItems.length - 1, { behavior: "auto" });
-		}
-
-		let new_start = 0;
-		// acquire height map for currently visible rows
-		for (let v = 0; v < rows.length; v += 1) {
-			height_map[start + v] = rows[v].getBoundingClientRect().height;
-		}
-		let i = 0;
-		// start from top: thead, with its borders, plus the first border to afterwards neglect
-		let y = head_height + row_top_border / 2;
-		let row_heights = [];
-		// loop items to find new start
-		while (i < sortedItems.length) {
-			const row_height = height_map[i] || average_height;
-			row_heights[i] = row_height;
-			// we only want to jump if the full (incl. border) row is away
-			if (y + row_height + actual_border_collapsed_width > scroll_top) {
-				// this is the last index still inside the viewport
-				new_start = i;
-				top = y - (head_height + row_top_border / 2);
-				break;
-			}
-			y += row_height;
-			i += 1;
-		}
-
-		new_start = Math.max(0, new_start);
-		while (i < sortedItems.length) {
-			const row_height = height_map[i] || average_height;
-			y += row_height;
-			i += 1;
-			if (y > scroll_top + viewport_height) {
-				break;
-			}
-		}
-		start = new_start;
-		end = i;
-		const remaining = sortedItems.length - end;
-		if (end === 0) {
-			end = 10;
-		}
-		average_height = (y - head_height) / end;
-		let remaining_height = remaining * average_height; // 0
-		// compute height map for remaining items
-		while (i < sortedItems.length) {
-			i += 1;
-			height_map[i] = average_height;
-		}
-		bottom = remaining_height;
-		if (!isFinite(bottom)) {
-			bottom = 200000;
-		}
 	}
 
 	export async function scroll_to_index(
@@ -251,43 +203,49 @@
 	onMount(() => {
 		rows = contents.children as HTMLCollectionOf<HTMLTableRowElement>;
 		mounted = true;
-		refresh_height_map(items);
 	});
 </script>
 
 <svelte-virtual-table-viewport>
-	<table
-		class="table"
-		bind:this={viewport}
-		bind:contentRect={viewport_box}
-		on:scroll={handle_scroll}
-		style="height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px"
-	>
-		<thead class="thead" bind:offsetHeight={head_height}>
-			<slot name="thead" />
-		</thead>
-		<tbody bind:this={contents} class="tbody">
-			{#if visible.length && visible[0].data.length}
-				{#each visible as item (item.data[0].id)}
-					<slot name="tbody" item={item.data} index={item.index}>
-						Missing Table Row
-					</slot>
-				{/each}
+	<div>
+		<table
+			class="table"
+			class:disable-scroll={disable_scroll}
+			bind:this={viewport}
+			bind:contentRect={viewport_box}
+			on:scroll={refresh_height_map}
+			style="height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px; --max-height: {max_height}px"
+		>
+			{#if label && label.length !== 0}
+				<caption class="sr-only">{label}</caption>
 			{/if}
-		</tbody>
-		<tfoot class="tfoot" bind:offsetHeight={foot_height}>
-			<slot name="tfoot" />
-		</tfoot>
-	</table>
+			<thead class="thead" bind:offsetHeight={head_height}>
+				<slot name="thead" />
+			</thead>
+			<tbody bind:this={contents} class="tbody">
+				{#if visible.length && visible[0].data.length}
+					{#each visible as item (item.data[0].id)}
+						<slot name="tbody" item={item.data} index={item.index}>
+							<tr>
+								<td>Missing Table Row</td>
+							</tr>
+						</slot>
+					{/each}
+				{/if}
+			</tbody>
+			<tfoot class="tfoot" bind:offsetHeight={foot_height}>
+				<slot name="tfoot" />
+			</tfoot>
+		</table>
+	</div>
 </svelte-virtual-table-viewport>
 
 <style type="text/css">
 	table {
 		position: relative;
-		overflow-y: scroll;
-		overflow-x: scroll;
+		overflow: auto;
 		-webkit-overflow-scrolling: touch;
-		max-height: 100vh;
+		max-height: var(--max-height);
 		box-sizing: border-box;
 		display: block;
 		padding: 0;
@@ -300,7 +258,52 @@
 		width: 100%;
 		scroll-snap-type: x proximity;
 		border-collapse: separate;
+		scrollbar-width: thin;
+		scrollbar-color: rgba(128, 128, 128, 0.5) transparent;
 	}
+
+	table::-webkit-scrollbar {
+		width: 4px;
+		height: 4px;
+	}
+
+	table::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	table::-webkit-scrollbar-thumb {
+		background-color: rgba(128, 128, 128, 0.5);
+		border-radius: 4px;
+	}
+
+	table:hover {
+		scrollbar-color: rgba(160, 160, 160, 0.7) transparent;
+	}
+
+	table:hover::-webkit-scrollbar-thumb {
+		background-color: rgba(160, 160, 160, 0.7);
+		border-radius: 4px;
+		width: 4px;
+	}
+
+	@media (hover: none) {
+		table {
+			scrollbar-color: rgba(160, 160, 160, 0.7) transparent;
+		}
+
+		table::-webkit-scrollbar-thumb {
+			background-color: rgba(160, 160, 160, 0.7);
+			border-radius: 4px;
+		}
+	}
+
+	@media (pointer: coarse) {
+		table::-webkit-scrollbar {
+			width: 8px;
+			height: 8px;
+		}
+	}
+
 	table :is(thead, tfoot, tbody) {
 		display: table;
 		table-layout: fixed;
@@ -331,15 +334,46 @@
 		scroll-snap-align: start;
 	}
 
-	tbody > :global(tr:nth-child(even)) {
+	tbody :global(td.pinned-column) {
+		position: sticky;
+		z-index: 3;
+	}
+
+	tbody :global(tr:nth-child(odd)) :global(td.pinned-column) {
+		background: var(--table-odd-background-fill);
+	}
+
+	tbody :global(tr:nth-child(even)) :global(td.pinned-column) {
 		background: var(--table-even-background-fill);
+	}
+
+	tbody :global(td.last-pinned) {
+		border-right: 1px solid var(--border-color-primary);
 	}
 
 	thead {
 		position: sticky;
 		top: 0;
 		left: 0;
-		z-index: var(--layer-1);
-		overflow: hidden;
+		background: var(--background-fill-primary);
+		z-index: 7;
+	}
+
+	thead :global(th) {
+		background: var(--table-even-background-fill) !important;
+	}
+
+	thead :global(th.pinned-column) {
+		position: sticky;
+		z-index: 7;
+		background: var(--table-even-background-fill) !important;
+	}
+
+	thead :global(th.last-pinned) {
+		border-right: 1px solid var(--border-color-primary);
+	}
+
+	.table.disable-scroll {
+		overflow: hidden !important;
 	}
 </style>

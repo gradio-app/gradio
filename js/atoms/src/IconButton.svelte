@@ -1,23 +1,47 @@
 <script lang="ts">
-	import { type ComponentType } from "svelte";
-	export let Icon: ComponentType;
-	export let label = "";
-	export let show_label = false;
-	export let pending = false;
-	export let size: "small" | "large" | "medium" = "small";
-	export let padded = true;
-	export let highlight = false;
-	export let disabled = false;
-	export let hasPopup = false;
-	export let color = "var(--block-label-text-color)";
-	export let transparent = false;
-	export let background = "var(--block-background-fill)";
-	$: _color = highlight ? "var(--color-accent)" : color;
+	import { type Component, type Snippet } from "svelte";
+
+	let {
+		Icon,
+		label = "",
+		show_label = false,
+		pending = false,
+		size = "small",
+		padded = true,
+		highlight = false,
+		disabled = false,
+		hasPopup = false,
+		color = "var(--block-label-text-color)",
+		transparent = false,
+		background = "var(--block-background-fill)",
+		border = "transparent",
+		onclick,
+		children
+	}: {
+		Icon: Component;
+		label?: string;
+		show_label?: boolean;
+		pending?: boolean;
+		size?: "x-small" | "small" | "large" | "medium";
+		padded?: boolean;
+		highlight?: boolean;
+		disabled?: boolean;
+		hasPopup?: boolean;
+		color?: string;
+		transparent?: boolean;
+		background?: string;
+		border?: string;
+		onclick?: (event: MouseEvent) => void;
+		children?: Snippet;
+	} = $props();
+
+	let _color = $derived(highlight ? "var(--color-accent)" : color);
 </script>
 
 <button
+	class="icon-button"
 	{disabled}
-	on:click
+	{onclick}
 	aria-label={label}
 	aria-haspopup={hasPopup}
 	title={label}
@@ -25,17 +49,19 @@
 	class:padded
 	class:highlight
 	class:transparent
+	style:--border-color={border}
 	style:color={!disabled && _color ? _color : "var(--block-label-text-color)"}
 	style:--bg-color={!disabled ? background : "auto"}
 >
 	{#if show_label}<span>{label}</span>{/if}
 	<div
+		class:x-small={size === "x-small"}
 		class:small={size === "small"}
 		class:large={size === "large"}
 		class:medium={size === "medium"}
 	>
-		<svelte:component this={Icon} />
-		<slot />
+		<Icon />
+		{#if children}{@render children()}{/if}
 	</div>
 </button>
 
@@ -48,7 +74,7 @@
 		z-index: var(--layer-2);
 		border-radius: var(--radius-xs);
 		color: var(--block-label-text-color);
-		border: 1px solid transparent;
+		border: 1px solid var(--border-color);
 		padding: var(--spacing-xxs);
 	}
 
@@ -89,6 +115,11 @@
 		align-items: center;
 		justify-content: center;
 		transition: filter 0.2s ease-in-out;
+	}
+
+	.x-small {
+		width: 10px;
+		height: 10px;
 	}
 
 	.small {

@@ -1,21 +1,18 @@
 {
-	"python.formatting.provider": "none",
 	"cssvar.files": ["./js/node_modules/pollen-css/pollen.css"],
 	"cssvar.ignore": [],
 	"cssvar.disableSort": true,
 	"cssvar.extensions": ["js", "css", "html", "jsx", "tsx", "svelte"],
-	"python.analysis.extraPaths": ["./gradio/themes/utils"],
 	"svelte.plugin.svelte.format.enable": true,
 	"svelte.plugin.svelte.diagnostics.enable": false,
 	"svelte.enable-ts-plugin": true,
 	"prettier.configPath": ".config/.prettierrc.json",
 	"prettier.ignorePath": ".config/.prettierignore",
-	"python.analysis.typeCheckingMode": "basic",
 	"python.testing.pytestArgs": ["."],
 	"python.testing.unittestEnabled": false,
 	"python.testing.pytestEnabled": true,
 	"eslint.validate": ["javascript", "typescript", "html", "markdown", "svelte"],
-	"eslint.experimental.useFlatConfig": true,
+	"eslint.useFlatConfig": true,
 	"eslint.options": {
 		"overrideConfigFile": "./.config/eslint.config.js"
 	},

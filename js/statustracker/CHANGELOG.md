@@ -1,5 +1,269 @@
 # @gradio/statustracker
 
+## 0.12.3
+
+### Fixes
+
+- [#12813](https://github.com/gradio-app/gradio/pull/12813) [`99caae6`](https://github.com/gradio-app/gradio/commit/99caae630771569e90f1e6a208183ad1a0826460) - Migrate StatusTracker to Svelte 5.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.21.0
+
+## 0.12.2
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.1
+- @gradio/utils@0.11.2
+- @gradio/icons@0.15.1
+
+## 0.12.1
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+
+## 0.12.1
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/utils@0.11.0
+
+## 0.12.0
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
+## 0.12.0
+
+### Features
+
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Fix browser component tests
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Fix full width toast issue
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Clear Error statuses
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Change gr.Toast expanded to true by default
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Improve gr.Toast in mobile
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Fix progress in StatusTracker
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Fix status tracker iterative image
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Fix show_progress not being respected
+- [#12438](https://github.com/gradio-app/gradio/pull/12438) [`25ffc03`](https://github.com/gradio-app/gradio/commit/25ffc0398f8feb43d817c02b2ab970c16de6d797) - Svelte5 migration and bugfix
+
+### Dependencies
+
+- @gradio/atoms@0.19.0
+- @gradio/icons@0.15.0
+- @gradio/sanitize@0.3.0
+- @gradio/utils@0.10.3
+
+## 0.12.0-dev.1
+
+### Features
+
+- [#12358](https://github.com/gradio-app/gradio/pull/12358) [`4552df4`](https://github.com/gradio-app/gradio/commit/4552df4e3698b39c58fc86d3023e434db6aeec1e) - Fix status tracker iterative image.  Thanks @freddyaboulton!
+- [#12381](https://github.com/gradio-app/gradio/pull/12381) [`36d5657`](https://github.com/gradio-app/gradio/commit/36d5657128a81739a78d6b11b3f5a632a9027ab1) - Fix full width toast issue.  Thanks @freddyaboulton!
+- [#12370](https://github.com/gradio-app/gradio/pull/12370) [`f632b87`](https://github.com/gradio-app/gradio/commit/f632b87f83ff283817e21ce679b70d2406074ea2) - Fix progress in StatusTracker.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.19.0-dev.1
+
+## 0.12.0-dev.0
+
+### Features
+
+- [#12291](https://github.com/gradio-app/gradio/pull/12291) [`881d8fb`](https://github.com/gradio-app/gradio/commit/881d8fbaa7827bbe0f56b9e89c6ab81258cb21b7) - Change gr.Toast expanded to true by default.  Thanks @hannahblair!
+- [#12099](https://github.com/gradio-app/gradio/pull/12099) [`e2a5768`](https://github.com/gradio-app/gradio/commit/e2a5768f5f133d0c23549eb3388582bfcf40e5e6) - Improve gr.Toast in mobile.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.18.2-dev.0
+- @gradio/utils@0.10.3-dev.0
+- @gradio/icons@0.15.0-dev.0
+
+## 0.11.1
+
+### Dependency updates
+
+- @gradio/atoms@0.18.1
+
+## 0.11.1
+
+### Fixes
+
+- [#11784](https://github.com/gradio-app/gradio/pull/11784) [`d9dd3f5`](https://github.com/gradio-app/gradio/commit/d9dd3f54b7fb34cf7118e549d39fc63937ca3489) - Add "hidden" option to component's `visible` kwarg to render but visually hide the component.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.18.0
+
+## 0.11.0
+
+### Features
+
+- [#11814](https://github.com/gradio-app/gradio/pull/11814) [`013784a`](https://github.com/gradio-app/gradio/commit/013784a7086047651e8e661a38bde7d5c7f10db7) - add validation support.  Thanks @pngwn!
+
+### Fixes
+
+- [#11749](https://github.com/gradio-app/gradio/pull/11749) [`70f4532`](https://github.com/gradio-app/gradio/commit/70f4532a4dc7576dbdbe1d0a43a05644a0dfcf43) - fix various iFrame related UI issues when deploying to spaces.  Thanks @pngwn!
+- [#11816](https://github.com/gradio-app/gradio/pull/11816) [`77deb72`](https://github.com/gradio-app/gradio/commit/77deb72cb29b412b415a86908255a2294e8b50d9) - Set Progress Animation to cover component height.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/icons@0.14.0
+- @gradio/atoms@0.17.0
+
+## 0.10.18
+
+### Fixes
+
+- [#11782](https://github.com/gradio-app/gradio/pull/11782) [`e132283`](https://github.com/gradio-app/gradio/commit/e132283b2289d3689927a8fa7f0b4ac8f8628a18) - remove dompurify, update mermaid.  Thanks @pngwn!
+
+## 0.10.17
+
+### Dependency updates
+
+- @gradio/icons@0.13.1
+
+## 0.10.17
+
+### Dependency updates
+
+- @gradio/atoms@0.16.5
+- @gradio/icons@0.13.0
+
+## 0.10.16
+
+### Dependency updates
+
+- @gradio/atoms@0.16.4
+
+## 0.10.15
+
+### Features
+
+- [#11543](https://github.com/gradio-app/gradio/pull/11543) [`ac95ac0`](https://github.com/gradio-app/gradio/commit/ac95ac0d8c2e65d1632376e632fb7d16131334b6) - Connection handling messaging.  Thanks @aliabid94!
+
+## 0.10.14
+
+### Dependency updates
+
+- @gradio/atoms@0.16.3
+
+## 0.10.13
+
+### Dependency updates
+
+- @gradio/atoms@0.16.2
+
+## 0.10.12
+
+### Fixes
+
+- [#11279](https://github.com/gradio-app/gradio/pull/11279) [`8ae434c`](https://github.com/gradio-app/gradio/commit/8ae434c58906fda5fe20a6b08a12b6007a47af09) - Ensure error text overflows as expected.  Thanks @hannahblair!
+
+## 0.10.11
+
+### Dependency updates
+
+- @gradio/atoms@0.16.1
+
+## 0.10.10
+
+### Dependency updates
+
+- @gradio/atoms@0.16.0
+
+## 0.10.9
+
+### Dependency updates
+
+- @gradio/atoms@0.15.2
+- @gradio/utils@0.10.2
+
+## 0.10.8
+
+### Dependency updates
+
+- @gradio/atoms@0.15.1
+- @gradio/icons@0.12.0
+
+## 0.10.7
+
+### Dependency updates
+
+- @gradio/atoms@0.15.0
+- @gradio/icons@0.11.0
+
+## 0.10.6
+
+### Dependency updates
+
+- @gradio/atoms@0.14.1
+
+## 0.10.5
+
+### Dependency updates
+
+- @gradio/atoms@0.14.0
+
+## 0.10.4
+
+### Dependency updates
+
+- @gradio/atoms@0.13.3
+
+## 0.10.3
+
+### Dependency updates
+
+- @gradio/atoms@0.13.2
+- @gradio/utils@0.10.1
+
+## 0.10.2
+
+### Fixes
+
+- [#10390](https://github.com/gradio-app/gradio/pull/10390) [`9e6eded`](https://github.com/gradio-app/gradio/commit/9e6ededef144f3f1a8ebbc47076b55d60f5b2ef3) - Removes css tag that overrides Gradio theme setting.  Thanks @ericwu09!
+
+## 0.10.1
+
+### Dependency updates
+
+- @gradio/atoms@0.13.1
+- @gradio/icons@0.10.0
+
+## 0.10.0
+
+### Features
+
+- [#10262](https://github.com/gradio-app/gradio/pull/10262) [`f3bedd4`](https://github.com/gradio-app/gradio/commit/f3bedd4011bdfdecc952eb1275a9dd96af3e8d71) - add gr.Success and update windows contributing.  Thanks @not-lain!
+
+### Dependency updates
+
+- @gradio/atoms@0.13.0
+- @gradio/utils@0.10.0
+- @gradio/icons@0.9.0
+
+## 0.9.7
+
+### Dependency updates
+
+- @gradio/atoms@0.12.0
+
+## 0.9.6
+
+### Dependency updates
+
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+
 ## 0.9.5
 
 ### Dependency updates

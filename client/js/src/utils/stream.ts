@@ -75,11 +75,12 @@ export async function open_stream(this: Client): Promise<void> {
 			pending_stream_messages[event_id].push(_data);
 		}
 	};
-	stream.onerror = async function () {
+	stream.onerror = async function (e) {
+		console.error(e);
 		await Promise.all(
 			Object.keys(event_callbacks).map((event_id) =>
 				event_callbacks[event_id]({
-					msg: "unexpected_error",
+					msg: "broken_connection",
 					message: BROKEN_CONNECTION_MSG
 				})
 			)

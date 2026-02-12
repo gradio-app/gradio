@@ -7,11 +7,9 @@ with gr.Blocks() as demo:
         x="date",
         y="price",
         color="symbol",
-        color_legend_position="bottom",
         title="Stock Prices",
         tooltip=["date", "price", "symbol"],
         height=300,
-        width=300,
         container=False,
     )
 

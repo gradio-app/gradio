@@ -1,24 +1,31 @@
-<script>
-	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import ColorPicker from "./Example.svelte";
+
+	const { Story } = defineMeta({
+		title: "Components/Color Picker/Example",
+		component: ColorPicker
+	});
 </script>
-
-<Meta title="Components/Color Picker/Example" component={ColorPicker} />
-
-<Template let:args>
-	<ColorPicker {...args} />
-</Template>
 
 <Story
 	name="Color value"
 	args={{
 		value: "#ff0000"
 	}}
-/>
+>
+	{#snippet template(args)}
+		<ColorPicker {...args} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Null"
 	args={{
 		value: null
 	}}
-/>
+>
+	{#snippet template(args)}
+		<ColorPicker {...args} />
+	{/snippet}
+</Story>

@@ -1,7 +1,7 @@
 import { join } from "path";
 import * as fs from "fs";
 import { createServer, createLogger } from "vite";
-import { plugins, make_gradio_plugin } from "./plugins";
+import { plugins, make_gradio_plugin, deepmerge_plugin } from "./plugins";
 import { examine_module } from "./index";
 import type { PreprocessorGroup } from "svelte/compiler";
 
@@ -16,6 +16,13 @@ logger.warn = (msg, options) => {
 	if (vite_messages_to_ignore.some((m) => msg.includes(m))) return;
 
 	originalWarning(msg, options);
+};
+
+const originalError = logger.error;
+
+logger.error = (msg, options) => {
+	if (msg && msg.includes("Pre-transform error")) return;
+	originalError(msg, options);
 };
 
 interface ServerOptions {
@@ -57,13 +64,8 @@ export async function create_server({
 					allow: [root_dir, component_dir]
 				}
 			},
-			resolve: {
-				conditions: ["gradio"]
-			},
-			build: {
-				target: config.build.target
-			},
 			optimizeDeps: config.optimizeDeps,
+			cacheDir: join(component_dir, "frontend", "node_modules", ".vite"),
 			plugins: [
 				...plugins(config),
 				make_gradio_plugin({
@@ -71,7 +73,8 @@ export async function create_server({
 					backend_port,
 					svelte_dir,
 					imports
-				})
+				}),
+				deepmerge_plugin
 			]
 		});
 
@@ -153,7 +156,9 @@ async function generate_imports(
 		build: {
 			target: []
 		},
-		optimizeDeps: {}
+		optimizeDeps: {
+			exclude: ["svelte", "svelte/*"]
+		}
 	};
 
 	await Promise.all(
@@ -169,7 +174,8 @@ async function generate_imports(
 				component_config.plugins = m.default.plugins || [];
 				component_config.svelte.preprocess = m.default.svelte?.preprocess || [];
 				component_config.build.target = m.default.build?.target || "modules";
-				component_config.optimizeDeps = m.default.optimizeDeps || {};
+				component_config.optimizeDeps =
+					m.default.optimizeDeps || component_config.optimizeDeps;
 			} else {
 			}
 		})

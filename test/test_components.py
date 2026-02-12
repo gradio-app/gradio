@@ -111,7 +111,13 @@ def test_template_component_configs(io_components):
         component_parent_class = inspect.getmro(component)[1]
         template_config = component().get_config()
         parent_config = component_parent_class().get_config()
-        assert set(parent_config.keys()).issubset(set(template_config.keys()))
+        parent_keys = set(parent_config.keys())
+        template_keys = set(template_config.keys())
+        missing_keys = parent_keys - template_keys
+        if missing_keys:
+            raise AssertionError(
+                f"Template {component.__name__} is missing keys from parent {component_parent_class.__name__}: {missing_keys}"
+            )
 
 
 def test_component_example_values(io_components):
@@ -148,3 +154,20 @@ def test_component_example_payloads(io_components):
             elif issubclass(c.data_model, GradioRootModel):  # type: ignore
                 data = c.data_model(root=data)  # type: ignore
         c.preprocess(data)  # type: ignore
+
+
+def test_all_io_components_are_pickleable(io_components):
+    import pickle
+
+    for component in io_components:
+        if component == PDF:
+            continue
+        elif component in [gr.BarPlot, gr.LinePlot, gr.ScatterPlot]:
+            c: Component = component(x="x", y="y")
+        elif component == gr.FileExplorer:
+            c: Component = component(root_dir="gradio")
+        else:
+            c: Component = component()
+        pickled = pickle.dumps(c)
+        unpickled = pickle.loads(pickled)
+        assert c.get_config() == unpickled.get_config()

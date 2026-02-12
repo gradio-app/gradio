@@ -1,5 +1,5 @@
 import gradio as gr
-from data import temp_sensor_data, food_rating_data
+from data import temp_sensor_data, food_rating_data  # type: ignore
 
 with gr.Blocks() as bar_plots:
     with gr.Row():
@@ -10,17 +10,20 @@ with gr.Blocks() as bar_plots:
         group_by = gr.Radio(["None", "30m", "1h", "4h", "1d"], value="None", label="Group by")
         aggregate = gr.Radio(["sum", "mean", "median", "min", "max"], value="sum", label="Aggregation")
 
-    temp_by_time = gr.BarPlot(
-        temp_sensor_data,
-        x="time",
-        y="temperature",
-    )
-    temp_by_time_location = gr.BarPlot(
-        temp_sensor_data,
-        x="time",
-        y="temperature",
-        color="location",
-    )
+    with gr.Draggable():
+        temp_by_time = gr.BarPlot(
+            temp_sensor_data,
+            x="time",
+            y="temperature",
+            buttons=["export"],
+        )
+        temp_by_time_location = gr.BarPlot(
+            temp_sensor_data,
+            x="time",
+            y="temperature",
+            color="location",
+            buttons=["export"],
+        )
 
     time_graphs = [temp_by_time, temp_by_time_location]
     group_by.change(
@@ -48,6 +51,7 @@ with gr.Blocks() as bar_plots:
             food_rating_data,
             x="cuisine",
             y="price",
+            buttons=["export"],
         )
         with gr.Column(scale=0):
             gr.Button("Sort $ > $$$").click(lambda: gr.BarPlot(sort="y"), None, price_by_cuisine)
@@ -60,6 +64,7 @@ with gr.Blocks() as bar_plots:
             x="rating",
             y="price",
             x_bin=1,
+            buttons=["export"],
         )
         price_by_rating_color = gr.BarPlot(
             food_rating_data,
@@ -68,6 +73,7 @@ with gr.Blocks() as bar_plots:
             color="cuisine",
             x_bin=1,
             color_map={"Italian": "red", "Mexican": "green", "Chinese": "blue"},
+            buttons=["export"],
         )
 
 if __name__ == "__main__":

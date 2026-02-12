@@ -14,6 +14,7 @@ export declare const HEARTBEAT_URL = "heartbeat";
 export declare const COMPONENT_SERVER_URL = "component_server";
 export declare const RESET_URL = "reset";
 export declare const CANCEL_URL = "cancel";
+export declare const APP_ID_URL = "app_id";
 export declare const RAW_API_INFO_URL = "info?serialize=False";
 export declare const SPACE_FETCHER_URL = "https://gradio-space-api-fetcher-v2.hf.space/api";
 export declare const SPACE_URL = "https://hf.space/{}";

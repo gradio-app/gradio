@@ -2,43 +2,38 @@
 	import {
 		format_chat_for_sharing,
 		type UndoRetryData,
+		type EditData,
 		is_last_bot_message,
 		group_messages,
 		load_components,
 		get_components_from_messages
 	} from "./utils";
-	import type { NormalisedMessage } from "../types";
+	import type { NormalisedMessage, Option } from "../types";
 	import { copy } from "@gradio/utils";
+	import type { CopyData } from "@gradio/utils";
 	import Message from "./Message.svelte";
-	import { DownloadLink } from "@gradio/wasm/svelte";
 
 	import { dequal } from "dequal/lite";
 	import {
-		afterUpdate,
 		createEventDispatcher,
 		type SvelteComponent,
 		type ComponentType,
 		tick,
 		onMount
 	} from "svelte";
-	import { Image } from "@gradio/image/shared";
 
-	import {
-		Clear,
-		Trash,
-		Community,
-		ScrollDownArrow,
-		Download
-	} from "@gradio/icons";
+	import { Trash, Community, ScrollDownArrow } from "@gradio/icons";
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { ExampleMessage } from "../types";
-	import { MarkdownCode as Markdown } from "@gradio/markdown-code";
 	import type { FileData, Client } from "@gradio/client";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import Pending from "./Pending.svelte";
 	import { ShareError } from "@gradio/utils";
 	import { Gradio } from "@gradio/utils";
+
+	import Examples from "./Examples.svelte";
 
 	export let value: NormalisedMessage[] | null = [];
 	let old_value: NormalisedMessage[] | null = null;
@@ -48,6 +43,7 @@
 	export let _fetch: typeof fetch;
 	export let load_component: Gradio["load_component"];
 	export let allow_file_downloads: boolean;
+	export let display_consecutive_in_same_bubble: boolean;
 
 	let _components: Record<string, ComponentType<SvelteComponent>> = {};
 
@@ -61,7 +57,9 @@
 		);
 	}
 
-	$: value, update_components();
+	$: component_names = get_components_from_messages(value).sort().join(", ");
+
+	$: (component_names, update_components());
 
 	export let latex_delimiters: {
 		left: string;
@@ -72,13 +70,17 @@
 	export let generating = false;
 	export let selectable = false;
 	export let likeable = false;
+	export let feedback_options: string[];
+	export let feedback_value: (string | null)[] | null = null;
+	export let editable: "user" | "all" | null = null;
 	export let show_share_button = false;
 	export let show_copy_all_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
+	export let buttons: (string | CustomButtonType)[] | null = null;
+	export let on_custom_button_click: ((id: number) => void) | null = null;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 	export let sanitize_html = true;
-	export let bubble_full_width = true;
 	export let render_markdown = true;
 	export let line_breaks = true;
 	export let autoscroll = true;
@@ -87,14 +89,17 @@
 	export let layout: "bubble" | "panel" = "bubble";
 	export let placeholder: string | null = null;
 	export let upload: Client["upload"];
-	export let msg_format: "tuples" | "messages" = "tuples";
 	export let examples: ExampleMessage[] | null = null;
 	export let _retryable = false;
 	export let _undoable = false;
 	export let like_user_message = false;
-	export let root: string;
+	export let allow_tags: string[] | boolean = false;
+	export let watermark: string | null = null;
+	export let show_progress: "full" | "minimal" | "hidden" = "full";
 
 	let target: HTMLElement | null = null;
+	let edit_index: number | null = null;
+	let edit_messages: string[] = [];
 
 	onMount(() => {
 		target = document.querySelector("div.gradio-container");
@@ -108,12 +113,15 @@
 		change: undefined;
 		select: SelectData;
 		like: LikeData;
+		edit: EditData;
 		undo: UndoRetryData;
 		retry: UndoRetryData;
 		clear: undefined;
 		share: any;
 		error: string;
 		example_select: SelectData;
+		option_select: SelectData;
+		copy: CopyData;
 	}>();
 
 	function is_at_bottom(): boolean {
@@ -127,28 +135,22 @@
 	}
 
 	let scroll_after_component_load = false;
-	function on_child_component_load(): void {
-		if (scroll_after_component_load) {
-			scroll_to_bottom();
-			scroll_after_component_load = false;
-		}
-	}
 
 	async function scroll_on_value_update(): Promise<void> {
 		if (!autoscroll) return;
-
 		if (is_at_bottom()) {
 			// Child components may be loaded asynchronously,
 			// so trigger the scroll again after they load.
 			scroll_after_component_load = true;
-
 			await tick(); // Wait for the DOM to update so that the scrollHeight is correct
+			await new Promise((resolve) => setTimeout(resolve, 300));
 			scroll_to_bottom();
-		} else {
-			show_scroll_button = true;
 		}
 	}
 	onMount(() => {
+		if (autoscroll) {
+			scroll_to_bottom();
+		}
 		scroll_on_value_update();
 	});
 	$: if (value || pending_message || _components) {
@@ -161,6 +163,7 @@
 				show_scroll_button = false;
 			} else {
 				scroll_after_component_load = false;
+				show_scroll_button = true;
 			}
 		}
 
@@ -170,41 +173,17 @@
 		};
 	});
 
-	let image_preview_source: string;
-	let image_preview_source_alt: string;
-	let is_image_preview_open = false;
-
-	afterUpdate(() => {
-		if (!div) return;
-		div.querySelectorAll("img").forEach((n) => {
-			n.addEventListener("click", (e) => {
-				const target = e.target as HTMLImageElement;
-				if (target) {
-					image_preview_source = target.src;
-					image_preview_source_alt = target.alt;
-					is_image_preview_open = true;
-				}
-			});
-		});
-	});
-
 	$: {
 		if (!dequal(value, old_value)) {
 			old_value = value;
 			dispatch("change");
 		}
 	}
+	$: groupedMessages =
+		value && group_messages(value, display_consecutive_in_same_bubble);
+	$: options = value && get_last_bot_options();
 
-	$: groupedMessages = value && group_messages(value, msg_format);
-
-	function handle_example_select(i: number, example: ExampleMessage): void {
-		dispatch("example_select", {
-			index: i,
-			value: { text: example.text, files: example.files }
-		});
-	}
-
-	function handle_like(
+	function handle_action(
 		i: number,
 		message: NormalisedMessage,
 		selected: string | null
@@ -221,16 +200,26 @@
 				index: val_[last_index].index,
 				value: val_[last_index].content
 			});
-			return;
-		}
-
-		if (msg_format === "tuples") {
-			dispatch("like", {
+		} else if (selected == "edit") {
+			edit_index = i;
+			edit_messages.push(message.content as string);
+		} else if (selected == "edit_cancel") {
+			edit_index = null;
+		} else if (selected == "edit_submit") {
+			edit_index = null;
+			dispatch("edit", {
 				index: message.index,
-				value: message.content,
-				liked: selected === "like"
+				_dispatch_value: [{ type: "text", text: edit_messages[i].slice() }],
+				value: edit_messages[i].slice(),
+				previous_value: message.content as string
 			});
 		} else {
+			let feedback =
+				selected === "Like"
+					? true
+					: selected === "Dislike"
+						? false
+						: selected || "";
 			if (!groupedMessages) return;
 
 			const message_group = groupedMessages[i];
@@ -240,20 +229,28 @@
 			];
 
 			dispatch("like", {
-				index: [first.index, last.index] as [number, number],
+				index: first.index as number,
 				value: message_group.map((m) => m.content),
-				liked: selected === "like"
+				liked: feedback
 			});
 		}
+	}
+
+	function get_last_bot_options(): Option[] | undefined {
+		if (!value || !groupedMessages || groupedMessages.length === 0)
+			return undefined;
+		const last_group = groupedMessages[groupedMessages.length - 1];
+		if (last_group[0].role !== "assistant") return undefined;
+		return last_group[last_group.length - 1].options;
 	}
 </script>
 
 {#if value !== null && value.length > 0}
-	<IconButtonWrapper>
+	<IconButtonWrapper {buttons} {on_custom_button_click}>
 		{#if show_share_button}
 			<IconButton
 				Icon={Community}
-				on:click={async () => {
+				onclick={async () => {
 					try {
 						// @ts-ignore
 						const formatted = await format_chat_for_sharing(value);
@@ -266,14 +263,15 @@
 						dispatch("error", message);
 					}
 				}}
-			>
-				<Community />
-			</IconButton>
+			/>
 		{/if}
-		<IconButton Icon={Trash} on:click={() => dispatch("clear")} label={"Clear"}
-		></IconButton>
+		<IconButton
+			Icon={Trash}
+			onclick={() => dispatch("clear")}
+			label={i18n("chatbot.clear")}
+		/>
 		{#if show_copy_all_button}
-			<CopyAll {value} />
+			<CopyAll {value} {watermark} />
 		{/if}
 	</IconButtonWrapper>
 {/if}
@@ -291,28 +289,16 @@
 				{@const role = messages[0].role === "user" ? "user" : "bot"}
 				{@const avatar_img = avatar_images[role === "user" ? 0 : 1]}
 				{@const opposite_avatar_img = avatar_images[role === "user" ? 0 : 1]}
-				{#if is_image_preview_open}
-					<div class="image-preview">
-						<img src={image_preview_source} alt={image_preview_source_alt} />
-						<IconButtonWrapper>
-							<IconButton
-								Icon={Clear}
-								on:click={() => (is_image_preview_open = false)}
-								label={"Clear"}
-							/>
-							{#if allow_file_downloads}
-								<DownloadLink
-									href={image_preview_source}
-									download={image_preview_source_alt || "image"}
-								>
-									<IconButton Icon={Download} label={"Download"} />
-								</DownloadLink>
-							{/if}
-						</IconButtonWrapper>
-					</div>
-				{/if}
+				{@const feedback_index = groupedMessages
+					.slice(0, i)
+					.filter((m) => m[0].role === "assistant").length}
+				{@const current_feedback =
+					role === "bot" && feedback_value && feedback_value[feedback_index]
+						? feedback_value[feedback_index]
+						: null}
 				<Message
 					{messages}
+					{display_consecutive_in_same_bubble}
 					{opposite_avatar_img}
 					{avatar_img}
 					{role}
@@ -323,11 +309,9 @@
 					{line_breaks}
 					{theme_mode}
 					{target}
-					{root}
 					{upload}
 					{selectable}
 					{sanitize_html}
-					{bubble_full_width}
 					{render_markdown}
 					{rtl}
 					{i}
@@ -335,70 +319,67 @@
 					{latex_delimiters}
 					{_components}
 					{generating}
-					{msg_format}
+					{feedback_options}
+					{current_feedback}
+					{allow_tags}
+					{watermark}
 					show_like={role === "user" ? likeable && like_user_message : likeable}
 					show_retry={_retryable && is_last_bot_message(messages, value)}
 					show_undo={_undoable && is_last_bot_message(messages, value)}
+					show_edit={editable === "all" ||
+						(editable == "user" &&
+							role === "user" &&
+							messages.length > 0 &&
+							messages[messages.length - 1].type == "text")}
+					in_edit_mode={edit_index === i}
+					bind:edit_messages
 					{show_copy_button}
-					handle_action={(selected) => handle_like(i, messages[0], selected)}
+					handle_action={(selected) => {
+						if (selected == "edit") {
+							edit_messages.splice(0, edit_messages.length);
+						}
+						if (selected === "edit" || selected === "edit_submit") {
+							messages.forEach((msg, index) => {
+								handle_action(selected === "edit" ? i : index, msg, selected);
+							});
+						} else {
+							handle_action(i, messages[0], selected);
+						}
+					}}
 					scroll={is_browser ? scroll : () => {}}
 					{allow_file_downloads}
+					on:copy={(e) => dispatch("copy", e.detail)}
 				/>
+				{#if show_progress !== "hidden" && generating && messages[messages.length - 1].role === "assistant" && messages[messages.length - 1].metadata?.status === "done"}
+					<Pending {layout} {avatar_images} />
+				{/if}
 			{/each}
-			{#if pending_message}
-				<Pending {layout} />
-			{/if}
-		</div>
-	{:else}
-		<div class="placeholder-content">
-			{#if placeholder !== null}
-				<div class="placeholder">
-					<Markdown message={placeholder} {latex_delimiters} {root} />
-				</div>
-			{/if}
-			{#if examples !== null}
-				<div class="examples">
-					{#each examples as example, i}
+			{#if show_progress !== "hidden" && pending_message}
+				<Pending {layout} {avatar_images} />
+			{:else if options}
+				<div class="options">
+					{#each options as option, index}
 						<button
-							class="example"
-							on:click={() => handle_example_select(i, example)}
+							class="option"
+							on:click={() =>
+								dispatch("option_select", {
+									index: index,
+									value: option.value
+								})}
 						>
-							{#if example.icon !== undefined}
-								<div class="example-icon-container">
-									<Image
-										class="example-icon"
-										src={example.icon.url}
-										alt="example-icon"
-									/>
-								</div>
-							{/if}
-							{#if example.display_text !== undefined}
-								<span class="example-display-text">{example.display_text}</span>
-							{:else}
-								<span class="example-text">{example.text}</span>
-							{/if}
-							{#if example.files !== undefined && example.files.length > 1}
-								<span class="example-file"
-									><em>{example.files.length} Files</em></span
-								>
-							{:else if example.files !== undefined && example.files[0] !== undefined && example.files[0].mime_type?.includes("image")}
-								<div class="example-image-container">
-									<Image
-										class="example-image"
-										src={example.files[0].url}
-										alt="example-image"
-									/>
-								</div>
-							{:else if example.files !== undefined && example.files[0] !== undefined}
-								<span class="example-file"
-									><em>{example.files[0].orig_name}</em></span
-								>
-							{/if}
+							{option.label || option.value}
 						</button>
 					{/each}
 				</div>
 			{/if}
 		</div>
+	{:else}
+		<Examples
+			{examples}
+			{placeholder}
+			{latex_delimiters}
+			on:example_select={(e) => dispatch("example_select", e.detail)}
+		/>
 	{/if}
 </div>
 
@@ -408,99 +389,12 @@
 			Icon={ScrollDownArrow}
 			label="Scroll down"
 			size="large"
-			on:click={scroll_to_bottom}
+			onclick={scroll_to_bottom}
 		/>
 	</div>
 {/if}
 
 <style>
-	.placeholder-content {
-		display: flex;
-		flex-direction: column;
-		height: 100%;
-	}
-
-	.placeholder {
-		align-items: center;
-		display: flex;
-		justify-content: center;
-		height: 100%;
-		flex-grow: 1;
-	}
-
-	.examples :global(img) {
-		pointer-events: none;
-	}
-
-	.examples {
-		margin: auto;
-		padding: var(--spacing-xxl);
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-		gap: var(--spacing-xxl);
-		max-width: calc(min(4 * 200px + 5 * var(--spacing-xxl), 100%));
-	}
-
-	.example {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		padding: var(--spacing-xl);
-		border: 0.05px solid var(--border-color-primary);
-		border-radius: var(--radius-xl);
-		background-color: var(--background-fill-secondary);
-		cursor: pointer;
-		transition: var(--button-transition);
-		max-width: var(--size-56);
-		width: 100%;
-		justify-content: center;
-	}
-
-	.example:hover {
-		background-color: var(--color-accent-soft);
-		border-color: var(--border-color-accent);
-	}
-
-	.example-icon-container {
-		display: flex;
-		align-self: flex-start;
-		margin-left: var(--spacing-md);
-		width: var(--size-6);
-		height: var(--size-6);
-	}
-
-	.example-display-text,
-	.example-text,
-	.example-file {
-		font-size: var(--text-md);
-		width: 100%;
-		text-align: center;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.example-display-text,
-	.example-file {
-		margin-top: var(--spacing-md);
-	}
-
-	.example-image-container {
-		flex-grow: 1;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		margin-top: var(--spacing-xl);
-	}
-
-	.example-image-container :global(img) {
-		max-height: 100%;
-		max-width: 100%;
-		height: var(--size-32);
-		width: 100%;
-		object-fit: cover;
-		border-radius: var(--radius-xl);
-	}
-
 	.panel-wrap {
 		width: 100%;
 		overflow-y: auto;
@@ -517,13 +411,6 @@
 		.bubble-wrap {
 			background: var(--background-fill-secondary);
 		}
-	}
-
-	.message-wrap {
-		display: flex;
-		flex-direction: column;
-		justify-content: space-between;
-		margin-bottom: var(--spacing-xxl);
 	}
 
 	.message-wrap :global(.prose.chatbot.md) {
@@ -546,10 +433,10 @@
 	}
 
 	/* table styles */
-	.message-wrap :global(.bot table),
-	.message-wrap :global(.bot tr),
-	.message-wrap :global(.bot td),
-	.message-wrap :global(.bot th) {
+	.message-wrap :global(.bot:not(:has(.table-wrap)) table),
+	.message-wrap :global(.bot:not(:has(.table-wrap)) tr),
+	.message-wrap :global(.bot:not(:has(.table-wrap)) td),
+	.message-wrap :global(.bot:not(:has(.table-wrap)) th) {
 		border: 1px solid var(--border-color-primary);
 	}
 
@@ -589,6 +476,7 @@
 		flex-direction: column;
 		justify-content: space-between;
 		margin-bottom: var(--spacing-xxl);
+		direction: ltr;
 	}
 
 	.panel-wrap :global(.message-row:first-child) {
@@ -616,17 +504,33 @@
 		transform: translateY(-2px);
 	}
 
-	.image-preview {
-		position: absolute;
-		z-index: 999;
-		left: 0;
-		top: 0;
-		width: 100%;
-		height: 100%;
-		overflow: auto;
-		background-color: var(--background-fill-secondary);
+	.options {
+		margin-left: auto;
+		padding: var(--spacing-xxl);
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: var(--spacing-xxl);
+		max-width: calc(min(4 * 200px + 5 * var(--spacing-xxl), 100%));
+		justify-content: flex-end;
+	}
+
+	.option {
 		display: flex;
-		justify-content: center;
+		flex-direction: column;
 		align-items: center;
+		padding: var(--spacing-xl);
+		border: 1px dashed var(--border-color-primary);
+		border-radius: var(--radius-md);
+		background-color: var(--background-fill-secondary);
+		cursor: pointer;
+		transition: var(--button-transition);
+		max-width: var(--size-56);
+		width: 100%;
+		justify-content: center;
+	}
+
+	.option:hover {
+		background-color: var(--color-accent-soft);
+		border-color: var(--border-color-accent);
 	}
 </style>

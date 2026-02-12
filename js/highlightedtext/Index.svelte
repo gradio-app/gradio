@@ -1,141 +1,94 @@
-<script context="module" lang="ts">
-	export { default as BaseStaticHighlightedText } from "./shared/StaticHighlightedtext.svelte";
-	export { default as BaseInteractiveHighlightedText } from "./shared/InteractiveHighlightedtext.svelte";
+<script module lang="ts">
+	export { default as BaseHighlightedText } from "./shared/HighlightedText.svelte";
 </script>
 
 <script lang="ts">
-	import type { Gradio, SelectData, I18nFormatter } from "@gradio/utils";
-	import StaticHighlightedText from "./shared/StaticHighlightedtext.svelte";
-	import InteractiveHighlightedText from "./shared/InteractiveHighlightedtext.svelte";
-	import { Block, BlockLabel, Empty } from "@gradio/atoms";
+	import HighlightedText from "./shared/HighlightedText.svelte";
+	import { Block, BlockLabel, Empty, IconButtonWrapper } from "@gradio/atoms";
 	import { TextHighlight } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
+	import { Gradio } from "@gradio/utils";
 	import { merge_elements } from "./shared/utils";
+	import type { HighlightedTextProps, HighlightedTextEvents } from "./types";
 
-	export let gradio: Gradio<{
-		select: SelectData;
-		change: never;
-		clear_status: LoadingStatus;
-	}>;
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible = true;
-	export let value: {
-		token: string;
-		class_or_confidence: string | number | null;
-	}[];
-	let old_value: typeof value;
-	export let show_legend: boolean;
-	export let show_inline_category: boolean;
-	export let color_map: Record<string, string> = {};
-	export let label = gradio.i18n("highlighted_text.highlighted_text");
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let _selectable = false;
-	export let combine_adjacent = false;
-	export let interactive: boolean;
+	const props = $props();
+	const gradio = new Gradio<HighlightedTextEvents, HighlightedTextProps>(props);
 
-	$: if (!color_map && Object.keys(color_map).length) {
-		color_map = color_map;
-	}
+	let old_value = $state(gradio.props.value);
 
-	export let loading_status: LoadingStatus;
-
-	$: {
-		if (value !== old_value) {
-			old_value = value;
+	$effect(() => {
+		if (old_value !== gradio.props.value) {
+			old_value = gradio.props.value;
 			gradio.dispatch("change");
 		}
-	}
+	});
 
-	$: if (value && combine_adjacent) {
-		value = merge_elements(value, "equal");
-	}
+	let value = $derived.by(() =>
+		gradio.props.combine_adjacent
+			? merge_elements(gradio.props.value || [], "equal")
+			: gradio.props.value
+	);
 </script>
 
-{#if !interactive}
-	<Block
-		variant={"solid"}
-		test_id="highlighted-text"
-		{visible}
-		{elem_id}
-		{elem_classes}
-		padding={false}
-		{container}
-		{scale}
-		{min_width}
-	>
-		<StatusTracker
-			autoscroll={gradio.autoscroll}
-			i18n={gradio.i18n}
-			{...loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
-		/>
-		{#if label}
-			<BlockLabel
-				Icon={TextHighlight}
-				{label}
-				float={false}
-				disable={container === false}
-			/>
-		{/if}
+<Block
+	variant={gradio.shared.interactive ? "dashed" : "solid"}
+	test_id="highlighted-text"
+	visible={gradio.shared.visible}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+	padding={false}
+	container={gradio.shared.container}
+	scale={gradio.shared.scale}
+	min_width={gradio.shared.min_width}
+	rtl={gradio.props.rtl}
+>
+	<StatusTracker
+		autoscroll={gradio.shared.autoscroll}
+		i18n={gradio.i18n}
+		{...gradio.shared.loading_status}
+		onclearstatus={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
+	/>
 
-		{#if value}
-			<StaticHighlightedText
-				on:select={({ detail }) => gradio.dispatch("select", detail)}
-				selectable={_selectable}
-				{value}
-				{show_legend}
-				{show_inline_category}
-				{color_map}
-			/>
-		{:else}
-			<Empty>
-				<TextHighlight />
-			</Empty>
-		{/if}
-	</Block>
-{:else}
-	<Block
-		variant={interactive ? "dashed" : "solid"}
-		test_id="highlighted-text"
-		{visible}
-		{elem_id}
-		{elem_classes}
-		padding={false}
-		{container}
-		{scale}
-		{min_width}
-	>
-		<StatusTracker
-			autoscroll={gradio.autoscroll}
-			{...loading_status}
-			i18n={gradio.i18n}
-			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+	{#if gradio.shared.interactive && gradio.shared.label && gradio.shared.show_label && gradio.props.buttons?.length}
+		<IconButtonWrapper
+			buttons={gradio.props.buttons}
+			on_custom_button_click={(id) =>
+				gradio.dispatch("custom_button_click", { id })}
 		/>
-		{#if label}
-			<BlockLabel
-				Icon={TextHighlight}
-				{label}
-				float={false}
-				disable={container === false}
-			/>
-		{/if}
+	{/if}
 
-		{#if value}
-			<InteractiveHighlightedText
-				bind:value
-				on:change={() => gradio.dispatch("change")}
-				selectable={_selectable}
-				{show_legend}
-				{color_map}
-			/>
-		{:else}
-			<Empty>
-				<TextHighlight />
-			</Empty>
-		{/if}
-	</Block>
-{/if}
+	{#if gradio.shared.label && gradio.shared.show_label}
+		<BlockLabel
+			Icon={TextHighlight}
+			label={gradio.shared.label ||
+				gradio.i18n("highlighted_text.highlighted_text")}
+			float={false}
+			disable={gradio.shared.container === false}
+			show_label={gradio.shared.show_label}
+			rtl={gradio.props.rtl}
+		/>
+	{/if}
+
+	{#if value}
+		<HighlightedText
+			bind:value
+			interactive={gradio.shared.interactive}
+			show_legend={gradio.props.show_legend}
+			show_inline_category={gradio.props.show_inline_category}
+			color_map={gradio.props.color_map}
+			onselect={(detail) => gradio.dispatch("select", detail)}
+			onchange={() => {
+				gradio.props.value = value;
+				gradio.dispatch("change");
+			}}
+		/>
+	{:else}
+		<Empty
+			size={gradio.shared.interactive ? "small" : "large"}
+			unpadded_box={gradio.shared.interactive}
+		>
+			<TextHighlight />
+		</Empty>
+	{/if}
+</Block>

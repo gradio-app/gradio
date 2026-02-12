@@ -2,23 +2,27 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import inspect
 import os
+import platform
 import random
 import time
 import traceback
 import uuid
 from collections import defaultdict
 from queue import Queue as ThreadQueue
-from typing import TYPE_CHECKING, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import fastapi
+import numpy as np
+from anyio.to_thread import run_sync
 
 from gradio import route_utils, routes
 from gradio.data_classes import (
     PredictBodyInternal,
 )
+from gradio.exceptions import Error
 from gradio.helpers import TrackedIterable
-from gradio.route_utils import API_PREFIX
 from gradio.server_messages import (
     EstimationMessage,
     EventMessage,
@@ -34,12 +38,16 @@ from gradio.utils import (
     LRUCache,
     error_payload,
     run_coro_in_background,
+    safe_aclose_iterator,
     safe_get_lock,
     set_task_name,
 )
 
+from .block_function import BlockFunction
+
 if TYPE_CHECKING:
-    from gradio.blocks import BlockFunction, Blocks
+    from gradio.block_function import BlockFunction
+    from gradio.blocks import Blocks
 
 
 class Event:
@@ -60,6 +68,7 @@ class Event:
         self.progress: ProgressMessage | None = None
         self.progress_pending: bool = False
         self.alive = True
+        self.closed = False
         self.n_calls = 0
         self.run_time: float = 0
         self.signal = asyncio.Event()
@@ -72,6 +81,8 @@ class Event:
     def is_finished(self):
         if not self.streaming:
             raise ValueError("Cannot access if_finished during a non-streaming event")
+        if self.closed:
+            return True
         if self.fn.time_limit is None:
             return False
         return self.run_time >= self.fn.time_limit
@@ -127,8 +138,10 @@ class Queue:
             ProcessTime
         )
         self.live_updates = live_updates
-        self.sleep_when_free = 0.05
-        self.progress_update_sleep_when_free = 0.1
+        self.sleep_when_free = 0.05 if platform.system() == "Windows" else 0.001
+        self.progress_update_sleep_when_free = (
+            0.1 if platform.system() == "Windows" else 0.01
+        )
         self.max_size = max_size
         self.blocks = blocks
         self._asyncio_tasks: list[asyncio.Task] = []
@@ -136,6 +149,59 @@ class Queue:
             default_concurrency_limit
         )
         self.event_analytics: dict[str, dict[str, float | str | None]] = {}
+        self.cached_event_analytics_summary = {"functions": {}}
+        self.event_count_at_last_cache = 0
+        self.ANAYLTICS_CACHE_FREQUENCY = int(
+            os.getenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", "1")
+        )
+
+    @staticmethod
+    def _get_df(event_analytics):
+        import pandas as pd
+
+        try:
+            with pd.option_context("future.no_silent_downcasting", True):
+                return (
+                    pd.DataFrame(list(event_analytics.values()))
+                    .fillna(value=np.nan)
+                    .infer_objects(copy=False)  # type: ignore
+                )
+        except Exception as e:
+            if "No such keys(s)" in str(e):
+                return (
+                    pd.DataFrame(list(event_analytics.values()))
+                    .fillna(value=np.nan)
+                    .infer_objects(copy=False)  # type: ignore
+                )
+            raise e
+
+    def compute_analytics_summary(self, event_analytics):
+        if (
+            len(event_analytics) - self.event_count_at_last_cache
+            >= self.ANAYLTICS_CACHE_FREQUENCY
+        ):
+            df = self._get_df(event_analytics)
+            self.event_count_at_last_cache = len(event_analytics)
+            grouped = df.groupby("function")
+            metrics = {"functions": {}}
+            for fn_name, fn_df in grouped:
+                status = fn_df["status"].values
+                success = np.sum(status == "success")
+                failure = np.sum(status == "failed")
+                total = success + failure
+                success_rate = success / total if total > 0 else None
+                percentiles = np.percentile(fn_df["process_time"].values, [50, 90, 99])  # type: ignore
+                metrics["functions"][fn_name] = {
+                    "success_rate": success_rate,
+                    "process_time_percentiles": {
+                        "50th": percentiles[0],  # type: ignore
+                        "90th": percentiles[1],  # type: ignore
+                        "99th": percentiles[2],  # type: ignore
+                    },
+                    "total_requests": fn_df.shape[0],
+                }
+            self.cached_event_analytics_summary = metrics
+        return self.cached_event_analytics_summary
 
     def start(self):
         self.active_jobs = [None] * self.max_thread_count
@@ -210,13 +276,18 @@ class Queue:
 
     async def push(
         self, body: PredictBodyInternal, request: fastapi.Request, username: str | None
-    ) -> tuple[bool, str]:
+    ) -> tuple[
+        bool,
+        str | list[dict[str, Any]],
+        Literal["success", "error", "queue_full", "validator_error"],
+    ]:
         if body.fn_index is None:
-            return False, "No function index provided."
+            return False, "No function index provided.", "error"
         if self.max_size is not None and len(self) >= self.max_size:
             return (
                 False,
                 f"Queue is full. Max size is {self.max_size} and size is {len(self)}.",
+                "queue_full",
             )
 
         if body.session_hash:
@@ -227,6 +298,76 @@ class Queue:
 
         fn = route_utils.get_fn(self.blocks, None, body)
         self.create_event_queue_for_fn(fn)
+        if fn.validator is not None:
+            gr_request = route_utils.compile_gr_request(
+                body=body,
+                fn=fn,
+                username=username,
+                request=None,
+            )
+            assert body.request is not None  # noqa: S101
+            api_route_path = route_utils.get_api_call_path(request=body.request)
+            root_path = route_utils.get_root_url(
+                request=body.request,
+                route_path=api_route_path,
+                root_path=self.blocks.app.root_path,
+            )
+            validator_fn = BlockFunction(
+                fn=fn.validator,
+                api_name=None,
+                api_visibility="undocumented",
+                batch=fn.batch,
+                concurrency_id=None,
+                concurrency_limit=None,
+                inputs=fn.inputs,
+                outputs=fn.inputs,
+                preprocess=fn.preprocess,
+                postprocess=False,
+                inputs_as_dict=fn.inputs_as_dict,
+                targets=[],
+                _id=-1,
+                max_batch_size=fn.max_batch_size,
+                tracks_progress=fn.tracks_progress,
+                js=None,
+                show_progress="hidden",
+                show_progress_on=fn.show_progress_on,
+                cancels=fn.cancels,
+                collects_event_data=fn.collects_event_data,
+            )
+
+            event = Event(
+                body.session_hash,
+                validator_fn,
+                request,
+                username,
+            )
+            try:
+                response = await route_utils.call_process_api(
+                    app=self.blocks.app,
+                    body=body,
+                    gr_request=gr_request,
+                    fn=validator_fn,
+                    root_path=root_path,
+                )
+
+                validation_response: list[dict[str, Any]] | dict[str, Any] | None = (
+                    response.get("data")
+                )
+
+                if validation_response is not None:
+                    (is_valid, validation_data) = process_validation_response(
+                        validation_response, fn
+                    )
+                    if is_valid is False:
+                        return (
+                            False,
+                            validation_data,
+                            "validator_error",
+                        )
+
+            except Exception as e:
+                print(str(e))
+                return False, str(e), "error"
         event = Event(
             body.session_hash,
             fn,
@@ -259,7 +400,7 @@ class Queue:
         }
 
         self.broadcast_estimations(event.concurrency_id, len(event_queue.queue) - 1)
-        return True, event._id
+        return True, event._id, "success"
 
     def _cancel_asyncio_tasks(self):
         for task in self._asyncio_tasks:
@@ -395,7 +536,7 @@ class Queue:
         event_id: str,
         log: str,
         title: str,
-        level: Literal["info", "warning"],
+        level: Literal["info", "warning", "success"],
         duration: float | None = 10,
         visible: bool = True,
     ):
@@ -613,9 +754,10 @@ class Queue:
                 request=None,
             )
             assert body.request is not None  # noqa: S101
+            api_route_path = route_utils.get_api_call_path(request=body.request)
             root_path = route_utils.get_root_url(
                 request=body.request,
-                route_path=f"{API_PREFIX}/queue/join",
+                route_path=api_route_path,
                 root_path=app.root_path,
             )
             first_iteration = 0
@@ -637,7 +779,8 @@ class Queue:
                         response["is_generating"] = not event.is_finished
 
             except Exception as e:
-                traceback.print_exc()
+                if not isinstance(e, Error) or e.print_exception:
+                    traceback.print_exc()
                 response = None
                 err = e
                 for event in awake_events:
@@ -650,6 +793,7 @@ class Queue:
                             success=False,
                         ),
                     )
+                    await run_sync(self.compute_analytics_summary, self.event_analytics)
             if response and response.get("is_generating", False):
                 old_response = response
                 old_err = err
@@ -722,7 +866,8 @@ class Queue:
                             if event.streaming:
                                 response["is_generating"] = not event.is_finished
                     except Exception as e:
-                        traceback.print_exc()
+                        if not isinstance(e, Error) or e.print_exception:
+                            traceback.print_exc()
                         response = None
                         err = e
 
@@ -764,7 +909,8 @@ class Queue:
                 for event in events:
                     self.event_analytics[event._id]["process_time"] = duration
         except Exception as e:
-            traceback.print_exc()
+            if not isinstance(e, Error) or e.print_exception:
+                traceback.print_exc()
         finally:
             event_queue = self.event_queue_per_concurrency_id[events[0].concurrency_id]
             event_queue.current_concurrency -= 1
@@ -792,6 +938,7 @@ class Queue:
                     )
                 else:
                     self.event_analytics[event._id]["status"] = "cancelled"
+                await run_sync(self.compute_analytics_summary, self.event_analytics)
 
     async def reset_iterators(self, event_id: str):
         # Do the same thing as the /reset route
@@ -802,6 +949,47 @@ class Queue:
             # Failure, but don't raise an error
             return
         async with app.lock:
+            try:
+                await safe_aclose_iterator(app.iterators[event_id])
+            except Exception:
+                pass
             del app.iterators[event_id]
             app.iterators_to_reset.add(event_id)
         return
+
+
+def process_validation_response(
+    validation_response: list[dict[str, Any]] | dict[str, Any],
+    fn: BlockFunction | None = None,
+) -> tuple[bool, list[dict[str, Any]]]:
+    validation_data: list[dict[str, Any]] = []
+
+    param_names = []
+    if fn and fn.fn:
+        sig = inspect.signature(fn.fn)
+        param_names = list(sig.parameters.keys())
+
+    if isinstance(validation_response, list):
+        for i, data in enumerate(validation_response):
+            if isinstance(data, dict) and data.get("__type__", None) == "validate":
+                param_name = (
+                    param_names[i] if i < len(param_names) else f"parameter_{i}"
+                )
+                data_with_name = {**data, "parameter_name": param_name}
+                validation_data.append(data_with_name)
+            else:
+                validation_data.append({"is_valid": True, "message": ""})
+
+    elif (
+        isinstance(validation_data, dict)
+        and validation_data.get("is_valid", None) is False
+    ):
+        validation_data.append(
+            validation_response,
+        )
+    else:
+        validation_data.append({"is_valid": True, "message": ""})
+
+    return all(
+        x.get("is_valid", None) is True for x in validation_data
+    ), validation_data

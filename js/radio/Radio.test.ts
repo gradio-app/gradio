@@ -1,6 +1,7 @@
 import { test, describe, assert, afterEach } from "vitest";
 
 import { cleanup, render } from "@self/tootils";
+import { tick } from "svelte";
 import event from "@testing-library/user-event";
 
 import Radio from "./Index.svelte";
@@ -38,7 +39,8 @@ describe("Radio", () => {
 		const { getByDisplayValue, getAllByRole } = await render(Radio, {
 			choices: choices,
 			value: "cat",
-			label: "Radio"
+			label: "Radio",
+			interactive: true
 		});
 
 		const dog_radio = getAllByRole("radio")[0];
@@ -62,7 +64,8 @@ describe("Radio", () => {
 		const { listen, getAllByTestId } = await render(Radio, {
 			choices: choices,
 			value: "cat",
-			label: "Radio"
+			label: "Radio",
+			interactive: true
 		});
 
 		const mock = listen("select");
@@ -75,7 +78,8 @@ describe("Radio", () => {
 		const { container } = await render(Radio, {
 			choices: choices,
 			value: "cat",
-			label: "Radio"
+			label: "Radio",
+			interactive: true
 		});
 
 		const { getAllByLabelText } = await render(
@@ -83,7 +87,8 @@ describe("Radio", () => {
 			{
 				choices: choices,
 				value: "dog",
-				label: "Radio"
+				label: "Radio",
+				interactive: true
 			},
 			container
 		);
@@ -95,5 +100,27 @@ describe("Radio", () => {
 
 		expect([items[0].checked, items[1].checked]).toEqual([true, true]);
 		cleanup();
+	});
+
+	test("dispatches change and should not dispatch select/input on programmatic value update", async () => {
+		const { unmount, listen } = await render(Radio, {
+			choices: choices,
+			value: "cat",
+			label: "Radio"
+		});
+
+		const select_mock = listen("select" as never);
+		const input_mock = listen("input" as never);
+
+		unmount();
+		await render(Radio, {
+			choices: choices,
+			value: "dog",
+			label: "Radio"
+		});
+		await tick();
+
+		expect(select_mock.callCount).toBe(0);
+		expect(input_mock.callCount).toBe(0);
 	});
 });

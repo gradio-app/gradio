@@ -20,6 +20,7 @@ demo = gr.Interface(
     transcribe,
     gr.Audio(sources="microphone"),
     "text",
+    api_name="predict",
 )
 
 if __name__ == "__main__":

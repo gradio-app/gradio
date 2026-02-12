@@ -1,5 +1,67 @@
 # @self/build
 
+## 0.5.2
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/theme@0.6.1
+
+## 0.5.1
+
+### Dependency updates
+
+- @gradio/theme@0.6.0
+
+## 0.5.0
+
+### Features
+
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - S5 df take3
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - fix custom components
+- [#12438](https://github.com/gradio-app/gradio/pull/12438) [`25ffc03`](https://github.com/gradio-app/gradio/commit/25ffc0398f8feb43d817c02b2ab970c16de6d797) - Svelte5 migration and bugfix
+
+### Dependencies
+
+- @gradio/theme@0.5.0
+
+## 0.5.0-dev.1
+
+### Features
+
+- [#12397](https://github.com/gradio-app/gradio/pull/12397) [`f2a47fe`](https://github.com/gradio-app/gradio/commit/f2a47fe4f155a1ed93ad3e8f18504e9427ba61d2) - fix custom components.  Thanks @pngwn!
+
+## 0.4.1-dev.0
+
+### Dependency updates
+
+- @gradio/theme@0.5.0-dev.0
+
+## 0.4.0
+
+### Features
+
+- [#11858](https://github.com/gradio-app/gradio/pull/11858) [`3f8ea13`](https://github.com/gradio-app/gradio/commit/3f8ea13a8ca92abf0ad34392e403a449fda3c6c2) - remove lite.  Thanks @pngwn!
+
+## 0.3.0
+
+### Features
+
+- [#11783](https://github.com/gradio-app/gradio/pull/11783) [`f407daf`](https://github.com/gradio-app/gradio/commit/f407daf8046f37e042ab8b86730ff0ab8d174bcf) - Add Walkthrough and Step compoents to facilitate multi-step workflows.  Thanks @pngwn!
+
+### Fixes
+
+- [#11749](https://github.com/gradio-app/gradio/pull/11749) [`70f4532`](https://github.com/gradio-app/gradio/commit/70f4532a4dc7576dbdbe1d0a43a05644a0dfcf43) - fix various iFrame related UI issues when deploying to spaces.  Thanks @pngwn!
+
+## 0.2.1
+
+### Dependency updates
+
+- @gradio/theme@0.4.0
+
 ## 0.2.0
 
 ### Features

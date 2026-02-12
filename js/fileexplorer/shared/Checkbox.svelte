@@ -1,13 +1,16 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
-	export let value: boolean;
-	export let disabled: boolean;
-	const dispatch = createEventDispatcher<{ change: boolean }>();
+	interface Props {
+		value: boolean;
+		disabled: boolean;
+		onchange?: (value: boolean) => void;
+	}
+
+	let { value = $bindable(), disabled, onchange }: Props = $props();
 </script>
 
 <input
 	bind:checked={value}
-	on:input={() => dispatch("change", !value)}
+	oninput={() => onchange?.(!value)}
 	type="checkbox"
 	{disabled}
 	class:disabled={disabled && !value}

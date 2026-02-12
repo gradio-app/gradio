@@ -20,7 +20,11 @@ GRADIO_SHARE_SERVER_ADDRESS = os.getenv("GRADIO_SHARE_SERVER_ADDRESS")
 
 
 def setup_tunnel(
-    local_host: str, local_port: int, share_token: str, share_server_address: str | None
+    local_host: str,
+    local_port: int,
+    share_token: str,
+    share_server_address: str | None,
+    share_server_tls_certificate: str | None,
 ) -> str:
     share_server_address = (
         GRADIO_SHARE_SERVER_ADDRESS
@@ -36,6 +40,7 @@ def setup_tunnel(
             Path(CERTIFICATE_PATH).parent.mkdir(parents=True, exist_ok=True)
             with open(CERTIFICATE_PATH, "w") as f:
                 f.write(certificate)
+            share_server_tls_certificate = CERTIFICATE_PATH
         except Exception as e:
             raise RuntimeError(
                 "Could not get share link from Gradio API Server."
@@ -43,7 +48,14 @@ def setup_tunnel(
     else:
         remote_host, remote_port = share_server_address.split(":")
         remote_port = int(remote_port)
-    tunnel = Tunnel(remote_host, remote_port, local_host, local_port, share_token)
+    tunnel = Tunnel(
+        remote_host,
+        remote_port,
+        local_host,
+        local_port,
+        share_token,
+        share_server_tls_certificate,
+    )
     address = tunnel.start_tunnel()
     return address
 
@@ -54,7 +66,9 @@ def url_ok(url: str) -> bool:
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore")
                 r = httpx.head(url, timeout=3, verify=False)
-            if r.status_code in (200, 401, 302):  # 401 or 302 if auth is set
+            if (
+                r.status_code in (200, 401, 302, 303, 307)
+            ):  # 401 or 302 if auth is set; 303 or 307 are alternatives to 302 for temporary redirects
                 return True
             time.sleep(0.500)
     except (ConnectionError, httpx.ConnectError, httpx.TimeoutException):

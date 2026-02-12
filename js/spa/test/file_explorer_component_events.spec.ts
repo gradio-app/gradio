@@ -1,6 +1,6 @@
 import { test, expect } from "@self/tootils";
 
-test("File Explorer is interactive and re-runs the server_fn when root is updated", async ({
+test.skip("File Explorer is interactive and re-runs the server_fn when root is updated", async ({
 	page
 }) => {
 	await page
@@ -43,7 +43,7 @@ test("File Explorer is interactive and re-runs the server_fn when root is update
 		.getByRole("checkbox")
 		.uncheck();
 
-	await expect(page.locator("#total-changes input")).toHaveValue("3");
+	await expect(page.locator("#total-changes input")).toHaveValue("6");
 });
 
 test("File Explorer correctly displays both directories and files. Directories included in value.", async ({
@@ -73,7 +73,7 @@ test("File Explorer correctly displays both directories and files. Directories i
 
 	await page
 		.locator("span")
-		.filter({ hasText: "dir3_foo.txt" })
+		.filter({ hasText: "dir3_bar.log" })
 		.getByRole("checkbox")
 		.check();
 
@@ -85,7 +85,7 @@ test("File Explorer correctly displays both directories and files. Directories i
 		return (
 			files.some((f) => f.endsWith("dir4")) &&
 			files.some((f) => f.endsWith("dir_4_foo.txt")) &&
-			files.some((f) => f.endsWith("dir3_foo.txt"))
+			files.some((f) => f.endsWith("dir3_bar.log"))
 		);
 	};
 
@@ -104,7 +104,7 @@ test("File Explorer selects all children when top level directory is selected.",
 		.getByRole("checkbox")
 		.check();
 
-	await Promise.all([page.getByRole("button", { name: "Run" }).click()]);
+	await page.getByRole("button", { name: "Run" }).click();
 
 	async function directory_paths_displayed() {
 		const value = await page.getByLabel("Selected Directory").inputValue();

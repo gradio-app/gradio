@@ -3,8 +3,8 @@ import { test, expect } from "@self/tootils";
 test("Components value can be set via callable to a non-None value", async ({
 	page
 }) => {
-	const textBoxValue = await page.getByLabel(`component_00`).inputValue();
-	expect(textBoxValue.length).toBeGreaterThan(1);
+	await page.waitForTimeout(500);
+	expect(page.getByLabel(`component_00`).inputValue()).not.toEqual("");
 
 	const sliderValue = await page.getByLabel(`component_01`).inputValue();
 	expect(parseFloat(sliderValue)).toBeGreaterThan(0);

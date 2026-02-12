@@ -2,74 +2,86 @@
 	//@ts-nocheck
 	import { Plot as PlotIcon } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
-	import type { ThemeMode } from "js/core/src/components/types";
-	import type { Gradio, SelectData } from "@gradio/utils";
+	import type { Gradio } from "@gradio/utils";
+	import type { PlotEvents, PlotProps } from "../types";
+	import { untrack } from "svelte";
 
-	export let value;
-	let _value;
-	export let colors: string[] = [];
-	export let show_label: boolean;
-	export let theme_mode: ThemeMode;
-	export let caption: string;
-	export let bokeh_version: string | null;
-	export let show_actions_button: bool;
-	export let gradio: Gradio<{
-		select: SelectData;
-	}>;
-	export let x_lim: [number, number] | null = null;
-	export let _selectable: boolean;
+	let {
+		value,
+		theme_mode,
+		caption,
+		bokeh_version,
+		show_actions_button,
+		_selectable,
+		x_lim,
+		show_fullscreen_button,
+		show_label,
+		on_change
+	}: {
+		value: null | string;
+		theme_mode: ThemeMode;
+		caption: string;
+		bokeh_version: string | null;
+		show_actions_button: boolean;
+		_selectable: boolean;
+		x_lim: [number, number] | null;
+		show_fullscreen_button: boolean;
+		show_label: boolean;
+		on_change: () => void;
+	} = $props();
 
-	let PlotComponent: any = null;
-	let _type = value?.type;
+	let PlotComponent: any = $state(null);
+	let loaded_plotly_css = $state(false);
+	let key = $state(0);
 
 	const plotTypeMapping = {
 		plotly: () => import("./plot_types/PlotlyPlot.svelte"),
 		bokeh: () => import("./plot_types/BokehPlot.svelte"),
-		altair: () => import("./plot_types/AltairPlot.svelte"),
-		matplotlib: () => import("./plot_types/MatplotlibPlot.svelte")
+		matplotlib: () => import("./plot_types/MatplotlibPlot.svelte"),
+		altair: () => import("./plot_types/AltairPlot.svelte")
 	};
 
 	let loadedPlotTypeMapping = {};
 
 	const is_browser = typeof window !== "undefined";
-	let key = 0;
+	let _type = $state(null);
 
-	$: if (value !== _value) {
-		key += 1;
+	$effect(() => {
 		let type = value?.type;
-		if (type !== _type) {
-			PlotComponent = null;
-		}
-		if (type && type in plotTypeMapping && is_browser) {
-			if (loadedPlotTypeMapping[type]) {
-				PlotComponent = loadedPlotTypeMapping[type];
-			} else {
-				plotTypeMapping[type]().then((module) => {
-					PlotComponent = module.default;
-					loadedPlotTypeMapping[type] = PlotComponent;
-				});
+		untrack(() => {
+			key = key + 1;
+			if (type !== _type) {
+				PlotComponent = null;
 			}
-		}
-		_value = value;
-		_type = type;
-	}
+			if (type && type in plotTypeMapping && is_browser) {
+				if (loadedPlotTypeMapping[type]) {
+					PlotComponent = loadedPlotTypeMapping[type];
+				} else {
+					plotTypeMapping[type]().then((module) => {
+						PlotComponent = module.default;
+						loadedPlotTypeMapping[type] = PlotComponent;
+					});
+				}
+			}
+			_type = type;
+		});
+		on_change();
+	});
 </script>
 
 {#if value && PlotComponent}
 	{#key key}
-		<svelte:component
-			this={PlotComponent}
+		<PlotComponent
 			{value}
-			{colors}
+			colors={[]}
 			{theme_mode}
 			{show_label}
 			{caption}
 			{bokeh_version}
 			{show_actions_button}
-			{gradio}
 			{_selectable}
 			{x_lim}
-			on:load
+			bind:loaded_plotly_css
 			on:select
 		/>
 	{/key}

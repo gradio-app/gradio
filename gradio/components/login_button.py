@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import json
 import time
-import warnings
 from collections.abc import Sequence
+from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document
 
+from gradio import utils
 from gradio.components import Button, Component
 from gradio.context import get_blocks_context
 from gradio.routes import Request
@@ -21,7 +22,18 @@ if TYPE_CHECKING:
 @document()
 class LoginButton(Button):
     """
-    Creates a button that redirects the user to Sign with Hugging Face using OAuth.
+    Creates a "Sign In" button that redirects the user to sign in with Hugging Face OAuth.
+    Once the user is signed in, the button will act as a logout button, and you can
+    retrieve a signed-in user's profile by adding a parameter of type `gr.OAuthProfile`
+    to any Gradio function. This will only work if this Gradio app is running in a
+    Hugging Face Space. Permissions for the OAuth app can be configured in the Spaces
+    README file, as described here: https://huggingface.co/docs/hub/en/spaces-oauth.
+    For local development, instead of OAuth, the local Hugging Face account that is
+    logged in (via `hf auth login`) will be available through the `gr.OAuthProfile`
+    object.
+
+    Demos: login_with_huggingface
+    Guides: sharing-your-app
     """
 
     is_template = True
@@ -34,16 +46,17 @@ class LoginButton(Button):
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop", "huggingface"] = "huggingface",
-        size: Literal["sm", "lg"] | None = None,
-        icon: str
-        | None = "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
+        size: Literal["sm", "md", "lg"] = "lg",
+        icon: str | Path | None = utils.get_icon_path("huggingface-logo.svg"),
         link: str | None = None,
-        visible: bool = True,
+        link_target: Literal["_self", "_blank", "_parent", "_top"] = "_self",
+        visible: bool | Literal["hidden"] = True,
         interactive: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         scale: int | None = None,
         min_width: int | None = None,
     ):
@@ -60,21 +73,19 @@ class LoginButton(Button):
             size=size,
             icon=icon,
             link=link,
+            link_target=link_target,
             visible=visible,
             interactive=interactive,
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             scale=scale,
             min_width=min_width,
         )
         if get_blocks_context():
             self.activate()
-        else:
-            warnings.warn(
-                "LoginButton created outside of a Blocks context. May not work unless you call its `activate()` method manually."
-            )
 
     def activate(self):
         # Taken from https://cmgdo.com/external-link-in-gradio-button/
@@ -82,7 +93,7 @@ class LoginButton(Button):
         # ('self' value will be either "Sign in with Hugging Face" or "Signed in as ...")
         _js = _js_handle_redirect.replace(
             "BUTTON_DEFAULT_VALUE", json.dumps(self.value)
-        )
+        ).replace("REDIRECT_URL", self.page)
         self.click(fn=None, inputs=[self], outputs=None, js=_js)
 
         self.attach_load_event(self._check_login_status, None)
@@ -114,7 +125,7 @@ class LoginButton(Button):
 # on the same tab.
 _js_handle_redirect = """
 (buttonValue) => {
-    uri = buttonValue === BUTTON_DEFAULT_VALUE ? '/login/huggingface' : '/logout';
+    uri = buttonValue === BUTTON_DEFAULT_VALUE ? '/login/huggingface?_target_url=/REDIRECT_URL' : '/logout?_target_url=/REDIRECT_URL';
     window.parent?.postMessage({ type: "SET_SCROLLING", enabled: true }, "*");
     setTimeout(() => {
         window.location.assign(uri + window.location.search);

@@ -32,6 +32,7 @@ demo = gr.Interface(
     title=title,
     description=description,
     article=article,
-    examples=examples)
+    examples=examples,
+    api_name="predict")
 
 demo.launch()

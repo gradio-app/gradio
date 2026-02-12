@@ -1,7 +1,7 @@
 import type { ApiData, ApiInfo, Config, JsApiData, EndpointInfo, Status } from "../types";
 export declare const RE_SPACE_NAME: RegExp;
 export declare const RE_SPACE_DOMAIN: RegExp;
-export declare function process_endpoint(app_reference: string, hf_token?: `hf_${string}`): Promise<{
+export declare function process_endpoint(app_reference: string, token?: `hf_${string}`): Promise<{
     space_id: string | false;
     host: string;
     ws_protocol: "ws" | "wss";
@@ -18,7 +18,7 @@ export declare function get_description(type: {
     description: string;
 }, serializer: string): string;
 export declare function handle_message(data: any, last_status: Status["stage"]): {
-    type: "hash" | "data" | "update" | "complete" | "generating" | "log" | "none" | "heartbeat" | "streaming" | "unexpected_error";
+    type: "hash" | "data" | "update" | "complete" | "generating" | "log" | "none" | "heartbeat" | "streaming" | "broken_connection" | "unexpected_error";
     data?: any;
     status?: Status;
     original_msg?: string;

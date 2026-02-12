@@ -1,9 +1,10 @@
+# type: ignore
 import gradio as gr
 from transformers import DPTFeatureExtractor, DPTForDepthEstimation
 import torch
 import numpy as np
 from PIL import Image
-import open3d as o3d
+import open3d as o3d  # type: ignore
 from pathlib import Path
 
 feature_extractor = DPTFeatureExtractor.from_pretrained("Intel/dpt-large")
@@ -111,6 +112,8 @@ iface = gr.Interface(fn=process_image,
                      description=description,
                      examples=examples,
                      flagging_mode="never",
-                     cache_examples=False)
+                     cache_examples=False,
+                     api_name="predict",
+                     )
 
 iface.launch(debug=True)

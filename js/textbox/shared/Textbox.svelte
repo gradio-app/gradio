@@ -1,61 +1,120 @@
 <script lang="ts">
-	import {
-		beforeUpdate,
-		afterUpdate,
-		createEventDispatcher,
-		tick
-	} from "svelte";
-	import { BlockTitle } from "@gradio/atoms";
+	import { tick } from "svelte";
+	import { BlockTitle, IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import { Copy, Check, Send, Square } from "@gradio/icons";
-	import { fade } from "svelte/transition";
-	import type { SelectData } from "@gradio/utils";
+	import type {
+		SelectData,
+		CopyData,
+		CustomButton as CustomButtonType
+	} from "@gradio/utils";
+	import type { InputHTMLAttributes } from "../types";
 
-	export let value = "";
-	export let value_is_output = false;
-	export let lines = 1;
-	export let placeholder = "Type here...";
-	export let label: string;
-	export let info: string | undefined = undefined;
-	export let disabled = false;
-	export let show_label = true;
-	export let container = true;
-	export let max_lines: number;
-	export let type: "text" | "password" | "email" = "text";
-	export let show_copy_button = false;
-	export let submit_btn: string | boolean | null = null;
-	export let stop_btn: string | boolean | null = null;
-	export let rtl = false;
-	export let autofocus = false;
-	export let text_align: "left" | "right" | undefined = undefined;
-	export let autoscroll = true;
-	export let max_length: number | undefined = undefined;
-	export let root: string;
+	let {
+		value = $bindable(""),
+		value_is_output = $bindable(false),
+		lines = 1,
+		placeholder = "",
+		label,
+		info = undefined,
+		disabled = false,
+		show_label = true,
+		container = true,
+		max_lines = undefined,
+		type = "text",
+		buttons = null,
+		oncustombuttonclick = null,
+		submit_btn = null,
+		stop_btn = null,
+		rtl = false,
+		autofocus = false,
+		text_align = undefined,
+		autoscroll = true,
+		max_length = undefined,
+		html_attributes = null,
+		validation_error = undefined,
+		onchange,
+		onsubmit,
+		onstop,
+		onblur,
+		onselect,
+		oninput,
+		onfocus,
+		oncopy
+	}: {
+		value?: string;
+		value_is_output?: boolean;
+		lines?: number;
+		placeholder?: string;
+		label: string;
+		info?: string | undefined;
+		disabled?: boolean;
+		show_label?: boolean;
+		container?: boolean;
+		max_lines?: number | undefined;
+		type?: "text" | "password" | "email";
+		buttons?: (string | CustomButtonType)[] | null;
+		oncustombuttonclick?: ((id: number) => void) | null;
+		submit_btn?: string | boolean | null;
+		stop_btn?: string | boolean | null;
+		rtl?: boolean;
+		autofocus?: boolean;
+		text_align?: "left" | "right" | undefined;
+		autoscroll?: boolean;
+		max_length?: number | undefined;
+		html_attributes?: InputHTMLAttributes | null;
+		validation_error?: string | null | undefined;
+		onchange?: (value: string) => void;
+		onsubmit?: () => void;
+		onstop?: () => void;
+		onblur?: () => void;
+		onselect?: (data: SelectData) => void;
+		oninput?: (value: string) => void;
+		onfocus?: () => void;
+		oncopy?: (data: CopyData) => void;
+	} = $props();
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
-	let copied = false;
+	let copied = $state(false);
 	let timer: NodeJS.Timeout;
-	let can_scroll: boolean;
-	let previous_scroll_top = 0;
-	let user_has_scrolled_up = false;
+	let can_scroll = $state(false);
+	let previous_scroll_top = $state(0);
+	let user_has_scrolled_up = $state(false);
+	let _max_lines = $state(1);
 
 	const show_textbox_border = !submit_btn;
 
-	$: value, el && lines !== max_lines && resize({ target: el });
+	$effect(() => {
+		if (max_lines === undefined || max_lines === null) {
+			if (type === "text") {
+				_max_lines = Math.max(lines, 20);
+			} else {
+				_max_lines = 1;
+			}
+		} else {
+			_max_lines = Math.max(max_lines, lines);
+		}
+	});
 
-	$: if (value === null) value = "";
+	$effect(() => {
+		value;
+		validation_error;
+		if (el && lines !== _max_lines && _max_lines > 1) {
+			resize({ target: el });
+		}
+	});
 
-	const dispatch = createEventDispatcher<{
-		change: string;
-		submit: undefined;
-		stop: undefined;
-		blur: undefined;
-		select: SelectData;
-		input: undefined;
-		focus: undefined;
-	}>();
+	$effect(() => {
+		if (value === null) value = "";
+	});
 
-	beforeUpdate(() => {
-		can_scroll = el && el.offsetHeight + el.scrollTop > el.scrollHeight - 100;
+	$effect.pre(() => {
+		if (
+			!user_has_scrolled_up &&
+			el &&
+			el.offsetHeight + el.scrollTop > el.scrollHeight - 100
+		) {
+			can_scroll = true;
+		}
 	});
 
 	const scroll = (): void => {
@@ -64,14 +123,13 @@
 		}
 	};
 
-	function handle_change(): void {
-		dispatch("change", value);
-		if (!value_is_output) {
-			dispatch("input");
-		}
+	async function handle_change(): Promise<void> {
+		await tick();
+		onchange?.(value);
 	}
-	afterUpdate(() => {
-		if (autofocus) {
+
+	$effect(() => {
+		if (autofocus && el) {
 			el.focus();
 		}
 		if (can_scroll && autoscroll) {
@@ -79,11 +137,16 @@
 		}
 		value_is_output = false;
 	});
-	$: value, handle_change();
+
+	$effect(() => {
+		value;
+		handle_change();
+	});
 
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
 			await navigator.clipboard.writeText(value);
+			oncopy?.({ value: value });
 			copy_feedback();
 		}
 	}
@@ -105,23 +168,26 @@
 			target.selectionStart as number,
 			target.selectionEnd as number
 		];
-		dispatch("select", { value: text.substring(...index), index: index });
+		onselect?.({ value: text.substring(...index), index: index });
 	}
 
 	async function handle_keypress(e: KeyboardEvent): Promise<void> {
-		await tick();
 		if (e.key === "Enter" && e.shiftKey && lines > 1) {
 			e.preventDefault();
-			dispatch("submit");
+			await tick();
+			onsubmit?.();
 		} else if (
 			e.key === "Enter" &&
 			!e.shiftKey &&
 			lines === 1 &&
-			max_lines >= 1
+			_max_lines >= 1
 		) {
 			e.preventDefault();
-			dispatch("submit");
+			await tick();
+			onsubmit?.();
 		}
+		await tick();
+		oninput?.(value);
 	}
 
 	function handle_scroll(event: Event): void {
@@ -140,18 +206,18 @@
 	}
 
 	function handle_stop(): void {
-		dispatch("stop");
+		onstop?.();
 	}
 
 	function handle_submit(): void {
-		dispatch("submit");
+		onsubmit?.();
 	}
 
 	async function resize(
 		event: Event | { target: HTMLTextAreaElement | HTMLInputElement }
 	): Promise<void> {
 		await tick();
-		if (lines === max_lines) return;
+		if (lines === _max_lines) return;
 
 		const target = event.target as HTMLTextAreaElement;
 		const computed_styles = window.getComputedStyle(target);
@@ -160,9 +226,9 @@
 		const line_height = parseFloat(computed_styles.lineHeight);
 
 		let max =
-			max_lines === undefined
+			_max_lines === undefined
 				? false
-				: padding_top + padding_bottom + line_height * max_lines;
+				: padding_top + padding_bottom + line_height * _max_lines;
 		let min = padding_top + padding_bottom + lines * line_height;
 
 		target.style.height = "1px";
@@ -177,18 +243,39 @@
 		}
 
 		target.style.height = `${scroll_height}px`;
+
+		update_scrollbar_visibility(target);
+	}
+
+	function update_scrollbar_visibility(textarea: HTMLTextAreaElement): void {
+		// Using "auto" scroll does not work, as the scrollbar is visible even
+		// when the content is about the same height as the textarea height. So
+		// here, we add the scrollbar if the content is longer than a threshold
+		// of 1 line height beyond the textarea height.
+		const content_height = textarea.scrollHeight;
+		const visible_height = textarea.clientHeight;
+		const line_height = parseFloat(
+			window.getComputedStyle(textarea).lineHeight
+		);
+		if (content_height > visible_height + line_height) {
+			textarea.style.overflowY = "scroll";
+		} else {
+			textarea.style.overflowY = "hidden";
+		}
 	}
 
 	function text_area_resize(
 		_el: HTMLTextAreaElement,
 		_value: string
 	): any | undefined {
-		if (lines === max_lines) return;
-		_el.style.overflowY = "scroll";
+		if (lines === _max_lines || (lines === 1 && _max_lines === 1)) return;
+
 		_el.addEventListener("input", resize);
 
-		if (!_value.trim()) return;
-		resize({ target: _el });
+		if (_value.trim()) {
+			_el.style.overflowY = "scroll";
+			resize({ target: _el });
+		}
 
 		return {
 			destroy: () => _el.removeEventListener("input", resize)
@@ -198,27 +285,26 @@
 
 <!-- svelte-ignore a11y-autofocus -->
 <label class:container class:show_textbox_border>
-	{#if show_label && show_copy_button}
-		{#if copied}
-			<button
-				in:fade={{ duration: 300 }}
-				class="copy-button"
-				aria-label="Copied"
-				aria-roledescription="Text copied"><Check /></button
-			>
-		{:else}
-			<button
-				on:click={handle_copy}
-				class="copy-button"
-				aria-label="Copy"
-				aria-roledescription="Copy text"><Copy /></button
-			>
-		{/if}
+	{#if show_label && buttons && buttons.length > 0}
+		<IconButtonWrapper {buttons} {oncustombuttonclick}>
+			{#if buttons.some((btn) => typeof btn === "string" && btn === "copy")}
+				<IconButton
+					Icon={copied ? Check : Copy}
+					onclick={handle_copy}
+					label={copied ? "Copied" : "Copy"}
+				/>
+			{/if}
+		</IconButtonWrapper>
 	{/if}
-	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
+	<BlockTitle show_label={validation_error ? true : show_label} {info}
+		>{label}
+		{#if validation_error}
+			<div class="validation-error">{validation_error}</div>
+		{/if}
+	</BlockTitle>
 
 	<div class="input-container">
-		{#if lines === 1 && max_lines === 1}
+		{#if lines === 1 && _max_lines === 1}
 			{#if type === "text"}
 				<input
 					data-testid="textbox"
@@ -231,11 +317,19 @@
 					{disabled}
 					{autofocus}
 					maxlength={max_length}
-					on:keypress={handle_keypress}
-					on:blur
-					on:select={handle_select}
-					on:focus
+					onkeypress={handle_keypress}
+					onblur={() => onblur?.()}
+					onselect={handle_select}
+					onfocus={() => onfocus?.()}
+					class:validation-error={validation_error}
 					style={text_align ? "text-align: " + text_align : ""}
+					autocapitalize={html_attributes?.autocapitalize}
+					autocorrect={html_attributes?.autocorrect}
+					spellcheck={html_attributes?.spellcheck}
+					autocomplete={html_attributes?.autocomplete}
+					tabindex={html_attributes?.tabindex}
+					enterkeyhint={html_attributes?.enterkeyhint}
+					lang={html_attributes?.lang}
 				/>
 			{:else if type === "password"}
 				<input
@@ -248,11 +342,18 @@
 					{disabled}
 					{autofocus}
 					maxlength={max_length}
-					on:keypress={handle_keypress}
-					on:blur
-					on:select={handle_select}
-					on:focus
+					onkeypress={handle_keypress}
+					onblur={() => onblur?.()}
+					onselect={handle_select}
+					onfocus={() => onfocus?.()}
+					class:validation-error={validation_error}
 					autocomplete=""
+					autocapitalize={html_attributes?.autocapitalize}
+					autocorrect={html_attributes?.autocorrect}
+					spellcheck={html_attributes?.spellcheck}
+					tabindex={html_attributes?.tabindex}
+					enterkeyhint={html_attributes?.enterkeyhint}
+					lang={html_attributes?.lang}
 				/>
 			{:else if type === "email"}
 				<input
@@ -265,18 +366,24 @@
 					{disabled}
 					{autofocus}
 					maxlength={max_length}
-					on:keypress={handle_keypress}
-					on:blur
-					on:select={handle_select}
-					on:focus
+					onkeypress={handle_keypress}
+					onblur={() => onblur?.()}
+					onselect={handle_select}
+					onfocus={() => onfocus?.()}
+					class:validation-error={validation_error}
 					autocomplete="email"
+					autocapitalize={html_attributes?.autocapitalize}
+					autocorrect={html_attributes?.autocorrect}
+					spellcheck={html_attributes?.spellcheck}
+					tabindex={html_attributes?.tabindex}
+					enterkeyhint={html_attributes?.enterkeyhint}
+					lang={html_attributes?.lang}
 				/>
 			{/if}
 		{:else}
 			<textarea
 				data-testid="textbox"
 				use:text_area_resize={value}
-				class="scroll-hide"
 				dir={rtl ? "rtl" : "ltr"}
 				class:no-label={!show_label && (submit_btn || stop_btn)}
 				bind:value
@@ -286,19 +393,27 @@
 				{disabled}
 				{autofocus}
 				maxlength={max_length}
-				on:keypress={handle_keypress}
-				on:blur
-				on:select={handle_select}
-				on:focus
-				on:scroll={handle_scroll}
+				onkeypress={handle_keypress}
+				onblur={() => onblur?.()}
+				onselect={handle_select}
+				onfocus={() => onfocus?.()}
+				onscroll={handle_scroll}
+				class:validation-error={validation_error}
 				style={text_align ? "text-align: " + text_align : ""}
+				autocapitalize={html_attributes?.autocapitalize}
+				autocorrect={html_attributes?.autocorrect}
+				spellcheck={html_attributes?.spellcheck}
+				autocomplete={html_attributes?.autocomplete}
+				tabindex={html_attributes?.tabindex}
+				enterkeyhint={html_attributes?.enterkeyhint}
+				lang={html_attributes?.lang}
 			/>
 		{/if}
 		{#if submit_btn}
 			<button
 				class="submit-button"
 				class:padded-button={submit_btn !== true}
-				on:click={handle_submit}
+				onclick={handle_submit}
 			>
 				{#if submit_btn === true}
 					<Send />
@@ -311,7 +426,7 @@
 			<button
 				class="stop-button"
 				class:padded-button={stop_btn !== true}
-				on:click={handle_stop}
+				onclick={handle_stop}
 			>
 				{#if stop_btn === true}
 					<Square fill="none" stroke_width={2.5} />
@@ -329,7 +444,9 @@
 		width: 100%;
 	}
 
-	input,
+	input[type="text"],
+	input[type="password"],
+	input[type="email"],
 	textarea {
 		flex-grow: 1;
 		outline: none !important;
@@ -349,6 +466,7 @@
 		line-height: var(--line-sm);
 		border: none;
 	}
+
 	textarea.no-label {
 		padding-top: 5px;
 		padding-bottom: 5px;
@@ -383,27 +501,6 @@
 	input::placeholder,
 	textarea::placeholder {
 		color: var(--input-placeholder-color);
-	}
-
-	.copy-button {
-		display: flex;
-		position: absolute;
-		top: var(--block-label-margin);
-		right: var(--block-label-margin);
-		align-items: center;
-		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--border-color-primary);
-		border-top: none;
-		border-right: none;
-		border-radius: var(--block-label-right-radius);
-		background: var(--block-label-background-fill);
-		padding: 5px;
-		width: 22px;
-		height: 22px;
-		overflow: hidden;
-		color: var(--block-label-color);
-		font: var(--font-sans);
-		font-size: var(--button-small-text-size);
 	}
 
 	/* Same submit button style as MultimodalTextbox for the consistent UI */
@@ -457,5 +554,20 @@
 	}
 	.padded-button {
 		padding: 0 10px;
+	}
+
+	div.validation-error {
+		color: var(--error-icon-color);
+		font-size: var(--font-sans);
+		margin-top: var(--spacing-sm);
+		font-weight: var(--weight-semibold);
+	}
+
+	label.container input.validation-error,
+	label.container textarea.validation-error {
+		border-color: transparent !important;
+		box-shadow:
+			0 0 3px 1px var(--error-icon-color),
+			var(--shadow-inset) !important;
 	}
 </style>

@@ -1,19 +1,32 @@
 <script lang="ts">
-	import { onMount, createEventDispatcher, tick, afterUpdate } from "svelte";
+	import { tick } from "svelte";
+	import Self from "./JSONNode.svelte";
 
-	export let value: any;
-	export let depth = 0;
-	export let is_root = false;
-	export let is_last_item = true;
-	export let key: string | number | null = null;
-	export let open = false;
-	export let theme_mode: "system" | "light" | "dark" = "system";
-	export let show_indices = false;
+	let {
+		value,
+		depth = 0,
+		is_root = false,
+		is_last_item = true,
+		key = null,
+		open = false,
+		theme_mode = "system" as "system" | "light" | "dark",
+		show_indices = false,
+		interactive = true
+	}: {
+		value: any;
+		depth?: number;
+		is_root?: boolean;
+		is_last_item?: boolean;
+		key?: string | number | null;
+		open?: boolean;
+		theme_mode?: "system" | "light" | "dark";
+		show_indices?: boolean;
+		interactive?: boolean;
+	} = $props();
 
-	const dispatch = createEventDispatcher();
-	let root_element: HTMLElement;
-	let collapsed = open ? false : depth >= 3;
-	let child_nodes: any[] = [];
+	let root_element = $state<HTMLElement>();
+	let collapsed = $state(open ? false : depth >= 3);
+	let child_nodes = $state<any[]>([]);
 
 	function is_collapsible(val: any): boolean {
 		return val !== null && (typeof val === "object" || Array.isArray(val));
@@ -22,7 +35,6 @@
 	async function toggle_collapse(): Promise<void> {
 		collapsed = !collapsed;
 		await tick();
-		dispatch("toggle", { collapsed, depth });
 	}
 
 	function get_collapsed_preview(val: any): string {
@@ -32,16 +44,16 @@
 		return String(val);
 	}
 
-	$: if (is_collapsible(value)) {
-		child_nodes = Object.entries(value);
-	} else {
-		child_nodes = [];
-	}
-	$: if (is_root && root_element) {
-		updateLineNumbers();
-	}
+	$effect(() => {
+		if (is_collapsible(value)) {
+			child_nodes = Object.entries(value);
+		} else {
+			child_nodes = [];
+		}
+	});
 
 	function updateLineNumbers(): void {
+		if (!root_element) return;
 		const lines = root_element.querySelectorAll(".line");
 		lines.forEach((line, index) => {
 			const line_number = line.querySelector(".line-number");
@@ -56,15 +68,14 @@
 		});
 	}
 
-	onMount(() => {
-		if (is_root) {
-			updateLineNumbers();
-		}
-	});
+	$effect(() => {
+		value;
+		collapsed;
 
-	afterUpdate(() => {
-		if (is_root) {
-			updateLineNumbers();
+		if (is_root && root_element) {
+			tick().then(() => {
+				updateLineNumbers();
+			});
 		}
 	});
 </script>
@@ -74,7 +85,6 @@
 	class:root={is_root}
 	class:dark-mode={theme_mode === "dark"}
 	bind:this={root_element}
-	on:toggle
 	style="--depth: {depth};"
 >
 	<div class="line" class:collapsed>
@@ -82,10 +92,11 @@
 		<span class="content">
 			{#if is_collapsible(value)}
 				<button
-					data-pseudo-content={collapsed ? "▶" : "▼"}
+					data-pseudo-content={interactive ? (collapsed ? "▶" : "▼") : ""}
 					aria-label={collapsed ? "Expand" : "Collapse"}
 					class="toggle"
-					on:click={toggle_collapse}
+					disabled={!interactive}
+					onclick={toggle_collapse}
 				/>
 			{/if}
 			{#if key !== null}
@@ -100,7 +111,7 @@
 					>{Array.isArray(value) ? "[" : "{"}</span
 				>
 				{#if collapsed}
-					<button on:click={toggle_collapse} class="preview">
+					<button onclick={toggle_collapse} class="preview">
 						{get_collapsed_preview(value)}
 					</button>
 					<span
@@ -129,15 +140,15 @@
 	{#if is_collapsible(value)}
 		<div class="children" class:hidden={collapsed}>
 			{#each child_nodes as [subKey, subVal], i}
-				<svelte:self
+				<Self
 					value={subVal}
 					depth={depth + 1}
 					is_last_item={i === child_nodes.length - 1}
-					key={subKey}
+					key={Array.isArray(value) && !show_indices ? null : subKey}
 					{open}
 					{theme_mode}
 					{show_indices}
-					on:toggle
+					{interactive}
 				/>
 			{/each}
 			<div class="line">

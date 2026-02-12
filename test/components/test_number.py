@@ -1,3 +1,5 @@
+import pytest
+
 import gradio as gr
 
 
@@ -32,8 +34,11 @@ class TestNumber:
             "proxy_url": None,
             "info": None,
             "precision": None,
+            "placeholder": None,
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
+            "buttons": [],
         }
 
     def test_component_functions_integer(self):
@@ -66,8 +71,11 @@ class TestNumber:
             "proxy_url": None,
             "info": None,
             "precision": 0,
+            "placeholder": None,
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
+            "buttons": [],
         }
 
     def test_component_functions_precision(self):
@@ -82,6 +90,17 @@ class TestNumber:
         assert numeric_input.postprocess(5.6784) == 5.68
         assert numeric_input.postprocess(2.1421) == 2.14
         assert numeric_input.postprocess(None) is None
+
+    def test_raise_if_out_of_bounds(self):
+        """
+        raise_if_out_of_bounds
+        """
+        numeric_input = gr.Number(precision=2, minimum=0, maximum=10)
+        numeric_input.preprocess(5)
+        with pytest.raises(gr.Error):
+            numeric_input.preprocess(11)
+        with pytest.raises(gr.Error):
+            numeric_input.preprocess(-1)
 
     def test_precision_none_with_integer(self):
         """

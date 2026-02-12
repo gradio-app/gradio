@@ -5,6 +5,8 @@
 	import "prismjs/components/prism-python";
 	import "prismjs/components/prism-typescript";
 
+	import { onMount, tick } from "svelte";
+
 	interface Param {
 		type: string | null;
 		description: string;
@@ -12,16 +14,33 @@
 		name?: string;
 	}
 
-	export let docs: Record<string, Param>;
-	export let lang: "python" | "typescript" = "python";
-	export let linkify: string[] = [];
-	export let header: string | null;
+	let {
+		docs,
+		linkify = [],
+		header,
+		anchor_links,
+		max_height
+	}: {
+		docs: Record<string, Param>;
+		linkify: string[];
+		header: string | null;
+		anchor_links: string | boolean;
+		max_height: number | string | undefined;
+	} = $props();
 
 	let component_root: HTMLElement;
-	let _docs: Param[];
-	let all_open = false;
+	let all_open = $state(false);
+	let lang: string = "python";
 
-	$: _docs = highlight_code(docs, lang);
+	let _docs = $derived(highlight_code(docs, lang));
+
+	function create_slug(name: string, anchor_links: string | boolean): string {
+		let prefix = "param-";
+		if (typeof anchor_links === "string") {
+			prefix += anchor_links + "-";
+		}
+		return prefix + name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+	}
 
 	function highlight(code: string, lang: "python" | "typescript"): string {
 		let highlighted = Prism.highlight(code, Prism.languages[lang], lang);
@@ -66,40 +85,109 @@
 			}
 		});
 	}
+
+	function render_links(description: string): string {
+		const escaped = description
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;")
+			.replace(/'/g, "&#039;");
+
+		const markdown_links = escaped.replace(
+			/\[([^\]]+)\]\(([^)]+)\)/g,
+			'<a href="$2" target="_blank">$1</a>'
+		);
+		return markdown_links;
+	}
+
+	onMount(() => {
+		if (window.location.hash) {
+			open_parameter_from_hash(window.location.hash);
+		}
+
+		window.addEventListener("hashchange", (e) => {
+			open_parameter_from_hash(window.location.hash);
+		});
+	});
+
+	function open_parameter_from_hash(hash: string): void {
+		if (!component_root) return;
+
+		const id = hash.slice(1);
+		const detail = component_root.querySelector(`#${id}`);
+
+		if (detail instanceof HTMLDetailsElement) {
+			detail.open = true;
+			detail.scrollIntoView({ behavior: "smooth" });
+		}
+	}
+
+	const get_dimension = (
+		dimension_value: string | number | undefined
+	): string | undefined => {
+		if (dimension_value === undefined) {
+			return undefined;
+		}
+		if (typeof dimension_value === "number") {
+			return dimension_value + "px";
+		} else if (typeof dimension_value === "string") {
+			return dimension_value;
+		}
+	};
 </script>
 
-<div class="wrap" bind:this={component_root}>
-	{#if header !== null}
-		<div class="header">
+<div
+	class="wrap"
+	bind:this={component_root}
+	style:max-height={get_dimension(max_height)}
+>
+	<div class="header">
+		{#if header !== null}
 			<span class="title">{header}</span>
-			<button
-				class="toggle-all"
-				on:click={toggle_all}
-				title={all_open ? "Close All" : "Open All"}
-			>
-				▼
-			</button>
-		</div>
-	{/if}
+		{/if}
+		<button
+			class="toggle-all"
+			on:click={toggle_all}
+			title={all_open ? "Close All" : "Open All"}
+		>
+			{all_open ? "▲" : "▼"}
+		</button>
+	</div>
 	{#if _docs}
-		{#each _docs as { type, description, default: _default, name } (name)}
-			<details class="param md">
-				<summary class="type">
-					<pre class="language-{lang}"><code
-							>{name}{#if type}: {@html type}{/if}</code
-						></pre>
-				</summary>
-				{#if _default}
-					<div class="default" class:last={!description}>
-						<span style:padding-right={"4px"}>default</span>
-						<code>= {@html _default}</code>
-					</div>
-				{/if}
-				{#if description}
-					<div class="description"><p>{description}</p></div>
-				{/if}
-			</details>
-		{/each}
+		<div class="param-content">
+			{#each _docs as { type, description, default: _default, name } (name)}
+				<details
+					class="param md"
+					id={anchor_links ? create_slug(name || "", anchor_links) : undefined}
+				>
+					<summary class="type">
+						{#if anchor_links}
+							<a
+								href="#{create_slug(name || '', anchor_links)}"
+								class="param-link"
+							>
+								<span class="link-icon">🔗</span>
+							</a>
+						{/if}
+						<pre class="language-{lang}"><code
+								>{name}{#if type}: {@html type}{/if}</code
+							></pre>
+					</summary>
+					{#if _default}
+						<div class="default" class:last={!description}>
+							<span style:padding-right={"4px"}>default</span>
+							<code>= {@html _default}</code>
+						</div>
+					{/if}
+					{#if description}
+						<div class="description">
+							<p>{@html render_links(description)}</p>
+						</div>
+					{/if}
+				</details>
+			{/each}
+		</div>
 	{/if}
 </div>
 
@@ -180,7 +268,6 @@
 	.wrap {
 		padding: 0rem;
 		border-radius: 5px;
-		border: 1px solid #eee;
 		overflow: hidden;
 		position: relative;
 		margin: 0;
@@ -191,11 +278,14 @@
 		width: 100%;
 		line-height: var(--line-sm);
 		color: var(--body-text-color);
+		display: grid;
+		grid-template-rows: auto 1fr;
 	}
 
 	.type {
 		position: relative;
 		padding: 0.7rem 1rem;
+		padding-left: 2rem;
 		background: var(--table-odd-background-fill);
 		border-bottom: 0px solid var(--table-border-color);
 		list-style: none;
@@ -255,5 +345,32 @@
 
 	details > summary::-webkit-details-marker {
 		display: none;
+	}
+
+	.param-link {
+		opacity: 0;
+		position: absolute;
+		left: 8px;
+		top: 50%;
+		transform: translateY(-50%);
+		transition: opacity 0.2s;
+		color: var(--body-text-color);
+		text-decoration: none;
+	}
+
+	.link-icon {
+		font-size: 14px;
+	}
+
+	.type:hover .param-link {
+		opacity: 0.7;
+	}
+
+	.param-link:hover {
+		opacity: 1 !important;
+	}
+
+	.param-content {
+		overflow-y: auto;
 	}
 </style>

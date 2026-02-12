@@ -7,7 +7,4 @@ export function load({ url }): void {
 	if (dev && url.pathname.startsWith("/theme")) {
 		redirect(308, `http://127.0.0.1:7860${pathname}${search}`);
 	}
-	if (url.pathname !== "/") {
-		redirect(308, "/");
-	}
 }

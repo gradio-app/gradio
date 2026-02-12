@@ -3,7 +3,7 @@ from __future__ import annotations
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated
 
 import typer
 from rich import print
@@ -12,7 +12,7 @@ import gradio
 from gradio.analytics import custom_component_analytics
 from gradio.cli.commands.components.install_component import _get_executable_path
 
-gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"
+gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"  # type: ignore
 
 
 def _dev(
@@ -35,13 +35,13 @@ def _dev(
         ),
     ] = "localhost",
     python_path: Annotated[
-        Optional[str],
+        str | None,
         typer.Option(
             help="Path to python executable. If None, will use the default path found by `which python3`. If python3 is not found, `which python` will be tried. If both fail an error will be raised."
         ),
     ] = None,
     gradio_path: Annotated[
-        Optional[str],
+        str | None,
         typer.Option(
             help="Path to gradio executable. If None, will use the default path found by `shutil.which`."
         ),

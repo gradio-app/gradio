@@ -15,10 +15,12 @@ core = [
     c.__name__
     for c in core_gradio_components()
     if not getattr(c, "is_template", False)
-    and c.__name__ not in ["Tab", "Form", "FormComponent", "BrowserState"]
+    and c.__name__ not in ["Tab", "Form", "FormComponent", "BrowserState", "Navbar"]
 ]
 
 
+@pytest.mark.serial
+@pytest.mark.flaky
 @pytest.mark.parametrize(
     "template",
     core,

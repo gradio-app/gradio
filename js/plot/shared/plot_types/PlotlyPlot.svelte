@@ -1,26 +1,26 @@
 <script lang="ts">
 	//@ts-nocheck
 	import Plotly from "plotly.js-dist-min";
-	import { afterUpdate, createEventDispatcher } from "svelte";
+	import { afterUpdate } from "svelte";
 
 	export let value;
 	export let show_label: boolean;
+	export let loaded_plotly_css = false;
 
 	$: plot = value?.plot;
 
 	let plot_div;
 	let plotly_global_style;
 
-	const dispatch = createEventDispatcher<{ load: undefined }>();
-
 	function load_plotly_css(): void {
-		if (!plotly_global_style) {
+		if (!loaded_plotly_css) {
 			plotly_global_style = document.getElementById("plotly.js-style-global");
 			const plotly_style_clone = plotly_global_style.cloneNode();
 			plot_div.appendChild(plotly_style_clone);
 			for (const rule of plotly_global_style.sheet.cssRules) {
 				plotly_style_clone.sheet.insertRule(rule.cssText);
 			}
+			loaded_plotly_css = true;
 		}
 	}
 
@@ -46,11 +46,7 @@
 
 		Plotly.react(plot_div, plotObj.data, plotObj.layout, plotObj.config);
 		Plotly.Plots.resize(plot_div);
-
-		plot_div.on("plotly_afterplot", () => {
-			dispatch("load");
-		});
 	});
 </script>
 
-<div data-testid={"plotly"} bind:this={plot_div} />
+<div data-testid={"plotly"} bind:this={plot_div}></div>

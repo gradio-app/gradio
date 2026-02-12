@@ -5,11 +5,18 @@ import * as Prism from "prismjs";
 import "prismjs/components/prism-python";
 import "prismjs/components/prism-latex";
 import "prismjs/components/prism-bash";
+// Add additional Prism languages here
+import "prismjs/components/prism-c";
+import "prismjs/components/prism-cpp";
+import "prismjs/components/prism-json";
+import "prismjs/components/prism-sql";
+import "prismjs/components/prism-java";
+import "prismjs/components/prism-go";
+import "prismjs/components/prism-rust";
+import "prismjs/components/prism-php";
+import "prismjs/components/prism-yaml";
+import "prismjs/components/prism-markup-templating";
 import GithubSlugger from "github-slugger";
-
-// import loadLanguages from "prismjs/components/";
-
-// loadLanguages(["python", "latex"]);
 
 const LINK_ICON_CODE = `<svg class="md-link-icon" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>`;
 
@@ -60,7 +67,7 @@ function escape(html: string, encode?: boolean): string {
 
 	return html;
 }
-interface LatexTokenizer {
+interface Tokenizer {
 	name: string;
 	level: string;
 	start: (src: string) => number | undefined;
@@ -70,7 +77,7 @@ interface LatexTokenizer {
 
 function createLatexTokenizer(
 	delimiters: { left: string; right: string; display: boolean }[]
-): LatexTokenizer {
+): Tokenizer {
 	const delimiterPatterns = delimiters.map((delimiter) => ({
 		start: new RegExp(delimiter.left.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")),
 		end: new RegExp(delimiter.right.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"))
@@ -108,6 +115,30 @@ function createLatexTokenizer(
 	};
 }
 
+function createMermaidTokenizer(): Tokenizer {
+	return {
+		name: "mermaid",
+		level: "block",
+		start(src) {
+			return src.match(/^```mermaid\s*\n/)?.index;
+		},
+		tokenizer(src) {
+			const match = /^```mermaid\s*\n([\s\S]*?)```\s*(?:\n|$)/.exec(src);
+			if (match) {
+				return {
+					type: "mermaid",
+					raw: match[0],
+					text: match[1].trim()
+				};
+			}
+			return undefined;
+		},
+		renderer(token) {
+			return `<div class="mermaid">${token.text}</div>\n`;
+		}
+	};
+}
+
 const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 	code(
 		this: Renderer,
@@ -117,7 +148,11 @@ const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 	) {
 		const lang = (infostring ?? "").match(/\S*/)?.[0] ?? "";
 		code = code.replace(/\n$/, "") + "\n";
-		if (!lang) {
+
+		if (!lang || lang === "mermaid") {
+			// We include lang === "mermaid" to handle mermaid blocks that don't match our custom tokenizer
+			// (i.e., those without closing ```). This handles mermaid blocks that have started streaming
+			// but haven't finished yet.
 			return (
 				'<div class="code_wrap">' +
 				COPY_BUTTON_CODE +
@@ -151,7 +186,6 @@ export function create_marked({
 	latex_delimiters: { left: string; right: string; display: boolean }[];
 }): typeof marked {
 	const marked = new Marked();
-
 	marked.use(
 		{
 			gfm: true,
@@ -160,7 +194,7 @@ export function create_marked({
 		},
 		markedHighlight({
 			highlight: (code: string, lang: string) => {
-				if (Prism.languages[lang]) {
+				if (Prism?.languages?.[lang]) {
 					return Prism.highlight(code, Prism.languages[lang], lang);
 				}
 				return code;
@@ -191,9 +225,12 @@ export function create_marked({
 			]
 		});
 	}
+
+	const mermaidTokenizer = createMermaidTokenizer();
 	const latexTokenizer = createLatexTokenizer(latex_delimiters);
+
 	marked.use({
-		extensions: [latexTokenizer]
+		extensions: [mermaidTokenizer, latexTokenizer]
 	});
 
 	return marked;

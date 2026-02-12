@@ -1,25 +1,6 @@
 import type { Extension } from "@codemirror/state";
 import { StreamLanguage } from "@codemirror/language";
-import { sql } from "@codemirror/legacy-modes/mode/sql";
 import { _ } from "svelte-i18n";
-
-const possible_langs = [
-	"python",
-	"c",
-	"cpp",
-	"markdown",
-	"json",
-	"html",
-	"css",
-	"javascript",
-	"jinja2",
-	"typescript",
-	"yaml",
-	"dockerfile",
-	"shell",
-	"r",
-	"sql"
-];
 
 const sql_dialects = [
 	"standardSQL",
@@ -54,6 +35,10 @@ const lang_map: Record<string, (() => Promise<Extension>) | undefined> = {
 		]);
 		return md.markdown({ extensions: [frontmatter.frontmatter] });
 	},
+	latex: () =>
+		import("@codemirror/legacy-modes/mode/stex").then((m) =>
+			StreamLanguage.define(m.stex)
+		),
 	json: () => import("@codemirror/lang-json").then((m) => m.json()),
 	html: () => import("@codemirror/lang-html").then((m) => m.html()),
 	css: () => import("@codemirror/lang-css").then((m) => m.css()),

@@ -102,10 +102,15 @@ def start_node_process(
             if GRADIO_LOCAL_DEV_MODE:
                 env["GRADIO_LOCAL_DEV_MODE"] = "1"
 
-            register_file = Path(__file__).parent.joinpath("templates", "register.mjs")
+            register_file = str(
+                Path(__file__).parent.joinpath("templates", "register.mjs")
+            )
+
+            if sys.platform == "win32":
+                register_file = "file://" + register_file
 
             node_process = subprocess.Popen(
-                [node_path, "--import", str(register_file), SSR_APP_PATH],
+                [node_path, "--import", register_file, SSR_APP_PATH],
                 stdout=subprocess.DEVNULL,
                 env=env,
             )

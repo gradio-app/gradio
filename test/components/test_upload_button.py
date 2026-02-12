@@ -1,12 +1,11 @@
 import pytest
-from gradio_client import media_data
 
 import gradio as gr
 from gradio.data_classes import FileData, ListFiles
 
 
 class TestUploadButton:
-    def test_component_functions(self):
+    def test_component_functions(self, media_data):
         """
         preprocess
         """
@@ -26,7 +25,7 @@ class TestUploadButton:
         ):
             gr.UploadButton(file_types=2)  # type: ignore
 
-    def test_preprocess_with_multiple_files(self):
+    def test_preprocess_with_multiple_files(self, media_data):
         file_data = FileData(path=media_data.BASE64_FILE["path"])
         list_file_data = ListFiles(root=[file_data, file_data])
         upload_input = gr.UploadButton(file_count="directory")

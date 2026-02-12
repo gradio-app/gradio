@@ -1,4 +1,5 @@
-import { compile, code_highlighter } from "mdsvex";
+import { compile } from "mdsvex";
+import { highlight } from "$lib/prism";
 import anchor from "$lib/assets/img/anchor.svg";
 import { make_slug_processor } from "$lib/utils";
 import { toString as to_string } from "hast-util-to-string";
@@ -21,31 +22,12 @@ async function load_release_guides(
 	return await guide_json.json();
 }
 
-async function load_release_guide_names(
-	version: string
-): Promise<typeof import("$lib/json/guides/guide_names.json")> {
-	let guide_names_json = await fetch(
-		`${DOCS_BUCKET}/${version}/guides/guide_names.json`
-	);
-	return await guide_names_json.json();
-}
-
 async function load_main_guides(guide: string) {
 	return await import(`../../../../lib/json/guides/${guide}.json`);
 }
 
-async function load_main_guide_names() {
-	return await import(`../../../../lib/json/guides/guide_names.json`);
-}
-
-export async function load({ params, url }) {
-	if (params?.version === VERSION) {
-		throw redirect(302, url.href.replace(`/${params.version}`, ""));
-	}
-	let guide_names_json =
-		params?.version === "main"
-			? await load_main_guide_names()
-			: await load_release_guide_names(params.version || VERSION);
+export async function load({ params, url, parent }) {
+	const { guide_names_json, guides } = await parent();
 
 	if (
 		!guide_names_json.guide_urls.some((guide: string) => guide === params.guide)
@@ -53,10 +35,7 @@ export async function load({ params, url }) {
 		throw error(404);
 	}
 
-	let guide_json =
-		params?.version === "main"
-			? await load_main_guides(params.guide)
-			: await load_release_guides(params.version || VERSION, params.guide);
+	let guide_json = guides[params.guide];
 
 	let guide = guide_json.guide;
 	const guide_slug: object[] = [];
@@ -107,16 +86,8 @@ export async function load({ params, url }) {
 
 	const compiled = await compile(guide.content, {
 		rehypePlugins: [plugin],
-		highlight: {
-			highlighter: async (code, lang) => {
-				const h = (await code_highlighter(code, lang, "")).replace(
-					/\{@html `|`\}/g,
-					""
-				);
-				return `<div class="codeblock">${h}</div>`;
-			}
-		},
-		smartypants: false // This option converts `"` to `“` and `”` which breaks the code inside `<gradio-lite>` tags, so we disable it.
+		highlight: { highlighter: highlight },
+		smartypants: false // This option converts `"` to `"` and `"` which breaks the code inside `<gradio-lite>` tags, so we disable it.
 	});
 	guide.new_html = compiled?.code;
 

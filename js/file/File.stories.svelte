@@ -1,47 +1,67 @@
-<script>
-	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import FilePreview from "./shared/FilePreview.svelte";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
+	import File from "./Index.svelte";
+	import { wrapProps } from "../storybook/wrapProps";
+
+	const cheetah = "/cheetah.jpg";
+	const bus = "/bus.png";
+
+	const { Story } = defineMeta({
+		title: "Components/File",
+		component: File,
+		argTypes: {
+			value: {
+				control: "text",
+				description: "The URL or filepath (or list of URLs or filepaths)",
+				name: "value",
+				value: []
+			}
+		}
+	});
 </script>
 
-<Meta
-	title="Components/File"
-	component={FilePreview}
-	argTypes={{
-		value: {
-			control: "text",
-			description: "The URL or filepath (or list of URLs or filepaths)",
-			name: "value",
-			value: []
-		}
-	}}
-/>
-
-<Template let:args>
-	<FilePreview {...args} />
-</Template>
+{#snippet template(args)}
+	<File {...wrapProps(args)} />
+{/snippet}
 
 <Story
 	name="Single File"
 	args={{
 		value: [
 			{
-				path: "cheetah.jpg",
+				path: cheetah,
 				orig_name: "cheetah.jpg",
-				url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+				url: cheetah,
 				size: 10000
 			}
 		]
 	}}
+	{template}
 />
 <Story
-	name="Multiple files, with height set to 150px"
+	name="Multiple files, with height set to 150px and reordering enabled"
 	args={{
-		value: Array(10).fill({
-			path: "cheetah.jpg",
-			orig_name: "cheetah.jpg",
-			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			size: 10000
-		}),
-		height: 150
+		value: [
+			{
+				path: bus,
+				orig_name: "bus.png",
+				url: bus,
+				size: 10000
+			},
+			{
+				path: cheetah,
+				orig_name: "cheetah.jpg",
+				url: cheetah,
+				size: 10000
+			}
+		],
+		height: 150,
+		allow_reordering: true
 	}}
+	{template}
+/>
+<Story
+	name="File upload with height set to 400px"
+	args={{ interactive: true, value: null, height: 400 }}
+	{template}
 />

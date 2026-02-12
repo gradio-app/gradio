@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/html",
-	"version": "0.4.7",
+	"version": "0.9.2",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -9,9 +9,10 @@
 	"main_changeset": true,
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
+		"@gradio/icons": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@gradio/icons": "workspace:^"
+		"handlebars": "^4.7.8"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
@@ -29,13 +30,13 @@
 			"types": "./dist/Example.svelte.d.ts"
 		},
 		"./base": {
-			"gradio": "./Index.svelte",
-			"svelte": "./dist/Index.svelte",
-			"types": "./dist/Index.svelte.d.ts"
+			"gradio": "./shared/HTML.svelte",
+			"svelte": "./dist/shared/HTML.svelte",
+			"types": "./dist/shared/HTML.svelte.d.ts"
 		}
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.48.0"
 	},
 	"repository": {
 		"type": "git",

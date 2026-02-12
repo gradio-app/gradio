@@ -25,7 +25,6 @@ import {
 import { lintKeymap } from "@codemirror/lint";
 
 export const basicSetup: Extension = /*@__PURE__*/ ((): Extension[] => [
-	lineNumbers(),
 	highlightSpecialChars(),
 	history(),
 	foldGutter(),

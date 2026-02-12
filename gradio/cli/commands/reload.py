@@ -10,13 +10,11 @@ from __future__ import annotations
 
 import inspect
 import os
-import re
-import site
+import signal
 import subprocess
 import sys
 import threading
 from pathlib import Path
-from typing import Optional
 
 import typer
 from rich import print
@@ -27,29 +25,27 @@ from gradio import utils
 reload_thread = threading.local()
 
 
+def _handle_interrupt():
+    """Handle interrupt signals and logout based on user preference"""
+
+    if os.getenv("GRADIO_VIBE_MODE") and os.getenv("GRADIO_AUTO_LOGOUT") == "true":
+        try:
+            from huggingface_hub import logout
+
+            logout()
+            print("\n\nLogged out of Hugging Face")
+        except Exception as e:
+            print(f"\n\nError logging out of Hugging Face: {e}")
+
+    sys.exit(0)
+
+
 def _setup_config(
     demo_path: Path,
-    demo_name: str = "demo",
     additional_watch_dirs: list[str] | None = None,
-    encoding: str = "utf-8",
+    watch_library: bool = False,
 ):
     original_path = Path(demo_path)
-    app_text = original_path.read_text(encoding=encoding)
-
-    patterns = [
-        f"with gr\\.Blocks\\(.*\\) as {demo_name}",
-        f"{demo_name} = gr\\.Blocks",
-        f"{demo_name} = gr\\.Interface",
-        f"{demo_name} = gr\\.ChatInterface",
-        f"{demo_name} = gr\\.TabbedInterface",
-    ]
-
-    if not any(re.search(p, app_text, flags=re.DOTALL) for p in patterns):
-        print(
-            f"\n[bold red]Warning[/]: Cannot statically find a gradio demo called {demo_name}. "
-            "Reload work may fail."
-        )
-
     abs_original_path = utils.abspath(original_path)
 
     if original_path.is_absolute():
@@ -64,15 +60,11 @@ def _setup_config(
     message_change_count = 0
 
     watching_dirs = []
-    if str(gradio_folder).strip():
-        package_install = any(
-            utils.is_in_or_equal(gradio_folder, d) for d in site.getsitepackages()
-        )
-        if not package_install:
-            # This is a source install
-            watching_dirs.append(gradio_folder)
-            message += f" '{gradio_folder}'"
-            message_change_count += 1
+    if str(gradio_folder).strip() and watch_library:
+        # This is a source install
+        watching_dirs.append(gradio_folder)
+        message += f" '{gradio_folder}'"
+        message_change_count += 1
 
     abs_parent = abs_original_path.parent
     if str(abs_parent).strip():
@@ -82,11 +74,19 @@ def _setup_config(
         message += f" '{abs_parent}'"
 
     abs_current = Path.cwd().absolute()
-    if str(abs_current).strip():
-        watching_dirs.append(abs_current)
-        if message_change_count == 1:
-            message += ","
-        message += f" '{abs_current}'"
+    if str(abs_current).strip() and abs_current not in watching_dirs:
+        try:
+            gradio_folder.relative_to(abs_current)
+            is_subdir = True
+        except ValueError:
+            is_subdir = False
+        if is_subdir and not watch_library:
+            pass
+        else:
+            watching_dirs.append(abs_current)
+            if message_change_count == 1:
+                message += ","
+            message += f" '{abs_current}'"
 
     for wd in additional_watch_dirs or []:
         if Path(wd) not in watching_dirs:
@@ -100,31 +100,41 @@ def _setup_config(
 
     # guarantee access to the module of an app
     sys.path.insert(0, os.getcwd())
-    return module_name, abs_original_path, [str(s) for s in watching_dirs], demo_name
+    return module_name, abs_original_path, [str(s) for s in watching_dirs]
 
 
 def main(
     demo_path: Path,
-    demo_name: str = "demo",
-    watch_dirs: Optional[list[str]] = None,
+    demo_name: str = "",
+    watch_dirs: list[str] | None = None,
     encoding: str = "utf-8",
+    watch_library: bool = False,
 ):
+    signal.signal(signal.SIGINT, lambda _signum, _frame: _handle_interrupt())
+    signal.signal(signal.SIGTERM, lambda _signum, _frame: _handle_interrupt())
+
     # default execution pattern to start the server and watch changes
-    module_name, path, watch_sources, demo_name = _setup_config(
-        demo_path, demo_name, watch_dirs, encoding
+    module_name, path, watch_sources = _setup_config(
+        demo_path, watch_dirs, watch_library
     )
 
     # Pass the following data as environment variables
     # so that we can set up reload mode correctly in the networking.py module
+    env_vars = dict(
+        os.environ,
+        GRADIO_WATCH_DIRS=",".join(watch_sources),
+        GRADIO_WATCH_MODULE_NAME=module_name,
+        GRADIO_WATCH_DEMO_NAME=demo_name,
+        GRADIO_WATCH_DEMO_PATH=str(path),
+        GRADIO_WATCH_ENCODING=encoding,
+    )
+
+    if "GRADIO_VIBE_MODE" in os.environ:
+        env_vars["GRADIO_VIBE_MODE"] = os.environ["GRADIO_VIBE_MODE"]
+
     popen = subprocess.Popen(
         [sys.executable, "-u", path],
-        env=dict(
-            os.environ,
-            GRADIO_WATCH_DIRS=",".join(watch_sources),
-            GRADIO_WATCH_MODULE_NAME=module_name,
-            GRADIO_WATCH_DEMO_NAME=demo_name,
-            GRADIO_WATCH_DEMO_PATH=str(path),
-        ),
+        env=env_vars,
     )
     if popen.poll() is None:
         try:

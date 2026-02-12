@@ -56,11 +56,13 @@ with gr.Blocks() as demo:
         outputs=[plot, unique_users, total_requests, process_time],
     )
     def gen_plot(start, end, selected_fn):
+        if len(data["data"]) == 0:
+            return {plot: gr.skip()}
         df = pd.DataFrame(list(data["data"].values()))
         if selected_fn != "All":
             df = df[df["function"] == selected_fn]
         df = df[(df["time"] >= start) & (df["time"] <= end)]
-        df["time"] = pd.to_datetime(df["time"], unit="s")
+        df["time"] = pd.to_datetime(df["time"], unit="s")  # type: ignore
 
         unique_users = len(df["session_hash"].unique())  # type: ignore
         total_requests = len(df)

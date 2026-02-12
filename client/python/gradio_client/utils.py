@@ -4,6 +4,7 @@ import asyncio
 import base64
 import concurrent.futures
 import copy
+import inspect
 import json
 import mimetypes
 import os
@@ -19,13 +20,22 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import TYPE_CHECKING, Any, Literal, Optional, TypedDict
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Literal,
+    NewType,
+    TypedDict,
+    Union,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
 
 import fsspec.asyn
 import httpx
 import huggingface_hub
 from huggingface_hub import SpaceStage
-from websockets.legacy.protocol import WebSocketCommonProtocol
 
 if TYPE_CHECKING:
     from gradio_client.data_classes import ParameterInfo
@@ -180,11 +190,11 @@ class Status(Enum):
 
 @dataclass
 class ProgressUnit:
-    index: Optional[int]
-    length: Optional[int]
-    unit: Optional[str]
-    progress: Optional[float]
-    desc: Optional[str]
+    index: int | None
+    length: int | None
+    unit: str | None
+    progress: float | None
+    desc: str | None
 
     @classmethod
     def from_msg(cls, data: list[dict]) -> list[ProgressUnit]:
@@ -212,6 +222,20 @@ class StatusUpdate:
     time: datetime | None
     progress_data: list[ProgressUnit] | None
     log: tuple[str, str] | None = None
+    type: Literal["status", "output"] = "status"
+
+
+@dataclass
+class OutputUpdate:
+    """Update message sent from the worker thread to the Job on the main thread."""
+
+    outputs: list[Any]
+    success: bool
+    type: Literal["output"] = "output"
+    final: bool = False
+
+
+Update = NewType("Update", StatusUpdate | OutputUpdate)
 
 
 def create_initial_status_update():
@@ -248,6 +272,8 @@ class Communicator:
     should_cancel: bool = False
     event_id: str | None = None
     thread_complete: bool = False
+    request_headers: dict[str, str] | None = None
+    updates: asyncio.Queue[Update] = field(default_factory=asyncio.Queue)
 
 
 ########################
@@ -288,69 +314,6 @@ def is_valid_url(possible_url: str) -> bool:
         "Use is_http_url_like() and probe_url(), as suitable, instead.",
     )
     return is_http_url_like(possible_url) and probe_url(possible_url)
-
-
-async def get_pred_from_ws(
-    websocket: WebSocketCommonProtocol,
-    data: str,
-    hash_data: str,
-    helper: Communicator | None = None,
-) -> dict[str, Any]:
-    completed = False
-    resp = {}
-    while not completed:
-        # Receive message in the background so that we can
-        # cancel even while running a long pred
-        task = asyncio.create_task(websocket.recv())
-        while not task.done():
-            if helper:
-                with helper.lock:
-                    if helper.should_cancel:
-                        # Need to reset the iterator state since the client
-                        # will not reset the session
-                        async with httpx.AsyncClient() as http:
-                            reset = http.post(
-                                helper.reset_url, json=json.loads(hash_data)
-                            )
-                            # Retrieve cancel exception from task
-                            # otherwise will get nasty warning in console
-                            task.cancel()
-                            await asyncio.gather(task, reset, return_exceptions=True)
-                        raise concurrent.futures.CancelledError()
-            # Need to suspend this coroutine so that task actually runs
-            await asyncio.sleep(0.01)
-        msg = task.result()
-        resp = json.loads(msg)
-        if helper:
-            with helper.lock:
-                has_progress = "progress_data" in resp
-                status_update = StatusUpdate(
-                    code=Status.msg_to_status(resp["msg"]),
-                    queue_size=resp.get("queue_size"),
-                    rank=resp.get("rank", None),
-                    success=resp.get("success"),
-                    time=datetime.now(),
-                    eta=resp.get("rank_eta"),
-                    progress_data=ProgressUnit.from_msg(resp["progress_data"])
-                    if has_progress
-                    else None,
-                )
-                output = resp.get("output", {}).get("data", [])
-                if output and status_update.code != Status.FINISHED:
-                    try:
-                        result = helper.prediction_processor(*output)
-                    except Exception as e:
-                        result = [e]
-                    helper.job.outputs.append(result)
-                helper.job.latest_status = status_update
-        if resp["msg"] == "queue_full":
-            raise QueueError("Queue is full! Please try again.")
-        if resp["msg"] == "send_hash":
-            await websocket.send(hash_data)
-        elif resp["msg"] == "send_data":
-            await websocket.send(data)
-        completed = resp["msg"] == "process_completed"
-    return resp["output"]
 
 
 def get_pred_from_sse_v0(
@@ -578,9 +541,26 @@ def stream_sse_v1plus(
                     except Exception as e:
                         result = [e]
                     helper.job.outputs.append(result)
+                    helper.updates.put_nowait(
+                        OutputUpdate(outputs=result, success=msg.get("success", True))
+                    )
                 helper.job.latest_status = status_update
+                helper.updates.put_nowait(status_update)
             if msg["msg"] == ServerMessage.process_completed:
                 del pending_messages_per_event[event_id]
+                if not msg.get("success", True):
+                    # Create a new copy of the error dict so we
+                    # can preserve the error message (it gets popped later)
+                    output = dict(msg["output"].items())
+                else:
+                    output = msg["output"]
+                helper.updates.put_nowait(
+                    OutputUpdate(
+                        outputs=output,
+                        final=True,
+                        success=msg.get("success", True),
+                    )
+                )
                 return msg["output"]
             elif msg["msg"] == ServerMessage.server_stopped:
                 raise ValueError("Server stopped.")
@@ -645,12 +625,12 @@ def create_tmp_copy_of_file(file_path: str, dir: str | None = None) -> str:
 
 
 def download_tmp_copy_of_file(
-    url_path: str, hf_token: str | None = None, dir: str | None = None
+    url_path: str, token: str | None = None, dir: str | None = None
 ) -> str:
     """Kept for backwards compatibility for 3.x spaces."""
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
-    headers = {"Authorization": "Bearer " + hf_token} if hf_token else {}
+    headers = {"Authorization": "Bearer " + token} if token else {}
     directory = Path(dir or tempfile.gettempdir()) / secrets.token_hex(20)
     directory.mkdir(exist_ok=True, parents=True)
     file_path = directory / Path(url_path).name
@@ -666,8 +646,11 @@ def download_tmp_copy_of_file(
 
 
 def get_mimetype(filename: str) -> str | None:
-    if filename.endswith(".vtt"):
+    filename_lower = filename.lower()
+    if filename_lower.endswith(".vtt"):
         return "text/vtt"
+    if filename_lower.endswith(".webp"):
+        return "image/webp"
     mimetype = mimetypes.guess_type(filename)[0]
     if mimetype is not None:
         mimetype = mimetype.replace("x-wav", "wav").replace("x-flac", "flac")
@@ -733,9 +716,9 @@ def encode_url_or_file_to_base64(path: str | Path):
     return encode_file_to_base64(path)
 
 
-def download_byte_stream(url: str, hf_token=None):
+def download_byte_stream(url: str, token=None):
     arr = bytearray()
-    headers = {"Authorization": "Bearer " + hf_token} if hf_token else {}
+    headers = {"Authorization": "Bearer " + token} if token else {}
     with httpx.stream("GET", url, headers=headers) as r:
         for data in r.iter_bytes():
             arr += data
@@ -752,11 +735,11 @@ def decode_base64_to_binary(encoding: str) -> tuple[bytes, str | None]:
 def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> str:
     """
     Strips invalid characters from a filename and ensures it does not exceed the maximum byte length
-    Invalid characters are any characters that are not alphanumeric or one of the following: . _ -
+    Invalid characters are any characters that are not alphanumeric or one of the following: . _ - ,
     The filename may include an extension (in which case it is preserved exactly as is), or could be just a name without an extension.
     """
     name, ext = os.path.splitext(filename)
-    name = "".join([char for char in name if char.isalnum() or char in "._- "])
+    name = "".join([char for char in name if char.isalnum() or char in "._-, "])
     filename = name + ext
     filename_len = len(filename.encode())
     if filename_len > max_bytes:
@@ -837,11 +820,11 @@ def file_to_json(file_path: str | Path) -> dict | list:
 ###########################
 def set_space_timeout(
     space_id: str,
-    hf_token: str | None = None,
+    token: str | None = None,
     timeout_in_seconds: int = 300,
 ):
     headers = huggingface_hub.utils.build_hf_headers(
-        token=hf_token,
+        token=token,
         library_name="gradio_client",
         library_version=__version__,
     )
@@ -906,9 +889,12 @@ def get_type(schema: dict):
 
 FILE_DATA_FORMATS = [
     "Dict(path: str | None (Path to a local file), url: str | None (Publicly available url or base64 encoded image), size: int | None (Size of image in bytes), orig_name: str | None (Original filename), mime_type: str | None (mime type of image), is_stream: bool (Can always be set to False), meta: Dict())",
+    "dict(path: str | None (Path to a local file), url: str | None (Publicly available url or base64 encoded image), size: int | None (Size of image in bytes), orig_name: str | None (Original filename), mime_type: str | None (mime type of image), is_stream: bool (Can always be set to False), meta: dict())",
     "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None)",
     "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool)",
     "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool, meta: Dict())",
+    "dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool, meta: dict())",
+    "dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool, meta: dict(_type: Literal[gradio.FileData]))",
 ]
 
 CURRENT_FILE_DATA_FORMAT = FILE_DATA_FORMATS[-1]
@@ -926,7 +912,7 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
     type_ = get_type(schema)
     if type_ == {}:
         if "json" in schema.get("description", {}):
-            return "Dict[Any, Any]"
+            return "str | float | bool | list | dict"
         else:
             return "Any"
     elif type_ == "$ref":
@@ -953,15 +939,15 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
             elements = ", ".join(
                 [_json_schema_to_python_type(i, defs) for i in items["prefixItems"]]
             )
-            return f"Tuple[{elements}]"
+            return f"tuple[{elements}]"
         elif "prefixItems" in schema:
             elements = ", ".join(
                 [_json_schema_to_python_type(i, defs) for i in schema["prefixItems"]]
             )
-            return f"Tuple[{elements}]"
+            return f"tuple[{elements}]"
         else:
             elements = _json_schema_to_python_type(items, defs)
-            return f"List[{elements}]"
+            return f"list[{elements}]"
     elif type_ == "object":
 
         def get_desc(v):
@@ -976,11 +962,15 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
         ]
 
         if "additionalProperties" in schema:
-            des += [
-                f"str, {_json_schema_to_python_type(schema['additionalProperties'], defs)}"
-            ]
+            additional_properties = schema["additionalProperties"]
+            if isinstance(additional_properties, bool) and additional_properties:
+                des += ["str, Any"]
+            else:
+                des += [
+                    f"str, {_json_schema_to_python_type(additional_properties, defs)}"
+                ]
         des = ", ".join(des)
-        return f"Dict({des})"
+        return f"dict({des})"
     elif type_ in ["oneOf", "anyOf"]:
         desc = " | ".join([_json_schema_to_python_type(i, defs) for i in schema[type_]])
         return desc
@@ -990,6 +980,128 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
         return desc
     else:
         raise APIInfoParseError(f"Cannot parse schema {schema}")
+
+
+def python_type_to_json_schema(type_hint: Any) -> dict:
+    try:
+        return _python_type_to_json_schema(type_hint)
+    except Exception:
+        return {}
+
+
+def _python_type_to_json_schema(type_hint: Any) -> dict:
+    """Convert a Python type hint to a JSON schema."""
+    if type_hint is type(None):
+        return {"type": "null"}
+    if type_hint is Any:
+        return {}
+    if type_hint is str:
+        return {"type": "string"}
+    if type_hint is int:
+        return {"type": "integer"}
+    if type_hint is float:
+        return {"type": "number"}
+    if type_hint is bool:
+        return {"type": "boolean"}
+    if type_hint is dict:
+        return {"type": "object", "additionalProperties": {}}
+    if type_hint is list:
+        return {"type": "array", "items": {}}
+    if type_hint is tuple:
+        return {"type": "array"}
+    if type_hint is set or type_hint is frozenset:
+        return {"type": "array", "uniqueItems": True}
+    if type_hint is bytes or type_hint is bytearray:
+        return {"type": "string", "format": "byte"}
+
+    origin = get_origin(type_hint)
+
+    if origin is Literal:
+        literal_values = get_args(type_hint)
+        if len(literal_values) == 1:
+            return {"const": literal_values[0]}
+        return {"enum": list(literal_values)}
+
+    if (
+        origin is Union
+        or (hasattr(origin, "__name__") and origin.__name__ == "UnionType")
+        or str(origin) == "|"
+    ):
+        types = get_args(type_hint)
+        if len(types) == 2 and type(None) in types:
+            other_type = next(t for t in types if t is not type(None))
+            schema = _python_type_to_json_schema(other_type)
+            return {"oneOf": [{"type": "null"}, schema]}
+        return {"anyOf": [_python_type_to_json_schema(t) for t in types]}
+
+    if origin is list:
+        args = get_args(type_hint)
+        if not args:
+            return {"type": "array", "items": {}}
+        item_type = args[0]
+        return {"type": "array", "items": _python_type_to_json_schema(item_type)}
+    if origin is tuple:
+        types = get_args(type_hint)
+        if not types:
+            return {"type": "array"}
+        if len(types) == 2 and types[1] is ...:
+            return {"type": "array", "items": _python_type_to_json_schema(types[0])}
+        return {
+            "type": "array",
+            "prefixItems": [_python_type_to_json_schema(t) for t in types],
+            "minItems": len(types),
+            "maxItems": len(types),
+        }
+    if origin is set or origin is frozenset:
+        args = get_args(type_hint)
+        if not args:
+            return {"type": "array", "uniqueItems": True}
+        item_type = args[0]
+        return {
+            "type": "array",
+            "uniqueItems": True,
+            "items": _python_type_to_json_schema(item_type),
+        }
+
+    if origin is dict:
+        args = get_args(type_hint)
+        if not args:
+            return {"type": "object", "additionalProperties": {}}
+        key_type, value_type = args
+        if key_type is not str:
+            raise ValueError("JSON Schema only supports string keys in objects")
+        schema = {
+            "type": "object",
+            "additionalProperties": _python_type_to_json_schema(value_type),
+        }
+        return schema
+
+    if inspect.isclass(type_hint) and issubclass(type_hint, Enum):
+        enum_values = [item.value for item in type_hint]
+        return {"enum": enum_values}
+
+    if inspect.isclass(type_hint) and hasattr(type_hint, "__annotations__"):
+        properties = {}
+        required = []
+
+        hints = get_type_hints(type_hint)
+        for field_name, field_type in hints.items():
+            properties[field_name] = _python_type_to_json_schema(field_type)
+            if hasattr(type_hint, "__total__"):
+                if type_hint.__total__:
+                    required.append(field_name)
+            elif (
+                not hasattr(type_hint, "__dataclass_fields__")
+                or not type_hint.__dataclass_fields__[field_name].default
+            ):
+                required.append(field_name)
+
+        schema = {"type": "object", "properties": properties}
+        if required:
+            schema["required"] = required
+        return schema
+
+    return {}
 
 
 def traverse(json_obj: Any, func: Callable, is_root: Callable[..., bool]) -> Any:
@@ -1102,6 +1214,7 @@ SKIP_COMPONENTS = {
     "group",
     "interpretation",
     "dataset",
+    "sidebar",
 }
 
 
@@ -1148,7 +1261,7 @@ def construct_args(
             kwarg_arg_mapping[param_info["parameter_name"]] = index
             kwarg_names.append(param_info["parameter_name"])
         else:
-            kwarg_names.append("argument {index}")
+            kwarg_names.append(f"argument {index}")
         if (
             param_info.get("parameter_has_default", False)
             and _args[index] == _Keywords.NO_VALUE
@@ -1174,3 +1287,26 @@ def construct_args(
         )
 
     return _args
+
+
+def extract_validation_message(req: httpx.Response) -> str | None:
+    """
+    If the request is a 422 error and the detail contains a validation error message, return the message. Otherwise, return None.
+    """
+    if req.status_code == 422:
+        detail = req.json().get("detail", [])
+        validation_messages = []
+        for index, error_info in enumerate(detail):
+            if (
+                error_info.get("__type__", "") == "validate"
+                and error_info.get("is_valid") is False
+            ):
+                param_name = error_info.get("parameter_name", f"parameter_{index}")
+                validation_messages.append(
+                    f"- {param_name}: {error_info.get('message', '')}"
+                )
+        validation_messages.insert(
+            0, f"{len(validation_messages)} parameter(s) failed validation:"
+        )
+        if validation_messages:
+            return "\n".join(validation_messages)

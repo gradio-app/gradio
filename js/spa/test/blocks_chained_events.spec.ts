@@ -8,6 +8,17 @@ test(".success should not run if function fails", async ({ page }) => {
 	expect(textbox).toHaveValue("");
 });
 
+test(".failure should only run if function fails", async ({ page }) => {
+	const success_textbox = page.getByLabel("Result");
+	const failure_textbox = page.getByLabel("Failure Event");
+	await expect(success_textbox).toHaveValue("");
+	await expect(failure_textbox).toHaveValue("");
+
+	await page.click("text=Trigger Failure");
+	await expect(success_textbox).toHaveValue("");
+	await expect(failure_textbox).toHaveValue("Failure event triggered");
+});
+
 test(".success event runs after function successfully completes", async ({
 	page
 }) => {

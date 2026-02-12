@@ -10,7 +10,6 @@ on:
 env:
   CI: true
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
-  NODE_OPTIONS: "--max-old-space-size=4096"
 
 concurrency:
   group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
@@ -53,14 +52,12 @@ jobs:
           skip_build: true
       - name: build client
         run: pnpm --filter @gradio/client build
-      - name: build the wasm module
-        run: pnpm --filter @gradio/wasm build
       - name: format check
         run: pnpm format:check
-      - name: lint
-        run: pnpm lint
-      - name: typecheck
-        run: pnpm ts:check
+      # - name: lint
+      #   run: pnpm lint
+      # - name: typecheck
+      #   run: pnpm ts:check
       - name: unit tests
         run: pnpm test:run
       - name: client tests

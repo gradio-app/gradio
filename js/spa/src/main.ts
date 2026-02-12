@@ -2,15 +2,14 @@ import "@gradio/theme/reset.css";
 import "@gradio/theme/global.css";
 import "@gradio/theme/pollen.css";
 import "@gradio/theme/typography.css";
-import { Client } from "@gradio/client";
-import { mount_css } from "@gradio/core";
-import type Index from "./Index.svelte";
-
-import type { ThemeMode } from "@gradio/core";
-
+import "@gradio/theme/gradio-style.scss";
 //@ts-ignore
-import * as svelte from "./svelte/svelte.js";
-
+// import * as svelte from "./svelte/svelte.js";
+import { Client } from "@gradio/client";
+import type Index from "./Index.svelte";
+import type { ThemeMode } from "@gradio/core";
+import { mount, unmount } from "svelte";
+import "virtual:load-svelte";
 declare let BUILD_MODE: string;
 declare let GRADIO_VERSION: string;
 
@@ -21,31 +20,37 @@ let FONTS: string | [];
 FONTS = "__FONTS_CSS__";
 
 let IndexComponent: typeof Index;
+let mount_css: typeof import("@gradio/core").mount_css;
 let _res: (value?: unknown) => void;
 let pending = new Promise((res) => {
 	_res = res;
 });
 async function get_index(): Promise<void> {
-	IndexComponent = (await import("./Index.svelte")).default;
+	const modules = await Promise.all([
+		import("./Index.svelte"),
+		import("@gradio/core")
+	]);
+	IndexComponent = modules[0].default;
+	mount_css = modules[1].mount_css;
 	_res();
 }
 
 function create_custom_element(): void {
-	const o = {
-		SvelteComponent: svelte.SvelteComponent
-	};
-	for (const key in svelte) {
-		if (key === "SvelteComponent") continue;
-		if (key === "SvelteComponentDev") {
-			//@ts-ignore
-			o[key] = o["SvelteComponent"];
-		} else {
-			//@ts-ignore
-			o[key] = svelte[key];
-		}
-	}
+	// const o = {
+	// 	SvelteComponent: svelte.SvelteComponent
+	// };
+	// for (const key in svelte) {
+	// 	if (key === "SvelteComponent") continue;
+	// 	if (key === "SvelteComponentDev") {
+	// 		//@ts-ignore
+	// 		o[key] = o["SvelteComponent"];
+	// 	} else {
+	// 		//@ts-ignore
+	// 		o[key] = svelte[key];
+	// 	}
+	// }
 	//@ts-ignore
-	window.__gradio__svelte__internal = o;
+	// window.__gradio__svelte__internal = o;
 	class GradioApp extends HTMLElement {
 		control_page_title: string | null;
 		initial_height: string;
@@ -58,10 +63,9 @@ function create_custom_element(): void {
 		host: string | null;
 		space: string | null;
 		src: string | null;
-		app?: Index;
+		app?: ReturnType<typeof mount>;
 		loading: boolean;
 		updating: { name: string; value: string } | false;
-
 		constructor() {
 			super();
 			this.host = this.getAttribute("host");
@@ -106,7 +110,7 @@ function create_custom_element(): void {
 
 			observer.observe(this, { childList: true });
 
-			this.app = new IndexComponent({
+			const opts = {
 				target: this,
 				props: {
 					// embed source
@@ -130,7 +134,9 @@ function create_custom_element(): void {
 					// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
 					app_mode: window.__gradio_mode__ === "app"
 				}
-			});
+			};
+
+			this.app = mount(IndexComponent, opts);
 
 			if (this.updating) {
 				this.setAttribute(this.updating.name, this.updating.value);
@@ -157,7 +163,7 @@ function create_custom_element(): void {
 				if (this.loading) return;
 
 				if (this.app) {
-					this.app.$destroy();
+					unmount(this.app);
 				}
 
 				this.space = null;
@@ -172,7 +178,7 @@ function create_custom_element(): void {
 					this.src = new_val;
 				}
 
-				this.app = new IndexComponent({
+				const opts = {
 					target: this,
 					props: {
 						// embed source
@@ -197,7 +203,9 @@ function create_custom_element(): void {
 						// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
 						app_mode: window.__gradio_mode__ === "app"
 					}
-				});
+				};
+
+				this.app = mount(IndexComponent, opts);
 
 				this.updating = false;
 			}

@@ -19,7 +19,7 @@ class FileData(TypedDict):
 
 class ParameterInfo(TypedDict):
     label: str
-    parameter_name: NotRequired[str]
+    parameter_name: str
     parameter_has_default: NotRequired[bool]
     parameter_default: NotRequired[Any]
     type: dict

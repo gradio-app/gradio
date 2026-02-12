@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
-	import { BlockLabel } from "@gradio/atoms";
-	import { Image as ImageIcon } from "@gradio/icons";
+	import { BlockLabel, IconButtonWrapper, IconButton } from "@gradio/atoms";
+	import { Clear, Image as ImageIcon } from "@gradio/icons";
+	import { FullscreenButton } from "@gradio/atoms";
 	import {
 		type SelectData,
 		type I18nFormatter,
@@ -10,12 +11,11 @@
 	import { get_coordinates_of_clicked_image } from "./utils";
 	import Webcam from "./Webcam.svelte";
 
-	import { Upload } from "@gradio/upload";
+	import { Upload, UploadProgress } from "@gradio/upload";
 	import { FileData, type Client } from "@gradio/client";
-	import ClearImage from "./ClearImage.svelte";
 	import { SelectSource } from "@gradio/atoms";
 	import Image from "./Image.svelte";
-	import type { Base64File } from "./types";
+	import type { Base64File, WebcamOptions } from "./types";
 
 	export let value: null | FileData | Base64File = null;
 	export let label: string | undefined = undefined;
@@ -26,7 +26,7 @@
 	export let sources: source_type[] = ["upload", "clipboard", "webcam"];
 	export let streaming = false;
 	export let pending = false;
-	export let mirror_webcam: boolean;
+	export let webcam_options: WebcamOptions;
 	export let selectable = false;
 	export let root: string;
 	export let i18n: I18nFormatter;
@@ -34,18 +34,34 @@
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let stream_every: number;
-
-	export let modify_stream: (state: "open" | "closed" | "waiting") => void;
-	export let set_time_limit: (arg0: number) => void;
+	export let time_limit: number;
+	export let show_fullscreen_button = true;
+	export let stream_state: "open" | "waiting" | "closed" = "closed";
+	export let upload_promise: Promise<any> | null = null;
+	export let onerror: ((error: string) => void) | undefined = undefined;
 
 	let upload_input: Upload;
 	export let uploading = false;
 	export let active_source: source_type = null;
+	export let fullscreen = false;
 
-	function handle_upload({ detail }: CustomEvent<FileData>): void {
-		// only trigger streaming event if streaming
+	let files: FileData[] = [];
+	let upload_id: string;
+
+	async function handle_upload(detail: FileData): Promise<void> {
 		if (!streaming) {
-			value = detail;
+			if (detail.path?.toLowerCase().endsWith(".svg") && detail.url) {
+				const response = await fetch(detail.url);
+				const svgContent = await response.text();
+				value = {
+					...detail,
+					url: `data:image/svg+xml,${encodeURIComponent(svgContent)}`
+				};
+			} else {
+				value = detail;
+			}
+
+			await tick();
 			dispatch("upload");
 		}
 	}
@@ -54,6 +70,11 @@
 		value = null;
 		dispatch("clear");
 		dispatch("change", null);
+	}
+
+	function handle_remove_image_click(event: MouseEvent): void {
+		handle_clear();
+		event.stopPropagation();
 	}
 
 	async function handle_save(
@@ -67,11 +88,20 @@
 			});
 			return;
 		}
+		upload_id = Math.random().toString(36).substring(2, 15);
+		const f_ = new File([img_blob], `image.${streaming ? "jpeg" : "png"}`);
+		files = [
+			new FileData({
+				path: f_.name,
+				orig_name: f_.name,
+				blob: f_,
+				size: f_.size,
+				mime_type: f_.type,
+				is_stream: false
+			})
+		];
 		pending = true;
-		const f = await upload_input.load_files([
-			new File([img_blob], `image/${streaming ? "jpeg" : "png"}`)
-		]);
-
+		const f = await upload_input.load_files([f_], upload_id);
 		if (event === "change" || event === "upload") {
 			value = f?.[0] || null;
 			await tick();
@@ -119,43 +149,81 @@
 				break;
 		}
 	}
+
+	let image_container: HTMLElement;
+
+	function on_drag_over(evt: DragEvent): void {
+		evt.preventDefault();
+		evt.stopPropagation();
+		if (evt.dataTransfer) {
+			evt.dataTransfer.dropEffect = "copy";
+		}
+
+		dragging = true;
+	}
+
+	async function on_drop(evt: DragEvent): Promise<void> {
+		evt.preventDefault();
+		evt.stopPropagation();
+		dragging = false;
+
+		if (value) {
+			handle_clear();
+			await tick();
+		}
+
+		active_source = "upload";
+		await tick();
+		upload_input.load_files_from_drop(evt);
+	}
 </script>
 
 <BlockLabel {show_label} Icon={ImageIcon} label={label || "Image"} />
 
-<div data-testid="image" class="image-container">
-	{#if value?.url && !active_streaming}
-		<ClearImage
-			on:remove_image={() => {
-				value = null;
-				dispatch("clear");
-			}}
-		/>
-	{/if}
+<div data-testid="image" class="image-container" bind:this={image_container}>
+	<IconButtonWrapper>
+		{#if value?.url && !active_streaming}
+			{#if show_fullscreen_button}
+				<FullscreenButton {fullscreen} on:fullscreen />
+			{/if}
+			<IconButton
+				Icon={Clear}
+				label="Remove Image"
+				onclick={handle_remove_image_click}
+			/>
+		{/if}
+	</IconButtonWrapper>
+	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<div
 		class="upload-container"
 		class:reduced-height={sources.length > 1}
 		style:width={value ? "auto" : "100%"}
+		on:dragover={on_drag_over}
+		on:drop={on_drop}
 	>
 		<Upload
+			bind:upload_promise
 			hidden={value !== null || active_source === "webcam"}
 			bind:this={upload_input}
 			bind:uploading
 			bind:dragging
 			filetype={active_source === "clipboard" ? "clipboard" : "image/*"}
-			on:load={handle_upload}
-			on:error
+			onload={handle_upload}
+			{onerror}
 			{root}
 			{max_file_size}
 			disable_click={!sources.includes("upload") || value !== null}
 			{upload}
 			{stream_handler}
+			aria_label={i18n("image.drop_to_upload")}
 		>
 			{#if value === null}
 				<slot />
 			{/if}
 		</Upload>
-		{#if active_source === "webcam" && (streaming || (!streaming && !value))}
+		{#if active_source === "webcam" && !streaming && pending}
+			<UploadProgress {root} {upload_id} {stream_handler} {files} />
+		{:else if active_source === "webcam" && (streaming || (!streaming && !value))}
 			<Webcam
 				{root}
 				{value}
@@ -165,21 +233,22 @@
 				on:drag
 				on:upload={(e) => handle_save(e.detail, "upload")}
 				on:close_stream
-				{mirror_webcam}
+				{stream_state}
+				mirror_webcam={webcam_options.mirror}
 				{stream_every}
 				{streaming}
 				mode="image"
 				include_audio={false}
 				{i18n}
 				{upload}
-				bind:modify_stream
-				bind:set_time_limit
+				{time_limit}
+				webcam_constraints={webcam_options.constraints}
 			/>
 		{:else if value !== null && !streaming}
 			<!-- svelte-ignore a11y-click-events-have-key-events-->
 			<!-- svelte-ignore a11y-no-static-element-interactions-->
 			<div class:selectable class="image-frame" on:click={handle_click}>
-				<Image src={value.url} alt={value.alt_text} />
+				<Image src={value.url} restProps={{ alt: value.alt_text }} />
 			</div>
 		{/if}
 	</div>
@@ -198,12 +267,6 @@
 		width: var(--size-full);
 		height: var(--size-full);
 		object-fit: scale-down;
-	}
-
-	.image-frame {
-		object-fit: cover;
-		width: 100%;
-		height: 100%;
 	}
 
 	.upload-container {
@@ -231,5 +294,11 @@
 
 	.selectable {
 		cursor: crosshair;
+	}
+
+	.image-frame {
+		object-fit: cover;
+		width: 100%;
+		height: 100%;
 	}
 </style>

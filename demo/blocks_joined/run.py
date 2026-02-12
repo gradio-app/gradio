@@ -1,8 +1,9 @@
 from time import sleep
 import gradio as gr
-import os
+from gradio.media import get_image
 
-cheetah = os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg")
+# get_image() returns file paths to sample media included with Gradio
+cheetah = get_image("cheetah1.jpg")
 
 def img(text):
     sleep(3)
@@ -18,7 +19,7 @@ def img(text):
         cheetah,
     ]
 
-with gr.Blocks(css=".container { max-width: 800px; margin: auto; }") as demo:
+with gr.Blocks() as demo:
     gr.Markdown("<h1><center>DALL·E mini</center></h1>")
     gr.Markdown(
         "DALL·E mini is an AI model that generates images from any prompt you give!"
@@ -34,13 +35,13 @@ with gr.Blocks(css=".container { max-width: 800px; margin: auto; }") as demo:
         gallery = gr.Gallery(
             label="Generated images",
             show_label=False,
-            columns=(1, 3),
+            columns=1,
             height="auto",
         )
     btn.click(img, inputs=text, outputs=gallery)
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(css=".container { max-width: 800px; margin: auto; }")
 
 # margin = (TOP, RIGHT, BOTTOM, LEFT)
 # rounded = (TOPLEFT, TOPRIGHT, BOTTOMRIGHT, BOTTOMLEFT)

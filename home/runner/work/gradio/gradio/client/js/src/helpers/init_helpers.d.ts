@@ -15,7 +15,7 @@ export declare function get_jwt(space: string, token: `hf_${string}`, cookies?: 
 export declare function map_names_to_ids(fns: Config["dependencies"]): Record<string, number>;
 export declare function resolve_config(this: Client, endpoint: string): Promise<Config | undefined>;
 export declare function resolve_cookies(this: Client): Promise<void>;
-export declare function get_cookie_header(http_protocol: string, host: string, auth: [string, string], _fetch: typeof fetch, hf_token?: `hf_${string}`): Promise<string | null>;
+export declare function get_cookie_header(http_protocol: string, host: string, auth: [string, string], _fetch: typeof fetch, token?: `hf_${string}`): Promise<string | null>;
 export declare function determine_protocol(endpoint: string): {
     ws_protocol: "ws" | "wss";
     http_protocol: "http:" | "https:";

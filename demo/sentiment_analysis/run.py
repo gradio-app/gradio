@@ -1,6 +1,6 @@
 import gradio as gr
-import nltk
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
+import nltk  # type: ignore
+from nltk.sentiment.vader import SentimentIntensityAnalyzer  # type: ignore
 
 nltk.download("vader_lexicon")
 sid = SentimentIntensityAnalyzer()
@@ -14,6 +14,7 @@ demo = gr.Interface(
     fn=sentiment_analysis,
     inputs=gr.Textbox(placeholder="Enter a positive or negative sentence here..."),
     outputs="label",
-    examples=[["This is wonderful!"]])
+    examples=[["This is wonderful!"]],
+    api_name="predict")
 
 demo.launch()

@@ -7,5 +7,7 @@ declare global {
 		gradio_api_info: ApiInfo<ApiData> | { api: ApiInfo<ApiData> };
 		__is_colab__: boolean;
 		__gradio_space__: string | null;
+		supports_zerogpu_headers?: boolean;
+		BUILD_MODE?: "dev" | "production";
 	}
 }

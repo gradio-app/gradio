@@ -1,4 +1,3 @@
-import { onDestroy } from "svelte";
 import { writable } from "svelte/store";
 
 const sizes = {
@@ -6,7 +5,8 @@ const sizes = {
 	md: "(min-width: 768px)",
 	lg: "(min-width: 1024px)",
 	xl: "(min-width: 1280px)",
-	"2xl": "(min-width: 1536px)"
+	"2xl": "(min-width: 1536px)",
+	"3xl": "(min-width: 1920px)"
 } as const;
 
 const _default = {
@@ -14,7 +14,8 @@ const _default = {
 	md: false,
 	lg: false,
 	xl: false,
-	"2xl": false
+	"2xl": false,
+	"3xl": false
 };
 
 export const media_query = () => {
@@ -35,16 +36,16 @@ export const media_query = () => {
 
 			listeners[key] = [mql, listener];
 		}
-
-		onDestroy(() => {
-			for (const key in listeners) {
-				const [_mql, _listener] = listeners[key];
-				_mql.removeEventListener("change", _listener);
-			}
-		});
 	}
 
-	return { subscribe };
+	const cleanup = () => {
+		for (const key in listeners) {
+			const [_mql, _listener] = listeners[key];
+			_mql.removeEventListener("change", _listener);
+		}
+	};
+
+	return { subscribe, cleanup };
 };
 
 import slugify from "@sindresorhus/slugify";

@@ -15,7 +15,7 @@ def zip_to_json(file_obj):
             )
     return files
 
-demo = gr.Interface(zip_to_json, "file", "json")
+demo = gr.Interface(zip_to_json, "file", "json", api_name="predict")
 
 if __name__ == "__main__":
     demo.launch()

@@ -7,14 +7,16 @@ import warnings
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import numpy as np
 import pytest
+from gradio_client.exceptions import AppError
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from gradio import EventData, Request
+from gradio.exceptions import Error
 from gradio.external_utils import format_ner_list
 from gradio.utils import (
     FileSize,
@@ -28,16 +30,18 @@ from gradio.utils import (
     delete_none,
     diff,
     download_if_url,
+    error_payload,
     get_extension_from_file_path_or_url,
+    get_function_description,
     get_function_params,
+    get_icon_path,
     get_type_hints,
     ipython_check,
     is_allowed_file,
+    is_hosted_notebook,
     is_in_or_equal,
     is_special_typed_parameter,
-    kaggle_check,
     safe_deepcopy,
-    sagemaker_check,
     sanitize_list_for_csv,
     sanitize_value_for_csv,
     tex2svg,
@@ -92,46 +96,14 @@ class TestUtils:
         out_article = download_if_url(in_article)
         assert out_article != in_article
 
-    def test_sagemaker_check_false(self):
-        assert not sagemaker_check()
-
-    def test_sagemaker_check_false_if_boto3_not_installed(self):
-        with patch.dict(sys.modules, {"boto3": None}, clear=True):
-            assert not sagemaker_check()
-
-    @patch("boto3.session.Session.client")
-    def test_sagemaker_check_true(self, mock_client):
-        mock_client().get_caller_identity = MagicMock(
-            return_value={
-                "Arn": "arn:aws:sts::67364438:assumed-role/SageMaker-Datascients/SageMaker"
-            }
-        )
-        assert sagemaker_check()
-
-    def test_kaggle_check_false(self):
-        assert not kaggle_check()
+    def test_is_hosted_notebook_false(self):
+        assert not is_hosted_notebook()
 
     def test_kaggle_check_true_when_run_type_set(self):
         with patch.dict(
             os.environ, {"KAGGLE_KERNEL_RUN_TYPE": "Interactive"}, clear=True
         ):
-            assert kaggle_check()
-
-    def test_kaggle_check_true_when_both_set(self):
-        with patch.dict(
-            os.environ,
-            {"KAGGLE_KERNEL_RUN_TYPE": "Interactive", "GFOOTBALL_DATA_DIR": "./"},
-            clear=True,
-        ):
-            assert kaggle_check()
-
-    def test_kaggle_check_false_when_neither_set(self):
-        with patch.dict(
-            os.environ,
-            {"KAGGLE_KERNEL_RUN_TYPE": "", "GFOOTBALL_DATA_DIR": ""},
-            clear=True,
-        ):
-            assert not kaggle_check()
+            assert is_hosted_notebook()
 
 
 def test_assert_configs_are_equivalent():
@@ -304,7 +276,7 @@ class TestGetTypeHints:
         for x in test_objs:
             hints = get_type_hints(x)
             assert len(hints) == 1
-            assert hints["s"] == str
+            assert hints["s"] is str
 
         assert len(get_type_hints(GenericObject())) == 0
 
@@ -373,8 +345,15 @@ def test_is_in_or_equal():
     assert not is_in_or_equal("/home/usr/subdirectory", "/home/usr/notes.txt")
     assert not is_in_or_equal("/home/usr/../../etc/notes.txt", "/home/usr/")
     assert not is_in_or_equal("/safe_dir/subdir/../../unsafe_file.txt", "/safe_dir/")
-    assert is_in_or_equal("//foo/asd/", "/foo")
+
+
+@pytest.mark.skipif(
+    sys.platform.startswith("win"),
+    reason="Windows doesn't support POSIX double-slash notation",
+)
+def test_is_in_or_equal_posix_specific_paths():
     assert is_in_or_equal("//foo/..a", "//foo")
+    assert is_in_or_equal("//foo/asd/", "/foo")
     assert is_in_or_equal("//foo/..²", "/foo")
 
 
@@ -514,9 +493,51 @@ def test_get_extension_from_file_path_or_url(path_or_url, extension):
     "old, new, expected_diff",
     [
         ({"a": 1, "b": 2}, {"a": 1, "b": 2}, []),
-        ({}, {"a": 1, "b": 2}, [("add", ["a"], 1), ("add", ["b"], 2)]),
-        (["a", "b"], {"a": 1, "b": 2}, [("replace", [], {"a": 1, "b": 2})]),
-        ("abc", "abcdef", [("append", [], "def")]),
+        ({}, {"a": 1, "b": 2}, [["add", ["a"], 1], ["add", ["b"], 2]]),
+        (["a", "b"], {"a": 1, "b": 2}, [["replace", [], {"a": 1, "b": 2}]]),
+        ("abc", "abcdef", [["append", [], "def"]]),
+        (
+            [
+                {"role": "user", "content": "Hello!", "metadata": {"id": 1}},
+                {"role": "assistant", "content": "b"},
+            ],
+            [
+                {
+                    "role": "assistant",
+                    "content": "Thinking...",
+                    "metadata": {"title": "Thinking..."},
+                },
+                {"role": "assistant", "content": "b"},
+            ],
+            [
+                ["replace", [0, "role"], "assistant"],
+                ["replace", [0, "content"], "Thinking..."],
+                ["delete", [0, "metadata", "id"], None],
+                ["add", [0, "metadata", "title"], "Thinking..."],
+            ],
+        ),
+        (
+            [
+                {"role": "user", "content": "Hello!", "metadata": {"id": 1}},
+                {"role": "assistant", "content": "b"},
+            ],
+            [
+                {"role": "user", "content": "No metadata", "metadata": {}},
+                {"role": "assistant", "content": "b"},
+            ],
+            [
+                ["replace", [0, "content"], "No metadata"],
+                ["delete", [0, "metadata", "id"], None],
+            ],
+        ),
+        (
+            {"data": [[1, 1], [2, 2], [3, 3]]},
+            {"data": [[1, 1]]},
+            [
+                ["delete", ["data", 1], None],
+                ["delete", ["data", 1], None],
+            ],
+        ),
     ],
 )
 def test_diff(old, new, expected_diff):
@@ -525,14 +546,14 @@ def test_diff(old, new, expected_diff):
 
 class TestFunctionParams:
     def test_regular_function(self):
-        def func(a, b=10, c="default", d=None):
+        def func(a: int, b: int = 10, c: str = "default", d=None):
             pass
 
         assert get_function_params(func) == [
-            ("a", False, None),
-            ("b", True, 10),
-            ("c", True, "default"),
-            ("d", True, None),
+            ("a", False, None, int),
+            ("b", True, 10, int),
+            ("c", True, "default", str),
+            ("d", True, None, None),
         ]
 
     def test_function_no_params(self):
@@ -543,32 +564,38 @@ class TestFunctionParams:
 
     def test_lambda_function(self):
         assert get_function_params(lambda x, y: x + y) == [
-            ("x", False, None),
-            ("y", False, None),
+            ("x", False, None, None),
+            ("y", False, None, None),
         ]
 
     def test_function_with_args(self):
         def func(a, *args):
             pass
 
-        assert get_function_params(func) == [("a", False, None)]
+        assert get_function_params(func) == [("a", False, None, None)]
 
     def test_function_with_kwargs(self):
         def func(a, **kwargs):
             pass
 
-        assert get_function_params(func) == [("a", False, None)]
+        assert get_function_params(func) == [("a", False, None, None)]
 
     def test_function_with_special_args(self):
         def func(a, r: Request, b=10):
             pass
 
-        assert get_function_params(func) == [("a", False, None), ("b", True, 10)]
+        assert get_function_params(func) == [
+            ("a", False, None, None),
+            ("b", True, 10, None),
+        ]
 
         def func2(a, r: Request | None = None, b="abc"):
             pass
 
-        assert get_function_params(func2) == [("a", False, None), ("b", True, "abc")]
+        assert get_function_params(func2) == [
+            ("a", False, None, None),
+            ("b", True, "abc", None),
+        ]
 
     def test_class_method_skip_first_param(self):
         class MyClass:
@@ -576,8 +603,8 @@ class TestFunctionParams:
                 pass
 
         assert get_function_params(MyClass().method) == [
-            ("arg1", False, None),
-            ("arg2", True, 42),
+            ("arg1", False, None, None),
+            ("arg2", True, 42, None),
         ]
 
     def test_static_method_no_skip(self):
@@ -587,8 +614,8 @@ class TestFunctionParams:
                 pass
 
         assert get_function_params(MyClass.method) == [
-            ("arg1", False, None),
-            ("arg2", True, 42),
+            ("arg1", False, None, None),
+            ("arg2", True, 42, None),
         ]
 
     def test_class_method_with_args(self):
@@ -596,13 +623,13 @@ class TestFunctionParams:
             def method(self, a, *args, b=42):
                 pass
 
-        assert get_function_params(MyClass().method) == [("a", False, None)]
+        assert get_function_params(MyClass().method) == [("a", False, None, None)]
 
     def test_lambda_with_args(self):
-        assert get_function_params(lambda x, *args: x) == [("x", False, None)]
+        assert get_function_params(lambda x, *args: x) == [("x", False, None, None)]
 
     def test_lambda_with_kwargs(self):
-        assert get_function_params(lambda x, **kwargs: x) == [("x", False, None)]
+        assert get_function_params(lambda x, **kwargs: x) == [("x", False, None, None)]
 
 
 def test_parse_file_size():
@@ -687,7 +714,7 @@ class TestSafeDeepCopy:
         assert copied == original
         assert copied is not original
         assert copied[2] is not original[2]
-        assert copied[2][2] is not original[2][2]
+        assert copied[2][2] is not original[2][2]  # type: ignore
 
     def test_safe_deepcopy_custom_object(self):
         class CustomClass:
@@ -709,3 +736,205 @@ class TestSafeDeepCopy:
         result = safe_deepcopy(original)
         assert result is not original
         assert type(result) is type(original)
+
+
+def test_get_icon_path():
+    assert get_icon_path("plus.svg").endswith("plus.svg")
+    assert get_icon_path("huggingface-logo.svg").endswith("huggingface-logo.svg")
+
+
+def test_error_payload():
+    result = error_payload(None, False)
+    assert result == {"error": None}
+
+    result = error_payload(Exception("test error"), True)
+    assert result == {"error": "test error", "visible": True}
+
+    gr_error = Error("custom error", duration=1.5, visible=True, title="Error Title")
+    result = error_payload(gr_error, False)
+    assert result == {
+        "error": "custom error",
+        "duration": 1.5,
+        "visible": True,
+        "title": "Error Title",
+    }
+
+    app_error = AppError("custom error")
+    result = error_payload(app_error, False)
+    assert result == {
+        "error": "custom error",
+        "duration": 10,
+        "visible": True,
+        "title": "Error",
+    }
+
+
+class TestGetFunctionDescription:
+    def test_basic_function_description(self):
+        def test_func(param1, param2):
+            """This is a test function.
+            Args:
+                param1: First parameter
+                param2: Second parameter
+            Returns:
+                - First return value
+                - Second return value
+            """
+            pass
+
+        description, parameters, returns = get_function_description(test_func)
+        assert description == "This is a test function."
+        assert parameters == {"param1": "First parameter", "param2": "Second parameter"}
+        assert returns == ["- First return value", "- Second return value"]
+
+    def test_function_with_extended_returns(self):
+        def test_func(param1, param2):
+            """This is a test function.
+            Args:
+                param1: First parameter
+                param2: Second parameter
+            Returns:
+                - First return value
+                - Second return value
+            Examples:
+                - Example 1
+                - Example 2
+            """
+            pass
+
+        description, parameters, returns = get_function_description(test_func)
+        assert description == "This is a test function."
+        assert parameters == {"param1": "First parameter", "param2": "Second parameter"}
+        assert returns == [
+            "- First return value",
+            "- Second return value",
+            "Examples:",
+            "- Example 1",
+            "- Example 2",
+        ]
+
+    def test_function_with_no_docstring(self):
+        def test_func():
+            pass
+
+        description, parameters, returns = get_function_description(test_func)
+        assert description == ""
+        assert parameters == {}
+        assert returns == []
+
+    def test_function_with_no_parameters(self):
+        def test_func():
+            """This is a test function with no parameters."""
+            pass
+
+        description, parameters, returns = get_function_description(test_func)
+        assert description == "This is a test function with no parameters."
+        assert parameters == {}
+        assert returns == []
+
+    def test_function_with_alternate_parameter_section(self):
+        def test_func(param1, param2):
+            """This is a test function.
+            Parameters:
+                param1: First parameter
+                param2: Second parameter
+            """
+            pass
+
+        description, parameters, returns = get_function_description(test_func)
+        assert description == "This is a test function."
+        assert parameters == {"param1": "First parameter", "param2": "Second parameter"}
+        assert returns == []
+
+    def test_function_with_arguments_section(self):
+        def test_func(param1, param2):
+            """This is a test function.
+            Arguments:
+                param1: First parameter
+                param2: Second parameter
+            Returns:
+                x: First return value
+                y: Second return value
+            """
+            pass
+
+        description, parameters, returns = get_function_description(test_func)
+        assert description == "This is a test function."
+        assert parameters == {"param1": "First parameter", "param2": "Second parameter"}
+        assert returns == ["x: First return value", "y: Second return value"]
+
+    def test_function_with_multiline_description(self):
+        def test_func(param1, param2):
+            """This is a test function.
+            It has multiple lines of description.
+            Args:
+                param1: First parameter
+                param2: Second parameter
+            """
+            pass
+
+        description, parameters, returns = get_function_description(test_func)
+        assert (
+            description
+            == "This is a test function. It has multiple lines of description."
+        )
+        assert parameters == {"param1": "First parameter", "param2": "Second parameter"}
+        assert returns == []
+
+    def test_function_with_missing_params(self):
+        def test_func(param1, param2, param3):
+            """This is a test function.
+            Args:
+            param1: description1
+            param3: description3
+            Returns:
+                - First return value
+                - Second return value
+            """
+            pass
+
+        description, parameters, returns = get_function_description(test_func)
+        assert description == "This is a test function."
+        assert parameters == {
+            "param1": "description1",
+            "param2": "",
+            "param3": "description3",
+        }
+        assert returns == ["- First return value", "- Second return value"]
+
+    def test_function_with_nested_colons(self):
+        def test_func(param1, param2):
+            """This is a test function.
+            Args:
+            param1: description1: with nested colon
+            param2: description2
+            """
+            pass
+
+        description, parameters, returns = get_function_description(test_func)
+        assert description == "This is a test function."
+        assert parameters == {
+            "param1": "description1: with nested colon",
+            "param2": "description2",
+        }
+        assert returns == []
+
+    def test_get_function_description_inherits_parent_docstring(self):
+        """
+        Test that get_function_description correctly retrieves docstrings
+        from a method's parent class if the method itself has none.
+        """
+
+        class Parent:
+            def method(self):
+                """This is the docstring from the parent class."""
+                pass
+
+        class Child(Parent):
+            def method(self):
+                pass  # No docstring here
+
+        description, parameters, returns = get_function_description(Child().method)
+        assert parameters == {}
+        assert returns == []
+        assert description == "This is the docstring from the parent class."

@@ -11,6 +11,7 @@ demo = gr.Interface(
     fn=save_image_random_name,
     inputs=gr.Image(type="pil"),
     outputs=None,
+    api_name="predict",
 )
 if __name__ == "__main__":
     demo.launch()

@@ -2,14 +2,13 @@ import os
 from pathlib import Path
 
 import pytest
-from gradio_client import media_data
 
 import gradio as gr
 from gradio.data_classes import FileData, ListFiles
 
 
 class TestFile:
-    def test_component_functions(self):
+    def test_component_functions(self, media_data):
         """
         Preprocess, serialize, get_config, value
         """
@@ -43,8 +42,11 @@ class TestFile:
             "proxy_url": None,
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
             "height": None,
             "type": "filepath",
+            "allow_reordering": False,
+            "buttons": [],
         }
         assert file_input.preprocess(None) is None
         assert file_input.preprocess(x_file) is not None
@@ -62,7 +64,7 @@ class TestFile:
         output2 = file_input.postprocess("test/test_files/sample_file.pdf")
         assert output1 == output2
 
-    def test_preprocess_with_multiple_files(self):
+    def test_preprocess_with_multiple_files(self, media_data):
         file_data = FileData(path=media_data.BASE64_FILE["path"])
         list_file_data = ListFiles(root=[file_data, file_data])
         file_input = gr.File(file_count="directory")
@@ -76,7 +78,7 @@ class TestFile:
         ):
             gr.File(file_types=".json")  # type: ignore
 
-    def test_in_interface_as_input(self):
+    def test_in_interface_as_input(self, media_data):
         """
         Interface, process
         """

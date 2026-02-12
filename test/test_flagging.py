@@ -92,10 +92,10 @@ class TestInterfaceSetsUpFlagging:
         ],
     )
     def test_flag_method_init_called(self, flagging_mode, called):
-        flagging.FlagMethod.__init__ = MagicMock()
-        flagging.FlagMethod.__init__.return_value = None
+        flagging.FlagMethod.__init__ = MagicMock()  # type: ignore
+        flagging.FlagMethod.__init__.return_value = None  # type: ignore
         gr.Interface(lambda x: x, "text", "text", flagging_mode=flagging_mode)
-        assert flagging.FlagMethod.__init__.called == called
+        assert flagging.FlagMethod.__init__.called == called  # type: ignore
 
     @pytest.mark.parametrize(
         "options, processed_options",

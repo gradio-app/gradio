@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Any, Literal, Union
 
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
+from gradio.components.button import Button
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Events
+from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -46,23 +49,26 @@ class HighlightedText(Component):
         show_inline_category: bool = True,
         combine_adjacent: bool = False,
         adjacent_separator: str = "",
-        label: str | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         interactive: bool | None = None,
+        rtl: bool = False,
+        buttons: list[Button] | None = None,
     ):
         """
         Parameters:
-            value: Default value to show. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Default value to show. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
             color_map: A dictionary mapping labels to colors. The colors may be specified as hex codes or by their names. For example: {"person": "red", "location": "#FFEE22"}
             show_legend: whether to show span categories in a separate legend or inline.
             show_inline_category: If False, will not display span category label. Only applies if show_legend=False and interactive=False.
@@ -75,18 +81,22 @@ class HighlightedText(Component):
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
-            visible: If False, component will be hidden.
+            visible: If False, component will be hidden. If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
+            key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
+            preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             interactive: If True, the component will be editable, and allow user to select spans of text and label them.
+            rtl: If True, will display the text in right-to-left direction, and the labels in the legend will also be aligned to the right.
+            buttons: A list of gr.Button() instances to show in the top right corner of the component. Custom buttons will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button.
         """
         self.color_map = color_map
         self.show_legend = show_legend
         self.show_inline_category = show_inline_category
         self.combine_adjacent = combine_adjacent
         self.adjacent_separator = adjacent_separator
+        self.rtl = rtl
         super().__init__(
             label=label,
             every=every,
@@ -100,9 +110,12 @@ class HighlightedText(Component):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             value=value,
             interactive=interactive,
         )
+        self.buttons = set_default_buttons(buttons, None)
+        self._value_description = "a list of 2-part tuples, where the first part is a substring of the text and the second part is the category or value of that substring."
 
     def example_payload(self) -> Any:
         return [

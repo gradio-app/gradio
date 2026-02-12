@@ -9,7 +9,7 @@ More than 300 awesome developers have contributed to the `gradio` library, and w
 
 - [Python 3.10+](https://www.python.org/downloads/)
 - [Node.js v16.14+](https://nodejs.dev/en/download/package-manager/) (only needed if you are making changes to the frontend)
-- [pnpm 8.1+](https://pnpm.io/8.x/installation) (only needed if you are making changes to the frontend)
+- [pnpm 9.x](https://pnpm.io/9.x/installation) (only needed if you are making changes to the frontend)
 
 **Steps to Contribute**:
 
@@ -36,30 +36,97 @@ There are a few ways to install and run Gradio.
 
 - Clone this repo
 - Navigate to the repo directory and run:
+<table>
+  <tr>
+  <th>MacOS / Linux</th>
+  <th>Windows</th>
+  </tr>
+  <tr>
+  <td>
 
 ```bash
 bash scripts/install_gradio.sh
 ```
+  </td>
+  <td>
+
+```bash
+scripts\install_gradio.bat
+```
+  </td>
+  </tr>
+</table>
 
 - Run the frontend (only required if you are making changes to the frontend and would like to preview them)
+<table>
+  <tr>
+  <th>MacOS / Linux</th>
+  <th>Windows</th>
+  </tr>
+  <tr>
+  <td>
 
 ```bash
 bash scripts/run_frontend.sh
 ```
+  </td>
+  <td>
+  
+```bash
+scripts\run_frontend.bat
+```
+  </td>
+  </tr>
+</table>
 
 -  Install test requirements (only required if you want to run tests locally)
 
 (Note that it is highly recommended to use a virtual environment running **Python 3.10** since the versions of Gradio's dependencies are pinned)
 
+<table>
+  <tr>
+  <th>MacOS / Linux</th>
+  <th>Windows</th>
+  </tr>
+  <tr>
+  <td>
+
 ```bash
 bash scripts/install_test_requirements.sh
 ```
+  </td>
+  <td>
+  
+```bash
+scripts\install_test_requirements.bat
+```
+  </td>
+  </tr>
+</table>
 
 If you have a different Python version and conflicting packages during the installation, please first run:
+
+<table>
+  <tr>
+  <th>MacOS / Linux</th>
+  <th>Windows</th>
+  </tr>
+  <tr>
+  <td>
 
 ```bash
 bash scripts/create_test_requirements.sh
 ```
+  </td>
+  <td>
+  
+```bash
+scripts\create_test_requirements.bat
+```
+  </td>
+  </tr>
+</table>
+
 
 ### 📦 Using dev containers
 
@@ -99,7 +166,7 @@ If you're a newcomer to Gradio, we recommend getting familiar with the overall s
 
 You can get started by creating an `app.py` file in the root:
 
-```
+```py
 import gradio as gr
 
 with gr.Blocks() as demo:
@@ -123,9 +190,27 @@ Note: if you have `gradio` installed elsewhere in your system, you may need to u
 
 If you're making frontend changes, start the frontend server:
 
+
+<table>
+  <tr>
+  <th>MacOS / Linux</th>
+  <th>Windows</th>
+  </tr>
+  <tr>
+  <td>
+
 ```bash
 bash scripts/run_frontend.sh
 ```
+  </td>
+  <td>
+  
+```bash
+scripts\run_frontend.bat
+```
+  </td>
+  </tr>
+</table>
 
 This will open a separate browser tab. By default, Gradio will launch this on port 9876. Any changes to the frontend will also reload automatically in the browser. For more information about developing in the frontend, you can refer to [js/README.md](js/README.md).
 
@@ -142,9 +227,26 @@ We use Pytest, Playwright and Vitest to test our code.
 
 - The Python tests are located in `/test`. To run these tests:
 
+<table>
+  <tr>
+  <th>MacOS / Linux</th>
+  <th>Windows</th>
+  </tr>
+  <tr>
+  <td>
+
 ```
 bash scripts/run_backend_tests.sh
 ```
+  </td>
+  <td>
+  
+```bash
+scripts\run_backend_tests.bat
+```
+  </td>
+  </tr>
+</table>
 
 - The frontend unit tests are any defined with the filename `*.test.ts`. To run them:
 
@@ -152,7 +254,19 @@ bash scripts/run_backend_tests.sh
 pnpm test
 ```
 
-- Browser tests are located in `js/spa/test` and are defined as `*spec.ts` files. To run browser tests:
+- Browser tests are located in `js/spa/test` and are defined as `*spec.ts` files.
+
+To install browser test dependencies:
+
+```
+pip install -r demo/outbreak_forecast/requirements.txt
+pip install -r demo/stream_video_out/requirements.txt
+pnpm exec playwright install chromium firefox
+pnpm exec playwright install-deps chromium firefox
+pnpm --filter @gradio/utils --filter @gradio/theme package
+```
+
+To run browser tests:
 
 ```
 pnpm test:browser
@@ -259,36 +373,11 @@ and then from the website directory:
 pnpm dev
 ```
 
-#### Main vs Released 
+#### Main vs. Released 
 
 The website supports documentation for both the latest released version on pypi as well as the main build on github. You can switch between them on the website by using the toggle on any page or by prefixing '/main' before the route in the url. For example: https://www.gradio.app/main/guides/quickstart 
 
 If you're making changes to documentation and are wondering why they're not showing up, make sure you're looking at the 'main' version of the page. Since they haven't been included in a release yet, they will only be visible there. 
-
-## 🌎 Gradio-Lite
-
-Gradio-Lite is a Pyodide-based library that lets you run Gradio serverless (in other words, directly in your browser).
-
-You can start the development server by running:
-```
-bash scripts/run_lite.sh
-```
-
-If you make changes to the Python code during development, you will need to rebuild the Python packages loaded to Graio-Lite. To do this, run:
-```
-pnpm --filter @gradio/lite pybuild
-```
-
-To generate the release build, run:
-```
-bash scripts/build_lite.sh
-```
-The release build will be located in the `dist` directory in the `js/lite` project.
-To test it, you can run a local server in the `js/lite` directory:
-```
-python -m http.server --directory js/lite
-```
-and navigate to `http://localhost:8000` in your browser. The demo page `index.html` located in the `js/lite` directory will be loaded.
 
 ## 📮 Submitting PRs
 
@@ -302,15 +391,50 @@ All PRs should be submitted against `main`, and ideally should address an open i
 
 Don't forget to format your code before pushing:
 
+<table>
+  <tr>
+  <th>MacOS / Linux</th>
+  <th>Windows</th>
+  </tr>
+  <tr>
+  <td>
+
 ```
 bash scripts/format_backend.sh
 ```
+  </td>
+  <td>
+  
+```bash
+scripts\format_backend.bat
+```
+  </td>
+  </tr>
+</table>
 
 And if you made changes to the frontend: 
+
+
+<table>
+  <tr>
+  <th>MacOS / Linux</th>
+  <th>Windows</th>
+  </tr>
+  <tr>
+  <td>
 
 ```
 bash scripts/format_frontend.sh
 ```
+  </td>
+  <td>
+  
+```bash
+scripts\format_frontend.bat
+```
+  </td>
+  </tr>
+</table>
 
 Thank you for taking the time to contribute to Gradio! 
 
@@ -339,15 +463,34 @@ rm pnpm-lock.yaml
 
 and run the install scripts:
 
+
+<table>
+  <tr>
+  <th>MacOS / Linux</th>
+  <th>Windows</th>
+  </tr>
+  <tr>
+  <td>
+
 ```
 bash scripts/install_gradio.sh
 bash scripts/build_frontend.sh
 ```
+  </td>
+  <td>
+  
+```bash
+scripts\install_gradio.bat
+scripts\build_frontend.bat
+```
+  </td>
+  </tr>
+</table>
 ---
 
 ```FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory``` when running `scripts/build_frontend.sh`.
 
-Run `scripts/build_frontend.sh` with the environment variable `NODE_OPTIONS=--max_old_space_size=2048` to increase the heap size.
+Run `scripts/build_frontend.sh` with the environment variable `NODE_OPTIONS=--max_old_space_size=8192` to increase the heap size.
 
 ---
 

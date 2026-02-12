@@ -9,9 +9,12 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
+
     let obj = get_object("imageeditor");
     let brush_obj = get_object("brush");
     let eraser_obj = get_object("eraser");
+    let layeroptions_obj = get_object("layeroptions");
+    let webcam_options_obj = get_object("webcamoptions")
 </script>
 
 <!--- Title -->
@@ -22,15 +25,6 @@
 gradio.ImageEditor(···)
 ```
 
-<!-- Embedded Component -->
-<div class="embedded-component">
-<gradio-lite shared-worker>
-import gradio as gr 
-with gr.Blocks() as demo:
-    gr.ImageEditor()
-demo.launch()
-</gradio-lite>
-</div>
 
 
 <!--- Description -->
@@ -63,7 +57,7 @@ def predict(···) -> EditorValue | ImageType | None
 
 <!--- Initialization -->
 ### Initialization
-<ParamTable parameters={obj.parameters} />
+<ParamTable parameters={obj.parameters} anchor_links={obj.name}/>
 
 
 {#if obj.string_shortcuts && obj.string_shortcuts.length > 0}
@@ -103,7 +97,7 @@ gradio.Brush(···)
 
 <!--- Initialization -->
 #### Initialization
-<ParamTable parameters={brush_obj.parameters} />
+<ParamTable parameters={brush_obj.parameters} anchor_links={brush_obj.name} />
 
 <!-- ERASER -->
 <!--- Title -->
@@ -120,13 +114,46 @@ gradio.Eraser(···)
 
 <!--- Initialization -->
 #### Initialization
-<ParamTable parameters={eraser_obj.parameters} />
+<ParamTable parameters={eraser_obj.parameters} anchor_links={eraser_obj.name}/>
 
+<!-- LAYER OPTIONS -->
+<!--- Title -->
+### Layer Options
+
+<!--- Usage -->
+```python
+gradio.LayerOptions(···)
+```
+
+<!--- Description -->
+#### Description
+## {@html style_formatted_text(layeroptions_obj.description)}
+
+<!--- Initialization -->
+#### Initialization
+<ParamTable parameters={layeroptions_obj.parameters} anchor_links={layeroptions_obj.name}/>
+
+<!-- WEBCAM OPTIONS -->
+<!--- Title -->
+### Webcam Options
+
+<!--- Usage -->
+```python
+gradio.WebcamOptions(···)
+```
+
+<!--- Description -->
+#### Description
+## {@html style_formatted_text(webcam_options_obj.description)}
+
+<!--- Initialization -->
+#### Initialization
+<ParamTable parameters={webcam_options_obj.parameters} anchor_links={webcam_options_obj.name}/>
 
 </div>
 
 {#if obj.guides && obj.guides.length > 0}
 <!--- Guides -->
-### Guides
+<!--- the guide section below is still necessary to scrape the guides on the side navigation -->
 <GuidesSection guides={obj.guides}/>
 {/if}

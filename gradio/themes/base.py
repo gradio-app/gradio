@@ -86,7 +86,7 @@ class ThemeClass:
             + "\n}"
         )
         dark_css_code = (
-            "\n:root .dark {\n"
+            "\n:root.dark, :root .dark {\n"
             + "\n".join([f"  --{attr}: {val};" for attr, val in dark_css.items()])
             + "\n}"
         )
@@ -126,8 +126,7 @@ class ThemeClass:
             if (
                 not prop.startswith("_")
                 or prop.startswith("_font")
-                or prop == "_stylesheets"
-                or prop == "name"
+                or prop in ("_stylesheets", "name")
             ) and isinstance(getattr(self, prop), (list, str)):
                 schema["theme"][prop] = getattr(self, prop)
         return schema
@@ -170,21 +169,21 @@ class ThemeClass:
         Path(filename).write_text(json.dumps(self.to_dict(), cls=fonts.FontEncoder))
 
     @classmethod
-    def from_hub(cls, repo_name: str, hf_token: str | None = None):
+    def from_hub(cls, repo_name: str, token: str | None = None):
         """Load a theme from the hub.
 
         This DOES NOT require a HuggingFace account for downloading publicly available themes.
 
         Parameters:
             repo_name: string of the form <author>/<theme-name>@<semantic-version-expression>.  If a semantic version expression is omitted, the latest version will be fetched.
-            hf_token: HuggingFace Token. Only needed to download private themes.
+            token: HuggingFace Token. Only needed to download private themes.
         """
         if "@" not in repo_name:
             name, version = repo_name, None
         else:
             name, version = repo_name.split("@")
 
-        api = huggingface_hub.HfApi(token=hf_token)
+        api = huggingface_hub.HfApi(token=token)
 
         try:
             space_info = api.space_info(name)
@@ -227,7 +226,7 @@ class ThemeClass:
         repo_name: str,
         org_name: str | None = None,
         version: str | None = None,
-        hf_token: str | None = None,
+        token: str | None = None,
         theme_name: str | None = None,
         description: str | None = None,
         private: bool = False,
@@ -240,7 +239,7 @@ class ThemeClass:
             repo_name: The name of the repository to store the theme assets, e.g. 'my_theme' or 'sunset'.
             org_name: The name of the org to save the space in. If None (the default), the username corresponding to the logged in user, or hƒ_token is used.
             version: A semantic version tag for theme. Bumping the version tag lets you publish updates to a theme without changing the look of applications that already loaded your theme.
-            hf_token: API token for your HuggingFace account
+            token: API token for your HuggingFace account
             theme_name: Name for the name. If None, defaults to repo_name
             description: A long form description to your theme.
         """
@@ -249,7 +248,7 @@ class ThemeClass:
 
         api = huggingface_hub.HfApi()
 
-        if not hf_token:
+        if not token:
             try:
                 author = huggingface_hub.whoami()["name"]
             except OSError as e:
@@ -259,7 +258,7 @@ class ThemeClass:
                     "see https://huggingface.co/docs/huggingface_hub/quick-start#login"
                 ) from e
         else:
-            author = huggingface_hub.whoami(token=hf_token)["name"]
+            author = huggingface_hub.whoami(token=token)["name"]
 
         space_id = f"{org_name or author}/{repo_name}"
 
@@ -326,7 +325,7 @@ class ThemeClass:
             space_id,
             repo_type="space",
             space_sdk="gradio",
-            token=hf_token,
+            token=token,
             exist_ok=True,
             private=private,
         )
@@ -336,7 +335,7 @@ class ThemeClass:
             commit_message="Updating theme",
             repo_type="space",
             operations=operations,
-            token=hf_token,
+            token=token,
         )
         url = f"https://huggingface.co/spaces/{space_id}"
         print(f"See your theme here! {url}")
@@ -468,14 +467,19 @@ class Base(ThemeClass):
         # Font
         if isinstance(font, (fonts.Font, str)):
             font = [font]
+
         self._font = [
-            fontfam if isinstance(fontfam, fonts.Font) else fonts.LocalFont(fontfam)
+            fontfam
+            if isinstance(fontfam, (fonts.Font, str))
+            else fonts.LocalFont(fontfam)
             for fontfam in font
         ]
         if isinstance(font_mono, (fonts.Font, str)):
             font_mono = [font_mono]
         self._font_mono = [
-            fontfam if isinstance(fontfam, fonts.Font) else fonts.LocalFont(fontfam)
+            fontfam
+            if isinstance(fontfam, (fonts.Font, str))
+            else fonts.LocalFont(fontfam)
             for fontfam in font_mono
         ]
         self.font = ", ".join(str(font) for font in self._font)
@@ -484,14 +488,15 @@ class Base(ThemeClass):
         self._stylesheets = []
         self._font_css = []
         for font in self._font + self._font_mono:
-            font_stylesheet = font.stylesheet()
-            if isinstance(font_stylesheet, str):
-                self._stylesheets.append(font_stylesheet)
-            elif isinstance(font_stylesheet, dict):
-                if font_stylesheet["url"]:
-                    self._stylesheets.append(font_stylesheet["url"])
-                elif font_stylesheet["css"]:
-                    self._font_css.append(font_stylesheet["css"])
+            if isinstance(font, fonts.Font):
+                font_stylesheet = font.stylesheet()
+                if isinstance(font_stylesheet, str):
+                    self._stylesheets.append(font_stylesheet)
+                elif isinstance(font_stylesheet, dict):
+                    if font_stylesheet.get("url"):
+                        self._stylesheets.append(font_stylesheet["url"])
+                    elif font_stylesheet.get("css"):
+                        self._font_css.append(font_stylesheet["css"])
 
         self.set()
 
@@ -709,6 +714,10 @@ class Base(ThemeClass):
         button_small_radius=None,
         button_small_text_size=None,
         button_small_text_weight=None,
+        button_medium_padding=None,
+        button_medium_radius=None,
+        button_medium_text_size=None,
+        button_medium_text_weight=None,
         button_primary_background_fill=None,
         button_primary_background_fill_dark=None,
         button_primary_background_fill_hover=None,
@@ -757,6 +766,12 @@ class Base(ThemeClass):
         button_cancel_text_color_dark=None,
         button_cancel_text_color_hover=None,
         button_cancel_text_color_hover_dark=None,
+        button_cancel_shadow=None,
+        button_cancel_shadow_hover=None,
+        button_cancel_shadow_active=None,
+        button_cancel_shadow_dark=None,
+        button_cancel_shadow_hover_dark=None,
+        button_cancel_shadow_active_dark=None,
     ) -> Base:
         """
         Parameters:
@@ -963,6 +978,12 @@ class Base(ThemeClass):
             button_cancel_text_color_dark: The text color of a button of "cancel" variant in dark mode.
             button_cancel_text_color_hover: The text color of a button of "cancel" variant when hovered over.
             button_cancel_text_color_hover_dark: The text color of a button of "cancel" variant when hovered over in dark mode.
+            button_cancel_shadow: The shadow under a button of "cancel" variant.
+            button_cancel_shadow_hover: The shadow under a button of "cancel" variant when hovered over.
+            button_cancel_shadow_active: The shadow under a button of "cancel" variant when pressed.
+            button_cancel_shadow_dark: The shadow under a button of "cancel" variant in dark mode.
+            button_cancel_shadow_hover_dark: The shadow under a button of "cancel" variant when hovered over in dark mode.
+            button_cancel_shadow_active_dark: The shadow under a button of "cancel" variant when pressed in dark mode.
             button_large_padding: The padding of a button with the default "large" size.
             button_large_radius: The corner radius of a button with the default "large" size.
             button_large_text_size: The text size of a button with the default "large" size.
@@ -1007,6 +1028,10 @@ class Base(ThemeClass):
             button_small_radius: The corner radius of a button set to "small" size.
             button_small_text_size: The text size of a button set to "small" size.
             button_small_text_weight: The text weight of a button set to "small" size.
+            button_medium_padding: The padding of a button set to "medium" size.
+            button_medium_radius: The corner radius of a button set to "medium" size.
+            button_medium_text_size: The text size of a button set to "medium" size.
+            button_medium_text_weight: The text weight of a button set to "medium" size.
             button_transition: The transition animation duration of a button between regular, hover, and focused states.
             button_transform_hover: The transform animation of a button on hover.
             button_transform_active: The transform animation of a button when pressed.
@@ -1748,6 +1773,35 @@ class Base(ThemeClass):
             or getattr(self, "button_cancel_text_color_hover_dark", "white")
         )
 
+        self.button_cancel_shadow = button_cancel_shadow or getattr(
+            self, "button_cancel_shadow", "*button_secondary_shadow"
+        )
+        self.button_cancel_shadow_hover = button_cancel_shadow_hover or getattr(
+            self, "button_cancel_shadow_hover", "*button_secondary_shadow_hover"
+        )
+        self.button_cancel_shadow_active = button_cancel_shadow_active or getattr(
+            self, "button_cancel_shadow_active", "*button_secondary_shadow_active"
+        )
+        self.button_cancel_shadow_dark = button_cancel_shadow_dark or getattr(
+            self, "button_cancel_shadow_dark", "*button_secondary_shadow"
+        )
+        self.button_cancel_shadow_hover_dark = (
+            button_cancel_shadow_hover_dark
+            or getattr(
+                self,
+                "button_cancel_shadow_hover_dark",
+                "*button_secondary_shadow_hover",
+            )
+        )
+        self.button_cancel_shadow_active_dark = (
+            button_cancel_shadow_active_dark
+            or getattr(
+                self,
+                "button_cancel_shadow_active_dark",
+                "*button_secondary_shadow_active",
+            )
+        )
+
         self.button_transform_hover = button_transform_hover or getattr(
             self, "button_transform_hover", "none"
         )
@@ -1956,6 +2010,18 @@ class Base(ThemeClass):
         )
         self.button_small_text_weight = button_small_text_weight or getattr(
             self, "button_small_text_weight", "400"
+        )
+        self.button_medium_padding = button_medium_padding or getattr(
+            self, "button_medium_padding", "*spacing_md calc(2 * *spacing_md)"
+        )
+        self.button_medium_radius = button_medium_radius or getattr(
+            self, "button_medium_radius", "*radius_md"
+        )
+        self.button_medium_text_size = button_medium_text_size or getattr(
+            self, "button_medium_text_size", "*text_md"
+        )
+        self.button_medium_text_weight = button_medium_text_weight or getattr(
+            self, "button_medium_text_weight", "600"
         )
 
         return self

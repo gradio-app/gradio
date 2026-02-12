@@ -1,15 +1,18 @@
 <script lang="ts">
 	import { getContext, onMount, createEventDispatcher, tick } from "svelte";
 	import { TABS } from "@gradio/tabs";
-	import Column from "@gradio/column";
+	import { BaseColumn } from "@gradio/column";
 	import type { SelectData } from "@gradio/utils";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let label: string;
 	export let id: string | number | object = {};
-	export let visible: boolean;
+	export let visible: boolean | "hidden";
 	export let interactive: boolean;
+	export let order: number;
+	export let scale: number;
+	export let component_id: number;
 
 	const dispatch = createEventDispatcher<{ select: SelectData }>();
 
@@ -18,10 +21,25 @@
 
 	let tab_index: number;
 
-	$: tab_index = register_tab({ label, id, elem_id, visible, interactive });
+	function _register_tab(obj: string, order: number): number {
+		obj = JSON.parse(obj);
+		return register_tab(obj, order);
+	}
+
+	$: props_json = JSON.stringify({
+		label,
+		id,
+		elem_id,
+		visible,
+		interactive,
+		scale,
+		component_id
+	});
+
+	$: tab_index = _register_tab(props_json, order);
 
 	onMount(() => {
-		return (): void => unregister_tab({ label, id, elem_id });
+		return (): void => unregister_tab({ label, id, elem_id }, order);
 	});
 
 	$: $selected_tab_index === tab_index &&
@@ -31,22 +49,27 @@
 <div
 	id={elem_id}
 	class="tabitem {elem_classes.join(' ')}"
-	style:display={$selected_tab === id && visible ? "block" : "none"}
+	class:grow-children={scale >= 1}
+	style:display={$selected_tab === id && visible !== false ? "flex" : "none"}
+	style:flex-grow={scale}
 	role="tabpanel"
 >
-	<Column>
+	<BaseColumn scale={scale >= 1 ? scale : null}>
 		<slot />
-	</Column>
+	</BaseColumn>
 </div>
 
 <style>
 	div {
 		display: flex;
+		flex-direction: column;
 		position: relative;
 		border: none;
 		border-radius: var(--radius-sm);
-		padding: var(--block-padding);
 		width: 100%;
 		box-sizing: border-box;
+	}
+	.grow-children > :global(.column > .column) {
+		flex-grow: 1;
 	}
 </style>

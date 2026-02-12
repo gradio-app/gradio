@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/upload",
-	"version": "0.14.1",
+	"version": "0.17.5",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "src/index.ts",
@@ -10,8 +10,7 @@
 		"@gradio/atoms": "workspace:^",
 		"@gradio/icons": "workspace:^",
 		"@gradio/client": "workspace:^",
-		"@gradio/utils": "workspace:^",
-		"@gradio/wasm": "workspace:^"
+		"@gradio/utils": "workspace:^"
 	},
 	"main_changeset": true,
 	"exports": {
@@ -22,7 +21,7 @@
 		}
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.48.0"
 	},
 	"repository": {
 		"type": "git",

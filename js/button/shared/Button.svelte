@@ -1,25 +1,47 @@
 <script lang="ts">
 	import { type FileData } from "@gradio/client";
+	import { Image } from "@gradio/image/shared";
+	import { type Snippet } from "svelte";
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible = true;
-	export let variant: "primary" | "secondary" | "stop" | "huggingface" =
-		"secondary";
-	export let size: "sm" | "lg" = "lg";
-	export let value: string | null = null;
-	export let link: string | null = null;
-	export let icon: FileData | null = null;
-	export let disabled = false;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
+	let {
+		elem_id,
+		elem_classes = [],
+		visible,
+		variant,
+		size,
+		value,
+		link,
+		link_target,
+		icon,
+		disabled,
+		scale,
+		min_width,
+		onclick = () => {},
+		children
+	}: {
+		elem_id: string | null;
+		elem_classes: string[] | null;
+		visible: boolean | "hidden";
+		variant: "primary" | "secondary" | "stop" | "huggingface";
+		size: "sm" | "md" | "lg";
+		value: string | null;
+		link: string | null;
+		link_target: "_self" | "_blank" | "_parent" | "_top";
+		icon: FileData | null;
+		disabled: boolean;
+		scale: number | null;
+		min_width: number | undefined;
+		onclick: () => void;
+		children?: Snippet;
+	} = $props();
 </script>
 
 {#if link && link.length > 0}
 	<a
 		href={link}
-		rel="noopener noreferrer"
-		class:hidden={!visible}
+		target={link_target}
+		rel={link_target === "_blank" ? "noopener noreferrer" : undefined}
+		class:hidden={visible === false || visible === "hidden"}
 		class:disabled
 		aria-disabled={disabled}
 		class="{size} {variant} {elem_classes.join(' ')}"
@@ -32,14 +54,19 @@
 		id={elem_id}
 	>
 		{#if icon}
-			<img class="button-icon" src={icon.url} alt={`${value} icon`} />
+			<Image
+				src={icon.url}
+				restProps={{ alt: `${value} icon`, class: "button-icon" }}
+			/>
 		{/if}
-		<slot />
+		{#if children}
+			{@render children()}
+		{/if}
 	</a>
 {:else}
 	<button
-		on:click
-		class:hidden={!visible}
+		{onclick}
+		class:hidden={visible === false || visible === "hidden"}
 		class="{size} {variant} {elem_classes.join(' ')}"
 		style:flex-grow={scale}
 		style:width={scale === 0 ? "fit-content" : null}
@@ -50,14 +77,15 @@
 		{disabled}
 	>
 		{#if icon}
-			<img
-				class="button-icon"
-				class:right-padded={value}
+			<Image
+				restProps={{ alt: `${value} icon` }}
+				class_names={[`button-icon ${value ? "right-padded" : ""}`]}
 				src={icon.url}
-				alt={`${value} icon`}
 			/>
 		{/if}
-		<slot />
+		{#if children}
+			{@render children()}
+		{/if}
 	</button>
 {/if}
 
@@ -147,7 +175,7 @@
 		background: var(--button-cancel-background-fill);
 		color: var(--button-cancel-text-color);
 		border: var(--button-border-width) solid var(--button-cancel-border-color);
-		box-shadow: var(--button-secondary-shadow);
+		box-shadow: var(--button-cancel-shadow);
 	}
 
 	.stop:hover,
@@ -157,10 +185,10 @@
 
 	.stop:hover {
 		border-color: var(--button-cancel-border-color-hover);
-		box-shadow: var(--button-secondary-shadow-hover);
+		box-shadow: var(--button-cancel-shadow-hover);
 	}
 	.stop:active {
-		box-shadow: var(--button-secondary-shadow-active);
+		box-shadow: var(--button-cancel-shadow-active);
 	}
 
 	.stop[disabled] {
@@ -174,6 +202,13 @@
 		font-size: var(--button-small-text-size);
 	}
 
+	.md {
+		border-radius: var(--button-medium-radius);
+		padding: var(--button-medium-padding);
+		font-weight: var(--button-medium-text-weight);
+		font-size: var(--button-medium-text-size);
+	}
+
 	.lg {
 		border-radius: var(--button-large-radius);
 		padding: var(--button-large-padding);
@@ -181,12 +216,12 @@
 		font-size: var(--button-large-text-size);
 	}
 
-	.button-icon {
+	:global(.button-icon) {
 		width: var(--text-xl);
 		height: var(--text-xl);
 	}
-	.button-icon.right-padded {
-		margin-right: var(--spacing-xl);
+	:global(.button-icon.right-padded) {
+		margin-right: var(--spacing-md);
 	}
 
 	.huggingface {

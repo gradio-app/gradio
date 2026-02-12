@@ -11,7 +11,7 @@ def slow_echo(message, history):
     runs = runs + 1
     return f"Run {runs} - You typed: " + message['text']
 
-chat = gr.ChatInterface(slow_echo, multimodal=True, type="tuples")
+chat = gr.ChatInterface(slow_echo, multimodal=True, api_name="chat")
 
 with gr.Blocks() as demo:
     chat.render()

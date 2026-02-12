@@ -1,34 +1,41 @@
 <script lang="ts">
+	import { onMount, onDestroy } from "svelte";
 	import { Pause } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 	import DeviceSelect from "./DeviceSelect.svelte";
 
-	export let record: RecordPlugin;
-	export let i18n: I18nFormatter;
-	export let recording = false;
+	let {
+		record,
+		i18n,
+		recording = false,
+		record_time,
+		show_recording_waveform,
+		timing = false
+	}: {
+		record: RecordPlugin;
+		i18n: I18nFormatter;
+		recording?: boolean;
+		record_time: string;
+		show_recording_waveform: boolean | undefined;
+		timing?: boolean;
+	} = $props();
 
-	let micDevices: MediaDeviceInfo[] = [];
+	let micDevices: MediaDeviceInfo[] = $state([]);
 	let recordButton: HTMLButtonElement;
 	let pauseButton: HTMLButtonElement;
 	let resumeButton: HTMLButtonElement;
 	let stopButton: HTMLButtonElement;
 	let stopButtonPaused: HTMLButtonElement;
-	let recording_ongoing = false;
+	let recording_ongoing = $state(false);
 
-	export let record_time: string;
-	export let show_recording_waveform: boolean | undefined;
-	export let timing = false;
-
-	$: record.on("record-start", () => {
-		record.startMic();
-
+	const handleRecordStart = (): void => {
 		recordButton.style.display = "none";
 		stopButton.style.display = "flex";
 		pauseButton.style.display = "block";
-	});
+	};
 
-	$: record.on("record-end", () => {
+	const handleRecordEnd = (): void => {
 		if (record.isPaused()) {
 			record.resumeRecording();
 			record.stopRecording();
@@ -39,30 +46,51 @@
 		stopButton.style.display = "none";
 		pauseButton.style.display = "none";
 		recordButton.disabled = false;
-	});
+	};
 
-	$: record.on("record-pause", () => {
+	const handleRecordPause = (): void => {
 		pauseButton.style.display = "none";
 		resumeButton.style.display = "block";
 		stopButton.style.display = "none";
 		stopButtonPaused.style.display = "flex";
-	});
+	};
 
-	$: record.on("record-resume", () => {
+	const handleRecordResume = (): void => {
 		pauseButton.style.display = "block";
 		resumeButton.style.display = "none";
 		recordButton.style.display = "none";
 		stopButton.style.display = "flex";
 		stopButtonPaused.style.display = "none";
+	};
+
+	onMount(() => {
+		record.on("record-start", handleRecordStart);
+		record.on("record-end", handleRecordEnd);
+		record.on("record-pause", handleRecordPause);
+		record.on("record-resume", handleRecordResume);
 	});
 
-	$: if (recording && !recording_ongoing) {
-		record.startRecording();
-		recording_ongoing = true;
-	} else {
-		record.stopRecording();
-		recording_ongoing = false;
-	}
+	onDestroy(() => {
+		record.un("record-start", handleRecordStart);
+		record.un("record-end", handleRecordEnd);
+		record.un("record-pause", handleRecordPause);
+		record.un("record-resume", handleRecordResume);
+	});
+
+	$effect(() => {
+		if (recording && !recording_ongoing) {
+			record.startMic().then(() => {
+				record.startRecording();
+				recording_ongoing = true;
+			});
+		} else if (!recording && recording_ongoing) {
+			if (record.isPaused()) {
+				record.resumeRecording();
+			}
+			record.stopRecording();
+			recording_ongoing = false;
+		}
+	});
 </script>
 
 <div class="controls">
@@ -70,13 +98,13 @@
 		<button
 			bind:this={recordButton}
 			class="record record-button"
-			on:click={() => record.startRecording()}>{i18n("audio.record")}</button
+			onclick={() => record.startRecording()}>{i18n("audio.record")}</button
 		>
 
 		<button
 			bind:this={stopButton}
 			class="stop-button {record.isPaused() ? 'stop-button-paused' : ''}"
-			on:click={() => {
+			onclick={() => {
 				if (record.isPaused()) {
 					record.resumeRecording();
 					record.stopRecording();
@@ -90,7 +118,7 @@
 			bind:this={stopButtonPaused}
 			id="stop-paused"
 			class="stop-button-paused"
-			on:click={() => {
+			onclick={() => {
 				if (record.isPaused()) {
 					record.resumeRecording();
 					record.stopRecording();
@@ -104,12 +132,12 @@
 			aria-label="pause"
 			bind:this={pauseButton}
 			class="pause-button"
-			on:click={() => record.pauseRecording()}><Pause /></button
+			onclick={() => record.pauseRecording()}><Pause /></button
 		>
 		<button
 			bind:this={resumeButton}
 			class="resume-button"
-			on:click={() => record.resumeRecording()}>{i18n("audio.resume")}</button
+			onclick={() => record.resumeRecording()}>{i18n("audio.resume")}</button
 		>
 		{#if timing && !show_recording_waveform}
 			<time class="duration-button duration">{record_time}</time>
@@ -193,6 +221,10 @@
 		display: flex;
 		align-items: center;
 		border: 1px solid var(--block-border-color);
+	}
+
+	.duration-button {
+		border-radius: var(--button-large-radius);
 	}
 
 	.stop-button:disabled {

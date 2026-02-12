@@ -83,3 +83,9 @@ test("test state change for custom hashes", async ({ page }) => {
 		"1"
 	);
 });
+
+test("test state changes work within gr.render", async ({ page }) => {
+	const textbox = await page.getByLabel("Start State");
+	await textbox.fill("test");
+	await expect(page.getByLabel("End State").first()).toHaveValue("test");
+});

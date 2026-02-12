@@ -1,18 +1,15 @@
 <script lang="ts">
-	import { gradio_logo, twitter, github } from "../assets";
+	import { twitter, github } from "../assets";
 </script>
 
 <footer
-	class="main-footer container mx-auto flex-row flex items-center px-4 py-6 justify-between"
+	class="main-footer container mx-auto flex-row flex items-center px-4 py-6 justify-end"
 >
-	<a href="/">
-		<img src={gradio_logo} alt="Gradio logo" />
-	</a>
 	<div class="flex gap-3">
 		<a
 			href="https://status.gradio.app"
 			target="_blank"
-			class="text-gray-400 hover:text-gray-500"
+			class="text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400"
 		>
 			<span>Status</span>
 		</a>

@@ -1,15 +1,16 @@
 import gradio as gr
-import os
 import numpy as np
+# get_image(), get_video(), get_audio(), get_file(), get_model3d() return file paths to sample media included with Gradio
+from gradio.media import get_image, get_video, get_audio, get_file, get_model3d
 
 txt = "the quick brown fox"
 num = 10
 
-img = os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg")
-vid = os.path.join(os.path.dirname(__file__), "files/world.mp4")
-audio = os.path.join(os.path.dirname(__file__), "files/cantina.wav")
-csv = os.path.join(os.path.dirname(__file__), "files/time.csv")
-model = os.path.join(os.path.dirname(__file__), "files/Bunny.obj")
+img = get_image("cheetah1.jpg")
+vid = get_video("world.mp4")
+audio = get_audio("cantina.wav")
+csv = get_file("time.csv")
+model = get_model3d("Bunny.obj")
 
 dataframe = [[1, 2, 3, 4], [4, 5, 6, 7], [8, 9, 1, 2], [3, 4, 5, 6]]
 

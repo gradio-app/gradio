@@ -1,14 +1,14 @@
 <script lang="ts">
-	import Form from "@gradio/form";
+	import { BaseForm } from "@gradio/form";
 	import { BaseTextbox as Textbox } from "@gradio/textbox";
 	import { BaseButton } from "@gradio/button";
-	import Column from "@gradio/column";
+	import { BaseColumn } from "@gradio/column";
 	import { Block } from "@gradio/atoms";
-	import { _ } from "svelte-i18n";
 	export let root: string;
 	export let auth_message: string | null;
 	export let app_mode: boolean;
 	export let space_id: string | null;
+	export let i18n: (s: string) => string;
 
 	let username = "";
 	let password = "";
@@ -19,7 +19,10 @@
 		formData.append("username", username);
 		formData.append("password", password);
 
-		let response = await fetch(root + "/login", {
+		// Use URL constructor to properly join paths and avoid double slashes
+		const login_url = new URL("login", root.endsWith("/") ? root : root + "/")
+			.href;
+		let response = await fetch(login_url, {
 			method: "POST",
 			body: formData
 		});
@@ -34,50 +37,48 @@
 </script>
 
 <div class="wrap" class:min-h-screen={app_mode}>
-	<Column variant="panel" min_width={480}>
-		<h2>{$_("login.login")}</h2>
+	<BaseColumn variant="panel" min_width={480}>
+		<h2>{i18n("login.login")}</h2>
 		{#if auth_message}
 			<p class="auth">{@html auth_message}</p>
 		{/if}
 		{#if space_id}
 			<p class="auth">
-				{$_("login.enable_cookies")}
+				{i18n("login.enable_cookies")}
 			</p>
 		{/if}
 		{#if incorrect_credentials}
-			<p class="creds">{$_("login.incorrect_credentials")}</p>
+			<p class="creds">{i18n("login.incorrect_credentials")}</p>
 		{/if}
-		<Form>
+		<BaseForm>
 			<Block>
 				<Textbox
-					{root}
-					label="username"
+					label={i18n("login.username")}
 					lines={1}
 					show_label={true}
 					max_lines={1}
-					on:submit={submit}
+					onsubmit={submit}
 					bind:value={username}
 				/>
 			</Block>
 
 			<Block>
 				<Textbox
-					{root}
-					label="password"
+					label={i18n("login.password")}
 					lines={1}
 					show_label={true}
 					max_lines={1}
 					type="password"
-					on:submit={submit}
+					onsubmit={submit}
 					bind:value={password}
 				/>
 			</Block>
-		</Form>
+		</BaseForm>
 
-		<BaseButton size="lg" variant="primary" on:click={submit}
-			>{$_("login.login")}</BaseButton
+		<BaseButton size="lg" variant="primary" onclick={submit}
+			>{i18n("login.login")}</BaseButton
 		>
-	</Column>
+	</BaseColumn>
 </div>
 
 <style>

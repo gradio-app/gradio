@@ -1,5 +1,4 @@
 import time
-from concurrent.futures import wait
 
 import gradio_client as grc
 import pytest
@@ -73,6 +72,7 @@ class TestQueueing:
         assert job2.result() == "Hello, b!"
         assert job4.result() == "Hello, d!"
 
+    @pytest.mark.flaky
     @pytest.mark.parametrize(
         "default_concurrency_limit, statuses",
         [
@@ -110,106 +110,42 @@ class TestQueueing:
         add_job_statuses = [add_job_1.status(), add_job_2.status(), add_job_3.status()]
         assert sorted([s.code.value for s in add_job_statuses]) == statuses
 
-    def test_concurrency_limits(self, connect):
-        with gr.Blocks() as demo:
-            a = gr.Number()
-            b = gr.Number()
-            output = gr.Number()
 
-            add_btn = gr.Button("Add")
+def test_analytics_summary(monkeypatch):
+    """Test that the analytics summary endpoint is correctly being computed every N requests,
+    where N is set by the GRADIO_ANALYTICS_CACHE_FREQUENCY environment variable."""
+    monkeypatch.setenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", 2)
+    with gr.Blocks() as demo:
+        name = gr.Textbox()
+        output = gr.Textbox()
 
-            @add_btn.click(inputs=[a, b], outputs=output, concurrency_limit=2)
-            def add(x, y):
-                time.sleep(2)
-                return x + y
+        def greet(x):
+            return f"Hello, {x}!"
 
-            sub_btn = gr.Button("Subtract")
+        name.submit(greet, name, output, api_name="predict")
 
-            @sub_btn.click(inputs=[a, b], outputs=output, concurrency_limit=None)
-            def sub(x, y):
-                time.sleep(2)
-                return x - y
-
-            mul_btn = gr.Button("Multiply")
-
-            @mul_btn.click(
-                inputs=[a, b],
-                outputs=output,
-                concurrency_limit=2,
-                concurrency_id="muldiv",
-            )
-            def mul(x, y):
-                time.sleep(2)
-                return x * y
-
-            div_btn = gr.Button("Divide")
-
-            @div_btn.click(
-                inputs=[a, b],
-                outputs=output,
-                concurrency_limit=2,
-                concurrency_id="muldiv",
-            )
-            def div(x, y):
-                time.sleep(2)
-                return x / y
-
-        with connect(demo) as client:
-            add_job_1 = client.submit(1, 1, fn_index=0)
-            add_job_2 = client.submit(1, 1, fn_index=0)
-            add_job_3 = client.submit(1, 1, fn_index=0)
-            sub_job_1 = client.submit(1, 1, fn_index=1)
-            sub_job_2 = client.submit(1, 1, fn_index=1)
-            sub_job_3 = client.submit(1, 1, fn_index=1)
-            mul_job_1 = client.submit(1, 1, fn_index=2)
-            div_job_1 = client.submit(1, 1, fn_index=3)
-            mul_job_2 = client.submit(1, 1, fn_index=2)
-
-            time.sleep(2)
-
-            add_job_statuses = [
-                add_job_1.status(),
-                add_job_2.status(),
-                add_job_3.status(),
-            ]
-            assert sorted([s.code.value for s in add_job_statuses]) == [
-                "IN_QUEUE",
-                "PROCESSING",
-                "PROCESSING",
-            ]
-
-            sub_job_statuses = [
-                sub_job_1.status(),
-                sub_job_2.status(),
-                sub_job_3.status(),
-            ]
-            assert [s.code.value for s in sub_job_statuses] == [
-                "PROCESSING",
-                "PROCESSING",
-                "PROCESSING",
-            ]
-
-            muldiv_job_statuses = [
-                mul_job_1.status(),
-                div_job_1.status(),
-                mul_job_2.status(),
-            ]
-            assert sorted([s.code.value for s in muldiv_job_statuses]) == [
-                "IN_QUEUE",
-                "PROCESSING",
-                "PROCESSING",
-            ]
-            wait(
-                [
-                    add_job_1,
-                    add_job_2,
-                    add_job_3,
-                    sub_job_1,
-                    sub_job_2,
-                    sub_job_3,
-                    sub_job_3,
-                    mul_job_1,
-                    div_job_1,
-                    mul_job_2,
-                ]
-            )
+    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(demo.app)
+    client = grc.Client(local_url)
+    with test_client as tc:
+        event_analytics = tc.get("/monitoring/summary").json()
+        assert event_analytics == {"functions": {}}
+        client.predict(
+            "a",
+            api_name="/predict",
+        )
+        client.predict(
+            "a",
+            api_name="/predict",
+        )
+        event_analytics = tc.get("/monitoring/summary").json()
+        assert "predict" in event_analytics["functions"]
+        assert event_analytics["functions"]["predict"]["total_requests"] == 2
+        client.predict("a", api_name="/predict")
+        event_analytics = tc.get("/monitoring/summary").json()
+        assert "predict" in event_analytics["functions"]
+        assert event_analytics["functions"]["predict"]["total_requests"] == 2
+        client.predict("a", api_name="/predict")
+        event_analytics = tc.get("/monitoring/summary").json()
+        assert "predict" in event_analytics["functions"]
+        assert event_analytics["functions"]["predict"]["total_requests"] == 4

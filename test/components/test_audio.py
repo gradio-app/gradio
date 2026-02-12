@@ -5,17 +5,17 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from gradio_client import media_data
 from gradio_client import utils as client_utils
 
 import gradio as gr
 from gradio import processing_utils, utils
 from gradio.data_classes import FileData
+from gradio.media import get_audio
 
 
 class TestAudio:
     @pytest.mark.asyncio
-    async def test_component_functions(self, gradio_temp_dir):
+    async def test_component_functions(self, gradio_temp_dir, media_data):
         """
         Preprocess, postprocess serialize, get_config, deserialize
         type: filepath, numpy, file
@@ -39,8 +39,7 @@ class TestAudio:
             "autoplay": False,
             "sources": ["upload", "microphone"],
             "name": "audio",
-            "show_download_button": None,
-            "show_share_button": False,
+            "buttons": ["download", "share"],
             "streaming": False,
             "show_label": True,
             "label": "Upload Your Audio",
@@ -51,6 +50,7 @@ class TestAudio:
             "elem_id": None,
             "elem_classes": [],
             "visible": True,
+            "playback_position": 0,
             "value": None,
             "interactive": None,
             "proxy_url": None,
@@ -58,11 +58,8 @@ class TestAudio:
             "format": None,
             "recording": False,
             "streamable": False,
-            "max_length": None,
-            "min_length": None,
             "waveform_options": {
                 "sample_rate": 44100,
-                "show_controls": False,
                 "show_recording_waveform": True,
                 "skip_length": 5,
                 "waveform_color": None,
@@ -71,7 +68,9 @@ class TestAudio:
             },
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
             "loop": False,
+            "subtitles": None,
         }
         assert audio_input.preprocess(None) is None
 
@@ -96,13 +95,10 @@ class TestAudio:
         assert audio_output.get_config() == {
             "autoplay": False,
             "name": "audio",
-            "show_download_button": None,
-            "show_share_button": False,
+            "buttons": ["download", "share"],
             "streaming": False,
             "show_label": True,
             "label": None,
-            "max_length": None,
-            "min_length": None,
             "container": True,
             "editable": True,
             "min_width": 160,
@@ -111,6 +107,7 @@ class TestAudio:
             "elem_id": None,
             "elem_classes": [],
             "visible": True,
+            "playback_position": 0,
             "value": None,
             "interactive": None,
             "proxy_url": None,
@@ -120,7 +117,6 @@ class TestAudio:
             "sources": ["upload", "microphone"],
             "waveform_options": {
                 "sample_rate": 44100,
-                "show_controls": False,
                 "show_recording_waveform": True,
                 "skip_length": 5,
                 "waveform_color": None,
@@ -129,25 +125,27 @@ class TestAudio:
             },
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
             "loop": False,
+            "subtitles": None,
         }
 
         output1 = audio_output.postprocess(y_audio.name).model_dump()  # type: ignore
         output2 = audio_output.postprocess(Path(y_audio.name)).model_dump()  # type: ignore
         assert output1 == output2
 
-    def test_default_value_postprocess(self):
+    def test_default_value_postprocess(self, media_data):
         x_wav = deepcopy(media_data.BASE64_AUDIO)
         audio = gr.Audio(value=x_wav["path"])
         assert utils.is_in_or_equal(audio.value["path"], audio.GRADIO_CACHE)
 
-    def test_in_interface(self):
+    def test_in_interface(self, media_data):
         def reverse_audio(audio):
             sr, data = audio
             return (sr, np.flipud(data))
 
         iface = gr.Interface(reverse_audio, "audio", "audio")
-        reversed_file = iface("test/test_files/audio_sample.wav")
+        reversed_file = iface(get_audio("audio_sample.wav"))
         reversed_reversed_file = iface(reversed_file)
         reversed_reversed_data = client_utils.encode_url_or_file_to_base64(
             reversed_reversed_file
@@ -168,7 +166,7 @@ class TestAudio:
         iface = gr.Interface(generate_noise, "slider", "audio")
         assert iface(100).endswith(".wav")
 
-    def test_prepost_process_to_mp3(self, gradio_temp_dir):
+    def test_prepost_process_to_mp3(self, gradio_temp_dir, media_data):
         x_wav = FileData(
             path=processing_utils.save_base64_to_cache(
                 media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir
@@ -183,8 +181,15 @@ class TestAudio:
         ).model_dump()  # type: ignore
         assert output["path"].endswith("mp3")
 
+    def test_postprocess_http_url_like(self):
+        audio = gr.Audio()
+        output = audio.postprocess("https://test.com/test.mp3?token=123")
+        assert isinstance(output, FileData) and output.path.endswith(
+            "test.mp3?token=123"
+        )
+
     @pytest.mark.asyncio
-    async def test_combine_stream_audio(self, gradio_temp_dir):
+    async def test_combine_stream_audio(self, gradio_temp_dir, media_data):
         x_wav = FileData(
             path=processing_utils.save_base64_to_cache(
                 media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir
@@ -200,3 +205,15 @@ class TestAudio:
             bytes_output, desired_output_format=None
         )
         assert str(output.path).endswith("mp3")
+
+
+def test_duration_validator():
+    assert gr.validators.is_audio_correct_length((8000, np.zeros((8000,))), 1, 2)[
+        "is_valid"
+    ]
+    assert not gr.validators.is_audio_correct_length((8000, np.zeros((8000,))), 2, 3)[
+        "is_valid"
+    ]
+    assert not gr.validators.is_audio_correct_length(
+        (8000, np.zeros((8000,))), 0.25, 0.75
+    )["is_valid"]

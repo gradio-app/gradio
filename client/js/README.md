@@ -46,9 +46,9 @@ Client.connect("user/space-name");
 
 #### `options`
 
-The options object can optionally be passed a second parameter. This object has two properties, `hf_token` and `status_callback`.
+The options object can optionally be passed a second parameter. This object has two properties, `token` and `status_callback`.
 
-##### `hf_token`
+##### `token`
 
 This should be a Hugging Face personal access token and is required if you wish to make calls to a private gradio api. This option is optional and should be a string starting with `"hf_"`.
 
@@ -57,7 +57,7 @@ Example:
 ```ts
 import { Client } from "@gradio/client";
 
-const app = await Client.connect("user/space-name", { hf_token: "hf_..." });
+const app = await Client.connect("user/space-name", { token: "hf_..." });
 ```
 
 ##### `status_callback`
@@ -267,7 +267,7 @@ The duplicate function will attempt to duplicate the space that is referenced an
 import { Client } from "@gradio/client";
 
 const app = await Client.duplicate("user/space-name", {
-	hf_token: "hf_..."
+	token: "hf_..."
 });
 ```
 
@@ -279,7 +279,7 @@ The space to duplicate and connect to. [See `client`'s `source` parameter](#sour
 
 #### `options`
 
-Accepts all options that `client` accepts, except `hf_token` is required. [See `client`'s `options` parameter](#source).
+Accepts all options that `client` accepts, except `token` is required. [See `client`'s `options` parameter](#source).
 
 `duplicate` also accepts one additional `options` property.
 
@@ -291,7 +291,7 @@ This is an optional property specific to `duplicate`'s options object and will d
 import { Client } from "@gradio/client";
 
 const app = await Client.duplicate("user/space-name", {
-	hf_token: "hf_...",
+	token: "hf_...",
 	private: true
 });
 ```
@@ -304,7 +304,7 @@ This is an optional property specific to `duplicate`'s options object and will s
 import { Client } from "@gradio/client";
 
 const app = await Client.duplicate("user/space-name", {
-	hf_token: "hf_...",
+	token: "hf_...",
 	private: true,
 	timeout: 5
 });
@@ -334,7 +334,7 @@ Possible hardware options are:
 import { Client } from "@gradio/client";
 
 const app = await Client.duplicate("user/space-name", {
-	hf_token: "hf_...",
+	token: "hf_...",
 	private: true,
 	hardware: "a10g-small"
 });

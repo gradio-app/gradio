@@ -29,7 +29,7 @@
 		<div class="flex flex-col w-full min-w-full lg:w-10/12 lg:min-w-0">
 			<div>
 				<p
-					class="lg:ml-10 bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left"
+					class="lg:ml-10 bg-orange-100 dark:bg-orange-900 border border-orange-200 dark:border-orange-700 px-4 py-1 mr-2 rounded-full text-orange-800 dark:text-orange-200 mb-1 w-fit float-left"
 				>
 					New to Gradio? Start here: <a class="link" href="/quickstart"
 						>Getting Started</a
@@ -41,37 +41,12 @@
 					See the <a class="link" href="/changelog">Release History</a>
 				</p>
 			</div>
-			<div class="w-full flex flex-wrap justify-between my-4">
-				<div />
-				<a
-					href="./atoms"
-					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
-				>
-					<div class="flex text-lg">
-						<p class="whitespace-nowrap overflow-hidden text-ellipsis">atoms</p>
-						<span class="text-orange-500 ml-1">&#8594;</span>
-					</div>
-				</a>
-			</div>
 			<div class="flex flex-row lg:ml-10 mt-5">
 				<iframe
 					id="storybook"
 					src="https://main--649585a46a67480e3074dc75.chromatic.com/"
 					class="grow m-0 p-0 h-[70vh] border border-gray-200 shadow-xl rounded-xl w-full"
 				></iframe>
-			</div>
-			<div class="w-full flex flex-wrap justify-between my-4">
-				<div />
-
-				<a
-					href="./atoms"
-					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
-				>
-					<div class="flex text-lg">
-						<p class="whitespace-nowrap overflow-hidden text-ellipsis">atoms</p>
-						<span class="text-orange-500 ml-1">&#8594;</span>
-					</div>
-				</a>
 			</div>
 		</div>
 	</div>

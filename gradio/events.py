@@ -23,8 +23,10 @@ if TYPE_CHECKING:
     from gradio.blocks import Block, BlockContext, Component
     from gradio.components import Timer
 
+from gradio_client.utils import python_type_to_json_schema
+
 from gradio.context import get_blocks_context
-from gradio.utils import get_cancelled_fn_indices
+from gradio.utils import get_cancelled_fn_indices, get_function_params, get_return_types
 
 
 def set_cancel_events(
@@ -62,7 +64,7 @@ def set_cancel_events(
             ),
             inputs=None,
             outputs=timers_to_cancel,
-            show_api=False,
+            api_visibility="private",
         )
 
     if regular_cancels:
@@ -74,7 +76,7 @@ def set_cancel_events(
             outputs=None,
             queue=False,
             preprocess=False,
-            show_api=False,
+            api_visibility="private",
             cancels=fn_indices_to_cancel,
             is_cancel_function=True,
         )
@@ -82,17 +84,32 @@ def set_cancel_events(
 
 @document()
 class Dependency(dict):
+    """
+    The Dependency object is usually not created directly but is returned when an event listener is set up. It contains the configuration
+    data for the event listener, and can be used to set up additional event listeners that depend on the completion of the current event
+    listener using .then(), .success(), and .failure().
+
+    Example:
+        import gradio as gr
+        with gr.Blocks() as demo:
+            first_textbox = gr.Textbox()
+            second_textbox = gr.Textbox()
+            button = gr.Button("Submit")
+            dependency = button.click(lambda x: "Hello, " + x, first_textbox, second_textbox)
+            dependency.success(lambda: gr.Info("Greeting successful"), None, None)
+            dependency.failure(lambda: gr.Warning("Greeting failed"), None, None)
+        demo.launch()
+    Demos: chatbot_consecutive, blocks_chained_events
+    """
+
     def __init__(
-        self, trigger, key_vals, dep_index, fn, associated_timer: Timer | None = None
+        self,
+        trigger,
+        key_vals,
+        dep_index,
+        fn,
+        associated_timer: Timer | None = None,
     ):
-        """
-        The Dependency object is usualy not created directly but is returned when an event listener is set up. It contains the configuration
-        data for the event listener, and can be used to set up additional event listeners that depend on the completion of the current event
-        listener using .then() and .success().
-
-        Demos: chatbot_consecutive, blocks_chained_events
-        """
-
         super().__init__(key_vals)
         self.fn = fn
         self.associated_timer = associated_timer
@@ -101,6 +118,7 @@ class Dependency(dict):
                 "then",
                 trigger_after=dep_index,
                 trigger_only_on_success=False,
+                trigger_only_on_failure=False,
                 has_trigger=False,
             ).listener,
             trigger,
@@ -113,12 +131,26 @@ class Dependency(dict):
                 "success",
                 trigger_after=dep_index,
                 trigger_only_on_success=True,
+                trigger_only_on_failure=False,
                 has_trigger=False,
             ).listener,
             trigger,
         )
         """
         Triggered after directly preceding event is completed, if it was successful.
+        """
+        self.failure = partial(
+            EventListener(
+                "failure",
+                trigger_after=dep_index,
+                trigger_only_on_success=False,
+                trigger_only_on_failure=True,
+                has_trigger=False,
+            ).listener,
+            trigger,
+        )
+        """
+        Triggered after directly preceding event is completed, if it failed.
         """
 
     def __call__(self, *args, **kwargs):
@@ -146,6 +178,7 @@ class EventData:
             textbox.select(on_select, textbox, statement)
         demo.launch()
     Demos: gallery_selections, tictactoe
+    Guides: blocks-and-event-listeners
     """
 
     def __init__(self, target: Block | None, _data: Any):
@@ -155,6 +188,11 @@ class EventData:
         """
         self.target = target
         self._data = _data
+
+    def __getattr__(self, name):
+        if name in self._data:
+            return self._data[name]
+        raise AttributeError(f"'EventData' object has no attribute '{name}'")
 
 
 @document()
@@ -261,7 +299,7 @@ class DeletedFileData(EventData):
 
     def __init__(self, target: Block | None, data: FileDataDict):
         super().__init__(target, data)
-        self.file: FileData = FileData(**data)
+        self.file: FileData = FileData(**data)  # type: ignore
         """
         The file that was deleted, as a FileData object.
         """
@@ -280,7 +318,7 @@ class LikeData(EventData):
                 "chatbot_value": value,
                 "liked_message": like_data.value,
                 "liked_index": like_data.index,
-                "liked_or_disliked_as_bool": like_data.liked
+                "liked_or_disliked": like_data.liked
             }
         with gr.Blocks() as demo:
             c = gr.Chatbot([("abc", "def")])
@@ -288,6 +326,7 @@ class LikeData(EventData):
             c.like(test, c, t)
         demo.launch()
     Demos: chatbot_core_components_simple
+    Guides: chatbot-specific-events
     """
 
     def __init__(self, target: Block | None, data: Any):
@@ -300,9 +339,9 @@ class LikeData(EventData):
         """
         The value of the liked/disliked item.
         """
-        self.liked: bool = data.get("liked", True)
+        self.liked: bool | str = data.get("liked", True)
         """
-        True if the item was liked, False if disliked.
+        True if the item was liked, False if disliked, or string value if any other feedback.
         """
 
 
@@ -326,6 +365,7 @@ class RetryData(EventData):
             chatbot = gr.Chatbot()
             chatbot.retry(retry, chatbot, chatbot)
         demo.launch()
+    Guides: chatbot-specific-events
     """
 
     def __init__(self, target: Block | None, data: Any):
@@ -372,6 +412,43 @@ class UndoData(EventData):
 
 
 @document()
+class EditData(EventData):
+    """
+    The gr.EditData class is a subclass of gr.Event data that specifically carries information about the `.edit()` event. When gr.EditData
+    is added as a type hint to an argument of an event listener method, a gr.EditData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener.
+    Example:
+        import gradio as gr
+
+        def edit(edit_data: gr.EditData, history: list[gr.MessageDict]):
+            history_up_to_edit = history[:edit_data.index]
+            history_up_to_edit[-1] = edit_data.value
+            return history_up_to_edit
+
+        with gr.Blocks() as demo:
+            chatbot = gr.Chatbot()
+            chatbot.undo(edit, chatbot, chatbot)
+        demo.launch()
+    Guides: chatbot-specific-events
+    """
+
+    def __init__(self, target: Block | None, data: Any):
+        super().__init__(target, data)
+        self.index: int | tuple[int, int] = data["index"]
+        """
+        The index of the message that was edited.
+        """
+        self.previous_value: Any = data["previous_value"]
+        """
+        The previous content of the message that was edited.
+        """
+        self.value: Any = data["value"]
+        """
+        The new content of the message that was edited.
+        """
+
+
+@document()
 class DownloadData(EventData):
     """
     The gr.DownloadData class is a subclass of gr.EventData that specifically carries information about the `.download()` event. When gr.DownloadData
@@ -390,9 +467,34 @@ class DownloadData(EventData):
 
     def __init__(self, target: Block | None, data: FileDataDict):
         super().__init__(target, data)
-        self.file: FileData = FileData(**data)
+        self.file: FileData = FileData(**data)  # type: ignore
         """
         The file that was downloaded, as a FileData object.
+        """
+
+
+@document()
+class CopyData(EventData):
+    """
+    The gr.CopyData class is a subclass of gr.EventData that specifically carries information about the `.copy()` event. When gr.CopyData
+    is added as a type hint to an argument of an event listener method, a gr.CopyData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener.
+    Example:
+        import gradio as gr
+        def on_copy(copy_data: gr.CopyData):
+            return f"Copied text: {copy_data.value}"
+        with gr.Blocks() as demo:
+            textbox = gr.Textbox("Hello World!")
+            copied = gr.Textbox()
+            textbox.copy(on_copy, None, copied)
+        demo.launch()
+    """
+
+    def __init__(self, target: Block | None, data: Any):
+        super().__init__(target, data)
+        self.value: Any = data["value"]
+        """
+        The value that was copied.
         """
 
 
@@ -405,12 +507,13 @@ class EventListenerMethod:
 if TYPE_CHECKING:
     EventListenerCallable = Callable[
         [
-            Union[Callable, None],
+            Union[Callable[..., Any], None],
             Union[Component, Sequence[Component], None],
             Union[Block, Sequence[Block], Sequence[Component], Component, None],
             Union[str, None, Literal[False]],
             bool,
             Literal["full", "minimal", "hidden"],
+            Union[Component, Sequence[Component], None],
             Union[bool, None],
             bool,
             int,
@@ -441,6 +544,7 @@ class EventListener(str):
         callback: Callable | None = None,
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
+        trigger_only_on_failure: bool = False,
         doc: str = "",
         connection: Literal["sse", "stream"] = "sse",
         event_specific_args: list[dict[str, str]] | None = None,
@@ -452,6 +556,7 @@ class EventListener(str):
         self.show_progress = show_progress
         self.trigger_after = trigger_after
         self.trigger_only_on_success = trigger_only_on_success
+        self.trigger_only_on_failure = trigger_only_on_failure
         self.callback = callback
         self.doc = doc
         self.connection = connection
@@ -463,6 +568,7 @@ class EventListener(str):
             callback,
             trigger_after,
             trigger_only_on_success,
+            trigger_only_on_failure,
             self.event_specific_args,
             self.connection,
         )
@@ -483,6 +589,7 @@ class EventListener(str):
             self.callback,
             self.trigger_after,
             self.trigger_only_on_success,
+            self.trigger_only_on_failure,
             self.doc,
             self.connection,  # type: ignore
             self.event_specific_args,
@@ -496,6 +603,7 @@ class EventListener(str):
         _callback: Callable | None,
         _trigger_after: int | None,
         _trigger_only_on_success: bool,
+        _trigger_only_on_failure: bool,
         _event_specific_args: list[dict[str, str]],
         _connection: Literal["sse", "stream"] = "sse",
     ):
@@ -512,9 +620,11 @@ class EventListener(str):
             | Sequence[Component | BlockContext]
             | Set[Component | BlockContext]
             | None = None,
-            api_name: str | None | Literal[False] = None,
+            api_name: str | None = None,
+            api_description: str | None | Literal[False] = None,
             scroll_to_output: bool = False,
             show_progress: Literal["full", "minimal", "hidden"] = _show_progress,
+            show_progress_on: Component | Sequence[Component] | None = None,
             queue: bool = True,
             batch: bool = False,
             max_batch_size: int = 4,
@@ -522,22 +632,25 @@ class EventListener(str):
             postprocess: bool = True,
             cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
             trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
-            js: str | None = None,
+            js: str | Literal[True] | None = None,
             concurrency_limit: int | None | Literal["default"] = "default",
             concurrency_id: str | None = None,
-            show_api: bool = True,
+            api_visibility: Literal["public", "private", "undocumented"] = "public",
             time_limit: int | None = None,
             stream_every: float = 0.5,
-            like_user_message: bool = False,
+            key: int | str | tuple[int | str, ...] | None = None,
+            validator: Callable | None = None,
         ) -> Dependency:
             """
             Parameters:
                 fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
                 inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
                 outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
-                api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
+                api_name: defines how the endpoint appears in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint.
+                api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
                 scroll_to_output: If True, will scroll to output component on completion
                 show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
+                show_progress_on: Component or list of components to show the progress animation on. If None, will show the progress animation on all of the output components.
                 queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
                 batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
                 max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
@@ -548,7 +661,9 @@ class EventListener(str):
                 js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
                 concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
                 concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
-                show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
+                api_visibility: controls the visibility and accessibility of this endpoint. Can be "public" (shown in API docs and callable by clients), "private" (hidden from API docs and not callable by clients), or "undocumented" (hidden from API docs but callable by clients and via gr.load). If fn is None, api_visibility will automatically be set to "private".
+                key: A unique key for this event listener to be used in @gr.render(). If set, this value identifies an event as identical across re-renders when the key is identical.
+                validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function and should return a `gr.validate()` for each input value.
             """
 
             if fn == "decorator":
@@ -562,6 +677,7 @@ class EventListener(str):
                         api_name=api_name,
                         scroll_to_output=scroll_to_output,
                         show_progress=show_progress,
+                        show_progress_on=show_progress_on,
                         queue=queue,
                         batch=batch,
                         max_batch_size=max_batch_size,
@@ -572,7 +688,9 @@ class EventListener(str):
                         js=js,
                         concurrency_limit=concurrency_limit,
                         concurrency_id=concurrency_id,
-                        show_api=show_api,
+                        api_visibility=api_visibility,
+                        key=key,
+                        validator=validator,
                     )
 
                     @wraps(func)
@@ -609,7 +727,9 @@ class EventListener(str):
                 postprocess=postprocess,
                 scroll_to_output=scroll_to_output,
                 show_progress=show_progress,
+                show_progress_on=show_progress_on,
                 api_name=api_name,
+                api_description=api_description,
                 js=js,
                 concurrency_limit=concurrency_limit,
                 concurrency_id=concurrency_id,
@@ -618,12 +738,12 @@ class EventListener(str):
                 max_batch_size=max_batch_size,
                 trigger_after=_trigger_after,
                 trigger_only_on_success=_trigger_only_on_success,
+                trigger_only_on_failure=_trigger_only_on_failure,
                 trigger_mode=trigger_mode,
-                show_api=show_api,
+                api_visibility=api_visibility,
                 connection=_connection,
                 time_limit=time_limit,
                 stream_every=stream_every,
-                like_user_message=like_user_message,
                 event_specific_args=[
                     d["name"]
                     for d in _event_specific_args
@@ -631,6 +751,8 @@ class EventListener(str):
                 ]
                 if _event_specific_args
                 else None,
+                key=key,
+                validator=validator,
             )
             set_cancel_events(
                 [event_target],
@@ -660,7 +782,7 @@ class EventListener(str):
 @document()
 def on(
     triggers: Sequence[EventListenerCallable] | EventListenerCallable | None = None,
-    fn: Callable | None | Literal["decorator"] = "decorator",
+    fn: Callable[..., Any] | None | Literal["decorator"] = "decorator",
     inputs: Component
     | BlockContext
     | Sequence[Component | BlockContext]
@@ -672,9 +794,12 @@ def on(
     | Set[Component | BlockContext]
     | None = None,
     *,
-    api_name: str | None | Literal[False] = None,
+    api_visibility: Literal["public", "private", "undocumented"] = "public",
+    api_name: str | None = None,
+    api_description: str | None | Literal[False] = None,
     scroll_to_output: bool = False,
     show_progress: Literal["full", "minimal", "hidden"] = "full",
+    show_progress_on: Component | Sequence[Component] | None = None,
     queue: bool = True,
     batch: bool = False,
     max_batch_size: int = 4,
@@ -682,12 +807,13 @@ def on(
     postprocess: bool = True,
     cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
     trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
-    js: str | None = None,
+    js: str | Literal[True] | None = None,
     concurrency_limit: int | None | Literal["default"] = "default",
     concurrency_id: str | None = None,
-    show_api: bool = True,
     time_limit: int | None = None,
     stream_every: float = 0.5,
+    key: int | str | tuple[int | str, ...] | None = None,
+    validator: Callable | None = None,
 ) -> Dependency:
     """
     Sets up an event listener that triggers a function when the specified event(s) occur. This is especially
@@ -699,9 +825,10 @@ def on(
         fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
         inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
         outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
-        api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
+        api_name: defines how the endpoint appears in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint.
         scroll_to_output: If True, will scroll to output component on completion
-        show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
+        show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all,
+        show_progress_on: Component or list of components to show the progress animation on. If None, will show the progress animation on all of the output components.
         queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
         batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
         max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
@@ -712,9 +839,10 @@ def on(
         js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs', return should be a list of values for output components.
         concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
         concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
-        show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
+        api_visibility: controls the visibility and accessibility of this endpoint. Can be "public" (shown in API docs and callable by clients), "private" (hidden from API docs and not callable by clients), or "undocumented" (hidden from API docs but callable by clients and via gr.load). If fn is None, api_visibility will automatically be set to "private".
         time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
         stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
+        validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function and should return a `gr.validate()` for each input value.
     Example:
         import gradio as gr
         with gr.Blocks() as demo:
@@ -737,7 +865,7 @@ def on(
     triggers_typed = cast(Sequence[EventListener], triggers)
 
     if isinstance(inputs, Block):
-        inputs = [inputs]
+        inputs = [inputs]  # type: ignore
 
     if fn == "decorator":
 
@@ -750,6 +878,7 @@ def on(
                 api_name=api_name,
                 scroll_to_output=scroll_to_output,
                 show_progress=show_progress,
+                show_progress_on=show_progress_on,
                 queue=queue,
                 batch=batch,
                 max_batch_size=max_batch_size,
@@ -759,10 +888,12 @@ def on(
                 js=js,
                 concurrency_limit=concurrency_limit,
                 concurrency_id=concurrency_id,
-                show_api=show_api,
+                api_visibility=api_visibility,
                 trigger_mode=trigger_mode,
                 time_limit=time_limit,
                 stream_every=stream_every,
+                key=key,
+                validator=validator,
             )
 
             @wraps(func)
@@ -778,7 +909,7 @@ def on(
         raise Exception("Cannot call on() outside of a gradio.Blocks context.")
     if triggers is None:
         methods = (
-            [EventListenerMethod(input, "change") for input in inputs]
+            [EventListenerMethod(input, "change") for input in inputs]  # type: ignore
             if inputs is not None
             else []
         ) + [EventListenerMethod(root_block, "load")]  # type: ignore
@@ -791,7 +922,6 @@ def on(
         for trigger in triggers:
             if trigger.callback:  # type: ignore
                 trigger.callback(trigger.__self__)  # type: ignore
-
     dep, dep_index = root_block.set_event_trigger(
         methods,
         fn,
@@ -801,14 +931,16 @@ def on(
         postprocess=postprocess,
         scroll_to_output=scroll_to_output,
         show_progress=show_progress,
+        show_progress_on=show_progress_on,
         api_name=api_name,
+        api_description=api_description,
         js=js,
         concurrency_limit=concurrency_limit,
         concurrency_id=concurrency_id,
         queue=queue,
         batch=batch,
         max_batch_size=max_batch_size,
-        show_api=show_api,
+        api_visibility=api_visibility,
         trigger_mode=trigger_mode,
         connection="stream"
         if any(t.connection == "stream" for t in (triggers_typed or []))
@@ -820,8 +952,141 @@ def on(
         ],
         time_limit=time_limit,
         stream_every=stream_every,
+        key=key,
+        validator=validator,
     )
     set_cancel_events(methods, cancels)
+    return Dependency(None, dep.get_config(), dep_index, fn)
+
+
+@document()
+def api(
+    fn: Callable | Literal["decorator"] = "decorator",
+    *,
+    api_name: str | None = None,
+    api_description: str | None = None,
+    queue: bool = True,
+    batch: bool = False,
+    max_batch_size: int = 4,
+    concurrency_limit: int | None | Literal["default"] = "default",
+    concurrency_id: str | None = None,
+    api_visibility: Literal["public", "private", "undocumented"] = "public",
+    time_limit: int | None = None,
+    stream_every: float = 0.5,
+) -> Dependency:
+    """
+    Sets up an API or MCP endpoint for a generic function without needing define events listeners or components. Derives its typing from type hints in the provided function's signature rather than the components.
+
+    Parameters:
+        fn: the function to call when this event is triggered. Often a machine learning model's prediction function. The function should be fully typed, and the type hints will be used to derive the typing information for the API/MCP endpoint.
+        api_name: defines how the endpoint appears in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint.
+        api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
+        queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
+        batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
+        max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
+        concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
+        concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
+        api_visibility: controls the visibility and accessibility of this endpoint. Can be "public" (shown in API docs and callable by clients), "private" (hidden from API docs and not callable by clients), or "undocumented" (hidden from API docs but callable by clients and via gr.load). If fn is None, api_visibility will automatically be set to "private".
+        time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
+        stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
+    Example:
+        import gradio as gr
+        with gr.Blocks() as demo:
+            with gr.Row():
+                input = gr.Textbox()
+                button = gr.Button("Submit")
+            output = gr.Textbox()
+            def fn(a: int, b: int, c: list[str]) -> tuple[int, str]:
+                return a + b, c[a:b]
+            gr.api(fn, api_name="add_and_slice")
+        _, url, _ = demo.launch()
+
+        from gradio_client import Client
+        client = Client(url)
+        result = client.predict(
+                a=3,
+                b=5,
+                c=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                api_name="/add_and_slice"
+        )
+        print(result)
+    """
+    if fn == "decorator":
+
+        def wrapper(func):
+            api(
+                fn=func,
+                api_name=api_name,
+                api_description=api_description,
+                queue=queue,
+                batch=batch,
+                max_batch_size=max_batch_size,
+                concurrency_limit=concurrency_limit,
+                concurrency_id=concurrency_id,
+                api_visibility=api_visibility,
+                time_limit=time_limit,
+                stream_every=stream_every,
+            )
+
+            @wraps(func)
+            def inner(*args, **kwargs):
+                return func(*args, **kwargs)
+
+            return inner
+
+        return Dependency(None, {}, None, wrapper)
+
+    root_block = get_blocks_context()
+    if root_block is None:
+        raise Exception("Cannot call api() outside of a gradio.Blocks context.")
+
+    from gradio.components.api_component import Api
+
+    fn_params = get_function_params(fn)
+    return_types = get_return_types(fn)
+
+    def ordinal(n):
+        return f"{n}{'th' if 10 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
+
+    if any(param[3] is None for param in fn_params):
+        raise ValueError(
+            "API endpoints must have type hints. Please specify a type hint for all parameters."
+        )
+    inputs = [
+        Api(
+            default_value if has_default else None,
+            python_type_to_json_schema(_type),
+            ordinal(i + 1),
+        )
+        for i, (_, has_default, default_value, _type) in enumerate(fn_params)
+    ]
+    outputs = [
+        Api(None, python_type_to_json_schema(type), ordinal(i + 1))
+        for i, type in enumerate(return_types)
+    ]
+
+    dep, dep_index = root_block.set_event_trigger(
+        [],
+        fn,
+        inputs,
+        outputs,
+        preprocess=False,
+        postprocess=False,
+        scroll_to_output=False,
+        show_progress="hidden",
+        api_name=api_name,
+        api_description=api_description,
+        js=None,
+        concurrency_limit=concurrency_limit,
+        concurrency_id=concurrency_id,
+        queue=queue,
+        batch=batch,
+        max_batch_size=max_batch_size,
+        api_visibility=api_visibility,
+        trigger_mode=None,
+        time_limit=time_limit,
+        stream_every=stream_every,
+    )
     return Dependency(None, dep.get_config(), dep_index, fn)
 
 
@@ -849,6 +1114,9 @@ class Events:
     edit = EventListener(
         "edit",
         doc="This listener is triggered when the user edits the {{ component }} (e.g. image) using the built-in editor.",
+        callback=lambda block: setattr(block, "editable", "user")
+        if getattr(block, "editable", None) is None
+        else None,
     )
     clear = EventListener(
         "clear",
@@ -900,7 +1168,7 @@ class Events:
     select = EventListener(
         "select",
         callback=lambda block: setattr(block, "_selectable", True),
-        doc="Event listener for when the user selects or deselects the {{ component }}. Uses event data gradio.SelectData to carry `value` referring to the label of the {{ component }}, and `selected` to refer to state of the {{ component }}. See EventData documentation on how to use this event data",
+        doc="Event listener for when the user selects or deselects the {{ component }}. Uses event data gradio.SelectData to carry `value` referring to the label of the {{ component }}, and `selected` to refer to state of the {{ component }}. See https://www.gradio.app/main/docs/gradio/eventdata for more details.",
     )
     stream = EventListener(
         "stream",
@@ -927,20 +1195,15 @@ class Events:
         "like",
         config_data=lambda: {"likeable": False},
         callback=lambda block: setattr(block, "likeable", True),
-        event_specific_args=[
-            {
-                "name": "like_user_message",
-                "type": "bool = False",
-                "doc": "Whether to display the like buttons for user messages in the chatbot.",
-            }
-        ],
         doc="This listener is triggered when the user likes/dislikes from within the {{ component }}. This event has EventData of type gradio.LikeData that carries information, accessible through LikeData.index and LikeData.value. See EventData documentation on how to use this event data.",
     )
     example_select = EventListener(
         "example_select",
-        config_data=lambda: {"example_selectable": False},
-        callback=lambda block: setattr(block, "example_selectable", True),
         doc="This listener is triggered when the user clicks on an example from within the {{ component }}. This event has SelectData of type gradio.SelectData that carries information, accessible through SelectData.index and SelectData.value. See SelectData documentation on how to use this event data.",
+    )
+    option_select = EventListener(
+        "option_select",
+        doc="This listener is triggered when the user clicks on an option from within the {{ component }}. This event has SelectData of type gradio.SelectData that carries information, accessible through SelectData.index and SelectData.value. See SelectData documentation on how to use this event data.",
     )
     load = EventListener(
         "load",
@@ -987,3 +1250,14 @@ class Events:
         "download",
         doc="This listener is triggered when the user downloads a file from the {{ component }}. Uses event data gradio.DownloadData to carry information about the downloaded file as a FileData object. See EventData documentation on how to use this event data",
     )
+    copy = EventListener(
+        "copy",
+        doc="This listener is triggered when the user copies content from the {{ component }}. Uses event data gradio.CopyData to carry information about the copied content. See EventData documentation on how to use this event data",
+    )
+
+
+all_events = [
+    event_listener
+    for _, event_listener in Events.__dict__.items()
+    if isinstance(event_listener, EventListener)
+]

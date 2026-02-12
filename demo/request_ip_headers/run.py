@@ -10,4 +10,4 @@ def predict(text, request: gr.Request):
         "headers": headers,
     }
 
-gr.Interface(predict, "text", "json").launch()
+gr.Interface(predict, "text", "json", api_name="predict").launch()

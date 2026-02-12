@@ -1,116 +1,173 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
-	import { Upload, ModifyUpload } from "@gradio/upload";
+	import { Upload } from "@gradio/upload";
 	import type { FileData, Client } from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Webcam } from "@gradio/image";
 	import { Video } from "@gradio/icons";
-
+	import type { WebcamOptions } from "./utils";
 	import { prettyBytes, playable } from "./utils";
 	import Player from "./Player.svelte";
 	import type { I18nFormatter } from "@gradio/utils";
 	import { SelectSource } from "@gradio/atoms";
+	import type { Snippet } from "svelte";
 
-	export let value: FileData | null = null;
-	export let subtitle: FileData | null = null;
-	export let sources:
-		| ["webcam"]
-		| ["upload"]
-		| ["webcam", "upload"]
-		| ["upload", "webcam"] = ["webcam", "upload"];
-	export let label: string | undefined = undefined;
-	export let show_download_button = false;
-	export let show_label = true;
-	export let mirror_webcam = false;
-	export let include_audio: boolean;
-	export let autoplay: boolean;
-	export let root: string;
-	export let i18n: I18nFormatter;
-	export let active_source: "webcam" | "upload" = "webcam";
-	export let handle_reset_value: () => void = () => {};
-	export let max_file_size: number | null = null;
-	export let upload: Client["upload"];
-	export let stream_handler: Client["stream"];
-	export let loop: boolean;
-	export let uploading = false;
+	interface Props {
+		value?: FileData | null;
+		subtitle?: FileData | null;
+		sources?:
+			| ["webcam"]
+			| ["upload"]
+			| ["webcam", "upload"]
+			| ["upload", "webcam"];
+		label?: string;
+		show_download_button?: boolean;
+		show_label?: boolean;
+		webcam_options: WebcamOptions;
+		include_audio: boolean;
+		autoplay: boolean;
+		root: string;
+		i18n: I18nFormatter;
+		active_source?: "webcam" | "upload";
+		handle_reset_value?: () => void;
+		max_file_size?: number | null;
+		upload: Client["upload"];
+		stream_handler: Client["stream"];
+		loop: boolean;
+		uploading?: boolean;
+		upload_promise?: Promise<any> | null;
+		playback_position?: number;
+		buttons?: (string | CustomButtonType)[] | null;
+		on_custom_button_click?: ((id: number) => void) | null;
+		onchange?: (value: FileData | null) => void;
+		onclear?: () => void;
+		onplay?: () => void;
+		onpause?: () => void;
+		onend?: () => void;
+		ondrag?: (dragging: boolean) => void;
+		onerror?: (error: string) => void;
+		onupload?: (value: FileData) => void;
+		onstart_recording?: () => void;
+		onstop_recording?: () => void;
+		onstop?: () => void;
+		children?: Snippet;
+	}
 
-	let has_change_history = false;
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 
-	const dispatch = createEventDispatcher<{
-		change: FileData | null;
-		clear?: never;
-		play?: never;
-		pause?: never;
-		end?: never;
-		drag: boolean;
-		error: string;
-		upload: FileData;
-		start_recording?: never;
-		stop_recording?: never;
-	}>();
+	let {
+		value = $bindable(null),
+		subtitle = null,
+		sources = ["webcam", "upload"],
+		label = undefined,
+		show_download_button = false,
+		show_label = true,
+		webcam_options,
+		include_audio,
+		autoplay,
+		root,
+		i18n,
+		active_source: initial_active_source = "webcam",
+		handle_reset_value = () => {},
+		max_file_size = null,
+		upload,
+		stream_handler,
+		loop,
+		uploading = $bindable(),
+		upload_promise = $bindable(),
+		playback_position = $bindable(),
+		buttons = null,
+		on_custom_button_click = null,
+		onchange,
+		onclear,
+		onplay,
+		onpause,
+		onend,
+		ondrag,
+		onerror,
+		onupload,
+		onstart_recording,
+		onstop_recording,
+		onstop,
+		children
+	}: Props = $props();
 
-	function handle_load({ detail }: CustomEvent<FileData | null>): void {
+	let has_change_history = $state(false);
+	let active_source = $derived.by(() => {
+		return initial_active_source ?? "webcam";
+	});
+
+	function handle_load(detail: FileData | null): void {
 		value = detail;
-		dispatch("change", detail);
-		dispatch("upload", detail!);
+		onchange?.(detail);
+		if (detail) {
+			onupload?.(detail);
+		}
 	}
 
 	function handle_clear(): void {
 		value = null;
-		dispatch("change", null);
-		dispatch("clear");
+		onchange?.(null);
+		onclear?.();
 	}
 
 	function handle_change(video: FileData): void {
 		has_change_history = true;
-		dispatch("change", video);
+		onchange?.(video);
 	}
 
 	function handle_capture({
 		detail
 	}: CustomEvent<FileData | any | null>): void {
-		dispatch("change", detail);
+		onchange?.(detail);
 	}
 
-	let dragging = false;
-	$: dispatch("drag", dragging);
+	let dragging = $state(false);
+
+	$effect(() => {
+		ondrag?.(dragging);
+	});
 </script>
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
 <div data-testid="video" class="video-container">
-	{#if value === null || value.url === undefined}
+	{#if value === null || value?.url === undefined}
 		<div class="upload-container">
 			{#if active_source === "upload"}
 				<Upload
+					bind:upload_promise
 					bind:dragging
 					bind:uploading
 					filetype="video/x-m4v,video/*"
-					on:load={handle_load}
+					onload={handle_load}
 					{max_file_size}
-					on:error={({ detail }) => dispatch("error", detail)}
+					onerror={(detail) => onerror?.(detail)}
 					{root}
 					{upload}
 					{stream_handler}
+					aria_label={i18n("video.drop_to_upload")}
 				>
-					<slot />
+					{#if children}
+						{@render children()}
+					{/if}
 				</Upload>
 			{:else if active_source === "webcam"}
 				<Webcam
 					{root}
-					{mirror_webcam}
+					mirror_webcam={webcam_options.mirror}
+					webcam_constraints={webcam_options.constraints}
 					{include_audio}
 					mode="video"
-					on:error
+					on:error={({ detail }) => onerror?.(detail)}
 					on:capture={handle_capture}
-					on:start_recording
-					on:stop_recording
+					on:start_recording={() => onstart_recording?.()}
+					on:stop_recording={() => onstop_recording?.()}
 					{i18n}
 					{upload}
 					stream_every={1}
 				/>
 			{/if}
 		</div>
-	{:else if playable()}
+	{:else if value?.url}
 		{#key value?.url}
 			<Player
 				{upload}
@@ -120,11 +177,12 @@
 				src={value.url}
 				subtitle={subtitle?.url}
 				is_stream={false}
-				on:play
-				on:pause
-				on:stop
-				on:end
-				mirror={mirror_webcam && active_source === "webcam"}
+				onplay={() => onplay?.()}
+				onpause={() => onpause?.()}
+				onstop={() => onstop?.()}
+				onend={() => onend?.()}
+				onerror={(error) => onerror?.(error)}
+				mirror={webcam_options.mirror && active_source === "webcam"}
 				{label}
 				{handle_change}
 				{handle_reset_value}
@@ -134,6 +192,7 @@
 				{show_download_button}
 				{handle_clear}
 				{has_change_history}
+				bind:playback_position
 			/>
 		{/key}
 	{:else if value.size}

@@ -51,7 +51,7 @@ demo.launch()
 
 <!--- Initialization -->
 ### Attributes
-<ParamTable parameters={obj.parameters} />
+<ParamTable parameters={obj.parameters} anchor_links={obj.name}/>
 
 
 {#if obj.demos && obj.demos.length > 0}
@@ -68,6 +68,6 @@ demo.launch()
 
 {#if obj.guides && obj.guides.length > 0}
 <!--- Guides -->
-### Guides
+<!--- the guide section below is still necessary to scrape the guides on the side navigation -->
 <GuidesSection guides={obj.guides}/>
 {/if}

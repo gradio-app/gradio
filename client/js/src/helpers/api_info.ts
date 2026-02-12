@@ -19,7 +19,7 @@ export const RE_SPACE_DOMAIN = /.*hf\.space\/{0,1}.*$/;
 
 export async function process_endpoint(
 	app_reference: string,
-	hf_token?: `hf_${string}`
+	token?: `hf_${string}`
 ): Promise<{
 	space_id: string | false;
 	host: string;
@@ -27,8 +27,8 @@ export async function process_endpoint(
 	http_protocol: "http:" | "https:";
 }> {
 	const headers: { Authorization?: string } = {};
-	if (hf_token) {
-		headers.Authorization = `Bearer ${hf_token}`;
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
 	}
 
 	const _app_reference = app_reference.trim().replace(/\/$/, "");
@@ -181,6 +181,7 @@ export function get_type(
 	serializer: string,
 	signature_type: "return" | "parameter"
 ): string | undefined {
+	if (component === "Api") return type.type;
 	switch (type?.type) {
 		case "string":
 			return "string";
@@ -244,6 +245,7 @@ export function handle_message(
 		| "none"
 		| "heartbeat"
 		| "streaming"
+		| "broken_connection"
 		| "unexpected_error";
 	data?: any;
 	status?: Status;
@@ -273,6 +275,17 @@ export function handle_message(
 		case "unexpected_error":
 			return {
 				type: "unexpected_error",
+				status: {
+					queue,
+					message: data.message,
+					session_not_found: data.session_not_found,
+					stage: "error",
+					success: false
+				}
+			};
+		case "broken_connection":
+			return {
+				type: "broken_connection",
 				status: {
 					queue,
 					message: data.message,
@@ -342,8 +355,9 @@ export function handle_message(
 					type: "update",
 					status: {
 						queue,
-						title: data.output.title as string,
-						message: data.output.error as string,
+						title: (data.output.title as string | null) ?? "Error",
+						message:
+							(data.output.error as string | null) ?? "An error occurred",
 						visible: data.output.visible as boolean,
 						duration: data.output.duration as number,
 						stage: "error",
@@ -418,7 +432,11 @@ export const map_data_to_params = (
 	const parameters = endpoint_info ? endpoint_info.parameters : [];
 
 	if (Array.isArray(data)) {
-		if (data.length > parameters.length) {
+		if (
+			endpoint_info &&
+			parameters.length > 0 &&
+			data.length > parameters.length
+		) {
 			console.warn("Too many arguments provided for the endpoint.");
 		}
 		return data;

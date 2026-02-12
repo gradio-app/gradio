@@ -10,6 +10,7 @@ import time
 from pathlib import Path
 
 import httpx
+from huggingface_hub.constants import HF_HOME
 
 from gradio.exceptions import ChecksumMismatchError
 
@@ -47,8 +48,8 @@ CHECKSUMS = {
 CHUNK_SIZE = 128
 
 BINARY_FILENAME = f"{BINARY_REMOTE_NAME}_v{VERSION}"
-BINARY_FOLDER = Path(__file__).parent
-BINARY_PATH = f"{BINARY_FOLDER / BINARY_FILENAME}"
+BINARY_FOLDER = Path(HF_HOME) / "gradio" / "frpc"
+BINARY_PATH = str(BINARY_FOLDER / BINARY_FILENAME)
 
 TUNNEL_TIMEOUT_SECONDS = 30
 TUNNEL_ERROR_MESSAGE = (
@@ -60,7 +61,15 @@ CERTIFICATE_PATH = ".gradio/certificate.pem"
 
 
 class Tunnel:
-    def __init__(self, remote_host, remote_port, local_host, local_port, share_token):
+    def __init__(
+        self,
+        remote_host: str,
+        remote_port: int,
+        local_host: str,
+        local_port: int,
+        share_token: str,
+        share_server_tls_certificate: str | None,
+    ):
         self.proc = None
         self.url = None
         self.remote_host = remote_host
@@ -68,10 +77,12 @@ class Tunnel:
         self.local_host = local_host
         self.local_port = local_port
         self.share_token = share_token
+        self.share_server_tls_certificate = share_server_tls_certificate
 
     @staticmethod
     def download_binary():
         if not Path(BINARY_PATH).exists():
+            Path(BINARY_FOLDER).mkdir(parents=True, exist_ok=True)
             resp = httpx.get(BINARY_URL, timeout=30)
 
             if resp.status_code == 403:
@@ -127,10 +138,15 @@ class Tunnel:
             "--server_addr",
             f"{self.remote_host}:{self.remote_port}",
             "--disable_log_color",
-            "--tls_enable",
-            "--tls_trusted_ca_file",
-            CERTIFICATE_PATH,
         ]
+        if self.share_server_tls_certificate is not None:
+            command.extend(
+                [
+                    "--tls_enable",
+                    "--tls_trusted_ca_file",
+                    self.share_server_tls_certificate,
+                ]
+            )
         self.proc = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )

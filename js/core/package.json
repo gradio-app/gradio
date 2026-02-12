@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/core",
-	"version": "0.4.0",
+	"version": "1.1.3",
 	"type": "module",
 	"devDependencies": {
 		"@gradio/accordion": "workspace:^",
@@ -8,6 +8,7 @@
 		"@gradio/atoms": "workspace:^",
 		"@gradio/audio": "workspace:^",
 		"@gradio/box": "workspace:^",
+		"@gradio/browserstate": "workspace:^",
 		"@gradio/button": "workspace:^",
 		"@gradio/chatbot": "workspace:^",
 		"@gradio/checkbox": "workspace:^",
@@ -32,9 +33,9 @@
 		"@gradio/icons": "workspace:^",
 		"@gradio/image": "workspace:^",
 		"@gradio/imageeditor": "workspace:^",
+		"@gradio/imageslider": "workspace:^",
 		"@gradio/json": "workspace:^",
 		"@gradio/label": "workspace:^",
-		"@gradio/browserstate": "workspace:^",
 		"@gradio/markdown": "workspace:^",
 		"@gradio/model3d": "workspace:^",
 		"@gradio/multimodaltextbox": "workspace:^",
@@ -44,6 +45,7 @@
 		"@gradio/plot": "workspace:^",
 		"@gradio/radio": "workspace:^",
 		"@gradio/row": "workspace:^",
+		"@gradio/sidebar": "workspace:^",
 		"@gradio/simpledropdown": "workspace:^",
 		"@gradio/simpleimage": "workspace:^",
 		"@gradio/simpletextbox": "workspace:^",
@@ -58,8 +60,8 @@
 		"@gradio/upload": "workspace:^",
 		"@gradio/uploadbutton": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@gradio/video": "workspace:^",
-		"@gradio/wasm": "workspace:^"
+		"@gradio/vibeeditor": "workspace:^",
+		"@gradio/video": "workspace:^"
 	},
 	"msw": {
 		"workerDirectory": "public"
@@ -76,6 +78,11 @@
 			"svelte": "./dist/src/Login.svelte",
 			"types": "./dist/src/Login.svelte.d.ts"
 		},
+		"./navbar_store": {
+			"gradio": "./src/navbar_store.ts",
+			"import": "./src/navbar_store.ts",
+			"types": "./src/navbar_store.ts"
+		},
 		"./package.json": "./package.json",
 		".": {
 			"gradio": "./index.ts",
@@ -84,12 +91,15 @@
 		}
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.48.0"
 	},
 	"main": "./index.ts",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/gradio-app/gradio.git",
 		"directory": "js/core"
+	},
+	"dependencies": {
+		"dequal": "^2.0.3"
 	}
 }

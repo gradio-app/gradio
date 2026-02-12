@@ -9,21 +9,25 @@ import copy
 import csv
 import inspect
 import os
+import shutil
 import warnings
 from collections.abc import Callable, Iterable, Sequence
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Optional
+from types import SimpleNamespace
+from typing import TYPE_CHECKING, Any, Literal, Optional, get_origin
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
-from gradio import components, oauth, processing_utils, routes, utils, wasm_utils
-from gradio.context import Context, LocalContext
+from gradio import components, oauth, processing_utils, routes, utils
+from gradio.context import Context, LocalContext, get_blocks_context
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Dependency, EventData
 from gradio.exceptions import Error
 from gradio.flagging import CSVLogger
+from gradio.i18n import I18nData
+from gradio.route_utils import Header
 from gradio.utils import UnhashableKeyDict
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
@@ -41,16 +45,19 @@ def create_examples(
     cache_mode: Literal["eager", "lazy"] | None = None,
     examples_per_page: int = 10,
     _api_mode: bool = False,
-    label: str | None = None,
+    label: str | I18nData | None = None,
     elem_id: str | None = None,
     run_on_click: bool = False,
     preprocess: bool = True,
     postprocess: bool = True,
-    api_name: str | Literal[False] = "load_example",
+    api_visibility: Literal["public", "private", "undocumented"] = "undocumented",
+    api_name: str | None = "load_example",
+    api_description: str | None | Literal[False] = None,
     batch: bool = False,
     *,
     example_labels: list[str] | None = None,
-    visible: bool = True,
+    visible: bool | Literal["hidden"] = True,
+    preload: int | Literal[False] = 0,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
     examples_obj = Examples(
@@ -67,11 +74,14 @@ def create_examples(
         run_on_click=run_on_click,
         preprocess=preprocess,
         postprocess=postprocess,
+        api_visibility=api_visibility,
         api_name=api_name,
+        api_description=api_description,
         batch=batch,
         example_labels=example_labels,
         visible=visible,
         _initiated_directly=False,
+        preload=preload,
     )
     examples_obj.create()
     return examples_obj
@@ -86,7 +96,7 @@ class Examples:
     components. Optionally handles example caching for fast inference.
 
     Demos: calculator_blocks
-    Guides: more-on-examples-and-flagging, using-hugging-face-integrations, image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, create-your-own-friends-with-a-gan
+    Guides: more-on-examples-and-flagging
     """
 
     def __init__(
@@ -99,16 +109,19 @@ class Examples:
         cache_mode: Literal["eager", "lazy"] | None = None,
         examples_per_page: int = 10,
         _api_mode: bool = False,
-        label: str | None = "Examples",
+        label: str | I18nData | None = "Examples",
         elem_id: str | None = None,
         run_on_click: bool = False,
         preprocess: bool = True,
         postprocess: bool = True,
-        api_name: str | Literal[False] = "load_example",
+        api_visibility: Literal["public", "private", "undocumented"] = "undocumented",
+        api_name: str | None = "load_example",
+        api_description: str | None | Literal[False] = None,
         batch: bool = False,
         *,
         example_labels: list[str] | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
+        preload: int | Literal[False] = 0,
         _initiated_directly: bool = True,
     ):
         """
@@ -117,7 +130,7 @@ class Examples:
             inputs: the component or list of components corresponding to the examples
             outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache_examples` is not False.
             fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache_examples` is not False. Also required if `run_on_click` is True.
-            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If None, will use the GRADIO_CACHE_EXAMPLES environment variable, which should be either "true" or "false". In HuggingFace Spaces, this parameter is True (as long as `fn` and `outputs` are also provided). The default option otherwise is False.
+            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If None, will use the GRADIO_CACHE_EXAMPLES environment variable, which should be either "true" or "false". In HuggingFace Spaces, this parameter is True (as long as `fn` and `outputs` are also provided). The default option otherwise is False. Note that examples are cached separately from Gradio's queue() so certain features, such as gr.Progress(), gr.Info(), gr.Warning(), etc. will not be displayed in Gradio's UI for cached examples.
             cache_mode: if "lazy", examples are cached after their first use. If "eager", all examples are cached at app launch. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager".
             examples_per_page: how many examples to show per page.
             label: the label to use for the examples component (by default, "Examples")
@@ -125,14 +138,17 @@ class Examples:
             run_on_click: if cache_examples is False, clicking on an example does not run the function when an example is clicked. Set this to True to run the function when an example is clicked. Has no effect if cache_examples is True.
             preprocess: if True, preprocesses the example input before running the prediction function and caching the output. Only applies if `cache_examples` is not False.
             postprocess: if True, postprocesses the example output after running the prediction function and before caching. Only applies if `cache_examples` is not False.
-            api_name: Defines how the event associated with clicking on the examples appears in the API docs. Can be a string or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use the example function.
+            api_visibility: Controls the visibility of the event associated with clicking on the examples. Can be "public" (shown in API docs and callable), "private" (hidden from API docs and not callable), or "undocumented" (hidden from API docs but callable).
+            api_name: Defines how the event associated with clicking on the examples appears in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given name. If None, an auto-generated name will be used.
+            api_description: Description of the event associated with clicking on the examples in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is not False.
             example_labels: A list of labels for each example. If provided, the length of this list should be the same as the number of examples, and these labels will be used in the UI instead of rendering the example values.
             visible: If False, the examples component will be hidden in the UI.
+            preload: If an integer is provided (and examples are being cached eagerly and none of the input components have a developer-provided `value`), the example at that index in the examples list will be preloaded when the Gradio app is first loaded. If False, no example will be preloaded.
         """
         if _initiated_directly:
             warnings.warn(
-                "Please use gr.Examples(...) instead of gr.examples.Examples(...) to create the Examples.",
+                "Please use gr.Examples(...) instead of gr.helpers.Examples(...) to create the Examples.",
             )
 
         self.cache_examples = False
@@ -143,12 +159,6 @@ class Examples:
                 and outputs is not None
             ):
                 self.cache_examples = True
-        elif cache_examples == "lazy":
-            warnings.warn(
-                "In future versions of Gradio, the `cache_examples` parameter will no longer accept a value of 'lazy'. To enable lazy caching in "
-                "Gradio, you should set `cache_examples=True`, and `cache_mode='lazy'` instead."
-            )
-            self.cache_examples = "lazy"
         elif cache_examples in [True, False]:
             self.cache_examples = cache_examples
         else:
@@ -253,10 +263,13 @@ class Examples:
         self._api_mode = _api_mode
         self.preprocess = preprocess
         self.postprocess = postprocess
-        self.api_name: str | Literal[False] = api_name
+        self.api_visibility = api_visibility
+        self.api_name: str | None = api_name
+        self.api_description: str | None | Literal[False] = api_description
         self.batch = batch
         self.example_labels = example_labels
         self.working_directory = working_directory
+        self.preload = preload
 
         from gradio import components
 
@@ -276,6 +289,11 @@ class Examples:
             simplify_file_data=False, verbose=False, dataset_file_name="log.csv"
         )
         self.cached_folder = utils.get_cache_folder() / str(self.dataset._id)
+        if (
+            os.environ.get("GRADIO_RESET_EXAMPLES_CACHE") == "True"
+            and self.cached_folder.exists()
+        ):
+            shutil.rmtree(self.cached_folder)
         self.cached_file = Path(self.cached_folder) / "log.csv"
         self.cached_indices_file = Path(self.cached_folder) / "indices.csv"
         self.run_on_click = run_on_click
@@ -288,12 +306,37 @@ class Examples:
                     self._get_processed_example(example)
                 )
 
+        if self.cache_examples == "lazy":
+            print(
+                f"Will cache examples in '{utils.abspath(self.cached_folder)}' directory at first use.",
+                end="",
+            )
+            if Path(self.cached_file).exists():
+                print(
+                    "If method or examples have changed since last caching, delete this folder to reset cache."
+                )
+            print("\n")
+
     def _get_processed_example(self, example):
+        """
+        This function is used to get the post-processed example values, ready to be used
+        in the frontend for each input component. For example, if the input components are
+        image components, the post-processed example values will be the a list of ImageData dictionaries
+        with the path, url, size, mime_type, orig_name, and is_stream keys. For any input components
+        that should be skipped (b/c they are None for all samples), they will simply be absent
+        from the returned list
+
+        Parameters:
+            example: a list of example values for each input component, excluding those components
+            that have all None values
+        """
         if example in self.non_none_processed_examples:
             return self.non_none_processed_examples[example]
         with utils.set_directory(self.working_directory):
             sub = []
-            for component, sample in zip(self.inputs, example, strict=False):
+            for component, sample in zip(
+                self.inputs_with_examples, example, strict=False
+            ):
                 prediction_value = component.postprocess(sample)
                 if isinstance(prediction_value, (GradioRootModel, GradioModel)):
                     prediction_value = prediction_value.model_dump()
@@ -303,36 +346,83 @@ class Examples:
                     postprocess=True,
                 )
                 sub.append(prediction_value)
-        return [
-            ex for (ex, keep) in zip(sub, self.input_has_examples, strict=False) if keep
-        ]
+        return sub
 
     def create(self) -> None:
         """Creates the Dataset component to hold the examples"""
+        blocks_config = get_blocks_context()
+        self.root_block = Context.root_block or (
+            blocks_config.root_block if blocks_config else None
+        )
+        if blocks_config:
+            if self.root_block:
+                self.root_block.extra_startup_events.append(self._start_caching)
 
-        self.root_block = Context.root_block
-        if self.root_block:
-            self.root_block.extra_startup_events.append(self._start_caching)
+            if self.cache_examples:
 
-            if self.cache_examples == True:  # noqa: E712
-
-                def load_example_with_output(example_tuple):
-                    example_id, example_value = example_tuple
-                    processed_example = self._get_processed_example(
-                        example_value
-                    ) + self.load_from_cache(example_id)
+                def load_example_input(example_tuple):
+                    _, example_value = example_tuple
+                    processed_example = self._get_processed_example(example_value)
                     return utils.resolve_singleton(processed_example)
 
+                def load_example_output(example_tuple):
+                    example_id, _ = example_tuple
+                    cached_outputs = self.load_from_cache(example_id)
+                    return utils.resolve_singleton(cached_outputs)
+
                 self.cache_event = self.load_input_event = self.dataset.click(
-                    load_example_with_output,
+                    load_example_input,
                     inputs=[self.dataset],
-                    outputs=self.inputs_with_examples + self.outputs,  # type: ignore
+                    outputs=self.inputs,
                     show_progress="hidden",
                     postprocess=False,
                     queue=False,
+                    api_visibility="undocumented",
+                ).then(
+                    load_example_output,
+                    inputs=[self.dataset],
+                    outputs=self.outputs,
+                    postprocess=False,
                     api_name=self.api_name,
-                    show_api=False,
+                    api_description=self.api_description,
+                    api_visibility=self.api_visibility,
                 )
+
+                if (
+                    self.preload is not False
+                    and self.cache_examples != "lazy"
+                    and self.root_block
+                    and not any(
+                        "value" in inp.constructor_args
+                        for inp in self.inputs_with_examples
+                    )
+                ):
+                    self.root_block.load(
+                        load_example_input,
+                        inputs=[
+                            components.State(
+                                (self.preload, self.non_none_examples[self.preload])
+                            )
+                        ],
+                        outputs=self.inputs,
+                        show_progress="hidden",
+                        postprocess=False,
+                        queue=False,
+                        api_visibility="undocumented",
+                    )
+                    self.root_block.load(
+                        load_example_output,
+                        inputs=[
+                            components.State(
+                                (self.preload, self.non_none_examples[self.preload])
+                            )
+                        ],
+                        outputs=self.outputs,
+                        postprocess=False,
+                        show_progress="hidden",
+                        api_visibility="undocumented",
+                    )
+
             else:
 
                 def load_example(example_tuple):
@@ -354,27 +444,25 @@ class Examples:
                 self.load_input_event = self.dataset.click(
                     load_example,
                     inputs=[self.dataset],
-                    outputs=self.inputs_with_examples,  # type: ignore
+                    outputs=self.inputs_with_examples,
                     show_progress="hidden",
                     postprocess=False,
                     queue=False,
                     api_name=self.api_name,
-                    show_api=False,
+                    api_description=self.api_description,
+                    api_visibility=self.api_visibility,
                 )
 
-                if self.cache_examples == "lazy":
-                    self.lazy_cache()
-
-                if self.run_on_click and self.cache_examples == False:  # noqa: E712
+                if self.run_on_click:
                     if self.fn is None:
                         raise ValueError(
                             "Cannot run_on_click if no function is provided"
                         )
                     self.load_input_event.then(
                         self.fn,
-                        inputs=self.inputs,  # type: ignore
-                        outputs=self.outputs,  # type: ignore
-                        show_api=False,
+                        inputs=self.inputs,
+                        outputs=self.outputs,
+                        api_visibility="undocumented",
                     )
         else:
             warnings.warn(
@@ -391,7 +479,7 @@ class Examples:
         import gradio as gr
 
         with gr.Blocks() as demo:
-            [output.render() for output in self.outputs]
+            [output.render() for output in self.outputs]  # type: ignore
             demo.load(self.fn, self.inputs, self.outputs)
         demo.unrender()
         return await demo.postprocess_data(demo.default_config.fns[0], output, None)
@@ -418,96 +506,23 @@ class Examples:
                     )
                     break
         if self.cache_examples is True:
-            if wasm_utils.IS_WASM:
-                # In the Wasm mode, the `threading` module is not supported,
-                # so `client_utils.synchronize_async` is also not available.
-                # And `self.cache()` should be waited for to complete before this method returns,
-                # (otherwise, an error "Cannot cache examples if not in a Blocks context" will be raised anyway)
-                # so `eventloop.create_task(self.cache())` is also not an option.
-                warnings.warn(
-                    "Setting `cache_examples=True` is not supported in the Wasm mode. You can set `cache_examples='lazy'` to cache examples after first use."
-                )
-            else:
-                await self.cache()
+            await self.cache()
 
-    def lazy_cache(self) -> None:
-        print(
-            f"Will cache examples in '{utils.abspath(self.cached_folder)}' directory at first use. ",
-            end="",
-        )
-        if Path(self.cached_file).exists():
-            print(
-                "If method or examples have changed since last caching, delete this folder to reset cache.",
-                end="",
-            )
-        print("\n\n")
-        self.cache_logger.setup(self.outputs, self.cached_folder)
-        if inspect.iscoroutinefunction(self.fn) or inspect.isasyncgenfunction(self.fn):
-            lazy_cache_fn = self.async_lazy_cache
-        else:
-            lazy_cache_fn = self.sync_lazy_cache
-        self.cache_event = self.load_input_event.then(
-            lazy_cache_fn,
-            inputs=[self.dataset] + list(self.inputs),
-            outputs=self.outputs,
-            postprocess=False,
-            api_name=self.api_name,
-            show_api=False,
-        )
-
-    async def async_lazy_cache(
-        self, example_value: tuple[int, list[Any]], *input_values
-    ):
-        example_index, _ = example_value
-        cached_index = self._get_cached_index_if_cached(example_index)
-        if cached_index is not None:
-            output = self.load_from_cache(cached_index)
-            yield output[0] if len(self.outputs) == 1 else output
-            return
-        output = [None] * len(self.outputs)
-        if inspect.isasyncgenfunction(self.fn):
-            fn = self.fn
-        else:
-            fn = utils.async_fn_to_generator(self.fn)
-        async for output in fn(*input_values):
-            output = await self._postprocess_output(output)
-            yield output[0] if len(self.outputs) == 1 else output
-        self.cache_logger.flag(output)
-        with open(self.cached_indices_file, "a") as f:
-            f.write(f"{example_index}\n")
-
-    def sync_lazy_cache(self, example_value: tuple[int, list[Any]], *input_values):
-        example_index, _ = example_value
-        cached_index = self._get_cached_index_if_cached(example_index)
-        if cached_index is not None:
-            output = self.load_from_cache(cached_index)
-            yield output[0] if len(self.outputs) == 1 else output
-            return
-        output = [None] * len(self.outputs)
-        if inspect.isgeneratorfunction(self.fn):
-            fn = self.fn
-        else:
-            fn = utils.sync_fn_to_generator(self.fn)
-        for output in fn(*input_values):
-            output = client_utils.synchronize_async(self._postprocess_output, output)
-            yield output[0] if len(self.outputs) == 1 else output
-        self.cache_logger.flag(output)
-        with open(self.cached_indices_file, "a") as f:
-            f.write(f"{example_index}\n")
-
-    async def cache(self) -> None:
+    async def cache(self, example_id: int | None = None) -> None:
         """
         Caches examples so that their predictions can be shown immediately.
+        Parameters:
+            example_id: The id of the example to process (zero-indexed). If None, all examples are cached.
         """
         if self.root_block is None:
             raise Error("Cannot cache examples if not in a Blocks context.")
-        if Path(self.cached_file).exists():
+        if Path(self.cached_file).exists() and example_id is None:
             print(
                 f"Using cache from '{utils.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to clear cache.\n"
             )
         else:
             print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
-            self.cache_logger.setup(self.outputs, self.cached_folder)
+            self.cache_logger.setup(self.outputs, self.cached_folder)  # type: ignore
             generated_values = []
             if inspect.isgeneratorfunction(self.fn):
 
@@ -538,8 +553,8 @@ class Examples:
             _, fn_index = self.root_block.default_config.set_event_trigger(
                 [EventListenerMethod(Context.root_block, "load")],
                 fn=fn,
-                inputs=self.inputs_with_examples,  # type: ignore
-                outputs=self.outputs,  # type: ignore
+                inputs=self.inputs,
+                outputs=self.outputs,
                 preprocess=self.preprocess and not self._api_mode,
                 postprocess=self.postprocess and not self._api_mode,
                 batch=self.batch,
@@ -547,25 +562,38 @@ class Examples:
 
             if self.outputs is None:
                 raise ValueError("self.outputs is missing")
-            for i, example in enumerate(self.examples):
-                print(f"Caching example {i + 1}/{len(self.examples)}")
+            for i, example in enumerate(self.non_none_examples):
+                if example_id is not None and i != example_id:
+                    continue
                 processed_input = self._get_processed_example(example)
+                for index, keep in enumerate(self.input_has_examples):
+                    if not keep:
+                        processed_input.insert(index, None)
                 if self.batch:
                     processed_input = [[value] for value in processed_input]
                 with utils.MatplotlibBackendMananger():
+                    # When caching examples lazily, set in_event_listener to False
+                    # so that all components are properly instantiated
+                    # See https://github.com/gradio-app/gradio/issues/12564
                     prediction = await self.root_block.process_api(
                         block_fn=self.root_block.default_config.fns[fn_index],
                         inputs=processed_input,
                         request=None,
+                        in_event_listener=self.cache_examples != "lazy",
                     )
                 output = prediction["data"]
-                if len(generated_values):
+                if generated_values:
                     output = await merge_generated_values_into_output(
-                        self.outputs, generated_values, output
+                        self.outputs,  # type: ignore
+                        generated_values,
+                        output,  # type: ignore
                     )
                 if self.batch:
                     output = [value[0] for value in output]
                 self.cache_logger.flag(output)
+                with open(self.cached_indices_file, "a") as f:
+                    f.write(f"{example_id or i}\n")
+
             # Remove the "fake_event" to prevent bugs in loading interfaces from spaces
             self.root_block.default_config.fns.pop(fn_index)
 
@@ -574,13 +602,23 @@ class Examples:
         Parameters:
             example_id: The id of the example to process (zero-indexed).
         """
+        cached_index = self._get_cached_index_if_cached(example_id)
+        if cached_index is None:
+            client_utils.synchronize_async(self.cache, example_id)
+            with open(self.cached_indices_file) as f:
+                cached_index = len(f.readlines()) - 1
+
         with open(self.cached_file, encoding="utf-8") as cache:
             examples = list(csv.reader(cache))
-        example = examples[example_id + 1]  # +1 to adjust for header
+
+        if cached_index + 1 >= len(examples):
+            raise IndexError("Cached example not found in cache file")
+        example = examples[cached_index + 1]  # +1 to adjust for header
+
         output = []
         if self.outputs is None:
             raise ValueError("self.outputs is missing")
-        for component, value in zip(self.outputs, example, strict=False):
+        for component, value in zip(self.outputs, example, strict=False):  # type: ignore
             value_to_use = value
             try:
                 value_as_dict = ast.literal_eval(value)
@@ -633,8 +671,8 @@ class TrackedIterable:
     def __init__(
         self,
         iterable: Iterable | None,
-        index: int | None,
-        length: int | None,
+        index: int | float | None,
+        length: int | float | None,
         desc: str | None,
         unit: str | None,
         _tqdm=None,
@@ -655,7 +693,6 @@ class Progress(Iterable):
     The Progress class provides a custom progress tracker that is used in a function signature.
     To attach a Progress tracker to a function, simply add a parameter right after the input parameters that has a default value set to a `gradio.Progress()` instance.
     The Progress tracker can then be updated in the function by calling the Progress object or using the `tqdm` method on an Iterable.
-    The Progress tracker is currently only available with `queue()`.
     Example:
         import gradio as gr
         import time
@@ -665,7 +702,8 @@ class Progress(Iterable):
             for i in progress.tqdm(range(100)):
                 time.sleep(0.1)
             return x
-        gr.Interface(my_function, gr.Textbox(), gr.Textbox()).queue().launch()
+        gr.Interface(my_function, gr.Textbox(), gr.Textbox()).launch()
+    Guides: progress-bars
     """
 
     def __init__(
@@ -682,6 +720,8 @@ class Progress(Iterable):
         self.iterables: list[TrackedIterable] = []
 
     def __len__(self):
+        if not self.iterables:
+            return 0
         return self.iterables[-1].length
 
     def __iter__(self):
@@ -715,7 +755,7 @@ class Progress(Iterable):
         self,
         progress: float | tuple[int, int | None] | None,
         desc: str | None = None,
-        total: int | None = None,
+        total: int | float | None = None,
         unit: str = "steps",
         _tqdm=None,
     ):
@@ -736,7 +776,7 @@ class Progress(Iterable):
                 index = None
             callback(
                 self.iterables
-                + [TrackedIterable(None, index, total, desc, unit, _tqdm, progress)]
+                + [TrackedIterable(None, index, total, desc, unit, _tqdm, progress)]  # type: ignore
             )
         else:
             return progress
@@ -745,7 +785,7 @@ class Progress(Iterable):
         self,
         iterable: Iterable | None,
         desc: str | None = None,
-        total: int | None = None,
+        total: int | float | None = None,
         unit: str = "steps",
         _tqdm=None,
     ):
@@ -768,9 +808,12 @@ class Progress(Iterable):
             self.iterables.append(
                 TrackedIterable(iter(iterable), 0, length, desc, unit, _tqdm)
             )
-        return self
+            return self
+        if iterable is None:
+            return iter([])
+        return iter(iterable)
 
-    def update(self, n=1):
+    def update(self, n: int | float = 1):
         """
         Increases latest iterable with specified number of steps.
         Parameters:
@@ -802,8 +845,8 @@ class Progress(Iterable):
 
     @staticmethod
     def _progress_callback():
-        blocks = LocalContext.blocks.get()
-        event_id = LocalContext.event_id.get()
+        blocks = LocalContext.blocks.get(None)
+        event_id = LocalContext.event_id.get(None)
         if not (blocks and event_id):
             return None
         return partial(blocks._queue.set_progress, event_id)
@@ -818,50 +861,60 @@ def patch_tqdm() -> None:
     def init_tqdm(
         self, iterable=None, desc=None, total=None, unit="steps", *args, **kwargs
     ):
-        self._progress = LocalContext.progress.get()
+        self._progress = LocalContext.progress.get(None)
         if self._progress is not None:
-            self._progress.tqdm(iterable, desc, total, unit, _tqdm=self)
-            kwargs["file"] = open(os.devnull, "w")  # noqa: SIM115
+            callback = self._progress._progress_callback()
+            if callback is not None:
+                self._progress.tqdm(iterable, desc, total, unit, _tqdm=self)
+                kwargs["file"] = open(os.devnull, "w")  # noqa: SIM115
         self.__init__orig__(iterable, desc, total, *args, unit=unit, **kwargs)
 
     def iter_tqdm(self):
         if self._progress is not None:
-            return self._progress
+            callback = self._progress._progress_callback()
+            if callback is not None:
+                return self._progress
         return self.__iter__orig__()
 
     def update_tqdm(self, n=1):
         if self._progress is not None:
-            self._progress.update(n)
+            callback = self._progress._progress_callback()
+            if callback is not None:
+                self._progress.update(n)
         return self.__update__orig__(n)
 
     def close_tqdm(self):
         if self._progress is not None:
-            self._progress.close(self)
+            callback = self._progress._progress_callback()
+            if callback is not None:
+                self._progress.close(self)
         return self.__close__orig__()
 
     def exit_tqdm(self, exc_type, exc_value, traceback):
         if self._progress is not None:
-            self._progress.close(self)
+            callback = self._progress._progress_callback()
+            if callback is not None:
+                self._progress.close(self)
         return self.__exit__orig__(exc_type, exc_value, traceback)
 
     # Backup
     if not hasattr(_tqdm.tqdm, "__init__orig__"):
-        _tqdm.tqdm.__init__orig__ = _tqdm.tqdm.__init__
+        _tqdm.tqdm.__init__orig__ = _tqdm.tqdm.__init__  # type: ignore
     if not hasattr(_tqdm.tqdm, "__update__orig__"):
-        _tqdm.tqdm.__update__orig__ = _tqdm.tqdm.update
+        _tqdm.tqdm.__update__orig__ = _tqdm.tqdm.update  # type: ignore
     if not hasattr(_tqdm.tqdm, "__close__orig__"):
-        _tqdm.tqdm.__close__orig__ = _tqdm.tqdm.close
+        _tqdm.tqdm.__close__orig__ = _tqdm.tqdm.close  # type: ignore
     if not hasattr(_tqdm.tqdm, "__exit__orig__"):
-        _tqdm.tqdm.__exit__orig__ = _tqdm.tqdm.__exit__
+        _tqdm.tqdm.__exit__orig__ = _tqdm.tqdm.__exit__  # type: ignore
     if not hasattr(_tqdm.tqdm, "__iter__orig__"):
-        _tqdm.tqdm.__iter__orig__ = _tqdm.tqdm.__iter__
+        _tqdm.tqdm.__iter__orig__ = _tqdm.tqdm.__iter__  # type: ignore
 
     # Patch
-    _tqdm.tqdm.__init__ = init_tqdm
-    _tqdm.tqdm.update = update_tqdm
-    _tqdm.tqdm.close = close_tqdm
-    _tqdm.tqdm.__exit__ = exit_tqdm
-    _tqdm.tqdm.__iter__ = iter_tqdm
+    _tqdm.tqdm.__init__ = init_tqdm  # type: ignore
+    _tqdm.tqdm.update = update_tqdm  # type: ignore
+    _tqdm.tqdm.close = close_tqdm  # type: ignore
+    _tqdm.tqdm.__exit__ = exit_tqdm  # type: ignore
+    _tqdm.tqdm.__iter__ = iter_tqdm  # type: ignore
 
     if hasattr(_tqdm, "auto") and hasattr(_tqdm.auto, "tqdm"):
         _tqdm.auto.tqdm = _tqdm.tqdm
@@ -885,22 +938,27 @@ def special_args(
     inputs: list[Any] | None = None,
     request: routes.Request | None = None,
     event_data: EventData | None = None,
-) -> tuple[list, int | None, int | None]:
+    component_props: dict[int, dict[str, Any]] | None = None,
+) -> tuple[list, int | None, int | None, list[int]]:
     """
     Checks if function has special arguments Request or EventData (via annotation) or Progress (via default value).
+    Also checks if any parameters are type-hinted with gr.Component types, in which case all component props should be passed.
     If inputs is provided, these values will be loaded into the inputs array.
     Parameters:
         fn: function to check.
         inputs: array to load special arguments into.
         request: request to load into inputs.
         event_data: event-related data to load into inputs.
+        component_props: dictionary mapping input indices to their full component props.
     Returns:
-        updated inputs, progress index, event data index.
+        updated inputs, progress index, event data index, list of input indices that need component props.
     """
     try:
         signature = inspect.signature(fn)
     except ValueError:
-        return inputs or [], None, None
+        return inputs or [], None, None, []
+    from gradio.components.base import Component
+
     type_hints = utils.get_type_hints(fn)
     positional_args = []
     for param in signature.parameters.values():
@@ -909,6 +967,7 @@ def special_args(
         positional_args.append(param)
     progress_index = None
     event_data_index = None
+    component_prop_indices = []
     for i, param in enumerate(positional_args):
         type_hint = type_hints.get(param.name)
         if isinstance(param.default, Progress):
@@ -926,13 +985,26 @@ def special_args(
         ):
             if inputs is not None:
                 # Retrieve session from gr.Request, if it exists (i.e. if user is logged in)
-                session = (
-                    # request.session (if fastapi.Request obj i.e. direct call)
-                    getattr(request, "session", {})
-                    or
-                    # or request.request.session (if gr.Request obj i.e. websocket call)
-                    getattr(getattr(request, "request", None), "session", {})
-                )
+                try:
+                    session = (
+                        # request.session (if fastapi.Request obj i.e. direct call)
+                        getattr(request, "session", {})
+                        or
+                        # or request.request.session (if gr.Request obj i.e. websocket call)
+                        getattr(getattr(request, "request", None), "session", {})
+                    )
+                except AssertionError as e:
+                    if (
+                        "SessionMiddleware must be installed to access request.session"
+                        in str(e)
+                    ):
+                        warnings.warn(
+                            "Empty session being created. Install gradio[oauth] and add a gr.LoginButton to your app to enable OAuth login.",
+                            UserWarning,
+                        )
+                        session = {}
+                    else:
+                        raise e
 
                 # Inject user profile
                 if type_hint in (Optional[oauth.OAuthProfile], oauth.OAuthProfile):
@@ -951,7 +1023,7 @@ def special_args(
 
                 # Inject user token
                 elif type_hint in (Optional[oauth.OAuthToken], oauth.OAuthToken):
-                    oauth_info = session.get("oauth_info", None)
+                    oauth_info = session.get("oauth_info")
                     oauth_token = (
                         oauth.OAuthToken(
                             token=oauth_info["access_token"],
@@ -966,6 +1038,19 @@ def special_args(
                             "This action requires a logged in user. Please sign in and retry."
                         )
                     inputs.insert(i, oauth_token)
+        elif type_hint in (Header, Optional[Header]):
+            if inputs is not None and request is not None:
+                header_name = param.name.replace("_", "-").lower()
+                header_value = None
+                if hasattr(request, "headers"):
+                    for k, v in dict(request.headers).items():
+                        if k.lower() == header_name:
+                            header_value = v
+                            break
+                if len(inputs) > i:
+                    inputs[i] = header_value
+                else:
+                    inputs.insert(i, header_value)
         elif (
             type_hint
             and inspect.isclass(type_hint)
@@ -975,6 +1060,17 @@ def special_args(
             if inputs is not None and event_data is not None:
                 processing_utils.check_all_files_in_cache(event_data._data)
                 inputs.insert(i, type_hint(event_data.target, event_data._data))
+        elif (
+            type_hint
+            and get_origin(type_hint) is None
+            and inspect.isclass(type_hint)
+            and issubclass(type_hint, Component)
+        ):
+            component_prop_indices.append(i)
+            if inputs is not None and component_props and i in component_props:
+                inputs[i] = SimpleNamespace(
+                    **component_props[i], _is_component_update=True
+                )
         elif (
             param.default is not param.empty and inputs is not None and len(inputs) <= i
         ):
@@ -988,17 +1084,23 @@ def special_args(
                 inputs.append(None)
             else:
                 inputs.append(param.default)
-    return inputs or [], progress_index, event_data_index
+    return inputs or [], progress_index, event_data_index, component_prop_indices
 
 
 def update(
     elem_id: str | None = None,
     elem_classes: list[str] | str | None = None,
-    visible: bool | None = None,
+    visible: bool | Literal["hidden"] | None = None,
     **kwargs: Any,
 ) -> dict[str, Any]:
     """
-    Updates a component's properties. When a function passed into a Gradio Interface or a Blocks events returns a value, it typically updates the value of the output component. But it is also possible to update the *properties* of an output component (such as the number of lines of a `Textbox` or the visibility of an `Row`) by returning a component and passing in the parameters to update in the constructor of the component. Alternatively, you can return `gr.update(...)` with any arbitrary parameters to update. (This is useful as a shorthand or if the same function can be called with different components to update.)
+    Updates a component's properties. When a function passed into a Gradio Interface or a Blocks
+    events returns a value, it typically updates the value of the output component. But it is also possible
+    to update the *properties* of an output component (such as the number of lines of a `Textbox` or
+    the visibility of an `Row`) by returning a component and passing in the parameters to update in
+    the constructor of the component. Alternatively, you can return `gr.update(...)` with any arbitrary
+    parameters to update. (This is useful as a shorthand or if the same function can be called with different
+    components to update.) For `gr.State` components, only the `value` parameter is supported.
 
     Parameters:
         elem_id: Use this to update the id of the component in the HTML DOM
@@ -1024,6 +1126,14 @@ def update(
 
 
 @document()
+def validate(is_valid: bool, message: str):
+    """
+    A special function that can be returned from a Gradio function to set the validation error of an output component.
+    """
+    return {"__type__": "validate", "is_valid": is_valid, "message": message}
+
+
+@document()
 def skip() -> dict:
     """
     A special function that can be returned from a Gradio function to skip updating the output component. This may be useful when
@@ -1037,18 +1147,18 @@ def skip() -> dict:
 def log_message(
     message: str,
     title: str,
-    level: Literal["info", "warning"] = "info",
+    level: Literal["info", "warning", "success"] = "info",
     duration: float | None = 10,
     visible: bool = True,
 ):
     from gradio.context import LocalContext
 
-    blocks = LocalContext.blocks.get()
-    event_id = LocalContext.event_id.get()
+    blocks = LocalContext.blocks.get(None)
+    event_id = LocalContext.event_id.get(None)
     if blocks is None or event_id is None:
         # Function called outside of Gradio if blocks is None
         # Or from /api/predict if event_id is None
-        if level == "info":
+        if level in ("info", "success"):
             print(message)
         elif level == "warning":
             warnings.warn(message)
@@ -1086,7 +1196,7 @@ def Warning(  # noqa: N802
         with gr.Blocks() as demo:
             md = gr.Markdown()
             demo.load(hello_world, inputs=None, outputs=[md])
-        demo.queue().launch()
+        demo.launch()
     """
     log_message(
         message, title=title, level="warning", duration=duration, visible=visible
@@ -1116,6 +1226,34 @@ def Info(  # noqa: N802
         with gr.Blocks() as demo:
             md = gr.Markdown()
             demo.load(hello_world, inputs=None, outputs=[md])
-        demo.queue().launch()
+        demo.launch()
     """
     log_message(message, title=title, level="info", duration=duration, visible=visible)
+
+
+@document(documentation_group="modals")
+def Success(  # noqa: N802
+    message: str = "Success.",
+    duration: float | None = 10,
+    visible: bool = True,
+    title: str = "Success",
+):
+    """
+    This function allows you to pass custom success messages to the user. You can do so simply by writing `gr.Success('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is green by default and has the heading: "Success." Queue must be enabled for this behavior; otherwise, the message will be printed to the console.
+    Parameters:
+        message: The success message to be displayed to the user. Can be HTML, which will be rendered in the modal.
+        duration: The duration in seconds that the success message should be displayed for. If None or 0, the message will be displayed indefinitely until the user closes it.
+        visible: Whether the error message should be displayed in the UI.
+        title: The title to be displayed to the user at the top of the modal.
+    Example:
+        def hello_world():
+            gr.Success('Operation completed successfully!')
+            return "hello world"
+        with gr.Blocks() as demo:
+            md = gr.Markdown()
+            demo.load(hello_world, inputs=None, outputs=[md])
+        demo.launch()
+    """
+    log_message(
+        message, title=title, level="success", duration=duration, visible=visible
+    )

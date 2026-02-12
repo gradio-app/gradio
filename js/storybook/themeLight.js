@@ -9,24 +9,5 @@ export default create({
 	brandTarget: "_blank",
 
 	fontBase: '"IBM Plex Sans", sans-serif',
-	fontCode: "monospace",
-
-	// theme colours
-	colorPrimary: "#101827",
-	colorSecondary: "#FF7C01",
-
-	// UI
-	appBg: "#ffffff", // change to #101827 in dark mode
-	appContentBg: "#ffffff",
-	appBorderRadius: 4,
-
-	// text colors
-	textColor: "#101827",
-	textInverseColor: "#101827",
-	textMutedColor: "#101827",
-
-	// toolbar default and active colors
-	barTextColor: "#101827",
-	barSelectedColor: "#FF7C01",
-	barBg: "#ffffff"
+	fontCode: "monospace"
 });

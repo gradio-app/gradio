@@ -30,8 +30,9 @@ const config = {
 			}
 		})
 	],
+
 	vitePlugin: {
-		hot: process.env.NODE_ENV === "development"
+		prebundleSvelteLibraries: false
 	},
 
 	kit: {
@@ -41,6 +42,11 @@ const config = {
 		adapter: adapter({
 			out: out_path
 		})
+	},
+	compilerOptions: {
+		experimental: {
+			async: true
+		}
 	}
 };
 

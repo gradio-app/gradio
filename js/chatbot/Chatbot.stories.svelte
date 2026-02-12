@@ -1,9 +1,13 @@
-<script context="module">
-	import { Template, Story } from "@storybook/addon-svelte-csf";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import Chatbot from "./Index.svelte";
 	import { allModes } from "../storybook/modes";
+	import { wrapProps } from "../storybook/wrapProps";
 
-	export const meta = {
+	const bus = "/bus.png";
+	const cheetah = "/cheetah.jpg";
+
+	const { Story } = defineMeta({
 		title: "Components/Chatbot",
 		component: Chatbot,
 		parameters: {
@@ -33,97 +37,126 @@
 				defaultValue: false
 			}
 		}
-	};
+	});
+
+	const defaultValue = [
+		{
+			role: "user",
+			content: [{ type: "text", text: "Can you write a function in Python?" }]
+		},
+		{
+			role: "assistant",
+			content: [{ type: "text", text: "```py\ndef test():\n\tprint(x)\n```" }]
+		},
+		{ role: "user", content: [{ type: "text", text: "Can you do math?" }] },
+		{ role: "assistant", content: [{ type: "text", text: "$$1+1=2$$" }] },
+		{
+			role: "user",
+			content: [{ type: "text", text: "Can you say nothing?" }]
+		}
+	];
 </script>
 
-<Template let:args>
-	<Chatbot
-		latex_delimiters={[{ left: "$$", right: "$$", display: true }]}
-		value={[
-			[
-				"Can you write a function in Python?",
-				"```py\ndef test():\n\tprint(x)\n```"
-			],
-			["Can you do math?", "$$1+1=2$$"],
-			["Can you say nothing?", null]
-		]}
-		{...args}
-	/>
-</Template>
+{#snippet template(args)}
+	<Chatbot {...wrapProps(args)} />
+{/snippet}
 
 <Story
 	name="Chatbot with math enabled"
-	args={{ latex_delimiters: [{ left: "$$", right: "$$", display: true }] }}
+	args={{
+		latex_delimiters: [{ left: "$$", right: "$$", display: true }],
+		value: defaultValue
+	}}
+	{template}
 />
-
 <Story
 	name="Chatbot with math disabled, small height"
-	args={{ latex_delimiters: [], height: 200, show_copy_button: false }}
+	args={{
+		latex_delimiters: [],
+		height: 200,
+		show_copy_button: false,
+		value: defaultValue
+	}}
+	{template}
 />
-
 <Story
 	name="Chatbot with math disabled, small max_height"
-	args={{ latex_delimiters: [], max_height: 200 }}
+	args={{ latex_delimiters: [], max_height: 200, value: defaultValue }}
+	{template}
 />
-
 <Story
 	name="Chatbot with text rendered right-to-left"
 	args={{
 		rtl: true,
 		latex_delimiters: [{ left: "$$", right: "$$", display: true }],
 		value: [
-			[
-				"حلّت التجارية عرض لم, كرسي قادة دار كل. ما خيار ماذا بمحاولة به،. كما عن تونس إيطاليا. يتم بـ لأداء حادثة معزّزة.",
-				"إعادة احداث اعلان بين قد, ما القوى الحكومة التغييرات جهة. قبل و يذكر الإمتعاض, أوسع وشعار إستعمل بعد تم. سبتمبر الصفحة عل أضف, أي وفي الدمج تشكيل وصافرات. حيث قد بقسوة هاربر بأيدي, أملاً نتيجة الثالث ما على, ثم مدن للسيطرة بالتوقيع. هذه ان حقول أخرى."
-			],
-			[
-				"أي وتنصيب الصعداء انه. تاريخ بالجانب هو فصل, أخذ لمحاكم الإتفاقية ان. كنقطة بالعمل التكاليف شيء مع, وجزر الهادي كان و, أي حدى يطول الحكومة اليابان. حيث كرسي لتقليعة الاندونيسية تم, للصين وبغطاء بال بل. ٣٠ لهذه قتيل، ارتكبها كلا. سابق وبدأت تم ذات.",
-				"اليف نفس. ما يتبقّ لبولندا، استراليا، دول."
-			]
+			{
+				role: "user",
+				content: [
+					{
+						type: "text",
+						text: "حلّت التجارية عرض لم, كرسي قادة دار كل. ما خيار ماذا بمحاولة به،. كما عن تونس إيطاليا. يتم بـ لأداء حادثة معزّزة."
+					}
+				]
+			},
+			{
+				role: "assistant",
+				content: [
+					{
+						type: "text",
+						text: "إعادة احداث اعلان بين قد, ما القوى الحكومة التغييرات جهة. قبل و يذكر الإمتعاض, أوسع وشعار إستعمل بعد تم. سبتمبر الصفحة عل أضف, أي وفي الدمج تشكيل وصافرات. حيث قد بقسوة هاربر بأيدي, أملاً نتيجة الثالث ما على, ثم مدن للسيطرة بالتوقيع. هذه ان حقول أخرى."
+					}
+				]
+			},
+			{
+				role: "user",
+				content: [
+					{
+						type: "text",
+						text: "أي وتنصيب الصعداء انه. تاريخ بالجانب هو فصل, أخذ لمحاكم الإتفاقية ان. كنقطة بالعمل التكاليف شيء مع, وجزر الهادي كان و, أي حدى يطول الحكومة اليابان. حيث كرسي لتقليعة الاندونيسية تم, للصين وبغطاء بال بل. ٣٠ لهذه قتيل، ارتكبها كلا. سابق وبدأت تم ذات."
+					}
+				]
+			},
+			{
+				role: "assistant",
+				content: [
+					{ type: "text", text: "اليف نفس. ما يتبقّ لبولندا، استراليا، دول." }
+				]
+			}
 		]
 	}}
+	{template}
 />
-
-<Story
-	name="Chatbot with chat bubble full width disabled and copy button"
-	args={{
-		bubble_full_width: false,
-		show_copy_button: true
-	}}
-/>
-
 <Story
 	name="Chatbot with panel layout enabled and avatars"
 	args={{
+		show_copy_button: true,
 		layout: "panel",
 		avatar_images: [
 			{ url: "https://avatars.githubusercontent.com/u/100000?v=4" },
 			{ url: "https://avatars.githubusercontent.com/u/100000?v=4" }
-		]
+		],
+		value: defaultValue
 	}}
+	{template}
 />
-
 <Story
 	name="Chatbot with bubble layout enabled and avatars"
 	args={{
-		bubble_full_width: true,
 		layout: "bubble",
 		avatar_images: [
 			{ url: "https://avatars.githubusercontent.com/u/100000?v=4" },
 			{ url: "https://avatars.githubusercontent.com/u/100000?v=4" }
-		]
+		],
+		value: defaultValue
 	}}
+	{template}
 />
-
 <Story
 	name="Chatbot with percentage height"
-	args={{
-		bubble_full_width: false,
-		layout: "panel",
-		height: "50%"
-	}}
+	args={{ layout: "panel", height: "50%", value: defaultValue }}
+	{template}
 />
-
 <Story
 	name="Chatbot with placeholder"
 	args={{
@@ -131,65 +164,380 @@
 		placeholder:
 			"**Gradio Helper**\n\nThis Chatbot can help you on *any topic related to Gradio*."
 	}}
+	{template}
 />
-
 <Story
 	name="Chatbot with headers and lists"
 	args={{
 		value: [
-			[
-				`# Markdown Example
-
-This document is a showcase of various Markdown capabilities.`,
-				`## Table of Contents
-
-1. [Text Formatting](#text-formating)
-2. [Code Blocks](#code-blocks)
-3. [Tables](#tables)`
-			]
+			{
+				role: "user",
+				content: [
+					{
+						type: "text",
+						text: "# Markdown Example\n\nThis document is a showcase of various Markdown capabilities."
+					}
+				]
+			},
+			{
+				role: "assistant",
+				content: [
+					{
+						type: "text",
+						text: "## Table of Contents\n\n1. [Text Formatting](#text-formating)\n2. [Code Blocks](#code-blocks)\n3. [Tables](#tables)"
+					}
+				]
+			}
 		]
 	}}
+	{template}
 />
-
 <Story
 	name="Chatbot with tables and nested lists"
 	args={{
 		value: [
-			[
-				`Creating tables in Markdown is straightforward:
-
-| Header 1 | Header 2 | Header 3 |
-|----------|----------|----------|
-| Row 1, Cell 1 | Row 1, Cell 2 | Row 1, Cell 3 |
-| Row 2, Cell 1 | Row 2, Cell 2 | Row 2, Cell 3 |
-| Row 3, Cell 1 | Row 3, Cell 2 | Row 3, Cell 3 |`,
-				`### Unordered List
-
-- Item 1
-- Item 2
-  - Subitem 2.1
-  - Subitem 2.2
-- Item 3
-
-### Ordered List
-
-1. First Item
-2. Second Item
-   1. Subitem 2.1
-   2. Subitem 2.2
-3. Third Item`
-			]
+			{
+				role: "user",
+				content: [
+					{
+						type: "text",
+						text: "Creating tables in Markdown is straightforward:\n\n| Header 1 | Header 2 | Header 3 |\n|----------|----------|----------|\n| Row 1, Cell 1 | Row 1, Cell 2 | Row 1, Cell 3 |\n| Row 2, Cell 1 | Row 2, Cell 2 | Row 2, Cell 3 |\n| Row 3, Cell 1 | Row 3, Cell 2 | Row 3, Cell 3 |"
+					}
+				]
+			},
+			{
+				role: "assistant",
+				content: [
+					{
+						type: "text",
+						text: "### Unordered List\n\n- Item 1\n- Item 2\n  - Subitem 2.1\n  - Subitem 2.2\n- Item 3\n\n### Ordered List\n\n1. First Item\n2. Second Item\n   1. Subitem 2.1\n   2. Subitem 2.2\n3. Third Item"
+					}
+				]
+			}
 		]
 	}}
+	{template}
 />
-
 <Story
 	name="Chatbot with image in markdown"
 	args={{
 		value: [
-			[
-				`![A cheetah](https://cdn.britannica.com/02/92702-120-6A02E613/Cheetah.jpg)`
-			]
+			{
+				role: "user",
+				content: [
+					{
+						type: "text",
+						text: `![A cheetah](${cheetah})`
+					}
+				]
+			}
 		]
 	}}
+	{template}
+/>
+<Story
+	name="Uploaded text files"
+	args={{
+		type: "messages",
+		value: [
+			{
+				role: "user",
+				content: [
+					{
+						type: "file",
+						file: { path: "abc/qwerty.pdf", url: "" },
+						alt_text: null
+					}
+				]
+			},
+			{
+				role: "user",
+				content: [
+					{
+						type: "file",
+						file: { path: "abc/qwerty.txt", url: "" },
+						alt_text: null
+					}
+				]
+			},
+			{
+				role: "user",
+				content: [
+					{
+						type: "file",
+						file: { path: "abc/qwerty.rtf", url: "" },
+						alt_text: null
+					}
+				]
+			}
+		]
+	}}
+	{template}
+/>
+<Story
+	name="Consecutive messages grouped in same bubble"
+	args={{
+		type: "messages",
+		display_consecutive_in_same_bubble: true,
+		value: [
+			{ role: "user", content: [{ type: "text", text: "Show me the file." }] },
+			{
+				role: "user",
+				content: [{ type: "text", text: "Second user message" }]
+			},
+			{
+				role: "assistant",
+				content: [{ type: "text", text: "Here is the file you requested" }]
+			},
+			{
+				role: "assistant",
+				content: [
+					{
+						type: "file",
+						file: { path: "abc/qwerty.txt", url: "" },
+						alt_text: null
+					}
+				]
+			}
+		]
+	}}
+	{template}
+/>
+<Story
+	name="MultimodalChatbot with examples"
+	args={{
+		value: [],
+		examples: [
+			{ text: "What is machine learning?", icon: { mime_type: "text" } },
+			{
+				text: "Analyze this image",
+				files: [
+					{
+						mime_type: "image/jpeg",
+						url: bus,
+						orig_name: "bus.png"
+					}
+				]
+			},
+			{
+				text: "Process this document",
+				files: [
+					{
+						mime_type: "application/pdf",
+						url: "/document.pdf",
+						orig_name: "document.pdf"
+					}
+				]
+			},
+			{
+				text: "Compare these images",
+				files: [
+					{
+						mime_type: "image/jpeg",
+						url: bus,
+						orig_name: "image1.jpg"
+					},
+					{
+						mime_type: "image/jpeg",
+						url: bus,
+						orig_name: "image2.jpg"
+					},
+					{
+						mime_type: "image/jpeg",
+						url: bus,
+						orig_name: "image3.jpg"
+					}
+				]
+			},
+			{
+				text: "Process these files",
+				files: [
+					{
+						mime_type: "application/pdf",
+						url: "doc1.pdf",
+						orig_name: "document1.pdf"
+					},
+					{
+						mime_type: "application/pdf",
+						url: "/doc2.pdf",
+						orig_name: "document2.pdf"
+					},
+					{
+						mime_type: "application/pdf",
+						url: "/doc3.pdf",
+						orig_name: "document3.pdf"
+					}
+				]
+			},
+			{
+				text: "Analyze this dataset",
+				files: [
+					{
+						mime_type: "image/jpeg",
+						url: bus,
+						orig_name: "visualization.jpg"
+					},
+					{
+						mime_type: "image/jpeg",
+						url: bus,
+						orig_name: "visualization.jpg"
+					},
+					{
+						mime_type: "application/pdf",
+						url: "/data.pdf",
+						orig_name: "data.pdf"
+					},
+					{
+						mime_type: "audio/mp3",
+						url: "/audio.mp3",
+						orig_name: "recording.mp3"
+					},
+					{ mime_type: "video/mp4", url: "/video.mp4", orig_name: "video.mp4" }
+				]
+			}
+		]
+	}}
+	{template}
+/>
+<Story
+	name="Consecutive messages not grouped in same bubble"
+	args={{
+		type: "messages",
+		display_consecutive_in_same_bubble: false,
+		value: [
+			{ role: "user", content: [{ type: "text", text: "Show me the file." }] },
+			{
+				role: "user",
+				content: [{ type: "text", text: "Second user message" }]
+			},
+			{
+				role: "assistant",
+				content: [{ type: "text", text: "Here is the file you requested" }]
+			},
+			{
+				role: "assistant",
+				content: [
+					{
+						type: "file",
+						file: { path: "abc/qwerty.txt", url: "" },
+						alt_text: null
+					}
+				]
+			}
+		]
+	}}
+	{template}
+/>
+<Story
+	name="Chatbot with examples (not multimodal)"
+	args={{
+		value: [],
+		examples: [
+			{ text: "What is machine learning?" },
+			{
+				text: "Analyze this image",
+				files: [
+					{
+						mime_type: "image/jpeg",
+						url: bus,
+						orig_name: "bus.png"
+					}
+				]
+			},
+			{
+				text: "Process this document",
+				files: [
+					{
+						mime_type: "application/pdf",
+						url: "/document.pdf",
+						orig_name: "document.pdf"
+					}
+				]
+			}
+		]
+	}}
+	{template}
+/>
+<Story
+	name="Displaying Tool Message"
+	args={{
+		type: "messages",
+		display_consecutive_in_same_bubble: true,
+		value: [
+			{
+				role: "user",
+				content: [{ type: "text", text: "What is 27 * 14?" }],
+				duration: 0.1
+			},
+			{
+				role: "assistant",
+				duration: 10,
+				content: [
+					{ type: "text", text: "Let me break this down step by step." }
+				],
+				metadata: { id: 1, title: "Solving multiplication", parent_id: 0 }
+			},
+			{
+				role: "assistant",
+				content: [
+					{
+						type: "text",
+						text: "First, let's multiply 27 by 10: 27 * 10 = 270"
+					}
+				],
+				metadata: { id: 2, title: "Step 1", parent_id: 1 }
+			},
+			{
+				role: "assistant",
+				content: [
+					{
+						type: "text",
+						text: "We can do this quickly because multiplying by 10 just adds a zero"
+					}
+				],
+				metadata: { id: 6, title: "Quick Tip", parent_id: 2 }
+			},
+			{
+				role: "assistant",
+				content: [
+					{ type: "text", text: "Then multiply 27 by 4: 27 * 4 = 108" }
+				],
+				metadata: { id: 3, title: "Step 2", parent_id: 1 }
+			},
+			{
+				role: "assistant",
+				content: [
+					{
+						type: "text",
+						text: "Adding these together: 270 + 108 = 378. Therefore, 27 * 14 = 378"
+					}
+				]
+			},
+			{
+				role: "assistant",
+				content: [
+					{
+						type: "text",
+						text: "Let me verify this result using a different method."
+					}
+				],
+				metadata: { id: 4, title: "Verification", parent_id: 0 }
+			},
+			{
+				role: "assistant",
+				content: [
+					{
+						type: "text",
+						text: "Using the standard algorithm: 27 * 14 = (20 + 7) * (10 + 4)"
+					}
+				],
+				metadata: { id: 5, title: "Expanding", parent_id: 4 }
+			},
+			{
+				role: "assistant",
+				content: [{ type: "text", text: "The result is confirmed to be 378." }]
+			}
+		]
+	}}
+	{template}
 />

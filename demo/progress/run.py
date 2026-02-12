@@ -2,7 +2,7 @@ import gradio as gr
 import random
 import time
 import tqdm
-from datasets import load_dataset
+from datasets import load_dataset  # type: ignore
 import shutil
 from uuid import uuid4
 

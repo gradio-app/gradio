@@ -1,5 +1,230 @@
 # @self/tootils
 
+## 0.9.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.3
+
+## 0.9.0
+
+### Features
+
+- [#12781](https://github.com/gradio-app/gradio/pull/12781) [`c64d861`](https://github.com/gradio-app/gradio/commit/c64d8613e96dedf80e47ad03a26a1b94a5761a5a) - Split e2e tests into independent apps.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12472](https://github.com/gradio-app/gradio/pull/12472) [`9a2bc0d`](https://github.com/gradio-app/gradio/commit/9a2bc0dacdd2b3f670fae815093c61ad08eee7e3) - Re-enable SSR mode.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.2
+- @gradio/utils@0.11.2
+
+## 0.8.2
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+
+## 0.8.2
+
+### Dependency updates
+
+- @gradio/utils@0.11.0
+- @gradio/statustracker@0.12.1
+
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
+## 0.8.1
+
+### Features
+
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Be able to update visibility programmatically
+- [#11908](https://github.com/gradio-app/gradio/pull/11908) [`029034f`](https://github.com/gradio-app/gradio/commit/029034f7853ea018d110efe9b7e2ef7d1407091c) - Unit test fixes
+- [#12438](https://github.com/gradio-app/gradio/pull/12438) [`25ffc03`](https://github.com/gradio-app/gradio/commit/25ffc0398f8feb43d817c02b2ab970c16de6d797) - Svelte5 migration and bugfix
+
+### Dependencies
+
+- @gradio/statustracker@0.12.0
+- @gradio/utils@0.10.3
+
+## 0.8.1-dev.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.0-dev.1
+
+## 0.8.1-dev.0
+
+### Dependency updates
+
+- @gradio/utils@0.10.3-dev.0
+- @gradio/statustracker@0.12.0-dev.0
+
+## 0.8.0
+
+### Features
+
+- [#11858](https://github.com/gradio-app/gradio/pull/11858) [`3f8ea13`](https://github.com/gradio-app/gradio/commit/3f8ea13a8ca92abf0ad34392e403a449fda3c6c2) - remove lite.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.11.1
+
+## 0.7.29
+
+### Dependency updates
+
+- @gradio/statustracker@0.11.0
+
+## 0.7.28
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.18
+
+## 0.7.28
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.17
+
+## 0.7.27
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.16
+
+## 0.7.26
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.15
+
+## 0.7.25
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.14
+
+## 0.7.24
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+
+## 0.7.23
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.7.23
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.7.23
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.7.22
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.11
+
+## 0.7.21
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.10
+
+## 0.7.20
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.9
+- @gradio/utils@0.10.2
+
+## 0.7.19
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.8
+
+## 0.7.18
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.7
+
+## 0.7.17
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.6
+
+## 0.7.16
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.5
+
+## 0.7.15
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.4
+
+## 0.7.14
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.3
+- @gradio/utils@0.10.1
+
+## 0.7.13
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.2
+
+## 0.7.12
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.1
+
+## 0.7.11
+
+### Dependency updates
+
+- @gradio/utils@0.10.0
+- @gradio/statustracker@0.10.0
+
+## 0.7.10
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.7
+
+## 0.7.9
+
+### Dependency updates
+
+- @gradio/utils@0.9.0
+- @gradio/statustracker@0.9.6
+
 ## 0.7.8
 
 ### Dependency updates

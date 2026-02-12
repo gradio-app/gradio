@@ -43,11 +43,30 @@ This command adds @gradio/client to your project dependencies, allowing you to i
 
 For quick addition to your web project, you can use the jsDelivr CDN to load the latest version of @gradio/client directly into your HTML:
 
-```bash
-<script src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
+```html
+<script type="module">
+	import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+	...
+</script>
 ```
 
-Be sure to add this to the `<head>` of your HTML. This will install the latest version but we advise hardcoding the version in production. You can find all available versions [here](https://www.jsdelivr.com/package/npm/@gradio/client). This approach is ideal for experimental or prototying purposes, though has some limitations.
+Be sure to add this to the `<head>` of your HTML. This will install the latest version but we advise hardcoding the version in production. You can find all available versions [here](https://www.jsdelivr.com/package/npm/@gradio/client). This approach is ideal for experimental or prototying purposes, though has some limitations. A complete example would look like this:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script type="module">
+        import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+        const client = await Client.connect("abidlabs/en2fr");
+        const result = await client.predict("/predict", {
+            text: "My name is Hannah"
+        });
+        console.log(result);
+    </script>
+</head>
+</html>
+```
 
 ## Connecting to a running Gradio App
 
@@ -61,12 +80,12 @@ import { Client } from "@gradio/client";
 const app = await Client.connect("abidlabs/en2fr"); // a Space that translates from English to French
 ```
 
-You can also connect to private Spaces by passing in your HF token with the `hf_token` property of the options parameter. You can get your HF token here: https://huggingface.co/settings/tokens
+You can also connect to private Spaces by passing in your HF token with the `token` property of the options parameter. You can get your HF token here: https://huggingface.co/settings/tokens
 
 ```js
 import { Client } from "@gradio/client";
 
-const app = await Client.connect("abidlabs/my-private-space", { hf_token: "hf_..." })
+const app = await Client.connect("abidlabs/my-private-space", { token: "hf_..." })
 ```
 
 ## Duplicating a Space for private use
@@ -83,7 +102,7 @@ const response = await fetch(
 );
 const audio_file = await response.blob();
 
-const app = await Client.duplicate("abidlabs/whisper", { hf_token: "hf_..." });
+const app = await Client.duplicate("abidlabs/whisper", { token: "hf_..." });
 const transcription = await app.predict("/predict", [handle_file(audio_file)]);
 ```
 
@@ -95,7 +114,7 @@ If you have previously duplicated a Space, re-running `Client.duplicate` will _n
 import { Client } from "@gradio/client";
 
 const app = await Client.duplicate("abidlabs/whisper", {
-	hf_token: "hf_...",
+	token: "hf_...",
 	timeout: 60,
 	hardware: "a10g-small"
 });

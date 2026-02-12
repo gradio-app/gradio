@@ -44,11 +44,9 @@ def line_plot_fn(dataset):
             x="date",
             y="price",
             color="symbol",
-            color_legend_position="bottom",
             title="Stock Prices",
             tooltip=["date", "price", "symbol"],
             height=300,
-            width=500,
         )
     elif dataset == "climate":
         return gr.LinePlot(
@@ -59,7 +57,6 @@ def line_plot_fn(dataset):
             title="Climate",
             tooltip=["DATE", "HLY-TEMP-NORMAL"],
             height=300,
-            width=500,
         )
     elif dataset == "seattle_weather":
         return gr.LinePlot(
@@ -67,10 +64,8 @@ def line_plot_fn(dataset):
             x="date",
             y="temp_min",
             tooltip=["weather", "date"],
-            overlay_point=True,
             title="Seattle Weather",
             height=300,
-            width=500,
         )
     elif dataset == "gapminder":
         return gr.LinePlot(
@@ -79,12 +74,9 @@ def line_plot_fn(dataset):
             y="life_expect",
             color="country",
             title="Life expectancy for countries",
-            stroke_dash="cluster",
             x_lim=[1950, 2010],
             tooltip=["country", "life_expect"],
-            stroke_dash_legend_title="Country Cluster",
             height=300,
-            width=500,
         )
 
 with gr.Blocks() as line_plot:

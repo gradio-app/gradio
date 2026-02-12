@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { onDestroy, createEventDispatcher, tick } from "svelte";
+	import { onDestroy } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import { prepare_files, type FileData, type Client } from "@gradio/client";
-	import { BlockLabel } from "@gradio/atoms";
+	import { BlockLabel, ShareButton, CustomButton } from "@gradio/atoms";
 	import { Music } from "@gradio/icons";
+	import { uploadToHuggingFace } from "@gradio/utils";
 	import { StreamingBar } from "@gradio/statustracker";
 	import AudioPlayer from "../player/AudioPlayer.svelte";
 
@@ -11,117 +12,165 @@
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import AudioRecorder from "../recorder/AudioRecorder.svelte";
 	import StreamAudio from "../streaming/StreamAudio.svelte";
+	import { init_media_recorder } from "../streaming/media_recorder";
+	import type { IMediaRecorderConstructor } from "extendable-media-recorder";
 	import { SelectSource } from "@gradio/atoms";
-	import type { WaveformOptions } from "../shared/types";
+	import type { WaveformOptions, SubtitleData } from "../shared/types";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 
-	export let value: null | FileData = null;
-	export let label: string;
-	export let root: string;
-	export let loop: boolean;
-	export let show_label = true;
-	export let show_download_button = false;
-	export let sources:
-		| ["microphone"]
-		| ["upload"]
-		| ["microphone", "upload"]
-		| ["upload", "microphone"] = ["microphone", "upload"];
-	export let pending = false;
-	export let streaming = false;
-	export let i18n: I18nFormatter;
-	export let waveform_settings: Record<string, any>;
-	export let trim_region_settings = {};
-	export let waveform_options: WaveformOptions = {};
-	export let dragging: boolean;
-	export let active_source: "microphone" | "upload";
-	export let handle_reset_value: () => void = () => {};
-	export let editable = true;
-	export let max_file_size: number | null = null;
-	export let upload: Client["upload"];
-	export let stream_handler: Client["stream"];
-	export let stream_every: number;
-	export let uploading = false;
-	export let recording = false;
+	let {
+		value = $bindable(null),
+		subtitles = null,
+		label,
+		root,
+		loop,
+		show_label = true,
+		buttons = ["download", "share"],
+		on_custom_button_click = null,
+		sources = ["microphone", "upload"],
+		pending = false,
+		streaming = false,
+		i18n,
+		waveform_settings,
+		trim_region_settings = {},
+		waveform_options = {},
+		dragging = $bindable(false),
+		active_source = $bindable<"microphone" | "upload">("microphone"),
+		handle_reset_value = () => {},
+		editable = true,
+		max_file_size = null,
+		upload,
+		stream_handler,
+		stream_every = 0.1,
+		uploading = $bindable(false),
+		recording = $bindable(false),
+		class_name = "",
+		upload_promise = $bindable(),
+		initial_value = $bindable(),
+		playback_position = $bindable(),
+		time_limit = null,
+		stream_state = "closed",
+		onchange,
+		onstream,
+		onedit,
+		onplay,
+		onpause,
+		onstop,
+		ondrag,
+		onerror,
+		onupload,
+		onclear,
+		onstart_recording,
+		onpause_recording,
+		onstop_recording,
+		onclose_stream,
+		children
+	}: {
+		value?: null | FileData;
+		subtitles?: null | FileData | SubtitleData[];
+		label: string;
+		root: string;
+		loop?: boolean;
+		show_label?: boolean;
+		buttons?: (string | CustomButtonType)[];
+		on_custom_button_click?: ((id: number) => void) | null;
+		sources?:
+			| ["microphone"]
+			| ["upload"]
+			| ["microphone", "upload"]
+			| ["upload", "microphone"];
+		pending?: boolean;
+		streaming?: boolean;
+		i18n: I18nFormatter;
+		waveform_settings: Record<string, any>;
+		trim_region_settings?: Record<string, any>;
+		waveform_options?: WaveformOptions;
+		dragging?: boolean;
+		active_source?: "microphone" | "upload";
+		handle_reset_value?: () => void;
+		editable?: boolean;
+		max_file_size?: number | null;
+		upload: Client["upload"];
+		stream_handler: Client["stream"];
+		stream_every?: number;
+		uploading?: boolean;
+		recording?: boolean;
+		class_name?: string;
+		upload_promise?: Promise<any> | null;
+		initial_value?: FileData | null;
+		playback_position?: number;
+		time_limit?: number | null;
+		stream_state?: "open" | "waiting" | "closed";
+		onchange?: (value: FileData | null) => void;
+		onstream?: (value: FileData) => void;
+		onedit?: () => void;
+		onplay?: () => void;
+		onpause?: () => void;
+		onstop?: () => void;
+		ondrag?: (dragging: boolean) => void;
+		onerror?: (error: string) => void;
+		onupload?: (value: FileData) => void;
+		onclear?: () => void;
+		onstart_recording?: () => void;
+		onpause_recording?: () => void;
+		onstop_recording?: () => void;
+		onclose_stream?: () => void;
+		children?: import("svelte").Snippet;
+	} = $props();
 
-	let time_limit: number | null = null;
-	let stream_state: "open" | "waiting" | "closed" = "closed";
-
-	export const modify_stream: (state: "open" | "closed" | "waiting") => void = (
-		state: "open" | "closed" | "waiting"
-	) => {
-		if (state === "closed") {
-			time_limit = null;
-			stream_state = "closed";
-		} else if (state === "waiting") {
-			stream_state = "waiting";
-		} else {
-			stream_state = "open";
-		}
-	};
-
-	export const set_time_limit = (time: number): void => {
-		if (recording) time_limit = time;
-	};
-
-	$: dispatch("drag", dragging);
+	$effect(() => {
+		ondrag?.(dragging);
+	});
 
 	// TODO: make use of this
 	// export let type: "normal" | "numpy" = "normal";
 	let recorder: IMediaRecorder;
-	let mode = "";
+	let mode = $state("");
 	let header: Uint8Array | undefined = undefined;
 	let pending_stream: Uint8Array[] = [];
 	let submit_pending_stream_on_pending_end = false;
 	let inited = false;
+	let streaming_media_recorder: IMediaRecorderConstructor;
 
 	const NUM_HEADER_BYTES = 44;
 	let audio_chunks: Blob[] = [];
-	let module_promises: [
-		Promise<typeof import("extendable-media-recorder")>,
-		Promise<typeof import("extendable-media-recorder-wav-encoder")>
-	];
-
-	function get_modules(): void {
-		module_promises = [
-			import("extendable-media-recorder"),
-			import("extendable-media-recorder-wav-encoder")
-		];
-	}
-
 	const is_browser = typeof window !== "undefined";
 	if (is_browser && streaming) {
-		get_modules();
+		init_media_recorder().then((a) => {
+			streaming_media_recorder = a;
+		});
 	}
 
-	const dispatch = createEventDispatcher<{
-		change: FileData | null;
-		stream: FileData;
-		edit: never;
-		play: never;
-		pause: never;
-		stop: never;
-		end: never;
-		drag: boolean;
-		error: string;
-		upload: FileData;
-		clear: undefined;
-		start_recording: undefined;
-		pause_recording: undefined;
-		stop_recording: undefined;
-		close_stream: undefined;
-	}>();
+	const to_blob_parts = (parts: Uint8Array[] | Blob[]): BlobPart[] =>
+		parts.map((part) => {
+			if (part instanceof Blob) return part;
+			return part.slice();
+		});
 
 	const dispatch_blob = async (
 		blobs: Uint8Array[] | Blob[],
 		event: "stream" | "change" | "stop_recording"
 	): Promise<void> => {
-		let _audio_blob = new File(blobs, "audio.wav");
+		let _audio_blob = new File(to_blob_parts(blobs), "audio.wav", {
+			type: "audio/wav"
+		});
+		if (_audio_blob.size === 0) {
+			return;
+		}
 		const val = await prepare_files([_audio_blob], event === "stream");
+		initial_value = value;
 		value = (
 			(await upload(val, root, undefined, max_file_size || undefined))?.filter(
 				Boolean
 			) as FileData[]
 		)[0];
-		dispatch(event, value);
+		if (event === "stream") {
+			onstream?.(value);
+		} else if (event === "change") {
+			onchange?.(value);
+		} else if (event === "stop_recording") {
+			onstop_recording?.();
+		}
 	};
 
 	onDestroy(() => {
@@ -137,22 +186,21 @@
 			stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 		} catch (err) {
 			if (!navigator.mediaDevices) {
-				dispatch("error", i18n("audio.no_device_support"));
+				onerror?.(i18n("audio.no_device_support"));
 				return;
 			}
 			if (err instanceof DOMException && err.name == "NotAllowedError") {
-				dispatch("error", i18n("audio.allow_recording_access"));
+				onerror?.(i18n("audio.allow_recording_access"));
 				return;
 			}
 			throw err;
 		}
 		if (stream == null) return;
-
 		if (streaming) {
-			const [{ MediaRecorder, register }, { connect }] =
-				await Promise.all(module_promises);
-			await register(await connect());
-			recorder = new MediaRecorder(stream, { mimeType: "audio/wav" });
+			recorder = new streaming_media_recorder(stream, {
+				mimeType: "audio/wav"
+			});
+
 			recorder.addEventListener("dataavailable", handle_chunk);
 		} else {
 			recorder = new MediaRecorder(stream);
@@ -162,7 +210,7 @@
 		}
 		recorder.addEventListener("stop", async () => {
 			recording = false;
-			// recorder.stop();
+			recorder.stop();
 			await dispatch_blob(audio_chunks, "change");
 			await dispatch_blob(audio_chunks, "stop_recording");
 			audio_chunks = [];
@@ -187,19 +235,22 @@
 		}
 	}
 
-	$: if (submit_pending_stream_on_pending_end && pending === false) {
-		submit_pending_stream_on_pending_end = false;
-		if (header && pending_stream) {
-			let blobParts: Uint8Array[] = [header].concat(pending_stream);
-			pending_stream = [];
-			dispatch_blob(blobParts, "stream");
+	$effect(() => {
+		if (submit_pending_stream_on_pending_end && pending === false) {
+			submit_pending_stream_on_pending_end = false;
+			if (header && pending_stream) {
+				let blobParts: Uint8Array[] = [header].concat(pending_stream);
+				pending_stream = [];
+				dispatch_blob(blobParts, "stream");
+			}
 		}
-	}
+	});
 
 	async function record(): Promise<void> {
 		recording = true;
-		dispatch("start_recording");
+		onstart_recording?.();
 		if (!inited) await prepare_audio();
+
 		header = undefined;
 		if (streaming && recorder.state != "recording") {
 			recorder.start(stream_every * 1000);
@@ -207,37 +258,42 @@
 	}
 
 	function clear(): void {
-		dispatch("change", null);
-		dispatch("clear");
+		onchange?.(null);
+		onclear?.();
 		mode = "";
 		value = null;
 	}
 
-	function handle_load({ detail }: { detail: FileData }): void {
+	function handle_load(detail: FileData): void {
 		value = detail;
-		dispatch("change", detail);
-		dispatch("upload", detail);
+		onchange?.(detail);
+		onupload?.(detail);
 	}
 
 	async function stop(): Promise<void> {
 		recording = false;
 
 		if (streaming) {
-			dispatch("close_stream");
-			dispatch("stop_recording");
+			onclose_stream?.();
+			onstop_recording?.();
 			recorder.stop();
 
 			if (pending) {
 				submit_pending_stream_on_pending_end = true;
 			}
-			dispatch_blob(audio_chunks, "stop_recording");
-			dispatch("clear");
+			await dispatch_blob(audio_chunks, "stop_recording");
+			onclear?.();
 			mode = "";
 		}
 	}
 
-	$: if (!recording && recorder) stop();
-	$: if (recording && recorder) record();
+	$effect(() => {
+		if (!recording && recorder && mode !== "") stop();
+	});
+
+	$effect(() => {
+		if (recording && recorder) record();
+	});
 </script>
 
 <BlockLabel
@@ -246,11 +302,14 @@
 	float={active_source === "upload" && value === null}
 	label={label || i18n("audio.audio")}
 />
-<div class="audio-container">
+<div
+	class="audio-container {class_name}"
+	data-testid={label ? "waveform-" + label : "unlabelled-audio"}
+>
 	<StreamingBar {time_limit} />
-	{#if value === null || streaming}
+	{#if value == null || streaming}
 		{#if active_source === "microphone"}
-			<ModifyUpload {i18n} on:clear={clear} />
+			<ModifyUpload {i18n} onclear={clear} />
 			{#if streaming}
 				<StreamAudio
 					{record}
@@ -271,38 +330,77 @@
 					{waveform_settings}
 					{waveform_options}
 					{handle_reset_value}
-					on:start_recording
-					on:pause_recording
-					on:stop_recording
+					onstartrecording={() => onstart_recording?.()}
+					onpauserecording={() => onpause_recording?.()}
+					onstoprecording={() => onstop_recording?.()}
 				/>
 			{/if}
 		{:else if active_source === "upload"}
 			<!-- explicitly listed out audio mimetypes due to iOS bug not recognizing audio/* -->
 			<Upload
+				bind:upload_promise
 				filetype="audio/aac,audio/midi,audio/mpeg,audio/ogg,audio/wav,audio/x-wav,audio/opus,audio/webm,audio/flac,audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
-				on:load={handle_load}
+				onload={handle_load}
 				bind:dragging
 				bind:uploading
-				on:error={({ detail }) => dispatch("error", detail)}
+				onerror={(detail: string) => onerror?.(detail)}
 				{root}
 				{max_file_size}
 				{upload}
 				{stream_handler}
+				aria_label={i18n("audio.drop_to_upload")}
 			>
-				<slot />
+				{#if children}{@render children()}{/if}
 			</Upload>
 		{/if}
 	{:else}
 		<ModifyUpload
 			{i18n}
-			on:clear={clear}
-			on:edit={() => (mode = "edit")}
-			download={show_download_button ? value.url : null}
-		/>
+			onclear={clear}
+			onedit={() => {
+				mode = "edit";
+				onedit?.();
+			}}
+			download={buttons === null
+				? value.url
+				: buttons.some((btn) => typeof btn === "string" && btn === "download")
+					? value.url
+					: null}
+		>
+			{#if value !== null && buttons}
+				{#each buttons as btn}
+					{#if typeof btn === "string"}
+						{#if btn === "share"}
+							<ShareButton
+								{i18n}
+								{onerror}
+								onshare={() => {}}
+								formatter={async (fileData: FileData) => {
+									if (!fileData || !fileData.url) return "";
+									let url = await uploadToHuggingFace(fileData.url, "url");
+									return `<audio controls src="${url}"></audio>`;
+								}}
+								{value}
+							/>
+						{/if}
+					{:else}
+						<CustomButton
+							button={btn}
+							on_click={(id: number) => {
+								if (on_custom_button_click) {
+									on_custom_button_click(id);
+								}
+							}}
+						/>
+					{/if}
+				{/each}
+			{/if}
+		</ModifyUpload>
 
 		<AudioPlayer
 			bind:mode
 			{value}
+			subtitles={Array.isArray(subtitles) ? subtitles : subtitles?.url}
 			{label}
 			{i18n}
 			{dispatch_blob}
@@ -312,11 +410,12 @@
 			{handle_reset_value}
 			{editable}
 			{loop}
+			bind:playback_position
 			interactive
-			on:stop
-			on:play
-			on:pause
-			on:edit
+			{onstop}
+			{onplay}
+			{onpause}
+			{onedit}
 		/>
 	{/if}
 	<SelectSource {sources} bind:active_source handle_clear={clear} />

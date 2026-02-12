@@ -1,5 +1,5 @@
 import gradio as gr
-from data import df
+from data import df  # type: ignore
 
 with gr.Blocks() as demo:
     plot = gr.BarPlot(df, x="time", y="price", x_bin="10m")

@@ -1,6 +1,8 @@
 {
+	"_name": "English",
 	"3D_model": {
-		"3d_model": "3D Model"
+		"3d_model": "3D Model",
+		"drop_to_upload": "Drop a 3D model (.obj, .glb, .stl, .gltf, .splat, or .ply) file here to upload"
 	},
 	"annotated_image": {
 		"annotated_image": "Annotated Image"
@@ -8,6 +10,7 @@
 	"audio": {
 		"allow_recording_access": "Please allow access to the microphone for recording.",
 		"audio": "Audio",
+		"drop_to_upload": "Drop an audio file here to upload",
 		"record_from_microphone": "Record from microphone",
 		"stop_recording": "Stop recording",
 		"no_device_support": "Media devices could not be accessed. Check that you are running on a secure origin (https) or localhost (or you have passed a valid SSL certificate to ssl_verify), and you have allowed browser access to your device.",
@@ -24,6 +27,25 @@
 		"long_requests_queue": "There is a long queue of requests pending. Duplicate this Space to skip.",
 		"lost_connection": "Lost connection due to leaving page. Rejoining queue...",
 		"waiting_for_inputs": "Waiting for file(s) to finish uploading, please retry."
+	},
+	"chatbot": {
+		"edit": "Edit",
+		"retry": "Retry",
+		"undo": "Undo",
+		"submit": "Submit",
+		"cancel": "Cancel",
+		"like": "Like",
+		"dislike": "Dislike",
+		"clear": "Clear",
+		"copy_message": "Copy message",
+		"copied_message": "Copied message"
+	},
+	"chat_interface": {
+		"new_chat": "New chat",
+		"message_placeholder": "Type a message...",
+		"additional_inputs": "Additional inputs",
+		"chatbot": "Chatbot",
+		"conversation": "Conversation"
 	},
 	"checkbox": {
 		"checkbox": "Checkbox",
@@ -48,10 +70,19 @@
 		"logo": "logo",
 		"or": "or",
 		"remove": "Remove",
+		"settings": "Settings",
 		"share": "Share",
 		"submit": "Submit",
 		"undo": "Undo",
-		"no_devices": "No devices found"
+		"no_devices": "No devices found",
+		"language": "Language",
+		"display_theme": "Display Theme",
+		"pwa": "Progressive Web App",
+		"record": "Record",
+		"stop_recording": "Stop Recording",
+		"screen_studio": "Screen Studio",
+		"share_gradio_tab": "[Sharing] Gradio Tab",
+		"run": "Run"
 	},
 	"dataframe": {
 		"incorrect_format": "Incorrect format, only CSV and TSV files are supported",
@@ -59,8 +90,17 @@
 		"new_row": "New row",
 		"add_row_above": "Add row above",
 		"add_row_below": "Add row below",
+		"delete_row": "Delete row",
+		"delete_column": "Delete column",
 		"add_column_left": "Add column to the left",
-		"add_column_right": "Add column to the right"
+		"add_column_right": "Add column to the right",
+		"sort_column": "Sort column",
+		"sort_ascending": "Sort ascending",
+		"sort_descending": "Sort descending",
+		"drop_to_upload": "Drop CSV or TSV files here to import data into dataframe",
+		"clear_sort": "Clear sort",
+		"filter": "Filter",
+		"clear_filter": "Clear filters"
 	},
 	"dropdown": {
 		"dropdown": "Dropdown"
@@ -73,7 +113,8 @@
 		"runtime_error": "there is a runtime error",
 		"space_not_working": "\"Space isn't working because\" {0}",
 		"space_paused": "the space is paused",
-		"use_via_api": "Use via API"
+		"use_via_api": "Use via API",
+		"use_via_api_or_mcp": "Use via API or MCP"
 	},
 	"file": {
 		"uploading": "Uploading..."
@@ -89,7 +130,8 @@
 		"remove_image": "Remove Image",
 		"select_brush_color": "Select brush color",
 		"start_drawing": "Start drawing",
-		"use_brush": "Use brush"
+		"use_brush": "Use brush",
+		"drop_to_upload": "Drop an image file here to upload"
 	},
 	"label": {
 		"label": "Label"
@@ -97,6 +139,8 @@
 	"login": {
 		"enable_cookies": "If you are visiting a HuggingFace Space in Incognito mode, you must enable third party cookies.",
 		"incorrect_credentials": "Incorrect Credentials",
+		"username": "username",
+		"password": "password",
 		"login": "Login"
 	},
 	"number": {
@@ -120,5 +164,8 @@
 		"drop_video": "Drop Video Here",
 		"drop_gallery": "Drop Media Here",
 		"paste_clipboard": "Paste from Clipboard"
+	},
+	"video": {
+		"drop_to_upload": "Drop a video file here to upload"
 	}
 }

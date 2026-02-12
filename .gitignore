@@ -2,7 +2,6 @@
 .eggs/
 gradio.egg-info
 dist/
-dist-lite/
 *.pyc
 __pycache__/
 *.py[cod]
@@ -13,7 +12,6 @@ build/
 __tmp/*
 *.pyi
 !gradio/stubs/**/*.pyi
-py.typed
 .ipynb_checkpoints/
 .python-version
 =23.2
@@ -23,6 +21,7 @@ gradio/templates/*
 gradio/node/*
 gradio/_frontend_code/*
 js/gradio-preview/test/*
+**/dist/**/*.d.ts
 
 # Secrets
 .env
@@ -43,7 +42,6 @@ test.txt
 **/snapshots/**/*.png
 playwright-report/
 .hypothesis
-.lite-perf.json
 
 # Demos
 demo/tmp.zip
@@ -59,6 +57,8 @@ demo/unload_event_test/output_log.txt
 demo/stream_video_out/output_*.ts
 demo/stream_video_out/output_*.mp4
 demo/stream_audio_out/*.mp3
+test-demo/*
+#demo/image_editor_story/*.png
 
 # Etc
 .idea/*
@@ -94,6 +94,16 @@ client/js/test.js
 storybook-static
 build-storybook.log
 js/storybook/theme.css
+*storybook.log
 
 # playwright
 .config/playwright/.cache
+
+*.local.*
+.claude/
+CLAUDE.md
+.sonda/
+
+# docs upload
+scripts/docs.json
+tmp_input

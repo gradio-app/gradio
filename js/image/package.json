@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/image",
-	"version": "0.16.8",
+	"version": "0.25.2",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -13,9 +13,8 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@gradio/wasm": "workspace:^",
-		"cropperjs": "^1.5.12",
-		"lazy-brush": "^1.0.1",
+		"cropperjs": "^2.0.1",
+		"lazy-brush": "^2.0.2",
 		"resize-observer-polyfill": "^1.5.1"
 	},
 	"devDependencies": {
@@ -47,7 +46,7 @@
 		}
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.48.0"
 	},
 	"repository": {
 		"type": "git",

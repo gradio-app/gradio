@@ -6,41 +6,9 @@ import version from "$lib/json/version.json";
 import { make_slug_processor } from "$lib/utils";
 import { toString as to_string } from "hast-util-to-string";
 
-import Prism from "prismjs";
-import "prismjs/components/prism-python";
-import "prismjs/components/prism-bash";
-import "prismjs/components/prism-json";
-import "prismjs/components/prism-typescript";
-import "prismjs/components/prism-csv";
-import "prismjs/components/prism-markup";
+import { highlight } from "$lib/prism";
 
-const langs = {
-	python: "python",
-	py: "python",
-	bash: "bash",
-	csv: "csv",
-	html: "html",
-	shell: "bash",
-	json: "json",
-	typescript: "typescript",
-	directory: "json"
-};
-
-function highlight(code: string, lang: string | undefined) {
-	const _lang = langs[lang as keyof typeof langs] || "";
-
-	const highlighted = _lang
-		? `<pre class="language-${lang}"><code>${Prism.highlight(
-				code,
-				Prism.languages[_lang],
-				_lang
-			)}</code></pre>`
-		: code;
-
-	return highlighted;
-}
-
-let content = changelog_json.content;
+const raw_content = changelog_json.content;
 
 export async function load() {
 	const changelog_slug: object[] = [];
@@ -86,13 +54,13 @@ export async function load() {
 		};
 	}
 
-	const compiled = await compile(content, {
+	const compiled = await compile(raw_content, {
 		rehypePlugins: [plugin],
 		highlight: {
 			highlighter: highlight
 		}
 	});
-	content = (await compiled?.code) || "";
+	const content = (await compiled?.code) || "";
 
 	return {
 		content,

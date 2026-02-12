@@ -3,40 +3,45 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio } from "@gradio/utils";
-	import { type FileData } from "@gradio/client";
+	import { Gradio } from "@gradio/utils";
+	import type { SharedProps } from "@gradio/utils";
 
 	import Button from "./shared/Button.svelte";
+	import type { FileData } from "client/js/src";
+	interface ButtonProps {
+		value: string | null;
+		variant: "primary" | "secondary" | "stop";
+		size: "sm" | "md" | "lg";
+		scale: number;
+		link: string | null;
+		icon: FileData | null;
+		link_target: "_self" | "_blank";
+		elem_id: string | null;
+		elem_classes?: string[];
+	}
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible = true;
-	export let value: string | null;
-	export let variant: "primary" | "secondary" | "stop" = "secondary";
-	export let interactive: boolean;
-	export let size: "sm" | "lg" = "lg";
-	export let scale: number | null = null;
-	export let icon: FileData | null = null;
-	export let link: string | null = null;
-	export let min_width: number | undefined = undefined;
-	export let gradio: Gradio<{
-		click: never;
-	}>;
+	let _props: { shared_props: SharedProps; props: ButtonProps } = $props();
+	const gradio = new Gradio<never, ButtonProps>(_props);
+
+	function handle_click() {
+		gradio.dispatch("click");
+	}
 </script>
 
 <Button
-	{value}
-	{variant}
-	{elem_id}
-	{elem_classes}
-	{size}
-	{scale}
-	{link}
-	{icon}
-	{min_width}
-	{visible}
-	disabled={!interactive}
-	on:click={() => gradio.dispatch("click")}
+	value={gradio.props.value}
+	variant={gradio.props.variant}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+	size={gradio.props.size}
+	scale={gradio.props.scale}
+	link={gradio.props.link}
+	icon={gradio.props.icon}
+	min_width={gradio.shared.min_width}
+	visible={gradio.shared.visible}
+	disabled={!gradio.shared.interactive}
+	link_target={gradio.props.link_target}
+	onclick={handle_click}
 >
-	{value ? gradio.i18n(value) : ""}
+	{gradio.props.value ?? ""}
 </Button>

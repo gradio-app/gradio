@@ -8,9 +8,9 @@ test("No errors on generation", async ({ page }) => {
 	const num_c = page.getByLabel("c", { exact: true });
 	const num_d = page.getByLabel("d", { exact: true });
 
-	await expect(conversation).toContainText("26 26 26 26 26 26 26 26");
-	await expect(num_a).toHaveValue("52");
-	await expect(num_b).toHaveValue("51");
-	await expect(num_c).toHaveValue("52");
-	await expect(num_d).toHaveValue("51");
+	await expect(conversation).toContainText("11 11 11 11 11 11 11 11");
+	await expect(num_a).toHaveValue("22");
+	await expect(num_b).toHaveValue("21");
+	await expect(num_c).toHaveValue("22");
+	await expect(num_d).toHaveValue("21");
 });

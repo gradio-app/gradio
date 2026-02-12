@@ -4,6 +4,195 @@
 
 ### Dependency updates
 
+- @gradio/client@2.0.4
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@2.0.3
+- @gradio/theme@0.6.1
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@2.0.2
+- @gradio/theme@0.6.0
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@2.0.1
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.2
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/theme@0.5.0-dev.0
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.1
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.0
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.19.1
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.19.0
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.18.0
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.17.1
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.17.0
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.16.0
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.15.7
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.15.6
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.15.5
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.15.4
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.15.3
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.15.2
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.15.1
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.15.0
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.14.2
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.14.1
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.14.0
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.13.1
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.13.0
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/theme@0.4.0
+- @gradio/client@1.12.0
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.11.0
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.10.0
+
+## 0.0.1
+
+### Dependency updates
+
+- @gradio/client@1.9.0
+
+## 0.0.1
+
+### Dependency updates
+
 - @gradio/client@1.8.0
 
 ## 0.0.1

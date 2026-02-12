@@ -1,5 +1,355 @@
 # @gradio/upload
 
+## 0.17.5
+
+### Dependency updates
+
+- @gradio/atoms@0.21.0
+- @gradio/client@2.0.4
+
+## 0.17.4
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12779](https://github.com/gradio-app/gradio/pull/12779) [`ea2d3e9`](https://github.com/gradio-app/gradio/commit/ea2d3e985a8b42d188e551f517c5825c00790628) - Migrate Audio + Upload + Atoms to Svelte 5.  Thanks @dawoodkhan82!
+- [#12637](https://github.com/gradio-app/gradio/pull/12637) [`e202750`](https://github.com/gradio-app/gradio/commit/e202750b1deb5d4583c07d7d9d1b86f6b3dfef4b) - Fix bug where UploadProgress initializes with a null upload_id.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.1
+- @gradio/utils@0.11.2
+- @gradio/icons@0.15.1
+- @gradio/client@2.0.3
+
+## 0.17.3
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+- @gradio/client@2.0.2
+
+## 0.17.3
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/utils@0.11.0
+- @gradio/client@2.0.1
+
+## 0.17.2
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
+## 0.17.2
+
+### Features
+
+- [#12438](https://github.com/gradio-app/gradio/pull/12438) [`25ffc03`](https://github.com/gradio-app/gradio/commit/25ffc0398f8feb43d817c02b2ab970c16de6d797) - Svelte5 migration and bugfix
+
+### Dependencies
+
+- @gradio/atoms@0.19.0
+- @gradio/icons@0.15.0
+- @gradio/client@2.0.0
+- @gradio/utils@0.10.3
+
+## 0.17.2-dev.2
+
+### Dependency updates
+
+- @gradio/atoms@0.19.0-dev.1
+- @gradio/client@2.0.0-dev.2
+
+## 0.17.2-dev.1
+
+### Dependency updates
+
+- @gradio/atoms@0.18.2-dev.0
+- @gradio/utils@0.10.3-dev.0
+- @gradio/icons@0.15.0-dev.0
+
+## 0.17.2-dev.0
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.1
+
+## 0.17.2-dev.0
+
+### Dependency updates
+
+- @gradio/client@2.0.0-dev.0
+
+## 0.17.1
+
+### Dependency updates
+
+- @gradio/client@1.19.1
+
+## 0.17.1
+
+### Fixes
+
+- [#11969](https://github.com/gradio-app/gradio/pull/11969) [`c8f7909`](https://github.com/gradio-app/gradio/commit/c8f79090ede3b071a8d9620a885350b6ee5a8926) - Show UploadProgress for Webcam Uploads.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.18.1
+
+## 0.17.0
+
+### Features
+
+- [#11858](https://github.com/gradio-app/gradio/pull/11858) [`3f8ea13`](https://github.com/gradio-app/gradio/commit/3f8ea13a8ca92abf0ad34392e403a449fda3c6c2) - remove lite.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.18.0
+- @gradio/client@1.19.0
+
+## 0.16.17
+
+### Dependency updates
+
+- @gradio/client@1.18.0
+- @gradio/icons@0.14.0
+- @gradio/atoms@0.17.0
+
+## 0.16.16
+
+### Fixes
+
+- [#11771](https://github.com/gradio-app/gradio/pull/11771) [`f53b24b`](https://github.com/gradio-app/gradio/commit/f53b24b010a98d9028d8bade39db9c4dd37782d1) - Fix file upload error due to file extension case differences.  Thanks @rca-umb!
+
+### Dependency updates
+
+- @gradio/icons@0.13.1
+
+## 0.16.15
+
+### Dependency updates
+
+- @gradio/atoms@0.16.5
+- @gradio/client@1.17.1
+- @gradio/icons@0.13.0
+
+## 0.16.14
+
+### Dependency updates
+
+- @gradio/atoms@0.16.4
+- @gradio/client@1.17.0
+
+## 0.16.13
+
+### Dependency updates
+
+- @gradio/client@1.16.0
+
+## 0.16.12
+
+### Dependency updates
+
+- @gradio/client@1.15.7
+
+## 0.16.11
+
+### Dependency updates
+
+- @gradio/client@1.15.6
+
+## 0.16.10
+
+### Dependency updates
+
+- @gradio/atoms@0.16.3
+- @gradio/client@1.15.5
+
+## 0.16.9
+
+### Dependency updates
+
+- @gradio/client@1.15.4
+
+## 0.16.8
+
+### Dependency updates
+
+- @gradio/atoms@0.16.2
+- @gradio/client@1.15.3
+
+## 0.16.7
+
+### Dependency updates
+
+- @gradio/client@1.15.2
+
+## 0.16.6
+
+### Dependency updates
+
+- @gradio/client@1.15.1
+
+## 0.16.5
+
+### Dependency updates
+
+- @gradio/atoms@0.16.1
+- @gradio/client@1.15.0
+
+## 0.16.4
+
+### Fixes
+
+- [#11098](https://github.com/gradio-app/gradio/pull/11098) [`49ad594`](https://github.com/gradio-app/gradio/commit/49ad5943eeab96b153f0b56fe8d42d755fe1e0f8) - Fix #10281: Dragging image replaces existing instead of opening new tab.  Thanks @Martim-Rito!
+
+## 0.16.3
+
+### Dependency updates
+
+- @gradio/atoms@0.16.0
+
+## 0.16.2
+
+### Dependency updates
+
+- @gradio/atoms@0.15.2
+- @gradio/client@1.14.2
+- @gradio/utils@0.10.2
+
+## 0.16.1
+
+### Dependency updates
+
+- @gradio/atoms@0.15.1
+- @gradio/icons@0.12.0
+
+## 0.16.0
+
+### Features
+
+- [#10635](https://github.com/gradio-app/gradio/pull/10635) [`2f68c9d`](https://github.com/gradio-app/gradio/commit/2f68c9d988dcbc53a0b8e53bdb1de49c9c8c65d8) - Refactor and redesign `ImageEditor` component.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.15.0
+- @gradio/icons@0.11.0
+
+## 0.15.7
+
+### Dependency updates
+
+- @gradio/wasm@0.18.1
+- @gradio/client@1.14.1
+
+## 0.15.6
+
+### Dependency updates
+
+- @gradio/atoms@0.14.1
+- @gradio/client@1.14.0
+- @gradio/wasm@0.18.0
+
+## 0.15.5
+
+### Dependency updates
+
+- @gradio/atoms@0.14.0
+
+## 0.15.4
+
+### Dependency updates
+
+- @gradio/client@1.13.1
+- @gradio/wasm@0.17.4
+
+## 0.15.3
+
+### Dependency updates
+
+- @gradio/client@1.13.0
+
+## 0.15.2
+
+### Dependency updates
+
+- @gradio/atoms@0.13.3
+
+## 0.15.1
+
+### Dependency updates
+
+- @gradio/atoms@0.13.2
+- @gradio/utils@0.10.1
+- @gradio/client@1.12.0
+- @gradio/wasm@0.17.3
+
+## 0.15.0
+
+### Features
+
+- [#10478](https://github.com/gradio-app/gradio/pull/10478) [`afb96c6`](https://github.com/gradio-app/gradio/commit/afb96c64451e5a282bfee89445d831d1c87f9746) - Improve dataframe's upload accessibility.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/client@1.11.0
+
+## 0.14.8
+
+### Dependency updates
+
+- @gradio/wasm@0.17.2
+
+## 0.14.7
+
+### Dependency updates
+
+- @gradio/wasm@0.17.1
+
+## 0.14.6
+
+### Dependency updates
+
+- @gradio/wasm@0.17.0
+
+## 0.14.5
+
+### Dependency updates
+
+- @gradio/atoms@0.13.1
+- @gradio/client@1.10.0
+- @gradio/icons@0.10.0
+
+## 0.14.4
+
+### Fixes
+
+- [#10209](https://github.com/gradio-app/gradio/pull/10209) [`2700d18`](https://github.com/gradio-app/gradio/commit/2700d1898bc8eeb3fd9f65ce77be17c2614a388f) - Ensure the `height` param in `gr.File` works as expected.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.13.0
+- @gradio/utils@0.10.0
+- @gradio/client@1.9.0
+- @gradio/icons@0.9.0
+- @gradio/wasm@0.16.0
+
+## 0.14.3
+
+### Dependency updates
+
+- @gradio/atoms@0.12.0
+
+## 0.14.2
+
+### Dependency updates
+
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+
 ## 0.14.1
 
 ### Dependency updates

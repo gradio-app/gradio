@@ -6,14 +6,12 @@ on:
   push:
     branches:
       - main
-      - 5.0-dev
 
 concurrency:
   group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
   cancel-in-progress: true
 
 env:
-  NODE_OPTIONS: "--max-old-space-size=4096"
   HF_TOKEN: ${{ vars.HF_TOKEN }}
 
 permissions: {}
@@ -72,7 +70,16 @@ jobs:
         run: |
           . venv/bin/activate
           ./scripts/type_check_backend.sh
-      - name: Run tests
+      - name: uv pip freeze
         run: |
           . ${{steps.install_deps.outputs.venv_activate}}
-          python -m pytest -m "${{ matrix.test-type }}"
+          uv pip freeze
+      - name: Run parallel tests
+        run: |
+          . ${{steps.install_deps.outputs.venv_activate}}
+          python -m pytest -n auto -m "${{ matrix.test-type }} and not serial"
+      - name: Run non-flaky serial tests
+        if: matrix.test-type == 'not flaky'
+        run: |
+          . ${{steps.install_deps.outputs.venv_activate}}
+          python -m pytest -m "${{ matrix.test-type }} and serial"

@@ -116,11 +116,14 @@ class TestHighlightedText:
             "visible": True,
             "value": None,
             "proxy_url": None,
+            "rtl": False,
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
             "combine_adjacent": False,
             "adjacent_separator": "",
             "interactive": None,
+            "buttons": [],
         }
 
     def test_in_interface(self):

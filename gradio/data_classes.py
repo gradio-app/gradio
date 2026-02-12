@@ -14,16 +14,17 @@ from typing import (
     Any,
     Literal,
     NewType,
-    Optional,
-    TypedDict,
     Union,
 )
 
 from fastapi import Request
+from gradio_client.data_classes import ParameterInfo
 from gradio_client.documentation import document
 from gradio_client.utils import is_file_obj_with_meta, traverse
 from pydantic import (
     BaseModel,
+    ConfigDict,
+    Field,
     GetCoreSchemaHandler,
     GetJsonSchemaHandler,
     RootModel,
@@ -33,12 +34,14 @@ from pydantic import (
 )
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
-from typing_extensions import NotRequired
+from typing_extensions import NotRequired, TypedDict
+
+from gradio.i18n import I18nData
 
 try:
     from pydantic import JsonValue
 except ImportError:
-    JsonValue = Any
+    JsonValue = Any  # type: ignore
 
 DeveloperPath = NewType("DeveloperPath", str)
 UserProvidedPath = NewType("UserProvidedPath", str)
@@ -52,7 +55,7 @@ class CancelBody(BaseModel):
 
 class SimplePredictBody(BaseModel):
     data: list[Any]
-    session_hash: Optional[str] = None
+    session_hash: str | None = None
 
 
 class _StarletteRequestPydanticAnnotation:
@@ -80,14 +83,14 @@ PydanticStarletteRequest = Annotated[Request, _StarletteRequestPydanticAnnotatio
 
 
 class PredictBody(BaseModel):
-    session_hash: Optional[str] = None
-    event_id: Optional[str] = None
+    session_hash: str | None = None
+    event_id: str | None = None
     data: list[Any]
-    event_data: Optional[Any] = None
-    fn_index: Optional[int] = None
-    trigger_id: Optional[int] = None
+    event_data: Any | None = None
+    fn_index: int | None = None
+    trigger_id: int | None = None
     simple_format: bool = False
-    batched: Optional[bool] = (
+    batched: bool | None = (
         False  # Whether the data is a batch of samples (i.e. called from the queue if batch=True) or a single sample (i.e. called from the UI)
     )
 
@@ -113,13 +116,21 @@ class PredictBody(BaseModel):
 class PredictBodyInternal(PredictBody):
     "Separate class to avoid exposing PydanticStarletteRequest in the API validation"
 
-    request: Optional[PydanticStarletteRequest] = (
+    request: PydanticStarletteRequest | None = (
         None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
     )
 
 
 class ResetBody(BaseModel):
     event_id: str
+
+
+class VibeEditBody(BaseModel):
+    prompt: str
+
+
+class VibeCodeBody(BaseModel):
+    code: str
 
 
 class ComponentServerJSONBody(BaseModel):
@@ -156,9 +167,9 @@ class GradioBaseModel(ABC):
 
         # TODO: Making sure path is unique should be done in caller
         def unique_copy(obj: dict):
-            data = FileData(**obj)
+            data = FileData(**obj)  # type: ignore
             return data._copy_to_dir(
-                str(pathlib.Path(dir / secrets.token_hex(10)))
+                str(pathlib.Path(dir) / secrets.token_hex(10))
             ).model_dump()
 
         return self.__class__.from_json(
@@ -198,12 +209,16 @@ GradioDataModel = Union[GradioModel, GradioRootModel]
 
 class FileDataDict(TypedDict):
     path: str  # server filepath
-    url: NotRequired[Optional[str]]  # normalised server url
-    size: NotRequired[Optional[int]]  # size in bytes
-    orig_name: NotRequired[Optional[str]]  # original filename
-    mime_type: NotRequired[Optional[str]]
+    url: NotRequired[str | None]  # normalised server url
+    size: NotRequired[int | None]  # size in bytes
+    orig_name: NotRequired[str | None]  # original filename
+    mime_type: NotRequired[str | None]
     is_stream: bool
     meta: NotRequired[dict]
+
+
+class FileDataMeta(TypedDict):
+    _type: Literal["gradio.FileData"]
 
 
 @document()
@@ -222,12 +237,12 @@ class FileData(GradioModel):
     """
 
     path: str  # server filepath
-    url: Optional[str] = None  # normalised server url
-    size: Optional[int] = None  # size in bytes
-    orig_name: Optional[str] = None  # original filename
-    mime_type: Optional[str] = None
+    url: str | None = None  # normalised server url
+    size: int | None = None  # size in bytes
+    orig_name: str | None = None  # original filename
+    mime_type: str | None = None
     is_stream: bool = False
-    meta: dict = {"_type": "gradio.FileData"}
+    meta: FileDataMeta = Field(default_factory=lambda: {"_type": "gradio.FileData"})
 
     @model_validator(mode="before")
     @classmethod
@@ -309,7 +324,7 @@ class FileData(GradioModel):
         """
         if isinstance(obj, dict):
             try:
-                return not FileData(**obj).is_none
+                return not FileData(**obj).is_none  # type: ignore
             except (TypeError, ValidationError):
                 return False
         return False
@@ -350,25 +365,32 @@ class BodyCSS(TypedDict):
 
 class Layout(TypedDict):
     id: int
-    children: list[int | Layout]
+    children: NotRequired[list[int | Layout]]
+
+
+class Page(TypedDict):
+    components: list[int]
+    dependencies: list[int]
+    layout: Layout
 
 
 class BlocksConfigDict(TypedDict):
     version: str
+    deep_link_state: NotRequired[Literal["valid", "invalid", "none"]]
     mode: str
     app_id: int
     dev_mode: bool
+    vibe_mode: bool
     analytics_enabled: bool
     components: list[dict[str, Any]]
     css: str | None
     connect_heartbeat: bool
-    js: str | None
+    js: str | Literal[True] | None
     head: str | None
-    title: str
+    title: str | I18nData
     space_id: str | None
     enable_queue: bool
     show_error: bool
-    show_api: bool
     is_colab: bool
     max_file_size: int | None
     stylesheets: list[str]
@@ -383,6 +405,13 @@ class BlocksConfigDict(TypedDict):
     root: NotRequired[str | None]
     username: NotRequired[str | None]
     api_prefix: str
+    pwa: NotRequired[bool]
+    page: dict[str, Page]
+    pages: list[tuple[str, str]]
+    current_page: NotRequired[str]
+    i18n_translations: NotRequired[dict[str, dict[str, str]] | None]
+    mcp_server: NotRequired[bool]
+    footer_links: list[str | dict[str, str]]
 
 
 class MediaStreamChunk(TypedDict):
@@ -390,3 +419,44 @@ class MediaStreamChunk(TypedDict):
     duration: float
     extension: str
     id: NotRequired[str]
+
+
+class ImageData(GradioModel):
+    path: str | None = Field(default=None, description="Path to a local file")
+    url: str | None = Field(
+        default=None, description="Publicly available url or base64 encoded image"
+    )
+    size: int | None = Field(default=None, description="Size of image in bytes")
+    orig_name: str | None = Field(default=None, description="Original filename")
+    mime_type: str | None = Field(default=None, description="mime type of image")
+    is_stream: bool = Field(default=False, description="Can always be set to False")
+    meta: dict = {"_type": "gradio.FileData"}
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "description": "For input, either path or url must be provided. For output, path is always provided."
+        }
+    )
+
+
+class Base64ImageData(GradioModel):
+    url: str = Field(description="base64 encoded image")
+
+
+class APIReturnInfo(TypedDict):
+    label: str
+    type: dict[str, Any]
+    python_type: dict[str, str]
+    component: str
+
+
+class APIEndpointInfo(TypedDict):
+    description: NotRequired[str]
+    parameters: list[ParameterInfo]
+    returns: list[APIReturnInfo]
+    api_visibility: Literal["public", "private", "undocumented"]
+
+
+class APIInfo(TypedDict):
+    named_endpoints: dict[str, APIEndpointInfo]
+    unnamed_endpoints: dict[str, APIEndpointInfo]

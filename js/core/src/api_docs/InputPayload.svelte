@@ -60,7 +60,7 @@
 </Block>
 
 <span class="space" />
-<BaseButton variant="primary" on:click={run.bind(null, dependency_index)}>
+<BaseButton variant="primary" onclick={run.bind(null, dependency_index)}>
 	Try It Out
 </BaseButton>
 

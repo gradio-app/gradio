@@ -14,6 +14,7 @@ from gradio.components.base import (
     get_component_instance,
 )
 from gradio.events import Events
+from gradio.i18n import I18nData
 
 
 @document()
@@ -28,18 +29,21 @@ class Dataset(Component):
     def __init__(
         self,
         *,
-        label: str | None = None,
+        label: str | I18nData | None = None,
+        show_label: bool = True,
         components: Sequence[Component] | list[str] | None = None,
         component_props: list[dict[str, Any]] | None = None,
         samples: list[list[Any]] | None = None,
         headers: list[str] | None = None,
         type: Literal["values", "index", "tuple"] = "values",
+        layout: Literal["gallery", "table"] | None = None,
         samples_per_page: int = 10,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
@@ -49,16 +53,19 @@ class Dataset(Component):
         """
         Parameters:
             label: the label for this component, appears above the component.
+            show_label: If True, the label will be shown above the component.
             components: Which component types to show in this dataset widget, can be passed in as a list of string names or Components instances. The following components are supported in a Dataset: Audio, Checkbox, CheckboxGroup, ColorPicker, Dataframe, Dropdown, File, HTML, Image, Markdown, Model3D, Number, Radio, Slider, Textbox, TimeSeries, Video
             samples: a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
             headers: Column headers in the Dataset widget, should be the same len as components. If not provided, inferred from component labels
             type: "values" if clicking on a sample should pass the value of the sample, "index" if it should pass the index of the sample, or "tuple" if it should pass both the index and the value of the sample.
+            layout: "gallery" if the dataset should be displayed as a gallery with each sample in a clickable card, or "table" if it should be displayed as a table with each sample in a row. By default, "gallery" is used if there is a single component, and "table" is used if there are more than one component. If there are more than one component, the layout can only be "table".
             samples_per_page: how many examples to show per page.
-            visible: If False, component will be hidden.
+            visible: If False, component will be hidden. If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
+            key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
+            preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
@@ -71,10 +78,13 @@ class Dataset(Component):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
         )
         self.container = container
         self.scale = scale
         self.min_width = min_width
+        self.layout = layout
+        self.show_label = show_label
         self._components = [get_component_instance(c) for c in components or []]
         if component_props is None:
             self.component_props = [
@@ -126,10 +136,10 @@ class Dataset(Component):
         self.samples_per_page = samples_per_page
         self.sample_labels = sample_labels
 
-    def api_info(self) -> dict[str, str]:
+    def api_info(self) -> dict[str, str]:  # type: ignore[override]
         return {"type": "integer", "description": "index of selected example"}
 
-    def get_config(self):
+    def get_config(self):  # type: ignore[override]
         config = super().get_config()
 
         config["components"] = []

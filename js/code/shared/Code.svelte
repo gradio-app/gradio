@@ -1,51 +1,87 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount } from "svelte";
+	import { onMount } from "svelte";
 	import {
 		EditorView,
 		ViewUpdate,
 		keymap,
-		placeholder as placeholderExt
+		placeholder as placeholderExt,
+		lineNumbers
 	} from "@codemirror/view";
 	import { StateEffect, EditorState, type Extension } from "@codemirror/state";
 	import { indentWithTab } from "@codemirror/commands";
+	import { autocompletion, acceptCompletion } from "@codemirror/autocomplete";
 
 	import { basicDark } from "cm6-theme-basic-dark";
 	import { basicLight } from "cm6-theme-basic-light";
 	import { basicSetup } from "./extensions";
 	import { getLanguageExtension } from "./language";
 
-	export let class_names = "";
-	export let value = "";
-	export let dark_mode: boolean;
-	export let basic = true;
-	export let language: string;
-	export let lines = 5;
-	export let max_lines: number | null = null;
-	export let extensions: Extension[] = [];
-	export let use_tab = true;
-	export let readonly = false;
-	export let placeholder: string | HTMLElement | null | undefined = undefined;
-	export let wrap_lines = false;
+	interface Props {
+		class_names?: string;
+		value?: string;
+		dark_mode: boolean;
+		basic?: boolean;
+		language: string;
+		lines?: number;
+		max_lines?: number | null;
+		extensions?: Extension[];
+		use_tab?: boolean;
+		readonly?: boolean;
+		placeholder?: string | HTMLElement | null | undefined;
+		wrap_lines?: boolean;
+		show_line_numbers?: boolean;
+		autocomplete?: boolean;
+		onchange?: (value: string) => void;
+		onblur?: () => void;
+		onfocus?: () => void;
+		oninput?: () => void;
+	}
 
-	const dispatch = createEventDispatcher<{
-		change: string;
-		blur: undefined;
-		focus: undefined;
-	}>();
-	let lang_extension: Extension | undefined;
+	let {
+		class_names = "",
+		value = $bindable(),
+		dark_mode,
+		basic = true,
+		language,
+		lines = 5,
+		max_lines = null,
+		extensions = [],
+		use_tab = true,
+		readonly = false,
+		placeholder = undefined,
+		wrap_lines = false,
+		show_line_numbers = true,
+		autocomplete = false,
+		onchange,
+		onblur,
+		onfocus,
+		oninput
+	}: Props = $props();
+
+	let lang_extension: Extension | undefined = $state();
 	let element: HTMLDivElement;
 	let view: EditorView;
-
-	$: get_lang(language);
 
 	async function get_lang(val: string): Promise<void> {
 		const ext = await getLanguageExtension(val);
 		lang_extension = ext;
 	}
 
-	$: reconfigure(), lang_extension, readonly;
-	$: set_doc(value);
-	$: update_lines();
+	$effect(() => {
+		get_lang(language);
+	});
+
+	$effect(() => {
+		lang_extension;
+		readonly;
+		reconfigure();
+	});
+
+	$effect(() => {
+		set_doc(value);
+	});
+
+	update_lines();
 
 	function set_doc(new_doc: string): void {
 		if (view && new_doc !== view.state.doc.toString()) {
@@ -76,11 +112,11 @@
 	}
 
 	function handle_focus(): void {
-		dispatch("focus");
+		onfocus?.();
 	}
 
 	function handle_blur(): void {
-		dispatch("blur");
+		onblur?.();
 	}
 
 	function getGutterLineHeight(_view: EditorView): string | null {
@@ -114,13 +150,29 @@
 			scroller.style.maxHeight = `calc(${lineHeight} * ${max_lines + 1})`;
 	}
 
+	import { Transaction } from "@codemirror/state";
+
+	function is_user_input(update: ViewUpdate): boolean {
+		return update.transactions.some(
+			(tr) => tr.annotation(Transaction.userEvent) != null
+		);
+	}
+
 	function handle_change(vu: ViewUpdate): void {
-		if (vu.docChanged) {
-			const doc = vu.state.doc;
-			const text = doc.toString();
-			value = text;
-			dispatch("change", text);
+		if (!vu.docChanged) return;
+
+		const doc = vu.state.doc;
+		const text = doc.toString();
+		value = text;
+
+		const user_change = is_user_input(vu);
+		if (user_change) {
+			onchange?.(text);
+			oninput?.();
+		} else {
+			onchange?.(text);
 		}
+
 		view.requestMeasure({ read: resize });
 	}
 
@@ -131,7 +183,8 @@
 				use_tab,
 				placeholder,
 				readonly,
-				lang_extension
+				lang_extension,
+				show_line_numbers
 			),
 			FontTheme,
 			...get_theme(),
@@ -172,6 +225,19 @@
 		}
 	});
 
+	const AutocompleteTheme = EditorView.theme({
+		".cm-tooltip-autocomplete": {
+			"& > ul": {
+				backgroundColor: "var(--background-fill-primary)",
+				color: "var(--body-text-color)"
+			},
+			"& > ul > li[aria-selected]": {
+				backgroundColor: "var(--color-accent-soft)",
+				color: "var(--body-text-color)"
+			}
+		}
+	});
+
 	function create_editor_state(_value: string | null | undefined): EditorState {
 		return EditorState.create({
 			doc: _value ?? undefined,
@@ -184,7 +250,8 @@
 		use_tab: boolean,
 		placeholder: string | HTMLElement | null | undefined,
 		readonly: boolean,
-		lang: Extension | null | undefined
+		lang: Extension | null | undefined,
+		show_line_numbers: boolean
 	): Extension[] {
 		const extensions: Extension[] = [
 			EditorView.editable.of(!readonly),
@@ -196,7 +263,9 @@
 			extensions.push(basicSetup);
 		}
 		if (use_tab) {
-			extensions.push(keymap.of([indentWithTab]));
+			extensions.push(
+				keymap.of([{ key: "Tab", run: acceptCompletion }, indentWithTab])
+			);
 		}
 		if (placeholder) {
 			extensions.push(placeholderExt(placeholder));
@@ -204,11 +273,19 @@
 		if (lang) {
 			extensions.push(lang);
 		}
+		if (show_line_numbers) {
+			extensions.push(lineNumbers());
+		}
+		if (autocomplete) {
+			extensions.push(autocompletion());
+			extensions.push(AutocompleteTheme);
+		}
 
 		extensions.push(EditorView.updateListener.of(handle_change));
 		if (wrap_lines) {
 			extensions.push(EditorView.lineWrapping);
 		}
+
 		return extensions;
 	}
 

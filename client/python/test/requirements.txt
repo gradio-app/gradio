@@ -1,6 +1,5 @@
 pytest-asyncio
 pytest==7.1.2
-ruff==0.4.1
-pyright==1.1.372
-gradio
+pytest-xdist
+ty==0.0.2
 pydub==0.25.1

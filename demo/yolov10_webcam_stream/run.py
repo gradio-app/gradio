@@ -1,5 +1,5 @@
 import gradio as gr
-import cv2
+import cv2  # type: ignore
 from huggingface_hub import hf_hub_download
 from gradio_webrtc import WebRTC  # type: ignore
 from twilio.rest import Client  # type: ignore
@@ -38,7 +38,7 @@ css = """.my-group {max-width: 600px !important; max-height: 600 !important;}
                       .my-column {display: flex !important; justify-content: center !important; align-items: center !important};"""
 
 
-with gr.Blocks(css=css) as demo:
+with gr.Blocks() as demo:
     gr.HTML(
         """
     <h1 style='text-align: center'>
@@ -69,4 +69,4 @@ with gr.Blocks(css=css) as demo:
         )
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(css=css)

@@ -44,7 +44,7 @@ $demo_reversible_flow
 $code_blocks_speech_text_sentiment
 $demo_blocks_speech_text_sentiment
 
-## 函数输入列表与字典 (Function Input List vs Dict)
+## 函数输入列表与集合 (Function Input List vs Set)
 
 到目前为止，您看到的事件监听器都只有一个输入组件。如果您希望有多个输入组件将数据传递给函数，有两种选项可供函数接受输入组件值：
 
@@ -57,7 +57,7 @@ $code_calculator_list_and_dict
 `add()` 和 `sub()` 都将 `a` 和 `b` 作为输入。然而，这些监听器之间的语法不同。
 
 1. 对于 `add_btn` 监听器，我们将输入作为列表传递。函数 `add()` 将每个输入作为参数。`a` 的值映射到参数 `num1`，`b` 的值映射到参数 `num2`。
-2. 对于 `sub_btn` 监听器，我们将输入作为集合传递（注意花括号！）。函数 `sub()` 接受一个名为 `data` 的单个字典参数，其中键是输入组件，值是这些组件的值。
+2. 对于 `sub_btn` 监听器，我们将输入作为集合传递（注意花括号！）。当您传递集合时，函数 `sub()` 接受一个名为 `data` 的单个字典参数，其中键是输入组件，值是这些组件的值。
 
 使用哪种语法是个人偏好！对于具有许多输入组件的函数，选项 2 可能更容易管理。
 

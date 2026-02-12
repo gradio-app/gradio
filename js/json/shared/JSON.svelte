@@ -1,20 +1,36 @@
 <script lang="ts">
-	import { onDestroy } from "svelte";
 	import { JSON as JSONIcon } from "@gradio/icons";
 	import { Empty, IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import JSONNode from "./JSONNode.svelte";
 	import { Copy, Check } from "@gradio/icons";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 
-	export let value: any = {};
-	export let open = false;
-	export let theme_mode: "system" | "light" | "dark" = "system";
-	export let show_indices = false;
-	export let label_height: number;
+	let {
+		value = {},
+		open = false,
+		theme_mode = "system" as "system" | "light" | "dark",
+		show_indices = false,
+		label_height,
+		interactive = true,
+		show_copy_button = true,
+		buttons = null,
+		on_custom_button_click = null
+	}: {
+		value?: any;
+		open?: boolean;
+		theme_mode?: "system" | "light" | "dark";
+		show_indices?: boolean;
+		label_height: number;
+		interactive?: boolean;
+		show_copy_button?: boolean;
+		buttons?: (string | CustomButtonType)[] | null;
+		on_custom_button_click?: ((id: number) => void) | null;
+	} = $props();
 
-	$: json_max_height = `calc(100% - ${label_height}px)`;
+	let json_max_height = $derived(`calc(100% - ${label_height}px)`);
 
-	let copied = false;
-	let timer: NodeJS.Timeout;
+	let copied = $state(false);
+	let timer = $state<NodeJS.Timeout>();
 
 	function copy_feedback(): void {
 		copied = true;
@@ -40,20 +56,26 @@
 		);
 	}
 
-	onDestroy(() => {
-		if (timer) clearTimeout(timer);
+	$effect(() => {
+		return () => {
+			if (timer) clearTimeout(timer);
+		};
 	});
 </script>
 
 {#if value && value !== '""' && !is_empty(value)}
-	<IconButtonWrapper>
-		<IconButton
-			show_label={false}
-			label={copied ? "Copied" : "Copy"}
-			Icon={copied ? Check : Copy}
-			on:click={() => handle_copy()}
-		/>
-	</IconButtonWrapper>
+	{#if show_copy_button || (buttons && buttons.some((btn) => typeof btn !== "string"))}
+		<IconButtonWrapper {buttons} {on_custom_button_click}>
+			{#if show_copy_button}
+				<IconButton
+					show_label={false}
+					label={copied ? "Copied" : "Copy"}
+					Icon={copied ? Check : Copy}
+					onclick={() => handle_copy()}
+				/>
+			{/if}
+		</IconButtonWrapper>
+	{/if}
 	<div class="json-holder" style:max-height={json_max_height}>
 		<JSONNode
 			{value}
@@ -62,6 +84,7 @@
 			{open}
 			{theme_mode}
 			{show_indices}
+			{interactive}
 		/>
 	</div>
 {:else}

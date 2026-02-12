@@ -1,51 +1,62 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
-	import { beforeUpdate } from "svelte";
+	import { onMount } from "svelte";
 	import { encrypt, decrypt } from "./crypto";
-	import { dequal } from "dequal/lite";
+	import { Gradio } from "@gradio/utils";
 
-	export let storage_key: string;
-	export let secret: string;
-	export let default_value: any;
-	export let value = default_value;
-	let initialized = false;
-	let old_value = value;
+	let props = $props();
+	let gradio = new Gradio<
+		{
+			change: never;
+		},
+		{
+			storage_key: string;
+			secret: string;
+			default_value: any;
+			value: any;
+		}
+	>(props);
 
 	function load_value(): void {
-		const stored = localStorage.getItem(storage_key);
+		const stored = localStorage.getItem(gradio.props.storage_key);
 		if (!stored) {
-			old_value = default_value;
-			value = old_value;
+			gradio.props.value = gradio.props.default_value;
 			return;
 		}
 		try {
-			const decrypted = decrypt(stored, secret);
-			old_value = JSON.parse(decrypted);
-			value = old_value;
+			const decrypted = decrypt(stored, gradio.props.secret);
+			gradio.props.value = JSON.parse(decrypted);
 		} catch (e) {
 			console.error("Error reading from localStorage:", e);
-			old_value = default_value;
-			value = old_value;
+			gradio.props.value = gradio.props.default_value;
 		}
 	}
 
-	function save_value(): void {
+	function save_value(value: any, secret: string, storage_key: string): void {
+		if (!value) return;
 		try {
 			const encrypted = encrypt(JSON.stringify(value), secret);
 			localStorage.setItem(storage_key, encrypted);
-			old_value = value;
 		} catch (e) {
 			console.error("Error writing to localStorage:", e);
 		}
 	}
 
-	$: value && !dequal(value, old_value) && save_value();
-
-	beforeUpdate(() => {
-		if (!initialized) {
-			initialized = true;
-			load_value();
+	let old_value = gradio.props.value;
+	$effect(() => {
+		if (old_value !== gradio.props.value) {
+			old_value = gradio.props.value;
+			save_value(
+				gradio.props.value,
+				gradio.props.secret,
+				gradio.props.storage_key
+			);
+			gradio.dispatch("change");
 		}
+	});
+
+	onMount(() => {
+		load_value();
 	});
 </script>

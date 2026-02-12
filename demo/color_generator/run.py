@@ -1,5 +1,5 @@
 import gradio as gr
-import cv2
+import cv2  # type: ignore
 import numpy as np
 import random
 
@@ -50,6 +50,7 @@ demo = gr.Interface(
     outputs=outputs,
     title=title,
     description=description,
+    api_name="predict",
 )
 
 if __name__ == "__main__":

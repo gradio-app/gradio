@@ -26,7 +26,7 @@ import safehttpx as sh
 from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, ImageSequence, PngImagePlugin
 
-from gradio import utils, wasm_utils
+from gradio import utils
 from gradio.context import LocalContext
 from gradio.data_classes import FileData, GradioModel, GradioRootModel, JsonData
 from gradio.exceptions import Error, InvalidPathError
@@ -37,85 +37,8 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
     from pydub import AudioSegment
 
-if wasm_utils.IS_WASM:
-    import pyodide.http  # type: ignore
-    import urllib3
-
-    # NOTE: In the Wasm env, we use urllib3 to make HTTP requests. See https://github.com/gradio-app/gradio/issues/6837.
-    class Urllib3ResponseSyncByteStream(httpx.SyncByteStream):
-        def __init__(self, response: urllib3.HTTPResponse) -> None:
-            self.response = response
-
-        def __iter__(self):
-            yield from self.response.stream(decode_content=True)
-
-    class Urllib3Transport(httpx.BaseTransport):
-        def __init__(self):
-            self.pool = urllib3.PoolManager()
-
-        def handle_request(self, request: httpx.Request) -> httpx.Response:
-            url = str(request.url)
-            method = str(request.method)
-            headers = dict(request.headers)
-            body = None if method in ["GET", "HEAD"] else request.read()
-
-            response = self.pool.request(
-                headers=headers,
-                method=method,
-                url=url,
-                body=body,
-                preload_content=False,  # Stream the content
-            )
-
-            # HTTPX's gzip decoder sometimes fails to decode the content in the Wasm env as https://github.com/gradio-app/gradio/pull/9333#issuecomment-2348048882,
-            # so we avoid it by removing the content-encoding header passed to httpx.Response,
-            # and handle the decoding in `Urllib3ResponseSyncByteStream.__iter__()` with `urllib3`'s implementation.
-            response_headers = response.headers.copy()
-            response_headers.discard("content-encoding")
-
-            return httpx.Response(
-                status_code=response.status,
-                headers=response_headers,
-                stream=Urllib3ResponseSyncByteStream(response),
-            )
-
-    sync_transport = Urllib3Transport()
-
-    class PyodideHttpResponseAsyncByteStream(httpx.AsyncByteStream):
-        def __init__(self, response: pyodide.http.FetchResponse) -> None:
-            self.response = response
-
-        async def __aiter__(self):
-            yield await self.response.bytes()
-
-    class PyodideHttpTransport(httpx.AsyncBaseTransport):
-        async def handle_async_request(
-            self,
-            request: httpx.Request,
-        ) -> httpx.Response:
-            url = str(request.url)
-            method = request.method
-
-            headers = dict(request.headers)
-            # User-agent header is automatically set by the browser.
-            # More importantly, setting it causes an error on FireFox where a preflight request is made and it leads to a CORS error.
-            # Maybe related to https://bugzilla.mozilla.org/show_bug.cgi?id=1629921
-            del headers["user-agent"]
-
-            body = None if method in ["GET", "HEAD"] else await request.aread()
-            response = await pyodide.http.pyfetch(
-                url, method=method, headers=headers, body=body
-            )
-            return httpx.Response(
-                status_code=response.status,
-                headers=response.headers,
-                stream=PyodideHttpResponseAsyncByteStream(response),
-            )
-
-    async_transport = PyodideHttpTransport()
-else:
-    sync_transport = None
-    async_transport = None
+sync_transport = None
+async_transport = None
 
 sync_client = httpx.Client(transport=sync_transport)
 
@@ -139,7 +62,7 @@ def to_binary(x: str | dict) -> bytes:
             base64str = client_utils.encode_url_or_file_to_base64(x["path"])
     else:
         base64str = x
-    return base64.b64decode(extract_base64_data(base64str))
+    return base64.b64decode(extract_base64_data(base64str))  # type: ignore
 
 
 def extract_base64_data(x: str) -> str:
@@ -263,9 +186,33 @@ def save_audio_to_cache(
     return filename
 
 
+def detect_audio_format(data: bytes) -> str:
+    """Detect audio format from file header bytes.
+
+    Args:
+        data: File content as bytes
+
+    Returns:
+        Detected file extension with dot (e.g., ".wav", ".mp3") or empty string if not detected
+    """
+    # Check WAV format (RIFF header)
+    if len(data) >= 12 and data[:4] == b"RIFF" and data[8:12] == b"WAVE":
+        return ".wav"
+    # Check MP3 format (ID3 tag)
+    elif len(data) >= 3 and data[:3] == b"ID3":  # noqa: SIM114
+        return ".mp3"
+    # Check MP3 format (sync frame)
+    elif len(data) >= 2 and data[:2] == b"\xff\xfb":
+        return ".mp3"
+    return ""
+
+
 def save_bytes_to_cache(data: bytes, file_name: str, cache_dir: str) -> str:
     path = Path(cache_dir) / hash_bytes(data)
     path.mkdir(exist_ok=True, parents=True)
+    if not Path(file_name).suffix:
+        detected_extension = detect_audio_format(data)
+        file_name = file_name + detected_extension
     path = path / Path(file_name).name
     path.write_bytes(data)
     return str(path.resolve())
@@ -291,7 +238,12 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
 # to an internal IP address. This is because Hugging Face uses DNS splitting,
 # which means that requests from HF Spaces to HF Datasets or HF Models
 # may resolve to internal IP addresses even if they are publicly accessible.
-PUBLIC_HOSTNAME_WHITELIST = ["hf.co", "huggingface.co"]
+PUBLIC_HOSTNAME_WHITELIST = [
+    "hf.co",
+    "huggingface.co",
+    "*.hf.co",
+    "*.huggingface.co",
+]
 
 
 def is_public_ip(ip: str) -> bool:
@@ -328,15 +280,18 @@ def lru_cache_async(maxsize: int = 128):
 async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
     temp_dir = Path(cache_dir) / hash_url(url)
     temp_dir.mkdir(exist_ok=True, parents=True)
-    filename = client_utils.strip_invalid_filename_characters(Path(url).name)
-    full_temp_file_path = str(abspath(temp_dir / filename))
 
+    parsed_url = urlparse(url)
+    base_path = parsed_url.path.rstrip("/")
+    filename = (
+        client_utils.strip_invalid_filename_characters(Path(base_path).name) or "file"
+    )
+
+    full_temp_file_path = str(abspath(temp_dir / filename))
     if Path(full_temp_file_path).exists():
         return full_temp_file_path
 
-    parsed_url = urlparse(url)
     hostname = parsed_url.hostname
-
     response = await sh.get(
         url, domain_whitelist=PUBLIC_HOSTNAME_WHITELIST, _transport=async_transport
     )
@@ -353,7 +308,6 @@ async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
             domain_whitelist=PUBLIC_HOSTNAME_WHITELIST,
             _transport=async_transport,
         )
-
     if response.status_code != 200:
         raise Exception(f"Failed to download file. Status code: {response.status_code}")
 
@@ -389,12 +343,7 @@ def unsafe_download(url: str, cache_dir: str) -> str:
 
 
 def ssrf_protected_download(url: str, cache_dir: str) -> str:
-    if wasm_utils.IS_WASM:
-        return unsafe_download(url, cache_dir)
-    else:
-        return client_utils.synchronize_async(
-            async_ssrf_protected_download, url, cache_dir
-        )
+    return client_utils.synchronize_async(async_ssrf_protected_download, url, cache_dir)
 
 
 # Custom components created with versions of gradio < 5.0 may be using the processing_utils.save_url_to_cache method, so we alias to ssrf_protected_download to preserve backwards-compatibility
@@ -444,6 +393,7 @@ def check_all_files_in_cache(data: JsonData):
             (path := d.get("path", ""))
             and not client_utils.is_http_url_like(path)
             and not is_in_or_equal(path, get_upload_folder())
+            and not utils.is_static_file(path)
         ):
             raise Error(
                 f"File {path} is not in the cache folder and cannot be accessed."
@@ -472,8 +422,16 @@ def move_files_to_cache(
         keep_in_cache: If True, the file will not be deleted from cache when the server is shut down.
     """
 
+    def _mark_svg_as_safe(payload: FileData):
+        # If the app has not launched, this path can be considered an "allowed path"
+        # This is mainly so that svg files can be displayed inline for button/chatbot icons
+        if (
+            (blocks := LocalContext.blocks.get(None)) is None or not blocks.is_running
+        ) and (mimetypes.guess_type(payload.path)[0] == "image/svg+xml"):
+            utils.set_static_paths([payload.path])
+
     def _move_to_cache(d: dict):
-        payload = FileData(**d)
+        payload = FileData(**d)  # type: ignore
         # If the gradio app developer is returning a URL from
         # postprocess, it means the component can display a URL
         # without it being served from the gradio server
@@ -507,7 +465,7 @@ def move_files_to_cache(
         else:
             url = f"{url_prefix}{payload.path}"
         payload.url = url
-
+        _mark_svg_as_safe(payload)
         return payload.model_dump()
 
     if isinstance(data, (GradioRootModel, GradioModel)):
@@ -519,7 +477,7 @@ def move_files_to_cache(
 
 
 def _check_allowed(path: str | Path, check_in_upload_folder: bool):
-    blocks = LocalContext.blocks.get()
+    blocks = LocalContext.blocks.get(None)
     if blocks is None or not blocks.has_launched:
         return
 
@@ -588,12 +546,12 @@ async def async_move_files_to_cache(
         # If the app has not launched, this path can be considered an "allowed path"
         # This is mainly so that svg files can be displayed inline for button/chatbot icons
         if (
-            (blocks := LocalContext.blocks.get()) is None or not blocks.is_running
+            (blocks := LocalContext.blocks.get(None)) is None or not blocks.is_running
         ) and (mimetypes.guess_type(payload.path)[0] == "image/svg+xml"):
             utils.set_static_paths([payload.path])
 
     async def _move_to_cache(d: dict):
-        payload = FileData(**d)
+        payload = FileData(**d)  # type: ignore
         # If the gradio app developer is returning a URL from
         # postprocess, it means the component can display a URL
         # without it being served from the gradio server
@@ -645,7 +603,7 @@ def add_root_url(data: dict | list, root_url: str, previous_root_url: str | None
             file_dict["url"] = file_dict["url"][len(previous_root_url) :]
         elif client_utils.is_http_url_like(file_dict["url"]):
             return file_dict
-        file_dict["url"] = f'{root_url}{file_dict["url"]}'
+        file_dict["url"] = f"{root_url}{file_dict['url']}"
         return file_dict
 
     return client_utils.traverse(data, _add_root_url, client_utils.is_file_obj_with_url)
@@ -699,10 +657,6 @@ def audio_from_file(
         )
         raise RuntimeError(msg) from e
     except OSError as e:
-        if wasm_utils.IS_WASM:
-            raise wasm_utils.WasmUnsupportedError(
-                "Audio format conversion is not supported in the Wasm mode."
-            ) from e
         raise e
     if crop_min != 0 or crop_max != 100:
         audio_start = len(audio) * crop_min / 100
@@ -717,10 +671,7 @@ def audio_from_file(
 def audio_to_file(sample_rate, data, filename, format="wav"):
     if format == "wav":
         data = convert_to_16_bit_wav(data)
-    elif wasm_utils.IS_WASM:
-        raise wasm_utils.WasmUnsupportedError(
-            "Audio formats other than .wav are not supported in the Wasm mode."
-        )
+
     audio = AudioSegment(
         data.tobytes(),
         frame_rate=sample_rate,
@@ -928,7 +879,13 @@ def _convert(image, dtype, force_copy=False, uniform=False):
 
     image = np.asarray(image)
     dtypeobj_in = image.dtype
-    dtypeobj_out = np.dtype("float64") if dtype is np.floating else np.dtype(dtype)
+    dtypeobj_out = (
+        dtypeobj_in
+        if dtype is np.floating
+        else np.dtype("float64")
+        if dtype is float
+        else np.dtype(dtype)
+    )
     dtype_in = dtypeobj_in.type
     dtype_out = dtypeobj_out.type
     kind_in = dtypeobj_in.kind
@@ -1061,10 +1018,6 @@ def _convert(image, dtype, force_copy=False, uniform=False):
 
 
 def ffmpeg_installed() -> bool:
-    if wasm_utils.IS_WASM:
-        # TODO: Support ffmpeg in WASM
-        return False
-
     return shutil.which("ffmpeg") is not None
 
 
@@ -1085,12 +1038,15 @@ def video_is_playable(video_filepath: str) -> bool:
             inputs={video_filepath: None},
         )
         output = probe.run(stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-        output = json.loads(output[0])
+        output = json.loads(output[0])  # type: ignore
         video_codec = output["streams"][0]["codec_name"]
         return (container, video_codec) in [
             (".mp4", "h264"),
+            (".mp4", "av1"),
             (".ogg", "theora"),
             (".webm", "vp9"),
+            (".webm", "vp8"),
+            (".webm", "av1"),
         ]
     # If anything goes wrong, assume the video can be played to not convert downstream
     except (FFRuntimeError, IndexError, KeyError):
@@ -1122,10 +1078,6 @@ def convert_video_to_playable_mp4(video_path: str) -> str:
 
 
 def get_video_length(video_path: str | Path):
-    if wasm_utils.IS_WASM:
-        raise wasm_utils.WasmUnsupportedError(
-            "Video duration is not supported in the Wasm mode."
-        )
     duration = subprocess.check_output(
         [
             "ffprobe",

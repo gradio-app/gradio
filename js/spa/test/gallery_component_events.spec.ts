@@ -1,5 +1,22 @@
 import { test, expect } from "@self/tootils";
 
+async function mock_clipboard_with_image(page): Promise<void> {
+	await page.evaluate(async () => {
+		const blob = await (
+			await fetch(
+				`https://gradio-builds.s3.amazonaws.com/assets/PDFDisplay.png`
+			)
+		).blob();
+		await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+	});
+}
+
+async function mock_clipboard_with_text(page): Promise<void> {
+	await page.evaluate(async () => {
+		navigator.clipboard.writeText("just some text, no image");
+	});
+}
+
 test("Gallery preview mode displays all images/videos correctly.", async ({
 	page
 }) => {
@@ -36,7 +53,7 @@ test("Gallery click-to-upload, upload and change events work correctly", async (
 	const [fileChooser] = await Promise.all([
 		page.waitForEvent("filechooser"),
 		page
-			.getByRole("button", { name: "Drop Media Here - or - Click to Upload" })
+			.getByLabel("Click to upload or drop files", { exact: true })
 			.first()
 			.click()
 	]);
@@ -46,6 +63,84 @@ test("Gallery click-to-upload, upload and change events work correctly", async (
 	]);
 
 	await expect(page.getByLabel("Num Upload")).toHaveValue("1");
-	await page.getByLabel("Clear").first().click();
 	await expect(page.getByLabel("Num Change")).toHaveValue("1");
+	await page.getByLabel("Clear").first().click();
+	await expect(page.getByLabel("Num Change")).toHaveValue("2");
+});
+
+test("Gallery preview_open and close events work correctly", async ({
+	page
+}) => {
+	await page.getByRole("button", { name: "Run" }).click();
+	await page.getByLabel("Thumbnail 2 of 3").click();
+	await expect(page.getByLabel("Preview Open?")).toHaveValue("1");
+
+	await page.getByLabel("Close").click();
+	await expect(page.getByLabel("Preview Open?")).toHaveValue("0");
+});
+
+test("Gallery subsequent upload via upload button works correctly", async ({
+	page
+}) => {
+	const [fileChooser] = await Promise.all([
+		page.waitForEvent("filechooser"),
+		page.getByLabel("Click to upload or drop files").first().click()
+	]);
+	await fileChooser.setFiles(["./test/files/cheetah1.jpg"]);
+
+	await expect(page.getByLabel("Num Upload")).toHaveValue("1");
+
+	const [fileChooser2] = await Promise.all([
+		page.waitForEvent("filechooser"),
+		page.getByLabel("Click to Upload", { exact: true }).first().click()
+	]);
+	await fileChooser2.setFiles(["./test/files/cheetah1.jpg"]);
+
+	await expect(page.getByLabel("Num Upload")).toHaveValue("2");
+});
+
+test("Gallery paste from clipboard works after initial upload", async ({
+	page
+}) => {
+	// First upload a file
+	const [fileChooser] = await Promise.all([
+		page.waitForEvent("filechooser"),
+		page
+			.getByLabel("Click to upload or drop files", { exact: true })
+			.first()
+			.click()
+	]);
+	await fileChooser.setFiles(["./test/files/cheetah1.jpg"]);
+
+	await expect(page.getByLabel("Num Upload")).toHaveValue("1");
+
+	// Mock clipboard with an image and paste
+	await mock_clipboard_with_image(page);
+	await page.getByLabel("Paste from Clipboard").click();
+
+	await expect(page.getByLabel("Num Change")).toHaveValue("2");
+});
+
+test("Gallery shows warning toast when clipboard has no image", async ({
+	page
+}) => {
+	// First upload a file so the paste button is visible
+	const [fileChooser] = await Promise.all([
+		page.waitForEvent("filechooser"),
+		page
+			.getByLabel("Click to upload or drop files", { exact: true })
+			.first()
+			.click()
+	]);
+	await fileChooser.setFiles(["./test/files/cheetah1.jpg"]);
+
+	await expect(page.getByLabel("Num Upload")).toHaveValue("1");
+
+	// Mock clipboard with text only (no image)
+	await mock_clipboard_with_text(page);
+	await page.getByLabel("Paste from Clipboard").click();
+
+	// Check that warning toast is displayed
+	const toast = page.getByTestId("toast-body");
+	await expect(toast).toContainText("No image or video found in clipboard");
 });

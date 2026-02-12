@@ -94,15 +94,6 @@ jobs:
           export AWS_DEFAULT_REGION=us-east-1
           aws s3 cp ${{ steps.set_tarball_name.outputs.tarball_path }} s3://gradio-npm-previews/${{ needs.changes.outputs.sha }}/
           echo "js_tarball_url=https://gradio-npm-previews.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/${{ steps.set_tarball_name.outputs.tarball_name }}" >> $GITHUB_OUTPUT
-      - name: Upload Lite to S3
-        id: upload_lite
-        run: |
-          export AWS_ACCESS_KEY_ID=${{ secrets.LITE_PREVIEWS_AWS_S3_ACCESS_KEY }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.LITE_PREVIEWS_AWS_S3_SECRET_ACCESS_KEY }}
-          export AWS_DEFAULT_REGION=us-east-1
-          mkdir -p ./gradio-lite-files
-          tar -xzf ./gradio-lite-tar/gradio-lite-*.tgz -C ./gradio-lite-files
-          aws s3 cp ./gradio-lite-files/package/ s3://gradio-lite-previews/${{ needs.changes.outputs.sha }}/ --recursive
       - name: Install Hub Client Library
         run: |
           python3 -m venv venv
@@ -159,11 +150,6 @@ jobs:
         **Install Gradio JS Client from this PR**
         ```bash
         npm install ${{ needs.deploy.outputs.js_tarball_url }}
-        ```
-
-        **Use Lite from this PR**
-        ```html
-        <script type="module" src="https://gradio-lite-previews.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/dist/lite.js""></script>
         ```
   comment-spaces-failure:
     uses: "./.github/workflows/comment-queue.yml"

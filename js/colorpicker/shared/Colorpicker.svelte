@@ -1,37 +1,40 @@
 <script lang="ts">
-	import { createEventDispatcher, afterUpdate, onMount, tick } from "svelte";
+	import { onMount, tick } from "svelte";
 	import tinycolor from "tinycolor2";
 	import { BlockTitle } from "@gradio/atoms";
 	import { click_outside } from "./events";
 	import { Eyedropper } from "@gradio/icons";
 	import { hsva_to_rgba, format_color } from "./utils";
 
-	export let value = "#000000";
-	export let value_is_output = false;
-	export let label: string;
-	export let info: string | undefined = undefined;
-	export let disabled = false;
-	export let show_label = true;
-	export let root: string;
+	let {
+		value = $bindable(),
+		label,
+		info,
+		disabled,
+		show_label,
+		on_input = () => {},
+		on_submit = () => {},
+		on_blur = () => {},
+		on_focus = () => {}
+	}: {
+		value: string;
+		label: string;
+		info?: string;
+		disabled: boolean;
+		show_label: boolean;
+		on_input?: () => void;
+		on_submit?: () => void;
+		on_blur?: () => void;
+		on_focus?: () => void;
+	} = $props();
 
-	export let current_mode: "hex" | "rgb" | "hsl" = "hex";
-	export let dialog_open = false;
+	let dialog_open = $state(false);
+	let current_mode: "hex" | "rgb" | "hsl" = $state("hex");
 
 	let eyedropper_supported = false;
 
 	let sl_wrap: HTMLDivElement;
 	let hue_wrap: HTMLDivElement;
-
-	const dispatch = createEventDispatcher<{
-		change: string;
-		click_outside: void;
-		input: undefined;
-		submit: undefined;
-		blur: undefined;
-		focus: undefined;
-		selected: string;
-		close: void;
-	}>();
 
 	let sl_marker_pos = [0, 0];
 	let sl_rect: DOMRect | null = null;
@@ -60,6 +63,7 @@
 		hue = _hue;
 
 		value = hsva_to_rgba({ h: _hue, s: sl[0], v: sl[1], a: 1 });
+		on_input();
 	}
 
 	function update_color_from_mouse(x: number, y: number): void {
@@ -77,6 +81,7 @@
 		sl = [_hsva.s, _hsva.v];
 
 		value = hsva_to_rgba(_hsva);
+		on_input();
 	}
 
 	function handle_sl_down(
@@ -129,6 +134,7 @@
 		eyeDropper.open().then((result: { sRGBHex: string }) => {
 			value = result.sRGBHex;
 		});
+		on_input();
 	}
 
 	const modes = [
@@ -137,8 +143,7 @@
 		["HSL", "hsl"]
 	] as const;
 
-	$: color_string = format_color(value, current_mode);
-	$: color_string && dispatch("selected", color_string);
+	let color_string = $derived.by(() => format_color(value, current_mode));
 
 	onMount(async () => {
 		// @ts-ignore
@@ -149,27 +154,12 @@
 		dialog_open = false;
 	}
 
-	function handle_change(): void {
-		dispatch("change", value);
-		if (!value_is_output) {
-			dispatch("input");
-		}
-	}
-
-	afterUpdate(() => {
-		value_is_output = false;
+	$effect(() => {
+		update_mouse_from_color(value);
 	});
-
-	$: update_mouse_from_color(value);
-	$: value, handle_change();
-
-	function handle_click(): void {
-		dispatch("selected", color_string);
-		dispatch("close");
-	}
 </script>
 
-<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
+<BlockTitle {show_label} {info}>{label}</BlockTitle>
 <button
 	class="dialog-button"
 	style:background={value}
@@ -212,14 +202,15 @@
 		</div>
 
 		<div class="input">
-			<button class="swatch" style:background={value} on:click={handle_click}
-			></button>
+			<button class="swatch" style:background={value}></button>
 			<div>
 				<div class="input-wrap">
 					<input
 						type="text"
 						bind:value={color_string}
-						on:change={(e) => (value = e.currentTarget.value)}
+						on:change={(e) => {
+							value = e.currentTarget.value;
+						}}
 					/>
 					<button class="eyedropper" on:click={request_eyedropper}>
 						{#if eyedropper_supported}
@@ -233,7 +224,9 @@
 						<button
 							class="button"
 							class:active={current_mode === value}
-							on:click={() => (current_mode = value)}>{label}</button
+							on:click={() => {
+								current_mode = value;
+							}}>{label}</button
 						>
 					{/each}
 				</div>
@@ -341,7 +334,8 @@
 	.color-gradient {
 		position: relative;
 		--hue: white;
-		background: linear-gradient(rgba(0, 0, 0, 0), #000),
+		background:
+			linear-gradient(rgba(0, 0, 0, 0), #000),
 			linear-gradient(90deg, #fff, hsl(var(--hue), 100%, 50%));
 		width: 100%;
 		height: 150px;

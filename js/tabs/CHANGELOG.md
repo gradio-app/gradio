@@ -1,5 +1,114 @@
 # @gradio/tabs
 
+## 0.5.5
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12693](https://github.com/gradio-app/gradio/pull/12693) [`b48da51`](https://github.com/gradio-app/gradio/commit/b48da517d2daa62d3b201f9a84bef9352d485b38) - Fix bug where Walkthrough Component Freezes.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/utils@0.11.2
+
+## 0.5.4
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+
+## 0.5.4
+
+### Dependency updates
+
+- @gradio/utils@0.11.0
+
+## 0.5.3
+
+### Fixes
+
+- [#12491](https://github.com/gradio-app/gradio/pull/12491) [`4f6327b`](https://github.com/gradio-app/gradio/commit/4f6327be6815fc8d574b60272b02915c75359ace) - Load visible components in 6.0.  Thanks @freddyaboulton!
+
+## 0.5.2
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
+## 0.5.2
+
+### Features
+
+- [#12438](https://github.com/gradio-app/gradio/pull/12438) [`25ffc03`](https://github.com/gradio-app/gradio/commit/25ffc0398f8feb43d817c02b2ab970c16de6d797) - Svelte5 migration and bugfix
+
+### Dependencies
+
+- @gradio/utils@0.10.3
+
+## 0.5.2-dev.0
+
+### Dependency updates
+
+- @gradio/utils@0.10.3-dev.0
+
+## 0.5.1
+
+### Fixes
+
+- [#11784](https://github.com/gradio-app/gradio/pull/11784) [`d9dd3f5`](https://github.com/gradio-app/gradio/commit/d9dd3f54b7fb34cf7118e549d39fc63937ca3489) - Add "hidden" option to component's `visible` kwarg to render but visually hide the component.  Thanks @pngwn!
+
+## 0.5.0
+
+### Features
+
+- [#11783](https://github.com/gradio-app/gradio/pull/11783) [`f407daf`](https://github.com/gradio-app/gradio/commit/f407daf8046f37e042ab8b86730ff0ab8d174bcf) - Add Walkthrough and Step compoents to facilitate multi-step workflows.  Thanks @pngwn!
+
+## 0.4.5
+
+### Fixes
+
+- [#11344](https://github.com/gradio-app/gradio/pull/11344) [`b961441`](https://github.com/gradio-app/gradio/commit/b961441780d70c82504141bd4deae7b3290c2227) - Fixes default tab label.  Thanks @dawoodkhan82!
+
+## 0.4.4
+
+### Fixes
+
+- [#11189](https://github.com/gradio-app/gradio/pull/11189) [`88f06c7`](https://github.com/gradio-app/gradio/commit/88f06c7b8126a67edefd3116c764148d0f39c6c7) - Ensure that tabs with `visible=False` don't show up in the overflow menu.  Thanks @abidlabs!
+
+## 0.4.3
+
+### Dependency updates
+
+- @gradio/utils@0.10.2
+
+## 0.4.2
+
+### Dependency updates
+
+- @gradio/utils@0.10.1
+
+## 0.4.1
+
+### Fixes
+
+- [#10372](https://github.com/gradio-app/gradio/pull/10372) [`96bbde2`](https://github.com/gradio-app/gradio/commit/96bbde277e059f79bb2c9898576050e84dab147a) - Allow propogation of fill_height through Rows and Tabs, via scale.  Thanks @aliabid94!
+
+## 0.4.0
+
+### Features
+
+- [#10192](https://github.com/gradio-app/gradio/pull/10192) [`4fc7fb7`](https://github.com/gradio-app/gradio/commit/4fc7fb777c42af537e4af612423fa44029657d41) - Ensure components can be remounted with their previous data.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/utils@0.10.0
+
+## 0.3.5
+
+### Dependency updates
+
+- @gradio/utils@0.9.0
+
 ## 0.3.4
 
 ### Dependency updates

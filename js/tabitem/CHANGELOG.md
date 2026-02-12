@@ -1,5 +1,263 @@
 # @gradio/tabitem
 
+## 0.6.5
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/tabs@0.5.5
+- @gradio/column@0.3.2
+- @gradio/utils@0.11.2
+
+## 0.6.4
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+- @gradio/column@0.3.1
+
+## 0.6.4
+
+### Dependency updates
+
+- @gradio/utils@0.11.0
+- @gradio/column@0.3.0
+- @gradio/tabs@0.5.4
+
+## 0.6.3
+
+### Fixes
+
+- [#12491](https://github.com/gradio-app/gradio/pull/12491) [`4f6327b`](https://github.com/gradio-app/gradio/commit/4f6327be6815fc8d574b60272b02915c75359ace) - Load visible components in 6.0.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/tabs@0.5.3
+
+## 0.6.2
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
+## 0.6.2
+
+### Features
+
+- [#12438](https://github.com/gradio-app/gradio/pull/12438) [`25ffc03`](https://github.com/gradio-app/gradio/commit/25ffc0398f8feb43d817c02b2ab970c16de6d797) - Svelte5 migration and bugfix
+
+### Dependencies
+
+- @gradio/column@0.3.0
+- @gradio/tabs@0.5.2
+- @gradio/utils@0.10.3
+
+## 0.6.2-dev.0
+
+### Dependency updates
+
+- @gradio/tabs@0.5.2-dev.0
+- @gradio/column@0.2.2
+
+## 0.6.2-dev.0
+
+### Dependency updates
+
+- @gradio/utils@0.10.3-dev.0
+- @gradio/column@0.2.2
+- @gradio/tabs@0.5.2-dev.0
+
+## 0.6.1
+
+### Fixes
+
+- [#11784](https://github.com/gradio-app/gradio/pull/11784) [`d9dd3f5`](https://github.com/gradio-app/gradio/commit/d9dd3f54b7fb34cf7118e549d39fc63937ca3489) - Add "hidden" option to component's `visible` kwarg to render but visually hide the component.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/tabs@0.5.1
+- @gradio/column@0.2.2
+
+## 0.6.0
+
+### Features
+
+- [#11783](https://github.com/gradio-app/gradio/pull/11783) [`f407daf`](https://github.com/gradio-app/gradio/commit/f407daf8046f37e042ab8b86730ff0ab8d174bcf) - Add Walkthrough and Step compoents to facilitate multi-step workflows.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/tabs@0.5.0
+- @gradio/column@0.2.1
+
+## 0.5.0
+
+### Dependency updates
+
+- @gradio/column@0.2.1
+
+## 0.5.0
+
+### Dependency updates
+
+- @gradio/column@0.2.1
+
+## 0.5.0
+
+### Dependency updates
+
+- @gradio/column@0.2.1
+
+## 0.5.0
+
+### Features
+
+- [#11427](https://github.com/gradio-app/gradio/pull/11427) [`6b2bcd0`](https://github.com/gradio-app/gradio/commit/6b2bcd097ae5ef999a7fb273ecf7c7e4c0eab305) - Improve load times of the Gradio front-end.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/column@0.2.1
+- @gradio/tabs@0.4.5
+
+## 0.4.6
+
+### Dependency updates
+
+- @gradio/column@0.2.1
+
+## 0.4.5
+
+### Dependency updates
+
+- @gradio/column@0.2.0
+
+## 0.4.5
+
+### Dependency updates
+
+- @gradio/tabs@0.4.5
+
+## 0.4.5
+
+### Dependency updates
+
+- @gradio/tabs@0.4.5
+
+## 0.4.4
+
+### Dependency updates
+
+- @gradio/column@0.2.0
+
+## 0.4.4
+
+### Dependency updates
+
+- @gradio/column@0.2.0
+
+## 0.4.4
+
+### Dependency updates
+
+- @gradio/tabs@0.4.4
+
+## 0.4.3
+
+### Dependency updates
+
+- @gradio/column@0.2.0
+
+## 0.4.3
+
+### Dependency updates
+
+- @gradio/tabs@0.4.3
+- @gradio/utils@0.10.2
+- @gradio/column@0.2.0
+
+## 0.4.2
+
+### Dependency updates
+
+- @gradio/column@0.2.0
+
+## 0.4.2
+
+### Dependency updates
+
+- @gradio/column@0.2.0
+
+## 0.4.2
+
+### Dependency updates
+
+- @gradio/column@0.2.0
+
+## 0.4.2
+
+### Dependency updates
+
+- @gradio/column@0.2.0
+
+## 0.4.2
+
+### Dependency updates
+
+- @gradio/column@0.2.0
+
+## 0.4.2
+
+### Dependency updates
+
+- @gradio/tabs@0.4.2
+- @gradio/utils@0.10.1
+- @gradio/column@0.2.0
+
+## 0.4.1
+
+### Fixes
+
+- [#10372](https://github.com/gradio-app/gradio/pull/10372) [`96bbde2`](https://github.com/gradio-app/gradio/commit/96bbde277e059f79bb2c9898576050e84dab147a) - Allow propogation of fill_height through Rows and Tabs, via scale.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/tabs@0.4.1
+- @gradio/column@0.2.0
+
+## 0.4.0
+
+### Dependency updates
+
+- @gradio/column@0.2.0
+
+## 0.4.0
+
+### Features
+
+- [#10192](https://github.com/gradio-app/gradio/pull/10192) [`4fc7fb7`](https://github.com/gradio-app/gradio/commit/4fc7fb777c42af537e4af612423fa44029657d41) - Ensure components can be remounted with their previous data.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/utils@0.10.0
+- @gradio/tabs@0.4.0
+- @gradio/column@0.2.0
+
+## 0.3.5
+
+### Dependency updates
+
+- @gradio/column@0.2.0
+
+## 0.3.5
+
+### Dependency updates
+
+- @gradio/tabs@0.3.5
+- @gradio/utils@0.9.0
+- @gradio/column@0.2.0
+
 ## 0.3.4
 
 ### Dependency updates

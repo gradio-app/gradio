@@ -1,5 +1,228 @@
 # @gradio/column
 
+## 0.3.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.3
+
+## 0.3.2
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.2
+- @gradio/utils@0.11.2
+
+## 0.3.1
+
+### Fixes
+
+- [#12626](https://github.com/gradio-app/gradio/pull/12626) [`3a39ee4`](https://github.com/gradio-app/gradio/commit/3a39ee4a9af660636f6ce7cd383634d48e4030a3) - Fix Bug Where Invisible Columns Take Up Space.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+
+## 0.3.0
+
+### Dependency updates
+
+- @gradio/utils@0.11.0
+- @gradio/statustracker@0.12.1
+
+## 0.3.0
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
+## 0.3.0
+
+### Features
+
+- [#12438](https://github.com/gradio-app/gradio/pull/12438) [`25ffc03`](https://github.com/gradio-app/gradio/commit/25ffc0398f8feb43d817c02b2ab970c16de6d797) - Svelte5 migration and bugfix
+
+## 0.2.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.0-dev.1
+
+## 0.2.2
+
+### Dependency updates
+
+- @gradio/utils@0.10.3-dev.0
+- @gradio/statustracker@0.12.0-dev.0
+
+## 0.2.2
+
+### Fixes
+
+- [#11784](https://github.com/gradio-app/gradio/pull/11784) [`d9dd3f5`](https://github.com/gradio-app/gradio/commit/d9dd3f54b7fb34cf7118e549d39fc63937ca3489) - Add "hidden" option to component's `visible` kwarg to render but visually hide the component.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.11.1
+
+## 0.2.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.11.0
+
+## 0.2.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.18
+
+## 0.2.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.17
+
+## 0.2.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.16
+
+## 0.2.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.15
+
+## 0.2.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.14
+
+## 0.2.1
+
+### Fixes
+
+- [#11426](https://github.com/gradio-app/gradio/pull/11426) [`fa4018a`](https://github.com/gradio-app/gradio/commit/fa4018a99ee815e33bc228bfb0183dd820246eb1) - Remove gap parametger from gr.Column.  Thanks @deckar01!
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.13
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.12
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.11
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.10
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.9
+- @gradio/utils@0.10.2
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.8
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.7
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.6
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.5
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.4
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.3
+- @gradio/utils@0.10.1
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.2
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.10.1
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/utils@0.10.0
+- @gradio/statustracker@0.10.0
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.7
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/utils@0.9.0
+- @gradio/statustracker@0.9.6
+
 ## 0.2.0
 
 ### Dependency updates

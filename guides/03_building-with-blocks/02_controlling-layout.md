@@ -91,6 +91,30 @@ Also note the `gr.Accordion('label')` in this example. The Accordion is a layout
 
 Learn more about [Tabs](https://gradio.app/docs/tab) and [Accordions](https://gradio.app/docs/accordion) in the docs.
 
+## Sidebar
+
+The sidebar is a collapsible panel that renders child components on the left side of the screen and can be expanded or collapsed.
+
+For example:
+
+$code_blocks_sidebar
+
+Learn more about [Sidebar](https://gradio.app/docs/gradio/sidebar) in the docs.
+
+
+## Multi-step walkthroughs
+
+In order to provide a guided set of ordered steps, a controlled workflow, you can use the `Walkthrough` component with accompanying `Step` components.
+
+The `Walkthrough` component has a visual style and user experience tailored for this usecase.
+
+Authoring this component is very similar to `Tab`, except it is the app developers responsibility to progress through each step, by setting the appropriate ID for the parent `Walkthrough` which should correspond to an ID provided to an indvidual `Step`. 
+
+$demo_walkthrough
+
+Learn more about [Walkthrough](https://gradio.app/docs/gradio/walkthrough) in the docs.
+
+
 ## Visibility
 
 Both Components and Layout elements have a `visible` argument that can set initially and also updated. Setting `gr.Column(visible=...)` on a Column can be used to show or hide a set of Components.
@@ -113,3 +137,24 @@ with gr.Blocks() as demo:
     gr.Examples(["hello", "bonjour", "merhaba"], input_textbox)
     input_textbox.render()
 ```
+
+Similarly, if you have already defined a component in a Gradio app, but wish to unrender it so that you can define in a different part of your application, then you can call the `.unrender()` method. In the following example, the `Textbox` will appear in the third column:
+
+```py
+import gradio as gr
+
+with gr.Blocks() as demo:
+    with gr.Row():
+        with gr.Column():
+            gr.Markdown("Row 1")
+            textbox = gr.Textbox()
+        with gr.Column():
+            gr.Markdown("Row 2")
+            textbox.unrender()
+        with gr.Column():
+            gr.Markdown("Row 3")
+            textbox.render()
+
+demo.launch()
+```
+

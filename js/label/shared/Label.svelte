@@ -1,16 +1,22 @@
 <script lang="ts">
 	import type { SelectData } from "@gradio/utils";
-	import { createEventDispatcher } from "svelte";
 
-	export let value: {
-		label?: string;
-		confidences?: { label: string; confidence: number }[];
-	};
-
-	const dispatch = createEventDispatcher<{ select: SelectData }>();
-
-	export let color: string | undefined = undefined;
-	export let selectable = false;
+	let {
+		value,
+		color = undefined,
+		selectable = false,
+		show_heading = true,
+		onselect
+	}: {
+		value: {
+			label?: string;
+			confidences?: { label: string; confidence: number }[];
+		};
+		color?: string | undefined;
+		selectable?: boolean;
+		show_heading?: boolean;
+		onselect?: (detail: SelectData) => void;
+	} = $props();
 
 	function get_aria_referenceable_id(elem_id: string): string {
 		// `aria-labelledby` interprets the value as a space-separated id reference list,
@@ -21,14 +27,16 @@
 </script>
 
 <div class="container">
-	<h2
-		class="output-class"
-		data-testid="label-output-value"
-		class:no-confidence={!("confidences" in value)}
-		style:background-color={color || "transparent"}
-	>
-		{value.label}
-	</h2>
+	{#if show_heading || !value.confidences}
+		<h2
+			class="output-class"
+			data-testid="label-output-value"
+			class:no-confidence={!("confidences" in value)}
+			style:background-color={color || "transparent"}
+		>
+			{value.label}
+		</h2>
+	{/if}
 
 	{#if typeof value === "object" && value.confidences}
 		{#each value.confidences as confidence_set, i}
@@ -36,8 +44,8 @@
 				class="confidence-set group"
 				data-testid={`${confidence_set.label}-confidence-set`}
 				class:selectable
-				on:click={() => {
-					dispatch("select", { index: i, value: confidence_set.label });
+				onclick={() => {
+					onselect?.({ index: i, value: confidence_set.label });
 				}}
 			>
 				<div class="inner-wrap">
@@ -115,11 +123,38 @@
 
 	.bar {
 		appearance: none;
+		-webkit-appearance: none;
+		-moz-appearance: none;
 		align-self: flex-start;
 		margin-bottom: var(--size-1);
 		border-radius: var(--radius-md);
 		background: var(--stat-background-fill);
 		height: var(--size-1);
+		border: none;
+	}
+
+	.bar::-moz-meter-bar {
+		border-radius: var(--radius-md);
+		background: var(--stat-background-fill);
+	}
+
+	.bar::-webkit-meter-bar {
+		border-radius: var(--radius-md);
+		background: var(--stat-background-fill);
+		border: none;
+	}
+
+	.bar::-webkit-meter-optimum-value,
+	.bar::-webkit-meter-suboptimum-value,
+	.bar::-webkit-meter-even-less-good-value {
+		border-radius: var(--radius-md);
+		background: var(--stat-background-fill);
+	}
+
+	.bar::-ms-fill {
+		border-radius: var(--radius-md);
+		background: var(--stat-background-fill);
+		border: none;
 	}
 
 	.label {

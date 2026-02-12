@@ -9,10 +9,9 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Literal,
-    Optional,
     Union,
 )
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 import numpy as np
 import PIL.Image
@@ -21,11 +20,13 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import is_http_url_like
 
-from gradio import processing_utils, utils, wasm_utils
+from gradio import image_utils, processing_utils, utils
 from gradio.components.base import Component
-from gradio.data_classes import FileData, GradioModel, GradioRootModel
-from gradio.events import Events
+from gradio.components.button import Button
+from gradio.data_classes import FileData, GradioModel, GradioRootModel, ImageData
+from gradio.events import EventListener, Events
 from gradio.exceptions import Error
+from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -35,13 +36,13 @@ CaptionedGalleryMediaType = tuple[GalleryMediaType, str]
 
 
 class GalleryImage(GradioModel):
-    image: FileData
-    caption: Optional[str] = None
+    image: ImageData
+    caption: str | None = None
 
 
 class GalleryVideo(GradioModel):
     video: FileData
-    caption: Optional[str] = None
+    caption: str | None = None
 
 
 class GalleryData(GradioRootModel):
@@ -54,10 +55,23 @@ class Gallery(Component):
     Creates a gallery component that allows displaying a grid of images or videos, and optionally captions. If used as an input, the user can upload images or videos to the gallery.
     If used as an output, the user can click on individual images or videos to view them at a higher resolution.
 
-    Demos: fake_gan
+    Demos: fake_gan, gif_maker
     """
 
-    EVENTS = [Events.select, Events.upload, Events.change]
+    EVENTS = [
+        Events.select,
+        Events.upload,
+        Events.change,
+        Events.delete,
+        EventListener(
+            "preview_close",
+            doc="This event is triggered when the Gallery preview is closed by the user",
+        ),
+        EventListener(
+            "preview_open",
+            doc="This event is triggered when the Gallery preview is opened by the user",
+        ),
+    ]
 
     data_model = GalleryData
 
@@ -71,20 +85,21 @@ class Gallery(Component):
         *,
         format: str = "webp",
         file_types: list[str] | None = None,
-        label: str | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
-        columns: int | list[int] | tuple[int, ...] | None = 2,
-        rows: int | list[int] | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
+        columns: int | None = 2,
+        rows: int | None = None,
         height: int | float | str | None = None,
         allow_preview: bool = True,
         preview: bool | None = None,
@@ -92,15 +107,16 @@ class Gallery(Component):
         object_fit: (
             Literal["contain", "cover", "fill", "none", "scale-down"] | None
         ) = None,
-        show_share_button: bool | None = None,
-        show_download_button: bool | None = True,
+        buttons: list[Literal["share", "download", "fullscreen"] | Button]
+        | None = None,
         interactive: bool | None = None,
         type: Literal["numpy", "pil", "filepath"] = "filepath",
-        show_fullscreen_button: bool = True,
+        fit_columns: bool = True,
+        sources: list[Literal["upload", "webcam", "clipboard"]] | None = None,
     ):
         """
         Parameters:
-            value: List of images or videos to display in the gallery by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: List of images or videos to display in the gallery by default. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
             format: Format to save images before they are returned to the frontend, such as 'jpeg' or 'png'. This parameter only applies to images that are returned from the prediction function as numpy arrays or PIL Images. The format should be supported by the PIL library.
             file_types: List of file extensions or types of files to be uploaded (e.g. ['image', '.mp4']), when this is used as an input component. "image" allows only image files to be uploaded, "video" allows only video files to be uploaded, ".mp4" allows only mp4 files to be uploaded, etc. If None, any image and video files types are allowed.
             label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
@@ -110,23 +126,24 @@ class Gallery(Component):
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
-            visible: If False, component will be hidden.
+            visible: If False, component will be hidden. If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
-            columns: Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). If fewer than 6 are given then the last will be used for all subsequent breakpoints
-            rows: Represents the number of rows in the image grid, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). If fewer than 6 are given then the last will be used for all subsequent breakpoints
+            key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
+            preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
+            columns: Represents the number of images that should be shown in one row.
+            rows: Represents the number of rows in the image grid.
             height: The height of the gallery component, specified in pixels if a number is passed, or in CSS units if a string is passed. If more images are displayed than can fit in the height, a scrollbar will appear.
             allow_preview: If True, images in the gallery will be enlarged when they are clicked. Default is True.
             preview: If True, Gallery will start in preview mode, which shows all of the images as thumbnails and allows the user to click on them to view them in full size. Only works if allow_preview is True.
             selected_index: The index of the image that should be initially selected. If None, no image will be selected at start. If provided, will set Gallery to preview mode unless allow_preview is set to False.
             object_fit: CSS object-fit property for the thumbnail images in the gallery. Can be "contain", "cover", "fill", "none", or "scale-down".
-            show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
-            show_download_button: If True, will show a download button in the corner of the selected image. If False, the icon does not appear. Default is True.
+            buttons: A list of buttons to show in the top right corner of the component. Valid options are "share", "download", "fullscreen", or a gr.Button() instance. The "share" button allows the user to share outputs to Hugging Face Spaces Discussions. The "download" button allows the user to download the selected image. The "fullscreen" button allows the user to view the gallery in fullscreen mode. Custom gr.Button() instances will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button. by default, all of the built-in buttons are shown.
             interactive: If True, the gallery will be interactive, allowing the user to upload images. If False, the gallery will be static. Default is True.
             type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image. If the image is SVG, the `type` is ignored and the filepath of the SVG is returned.
-            show_fullscreen_button: If True, will show a fullscreen icon in the corner of the component that allows user to view the gallery in fullscreen mode. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
+            fit_columns: Expand columns to fit the full width when there are fewer images than the columns parameter.
+            sources: A list of sources that the user can upload images from when this component is used as an input. Valid options are "upload", "webcam", and "clipboard". "upload" allows the user to upload files from their computer, "webcam" allows the user to take a photo or video using their webcam, and "clipboard" allows the user to paste an image or video from their clipboard. By default, only "upload" is allowed.
         """
         self.format = format
         self.columns = columns
@@ -135,21 +152,19 @@ class Gallery(Component):
         self.preview = preview
         self.object_fit = object_fit
         self.allow_preview = allow_preview
-        self.show_download_button = (
-            (utils.get_space() is not None)
-            if show_download_button is None
-            else show_download_button
-        )
         self.selected_index = selected_index
+        if type not in ["numpy", "pil", "filepath"]:
+            raise ValueError(
+                f"Invalid type: {type}. Must be one of ['numpy', 'pil', 'filepath']"
+            )
         self.type = type
-        self.show_fullscreen_button = show_fullscreen_button
         self.file_types = file_types
-
-        self.show_share_button = (
-            (utils.get_space() is not None)
-            if show_share_button is None
-            else show_share_button
+        self.buttons = utils.set_default_buttons(
+            buttons, ["share", "download", "fullscreen"]
         )
+        self.fit_columns = fit_columns
+        self.sources = sources or ["upload"]
+
         super().__init__(
             label=label,
             every=every,
@@ -163,9 +178,11 @@ class Gallery(Component):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             value=value,
             interactive=interactive,
         )
+        self._value_description = f"a list of {'string filepaths' if type == 'filepath' else 'numpy arrays' if type == 'numpy' else 'PIL images'}"
 
     def preprocess(
         self, payload: GalleryData | None
@@ -188,7 +205,7 @@ class Gallery(Component):
             if isinstance(gallery_element, GalleryVideo):
                 file_path = gallery_element.video.path
             else:
-                file_path = gallery_element.image.path
+                file_path = gallery_element.image.path or ""
             if self.file_types and not client_utils.is_valid_file(
                 file_path, self.file_types
             ):
@@ -216,6 +233,10 @@ class Gallery(Component):
         """
         if value is None:
             return GalleryData(root=[])
+        if isinstance(value, str):
+            raise ValueError(
+                "The `value` passed into `gr.Gallery` must be a list of images or videos, or list of (media, caption) tuples."
+            )
         output = []
 
         def _save(img):
@@ -236,14 +257,20 @@ class Gallery(Component):
                 )
                 file_path = str(utils.abspath(file))
             elif isinstance(img, str):
-                file_path = img
-                mime_type = client_utils.get_mimetype(file_path)
-                if is_http_url_like(img):
+                mime_type = client_utils.get_mimetype(img)
+                if img.lower().endswith(".svg"):
+                    svg_content = image_utils.extract_svg_content(img)
+                    orig_name = Path(img).name
+                    url = f"data:image/svg+xml,{quote(svg_content)}"
+                    file_path = None
+                elif is_http_url_like(img):
                     url = img
                     orig_name = Path(urlparse(img).path).name
+                    file_path = img
                 else:
                     url = None
                     orig_name = Path(img).name
+                    file_path = img
             elif isinstance(img, Path):
                 file_path = str(img)
                 orig_name = img.name
@@ -253,7 +280,7 @@ class Gallery(Component):
             if mime_type is not None and "video" in mime_type:
                 return GalleryVideo(
                     video=FileData(
-                        path=file_path,
+                        path=file_path,  # type: ignore
                         url=url,
                         orig_name=orig_name,
                         mime_type=mime_type,
@@ -262,7 +289,7 @@ class Gallery(Component):
                 )
             else:
                 return GalleryImage(
-                    image=FileData(
+                    image=ImageData(
                         path=file_path,
                         url=url,
                         orig_name=orig_name,
@@ -271,13 +298,9 @@ class Gallery(Component):
                     caption=caption,
                 )
 
-        if wasm_utils.IS_WASM:
-            for img in value:
-                output.append(_save(img))
-        else:
-            with ThreadPoolExecutor() as executor:
-                for o in executor.map(_save, value):
-                    output.append(o)
+        with ThreadPoolExecutor() as executor:
+            for o in executor.map(_save, value):
+                output.append(o)
         return GalleryData(root=output)
 
     @staticmethod

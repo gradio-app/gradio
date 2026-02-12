@@ -6,7 +6,7 @@ Every Gradio app comes with a built-in queuing system that can scale to thousand
 
 By default, each event listener has its own queue, which handles one request at a time. This can be configured via two arguments:
 
-- `concurrency_count`: this sets the number of requests that will be processed simultaneously. Take a look at the example below:
+- `concurrency_limit`: This sets the maximum number of concurrent executions for an event listener. By default, the limit is 1 unless configured otherwise in `Blocks.queue()`. You can also set it to `None` for no limit (i.e., an unlimited number of concurrent executions). For example:
 
 ```python
 import gradio as gr
@@ -15,12 +15,14 @@ with gr.Blocks() as demo:
     prompt = gr.Textbox()
     image = gr.Image()
     generate_btn = gr.Button("Generate Image")
-    generate_btn.click(image_gen, prompt, image, concurrency_count=5)
+    generate_btn.click(image_gen, prompt, image, concurrency_limit=5)
 ```
 
-In the code above, there would be 5 workers processing requests simultaneously - all other requests would be queued until a worker freed up.
+In the code above, up to 5 requests can be processed simultaneously for this event listener. Additional requests will be queued until a slot becomes available.
 
-- `concurrency_id`: this allows event listeners to share a queue by having the same id. Imagine that your setup has only 2 GPUs, and your app has three functions, all of which require GPUs. Between your three functions, you'd want to have a single queue that has 2 workers. This is what that would look like:
+If you want to manage multiple event listeners using a shared queue, you can use the `concurrency_id` argument:
+
+- `concurrency_id`: This allows event listeners to share a queue by assigning them the same ID. For example, if your setup has only 2 GPUs but multiple functions require GPU access, you can create a shared queue for all those functions. Here's how that might look:
 
 ```python
 import gradio as gr
@@ -31,12 +33,16 @@ with gr.Blocks() as demo:
     generate_btn_1 = gr.Button("Generate Image via model 1")
     generate_btn_2 = gr.Button("Generate Image via model 2")
     generate_btn_3 = gr.Button("Generate Image via model 3")
-    generate_btn_1.click(image_gen_1, prompt, image, concurrency_count=2, concurrency_id="gpu_queue")
+    generate_btn_1.click(image_gen_1, prompt, image, concurrency_limit=2, concurrency_id="gpu_queue")
     generate_btn_2.click(image_gen_2, prompt, image, concurrency_id="gpu_queue")
     generate_btn_3.click(image_gen_3, prompt, image, concurrency_id="gpu_queue")
 ```
 
-Now all the event listeners have the same queue by setting the same string for `concurrency_id`. We also set the `concurrency_count` for the queue to be 2. These two variables make it very easy to manage the queue!
+In this example, all three event listeners share a queue identified by `"gpu_queue"`. The queue can handle up to 2 concurrent requests at a time, as defined by the `concurrency_limit`.
 
-If you want an unlimited number of requests processed simultaneously for an event, then you can also set `concurrency_count=None`.
+### Notes
 
+- To ensure unlimited concurrency for an event listener, set `concurrency_limit=None`.  This is useful if your function is calling e.g. an external API which handles the rate limiting of requests itself.
+- The default concurrency limit for all queues can be set globally using the `default_concurrency_limit` parameter in `Blocks.queue()`. 
+
+These configurations make it easy to manage the queuing behavior of your Gradio app.

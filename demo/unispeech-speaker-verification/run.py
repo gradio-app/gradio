@@ -1,6 +1,7 @@
+# type: ignore
 import gradio as gr
 import torch
-from torchaudio.sox_effects import apply_effects_file
+from torchaudio.sox_effects import apply_effects_file  # type: ignore
 from transformers import AutoFeatureExtractor, AutoModelForAudioXVector
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -108,6 +109,7 @@ demo = gr.Interface(
     flagging_mode="never",
     live=False,
     examples=examples,
+    api_name="predict",
 )
 
 if __name__ == "__main__":

@@ -10,7 +10,8 @@ demo = gr.Interface(
     additional_inputs=[
         gr.Slider(0, 1000),
         "image"
-    ]
+    ],
+    api_name="predict",
 )
 
 if __name__ == "__main__":

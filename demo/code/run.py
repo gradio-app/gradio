@@ -15,17 +15,18 @@ def set_lang_from_path():
 def code(language, code):
     return gr.Code(code, language=language)
 
-io = gr.Interface(lambda x: x, "code", "code")
+io = gr.Interface(lambda x: x, "code", "code", api_name="predict")
 
 with gr.Blocks() as demo:
-    lang = gr.Dropdown(value="python", choices=gr.Code.languages)
+    lang = gr.Dropdown(value="python", choices=gr.Code.languages)  # type: ignore
     with gr.Row():
         code_in = gr.Code(
             language="python",
             label="Input",
             value='def all_odd_elements(sequence):\n    """Returns every odd element of the sequence."""',
+            show_line_numbers = False
         )
-        code_out = gr.Code(label="Output")
+        code_out = gr.Code(label="Output", show_line_numbers = True)
     btn = gr.Button("Run")
     btn_two = gr.Button("Load File")
 

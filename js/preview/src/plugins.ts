@@ -4,14 +4,15 @@ import preprocess from "svelte-preprocess";
 import { join } from "path";
 import { type ComponentConfig } from "./dev";
 import type { Preprocessor, PreprocessorGroup } from "svelte/compiler";
+import { deepmerge } from "./_deepmerge_internal";
 
 const svelte_codes_to_ignore: Record<string, string> = {
 	"reactive-component": "Icon"
 };
 
 const RE_SVELTE_IMPORT =
-	/import\s+([\w*{},\s]+)\s+from\s+['"](svelte|svelte\/internal)['"]/g;
-const RE_BARE_SVELTE_IMPORT = /import ("|')svelte(\/\w+)*("|')(;)*/g;
+	/import\s+(?:([ -~]*)\s+from\s+){0,1}['"](svelte(?:\/[ -~]+){0,3})['"]/g;
+// const RE_BARE_SVELTE_IMPORT = /import ("|')svelte(\/\w+)*("|')(;)*/g;
 export function plugins(config: ComponentConfig): PluginOption[] {
 	const _additional_plugins = config.plugins || [];
 	const _additional_svelte_preprocess = config.svelte?.preprocess || [];
@@ -42,10 +43,9 @@ export function plugins(config: ComponentConfig): PluginOption[] {
 				handler!(warning);
 			},
 			prebundleSvelteLibraries: false,
-			hot: true,
 			compilerOptions: {
 				discloseVersion: false,
-				hydratable: true
+				hmr: true
 			},
 			extensions: _svelte_extensions,
 			preprocess: [
@@ -82,34 +82,24 @@ export function make_gradio_plugin({
 	return {
 		name: "gradio",
 		enforce: "pre",
-		transform(code) {
-			const new_code = code
-				.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
-					if ($1.trim().startsWith("type")) return str;
-					const identifier = $1.trim().startsWith("* as")
-						? $1.replace("* as", "").trim()
-						: $1.trim();
-					return `const ${identifier.replace(
-						" as ",
-						": "
-					)} = window.__gradio__svelte__internal;`;
-				})
-				.replace(RE_BARE_SVELTE_IMPORT, "");
-			return {
-				code: new_code,
-				map: null
-			};
-		},
 		resolveId(id) {
 			if (id === v_id) {
 				return resolved_v_id;
 			}
-			if (
-				id !== "svelte" &&
-				id !== "svelte/internal" &&
-				id.startsWith("svelte/")
-			) {
-				return join(svelte_dir, "svelte-submodules.js");
+			if (id === "svelte") {
+				return {
+					id: `../../../../../assets/svelte/svelte_svelte.js`,
+					external: true
+				};
+			}
+
+			if (id.startsWith("svelte/")) {
+				const subpath = id.slice("svelte/".length);
+
+				return {
+					id: `../../../../../assets/svelte/svelte_${subpath.replace(/\//g, "_")}.js`,
+					external: true
+				};
 			}
 		},
 		load(id) {
@@ -130,4 +120,38 @@ export function make_gradio_plugin({
 				: undefined;
 		}
 	};
+}
+
+export const deepmerge_plugin: Plugin = {
+	name: "deepmerge",
+	enforce: "pre",
+	resolveId(id) {
+		if (id === "deepmerge") {
+			return "deepmerge_internal";
+		}
+	},
+	load(id) {
+		if (id === "deepmerge_internal") {
+			return deepmerge;
+		}
+	}
+};
+
+function extract_types(str: string): string[] {
+	const regex = /type (\w+\b)/g;
+	let m;
+	const out = [];
+	while ((m = regex.exec(str))) out.push(m[1]);
+
+	return out;
+}
+
+function remove_types(input: string): string {
+	const inner = input.slice(1, -1); // remove { }
+	const parts = inner
+		.split(",")
+		.map((s) => s.trim())
+		.filter((s) => s && !/^type\s+\w+\b$/.test(s));
+
+	return `{ ${parts.join(", ")} }`;
 }

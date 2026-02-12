@@ -28,6 +28,7 @@ def captured_output():
 
 
 class TestInterface:
+    @pytest.mark.serial
     def test_close(self):
         io = Interface(lambda input: None, "textbox", "label")
         _, local_url, _ = io.launch(prevent_thread_lock=True)
@@ -39,9 +40,12 @@ class TestInterface:
 
     def test_close_all(self):
         interface = Interface(lambda input: None, "textbox", "label")
-        interface.close = MagicMock()
+        interface.close = MagicMock()  # type: ignore
         close_all()
-        interface.close.assert_called()
+        interface.close.assert_not_called()  # type: ignore
+        interface.launch(prevent_thread_lock=True)
+        close_all()
+        interface.close.assert_called()  # type: ignore
 
     def test_no_input_or_output(self):
         with pytest.raises(TypeError):
@@ -69,7 +73,7 @@ class TestInterface:
 
         t = Textbox()
         i = Image()
-        Interface(test, [t, i], "text")
+        Interface(test, (t, i), "text")
         assert t.label == "parameter_name1"
         assert i.label == "parameter_name2"
 
@@ -91,6 +95,7 @@ class TestInterface:
         assert dataset_check
 
     @patch("time.sleep")
+    @pytest.mark.serial
     def test_block_thread(self, mock_sleep):
         with pytest.raises(KeyboardInterrupt):
             with captured_output() as (out, _):
@@ -280,8 +285,12 @@ def test_live_interface_sets_always_last():
 
 
 def test_tabbed_interface_predictions(connect):
-    hello_world = gradio.Interface(lambda name: "Hello " + name, "text", "text")
-    bye_world = gradio.Interface(lambda name: "Bye " + name, "text", "text")
+    hello_world = gradio.Interface(
+        lambda name: "Hello " + name, "text", "text", api_name="predict"
+    )
+    bye_world = gradio.Interface(
+        lambda name: "Bye " + name, "text", "text", api_name="predict"
+    )
 
     demo = gradio.TabbedInterface(
         [hello_world, bye_world], ["Hello World", "Bye World"]
@@ -289,3 +298,20 @@ def test_tabbed_interface_predictions(connect):
     with connect(demo) as client:
         assert client.predict("Emily", api_name="/predict") == "Hello Emily"
         assert client.predict("Hannah", api_name="/predict") == "Hello Hannah"
+
+
+def test_interface_predictions_default_api_name(connect):
+    def greet(name):
+        return "Hello " + name
+
+    hello_world = gradio.Interface(greet, "text", "text")
+
+    with connect(hello_world) as client:
+        assert client.predict("Emily", api_name="/greet") == "Hello Emily"
+        assert client.predict("Hannah", api_name="/greet") == "Hello Hannah"
+
+    hello_lambda = gradio.Interface(lambda s: "Hello " + s, "text", "text")
+
+    with connect(hello_lambda) as client:
+        assert client.predict("Emily", api_name="/lambda") == "Hello Emily"
+        assert client.predict("Hannah", api_name="/lambda") == "Hello Hannah"

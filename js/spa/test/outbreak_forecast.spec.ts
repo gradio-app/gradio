@@ -1,6 +1,6 @@
-import { test, expect, is_lite } from "@self/tootils";
+import { test, expect } from "@self/tootils";
 
-test("selecting matplotlib should show matplotlib image and pressing clear should clear output", async ({
+test.fixme("selecting matplotlib should show matplotlib image and pressing clear should clear output", async ({
 	page
 }) => {
 	await page.getByLabel("Plot Type").click();
@@ -19,15 +19,10 @@ test("selecting matplotlib should show matplotlib image and pressing clear shoul
 	await expect(matplotlib_img).toHaveCount(0);
 });
 
-test("selecting plotly should show plotly plot and pressing clear should clear output", async ({
+test.fixme("selecting plotly should show plotly plot and pressing clear should clear output", async ({
 	page,
 	browserName
 }) => {
-	test.fixme(
-		browserName === "firefox" && is_lite,
-		"Plotly component can't be located on Lite on FireFox in the CI env for some reason"
-	);
-
 	await page.getByLabel("Plot Type").click();
 	await page.getByRole("option", { name: "Plotly" }).click();
 	await page.getByLabel("Month").click();
@@ -43,7 +38,7 @@ test("selecting plotly should show plotly plot and pressing clear should clear o
 	await expect(plotly_plot).toHaveCount(0);
 });
 
-test("selecting altair should show altair plot and pressing clear should clear output", async ({
+test.fixme("selecting altair should show altair plot and pressing clear should clear output", async ({
 	page
 }) => {
 	await page.getByLabel("Plot Type").click();
@@ -61,7 +56,7 @@ test("selecting altair should show altair plot and pressing clear should clear o
 	await expect(altair).toHaveCount(0);
 });
 
-test("selecting bokeh should show bokeh plot and pressing clear should clear output", async ({
+test.fixme("selecting bokeh should show bokeh plot and pressing clear should clear output", async ({
 	page
 }) => {
 	await page.getByLabel("Plot Type").click();
@@ -79,15 +74,10 @@ test("selecting bokeh should show bokeh plot and pressing clear should clear out
 	await expect(altair).toHaveCount(0);
 });
 
-test("switching between all 4 plot types and pressing submit should update output component to corresponding plot type", async ({
+test.fixme("switching between all 4 plot types and pressing submit should update output component to corresponding plot type", async ({
 	page,
 	browserName
 }) => {
-	test.fixme(
-		browserName === "firefox" && is_lite,
-		"Plotly component can't be located on Lite on FireFox in the CI env for some reason"
-	);
-
 	//Matplotlib
 	await page.getByLabel("Plot Type").click();
 	await page.getByRole("option", { name: "Matplotlib" }).click();

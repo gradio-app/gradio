@@ -16,7 +16,7 @@ export async function duplicate(
 	app_reference: string,
 	options: DuplicateOptions
 ): Promise<Client> {
-	const { hf_token, private: _private, hardware, timeout, auth } = options;
+	const { token, private: _private, hardware, timeout, auth } = options;
 
 	if (hardware && !hardware_types.includes(hardware)) {
 		throw new Error(
@@ -26,10 +26,7 @@ export async function duplicate(
 		);
 	}
 
-	const { http_protocol, host } = await process_endpoint(
-		app_reference,
-		hf_token
-	);
+	const { http_protocol, host } = await process_endpoint(app_reference, token);
 
 	let cookies: string[] | null = null;
 
@@ -45,7 +42,7 @@ export async function duplicate(
 	}
 
 	const headers = {
-		Authorization: `Bearer ${hf_token}`,
+		Authorization: `Bearer ${token}`,
 		"Content-Type": "application/json",
 		...(cookies ? { Cookie: cookies.join("; ") } : {})
 	};
@@ -75,7 +72,7 @@ export async function duplicate(
 
 	try {
 		if (!hardware) {
-			original_hardware = await get_space_hardware(app_reference, hf_token);
+			original_hardware = await get_space_hardware(app_reference, token);
 		}
 	} catch (e) {
 		throw Error(SPACE_METADATA_ERROR_MSG + (e as Error).message);
@@ -109,7 +106,7 @@ export async function duplicate(
 
 		const duplicated_space = await response.json();
 
-		await set_space_timeout(`${user}/${space_name}`, timeout || 300, hf_token);
+		await set_space_timeout(`${user}/${space_name}`, timeout || 300, token);
 
 		return await Client.connect(
 			get_space_reference(duplicated_space.url),

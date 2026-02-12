@@ -4,7 +4,6 @@ import fs from "fs";
 test("Image events are dispatched correctly. Downloading the file works and has the correct name.", async ({
 	page
 }) => {
-	await page.getByRole("button", { name: "Drop Image Here" }).click();
 	const uploader = await page.locator("input[type=file]");
 	const change_counter = await page.getByLabel("# Change Events", {
 		exact: true
@@ -58,8 +57,10 @@ test("Image drag-to-upload uploads image successfuly.", async ({ page }) => {
 });
 
 test("Image drag-to-upload replaces an image successfully.", async ({
-	page
+	page,
+	context
 }) => {
+	const initialPages = context.pages();
 	await drag_and_drop_file(
 		page,
 		"input[type=file]",
@@ -80,6 +81,8 @@ test("Image drag-to-upload replaces an image successfully.", async ({
 
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("2");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("2");
+	const newPages = context.pages();
+	expect(newPages.length).toBe(initialPages.length);
 });
 
 test("Image copy from clipboard dispatches upload event.", async ({ page }) => {
@@ -121,7 +124,6 @@ test("Image paste to clipboard via the Upload component works", async ({
 });
 
 test("Image select and change events work as expected.", async ({ page }) => {
-	await page.getByRole("button", { name: "Drop Image Here" }).click();
 	const uploader = await page.locator("input[type=file]");
 	const change_output_counter = await page.getByLabel("# Change Events Output");
 	const select_event_counter = await page.getByLabel("# Select Events");

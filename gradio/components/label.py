@@ -6,26 +6,29 @@ import json
 import operator
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Literal, Union
 
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
+from gradio.components.button import Button
 from gradio.data_classes import GradioModel
 from gradio.events import Events
+from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
 
 
 class LabelConfidence(GradioModel):
-    label: Optional[Union[str, int, float]] = None
-    confidence: Optional[float] = None
+    label: Union[str, int, float] | None = None
+    confidence: float | None = None
 
 
 class LabelData(GradioModel):
-    label: Optional[Union[str, int, float]] = None
-    confidences: Optional[list[LabelConfidence]] = None
+    label: Union[str, int, float] | None = None
+    confidences: list[LabelConfidence] | None = None
 
 
 @document()
@@ -46,23 +49,26 @@ class Label(Component):
         value: dict[str, float] | str | float | Callable | None = None,
         *,
         num_top_classes: int | None = None,
-        label: str | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         color: str | None = None,
+        show_heading: bool = True,
+        buttons: list[Button] | None = None,
     ):
         """
         Parameters:
-            value: Default value to show in the component. If a str or number is provided, simply displays the string or number. If a {Dict[str, float]} of classes and confidences is provided, displays the top class on top and the `num_top_classes` below, along with their confidence bars. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Default value to show in the component. If a str or number is provided, simply displays the string or number. If a {Dict[str, float]} of classes and confidences is provided, displays the top class on top and the `num_top_classes` below, along with their confidence bars. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
             num_top_classes: number of most confident classes to show.
             label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
@@ -71,15 +77,19 @@ class Label(Component):
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
-            visible: If False, component will be hidden.
+            visible: If False, component will be hidden. If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
+            key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
+            preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             color: The background color of the label (either a valid css color name or hexadecimal string).
+            show_heading: If False, the heading will not be displayed if a dictionary of labels and confidences is provided. The heading will still be visible if the value is a string or number.
+            buttons: A list of gr.Button() instances to show in the top right corner of the component. Custom buttons will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button.
         """
         self.num_top_classes = num_top_classes
         self.color = color
+        self.show_heading = show_heading
         super().__init__(
             label=label,
             every=every,
@@ -93,8 +103,11 @@ class Label(Component):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             value=value,
         )
+        self.buttons = set_default_buttons(buttons, None)
+        self._value_description = "a dictionary mapping string categories to float values that represent confidence from 0 - 1."
 
     def preprocess(
         self, payload: LabelData | None

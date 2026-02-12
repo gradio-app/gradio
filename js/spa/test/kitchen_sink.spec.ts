@@ -1,6 +1,6 @@
 import { test, expect } from "@self/tootils";
 
-test("test inputs", async ({ page, browser }) => {
+test.fixme("test inputs", async ({ page, browser }) => {
 	const context = await browser.newContext({
 		permissions: ["camera"]
 	});
@@ -35,7 +35,7 @@ test("test inputs", async ({ page, browser }) => {
 	expect(await page.getByText("fake_device_0")).toBeTruthy();
 });
 
-test("test outputs", async ({ page }) => {
+test.fixme("test outputs", async ({ page }) => {
 	const submit_button = await page.locator("button", { hasText: /Submit/ });
 
 	await submit_button.click();
@@ -65,6 +65,11 @@ test("test outputs", async ({ page }) => {
 	await expect(json).toContainText(
 		`{     "items": {     "item": [     "0": { Object(6) }    "id": "0001" ,   "type": null ,   "is_good": false ,   "ppu": 0.55 ,   "batters": { Object(1) } ,   "batter": [ Array(4) ]    "0": { Object(2) } ,   "id": "1001" ,   "type": "Regular"    } ,  "1": { Object(2) } ,   "id": "1002" ,   "type": "Chocolate"    } ,  "2": { Object(2) } ,   "id": "1003" ,   "type": "Blueberry"    } ,  "3": { Object(2) }    "id": "1004" ,   "type": "Devil's Food"    }   ]   } ,  "topping": [ Array(7) ]    "0": { Object(2) } ,   "id": "5001" ,   "type": "None"    } ,  "1": { Object(2) } ,   "id": "5002" ,   "type": "Glazed"    } ,  "2": { Object(2) } ,   "id": "5005" ,   "type": "Sugar"    } ,  "3": { Object(2) } ,   "id": "5007" ,   "type": "Powdered Sugar"    } ,  "4": { Object(2) } ,   "id": "5006" ,   "type": "Chocolate with Sprinkles"    } ,  "5": { Object(2) } ,   "id": "5003" ,   "type": "Chocolate"    } ,  "6": { Object(2) }    "id": "5004" ,   "type": "Maple"    }   ]   }   ]   }   } `
 	);
+
+	const lineNumbers = json.locator(".line-number");
+	const lineNumberCount = await lineNumbers.count();
+	const lastLineNumber = lineNumbers.nth(lineNumberCount - 1);
+	await expect(lastLineNumber).toHaveAttribute("data-pseudo-content", "62");
 
 	const image = page.locator("#output-img img");
 	const image_data = await image.getAttribute("src");

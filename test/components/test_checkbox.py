@@ -26,7 +26,9 @@ class TestCheckbox:
             "proxy_url": None,
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
             "info": None,
+            "buttons": [],
         }
 
     def test_in_interface(self):

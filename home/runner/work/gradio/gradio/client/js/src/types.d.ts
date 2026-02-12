@@ -63,8 +63,8 @@ export declare class Command {
         orig_path: string;
     });
 }
-export type SubmitFunction = (endpoint: string | number, data?: unknown[] | Record<string, unknown>, event_data?: unknown, trigger_id?: number | null) => SubmitIterable<GradioEvent>;
-export type PredictFunction = (endpoint: string | number, data?: unknown[] | Record<string, unknown>, event_data?: unknown) => Promise<PredictReturn>;
+export type SubmitFunction = (endpoint: string | number, data?: unknown[] | Record<string, unknown>, event_data?: unknown, trigger_id?: number | null, all_events?: boolean, additional_headers?: Record<string, string>) => SubmitIterable<GradioEvent>;
+export type PredictFunction = <T = unknown>(endpoint: string | number, data?: unknown[] | Record<string, unknown>, event_data?: unknown) => Promise<PredictReturn<T>>;
 export type client_return = {
     config: Config | undefined;
     predict: PredictFunction;
@@ -73,14 +73,20 @@ export type client_return = {
     view_api: (_fetch: typeof fetch) => Promise<ApiInfo<JsApiData>>;
 };
 export interface SubmitIterable<T> extends AsyncIterable<T> {
-    [Symbol.asyncIterator](): AsyncIterator<T>;
+    [Symbol.asyncIterator](): SubmitIterable<T>;
+    next: () => Promise<IteratorResult<T, unknown>>;
+    throw: (value: unknown) => Promise<IteratorResult<T, unknown>>;
+    return: () => Promise<IteratorReturnResult<undefined>>;
     cancel: () => Promise<void>;
     event_id: () => string;
+    send_chunk: (payload: Record<string, unknown>) => void;
+    wait_for_id: () => Promise<string | null>;
+    close_stream: () => void;
 }
-export type PredictReturn = {
+export type PredictReturn<T = unknown> = {
     type: EventType;
     time: Date;
-    data: unknown;
+    data: T;
     endpoint: string;
     fn_index: number;
 };
@@ -100,20 +106,23 @@ export interface SpaceStatusError {
 }
 export type SpaceStatusCallback = (a: SpaceStatus) => void;
 export interface Config {
+    deep_link_state?: "none" | "valid" | "invalid";
     auth_required?: true;
+    app_id?: string;
     analytics_enabled: boolean;
     connect_heartbeat: boolean;
+    dev_mode: boolean;
+    vibe_mode: boolean;
     auth_message: string;
     components: ComponentMeta[];
     css: string | null;
     js: string | null;
     head: string | null;
     dependencies: Dependency[];
-    dev_mode: boolean;
     enable_queue: boolean;
     show_error: boolean;
     layout: any;
-    mode: "blocks" | "interface";
+    mode: "blocks" | "interface" | "chat_interface";
     root: string;
     root_url?: string;
     theme: string;
@@ -122,9 +131,15 @@ export interface Config {
     space_id: string | null;
     is_space: boolean;
     is_colab: boolean;
-    show_api: boolean;
+    footer_links: string[];
     stylesheets: string[];
-    path: string;
+    current_page: string;
+    page: Record<string, {
+        components: number[];
+        dependencies: number[];
+        layout: any;
+    }>;
+    pages: [string, string, boolean][];
     protocol: "sse_v3" | "sse_v2.1" | "sse_v2" | "sse_v1" | "sse" | "ws";
     max_file_size?: number;
     theme_hash?: number;
@@ -132,6 +147,9 @@ export interface Config {
     api_prefix?: string;
     fill_height?: boolean;
     fill_width?: boolean;
+    pwa?: boolean;
+    i18n_translations?: Record<string, Record<string, string>> | null;
+    mcp_server?: boolean;
 }
 export interface ComponentMeta {
     type: string;
@@ -154,6 +172,7 @@ interface SharedProps {
     components?: string[];
     server_fns?: string[];
     interactive: boolean;
+    visible: boolean | "hidden";
     [key: string]: unknown;
     root_url?: string;
 }
@@ -178,6 +197,7 @@ export interface Dependency {
     trigger: "click" | "load" | string;
     max_batch_size: number;
     show_progress: "full" | "minimal" | "hidden";
+    show_progress_on: number[] | null;
     frontend_fn: ((...args: unknown[]) => Promise<unknown[]>) | null;
     status?: string;
     queue: boolean | null;
@@ -190,16 +210,19 @@ export interface Dependency {
     pending_request?: boolean;
     trigger_after?: number;
     trigger_only_on_success?: boolean;
+    trigger_only_on_failure?: boolean;
     trigger_mode: "once" | "multiple" | "always_last";
     final_event: Payload | null;
-    show_api: boolean;
-    zerogpu?: boolean;
+    api_visibility: "public" | "private" | "undocumented";
     rendered_in: number | null;
+    render_id: number | null;
     connection: "stream" | "sse";
     time_limit: number;
     stream_every: number;
     like_user_message: boolean;
     event_specific_args: string[];
+    component_prop_inputs: number[];
+    js_implementation: string | null;
 }
 export interface DependencyTypes {
     generator: boolean;
@@ -226,11 +249,14 @@ export interface DuplicateOptions extends ClientOptions {
     timeout?: number;
 }
 export interface ClientOptions {
-    hf_token?: `hf_${string}`;
+    token?: `hf_${string}`;
     status_callback?: SpaceStatusCallback | null;
     auth?: [string, string] | null;
     with_null_state?: boolean;
     events?: EventType[];
+    headers?: Record<string, string>;
+    query_params?: Record<string, string>;
+    session_hash?: string;
 }
 export interface FileData {
     name: string;
@@ -254,7 +280,8 @@ export type GradioEvent = {
 }[EventType];
 export interface Log {
     log: string;
-    level: "warning" | "info";
+    title: string;
+    level: "warning" | "info" | "success" | "error";
 }
 export interface Render {
     data: {
@@ -263,6 +290,10 @@ export interface Render {
         dependencies: Dependency[];
         render_id: number;
     };
+}
+export interface ValidationError {
+    is_valid: boolean;
+    message: string;
 }
 export interface Status {
     queue: boolean;
@@ -275,7 +306,8 @@ export interface Status {
     size?: number;
     position?: number;
     eta?: number;
-    message?: string;
+    title?: string;
+    message?: string | ValidationError[];
     progress_data?: {
         progress: number | null;
         index: number | null;
@@ -286,6 +318,7 @@ export interface Status {
     time?: Date;
     changed_state_ids?: number[];
     time_limit?: number;
+    session_not_found?: boolean;
 }
 export interface StatusMessage extends Status {
     type: "status";

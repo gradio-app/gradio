@@ -1,32 +1,77 @@
 <script lang="ts">
-	import { flip } from "svelte/animate";
-	import type { ToastMessage } from "./types";
+	import type { ToastMessage, GroupedToastMessage } from "./types";
 	import ToastContent from "./ToastContent.svelte";
+	import { spring } from "svelte/motion";
 
-	export let messages: ToastMessage[] = [];
+	interface Props {
+		messages?: ToastMessage[];
+		on_close: (id: number) => void;
+	}
 
-	$: scroll_to_top(messages);
+	let { messages = [], on_close }: Props = $props();
+	const top = spring(0, { stiffness: 0.4, damping: 0.5 });
+
+	let grouped_messages: GroupedToastMessage[] = $state([]);
+
+	$effect(() => {
+		scroll_to_top(messages);
+	});
+
+	$effect(() => {
+		grouped_messages = group_messages(messages);
+	});
+
+	function group_messages(msgs: ToastMessage[]): GroupedToastMessage[] {
+		const groups = new Map<string, GroupedToastMessage>();
+
+		msgs.forEach((msg) => {
+			const key = msg.type;
+			if (!groups.has(key)) {
+				groups.set(key, {
+					type: msg.type,
+					messages: [],
+					expanded: true
+				});
+			}
+			groups.get(key)!.messages.push(msg);
+		});
+
+		return Array.from(groups.values());
+	}
 
 	function scroll_to_top(_messages: ToastMessage[]): void {
 		if (_messages.length > 0) {
 			if ("parentIFrame" in window) {
-				window.parentIFrame?.scrollTo(0, 0);
+				window.parentIFrame?.getPageInfo((page_info) => {
+					if (page_info.scrollTop < page_info.offsetTop) {
+						top.set(0);
+					} else {
+						top.set(page_info.scrollTop - page_info.offsetTop);
+					}
+				});
 			}
 		}
 	}
+
+	function toggle_group(type: string): void {
+		grouped_messages = grouped_messages.map((group) => {
+			if (group.type === type) {
+				return { ...group, expanded: !group.expanded };
+			}
+			return group;
+		});
+	}
 </script>
 
-<div class="toast-wrap">
-	{#each messages as { type, title, message, id, duration, visible } (id)}
-		<div animate:flip={{ duration: 300 }} style:width="100%">
+<div class="toast-wrap" style="--toast-top: {$top}px;">
+	{#each grouped_messages as group (group.type)}
+		<div class="toast-item">
 			<ToastContent
-				{type}
-				{title}
-				{message}
-				{duration}
-				{visible}
-				on:close
-				{id}
+				type={group.type}
+				messages={group.messages}
+				expanded={group.expanded}
+				ontoggle={() => toggle_group(group.type)}
+				onclose={(id) => on_close(id)}
 			/>
 		</div>
 	{/each}
@@ -34,20 +79,26 @@
 
 <style>
 	.toast-wrap {
+		--toast-top: var(--size-4);
 		display: flex;
 		position: fixed;
-		top: var(--size-4);
-		right: var(--size-4);
-
+		top: calc(var(--toast-top) + var(--size-3));
 		flex-direction: column;
-		align-items: end;
 		gap: var(--size-2);
 		z-index: var(--layer-top);
-		width: calc(100% - var(--size-8));
+		right: var(--size-3);
+		left: var(--size-3);
+		align-items: end;
+		max-width: none;
 	}
 
-	@media (--screen-sm) {
+	.toast-item {
+		width: 100%;
+	}
+
+	@media (min-width: 640px) {
 		.toast-wrap {
+			left: auto;
 			width: calc(var(--size-96) + var(--size-10));
 		}
 	}

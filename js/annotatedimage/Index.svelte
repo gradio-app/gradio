@@ -1,219 +1,125 @@
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
-
-	import { onMount } from "svelte";
 	import {
 		Block,
 		BlockLabel,
 		Empty,
-		IconButton,
-		IconButtonWrapper
+		IconButtonWrapper,
+		FullscreenButton
 	} from "@gradio/atoms";
-	import { Image, Maximize, Minimize } from "@gradio/icons";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
+	import { Image } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
-	import { type FileData } from "@gradio/client";
-	import { resolve_wasm_src } from "@gradio/wasm/svelte";
+	import { Gradio } from "@gradio/utils";
+	import type { AnnotatedImageProps, AnnotatedImageEvents } from "./types";
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible = true;
-	export let value: {
-		image: FileData;
-		annotations: { image: FileData; label: string }[] | [];
-	} | null = null;
-	let old_value: {
-		image: FileData;
-		annotations: { image: FileData; label: string }[] | [];
-	} | null = null;
-	let _value: {
-		image: FileData;
-		annotations: { image: FileData; label: string }[];
-	} | null = null;
-	export let gradio: Gradio<{
-		change: undefined;
-		select: SelectData;
-	}>;
-	export let label = gradio.i18n("annotated_image.annotated_image");
-	export let show_label = true;
-	export let show_legend = true;
-	export let height: number | undefined;
-	export let width: number | undefined;
-	export let color_map: Record<string, string>;
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	let active: string | null = null;
-	export let loading_status: LoadingStatus;
-	export let show_fullscreen_button = true;
+	const props = $props();
+	const gradio = new Gradio<AnnotatedImageEvents, AnnotatedImageProps>(props);
 
-	let is_full_screen = false;
+	let old_value = $state(gradio.props.value);
+	let active: string | null = $state(null);
 	let image_container: HTMLElement;
+	let fullscreen = $state(false);
+	let label = $derived(
+		gradio.shared.label || gradio.i18n("annotated_image.annotated_image")
+	);
 
-	onMount(() => {
-		document.addEventListener("fullscreenchange", () => {
-			is_full_screen = !!document.fullscreenElement;
-		});
-	});
-
-	const toggle_full_screen = async (): Promise<void> => {
-		if (!is_full_screen) {
-			await image_container.requestFullscreen();
-		} else {
-			await document.exitFullscreen();
-		}
-	};
-
-	// `value` can be updated before the Promises from `resolve_wasm_src` are resolved.
-	// In such a case, the resolved values for the old `value` have to be discarded,
-	// This variable `latest_promise` is used to pick up only the values resolved for the latest `value`.
-	let latest_promise: Promise<unknown> | null = null;
-	$: {
-		if (value !== old_value) {
-			old_value = value;
+	$effect(() => {
+		if (old_value != gradio.props.value) {
+			old_value = gradio.props.value;
 			gradio.dispatch("change");
 		}
-		if (value) {
-			const normalized_value = {
-				image: value.image as FileData,
-				annotations: value.annotations.map((ann) => ({
-					image: ann.image as FileData,
-					label: ann.label
-				}))
-			};
-			_value = normalized_value;
+	});
 
-			// In normal (non-Wasm) Gradio, the `<img>` element should be rendered with the passed values immediately
-			// without waiting for `resolve_wasm_src()` to resolve.
-			// If it waits, a blank image is displayed until the async task finishes
-			// and it leads to undesirable flickering.
-			// So set `_value` immediately above, and update it with the resolved values below later.
-			const image_url_promise = resolve_wasm_src(normalized_value.image.url);
-			const annotation_urls_promise = Promise.all(
-				normalized_value.annotations.map((ann) =>
-					resolve_wasm_src(ann.image.url)
-				)
-			);
-			const current_promise = Promise.all([
-				image_url_promise,
-				annotation_urls_promise
-			]);
-			latest_promise = current_promise;
-			current_promise.then(([image_url, annotation_urls]) => {
-				if (latest_promise !== current_promise) {
-					return;
-				}
-				const async_resolved_value: typeof _value = {
-					image: {
-						...normalized_value.image,
-						url: image_url ?? undefined
-					},
-					annotations: normalized_value.annotations.map((ann, i) => ({
-						...ann,
-						image: {
-							...ann.image,
-							url: annotation_urls[i] ?? undefined
-						}
-					}))
-				};
-				_value = async_resolved_value;
-			});
-		} else {
-			_value = null;
-		}
-	}
 	function handle_mouseover(_label: string): void {
 		active = _label;
 	}
+
 	function handle_mouseout(): void {
 		active = null;
 	}
 
 	function handle_click(i: number, value: string): void {
 		gradio.dispatch("select", {
-			value: label,
+			value: value,
 			index: i
 		});
 	}
 </script>
 
 <Block
-	{visible}
-	{elem_id}
-	{elem_classes}
+	visible={gradio.shared.visible}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
 	padding={false}
-	{height}
-	{width}
+	height={gradio.props.height}
+	width={gradio.props.width}
 	allow_overflow={false}
-	{container}
-	{scale}
-	{min_width}
+	container={gradio.shared.container}
+	scale={gradio.shared.scale}
+	min_width={gradio.shared.min_width}
+	bind:fullscreen
 >
 	<StatusTracker
-		autoscroll={gradio.autoscroll}
+		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
-		{...loading_status}
+		{...gradio.shared.loading_status}
 	/>
-	<BlockLabel
-		{show_label}
-		Icon={Image}
-		label={label || gradio.i18n("image.image")}
-	/>
+	<BlockLabel show_label={gradio.shared.show_label} Icon={Image} {label} />
 
 	<div class="container">
-		{#if _value == null}
+		{#if gradio.props.value == null}
 			<Empty size="large" unpadded_box={true}><Image /></Empty>
 		{:else}
 			<div class="image-container" bind:this={image_container}>
-				<IconButtonWrapper>
-					{#if !is_full_screen && show_fullscreen_button}
-						<IconButton
-							Icon={Maximize}
-							label="View in full screen"
-							on:click={toggle_full_screen}
-						/>
-					{/if}
-
-					{#if is_full_screen}
-						<IconButton
-							Icon={Minimize}
-							label="Exit full screen"
-							on:click={toggle_full_screen}
+				<IconButtonWrapper
+					buttons={gradio.props.buttons || []}
+					on_custom_button_click={(id) => {
+						gradio.dispatch("custom_button_click", { id });
+					}}
+				>
+					{#if (gradio.props.buttons || []).some((btn) => typeof btn === "string" && btn === "fullscreen")}
+						<FullscreenButton
+							{fullscreen}
+							on:fullscreen={({ detail }) => {
+								fullscreen = detail;
+							}}
 						/>
 					{/if}
 				</IconButtonWrapper>
 
 				<img
 					class="base-image"
-					class:fit-height={height && !is_full_screen}
-					src={_value ? _value.image.url : null}
+					class:fit-height={gradio.props.height && !fullscreen}
+					src={gradio.props.value ? gradio.props.value.image.url : null}
 					alt="the base file that is annotated"
 				/>
-				{#each _value ? _value?.annotations : [] as ann, i}
+				{#each gradio.props.value ? gradio.props.value.annotations : [] as ann, i}
 					<img
-						alt="segmentation mask identifying {label} within the uploaded file"
+						alt="segmentation mask identifying {gradio.shared
+							.label} within the uploaded file"
 						class="mask fit-height"
-						class:fit-height={!is_full_screen}
+						class:fit-height={!fullscreen}
 						class:active={active == ann.label}
 						class:inactive={active != ann.label && active != null}
 						src={ann.image.url}
-						style={color_map && ann.label in color_map
+						style={gradio.props.color_map && ann.label in gradio.props.color_map
 							? null
 							: `filter: hue-rotate(${Math.round(
-									(i * 360) / _value?.annotations.length
+									(i * 360) / (gradio.props.value?.annotations.length ?? 1)
 								)}deg);`}
 					/>
 				{/each}
 			</div>
-			{#if show_legend && _value}
+			{#if gradio.props.show_legend && gradio.props.value}
 				<div class="legend">
-					{#each _value.annotations as ann, i}
+					{#each gradio.props.value.annotations as ann, i}
 						<button
 							class="legend-item"
-							style="background-color: {color_map && ann.label in color_map
-								? color_map[ann.label] + '88'
+							style="background-color: {gradio.props.color_map &&
+							ann.label in gradio.props.color_map
+								? gradio.props.color_map[ann.label] + '88'
 								: `hsla(${Math.round(
-										(i * 360) / _value.annotations.length
+										(i * 360) / gradio.props.value.annotations.length
 									)}, 100%, 50%, 0.3)`}"
 							on:mouseover={() => handle_mouseover(ann.label)}
 							on:focus={() => handle_mouseover(ann.label)}

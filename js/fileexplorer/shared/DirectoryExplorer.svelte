@@ -1,12 +1,29 @@
 <script lang="ts">
 	import FileTree from "./FileTree.svelte";
 	import type { FileNode } from "./types";
+	import type { SelectData } from "@gradio/utils";
 
-	export let interactive: boolean;
-	export let file_count: "single" | "multiple" = "multiple";
-	export let value: string[][] = [];
-	export let ls_fn: (path: string[]) => Promise<FileNode[]>;
-	let selected_folders: string[][] = [];
+	interface Props {
+		interactive: boolean;
+		file_count?: "single" | "multiple";
+		value: string[][];
+		selectable?: boolean;
+		ls_fn: (path: string[]) => Promise<FileNode[]>;
+		oninput?: () => void;
+		onselect?: (detail: SelectData) => void;
+	}
+
+	let {
+		interactive,
+		file_count = "multiple",
+		value = $bindable(),
+		selectable = false,
+		ls_fn,
+		oninput,
+		onselect
+	}: Props = $props();
+
+	let selected_folders = $state<string[][]>([]);
 
 	const paths_equal = (path: string[], path_2: string[]): boolean => {
 		return path.join("/") === path_2.join("/");
@@ -27,11 +44,12 @@
 		selected_files={value}
 		{selected_folders}
 		{interactive}
+		{selectable}
 		{ls_fn}
 		{file_count}
 		valid_for_selection={false}
-		on:check={(e) => {
-			const { path, checked, type } = e.detail;
+		oncheck={(detail) => {
+			const { path, checked, type } = detail;
 			if (checked) {
 				if (file_count === "single") {
 					value = [path];
@@ -57,7 +75,9 @@
 					value = value.filter((x) => !paths_equal(x, path));
 				}
 			}
+			oninput?.();
 		}}
+		{onselect}
 	/>
 </div>
 

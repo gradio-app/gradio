@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import tempfile
-import warnings
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
@@ -14,10 +13,12 @@ from gradio_client.documentation import document
 
 from gradio import processing_utils
 from gradio.components.base import Component
+from gradio.components.button import Button
 from gradio.data_classes import FileData, ListFiles
 from gradio.events import Events
 from gradio.exceptions import Error
-from gradio.utils import NamedString
+from gradio.i18n import I18nData
+from gradio.utils import NamedString, set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -47,24 +48,27 @@ class File(Component):
         file_count: Literal["single", "multiple", "directory"] = "single",
         file_types: list[str] | None = None,
         type: Literal["filepath", "binary"] = "filepath",
-        label: str | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
-        height: int | float | None = None,
+        height: int | str | float | None = None,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
+        allow_reordering: bool = False,
+        buttons: list[Button] | None = None,
     ):
         """
         Parameters:
-            value: Default file(s) to display, given as a str file path or URL, or a list of str file paths / URLs. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Default file(s) to display, given as a str file path or URL, or a list of str file paths / URLs. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             file_types: List of file extensions or types of files to be uploaded (e.g. ['image', '.json', '.mp4']). "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
             type: Type of value to be returned by component. "file" returns a temporary file object with the same base name as the uploaded file, whose full path can be retrieved by file_obj.name, "binary" returns an bytes object.
@@ -77,11 +81,13 @@ class File(Component):
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             height: The default height of the file component when no files have been uploaded, or the maximum height of the file component when files are present. Specified in pixels if a number is passed, or in CSS units if a string is passed. If more files are uploaded than can fit in the height, a scrollbar will appear.
             interactive: if True, will allow users to upload a file; if False, can only be used to display files. If not provided, this is inferred based on whether the component is used as an input or output.
-            visible: If False, component will be hidden.
+            visible: If False, component will be hidden. If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
+            key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
+            preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
+            allow_reordering: if True, will allow users to reorder uploaded files by dragging and dropping.
         """
         file_count_valid_types = ["single", "multiple", "directory"]
         self.file_count = file_count
@@ -107,10 +113,6 @@ class File(Component):
             raise ValueError(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
-        if file_count == "directory" and file_types is not None:
-            warnings.warn(
-                "The `file_types` parameter is ignored when `file_count` is 'directory'."
-            )
         super().__init__(
             label=label,
             every=every,
@@ -125,10 +127,18 @@ class File(Component):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             value=value,
         )
         self.type = type
         self.height = height
+        self.allow_reordering = allow_reordering
+        self.buttons = set_default_buttons(buttons, None)
+        self._value_description = (
+            "a string filepath"
+            if self.file_count == "single"
+            else "a list of string filepaths"
+        )
 
     def _process_single_file(self, f: FileData) -> NamedString | bytes:
         file_name = f.path
@@ -186,7 +196,7 @@ class File(Component):
             return downloaded_files
         if client_utils.is_http_url_like(value):
             downloaded_file = processing_utils.save_url_to_cache(
-                value, self.GRADIO_CACHE
+                str(value), self.GRADIO_CACHE
             )
             return downloaded_file
         else:

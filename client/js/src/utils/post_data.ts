@@ -12,8 +12,8 @@ export async function post_data(
 		Authorization?: string;
 		"Content-Type": "application/json";
 	} = { "Content-Type": "application/json" };
-	if (this.options.hf_token) {
-		headers.Authorization = `Bearer ${this.options.hf_token}`;
+	if (this.options.token) {
+		headers.Authorization = `Bearer ${this.options.token}`;
 	}
 	try {
 		var response = await this.fetch(url, {

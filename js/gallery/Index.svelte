@@ -1,127 +1,331 @@
 <script context="module" lang="ts">
 	export { default as BaseGallery } from "./shared/Gallery.svelte";
+	export { default as BaseExample } from "./Example.svelte";
 </script>
 
 <script lang="ts">
-	import type { GalleryImage, GalleryVideo } from "./types";
-	import type { Gradio, ShareData, SelectData } from "@gradio/utils";
-	import { Block, UploadText } from "@gradio/atoms";
+	import { tick } from "svelte";
+	import type { FileData } from "@gradio/client";
+	import { Block, UploadText, SelectSource } from "@gradio/atoms";
 	import Gallery from "./shared/Gallery.svelte";
-	import type { LoadingStatus } from "@gradio/statustracker";
 	import { StatusTracker } from "@gradio/statustracker";
-	import { createEventDispatcher } from "svelte";
+	import { Gradio } from "@gradio/utils";
 	import { BaseFileUpload } from "@gradio/file";
+	import { Webcam } from "@gradio/image";
+	import type { GalleryProps, GalleryEvents, GalleryData } from "./types";
+	import { handle_save } from "./shared/utils";
 
-	type GalleryData = GalleryImage | GalleryVideo;
+	let upload_promise = $state<Promise<(FileData | null)[]>>();
 
-	export let loading_status: LoadingStatus;
-	export let show_label: boolean;
-	export let label: string;
-	export let root: string;
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible = true;
-	export let value: GalleryData[] | null = null;
-	export let file_types: string[] | null = ["image", "video"];
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let columns: number | number[] | undefined = [2];
-	export let rows: number | number[] | undefined = undefined;
-	export let height: number | "auto" = "auto";
-	export let preview: boolean;
-	export let allow_preview = true;
-	export let selected_index: number | null = null;
-	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
-		"cover";
-	export let show_share_button = false;
-	export let interactive: boolean;
-	export let show_download_button = false;
-	export let gradio: Gradio<{
-		change: typeof value;
-		upload: typeof value;
-		select: SelectData;
-		share: ShareData;
-		error: string;
-		prop_change: Record<string, any>;
-		clear_status: LoadingStatus;
-	}>;
-	export let show_fullscreen_button = true;
+	class GalleryGradio extends Gradio<GalleryEvents, GalleryProps> {
+		async get_data() {
+			if (upload_promise) {
+				await upload_promise;
+				await tick();
+			}
+			const data = await super.get_data();
 
-	const dispatch = createEventDispatcher();
+			return data;
+		}
+	}
 
-	$: no_value = value === null ? true : value.length === 0;
-	$: selected_index, dispatch("prop_change", { selected_index });
+	const props = $props();
+	const gradio = new GalleryGradio<GalleryEvents, GalleryProps>(props, {
+		selected_index: null,
+		file_types: ["image", "video"]
+	});
+
+	let fullscreen = $state(false);
+
+	function handle_delete(
+		event: CustomEvent<{ file: FileData; index: number }>
+	): void {
+		if (!gradio.props.value) return;
+		const { index } = event.detail;
+		gradio.dispatch("delete", event.detail);
+		gradio.props.value = gradio.props.value.filter((_, i) => i !== index);
+		gradio.dispatch("change", gradio.props.value);
+	}
+
+	async function process_upload_files(
+		files: FileData[]
+	): Promise<GalleryData[]> {
+		const processed_files = await Promise.all(
+			files.map(async (x) => {
+				if (x.path?.toLowerCase().endsWith(".svg") && x.url) {
+					const response = await fetch(x.url);
+					const svgContent = await response.text();
+					return {
+						...x,
+						url: `data:image/svg+xml,${encodeURIComponent(svgContent)}`
+					};
+				}
+				return x;
+			})
+		);
+
+		return processed_files.map((x) =>
+			x.mime_type?.includes("video")
+				? { video: x, caption: null }
+				: { image: x, caption: null }
+		);
+	}
+
+	let upload_input: BaseFileUpload;
+
+	let active_source = $state<
+		"upload" | "webcam" | "webcam-video" | "clipboard" | null
+	>(gradio.props.sources ? gradio.props.sources[0] : "upload");
+
+	let no_value = $derived(
+		gradio.props.value === null ? true : gradio.props.value.length === 0
+	);
+
+	let sources = $derived.by(() => {
+		if (
+			gradio.props.file_types?.includes("video") &&
+			gradio.props.sources.includes("webcam")
+		) {
+			return gradio.props.sources.concat(["webcam-video"]);
+		} else {
+			return gradio.props.sources;
+		}
+	});
+
+	async function paste_clipboard(): Promise<void> {
+		navigator.clipboard.read().then(async (items) => {
+			let file: File | null = null;
+			for (let i = 0; i < items.length; i++) {
+				const type = items[i].types.find((t) =>
+					(gradio.props.file_types || ["image"]).some((ft) =>
+						t.startsWith(ft + "/")
+					)
+				);
+				if (type) {
+					const blob = await items[i].getType(type);
+					file = new File([blob], `clipboard.${type.replace("image/", "")}`);
+					break;
+				}
+			}
+			if (file) {
+				const f = await handle_save(
+					file,
+					(f) => gradio.shared.client.upload(f, gradio.shared.root),
+					"clipboard_upload"
+				);
+				const processed_files = await process_upload_files(f);
+				gradio.props.value?.push(...processed_files);
+				gradio.dispatch("change", gradio.props.value);
+				active_source = null;
+			} else {
+				gradio.dispatch("warning", "No image or video found in clipboard");
+			}
+		});
+	}
+
+	async function handle_select_source(
+		source: "upload" | "webcam" | "clipboard"
+	): Promise<void> {
+		switch (source) {
+			case "clipboard":
+				await paste_clipboard();
+				break;
+			default:
+				break;
+		}
+	}
+
+	async function onsource_change(
+		source: "upload" | "webcam" | "webcam-video" | "clipboard"
+	): Promise<void> {
+		await tick();
+		if (source === "clipboard") {
+			await paste_clipboard();
+		} else {
+			active_source = source;
+			no_value = true;
+		}
+	}
 </script>
 
 <Block
-	{visible}
+	visible={gradio.shared.visible}
 	variant="solid"
 	padding={false}
-	{elem_id}
-	{elem_classes}
-	{container}
-	{scale}
-	{min_width}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+	container={gradio.shared.container}
+	scale={gradio.shared.scale}
+	min_width={gradio.shared.min_width}
 	allow_overflow={false}
-	height={typeof height === "number" ? height : undefined}
+	height={typeof gradio.props.height === "number"
+		? gradio.props.height
+		: undefined}
+	bind:fullscreen
 >
 	<StatusTracker
-		autoscroll={gradio.autoscroll}
+		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
-		{...loading_status}
-		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+		{...gradio.shared.loading_status}
+		on_clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
-	{#if interactive && no_value}
-		<BaseFileUpload
-			value={null}
-			{root}
-			{label}
-			max_file_size={gradio.max_file_size}
-			file_count={"multiple"}
-			{file_types}
-			i18n={gradio.i18n}
-			upload={(...args) => gradio.client.upload(...args)}
-			stream_handler={(...args) => gradio.client.stream(...args)}
-			on:upload={(e) => {
-				const files = Array.isArray(e.detail) ? e.detail : [e.detail];
-				value = files.map((x) =>
-					x.mime_type?.includes("video")
-						? { video: x, caption: null }
-						: { image: x, caption: null }
-				);
-				gradio.dispatch("upload", value);
-			}}
-			on:error={({ detail }) => {
-				loading_status = loading_status || {};
-				loading_status.status = "error";
-				gradio.dispatch("error", detail);
-			}}
+	{#if gradio.shared.interactive && no_value}
+		<div
+			class={!gradio.props.value ||
+			(active_source && active_source.includes("webcam"))
+				? "hidden-upload-input"
+				: ""}
 		>
-			<UploadText i18n={gradio.i18n} type="gallery" />
-		</BaseFileUpload>
+			<BaseFileUpload
+				bind:upload_promise
+				bind:this={upload_input}
+				value={null}
+				root={gradio.shared.root}
+				label={gradio.shared.label}
+				max_file_size={gradio.shared.max_file_size}
+				file_count={"multiple"}
+				file_types={gradio.props.file_types}
+				i18n={gradio.i18n}
+				upload={(...args) => gradio.shared.client.upload(...args)}
+				stream_handler={(...args) => gradio.shared.client.stream(...args)}
+				onupload={async (e) => {
+					const files = Array.isArray(e) ? e : [e];
+					gradio.props.value = await process_upload_files(files);
+					active_source = null;
+					gradio.dispatch("upload", gradio.props.value);
+					gradio.dispatch("change", gradio.props.value);
+				}}
+				onerror={({ detail }) => {
+					gradio.shared.loading_status = gradio.shared.loading_status || {};
+					gradio.shared.loading_status.status = "error";
+					gradio.dispatch("error", detail);
+				}}
+			>
+				<UploadText i18n={gradio.i18n} type="gallery" />
+			</BaseFileUpload>
+		</div>
+		{#if active_source === "webcam"}
+			<Webcam
+				root={gradio.shared.root}
+				value={null}
+				on:capture={async (e) => {
+					const f = await handle_save(
+						e.detail,
+						(f) => gradio.shared.client.upload(f, gradio.shared.root),
+						"webcam_upload"
+					);
+					const processed_files = await process_upload_files(f);
+					gradio.props.value?.push(...processed_files);
+					active_source = null;
+					gradio.dispatch("change", gradio.props.value);
+				}}
+				on:error
+				on:drag
+				on:close_stream
+				mirror_webcam={true}
+				streaming={false}
+				mode="image"
+				include_audio={false}
+				i18n={gradio.i18n}
+				upload={(...args) => gradio.shared.client.upload(...args)}
+			/>
+		{:else if active_source === "webcam-video"}
+			<Webcam
+				root={gradio.shared.root}
+				value={null}
+				on:capture={async (e) => {
+					const f = { ...e.detail };
+					f.mime_type = "video/webm";
+					const processed_files = await process_upload_files([f]);
+					gradio.props.value?.push(...processed_files);
+					active_source = null;
+					gradio.dispatch("change", gradio.props.value);
+				}}
+				on:error
+				on:drag
+				on:close_stream
+				mirror_webcam={true}
+				streaming={false}
+				mode="video"
+				include_audio={false}
+				i18n={gradio.i18n}
+				upload={(...args) => gradio.shared.client.upload(...args)}
+			/>
+		{/if}
+		{#if sources.length > 1 || sources.includes("clipboard")}
+			<SelectSource
+				{sources}
+				bind:active_source
+				handle_clear={() => gradio.dispatch("clear")}
+				handle_select={handle_select_source}
+			/>
+		{/if}
 	{:else}
 		<Gallery
-			on:change={() => gradio.dispatch("change", value)}
-			on:select={(e) => gradio.dispatch("select", e.detail)}
-			on:share={(e) => gradio.dispatch("share", e.detail)}
-			on:error={(e) => gradio.dispatch("error", e.detail)}
-			{label}
-			{show_label}
-			{columns}
-			{rows}
-			{height}
-			{preview}
-			{object_fit}
-			{interactive}
-			{allow_preview}
-			bind:selected_index
-			bind:value
-			{show_share_button}
-			{show_download_button}
+			onchange={() => gradio.dispatch("change")}
+			onclear={() => gradio.dispatch("change")}
+			onselect={(e) => gradio.dispatch("select", e)}
+			onshare={(e) => gradio.dispatch("share", e.detail)}
+			onerror={(e) => gradio.dispatch("error", e.detail)}
+			onpreview_open={() => {
+				gradio.dispatch("preview_open");
+			}}
+			onpreview_close={() => gradio.dispatch("preview_close")}
+			onfullscreen={({ detail }) => {
+				fullscreen = detail;
+			}}
+			ondelete={handle_delete}
+			onupload={async (e) => {
+				const files = Array.isArray(e) ? e : [e];
+				const new_value = await process_upload_files(files);
+				gradio.props.value = gradio.props.value
+					? [...gradio.props.value, ...new_value]
+					: new_value;
+				gradio.dispatch("upload", new_value);
+				gradio.dispatch("change", gradio.props.value);
+			}}
+			{sources}
+			{onsource_change}
+			label={gradio.shared.label}
+			show_label={gradio.shared.show_label}
+			columns={gradio.props.columns}
+			rows={gradio.props.rows}
+			height={gradio.props.height}
+			preview={gradio.props.preview}
+			object_fit={gradio.props.object_fit}
+			interactive={gradio.shared.interactive}
+			allow_preview={gradio.props.allow_preview}
+			bind:selected_index={gradio.props.selected_index}
+			bind:value={gradio.props.value}
+			show_share_button={gradio.props.buttons.some(
+				(btn) => typeof btn === "string" && btn === "share"
+			)}
+			show_download_button={gradio.props.buttons.some(
+				(btn) => typeof btn === "string" && btn === "download"
+			)}
+			fit_columns={gradio.props.fit_columns}
 			i18n={gradio.i18n}
-			_fetch={(...args) => gradio.client.fetch(...args)}
-			{show_fullscreen_button}
+			_fetch={(...args) => gradio.shared.client.fetch(...args)}
+			show_fullscreen_button={gradio.props.buttons.some(
+				(btn) => typeof btn === "string" && btn === "fullscreen"
+			)}
+			buttons={gradio.props.buttons}
+			on_custom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
+			{fullscreen}
+			root={gradio.shared.root}
+			file_types={gradio.props.file_types}
+			max_file_size={gradio.shared.max_file_size}
+			upload={(...args) => gradio.shared.client.upload(...args)}
+			stream_handler={(...args) => gradio.shared.client.stream(...args)}
 		/>
 	{/if}
 </Block>
+
+<style>
+	.hidden-upload-input {
+		display: none;
+	}
+</style>

@@ -10,8 +10,7 @@ from dataclasses import dataclass, field
 
 import fastapi
 from fastapi.responses import RedirectResponse
-from huggingface_hub import HfFolder, whoami
-from starlette.datastructures import URL
+from huggingface_hub import get_token, whoami
 
 from gradio.utils import get_space
 
@@ -48,7 +47,7 @@ def attach_oauth(app: fastapi.FastAPI):
     # ^ if we change the session cookie format in the future, we can bump the version of the session secret to make
     #   sure cookies are invalidated. Otherwise some users with an old cookie format might get a HTTP 500 error.
     app.add_middleware(
-        SessionMiddleware,
+        SessionMiddleware,  # type: ignore
         secret_key=hashlib.sha256(session_secret.encode()).hexdigest(),
         same_site="none",
         https_only=True,
@@ -187,8 +186,7 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
     async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that logs out the user (e.g. delete cookie session)."""
         request.session.pop("oauth_info", None)
-        logout_url = URL("/").include_query_params(**request.query_params)
-        return RedirectResponse(url=logout_url, status_code=302)
+        return _redirect_to_target(request)
 
 
 def _generate_redirect_uri(request: fastapi.Request) -> str:
@@ -199,13 +197,22 @@ def _generate_redirect_uri(request: fastapi.Request) -> str:
         # otherwise => keep query params
         target = "/?" + urllib.parse.urlencode(request.query_params)
 
+    # On Spaces, the redirect URI must always be https://<space_host>/login/callback,
+    # so if a custom domain is used, we need to replace it with the hf.space URL
+    if space_host := os.getenv("SPACE_HOST"):
+        print(f"SPACE_HOST: {space_host}")
+        space_host = space_host.split(",")[
+            0
+        ]  # When custom domain is used, SPACE_HOST is a comma-separated list
+        print(f"SPACE_HOST after split: {space_host}")
+        redirect_uri = f"https://{space_host}/login/callback?{urllib.parse.urlencode({'_target_url': target})}"
+        print(f"Redirect URI: {redirect_uri}")
+        return redirect_uri
+
     redirect_uri = request.url_for("oauth_redirect_callback").include_query_params(
         _target_url=target
     )
     redirect_uri_as_str = str(redirect_uri)
-    if redirect_uri.netloc.endswith(".hf.space"):
-        # In Space, FastAPI redirect as http but we want https
-        redirect_uri_as_str = redirect_uri_as_str.replace("http://", "https://")
     return redirect_uri_as_str
 
 
@@ -298,7 +305,7 @@ class OAuthToken:
 
 
 def _get_mocked_oauth_info() -> typing.Dict:
-    token = HfFolder.get_token()
+    token = get_token()
     if token is None:
         raise ValueError(
             "Your machine must be logged in to HF to debug a Gradio app locally. Please"

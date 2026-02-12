@@ -1,5 +1,49 @@
 # @gradio/group
 
+## 0.3.2
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/utils@0.11.2
+
+## 0.3.1
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+
+## 0.3.1
+
+### Dependency updates
+
+- @gradio/utils@0.11.0
+
+## 0.3.0
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
+## 0.3.0
+
+### Features
+
+- [#12438](https://github.com/gradio-app/gradio/pull/12438) [`25ffc03`](https://github.com/gradio-app/gradio/commit/25ffc0398f8feb43d817c02b2ab970c16de6d797) - Svelte5 migration and bugfix
+
+### Dependencies
+
+- @gradio/utils@0.10.3
+
+## 0.2.1
+
+### Fixes
+
+- [#11784](https://github.com/gradio-app/gradio/pull/11784) [`d9dd3f5`](https://github.com/gradio-app/gradio/commit/d9dd3f54b7fb34cf7118e549d39fc63937ca3489) - Add "hidden" option to component's `visible` kwarg to render but visually hide the component.  Thanks @pngwn!
+
 ## 0.2.0
 
 ### Features

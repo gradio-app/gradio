@@ -17,6 +17,7 @@ from gradio.components.base import Component
 from gradio.data_classes import FileData, ListFiles
 from gradio.events import Events
 from gradio.exceptions import Error
+from gradio.i18n import I18nData
 from gradio.utils import NamedString
 
 if TYPE_CHECKING:
@@ -36,13 +37,13 @@ class UploadButton(Component):
     def __init__(
         self,
         label: str = "Upload a File",
-        value: str | list[str] | Callable | None = None,
+        value: str | I18nData | list[str] | Callable | None = None,
         *,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
-        visible: bool = True,
-        size: Literal["sm", "lg"] | None = None,
+        visible: bool | Literal["hidden"] = True,
+        size: Literal["sm", "md", "lg"] = "lg",
         icon: str | None = None,
         scale: int | None = None,
         min_width: int | None = None,
@@ -50,7 +51,8 @@ class UploadButton(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         type: Literal["filepath", "binary"] = "filepath",
         file_count: Literal["single", "multiple", "directory"] = "single",
         file_types: list[str] | None = None,
@@ -62,8 +64,8 @@ class UploadButton(Component):
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
-            visible: If False, component will be hidden.
-            size: Size of the button. Can be "sm" or "lg".
+            visible: If False, component will be hidden. If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM
+            size: size of the button. Can be "sm", "md", or "lg".
             icon: URL or path to the icon file to display within the button. If None, no icon will be displayed.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
@@ -71,7 +73,8 @@ class UploadButton(Component):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
+            key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
+            preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             type: Type of value to be returned by component. "file" returns a temporary file object with the same base name as the uploaded file, whose full path can be retrieved by file_obj.name, "binary" returns an bytes object.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             file_types: List of type of files to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
@@ -111,6 +114,7 @@ class UploadButton(Component):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             value=value,
             scale=scale,
             min_width=min_width,
@@ -200,7 +204,7 @@ class UploadButton(Component):
             return downloaded_files
         if client_utils.is_http_url_like(value):
             downloaded_file = processing_utils.save_url_to_cache(
-                value, self.GRADIO_CACHE
+                str(value), self.GRADIO_CACHE
             )
             return downloaded_file
         else:

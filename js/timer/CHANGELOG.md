@@ -1,5 +1,73 @@
 # @gradio/timer
 
+## 0.4.8
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/utils@0.11.2
+
+## 0.4.7
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+
+## 0.4.7
+
+### Dependency updates
+
+- @gradio/utils@0.11.0
+
+## 0.4.6
+
+### Dependency updates
+
+- @gradio/utils@0.10.4
+
+## 0.4.6
+
+### Features
+
+- [#12438](https://github.com/gradio-app/gradio/pull/12438) [`25ffc03`](https://github.com/gradio-app/gradio/commit/25ffc0398f8feb43d817c02b2ab970c16de6d797) - Svelte5 migration and bugfix
+
+### Dependencies
+
+- @gradio/utils@0.10.3
+
+## 0.4.6-dev.0
+
+### Dependency updates
+
+- @gradio/utils@0.10.3-dev.0
+
+## 0.4.5
+
+### Dependency updates
+
+- @gradio/utils@0.10.2
+
+## 0.4.4
+
+### Dependency updates
+
+- @gradio/utils@0.10.1
+
+## 0.4.3
+
+### Dependency updates
+
+- @gradio/utils@0.10.0
+
+## 0.4.2
+
+### Dependency updates
+
+- @gradio/utils@0.9.0
+
 ## 0.4.1
 
 ### Dependency updates

@@ -17,11 +17,11 @@ class TestTextbox:
         assert text_input.postprocess(2.14) == "2.14"  # type: ignore
         assert text_input.get_config() == {
             "lines": 1,
-            "max_lines": 20,
+            "max_lines": None,
             "placeholder": None,
             "value": None,
             "name": "textbox",
-            "show_copy_button": False,
+            "buttons": [],
             "show_label": True,
             "type": "text",
             "label": None,
@@ -38,11 +38,13 @@ class TestTextbox:
             "autofocus": False,
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
             "info": None,
             "autoscroll": True,
             "max_length": None,
             "submit_btn": False,
             "stop_btn": False,
+            "html_attributes": None,
         }
 
     @pytest.mark.asyncio
@@ -86,9 +88,3 @@ class TestTextbox:
             ValueError, match='`type` must be one of "text", "password", or "email".'
         ):
             gr.Textbox(type="boo")  # type: ignore
-
-    def test_max_lines(self):
-        assert gr.Textbox(type="password").get_config().get("max_lines") == 1
-        assert gr.Textbox(type="email").get_config().get("max_lines") == 1
-        assert gr.Textbox(type="text").get_config().get("max_lines") == 20
-        assert gr.Textbox().get_config().get("max_lines") == 20

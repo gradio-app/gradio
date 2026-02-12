@@ -1,64 +1,125 @@
 <script lang="ts">
-	import { BlockLabel, Empty, ShareButton } from "@gradio/atoms";
-	import { ModifyUpload } from "@gradio/upload";
-	import type { SelectData } from "@gradio/utils";
+	import {
+		BlockLabel,
+		Empty,
+		ShareButton,
+		IconButton,
+		IconButtonWrapper,
+		FullscreenButton
+	} from "@gradio/atoms";
+	import { type CustomButton as CustomButtonType } from "@gradio/utils";
+	import { ModifyUpload, Upload as UploadComponent } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
 	import { Video } from "@gradio/video/shared";
 	import { dequal } from "dequal";
-	import { createEventDispatcher, onMount } from "svelte";
+	import { onMount } from "svelte";
 	import { tick } from "svelte";
 	import type { GalleryImage, GalleryVideo } from "../types";
 
 	import {
 		Download,
 		Image as ImageIcon,
-		Maximize,
-		Minimize,
 		Clear,
-		Play
+		Play,
+		Upload as UploadIcon,
+		Webcam,
+		Video as VideoIcon,
+		ImagePaste
 	} from "@gradio/icons";
 	import { FileData } from "@gradio/client";
+	import type { Client } from "@gradio/client";
 	import { format_gallery_for_sharing } from "./utils";
-	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import type { I18nFormatter } from "@gradio/utils";
 
 	type GalleryData = GalleryImage | GalleryVideo;
 
-	export let show_label = true;
-	export let label: string;
-	export let value: GalleryData[] | null = null;
-	export let columns: number | number[] | undefined = [2];
-	export let rows: number | number[] | undefined = undefined;
-	export let height: number | "auto" = "auto";
-	export let preview: boolean;
-	export let allow_preview = true;
-	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
-		"cover";
-	export let show_share_button = false;
-	export let show_download_button = false;
-	export let i18n: I18nFormatter;
-	export let selected_index: number | null = null;
-	export let interactive: boolean;
-	export let _fetch: typeof fetch;
-	export let mode: "normal" | "minimal" = "normal";
-	export let show_fullscreen_button = true;
+	let {
+		show_label = true,
+		label,
+		value = $bindable(),
+		columns = [2],
+		rows = undefined,
+		height = "auto",
+		preview,
+		allow_preview = true,
+		object_fit = "cover",
+		show_share_button = false,
+		show_download_button = false,
+		i18n,
+		selected_index = $bindable(),
+		interactive,
+		_fetch,
+		show_fullscreen_button = true,
+		fullscreen = false,
+		root = "",
+		file_types = ["image", "video"],
+		sources,
+		max_file_size = null,
+		upload,
+		stream_handler,
+		fit_columns = true,
+		buttons = null,
+		oncustom_button_click = null,
+		onpreview_open = () => {},
+		onchange = () => {},
+		onclear = () => {},
+		onselect = (data) => {},
+		onshare = (data) => {},
+		onerror = (error) => {},
+		onpreview_close = () => {},
+		onfullscreen = (data) => {},
+		ondelete = () => {},
+		onupload = () => {},
+		onsource_change = () => {}
+	}: {
+		show_label: boolean;
+		label: string;
+		value: GalleryData[] | null;
+		columns: number | number[] | undefined;
+		rows: number | number[] | undefined;
+		height: number | "auto";
+		preview: boolean;
+		allow_preview: boolean;
+		object_fit: "contain" | "cover" | "fill" | "none" | "scale-down";
+		show_share_button: boolean;
+		show_download_button: boolean;
+		i18n: I18nFormatter;
+		selected_index: number | null;
+		interactive: boolean;
+		_fetch: typeof fetch;
+		show_fullscreen_button: boolean;
+		fullscreen: boolean;
+		root: string;
+		file_types: string[] | null;
+		sources: ("upload" | "webcam" | "clipboard" | "webcam-video")[];
+		max_file_size: number | null;
+		upload: Client["upload"] | undefined;
+		stream_handler: Client["stream"] | undefined;
+		fit_columns: boolean;
+		buttons: (string | CustomButtonType)[] | null;
+		oncustom_button_click: ((id: number) => void) | null;
+		onpreview_open: () => void;
+		onchange: () => void;
+		onclear: () => void;
+		onselect: (data: any) => void;
+		onshare: (data: any) => void;
+		onerror: (error: any) => void;
+		onpreview_close: () => void;
+		onfullscreen: (data: any) => void;
+		ondelete: (data: any) => void;
+		onupload: (data: FileData | FileData[]) => void;
+		onsource_change: (source: string) => void;
+	} = $props();
 
+	let upload_promise: Promise<any> | null = null;
+	let mode: "normal" | "minimal" = "normal";
+	let display_icon_button_wrapper_top_corner = false;
 	let is_full_screen = false;
-	let gallery_container: HTMLElement;
+	let image_container: HTMLElement;
 
-	const dispatch = createEventDispatcher<{
-		change: undefined;
-		select: SelectData;
-	}>();
+	let was_reset: boolean = $state(false);
 
-	// tracks whether the value of the gallery was reset
-	let was_reset = true;
-
-	$: was_reset = value == null || value.length === 0 ? true : was_reset;
-
-	let resolved_value: GalleryData[] | null = null;
-
-	$: resolved_value =
+	let resolved_value = $derived.by(() =>
 		value == null
 			? null
 			: (value.map((data) => {
@@ -71,36 +132,68 @@
 						return { image: data.image as FileData, caption: data.caption };
 					}
 					return {};
-				}) as GalleryData[]);
+				}) as GalleryData[])
+	);
 
-	let prev_value: GalleryData[] | null = value;
+	function resolve_effective_columns(
+		resolved_value: GalleryData[] | null,
+		columns: number | number[] | undefined,
+		fit_columns: boolean
+	) {
+		if (resolved_value && columns && fit_columns) {
+			const item_count = resolved_value.length;
+			if (Array.isArray(columns)) {
+				return columns.map((col) => Math.min(col, item_count));
+			} else {
+				return Math.min(columns, item_count);
+			}
+		} else {
+			return columns;
+		}
+	}
+
+	let effective_columns: number | number[] | undefined = $derived.by(() =>
+		resolve_effective_columns(resolved_value, columns, fit_columns)
+	);
+
+	let prev_value: GalleryData[] | null = $state(value);
 	if (selected_index == null && preview && value?.length) {
 		selected_index = 0;
 	}
-	let old_selected_index: number | null = selected_index;
+	let old_selected_index: number | null = $state(selected_index);
 
-	$: if (!dequal(prev_value, value)) {
-		// When value is falsy (clear button or first load),
-		// preview determines the selected image
-		if (was_reset) {
-			selected_index = preview && value?.length ? 0 : null;
-			was_reset = false;
-			// Otherwise we keep the selected_index the same if the
-			// gallery has at least as many elements as it did before
-		} else {
-			selected_index =
-				selected_index != null && value != null && selected_index < value.length
-					? selected_index
-					: null;
+	$effect(() => {
+		if (!dequal(prev_value, value)) {
+			// When value is falsy (clear button or first load),
+			// preview determines the selected image
+			if (was_reset) {
+				selected_index = preview && value?.length ? 0 : null;
+				was_reset = false;
+				// Otherwise we keep the selected_index the same if the
+				// gallery has at least as many elements as it did before
+			} else {
+				if (selected_index !== null && value !== null) {
+					selected_index = Math.max(
+						0,
+						Math.min(selected_index, value.length - 1)
+					);
+				} else {
+					selected_index = null;
+				}
+			}
+			onchange();
+			prev_value = value;
 		}
-		dispatch("change");
-		prev_value = value;
-	}
+	});
 
-	$: previous =
-		((selected_index ?? 0) + (resolved_value?.length ?? 0) - 1) %
-		(resolved_value?.length ?? 0);
-	$: next = ((selected_index ?? 0) + 1) % (resolved_value?.length ?? 0);
+	let previous = $derived.by(
+		() =>
+			((selected_index ?? 0) + (resolved_value?.length ?? 0) - 1) %
+			(resolved_value?.length ?? 0)
+	);
+	let next = $derived.by(
+		() => ((selected_index ?? 0) + 1) % (resolved_value?.length ?? 0)
+	);
 
 	function handle_preview_click(event: MouseEvent): void {
 		const element = event.target as HTMLElement;
@@ -120,6 +213,7 @@
 			case "Escape":
 				e.preventDefault();
 				selected_index = null;
+				onpreview_close();
 				break;
 			case "ArrowLeft":
 				e.preventDefault();
@@ -134,30 +228,39 @@
 		}
 	}
 
-	$: {
+	$effect(() => {
 		if (selected_index !== old_selected_index) {
 			old_selected_index = selected_index;
 			if (selected_index !== null) {
-				dispatch("select", {
+				if (resolved_value != null) {
+					selected_index = Math.max(
+						0,
+						Math.min(selected_index, resolved_value.length - 1)
+					);
+				}
+				onselect({
 					index: selected_index,
 					value: resolved_value?.[selected_index]
 				});
 			}
 		}
-	}
+	});
 
-	$: if (allow_preview) {
-		scroll_to_img(selected_index);
-	}
+	$effect(() => {
+		if (allow_preview && container_element) {
+			scroll_to_img(selected_index);
+		}
+	});
 
 	let el: HTMLButtonElement[] = [];
-	let container_element: HTMLDivElement;
+	let container_element: HTMLDivElement | undefined = $state();
 
 	async function scroll_to_img(index: number | null): Promise<void> {
 		if (typeof index !== "number") return;
 		await tick();
 
 		if (el[index] === undefined) return;
+		if (!container_element) return;
 
 		el[index]?.focus();
 
@@ -211,24 +314,63 @@
 		URL.revokeObjectURL(url);
 	}
 
-	$: selected_media =
+	let selected_media = $derived.by(() =>
 		selected_index != null && resolved_value != null
 			? resolved_value[selected_index]
-			: null;
+			: null
+	);
+
+	let thumbnails_overflow = false;
+
+	function check_thumbnails_overflow(): void {
+		if (container_element) {
+			thumbnails_overflow =
+				container_element.scrollWidth > container_element.clientWidth;
+		}
+	}
 
 	onMount(() => {
+		check_thumbnails_overflow();
 		document.addEventListener("fullscreenchange", () => {
 			is_full_screen = !!document.fullscreenElement;
 		});
+		window.addEventListener("resize", check_thumbnails_overflow);
+		return () =>
+			window.removeEventListener("resize", check_thumbnails_overflow);
 	});
 
-	const toggle_full_screen = async (): Promise<void> => {
-		if (!is_full_screen) {
-			await gallery_container.requestFullscreen();
-		} else {
-			await document.exitFullscreen();
+	$effect(() => {
+		resolved_value;
+		check_thumbnails_overflow();
+		if (container_element) {
+			check_thumbnails_overflow();
 		}
-	};
+	});
+
+	function handle_item_delete(index: number): void {
+		if (!value || !resolved_value) return;
+
+		const deleted_item = resolved_value[index];
+		let deleted_file_data;
+
+		if ("image" in deleted_item) {
+			deleted_file_data = {
+				file: deleted_item.image,
+				index: index
+			};
+		} else if ("video" in deleted_item) {
+			deleted_file_data = {
+				file: deleted_item.video,
+				index: index
+			};
+		}
+
+		if (deleted_file_data) {
+			ondelete(deleted_file_data);
+		}
+	}
+
+	let uploading = false;
 </script>
 
 <svelte:window bind:innerHeight={window_height} />
@@ -239,19 +381,23 @@
 {#if value == null || resolved_value == null || resolved_value.length === 0}
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
-	<div class="gallery-container" bind:this={gallery_container}>
+	<div class="gallery-container" bind:this={image_container}>
 		{#if selected_media && allow_preview}
-			<button
+			<span
 				on:keydown={on_keydown}
 				class="preview"
 				class:minimal={mode === "minimal"}
 			>
-				<IconButtonWrapper>
+				<IconButtonWrapper
+					display_top_corner={display_icon_button_wrapper_top_corner}
+					{buttons}
+					on_custom_button_click={oncustom_button_click}
+				>
 					{#if show_download_button}
 						<IconButton
 							Icon={Download}
 							label={i18n("common.download")}
-							on:click={() => {
+							onclick={() => {
 								const image =
 									"image" in selected_media
 										? selected_media?.image
@@ -267,29 +413,24 @@
 						/>
 					{/if}
 
-					{#if show_fullscreen_button && !is_full_screen}
-						<IconButton
-							Icon={is_full_screen ? Minimize : Maximize}
-							label={is_full_screen
-								? "Exit full screen"
-								: "View in full screen"}
-							on:click={toggle_full_screen}
+					{#if show_fullscreen_button}
+						<FullscreenButton
+							{fullscreen}
+							onclick={(is_fullscreen) =>
+								onfullscreen({ detail: is_fullscreen })}
 						/>
 					{/if}
 
-					{#if show_fullscreen_button && is_full_screen}
-						<IconButton
-							Icon={Minimize}
-							label="Exit full screen"
-							on:click={toggle_full_screen}
-						/>
-					{/if}
 					{#if show_share_button}
 						<div class="icon-button">
 							<ShareButton
 								{i18n}
-								on:share
-								on:error
+								on:share={(detail) => {
+									onshare(detail);
+								}}
+								on:error={(detail) => {
+									onerror(detail);
+								}}
 								value={resolved_value}
 								formatter={format_gallery_for_sharing}
 							/>
@@ -299,7 +440,10 @@
 						<IconButton
 							Icon={Clear}
 							label="Close"
-							on:click={() => (selected_index = null)}
+							onclick={() => {
+								selected_index = null;
+								onpreview_close();
+							}}
 						/>
 					{/if}
 				</IconButtonWrapper>
@@ -315,12 +459,14 @@
 				>
 					{#if "image" in selected_media}
 						<Image
-							data-testid="detailed-image"
+							restProps={{
+								alt: selected_media.caption || "",
+								title: selected_media.caption || null,
+								class: selected_media.caption && "with-caption",
+								loading: "lazy"
+							}}
 							src={selected_media.image.url}
-							alt={selected_media.caption || ""}
-							title={selected_media.caption || null}
-							class={selected_media.caption && "with-caption"}
-							loading="lazy"
+							data_testid="detailed-image"
 						/>
 					{:else}
 						<Video
@@ -344,6 +490,9 @@
 					bind:this={container_element}
 					class="thumbnails scroll-hide"
 					data-testid="container_el"
+					style="justify-content: {thumbnails_overflow
+						? 'flex-start'
+						: 'center'};"
 				>
 					{#each resolved_value as media, i}
 						<button
@@ -359,10 +508,13 @@
 							{#if "image" in media}
 								<Image
 									src={media.image.url}
-									title={media.caption || null}
-									data-testid={"thumbnail " + (i + 1)}
-									alt=""
-									loading="lazy"
+									restProps={{
+										title: media.caption || null,
+										alt: "",
+										class: "with-caption",
+										loading: "lazy"
+									}}
+									data_testid={`thumbnail ${i + 1}`}
 								/>
 							{:else}
 								<Play />
@@ -379,7 +531,7 @@
 						</button>
 					{/each}
 				</div>
-			</button>
+			</span>
 		{/if}
 
 		<div
@@ -387,50 +539,123 @@
 			class:minimal={mode === "minimal"}
 			class:fixed-height={mode !== "minimal" && (!height || height == "auto")}
 			class:hidden={is_full_screen}
+			style:height={height !== "auto" ? height + "px" : null}
 		>
+			{#if interactive && selected_index === null}
+				<ModifyUpload
+					{i18n}
+					onclear={() => {
+						value = [];
+						onsource_change("upload");
+						onclear();
+					}}
+				>
+					{#if upload && stream_handler}
+						<IconButton
+							Icon={UploadIcon}
+							label={i18n("upload_text.click_to_upload")}
+						>
+							<UploadComponent
+								bind:upload_promise
+								icon_upload={true}
+								onload={(e) => onupload(e)}
+								filetype={file_types}
+								file_count="multiple"
+								{max_file_size}
+								{root}
+								bind:uploading
+								onerror={(e) => onerror(e)}
+								{stream_handler}
+								{upload}
+							/>
+						</IconButton>
+					{/if}
+					{#if sources.includes("webcam")}
+						<IconButton
+							Icon={Webcam}
+							label={i18n("common.webcam")}
+							onclick={() => {
+								onsource_change("webcam");
+							}}
+						/>
+					{/if}
+					{#if sources.includes("webcam-video")}
+						<IconButton
+							Icon={VideoIcon}
+							label={i18n("common.video")}
+							onclick={() => {
+								onsource_change("webcam-video");
+							}}
+						/>
+					{/if}
+					{#if sources.includes("clipboard")}
+						<IconButton
+							label={i18n("upload_text.paste_clipboard")}
+							onclick={() => {
+								onsource_change("clipboard");
+							}}
+							Icon={ImagePaste}
+						/>
+					{/if}
+				</ModifyUpload>
+			{/if}
 			<div
 				class="grid-container"
-				style="--grid-cols:{columns}; --grid-rows:{rows}; --object-fit: {object_fit}; height: {height};"
+				style="--grid-cols:{effective_columns}; --grid-rows:{rows}; --object-fit: {object_fit};"
 				class:pt-6={show_label}
 			>
-				{#if interactive}
-					<div class="icon-button">
-						<ModifyUpload {i18n} on:clear={() => (value = [])} />
-					</div>
-				{/if}
 				{#each resolved_value as entry, i}
-					<button
-						class="thumbnail-item thumbnail-lg"
-						class:selected={selected_index === i}
-						on:click={() => (selected_index = i)}
-						aria-label={"Thumbnail " + (i + 1) + " of " + resolved_value.length}
-					>
-						{#if "image" in entry}
-							<Image
-								alt={entry.caption || ""}
-								src={typeof entry.image === "string"
-									? entry.image
-									: entry.image.url}
-								loading="lazy"
-							/>
-						{:else}
-							<Play />
-							<Video
-								src={entry.video.url}
-								title={entry.caption || null}
-								is_stream={false}
-								data-testid={"thumbnail " + (i + 1)}
-								alt=""
-								loading="lazy"
-								loop={false}
-							/>
+					<div class="gallery-item">
+						<button
+							class="thumbnail-item thumbnail-lg"
+							class:selected={selected_index === i}
+							on:click={() => {
+								if (selected_index === null && allow_preview) {
+									onpreview_open();
+								}
+								selected_index = i;
+							}}
+							aria-label={"Thumbnail " +
+								(i + 1) +
+								" of " +
+								resolved_value.length}
+						>
+							{#if "image" in entry}
+								<Image
+									alt={entry.caption || ""}
+									src={typeof entry.image === "string"
+										? entry.image
+										: entry.image.url}
+									loading="lazy"
+								/>
+							{:else}
+								<Play />
+								<Video
+									src={entry.video.url}
+									title={entry.caption || null}
+									is_stream={false}
+									data-testid={"thumbnail " + (i + 1)}
+									alt=""
+									loading="lazy"
+									loop={false}
+								/>
+							{/if}
+							{#if entry.caption}
+								<div class="caption-label">
+									{entry.caption}
+								</div>
+							{/if}
+						</button>
+						{#if interactive}
+							<button
+								class="delete-button"
+								on:click|stopPropagation={() => handle_item_delete(i)}
+								aria-label="Delete image"
+							>
+								<Clear />
+							</button>
 						{/if}
-						{#if entry.caption}
-							<div class="caption-label">
-								{entry.caption}
-							</div>
-						{/if}
-					</button>
+					</div>
 				{/each}
 			</div>
 		</div>
@@ -540,7 +765,7 @@
 		display: flex;
 		position: absolute;
 		bottom: 0;
-		justify-content: center;
+		justify-content: flex-start;
 		align-items: center;
 		gap: var(--spacing-lg);
 		width: var(--size-full);
@@ -614,7 +839,6 @@
 	.grid-wrap {
 		position: relative;
 		padding: var(--size-2);
-		height: var(--size-full);
 		overflow-y: scroll;
 	}
 
@@ -656,12 +880,52 @@
 		white-space: nowrap;
 	}
 
-	.icon-button {
-		top: 1px;
-		right: 1px;
-	}
-
 	.grid-wrap.minimal {
 		padding: 0;
+	}
+
+	.gallery-item {
+		position: relative;
+		width: 100%;
+		height: 100%;
+	}
+
+	.delete-button {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		z-index: var(--layer-1);
+		border-top: 1px solid var(--border-color-primary);
+		border-right: 1px solid var(--border-color-primary);
+		border-radius: 0 var(--radius-sm) 0 var(--radius-sm);
+		background: var(--background-fill-secondary);
+		padding: var(--block-label-padding);
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		opacity: 0;
+		transition: opacity 0.2s ease;
+		font-size: var(--block-label-text-size);
+		color: var(--block-label-text-color);
+		font-weight: var(--weight-semibold);
+		width: auto;
+		height: auto;
+		min-width: fit-content;
+		min-height: fit-content;
+	}
+
+	.gallery-item:hover .delete-button {
+		opacity: 1;
+	}
+
+	.delete-button:hover {
+		opacity: 0.8;
+	}
+
+	.delete-button :global(svg) {
+		width: var(--text-xs);
+		height: var(--text-md);
+		color: var(--block-label-text-color);
 	}
 </style>

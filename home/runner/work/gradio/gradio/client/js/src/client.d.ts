@@ -3,6 +3,7 @@ import { FileData } from "./upload";
 export declare class Client {
     app_reference: string;
     options: ClientOptions;
+    deep_link: string | null;
     config: Config | undefined;
     api_prefix: string;
     api_info: ApiInfo<JsApiData> | undefined;
@@ -14,6 +15,7 @@ export declare class Client {
     stream_status: {
         open: boolean;
     };
+    closed: boolean;
     pending_stream_messages: Record<string, any[][]>;
     pending_diff_streams: Record<string, any[][]>;
     event_callbacks: Record<string, (data?: unknown) => Promise<void>>;
@@ -22,7 +24,8 @@ export declare class Client {
     abort_controller: AbortController | null;
     stream_instance: EventSource | null;
     current_payload: any;
-    ws_map: Record<string, WebSocket | "failed">;
+    get_url_config(url?: string | null): Config;
+    get_page_config(page: string): Config;
     fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
     stream(url: URL): EventSource;
     view_api: () => Promise<ApiInfo<JsApiData>>;
@@ -31,14 +34,15 @@ export declare class Client {
     handle_blob: (endpoint: string, data: unknown[], endpoint_info: EndpointInfo<ApiData | JsApiData>) => Promise<unknown[]>;
     post_data: (url: string, body: unknown, additional_headers?: any) => Promise<unknown[]>;
     submit: (endpoint: string | number, data: unknown[] | Record<string, unknown> | undefined, event_data?: unknown, trigger_id?: number | null, all_events?: boolean) => SubmitIterable<GradioEvent>;
-    predict: (endpoint: string | number, data: unknown[] | Record<string, unknown> | undefined, event_data?: unknown) => Promise<PredictReturn>;
+    predict: <T = unknown>(endpoint: string | number, data: unknown[] | Record<string, unknown> | undefined, event_data?: unknown) => Promise<PredictReturn<T>>;
     open_stream: () => Promise<void>;
     private resolve_config;
     private resolve_cookies;
     constructor(app_reference: string, options?: ClientOptions);
     private init;
-    _resolve_hearbeat(_config: Config): Promise<void>;
+    _resolve_heartbeat(_config: Config): Promise<void>;
     static connect(app_reference: string, options?: ClientOptions): Promise<Client>;
+    reconnect(): Promise<"connected" | "broken" | "changed">;
     close(): void;
     set_current_payload(payload: any): void;
     static duplicate(app_reference: string, options?: DuplicateOptions): Promise<Client>;
@@ -51,9 +55,6 @@ export declare class Client {
     }): Promise<unknown>;
     set_cookies(raw_cookies: string): void;
     private prepare_return_obj;
-    private connect_ws;
-    send_ws_message(url: string, data: any): Promise<void>;
-    close_ws(url: string): Promise<void>;
 }
 /**
  * @deprecated This method will be removed in v1.0. Use `Client.connect()` instead.

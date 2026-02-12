@@ -8,7 +8,8 @@ with gr.Blocks() as demo:
     ]
     with gr.Row():
         with gr.Column():
-            gal = gr.Gallery(columns=4, interactive=True, label="Input Gallery")
+            gal = gr.Gallery(columns=4, interactive=True, label="Input Gallery",
+                             sources=["upload", "webcam", "clipboard"])
             btn = gr.Button()
         with gr.Column():
             output_gal = gr.Gallery(columns=4, interactive=True, label="Output Gallery")
@@ -16,9 +17,12 @@ with gr.Blocks() as demo:
         textbox = gr.Json(label="uploaded files")
         num_upload = gr.Number(value=0, label="Num Upload")
         num_change = gr.Number(value=0, label="Num Change")
+        preview_open = gr.Number(value=0, label="Preview Open?")
         select_output = gr.Textbox(label="Select Data")
         gal.upload(lambda v,n: (v, v, n+1), [gal, num_upload], [textbox, output_gal, num_upload])
         gal.change(lambda v,n: (v, v, n+1), [gal, num_change], [textbox, output_gal, num_change])
+        output_gal.preview_open(lambda: 1, inputs=None, outputs=preview_open)
+        output_gal.preview_close(lambda: 0, inputs=None, outputs=preview_open)
 
     btn.click(lambda: files, None, [output_gal])
 

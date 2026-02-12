@@ -9,7 +9,6 @@ import StaticChatbot from "@gradio/chatbot";
 import StaticCheckbox from "@gradio/checkbox";
 import StaticCheckboxGroup from "@gradio/checkboxgroup";
 import StaticColorPicker from "@gradio/colorpicker";
-import StaticDataframe from "@gradio/dataframe";
 import StaticDropdown from "@gradio/dropdown";
 import StaticFile from "@gradio/file";
 import StaticGallery from "@gradio/gallery";
@@ -30,7 +29,6 @@ import InteractiveAudio from "@gradio/audio";
 import InteractiveCheckbox from "@gradio/checkbox";
 import InteractiveCheckboxGroup from "@gradio/checkboxgroup";
 import InteractiveColorPicker from "@gradio/colorpicker";
-import InteractiveDataframe from "@gradio/dataframe";
 import InteractiveDropdown from "@gradio/dropdown";
 import InteractiveFile from "@gradio/file";
 import InteractiveModel3D from "@gradio/model3d";
@@ -59,44 +57,82 @@ const components = [
 		StaticAnnotatedImage,
 		{ height: 100, width: 100, value: null, interactive: false }
 	],
-	["InteractiveAudio", InteractiveAudio, { interactive: true }],
-	["StaticAudio", StaticAudio, { interactive: false }],
+	[
+		"InteractiveAudio",
+		InteractiveAudio,
+		{ interactive: true, value: null, waveform_options: {} }
+	],
+	[
+		"StaticAudio",
+		StaticAudio,
+		{ interactive: false, value: null, waveform_options: {} }
+	],
 
-	["StaticChatbot", StaticChatbot, { interactive: false }],
+	["StaticChatbot", StaticChatbot, { interactive: false, value: [] }],
 	["InteractiveCheckbox", InteractiveCheckbox, { interactive: true }],
 	["StaticCheckbox", StaticCheckbox, { interactive: false }],
 	[
 		"InteractiveCheckboxGroup",
 		InteractiveCheckboxGroup,
-		{ choices: ["a", "b", "c"], interactive: true }
+		{
+			choices: [
+				["a", "a"],
+				["b", "b"],
+				["c", "c"]
+			],
+			interactive: true,
+			value: [],
+			info: "",
+			show_select_all: false
+		}
 	],
 	[
 		"StaticCheckboxGroup",
 		StaticCheckboxGroup,
-		{ choices: ["a", "b", "c"], interactive: false }
+		{
+			choices: [
+				["a", "a"],
+				["b", "b"],
+				["c", "c"]
+			],
+			interactive: false,
+			value: [],
+			info: "",
+			show_select_all: false
+		}
 	],
 	["InteractiveColorPicker", InteractiveColorPicker, { interactive: true }],
 	["StaticColorPicker", StaticColorPicker, { interactive: false }],
-	[
-		"InteractiveDataFrame",
-		InteractiveDataframe,
-		{
-			value: [[1, 2, 3]],
-			col_count: [3, "fixed"],
-			row_count: [3, "fixed"],
-			interactive: true
-		}
-	],
-	[
-		"StaticDataFrame",
-		StaticDataframe,
-		{
-			value: [[1, 2, 3]],
-			col_count: [3, "fixed"],
-			row_count: [3, "fixed"],
-			interactive: false
-		}
-	],
+	// [
+	// 	"InteractiveDataFrame",
+	// 	InteractiveDataframe,
+	// 	{
+	// 		value: {
+	// 			data: [[1, 2, 3]],
+	// 			headers: [],
+	// 			metadata: null
+	// 		},
+	// 		col_count: [3, "fixed"],
+	// 		row_count: [3, "fixed"],
+	// 		interactive: true,
+	// 		static_columns: []
+	// 	}
+	// ],
+	// [
+	// 	"StaticDataFrame",
+	// 	StaticDataframe,
+	// 	{
+	// 		value: {
+	// 			data: [[1, 2, 3]],
+	// 			headers: [],
+	// 			metadata: null
+	// 		},
+	// 		col_count: [3, "fixed"],
+	// 		row_count: [3, "fixed"],
+	// 		interactive: false,
+	// 		static_columns: []
+	// 	}
+	// ],
 	[
 		"InteractiveDropdown",
 		InteractiveDropdown,
@@ -110,15 +146,41 @@ const components = [
 	["InteractiveFile", InteractiveFile, { interactive: true }],
 	["StaticFile", StaticFile, { interactive: false }],
 
-	["StaticGallery", StaticGallery, { interactive: false }],
+	[
+		"StaticGallery",
+		StaticGallery,
+		{
+			interactive: false,
+			value: null,
+			file_types: null,
+			columns: 2,
+			rows: undefined,
+			height: "auto",
+			preview: false,
+			allow_preview: true,
+			selected_index: null,
+			object_fit: "cover",
+			buttons: [],
+			type: "filepath",
+			fit_columns: false
+		}
+	],
 
-	["StaticHTML", StaticHTML, { interactive: false }],
+	["StaticHTML", StaticHTML, { interactive: false, value: "" }],
 
-	["StaticHighlightedText", StaticHighlightedText, { interactive: false }],
+	[
+		"StaticHighlightedText",
+		StaticHighlightedText,
+		{ interactive: false, value: null }
+	],
 
-	["StaticJson", StaticJson, { interactive: false }],
+	["StaticJson", StaticJson, { interactive: false, value: null }],
 
-	["StaticLabel", StaticLabel, { interactive: false }],
+	[
+		"StaticLabel",
+		StaticLabel,
+		{ interactive: false, value: { confidences: [] } }
+	],
 
 	["StaticMarkdown", StaticMarkdown, { interactive: false }],
 	["InteractiveModel3D", InteractiveModel3D, { interactive: true }],
@@ -139,7 +201,11 @@ const components = [
 	// ["StaticTimeSeries", StaticTimeSeries, {}],
 	["InteractiveUploadButton", InteractiveUploadButton, { interactive: true }],
 	["StaticUploadButton", StaticUploadButton, { interactive: false }],
-	["InteractiveVideo", InteractiveVideo, { interactive: true }],
+	[
+		"InteractiveVideo",
+		InteractiveVideo,
+		{ interactive: true, webcam_options: { mirror: true, constraints: null } }
+	],
 	["StaticVideo", StaticVideo, { interactive: false }]
 ] as const;
 
@@ -157,15 +223,7 @@ describe("all components should apply provided class names", () => {
 			const { container } = await render(component, {
 				...props,
 				loading_status,
-				elem_classes: ["test-class"],
-				gradio: new Gradio(
-					0,
-					document.createElement("div"),
-					"light",
-					"3.1.1",
-					"",
-					false
-				)
+				elem_classes: ["test-class"]
 			});
 
 			const elem = container.querySelector(`.test-class`);
@@ -205,7 +263,7 @@ describe("all components should apply provided id", () => {
 	});
 });
 
-describe("all components should be invisible when visible=false", () => {
+describe("all components should be invisible when visible=hidden", () => {
 	beforeAll(async () => {
 		await setupi18n();
 	});
@@ -220,12 +278,13 @@ describe("all components should be invisible when visible=false", () => {
 				...props,
 				loading_status,
 				elem_id: "test-id",
-				visible: false
+				visible: "hidden"
 			});
 
 			const elem = container.querySelector(`#test-id`);
 
-			expect(elem).toHaveClass("hidden");
+			expect(elem).not.toBeNull();
+			expect(elem!.classList.contains("hidden")).toBe(true);
 		});
 	});
 

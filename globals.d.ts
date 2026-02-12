@@ -11,7 +11,14 @@ declare global {
 		__is_colab__: boolean;
 		parentIFrame?: {
 			scrollTo: (x: number, y: number) => void;
+			size: (height: number) => void;
+			autoResize: (auto: boolean) => void;
+			getPageInfo: (
+				callback: (info: { scrollTop: number; offsetTop: number }) => void
+			) => void;
 		};
+		supports_zerogpu_headers?: boolean;
+		BUILD_MODE?: "dev" | "production";
 	}
 }
 
@@ -42,4 +49,5 @@ export interface Config {
 	protocol: "ws" | "sse" | "sse_v1" | "sse_v2" | "sse_v2.1" | "sse_v3";
 	theme_hash?: number;
 	username: string | null;
+	current_page: string;
 }

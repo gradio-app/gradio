@@ -1,18 +1,20 @@
 import gradio as gr
 import time
 
+
 def sleep(im):
     time.sleep(5)
     return [im["background"], im["layers"][0], im["layers"][1], im["composite"]]
 
+
 def predict(im):
     return im["composite"]
+
 
 with gr.Blocks() as demo:
     with gr.Row():
         im = gr.ImageEditor(
             type="numpy",
-            crop_size="1:1",
         )
         im_preview = gr.Image()
     n_upload = gr.Number(0, label="Number of upload events", step=1)

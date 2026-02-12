@@ -9,6 +9,7 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
+
     let obj = get_object("clearbutton");
 </script>
 
@@ -20,16 +21,6 @@
 gradio.ClearButton(···)
 ```
 
-<!-- Embedded Component -->
-<div class="embedded-component">
-<gradio-lite shared-worker>
-import gradio as gr
-with gr.Blocks() as demo:
-    textbox = gr.Textbox(value="This is some text")
-    gr.ClearButton(textbox)
-demo.launch()
-</gradio-lite>
-</div>
 
 <!--- Description -->
 ### Description
@@ -61,7 +52,7 @@ def predict(···) -> str | None
 
 <!--- Initialization -->
 ### Initialization
-<ParamTable parameters={obj.parameters} />
+<ParamTable parameters={obj.parameters} anchor_links={obj.name}/>
 
 
 {#if obj.string_shortcuts && obj.string_shortcuts.length > 0}
@@ -84,6 +75,6 @@ def predict(···) -> str | None
 
 {#if obj.guides && obj.guides.length > 0}
 <!--- Guides -->
-### Guides
+<!--- the guide section below is still necessary to scrape the guides on the side navigation -->
 <GuidesSection guides={obj.guides}/>
 {/if}

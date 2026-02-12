@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 import gradio_client.utils as client_utils
 import numpy as np
@@ -13,8 +13,11 @@ from gradio_client.documentation import document
 
 from gradio import processing_utils, utils
 from gradio.components.base import Component
+from gradio.components.button import Button
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
+from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -60,19 +63,20 @@ class AnnotatedImage(Component):
         height: int | str | None = None,
         width: int | str | None = None,
         color_map: dict[str, str] | None = None,
-        label: str | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
-        show_fullscreen_button: bool = True,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
+        buttons: list[Literal["fullscreen"] | Button] | None = None,
     ):
         """
         Parameters:
@@ -89,19 +93,21 @@ class AnnotatedImage(Component):
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: Relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: Minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
-            visible: If False, component will be hidden.
+            visible: If False, component will be hidden. If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
-            show_fullscreen_button: If True, will show a button to allow the image to be viewed in fullscreen mode.
+            key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
+            preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
+            buttons: A list of buttons to show for the component. Valid options in the list are "fullscreen" or a gr.Button() instance. The "fullscreen" button allows the user to view the image in fullscreen mode. Custom gr.Button() instances will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button. By default, the fullscreen button is shown, and this can hidden by providing an empty list.
         """
         self.format = format
         self.show_legend = show_legend
         self.height = height
         self.width = width
         self.color_map = color_map
-        self.show_fullscreen_button = show_fullscreen_button
+        self.buttons = set_default_buttons(buttons, ["fullscreen"])
+        self._value_description = "a tuple of type [image: str, annotations: list[tuple[mask: str, label: str]]] where 'image' is the path to the base image and 'annotations' is a list of tuples where each tuple has a 'mask' image filepath and a corresponding label."
         super().__init__(
             label=label,
             every=every,
@@ -115,6 +121,7 @@ class AnnotatedImage(Component):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             value=value,
         )
 

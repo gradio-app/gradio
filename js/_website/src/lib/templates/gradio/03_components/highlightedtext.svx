@@ -9,6 +9,7 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
+
     let obj = get_object("highlightedtext");
 </script>
 
@@ -20,29 +21,6 @@
 gradio.HighlightedText(···)
 ```
 
-<!-- Embedded Component -->
-<div class="embedded-component">
-<gradio-lite shared-worker>
-import gradio as gr
-with gr.Blocks() as demo:
-    gr.HighlightedText(
-        value=[
-            ("The ", "article"), 
-            ("quick ", "adjective"),
-            ("brown ", "adjective"), 
-            ("fox ", "noun"),
-            ("jumps ", "verb"), 
-            ("over ", "preposition"),
-            ("the ", "article"), 
-            ("lazy ", "adjective"),
-            ("dog", "noun"),
-        ],
-        combine_adjacent=True,
-    )
-demo.launch()
-
-</gradio-lite>
-</div>
 
 <!--- Description -->
 ### Description
@@ -74,7 +52,7 @@ def predict(···) -> list[tuple[str, str | float | None]] | dict | None
 
 <!--- Initialization -->
 ### Initialization
-<ParamTable parameters={obj.parameters} />
+<ParamTable parameters={obj.parameters} anchor_links={obj.name}/>
 
 
 {#if obj.string_shortcuts && obj.string_shortcuts.length > 0}
@@ -97,6 +75,6 @@ def predict(···) -> list[tuple[str, str | float | None]] | dict | None
 
 {#if obj.guides && obj.guides.length > 0}
 <!--- Guides -->
-### Guides
+<!--- the guide section below is still necessary to scrape the guides on the side navigation -->
 <GuidesSection guides={obj.guides}/>
 {/if}

@@ -82,8 +82,10 @@ class TestDropdown:
             "max_choices": 2,
             "_selectable": False,
             "key": None,
+            "preserved_by_key": ["value"],
             "type": "value",
             "info": None,
+            "buttons": [],
         }
         with pytest.raises(ValueError):
             gr.Dropdown(["a"], type="unknown")  # type: ignore

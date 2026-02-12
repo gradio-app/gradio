@@ -1,6 +1,6 @@
 import tempfile
 import gradio as gr
-from neon_tts_plugin_coqui import CoquiTTS
+from neon_tts_plugin_coqui import CoquiTTS  # type: ignore
 
 LANGUAGES = list(CoquiTTS.langs.keys())
 coquiTTS = CoquiTTS()

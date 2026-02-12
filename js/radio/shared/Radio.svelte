@@ -3,32 +3,33 @@
 </script>
 
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
-	export let display_value: string;
-	export let internal_value: string | number;
-	export let disabled = false;
-	export let selected: string | null = null;
-
-	const dispatch = createEventDispatcher<{ input: string | number }>();
-	let is_selected = false;
+	import { tick } from "svelte";
+	let {
+		selected = $bindable(),
+		display_value,
+		internal_value,
+		disabled,
+		rtl,
+		on_input
+	} = $props();
+	let is_selected = $derived(selected === internal_value);
 
 	async function handle_input(
-		selected: string | null,
-		internal_value: string | number
+		e: Event & { target: EventTarget & HTMLInputElement }
 	): Promise<void> {
-		is_selected = selected === internal_value;
+		is_selected = e.target.checked;
 		if (is_selected) {
-			dispatch("input", internal_value);
+			await tick();
+			on_input();
 		}
 	}
-
-	$: handle_input(selected, internal_value);
 </script>
 
 <label
 	class:disabled
 	class:selected={is_selected}
 	data-testid="{display_value}-radio-label"
+	class:rtl
 >
 	<input
 		{disabled}
@@ -37,8 +38,9 @@
 		value={internal_value}
 		aria-checked={is_selected}
 		bind:group={selected}
+		on:input={handle_input}
 	/>
-	<span class="ml-2">{display_value}</span>
+	<span>{display_value}</span>
 </label>
 
 <style>
@@ -76,6 +78,11 @@
 		margin-left: var(--size-2);
 	}
 
+	label.rtl > * + * {
+		margin-left: 0;
+		margin-right: var(--size-2);
+	}
+
 	input {
 		--ring-color: transparent;
 		position: relative;
@@ -103,17 +110,17 @@
 		background-color: white;
 	}
 
-	input:hover {
+	input:hover:not([disabled]) {
 		border-color: var(--checkbox-border-color-hover);
 		background-color: var(--checkbox-background-color-hover);
 	}
 
-	input:focus {
+	input:focus:not([disabled]) {
 		border-color: var(--checkbox-border-color-focus);
 		background-color: var(--checkbox-background-color-focus);
 	}
 
-	input:checked:focus {
+	input:checked:focus:not([disabled]) {
 		border-color: var(--checkbox-border-color-focus);
 		background-image: var(--radio-circle);
 		background-color: var(--checkbox-background-color-selected);
@@ -122,5 +129,9 @@
 	input[disabled],
 	.disabled {
 		cursor: not-allowed;
+	}
+
+	input[disabled] {
+		opacity: 0.75;
 	}
 </style>

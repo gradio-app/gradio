@@ -1,5 +1,280 @@
 # @self/component-test
 
+## 0.5.35
+
+### Dependency updates
+
+- @gradio/video@0.20.2
+
+## 0.5.35
+
+### Dependency updates
+
+- @gradio/video@0.20.1
+- @self/build@0.5.2
+
+## 0.5.35
+
+### Dependency updates
+
+- @gradio/video@0.20.0
+- @self/build@0.5.1
+
+## 0.5.34
+
+### Dependency updates
+
+- @gradio/video@0.19.0
+
+## 0.5.33
+
+### Dependency updates
+
+- @gradio/video@0.18.0
+
+## 0.5.33-dev.0
+
+### Dependency updates
+
+- @self/build@0.5.0-dev.1
+- @gradio/video@0.17.0-dev.2
+
+## 0.5.33-dev.0
+
+### Dependency updates
+
+- @gradio/video@0.17.0-dev.1
+- @self/build@0.4.1-dev.0
+
+## 0.5.33-dev.0
+
+### Dependency updates
+
+- @gradio/video@0.17.0-dev.0
+
+## 0.5.32
+
+### Dependency updates
+
+- @self/build@0.4.0
+- @gradio/video@0.16.0
+
+## 0.5.31
+
+### Dependency updates
+
+- @self/build@0.3.0
+- @gradio/video@0.15.1
+
+## 0.5.31
+
+### Dependency updates
+
+- @gradio/video@0.15.0
+
+## 0.5.30
+
+### Dependency updates
+
+- @gradio/video@0.14.24
+
+## 0.5.29
+
+### Dependency updates
+
+- @gradio/video@0.14.23
+
+## 0.5.28
+
+### Dependency updates
+
+- @gradio/video@0.14.22
+
+## 0.5.27
+
+### Dependency updates
+
+- @gradio/video@0.14.21
+
+## 0.5.26
+
+### Dependency updates
+
+- @gradio/video@0.14.20
+
+## 0.5.25
+
+### Dependency updates
+
+- @gradio/video@0.14.19
+
+## 0.5.24
+
+### Dependency updates
+
+- @gradio/video@0.14.18
+
+## 0.5.23
+
+### Dependency updates
+
+- @gradio/video@0.14.17
+
+## 0.5.22
+
+### Dependency updates
+
+- @gradio/video@0.14.16
+
+## 0.5.21
+
+### Dependency updates
+
+- @gradio/video@0.14.15
+
+## 0.5.20
+
+### Dependency updates
+
+- @gradio/video@0.14.14
+
+## 0.5.19
+
+### Dependency updates
+
+- @gradio/video@0.14.13
+
+## 0.5.18
+
+### Dependency updates
+
+- @gradio/video@0.14.12
+
+## 0.5.17
+
+### Dependency updates
+
+- @gradio/video@0.14.11
+
+## 0.5.16
+
+### Dependency updates
+
+- @gradio/video@0.14.10
+
+## 0.5.15
+
+### Dependency updates
+
+- @gradio/video@0.14.9
+
+## 0.5.14
+
+### Dependency updates
+
+- @gradio/video@0.14.8
+
+## 0.5.13
+
+### Dependency updates
+
+- @gradio/video@0.14.7
+
+## 0.5.12
+
+### Dependency updates
+
+- @gradio/video@0.14.6
+
+## 0.5.11
+
+### Dependency updates
+
+- @gradio/video@0.14.5
+
+## 0.5.10
+
+### Dependency updates
+
+- @gradio/video@0.14.4
+
+## 0.5.9
+
+### Dependency updates
+
+- @gradio/video@0.14.3
+
+## 0.5.8
+
+### Dependency updates
+
+- @gradio/video@0.14.2
+
+## 0.5.7
+
+### Dependency updates
+
+- @gradio/video@0.14.1
+- @self/build@0.2.1
+
+## 0.5.6
+
+### Dependency updates
+
+- @gradio/video@0.14.0
+
+## 0.5.5
+
+### Dependency updates
+
+- @gradio/video@0.13.4
+
+## 0.5.4
+
+### Dependency updates
+
+- @gradio/video@0.13.3
+
+## 0.5.3
+
+### Dependency updates
+
+- @gradio/video@0.13.2
+
+## 0.5.2
+
+### Dependency updates
+
+- @gradio/video@0.13.1
+
+## 0.5.1
+
+### Dependency updates
+
+- @gradio/video@0.13.0
+
+## 0.5.0
+
+### Features
+
+- [#10132](https://github.com/gradio-app/gradio/pull/10132) [`6645518`](https://github.com/gradio-app/gradio/commit/6645518a66e01ebcd2746626a4e2a14239172e76) - Tweak Chatbot `bubble_full_width` behaviour.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/video@0.12.1
+
+## 0.4.2
+
+### Dependency updates
+
+- @gradio/video@0.12.0
+
+## 0.4.1
+
+### Dependency updates
+
+- @gradio/video@0.11.9
+
 ## 0.4.0
 
 ### Features

@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/chatbot",
-	"version": "0.16.3",
+	"version": "0.29.3",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -17,11 +17,9 @@
 		"@gradio/theme": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@gradio/wasm": "workspace:^",
-		"@types/dompurify": "^3.0.2",
-		"@types/katex": "^0.16.0",
-		"@types/prismjs": "1.26.4",
-		"dequal": "^2.0.2"
+		"@types/katex": "^0.16.7",
+		"@types/prismjs": "1.26.5",
+		"dequal": "^2.0.3"
 	},
 	"devDependencies": {
 		"@gradio/audio": "workspace:^",
@@ -40,7 +38,7 @@
 		}
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.48.0"
 	},
 	"repository": {
 		"type": "git",

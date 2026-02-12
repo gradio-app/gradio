@@ -1,6 +1,7 @@
 const regex_italic = /\*(.*?)\*/g;
 const regex_code = /`(.*?)`/g;
 const regex_curly_brackets = /\{(.*?)\}/g;
+const regex_auto_links = /\b(https?:\/\/\S+)/g;
 
 export function style_formatted_text(formatted_text: string | null): string {
 	if (!formatted_text) return "";
@@ -15,7 +16,7 @@ export function style_formatted_text(formatted_text: string | null): string {
 			"<code class='text-orange-500' style='font-family: monospace; font-size: 0.9em;'>$1</code>"
 		)
 		.replace(
-			/\[(.*?)\]\((.*?)\)/g,
-			"<a href='$2' class= 'text-orange-500'>$1</a>"
+			regex_auto_links,
+			"<a href='$1' target='_blank' class='text-orange-500'>$1</a>"
 		);
 }

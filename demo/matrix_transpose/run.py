@@ -7,16 +7,17 @@ def transpose(matrix):
 
 demo = gr.Interface(
     transpose,
-    gr.Dataframe(type="numpy", datatype="number", row_count=5, col_count=3),
+    gr.Dataframe(type="numpy", datatype="number", row_count=5, column_count=3, buttons=["fullscreen"]),
     "numpy",
     examples=[
-        [np.zeros((3, 3)).tolist()],
+        [np.zeros((30, 30)).tolist()],
         [np.ones((2, 2)).tolist()],
         [np.random.randint(0, 10, (3, 10)).tolist()],
         [np.random.randint(0, 10, (10, 3)).tolist()],
         [np.random.randint(0, 10, (10, 10)).tolist()],
     ],
-    cache_examples=False
+    cache_examples=False,
+    api_name="predict"
 )
 
 if __name__ == "__main__":

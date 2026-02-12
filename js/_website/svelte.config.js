@@ -124,12 +124,11 @@ const config = {
 				`/main/docs/js/`,
 				...Object.keys(redirects),
 				`/4.44.1/docs`,
-				`/4.44.1/guides`
+				`/4.44.1/guides`,
+				`/5.49.1/docs`,
+				`/5.49.1/guides`
 			],
 			handleMissingId: "warn"
-		},
-		files: {
-			lib: "src/lib"
 		},
 		adapter: adapter({
 			fallback: "404.html"

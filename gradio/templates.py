@@ -9,7 +9,9 @@ import PIL.Image
 
 from gradio import components
 from gradio.components.audio import WaveformOptions
-from gradio.components.image_editor import Brush, Eraser
+from gradio.components.image_editor import Brush, Eraser, LayerOptions, WebcamOptions
+from gradio.components.textbox import InputHTMLAttributes
+from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -29,32 +31,36 @@ class TextArea(components.Textbox):
         lines: int = 7,
         max_lines: int = 20,
         placeholder: str | None = None,
-        label: str | None = None,
-        info: str | None = None,
+        label: str | I18nData | None = None,
+        info: str | I18nData | None = None,
         every: Timer | float | None = None,
-        inputs: components.Component
-        | Sequence[components.Component]
-        | set[components.Component]
-        | None = None,
+        inputs: (
+            components.Component
+            | Sequence[components.Component]
+            | set[components.Component]
+            | None
+        ) = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] | Literal["hidden"] = True,
         elem_id: str | None = None,
         autofocus: bool = False,
         autoscroll: bool = True,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         type: Literal["text", "password", "email"] = "text",
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
-        show_copy_button: bool = False,
+        buttons: list[Literal["fullscreen", "copy"]] | None = None,
         max_length: int | None = None,
         submit_btn: str | bool | None = False,
         stop_btn: str | bool | None = False,
+        html_attributes: InputHTMLAttributes | None = None,
     ):
         super().__init__(
             value=value,
@@ -77,13 +83,15 @@ class TextArea(components.Textbox):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             type=type,
             text_align=text_align,
             rtl=rtl,
-            show_copy_button=show_copy_button,
+            buttons=buttons,  # type: ignore
             max_length=max_length,
             submit_btn=submit_btn,
             stop_btn=stop_btn,
+            html_attributes=html_attributes,
         )
 
 
@@ -105,35 +113,36 @@ class Sketchpad(components.ImageEditor):
         ] = "RGBA",
         sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (),
         type: Literal["numpy", "pil", "filepath"] = "numpy",
-        label: str | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
-        inputs: components.Component
-        | Sequence[components.Component]
-        | set[components.Component]
-        | None = None,
+        inputs: (
+            components.Component
+            | Sequence[components.Component]
+            | set[components.Component]
+            | None
+        ) = None,
         show_label: bool | None = None,
-        show_download_button: bool = True,
+        buttons: list[Literal["download", "share", "fullscreen"]] | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         placeholder: str | None = None,
-        mirror_webcam: bool = True,
-        show_share_button: bool | None = None,
+        webcam_options: WebcamOptions | None = None,
         _selectable: bool = False,
-        crop_size: tuple[int | float, int | float] | str | None = None,
         transforms: Iterable[Literal["crop"]] = ("crop",),
         eraser: Eraser | None = None,
         brush: Brush | None = None,
         format: str = "webp",
-        layers: bool = True,
-        canvas_size: tuple[int, int] | None = None,
-        show_fullscreen_button: bool = True,
+        canvas_size: tuple[int, int] = (800, 800),
+        fixed_canvas: bool = False,
+        layers: LayerOptions | bool = True,
     ):
         if not brush:
             brush = Brush(colors=["#000000"], color_mode="fixed")
@@ -148,7 +157,7 @@ class Sketchpad(components.ImageEditor):
             every=every,
             inputs=inputs,
             show_label=show_label,
-            show_download_button=show_download_button,
+            buttons=buttons,  # type: ignore
             container=container,
             scale=scale,
             min_width=min_width,
@@ -158,18 +167,17 @@ class Sketchpad(components.ImageEditor):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             placeholder=placeholder,
-            mirror_webcam=mirror_webcam,
-            show_share_button=show_share_button,
+            webcam_options=webcam_options,
             _selectable=_selectable,
-            crop_size=crop_size,
             transforms=transforms,
             eraser=eraser,
             brush=brush,
             format=format,
             layers=layers,
             canvas_size=canvas_size,
-            show_fullscreen_button=show_fullscreen_button,
+            fixed_canvas=fixed_canvas,
         )
 
 
@@ -191,34 +199,35 @@ class Paint(components.ImageEditor):
         ] = "RGBA",
         sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (),
         type: Literal["numpy", "pil", "filepath"] = "numpy",
-        label: str | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
-        inputs: components.Component
-        | Sequence[components.Component]
-        | set[components.Component]
-        | None = None,
+        inputs: (
+            components.Component
+            | Sequence[components.Component]
+            | set[components.Component]
+            | None
+        ) = None,
         show_label: bool | None = None,
-        show_download_button: bool = True,
+        buttons: list[Literal["download", "share", "fullscreen"]] | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
-        mirror_webcam: bool = True,
-        show_share_button: bool | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
+        webcam_options: WebcamOptions | None = None,
         _selectable: bool = False,
-        crop_size: tuple[int | float, int | float] | str | None = None,
         transforms: Iterable[Literal["crop"]] = ("crop",),
         eraser: Eraser | None = None,
         brush: Brush | None = None,
         format: str = "webp",
-        layers: bool = True,
-        canvas_size: tuple[int, int] | None = None,
-        show_fullscreen_button: bool = True,
+        layers: LayerOptions | bool = True,
+        canvas_size: tuple[int, int] = (800, 800),
+        fixed_canvas: bool = False,
         placeholder: str | None = None,
     ):
         super().__init__(
@@ -232,7 +241,7 @@ class Paint(components.ImageEditor):
             every=every,
             inputs=inputs,
             show_label=show_label,
-            show_download_button=show_download_button,
+            buttons=buttons,  # type: ignore
             container=container,
             scale=scale,
             min_width=min_width,
@@ -242,18 +251,17 @@ class Paint(components.ImageEditor):
             elem_classes=elem_classes,
             render=render,
             key=key,
-            mirror_webcam=mirror_webcam,
-            show_share_button=show_share_button,
+            preserved_by_key=preserved_by_key,
+            webcam_options=webcam_options,
             _selectable=_selectable,
-            crop_size=crop_size,
             transforms=transforms,
             eraser=eraser,
             brush=brush,
             format=format,
             layers=layers,
             canvas_size=canvas_size,
-            show_fullscreen_button=show_fullscreen_button,
             placeholder=placeholder,
+            fixed_canvas=fixed_canvas,
         )
 
 
@@ -279,35 +287,36 @@ class ImageMask(components.ImageEditor):
             "clipboard",
         ),
         type: Literal["numpy", "pil", "filepath"] = "numpy",
-        label: str | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
-        inputs: components.Component
-        | Sequence[components.Component]
-        | set[components.Component]
-        | None = None,
+        inputs: (
+            components.Component
+            | Sequence[components.Component]
+            | set[components.Component]
+            | None
+        ) = None,
         show_label: bool | None = None,
-        show_download_button: bool = True,
+        buttons: list[Literal["download", "share", "fullscreen"]] | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         placeholder: str | None = None,
-        mirror_webcam: bool = True,
-        show_share_button: bool | None = None,
         _selectable: bool = False,
-        crop_size: tuple[int | float, int | float] | str | None = None,
         transforms: Iterable[Literal["crop"]] = ("crop",),
         eraser: Eraser | None = None,
         brush: Brush | None = None,
         format: str = "webp",
-        layers: bool = True,
-        canvas_size: tuple[int, int] | None = None,
-        show_fullscreen_button: bool = True,
+        layers: LayerOptions | bool = False,
+        canvas_size: tuple[int, int] = (800, 800),
+        fixed_canvas: bool = False,
+        webcam_options: WebcamOptions | None = None,
     ):
         if not brush:
             brush = Brush(colors=["#000000"], color_mode="fixed")
@@ -322,7 +331,7 @@ class ImageMask(components.ImageEditor):
             every=every,
             inputs=inputs,
             show_label=show_label,
-            show_download_button=show_download_button,
+            buttons=buttons,  # type: ignore
             container=container,
             scale=scale,
             min_width=min_width,
@@ -332,18 +341,17 @@ class ImageMask(components.ImageEditor):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             placeholder=placeholder,
-            mirror_webcam=mirror_webcam,
-            show_share_button=show_share_button,
+            webcam_options=webcam_options,
             _selectable=_selectable,
-            crop_size=crop_size,
             transforms=transforms,
             eraser=eraser,
             brush=brush,
             format=format,
             layers=layers,
             canvas_size=canvas_size,
-            show_fullscreen_button=show_fullscreen_button,
+            fixed_canvas=fixed_canvas,
         )
 
 
@@ -361,41 +369,43 @@ class PlayableVideo(components.Video):
         ) = None,
         *,
         format: Literal["mp4"] = "mp4",
-        sources: list[Literal["upload", "webcam"]]
-        | Literal["upload", "webcam"]
-        | None = None,
+        sources: (
+            list[Literal["upload", "webcam"]] | Literal["upload", "webcam"] | None
+        ) = None,
         height: int | str | None = None,
         width: int | str | None = None,
-        label: str | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
-        inputs: components.Component
-        | Sequence[components.Component]
-        | set[components.Component]
-        | None = None,
+        inputs: (
+            components.Component
+            | Sequence[components.Component]
+            | set[components.Component]
+            | None
+        ) = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
-        mirror_webcam: bool = True,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
+        webcam_options: WebcamOptions | None = None,
         include_audio: bool | None = None,
         autoplay: bool = False,
-        show_share_button: bool | None = None,
-        show_download_button: bool | None = None,
-        min_length: int | None = None,
-        max_length: int | None = None,
+        buttons: list[Literal["download", "share"]] | None = None,
         loop: bool = False,
         streaming: bool = False,
         watermark: str | Path | None = None,
+        subtitles: str | Path | None = None,
+        playback_position: int = 0,
     ):
         sources = ["upload"]
         super().__init__(
-            value=value,
+            value=value,  # type: ignore
             format=format,
             sources=sources,  # type: ignore
             height=height,
@@ -413,16 +423,16 @@ class PlayableVideo(components.Video):
             elem_classes=elem_classes,
             render=render,
             key=key,
-            mirror_webcam=mirror_webcam,
+            preserved_by_key=preserved_by_key,
             include_audio=include_audio,
             autoplay=autoplay,
-            show_share_button=show_share_button,
-            show_download_button=show_download_button,
-            min_length=min_length,
-            max_length=max_length,
+            buttons=buttons,  # type: ignore
             loop=loop,
             streaming=streaming,
-            watermark=watermark,
+            watermark=watermark,  # type: ignore
+            webcam_options=webcam_options,
+            subtitles=subtitles,
+            playback_position=playback_position,
         )
 
 
@@ -437,37 +447,41 @@ class Microphone(components.Audio):
         self,
         value: str | Path | tuple[int, np.ndarray] | Callable | None = None,
         *,
-        sources: list[Literal["upload", "microphone"]]
-        | Literal["upload", "microphone"]
-        | None = None,
+        sources: (
+            list[Literal["upload", "microphone"]]
+            | Literal["upload", "microphone"]
+            | None
+        ) = None,
         type: Literal["numpy", "filepath"] = "numpy",
-        label: str | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
-        inputs: components.Component
-        | Sequence[components.Component]
-        | set[components.Component]
-        | None = None,
+        inputs: (
+            components.Component
+            | Sequence[components.Component]
+            | set[components.Component]
+            | None
+        ) = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         streaming: bool = False,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         format: Literal["wav", "mp3"] = "wav",
         autoplay: bool = False,
-        show_download_button: bool | None = None,
-        show_share_button: bool | None = None,
+        buttons: list[Literal["download", "share"]] | None = None,
         editable: bool = True,
-        min_length: int | None = None,
-        max_length: int | None = None,
         waveform_options: WaveformOptions | dict | None = None,
         loop: bool = False,
         recording: bool = False,
+        subtitles: str | Path | None = None,
+        playback_position: int = 0,
     ):
         sources = ["microphone"]
         super().__init__(
@@ -488,16 +502,16 @@ class Microphone(components.Audio):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             format=format,
             autoplay=autoplay,
-            show_download_button=show_download_button,
-            show_share_button=show_share_button,
+            buttons=buttons,  # type: ignore
             editable=editable,
-            min_length=min_length,
-            max_length=max_length,
             waveform_options=waveform_options,
             loop=loop,
             recording=recording,
+            subtitles=subtitles,
+            playback_position=playback_position,
         )
 
 
@@ -515,23 +529,28 @@ class Files(components.File):
         file_count: Literal["multiple"] = "multiple",
         file_types: list[str] | None = None,
         type: Literal["filepath", "binary"] = "filepath",
-        label: str | None = None,
+        label: str | I18nData | None = None,
         every: Timer | float | None = None,
-        inputs: components.Component
-        | Sequence[components.Component]
-        | set[components.Component]
-        | None = None,
+        inputs: (
+            components.Component
+            | Sequence[components.Component]
+            | set[components.Component]
+            | None
+        ) = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
         height: int | float | None = None,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
+        allow_reordering: bool = False,
+        buttons: list[components.Button] | None = None,
     ):
         super().__init__(
             value,
@@ -552,6 +571,9 @@ class Files(components.File):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
+            buttons=buttons,  # type: ignore
+            allow_reordering=allow_reordering,
         )
 
 
@@ -568,35 +590,53 @@ class Numpy(components.Dataframe):
         *,
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
+        row_limits: tuple[int | None, int | None] | None = None,
         col_count: int | tuple[int, str] | None = None,
-        datatype: str | list[str] = "str",
+        column_count: int | tuple[int, str] | None = None,
+        column_limits: tuple[int | None, int | None] | None = None,
+        datatype: (
+            Literal["str", "number", "bool", "date", "markdown", "html"]
+            | Sequence[Literal["str", "number", "bool", "date", "markdown", "html"]]
+        ) = "str",
         type: Literal["numpy"] = "numpy",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
-        label: str | None = None,
+        label: str | I18nData | None = None,
         show_label: bool | None = None,
         every: Timer | float | None = None,
-        inputs: components.Component
-        | Sequence[components.Component]
-        | set[components.Component]
-        | None = None,
+        inputs: (
+            components.Component
+            | Sequence[components.Component]
+            | set[components.Component]
+            | None
+        ) = None,
         max_height: int = 500,
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         wrap: bool = False,
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
+        show_row_numbers: bool = False,
+        show_search: Literal["none", "search", "filter"] = "none",
+        static_columns: list[int] | None = None,
+        pinned_columns: int | None = None,
+        max_chars: int | None = None,
+        buttons: list[Literal["fullscreen", "copy"]] | None = None,
     ):
         super().__init__(
             value=value,
             headers=headers,
-            row_count=row_count,
-            col_count=col_count,
+            row_count=row_count,  # type: ignore
+            row_limits=row_limits,
+            col_count=col_count,  # type: ignore
+            column_count=column_count,  # type: ignore
+            column_limits=column_limits,
             datatype=datatype,
             type=type,
             label=label,
@@ -608,6 +648,7 @@ class Numpy(components.Dataframe):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             line_breaks=line_breaks,
             column_widths=column_widths,
             every=every,
@@ -616,6 +657,12 @@ class Numpy(components.Dataframe):
             scale=scale,
             latex_delimiters=latex_delimiters,
             min_width=min_width,
+            show_row_numbers=show_row_numbers,
+            show_search=show_search,
+            pinned_columns=pinned_columns,
+            buttons=buttons,  # type: ignore
+            static_columns=static_columns,
+            max_chars=max_chars,
         )
 
 
@@ -632,35 +679,53 @@ class Matrix(components.Dataframe):
         *,
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
+        row_limits: tuple[int | None, int | None] | None = None,
         col_count: int | tuple[int, str] | None = None,
-        datatype: str | list[str] = "str",
+        column_count: int | tuple[int, str] | None = None,
+        column_limits: tuple[int | None, int | None] | None = None,
+        datatype: (
+            Literal["str", "number", "bool", "date", "markdown", "html"]
+            | Sequence[Literal["str", "number", "bool", "date", "markdown", "html"]]
+        ) = "str",
         type: Literal["array"] = "array",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
-        label: str | None = None,
+        label: str | I18nData | None = None,
         show_label: bool | None = None,
         every: Timer | float | None = None,
-        inputs: components.Component
-        | Sequence[components.Component]
-        | set[components.Component]
-        | None = None,
+        inputs: (
+            components.Component
+            | Sequence[components.Component]
+            | set[components.Component]
+            | None
+        ) = None,
         max_height: int = 500,
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         wrap: bool = False,
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
+        show_row_numbers: bool = False,
+        show_search: Literal["none", "search", "filter"] = "none",
+        pinned_columns: int | None = None,
+        max_chars: int | None = None,
+        buttons: list[Literal["fullscreen", "copy"]] | None = None,
+        static_columns: list[int] | None = None,
     ):
         super().__init__(
             value=value,
             headers=headers,
-            row_count=row_count,
-            col_count=col_count,
+            row_count=row_count,  # type: ignore
+            row_limits=row_limits,
+            col_count=col_count,  # type: ignore
+            column_count=column_count,  # type: ignore
+            column_limits=column_limits,
             datatype=datatype,
             type=type,
             label=label,
@@ -672,6 +737,7 @@ class Matrix(components.Dataframe):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             line_breaks=line_breaks,
             column_widths=column_widths,
             every=every,
@@ -680,6 +746,12 @@ class Matrix(components.Dataframe):
             scale=scale,
             latex_delimiters=latex_delimiters,
             min_width=min_width,
+            show_row_numbers=show_row_numbers,
+            show_search=show_search,
+            pinned_columns=pinned_columns,
+            buttons=buttons,  # type: ignore
+            static_columns=static_columns,
+            max_chars=max_chars,
         )
 
 
@@ -696,35 +768,53 @@ class List(components.Dataframe):
         *,
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
+        row_limits: tuple[int | None, int | None] | None = None,
         col_count: Literal[1] = 1,
-        datatype: str | list[str] = "str",
+        column_count: Literal[1] | None = None,
+        column_limits: tuple[int | None, int | None] | None = None,
+        datatype: (
+            Literal["str", "number", "bool", "date", "markdown", "html"]
+            | Sequence[Literal["str", "number", "bool", "date", "markdown", "html"]]
+        ) = "str",
         type: Literal["array"] = "array",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
-        label: str | None = None,
+        label: str | I18nData | None = None,
         show_label: bool | None = None,
         every: Timer | float | None = None,
-        inputs: components.Component
-        | Sequence[components.Component]
-        | set[components.Component]
-        | None = None,
+        inputs: (
+            components.Component
+            | Sequence[components.Component]
+            | set[components.Component]
+            | None
+        ) = None,
         max_height: int = 500,
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         wrap: bool = False,
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
+        show_row_numbers: bool = False,
+        show_search: Literal["none", "search", "filter"] = "none",
+        pinned_columns: int | None = None,
+        max_chars: int | None = None,
+        buttons: list[Literal["fullscreen", "copy"]] | None = None,
+        static_columns: list[int] | None = None,
     ):
         super().__init__(
             value=value,
             headers=headers,
-            row_count=row_count,
-            col_count=col_count,
+            row_count=row_count,  # type: ignore
+            row_limits=row_limits,
+            col_count=col_count,  # type: ignore
+            column_count=column_count,  # type: ignore
+            column_limits=column_limits,
             datatype=datatype,
             type=type,
             label=label,
@@ -736,6 +826,7 @@ class List(components.Dataframe):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
             line_breaks=line_breaks,
             column_widths=column_widths,
             every=every,
@@ -744,6 +835,12 @@ class List(components.Dataframe):
             scale=scale,
             latex_delimiters=latex_delimiters,
             min_width=min_width,
+            show_row_numbers=show_row_numbers,
+            show_search=show_search,
+            static_columns=static_columns,
+            pinned_columns=pinned_columns,
+            buttons=buttons,  # type: ignore
+            max_chars=max_chars,
         )
 
 

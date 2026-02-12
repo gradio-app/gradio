@@ -34,14 +34,17 @@ import { check_and_wake_space, check_space_status } from "./helpers/spaces";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
 import {
 	API_INFO_ERROR_MSG,
+	APP_ID_URL,
 	CONFIG_ERROR_MSG,
 	HEARTBEAT_URL,
 	COMPONENT_SERVER_URL
 } from "./constants";
+declare const BROWSER_BUILD: boolean;
 
 export class Client {
 	app_reference: string;
 	options: ClientOptions;
+	deep_link: string | null = null;
 
 	config: Config | undefined;
 	api_prefix = "";
@@ -55,6 +58,7 @@ export class Client {
 
 	// streaming
 	stream_status = { open: false };
+	closed = false;
 	pending_stream_messages: Record<string, any[][]> = {};
 	pending_diff_streams: Record<string, any[][]> = {};
 	event_callbacks: Record<string, (data?: unknown) => Promise<void>> = {};
@@ -63,7 +67,45 @@ export class Client {
 	abort_controller: AbortController | null = null;
 	stream_instance: EventSource | null = null;
 	current_payload: any;
-	ws_map: Record<string, WebSocket | "failed"> = {};
+
+	get_url_config(url: string | null = null): Config {
+		if (!this.config) {
+			throw new Error(CONFIG_ERROR_MSG);
+		}
+		if (url === null) {
+			url = window.location.href;
+		}
+		const stripSlashes = (str: string): string => str.replace(/^\/+|\/+$/g, "");
+		let root_path = stripSlashes(new URL(this.config.root).pathname);
+		let url_path = stripSlashes(new URL(url).pathname);
+		let page: string;
+		if (!url_path.startsWith(root_path)) {
+			page = "";
+		} else {
+			page = stripSlashes(url_path.substring(root_path.length));
+		}
+		return this.get_page_config(page);
+	}
+	get_page_config(page: string): Config {
+		if (!this.config) {
+			throw new Error(CONFIG_ERROR_MSG);
+		}
+		let config = this.config;
+		if (!(page in config.page)) {
+			page = "";
+		}
+		return {
+			...config,
+			current_page: page,
+			layout: config.page[page].layout,
+			components: config.components.filter((c) =>
+				config.page[page].components.includes(c.id)
+			),
+			dependencies: this.config.dependencies.filter((d) =>
+				config.page[page].dependencies.includes(d.id)
+			)
+		};
+	}
 
 	fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
 		const headers = new Headers(init?.headers || {});
@@ -71,9 +113,11 @@ export class Client {
 			headers.append("Cookie", this.cookies);
 		}
 		if (this && this.options.headers) {
-			for (const name in this.options.headers) {
-				headers.append(name, this.options.headers[name]);
-			}
+			let additional_headers = new Headers(this.options.headers);
+
+			additional_headers.forEach((value, name) => {
+				headers.append(name, value);
+			});
 		}
 
 		return fetch(input, { ...init, headers });
@@ -85,9 +129,14 @@ export class Client {
 			headers.append("Cookie", this.cookies);
 		}
 		if (this && this.options.headers) {
-			for (const name in this.options.headers) {
-				headers.append(name, this.options.headers[name]);
-			}
+			let additional_headers = new Headers(this.options.headers);
+
+			additional_headers.forEach((value, name) => {
+				headers.append(name, value);
+			});
+		}
+		if (this && this.options.token) {
+			headers.append("Authorization", `Bearer ${this.options.token}`);
 		}
 
 		this.abort_controller = new AbortController();
@@ -130,11 +179,11 @@ export class Client {
 		trigger_id?: number | null,
 		all_events?: boolean
 	) => SubmitIterable<GradioEvent>;
-	predict: (
+	predict: <T = unknown>(
 		endpoint: string | number,
 		data: unknown[] | Record<string, unknown> | undefined,
 		event_data?: unknown
-	) => Promise<PredictReturn>;
+	) => Promise<PredictReturn<T>>;
 	open_stream: () => Promise<void>;
 	private resolve_config: (endpoint: string) => Promise<Config | undefined>;
 	private resolve_cookies: () => Promise<void>;
@@ -143,18 +192,24 @@ export class Client {
 		options: ClientOptions = { events: ["data"] }
 	) {
 		this.app_reference = app_reference;
+		this.deep_link = options.query_params?.deep_link || null;
 		if (!options.events) {
 			options.events = ["data"];
 		}
 
 		this.options = options;
 		this.current_payload = {};
+
+		if (options.cookies) {
+			this.cookies = options.cookies;
+		}
+
 		this.view_api = view_api.bind(this);
 		this.upload_files = upload_files.bind(this);
 		this.handle_blob = handle_blob.bind(this);
 		this.post_data = post_data.bind(this);
 		this.submit = submit.bind(this);
-		this.predict = predict.bind(this);
+		this.predict = predict.bind(this) as typeof this.predict;
 		this.open_stream = open_stream.bind(this);
 		this.resolve_config = resolve_config.bind(this);
 		this.resolve_cookies = resolve_cookies.bind(this);
@@ -165,44 +220,36 @@ export class Client {
 	}
 
 	private async init(): Promise<void> {
-		if (
-			(typeof window === "undefined" || !("WebSocket" in window)) &&
-			!global.WebSocket
-		) {
-			const ws = await import("ws");
-			global.WebSocket = ws.WebSocket as unknown as typeof WebSocket;
-		}
-
 		if (this.options.auth) {
 			await this.resolve_cookies();
 		}
 
 		await this._resolve_config().then(({ config }) =>
-			this._resolve_hearbeat(config)
+			this._resolve_heartbeat(config)
 		);
 
 		this.api_info = await this.view_api();
 		this.api_map = map_names_to_ids(this.config?.dependencies || []);
 	}
 
-	async _resolve_hearbeat(_config: Config): Promise<void> {
+	async _resolve_heartbeat(_config: Config): Promise<void> {
 		if (_config) {
 			this.config = _config;
 			this.api_prefix = _config.api_prefix || "";
 
 			if (this.config && this.config.connect_heartbeat) {
-				if (this.config.space_id && this.options.hf_token) {
+				if (this.config.space_id && this.options.token) {
 					this.jwt = await get_jwt(
 						this.config.space_id,
-						this.options.hf_token,
+						this.options.token,
 						this.cookies
 					);
 				}
 			}
 		}
 
-		if (_config.space_id && this.options.hf_token) {
-			this.jwt = await get_jwt(_config.space_id, this.options.hf_token);
+		if (_config.space_id && this.options.token) {
+			this.jwt = await get_jwt(_config.space_id, this.options.token);
 		}
 
 		if (this.config && this.config.connect_heartbeat) {
@@ -230,11 +277,35 @@ export class Client {
 		}
 	): Promise<Client> {
 		const client = new this(app_reference, options); // this refers to the class itself, not the instance
+		if (options.session_hash) {
+			client.session_hash = options.session_hash;
+		}
 		await client.init();
 		return client;
 	}
 
+	async reconnect(): Promise<"connected" | "broken" | "changed"> {
+		const app_id_url = new URL(
+			`${this.config!.root}${this.api_prefix}/${APP_ID_URL}`
+		);
+		let app_id: string;
+		try {
+			const response = await this.fetch(app_id_url);
+			if (!response.ok) {
+				throw new Error();
+			}
+			app_id = ((await response.json()) as any).app_id;
+		} catch (e) {
+			return "broken";
+		}
+		if (app_id !== this.config!.app_id) {
+			return "changed";
+		}
+		return "connected";
+	}
+
 	close(): void {
+		this.closed = true;
 		close_stream(this.stream_status, this.abort_controller);
 	}
 
@@ -254,7 +325,7 @@ export class Client {
 	private async _resolve_config(): Promise<any> {
 		const { http_protocol, host, space_id } = await process_endpoint(
 			this.app_reference,
-			this.options.hf_token
+			this.options.token
 		);
 
 		const { status_callback } = this.options;
@@ -266,7 +337,9 @@ export class Client {
 		let config: Config | undefined;
 
 		try {
-			config = await this.resolve_config(`${http_protocol}//${host}`);
+			// Create base URL
+			let configUrl = `${http_protocol}//${host}`;
+			config = await this.resolve_config(configUrl);
 
 			if (!config) {
 				throw new Error(CONFIG_ERROR_MSG);
@@ -298,12 +371,6 @@ export class Client {
 	): Promise<Config | client_return> {
 		this.config = _config;
 		this.api_prefix = _config.api_prefix || "";
-
-		if (typeof window !== "undefined" && typeof document !== "undefined") {
-			if (window.location.protocol === "https:") {
-				this.config.root = this.config.root.replace("http://", "https://");
-			}
-		}
 
 		if (this.config.auth_required) {
 			return this.prepare_return_obj();
@@ -364,11 +431,11 @@ export class Client {
 			"Content-Type"?: "application/json";
 		} = {};
 
-		const { hf_token } = this.options;
+		const { token } = this.options;
 		const { session_hash } = this;
 
-		if (hf_token) {
-			headers.Authorization = `Bearer ${this.options.hf_token}`;
+		if (token) {
+			headers.Authorization = `Bearer ${this.options.token}`;
 		}
 
 		let root_url: string;
@@ -403,8 +470,8 @@ export class Client {
 			headers["Content-Type"] = "application/json";
 		}
 
-		if (hf_token) {
-			headers.Authorization = `Bearer ${hf_token}`;
+		if (token) {
+			headers.Authorization = `Bearer ${token}`;
 		}
 
 		try {
@@ -443,60 +510,6 @@ export class Client {
 			view_api: this.view_api,
 			component_server: this.component_server
 		};
-	}
-
-	private async connect_ws(url: string): Promise<void> {
-		return new Promise((resolve, reject) => {
-			let ws;
-			try {
-				ws = new WebSocket(url);
-			} catch (e) {
-				this.ws_map[url] = "failed";
-				return;
-			}
-
-			ws.onopen = () => {
-				resolve();
-			};
-
-			ws.onerror = (error) => {
-				console.error("WebSocket error:", error);
-				this.close_ws(url);
-				this.ws_map[url] = "failed";
-				resolve();
-			};
-
-			ws.onclose = () => {
-				delete this.ws_map[url];
-				this.ws_map[url] = "failed";
-			};
-
-			ws.onmessage = (event) => {};
-			this.ws_map[url] = ws;
-		});
-	}
-
-	async send_ws_message(url: string, data: any): Promise<void> {
-		// connect if not connected
-		if (!(url in this.ws_map)) {
-			await this.connect_ws(url);
-		}
-		const ws = this.ws_map[url];
-		if (ws instanceof WebSocket) {
-			ws.send(JSON.stringify(data));
-		} else {
-			this.post_data(url, data);
-		}
-	}
-
-	async close_ws(url: string): Promise<void> {
-		if (url in this.ws_map) {
-			const ws = this.ws_map[url];
-			if (ws instanceof WebSocket) {
-				ws.close();
-				delete this.ws_map[url];
-			}
-		}
 	}
 }
 

@@ -1,106 +1,61 @@
 <script context="module" lang="ts">
 	export { default as BaseDropdown } from "./shared/Dropdown.svelte";
+	export { default as BaseDropdownOptions } from "./shared/DropdownOptions.svelte";
 	export { default as BaseMultiselect } from "./shared/Multiselect.svelte";
 	export { default as BaseExample } from "./Example.svelte";
 </script>
 
 <script lang="ts">
-	import type { Gradio, KeyUpData, SelectData } from "@gradio/utils";
+	import { Gradio } from "@gradio/utils";
 	import Multiselect from "./shared/Multiselect.svelte";
 	import Dropdown from "./shared/Dropdown.svelte";
-	import { Block } from "@gradio/atoms";
+	import { Block, IconButtonWrapper } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
+	import type { DropdownProps, DropdownEvents } from "./types.ts";
 
-	type Item = string | number;
-
-	export let label = "Dropdown";
-	export let info: string | undefined = undefined;
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible = true;
-	export let multiselect = false;
-	export let value: Item | Item[] | undefined = multiselect ? [] : undefined;
-	export let value_is_output = false;
-	export let max_choices: number | null = null;
-	export let choices: [string, Item][];
-	export let show_label: boolean;
-	export let filterable: boolean;
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let loading_status: LoadingStatus;
-	export let allow_custom_value = false;
-	export let root: string;
-	export let gradio: Gradio<{
-		change: never;
-		input: never;
-		select: SelectData;
-		blur: never;
-		focus: never;
-		key_up: KeyUpData;
-		clear_status: LoadingStatus;
-	}>;
-	export let interactive: boolean;
+	let props = $props();
+	const gradio = new Gradio<DropdownEvents, DropdownProps>(props);
 </script>
 
 <Block
-	{visible}
-	{elem_id}
-	{elem_classes}
-	padding={container}
+	visible={gradio.shared.visible}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+	padding={gradio.shared.container}
 	allow_overflow={false}
-	{scale}
-	{min_width}
+	scale={gradio.shared.scale}
+	min_width={gradio.shared.min_width}
 >
 	<StatusTracker
-		autoscroll={gradio.autoscroll}
+		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
-		{...loading_status}
-		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+		{...gradio.shared.loading_status}
+		on_clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 
-	{#if multiselect}
-		<Multiselect
-			bind:value
-			bind:value_is_output
-			{choices}
-			{max_choices}
-			{root}
-			{label}
-			{info}
-			{show_label}
-			{allow_custom_value}
-			{filterable}
-			{container}
-			i18n={gradio.i18n}
-			on:change={() => gradio.dispatch("change")}
-			on:input={() => gradio.dispatch("input")}
-			on:select={(e) => gradio.dispatch("select", e.detail)}
-			on:blur={() => gradio.dispatch("blur")}
-			on:focus={() => gradio.dispatch("focus")}
-			on:key_up={() => gradio.dispatch("key_up")}
-			disabled={!interactive}
-		/>
+	{#if gradio.props.multiselect}
+		<Multiselect {gradio} />
 	{:else}
 		<Dropdown
-			bind:value
-			bind:value_is_output
-			{choices}
-			{label}
-			{root}
-			{info}
-			{show_label}
-			{filterable}
-			{allow_custom_value}
-			{container}
-			on:change={() => gradio.dispatch("change")}
-			on:input={() => gradio.dispatch("input")}
-			on:select={(e) => gradio.dispatch("select", e.detail)}
-			on:blur={() => gradio.dispatch("blur")}
-			on:focus={() => gradio.dispatch("focus")}
-			on:key_up={(e) => gradio.dispatch("key_up", e.detail)}
-			disabled={!interactive}
+			label={gradio.shared.label}
+			info={gradio.props.info}
+			bind:value={gradio.props.value}
+			choices={gradio.props.choices}
+			interactive={gradio.shared.interactive}
+			show_label={gradio.shared.show_label}
+			container={gradio.shared.container}
+			allow_custom_value={gradio.props.allow_custom_value}
+			filterable={gradio.props.filterable}
+			buttons={gradio.props.buttons}
+			oncustom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
+			on_change={() => gradio.dispatch("change")}
+			on_input={() => gradio.dispatch("input")}
+			on_select={(data) => gradio.dispatch("select", data)}
+			on_focus={() => gradio.dispatch("focus")}
+			on_blur={() => gradio.dispatch("blur")}
+			on_key_up={(data) => gradio.dispatch("key_up", data)}
 		/>
 	{/if}
 </Block>

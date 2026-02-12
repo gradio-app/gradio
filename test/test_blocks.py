@@ -6,6 +6,7 @@ import os
 import pathlib
 import random
 import sys
+import threading
 import time
 import uuid
 import warnings
@@ -20,7 +21,7 @@ import numpy as np
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from gradio_client import Client, media_data
+from gradio_client import Client
 from PIL import Image
 
 import gradio as gr
@@ -92,7 +93,20 @@ class TestBlocksMethods:
         for component in config1["components"]:
             component["props"]["proxy_url"] = f"{fake_url}/"
         config2 = demo2.get_config_file()
-        assert assert_configs_are_equivalent_besides_ids(config1, config2)  # type: ignore
+        assert assert_configs_are_equivalent_besides_ids(config1, config2)
+
+    def test_load_from_config_with_blocks_events(self):
+        fake_url = "https://fake.hf.space"
+
+        def fn():
+            return "Hello"
+
+        with gr.Blocks() as demo:
+            t = gr.Textbox()
+            demo.load(fn, None, t)
+
+        config = demo.get_config_file()
+        gr.Blocks.from_config(config, [fn], fake_url)  # Should not raise
 
     def test_partial_fn_in_config(self):
         def greet(name, formatter):
@@ -186,13 +200,17 @@ class TestBlocksMethods:
             }
         """
         css = css * 5  # simulate a long css string
-        block = gr.Blocks(css=css)
-
+        with gr.Blocks() as block:
+            pass
+        block.launch(prevent_thread_lock=True, css=css)
         assert block.css == css
+        block.close()
 
     @pytest.mark.asyncio
     async def test_restart_after_close(self, connect):
-        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox()).queue()
+        io = gr.Interface(
+            lambda s: s, gr.Textbox(), gr.Textbox(), api_name="predict"
+        ).queue()
 
         with connect(io) as client:
             assert client.predict("freddy", api_name="/predict") == "freddy"
@@ -246,7 +264,7 @@ class TestBlocksMethods:
                 await asyncio.sleep(0.2)
 
         demo = gr.Interface(
-            async_iteration, gr.Number(precision=0), gr.Number()
+            async_iteration, gr.Number(precision=0), gr.Number(), api_name="predict"
         ).queue()
         outputs = []
         with connect(demo) as client:
@@ -258,7 +276,7 @@ class TestBlocksMethods:
         def generator(string):
             yield from string
 
-        demo = gr.Interface(generator, "text", "text").queue()
+        demo = gr.Interface(generator, "text", "text", api_name="predict").queue()
         outputs = []
         with connect(demo) as client:
             for output in client.submit("abc", api_name="/predict"):
@@ -364,8 +382,14 @@ class TestBlocksMethods:
         with pytest.warns(
             UserWarning, match="Cannot load freddyaboulton/this-theme-does-not-exist"
         ):
-            with gr.Blocks(theme="freddyaboulton/this-theme-does-not-exist") as demo:
-                assert demo.theme.to_dict() == gr.themes.Default().to_dict()
+            with gr.Blocks() as demo:
+                pass
+            demo.launch(
+                prevent_thread_lock=True,
+                theme="freddyaboulton/this-theme-does-not-exist",
+            )
+            assert demo.theme.to_dict() == gr.themes.Default().to_dict()
+            demo.close()
 
     def test_exit_called_at_launch(self):
         with gr.Blocks() as demo:
@@ -390,6 +414,7 @@ class TestTempFile:
             create_images,
             inputs="slider",
             outputs=gallery,
+            api_name="predict",
         )
         with connect(demo) as client:
             client.predict(3, api_name="/predict")
@@ -405,6 +430,7 @@ class TestTempFile:
             lambda x: x,
             inputs=gr.Image(type="filepath"),
             outputs=gr.Image(),
+            api_name="predict",
         )
         with connect(demo) as client:
             _ = client.predict(image, api_name="/predict")
@@ -416,7 +442,9 @@ class TestTempFile:
     @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
     def test_file_component_uploads(self, component, connect, gradio_temp_dir):
         code_file = grc.handle_file(str(pathlib.Path(__file__)))
-        demo = gr.Interface(lambda x: x.name, component(), gr.File())
+        demo = gr.Interface(
+            lambda x: x.name, component(), gr.File(), api_name="predict"
+        )
         with connect(demo) as client:
             _ = client.predict(code_file, api_name="/predict")
             _ = client.predict(code_file, api_name="/predict")
@@ -429,10 +457,10 @@ class TestTempFile:
     def test_no_empty_video_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         video = grc.handle_file(str(file_dir / "video_sample.mp4"))
-        demo = gr.Interface(lambda x: x, gr.Video(), gr.Video())
+        demo = gr.Interface(lambda x: x, gr.Video(), gr.Video(), api_name="predict")
         with connect(demo) as client:
-            _ = client.predict({"video": video}, api_name="/predict")
-            _ = client.predict({"video": video}, api_name="/predict")
+            _ = client.predict(video, api_name="/predict")
+            _ = client.predict(video, api_name="/predict")
         # Upload route and postprocessing return the same file
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
@@ -444,7 +472,9 @@ class TestTempFile:
             sr, data = audio
             return (sr, np.flipud(data))
 
-        demo = gr.Interface(fn=reverse_audio, inputs=gr.Audio(), outputs=gr.Audio())
+        demo = gr.Interface(
+            fn=reverse_audio, inputs=gr.Audio(), outputs=gr.Audio(), api_name="predict"
+        )
         with connect(demo) as client:
             _ = client.predict(audio, api_name="/predict")
             _ = client.predict(audio, api_name="/predict")
@@ -515,6 +545,11 @@ class TestComponentsInBlocks:
         assert all(
             comp.load_event in demo.config["dependencies"] for comp in components
         )
+
+    def test_load_events_work_with_builtins(self):
+        with gr.Blocks() as demo:
+            gr.State(dict)
+        demo.get_api_info()
 
 
 class TestBlocksPostprocessing:
@@ -616,7 +651,7 @@ class TestBlocksPostprocessing:
         assert output[0] == 23
 
     @pytest.mark.asyncio
-    async def test_blocks_update_dict_without_postprocessing(self):
+    async def test_blocks_update_dict_without_postprocessing(self, media_data):
         def infer(x):
             return media_data.BASE64_IMAGE, gr.update(visible=True)
 
@@ -633,7 +668,7 @@ class TestBlocksPostprocessing:
 
     @pytest.mark.asyncio
     async def test_blocks_update_dict_does_not_postprocess_value_if_postprocessing_false(
-        self,
+        self, media_data
     ):
         def infer(x):
             return gr.Image(value=media_data.BASE64_IMAGE)
@@ -778,7 +813,12 @@ class TestBlocksPostprocessing:
                 dataset = gr.Dataset(
                     components=["text"], samples=[["Original"]], label="Saved Prompts"
                 )
-                dataset.click(update, inputs=[dataset], outputs=[textbox, dataset])
+                dataset.click(
+                    update,
+                    inputs=[dataset],
+                    outputs=[textbox, dataset],
+                    api_name="predict",
+                )
         app, _, _ = demo.launch(prevent_thread_lock=True)
 
         client = TestClient(app)
@@ -809,6 +849,7 @@ class TestStateHolder:
                 run,
                 inputs=[num, state],
                 outputs=[num, state],
+                api_name="predict",
             )
         app, _, _ = demo.launch(prevent_thread_lock=True, state_session_capacity=2)
         client = TestClient(app)
@@ -864,6 +905,7 @@ class TestStateHolder:
                 run,
                 inputs=[min, num],
                 outputs=[min, num],
+                api_name="predict",
             )
         app, _, _ = demo.launch(prevent_thread_lock=True, state_session_capacity=2)
         client = TestClient(app)
@@ -1049,35 +1091,6 @@ class TestCallFunction:
 
 
 class TestBatchProcessing:
-    def test_raise_exception_if_batching_an_event_thats_not_queued(self):
-        def trim(words, lens):
-            trimmed_words = [
-                word[: int(length)] for word, length in zip(words, lens, strict=False)
-            ]
-            return [trimmed_words]
-
-        msg = "In order to use batching, the queue must be enabled."
-
-        with pytest.raises(ValueError, match=msg):
-            with gr.Blocks() as demo:
-                with gr.Row():
-                    word = gr.Textbox(label="word")
-                    leng = gr.Number(label="leng")
-                    output = gr.Textbox(label="Output")
-                with gr.Row():
-                    run = gr.Button()
-
-                run.click(
-                    trim,
-                    [word, leng],
-                    output,
-                    batch=True,
-                    max_batch_size=16,
-                    queue=False,
-                )
-            demo.queue()
-            demo.launch(prevent_thread_lock=True)
-
     @pytest.mark.asyncio
     async def test_call_regular_function(self):
         def batch_fn(x):
@@ -1342,6 +1355,38 @@ class TestRender:
             ["Ask question", "Show question"],
         )
 
+    def test_unrender_in_different_blocks_context(self):
+        def count_key_value(obj, key, value):
+            """
+            Recursively count how many times `obj[key] == value` appears in a nested structure.
+            """
+            count = 0
+            if isinstance(obj, dict):
+                if obj.get(key) == value:
+                    count += 1
+                for v in obj.values():
+                    count += count_key_value(v, key, value)
+            elif isinstance(obj, list):
+                for item in obj:
+                    count += count_key_value(item, key, value)
+            return count
+
+        with gr.Blocks() as demo:
+            with gr.Row() as row1:
+                textbox = gr.Textbox()
+                assert textbox.parent == row1
+            with gr.Row() as row2:  # noqa: F841
+                textbox.unrender()
+                assert textbox.parent is None
+            with gr.Row() as row3:
+                textbox.render()
+                assert textbox.parent == row3
+
+        # The textbox should be rendered only once
+        config = demo.get_config_file()
+        assert config and "layout" in config
+        assert count_key_value(config["layout"], "id", textbox._id) == 1
+
 
 class TestCancel:
     @pytest.mark.asyncio
@@ -1425,8 +1470,8 @@ class TestGetAPIInfo:
             t5 = gr.Textbox()
             t1.change(lambda x: x, t1, t2, api_name="change1")
             t2.change(lambda x: x, t2, t3, api_name="change2")
-            t3.change(lambda x: x, t3, t4, api_name=False)
-            t4.change(lambda x: x, t4, t5, api_name=False)
+            t3.change(lambda x: x, t3, t4, api_visibility="private")
+            t4.change(lambda x: x, t4, t5, api_visibility="private")
 
         api_info = demo.get_api_info()
         assert api_info
@@ -1437,7 +1482,7 @@ class TestGetAPIInfo:
         with gr.Blocks() as demo:
             t1 = gr.Textbox()
             t2 = gr.Textbox()
-            t1.change(lambda x: x, t1, t2, api_name=False)
+            t1.change(lambda x: x, t1, t2, api_visibility="private")
 
         api_info = demo.get_api_info()
         assert api_info
@@ -1530,7 +1575,7 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_, progress_index, _ = helpers.special_args(
+        inputs_, progress_index, *_ = helpers.special_args(
             moo2, copy.deepcopy(inputs), request
         )
         assert inputs_ == inputs + [42, pr]
@@ -1538,7 +1583,7 @@ class TestAddRequests:
 
         inputs = [1, 2, 24]
         request = gr.Request()
-        inputs_, progress_index, _ = helpers.special_args(
+        inputs_, progress_index, *_ = helpers.special_args(
             moo2, copy.deepcopy(inputs), request
         )
         assert inputs_ == inputs + [pr]
@@ -1549,7 +1594,7 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_, progress_index, _ = helpers.special_args(
+        inputs_, progress_index, *_ = helpers.special_args(
             moo, copy.deepcopy(inputs), request
         )
         assert inputs_ == inputs + [pr, 42]
@@ -1571,7 +1616,7 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_, progress_index, _ = helpers.special_args(
+        inputs_, progress_index, *_ = helpers.special_args(
             moo, copy.deepcopy(inputs), request
         )
         assert inputs_ == inputs + [request, 42, pr]
@@ -1603,7 +1648,7 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_, progress_index, _ = helpers.special_args(
+        inputs_, progress_index, *_ = helpers.special_args(
             moo2, copy.deepcopy(inputs), request, event_data
         )
         assert len(inputs_) == 5
@@ -1716,7 +1761,9 @@ def test_async_iterator_update_with_new_component(connect):
 
             await asyncio.sleep(0.1)
 
-    demo = gr.Interface(fn=get_number_stream, inputs=None, outputs=["number"])
+    demo = gr.Interface(
+        fn=get_number_stream, inputs=None, outputs=["number"], api_name="predict"
+    )
     demo.queue()
 
     with connect(demo) as client:
@@ -1914,9 +1961,9 @@ def test_render_when_mounted_sets_root_path_for_files():
                     render_config = data["output"]["render_config"]
                     for component in render_config["components"]:
                         if "value" in component.get("props", {}):
-                            assert component["props"]["value"]["video"][
-                                "url"
-                            ].startswith(f"http://testserver/test{API_PREFIX}/file=")
+                            assert component["props"]["value"]["url"].startswith(
+                                f"http://testserver/test{API_PREFIX}/file="
+                            )
                             checked_component = True
         assert checked_component
 
@@ -1935,13 +1982,84 @@ def mock_css_files():
         yield
 
 
-def test_css_and_css_paths_parameters(mock_css_files):
-    css_paths = ["file1.css", "file2.css"]
-    instance = gr.Blocks(css="body { color: red; }", css_paths=css_paths)
+def test_css_and_css_paths_parameters(gradio_temp_dir):
+    (gradio_temp_dir / "file1.css").write_text("h1 { font-size: 20px; }")
+    (gradio_temp_dir / "file2.css").write_text(".class { margin: 10px; }")
+    css_paths = [str(gradio_temp_dir / "file1.css"), str(gradio_temp_dir / "file2.css")]
     expected_css = """
 body { color: red; }
 h1 { font-size: 20px; }
 .class { margin: 10px; }
         """
-
+    with gr.Blocks() as instance:
+        pass
+    instance.launch(
+        prevent_thread_lock=True, css="body { color: red; }", css_paths=css_paths
+    )
+    assert instance.css is not None
     assert instance.css.strip() == expected_css.strip()
+    instance.close()
+
+
+def test_navbar_config():
+    """
+    Test that navbar component produces the correct config
+    """
+    with gr.Blocks() as demo:
+        gr.Navbar([("About2", "/about2")], visible=True, main_page_name="My Custom App")
+        gr.Textbox(label="Main page content")
+
+    with demo.route("About"):
+        gr.Markdown("About page")
+
+    config = demo.get_config_file()
+    navbar_component = None
+    for component in config["components"]:
+        if component["type"] == "navbar":
+            navbar_component = component
+            break
+
+    assert navbar_component is not None
+    assert navbar_component["props"]["value"] == [["About2", "/about2"]]
+    assert navbar_component["props"]["visible"]
+    assert navbar_component["props"]["main_page_name"] == "My Custom App"
+
+
+def test_multiple_navbar_components_in_same_page_raise_error():
+    # This SHOULD raise an error since we have multiple navbar components in the same page
+    with pytest.raises(ValueError):
+        with gr.Blocks() as demo:
+            gr.Navbar()
+            gr.Textbox()
+            gr.Navbar()  # This should raise an error
+            gr.Textbox()
+
+    # This should NOT raise an error since each navbar is on a different page
+    with gr.Blocks() as demo:
+        gr.Navbar()
+        gr.Textbox()
+    with demo.route("Page 2"):
+        gr.Navbar()
+        gr.Textbox()
+
+
+def test_blocks_close_closes_thread_properly():
+    a = gr.Blocks()
+
+    def poll():
+        start = time.time()
+        while time.time() - start < 1:
+            time.sleep(0.25)
+        print("Closing...")
+        a.close()
+
+    t = threading.Thread(target=poll, daemon=True)
+    t.start()
+
+    with a:
+        gr.Markdown("Testing close")
+    a.launch(prevent_thread_lock=True)
+
+    time.sleep(1.2)
+    assert not t.is_alive()
+    assert not a.is_running

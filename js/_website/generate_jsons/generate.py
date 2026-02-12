@@ -74,7 +74,7 @@ def get_latest_release():
                     "gradio_install": f"pip install https://gradio-builds.s3.amazonaws.com/{sha}/gradio-{version}-py3-none-any.whl",
                     "gradio_py_client_install": f"pip install 'gradio-client @ git+https://github.com/gradio-app/gradio@{sha}#subdirectory=client/python'",
                     "gradio_js_client_install": f"npm install https://gradio-builds.s3.amazonaws.com/{sha}/gradio-client-{js_client_version}.tgz",
-                    "gradio_lite_url": f"https://gradio-lite-previews.s3.amazonaws.com/{sha}",
+                    "gradio_lite_url": f"https://gradio-lite-previews.s3.amazonaws.com/PINNED_HF_HUB",
                 },
                 j,
             )
@@ -95,6 +95,13 @@ def get_latest_release():
                 make_dir(WEBSITE_DIR, "src/lib/templates_4-44-1"),
             )
 
+            print("Downloading templates from S3: 5.49.1")
+            download_from_s3(
+                "gradio-docs-json",
+                "5.49.1/templates/",
+                make_dir(WEBSITE_DIR, "src/lib/templates_5-49-1"),
+            )
+
 
 def create_dir_if_not_exists(path):
     if not os.path.exists(path):
@@ -106,8 +113,10 @@ create_dir_if_not_exists(make_dir(WEBSITE_DIR, "src/lib/json/guides"))
 
 demos.generate(make_dir(WEBSITE_DIR, "src/lib/json/demos.json"))
 guides.generate(make_dir(WEBSITE_DIR, "src/lib/json/guides/") + "/")
-SYSTEM_PROMPT = docs.generate(make_dir(WEBSITE_DIR, "src/lib/json/docs.json"))
-_ = docs.generate(make_dir(WEBSITE_DIR, "src/lib/templates/docs.json"))
+SYSTEM_PROMPT, FALLBACK_PROMPT = docs.generate(
+    make_dir(WEBSITE_DIR, "src/lib/json/docs.json")
+)
+_, _ = docs.generate(make_dir(WEBSITE_DIR, "src/lib/templates/docs.json"))
 changelog.generate(make_dir(WEBSITE_DIR, "src/lib/json/changelog.json"))
 get_latest_release()
 
@@ -120,6 +129,7 @@ with open(make_dir(WEBSITE_DIR, "src/lib/json/system_prompt.json"), "w+") as f:
     json.dump(
         {
             "SYSTEM": SYSTEM_PROMPT,
+            "FALLBACK": FALLBACK_PROMPT,
         },
         f,
     )

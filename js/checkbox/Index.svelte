@@ -3,65 +3,46 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio } from "@gradio/utils";
-	import { Block, Info } from "@gradio/atoms";
+	import { Gradio } from "@gradio/utils";
+	import { Block, Info, IconButtonWrapper } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
-	import type { SelectData } from "@gradio/utils";
-	import { afterUpdate } from "svelte";
+	import type { CheckboxProps, CheckboxEvents } from "./types";
 	import BaseCheckbox from "./shared/Checkbox.svelte";
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible = true;
-	export let value = false;
-	export let value_is_output = false;
-	export let label = "Checkbox";
-	export let info: string | undefined = undefined;
-	export let root: string;
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let loading_status: LoadingStatus;
-	export let gradio: Gradio<{
-		change: never;
-		select: SelectData;
-		input: never;
-		clear_status: LoadingStatus;
-	}>;
-	export let interactive: boolean;
-
-	function handle_change(): void {
-		gradio.dispatch("change");
-		if (!value_is_output) {
-			gradio.dispatch("input");
-		}
-	}
-	afterUpdate(() => {
-		value_is_output = false;
-	});
-
-	// When the value changes, dispatch the change event via handle_change()
-	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
+	let props = $props();
+	const gradio = new Gradio<CheckboxEvents, CheckboxProps>(props);
 </script>
 
-<Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
+<Block
+	visible={gradio.shared.visible}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+>
 	<StatusTracker
-		autoscroll={gradio.autoscroll}
+		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
-		{...loading_status}
-		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+		{...gradio.shared.loading_status}
+		on_clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
-
-	{#if info}
-		<Info {root} {info} />
+	{#if gradio.shared.show_label && gradio.props.buttons && gradio.props.buttons.length > 0}
+		<IconButtonWrapper
+			buttons={gradio.props.buttons}
+			on_custom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
+		/>
 	{/if}
-
 	<BaseCheckbox
-		bind:value
-		{label}
-		{interactive}
-		on:change={handle_change}
-		on:select={(e) => gradio.dispatch("select", e.detail)}
+		label={gradio.shared.label || gradio.i18n("checkbox.checkbox")}
+		bind:value={gradio.props.value}
+		interactive={gradio.shared.interactive}
+		show_label={gradio.shared.show_label}
+		on_change={(val) => gradio.dispatch("change", val)}
+		on_input={() => gradio.dispatch("input")}
+		on_select={(data) => gradio.dispatch("select", data)}
 	/>
+	{#if gradio.props.info}
+		<Info info={gradio.props.info} />
+	{/if}
 </Block>

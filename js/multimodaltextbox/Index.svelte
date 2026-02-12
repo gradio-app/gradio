@@ -6,108 +6,180 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
+	import { Gradio, type SelectData } from "@gradio/utils";
 	import MultimodalTextbox from "./shared/MultimodalTextbox.svelte";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
-	import type { FileData } from "@gradio/client";
+	import { onMount, tick } from "svelte";
+	import type { WaveformOptions } from "../audio/shared/types";
+	import type {
+		MultimodalTextboxProps,
+		MultimodalTextboxEvents
+	} from "./types";
 
-	export let gradio: Gradio<{
-		change: typeof value;
-		submit: never;
-		stop: never;
-		blur: never;
-		select: SelectData;
-		input: never;
-		focus: never;
-		error: string;
-		clear_status: LoadingStatus;
-	}>;
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible = true;
-	export let value: { text: string; files: FileData[] } = {
-		text: "",
-		files: []
+	let upload_promise = $state<Promise<any> | null>(null);
+
+	class MultimodalTextboxGradio extends Gradio<
+		MultimodalTextboxEvents,
+		MultimodalTextboxProps
+	> {
+		async get_data() {
+			if (upload_promise) {
+				await upload_promise;
+				await tick();
+			}
+			const data = await super.get_data();
+
+			return data;
+		}
+	}
+
+	let props = $props();
+	const gradio = new MultimodalTextboxGradio(props);
+
+	gradio.props.value = gradio.props.value ?? { text: "", files: [] };
+
+	let dragging = $state<boolean>(false);
+	let active_source = $state<"microphone" | null>(null);
+
+	let color_accent = "darkorange";
+
+	const waveform_settings = {
+		height: 50,
+		barWidth: 2,
+		barGap: 3,
+		cursorWidth: 2,
+		cursorColor: "#ddd5e9",
+		autoplay: false,
+		barRadius: 10,
+		dragToSeek: true,
+		normalize: true,
+		minPxPerSec: 20,
+		waveColor: "",
+		progressColor: "",
+		mediaControls: false as boolean | undefined,
+		sampleRate: 44100
 	};
-	export let file_types: string[] | null = null;
-	export let lines: number;
-	export let placeholder = "";
-	export let label = "MultimodalTextbox";
-	export let info: string | undefined = undefined;
-	export let show_label: boolean;
-	export let max_lines: number;
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let submit_btn: string | boolean | null = null;
-	export let stop_btn: string | boolean | null = null;
-	export let loading_status: LoadingStatus | undefined = undefined;
-	export let value_is_output = false;
-	export let rtl = false;
-	export let text_align: "left" | "right" | undefined = undefined;
-	export let autofocus = false;
-	export let autoscroll = true;
-	export let interactive: boolean;
-	export let root: string;
-	export let file_count: "single" | "multiple" | "directory";
 
-	let dragging: boolean;
+	onMount(() => {
+		color_accent = getComputedStyle(document?.documentElement).getPropertyValue(
+			"--color-accent"
+		);
+		set_trim_region_colour();
+		waveform_settings.waveColor =
+			gradio.props?.waveform_options?.waveform_color || "#9ca3af";
+		waveform_settings.progressColor =
+			gradio.props?.waveform_options?.waveform_progress_color || color_accent;
+		waveform_settings.mediaControls =
+			gradio.props?.waveform_options?.show_controls;
+		waveform_settings.sampleRate =
+			gradio.props?.waveform_options?.sample_rate || 44100;
+	});
+
+	const trim_region_settings = {
+		color: gradio.props?.waveform_options?.trim_region_color,
+		drag: true,
+		resize: true
+	};
+
+	function set_trim_region_colour(): void {
+		document.documentElement.style.setProperty(
+			"--trim-region-color",
+			trim_region_settings.color || color_accent
+		);
+	}
+
+	// Create const references to the callbacks so that afterUpdate in child is not called on every prop change
+	// in the DOM. See https://github.com/gradio-app/gradio/issues/11933
+	// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+	const upload_fn = (...args: Parameters<typeof gradio.shared.client.upload>) =>
+		gradio.shared.client.upload(...args);
+	const i18n = (s: string | null | undefined): string => gradio.i18n(s);
+	const stream_handler_fn = (
+		...args: Parameters<typeof gradio.shared.client.stream>
+	): EventSource => gradio.shared.client.stream(...args);
+
+	let sources_string = $derived(
+		gradio.props.sources.join(",") as
+			| "upload"
+			| "upload,microphone"
+			| "microphone"
+			| "microphone,upload"
+	);
+
+	let file_types_string = $derived.by(
+		() => (gradio.props.file_types || []).join(",") || null
+	);
 </script>
 
 <Block
-	{visible}
-	{elem_id}
-	elem_classes={[...elem_classes, "multimodal-textbox"]}
-	{scale}
-	{min_width}
+	visible={gradio.shared.visible}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={[...(gradio.shared.elem_classes || []), "multimodal-textbox"]}
+	scale={gradio.shared.scale}
+	min_width={gradio.shared.min_width}
 	allow_overflow={false}
 	padding={false}
 	border_mode={dragging ? "focus" : "base"}
+	rtl={gradio.props.rtl}
 >
-	{#if loading_status}
+	{#if gradio.shared.loading_status}
 		<StatusTracker
-			autoscroll={gradio.autoscroll}
+			autoscroll={gradio.shared.autoscroll}
 			i18n={gradio.i18n}
-			{...loading_status}
-			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+			{...gradio.shared.loading_status}
+			on_clear_status={() =>
+				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 	{/if}
 
 	<MultimodalTextbox
-		bind:value
-		bind:value_is_output
+		bind:upload_promise
+		bind:value={gradio.props.value}
+		value_is_output
 		bind:dragging
-		{file_types}
-		{root}
-		{label}
-		{info}
-		{show_label}
-		{lines}
-		{rtl}
-		{text_align}
-		max_lines={!max_lines ? lines + 1 : max_lines}
-		{placeholder}
-		{submit_btn}
-		{stop_btn}
-		{autofocus}
-		{container}
-		{autoscroll}
-		{file_count}
-		max_file_size={gradio.max_file_size}
-		on:change={() => gradio.dispatch("change", value)}
-		on:input={() => gradio.dispatch("input")}
-		on:submit={() => gradio.dispatch("submit")}
-		on:stop={() => gradio.dispatch("stop")}
-		on:blur={() => gradio.dispatch("blur")}
-		on:select={(e) => gradio.dispatch("select", e.detail)}
-		on:focus={() => gradio.dispatch("focus")}
-		on:error={({ detail }) => {
+		bind:active_source
+		{file_types_string}
+		root={gradio.shared.root}
+		label={gradio.shared.label || "MultimodalTextbox"}
+		info={gradio.props.info}
+		show_label={gradio.shared.show_label}
+		lines={gradio.props.lines}
+		rtl={gradio.props.rtl}
+		text_align={gradio.props.text_align}
+		waveform_settings={waveform_settings as WaveformOptions}
+		{i18n}
+		max_lines={!gradio.props.max_lines
+			? gradio.props.lines + 1
+			: gradio.props.max_lines}
+		placeholder={gradio.props.placeholder}
+		submit_btn={gradio.props.submit_btn}
+		stop_btn={gradio.props.stop_btn}
+		autofocus={gradio.props.autofocus}
+		autoscroll={gradio.shared.autoscroll}
+		file_count={gradio.props.file_count}
+		{sources_string}
+		max_file_size={gradio.shared.max_file_size}
+		onchange={(e) => {
+			gradio.props.value = e;
+			gradio.dispatch("change", gradio.props.value);
+		}}
+		oninput={() => gradio.dispatch("input")}
+		onsubmit={() => gradio.dispatch("submit")}
+		onstop={() => gradio.dispatch("stop")}
+		onblur={() => gradio.dispatch("blur")}
+		onselect={(e) => gradio.dispatch("select", e)}
+		onfocus={() => gradio.dispatch("focus")}
+		onerror={(detail) => {
 			gradio.dispatch("error", detail);
 		}}
-		disabled={!interactive}
-		upload={(...args) => gradio.client.upload(...args)}
-		stream_handler={(...args) => gradio.client.stream(...args)}
+		onstop_recording={() => gradio.dispatch("stop_recording")}
+		onupload={(e) => gradio.dispatch("upload", e)}
+		onclear={() => gradio.dispatch("clear")}
+		disabled={!gradio.shared.interactive}
+		upload={upload_fn}
+		stream_handler={stream_handler_fn}
+		max_plain_text_length={gradio.props.max_plain_text_length}
+		html_attributes={gradio.props.html_attributes}
 	/>
 </Block>

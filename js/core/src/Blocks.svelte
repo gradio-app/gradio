@@ -1,94 +1,296 @@
 <script lang="ts">
-	import { tick, onMount } from "svelte";
+	import { tick, onMount, setContext, settled, untrack } from "svelte";
 	import { _ } from "svelte-i18n";
 	import { Client } from "@gradio/client";
+	import { writable } from "svelte/store";
 
-	import type { LoadingStatus, LoadingStatusCollection } from "./stores";
+	// import type { LoadingStatus, LoadingStatusCollection } from "./stores";
 
-	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
-	import type { UpdateTransaction } from "./init";
-	import { setupi18n } from "./i18n";
-	import { ApiDocs, ApiRecorder } from "./api_docs/";
+	import type {
+		ComponentMeta,
+		Dependency as IDependency,
+		LayoutNode
+	} from "./types";
+	// import type { UpdateTransaction } from "./_init";
 	import type { ThemeMode, Payload } from "./types";
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
-	import type { ShareData, ValueData } from "@gradio/utils";
+	import { type ShareData, type ValueData, GRADIO_ROOT } from "@gradio/utils";
+
 	import MountComponents from "./MountComponents.svelte";
 	import { prefix_css } from "./css";
+	import { reactive_formatter } from "./gradio_helper";
+
+	import type ApiDocsInterface from "./api_docs/ApiDocs.svelte";
+	import type ApiRecorderInterface from "./api_docs/ApiRecorder.svelte";
+	import type SettingsInterface from "./api_docs/Settings.svelte";
+	// import type { ComponentType } from "svelte";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
-	import { create_components, AsyncFunction } from "./init";
-	import type {
-		LogMessage,
-		RenderMessage,
-		StatusMessage
-	} from "@gradio/client";
+	import settings_logo from "./api_docs/img/settings-logo.svg";
+	import record_stop from "./api_docs/img/record-stop.svg";
+	import { AppTree } from "./init.svelte";
+	// import type {
+	// 	LogMessage,
+	// 	RenderMessage,
+	// 	StatusMessage,
+	// } from "@gradio/client";
+	import * as screen_recorder from "./screen_recorder";
 
-	setupi18n();
-
-	export let root: string;
-	export let components: ComponentMeta[];
-	export let layout: LayoutNode;
-	export let dependencies: Dependency[];
-	export let title = "Gradio";
-	export let target: HTMLElement;
-	export let autoscroll: boolean;
-	export let show_api = true;
-	export let show_footer = true;
-	export let control_page_title = false;
-	export let app_mode: boolean;
-	export let theme_mode: ThemeMode;
-	export let app: Awaited<ReturnType<typeof Client.connect>>;
-	export let space_id: string | null;
-	export let version: string;
-	export let js: string | null;
-	export let fill_height = false;
-	export let ready: boolean;
-	export let username: string | null;
-	export let api_prefix = "";
-	export let max_file_size: number | undefined = undefined;
-	export let initial_layout: ComponentMeta | undefined = undefined;
-	export let css: string | null | undefined = null;
+	import { DependencyManager } from "./dependency";
 	let {
-		layout: _layout,
-		targets,
-		update_value,
-		get_data,
-		modify_stream,
-		get_stream_state,
-		set_time_limit,
-		loading_status,
-		scheduled_updates,
-		create_layout,
-		rerender_layout
-	} = create_components(initial_layout);
+		root,
+		components,
+		layout,
+		dependencies,
+		title,
+		target,
+		autoscroll,
+		footer_links,
+		control_page_title,
+		app_mode,
+		theme_mode,
+		app,
+		space_id,
+		version,
+		js,
+		fill_height,
+		username,
+		api_prefix,
+		max_file_size,
+		initial_layout,
+		css,
+		vibe_mode,
+		search_params,
+		render_complete = false,
+		ready = $bindable(false),
+		reload_count = $bindable(0),
+		add_new_message = $bindable()
+	}: {
+		root: string;
+		components: ComponentMeta[];
+		layout: LayoutNode;
+		dependencies: IDependency[];
+		title: string;
+		target: HTMLElement;
+		autoscroll: boolean;
+		footer_links: string[];
+		control_page_title: boolean;
+		app_mode: boolean;
+		theme_mode: ThemeMode;
+		app: Awaited<ReturnType<typeof Client.connect>>;
+		space_id: string | null;
+		version: string;
+		js: string | null;
+		fill_height: boolean;
+		username: string | null;
+		api_prefix: string;
+		max_file_size: number | undefined;
+		initial_layout: ComponentMeta | undefined;
+		css: string | null | undefined;
+		vibe_mode: boolean;
+		search_params: URLSearchParams;
+		render_complete: boolean;
+		ready: boolean;
+		reload_count: number;
+		add_new_message: (title: string, message: string, type: string) => void;
+	} = $props();
 
-	$: components, layout, dependencies, root, app, fill_height, target, run();
+	components.forEach((comp) => {
+		if (!comp.props.i18n) {
+			comp.props.i18n = $reactive_formatter;
+		}
+	});
 
-	$: {
-		ready = !!$_layout;
+	let messages: (ToastMessage & { fn_index: number })[] = $state([]);
+
+	function gradio_event_dispatcher(
+		id: number,
+		event: string,
+		data: unknown
+	): void {
+		if (event === "share") {
+			const { title, description } = data as ShareData;
+			// trigger_share(title, description);
+			// TODO: lets combine all of the into a log type with levels
+		} else if (event === "error") {
+			new_message("Error", data as string, -1, event, 10, true);
+		} else if (event === "warning") {
+			new_message("Warning", data as string, -1, event, 10, true);
+		} else if (event === "info") {
+			new_message("Info", data as string, -1, event, 10, true);
+		} else if (event === "gradio_expand" || event === "gradio_tab_select") {
+			const id_ =
+				event === "gradio_expand"
+					? id
+					: (data as { component_id: number }).component_id;
+			app_tree.render_previously_invisible_children(id_);
+		} else if (event == "clear_status") {
+			app_tree.update_state(
+				id,
+				{
+					loading_status: {}
+				},
+				false
+			);
+			dep_manager.clear_loading_status(id);
+			// TODO: the loading_status store should handle this via a method
+			// update_status(id, "complete", data);
+		} else if (event == "close_stream") {
+			dep_manager.close_stream(id);
+		} else if (event === "custom_button_click") {
+			const button_id = (data as { id: number }).id;
+			dispatch_to_target(button_id, "click", null);
+		} else {
+			// Tabs are a bit weird. The Tabs component dispatches 'select' events
+			// but the target id corresponds to the child Tab component that was selected.
+			// So the id we get from the dispatcher belongs to the Tabs,
+			// so we need to pull out the correct id here.
+			if (event === "select" && id in app_tree.initial_tabs) {
+				// this is the id of the selected tab
+				id = (data as { id: number }).id;
+			}
+			dep_manager.dispatch({
+				type: "event",
+				event_name: event,
+				target_id: id,
+				event_data: data
+			});
+		}
 	}
 
-	async function run(): Promise<void> {
-		await create_layout({
-			components,
-			layout,
-			dependencies,
-			root: root + api_prefix,
-			app,
-			options: {
-				fill_height
-			}
+	let app_tree = new AppTree(
+		components,
+		layout,
+		dependencies,
+		{
+			root,
+			theme: theme_mode,
+			version,
+			api_prefix,
+			max_file_size,
+			autoscroll
+		},
+		app,
+		$reactive_formatter,
+		gradio_event_dispatcher
+	);
+
+	function dispatch_to_target(
+		target_id: number,
+		event: string,
+		data: unknown
+	): void {
+		dep_manager.dispatch({
+			type: "event",
+			event_name: event,
+			target_id: target_id,
+			event_data: data
 		});
 	}
 
-	export let search_params: URLSearchParams;
-	let api_docs_visible = search_params.get("view") === "api" && show_api;
-	let api_recorder_visible =
-		search_params.get("view") === "api-recorder" && show_api;
-	function set_api_docs_visible(visible: boolean): void {
+	setContext(GRADIO_ROOT, {
+		register: app_tree.register_component.bind(app_tree),
+		dispatcher: gradio_event_dispatcher
+	});
+
+	let api_calls: Payload[] = $state([]);
+	let last_api_call: Payload | null = $state(null);
+	// We need a callback to add to api_calls from the DependencyManager
+	// We can't update a state variable from inside the DependencyManager because
+	// svelte won't see it and won't update the UI.
+	let add_to_api_calls = (payload: Payload): void => {
+		last_api_call = payload;
+		if (!api_recorder_visible) return;
+		api_calls = [...api_calls, last_api_call];
+	};
+
+	let dep_manager = new DependencyManager(
+		dependencies,
+		app,
+		app_tree.update_state.bind(app_tree),
+		app_tree.get_state.bind(app_tree),
+		app_tree.rerender.bind(app_tree),
+		new_message,
+		add_to_api_calls
+	);
+
+	$effect(() => {
+		reload_count;
+		untrack(() => {
+			app_tree.reload(components, layout, dependencies, {
+				root,
+				theme: theme_mode,
+				version,
+				api_prefix,
+				max_file_size,
+				autoscroll
+			});
+			dep_manager.reload(
+				dependencies,
+				app_tree.update_state.bind(app_tree),
+				app_tree.get_state.bind(app_tree),
+				app_tree.rerender.bind(app_tree),
+				app
+			);
+		});
+	});
+
+	let vibe_editor_width = 350;
+
+	// export let
+	let api_docs_visible = $derived(
+		search_params.get("view") === "api" && footer_links.includes("api")
+	);
+	let settings_visible = $derived(search_params.get("view") === "settings");
+	let api_recorder_visible = $derived(
+		search_params.get("view") === "api-recorder" && footer_links.includes("api")
+	);
+	let allow_zoom = true;
+	let allow_video_trim = true;
+
+	// Lazy component loading state
+	let ApiDocs: ComponentType<ApiDocsInterface> | null = null;
+	let ApiRecorder: ComponentType<ApiRecorderInterface> | null = null;
+	let Settings: ComponentType<SettingsInterface> | null = null;
+	let VibeEditor: any = $state(null);
+
+	async function loadApiDocs(): Promise<void> {
+		if (!ApiDocs || !ApiRecorder) {
+			const api_docs_module = await import("./api_docs/ApiDocs.svelte");
+			const api_recorder_module = await import("./api_docs/ApiRecorder.svelte");
+			if (!ApiDocs) ApiDocs = api_docs_module?.default;
+			if (!ApiRecorder) ApiRecorder = api_recorder_module?.default;
+		}
+	}
+
+	async function loadApiRecorder(): Promise<void> {
+		if (!ApiRecorder) {
+			const api_recorder_module = await import("./api_docs/ApiRecorder.svelte");
+			ApiRecorder = api_recorder_module.default;
+		}
+	}
+
+	async function loadSettings(): Promise<void> {
+		if (!Settings) {
+			const settings_module = await import("./api_docs/Settings.svelte");
+			Settings = settings_module.default;
+		}
+	}
+
+	async function loadVibeEditor(): Promise<void> {
+		if (!VibeEditor) {
+			const vibe_editor_module = await import("@gradio/vibeeditor");
+			VibeEditor = vibe_editor_module.default;
+		}
+	}
+
+	async function set_api_docs_visible(visible: boolean): Promise<void> {
 		api_recorder_visible = false;
+		if (visible) {
+			await loadApiDocs();
+		}
 		api_docs_visible = visible;
 		let params = new URLSearchParams(window.location.search);
 		if (visible) {
@@ -98,68 +300,34 @@
 		}
 		history.replaceState(null, "", "?" + params.toString());
 	}
-	let api_calls: Payload[] = [];
 
-	export let render_complete = false;
-	async function handle_update(data: any, fn_index: number): Promise<void> {
-		const outputs = dependencies.find((dep) => dep.id == fn_index)!.outputs;
-
-		const meta_updates = data?.map((value: any, i: number) => {
-			return {
-				id: outputs[i],
-				prop: "value_is_output",
-				value: true
-			};
-		});
-
-		update_value(meta_updates);
-
-		await tick();
-
-		const updates: UpdateTransaction[] = [];
-
-		data?.forEach((value: any, i: number) => {
-			if (
-				typeof value === "object" &&
-				value !== null &&
-				value.__type__ === "update"
-			) {
-				for (const [update_key, update_value] of Object.entries(value)) {
-					if (update_key === "__type__") {
-						continue;
-					} else {
-						updates.push({
-							id: outputs[i],
-							prop: update_key,
-							value: update_value
-						});
-					}
-				}
-			} else {
-				updates.push({
-					id: outputs[i],
-					prop: "value",
-					value
-				});
-			}
-		});
-		update_value(updates);
-
-		await tick();
+	async function set_settings_visible(visible: boolean): Promise<void> {
+		if (visible) {
+			await loadSettings();
+		}
+		let params = new URLSearchParams(window.location.search);
+		if (visible) {
+			params.set("view", "settings");
+		} else {
+			params.delete("view");
+		}
+		history.replaceState(null, "", "?" + params.toString());
+		settings_visible = !settings_visible;
 	}
 
-	let submit_map: Map<number, ReturnType<typeof app.submit>> = new Map();
+	let layout_creating = false;
+	//
 
-	let messages: (ToastMessage & { fn_index: number })[] = [];
 	function new_message(
 		title: string,
 		message: string,
 		fn_index: number,
 		type: ToastMessage["type"],
 		duration: number | null = 10,
-		visible = true
-	): ToastMessage & { fn_index: number } {
-		return {
+		visible = false
+	): void {
+		if (!visible) return;
+		messages.push({
 			title,
 			message,
 			fn_index,
@@ -167,27 +335,29 @@
 			id: ++_error_id,
 			duration,
 			visible
-		};
+		});
 	}
 
-	export function add_new_message(
-		title: string,
-		message: string,
-		type: ToastMessage["type"]
-	): void {
-		messages = [new_message(title, message, -1, type), ...messages];
-	}
+	add_new_message = new_message;
 
 	let _error_id = -1;
 
-	let user_left_page = false;
-
 	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
-	const DUPLICATE_MESSAGE = $_("blocks.long_requests_queue");
-	const MOBILE_QUEUE_WARNING = $_("blocks.connection_can_break");
-	const MOBILE_RECONNECT_MESSAGE = $_("blocks.lost_connection");
-	const WAITING_FOR_INPUTS_MESSAGE = $_("blocks.waiting_for_inputs");
+	const DUPLICATE_MESSAGE = $reactive_formatter("blocks.long_requests_queue");
+	const MOBILE_QUEUE_WARNING = $reactive_formatter(
+		"blocks.connection_can_break"
+	);
+	const LOST_CONNECTION_MESSAGE =
+		"Connection to the server was lost. Attempting reconnection...";
+	const CHANGED_CONNECTION_MESSAGE =
+		"Reconnected to server, but the server has changed. You may need to <a href=''>refresh the page</a>.";
+	const RECONNECTION_MESSAGE = "Connection re-established.";
+	const SESSION_NOT_FOUND_MESSAGE =
+		"Session not found - this is likely because the machine you were connected to has changed. <a href=''>Refresh the page</a> to continue.";
+	const WAITING_FOR_INPUTS_MESSAGE = $reactive_formatter(
+		"blocks.waiting_for_inputs"
+	);
 	const SHOW_DUPLICATE_MESSAGE_ON_ETA = 15;
 	const SHOW_MOBILE_QUEUE_WARNING_ON_ETA = 10;
 	let is_mobile_device = false;
@@ -196,529 +366,72 @@
 	let inputs_waiting: number[] = [];
 
 	// as state updates are not synchronous, we need to ensure updates are flushed before triggering any requests
-	function wait_then_trigger_api_call(
-		dep_index: number,
-		trigger_id: number | null = null,
-		event_data: unknown = null
-	): void {
-		let _unsub = (): void => {};
-		function unsub(): void {
-			_unsub();
+
+	let is_screen_recording = writable(false);
+
+	let footer_height = 0;
+
+	let root_container: HTMLElement;
+
+	function get_root_node(container: HTMLElement | null): HTMLElement | null {
+		if (!container) return null;
+		return container.children[container.children.length - 1] as HTMLElement;
+	}
+
+	function handle_resize(): void {
+		if ("parentIFrame" in window) {
+			const box = root_container.children[0].getBoundingClientRect();
+			if (!box) return;
+			window.parentIFrame?.size(box.bottom + footer_height + 32);
 		}
-		if ($scheduled_updates) {
-			_unsub = scheduled_updates.subscribe((updating) => {
-				if (!updating) {
-					tick().then(() => {
-						trigger_api_call(dep_index, trigger_id, event_data);
-						unsub();
-					});
-				}
-			});
+	}
+
+	function screen_recording(): void {
+		if ($is_screen_recording) {
+			screen_recorder.stopRecording();
 		} else {
-			trigger_api_call(dep_index, trigger_id, event_data);
+			screen_recorder.startRecording();
 		}
-	}
-
-	async function get_component_value_or_event_data(
-		component_id: number,
-		trigger_id: number | null,
-		event_data: unknown
-	): Promise<any> {
-		if (
-			component_id === trigger_id &&
-			event_data &&
-			(event_data as ValueData).is_value_data === true
-		) {
-			// @ts-ignore
-			return event_data.value;
-		}
-		return get_data(component_id);
-	}
-
-	async function trigger_api_call(
-		dep_index: number,
-		trigger_id: number | null = null,
-		event_data: unknown = null
-	): Promise<void> {
-		let dep = dependencies.find((dep) => dep.id === dep_index)!;
-		if (inputs_waiting.length > 0) {
-			for (const input of inputs_waiting) {
-				if (dep.inputs.includes(input)) {
-					add_new_message("Warning", WAITING_FOR_INPUTS_MESSAGE, "warning");
-					return;
-				}
-			}
-		}
-		const current_status = loading_status.get_status_for_fn(dep_index);
-		messages = messages.filter(({ fn_index }) => fn_index !== dep_index);
-		if (current_status === "pending" || current_status === "generating") {
-			dep.pending_request = true;
-		}
-
-		let payload: Payload = {
-			fn_index: dep_index,
-			data: await Promise.all(
-				dep.inputs.map((id) =>
-					get_component_value_or_event_data(id, trigger_id, event_data)
-				)
-			),
-			event_data: dep.collects_event_data ? event_data : null,
-			trigger_id: trigger_id
-		};
-
-		if (dep.frontend_fn) {
-			dep
-				.frontend_fn(
-					payload.data.concat(
-						await Promise.all(dep.outputs.map((id) => get_data(id)))
-					)
-				)
-				.then((v: unknown[]) => {
-					if (dep.backend_fn) {
-						payload.data = v;
-						trigger_prediction(dep, payload);
-					} else {
-						handle_update(v, dep_index);
-					}
-				});
-		} else if (dep.types.cancel && dep.cancels) {
-			await Promise.all(
-				dep.cancels.map(async (fn_index) => {
-					const submission = submit_map.get(fn_index);
-					submission?.cancel();
-					return submission;
-				})
-			);
-		} else {
-			if (dep.backend_fn) {
-				trigger_prediction(dep, payload);
-			}
-		}
-
-		function trigger_prediction(dep: Dependency, payload: Payload): void {
-			if (dep.trigger_mode === "once") {
-				if (!dep.pending_request)
-					make_prediction(payload, dep.connection == "stream");
-			} else if (dep.trigger_mode === "multiple") {
-				make_prediction(payload, dep.connection == "stream");
-			} else if (dep.trigger_mode === "always_last") {
-				if (!dep.pending_request) {
-					make_prediction(payload, dep.connection == "stream");
-				} else {
-					dep.final_event = payload;
-				}
-			}
-		}
-
-		async function make_prediction(
-			payload: Payload,
-			streaming = false
-		): Promise<void> {
-			if (api_recorder_visible) {
-				api_calls = [...api_calls, JSON.parse(JSON.stringify(payload))];
-			}
-
-			let submission: ReturnType<typeof app.submit>;
-			app.set_current_payload(payload);
-			if (streaming) {
-				if (!submit_map.has(dep_index)) {
-					dep.inputs.forEach((id) => modify_stream(id, "waiting"));
-				} else if (
-					submit_map.has(dep_index) &&
-					dep.inputs.some((id) => get_stream_state(id) === "waiting")
-				) {
-					return;
-				} else if (
-					submit_map.has(dep_index) &&
-					dep.inputs.some((id) => get_stream_state(id) === "open")
-				) {
-					await app.send_ws_message(
-						// @ts-ignore
-						`${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_index).event_id()}`,
-						{ ...payload, session_hash: app.session_hash }
-					);
-					return;
-				}
-			}
-			try {
-				submission = app.submit(
-					payload.fn_index,
-					payload.data as unknown[],
-					payload.event_data,
-					payload.trigger_id
-				);
-			} catch (e) {
-				const fn_index = 0; // Mock value for fn_index
-				messages = [
-					new_message("Error", String(e), fn_index, "error"),
-					...messages
-				];
-				loading_status.update({
-					status: "error",
-					fn_index,
-					eta: 0,
-					queue: false,
-					queue_position: null
-				});
-				set_status($loading_status);
-				return;
-			}
-
-			submit_map.set(dep_index, submission);
-
-			for await (const message of submission) {
-				if (message.type === "data") {
-					handle_data(message);
-				} else if (message.type === "render") {
-					handle_render(message);
-				} else if (message.type === "status") {
-					handle_status_update(message);
-				} else if (message.type === "log") {
-					handle_log(message);
-				}
-			}
-
-			function handle_data(message: Payload): void {
-				const { data, fn_index } = message;
-				if (dep.pending_request && dep.final_event) {
-					dep.pending_request = false;
-					make_prediction(dep.final_event, dep.connection == "stream");
-				}
-				dep.pending_request = false;
-				handle_update(data, fn_index);
-				set_status($loading_status);
-			}
-
-			function handle_render(message: RenderMessage): void {
-				const { data } = message;
-				let _components: ComponentMeta[] = data.components;
-				let render_layout: LayoutNode = data.layout;
-				let _dependencies: Dependency[] = data.dependencies;
-				let render_id = data.render_id;
-
-				let deps_to_remove: number[] = [];
-				dependencies.forEach((dep, i) => {
-					if (dep.rendered_in === render_id) {
-						deps_to_remove.push(i);
-					}
-				});
-				deps_to_remove.reverse().forEach((i) => {
-					dependencies.splice(i, 1);
-				});
-				_dependencies.forEach((dep) => {
-					dependencies.push(dep);
-				});
-
-				rerender_layout({
-					components: _components,
-					layout: render_layout,
-					root: root,
-					dependencies: dependencies,
-					render_id: render_id
-				});
-			}
-
-			function handle_log(msg: LogMessage): void {
-				const { title, log, fn_index, level, duration, visible } = msg;
-				messages = [
-					new_message(title, log, fn_index, level, duration, visible),
-					...messages
-				];
-			}
-
-			function open_stream_events(
-				status: StatusMessage,
-				id: number,
-				dep: Dependency
-			): void {
-				if (
-					status.original_msg === "process_starts" &&
-					dep.connection === "stream"
-				) {
-					modify_stream(id, "open");
-				}
-			}
-
-			/* eslint-disable complexity */
-			function handle_status_update(message: StatusMessage): void {
-				const { fn_index, ...status } = message;
-				if (status.stage === "streaming" && status.time_limit) {
-					dep.inputs.forEach((id) => {
-						set_time_limit(id, status.time_limit);
-					});
-				}
-				dep.inputs.forEach((id) => {
-					open_stream_events(message, id, dep);
-				});
-				//@ts-ignore
-				loading_status.update({
-					...status,
-					time_limit: status.time_limit,
-					status: status.stage,
-					progress: status.progress_data,
-					fn_index
-				});
-				set_status($loading_status);
-				if (
-					!showed_duplicate_message &&
-					space_id !== null &&
-					status.position !== undefined &&
-					status.position >= 2 &&
-					status.eta !== undefined &&
-					status.eta > SHOW_DUPLICATE_MESSAGE_ON_ETA
-				) {
-					showed_duplicate_message = true;
-					messages = [
-						new_message("Warning", DUPLICATE_MESSAGE, fn_index, "warning"),
-						...messages
-					];
-				}
-				if (
-					!showed_mobile_warning &&
-					is_mobile_device &&
-					status.eta !== undefined &&
-					status.eta > SHOW_MOBILE_QUEUE_WARNING_ON_ETA
-				) {
-					showed_mobile_warning = true;
-					messages = [
-						new_message("Warning", MOBILE_QUEUE_WARNING, fn_index, "warning"),
-						...messages
-					];
-				}
-
-				if (status.stage === "complete" || status.stage === "generating") {
-					status.changed_state_ids?.forEach((id) => {
-						dependencies
-							.filter((dep) => dep.targets.some(([_id, _]) => _id === id))
-							.forEach((dep) => {
-								wait_then_trigger_api_call(dep.id, payload.trigger_id);
-							});
-					});
-				}
-				if (status.stage === "complete") {
-					dependencies.forEach(async (dep) => {
-						if (dep.trigger_after === fn_index) {
-							wait_then_trigger_api_call(dep.id, payload.trigger_id);
-						}
-					});
-					dep.inputs.forEach((id) => {
-						modify_stream(id, "closed");
-					});
-					submit_map.delete(dep_index);
-				}
-				if (status.broken && is_mobile_device && user_left_page) {
-					window.setTimeout(() => {
-						messages = [
-							new_message("Error", MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
-							...messages
-						];
-					}, 0);
-					wait_then_trigger_api_call(dep.id, payload.trigger_id, event_data);
-					user_left_page = false;
-				} else if (status.stage === "error") {
-					if (status.message) {
-						const _message = status.message.replace(
-							MESSAGE_QUOTE_RE,
-							(_, b) => b
-						);
-						const _title = status.title ?? "Error";
-						messages = [
-							new_message(
-								_title,
-								_message,
-								fn_index,
-								"error",
-								status.duration,
-								status.visible
-							),
-							...messages
-						];
-					}
-					dependencies.map(async (dep) => {
-						if (
-							dep.trigger_after === fn_index &&
-							!dep.trigger_only_on_success
-						) {
-							wait_then_trigger_api_call(dep.id, payload.trigger_id);
-						}
-					});
-				}
-			}
-		}
-	}
-	/* eslint-enable complexity */
-
-	function trigger_share(title: string | undefined, description: string): void {
-		if (space_id === null) {
-			return;
-		}
-		const discussion_url = new URL(
-			`https://huggingface.co/spaces/${space_id}/discussions/new`
-		);
-		if (title !== undefined && title.length > 0) {
-			discussion_url.searchParams.set("title", title);
-		}
-		discussion_url.searchParams.set("description", description);
-		window.open(discussion_url.toString(), "_blank");
-	}
-
-	function handle_error_close(e: Event & { detail: number }): void {
-		const _id = e.detail;
-		messages = messages.filter((m) => m.id !== _id);
-	}
-
-	const is_external_url = (link: string | null): boolean =>
-		!!(link && new URL(link, location.href).origin !== location.origin);
-
-	async function handle_mount(): Promise<void> {
-		if (js) {
-			let blocks_frontend_fn = new AsyncFunction(
-				`let result = await (${js})();
-					return (!Array.isArray(result)) ? [result] : result;`
-			);
-			await blocks_frontend_fn();
-		}
-
-		await tick();
-
-		var a = target.getElementsByTagName("a");
-
-		for (var i = 0; i < a.length; i++) {
-			const _target = a[i].getAttribute("target");
-			const _link = a[i].getAttribute("href");
-
-			// only target anchor tags with external links
-			if (is_external_url(_link) && _target !== "_blank")
-				a[i].setAttribute("target", "_blank");
-		}
-
-		// handle load triggers
-		dependencies.forEach((dep) => {
-			if (dep.targets.some((dep) => dep[1] === "load")) {
-				wait_then_trigger_api_call(dep.id);
-			}
-		});
-
-		if (!target || render_complete) return;
-
-		target.addEventListener("prop_change", (e: Event) => {
-			if (!isCustomEvent(e)) throw new Error("not a custom event");
-			const { id, prop, value } = e.detail;
-			update_value([{ id, prop, value }]);
-			if (prop === "input_ready" && value === false) {
-				inputs_waiting.push(id);
-			}
-			if (prop === "input_ready" && value === true) {
-				inputs_waiting = inputs_waiting.filter((item) => item !== id);
-			}
-		});
-		target.addEventListener("gradio", (e: Event) => {
-			if (!isCustomEvent(e)) throw new Error("not a custom event");
-
-			const { id, event, data } = e.detail;
-
-			if (event === "share") {
-				const { title, description } = data as ShareData;
-				trigger_share(title, description);
-			} else if (event === "error") {
-				messages = [new_message("Error", data, -1, event), ...messages];
-			} else if (event === "warning") {
-				messages = [new_message("Warning", data, -1, event), ...messages];
-			} else if (event == "clear_status") {
-				update_status(id, "complete", data);
-			} else if (event == "close_stream") {
-				const deps = $targets[id]?.[data];
-				deps?.forEach((dep_id) => {
-					if (submit_map.has(dep_id)) {
-						// @ts-ignore
-						const url = `${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_id).event_id()}`;
-						app.post_data(`${url}/close`, {});
-						app.close_ws(url);
-					}
-				});
-			} else {
-				const deps = $targets[id]?.[event];
-
-				deps?.forEach((dep_id) => {
-					requestAnimationFrame(() => {
-						wait_then_trigger_api_call(dep_id, id, data);
-					});
-				});
-			}
-		});
-
-		render_complete = true;
-	}
-
-	$: set_status($loading_status);
-
-	function update_status(
-		id: number,
-		status: "error" | "complete" | "pending",
-		data: LoadingStatus
-	): void {
-		data.status = status;
-		update_value([
-			{
-				id,
-				prop: "loading_status",
-				value: data
-			}
-		]);
-	}
-
-	function set_status(statuses: LoadingStatusCollection): void {
-		let updates: {
-			id: number;
-			prop: string;
-			value: LoadingStatus;
-		}[] = [];
-		Object.entries(statuses).forEach(([id, loading_status]) => {
-			let dependency = dependencies.find(
-				(dep) => dep.id == loading_status.fn_index
-			);
-			if (dependency === undefined) {
-				return;
-			}
-			loading_status.scroll_to_output = dependency.scroll_to_output;
-			loading_status.show_progress = dependency.show_progress;
-			updates.push({
-				id: parseInt(id),
-				prop: "loading_status",
-				value: loading_status
-			});
-		});
-
-		const inputs_to_update = loading_status.get_inputs_to_update();
-		const additional_updates = Array.from(inputs_to_update).map(
-			([id, pending_status]) => {
-				return {
-					id,
-					prop: "pending",
-					value: pending_status === "pending"
-				};
-			}
-		);
-
-		update_value([...updates, ...additional_updates]);
-	}
-
-	function isCustomEvent(event: Event): event is CustomEvent {
-		return "detail" in event;
 	}
 
 	onMount(() => {
-		document.addEventListener("visibilitychange", function () {
-			if (document.visibilityState === "hidden") {
-				user_left_page = true;
-			}
-		});
-
 		is_mobile_device =
 			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
 				navigator.userAgent
 			);
+
+		if ("parentIFrame" in window) {
+			window.parentIFrame?.autoResize(false);
+		}
+
+		const mut = new MutationObserver(handle_resize);
+		const res = new ResizeObserver(handle_resize);
+
+		mut.observe(root_container, {
+			childList: true,
+			subtree: true,
+			attributes: true
+		});
+		res.observe(root_container);
+
+		app_tree.ready.then(() => {
+			ready = true;
+			dep_manager.dispatch_load_events();
+		});
+
+		if (vibe_mode) {
+			void loadVibeEditor();
+		}
+
+		return () => {
+			mut.disconnect();
+			res.disconnect();
+		};
 	});
+
+	function handle_close(id: number): void {
+		messages = messages.filter((m) => m.id !== id);
+	}
 </script>
 
 <svelte:head>
@@ -731,96 +444,181 @@
 </svelte:head>
 
 <div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
-	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
-		{#if $_layout && app.config}
-			<MountComponents
-				rootNode={$_layout}
-				{root}
-				{target}
-				{theme_mode}
-				on:mount={handle_mount}
-				{version}
-				{autoscroll}
-				{max_file_size}
-				client={app}
-			/>
-		{/if}
-	</div>
+	<main
+		class="contain"
+		style:flex-grow={app_mode ? "1" : "auto"}
+		bind:this={root_container}
+		style:margin-right={vibe_mode ? `${vibe_editor_width}px` : "0"}
+	>
+		<MountComponents node={app_tree.root} />
+	</main>
 
-	{#if show_footer}
-		<footer>
-			{#if show_api}
+	{#if footer_links.length > 0}
+		<footer
+			bind:clientHeight={footer_height}
+			aria-label="Gradio footer navigation"
+		>
+			{#if footer_links.includes("api")}
 				<button
 					on:click={() => {
 						set_api_docs_visible(!api_docs_visible);
 					}}
+					on:mouseenter={() => {
+						loadApiDocs();
+						loadApiRecorder();
+					}}
 					class="show-api"
 				>
-					{$_("errors.use_via_api")}
-					<img src={api_logo} alt={$_("common.logo")} />
+					{#if app.config?.mcp_server}
+						{$reactive_formatter("errors.use_via_api_or_mcp")}
+					{:else}
+						{$reactive_formatter("errors.use_via_api")}
+					{/if}
+					<img src={api_logo} alt={$reactive_formatter("common.logo")} />
 				</button>
-				<div>·</div>
 			{/if}
-			<a
-				href="https://gradio.app"
-				class="built-with"
-				target="_blank"
-				rel="noreferrer"
+			{#if footer_links.includes("gradio")}
+				<div class="divider show-api-divider">·</div>
+				<a
+					href="https://gradio.app"
+					class="built-with"
+					target="_blank"
+					rel="noreferrer"
+				>
+					{$reactive_formatter("common.built_with_gradio")}
+					<img src={logo} alt={$reactive_formatter("common.logo")} />
+				</a>
+			{/if}
+			<button
+				class:hidden={!$is_screen_recording}
+				on:click={() => {
+					screen_recording();
+				}}
+				class="record"
 			>
-				{$_("common.built_with_gradio")}
-				<img src={logo} alt={$_("common.logo")} />
-			</a>
+				{$reactive_formatter("common.stop_recording")}
+				<img
+					src={record_stop}
+					alt={$reactive_formatter("common.stop_recording")}
+				/>
+			</button>
+			<div class="divider">·</div>
+			{#if footer_links.includes("settings")}
+				<div class="divider" class:hidden={!$is_screen_recording}>·</div>
+				<button
+					on:click={() => {
+						set_settings_visible(!settings_visible);
+					}}
+					on:mouseenter={() => {
+						loadSettings();
+					}}
+					class="settings"
+				>
+					{$reactive_formatter("common.settings")}
+					<img
+						src={settings_logo}
+						alt={$reactive_formatter("common.settings")}
+					/>
+				</button>
+			{/if}
 		</footer>
 	{/if}
-</div>
-
-{#if api_recorder_visible}
-	<!-- TODO: fix -->
-	<!-- svelte-ignore a11y-click-events-have-key-events-->
-	<!-- svelte-ignore a11y-no-static-element-interactions-->
-	<div
-		id="api-recorder-container"
-		on:click={() => {
-			set_api_docs_visible(true);
-			api_recorder_visible = false;
-		}}
-	>
-		<ApiRecorder {api_calls} {dependencies} />
-	</div>
-{/if}
-
-{#if api_docs_visible && $_layout}
-	<div class="api-docs">
+	{#if api_recorder_visible && ApiRecorder}
 		<!-- TODO: fix -->
 		<!-- svelte-ignore a11y-click-events-have-key-events-->
 		<!-- svelte-ignore a11y-no-static-element-interactions-->
 		<div
-			class="backdrop"
+			id="api-recorder-container"
 			on:click={() => {
-				set_api_docs_visible(false);
+				set_api_docs_visible(true);
+				api_recorder_visible = false;
 			}}
-		/>
-		<div class="api-docs-wrap">
-			<ApiDocs
-				root_node={$_layout}
-				on:close={(event) => {
-					set_api_docs_visible(false);
-					api_calls = [];
-					api_recorder_visible = event.detail?.api_recorder_visible;
-				}}
-				{dependencies}
-				{root}
-				{app}
-				{space_id}
-				{api_calls}
-				{username}
-			/>
+		>
+			<svelte:component this={ApiRecorder} {api_calls} {dependencies} />
 		</div>
-	</div>
-{/if}
+	{/if}
+
+	{#if api_docs_visible && app_tree.root && ApiDocs}
+		<div
+			class="api-docs"
+			role="dialog"
+			aria-modal="true"
+			aria-label={$reactive_formatter("errors.use_via_api")}
+		>
+			<!-- TODO: fix -->
+			<!-- svelte-ignore a11y-click-events-have-key-events-->
+			<!-- svelte-ignore a11y-no-static-element-interactions-->
+			<div
+				class="backdrop"
+				on:click={() => {
+					set_api_docs_visible(false);
+				}}
+			/>
+			<div class="api-docs-wrap" role="document">
+				<svelte:component
+					this={ApiDocs}
+					root_node={app_tree.root}
+					on:close={(event) => {
+						set_api_docs_visible(false);
+						api_calls = [];
+						api_recorder_visible = api_recorder_visible =
+							event.detail?.api_recorder_visible;
+					}}
+					{dependencies}
+					{root}
+					{app}
+					{space_id}
+					{api_calls}
+					{username}
+					{last_api_call}
+				/>
+			</div>
+		</div>
+	{/if}
+
+	{#if settings_visible && app.config && app_tree.root && Settings}
+		<div
+			class="api-docs"
+			role="dialog"
+			aria-modal="true"
+			aria-label={$reactive_formatter("common.settings")}
+		>
+			<!-- TODO: fix -->
+			<!-- svelte-ignore a11y-click-events-have-key-events-->
+			<!-- svelte-ignore a11y-no-static-element-interactions-->
+			<div
+				class="backdrop"
+				on:click={() => {
+					set_settings_visible(false);
+				}}
+			/>
+			<div class="api-docs-wrap" role="document">
+				<svelte:component
+					this={Settings}
+					bind:allow_zoom
+					bind:allow_video_trim
+					onclose={() => {
+						set_settings_visible(false);
+					}}
+					start_recording={() => {
+						screen_recording();
+					}}
+					pwa_enabled={app.config.pwa}
+					{root}
+					{space_id}
+					i18n={$reactive_formatter}
+				/>
+			</div>
+		</div>
+	{/if}
+
+	{#if vibe_mode && VibeEditor}
+		<svelte:component this={VibeEditor} {app} {root} />
+	{/if}
+</div>
 
 {#if messages}
-	<Toast {messages} on:close={handle_error_close} />
+	<Toast {messages} on_close={handle_close} />
 {/if}
 
 <style>
@@ -833,7 +631,7 @@
 		font-size: var(--body-text-size);
 	}
 
-	.contain {
+	main.contain {
 		display: flex;
 		flex-direction: column;
 	}
@@ -844,12 +642,14 @@
 		margin-top: var(--size-4);
 		color: var(--body-text-color-subdued);
 	}
-
-	footer > * + * {
-		margin-left: var(--size-2);
+	.divider {
+		margin-left: var(--size-1);
+		margin-right: var(--size-2);
 	}
 
-	.show-api {
+	.show-api,
+	.settings,
+	.record {
 		display: flex;
 		align-items: center;
 	}
@@ -863,12 +663,26 @@
 		width: var(--size-3);
 	}
 
+	.settings img {
+		margin-right: var(--size-1);
+		margin-left: var(--size-1);
+		width: var(--size-4);
+	}
+
+	.record img {
+		margin-right: var(--size-1);
+		margin-left: var(--size-1);
+		width: var(--size-3);
+	}
+
 	.built-with {
 		display: flex;
 		align-items: center;
 	}
 
-	.built-with:hover {
+	.built-with:hover,
+	.settings:hover,
+	.record:hover {
 		color: var(--body-text-color);
 	}
 
@@ -922,5 +736,25 @@
 		left: 10px;
 		bottom: 10px;
 		z-index: 1000;
+	}
+
+	.show-api {
+		display: flex;
+		align-items: center;
+	}
+
+	@media (max-width: 640px) {
+		.show-api,
+		.show-api-divider {
+			display: none;
+		}
+	}
+
+	.show-api:hover {
+		color: var(--body-text-color);
+	}
+
+	.hidden {
+		display: none;
 	}
 </style>

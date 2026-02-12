@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
-	import { mount_css as default_mount_css, prefix_css } from "@gradio/core";
+	import { mount_css, prefix_css } from "@gradio/core";
 
 	import type { Client as ClientType } from "@gradio/client";
 
@@ -25,9 +25,8 @@
 		version: string;
 		space_id: string | null;
 		is_colab: boolean;
-		show_api: boolean;
+		footer_links: string[];
 		stylesheets?: string[];
-		path: string;
 		app_id?: string;
 		fill_height?: boolean;
 		fill_width?: boolean;
@@ -35,6 +34,17 @@
 		username: string | null;
 		api_prefix?: string;
 		max_file_size?: number;
+		pages: [string, string, boolean][];
+		current_page: string;
+		deep_link_state?: "valid" | "invalid" | "none";
+		page: Record<
+			string,
+			{
+				components: number[];
+				dependencies: number[];
+				layout: any;
+			}
+		>;
 	}
 
 	let id = -1;
@@ -76,11 +86,12 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 	import { setupi18n } from "@gradio/core";
-	import type { WorkerProxy } from "@gradio/wasm";
-	import { setWorkerProxyContext } from "@gradio/wasm/svelte";
 	import { init } from "@huggingface/space-header";
 
-	setupi18n();
+	let i18n_ready = false;
+	setupi18n().then(() => {
+		i18n_ready = true;
+	});
 
 	const dispatch = createEventDispatcher();
 
@@ -95,18 +106,12 @@
 	export let info: boolean;
 	export let eager: boolean;
 	let stream: EventSource;
+	let pages: [string, string, boolean][] = [];
+	let current_page: string;
+	let root: string;
 
 	// These utilities are exported to be injectable for the Wasm version.
-	export let mount_css: typeof default_mount_css = default_mount_css;
 	export let Client: typeof ClientType;
-	export let worker_proxy: WorkerProxy | undefined = undefined;
-	if (worker_proxy) {
-		setWorkerProxyContext(worker_proxy);
-
-		worker_proxy.addEventListener("progress-update", (event) => {
-			loading_text = (event as CustomEvent).detail + "...";
-		});
-	}
 
 	export let space: string | null;
 	export let src: string | null;
@@ -120,7 +125,8 @@
 	let ready = false;
 	let render_complete = false;
 	let config: Config;
-	let loading_text = $_("common.loading") + "...";
+	let loading_text = "Loading...";
+
 	let active_theme_mode: ThemeMode;
 	let api_url: string;
 
@@ -180,26 +186,34 @@
 					});
 					newElement.textContent = head_element.textContent;
 
-					if (
-						newElement.tagName == "META" &&
-						newElement.getAttribute("property")
-					) {
-						const domMetaList = Array.from(
-							document.head.getElementsByTagName("meta") ?? []
-						);
-						const matched = domMetaList.find((el) => {
-							return (
-								el.getAttribute("property") ==
-									newElement.getAttribute("property") &&
-								!el.isEqualNode(newElement)
+					if (newElement.tagName == "META") {
+						const propertyAttr = newElement.getAttribute("property");
+						const nameAttr = newElement.getAttribute("name");
+
+						if (propertyAttr || nameAttr) {
+							const domMetaList = Array.from(
+								document.head.getElementsByTagName("meta") ?? []
 							);
-						});
-						if (matched) {
-							document.head.replaceChild(newElement, matched);
-							continue;
+
+							const matched = domMetaList.find((el) => {
+								if (
+									propertyAttr &&
+									el.getAttribute("property") === propertyAttr
+								) {
+									return !el.isEqualNode(newElement);
+								}
+								if (nameAttr && el.getAttribute("name") === nameAttr) {
+									return !el.isEqualNode(newElement);
+								}
+								return false;
+							});
+
+							if (matched) {
+								document.head.replaceChild(newElement, matched);
+								continue;
+							}
 						}
 					}
-
 					document.head.appendChild(newElement);
 				}
 			}
@@ -273,6 +287,17 @@
 	//@ts-ignore
 	const gradio_dev_mode = window.__GRADIO_DEV__;
 
+	let pending_deep_link_error = false;
+
+	let new_message_fn: (title: string, message: string, type: string) => void;
+
+	$: if (new_message_fn && pending_deep_link_error) {
+		new_message_fn("Error", "Deep link was not valid", -1, "error", 10, true);
+		pending_deep_link_error = false;
+	}
+
+	let reload_count: number = 0;
+
 	onMount(async () => {
 		active_theme_mode = handle_theme_mode(wrapper);
 
@@ -284,20 +309,40 @@
 				? `http://localhost:${
 						typeof server_port === "number" ? server_port : 7860
 					}`
-				: space || src || location.origin;
+				: space ||
+					src ||
+					new URL(location.pathname, location.origin).href.replace(/\/$/, "");
 
+		const deep_link = new URLSearchParams(window.location.search).get(
+			"deep_link"
+		);
+		const query_params: Record<string, string> = {};
+		if (deep_link) {
+			query_params.deep_link = deep_link;
+		}
 		app = await Client.connect(api_url, {
 			status_callback: handle_status,
 			with_null_state: true,
-			events: ["data", "log", "status", "render"]
+			events: ["data", "log", "status", "render"],
+			query_params
+		});
+		window.addEventListener("beforeunload", () => {
+			app.close();
 		});
 
-		if (!app.config) {
+		if (!app.config && !config?.auth_required) {
 			throw new Error("Could not resolve app config");
 		}
 
-		config = app.config;
+		config = app.get_url_config();
 		window.__gradio_space__ = config.space_id;
+
+		if (app.config?.i18n_translations) {
+			await setupi18n(app.config.i18n_translations);
+			i18n_ready = true;
+		}
+		//@ts-ignore
+		window.__gradio_session_hash__ = app.session_hash;
 
 		status = {
 			message: "",
@@ -311,36 +356,81 @@
 		css_ready = true;
 		window.__is_colab__ = config.is_colab;
 
+		const supports_zerogpu_headers = "supports-zerogpu-headers";
+		window.addEventListener("message", (event) => {
+			if (event.data === supports_zerogpu_headers) {
+				window.supports_zerogpu_headers = true;
+			}
+		});
+		const hostname = window.location.hostname;
+		const is_hf_host =
+			hostname.includes(".dev.") || hostname.endsWith(".hf.space");
+		if (is_hf_host) {
+			const origin = hostname.includes(".dev.")
+				? `https://moon-${hostname.split(".")[1]}.dev.spaces.huggingface.tech`
+				: `https://huggingface.co`;
+			window.parent.postMessage(supports_zerogpu_headers, origin);
+		}
+
 		dispatch("loaded");
 
+		pages = config.pages;
+		current_page = config.current_page;
+		root = config.root;
+		if (config.deep_link_state === "invalid") {
+			pending_deep_link_error = true;
+		}
+		if (config.js) {
+			try {
+				const script = document.createElement("script");
+				script.textContent = config.js;
+				document.head.appendChild(script);
+			} catch (e) {
+				console.error("Error executing custom JS:", e);
+			}
+		}
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(api_url);
-				let url = new URL(`http://${host}${app.api_prefix}/dev/reload`);
+				let url = new URL(
+					`${window.location.protocol}//${host}${app.api_prefix}/dev/reload`
+				);
 				stream = new EventSource(url);
 				stream.addEventListener("error", async (e) => {
-					new_message_fn("Error", "Error reloading app", "error");
 					// @ts-ignore
-					console.error(JSON.parse(e.data));
+					let event_data: string | undefined = e.data;
+					if (event_data) {
+						new_message_fn(
+							"Error",
+							"Error reloading app",
+							-1,
+							"error",
+							10,
+							true
+						);
+						console.error(JSON.parse(event_data));
+					}
 				});
 				stream.addEventListener("reload", async (event) => {
 					app.close();
 					app = await Client.connect(api_url, {
 						status_callback: handle_status,
 						with_null_state: true,
-						events: ["data", "log", "status", "render"]
+						events: ["data", "log", "status", "render"],
+						session_hash: app.session_hash
 					});
 
 					if (!app.config) {
 						throw new Error("Could not resolve app config");
 					}
 
-					config = app.config;
+					config = app.get_url_config();
 					window.__gradio_space__ = config.space_id;
 					await mount_custom_css(config.css);
 					await add_custom_html_head(config.head);
 					css_ready = true;
 					window.__is_colab__ = config.is_colab;
+					reload_count += 1;
 					dispatch("loaded");
 				});
 			}, 200);
@@ -380,27 +470,34 @@
 		| "PAUSED";
 
 	// todo @hannahblair: translate these messages
-	const discussion_message = {
-		readable_error: {
-			NO_APP_FILE: $_("errors.no_app_file"),
-			CONFIG_ERROR: $_("errors.config_error"),
-			BUILD_ERROR: $_("errors.build_error"),
-			RUNTIME_ERROR: $_("errors.runtime_error"),
-			PAUSED: $_("errors.space_paused")
-		} as const,
-		title(error: error_types): string {
-			return encodeURIComponent($_("errors.space_not_working"));
-		},
-		description(error: error_types, site: string): string {
-			return encodeURIComponent(
-				`Hello,\n\nFirstly, thanks for creating this space!\n\nI noticed that the space isn't working correctly because there is ${
-					this.readable_error[error] || "an error"
-				}.\n\nIt would be great if you could take a look at this because this space is being embedded on ${site}.\n\nThanks!`
-			);
-		}
+	let discussion_message: {
+		readable_error: Record<error_types, string>;
+		title: (error: error_types) => string;
+		description: (error: error_types, site: string) => string;
 	};
 
-	let new_message_fn: (title: string, message: string, type: string) => void;
+	$: if (i18n_ready) {
+		loading_text = $_("common.loading") + "...";
+		discussion_message = {
+			readable_error: {
+				NO_APP_FILE: $_("errors.no_app_file"),
+				CONFIG_ERROR: $_("errors.config_error"),
+				BUILD_ERROR: $_("errors.build_error"),
+				RUNTIME_ERROR: $_("errors.runtime_error"),
+				PAUSED: $_("errors.space_paused")
+			} as const,
+			title(error: error_types): string {
+				return encodeURIComponent($_("errors.space_not_working"));
+			},
+			description(error: error_types, site: string): string {
+				return encodeURIComponent(
+					`Hello,\n\nFirstly, thanks for creating this space!\n\nI noticed that the space isn't working correctly because there is ${
+						this.readable_error[error] || "an error"
+					}.\n\nIt would be great if you could take a look at this because this space is being embedded on ${site}.\n\nThanks!`
+				);
+			}
+		};
+	}
 
 	onMount(async () => {
 		intersecting.register(_id, wrapper);
@@ -432,7 +529,6 @@
 			if (header) spaceheader = header.element;
 		}
 	}
-
 	onDestroy(() => {
 		spaceheader?.remove();
 	});
@@ -447,80 +543,88 @@
 	{space}
 	loaded={loader_status === "complete"}
 	fill_width={config?.fill_width || false}
+	{pages}
+	{current_page}
+	{root}
+	components={config?.components || []}
 	bind:wrapper
 >
-	{#if (loader_status === "pending" || loader_status === "error") && !(config && config?.auth_required)}
-		<StatusTracker
-			absolute={!is_embed}
-			status={loader_status}
-			timer={false}
-			queue_position={null}
-			queue_size={null}
-			translucent={true}
-			{loading_text}
-			i18n={$_}
-			{autoscroll}
-		>
-			<div class="load-text" slot="additional-loading-text">
-				{#if gradio_dev_mode === "dev"}
-					<p>
-						If your custom component never loads, consult the troubleshooting <a
-							style="color: blue;"
-							href="https://www.gradio.app/guides/frequently-asked-questions#the-development-server-didnt-work-for-me"
-							>guide</a
-						>.
-					</p>
-				{/if}
-			</div>
-			<!-- todo: translate message text -->
-			<div class="error" slot="error">
-				<p><strong>{status?.message || ""}</strong></p>
-				{#if (status.status === "space_error" || status.status === "paused") && status.discussions_enabled}
-					<p>
-						Please <a
-							href="https://huggingface.co/spaces/{space}/discussions/new?title={discussion_message.title(
-								status?.detail
-							)}&description={discussion_message.description(
-								status?.detail,
-								location.origin
-							)}"
-						>
-							contact the author of the space</a
-						> to let them know.
-					</p>
-				{:else}
-					<p>{$_("errors.contact_page_author")}</p>
-				{/if}
-			</div>
-		</StatusTracker>
-	{/if}
-	{#if config?.auth_required && Login}
-		<Login
-			auth_message={config.auth_message}
-			root={config.root}
-			space_id={space}
-			{app_mode}
-		/>
-	{:else if config && Blocks && css_ready}
-		<Blocks
-			{app}
-			{...config}
-			fill_height={!is_embed && config.fill_height}
-			theme_mode={active_theme_mode}
-			{control_page_title}
-			target={wrapper}
-			{autoscroll}
-			bind:ready
-			bind:render_complete
-			bind:add_new_message={new_message_fn}
-			show_footer={!is_embed}
-			{app_mode}
-			{version}
-			api_prefix={config.api_prefix || ""}
-			max_file_size={config.max_file_size}
-			initial_layout={undefined}
-			search_params={new URLSearchParams(window.location.search)}
-		/>
+	{#if i18n_ready}
+		{#if (loader_status === "pending" || loader_status === "error") && !(config && config?.auth_required)}
+			<StatusTracker
+				absolute={!is_embed}
+				status={loader_status}
+				timer={false}
+				queue_position={null}
+				queue_size={null}
+				translucent={true}
+				{loading_text}
+				i18n={$_}
+				{autoscroll}
+			>
+				<div class="load-text" slot="additional-loading-text">
+					{#if gradio_dev_mode === "dev"}
+						<p>
+							If your custom component never loads, consult the troubleshooting <a
+								style="color: blue;"
+								href="https://www.gradio.app/guides/frequently-asked-questions#the-development-server-didnt-work-for-me"
+								>guide</a
+							>.
+						</p>
+					{/if}
+				</div>
+				<!-- todo: translate message text -->
+				<div class="error" slot="error">
+					<p><strong>{status?.message || ""}</strong></p>
+					{#if (status.status === "space_error" || status.status === "paused") && status.discussions_enabled && discussion_message}
+						<p>
+							Please <a
+								href="https://huggingface.co/spaces/{space}/discussions/new?title={discussion_message.title(
+									status?.detail
+								)}&description={discussion_message.description(
+									status?.detail,
+									location.origin
+								)}"
+							>
+								contact the author of the space</a
+							> to let them know.
+						</p>
+					{:else if i18n_ready}
+						<p>{$_("errors.contact_page_author")}</p>
+					{/if}
+				</div>
+			</StatusTracker>
+		{/if}
+		{#if config?.auth_required && Login}
+			<Login
+				auth_message={config.auth_message}
+				root={config.root}
+				space_id={space}
+				i18n={i18n_ready ? $_ : (s: string) => s}
+				{app_mode}
+			/>
+		{:else if config && Blocks && css_ready}
+			<Blocks
+				{app}
+				{...config}
+				bind:ready
+				fill_height={!is_embed && config.fill_height}
+				theme_mode={active_theme_mode}
+				{control_page_title}
+				target={wrapper}
+				{autoscroll}
+				bind:render_complete
+				bind:add_new_message={new_message_fn}
+				footer_links={is_embed ? [] : config.footer_links}
+				{app_mode}
+				{version}
+				api_prefix={config.api_prefix || ""}
+				max_file_size={config.max_file_size}
+				initial_layout={undefined}
+				search_params={new URLSearchParams(window.location.search)}
+				{reload_count}
+			/>
+		{/if}
 	{/if}
 </Embed>
 

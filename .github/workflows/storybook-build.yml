@@ -10,7 +10,6 @@ on:
 env:
   CI: true
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
-  NODE_OPTIONS: "--max-old-space-size=4096"
 
 concurrency:
   group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
@@ -53,15 +52,18 @@ jobs:
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           python_version: "3.10"
-          skip_build: "true"
+          skip_build: "false"
       - name: build client
         run: pnpm --filter @gradio/client build
       - name: generate theme.css
         run: |
           . venv/bin/activate
           python scripts/generate_theme.py --outfile js/storybook/theme.css
+      - run: pnpm exec playwright install chromium
       - name: build storybook
-        run: pnpm build-storybook --quiet
+        run: |
+          . venv/bin/activate
+          pnpm build-storybook --quiet --stats-json
       - name: upload  storybook
         uses: actions/upload-artifact@v4
         with:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from gradio_client.documentation import document
+from gradio_client.exceptions import AppError
 
 
 class DuplicateBlockError(ValueError):
@@ -11,12 +12,6 @@ class DuplicateBlockError(ValueError):
 
 class InvalidComponentError(ValueError):
     """Raised when invalid components are used."""
-
-    pass
-
-
-class TooManyRequestsError(Exception):
-    """Raised when the Hugging Face API returns a 429 status code."""
 
     pass
 
@@ -63,7 +58,7 @@ InvalidApiName = InvalidApiNameError  # backwards compatibility
 
 
 @document(documentation_group="modals")
-class Error(Exception):
+class Error(AppError):
     """
     This class allows you to pass custom error messages to the user. You can do so by raising a gr.Error("custom message") anywhere in the code, and when that line is executed the custom message will appear in a modal on the demo.
     Example:
@@ -73,6 +68,7 @@ class Error(Exception):
                 raise gr.Error("Cannot divide by zero!")
         gr.Interface(divide, ["number", "number"], "number").launch()
     Demos: calculator, blocks_chained_events
+    Guides: alerts
     """
 
     def __init__(
@@ -81,6 +77,7 @@ class Error(Exception):
         duration: float | None = 10,
         visible: bool = True,
         title: str = "Error",
+        print_exception: bool = True,
     ):
         """
         Parameters:
@@ -88,12 +85,15 @@ class Error(Exception):
             duration: The duration in seconds to display the error message. If None or 0, the error message will be displayed until the user closes it.
             visible: Whether the error message should be displayed in the UI.
             title: The title to be displayed to the user at the top of the error modal.
+            print_exception: Whether to print traceback of the error to the console when the error is raised.
         """
-        self.title = title
-        self.message = message
-        self.duration = duration
-        self.visible = visible
-        super().__init__(self.message)
+        super().__init__(
+            message=message,
+            duration=duration,
+            visible=visible,
+            title=title,
+            print_exception=print_exception,
+        )
 
     def __str__(self):
         return repr(self.message)
@@ -109,3 +109,10 @@ class InvalidPathError(ValueError):
 
 class ChecksumMismatchError(Exception):
     pass
+
+
+class TooManyRequestsError(Error):
+    """Raised when the Hugging Face API returns a 429 status code."""
+
+    def __init__(self, message: str = "Too many requests. Please try again later."):
+        super().__init__(message)

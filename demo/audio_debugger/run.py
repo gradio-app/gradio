@@ -1,15 +1,20 @@
 import gradio as gr
-import subprocess
-import os
+from gradio.media import get_audio, MEDIA_PATHS
 
-audio_file = os.path.join(os.path.dirname(__file__), "cantina.wav")
+# get_audio returns the path to the audio file
+audio_file = get_audio("cantina.wav")
 
 with gr.Blocks() as demo:
     with gr.Tab("Audio"):
-        gr.Audio(audio_file)
+        gr.Audio(audio_file, buttons=["download"])
     with gr.Tab("Interface"):
         gr.Interface(
-            lambda x: x, "audio", "audio", examples=[audio_file], cache_examples=True
+            lambda x: x,
+            gr.Audio(),
+            gr.Audio(),
+            examples=[audio_file],
+            cache_examples=True,
+            api_name="predict",
         )
     with gr.Tab("Streaming"):
         gr.Interface(
@@ -18,15 +23,15 @@ with gr.Blocks() as demo:
             "audio",
             examples=[audio_file],
             cache_examples=True,
+            api_name="predict",
         )
     with gr.Tab("console"):
         ip = gr.Textbox(label="User IP Address")
         gr.Interface(
-            lambda cmd: subprocess.run([cmd], capture_output=True, shell=True, check=False)
-            .stdout.decode("utf-8")
-            .strip(),
+            lambda cmd: f"You typed this command: {cmd}",
             "text",
             "text",
+            api_name="predict",
         )
 
     def get_ip(request: gr.Request):
@@ -35,4 +40,4 @@ with gr.Blocks() as demo:
     demo.load(get_ip, None, ip)
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(allowed_paths=MEDIA_PATHS)

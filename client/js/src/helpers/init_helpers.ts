@@ -68,8 +68,8 @@ export async function resolve_config(
 	this: Client,
 	endpoint: string
 ): Promise<Config | undefined> {
-	const headers: Record<string, string> = this.options.hf_token
-		? { Authorization: `Bearer ${this.options.hf_token}` }
+	const headers: Record<string, string> = this.options.token
+		? { Authorization: `Bearer ${this.options.token}` }
 		: {};
 
 	headers["Content-Type"] = "application/json";
@@ -77,41 +77,80 @@ export async function resolve_config(
 	if (
 		typeof window !== "undefined" &&
 		window.gradio_config &&
-		location.origin !== "http://localhost:9876" &&
-		!window.gradio_config.dev_mode
+		location.origin !== "http://localhost:9876"
 	) {
-		const path = window.gradio_config.root;
-		const config = window.gradio_config;
-		let config_root = resolve_root(endpoint, config.root, false);
-		config.root = config_root;
-		return { ...config, path } as Config;
+		if (window.gradio_config.current_page) {
+			endpoint = endpoint.substring(0, endpoint.lastIndexOf("/"));
+		}
+		if (
+			window.gradio_config.dev_mode ||
+			(typeof window !== "undefined" && window?.BUILD_MODE === "dev")
+		) {
+			let config_url = join_urls(
+				endpoint,
+				this.deep_link
+					? CONFIG_URL + "?deep_link=" + this.deep_link
+					: CONFIG_URL
+			);
+			const response = await this.fetch(config_url, {
+				headers,
+				credentials: "include"
+			});
+			const config = await handleConfigResponse(response, !!this.options.auth);
+			config.root = endpoint || config.root;
+			// @ts-ignore
+			window.gradio_config = {
+				...config,
+				current_page: window.gradio_config.current_page
+			};
+		}
+		// @ts-ignore
+		return { ...window.gradio_config } as Config;
 	} else if (endpoint) {
-		const config_url = join_urls(endpoint, CONFIG_URL);
+		let config_url = join_urls(
+			endpoint,
+			this.deep_link ? CONFIG_URL + "?deep_link=" + this.deep_link : CONFIG_URL
+		);
 
 		const response = await this.fetch(config_url, {
 			headers,
 			credentials: "include"
 		});
 
-		if (response?.status === 401 && !this.options.auth) {
-			throw new Error(MISSING_CREDENTIALS_MSG);
-		} else if (response?.status === 401 && this.options.auth) {
-			throw new Error(INVALID_CREDENTIALS_MSG);
-		}
-		if (response?.status === 200) {
-			let config = await response.json();
-			config.path = config.path ?? "";
+		const config = await handleConfigResponse(response, !!this.options.auth);
+		// Preserve the backend-provided root if available (it contains the correct public URL)
+		// Only fall back to endpoint if the backend didn't provide a root
+		if (!config.root) {
 			config.root = endpoint;
-			config.dependencies?.forEach((dep: any, i: number) => {
-				if (dep.id === undefined) {
-					dep.id = i;
-				}
-			});
-			return config;
-		} else if (response?.status === 401) {
-			throw new Error(UNAUTHORIZED_MSG);
 		}
-		throw new Error(CONFIG_ERROR_MSG);
+		return config;
+	}
+
+	throw new Error(CONFIG_ERROR_MSG);
+}
+
+async function handleConfigResponse(
+	response: Response,
+	authorized: boolean
+): Promise<Config> {
+	if (response?.status === 401 && !authorized) {
+		const error_data = await response.json();
+		const auth_message = error_data?.detail?.auth_message;
+		throw new Error(auth_message || MISSING_CREDENTIALS_MSG);
+	} else if (response?.status === 401 && authorized) {
+		throw new Error(INVALID_CREDENTIALS_MSG);
+	}
+
+	if (response?.status === 200) {
+		let config = await response.json();
+		config.dependencies?.forEach((dep: any, i: number) => {
+			if (dep.id === undefined) {
+				dep.id = i;
+			}
+		});
+		return config;
+	} else if (response?.status === 401) {
+		throw new Error(UNAUTHORIZED_MSG);
 	}
 
 	throw new Error(CONFIG_ERROR_MSG);
@@ -120,7 +159,7 @@ export async function resolve_config(
 export async function resolve_cookies(this: Client): Promise<void> {
 	const { http_protocol, host } = await process_endpoint(
 		this.app_reference,
-		this.options.hf_token
+		this.options.token
 	);
 
 	try {
@@ -130,7 +169,7 @@ export async function resolve_cookies(this: Client): Promise<void> {
 				host,
 				this.options.auth,
 				this.fetch,
-				this.options.hf_token
+				this.options.token
 			);
 
 			if (cookie_header) this.set_cookies(cookie_header);
@@ -146,7 +185,7 @@ export async function get_cookie_header(
 	host: string,
 	auth: [string, string],
 	_fetch: typeof fetch,
-	hf_token?: `hf_${string}`
+	token?: `hf_${string}`
 ): Promise<string | null> {
 	const formData = new FormData();
 	formData.append("username", auth?.[0]);
@@ -154,8 +193,8 @@ export async function get_cookie_header(
 
 	let headers: { Authorization?: string } = {};
 
-	if (hf_token) {
-		headers.Authorization = `Bearer ${hf_token}`;
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
 	}
 
 	const res = await _fetch(`${http_protocol}//${host}/${LOGIN_URL}`, {
@@ -186,14 +225,6 @@ export function determine_protocol(endpoint: string): {
 			ws_protocol: protocol === "https:" ? "wss" : "ws",
 			http_protocol: protocol as "http:" | "https:",
 			host: host + (pathname !== "/" ? pathname : "")
-		};
-	} else if (endpoint.startsWith("file:")) {
-		// This case is only expected to be used for the Wasm mode (Gradio-lite),
-		// where users can create a local HTML file using it and open the page in a browser directly via the `file:` protocol.
-		return {
-			ws_protocol: "ws",
-			http_protocol: "http:",
-			host: "lite.local" // Special fake hostname only used for this case. This matches the hostname allowed in `is_self_host()` in `js/wasm/network/host.ts`.
 		};
 	}
 

@@ -1,6 +1,9 @@
 <script lang="ts">
+	import { getContext, onMount } from "svelte";
 	import space_logo from "./images/spaces.svg";
 	import { _ } from "svelte-i18n";
+	import { navbar_config } from "./navbar_store";
+
 	export let wrapper: HTMLDivElement;
 	export let version: string;
 	export let initial_height: string;
@@ -11,11 +14,90 @@
 	export let display: boolean;
 	export let info: boolean;
 	export let loaded: boolean;
+	export let pages: [string, string, boolean][] = [];
+	export let current_page = "";
+	export let root: string;
+	export let components: any[] = [];
+
+	let navbar_component = components.find((c) => c.type === "navbar");
+	let navbar: {
+		visible: boolean;
+		main_page_name: string | false;
+		value: [string, string][] | null;
+	} | null = navbar_component
+		? {
+				visible: navbar_component.props.visible,
+				main_page_name: navbar_component.props.main_page_name,
+				value: navbar_component.props.value
+			}
+		: null;
+
+	if (navbar) {
+		navbar_config.set(navbar);
+	}
+
+	$: if ($navbar_config) {
+		navbar = {
+			visible: $navbar_config.visible ?? true,
+			main_page_name: $navbar_config.main_page_name ?? "Home",
+			value: $navbar_config.value ?? null
+		};
+	}
+
+	$: show_navbar =
+		pages.length > 1 && (navbar === null || navbar.visible !== false);
+
+	function normalize_path(path: string): string {
+		// Remove query parameters, hash fragments, and leading/trailing slashes from the path
+		let normalized = path.split("?")[0].split("#")[0];
+		normalized = normalized.replace(/^\/+|\/+$/g, "");
+		return normalized;
+	}
+
+	function is_active_route(route: string, current: string): boolean {
+		if (route.startsWith("http://") || route.startsWith("https://")) {
+			return false;
+		}
+		return normalize_path(route) === normalize_path(current);
+	}
+
+	$: effective_pages = (() => {
+		let visible_pages = pages.filter(([route, label, show], index) => {
+			if (index === 0 && route === "") {
+				return navbar?.main_page_name !== false;
+			}
+			return show !== false;
+		});
+
+		let base_pages =
+			navbar &&
+			navbar.main_page_name !== false &&
+			navbar.main_page_name !== "Home"
+				? visible_pages.map(([route, label, show], index) =>
+						index === 0 && route === "" && label === "Home"
+							? ([route, navbar!.main_page_name] as [string, string])
+							: ([route, label] as [string, string])
+					)
+				: visible_pages.map(
+						([route, label]) => [route, label] as [string, string]
+					);
+
+		if (navbar?.value && navbar.value.length > 0) {
+			const existing_routes = new Set(base_pages.map(([route]) => route));
+			const additional_pages = navbar.value
+				.map(
+					([page_name, page_path]) => [page_path, page_name] as [string, string]
+				)
+				.filter(([route]) => !existing_routes.has(route));
+			return [...base_pages, ...additional_pages];
+		}
+
+		return base_pages;
+	})();
 </script>
 
 <div
 	bind:this={wrapper}
-	class:app={!display && !is_embed}
 	class:fill_width
 	class:embed-container={display}
 	class:with-info={info}
@@ -24,32 +106,81 @@
 	style:flex-grow={!display ? "1" : "auto"}
 	data-iframe-height
 >
-	<div class="main">
-		<slot />
-	</div>
-	{#if display && space && info}
-		<div class="info">
-			<span>
-				<a href="https://huggingface.co/spaces/{space}" class="title">{space}</a
-				>
-			</span>
-			<span>
-				{$_("common.built_with")}
-				<a class="gradio" href="https://gradio.app">Gradio</a>.
-			</span>
-			<span>
-				{$_("common.hosted_on")}
-				<a class="hf" href="https://huggingface.co/spaces"
-					><span class="space-logo">
-						<img src={space_logo} alt="Hugging Face Space" />
-					</span> Spaces</a
-				>
-			</span>
+	{#if show_navbar}
+		<div class="nav-holder">
+			<nav class="fillable" class:fill_width>
+				{#each effective_pages as [route, label], i}
+					<a
+						href={route.startsWith("http://") || route.startsWith("https://")
+							? route
+							: `${root}/${route}`}
+						class:active={is_active_route(route, current_page)}
+						data-sveltekit-reload
+						target={route.startsWith("http://") || route.startsWith("https://")
+							? "_blank"
+							: "_self"}
+						rel={route.startsWith("http://") || route.startsWith("https://")
+							? "noopener noreferrer"
+							: ""}
+						>{label}
+					</a>
+				{/each}
+			</nav>
 		</div>
 	{/if}
+	<div class="main fillable" class:fill_width class:app={!display && !is_embed}>
+		<slot />
+		<div>
+			{#if display && space && info}
+				<div class="info">
+					<span>
+						<a href="https://huggingface.co/spaces/{space}" class="title"
+							>{space}</a
+						>
+					</span>
+					<span>
+						{$_("common.built_with")}
+						<a class="gradio" href="https://gradio.app">Gradio</a>.
+					</span>
+					<span>
+						{$_("common.hosted_on")}
+						<a class="hf" href="https://huggingface.co/spaces"
+							><span class="space-logo">
+								<img src={space_logo} alt="Hugging Face Space" />
+							</span> Spaces</a
+						>
+					</span>
+				</div>
+			{/if}
+		</div>
+	</div>
 </div>
 
 <style>
+	.nav-holder {
+		padding: var(--size-2) 0;
+		border-bottom: solid 1px var(--border-color-primary);
+	}
+	nav {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--size-2);
+		justify-content: flex-end;
+		margin: 0 auto;
+		padding: 0 var(--size-8);
+	}
+	nav a {
+		padding: var(--size-1) var(--size-2);
+		border-radius: var(--block-radius);
+		border-width: var(--block-border-width);
+		border-color: transparent;
+		color: var(--body-text-color-subdued);
+	}
+	nav a.active {
+		color: var(--body-text-color);
+		border-color: var(--block-border-color);
+		background-color: var(--block-background-fill);
+	}
 	.gradio-container {
 		display: flex;
 		position: relative;
@@ -74,7 +205,7 @@
 		padding: var(--size-4);
 	}
 
-	.app > .main {
+	.main {
 		display: flex;
 		flex-grow: 1;
 		flex-direction: column;
@@ -89,28 +220,33 @@
 	}
 
 	@media (--screen-sm) {
-		.app:not(.fill_width) {
+		.fillable:not(.fill_width) {
 			max-width: 640px;
 		}
 	}
 	@media (--screen-md) {
-		.app:not(.fill_width) {
+		.fillable:not(.fill_width) {
 			max-width: 768px;
 		}
 	}
 	@media (--screen-lg) {
-		.app:not(.fill_width) {
+		.fillable:not(.fill_width) {
 			max-width: 1024px;
 		}
 	}
 	@media (--screen-xl) {
-		.app:not(.fill_width) {
+		.fillable:not(.fill_width) {
 			max-width: 1280px;
 		}
 	}
 	@media (--screen-xxl) {
-		.app:not(.fill_width) {
+		.fillable:not(.fill_width) {
 			max-width: 1536px;
+		}
+	}
+	@media (--screen-xxxl) {
+		.fillable:not(.fill_width) {
+			max-width: 1920px;
 		}
 	}
 
@@ -191,7 +327,7 @@
 		height: 12px;
 	}
 
-	a:hover {
+	.main a:hover {
 		text-decoration: underline;
 	}
 </style>

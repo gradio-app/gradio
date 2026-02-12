@@ -52,14 +52,14 @@ function generate_dev_entry({ enable }) {
   return {
     name: "generate-dev-entry",
     transform(code, id) {
-      if (!enable) return;
-      const new_code = code.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
-        return `const ${$1.replace(/\* as /, "").replace(/ as /g, ": ")} = window.__gradio__svelte__internal;`;
-      });
-      return {
-        code: new_code,
-        map: null
-      };
+      // if (!enable) return;
+      // const new_code = code.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
+      //   return `const ${$1.replace(/\* as /, "").replace(/ as /g, ": ")} = window.__gradio__svelte__internal;`;
+      // });
+      // return {
+      //   code: new_code,
+      //   map: null
+      // };
     }
   };
 }
@@ -151,7 +151,9 @@ var ignore_list = [
   "utils",
   "wasm",
   "sanitize",
-  "markdown-code"
+  "markdown-code",
+  "spa",
+  "dataframe-interim"
 ];
 function generate_component_imports() {
   const exports = readdirSync(join(__dirname, "..", "..")).map((dir) => {
@@ -179,19 +181,41 @@ function generate_component_imports() {
     }
     return void 0;
   }).filter((x) => x !== void 0);
+
+  const walkthrough = exports.find((x) => x.name === "@gradio/tabs");
+  const walkthroughstep = exports.find((x) => x.name === "@gradio/tabitem");
+
+  exports.push({
+    name: "walkthrough",
+    component: walkthrough.component,
+    
+  });
+
+  exports.push({
+    name: "walkthroughstep",
+    component:  walkthroughstep.component,
+    
+  });
+
   const imports = exports.reduce((acc, _export) => {
     if (!_export) return acc;
-    const example = _export.example ? `example: () => import("${_export.name}/example"),
+    let example = _export.example ? `example: () => import("${_export.name}/example"),
 ` : "";
     const base = _export.base ? `base: () => import("${_export.name}/base"),
 ` : "";
+    let component = _export.name;
+    if (_export.name === 'walkthrough') component = "@gradio/tabs";
+    if (_export.name === 'walkthroughstep') component = "@gradio/tabitem";
+    
+      
     return `${acc}"${_export.name.replace("@gradio/", "")}": {
 			${base}
 			${example}
-			component: () => import("${_export.name}")
+			component: () => import("${component}")
 			},
 `;
   }, "");
+
   return imports;
 }
 function load_virtual_component_loader(mode) {
@@ -263,21 +287,6 @@ function resolve_svelte(enable) {
     name: "resolve-svelte",
     async resolveId(id) {
       if (!enable) return;
-      if (id === "./svelte/svelte.js" || id === "svelte" || id === "svelte/internal") {
-        const mod = join(
-          __dirname,
-          "..",
-          "..",
-          "..",
-          "gradio",
-          "templates",
-          "frontend",
-          "assets",
-          "svelte",
-          "svelte.js"
-        );
-        return { id: mod, external: "absolute" };
-      }
     }
   };
 }

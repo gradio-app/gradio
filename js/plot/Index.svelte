@@ -3,72 +3,76 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
+	import { Gradio } from "@gradio/utils";
 	import Plot from "./shared/Plot.svelte";
 
-	import { Block, BlockLabel } from "@gradio/atoms";
+	import {
+		Block,
+		BlockLabel,
+		FullscreenButton,
+		IconButtonWrapper
+	} from "@gradio/atoms";
 	import { Plot as PlotIcon } from "@gradio/icons";
 
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
+	import type { PlotProps, PlotEvents } from "./types.ts";
 
-	type ThemeMode = "system" | "light" | "dark";
+	let props = $props();
+	const gradio = new Gradio<PlotEvents, PlotProps>(props);
 
-	export let value: null | string = null;
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible = true;
-	export let loading_status: LoadingStatus;
-	export let label: string;
-	export let show_label: boolean;
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let theme_mode: ThemeMode;
-	export let caption: string;
-	export let bokeh_version: string | null;
-	export let gradio: Gradio<{
-		change: never;
-		clear_status: LoadingStatus;
-		select: SelectData;
-	}>;
-	export let show_actions_button = false;
-	export let _selectable = false;
-	export let x_lim: [number, number] | null = null;
+	let fullscreen = $state(false);
 </script>
 
 <Block
 	padding={false}
-	{elem_id}
-	{elem_classes}
-	{visible}
-	{container}
-	{scale}
-	{min_width}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+	visible={gradio.shared.visible}
+	container={gradio.shared.container}
+	scale={gradio.shared.scale}
+	min_width={gradio.shared.min_width}
 	allow_overflow={false}
+	bind:fullscreen
 >
 	<BlockLabel
-		{show_label}
-		label={label || gradio.i18n("plot.plot")}
+		show_label={gradio.shared.show_label}
+		label={gradio.shared.label || gradio.i18n("plot.plot")}
 		Icon={PlotIcon}
 	/>
+	{#if (gradio.props.buttons && gradio.props.buttons.length > 0) || gradio.props.show_fullscreen_button}
+		<IconButtonWrapper
+			buttons={gradio.props.buttons ?? []}
+			on_custom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
+		>
+			{#if gradio.props.show_fullscreen_button}
+				<FullscreenButton
+					{fullscreen}
+					on:fullscreen={({ detail }) => {
+						fullscreen = detail;
+					}}
+				/>
+			{/if}
+		</IconButtonWrapper>
+	{/if}
 	<StatusTracker
-		autoscroll={gradio.autoscroll}
+		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
-		{...loading_status}
-		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+		{...gradio.shared.loading_status}
+		on_clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 	<Plot
-		{value}
-		{theme_mode}
-		{caption}
-		{bokeh_version}
-		{show_actions_button}
-		{gradio}
-		{show_label}
-		{_selectable}
-		{x_lim}
-		on:change={() => gradio.dispatch("change")}
-		on:select={(e) => gradio.dispatch("select", e.detail)}
+		value={gradio.props.value}
+		theme_mode={gradio.props.theme_mode}
+		show_label={gradio.shared.show_label}
+		caption={gradio.props.caption}
+		bokeh_version={gradio.props.bokeh_version}
+		show_actions_button={gradio.props.show_actions_button}
+		_selectable={gradio.props._selectable}
+		x_lim={gradio.props.x_lim}
+		show_fullscreen_button={gradio.props.show_fullscreen_button}
+		on_change={() => gradio.dispatch("change")}
 	/>
 </Block>

@@ -6,14 +6,14 @@ from __future__ import annotations
 
 import abc
 import hashlib
+import inspect
 import json
-import sys
 import warnings
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 import gradio_client.utils as client_utils
 
@@ -29,6 +29,7 @@ from gradio.data_classes import (
     MediaStreamChunk,
 )
 from gradio.events import EventListener
+from gradio.i18n import I18nData
 from gradio.layouts import Form
 from gradio.processing_utils import move_files_to_cache
 
@@ -122,9 +123,13 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
 
     @classmethod
     def get_component_class_id(cls) -> str:
-        module_name = cls.__module__
-        module_path = sys.modules[module_name].__file__
-        module_hash = hashlib.md5(f"{cls.__name__}_{module_path}".encode()).hexdigest()
+        try:
+            module_path = inspect.getfile(cls)
+        except TypeError:
+            module_path = cls.__module__
+        module_hash = hashlib.sha256(
+            f"{cls.__name__}_{module_path}".encode()
+        ).hexdigest()
         return module_hash
 
 
@@ -142,22 +147,24 @@ class Component(ComponentBase, Block):
         self,
         value: Any = None,
         *,
-        label: str | None = None,
-        info: str | None = None,
+        label: str | I18nData | None = None,
+        info: str | I18nData | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int | None = None,
         interactive: bool | None = None,
-        visible: bool = True,
+        visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        key: int | str | None = None,
+        key: int | str | tuple[int | str, ...] | None = None,
+        preserved_by_key: list[str] | str | None = "value",
         load_fn: Callable | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
     ):
+        self._api_info_cache = None
         self.server_fns = [
             getattr(self, value)
             for value in dir(self.__class__)
@@ -183,6 +190,7 @@ class Component(ComponentBase, Block):
             visible=visible,
             render=render,
             key=key,
+            preserved_by_key=preserved_by_key,
         )
         if isinstance(self, StreamingInput):
             self.check_streamable()
@@ -239,8 +247,8 @@ class Component(ComponentBase, Block):
     TEMPLATE_DIR = DeveloperPath("./templates/")
     FRONTEND_DIR = "../../frontend/"
 
-    def get_config(self):
-        config = super().get_config()
+    def get_config(self, cls: type[Block] | None = None) -> dict[str, Any]:
+        config = super().get_config(cls)
         if self.info:
             config["info"] = self.info
         if len(self.server_fns):
@@ -329,10 +337,13 @@ class Component(ComponentBase, Block):
         The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
         Keys of the dictionary are: raw_input, raw_output, serialized_input, serialized_output
         """
+        if self._api_info_cache is not None:
+            return self._api_info_cache
         if self.data_model is not None:
             schema = self.data_model.model_json_schema()
             desc = schema.pop("description", None)
             schema["additional_description"] = desc
+            self._api_info_cache = schema
             return schema
         raise NotImplementedError(
             f"The api_info method has not been implemented for {self.get_block_name()}"
@@ -368,6 +379,13 @@ class Component(ComponentBase, Block):
 
 
 class FormComponent(Component):
+    """
+    A base class for components that are typically used in forms (e.g. Textbox, Dropdown). These
+    components will be grouped together in the UI to provide a more condensed layout. Components
+    that are not rendered in the UI (e.g. State) should also inherit from this class, as it will
+    prevent them from breaking the grouping, see: https://github.com/gradio-app/gradio/issues/10330
+    """
+
     def get_expected_parent(self) -> type[Form] | None:
         if getattr(self, "container", None) is False:
             return None
@@ -439,9 +457,9 @@ def get_component_instance(
     if isinstance(comp, str):
         component_obj = component(comp, render=render)
     elif isinstance(comp, dict):
-        name = comp.pop("name")
+        name = comp.pop("name")  # type: ignore
         component_cls = utils.component_or_layout_class(name)
-        component_obj = component_cls(**comp, render=render)
+        component_obj = component_cls(**comp, render=render)  # type: ignore
         if isinstance(component_obj, BlockContext):
             raise ValueError(f"Invalid component: {name}")
     elif isinstance(comp, Component):

@@ -21,9 +21,9 @@ describe("set_space_timeout", () => {
 	it("should set the sleep timeout for a space", async () => {
 		const space_id = "hmb/hello_world";
 		const timeout = 60;
-		const hf_token = "hf_123";
+		const token = "hf_123";
 
-		const response = await set_space_timeout(space_id, timeout, hf_token);
+		const response = await set_space_timeout(space_id, timeout, token);
 
 		expect(response).toEqual(hardware_sleeptime_response);
 	});
@@ -31,11 +31,9 @@ describe("set_space_timeout", () => {
 	it("should throw an error if the fetch call fails", async () => {
 		const space_id = "hmb/server_test";
 		const timeout = 60;
-		const hf_token = "hf_123";
+		const token = "hf_123";
 
-		await expect(
-			set_space_timeout(space_id, timeout, hf_token)
-		).rejects.toThrow(
+		await expect(set_space_timeout(space_id, timeout, token)).rejects.toThrow(
 			"Could not set sleep timeout on duplicated Space. Please visit *ADD HF LINK TO SETTINGS* to set a timeout manually to reduce billing charges."
 		);
 	});
@@ -44,9 +42,9 @@ describe("set_space_timeout", () => {
 describe("get_space_hardware", () => {
 	it("should return the current hardware for a space", async () => {
 		const space_id = "hmb/hello_world";
-		const hf_token = "hf_123";
+		const token = "hf_123";
 
-		const hardware = await get_space_hardware(space_id, hf_token);
+		const hardware = await get_space_hardware(space_id, token);
 		expect(hardware).toEqual(hardware_sleeptime_response.hardware.current);
 	});
 

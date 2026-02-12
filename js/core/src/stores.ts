@@ -1,26 +1,27 @@
 import { type Writable, writable, get } from "svelte/store";
 
-export interface LoadingStatus {
-	eta: number | null;
-	status: "pending" | "error" | "complete" | "generating" | "streaming";
-	queue: boolean;
-	queue_position: number | null;
-	queue_size?: number;
-	fn_index: number;
-	message?: string | null;
-	scroll_to_output?: boolean;
-	show_progress?: "full" | "minimal" | "hidden";
-	time_limit?: number | null | undefined;
-	progress?: {
-		progress: number | null;
-		index: number | null;
-		length: number | null;
-		unit: string | null;
-		desc: string | null;
-	}[];
-}
+// export interface LoadingStatus {
+// 	eta: number | null;
+// 	status: "pending" | "error" | "complete" | "generating" | "streaming";
+// 	queue: boolean;
+// 	queue_position: number | null;
+// 	queue_size?: number;
+// 	fn_index: number;
+// 	message?: string | null;
+// 	scroll_to_output?: boolean;
+// 	show_progress?: "full" | "minimal" | "hidden";
+// 	time_limit?: number | null | undefined;
+// 	progress?: {
+// 		progress: number | null;
+// 		index: number | null;
+// 		length: number | null;
+// 		unit: string | null;
+// 		desc: string | null;
+// 	}[];
+// 	validation_error?: string | null;
+// }
 
-export type LoadingStatusCollection = Record<number, LoadingStatus>;
+// export type LoadingStatusCollection = Record<number, LoadingStatus>;
 
 interface LoadingStatusStore {
 	update: (status: LoadingStatus) => void;
@@ -28,6 +29,10 @@ interface LoadingStatusStore {
 	register: (index: number, inputs: number[], outputs: number[]) => void;
 	get_status_for_fn: (i: number) => LoadingStatus["status"];
 	get_inputs_to_update: () => Map<number, string>;
+	update_component_status: (
+		index: number,
+		status: Partial<LoadingStatus>
+	) => void;
 }
 
 export function create_loading_status_store(): LoadingStatusStore {
@@ -152,8 +157,22 @@ export function create_loading_status_store(): LoadingStatusStore {
 		fn_outputs[index] = outputs;
 	}
 
+	function update_component_status(
+		index: number,
+		status: Partial<LoadingStatus>
+	): void {
+		store.update((outputs: LoadingStatusCollection) => {
+			outputs[index] = {
+				...outputs[index],
+				...status
+			};
+			return outputs;
+		});
+	}
+
 	return {
 		update,
+		update_component_status,
 		register,
 		subscribe: store.subscribe,
 		get_status_for_fn(i: number) {

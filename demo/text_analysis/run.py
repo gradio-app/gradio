@@ -1,8 +1,8 @@
 import gradio as gr
 import os
 os.system('python -m spacy download en_core_web_sm')
-import spacy
-from spacy import displacy
+import spacy  # type: ignore
+from spacy import displacy  # type: ignore
 
 nlp = spacy.load("en_core_web_sm")
 
@@ -33,6 +33,7 @@ demo = gr.Interface(
         ["What a beautiful morning for a walk!"],
         ["It was the best of times, it was the worst of times."],
     ],
+    api_name="predict",
 )
 
 demo.launch()

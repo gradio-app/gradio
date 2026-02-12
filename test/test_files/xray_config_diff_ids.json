@@ -510,6 +510,7 @@
 			"collects_event_data": false,
 			"trigger_after": null,
 			"trigger_only_on_success": false,
+			"trigger_only_on_failure": false,
 			"trigger_mode": "once"
 		},
 		{
@@ -532,6 +533,7 @@
 			"collects_event_data": false,
 			"trigger_after": null,
 			"trigger_only_on_success": false,
+			"trigger_only_on_failure": false,
 			"trigger_mode": "once"
 		}
 	]

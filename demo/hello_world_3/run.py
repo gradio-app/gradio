@@ -10,6 +10,7 @@ demo = gr.Interface(
     fn=greet,
     inputs=["text", "checkbox", gr.Slider(0, 100)],
     outputs=["text", "number"],
+    api_name="predict"
 )
 if __name__ == "__main__":
     demo.launch()

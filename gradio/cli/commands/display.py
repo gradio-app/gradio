@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import time
 from types import TracebackType
-from typing import Optional
 
 from rich.live import Live
 from rich.panel import Panel
@@ -25,8 +24,8 @@ class LivePanelDisplay:
 
     def __exit__(
         self,
-        exc_type: Optional[type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         self._panel.stop()

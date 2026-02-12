@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import contextlib
 import csv
 import datetime
+import json
 import os
 import re
 import time
@@ -16,7 +16,8 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
 import gradio as gr
-from gradio import utils, wasm_utils
+from gradio import utils
+from gradio.events import LikeData
 
 if TYPE_CHECKING:
     from gradio.components import Component
@@ -94,7 +95,9 @@ class SimpleCSVLogger(FlaggingCallback):
         for component, sample in zip(self.components, flag_data, strict=False):
             save_dir = Path(
                 flagging_dir
-            ) / client_utils.strip_invalid_filename_characters(component.label or "")
+            ) / client_utils.strip_invalid_filename_characters(
+                str(component.label) if component.label is not None else ""
+            )
             save_dir.mkdir(exist_ok=True)
             csv_data.append(
                 component.flag(
@@ -163,7 +166,7 @@ class ClassicCSVLogger(FlaggingCallback):
             save_dir = Path(
                 flagging_dir
             ) / client_utils.strip_invalid_filename_characters(
-                getattr(component, "label", None) or f"component {idx}"
+                str(getattr(component, "label", None) or f"component {idx}")
             )
             if utils.is_prop_update(sample):
                 csv_data.append(str(sample))
@@ -224,9 +227,7 @@ class CSVLogger(FlaggingCallback):
         self.simplify_file_data = simplify_file_data
         self.verbose = verbose
         self.dataset_file_name = dataset_file_name
-        self.lock = (
-            Lock() if not wasm_utils.IS_WASM else contextlib.nullcontext()
-        )  # The multiprocessing module doesn't work on Lite.
+        self.lock = Lock()
 
     def setup(
         self,
@@ -311,7 +312,7 @@ class CSVLogger(FlaggingCallback):
             save_dir = (
                 self.flagging_dir
                 / client_utils.strip_invalid_filename_characters(
-                    getattr(component, "label", None) or f"component {idx}"
+                    str(getattr(component, "label", None) or f"component {idx}")
                 )
             )
             if utils.is_prop_update(sample):
@@ -342,6 +343,50 @@ class CSVLogger(FlaggingCallback):
                 line_count = len(list(csv.reader(csvfile))) - 1
 
         return line_count
+
+
+class ChatCSVLogger:
+    """
+    Flagging callback for chat conversations.
+    Flagged conversations and like/dislike reactions are logged to a CSV file on the machine running the gradio app.
+    """
+
+    def __init__(self):
+        pass
+
+    def setup(self, flagging_dir: str):
+        self.flagging_dir = flagging_dir
+        os.makedirs(flagging_dir, exist_ok=True)
+
+    def flag(
+        self,
+        like_data: LikeData,
+        messages: list,
+    ):
+        flagging_dir = self.flagging_dir
+        log_filepath = Path(flagging_dir) / "log.csv"
+        is_new = not Path(log_filepath).exists()
+
+        feedback = (
+            "Like"
+            if like_data.liked is True
+            else "Dislike"
+            if like_data.liked is False
+            else like_data.liked
+        )
+        csv_data = [
+            json.dumps(messages),
+            like_data.index,
+            feedback,
+            str(datetime.datetime.now()),
+        ]
+
+        with open(log_filepath, "a", encoding="utf-8", newline="") as csvfile:
+            if is_new:
+                writer = csv.writer(csvfile)
+                writer.writerow(["conversation", "index", "value", "flag", "timestamp"])
+            writer = csv.writer(csvfile)
+            writer.writerow(utils.sanitize_list_for_csv(csv_data))
 
 
 class FlagMethod:

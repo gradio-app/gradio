@@ -1,0 +1,298 @@
+<script lang="ts">
+	import type { Client } from "@gradio/client";
+	import type { NormalisedMessage, ThoughtNode } from "../types";
+	import type { I18nFormatter } from "js/core/src/gradio_helper";
+	import type { ComponentType, SvelteComponent } from "svelte";
+	import MessageContent from "./MessageContent.svelte";
+	import { DropdownCircularArrow } from "@gradio/icons";
+	import { IconButton } from "@gradio/atoms";
+	import { slide } from "svelte/transition";
+	import { MarkdownCode as Markdown } from "@gradio/markdown-code";
+
+	let {
+		thought,
+		rtl,
+		sanitize_html,
+		latex_delimiters,
+		render_markdown,
+		_components,
+		upload,
+		thought_index,
+		target,
+		theme_mode,
+		_fetch,
+		scroll,
+		allow_file_downloads,
+		display_consecutive_in_same_bubble,
+		i18n,
+		line_breaks,
+		allow_tags
+	}: {
+		thought: NormalisedMessage;
+		rtl: boolean;
+		sanitize_html: boolean;
+		latex_delimiters: { left: string; right: string; display: boolean }[];
+		render_markdown: boolean;
+		_components: Record<string, ComponentType<SvelteComponent>>;
+		upload: Client["upload"];
+		thought_index: number;
+		target: HTMLElement | null;
+		theme_mode: "light" | "dark" | "system";
+		_fetch: typeof fetch;
+		scroll: () => void;
+		allow_file_downloads: boolean;
+		display_consecutive_in_same_bubble: boolean;
+		i18n: I18nFormatter;
+		line_breaks: boolean;
+		allow_tags: string[] | boolean;
+	} = $props();
+
+	function is_thought_node(msg: NormalisedMessage): msg is ThoughtNode {
+		return "children" in msg;
+	}
+
+	let user_expanded_toggled = $state(false);
+	let content_preview_element: HTMLElement;
+	let user_is_scrolling = $state(false);
+	let thought_node: ThoughtNode = $derived.by(() => ({
+		...thought,
+		children: is_thought_node(thought) ? thought.children : []
+	}));
+
+	let expanded = $state(false);
+
+	$effect(() => {
+		if (!user_expanded_toggled) {
+			expanded = thought_node?.metadata?.status !== "done";
+		}
+	});
+
+	function toggleExpanded(): void {
+		expanded = !expanded;
+		user_expanded_toggled = true;
+	}
+
+	function scrollToBottom(): void {
+		if (content_preview_element && !user_is_scrolling) {
+			content_preview_element.scrollTop = content_preview_element.scrollHeight;
+		}
+	}
+
+	function handleScroll(): void {
+		if (content_preview_element) {
+			const is_at_bottom =
+				content_preview_element.scrollHeight -
+					content_preview_element.scrollTop <=
+				content_preview_element.clientHeight + 10;
+			if (!is_at_bottom) {
+				user_is_scrolling = true;
+			}
+		}
+	}
+
+	$effect(() => {
+		if (thought_node.content && thought_node.metadata?.status !== "done")
+			setTimeout(scrollToBottom, 0);
+	});
+</script>
+
+<div class="thought-group">
+	<div
+		class="title"
+		class:expanded
+		on:click|stopPropagation={toggleExpanded}
+		aria-busy={thought_node.content === "" || thought_node.content === null}
+		role="button"
+		tabindex="0"
+		on:keydown={(e) => e.key === "Enter" && toggleExpanded()}
+	>
+		<span
+			class="arrow"
+			style:transform={expanded ? "rotate(180deg)" : "rotate(0deg)"}
+		>
+			<IconButton Icon={DropdownCircularArrow} />
+		</span>
+		<Markdown
+			message={thought_node.metadata?.title || ""}
+			{render_markdown}
+			{latex_delimiters}
+			{sanitize_html}
+			allow_tags={allow_tags || false}
+		/>
+		{#if thought_node.metadata?.status === "pending"}
+			<span class="loading-spinner"></span>
+		{/if}
+		{#if thought_node?.metadata?.log || thought_node?.metadata?.duration}
+			<span class="duration">
+				{#if thought_node.metadata.log}
+					{thought_node.metadata.log}
+				{/if}
+				{#if thought_node.metadata.duration !== undefined}
+					({#if Number.isInteger(thought_node.metadata.duration)}{thought_node
+							.metadata
+							.duration}s{:else if thought_node.metadata.duration >= 0.1}{thought_node.metadata.duration.toFixed(
+							1
+						)}s{:else}{(thought_node.metadata.duration * 1000).toFixed(
+							1
+						)}ms{/if})
+				{/if}
+			</span>
+		{/if}
+	</div>
+
+	{#if expanded}
+		<div
+			class:content={expanded}
+			class:content-preview={!expanded &&
+				thought_node.metadata?.status !== "done"}
+			bind:this={content_preview_element}
+			on:scroll={handleScroll}
+			transition:slide
+		>
+			<MessageContent
+				message={thought_node}
+				{sanitize_html}
+				{allow_tags}
+				{latex_delimiters}
+				{render_markdown}
+				{_components}
+				{upload}
+				{thought_index}
+				{target}
+				{theme_mode}
+				{_fetch}
+				{scroll}
+				{allow_file_downloads}
+				{display_consecutive_in_same_bubble}
+				{i18n}
+				{line_breaks}
+			/>
+
+			{#if thought_node.children?.length > 0}
+				<div class="children">
+					{#each thought_node.children as child, index}
+						<svelte:self
+							thought={child}
+							rtc={rtl || false}
+							{sanitize_html}
+							{latex_delimiters}
+							{render_markdown}
+							{_components}
+							{upload}
+							thought_index={thought_index + 1}
+							{target}
+							{theme_mode}
+							{_fetch}
+							{scroll}
+							{allow_file_downloads}
+							{display_consecutive_in_same_bubble}
+							{i18n}
+							{line_breaks}
+						/>
+					{/each}
+				</div>
+			{/if}
+		</div>
+	{/if}
+</div>
+
+<style>
+	.thought-group {
+		background: var(--background-fill-primary);
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-sm);
+		padding: var(--spacing-md);
+		margin: var(--spacing-md) 0;
+		font-size: var(--text-sm);
+	}
+
+	.children :global(.thought-group) {
+		border: none;
+		margin: 0;
+		padding-bottom: 0;
+	}
+
+	.children {
+		padding-left: var(--spacing-md);
+	}
+
+	.title {
+		display: flex;
+		align-items: center;
+		color: var(--body-text-color);
+		cursor: pointer;
+		width: 100%;
+	}
+
+	.title :global(.md) {
+		font-size: var(--text-sm) !important;
+	}
+
+	.content,
+	.content-preview {
+		overflow-wrap: break-word;
+		word-break: break-word;
+		margin-left: var(--spacing-lg);
+		margin-bottom: var(--spacing-sm);
+	}
+
+	.content-preview {
+		position: relative;
+		max-height: calc(5 * 1.5em);
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		cursor: default;
+	}
+
+	.content :global(*),
+	.content-preview :global(*) {
+		font-size: var(--text-sm);
+		color: var(--body-text-color);
+	}
+
+	.thought-group :global(.thought:not(.nested)) {
+		border: none;
+		background: none;
+	}
+
+	.duration {
+		color: var(--body-text-color-subdued);
+		font-size: var(--text-sm);
+		margin-left: var(--size-1);
+	}
+
+	.arrow {
+		opacity: 0.8;
+		width: var(--size-8);
+		height: var(--size-8);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.arrow :global(button) {
+		background-color: transparent;
+	}
+
+	.loading-spinner {
+		display: inline-block;
+		width: 12px;
+		height: 12px;
+		border: 2px solid var(--body-text-color);
+		border-radius: 50%;
+		border-top-color: transparent;
+		animation: spin 1s linear infinite;
+		margin: 0 var(--size-1) -1px var(--size-2);
+		opacity: 0.8;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.thought-group :global(.message-content) {
+		opacity: 0.8;
+	}
+</style>

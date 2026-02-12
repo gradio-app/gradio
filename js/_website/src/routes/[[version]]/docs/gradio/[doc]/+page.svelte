@@ -1,9 +1,10 @@
 <script lang="ts">
 	import DocsNav from "$lib/components/DocsNav.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
-	import { onDestroy } from "svelte";
+	import RelatedGuides from "$lib/components/RelatedGuides.svelte";
 	import { page } from "$app/stores";
 	import { onNavigate } from "$app/navigation";
+	import '$lib/assets/theme.css';
 
 	export let data: any = {};
 
@@ -18,9 +19,6 @@
 	let target_elem: HTMLElement;
 	let module = data.module.default;
 	$: module = data.module.default;
-	onDestroy(() => {
-		header_targets = {};
-	});
 
 	let current_target: HTMLElement;
 
@@ -47,41 +45,54 @@
 	$: page_path = data.page_path;
 
 	$: flattened_pages = pages.map((category: any) => category.pages).flat();
+
+	let component_name = $page.params?.doc;
+	$: component_name = $page.params?.doc;
+
 	$: prev_obj =
 	flattened_pages[
-		flattened_pages.findIndex((page: any) => page.name === $page.params?.doc) - 1
+		flattened_pages.findIndex((page: any) => page.name === component_name) - 1
 		];
 	$: next_obj =
 		flattened_pages[
-			flattened_pages.findIndex((page: any) => page.name === $page.params?.doc) + 1
+			flattened_pages.findIndex((page: any) => page.name === component_name) + 1
 		];
-
-
-	let component_name = $page.params?.doc;
-
-	$: component_name = $page.params?.doc;
 	
 	function get_headers() {
-		let headers : any[] = []
+		let headers: any[] = [];
 		const h3_elements = document.querySelectorAll('h3');
 		h3_elements.forEach((element) => {
 			headers.push({ title: element.textContent, id: element.id });
-	});
+		});
 		const page_title_elem = document.querySelector('h1');
-		let page_title = {title: "", id: ""}
+		let page_title = { title: "", id: "" };
 		if (page_title_elem) {
 			page_title_elem.id = page_title_elem?.textContent?.toLowerCase().replace(/ /g, "-") || "";
-			page_title = {title: page_title_elem?.textContent || "", id: page_title_elem.id};
+			page_title = { title: page_title_elem?.textContent || "", id: page_title_elem.id };
 		}
-		return { headers: headers, page_title: page_title};
+		return { headers: headers, page_title: page_title };
+	}
+
+	function get_related_guides() {
+		let guides: { name: string, url: string }[] = [];
+		const guide_elements = document.querySelectorAll('a.guide-box');
+		guide_elements.forEach((element) => {
+			const p_elem = element.querySelector('p');
+			guides.push({
+				name: p_elem ? p_elem.textContent || "" : "",
+				url: element.getAttribute('href') || ""
+			});
+		});
+		return guides;
 	}
 	
 	var all_headers : {headers: any[], page_title: {title: string, id: string}} = {headers: [], page_title: {title: "", id: ""}};
-
+	var related_guides: {name: string, url: string}[] = [];
 	var dynamic_component: any = null;
 
 	$: if (dynamic_component) {
 		all_headers = get_headers();
+		related_guides = get_related_guides();
 	}
 
 	let show_nav = false;
@@ -117,9 +128,10 @@
 	canonical={$page.url.pathname}
 	description={"Gradio docs for using " + all_headers.page_title.title}
 />
+
 <svelte:window bind:scrollY={y} />
 
-<main class="container mx-auto px-4 flex flex-col gap-4">
+<main class="container mx-auto px-4 pt-8 flex flex-col gap-4">
 	<div class="flex items-center p-4 border-b border-t border-slate-900/10 lg:hidden dark:border-slate-50/[0.06]">
 		<button 
 		on:click={() => (show_nav = !show_nav)}
@@ -148,7 +160,7 @@
 		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
 			<div>
 				<p
-					class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left lg:ml-10"
+					class="bg-orange-100 dark:bg-orange-900 border border-orange-200 dark:border-orange-700 px-4 py-1 mr-2 rounded-full text-orange-800 dark:text-orange-200 mb-1 w-fit float-left lg:ml-10"
 				>
 					New to Gradio? Start here: <a class="link" href="/quickstart"
 						>Getting Started</a
@@ -185,11 +197,11 @@
 					{#if prev_obj}
 						<a
 							href="./{prev_obj.name}"
-							class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+							class="lg:ml-10 text-left px-4 py-1 bg-gray-50 dark:bg-neutral-700 rounded-full hover:underline max-w-[48%]"
 						>
 							<div class="flex text-lg">
 								<span class="text-orange-500 mr-1">&#8592;</span>
-								<p class="whitespace-nowrap overflow-hidden text-ellipsis">{prev_obj.pretty_name}</p>
+								<p class="whitespace-nowrap overflow-hidden text-ellipsis text-gray-900 dark:text-gray-100">{prev_obj.pretty_name}</p>
 							</div>
 						</a>
 					{:else}
@@ -198,10 +210,10 @@
 					{#if next_obj}
 						<a
 							href="./{next_obj.name}"
-							class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+							class="text-right px-4 py-1 bg-gray-50 dark:bg-neutral-700 rounded-full hover:underline max-w-[48%]"
 						>
 							<div class="flex text-lg">
-								<p class="whitespace-nowrap overflow-hidden text-ellipsis">{next_obj.pretty_name}</p>
+								<p class="whitespace-nowrap overflow-hidden text-ellipsis text-gray-900 dark:text-gray-100">{next_obj.pretty_name}</p>
 								<span class="text-orange-500 ml-1">&#8594;</span>
 							</div>
 						</a>
@@ -212,7 +224,7 @@
 
 				<div class="flex flex-row">
 					<div class="lg:ml-10 w-full">
-						<div class="obj">
+						<div class="obj text-gray-900 dark:text-gray-100">
 							<svelte:component this={module} bind:this={dynamic_component}/>
 						</div>
 					</div>
@@ -222,11 +234,11 @@
 					{#if prev_obj}
 						<a
 							href="./{prev_obj.name}"
-							class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+							class="lg:ml-10 text-left px-4 py-1 bg-gray-50 dark:bg-neutral-700 rounded-full hover:underline max-w-[48%]"
 						>
 							<div class="flex text-lg">
 								<span class="text-orange-500 mr-1">&#8592;</span>
-								<p class="whitespace-nowrap overflow-hidden text-ellipsis">{prev_obj.pretty_name}</p>
+								<p class="whitespace-nowrap overflow-hidden text-ellipsis text-gray-900 dark:text-gray-100">{prev_obj.pretty_name}</p>
 							</div>
 						</a>
 					{:else}
@@ -235,10 +247,10 @@
 					{#if next_obj}
 						<a
 							href="./{next_obj.name}"
-							class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+							class="text-right px-4 py-1 bg-gray-50 dark:bg-neutral-700 rounded-full hover:underline max-w-[48%]"
 						>
 							<div class="flex text-lg">
-								<p class="whitespace-nowrap overflow-hidden text-ellipsis">{next_obj.pretty_name}</p>
+								<p class="whitespace-nowrap overflow-hidden text-ellipsis text-gray-900 dark:text-gray-100">{next_obj.pretty_name}</p>
 								<span class="text-orange-500 ml-1">&#8594;</span>
 							</div>
 						</a>
@@ -252,21 +264,24 @@
 			class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:block lg:w-2/12"
 		>
 			<div class="mx-8">
-				<a class="thin-link py-2 block text-lg" href="#{all_headers.page_title.id}">{all_headers.page_title.title}</a
+				<a class="text-sm tracking-wider font-semibold text-gray-600 dark:text-gray-300 py-2 block" href="#{all_headers.page_title.id}">{all_headers.page_title.title}</a
 				>
 				{#if all_headers.headers && all_headers.headers.length > 0}
-					<ul class="text-slate-700 text-lg leading-6 list-none">
+					<ul class="space-y-2 list-none">
 						{#each all_headers.headers as header}
 							<li>
 								<a
 									bind:this={header_targets[header.id]}
 									href="#{header.id}"
-									class="thin-link block py-2 font-light second-nav-link"
+									class="block text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors py-1"
 									>{header.title}</a
 								>
 							</li>
 						{/each}
 					</ul>
+				{/if}
+				{#if related_guides && related_guides.length > 0}
+					<RelatedGuides related_guides={related_guides} />
 				{/if}
 			</div>
 		</div>
@@ -276,5 +291,8 @@
 <style>
 	.sub-link {
 		border-color: #f3f4f6 !important;
+	}
+	:global(.embedded-component) {
+		display: none;
 	}
 </style>

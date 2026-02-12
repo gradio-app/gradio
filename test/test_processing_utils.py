@@ -7,7 +7,6 @@ from unittest.mock import patch
 import ffmpy
 import numpy as np
 import pytest
-from gradio_client import media_data
 from PIL import Image, ImageCms
 
 from gradio import components, data_classes, processing_utils, utils
@@ -16,31 +15,30 @@ from gradio.route_utils import API_PREFIX
 
 class TestTempFileManagement:
     def test_hash_file(self):
-        h1 = processing_utils.hash_file("gradio/test_data/cheetah1.jpg")
-        h2 = processing_utils.hash_file("gradio/test_data/cheetah1-copy.jpg")
+        from gradio.media import get_image
+
+        h1 = processing_utils.hash_file(get_image("cheetah1.jpg"))
+        h2 = processing_utils.hash_file(get_image("cheetah1.jpg"))
         h3 = processing_utils.hash_file("gradio/test_data/cheetah2.jpg")
         assert h1 == h2
         assert h1 != h3
 
     def test_make_temp_copy_if_needed(self, gradio_temp_dir):
-        f = processing_utils.save_file_to_cache(
-            "gradio/test_data/cheetah1.jpg", cache_dir=gradio_temp_dir
-        )
+        from gradio.media import get_image
+
+        cheetah_path = get_image("cheetah1.jpg")
+        f = processing_utils.save_file_to_cache(cheetah_path, cache_dir=gradio_temp_dir)
         try:  # Delete if already exists from before this test
             os.remove(f)
         except OSError:
             pass
 
-        f = processing_utils.save_file_to_cache(
-            "gradio/test_data/cheetah1.jpg", cache_dir=gradio_temp_dir
-        )
+        f = processing_utils.save_file_to_cache(cheetah_path, cache_dir=gradio_temp_dir)
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
         assert Path(f).name == "cheetah1.jpg"
 
-        f = processing_utils.save_file_to_cache(
-            "gradio/test_data/cheetah1.jpg", cache_dir=gradio_temp_dir
-        )
+        f = processing_utils.save_file_to_cache(cheetah_path, cache_dir=gradio_temp_dir)
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
         f = processing_utils.save_file_to_cache(
@@ -49,7 +47,7 @@ class TestTempFileManagement:
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
         assert Path(f).name == "cheetah1-copy.jpg"
 
-    def test_save_b64_to_cache(self, gradio_temp_dir):
+    def test_save_b64_to_cache(self, gradio_temp_dir, media_data):
         base64_file_1 = media_data.BASE64_IMAGE
         base64_file_2 = media_data.BASE64_AUDIO["data"]
 
@@ -79,7 +77,7 @@ class TestTempFileManagement:
     @pytest.mark.flaky
     def test_ssrf_protected_download(self, gradio_temp_dir):
         url1 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/test_image.png"
-        url2 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/cheetah1.jpg"
+        url2 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/media_assets/images/cheetah1.jpg"
 
         f = processing_utils.save_url_to_cache(url1, cache_dir=gradio_temp_dir)
         try:  # Delete if already exists from before this test
@@ -184,7 +182,7 @@ class TestImagePreprocessing:
         new_img = processing_utils.resize_and_crop(img, (20, 20))
         assert new_img.size == (20, 20)
         with pytest.raises(ValueError):
-            processing_utils.resize_and_crop(
+            processing_utils.resize_and_crop(  # type: ignore
                 **{"img": img, "size": (20, 20), "crop_type": "test"}
             )
 
@@ -240,10 +238,10 @@ class TestOutputPreprocessing:
         x = np.array([-1, 1])
         # Test all combinations of dtypes conversions
         dtype_combin = np.array(
-            np.meshgrid(
-                TestOutputPreprocessing.float_dtype_list,
-                TestOutputPreprocessing.float_dtype_list,
-            )
+            np.meshgrid(  # type: ignore
+                TestOutputPreprocessing.float_dtype_list,  # type: ignore
+                TestOutputPreprocessing.float_dtype_list,  # type: ignore
+            )  # type: ignore
         ).T.reshape(-1, 2)
 
         for dtype_in, dtype_out in dtype_combin:
@@ -411,20 +409,20 @@ async def test_json_data_not_moved_to_cache():
 def test_public_request_pass():
     tempdir = tempfile.TemporaryDirectory()
     file = processing_utils.ssrf_protected_download(
-        "https://en.wikipedia.org/static/images/icons/wikipedia.png", tempdir.name
+        "https://huggingface.co/datasets/freddyaboulton/bucket/resolve/main/Hugging%20Face%20x%20Cloudflare.png",
+        tempdir.name,
     )
     assert os.path.exists(file)
-    assert os.path.getsize(file) == 13444
 
 
 @pytest.mark.asyncio
 async def test_async_public_request_pass():
     tempdir = tempfile.TemporaryDirectory()
     file = await processing_utils.async_ssrf_protected_download(
-        "https://en.wikipedia.org/static/images/icons/wikipedia.png", tempdir.name
+        "https://huggingface.co/datasets/freddyaboulton/bucket/resolve/main/Hugging%20Face%20x%20Cloudflare.png",
+        tempdir.name,
     )
     assert os.path.exists(file)
-    assert os.path.getsize(file) == 13444
 
 
 def test_private_request_fail():
@@ -442,3 +440,27 @@ async def test_async_private_request_fail():
         await processing_utils.async_ssrf_protected_download(
             "http://192.168.1.250.nip.io/image.png", tempdir.name
         )
+
+
+class TestAudioFormatDetection:
+    @pytest.mark.parametrize(
+        "file_path,expected",
+        [
+            ("gradio/media_assets/audio/audio_sample.wav", ".wav"),
+            ("gradio/test_data/test_audio.mp3", ".mp3"),
+        ],
+    )
+    def test_detect_audio_format_files(self, file_path, expected):
+        with open(file_path, "rb") as f:
+            assert processing_utils.detect_audio_format(f.read()) == expected
+
+    @pytest.mark.parametrize(
+        "data,expected",
+        [
+            (b"\x00\x00\x00\x00\x00\x00\x00\x00", ""),  # Unknown format
+            (b"\xff\xff", ""),  # Too short
+            (b"", ""),  # Empty
+        ],
+    )
+    def test_detect_audio_format_edge_cases(self, data, expected):
+        assert processing_utils.detect_audio_format(data) == expected

@@ -17,6 +17,7 @@ class BlocksMeta(type):
             trigger.set_doc(component=name)
             attrs[event] = trigger.listener
         component_class = super().__new__(cls, name, bases, attrs)
+
         create_or_modify_pyi(BlocksEvents, "BlocksEvents", BLOCKS_EVENTS)
         return component_class
 

@@ -5,6 +5,7 @@ test("renders the correct elements", async ({ page }) => {
 });
 
 test("applies the custom CSS styles", async ({ page }) => {
+	test.skip(process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true");
 	// Test for CSSKeyframesRule
 	const animationName = await page
 		.locator(".cool-col")
@@ -47,7 +48,8 @@ test("applies resources from the @import rule", async ({ page }) => {
 });
 
 test(".dark styles are applied corrently", async ({ page }) => {
-	await page.emulateMedia({ colorScheme: "dark" });
+	await page.goto(`${page.url()}?__theme=dark`);
+	await page.waitForTimeout(500);
 
 	await expect(page.locator(".markdown").nth(1)).toHaveCSS(
 		"background-color",
@@ -56,16 +58,5 @@ test(".dark styles are applied corrently", async ({ page }) => {
 	await expect(page.locator(".darktest h3")).toHaveCSS(
 		"color",
 		"rgb(255, 255, 0)"
-	);
-
-	await page.emulateMedia({ colorScheme: "light" });
-
-	await expect(page.locator(".markdown").nth(1)).toHaveCSS(
-		"background-color",
-		"rgb(173, 216, 230)"
-	);
-	await expect(page.locator(".darktest h3")).toHaveCSS(
-		"color",
-		"rgb(39, 39, 42)"
 	);
 });

@@ -30,7 +30,8 @@ outputs = gr.Image(label="colored icon")
 demo = gr.Interface(
     fn=change_color,
     inputs=inputs,
-    outputs=outputs
+    outputs=outputs,
+    api_name="predict"
 )
 
 if __name__ == "__main__":

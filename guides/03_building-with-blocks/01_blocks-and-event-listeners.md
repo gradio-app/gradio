@@ -1,6 +1,6 @@
 # Blocks and Event Listeners
 
-We briefly descirbed the Blocks class in the [Quickstart](/main/guides/quickstart#custom-demos-with-gr-blocks) as a way to build custom demos. Let's dive deeper. 
+We briefly described the Blocks class in the [Quickstart](/main/guides/quickstart#custom-demos-with-gr-blocks) as a way to build custom demos. Let's dive deeper. 
 
 
 ## Blocks Structure
@@ -51,7 +51,7 @@ Here's an example of a "multi-step" demo, where the output of one model (a speec
 $code_blocks_speech_text_sentiment
 $demo_blocks_speech_text_sentiment
 
-## Function Input List vs Dict
+## Function Input List vs Set
 
 The event listeners you've seen so far have a single input component. If you'd like to have multiple input components pass data to the function, you have two options on how the function can accept input component values:
 
@@ -64,7 +64,7 @@ $code_calculator_list_and_dict
 Both `add()` and `sub()` take `a` and `b` as inputs. However, the syntax is different between these listeners.
 
 1. To the `add_btn` listener, we pass the inputs as a list. The function `add()` takes each of these inputs as arguments. The value of `a` maps to the argument `num1`, and the value of `b` maps to the argument `num2`.
-2. To the `sub_btn` listener, we pass the inputs as a set (note the curly brackets!). The function `sub()` takes a single dictionary argument `data`, where the keys are the input components, and the values are the values of those components.
+2. To the `sub_btn` listener, we pass the inputs as a set (note the curly brackets!). When you pass a set, the function `sub()` receives a single dictionary argument `data`, where the keys are the input components and the values are the values of those components.
 
 It is a matter of preference which syntax you prefer! For functions with many input components, option 2 may be easier to manage.
 
@@ -99,7 +99,9 @@ with gr.Blocks() as demo:
 
 Above, each return statement returns two values corresponding to `food_box` and `status_box`, respectively.
 
-Instead of returning a list of values corresponding to each output component in order, you can also return a dictionary, with the key corresponding to the output component and the value as the new value. This also allows you to skip updating some output components.
+**Note:** if your event listener has a single output component, you should **not** return it as a single-item list. This will not work, since Gradio does not know whether to interpret that outer list as part of your return value. You should instead just return that value directly.
+
+Now, let's see option (2). Instead of returning a list of values corresponding to each output component in order, you can also return a dictionary, with the key corresponding to the output component and the value as the new value. This also allows you to skip updating some output components.
 
 ```python
 with gr.Blocks() as demo:
@@ -154,7 +156,7 @@ For example, in the chatbot example below, we first update the chatbot with the 
 $code_chatbot_consecutive
 $demo_chatbot_consecutive
 
-The `.then()` method of an event listener executes the subsequent event regardless of whether the previous event raised any errors. If you'd like to only run subsequent events if the previous event executed successfully, use the `.success()` method, which takes the same arguments as `.then()`.
+The `.then()` method of an event listener executes the subsequent event regardless of whether the previous event raised any errors. If you'd like to only run subsequent events if the previous event executed successfully, use the `.success()` method, which takes the same arguments as `.then()`. Conversely, if you'd like to only run subsequent events if the previous event failed (i.e., raised an error), use the `.failure()` method. This is particularly useful for error handling workflows, such as displaying error messages or restoring previous states when an operation fails.
 
 ## Binding Multiple Triggers to a Function
 

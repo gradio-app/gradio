@@ -17,6 +17,8 @@ if TYPE_CHECKING:
 class Timer(Component):
     """
     Special component that ticks at regular intervals when active. It is not visible, and only used to trigger events at a regular interval through the `tick` event listener.
+
+    Guides: more-blocks-features, time-plots
     """
 
     EVENTS = [
@@ -65,3 +67,7 @@ class Timer(Component):
 
     def example_value(self):
         return 1
+
+    def breaks_grouping(self) -> bool:
+        """Timer components should not break wrapper grouping chains."""
+        return False

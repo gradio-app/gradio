@@ -1,3 +1,4 @@
+# type: ignore
 import gradio as gr
 import pandas as pd
 from pathlib import Path
@@ -138,7 +139,7 @@ def filter_models(
 
     return filtered_df
 
-demo = gr.Blocks(css=str(abs_path / "assets/leaderboard_data.json"))
+demo = gr.Blocks()
 with demo:
     gr.Markdown("""Test Space of the LLM Leaderboard""", elem_classes="markdown-text")
 
@@ -233,4 +234,4 @@ with demo:
                 )
 
 if __name__ == "__main__":
-    demo.queue(default_concurrency_limit=40).launch()
+    demo.queue(default_concurrency_limit=40).launch(css=str(abs_path / "assets/custom_css.css"))

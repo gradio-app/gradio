@@ -4,7 +4,7 @@ import importlib
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated
 
 import semantic_version
 import typer
@@ -19,7 +19,7 @@ from gradio.cli.commands.components.docs import run_command
 from gradio.cli.commands.components.install_component import _get_executable_path
 from gradio.cli.commands.display import LivePanelDisplay
 
-gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"
+gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"  # type: ignore
 
 
 def _build(
@@ -36,7 +36,7 @@ def _build(
         bool, typer.Option(help="Whether to generate the documentation as well.")
     ] = True,
     python_path: Annotated[
-        Optional[str],
+        str | None,
         typer.Option(
             help="Path to python executable. If None, will use the default path found by `which python3`. If python3 is not found, `which python` will be tried. If both fail an error will be raised."
         ),

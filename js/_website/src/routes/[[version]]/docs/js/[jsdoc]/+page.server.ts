@@ -2,53 +2,10 @@ import { compile } from "mdsvex";
 import anchor from "$lib/assets/img/anchor.svg";
 import { make_slug_processor } from "$lib/utils";
 import { toString as to_string } from "hast-util-to-string";
-import Prism from "prismjs";
-import "prismjs/components/prism-python";
-import "prismjs/components/prism-bash";
-import "prismjs/components/prism-json";
-import "prismjs/components/prism-typescript";
-import "prismjs/components/prism-javascript";
-import "prismjs/components/prism-csv";
-import "prismjs/components/prism-markup";
+import { highlight } from "$lib/prism";
 import { error } from "@sveltejs/kit";
 
 export const prerender = true;
-
-function plugin() {
-	return function transform(tree: any) {
-		tree.children.forEach((n: any) => {
-			if (n.type === "heading") {
-			}
-		});
-	};
-}
-
-const langs = {
-	python: "python",
-	py: "python",
-	bash: "bash",
-	csv: "csv",
-	html: "html",
-	shell: "bash",
-	json: "json",
-	typescript: "typescript",
-	javascript: "javascript",
-	directory: "json"
-};
-
-function highlight(code: string, lang: string | undefined) {
-	const _lang = langs[lang as keyof typeof langs] || "";
-
-	const highlighted = _lang
-		? `<pre class="language-${lang}"><code>${Prism.highlight(
-				code,
-				Prism.languages[_lang],
-				_lang
-			)}</code></pre>`
-		: code;
-
-	return highlighted;
-}
 
 export async function load({ params, parent }) {
 	const { js, js_pages } = await parent();
@@ -61,6 +18,7 @@ export async function load({ params, parent }) {
 	if (!js_pages.some((p: string) => p === params.jsdoc)) {
 		throw error(404);
 	}
+
 	function plugin() {
 		return function transform(tree: any) {
 			tree.children.forEach((n: any) => {

@@ -45,10 +45,10 @@ def load_from_pipeline(
                 if isinstance(
                     pipeline,
                     (
-                        pipelines.text_classification.TextClassificationPipeline,
-                        pipelines.text2text_generation.Text2TextGenerationPipeline,
-                        pipelines.text2text_generation.TranslationPipeline,
-                        pipelines.token_classification.TokenClassificationPipeline,
+                        pipelines.text_classification.TextClassificationPipeline,  # type: ignore
+                        pipelines.text2text_generation.Text2TextGenerationPipeline,  # type: ignore
+                        pipelines.text2text_generation.TranslationPipeline,  # type: ignore
+                        pipelines.token_classification.TokenClassificationPipeline,  # type: ignore
                     ),
                 ):
                     data = pipeline(*data)
@@ -59,8 +59,8 @@ def load_from_pipeline(
                 if isinstance(
                     pipeline,
                     (
-                        pipelines.object_detection.ObjectDetectionPipeline,
-                        pipelines.token_classification.TokenClassificationPipeline,
+                        pipelines.object_detection.ObjectDetectionPipeline,  # type: ignore
+                        pipelines.token_classification.TokenClassificationPipeline,  # type: ignore
                     ),
                 ):
                     output = pipeline_info["postprocess"](data, params[0])
@@ -82,7 +82,7 @@ def load_from_pipeline(
 
     # define the title/description of the Interface
     interface_info["title"] = (
-        pipeline.model.config.name_or_path
+        pipeline.model.config.name_or_path  # type: ignore
         if str(type(pipeline).__module__).startswith("transformers.pipelines")
         else pipeline.__class__.__name__
     )

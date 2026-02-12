@@ -1,13 +1,17 @@
 <script lang="ts">
 	import { onDestroy } from "svelte";
 	import { Download, Check } from "@gradio/icons";
-	import { DownloadLink } from "@gradio/wasm/svelte";
+	import { DownloadLink } from "@gradio/atoms";
 	import { IconButton } from "@gradio/atoms";
 
-	export let value: string;
-	export let language: string;
+	interface Props {
+		value: string;
+		language: string;
+	}
 
-	$: ext = get_ext_for_type(language);
+	let { value, language }: Props = $props();
+
+	let ext = $derived(get_ext_for_type(language));
 
 	function get_ext_for_type(type: string): string {
 		const exts: Record<string, string> = {
@@ -29,13 +33,14 @@
 			shell: "sh",
 			r: "r",
 			c: "c",
-			cpp: "cpp"
+			cpp: "cpp",
+			latex: "tex"
 		};
 
 		return exts[type] || "txt";
 	}
 
-	let copied = false;
+	let copied = $state(false);
 	let timer: NodeJS.Timeout;
 
 	function copy_feedback(): void {
@@ -46,7 +51,7 @@
 		}, 2000);
 	}
 
-	$: download_value = URL.createObjectURL(new Blob([value]));
+	let download_value = $derived(URL.createObjectURL(new Blob([value])));
 
 	onDestroy(() => {
 		if (timer) clearTimeout(timer);
@@ -56,7 +61,7 @@
 <DownloadLink
 	download="file.{ext}"
 	href={download_value}
-	on:click={copy_feedback}
+	onclick={copy_feedback}
 >
 	<IconButton Icon={copied ? Check : Download} />
 </DownloadLink>

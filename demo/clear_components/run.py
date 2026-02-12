@@ -7,6 +7,8 @@ import pandas as pd
 
 import numpy as np
 import matplotlib.pyplot as plt
+# get_audio(), get_video() return file paths to sample media included with Gradio
+from gradio.media import get_audio, get_video, MEDIA_ROOT
 
 def random_plot():
     start_year = 2020
@@ -26,8 +28,6 @@ images = [
     "https://images.unsplash.com/photo-1554151228-14d9def656e4?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=386&q=80",
     "https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8aHVtYW4lMjBmYWNlfGVufDB8fDB8fA%3D%3D&w=1000&q=80",
 ]
-file_dir = os.path.join(os.path.dirname(__file__), "..", "kitchen_sink", "files")
-model3d_dir = os.path.join(os.path.dirname(__file__), "..", "model3D", "files")
 highlighted_text_output_1 = [
     {
         "entity": "I-LOC",
@@ -67,12 +67,6 @@ highlighted_text_output_2 = [
 
 highlighted_text = "Does Chicago have any Pakistani restaurants"
 
-def random_model3d():
-    model_3d = random.choice(
-        [os.path.join(model3d_dir, model) for model in os.listdir(model3d_dir) if model != "source.txt"]
-    )
-    return model_3d
-
 components = [
     gr.Textbox(value=lambda: datetime.now(), label="Current Time"),
     gr.Number(value=lambda: random.random(), label="Random Percentage"),
@@ -100,16 +94,14 @@ components = [
     gr.Image(
         value=lambda: random.choice(images)
     ),
-    gr.Video(value=lambda: os.path.join(file_dir, "world.mp4")),
-    gr.Audio(value=lambda: os.path.join(file_dir, "cantina.wav")),
+    gr.Video(value=lambda: get_video("world.mp4")),
+    gr.Audio(value=lambda: get_audio("cantina.wav")),
     gr.File(
-        value=lambda: random.choice(
-            [os.path.join(file_dir, img) for img in os.listdir(file_dir)]
-        )
+        value=gr.get_file
     ),
-    gr.Dataframe(
-        value=lambda: pd.DataFrame({"random_number_rows": range(5)}, columns=["one", "two", "three"])  # type: ignore
-    ),
+    # gr.Dataframe(
+    #     value=lambda: pd.DataFrame({"random_number_rows": range(5)}, columns=["one", "two", "three"])  # type: ignore
+    # ),
     gr.ColorPicker(value=lambda: random.choice(["#000000", "#ff0000", "#0000FF"])),
     gr.Label(value=lambda: random.choice(["Pedestrian", "Car", "Cyclist"])),
     gr.HighlightedText(
@@ -121,19 +113,19 @@ components = [
         ),
     ),
     gr.JSON(value=lambda: random.choice([{"a": 1}, {"b": 2}])),
-    gr.HTML(
-        value=lambda: random.choice(
-            [
-                '<p style="color:red;">I am red</p>',
-                '<p style="color:blue;">I am blue</p>',
-            ]
-        )
-    ),
+    # gr.HTML(
+    #     value=lambda: random.choice(
+    #         [
+    #             '<p style="color:red;">I am red</p>',
+    #             '<p style="color:blue;">I am blue</p>',
+    #         ]
+    #     )
+    # ),
     gr.Gallery(
         value=lambda: images
     ),
-    gr.Model3D(value=random_model3d),
-    gr.Plot(value=random_plot),
+    gr.Model3D(value=gr.get_model3d),
+    # gr.Plot(value=random_plot),
     gr.Markdown(value=lambda: f"### {random.choice(['Hello', 'Hi', 'Goodbye!'])}"),
 ]
 
@@ -171,4 +163,4 @@ with gr.Blocks() as demo:
     get_value.click(evaluate_values, components, result)
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(allowed_paths=[str(MEDIA_ROOT)])

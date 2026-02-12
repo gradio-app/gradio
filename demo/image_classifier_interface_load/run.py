@@ -22,6 +22,7 @@ using_img_classifier_as_function = gr.Interface(
         [str(current_dir / "lion.jpg"), "lion"],
     ],
     cache_examples=False,
+    api_name="predict"
 )
 demo = gr.TabbedInterface([using_img_classifier_as_function, img_classifier])
 

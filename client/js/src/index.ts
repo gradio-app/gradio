@@ -15,8 +15,11 @@ export type {
 	RenderMessage,
 	LogMessage,
 	Payload,
-	Config
+	Config,
+	ValidationError
 } from "./types";
+
+export { MISSING_CREDENTIALS_MSG } from "./constants";
 
 // todo: remove in @gradio/client v1.0
 export { client } from "./client";

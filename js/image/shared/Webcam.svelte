@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount } from "svelte";
+	import { createEventDispatcher, onDestroy, onMount } from "svelte";
 	import {
 		Camera,
 		Circle,
@@ -22,26 +22,8 @@
 	let video_source: HTMLVideoElement;
 	let available_video_devices: MediaDeviceInfo[] = [];
 	let selected_device: MediaDeviceInfo | null = null;
-	let time_limit: number | null = null;
-	let stream_state: "open" | "waiting" | "closed" = "closed";
 
-	export const modify_stream: (state: "open" | "closed" | "waiting") => void = (
-		state: "open" | "closed" | "waiting"
-	) => {
-		if (state === "closed") {
-			time_limit = null;
-			stream_state = "closed";
-			value = null;
-		} else if (state === "waiting") {
-			stream_state = "waiting";
-		} else {
-			stream_state = "open";
-		}
-	};
-
-	export const set_time_limit = (time: number): void => {
-		if (recording) time_limit = time;
-	};
+	export let stream_state: "open" | "waiting" | "closed" = "closed";
 
 	let canvas: HTMLCanvasElement;
 	export let streaming = false;
@@ -52,10 +34,11 @@
 	export let mode: "image" | "video" = "image";
 	export let mirror_webcam: boolean;
 	export let include_audio: boolean;
+	export let webcam_constraints: { [key: string]: any } | null = null;
 	export let i18n: I18nFormatter;
 	export let upload: Client["upload"];
 	export let value: FileData | null | Base64File = null;
-
+	export let time_limit: number | null = null;
 	const dispatch = createEventDispatcher<{
 		stream: Blob | string;
 		capture: FileData | Blob | null;
@@ -80,21 +63,24 @@
 		const target = event.target as HTMLInputElement;
 		const device_id = target.value;
 
-		await get_video_stream(include_audio, video_source, device_id).then(
-			async (local_stream) => {
-				stream = local_stream;
-				selected_device =
-					available_video_devices.find(
-						(device) => device.deviceId === device_id
-					) || null;
-				options_open = false;
-			}
-		);
+		await get_video_stream(
+			include_audio,
+			video_source,
+			webcam_constraints,
+			device_id
+		).then(async (local_stream) => {
+			stream = local_stream;
+			selected_device =
+				available_video_devices.find(
+					(device) => device.deviceId === device_id
+				) || null;
+			options_open = false;
+		});
 	};
 
 	async function access_webcam(): Promise<void> {
 		try {
-			get_video_stream(include_audio, video_source)
+			get_video_stream(include_audio, video_source, webcam_constraints)
 				.then(async (local_stream) => {
 					webcam_accessed = true;
 					available_video_devices = await get_devices();
@@ -127,12 +113,12 @@
 	}
 
 	function take_picture(): void {
-		var context = canvas.getContext("2d")!;
 		if (
 			(!streaming || (streaming && recording)) &&
 			video_source.videoWidth &&
 			video_source.videoHeight
 		) {
+			var context = canvas.getContext("2d")!;
 			canvas.width = video_source.videoWidth;
 			canvas.height = video_source.videoHeight;
 			context.drawImage(
@@ -193,7 +179,7 @@
 				}
 			};
 			ReaderObj.readAsDataURL(video_blob);
-		} else {
+		} else if (typeof MediaRecorder !== "undefined") {
 			dispatch("start_recording");
 			recorded_blobs = [];
 			let validMimeTypes = ["video/webm", "video/mp4"];
@@ -220,24 +206,23 @@
 
 	let webcam_accessed = false;
 
-	function record_video_or_photo(): void {
+	function record_video_or_photo({
+		destroy
+	}: { destroy?: boolean } = {}): void {
 		if (mode === "image" && streaming) {
 			recording = !recording;
 		}
-		if (mode === "image") {
-			take_picture();
-		} else {
-			take_recording();
+
+		if (!destroy) {
+			if (mode === "image") {
+				take_picture();
+			} else {
+				take_recording();
+			}
 		}
+
 		if (!recording && stream) {
 			dispatch("close_stream");
-			stream.getTracks().forEach((track) => track.stop());
-			video_source.srcObject = null;
-			webcam_accessed = false;
-			window.setTimeout(() => {
-				value = null;
-			}, 500);
-			value = null;
 		}
 	}
 
@@ -268,6 +253,12 @@
 		event.stopPropagation();
 		options_open = false;
 	}
+
+	onDestroy(() => {
+		if (typeof window === "undefined") return;
+		record_video_or_photo({ destroy: true });
+		stream?.getTracks().forEach((track) => track.stop());
+	});
 </script>
 
 <div class="wrap">
@@ -295,7 +286,7 @@
 	{:else}
 		<div class="button-wrap">
 			<button
-				on:click={record_video_or_photo}
+				on:click={() => record_video_or_photo()}
 				aria-label={mode === "image" ? "capture photo" : "start recording"}
 			>
 				{#if mode === "video" || streaming}
@@ -344,12 +335,12 @@
 				use:click_outside={handle_click_outside}
 				on:change={handle_device_change}
 			>
-				<button
+				<!-- <button
 					class="inset-icon"
 					on:click|stopPropagation={() => (options_open = false)}
 				>
 					<DropdownArrow />
-				</button>
+				</button> -->
 				{#if available_video_devices.length === 0}
 					<option value="">{i18n("common.no_devices")}</option>
 				{:else}
@@ -381,7 +372,7 @@
 	video {
 		width: var(--size-full);
 		height: var(--size-full);
-		object-fit: cover;
+		object-fit: contain;
 	}
 
 	.button-wrap {

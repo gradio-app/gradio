@@ -1,3 +1,4 @@
+# type: ignore
 import gradio as gr
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch

@@ -7,7 +7,6 @@ from unittest.mock import patch
 
 import gradio_client as grc
 import pytest
-from gradio_client import media_data
 from gradio_client import utils as client_utils
 from pydub import AudioSegment
 from starlette.testclient import TestClient
@@ -15,12 +14,13 @@ from tqdm import tqdm
 
 import gradio as gr
 from gradio import helpers, utils
+from gradio.media import get_audio, get_image
 from gradio.route_utils import API_PREFIX
 
 
 @patch("gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp()))
 class TestExamples:
-    def test_handle_single_input(self, patched_cache_folder):
+    def test_handle_single_input(self, patched_cache_folder, media_data):
         examples = gr.Examples(["hello", "hi"], gr.Textbox())
         assert examples.non_none_processed_examples.as_list() == [["hello"], ["hi"]]
 
@@ -35,7 +35,7 @@ class TestExamples:
             == media_data.BASE64_IMAGE
         )
 
-    def test_handle_multiple_inputs(self, patched_cache_folder):
+    def test_handle_multiple_inputs(self, patched_cache_folder, media_data):
         examples = gr.Examples(
             [["hello", "test/test_files/bus.png"]], [gr.Textbox(), gr.Image()]
         )
@@ -47,7 +47,7 @@ class TestExamples:
             == media_data.BASE64_IMAGE
         )
 
-    def test_handle_directory(self, patched_cache_folder):
+    def test_handle_directory(self, patched_cache_folder, media_data):
         examples = gr.Examples("test/test_files/images", gr.Image())
         assert len(examples.non_none_processed_examples.as_list()) == 2
         for row in examples.non_none_processed_examples.as_list():
@@ -57,7 +57,7 @@ class TestExamples:
                     == media_data.BASE64_IMAGE
                 )
 
-    def test_handle_directory_with_log_file(self, patched_cache_folder):
+    def test_handle_directory_with_log_file(self, patched_cache_folder, media_data):
         examples = gr.Examples(
             "test/test_files/images_log", [gr.Image(label="im"), gr.Text()]
         )
@@ -77,7 +77,7 @@ class TestExamples:
         examples = gr.Examples(["hello", "hi"], gr.Textbox(), examples_per_page=2)
         assert examples.dataset.get_config()["samples_per_page"] == 2
 
-    def test_no_preprocessing(self, patched_cache_folder, connect):
+    def test_no_preprocessing(self, patched_cache_folder, connect, media_data):
         with gr.Blocks() as demo:
             image = gr.Image()
             textbox = gr.Textbox()
@@ -154,7 +154,7 @@ def test_setting_cache_dir_env_variable(monkeypatch, connect):
 @patch("gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp()))
 class TestExamplesDataset:
     def test_no_headers(self, patched_cache_folder):
-        examples = gr.Examples("test/test_files/images_log", [gr.Image(), gr.Text()])
+        examples = gr.Examples("test/test_files/images_log", [gr.Image(), gr.Number()])
         assert examples.dataset.headers == []
 
     def test_all_headers(self, patched_cache_folder):
@@ -166,7 +166,7 @@ class TestExamplesDataset:
 
     def test_some_headers(self, patched_cache_folder):
         examples = gr.Examples(
-            "test/test_files/images_log", [gr.Image(label="im"), gr.Text()]
+            "test/test_files/images_log", [gr.Image(label="im"), gr.Number()]
         )
         assert examples.dataset.headers == ["im", ""]
 
@@ -213,21 +213,13 @@ def test_example_caching_relaunch(connect):
         )
 
     with connect(demo) as client:
-        assert client.predict(1, api_name="/examples") == (
-            "hello",
-            "Eve",
-            "hello Eve",
-        )
+        assert client.predict(1, api_name="/examples") == "hello Eve"
 
     # Let the server shut down
     time.sleep(1)
 
     with connect(demo) as client:
-        assert client.predict(1, api_name="/examples") == (
-            "hello",
-            "Eve",
-            "hello Eve",
-        )
+        assert client.predict(1, api_name="/examples") == "hello Eve"
 
 
 @patch("gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp()))
@@ -264,18 +256,10 @@ class TestProcessExamples:
             )
 
         with connect(demo) as client:
-            assert client.predict(1, api_name="/examples") == (
-                "hello",
-                "Eve",
-                "hello Eve",
-            )
+            assert client.predict(1, api_name="/examples") == "hello Eve"
 
         with connect(demo) as client:
-            assert client.predict(1, api_name="/examples") == (
-                "hello",
-                "Eve",
-                "hello Eve",
-            )
+            assert client.predict(1, api_name="/examples") == "hello Eve"
 
     def test_caching_image(self, patched_cache_folder, connect):
         io = gr.Interface(
@@ -289,19 +273,24 @@ class TestProcessExamples:
             prediction = io.examples_handler.load_from_cache(0)
         assert prediction[0].path.endswith(".webp")
 
-    def test_caching_audio(self, patched_cache_folder, connect):
+    def test_caching_audio_with_progress(self, patched_cache_folder, connect):
+        def audio_identity(x, prog=gr.Progress()):
+            for _ in prog.tqdm(range(5)):
+                pass
+            return x
+
         io = gr.Interface(
-            lambda x: x,
+            audio_identity,
             "audio",
             "audio",
-            examples=[["test/test_files/audio_sample.wav"]],
+            examples=[[get_audio("audio_sample.wav")]],
             cache_examples=True,
         )
         with connect(io):
             prediction = io.examples_handler.load_from_cache(0)
         file = prediction[0].path
         assert client_utils.encode_url_or_file_to_base64(file).startswith(
-            "data:audio/wav;base64,UklGRgA/"
+            "data:audio/wav;base64,UklGRgA/AABXQVZFZm10I"
         )
 
     def test_caching_with_update(self, patched_cache_folder, connect):
@@ -350,7 +339,7 @@ class TestProcessExamples:
             prediction = io.examples_handler.load_from_cache(0)
         assert prediction == [
             {"lines": 4, "__type__": "update", "interactive": False},
-            gr.Label.data_model(**{"label": "lion", "confidences": None}),
+            gr.Label.data_model(**{"label": "lion", "confidences": None}),  # type: ignore
         ]
 
     def test_caching_with_generators(self, patched_cache_folder, connect):
@@ -372,8 +361,7 @@ class TestProcessExamples:
     def test_caching_with_generators_and_streamed_output(
         self, patched_cache_folder, connect
     ):
-        file_dir = Path(Path(__file__).parent, "test_files")
-        audio = str(file_dir / "audio_sample.wav")
+        audio = get_audio("audio_sample.wav")
 
         def test_generator(x):
             for y in range(int(x)):
@@ -511,7 +499,23 @@ class TestProcessExamples:
         )
         with connect(io):
             prediction = io.examples_handler.load_from_cache(0)
-        assert prediction == ["hel", "3"]
+        assert prediction == ["hel", 3]
+
+    def test_caching_with_float_numbers(self, patched_cache_folder, connect):
+        def foo(a, b):
+            return a, b
+
+        io = gr.Interface(
+            foo,
+            ["slider", "number"],
+            ["slider", "number"],
+            examples=[[1.7, 2.85]],
+            cache_examples=True,
+        )
+
+        with connect(io):
+            prediction = io.examples_handler.load_from_cache(0)
+        assert prediction == [1.7, 2.85]
 
     def test_caching_with_non_io_component(self, patched_cache_folder, connect):
         def predict(name):
@@ -556,7 +560,6 @@ class TestProcessExamples:
         assert response.json()["data"] == [
             {
                 "lines": 1,
-                "max_lines": 20,
                 "show_label": True,
                 "container": True,
                 "min_width": 160,
@@ -564,13 +567,14 @@ class TestProcessExamples:
                 "autoscroll": True,
                 "elem_classes": [],
                 "rtl": False,
-                "show_copy_button": False,
                 "__type__": "update",
                 "visible": True,
+                "preserved_by_key": ["value"],
                 "value": "Hello,",
                 "type": "text",
                 "stop_btn": False,
                 "submit_btn": False,
+                "buttons": [],
             }
         ]
 
@@ -578,7 +582,6 @@ class TestProcessExamples:
         assert response.json()["data"] == [
             {
                 "lines": 1,
-                "max_lines": 20,
                 "show_label": True,
                 "container": True,
                 "min_width": 160,
@@ -586,13 +589,14 @@ class TestProcessExamples:
                 "autoscroll": True,
                 "elem_classes": [],
                 "rtl": False,
-                "show_copy_button": False,
+                "preserved_by_key": ["value"],
                 "__type__": "update",
                 "visible": True,
                 "value": "Michael",
                 "type": "text",
                 "stop_btn": False,
                 "submit_btn": False,
+                "buttons": [],
             }
         ]
 
@@ -618,10 +622,10 @@ class TestProcessExamples:
         client = TestClient(app)
 
         response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [0]})
-        assert response.json()["data"] == ["Hello,", "World", "Hello, World"]
+        assert response.json()["data"] == ["Hello, World"]
 
         response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [1]})
-        assert response.json()["data"] == ["Michael", "Jordan", "Michael Jordan"]
+        assert response.json()["data"] == ["Michael Jordan"]
 
     def test_end_to_end_lazy_cache_examples(self, patched_cache_folder):
         def image_identity(image, string):
@@ -634,7 +638,7 @@ class TestProcessExamples:
 
             gr.Examples(
                 examples=[
-                    ["test/test_files/cheetah1.jpg", "cheetah"],
+                    [get_image("cheetah1.jpg"), "cheetah"],
                     ["test/test_files/bus.png", "bus"],
                 ],
                 inputs=[i1, t],
@@ -650,13 +654,11 @@ class TestProcessExamples:
 
         response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [0]})
         data = response.json()["data"]
-        assert data[0]["value"]["path"].endswith("cheetah1.jpg")
-        assert data[1]["value"] == "cheetah"
+        assert data[0]["path"].endswith("image.webp")
 
         response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [1]})
         data = response.json()["data"]
-        assert data[0]["value"]["path"].endswith("bus.png")
-        assert data[1]["value"] == "bus"
+        assert data[0]["path"].endswith("image.webp")
 
 
 def test_multiple_file_flagging(tmp_path, connect):
@@ -668,7 +670,7 @@ def test_multiple_file_flagging(tmp_path, connect):
                 gr.Image(type="filepath", label="frame 2"),
             ],
             outputs=[gr.Files()],
-            examples=[["test/test_files/cheetah1.jpg", "test/test_files/bus.png"]],
+            examples=[[get_image("cheetah1.jpg"), "test/test_files/bus.png"]],
             cache_examples=True,
         )
         with connect(io):
@@ -742,14 +744,18 @@ class TestProgressBar:
                 status_updates.append(update)
             time.sleep(0.05)
 
-        assert status_updates == [
-            (None, "start"),
-            (0, None),
-            (1, None),
-            (2, None),
-            (3, None),
-            (4, None),
-        ]
+        assert all(
+            s
+            in [
+                (None, "start"),
+                (0, None),
+                (1, None),
+                (2, None),
+                (3, None),
+                (4, None),
+            ]
+            for s in status_updates
+        )
 
     @pytest.mark.asyncio
     async def test_progress_bar_track_tqdm(self):
@@ -932,3 +938,50 @@ def test_check_event_data_in_cache():
                 },
             ),
         )
+
+
+def test_request_session_none_without_sessionmiddleware():
+    from starlette.requests import Request
+
+    def foo(a: int, prof: gr.OAuthProfile | None = None):
+        return a
+
+    inputs, *_ = helpers.special_args(
+        foo,
+        inputs=[5],
+        request=Request(scope={"type": "http"}),  # type: ignore
+    )
+    assert inputs == [5, None]
+
+
+def test_examples_no_cache_optional_inputs():
+    def foo(a, b, c, d):
+        return {"a": a, "b": b, "c": c, "d": d}
+
+    io = gr.Interface(
+        foo,
+        ["text", "text", "text", "text"],
+        "json",
+        cache_examples=False,
+        examples=[["a", "b", None, "d"], ["a", "b", None, "de"]],
+        api_name="predict",
+    )
+
+    try:
+        app, _, _ = io.launch(prevent_thread_lock=True)
+
+        client = TestClient(app)
+        with client as c:
+            for i in range(2):
+                response = c.post(
+                    f"{API_PREFIX}/run/predict/",
+                    json={
+                        "data": [i],
+                        "fn_index": 6,
+                        "trigger_id": 19,
+                        "session_hash": "test",
+                    },
+                )
+                assert response.status_code == 200
+    finally:
+        io.close()

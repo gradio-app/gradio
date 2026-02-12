@@ -10,11 +10,11 @@ test("when a user closes the page, the unload event should be triggered", async 
 
 	// if you click too fast, the page may close before the event is processed
 	await increment.click();
-	await page.waitForTimeout(100);
+	await expect(page.getByLabel("Number")).toHaveValue("1");
 	await increment.click();
-	await page.waitForTimeout(100);
+	await expect(page.getByLabel("Number")).toHaveValue("2");
 	await increment.click();
-	await page.waitForTimeout(100);
+	await expect(page.getByLabel("Number")).toHaveValue("3");
 	await increment.click();
 	await expect(page.getByLabel("Number")).toHaveValue("4");
 	await page.close();

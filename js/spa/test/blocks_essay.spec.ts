@@ -4,7 +4,7 @@ test("updates frontend correctly", async ({ page }) => {
 	const short_btn = await page.getByLabel("short");
 	const long_btn = await page.getByLabel("long");
 	const hidden_btn = await page.getByLabel("none");
-	const textbox = await page.locator("textarea").first();
+	const textbox = await page.locator("#essay-textbox").locator("textarea");
 
 	textbox.fill("hello world");
 	await long_btn.check();
@@ -62,4 +62,20 @@ test("updates dropdown choices correctly", async ({ page }) => {
 	await country.fill("Pakistan");
 	await country.press("Enter");
 	await expect(city).toHaveValue("Karachi");
+});
+
+test("updates column visibility correctly", async ({ page }) => {
+	const toggle_btn = page.locator("#toggle-col-btn");
+	const test_column = page.locator("#test-column");
+	const column_content = page.getByLabel("Column Content");
+
+	await expect(test_column).toBeVisible();
+	await expect(column_content).toBeVisible();
+
+	await toggle_btn.click();
+	await expect(test_column).not.toBeVisible();
+
+	await toggle_btn.click();
+	await expect(test_column).toBeVisible();
+	await expect(column_content).toBeVisible();
 });
