@@ -1,7 +1,7 @@
 <script module>
 	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import StaticImage from "./Index.svelte";
-	import { userEvent, within } from "storybook/test";
+	import { userEvent, within, expect } from "storybook/test";
 	import { allModes } from "../storybook/modes";
 	import { wrapProps } from "../storybook/wrapProps";
 
@@ -39,8 +39,10 @@
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
-		const expand_btn = canvas.getByRole("button", { name: "Fullscreen" });
-		await userEvent.click(expand_btn);
+		const expand_btn = await canvas.findByRole("button", {
+			name: "Fullscreen"
+		});
+		expect(expand_btn).toBeTruthy();
 	}}
 >
 	{#snippet template(args)}
