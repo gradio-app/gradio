@@ -61,7 +61,7 @@
 	/>
 	<div
 		bind:this={wrapper}
-		class:padding={gradio.props.padding}
+		class:padding={gradio.shared.padding}
 		class:pending={gradio.shared.loading_status?.status === "pending"}
 	>
 		<Markdown

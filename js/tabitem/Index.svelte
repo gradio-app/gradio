@@ -20,7 +20,7 @@
 	interactive={gradio.shared.interactive}
 	id={gradio.props.id}
 	order={gradio.props.order}
-	scale={gradio.props.scale}
+	scale={gradio.shared.scale}
 	component_id={gradio.props.component_id}
 	on:select={({ detail }) => gradio.dispatch("select", detail)}
 >
