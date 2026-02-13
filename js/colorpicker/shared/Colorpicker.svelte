@@ -172,17 +172,14 @@
 	}}
 />
 
-<svelte:window on:mousemove={handle_move} on:mouseup={handle_end} />
+<svelte:window onmousemove={handle_move} onmouseup={handle_end} />
 
 {#if dialog_open}
-	<div
-		class="color-picker"
-		use:click_outside={handle_click_outside}
-	>
+	<div class="color-picker" use:click_outside={handle_click_outside}>
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<div
 			class="color-gradient"
-			on:mousedown={handle_sl_down}
+			onmousedown={handle_sl_down}
 			style="--hue:{hue}"
 			bind:this={sl_wrap}
 		>
@@ -193,7 +190,7 @@
 			/>
 		</div>
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
-		<div class="hue-slider" on:mousedown={handle_hue_down} bind:this={hue_wrap}>
+		<div class="hue-slider" onmousedown={handle_hue_down} bind:this={hue_wrap}>
 			<div
 				class="marker"
 				style:background={"hsl(" + hue + ", 100%, 50%)"}
@@ -217,7 +214,7 @@
 							}
 						}}
 					/>
-					<button class="eyedropper" on:click={request_eyedropper}>
+					<button class="eyedropper" onclick={request_eyedropper}>
 						{#if eyedropper_supported}
 							<Eyedropper />
 						{/if}
@@ -229,7 +226,7 @@
 						<button
 							class="button"
 							class:active={current_mode === value}
-							on:click={() => {
+							onclick={() => {
 								current_mode = value;
 							}}>{label}</button
 						>
