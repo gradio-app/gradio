@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:`huggingface_hub` version upgrade
+feat:Allow :fastest :cheapest options when loading models
