@@ -64,4 +64,12 @@ test("test HTML components", async ({ page }) => {
 	await expect(secondTodoItem).not.toHaveCSS("text-decoration", /line-through/);
 	await secondTodoCheckbox.click();
 	await expect(secondTodoItem).toHaveCSS("text-decoration", /line-through/);
+
+	await expect(page.locator("#children_form")).toContainText("Contact Form");
+	await page.getByLabel("Your Name").fill("Alice");
+	await page.getByLabel("Your Email").fill("alice@example.com");
+	await page.locator("#children_form .submit-children").click();
+	await expect(page.getByLabel("Children Output")).toHaveValue(
+		"Name: Alice, Email: alice@example.com"
+	);
 });

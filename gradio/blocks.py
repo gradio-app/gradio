@@ -117,6 +117,8 @@ class Block:
         visible: bool | Literal["hidden"] = True,
         proxy_url: str | None = None,
     ):
+        if hasattr(self, "_id"):
+            return
         key_to_id_map = LocalContext.key_to_id_map.get(None)
         if key is not None and key_to_id_map and key in key_to_id_map:
             self.is_render_replacement = True
@@ -435,6 +437,22 @@ class Block:
             except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
                 return data
 
+    @classmethod
+    def get_component_class_id(cls) -> str:
+        try:
+            module_path = inspect.getfile(cls)
+        except OSError:
+            module_path = cls.__module__
+        module_hash = hashlib.sha256(
+            f"{cls.__name__}_{module_path}".encode()
+        ).hexdigest()
+        return module_hash
+
+    @property
+    def component_class_id(self):
+        return self.get_component_class_id()
+
+
 
 class BlockContext(Block):
     def __init__(
@@ -470,21 +488,6 @@ class BlockContext(Block):
     @property
     def skip_api(self):
         return True
-
-    @classmethod
-    def get_component_class_id(cls) -> str:
-        try:
-            module_path = inspect.getfile(cls)
-        except OSError:
-            module_path = cls.__module__
-        module_hash = hashlib.sha256(
-            f"{cls.__name__}_{module_path}".encode()
-        ).hexdigest()
-        return module_hash
-
-    @property
-    def component_class_id(self):
-        return self.get_component_class_id()
 
     def add_child(self, child: Block):
         self.children.append(child)

@@ -99,7 +99,9 @@
 					gradio.shared.visible = e.detail.data;
 				}
 			}}
-		/>
+		>
+			<slot />
+		</HTML>
 	</div>
 </Block>
 

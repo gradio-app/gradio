@@ -121,17 +121,6 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     def has_event(cls, event: str | EventListener) -> bool:
         return event in cls.EVENTS
 
-    @classmethod
-    def get_component_class_id(cls) -> str:
-        try:
-            module_path = inspect.getfile(cls)
-        except TypeError:
-            module_path = cls.__module__
-        module_hash = hashlib.sha256(
-            f"{cls.__name__}_{module_path}".encode()
-        ).hexdigest()
-        return module_hash
-
 
 def server(fn):
     fn._is_server_fn = True
@@ -241,8 +230,6 @@ class Component(ComponentBase, Block):
 
         if callable(load_fn):
             self.attach_load_event(load_fn, every, inputs)
-
-        self.component_class_id = self.__class__.get_component_class_id()
 
     TEMPLATE_DIR = DeveloperPath("./templates/")
     FRONTEND_DIR = "../../frontend/"
