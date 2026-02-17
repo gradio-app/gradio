@@ -231,7 +231,7 @@ def generate_examples(all_demos):
     return "\n".join(lines)
 
 
-def generate_skill_md(organized):
+def generate_skill_md(organized, guide_links):
     key_sigs = []
     for name in KEY_COMPONENTS:
         if name in organized["components"]:
@@ -246,6 +246,8 @@ def generate_skill_md(organized):
     for comp, events in sorted(events_matrix.items()):
         event_lines.append(f"- **{comp}**: {', '.join(events)}")
 
+    guide_list = "\n".join(f"- [{title}]({path})" for title, path in guide_links)
+
     skill_md = f"""---
 name: gradio
 description: Build Gradio web UIs and demos in Python. Use when creating or editing Gradio apps, components, event listeners, layouts, or chatbots.
@@ -259,16 +261,7 @@ Gradio is a Python library for building interactive web UIs and ML demos. This s
 
 Detailed guides on specific topics (read these when relevant):
 
-- [Quickstart](guides/quickstart.md)
-- [The Interface Class](guides/the-interface-class.md)
-- [Blocks and Event Listeners](guides/blocks-and-event-listeners.md)
-- [Controlling Layout](guides/controlling-layout.md)
-- [More Blocks Features](guides/more-blocks-features.md)
-- [Custom CSS and JS](guides/custom-CSS-and-JS.md)
-- [Streaming Outputs](guides/streaming-outputs.md)
-- [Streaming Inputs](guides/streaming-inputs.md)
-- [Sharing Your App](guides/sharing-your-app.md)
-- [Custom HTML Components](guides/custom-HTML-components.md)
+{guide_list}
 
 ## Core Patterns
 
@@ -332,16 +325,39 @@ Supported events per component:
     return skill_md.strip() + "\n"
 
 
-def generate_to(output_dir):
+GUIDE_TITLES = {
+    "quickstart": "Quickstart",
+    "the-interface-class": "The Interface Class",
+    "blocks-and-event-listeners": "Blocks and Event Listeners",
+    "controlling-layout": "Controlling Layout",
+    "more-blocks-features": "More Blocks Features",
+    "custom-CSS-and-JS": "Custom CSS and JS",
+    "streaming-outputs": "Streaming Outputs",
+    "streaming-inputs": "Streaming Inputs",
+    "sharing-your-app": "Sharing Your App",
+    "custom-HTML-components": "Custom HTML Components",
+}
+
+
+def generate_to(output_dir, relpath_base=None):
     raw_docs = generate_documentation()
     organized = organize_docs(raw_docs)
     all_demos = load_all_demo_code()
 
     os.makedirs(output_dir, exist_ok=True)
-    guides_dir = os.path.join(output_dir, "guides")
-    os.makedirs(guides_dir, exist_ok=True)
+    base = relpath_base or output_dir
 
-    skill_md = generate_skill_md(organized)
+    guide_links = []
+    for guide_name in CURATED_GUIDES:
+        source = find_guide_file(guide_name)
+        if source is None:
+            print(f"Warning: guide '{guide_name}' not found, skipping")
+            continue
+        rel = os.path.relpath(source, base)
+        title = GUIDE_TITLES.get(guide_name, guide_name.replace("-", " ").title())
+        guide_links.append((title, rel))
+
+    skill_md = generate_skill_md(organized, guide_links)
     with open(os.path.join(output_dir, "SKILL.md"), "w") as f:
         f.write(skill_md)
 
@@ -352,15 +368,6 @@ def generate_to(output_dir):
     examples = generate_examples(all_demos)
     with open(os.path.join(output_dir, "examples.md"), "w") as f:
         f.write(examples)
-
-    for guide_name in CURATED_GUIDES:
-        source = find_guide_file(guide_name)
-        if source is None:
-            print(f"Warning: guide '{guide_name}' not found, skipping")
-            continue
-        link = os.path.join(guides_dir, f"{guide_name}.md")
-        rel = os.path.relpath(source, guides_dir)
-        os.symlink(rel, link)
 
     return skill_md
 
@@ -376,7 +383,7 @@ def check(output_dir):
     tmp = tempfile.mkdtemp()
     try:
         tmp_skill = os.path.join(tmp, "gradio")
-        generate_to(tmp_skill)
+        generate_to(tmp_skill, relpath_base=output_dir)
 
         generated_files = ["SKILL.md", "api-reference.md", "examples.md"]
         stale = []
@@ -385,17 +392,6 @@ def check(output_dir):
             fresh = os.path.join(tmp_skill, fname)
             if not files_equal(existing, fresh):
                 stale.append(fname)
-
-        existing_guides = os.path.join(output_dir, "guides")
-        if not os.path.isdir(existing_guides):
-            stale.append("guides/")
-        else:
-            expected = {f"{g}.md" for g in CURATED_GUIDES}
-            actual = set(os.listdir(existing_guides))
-            if expected != actual:
-                stale.append("guides/")
-            elif not all(os.path.islink(os.path.join(existing_guides, f)) for f in actual):
-                stale.append("guides/ (expected symlinks, found regular files)")
 
         if stale:
             print("ERROR: Skill files are out of date. Stale files:")

@@ -1,1 +1,0 @@
-../../../../guides/04_additional-features/03_streaming-inputs.md

@@ -1,1 +1,0 @@
-../../../../guides/02_building-interfaces/00_the-interface-class.md
