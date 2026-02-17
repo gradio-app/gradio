@@ -1,5 +1,16 @@
 # @gradio/statustracker
 
+## 0.12.4
+
+### Fixes
+
+- [#12877](https://github.com/gradio-app/gradio/pull/12877) [`ebbd242`](https://github.com/gradio-app/gradio/commit/ebbd24231dbc006c21fbbf1df00918be16883b86) - Ensure disconnected toast text is visible.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/utils@0.11.3
+- @gradio/atoms@0.22.0
+
 ## 0.12.3
 
 ### Fixes
