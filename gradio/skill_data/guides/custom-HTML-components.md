@@ -37,74 +37,20 @@ By default, the content of gr.HTML will have some CSS styles applied to match th
 
 Let's build a simple star rating component using `gr.HTML`, and then extend it with more features.
 
-```python
-import gradio as gr
-
-with gr.Blocks() as demo:
-    three_star_rating = gr.HTML("""
-        <h2>Star Rating:</h2>
-        <img src='https://upload.wikimedia.org/wikipedia/commons/d/df/Award-star-gold-3d.svg'>
-        <img src='https://upload.wikimedia.org/wikipedia/commons/d/df/Award-star-gold-3d.svg'>
-        <img src='https://upload.wikimedia.org/wikipedia/commons/d/df/Award-star-gold-3d.svg'>
-        <img class='faded' src='https://upload.wikimedia.org/wikipedia/commons/d/df/Award-star-gold-3d.svg'>
-        <img class='faded' src='https://upload.wikimedia.org/wikipedia/commons/d/df/Award-star-gold-3d.svg'>
-    """, css_template="""
-        img { height: 50px; display: inline-block; }
-        .faded { filter: grayscale(100%); opacity: 0.3; }
-    """)
-
-demo.launch()
-```
+$code_star_rating_simple
+$demo_star_rating_simple
 
 Note how we used the `css_template` argument to add custom CSS that styles the HTML inside the `gr.HTML` component.
 
 Let's see how the template automatically updates when we update the value.
 
-```python
-import gradio as gr
-
-with gr.Blocks() as demo:
-    star_rating = gr.HTML(
-        value=3,
-        html_template="""
-        <h2>Star Rating:</h2>
-        ${Array.from({length: 5}, (_, i) => `<img class='${i < value ? '' : 'faded'}' src='https://upload.wikimedia.org/wikipedia/commons/d/df/Award-star-gold-3d.svg'>`).join('')}""", 
-        css_template="""
-            img { height: 50px; display: inline-block; }
-            .faded { filter: grayscale(100%); opacity: 0.3; }
-        """)
-    rating_slider = gr.Slider(0, 5, 3, step=1, label="Select Rating")
-    rating_slider.change(fn=lambda x: x, inputs=rating_slider, outputs=star_rating)
-
-demo.launch()
-```
+$code_star_rating_templates
+$demo_star_rating_templates
 
 We may wish to pass additional props beyond just `value` to the `html_template`. Simply add these props to your templates and pass them as kwargs to the `gr.HTML` component. For example, lets add `size` and `max_stars` props to the star rating component.
 
-```python
-import gradio as gr
-
-with gr.Blocks() as demo:
-    star_rating = gr.HTML(
-        7, 
-        size=40,
-        max_stars=10,
-        html_template="""
-        <h2>Star Rating:</h2>
-        ${Array.from({length: max_stars}, (_, i) => `<img class='${i < value ? '' : 'faded'}' src='https://upload.wikimedia.org/wikipedia/commons/d/df/Award-star-gold-3d.svg'>`).join('')}""", 
-        css_template="""
-            img { height: ${size}px; display: inline-block; }
-            .faded { filter: grayscale(100%); opacity: 0.3; }
-        """
-    )
-    rating_slider = gr.Slider(0, 10, step=1, label="Select Rating")
-    rating_slider.change(fn=lambda x: x, inputs=rating_slider, outputs=star_rating)
-
-    size_slider = gr.Slider(20, 100, 40, step=1, label="Select Size")
-    size_slider.change(fn=lambda x: gr.HTML(size=x), inputs=size_slider, outputs=star_rating)
-
-demo.launch()
-```
+$code_star_rating_props
+$demo_star_rating_props
 
 Note how both `html_template` and `css_template` can format these extra props. Note also how any of these props can be updated via Gradio event listeners.
 
@@ -112,38 +58,8 @@ Note how both `html_template` and `css_template` can format these extra props. N
 
 The `gr.HTML` component can also be used to create custom input components by triggering events. You will provide `js_on_load`, javascript code that runs when the component loads. The code has access to the `trigger` function to trigger events that Gradio can listen to, and the object `props` which has access to all the props of the component, including `value`.
 
-```python
-import gradio as gr
-
-with gr.Blocks() as demo:
-    star_rating = gr.HTML(
-        value=3, 
-        html_template="""
-        <h2>Star Rating:</h2>
-        ${Array.from({length: 5}, (_, i) => `<img class='${i < value ? '' : 'faded'}' src='https://upload.wikimedia.org/wikipedia/commons/d/df/Award-star-gold-3d.svg'>`).join('')}
-        <button id='submit-btn'>Submit Rating</button>
-        """, 
-        css_template="""
-            img { height: 50px; display: inline-block; cursor: pointer; }
-            .faded { filter: grayscale(100%); opacity: 0.3; }
-        """,
-        js_on_load="""
-            const imgs = element.querySelectorAll('img');
-            imgs.forEach((img, index) => {
-                img.addEventListener('click', () => {
-                    props.value = index + 1;
-                });
-            });
-            const submitBtn = element.querySelector('#submit-btn');
-            submitBtn.addEventListener('click', () => {
-                trigger('submit');
-            });
-        """)
-    rating_output = gr.Textbox(label="Submitted Rating")
-    star_rating.submit(lambda x: x, inputs=star_rating, outputs=rating_output)
-
-demo.launch()
-```
+$code_star_rating_events
+$demo_star_rating_events
 
 Take a look at the `js_on_load` code above. We add click event listeners to each star image to update the value via `props.value` when a star is clicked. This also re-renders the template to show the updated value. We also add a click event listener to the submit button that triggers the `submit` event. In our app, we listen to this trigger to run a function that outputs the `value` of the star rating.
 
@@ -177,52 +93,8 @@ element.addEventListener('click', (e) =>
 
 If you are reusing the same HTML component in multiple places, you can create a custom component class by subclassing `gr.HTML` and setting default values for the templates and other arguments. Here's an example of creating a reusable StarRating component.
 
-```python
-import gradio as gr
-
-class StarRating(gr.HTML):
-    def __init__(self, label, value=0, **kwargs):
-        html_template = """
-        <h2>${label} rating:</h2>
-        ${Array.from({length: 5}, (_, i) => `<img class='${i < value ? '' : 'faded'}' src='https://upload.wikimedia.org/wikipedia/commons/d/df/Award-star-gold-3d.svg'>`).join('')}
-        """
-        css_template = """
-            img { height: 50px; display: inline-block; cursor: pointer; }
-            .faded { filter: grayscale(100%); opacity: 0.3; }
-        """
-        js_on_load = """
-            const imgs = element.querySelectorAll('img');
-            imgs.forEach((img, index) => {
-                img.addEventListener('click', () => {
-                    props.value = index + 1;
-                });
-            });
-        """
-        super().__init__(value=value, label=label, html_template=html_template, css_template=css_template, js_on_load=js_on_load, **kwargs)
-
-    def api_info(self):
-        return {"type": "integer", "minimum": 0, "maximum": 5}
-
-with gr.Blocks() as demo:
-    gr.Markdown("# Restaurant Review")
-    food_rating = StarRating(label="Food", value=3)
-    service_rating = StarRating(label="Service", value=3)
-    ambience_rating = StarRating(label="Ambience", value=3)
-
-    average_btn = gr.Button("Calculate Average Rating")
-
-    rating_output = StarRating(label="Average", value=3)
-    def calculate_average(food, service, ambience):
-        return round((food + service + ambience) / 3)
-    average_btn.click(
-        fn=calculate_average,
-        inputs=[food_rating, service_rating, ambience_rating],
-        outputs=rating_output
-    )
-
-demo.launch()
-
-```
+$code_star_rating_component
+$demo_star_rating_component
 
 Note: Gradio requires all components to accept certain arguments, such as `render`. You do not need
 to handle these arguments, but you do need to accept them in your component constructor and pass

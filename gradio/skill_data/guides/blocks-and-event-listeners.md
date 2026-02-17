@@ -2,25 +2,13 @@
 
 We briefly described the Blocks class in the [Quickstart](/main/guides/quickstart#custom-demos-with-gr-blocks) as a way to build custom demos. Let's dive deeper. 
 
+
 ## Blocks Structure
 
 Take a look at the demo below.
 
-```python
-import gradio as gr
-
-def greet(name):
-    return "Hello " + name + "!"
-
-with gr.Blocks() as demo:
-    name = gr.Textbox(label="Name")
-    output = gr.Textbox(label="Output Box")
-    greet_btn = gr.Button("Greet")
-    greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
-
-demo.launch()
-
-```
+$code_hello_blocks
+$demo_hello_blocks
 
 - First, note the `with gr.Blocks() as demo:` clause. The Blocks app code will be contained within this clause.
 - Next come the Components. These are the same Components used in `Interface`. However, instead of being passed to some constructor, Components are automatically added to the Blocks as they are created within the `with` clause.
@@ -28,20 +16,7 @@ demo.launch()
 
 You can also attach event listeners using decorators - skip the `fn` argument and assign `inputs` and `outputs` directly:
 
-```python
-import gradio as gr
-
-with gr.Blocks() as demo:
-    name = gr.Textbox(label="Name")
-    output = gr.Textbox(label="Output Box")
-    greet_btn = gr.Button("Greet")
-
-    @greet_btn.click(inputs=name, outputs=output)
-    def greet(name):
-        return "Hello " + name + "!"
-
-demo.launch()
-```
+$code_hello_blocks_decorator
 
 ## Event Listeners and Interactivity
 
@@ -57,25 +32,8 @@ _Note_: What happens if a Gradio component is neither an input nor an output? If
 
 Take a look at the demo below:
 
-```python
-import gradio as gr
-
-def welcome(name):
-    return f"Welcome to Gradio, {name}!"
-
-with gr.Blocks() as demo:
-    gr.Markdown(
-    """
-    # Hello World!
-    Start typing below to see the output.
-    """)
-    inp = gr.Textbox(placeholder="What is your name?")
-    out = gr.Textbox()
-    inp.change(welcome, inp, out)
-
-demo.launch()
-
-```
+$code_blocks_hello
+$demo_blocks_hello
 
 Instead of being triggered by a click, the `welcome` function is triggered by typing in the Textbox `inp`. This is due to the `change()` event listener. Different Components support different event listeners. For example, the `Video` Component supports a `play()` event listener, triggered when a user presses play. See the [Docs](http://gradio.app/docs#components) for the event listeners for each Component.
 
@@ -83,59 +41,15 @@ Instead of being triggered by a click, the `welcome` function is triggered by ty
 
 A Blocks app is not limited to a single data flow the way Interfaces are. Take a look at the demo below:
 
-```python
-import gradio as gr
-
-def increase(num):
-    return num + 1
-
-with gr.Blocks() as demo:
-    a = gr.Number(label="a")
-    b = gr.Number(label="b")
-    atob = gr.Button("a > b")
-    btoa = gr.Button("b > a")
-    atob.click(increase, a, b)
-    btoa.click(increase, b, a)
-
-demo.launch()
-
-```
+$code_reversible_flow
+$demo_reversible_flow
 
 Note that `num1` can act as input to `num2`, and also vice-versa! As your apps get more complex, you will have many data flows connecting various Components.
 
 Here's an example of a "multi-step" demo, where the output of one model (a speech-to-text model) gets fed into the next model (a sentiment classifier).
 
-```python
-from transformers import pipeline
-
-import gradio as gr
-
-asr = pipeline("automatic-speech-recognition", "facebook/wav2vec2-base-960h")
-classifier = pipeline("text-classification")
-
-def speech_to_text(speech):
-    text = asr(speech)["text"]  
-    return text
-
-def text_to_sentiment(text):
-    return classifier(text)[0]["label"]  
-
-demo = gr.Blocks()
-
-with demo:
-    audio_file = gr.Audio(type="filepath")
-    text = gr.Textbox()
-    label = gr.Label()
-
-    b1 = gr.Button("Recognize Speech")
-    b2 = gr.Button("Classify Sentiment")
-
-    b1.click(speech_to_text, inputs=audio_file, outputs=text)
-    b2.click(text_to_sentiment, inputs=text, outputs=label)
-
-demo.launch()
-
-```
+$code_blocks_speech_text_sentiment
+$demo_blocks_speech_text_sentiment
 
 ## Function Input List vs Set
 
@@ -145,28 +59,7 @@ The event listeners you've seen so far have a single input component. If you'd l
 2. as a single dictionary of values, keyed by the component
 
 Let's see an example of each:
-```python
-import gradio as gr
-
-with gr.Blocks() as demo:
-    a = gr.Number(label="a")
-    b = gr.Number(label="b")
-    with gr.Row():
-        add_btn = gr.Button("Add")
-        sub_btn = gr.Button("Subtract")
-    c = gr.Number(label="sum")
-
-    def add(num1, num2):
-        return num1 + num2
-    add_btn.click(add, inputs=[a, b], outputs=c)
-
-    def sub(data):
-        return data[a] - data[b]
-    sub_btn.click(sub, inputs={a, b}, outputs=c)
-
-demo.launch()
-
-```
+$code_calculator_list_and_dict
 
 Both `add()` and `sub()` take `a` and `b` as inputs. However, the syntax is different between these listeners.
 
@@ -174,6 +67,8 @@ Both `add()` and `sub()` take `a` and `b` as inputs. However, the syntax is diff
 2. To the `sub_btn` listener, we pass the inputs as a set (note the curly brackets!). When you pass a set, the function `sub()` receives a single dictionary argument `data`, where the keys are the input components and the values are the values of those components.
 
 It is a matter of preference which syntax you prefer! For functions with many input components, option 2 may be easier to manage.
+
+$demo_calculator_list_and_dict
 
 ## Function Return List vs Dict
 
@@ -236,27 +131,8 @@ Keep in mind that with dictionary returns, we still need to specify the possible
 
 The return value of an event listener function is usually the updated value of the corresponding output Component. Sometimes we want to update the configuration of the Component as well, such as the visibility. In this case, we return a new Component, setting the properties we want to change.
 
-```python
-import gradio as gr
-
-def change_textbox(choice):
-    if choice == "short":
-        return gr.Textbox(lines=2, visible=True)
-    elif choice == "long":
-        return gr.Textbox(lines=8, visible=True, value="Lorem ipsum dolor sit amet")
-    else:
-        return gr.Textbox(visible=False)
-
-with gr.Blocks() as demo:
-    radio = gr.Radio(
-        ["short", "long", "none"], label="What kind of essay would you like to write?"
-    )
-    text = gr.Textbox(lines=2, interactive=True, buttons=["copy"])
-    radio.change(fn=change_textbox, inputs=radio, outputs=text)
-
-demo.launch()
-
-```
+$code_blocks_essay_simple
+$demo_blocks_essay_simple
 
 See how we can configure the Textbox itself through a new `gr.Textbox()` method. The `value=` argument can still be used to update the value along with Component configuration. Any arguments we do not set will preserve their previous values.
 
@@ -264,23 +140,8 @@ See how we can configure the Textbox itself through a new `gr.Textbox()` method.
 
 In some cases, you may want to leave a component's value unchanged. Gradio includes a special function, `gr.skip()`, which can be returned from your function. Returning this function will keep the output component (or components') values as is. Let us illustrate with an example:
 
-```python
-import random
-import gradio as gr
-
-with gr.Blocks() as demo:
-    with gr.Row():
-        clear_button = gr.Button("Clear")
-        skip_button = gr.Button("Skip")
-        random_button = gr.Button("Random")
-    numbers = [gr.Number(), gr.Number()]
-
-    clear_button.click(lambda : (None, None), outputs=numbers)
-    skip_button.click(lambda : [gr.skip(), gr.skip()], outputs=numbers)
-    random_button.click(lambda : (random.randint(0, 100), random.randint(0, 100)), outputs=numbers)
-
-demo.launch()
-```
+$code_skip
+$demo_skip
 
 Note the difference between returning `None` (which generally resets a component's value to an empty state) versus returning `gr.skip()`, which leaves the component value unchanged.
 
@@ -292,33 +153,8 @@ You can also run events consecutively by using the `then` method of an event lis
 
 For example, in the chatbot example below, we first update the chatbot with the user message immediately, and then update the chatbot with the computer response after a simulated delay.
 
-```python
-import gradio as gr
-import random
-import time
-
-with gr.Blocks() as demo:
-    chatbot = gr.Chatbot()
-    msg = gr.Textbox()
-    clear = gr.Button("Clear")
-
-    def user(user_message, history):
-        return "", history + [{"role": "user", "content": user_message}]
-
-    def bot(history):
-        bot_message = random.choice(["How are you?", "I love you", "I'm very hungry"])
-        time.sleep(2)
-        history.append({"role": "assistant", "content": bot_message})
-        return history
-
-    msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
-        bot, chatbot, chatbot
-    )
-    clear.click(lambda: None, None, chatbot, queue=False)
-
-demo.launch()
-
-```
+$code_chatbot_consecutive
+$demo_chatbot_consecutive
 
 The `.then()` method of an event listener executes the subsequent event regardless of whether the previous event raised any errors. If you'd like to only run subsequent events if the previous event executed successfully, use the `.success()` method, which takes the same arguments as `.then()`. Conversely, if you'd like to only run subsequent events if the previous event failed (i.e., raised an error), use the `.failure()` method. This is particularly useful for error handling workflows, such as displaying error messages or restoring previous states when an operation fails.
 
@@ -326,69 +162,17 @@ The `.then()` method of an event listener executes the subsequent event regardle
 
 Often times, you may want to bind multiple triggers to the same function. For example, you may want to allow a user to click a submit button, or press enter to submit a form. You can do this using the `gr.on` method and passing a list of triggers to the `trigger`.
 
-```python
-import gradio as gr
-
-with gr.Blocks() as demo:
-    name = gr.Textbox(label="Name")
-    output = gr.Textbox(label="Output Box")
-    greet_btn = gr.Button("Greet")
-    trigger = gr.Textbox(label="Trigger Box")
-
-    def greet(name, evt_data: gr.EventData):
-        return "Hello " + name + "!", evt_data.target.__class__.__name__
-
-    def clear_name(evt_data: gr.EventData):
-        return ""
-
-    gr.on(
-        triggers=[name.submit, greet_btn.click],
-        fn=greet,
-        inputs=name,
-        outputs=[output, trigger],
-    ).then(clear_name, outputs=[name])
-
-demo.launch()
-
-```
+$code_on_listener_basic
+$demo_on_listener_basic
 
 You can use decorator syntax as well:
 
-```python
-import gradio as gr
-
-with gr.Blocks() as demo:
-    name = gr.Textbox(label="Name")
-    output = gr.Textbox(label="Output Box")
-    greet_btn = gr.Button("Greet")
-
-    @gr.on(triggers=[name.submit, greet_btn.click], inputs=name, outputs=output)
-    def greet(name):
-        return "Hello " + name + "!"
-
-demo.launch()
-
-```
+$code_on_listener_decorator
 
 You can use `gr.on` to create "live" events by binding to the `change` event of components that implement it. If you do not specify any triggers, the function will automatically bind to all `change` event of all input components that include a `change` event (for example `gr.Textbox` has a `change` event whereas `gr.Button` does not).
 
-```python
-import gradio as gr
-
-with gr.Blocks() as demo:
-    with gr.Row():
-        num1 = gr.Slider(1, 10)
-        num2 = gr.Slider(1, 10)
-        num3 = gr.Slider(1, 10)
-    output = gr.Number(label="Sum")
-
-    @gr.on(inputs=[num1, num2, num3], outputs=output)
-    def sum(a, b, c):
-        return a + b + c
-
-demo.launch()
-
-```
+$code_on_listener_live
+$demo_on_listener_live
 
 You can follow `gr.on` with `.then`, just like any regular event listener. This handy method should save you from having to write a lot of repetitive code!
 

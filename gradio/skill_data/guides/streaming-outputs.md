@@ -12,29 +12,8 @@ def my_generator(x):
 
 You supply a generator into Gradio the same way as you would a regular function. For example, here's a a (fake) image generation model that generates noise for several steps before outputting an image using the `gr.Interface` class:
 
-```python
-import gradio as gr
-import numpy as np
-import time
-
-def fake_diffusion(steps):
-    rng = np.random.default_rng()
-    for i in range(steps):
-        time.sleep(1)
-        image = rng.random(size=(600, 600, 3))
-        yield image
-    image = np.ones((1000,1000,3), np.uint8)
-    image[:] = [255, 124, 0]
-    yield image
-
-demo = gr.Interface(fake_diffusion,
-                    inputs=gr.Slider(1, 10, 3, step=1),
-                    outputs="image",
-                    api_name="predict")
-
-demo.launch()
-
-```
+$code_fake_diffusion
+$demo_fake_diffusion
 
 Note that we've added a `time.sleep(1)` in the iterator to create an artificial pause between steps so that you are able to observe the steps of the iterator (in a real image generation model, this probably wouldn't be necessary).
 

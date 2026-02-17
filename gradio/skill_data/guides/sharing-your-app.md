@@ -34,11 +34,13 @@ This generates a public, shareable link that you can send to anybody! When you s
 
 ![sharing](https://github.com/gradio-app/gradio/blob/main/guides/assets/sharing.svg?raw=true)
 
+
 A share link usually looks something like this: **https://07ff8706ab.gradio.live**. Although the link is served through the Gradio Share Servers, these servers are only a proxy for your local server, and do not store any data sent through your app. Share links expire after 1 week. (it is [also possible to set up your own Share Server](https://github.com/huggingface/frp/) on your own cloud server to overcome this restriction.)
 
 Tip: Keep in mind that share links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. Or you can [add authentication to your Gradio app](#authentication) as discussed below.
 
 Note that by default, `share=False`, which means that your server is only running locally. (This is the default, except in Google Colab notebooks, where share links are automatically created). As an alternative to using share links, you can use use [SSH port-forwarding](https://www.ssh.com/ssh/tunneling/example) to share your local server with specific users.
+
 
 ## Hosting on HF Spaces
 
@@ -63,26 +65,9 @@ For the URL to be accessible to others, your app must be available at a public U
 
 Let's see an example of how this works. Here's a simple Gradio chat ap that uses the `gr.DeepLinkButton` component. After a couple of messages, click the deep link button and paste it into a new browser tab to see the app as it is at that point in time.
 
-```python
-import gradio as gr
-import random
+$code_deep_link
+$demo_deep_link
 
-def random_response(message, history):
-    return random.choice(["Hi!", "Hello!", "Greetings!"])
-
-with gr.Blocks() as demo:
-    gr.ChatInterface(
-        random_response,
-        title="Greeting Bot",
-        description="Ask anything and receive a nice greeting!",
-        api_name="chat",
-    )
-    gr.DeepLinkButton()
-
-if __name__ == "__main__":
-    demo.launch(share=True)
-
-```
 
 ## Embedding Hosted Spaces
 
@@ -230,27 +215,10 @@ You can easily do this with `gradio.mount_gradio_app()`.
 
 Here's a complete example:
 
-```python
-from fastapi import FastAPI
-import gradio as gr
-
-CUSTOM_PATH = "/gradio"
-
-app = FastAPI()
-
-@app.get("/")
-def read_main():
-    return {"message": "This is your main app"}
-
-io = gr.Interface(lambda x: "Hello, " + x + "!", "textbox", "textbox")
-app = gr.mount_gradio_app(app, io, path=CUSTOM_PATH)
-
-# Run this from the terminal as you would normally start a FastAPI app: `uvicorn run:app`
-# and navigate to http://localhost:8000/gradio in your browser.
-
-```
+$code_custom_path
 
 Note that this approach also allows you run your Gradio apps on custom paths (`http://localhost:8000/gradio` in the example above).
+
 
 ## Authentication
 
@@ -273,6 +241,7 @@ demo.launch(auth=same_auth)
 ```
 
 If you have multiple users, you may wish to customize the content that is shown depending on the user that is logged in. You can retrieve the logged in user by [accessing the network request directly](#accessing-the-network-request-directly) as discussed above, and then reading the `.username` attribute of the request. Here's an example:
+
 
 ```python
 import gradio as gr
@@ -322,33 +291,7 @@ token by adding a parameter of type `gr.OAuthToken`. You must define which scope
 
 Here is a short example:
 
-```python
-from __future__ import annotations
-
-import gradio as gr
-from huggingface_hub import whoami
-
-def hello(profile: gr.OAuthProfile | None) -> str:
-    if profile is None:
-        return "I don't know you."
-    return f"Hello {profile.name}"
-
-def list_organizations(oauth_token: gr.OAuthToken | None) -> str:
-    if oauth_token is None:
-        return "Please deploy this on Spaces and log in to list organizations."
-    org_names = [org["name"] for org in whoami(oauth_token.token)["orgs"]]
-    return f"You belong to {', '.join(org_names)}."
-
-with gr.Blocks() as demo:
-    gr.LoginButton()
-    m1 = gr.Markdown()
-    m2 = gr.Markdown()
-    demo.load(hello, inputs=None, outputs=m1)
-    demo.load(list_organizations, inputs=None, outputs=m2)
-
-demo.launch()
-
-```
+$code_login_with_huggingface
 
 When the user clicks on the login button, they get redirected in a new page to authorize your Space.
 
@@ -362,6 +305,7 @@ As seen above, OAuth features are available only when your app runs in a Space. 
 locally before deploying it. To test OAuth features locally, your machine must be logged in to Hugging Face. Please run `huggingface-cli login` or set `HF_TOKEN` as environment variable with one of your access token. You can generate a new token in your settings page (https://huggingface.co/settings/tokens). Then, clicking on the `gr.LoginButton` will log in to your local Hugging Face profile, allowing you to debug your app with your Hugging Face account before deploying it to a Space.
 
 **Security Note**: It is important to note that adding a `gr.LoginButton` does not restrict users from using your app, in the same way that adding [username-password authentication](/guides/sharing-your-app#password-protected-app) does. This means that users of your app who have not logged in with Hugging Face can still access and run events in your Gradio app -- the difference is that the `gr.OAuthProfile` or `gr.OAuthToken` will be `None` in the corresponding functions.
+
 
 ### OAuth (with external providers)
 

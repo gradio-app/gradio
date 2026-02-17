@@ -1,9 +1,16 @@
-"""Generates .agents/skills/gradio/ from Gradio's docstrings, guides, and demos."""
+"""Generates .agents/skills/gradio/ from Gradio's docstrings, guides, and demos.
 
+Usage:
+    python scripts/generate_skill.py          # regenerate
+    python scripts/generate_skill.py --check  # CI: fail if output would change
+"""
+
+import argparse
 import os
 import re
 import shutil
 import sys
+import tempfile
 
 DIR = os.path.dirname(__file__)
 REPO_ROOT = os.path.abspath(os.path.join(DIR, ".."))
@@ -102,31 +109,6 @@ def find_guide_file(guide_name):
             if stripped.replace(".md", "") == guide_name:
                 return os.path.join(folder_path, filename)
     return None
-
-
-def load_guide(guide_name, all_demos):
-    path = find_guide_file(guide_name)
-    if path is None:
-        print(f"Warning: guide '{guide_name}' not found, skipping")
-        return None
-
-    with open(path) as f:
-        content = f.read()
-
-    for label in ("Tags:", "Related spaces:", "Contributed by"):
-        if label in content:
-            content = re.sub(rf"^{re.escape(label)}.*$", "", content, flags=re.MULTILINE)
-
-    content = re.sub(
-        r"\$code_([a-z _\-0-9]+)",
-        lambda m: f"```python\n{all_demos.get(m.group(1), '# demo not found')}\n```",
-        content,
-    )
-
-    content = re.sub(r"\$demo_([a-z _\-0-9]+)", "", content)
-
-    content = re.sub(r"\n{3,}", "\n\n", content).strip()
-    return content
 
 
 def build_signature(entry):
@@ -351,41 +333,113 @@ Supported events per component:
     return skill_md.strip() + "\n"
 
 
-def main():
-    print("Generating Gradio skill...")
-
+def generate_to(output_dir):
     raw_docs = generate_documentation()
     organized = organize_docs(raw_docs)
     all_demos = load_all_demo_code()
 
-    if os.path.exists(SKILL_DIR):
-        shutil.rmtree(SKILL_DIR)
-    os.makedirs(SKILL_DIR, exist_ok=True)
-    os.makedirs(os.path.join(SKILL_DIR, "guides"), exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
+    guides_dir = os.path.join(output_dir, "guides")
+    os.makedirs(guides_dir, exist_ok=True)
 
     skill_md = generate_skill_md(organized)
-    with open(os.path.join(SKILL_DIR, "SKILL.md"), "w") as f:
+    with open(os.path.join(output_dir, "SKILL.md"), "w") as f:
         f.write(skill_md)
-    skill_lines = len(skill_md.splitlines())
-    print(f"  SKILL.md: {skill_lines} lines")
 
     api_ref = generate_api_reference(organized)
-    with open(os.path.join(SKILL_DIR, "api-reference.md"), "w") as f:
+    with open(os.path.join(output_dir, "api-reference.md"), "w") as f:
         f.write(api_ref)
-    print(f"  api-reference.md: {len(api_ref.splitlines())} lines")
-
-    for guide_name in CURATED_GUIDES:
-        content = load_guide(guide_name, all_demos)
-        if content is None:
-            continue
-        with open(os.path.join(SKILL_DIR, "guides", f"{guide_name}.md"), "w") as f:
-            f.write(content)
-        print(f"  guides/{guide_name}.md: {len(content.splitlines())} lines")
 
     examples = generate_examples(all_demos)
-    with open(os.path.join(SKILL_DIR, "examples.md"), "w") as f:
+    with open(os.path.join(output_dir, "examples.md"), "w") as f:
         f.write(examples)
-    print(f"  examples.md: {len(examples.splitlines())} lines")
+
+    for guide_name in CURATED_GUIDES:
+        source = find_guide_file(guide_name)
+        if source is None:
+            print(f"Warning: guide '{guide_name}' not found, skipping")
+            continue
+        link = os.path.join(guides_dir, f"{guide_name}.md")
+        rel = os.path.relpath(source, guides_dir)
+        os.symlink(rel, link)
+
+    return skill_md
+
+
+def files_equal(path1, path2):
+    if not os.path.exists(path1) or not os.path.exists(path2):
+        return False
+    with open(path1) as f1, open(path2) as f2:
+        return f1.read() == f2.read()
+
+
+def check(output_dir):
+    tmp = tempfile.mkdtemp()
+    try:
+        tmp_skill = os.path.join(tmp, "gradio")
+        generate_to(tmp_skill)
+
+        generated_files = ["SKILL.md", "api-reference.md", "examples.md"]
+        stale = []
+        for fname in generated_files:
+            existing = os.path.join(output_dir, fname)
+            fresh = os.path.join(tmp_skill, fname)
+            if not files_equal(existing, fresh):
+                stale.append(fname)
+
+        existing_guides = os.path.join(output_dir, "guides")
+        if not os.path.isdir(existing_guides):
+            stale.append("guides/")
+        else:
+            expected = {f"{g}.md" for g in CURATED_GUIDES}
+            actual = set(os.listdir(existing_guides))
+            if expected != actual:
+                stale.append("guides/")
+            elif not all(os.path.islink(os.path.join(existing_guides, f)) for f in actual):
+                stale.append("guides/ (expected symlinks, found regular files)")
+
+        if stale:
+            print("ERROR: Skill files are out of date. Stale files:")
+            for f in stale:
+                print(f"  {f}")
+            print("\nRun `python scripts/generate_skill.py` to update.")
+            sys.exit(1)
+
+        print("OK: Skill files are up to date.")
+    finally:
+        shutil.rmtree(tmp)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Generate Gradio skill files.")
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Check if files are up to date (for CI). Exits with code 1 if stale.",
+    )
+    args = parser.parse_args()
+
+    if args.check:
+        check(SKILL_DIR)
+        return
+
+    print("Generating Gradio skill...")
+
+    if os.path.exists(SKILL_DIR):
+        shutil.rmtree(SKILL_DIR)
+
+    skill_md = generate_to(SKILL_DIR)
+    skill_lines = len(skill_md.splitlines())
+
+    for name in os.listdir(SKILL_DIR):
+        path = os.path.join(SKILL_DIR, name)
+        if os.path.isdir(path) and not os.path.islink(path):
+            count = len(os.listdir(path))
+            print(f"  {name}/: {count} files")
+        elif os.path.isfile(path):
+            with open(path) as f:
+                lines = len(f.readlines())
+            print(f"  {name}: {lines} lines")
 
     if os.path.exists(PACKAGE_SKILL_DIR):
         shutil.rmtree(PACKAGE_SKILL_DIR)

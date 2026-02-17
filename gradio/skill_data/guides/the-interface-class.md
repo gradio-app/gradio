@@ -2,22 +2,8 @@
 
 As mentioned in the [Quickstart](/main/guides/quickstart), the `gr.Interface` class is a high-level abstraction in Gradio that allows you to quickly create a demo for any Python function simply by specifying the input types and the output types. Revisiting our first demo:
 
-```python
-import gradio as gr
+$code_hello_world_4
 
-def greet(name, intensity):
-    return "Hello, " + name + "!" * int(intensity)
-
-demo = gr.Interface(
-    fn=greet,
-    inputs=["text", "slider"],
-    outputs=["text"],
-    api_name="predict"
-)
-
-demo.launch()
-
-```
 
 We see that the `Interface` class is initialized with three required parameters:
 
@@ -39,45 +25,15 @@ Let's say you want to customize the slider to have values from 1 to 10, with a d
 
 If you use the actual classes for `gr.Textbox` and `gr.Slider` instead of the string shortcuts, you have access to much more customizability through component attributes.
 
-```python
-import gradio as gr
-
-def greet(name, intensity):
-    return "Hello, " + name + "!" * intensity
-
-demo = gr.Interface(
-    fn=greet,
-    inputs=["text", gr.Slider(value=2, minimum=1, maximum=10, step=1)],
-    outputs=[gr.Textbox(label="greeting", lines=3)],
-    api_name="predict"
-)
-
-demo.launch()
-
-```
+$code_hello_world_2
+$demo_hello_world_2
 
 ## Multiple Input and Output Components
 
 Suppose you had a more complex function, with multiple outputs as well. In the example below, we define a function that takes a string, boolean, and number, and returns a string and number. 
 
-```python
-import gradio as gr
-
-def greet(name, is_morning, temperature):
-    salutation = "Good morning" if is_morning else "Good evening"
-    greeting = f"{salutation} {name}. It is {temperature} degrees today"
-    celsius = (temperature - 32) * 5 / 9
-    return greeting, round(celsius, 2)
-
-demo = gr.Interface(
-    fn=greet,
-    inputs=["text", "checkbox", gr.Slider(0, 100)],
-    outputs=["text", "number"],
-    api_name="predict"
-)
-demo.launch()
-
-```
+$code_hello_world_3
+$demo_hello_world_3
 
 Just as each component in the `inputs` list corresponds to one of the parameters of the function, in order, each component in the `outputs` list corresponds to one of the values returned by the function, in order.
 
@@ -85,24 +41,8 @@ Just as each component in the `inputs` list corresponds to one of the parameters
 
 Gradio supports many types of components, such as `Image`, `DataFrame`, `Video`, or `Label`. Let's try an image-to-image function to get a feel for these!
 
-```python
-import numpy as np
-import gradio as gr
-
-def sepia(input_img):
-    sepia_filter = np.array([
-        [0.393, 0.769, 0.189],
-        [0.349, 0.686, 0.168],
-        [0.272, 0.534, 0.131]
-    ])
-    sepia_img = input_img.dot(sepia_filter.T)
-    sepia_img /= sepia_img.max()
-    return sepia_img
-
-demo = gr.Interface(sepia, gr.Image(), "image", api_name="predict")
-demo.launch()
-
-```
+$code_sepia_filter
+$demo_sepia_filter
 
 When using the `Image` component as input, your function will receive a NumPy array with the shape `(height, width, 3)`, where the last dimension represents the RGB values. We'll return an image as well in the form of a NumPy array. 
 
@@ -118,43 +58,8 @@ You can read more about the built-in Gradio components and how to customize them
 
 You can provide example data that a user can easily load into `Interface`. This can be helpful to demonstrate the types of inputs the model expects, as well as to provide a way to explore your dataset in conjunction with your model. To load example data, you can provide a **nested list** to the `examples=` keyword argument of the Interface constructor. Each sublist within the outer list represents a data sample, and each element within the sublist represents an input for each input component. The format of example data for each component is specified in the [Docs](https://gradio.app/docs#components).
 
-```python
-import gradio as gr
-
-def calculator(num1, operation, num2):
-    if operation == "add":
-        return num1 + num2
-    elif operation == "subtract":
-        return num1 - num2
-    elif operation == "multiply":
-        return num1 * num2
-    elif operation == "divide":
-        if num2 == 0:
-            raise gr.Error("Cannot divide by zero!")
-        return num1 / num2
-
-demo = gr.Interface(
-    calculator,
-    [
-        "number",
-        gr.Radio(["add", "subtract", "multiply", "divide"]),
-        "number"
-    ],
-    "number",
-    examples=[
-        [45, "add", 3],
-        [3.14, "divide", 2],
-        [144, "multiply", 2.5],
-        [0, "subtract", 1.2],
-    ],
-    title="Toy Calculator",
-    description="Here's a sample toy calculator.",
-    api_name="predict"
-)
-
-demo.launch()
-
-```
+$code_calculator
+$demo_calculator
 
 You can load a large dataset into the examples to browse and interact with the dataset through Gradio. The examples will be automatically paginated (you can configure this through the `examples_per_page` argument of `Interface`).
 
@@ -186,23 +91,6 @@ You can customize the appearance of the accordion by using the optional `additio
 
 Here's an example:
 
-```python
-import gradio as gr
+$code_interface_with_additional_inputs
+$demo_interface_with_additional_inputs
 
-def generate_fake_image(prompt, seed, initial_image=None):
-    return f"Used seed: {seed}", "https://dummyimage.com/300/09f.png"
-
-demo = gr.Interface(
-    generate_fake_image,
-    inputs=["textbox"],
-    outputs=["textbox", "image"],
-    additional_inputs=[
-        gr.Slider(0, 1000),
-        "image"
-    ],
-    api_name="predict",
-)
-
-demo.launch()
-
-```

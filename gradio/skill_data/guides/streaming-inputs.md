@@ -7,22 +7,8 @@ In the previous guide, we covered how to stream a sequence of outputs from an ev
 Currently, the `gr.Image` and the `gr.Audio` components support input streaming via the `stream` event.
 Let's create the simplest streaming app possible, which simply returns the webcam stream unmodified.
 
-```python
-import gradio as gr
-
-with gr.Blocks() as demo:
-    with gr.Row():
-        with gr.Column():
-            input_img = gr.Image(label="Input", sources="webcam")
-        with gr.Column():
-            output_img = gr.Image(label="Output")
-        input_img.stream(lambda s: s, input_img, output_img, time_limit=15, stream_every=0.1, concurrency_limit=30)
-
-if __name__ == "__main__":
-
-    demo.launch()
-
-```
+$code_streaming_simple
+$demo_streaming_simple
 
 Try it out! The streaming event is triggered when the user starts recording. Under the hood, the webcam will take a photo every 0.1 seconds and send it to the server. The server will then return that image.
 
@@ -36,63 +22,8 @@ There are two unique keyword arguments for the `stream` event:
 
 Let's create a demo where a user can choose a filter to apply to their webcam stream. Users can choose from an edge-detection filter, a cartoon filter, or simply flipping the stream vertically.
 
-```python
-import gradio as gr
-import numpy as np
-import cv2  
-
-def transform_cv2(frame, transform):
-    if transform == "cartoon":
-        # prepare color
-        img_color = cv2.pyrDown(cv2.pyrDown(frame))
-        for _ in range(6):
-            img_color = cv2.bilateralFilter(img_color, 9, 9, 7)
-        img_color = cv2.pyrUp(cv2.pyrUp(img_color))
-
-        # prepare edges
-        img_edges = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-        img_edges = cv2.adaptiveThreshold(
-            cv2.medianBlur(img_edges, 7),
-            255,
-            cv2.ADAPTIVE_THRESH_MEAN_C,
-            cv2.THRESH_BINARY,
-            9,
-            2,
-        )
-        img_edges = cv2.cvtColor(img_edges, cv2.COLOR_GRAY2RGB)
-        # combine color and edges
-        img = cv2.bitwise_and(img_color, img_edges)
-        return img
-    elif transform == "edges":
-        # perform edge detection
-        img = cv2.cvtColor(cv2.Canny(frame, 100, 200), cv2.COLOR_GRAY2BGR)
-        return img
-    else:
-        return np.flipud(frame)
-
-with gr.Blocks() as demo:
-    with gr.Row():
-        with gr.Column():
-            transform = gr.Dropdown(
-                choices=["cartoon", "edges", "flip"],
-                value="flip",
-                label="Transformation",
-            )
-            input_img = gr.Image(sources=["webcam"], type="numpy")
-        with gr.Column():
-            output_img = gr.Image(streaming=True)
-        dep = input_img.stream(
-            transform_cv2,
-            [input_img, transform],
-            [output_img],
-            time_limit=30,
-            stream_every=0.1,
-            concurrency_limit=30,
-        )
-
-demo.launch()
-
-```
+$code_streaming_filter
+$demo_streaming_filter
 
 You will notice that if you change the filter value it will immediately take effect in the output stream. That is an important difference of stream events in comparison to other Gradio events. The input values of the stream can be changed while the stream is being processed. 
 
@@ -104,55 +35,8 @@ For some image streaming demos, like the one above, we don't need to display sep
 
 We can do so by just specifying the input image component as the output of the stream event.
 
-```python
-import gradio as gr
-import numpy as np
-import cv2  
-
-def transform_cv2(frame, transform):
-    if transform == "cartoon":
-        # prepare color
-        img_color = cv2.pyrDown(cv2.pyrDown(frame))
-        for _ in range(6):
-            img_color = cv2.bilateralFilter(img_color, 9, 9, 7)
-        img_color = cv2.pyrUp(cv2.pyrUp(img_color))
-
-        # prepare edges
-        img_edges = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-        img_edges = cv2.adaptiveThreshold(
-            cv2.medianBlur(img_edges, 7),
-            255,
-            cv2.ADAPTIVE_THRESH_MEAN_C,
-            cv2.THRESH_BINARY,
-            9,
-            2,
-        )
-        img_edges = cv2.cvtColor(img_edges, cv2.COLOR_GRAY2RGB)
-        # combine color and edges
-        img = cv2.bitwise_and(img_color, img_edges)
-        return img
-    elif transform == "edges":
-        # perform edge detection
-        img = cv2.cvtColor(cv2.Canny(frame, 100, 200), cv2.COLOR_GRAY2BGR)
-        return img
-    else:
-        return np.flipud(frame)
-
-css=""".my-group {max-width: 500px !important; max-height: 500px !important;}
-            .my-column {display: flex !important; justify-content: center !important; align-items: center !important};"""
-
-with gr.Blocks() as demo:
-    with gr.Column(elem_classes=["my-column"]):
-        with gr.Group(elem_classes=["my-group"]):
-            transform = gr.Dropdown(choices=["cartoon", "edges", "flip"],
-                                    value="flip", label="Transformation")
-            input_img = gr.Image(sources=["webcam"], type="numpy", streaming=True)
-    input_img.stream(transform_cv2, [input_img, transform], [input_img], time_limit=30, stream_every=0.1)
-
-if __name__ == "__main__":
-    demo.launch(css=css)
-
-```
+$code_streaming_filter_unified
+$demo_streaming_filter_unified
 
 ## Keeping track of past inputs or outputs
 
@@ -176,6 +60,7 @@ with gr.Blocks() as demo:
             transcript = gr.Textbox(label="Transcript")
     mic.stream(transcribe_handler, [mic, state, transcript], [state, transcript],
                time_limit=10, stream_every=1)
+
 
 demo.launch()
 ```

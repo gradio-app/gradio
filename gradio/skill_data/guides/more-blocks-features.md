@@ -14,46 +14,8 @@ You can also set `cache_examples=True` or `cache_examples='lazy'`, similar to [t
 
 Here's an example showing how to use `gr.Examples` in a `gr.Blocks` app:
 
-```python
-import gradio as gr
-
-def calculator(num1, operation, num2):
-    if operation == "add":
-        return num1 + num2
-    elif operation == "subtract":
-        return num1 - num2
-    elif operation == "multiply":
-        return num1 * num2
-    elif operation == "divide":
-        return num1 / num2
-
-with gr.Blocks() as demo:
-    with gr.Row():
-        with gr.Column():
-            num_1 = gr.Number(value=4)
-            operation = gr.Radio(["add", "subtract", "multiply", "divide"])
-            num_2 = gr.Number(value=0)
-            submit_btn = gr.Button(value="Calculate")
-        with gr.Column():
-            result = gr.Number()
-
-    submit_btn.click(
-        calculator, inputs=[num_1, operation, num_2], outputs=[result], api_visibility="private"
-    )
-    examples = gr.Examples(
-        examples=[
-            [5, "add", 3],
-            [4, "divide", 2],
-            [-4, "multiply", 2.5],
-            [0, "subtract", 1.2],
-        ],
-        inputs=[num_1, operation, num_2],
-    )
-
-if __name__ == "__main__":
-    demo.launch(footer_links=["gradio"])
-
-```
+$code_calculator_blocks
+$demo_calculator_blocks
 
 **Note**: When you click on examples, not only does the value of the input component update to the example value, but the component's configuration also reverts to the properties with which you constructed the component. This ensures that the examples are compatible with the component even if its configuration has been changed.
 
@@ -80,26 +42,8 @@ with gr.Blocks as demo:
 
 Here is an example of a demo that print the current timestamp, and also prints random numbers regularly!
 
-```python
-import gradio as gr
-import random
-import time
-
-with gr.Blocks() as demo:
-  timer = gr.Timer(1)
-  timestamp = gr.Number(label="Time")
-  timer.tick(lambda: round(time.time()), outputs=timestamp, api_name="timestamp")
-
-  number = gr.Number(lambda: random.randint(1, 10), every=timer, label="Random Number")
-  with gr.Row():
-    gr.Button("Start").click(lambda: gr.Timer(active=True), None, timer)
-    gr.Button("Stop").click(lambda: gr.Timer(active=False), None, timer)
-    gr.Button("Go Fast").click(lambda: 0.2, None, timer)
-
-if __name__ == "__main__":
-  demo.launch()
-
-```
+$code_timer_simple
+$demo_timer_simple
 
 ## Gathering Event Data
 
@@ -124,25 +68,8 @@ with gr.Blocks() as demo:
 
 In the 2 player tic-tac-toe demo below, a user can select a cell in the `DataFrame` to make a move. The event data argument contains information about the specific cell that was selected. We can first check to see if the cell is empty, and then update the cell with the user's move.
 
-```python
-import gradio as gr
-
-with gr.Blocks() as demo:
-    turn = gr.Textbox("X", interactive=False, label="Turn")
-    board = gr.Dataframe(value=[["", "", ""]] * 3, interactive=False, type="array")
-
-    def place(board: list[list[int]], turn, evt: gr.SelectData):  
-        if evt.value:
-            return board, turn
-        board[evt.index[0]][evt.index[1]] = turn
-        turn = "O" if turn == "X" else "X"
-        return board, turn
-
-    board.select(place, [board, turn], [board, turn], show_progress="hidden")
-
-demo.launch()
-
-```
+$code_tictactoe
+$demo_tictactoe
 
 ## Validation
 
@@ -161,46 +88,5 @@ The `validator` kwarg should be a function that returns a `gr.validate` object f
 
 In the demo below you can see that by returning a validation status for each input, we have more granular information that we can display to the user.
 
-```python
-import gradio as gr
-
-def validate_input(age, location):
-    return [
-        gr.validate(not age or age > 3, "Age must be at least 3"),
-        gr.validate("london" not in location.lower(), "Location must not be in London"),
-    ]
-
-def process_text(age, location):
-    return f"Processed: {age} -- {location.upper()}"
-
-with gr.Blocks() as demo:
-    gr.Markdown("# Validator Parameter Test Demo")
-
-    with gr.Row():
-        with gr.Column():
-            age = gr.Number(
-                label="Enter age",
-                placeholder="Enter age",
-            )
-            location = gr.Textbox(
-                max_lines=3,
-                label="Enter location",
-                placeholder="Enter location",
-            )
-
-    validate_btn = gr.Button("Process with Validation", variant="primary")
-
-    output_with_validation = gr.Textbox(
-        label="Output (with validation)", interactive=False
-    )
-
-    validate_btn.click(
-        fn=process_text,
-        validator=validate_input,
-        inputs=[age, location],
-        outputs=output_with_validation,
-    )
-
-demo.launch()
-
-```
+$code_validator_simple
+$demo_validator_simple
