@@ -1206,7 +1206,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         config = copy.deepcopy(config)
         components_config = config["components"]
         original_mapping: dict[int, Block] = {}
-        proxy_urls = {proxy_url}
+        proxy_urls: set[str] = set()
+        if httpx.URL(proxy_url).host.endswith(".hf.space"):
+            proxy_urls.add(proxy_url)
 
         def get_block_instance(id: int) -> Block:
             for block_config in components_config:
@@ -1230,7 +1232,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
             block_proxy_url = block_config["props"]["proxy_url"]
             block.proxy_url = block_proxy_url
-            proxy_urls.add(block_proxy_url)
+            # Only add proxy URLs that point to known Hugging Face Space
+            # hosts to prevent SSRF via malicious configs.
+            if httpx.URL(block_proxy_url).host.endswith(".hf.space"):
+                proxy_urls.add(block_proxy_url)
             if (
                 _selectable := block_config["props"].pop("_selectable", None)
             ) is not None:

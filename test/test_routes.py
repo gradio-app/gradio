@@ -633,8 +633,32 @@ class TestRoutes:
             "https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
         )
         assert "authorization" in dict(r.headers)
-        r = app.build_proxy_request("https://google.com")
-        assert "authorization" not in dict(r.headers)
+        with pytest.raises(PermissionError):
+            app.build_proxy_request("https://google.com")
+
+    def test_proxy_rejects_non_hf_space_urls(self):
+        """Proxy should reject non-.hf.space URLs even if they are in proxy_urls,
+        to prevent SSRF via malicious proxy_url injection in configs."""
+        app = routes.App()
+        interface = gr.Interface(lambda x: x, "text", "text")
+        interface.proxy_urls = {
+            "https://gradio-tests-test-loading-examples-private.hf.space",
+            "http://169.254.169.254",
+            "http://internal-service.local",
+        }
+        app.configure_app(interface)
+        # .hf.space URL should work
+        app.build_proxy_request(
+            "https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
+        )
+        # AWS metadata endpoint should be blocked
+        with pytest.raises(PermissionError):
+            app.build_proxy_request(
+                "http://169.254.169.254/latest/meta-data/iam/security-credentials/"
+            )
+        # Internal service should be blocked
+        with pytest.raises(PermissionError):
+            app.build_proxy_request("http://internal-service.local/admin")
 
     def test_can_get_config_that_includes_non_pickle_able_objects(self):
         my_dict = {"a": 1, "b": 2, "c": 3}
