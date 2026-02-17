@@ -158,7 +158,7 @@ def skills_add(
             print("--dest cannot be combined with agent flags or --global.")
             raise typer.Exit(code=1)
         skill_dest = _install_to(dest, force)
-        print(f"Installed '{SKILL_ID}' skill to {skill_dest}")
+        print(f"Installed '{SKILL_ID}' to {skill_dest}")
         return
 
     global_targets = {**_HF_GLOBAL_TARGETS, "cursor": Path("~/.cursor/skills")}
@@ -177,7 +177,7 @@ def skills_add(
 
     central_path = CENTRAL_GLOBAL if global_ else CENTRAL_LOCAL
     central_skill_path = _install_to(central_path, force)
-    print(f"Installed '{SKILL_ID}' skill to central location: {central_skill_path}")
+    print(f"Installed '{SKILL_ID}' to central location: {central_skill_path}")
 
     for agent_target in agent_targets:
         link_path = _create_symlink(agent_target, central_skill_path, force)
