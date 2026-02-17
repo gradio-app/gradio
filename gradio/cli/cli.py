@@ -12,12 +12,14 @@ from .commands import (
     load_app,
     print_environment_info,
     reload,
+    skills_app,
     sketch,
     upload_mcp,
 )
 
 app = typer.Typer()
 app.add_typer(load_app, name="load")
+app.add_typer(skills_app, name="skills")
 app.command("environment", help="Print Gradio environment information.")(
     print_environment_info
 )
@@ -32,7 +34,7 @@ def cli():
     args = sys.argv[1:]
     if len(args) == 0:
         raise ValueError("No file specified.")
-    if args[0] in {"deploy", "environment", "deploy-discord", "sketch", "load"}:
+    if args[0] in {"deploy", "environment", "deploy-discord", "sketch", "load", "skills"}:
         app()
     elif args[0] in {"cc", "component"}:
         sys.argv = sys.argv[1:]
