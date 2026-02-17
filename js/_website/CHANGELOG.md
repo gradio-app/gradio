@@ -2,6 +2,12 @@
 
 ## 0.69.0
 
+### Dependency updates
+
+- @gradio/statustracker@0.12.3
+
+## 0.69.0
+
 ### Features
 
 - [#12793](https://github.com/gradio-app/gradio/pull/12793) [`47ffecf`](https://github.com/gradio-app/gradio/commit/47ffecfdebf59a47f884089335fecc4ee6ee8d6e) - Add Gradio 5 docs to website.  Thanks @aliabd!

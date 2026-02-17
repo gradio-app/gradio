@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Migrate StatusTracker to Svelte 5
+fix:Ensure disconnected toast text is visible

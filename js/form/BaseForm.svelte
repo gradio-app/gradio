@@ -50,4 +50,8 @@
 	.hidden-css {
 		display: none !important;
 	}
+
+	div:not(:has(> :not(.hidden))) {
+		display: none;
+	}
 </style>

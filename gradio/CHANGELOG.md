@@ -1,5 +1,30 @@
 # gradio
 
+## 6.5.1
+
+### Fixes
+
+- [#12840](https://github.com/gradio-app/gradio/pull/12840) [`26cea7a`](https://github.com/gradio-app/gradio/commit/26cea7ad6fbaf0352f0dc0d44e37c24c8f1797f8) - Ensure change event fires when slider value changes to 0.  Thanks @hannahblair!
+- [#12845](https://github.com/gradio-app/gradio/pull/12845) [`0eac164`](https://github.com/gradio-app/gradio/commit/0eac164f948165d5e3ab0925230b6fbe5b4eedda) - [Hotfix] add pytz to requirements.  Thanks @RektPunk!
+
+## 6.5.0
+
+### Features
+
+- [#12804](https://github.com/gradio-app/gradio/pull/12804) [`fc366b4`](https://github.com/gradio-app/gradio/commit/fc366b485325c900b0c2b85ba05b7d23a81a0dee) - Allow webcam uploads and clipboard paste for gallery.  Thanks @freddyaboulton!
+- [#12834](https://github.com/gradio-app/gradio/pull/12834) [`ddbb6a9`](https://github.com/gradio-app/gradio/commit/ddbb6a9937081873cb773d08f954e3fa8a6ff876) - Allow pandas version 3.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#12818](https://github.com/gradio-app/gradio/pull/12818) [`6594c9c`](https://github.com/gradio-app/gradio/commit/6594c9c5b2829771f79dc04c6fafb6da72031b90) - Migrate Dataset to Svelte 5.  Thanks @freddyaboulton!
+- [#12828](https://github.com/gradio-app/gradio/pull/12828) [`151cbd1`](https://github.com/gradio-app/gradio/commit/151cbd1aac0da3aeb5f0b7b33585223d2bc47138) - Fix private spaces.  Thanks @freddyaboulton!
+- [#12835](https://github.com/gradio-app/gradio/pull/12835) [`5ecf6d2`](https://github.com/gradio-app/gradio/commit/5ecf6d27c50a20e2329c1aca0634924479ceb6cd) - Fix CSS root in spaces.  Thanks @freddyaboulton!
+- [#12813](https://github.com/gradio-app/gradio/pull/12813) [`99caae6`](https://github.com/gradio-app/gradio/commit/99caae630771569e90f1e6a208183ad1a0826460) - Migrate StatusTracker to Svelte 5.  Thanks @freddyaboulton!
+- [#12810](https://github.com/gradio-app/gradio/pull/12810) [`7ed6dfa`](https://github.com/gradio-app/gradio/commit/7ed6dfaad6fa9c8e76a5596b20007dc97ae27ca7) - Migrate js/fileexplorer to svelte5.  Thanks @aliabid94!
+- [#12789](https://github.com/gradio-app/gradio/pull/12789) [`af5e86f`](https://github.com/gradio-app/gradio/commit/af5e86f10d95cc71ee4cb950e455dbdc8e138983) - Migrate gr.MultimodalTextbox.  Thanks @hannahblair!
+- [#12809](https://github.com/gradio-app/gradio/pull/12809) [`8409b7a`](https://github.com/gradio-app/gradio/commit/8409b7ab51fb36d8973d2a3f1bc3557489f7e1c5) - Migrate js/code.  Thanks @aliabid94!
+- [#12817](https://github.com/gradio-app/gradio/pull/12817) [`05acc66`](https://github.com/gradio-app/gradio/commit/05acc6627de866db6a742e0540c2733041d76a86) - Fix Login.  Thanks @freddyaboulton!
+
 ## 6.4.0
 
 ### Features

@@ -104,7 +104,6 @@ export async function resolve_config(
 				current_page: window.gradio_config.current_page
 			};
 		}
-		window.gradio_config.root = endpoint;
 		// @ts-ignore
 		return { ...window.gradio_config } as Config;
 	} else if (endpoint) {
@@ -119,7 +118,11 @@ export async function resolve_config(
 		});
 
 		const config = await handleConfigResponse(response, !!this.options.auth);
-		config.root = endpoint;
+		// Preserve the backend-provided root if available (it contains the correct public URL)
+		// Only fall back to endpoint if the backend didn't provide a root
+		if (!config.root) {
+			config.root = endpoint;
+		}
 		return config;
 	}
 
