@@ -215,7 +215,10 @@ def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
         return_docs = {}
     else:
         return_doc_text = "\n".join(returns)
-        return_docs = {"annotation": signature.return_annotation, "doc": return_doc_text}
+        return_docs = {
+            "annotation": signature.return_annotation,
+            "doc": return_doc_text,
+        }
     examples_doc = "\n".join(examples) if len(examples) > 0 else None
     return description_doc, parameter_docs, return_docs, examples_doc
 
