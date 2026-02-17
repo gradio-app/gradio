@@ -132,7 +132,7 @@ class AnnotatedImage(Component):
         Parameters:
             payload: Dict of base image and list of annotations.
         Returns:
-            Passes its value as a `tuple` consisting of: 
+            Passes its value as a `tuple` consisting of:
             - `str` filepath to a base image
             - `list` of annotations.
             -- Each annotation itself is a `tuple` of a mask (as a `str` filepath to image) and a `str` label.
@@ -155,7 +155,7 @@ class AnnotatedImage(Component):
     ) -> AnnotatedImageData | None:
         """
         Parameters:
-            value: Expects a tuple consisting of a base image and list of annotations: a `tuple[Image, list[Annotation]]`. 
+            value: Expects a tuple consisting of a base image and list of annotations: a `tuple[Image, list[Annotation]]`.
                 - The `Image` itself can be `str` filepath, `numpy.ndarray`, or `PIL.Image`.
                 - Each `Annotation` is a `tuple[Mask, str]`.
                 -- The `Mask` can be either a `tuple` of 4 `int`'s representing the bounding box coordinates (x1, y1, x2, y2), or 0-1 confidence mask in the form of a `numpy.ndarray` of the same shape as the image.
