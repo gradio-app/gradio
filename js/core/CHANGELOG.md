@@ -1,5 +1,35 @@
 # @gradio/core
 
+## 1.2.0
+
+### Features
+
+- [#12839](https://github.com/gradio-app/gradio/pull/12839) [`1c671b3`](https://github.com/gradio-app/gradio/commit/1c671b39830ccf1c87f6cfcb4669e97dfb3a7367) - Hide forms with no elements.  Thanks @aliabid94!
+
+### Fixes
+
+- [#12875](https://github.com/gradio-app/gradio/pull/12875) [`d0b3422`](https://github.com/gradio-app/gradio/commit/d0b34228d756334d901fc34971959ea422eb55bd) - Fix stop button not switching back to submit button in chat interface.  Thanks @freddyaboulton!
+- [#12797](https://github.com/gradio-app/gradio/pull/12797) [`6a0c6ea`](https://github.com/gradio-app/gradio/commit/6a0c6eae53931ec137c0b8379428acc8a7ea27c9) - Refactor translation logic.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/utils@0.11.3
+- @gradio/atoms@0.22.0
+- @gradio/statustracker@0.12.4
+- @gradio/tabs@0.5.6
+- @gradio/code@0.17.3
+- @gradio/paramviewer@0.9.4
+- @gradio/upload@0.17.6
+- @gradio/video@0.20.3
+- @gradio/file@0.14.3
+- @gradio/image@0.25.3
+- @gradio/gallery@0.17.1
+- @gradio/plot@0.10.4
+- @gradio/checkbox@0.6.3
+- @gradio/textbox@0.13.4
+- @gradio/dropdown@0.11.4
+- @gradio/audio@0.22.3
+
 ## 1.1.3
 
 ### Fixes
