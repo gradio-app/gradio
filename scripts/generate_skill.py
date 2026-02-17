@@ -23,7 +23,6 @@ from gradio_client.documentation import generate_documentation  # noqa: E402
 GUIDES_DIR = os.path.join(REPO_ROOT, "guides")
 DEMOS_DIR = os.path.join(REPO_ROOT, "demo")
 SKILL_DIR = os.path.join(REPO_ROOT, ".agents", "skills", "gradio")
-PACKAGE_SKILL_DIR = os.path.join(REPO_ROOT, "gradio", "skill_data")
 
 CURATED_GUIDES = [
     "quickstart",
@@ -440,11 +439,6 @@ def main():
             with open(path) as f:
                 lines = len(f.readlines())
             print(f"  {name}: {lines} lines")
-
-    if os.path.exists(PACKAGE_SKILL_DIR):
-        shutil.rmtree(PACKAGE_SKILL_DIR)
-    shutil.copytree(SKILL_DIR, PACKAGE_SKILL_DIR)
-    print(f"  Copied to package data: {PACKAGE_SKILL_DIR}")
 
     print(f"\nDone! Output in {SKILL_DIR}")
     if skill_lines > 500:
