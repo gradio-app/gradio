@@ -1320,7 +1320,7 @@ class App(FastAPI):
             )
             root_path = route_utils.get_root_url(
                 request=request,
-                route_path=f"{API_PREFIX}/api/{api_name}",
+                route_path=request.url.path,
                 root_path=app.root_path,
             )
             try:
