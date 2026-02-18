@@ -51,7 +51,7 @@ def _import_hf_skills():
         raise SystemExit(
             "The 'gradio skills' command requires huggingface_hub >= 1.4.0.\n"
             "Please upgrade: pip install --upgrade huggingface_hub"
-        )
+        ) from None
     return CENTRAL_GLOBAL, CENTRAL_LOCAL, GLOBAL_TARGETS, LOCAL_TARGETS
 
 
@@ -66,7 +66,7 @@ def _download(url: str) -> str:
             f"Failed to download {url}\n{e}\n\n"
             "Make sure you have internet access. The skill files are fetched from "
             "the Gradio GitHub repository."
-        )
+        ) from e
     return response.text
 
 
@@ -146,7 +146,7 @@ def skills_add(
     ] = False,
 ) -> None:
     """Download and install the Gradio skill for an AI assistant."""
-    CENTRAL_GLOBAL, CENTRAL_LOCAL, _HF_GLOBAL_TARGETS, _HF_LOCAL_TARGETS = _import_hf_skills()
+    central_global, central_local, hf_global_targets, hf_local_targets = _import_hf_skills()
 
     if not (cursor or claude or codex or opencode or dest):
         raise typer.BadParameter(
@@ -161,8 +161,8 @@ def skills_add(
         print(f"Installed '{SKILL_ID}' to {skill_dest}")
         return
 
-    global_targets = {**_HF_GLOBAL_TARGETS, "cursor": Path("~/.cursor/skills")}
-    local_targets = {**_HF_LOCAL_TARGETS, "cursor": Path(".cursor/skills")}
+    global_targets = {**hf_global_targets, "cursor": Path("~/.cursor/skills")}
+    local_targets = {**hf_local_targets, "cursor": Path(".cursor/skills")}
     targets_dict = global_targets if global_ else local_targets
 
     agent_targets: list[Path] = []
@@ -175,7 +175,7 @@ def skills_add(
     if opencode:
         agent_targets.append(targets_dict["opencode"])
 
-    central_path = CENTRAL_GLOBAL if global_ else CENTRAL_LOCAL
+    central_path = central_global if global_ else central_local
     central_skill_path = _install_to(central_path, force)
     print(f"Installed '{SKILL_ID}' to central location: {central_skill_path}")
 

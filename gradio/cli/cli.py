@@ -12,8 +12,8 @@ from .commands import (
     load_app,
     print_environment_info,
     reload,
-    skills_app,
     sketch,
+    skills_app,
     upload_mcp,
 )
 
