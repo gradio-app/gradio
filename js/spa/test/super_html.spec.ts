@@ -68,7 +68,7 @@ test("test HTML components", async ({ page }) => {
 	await expect(page.locator("#children_form")).toContainText("Contact Form");
 	await page.getByLabel("Your Name").fill("Alice");
 	await page.getByLabel("Your Email").fill("alice@example.com");
-	await page.locator("#children_form .submit-children").click();
+	await page.locator("#children_form .send").click();
 	await expect(page.getByLabel("Children Output")).toHaveValue(
 		"Name: Alice, Email: alice@example.com"
 	);

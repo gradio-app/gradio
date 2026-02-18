@@ -379,9 +379,6 @@ class FormComponent(Component):
     def preprocess(self, payload: Any) -> Any:
         return payload
 
-    def postprocess(self, value):
-        return value
-
 
 class StreamingOutput(metaclass=abc.ABCMeta):
     def __init__(self, *args, **kwargs) -> None:

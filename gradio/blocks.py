@@ -452,6 +452,8 @@ class Block:
     def component_class_id(self):
         return self.get_component_class_id()
 
+    def postprocess(self, y):
+        return y
 
 class BlockContext(Block):
     def __init__(
@@ -539,12 +541,6 @@ class BlockContext(Block):
             return
         if getattr(self, "allow_expected_parents", True):
             self.fill_expected_parents()
-
-    def postprocess(self, y):
-        """
-        Any postprocessing needed to be performed on a block context.
-        """
-        return y
 
 
 def postprocess_update_dict(

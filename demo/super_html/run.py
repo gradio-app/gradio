@@ -208,13 +208,13 @@ with gr.Blocks() as demo:
     with gr.HTML(html_template="""
         <h2>${title}</h2>
         @children
-        <button class="submit-children">Submit</button>
+        <button class="send">Send</button>
     """, css_template="""
         border: 2px solid gray;
         border-radius: 8px;
         padding: 16px;
     """, js_on_load="""
-        element.querySelector('.submit-children').addEventListener('click', () => {
+        element.querySelector('.send').addEventListener('click', () => {
             trigger('submit');
         });
     """, title="Contact Form", elem_id="children_form") as children_form:
