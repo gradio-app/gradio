@@ -105,7 +105,7 @@ httpx==0.28.1
     #   gradio-client
     #   respx
     #   safehttpx
-huggingface-hub==1.40.0
+huggingface-hub==1.4.1
     # via
     #   -r test/requirements.in
     #   diffusers
