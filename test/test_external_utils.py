@@ -7,6 +7,7 @@ from gradio.external_utils import (
     component_from_parameter_schema,
     component_from_request_body_schema,
     create_endpoint_fn,
+    get_model_info,
     resolve_schema_ref,
 )
 
@@ -149,3 +150,10 @@ def test_create_endpoint_fn_without_auth_token():
         call_args = mock_get.call_args
         assert "Authorization" not in call_args[1]["headers"]
         assert call_args[1]["headers"]["Content-Type"] == "application/json"
+
+
+def test_get_model_info_fastest_raises_value_error():
+    """Using a model with :fastest raises ValueError (e.g. when huggingface_hub version is <1.0)."""
+    with pytest.raises(ValueError) as exc_info:
+        get_model_info("models/deepseek-ai/DeepSeek-R1-0528:fastest")
+    assert "To use :cheapest or :fastest, upgrade huggingface_hub" in str(exc_info.value)
