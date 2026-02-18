@@ -2,7 +2,7 @@ import gradio as gr
 
 from transformers import pipeline
 
-pipe = pipeline("translation", model="t5-base")
+pipe = pipeline("translation", model="t5-base")  # type: ignore
 
 def translate(text):
     return pipe(text)[0]["translation_text"]  # type: ignore
