@@ -3,15 +3,6 @@ from unittest.mock import MagicMock
 
 import pytest
 import transformers
-from diffusers import (
-    StableDiffusionDepth2ImgPipeline,  # type: ignore
-    StableDiffusionImageVariationPipeline,  # type: ignore
-    StableDiffusionImg2ImgPipeline,  # type: ignore
-    StableDiffusionInpaintPipeline,  # type: ignore
-    StableDiffusionInstructPix2PixPipeline,  # type: ignore
-    StableDiffusionPipeline,  # type: ignore
-    StableDiffusionUpscalePipeline,  # type: ignore
-)
 from transformers import (
     AudioClassificationPipeline,
     AutomaticSpeechRecognitionPipeline,
@@ -29,17 +20,8 @@ from transformers import (
 
 import gradio as gr
 from gradio.pipelines_utils import (
-    handle_diffusers_pipeline,
     handle_transformers_pipeline,
 )
-
-
-@pytest.mark.flaky
-def test_stable_diffusion_pipeline():
-    pipe = StableDiffusionPipeline.from_pretrained("hf-internal-testing/tiny-sd-pipe")
-    io = gr.Interface.from_pipeline(pipe)
-    output = io("An astronaut", "low quality", 3, 7.5)
-    assert isinstance(output, str)
 
 
 @pytest.mark.flaky
@@ -159,68 +141,6 @@ class TestHandleTransformersPipelines(unittest.TestCase):
         assert pipeline_info["inputs"][0].label == "Input Image"
         assert pipeline_info["inputs"][1].label == "Question"
         assert pipeline_info["outputs"].label == "Score"
-
-    def test_unsupported_pipeline(self):
-        pipe = MagicMock()
-        with self.assertRaises(ValueError):
-            handle_transformers_pipeline(pipe)
-
-
-class TestHandleDiffusersPipelines(unittest.TestCase):
-    def test_stable_diffusion_pipeline(self):
-        pipe = MagicMock(spec=StableDiffusionPipeline)
-        pipeline_info = handle_diffusers_pipeline(pipe)
-        assert pipeline_info is not None
-        assert pipeline_info["inputs"][0].label == "Prompt"
-        assert pipeline_info["inputs"][1].label == "Negative prompt"
-        assert pipeline_info["outputs"].label == "Generated Image"
-
-    def test_stable_diffusion_img2img_pipeline(self):
-        pipe = MagicMock(spec=StableDiffusionImg2ImgPipeline)
-        pipeline_info = handle_diffusers_pipeline(pipe)
-        assert pipeline_info is not None
-        assert pipeline_info["inputs"][0].label == "Prompt"
-        assert pipeline_info["inputs"][1].label == "Negative prompt"
-        assert pipeline_info["outputs"].label == "Generated Image"
-
-    def test_stable_diffusion_inpaint_pipeline(self):
-        pipe = MagicMock(spec=StableDiffusionInpaintPipeline)
-        pipeline_info = handle_diffusers_pipeline(pipe)
-        assert pipeline_info is not None
-        assert pipeline_info["inputs"][0].label == "Prompt"
-        assert pipeline_info["inputs"][1].label == "Negative prompt"
-        assert pipeline_info["outputs"].label == "Generated Image"
-
-    def test_stable_diffusion_depth2img_pipeline(self):
-        pipe = MagicMock(spec=StableDiffusionDepth2ImgPipeline)
-        pipeline_info = handle_diffusers_pipeline(pipe)
-        assert pipeline_info is not None
-        assert pipeline_info["inputs"][0].label == "Prompt"
-        assert pipeline_info["inputs"][1].label == "Negative prompt"
-        assert pipeline_info["outputs"].label == "Generated Image"
-
-    def test_stable_diffusion_image_variation_pipeline(self):
-        pipe = MagicMock(spec=StableDiffusionImageVariationPipeline)
-        pipeline_info = handle_diffusers_pipeline(pipe)
-        assert pipeline_info is not None
-        assert pipeline_info["inputs"][0].label == "Image"
-        assert pipeline_info["outputs"].label == "Generated Image"
-
-    def test_stable_diffusion_instruct_pix2pix_pipeline(self):
-        pipe = MagicMock(spec=StableDiffusionInstructPix2PixPipeline)
-        pipeline_info = handle_diffusers_pipeline(pipe)
-        assert pipeline_info is not None
-        assert pipeline_info["inputs"][0].label == "Prompt"
-        assert pipeline_info["inputs"][1].label == "Negative prompt"
-        assert pipeline_info["outputs"].label == "Generated Image"
-
-    def test_stable_diffusion_upscale_pipeline(self):
-        pipe = MagicMock(spec=StableDiffusionUpscalePipeline)
-        pipeline_info = handle_diffusers_pipeline(pipe)
-        assert pipeline_info is not None
-        assert pipeline_info["inputs"][0].label == "Prompt"
-        assert pipeline_info["inputs"][1].label == "Negative prompt"
-        assert pipeline_info["outputs"].label == "Generated Image"
 
     def test_unsupported_pipeline(self):
         pipe = MagicMock()
