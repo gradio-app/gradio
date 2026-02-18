@@ -28,7 +28,7 @@ skills_app = typer.Typer(help="Manage Gradio skills for AI assistants.")
 
 def _import_hf_skills():
     try:
-        from huggingface_hub.cli.skills import (
+        from huggingface_hub.cli.skills import (  # type: ignore[import-not-found]
             CENTRAL_GLOBAL,
             CENTRAL_LOCAL,
             GLOBAL_TARGETS,
