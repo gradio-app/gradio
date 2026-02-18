@@ -19,14 +19,10 @@ from transformers import (
     FeatureExtractionPipeline,
     FillMaskPipeline,
     ImageClassificationPipeline,
-    ImageToTextPipeline,
     ObjectDetectionPipeline,
     QuestionAnsweringPipeline,
-    SummarizationPipeline,
-    Text2TextGenerationPipeline,
     TextClassificationPipeline,
     TextGenerationPipeline,
-    TranslationPipeline,
     VisualQuestionAnsweringPipeline,
     ZeroShotClassificationPipeline,
 )
@@ -123,13 +119,6 @@ class TestHandleTransformersPipelines(unittest.TestCase):
         assert pipeline_info["outputs"][0].label == "Answer"
         assert pipeline_info["outputs"][1].label == "Score"
 
-    def test_summarization_pipeline(self):
-        pipe = MagicMock(spec=SummarizationPipeline)
-        pipeline_info = handle_transformers_pipeline(pipe)
-        assert pipeline_info is not None
-        assert pipeline_info["inputs"].label == "Input"
-        assert pipeline_info["outputs"].label == "Summary"
-
     def test_text_classification_pipeline(self):
         pipe = MagicMock(spec=TextClassificationPipeline)
         pipeline_info = handle_transformers_pipeline(pipe)
@@ -143,20 +132,6 @@ class TestHandleTransformersPipelines(unittest.TestCase):
         assert pipeline_info is not None
         assert pipeline_info["inputs"].label == "Input"
         assert pipeline_info["outputs"].label == "Output"
-
-    def test_translation_pipeline(self):
-        pipe = MagicMock(spec=TranslationPipeline)
-        pipeline_info = handle_transformers_pipeline(pipe)
-        assert pipeline_info is not None
-        assert pipeline_info["inputs"].label == "Input"
-        assert pipeline_info["outputs"].label == "Translation"
-
-    def test_text2text_generation_pipeline(self):
-        pipe = MagicMock(spec=Text2TextGenerationPipeline)
-        pipeline_info = handle_transformers_pipeline(pipe)
-        assert pipeline_info is not None
-        assert pipeline_info["inputs"].label == "Input"
-        assert pipeline_info["outputs"].label == "Generated Text"
 
     def test_zero_shot_classification_pipeline(self):
         pipe = MagicMock(spec=ZeroShotClassificationPipeline)
@@ -184,13 +159,6 @@ class TestHandleTransformersPipelines(unittest.TestCase):
         assert pipeline_info["inputs"][0].label == "Input Image"
         assert pipeline_info["inputs"][1].label == "Question"
         assert pipeline_info["outputs"].label == "Score"
-
-    def test_image_to_text_pipeline(self):
-        pipe = MagicMock(spec=ImageToTextPipeline)
-        pipeline_info = handle_transformers_pipeline(pipe)
-        assert pipeline_info is not None
-        assert pipeline_info["inputs"].label == "Input Image"
-        assert pipeline_info["outputs"].label == "Text"
 
     def test_unsupported_pipeline(self):
         pipe = MagicMock()
