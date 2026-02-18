@@ -163,60 +163,6 @@ def build_events_matrix(organized):
     return component_events
 
 
-def generate_api_reference(organized):
-    lines = ["# Gradio API Reference\n"]
-    lines.append("Complete class and function signatures for the Gradio library.\n")
-
-    section_titles = {
-        "components": "Components",
-        "building": "Building Blocks",
-        "helpers": "Helpers",
-        "chatinterface": "ChatInterface",
-        "modals": "Modals",
-        "routes": "Routes",
-    }
-
-    for key, title in section_titles.items():
-        if not organized.get(key):
-            continue
-        lines.append(f"\n## {title}\n")
-        for name, entry in sorted(organized[key].items()):
-            sig = build_signature(entry)
-            lines.append(f"### `{sig}`\n")
-            if entry.get("description"):
-                desc = entry["description"].replace("<br>", " ").strip()
-                lines.append(f"{desc}\n")
-            if "fns" in entry and key != "components":
-                for fn in entry["fns"]:
-                    fn_params = ", ".join(
-                        p["name"]
-                        + ": "
-                        + str(p["annotation"])
-                        + (" = " + str(p["default"]) if "default" in p else "")
-                        for p in fn["parameters"]
-                    )
-                    fn_sig = f"{name}.{fn['name']}({fn_params})"
-                    lines.append(f"#### `{fn_sig}`\n")
-                    if fn.get("description"):
-                        fn_desc = fn["description"].replace("<br>", " ").strip()
-                        lines.append(f"{fn_desc}\n")
-
-    events_matrix = build_events_matrix(organized)
-    if events_matrix:
-        lines.append("\n## Event Listeners\n")
-        lines.append(
-            "Event listeners respond to user interactions. "
-            "All event listeners share the same signature pattern:\n"
-        )
-        lines.append("```python\ncomponent.event_name(fn, inputs, outputs, ...)\n```\n")
-        lines.append("Each component supports specific events:\n")
-        for comp, events in sorted(events_matrix.items()):
-            lines.append(f"- **{comp}**: {', '.join(events)}")
-        lines.append("")
-
-    return "\n".join(lines)
-
-
 def generate_examples(all_demos):
     lines = ["# Gradio End-to-End Examples\n"]
     lines.append("Complete working Gradio apps for reference.\n")
@@ -320,7 +266,6 @@ Supported events per component:
 
 ## Additional Reference
 
-- [Full API Reference](api-reference.md) — all class/function signatures
 - [End-to-End Examples](examples.md) — complete working apps
 """
     return skill_md.strip() + "\n"
@@ -362,10 +307,6 @@ def generate_to(output_dir, relpath_base=None):
     with open(os.path.join(output_dir, "SKILL.md"), "w") as f:
         f.write(skill_md)
 
-    api_ref = generate_api_reference(organized)
-    with open(os.path.join(output_dir, "api-reference.md"), "w") as f:
-        f.write(api_ref)
-
     examples = generate_examples(all_demos)
     with open(os.path.join(output_dir, "examples.md"), "w") as f:
         f.write(examples)
@@ -386,7 +327,7 @@ def check(output_dir):
         tmp_skill = os.path.join(tmp, "gradio")
         generate_to(tmp_skill, relpath_base=output_dir)
 
-        generated_files = ["SKILL.md", "api-reference.md", "examples.md"]
+        generated_files = ["SKILL.md", "examples.md"]
         stale = []
         for fname in generated_files:
             existing = os.path.join(output_dir, fname)

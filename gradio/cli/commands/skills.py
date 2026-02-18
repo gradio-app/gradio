@@ -21,7 +21,7 @@ SKILL_ID = "gradio"
 _GITHUB_RAW = "https://raw.githubusercontent.com/gradio-app/gradio/main"
 _SKILL_PREFIX = ".agents/skills/gradio"
 
-_REFERENCE_FILES = ["api-reference.md", "examples.md"]
+_REFERENCE_FILES = ["examples.md"]
 
 _GUIDE_FILES = [
     ("quickstart", "guides/01_getting-started/01_quickstart.md"),

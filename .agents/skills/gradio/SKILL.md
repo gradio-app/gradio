@@ -165,5 +165,4 @@ Supported events per component:
 
 ## Additional Reference
 
-- [Full API Reference](api-reference.md) — all class/function signatures
 - [End-to-End Examples](examples.md) — complete working apps
