@@ -453,7 +453,6 @@ class Block:
         return self.get_component_class_id()
 
 
-
 class BlockContext(Block):
     def __init__(
         self,

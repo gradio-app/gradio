@@ -3,7 +3,7 @@ import { test, expect } from "@self/tootils";
 test("test HTML components", async ({ page }) => {
 	await expect(page.locator("#simple")).toContainText("Hello, World!");
 
-	await page.getByLabel("Name").fill("Sam");
+	await page.getByLabel("Name").first().fill("Sam");
 	await expect(page.locator("#templated")).toContainText(
 		"Hello, Sam! 3 letters"
 	);

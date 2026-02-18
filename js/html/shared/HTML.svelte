@@ -14,13 +14,15 @@
 		component_class_name = "HTML"
 	} = $props();
 
-	let [has_children, pre_html_template, post_html_template] = $derived.by(() => {
-		if (html_template.includes("@children")) {
-			const parts = html_template.split("@children");
-			return [true, parts[0] || "", parts.slice(1).join("@children") || ""];
+	let [has_children, pre_html_template, post_html_template] = $derived.by(
+		() => {
+			if (html_template.includes("@children")) {
+				const parts = html_template.split("@children");
+				return [true, parts[0] || "", parts.slice(1).join("@children") || ""];
+			}
+			return [false, html_template, ""];
 		}
-		return [false, html_template, ""];
-	});
+	);
 
 	let old_props = $state(JSON.parse(JSON.stringify(props)));
 
@@ -149,7 +151,11 @@
 		}
 	}
 
-	function updateDOM(_element: HTMLElement | undefined, oldHtml: string, newHtml: string): void {
+	function updateDOM(
+		_element: HTMLElement | undefined,
+		oldHtml: string,
+		newHtml: string
+	): void {
 		if (!_element || oldHtml === newHtml) return;
 
 		const tempContainer = document.createElement("div");
@@ -250,10 +256,18 @@
 
 	function renderHTML(): void {
 		if (has_children) {
-			const newPreHtml = render_template(pre_html_template, reactiveProps, "html");
+			const newPreHtml = render_template(
+				pre_html_template,
+				reactiveProps,
+				"html"
+			);
 			updateDOM(pre_element, currentPreHtml, newPreHtml);
 			currentPreHtml = newPreHtml;
-			const newPostHtml = render_template(post_html_template, reactiveProps, "html");
+			const newPostHtml = render_template(
+				post_html_template,
+				reactiveProps,
+				"html"
+			);
 			updateDOM(post_element, currentPostHtml, newPostHtml);
 			currentPostHtml = newPostHtml;
 		} else {
@@ -307,9 +321,17 @@
 		);
 
 		if (has_children) {
-			currentPreHtml = render_template(pre_html_template, reactiveProps, "html");
+			currentPreHtml = render_template(
+				pre_html_template,
+				reactiveProps,
+				"html"
+			);
 			pre_element.innerHTML = currentPreHtml;
-			currentPostHtml = render_template(post_html_template, reactiveProps, "html");
+			currentPostHtml = render_template(
+				post_html_template,
+				reactiveProps,
+				"html"
+			);
 			post_element.innerHTML = currentPostHtml;
 		} else {
 			currentHtml = render_template(html_template, reactiveProps, "html");

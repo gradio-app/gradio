@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import warnings
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
-from gradio.components.base import Component
 from gradio.blocks import BlockContext
+from gradio.components.base import Component
 from gradio.components.button import Button
 from gradio.events import all_events
 from gradio.i18n import I18nData
