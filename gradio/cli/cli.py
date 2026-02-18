@@ -34,7 +34,14 @@ def cli():
     args = sys.argv[1:]
     if len(args) == 0:
         raise ValueError("No file specified.")
-    if args[0] in {"deploy", "environment", "deploy-discord", "sketch", "load", "skills"}:
+    if args[0] in {
+        "deploy",
+        "environment",
+        "deploy-discord",
+        "sketch",
+        "load",
+        "skills",
+    }:
         app()
     elif args[0] in {"cc", "component"}:
         sys.argv = sys.argv[1:]

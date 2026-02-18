@@ -26,14 +26,20 @@ _REFERENCE_FILES = ["api-reference.md", "examples.md"]
 _GUIDE_FILES = [
     ("quickstart", "guides/01_getting-started/01_quickstart.md"),
     ("the-interface-class", "guides/02_building-interfaces/00_the-interface-class.md"),
-    ("blocks-and-event-listeners", "guides/03_building-with-blocks/01_blocks-and-event-listeners.md"),
+    (
+        "blocks-and-event-listeners",
+        "guides/03_building-with-blocks/01_blocks-and-event-listeners.md",
+    ),
     ("controlling-layout", "guides/03_building-with-blocks/02_controlling-layout.md"),
     ("more-blocks-features", "guides/03_building-with-blocks/05_more-blocks-features"),
     ("custom-CSS-and-JS", "guides/03_building-with-blocks/07_custom-CSS-and-JS.md"),
     ("streaming-outputs", "guides/04_additional-features/02_streaming-outputs.md"),
     ("streaming-inputs", "guides/04_additional-features/03_streaming-inputs.md"),
     ("sharing-your-app", "guides/04_additional-features/07_sharing-your-app.md"),
-    ("custom-HTML-components", "guides/03_building-with-blocks/06_custom-HTML-components.md"),
+    (
+        "custom-HTML-components",
+        "guides/03_building-with-blocks/06_custom-HTML-components.md",
+    ),
 ]
 
 skills_app = typer.Typer(help="Manage Gradio skills for AI assistants.")
@@ -74,14 +80,18 @@ def _remove_existing(path: Path, force: bool) -> None:
     if not (path.exists() or path.is_symlink()):
         return
     if not force:
-        raise SystemExit(f"Skill already exists at {path}.\nRe-run with --force to overwrite.")
+        raise SystemExit(
+            f"Skill already exists at {path}.\nRe-run with --force to overwrite."
+        )
     if path.is_dir() and not path.is_symlink():
         shutil.rmtree(path)
     else:
         path.unlink()
 
 
-def _create_symlink(agent_skills_dir: Path, central_skill_path: Path, force: bool) -> Path:
+def _create_symlink(
+    agent_skills_dir: Path, central_skill_path: Path, force: bool
+) -> Path:
     agent_skills_dir = agent_skills_dir.expanduser().resolve()
     agent_skills_dir.mkdir(parents=True, exist_ok=True)
     link_path = agent_skills_dir / SKILL_ID
@@ -124,10 +134,16 @@ def _install_to(skills_dir: Path, force: bool) -> Path:
     "add",
 )
 def skills_add(
-    cursor: Annotated[bool, typer.Option("--cursor", help="Install for Cursor.")] = False,
-    claude: Annotated[bool, typer.Option("--claude", help="Install for Claude.")] = False,
+    cursor: Annotated[
+        bool, typer.Option("--cursor", help="Install for Cursor.")
+    ] = False,
+    claude: Annotated[
+        bool, typer.Option("--claude", help="Install for Claude.")
+    ] = False,
     codex: Annotated[bool, typer.Option("--codex", help="Install for Codex.")] = False,
-    opencode: Annotated[bool, typer.Option("--opencode", help="Install for OpenCode.")] = False,
+    opencode: Annotated[
+        bool, typer.Option("--opencode", help="Install for OpenCode.")
+    ] = False,
     global_: Annotated[
         bool,
         typer.Option(
@@ -138,7 +154,9 @@ def skills_add(
     ] = False,
     dest: Annotated[
         Optional[Path],
-        typer.Option(help="Install into a custom destination (path to skills directory)."),
+        typer.Option(
+            help="Install into a custom destination (path to skills directory)."
+        ),
     ] = None,
     force: Annotated[
         bool,
@@ -146,7 +164,9 @@ def skills_add(
     ] = False,
 ) -> None:
     """Download and install the Gradio skill for an AI assistant."""
-    central_global, central_local, hf_global_targets, hf_local_targets = _import_hf_skills()
+    central_global, central_local, hf_global_targets, hf_local_targets = (
+        _import_hf_skills()
+    )
 
     if not (cursor or claude or codex or opencode or dest):
         raise typer.BadParameter(
