@@ -21,26 +21,7 @@ SKILL_ID = "gradio"
 _GITHUB_RAW = "https://raw.githubusercontent.com/gradio-app/gradio/main"
 _SKILL_PREFIX = ".agents/skills/gradio"
 
-_REFERENCE_FILES = ["examples.md"]
-
-_GUIDE_FILES = [
-    ("quickstart", "guides/01_getting-started/01_quickstart.md"),
-    ("the-interface-class", "guides/02_building-interfaces/00_the-interface-class.md"),
-    (
-        "blocks-and-event-listeners",
-        "guides/03_building-with-blocks/01_blocks-and-event-listeners.md",
-    ),
-    ("controlling-layout", "guides/03_building-with-blocks/02_controlling-layout.md"),
-    ("more-blocks-features", "guides/03_building-with-blocks/05_more-blocks-features"),
-    ("custom-CSS-and-JS", "guides/03_building-with-blocks/07_custom-CSS-and-JS.md"),
-    ("streaming-outputs", "guides/04_additional-features/02_streaming-outputs.md"),
-    ("streaming-inputs", "guides/04_additional-features/03_streaming-inputs.md"),
-    ("sharing-your-app", "guides/04_additional-features/07_sharing-your-app.md"),
-    (
-        "custom-HTML-components",
-        "guides/03_building-with-blocks/06_custom-HTML-components.md",
-    ),
-]
+_SKILL_FILES = ["SKILL.md", "examples.md"]
 
 skills_app = typer.Typer(help="Manage Gradio skills for AI assistants.")
 
@@ -101,32 +82,17 @@ def _create_symlink(
 
 
 def _install_to(skills_dir: Path, force: bool) -> Path:
-    import re
-
     skills_dir = skills_dir.expanduser().resolve()
     skills_dir.mkdir(parents=True, exist_ok=True)
     dest = skills_dir / SKILL_ID
 
     _remove_existing(dest, force)
     dest.mkdir()
-    (dest / "guides").mkdir()
 
-    skill_md = _download(f"{_GITHUB_RAW}/{_SKILL_PREFIX}/SKILL.md")
-
-    for fname in _REFERENCE_FILES:
+    for fname in _SKILL_FILES:
         content = _download(f"{_GITHUB_RAW}/{_SKILL_PREFIX}/{fname}")
         (dest / fname).write_text(content, encoding="utf-8")
 
-    for guide_name, repo_path in _GUIDE_FILES:
-        content = _download(f"{_GITHUB_RAW}/{repo_path}")
-        (dest / "guides" / f"{guide_name}.md").write_text(content, encoding="utf-8")
-        skill_md = re.sub(
-            rf"\]\([^)]*?{re.escape(guide_name)}[^)]*?\)",
-            f"](guides/{guide_name}.md)",
-            skill_md,
-        )
-
-    (dest / "SKILL.md").write_text(skill_md, encoding="utf-8")
     return dest
 
 

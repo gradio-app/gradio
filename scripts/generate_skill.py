@@ -7,7 +7,6 @@ Usage:
 
 import argparse
 import os
-import re
 import shutil
 import sys
 import tempfile
@@ -21,7 +20,6 @@ from gradio_client.documentation import generate_documentation  # noqa: E402
 
 import gradio  # noqa: E402, F401
 
-GUIDES_DIR = os.path.join(REPO_ROOT, "guides")
 DEMOS_DIR = os.path.join(REPO_ROOT, "demo")
 SKILL_DIR = os.path.join(REPO_ROOT, ".agents", "skills", "gradio")
 
@@ -97,18 +95,6 @@ def load_all_demo_code():
             )
             demos[demo_folder] = code
     return demos
-
-
-def find_guide_file(guide_name):
-    for folder in sorted(os.listdir(GUIDES_DIR)):
-        folder_path = os.path.join(GUIDES_DIR, folder)
-        if not os.path.isdir(folder_path) or folder in ("assets", "cn"):
-            continue
-        for filename in os.listdir(folder_path):
-            stripped = re.sub(r"^[0-9]+_", "", filename)
-            if stripped.replace(".md", "") == guide_name:
-                return os.path.join(folder_path, filename)
-    return None
 
 
 def build_signature(entry):
@@ -193,7 +179,10 @@ def generate_skill_md(organized, guide_links):
     for comp, events in sorted(events_matrix.items()):
         event_lines.append(f"- **{comp}**: {', '.join(events)}")
 
-    guide_list = "\n".join(f"- [{title}]({path})" for title, path in guide_links)
+    guide_list = "\n".join(
+        f"- [{title}](https://www.gradio.app/guides/{slug})"
+        for title, slug in guide_links
+    )
 
     skill_md = f"""---
 name: gradio
@@ -285,23 +274,17 @@ GUIDE_TITLES = {
 }
 
 
-def generate_to(output_dir, relpath_base=None):
+def generate_to(output_dir):
     raw_docs = generate_documentation()
     organized = organize_docs(raw_docs)
     all_demos = load_all_demo_code()
 
     os.makedirs(output_dir, exist_ok=True)
-    base = relpath_base or output_dir
 
     guide_links = []
     for guide_name in CURATED_GUIDES:
-        source = find_guide_file(guide_name)
-        if source is None:
-            print(f"Warning: guide '{guide_name}' not found, skipping")
-            continue
-        rel = os.path.relpath(source, base)
         title = GUIDE_TITLES.get(guide_name, guide_name.replace("-", " ").title())
-        guide_links.append((title, rel))
+        guide_links.append((title, guide_name))
 
     skill_md = generate_skill_md(organized, guide_links)
     with open(os.path.join(output_dir, "SKILL.md"), "w") as f:
@@ -325,7 +308,7 @@ def check(output_dir):
     tmp = tempfile.mkdtemp()
     try:
         tmp_skill = os.path.join(tmp, "gradio")
-        generate_to(tmp_skill, relpath_base=output_dir)
+        generate_to(tmp_skill)
 
         generated_files = ["SKILL.md", "examples.md"]
         stale = []

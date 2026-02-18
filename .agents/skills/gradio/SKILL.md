@@ -11,16 +11,16 @@ Gradio is a Python library for building interactive web UIs and ML demos. This s
 
 Detailed guides on specific topics (read these when relevant):
 
-- [Quickstart](../../../guides/01_getting-started/01_quickstart.md)
-- [The Interface Class](../../../guides/02_building-interfaces/00_the-interface-class.md)
-- [Blocks and Event Listeners](../../../guides/03_building-with-blocks/01_blocks-and-event-listeners.md)
-- [Controlling Layout](../../../guides/03_building-with-blocks/02_controlling-layout.md)
-- [More Blocks Features](../../../guides/03_building-with-blocks/05_more-blocks-features)
-- [Custom CSS and JS](../../../guides/03_building-with-blocks/07_custom-CSS-and-JS.md)
-- [Streaming Outputs](../../../guides/04_additional-features/02_streaming-outputs.md)
-- [Streaming Inputs](../../../guides/04_additional-features/03_streaming-inputs.md)
-- [Sharing Your App](../../../guides/04_additional-features/07_sharing-your-app.md)
-- [Custom HTML Components](../../../guides/03_building-with-blocks/06_custom-HTML-components.md)
+- [Quickstart](https://www.gradio.app/guides/quickstart)
+- [The Interface Class](https://www.gradio.app/guides/the-interface-class)
+- [Blocks and Event Listeners](https://www.gradio.app/guides/blocks-and-event-listeners)
+- [Controlling Layout](https://www.gradio.app/guides/controlling-layout)
+- [More Blocks Features](https://www.gradio.app/guides/more-blocks-features)
+- [Custom CSS and JS](https://www.gradio.app/guides/custom-CSS-and-JS)
+- [Streaming Outputs](https://www.gradio.app/guides/streaming-outputs)
+- [Streaming Inputs](https://www.gradio.app/guides/streaming-inputs)
+- [Sharing Your App](https://www.gradio.app/guides/sharing-your-app)
+- [Custom HTML Components](https://www.gradio.app/guides/custom-HTML-components)
 
 ## Core Patterns
 
