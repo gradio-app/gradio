@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-feat:add `SKILLS.md` to Gradio repo, part 1/3
+feat:add `SKILLS.md` to Gradio repo, part 1 + cleanup
