@@ -103,6 +103,21 @@ way is to add `**kwargs` to your `__init__` method and pass it to `super().__ini
 
 We've created several custom HTML components as reusable components as examples you can reference in [this directory](https://github.com/gradio-app/gradio/tree/main/gradio/components/custom_html_components).
 
+
+## Embedding Components in HTML
+
+The `gr.HTML` component can also be used as a container for other Gradio components using the `@children` placeholder. This allows you to create custom layouts with HTML/CSS. 
+
+The `@children` must be at the top-level of the `html_template`. Since children cannot be nested inside the template, target the parent element directly with your CSS and JavaScript if you need to style or interact with the container of the children.
+
+Here's a basic example:
+
+$code_html_children
+$demo_html_children
+
+In this example, the `@children` placeholder marks where the child components (the Name and Email textboxes) will be rendered. Notice how in the `css_template` we target the parent element to style the container div that wraps the children.
+
+
 ### API / MCP support
 
 To make your custom HTML component work with Gradio's built-in support for API and MCP (Model Context Protocol) usage, you need to define how its data should be serialized. There are two ways to do this:
