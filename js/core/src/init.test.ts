@@ -11,6 +11,8 @@ import {
 	process_server_fn,
 	get_component
 } from "./_init";
+import { get_api_url } from "./init.svelte";
+import type { AppConfig } from "./types";
 
 describe("process_frontend_fn", () => {
 	test("empty source code returns null", () => {
@@ -520,5 +522,299 @@ describe("get_component", () => {
 		expect(mock).toHaveBeenCalled();
 
 		server.close();
+	});
+});
+
+describe("get_api_url", () => {
+	describe("root URL with trailing slash", () => {
+		test("root with trailing slash, api_prefix with leading slash", () => {
+			const config: Omit<AppConfig, "api_url"> = {
+				root: "http://example.com/myapp/",
+				api_prefix: "/api",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+			const result = get_api_url(config);
+			expect(result).toBe("http://example.com/myapp/api");
+		});
+
+		test("root with trailing slash, api_prefix without leading slash", () => {
+			const config: Omit<AppConfig, "api_url"> = {
+				root: "http://example.com/myapp/",
+				api_prefix: "api",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+			const result = get_api_url(config);
+			expect(result).toBe("http://example.com/myapp/api");
+		});
+
+		test("root at domain root with trailing slash", () => {
+			const config: Omit<AppConfig, "api_url"> = {
+				root: "http://example.com/",
+				api_prefix: "/api",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+			const result = get_api_url(config);
+			expect(result).toBe("http://example.com/api");
+		});
+	});
+
+	describe("root URL without trailing slash", () => {
+		test("root without trailing slash, api_prefix with leading slash", () => {
+			const config: Omit<AppConfig, "api_url"> = {
+				root: "http://example.com/myapp",
+				api_prefix: "/api",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+			const result = get_api_url(config);
+			expect(result).toBe("http://example.com/myapp/api");
+		});
+
+		test("root without trailing slash, api_prefix without leading slash", () => {
+			const config: Omit<AppConfig, "api_url"> = {
+				root: "http://example.com/myapp",
+				api_prefix: "api",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+			const result = get_api_url(config);
+			expect(result).toBe("http://example.com/myapp/api");
+		});
+
+		test("root at domain root without trailing slash", () => {
+			const config: Omit<AppConfig, "api_url"> = {
+				root: "http://example.com",
+				api_prefix: "/api",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+			const result = get_api_url(config);
+			expect(result).toBe("http://example.com/api");
+		});
+	});
+
+	describe("different root path combinations", () => {
+		test("root path is just '/'", () => {
+			const config: Omit<AppConfig, "api_url"> = {
+				root: "http://example.com/",
+				api_prefix: "/api",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+			const result = get_api_url(config);
+			expect(result).toBe("http://example.com/api");
+		});
+
+		test("root path is '/' without trailing slash", () => {
+			const config: Omit<AppConfig, "api_url"> = {
+				root: "http://example.com",
+				api_prefix: "/api",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+			const result = get_api_url(config);
+			expect(result).toBe("http://example.com/api");
+		});
+
+		test("root path is '/myapp'", () => {
+			const config: Omit<AppConfig, "api_url"> = {
+				root: "http://example.com/myapp",
+				api_prefix: "/api",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+			const result = get_api_url(config);
+			expect(result).toBe("http://example.com/myapp/api");
+		});
+
+		test("root path is '/myapp/'", () => {
+			const config: Omit<AppConfig, "api_url"> = {
+				root: "http://example.com/myapp/",
+				api_prefix: "/api",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+			const result = get_api_url(config);
+			expect(result).toBe("http://example.com/myapp/api");
+		});
+
+		test("root path is '/deep/nested/path'", () => {
+			const config: Omit<AppConfig, "api_url"> = {
+				root: "http://example.com/deep/nested/path",
+				api_prefix: "/api",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+			const result = get_api_url(config);
+			expect(result).toBe("http://example.com/deep/nested/path/api");
+		});
+
+		test("root path is '/deep/nested/path/'", () => {
+			const config: Omit<AppConfig, "api_url"> = {
+				root: "http://example.com/deep/nested/path/",
+				api_prefix: "/api",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+			const result = get_api_url(config);
+			expect(result).toBe("http://example.com/deep/nested/path/api");
+		});
+	});
+
+	describe("different api_prefix formats", () => {
+		test("api_prefix with leading slash", () => {
+			const config: Omit<AppConfig, "api_url"> = {
+				root: "http://example.com/myapp",
+				api_prefix: "/api",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+			const result = get_api_url(config);
+			expect(result).toBe("http://example.com/myapp/api");
+		});
+
+		test("api_prefix without leading slash", () => {
+			const config: Omit<AppConfig, "api_url"> = {
+				root: "http://example.com/myapp",
+				api_prefix: "api",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+			const result = get_api_url(config);
+			expect(result).toBe("http://example.com/myapp/api");
+		});
+
+		test("api_prefix with nested path and leading slash", () => {
+			const config: Omit<AppConfig, "api_url"> = {
+				root: "http://example.com/myapp",
+				api_prefix: "/api/v1",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+			const result = get_api_url(config);
+			expect(result).toBe("http://example.com/myapp/api/v1");
+		});
+
+		test("api_prefix with nested path without leading slash", () => {
+			const config: Omit<AppConfig, "api_url"> = {
+				root: "http://example.com/myapp",
+				api_prefix: "api/v1",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+			const result = get_api_url(config);
+			expect(result).toBe("http://example.com/myapp/api/v1");
+		});
+	});
+
+	describe("edge cases", () => {
+		test("root with port number", () => {
+			const config: Omit<AppConfig, "api_url"> = {
+				root: "http://example.com:8080/myapp",
+				api_prefix: "/api",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+			const result = get_api_url(config);
+			expect(result).toBe("http://example.com:8080/myapp/api");
+		});
+
+		test("root with HTTPS", () => {
+			const config: Omit<AppConfig, "api_url"> = {
+				root: "https://example.com/myapp",
+				api_prefix: "/api",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+			const result = get_api_url(config);
+			expect(result).toBe("https://example.com/myapp/api");
+		});
+
+		test("root with query parameters (should be ignored)", () => {
+			const config: Omit<AppConfig, "api_url"> = {
+				root: "http://example.com/myapp?param=value",
+				api_prefix: "/api",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+			const result = get_api_url(config);
+			expect(result).toBe("http://example.com/myapp/api");
+		});
+
+		test("root with hash (should be ignored)", () => {
+			const config: Omit<AppConfig, "api_url"> = {
+				root: "http://example.com/myapp#section",
+				api_prefix: "/api",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+			const result = get_api_url(config);
+			expect(result).toBe("http://example.com/myapp/api");
+		});
+	});
+
+	describe("consistency checks", () => {
+		test("same result regardless of root trailing slash", () => {
+			const baseConfig = {
+				api_prefix: "/api",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+
+			const config1: Omit<AppConfig, "api_url"> = {
+				...baseConfig,
+				root: "http://example.com/myapp"
+			};
+			const config2: Omit<AppConfig, "api_url"> = {
+				...baseConfig,
+				root: "http://example.com/myapp/"
+			};
+
+			expect(get_api_url(config1)).toBe(get_api_url(config2));
+		});
+
+		test("same result regardless of api_prefix leading slash", () => {
+			const baseConfig = {
+				root: "http://example.com/myapp",
+				theme: "default",
+				version: "1.0.0",
+				autoscroll: true
+			};
+
+			const config1: Omit<AppConfig, "api_url"> = {
+				...baseConfig,
+				api_prefix: "/api"
+			};
+			const config2: Omit<AppConfig, "api_url"> = {
+				...baseConfig,
+				api_prefix: "api"
+			};
+
+			expect(get_api_url(config1)).toBe(get_api_url(config2));
+		});
 	});
 });
