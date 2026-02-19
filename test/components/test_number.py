@@ -122,6 +122,16 @@ class TestNumber:
         assert numeric_input.postprocess(5.5) == 5.5
         assert isinstance(numeric_input.postprocess(5.5), float)
 
+    def test_precision_positive_with_integer(self):
+        """
+        Preprocess, postprocess
+        """
+        numeric_input = gr.Number(precision=2)
+        assert numeric_input.preprocess(5) == 5.0
+        assert isinstance(numeric_input.preprocess(5), float)
+        assert numeric_input.postprocess(5) == 5.0
+        assert isinstance(numeric_input.postprocess(5), float)
+
     def test_in_interface_as_input(self):
         """
         Interface, process
