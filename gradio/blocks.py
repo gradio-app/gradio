@@ -117,8 +117,9 @@ class Block:
         visible: bool | Literal["hidden"] = True,
         proxy_url: str | None = None,
     ):
-        if hasattr(self, "_id"):
+        if getattr(self, "_is_initialized", False):
             return
+        self._is_initialized = True
         key_to_id_map = LocalContext.key_to_id_map.get(None)
         if key is not None and key_to_id_map and key in key_to_id_map:
             self.is_render_replacement = True

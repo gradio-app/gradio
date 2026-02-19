@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
 	import Handlebars from "handlebars";
+	import type { Snippet } from "svelte";
 
 	let {
 		elem_classes = [],
@@ -11,12 +12,24 @@
 		visible = true,
 		autoscroll = false,
 		apply_default_css = true,
-		component_class_name = "HTML"
+		component_class_name = "HTML",
+		children
+	}: {
+		elem_classes: string[];
+		props: Record<string, any>;
+		html_template: string;
+		css_template: string;
+		js_on_load: string | null;
+		visible: boolean;
+		autoscroll: boolean;
+		apply_default_css: boolean;
+		component_class_name: string;
+		children?: Snippet;
 	} = $props();
 
 	let [has_children, pre_html_template, post_html_template] = $derived.by(
 		() => {
-			if (html_template.includes("@children")) {
+			if (html_template.includes("@children") && children) {
 				const parts = html_template.split("@children");
 				return [true, parts[0] || "", parts.slice(1).join("@children") || ""];
 			}
@@ -384,16 +397,22 @@
 	<div
 		bind:this={element}
 		id={random_id}
-		class="{apply_default_css ? 'prose gradio-style' : ''} {elem_classes.join(
-			' '
-		)}"
+		class="{apply_default_css && !has_children
+			? 'prose gradio-style'
+			: ''} {elem_classes.join(' ')}"
 		class:hide={!visible}
 		class:has_children
 	>
 		{#if has_children}
-			<div bind:this={pre_element}></div>
-			<slot></slot>
-			<div bind:this={post_element}></div>
+			<div
+				class={apply_default_css ? "prose gradio-style" : ""}
+				bind:this={pre_element}
+			></div>
+			{@render children?.()}
+			<div
+				class={apply_default_css ? "prose gradio-style" : ""}
+				bind:this={post_element}
+			></div>
 		{/if}
 	</div>
 {/if}

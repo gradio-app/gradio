@@ -161,6 +161,10 @@ class HTML(BlockContext, Component):
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
 
+    @property
+    def skip_api(self):
+        return False
+
     def get_config(self) -> dict[str, Any]:  # type: ignore[override]
         if type(self) is not HTML:
             config = {
