@@ -72,4 +72,16 @@ test("test HTML components", async ({ page }) => {
 	await expect(page.getByLabel("Children Output")).toHaveValue(
 		"Name: Alice, Email: alice@example.com"
 	);
+
+	// Test upload function in js_on_load
+	const file_input = page.locator("#upload_html #html-file-input");
+	await file_input.setInputFiles("./test/files/alphabet.txt");
+	await page.locator("#upload_html #html-upload-btn").click();
+	await expect(async () => {
+		const status = await page
+			.locator("#upload_html #html-upload-status")
+			.textContent();
+		expect(status).toMatch(/^Uploaded: /);
+	}).toPass();
+	await expect(page.getByLabel("Upload Result")).not.toHaveValue("");
 });
