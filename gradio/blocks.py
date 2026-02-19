@@ -453,7 +453,7 @@ class Block:
     def component_class_id(self):
         return self.get_component_class_id()
 
-    def postprocess(self, y: Any) -> Any:  # type: ignore[override]
+    def postprocess(self, y):
         return y
 
 
