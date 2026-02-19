@@ -409,3 +409,25 @@ test("Dataframe keyboard events allow newlines", async ({ page }) => {
 
 	expect(await get_cell(df, 0, 0).textContent()).toBe(" 42\ndon't panic   ⋮");
 });
+
+test("Dataframe header editing allows backspace and delete", async ({ page }) => {
+	const df = page.locator("#dataframe").first();
+
+	const header = df.locator(".thead th").nth(1);
+	await header.dblclick();
+	await page.waitForTimeout(100);
+
+	const header_input = df.locator(".thead textarea");
+	await header_input.fill("TestHeader");
+	await page.waitForTimeout(100);
+
+	await header_input.press("Backspace");
+	await header_input.press("Backspace");
+	await page.waitForTimeout(100);
+
+	expect(await header_input.inputValue()).toBe("TestHead");
+
+	await header_input.press("Enter");
+
+	expect(await header.textContent()).toContain("TestHead");
+});
