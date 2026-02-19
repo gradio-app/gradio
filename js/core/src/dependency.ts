@@ -488,21 +488,21 @@ export class DependencyManager {
 										stream_state
 									});
 									this.update_loading_stati_state();
-							} else if (result.stage === "error") {
-								if (result.broken || result.session_not_found) {
-									if (!this.connection_lost) {
-										this.connection_lost = true;
-										this.on_connection_lost_cb();
+								} else if (result.stage === "error") {
+									if (result.broken || result.session_not_found) {
+										if (!this.connection_lost) {
+											this.connection_lost = true;
+											this.on_connection_lost_cb();
+										}
+										this.loading_stati.update({
+											status: "complete",
+											fn_index: dep.id,
+											stream_state: null
+										});
+										this.update_loading_stati_state();
+										break submit_loop;
 									}
-									this.loading_stati.update({
-										status: "complete",
-										fn_index: dep.id,
-										stream_state: null
-									});
-									this.update_loading_stati_state();
-									break submit_loop;
-								}
-								if (Array.isArray(result?.message)) {
+									if (Array.isArray(result?.message)) {
 										result.message.forEach((m: ValidationError, i) => {
 											this.update_state_cb(
 												dep.inputs[i],
