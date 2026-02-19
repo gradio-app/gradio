@@ -201,5 +201,32 @@ with gr.Blocks() as demo:
 
     todo_list = TodoList(value=["Buy groceries", "Walk the dog", "Read a book"], completed=[1], elem_id="todo")
 
+    gr.Markdown("""
+    # HTML Children
+    Use `@children` in `html_template` to render child components inside the HTML wrapper.
+    """)
+    with gr.HTML(html_template="""
+        <h2>${title}</h2>
+        @children
+        <button class="send">Send</button>
+    """, css_template="""
+        border: 2px solid gray;
+        border-radius: 8px;
+        padding: 16px;
+    """, js_on_load="""
+        element.querySelector('.send').addEventListener('click', () => {
+            trigger('submit');
+        });
+    """, title="Contact Form", elem_id="children_form") as children_form:
+        children_name = gr.Textbox(label="Your Name")
+        children_email = gr.Textbox(label="Your Email")
+
+    children_output = gr.Textbox(label="Children Output")
+    children_form.submit(
+        lambda name, email: f"Name: {name}, Email: {email}",
+        inputs=[children_name, children_email],
+        outputs=children_output
+    )
+
 if __name__ == "__main__":
     demo.launch()

@@ -11,8 +11,10 @@
 	import { Code as CodeIcon } from "@gradio/icons";
 	import { css_units } from "@gradio/utils";
 	import type { HTMLProps, HTMLEvents } from "./types.ts";
+	import type { Snippet } from "svelte";
 
 	let props = $props();
+	let children: Snippet | undefined = props.children;
 	const gradio = new Gradio<HTMLEvents, HTMLProps>(props);
 
 	let _props = $derived({
@@ -99,7 +101,9 @@
 					gradio.shared.visible = e.detail.data;
 				}
 			}}
-		/>
+		>
+			{@render children?.()}
+		</HTML>
 	</div>
 </Block>
 

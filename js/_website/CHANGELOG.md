@@ -1,5 +1,23 @@
 # website
 
+## 0.70.0
+
+### Features
+
+- [#12700](https://github.com/gradio-app/gradio/pull/12700) [`b01c95a`](https://github.com/gradio-app/gradio/commit/b01c95a58be8e18bb4ddef7f2ee238a7774e5be9) - Rewrite behavior section of docs.  Thanks @aliabd!
+- [#12823](https://github.com/gradio-app/gradio/pull/12823) [`32b1d6f`](https://github.com/gradio-app/gradio/commit/32b1d6ffe9e753ad563cc3f4f77a0bfbf89c022c) - I’ve updated the render decorator documentation to be clearer and more practical.  Thanks @Ankith34!
+
+### Fixes
+
+- [#12888](https://github.com/gradio-app/gradio/pull/12888) [`3f835cf`](https://github.com/gradio-app/gradio/commit/3f835cf9c6cdf570a107233e2a87e0dc5cd751cb) - Remove type parameter from ChatInterface Docs.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.4
+- @gradio/tabs@0.5.6
+- @gradio/code@0.17.3
+- @gradio/paramviewer@0.9.4
+
 ## 0.69.0
 
 ### Dependency updates
