@@ -28,4 +28,3 @@ torch
 tqdm
 transformers
 vega_datasets
-diffusers
