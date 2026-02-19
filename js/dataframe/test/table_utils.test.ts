@@ -163,4 +163,14 @@ describe("cast_value_to_type", () => {
 		expect(cast_value_to_type("hello", "str")).toBe("hello");
 		expect(cast_value_to_type(123, "str")).toBe(123);
 	});
+	test("preserves null and undefined for all types", () => {
+		expect(cast_value_to_type(null, "number")).toBe(null);
+		expect(cast_value_to_type(undefined, "number")).toBe(undefined);
+		expect(cast_value_to_type(null, "bool")).toBe(null);
+		expect(cast_value_to_type(undefined, "bool")).toBe(undefined);
+		expect(cast_value_to_type(null, "date")).toBe(null);
+		expect(cast_value_to_type(undefined, "date")).toBe(undefined);
+		expect(cast_value_to_type(null, "str")).toBe(null);
+		expect(cast_value_to_type(undefined, "str")).toBe(undefined);
+	});
 });
