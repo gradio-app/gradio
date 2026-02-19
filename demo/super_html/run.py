@@ -161,50 +161,6 @@ with gr.Blocks() as demo:
         """,
     )
 
-    gr.Markdown("""
-    # File Upload via gr.HTML
-    The `upload` async function is available in `js_on_load`. It takes a JavaScript `File` object,
-    uploads it to the Gradio server, and returns the server-side file path as a string.
-    """)
-
-    upload_html = gr.HTML(
-        html_template="""
-        <div>
-            <input type="file" id="html-file-input" />
-            <button id="html-upload-btn" style="margin-left: 8px; padding: 4px 8px;">Upload</button>
-            <p id="html-upload-status">No file uploaded yet.</p>
-        </div>
-        """,
-        js_on_load="""
-        const input = element.querySelector('#html-file-input');
-        const btn = element.querySelector('#html-upload-btn');
-        const status = element.querySelector('#html-upload-status');
-
-        btn.addEventListener('click', async () => {
-            const file = input.files[0];
-            if (!file) {
-                status.textContent = 'Please select a file first.';
-                return;
-            }
-            status.textContent = 'Uploading...';
-            try {
-                const path = await upload(file);
-                status.textContent = 'Uploaded: ' + path;
-                trigger('upload', { path: path, name: file.name });
-            } catch (e) {
-                status.textContent = 'Upload failed: ' + e.message;
-            }
-        });
-        """,
-        elem_id="upload_html"
-    )
-    upload_result = gr.Textbox(label="Upload Result", elem_id="upload_result")
-
-    def on_html_upload(evt: gr.EventData):
-        return evt.path
-
-    upload_html.upload(on_html_upload, outputs=upload_result)
-
     class TodoList(gr.HTML):
         def __init__(self, value: list[str] | None = None, completed: list[int] | None = None, **kwargs):
             self.completed = completed or []

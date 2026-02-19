@@ -13,7 +13,6 @@
 		autoscroll = false,
 		apply_default_css = true,
 		component_class_name = "HTML",
-		upload = null,
 		children
 	}: {
 		elem_classes: string[];
@@ -25,7 +24,6 @@
 		autoscroll: boolean;
 		apply_default_css: boolean;
 		component_class_name: string;
-		upload: ((file: File) => Promise<string>) | null;
 		children?: Snippet;
 	} = $props();
 
@@ -361,19 +359,8 @@
 
 		if (js_on_load && element) {
 			try {
-				const upload_func =
-					upload ??
-					(async (_file: File): Promise<string> => {
-						throw new Error("upload is not available in this context");
-					});
-				const func = new Function(
-					"element",
-					"trigger",
-					"props",
-					"upload",
-					js_on_load
-				);
-				func(element, trigger, reactiveProps, upload_func);
+				const func = new Function("element", "trigger", "props", js_on_load);
+				func(element, trigger, reactiveProps);
 			} catch (error) {
 				console.error("Error executing js_on_load:", error);
 			}
