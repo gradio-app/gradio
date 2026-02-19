@@ -28,6 +28,7 @@ class ThemeClass:
         self._stylesheets = []
         self.name = None
         self._font_css = []
+        self.custom_css = ""
 
     def _get_theme_css(self):
         css = {}
@@ -93,7 +94,10 @@ class ThemeClass:
 
         font_css = "\n".join(self._font_css)
 
-        return f"{font_css}\n{css_code}\n{dark_css_code}"
+        theme_css = f"{font_css}\n{css_code}\n{dark_css_code}"
+        if self.custom_css:
+            theme_css = f"{theme_css}\n\n{self.custom_css}"
+        return theme_css
 
     def _get_computed_value(self, property: str, depth=0) -> str:
         max_depth = 100
@@ -365,6 +369,7 @@ class Base(ThemeClass):
             "Consolas",
             "monospace",
         ),
+        custom_css: str | None = None,
     ):
         """
         Parameters:
@@ -376,10 +381,12 @@ class Base(ThemeClass):
             radius_size: The radius size of corners. Load a preset, like gradio.themes.sizes.radius_sm (or just the string "sm"), or pass your own gradio.themes.utils.Size object.
             font: The primary font to use for the theme. Pass a string for a system font, or a gradio.themes.font.GoogleFont object to load a font from Google Fonts. Pass a list of fonts for fallbacks.
             font_mono: The monospace font to use for the theme, applies to code. Pass a string for a system font, or a gradio.themes.font.GoogleFont object to load a font from Google Fonts. Pass a list of fonts for fallbacks.
+            custom_css: Custom CSS to include with the theme. This CSS will be appended after the theme's generated CSS and is included when the theme is exported/loaded from the Hub.
         """
 
         self.name = "base"
         self._font_css = []
+        self.custom_css = custom_css or ""
 
         def expand_shortcut(shortcut, mode="color", prefix=None):
             if not isinstance(shortcut, str):
