@@ -104,6 +104,7 @@
 	});
 
 	let messages: (ToastMessage & { fn_index: number })[] = $state([]);
+	let reconnect_interval: ReturnType<typeof setInterval> | null = null;
 
 	function gradio_event_dispatcher(
 		id: number,
@@ -206,6 +207,35 @@
 		api_calls = [...api_calls, last_api_call];
 	};
 
+	function handle_connection_lost(): void {
+		messages = messages.filter((m) => m.type !== "error");
+
+		++_error_id;
+		messages.push({
+			title: "Connection Lost",
+			message: LOST_CONNECTION_MESSAGE,
+			fn_index: -1,
+			type: "error",
+			id: _error_id,
+			duration: null,
+			visible: true
+		});
+
+		reconnect_interval = setInterval(async () => {
+			try {
+				const status = await app.reconnect();
+				if (status === "connected" || status === "changed") {
+					clearInterval(reconnect_interval!);
+					reconnect_interval = null;
+					window.location.reload();
+				}
+			} catch (e) {
+				// server still unreachable
+				console.debug(e);
+			}
+		}, 2000);
+	}
+
 	let dep_manager = new DependencyManager(
 		dependencies,
 		app,
@@ -213,7 +243,8 @@
 		app_tree.get_state.bind(app_tree),
 		app_tree.rerender.bind(app_tree),
 		new_message,
-		add_to_api_calls
+		add_to_api_calls,
+		handle_connection_lost
 	);
 
 	$effect(() => {
@@ -426,6 +457,7 @@
 		return () => {
 			mut.disconnect();
 			res.disconnect();
+			if (reconnect_interval) clearInterval(reconnect_interval);
 		};
 	});
 
