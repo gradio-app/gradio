@@ -237,12 +237,15 @@ export function submit(
 								time: new Date()
 							});
 						} else {
+							const is_connection_error =
+								output?.error === BROKEN_CONNECTION_MSG;
 							fire_event({
 								type: "status",
 								stage: "error",
 								endpoint: _endpoint,
 								fn_index,
 								message: output.error,
+								broken: is_connection_error,
 								queue: false,
 								time: new Date()
 							});
@@ -464,11 +467,15 @@ export function submit(
 						});
 						close();
 					} else if (status !== 200) {
+						const is_connection_error =
+							response?.error === BROKEN_CONNECTION_MSG;
 						fire_event({
 							type: "status",
 							stage: "error",
-							broken: false,
-							message: response.detail,
+							broken: is_connection_error,
+							message: is_connection_error
+								? BROKEN_CONNECTION_MSG
+								: response.detail || response.error,
 							queue: true,
 							endpoint: _endpoint,
 							fn_index,
