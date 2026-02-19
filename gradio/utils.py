@@ -1591,12 +1591,12 @@ def connect_heartbeat(config: BlocksConfigDict, blocks) -> bool:
     for dep in config["dependencies"]:
         for target in dep["targets"]:
             if isinstance(target, (list, tuple)) and len(target) == 2:
-                any_unload = target[1] == "unload"
-                if any_unload:
-                    break
-                any_stream = target[1] == "stream"
-                if any_stream:
-                    break
+                if target[1] == "unload":
+                    any_unload = True
+                elif target[1] == "stream":
+                    any_stream = True
+        if any_unload and any_stream:
+            break
     return any_state or any_unload or any_stream
 
 
