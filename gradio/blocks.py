@@ -453,7 +453,7 @@ class Block:
     def component_class_id(self):
         return self.get_component_class_id()
 
-    def postprocess(self, y):
+    def postprocess(self, y: Any) -> Any:
         return y
 
 
