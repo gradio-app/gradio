@@ -453,8 +453,8 @@ class Block:
     def component_class_id(self):
         return self.get_component_class_id()
 
-    def postprocess(self, y):
-        return y
+    def postprocess(self, value):
+        return value
 
 
 class BlockContext(Block):
