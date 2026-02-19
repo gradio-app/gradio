@@ -104,7 +104,6 @@
 	});
 
 	let messages: (ToastMessage & { fn_index: number })[] = $state([]);
-	let connection_lost = $state(false);
 	let reconnect_interval: ReturnType<typeof setInterval> | null = null;
 
 	function gradio_event_dispatcher(
@@ -209,9 +208,6 @@
 	};
 
 	function handle_connection_lost(): void {
-		if (connection_lost) return;
-		connection_lost = true;
-
 		messages = messages.filter((m) => m.type !== "error");
 
 		++_error_id;
@@ -235,6 +231,7 @@
 				}
 			} catch (e) {
 				// server still unreachable
+				console.debug(e);
 			}
 		}, 2000);
 	}

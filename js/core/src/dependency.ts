@@ -897,10 +897,6 @@ export class DependencyManager {
 
 		this.update_loading_stati_state();
 	}
-
-	restore_connection(): void {
-		this.connection_lost = false;
-	}
 }
 
 function is_prop_update(payload: unknown): payload is Record<string, unknown> {

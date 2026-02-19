@@ -480,7 +480,7 @@ export function submit(
 							endpoint: _endpoint,
 							fn_index,
 							time: new Date(),
-							visible: !is_connection_error
+							visible: true
 						});
 					} else {
 						event_id = response.event_id as string;
