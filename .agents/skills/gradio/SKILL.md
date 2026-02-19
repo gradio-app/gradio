@@ -21,6 +21,8 @@ Detailed guides on specific topics (read these when relevant):
 - [Streaming Inputs](https://www.gradio.app/guides/streaming-inputs)
 - [Sharing Your App](https://www.gradio.app/guides/sharing-your-app)
 - [Custom HTML Components](https://www.gradio.app/guides/custom-HTML-components)
+- [Getting Started with the Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client)
+- [Getting Started with the JS Client](https://www.gradio.app/guides/getting-started-with-the-js-client)
 
 ## Core Patterns
 
@@ -105,12 +107,87 @@ Used to render arbitrary Markdown output.
 Creates a component with arbitrary HTML.
 
 
+## Custom HTML Components
+
+If a task requires significant customization of an existing component or a component that doesn't exist in Gradio, you can create one with `gr.HTML`. It supports `html_template` (with `${}` JS expressions and `{{}}` Handlebars syntax), `css_template` for scoped styles, and `js_on_load` for interactivity — where `props.value` updates the component value and `trigger('event_name')` fires Gradio events. For reuse, subclass `gr.HTML` and define `api_info()` for API/MCP support. See the [full guide](https://www.gradio.app/guides/custom-HTML-components).
+
+Here's an example that shows how to create and use these kinds of components:
+
+```python
+import gradio as gr
+
+class StarRating(gr.HTML):
+    def __init__(self, label, value=0, **kwargs):
+        html_template = """
+        <h2>${label} rating:</h2>
+        ${Array.from({length: 5}, (_, i) => `<img class='${i < value ? '' : 'faded'}' src='https://upload.wikimedia.org/wikipedia/commons/d/df/Award-star-gold-3d.svg'>`).join('')}
+        """
+        css_template = """
+            img { height: 50px; display: inline-block; cursor: pointer; }
+            .faded { filter: grayscale(100%); opacity: 0.3; }
+        """
+        js_on_load = """
+            const imgs = element.querySelectorAll('img');
+            imgs.forEach((img, index) => {
+                img.addEventListener('click', () => {
+                    props.value = index + 1;
+                });
+            });
+        """
+        super().__init__(value=value, label=label, html_template=html_template, css_template=css_template, js_on_load=js_on_load, **kwargs)
+
+    def api_info(self):
+        return {"type": "integer", "minimum": 0, "maximum": 5}
+
+
+with gr.Blocks() as demo:
+    gr.Markdown("# Restaurant Review")
+    food_rating = StarRating(label="Food", value=3)
+    service_rating = StarRating(label="Service", value=3)
+    ambience_rating = StarRating(label="Ambience", value=3)
+    average_btn = gr.Button("Calculate Average Rating")
+    rating_output = StarRating(label="Average", value=3)
+    def calculate_average(food, service, ambience):
+        return round((food + service + ambience) / 3)
+    average_btn.click(
+        fn=calculate_average,
+        inputs=[food_rating, service_rating, ambience_rating],
+        outputs=rating_output
+    )
+
+demo.launch()
+```
+
 ## Event Listeners
 
 All event listeners share the same signature:
 
 ```python
-component.event_name(fn, inputs, outputs, ...)
+component.event_name(
+    fn: Callable | None | Literal["decorator"] = "decorator",
+    inputs: Component | Sequence[Component] | set[Component] | None = None,
+    outputs: Component | Sequence[Component] | set[Component] | None = None,
+    api_name: str | None = None,
+    api_description: str | None | Literal[False] = None,
+    scroll_to_output: bool = False,
+    show_progress: Literal["full", "minimal", "hidden"] = "full",
+    show_progress_on: Component | Sequence[Component] | None = None,
+    queue: bool = True,
+    batch: bool = False,
+    max_batch_size: int = 4,
+    preprocess: bool = True,
+    postprocess: bool = True,
+    cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
+    trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
+    js: str | Literal[True] | None = None,
+    concurrency_limit: int | None | Literal["default"] = "default",
+    concurrency_id: str | None = None,
+    api_visibility: Literal["public", "private", "undocumented"] = "public",
+    time_limit: int | None = None,
+    stream_every: float = 0.5,
+    key: int | str | tuple[int | str, ...] | None = None,
+    validator: Callable | None = None,
+) -> Dependency
 ```
 
 Supported events per component:
