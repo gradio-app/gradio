@@ -746,9 +746,13 @@ def get_all_components() -> list[type[Component] | type[BlockContext]]:
         + gr.blocks.BlockContext.__subclasses__()  # type: ignore
     )
     subclasses = []
+    seen = set()
 
     while classes_to_check:
         subclass = classes_to_check.pop()
+        if subclass in seen:
+            continue
+        seen.add(subclass)
         classes_to_check.extend(subclass.__subclasses__())
         subclasses.append(subclass)
     return [

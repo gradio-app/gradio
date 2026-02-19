@@ -134,7 +134,7 @@ class Block:
         self.elem_id = elem_id
         self.elem_classes = (
             [elem_classes] if isinstance(elem_classes, str) else elem_classes
-        )
+        ) or []
         self.proxy_url = proxy_url
         self.share_token = secrets.token_urlsafe(32)
         self.parent: BlockContext | None = None
