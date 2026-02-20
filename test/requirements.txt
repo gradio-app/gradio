@@ -105,7 +105,7 @@ httpx==0.28.1
     #   gradio-client
     #   respx
     #   safehttpx
-huggingface-hub==0.36.0
+huggingface-hub==1.4.1
     # via
     #   -r test/requirements.in
     #   diffusers
@@ -325,7 +325,7 @@ sympy==1.13.1
     # via torch
 tifffile==2025.1.10
     # via scikit-image
-tokenizers==0.21.0
+tokenizers==0.22.2
     # via transformers
 tomli==2.2.1
     # via
@@ -345,7 +345,7 @@ traitlets==5.14.3
     # via
     #   ipython
     #   matplotlib-inline
-transformers==4.48.1
+transformers==5.2.0
     # via -r test/requirements.in
 ty==0.0.2
 typer==0.15.1
