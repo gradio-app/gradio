@@ -7,6 +7,7 @@ import re
 import shutil
 import textwrap
 from pathlib import Path
+from this import s
 from typing import Literal
 
 from huggingface_hub import snapshot_download
@@ -264,6 +265,12 @@ def _get_js_dependency_version(name: str, local_js_dir: Path) -> str:
     return package_json["version"]
 
 
+def copy_svelte_to_deps(package_json: dict):
+    svelte_version = package_json.get("peerDependencies", {}).get("svelte", "latest")
+    package_json["dependencies"]["svelte"] = svelte_version
+    return package_json
+
+
 def _modify_js_deps(
     package_json: dict,
     key: Literal["dependencies", "devDependencies"],
@@ -339,6 +346,8 @@ def _create_frontend(
     source_package_json["name"] = package_name
     source_package_json = _modify_js_deps(source_package_json, "dependencies", p)
     source_package_json = _modify_js_deps(source_package_json, "devDependencies", p)
+    source_package_json = copy_svelte_to_deps(source_package_json)
+
     (frontend / "package.json").write_text(json.dumps(source_package_json, indent=2))
     shutil.copy(
         str(Path(__file__).parent / "files" / "gradio.config.js"),
