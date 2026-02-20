@@ -122,6 +122,7 @@ class TestHighlightedText:
             "preserved_by_key": ["value"],
             "combine_adjacent": False,
             "adjacent_separator": "",
+            "show_whitespaces": True,
             "interactive": None,
             "buttons": [],
         }
