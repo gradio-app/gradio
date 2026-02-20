@@ -84,23 +84,23 @@ test("programmatic selection works", async ({ page }) => {
 	await expect(page.getByText("Text 6!")).toBeVisible();
 });
 
-test("main tab selected content loads; second tab renders only its selected subtab, not other subtabs", async ({
+test("lazy load subtabs and accordion components", async ({
 	page
 }) => {
 	await page.waitForTimeout(1000);
-	// Main tab (Set 1) has selected="a3" → Tab 3 content loads and renders
+	// Main tab components visible and rendered
 	await expect(page.getByText("Text 3!")).toBeVisible();
 	await expect(page.getByLabel("Input 3")).toBeVisible();
-	// Other subtabs in Set 1 are not visible
+	// Subtabs not visible
 	await expect(page.getByLabel("Input 1")).not.toBeVisible();
 	await expect(page.getByLabel("Input 2")).not.toBeVisible();
 	await expect(page.getByLabel("Input 4")).not.toBeVisible();
 
-	// Click second main tab (Set 2); only its selected subtab (Tab 11) should render
+	// Click second main tab (Set 2); subtab (Tab 11) should render
 	await page.getByRole("tab", { name: "Set 2" }).click();
 	await expect(page.getByText("Text 11!")).toBeVisible();
 	await expect(page.getByLabel("Input 11")).toBeVisible();
-	// Other subtabs in Set 2 should not be visible until selected
+	// Other subtabs should not be visible
 	await expect(page.getByLabel("Input 12")).not.toBeVisible();
 	await expect(page.getByLabel("Input 14")).not.toBeVisible();
 });
