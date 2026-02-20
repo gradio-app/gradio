@@ -258,7 +258,6 @@ class HTML(BlockContext, Component):
         tags: list[str] | None = None,
         category: str = "display",
         repo_url: str | None = None,
-        repo_id: str = "gradio/custom-html-gallery",
         token: str | None = None,
     ) -> str:
         """Push this HTML component to the HTML Components Gallery as a pull request.
@@ -268,13 +267,12 @@ class HTML(BlockContext, Component):
 
         Parameters:
             name: Display name for the component. Defaults to the class name (for subclasses) or label.
-            head: Raw HTML to inject into `<head>` (e.g. external scripts).
+            head: Raw HTML to inject into `<head>` (e.g. external scripts). Only needed if your component expects a `<head>` script to be added by the parent Gradio application.
             description: Short description of what the component does.
             author: Author name (e.g. your HuggingFace username).
             tags: List of tags for search/filtering.
             category: One of "input", "display", or "form".
             repo_url: URL to the source repo (GitHub or HuggingFace Spaces).
-            repo_id: The HuggingFace dataset repo to push to.
             token: HuggingFace token. If None, uses the cached token from `huggingface-cli login`.
         Returns:
             The URL of the created pull request.
@@ -312,7 +310,7 @@ class HTML(BlockContext, Component):
         # Fetch current manifest and append new entry
         try:
             manifest_path = hf_hub_download(
-                repo_id=repo_id,
+                repo_id="gradio/custom-html-gallery",
                 repo_type="dataset",
                 filename="manifest.json",
                 token=token,
@@ -328,7 +326,7 @@ class HTML(BlockContext, Component):
         manifest_bytes = json.dumps(manifest, indent=2).encode("utf-8")
 
         commit = api.create_commit(
-            repo_id=repo_id,
+            repo_id="gradio/custom-html-gallery",
             repo_type="dataset",
             operations=[
                 CommitOperationAdd(
