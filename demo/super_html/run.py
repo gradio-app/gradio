@@ -188,9 +188,9 @@ with gr.Blocks() as demo:
             }
             status.textContent = 'Uploading...';
             try {
-                const path = await upload(file);
+                const { path, url } = await upload(file);
                 status.textContent = 'Uploaded: ' + path;
-                trigger('upload', { path: path, name: file.name });
+                trigger('upload', { path: path, url: url, name: file.name });
             } catch (e) {
                 status.textContent = 'Upload failed: ' + e.message;
             }

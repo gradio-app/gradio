@@ -16,7 +16,7 @@ with gr.Blocks() as demo:
 
         btn.addEventListener('click', async () => {
             const file = input.files[0];
-            const path = await upload(file);
+            const { path } = await upload(file);
             props.value = path;
         });
         """,

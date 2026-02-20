@@ -33,7 +33,7 @@
 		}
 	});
 
-	async function upload(file: File): Promise<string> {
+	async function upload(file: File): Promise<{ path: string; url: string }> {
 		const file_data = await prepare_files([file]);
 		const result = await gradio.shared.client.upload(
 			file_data,
@@ -42,7 +42,7 @@
 			gradio.shared.max_file_size ?? undefined
 		);
 		if (result && result[0]) {
-			return result[0].path;
+			return { path: result[0].path, url: result[0].url! };
 		}
 		throw new Error("Upload failed");
 	}

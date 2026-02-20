@@ -25,7 +25,7 @@
 		autoscroll: boolean;
 		apply_default_css: boolean;
 		component_class_name: string;
-		upload: ((file: File) => Promise<string>) | null;
+		upload: ((file: File) => Promise<{ path: string; url: string }>) | null;
 		children?: Snippet;
 	} = $props();
 
@@ -363,7 +363,7 @@
 			try {
 				const upload_func =
 					upload ??
-					(async (_file: File): Promise<string> => {
+					(async (_file: File): Promise<{ path: string; url: string }> => {
 						throw new Error("upload is not available in this context");
 					});
 				const func = new Function(

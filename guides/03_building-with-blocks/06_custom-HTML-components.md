@@ -63,10 +63,10 @@ $demo_star_rating_events
 
 Take a look at the `js_on_load` code above. We add click event listeners to each star image to update the value via `props.value` when a star is clicked. This also re-renders the template to show the updated value. We also add a click event listener to the submit button that triggers the `submit` event. In our app, we listen to this trigger to run a function that outputs the `value` of the star rating.
 
-The `js_on_load` scope also includes an `upload` async function that lets you upload a JavaScript `File` object directly to the Gradio server. It returns the server-side file path as a string.
+The `js_on_load` scope also includes an `upload` async function that lets you upload a JavaScript `File` object directly to the Gradio server. It returns a dictionary with `path` (the server-side file path) and `url` (the public URL to access the file).
 
 ```js
-const path = await upload(file);
+const { path, url } = await upload(file);
 ```
 
 Here is an example of a custom file-upload widget built with `gr.HTML`:
