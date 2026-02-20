@@ -12,6 +12,8 @@
 
 	const is_browser = typeof window !== "undefined";
 
+	let listbox_id = "dropdown-listbox-" + Math.random().toString(36).slice(2, 9);
+
 	let {
 		label = "Dropdown",
 		info = undefined,
@@ -193,9 +195,12 @@
 		<div class="wrap-inner" class:show_options>
 			<div class="secondary-wrap">
 				<input
-					role="listbox"
-					aria-controls="dropdown-options"
+					role="combobox"
+					aria-controls={listbox_id}
 					aria-expanded={show_options}
+					aria-haspopup="listbox"
+					aria-autocomplete={filterable ? "list" : "none"}
+					aria-activedescendant={active_index !== null && show_options ? `${listbox_id}-option-${active_index}` : undefined}
 					aria-label={label}
 					class="border-none"
 					class:subdued={!choices_names.includes(input_text) &&
@@ -229,6 +234,8 @@
 			{disabled}
 			selected_indices={selected_index === null ? [] : [selected_index]}
 			{active_index}
+			{listbox_id}
+			label_text={label}
 			onchange={handle_option_selected}
 			onload={() => (initialized = true)}
 		/>

@@ -36,6 +36,7 @@ export function handle_shared_keys(
 		return [false, active_index];
 	}
 	if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+		e.preventDefault();
 		if (filtered_indices.length > 0) {
 			if (active_index === null) {
 				active_index =

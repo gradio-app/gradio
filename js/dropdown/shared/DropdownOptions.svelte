@@ -10,6 +10,8 @@
 		remember_scroll = false,
 		offset_from_top = 0,
 		from_top = false,
+		listbox_id = "dropdown-options",
+		label_text = "",
 		onchange,
 		onload
 	}: {
@@ -22,6 +24,8 @@
 		remember_scroll?: boolean;
 		offset_from_top?: number;
 		from_top?: boolean;
+		listbox_id?: string;
+		label_text?: string;
 		onchange?: (index: any) => void;
 		onload?: () => void;
 	} = $props();
@@ -108,6 +112,7 @@
 {#if show_options && !disabled}
 	<ul
 		class="options"
+		id={listbox_id}
 		transition:fly={{ duration: 200, y: 5 }}
 		onmousedown={(e) => {
 			e.preventDefault();
@@ -120,10 +125,12 @@
 		style:width={input_width + "px"}
 		bind:this={listElement}
 		role="listbox"
+		aria-label={label_text || undefined}
 	>
 		{#each filtered_indices as index}
 			<li
 				class="item"
+				id="{listbox_id}-option-{index}"
 				class:selected={selected_indices.includes(index)}
 				class:active={index === active_index}
 				class:bg-gray-100={index === active_index}
