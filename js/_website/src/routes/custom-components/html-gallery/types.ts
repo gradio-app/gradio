@@ -12,4 +12,6 @@ export type HTMLComponentEntry = {
 	js_on_load: string;
 	default_props: Record<string, any>;
 	python_code: string;
+	repo_url?: string;
+	head?: string;
 };

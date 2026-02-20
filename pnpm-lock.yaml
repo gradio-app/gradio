@@ -451,6 +451,9 @@ importers:
       '@gradio/code':
         specifier: workspace:^
         version: link:../code
+      '@gradio/html':
+        specifier: workspace:^
+        version: link:../html
       '@gradio/paramviewer':
         specifier: workspace:^
         version: link:../paramviewer
@@ -463,6 +466,9 @@ importers:
       '@gradio/tabs':
         specifier: workspace:^
         version: link:../tabs
+      '@huggingface/hub':
+        specifier: ^2.10.1
+        version: 2.10.1
       '@sindresorhus/slugify':
         specifier: ^3.0.0
         version: 3.0.0
@@ -3826,8 +3832,16 @@ packages:
   '@gradio/utils@0.10.2':
     resolution: {integrity: sha512-ldGDEqL9kVKPrfnFzfPriCqbtTOe1/IK4FHEhXCGOeqwegqnxjmummWPk633e2Yub2lT3fjEjuyDLJ7Y7vYy3w==}
 
+  '@huggingface/hub@2.10.1':
+    resolution: {integrity: sha512-FVqG3qoqlynDBfL4SfWsA5A16e61PUaiWGlrvP4YaxWLrnvhQ+224IR7O3CKu23OqBNAppWG8rBinTInK88+uA==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   '@huggingface/space-header@1.0.4':
     resolution: {integrity: sha512-GZu/LJZ6W1kuhiCevOt4iZrNb/vJvm8egSp7jTvjWlACkYddvKNEFGZ3HK8FE7fM2tUztotauMrbHVe8eQ9/ww==}
+
+  '@huggingface/tasks@0.19.85':
+    resolution: {integrity: sha512-4s5+GV257GRmT7Hrt190KlGsuq53IwFtCBj+J+bvoeIpn119589wY7WY/LS5VJMLwu7pUQnouLmMKeEOKO4BSQ==}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -5362,6 +5376,10 @@ packages:
   cli-color@2.0.4:
     resolution: {integrity: sha512-zlnpg0jNcibNrO7GG9IeHH7maWFeCz+Ja1wx/7tZNU5ASSSSZ+/qZciM0/LHCYxSdqv5h2sdbQ/PXYdOuetXvA==}
     engines: {node: '>=0.10'}
+
+  cli-progress@3.12.0:
+    resolution: {integrity: sha512-tRkV3HJ1ASwm19THiiLIXLO7Im7wlTuKnvkYaTkyoAPefqjNg7W7DHKUlGRxy9vxDvbyCYQkQozvptuMkGCg8A==}
+    engines: {node: '>=4'}
 
   cli-width@4.1.0:
     resolution: {integrity: sha512-ouuZd4/dm2Sw5Gmqy6bGyNNNe1qt9RpmxveLSO7KcgsTnU7RXfsw+/bukWGo1abgBiMAic068rclZsO4IWmmxQ==}
@@ -9811,7 +9829,15 @@ snapshots:
     transitivePeerDependencies:
       - svelte
 
+  '@huggingface/hub@2.10.1':
+    dependencies:
+      '@huggingface/tasks': 0.19.85
+    optionalDependencies:
+      cli-progress: 3.12.0
+
   '@huggingface/space-header@1.0.4': {}
+
+  '@huggingface/tasks@0.19.85': {}
 
   '@humanfs/core@0.19.1': {}
 
@@ -10718,7 +10744,7 @@ snapshots:
       magic-string: 0.30.21
       svelte: 5.48.0
       vite: 7.3.1(@types/node@24.10.9)(jiti@1.21.7)(lightningcss@1.31.0)(sass@1.97.2)(stylus@0.64.0)(sugarss@5.0.1(postcss@8.5.6))(terser@5.46.0)
-      vitefu: 1.1.1(vite@7.3.1(@types/node@24.10.9)(jiti@1.21.7)(lightningcss@1.31.0)(sass@1.97.2)(stylus@0.64.0)(sugarss@5.0.1(postcss@8.5.6))(terser@5.46.0))
+      vitefu: 1.1.1(vite@7.3.1(@types/node@24.10.9)(jiti@1.21.7)(lightningcss@1.31.0)(sass@1.97.2)(stylus@0.64.0)(terser@5.46.0))
     transitivePeerDependencies:
       - supports-color
 
@@ -10730,7 +10756,7 @@ snapshots:
       obug: 2.1.1
       svelte: 5.48.0
       vite: 7.3.1(@types/node@24.10.9)(jiti@1.21.7)(lightningcss@1.31.0)(sass@1.97.2)(stylus@0.64.0)(sugarss@5.0.1(postcss@8.5.6))(terser@5.46.0)
-      vitefu: 1.1.1(vite@7.3.1(@types/node@24.10.9)(jiti@1.21.7)(lightningcss@1.31.0)(sass@1.97.2)(stylus@0.64.0)(sugarss@5.0.1(postcss@8.5.6))(terser@5.46.0))
+      vitefu: 1.1.1(vite@7.3.1(@types/node@24.10.9)(jiti@1.21.7)(lightningcss@1.31.0)(sass@1.97.2)(stylus@0.64.0)(terser@5.46.0))
 
   '@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.48.0)(vite@7.3.1(@types/node@24.10.9)(jiti@1.21.7)(lightningcss@1.31.0)(sass@1.97.2)(stylus@0.64.0)(terser@5.46.0))':
     dependencies:
@@ -10740,7 +10766,7 @@ snapshots:
       obug: 2.1.1
       svelte: 5.48.0
       vite: 7.3.1(@types/node@24.10.9)(jiti@1.21.7)(lightningcss@1.31.0)(sass@1.97.2)(stylus@0.64.0)(sugarss@5.0.1(postcss@8.5.6))(terser@5.46.0)
-      vitefu: 1.1.1(vite@7.3.1(@types/node@24.10.9)(jiti@1.21.7)(lightningcss@1.31.0)(sass@1.97.2)(stylus@0.64.0)(sugarss@5.0.1(postcss@8.5.6))(terser@5.46.0))
+      vitefu: 1.1.1(vite@7.3.1(@types/node@24.10.9)(jiti@1.21.7)(lightningcss@1.31.0)(sass@1.97.2)(stylus@0.64.0)(terser@5.46.0))
 
   '@tailwindcss/forms@0.5.11(tailwindcss@3.4.19)':
     dependencies:
@@ -11448,6 +11474,11 @@ snapshots:
       es6-iterator: 2.0.3
       memoizee: 0.4.17
       timers-ext: 0.1.8
+
+  cli-progress@3.12.0:
+    dependencies:
+      string-width: 4.2.3
+    optional: true
 
   cli-width@4.1.0: {}
 
@@ -15029,7 +15060,7 @@ snapshots:
     optionalDependencies:
       vite: 5.4.21(@types/node@24.10.9)(lightningcss@1.31.0)(sass@1.97.2)(stylus@0.64.0)(sugarss@5.0.1(postcss@8.5.6))(terser@5.46.0)
 
-  vitefu@1.1.1(vite@7.3.1(@types/node@24.10.9)(jiti@1.21.7)(lightningcss@1.31.0)(sass@1.97.2)(stylus@0.64.0)(sugarss@5.0.1(postcss@8.5.6))(terser@5.46.0)):
+  vitefu@1.1.1(vite@7.3.1(@types/node@24.10.9)(jiti@1.21.7)(lightningcss@1.31.0)(sass@1.97.2)(stylus@0.64.0)(terser@5.46.0)):
     optionalDependencies:
       vite: 7.3.1(@types/node@24.10.9)(jiti@1.21.7)(lightningcss@1.31.0)(sass@1.97.2)(stylus@0.64.0)(sugarss@5.0.1(postcss@8.5.6))(terser@5.46.0)
 
