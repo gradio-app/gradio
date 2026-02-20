@@ -1,6 +1,6 @@
 ---
-"@gradio/core": minor
-"gradio": minor
+"@gradio/core": patch
+"gradio": patch
 ---
 
-feat:Lazy load sub-tab and accordion components
+fix:Lazy load sub-tab and accordion components
