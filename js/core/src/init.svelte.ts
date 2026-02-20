@@ -740,8 +740,10 @@ function _gather_initial_tabs(
 		if (!("id" in node.props.props)) {
 			node.props.props.id = node.id;
 		}
+		const i18n = node.props.props.i18n as ((str: string) => string) | undefined;
+		const raw_label = node.props.shared_props.label as string;
 		initial_tabs[parent_tab_id].push({
-			label: node.props.shared_props.label as string,
+			label: i18n ? i18n(raw_label) : raw_label,
 			id: node.props.props.id as string,
 			elem_id: node.props.shared_props.elem_id,
 			visible: node.props.shared_props.visible as boolean,
