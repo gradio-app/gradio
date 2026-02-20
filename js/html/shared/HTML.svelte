@@ -262,10 +262,7 @@
 	async function loadHead(headHtml: string): Promise<void> {
 		if (!headHtml) return;
 		const parser = new DOMParser();
-		const doc = parser.parseFromString(
-			`<head>${headHtml}</head>`,
-			"text/html"
-		);
+		const doc = parser.parseFromString(`<head>${headHtml}</head>`, "text/html");
 		const promises: Promise<void>[] = [];
 		for (const el of Array.from(doc.head.children)) {
 			if (el.tagName === "SCRIPT") {
@@ -277,7 +274,8 @@
 					promises.push(
 						new Promise<void>((resolve, reject) => {
 							script.onload = () => resolve();
-							script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+							script.onerror = () =>
+								reject(new Error(`Failed to load script: ${src}`));
 						})
 					);
 					document.head.appendChild(script);
@@ -287,9 +285,12 @@
 					document.head.appendChild(script);
 				}
 			} else {
-				const existing = el.tagName === "LINK" && (el as HTMLLinkElement).href
-					? document.querySelector(`link[href="${(el as HTMLLinkElement).href}"]`)
-					: null;
+				const existing =
+					el.tagName === "LINK" && (el as HTMLLinkElement).href
+						? document.querySelector(
+								`link[href="${(el as HTMLLinkElement).href}"]`
+							)
+						: null;
 				if (!existing) {
 					document.head.appendChild(el.cloneNode(true));
 				}

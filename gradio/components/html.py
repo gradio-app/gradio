@@ -229,7 +229,7 @@ class HTML(Component):
             "js_on_load": self.js_on_load or "",
             "default_props": default_props,
             "python_code": python_code,
-            "head": head or ""
+            "head": head or "",
         }
         if repo_url:
             result["repo_url"] = repo_url
@@ -267,7 +267,7 @@ class HTML(Component):
         """
         import json
 
-        from huggingface_hub import CommitOperationAdd, HfApi
+        from huggingface_hub import CommitOperationAdd, HfApi, hf_hub_download
 
         data = self._to_publish_format(
             name=name,
@@ -281,7 +281,38 @@ class HTML(Component):
         comp_id = data["id"]
         json_bytes = json.dumps(data, indent=2).encode("utf-8")
 
+        # Build manifest entry (lightweight metadata only)
+        manifest_keys = [
+            "id",
+            "name",
+            "description",
+            "author",
+            "tags",
+            "category",
+            "repo_url",
+        ]
+        manifest_entry = {k: data[k] for k in manifest_keys if k in data}
+
         api = HfApi(token=token)
+
+        # Fetch current manifest and append new entry
+        try:
+            manifest_path = hf_hub_download(
+                repo_id=repo_id,
+                repo_type="dataset",
+                filename="manifest.json",
+                token=token,
+            )
+            with open(manifest_path) as f:
+                manifest = json.load(f)
+        except Exception:
+            manifest = []
+
+        # Replace existing entry with same id, or append
+        manifest = [e for e in manifest if e.get("id") != comp_id]
+        manifest.append(manifest_entry)
+        manifest_bytes = json.dumps(manifest, indent=2).encode("utf-8")
+
         commit = api.create_commit(
             repo_id=repo_id,
             repo_type="dataset",
@@ -289,7 +320,11 @@ class HTML(Component):
                 CommitOperationAdd(
                     path_in_repo=f"components/{comp_id}.json",
                     path_or_fileobj=json_bytes,
-                )
+                ),
+                CommitOperationAdd(
+                    path_in_repo="manifest.json",
+                    path_or_fileobj=manifest_bytes,
+                ),
             ],
             commit_message=f"Add component: {data['name']}",
             commit_description=f"**{data['name']}**\n\n{data['description']}\n\nAuthor: @{data['author']}",

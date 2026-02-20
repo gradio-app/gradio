@@ -2,58 +2,106 @@
 	import BaseHTML from "@gradio/html/base";
 	import CopyButton from "$lib/icons/CopyButton.svelte";
 	import { highlight } from "$lib/prism";
-	import type { HTMLComponentEntry } from "./types";
+	import type { ManifestEntry, HTMLComponentEntry } from "./types";
 
-	export let component: HTMLComponentEntry;
+	export let manifest: ManifestEntry;
+	export let full_data: HTMLComponentEntry | null = null;
 	export let on_maximize: (component: HTMLComponentEntry) => void = () => {};
+	export let on_request_load: (id: string) => void = () => {};
 
 	let show_code = false;
-	let initial_props = JSON.parse(JSON.stringify(component.default_props));
 
-	$: highlighted_html = highlight(component.python_code, "python");
+	$: component = full_data;
+	$: initial_props = component
+		? JSON.parse(JSON.stringify(component.default_props))
+		: {};
+	$: highlighted_html = component
+		? highlight(component.python_code, "python")
+		: "";
+
+	function handle_maximize() {
+		if (component) {
+			on_maximize(component);
+		} else {
+			on_request_load(manifest.id);
+		}
+	}
+
+	function handle_view_code() {
+		if (!component) {
+			on_request_load(manifest.id);
+		}
+		show_code = !show_code;
+	}
 </script>
 
-<div class="entry" id={component.id}>
+<div class="entry" id={manifest.id}>
 	<div class="entry-header">
 		<div class="entry-info">
-			<h3 class="entry-name">{component.name}</h3>
-			<p class="entry-description">{component.description}</p>
+			<h3 class="entry-name">{manifest.name}</h3>
+			<p class="entry-description">{manifest.description}</p>
 			<div class="entry-meta">
-				<a class="author" href="https://huggingface.co/{component.author}" target="_blank" rel="noopener noreferrer">@{component.author}</a>
-				{#if component.repo_url}
-					<a class="repo-link" href={component.repo_url} target="_blank" rel="noopener noreferrer">
-						{#if component.repo_url.includes("github.com")}
-							<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+				<a
+					class="author"
+					href="https://huggingface.co/{manifest.author}"
+					target="_blank"
+					rel="noopener noreferrer">@{manifest.author}</a
+				>
+				{#if manifest.repo_url}
+					<a
+						class="repo-link"
+						href={manifest.repo_url}
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						{#if manifest.repo_url.includes("github.com")}
+							<svg
+								width="14"
+								height="14"
+								viewBox="0 0 16 16"
+								fill="currentColor"
+								><path
+									d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"
+								/></svg
+							>
 						{:else}
-							<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2H2v4M14 10v4h-4M2 2l5 5M14 14l-5-5"/></svg>
+							<svg
+								width="14"
+								height="14"
+								viewBox="0 0 16 16"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								><path d="M6 2H2v4M14 10v4h-4M2 2l5 5M14 14l-5-5" /></svg
+							>
 						{/if}
 						Repo
 					</a>
 				{/if}
-				{#each component.tags as tag}
+				{#each manifest.tags as tag}
 					<span class="tag">{tag}</span>
 				{/each}
 			</div>
 		</div>
 		<div class="entry-actions">
 			{#if !show_code}
-				<button
-					class="icon-btn"
-					on:click={() => on_maximize(component)}
-					title="Expand"
-				>
-					<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+				<button class="icon-btn" on:click={handle_maximize} title="Expand">
+					<svg
+						width="16"
+						height="16"
+						viewBox="0 0 16 16"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.5"
+					>
 						<path d="M6 1H1v5M15 10v5h-5M1 1l5.5 5.5M15 15l-5.5-5.5" />
 					</svg>
 				</button>
 			{/if}
-			<button
-				class="toggle-btn"
-				on:click={() => (show_code = !show_code)}
-			>
+			<button class="toggle-btn" on:click={handle_view_code}>
 				{show_code ? "Live Demo" : "View Code"}
 			</button>
-			{#if show_code}
+			{#if show_code && component}
 				<CopyButton content={component.python_code} />
 			{/if}
 		</div>
@@ -61,10 +109,17 @@
 
 	<div class="entry-body">
 		{#if show_code}
-			<div class="code-container">
-				{@html highlighted_html}
-			</div>
-		{:else}
+			{#if component}
+				<div class="code-container">
+					{@html highlighted_html}
+				</div>
+			{:else}
+				<div class="loading-placeholder">
+					<div class="entry-spinner"></div>
+					<span>Loading code...</span>
+				</div>
+			{/if}
+		{:else if component}
 			<div class="component-container">
 				<BaseHTML
 					props={initial_props}
@@ -74,6 +129,11 @@
 					head={component.head || null}
 					apply_default_css={true}
 				/>
+			</div>
+		{:else}
+			<div class="loading-placeholder">
+				<div class="entry-spinner"></div>
+				<span>Loading component...</span>
 			</div>
 		{/if}
 	</div>
@@ -239,5 +299,36 @@
 		margin: 0;
 		border-radius: 8px;
 		font-size: 13px;
+	}
+
+	.loading-placeholder {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+		min-height: 120px;
+		color: var(--body-text-color-subdued, #9ca3af);
+		font-size: 13px;
+	}
+
+	.entry-spinner {
+		width: 24px;
+		height: 24px;
+		border: 2px solid #e5e7eb;
+		border-top-color: #f97316;
+		border-radius: 50%;
+		animation: spin 0.8s linear infinite;
+	}
+
+	:global(.dark) .entry-spinner {
+		border-color: #374151;
+		border-top-color: #f97316;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
 	}
 </style>
