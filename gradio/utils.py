@@ -746,9 +746,13 @@ def get_all_components() -> list[type[Component] | type[BlockContext]]:
         + gr.blocks.BlockContext.__subclasses__()  # type: ignore
     )
     subclasses = []
+    seen = set()
 
     while classes_to_check:
         subclass = classes_to_check.pop()
+        if subclass in seen:
+            continue
+        seen.add(subclass)
         classes_to_check.extend(subclass.__subclasses__())
         subclasses.append(subclass)
     return [
@@ -1591,12 +1595,12 @@ def connect_heartbeat(config: BlocksConfigDict, blocks) -> bool:
     for dep in config["dependencies"]:
         for target in dep["targets"]:
             if isinstance(target, (list, tuple)) and len(target) == 2:
-                any_unload = target[1] == "unload"
-                if any_unload:
-                    break
-                any_stream = target[1] == "stream"
-                if any_stream:
-                    break
+                if target[1] == "unload":
+                    any_unload = True
+                elif target[1] == "stream":
+                    any_stream = True
+        if any_unload and any_stream:
+            break
     return any_state or any_unload or any_stream
 
 

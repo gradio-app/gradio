@@ -1,5 +1,19 @@
 # @gradio/video
 
+## 0.20.3
+
+### Fixes
+
+- [#12830](https://github.com/gradio-app/gradio/pull/12830) [`a2a0078`](https://github.com/gradio-app/gradio/commit/a2a0078de878481752b952f9ed0e759a0e884d0b) - `Video` to Svelte 5.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/utils@0.11.3
+- @gradio/atoms@0.22.0
+- @gradio/statustracker@0.12.4
+- @gradio/upload@0.17.6
+- @gradio/image@0.25.3
+
 ## 0.20.2
 
 ### Dependency updates

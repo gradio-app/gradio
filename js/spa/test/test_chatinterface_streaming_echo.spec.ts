@@ -99,28 +99,25 @@ for (const test_case of cases) {
 test("test stopping generation", async ({ page }) => {
 	const submit_button = page.locator(".submit-button");
 	const textbox = page.getByPlaceholder("Type a message...");
+	const stop_button = page.locator(".stop-button");
+	const bot_message = page.locator(".bot.message").first();
 
-	const long_string = "abc".repeat(1000);
-
+	const long_string = "abc".repeat(3000);
 	await textbox.fill(long_string);
 	await submit_button.click();
 
-	// await expect(page.locator(".bot.message").first()).toContainText("abc");
-	const stop_button = page.locator(".stop-button");
-
+	await expect(stop_button).toBeVisible();
 	await stop_button.click();
 
-	await expect(page.locator(".bot.message").first()).toContainText("abc");
-	await page.waitForTimeout(1000);
+	await expect(submit_button).toBeVisible();
 
-	const current_content = await page
-		.locator(".bot.message")
-		.first()
-		.textContent();
-	await page.waitForTimeout(1000);
-	const new_content = await page.locator(".bot.message").first().textContent();
-	await expect(current_content).toBe(new_content);
-	await expect(new_content!.length).toBeLessThan(3000);
+	// Verify the bot message has some content
+	await expect(bot_message).toContainText("You typed:");
+
+	const content = await bot_message.textContent();
+	await expect.poll(async () => bot_message.textContent()).toBe(content);
+
+	expect(content!.length).toBeLessThan(long_string.length);
 });
 
 test("editing messages", async ({ page }) => {

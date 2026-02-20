@@ -117,6 +117,9 @@ class Block:
         visible: bool | Literal["hidden"] = True,
         proxy_url: str | None = None,
     ):
+        if getattr(self, "_is_initialized", False):
+            return
+        self._is_initialized = True
         key_to_id_map = LocalContext.key_to_id_map.get(None)
         if key is not None and key_to_id_map and key in key_to_id_map:
             self.is_render_replacement = True
@@ -131,7 +134,7 @@ class Block:
         self.elem_id = elem_id
         self.elem_classes = (
             [elem_classes] if isinstance(elem_classes, str) else elem_classes
-        )
+        ) or []
         self.proxy_url = proxy_url
         self.share_token = secrets.token_urlsafe(32)
         self.parent: BlockContext | None = None
@@ -435,6 +438,24 @@ class Block:
             except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
                 return data
 
+    @classmethod
+    def get_component_class_id(cls) -> str:
+        try:
+            module_path = inspect.getfile(cls)
+        except OSError:
+            module_path = cls.__module__
+        module_hash = hashlib.sha256(
+            f"{cls.__name__}_{module_path}".encode()
+        ).hexdigest()
+        return module_hash
+
+    @property
+    def component_class_id(self):
+        return self.get_component_class_id()
+
+    def postprocess(self, value):
+        return value
+
 
 class BlockContext(Block):
     def __init__(
@@ -470,21 +491,6 @@ class BlockContext(Block):
     @property
     def skip_api(self):
         return True
-
-    @classmethod
-    def get_component_class_id(cls) -> str:
-        try:
-            module_path = inspect.getfile(cls)
-        except OSError:
-            module_path = cls.__module__
-        module_hash = hashlib.sha256(
-            f"{cls.__name__}_{module_path}".encode()
-        ).hexdigest()
-        return module_hash
-
-    @property
-    def component_class_id(self):
-        return self.get_component_class_id()
 
     def add_child(self, child: Block):
         self.children.append(child)
@@ -537,12 +543,6 @@ class BlockContext(Block):
             return
         if getattr(self, "allow_expected_parents", True):
             self.fill_expected_parents()
-
-    def postprocess(self, y):
-        """
-        Any postprocessing needed to be performed on a block context.
-        """
-        return y
 
 
 def postprocess_update_dict(
@@ -1206,7 +1206,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         config = copy.deepcopy(config)
         components_config = config["components"]
         original_mapping: dict[int, Block] = {}
-        proxy_urls = {proxy_url}
+        proxy_urls: set[str] = set()
+        if httpx.URL(proxy_url).host.endswith(".hf.space"):
+            proxy_urls.add(proxy_url)
 
         def get_block_instance(id: int) -> Block:
             for block_config in components_config:
@@ -1230,7 +1232,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
             block_proxy_url = block_config["props"]["proxy_url"]
             block.proxy_url = block_proxy_url
-            proxy_urls.add(block_proxy_url)
+            # Only add proxy URLs that point to known Hugging Face Space
+            # hosts to prevent SSRF via malicious configs.
+            if httpx.URL(block_proxy_url).host.endswith(".hf.space"):
+                proxy_urls.add(block_proxy_url)
             if (
                 _selectable := block_config["props"].pop("_selectable", None)
             ) is not None:
