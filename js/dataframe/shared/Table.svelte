@@ -753,6 +753,11 @@
 	}
 
 	function handle_select_all(col: number, checked: boolean): void {
+		// Clear selection to prevent interference with cells in other columns
+		df_actions.set_selected_cells([]);
+		df_actions.set_selected(false);
+		df_actions.set_editing(false);
+
 		data = data.map((row) => {
 			const new_row = [...row];
 			if (new_row[col]) {
