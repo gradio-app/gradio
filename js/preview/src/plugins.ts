@@ -10,9 +10,6 @@ const svelte_codes_to_ignore: Record<string, string> = {
 	"reactive-component": "Icon"
 };
 
-const RE_SVELTE_IMPORT =
-	/import\s+(?:([ -~]*)\s+from\s+){0,1}['"](svelte(?:\/[ -~]+){0,3})['"]/g;
-// const RE_BARE_SVELTE_IMPORT = /import ("|')svelte(\/\w+)*("|')(;)*/g;
 export function plugins(config: ComponentConfig): PluginOption[] {
 	const _additional_plugins = config.plugins || [];
 	const _additional_svelte_preprocess = config.svelte?.preprocess || [];
@@ -73,7 +70,6 @@ interface GradioPluginOptions {
 
 export function make_gradio_plugin({
 	mode,
-	svelte_dir,
 	backend_port,
 	imports
 }: GradioPluginOptions): Plugin {
@@ -85,21 +81,6 @@ export function make_gradio_plugin({
 		resolveId(id) {
 			if (id === v_id) {
 				return resolved_v_id;
-			}
-			if (id === "svelte") {
-				return {
-					id: `../../../../../assets/svelte/svelte_svelte.js`,
-					external: true
-				};
-			}
-
-			if (id.startsWith("svelte/")) {
-				const subpath = id.slice("svelte/".length);
-
-				return {
-					id: `../../../../../assets/svelte/svelte_${subpath.replace(/\//g, "_")}.js`,
-					external: true
-				};
 			}
 		},
 		load(id) {
@@ -136,22 +117,3 @@ export const deepmerge_plugin: Plugin = {
 		}
 	}
 };
-
-function extract_types(str: string): string[] {
-	const regex = /type (\w+\b)/g;
-	let m;
-	const out = [];
-	while ((m = regex.exec(str))) out.push(m[1]);
-
-	return out;
-}
-
-function remove_types(input: string): string {
-	const inner = input.slice(1, -1); // remove { }
-	const parts = inner
-		.split(",")
-		.map((s) => s.trim())
-		.filter((s) => s && !/^type\s+\w+\b$/.test(s));
-
-	return `{ ${parts.join(", ")} }`;
-}

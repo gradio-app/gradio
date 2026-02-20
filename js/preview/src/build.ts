@@ -1,5 +1,7 @@
 import * as fs from "fs";
-import { join } from "path";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
+
 import { build } from "vite";
 import { plugins, make_gradio_plugin, deepmerge_plugin } from "./plugins";
 import type { PreRenderedChunk } from "rollup";
@@ -10,6 +12,8 @@ interface BuildOptions {
 	root_dir: string;
 	python_path: string;
 }
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export async function make_build({
 	component_dir,
@@ -62,11 +66,23 @@ export async function make_build({
 			}
 
 			const exports: (string | any)[][] = [
-				["component", pkg.exports["."] as object],
-				["example", pkg.exports["./example"] as object]
+				[
+					join(template_dir, "component"),
+					[
+						join(__dirname, "svelte_runtime_entry.js"),
+						join(source_dir, pkg.exports["."].gradio)
+					]
+				],
+				[
+					join(template_dir, "example"),
+					[
+						join(__dirname, "svelte_runtime_entry.js"),
+						join(source_dir, pkg.exports["./example"].gradio)
+					]
+				]
 			].filter(([_, path]) => !!path);
 
-			for (const [entry, path] of exports) {
+			for (const [out_path, entry_path] of exports) {
 				try {
 					const x = await build({
 						root: source_dir,
@@ -78,9 +94,9 @@ export async function make_build({
 						],
 						build: {
 							emptyOutDir: true,
-							outDir: join(template_dir, entry as string),
+							outDir: out_path,
 							lib: {
-								entry: join(source_dir, (path as any).gradio),
+								entry: entry_path,
 								fileName: "index.js",
 								formats: ["es"]
 							},
@@ -96,7 +112,7 @@ export async function make_build({
 									},
 									entryFileNames: (chunkInfo: PreRenderedChunk) => {
 										if (chunkInfo.isEntry) {
-											return "index.js";
+											return chunkInfo.name.toLocaleLowerCase() + ".js";
 										}
 										return `${chunkInfo.name.toLocaleLowerCase()}.js`;
 									}
