@@ -2491,6 +2491,9 @@ importers:
       '@gradio/theme':
         specifier: workspace:^
         version: link:../theme
+      svelte-i18n:
+        specifier: ^4.0.1
+        version: 4.0.1(svelte@5.48.0)
 
   js/vibeeditor:
     dependencies:
