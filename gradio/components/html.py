@@ -6,7 +6,7 @@ import inspect
 import re
 import textwrap
 from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 from gradio_client.documentation import document
 
@@ -342,8 +342,8 @@ class HTML(BlockContext, Component):
             commit_description=f"**{data['name']}**\n\n{data['description']}\n\nAuthor: @{data['author']}",
             create_pr=True,
         )
-        print(f"Pull request created: {commit.pr_url}")
-        return commit.pr_url
+        print(f"Pull request created: {commit.pr_url or ''}")
+        return cast(str, commit.pr_url)
 
     def _generate_constructor_code(self) -> str:
         """Generate a Python constructor call string for a plain gr.HTML() instance."""
