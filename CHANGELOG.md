@@ -1,5 +1,20 @@
 # gradio
 
+## 6.7.0
+
+### Features
+
+- [#12829](https://github.com/gradio-app/gradio/pull/12829) [`d720b25`](https://github.com/gradio-app/gradio/commit/d720b25b575fb9817311212e1c0afa82abf27468) - Allow :fastest :cheapest options when loading models.  Thanks @dawoodkhan82!
+- [#12899](https://github.com/gradio-app/gradio/pull/12899) [`820eff0`](https://github.com/gradio-app/gradio/commit/820eff050232f2ce40813e98e3294930e142e1c1) - Add support for gr.HTML as a layout element.  Thanks @aliabid94!
+- [#12900](https://github.com/gradio-app/gradio/pull/12900) [`d6907ac`](https://github.com/gradio-app/gradio/commit/d6907acf8beed0d9b5167398902d3f900d1a2ab9) - add `SKILLS.md` to Gradio repo, part 1 + cleanup.  Thanks @abidlabs!
+- [#12907](https://github.com/gradio-app/gradio/pull/12907) [`3e625a0`](https://github.com/gradio-app/gradio/commit/3e625a0ecfab6e74b7561b68adbe55341ecbc47a) - Better error handling when connection to server is lost.  Thanks @abidlabs!
+
+### Fixes
+
+- [#12890](https://github.com/gradio-app/gradio/pull/12890) [`ac29df8`](https://github.com/gradio-app/gradio/commit/ac29df82a735c72c021c07e0816f78001147671b) - fix DataFrame NaN values becoming 0 after sorting.  Thanks @Mr-Neutr0n!
+- [#12903](https://github.com/gradio-app/gradio/pull/12903) [`57707c7`](https://github.com/gradio-app/gradio/commit/57707c72edd0e9fee9821882f75ab322ce110fe3) - Fix Tab i18n issue.  Thanks @freddyaboulton!
+- [#12901](https://github.com/gradio-app/gradio/pull/12901) [`1387fc6`](https://github.com/gradio-app/gradio/commit/1387fc6a35edd965a3c1e29d693b7d5697595ac5) - Fix unload event bug.  Thanks @freddyaboulton!
+
 ## 6.6.0
 
 ### Features
