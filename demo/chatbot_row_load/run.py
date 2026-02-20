@@ -1,0 +1,22 @@
+import gradio as gr
+
+with gr.Blocks() as demo:
+    with gr.Tab("Tab 1"):
+        with gr.Row():
+            gr.Chatbot()
+            with gr.Column():
+                gr.Slider()
+                gr.Slider()
+                gr.Slider()
+
+    with gr.Tab("Tab 2"):
+        textbox = gr.Textbox(label="Output")
+
+    demo.load(
+        fn=lambda: "loaded successfully",
+        inputs=None,
+        outputs=textbox,
+    )
+
+if __name__ == "__main__":
+    demo.launch()
