@@ -26,7 +26,7 @@
 		onchange
 	}: {
 		value?: HighlightedToken[];
-		
+
 		show_legend?: boolean;
 		show_inline_category?: boolean;
 		color_map?: Record<string, string>;
@@ -108,7 +108,9 @@
 				class_or_confidence: mode === "scores" ? 1 : "label"
 			},
 			{ token: str.substring(end), class_or_confidence: null }
-		].filter((e) => (show_whitespaces ? e.token !== "" : e.token.trim() !== ""));
+		].filter((e) =>
+			show_whitespaces ? e.token !== "" : e.token.trim() !== ""
+		);
 
 		value = [
 			...value.slice(0, active_element_index),
