@@ -8,4 +8,4 @@
 "gradio": minor
 ---
 
-feat:Fix custom components
+feat:Ensure svelte version mismatches do not break custom components
