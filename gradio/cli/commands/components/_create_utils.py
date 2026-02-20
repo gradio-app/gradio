@@ -7,7 +7,6 @@ import re
 import shutil
 import textwrap
 from pathlib import Path
-from this import s
 from typing import Literal
 
 from huggingface_hub import snapshot_download
