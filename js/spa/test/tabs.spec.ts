@@ -84,9 +84,7 @@ test("programmatic selection works", async ({ page }) => {
 	await expect(page.getByText("Text 6!")).toBeVisible();
 });
 
-test("lazy load subtabs and accordion components", async ({
-	page
-}) => {
+test("lazy load subtabs and accordion components", async ({ page }) => {
 	await page.waitForTimeout(1000);
 	// Main tab components visible and rendered
 	await expect(page.getByText("Text 3!")).toBeVisible();
