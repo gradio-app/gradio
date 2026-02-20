@@ -451,6 +451,9 @@ importers:
       '@gradio/code':
         specifier: workspace:^
         version: link:../code
+      '@gradio/html':
+        specifier: workspace:^
+        version: link:../html
       '@gradio/paramviewer':
         specifier: workspace:^
         version: link:../paramviewer
