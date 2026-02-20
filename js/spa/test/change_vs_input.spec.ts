@@ -96,15 +96,15 @@ test("Radio change and input events work correctly", async ({ page }) => {
 });
 
 test("Dropdown change and input events work correctly", async ({ page }) => {
-	await page.getByRole("listbox", { name: "DD Input" }).click();
+	await page.getByRole("combobox", { name: "DD Input" }).click();
 	await page.getByRole("option", { name: "b" }).click();
 
 	await expect(page.getByLabel("Change counter")).toHaveValue("1");
 
 	await expect(
-		page.getByRole("listbox", { name: "Dropdown Input Event", exact: true })
+		page.getByRole("combobox", { name: "Dropdown Input Event", exact: true })
 	).toHaveValue("b");
 	await expect(
-		page.getByRole("listbox", { name: "Dropdown Change Event x2", exact: true })
+		page.getByRole("combobox", { name: "Dropdown Change Event x2", exact: true })
 	).toHaveValue("b");
 });
