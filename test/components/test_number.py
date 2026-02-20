@@ -151,3 +151,26 @@ class TestNumber:
         assert component.get_config().get("value") is None
         component = gr.Number(3)
         assert component.get_config().get("value") == 3.0
+
+    def test_precision_nonzero_always_returns_float(self):
+        """
+        When precision > 0, round_to_precision should always return a float,
+        even when the input is an integer.
+        """
+        numeric_input = gr.Number(precision=2, value=2.0)
+        # Integer input should be returned as float when precision > 0
+        assert numeric_input.preprocess(2) == 2.0
+        assert isinstance(numeric_input.preprocess(2), float)
+        assert numeric_input.postprocess(2) == 2.0
+        assert isinstance(numeric_input.postprocess(2), float)
+        # Float input should remain float
+        assert numeric_input.preprocess(2.0) == 2.0
+        assert isinstance(numeric_input.preprocess(2.0), float)
+        assert numeric_input.postprocess(2.0) == 2.0
+        assert isinstance(numeric_input.postprocess(2.0), float)
+
+        numeric_input = gr.Number(precision=1, value=3.0)
+        assert numeric_input.preprocess(3) == 3.0
+        assert isinstance(numeric_input.preprocess(3), float)
+        assert numeric_input.postprocess(3) == 3.0
+        assert isinstance(numeric_input.postprocess(3), float)

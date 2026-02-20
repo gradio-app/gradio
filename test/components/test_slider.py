@@ -95,3 +95,20 @@ class TestSlider:
         slider = gr.Slider(precision=0)
         assert slider.preprocess(5.1) == 5
         assert slider.api_info()["type"] == "integer"
+
+    def test_precision_nonzero_always_returns_float(self):
+        """
+        When precision > 0, Slider preprocess/postprocess should always return
+        a float, even when the input value has no fractional part.
+        """
+        slider = gr.Slider(minimum=0, maximum=10, precision=1)
+        assert slider.preprocess(2) == 2.0
+        assert isinstance(slider.preprocess(2), float)
+        assert slider.postprocess(2) == 2.0
+        assert isinstance(slider.postprocess(2), float)
+
+        slider = gr.Slider(minimum=0, maximum=10, precision=2)
+        assert slider.preprocess(5) == 5.0
+        assert isinstance(slider.preprocess(5), float)
+        assert slider.postprocess(5) == 5.0
+        assert isinstance(slider.postprocess(5), float)
