@@ -45,6 +45,12 @@ gradio skills add --cursor   # or --claude, --codex, --opencode
 
 Use `--global` to install at the user level (applies to all projects). Your skill will be automatically available for the particular coding agent.
 
+You can also install a skill for a **specific Gradio Space**, which generates API usage docs (Python, JS, cURL, and MCP) on the fly:
+
+```bash
+gradio skills add abidlabs/en2fr --cursor
+```
+
 ## Questions?
 
 If you'd like to report a bug or have a feature request, please create an [issue on GitHub](https://github.com/gradio-app/gradio/issues/new/choose). For general questions about usage, we are available on [our Discord server](https://discord.com/invite/feTf9x3ZSB) and happy to help.
