@@ -472,7 +472,7 @@ export class AppTree {
 		this.root = this.traverse(this.root!, [
 			(node) => {
 				if (node.id === id) {
-					make_visible_if_not_rendered(node, this.#hidden_on_startup);
+					make_visible_if_not_rendered(node, this.#hidden_on_startup, true);
 				}
 				return node;
 			},
@@ -483,14 +483,35 @@ export class AppTree {
 
 function make_visible_if_not_rendered(
 	node: ProcessedComponentMeta,
-	hidden_on_startup: Set<number>
+	hidden_on_startup: Set<number>,
+	is_target_node = false
 ): void {
 	node.props.shared_props.visible = hidden_on_startup.has(node.id)
 		? true
 		: node.props.shared_props.visible;
-	node.children.forEach((child) => {
-		make_visible_if_not_rendered(child, hidden_on_startup);
-	});
+
+	if (node.type === "tabs") {
+		const selectedId =
+			node.props.props.selected ?? node.props.props.initial_tabs?.[0]?.id;
+		node.children.forEach((child) => {
+			if (
+				child.type === "tabitem" &&
+				(child.props.props.id === selectedId || child.id === selectedId)
+			) {
+				make_visible_if_not_rendered(child, hidden_on_startup, false);
+			}
+		});
+	} else if (
+		node.type === "accordion" &&
+		node.props.props.open === false &&
+		!is_target_node
+	) {
+		// Don't recurse into closed accordion content
+	} else {
+		node.children.forEach((child) => {
+			make_visible_if_not_rendered(child, hidden_on_startup, false);
+		});
+	}
 }
 
 /**
