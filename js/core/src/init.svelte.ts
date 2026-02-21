@@ -484,7 +484,7 @@ export class AppTree {
 function make_visible_if_not_rendered(
 	node: ProcessedComponentMeta,
 	hidden_on_startup: Set<number>,
-	isTargetNode = false
+	is_target_node = false
 ): void {
 	node.props.shared_props.visible = hidden_on_startup.has(node.id)
 		? true
@@ -504,12 +504,9 @@ function make_visible_if_not_rendered(
 	} else if (
 		node.type === "accordion" &&
 		node.props.props.open === false &&
-		!isTargetNode
+		!is_target_node
 	) {
-	} else if (node.type === "accordion") {
-		node.children.forEach((child) => {
-			make_visible_if_not_rendered(child, hidden_on_startup, false);
-		});
+		// Don't recurse into closed accordion content
 	} else {
 		node.children.forEach((child) => {
 			make_visible_if_not_rendered(child, hidden_on_startup, false);
