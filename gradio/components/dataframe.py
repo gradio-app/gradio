@@ -276,7 +276,7 @@ class Dataframe(Component):
         Parameters:
             payload: the uploaded spreadsheet data as an object with `headers` and `data` attributes. Note that sorting the columns in the browser will not affect the values passed to this function.
         Returns:
-            Passes the uploaded spreadsheet data as a `pandas.DataFrame`, `numpy.array`, `polars.DataFrame`, or native 2D Python `list[list]` depending on `type`
+            Passes the uploaded spreadsheet data as a `pandas.DataFrame`, `numpy.array`, `polars.DataFrame`, or native 2D Python `list[list]` depending on `type`.
         """
         import pandas as pd
 
@@ -472,7 +472,15 @@ class Dataframe(Component):
     ) -> DataframeData:
         """
         Parameters:
-            value: Expects data in any of these formats: `pandas.DataFrame`, `pandas.Styler`, `numpy.array`, `polars.DataFrame`, `list[list]`, `list`, or a `dict` with keys 'data' (and optionally 'headers'), or `str` path to a csv, which is rendered as the spreadsheet.
+            value: Expects data in any of these formats:
+                - `pandas.DataFrame`
+                - `pandas.Styler`
+                - `numpy.array`
+                -  `polars.DataFrame`
+                - `list[list]`
+                - `list`
+                - `dict` with keys 'data' (and optionally 'headers')
+                - `str` path to a csv, which is rendered as the spreadsheet.
         Returns:
             the uploaded spreadsheet data as an object with `headers` and `data` keys and optional `metadata` key
         """
