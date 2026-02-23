@@ -72,7 +72,6 @@ function parseGuidePath(
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
-
 	const pathname = event.url.pathname;
 
 	if (isLLMRequest(event.request)) {
