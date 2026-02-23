@@ -218,7 +218,7 @@ def generate_bash_snippet(
 
     lines = [
         f'curl -X POST {base_url} -s -H "Content-Type: application/json" -d \'{{"data": [{data_str}]}}\' \\',
-        f"  | awk -F'\"' '{{ print $4}}' \\",
+        "  | awk -F'\"' '{ print $4}' \\",
         f"  | read EVENT_ID; curl -N {base_url}/$EVENT_ID",
     ]
 
