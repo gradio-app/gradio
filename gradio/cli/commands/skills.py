@@ -190,6 +190,16 @@ def _render_endpoint_section(
     return "\n".join(lines)
 
 
+def _get_space_description(space_id: str) -> str | None:
+    try:
+        from huggingface_hub import HfApi
+
+        info = HfApi().space_info(space_id)
+        return getattr(info, "short_description", None) or None
+    except Exception:
+        return None
+
+
 def _generate_space_skill(space_id: str) -> tuple[str, str]:
     try:
         from gradio_client import Client
@@ -208,23 +218,26 @@ def _generate_space_skill(space_id: str) -> tuple[str, str]:
         ) from e
 
     api_info = client.view_api(print_info=False, return_format="dict")
-    mcp_enabled = client.config.get("mcp_server", False)
     src_url = client.src
 
     skill_id = _space_id_to_skill_id(space_id)
-    space_url = f"https://huggingface.co/spaces/{space_id}"
+
+    space_description = _get_space_description(space_id)
 
     lines: list[str] = []
     lines.append("---")
     lines.append(f"name: {skill_id}")
-    lines.append(
+    desc = (
         f"description: Use the {space_id} Gradio Space via API. "
         f"Provides Python, JavaScript, and cURL usage examples."
     )
+    if space_description:
+        desc += f" Space description: {space_description}"
+    lines.append(desc)
     lines.append("---\n")
     lines.append(f"# {space_id}\n")
     lines.append(
-        f"This skill describes how to use the [{space_id}]({space_url}) "
+        f"This skill describes how to use the {space_id} "
         f"Gradio Space programmatically.\n"
     )
 
@@ -246,16 +259,6 @@ def _generate_space_skill(space_id: str) -> tuple[str, str]:
                     f"fn_index={fn_index}", endpoint_info, space_id, src_url
                 )
             )
-
-    if mcp_enabled:
-        base_url = src_url.rstrip("/")
-        lines.append("## MCP (Model Context Protocol)\n")
-        lines.append(
-            "This Space exposes an MCP server. You can connect to it from any "
-            "MCP-compatible client (e.g. Claude Desktop, Cursor, etc.).\n"
-        )
-        lines.append(f"- **Streamable HTTP:** `{base_url}/gradio_api/mcp/`")
-        lines.append(f"- **SSE:** `{base_url}/gradio_api/mcp/sse`\n")
 
     return skill_id, "\n".join(lines) + "\n"
 
@@ -316,7 +319,7 @@ def skills_add(
 
     When called without a space_id, installs the general Gradio skill.
     When called with a space_id, generates and installs a skill for that
-    specific Gradio Space with Python, JS, cURL, and MCP usage examples.
+    specific Gradio Space with Python, JS, and cURL usage examples.
     """
     central_global, central_local, hf_global_targets, hf_local_targets = (
         _import_hf_skills()
