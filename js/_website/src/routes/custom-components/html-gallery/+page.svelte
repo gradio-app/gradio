@@ -8,11 +8,7 @@
 	import { browser } from "$app/environment";
 	import { tick, onMount } from "svelte";
 	import ComponentEntry from "./ComponentEntry.svelte";
-	import type {
-		ManifestEntry,
-		HTMLComponentEntry,
-		ComponentCategory
-	} from "./types";
+	import type { ManifestEntry, HTMLComponentEntry } from "./types";
 
 	const BASE_URL =
 		"https://huggingface.co/datasets/gradio/custom-html-gallery/resolve/main";
@@ -23,25 +19,15 @@
 	let error = "";
 
 	let search = "";
-	let active_category: ComponentCategory = "all";
-
-	const categories: { value: ComponentCategory; label: string }[] = [
-		{ value: "all", label: "All" },
-		{ value: "input", label: "Input" },
-		{ value: "display", label: "Display" },
-		{ value: "form", label: "Form" }
-	];
 
 	$: filtered = manifest.filter((c) => {
-		const matches_category =
-			active_category === "all" || c.category === active_category;
-		if (!search.trim()) return matches_category;
+		if (!search.trim()) return true;
 		const q = search.toLowerCase();
-		const matches_search =
+		return (
 			c.name.toLowerCase().includes(q) ||
 			c.description.toLowerCase().includes(q) ||
-			c.tags.some((t) => t.toLowerCase().includes(q));
-		return matches_category && matches_search;
+			c.tags.some((t) => t.toLowerCase().includes(q))
+		);
 	});
 
 	async function load_manifest() {
@@ -210,18 +196,6 @@
 			/>
 		</div>
 
-		<div class="flex justify-center gap-2 mb-8">
-			{#each categories as cat}
-				<button
-					class="category-btn"
-					class:active={active_category === cat.value}
-					on:click={() => (active_category = cat.value)}
-				>
-					{cat.label}
-				</button>
-			{/each}
-		</div>
-
 		{#if filtered.length === 0}
 			<p class="text-center text-gray-500 dark:text-gray-400 py-12">
 				No components match your search.
@@ -282,6 +256,16 @@
 				</div>
 				<div class="modal-body">
 					{#if show_maximized_code}
+						<p class="modal-code-note">
+							This code may be simplified.
+							{#if maximized_component.repo_url}
+								<a
+									href={maximized_component.repo_url}
+									target="_blank"
+									rel="noopener noreferrer">Visit the repo</a
+								> for the full implementation.
+							{/if}
+						</p>
 						<div class="modal-code-container">
 							{@html maximized_highlighted}
 						</div>
@@ -361,35 +345,6 @@
 
 	.retry-btn:hover {
 		background: #ea580c;
-	}
-
-	.category-btn {
-		font-size: 13px;
-		font-weight: 600;
-		padding: 6px 16px;
-		border-radius: 20px;
-		border: 1px solid #e5e7eb;
-		background: white;
-		color: #6b7280;
-		cursor: pointer;
-		transition: all 0.15s;
-	}
-
-	:global(.dark) .category-btn {
-		border-color: #4b5563;
-		background: #1f2937;
-		color: #9ca3af;
-	}
-
-	.category-btn:hover {
-		border-color: #f97316;
-		color: #f97316;
-	}
-
-	.category-btn.active {
-		background: #f97316;
-		border-color: #f97316;
-		color: white;
 	}
 
 	.modal-backdrop {
@@ -514,6 +469,21 @@
 		--tw-prose-bold: var(--body-text-color);
 		--tw-prose-links: var(--link-text-color);
 		color: var(--body-text-color);
+	}
+
+	.modal-code-note {
+		font-size: 13px;
+		color: var(--body-text-color-subdued, #9ca3af);
+		margin: 0 0 12px;
+	}
+
+	.modal-code-note a {
+		color: var(--color-accent, #f97316);
+		text-decoration: none;
+	}
+
+	.modal-code-note a:hover {
+		text-decoration: underline;
 	}
 
 	.modal-code-container {

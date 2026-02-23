@@ -110,6 +110,16 @@
 	<div class="entry-body">
 		{#if show_code}
 			{#if component}
+				<p class="code-note">
+					This code may be simplified.
+					{#if manifest.repo_url}
+						<a
+							href={manifest.repo_url}
+							target="_blank"
+							rel="noopener noreferrer">Visit the repo</a
+						> for the full implementation.
+					{/if}
+				</p>
 				<div class="code-container">
 					{@html highlighted_html}
 				</div>
@@ -287,6 +297,21 @@
 		--tw-prose-bold: var(--body-text-color);
 		--tw-prose-links: var(--link-text-color);
 		color: var(--body-text-color);
+	}
+
+	.code-note {
+		font-size: 12px;
+		color: var(--body-text-color-subdued, #9ca3af);
+		margin: 0 0 8px;
+	}
+
+	.code-note a {
+		color: var(--color-accent, #f97316);
+		text-decoration: none;
+	}
+
+	.code-note a:hover {
+		text-decoration: underline;
 	}
 
 	.code-container {

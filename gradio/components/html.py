@@ -191,7 +191,6 @@ class HTML(BlockContext, Component):
         description: str = "",
         author: str = "",
         tags: list[str] | None = None,
-        category: str = "display",
         repo_url: str | None = None,
     ) -> dict[str, Any]:
         """Convert this HTML component to the format expected by the HTML Components Gallery
@@ -202,7 +201,6 @@ class HTML(BlockContext, Component):
             description: Short description of what the component does.
             author: Author name.
             tags: List of tags for search/filtering.
-            category: One of "input", "display", or "form".
             repo_url: URL to the source repo (GitHub or HuggingFace Spaces).
         Returns:
             A dictionary matching the HTMLComponentEntry format for the gallery.
@@ -237,7 +235,6 @@ class HTML(BlockContext, Component):
             "description": description,
             "author": author,
             "tags": tags if tags is not None else [],
-            "category": category,
             "html_template": self.html_template,
             "css_template": self.css_template,
             "js_on_load": self.js_on_load or "",
@@ -256,7 +253,6 @@ class HTML(BlockContext, Component):
         description: str = "",
         author: str = "",
         tags: list[str] | None = None,
-        category: str = "display",
         repo_url: str | None = None,
         token: str | None = None,
     ) -> str:
@@ -287,7 +283,6 @@ class HTML(BlockContext, Component):
             description=description,
             author=author,
             tags=tags,
-            category=category,
             repo_url=repo_url,
         )
         comp_id = data["id"]
@@ -300,7 +295,6 @@ class HTML(BlockContext, Component):
             "description",
             "author",
             "tags",
-            "category",
             "repo_url",
         ]
         manifest_entry = {k: data[k] for k in manifest_keys if k in data}

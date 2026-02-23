@@ -1,12 +1,9 @@
-export type ComponentCategory = "all" | "input" | "display" | "form";
-
 export type ManifestEntry = {
 	id: string;
 	name: string;
 	description: string;
 	author: string;
 	tags: string[];
-	category: ComponentCategory;
 	repo_url?: string;
 };
 

@@ -15,14 +15,12 @@ class TestToPublishFormat:
             description="A test widget",
             author="tester",
             tags=["test", "widget"],
-            category="display",
         )
         assert result["id"] == "my-widget"
         assert result["name"] == "My Widget"
         assert result["description"] == "A test widget"
         assert result["author"] == "tester"
         assert result["tags"] == ["test", "widget"]
-        assert result["category"] == "display"
         assert result["html_template"] == "<p>${value}</p>"
         assert result["css_template"] == "p { color: red; }"
         assert result["js_on_load"] == "console.log('hi');"
