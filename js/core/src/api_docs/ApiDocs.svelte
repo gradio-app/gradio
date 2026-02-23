@@ -499,9 +499,8 @@
 									].description}
 									{analytics}
 									{last_api_call}
-									code_snippets={info.named_endpoints[
-										"/" + dependency.api_name
-									].code_snippets}
+									code_snippets={info.named_endpoints["/" + dependency.api_name]
+										.code_snippets}
 									bind:markdown_code_snippets
 								/>
 
