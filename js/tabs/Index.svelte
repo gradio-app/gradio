@@ -34,7 +34,7 @@
 		visible={gradio.shared.visible}
 		elem_id={gradio.shared.elem_id}
 		elem_classes={gradio.shared.elem_classes}
-		selected={gradio.props.selected}
+		bind:selected={gradio.props.selected}
 		on:change={() => gradio.dispatch("change")}
 		on:select={(e) => {
 			gradio.dispatch("select", e.detail);
