@@ -836,9 +836,7 @@ class App(FastAPI):
                 )
                 space_id = app.get_blocks().space_id
                 api_prefix = API_PREFIX + "/"
-                for ep_name, ep_info in api_info.get(
-                    "named_endpoints", {}
-                ).items():
+                for ep_name, ep_info in api_info.get("named_endpoints", {}).items():
                     ep_info["code_snippets"] = generate_code_snippets(
                         ep_name,
                         ep_info,
