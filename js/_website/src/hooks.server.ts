@@ -72,11 +72,10 @@ function parseGuidePath(
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
-	const userAgent = event.request.headers.get("user-agent");
 
 	const pathname = event.url.pathname;
 
-	if (isLLMUserAgent(userAgent)) {
+	if (isLLMRequest(event.request)) {
 		const docsParams = parseDocsPath(pathname);
 
 		if (docsParams) {
