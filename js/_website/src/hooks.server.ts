@@ -2,26 +2,33 @@ import type { Handle } from "@sveltejs/kit";
 import { readFileSync } from "fs";
 import { resolve as pathResolve } from "path";
 
-const LLM_USER_AGENTS = [
-	"GPTBot",
-	"ChatGPT-User",
-	"Claude-Web",
-	"Anthropic",
-	"CCBot",
-	"Google-Extended",
-	"PerplexityBot",
-	"Bytespider",
-	"Amazonbot",
-	"cohere-ai",
-	"FacebookBot",
-	"Google-InspectionTool",
-	"Applebot-Extended"
+const AI_UA_PATTERNS: RegExp[] = [
+	/\bgptbot\b/i,
+	/\bchatgpt-user\b/i,
+	/\bclaudebot\b/i,
+	/\bclaude-web\b/i,
+	/\bclaude-user\b/i,
+	/\banthropic\b/i,
+	/\bperplexitybot\b/i,
+	/\bmeta-external(fetcher|agent)\b/i,
+	/\bfacebookbot\b/i,
+	/\bamazonbot\b/i,
+	/\bapplebot\b/i,
+	/\bbytespider\b/i,
+	/\bccbot\b/i,
+	/\bcohere\b/i,
+	/\bgoogle-extended\b/i
 ];
 
-function isLLMUserAgent(userAgent: string | null): boolean {
-	if (!userAgent) return false;
+export function isLLMRequest(req: Request): boolean {
+	const ua = req.headers.get("user-agent") || "";
+	const accept = req.headers.get("accept") || "";
 
-	return LLM_USER_AGENTS.some((bot) => userAgent.includes(bot));
+	if (accept.includes("text/markdown")) {
+		return true;
+	}
+
+	return AI_UA_PATTERNS.some((re) => re.test(ua));
 }
 
 function parseDocsPath(
