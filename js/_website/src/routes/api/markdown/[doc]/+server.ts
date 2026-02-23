@@ -4,6 +4,14 @@ import { resolve as pathResolve } from "path";
 import { svxToMarkdown } from "$lib/utils/svx-to-markdown";
 import docs_json from "$lib/templates/docs.json";
 
+export const prerender = true;
+
+export function entries() {
+	return docs_json.pages.gradio.flatMap((category) =>
+		category.pages.map((page) => ({ doc: page.name }))
+	);
+}
+
 export async function GET({ params }) {
 	const name = params.doc;
 	const pages = docs_json.pages;
