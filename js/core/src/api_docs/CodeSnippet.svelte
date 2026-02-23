@@ -24,6 +24,7 @@
 	export let api_description: string | null = null;
 	export let analytics: Record<string, any>;
 	export let markdown_code_snippets: Record<string, Record<string, string>>;
+	export let code_snippets: Record<string, string> | undefined = undefined;
 	export let last_api_call: Payload | null = null;
 
 	let python_code: HTMLElement;
@@ -65,11 +66,17 @@
 
 	$: markdown_code_snippets[
 		dependency.api_name as keyof typeof markdown_code_snippets
-	] = {
-		python: python_code?.innerText || "",
-		javascript: js_code?.innerText || "",
-		bash: bash_post_code?.innerText || ""
-	};
+	] = code_snippets
+		? {
+				python: code_snippets.python || "",
+				javascript: code_snippets.javascript || "",
+				bash: code_snippets.bash || ""
+			}
+		: {
+				python: python_code?.innerText || "",
+				javascript: js_code?.innerText || "",
+				bash: bash_post_code?.innerText || ""
+			};
 </script>
 
 <div class="container">

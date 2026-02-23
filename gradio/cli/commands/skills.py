@@ -10,7 +10,6 @@ Usage:
 
 from __future__ import annotations
 
-import json
 import os
 import shutil
 from pathlib import Path
@@ -108,6 +107,8 @@ def _space_id_to_skill_id(space_id: str) -> str:
 def _render_endpoint_section(
     api_name: str, endpoint_info: dict, space_id: str, src_url: str
 ) -> str:
+    from gradio_client.snippet import generate_code_snippets
+
     params = endpoint_info.get("parameters", [])
     returns = endpoint_info.get("returns", [])
 
@@ -146,45 +147,23 @@ def _render_endpoint_section(
             lines.append(f"- `{label}` [{component}]: `{type_str}`")
         lines.append("")
 
-    param_names = [p.get("parameter_name") or p.get("label", "input") for p in params]
-    example_inputs = [p.get("example_input") for p in params]
-
-    py_args = ", ".join(
-        f"{name}={json.dumps(ex)}" for name, ex in zip(param_names, example_inputs)
+    snippets = generate_code_snippets(
+        api_name, endpoint_info, src_url, space_id=space_id
     )
+
     lines.append("**Python:**\n")
     lines.append("```python")
-    lines.append("from gradio_client import Client\n")
-    lines.append(f'client = Client("{space_id}")')
-    lines.append(
-        f'result = client.predict(\n    {py_args},\n    api_name="{api_name}",\n)'
-    )
-    lines.append("print(result)")
+    lines.append(snippets["python"])
     lines.append("```\n")
 
-    js_args = ", ".join(
-        f"{name}: {json.dumps(ex)}" for name, ex in zip(param_names, example_inputs)
-    )
     lines.append("**JavaScript:**\n")
     lines.append("```javascript")
-    lines.append('import { Client } from "@gradio/client";\n')
-    lines.append(f'const client = await Client.connect("{space_id}");')
-    lines.append(
-        f'const result = await client.predict("{api_name}", {{\n    {js_args},\n}});'
-    )
-    lines.append("console.log(result.data);")
+    lines.append(snippets["javascript"])
     lines.append("```\n")
 
-    base_url = src_url.rstrip("/")
-    endpoint_path = api_name.lstrip("/")
-    curl_body = json.dumps({"data": example_inputs})
     lines.append("**cURL:**\n")
     lines.append("```bash")
-    lines.append(
-        f"curl -X POST {base_url}/api/{endpoint_path} \\\n"
-        f'  -H "Content-Type: application/json" \\\n'
-        f"  -d '{curl_body}'"
-    )
+    lines.append(snippets["bash"])
     lines.append("```\n")
 
     return "\n".join(lines)
