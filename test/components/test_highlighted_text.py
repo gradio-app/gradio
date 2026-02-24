@@ -96,6 +96,17 @@ class TestHighlightedText:
             {"token": "", "class_or_confidence": None},
         ]
 
+    def test_show_whitespaces(self):
+        component = gr.HighlightedText(show_whitespaces=True)
+        assert (result_ := component.postprocess([(" Hello", "label")]))
+        assert result_.model_dump() == [
+            {"token": " Hello", "class_or_confidence": "label"}
+        ]
+
+        component = gr.HighlightedText(show_whitespaces=False)
+        assert (result_ := component.postprocess([(" Hello", "label")]))
+        assert result_.model_dump() == [{"token": "Hello", "class_or_confidence": "label"}]
+
     def test_component_functions(self):
         """
         get_config

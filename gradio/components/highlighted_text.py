@@ -49,7 +49,7 @@ class HighlightedText(Component):
         show_inline_category: bool = True,
         combine_adjacent: bool = False,
         adjacent_separator: str = "",
-        show_whitespaces: bool = True,
+        show_whitespaces: bool = False,
         label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,

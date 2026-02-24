@@ -20,7 +20,7 @@
 		show_legend = false,
 		show_inline_category = true,
 		color_map = {},
-		show_whitespaces = true,
+		show_whitespaces = false,
 		interactive = false,
 		onselect,
 		onchange
@@ -83,7 +83,6 @@
 		if (!selection) return;
 		const text = selection.toString();
 		if (!text) return;
-		// In whitespace-preserving mode, allow selecting pure whitespace.
 		if (!show_whitespaces && !text.trim()) return;
 
 		const start = selection.getRangeAt(0).startOffset;
