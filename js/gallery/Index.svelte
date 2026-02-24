@@ -158,9 +158,7 @@
 	scale={gradio.shared.scale}
 	min_width={gradio.shared.min_width}
 	allow_overflow={false}
-	height={typeof gradio.props.height === "number"
-		? gradio.props.height
-		: undefined}
+	height={gradio.props.height || undefined}
 	bind:fullscreen
 >
 	<StatusTracker
@@ -175,7 +173,7 @@
 			class={!gradio.props.value ||
 			(active_source && active_source.includes("webcam"))
 				? "hidden-upload-input"
-				: ""}
+				: "upload-wrapper"}
 		>
 			<BaseFileUpload
 				bind:upload_promise
@@ -327,5 +325,8 @@
 <style>
 	.hidden-upload-input {
 		display: none;
+	}
+	.upload-wrapper {
+		height: 100%;
 	}
 </style>
