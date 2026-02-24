@@ -5,7 +5,7 @@
 	export let is_running: boolean;
 	export let endpoint_returns: any;
 	export let js_returns: any;
-	export let current_language: "python" | "javascript" | "bash" | "mcp";
+	export let current_language: "python" | "javascript" | "bash" | "skill" | "mcp";
 </script>
 
 <h4>

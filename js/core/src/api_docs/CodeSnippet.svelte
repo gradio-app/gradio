@@ -20,7 +20,12 @@
 	export let space_id: string | null;
 	export let endpoint_parameters: any;
 	export let username: string | null;
-	export let current_language: "python" | "javascript" | "bash" | "mcp";
+	export let current_language:
+		| "python"
+		| "javascript"
+		| "bash"
+		| "skill"
+		| "mcp";
 	export let api_description: string | null = null;
 	export let analytics: Record<string, any>;
 	export let markdown_code_snippets: Record<string, Record<string, string>>;

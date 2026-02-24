@@ -19,6 +19,8 @@
 	import javascript from "./img/javascript.svg";
 	import bash from "./img/bash.svg";
 	import ResponseSnippet from "./ResponseSnippet.svelte";
+	import skill from "./img/skill.svg";
+	import SkillSnippet from "./SkillSnippet.svelte";
 	import mcp from "./img/mcp.svg";
 	import MCPSnippet from "./MCPSnippet.svelte";
 	import CopyMarkdown from "./CopyMarkdown.svelte";
@@ -53,7 +55,8 @@
 	}
 
 	export let api_calls: Payload[] = [];
-	let current_language: "python" | "javascript" | "bash" | "mcp" = "python";
+	let current_language: "python" | "javascript" | "bash" | "skill" | "mcp" =
+		"python";
 
 	$: sorted_dependencies = (() => {
 		const valid = dependencies.filter(
@@ -81,13 +84,16 @@
 	}
 
 	function is_valid_language(lang: string | null): boolean {
-		return ["python", "javascript", "bash", "mcp"].includes(lang ?? "");
+		return ["python", "javascript", "bash", "skill", "mcp"].includes(
+			lang ?? ""
+		);
 	}
 
 	const langs = [
 		["python", "Python", python],
 		["javascript", "JavaScript", javascript],
 		["bash", "cURL", bash],
+		["skill", "Skill", skill],
 		["mcp", "MCP", mcp]
 	] as const;
 
@@ -277,7 +283,12 @@
 
 		const lang_param = get_query_param("lang");
 		if (is_valid_language(lang_param)) {
-			current_language = lang_param as "python" | "javascript" | "bash" | "mcp";
+			current_language = lang_param as
+				| "python"
+				| "javascript"
+				| "bash"
+				| "skill"
+				| "mcp";
 		}
 
 		const mcp_schema_url = `${root}gradio_api/mcp/schema`;
@@ -398,10 +409,13 @@
 						API Documentation
 					</p>
 				{:else}
+				{#if current_language !== "skill"}
 					<p class="padded">
 						{#if current_language == "python" || current_language == "javascript"}
 							1. Install the
-							<span style="text-transform:capitalize">{current_language}</span>
+							<span style="text-transform:capitalize"
+								>{current_language}</span
+							>
 							client (<a
 								href={current_language == "python" ? py_docs : js_docs}
 								target="_blank">docs</a
@@ -410,9 +424,14 @@
 							1. Confirm that you have cURL installed on your system.
 						{/if}
 					</p>
+				{/if}
 
-					<div class:hidden={current_language !== "mcp"}>
-						<MCPSnippet
+				<div class:hidden={current_language !== "skill"}>
+					<SkillSnippet {space_id} />
+				</div>
+
+				<div class:hidden={current_language !== "mcp"}>
+					<MCPSnippet
 							{mcp_server_active}
 							{mcp_server_url_streamable}
 							tools={tools.filter((tool) => selected_tools.has(tool.name))}
@@ -427,8 +446,8 @@
 						/>
 					</div>
 
-					{#if current_language !== "mcp"}
-						<InstallSnippet {current_language} />
+				{#if current_language !== "mcp" && current_language !== "skill"}
+					<InstallSnippet {current_language} />
 
 						<p class="padded">
 							2. Find the API endpoint below corresponding to your desired
@@ -480,8 +499,11 @@
 					{/if}
 				{/if}
 
-				<div class:hidden={current_language === "mcp"}>
-					{#each sorted_dependencies as dependency}
+			<div
+				class:hidden={current_language === "mcp" ||
+					current_language === "skill"}
+			>
+				{#each sorted_dependencies as dependency}
 						{#if info.named_endpoints["/" + dependency.api_name]}
 							<div class="endpoint-container">
 								<CodeSnippet
