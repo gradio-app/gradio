@@ -47,31 +47,6 @@ export function represent_value(
 	return stringify_except_file_function(value);
 }
 
-export function is_potentially_nested_file_data(obj: any): boolean {
-	if (typeof obj === "object" && obj !== null) {
-		if (obj.hasOwnProperty("url") && obj.hasOwnProperty("meta")) {
-			if (
-				typeof obj.meta === "object" &&
-				obj.meta !== null &&
-				obj.meta._type === "gradio.FileData"
-			) {
-				return true;
-			}
-		}
-	}
-	if (typeof obj === "object" && obj !== null) {
-		for (let key in obj) {
-			if (typeof obj[key] === "object") {
-				let result = is_potentially_nested_file_data(obj[key]);
-				if (result) {
-					return true;
-				}
-			}
-		}
-	}
-	return false;
-}
-
 function simplify_file_data(obj: any): any {
 	if (typeof obj === "object" && obj !== null && !Array.isArray(obj)) {
 		if (

@@ -10,7 +10,12 @@
 	import { represent_value } from "./utils";
 	import type { Dependency } from "../types";
 
-	export let current_language: "python" | "javascript" | "bash" | "mcp";
+	export let current_language:
+		| "python"
+		| "javascript"
+		| "bash"
+		| "skill"
+		| "mcp";
 	export let space_id: string | null;
 	export let root: string;
 	export let api_count: number;
@@ -362,7 +367,7 @@ Read the documentation above so I can ask questions about it.`
 	}
 
 	async function copyMarkdown(
-		current_language: "python" | "javascript" | "bash" | "mcp"
+		current_language: "python" | "javascript" | "bash" | "skill" | "mcp"
 	): Promise<void> {
 		try {
 			if (!markdown_content[current_language]) {

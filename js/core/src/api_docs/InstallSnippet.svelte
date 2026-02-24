@@ -2,7 +2,12 @@
 	import CopyButton from "./CopyButton.svelte";
 	import { Block } from "@gradio/atoms";
 
-	export let current_language: "python" | "javascript" | "bash" | "mcp";
+	export let current_language:
+		| "python"
+		| "javascript"
+		| "bash"
+		| "skill"
+		| "mcp";
 
 	let py_install = "pip install gradio_client";
 	let js_install = "npm i -D @gradio/client";
