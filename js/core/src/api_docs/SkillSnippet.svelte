@@ -4,7 +4,7 @@
 
 	export let space_id: string | null;
 
-	$: effective_space_id = space_id || "abidlabs/en2fr";
+	$: effective_space_id = space_id || "";
 	$: skill_id = effective_space_id.replace("/", "-");
 	$: install_gradio = "pip install --upgrade gradio";
 	$: install_cmd_claude = `gradio skills add ${effective_space_id} --claude`;

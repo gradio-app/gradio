@@ -89,11 +89,11 @@
 		);
 	}
 
-	const langs = [
+	$: langs = [
 		["python", "Python", python],
 		["javascript", "JavaScript", javascript],
 		["bash", "cURL", bash],
-		["skill", "Skill", skill],
+		...(space_id ? [["skill", "Skill", skill] as const] : []),
 		["mcp", "MCP", mcp]
 	] as const;
 
