@@ -5,6 +5,7 @@ Usage:
     gradio skills add --cursor --opencode
     gradio skills add --cursor --global
     gradio skills add --dest=~/my-skills
+    gradio skills add abidlabs/english-translator --cursor
 """
 
 from __future__ import annotations
@@ -12,9 +13,12 @@ from __future__ import annotations
 import os
 import shutil
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated
 
 import typer
+from gradio_client import Client
+from gradio_client.snippet import generate_code_snippets
+from huggingface_hub import HfApi
 
 SKILL_ID = "gradio"
 
@@ -71,11 +75,14 @@ def _remove_existing(path: Path, force: bool) -> None:
 
 
 def _create_symlink(
-    agent_skills_dir: Path, central_skill_path: Path, force: bool
+    agent_skills_dir: Path,
+    central_skill_path: Path,
+    force: bool,
+    skill_id: str = SKILL_ID,
 ) -> Path:
     agent_skills_dir = agent_skills_dir.expanduser().resolve()
     agent_skills_dir.mkdir(parents=True, exist_ok=True)
-    link_path = agent_skills_dir / SKILL_ID
+    link_path = agent_skills_dir / skill_id
     _remove_existing(link_path, force)
     link_path.symlink_to(os.path.relpath(central_skill_path, agent_skills_dir))
     return link_path
@@ -96,10 +103,159 @@ def _install_to(skills_dir: Path, force: bool) -> Path:
     return dest
 
 
+def _space_id_to_skill_id(space_id: str) -> str:
+    return space_id.replace("/", "-")
+
+
+def _render_endpoint_section(
+    api_name: str, endpoint_info: dict, space_id: str, src_url: str
+) -> str:
+    params = endpoint_info.get("parameters", [])
+    returns = endpoint_info.get("returns", [])
+
+    lines: list[str] = []
+    lines.append(f"### `{api_name}`\n")
+
+    if params:
+        lines.append("**Parameters:**\n")
+        for p in params:
+            ptype = p.get("python_type", {})
+            type_str = (
+                ptype.get("type", "Any") if isinstance(ptype, dict) else str(ptype)
+            )
+            name = p.get("parameter_name") or p.get("label", "input")
+            component = p.get("component", "")
+            default_info = ""
+            if p.get("parameter_has_default"):
+                default_info = f", default: `{p.get('parameter_default')}`"
+            required = (
+                " (required)" if not p.get("parameter_has_default", False) else ""
+            )
+            lines.append(
+                f"- `{name}` [{component}]: `{type_str}`{required}{default_info}"
+            )
+        lines.append("")
+
+    if returns:
+        lines.append("**Returns:**\n")
+        for r in returns:
+            rtype = r.get("python_type", {})
+            type_str = (
+                rtype.get("type", "Any") if isinstance(rtype, dict) else str(rtype)
+            )
+            label = r.get("label", "output")
+            component = r.get("component", "")
+            lines.append(f"- `{label}` [{component}]: `{type_str}`")
+        lines.append("")
+
+    snippets = generate_code_snippets(
+        api_name, endpoint_info, src_url, space_id=space_id
+    )
+
+    lines.append("**Python:**\n")
+    lines.append("```python")
+    lines.append(snippets["python"])
+    lines.append("```\n")
+
+    lines.append("**JavaScript:**\n")
+    lines.append("```javascript")
+    lines.append(snippets["javascript"])
+    lines.append("```\n")
+
+    lines.append("**cURL:**\n")
+    lines.append("```bash")
+    lines.append(snippets["bash"])
+    lines.append("```\n")
+
+    return "\n".join(lines)
+
+
+def _get_space_description(space_id: str) -> str | None:
+    try:
+        info = HfApi().space_info(space_id)
+        return getattr(info, "short_description", None) or None
+    except Exception:
+        return None
+
+
+def _generate_space_skill(space_id: str) -> tuple[str, str]:
+    try:
+        client = Client(space_id, download_files=False)
+    except Exception as e:
+        raise SystemExit(
+            f"Failed to connect to Space '{space_id}'.\n{e}\n\n"
+            "Make sure the Space exists, is public (or provide HF_TOKEN), and is running."
+        ) from e
+
+    api_info = client.view_api(print_info=False, return_format="dict")
+    src_url = client.src
+
+    skill_id = _space_id_to_skill_id(space_id)
+
+    space_description = _get_space_description(space_id)
+
+    lines: list[str] = []
+    lines.append("---")
+    lines.append(f"name: {skill_id}")
+    desc = (
+        f"description: Use the {space_id} Gradio Space via API. "
+        f"Provides Python, JavaScript, and cURL usage examples."
+    )
+    if space_description:
+        desc += f" Space description: {space_description}"
+    lines.append(desc)
+    lines.append("---\n")
+    lines.append(f"# {space_id}\n")
+    lines.append(
+        f"This skill describes how to use the {space_id} "
+        f"Gradio Space programmatically.\n"
+    )
+
+    named = api_info.get("named_endpoints", {})
+    unnamed = api_info.get("unnamed_endpoints", {})
+
+    if named:
+        lines.append("## API Endpoints\n")
+        for api_name, endpoint_info in named.items():
+            lines.append(
+                _render_endpoint_section(api_name, endpoint_info, space_id, src_url)
+            )
+
+    if not named and unnamed:
+        lines.append("## API Endpoints\n")
+        for fn_index, endpoint_info in unnamed.items():
+            lines.append(
+                _render_endpoint_section(
+                    f"fn_index={fn_index}", endpoint_info, space_id, src_url
+                )
+            )
+
+    return skill_id, "\n".join(lines) + "\n"
+
+
+def _install_space_skill(
+    skill_id: str, content: str, skills_dir: Path, force: bool
+) -> Path:
+    skills_dir = skills_dir.expanduser().resolve()
+    skills_dir.mkdir(parents=True, exist_ok=True)
+    dest = skills_dir / skill_id
+
+    _remove_existing(dest, force)
+    dest.mkdir()
+    (dest / "SKILL.md").write_text(content, encoding="utf-8")
+    return dest
+
+
 @skills_app.command(
     "add",
 )
 def skills_add(
+    space_id: Annotated[
+        str | None,
+        typer.Argument(
+            help="HF Space ID (e.g. 'user/my-space'). If omitted, installs the general Gradio skill."
+        ),
+    ] = None,
     cursor: Annotated[
         bool, typer.Option("--cursor", help="Install for Cursor.")
     ] = False,
@@ -119,7 +275,7 @@ def skills_add(
         ),
     ] = False,
     dest: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(
             help="Install into a custom destination (path to skills directory)."
         ),
@@ -129,7 +285,12 @@ def skills_add(
         typer.Option("--force", help="Overwrite existing skills in the destination."),
     ] = False,
 ) -> None:
-    """Download and install the Gradio skill for an AI assistant."""
+    """Download and install a Gradio skill for an AI assistant.
+
+    When called without a space_id, installs the general Gradio skill.
+    When called with a space_id, generates and installs a skill for that
+    specific Gradio Space with Python, JS, and cURL usage examples.
+    """
     central_global, central_local, hf_global_targets, hf_local_targets = (
         _import_hf_skills()
     )
@@ -139,6 +300,45 @@ def skills_add(
             "Pick a destination via --cursor, --claude, --codex, --opencode, or --dest."
         )
 
+    global_targets = {**hf_global_targets, "cursor": Path("~/.cursor/skills")}
+    local_targets = {**hf_local_targets, "cursor": Path(".cursor/skills")}
+    targets_dict = global_targets if global_ else local_targets
+
+    if space_id is not None:
+        skill_id, content = _generate_space_skill(space_id)
+        print(f"Generated skill for Space '{space_id}'")
+
+        if dest:
+            if cursor or claude or codex or opencode or global_:
+                print("--dest cannot be combined with agent flags or --global.")
+                raise typer.Exit(code=1)
+            skill_dest = _install_space_skill(skill_id, content, dest, force)
+            print(f"Installed '{skill_id}' to {skill_dest}")
+            return
+
+        agent_targets: list[Path] = []
+        if cursor:
+            agent_targets.append(targets_dict["cursor"])
+        if claude:
+            agent_targets.append(targets_dict["claude"])
+        if codex:
+            agent_targets.append(targets_dict["codex"])
+        if opencode:
+            agent_targets.append(targets_dict["opencode"])
+
+        central_path = central_global if global_ else central_local
+        central_skill_path = _install_space_skill(
+            skill_id, content, central_path, force
+        )
+        print(f"Installed '{skill_id}' to central location: {central_skill_path}")
+
+        for agent_target in agent_targets:
+            link_path = _create_symlink(
+                agent_target, central_skill_path, force, skill_id=skill_id
+            )
+            print(f"Created symlink: {link_path}")
+        return
+
     if dest:
         if cursor or claude or codex or opencode or global_:
             print("--dest cannot be combined with agent flags or --global.")
@@ -147,11 +347,7 @@ def skills_add(
         print(f"Installed '{SKILL_ID}' to {skill_dest}")
         return
 
-    global_targets = {**hf_global_targets, "cursor": Path("~/.cursor/skills")}
-    local_targets = {**hf_local_targets, "cursor": Path(".cursor/skills")}
-    targets_dict = global_targets if global_ else local_targets
-
-    agent_targets: list[Path] = []
+    agent_targets = []
     if cursor:
         agent_targets.append(targets_dict["cursor"])
     if claude:
