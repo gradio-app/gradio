@@ -7,6 +7,7 @@ const is_browser = typeof window !== "undefined";
 
 export function load_component({ api_url, name, id, variant }) {
   const comps = is_browser && window.__GRADIO__CC__;
+  const runtimes = is_browser && window.__GRADIO__CC__RUNTIMES__;
 
   const _component_map = {
     // eslint-disable-next-line no-undef
@@ -31,6 +32,10 @@ export function load_component({ api_url, name, id, variant }) {
       _component_map?.[_id]?.[variant] || // for dev mode custom components
       _component_map?.[name]?.[variant]
     )();
+
+    runtime_map[`${_id}-${variant}`] =
+      window.__GRADIO__CC__RUNTIMES__?.[id] || // for dev mode custom components
+      false;
 
     return {
       name,

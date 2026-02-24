@@ -46,7 +46,10 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			sourcemap: true,
 			target: "esnext",
 			minify: false,
-			outDir: "../../gradio/templates/frontend"
+			outDir: "../../gradio/templates/frontend",
+			rollupOptions: {
+			  external: ["virtual:cc-init"]
+			}
 		},
 		define: {
 			BROWSER_BUILD: JSON.stringify(true),
