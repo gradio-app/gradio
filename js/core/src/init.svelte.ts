@@ -518,14 +518,35 @@ export class AppTree {
 
 function make_visible_if_not_rendered(
 	node: ProcessedComponentMeta,
-	hidden_on_startup: Set<number>
+	hidden_on_startup: Set<number>,
+	is_target_node = false
 ): void {
 	node.props.shared_props.visible = hidden_on_startup.has(node.id)
 		? true
 		: node.props.shared_props.visible;
-	node.children.forEach((child) => {
-		make_visible_if_not_rendered(child, hidden_on_startup);
-	});
+
+	if (node.type === "tabs") {
+		const selectedId =
+			node.props.props.selected ?? node.props.props.initial_tabs?.[0]?.id;
+		node.children.forEach((child) => {
+			if (
+				child.type === "tabitem" &&
+				(child.props.props.id === selectedId || child.id === selectedId)
+			) {
+				make_visible_if_not_rendered(child, hidden_on_startup, false);
+			}
+		});
+	} else if (
+		node.type === "accordion" &&
+		node.props.props.open === false &&
+		!is_target_node
+	) {
+		// Don't recurse into closed accordion content
+	} else {
+		node.children.forEach((child) => {
+			make_visible_if_not_rendered(child, hidden_on_startup, false);
+		});
+	}
 }
 
 function has_hidden_descendants(
@@ -772,8 +793,10 @@ function _gather_initial_tabs(
 		if (!("id" in node.props.props)) {
 			node.props.props.id = node.id;
 		}
+		const i18n = node.props.props.i18n as ((str: string) => string) | undefined;
+		const raw_label = node.props.shared_props.label as string;
 		initial_tabs[parent_tab_id].push({
-			label: node.props.shared_props.label as string,
+			label: i18n ? i18n(raw_label) : raw_label,
 			id: node.props.props.id as string,
 			elem_id: node.props.shared_props.elem_id,
 			visible: node.props.shared_props.visible as boolean,
