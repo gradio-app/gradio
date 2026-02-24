@@ -25,9 +25,7 @@ This skill describes how to use the ${effective_space_id} Gradio Space programma
 </script>
 
 <div class="skill-content">
-	<p class="padded">
-		1. Make sure you are using the latest version of Gradio:
-	</p>
+	<p class="padded">1. Make sure you are using the latest version of Gradio:</p>
 	<Block>
 		<code>
 			<div class="copy">
@@ -54,19 +52,17 @@ This skill describes how to use the ${effective_space_id} Gradio Space programma
 		</code>
 	</Block>
 	<p class="hint">
-		Instead of <span class="inline-code">--claude</span>, you can use <span
-			class="inline-code">--cursor</span
-		>, <span class="inline-code">--codex</span>, or <span class="inline-code"
-			>--opencode</span
-		>. Combine flags to install for multiple agents. Use <span
-			class="inline-code">--global</span
-		> to install user-level instead of per-project.
+		Instead of <span class="inline-code">--claude</span>, you can use
+		<span class="inline-code">--cursor</span>,
+		<span class="inline-code">--codex</span>, or
+		<span class="inline-code">--opencode</span>. Combine flags to install for
+		multiple agents. Use <span class="inline-code">--global</span> to install user-level
+		instead of per-project.
 	</p>
 
 	<p class="padded">
-		3. This will add a skill to your coding agent that describes how to use
-		this Space via Python, JavaScript, and cURL API. The skill will look like
-		this:
+		3. This will add a skill to your coding agent that describes how to use this
+		Space via Python, JavaScript, and cURL API. The skill will look like this:
 	</p>
 	<Block>
 		<code>

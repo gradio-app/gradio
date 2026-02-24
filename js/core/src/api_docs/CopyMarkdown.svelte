@@ -10,7 +10,12 @@
 	import { represent_value } from "./utils";
 	import type { Dependency } from "../types";
 
-	export let current_language: "python" | "javascript" | "bash" | "skill" | "mcp";
+	export let current_language:
+		| "python"
+		| "javascript"
+		| "bash"
+		| "skill"
+		| "mcp";
 	export let space_id: string | null;
 	export let root: string;
 	export let api_count: number;
