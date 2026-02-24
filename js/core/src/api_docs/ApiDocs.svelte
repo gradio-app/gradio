@@ -506,22 +506,16 @@
 						{#if info.named_endpoints["/" + dependency.api_name]}
 							<div class="endpoint-container">
 								<CodeSnippet
-									endpoint_parameters={info.named_endpoints[
-										"/" + dependency.api_name
-									].parameters}
 									{dependency}
 									{current_language}
-									{root}
-									{space_id}
-									{username}
-									api_prefix={app.api_prefix}
 									api_description={info.named_endpoints[
 										"/" + dependency.api_name
 									].description}
 									{analytics}
 									{last_api_call}
-									code_snippets={info.named_endpoints["/" + dependency.api_name]
-										.code_snippets}
+									code_snippets={info.named_endpoints[
+										"/" + dependency.api_name
+									].code_snippets}
 									bind:markdown_code_snippets
 								/>
 
