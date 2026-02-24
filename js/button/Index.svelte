@@ -12,7 +12,6 @@
 		value: string | null;
 		variant: "primary" | "secondary" | "stop";
 		size: "sm" | "md" | "lg";
-		scale: number;
 		link: string | null;
 		icon: FileData | null;
 		link_target: "_self" | "_blank";
@@ -34,7 +33,7 @@
 	elem_id={gradio.shared.elem_id}
 	elem_classes={gradio.shared.elem_classes}
 	size={gradio.props.size}
-	scale={gradio.props.scale}
+	scale={gradio.shared.scale}
 	link={gradio.props.link}
 	icon={gradio.props.icon}
 	min_width={gradio.shared.min_width}
