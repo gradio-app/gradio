@@ -4,18 +4,15 @@
 	import { Client } from "@gradio/client";
 	import { writable } from "svelte/store";
 
-	// import type { LoadingStatus, LoadingStatusCollection } from "./stores";
-
 	import type {
 		ComponentMeta,
 		Dependency as IDependency,
 		LayoutNode
 	} from "./types";
-	// import type { UpdateTransaction } from "./_init";
 	import type { ThemeMode, Payload } from "./types";
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
-	import { type ShareData, type ValueData, GRADIO_ROOT } from "@gradio/utils";
+	import { type ShareData, GRADIO_ROOT } from "@gradio/utils";
 
 	import MountComponents from "./MountComponents.svelte";
 	import { prefix_css } from "./css";
@@ -24,18 +21,13 @@
 	import type ApiDocsInterface from "./api_docs/ApiDocs.svelte";
 	import type ApiRecorderInterface from "./api_docs/ApiRecorder.svelte";
 	import type SettingsInterface from "./api_docs/Settings.svelte";
-	// import type { ComponentType } from "svelte";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import settings_logo from "./api_docs/img/settings-logo.svg";
 	import record_stop from "./api_docs/img/record-stop.svg";
 	import { AppTree } from "./init.svelte";
-	// import type {
-	// 	LogMessage,
-	// 	RenderMessage,
-	// 	StatusMessage,
-	// } from "@gradio/client";
+
 	import * as screen_recorder from "./screen_recorder";
 
 	import { DependencyManager } from "./dependency";
@@ -190,11 +182,6 @@
 			event_data: data
 		});
 	}
-
-	setContext(GRADIO_ROOT, {
-		register: app_tree.register_component.bind(app_tree),
-		dispatcher: gradio_event_dispatcher
-	});
 
 	let api_calls: Payload[] = $state([]);
 	let last_api_call: Payload | null = $state(null);
