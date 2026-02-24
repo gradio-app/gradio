@@ -1,10 +1,4 @@
-"""Centralized code snippet generation for Gradio API endpoints.
-
-Generates Python, JavaScript, and cURL code snippets from API info dicts.
-Used by `gradio skills`, the ViewAPI page, and the `/info` endpoint.
-"""
-
-from __future__ import annotations
+"""Centralized code snippet generation for Gradio API endpoints. Generates Python, JavaScript, and cURL code snippets from API info dicts."""
 
 import copy
 import json

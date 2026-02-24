@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Annotated, Optional
 
 import typer
+from gradio_client.snippet import generate_code_snippets
 
 SKILL_ID = "gradio"
 
@@ -107,8 +108,6 @@ def _space_id_to_skill_id(space_id: str) -> str:
 def _render_endpoint_section(
     api_name: str, endpoint_info: dict, space_id: str, src_url: str
 ) -> str:
-    from gradio_client.snippet import generate_code_snippets
-
     params = endpoint_info.get("parameters", [])
     returns = endpoint_info.get("returns", [])
 

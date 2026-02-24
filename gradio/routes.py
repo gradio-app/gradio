@@ -55,6 +55,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
+from gradio_client.snippet import generate_code_snippets
 from gradio_client.utils import ServerMessage
 from jinja2.exceptions import TemplateNotFound
 from python_multipart.multipart import parse_options_header
@@ -818,8 +819,6 @@ class App(FastAPI):
         @router.get("/info/", dependencies=[Depends(login_check)])
         @router.get("/info", dependencies=[Depends(login_check)])
         def api_info(request: fastapi.Request):
-            from gradio_client.snippet import generate_code_snippets
-
             all_endpoints = request.query_params.get("all_endpoints", False)
             if all_endpoints:
                 if not app.all_app_info:
