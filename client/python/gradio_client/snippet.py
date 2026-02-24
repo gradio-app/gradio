@@ -5,7 +5,16 @@ import json
 import re
 from typing import Any
 
-BLOB_COMPONENTS = {"Audio", "File", "Image", "Video"}
+BLOB_COMPONENTS = {
+    "Audio",
+    "DownloadButton",
+    "File",
+    "Image",
+    "ImageSlider",
+    "Model3D",
+    "UploadButton",
+    "Video",
+}
 
 
 def _is_file_data(obj: Any) -> bool:

@@ -13,10 +13,12 @@ from __future__ import annotations
 import os
 import shutil
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated
 
 import typer
+from gradio_client import Client
 from gradio_client.snippet import generate_code_snippets
+from huggingface_hub import HfApi
 
 SKILL_ID = "gradio"
 
@@ -170,8 +172,6 @@ def _render_endpoint_section(
 
 def _get_space_description(space_id: str) -> str | None:
     try:
-        from huggingface_hub import HfApi
-
         info = HfApi().space_info(space_id)
         return getattr(info, "short_description", None) or None
     except Exception:
@@ -179,14 +179,6 @@ def _get_space_description(space_id: str) -> str | None:
 
 
 def _generate_space_skill(space_id: str) -> tuple[str, str]:
-    try:
-        from gradio_client import Client
-    except ImportError:
-        raise SystemExit(
-            "The 'gradio skills add <space_id>' command requires gradio_client.\n"
-            "Please install it: pip install gradio_client"
-        ) from None
-
     try:
         client = Client(space_id, download_files=False)
     except Exception as e:
@@ -259,7 +251,7 @@ def _install_space_skill(
 )
 def skills_add(
     space_id: Annotated[
-        Optional[str],
+        str | None,
         typer.Argument(
             help="HF Space ID (e.g. 'user/my-space'). If omitted, installs the general Gradio skill."
         ),
@@ -283,7 +275,7 @@ def skills_add(
         ),
     ] = False,
     dest: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(
             help="Install into a custom destination (path to skills directory)."
         ),

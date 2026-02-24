@@ -40,7 +40,7 @@
 	let has_file_path = endpoint_parameters.some((param: EndpointParameter) =>
 		is_potentially_nested_file_data(param.example_input)
 	);
-	let blob_components = ["Audio", "File", "Image", "Video"];
+	let blob_components = ["Audio", "DownloadButton", "File", "Image", "ImageSlider", "Model3D", "UploadButton", "Video"];
 	let blob_examples: any[] = endpoint_parameters.filter(
 		(param: EndpointParameter) => blob_components.includes(param.component)
 	);
