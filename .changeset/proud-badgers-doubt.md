@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-feat:Fix absolute path issue in Windows
+fix:Fix absolute path issue in Windows
