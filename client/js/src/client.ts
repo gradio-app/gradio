@@ -450,7 +450,7 @@ export class Client {
 
 		let body: FormData | string;
 
-		if ("binary" in data) {
+		if (typeof data === "object" && data !== null && "binary" in data) {
 			body = new FormData();
 			for (const key in data.data) {
 				if (key === "binary") continue;
