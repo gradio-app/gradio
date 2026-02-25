@@ -1040,22 +1040,9 @@ class TestEndpoints:
                 with patch.object(pathlib.Path, "name") as mock_name:
                     mock_name.side_effect = lambda x: x
                     results = client.endpoints[0]._upload_file(
-                        ["pre1", ["pre2", "pre3", "pre4"], ["pre5", "pre6"], "pre7"]
+                        handle_file(__file__), data_index=0
                     )
-
-        res = []
-        for re in results:
-            if isinstance(re, list):
-                res.append([r["name"] for r in re])
-            else:
-                res.append(re["name"])
-
-        assert res == [
-            "file1",
-            ["file2", "file3", "file4"],
-            ["file5", "file6"],
-            "file7",
-        ]
+        assert results["path"] == "file1"
 
     @pytest.mark.flaky
     def test_download_private_file(self, gradio_temp_dir):
