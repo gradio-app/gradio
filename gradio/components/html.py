@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import inspect
+import re
+import textwrap
 from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 from gradio_client.documentation import document
 
@@ -187,3 +190,175 @@ class HTML(BlockContext, Component):
 
     def get_block_name(self):
         return "html"
+
+    def _to_publish_format(
+        self,
+        name: str | None = None,
+        head: str | None = None,
+        description: str = "",
+        author: str = "",
+        tags: list[str] | None = None,
+        repo_url: str | None = None,
+    ) -> dict[str, Any]:
+        """Convert this HTML component to the format expected by the HTML Components Gallery
+        (https://www.gradio.app/custom-components/html-gallery).
+
+        Parameters:
+            name: Display name for the component. Defaults to the class name (for subclasses) or label.
+            description: Short description of what the component does.
+            author: Author name.
+            tags: List of tags for search/filtering.
+            repo_url: URL to the source repo (GitHub or HuggingFace Spaces).
+        Returns:
+            A dictionary matching the HTMLComponentEntry format for the gallery.
+        """
+        if name is None:
+            if type(self) is not HTML:
+                name = re.sub(r"(?<!^)(?=[A-Z])", " ", type(self).__name__)
+            elif self.label:
+                name = str(self.label)
+            else:
+                name = "Untitled Component"
+
+        comp_id = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+
+        if type(self) is not HTML:
+            try:
+                python_code = textwrap.dedent(inspect.getsource(type(self)))
+            except (OSError, TypeError):
+                python_code = ""
+        else:
+            python_code = self._generate_constructor_code()
+
+        default_props: dict[str, Any] = {}
+        default_props["value"] = self.value if self.value is not None else ""
+        if self.label is not None:
+            default_props["label"] = str(self.label)
+        default_props.update(self.props)
+
+        result = {
+            "id": comp_id,
+            "name": name,
+            "description": description,
+            "author": author,
+            "tags": tags if tags is not None else [],
+            "html_template": self.html_template,
+            "css_template": self.css_template,
+            "js_on_load": self.js_on_load or "",
+            "default_props": default_props,
+            "python_code": python_code,
+            "head": head or "",
+        }
+        if repo_url:
+            result["repo_url"] = repo_url
+        return result
+
+    def push_to_hub(
+        self,
+        name: str | None = None,
+        head: str | None = None,
+        description: str = "",
+        author: str = "",
+        tags: list[str] | None = None,
+        repo_url: str | None = None,
+        token: str | None = None,
+    ) -> str:
+        """Push this HTML component to the HTML Components Gallery as a pull request.
+
+        Creates a JSON file in the `components/` directory of the dataset repo
+        and opens a pull request for review.
+
+        Parameters:
+            name: Display name for the component. Defaults to the class name (for subclasses) or label.
+            head: Raw HTML to inject into `<head>` (e.g. external scripts). Only needed if your component expects a `<head>` script to be added by the parent Gradio application.
+            description: Short description of what the component does.
+            author: Author name (e.g. your HuggingFace username).
+            tags: List of tags for search/filtering.
+            category: One of "input", "display", or "form".
+            repo_url: URL to the source repo (GitHub or HuggingFace Spaces).
+            token: HuggingFace token. If None, uses the cached token from `huggingface-cli login`.
+        Returns:
+            The URL of the created pull request.
+        """
+        import json
+
+        from huggingface_hub import CommitOperationAdd, HfApi, hf_hub_download
+
+        data = self._to_publish_format(
+            name=name,
+            head=head,
+            description=description,
+            author=author,
+            tags=tags,
+            repo_url=repo_url,
+        )
+        comp_id = data["id"]
+        json_bytes = json.dumps(data, indent=2).encode("utf-8")
+
+        # Build manifest entry (lightweight metadata only)
+        manifest_keys = [
+            "id",
+            "name",
+            "description",
+            "author",
+            "tags",
+            "repo_url",
+        ]
+        manifest_entry = {k: data[k] for k in manifest_keys if k in data}
+
+        api = HfApi(token=token)
+
+        # Fetch current manifest and append new entry
+        try:
+            manifest_path = hf_hub_download(
+                repo_id="gradio/custom-html-gallery",
+                repo_type="dataset",
+                filename="manifest.json",
+                token=token,
+            )
+            with open(manifest_path) as f:
+                manifest = json.load(f)
+        except Exception:
+            manifest = []
+
+        # Replace existing entry with same id, or append
+        manifest = [e for e in manifest if e.get("id") != comp_id]
+        manifest.append(manifest_entry)
+        manifest_bytes = json.dumps(manifest, indent=2).encode("utf-8")
+
+        commit = api.create_commit(
+            repo_id="gradio/custom-html-gallery",
+            repo_type="dataset",
+            operations=[
+                CommitOperationAdd(
+                    path_in_repo=f"components/{comp_id}.json",
+                    path_or_fileobj=json_bytes,
+                ),
+                CommitOperationAdd(
+                    path_in_repo="manifest.json",
+                    path_or_fileobj=manifest_bytes,
+                ),
+            ],
+            commit_message=f"Add component: {data['name']}",
+            commit_description=f"**{data['name']}**\n\n{data['description']}\n\nAuthor: @{data['author']}",
+            create_pr=True,
+        )
+        print(f"Pull request created: {commit.pr_url or ''}")
+        return cast(str, commit.pr_url)
+
+    def _generate_constructor_code(self) -> str:
+        """Generate a Python constructor call string for a plain gr.HTML() instance."""
+        lines = ["gr.HTML("]
+        if self.value is not None:
+            lines.append(f"    value={self.value!r},")
+        if self.label is not None:
+            lines.append(f"    label={str(self.label)!r},")
+        lines.append(f'    html_template="""\n{self.html_template}\n    """,')
+        if self.css_template:
+            lines.append(f'    css_template="""\n{self.css_template}\n    """,')
+        if self.js_on_load:
+            lines.append(f'    js_on_load="""\n{self.js_on_load}\n    """,')
+        for k, v in self.props.items():
+            lines.append(f"    {k}={v!r},")
+        lines.append(")")
+        return "\n".join(lines)

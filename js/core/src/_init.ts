@@ -939,6 +939,16 @@ function determine_visible_components(
 			);
 			child_visible.forEach((id) => visible_components.add(id));
 		}
+	} else if (component.type === "accordion") {
+		visible_components.add(layout.id);
+		if (component.props.open !== false) {
+			const child_visible = process_children_visibility(
+				layout,
+				components,
+				parent_tabs_context
+			);
+			child_visible.forEach((id) => visible_components.add(id));
+		}
 	} else {
 		visible_components.add(layout.id);
 
