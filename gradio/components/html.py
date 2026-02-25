@@ -141,7 +141,8 @@ class HTML(BlockContext, Component):
         if server_functions:
             for fn in server_functions:
                 decorated = server(fn)
-                setattr(self, fn.__name__, decorated)
+                fn_name = getattr(fn, "__name__", str(fn))
+                setattr(self, fn_name, decorated)
                 self.server_fns.append(decorated)
 
     def example_payload(self) -> Any:
