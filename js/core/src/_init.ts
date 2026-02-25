@@ -725,6 +725,9 @@ export function process_server_fn(
 	}
 	return server_fns.reduce((acc, fn: string) => {
 		acc[fn] = async (...args: any[]) => {
+			if (args.length === 1) {
+				args = args[0];
+			}
 			const result = await app.component_server(id, fn, args);
 			return result;
 		};
@@ -932,16 +935,6 @@ function determine_visible_components(
 		) {
 			visible_components.add(layout.id);
 
-			const child_visible = process_children_visibility(
-				layout,
-				components,
-				parent_tabs_context
-			);
-			child_visible.forEach((id) => visible_components.add(id));
-		}
-	} else if (component.type === "accordion") {
-		visible_components.add(layout.id);
-		if (component.props.open !== false) {
 			const child_visible = process_children_visibility(
 				layout,
 				components,
