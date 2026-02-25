@@ -72,4 +72,10 @@ test("test HTML components", async ({ page }) => {
 	await expect(page.getByLabel("Children Output")).toHaveValue(
 		"Name: Alice, Email: alice@example.com"
 	);
+
+	await page.locator("#server-fn-load").click();
+	await expect(async () => {
+		const treeContent = await page.locator("#server-fn-tree").textContent();
+		expect(treeContent).toContain("run.py");
+	}).toPass();
 });
