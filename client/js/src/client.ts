@@ -420,7 +420,7 @@ export class Client {
 	public async component_server(
 		component_id: number,
 		fn_name: string,
-		data: unknown[] | { binary: boolean; data: Record<string, any> }
+		data: unknown | { binary: boolean; data: Record<string, any> }
 	): Promise<unknown> {
 		if (!this.config) {
 			throw new Error(CONFIG_ERROR_MSG);
@@ -451,10 +451,11 @@ export class Client {
 		let body: FormData | string;
 
 		if (typeof data === "object" && data !== null && "binary" in data) {
+			const _data = data as { binary: boolean; data: Record<string, any> };
 			body = new FormData();
-			for (const key in data.data) {
+			for (const key in _data.data) {
 				if (key === "binary") continue;
-				body.append(key, data.data[key]);
+				body.append(key, _data.data[key]);
 			}
 			body.set("component_id", component_id.toString());
 			body.set("fn_name", fn_name);

@@ -725,9 +725,6 @@ export function process_server_fn(
 	}
 	return server_fns.reduce((acc, fn: string) => {
 		acc[fn] = async (...args: any[]) => {
-			if (args.length === 1) {
-				args = args[0];
-			}
 			const result = await app.component_server(id, fn, args);
 			return result;
 		};
