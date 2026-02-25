@@ -22,8 +22,8 @@ These tests actually test gr.load() and gr.Blocks.load() but are
 included in a separate file because of the above-mentioned dependency.
 """
 
-# Mark the whole module as flaky
-pytestmark = pytest.mark.flaky
+# Mark the whole module as flaky and serial
+pytestmark = [pytest.mark.flaky, pytest.mark.serial]
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
