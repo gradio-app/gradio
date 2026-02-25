@@ -89,6 +89,14 @@ element.addEventListener('click', (e) =>
 );
 ```
 
+## Server Functions
+
+You can call Python functions directly from your `js_on_load` code using the `server_functions` parameter. Pass a list of Python functions to `server_functions`, and they become available as async methods on a `server` object inside `js_on_load`.
+
+$code_html_server_functions
+$demo_html_server_functions
+
+
 ## Component Classes
 
 If you are reusing the same HTML component in multiple places, you can create a custom component class by subclassing `gr.HTML` and setting default values for the templates and other arguments. Here's an example of creating a reusable StarRating component.
