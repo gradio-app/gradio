@@ -511,7 +511,7 @@ export class AppTree {
 			return;
 		}
 
-		make_visible_if_not_rendered(node, this.#hidden_on_startup);
+		make_visible_if_not_rendered(node, this.#hidden_on_startup, true);
 		load_components(node, this.#config.api_url);
 	}
 }
