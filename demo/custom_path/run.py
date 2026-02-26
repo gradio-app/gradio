@@ -37,7 +37,7 @@ demo = gr.Interface(
     outputs=gr.Image(label="Output Image"),
 )
 
-app = gr.mount_gradio_app(app, demo, path=CUSTOM_PATH)
+app = gr.mount_gradio_app(app, demo, path=CUSTOM_PATH, root_path=f"{PROXY_PREFIX}{CUSTOM_PATH}")
 
 
 @asynccontextmanager
