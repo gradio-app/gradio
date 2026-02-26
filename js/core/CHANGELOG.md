@@ -1,5 +1,26 @@
 # @gradio/core
 
+## 1.3.0
+
+### Features
+
+- [#12918](https://github.com/gradio-app/gradio/pull/12918) [`e29e1cc`](https://github.com/gradio-app/gradio/commit/e29e1ccd5874cb98b813ed4f7f72d9fef2935016) - Add Space-specific skill generation to `gradio skills add`.  Thanks @abidlabs!
+- [#12929](https://github.com/gradio-app/gradio/pull/12929) [`978bc6e`](https://github.com/gradio-app/gradio/commit/978bc6ea5094aa11e10994cdd662c4c663a86a83) - Add server functions support to gr.HTML.  Thanks @aliabid94!
+- [#12907](https://github.com/gradio-app/gradio/pull/12907) [`3e625a0`](https://github.com/gradio-app/gradio/commit/3e625a0ecfab6e74b7561b68adbe55341ecbc47a) - Better error handling when connection to server is lost.  Thanks @abidlabs!
+
+### Fixes
+
+- [#12904](https://github.com/gradio-app/gradio/pull/12904) [`7c3fa2a`](https://github.com/gradio-app/gradio/commit/7c3fa2a6900cfa3c87cb61ffa9b34b75d1ae49ba) - Fix Loading Spinner Issue Caused by Events Targeting Components In Inactive Tabs.  Thanks @freddyaboulton!
+- [#12903](https://github.com/gradio-app/gradio/pull/12903) [`57707c7`](https://github.com/gradio-app/gradio/commit/57707c72edd0e9fee9821882f75ab322ce110fe3) - Fix Tab i18n issue.  Thanks @freddyaboulton!
+- [#12906](https://github.com/gradio-app/gradio/pull/12906) [`81482b5`](https://github.com/gradio-app/gradio/commit/81482b58706ee9948d0f04e84e632ebb8d4bf7ea) - Lazy load sub-tab and accordion components.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/client@2.1.0
+- @gradio/button@0.6.4
+- @gradio/html@0.10.0
+- @gradio/tabs@0.5.7
+
 ## 1.2.0
 
 ### Features
