@@ -127,7 +127,6 @@
 		style:overflow={allow_overflow ? overflow_behavior : "hidden"}
 		style:flex-grow={scale}
 		style:min-width={`calc(min(${min_width}px, 100%))`}
-		style:border-width="var(--block-border-width)"
 		class:auto-margin={scale === null}
 		dir={rtl ? "rtl" : "ltr"}
 		aria-label={label}
@@ -166,6 +165,7 @@
 		background: var(--block-background-fill);
 		width: 100%;
 		line-height: var(--line-sm);
+		border-width: var(--block-border-width);
 	}
 	.block.fullscreen {
 		border-radius: 0;
@@ -200,7 +200,7 @@
 	.hide-container:not(.fullscreen) {
 		margin: 0;
 		box-shadow: none;
-		--block-border-width: 0;
+		border-width: 0;
 		background: transparent;
 		padding: 0;
 		overflow: visible;
