@@ -34,17 +34,22 @@
 	});
 
 	async function upload(file: File): Promise<{ path: string; url: string }> {
-		const file_data = await prepare_files([file]);
-		const result = await gradio.shared.client.upload(
-			file_data,
-			gradio.shared.root,
-			undefined,
-			gradio.shared.max_file_size ?? undefined
-		);
-		if (result && result[0]) {
-			return { path: result[0].path, url: result[0].url! };
+		try {
+			const file_data = await prepare_files([file]);
+			const result = await gradio.shared.client.upload(
+				file_data,
+				gradio.shared.root,
+				undefined,
+				gradio.shared.max_file_size ?? undefined
+			);
+			if (result && result[0]) {
+				return { path: result[0].path, url: result[0].url! };
+			}
+			throw new Error("Upload failed");
+		} catch (e) {
+			gradio.dispatch("error", e instanceof Error ? e.message : String(e));
+			throw e;
 		}
-		throw new Error("Upload failed");
 	}
 </script>
 
@@ -78,7 +83,8 @@
 		i18n={gradio.i18n}
 		{...gradio.shared.loading_status}
 		variant="center"
-		on_clear_status={() => gradio.dispatch("clear_status", loading_status)}
+		on_clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 	<div
 		class="html-container"

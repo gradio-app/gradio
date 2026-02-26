@@ -421,7 +421,6 @@
 						"server",
 						"upload",
 						js_on_load
-
 					);
 					func(element, trigger, reactiveProps, server, upload_func);
 				} catch (error) {
