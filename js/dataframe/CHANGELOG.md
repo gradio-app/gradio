@@ -1,5 +1,16 @@
 # @gradio/dataframe
 
+## 0.21.6
+
+### Fixes
+
+- [#12890](https://github.com/gradio-app/gradio/pull/12890) [`ac29df8`](https://github.com/gradio-app/gradio/commit/ac29df82a735c72c021c07e0816f78001147671b) - fix DataFrame NaN values becoming 0 after sorting.  Thanks @Mr-Neutr0n!
+
+### Dependency updates
+
+- @gradio/client@2.1.0
+- @gradio/button@0.6.4
+
 ## 0.21.5
 
 ### Dependency updates

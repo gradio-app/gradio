@@ -2,6 +2,12 @@
 
 ## 0.17.1
 
+### Dependency updates
+
+- @gradio/client@2.1.0
+
+## 0.17.1
+
 ### Fixes
 
 - [#12865](https://github.com/gradio-app/gradio/pull/12865) [`db7ab39`](https://github.com/gradio-app/gradio/commit/db7ab39c7e6ea3d1a2f0ce1991b5dbc0483b1e27) - Fix Gallery fullscreen button not working in preview mode.  Thanks @veeceey!
