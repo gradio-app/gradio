@@ -9,11 +9,13 @@
 		html_template = "${value}",
 		css_template = "",
 		js_on_load = null,
+		head = null,
 		visible = true,
 		autoscroll = false,
 		apply_default_css = true,
 		component_class_name = "HTML",
 		upload = null,
+		server = {},
 		children
 	}: {
 		elem_classes: string[];
@@ -26,6 +28,7 @@
 		apply_default_css: boolean;
 		component_class_name: string;
 		upload: ((file: File) => Promise<{ path: string; url: string }>) | null;
+		server: Record<string, (...args: any[]) => Promise<any>>;
 		children?: Snippet;
 	} = $props();
 
@@ -306,6 +309,47 @@
 		}
 	}
 
+	async function loadHead(headHtml: string): Promise<void> {
+		if (!headHtml) return;
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(`<head>${headHtml}</head>`, "text/html");
+		const promises: Promise<void>[] = [];
+		for (const el of Array.from(doc.head.children)) {
+			if (el.tagName === "SCRIPT") {
+				const src = (el as HTMLScriptElement).src;
+				if (src) {
+					if (document.querySelector(`script[src="${src}"]`)) continue;
+					const script = document.createElement("script");
+					script.src = src;
+					promises.push(
+						new Promise<void>((resolve, reject) => {
+							script.onload = () => resolve();
+							script.onerror = () =>
+								reject(new Error(`Failed to load script: ${src}`));
+						})
+					);
+					document.head.appendChild(script);
+				} else {
+					const script = document.createElement("script");
+					script.textContent = el.textContent;
+					document.head.appendChild(script);
+				}
+			} else {
+				const existing =
+					el.tagName === "LINK" && (el as HTMLLinkElement).href
+						? document.querySelector(
+								`link[href="${(el as HTMLLinkElement).href}"]`
+							)
+						: null;
+				if (!existing) {
+					document.head.appendChild(el.cloneNode(true));
+				}
+			}
+		}
+		await Promise.all(promises);
+	}
+
+	// Mount effect
 	$effect(() => {
 		if (!element || mounted) return;
 		mounted = true;
@@ -359,25 +403,32 @@
 		}
 		scroll_on_html_update();
 
-		if (js_on_load && element) {
-			try {
-				const upload_func =
-					upload ??
-					(async (_file: File): Promise<{ path: string; url: string }> => {
-						throw new Error("upload is not available in this context");
-					});
-				const func = new Function(
-					"element",
-					"trigger",
-					"props",
-					"upload",
-					js_on_load
-				);
-				func(element, trigger, reactiveProps, upload_func);
-			} catch (error) {
-				console.error("Error executing js_on_load:", error);
+		(async () => {
+			if (head) {
+				await loadHead(head);
 			}
-		}
+			if (js_on_load && element) {
+				try {
+					const upload_func =
+						upload ??
+						(async (_file: File): Promise<{ path: string; url: string }> => {
+							throw new Error("upload is not available in this context");
+						});
+					const func = new Function(
+						"element",
+						"trigger",
+						"props",
+						"server",
+						"upload",
+						js_on_load
+
+					);
+					func(element, trigger, reactiveProps, server, upload_func);
+				} catch (error) {
+					console.error("Error executing js_on_load:", error);
+				}
+			}
+		})();
 	});
 
 	// Props update effect

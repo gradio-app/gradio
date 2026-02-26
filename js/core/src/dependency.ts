@@ -205,8 +205,10 @@ export class DependencyManager {
 	get_state_cb: GetStateCallback;
 	rerender_cb: RerenderCallback;
 	log_cb: LogCallback;
+	on_connection_lost_cb: () => void;
 
 	loading_stati = new LoadingStatus();
+	connection_lost = false;
 
 	constructor(
 		dependencies: IDependency[],
@@ -226,13 +228,15 @@ export class DependencyManager {
 			duration?: number | null,
 			visible?: boolean
 		) => void,
-		add_to_api_calls: (payload: Payload) => void
+		add_to_api_calls: (payload: Payload) => void,
+		on_connection_lost_cb: () => void
 	) {
 		this.add_to_api_calls = add_to_api_calls;
 		this.log_cb = log_cb;
 		this.update_state_cb = update_state_cb;
 		this.get_state_cb = get_state_cb;
 		this.rerender_cb = rerender_cb;
+		this.on_connection_lost_cb = on_connection_lost_cb;
 		this.client = client;
 		this.reload(
 			dependencies,
@@ -318,6 +322,7 @@ export class DependencyManager {
 	 * @returns a value if there is no backend fn, a 'submission' if there is a backend fn, or null if there is no dependency
 	 */
 	async dispatch(event_meta: DispatchFunction | DispatchEvent): Promise<void> {
+		if (this.connection_lost) return;
 		let deps: Dependency[] | undefined;
 		if (event_meta.type === "fn") {
 			const dep = this.dependencies_by_fn.get(event_meta.fn_index!);
@@ -484,6 +489,19 @@ export class DependencyManager {
 									});
 									this.update_loading_stati_state();
 								} else if (result.stage === "error") {
+									if (result.broken || result.session_not_found) {
+										if (!this.connection_lost) {
+											this.connection_lost = true;
+											this.on_connection_lost_cb();
+										}
+										this.loading_stati.update({
+											status: "complete",
+											fn_index: dep.id,
+											stream_state: null
+										});
+										this.update_loading_stati_state();
+										break submit_loop;
+									}
 									if (Array.isArray(result?.message)) {
 										result.message.forEach((m: ValidationError, i) => {
 											this.update_state_cb(

@@ -1696,6 +1696,7 @@ def safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
     if (
         any(sep in filename for sep in _os_alt_seps)
         or os.path.isabs(filename)
+        or filename.startswith("/")
         or filename == ".."
         or filename.startswith("../")
     ):
