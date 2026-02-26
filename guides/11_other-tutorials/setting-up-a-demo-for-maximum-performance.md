@@ -82,7 +82,7 @@ Another way to increase the parallelism of your Gradio demo is to write your fun
 
 If you write your function to process a batch of samples, Gradio will automatically batch incoming requests together and pass them into your function as a batch of samples. You need to set `batch` to `True` (by default it is `False`) and set a `max_batch_size` (by default it is `4`) based on the maximum number of samples your function is able to handle. These two parameters can be passed into `gr.Interface()` or to an event in Blocks such as `.click()`.
 
-While setting a batch is conceptually similar to having workers process requests in parallel, it is often _faster_ than setting the `concurrency_count` for deep learning models. The downside is that you might need to adapt your function a little bit to accept batches of samples instead of individual samples.
+While setting a batch is conceptually similar to having workers process requests in parallel, it is often _faster_ than setting `default_concurrency_limit` for deep learning models. The downside is that you might need to adapt your function a little bit to accept batches of samples instead of individual samples.
 
 Here's an example of a function that does _not_ accept a batch of inputs -- it processes a single input at a time:
 

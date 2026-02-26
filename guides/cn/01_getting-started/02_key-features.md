@@ -160,7 +160,7 @@ demo.launch()
 您可以通过以下方式控制一次处理的请求数量：
 
 ```python
-demo.queue(concurrency_count=3)
+demo.queue(default_concurrency_limit=3)
 ```
 
 查看有关配置其他队列参数的[队列文档](/docs/#queue)。
