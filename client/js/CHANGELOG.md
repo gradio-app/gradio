@@ -1,5 +1,12 @@
 # @gradio/client
 
+## 2.1.0
+
+### Features
+
+- [#12929](https://github.com/gradio-app/gradio/pull/12929) [`978bc6e`](https://github.com/gradio-app/gradio/commit/978bc6ea5094aa11e10994cdd662c4c663a86a83) - Add server functions support to gr.HTML.  Thanks @aliabid94!
+- [#12907](https://github.com/gradio-app/gradio/pull/12907) [`3e625a0`](https://github.com/gradio-app/gradio/commit/3e625a0ecfab6e74b7561b68adbe55341ecbc47a) - Better error handling when connection to server is lost.  Thanks @abidlabs!
+
 ## 2.0.4
 
 ### Fixes

@@ -625,12 +625,14 @@ class Client:
         named_endpoints = {}
         unnamed_endpoints = {}
         for api_name, endpoint in info["named_endpoints"].items():
+            endpoint.pop("code_snippets", None)
             if (
                 "api_visibility" in endpoint
                 and endpoint.pop("api_visibility") != "private"
             ) or (endpoint.pop("show_api", True)):
                 named_endpoints[api_name] = endpoint
         for fn_index, endpoint in info["unnamed_endpoints"].items():
+            endpoint.pop("code_snippets", None)
             if (
                 "api_visibility" in endpoint
                 and endpoint.pop("api_visibility") != "private"

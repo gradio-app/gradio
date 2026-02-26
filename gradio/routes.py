@@ -55,6 +55,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
+from gradio_client.snippet import generate_code_snippets
 from gradio_client.utils import ServerMessage
 from jinja2.exceptions import TemplateNotFound
 from python_multipart.multipart import parse_options_header
@@ -827,6 +828,21 @@ class App(FastAPI):
                 api_info = utils.safe_deepcopy(app.get_blocks().get_api_info())
                 api_info = cast(dict[str, Any], api_info)
                 api_info = route_utils.update_example_values_to_use_public_url(api_info)
+                root = route_utils.get_root_url(
+                    request=request,
+                    route_path=f"{API_PREFIX}/info",
+                    root_path=app.root_path,
+                )
+                space_id = app.get_blocks().space_id
+                api_prefix = API_PREFIX + "/"
+                for ep_name, ep_info in api_info.get("named_endpoints", {}).items():
+                    ep_info["code_snippets"] = generate_code_snippets(
+                        ep_name,
+                        ep_info,
+                        str(root),
+                        space_id=space_id,
+                        api_prefix=api_prefix,
+                    )
                 app.api_info = api_info
             return app.api_info
 

@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => ({
 	},
 	build: {
 		rollupOptions: {
-			external: ["@gradio/wasm/svelte", "dompurify"]
+			external: ["@gradio/wasm/svelte", "dompurify", "ts-dedent"]
 		}
 	}
 }));
