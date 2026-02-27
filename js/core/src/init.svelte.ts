@@ -93,7 +93,7 @@ export class AppTree {
 		this.reactive_formatter = reactive_formatter;
 		this.#config = {
 			...config,
-			api_url: new URL(config.api_prefix, config.root).toString()
+			api_url: config.root.replace(/\/$/, "") + config.api_prefix
 		};
 		this.#component_payload = components;
 		this.#layout_payload = layout;
@@ -145,7 +145,7 @@ export class AppTree {
 		this.#component_payload = components;
 		this.#config = {
 			...config,
-			api_url: new URL(config.api_prefix, config.root).toString()
+			api_url: config.root.replace(/\/$/, "") + config.api_prefix
 		};
 		this.#dependency_payload = dependencies;
 
