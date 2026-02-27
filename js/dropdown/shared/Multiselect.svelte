@@ -11,6 +11,7 @@
 
 	const gradio: Gradio<DropdownEvents, DropdownProps> = props.gradio;
 
+	let listbox_id = "multiselect-listbox-" + Math.random().toString(36).slice(2, 9);
 	let filter_input: HTMLElement;
 	let input_text = $state("");
 	let label = $derived(gradio.shared.label || "Multiselect");
@@ -232,6 +233,13 @@
 			{/each}
 			<div class="secondary-wrap">
 				<input
+					role="combobox"
+					aria-controls={listbox_id}
+					aria-expanded={show_options}
+					aria-haspopup="listbox"
+					aria-autocomplete={gradio.props.filterable ? "list" : "none"}
+					aria-activedescendant={active_index !== null && show_options ? `${listbox_id}-option-${active_index}` : undefined}
+					aria-label={label}
 					class="border-none"
 					class:subdued={(!choices_names.includes(input_text) &&
 						!gradio.props.allow_custom_value) ||
@@ -280,6 +288,8 @@
 			{disabled}
 			{selected_indices}
 			{active_index}
+			{listbox_id}
+			label_text={label}
 			remember_scroll={true}
 			onchange={handle_option_selected}
 		/>
