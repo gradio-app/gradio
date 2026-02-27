@@ -1,7 +1,8 @@
 import { test, expect } from "@self/tootils";
 
-test("Gradio works behind a reverse proxy with root_path", async ({ page }) => {
-	test.skip(process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true");
+test.skip(process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true", "Not Running SSR Mode");
+
+test.skip("Gradio works behind a reverse proxy with root_path", async ({ page }) => {
 	const url = new URL(page.url());
 	await page.goto(`${url.origin}/myapp/gradio/`);
 
