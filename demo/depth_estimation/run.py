@@ -43,7 +43,7 @@ def process_image(image_path):
             np.array(image), depth_image, image_path, depth=8)
         img = Image.fromarray(depth_image)
         return [img, gltf_path, gltf_path]
-    except:
+    except Exception:
         print("Error reconstructing 3D model")
         raise Exception("Error reconstructing 3D model")
 
