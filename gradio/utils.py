@@ -1,7 +1,5 @@
 """Handy utility functions."""
 
-from __future__ import annotations
-
 import asyncio
 import copy
 import functools
@@ -152,7 +150,7 @@ NO_RELOAD = DynamicBoolean(True)
 class BaseReloader(ABC):
     @property
     @abstractmethod
-    def running_app(self) -> App:
+    def running_app(self) -> "App":
         pass
 
     def get_attribute(self, attr: str, demo) -> Any:
@@ -166,7 +164,7 @@ class BaseReloader(ABC):
         else:
             return getattr(self.running_app.blocks, attr)
 
-    def swap_blocks(self, demo: Blocks):
+    def swap_blocks(self, demo: "Blocks"):
         assert self.running_app.blocks  # noqa: S101
         # Copy over the blocks to get new components and events but
         # not a new queue
@@ -222,7 +220,7 @@ class ServerReloader(BaseReloader):
 class SpacesReloader(ServerReloader):
     def __init__(
         self,
-        app: App,
+        app: "App",
         watch_dirs: list[str],
         watch_module: ModuleType,
         stop_event: threading.Event,
@@ -238,7 +236,7 @@ class SpacesReloader(ServerReloader):
         self._stop_event = stop_event
 
     @property
-    def running_app(self) -> App:
+    def running_app(self) -> "App":
         return self.app
 
     @property
@@ -257,7 +255,7 @@ class SpacesReloader(ServerReloader):
             return True
         return False
 
-    def swap_blocks(self, demo: Blocks):
+    def swap_blocks(self, demo: "Blocks"):
         super().swap_blocks(demo)
         demo.config = demo.get_config_file()
 
@@ -265,7 +263,7 @@ class SpacesReloader(ServerReloader):
 class SourceFileReloader(ServerReloader):
     def __init__(
         self,
-        app: App,
+        app: "App",
         watch_dirs: list[str],
         watch_module_name: str,
         demo_file: str,
@@ -286,7 +284,7 @@ class SourceFileReloader(ServerReloader):
         self.encoding = encoding
 
     @property
-    def running_app(self) -> App:
+    def running_app(self) -> "App":
         return self.app
 
     @property
@@ -300,7 +298,7 @@ class SourceFileReloader(ServerReloader):
         self.app.change_type = change_type
         self.app.change_count += 1
 
-    def swap_blocks(self, demo: Blocks):
+    def swap_blocks(self, demo: "Blocks"):
         old_blocks = self.running_app.blocks
         super().swap_blocks(demo)
         if old_blocks:
@@ -472,7 +470,7 @@ def deep_equal(a: Any, b: Any) -> bool:
             return False
 
 
-def reassign_keys(old_blocks: Blocks, new_blocks: Blocks):
+def reassign_keys(old_blocks: "Blocks", new_blocks: "Blocks"):
     from gradio.blocks import Block, BlockContext
 
     new_keys = [
@@ -738,7 +736,7 @@ def resolve_singleton(_list: list[Any] | Any) -> Any:
         return _list
 
 
-def get_all_components() -> list[type[Component] | type[BlockContext]]:
+def get_all_components() -> "list[type[Component] | type[BlockContext]]":
     import gradio as gr
 
     classes_to_check = (
@@ -778,7 +776,7 @@ def core_gradio_components():
     ]
 
 
-def component_or_layout_class(cls_name: str) -> type[Component] | type[BlockContext]:
+def component_or_layout_class(cls_name: str) -> "type[Component] | type[BlockContext]":
     """
     Returns the component, template, or layout class with the given class name, or
     raises a ValueError if not found.
@@ -1049,11 +1047,11 @@ def function_wrapper(
 
 def get_function_with_locals(
     fn: Callable,
-    blocks: Blocks,
+    blocks: "Blocks",
     event_id: str | None,
     in_event_listener: bool,
-    request: Request | None,
-    state: SessionState | None,
+    request: "Request | None",
+    state: "SessionState | None",
 ):
     def before_fn(blocks, event_id):
         from gradio.context import LocalContext
@@ -1945,9 +1943,9 @@ async def safe_aclose_iterator(iterator, timeout=60.0, retry_interval=0.05):
 
 
 def set_default_buttons(
-    buttons: Sequence[str | Button] | None = None,
+    buttons: "Sequence[str | Button] | None" = None,
     default_buttons: list[str] | None = None,
-) -> Sequence[str | Button]:
+) -> "Sequence[str | Button]":
     from gradio.components.button import Button
 
     if buttons is None:
