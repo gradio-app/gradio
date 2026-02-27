@@ -1,5 +1,11 @@
 # @gradio/gallery
 
+## 0.17.2
+
+### Fixes
+
+- [#12927](https://github.com/gradio-app/gradio/pull/12927) [`ca84f3e`](https://github.com/gradio-app/gradio/commit/ca84f3e36c6a3f3c3f0b57084b6f514d6cded1d4) - Fix Gallery CSS Issue.  Thanks @freddyaboulton!
+
 ## 0.17.1
 
 ### Dependency updates

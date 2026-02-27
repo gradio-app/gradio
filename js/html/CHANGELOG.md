@@ -1,5 +1,11 @@
 # @gradio/html
 
+## 0.11.0
+
+### Features
+
+- [#12909](https://github.com/gradio-app/gradio/pull/12909) [`362fba6`](https://github.com/gradio-app/gradio/commit/362fba6cff820076006e4865a573d9e67370957f) - Allow uploading files from gr.HTML.  Thanks @aliabid94!
+
 ## 0.10.0
 
 ### Features
