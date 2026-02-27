@@ -162,6 +162,60 @@ class MyComponent(gr.HTML):
 
 Use `GradioModel` when your data is a dictionary with named fields, or `GradioRootModel` when your data is a simple type (string, list, etc.) that doesn't need to be wrapped in a dictionary. By defining a `data_model`, your component automatically implements API methods.
 
+## Sharing Components with `push_to_hub`
+
+Once you've built a custom HTML component, you can share it with the community by pushing it to the [HTML Components Gallery](https://www.gradio.app/custom-components/html-gallery). The gallery lets anyone browse, interact with, and copy the Python code for community-contributed components.
+
+Call `push_to_hub` on any `gr.HTML` instance or subclass:
+
+```python
+star_rating = StarRating()
+star_rating.push_to_hub(
+    name="Star Rating",
+    description="Interactive 5-star rating with click-to-rate",
+    author="your-hf-username",
+    tags=["input", "rating"],
+    repo_url="https://github.com/your-username/your-repo",
+)
+```
+
+This opens a pull request on the gallery's HuggingFace dataset repo. Once approved, your component will appear in the gallery for others to discover and use.
+
+### Authentication
+
+You need a HuggingFace **write token** to push components. Either pass it directly:
+
+```python
+star_rating.push_to_hub(..., token="hf_xxxxx")
+```
+
+Or log in beforehand with the HuggingFace CLI, and the cached token will be used automatically:
+
+```bash
+huggingface-cli login
+```
+
+### Parameters
+
+| Parameter | Description |
+|---|---|
+| `name` | Display name for the component. Defaults to the class name (for subclasses) or the `label`. |
+| `description` | Short description of what the component does. |
+| `author` | Author name, typically your HuggingFace username. |
+| `tags` | List of tags for search and filtering in the gallery (e.g. `["input", "rating"]`). |
+| `repo_url` | URL to the source repo (GitHub, HuggingFace Spaces, etc.). |
+| `head` | Raw HTML to inject into `<head>`. Only needed if your component relies on external scripts or stylesheets loaded via `head` in the parent Gradio app. |
+| `token` | HuggingFace token. If `None`, uses the cached token from `huggingface-cli login`. |
+
+The `head` parameter deserves special attention. If your component uses an external library loaded via the `head` parameter of `launch` (e.g. `head='<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>'`), pass the same `head` string to `push_to_hub` so that the gallery can load those scripts when rendering your component.
+
+### How components render in the gallery
+
+The gallery renders each component live using the same `BaseHTML` engine that powers `gr.HTML` in your Gradio app, so visitors can interact with your component directly in the browser. There are two special cases the gallery handles automatically:
+
+- **`position: fixed` CSS**: Components that use `position: fixed` in their `css_template` (e.g. sidebars, modals, toasts) are rendered inside an iframe so they don't escape their gallery card. Your component doesn't need any changes. The gallery detects `position: fixed` and isolates it automatically.
+- **`@children` templates**: Components whose `html_template` contains the `@children` placeholder are rendered with a sample child component (a button) so visitors can see how the layout works.
+
 ## Security Considerations
 
 Keep in mind that using `gr.HTML` to create custom components involves injecting raw HTML and JavaScript into your Gradio app. Be cautious about using untrusted user input into `html_template` and `js_on_load`, as this could lead to cross-site scripting (XSS) vulnerabilities. 
@@ -170,4 +224,6 @@ You should also expect that any Python event listeners that take your `gr.HTML` 
 
 ## Next Steps
 
-Check out some examples of custom components that you can build in [this directory](https://github.com/gradio-app/gradio/tree/main/gradio/components/custom_html_components).
+- Browse the [HTML Components Gallery](https://www.gradio.app/custom-components/html-gallery) to see what the community has built and copy components into your own apps.
+- Check out more examples in [this directory](https://github.com/gradio-app/gradio/tree/main/gradio/components/custom_html_components).
+- Share your own components with `push_to_hub` to help others!
