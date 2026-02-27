@@ -91,9 +91,16 @@
 		handle_blur({ target: { value } } as unknown as FocusEvent);
 	}
 
-	$: if (!edit) {
-		// Shim blur on removal for Safari and Firefox
-		handle_blur({ target: { value } } as unknown as FocusEvent);
+	let prev_edit = false;
+
+	$: {
+		if (prev_edit && !edit) {
+			// Shim blur on removal for Safari and Firefox:
+			// only fire when transitioning from edit to non-edit mode,
+			// not when value changes externally (e.g. header checkbox toggle).
+			handle_blur({ target: { value } } as unknown as FocusEvent);
+		}
+		prev_edit = !!edit;
 	}
 </script>
 
