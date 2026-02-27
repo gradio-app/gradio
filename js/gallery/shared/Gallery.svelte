@@ -77,7 +77,7 @@
 		value: GalleryData[] | null;
 		columns: number | number[] | undefined;
 		rows: number | number[] | undefined;
-		height: number | "auto";
+		height: number | string;
 		preview: boolean;
 		allow_preview: boolean;
 		object_fit: "contain" | "cover" | "fill" | "none" | "scale-down";
@@ -539,7 +539,11 @@
 			class:minimal={mode === "minimal"}
 			class:fixed-height={mode !== "minimal" && (!height || height == "auto")}
 			class:hidden={is_full_screen}
-			style:height={height !== "auto" ? height + "px" : null}
+			style:height={height !== "auto"
+				? typeof height === "number"
+					? height + "px"
+					: height
+				: null}
 		>
 			{#if interactive && selected_index === null}
 				<ModifyUpload
@@ -663,11 +667,11 @@
 {/if}
 
 <style lang="postcss">
-	.image-container {
+	.gallery-container {
 		height: 100%;
 		position: relative;
 	}
-	.image-container :global(img),
+	.gallery-container :global(img),
 	button {
 		width: var(--size-full);
 		height: var(--size-full);
