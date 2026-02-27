@@ -112,6 +112,7 @@ class Number(FormComponent):
         Round to a given precision.
 
         If precision is None, no rounding happens. If 0, num is converted to int.
+        If precision > 0, num is always returned as a float.
 
         Parameters:
             num: Number to round.
@@ -124,7 +125,7 @@ class Number(FormComponent):
         elif precision == 0:
             return int(round(num, precision))
         else:
-            return round(num, precision)
+            return float(round(num, precision))
 
     @staticmethod
     def raise_if_out_of_bounds(
