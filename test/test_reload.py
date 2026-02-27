@@ -85,7 +85,7 @@ def test_reload_exec_does_not_stringify_annotations(tmp_path):
     )
 
     module = types.ModuleType("__main__")
-    module.__builtins__ = __builtins__
+    module.__builtins__ = __builtins__  # ty: ignore
     module.__file__ = str(demo_file)
 
     # Simulate what watchfn does: read source and exec it
