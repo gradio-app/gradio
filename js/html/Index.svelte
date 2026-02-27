@@ -10,6 +10,7 @@
 	import { Block, BlockLabel, IconButtonWrapper } from "@gradio/atoms";
 	import { Code as CodeIcon } from "@gradio/icons";
 	import { css_units } from "@gradio/utils";
+	import { prepare_files } from "@gradio/client";
 	import type { HTMLProps, HTMLEvents } from "./types.ts";
 	import type { Snippet } from "svelte";
 
@@ -31,6 +32,25 @@
 			gradio.dispatch("change");
 		}
 	});
+
+	async function upload(file: File): Promise<{ path: string; url: string }> {
+		try {
+			const file_data = await prepare_files([file]);
+			const result = await gradio.shared.client.upload(
+				file_data,
+				gradio.shared.root,
+				undefined,
+				gradio.shared.max_file_size ?? undefined
+			);
+			if (result && result[0]) {
+				return { path: result[0].path, url: result[0].url! };
+			}
+			throw new Error("Upload failed");
+		} catch (e) {
+			gradio.dispatch("error", e instanceof Error ? e.message : String(e));
+			throw e;
+		}
+	}
 </script>
 
 <Block
@@ -63,7 +83,8 @@
 		i18n={gradio.i18n}
 		{...gradio.shared.loading_status}
 		variant="center"
-		on_clear_status={() => gradio.dispatch("clear_status", loading_status)}
+		on_clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 	<div
 		class="html-container"
@@ -89,6 +110,8 @@
 			autoscroll={gradio.shared.autoscroll}
 			apply_default_css={gradio.props.apply_default_css}
 			component_class_name={gradio.props.component_class_name}
+			{upload}
+			server={gradio.shared.server}
 			on:event={(e) => {
 				gradio.dispatch(e.detail.type, e.detail.data);
 			}}
