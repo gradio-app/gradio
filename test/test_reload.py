@@ -92,7 +92,7 @@ def test_reload_exec_does_not_stringify_annotations(tmp_path):
     source = demo_file.read_text()
     exec(source, module.__dict__)  # noqa: S102
 
-    State = module.__dict__["State"]
+    State = module.__dict__["State"]  # noqa: N806
     ann = State.__dict__["__annotations__"]["messages"]
     assert not isinstance(ann, (str, ForwardRef)), (
         f"Annotation should be an actual type, not {type(ann).__name__}. "
