@@ -378,6 +378,18 @@ export class AppTree {
 			map.set(comp.id, comp);
 			return map;
 		}, new Map<number, ComponentMeta>());
+
+		// Collect existing keyed nodes before rebuilding the subtree,
+		// so we can preserve props specified by preserved_by_key.
+		const existing_render_root = find_node_by_id(this.root!, layout.id);
+		const existing_nodes_by_key = new Map<
+			string | number,
+			ProcessedComponentMeta
+		>();
+		if (existing_render_root) {
+			collect_nodes_by_key(existing_render_root, existing_nodes_by_key);
+		}
+
 		const _subtree = this.traverse(layout, (node) => {
 			const new_node = this.create_node(
 				node,
@@ -387,6 +399,13 @@ export class AppTree {
 			);
 			return new_node;
 		});
+
+		// Apply preserved_by_key: for keyed components, preserve specified
+		// props from the existing nodes instead of using the new defaults.
+		if (existing_nodes_by_key.size > 0) {
+			apply_preserved_by_key(_subtree, existing_nodes_by_key);
+		}
+
 		gather_initial_tabs(_subtree, this.initial_tabs);
 		const subtree = this.traverse(_subtree, (node) =>
 			apply_initial_tabs(node, this.initial_tabs)
@@ -468,6 +487,20 @@ export class AppTree {
 			}
 		} else if (_set_data) {
 			_set_data(new_state);
+			// Also update the node props so that preserved_by_key can read
+			// the latest state during rerender.
+			if (node) {
+				const new_props = create_props_shared_props(
+					new_state as ComponentMeta["props"]
+				);
+				for (const key in new_props.shared_props) {
+					(node.props.shared_props as Record<string, unknown>)[key] =
+						(new_props.shared_props as Record<string, unknown>)[key];
+				}
+				for (const key in new_props.props) {
+					node.props.props[key] = new_props.props[key];
+				}
+			}
 		}
 		if (!check_visibility || already_updated_visibility) return;
 		// need to let the UI settle before traversing again
@@ -874,4 +907,64 @@ function find_parent(
 		}
 	}
 	return null;
+}
+
+/**
+ * Collects all nodes with non-null keys from a tree into a map.
+ * @param node the root of the tree to collect from
+ * @param result the map to collect into (key -> node)
+ */
+function collect_nodes_by_key(
+	node: ProcessedComponentMeta,
+	result: Map<string | number, ProcessedComponentMeta> = new Map()
+): Map<string | number, ProcessedComponentMeta> {
+	if (node.key != null) {
+		result.set(node.key, node);
+	}
+	if (node.children) {
+		for (const child of node.children) {
+			collect_nodes_by_key(child, result);
+		}
+	}
+	return result;
+}
+
+/**
+ * Applies preserved_by_key logic to a subtree: for each node with a key
+ * matching an existing node, copies over the props listed in preserved_by_key
+ * from the existing node.
+ * @param node the new subtree node
+ * @param existing_nodes_by_key map of key -> existing node
+ */
+function apply_preserved_by_key(
+	node: ProcessedComponentMeta,
+	existing_nodes_by_key: Map<string | number, ProcessedComponentMeta>
+): void {
+	if (node.key != null && existing_nodes_by_key.has(node.key)) {
+		const existing = existing_nodes_by_key.get(node.key)!;
+		const preserved_by_key = node.props.props.preserved_by_key as
+			| string[]
+			| undefined;
+		if (preserved_by_key && preserved_by_key.length > 0) {
+			for (const prop of preserved_by_key) {
+				if (
+					prop in existing.props.shared_props &&
+					prop in node.props.shared_props
+				) {
+					(node.props.shared_props as Record<string, unknown>)[prop] =
+						(existing.props.shared_props as Record<string, unknown>)[prop];
+				} else if (
+					prop in existing.props.props &&
+					prop in node.props.props
+				) {
+					node.props.props[prop] = existing.props.props[prop];
+				}
+			}
+		}
+	}
+	if (node.children) {
+		for (const child of node.children) {
+			apply_preserved_by_key(child, existing_nodes_by_key);
+		}
+	}
 }
