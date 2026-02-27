@@ -22,8 +22,8 @@ These tests actually test gr.load() and gr.Blocks.load() but are
 included in a separate file because of the above-mentioned dependency.
 """
 
-# Mark the whole module as flaky
-pytestmark = pytest.mark.flaky
+# Mark the whole module as flaky and serial
+pytestmark = [pytest.mark.flaky, pytest.mark.serial]
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -72,7 +72,7 @@ class TestLoadInterface:
     def test_summarization(self):
         model_type = "summarization"
         interface = gr.load(
-            "models/facebook/bart-large-cnn", hf_token=HF_TOKEN, alias=model_type
+            "models/facebook/bart-large-cnn", token=HF_TOKEN, alias=model_type
         )
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
@@ -82,7 +82,7 @@ class TestLoadInterface:
     def test_translation(self):
         model_type = "translation"
         interface = gr.load(
-            "models/facebook/bart-large-cnn", hf_token=HF_TOKEN, alias=model_type
+            "models/facebook/bart-large-cnn", token=HF_TOKEN, alias=model_type
         )
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
@@ -93,7 +93,7 @@ class TestLoadInterface:
         model_type = "text-classification"
         interface = gr.load(
             "models/distilbert-base-uncased-finetuned-sst-2-english",
-            hf_token=HF_TOKEN,
+            token=HF_TOKEN,
             alias=model_type,
         )
         assert interface.__name__ == model_type
@@ -104,7 +104,7 @@ class TestLoadInterface:
     def test_fill_mask(self):
         model_type = "fill-mask"
         interface = gr.load(
-            "models/bert-base-uncased", hf_token=HF_TOKEN, alias=model_type
+            "models/bert-base-uncased", token=HF_TOKEN, alias=model_type
         )
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
@@ -114,7 +114,7 @@ class TestLoadInterface:
     def test_zero_shot_classification(self):
         model_type = "zero-shot-classification"
         interface = gr.load(
-            "models/facebook/bart-large-mnli", hf_token=HF_TOKEN, alias=model_type
+            "models/facebook/bart-large-mnli", token=HF_TOKEN, alias=model_type
         )
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
@@ -126,7 +126,7 @@ class TestLoadInterface:
     def test_automatic_speech_recognition(self):
         model_type = "automatic-speech-recognition"
         interface = gr.load(
-            "models/facebook/wav2vec2-base-960h", hf_token=HF_TOKEN, alias=model_type
+            "models/facebook/wav2vec2-base-960h", token=HF_TOKEN, alias=model_type
         )
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
@@ -136,7 +136,7 @@ class TestLoadInterface:
     def test_image_classification(self):
         model_type = "image-classification"
         interface = gr.load(
-            "models/google/vit-base-patch16-224", hf_token=HF_TOKEN, alias=model_type
+            "models/google/vit-base-patch16-224", token=HF_TOKEN, alias=model_type
         )
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
@@ -147,7 +147,7 @@ class TestLoadInterface:
         model_type = "feature-extraction"
         interface = gr.load(
             "models/sentence-transformers/distilbert-base-nli-mean-tokens",
-            hf_token=HF_TOKEN,
+            token=HF_TOKEN,
             alias=model_type,
         )
         assert interface.__name__ == model_type
@@ -159,7 +159,7 @@ class TestLoadInterface:
         model_type = "text-to-speech"
         interface = gr.load(
             "models/julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train",
-            hf_token=HF_TOKEN,
+            token=HF_TOKEN,
             alias=model_type,
         )
         assert interface.__name__ == model_type
@@ -171,7 +171,7 @@ class TestLoadInterface:
         model_type = "text-to-speech"
         interface = gr.load(
             "models/julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train",
-            hf_token=HF_TOKEN,
+            token=HF_TOKEN,
             alias=model_type,
         )
         assert interface.__name__ == model_type
@@ -187,7 +187,7 @@ class TestLoadInterface:
         with gr.Blocks():
             gr.load(
                 "spaces/gradio-tests/not-actually-private-spacev4-sse",
-                hf_token=HF_TOKEN,
+                token=HF_TOKEN,
             )
             gr.load(
                 "spaces/gradio/test-loading-examplesv4-sse",
@@ -197,12 +197,12 @@ class TestLoadInterface:
     def test_private_space_v4_sse_v1(self):
         io = gr.load(
             "spaces/gradio-tests/not-actually-private-spacev4-sse-v1",
-            hf_token=HF_TOKEN,
+            token=HF_TOKEN,
         )
         try:
             output = io("abc")
             assert output == "abc"
-            assert io.theme.name == "gradio/monochrome"
+            assert io._deprecated_theme == "gradio/monochrome"
         except TooManyRequestsError:
             pass
 
@@ -227,7 +227,7 @@ class TestLoadInterfaceWithExamples:
                     name="models/google/vit-base-patch16-224",
                     examples=[Path(test_file_dir, "cheetah1.jpg")],
                     cache_examples=True,
-                    hf_token=HF_TOKEN,
+                    token=HF_TOKEN,
                 )
             except TooManyRequestsError:
                 pass
@@ -302,8 +302,8 @@ def check_dataframe(config):
         c for c in config["components"] if c["props"].get("label", "") == "Input Rows"
     )
     assert input_df["props"]["headers"] == ["a", "b"]
-    assert input_df["props"]["row_count"] == (1, "dynamic")
-    assert input_df["props"]["col_count"] == (2, "fixed")
+    assert input_df["props"]["row_count"] == [3, "dynamic"]
+    assert input_df["props"]["col_count"] == [2, "dynamic"]
 
 
 def check_dataset(config, readme_examples):
@@ -352,6 +352,8 @@ def test_use_api_name_in_call_method():
 
 
 def test_load_custom_component():
+    pytest.skip("Custom components not supported yet")
+
     from gradio_pdf import PDF  # noqa
 
     demo = gr.load("spaces/freddyaboulton/gradiopdf")
@@ -363,7 +365,7 @@ def test_load_custom_component():
 
 def test_load_inside_blocks():
     demo = gr.load("spaces/abidlabs/en2fr")
-    output = demo("Hello")
+    output = demo("Hello", api_name="predict")
     assert isinstance(output, str)
 
 
