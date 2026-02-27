@@ -33,7 +33,7 @@ jobs:
       - name: Generate Skill
         run: |
           . venv/bin/activate
-          pip install -e . && python scripts/generate_skill.py --check
+          pip install -e client/python . && python scripts/generate_skill.py --check
       - name: Check for large files
         uses: actionsdesk/lfs-warning@4b98a8a5e6c429c23c34eee02d71553bca216425 # @v3.3
         with:
