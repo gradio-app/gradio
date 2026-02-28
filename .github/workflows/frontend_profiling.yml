@@ -1,0 +1,165 @@
+name: "frontend-profiling"
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: "frontend-profiling-${{ github.event.pull_request.number }}"
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  changes:
+    permissions:
+      contents: read
+      pull-requests: read
+    name: "changes"
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.changes.outputs.should_run }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: "gradio-app/gradio/.github/actions/changes@main"
+        id: changes
+        with:
+          filter: "functional"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  benchmark:
+    permissions:
+      contents: read
+      pull-requests: write
+    name: "frontend-benchmark"
+    needs: changes
+    if: needs.changes.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # --- Install and build PR branch ---
+      - name: Install dependencies (PR)
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        with:
+          python_version: "3.10"
+          os: "ubuntu-latest"
+
+      - name: Install Playwright
+        run: pnpm exec playwright install chromium
+
+      # --- Benchmark the PR branch ---
+      - name: Run benchmark (PR)
+        run: |
+          . venv/bin/activate
+          PERF_RESULTS_FILE=/tmp/bench_pr.json pnpm exec playwright test \
+            --config .config/playwright.config.js \
+            js/spa/test/tabs.perf.spec.ts
+          cat /tmp/bench_pr.json
+
+      # --- Benchmark the latest release ---
+      - name: Get latest release tag
+        id: release_tag
+        run: |
+          LATEST_TAG=$(git tag --list 'gradio@*' --sort=-version:refname | head -1)
+          echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          echo "Latest release tag: $LATEST_TAG"
+
+      - name: Checkout latest release
+        run: git checkout ${{ steps.release_tag.outputs.tag }}
+
+      - name: Reinstall and rebuild release
+        run: |
+          . venv/bin/activate
+          uv pip install -e client/python
+          uv pip install -e ".[oauth,mcp]"
+          pnpm install --no-frozen-lockfile
+          pnpm build
+
+      - name: Checkout benchmark spec from PR
+        run: git checkout ${{ github.event.pull_request.head.sha }} -- js/spa/test/tabs.perf.spec.ts
+
+      - name: Run benchmark (release)
+        run: |
+          . venv/bin/activate
+          PERF_RESULTS_FILE=/tmp/bench_base.json pnpm exec playwright test \
+            --config .config/playwright.config.js \
+            js/spa/test/tabs.perf.spec.ts
+          cat /tmp/bench_base.json
+
+      # --- Compare and report ---
+      - name: Compare and report
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let pr, base;
+            try {
+              pr = JSON.parse(fs.readFileSync('/tmp/bench_pr.json', 'utf8'));
+              base = JSON.parse(fs.readFileSync('/tmp/bench_base.json', 'utf8'));
+            } catch (e) {
+              core.warning('Could not read benchmark results: ' + e.message);
+              return;
+            }
+
+            const metrics = [
+              { name: 'DOM Content Loaded', key: 'dom_content_loaded_ms', unit: 'ms', warn: 0.25, fail: 0.50 },
+              { name: 'Page Load', key: 'page_load_ms', unit: 'ms', warn: 0.25, fail: 0.50 },
+              { name: 'LCP', key: 'lcp_ms', unit: 'ms', warn: 0.25, fail: 0.50 },
+              { name: 'JS Size', key: 'total_js_kb', unit: 'KB', warn: 0.10, fail: 0.25 },
+              { name: 'CSS Size', key: 'total_css_kb', unit: 'KB', warn: 0.10, fail: 0.25 },
+            ];
+
+            let body = '## Frontend Performance Benchmark\n\n';
+            body += '| Metric | Base | PR | Change | Status |\n';
+            body += '|--------|------|----|--------|--------|\n';
+
+            let shouldFail = false;
+            for (const m of metrics) {
+              const bv = base[m.key];
+              const pv = pr[m.key];
+              if (bv === undefined || pv === undefined) continue;
+              const pct = bv === 0 ? 0 : (pv - bv) / bv;
+              const pctStr = (pct * 100).toFixed(1) + '%';
+              let status = ':white_check_mark:';
+              if (pct > m.fail) { status = ':x: FAIL'; shouldFail = true; }
+              else if (pct > m.warn) { status = ':warning: WARNING'; }
+              body += `| ${m.name} | ${bv} ${m.unit} | ${pv} ${m.unit} | ${pct > 0 ? '+' : ''}${pctStr} | ${status} |\n`;
+            }
+
+            body += `\n| JS Resources | ${base.js_resource_count || '-'} | ${pr.js_resource_count || '-'} | | |\n`;
+            body += `| CSS Resources | ${base.css_resource_count || '-'} | ${pr.css_resource_count || '-'} | | |\n`;
+
+            body += `\n> Base: \`${{ steps.release_tag.outputs.tag }}\` | Thresholds: timing warns at +25%, fails at +50%. Transfer size warns at +10%, fails at +25%.\n`;
+
+            // Post or update PR comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const marker = '## Frontend Performance Benchmark';
+            const existing = comments.find(c => c.body.startsWith(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+            if (shouldFail) {
+              core.setFailed('Frontend performance regression detected. See PR comment for details.');
+            }
