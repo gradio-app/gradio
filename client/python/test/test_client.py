@@ -282,34 +282,26 @@ class TestClientPredictions:
     def test_job_output_video(self, video_component):
         with connect(video_component) as client:
             job = client.submit(
-                {
-                    "video": handle_file(
-                        "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
-                    )
-                },
-                fn_index=0,
+                handle_file(
+                    "https://huggingface.co/datasets/freddyaboulton/bucket/resolve/main/ProgressNotifications.mp4"
+                ),
+                api_name="/predict",
             )
-            assert Path(job.result()["video"]).exists()
+            assert Path(job.result()).exists()
             assert (
-                Path(DEFAULT_TEMP_DIR).resolve()
-                in Path(job.result()["video"]).resolve().parents
+                Path(DEFAULT_TEMP_DIR).resolve() in Path(job.result()).resolve().parents
             )
 
         temp_dir = tempfile.mkdtemp()
         with connect(video_component, download_files=temp_dir) as client:
             job = client.submit(
-                {
-                    "video": handle_file(
-                        "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
-                    )
-                },
+                handle_file(
+                    "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
+                ),
                 fn_index=0,
             )
-            assert Path(job.result()["video"]).exists()
-            assert (
-                Path(temp_dir).resolve()
-                in Path(job.result()["video"]).resolve().parents
-            )
+            assert Path(job.result()).exists()
+            assert Path(temp_dir).resolve() in Path(job.result()).resolve().parents
 
     def test_progress_updates(self, progress_demo):
         with connect(progress_demo) as client:
@@ -1047,23 +1039,10 @@ class TestEndpoints:
             with patch("builtins.open", MagicMock()):
                 with patch.object(pathlib.Path, "name") as mock_name:
                     mock_name.side_effect = lambda x: x
-                    results = client.endpoints[0]._upload(
-                        ["pre1", ["pre2", "pre3", "pre4"], ["pre5", "pre6"], "pre7"]
+                    results = client.endpoints[0]._upload_file(
+                        handle_file(__file__), data_index=0
                     )
-
-        res = []
-        for re in results:
-            if isinstance(re, list):
-                res.append([r["name"] for r in re])
-            else:
-                res.append(re["name"])
-
-        assert res == [
-            "file1",
-            ["file2", "file3", "file4"],
-            ["file5", "file6"],
-            "file7",
-        ]
+        assert results["path"] == "file1"
 
     @pytest.mark.flaky
     def test_download_private_file(self, gradio_temp_dir):
