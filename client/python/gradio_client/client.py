@@ -17,6 +17,7 @@ import time
 import urllib.parse
 import uuid
 import warnings
+from collections import deque
 from collections.abc import AsyncGenerator, Callable
 from concurrent.futures import Future
 from contextvars import copy_context
@@ -212,7 +213,7 @@ class Client:
 
         self.stream_open = False
         self.streaming_future: Future | None = None
-        self.pending_messages_per_event: dict[str, list[Message | None]] = {}
+        self.pending_messages_per_event: dict[str, deque[Message | None]] = {}
         self.pending_event_ids: set[str] = set()
 
     def close(self):
@@ -287,7 +288,7 @@ class Client:
                                     return
                                 event_id = resp["event_id"]
                                 if event_id not in self.pending_messages_per_event:
-                                    self.pending_messages_per_event[event_id] = []
+                                    self.pending_messages_per_event[event_id] = deque()
                                 self.pending_messages_per_event[event_id].append(resp)
                                 if resp["msg"] == ServerMessage.process_completed:
                                     self.pending_event_ids.remove(event_id)
@@ -1182,7 +1183,7 @@ class Endpoint:
                     data, hash_data, self.protocol, helper.request_headers
                 )
                 self.client.pending_event_ids.add(event_id)
-                self.client.pending_messages_per_event[event_id] = []
+                self.client.pending_messages_per_event[event_id] = deque()
                 helper.event_id = event_id
                 result = self._sse_fn_v1plus(helper, event_id, self.protocol)
             else:
