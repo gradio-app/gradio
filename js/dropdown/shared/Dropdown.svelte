@@ -90,7 +90,7 @@
 	let filtered_indices = $state(choices.map((_, i) => i));
 	let active_index: number | null = $state(null);
 	let selected_indices = $derived(
-		selected_index === null ? [] : [selected_index],
+		selected_index === null ? [] : [selected_index]
 	);
 
 	function handle_option_selected(index: any): void {
