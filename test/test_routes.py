@@ -803,6 +803,16 @@ class TestApp:
         app = routes.App.create_app(Interface(lambda x: x, "text", "text"))
         assert isinstance(app, FastAPI)
 
+    def test_create_app_debug_default_is_false(self):
+        app = routes.App.create_app(Interface(lambda x: x, "text", "text"))
+        assert app.debug is False
+
+    def test_create_app_debug_flag_forwarded(self):
+        app = routes.App.create_app(
+            Interface(lambda x: x, "text", "text"), debug=True
+        )
+        assert app.debug is True
+
 
 class TestAuthenticatedRoutes:
     def test_post_login(self):
