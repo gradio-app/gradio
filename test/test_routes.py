@@ -808,9 +808,7 @@ class TestApp:
         assert app.debug is False
 
     def test_create_app_debug_flag_forwarded(self):
-        app = routes.App.create_app(
-            Interface(lambda x: x, "text", "text"), debug=True
-        )
+        app = routes.App.create_app(Interface(lambda x: x, "text", "text"), debug=True)
         assert app.debug is True
 
 
