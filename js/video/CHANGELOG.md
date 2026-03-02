@@ -2,6 +2,12 @@
 
 ## 0.20.3
 
+### Dependency updates
+
+- @gradio/client@2.1.0
+
+## 0.20.3
+
 ### Fixes
 
 - [#12830](https://github.com/gradio-app/gradio/pull/12830) [`a2a0078`](https://github.com/gradio-app/gradio/commit/a2a0078de878481752b952f9ed0e759a0e884d0b) - `Video` to Svelte 5.  Thanks @dawoodkhan82!
