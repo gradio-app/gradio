@@ -29,11 +29,11 @@ globalThis.__MODE__ ??= "_NORMAL_";
 const mode: "_NORMAL_" | "_CC_" = globalThis.__MODE__;
 
 async function get_index(): Promise<void> {
-  console.log("mode", mode)
+	console.log("mode", mode);
 
-  if (mode === "_CC_") {
-    await import ("virtual:cc-init")
-  }
+	if (mode === "_CC_") {
+		await import("virtual:cc-init");
+	}
 	const modules = await Promise.all([
 		import("./Index.svelte"),
 		import("@gradio/core")
@@ -44,7 +44,6 @@ async function get_index(): Promise<void> {
 }
 
 function create_custom_element(): void {
-
 	class GradioApp extends HTMLElement {
 		control_page_title: string | null;
 		initial_height: string;

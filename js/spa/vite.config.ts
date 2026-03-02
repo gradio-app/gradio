@@ -48,7 +48,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			minify: false,
 			outDir: "../../gradio/templates/frontend",
 			rollupOptions: {
-			  external: ["virtual:cc-init"]
+				external: ["virtual:cc-init"]
 			}
 		},
 		define: {
