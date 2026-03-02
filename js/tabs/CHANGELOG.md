@@ -1,5 +1,21 @@
 # @gradio/tabs
 
+## 0.5.7
+
+### Fixes
+
+- [#12925](https://github.com/gradio-app/gradio/pull/12925) [`ccff8b8`](https://github.com/gradio-app/gradio/commit/ccff8b8cacffe36a270fcea9fc8ba29b78c31c8d) - Walkthrough Selected Bug.  Thanks @freddyaboulton!
+
+## 0.5.6
+
+### Fixes
+
+- [#12846](https://github.com/gradio-app/gradio/pull/12846) [`226daba`](https://github.com/gradio-app/gradio/commit/226daba5f65257244efc7c310500ea5366b20a87) - Fix bug where children of accordions dont get rendered when they are opened programmatically.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/utils@0.11.3
+
 ## 0.5.5
 
 ### Fixes

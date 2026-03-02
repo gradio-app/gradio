@@ -63,6 +63,17 @@ $demo_star_rating_events
 
 Take a look at the `js_on_load` code above. We add click event listeners to each star image to update the value via `props.value` when a star is clicked. This also re-renders the template to show the updated value. We also add a click event listener to the submit button that triggers the `submit` event. In our app, we listen to this trigger to run a function that outputs the `value` of the star rating.
 
+The `js_on_load` scope also includes an `upload` async function that lets you upload a JavaScript `File` object directly to the Gradio server. It returns a dictionary with `path` (the server-side file path) and `url` (the public URL to access the file).
+
+```js
+const { path, url } = await upload(file);
+```
+
+Here is an example of a custom file-upload widget built with `gr.HTML`:
+
+$code_html_upload
+$demo_html_upload
+
 You can update any other props of the component via `props.<prop_name>`, and trigger events via `trigger('<event_name>')`. The trigger event can also be send event data, e.g.
 
 ```js
@@ -89,6 +100,14 @@ element.addEventListener('click', (e) =>
 );
 ```
 
+## Server Functions
+
+You can call Python functions directly from your `js_on_load` code using the `server_functions` parameter. Pass a list of Python functions to `server_functions`, and they become available as async methods on a `server` object inside `js_on_load`.
+
+$code_html_server_functions
+$demo_html_server_functions
+
+
 ## Component Classes
 
 If you are reusing the same HTML component in multiple places, you can create a custom component class by subclassing `gr.HTML` and setting default values for the templates and other arguments. Here's an example of creating a reusable StarRating component.
@@ -102,6 +121,21 @@ them to the parent `gr.HTML` class. Otherwise, your component may not behave cor
 way is to add `**kwargs` to your `__init__` method and pass it to `super().__init__()`, just like in the code example above.
 
 We've created several custom HTML components as reusable components as examples you can reference in [this directory](https://github.com/gradio-app/gradio/tree/main/gradio/components/custom_html_components).
+
+
+## Embedding Components in HTML
+
+The `gr.HTML` component can also be used as a container for other Gradio components using the `@children` placeholder. This allows you to create custom layouts with HTML/CSS. 
+
+The `@children` must be at the top-level of the `html_template`. Since children cannot be nested inside the template, target the parent element directly with your CSS and JavaScript if you need to style or interact with the container of the children.
+
+Here's a basic example:
+
+$code_html_children
+$demo_html_children
+
+In this example, the `@children` placeholder marks where the child components (the Name and Email textboxes) will be rendered. Notice how in the `css_template` we target the parent element to style the container div that wraps the children.
+
 
 ### API / MCP support
 

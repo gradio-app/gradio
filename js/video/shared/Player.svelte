@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount, onDestroy } from "svelte";
+	import { onMount, onDestroy } from "svelte";
 	import { Play, Pause, Maximize, Undo } from "@gradio/icons";
 	import Video from "./Video.svelte";
 	import VideoControls from "./VideoControls.svelte";
@@ -10,41 +10,72 @@
 	import { format_time } from "@gradio/utils";
 	import type { I18nFormatter } from "@gradio/utils";
 
-	export let root = "";
-	export let src: string;
-	export let subtitle: string | null = null;
-	export let mirror: boolean;
-	export let autoplay: boolean;
-	export let loop: boolean;
-	export let label = "test";
-	export let interactive = false;
-	export let handle_change: (video: FileData) => void = () => {};
-	export let handle_reset_value: () => void = () => {};
-	export let upload: Client["upload"];
-	export let is_stream: boolean | undefined;
-	export let i18n: I18nFormatter;
-	export let show_download_button = false;
-	export let value: FileData | null = null;
-	export let handle_clear: () => void = () => {};
-	export let has_change_history = false;
-	export let playback_position = 0;
+	interface Props {
+		root?: string;
+		src: string;
+		subtitle?: string | null;
+		mirror: boolean;
+		autoplay: boolean;
+		loop: boolean;
+		label?: string;
+		interactive?: boolean;
+		handle_change?: (video: FileData) => void;
+		handle_reset_value?: () => void;
+		upload: Client["upload"];
+		is_stream?: boolean;
+		i18n: I18nFormatter;
+		show_download_button?: boolean;
+		value?: FileData | null;
+		handle_clear?: () => void;
+		has_change_history?: boolean;
+		playback_position?: number;
+		onplay?: () => void;
+		onpause?: () => void;
+		onstop?: () => void;
+		onend?: () => void;
+		onerror?: (error: string) => void;
+		onloadstart?: () => void;
+		onloadeddata?: () => void;
+		onloadedmetadata?: () => void;
+	}
 
-	const dispatch = createEventDispatcher<{
-		play: undefined;
-		pause: undefined;
-		stop: undefined;
-		end: undefined;
-		clear: undefined;
-	}>();
+	let {
+		root = "",
+		src,
+		subtitle = null,
+		mirror,
+		autoplay,
+		loop,
+		label = "test",
+		interactive = false,
+		handle_change = () => {},
+		handle_reset_value = () => {},
+		upload,
+		is_stream = undefined,
+		i18n,
+		show_download_button = false,
+		value = null,
+		handle_clear = () => {},
+		has_change_history = false,
+		playback_position = $bindable(),
+		onplay,
+		onpause,
+		onstop,
+		onend,
+		onerror,
+		onloadstart,
+		onloadeddata,
+		onloadedmetadata
+	}: Props = $props();
 
-	let time = 0;
-	let duration: number;
-	let paused = true;
-	let video: HTMLVideoElement;
-	let processingVideo = false;
-	let show_volume_slider = false;
-	let current_volume = 1;
-	let is_fullscreen = false;
+	let time = $state(0);
+	let duration = $state<number>(0);
+	let paused = $state(true);
+	let video = $state<HTMLVideoElement>();
+	let processingVideo = $state(false);
+	let show_volume_slider = $state(false);
+	let current_volume = $state(1);
+	let is_fullscreen = $state(false);
 
 	function handleMove(e: TouchEvent | MouseEvent): void {
 		if (!duration) return;
@@ -67,6 +98,7 @@
 	}
 
 	async function play_pause(): Promise<void> {
+		if (!video) return;
 		if (document.fullscreenElement != video) {
 			const isPlaying =
 				video.currentTime > 0 &&
@@ -81,6 +113,7 @@
 	}
 
 	function handle_click(e: MouseEvent): void {
+		if (!duration) return;
 		const { left, right } = (
 			e.currentTarget as HTMLProgressElement
 		).getBoundingClientRect();
@@ -88,8 +121,8 @@
 	}
 
 	function handle_end(): void {
-		dispatch("stop");
-		dispatch("end");
+		onstop?.();
+		onend?.();
 	}
 
 	const handle_trim_video = async (videoBlob: Blob): Promise<void> => {
@@ -101,6 +134,7 @@
 	};
 
 	function open_full_screen(): void {
+		if (!video) return;
 		if (!is_fullscreen) {
 			video.requestFullscreen();
 		} else {
@@ -140,30 +174,41 @@
 		}
 	});
 
-	$: if (video && video !== previous_video) {
-		if (previous_video) {
-			previous_video.removeEventListener("volumechange", handleVolumeChange);
+	$effect(() => {
+		if (video && video !== previous_video) {
+			if (previous_video) {
+				previous_video.removeEventListener("volumechange", handleVolumeChange);
+			}
+			video.addEventListener("volumechange", handleVolumeChange);
+			previous_video = video;
 		}
-		video.addEventListener("volumechange", handleVolumeChange);
-		previous_video = video;
-	}
+	});
 
-	$: time = time || 0;
-	$: duration = duration || 0;
-	$: playback_position = time;
-	$: if (playback_position !== time && video) {
-		video.currentTime = playback_position;
-	}
-	$: if (video && !is_fullscreen) {
-		if (Math.abs(video.volume - current_volume) > VOLUME_EPSILON) {
-			video.volume = current_volume;
-			last_synced_volume = current_volume;
+	$effect(() => {
+		playback_position = time;
+	});
+
+	$effect(() => {
+		if (playback_position !== time && video) {
+			video.currentTime = playback_position;
 		}
-		video.controls = false;
-	}
-	$: if (video && is_fullscreen) {
-		last_synced_volume = video.volume;
-	}
+	});
+
+	$effect(() => {
+		if (video && !is_fullscreen) {
+			if (Math.abs(video.volume - current_volume) > VOLUME_EPSILON) {
+				video.volume = current_volume;
+				last_synced_volume = current_volume;
+			}
+			video.controls = false;
+		}
+	});
+
+	$effect(() => {
+		if (video && is_fullscreen) {
+			last_synced_volume = video.volume;
+		}
+	});
 </script>
 
 <div class="wrap">
@@ -175,20 +220,20 @@
 			{loop}
 			{is_stream}
 			controls={is_fullscreen}
-			on:click={play_pause}
-			on:play
-			on:pause
-			on:error
-			on:ended={handle_end}
+			onclick={play_pause}
+			onplay={() => onplay?.()}
+			onpause={() => onpause?.()}
+			onerror={(error) => onerror?.(error)}
+			onended={handle_end}
 			bind:currentTime={time}
 			bind:duration
 			bind:paused
 			bind:node={video}
 			data-testid={`${label}-player`}
 			{processingVideo}
-			on:loadstart
-			on:loadeddata
-			on:loadedmetadata
+			onloadstart={() => onloadstart?.()}
+			onloadeddata={() => onloadeddata?.()}
+			onloadedmetadata={() => onloadedmetadata?.()}
 		>
 			<track kind="captions" src={subtitle} default />
 		</Video>
@@ -201,8 +246,8 @@
 				tabindex="0"
 				class="icon"
 				aria-label="play-pause-replay-button"
-				on:click={play_pause}
-				on:keydown={play_pause}
+				onclick={play_pause}
+				onkeydown={play_pause}
 			>
 				{#if time === duration}
 					<Undo />
@@ -216,21 +261,28 @@
 			<span class="time">{format_time(time)} / {format_time(duration)}</span>
 
 			<!-- TODO: implement accessible video timeline for 4.0 -->
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 			<progress
 				value={time / duration || 0}
-				on:mousemove={handleMove}
-				on:touchmove|preventDefault={handleMove}
-				on:click|stopPropagation|preventDefault={handle_click}
-			/>
+				onmousemove={handleMove}
+				ontouchmove={(e) => {
+					e.preventDefault();
+					handleMove(e);
+				}}
+				onclick={(e) => {
+					e.stopPropagation();
+					e.preventDefault();
+					handle_click(e);
+				}}
+			></progress>
 
 			<div class="volume-control-wrapper">
 				<button
 					class="icon volume-button"
 					style:color={show_volume_slider ? "var(--color-accent)" : "white"}
 					aria-label="Adjust volume"
-					on:click={() => (show_volume_slider = !show_volume_slider)}
+					onclick={() => (show_volume_slider = !show_volume_slider)}
 				>
 					<VolumeLevels currentVolume={current_volume} />
 				</button>
@@ -246,8 +298,8 @@
 					tabindex="0"
 					class="icon"
 					aria-label="full-screen"
-					on:click={open_full_screen}
-					on:keypress={open_full_screen}
+					onclick={open_full_screen}
+					onkeypress={open_full_screen}
 				>
 					<Maximize />
 				</div>

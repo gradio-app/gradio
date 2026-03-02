@@ -1,5 +1,19 @@
 # @gradio/slider
 
+## 0.7.6
+
+### Dependency updates
+
+- @gradio/utils@0.11.3
+- @gradio/atoms@0.22.0
+- @gradio/statustracker@0.12.4
+
+## 0.7.5
+
+### Fixes
+
+- [#12840](https://github.com/gradio-app/gradio/pull/12840) [`26cea7a`](https://github.com/gradio-app/gradio/commit/26cea7ad6fbaf0352f0dc0d44e37c24c8f1797f8) - Ensure change event fires when slider value changes to 0.  Thanks @hannahblair!
+
 ## 0.7.4
 
 ### Dependency updates

@@ -50,7 +50,7 @@
 		gradio.props.value = initial_value;
 	};
 
-	function handle_change({ detail }: CustomEvent<FileData | null>): void {
+	function handle_change(detail: FileData | null): void {
 		if (detail != null) {
 			gradio.props.value = detail as FileData;
 		} else {
@@ -58,7 +58,7 @@
 		}
 	}
 
-	function handle_error({ detail }: CustomEvent<string>): void {
+	function handle_error(detail: string): void {
 		const [level, status] = detail.includes("Invalid file type")
 			? ["warning", "complete"]
 			: ["error", "error"];
@@ -105,12 +105,12 @@
 				gradio.dispatch("custom_button_click", { id });
 			}}
 			bind:playback_position={gradio.props.playback_position}
-			on:play={() => gradio.dispatch("play")}
-			on:pause={() => gradio.dispatch("pause")}
-			on:stop={() => gradio.dispatch("stop")}
-			on:end={() => gradio.dispatch("end")}
-			on:share={({ detail }) => gradio.dispatch("share", detail)}
-			on:error={({ detail }) => gradio.dispatch("error", detail)}
+			onplay={() => gradio.dispatch("play")}
+			onpause={() => gradio.dispatch("pause")}
+			onstop={() => gradio.dispatch("stop")}
+			onend={() => gradio.dispatch("end")}
+			onshare={(detail) => gradio.dispatch("share", detail)}
+			onerror={(detail) => gradio.dispatch("error", detail)}
 			i18n={gradio.i18n}
 			upload={(...args) => gradio.shared.client.upload(...args)}
 		/>
@@ -144,9 +144,9 @@
 			bind:upload_promise
 			value={gradio.props.value}
 			subtitle={gradio.props.subtitles}
-			on:change={handle_change}
-			on:drag={({ detail }) => (dragging = detail)}
-			on:error={handle_error}
+			onchange={handle_change}
+			ondrag={(detail) => (dragging = detail)}
+			onerror={handle_error}
 			bind:uploading
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
@@ -163,21 +163,21 @@
 			loop={gradio.props.loop}
 			{handle_reset_value}
 			bind:playback_position={gradio.props.playback_position}
-			on:clear={() => {
+			onclear={() => {
 				gradio.props.value = null;
 				gradio.dispatch("clear");
 				gradio.dispatch("input");
 			}}
-			on:play={() => gradio.dispatch("play")}
-			on:pause={() => gradio.dispatch("pause")}
-			on:upload={() => {
+			onplay={() => gradio.dispatch("play")}
+			onpause={() => gradio.dispatch("pause")}
+			onupload={() => {
 				gradio.dispatch("upload");
 				gradio.dispatch("input");
 			}}
-			on:stop={() => gradio.dispatch("stop")}
-			on:end={() => gradio.dispatch("end")}
-			on:start_recording={() => gradio.dispatch("start_recording")}
-			on:stop_recording={() => gradio.dispatch("stop_recording")}
+			onstop={() => gradio.dispatch("stop")}
+			onend={() => gradio.dispatch("end")}
+			onstart_recording={() => gradio.dispatch("start_recording")}
+			onstop_recording={() => gradio.dispatch("stop_recording")}
 			i18n={gradio.i18n}
 			max_file_size={gradio.shared.max_file_size}
 			upload={(...args) => gradio.shared.client.upload(...args)}

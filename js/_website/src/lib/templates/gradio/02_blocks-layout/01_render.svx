@@ -1,4 +1,3 @@
-
 <script lang="ts">
     import {get_object} from "../../process_json.ts";
     import ParamTable from "$lib/components/ParamTable.svelte";
@@ -35,18 +34,16 @@ def hello(···):
 import gradio as gr
 
 with gr.Blocks() as demo:
-    input_text = gr.Textbox()
+    textbox = gr.Textbox(label="Enter text")
 
-    @gr.render(inputs=input_text)
-    def show_split(text):
-        if len(text) == 0:
-            gr.Markdown("## No Input Provided")
+    @gr.render(inputs=textbox)
+    def show_message(text):
+        if not text:
+            gr.Markdown("Please enter some text.")
         else:
-            for letter in text:
-                with gr.Row():
-                    text = gr.Textbox(letter)
-                    btn = gr.Button("Clear")
-                    btn.click(lambda: gr.Textbox(value=""), None, text)
+            gr.Markdown(f"You entered: {text}")
+
+demo.launch()
 ```
 {/if}
 
