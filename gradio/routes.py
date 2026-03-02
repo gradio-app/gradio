@@ -435,6 +435,7 @@ class App(FastAPI):
         strict_cors: bool = True,
         ssr_mode: bool = False,
         mcp_server: bool | None = None,
+        debug: bool = False,
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
@@ -444,7 +445,7 @@ class App(FastAPI):
         app_kwargs["lifespan"] = create_lifespan_handler(
             app_kwargs.get("lifespan", None), *delete_cache
         )
-        app = App(auth_dependency=auth_dependency, **app_kwargs, debug=True)
+        app = App(auth_dependency=auth_dependency, **app_kwargs, debug=debug)
         if blocks.mcp_server_obj:
             blocks.mcp_server_obj.launch_mcp_on_sse(app, mcp_subpath, blocks.root_path)
         router = APIRouter(prefix=API_PREFIX)
