@@ -1,6 +1,6 @@
 ---
-"gradio": minor
-"gradio_client": minor
+"gradio": patch
+"gradio_client": patch
 ---
 
-feat:perf: use deque for SSE pending message queues in gradio_client
+fix:perf: use deque for SSE pending message queues in gradio_client
