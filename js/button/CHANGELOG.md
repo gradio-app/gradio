@@ -1,5 +1,15 @@
 # @gradio/button
 
+## 0.6.4
+
+### Fixes
+
+- [#12911](https://github.com/gradio-app/gradio/pull/12911) [`dcfc429`](https://github.com/gradio-app/gradio/commit/dcfc429a8125204c3aafeabcab251dd7580f9a60) - Fix Button component ignoring the `scale` parameter.  Thanks @hztBUAA!
+
+### Dependency updates
+
+- @gradio/client@2.1.0
+
 ## 0.6.3
 
 ### Dependency updates

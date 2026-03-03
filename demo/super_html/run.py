@@ -1,3 +1,4 @@
+import os
 import gradio as gr
 
 
@@ -15,7 +16,11 @@ with gr.Blocks() as demo:
     """)
     with gr.Row():
         name1 = gr.Textbox(label="Name")
-        templated_html = gr.HTML("", html_template="<h1>Hello, {{value}}! ${value.length} letters</h1>", elem_id="templated")
+        templated_html = gr.HTML(
+            "",
+            html_template="<h1>Hello, {{value}}! ${value.length} letters</h1>",
+            elem_id="templated",
+        )
         name1.change(lambda x: x, inputs=name1, outputs=templated_html)
 
     gr.Markdown("""
@@ -23,11 +28,18 @@ with gr.Blocks() as demo:
     You are not limited to using `${value}` in the templates, you can add any number of custom tags to the template, and pass them to the component as keyword arguments. These props can be updated via python event listeners as well.
     """)
     with gr.Row():
-        templated_html_props = gr.HTML("John", html_template="""
-                            <h1 style="font-size: ${fontSize}px;">Hello, ${value}!</h1>
-                """, fontSize=30, elem_id="props")
+        templated_html_props = gr.HTML(
+            "John",
+            html_template="""
+                <h1 style="font-size: ${fontSize}px;">Hello, ${value}!</h1>
+            """,
+            fontSize=30,
+            elem_id="props",
+        )
         slider = gr.Slider(10, 100, value=30, label="Font Size")
-        slider.change(lambda x: gr.HTML(fontSize=x), inputs=slider, outputs=templated_html_props)
+        slider.change(
+            lambda x: gr.HTML(fontSize=x), inputs=slider, outputs=templated_html_props
+        )
 
     gr.Markdown("""
     # CSS Templating
@@ -37,25 +49,38 @@ with gr.Blocks() as demo:
         name2 = gr.Textbox(label="Person")
         color = gr.ColorPicker(label="Text Color", value="#00ff00")
         bold = gr.Checkbox(label="Bold Text", value=True)
-        templated_html_css = gr.HTML(["J", "o", "h", "n"], html_template="""
-                        <h1>Hello, ${value.join('')}!</h1>
-                        <ul>
-                          {{#each value}}
-                            <li>{{this}}</li>
-                          {{/each}}
-                        </ul>
-            """, css_template="""
-            h1, li {
-                color: ${color};
-                font-weight: ${bold ? 'bold' : 'normal'};
-            }
-        """, color="green", bold=True, elem_id="css")
+        templated_html_css = gr.HTML(
+            ["J", "o", "h", "n"],
+            html_template="""
+                <h1>Hello, ${value.join('')}!</h1>
+                <ul>
+                    {{#each value}}
+                    <li>{{this}}</li>
+                    {{/each}}
+                </ul>
+            """,
+            css_template="""
+                h1, li {
+                    color: ${color};
+                    font-weight: ${bold ? 'bold' : 'normal'};
+                }
+            """,
+            color="green",
+            bold=True,
+            elem_id="css",
+        )
     with gr.Row():
         btn = gr.Button("Update HTML")
         btn_blue = gr.Button("Make HTML Blue")
+
     def update_templated_html_css(name, color, bold):
         return gr.HTML(value=list(name), color=color, bold=bold)
-    btn.click(update_templated_html_css, inputs=[name2, color, bold], outputs=templated_html_css)
+
+    btn.click(
+        update_templated_html_css,
+        inputs=[name2, color, bold],
+        outputs=templated_html_css,
+    )
     btn_blue.click(lambda: gr.HTML(color="blue"), outputs=templated_html_css)
 
     gr.Markdown("""
@@ -83,19 +108,19 @@ with gr.Blocks() as demo:
             });
         });
         """,
-        elem_id="button_set"
+        elem_id="button_set",
     )
     clicked_box = gr.Textbox(label="Clicked")
 
     def on_button_click(evt: gr.EventData):
         return evt.clicked
-    
+
     button_set.click(on_button_click, outputs=clicked_box)
 
     gr.Markdown("""
     # JS Prop Changes
     You can also update `value` or any other prop of the component from JS using `props`, e.g., `props.value = "new value"` will update the `value` prop and re-render the HTML template.
-    """)    
+    """)
     form = gr.HTML(
         html_template="""
         <input type="text" value="${value}" id="text-input" />
@@ -120,7 +145,9 @@ with gr.Blocks() as demo:
             trigger('clear');
         });
     """,
-    valid=False, elem_id="form")
+        valid=False,
+        elem_id="form",
+    )
     output_box = gr.Textbox(label="Output Box")
     form.submit(lambda x: x, form, outputs=output_box)
     output_box.submit(lambda x: x, output_box, outputs=form)
@@ -129,6 +156,7 @@ with gr.Blocks() as demo:
     # Extending gr.HTML for new Components
     You can create your own Components by extending the gr.HTML class.
     """)
+
     class ListComponent(gr.HTML):
         def __init__(self, container=True, label="List", ordered=False, **kwargs):
             self.ordered = ordered
@@ -142,17 +170,29 @@ with gr.Blocks() as demo:
                 container=container,
                 label=label,
                 ordered=ordered,
-                **kwargs
+                **kwargs,
             )
 
-    l1 = ListComponent(label="Fruits", value=["Apple", "Banana", "Cherry"], elem_id="fruits")
-    l2 = ListComponent(label="Vegetables", value=["Carrot", "Broccoli", "Spinach"], elem_id="vegetables")
+    l1 = ListComponent(
+        label="Fruits", value=["Apple", "Banana", "Cherry"], elem_id="fruits"
+    )
+    l2 = ListComponent(
+        label="Vegetables",
+        value=["Carrot", "Broccoli", "Spinach"],
+        elem_id="vegetables",
+    )
 
     make_ordered_btn = gr.Button("Make Ordered")
     make_unordered_btn = gr.Button("Make Unordered")
 
-    make_ordered_btn.click(lambda: [ListComponent(ordered=True), ListComponent(ordered=True)], outputs=[l1, l2])
-    make_unordered_btn.click(lambda: [ListComponent(ordered=False), ListComponent(ordered=False)], outputs=[l1, l2])
+    make_ordered_btn.click(
+        lambda: [ListComponent(ordered=True), ListComponent(ordered=True)],
+        outputs=[l1, l2],
+    )
+    make_unordered_btn.click(
+        lambda: [ListComponent(ordered=False), ListComponent(ordered=False)],
+        outputs=[l1, l2],
+    )
 
     failed_template = gr.HTML(
         value=None,
@@ -161,8 +201,57 @@ with gr.Blocks() as demo:
         """,
     )
 
+    gr.Markdown("""
+    # File Upload via gr.HTML
+    The `upload` async function is available in `js_on_load`. It takes a JavaScript `File` object,
+    uploads it to the Gradio server, and returns the server-side file path as a string.
+    """)
+
+    upload_html = gr.HTML(
+        html_template="""
+        <div>
+            <input type="file" id="html-file-input" />
+            <button id="html-upload-btn" style="margin-left: 8px; padding: 4px 8px;">Upload</button>
+            <p id="html-upload-status">No file uploaded yet.</p>
+        </div>
+        """,
+        js_on_load="""
+        const input = element.querySelector('#html-file-input');
+        const btn = element.querySelector('#html-upload-btn');
+        const status = element.querySelector('#html-upload-status');
+
+        btn.addEventListener('click', async () => {
+            const file = input.files[0];
+            if (!file) {
+                status.textContent = 'Please select a file first.';
+                return;
+            }
+            status.textContent = 'Uploading...';
+            try {
+                const { path, url } = await upload(file);
+                status.textContent = 'Uploaded: ' + path;
+                trigger('upload', { path: path, url: url, name: file.name });
+            } catch (e) {
+                status.textContent = 'Upload failed: ' + e.message;
+            }
+        });
+        """,
+        elem_id="upload_html"
+    )
+    upload_result = gr.Textbox(label="Upload Result", elem_id="upload_result")
+
+    def on_html_upload(evt: gr.EventData):
+        return evt.path
+
+    upload_html.upload(on_html_upload, outputs=upload_result)
+
     class TodoList(gr.HTML):
-        def __init__(self, value: list[str] | None = None, completed: list[int] | None = None, **kwargs):
+        def __init__(
+            self,
+            value: list[str] | None = None,
+            completed: list[int] | None = None,
+            **kwargs,
+        ):
             self.completed = completed or []
             super().__init__(
                 html_template="""
@@ -196,28 +285,38 @@ with gr.Blocks() as demo:
                 """,
                 completed=self.completed,
                 value=value,
-                **kwargs
+                **kwargs,
             )
 
-    todo_list = TodoList(value=["Buy groceries", "Walk the dog", "Read a book"], completed=[1], elem_id="todo")
+    todo_list = TodoList(
+        value=["Buy groceries", "Walk the dog", "Read a book"],
+        completed=[1],
+        elem_id="todo",
+    )
 
     gr.Markdown("""
     # HTML Children
     Use `@children` in `html_template` to render child components inside the HTML wrapper.
     """)
-    with gr.HTML(html_template="""
+    with gr.HTML(
+        html_template="""
         <h2>${title}</h2>
         @children
         <button class="send">Send</button>
-    """, css_template="""
+    """,
+        css_template="""
         border: 2px solid gray;
         border-radius: 8px;
         padding: 16px;
-    """, js_on_load="""
+    """,
+        js_on_load="""
         element.querySelector('.send').addEventListener('click', () => {
             trigger('submit');
         });
-    """, title="Contact Form", elem_id="children_form") as children_form:
+    """,
+        title="Contact Form",
+        elem_id="children_form",
+    ) as children_form:
         children_name = gr.Textbox(label="Your Name")
         children_email = gr.Textbox(label="Your Email")
 
@@ -225,7 +324,55 @@ with gr.Blocks() as demo:
     children_form.submit(
         lambda name, email: f"Name: {name}, Email: {email}",
         inputs=[children_name, children_email],
-        outputs=children_output
+        outputs=children_output,
+    )
+
+    gr.Markdown("""
+    # Server Functions
+    You can call Python functions from `js_on_load` using the `server` object. Pass a list of functions via `server_functions` and they become available as async methods on the `server` object in your JavaScript code.
+    """)
+
+    def list_directory(path):
+        try:
+            items = sorted(os.listdir(path))
+            return [
+                {"name": item, "is_dir": os.path.isdir(os.path.join(path, item))}
+                for item in items[:20]
+            ]
+        except (FileNotFoundError, PermissionError):
+            return []
+
+    server_fn_html = gr.HTML(
+        value=os.path.dirname(__file__),
+        html_template="""
+            <div>
+                <p>Directory: <strong>${value}</strong></p>
+                <div id='server-fn-tree'></div>
+                <button id='server-fn-load'>Load Files</button>
+            </div>
+        """,
+        js_on_load="""
+            const loadBtn = element.querySelector('#server-fn-load');
+            const tree = element.querySelector('#server-fn-tree');
+            loadBtn.addEventListener('click', async () => {
+                tree.innerHTML = '<em>Loading...</em>';
+                const items = await server.list_directory(props.value);
+                tree.innerHTML = '';
+                items.forEach(item => {
+                    const el = document.createElement('div');
+                    el.textContent = (item.is_dir ? '📁 ' : '📄 ') + item.name;
+                    el.className = 'server-fn-item';
+                    tree.appendChild(el);
+                });
+            });
+        """,
+        css_template="""
+            #server-fn-tree { padding: 8px; min-height: 20px; }
+            .server-fn-item { padding: 2px 8px; }
+            #server-fn-load { padding: 6px 12px; margin-top: 8px; }
+        """,
+        server_functions=[list_directory],
+        elem_id="server_fns",
     )
 
 if __name__ == "__main__":

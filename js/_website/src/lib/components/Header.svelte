@@ -112,8 +112,8 @@
 		>
 			<a class="thin-link" href="/docs">API</a>
 			<a class="thin-link" href="/guides">Guides</a>
-			<a class="thin-link" href="/custom-components/gallery"
-				>Custom Components</a
+			<a class="thin-link" href="/custom-components/html-gallery"
+				>HTML Components</a
 			>
 			<div
 				class="help-menu-container flex flex-col gap-3 lg:group lg:relative lg:flex lg:cursor-pointer lg:items-center lg:gap-3"

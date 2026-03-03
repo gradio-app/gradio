@@ -1,5 +1,11 @@
 # @gradio/tabs
 
+## 0.5.7
+
+### Fixes
+
+- [#12925](https://github.com/gradio-app/gradio/pull/12925) [`ccff8b8`](https://github.com/gradio-app/gradio/commit/ccff8b8cacffe36a270fcea9fc8ba29b78c31c8d) - Walkthrough Selected Bug.  Thanks @freddyaboulton!
+
 ## 0.5.6
 
 ### Fixes

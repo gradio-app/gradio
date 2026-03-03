@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/html",
-	"version": "0.9.3",
+	"version": "0.11.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -9,6 +9,7 @@
 	"main_changeset": true,
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
+		"@gradio/client": "workspace:^",
 		"@gradio/icons": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/utils": "workspace:^",
