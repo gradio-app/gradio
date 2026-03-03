@@ -1,6 +1,6 @@
 ---
-"@gradio/markdown": minor
-"gradio": minor
+"@gradio/markdown": patch
+"gradio": patch
 ---
 
-feat:ensure `show_progress` applies as expected in `gr.Markdown`
+fix:ensure `show_progress` works as expected in `gr.Markdown`
