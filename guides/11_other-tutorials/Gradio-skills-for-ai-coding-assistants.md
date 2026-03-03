@@ -2,7 +2,7 @@
 
 Tags: CLI, AI, AGENTS
 
-AI coding assistants like [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [Cursor](https://cursor.com), [Codex](https://openai.com/index/codex/), and [OpenCode](https://opencode.ai) can write better Gradio code when they have access to up-to-date API knowledge. Gradio **skills** solve this — they are structured reference files that get loaded into your assistant's context so it knows exactly how Gradio components, events, and whole ecosystem work.
+AI coding assistants like [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [Cursor](https://cursor.com), [Codex](https://openai.com/index/codex/), and [OpenCode](https://opencode.ai) can write better Gradio code when they have access to up-to-date API knowledge. Gradio **skills** solve this — they are structured reference files that get loaded into your assistant's context so it knows exactly how Gradio's components, events, and ecosystem work.
 
 The `gradio skills add` command installs these reference files into the right location for your chosen assistant, so it can use them automatically.
 
