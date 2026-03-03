@@ -13,9 +13,6 @@ const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
 			60000
 		);
 
-		// Track response sizes via Playwright network events since the
-		// Resource Timing API does not expose body sizes without
-		// Timing-Allow-Origin headers.
 		const resourceSizes = { js: 0, css: 0, jsCount: 0, cssCount: 0 };
 		page.on("response", (response) => {
 			const url = response.url();
@@ -33,7 +30,6 @@ const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
 		await page.goto(`http://localhost:${port}`);
 		await page.waitForLoadState("networkidle");
 
-		// Stash sizes on the page so the test can read them
 		await page.evaluate(
 			(sizes) => ((window as any).__resourceSizes = sizes),
 			resourceSizes
@@ -46,7 +42,6 @@ const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
 });
 
 test("collect frontend performance metrics", async ({ perfPage: page }) => {
-	// Set up LCP observer before any interaction
 	await page.evaluate(() => {
 		(window as any).__lcpValue = 0;
 		new PerformanceObserver((list) => {
@@ -58,7 +53,6 @@ test("collect frontend performance metrics", async ({ perfPage: page }) => {
 		}).observe({ type: "largest-contentful-paint", buffered: true });
 	});
 
-	// Wait for LCP observer to fire
 	await page.waitForTimeout(1000);
 
 	const metrics = await page.evaluate(() => {
@@ -84,12 +78,10 @@ test("collect frontend performance metrics", async ({ perfPage: page }) => {
 		};
 	});
 
-	// Write results to file
 	fs.writeFileSync(PERF_RESULTS_FILE, JSON.stringify(metrics, null, 2));
 
 	console.log("Performance metrics:", JSON.stringify(metrics, null, 2));
 
-	// Basic sanity checks — these aren't thresholds, just ensure metrics collected
 	expect(metrics.dom_content_loaded_ms).toBeGreaterThan(0);
 	expect(metrics.page_load_ms).toBeGreaterThan(0);
 	expect(metrics.total_js_kb).toBeGreaterThan(0);

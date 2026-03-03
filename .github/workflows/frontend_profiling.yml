@@ -40,7 +40,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # --- Install and build PR branch ---
       - name: Install dependencies (PR)
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
@@ -50,7 +49,6 @@ jobs:
       - name: Install Playwright
         run: pnpm exec playwright install chromium
 
-      # --- Benchmark the PR branch ---
       - name: Run benchmark (PR)
         run: |
           . venv/bin/activate
@@ -59,7 +57,6 @@ jobs:
             js/spa/test/tabs.perf.spec.ts
           cat /tmp/bench_pr.json
 
-      # --- Benchmark the base branch ---
       - name: Checkout base branch
         run: git checkout ${{ github.event.pull_request.base.sha }}
 
@@ -82,7 +79,6 @@ jobs:
             js/spa/test/tabs.perf.spec.ts
           cat /tmp/bench_base.json
 
-      # --- Compare and report ---
       - name: Compare and report
         if: always()
         uses: actions/github-script@v7
@@ -129,7 +125,6 @@ jobs:
 
             body += `\n> Base: merge-base of \`${{ github.base_ref }}\` | Thresholds: timing warns at +25%, fails at +50%. Transfer size warns at +10%, fails at +25%.\n`;
 
-            // Post or update PR comment
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
