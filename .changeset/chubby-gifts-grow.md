@@ -1,6 +1,6 @@
 ---
-"@gradio/highlightedtext": minor
-"gradio": minor
+"@gradio/highlightedtext": patch
+"gradio": patch
 ---
 
-feat:feat(highlighted_text): add show_whitespaces param to preserve spaces
+fix:feat(highlighted_text): add show_whitespaces param to preserve spaces
