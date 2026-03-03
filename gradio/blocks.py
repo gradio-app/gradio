@@ -1261,7 +1261,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         derived_fields = ["types"]
 
-        with Blocks() as blocks:
+        with Blocks(theme=config.get("theme", None)) as blocks:
             # ID 0 should be the root Blocks component
             original_mapping[0] = root_block = Context.root_block or blocks
 
@@ -2716,6 +2716,7 @@ Received inputs:
             strict_cors=strict_cors,
             ssr_mode=self.ssr_mode,
             mcp_server=mcp_server,
+            debug=debug,
         )
         if self.mcp_error and not quiet:
             print(self.mcp_error)

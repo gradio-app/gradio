@@ -326,8 +326,13 @@ def handle_hf_error(e: Exception):
         raise TooManyRequestsError() from e
     elif "401" in str(e) or "You must provide an api_key" in str(e):
         raise Error("Unauthorized, please make sure you are signed in.") from e
+    elif isinstance(e, StopIteration):
+        raise Error(
+            "This model is not supported by any Hugging Face Inference Provider. "
+            "Please check the supported models at https://huggingface.co/docs/inference-providers."
+        ) from e
     else:
-        raise Error(str(e)) from e
+        raise Error(str(e) or f"An error occurred: {type(e).__name__}") from e
 
 
 def create_endpoint_fn(
