@@ -128,4 +128,5 @@ export interface AppConfig {
 	autoscroll: boolean;
 	api_prefix: string;
 	api_url: string;
+	fill_height?: boolean;
 }
