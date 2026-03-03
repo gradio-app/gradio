@@ -20,4 +20,6 @@ export interface HTMLEvents {
 	click: never;
 	submit: never;
 	custom_button_click: { id: number };
+	error: string;
+	clear_status: any;
 }

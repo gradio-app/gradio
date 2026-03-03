@@ -1,5 +1,22 @@
 # gradio
 
+## 6.8.0
+
+### Features
+
+- [#12909](https://github.com/gradio-app/gradio/pull/12909) [`362fba6`](https://github.com/gradio-app/gradio/commit/362fba6cff820076006e4865a573d9e67370957f) - Allow uploading files from gr.HTML.  Thanks @aliabid94!
+
+### Fixes
+
+- [#12928](https://github.com/gradio-app/gradio/pull/12928) [`e3710a3`](https://github.com/gradio-app/gradio/commit/e3710a3c189e87ac35e627f79c08530b003e7f9f) - Fix OOM error in gr.load.  Thanks @freddyaboulton!
+- [#12927](https://github.com/gradio-app/gradio/pull/12927) [`ca84f3e`](https://github.com/gradio-app/gradio/commit/ca84f3e36c6a3f3c3f0b57084b6f514d6cded1d4) - Fix Gallery CSS Issue.  Thanks @freddyaboulton!
+
+## 6.7.1
+
+### Features
+
+- [#12933](https://github.com/gradio-app/gradio/pull/12933) [`44a8a9f`](https://github.com/gradio-app/gradio/commit/44a8a9fe1316f1c110638c3c40158a75b6c0d135) - Fix border in gr.html as layout.  Thanks @aliabid94!
+
 ## 6.7.0
 
 ### Features

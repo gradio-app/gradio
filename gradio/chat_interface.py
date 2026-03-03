@@ -329,10 +329,10 @@ class ChatInterface(Blocks):
             )
             self.chatbot._setup_examples()
         else:
+            # Use default height of chatbot
             self.chatbot = Chatbot(
                 label=I18nData("chat_interface.chatbot"),
                 scale=1,
-                height=400 if self.fill_height else None,
                 autoscroll=self.autoscroll,
                 examples=(
                     self.examples_messages

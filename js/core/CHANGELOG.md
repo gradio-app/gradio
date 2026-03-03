@@ -2,6 +2,12 @@
 
 ## 1.3.0
 
+### Dependency updates
+
+- @gradio/html@0.11.0
+
+## 1.3.0
+
 ### Features
 
 - [#12918](https://github.com/gradio-app/gradio/pull/12918) [`e29e1cc`](https://github.com/gradio-app/gradio/commit/e29e1ccd5874cb98b813ed4f7f72d9fef2935016) - Add Space-specific skill generation to `gradio skills add`.  Thanks @abidlabs!
