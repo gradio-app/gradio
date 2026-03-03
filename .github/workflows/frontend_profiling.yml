@@ -40,7 +40,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install dependencies (PR)
+      - name: Checkout base branch
+        run: git checkout ${{ github.event.pull_request.base.sha }}
+
+      - name: Install dependencies (base)
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           python_version: "3.10"
@@ -48,25 +51,6 @@ jobs:
 
       - name: Install Playwright
         run: pnpm exec playwright install chromium
-
-      - name: Run benchmark (PR)
-        run: |
-          . venv/bin/activate
-          PERF_RESULTS_FILE=/tmp/bench_pr.json pnpm exec playwright test \
-            --config .config/playwright.config.js \
-            js/spa/test/tabs.perf.spec.ts
-          cat /tmp/bench_pr.json
-
-      - name: Checkout base branch
-        run: git checkout ${{ github.event.pull_request.base.sha }}
-
-      - name: Reinstall and rebuild base branch
-        run: |
-          . venv/bin/activate
-          uv pip install -e client/python
-          uv pip install -e ".[oauth,mcp]"
-          pnpm install --no-frozen-lockfile
-          pnpm build
 
       - name: Checkout benchmark spec from PR
         run: git checkout ${{ github.event.pull_request.head.sha }} -- js/spa/test/tabs.perf.spec.ts
@@ -78,6 +62,25 @@ jobs:
             --config .config/playwright.config.js \
             js/spa/test/tabs.perf.spec.ts
           cat /tmp/bench_base.json
+
+      - name: Checkout PR branch
+        run: git checkout ${{ github.event.pull_request.head.sha }}
+
+      - name: Reinstall and rebuild PR
+        run: |
+          . venv/bin/activate
+          uv pip install -e client/python
+          uv pip install -e ".[oauth,mcp]"
+          pnpm install --no-frozen-lockfile
+          pnpm build
+
+      - name: Run benchmark (PR)
+        run: |
+          . venv/bin/activate
+          PERF_RESULTS_FILE=/tmp/bench_pr.json pnpm exec playwright test \
+            --config .config/playwright.config.js \
+            js/spa/test/tabs.perf.spec.ts
+          cat /tmp/bench_pr.json
 
       - name: Compare and report
         if: always()

@@ -13,6 +13,11 @@ const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
 			60000
 		);
 
+		// Warmup load: primes OS, disk, browser, and Python caches
+		await page.goto(`http://localhost:${port}`);
+		await page.waitForLoadState("networkidle");
+
+		// Attach resource tracker after warmup so only the real load is measured
 		const resourceSizes = { js: 0, css: 0, jsCount: 0, cssCount: 0 };
 		page.on("response", (response) => {
 			const url = response.url();
@@ -27,7 +32,8 @@ const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
 			}
 		});
 
-		await page.goto(`http://localhost:${port}`);
+		// Real load: this is the one we measure
+		await page.reload();
 		await page.waitForLoadState("networkidle");
 
 		await page.evaluate(
