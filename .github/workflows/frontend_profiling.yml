@@ -59,18 +59,11 @@ jobs:
             js/spa/test/tabs.perf.spec.ts
           cat /tmp/bench_pr.json
 
-      # --- Benchmark the latest release ---
-      - name: Get latest release tag
-        id: release_tag
-        run: |
-          LATEST_TAG=$(git tag --list 'gradio@*' --sort=-version:refname | head -1)
-          echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
-          echo "Latest release tag: $LATEST_TAG"
+      # --- Benchmark the base branch ---
+      - name: Checkout base branch
+        run: git checkout ${{ github.event.pull_request.base.sha }}
 
-      - name: Checkout latest release
-        run: git checkout ${{ steps.release_tag.outputs.tag }}
-
-      - name: Reinstall and rebuild release
+      - name: Reinstall and rebuild base branch
         run: |
           . venv/bin/activate
           uv pip install -e client/python
@@ -81,7 +74,7 @@ jobs:
       - name: Checkout benchmark spec from PR
         run: git checkout ${{ github.event.pull_request.head.sha }} -- js/spa/test/tabs.perf.spec.ts
 
-      - name: Run benchmark (release)
+      - name: Run benchmark (base)
         run: |
           . venv/bin/activate
           PERF_RESULTS_FILE=/tmp/bench_base.json pnpm exec playwright test \
@@ -134,7 +127,7 @@ jobs:
             body += `\n| JS Resources | ${base.js_resource_count || '-'} | ${pr.js_resource_count || '-'} | | |\n`;
             body += `| CSS Resources | ${base.css_resource_count || '-'} | ${pr.css_resource_count || '-'} | | |\n`;
 
-            body += `\n> Base: \`${{ steps.release_tag.outputs.tag }}\` | Thresholds: timing warns at +25%, fails at +50%. Transfer size warns at +10%, fails at +25%.\n`;
+            body += `\n> Base: merge-base of \`${{ github.base_ref }}\` | Thresholds: timing warns at +25%, fails at +50%. Transfer size warns at +10%, fails at +25%.\n`;
 
             // Post or update PR comment
             const { data: comments } = await github.rest.issues.listComments({
