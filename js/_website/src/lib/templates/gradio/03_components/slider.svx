@@ -44,6 +44,39 @@ gradio.Slider(···)
 <ShortcutTable shortcuts={obj.string_shortcuts} />
 {/if}
 
+### Common Patterns
+
+#### Logarithmic scale
+
+Sliders are linear by default. For parameters that vary over several orders of magnitude (e.g. learning rate), map the slider value inside your function:
+
+```python
+import gradio as gr
+
+def train(lr_exp):
+    lr = 10 ** lr_exp  # slider value -5 → lr 0.00001
+    return f"Training with lr={lr}"
+
+demo = gr.Interface(
+    fn=train,
+    inputs=gr.Slider(-5, 0, value=-3, step=0.5, label="Learning rate (log₁₀)"),
+    outputs="text",
+)
+```
+
+#### Reacting on release only
+
+By default, the slider triggers a `change` event on every movement. For expensive operations, listen to `release` instead so the function only runs when the user lets go:
+
+```python
+import gradio as gr
+
+with gr.Blocks() as demo:
+    slider = gr.Slider(0, 100, label="Epochs")
+    output = gr.Textbox()
+    slider.release(fn=lambda v: f"Will train for {int(v)} epochs", inputs=slider, outputs=output)
+```
+
 {#if obj.demos && obj.demos.length > 0}
 <!--- Demos -->
 ### Demos 
