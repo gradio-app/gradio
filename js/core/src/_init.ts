@@ -233,13 +233,6 @@ export function create_components(
 		root: string;
 		dependencies: Dependency[];
 	}): void {
-		// components.forEach((c) => {
-		// 	for (const prop in c.props) {
-		// 		if (c.props[prop] === null) {
-		// 			c.props[prop] = undefined;
-		// 		}
-		// 	}
-		// });
 		let replacement_components: ComponentMeta[] = [];
 		let new_components: ComponentMeta[] = [];
 		components.forEach((c) => {
