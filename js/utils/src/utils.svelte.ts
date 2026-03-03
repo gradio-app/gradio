@@ -484,7 +484,15 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	}
 
 	async get_data() {
-		return $state.snapshot(this.props);
+		const shared = $state.snapshot(this.shared);
+		const props = $state.snapshot(this.props);
+		const result: Record<string, unknown> = { ...shared };
+		for (const key in props) {
+			if ((props as any)[key] !== undefined) {
+				result[key] = (props as any)[key];
+			}
+		}
+		return result;
 	}
 
 	update(data: Partial<U & SharedProps>): void {

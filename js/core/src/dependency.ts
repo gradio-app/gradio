@@ -170,7 +170,7 @@ type GetStateCallback = (id: number) => Promise<Record<string, unknown> | null>;
 type RerenderCallback = (
 	components: ComponentMeta[],
 	layout: LayoutNode
-) => void;
+) => Promise<void>;
 type LogCallback = (
 	title: string,
 	message: string,
@@ -219,7 +219,10 @@ export class DependencyManager {
 			check_visibility?: boolean
 		) => Promise<void>,
 		get_state_cb: (id: number) => Promise<Record<string, unknown> | null>,
-		rerender_cb: (components: ComponentMeta[], layout: LayoutNode) => void,
+		rerender_cb: (
+			components: ComponentMeta[],
+			layout: LayoutNode
+		) => Promise<void>,
 		log_cb: (
 			title: string,
 			message: string,
@@ -577,7 +580,7 @@ export class DependencyManager {
 								const { layout, components, render_id, dependencies } =
 									result.data;
 
-								this.rerender_cb(components, layout);
+								await this.rerender_cb(components, layout);
 								// update dependencies
 								const { by_id, by_event } = this.create(
 									dependencies as unknown as IDependency[]

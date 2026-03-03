@@ -68,6 +68,7 @@ export class AppTree {
 	#get_callbacks = new Map<number, get_data_type>();
 	#set_callbacks = new Map<number, set_data_type>();
 	#pending_updates = new Map<number, Record<string, unknown>>();
+	#preserved_values_cache = new Map<string | number, Record<string, unknown>>();
 	#event_dispatcher: (id: number, event: string, data: unknown) => void;
 	component_ids: number[];
 	initial_tabs: Record<number, Tab[]> = {};
@@ -373,7 +374,19 @@ export class AppTree {
 		return node;
 	}
 
-	rerender(components: ComponentMeta[], layout: LayoutNode) {
+	async rerender(components: ComponentMeta[], layout: LayoutNode) {
+		// Collect live values from existing keyed components and
+		// merge into persistent cache so values survive across rerenders
+		// (e.g., component removed then re-added).
+		const render_container = find_node_by_id(this.root!, layout.id);
+		if (render_container) {
+			await collect_keyed_values(
+				render_container,
+				this.#get_callbacks,
+				this.#preserved_values_cache
+			);
+		}
+
 		const component_map = components.reduce((map, comp) => {
 			map.set(comp.id, comp);
 			return map;
@@ -391,6 +404,10 @@ export class AppTree {
 		const subtree = this.traverse(_subtree, (node) =>
 			apply_initial_tabs(node, this.initial_tabs)
 		);
+
+		// Apply preserved values from persistent cache to new subtree
+		apply_preserved_by_key(subtree, this.#preserved_values_cache);
+
 		const n = find_node_by_id(this.root!, subtree.id);
 
 		if (!n) {
@@ -856,6 +873,50 @@ function find_node_by_id(
 	}
 
 	return null;
+}
+
+async function collect_keyed_values(
+	node: ProcessedComponentMeta,
+	get_callbacks: Map<number, get_data_type>,
+	values: Map<string | number, Record<string, unknown>>
+): Promise<void> {
+	if (node.key != null) {
+		const _get_data = get_callbacks.get(node.id);
+		if (_get_data) {
+			const data = await _get_data();
+			values.set(node.key, data);
+		}
+	}
+	for (const child of node.children) {
+		await collect_keyed_values(child, get_callbacks, values);
+	}
+}
+
+function apply_preserved_by_key(
+	node: ProcessedComponentMeta,
+	preserved_values: Map<string | number, Record<string, unknown>>
+): void {
+	if (node.key != null && preserved_values.has(node.key)) {
+		const preserved_props = node.props.props.preserved_by_key as
+			| string[]
+			| undefined;
+		if (preserved_props && preserved_props.length > 0) {
+			const live_values = preserved_values.get(node.key)!;
+			for (const prop of preserved_props) {
+				if (prop in live_values) {
+					if (allowed_shared_props.includes(prop as keyof SharedProps)) {
+						// @ts-ignore
+						node.props.shared_props[prop] = live_values[prop];
+					} else {
+						node.props.props[prop] = live_values[prop];
+					}
+				}
+			}
+		}
+	}
+	for (const child of node.children) {
+		apply_preserved_by_key(child, preserved_values);
+	}
 }
 
 function find_parent(
