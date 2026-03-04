@@ -124,7 +124,7 @@ class Number(FormComponent):
         elif precision == 0:
             return int(round(num, precision))
         else:
-            return round(num, precision)
+            return float(round(num, precision))
 
     @staticmethod
     def raise_if_out_of_bounds(

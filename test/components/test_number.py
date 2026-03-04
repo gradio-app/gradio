@@ -91,6 +91,25 @@ class TestNumber:
         assert numeric_input.postprocess(2.1421) == 2.14
         assert numeric_input.postprocess(None) is None
 
+    def test_precision_returns_float(self):
+        """
+        Ensure precision > 0 always returns float, even when decimal part is 0
+        """
+        numeric_input = gr.Number(precision=1, value=2.0)
+        result = numeric_input.preprocess(2)
+        assert result == 2.0
+        assert isinstance(result, float)
+        
+        result = numeric_input.postprocess(2)
+        assert result == 2.0
+        assert isinstance(result, float)
+        
+        # Test with precision=2
+        numeric_input2 = gr.Number(precision=2, value=2.0)
+        result2 = numeric_input2.preprocess(2.0)
+        assert result2 == 2.0
+        assert isinstance(result2, float)
+
     def test_raise_if_out_of_bounds(self):
         """
         raise_if_out_of_bounds
