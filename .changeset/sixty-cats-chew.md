@@ -5,6 +5,7 @@
 "@self/app": minor
 "@self/build": minor
 "@self/spa": minor
+"@self/tootils": minor
 "gradio": minor
 "gradio_client": minor
 ---
