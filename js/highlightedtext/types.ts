@@ -12,6 +12,7 @@ export interface HighlightedTextProps {
 	show_inline_category: boolean;
 	color_map: Record<string, string>;
 	combine_adjacent: boolean;
+	show_whitespaces: boolean;
 	rtl: boolean;
 	buttons: (string | CustomButton)[] | null;
 }

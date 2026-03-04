@@ -36,11 +36,55 @@ jobs:
         with:
           filter: "gradio"
           token: ${{ secrets.GITHUB_TOKEN }}
+  build:
+    permissions:
+      contents: read
+    name: "build"
+    needs: changes
+    if: needs.changes.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: install dependencies
+        id: install_deps
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        with:
+          python_version: "3.10"
+          os: "ubuntu-latest"
+          test: true
+      - name: Lint
+        run: |
+          . venv/bin/activate
+          ./scripts/lint_backend.sh
+      - name: Typecheck
+        run: |
+          . venv/bin/activate
+          ./scripts/type_check_backend.sh
+      - name: Build wheel
+        run: |
+          . venv/bin/activate
+          uv pip install build
+          python -m build
+      - name: Build gradio_client wheel
+        run: |
+          . venv/bin/activate
+          cd client/python
+          python -m build
+      - name: Upload gradio wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradio-wheel
+          path: dist/*.whl
+      - name: Upload gradio_client wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradio-client-wheel
+          path: client/python/dist/*.whl
   test:
     permissions:
       contents: read
     name: "test-${{ matrix.os }}-${{ matrix.test-type == 'flaky' && 'flaky' || 'not-flaky'}}"
-    needs: changes
+    needs: [changes, build]
     if: needs.changes.outputs.should_run == 'true'
     strategy:
       matrix:
@@ -53,6 +97,16 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
+      - name: Download gradio wheel
+        uses: actions/download-artifact@v4
+        with:
+          name: gradio-wheel
+          path: dist/
+      - name: Download gradio_client wheel
+        uses: actions/download-artifact@v4
+        with:
+          name: gradio-client-wheel
+          path: client-dist/
       - name: install dependencies
         id: install_deps
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
@@ -60,26 +114,45 @@ jobs:
           python_version: "3.10"
           os: ${{ matrix.os }}
           test: true
-      - name: Lint
-        if: runner.os == 'Linux'
+          skip_build: true
+          skip_gradio_install: true
+      - name: Install gradio_client wheel
+        shell: bash
         run: |
-          . venv/bin/activate
-          ./scripts/lint_backend.sh
-      - name: Typecheck
-        if: runner.os == 'Linux'
+          . ${{steps.install_deps.outputs.venv_activate}}
+          uv pip install client-dist/*.whl
+      - name: Install gradio wheel
+        shell: bash
         run: |
-          . venv/bin/activate
-          ./scripts/type_check_backend.sh
+          . ${{steps.install_deps.outputs.venv_activate}}
+          uv pip install "$(ls dist/*.whl)[oauth,mcp]"
       - name: uv pip freeze
+        shell: bash
         run: |
           . ${{steps.install_deps.outputs.venv_activate}}
           uv pip freeze
+      - name: Generate .pyi files
+        shell: bash
+        run: |
+          . ${{steps.install_deps.outputs.venv_activate}}
+          python -c "import gradio"
+      - name: Copy wheels for docker tests
+        shell: bash
+        run: |
+          cp dist/*.whl test/test_docker/
+          cp client-dist/*.whl test/test_docker/
+      - name: Remove local gradio source to use installed wheel
+        shell: bash
+        run: |
+          find gradio -name "__init__.py" -delete
       - name: Run parallel tests
+        shell: bash
         run: |
           . ${{steps.install_deps.outputs.venv_activate}}
           python -m pytest -n auto -m "${{ matrix.test-type }} and not serial"
       - name: Run non-flaky serial tests
         if: matrix.test-type == 'not flaky'
+        shell: bash
         run: |
           . ${{steps.install_deps.outputs.venv_activate}}
           python -m pytest -m "${{ matrix.test-type }} and serial"

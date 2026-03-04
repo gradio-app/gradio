@@ -15,6 +15,7 @@ from gradio_client.exceptions import AppError
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
+import gradio as gr
 from gradio import EventData, Request
 from gradio.exceptions import Error
 from gradio.external_utils import format_ner_list
@@ -938,3 +939,41 @@ class TestGetFunctionDescription:
         assert parameters == {}
         assert returns == []
         assert description == "This is the docstring from the parent class."
+
+
+class TestConnectHeartbeat:
+    def test_unload_registered_last(self):
+        with gr.Blocks() as demo:
+            msg = gr.Markdown("# Test")
+            gr.Button("Click").click(lambda: "# TADA!", outputs=[msg])
+            demo.unload(lambda: None)
+
+        config = demo.get_config_file()
+        assert config["connect_heartbeat"] is True
+
+    def test_unload_registered_first(self):
+        with gr.Blocks() as demo:
+            demo.unload(lambda: None)
+            msg = gr.Markdown("# Test")
+            gr.Button("Click").click(lambda: "# TADA!", outputs=[msg])
+
+        config = demo.get_config_file()
+        assert config["connect_heartbeat"] is True
+
+    def test_unload_registered_in_middle(self):
+        with gr.Blocks() as demo:
+            msg = gr.Markdown("# Test")
+            gr.Button("Click1").click(lambda: "# 1", outputs=[msg])
+            demo.unload(lambda: None)
+            gr.Button("Click2").click(lambda: "# 2", outputs=[msg])
+
+        config = demo.get_config_file()
+        assert config["connect_heartbeat"] is True
+
+    def test_no_unload_no_heartbeat(self):
+        with gr.Blocks() as demo:
+            msg = gr.Markdown("# Test")
+            gr.Button("Click").click(lambda: "# TADA!", outputs=[msg])
+
+        config = demo.get_config_file()
+        assert config["connect_heartbeat"] is False
