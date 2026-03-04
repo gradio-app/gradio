@@ -5,6 +5,7 @@ import { createRequire } from "module";
 import { readFileSync } from "fs";
 import { type ComponentConfig } from "./dev";
 import type { PreprocessorGroup } from "svelte/compiler";
+import { sveltePreprocess } from "svelte-preprocess";
 
 const svelte_codes_to_ignore: Record<string, string> = {
 	"reactive-component": "Icon"
@@ -45,7 +46,17 @@ export function plugins(config: ComponentConfig): PluginOption[] {
 				hmr: true
 			},
 			extensions: _svelte_extensions,
-			preprocess: [...(_additional_svelte_preprocess as PreprocessorGroup[])]
+			preprocess: [
+				sveltePreprocess({
+					typescript: {
+						compilerOptions: {
+							declaration: false,
+							declarationMap: false
+						}
+					}
+				}),
+				...(_additional_svelte_preprocess as PreprocessorGroup[])
+			]
 		}),
 		..._additional_plugins
 	];
