@@ -5,6 +5,16 @@ import fs from "fs";
 const PERF_RESULTS_FILE =
 	process.env.PERF_RESULTS_FILE || "/tmp/perf_results.json";
 
+const ITERATIONS = 5;
+
+function median(values: number[]): number {
+	const sorted = [...values].sort((a, b) => a - b);
+	const mid = Math.floor(sorted.length / 2);
+	return sorted.length % 2 !== 0
+		? sorted[mid]
+		: Math.round((sorted[mid - 1] + sorted[mid]) / 2);
+}
+
 const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
 	perfPage: async ({ page }, use, testInfo) => {
 		const { port, process: appProcess } = await launchGradioApp(
@@ -13,32 +23,82 @@ const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
 			60000
 		);
 
-		// Warmup load: primes OS, disk, browser, and Python caches
-		await page.goto(`http://localhost:${port}`);
-		await page.waitForLoadState("networkidle");
+		const url = `http://localhost:${port}`;
 
-		// Attach resource tracker after warmup so only the real load is measured
+		// Warmup load: primes OS, disk, browser, and Python caches
+		// Also capture resource sizes (deterministic, only need one measurement)
 		const resourceSizes = { js: 0, css: 0, jsCount: 0, cssCount: 0 };
-		page.on("response", (response) => {
-			const url = response.url();
+		const responseHandler = (response: any): void => {
+			const rUrl = response.url();
 			const headers = response.headers();
 			const bytes = parseInt(headers["content-length"] || "0", 10);
-			if (url.endsWith(".js") || url.endsWith(".mjs")) {
+			if (rUrl.endsWith(".js") || rUrl.endsWith(".mjs")) {
 				resourceSizes.js += bytes;
 				resourceSizes.jsCount++;
-			} else if (url.endsWith(".css")) {
+			} else if (rUrl.endsWith(".css")) {
 				resourceSizes.css += bytes;
 				resourceSizes.cssCount++;
 			}
-		});
+		};
 
-		// Real load: this is the one we measure
-		await page.reload();
+		page.on("response", responseHandler);
+		await page.goto(url);
 		await page.waitForLoadState("networkidle");
+		page.removeListener("response", responseHandler);
+
+		// Measured iterations: collect timing metrics from each
+		const domContentLoadedValues: number[] = [];
+		const pageLoadValues: number[] = [];
+		const lcpValues: number[] = [];
+
+		for (let i = 0; i < ITERATIONS; i++) {
+			await page.goto(url);
+			await page.waitForLoadState("networkidle");
+
+			// Set up buffered LCP observer to capture LCP retroactively
+			await page.evaluate(() => {
+				(window as any).__lcpValue = 0;
+				new PerformanceObserver((list) => {
+					const entries = list.getEntries();
+					if (entries.length > 0) {
+						(window as any).__lcpValue =
+							entries[entries.length - 1].startTime;
+					}
+				}).observe({ type: "largest-contentful-paint", buffered: true });
+			});
+
+			await page.waitForTimeout(500);
+
+			const timings = await page.evaluate(() => {
+				const nav = performance.getEntriesByType(
+					"navigation"
+				)[0] as PerformanceNavigationTiming;
+				return {
+					domContentLoaded: Math.round(nav.domContentLoadedEventEnd),
+					pageLoad: Math.round(nav.loadEventEnd),
+					lcp: Math.round((window as any).__lcpValue || 0)
+				};
+			});
+
+			domContentLoadedValues.push(timings.domContentLoaded);
+			pageLoadValues.push(timings.pageLoad);
+			lcpValues.push(timings.lcp);
+		}
+
+		// Compute medians and stash combined results
+		const perfMetrics = {
+			dom_content_loaded_ms: median(domContentLoadedValues),
+			page_load_ms: median(pageLoadValues),
+			lcp_ms: median(lcpValues),
+			total_js_kb: Math.round(resourceSizes.js / 1024),
+			total_css_kb: Math.round(resourceSizes.css / 1024),
+			js_resource_count: resourceSizes.jsCount,
+			css_resource_count: resourceSizes.cssCount
+		};
 
 		await page.evaluate(
-			(sizes) => ((window as any).__resourceSizes = sizes),
-			resourceSizes
+			(m) => ((window as any).__perfMetrics = m),
+			perfMetrics
 		);
 
 		await use(page);
@@ -48,41 +108,7 @@ const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
 });
 
 test("collect frontend performance metrics", async ({ perfPage: page }) => {
-	await page.evaluate(() => {
-		(window as any).__lcpValue = 0;
-		new PerformanceObserver((list) => {
-			const entries = list.getEntries();
-			if (entries.length > 0) {
-				(window as any).__lcpValue =
-					entries[entries.length - 1].startTime;
-			}
-		}).observe({ type: "largest-contentful-paint", buffered: true });
-	});
-
-	await page.waitForTimeout(1000);
-
-	const metrics = await page.evaluate(() => {
-		const nav = performance.getEntriesByType(
-			"navigation"
-		)[0] as PerformanceNavigationTiming;
-
-		const sizes = (window as any).__resourceSizes || {
-			js: 0,
-			css: 0,
-			jsCount: 0,
-			cssCount: 0
-		};
-
-		return {
-			dom_content_loaded_ms: Math.round(nav.domContentLoadedEventEnd),
-			page_load_ms: Math.round(nav.loadEventEnd),
-			lcp_ms: Math.round((window as any).__lcpValue || 0),
-			total_js_kb: Math.round(sizes.js / 1024),
-			total_css_kb: Math.round(sizes.css / 1024),
-			js_resource_count: sizes.jsCount,
-			css_resource_count: sizes.cssCount
-		};
-	});
+	const metrics = await page.evaluate(() => (window as any).__perfMetrics);
 
 	fs.writeFileSync(PERF_RESULTS_FILE, JSON.stringify(metrics, null, 2));
 

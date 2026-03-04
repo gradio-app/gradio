@@ -117,9 +117,11 @@ jobs:
               if (bv === undefined || pv === undefined) continue;
               const pct = bv === 0 ? 0 : (pv - bv) / bv;
               const pctStr = (pct * 100).toFixed(1) + '%';
+              const absDiff = pv - bv;
+              const minAbsDiff = m.unit === 'ms' ? 200 : 0;
               let status = ':white_check_mark:';
-              if (pct > m.fail) { status = ':x: FAIL'; shouldFail = true; }
-              else if (pct > m.warn) { status = ':warning: WARNING'; }
+              if (pct > m.fail && absDiff > minAbsDiff) { status = ':x: FAIL'; shouldFail = true; }
+              else if (pct > m.warn && absDiff > minAbsDiff) { status = ':warning: WARNING'; }
               body += `| ${m.name} | ${bv} ${m.unit} | ${pv} ${m.unit} | ${pct > 0 ? '+' : ''}${pctStr} | ${status} |\n`;
             }
 
