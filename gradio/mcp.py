@@ -28,6 +28,7 @@ from gradio import processing_utils, route_utils, utils
 from gradio.blocks import BlockFunction
 from gradio.components import State
 from gradio.route_utils import Header
+from gradio.state_holder import SessionState
 
 if TYPE_CHECKING:
     from mcp import types  # noqa: F401
@@ -394,26 +395,48 @@ class GradioMCPServer:
                 name: The name of the tool to call.
                 arguments: The arguments to pass to the tool.
             """
-            progress_token = None
-            if self.mcp_server.request_context.meta is not None:
-                progress_token = self.mcp_server.request_context.meta.progressToken
-
-            client = await run_sync(self._get_or_create_client)
             endpoint_name, processed_args, request_headers, block_fn = (
                 self._prepare_tool_call_args(name, arguments)
             )
             processed_args = self.insert_empty_state(block_fn.inputs, processed_args)
-            job = client.submit(
-                *processed_args, api_name=endpoint_name, headers=request_headers
-            )
 
-            if progress_token is None or not block_fn.queue:
-                output_data = await self._execute_tool_without_progress(job)
-            else:
-                output_data = await self._execute_tool_with_progress(  # type: ignore
-                    job,
-                    progress_token,  # type: ignore
+            if not block_fn.queue:
+                # Fast path for non-queued events: call blocks.process_api()
+                # directly instead of the HTTP loopback through gradio_client.
+                # This eliminates thread dispatches, TCP round-trips, and SSE
+                # overhead — reducing MCP tool-call latency significantly.
+                session_state = SessionState(self.blocks)
+                raw_output = await self.blocks.process_api(
+                    block_fn=block_fn,
+                    inputs=processed_args,
+                    state=session_state,
                 )
+                output_data = raw_output["data"]
+            else:
+                # Queued path: use the HTTP loopback to preserve streaming
+                # updates, progress notifications, and queue-based features.
+                progress_token = None
+                if self.mcp_server.request_context.meta is not None:
+                    progress_token = (
+                        self.mcp_server.request_context.meta.progressToken
+                    )
+
+                client = await run_sync(self._get_or_create_client)
+                job = client.submit(
+                    *processed_args,
+                    api_name=endpoint_name,
+                    headers=request_headers,
+                )
+
+                if progress_token is None:
+                    output_data = await self._execute_tool_without_progress(
+                        job
+                    )
+                else:
+                    output_data = await self._execute_tool_with_progress(
+                        job,
+                        progress_token,
+                    )
 
             output_data = self.pop_returned_state(block_fn.outputs, output_data)
 
