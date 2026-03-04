@@ -181,6 +181,8 @@ star_rating.push_to_hub(
 
 This opens a pull request on the gallery's HuggingFace dataset repo. Once approved, your component will appear in the gallery for others to discover and use.
 
+Tip: The  `push_to_hub` method has a `head` parameter that deserves special attention. If your component uses an external library loaded via the `head` parameter of `launch` (e.g. `head='<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>'`), pass the same `head` string to `push_to_hub` so that the gallery can load those scripts when rendering your component.
+
 ### Authentication
 
 You need a HuggingFace **write token** to push components. Either pass it directly:
@@ -194,27 +196,6 @@ Or log in beforehand with the HuggingFace CLI, and the cached token will be used
 ```bash
 huggingface-cli login
 ```
-
-### Parameters
-
-| Parameter | Description |
-|---|---|
-| `name` | Display name for the component. Defaults to the class name (for subclasses) or the `label`. |
-| `description` | Short description of what the component does. |
-| `author` | Author name, typically your HuggingFace username. |
-| `tags` | List of tags for search and filtering in the gallery (e.g. `["input", "rating"]`). |
-| `repo_url` | URL to the source repo (GitHub, HuggingFace Spaces, etc.). |
-| `head` | Raw HTML to inject into `<head>`. Only needed if your component relies on external scripts or stylesheets loaded via `head` in the parent Gradio app. |
-| `token` | HuggingFace token. If `None`, uses the cached token from `huggingface-cli login`. |
-
-The `head` parameter deserves special attention. If your component uses an external library loaded via the `head` parameter of `launch` (e.g. `head='<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>'`), pass the same `head` string to `push_to_hub` so that the gallery can load those scripts when rendering your component.
-
-### How components render in the gallery
-
-The gallery renders each component live using the same `BaseHTML` engine that powers `gr.HTML` in your Gradio app, so visitors can interact with your component directly in the browser. There are two special cases the gallery handles automatically:
-
-- **`position: fixed` CSS**: Components that use `position: fixed` in their `css_template` (e.g. sidebars, modals, toasts) are rendered inside an iframe so they don't escape their gallery card. Your component doesn't need any changes. The gallery detects `position: fixed` and isolates it automatically.
-- **`@children` templates**: Components whose `html_template` contains the `@children` placeholder are rendered with a sample child component (a button) so visitors can see how the layout works.
 
 ## Security Considerations
 
