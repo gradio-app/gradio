@@ -1,8 +1,12 @@
 <script lang="ts">
 	import BaseHTML from "@gradio/html/base";
+	import { BaseButton } from "@gradio/button";
 	import CopyButton from "$lib/icons/CopyButton.svelte";
 	import { highlight } from "$lib/prism";
+	import { browser } from "$app/environment";
+	import { theme } from "$lib/stores/theme";
 	import type { ManifestEntry, HTMLComponentEntry } from "./types";
+	import { needs_iframe, build_srcdoc } from "./utils";
 
 	export let manifest: ManifestEntry;
 	export let full_data: HTMLComponentEntry | null = null;
@@ -18,6 +22,15 @@
 	$: highlighted_html = component
 		? highlight(component.python_code, "python")
 		: "";
+	$: use_iframe = component ? needs_iframe(component.css_template) : false;
+	$: has_children_slot =
+		component?.html_template?.includes("@children") ?? false;
+	$: is_dark = $theme === "dark";
+
+	let iframe_el: HTMLIFrameElement;
+	$: if (browser && iframe_el && component && use_iframe) {
+		iframe_el.srcdoc = build_srcdoc(component, initial_props, is_dark);
+	}
 
 	function handle_maximize() {
 		if (component) {
@@ -131,14 +144,47 @@
 			{/if}
 		{:else if component}
 			<div class="component-container">
-				<BaseHTML
-					props={initial_props}
-					html_template={component.html_template}
-					css_template={component.css_template}
-					js_on_load={component.js_on_load}
-					head={component.head || null}
-					apply_default_css={true}
-				/>
+				{#if use_iframe}
+					<iframe
+						bind:this={iframe_el}
+						class="component-iframe"
+						title="{manifest.name} preview"
+						sandbox="allow-scripts"
+					></iframe>
+				{:else if has_children_slot}
+					<BaseHTML
+						props={initial_props}
+						html_template={component.html_template}
+						css_template={component.css_template}
+						js_on_load={component.js_on_load}
+						head={component.head || null}
+						apply_default_css={true}
+					>
+						<BaseButton
+							variant="primary"
+							size="md"
+							value={null}
+							visible={true}
+							link={null}
+							link_target="_self"
+							icon={null}
+							disabled={false}
+							scale={null}
+							min_width={undefined}
+							elem_id={null}
+							elem_classes={[]}>Click Me</BaseButton
+						>
+					</BaseHTML>
+				{:else}
+					<BaseHTML
+						props={initial_props}
+						html_template={component.html_template}
+						css_template={component.css_template}
+						js_on_load={component.js_on_load}
+						head={component.head || null}
+						apply_default_css={true}
+					/>
+				{/if}
 			</div>
 		{:else}
 			<div class="loading-placeholder">
@@ -289,6 +335,13 @@
 		max-height: 280px;
 		overflow: auto;
 		color: var(--body-text-color);
+	}
+
+	.component-iframe {
+		width: 100%;
+		height: 280px;
+		border: none;
+		border-radius: 4px;
 	}
 
 	.component-container :global(.prose) {

@@ -2,6 +2,7 @@
 	import "$lib/assets/theme.css";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import BaseHTML from "@gradio/html/base";
+	import { BaseButton } from "@gradio/button";
 	import CopyButton from "$lib/icons/CopyButton.svelte";
 	import { highlight } from "$lib/prism";
 	import { page } from "$app/stores";
@@ -9,9 +10,11 @@
 	import { tick, onMount } from "svelte";
 	import ComponentEntry from "./ComponentEntry.svelte";
 	import type { ManifestEntry, HTMLComponentEntry } from "./types";
+	import { needs_iframe, build_srcdoc } from "./utils";
+	import { theme } from "$lib/stores/theme";
 
 	const BASE_URL =
-		"https://huggingface.co/datasets/gradio/custom-html-gallery/resolve/main";
+		"https://huggingface.co/datasets/gradio/custom-html-gallery/resolve/refs%2Fpr%2F4";
 
 	let manifest: ManifestEntry[] = [];
 	let component_cache: Record<string, HTMLComponentEntry> = {};
@@ -133,6 +136,23 @@
 	$: maximized_highlighted = maximized_component
 		? highlight(maximized_component.python_code, "python")
 		: "";
+	$: maximized_use_iframe = maximized_component
+		? needs_iframe(maximized_component.css_template)
+		: false;
+
+	let modal_iframe_el: HTMLIFrameElement;
+	$: if (
+		browser &&
+		modal_iframe_el &&
+		maximized_component &&
+		maximized_use_iframe
+	) {
+		modal_iframe_el.srcdoc = build_srcdoc(
+			maximized_component,
+			maximized_props,
+			$theme === "dark"
+		);
+	}
 
 	async function open_maximized(comp: HTMLComponentEntry) {
 		maximized_component = comp;
@@ -271,14 +291,47 @@
 						</div>
 					{:else}
 						<div class="modal-component-container">
-							<BaseHTML
-								props={maximized_props}
-								html_template={maximized_component.html_template}
-								css_template={maximized_component.css_template}
-								js_on_load={maximized_component.js_on_load}
-								head={maximized_component.head || null}
-								apply_default_css={true}
-							/>
+							{#if maximized_use_iframe}
+								<iframe
+									bind:this={modal_iframe_el}
+									class="modal-iframe"
+									title="{maximized_component.name} preview"
+									sandbox="allow-scripts"
+								></iframe>
+							{:else if maximized_component.html_template.includes("@children")}
+								<BaseHTML
+									props={maximized_props}
+									html_template={maximized_component.html_template}
+									css_template={maximized_component.css_template}
+									js_on_load={maximized_component.js_on_load}
+									head={maximized_component.head || null}
+									apply_default_css={true}
+								>
+									<BaseButton
+										variant="primary"
+										size="md"
+										value={null}
+										visible={true}
+										link={null}
+										link_target="_self"
+										icon={null}
+										disabled={false}
+										scale={null}
+										min_width={undefined}
+										elem_id={null}
+										elem_classes={[]}>Click Me</BaseButton
+									>
+								</BaseHTML>
+							{:else}
+								<BaseHTML
+									props={maximized_props}
+									html_template={maximized_component.html_template}
+									css_template={maximized_component.css_template}
+									js_on_load={maximized_component.js_on_load}
+									head={maximized_component.head || null}
+									apply_default_css={true}
+								/>
+							{/if}
 						</div>
 					{/if}
 				</div>
@@ -455,6 +508,13 @@
 		min-height: 300px;
 		color: var(--body-text-color);
 		width: 100%;
+	}
+
+	.modal-iframe {
+		width: 100%;
+		height: 600px;
+		border: none;
+		border-radius: 8px;
 	}
 
 	.modal-component-container :global(.prose),
