@@ -327,7 +327,7 @@ class GradioMCPServer:
         return None
 
     async def _execute_tool_with_progress(  # type: ignore
-        self, job: Any, progress_token: str
+        self, job: Any, progress_token: str | int
     ) -> dict[str, Any]:
         """
         Execute a tool call with progress tracking (streaming path).
