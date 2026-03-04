@@ -16,7 +16,6 @@ import type {
 import { spy, type Spy } from "tinyspy";
 import { GRADIO_ROOT, allowed_shared_props } from "@gradio/utils";
 import type { LoadingStatus } from "@gradio/statustracker";
-import { get } from "svelte/store";
 import { _ } from "svelte-i18n";
 
 const containerCache = new Map();
@@ -105,7 +104,9 @@ export async function render<
 		show_progress: true,
 		api_prefix: "",
 		server: {} as any,
-		show_label: true
+		show_label: true,
+		register_component: () => {},
+		dispatcher: () => {}
 	};
 
 	const component_props_obj: Record<string, any> = {
@@ -146,33 +147,6 @@ export async function render<
 
 	type event_name = string;
 
-	function listen(event: event_name): Spy {
-		const mock = spy();
-		target.addEventListener("gradio", (e: Event) => {
-			if (isCustomEvent(e)) {
-				if (e.detail.event === event && e.detail.id === id) {
-					mock(e);
-				}
-			}
-		});
-
-		return mock;
-	}
-
-	async function wait_for_event(event: event_name): Promise<Spy> {
-		return new Promise((res) => {
-			const mock = spy();
-			target.addEventListener("gradio", (e: Event) => {
-				if (isCustomEvent(e)) {
-					if (e.detail.event === event && e.detail.id === id) {
-						mock(e);
-						res(mock);
-					}
-				}
-			});
-		});
-	}
-
 	return {
 		container,
 		component,
@@ -183,9 +157,7 @@ export async function render<
 				unmount(component);
 			}
 		},
-		...getQueriesForElement(container),
-		listen,
-		wait_for_event
+		...getQueriesForElement(container)
 	};
 }
 

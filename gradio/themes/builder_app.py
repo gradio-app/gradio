@@ -449,9 +449,11 @@ with gr.Blocks(  # noqa: SIM117
                     chat_btn = gr.Button("Add messages")
 
                     chat_btn.click(
-                        lambda history: history
-                        + [["How are you?", "I am good."]]
-                        + (time.sleep(2) or []),
+                        lambda history: (
+                            history
+                            + [["How are you?", "I am good."]]
+                            + (time.sleep(2) or [])
+                        ),
                         chatbot,
                         chatbot,
                         api_visibility="private",
