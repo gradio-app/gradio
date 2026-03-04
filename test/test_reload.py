@@ -54,47 +54,24 @@ class TestReload:
         assert demo_dir in config.watch_dirs
 
 
-def test_reload_exec_does_not_stringify_annotations(tmp_path):
-    """Verify that watchfn's exec does not stringify user annotations.
+def test_watchfn_does_not_inherit_future_annotations():
+    """The watchfn function must not carry CO_FUTURE_ANNOTATIONS.
 
-    If gradio/utils.py uses `from __future__ import annotations`, a bare
-    exec(source_string, ...) called from that module inherits the
-    CO_FUTURE_ANNOTATIONS flag, turning all annotations into ForwardRef
-    strings.  This breaks libraries (e.g. langgraph) that call
-    get_type_hints() on user-defined TypedDict classes with Annotated types.
-
-    The fix is to ensure utils.py does NOT use `from __future__ import
-    annotations`, so exec() in watchfn preserves eager annotation evaluation.
+    When a module uses `from __future__ import annotations`, every
+    exec(source_string, ...) called from that module inherits the flag and
+    stringifies all annotations in the exec'd code.  This breaks libraries
+    (e.g. langgraph) that call get_type_hints() on user-defined classes with
+    Annotated types during hot reload.
 
     Regression test for https://github.com/gradio-app/gradio/issues/12090
     """
-    import types
-    from typing import ForwardRef
+    import __future__
 
-    # Write a demo file that uses Annotated in a TypedDict
-    demo_file = tmp_path / "app.py"
-    demo_file.write_text(
-        "from typing import Annotated, TypedDict, Sequence\n"
-        "import gradio as gr\n"
-        "\n"
-        "class State(TypedDict):\n"
-        "    messages: Annotated[Sequence[str], 'reducer']\n"
-        "\n"
-        "with gr.Blocks() as demo:\n"
-        "    gr.Textbox()\n"
-    )
+    from gradio.utils import watchfn
 
-    module = types.ModuleType("__main__")
-    module.__builtins__ = __builtins__  # ty: ignore
-    module.__file__ = str(demo_file)
-
-    # Simulate what watchfn does: read source and exec it
-    source = demo_file.read_text()
-    exec(source, module.__dict__)  # noqa: S102
-
-    State = module.__dict__["State"]  # noqa: N806
-    ann = State.__dict__["__annotations__"]["messages"]
-    assert not isinstance(ann, (str, ForwardRef)), (
-        f"Annotation should be an actual type, not {type(ann).__name__}. "
-        "exec() is likely inheriting CO_FUTURE_ANNOTATIONS from the caller."
+    flag = __future__.annotations.compiler_flag
+    assert not (watchfn.__code__.co_flags & flag), (
+        "watchfn has CO_FUTURE_ANNOTATIONS set. "
+        "Remove `from __future__ import annotations` from gradio/utils.py "
+        "to prevent exec() from stringifying user annotations during reload."
     )
