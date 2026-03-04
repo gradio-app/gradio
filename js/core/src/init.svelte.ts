@@ -365,7 +365,6 @@ export class AppTree {
 					)
 				: null;
 
-		console.log({ loading_component });
 		const node = {
 			id: opts.id,
 			type: type,

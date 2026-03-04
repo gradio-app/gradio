@@ -3,8 +3,9 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 import { build } from "vite";
-import { plugins, make_gradio_plugin, deepmerge_plugin } from "./plugins";
 import type { PreRenderedChunk } from "rollup";
+
+import { plugins, make_gradio_plugin } from "./plugins";
 import { examine_module } from "./index";
 
 interface BuildOptions {
@@ -89,8 +90,7 @@ export async function make_build({
 						configFile: false,
 						plugins: [
 							...plugins(component_config),
-							make_gradio_plugin({ mode: "build", svelte_dir }),
-							deepmerge_plugin
+							make_gradio_plugin({ svelte_dir, component_dir })
 						],
 						build: {
 							emptyOutDir: true,

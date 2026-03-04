@@ -1,9 +1,11 @@
 import { join } from "path";
 import * as fs from "fs";
+
 import { createServer, createLogger } from "vite";
-import { plugins, make_gradio_plugin, deepmerge_plugin } from "./plugins";
-import { examine_module } from "./index";
 import type { PreprocessorGroup } from "svelte/compiler";
+
+import { plugins, make_gradio_plugin } from "./plugins";
+import { examine_module } from "./index";
 
 const vite_messages_to_ignore = [
 	"Default and named imports from CSS files are deprecated.",
@@ -69,14 +71,12 @@ export async function create_server({
 			plugins: [
 				...plugins(config),
 				make_gradio_plugin({
-					mode: "dev",
 					backend_port,
 					svelte_dir,
 					component_dir,
 					imports,
 					runtimes
-				}),
-				deepmerge_plugin
+				})
 			]
 		});
 
