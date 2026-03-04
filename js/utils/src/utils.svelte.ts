@@ -1,7 +1,7 @@
 import type { ActionReturn } from "svelte/action";
 import type { Client } from "@gradio/client";
 import type { ComponentType, SvelteComponent } from "svelte";
-import { getContext, tick, untrack } from "svelte";
+import { tick, untrack } from "svelte";
 import type { Component } from "svelte";
 import { locale } from "svelte-i18n";
 
@@ -48,6 +48,12 @@ export interface SharedProps {
 	api_prefix: string;
 	server: ServerFunctions;
 	attached_events?: string[];
+	register_component: (
+		id: number,
+		set_data: (data: Record<string, any> & SharedProps) => void,
+		get_data: Function
+	) => void;
+	dispatcher: Function;
 }
 
 export type LoadingComponent = Promise<{
@@ -309,7 +315,9 @@ export const allowed_shared_props: (keyof SharedProps)[] = [
 	"show_progress",
 	"api_prefix",
 	"container",
-	"attached_events"
+	"attached_events",
+	"register_component",
+	"dispatcher"
 ] as const;
 
 export type I18nFormatter = any;
@@ -350,6 +358,11 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	dispatcher!: Function;
 	last_update: ReturnType<typeof tick> | null = null;
 	shared_props: (keyof SharedProps)[] = allowed_shared_props;
+	register_component!: (
+		id: number,
+		set_data: (data: Record<string, any> & SharedProps) => void,
+		get_data: Function
+	) => void;
 
 	constructor(
 		_props: { shared_props: SharedProps; props: U },
@@ -366,9 +379,8 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 
 		if (default_values) {
 			for (const key in default_values) {
-				// @ts-ignore same here
-
 				if (this.props[key as keyof U] === undefined) {
+					// @ts-ignore
 					this.props[key] = default_values[key as keyof U];
 				}
 			}
@@ -381,44 +393,41 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 			this.shared[key] = this._translate_and_store(
 				"shared",
 				key,
+				// @ts-ignore
 				_props.shared_props[key]
 			);
 			// @ts-ignore
 			this.props[key] = this._translate_and_store(
 				"props",
 				key,
+				// @ts-ignore
 				_props.props[key]
 			);
 		}
 
 		this.load_component = this.shared.load_component;
-
+		// @ts-ignore
 		if (!is_browser || _props.props?.__GRADIO_BROWSER_TEST__) {
 			// Provide a no-op dispatcher for test environments
 			this.dispatcher = () => {};
 			return;
 		}
-		const { register, dispatcher } = getContext<{
-			register: (
-				id: number,
-				set_data: (data: U & SharedProps) => void,
-				get_data: Function
-			) => void;
-			dispatcher: Function;
-		}>(GRADIO_ROOT);
 
-		register(
+		this.register_component = this.shared.register_component || (() => {});
+		this.dispatcher = this.shared.dispatcher || (() => {});
+
+		this.register_component(
 			_props.shared_props.id,
+			// @ts-ignore
 			this.set_data.bind(this),
 			this.get_data.bind(this)
 		);
-
-		this.dispatcher = dispatcher;
 
 		$effect(() => {
 			// Need to update the props here
 			// otherwise UI won't reflect latest state from render
 			for (const key in _props.shared_props) {
+				// @ts-ignore
 				if (this._is_i18n_managed(`shared.${key}`, _props.shared_props[key]))
 					continue;
 				// @ts-ignore i'm not doing pointless typescript gymanstics
@@ -429,8 +438,9 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 				// @ts-ignore same here
 				this.props[key] = _props.props[key];
 			}
-			register(
+			this.register_component(
 				_props.shared_props.id,
+				// @ts-ignore
 				this.set_data.bind(this),
 				this.get_data.bind(this)
 			);
