@@ -410,6 +410,7 @@ class GradioMCPServer:
                     block_fn=block_fn,
                     inputs=processed_args,
                     state=session_state,
+                    request=self.mcp_server.request_context.request,
                 )
                 output_data = raw_output["data"]
             else:
