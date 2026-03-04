@@ -13,7 +13,7 @@ from __future__ import annotations
 import os
 import shutil
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, cast
 
 import typer
 from gradio_client import Client
@@ -187,7 +187,7 @@ def _generate_space_skill(space_id: str) -> tuple[str, str]:
             "Make sure the Space exists, is public (or provide HF_TOKEN), and is running."
         ) from e
 
-    api_info = client.view_api(print_info=False, return_format="dict")
+    api_info = cast(dict, client.view_api(print_info=False, return_format="dict"))
     src_url = client.src
 
     skill_id = _space_id_to_skill_id(space_id)
