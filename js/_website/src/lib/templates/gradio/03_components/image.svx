@@ -45,6 +45,36 @@ gradio.Image(···)
 {/if}
 
 
+### Understanding Image Types
+
+The `type` parameter controls the format of the data passed to your Python function. Choosing the right type avoids unnecessary conversions in your code:
+
+| `type` | Your function receives | Shape / Format | Best for |
+| --- | --- | --- | --- |
+| `"numpy"` (default) | `numpy.ndarray` | `(height, width, 3)`, dtype `uint8`, values 0–255 | ML models (PyTorch, TensorFlow, scikit-learn) |
+| `"pil"` | `PIL.Image.Image` | PIL Image object | Image processing with Pillow |
+| `"filepath"` | `str` | Path to a temporary file on disk | Large images, GIFs, SVGs, or when you need to read the file yourself |
+
+```python
+import gradio as gr
+
+# For a model that expects a numpy array:
+def predict(img):
+    # img is a numpy array with shape (H, W, 3)
+    return model(img)
+
+demo = gr.Interface(fn=predict, inputs=gr.Image(type="numpy"), outputs="label")
+
+# For a pipeline that works with file paths:
+def process(path):
+    # path is a string like "/tmp/gradio/abcdef.webp"
+    return my_pipeline(path)
+
+demo = gr.Interface(fn=process, inputs=gr.Image(type="filepath"), outputs="image")
+```
+
+If you need grayscale input, set `image_mode="L"` — the array shape becomes `(height, width)` instead of `(height, width, 3)`.
+
 ### `GIF` and `SVG` Image Formats
 
 The `gr.Image` component can process or display any image format that is [supported by the PIL library](https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html), including animated GIFs. In addition, it also supports the SVG image format. 
