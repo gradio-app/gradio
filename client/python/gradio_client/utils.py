@@ -14,6 +14,7 @@ import shutil
 import tempfile
 import time
 import warnings
+from collections import deque
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -359,7 +360,7 @@ def get_pred_from_sse_v1plus(
     helper: Communicator,
     headers: dict[str, str],
     cookies: dict[str, str] | None,
-    pending_messages_per_event: dict[str, list[Message | None]],
+    pending_messages_per_event: dict[str, deque[Message | None]],
     event_id: str,
     protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"],
     ssl_verify: bool,
@@ -483,7 +484,7 @@ def stream_sse_v0(
 
 def stream_sse_v1plus(
     helper: Communicator,
-    pending_messages_per_event: dict[str, list[Message | None]],
+    pending_messages_per_event: dict[str, deque[Message | None]],
     event_id: str,
     protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"],
 ) -> dict[str, Any]:
@@ -493,7 +494,7 @@ def stream_sse_v1plus(
 
         while True:
             if len(pending_messages) > 0:
-                msg = pending_messages.pop(0)
+                msg = pending_messages.popleft()
             else:
                 time.sleep(0.05)
                 continue

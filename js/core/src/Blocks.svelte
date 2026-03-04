@@ -163,7 +163,8 @@
 			version,
 			api_prefix,
 			max_file_size,
-			autoscroll
+			autoscroll,
+			fill_height
 		},
 		app,
 		$reactive_formatter,
@@ -243,7 +244,8 @@
 				version,
 				api_prefix,
 				max_file_size,
-				autoscroll
+				autoscroll,
+				fill_height
 			});
 			dep_manager.reload(
 				dependencies,

@@ -327,7 +327,8 @@ export class AppTree {
 				props: {
 					visible: true,
 					root: "",
-					theme_mode: "light"
+					theme_mode: "light",
+					scale: this.#config.fill_height ? 1 : null
 				},
 				component_class_id: "column",
 				key: null
