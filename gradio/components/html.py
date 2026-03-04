@@ -6,6 +6,7 @@ import inspect
 import re
 import textwrap
 from collections.abc import Callable, Sequence
+from functools import partial
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 from gradio_client.documentation import document
@@ -13,7 +14,7 @@ from gradio_client.documentation import document
 from gradio.blocks import BlockContext
 from gradio.components.base import Component, server
 from gradio.components.button import Button
-from gradio.events import all_events
+from gradio.events import EventListener, all_events
 from gradio.i18n import I18nData
 from gradio.utils import set_default_buttons
 
@@ -188,6 +189,18 @@ class HTML(BlockContext, Component):
         # to identify the component in the frontend when reporting errors.
         config["component_class_name"] = self.component_class_name
         return config
+
+    def __getattr__(self, name: str):
+        js = self.__dict__.get("js_on_load") or ""
+        pattern = rf"""(?:['"`]){re.escape(name)}(?:['"`])"""
+        if re.search(pattern, js):
+            trigger = EventListener(event_name=name)
+            return partial(trigger.listener, self)
+        raise AttributeError(
+            f"'{type(self).__name__}' object has no attribute '{name}'. "
+            f"If '{name}' is a custom event, make sure to include '{name}' "
+            f"(enclosed in quotes) in the js_on_load string."
+        )
 
     def get_block_name(self):
         return "html"
