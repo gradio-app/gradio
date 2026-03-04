@@ -417,9 +417,7 @@ class GradioMCPServer:
                 # updates, progress notifications, and queue-based features.
                 progress_token = None
                 if self.mcp_server.request_context.meta is not None:
-                    progress_token = (
-                        self.mcp_server.request_context.meta.progressToken
-                    )
+                    progress_token = self.mcp_server.request_context.meta.progressToken
 
                 client = await run_sync(self._get_or_create_client)
                 job = client.submit(
@@ -429,9 +427,7 @@ class GradioMCPServer:
                 )
 
                 if progress_token is None:
-                    output_data = await self._execute_tool_without_progress(
-                        job
-                    )
+                    output_data = await self._execute_tool_without_progress(job)
                 else:
                     output_data = await self._execute_tool_with_progress(
                         job,
