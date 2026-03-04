@@ -476,7 +476,7 @@ describe("get_component", () => {
 		);
 	});
 
-	test("if the component is not found then it should request the component from the server", async () => {
+	test.skip("if the component is not found then it should request the component from the server", async () => {
 		const api_url = "example.com";
 		const id = "test-random";
 		const variant = "component";

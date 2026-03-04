@@ -1,18 +1,16 @@
 import type { Plugin, PluginOption } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
-import preprocess from "svelte-preprocess";
-import { join } from "path";
+import { join, dirname } from "path";
+import { createRequire } from "module";
+import { readFileSync } from "fs";
 import { type ComponentConfig } from "./dev";
-import type { Preprocessor, PreprocessorGroup } from "svelte/compiler";
-import { deepmerge } from "./_deepmerge_internal";
+import type { PreprocessorGroup } from "svelte/compiler";
+import { sveltePreprocess } from "svelte-preprocess";
 
 const svelte_codes_to_ignore: Record<string, string> = {
 	"reactive-component": "Icon"
 };
 
-const RE_SVELTE_IMPORT =
-	/import\s+(?:([ -~]*)\s+from\s+){0,1}['"](svelte(?:\/[ -~]+){0,3})['"]/g;
-// const RE_BARE_SVELTE_IMPORT = /import ("|')svelte(\/\w+)*("|')(;)*/g;
 export function plugins(config: ComponentConfig): PluginOption[] {
 	const _additional_plugins = config.plugins || [];
 	const _additional_svelte_preprocess = config.svelte?.preprocess || [];
@@ -49,7 +47,7 @@ export function plugins(config: ComponentConfig): PluginOption[] {
 			},
 			extensions: _svelte_extensions,
 			preprocess: [
-				preprocess({
+				sveltePreprocess({
 					typescript: {
 						compilerOptions: {
 							declaration: false,
@@ -64,21 +62,47 @@ export function plugins(config: ComponentConfig): PluginOption[] {
 	];
 }
 
+function resolve_svelte_entry(id: string, base_dir: string): string | null {
+	const require_fn = createRequire(join(base_dir, "frontend", "_"));
+	try {
+		const svelte_pkg_path = require_fn.resolve("svelte/package.json");
+		const svelte_dir = dirname(svelte_pkg_path);
+		const pkg = JSON.parse(readFileSync(svelte_pkg_path, "utf-8"));
+
+		const subpath = id === "svelte" ? "." : "./" + id.slice("svelte/".length);
+
+		if (pkg.exports && pkg.exports[subpath]) {
+			const entry = pkg.exports[subpath];
+			const resolved =
+				typeof entry === "string" ? entry : entry.browser || entry.default;
+			if (resolved) {
+				return join(svelte_dir, resolved);
+			}
+		}
+	} catch {
+		return null;
+	}
+	return null;
+}
+
 interface GradioPluginOptions {
-	mode: "dev" | "build";
 	svelte_dir: string;
+	component_dir: string;
 	backend_port?: number;
 	imports?: string;
+	runtimes?: string;
 }
 
 export function make_gradio_plugin({
-	mode,
-	svelte_dir,
 	backend_port,
-	imports
+	component_dir,
+	imports,
+	runtimes
 }: GradioPluginOptions): Plugin {
 	const v_id = "virtual:component-loader";
+	const v_id_2 = "virtual:cc-init";
 	const resolved_v_id = "\0" + v_id;
+	const resolved_v_id_2 = "\0" + v_id_2;
 	return {
 		name: "gradio",
 		enforce: "pre",
@@ -86,72 +110,47 @@ export function make_gradio_plugin({
 			if (id === v_id) {
 				return resolved_v_id;
 			}
-			if (id === "svelte") {
-				return {
-					id: `../../../../../assets/svelte/svelte_svelte.js`,
-					external: true
-				};
+			if (id === v_id_2) {
+				return resolved_v_id_2;
 			}
 
-			if (id.startsWith("svelte/")) {
-				const subpath = id.slice("svelte/".length);
-
-				return {
-					id: `../../../../../assets/svelte/svelte_${subpath.replace(/\//g, "_")}.js`,
-					external: true
-				};
+			if (id.startsWith("svelte")) {
+				const resolved = resolve_svelte_entry(id, component_dir);
+				if (resolved) {
+					return resolved;
+				}
 			}
 		},
 		load(id) {
 			if (id === resolved_v_id) {
 				return `export default {};`;
 			}
+
+			if (id === resolved_v_id_2) {
+				console.log("init gradio");
+				return `window.__GRADIO_DEV__ = "dev";
+      window.__GRADIO__SERVER_PORT__ = ${backend_port};
+      window.__GRADIO__CC__ = ${imports};
+      window.__GRADIO__CC__RUNTIMES__ = ${runtimes};`;
+			}
 		},
-		transformIndexHtml(html) {
-			return mode === "dev"
-				? [
-						{
-							tag: "script",
-							children: `window.__GRADIO_DEV__ = "dev";
-        window.__GRADIO__SERVER_PORT__ = ${backend_port};
-        window.__GRADIO__CC__ = ${imports};`
-						}
-					]
-				: undefined;
+		transform(code, id) {
+			return code.replace('"_NORMAL_"', '"_CC_"');
 		}
 	};
 }
 
-export const deepmerge_plugin: Plugin = {
-	name: "deepmerge",
-	enforce: "pre",
-	resolveId(id) {
-		if (id === "deepmerge") {
-			return "deepmerge_internal";
-		}
-	},
-	load(id) {
-		if (id === "deepmerge_internal") {
-			return deepmerge;
-		}
-	}
-};
-
-function extract_types(str: string): string[] {
-	const regex = /type (\w+\b)/g;
-	let m;
-	const out = [];
-	while ((m = regex.exec(str))) out.push(m[1]);
-
-	return out;
-}
-
-function remove_types(input: string): string {
-	const inner = input.slice(1, -1); // remove { }
-	const parts = inner
-		.split(",")
-		.map((s) => s.trim())
-		.filter((s) => s && !/^type\s+\w+\b$/.test(s));
-
-	return `{ ${parts.join(", ")} }`;
-}
+// export const deepmerge_plugin: Plugin = {
+//   name: "deepmerge",
+//   enforce: "pre",
+//   resolveId(id) {
+//     if (id === "deepmerge") {
+//       return "deepmerge_internal";
+//     }
+//   },
+//   load(id) {
+//     if (id === "deepmerge_internal") {
+//       return deepmerge;
+//     }
+//   },
+// };

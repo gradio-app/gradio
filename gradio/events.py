@@ -1114,9 +1114,11 @@ class Events:
     edit = EventListener(
         "edit",
         doc="This listener is triggered when the user edits the {{ component }} (e.g. image) using the built-in editor.",
-        callback=lambda block: setattr(block, "editable", "user")
-        if getattr(block, "editable", None) is None
-        else None,
+        callback=lambda block: (
+            setattr(block, "editable", "user")
+            if getattr(block, "editable", None) is None
+            else None
+        ),
     )
     clear = EventListener(
         "clear",

@@ -26,9 +26,9 @@ export interface ProcessedComponentMeta {
 	id: number;
 	props: { shared_props: SharedProps; props: Record<string, unknown> };
 	component: Component | LoadingComponent | null;
+	runtime: false | typeof import("svelte");
 	documentation?: Documentation;
 	children: ProcessedComponentMeta[];
-	//	parent?: ProcessedComponentMeta;
 	component_class_id: string; // ?;
 	key: string | number | null; // ?;
 	rendered_in?: number; // ?;

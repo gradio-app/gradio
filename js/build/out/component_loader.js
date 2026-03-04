@@ -1,24 +1,28 @@
 // @ts-nocheck
 
 const request_map = {};
+const runtime_map = {};
 
 const is_browser = typeof window !== "undefined";
 
 export function load_component({ api_url, name, id, variant }) {
 	const comps = is_browser && window.__GRADIO__CC__;
-	
-
+	const runtimes = is_browser && window.__GRADIO__CC__RUNTIMES__;
 
 	const _component_map = {
 		// eslint-disable-next-line no-undef
 		...component_map,
-		...(!comps ? {} : comps),
+		...(!comps ? {} : comps)
 	};
 
 	let _id = id || name;
 
 	if (request_map[`${_id}-${variant}`]) {
-		return { component: request_map[`${_id}-${variant}`], name };
+		return {
+			component: request_map[`${_id}-${variant}`],
+			name,
+			runtime: runtime_map[`${_id}-${variant}`]
+		};
 	}
 	try {
 		if (!_component_map?.[_id]?.[variant] && !_component_map?.[name]?.[variant])
@@ -29,22 +33,31 @@ export function load_component({ api_url, name, id, variant }) {
 			_component_map?.[name]?.[variant]
 		)();
 
+		runtime_map[`${_id}-${variant}`] =
+			(is_browser && window.__GRADIO__CC__RUNTIMES__?.[id]) || // for dev mode custom components
+			false;
+
 		return {
 			name,
-			component: request_map[`${_id}-${variant}`]
+			component: request_map[`${_id}-${variant}`],
+			runtime: runtime_map[`${_id}-${variant}`]
 		};
 	} catch (e) {
 		if (!_id) throw new Error(`Component not found: ${name}`);
 		try {
-			request_map[`${_id}-${variant}`] = get_component_with_css(
-				api_url,
-				_id,
-				variant
-			);
+			const cc = get_component_with_css(api_url, _id, variant);
+			console.log({ cc });
+
+			const [component_module, svelte_runtime_module] = cc;
+
+			request_map[`${_id}-${variant}`] = component_module;
+
+			runtime_map[`${_id}-${variant}`] = svelte_runtime_module;
 
 			return {
 				name,
-				component: request_map[`${_id}-${variant}`]
+				component: request_map[`${_id}-${variant}`],
+				runtime: runtime_map[`${_id}-${variant}`]
 			};
 		} catch (e) {
 			if (variant === "example") {
@@ -52,7 +65,8 @@ export function load_component({ api_url, name, id, variant }) {
 
 				return {
 					name,
-					component: request_map[`${_id}-${variant}`]
+					component: request_map[`${_id}-${variant}`],
+					runtime: runtime_map[`${_id}-${variant}`]
 				};
 			}
 			console.error(`failed to load: ${name}`);
@@ -63,7 +77,7 @@ export function load_component({ api_url, name, id, variant }) {
 }
 
 function load_css(url) {
-	if(!is_browser) {
+	if (!is_browser) {
 		return Promise.resolve();
 	}
 	return new Promise((resolve, reject) => {
@@ -77,32 +91,38 @@ function load_css(url) {
 }
 
 function get_component_with_css(api_url, id, variant) {
-	const environment = is_browser ? "client": "server";
+	const environment = is_browser ? "client" : "server";
 	let path;
 	if (environment === "server") {
-	  // uncomment when we make gradio cc build support ssr
-	  //path = await (await fetch(`${api_url}/custom_component/${id}/${variant}/index.js/server`)).text();
-	  return Promise.all([
-		load_css(`${api_url}/custom_component/${id}/${variant}/style.css`),
-		import(
-		  /* @vite-ignore */
-		  "@gradio/fallback"
-		)
-	  ]).then(([_, module]) => {
-		return module;
-	  });
+		// uncomment when we make gradio cc build support ssr
+		//path = await (await fetch(`${api_url}/custom_component/${id}/${variant}/index.js/server`)).text();
+		const mod = [
+			Promise.all([
+				load_css(`${api_url}/custom_component/${id}/${variant}/style.css`),
+				import("@gradio/fallback")
+			]).then(([_, module]) => {
+				return module;
+			})
+		];
 	}
 
 	path = `${api_url}/custom_component/${id}/${environment}/${variant}/index.js`;
 
-	return Promise.all([
-		load_css(`${api_url}/custom_component/${id}/${environment}/${variant}/style.css`),
+	return [
+		Promise.all([
+			load_css(
+				`${api_url}/custom_component/${id}/${environment}/${variant}/style.css`
+			),
+			import(
+				/* @vite-ignore */
+				path
+			)
+		]).then(([_, component_module]) => {
+			return component_module;
+		}),
 		import(
-		  /* @vite-ignore */
-		  path
+			/* @vite-ignore */
+			`${api_url}/custom_component/${id}/${environment}/${variant}/svelte_runtime_entry.js`
 		)
-	  ]).then(([_, module]) => {
-		return module;
-	  });
-
-  }
+	];
+}

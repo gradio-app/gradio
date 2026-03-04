@@ -13,7 +13,7 @@ export function get_component(
 	class_id: string,
 	root: string,
 	variant: "component" | "example" | "base" = "component"
-): LoadingComponent {
+): { component: LoadingComponent; runtime: false | typeof import("svelte") } {
 	if (type === "api") type = "state";
 
 	return load_component({
@@ -21,7 +21,7 @@ export function get_component(
 		name: type,
 		id: class_id,
 		variant
-	}).component;
+	});
 }
 
 /**
