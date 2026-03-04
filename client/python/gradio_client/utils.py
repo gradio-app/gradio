@@ -1227,7 +1227,7 @@ def handle_file(filepath_or_url: str | Path):
     s = str(filepath_or_url)
     data = {"path": s, "meta": {"_type": "gradio.FileData"}}
     if is_http_url_like(s):
-        return {**data, "orig_name": s.split("/")[-1], "url": s}
+        return {**data, "orig_name": s.rsplit("/", maxsplit=1)[-1], "url": s}
     elif Path(s).exists():
         return {**data, "orig_name": Path(s).name}
     else:
