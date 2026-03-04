@@ -72,6 +72,7 @@ export async function create_server({
 					mode: "dev",
 					backend_port,
 					svelte_dir,
+					component_dir,
 					imports,
 					runtimes
 				}),
