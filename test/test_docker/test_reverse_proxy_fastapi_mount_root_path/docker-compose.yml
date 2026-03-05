@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    container_name: ${COMPOSE_PROJECT_NAME}_app
+    networks:
+      - app_network
+    hostname: app
+    ports:
+      - "0:8000"
+
+  nginx:
+    image: nginx:latest
+    container_name: ${COMPOSE_PROJECT_NAME}_nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - /dev/null:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "0:80"
+    depends_on:
+      - app
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
