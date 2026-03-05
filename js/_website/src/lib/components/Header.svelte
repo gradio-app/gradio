@@ -112,6 +112,7 @@
 		>
 			<a class="thin-link" href="/docs">API</a>
 			<a class="thin-link" href="/guides">Guides</a>
+			<a class="thin-link" href="/themes">Themes</a>
 			<a class="thin-link" href="/custom-components/gallery"
 				>Custom Components</a
 			>
