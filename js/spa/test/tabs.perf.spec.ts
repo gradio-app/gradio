@@ -25,8 +25,6 @@ const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
 
 		const url = `http://localhost:${port}`;
 
-		// Warmup load: primes OS, disk, browser, and Python caches
-		// Also capture resource sizes (deterministic, only need one measurement)
 		const resourceSizes = { js: 0, css: 0, jsCount: 0, cssCount: 0 };
 		const responseHandler = (response: any): void => {
 			const rUrl = response.url();
@@ -46,16 +44,15 @@ const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
 		await page.waitForLoadState("networkidle");
 		page.removeListener("response", responseHandler);
 
-		// Measured iterations: collect timing metrics from each
 		const domContentLoadedValues: number[] = [];
 		const pageLoadValues: number[] = [];
 		const lcpValues: number[] = [];
+		const tabNavValues: number[] = [];
 
 		for (let i = 0; i < ITERATIONS; i++) {
 			await page.goto(url);
 			await page.waitForLoadState("networkidle");
 
-			// Set up buffered LCP observer to capture LCP retroactively
 			await page.evaluate(() => {
 				(window as any).__lcpValue = 0;
 				new PerformanceObserver((list) => {
@@ -83,13 +80,23 @@ const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
 			domContentLoadedValues.push(timings.domContentLoaded);
 			pageLoadValues.push(timings.pageLoad);
 			lcpValues.push(timings.lcp);
+
+			await page.evaluate(() => performance.mark("nav-start"));
+			await page.click('button[data-tab-id="a2"]');
+			await page.locator("text=Text 2!").waitFor({ state: "visible" });
+			const navDuration = await page.evaluate(() => {
+				performance.mark("nav-end");
+				const m = performance.measure("tab-nav", "nav-start", "nav-end");
+				return Math.round(m.duration);
+			});
+			tabNavValues.push(navDuration);
 		}
 
-		// Compute medians and stash combined results
 		const perfMetrics = {
 			dom_content_loaded_ms: median(domContentLoadedValues),
 			page_load_ms: median(pageLoadValues),
 			lcp_ms: median(lcpValues),
+			tab_nav_ms: median(tabNavValues),
 			total_js_kb: Math.round(resourceSizes.js / 1024),
 			total_css_kb: Math.round(resourceSizes.css / 1024),
 			js_resource_count: resourceSizes.jsCount,
@@ -116,5 +123,6 @@ test("collect frontend performance metrics", async ({ perfPage: page }) => {
 
 	expect(metrics.dom_content_loaded_ms).toBeGreaterThan(0);
 	expect(metrics.page_load_ms).toBeGreaterThan(0);
+	expect(metrics.tab_nav_ms).toBeGreaterThan(0);
 	expect(metrics.total_js_kb).toBeGreaterThan(0);
 });

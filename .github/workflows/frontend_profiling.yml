@@ -40,8 +40,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Checkout base branch
-        run: git checkout ${{ github.event.pull_request.base.sha }}
+      - name: Find latest release tag
+        id: latest_tag
+        run: echo "tag=$(git tag --list 'gradio@*' --sort=-v:refname | head -n 1)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout latest release
+        run: git checkout ${{ steps.latest_tag.outputs.tag }}
 
       - name: Install dependencies (base)
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
@@ -102,6 +106,7 @@ jobs:
               { name: 'DOM Content Loaded', key: 'dom_content_loaded_ms', unit: 'ms', warn: 0.25, fail: 0.50 },
               { name: 'Page Load', key: 'page_load_ms', unit: 'ms', warn: 0.25, fail: 0.50 },
               { name: 'LCP', key: 'lcp_ms', unit: 'ms', warn: 0.25, fail: 0.50 },
+              { name: 'Tab Navigation', key: 'tab_nav_ms', unit: 'ms', warn: 0.25, fail: 0.50 },
               { name: 'JS Size', key: 'total_js_kb', unit: 'KB', warn: 0.10, fail: 0.25 },
               { name: 'CSS Size', key: 'total_css_kb', unit: 'KB', warn: 0.10, fail: 0.25 },
             ];
@@ -128,31 +133,30 @@ jobs:
             body += `\n| JS Resources | ${base.js_resource_count || '-'} | ${pr.js_resource_count || '-'} | | |\n`;
             body += `| CSS Resources | ${base.css_resource_count || '-'} | ${pr.css_resource_count || '-'} | | |\n`;
 
-            body += `\n> Base: merge-base of \`${{ github.base_ref }}\` | Thresholds: timing warns at +25%, fails at +50%. Transfer size warns at +10%, fails at +25%.\n`;
+            body += `\n> Base: \`${{ steps.latest_tag.outputs.tag }}\` | Thresholds: timing warns at +25%, fails at +50%. Transfer size warns at +10%, fails at +25%.\n`;
 
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
-            const marker = '## Frontend Performance Benchmark';
-            const existing = comments.find(c => c.body.startsWith(marker));
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existing.id,
-                body,
-              });
-            } else {
-              await github.rest.issues.createComment({
+            if (shouldFail) {
+              const { data: comments } = await github.rest.issues.listComments({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                body,
               });
-            }
-
-            if (shouldFail) {
+              const marker = '## Frontend Performance Benchmark';
+              const existing = comments.find(c => c.body.startsWith(marker));
+              if (existing) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existing.id,
+                  body,
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body,
+                });
+              }
               core.setFailed('Frontend performance regression detected. See PR comment for details.');
             }
