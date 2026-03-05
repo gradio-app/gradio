@@ -58,8 +58,7 @@ const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
 				new PerformanceObserver((list) => {
 					const entries = list.getEntries();
 					if (entries.length > 0) {
-						(window as any).__lcpValue =
-							entries[entries.length - 1].startTime;
+						(window as any).__lcpValue = entries[entries.length - 1].startTime;
 					}
 				}).observe({ type: "largest-contentful-paint", buffered: true });
 			});
