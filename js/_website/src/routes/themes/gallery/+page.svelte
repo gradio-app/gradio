@@ -17,33 +17,33 @@
 	let active_filter: FilterType = "all";
 	let preview_dark: boolean = $siteTheme === "dark";
 
-	$: core_count = BUILTIN_THEMES.filter(t => t.is_official).length;
-	$: community_count = BUILTIN_THEMES.filter(t => !t.is_official).length;
+	$: core_count = BUILTIN_THEMES.filter((t) => t.is_official).length;
+	$: community_count = BUILTIN_THEMES.filter((t) => !t.is_official).length;
 
-	// Dynamically build Google Fonts URL from unique fonts in themes
-	$: unique_fonts = [...new Set(BUILTIN_THEMES.flatMap(t => [t.fonts.main, t.fonts.mono]))];
-	$: font_url = unique_fonts.length > 0
-		? `https://fonts.googleapis.com/css2?${unique_fonts.map(f => `family=${f.replace(/ /g, '+')}:wght@400;500;600`).join('&')}&display=swap`
-		: '';
+	$: unique_fonts = [
+		...new Set(BUILTIN_THEMES.flatMap((t) => [t.fonts.main, t.fonts.mono])),
+	];
+	$: font_url =
+		unique_fonts.length > 0
+			? `https://fonts.googleapis.com/css2?${unique_fonts.map((f) => `family=${f.replace(/ /g, "+")}:wght@400;500;600`).join("&")}&display=swap`
+			: "";
 
 	function filter_themes(query: string, filter: FilterType): ThemeData[] {
 		let filtered = [...BUILTIN_THEMES];
 
-		// Apply type filter
 		if (filter === "core") {
-			filtered = filtered.filter(t => t.is_official);
+			filtered = filtered.filter((t) => t.is_official);
 		} else if (filter === "community") {
-			filtered = filtered.filter(t => !t.is_official);
+			filtered = filtered.filter((t) => !t.is_official);
 		}
 
-		// Apply search filter
 		if (query.trim()) {
 			const lower_query = query.toLowerCase();
 			filtered = filtered.filter(
 				(theme) =>
 					theme.name.toLowerCase().includes(lower_query) ||
 					theme.description.toLowerCase().includes(lower_query) ||
-					theme.author.toLowerCase().includes(lower_query)
+					theme.author.toLowerCase().includes(lower_query),
 			);
 		}
 
@@ -88,20 +88,21 @@
 			}
 		}
 
-		// Fetch likes for community themes from their HF Spaces
-		const community = BUILTIN_THEMES.filter(t => !t.is_official && t.hf_space_id);
+		const community = BUILTIN_THEMES.filter(
+			(t) => !t.is_official && t.hf_space_id,
+		);
 		if (community.length > 0) {
 			Promise.allSettled(
-				community.map(theme =>
+				community.map((theme) =>
 					fetch(`https://huggingface.co/api/spaces/${theme.hf_space_id}`)
-						.then(r => r.ok ? r.json() : null)
-						.then(data => ({ id: theme.id, likes: data?.likes ?? 0 }))
-						.catch(() => ({ id: theme.id, likes: 0 }))
-				)
-			).then(results => {
+						.then((r) => (r.ok ? r.json() : null))
+						.then((data) => ({ id: theme.id, likes: data?.likes ?? 0 }))
+						.catch(() => ({ id: theme.id, likes: 0 })),
+				),
+			).then((results) => {
 				for (const result of results) {
 					if (result.status === "fulfilled") {
-						const match = BUILTIN_THEMES.find(t => t.id === result.value.id);
+						const match = BUILTIN_THEMES.find((t) => t.id === result.value.id);
 						if (match) match.likes = result.value.likes;
 					}
 				}
@@ -115,7 +116,11 @@
 
 <svelte:head>
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+	<link
+		rel="preconnect"
+		href="https://fonts.gstatic.com"
+		crossorigin="anonymous"
+	/>
 	{#if font_url}
 		<link href={font_url} rel="stylesheet" />
 	{/if}
@@ -129,17 +134,14 @@
 />
 
 <div class="container mx-auto px-4 relative pt-4 mb-0">
-	<!-- Compact header with filters and search -->
 	<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
 		<div class="flex items-center gap-2">
-			<h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">
-				Themes
-			</h1>
-			<!-- Filter tabs -->
+			<h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">Themes</h1>
 			<div class="flex gap-1">
 				<button
 					on:click={() => set_filter("all")}
-					class="px-2.5 py-1 rounded-full text-xs font-medium transition-colors {active_filter === 'all'
+					class="px-2.5 py-1 rounded-full text-xs font-medium transition-colors {active_filter ===
+					'all'
 						? 'bg-orange-500 text-white'
 						: 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-neutral-700'}"
 				>
@@ -147,22 +149,24 @@
 				</button>
 				<button
 					on:click={() => set_filter("core")}
-					class="px-2.5 py-1 rounded-full text-xs font-medium transition-colors {active_filter === 'core'
+					class="px-2.5 py-1 rounded-full text-xs font-medium transition-colors {active_filter ===
+					'core'
 						? 'bg-orange-500 text-white'
 						: 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-neutral-700'}"
 				>
 					Core <span class="opacity-70">{core_count}</span>
 				</button>
 				{#if community_count > 0}
-				<button
-					on:click={() => set_filter("community")}
-					class="px-2.5 py-1 rounded-full text-xs font-medium transition-colors {active_filter === 'community'
-						? 'bg-orange-500 text-white'
-						: 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-neutral-700'}"
-				>
-					Community <span class="opacity-70">{community_count}</span>
-				</button>
-			{/if}
+					<button
+						on:click={() => set_filter("community")}
+						class="px-2.5 py-1 rounded-full text-xs font-medium transition-colors {active_filter ===
+						'community'
+							? 'bg-orange-500 text-white'
+							: 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-neutral-700'}"
+					>
+						Community <span class="opacity-70">{community_count}</span>
+					</button>
+				{/if}
 			</div>
 		</div>
 
@@ -175,9 +179,8 @@
 				on:keyup={handle_search}
 				bind:value={search_query}
 			/>
-			<!-- Global light/dark toggle -->
 			<button
-				on:click={() => preview_dark = !preview_dark}
+				on:click={() => (preview_dark = !preview_dark)}
 				class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors {preview_dark
 					? 'bg-gray-800 text-white'
 					: 'bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-gray-300'}"
@@ -185,12 +188,18 @@
 			>
 				{#if preview_dark}
 					<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-						<path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+						<path
+							d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
+						/>
 					</svg>
 					Dark
 				{:else}
 					<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-						<path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
+						<path
+							fill-rule="evenodd"
+							d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+							clip-rule="evenodd"
+						/>
 					</svg>
 					Light
 				{/if}
@@ -204,9 +213,15 @@
 		</div>
 	</div>
 
-	<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 !m-0">
+	<div
+		class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 !m-0"
+	>
 		{#each themes as theme (theme.id)}
-			<ThemeCard {theme} dark={preview_dark} on_click={() => handle_card_click(theme)} />
+			<ThemeCard
+				{theme}
+				dark={preview_dark}
+				on_click={() => handle_card_click(theme)}
+			/>
 		{/each}
 	</div>
 
@@ -216,7 +231,11 @@
 				{#if search_query}
 					No themes found matching "{search_query}"
 				{:else if active_filter === "community"}
-					No community themes yet. <a href="/themes/builder" class="text-orange-500 hover:text-orange-600">Create the first one!</a>
+					No community themes yet. <a
+						href="/themes/builder"
+						class="text-orange-500 hover:text-orange-600"
+						>Create the first one!</a
+					>
 				{:else}
 					No themes found
 				{/if}

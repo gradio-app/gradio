@@ -9,7 +9,7 @@
 	let preview_dark: boolean = false;
 
 	$: unique_fonts = [
-		...new Set(themes.flatMap((t) => [t.fonts.main, t.fonts.mono])),
+		...new Set(themes.flatMap((t) => [t.fonts.main, t.fonts.mono]))
 	];
 	$: font_url =
 		unique_fonts.length > 0
