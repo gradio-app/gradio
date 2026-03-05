@@ -29,8 +29,6 @@ globalThis.__MODE__ ??= "_NORMAL_";
 const mode: "_NORMAL_" | "_CC_" = globalThis.__MODE__;
 
 async function get_index(): Promise<void> {
-	console.log("mode", mode);
-
 	if (mode === "_CC_") {
 		await import("virtual:cc-init");
 	}

@@ -13,7 +13,6 @@
 	let comp;
 
 	$effect(() => {
-		console.log({ el, comp, runtime });
 		if (el && !comp && runtime) {
 			comp = runtime.mount(component.default, {
 				target: el,
