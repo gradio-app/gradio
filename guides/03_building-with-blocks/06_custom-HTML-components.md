@@ -100,6 +100,8 @@ element.addEventListener('click', (e) =>
 );
 ```
 
+You can trigger an event with any name. As long as the event name appears enclosed in quotes in your `js_on_load` string, you can attach a Python listener using `component.do_something(fn, ...)`. If it is not one of the standard Gradio event names, your IDE might not recognize it as an event, but it will still work as long as the event name matches in both the JS and Python code.
+
 ## Server Functions
 
 You can call Python functions directly from your `js_on_load` code using the `server_functions` parameter. Pass a list of Python functions to `server_functions`, and they become available as async methods on a `server` object inside `js_on_load`.
