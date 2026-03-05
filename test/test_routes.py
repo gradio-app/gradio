@@ -421,6 +421,30 @@ class TestRoutes:
             assert client.get("/ps").is_success
             assert client.get("/py").is_success
 
+    def test_mount_gradio_app_picks_up_root_path_from_asgi_scope(self):
+        """Test that media URLs include the proxy prefix when root_path is set
+        via the ASGI scope (e.g. uvicorn --root-path), without needing to
+        explicitly pass root_path to mount_gradio_app.
+        See: https://github.com/gradio-app/gradio/issues/11848
+        """
+        app = FastAPI()
+        demo = gr.Interface(lambda s: s, "textbox", "textbox")
+        app = gr.mount_gradio_app(app, demo, path="/gradio")
+
+        # root_path="/myapp" simulates a reverse proxy at /myapp;
+        # TestClient requires the full prefixed path in requests.
+        with TestClient(app, root_path="/myapp") as client:
+            # Config root should include the proxy prefix
+            resp = client.get("/myapp/gradio/config")
+            assert resp.is_success
+            config = resp.json()
+            assert "/myapp/gradio" in config["root"]
+
+            # Main page should also reflect the proxy prefix
+            resp = client.get("/myapp/gradio/")
+            assert resp.is_success
+            assert "/myapp/gradio" in resp.text
+
     def test_mount_gradio_app_with_app_kwargs(self):
         app = FastAPI()
         demo = gr.Interface(lambda s: f"You said {s}!", "textbox", "textbox").queue()
