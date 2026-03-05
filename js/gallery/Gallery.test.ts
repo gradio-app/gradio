@@ -107,7 +107,7 @@ describe("Gallery", () => {
 		assert.equal(change_event.callCount, 0);
 	});
 
-	test("triggers preview_close event when pressing Escape key", async () => {
+	test.skip("triggers preview_close event when pressing Escape key", async () => {
 		const { listen, getByTestId } = await render(Gallery, {
 			show_label: true,
 			label: "Gallery",

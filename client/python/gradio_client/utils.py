@@ -14,6 +14,7 @@ import shutil
 import tempfile
 import time
 import warnings
+from collections import deque
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -359,7 +360,7 @@ def get_pred_from_sse_v1plus(
     helper: Communicator,
     headers: dict[str, str],
     cookies: dict[str, str] | None,
-    pending_messages_per_event: dict[str, list[Message | None]],
+    pending_messages_per_event: dict[str, deque[Message | None]],
     event_id: str,
     protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"],
     ssl_verify: bool,
@@ -483,7 +484,7 @@ def stream_sse_v0(
 
 def stream_sse_v1plus(
     helper: Communicator,
-    pending_messages_per_event: dict[str, list[Message | None]],
+    pending_messages_per_event: dict[str, deque[Message | None]],
     event_id: str,
     protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"],
 ) -> dict[str, Any]:
@@ -493,7 +494,7 @@ def stream_sse_v1plus(
 
         while True:
             if len(pending_messages) > 0:
-                msg = pending_messages.pop(0)
+                msg = pending_messages.popleft()
             else:
                 time.sleep(0.05)
                 continue
@@ -740,6 +741,11 @@ def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> st
     """
     name, ext = os.path.splitext(filename)
     name = "".join([char for char in name if char.isalnum() or char in "._-, "])
+    # Also sanitize the extension (excluding the leading dot)
+    if ext:
+        ext = "." + "".join(
+            [char for char in ext[1:] if char.isalnum() or char in "._-"]
+        )
     filename = name + ext
     filename_len = len(filename.encode())
     if filename_len > max_bytes:
@@ -1222,7 +1228,7 @@ def handle_file(filepath_or_url: str | Path):
     s = str(filepath_or_url)
     data = {"path": s, "meta": {"_type": "gradio.FileData"}}
     if is_http_url_like(s):
-        return {**data, "orig_name": s.split("/")[-1], "url": s}
+        return {**data, "orig_name": s.rsplit("/", maxsplit=1)[-1], "url": s}
     elif Path(s).exists():
         return {**data, "orig_name": Path(s).name}
     else:

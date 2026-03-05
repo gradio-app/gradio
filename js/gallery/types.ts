@@ -18,7 +18,7 @@ export interface GalleryProps {
 	file_types: string[] | null;
 	columns: number | number[] | undefined;
 	rows: number | number[] | undefined;
-	height: number | "auto";
+	height: number | string;
 	preview: boolean;
 	allow_preview: boolean;
 	selected_index: number | null;

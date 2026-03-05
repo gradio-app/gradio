@@ -1,5 +1,11 @@
 # @gradio/utils
 
+## 0.11.3
+
+### Fixes
+
+- [#12797](https://github.com/gradio-app/gradio/pull/12797) [`6a0c6ea`](https://github.com/gradio-app/gradio/commit/6a0c6eae53931ec137c0b8379428acc8a7ea27c9) - Refactor translation logic.  Thanks @hannahblair!
+
 ## 0.11.2
 
 ### Fixes

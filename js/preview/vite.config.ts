@@ -27,13 +27,9 @@ export function copy_files() {
 		name: "copy_files",
 		writeBundle() {
 			cpSync("./src/examine.py", "dist/examine.py");
+			cpSync("./src/svelte_runtime_entry.js", "dist/svelte_runtime_entry.js");
 			cpSync("./src/register.mjs", join(template_dir, "register.mjs"));
 			cpSync("./src/hooks.mjs", join(template_dir, "hooks.mjs"));
-			cpSync(
-				join(template_dir, "frontend", "assets", "svelte"),
-				join(template_dir, "node", "build", "client", "_app"),
-				{ recursive: true }
-			);
 		}
 	};
 }

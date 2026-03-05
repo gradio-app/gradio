@@ -5,8 +5,6 @@ each component. These demos are located in the `demo` directory."""
 from __future__ import annotations
 
 import abc
-import hashlib
-import inspect
 import json
 import warnings
 from abc import ABC, abstractmethod
@@ -18,7 +16,7 @@ from typing import TYPE_CHECKING, Any, Literal
 import gradio_client.utils as client_utils
 
 from gradio import utils
-from gradio.blocks import Block, BlockContext
+from gradio.blocks import Block
 from gradio.component_meta import ComponentMeta
 from gradio.data_classes import (
     BaseModel,
@@ -121,17 +119,6 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     def has_event(cls, event: str | EventListener) -> bool:
         return event in cls.EVENTS
 
-    @classmethod
-    def get_component_class_id(cls) -> str:
-        try:
-            module_path = inspect.getfile(cls)
-        except TypeError:
-            module_path = cls.__module__
-        module_hash = hashlib.sha256(
-            f"{cls.__name__}_{module_path}".encode()
-        ).hexdigest()
-        return module_hash
-
 
 def server(fn):
     fn._is_server_fn = True
@@ -171,12 +158,6 @@ class Component(ComponentBase, Block):
             if callable(getattr(self, value))
             and getattr(getattr(self, value), "_is_server_fn", False)
         ]
-
-        # Svelte components expect elem_classes to be a list
-        # If we don't do this, returning a new component for an
-        # update will break the frontend
-        if not elem_classes:
-            elem_classes = []
 
         # This gets overridden when `select` is called
         self._selectable = False
@@ -241,8 +222,6 @@ class Component(ComponentBase, Block):
 
         if callable(load_fn):
             self.attach_load_event(load_fn, every, inputs)
-
-        self.component_class_id = self.__class__.get_component_class_id()
 
     TEMPLATE_DIR = DeveloperPath("./templates/")
     FRONTEND_DIR = "../../frontend/"
@@ -394,9 +373,6 @@ class FormComponent(Component):
     def preprocess(self, payload: Any) -> Any:
         return payload
 
-    def postprocess(self, value):
-        return value
-
 
 class StreamingOutput(metaclass=abc.ABCMeta):
     def __init__(self, *args, **kwargs) -> None:
@@ -437,8 +413,6 @@ class StreamingInput(metaclass=abc.ABCMeta):
 
 def component(cls_name: str, render: bool) -> Component:
     obj = utils.component_or_layout_class(cls_name)(render=render)
-    if isinstance(obj, BlockContext):
-        raise ValueError(f"Invalid component: {obj.__class__}")
     if not isinstance(obj, Component):
         raise TypeError(f"Expected a Component instance, but got {obj.__class__}")
     return obj
@@ -460,8 +434,6 @@ def get_component_instance(
         name = comp.pop("name")  # type: ignore
         component_cls = utils.component_or_layout_class(name)
         component_obj = component_cls(**comp, render=render)  # type: ignore
-        if isinstance(component_obj, BlockContext):
-            raise ValueError(f"Invalid component: {name}")
     elif isinstance(comp, Component):
         component_obj = comp
     else:
