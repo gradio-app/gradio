@@ -2,4 +2,4 @@
 "website": minor
 ---
 
-feat:Fix
+feat:Fix Custom HTML Gallery URL
