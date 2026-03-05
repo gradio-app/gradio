@@ -89,4 +89,9 @@ test("test HTML components", async ({ page }) => {
 		const treeContent = await page.locator("#server-fn-tree").textContent();
 		expect(treeContent).toContain("run.py");
 	}).toPass();
+
+	await page.keyboard.press("a");
+	await expect(page.getByLabel("Key Pressed")).toHaveValue("a");
+	await page.keyboard.press("Enter");
+	await expect(page.getByLabel("Key Pressed")).toHaveValue("Enter");
 });
