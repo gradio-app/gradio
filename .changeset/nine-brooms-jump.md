@@ -1,8 +1,8 @@
 ---
-"@gradio/core": minor
-"@gradio/preview": minor
-"@self/spa": minor
-"gradio": minor
+"@gradio/core": patch
+"@gradio/preview": patch
+"@self/spa": patch
+"gradio": patch
 ---
 
-feat:remove new console logs
+fix:remove new console logs
