@@ -1,5 +1,15 @@
 # @gradio/audio
 
+## 0.22.4
+
+### Dependency updates
+
+- @gradio/button@0.6.5
+- @gradio/statustracker@0.12.5
+- @gradio/utils@0.12.0
+- @gradio/atoms@0.22.2
+- @gradio/upload@0.17.7
+
 ## 0.22.3
 
 ### Dependency updates

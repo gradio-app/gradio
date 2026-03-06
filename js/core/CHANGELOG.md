@@ -1,5 +1,40 @@
 # @gradio/core
 
+## 1.4.0
+
+### Features
+
+- [#12879](https://github.com/gradio-app/gradio/pull/12879) [`c498688`](https://github.com/gradio-app/gradio/commit/c4986883b267570d76b442899c6fc09d14e3e222) - Ensure svelte version mismatches do not break custom components.  Thanks @pngwn!
+
+### Fixes
+
+- [#12970](https://github.com/gradio-app/gradio/pull/12970) [`7326ea3`](https://github.com/gradio-app/gradio/commit/7326ea312bee7ccdaf4a1e4e11ace8f11b607ca5) - remove new console logs.  Thanks @hannahblair!
+- [#12968](https://github.com/gradio-app/gradio/pull/12968) [`fe95534`](https://github.com/gradio-app/gradio/commit/fe955348f24115744015d85639e170b8518b28c1) - Fix custom component reload mode.  Thanks @freddyaboulton!
+- [#12956](https://github.com/gradio-app/gradio/pull/12956) [`e8dadd6`](https://github.com/gradio-app/gradio/commit/e8dadd648483b6016913a9b7fa2580dbc08cb823) - Fix fill_height not working after Svelte 5 migration.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/button@0.6.5
+- @gradio/code@0.17.4
+- @gradio/html@0.11.1
+- @gradio/paramviewer@0.9.5
+- @gradio/statustracker@0.12.5
+- @gradio/tabitem@0.6.6
+- @gradio/tabs@0.5.8
+- @gradio/utils@0.12.0
+- @gradio/column@0.3.2
+- @gradio/atoms@0.22.2
+- @gradio/upload@0.17.7
+- @gradio/image@0.25.4
+- @gradio/gallery@0.17.3
+- @gradio/plot@0.10.5
+- @gradio/checkbox@0.6.4
+- @gradio/textbox@0.13.5
+- @gradio/dropdown@0.11.5
+- @gradio/file@0.14.4
+- @gradio/video@0.20.4
+- @gradio/audio@0.22.4
+
 ## 1.3.0
 
 ### Dependency updates
