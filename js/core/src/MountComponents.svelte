@@ -3,8 +3,6 @@
 	import MountCustomComponent from "./MountCustomComponent.svelte";
 	let { node, ...rest } = $props();
 
-	$inspect(node);
-
 	let component = $derived(await node.component);
 </script>
 
