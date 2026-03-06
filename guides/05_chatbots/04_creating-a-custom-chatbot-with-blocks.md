@@ -1,7 +1,7 @@
 # How to Create a Custom Chatbot with Gradio Blocks
 
 Tags: NLP, TEXT, CHAT
-Related spaces: https://huggingface.co/spaces/gradio/chatbot_streaming, https://huggingface.co/spaces/gradio/chatinterface_artifacts,
+Related spaces: https://huggingface.co/spaces/gradio/chatbot_streaming, https://huggingface.co/spaces/gradio/chatbot_examples,
 
 ## Introduction
 
@@ -89,4 +89,4 @@ $demo_chatbot_multimodal
 And you're done! That's all the code you need to build an interface for your chatbot model. Finally, we'll end our Guide with some links to Chatbots that are running on Spaces so that you can get an idea of what else is possible:
 
 - [gradio/chatbot_streaming](https://huggingface.co/spaces/gradio/chatbot_streaming): A streaming chatbot demo built with `gr.Chatbot` and Blocks.
-- [gradio/chatinterface_artifacts](https://huggingface.co/spaces/gradio/chatinterface_artifacts): A ChatInterface example that demonstrates richer message content and artifact-style responses.
+- [gradio/chatbot_examples](https://huggingface.co/spaces/gradio/chatbot_examples): A chatbot that presents new visitors with a list of multimodal examples they can use to start the conversation.
