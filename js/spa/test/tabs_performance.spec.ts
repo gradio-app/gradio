@@ -108,18 +108,13 @@ const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
 		);
 
 		await use(page);
-
 		killGradioApp(appProcess);
 	}
 });
 
 test("collect frontend performance metrics", async ({ perfPage: page }) => {
 	const metrics = await page.evaluate(() => (window as any).__perfMetrics);
-
 	fs.writeFileSync(PERF_RESULTS_FILE, JSON.stringify(metrics, null, 2));
-
-	console.log("Performance metrics:", JSON.stringify(metrics, null, 2));
-
 	expect(metrics.dom_content_loaded_ms).toBeGreaterThan(0);
 	expect(metrics.page_load_ms).toBeGreaterThan(0);
 	expect(metrics.tab_nav_ms).toBeGreaterThan(0);
