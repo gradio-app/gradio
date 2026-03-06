@@ -1,7 +1,7 @@
 # 如何创建一个聊天机器人
 
 Tags: NLP, TEXT, CHAT
-Related spaces: https://huggingface.co/spaces/gradio/chatbot_streaming, https://huggingface.co/spaces/project-baize/Baize-7B,
+Related spaces: https://huggingface.co/spaces/gradio/chatbot_streaming, https://huggingface.co/spaces/gradio/chatinterface_artifacts,
 
 ## 简介
 
@@ -78,5 +78,5 @@ $demo_chatbot_multimodal
 
 你完成了！这就是构建聊天机器人模型界面所需的所有代码。最后，我们将结束我们的指南，并提供一些在 Spaces 上运行的聊天机器人的链接，以让你了解其他可能性：
 
-- [project-baize/Baize-7B](https://huggingface.co/spaces/project-baize/Baize-7B)：一个带有停止生成和重新生成响应功能的样式化聊天机器人。
-- [MAGAer13/mPLUG-Owl](https://huggingface.co/spaces/MAGAer13/mPLUG-Owl)：一个多模态聊天机器人，允许您对响应进行投票。
+- [gradio/chatbot_streaming](https://huggingface.co/spaces/gradio/chatbot_streaming)：一个使用 `gr.Chatbot` 和 Blocks 构建的流式聊天机器人示例。
+- [gradio/chatinterface_artifacts](https://huggingface.co/spaces/gradio/chatinterface_artifacts)：一个展示更丰富消息内容与 artifact 风格响应的 ChatInterface 示例。
