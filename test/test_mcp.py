@@ -354,8 +354,8 @@ async def test_mcp_streamable_http_client_with_stateful_app(stateful_mcp_app):
                 await session.initialize()
 
                 tools_response = await session.list_tools()
-                assert len(tools_response.tools) == 1
-                tool = tools_response.tools[0]
+                assert len(tools_response.tools) == 2
+                tool, tool_nq = tools_response.tools
 
                 result = await session.call_tool(
                     tool.name,
@@ -365,6 +365,24 @@ async def test_mcp_streamable_http_client_with_stateful_app(stateful_mcp_app):
                 assert (
                     result.content[0].text  # type: ignore
                     == "name=test, hidden_state=hidden_value, flag=True, gallery=42"
+                )
+                result = await session.call_tool(
+                    tool_nq.name,
+                    arguments={"name": "test_2", "flag": True, "gallery_images": 42},
+                )
+                assert len(result.content) == 1  # type: ignore
+                assert (
+                    result.content[0].text  # type: ignore
+                    == "name=test_2, hidden_state=hidden_value, flag=True, gallery=42"
+                )
+                result = await session.call_tool(
+                    tool_nq.name,
+                    arguments={"name": "test_3", "flag": True, "gallery_images": 44},
+                )
+                assert len(result.content) == 1  # type: ignore
+                assert (
+                    result.content[0].text  # type: ignore
+                    == "name=test_3, hidden_state=hidden_value, flag=True, gallery=44"
                 )
     finally:
         stateful_mcp_app.close()

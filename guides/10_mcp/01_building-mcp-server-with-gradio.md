@@ -92,6 +92,7 @@ Now, all you need to do is add this URL endpoint to your MCP Client (e.g. Claude
 
 <video src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/mcp_guide1.mp4" style="width:100%" controls preload> </video>
 
+Tip: To minimize latency and increase throughput by as much as 10 times, set queue=False in the event handlers of your Gradio app. However, this disables progress notifications so its recommended that long running events set queue=True
 
 ## Converting an Existing Space
 
