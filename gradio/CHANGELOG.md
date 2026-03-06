@@ -1,5 +1,32 @@
 # gradio
 
+## 6.9.0
+
+### Features
+
+- [#12922](https://github.com/gradio-app/gradio/pull/12922) [`078685d`](https://github.com/gradio-app/gradio/commit/078685d218953a386be50b1655707fc0854270bb) - docs:Add "Understanding Image Types" section to Image component docs.  Thanks @Pchambet!
+- [#12923](https://github.com/gradio-app/gradio/pull/12923) [`486e920`](https://github.com/gradio-app/gradio/commit/486e9209a0989561746a9fc77801e60fede22a1a) - docs:Add "Common Patterns" section to Slider component docs.  Thanks @Pchambet!
+- [#12879](https://github.com/gradio-app/gradio/pull/12879) [`c498688`](https://github.com/gradio-app/gradio/commit/c4986883b267570d76b442899c6fc09d14e3e222) - Ensure svelte version mismatches do not break custom components.  Thanks @pngwn!
+- [#12967](https://github.com/gradio-app/gradio/pull/12967) [`424a4e4`](https://github.com/gradio-app/gradio/commit/424a4e4bcfeace96f7f5a678b56a578ad2002cf4) - Allow gr.HTML to trigger any event name.  Thanks @aliabid94!
+
+### Fixes
+
+- [#12935](https://github.com/gradio-app/gradio/pull/12935) [`48fa743`](https://github.com/gradio-app/gradio/commit/48fa7433f6f2fb14fd7d7bf09641dd5ce5d22f29) - Fix Mounting Gradio in FastAPI behind reverse proxy.  Thanks @freddyaboulton!
+- [#12836](https://github.com/gradio-app/gradio/pull/12836) [`77e7871`](https://github.com/gradio-app/gradio/commit/77e7871176e50a894190ac98aa9de8fbdbf3620f) - Fixes hidden accordion's children losing all values.  Thanks @aliabid94!
+- [#12859](https://github.com/gradio-app/gradio/pull/12859) [`a2bd6e1`](https://github.com/gradio-app/gradio/commit/a2bd6e1fb5d19e59ae694ab80c2874288e9982b8) - feat(highlighted_text): add show_whitespaces param to preserve spaces.  Thanks @Whosxws!
+- [#12942](https://github.com/gradio-app/gradio/pull/12942) [`e5ba4fa`](https://github.com/gradio-app/gradio/commit/e5ba4fa992c0ac389c6af2d143c9ad4c33eea360) - perf: use deque for SSE pending message queues in gradio_client.  Thanks @giulio-leone!
+- [#12958](https://github.com/gradio-app/gradio/pull/12958) [`bb127c7`](https://github.com/gradio-app/gradio/commit/bb127c74bd6301e3782e0ce4744161ae976a8481) - ensure `show_progress` works as expected in `gr.Markdown`.  Thanks @hannahblair!
+- [#12961](https://github.com/gradio-app/gradio/pull/12961) [`0595d1b`](https://github.com/gradio-app/gradio/commit/0595d1b15ba6b7c47f68ddf7f79152b3d1d3c467) - bypass HTTP loopback for non-queued MCP tool calls, calling `blocks.process_api()` directly to reduce latency.  Thanks @Mandark-droid!
+- [#12970](https://github.com/gradio-app/gradio/pull/12970) [`7326ea3`](https://github.com/gradio-app/gradio/commit/7326ea312bee7ccdaf4a1e4e11ace8f11b607ca5) - remove new console logs.  Thanks @hannahblair!
+- [#12966](https://github.com/gradio-app/gradio/pull/12966) [`673feb4`](https://github.com/gradio-app/gradio/commit/673feb4cf21beb7df03a6721d29757a2fb265c5d) - Fix website local font paths and font-weight CSS.  Thanks @hannahblair!
+- [#12968](https://github.com/gradio-app/gradio/pull/12968) [`fe95534`](https://github.com/gradio-app/gradio/commit/fe955348f24115744015d85639e170b8518b28c1) - Fix custom component reload mode.  Thanks @freddyaboulton!
+- [#12944](https://github.com/gradio-app/gradio/pull/12944) [`2c769c7`](https://github.com/gradio-app/gradio/commit/2c769c71628730fbf06c6ba9b70d672b3d052b0f) - Fix massive dropdown slowdowns caused by descructuring a derived array.  Thanks @its5Q!
+- [#12954](https://github.com/gradio-app/gradio/pull/12954) [`a74d379`](https://github.com/gradio-app/gradio/commit/a74d37949e1f12dd6646d16bfab3665ef3579a65) - Fix BrowserState Pydantic model serialization to str instead of dict.  Thanks @OiPunk!
+- [#12950](https://github.com/gradio-app/gradio/pull/12950) [`83b223b`](https://github.com/gradio-app/gradio/commit/83b223b746c3933920dfef670e545a12de9177ed) - fix: forward debug flag from launch() to FastAPI app.  Thanks @OiPunk!
+- [#12940](https://github.com/gradio-app/gradio/pull/12940) [`d610464`](https://github.com/gradio-app/gradio/commit/d610464e0eff5f200543c6bbc5fac616b1620b1e) - Fix Reload Mode When Annotated Types Are Used.  Thanks @freddyaboulton!
+- [#12975](https://github.com/gradio-app/gradio/pull/12975) [`8523c89`](https://github.com/gradio-app/gradio/commit/8523c8928ddcbc6d7eeb051f533195f942f95799) - Fix submit button not restored after example click.  Thanks @hysts!
+- [#12956](https://github.com/gradio-app/gradio/pull/12956) [`e8dadd6`](https://github.com/gradio-app/gradio/commit/e8dadd648483b6016913a9b7fa2580dbc08cb823) - Fix fill_height not working after Svelte 5 migration.  Thanks @hysts!
+
 ## 6.8.0
 
 ### Features
