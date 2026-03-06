@@ -86,21 +86,22 @@ class LocalFont(Font):
         css_template = textwrap.dedent("""
             @font-face {{
                 font-family: '{name}';
-                src: url('static/fonts/{file_name}/{file_name}-{weight}.woff2') format('woff2');
-                font-weight: {weight};
+                src: url('static/fonts/{file_name}/{file_name}-{file_weight}.woff2') format('woff2');
+                font-weight: {css_weight};
                 font-style: normal;
             }}
             """)
         css_rules = []
         for weight in self.weights:
-            weight_name = (
+            file_weight = (
                 "Regular" if weight == 400 else "Bold" if weight == 700 else str(weight)
             )
             css_rules.append(
                 css_template.format(
                     name=self.name,
                     file_name=self.name.replace(" ", ""),
-                    weight=weight_name,
+                    file_weight=file_weight,
+                    css_weight=weight,
                 )
             )
         return {"url": None, "css": "\n".join(css_rules)}

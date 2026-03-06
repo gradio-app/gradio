@@ -11,9 +11,15 @@ parser.add_argument(
 parser.add_argument(
     "--theme", choices=["default", "glass", "monochrome", "soft"], default="default"
 )
+parser.add_argument(
+    "--website", action="store_true", help="Adjust paths for SvelteKit website"
+)
 args = parser.parse_args()
 
 ThemeClass = getattr(themes, args.theme.capitalize())
 css = ThemeClass()._get_theme_css()
+
+if args.website:
+    css = css.replace("url('static/", "url('/")
 
 args.outfile.write(css)
