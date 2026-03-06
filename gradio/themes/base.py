@@ -125,7 +125,9 @@ class ThemeClass:
 
     def to_dict(self):
         """Convert the theme into a python dictionary."""
-        schema = {"theme": {}}
+        from gradio import __version__
+
+        schema = {"theme": {}, "gradio_version": __version__}
         for prop in dir(self):
             if (
                 not prop.startswith("_")
@@ -152,6 +154,22 @@ class ThemeClass:
         Parameters:
             theme: The dictionary representation of the theme.
         """
+        from gradio import __version__
+
+        theme_gradio_version = theme.get("gradio_version")
+        if theme_gradio_version:
+            try:
+                current_major = int(__version__.split(".")[0])
+                theme_major = int(theme_gradio_version.split(".")[0])
+                if current_major != theme_major:
+                    warnings.warn(
+                        f"This theme was created for Gradio {theme_gradio_version}, "
+                        f"but you are using Gradio {__version__}. "
+                        "Some styles may not work as expected."
+                    )
+            except (ValueError, IndexError):
+                pass
+
         new_theme = cls()
         for prop, value in theme["theme"].items():
             setattr(new_theme, prop, value)
@@ -369,7 +387,6 @@ class Base(ThemeClass):
             "Consolas",
             "monospace",
         ),
-        custom_css: str | None = None,
     ):
         """
         Parameters:
@@ -381,12 +398,11 @@ class Base(ThemeClass):
             radius_size: The radius size of corners. Load a preset, like gradio.themes.sizes.radius_sm (or just the string "sm"), or pass your own gradio.themes.utils.Size object.
             font: The primary font to use for the theme. Pass a string for a system font, or a gradio.themes.font.GoogleFont object to load a font from Google Fonts. Pass a list of fonts for fallbacks.
             font_mono: The monospace font to use for the theme, applies to code. Pass a string for a system font, or a gradio.themes.font.GoogleFont object to load a font from Google Fonts. Pass a list of fonts for fallbacks.
-            custom_css: Custom CSS to include with the theme. This CSS will be appended after the theme's generated CSS and is included when the theme is exported/loaded from the Hub.
         """
 
         self.name = "base"
         self._font_css = []
-        self.custom_css = custom_css or ""
+        self.custom_css = ""
 
         def expand_shortcut(shortcut, mode="color", prefix=None):
             if not isinstance(shortcut, str):
