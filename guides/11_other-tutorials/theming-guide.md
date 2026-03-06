@@ -189,6 +189,23 @@ demo.launch(theme=gr.themes.Default(font=[gr.themes.GoogleFont("Inconsolata"), "
 ></iframe>
 </div>
 
+### Custom CSS
+
+You can include custom CSS directly in your theme using the `custom_css` attribute. This CSS will be appended after the theme's generated CSS and is included when the theme is exported or loaded from the Hub.
+
+```python
+theme = gr.themes.Default()
+theme.custom_css = """
+.cool-background {
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+}
+"""
+
+with gr.Blocks(theme=theme) as demo:
+    gr.Markdown("## Markdown", elem_classes="cool-background")
+demo.launch()
+```
+
 ## Extending Themes via `.set()`
 
 You can also modify the values of CSS variables after the theme has been loaded. To do so, use the `.set()` method of the theme object to get access to the CSS variables. For example:
@@ -426,6 +443,16 @@ with gr.Blocks() as demo:
 demo.launch(theme="gradio/seafoam@>=0.0.1,<0.1.0")
     ....
 ```
+
+### Version Compatibility
+
+When you save a theme with `theme.dump()` or upload it with `theme.push_to_hub()`, the current Gradio version is automatically added. When someone loads a theme created with a different major version of Gradio, they'll see a warning:
+
+```
+UserWarning: This theme was created for Gradio 4.0.0, but you are using Gradio 5.0.0. Some styles may not work as expected.
+```
+
+This helps prevent unexpected styling issues when themes rely on CSS variables that may have changed between major Gradio versions.
 
 Enjoy creating your own themes! If you make one you're proud of, please share it with the world by uploading it to the hub!
 If you tag us on [Twitter](https://twitter.com/gradio) we can give your theme a shout out!
