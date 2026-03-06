@@ -127,7 +127,6 @@ export function make_gradio_plugin({
 			}
 
 			if (id === resolved_v_id_2) {
-				console.log("init gradio");
 				return `window.__GRADIO_DEV__ = "dev";
       window.__GRADIO__SERVER_PORT__ = ${backend_port};
       window.__GRADIO__CC__ = ${imports};

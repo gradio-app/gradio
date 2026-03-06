@@ -52,3 +52,26 @@ class TestReload:
     def test_config_watch_app(self, config):
         demo_dir = str(Path("demo/calculator/run.py").resolve().parent)
         assert demo_dir in config.watch_dirs
+
+
+def test_watchfn_does_not_inherit_future_annotations():
+    """The watchfn function must not carry CO_FUTURE_ANNOTATIONS.
+
+    When a module uses `from __future__ import annotations`, every
+    exec(source_string, ...) called from that module inherits the flag and
+    stringifies all annotations in the exec'd code.  This breaks libraries
+    (e.g. langgraph) that call get_type_hints() on user-defined classes with
+    Annotated types during hot reload.
+
+    Regression test for https://github.com/gradio-app/gradio/issues/12090
+    """
+    import __future__
+
+    from gradio.utils import watchfn
+
+    flag = __future__.annotations.compiler_flag
+    assert not (watchfn.__code__.co_flags & flag), (
+        "watchfn has CO_FUTURE_ANNOTATIONS set. "
+        "Remove `from __future__ import annotations` from gradio/utils.py "
+        "to prevent exec() from stringifying user annotations during reload."
+    )
