@@ -14,7 +14,7 @@
 	import { theme } from "$lib/stores/theme";
 
 	const BASE_URL =
-		"https://huggingface.co/datasets/gradio/custom-html-gallery/resolve/refs%2Fpr%2F23";
+		"https://huggingface.co/datasets/gradio/custom-html-gallery/resolve/main";
 
 	let manifest: ManifestEntry[] = [];
 	let component_cache: Record<string, HTMLComponentEntry> = {};
