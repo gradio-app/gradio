@@ -1,5 +1,17 @@
 # @gradio/dataframe
 
+## 0.21.7
+
+### Dependency updates
+
+- @gradio/button@0.6.5
+- @gradio/statustracker@0.12.5
+- @gradio/utils@0.12.0
+- @gradio/atoms@0.22.2
+- @gradio/markdown-code@0.6.1
+- @gradio/upload@0.17.7
+- @gradio/checkbox@0.6.4
+
 ## 0.21.6
 
 ### Fixes
