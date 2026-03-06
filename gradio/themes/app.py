@@ -117,16 +117,20 @@ with gr.Blocks() as demo:
 
     with gr.Row():
         with gr.Column(scale=2):
-            chatbot = gr.Chatbot([("Hello", "Hi")], label="Chatbot")
+            chatbot = gr.Chatbot(
+                [{"role": "user", "content": "Hello"}, {"role": "assistant", "content": "Hi"}],
+                label="Chatbot",
+            )
             chat_btn = gr.Button("Add messages")
 
-            chat_btn.click(
-                lambda history: (
-                    history + [["How are you?", "I am good."]] + (time.sleep(2) or [])
-                ),
-                chatbot,
-                chatbot,
-            )
+            def add_messages(history):
+                time.sleep(2)
+                return history + [
+                    {"role": "user", "content": "How are you?"},
+                    {"role": "assistant", "content": "I am good."},
+                ]
+
+            chat_btn.click(add_messages, chatbot, chatbot)
         with gr.Column(scale=1):
             with gr.Accordion("Advanced Settings"):
                 gr.Markdown("Hello")
