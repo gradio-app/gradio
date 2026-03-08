@@ -504,31 +504,7 @@ class EventListenerMethod:
     event_name: str
 
 
-if TYPE_CHECKING:
-    EventListenerCallable = Callable[
-        [
-            Union[Callable[..., Any], None],
-            Union[Component, Sequence[Component], None],
-            Union[Block, Sequence[Block], Sequence[Component], Component, None],
-            Union[str, None, Literal[False]],
-            bool,
-            Literal["full", "minimal", "hidden"],
-            Union[Component, Sequence[Component], None],
-            Union[bool, None],
-            bool,
-            int,
-            bool,
-            bool,
-            Union[dict[str, Any], list[dict[str, Any]], None],
-            Union[float, None],
-            Union[Literal["once", "multiple", "always_last"], None],
-            Union[str, None],
-            Union[int, None, Literal["default"]],
-            Union[str, None],
-            bool,
-        ],
-        Dependency,
-    ]
+EventListenerCallable = Callable[..., Dependency]
 
 
 class EventListener(str):
