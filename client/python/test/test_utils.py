@@ -127,6 +127,9 @@ def test_get_mimetype(filename, expected_mimetype):
             "Bringing-computational-thinking-into-classrooms-a-systematic-review-on-supporting-teachers-in-integrating-computational-thinking-into-K12-classrooms_2024_Springer-Science-and-Business-Media-Deutschland-GmbH.pdf",
             "Bringing-computational-thinking-into-classrooms-a-systematic-review-on-supporting-teachers-in-integrating-computational-thinking-into-K12-classrooms_2024_Springer-Science-and-Business-Media-Deutsc.pdf",
         ),
+        ("#.txt", "file.txt"),
+        ("@!$.pdf", "file.pdf"),
+        ("###", "file"),
     ],
 )
 def test_strip_invalid_filename_characters(orig_filename, new_filename):

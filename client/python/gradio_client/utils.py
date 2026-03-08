@@ -746,6 +746,11 @@ def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> st
         ext = "." + "".join(
             [char for char in ext[1:] if char.isalnum() or char in "._-"]
         )
+    # If stripping removed all characters from the name, use a fallback so
+    # the result is not empty or a dotfile (e.g. ".txt") which causes
+    # Path(".txt").suffix to return "" and breaks file-type validation.
+    if not name:
+        name = "file"
     filename = name + ext
     filename_len = len(filename.encode())
     if filename_len > max_bytes:

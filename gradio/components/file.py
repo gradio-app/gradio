@@ -143,8 +143,12 @@ class File(Component):
     def _process_single_file(self, f: FileData) -> NamedString | bytes:
         file_name = f.path
         if self.type == "filepath":
+            # Use the original filename for file type validation when
+            # available, since the server path may have been sanitized
+            # (e.g. "#.txt" -> ".txt") which breaks Path.suffix detection.
+            validation_name = f.orig_name if f.orig_name else file_name
             if self.file_types and not client_utils.is_valid_file(
-                file_name, self.file_types
+                validation_name, self.file_types
             ):
                 raise Error(
                     f"Invalid file type. Please upload a file that is one of these formats: {self.file_types}"
