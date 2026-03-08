@@ -399,11 +399,11 @@ export class BrushTextures {
 	 * Reinitializes textures when needed (e.g., after resizing).
 	 */
 	reinitialize(): void {
+		const local_bounds =
+			this.image_editor_context.image_container.getLocalBounds();
 		if (
-			this.image_editor_context.image_container.width !==
-				this.dimensions.width ||
-			this.image_editor_context.image_container.height !==
-				this.dimensions.height
+			Math.round(local_bounds.width) !== Math.round(this.dimensions.width) ||
+			Math.round(local_bounds.height) !== Math.round(this.dimensions.height)
 		) {
 			this.initialize_textures();
 		}
