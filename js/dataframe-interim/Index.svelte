@@ -7,4 +7,20 @@
 	import DF from "@gradio/dataframe-npm";
 </script>
 
-<DF {...$$props} />
+<div class="gradio-dataframe-interim">
+	<DF {...$$props} />
+</div>
+
+<style>
+	:global(.gradio-dataframe-interim .cell-menu[role="menu"]) {
+		z-index: var(--layer-3);
+	}
+
+	:global(.gradio-dataframe-interim .background) {
+		z-index: var(--layer-4);
+	}
+
+	:global(.gradio-dataframe-interim .filter-menu) {
+		z-index: var(--layer-5);
+	}
+</style>
