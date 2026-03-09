@@ -1,5 +1,45 @@
 # website
 
+## 0.72.0
+
+### Features
+
+- [#12972](https://github.com/gradio-app/gradio/pull/12972) [`4a0fe6e`](https://github.com/gradio-app/gradio/commit/4a0fe6e5aec1df710bd843f2f328d43fb7cfa7ef) - Fix Custom HTML Gallery URL.  Thanks @freddyaboulton!
+- [#12959](https://github.com/gradio-app/gradio/pull/12959) [`84a9235`](https://github.com/gradio-app/gradio/commit/84a923531490d4defe903985c2496a2d6412092b) - Fix table styling on the docs.  Thanks @aliabd!
+
+### Fixes
+
+- [#12966](https://github.com/gradio-app/gradio/pull/12966) [`673feb4`](https://github.com/gradio-app/gradio/commit/673feb4cf21beb7df03a6721d29757a2fb265c5d) - Fix website local font paths and font-weight CSS.  Thanks @hannahblair!
+- [#12941](https://github.com/gradio-app/gradio/pull/12941) [`50e9c84`](https://github.com/gradio-app/gradio/commit/50e9c84749aff9da985a79c8a88292fac62fa1d6) - HTML Gallery Tweaks + Docs.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/button@0.6.5
+- @gradio/code@0.17.4
+- @gradio/html@0.11.1
+- @gradio/paramviewer@0.9.5
+- @gradio/statustracker@0.12.5
+- @gradio/tabitem@0.6.6
+- @gradio/tabs@0.5.8
+
+## 0.71.1
+
+### Dependency updates
+
+- @gradio/html@0.11.0
+
+## 0.71.0
+
+### Features
+
+- [#12917](https://github.com/gradio-app/gradio/pull/12917) [`a0fff5c`](https://github.com/gradio-app/gradio/commit/a0fff5cb0e4cc0f8cc3fff7b5fbe18a031c7cc27) - Add push_to_hub method to gr.HTML. Add a gallery to view notable custom HTML components.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/button@0.6.4
+- @gradio/html@0.10.0
+- @gradio/tabs@0.5.7
+
 ## 0.70.0
 
 ### Features

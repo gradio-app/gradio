@@ -1261,7 +1261,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         derived_fields = ["types"]
 
-        with Blocks() as blocks:
+        with Blocks(theme=config.get("theme", None)) as blocks:
             # ID 0 should be the root Blocks component
             original_mapping[0] = root_block = Context.root_block or blocks
 
@@ -1680,8 +1680,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 serialized_input = client_utils.traverse(
                     inputs[i],
                     format_file,
-                    lambda s: client_utils.is_filepath(s)
-                    or client_utils.is_http_url_like(s),
+                    lambda s: (
+                        client_utils.is_filepath(s) or client_utils.is_http_url_like(s)
+                    ),
                 )
             else:
                 serialized_input = inputs[i]
@@ -2716,6 +2717,7 @@ Received inputs:
             strict_cors=strict_cors,
             ssr_mode=self.ssr_mode,
             mcp_server=mcp_server,
+            debug=debug,
         )
         if self.mcp_error and not quiet:
             print(self.mcp_error)
