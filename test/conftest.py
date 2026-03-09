@@ -140,10 +140,19 @@ def stateful_mcp_app():
         output = gr.Textbox(label="Result")
 
         btn = gr.Button("Process")
+        btn_nq = gr.Button("Process No Queue")
         btn.click(
             process,
             inputs=[name_input, hidden_state, flag_input, gallery],
             outputs=[output],
             api_visibility="public",
+        )
+        btn_nq.click(
+            process,
+            inputs=[name_input, hidden_state, flag_input, gallery],
+            outputs=[output],
+            api_visibility="public",
+            api_name="no_queue",
+            queue=False,
         )
     return demo

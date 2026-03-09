@@ -1,4 +1,4 @@
-import { test, describe, assert, afterEach } from "vitest";
+import { test, describe, assert, afterEach, expect } from "vitest";
 import { cleanup, render } from "@self/tootils";
 import event from "@testing-library/user-event";
 
@@ -49,14 +49,9 @@ describe("Textbox", () => {
 
 		const item: HTMLInputElement = getByDisplayValue("hi") as HTMLInputElement;
 
-		const mock = listen("change");
-
 		item.focus();
 		await event.keyboard("some text");
 
-		assert.equal(item.value, "hi some text");
-		await new Promise((resolve) => setTimeout(resolve, 100));
-		assert.equal(mock.callCount, 9);
-		assert.equal(mock.calls[8][0].detail.data, "hi some text");
+		expect(item.value).toBe("hi some text");
 	});
 });

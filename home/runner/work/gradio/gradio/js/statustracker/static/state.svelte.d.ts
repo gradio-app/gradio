@@ -5,7 +5,8 @@ export declare class LoadingStatus {
     fn_inputs: Record<number, number[]>;
     pending_outputs: Map<number, number>;
     fn_status: Record<number, ILoadingStatus["status"]>;
-    register(dependency_id: number, outputs: number[], inputs: number[]): void;
+    show_progress: Record<number, "full" | "minimal" | "hidden">;
+    register(dependency_id: number, outputs: number[], inputs: number[], show_progress: "full" | "minimal" | "hidden"): void;
     clear(id: number): void;
     update(args: LoadingStatusArgs): void;
     set_status(id: number, status: ILoadingStatus["status"]): void;
