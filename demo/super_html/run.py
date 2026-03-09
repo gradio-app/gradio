@@ -153,6 +153,38 @@ with gr.Blocks() as demo:
     output_box.submit(lambda x: x, output_box, outputs=form)
 
     gr.Markdown("""
+    # Watch API
+    Use `watch` inside `js_on_load` to run a callback after the template re-renders whenever specific props change. The callback takes no arguments — read current values from `props` directly.
+    """)
+    watch_html = gr.HTML(
+        value=0,
+        html_template="""
+        <div>
+            <div>Will 'submit' at 10, currently ${value}</div>
+            <button class="inc">+1</button>
+            <button class="reset">Reset</button>
+        </div>
+        """,
+        js_on_load="""
+        element.querySelector('.inc').addEventListener('click', () => {
+            props.value++;
+        });
+        element.querySelector('.reset').addEventListener('click', () => {
+            props.value = 0;
+        });
+
+        watch('value', () => {
+            if (props.value === 10) {
+                trigger('submit');
+            }
+        });
+        """,
+        elem_id="watch_demo",
+    )
+    watch_output = gr.Textbox(label="Watch Output")
+    watch_html.submit(lambda x: x, watch_html, outputs=watch_output)
+
+    gr.Markdown("""
     # Extending gr.HTML for new Components
     You can create your own Components by extending the gr.HTML class.
     """)

@@ -100,6 +100,20 @@ element.addEventListener('click', (e) =>
 );
 ```
 
+The `watch` function, available inside `js_on_load`, lets you run a callback whenever specific props change. The callback fires after the template has re-rendered, so the DOM is already up to date when your code runs. Read current values directly from `props` inside the callback.
+
+```js
+// Watch a single prop
+watch('value', () => {
+    console.log('value is now:', props.value);
+});
+
+// Watch multiple props
+watch(['value', 'color'], () => {
+    console.log('value or color changed');
+});
+```
+
 ## Server Functions
 
 You can call Python functions directly from your `js_on_load` code using the `server_functions` parameter. Pass a list of Python functions to `server_functions`, and they become available as async methods on a `server` object inside `js_on_load`.

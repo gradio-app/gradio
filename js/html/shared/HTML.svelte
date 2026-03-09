@@ -63,6 +63,11 @@
 	let random_id = `html-${Math.random().toString(36).substring(2, 11)}`;
 	let style_element: HTMLStyleElement | null = null;
 	let reactiveProps: Record<string, any> = {};
+	let watchers: Map<string, Set<{ props: string[]; callback: () => void }>> =
+		new Map();
+	let pendingChanges: Set<string> = new Set();
+	const MAX_FLUSH_DEPTH = 20;
+	let flushDepth = 0;
 	let currentHtml = $state("");
 	let currentPreHtml = $state("");
 	let currentPostHtml = $state("");
@@ -298,6 +303,61 @@
 		}
 	}
 
+	function flushWatchers(): void {
+		if (pendingChanges.size === 0) return;
+		if (!mounted) return;
+		if (flushDepth >= MAX_FLUSH_DEPTH) {
+			console.warn(
+				"gr.HTML: too many cascading watch updates, breaking cycle"
+			);
+			pendingChanges.clear();
+			return;
+		}
+		const changed = new Set(pendingChanges);
+		pendingChanges.clear();
+		const notified = new Set<{ props: string[]; callback: () => void }>();
+		for (const prop of changed) {
+			const entries = watchers.get(prop);
+			if (!entries) continue;
+			for (const entry of entries) {
+				if (!notified.has(entry)) {
+					notified.add(entry);
+				}
+			}
+		}
+		flushDepth++;
+		for (const entry of notified) {
+			try {
+				entry.callback();
+			} catch (e) {
+				console.error("Error in watch callback:", e);
+			}
+		}
+		flushDepth--;
+		if (flushDepth === 0) {
+			queueMicrotask(() => {
+				flushDepth = 0;
+			});
+		}
+	}
+
+	function watch(
+		propOrProps: string | string[],
+		callback: () => void
+	): () => void {
+		const propList = Array.isArray(propOrProps) ? propOrProps : [propOrProps];
+		const entry = { props: propList, callback };
+		for (const prop of propList) {
+			if (!watchers.has(prop)) watchers.set(prop, new Set());
+			watchers.get(prop)!.add(entry);
+		}
+		return () => {
+			for (const prop of propList) {
+				watchers.get(prop)?.delete(entry);
+			}
+		};
+	}
+
 	function scheduleRender(): void {
 		if (!renderScheduled) {
 			renderScheduled = true;
@@ -305,6 +365,7 @@
 				renderScheduled = false;
 				renderHTML();
 				update_css();
+				flushWatchers();
 			});
 		}
 	}
@@ -362,6 +423,7 @@
 					target[property as string] = value;
 
 					if (oldValue !== value) {
+						pendingChanges.add(property as string);
 						scheduleRender();
 
 						if (
@@ -420,9 +482,10 @@
 						"props",
 						"server",
 						"upload",
+						"watch",
 						js_on_load
 					);
-					func(element, trigger, reactiveProps, server, upload_func);
+					func(element, trigger, reactiveProps, server, upload_func, watch);
 				} catch (error) {
 					console.error("Error executing js_on_load:", error);
 				}

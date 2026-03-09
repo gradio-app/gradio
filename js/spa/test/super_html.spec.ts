@@ -52,6 +52,17 @@ test("test HTML components", async ({ page }) => {
 		expect(vegetablesUnorderedHtml).toContain("<ul>");
 	}).toPass();
 
+	// Watch API test
+	await expect(page.locator("#watch_demo")).toContainText("currently 0");
+	const incButton = page.locator("#watch_demo .inc");
+	for (let i = 0; i < 10; i++) {
+		await incButton.click();
+	}
+	await expect(page.locator("#watch_demo")).toContainText("currently 10");
+	await expect(page.getByLabel("Watch Output")).toHaveValue("10");
+	await page.locator("#watch_demo .reset").click();
+	await expect(page.locator("#watch_demo")).toContainText("currently 0");
+
 	await expect(page.locator("body")).toContainText("Zalue is not defined");
 
 	const secondTodoCheckbox = page
