@@ -1,13 +1,10 @@
 import { json } from "@sveltejs/kit";
+import guide_names from "$lib/json/guides/guide_names.json";
 
 export const prerender = true;
 
-const guideModules = import.meta.glob("$lib/json/guides/*.json");
-
 export function entries() {
-	return Object.keys(guideModules).map((path) => ({
-		guide: path.replace(/^.*\/(.+)\.json$/, "$1")
-	}));
+	return guide_names.guide_urls.map((guide) => ({ guide }));
 }
 
 export async function GET({ params }) {
