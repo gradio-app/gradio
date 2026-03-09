@@ -63,8 +63,10 @@
 	let random_id = `html-${Math.random().toString(36).substring(2, 11)}`;
 	let style_element: HTMLStyleElement | null = null;
 	let reactiveProps: Record<string, any> = {};
-	let watchers: Map<string, Set<{ props: string[]; callback: () => void }>> =
-		new Map();
+	let watchers: Map<
+		string,
+		Set<{ props: string[]; callback: () => void }>
+	> = new Map();
 	let pendingChanges: Set<string> = new Set();
 	const MAX_FLUSH_DEPTH = 20;
 	let flushDepth = 0;
@@ -307,9 +309,7 @@
 		if (pendingChanges.size === 0) return;
 		if (!mounted) return;
 		if (flushDepth >= MAX_FLUSH_DEPTH) {
-			console.warn(
-				"gr.HTML: too many cascading watch updates, breaking cycle"
-			);
+			console.warn("gr.HTML: too many cascading watch updates, breaking cycle");
 			pendingChanges.clear();
 			return;
 		}

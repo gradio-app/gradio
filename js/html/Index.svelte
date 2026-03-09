@@ -19,7 +19,7 @@
 	const gradio = new Gradio<HTMLEvents, HTMLProps>(props);
 
 	let _props = $derived({
-		value: gradio.props.value || "",
+		value: gradio.props.value ?? "",
 		label: gradio.shared.label,
 		visible: gradio.shared.visible,
 		...gradio.props.props
