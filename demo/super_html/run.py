@@ -407,5 +407,27 @@ with gr.Blocks() as demo:
         elem_id="server_fns",
     )
 
+    gr.Markdown("""
+    # Custom Events
+    You can trigger custom events (not in the standard event list) from `js_on_load` using `trigger('custom_event_name', data)`. As long as the event name appears in quotes in `js_on_load`, you can attach a Python listener using `component.custom_event_name(fn, ...)`.
+    """)
+
+    keyboard = gr.HTML(
+        html_template="<p>Press any key...</p>",
+        js_on_load="""
+        document.addEventListener('keydown', (e) => {
+            trigger('keypress', {key: e.key});
+        });
+        """,
+        elem_id="custom_event",
+    )
+
+    key_output = gr.Textbox(label="Key Pressed", elem_id="key_output")
+
+    def get_key(evt_data: gr.EventData):
+        return evt_data.key
+
+    keyboard.keypress(get_key, None, key_output)
+
 if __name__ == "__main__":
     demo.launch()

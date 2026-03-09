@@ -98,6 +98,7 @@ export class AppTree {
 		this.#component_payload = components;
 		this.#layout_payload = layout;
 		this.#dependency_payload = dependencies;
+		this.#event_dispatcher = event_dispatcher;
 		this.root = this.create_node(
 			{ id: layout.id, children: [] },
 			new Map(),
@@ -131,7 +132,7 @@ export class AppTree {
 		this.initial_tabs = {};
 		gather_initial_tabs(this.root!, this.initial_tabs);
 		this.postprocess(this.root!);
-		this.#event_dispatcher = event_dispatcher;
+
 		this.root_untracked = this.root;
 	}
 
@@ -237,6 +238,7 @@ export class AppTree {
 					node,
 					this.components_to_register
 				),
+
 			(node) => apply_initial_tabs(node, this.initial_tabs),
 			(node) => this.find_attached_events(node, this.#dependency_payload),
 			(node) =>
@@ -339,17 +341,30 @@ export class AppTree {
 		if (reactive_formatter) {
 			component.props.i18n = reactive_formatter;
 		}
+
 		const processed_props = gather_props(
 			opts.id,
 			component.props,
 			[this.#input_ids, this.#output_ids],
 			this.client,
 			this.#config.api_url,
-			{ ...this.#config }
+			{
+				...this.#config,
+				register_component: this.register_component.bind(this),
+				dispatcher: this.#event_dispatcher.bind(this)
+			}
 		);
 
 		const type =
 			type_map[component.type as keyof typeof type_map] || component.type;
+		const loading_component =
+			processed_props.shared_props.visible !== false
+				? get_component(
+						component.type,
+						component.component_class_id,
+						this.#config.api_url || ""
+					)
+				: null;
 
 		const node = {
 			id: opts.id,
@@ -360,12 +375,9 @@ export class AppTree {
 			component_class_id: component.component_class_id || component.type,
 			component:
 				processed_props.shared_props.visible !== false
-					? get_component(
-							component.type,
-							component.component_class_id,
-							this.#config.api_url || ""
-						)
+					? loading_component?.component || null
 					: null,
+			runtime: loading_component?.runtime || (false as false),
 			key: component.key,
 			rendered_in: component.rendered_in,
 			documentation: component.documentation,
@@ -399,20 +411,6 @@ export class AppTree {
 		}
 		n.children = subtree.children;
 	}
-
-	async update_visibility(
-		node: ProcessedComponentMeta,
-		new_state: any
-	): Promise<void> {
-		node.children.forEach((child) => {
-			const _set_data = this.#set_callbacks.get(child.id);
-			if (_set_data) {
-				_set_data(new_state);
-			}
-			this.update_visibility(child, new_state);
-		});
-	}
-
 	/*
 	 * Updates the state of a component by its ID
 	 * @param id the ID of the component to update
@@ -479,6 +477,19 @@ export class AppTree {
 		// any values currently in the UI.
 		// @ts-ignore
 		await this.update_visibility(node, new_state);
+	}
+
+	async update_visibility(
+		node: ProcessedComponentMeta,
+		new_state: any
+	): Promise<void> {
+		node.children.forEach((child) => {
+			const _set_data = this.#set_callbacks.get(child.id);
+			if (_set_data) {
+				_set_data(new_state);
+			}
+			this.update_visibility(child, new_state);
+		});
 	}
 
 	/**
@@ -642,6 +653,7 @@ function gather_props(
 	for (const key in additional) {
 		if (allowed_shared_props.includes(key as keyof SharedProps)) {
 			const _key = key as keyof SharedProps;
+			//@ts-ignore
 			_shared_props[_key] = additional[key];
 		} else {
 			_props[key] = additional[key];
@@ -660,7 +672,7 @@ function gather_props(
 	_shared_props.load_component = (
 		name: string,
 		variant: "base" | "component" | "example"
-	) => get_component(name, "", api_url, variant) as LoadingComponent;
+	) => get_component(name, "", api_url, variant).component as LoadingComponent;
 
 	_shared_props.visible =
 		_shared_props.visible === undefined ? true : _shared_props.visible;
@@ -675,9 +687,15 @@ function handle_visibility(
 ): ProcessedComponentMeta {
 	// Check if the node is visible
 	if (node.props.shared_props.visible && !node.component) {
+		const loading_component = get_component(
+			node.type,
+			node.component_class_id,
+			api_url
+		);
 		const result: ProcessedComponentMeta = {
 			...node,
-			component: get_component(node.type, node.component_class_id, api_url),
+			component: loading_component.component,
+
 			children: []
 		};
 
@@ -758,6 +776,7 @@ function untrack_children_of_closed_accordions_or_inactive_tabs(
 			if (
 				child.type === "tabitem" &&
 				child.props.props.id !==
+					//@ts-ignore
 					(node.props.props.selected || node.props.props.initial_tabs[0].id)
 			) {
 				_untrack(child, components_to_register);

@@ -720,7 +720,9 @@ class App(FastAPI):
             root = route_utils.get_root_url(
                 request=request,
                 route_path=f"/{page}",
-                root_path=app.root_path or blocks.custom_mount_path,
+                root_path=app.root_path
+                or request.scope.get("root_path")
+                or blocks.custom_mount_path,
             )
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = utils.safe_deepcopy(blocks.config)
@@ -952,7 +954,9 @@ class App(FastAPI):
             root = route_utils.get_root_url(
                 request=request,
                 route_path="/config",
-                root_path=app.root_path or blocks.custom_mount_path,
+                root_path=app.root_path
+                or request.scope.get("root_path")
+                or blocks.custom_mount_path,
             )
             config["username"] = get_current_user(request)
             if deep_link:
@@ -979,6 +983,9 @@ class App(FastAPI):
             file_name: str,
             req: fastapi.Request,
         ):
+            print(
+                f"id={id}, environment={environment}, type={type}, file_name={file_name}"
+            )
             if environment not in ["client", "server"]:
                 raise HTTPException(
                     status_code=404, detail="Environment not supported."

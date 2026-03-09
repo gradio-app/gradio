@@ -1,9 +1,11 @@
 import { join } from "path";
 import * as fs from "fs";
+
 import { createServer, createLogger } from "vite";
-import { plugins, make_gradio_plugin, deepmerge_plugin } from "./plugins";
-import { examine_module } from "./index";
 import type { PreprocessorGroup } from "svelte/compiler";
+
+import { plugins, make_gradio_plugin } from "./plugins";
+import { examine_module } from "./index";
 
 const vite_messages_to_ignore = [
 	"Default and named imports from CSS files are deprecated.",
@@ -43,7 +45,7 @@ export async function create_server({
 	python_path
 }: ServerOptions): Promise<void> {
 	process.env.gradio_mode = "dev";
-	const [imports, config] = await generate_imports(
+	const [imports, config, runtimes] = await generate_imports(
 		component_dir,
 		root_dir,
 		python_path
@@ -69,12 +71,12 @@ export async function create_server({
 			plugins: [
 				...plugins(config),
 				make_gradio_plugin({
-					mode: "dev",
 					backend_port,
 					svelte_dir,
-					imports
-				}),
-				deepmerge_plugin
+					component_dir,
+					imports,
+					runtimes
+				})
 			]
 		});
 
@@ -136,7 +138,7 @@ async function generate_imports(
 	component_dir: string,
 	root: string,
 	python_path: string
-): Promise<[string, ComponentConfig]> {
+): Promise<[string, ComponentConfig, string]> {
 	const components = find_frontend_folders(component_dir);
 
 	const component_entries = components.flatMap((component) => {
@@ -205,9 +207,14 @@ async function generate_imports(
 			${example}
 			component: () => import("/@fs/${to_posix(
 				join(component.frontend_dir, exports.component.gradio)
-			)}")
+			)}"),
+
 			},\n`;
 	}, "");
 
-	return [`{${imports}}`, component_config];
+	const runtimes = component_entries.reduce((acc, component) => {
+		return `${acc}"${component.component_class_id}": import("svelte"),\n`;
+	}, "");
+
+	return [`{${imports}}`, component_config, `{${runtimes}}`];
 }
