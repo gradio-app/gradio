@@ -429,5 +429,35 @@ with gr.Blocks() as demo:
 
     keyboard.keypress(get_key, None, key_output)
 
+    gr.Markdown("""
+    # Head / Third-Party Scripts
+    The `head` parameter lets you load third-party JS/CSS libraries directly on the component.
+    Scripts are deduplicated by `src`, so multiple components sharing the same library only load it once.
+    """)
+
+    head_html = gr.HTML(
+        value=[30, 70, 45, 90, 60],
+        html_template="""
+        <canvas id="head-chart" width="300" height="200"></canvas>
+        """,
+        js_on_load="""
+        const canvas = element.querySelector('#head-chart');
+        new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: props.value.map((_, i) => 'Item ' + (i + 1)),
+                datasets: [{
+                    label: 'Values',
+                    data: props.value,
+                    backgroundColor: 'rgba(99, 132, 255, 0.5)',
+                }]
+            },
+            options: { responsive: false }
+        });
+        """,
+        head='<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>',
+        elem_id="head_demo",
+    )
+
 if __name__ == "__main__":
     demo.launch()

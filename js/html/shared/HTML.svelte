@@ -358,6 +358,23 @@
 		};
 	}
 
+	function plain_value(v: any): any {
+		if (v === null || v === undefined || typeof v !== "object") return v;
+		try {
+			return structuredClone(v);
+		} catch {
+			return JSON.parse(JSON.stringify(v));
+		}
+	}
+
+	function plain_props(p: Record<string, any>): Record<string, any> {
+		const out: Record<string, any> = {};
+		for (const k in p) {
+			out[k] = plain_value(p[k]);
+		}
+		return out;
+	}
+
 	function scheduleRender(): void {
 		if (!renderScheduled) {
 			renderScheduled = true;
@@ -416,7 +433,7 @@
 		mounted = true;
 
 		reactiveProps = new Proxy(
-			{ ...props },
+			plain_props(props),
 			{
 				set(target, property, value) {
 					const oldValue = target[property as string];
@@ -502,7 +519,7 @@
 		) {
 			for (const key in props) {
 				if (reactiveProps[key] !== props[key]) {
-					reactiveProps[key] = props[key];
+					reactiveProps[key] = plain_value(props[key]);
 				}
 			}
 			old_props = props;

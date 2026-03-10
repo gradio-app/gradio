@@ -105,4 +105,13 @@ test("test HTML components", async ({ page }) => {
 	await expect(page.getByLabel("Key Pressed")).toHaveValue("a");
 	await page.keyboard.press("Enter");
 	await expect(page.getByLabel("Key Pressed")).toHaveValue("Enter");
+
+	// Head / third-party script test (Chart.js loaded via head param)
+	await expect(async () => {
+		const canvas = page.locator("#head_demo canvas#head-chart");
+		await expect(canvas).toBeVisible();
+		// Chart.js renders onto the canvas, so check that the script loaded
+		const chartExists = await page.evaluate(() => typeof Chart !== "undefined");
+		expect(chartExists).toBe(true);
+	}).toPass();
 });
