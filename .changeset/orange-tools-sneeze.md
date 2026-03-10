@@ -3,4 +3,4 @@
 "gradio_client": patch
 ---
 
-fix:fix: preserve file extension when filename stem is stripped entirely
+fix:preserve file extension when filename stem is stripped entirely in gr.File
