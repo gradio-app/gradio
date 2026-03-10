@@ -110,7 +110,7 @@
 			autoscroll={gradio.shared.autoscroll}
 			apply_default_css={gradio.props.apply_default_css}
 			head={gradio.props.head}
-		component_class_name={gradio.props.component_class_name}
+			component_class_name={gradio.props.component_class_name}
 			{upload}
 			server={gradio.shared.server}
 			on:event={(e) => {

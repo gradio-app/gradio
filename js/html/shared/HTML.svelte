@@ -432,31 +432,28 @@
 		if (!element || mounted) return;
 		mounted = true;
 
-		reactiveProps = new Proxy(
-			plain_props(props),
-			{
-				set(target, property, value) {
-					const oldValue = target[property as string];
-					target[property as string] = value;
+		reactiveProps = new Proxy(plain_props(props), {
+			set(target, property, value) {
+				const oldValue = target[property as string];
+				target[property as string] = value;
 
-					if (oldValue !== value) {
-						pendingChanges.add(property as string);
-						scheduleRender();
+				if (oldValue !== value) {
+					pendingChanges.add(property as string);
+					scheduleRender();
 
-						if (
-							property === "value" ||
-							property === "label" ||
-							property === "visible"
-						) {
-							props[property] = value;
-							old_props[property] = value;
-							dispatch("update_value", { data: value, property });
-						}
+					if (
+						property === "value" ||
+						property === "label" ||
+						property === "visible"
+					) {
+						props[property] = value;
+						old_props[property] = value;
+						dispatch("update_value", { data: value, property });
 					}
-					return true;
 				}
+				return true;
 			}
-		);
+		});
 
 		if (has_children) {
 			currentPreHtml = render_template(
