@@ -303,7 +303,7 @@ class HTML(BlockContext, Component):
 
         data = self._to_publish_format(
             name=name,
-            head=head,
+            head=head or self.head,
             description=description,
             author=author,
             tags=tags,
