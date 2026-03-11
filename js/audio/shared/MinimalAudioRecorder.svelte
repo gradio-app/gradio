@@ -168,12 +168,15 @@
 			has_started === false &&
 			mic_devices.length <= 1
 		) {
-			record.startMic({ deviceId: selected_device_id }).then(() => {
-				record?.startRecording();
-			}).catch((err) => {
-				console.error("Failed to access microphone:", err);
-				onclear?.();
-			});
+			record
+				.startMic({ deviceId: selected_device_id })
+				.then(() => {
+					record?.startRecording();
+				})
+				.catch((err) => {
+					console.error("Failed to access microphone:", err);
+					onclear?.();
+				});
 		} else if (!recording && is_recording && record) {
 			record.stopRecording();
 			seconds = 0;
