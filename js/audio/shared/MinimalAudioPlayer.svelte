@@ -16,10 +16,10 @@
 
 	let container: HTMLDivElement;
 	let waveform: WaveSurfer | undefined;
-	let playing = false;
-	let duration = 0;
-	let currentTime = 0;
-	let waveform_ready = false;
+	let playing = $state(false);
+	let duration = $state(0);
+	let currentTime = $state(0);
+	let waveform_ready = $state(false);
 
 	let resolved_src = $derived(value.url);
 

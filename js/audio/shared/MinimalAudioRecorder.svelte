@@ -33,14 +33,14 @@
 
 	let container: HTMLDivElement;
 	let waveform: WaveSurfer | undefined;
-	let record: RecordPlugin | undefined;
-	let seconds = 0;
+	let record: RecordPlugin | undefined = $state();
+	let seconds = $state(0);
 	let interval: NodeJS.Timeout;
-	let is_recording = false;
-	let has_started = false;
-	let mic_devices: MediaDeviceInfo[] = [];
-	let selected_device_id: string = "";
-	let show_device_selection = false;
+	let is_recording = $state(false);
+	let has_started = $state(false);
+	let mic_devices: MediaDeviceInfo[] = $state([]);
+	let selected_device_id: string = $state("");
+	let show_device_selection = $state(false);
 
 	const start_interval = (): void => {
 		clearInterval(interval);
@@ -168,9 +168,15 @@
 			has_started === false &&
 			mic_devices.length <= 1
 		) {
-			record.startMic({ deviceId: selected_device_id }).then(() => {
-				record?.startRecording();
-			});
+			record
+				.startMic({ deviceId: selected_device_id })
+				.then(() => {
+					record?.startRecording();
+				})
+				.catch((err) => {
+					console.error("Failed to access microphone:", err);
+					onclear?.();
+				});
 		} else if (!recording && is_recording && record) {
 			record.stopRecording();
 			seconds = 0;
@@ -229,7 +235,11 @@
 		<button
 			class="stop-button"
 			onclick={() => {
-				recording = false;
+				if (is_recording) {
+					recording = false;
+				} else {
+					onclear?.();
+				}
 			}}
 			aria-label="Stop recording"
 		>
