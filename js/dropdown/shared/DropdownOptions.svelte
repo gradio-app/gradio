@@ -26,9 +26,9 @@
 		onload?: () => void;
 	} = $props();
 
-	let distance_from_top: number;
-	let distance_from_bottom: number;
-	let input_height: number;
+	let distance_from_top = $state(0);
+	let distance_from_bottom = $state(0);
+	let input_height = $state(0);
 	let input_width = $state(0);
 	let refElement: HTMLDivElement;
 	let listElement: HTMLUListElement;
