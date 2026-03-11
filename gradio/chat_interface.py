@@ -737,6 +737,12 @@ class ChatInterface(Blocks):
                 [self.chatbot],
                 [self.chatbot, self.chatbot_state, self.saved_input],
                 api_visibility="undocumented",
+            ).then(
+                self._append_message_to_history,
+                [self.saved_input, self.chatbot_state],
+                [self.chatbot],
+                api_visibility="undocumented",
+                queue=False,
             ).success(**submit_fn_kwargs).success(**synchronize_chat_state_kwargs).then(
                 **save_fn_kwargs
             )
