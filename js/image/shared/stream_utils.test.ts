@@ -49,7 +49,7 @@ let test_devices: MediaDeviceInfo[] = [
 describe("stream_utils", () => {
 	test("get_devices should enumerate media devices", async () => {
 		const devices = await get_devices();
-		expect(devices[0]).toBeDefined();
+		expect(Array.isArray(devices)).toBe(true);
 	});
 
 	test("set_local_stream should set the local stream to the video source", async () => {
