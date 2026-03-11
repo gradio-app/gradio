@@ -1,6 +1,6 @@
 import { describe, test, expect, vi } from "vitest";
 import { spy } from "tinyspy";
-import { setupServer } from "msw/node";
+import { setupWorker } from "msw/browser";
 import { http, HttpResponse } from "msw";
 import type { client_return } from "@gradio/client";
 import { Dependency, TargetMap } from "./types";
@@ -11,6 +11,7 @@ import {
 	process_server_fn,
 	get_component
 } from "./_init";
+import { commands } from "@vitest/browser/context";
 
 describe("process_frontend_fn", () => {
 	test("empty source code returns null", () => {
@@ -461,6 +462,8 @@ describe("get_component", () => {
 						value: "hi",
 						interactive: false
 					},
+					key: "test-component-one",
+
 					has_modes: false,
 					instance: {} as any,
 					component: {} as any
@@ -476,49 +479,49 @@ describe("get_component", () => {
 		);
 	});
 
-	test.skip("if the component is not found then it should request the component from the server", async () => {
-		const api_url = "example.com";
-		const id = "test-random";
-		const variant = "component";
-		const handlers = [
-			http.get(
-				`${api_url}/custom_component/${id}/client/${variant}/style.css`,
-				() => {
-					return new HttpResponse('console.log("boo")', {
-						status: 200,
-						headers: {
-							"Content-Type": "text/css"
-						}
-					});
-				}
-			)
-		];
+	// test.skip("if the component is not found then it should request the component from the server", async () => {
+	// 	const api_url = "example.com";
+	// 	const id = "test-random";
+	// 	const variant = "component";
+	// 	const handlers = [
+	// 		http.get(
+	// 			`${api_url}/custom_component/${id}/client/${variant}/style.css`,
+	// 			() => {
+	// 				return new HttpResponse('console.log("boo")', {
+	// 					status: 200,
+	// 					headers: {
+	// 						"Content-Type": "text/css"
+	// 					}
+	// 				});
+	// 			}
+	// 		)
+	// 	];
 
-		// vi.mock calls are always hoisted out of the test function to the top of the file
-		// so we need to use vi.hoisted to hoist the mock function above the vi.mock call
-		const { mock } = vi.hoisted(() => {
-			return { mock: vi.fn() };
-		});
+	// 	// vi.mock calls are always hoisted out of the test function to the top of the file
+	// 	// so we need to use vi.hoisted to hoist the mock function above the vi.mock call
+	// 	const { mock } = vi.hoisted(() => {
+	// 		return { mock: vi.fn() };
+	// 	});
 
-		vi.mock(
-			`example.com/custom_component/test-random/client/component/index.js`,
-			async () => {
-				mock();
-				return {
-					default: {
-						default: "HELLO"
-					}
-				};
-			}
-		);
+	// 	vi.mock(
+	// 		`example.com/custom_component/test-random/client/component/index.js`,
+	// 		async () => {
+	// 			mock();
+	// 			return {
+	// 				default: {
+	// 					default: "HELLO"
+	// 				}
+	// 			};
+	// 		}
+	// 	);
 
-		const server = setupServer(...handlers);
-		server.listen();
+	// 	const worker = setupWorker(...handlers);
+	// 	worker.start();
 
-		await get_component("test-random", id, api_url, []).component;
+	// 	await get_component("test-random", id, api_url, []).component;
 
-		expect(mock).toHaveBeenCalled();
+	// 	expect(mock).toHaveBeenCalled();
 
-		server.close();
-	});
+	// 	worker.stop();
+	// });
 });

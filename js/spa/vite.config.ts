@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, createLogger } from "vite";
 import type { Plugin } from "vite";
 import {
 	svelte as svelte_plugin,
@@ -12,6 +12,9 @@ import global_data from "@csstools/postcss-global-data";
 import prefixer from "postcss-prefix-selector";
 import { readFileSync } from "fs";
 import { resolve } from "path";
+import { playwright } from "@vitest/browser-playwright";
+
+/// <reference types="@vitest/browser/providers/playwright" />
 
 const version_path = resolve(__dirname, "../../gradio/package.json");
 const theme_token_path = resolve(__dirname, "../theme/src/tokens.css");
@@ -31,12 +34,30 @@ import {
 const GRADIO_VERSION = version_raw || "asd_stub_asd";
 const CDN_BASE = "https://gradio.s3-us-west-2.amazonaws.com";
 const TEST_MODE = process.env.TEST_MODE || "happy-dom";
+const logger = createLogger();
+const originalWarning = logger.warn;
+
+logger.warn = (log, options) => {
+	if (log.includes("was created with unknown prop")) return false;
+	if (log.includes("https://svelte.dev")) return false;
+	if (log.includes("[vite-plugin-svelte]")) return false;
+	if (log && log.includes("[MSW]")) return;
+	originalWarning(log, options);
+};
+
+const originalError = logger.error;
+
+logger.error = (msg, options) => {
+	if (msg && msg.includes("[MSW]")) return;
+	originalError(msg, options);
+};
 
 //@ts-ignore
 export default defineConfig(({ mode, isSsrBuild }) => {
 	const production = mode === "production";
 
 	return {
+		customLogger: mode === "test" ? logger : undefined,
 		base: "./",
 		server: {
 			port: 9876,
@@ -95,6 +116,10 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 						async: true
 					}
 				},
+				onwarn(warning, handler) {
+					if (mode === "test") return;
+					handler(warning);
+				},
 				hot: !process.env.VITEST && !production,
 				preprocess: [
 					vitePreprocess(),
@@ -117,13 +142,16 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 		],
 
 		optimizeDeps: {
-			exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"]
+			exclude: [
+				"fsevents",
+				"@ffmpeg/ffmpeg",
+				"@ffmpeg/util",
+				"chromium-bidi",
+				"esbuild"
+			]
 		},
 		resolve: {
-			conditions:
-				mode === "test"
-					? ["gradio", "module", "node", "browser"]
-					: ["gradio", "browser"]
+			conditions: ["gradio", "browser", "default"]
 		},
 		test: {
 			setupFiles: [resolve(__dirname, "../../.config/setup_vite_tests.ts")],
@@ -134,8 +162,26 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 					: ["**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
 			exclude: ["**/node_modules/**", "**/gradio/gradio/**"],
 			globals: true,
+
 			onConsoleLog(log, type) {
 				if (log.includes("was created with unknown prop")) return false;
+				if (log.includes("https://svelte.dev")) return false;
+				if (log.includes("[vite-plugin-svelte]")) return false;
+				if (log.includes("[MSW]")) return false;
+				if (log.includes("Error loading translations")) return false;
+			},
+			browser: {
+				enabled: true,
+				provider: playwright(),
+				instances: [
+					{
+						browser: "chromium",
+						// headless: false,
+						context: {
+							permissions: ["camera", "microphone"]
+						}
+					}
+				]
 			}
 		}
 	};
