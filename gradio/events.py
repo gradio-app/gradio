@@ -529,6 +529,10 @@ if TYPE_CHECKING:
         ],
         Dependency,
     ]
+    # Bound component event methods (e.g. button.click, tab.select) don't
+    # expose the ``block`` first-parameter present in EventListenerCallable,
+    # so we also accept any callable that returns a Dependency.
+    Trigger = Union[EventListenerCallable, Callable[..., Dependency]]
 
 
 class EventListener(str):
@@ -781,7 +785,7 @@ class EventListener(str):
 
 @document()
 def on(
-    triggers: Sequence[EventListenerCallable] | EventListenerCallable | None = None,
+    triggers: Sequence[Trigger] | Trigger | None = None,
     fn: Callable[..., Any] | None | Literal["decorator"] = "decorator",
     inputs: Component
     | BlockContext
