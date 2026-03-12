@@ -6,19 +6,19 @@ export function handle_error(error: string): void {
 	throw new Error(error);
 }
 
-export function set_local_stream(
+export async function set_local_stream(
 	local_stream: MediaStream | null,
 	video_source: HTMLVideoElement
-): void {
+): Promise<void> {
 	video_source.srcObject = local_stream;
 	video_source.muted = true;
-	video_source.play();
+	await video_source.play();
 }
 
 export async function get_video_stream(
 	include_audio: boolean,
 	video_source: HTMLVideoElement,
-	webcam_constraints: { [key: string]: any } | null,
+	webcam_constraints?: { [key: string]: any } | null,
 	device_id?: string
 ): Promise<MediaStream> {
 	const constraints: MediaStreamConstraints = {

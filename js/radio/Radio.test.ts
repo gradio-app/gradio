@@ -1,6 +1,6 @@
 import { test, describe, assert, afterEach, expect } from "vitest";
 
-import { cleanup, render } from "@self/tootils";
+import { cleanup, render } from "@self/tootils/render";
 import { tick } from "svelte";
 import event from "@testing-library/user-event";
 

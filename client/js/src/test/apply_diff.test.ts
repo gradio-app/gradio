@@ -7,6 +7,7 @@ describe("apply_diff", () => {
 			{ content: "Hi", role: "user" },
 			{ content: "How can I assist you?", role: "assistant" }
 		];
+
 		const diff: any = [
 			["delete", [0], null],
 			["delete", [0], null]

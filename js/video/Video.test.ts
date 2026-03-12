@@ -8,8 +8,7 @@ import {
 	beforeEach,
 	expect
 } from "vitest";
-import { spyOn } from "tinyspy";
-import { cleanup, render } from "@self/tootils";
+import { cleanup, render } from "@self/tootils/render";
 import { setupi18n } from "../core/src/i18n";
 
 vi.mock("@ffmpeg/ffmpeg", () => ({
@@ -152,9 +151,9 @@ describe("Video", () => {
 			}
 		});
 		const startButton = getByTestId("test-player") as HTMLVideoElement;
-		const fn = spyOn(startButton, "play");
+		const fn = vi.spyOn(startButton, "play").mockResolvedValue(undefined);
 		startButton.dispatchEvent(new Event("loadeddata"));
-		assert.equal(fn.callCount, 1);
+		assert.equal(fn.mock.calls.length, 1);
 	});
 
 	test("when autoplay is true `media.play` should be called in dynamic mode", async () => {
@@ -176,10 +175,10 @@ describe("Video", () => {
 				constraints: null
 			}
 		});
-		const startButton = getByTestId("test-player") as HTMLVideoElement;
-		const fn = spyOn(startButton, "play");
-		startButton.dispatchEvent(new Event("loadeddata"));
-		assert.equal(fn.callCount, 1);
+
+		const video_player = getByTestId("test-player") as HTMLVideoElement;
+		const fn = vi.spyOn(video_player, "play").mockResolvedValue(undefined);
+		assert.equal(fn.mock.calls.length, 1);
 	});
 
 	test("when autoplay is true `media.play` should be called in static mode when the Video data is updated", async () => {
@@ -202,10 +201,9 @@ describe("Video", () => {
 				constraints: null
 			}
 		});
-		let startButton = getByTestId("test-player") as HTMLVideoElement;
-		const fn = spyOn(startButton, "play");
-		startButton.dispatchEvent(new Event("loadeddata"));
-		assert.equal(fn.callCount, 1);
+		let video_player = getByTestId("test-player") as HTMLVideoElement;
+		const fn = vi.spyOn(video_player, "play").mockResolvedValue(undefined);
+		assert.equal(fn.mock.calls.length, 1);
 		unmount();
 
 		const result = await render(Video, {
@@ -227,10 +225,9 @@ describe("Video", () => {
 				constraints: null
 			}
 		});
-		startButton = result.getByTestId("test-player") as HTMLVideoElement;
-		const fn2 = spyOn(startButton, "play");
-		startButton.dispatchEvent(new Event("loadeddata"));
-		assert.equal(fn2.callCount, 1);
+		video_player = result.getByTestId("test-player") as HTMLVideoElement;
+		const fn2 = vi.spyOn(video_player, "play").mockResolvedValue(undefined);
+		assert.equal(fn2.mock.calls.length, 1);
 	});
 
 	test("when autoplay is true `media.play` should be called in dynamic mode when the Video data is updated", async () => {
@@ -253,10 +250,9 @@ describe("Video", () => {
 				constraints: null
 			}
 		});
-		let startButton = getByTestId("test-player") as HTMLVideoElement;
-		const fn = spyOn(startButton, "play");
-		startButton.dispatchEvent(new Event("loadeddata"));
-		assert.equal(fn.callCount, 1);
+		let video_player = getByTestId("test-player") as HTMLVideoElement;
+		const fn = vi.spyOn(video_player, "play").mockResolvedValue(undefined);
+		assert.equal(fn.mock.calls.length, 1);
 		unmount();
 
 		const result = await render(Video, {
@@ -278,10 +274,11 @@ describe("Video", () => {
 				constraints: null
 			}
 		});
-		startButton = result.getByTestId("test-player") as HTMLVideoElement;
-		const fnResult = spyOn(startButton, "play");
-		startButton.dispatchEvent(new Event("loadeddata"));
-		assert.equal(fnResult.callCount, 1);
+		video_player = result.getByTestId("test-player") as HTMLVideoElement;
+		const fnResult = vi
+			.spyOn(video_player, "play")
+			.mockResolvedValue(undefined);
+		assert.equal(fnResult.mock.calls.length, 1);
 	});
 	test("renders video and download button", async () => {
 		const data = {

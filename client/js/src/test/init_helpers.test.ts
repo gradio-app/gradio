@@ -9,11 +9,14 @@ import { beforeAll, afterEach, afterAll, it, expect, describe } from "vitest";
 import { Client } from "../client";
 import { INVALID_CREDENTIALS_MSG, MISSING_CREDENTIALS_MSG } from "../constants";
 
-const server = initialise_server();
+let server: Awaited<ReturnType<typeof initialise_server>>;
 
-beforeAll(() => server.listen());
+beforeAll(async () => {
+	server = await initialise_server();
+	await server.start({ quiet: true });
+});
 afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+afterAll(() => server.stop());
 
 describe("resolve_root", () => {
 	it('should return the base URL if the root path starts with "http://"', () => {
@@ -102,7 +105,7 @@ describe("resolve_cookies", () => {
 
 	it("should connect to a private and authenticated space", async () => {
 		const client = await Client.connect("hmb/private_auth_space", {
-			hf_token: "hf_123",
+			token: "hf_123",
 			auth: ["admin", "pass1234"]
 		});
 

@@ -2,12 +2,16 @@ import { Client } from "../client";
 
 import { initialise_server } from "./server";
 import { BROKEN_CONNECTION_MSG } from "../constants";
-const server = initialise_server();
 import { beforeAll, afterEach, afterAll, it, expect, describe } from "vitest";
 
-beforeAll(() => server.listen());
+let server: Awaited<ReturnType<typeof initialise_server>>;
+
+beforeAll(async () => {
+	server = await initialise_server();
+	await server.start({ quiet: true });
+});
 afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+afterAll(() => server.stop());
 
 describe("post_data", () => {
 	it("should send a POST request with the correct headers and body", async () => {

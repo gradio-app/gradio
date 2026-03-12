@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, describe, expect, test } from "vitest";
-import { render, cleanup } from "@self/tootils";
+import { render, cleanup } from "@self/tootils/render";
 import { setupi18n } from "../../core/src/i18n";
 import { Gradio } from "../../core/src/gradio_helper";
 
@@ -38,7 +38,7 @@ import InteractiveSlider from "@gradio/slider";
 import InteractiveTextbox from "@gradio/textbox";
 import InteractiveUploadButton from "@gradio/uploadbutton";
 import InteractiveVideo from "@gradio/video";
-import { LoadingStatus } from "@gradio/statustracker";
+import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status: LoadingStatus = {
 	eta: 0,
