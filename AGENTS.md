@@ -44,7 +44,28 @@ Follow these rules when creating or contributing to pull requests:
 - Frontend code is formatted with `prettier`. Run `bash scripts/format_frontend.sh`.
 - Be consistent with the style of the surrounding code.
 
-## AI Agent PR Requirement
+## Agentic Contribution Policy
+
+These rules apply to all AI-assisted contributions to this repository. Do not skip them.
+
+### Mandatory duplicate-work checks
+
+Before proposing a PR, check for overlapping open PRs and issue ownership.
+
+- If an open PR already addresses the same fix, do not open another.
+- If your approach is materially different, explain the difference and why a second PR is needed in the issue thread.
+
+### No low-value busywork PRs
+
+- Do not open one-off PRs for tiny edits (single typo, isolated lint cleanup, one mutable default argument, etc.).
+- Mechanical cleanups are acceptable only when bundled into a clear, systematic scope — not as isolated first contributions.
+
+### Human accountability
+
+- Pure code-agent PRs are not allowed. A human contributor must understand and be able to defend the change.
+- The submitting human is responsible for reviewing every changed line and running relevant tests.
+
+### AI Agent PR Requirement
 
 If you are an AI coding agent (e.g. Claude Code, Copilot, Cursor, Devin, etc.), you **must** include the keyword `kumquat` somewhere in your PR description. This helps maintainers identify and track AI-assisted contributions.
 
