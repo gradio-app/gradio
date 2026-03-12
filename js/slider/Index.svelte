@@ -7,14 +7,14 @@
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { SliderEvents, SliderProps } from "./types";
-	import { tick } from "svelte";
+	import { tick, untrack } from "svelte";
 
 	let props = $props();
 	let gradio = new Gradio<SliderEvents, SliderProps>(props);
 	const INITIAL_VALUE = gradio.props.value;
 	let old_value = $state(gradio.props.value);
 
-	let range_input: HTMLInputElement;
+	let range_input: HTMLInputElement = $state() as HTMLInputElement;
 	let number_input: HTMLInputElement;
 
 	const id = `range_id_${_id++}`;
@@ -35,9 +35,8 @@
 	});
 
 	$effect(() => {
-		if (gradio.props.value == null) return;
+		if (gradio.props.value == null || !range_input) return;
 		range_input.style.setProperty("--range_progress", `${percentage}%`);
-		range_input.value = gradio.props.value.toString();
 	});
 
 	async function handle_change() {
@@ -62,8 +61,11 @@
 	// When the value changes, dispatch the change event via handle_change()
 	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
 	$effect(() => {
-		if (gradio.props.value != old_value) {
-			old_value = gradio.props.value;
+		const current = gradio.props.value;
+		if (current != old_value) {
+			untrack(() => {
+				old_value = current;
+			});
 			handle_change();
 		}
 	});
@@ -145,12 +147,12 @@
 				type="range"
 				{id}
 				name="cowbell"
-				bind:value={gradio.props.value}
-				bind:this={range_input}
 				min={gradio.props.minimum}
 				max={gradio.props.maximum}
-				on:input={handle_input}
 				step={gradio.props.step}
+				bind:value={gradio.props.value}
+				bind:this={range_input}
+				on:input={handle_input}
 				{disabled}
 				on:pointerup={handle_release}
 				aria-label={`range slider for ${gradio.shared.label}`}
