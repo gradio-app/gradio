@@ -118,7 +118,10 @@ with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column(scale=2):
             chatbot = gr.Chatbot(
-                [{"role": "user", "content": "Hello"}, {"role": "assistant", "content": "Hi"}],
+                [
+                    {"role": "user", "content": "Hello"},
+                    {"role": "assistant", "content": "Hi"},
+                ],
                 label="Chatbot",
             )
             chat_btn = gr.Button("Add messages")
