@@ -737,9 +737,21 @@ class ChatInterface(Blocks):
                 [self.chatbot],
                 [self.chatbot, self.chatbot_state, self.saved_input],
                 api_visibility="undocumented",
+            ).then(
+                self._append_message_to_history,
+                [self.saved_input, self.chatbot_state],
+                [self.chatbot],
+                api_visibility="undocumented",
+                queue=False,
+            ).success(
+                lambda: update(interactive=False),
+                outputs=[self.textbox],
+                api_visibility="undocumented",
             ).success(**submit_fn_kwargs).success(**synchronize_chat_state_kwargs).then(
-                **save_fn_kwargs
-            )
+                lambda: update(interactive=True),
+                outputs=[self.textbox],
+                api_visibility="undocumented",
+            ).then(**save_fn_kwargs)
 
         if self.save_history:
             self.new_chat_button.click(
