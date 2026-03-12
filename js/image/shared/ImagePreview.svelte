@@ -62,7 +62,13 @@
 			{on_custom_button_click}
 		>
 			{#if buttons.some((btn) => typeof btn === "string" && btn === "fullscreen")}
-				<FullscreenButton {fullscreen} on:fullscreen />
+				<FullscreenButton
+					{fullscreen}
+					onclick={(is_fullscreen) => {
+						fullscreen = is_fullscreen;
+						dispatch("fullscreen", is_fullscreen);
+					}}
+				/>
 			{/if}
 			{#if buttons.some((btn) => typeof btn === "string" && btn === "download")}
 				<DownloadLink href={value.url} download={value.orig_name || "image"}>
