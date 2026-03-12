@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 
-if (process.env.TEST_MODE !== "node") {
+if (import.meta.env.TEST_MODE !== "node") {
 	Object.defineProperty(window, "EventSource", {
 		writable: true,
 		value: vi.fn().mockImplementation(() => ({
