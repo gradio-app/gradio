@@ -159,9 +159,7 @@ class ThemeClass:
         theme_gradio_version = theme.get("gradio_version")
         if theme_gradio_version:
             try:
-                current_major = int(__version__.split(".")[0])
-                theme_major = int(theme_gradio_version.split(".")[0])
-                if current_major != theme_major:
+                if __version__.split(".")[:2] != theme_gradio_version.split(".")[:2]:
                     warnings.warn(
                         f"This theme was created for Gradio {theme_gradio_version}, "
                         f"but you are using Gradio {__version__}. "
