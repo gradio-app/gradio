@@ -17,7 +17,10 @@
 	];
 
 	const community_links = [
-		{ label: "File an Issue", href: "https://github.com/gradio-app/gradio/issues/new/choose" },
+		{
+			label: "File an Issue",
+			href: "https://github.com/gradio-app/gradio/issues/new/choose"
+		},
 		{ label: "Discord", href: "https://discord.gg/feTf9x3ZSB" },
 		{ label: "Github", href: "https://github.com/gradio-app/gradio" }
 	];
@@ -96,18 +99,32 @@
 			on:click={() => (click_nav = !click_nav)}
 			aria-label={click_nav ? "Close menu" : "Open menu"}
 		>
-			<svg class="h-5 w-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+			<svg
+				class="h-5 w-5 text-gray-700 dark:text-gray-300"
+				fill="none"
+				stroke="currentColor"
+				viewBox="0 0 24 24"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M4 6h16M4 12h16M4 18h16"
+				/>
 			</svg>
 		</button>
 
 		<nav
-			class="hidden lg:flex lg:w-auto lg:flex-row text-gray-900 dark:text-gray-300 lg:items-center lg:justify-center lg:flex-1 lg:text-sm {is_scrolled ? 'lg:gap-3' : 'lg:gap-6'}"
+			class="hidden lg:flex lg:w-auto lg:flex-row text-gray-900 dark:text-gray-300 lg:items-center lg:justify-center lg:flex-1 lg:text-sm {is_scrolled
+				? 'lg:gap-3'
+				: 'lg:gap-6'}"
 		>
 			{#each nav_links as { label, href }}
 				<a class="thin-link" {href}>{label}</a>
 			{/each}
-			<div class="help-menu-container lg:group lg:relative lg:flex lg:cursor-pointer lg:items-center lg:gap-3">
+			<div
+				class="help-menu-container lg:group lg:relative lg:flex lg:cursor-pointer lg:items-center lg:gap-3"
+			>
 				<button
 					type="button"
 					class="flex items-center gap-2 cursor-pointer bg-transparent border-none p-0 font-inherit text-inherit"
@@ -115,22 +132,33 @@
 				>
 					<span>Community</span>
 					<svg
-						class="h-4 w-4 text-gray-900 dark:text-gray-300 pointer-events-none transition-transform {show_help_menu ? 'rotate-180' : ''}"
+						class="h-4 w-4 text-gray-900 dark:text-gray-300 pointer-events-none transition-transform {show_help_menu
+							? 'rotate-180'
+							: ''}"
 						xmlns="http://www.w3.org/2000/svg"
 						viewBox="0 0 20 20"
 						fill="currentColor"
 					>
-						<path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+						<path
+							d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
+						/>
 					</svg>
 				</button>
 				{#if show_help_menu}
-					<div class="help-menu absolute top-9 w-48 bg-white dark:bg-neutral-800 backdrop-blur-sm shadow-lg right-0 rounded-lg border border-gray-200 dark:border-neutral-700 flex flex-col gap-0">
+					<div
+						class="help-menu absolute top-9 w-48 bg-white dark:bg-neutral-800 backdrop-blur-sm shadow-lg right-0 rounded-lg border border-gray-200 dark:border-neutral-700 flex flex-col gap-0"
+					>
 						{#each community_links as { label, href }, i}
 							<a
-								class="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/80 dark:hover:bg-neutral-700/50 transition-colors text-sm {i === 0 ? 'rounded-t-lg' : ''} {i === community_links.length - 1 ? 'rounded-b-lg' : ''}"
+								class="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/80 dark:hover:bg-neutral-700/50 transition-colors text-sm {i ===
+								0
+									? 'rounded-t-lg'
+									: ''} {i === community_links.length - 1
+									? 'rounded-b-lg'
+									: ''}"
 								{href}
-								target="_blank"
-							>{label}</a>
+								target="_blank">{label}</a
+							>
 						{/each}
 					</div>
 				{/if}
@@ -145,9 +173,12 @@
 
 	{#if click_nav}
 		<div class="fixed inset-0 z-50 bg-white dark:bg-neutral-900 lg:hidden">
-			<div class="container mx-2 lg:mx-auto flex flex-col h-full p-1.5 border border-transparent">
-	
-				<div class="flex justify-between items-center pb-4 border-b border-gray-100 dark:border-neutral-800">
+			<div
+				class="container mx-2 lg:mx-auto flex flex-col h-full p-1.5 border border-transparent"
+			>
+				<div
+					class="flex justify-between items-center pb-4 border-b border-gray-100 dark:border-neutral-800"
+				>
 					<a href="/" on:click={() => (click_nav = false)}>
 						<img src={current_logo} alt="Gradio logo" class="h-10" />
 					</a>
@@ -156,31 +187,56 @@
 						on:click={() => (click_nav = false)}
 						aria-label="Close menu"
 					>
-						<svg class="h-5 w-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+						<svg
+							class="h-5 w-5 text-gray-700 dark:text-gray-300"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M6 18L18 6M6 6l12 12"
+							/>
 						</svg>
 					</button>
 				</div>
 
-
-				<nav class="flex flex-col flex-1 overflow-y-auto py-4 text-gray-900 dark:text-gray-100">
+				<nav
+					class="flex flex-col flex-1 overflow-y-auto py-4 text-gray-900 dark:text-gray-100"
+				>
 					{#each nav_links as { label, href }}
-						<a {href} on:click={() => (click_nav = false)} class="py-4 text-lg border-b border-gray-100 dark:border-neutral-800 hover:text-orange-500 transition-colors">{label}</a>
+						<a
+							{href}
+							on:click={() => (click_nav = false)}
+							class="py-4 text-lg border-b border-gray-100 dark:border-neutral-800 hover:text-orange-500 transition-colors"
+							>{label}</a
+						>
 					{/each}
 
-
 					<div class="py-4 border-b border-gray-100 dark:border-neutral-800">
-						<span class="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">Community</span>
+						<span
+							class="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500"
+							>Community</span
+						>
 						<div class="flex flex-col mt-3 gap-1">
 							{#each community_links as { label, href }}
-								<a {href} target="_blank" on:click={() => (click_nav = false)} class="py-2.5 text-base text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">{label}</a>
+								<a
+									{href}
+									target="_blank"
+									on:click={() => (click_nav = false)}
+									class="py-2.5 text-base text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors"
+									>{label}</a
+								>
 							{/each}
 						</div>
 					</div>
 				</nav>
 
-
-				<div class="py-4 border-t border-gray-100 dark:border-neutral-800 flex items-center gap-4">
+				<div
+					class="py-4 border-t border-gray-100 dark:border-neutral-800 flex items-center gap-4"
+				>
 					<Search />
 					<ThemeToggle />
 				</div>
