@@ -2,5 +2,10 @@ export { default as StatusTracker } from "./index.svelte";
 export { default as Toast } from "./Toast.svelte";
 export { default as Loader } from "./Loader.svelte";
 export { default as StreamingBar } from "./StreamingBar.svelte";
-export type { LoadingStatus, ToastMessage } from "./types";
+export type {
+	ILoadingStatus,
+	LoadingStatusArgs,
+	GroupedToastMessage,
+	ToastMessage
+} from "./types";
 export { default } from "./index.svelte";
