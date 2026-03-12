@@ -1,5 +1,53 @@
 # @gradio/column
 
+## 0.3.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.5
+- @gradio/utils@0.12.0
+
+## 0.3.2
+
+### Dependency updates
+
+- @gradio/utils@0.11.3
+- @gradio/statustracker@0.12.4
+
+## 0.3.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.3
+
+## 0.3.2
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.2
+- @gradio/utils@0.11.2
+
+## 0.3.1
+
+### Fixes
+
+- [#12626](https://github.com/gradio-app/gradio/pull/12626) [`3a39ee4`](https://github.com/gradio-app/gradio/commit/3a39ee4a9af660636f6ce7cd383634d48e4030a3) - Fix Bug Where Invisible Columns Take Up Space.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+
+## 0.3.0
+
+### Dependency updates
+
+- @gradio/utils@0.11.0
+- @gradio/statustracker@0.12.1
+
 ## 0.3.0
 
 ### Dependency updates

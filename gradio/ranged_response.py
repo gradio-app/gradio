@@ -23,7 +23,7 @@ class ClosedRange(NamedTuple):
     start: int
     end: int
 
-    def __len__(self) -> int:
+    def __len__(self) -> int:  # type: ignore[override]
         return self.end - self.start + 1
 
     def __bool__(self) -> bool:

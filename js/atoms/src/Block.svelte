@@ -21,6 +21,7 @@
 	export let resizable = false;
 	export let rtl = false;
 	export let fullscreen = false;
+	export let label: string | undefined = undefined;
 	let old_fullscreen = fullscreen;
 
 	let element: HTMLElement;
@@ -126,9 +127,9 @@
 		style:overflow={allow_overflow ? overflow_behavior : "hidden"}
 		style:flex-grow={scale}
 		style:min-width={`calc(min(${min_width}px, 100%))`}
-		style:border-width="var(--block-border-width)"
 		class:auto-margin={scale === null}
 		dir={rtl ? "rtl" : "ltr"}
+		aria-label={label}
 	>
 		<slot />
 		{#if resizable}
@@ -164,6 +165,7 @@
 		background: var(--block-background-fill);
 		width: 100%;
 		line-height: var(--line-sm);
+		border-width: var(--block-border-width);
 	}
 	.block.fullscreen {
 		border-radius: 0;
@@ -187,6 +189,7 @@
 	}
 
 	.hidden {
+		/* We use "hidden" class name in form/Index.svelte to hide parent forms, so if this class changes, edit form/Index.svelte accordingly */
 		display: none;
 	}
 
@@ -197,7 +200,7 @@
 	.hide-container:not(.fullscreen) {
 		margin: 0;
 		box-shadow: none;
-		--block-border-width: 0;
+		border-width: 0;
 		background: transparent;
 		padding: 0;
 		overflow: visible;

@@ -3,18 +3,21 @@ import { describe, it, expect, afterEach, beforeAll, afterAll } from "vitest";
 import { Client } from "..";
 import { initialise_server } from "./server";
 
-const server = initialise_server();
+let server: Awaited<ReturnType<typeof initialise_server>>;
 
-beforeAll(() => server.listen());
+beforeAll(async () => {
+	server = await initialise_server();
+	await server.start({ quiet: true });
+});
 afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+afterAll(() => server.stop());
 
 describe("upload_files", () => {
 	it("should upload files successfully", async () => {
 		const root_url = "https://hmb-hello-world.hf.space";
 
 		const client = await Client.connect("hmb/hello_world", {
-			hf_token: "hf_token"
+			token: "hf_token"
 		});
 
 		const files = [new Blob([], { type: "image/jpeg" })];

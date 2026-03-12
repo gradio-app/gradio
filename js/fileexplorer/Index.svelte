@@ -1,11 +1,9 @@
-<svelte:options accessors={true} />
-
 <script lang="ts">
 	import type { FileExplorerProps, FileExplorerEvents } from "./types";
 	import { Gradio } from "@gradio/utils";
 	import { File } from "@gradio/icons";
 
-	import { Block, BlockLabel } from "@gradio/atoms";
+	import { Block, BlockLabel, IconButtonWrapper } from "@gradio/atoms";
 	import DirectoryExplorer from "./shared/DirectoryExplorer.svelte";
 
 	import { StatusTracker } from "@gradio/statustracker";
@@ -13,7 +11,9 @@
 	import { _ } from "svelte-i18n";
 
 	const props = $props();
-	const gradio = new Gradio<FileExplorerEvents, FileExplorerProps>(props);
+	const gradio = new Gradio<FileExplorerEvents, FileExplorerProps>(props, {
+		value: []
+	});
 
 	let old_value = $state(gradio.props.value);
 
@@ -22,6 +22,19 @@
 		gradio.props.glob,
 		gradio.props.ignore_glob
 	]);
+
+	// Reset value when rerender_key changes
+	// svelte-ignore state_referenced_locally
+	let old_rerender_key = $state(rerender_key);
+	$effect(() => {
+		if (
+			JSON.stringify(old_rerender_key) != JSON.stringify(rerender_key) &&
+			old_value == gradio.props.value
+		) {
+			old_rerender_key = rerender_key;
+			gradio.props.value = [];
+		}
+	});
 
 	$effect(() => {
 		if (old_value != gradio.props.value) {
@@ -54,6 +67,14 @@
 		on_clear_status={() =>
 			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
+	{#if gradio.shared.show_label && gradio.props.buttons && gradio.props.buttons.length > 0}
+		<IconButtonWrapper
+			buttons={gradio.props.buttons}
+			on_custom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
+		/>
+	{/if}
 	<BlockLabel
 		show_label={gradio.shared.show_label}
 		Icon={File}
@@ -67,8 +88,8 @@
 			interactive={gradio.shared.interactive}
 			selectable={gradio.props._selectable}
 			ls_fn={gradio.shared.server.ls}
-			on:input={() => gradio.dispatch("input")}
-			on:select={(e) => gradio.dispatch("select", e.detail)}
+			oninput={() => gradio.dispatch("input")}
+			onselect={(detail) => gradio.dispatch("select", detail)}
 		/>
 	{/key}
 </Block>

@@ -4,19 +4,15 @@
 	import { Client } from "@gradio/client";
 	import { writable } from "svelte/store";
 
-	// import type { LoadingStatus, LoadingStatusCollection } from "./stores";
-
 	import type {
 		ComponentMeta,
 		Dependency as IDependency,
 		LayoutNode
 	} from "./types";
-	// import type { UpdateTransaction } from "./_init";
-	import { setupi18n } from "./i18n";
 	import type { ThemeMode, Payload } from "./types";
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
-	import { type ShareData, type ValueData, GRADIO_ROOT } from "@gradio/utils";
+	import { type ShareData, GRADIO_ROOT } from "@gradio/utils";
 
 	import MountComponents from "./MountComponents.svelte";
 	import { prefix_css } from "./css";
@@ -25,18 +21,13 @@
 	import type ApiDocsInterface from "./api_docs/ApiDocs.svelte";
 	import type ApiRecorderInterface from "./api_docs/ApiRecorder.svelte";
 	import type SettingsInterface from "./api_docs/Settings.svelte";
-	// import type { ComponentType } from "svelte";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import settings_logo from "./api_docs/img/settings-logo.svg";
 	import record_stop from "./api_docs/img/record-stop.svg";
 	import { AppTree } from "./init.svelte";
-	// import type {
-	// 	LogMessage,
-	// 	RenderMessage,
-	// 	StatusMessage,
-	// } from "@gradio/client";
+
 	import * as screen_recorder from "./screen_recorder";
 
 	import { DependencyManager } from "./dependency";
@@ -105,6 +96,7 @@
 	});
 
 	let messages: (ToastMessage & { fn_index: number })[] = $state([]);
+	let reconnect_interval: ReturnType<typeof setInterval> | null = null;
 
 	function gradio_event_dispatcher(
 		id: number,
@@ -140,6 +132,9 @@
 			// update_status(id, "complete", data);
 		} else if (event == "close_stream") {
 			dep_manager.close_stream(id);
+		} else if (event === "custom_button_click") {
+			const button_id = (data as { id: number }).id;
+			dispatch_to_target(button_id, "click", null);
 		} else {
 			// Tabs are a bit weird. The Tabs component dispatches 'select' events
 			// but the target id corresponds to the child Tab component that was selected.
@@ -168,17 +163,26 @@
 			version,
 			api_prefix,
 			max_file_size,
-			autoscroll
+			autoscroll,
+			fill_height
 		},
 		app,
 		$reactive_formatter,
 		gradio_event_dispatcher
 	);
 
-	setContext(GRADIO_ROOT, {
-		register: app_tree.register_component.bind(app_tree),
-		dispatcher: gradio_event_dispatcher
-	});
+	function dispatch_to_target(
+		target_id: number,
+		event: string,
+		data: unknown
+	): void {
+		dep_manager.dispatch({
+			type: "event",
+			event_name: event,
+			target_id: target_id,
+			event_data: data
+		});
+	}
 
 	let api_calls: Payload[] = $state([]);
 	let last_api_call: Payload | null = $state(null);
@@ -191,6 +195,35 @@
 		api_calls = [...api_calls, last_api_call];
 	};
 
+	function handle_connection_lost(): void {
+		messages = messages.filter((m) => m.type !== "error");
+
+		++_error_id;
+		messages.push({
+			title: "Connection Lost",
+			message: LOST_CONNECTION_MESSAGE,
+			fn_index: -1,
+			type: "error",
+			id: _error_id,
+			duration: null,
+			visible: true
+		});
+
+		reconnect_interval = setInterval(async () => {
+			try {
+				const status = await app.reconnect();
+				if (status === "connected" || status === "changed") {
+					clearInterval(reconnect_interval!);
+					reconnect_interval = null;
+					window.location.reload();
+				}
+			} catch (e) {
+				// server still unreachable
+				console.debug(e);
+			}
+		}, 2000);
+	}
+
 	let dep_manager = new DependencyManager(
 		dependencies,
 		app,
@@ -198,7 +231,8 @@
 		app_tree.get_state.bind(app_tree),
 		app_tree.rerender.bind(app_tree),
 		new_message,
-		add_to_api_calls
+		add_to_api_calls,
+		handle_connection_lost
 	);
 
 	$effect(() => {
@@ -210,7 +244,8 @@
 				version,
 				api_prefix,
 				max_file_size,
-				autoscroll
+				autoscroll,
+				fill_height
 			});
 			dep_manager.reload(
 				dependencies,
@@ -411,6 +446,7 @@
 		return () => {
 			mut.disconnect();
 			res.disconnect();
+			if (reconnect_interval) clearInterval(reconnect_interval);
 		};
 	});
 
@@ -429,82 +465,85 @@
 </svelte:head>
 
 <div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
-	<div
+	<main
 		class="contain"
 		style:flex-grow={app_mode ? "1" : "auto"}
 		bind:this={root_container}
 		style:margin-right={vibe_mode ? `${vibe_editor_width}px` : "0"}
 	>
 		<MountComponents node={app_tree.root} />
+	</main>
 
-		{#if footer_links.length > 0}
-			<footer bind:clientHeight={footer_height}>
-				{#if footer_links.includes("api")}
-					<button
-						on:click={() => {
-							set_api_docs_visible(!api_docs_visible);
-						}}
-						on:mouseenter={() => {
-							loadApiDocs();
-							loadApiRecorder();
-						}}
-						class="show-api"
-					>
-						{#if app.config?.mcp_server}
-							{$reactive_formatter("errors.use_via_api_or_mcp")}
-						{:else}
-							{$reactive_formatter("errors.use_via_api")}
-						{/if}
-						<img src={api_logo} alt={$reactive_formatter("common.logo")} />
-					</button>
-				{/if}
-				{#if footer_links.includes("gradio")}
-					<div class="divider show-api-divider">·</div>
-					<a
-						href="https://gradio.app"
-						class="built-with"
-						target="_blank"
-						rel="noreferrer"
-					>
-						{$reactive_formatter("common.built_with_gradio")}
-						<img src={logo} alt={$reactive_formatter("common.logo")} />
-					</a>
-				{/if}
+	{#if footer_links.length > 0}
+		<footer
+			bind:clientHeight={footer_height}
+			aria-label="Gradio footer navigation"
+		>
+			{#if footer_links.includes("api")}
 				<button
-					class:hidden={!$is_screen_recording}
 					on:click={() => {
-						screen_recording();
+						set_api_docs_visible(!api_docs_visible);
 					}}
-					class="record"
+					on:mouseenter={() => {
+						loadApiDocs();
+						loadApiRecorder();
+					}}
+					class="show-api"
 				>
-					{$reactive_formatter("common.stop_recording")}
+					{#if app.config?.mcp_server}
+						{$reactive_formatter("errors.use_via_api_or_mcp")}
+					{:else}
+						{$reactive_formatter("errors.use_via_api")}
+					{/if}
+					<img src={api_logo} alt={$reactive_formatter("common.logo")} />
+				</button>
+			{/if}
+			{#if footer_links.includes("gradio")}
+				<div class="divider show-api-divider">·</div>
+				<a
+					href="https://gradio.app"
+					class="built-with"
+					target="_blank"
+					rel="noreferrer"
+				>
+					{$reactive_formatter("common.built_with_gradio")}
+					<img src={logo} alt={$reactive_formatter("common.logo")} />
+				</a>
+			{/if}
+			<button
+				class:hidden={!$is_screen_recording}
+				on:click={() => {
+					screen_recording();
+				}}
+				class="record"
+			>
+				{$reactive_formatter("common.stop_recording")}
+				<img
+					src={record_stop}
+					alt={$reactive_formatter("common.stop_recording")}
+				/>
+			</button>
+			<div class="divider">·</div>
+			{#if footer_links.includes("settings")}
+				<div class="divider" class:hidden={!$is_screen_recording}>·</div>
+				<button
+					on:click={() => {
+						set_settings_visible(!settings_visible);
+					}}
+					on:mouseenter={() => {
+						loadSettings();
+					}}
+					class="settings"
+				>
+					{$reactive_formatter("common.settings")}
 					<img
-						src={record_stop}
-						alt={$reactive_formatter("common.stop_recording")}
+						src={settings_logo}
+						alt={$reactive_formatter("common.settings")}
 					/>
 				</button>
-				<div class="divider">·</div>
-				{#if footer_links.includes("settings")}
-					<div class="divider" class:hidden={!$is_screen_recording}>·</div>
-					<button
-						on:click={() => {
-							set_settings_visible(!settings_visible);
-						}}
-						on:mouseenter={() => {
-							loadSettings();
-						}}
-						class="settings"
-					>
-						{$reactive_formatter("common.settings")}
-						<img
-							src={settings_logo}
-							alt={$reactive_formatter("common.settings")}
-						/>
-					</button>
-				{/if}
-			</footer>
-		{/if}
-	</div>
+			{/if}
+		</footer>
+	{/if}
 	{#if api_recorder_visible && ApiRecorder}
 		<!-- TODO: fix -->
 		<!-- svelte-ignore a11y-click-events-have-key-events-->
@@ -521,7 +560,12 @@
 	{/if}
 
 	{#if api_docs_visible && app_tree.root && ApiDocs}
-		<div class="api-docs">
+		<div
+			class="api-docs"
+			role="dialog"
+			aria-modal="true"
+			aria-label={$reactive_formatter("errors.use_via_api")}
+		>
 			<!-- TODO: fix -->
 			<!-- svelte-ignore a11y-click-events-have-key-events-->
 			<!-- svelte-ignore a11y-no-static-element-interactions-->
@@ -531,7 +575,7 @@
 					set_api_docs_visible(false);
 				}}
 			/>
-			<div class="api-docs-wrap">
+			<div class="api-docs-wrap" role="document">
 				<svelte:component
 					this={ApiDocs}
 					root_node={app_tree.root}
@@ -554,7 +598,12 @@
 	{/if}
 
 	{#if settings_visible && app.config && app_tree.root && Settings}
-		<div class="api-docs">
+		<div
+			class="api-docs"
+			role="dialog"
+			aria-modal="true"
+			aria-label={$reactive_formatter("common.settings")}
+		>
 			<!-- TODO: fix -->
 			<!-- svelte-ignore a11y-click-events-have-key-events-->
 			<!-- svelte-ignore a11y-no-static-element-interactions-->
@@ -564,7 +613,7 @@
 					set_settings_visible(false);
 				}}
 			/>
-			<div class="api-docs-wrap">
+			<div class="api-docs-wrap" role="document">
 				<svelte:component
 					this={Settings}
 					bind:allow_zoom
@@ -603,7 +652,7 @@
 		font-size: var(--body-text-size);
 	}
 
-	.contain {
+	main.contain {
 		display: flex;
 		flex-direction: column;
 	}

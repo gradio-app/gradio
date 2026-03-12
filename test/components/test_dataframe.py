@@ -19,7 +19,7 @@ class TestDataframe:
             "headers": ["Name", "Age", "Member"],
             "metadata": None,
         }
-        x_payload = DataframeData(**x_data)
+        x_payload = DataframeData(**x_data)  # type: ignore
         dataframe_input = gr.Dataframe(headers=["Name", "Age", "Member"])
         output = dataframe_input.preprocess(x_payload)
         assert output["Age"][1] == 24  # type: ignore
@@ -39,10 +39,10 @@ class TestDataframe:
             "key": None,
             "preserved_by_key": ["value"],
             "headers": ["Name", "Age", "Member"],
-            "row_count": (3, "dynamic"),
+            "row_count": [3, "dynamic"],
             "row_limits": None,
-            "col_count": (3, "dynamic"),
-            "column_count": (3, "dynamic"),
+            "col_count": [3, "dynamic"],
+            "column_count": [3, "dynamic"],
             "column_limits": None,
             "datatype": "str",
             "type": "pandas",
@@ -69,7 +69,7 @@ class TestDataframe:
             "max_chars": None,
         }
         dataframe_input = gr.Dataframe()
-        output = dataframe_input.preprocess(DataframeData(**x_data))
+        output = dataframe_input.preprocess(DataframeData(**x_data))  # type: ignore
         assert output["Age"][1] == 24  # type: ignore
 
         x_data = {
@@ -77,7 +77,7 @@ class TestDataframe:
             "headers": ["Name", "Age", "Member"],
             "metadata": {"display_value": None, "styling": None},
         }
-        dataframe_input.preprocess(DataframeData(**x_data))
+        dataframe_input.preprocess(DataframeData(**x_data))  # type: ignore
 
         with pytest.raises(ValueError):
             gr.Dataframe(type="unknown")  # type: ignore
@@ -93,10 +93,10 @@ class TestDataframe:
             "key": None,
             "preserved_by_key": ["value"],
             "headers": ["1", "2", "3"],
-            "row_count": (3, "dynamic"),
+            "row_count": [3, "dynamic"],
             "row_limits": None,
-            "col_count": (3, "dynamic"),
-            "column_count": (3, "dynamic"),
+            "col_count": [3, "dynamic"],
+            "column_count": [3, "dynamic"],
             "column_limits": None,
             "datatype": "str",
             "type": "pandas",
@@ -198,7 +198,7 @@ class TestDataframe:
             }
         )
         component = gr.Dataframe(
-            datatype=["date", "date", "number", "number", "bool", "markdown"]
+            datatype=["date", "date", "number", "number", "bool", "markdown"]  # type: ignore
         )
         output = component.postprocess(df).model_dump()
         assert output == {
@@ -231,7 +231,7 @@ class TestDataframe:
                 "date_2": pd.date_range("2022-02-15", periods=2),
             }
         )
-        component = gr.Dataframe(datatype=["date", "date"])
+        component = gr.Dataframe(datatype=["date", "date"])  # type: ignore
         output = component.postprocess(df).model_dump()
         assert output == {
             "headers": list(df.columns),

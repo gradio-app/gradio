@@ -34,7 +34,6 @@
 	}
 
 	let props = $props();
-
 	let gradio = new DataframeGradio(props);
 	let el: HTMLDivElement;
 	let Component: typeof DF | null = null;
@@ -69,7 +68,11 @@
 				show_search: gradio.props.show_search,
 				pinned_columns: gradio.props.pinned_columns,
 				static_columns: gradio.props.static_columns,
-				fullscreen: gradio.props.fullscreen
+				fullscreen: gradio.props.fullscreen,
+				show_copy_button:
+					gradio.props.buttons && gradio.props.buttons.includes("copy"),
+				show_fullscreen_button:
+					gradio.props.buttons && gradio.props.buttons.includes("fullscreen")
 			}
 		});
 	});

@@ -1,5 +1,63 @@
 # @gradio/colorpicker
 
+## 0.5.7
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.5
+- @gradio/utils@0.12.0
+- @gradio/atoms@0.22.2
+
+## 0.5.6
+
+### Fixes
+
+- [#12862](https://github.com/gradio-app/gradio/pull/12862) [`a8e6b7b`](https://github.com/gradio-app/gradio/commit/a8e6b7ba1e6af793b6a200d4cc6b07f3151f229e) - Fix ColorPicker not firing focus, blur, or submit events after Svelte 5 migration.  Thanks @veeceey!
+
+### Dependency updates
+
+- @gradio/utils@0.11.3
+- @gradio/atoms@0.22.0
+- @gradio/statustracker@0.12.4
+
+## 0.5.5
+
+### Dependency updates
+
+- @gradio/atoms@0.21.0
+- @gradio/statustracker@0.12.3
+
+## 0.5.4
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.2
+- @gradio/atoms@0.20.1
+- @gradio/utils@0.11.2
+- @gradio/icons@0.15.1
+
+## 0.5.3
+
+### Fixes
+
+- [#12676](https://github.com/gradio-app/gradio/pull/12676) [`57dd086`](https://github.com/gradio-app/gradio/commit/57dd0864c17f039474a2aa31e9f3132f4555fd97) - Upgrade color picker to Svelte 5 syntax.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+
+## 0.5.2
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/utils@0.11.0
+- @gradio/statustracker@0.12.1
+
 ## 0.5.1
 
 ### Fixes

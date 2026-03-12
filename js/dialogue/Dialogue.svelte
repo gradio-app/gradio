@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from "svelte";
 	import { BlockTitle, IconButton, IconButtonWrapper } from "@gradio/atoms";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 	import { Copy, Check, Send, Plus, Trash } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import { BaseDropdown, BaseDropdownOptions } from "@gradio/dropdown";
@@ -13,7 +14,7 @@
 
 	const gradio: Gradio<DialogueEvents, DialogueProps> = props.gradio;
 
-	let checked = $derived(false);
+	let checked = $state(false);
 	let disabled = $derived(!gradio.shared.interactive);
 
 	let dialogue_lines: DialogueLine[] = $state([]);
@@ -39,6 +40,9 @@
 	});
 
 	let buttons = $derived(gradio.props.buttons || ["copy"]);
+	let on_custom_button_click = (id: number) => {
+		gradio.dispatch("custom_button_click", { id });
+	};
 
 	let old_value = $state(gradio.props.value);
 
@@ -275,8 +279,9 @@
 		}
 	}
 
-	async function insert_tag(e: CustomEvent): Promise<void> {
-		const tag = gradio.props.tags[e.detail.target.dataset.index];
+	async function insert_tag(index: any): Promise<void> {
+		index = parseInt(index);
+		const tag = gradio.props.tags[index];
 		if (tag) {
 			let text;
 			let currentInput;
@@ -401,14 +406,16 @@
 
 <svelte:window on:click={handle_click_outside} />
 
-<label class:container={gradio.shared.container}>
-	{#if gradio.shared.show_label && buttons.includes("copy")}
-		<IconButtonWrapper>
-			<IconButton
-				Icon={copied ? Check : Copy}
-				on:click={handle_copy}
-				label={copied ? "Copied" : "Copy"}
-			/>
+<div class:container={gradio.shared.container}>
+	{#if gradio.shared.show_label && (buttons.some((btn) => typeof btn === "string" && btn === "copy") || buttons.some((btn) => typeof btn !== "string"))}
+		<IconButtonWrapper {buttons} {on_custom_button_click}>
+			{#if buttons.some((btn) => typeof btn === "string" && btn === "copy")}
+				<IconButton
+					Icon={copied ? Check : Copy}
+					onclick={handle_copy}
+					label={copied ? "Copied" : "Copy"}
+				/>
+			{/if}
 		</IconButtonWrapper>
 	{/if}
 
@@ -545,7 +552,7 @@
 											gradio.props.tags.indexOf(s)
 										)[selectedOptionIndex]}
 										show_options={true}
-										on:change={(e) => insert_tag(e)}
+										onchange={(e) => insert_tag(e)}
 										{offset_from_top}
 										from_top={true}
 									/>
@@ -655,10 +662,10 @@
 			</button>
 		</div>
 	{/if}
-</label>
+</div>
 
 <style>
-	label {
+	div.container {
 		display: block;
 		width: 100%;
 	}

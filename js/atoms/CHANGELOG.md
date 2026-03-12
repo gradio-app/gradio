@@ -1,5 +1,65 @@
 # @gradio/atoms
 
+## 0.22.2
+
+### Dependency updates
+
+- @gradio/utils@0.12.0
+- @gradio/markdown-code@0.6.1
+
+## 0.22.1
+
+### Features
+
+- [#12933](https://github.com/gradio-app/gradio/pull/12933) [`44a8a9f`](https://github.com/gradio-app/gradio/commit/44a8a9fe1316f1c110638c3c40158a75b6c0d135) - Fix border in gr.html as layout.  Thanks @aliabid94!
+
+## 0.22.0
+
+### Features
+
+- [#12839](https://github.com/gradio-app/gradio/pull/12839) [`1c671b3`](https://github.com/gradio-app/gradio/commit/1c671b39830ccf1c87f6cfcb4669e97dfb3a7367) - Hide forms with no elements.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/utils@0.11.3
+
+## 0.21.0
+
+### Features
+
+- [#12804](https://github.com/gradio-app/gradio/pull/12804) [`fc366b4`](https://github.com/gradio-app/gradio/commit/fc366b485325c900b0c2b85ba05b7d23a81a0dee) - Allow webcam uploads and clipboard paste for gallery.  Thanks @freddyaboulton!
+
+## 0.20.1
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12779](https://github.com/gradio-app/gradio/pull/12779) [`ea2d3e9`](https://github.com/gradio-app/gradio/commit/ea2d3e985a8b42d188e551f517c5825c00790628) - Migrate Audio + Upload + Atoms to Svelte 5.  Thanks @dawoodkhan82!
+- [#12607](https://github.com/gradio-app/gradio/pull/12607) [`299728b`](https://github.com/gradio-app/gradio/commit/299728b707c88e7afbc6a60f1f266a9013fa424d) - fix: add ARIA landmarks for accessibility.  Thanks @majiayu000!
+- [#12795](https://github.com/gradio-app/gradio/pull/12795) [`184968a`](https://github.com/gradio-app/gradio/commit/184968aa13636b5afe78f8ae443cd7fc29635bfa) - Add fade effect to overflowing text.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/utils@0.11.2
+- @gradio/icons@0.15.1
+- @gradio/markdown-code@0.6.1
+
+## 0.20.0
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+
+## 0.20.0
+
+### Features
+
+- [#12539](https://github.com/gradio-app/gradio/pull/12539) [`f1d83fa`](https://github.com/gradio-app/gradio/commit/f1d83fac3d6e4bad60cf896a026fa2d572f26073) - Add ability to add custom buttons to components.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/utils@0.11.0
+
 ## 0.19.0
 
 ### Dependency updates

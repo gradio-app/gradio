@@ -12,6 +12,7 @@
 	let props = $props();
 	let gradio = new Gradio<SliderEvents, SliderProps>(props);
 	const INITIAL_VALUE = gradio.props.value;
+	let old_value = $state(gradio.props.value);
 
 	let range_input: HTMLInputElement;
 	let number_input: HTMLInputElement;
@@ -61,7 +62,10 @@
 	// When the value changes, dispatch the change event via handle_change()
 	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
 	$effect(() => {
-		gradio.props.value && handle_change();
+		if (gradio.props.value != old_value) {
+			old_value = gradio.props.value;
+			handle_change();
+		}
 	});
 
 	function handle_resize(): void {

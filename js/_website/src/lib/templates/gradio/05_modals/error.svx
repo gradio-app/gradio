@@ -62,6 +62,6 @@ gr.Interface(divide, ["number", "number"], "number").launch()
 
 {#if obj.guides && obj.guides.length > 0}
 <!--- Guides -->
-### Guides
+<!--- the guide section below is still necessary to scrape the guides on the side navigation -->
 <GuidesSection guides={obj.guides}/>
 {/if}

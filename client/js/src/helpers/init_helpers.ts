@@ -82,7 +82,10 @@ export async function resolve_config(
 		if (window.gradio_config.current_page) {
 			endpoint = endpoint.substring(0, endpoint.lastIndexOf("/"));
 		}
-		if (window.gradio_config.dev_mode) {
+		if (
+			window.gradio_config.dev_mode ||
+			(typeof window !== "undefined" && window?.BUILD_MODE === "dev")
+		) {
 			let config_url = join_urls(
 				endpoint,
 				this.deep_link
@@ -93,18 +96,14 @@ export async function resolve_config(
 				headers,
 				credentials: "include"
 			});
-			const config = await handleConfigResponse(
-				response,
-				endpoint,
-				!!this.options.auth
-			);
+			const config = await handleConfigResponse(response, !!this.options.auth);
+			config.root = endpoint || config.root;
 			// @ts-ignore
 			window.gradio_config = {
 				...config,
 				current_page: window.gradio_config.current_page
 			};
 		}
-		window.gradio_config.root = endpoint;
 		// @ts-ignore
 		return { ...window.gradio_config } as Config;
 	} else if (endpoint) {
@@ -118,7 +117,13 @@ export async function resolve_config(
 			credentials: "include"
 		});
 
-		return handleConfigResponse(response, endpoint, !!this.options.auth);
+		const config = await handleConfigResponse(response, !!this.options.auth);
+		// Preserve the backend-provided root if available (it contains the correct public URL)
+		// Only fall back to endpoint if the backend didn't provide a root
+		if (!config.root) {
+			config.root = endpoint;
+		}
+		return config;
 	}
 
 	throw new Error(CONFIG_ERROR_MSG);
@@ -126,7 +131,6 @@ export async function resolve_config(
 
 async function handleConfigResponse(
 	response: Response,
-	endpoint: string,
 	authorized: boolean
 ): Promise<Config> {
 	if (response?.status === 401 && !authorized) {
@@ -139,7 +143,6 @@ async function handleConfigResponse(
 
 	if (response?.status === 200) {
 		let config = await response.json();
-		config.root = endpoint;
 		config.dependencies?.forEach((dep: any, i: number) => {
 			if (dep.id === undefined) {
 				dep.id = i;

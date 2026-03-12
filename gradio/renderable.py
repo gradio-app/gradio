@@ -13,7 +13,7 @@ from gradio.layouts import Column, Row
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction
-    from gradio.events import EventListenerCallable
+    from gradio.events import Trigger
 
 
 class Renderable:
@@ -41,7 +41,7 @@ class Renderable:
         self.inputs = inputs
         self.triggers: list[EventListenerMethod] = []
         self.page = Context.root_block.current_page
-        self.key_to_id_map: dict[int | str | tuple[int | str], int] = {}
+        self.key_to_id_map: dict[int | str | tuple[str | int, ...], int] = {}
         self.render_iteration = 0
 
         self.triggers = [EventListenerMethod(*t) for t in triggers]
@@ -95,7 +95,7 @@ class Renderable:
 @document()
 def render(
     inputs: Sequence[Component] | Component | None = None,
-    triggers: Sequence[EventListenerCallable] | EventListenerCallable | None = None,
+    triggers: Sequence[Trigger] | Trigger | None = None,
     *,
     queue: bool = True,
     trigger_mode: Literal["once", "multiple", "always_last"] | None = "always_last",
@@ -106,7 +106,10 @@ def render(
     """
     The render decorator allows Gradio Blocks apps to have dynamic layouts, so that the components and event listeners in your app can change depending on custom logic.
     Attaching a @gr.render decorator to a function will cause the function to be re-run whenever the inputs are changed (or specified triggers are activated). The function contains the components and event listeners that will update based on the inputs.
-
+    With render, you can:\n
+    - Show or hide components\n
+    - Change text or layout\n
+    - Create components based on what users enter\n
     The basic usage of @gr.render is as follows:\n
     1. Create a function and attach the @gr.render decorator to it.\n
     2. Add the input components to the `inputs=` argument of @gr.render, and create a corresponding argument in your function for each component.\n

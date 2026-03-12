@@ -1,6 +1,12 @@
 import type { FileData } from "@gradio/client";
 import type { UndoRetryData } from "./shared/utils";
-import type { Gradio, SelectData, LikeData, CopyData } from "@gradio/utils";
+import type {
+	Gradio,
+	SelectData,
+	LikeData,
+	CopyData,
+	CustomButton
+} from "@gradio/utils";
 import type { LoadingStatus } from "@gradio/statustracker";
 
 export type MessageRole = "system" | "user" | "assistant";
@@ -104,6 +110,7 @@ export interface ChatbotEvents {
 	undo: UndoRetryData;
 	clear: null;
 	copy: CopyData;
+	custom_button_click: { id: number };
 }
 
 export interface ChatbotProps {
@@ -130,7 +137,7 @@ export interface ChatbotProps {
 	likeable: boolean;
 	feedback_options: string[];
 	feedback_value: (string | null)[] | null;
-	buttons: string[] | null;
+	buttons: (string | CustomButton)[] | null;
 	rtl: boolean;
 	sanitize_html: boolean;
 	layout: "bubble" | "panel";

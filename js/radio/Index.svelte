@@ -5,7 +5,7 @@
 
 <script lang="ts">
 	import { Gradio } from "@gradio/utils";
-	import { Block, BlockTitle } from "@gradio/atoms";
+	import { Block, BlockTitle, IconButtonWrapper } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import BaseRadio from "./shared/Radio.svelte";
 	import type { RadioEvents, RadioProps } from "./types";
@@ -42,6 +42,14 @@
 		on_clear_status={() =>
 			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
+	{#if gradio.shared.show_label && gradio.props.buttons && gradio.props.buttons.length > 0}
+		<IconButtonWrapper
+			buttons={gradio.props.buttons}
+			on_custom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
+		/>
+	{/if}
 
 	<BlockTitle show_label={gradio.shared.show_label} info={gradio.props.info}
 		>{gradio.shared.label || gradio.i18n("radio.radio")}</BlockTitle

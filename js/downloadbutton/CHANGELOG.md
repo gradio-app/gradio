@@ -1,5 +1,64 @@
 # @gradio/downloadbutton
 
+## 0.4.18
+
+### Dependency updates
+
+- @gradio/button@0.6.5
+- @gradio/utils@0.12.0
+
+## 0.4.17
+
+### Dependency updates
+
+- @gradio/client@2.1.0
+- @gradio/button@0.6.4
+
+## 0.4.17
+
+### Dependency updates
+
+- @gradio/utils@0.11.3
+
+## 0.4.17
+
+### Dependency updates
+
+- @gradio/client@2.0.4
+
+## 0.4.17
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/button@0.6.3
+- @gradio/utils@0.11.2
+- @gradio/client@2.0.3
+
+## 0.4.16
+
+### Fixes
+
+- [#12689](https://github.com/gradio-app/gradio/pull/12689) [`be89f8c`](https://github.com/gradio-app/gradio/commit/be89f8c4272a2d2c3da9345c3e26df5505307428) - Migrate DownloadButton to Svelte 5.  Thanks @dawoodkhan82!
+- [#12681](https://github.com/gradio-app/gradio/pull/12681) [`ba46c2d`](https://github.com/gradio-app/gradio/commit/ba46c2df1405c11e495304af8f91acfdf69d0b18) - Migrate Button to Svelte 5.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+- @gradio/button@0.6.2
+- @gradio/client@2.0.2
+
+## 0.4.15
+
+### Dependency updates
+
+- @gradio/utils@0.11.0
+- @gradio/client@2.0.1
+- @gradio/button@0.6.1
+
 ## 0.4.14
 
 ### Dependency updates

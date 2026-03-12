@@ -8,8 +8,8 @@ import gradio as gr
 class TestClearButton:
     def test_clear_event_setup_correctly(self):
         with gr.Blocks() as demo:
-            chatbot = gr.Chatbot(
-                [
+            chatbot = gr.Chatbot(  # type: ignore
+                [  # type: ignore
                     {"content": "Hello", "role": "user"},
                     {"content": "How are you?", "role": "assistant"},
                 ]
@@ -25,8 +25,8 @@ class TestClearButton:
 
     def test_clear_event_setup_correctly_with_state(self):
         with gr.Blocks() as demo:
-            chatbot = gr.Chatbot(
-                [
+            chatbot = gr.Chatbot(  # type: ignore
+                [  # type: ignore
                     {"content": "Hello", "role": "user"},
                     {"content": "How are you?", "role": "assistant"},
                 ]

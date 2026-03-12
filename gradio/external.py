@@ -501,11 +501,13 @@ def from_model(
 
     kwargs = dict(interface_info, **kwargs)
 
-    fn = kwargs.pop("fn", None)
+    interface_fn = kwargs.pop("fn", None)
     inputs = kwargs.pop("inputs", None)
     outputs = kwargs.pop("outputs", None)
 
-    interface = gr.Interface(fn, inputs, outputs, **kwargs, api_name="predict")
+    interface = gr.Interface(
+        interface_fn, inputs, outputs, **kwargs, api_name="predict"
+    )
     return interface
 
 
@@ -767,7 +769,7 @@ def format_conversation(
                     {
                         "type": "image_url",
                         "image_url": {
-                            "url": encode_url_or_file_to_base64(content["file"]["path"])
+                            "url": encode_url_or_file_to_base64(content["file"]["path"])  # type: ignore
                         },
                     }
                 )

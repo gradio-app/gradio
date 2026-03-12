@@ -60,7 +60,7 @@ import gradio as gr
 def greet(msg, history):
 	return f"You typed: {msg}"
 
-demo = gr.ChatInterface(fn=greet, textbox=gr.Textbox(label="foo", placeholder="Type a message..."))
+demo = gr.ChatInterface(fn=greet, textbox=gr.Textbox(label="foo", placeholder="Hello..."))
 
 if __name__ == "__main__":
 	demo.launch()
@@ -77,10 +77,11 @@ if __name__ == "__main__":
 			}
 		});
 
-		await expect(page.getByLabel("foo")).toBeVisible();
+		await expect(page.getByPlaceholder("Hello...")).toBeVisible();
 		const textbox = page.getByTestId("textbox").first();
 
 		await textbox.fill("hello");
+		await page.waitForTimeout(500);
 		await textbox.press("Enter");
 
 		await expect(textbox).toHaveValue("");

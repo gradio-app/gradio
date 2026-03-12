@@ -1,15 +1,12 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import { Embed } from "@gradio/core";
 
-	/** @type {HTMLDivElement} */
-	let wrapper;
-	const pages = /** @type {[string, string, boolean][]} */ ([
-		["", "Home", true],
-		["page1", "Page 1", true],
-		["page2", "Page 2", false],
-		["settings", "Settings", true]
-	]);
+	const defaultPages = [
+		["", "Home"],
+		["page1", "Page 1"],
+		["page2", "Page 2"],
+		["settings", "Settings"]
+	];
 </script>
 
 <Meta
@@ -43,50 +40,73 @@
 		<div
 			style="width: 100%; min-height: 400px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;"
 		>
-			<Embed
-				bind:wrapper
-				version="4.0.0"
-				initial_height="400px"
-				fill_width={true}
-				is_embed={false}
-				space={null}
-				display={true}
-				info={false}
-				loaded={true}
-				{pages}
-				current_page=""
-				root=""
-				components={[
-					{
-						id: 1,
-						type: "navbar",
-						props: {
-							visible: args.visible,
-							main_page_name: args.main_page_name,
-							value: args.value
-						}
-					}
-				]}
-			>
-				<div style="padding: 20px;">
-					<h2>Navbar Storybook Demo</h2>
-					<p>The navbar above shows:</p>
-					<ul>
-						<li>
-							<strong>Visibility:</strong>
-							{args.visible ? "Visible" : "Hidden"}
-						</li>
-						<li><strong>Main Page Name:</strong> {args.main_page_name}</li>
-						<li>
-							<strong>Custom Pages:</strong>
-							{args.value
-								? JSON.stringify(args.value)
-								: "None (using default pages)"}
-						</li>
-					</ul>
-					<p>Use the controls panel to change the navbar properties.</p>
+			{#if args.visible}
+				<div
+					class="nav-holder"
+					style="border-bottom: 1px solid var(--border-color-primary, #e5e7eb); background: var(--background-fill-primary, white);"
+				>
+					<nav
+						style="display: flex; gap: 0; padding: 0 1rem; font-family: var(--font-sans, system-ui, sans-serif);"
+					>
+						{#each defaultPages as [route, label], i}
+							<a
+								href="#{route}"
+								style="
+									padding: 0.75rem 1rem;
+									text-decoration: none;
+									color: {i === 0
+									? 'var(--color-accent, #f97316)'
+									: 'var(--body-text-color, #374151)'};
+									border-bottom: 2px solid {i === 0
+									? 'var(--color-accent, #f97316)'
+									: 'transparent'};
+									font-weight: {i === 0 ? '600' : '400'};
+								"
+							>
+								{i === 0 ? args.main_page_name : label}
+							</a>
+						{/each}
+						{#if args.value}
+							{#each args.value as [label, route]}
+								<a
+									href="#{route}"
+									style="
+										padding: 0.75rem 1rem;
+										text-decoration: none;
+										color: var(--body-text-color, #374151);
+										border-bottom: 2px solid transparent;
+										font-weight: 400;
+									"
+								>
+									{label}
+								</a>
+							{/each}
+						{/if}
+					</nav>
 				</div>
-			</Embed>
+			{/if}
+			<div
+				style="padding: 20px; font-family: var(--font-sans, system-ui, sans-serif);"
+			>
+				<h3 style="margin: 0 0 0.5rem; font-size: 1rem; font-weight: 700;">
+					Navbar Storybook Demo
+				</h3>
+				<p style="margin: 0 0 0.5rem;">The navbar above shows:</p>
+				<ul style="margin: 0; padding-left: 1.5rem;">
+					<li>
+						<strong>Visibility:</strong>
+						{args.visible ? "Visible" : "Hidden"}
+					</li>
+					<li><strong>Main Page Name:</strong> {args.main_page_name}</li>
+					<li>
+						<strong>Custom Pages:</strong>
+						{args.value ? JSON.stringify(args.value) : "None"}
+					</li>
+				</ul>
+				<p
+					style="margin-top: 1rem; color: var(--body-text-color-subdued, #6b7280);"
+				></p>
+			</div>
 		</div>
 	{/key}
 </Template>

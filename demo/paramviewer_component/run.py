@@ -3,7 +3,7 @@ import gradio as gr
 with gr.Blocks() as demo:
     gr.Markdown("The `round()` function in Python takes two parameters")
     gr.ParamViewer(
-        {
+        {  # type: ignore
            "number": {
              "type": "int | float",
              "description": "The number to round",

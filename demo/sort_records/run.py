@@ -7,7 +7,7 @@ demo = gr.Interface(
     sort_records,
     gr.Dataframe(
         headers=["Item", "Quantity"],
-        datatype=["str", "number"],
+        datatype=["str", "number"],  # type: ignore
         row_count=3,
         column_count=2,
         column_limits=(2, 2),

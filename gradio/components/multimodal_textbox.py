@@ -44,7 +44,7 @@ class MultimodalTextbox(FormComponent):
     Creates a textarea for users to enter string input or display string output and also allows for the uploading of multimedia files.
 
     Demos: chatbot_multimodal
-    Guides: creating-a-chatbot
+    Guides: creating-a-custom-chatbot-with-blocks
     """
 
     data_model = MultimodalData
@@ -210,7 +210,7 @@ class MultimodalTextbox(FormComponent):
             The value to display in the multimodal textbox. Files information as a list of FileData objects.
         """
         if value is None:
-            return None
+            return MultimodalData(text="", files=[])
         if not isinstance(value, (dict, str)):
             raise ValueError(
                 f"MultimodalTextbox expects a string or a dictionary with optional keys 'text' and 'files'. Received {value.__class__.__name__}"

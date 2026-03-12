@@ -14,11 +14,14 @@ import {
 	beforeEach
 } from "vitest";
 
-const server = initialise_server();
+let server: Awaited<ReturnType<typeof initialise_server>>;
 
-beforeAll(() => server.listen());
+beforeAll(async () => {
+	server = await initialise_server();
+	await server.start({ quiet: true });
+});
 afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+afterAll(() => server.stop());
 
 describe("open_stream", () => {
 	let app: Client;
@@ -37,10 +40,10 @@ describe("open_stream", () => {
 		vi.clearAllMocks();
 	});
 
-	it("should throw an error if config is not defined", () => {
+	it("should throw an error if config is not defined", async () => {
 		app.config = undefined;
 
-		expect(async () => {
+		await expect(async () => {
 			await app.open_stream();
 		}).rejects.toThrow("Could not resolve app config");
 	});
@@ -60,22 +63,25 @@ describe("open_stream", () => {
 			throw new Error("stream instance is not defined");
 		}
 
-		const onMessageCallback = app.stream_instance.onmessage.bind(app);
-		const onErrorCallback = app.stream_instance.onerror.bind(app);
-
 		const message = { msg: "hello jerry" };
 
-		onMessageCallback({ data: JSON.stringify(message) });
+		app.stream_instance.onmessage({
+			data: JSON.stringify(message)
+		} as MessageEvent);
 		expect(app.stream_status.open).toBe(true);
 
 		expect(app.event_callbacks).toEqual({});
 		expect(app.pending_stream_messages).toEqual({});
 
 		const close_stream_message = { msg: "close_stream" };
-		onMessageCallback({ data: JSON.stringify(close_stream_message) });
+		app.stream_instance.onmessage({
+			data: JSON.stringify(close_stream_message)
+		} as MessageEvent);
 		expect(app.stream_status.open).toBe(false);
 
-		onErrorCallback({ data: JSON.stringify("404") });
+		app.stream_instance.onerror({
+			data: JSON.stringify("404")
+		} as MessageEvent);
 		expect(app.stream_status.open).toBe(false);
 	});
 });

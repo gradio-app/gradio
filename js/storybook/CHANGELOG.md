@@ -1,5 +1,11 @@
 # @self/storybook
 
+## 0.10.0
+
+### Features
+
+- [#12683](https://github.com/gradio-app/gradio/pull/12683) [`0cfaef9`](https://github.com/gradio-app/gradio/commit/0cfaef91c3b80b646556581a7380bfd63a516884) - Upgrade to Storybook 10.  Thanks @hannahblair!
+
 ## 0.9.1
 
 ### Fixes

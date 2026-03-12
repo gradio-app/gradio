@@ -8,9 +8,11 @@ from typing import TYPE_CHECKING, Any, Literal, Union
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
+from gradio.components.button import Button
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Events
 from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -47,6 +49,7 @@ class HighlightedText(Component):
         show_inline_category: bool = True,
         combine_adjacent: bool = False,
         adjacent_separator: str = "",
+        show_whitespaces: bool = True,
         label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
@@ -62,6 +65,7 @@ class HighlightedText(Component):
         preserved_by_key: list[str] | str | None = "value",
         interactive: bool | None = None,
         rtl: bool = False,
+        buttons: list[Button] | None = None,
     ):
         """
         Parameters:
@@ -71,6 +75,7 @@ class HighlightedText(Component):
             show_inline_category: If False, will not display span category label. Only applies if show_legend=False and interactive=False.
             combine_adjacent: If True, will merge the labels of adjacent tokens belonging to the same category.
             adjacent_separator: Specifies the separator to be used between tokens if combine_adjacent is True.
+            show_whitespaces: If False, leading and trailing whitespace of each token will be stripped before display.
             label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
@@ -86,12 +91,14 @@ class HighlightedText(Component):
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             interactive: If True, the component will be editable, and allow user to select spans of text and label them.
             rtl: If True, will display the text in right-to-left direction, and the labels in the legend will also be aligned to the right.
+            buttons: A list of gr.Button() instances to show in the top right corner of the component. Custom buttons will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button.
         """
         self.color_map = color_map
         self.show_legend = show_legend
         self.show_inline_category = show_inline_category
         self.combine_adjacent = combine_adjacent
         self.adjacent_separator = adjacent_separator
+        self.show_whitespaces = show_whitespaces
         self.rtl = rtl
         super().__init__(
             label=label,
@@ -110,6 +117,7 @@ class HighlightedText(Component):
             value=value,
             interactive=interactive,
         )
+        self.buttons = set_default_buttons(buttons, None)
         self._value_description = "a list of 2-part tuples, where the first part is a substring of the text and the second part is the category or value of that substring."
 
     def example_payload(self) -> Any:
@@ -128,7 +136,9 @@ class HighlightedText(Component):
         Parameters:
             payload: An instance of HighlightedTextData
         Returns:
-            Passes the value as a list of tuples as a `list[tuple]` into the function. Each `tuple` consists of a `str` substring of the text (so the entire text is included) and `str | float | None` label, which is the category or confidence of that substring.
+            Passes the value as a list of tuples: `list[tuple]`. Each `tuple` consists of:
+            - a `str` substring of the text (so the entire text is included)
+            - a `str | float | None` label, which is the category or confidence of that substring.
         """
         if payload is None:
             return None
@@ -139,7 +149,10 @@ class HighlightedText(Component):
     ) -> HighlightedTextData | None:
         """
         Parameters:
-            value: Expects a list of (word, category) tuples, or a dictionary of two keys: "text", and "entities", which itself is a list of dictionaries, each of which have the keys: "entity" (or "entity_group"), "start", and "end"
+            value: Expects either of:
+                - a list of (word, category) tuples
+                - a dictionary of two keys: "text", and "entities".
+                -- "entities" itself is a list of dictionaries, each of which have the keys: "entity" (or "entity_group"), "start", and "end"
         Returns:
             An instance of HighlightedTextData
         """
@@ -190,14 +203,32 @@ class HighlightedText(Component):
                 output.append((running_text, running_category))
             return HighlightedTextData(
                 root=[
-                    HighlightedToken(token=o[0], class_or_confidence=o[1])
+                    HighlightedToken(
+                        token=self._normalize_token(o[0]),
+                        class_or_confidence=o[1],
+                    )
                     for o in output
                 ]
             )
         else:
             return HighlightedTextData(
                 root=[
-                    HighlightedToken(token=o[0], class_or_confidence=o[1])
+                    HighlightedToken(
+                        token=self._normalize_token(o[0]),
+                        class_or_confidence=o[1],
+                    )
                     for o in value
                 ]
             )
+
+    def _normalize_token(self, text: str) -> str:
+        """
+        Normalize a token before it is sent to the frontend.
+
+        If show_whitespaces is False, trim leading and trailing whitespace so that
+        tokens are rendered without surrounding spaces. When show_whitespaces is
+        True (the default), preserve the token exactly as provided.
+        """
+        if self.show_whitespaces:
+            return text
+        return text.strip()

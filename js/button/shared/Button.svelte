@@ -1,20 +1,39 @@
 <script lang="ts">
 	import { type FileData } from "@gradio/client";
 	import { Image } from "@gradio/image/shared";
+	import { type Snippet } from "svelte";
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let variant: "primary" | "secondary" | "stop" | "huggingface" =
-		"secondary";
-	export let size: "sm" | "md" | "lg" = "lg";
-	export let value: string | null = null;
-	export let link: string | null = null;
-	export let link_target: "_self" | "_blank" | "_parent" | "_top" = "_self";
-	export let icon: FileData | null = null;
-	export let disabled = false;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
+	let {
+		elem_id,
+		elem_classes = [],
+		visible,
+		variant,
+		size,
+		value,
+		link,
+		link_target,
+		icon,
+		disabled,
+		scale,
+		min_width,
+		onclick = () => {},
+		children
+	}: {
+		elem_id: string | null;
+		elem_classes: string[] | null;
+		visible: boolean | "hidden";
+		variant: "primary" | "secondary" | "stop" | "huggingface";
+		size: "sm" | "md" | "lg";
+		value: string | null;
+		link: string | null;
+		link_target: "_self" | "_blank" | "_parent" | "_top";
+		icon: FileData | null;
+		disabled: boolean;
+		scale: number | null;
+		min_width: number | undefined;
+		onclick: () => void;
+		children?: Snippet;
+	} = $props();
 </script>
 
 {#if link && link.length > 0}
@@ -40,11 +59,13 @@
 				restProps={{ alt: `${value} icon`, class: "button-icon" }}
 			/>
 		{/if}
-		<slot />
+		{#if children}
+			{@render children()}
+		{/if}
 	</a>
 {:else}
 	<button
-		on:click
+		{onclick}
 		class:hidden={visible === false || visible === "hidden"}
 		class="{size} {variant} {elem_classes.join(' ')}"
 		style:flex-grow={scale}
@@ -62,7 +83,9 @@
 				src={icon.url}
 			/>
 		{/if}
-		<slot />
+		{#if children}
+			{@render children()}
+		{/if}
 	</button>
 {/if}
 

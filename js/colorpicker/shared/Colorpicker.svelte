@@ -1,35 +1,40 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount, tick } from "svelte";
+	import { onMount, tick } from "svelte";
 	import tinycolor from "tinycolor2";
 	import { BlockTitle } from "@gradio/atoms";
 	import { click_outside } from "./events";
 	import { Eyedropper } from "@gradio/icons";
 	import { hsva_to_rgba, format_color } from "./utils";
 
-	export let value = "#000000";
-	export let label: string;
-	export let info: string | undefined = undefined;
-	export let disabled = false;
-	export let show_label = true;
+	let {
+		value = $bindable(),
+		label,
+		info,
+		disabled,
+		show_label,
+		on_input = () => {},
+		on_submit = () => {},
+		on_blur = () => {},
+		on_focus = () => {}
+	}: {
+		value: string;
+		label: string;
+		info?: string;
+		disabled: boolean;
+		show_label: boolean;
+		on_input?: () => void;
+		on_submit?: () => void;
+		on_blur?: () => void;
+		on_focus?: () => void;
+	} = $props();
 
-	export let current_mode: "hex" | "rgb" | "hsl" = "hex";
-	export let dialog_open = false;
+	let dialog_open = $state(false);
+	let current_mode: "hex" | "rgb" | "hsl" = $state("hex");
 
 	let eyedropper_supported = false;
 
 	let sl_wrap: HTMLDivElement;
 	let hue_wrap: HTMLDivElement;
-
-	const dispatch = createEventDispatcher<{
-		change: string;
-		click_outside: void;
-		input: undefined;
-		submit: undefined;
-		blur: undefined;
-		focus: undefined;
-		selected: string;
-		close: void;
-	}>();
 
 	let sl_marker_pos = [0, 0];
 	let sl_rect: DOMRect | null = null;
@@ -58,7 +63,7 @@
 		hue = _hue;
 
 		value = hsva_to_rgba({ h: _hue, s: sl[0], v: sl[1], a: 1 });
-		dispatch("input");
+		on_input();
 	}
 
 	function update_color_from_mouse(x: number, y: number): void {
@@ -76,7 +81,7 @@
 		sl = [_hsva.s, _hsva.v];
 
 		value = hsva_to_rgba(_hsva);
-		dispatch("input");
+		on_input();
 	}
 
 	function handle_sl_down(
@@ -129,7 +134,7 @@
 		eyeDropper.open().then((result: { sRGBHex: string }) => {
 			value = result.sRGBHex;
 		});
-		dispatch("input");
+		on_input();
 	}
 
 	const modes = [
@@ -138,8 +143,7 @@
 		["HSL", "hsl"]
 	] as const;
 
-	$: color_string = format_color(value, current_mode);
-	$: color_string && dispatch("selected", color_string);
+	let color_string = $derived.by(() => format_color(value, current_mode));
 
 	onMount(async () => {
 		// @ts-ignore
@@ -150,12 +154,9 @@
 		dialog_open = false;
 	}
 
-	$: update_mouse_from_color(value);
-
-	function handle_click(): void {
-		dispatch("selected", color_string);
-		dispatch("close");
-	}
+	$effect(() => {
+		update_mouse_from_color(value);
+	});
 </script>
 
 <BlockTitle {show_label} {info}>{label}</BlockTitle>
@@ -163,25 +164,22 @@
 	class="dialog-button"
 	style:background={value}
 	{disabled}
-	on:click={() => {
+	onfocus={on_focus}
+	onblur={on_blur}
+	onclick={() => {
 		update_mouse_from_color(value);
 		dialog_open = !dialog_open;
 	}}
 />
 
-<svelte:window on:mousemove={handle_move} on:mouseup={handle_end} />
+<svelte:window onmousemove={handle_move} onmouseup={handle_end} />
 
 {#if dialog_open}
-	<div
-		class="color-picker"
-		on:focus
-		on:blur
-		use:click_outside={handle_click_outside}
-	>
+	<div class="color-picker" use:click_outside={handle_click_outside}>
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<div
 			class="color-gradient"
-			on:mousedown={handle_sl_down}
+			onmousedown={handle_sl_down}
 			style="--hue:{hue}"
 			bind:this={sl_wrap}
 		>
@@ -192,7 +190,7 @@
 			/>
 		</div>
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
-		<div class="hue-slider" on:mousedown={handle_hue_down} bind:this={hue_wrap}>
+		<div class="hue-slider" onmousedown={handle_hue_down} bind:this={hue_wrap}>
 			<div
 				class="marker"
 				style:background={"hsl(" + hue + ", 100%, 50%)"}
@@ -201,18 +199,22 @@
 		</div>
 
 		<div class="input">
-			<button class="swatch" style:background={value} on:click={handle_click}
-			></button>
+			<button class="swatch" style:background={value}></button>
 			<div>
 				<div class="input-wrap">
 					<input
 						type="text"
 						bind:value={color_string}
-						on:change={(e) => {
+						onchange={(e) => {
 							value = e.currentTarget.value;
 						}}
+						onkeydown={(e) => {
+							if (e.key === "Enter") {
+								on_submit();
+							}
+						}}
 					/>
-					<button class="eyedropper" on:click={request_eyedropper}>
+					<button class="eyedropper" onclick={request_eyedropper}>
 						{#if eyedropper_supported}
 							<Eyedropper />
 						{/if}
@@ -224,7 +226,9 @@
 						<button
 							class="button"
 							class:active={current_mode === value}
-							on:click={() => (current_mode = value)}>{label}</button
+							onclick={() => {
+								current_mode = value;
+							}}>{label}</button
 						>
 					{/each}
 				</div>

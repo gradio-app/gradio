@@ -1,5 +1,119 @@
 # @gradio/chatbot
 
+## 0.29.5
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.5
+- @gradio/utils@0.12.0
+- @gradio/atoms@0.22.2
+- @gradio/markdown-code@0.6.1
+- @gradio/upload@0.17.7
+- @gradio/image@0.25.4
+- @gradio/gallery@0.17.3
+- @gradio/plot@0.10.5
+- @gradio/video@0.20.4
+- @gradio/audio@0.22.4
+
+## 0.29.4
+
+### Dependency updates
+
+- @gradio/client@2.1.0
+
+## 0.29.4
+
+### Dependency updates
+
+- @gradio/utils@0.11.3
+- @gradio/atoms@0.22.0
+- @gradio/statustracker@0.12.4
+- @gradio/upload@0.17.6
+- @gradio/video@0.20.3
+- @gradio/image@0.25.3
+- @gradio/gallery@0.17.1
+- @gradio/plot@0.10.4
+- @gradio/audio@0.22.3
+
+## 0.29.3
+
+### Dependency updates
+
+- @gradio/atoms@0.21.0
+- @gradio/client@2.0.4
+- @gradio/statustracker@0.12.3
+- @gradio/image@0.25.2
+- @gradio/upload@0.17.5
+- @gradio/video@0.20.2
+- @gradio/audio@0.22.2
+- @gradio/gallery@0.17.0
+- @gradio/plot@0.10.3
+
+## 0.29.2
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12774](https://github.com/gradio-app/gradio/pull/12774) [`f02c58e`](https://github.com/gradio-app/gradio/commit/f02c58efc9fb8a97cc602c5e07ec13736f34322e) - Prevent empty button wrappers from rendering in gr.Chatbot.  Thanks @hannahblair!
+- [#12779](https://github.com/gradio-app/gradio/pull/12779) [`ea2d3e9`](https://github.com/gradio-app/gradio/commit/ea2d3e985a8b42d188e551f517c5825c00790628) - Migrate Audio + Upload + Atoms to Svelte 5.  Thanks @dawoodkhan82!
+- [#12596](https://github.com/gradio-app/gradio/pull/12596) [`5f654d7`](https://github.com/gradio-app/gradio/commit/5f654d74fb59ca7c1caf1d5965a768fac293c584) - Ensure HTML renders in gr.Chatbot.  Thanks @hannahblair!
+- [#12771](https://github.com/gradio-app/gradio/pull/12771) [`404f6a5`](https://github.com/gradio-app/gradio/commit/404f6a55be4cd0c1ece4af6edb8a7769473fb650) - Migrate Markdown components to svelte 5.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.2
+- @gradio/atoms@0.20.1
+- @gradio/utils@0.11.2
+- @gradio/icons@0.15.1
+- @gradio/upload@0.17.4
+- @gradio/client@2.0.3
+- @gradio/markdown-code@0.6.1
+- @gradio/image@0.25.1
+- @gradio/gallery@0.16.2
+- @gradio/plot@0.10.2
+- @gradio/theme@0.6.1
+- @gradio/video@0.20.1
+- @gradio/audio@0.22.1
+
+## 0.29.1
+
+### Fixes
+
+- [#12675](https://github.com/gradio-app/gradio/pull/12675) [`3aee8ae`](https://github.com/gradio-app/gradio/commit/3aee8aeb74dfe41b24a6626a8e30582e654dc457) - Allow multiple file messages to be displayed in Chatbot.  Thanks @freddyaboulton!
+- [#12692](https://github.com/gradio-app/gradio/pull/12692) [`3b3eaf0`](https://github.com/gradio-app/gradio/commit/3b3eaf0dcb0690cc815eb2b3c40ca335c9a47a11) - Restore RTL prop to gradio components.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+- @gradio/client@2.0.2
+- @gradio/theme@0.6.0
+- @gradio/gallery@0.16.1
+- @gradio/plot@0.10.1
+- @gradio/video@0.20.0
+
+## 0.29.0
+
+### Features
+
+- [#12539](https://github.com/gradio-app/gradio/pull/12539) [`f1d83fa`](https://github.com/gradio-app/gradio/commit/f1d83fac3d6e4bad60cf896a026fa2d572f26073) - Add ability to add custom buttons to components.  Thanks @abidlabs!
+
+### Fixes
+
+- [#12565](https://github.com/gradio-app/gradio/pull/12565) [`b4c69af`](https://github.com/gradio-app/gradio/commit/b4c69af0f5d9461259dbb8ad40a98315428539c0) - Fix Plot display in chatbot.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/utils@0.11.0
+- @gradio/client@2.0.1
+- @gradio/statustracker@0.12.1
+- @gradio/upload@0.17.3
+- @gradio/gallery@0.16.0
+- @gradio/plot@0.10.0
+- @gradio/image@0.25.0
+- @gradio/video@0.19.0
+- @gradio/audio@0.22.0
+
 ## 0.28.0
 
 ### Dependency updates

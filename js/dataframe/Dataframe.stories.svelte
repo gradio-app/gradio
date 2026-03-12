@@ -1,45 +1,41 @@
-<script lang="ts">
+<script module lang="ts">
 	// @ts-nocheck
-	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
+	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import Table from "./shared/Table.svelte";
 	import { within } from "@testing-library/dom";
-	import { userEvent } from "@storybook/test";
+	import { userEvent } from "storybook/test";
 	import { get } from "svelte/store";
 	import { format } from "svelte-i18n";
 	import Image from "@gradio/image";
+
+	const { Story } = defineMeta({
+		title: "Components/DataFrame",
+		component: Table,
+		parameters: {
+			test: {
+				dangerouslyIgnoreUnhandledErrors: true // ignore fullscreen permission error
+			}
+		},
+		argTypes: {
+			editable: {
+				control: [true, false],
+				description: "Whether the DataFrame is editable",
+				name: "interactive",
+				value: true
+			},
+			wrap: {
+				control: "boolean",
+				description: "Whether text should wrap or truncate with ellipsis",
+				defaultValue: false
+			},
+			column_widths: {
+				control: "object",
+				description: "Width of each column (px, %, or auto)",
+				defaultValue: ["200px", "200px", "200px"]
+			}
+		}
+	});
 </script>
-
-<Meta
-	title="Components/DataFrame"
-	component={Table}
-	parameters={{
-		test: {
-			dangerouslyIgnoreUnhandledErrors: true // ignore fullscreen permission error
-		}
-	}}
-	argTypes={{
-		editable: {
-			control: [true, false],
-			description: "Whether the DataFrame is editable",
-			name: "interactive",
-			value: true
-		},
-		wrap: {
-			control: "boolean",
-			description: "Whether text should wrap or truncate with ellipsis",
-			defaultValue: false
-		},
-		column_widths: {
-			control: "object",
-			description: "Width of each column (px, %, or auto)",
-			defaultValue: ["200px", "200px", "200px"]
-		}
-	}}
-/>
-
-<Template let:args>
-	<Table {...args} i18n={get(format)} />
-</Template>
 
 <Story
 	name="Interactive dataframe"
@@ -54,7 +50,11 @@
 		col_count: [2, "dynamic"],
 		row_count: [3, "dynamic"]
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Interactive dataframe with label"
@@ -71,7 +71,11 @@
 		col_count: [2, "dynamic"],
 		row_count: [3, "dynamic"]
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Interactive dataframe no label"
@@ -88,7 +92,11 @@
 		col_count: [2, "dynamic"],
 		row_count: [3, "dynamic"]
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Static dataframe"
@@ -107,7 +115,6 @@
 	}}
 	play={async ({ canvasElement }) => {
 		// tests that the cell is not editable
-
 		const canvas = within(canvasElement);
 		const cells = canvas.getAllByRole("cell");
 		const initial_value = cells[0].textContent;
@@ -124,7 +131,11 @@
 			throw new Error("Input field appeared when table should be non-editable");
 		}
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe with different precisions"
@@ -143,7 +154,11 @@
 		row_count: [2, "dynamic"],
 		editable: false
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe with markdown and math"
@@ -161,7 +176,11 @@
 		row_count: [3, "dynamic"],
 		editable: false
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe without a label"
@@ -176,7 +195,11 @@
 		row_count: [2, "dynamic"],
 		editable: false
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe with different colors"
@@ -186,7 +209,6 @@
 			[200, 800, 700]
 		],
 		headers: ["Math", "Reading", "Writing"],
-
 		styling: [
 			[
 				"background-color:teal; color: white",
@@ -200,7 +222,11 @@
 		row_count: [2, "dynamic"],
 		editable: false
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe with column widths"
@@ -216,7 +242,11 @@
 		column_widths: ["20%", "30%", "50%"],
 		editable: false
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe with zero row count"
@@ -228,7 +258,11 @@
 		row_count: [0, "dynamic"],
 		editable: false
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Interactive dataframe with zero row count"
@@ -240,7 +274,11 @@
 		row_count: [0, "dynamic"],
 		editable: true
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe with link"
@@ -252,7 +290,11 @@
 		col_count: [1, "dynamic"],
 		row_count: [1, "dynamic"]
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe with dialog interactions"
@@ -282,7 +324,11 @@
 		const new_cell = canvas.getAllByRole("cell")[9];
 		userEvent.click(new_cell);
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe with fullscreen button and label and search"
@@ -300,7 +346,11 @@
 		show_search: "search",
 		label: "Test scores"
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe with multiple selection interactions"
@@ -340,7 +390,11 @@
 		// verify cells were cleared by clicking one
 		await user.click(cells[2]);
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe toolbar interactions"
@@ -370,7 +424,11 @@
 
 		await userEvent.click(fullscreen_button);
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe with row numbers"
@@ -389,7 +447,11 @@
 		show_row_numbers: true,
 		editable: false
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe with truncated text"
@@ -417,7 +479,11 @@
 		col_count: [3, "dynamic"],
 		row_count: [3, "dynamic"]
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe with multiline headers"
@@ -437,7 +503,11 @@
 		row_count: [3, "dynamic"],
 		editable: false
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe with row and column selection"
@@ -477,7 +547,11 @@
 
 		await user.keyboard("{Delete}");
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe with lots of values"
@@ -513,7 +587,11 @@
 		row_count: [10, "dynamic"],
 		max_height: 700
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe with search and filter"
@@ -548,7 +626,11 @@
 
 		await new Promise((resolve) => setTimeout(resolve, 100));
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe with pinned columns"
@@ -569,7 +651,11 @@
 		show_row_numbers: true,
 		editable: false
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe with pixel and percentage column widths set"
@@ -583,7 +669,11 @@
 		row_count: [2, "dynamic"],
 		column_widths: ["10%", "50%", "40%", "100px", "100px"]
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe with drag selection"
@@ -658,7 +748,11 @@
 
 		await new Promise((resolve) => setTimeout(resolve, 500));
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Non-interactive dataframe with sorting by multiple columns"
@@ -725,7 +819,11 @@
 		await userEvent.click(cell_menu_button_3);
 		await userEvent.click(canvas.getByText("Clear sort"));
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe with display values"
@@ -753,7 +851,11 @@
 		show_row_numbers: true,
 		editable: false
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe with text wrapping, no max chars"
@@ -782,7 +884,11 @@
 		wrap: true,
 		column_widths: ["33%", "33%", "33%"]
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe text truncation and wrapping"
@@ -813,7 +919,11 @@
 		editable: false,
 		column_widths: ["200px", "200px", "200px"]
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>
 
 <Story
 	name="Dataframe column addition test"
@@ -847,4 +957,8 @@
 		await user.type(input, "New Column");
 		await user.keyboard("{Enter}");
 	}}
-/>
+>
+	{#snippet template(args)}
+		<Table {...args} i18n={get(format)} />
+	{/snippet}
+</Story>

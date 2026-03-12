@@ -96,7 +96,7 @@ jobs:
         run: echo "{}" > package.json
       - name: publish to chromatic
         id: publish-chromatic
-        uses: chromaui/action@fdbe7756d4dbf493e2fbb822df73be7accd07e1c # @v11
+        uses: chromaui/action@v13
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           token: ${{ secrets.COMMIT_STATUS }}

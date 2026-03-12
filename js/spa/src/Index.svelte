@@ -336,6 +336,11 @@
 
 		config = app.get_url_config();
 		window.__gradio_space__ = config.space_id;
+
+		if (app.config?.i18n_translations) {
+			await setupi18n(app.config.i18n_translations);
+			i18n_ready = true;
+		}
 		//@ts-ignore
 		window.__gradio_session_hash__ = app.session_hash;
 

@@ -34,7 +34,8 @@ export function submit(
 	data: unknown[] | Record<string, unknown> = {},
 	event_data?: unknown,
 	trigger_id?: number | null,
-	all_events?: boolean
+	all_events?: boolean,
+	additional_headers?: Record<string, string>
 ): SubmitIterable<GradioEvent> {
 	try {
 		const { token } = this.options;
@@ -54,6 +55,8 @@ export function submit(
 			options,
 			api_prefix
 		} = this;
+
+		const addt_headers = additional_headers || { "x-gradio-user": "api" };
 
 		const that = this;
 
@@ -198,7 +201,8 @@ export function submit(
 					{
 						...payload,
 						session_hash
-					}
+					},
+					addt_headers
 				)
 					.then(async ([output, status_code]: any) => {
 						const data = output.data;
@@ -233,12 +237,15 @@ export function submit(
 								time: new Date()
 							});
 						} else {
+							const is_connection_error =
+								output?.error === BROKEN_CONNECTION_MSG;
 							fire_event({
 								type: "status",
 								stage: "error",
 								endpoint: _endpoint,
 								fn_index,
 								message: output.error,
+								broken: is_connection_error,
 								queue: false,
 								time: new Date()
 							});
@@ -419,13 +426,14 @@ export function submit(
 					? post_message<Map<string, string>>("zerogpu-headers", origin)
 					: Promise.resolve(null);
 				const post_data_promise = zerogpu_auth_promise.then((headers) => {
+					const combined_headers = { ...addt_headers, ...(headers || {}) };
 					return post_data(
 						`${config.root}${api_prefix}/${SSE_DATA_URL}?${url_params}`,
 						{
 							...payload,
 							session_hash
 						},
-						headers
+						combined_headers
 					);
 				});
 
@@ -459,11 +467,15 @@ export function submit(
 						});
 						close();
 					} else if (status !== 200) {
+						const is_connection_error =
+							response?.error === BROKEN_CONNECTION_MSG;
 						fire_event({
 							type: "status",
 							stage: "error",
-							broken: false,
-							message: response.detail,
+							broken: is_connection_error,
+							message: is_connection_error
+								? BROKEN_CONNECTION_MSG
+								: response.detail || response.error,
 							queue: true,
 							endpoint: _endpoint,
 							fn_index,
@@ -658,7 +670,7 @@ export function submit(
 			return new Promise((resolve) => resolvers.push(resolve));
 		}
 
-		const iterator = {
+		const iterator: SubmitIterable<GradioEvent> = {
 			[Symbol.asyncIterator]: () => iterator,
 			next,
 			throw: async (value: unknown) => {

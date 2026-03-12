@@ -1,4 +1,4 @@
-import type { KeyUpData, SelectData } from "@gradio/utils";
+import type { KeyUpData, SelectData, CustomButton } from "@gradio/utils";
 
 export type Item = string | number;
 
@@ -10,6 +10,7 @@ export interface DropdownProps {
 	value: Item | Item[];
 	info: string;
 	filterable: boolean;
+	buttons: (string | CustomButton)[] | null;
 }
 
 export interface DropdownEvents {
@@ -19,4 +20,5 @@ export interface DropdownEvents {
 	focus: never;
 	blur: never;
 	key_up: KeyUpData;
+	custom_button_click: { id: number };
 }

@@ -8,7 +8,7 @@ demo = gr.Interface(
     [
         gr.Dataframe(
             headers=["name", "age", "gender"],
-            datatype=["str", "number", "str"],
+            datatype=["str", "number", "str"],  # type: ignore
             row_count=5,
             column_count=3,
             column_limits=(3, 3),

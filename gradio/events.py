@@ -84,6 +84,24 @@ def set_cancel_events(
 
 @document()
 class Dependency(dict):
+    """
+    The Dependency object is usually not created directly but is returned when an event listener is set up. It contains the configuration
+    data for the event listener, and can be used to set up additional event listeners that depend on the completion of the current event
+    listener using .then(), .success(), and .failure().
+
+    Example:
+        import gradio as gr
+        with gr.Blocks() as demo:
+            first_textbox = gr.Textbox()
+            second_textbox = gr.Textbox()
+            button = gr.Button("Submit")
+            dependency = button.click(lambda x: "Hello, " + x, first_textbox, second_textbox)
+            dependency.success(lambda: gr.Info("Greeting successful"), None, None)
+            dependency.failure(lambda: gr.Warning("Greeting failed"), None, None)
+        demo.launch()
+    Demos: chatbot_consecutive, blocks_chained_events
+    """
+
     def __init__(
         self,
         trigger,
@@ -92,14 +110,6 @@ class Dependency(dict):
         fn,
         associated_timer: Timer | None = None,
     ):
-        """
-        The Dependency object is usualy not created directly but is returned when an event listener is set up. It contains the configuration
-        data for the event listener, and can be used to set up additional event listeners that depend on the completion of the current event
-        listener using .then(), .success(), and .failure().
-
-        Demos: chatbot_consecutive, blocks_chained_events
-        """
-
         super().__init__(key_vals)
         self.fn = fn
         self.associated_timer = associated_timer
@@ -168,6 +178,7 @@ class EventData:
             textbox.select(on_select, textbox, statement)
         demo.launch()
     Demos: gallery_selections, tictactoe
+    Guides: blocks-and-event-listeners
     """
 
     def __init__(self, target: Block | None, _data: Any):
@@ -315,6 +326,7 @@ class LikeData(EventData):
             c.like(test, c, t)
         demo.launch()
     Demos: chatbot_core_components_simple
+    Guides: chatbot-specific-events
     """
 
     def __init__(self, target: Block | None, data: Any):
@@ -353,6 +365,7 @@ class RetryData(EventData):
             chatbot = gr.Chatbot()
             chatbot.retry(retry, chatbot, chatbot)
         demo.launch()
+    Guides: chatbot-specific-events
     """
 
     def __init__(self, target: Block | None, data: Any):
@@ -416,6 +429,7 @@ class EditData(EventData):
             chatbot = gr.Chatbot()
             chatbot.undo(edit, chatbot, chatbot)
         demo.launch()
+    Guides: chatbot-specific-events
     """
 
     def __init__(self, target: Block | None, data: Any):
@@ -515,6 +529,10 @@ if TYPE_CHECKING:
         ],
         Dependency,
     ]
+    # Bound component event methods (e.g. button.click, tab.select) don't
+    # expose the ``block`` first-parameter present in EventListenerCallable,
+    # so we also accept any callable that returns a Dependency.
+    Trigger = Union[EventListenerCallable, Callable[..., Dependency]]
 
 
 class EventListener(str):
@@ -767,7 +785,7 @@ class EventListener(str):
 
 @document()
 def on(
-    triggers: Sequence[EventListenerCallable] | EventListenerCallable | None = None,
+    triggers: Sequence[Trigger] | Trigger | None = None,
     fn: Callable[..., Any] | None | Literal["decorator"] = "decorator",
     inputs: Component
     | BlockContext
@@ -851,7 +869,7 @@ def on(
     triggers_typed = cast(Sequence[EventListener], triggers)
 
     if isinstance(inputs, Block):
-        inputs = [inputs]
+        inputs = [inputs]  # type: ignore
 
     if fn == "decorator":
 
@@ -895,7 +913,7 @@ def on(
         raise Exception("Cannot call on() outside of a gradio.Blocks context.")
     if triggers is None:
         methods = (
-            [EventListenerMethod(input, "change") for input in inputs]
+            [EventListenerMethod(input, "change") for input in inputs]  # type: ignore
             if inputs is not None
             else []
         ) + [EventListenerMethod(root_block, "load")]  # type: ignore
@@ -1100,9 +1118,11 @@ class Events:
     edit = EventListener(
         "edit",
         doc="This listener is triggered when the user edits the {{ component }} (e.g. image) using the built-in editor.",
-        callback=lambda block: setattr(block, "editable", "user")
-        if getattr(block, "editable", None) is None
-        else None,
+        callback=lambda block: (
+            setattr(block, "editable", "user")
+            if getattr(block, "editable", None) is None
+            else None
+        ),
     )
     clear = EventListener(
         "clear",
@@ -1154,7 +1174,7 @@ class Events:
     select = EventListener(
         "select",
         callback=lambda block: setattr(block, "_selectable", True),
-        doc="Event listener for when the user selects or deselects the {{ component }}. Uses event data gradio.SelectData to carry `value` referring to the label of the {{ component }}, and `selected` to refer to state of the {{ component }}. See EventData documentation on how to use this event data",
+        doc="Event listener for when the user selects or deselects the {{ component }}. Uses event data gradio.SelectData to carry `value` referring to the label of the {{ component }}, and `selected` to refer to state of the {{ component }}. See https://www.gradio.app/main/docs/gradio/eventdata for more details.",
     )
     stream = EventListener(
         "stream",

@@ -41,7 +41,7 @@ from gradio.i18n import I18nData
 try:
     from pydantic import JsonValue
 except ImportError:
-    JsonValue = Any
+    JsonValue = Any  # type: ignore
 
 DeveloperPath = NewType("DeveloperPath", str)
 UserProvidedPath = NewType("UserProvidedPath", str)

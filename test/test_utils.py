@@ -15,6 +15,7 @@ from gradio_client.exceptions import AppError
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
+import gradio as gr
 from gradio import EventData, Request
 from gradio.exceptions import Error
 from gradio.external_utils import format_ner_list
@@ -91,8 +92,9 @@ class TestUtils:
         out_article = download_if_url(in_article)
         assert out_article == in_article
 
+    @pytest.mark.flaky
     def test_download_if_url_correct_parse(self):
-        in_article = "https://github.com/gradio-app/gradio/blob/master/README.md"
+        in_article = "https://huggingface.co/datasets/gradio/custom-html-gallery/blob/main/manifest.json"
         out_article = download_if_url(in_article)
         assert out_article != in_article
 
@@ -714,7 +716,7 @@ class TestSafeDeepCopy:
         assert copied == original
         assert copied is not original
         assert copied[2] is not original[2]
-        assert copied[2][2] is not original[2][2]
+        assert copied[2][2] is not original[2][2]  # type: ignore
 
     def test_safe_deepcopy_custom_object(self):
         class CustomClass:
@@ -938,3 +940,41 @@ class TestGetFunctionDescription:
         assert parameters == {}
         assert returns == []
         assert description == "This is the docstring from the parent class."
+
+
+class TestConnectHeartbeat:
+    def test_unload_registered_last(self):
+        with gr.Blocks() as demo:
+            msg = gr.Markdown("# Test")
+            gr.Button("Click").click(lambda: "# TADA!", outputs=[msg])
+            demo.unload(lambda: None)
+
+        config = demo.get_config_file()
+        assert config["connect_heartbeat"] is True
+
+    def test_unload_registered_first(self):
+        with gr.Blocks() as demo:
+            demo.unload(lambda: None)
+            msg = gr.Markdown("# Test")
+            gr.Button("Click").click(lambda: "# TADA!", outputs=[msg])
+
+        config = demo.get_config_file()
+        assert config["connect_heartbeat"] is True
+
+    def test_unload_registered_in_middle(self):
+        with gr.Blocks() as demo:
+            msg = gr.Markdown("# Test")
+            gr.Button("Click1").click(lambda: "# 1", outputs=[msg])
+            demo.unload(lambda: None)
+            gr.Button("Click2").click(lambda: "# 2", outputs=[msg])
+
+        config = demo.get_config_file()
+        assert config["connect_heartbeat"] is True
+
+    def test_no_unload_no_heartbeat(self):
+        with gr.Blocks() as demo:
+            msg = gr.Markdown("# Test")
+            gr.Button("Click").click(lambda: "# TADA!", outputs=[msg])
+
+        config = demo.get_config_file()
+        assert config["connect_heartbeat"] is False

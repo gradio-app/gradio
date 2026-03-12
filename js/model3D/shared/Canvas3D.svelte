@@ -5,19 +5,28 @@
 
 	let BABYLON_VIEWER: typeof import("@babylonjs/viewer");
 
-	export let value: FileData;
-	export let display_mode: "solid" | "point_cloud" | "wireframe";
-	export let clear_color: [number, number, number, number];
-	export let camera_position: [number | null, number | null, number | null];
-	export let zoom_speed: number;
-	export let pan_speed: number;
+	let {
+		value,
+		display_mode,
+		clear_color,
+		camera_position,
+		zoom_speed,
+		pan_speed
+	}: {
+		value: FileData;
+		display_mode: "solid" | "point_cloud" | "wireframe";
+		clear_color: [number, number, number, number];
+		camera_position: [number | null, number | null, number | null];
+		zoom_speed: number;
+		pan_speed: number;
+	} = $props();
 
-	$: url = value.url;
+	let url = $derived(value.url);
 
 	let canvas: HTMLCanvasElement;
-	let viewer: Viewer;
-	let viewerDetails: Readonly<ViewerDetails>;
-	let mounted = false;
+	let viewer = $state<Viewer>();
+	let viewerDetails = $state<Readonly<ViewerDetails>>();
+	let mounted = $state(false);
 
 	onMount(() => {
 		const initViewer = async (): Promise<void> => {
@@ -43,9 +52,14 @@
 		};
 	});
 
-	$: mounted && load_model(url);
+	$effect(() => {
+		if (mounted) {
+			load_model(url);
+		}
+	});
 
 	function setRenderingMode(pointsCloud: boolean, wireframe: boolean): void {
+		if (!viewerDetails) return;
 		viewerDetails.scene.forcePointsCloud = pointsCloud;
 		viewerDetails.scene.forceWireframe = wireframe;
 	}
@@ -81,6 +95,7 @@
 		zoom_speed: number,
 		pan_speed: number
 	): void {
+		if (!viewerDetails) return;
 		const camera = viewerDetails.camera;
 		if (camera_position[0] !== null) {
 			camera.alpha = (camera_position[0] * Math.PI) / 180;
@@ -101,7 +116,7 @@
 	}
 
 	export function reset_camera_position(): void {
-		if (viewerDetails) {
+		if (viewerDetails && viewer) {
 			viewer.resetCamera();
 		}
 	}

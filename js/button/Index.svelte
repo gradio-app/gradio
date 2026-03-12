@@ -7,9 +7,20 @@
 	import type { SharedProps } from "@gradio/utils";
 
 	import Button from "./shared/Button.svelte";
+	import type { FileData } from "client/js/src";
+	interface ButtonProps {
+		value: string | null;
+		variant: "primary" | "secondary" | "stop";
+		size: "sm" | "md" | "lg";
+		link: string | null;
+		icon: FileData | null;
+		link_target: "_self" | "_blank";
+		elem_id: string | null;
+		elem_classes?: string[];
+	}
 
-	let _props: { shared_props: SharedProps; props: {} } = $props();
-	const gradio = new Gradio<never, {}>(_props);
+	let _props: { shared_props: SharedProps; props: ButtonProps } = $props();
+	const gradio = new Gradio<never, ButtonProps>(_props);
 
 	function handle_click() {
 		gradio.dispatch("click");
@@ -22,14 +33,14 @@
 	elem_id={gradio.shared.elem_id}
 	elem_classes={gradio.shared.elem_classes}
 	size={gradio.props.size}
-	scale={gradio.props.scale}
+	scale={gradio.shared.scale}
 	link={gradio.props.link}
 	icon={gradio.props.icon}
 	min_width={gradio.shared.min_width}
 	visible={gradio.shared.visible}
 	disabled={!gradio.shared.interactive}
 	link_target={gradio.props.link_target}
-	on:click={handle_click}
+	onclick={handle_click}
 >
 	{gradio.props.value ?? ""}
 </Button>

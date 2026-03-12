@@ -6,8 +6,12 @@
 
 	export let root: string;
 	export let api_count: number;
-	export let current_language: "python" | "javascript" | "bash" | "mcp" =
-		"python";
+	export let current_language:
+		| "python"
+		| "javascript"
+		| "bash"
+		| "skill"
+		| "mcp" = "python";
 
 	const dispatch = createEventDispatcher();
 </script>
@@ -26,7 +30,7 @@
 				size="sm"
 				variant="secondary"
 				elem_id="start-api-recorder"
-				on:click={() => dispatch("close", { api_recorder_visible: true })}
+				onclick={() => dispatch("close", { api_recorder_visible: true })}
 			>
 				<div class="loading-dot self-baseline"></div>
 				<p class="self-baseline btn-text">API Recorder</p>

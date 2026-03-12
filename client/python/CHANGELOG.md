@@ -1,5 +1,45 @@
 # gradio_client
 
+## 2.3.0
+
+### Features
+
+- [#12879](https://github.com/gradio-app/gradio/pull/12879) [`c498688`](https://github.com/gradio-app/gradio/commit/c4986883b267570d76b442899c6fc09d14e3e222) - Ensure svelte version mismatches do not break custom components.  Thanks @pngwn!
+
+### Fixes
+
+- [#12942](https://github.com/gradio-app/gradio/pull/12942) [`e5ba4fa`](https://github.com/gradio-app/gradio/commit/e5ba4fa992c0ac389c6af2d143c9ad4c33eea360) - perf: use deque for SSE pending message queues in gradio_client.  Thanks @giulio-leone!
+
+## 2.2.0
+
+### Features
+
+- [#12918](https://github.com/gradio-app/gradio/pull/12918) [`e29e1cc`](https://github.com/gradio-app/gradio/commit/e29e1ccd5874cb98b813ed4f7f72d9fef2935016) - Add Space-specific skill generation to `gradio skills add`.  Thanks @abidlabs!
+
+## 2.1.0
+
+### Features
+
+- [#12700](https://github.com/gradio-app/gradio/pull/12700) [`b01c95a`](https://github.com/gradio-app/gradio/commit/b01c95a58be8e18bb4ddef7f2ee238a7774e5be9) - Rewrite behavior section of docs.  Thanks @aliabd!
+
+### Fixes
+
+- [#12882](https://github.com/gradio-app/gradio/pull/12882) [`fc7c01e`](https://github.com/gradio-app/gradio/commit/fc7c01ea1e581ef70be98fddf003b0c91315c7cc) - Validate proxy url host.  Thanks @freddyaboulton!
+- [#12811](https://github.com/gradio-app/gradio/pull/12811) [`8f8cef8`](https://github.com/gradio-app/gradio/commit/8f8cef87bfb3af64867804ad45f4385af09e07b4) - Fix windows tests.  Thanks @freddyaboulton!
+
+## 2.0.3
+
+### Fixes
+
+- [#12614](https://github.com/gradio-app/gradio/pull/12614) [`6222192`](https://github.com/gradio-app/gradio/commit/622219242412400df57a73aebfd3de96bb8499de) - fix(client): make WebP and VTT MIME type detection case-insensitive.  Thanks @majiayu000!
+
+## 2.0.2
+
+### Fixes
+
+- [#12585](https://github.com/gradio-app/gradio/pull/12585) [`1724a02`](https://github.com/gradio-app/gradio/commit/1724a02f37118af098cd9f51472955bf8ef8d794) - Remove checkmark from windows.  Thanks @freddyaboulton!
+- [#12600](https://github.com/gradio-app/gradio/pull/12600) [`1fafaba`](https://github.com/gradio-app/gradio/commit/1fafabaace315b1c699855cadb69eb17488de957) - Add x-gradio-user-header.  Thanks @freddyaboulton!
+
 ## 2.0.1
 
 ### Fixes

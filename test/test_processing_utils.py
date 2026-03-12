@@ -1,6 +1,7 @@
 import os
 import shutil
 import tempfile
+from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import patch
 
@@ -8,8 +9,12 @@ import ffmpy
 import numpy as np
 import pytest
 from PIL import Image, ImageCms
+from pydantic import BaseModel
 
+import gradio as gr
 from gradio import components, data_classes, processing_utils, utils
+from gradio.context import LocalContext
+from gradio.exceptions import InvalidPathError
 from gradio.route_utils import API_PREFIX
 
 
@@ -238,10 +243,10 @@ class TestOutputPreprocessing:
         x = np.array([-1, 1])
         # Test all combinations of dtypes conversions
         dtype_combin = np.array(
-            np.meshgrid(
-                TestOutputPreprocessing.float_dtype_list,
-                TestOutputPreprocessing.float_dtype_list,
-            )
+            np.meshgrid(  # type: ignore
+                TestOutputPreprocessing.float_dtype_list,  # type: ignore
+                TestOutputPreprocessing.float_dtype_list,  # type: ignore
+            )  # type: ignore
         ).T.reshape(-1, 2)
 
         for dtype_in, dtype_out in dtype_combin:
@@ -404,6 +409,122 @@ async def test_json_data_not_moved_to_cache():
         )
         == data
     )
+
+
+@contextmanager
+def launched_blocks_context():
+    """Set up a Blocks instance that looks launched, with LocalContext wired up."""
+    blocks = gr.Blocks()
+    blocks.has_launched = True
+    blocks.allowed_paths = []
+    blocks.blocked_paths = []
+    token = LocalContext.blocks.set(blocks)
+    try:
+        yield blocks
+    finally:
+        LocalContext.blocks.reset(token)
+
+
+def _make_file_data_dict(path: str) -> dict:
+    return {
+        "path": path,
+        "url": None,
+        "size": None,
+        "orig_name": None,
+        "mime_type": None,
+        "is_stream": False,
+        "meta": {"_type": "gradio.FileData"},
+    }
+
+
+class TestMoveFilesToCacheSecurity:
+    """Verify that move_files_to_cache rejects arbitrary file paths."""
+
+    def test_filedata_with_disallowed_path_raises(self):
+        data = _make_file_data_dict("/etc/passwd")
+        with launched_blocks_context():
+            with pytest.raises(InvalidPathError):
+                processing_utils.move_files_to_cache(data, gr.File(), postprocess=True)
+
+    def test_path_traversal_raises(self):
+        data = _make_file_data_dict("../../../etc/passwd")
+        with launched_blocks_context():
+            with pytest.raises(InvalidPathError):
+                processing_utils.move_files_to_cache(data, gr.File(), postprocess=True)
+
+    def test_nested_filedata_with_disallowed_path_raises(self):
+        data = {
+            "chatbot": [
+                {
+                    "role": "assistant",
+                    "content": _make_file_data_dict("/etc/shadow"),
+                }
+            ]
+        }
+        with launched_blocks_context():
+            with pytest.raises(InvalidPathError):
+                processing_utils.move_files_to_cache(
+                    data, gr.Chatbot(), postprocess=True
+                )
+
+
+class TestBrowserStatePydanticNoFileCaching:
+    """Ensure Pydantic model_dump() in BrowserState doesn't trick file caching."""
+
+    def test_model_with_path_field_not_treated_as_file(self):
+        """model_dump() won't produce the FileData meta signature."""
+
+        class Config(BaseModel):
+            path: str
+            name: str
+
+        state = gr.BrowserState()
+        result = state.postprocess(Config(path="/etc/passwd", name="secret"))
+        assert result == {"path": "/etc/passwd", "name": "secret"}
+
+        cached = processing_utils.move_files_to_cache(result, state, postprocess=True)
+        assert cached == result
+
+    def test_model_with_filedata_signature_blocked(self):
+        """Even if model_dump() matches FileData shape, _check_allowed blocks it."""
+
+        class MaliciousModel(BaseModel):
+            path: str
+            url: str | None = None
+            size: int | None = None
+            orig_name: str | None = None
+            mime_type: str | None = None
+            is_stream: bool = False
+            meta: dict = {"_type": "gradio.FileData"}
+
+        state = gr.BrowserState()
+        result = state.postprocess(MaliciousModel(path="/etc/passwd"))
+
+        with launched_blocks_context():
+            with pytest.raises(InvalidPathError):
+                processing_utils.move_files_to_cache(result, state, postprocess=True)
+
+    def test_nested_model_with_path_not_treated_as_file(self):
+        class FileRef(BaseModel):
+            path: str
+            label: str
+
+        class Report(BaseModel):
+            title: str
+            files: list[FileRef]
+
+        state = gr.BrowserState()
+        report = Report(
+            title="Test",
+            files=[
+                FileRef(path="/etc/passwd", label="passwords"),
+                FileRef(path="/etc/shadow", label="shadow"),
+            ],
+        )
+        result = state.postprocess(report)
+
+        cached = processing_utils.move_files_to_cache(result, state, postprocess=True)
+        assert cached == result
 
 
 def test_public_request_pass():

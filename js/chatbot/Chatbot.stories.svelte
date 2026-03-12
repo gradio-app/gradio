@@ -1,9 +1,13 @@
-<script context="module">
-	import { Template, Story } from "@storybook/addon-svelte-csf";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import Chatbot from "./Index.svelte";
 	import { allModes } from "../storybook/modes";
+	import { wrapProps } from "../storybook/wrapProps";
 
-	export const meta = {
+	const bus = "/bus.png";
+	const cheetah = "/cheetah.jpg";
+
+	const { Story } = defineMeta({
 		title: "Components/Chatbot",
 		component: Chatbot,
 		parameters: {
@@ -33,47 +37,53 @@
 				defaultValue: false
 			}
 		}
-	};
+	});
+
+	const defaultValue = [
+		{
+			role: "user",
+			content: [{ type: "text", text: "Can you write a function in Python?" }]
+		},
+		{
+			role: "assistant",
+			content: [{ type: "text", text: "```py\ndef test():\n\tprint(x)\n```" }]
+		},
+		{ role: "user", content: [{ type: "text", text: "Can you do math?" }] },
+		{ role: "assistant", content: [{ type: "text", text: "$$1+1=2$$" }] },
+		{
+			role: "user",
+			content: [{ type: "text", text: "Can you say nothing?" }]
+		}
+	];
 </script>
 
-<Template let:args>
-	<Chatbot
-		latex_delimiters={[{ left: "$$", right: "$$", display: true }]}
-		value={[
-			{
-				role: "user",
-				content: [{ type: "text", text: "Can you write a function in Python?" }]
-			},
-			{
-				role: "assistant",
-				content: [{ type: "text", text: "```py\ndef test():\n\tprint(x)\n```" }]
-			},
-			{ role: "user", content: [{ type: "text", text: "Can you do math?" }] },
-			{ role: "assistant", content: [{ type: "text", text: "$$1+1=2$$" }] },
-			{
-				role: "user",
-				content: [{ type: "text", text: "Can you say nothing?" }]
-			}
-		]}
-		{...args}
-	/>
-</Template>
+{#snippet template(args)}
+	<Chatbot {...wrapProps(args)} />
+{/snippet}
 
 <Story
 	name="Chatbot with math enabled"
-	args={{ latex_delimiters: [{ left: "$$", right: "$$", display: true }] }}
+	args={{
+		latex_delimiters: [{ left: "$$", right: "$$", display: true }],
+		value: defaultValue
+	}}
+	{template}
 />
-
 <Story
 	name="Chatbot with math disabled, small height"
-	args={{ latex_delimiters: [], height: 200, show_copy_button: false }}
+	args={{
+		latex_delimiters: [],
+		height: 200,
+		show_copy_button: false,
+		value: defaultValue
+	}}
+	{template}
 />
-
 <Story
 	name="Chatbot with math disabled, small max_height"
-	args={{ latex_delimiters: [], max_height: 200 }}
+	args={{ latex_delimiters: [], max_height: 200, value: defaultValue }}
+	{template}
 />
-
 <Story
 	name="Chatbot with text rendered right-to-left"
 	args={{
@@ -115,8 +125,8 @@
 			}
 		]
 	}}
+	{template}
 />
-
 <Story
 	name="Chatbot with panel layout enabled and avatars"
 	args={{
@@ -125,10 +135,11 @@
 		avatar_images: [
 			{ url: "https://avatars.githubusercontent.com/u/100000?v=4" },
 			{ url: "https://avatars.githubusercontent.com/u/100000?v=4" }
-		]
+		],
+		value: defaultValue
 	}}
+	{template}
 />
-
 <Story
 	name="Chatbot with bubble layout enabled and avatars"
 	args={{
@@ -136,18 +147,16 @@
 		avatar_images: [
 			{ url: "https://avatars.githubusercontent.com/u/100000?v=4" },
 			{ url: "https://avatars.githubusercontent.com/u/100000?v=4" }
-		]
+		],
+		value: defaultValue
 	}}
+	{template}
 />
-
 <Story
 	name="Chatbot with percentage height"
-	args={{
-		layout: "panel",
-		height: "50%"
-	}}
+	args={{ layout: "panel", height: "50%", value: defaultValue }}
+	{template}
 />
-
 <Story
 	name="Chatbot with placeholder"
 	args={{
@@ -155,8 +164,8 @@
 		placeholder:
 			"**Gradio Helper**\n\nThis Chatbot can help you on *any topic related to Gradio*."
 	}}
+	{template}
 />
-
 <Story
 	name="Chatbot with headers and lists"
 	args={{
@@ -166,9 +175,7 @@
 				content: [
 					{
 						type: "text",
-						text: `# Markdown Example
-
-This document is a showcase of various Markdown capabilities.`
+						text: "# Markdown Example\n\nThis document is a showcase of various Markdown capabilities."
 					}
 				]
 			},
@@ -177,18 +184,14 @@ This document is a showcase of various Markdown capabilities.`
 				content: [
 					{
 						type: "text",
-						text: `## Table of Contents
-
-1. [Text Formatting](#text-formating)
-2. [Code Blocks](#code-blocks)
-3. [Tables](#tables)`
+						text: "## Table of Contents\n\n1. [Text Formatting](#text-formating)\n2. [Code Blocks](#code-blocks)\n3. [Tables](#tables)"
 					}
 				]
 			}
 		]
 	}}
+	{template}
 />
-
 <Story
 	name="Chatbot with tables and nested lists"
 	args={{
@@ -198,13 +201,7 @@ This document is a showcase of various Markdown capabilities.`
 				content: [
 					{
 						type: "text",
-						text: `Creating tables in Markdown is straightforward:
-
-| Header 1 | Header 2 | Header 3 |
-|----------|----------|----------|
-| Row 1, Cell 1 | Row 1, Cell 2 | Row 1, Cell 3 |
-| Row 2, Cell 1 | Row 2, Cell 2 | Row 2, Cell 3 |
-| Row 3, Cell 1 | Row 3, Cell 2 | Row 3, Cell 3 |`
+						text: "Creating tables in Markdown is straightforward:\n\n| Header 1 | Header 2 | Header 3 |\n|----------|----------|----------|\n| Row 1, Cell 1 | Row 1, Cell 2 | Row 1, Cell 3 |\n| Row 2, Cell 1 | Row 2, Cell 2 | Row 2, Cell 3 |\n| Row 3, Cell 1 | Row 3, Cell 2 | Row 3, Cell 3 |"
 					}
 				]
 			},
@@ -213,28 +210,14 @@ This document is a showcase of various Markdown capabilities.`
 				content: [
 					{
 						type: "text",
-						text: `### Unordered List
-
-- Item 1
-- Item 2
-  - Subitem 2.1
-  - Subitem 2.2
-- Item 3
-
-### Ordered List
-
-1. First Item
-2. Second Item
-   1. Subitem 2.1
-   2. Subitem 2.2
-3. Third Item`
+						text: "### Unordered List\n\n- Item 1\n- Item 2\n  - Subitem 2.1\n  - Subitem 2.2\n- Item 3\n\n### Ordered List\n\n1. First Item\n2. Second Item\n   1. Subitem 2.1\n   2. Subitem 2.2\n3. Third Item"
 					}
 				]
 			}
 		]
 	}}
+	{template}
 />
-
 <Story
 	name="Chatbot with image in markdown"
 	args={{
@@ -244,14 +227,14 @@ This document is a showcase of various Markdown capabilities.`
 				content: [
 					{
 						type: "text",
-						text: `![A cheetah](https://cdn.britannica.com/02/92702-120-6A02E613/Cheetah.jpg)`
+						text: `![A cheetah](${cheetah})`
 					}
 				]
 			}
 		]
 	}}
+	{template}
 />
-
 <Story
 	name="Uploaded text files"
 	args={{
@@ -262,10 +245,7 @@ This document is a showcase of various Markdown capabilities.`
 				content: [
 					{
 						type: "file",
-						file: {
-							path: "abc/qwerty.pdf",
-							url: ""
-						},
+						file: { path: "abc/qwerty.pdf", url: "" },
 						alt_text: null
 					}
 				]
@@ -275,10 +255,7 @@ This document is a showcase of various Markdown capabilities.`
 				content: [
 					{
 						type: "file",
-						file: {
-							path: "abc/qwerty.txt",
-							url: ""
-						},
+						file: { path: "abc/qwerty.txt", url: "" },
 						alt_text: null
 					}
 				]
@@ -288,28 +265,22 @@ This document is a showcase of various Markdown capabilities.`
 				content: [
 					{
 						type: "file",
-						file: {
-							path: "abc/qwerty.rtf",
-							url: ""
-						},
+						file: { path: "abc/qwerty.rtf", url: "" },
 						alt_text: null
 					}
 				]
 			}
 		]
 	}}
+	{template}
 />
-
 <Story
 	name="Consecutive messages grouped in same bubble"
 	args={{
 		type: "messages",
 		display_consecutive_in_same_bubble: true,
 		value: [
-			{
-				role: "user",
-				content: [{ type: "text", text: "Show me the file." }]
-			},
+			{ role: "user", content: [{ type: "text", text: "Show me the file." }] },
 			{
 				role: "user",
 				content: [{ type: "text", text: "Second user message" }]
@@ -323,33 +294,27 @@ This document is a showcase of various Markdown capabilities.`
 				content: [
 					{
 						type: "file",
-						file: {
-							path: "abc/qwerty.txt",
-							url: ""
-						},
+						file: { path: "abc/qwerty.txt", url: "" },
 						alt_text: null
 					}
 				]
 			}
 		]
 	}}
+	{template}
 />
-
 <Story
 	name="MultimodalChatbot with examples"
 	args={{
 		value: [],
 		examples: [
-			{
-				text: "What is machine learning?",
-				icon: { mime_type: "text" }
-			},
+			{ text: "What is machine learning?", icon: { mime_type: "text" } },
 			{
 				text: "Analyze this image",
 				files: [
 					{
 						mime_type: "image/jpeg",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+						url: bus,
 						orig_name: "bus.png"
 					}
 				]
@@ -369,17 +334,17 @@ This document is a showcase of various Markdown capabilities.`
 				files: [
 					{
 						mime_type: "image/jpeg",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+						url: bus,
 						orig_name: "image1.jpg"
 					},
 					{
 						mime_type: "image/jpeg",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+						url: bus,
 						orig_name: "image2.jpg"
 					},
 					{
 						mime_type: "image/jpeg",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+						url: bus,
 						orig_name: "image3.jpg"
 					}
 				]
@@ -409,12 +374,12 @@ This document is a showcase of various Markdown capabilities.`
 				files: [
 					{
 						mime_type: "image/jpeg",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+						url: bus,
 						orig_name: "visualization.jpg"
 					},
 					{
 						mime_type: "image/jpeg",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+						url: bus,
 						orig_name: "visualization.jpg"
 					},
 					{
@@ -427,27 +392,20 @@ This document is a showcase of various Markdown capabilities.`
 						url: "/audio.mp3",
 						orig_name: "recording.mp3"
 					},
-					{
-						mime_type: "video/mp4",
-						url: "/video.mp4",
-						orig_name: "video.mp4"
-					}
+					{ mime_type: "video/mp4", url: "/video.mp4", orig_name: "video.mp4" }
 				]
 			}
 		]
 	}}
+	{template}
 />
-
 <Story
 	name="Consecutive messages not grouped in same bubble"
 	args={{
 		type: "messages",
 		display_consecutive_in_same_bubble: false,
 		value: [
-			{
-				role: "user",
-				content: [{ type: "text", text: "Show me the file." }]
-			},
+			{ role: "user", content: [{ type: "text", text: "Show me the file." }] },
 			{
 				role: "user",
 				content: [{ type: "text", text: "Second user message" }]
@@ -461,32 +419,27 @@ This document is a showcase of various Markdown capabilities.`
 				content: [
 					{
 						type: "file",
-						file: {
-							path: "abc/qwerty.txt",
-							url: ""
-						},
+						file: { path: "abc/qwerty.txt", url: "" },
 						alt_text: null
 					}
 				]
 			}
 		]
 	}}
+	{template}
 />
-
 <Story
 	name="Chatbot with examples (not multimodal)"
 	args={{
 		value: [],
 		examples: [
-			{
-				text: "What is machine learning?"
-			},
+			{ text: "What is machine learning?" },
 			{
 				text: "Analyze this image",
 				files: [
 					{
 						mime_type: "image/jpeg",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+						url: bus,
 						orig_name: "bus.png"
 					}
 				]
@@ -503,8 +456,8 @@ This document is a showcase of various Markdown capabilities.`
 			}
 		]
 	}}
+	{template}
 />
-
 <Story
 	name="Displaying Tool Message"
 	args={{
@@ -522,11 +475,7 @@ This document is a showcase of various Markdown capabilities.`
 				content: [
 					{ type: "text", text: "Let me break this down step by step." }
 				],
-				metadata: {
-					id: 1,
-					title: "Solving multiplication",
-					parent_id: 0
-				}
+				metadata: { id: 1, title: "Solving multiplication", parent_id: 0 }
 			},
 			{
 				role: "assistant",
@@ -536,11 +485,7 @@ This document is a showcase of various Markdown capabilities.`
 						text: "First, let's multiply 27 by 10: 27 * 10 = 270"
 					}
 				],
-				metadata: {
-					id: 2,
-					title: "Step 1",
-					parent_id: 1
-				}
+				metadata: { id: 2, title: "Step 1", parent_id: 1 }
 			},
 			{
 				role: "assistant",
@@ -550,25 +495,14 @@ This document is a showcase of various Markdown capabilities.`
 						text: "We can do this quickly because multiplying by 10 just adds a zero"
 					}
 				],
-				metadata: {
-					id: 6,
-					title: "Quick Tip",
-					parent_id: 2
-				}
+				metadata: { id: 6, title: "Quick Tip", parent_id: 2 }
 			},
 			{
 				role: "assistant",
 				content: [
-					{
-						type: "text",
-						text: "Then multiply 27 by 4: 27 * 4 = 108"
-					}
+					{ type: "text", text: "Then multiply 27 by 4: 27 * 4 = 108" }
 				],
-				metadata: {
-					id: 3,
-					title: "Step 2",
-					parent_id: 1
-				}
+				metadata: { id: 3, title: "Step 2", parent_id: 1 }
 			},
 			{
 				role: "assistant",
@@ -587,11 +521,7 @@ This document is a showcase of various Markdown capabilities.`
 						text: "Let me verify this result using a different method."
 					}
 				],
-				metadata: {
-					id: 4,
-					title: "Verification",
-					parent_id: 0
-				}
+				metadata: { id: 4, title: "Verification", parent_id: 0 }
 			},
 			{
 				role: "assistant",
@@ -601,11 +531,7 @@ This document is a showcase of various Markdown capabilities.`
 						text: "Using the standard algorithm: 27 * 14 = (20 + 7) * (10 + 4)"
 					}
 				],
-				metadata: {
-					id: 5,
-					title: "Expanding",
-					parent_id: 4
-				}
+				metadata: { id: 5, title: "Expanding", parent_id: 4 }
 			},
 			{
 				role: "assistant",
@@ -613,4 +539,5 @@ This document is a showcase of various Markdown capabilities.`
 			}
 		]
 	}}
+	{template}
 />

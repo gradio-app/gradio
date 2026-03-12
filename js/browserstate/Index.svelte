@@ -5,12 +5,6 @@
 	import { encrypt, decrypt } from "./crypto";
 	import { Gradio } from "@gradio/utils";
 
-	// export let storage_key: string;
-	// export let secret: string;
-	// export let default_value: any;
-	// export let value = default_value;
-	// let old_value = value;
-
 	let props = $props();
 	let gradio = new Gradio<
 		{
@@ -39,22 +33,27 @@
 		}
 	}
 
-	function save_value(): void {
-		if (!gradio.props.value) return;
+	function save_value(value: any, secret: string, storage_key: string): void {
+		if (!value) return;
 		try {
-			const encrypted = encrypt(
-				JSON.stringify(gradio.props.value),
-				gradio.props.secret
-			);
-			localStorage.setItem(gradio.props.storage_key, encrypted);
+			const encrypted = encrypt(JSON.stringify(value), secret);
+			localStorage.setItem(storage_key, encrypted);
 		} catch (e) {
 			console.error("Error writing to localStorage:", e);
 		}
 	}
 
+	let old_value = gradio.props.value;
 	$effect(() => {
-		save_value();
-		gradio.dispatch("change");
+		if (old_value !== gradio.props.value) {
+			old_value = gradio.props.value;
+			save_value(
+				gradio.props.value,
+				gradio.props.secret,
+				gradio.props.storage_key
+			);
+			gradio.dispatch("change");
+		}
 	});
 
 	onMount(() => {

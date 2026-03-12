@@ -45,6 +45,7 @@ class TestRadio:
             "type": "value",
             "info": None,
             "rtl": False,
+            "buttons": [],
         }
 
         radio = gr.Radio(choices=["a", "b"], type="index")

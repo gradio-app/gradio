@@ -1,12 +1,13 @@
-<script context="module">
-	import { Template, Story } from "@storybook/addon-svelte-csf";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import Video from "./Index.svelte";
-	import { format } from "svelte-i18n";
-	import { get } from "svelte/store";
-	import { userEvent, within } from "@storybook/test";
+	import { userEvent, within } from "storybook/test";
 	import { allModes } from "../storybook/modes";
+	import { wrapProps } from "../storybook/wrapProps";
 
-	export const meta = {
+	const video_sample = "/video_sample.mp4";
+
+	const { Story } = defineMeta({
 		title: "Components/Video",
 		component: Video,
 		parameters: {
@@ -17,14 +18,12 @@
 				}
 			}
 		}
-	};
+	});
 </script>
 
-<div>
-	<Template let:args>
-		<Video i18n={get(format)} {...args} />
-	</Template>
-</div>
+{#snippet template(args)}
+	<Video {...wrapProps(args)} />
+{/snippet}
 
 <Story
 	name="Record from webcam"
@@ -35,54 +34,46 @@
 		interactive: true,
 		height: 400,
 		width: 400,
-		webcam_options: {
-			mirror: true,
-			constraints: null
-		}
+		webcam_options: { mirror: true, constraints: null }
 	}}
+	{template}
 />
-
 <Story
 	name="Static video"
 	args={{
 		value: {
-			path: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
-			url: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
-			orig_name: "world.mp4"
+			path: video_sample,
+			url: video_sample,
+			orig_name: "video_sample.mp4"
 		},
 		label: "world video",
 		show_label: true,
-		show_download_button: true,
+		buttons: ["download"],
 		interactive: false,
 		height: 200,
 		width: 400,
-		webcam_options: {
-			mirror: true,
-			constraints: null
-		}
+		webcam_options: { mirror: true, constraints: null }
 	}}
+	{template}
 />
 <Story
 	name="Static video with vertical video"
 	args={{
 		value: {
-			path: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world_vertical.mp4",
-			url: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world_vertical.mp4",
-			orig_name: "world_vertical.mp4"
+			path: video_sample,
+			url: video_sample,
+			orig_name: "video_sample.mp4"
 		},
 		label: "world video",
 		show_label: true,
-		show_download_button: false,
+		buttons: [],
 		interactive: false,
 		height: 200,
 		width: 400,
-		webcam_options: {
-			mirror: true,
-			constraints: null
-		}
+		webcam_options: { mirror: true, constraints: null }
 	}}
+	{template}
 />
-
 <Story
 	name="Upload video"
 	args={{
@@ -93,13 +84,10 @@
 		width: 400,
 		height: 400,
 		value: null,
-		webcam_options: {
-			mirror: true,
-			constraints: null
-		}
+		webcam_options: { mirror: true, constraints: null }
 	}}
+	{template}
 />
-
 <Story
 	name="Upload video with download button"
 	args={{
@@ -107,42 +95,37 @@
 		show_label: true,
 		interactive: true,
 		sources: ["upload", "webcam"],
-		show_download_button: true,
+		buttons: ["download"],
 		width: 400,
 		height: 400,
 		value: {
-			path: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
-			url: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
-			orig_name: "world.mp4"
+			path: video_sample,
+			url: video_sample,
+			orig_name: "video_sample.mp4"
 		},
-		webcam_options: {
-			mirror: true,
-			constraints: null
-		}
+		webcam_options: { mirror: true, constraints: null }
 	}}
+	{template}
 />
-
 <Story
 	name="Trim video"
 	args={{
 		value: {
-			path: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
-			url: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
-			orig_name: "world.mp4"
+			path: video_sample,
+			url: video_sample,
+			orig_name: "video_sample.mp4"
 		},
 		label: "world video",
 		show_label: true,
 		interactive: "true",
 		sources: ["upload"],
 		width: 400,
-		webcam_options: {
-			mirror: true,
-			constraints: null
-		}
+		webcam_options: { mirror: true, constraints: null }
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
 		const trimButton = canvas.getByLabelText("Trim video to selection");
 		userEvent.click(trimButton);
 	}}
+	{template}
 />

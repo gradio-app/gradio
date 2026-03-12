@@ -38,6 +38,7 @@ class TestNumber:
             "_selectable": False,
             "key": None,
             "preserved_by_key": ["value"],
+            "buttons": [],
         }
 
     def test_component_functions_integer(self):
@@ -74,6 +75,7 @@ class TestNumber:
             "_selectable": False,
             "key": None,
             "preserved_by_key": ["value"],
+            "buttons": [],
         }
 
     def test_component_functions_precision(self):

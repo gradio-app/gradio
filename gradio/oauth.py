@@ -47,7 +47,7 @@ def attach_oauth(app: fastapi.FastAPI):
     # ^ if we change the session cookie format in the future, we can bump the version of the session secret to make
     #   sure cookies are invalidated. Otherwise some users with an old cookie format might get a HTTP 500 error.
     app.add_middleware(
-        SessionMiddleware,
+        SessionMiddleware,  # type: ignore
         secret_key=hashlib.sha256(session_secret.encode()).hexdigest(),
         same_site="none",
         https_only=True,
@@ -220,7 +220,14 @@ def _redirect_to_target(
     request: fastapi.Request, default_target: str = "/"
 ) -> RedirectResponse:
     target = request.query_params.get("_target_url", default_target)
-    return RedirectResponse(target)
+    # Prevent open redirect by stripping scheme/host and only using the path.
+    parsed = urllib.parse.urlparse(target)
+    safe_target = parsed.path or "/"
+    if parsed.query:
+        safe_target += "?" + parsed.query
+    if parsed.fragment:
+        safe_target += "#" + parsed.fragment
+    return RedirectResponse(safe_target)
 
 
 @dataclass
@@ -323,7 +330,7 @@ def _get_mocked_oauth_info() -> typing.Dict:
         )
 
     return {
-        "access_token": token,
+        "access_token": "mock-oauth-token-for-local-dev",
         "token_type": "bearer",
         "expires_in": 3600,
         "id_token": "AAAAAAAAAAAAAAAAAAAAAAAAAA",

@@ -6,6 +6,7 @@
 		IconButtonWrapper,
 		FullscreenButton
 	} from "@gradio/atoms";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 	import { Image } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
 	import { Gradio } from "@gradio/utils";
@@ -70,8 +71,13 @@
 			<Empty size="large" unpadded_box={true}><Image /></Empty>
 		{:else}
 			<div class="image-container" bind:this={image_container}>
-				<IconButtonWrapper>
-					{#if gradio.props.buttons.includes("fullscreen") ?? true}
+				<IconButtonWrapper
+					buttons={gradio.props.buttons || []}
+					on_custom_button_click={(id) => {
+						gradio.dispatch("custom_button_click", { id });
+					}}
+				>
+					{#if (gradio.props.buttons || []).some((btn) => typeof btn === "string" && btn === "fullscreen")}
 						<FullscreenButton
 							{fullscreen}
 							on:fullscreen={({ detail }) => {

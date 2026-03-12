@@ -29,6 +29,9 @@ export type DataframeValue = {
  * @returns The coerced value.
  */
 export function cast_value_to_type(v: any, t: Datatype): CellValue {
+	if (v === null || v === undefined) {
+		return v;
+	}
 	if (t === "number") {
 		const n = Number(v);
 		return isNaN(n) ? v : n;

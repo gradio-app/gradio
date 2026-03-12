@@ -1,5 +1,116 @@
 # website
 
+## 0.72.0
+
+### Features
+
+- [#12972](https://github.com/gradio-app/gradio/pull/12972) [`4a0fe6e`](https://github.com/gradio-app/gradio/commit/4a0fe6e5aec1df710bd843f2f328d43fb7cfa7ef) - Fix Custom HTML Gallery URL.  Thanks @freddyaboulton!
+- [#12959](https://github.com/gradio-app/gradio/pull/12959) [`84a9235`](https://github.com/gradio-app/gradio/commit/84a923531490d4defe903985c2496a2d6412092b) - Fix table styling on the docs.  Thanks @aliabd!
+
+### Fixes
+
+- [#12966](https://github.com/gradio-app/gradio/pull/12966) [`673feb4`](https://github.com/gradio-app/gradio/commit/673feb4cf21beb7df03a6721d29757a2fb265c5d) - Fix website local font paths and font-weight CSS.  Thanks @hannahblair!
+- [#12941](https://github.com/gradio-app/gradio/pull/12941) [`50e9c84`](https://github.com/gradio-app/gradio/commit/50e9c84749aff9da985a79c8a88292fac62fa1d6) - HTML Gallery Tweaks + Docs.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/button@0.6.5
+- @gradio/code@0.17.4
+- @gradio/html@0.11.1
+- @gradio/paramviewer@0.9.5
+- @gradio/statustracker@0.12.5
+- @gradio/tabitem@0.6.6
+- @gradio/tabs@0.5.8
+
+## 0.71.1
+
+### Dependency updates
+
+- @gradio/html@0.11.0
+
+## 0.71.0
+
+### Features
+
+- [#12917](https://github.com/gradio-app/gradio/pull/12917) [`a0fff5c`](https://github.com/gradio-app/gradio/commit/a0fff5cb0e4cc0f8cc3fff7b5fbe18a031c7cc27) - Add push_to_hub method to gr.HTML. Add a gallery to view notable custom HTML components.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/button@0.6.4
+- @gradio/html@0.10.0
+- @gradio/tabs@0.5.7
+
+## 0.70.0
+
+### Features
+
+- [#12700](https://github.com/gradio-app/gradio/pull/12700) [`b01c95a`](https://github.com/gradio-app/gradio/commit/b01c95a58be8e18bb4ddef7f2ee238a7774e5be9) - Rewrite behavior section of docs.  Thanks @aliabd!
+- [#12823](https://github.com/gradio-app/gradio/pull/12823) [`32b1d6f`](https://github.com/gradio-app/gradio/commit/32b1d6ffe9e753ad563cc3f4f77a0bfbf89c022c) - I’ve updated the render decorator documentation to be clearer and more practical.  Thanks @Ankith34!
+
+### Fixes
+
+- [#12888](https://github.com/gradio-app/gradio/pull/12888) [`3f835cf`](https://github.com/gradio-app/gradio/commit/3f835cf9c6cdf570a107233e2a87e0dc5cd751cb) - Remove type parameter from ChatInterface Docs.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.4
+- @gradio/tabs@0.5.6
+- @gradio/code@0.17.3
+- @gradio/paramviewer@0.9.4
+
+## 0.69.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.3
+
+## 0.69.0
+
+### Features
+
+- [#12793](https://github.com/gradio-app/gradio/pull/12793) [`47ffecf`](https://github.com/gradio-app/gradio/commit/47ffecfdebf59a47f884089335fecc4ee6ee8d6e) - Add Gradio 5 docs to website.  Thanks @aliabd!
+- [#12755](https://github.com/gradio-app/gradio/pull/12755) [`78a8dd4`](https://github.com/gradio-app/gradio/commit/78a8dd46018951c194fa05259db63dacd712aa37) - Add controlling width to Row docs.  Thanks @aliabd!
+- [#12790](https://github.com/gradio-app/gradio/pull/12790) [`fb1aec5`](https://github.com/gradio-app/gradio/commit/fb1aec5b9ec7616d9cc5f3602825119ea187a96f) - Add ElevenLabs winner to hackathon winners page.  Thanks @aliabd!
+
+### Fixes
+
+- [#12794](https://github.com/gradio-app/gradio/pull/12794) [`0954db4`](https://github.com/gradio-app/gradio/commit/0954db4d618e72a6404bd3904988e5307f22d7d0) - Fix Dependency docs.  Thanks @aliabd!
+- [#12630](https://github.com/gradio-app/gradio/pull/12630) [`44817db`](https://github.com/gradio-app/gradio/commit/44817dbe89612578b5d5c02caa33f48a1fe08dfc) - fix(website): improve Event Listeners table dark mode readability.  Thanks @DanielDerefaka!
+- [#12791](https://github.com/gradio-app/gradio/pull/12791) [`7f2cf84`](https://github.com/gradio-app/gradio/commit/7f2cf84fb79bf4f1d9157acdef4ab4a7024678b2) - Add better related guides section to docs.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/button@0.6.3
+- @gradio/code@0.17.1
+- @gradio/paramviewer@0.9.2
+- @gradio/statustracker@0.12.2
+- @gradio/tabitem@0.6.5
+- @gradio/tabs@0.5.5
+
+## 0.68.0
+
+### Features
+
+- [#12685](https://github.com/gradio-app/gradio/pull/12685) [`3c831d3`](https://github.com/gradio-app/gradio/commit/3c831d35e041ac7cc30c76a975341fcc2d905903) - Create MCP birthday winners page.  Thanks @aliabd!
+- [#12691](https://github.com/gradio-app/gradio/pull/12691) [`d81ff6f`](https://github.com/gradio-app/gradio/commit/d81ff6fce23ab3bfef14e626f1e15b4301ac65fe) - Add Community choice award winner to website.  Thanks @freddyaboulton!
+- [#12624](https://github.com/gradio-app/gradio/pull/12624) [`06d657b`](https://github.com/gradio-app/gradio/commit/06d657b27143538c58a64f425943f7dfa9a5e032) - Remove type parameter from Chatbot Docs.  Thanks @freddyaboulton!
+- [#12678](https://github.com/gradio-app/gradio/pull/12678) [`4eb5d63`](https://github.com/gradio-app/gradio/commit/4eb5d633e00b18d84f8beb1d76896c803325e5eb) - Extend Python syntax highlighting patterns in the docs.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/button@0.6.2
+
+## 0.67.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.1
+- @gradio/button@0.6.1
+- @gradio/code@0.17.0
+- @gradio/paramviewer@0.9.1
+- @gradio/tabitem@0.6.4
+- @gradio/tabs@0.5.4
+
 ## 0.67.1
 
 ### Fixes

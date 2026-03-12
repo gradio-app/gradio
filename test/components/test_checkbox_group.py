@@ -59,6 +59,7 @@ class TestCheckboxGroup:
             "type": "value",
             "info": None,
             "show_select_all": False,
+            "buttons": [],
         }
         with pytest.raises(ValueError):
             gr.CheckboxGroup(["a"], type="unknown")  # type: ignore

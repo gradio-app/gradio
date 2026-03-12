@@ -39,10 +39,10 @@ with gr.Blocks() as demo:
                 for i in range(s):
                     btn = gr.Button(f"Button {i + 1}")
                     btn.click(get_target, None, selected_btn)
-            chatbot = gr.Chatbot([{"role": "user", "content": "Hello"}, {"role": "assistant", "content": "Hi"}, {"role": "user", "content": "How are you?"}, {"role": "assistant", "content": "I'm good."}])
+            chatbot = gr.Chatbot([{"role": "user", "content": "Hello"}, {"role": "assistant", "content": "Hi"}, {"role": "user", "content": "How are you?"}, {"role": "assistant", "content": "I'm good."}])  # type: ignore
             chatbot.select(get_select_index, None, selected_chat)
 
-    selectable_chat = gr.Chatbot([{"role": "user", "content": "chat1"}, {"role": "assistant", "content": "chat2"}, {"role": "user", "content": "chat3"}, {"role": "assistant", "content": "chat4"}])
+    selectable_chat = gr.Chatbot([{"role": "user", "content": "chat1"}, {"role": "assistant", "content": "chat2"}, {"role": "user", "content": "chat3"}, {"role": "assistant", "content": "chat4"}])  # type: ignore
 
     @gr.render(triggers=[selectable_chat.select])
     def show_selected_chat(selection: gr.SelectData):
@@ -75,6 +75,15 @@ with gr.Blocks() as demo:
         a.change(lambda x: time.sleep(0.5) or x, a, b, key="a-b")
         gr.Number(value=round(time.time(), 2))
 
+
+    render_tab = gr.Button("Render Tab")
+    @gr.render(triggers=[render_tab.click])
+    def test_render():
+        with gr.Tabs():
+            with gr.Tab():
+                gr.Textbox("This is a rendered tab", label="Rendered Tab")
+            with gr.Tab():
+                gr.Textbox("Another Tab", label="Another Tab")
 
 if __name__ == '__main__':
     demo.launch()

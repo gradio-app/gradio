@@ -5,6 +5,9 @@ inputs:
   skip_build:
     description: "Skip build"
     default: "false"
+  skip_gradio_install:
+    description: "Skip installing gradio/client and building frontend (use when installing from pre-built wheels)"
+    default: "false"
   test:
     description: "Test"
     default: "false"
@@ -31,7 +34,7 @@ runs:
       if: ${{ inputs.os == 'windows-latest' }}
       shell: bash
       run: |
-        echo "VENV_ACTIVATE=venv\\\Scripts\\\activate" >> $GITHUB_ENV
+        echo "VENV_ACTIVATE=venv/Scripts/activate" >> $GITHUB_ENV
     - name: log venv binary path
       id: venv
       shell: bash
@@ -80,19 +83,21 @@ runs:
         . ${{ env.VENV_ACTIVATE }}
         uv pip install -r test/requirements.txt --torch-backend cpu
         uv pip install -r client/python/test/requirements.txt
-    - name: Install Gradio and Client Libraries Locally (Linux)
+    - name: Install Gradio and Client Libraries Locally
+      if: inputs.skip_gradio_install != 'true'
       shell: bash
       run: |
         . ${{ env.VENV_ACTIVATE }}
         uv pip install -e client/python
         uv pip install -e ".[oauth, mcp]"
     - name: install-frontend
+      if: inputs.skip_gradio_install != 'true'
       uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
       with:
         skip_build: ${{ inputs.skip_build }}
     - name: generate json
       shell: bash
-      if: inputs.os == 'ubuntu-latest'
+      if: inputs.skip_gradio_install != 'true' && inputs.os == 'ubuntu-latest'
       run: |
         . ${{ env.VENV_ACTIVATE }}
         uv pip install boto3 markdown requests && python js/_website/generate_jsons/generate.py

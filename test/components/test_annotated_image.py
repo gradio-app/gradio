@@ -16,7 +16,7 @@ class TestAnnotatedImage:
         mask2[10:20, 10:20] = 1
 
         input = (img, [(mask1, "mask1"), (mask2, "mask2")])
-        assert (result := component.postprocess(input))
+        assert (result := component.postprocess(input))  # type: ignore
         result = result.model_dump()
 
         base_img_out = PIL.Image.open(result["image"]["path"])  # type: ignore

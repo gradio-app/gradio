@@ -53,6 +53,7 @@ class Dataframe(Component):
     """
     This component displays a table of value spreadsheet-like component. Can be used to display data as an output component, or as an input to collect data from the user.
     Demos: filter_records, matrix_transpose, tax_calculator, sort_records
+    Guides: styling-the-gradio-dataframe, filters-tables-and-stats
     """
 
     EVENTS = [Events.change, Events.input, Events.select, Events.edit]
@@ -275,7 +276,7 @@ class Dataframe(Component):
         Parameters:
             payload: the uploaded spreadsheet data as an object with `headers` and `data` attributes. Note that sorting the columns in the browser will not affect the values passed to this function.
         Returns:
-            Passes the uploaded spreadsheet data as a `pandas.DataFrame`, `numpy.array`, `polars.DataFrame`, or native 2D Python `list[list]` depending on `type`
+            Passes the uploaded spreadsheet data as a `pandas.DataFrame`, `numpy.array`, `polars.DataFrame`, or native 2D Python `list[list]` depending on `type`.
         """
         import pandas as pd
 
@@ -376,7 +377,7 @@ class Dataframe(Component):
         elif _is_polars_available() and isinstance(value, _import_polars().DataFrame):
             return list(value.columns)
         elif isinstance(value, dict):
-            return value.get("headers", [])
+            return value.get("headers", [])  # type: ignore
         elif isinstance(value, (list, np.ndarray)):
             return []
         return []
@@ -400,7 +401,7 @@ class Dataframe(Component):
         from pandas.io.formats.style import Styler
 
         if isinstance(value, dict):
-            return value.get("data", [[]])
+            return value.get("data", [[]])  # type: ignore
         if isinstance(value, (str, pd.DataFrame)):
             if isinstance(value, str):
                 value = pd.read_csv(value)  # type: ignore
@@ -426,7 +427,7 @@ class Dataframe(Component):
                 if isinstance(value[0], tuple):
                     return [list(v) for v in value]
                 return [[v] for v in value]
-            return value
+            return value  # type: ignore
         else:
             raise ValueError(
                 f"Cannot process value of type {type(value)} in gr.Dataframe"
@@ -454,7 +455,7 @@ class Dataframe(Component):
                 value, [int(c) for c in getattr(value, "hidden_columns", [])]
             )
         elif isinstance(value, dict):
-            return value.get("metadata", None)
+            return value.get("metadata", None)  # type: ignore
         return None
 
     def postprocess(
@@ -471,7 +472,15 @@ class Dataframe(Component):
     ) -> DataframeData:
         """
         Parameters:
-            value: Expects data in any of these formats: `pandas.DataFrame`, `pandas.Styler`, `numpy.array`, `polars.DataFrame`, `list[list]`, `list`, or a `dict` with keys 'data' (and optionally 'headers'), or `str` path to a csv, which is rendered as the spreadsheet.
+            value: Expects data in any of these formats:
+                - `pandas.DataFrame`
+                - `pandas.Styler`
+                - `numpy.array`
+                -  `polars.DataFrame`
+                - `list[list]`
+                - `list`
+                - `dict` with keys 'data' (and optionally 'headers')
+                - `str` path to a csv, which is rendered as the spreadsheet.
         Returns:
             the uploaded spreadsheet data as an object with `headers` and `data` keys and optional `metadata` key
         """

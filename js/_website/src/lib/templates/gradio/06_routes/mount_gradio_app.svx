@@ -10,6 +10,11 @@
     import { style_formatted_text } from "$lib/text";
 
     let obj = get_object("mount_gradio_app");
+
+    obj.guides = [{
+        "url": "/guides/sharing-your-app",
+        "pretty_name": "Sharing Your App"
+    }]
 </script>
 
 <!--- Title -->
@@ -60,6 +65,6 @@ app = gr.mount_gradio_app(app, io, path="/gradio")
 
 {#if obj.guides && obj.guides.length > 0}
 <!--- Guides -->
-### Guides
+<!--- the guide section below is still necessary to scrape the guides on the side navigation -->
 <GuidesSection guides={obj.guides}/>
 {/if}

@@ -7,6 +7,7 @@
     import FunctionsSection from "$lib/components/FunctionsSection.svelte";
     import GuidesSection from "$lib/components/GuidesSection.svelte";
     import CopyButton from "$lib/components/CopyButton.svelte";
+    import BehaviorSection from "$lib/components/BehaviorSection.svelte";
     import { style_formatted_text } from "$lib/text";
 
 
@@ -32,32 +33,98 @@ gradio.LinePlot(···)
 
 <!-- Behavior -->
 ### Behavior
-## **As input component**: {@html style_formatted_text(obj.preprocess.return_doc.doc)}
-##### Your function should accept one of these types:
 
-```python
-def predict(
-	value: AltairPlotData | None
-)
-	...
-```
-
-<br>
-
-## **As output component**: {@html style_formatted_text(obj.postprocess.parameter_doc[0].doc)}
-##### Your function should return one of these types:
-
-```python
-def predict(···) -> pd.DataFrame | dict | None
-	...	
-	return value
-```
-
+<BehaviorSection name={obj.name} preprocess={obj.preprocess} postprocess={obj.postprocess} />
 
 <!--- Initialization -->
 ### Initialization
 <ParamTable parameters={obj.parameters} anchor_links={obj.name}/>
 
+
+### Key Concepts
+
+`gr.LinePlot`, `gr.ScatterPlot`, and `gr.BarPlot` all share the same API. Here is a summary of the most important features. For full details and live demos, see the [Creating Plots](/guides/creating-plots) and [Time Plots](/guides/time-plots) guides.
+
+**Basic Usage with a DataFrame**
+
+Pass a `pd.DataFrame` as the value, and specify `x` and `y` column names. The y-axis must be numeric; the x-axis can be strings, numbers, categories, or datetimes.
+
+```python
+import gradio as gr
+import pandas as pd
+
+df = pd.DataFrame({"week": [1, 2, 3, 4], "price": [10, 25, 18, 30]})
+
+with gr.Blocks() as demo:
+    gr.LinePlot(df, x="week", y="price")
+```
+
+**Breaking Out Series by Color**
+
+Use the `color` argument to split data into multiple series. Use `color_map` to assign specific colors:
+
+```python
+gr.LinePlot(df, x="week", y="price", color="origin",
+            color_map={"US": "#FF9988", "EU": "#88EEAA"})
+```
+
+**Aggregating Values**
+
+Use `x_bin` and `y_aggregate` to group and summarize data. For numeric x-axes, `x_bin` creates histogram-style bins. For string x-axes, strings act as category bins automatically:
+
+```python
+gr.LinePlot(df, x="week", y="price", x_bin=2, y_aggregate="mean")
+```
+
+For time-series data, pass a string suffix (`"s"`, `"m"`, `"h"`, or `"d"`) to `x_bin`:
+
+```python
+gr.LinePlot(df, x="timestamp", y="price", x_bin="1d", y_aggregate="mean")
+```
+
+**Interactive Selection and Zoom**
+
+Use the `.select` event listener to respond to region selections (click and drag). Combine with `.double_click` and `x_lim` to implement zoom in/out:
+
+```python
+with gr.Blocks() as demo:
+    plot = gr.LinePlot(df, x="week", y="price")
+
+    @plot.select
+    def zoom(selection: gr.SelectData):
+        return gr.LinePlot(x_lim=[selection.index[0], selection.index[1]])
+
+    plot.double_click(lambda: gr.LinePlot(x_lim=None), outputs=plot)
+```
+
+**Realtime Data**
+
+Use `gr.Timer` to keep plots updated with live data. You can attach the timer via `every`, or wire it up manually:
+
+```python
+def get_data():
+    return pd.DataFrame(...)  # fetch latest data
+
+with gr.Blocks() as demo:
+    timer = gr.Timer(5)
+    plot = gr.LinePlot(get_data, x="time", y="price", every=timer)
+```
+
+**Interactive Dashboards**
+
+Plots can be driven by other components (dropdowns, sliders, etc.) to create fully interactive dashboards:
+
+```python
+with gr.Blocks() as demo:
+    origin = gr.Dropdown(choices=["US", "EU", "Asia"], value="US")
+    plot = gr.LinePlot(x="week", y="price")
+
+    def update(origin):
+        filtered = df[df["origin"] == origin]
+        return gr.LinePlot(filtered)
+
+    origin.change(update, inputs=origin, outputs=plot)
+```
 
 {#if obj.string_shortcuts && obj.string_shortcuts.length > 0}
 <!--- Shortcuts -->
@@ -79,6 +146,6 @@ def predict(···) -> pd.DataFrame | dict | None
 
 {#if obj.guides && obj.guides.length > 0}
 <!--- Guides -->
-### Guides
+<!--- the guide section below is still necessary to scrape the guides on the side navigation -->
 <GuidesSection guides={obj.guides}/>
 {/if}

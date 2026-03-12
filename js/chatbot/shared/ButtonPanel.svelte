@@ -40,7 +40,7 @@
 	$: show_copy = show_copy_button && message && is_all_text(message);
 </script>
 
-{#if show_copy || show_retry || show_undo || show_edit || likeable || show_download_button || show_share_button}
+{#if show_copy || show_retry || show_undo || show_edit || likeable || (show_download_button && file?.url) || (show_share_button && file)}
 	<div
 		class="message-buttons-{position} {layout} message-buttons {avatar !==
 			null && 'with-avatar'}"
@@ -50,13 +50,13 @@
 				<IconButton
 					label={i18n("chatbot.submit")}
 					Icon={Check}
-					on:click={() => handle_action("edit_submit")}
+					onclick={() => handle_action("edit_submit")}
 					disabled={generating}
 				/>
 				<IconButton
 					label={i18n("chatbot.cancel")}
 					Icon={Clear}
-					on:click={() => handle_action("edit_cancel")}
+					onclick={() => handle_action("edit_cancel")}
 					disabled={generating}
 				/>
 			{:else}
@@ -103,7 +103,7 @@
 					<IconButton
 						Icon={Retry}
 						label={i18n("chatbot.retry")}
-						on:click={() => handle_action("retry")}
+						onclick={() => handle_action("retry")}
 						disabled={generating}
 					/>
 				{/if}
@@ -111,7 +111,7 @@
 					<IconButton
 						label={i18n("chatbot.undo")}
 						Icon={Undo}
-						on:click={() => handle_action("undo")}
+						onclick={() => handle_action("undo")}
 						disabled={generating}
 					/>
 				{/if}
@@ -119,7 +119,7 @@
 					<IconButton
 						label={i18n("chatbot.edit")}
 						Icon={Edit}
-						on:click={() => handle_action("edit")}
+						onclick={() => handle_action("edit")}
 						disabled={generating}
 					/>
 				{/if}

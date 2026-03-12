@@ -113,9 +113,11 @@ export class Client {
 			headers.append("Cookie", this.cookies);
 		}
 		if (this && this.options.headers) {
-			for (const name in this.options.headers) {
-				headers.append(name, this.options.headers[name]);
-			}
+			let additional_headers = new Headers(this.options.headers);
+
+			additional_headers.forEach((value, name) => {
+				headers.append(name, value);
+			});
 		}
 
 		return fetch(input, { ...init, headers });
@@ -127,9 +129,11 @@ export class Client {
 			headers.append("Cookie", this.cookies);
 		}
 		if (this && this.options.headers) {
-			for (const name in this.options.headers) {
-				headers.append(name, this.options.headers[name]);
-			}
+			let additional_headers = new Headers(this.options.headers);
+
+			additional_headers.forEach((value, name) => {
+				headers.append(name, value);
+			});
 		}
 		if (this && this.options.token) {
 			headers.append("Authorization", `Bearer ${this.options.token}`);
@@ -175,11 +179,11 @@ export class Client {
 		trigger_id?: number | null,
 		all_events?: boolean
 	) => SubmitIterable<GradioEvent>;
-	predict: (
+	predict: <T = unknown>(
 		endpoint: string | number,
 		data: unknown[] | Record<string, unknown> | undefined,
 		event_data?: unknown
-	) => Promise<PredictReturn>;
+	) => Promise<PredictReturn<T>>;
 	open_stream: () => Promise<void>;
 	private resolve_config: (endpoint: string) => Promise<Config | undefined>;
 	private resolve_cookies: () => Promise<void>;
@@ -195,12 +199,17 @@ export class Client {
 
 		this.options = options;
 		this.current_payload = {};
+
+		if (options.cookies) {
+			this.cookies = options.cookies;
+		}
+
 		this.view_api = view_api.bind(this);
 		this.upload_files = upload_files.bind(this);
 		this.handle_blob = handle_blob.bind(this);
 		this.post_data = post_data.bind(this);
 		this.submit = submit.bind(this);
-		this.predict = predict.bind(this);
+		this.predict = predict.bind(this) as typeof this.predict;
 		this.open_stream = open_stream.bind(this);
 		this.resolve_config = resolve_config.bind(this);
 		this.resolve_cookies = resolve_cookies.bind(this);
@@ -411,7 +420,7 @@ export class Client {
 	public async component_server(
 		component_id: number,
 		fn_name: string,
-		data: unknown[] | { binary: boolean; data: Record<string, any> }
+		data: unknown | { binary: boolean; data: Record<string, any> }
 	): Promise<unknown> {
 		if (!this.config) {
 			throw new Error(CONFIG_ERROR_MSG);
@@ -441,11 +450,12 @@ export class Client {
 
 		let body: FormData | string;
 
-		if ("binary" in data) {
+		if (typeof data === "object" && data !== null && "binary" in data) {
+			const _data = data as { binary: boolean; data: Record<string, any> };
 			body = new FormData();
-			for (const key in data.data) {
+			for (const key in _data.data) {
 				if (key === "binary") continue;
-				body.append(key, data.data[key]);
+				body.append(key, _data.data[key]);
 			}
 			body.set("component_id", component_id.toString());
 			body.set("fn_name", fn_name);

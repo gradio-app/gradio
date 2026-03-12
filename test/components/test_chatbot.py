@@ -8,8 +8,8 @@ class TestChatbot:
         Postprocess, get_config
         """
         chatbot = gr.Chatbot()
-        assert chatbot.postprocess(
-            [
+        assert chatbot.postprocess(  # type: ignore
+            [  # type: ignore
                 {"role": "user", "content": "You are **cool**\nand fun"},
                 {"role": "assistant", "content": "so are *you*"},
             ]
@@ -84,7 +84,7 @@ class TestChatbot:
             "scale": None,
             "placeholder": None,
             "height": 400,
-            "feedback_options": ("Like", "Dislike"),
+            "feedback_options": ["Like", "Dislike"],
             "feedback_value": None,
             "resizable": False,
             "max_height": None,
@@ -100,7 +100,7 @@ class TestChatbot:
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "likeable": False,
             "rtl": False,
-            "buttons": None,
+            "buttons": ["share", "copy", "copy_all"],
             "avatar_images": [None, None],
             "sanitize_html": True,
             "render_markdown": True,
@@ -130,7 +130,7 @@ class TestChatbot:
                 "content": "<thinking>Let me think about this.</thinking>\nHere is my response.",
             }
         ]
-        result = chatbot.postprocess(messages).model_dump()
+        result = chatbot.postprocess(messages).model_dump()  # type: ignore
 
         assert len(result) == 2
         assert result[0]["content"][0]["text"] == "Let me think about this."
@@ -147,7 +147,7 @@ class TestChatbot:
                 "content": "<thinking>First thought.</thinking>\nFirst response.\n<thinking>Second thought.</thinking>\nSecond response.",
             }
         ]
-        result = chatbot.postprocess(messages).model_dump()
+        result = chatbot.postprocess(messages).model_dump()  # type: ignore
 
         assert len(result) == 4
         assert result[0]["content"][0]["text"] == "First thought."
@@ -168,7 +168,7 @@ class TestChatbot:
                 "content": "<thinking>Only thinking here.</thinking>",
             }
         ]
-        result = chatbot.postprocess(messages).model_dump()
+        result = chatbot.postprocess(messages).model_dump()  # type: ignore
 
         assert len(result) == 1
         assert result[0]["content"][0]["text"] == "Only thinking here."
@@ -188,7 +188,7 @@ class TestChatbot:
                 "content": "<thinking>Thinking block.</thinking>\nFirst response.\n<reasoning>Reasoning block.</reasoning>\nSecond response.",
             }
         ]
-        result = chatbot.postprocess(messages).model_dump()
+        result = chatbot.postprocess(messages).model_dump()  # type: ignore
 
         assert len(result) == 4
         assert result[0]["content"][0]["text"] == "Thinking block."
@@ -209,7 +209,7 @@ class TestChatbot:
                 "content": "Just a regular response with no thinking.",
             }
         ]
-        result = chatbot.postprocess(messages).model_dump()
+        result = chatbot.postprocess(messages).model_dump()  # type: ignore
 
         assert len(result) == 1
         assert (
@@ -227,7 +227,7 @@ class TestChatbot:
                 "content": "<thinking>This should not be extracted.</thinking>\nRegular response.",
             }
         ]
-        result = chatbot.postprocess(messages).model_dump()
+        result = chatbot.postprocess(messages).model_dump()  # type: ignore
 
         assert len(result) == 1
         assert (
@@ -245,7 +245,7 @@ class TestChatbot:
                 "content": "Intro.\n<thinking>Think 1.</thinking>\nMiddle 1.\n<thinking>Think 2.</thinking>\nMiddle 2.\n<thinking>Think 3.</thinking>\nConclusion.",
             }
         ]
-        result = chatbot.postprocess(messages).model_dump()
+        result = chatbot.postprocess(messages).model_dump()  # type: ignore
 
         assert len(result) == 7
         assert result[0]["content"][0]["text"] == "Intro."
@@ -272,7 +272,7 @@ class TestChatbot:
                 "content": "<thinking>Think 1.</thinking><thinking>Think 2.</thinking>Prose.<thinking>Think 3.</thinking><thinking>Think 4.</thinking>",
             }
         ]
-        result = chatbot.postprocess(messages).model_dump()
+        result = chatbot.postprocess(messages).model_dump()  # type: ignore
 
         assert len(result) == 5
         assert result[0]["content"][0]["text"] == "Think 1."
@@ -295,7 +295,7 @@ class TestChatbot:
                 "content": "Prose 1. Prose 2.<thinking>Think 1.</thinking>Prose 3. Prose 4.",
             }
         ]
-        result = chatbot.postprocess(messages).model_dump()
+        result = chatbot.postprocess(messages).model_dump()  # type: ignore
 
         assert len(result) == 3
         assert result[0]["content"][0]["text"] == "Prose 1. Prose 2."
@@ -314,7 +314,7 @@ class TestChatbot:
                 "content": "Starting with prose.<thinking>Then thinking.</thinking>Then more prose.",
             }
         ]
-        result = chatbot.postprocess(messages).model_dump()
+        result = chatbot.postprocess(messages).model_dump()  # type: ignore
 
         assert len(result) == 3
         assert result[0]["content"][0]["text"] == "Starting with prose."
@@ -333,7 +333,7 @@ class TestChatbot:
                 "content": "Starting with prose.<thinking>Then thinking",
             }
         ]
-        result = chatbot.postprocess(messages).model_dump()
+        result = chatbot.postprocess(messages).model_dump()  # type: ignore
 
         assert len(result) == 2
         assert result[0]["content"][0]["text"] == "Starting with prose."
@@ -350,7 +350,7 @@ class TestChatbot:
                 "content": "Starting with prose.<thinking>Then thinking</thinking><thinking>More thinking",
             }
         ]
-        result = chatbot.postprocess(messages).model_dump()
+        result = chatbot.postprocess(messages).model_dump()  # type: ignore
 
         assert len(result) == 3
         assert result[0]["content"][0]["text"] == "Starting with prose."
@@ -369,7 +369,7 @@ class TestChatbot:
                 "content": "<thinking>Think 1.</thinking><thinking>Think 2.</thinking><thinking>Think 3.</thinking>",
             }
         ]
-        result = chatbot.postprocess(messages).model_dump()
+        result = chatbot.postprocess(messages).model_dump()  # type: ignore
 
         assert len(result) == 3
         assert result[0]["content"][0]["text"] == "Think 1."

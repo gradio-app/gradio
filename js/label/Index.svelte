@@ -7,8 +7,9 @@
 	import { Gradio } from "@gradio/utils";
 	import Label from "./shared/Label.svelte";
 	import { LineChart as LabelIcon } from "@gradio/icons";
-	import { Block, BlockLabel, Empty } from "@gradio/atoms";
+	import { Block, BlockLabel, Empty, IconButtonWrapper } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
+	import type { SelectData } from "@gradio/utils";
 
 	const props = $props();
 	const gradio = new Gradio<LabelEvents, LabelProps>(props);
@@ -41,6 +42,14 @@
 		on_clear_status={() =>
 			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
+	{#if gradio.shared.show_label && gradio.props.buttons && gradio.props.buttons.length > 0}
+		<IconButtonWrapper
+			buttons={gradio.props.buttons}
+			on_custom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
+		/>
+	{/if}
 	{#if gradio.shared.show_label}
 		<BlockLabel
 			Icon={LabelIcon}
@@ -51,7 +60,7 @@
 	{/if}
 	{#if _label !== undefined && _label !== null}
 		<Label
-			on:select={({ detail }) => gradio.dispatch("select", detail)}
+			onselect={(detail: SelectData) => gradio.dispatch("select", detail)}
 			selectable={gradio.props._selectable}
 			value={gradio.props.value}
 			color={gradio.props.color}

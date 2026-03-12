@@ -605,7 +605,7 @@ audio = gr.Audio(
 )
 ```
 
-**`min_length` and `max_length`** - These parameters have been removed. Use validators instead.
+**`min_length` and `max_length`** - These parameters have been removed. Use validators on event listeners instead.
 
 **Before (Gradio 5.x):**
 ```python
@@ -614,8 +614,12 @@ audio = gr.Audio(min_length=1, max_length=10)
 
 **After (Gradio 6.x):**
 ```python
-audio = gr.Audio(
-    validator=lambda audio: gr.validators.is_audio_correct_length(audio, min_length=1, max_length=10)
+audio = gr.Audio()
+
+audio.upload(
+    fn=process_audio,
+    validator=lambda audio: gr.validators.is_audio_correct_length(audio, min_length=1, max_length=10),
+    inputs=audio
 )
 ```
 
@@ -697,7 +701,7 @@ video = gr.Video(webcam_constraints={"facingMode": "user"})
 video = gr.Video(webcam_options=gr.WebcamOptions(constraints={"facingMode": "user"}))
 ```
 
-**`min_length` and `max_length`** - These parameters have been removed. Use validators instead.
+**`min_length` and `max_length`** - These parameters have been removed. Use validators on event listeners instead.
 
 **Before (Gradio 5.x):**
 ```python
@@ -706,8 +710,12 @@ video = gr.Video(min_length=1, max_length=10)
 
 **After (Gradio 6.x):**
 ```python
-video = gr.Video(
-    validator=lambda video: gr.validators.is_video_correct_length(video, min_length=1, max_length=10)
+video = gr.Video()
+
+video.upload(
+    fn=process_video,
+    validator=lambda video: gr.validators.is_video_correct_length(video, min_length=1, max_length=10),
+    inputs=video
 )
 ```
 

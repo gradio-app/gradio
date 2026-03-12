@@ -65,7 +65,7 @@ class ChatInterface(Blocks):
         demo = gr.ChatInterface(fn=echo, examples=[{"text": "hello", "text": "hola", "text": "merhaba"}], title="Echo Bot")
         demo.launch()
     Demos: chatinterface_random_response, chatinterface_streaming_echo, chatinterface_artifacts
-    Guides: creating-a-chatbot-fast, sharing-your-app
+    Guides: creating-a-chatbot-fast, chatinterface-examples, agents-and-tool-usage, chatbot-specific-events
     """
 
     def __init__(
@@ -329,10 +329,10 @@ class ChatInterface(Blocks):
             )
             self.chatbot._setup_examples()
         else:
+            # Use default height of chatbot
             self.chatbot = Chatbot(
                 label=I18nData("chat_interface.chatbot"),
                 scale=1,
-                height=400 if self.fill_height else None,
                 autoscroll=self.autoscroll,
                 examples=(
                     self.examples_messages
@@ -446,12 +446,15 @@ class ChatInterface(Blocks):
         and truncating it to 40 characters. If files are present, add a 📎 to the title.
         """
         title = ""
+        found = False
         for message in conversation:
+            if found:
+                break
             if message["role"] == "user":
                 for content in message["content"]:
                     if content["type"] == "text":
-                        title += content["text"]
-                        break
+                        title += content["text"]  # type: ignore
+                        found = True
                     else:
                         title += "📎 "
         if len(title) > 40:
@@ -623,12 +626,14 @@ class ChatInterface(Blocks):
         )
 
         example_select_event = None
+        example_select_runs = False
         if (
             isinstance(self.chatbot, Chatbot)
             and self.examples
             and not self._additional_inputs_in_examples
         ):
             if self.cache_examples or self.run_examples_on_click:
+                example_select_runs = True
                 example_select_event = self.chatbot.example_select(
                     self.example_clicked,
                     None,
@@ -636,6 +641,21 @@ class ChatInterface(Blocks):
                     api_visibility="undocumented",
                 )
                 if not self.cache_examples:
+                    textbox_component = (
+                        MultimodalTextbox if self.multimodal else Textbox
+                    )
+                    example_select_event = example_select_event.then(
+                        utils.async_lambda(
+                            lambda: textbox_component(
+                                submit_btn=False,
+                                stop_btn=self.original_stop_btn,
+                            )
+                        ),
+                        None,
+                        [self.textbox],
+                        api_visibility="undocumented",
+                        queue=False,
+                    )
                     example_select_event = example_select_event.then(**submit_fn_kwargs)
                 example_select_event.then(**synchronize_chat_state_kwargs)
             else:
@@ -675,13 +695,12 @@ class ChatInterface(Blocks):
         ).then(**save_fn_kwargs)
 
         events_to_cancel = [submit_event, retry_event]
-        if example_select_event is not None:
+        if example_select_event is not None and example_select_runs:
             events_to_cancel.append(example_select_event)
 
         self._setup_stop_events(
             event_triggers=[
                 self.chatbot.retry,
-                self.chatbot.example_select,
             ],
             events_to_cancel=events_to_cancel,
             after_success=user_submit,
@@ -704,7 +723,7 @@ class ChatInterface(Blocks):
             **save_fn_kwargs
         )
 
-        self.chatbot.clear(**synchronize_chat_state_kwargs).then(
+        self.chatbot.clear(**synchronize_chat_state_kwargs).then(  # type: ignore
             self._delete_conversation,
             [self.conversation_id, self.saved_conversations],
             [self.conversation_id, self.saved_conversations],
@@ -718,9 +737,21 @@ class ChatInterface(Blocks):
                 [self.chatbot],
                 [self.chatbot, self.chatbot_state, self.saved_input],
                 api_visibility="undocumented",
+            ).then(
+                self._append_message_to_history,
+                [self.saved_input, self.chatbot_state],
+                [self.chatbot],
+                api_visibility="undocumented",
+                queue=False,
+            ).success(
+                lambda: update(interactive=False),
+                outputs=[self.textbox],
+                api_visibility="undocumented",
             ).success(**submit_fn_kwargs).success(**synchronize_chat_state_kwargs).then(
-                **save_fn_kwargs
-            )
+                lambda: update(interactive=True),
+                outputs=[self.textbox],
+                api_visibility="undocumented",
+            ).then(**save_fn_kwargs)
 
         if self.save_history:
             self.new_chat_button.click(
@@ -876,16 +907,16 @@ class ChatInterface(Blocks):
             elif (
                 isinstance(msg, dict) and "content" in msg
             ):  # in MessageDict format already
-                msg["role"] = role
+                msg["role"] = role  # type: ignore
                 message_dicts.append(msg)
             else:  # in MultimodalPostprocess format
                 multimodal_message = {"role": role, "content": []}
-                for x in msg.get("files", []):
+                for x in msg.get("files", []):  # type: ignore
                     if isinstance(x, dict):
                         x = x.get("path")
-                    multimodal_message["content"].append({"path": x})
-                if msg["text"]:
-                    multimodal_message["content"].append(msg["text"])
+                    multimodal_message["content"].append({"path": x})  # type: ignore
+                if msg["text"]:  # type: ignore
+                    multimodal_message["content"].append(msg["text"])  # type: ignore
                 message_dicts.append(multimodal_message)
         return message_dicts
 
@@ -899,7 +930,7 @@ class ChatInterface(Blocks):
         if self.is_async:
             response = await self.fn(*inputs)
         else:
-            response = await run_sync(self.fn, *inputs, limiter=self.limiter)
+            response = await run_sync(self.fn, *inputs, limiter=self.limiter)  # type: ignore
         if self.additional_outputs:
             response, *additional_outputs = response
         else:
@@ -923,7 +954,7 @@ class ChatInterface(Blocks):
         if self.is_async:
             generator = self.fn(*inputs)
         else:
-            generator = await run_sync(self.fn, *inputs, limiter=self.limiter)
+            generator = await run_sync(self.fn, *inputs, limiter=self.limiter)  # type: ignore
             generator = utils.SyncToAsyncIterator(generator, self.limiter)
 
         history = self._append_message_to_history(message, history, "user")
@@ -1034,7 +1065,7 @@ class ChatInterface(Blocks):
         if self.is_async:
             response = await self.fn(*inputs)
         else:
-            response = await run_sync(self.fn, *inputs, limiter=self.limiter)
+            response = await run_sync(self.fn, *inputs, limiter=self.limiter)  # type: ignore
         return self._process_example(message, response)  # type: ignore
 
     async def _examples_stream_fn(
@@ -1049,7 +1080,7 @@ class ChatInterface(Blocks):
         if self.is_async:
             generator = self.fn(*inputs)
         else:
-            generator = await run_sync(self.fn, *inputs, limiter=self.limiter)
+            generator = await run_sync(self.fn, *inputs, limiter=self.limiter)  # type: ignore
             generator = utils.SyncToAsyncIterator(generator, self.limiter)
         async for response in generator:
             yield self._process_example(message, response)

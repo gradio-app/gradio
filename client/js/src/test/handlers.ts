@@ -631,9 +631,6 @@ export const handlers: RequestHandler[] = [
 					headers: {
 						"Content-Type": "application/json",
 						"Set-Cookie":
-							"access-token-123=abc; HttpOnly; Path=/; SameSite=none; Secure",
-						// @ts-ignore - multiple Set-Cookie headers are returned
-						"Set-Cookie":
 							"access-token-unsecure-123=abc; HttpOnly; Path=/; SameSite=none; Secure"
 					}
 				}
@@ -673,9 +670,6 @@ export const handlers: RequestHandler[] = [
 					status: 200,
 					headers: {
 						"Content-Type": "application/json",
-						"Set-Cookie":
-							"access-token-123=abc; HttpOnly; Path=/; SameSite=none; Secure",
-						// @ts-ignore - multiple Set-Cookie headers are returned
 						"Set-Cookie":
 							"access-token-unsecure-123=abc; HttpOnly; Path=/; SameSite=none; Secure"
 					}

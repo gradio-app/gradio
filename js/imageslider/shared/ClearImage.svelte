@@ -10,7 +10,7 @@
 	<IconButton
 		Icon={Clear}
 		label="Remove Image"
-		on:click={(event) => {
+		onclick={(event) => {
 			dispatch("remove_image");
 			event.stopPropagation();
 		}}

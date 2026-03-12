@@ -1,4 +1,17 @@
 # @gradio/theme
+
+## 0.6.1
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+
+## 0.6.0
+
+### Features
+
+- [#12762](https://github.com/gradio-app/gradio/pull/12762) [`51b7010`](https://github.com/gradio-app/gradio/commit/51b7010a507e2eca138993fbc0a8c8d2ac2a12f0) - pollen css fix.  Thanks @dawoodkhan82!
+
 ## 0.5.0
 
 ### Features

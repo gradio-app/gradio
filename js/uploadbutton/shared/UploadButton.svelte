@@ -1,44 +1,71 @@
 <script lang="ts">
-	import { tick, createEventDispatcher } from "svelte";
+	import { tick } from "svelte";
 	import { BaseButton } from "@gradio/button";
 	import { prepare_files, type FileData, type Client } from "@gradio/client";
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let label: string | null;
-	export let value: null | FileData | FileData[];
-	export let file_count: string;
-	export let file_types: string[] = [];
-	export let root: string;
-	export let size: "sm" | "md" | "lg" = "lg";
-	export let icon: FileData | null = null;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let variant: "primary" | "secondary" | "stop" = "secondary";
-	export let disabled = false;
-	export let max_file_size: number | null = null;
-	export let upload: Client["upload"];
-
-	const dispatch = createEventDispatcher();
+	let {
+		elem_id = "",
+		elem_classes = [],
+		visible = true,
+		label,
+		value,
+		file_count,
+		file_types = [],
+		root,
+		size = "lg",
+		icon = null,
+		scale = null,
+		min_width = undefined,
+		variant = "secondary",
+		disabled = false,
+		max_file_size = null,
+		upload,
+		onclick,
+		onchange,
+		onupload,
+		onerror,
+		children
+	}: {
+		elem_id?: string;
+		elem_classes?: string[];
+		visible?: boolean | "hidden";
+		label: string | null;
+		value?: null | FileData | FileData[];
+		file_count: string;
+		file_types?: string[];
+		root: string;
+		size?: "sm" | "md" | "lg";
+		icon?: FileData | null;
+		scale?: number | null;
+		min_width?: number | undefined;
+		variant?: "primary" | "secondary" | "stop";
+		disabled?: boolean;
+		max_file_size?: number | null;
+		upload: Client["upload"];
+		onclick?: () => void;
+		onchange?: (value: null | FileData | FileData[]) => void;
+		onupload?: (value: null | FileData | FileData[]) => void;
+		onerror?: (message: string) => void;
+		children?: import("svelte").Snippet;
+	} = $props();
 
 	let hidden_upload: HTMLInputElement;
-	let accept_file_types: string | null;
 
-	if (file_types == null) {
-		accept_file_types = null;
-	} else {
-		file_types = file_types.map((x) => {
+	let accept_file_types = $derived.by(() => {
+		if (file_types == null) {
+			return null;
+		}
+		const mapped = file_types.map((x) => {
 			if (x.startsWith(".")) {
 				return x;
 			}
 			return x + "/*";
 		});
-		accept_file_types = file_types.join(", ");
-	}
+		return mapped.join(", ");
+	});
 
 	function open_file_upload(): void {
-		dispatch("click");
+		onclick?.();
 		hidden_upload.click();
 	}
 
@@ -59,12 +86,13 @@
 				await upload(all_file_data, root, undefined, max_file_size ?? Infinity)
 			)?.filter((x) => x !== null) as FileData[];
 		} catch (e) {
-			dispatch("error", (e as Error).message);
+			onerror?.((e as Error).message);
 			return;
 		}
-		value = file_count === "single" ? all_file_data?.[0] : all_file_data;
-		dispatch("change", value);
-		dispatch("upload", value);
+		const new_value =
+			file_count === "single" ? all_file_data?.[0] : all_file_data;
+		onchange?.(new_value);
+		onupload?.(new_value);
 	}
 
 	async function load_files_from_upload(e: Event): Promise<void> {
@@ -85,8 +113,8 @@
 	accept={accept_file_types}
 	type="file"
 	bind:this={hidden_upload}
-	on:change={load_files_from_upload}
-	on:click={clear_input_value}
+	onchange={load_files_from_upload}
+	onclick={clear_input_value}
 	multiple={file_count === "multiple" || undefined}
 	webkitdirectory={file_count === "directory" || undefined}
 	mozdirectory={file_count === "directory" || undefined}
@@ -99,7 +127,7 @@
 	{elem_id}
 	{elem_classes}
 	{visible}
-	on:click={open_file_upload}
+	onclick={open_file_upload}
 	{scale}
 	{min_width}
 	{disabled}
@@ -107,7 +135,7 @@
 	{#if icon}
 		<img class="button-icon" src={icon.url} alt={`${value} icon`} />
 	{/if}
-	<slot />
+	{#if children}{@render children()}{/if}
 </BaseButton>
 
 <style>

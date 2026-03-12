@@ -1,5 +1,62 @@
 # @gradio/sidebar
 
+## 0.2.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.5
+- @gradio/utils@0.12.0
+- @gradio/column@0.3.2
+- @gradio/atoms@0.22.2
+
+## 0.2.3
+
+### Dependency updates
+
+- @gradio/utils@0.11.3
+- @gradio/atoms@0.22.0
+- @gradio/statustracker@0.12.4
+
+## 0.2.2
+
+### Dependency updates
+
+- @gradio/atoms@0.21.0
+- @gradio/statustracker@0.12.3
+
+## 0.2.1
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.2
+- @gradio/atoms@0.20.1
+- @gradio/column@0.3.2
+- @gradio/utils@0.11.2
+
+## 0.2.0
+
+### Features
+
+- [#12756](https://github.com/gradio-app/gradio/pull/12756) [`2b4176c`](https://github.com/gradio-app/gradio/commit/2b4176c2edad6988cea12850c2ea04ce868723ed) - Migrate Sidebar to Svelte 5.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+- @gradio/column@0.3.1
+
+## 0.1.25
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/utils@0.11.0
+- @gradio/statustracker@0.12.1
+- @gradio/column@0.3.0
+
 ## 0.1.24
 
 ### Dependency updates

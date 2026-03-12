@@ -7,6 +7,7 @@
     import FunctionsSection from "$lib/components/FunctionsSection.svelte";
     import GuidesSection from "$lib/components/GuidesSection.svelte";
     import CopyButton from "$lib/components/CopyButton.svelte";
+    import BehaviorSection from "$lib/components/BehaviorSection.svelte";
     import { style_formatted_text } from "$lib/text";
 
 
@@ -29,27 +30,8 @@ gradio.Image(···)
 
 <!-- Behavior -->
 ### Behavior
-## **As input component**: {@html style_formatted_text(obj.preprocess.return_doc.doc)}
-##### Your function should accept one of these types:
 
-```python
-def predict(
-	value: np.ndarray | PIL.Image.Image | str | None
-)
-	...
-```
-
-<br>
-
-## **As output component**: {@html style_formatted_text(obj.postprocess.parameter_doc[0].doc)}
-##### Your function should return one of these types:
-
-```python
-def predict(···) -> np.ndarray | PIL.Image.Image | str | Path | None
-	...	
-	return value
-```
-
+<BehaviorSection name={obj.name} preprocess={obj.preprocess} postprocess={obj.postprocess} />
 
 <!--- Initialization -->
 ### Initialization
@@ -62,6 +44,36 @@ def predict(···) -> np.ndarray | PIL.Image.Image | str | Path | None
 <ShortcutTable shortcuts={obj.string_shortcuts} />
 {/if}
 
+
+### Understanding Image Types
+
+The `type` parameter controls the format of the data passed to your Python function. Choosing the right type avoids unnecessary conversions in your code:
+
+| `type` | Your function receives | Shape / Format | Best for |
+| --- | --- | --- | --- |
+| `"numpy"` (default) | `numpy.ndarray` | `(height, width, 3)`, dtype `uint8`, values 0–255 | ML models (PyTorch, TensorFlow, scikit-learn) |
+| `"pil"` | `PIL.Image.Image` | PIL Image object | Image processing with Pillow |
+| `"filepath"` | `str` | Path to a temporary file on disk | Large images, GIFs, SVGs, or when you need to read the file yourself |
+
+```python
+import gradio as gr
+
+# For a model that expects a numpy array:
+def predict(img):
+    # img is a numpy array with shape (H, W, 3)
+    return model(img)
+
+demo = gr.Interface(fn=predict, inputs=gr.Image(type="numpy"), outputs="label")
+
+# For a pipeline that works with file paths:
+def process(path):
+    # path is a string like "/tmp/gradio/abcdef.webp"
+    return my_pipeline(path)
+
+demo = gr.Interface(fn=process, inputs=gr.Image(type="filepath"), outputs="image")
+```
+
+If you need grayscale input, set `image_mode="L"` — the array shape becomes `(height, width)` instead of `(height, width, 3)`.
 
 ### `GIF` and `SVG` Image Formats
 
@@ -122,6 +134,6 @@ gradio.WebcamOptions(···)
 
 {#if obj.guides && obj.guides.length > 0}
 <!--- Guides -->
-### Guides
+<!--- the guide section below is still necessary to scrape the guides on the side navigation -->
 <GuidesSection guides={obj.guides}/>
 {/if}

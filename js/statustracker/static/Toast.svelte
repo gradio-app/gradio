@@ -3,14 +3,23 @@
 	import ToastContent from "./ToastContent.svelte";
 	import { spring } from "svelte/motion";
 
-	export let messages: ToastMessage[] = [];
-	export let on_close: (id: number) => void;
+	interface Props {
+		messages?: ToastMessage[];
+		on_close: (id: number) => void;
+	}
+
+	let { messages = [], on_close }: Props = $props();
 	const top = spring(0, { stiffness: 0.4, damping: 0.5 });
 
-	let grouped_messages: GroupedToastMessage[] = [];
+	let grouped_messages: GroupedToastMessage[] = $state([]);
 
-	$: scroll_to_top(messages);
-	$: grouped_messages = group_messages(messages);
+	$effect(() => {
+		scroll_to_top(messages);
+	});
+
+	$effect(() => {
+		grouped_messages = group_messages(messages);
+	});
 
 	function group_messages(msgs: ToastMessage[]): GroupedToastMessage[] {
 		const groups = new Map<string, GroupedToastMessage>();
@@ -61,8 +70,8 @@
 				type={group.type}
 				messages={group.messages}
 				expanded={group.expanded}
-				on:toggle={() => toggle_group(group.type)}
-				on:close={(e) => on_close(e.detail)}
+				ontoggle={() => toggle_group(group.type)}
+				onclose={(id) => on_close(id)}
 			/>
 		</div>
 	{/each}

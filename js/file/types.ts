@@ -1,6 +1,6 @@
 import type { FileData } from "@gradio/client";
 import type { LoadingStatus } from "js/statustracker";
-import type { SelectData } from "@gradio/utils";
+import type { SelectData, CustomButton } from "@gradio/utils";
 
 export interface FileProps {
 	value: FileData | FileData[] | null;
@@ -10,6 +10,7 @@ export interface FileProps {
 	type: "filepath" | "binary";
 	_selectable: boolean;
 	height: number | null;
+	buttons: (string | CustomButton)[] | null;
 }
 
 export interface FileEvents {
@@ -20,5 +21,6 @@ export interface FileEvents {
 	clear: void;
 	select: SelectData | null;
 	change: FileData | FileData[] | null;
-	delete: void;
+	delete: FileData;
+	custom_button_click: { id: number };
 }

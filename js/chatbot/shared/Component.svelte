@@ -72,6 +72,7 @@
 		{value}
 		{target}
 		{theme_mode}
+		on_change={() => {}}
 		bokeh_version={props.bokeh_version}
 		caption={props.caption || ""}
 		show_actions_button={true}
@@ -130,11 +131,7 @@
 	<svelte:component
 		this={components[type]}
 		{...props}
-		{value}
-		show_label={false}
-		show_share_button={false}
-		{i18n}
-		gradio={{ dispatch: () => {} }}
+		props={{ value }}
 		on:load
 	/>
 {:else if type === "model3d"}

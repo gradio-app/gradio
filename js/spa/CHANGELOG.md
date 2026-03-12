@@ -1,5 +1,68 @@
 # @self/spa
 
+## 1.1.0
+
+### Features
+
+- [#12879](https://github.com/gradio-app/gradio/pull/12879) [`c498688`](https://github.com/gradio-app/gradio/commit/c4986883b267570d76b442899c6fc09d14e3e222) - Ensure svelte version mismatches do not break custom components.  Thanks @pngwn!
+
+### Fixes
+
+- [#12970](https://github.com/gradio-app/gradio/pull/12970) [`7326ea3`](https://github.com/gradio-app/gradio/commit/7326ea312bee7ccdaf4a1e4e11ace8f11b607ca5) - remove new console logs.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/core@1.4.0
+- @self/build@0.6.0
+
+## 1.0.3
+
+### Dependency updates
+
+- @gradio/client@2.1.0
+
+## 1.0.3
+
+### Fixes
+
+- [#12797](https://github.com/gradio-app/gradio/pull/12797) [`6a0c6ea`](https://github.com/gradio-app/gradio/commit/6a0c6eae53931ec137c0b8379428acc8a7ea27c9) - Refactor translation logic.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/core@1.2.0
+
+## 1.0.2
+
+### Dependency updates
+
+- @gradio/client@2.0.4
+- @gradio/core@1.1.3
+
+## 1.0.2
+
+### Dependency updates
+
+- @gradio/client@2.0.3
+- @gradio/theme@0.6.1
+- @gradio/core@1.1.2
+- @self/build@0.5.2
+
+## 1.0.2
+
+### Dependency updates
+
+- @gradio/client@2.0.2
+- @gradio/theme@0.6.0
+- @gradio/core@1.1.1
+- @self/build@0.5.1
+
+## 1.0.2
+
+### Dependency updates
+
+- @gradio/client@2.0.1
+- @gradio/core@1.1.0
+
 ## 1.0.2
 
 ### Fixes

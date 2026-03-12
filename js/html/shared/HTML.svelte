@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
 	import Handlebars from "handlebars";
+	import type { Snippet } from "svelte";
 
 	let {
 		elem_classes = [],
@@ -8,13 +9,40 @@
 		html_template = "${value}",
 		css_template = "",
 		js_on_load = null,
+		head = null,
 		visible = true,
 		autoscroll = false,
 		apply_default_css = true,
-		component_class_name = "HTML"
+		component_class_name = "HTML",
+		upload = null,
+		server = {},
+		children
+	}: {
+		elem_classes: string[];
+		props: Record<string, any>;
+		html_template: string;
+		css_template: string;
+		js_on_load: string | null;
+		visible: boolean;
+		autoscroll: boolean;
+		apply_default_css: boolean;
+		component_class_name: string;
+		upload: ((file: File) => Promise<{ path: string; url: string }>) | null;
+		server: Record<string, (...args: any[]) => Promise<any>>;
+		children?: Snippet;
 	} = $props();
 
-	let old_props = $state(props);
+	let [has_children, pre_html_template, post_html_template] = $derived.by(
+		() => {
+			if (html_template.includes("@children") && children) {
+				const parts = html_template.split("@children");
+				return [true, parts[0] || "", parts.slice(1).join("@children") || ""];
+			}
+			return [false, html_template, ""];
+		}
+	);
+
+	let old_props = $state(JSON.parse(JSON.stringify(props)));
 
 	const dispatch = createEventDispatcher<{
 		event: { type: "click" | "submit"; data: any };
@@ -29,15 +57,20 @@
 	};
 
 	let element: HTMLDivElement;
+	let pre_element: HTMLDivElement;
+	let post_element: HTMLDivElement;
 	let scrollable_parent: HTMLElement | null = null;
 	let random_id = `html-${Math.random().toString(36).substring(2, 11)}`;
 	let style_element: HTMLStyleElement | null = null;
 	let reactiveProps: Record<string, any> = {};
 	let currentHtml = $state("");
+	let currentPreHtml = $state("");
+	let currentPostHtml = $state("");
 	let currentCss = $state("");
 	let renderScheduled = $state(false);
 	let mounted = $state(false);
-	let error_message: string | null = $state(null);
+	let html_error_message: string | null = $state(null);
+	let css_error_message: string | null = $state(null);
 
 	function get_scrollable_parent(element: HTMLElement): HTMLElement | null {
 		let parent = element.parentElement;
@@ -92,7 +125,8 @@
 
 	function render_template(
 		template: string,
-		props: Record<string, any>
+		props: Record<string, any>,
+		language: "html" | "css" = "html"
 	): string {
 		try {
 			const handlebarsTemplate = Handlebars.compile(template);
@@ -104,11 +138,19 @@
 				...propKeys,
 				`return \`${handlebarsRendered}\`;`
 			);
-			error_message = null;
+			if (language === "html") {
+				html_error_message = null;
+			} else if (language === "css") {
+				css_error_message = null;
+			}
 			return templateFunc(...propValues);
 		} catch (e) {
 			console.error("Error evaluating template:", e);
-			error_message = e instanceof Error ? e.message : String(e);
+			if (language === "html") {
+				html_error_message = e instanceof Error ? e.message : String(e);
+			} else if (language === "css") {
+				css_error_message = e instanceof Error ? e.message : String(e);
+			}
 			return "";
 		}
 	}
@@ -119,7 +161,7 @@
 			style_element = document.createElement("style");
 			document.head.appendChild(style_element);
 		}
-		currentCss = render_template(css_template, reactiveProps);
+		currentCss = render_template(css_template, reactiveProps, "css");
 		if (currentCss) {
 			style_element.textContent = `#${random_id} { ${currentCss} }`;
 		} else {
@@ -127,13 +169,17 @@
 		}
 	}
 
-	function updateDOM(oldHtml: string, newHtml: string): void {
-		if (!element || oldHtml === newHtml) return;
+	function updateDOM(
+		_element: HTMLElement | undefined,
+		oldHtml: string,
+		newHtml: string
+	): void {
+		if (!_element || oldHtml === newHtml) return;
 
 		const tempContainer = document.createElement("div");
 		tempContainer.innerHTML = newHtml;
 
-		const oldNodes = Array.from(element.childNodes);
+		const oldNodes = Array.from(_element.childNodes);
 		const newNodes = Array.from(tempContainer.childNodes);
 
 		const maxLength = Math.max(oldNodes.length, newNodes.length);
@@ -143,9 +189,9 @@
 			const newNode = newNodes[i];
 
 			if (!oldNode && newNode) {
-				element.appendChild(newNode.cloneNode(true));
+				_element.appendChild(newNode.cloneNode(true));
 			} else if (oldNode && !newNode) {
-				element.removeChild(oldNode);
+				_element.removeChild(oldNode);
 			} else if (oldNode && newNode) {
 				updateNode(oldNode, newNode);
 			}
@@ -227,11 +273,26 @@
 	}
 
 	function renderHTML(): void {
-		const newHtml = render_template(html_template, reactiveProps);
-		if (element) {
-			updateDOM(currentHtml, newHtml);
+		if (has_children) {
+			const newPreHtml = render_template(
+				pre_html_template,
+				reactiveProps,
+				"html"
+			);
+			updateDOM(pre_element, currentPreHtml, newPreHtml);
+			currentPreHtml = newPreHtml;
+			const newPostHtml = render_template(
+				post_html_template,
+				reactiveProps,
+				"html"
+			);
+			updateDOM(post_element, currentPostHtml, newPostHtml);
+			currentPostHtml = newPostHtml;
+		} else {
+			const newHtml = render_template(html_template, reactiveProps, "html");
+			updateDOM(element, currentHtml, newHtml);
+			currentHtml = newHtml;
 		}
-		currentHtml = newHtml;
 		if (autoscroll) {
 			scroll_on_html_update();
 		}
@@ -246,6 +307,46 @@
 				update_css();
 			});
 		}
+	}
+
+	async function loadHead(headHtml: string): Promise<void> {
+		if (!headHtml) return;
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(`<head>${headHtml}</head>`, "text/html");
+		const promises: Promise<void>[] = [];
+		for (const el of Array.from(doc.head.children)) {
+			if (el.tagName === "SCRIPT") {
+				const src = (el as HTMLScriptElement).src;
+				if (src) {
+					if (document.querySelector(`script[src="${src}"]`)) continue;
+					const script = document.createElement("script");
+					script.src = src;
+					promises.push(
+						new Promise<void>((resolve, reject) => {
+							script.onload = () => resolve();
+							script.onerror = () =>
+								reject(new Error(`Failed to load script: ${src}`));
+						})
+					);
+					document.head.appendChild(script);
+				} else {
+					const script = document.createElement("script");
+					script.textContent = el.textContent;
+					document.head.appendChild(script);
+				}
+			} else {
+				const existing =
+					el.tagName === "LINK" && (el as HTMLLinkElement).href
+						? document.querySelector(
+								`link[href="${(el as HTMLLinkElement).href}"]`
+							)
+						: null;
+				if (!existing) {
+					document.head.appendChild(el.cloneNode(true));
+				}
+			}
+		}
+		await Promise.all(promises);
 	}
 
 	// Mount effect
@@ -278,8 +379,23 @@
 			}
 		);
 
-		currentHtml = render_template(html_template, reactiveProps);
-		element.innerHTML = currentHtml;
+		if (has_children) {
+			currentPreHtml = render_template(
+				pre_html_template,
+				reactiveProps,
+				"html"
+			);
+			pre_element.innerHTML = currentPreHtml;
+			currentPostHtml = render_template(
+				post_html_template,
+				reactiveProps,
+				"html"
+			);
+			post_element.innerHTML = currentPostHtml;
+		} else {
+			currentHtml = render_template(html_template, reactiveProps, "html");
+			element.innerHTML = currentHtml;
+		}
 		update_css();
 
 		if (autoscroll) {
@@ -287,14 +403,31 @@
 		}
 		scroll_on_html_update();
 
-		if (js_on_load && element) {
-			try {
-				const func = new Function("element", "trigger", "props", js_on_load);
-				func(element, trigger, reactiveProps);
-			} catch (error) {
-				console.error("Error executing js_on_load:", error);
+		(async () => {
+			if (head) {
+				await loadHead(head);
 			}
-		}
+			if (js_on_load && element) {
+				try {
+					const upload_func =
+						upload ??
+						(async (_file: File): Promise<{ path: string; url: string }> => {
+							throw new Error("upload is not available in this context");
+						});
+					const func = new Function(
+						"element",
+						"trigger",
+						"props",
+						"server",
+						"upload",
+						js_on_load
+					);
+					func(element, trigger, reactiveProps, server, upload_func);
+				} catch (error) {
+					console.error("Error executing js_on_load:", error);
+				}
+			}
+		})();
 	});
 
 	// Props update effect
@@ -314,29 +447,48 @@
 	});
 </script>
 
-{#if error_message}
+{#if html_error_message || css_error_message}
 	<div class="error-container">
 		<strong class="error-title"
 			>Error rendering <code class="error-component-name"
 				>{component_class_name}</code
 			>:</strong
 		>
-		<code class="error-message">{error_message}</code>
+		<code class="error-message">{html_error_message || css_error_message}</code>
 	</div>
 {:else}
 	<div
 		bind:this={element}
 		id={random_id}
-		class="{apply_default_css ? 'prose gradio-style' : ''} {elem_classes.join(
-			' '
-		)}"
+		class="{apply_default_css && !has_children
+			? 'prose gradio-style'
+			: ''} {elem_classes.join(' ')}"
 		class:hide={!visible}
-	></div>
+		class:has_children
+	>
+		{#if has_children}
+			<div
+				class={apply_default_css ? "prose gradio-style" : ""}
+				bind:this={pre_element}
+			></div>
+			{@render children?.()}
+			<div
+				class={apply_default_css ? "prose gradio-style" : ""}
+				bind:this={post_element}
+			></div>
+		{/if}
+	</div>
 {/if}
 
 <style>
 	.hide {
 		display: none;
+	}
+
+	.has_children {
+		display: flex;
+		flex-direction: column;
+		gap: var(--layout-gap);
 	}
 
 	.error-container {

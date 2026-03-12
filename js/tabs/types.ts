@@ -13,4 +13,10 @@ export interface TabsProps {
 export interface TabsEvents {
 	change: never;
 	select: SelectData;
+	gradio_tab_select: {
+		value: string;
+		index: number;
+		id: string | number;
+		component_id: string | number;
+	};
 }

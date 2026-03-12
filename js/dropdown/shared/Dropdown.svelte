@@ -1,9 +1,13 @@
 <script lang="ts">
 	import DropdownOptions from "./DropdownOptions.svelte";
-	import { BlockTitle } from "@gradio/atoms";
+	import { BlockTitle, IconButtonWrapper } from "@gradio/atoms";
 	import { DropdownArrow } from "@gradio/icons";
 	import { handle_filter, handle_shared_keys } from "./utils";
-	import type { SelectData, KeyUpData } from "@gradio/utils";
+	import {
+		type SelectData,
+		type KeyUpData,
+		type CustomButton as CustomButtonType
+	} from "@gradio/utils";
 	import { tick } from "svelte";
 
 	const is_browser = typeof window !== "undefined";
@@ -18,6 +22,8 @@
 		container = true,
 		allow_custom_value = false,
 		filterable = true,
+		buttons = null,
+		oncustom_button_click = null,
 		on_change,
 		on_input,
 		on_select,
@@ -25,15 +31,17 @@
 		on_blur,
 		on_key_up
 	}: {
-		label?: string;
+		label: string;
 		info?: string;
-		value?: string | number | null;
-		choices?: [string, string | number][];
-		interactive?: boolean;
-		show_label?: boolean;
-		container?: boolean;
-		allow_custom_value?: boolean;
-		filterable?: boolean;
+		value: string | number | null;
+		choices: [string, string | number][];
+		interactive: boolean;
+		show_label: boolean;
+		container: boolean;
+		allow_custom_value: boolean;
+		filterable: boolean;
+		buttons: (string | CustomButtonType)[] | null;
+		oncustom_button_click?: ((id: number) => void) | null;
 		on_change?: (value: string | number | null) => void;
 		on_input?: () => void;
 		on_select?: (data: SelectData) => void;
@@ -47,39 +55,46 @@
 	let show_options = $derived.by(() => {
 		return is_browser && filter_input === document.activeElement;
 	});
-	let choices_names: string[] = $derived.by(() => {
-		return choices.map((c) => c[0]);
-	});
-	let choices_values: (string | number)[] = $derived.by(() => {
-		return choices.map((c) => c[1]);
-	});
-	let [input_text, selected_index] = $derived.by(() => {
+	let choices_names = $derived(choices.map((c) => c[0]));
+	let choices_values = $derived(choices.map((c) => c[1]));
+	let input_text = $state("");
+	let selected_index: number | null = $state(null);
+
+	$effect(() => {
 		if (
 			value === undefined ||
 			value === null ||
 			(Array.isArray(value) && value.length === 0)
 		) {
-			return ["", null];
+			input_text = "";
+			selected_index = null;
 		} else if (choices_values.includes(value as string | number)) {
-			return [
-				choices_names[choices_values.indexOf(value as string | number)],
-				choices_values.indexOf(value as string | number)
-			];
+			input_text =
+				choices_names[choices_values.indexOf(value as string | number)];
+			selected_index = choices_values.indexOf(value as string | number);
 		} else if (allow_custom_value) {
-			return [value as string, null];
+			input_text = value as string;
+			selected_index = null;
 		} else {
-			return ["", null];
+			input_text = "";
+			selected_index = null;
 		}
 	});
+	// Use last_typed_value to track when the user has typed
+	// on_blur we only want to update value if the user has typed
+	let last_typed_value = input_text;
 	let initialized = $state(false);
 	let disabled = $derived(!interactive);
 
 	// All of these are indices with respect to the choices array
 	let filtered_indices = $state(choices.map((_, i) => i));
 	let active_index: number | null = $state(null);
+	let selected_indices = $derived(
+		selected_index === null ? [] : [selected_index]
+	);
 
-	function handle_option_selected(e: any): void {
-		selected_index = parseInt(e.detail.target.dataset.index);
+	function handle_option_selected(index: any): void {
+		selected_index = parseInt(index);
 		if (isNaN(selected_index)) {
 			// This is the case when the user clicks on the scrollbar
 			selected_index = null;
@@ -88,6 +103,7 @@
 
 		let [_input_text, _value] = choices[selected_index];
 		input_text = _input_text;
+		last_typed_value = input_text;
 		value = _value;
 		on_select?.({
 			index: selected_index,
@@ -96,6 +112,7 @@
 		});
 		show_options = false;
 		active_index = null;
+		on_input?.();
 		filter_input.blur();
 	}
 
@@ -110,7 +127,13 @@
 			input_text =
 				choices_names[choices_values.indexOf(value as string | number)];
 		} else {
-			value = input_text;
+			if (choices_names.includes(input_text)) {
+				selected_index = choices_names.indexOf(input_text);
+				value = choices_values[selected_index];
+			} else if (input_text !== last_typed_value) {
+				value = input_text;
+				selected_index = null;
+			}
 		}
 		show_options = false;
 		active_index = null;
@@ -129,6 +152,7 @@
 			filtered_indices
 		);
 		if (e.key === "Enter") {
+			last_typed_value = input_text;
 			if (active_index !== null) {
 				selected_index = active_index;
 				value = choices_values[active_index];
@@ -161,6 +185,12 @@
 </script>
 
 <div class:container>
+	{#if show_label && buttons && buttons.length > 0}
+		<IconButtonWrapper
+			{buttons}
+			on_custom_button_click={oncustom_button_click}
+		/>
+	{/if}
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	<div class="wrap">
@@ -178,15 +208,15 @@
 					{disabled}
 					bind:value={input_text}
 					bind:this={filter_input}
-					on:keydown={handle_key_down}
-					on:keyup={(e) => {
+					onkeydown={handle_key_down}
+					onkeyup={(e) => {
 						on_key_up?.({
 							key: e.key,
 							input_value: input_text
 						});
 					}}
-					on:blur={handle_blur}
-					on:focus={handle_focus}
+					onblur={handle_blur}
+					onfocus={handle_focus}
 					readonly={!filterable}
 				/>
 				{#if !disabled}
@@ -201,10 +231,10 @@
 			{choices}
 			{filtered_indices}
 			{disabled}
-			selected_indices={selected_index === null ? [] : [selected_index]}
+			{selected_indices}
 			{active_index}
-			on:change={handle_option_selected}
-			on:load={() => (initialized = true)}
+			onchange={handle_option_selected}
+			onload={() => (initialized = true)}
 		/>
 	</div>
 </div>

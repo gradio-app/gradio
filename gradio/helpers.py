@@ -96,7 +96,7 @@ class Examples:
     components. Optionally handles example caching for fast inference.
 
     Demos: calculator_blocks
-    Guides: more-on-examples-and-flagging, using-hugging-face-integrations, image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, create-your-own-friends-with-a-gan
+    Guides: more-on-examples-and-flagging
     """
 
     def __init__(
@@ -479,7 +479,7 @@ class Examples:
         import gradio as gr
 
         with gr.Blocks() as demo:
-            [output.render() for output in self.outputs]
+            [output.render() for output in self.outputs]  # type: ignore
             demo.load(self.fn, self.inputs, self.outputs)
         demo.unrender()
         return await demo.postprocess_data(demo.default_config.fns[0], output, None)
@@ -522,7 +522,7 @@ class Examples:
             )
         else:
             print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
-            self.cache_logger.setup(self.outputs, self.cached_folder)
+            self.cache_logger.setup(self.outputs, self.cached_folder)  # type: ignore
             generated_values = []
             if inspect.isgeneratorfunction(self.fn):
 
@@ -572,15 +572,21 @@ class Examples:
                 if self.batch:
                     processed_input = [[value] for value in processed_input]
                 with utils.MatplotlibBackendMananger():
+                    # When caching examples lazily, set in_event_listener to False
+                    # so that all components are properly instantiated
+                    # See https://github.com/gradio-app/gradio/issues/12564
                     prediction = await self.root_block.process_api(
                         block_fn=self.root_block.default_config.fns[fn_index],
                         inputs=processed_input,
                         request=None,
+                        in_event_listener=self.cache_examples != "lazy",
                     )
                 output = prediction["data"]
                 if generated_values:
                     output = await merge_generated_values_into_output(
-                        self.outputs, generated_values, output
+                        self.outputs,  # type: ignore
+                        generated_values,
+                        output,  # type: ignore
                     )
                 if self.batch:
                     output = [value[0] for value in output]
@@ -612,7 +618,7 @@ class Examples:
         output = []
         if self.outputs is None:
             raise ValueError("self.outputs is missing")
-        for component, value in zip(self.outputs, example, strict=False):
+        for component, value in zip(self.outputs, example, strict=False):  # type: ignore
             value_to_use = value
             try:
                 value_as_dict = ast.literal_eval(value)
@@ -697,6 +703,7 @@ class Progress(Iterable):
                 time.sleep(0.1)
             return x
         gr.Interface(my_function, gr.Textbox(), gr.Textbox()).launch()
+    Guides: progress-bars
     """
 
     def __init__(
@@ -1093,7 +1100,7 @@ def update(
     the visibility of an `Row`) by returning a component and passing in the parameters to update in
     the constructor of the component. Alternatively, you can return `gr.update(...)` with any arbitrary
     parameters to update. (This is useful as a shorthand or if the same function can be called with different
-    components to update.) This method does not work with the `gr.State` component.
+    components to update.) For `gr.State` components, only the `value` parameter is supported.
 
     Parameters:
         elem_id: Use this to update the id of the component in the HTML DOM

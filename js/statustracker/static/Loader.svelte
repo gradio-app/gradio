@@ -1,13 +1,16 @@
 <script lang="ts">
-	import { onMount } from "svelte";
 	import { spring } from "svelte/motion";
 
-	export let margin = true;
+	interface Props {
+		margin?: boolean;
+	}
+
+	let { margin = true }: Props = $props();
 
 	const top = spring([0, 0]);
 	const bottom = spring([0, 0]);
 
-	let dismounted: boolean;
+	let dismounted = $state(false);
 
 	async function animate(): Promise<void> {
 		await Promise.all([top.set([125, 140]), bottom.set([-125, -140])]);
@@ -27,9 +30,11 @@
 		run();
 	}
 
-	onMount(() => {
+	$effect(() => {
 		loading();
-		return (): boolean => (dismounted = true);
+		return () => {
+			dismounted = true;
+		};
 	});
 </script>
 

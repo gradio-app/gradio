@@ -1,5 +1,62 @@
 # @gradio/upload
 
+## 0.17.7
+
+### Dependency updates
+
+- @gradio/utils@0.12.0
+- @gradio/atoms@0.22.2
+
+## 0.17.6
+
+### Dependency updates
+
+- @gradio/client@2.1.0
+
+## 0.17.6
+
+### Dependency updates
+
+- @gradio/utils@0.11.3
+- @gradio/atoms@0.22.0
+
+## 0.17.5
+
+### Dependency updates
+
+- @gradio/atoms@0.21.0
+- @gradio/client@2.0.4
+
+## 0.17.4
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12779](https://github.com/gradio-app/gradio/pull/12779) [`ea2d3e9`](https://github.com/gradio-app/gradio/commit/ea2d3e985a8b42d188e551f517c5825c00790628) - Migrate Audio + Upload + Atoms to Svelte 5.  Thanks @dawoodkhan82!
+- [#12637](https://github.com/gradio-app/gradio/pull/12637) [`e202750`](https://github.com/gradio-app/gradio/commit/e202750b1deb5d4583c07d7d9d1b86f6b3dfef4b) - Fix bug where UploadProgress initializes with a null upload_id.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.1
+- @gradio/utils@0.11.2
+- @gradio/icons@0.15.1
+- @gradio/client@2.0.3
+
+## 0.17.3
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+- @gradio/client@2.0.2
+
+## 0.17.3
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/utils@0.11.0
+- @gradio/client@2.0.1
+
 ## 0.17.2
 
 ### Dependency updates

@@ -1,3 +1,5 @@
+import type { CustomButton } from "@gradio/utils";
+
 export interface CodeProps {
 	value: string;
 	language: string;
@@ -6,6 +8,7 @@ export interface CodeProps {
 	show_line_numbers: boolean;
 	autocomplete: boolean;
 	lines: number;
+	buttons: (string | CustomButton)[] | null;
 }
 
 export interface CodeEvents {
@@ -14,4 +17,5 @@ export interface CodeEvents {
 	focus: any;
 	blur: any;
 	clear_status: any;
+	custom_button_click: { id: number };
 }

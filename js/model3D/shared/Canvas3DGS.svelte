@@ -3,19 +3,25 @@
 	import * as SPLAT from "gsplat";
 	import type { FileData } from "@gradio/client";
 
-	export let value: FileData;
-	export let zoom_speed: number;
-	export let pan_speed: number;
+	let {
+		value,
+		zoom_speed,
+		pan_speed
+	}: {
+		value: FileData;
+		zoom_speed: number;
+		pan_speed: number;
+	} = $props();
 
-	$: url = value.url;
+	let url = $derived(value.url);
 
 	let canvas: HTMLCanvasElement;
 	let scene: SPLAT.Scene;
 	let camera: SPLAT.Camera;
-	let renderer: SPLAT.WebGLRenderer | null = null;
+	let renderer = $state<SPLAT.WebGLRenderer | null>(null);
 	let controls: SPLAT.OrbitControls;
-	let mounted = false;
-	let frameId: number | null = null;
+	let mounted = $state(false);
+	let frameId = $state<number | null>(null);
 
 	function reset_scene(): void {
 		if (frameId !== null) {
@@ -92,11 +98,13 @@
 		};
 	});
 
-	$: ({ path } = value || {
-		path: undefined
-	});
+	let path = $derived(value?.path);
 
-	$: canvas && mounted && path && reset_scene();
+	$effect(() => {
+		if (canvas && mounted && path) {
+			reset_scene();
+		}
+	});
 </script>
 
 <canvas bind:this={canvas}></canvas>

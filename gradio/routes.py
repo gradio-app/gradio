@@ -55,6 +55,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
+from gradio_client.snippet import generate_code_snippets
 from gradio_client.utils import ServerMessage
 from jinja2.exceptions import TemplateNotFound
 from python_multipart.multipart import parse_options_header
@@ -102,6 +103,7 @@ from gradio.route_utils import (  # noqa: F401
     GradioMultiPartParser,
     GradioUploadFile,
     MultiPartException,
+    NodeProxyCache,
     Request,
     compare_passwords_securely,
     create_lifespan_handler,
@@ -173,7 +175,7 @@ DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
 )
 
 BUILT_IN_THEMES: dict[str, Theme] = {
-    t.name: t
+    t.name: t  # type: ignore
     for t in [
         themes.Base(),
         themes.Default(),
@@ -184,6 +186,7 @@ BUILT_IN_THEMES: dict[str, Theme] = {
         themes.Citrus(),
         themes.Ocean(),
     ]
+    if t.name is not None
 }
 
 
@@ -281,10 +284,12 @@ class App(FastAPI):
     # We're not overriding any defaults here
 
     client = httpx.AsyncClient()
+    proxy_cache = NodeProxyCache(client)
 
     @staticmethod
     async def proxy_to_node(
         request: fastapi.Request,
+        app: App,
         server_name: str,
         node_port: int,
         python_port: int,
@@ -297,6 +302,12 @@ class App(FastAPI):
         if request.url.query:
             full_path += f"?{request.url.query}"
 
+        root_path = route_utils.get_root_url(
+            request=request,
+            route_path=request.url.path,
+            root_path=app.root_path,
+        )
+
         url = f"{scheme}://{server_name}:{node_port}{full_path}"
 
         server_url = f"{scheme}://{server_name}"
@@ -308,6 +319,8 @@ class App(FastAPI):
         headers = dict(request.headers)
         headers["x-gradio-server"] = server_url
         headers["x-gradio-port"] = str(python_port)
+        headers["x-gradio-mounted-path"] = mounted_path
+        headers["x-gradio-original-url"] = str(root_path)
 
         if os.getenv("GRADIO_LOCAL_DEV_MODE"):
             headers["x-gradio-local-dev-mode"] = "1"
@@ -355,9 +368,12 @@ class App(FastAPI):
         )
         if not is_safe_url:
             raise PermissionError("This URL cannot be proxied.")
-        is_hf_url = url.host.endswith(".hf.space")
+        # Only allow proxying to Hugging Face Space URLs to prevent SSRF
+        # via malicious proxy_url values in untrusted configs.
+        if not url.host.endswith(".hf.space"):
+            raise PermissionError("This URL cannot be proxied.")
         headers = {}
-        if Context.token is not None and is_hf_url:
+        if Context.token is not None:
             headers["Authorization"] = f"Bearer {Context.token}"
         rp_req = client.build_request("GET", url, headers=headers)
         return rp_req
@@ -419,6 +435,7 @@ class App(FastAPI):
         strict_cors: bool = True,
         ssr_mode: bool = False,
         mcp_server: bool | None = None,
+        debug: bool = False,
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
@@ -428,16 +445,16 @@ class App(FastAPI):
         app_kwargs["lifespan"] = create_lifespan_handler(
             app_kwargs.get("lifespan", None), *delete_cache
         )
-        app = App(auth_dependency=auth_dependency, **app_kwargs, debug=True)
+        app = App(auth_dependency=auth_dependency, **app_kwargs, debug=debug)
         if blocks.mcp_server_obj:
             blocks.mcp_server_obj.launch_mcp_on_sse(app, mcp_subpath, blocks.root_path)
         router = APIRouter(prefix=API_PREFIX)
 
         app.configure_app(blocks)
 
-        app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
+        app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)  # type: ignore
         app.add_middleware(
-            BrotliMiddleware,
+            BrotliMiddleware,  # type: ignore
             quality=4,
             excluded_handlers=[mcp_subpath],
         )
@@ -448,6 +465,7 @@ class App(FastAPI):
             async def conditional_routing_middleware(
                 request: fastapi.Request, call_next
             ):
+                blocks = app.get_blocks()
                 custom_mount_path = blocks.custom_mount_path
                 path = (
                     request.url.path.replace(blocks.custom_mount_path or "", "")
@@ -468,6 +486,7 @@ class App(FastAPI):
                     try:
                         return await App.proxy_to_node(
                             request,
+                            app,
                             blocks.node_server_name or "0.0.0.0",
                             blocks.node_port,
                             App.app_port,
@@ -642,13 +661,18 @@ class App(FastAPI):
 
         def attach_page(page):
             @app.get(f"/{page}", response_class=HTMLResponse)
-            @app.get(f"/{page}/", response_class=HTMLResponse)
             def page_route(
                 request: fastapi.Request,
                 user: str = Depends(get_current_user),
                 deep_link: str = "",
             ):
                 return main(request, user, page, deep_link)
+
+            @app.get(f"/{page}/")
+            def page_redirect():
+                return RedirectResponse(
+                    url=f"/{page}", status_code=status.HTTP_301_MOVED_PERMANENTLY
+                )
 
         for pageset in blocks.pages:
             page = pageset[0]
@@ -660,13 +684,13 @@ class App(FastAPI):
         ):
             components = config["components"]
             try:
-                path = (
-                    Path(app.uploaded_file_dir)
-                    / "deep_links"
-                    / deep_link
-                    / "state.json"
+                user_path = Path("deep_links") / deep_link / "state.json"
+                path = Path(
+                    routes_safe_join(
+                        DeveloperPath(app.uploaded_file_dir),
+                        UserProvidedPath(str(user_path)),
+                    )
                 )
-
                 if path.exists():
                     components = orjson.loads(path.read_bytes())
                     deep_link_state = "valid"
@@ -696,7 +720,9 @@ class App(FastAPI):
             root = route_utils.get_root_url(
                 request=request,
                 route_path=f"/{page}",
-                root_path=app.root_path or blocks.custom_mount_path,
+                root_path=app.root_path
+                or request.scope.get("root_path")
+                or blocks.custom_mount_path,
             )
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = utils.safe_deepcopy(blocks.config)
@@ -805,6 +831,21 @@ class App(FastAPI):
                 api_info = utils.safe_deepcopy(app.get_blocks().get_api_info())
                 api_info = cast(dict[str, Any], api_info)
                 api_info = route_utils.update_example_values_to_use_public_url(api_info)
+                root = route_utils.get_root_url(
+                    request=request,
+                    route_path=f"{API_PREFIX}/info",
+                    root_path=app.root_path,
+                )
+                space_id = app.get_blocks().space_id
+                api_prefix = API_PREFIX + "/"
+                for ep_name, ep_info in api_info.get("named_endpoints", {}).items():
+                    ep_info["code_snippets"] = generate_code_snippets(
+                        ep_name,
+                        ep_info,
+                        str(root),
+                        space_id=space_id,
+                        api_prefix=api_prefix,
+                    )
                 app.api_info = api_info
             return app.api_info
 
@@ -854,9 +895,9 @@ class App(FastAPI):
                     }
                 }
 
-                request_properties = path_item["post"]["requestBody"]["content"][
+                request_properties = path_item["post"]["requestBody"]["content"][  # type: ignore
                     "application/json"
-                ]["schema"]["properties"]
+                ]["schema"]["properties"]  # type: ignore
                 for param in endpoint_info.get("parameters", []):
                     param_name = param["parameter_name"]
                     param_type = param.get("type", {})
@@ -869,25 +910,25 @@ class App(FastAPI):
                         param_type = dict(param_type)
                         param_type["type"] = "object"
 
-                    request_properties[param_name] = param_type
+                    request_properties[param_name] = param_type  # type: ignore
 
                     if "example_input" in param:
                         if (
                             "examples"
-                            not in path_item["post"]["requestBody"]["content"][
+                            not in path_item["post"]["requestBody"]["content"][  # type: ignore
                                 "application/json"
                             ]
                         ):
-                            path_item["post"]["requestBody"]["content"][
+                            path_item["post"]["requestBody"]["content"][  # type: ignore
                                 "application/json"
                             ]["examples"] = {"example1": {"value": {}}}
-                        path_item["post"]["requestBody"]["content"]["application/json"][
+                        path_item["post"]["requestBody"]["content"]["application/json"][  # type: ignore
                             "examples"
-                        ]["example1"]["value"][param_name] = param["example_input"]
+                        ]["example1"]["value"][param_name] = param["example_input"]  # type: ignore
 
-                response_properties = path_item["post"]["responses"]["200"]["content"][
+                response_properties = path_item["post"]["responses"]["200"]["content"][  # type: ignore
                     "application/json"
-                ]["schema"]["properties"]
+                ]["schema"]["properties"]  # type: ignore
                 for i, ret in enumerate(endpoint_info.get("returns", [])):
                     ret_name = f"output_{i}" if i > 0 else "output"
                     ret_type = ret.get("type", {})
@@ -900,9 +941,9 @@ class App(FastAPI):
                         ret_type = dict(ret_type)
                         ret_type["type"] = "object"
 
-                    response_properties[ret_name] = ret_type
+                    response_properties[ret_name] = ret_type  # type: ignore
 
-                schema["paths"][f"/run{endpoint_path}"] = path_item
+                schema["paths"][f"/run{endpoint_path}"] = path_item  # type: ignore
 
             return schema
 
@@ -913,7 +954,9 @@ class App(FastAPI):
             root = route_utils.get_root_url(
                 request=request,
                 route_path="/config",
-                root_path=app.root_path or blocks.custom_mount_path,
+                root_path=app.root_path
+                or request.scope.get("root_path")
+                or blocks.custom_mount_path,
             )
             config["username"] = get_current_user(request)
             if deep_link:
@@ -940,6 +983,9 @@ class App(FastAPI):
             file_name: str,
             req: fastapi.Request,
         ):
+            print(
+                f"id={id}, environment={environment}, type={type}, file_name={file_name}"
+            )
             if environment not in ["client", "server"]:
                 raise HTTPException(
                     status_code=404, detail="Environment not supported."
@@ -1301,7 +1347,7 @@ class App(FastAPI):
             )
             root_path = route_utils.get_root_url(
                 request=request,
-                route_path=f"{API_PREFIX}/api/{api_name}",
+                route_path=request.url.path,
                 root_path=app.root_path,
             )
             try:
@@ -2540,11 +2586,7 @@ def mount_gradio_app(
     if root_path is not None:
         blocks.root_path = root_path
 
-    blocks.ssr_mode = (
-        ssr_mode
-        if ssr_mode is not None
-        else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
-    )
+    blocks.ssr_mode = blocks._resolve_ssr_mode(ssr_mode)
 
     if blocks.ssr_mode:
         blocks.node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
@@ -2588,7 +2630,6 @@ def mount_gradio_app(
 
     app.router.lifespan_context = new_lifespan  # type: ignore
 
-    print("new", path)
     app.mount(path, gradio_app)
     return app
 

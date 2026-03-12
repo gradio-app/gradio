@@ -1,5 +1,5 @@
 pytest-asyncio
 pytest==7.1.2
 pytest-xdist
-ty==0.0.1a18
+ty==0.0.2
 pydub==0.25.1

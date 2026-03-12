@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
 	import {
 		format_date,
 		generate_calendar_days,
@@ -8,24 +7,38 @@
 		month_names
 	} from "./utils";
 
-	export let selected_date: Date;
-	export let current_year: number;
-	export let current_month: number;
-	export let selected_hour: number;
-	export let selected_minute: number;
-	export let selected_second: number;
-	export let is_pm: boolean;
-	export let include_time: boolean;
-	export let position: { top: number; left: number };
+	let {
+		selected_date = $bindable<Date>(),
+		current_year = $bindable<number>(),
+		current_month = $bindable<number>(),
+		selected_hour = $bindable<number>(),
+		selected_minute = $bindable<number>(),
+		selected_second = $bindable<number>(),
+		is_pm = $bindable<boolean>(),
+		include_time,
+		position,
+		onclose,
+		onclear,
+		onupdate
+	}: {
+		selected_date: Date;
+		current_year: number;
+		current_month: number;
+		selected_hour: number;
+		selected_minute: number;
+		selected_second: number;
+		is_pm: boolean;
+		include_time: boolean;
+		position: { top: number; left: number };
+		onclose?: () => void;
+		onclear?: () => void;
+		onupdate?: (formatted: string) => void;
+	} = $props();
 
-	const dispatch = createEventDispatcher<{
-		close: void;
-		clear: void;
-		update: { date: Date; formatted: string };
-	}>();
-
-	$: display_hour = calculate_display_hour(selected_hour, is_pm);
-	$: calendar_days = generate_calendar_days(current_year, current_month);
+	let display_hour = $derived(calculate_display_hour(selected_hour, is_pm));
+	let calendar_days = $derived(
+		generate_calendar_days(current_year, current_month)
+	);
 
 	const select_date = (day: number): void => {
 		selected_date = new Date(
@@ -41,7 +54,7 @@
 
 	const update_value = (): void => {
 		const formatted = format_date(selected_date, include_time);
-		dispatch("update", { date: selected_date, formatted });
+		onupdate?.(formatted);
 	};
 
 	const update_time = (): void => {
@@ -108,14 +121,14 @@
 >
 	<div class="picker">
 		<div class="picker-header">
-			<button type="button" class="nav-button" on:click={previous_month}
+			<button type="button" class="nav-button" onclick={previous_month}
 				>‹</button
 			>
 			<div class="month-year">
 				{month_names[current_month]}
 				{current_year}
 			</div>
-			<button type="button" class="nav-button" on:click={next_month}>›</button>
+			<button type="button" class="nav-button" onclick={next_month}>›</button>
 		</div>
 
 		<div class="calendar-grid">
@@ -139,7 +152,7 @@
 							day === selected_date.getDate() &&
 							current_month === selected_date.getMonth() &&
 							current_year === selected_date.getFullYear()}
-						on:click={() => {
+						onclick={() => {
 							if (is_current_month) {
 								select_date(day);
 							} else if (is_next_month) {
@@ -168,7 +181,7 @@
 							min="1"
 							max="12"
 							bind:value={display_hour}
-							on:input={() => update_display_hour(display_hour)}
+							oninput={() => update_display_hour(display_hour)}
 						/>
 					</div>
 					<div class="time-input-group">
@@ -179,7 +192,7 @@
 							min="0"
 							max="59"
 							bind:value={selected_minute}
-							on:input={update_time}
+							oninput={update_time}
 						/>
 					</div>
 					<div class="time-input-group">
@@ -190,7 +203,7 @@
 							min="0"
 							max="59"
 							bind:value={selected_second}
-							on:input={update_time}
+							oninput={update_time}
 						/>
 					</div>
 					<div class="time-input-group">
@@ -198,7 +211,7 @@
 						<button
 							type="button"
 							class="am-pm-toggle"
-							on:click={toggle_am_pm}
+							onclick={toggle_am_pm}
 							aria-label="Toggle AM/PM"
 						>
 							{is_pm ? "PM" : "AM"}
@@ -209,22 +222,14 @@
 		{/if}
 
 		<div class="picker-actions">
-			<button
-				type="button"
-				class="action-button"
-				on:click={() => dispatch("clear")}
-			>
+			<button type="button" class="action-button" onclick={onclear}>
 				Clear
 			</button>
 			<div class="picker-actions-right">
-				<button type="button" class="action-button" on:click={handle_now}>
+				<button type="button" class="action-button" onclick={handle_now}>
 					Now
 				</button>
-				<button
-					type="button"
-					class="action-button"
-					on:click={() => dispatch("close")}
-				>
+				<button type="button" class="action-button" onclick={onclose}>
 					Done
 				</button>
 			</div>

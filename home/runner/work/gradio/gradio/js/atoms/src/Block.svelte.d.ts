@@ -39,6 +39,7 @@ declare const Block: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_PropsWith
     resizable?: boolean;
     rtl?: boolean;
     fullscreen?: boolean;
+    label?: string | undefined;
 }, {
     default: {};
 }>, {

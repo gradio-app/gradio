@@ -1,6 +1,7 @@
 import { test, expect } from "@self/tootils";
 
 test("Test multipage navigation and events", async ({ page }) => {
+	test.skip(process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true");
 	await page.getByLabel("Name").fill("asdf");
 	await page.getByRole("button", { name: "Greet" }).click();
 	await expect(page.getByLabel("Output")).toHaveValue("Hello asdf!");

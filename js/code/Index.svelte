@@ -69,7 +69,14 @@
 			<CodeIcon />
 		</Empty>
 	{:else}
-		<Widget language={gradio.props.language} value={gradio.props.value} />
+		<Widget
+			language={gradio.props.language}
+			value={gradio.props.value}
+			buttons={gradio.props.buttons ?? ["copy", "download"]}
+			on_custom_button_click={(id) => {
+				gradio.dispatch("custom_button_click", { id });
+			}}
+		/>
 
 		<Code
 			bind:value={gradio.props.value}
@@ -81,9 +88,9 @@
 			show_line_numbers={gradio.props.show_line_numbers}
 			autocomplete={gradio.props.autocomplete}
 			readonly={!gradio.shared.interactive}
-			on:blur={() => gradio.dispatch("blur")}
-			on:focus={() => gradio.dispatch("focus")}
-			on:input={() => gradio.dispatch("input")}
+			onblur={() => gradio.dispatch("blur")}
+			onfocus={() => gradio.dispatch("focus")}
+			oninput={() => gradio.dispatch("input")}
 		/>
 	{/if}
 </Block>

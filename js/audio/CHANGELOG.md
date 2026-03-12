@@ -1,5 +1,89 @@
 # @gradio/audio
 
+## 0.22.4
+
+### Dependency updates
+
+- @gradio/button@0.6.5
+- @gradio/statustracker@0.12.5
+- @gradio/utils@0.12.0
+- @gradio/atoms@0.22.2
+- @gradio/upload@0.17.7
+
+## 0.22.3
+
+### Dependency updates
+
+- @gradio/client@2.1.0
+- @gradio/button@0.6.4
+
+## 0.22.3
+
+### Fixes
+
+- [#12873](https://github.com/gradio-app/gradio/pull/12873) [`6533d38`](https://github.com/gradio-app/gradio/commit/6533d38c29ee86823e58d94a8afedd219bcc9011) - Fix stop button not working in Audio streaming.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/utils@0.11.3
+- @gradio/atoms@0.22.0
+- @gradio/statustracker@0.12.4
+- @gradio/upload@0.17.6
+
+## 0.22.2
+
+### Dependency updates
+
+- @gradio/atoms@0.21.0
+- @gradio/client@2.0.4
+- @gradio/statustracker@0.12.3
+- @gradio/upload@0.17.5
+
+## 0.22.1
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12779](https://github.com/gradio-app/gradio/pull/12779) [`ea2d3e9`](https://github.com/gradio-app/gradio/commit/ea2d3e985a8b42d188e551f517c5825c00790628) - Migrate Audio + Upload + Atoms to Svelte 5.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/button@0.6.3
+- @gradio/statustracker@0.12.2
+- @gradio/atoms@0.20.1
+- @gradio/utils@0.11.2
+- @gradio/icons@0.15.1
+- @gradio/upload@0.17.4
+- @gradio/client@2.0.3
+
+## 0.22.0
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+- @gradio/button@0.6.2
+- @gradio/client@2.0.2
+
+## 0.22.0
+
+### Features
+
+- [#12539](https://github.com/gradio-app/gradio/pull/12539) [`f1d83fa`](https://github.com/gradio-app/gradio/commit/f1d83fac3d6e4bad60cf896a026fa2d572f26073) - Add ability to add custom buttons to components.  Thanks @abidlabs!
+
+### Fixes
+
+- [#12580](https://github.com/gradio-app/gradio/pull/12580) [`b27e2cb`](https://github.com/gradio-app/gradio/commit/b27e2cbb07ef3c977b72d77b2d0922e6f33521e2) - Audio Trim Fix.  Thanks @dawoodkhan82!
+- [#12575](https://github.com/gradio-app/gradio/pull/12575) [`7498fac`](https://github.com/gradio-app/gradio/commit/7498fac6a1c575ff04920ad5178853843a3b270e) - Fix image buttons default value.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/utils@0.11.0
+- @gradio/client@2.0.1
+- @gradio/statustracker@0.12.1
+- @gradio/upload@0.17.3
+- @gradio/button@0.6.1
+
 ## 0.21.0
 
 ### Features

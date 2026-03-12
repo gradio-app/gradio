@@ -1,6 +1,7 @@
 <script lang="ts">
 	import DocsNav from "$lib/components/DocsNav.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
+	import RelatedGuides from "$lib/components/RelatedGuides.svelte";
 	import { page } from "$app/stores";
 	import { onNavigate } from "$app/navigation";
 	import '$lib/assets/theme.css';
@@ -58,26 +59,40 @@
 		];
 	
 	function get_headers() {
-		let headers : any[] = []
+		let headers: any[] = [];
 		const h3_elements = document.querySelectorAll('h3');
 		h3_elements.forEach((element) => {
 			headers.push({ title: element.textContent, id: element.id });
-	});
+		});
 		const page_title_elem = document.querySelector('h1');
-		let page_title = {title: "", id: ""}
+		let page_title = { title: "", id: "" };
 		if (page_title_elem) {
 			page_title_elem.id = page_title_elem?.textContent?.toLowerCase().replace(/ /g, "-") || "";
-			page_title = {title: page_title_elem?.textContent || "", id: page_title_elem.id};
+			page_title = { title: page_title_elem?.textContent || "", id: page_title_elem.id };
 		}
-		return { headers: headers, page_title: page_title};
+		return { headers: headers, page_title: page_title };
+	}
+
+	function get_related_guides() {
+		let guides: { name: string, url: string }[] = [];
+		const guide_elements = document.querySelectorAll('a.guide-box');
+		guide_elements.forEach((element) => {
+			const p_elem = element.querySelector('p');
+			guides.push({
+				name: p_elem ? p_elem.textContent || "" : "",
+				url: element.getAttribute('href') || ""
+			});
+		});
+		return guides;
 	}
 	
 	var all_headers : {headers: any[], page_title: {title: string, id: string}} = {headers: [], page_title: {title: "", id: ""}};
-
+	var related_guides: {name: string, url: string}[] = [];
 	var dynamic_component: any = null;
 
 	$: if (dynamic_component) {
 		all_headers = get_headers();
+		related_guides = get_related_guides();
 	}
 
 	let show_nav = false;
@@ -249,7 +264,7 @@
 			class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:block lg:w-2/12"
 		>
 			<div class="mx-8">
-				<a class="block text-sm font-bold text-gray-900 dark:text-gray-100 py-2" href="#{all_headers.page_title.id}">{all_headers.page_title.title}</a
+				<a class="text-sm tracking-wider font-semibold text-gray-600 dark:text-gray-300 py-2 block" href="#{all_headers.page_title.id}">{all_headers.page_title.title}</a
 				>
 				{#if all_headers.headers && all_headers.headers.length > 0}
 					<ul class="space-y-2 list-none">
@@ -265,6 +280,9 @@
 						{/each}
 					</ul>
 				{/if}
+				{#if related_guides && related_guides.length > 0}
+					<RelatedGuides related_guides={related_guides} />
+				{/if}
 			</div>
 		</div>
 	</div>
@@ -273,5 +291,8 @@
 <style>
 	.sub-link {
 		border-color: #f3f4f6 !important;
+	}
+	:global(.embedded-component) {
+		display: none;
 	}
 </style>

@@ -24,6 +24,7 @@
 
 	import { Trash, Community, ScrollDownArrow } from "@gradio/icons";
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
+	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { ExampleMessage } from "../types";
 	import type { FileData, Client } from "@gradio/client";
@@ -76,6 +77,8 @@
 	export let show_copy_all_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
+	export let buttons: (string | CustomButtonType)[] | null = null;
+	export let on_custom_button_click: ((id: number) => void) | null = null;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 	export let sanitize_html = true;
 	export let render_markdown = true;
@@ -243,11 +246,11 @@
 </script>
 
 {#if value !== null && value.length > 0}
-	<IconButtonWrapper>
+	<IconButtonWrapper {buttons} {on_custom_button_click}>
 		{#if show_share_button}
 			<IconButton
 				Icon={Community}
-				on:click={async () => {
+				onclick={async () => {
 					try {
 						// @ts-ignore
 						const formatted = await format_chat_for_sharing(value);
@@ -264,9 +267,9 @@
 		{/if}
 		<IconButton
 			Icon={Trash}
-			on:click={() => dispatch("clear")}
+			onclick={() => dispatch("clear")}
 			label={i18n("chatbot.clear")}
-		></IconButton>
+		/>
 		{#if show_copy_all_button}
 			<CopyAll {value} {watermark} />
 		{/if}
@@ -386,7 +389,7 @@
 			Icon={ScrollDownArrow}
 			label="Scroll down"
 			size="large"
-			on:click={scroll_to_bottom}
+			onclick={scroll_to_bottom}
 		/>
 	</div>
 {/if}
@@ -473,6 +476,7 @@
 		flex-direction: column;
 		justify-content: space-between;
 		margin-bottom: var(--spacing-xxl);
+		direction: ltr;
 	}
 
 	.panel-wrap :global(.message-row:first-child) {
@@ -507,7 +511,7 @@
 		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 		gap: var(--spacing-xxl);
 		max-width: calc(min(4 * 200px + 5 * var(--spacing-xxl), 100%));
-		justify-content: end;
+		justify-content: flex-end;
 	}
 
 	.option {

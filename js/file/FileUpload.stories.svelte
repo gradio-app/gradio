@@ -1,12 +1,14 @@
-<script context="module">
-	import { Template, Story } from "@storybook/addon-svelte-csf";
-	import { format } from "svelte-i18n";
-	import FileUpload from "./shared/FileUpload.svelte";
-	import { get } from "svelte/store";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
+	import File from "./Index.svelte";
+	import { wrapProps } from "../storybook/wrapProps";
 
-	export const meta = {
+	const cheetah = "/cheetah.jpg";
+	const lion = "/lion.jpg";
+
+	const { Story } = defineMeta({
 		title: "Components/FileUpload",
-		component: FileUpload,
+		component: File,
 		argTypes: {
 			value: {
 				control: "text",
@@ -22,43 +24,53 @@
 				value: "single"
 			}
 		}
-	};
+	});
 </script>
 
-<Template let:args>
-	<FileUpload {...args} i18n={get(format)} />
-</Template>
+{#snippet template(args)}
+	<File {...wrapProps(args)} />
+{/snippet}
 
 <Story
 	name="Single File"
 	args={{
 		value: [
 			{
-				path: "cheetah.jpg",
+				path: cheetah,
 				orig_name: "cheetah.jpg",
-				url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+				url: cheetah,
 				size: 10000
 			}
 		],
-		file_count: "single"
+		file_count: "single",
+		interactive: true
 	}}
+	{template}
 />
 <Story
 	name="Multiple files"
 	args={{
-		value: Array(2).fill({
-			path: "cheetah.jpg",
-			orig_name: "cheetah.jpg",
-			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			size: 10000
-		}),
-		file_count: "multiple"
+		value: [
+			{
+				path: cheetah,
+				orig_name: "cheetah.jpg",
+				url: cheetah,
+				size: 10000
+			},
+			{
+				path: lion,
+				orig_name: "lion.jpg",
+				url: lion,
+				size: 10000
+			}
+		],
+		file_count: "multiple",
+		interactive: true
 	}}
+	{template}
 />
 <Story
 	name="No value"
-	args={{
-		value: null,
-		file_count: "multiple"
-	}}
+	args={{ value: null, file_count: "multiple", interactive: true }}
+	{template}
 />

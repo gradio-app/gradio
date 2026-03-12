@@ -1,5 +1,68 @@
 # @gradio/textbox
 
+## 0.13.5
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.5
+- @gradio/utils@0.12.0
+- @gradio/atoms@0.22.2
+
+## 0.13.4
+
+### Dependency updates
+
+- @gradio/utils@0.11.3
+- @gradio/atoms@0.22.0
+- @gradio/statustracker@0.12.4
+
+## 0.13.3
+
+### Dependency updates
+
+- @gradio/atoms@0.21.0
+- @gradio/statustracker@0.12.3
+
+## 0.13.2
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12770](https://github.com/gradio-app/gradio/pull/12770) [`3115258`](https://github.com/gradio-app/gradio/commit/3115258d5dcbc00e91025eaa84ae01ff5db03978) - Remove textbox scrollbar if value is empty.  Thanks @freddyaboulton!
+- [#12757](https://github.com/gradio-app/gradio/pull/12757) [`6d9c2d7`](https://github.com/gradio-app/gradio/commit/6d9c2d7d81e4b0936c15fac2eae9e7640ab22777) - Migrate Textbox to Svelte 5.  Thanks @dawoodkhan82!
+- [#12784](https://github.com/gradio-app/gradio/pull/12784) [`565f07f`](https://github.com/gradio-app/gradio/commit/565f07fdc7888ad74452d3ed027807b670aec714) - Fix gr.Textbox auto-resize regression when lines=1.  Thanks @hysts!
+- [#12775](https://github.com/gradio-app/gradio/pull/12775) [`e023cac`](https://github.com/gradio-app/gradio/commit/e023cac0ae8c69ee12400f61abda616de9db67ce) - Restore gr.Textbox resize listener.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.2
+- @gradio/atoms@0.20.1
+- @gradio/utils@0.11.2
+- @gradio/icons@0.15.1
+
+## 0.13.1
+
+### Fixes
+
+- [#12605](https://github.com/gradio-app/gradio/pull/12605) [`48f580b`](https://github.com/gradio-app/gradio/commit/48f580b508c1f7fe121929aceecc31b2af15c189) - fix: Fix Textbox white background in dark mode.  Thanks @Godkunn!
+- [#12692](https://github.com/gradio-app/gradio/pull/12692) [`3b3eaf0`](https://github.com/gradio-app/gradio/commit/3b3eaf0dcb0690cc815eb2b3c40ca335c9a47a11) - Restore RTL prop to gradio components.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+
+## 0.13.0
+
+### Features
+
+- [#12539](https://github.com/gradio-app/gradio/pull/12539) [`f1d83fa`](https://github.com/gradio-app/gradio/commit/f1d83fac3d6e4bad60cf896a026fa2d572f26073) - Add ability to add custom buttons to components.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/utils@0.11.0
+- @gradio/statustracker@0.12.1
+
 ## 0.12.1
 
 ### Fixes

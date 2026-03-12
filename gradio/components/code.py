@@ -8,8 +8,10 @@ from typing import TYPE_CHECKING, Any, Literal
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
+from gradio.components.button import Button
 from gradio.events import Events
 from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -114,6 +116,7 @@ class Code(Component):
         wrap_lines: bool = False,
         show_line_numbers: bool = True,
         autocomplete: bool = False,
+        buttons: list[Literal["copy", "download"] | Button] | None = None,
     ):
         """
         Parameters:
@@ -138,6 +141,7 @@ class Code(Component):
             wrap_lines: If True, will wrap lines to the width of the container when overflow occurs. Defaults to False.
             show_line_numbers:  If True, displays line numbers, and if False, hides line numbers.
             autocomplete: If True, will show autocomplete suggestions for supported languages. Defaults to False.
+            buttons: A list of buttons to show in the top right corner of the component. Valid options are "copy", "download", or a gr.Button() instance. The "copy" button allows the user to copy the code to their clipboard. The "download" button allows the user to download the code as a file. Custom gr.Button() instances will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button. By default, both the "copy" and "download" buttons are shown.
         """
         if language not in Code.languages:
             raise ValueError(f"Language {language} not supported.")
@@ -148,6 +152,7 @@ class Code(Component):
         self.wrap_lines = wrap_lines
         self.show_line_numbers = show_line_numbers
         self.autocomplete = autocomplete
+        self.buttons = set_default_buttons(buttons, ["copy", "download"])
         super().__init__(
             label=label,
             every=every,

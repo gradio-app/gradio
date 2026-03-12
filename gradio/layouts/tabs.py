@@ -6,13 +6,14 @@ from gradio_client.documentation import document
 
 from gradio.blocks import BlockContext
 from gradio.component_meta import ComponentMeta
-from gradio.events import Events
+from gradio.events import EventListener, Events
 from gradio.i18n import I18nData
 
 
 class Tabs(BlockContext, metaclass=ComponentMeta):
     """
     Tabs is a layout element within Blocks that can contain multiple "Tab" Components.
+    Guides: controlling-layout
     """
 
     EVENTS = [Events.change, Events.select]
@@ -65,7 +66,13 @@ class Tab(BlockContext, metaclass=ComponentMeta):
     Guides: controlling-layout
     """
 
-    EVENTS = [Events.select]
+    EVENTS = [
+        EventListener(
+            "select",
+            callback=lambda block: setattr(block, "_selectable", True),
+            doc="Event listener for when the user selects the Tab. Uses event data gradio.SelectData to carry `value` referring to the label of the Tab, and `selected` to refer to state of the Tab. See https://www.gradio.app/main/docs/gradio/eventdata documentation for more details.",
+        )
+    ]
 
     def __init__(
         self,

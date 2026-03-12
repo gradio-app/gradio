@@ -3,7 +3,7 @@ import gradio as gr
 with gr.Blocks() as demo:
     count = gr.Slider(minimum=1, maximum=10, step=1, label="count")
     data = gr.DataFrame(
-        headers=["A", "B"], col_count=(2, "fixed"), type="array", interactive=True
+        headers=["A", "B"], col_count=(2, "fixed"), type="array", interactive=True  # type: ignore
     )
     btn = gr.Button(value="click")
     btn.click(

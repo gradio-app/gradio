@@ -1,5 +1,70 @@
 # @gradio/accordion
 
+## 0.5.32
+
+### Fixes
+
+- [#12836](https://github.com/gradio-app/gradio/pull/12836) [`77e7871`](https://github.com/gradio-app/gradio/commit/77e7871176e50a894190ac98aa9de8fbdbf3620f) - Fixes hidden accordion's children losing all values.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.5
+- @gradio/utils@0.12.0
+- @gradio/column@0.3.2
+- @gradio/atoms@0.22.2
+
+## 0.5.31
+
+### Fixes
+
+- [#12846](https://github.com/gradio-app/gradio/pull/12846) [`226daba`](https://github.com/gradio-app/gradio/commit/226daba5f65257244efc7c310500ea5366b20a87) - Fix bug where children of accordions dont get rendered when they are opened programmatically.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/utils@0.11.3
+- @gradio/atoms@0.22.0
+- @gradio/statustracker@0.12.4
+
+## 0.5.30
+
+### Dependency updates
+
+- @gradio/atoms@0.21.0
+- @gradio/statustracker@0.12.3
+
+## 0.5.29
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.2
+- @gradio/atoms@0.20.1
+- @gradio/column@0.3.2
+- @gradio/utils@0.11.2
+
+## 0.5.28
+
+### Fixes
+
+- [#12695](https://github.com/gradio-app/gradio/pull/12695) [`6eadb5b`](https://github.com/gradio-app/gradio/commit/6eadb5bf8c48b32fa9960b0e9e7c09a2ee30141c) - Migrate accordion to svelte 5.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/utils@0.11.1
+- @gradio/column@0.3.1
+
+## 0.5.27
+
+### Dependency updates
+
+- @gradio/atoms@0.20.0
+- @gradio/utils@0.11.0
+- @gradio/statustracker@0.12.1
+- @gradio/column@0.3.0
+
 ## 0.5.26
 
 ### Fixes

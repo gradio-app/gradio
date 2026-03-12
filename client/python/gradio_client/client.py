@@ -17,6 +17,7 @@ import time
 import urllib.parse
 import uuid
 import warnings
+from collections import deque
 from collections.abc import AsyncGenerator, Callable
 from concurrent.futures import Future
 from contextvars import copy_context
@@ -154,7 +155,7 @@ class Client:
                 "Please contact the owner to fix this."
             )
         if self.verbose:
-            print(f"Loaded as API: {self.src} ✔")
+            print(f"Loaded as API: {self.src}")
 
         if auth is not None:
             self._login(auth)
@@ -212,7 +213,7 @@ class Client:
 
         self.stream_open = False
         self.streaming_future: Future | None = None
-        self.pending_messages_per_event: dict[str, list[Message | None]] = {}
+        self.pending_messages_per_event: dict[str, deque[Message | None]] = {}
         self.pending_event_ids: set[str] = set()
 
     def close(self):
@@ -287,7 +288,7 @@ class Client:
                                     return
                                 event_id = resp["event_id"]
                                 if event_id not in self.pending_messages_per_event:
-                                    self.pending_messages_per_event[event_id] = []
+                                    self.pending_messages_per_event[event_id] = deque()
                                 self.pending_messages_per_event[event_id].append(resp)
                                 if resp["msg"] == ServerMessage.process_completed:
                                     self.pending_event_ids.remove(event_id)
@@ -554,6 +555,8 @@ class Client:
             "sse_v2.1",
             "sse_v3",
         ):
+            headers = headers or {}
+            headers["x-gradio-user"] = "api"
             helper = self.new_helper(inferred_fn_index, headers=headers)
             end_to_end_fn = endpoint.make_end_to_end_fn(helper)
         else:
@@ -623,12 +626,14 @@ class Client:
         named_endpoints = {}
         unnamed_endpoints = {}
         for api_name, endpoint in info["named_endpoints"].items():
+            endpoint.pop("code_snippets", None)
             if (
                 "api_visibility" in endpoint
                 and endpoint.pop("api_visibility") != "private"
             ) or (endpoint.pop("show_api", True)):
                 named_endpoints[api_name] = endpoint
         for fn_index, endpoint in info["unnamed_endpoints"].items():
+            endpoint.pop("code_snippets", None)
             if (
                 "api_visibility" in endpoint
                 and endpoint.pop("api_visibility") != "private"
@@ -1178,7 +1183,7 @@ class Endpoint:
                     data, hash_data, self.protocol, helper.request_headers
                 )
                 self.client.pending_event_ids.add(event_id)
-                self.client.pending_messages_per_event[event_id] = []
+                self.client.pending_messages_per_event[event_id] = deque()
                 helper.event_id = event_id
                 result = self._sse_fn_v1plus(helper, event_id, self.protocol)
             else:

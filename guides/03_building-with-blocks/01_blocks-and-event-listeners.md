@@ -51,7 +51,7 @@ Here's an example of a "multi-step" demo, where the output of one model (a speec
 $code_blocks_speech_text_sentiment
 $demo_blocks_speech_text_sentiment
 
-## Function Input List vs Dict
+## Function Input List vs Set
 
 The event listeners you've seen so far have a single input component. If you'd like to have multiple input components pass data to the function, you have two options on how the function can accept input component values:
 
@@ -64,7 +64,7 @@ $code_calculator_list_and_dict
 Both `add()` and `sub()` take `a` and `b` as inputs. However, the syntax is different between these listeners.
 
 1. To the `add_btn` listener, we pass the inputs as a list. The function `add()` takes each of these inputs as arguments. The value of `a` maps to the argument `num1`, and the value of `b` maps to the argument `num2`.
-2. To the `sub_btn` listener, we pass the inputs as a set (note the curly brackets!). The function `sub()` takes a single dictionary argument `data`, where the keys are the input components, and the values are the values of those components.
+2. To the `sub_btn` listener, we pass the inputs as a set (note the curly brackets!). When you pass a set, the function `sub()` receives a single dictionary argument `data`, where the keys are the input components and the values are the values of those components.
 
 It is a matter of preference which syntax you prefer! For functions with many input components, option 2 may be easier to manage.
 

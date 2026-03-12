@@ -87,7 +87,7 @@ class TextArea(components.Textbox):
             type=type,
             text_align=text_align,
             rtl=rtl,
-            buttons=buttons,
+            buttons=buttons,  # type: ignore
             max_length=max_length,
             submit_btn=submit_btn,
             stop_btn=stop_btn,
@@ -157,7 +157,7 @@ class Sketchpad(components.ImageEditor):
             every=every,
             inputs=inputs,
             show_label=show_label,
-            buttons=buttons,
+            buttons=buttons,  # type: ignore
             container=container,
             scale=scale,
             min_width=min_width,
@@ -241,7 +241,7 @@ class Paint(components.ImageEditor):
             every=every,
             inputs=inputs,
             show_label=show_label,
-            buttons=buttons,
+            buttons=buttons,  # type: ignore
             container=container,
             scale=scale,
             min_width=min_width,
@@ -331,7 +331,7 @@ class ImageMask(components.ImageEditor):
             every=every,
             inputs=inputs,
             show_label=show_label,
-            buttons=buttons,
+            buttons=buttons,  # type: ignore
             container=container,
             scale=scale,
             min_width=min_width,
@@ -405,7 +405,7 @@ class PlayableVideo(components.Video):
     ):
         sources = ["upload"]
         super().__init__(
-            value=value,
+            value=value,  # type: ignore
             format=format,
             sources=sources,  # type: ignore
             height=height,
@@ -426,10 +426,10 @@ class PlayableVideo(components.Video):
             preserved_by_key=preserved_by_key,
             include_audio=include_audio,
             autoplay=autoplay,
-            buttons=buttons,
+            buttons=buttons,  # type: ignore
             loop=loop,
             streaming=streaming,
-            watermark=watermark,
+            watermark=watermark,  # type: ignore
             webcam_options=webcam_options,
             subtitles=subtitles,
             playback_position=playback_position,
@@ -505,7 +505,7 @@ class Microphone(components.Audio):
             preserved_by_key=preserved_by_key,
             format=format,
             autoplay=autoplay,
-            buttons=buttons,
+            buttons=buttons,  # type: ignore
             editable=editable,
             waveform_options=waveform_options,
             loop=loop,
@@ -550,6 +550,7 @@ class Files(components.File):
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
         allow_reordering: bool = False,
+        buttons: list[components.Button] | None = None,
     ):
         super().__init__(
             value,
@@ -571,6 +572,7 @@ class Files(components.File):
             render=render,
             key=key,
             preserved_by_key=preserved_by_key,
+            buttons=buttons,  # type: ignore
             allow_reordering=allow_reordering,
         )
 
@@ -630,10 +632,10 @@ class Numpy(components.Dataframe):
         super().__init__(
             value=value,
             headers=headers,
-            row_count=row_count,
+            row_count=row_count,  # type: ignore
             row_limits=row_limits,
-            col_count=col_count,
-            column_count=column_count,
+            col_count=col_count,  # type: ignore
+            column_count=column_count,  # type: ignore
             column_limits=column_limits,
             datatype=datatype,
             type=type,
@@ -658,7 +660,7 @@ class Numpy(components.Dataframe):
             show_row_numbers=show_row_numbers,
             show_search=show_search,
             pinned_columns=pinned_columns,
-            buttons=buttons,
+            buttons=buttons,  # type: ignore
             static_columns=static_columns,
             max_chars=max_chars,
         )
@@ -719,10 +721,10 @@ class Matrix(components.Dataframe):
         super().__init__(
             value=value,
             headers=headers,
-            row_count=row_count,
+            row_count=row_count,  # type: ignore
             row_limits=row_limits,
-            col_count=col_count,
-            column_count=column_count,
+            col_count=col_count,  # type: ignore
+            column_count=column_count,  # type: ignore
             column_limits=column_limits,
             datatype=datatype,
             type=type,
@@ -747,7 +749,7 @@ class Matrix(components.Dataframe):
             show_row_numbers=show_row_numbers,
             show_search=show_search,
             pinned_columns=pinned_columns,
-            buttons=buttons,
+            buttons=buttons,  # type: ignore
             static_columns=static_columns,
             max_chars=max_chars,
         )
@@ -808,10 +810,10 @@ class List(components.Dataframe):
         super().__init__(
             value=value,
             headers=headers,
-            row_count=row_count,
+            row_count=row_count,  # type: ignore
             row_limits=row_limits,
-            col_count=col_count,
-            column_count=column_count,
+            col_count=col_count,  # type: ignore
+            column_count=column_count,  # type: ignore
             column_limits=column_limits,
             datatype=datatype,
             type=type,
@@ -837,7 +839,7 @@ class List(components.Dataframe):
             show_search=show_search,
             static_columns=static_columns,
             pinned_columns=pinned_columns,
-            buttons=buttons,
+            buttons=buttons,  # type: ignore
             max_chars=max_chars,
         )
 

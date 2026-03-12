@@ -1,12 +1,20 @@
 <script lang="ts">
 	import JSON from "./shared/JSON.svelte";
 
-	export let value: any;
-	export let theme_mode: "system" | "light" | "dark" = "system";
-	let show_indices = false;
-	let label_height = 0;
-	export let type: "gallery" | "table";
-	export let selected = false;
+	let {
+		value,
+		theme_mode = "system" as "system" | "light" | "dark",
+		type,
+		selected = false
+	}: {
+		value: any;
+		theme_mode?: "system" | "light" | "dark";
+		type: "gallery" | "table";
+		selected?: boolean;
+	} = $props();
+
+	let show_indices = $state(false);
+	let label_height = $state(0);
 </script>
 
 <div

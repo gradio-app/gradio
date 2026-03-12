@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/client",
-	"version": "2.0.0",
+	"version": "2.1.0",
 	"description": "Gradio API client",
 	"type": "module",
 	"main": "dist/index.js",
@@ -29,9 +29,9 @@
 		"generate_types": "tsc",
 		"clean": "rm -rf dist",
 		"build": "pnpm clean && pnpm bundle && pnpm bundle:browser && pnpm generate_types",
-		"test": "pnpm test:client && pnpm test:client:node",
-		"test:client": "vitest run -c vite.config.js",
-		"test:client:node": "TEST_MODE=node vitest run -c vite.config.js",
+		"test": "pnpm test:browser && pnpm test:node",
+		"test:browser": "vitest run -c vite.config.ts",
+		"test:node": "NODE_NO_WARNINGS=1 TEST_MODE=node vitest run -c vite.config.ts",
 		"preview:browser": "vite dev --mode=preview"
 	},
 	"engines": {
