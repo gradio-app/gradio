@@ -13,7 +13,7 @@ from gradio.layouts import Column, Row
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction
-    from gradio.events import EventListenerCallable
+    from gradio.events import Trigger
 
 
 class Renderable:
@@ -95,7 +95,7 @@ class Renderable:
 @document()
 def render(
     inputs: Sequence[Component] | Component | None = None,
-    triggers: Sequence[EventListenerCallable] | EventListenerCallable | None = None,
+    triggers: Sequence[Trigger] | Trigger | None = None,
     *,
     queue: bool = True,
     trigger_mode: Literal["once", "multiple", "always_last"] | None = "always_last",
