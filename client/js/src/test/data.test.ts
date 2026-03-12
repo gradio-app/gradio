@@ -292,47 +292,50 @@ describe("post_message", () => {
 		vi.restoreAllMocks();
 	});
 
-	it("should send a message to the parent window and resolve with received data", async () => {
-		const test_data = { key: "value" };
-		const test_origin = "https://huggingface.co";
+	it.skipIf(IS_NODE)(
+		"should send a message to the parent window and resolve with received data",
+		async () => {
+			const test_data = { key: "value" };
+			const test_origin = "https://huggingface.co";
 
-		// Create a mock for window.parent.postMessage that we'll spy on
-		const post_message_spy = vi
-			.spyOn(window.parent, "postMessage")
-			.mockImplementation(() => {});
+			// Create a mock for window.parent.postMessage that we'll spy on
+			const post_message_spy = vi
+				.spyOn(window.parent, "postMessage")
+				.mockImplementation(() => {});
 
-		// Mock MessageChannel
-		const original_message_channel = globalThis.MessageChannel;
-		const mock_port1 = {
-			onmessage: null as unknown as (event: { data: any }) => void,
-			close: vi.fn()
-		};
-		const mock_port2 = {};
+			// Mock MessageChannel
+			const original_message_channel = globalThis.MessageChannel;
+			const mock_port1 = {
+				onmessage: null as unknown as (event: { data: any }) => void,
+				close: vi.fn()
+			};
+			const mock_port2 = {};
 
-		class MockMessageChannel {
-			port1 = mock_port1;
-			port2 = mock_port2;
+			class MockMessageChannel {
+				port1 = mock_port1;
+				port2 = mock_port2;
+			}
+
+			// Replace MessageChannel with our mock version
+			globalThis.MessageChannel = MockMessageChannel as any;
+
+			const promise = post_message(test_data, test_origin);
+
+			// Simulate receiving a message back
+			if (mock_port1.onmessage) {
+				mock_port1.onmessage({ data: test_data } as any);
+			}
+
+			await expect(promise).resolves.toEqual(test_data);
+			expect(post_message_spy).toHaveBeenCalledWith(test_data, test_origin, [
+				mock_port2
+			]);
+
+			// Restore original MessageChannel
+			globalThis.MessageChannel = original_message_channel;
+			post_message_spy.mockRestore();
 		}
-
-		// Replace MessageChannel with our mock version
-		globalThis.MessageChannel = MockMessageChannel as any;
-
-		const promise = post_message(test_data, test_origin);
-
-		// Simulate receiving a message back
-		if (mock_port1.onmessage) {
-			mock_port1.onmessage({ data: test_data } as any);
-		}
-
-		await expect(promise).resolves.toEqual(test_data);
-		expect(post_message_spy).toHaveBeenCalledWith(test_data, test_origin, [
-			mock_port2
-		]);
-
-		// Restore original MessageChannel
-		globalThis.MessageChannel = original_message_channel;
-		post_message_spy.mockRestore();
-	});
+	);
 });
 
 describe("handle_file", () => {
@@ -367,14 +370,14 @@ describe("handle_file", () => {
 		}
 	);
 
-	it("should handle a File object and return it as FileData", () => {
-		if (!IS_NODE) {
-			return;
+	it.skipIf(IS_NODE)(
+		"should handle a File object and return it as FileData",
+		() => {
+			const file = new File(["test image"], "test.png", { type: "image/png" });
+			const result = handle_file(file) as FileData;
+			expect(result).toBeInstanceOf(Blob);
 		}
-		const file = new File(["test image"], "test.png", { type: "image/png" });
-		const result = handle_file(file) as FileData;
-		expect(result).toBeInstanceOf(Blob);
-	});
+	);
 
 	it("should throw an error for invalid input", () => {
 		const invalid_input = 123;

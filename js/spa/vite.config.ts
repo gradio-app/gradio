@@ -160,7 +160,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 				TEST_MODE === "node"
 					? ["**/*.node-test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"]
 					: ["**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
-			exclude: ["**/node_modules/**", "**/gradio/gradio/**"],
+			exclude: ["**/node_modules/**", "**/gradio/gradio/**", "**/client/js/**"],
 			globals: true,
 
 			onConsoleLog(log, type) {

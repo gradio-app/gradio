@@ -8,9 +8,12 @@ const app_reference = "hmb/hello_world";
 const secret_app_reference = "hmb/secret_world";
 const secret_direct_app_reference = "https://hmb-secret-world.hf.space";
 
-const server = initialise_server();
+let server: Awaited<ReturnType<typeof initialise_server>>;
 
-beforeAll(() => server.start({ quiet: true }));
+beforeAll(async () => {
+	server = await initialise_server();
+	await server.start({ quiet: true });
+});
 afterEach(() => server.resetHandlers());
 afterAll(() => server.stop());
 

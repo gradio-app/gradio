@@ -15,9 +15,12 @@ import {
 import { initialise_server } from "./server";
 import { transformed_api_info } from "./test_data";
 
-const server = initialise_server();
+let server: Awaited<ReturnType<typeof initialise_server>>;
 
-beforeAll(() => server.start({ quiet: true }));
+beforeAll(async () => {
+	server = await initialise_server();
+	await server.start({ quiet: true });
+});
 afterEach(() => server.resetHandlers());
 afterAll(() => server.stop());
 
@@ -447,7 +450,11 @@ describe("process_endpoint", () => {
 		try {
 			await process_endpoint(app_reference, token);
 		} catch (error) {
-			expect(error.message).toEqual(SPACE_METADATA_ERROR_MSG);
+			if (error instanceof Error) {
+				expect(error.message).toEqual(SPACE_METADATA_ERROR_MSG);
+			} else {
+				expect.fail("Error should not be unknown.");
+			}
 		}
 	});
 
@@ -602,7 +609,7 @@ describe("map_data_params", () => {
 	});
 
 	it("should return an empty array when data is an empty array", () => {
-		const data = [];
+		const data: unknown[] = [];
 
 		const result = map_data_to_params(data, endpoint_info);
 		expect(result).toEqual(data);
