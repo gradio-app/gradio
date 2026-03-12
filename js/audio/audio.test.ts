@@ -1,11 +1,8 @@
 import { test, describe, assert, afterEach, vi } from "vitest";
-import { cleanup, getByTestId, render } from "@self/tootils";
+import { cleanup, getByTestId, render } from "@self/tootils/render";
 import Audio from "./";
 import type { LoadingStatus } from "@gradio/statustracker";
 import { setupi18n } from "../core/src/i18n";
-import ResizeObserver from "resize-observer-polyfill";
-
-global.ResizeObserver = ResizeObserver;
 
 vi.mock("wavesurfer.js", () => ({
 	default: {

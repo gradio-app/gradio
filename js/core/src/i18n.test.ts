@@ -8,8 +8,31 @@ import {
 	afterEach
 } from "vitest";
 import { Lang, process_langs } from "./i18n";
-import languagesByAnyCode from "wikidata-lang/indexes/by_any_code";
+// wikidata-lang/indexes/by_any_code uses Node.js createRequire internally.
+// Import the raw JSON data and build the index directly for browser compatibility.
+import languages from "wikidata-lang/data/languages.json";
 import BCP47 from "./lang/BCP47_codes";
+
+const languagesByAnyCode: Record<string, any[]> = {};
+for (const langData of languages) {
+	for (const codeName of [
+		"wmCode",
+		"iso6391",
+		"iso6392",
+		"iso6393",
+		"iso6396"
+	]) {
+		const codes = (langData as Record<string, any>)[codeName];
+		if (!codes) continue;
+		for (const code of codes) {
+			if (languagesByAnyCode[code] == null) {
+				languagesByAnyCode[code] = [langData];
+			} else if (!languagesByAnyCode[code].includes(langData)) {
+				languagesByAnyCode[code].push(langData);
+			}
+		}
+	}
+}
 import {
 	get_initial_locale,
 	load_translations,
@@ -25,7 +48,10 @@ vi.mock("svelte-i18n", () => ({
 	locale: { set: vi.fn() },
 	_: vi.fn((key) => `translated_${key}`),
 	addMessages: vi.fn(),
-	init: vi.fn().mockResolvedValue(undefined)
+	init: vi.fn().mockResolvedValue(undefined),
+	getLocaleFromNavigator: vi.fn(() => "en"),
+	register: vi.fn(),
+	waitLocale: vi.fn().mockResolvedValue(undefined)
 }));
 
 const mock_translations: Record<string, string> = {

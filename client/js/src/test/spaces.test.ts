@@ -11,11 +11,14 @@ import { initialise_server } from "./server";
 import { hardware_sleeptime_response } from "./test_data";
 import { vi } from "vitest";
 
-const server = initialise_server();
+let server: Awaited<ReturnType<typeof initialise_server>>;
 
-beforeAll(() => server.listen());
+beforeAll(async () => {
+	server = await initialise_server();
+	await server.start({ quiet: true });
+});
 afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+afterAll(() => server.stop());
 
 describe("set_space_timeout", () => {
 	it("should set the sleep timeout for a space", async () => {
