@@ -19,7 +19,7 @@ jobs:
             const body = (pr.body || '').toLowerCase();
             const title = (pr.title || '').toLowerCase();
 
-            if (body.includes('kumquat') || title.includes('kumquat')) {
+            if (body.includes('kumquat') || title.includes('kumquat') || body.includes('generated with claude code')) {
 
               await github.rest.issues.addLabels({
                 ...context.repo,
