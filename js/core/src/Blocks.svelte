@@ -392,6 +392,7 @@
 	let footer_height = 0;
 
 	let root_container: HTMLElement;
+	let last_reported_height: number | null = null;
 
 	function get_root_node(container: HTMLElement | null): HTMLElement | null {
 		if (!container) return null;
@@ -402,7 +403,10 @@
 		if ("parentIFrame" in window) {
 			const box = root_container.children[0].getBoundingClientRect();
 			if (!box) return;
-			window.parentIFrame?.size(box.bottom + footer_height + 32);
+			const new_height = box.bottom + footer_height + 32;
+			if (new_height === last_reported_height) return;
+			last_reported_height = new_height;
+			window.parentIFrame?.size(new_height);
 		}
 	}
 
