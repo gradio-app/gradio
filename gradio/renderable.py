@@ -65,6 +65,15 @@ class Renderable:
         if blocks_config is None:
             raise ValueError("Reactive render must be inside a LocalContext.")
 
+        # Ensure Context.id is higher than any existing block ID in the session
+        # to prevent DuplicateBlockError in multi-page apps. When pages are
+        # merged, blocks from all pages share the same ID space, but Context.id
+        # may not reflect that (e.g. after a reload via `gradio app.py`).
+        if blocks_config.blocks:
+            max_existing_id = max(blocks_config.blocks.keys())
+            if Context.id <= max_existing_id:
+                Context.id = max_existing_id + 1
+
         fns_from_last_render: list[BlockFunction] = []
         for fn in blocks_config.fns.values():
             if fn.rendered_in is self:
