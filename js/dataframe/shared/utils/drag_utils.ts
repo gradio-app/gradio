@@ -64,9 +64,7 @@ export function create_drag_handlers(
 	};
 
 	const end_drag = (event: MouseEvent): void => {
-		if (!state.is_dragging && state.drag_start) {
-			handle_cell_click(event, state.drag_start[0], state.drag_start[1]);
-		} else if (state.is_dragging && parent_element) {
+		if (state.is_dragging && parent_element) {
 			parent_element.focus();
 		}
 
