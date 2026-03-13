@@ -400,6 +400,15 @@
 
 	function handle_resize(): void {
 		if ("parentIFrame" in window) {
+			// When fill_height is active and footer is absent, skip resizing
+			// the parent iframe. fill_height means "fill available space", so
+			// asking the parent to resize creates a feedback loop: resize →
+			// iframe grows → content grows → resize again → infinite.
+			// The footer normally acts as a stable height anchor that breaks
+			// this loop, but with footer_links=[] it's removed from the DOM.
+			// See: gradio-app/gradio#12992
+			if (fill_height && footer_height === 0) return;
+
 			const box = root_container.children[0].getBoundingClientRect();
 			if (!box) return;
 			window.parentIFrame?.size(box.bottom + footer_height + 32);
