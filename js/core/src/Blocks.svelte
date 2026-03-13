@@ -400,6 +400,7 @@
 
 	function handle_resize(): void {
 		if ("parentIFrame" in window) {
+			if (fill_height) return;
 			const box = root_container.children[0].getBoundingClientRect();
 			if (!box) return;
 			window.parentIFrame?.size(box.bottom + footer_height + 32);
