@@ -464,7 +464,12 @@
 	{/if}
 </svelte:head>
 
-<div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
+<div
+	class="wrap"
+	style:min-height={app_mode ? "100%" : "auto"}
+	style:max-height={app_mode && footer_links.length === 0 ? "100vh" : "none"}
+	style:overflow={app_mode && footer_links.length === 0 ? "auto" : "visible"}
+>
 	<main
 		class="contain"
 		style:flex-grow={app_mode ? "1" : "auto"}
