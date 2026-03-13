@@ -194,7 +194,6 @@
 <style>
 	.cell-menu {
 		position: fixed;
-		z-index: 9;
 		background: var(--background-fill-primary);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-sm);
@@ -204,7 +203,7 @@
 		gap: var(--size-1);
 		box-shadow: var(--shadow-drop-lg);
 		min-width: 150px;
-		z-index: var(--layer-1);
+		z-index: var(--layer-3);
 	}
 
 	.cell-menu button {
