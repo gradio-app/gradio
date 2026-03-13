@@ -303,6 +303,10 @@ theme = gr.themes.Default().set(
 
 `button_primary_border_dark` will draw its value from `button_primary_background_fill_dark`, because dark mode always draw from the dark version of the variable.
 
+## CSS Variables Reference
+
+For a full list of all available CSS variables, see the [CSS Variables Reference](/guides/css-variables-reference).
+
 ## Creating a Full Theme
 
 Let's say you want to create a theme from scratch! We'll go through it step by step - you can also see the source of prebuilt themes in the gradio source repo for reference - [here's the source](https://github.com/gradio-app/gradio/blob/main/gradio/themes/monochrome.py) for the Monochrome theme.
@@ -446,13 +450,13 @@ demo.launch(theme="gradio/seafoam@>=0.0.1,<0.1.0")
 
 ### Version Compatibility
 
-When you save a theme with `theme.dump()` or upload it with `theme.push_to_hub()`, the current Gradio version is automatically added. When someone loads a theme created with a different major version of Gradio, they'll see a warning:
+When you save a theme with `theme.dump()` or upload it with `theme.push_to_hub()`, the current Gradio version is automatically added. When someone loads a theme created with a different major or minor version of Gradio, they'll see a warning:
 
 ```
-UserWarning: This theme was created for Gradio 4.0.0, but you are using Gradio 5.0.0. Some styles may not work as expected.
+UserWarning: This theme was created for Gradio 5.0.0, but you are using Gradio 5.1.0. Some styles may not work as expected.
 ```
 
-This helps prevent unexpected styling issues when themes rely on CSS variables that may have changed between major Gradio versions.
+This helps prevent unexpected styling issues when themes rely on CSS variables that may have changed between Gradio versions. Patch version differences (e.g. 5.0.0 vs 5.0.1) will not trigger a warning.
 
 Enjoy creating your own themes! If you make one you're proud of, please share it with the world by uploading it to the hub!
 If you tag us on [Twitter](https://twitter.com/gradio) we can give your theme a shout out!
