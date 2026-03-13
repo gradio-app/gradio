@@ -5,6 +5,7 @@ export type DragState = {
 	is_dragging: boolean;
 	drag_start: CellCoordinate | null;
 	mouse_down_pos: { x: number; y: number } | null;
+	click_handled: boolean;
 };
 
 export type DragHandlers = {
@@ -39,13 +40,13 @@ export function create_drag_handlers(
 		event.preventDefault();
 		event.stopPropagation();
 
+		state.click_handled = false;
 		state.mouse_down_pos = { x: event.clientX, y: event.clientY };
 		state.drag_start = [row, col];
 
 		if (!event.shiftKey && !event.metaKey && !event.ctrlKey) {
 			set_selected_cells([[row, col]]);
 			set_selected([row, col]);
-			handle_cell_click(event, row, col);
 		}
 	};
 
@@ -64,16 +65,27 @@ export function create_drag_handlers(
 	};
 
 	const end_drag = (event: MouseEvent): void => {
-		if (!state.is_dragging && state.drag_start) {
-			handle_cell_click(event, state.drag_start[0], state.drag_start[1]);
-		} else if (state.is_dragging && parent_element) {
-			parent_element.focus();
-		}
+		const was_dragging = state.is_dragging;
+		const drag_coords = state.drag_start;
 
 		state.is_dragging = false;
 		set_is_dragging(false);
 		state.drag_start = null;
 		state.mouse_down_pos = null;
+
+		if (drag_coords && !state.click_handled) {
+			const cell = (event.target as HTMLElement).closest("td");
+			const end_row = cell ? parseInt(cell.getAttribute("data-row") || "-1") : -1;
+			const end_col = cell ? parseInt(cell.getAttribute("data-col") || "-1") : -1;
+			const same_cell =
+				end_row === drag_coords[0] && end_col === drag_coords[1];
+			if (!was_dragging || same_cell) {
+				state.click_handled = true;
+				handle_cell_click(event, drag_coords[0], drag_coords[1]);
+			} else if (parent_element) {
+				parent_element.focus();
+			}
+		}
 	};
 
 	return {
