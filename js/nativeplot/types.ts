@@ -25,6 +25,8 @@ export interface NativePlotProps {
 	y_lim: [number | null, number | null] | null;
 	x_label_angle: number | null;
 	y_label_angle: number | null;
+	x_axis_format: string | null;
+	y_axis_format: string | null;
 	x_axis_labels_visible: boolean;
 	caption: string | null;
 	sort: "x" | "y" | "-x" | "-y" | string[] | null;

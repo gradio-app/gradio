@@ -17,7 +17,7 @@
 	let upload_component: Upload;
 	let uploading = false;
 
-	function handle_upload({ detail }: CustomEvent<FileData>): void {
+	function handle_upload(detail: FileData): void {
 		value = detail;
 		dispatch("upload");
 	}
@@ -28,6 +28,7 @@
 		clear?: never;
 		drag: boolean;
 		upload?: never;
+		error: string;
 	}>();
 
 	let dragging = false;
@@ -54,8 +55,8 @@
 			bind:uploading
 			bind:dragging
 			filetype="image/*"
-			on:load={handle_upload}
-			on:error
+			onload={handle_upload}
+			onerror={(e) => dispatch("error", e)}
 			{root}
 		>
 			{#if value === null}

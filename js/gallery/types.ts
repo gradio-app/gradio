@@ -18,7 +18,7 @@ export interface GalleryProps {
 	file_types: string[] | null;
 	columns: number | number[] | undefined;
 	rows: number | number[] | undefined;
-	height: number | "auto";
+	height: number | string;
 	preview: boolean;
 	allow_preview: boolean;
 	selected_index: number | null;
@@ -26,6 +26,7 @@ export interface GalleryProps {
 	buttons: (string | CustomButton)[];
 	type: "numpy" | "pil" | "filepath";
 	fit_columns: boolean;
+	sources: ("upload" | "webcam-video" | "webcam" | "clipboard")[];
 }
 
 export interface GalleryEvents {
@@ -39,4 +40,5 @@ export interface GalleryEvents {
 	share: any;
 	error: any;
 	custom_button_click: { id: number };
+	warning: string;
 }

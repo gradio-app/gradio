@@ -1,5 +1,42 @@
 import { test, expect } from "@self/tootils";
 
+test("clicking cached example loads image and video correctly", async ({
+	page
+}) => {
+	// Click the first example row in the examples table
+	const example_row = page.locator("tr.tr-body").first();
+	await expect(example_row).toBeVisible();
+	await example_row.click();
+
+	// Verify the input image loaded successfully (populated via queue=False /run/ endpoint)
+	const input_image = page.locator(
+		'div.block:has(label:has-text("Image")) img'
+	);
+	await expect(input_image.first()).toHaveJSProperty("complete", true);
+	await expect(input_image.first()).not.toHaveJSProperty("naturalWidth", 0);
+
+	// Verify the output image loaded successfully (populated via queue)
+	const output_image = page.locator("#output-img img");
+	await expect(output_image).toHaveJSProperty("complete", true);
+	await expect(output_image).not.toHaveJSProperty("naturalWidth", 0);
+
+	// Verify the output video loaded successfully
+	const output_video = page.locator(
+		'div.block:has(label:has-text("Video")) video'
+	);
+	await expect(output_video.last()).toBeVisible();
+	const video_src = await output_video
+		.last()
+		.evaluate((el: HTMLVideoElement) => {
+			const source = el.querySelector("source");
+			return source?.src || el.src;
+		});
+	expect(video_src).toBeTruthy();
+	// Verify the video file URL returns 200 (not 404 from wrong root_url)
+	const response = await page.request.get(video_src);
+	expect(response.status()).toBe(200);
+});
+
 test.fixme("test inputs", async ({ page, browser }) => {
 	const context = await browser.newContext({
 		permissions: ["camera"]
@@ -65,6 +102,11 @@ test.fixme("test outputs", async ({ page }) => {
 	await expect(json).toContainText(
 		`{     "items": {     "item": [     "0": { Object(6) }    "id": "0001" ,   "type": null ,   "is_good": false ,   "ppu": 0.55 ,   "batters": { Object(1) } ,   "batter": [ Array(4) ]    "0": { Object(2) } ,   "id": "1001" ,   "type": "Regular"    } ,  "1": { Object(2) } ,   "id": "1002" ,   "type": "Chocolate"    } ,  "2": { Object(2) } ,   "id": "1003" ,   "type": "Blueberry"    } ,  "3": { Object(2) }    "id": "1004" ,   "type": "Devil's Food"    }   ]   } ,  "topping": [ Array(7) ]    "0": { Object(2) } ,   "id": "5001" ,   "type": "None"    } ,  "1": { Object(2) } ,   "id": "5002" ,   "type": "Glazed"    } ,  "2": { Object(2) } ,   "id": "5005" ,   "type": "Sugar"    } ,  "3": { Object(2) } ,   "id": "5007" ,   "type": "Powdered Sugar"    } ,  "4": { Object(2) } ,   "id": "5006" ,   "type": "Chocolate with Sprinkles"    } ,  "5": { Object(2) } ,   "id": "5003" ,   "type": "Chocolate"    } ,  "6": { Object(2) }    "id": "5004" ,   "type": "Maple"    }   ]   }   ]   }   } `
 	);
+
+	const lineNumbers = json.locator(".line-number");
+	const lineNumberCount = await lineNumbers.count();
+	const lastLineNumber = lineNumbers.nth(lineNumberCount - 1);
+	await expect(lastLineNumber).toHaveAttribute("data-pseudo-content", "62");
 
 	const image = page.locator("#output-img img");
 	const image_data = await image.getAttribute("src");

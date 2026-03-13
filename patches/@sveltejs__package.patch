@@ -15,17 +15,18 @@ index ca28b1ee1464eeb3f41af007b887a110ebee74e3..e4784a61683424a4b6b481c5bcec1ae9
  			// @ts-expect-error
  			if (config.package) {
 diff --git a/src/index.js b/src/index.js
-index fb540e7bae5125f481e6afc6aab8f8027d3d6303..d94f091f79299e9173c75a1a11e864f5db77b704 100644
+index b91aa92a2b9374ef1def61545690fc5304a40a3f..bc1311390223bac74caabbf26d022f5ed3bbc1c1 100644
 --- a/src/index.js
 +++ b/src/index.js
-@@ -28,17 +28,36 @@ async function do_build(options, analyse_code) {
+@@ -35,13 +35,34 @@ async function do_build(options, analyse_code) {
  		throw new Error(`${path.relative('.', input)} does not exist`);
  	}
  
 -	rimraf(temp);
 -	mkdirp(temp);
--
+ 
 -	const files = scan(input, extensions);
++
 +	const tmp_input = path.join(input, 'tmp_input')
 +
 + 	rimraf(temp);
@@ -55,13 +56,17 @@ index fb540e7bae5125f481e6afc6aab8f8027d3d6303..d94f091f79299e9173c75a1a11e864f5
 +		await emit_dts(tmp_input, temp, output, options.cwd, alias, files, tsconfig);
  	}
  
- 	for (const file of files) {
--		await process_file(input, temp, file, options.config.preprocess, alias, tsconfig, analyse_code);
-+		await process_file(tmp_input, temp, file, options.config.preprocess, alias, tsconfig, analyse_code);
- 	}
+ 	/** @type {Map<string, import('typescript').CompilerOptions>} */
+@@ -49,7 +70,7 @@ async function do_build(options, analyse_code) {
  
- 	if (!options.preserve_output) {
-@@ -47,11 +66,14 @@ async function do_build(options, analyse_code) {
+ 	for (const file of files) {
+ 		await process_file(
+-			input,
++			tmp_input,
+ 			temp,
+ 			file,
+ 			options.config.preprocess,
+@@ -66,11 +87,13 @@ async function do_build(options, analyse_code) {
  
  	mkdirp(output);
  	copy(temp, output);
@@ -73,12 +78,11 @@ index fb540e7bae5125f481e6afc6aab8f8027d3d6303..d94f091f79299e9173c75a1a11e864f5
  			.bold()
 -			.green(`${path.relative(options.cwd, input)} -> ${path.relative(options.cwd, output)}`)
 +			.green(`${path.relative(path.join(options.cwd, "..", ".."), input)} -> ${path.relative(options.cwd, output)}`)
-+
  	);
  }
  
 diff --git a/src/typescript.js b/src/typescript.js
-index 81c0f348e6358349c6ac11196f66ce34e9a766f2..3a39726d82df844bb0bfd3c5b11ca0843c06c61a 100644
+index 1105f935aa9827e990bf3aa53a26c7f3193420ec..ed5ba71889064176b4c374552b2f75e02d4677ae 100644
 --- a/src/typescript.js
 +++ b/src/typescript.js
 @@ -22,6 +22,7 @@ import { load_pkg_json } from './config.js';

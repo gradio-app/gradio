@@ -53,6 +53,6 @@
 
 <IconButton
 	Icon={copied ? Check : Copy}
-	on:click={handle_copy}
+	onclick={handle_copy}
 	label={copied ? "Copied conversation" : "Copy conversation"}
-></IconButton>
+/>

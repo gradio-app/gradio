@@ -12,6 +12,7 @@ export interface HTMLProps {
 	props: Record<string, any>;
 	component_class_name: string;
 	buttons: (string | CustomButton)[] | null;
+	padding: boolean;
 }
 
 export interface HTMLEvents {
@@ -19,4 +20,6 @@ export interface HTMLEvents {
 	click: never;
 	submit: never;
 	custom_button_click: { id: number };
+	error: string;
+	clear_status: any;
 }

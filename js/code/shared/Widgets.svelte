@@ -4,10 +4,19 @@
 	import { IconButtonWrapper } from "@gradio/atoms";
 	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 
-	export let value: string;
-	export let language: string;
-	export let buttons: (string | CustomButtonType)[] | null = null;
-	export let on_custom_button_click: ((id: number) => void) | null = null;
+	interface Props {
+		value: string;
+		language: string;
+		buttons?: (string | CustomButtonType)[] | null;
+		on_custom_button_click?: ((id: number) => void) | null;
+	}
+
+	let {
+		value,
+		language,
+		buttons = null,
+		on_custom_button_click = null
+	}: Props = $props();
 </script>
 
 <IconButtonWrapper {buttons} {on_custom_button_click}>

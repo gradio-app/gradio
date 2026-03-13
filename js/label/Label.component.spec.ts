@@ -90,43 +90,43 @@ test("gr.Label confidence bars not rendered without confidences", async ({
 	expect(await component.getByTestId("Good-confidence-set").count()).toEqual(0);
 });
 
-test.fixme(
-	"gr.Label confidence bars trigger select event when clicked",
-	async ({ mount, page }) => {
-		const events = {
-			select: [0, null]
-		};
+test.fixme("gr.Label confidence bars trigger select event when clicked", async ({
+	mount,
+	page
+}) => {
+	const events = {
+		select: [0, null]
+	};
 
-		function event(name: "select", value: any) {
-			events[name] = [events[name][0]! + 1, value];
-		}
-
-		// Don't know how to mock dispatch events yet
-		const component = await mount(Label, {
-			props: {
-				props: {
-					value: {
-						label: "Good",
-						confidences: [
-							{ label: "Good", confidence: 0.9 },
-							{ label: "Bad", confidence: 0.1 }
-						]
-					},
-					__GRADIO_BROWSER_TEST__: true
-				},
-				shared_props: {
-					label: "My Label",
-					show_label: true,
-					loading_status: loading_status
-				}
-			}
-		});
-		await expect(component.getByTestId("block-info")).toContainText("My Label");
-		await component.getByTestId("Bad-confidence-set").click();
-		expect(events.select[0]).toEqual(1);
-		expect(events.select[1]).toEqual({ index: 1, value: "Bad" });
+	function event(name: "select", value: any) {
+		events[name] = [events[name][0]! + 1, value];
 	}
-);
+
+	// Don't know how to mock dispatch events yet
+	const component = await mount(Label, {
+		props: {
+			props: {
+				value: {
+					label: "Good",
+					confidences: [
+						{ label: "Good", confidence: 0.9 },
+						{ label: "Bad", confidence: 0.1 }
+					]
+				},
+				__GRADIO_BROWSER_TEST__: true
+			},
+			shared_props: {
+				label: "My Label",
+				show_label: true,
+				loading_status: loading_status
+			}
+		}
+	});
+	await expect(component.getByTestId("block-info")).toContainText("My Label");
+	await component.getByTestId("Bad-confidence-set").click();
+	expect(events.select[0]).toEqual(1);
+	expect(events.select[1]).toEqual({ index: 1, value: "Bad" });
+});
 
 test.fixme("gr.Label triggers change event", async ({ mount, page }) => {
 	const events = {

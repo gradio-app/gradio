@@ -58,7 +58,7 @@
 </script>
 
 <IconButton
-	on:click={handle_copy}
+	onclick={handle_copy}
 	label={copied ? i18n("chatbot.copied_message") : i18n("chatbot.copy_message")}
 	Icon={copied ? Check : Copy}
 />

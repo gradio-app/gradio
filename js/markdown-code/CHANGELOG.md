@@ -1,4 +1,13 @@
 # @gradio/markdown-code
+
+## 0.6.1
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12771](https://github.com/gradio-app/gradio/pull/12771) [`404f6a5`](https://github.com/gradio-app/gradio/commit/404f6a55be4cd0c1ece4af6edb8a7769473fb650) - Migrate Markdown components to svelte 5.  Thanks @freddyaboulton!
+- [#12777](https://github.com/gradio-app/gradio/pull/12777) [`65f94fb`](https://github.com/gradio-app/gradio/commit/65f94fbff75dffe5399c9663745106e959866a3f) - Fix markdown migration.  Thanks @aliabid94!
+
 ## 0.6.0
 
 ### Features

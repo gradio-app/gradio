@@ -1,5 +1,43 @@
 # @gradio/downloadbutton
 
+## 0.4.18
+
+### Dependency updates
+
+- @gradio/button@0.6.5
+- @gradio/utils@0.12.0
+
+## 0.4.17
+
+### Dependency updates
+
+- @gradio/client@2.1.0
+- @gradio/button@0.6.4
+
+## 0.4.17
+
+### Dependency updates
+
+- @gradio/utils@0.11.3
+
+## 0.4.17
+
+### Dependency updates
+
+- @gradio/client@2.0.4
+
+## 0.4.17
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/button@0.6.3
+- @gradio/utils@0.11.2
+- @gradio/client@2.0.3
+
 ## 0.4.16
 
 ### Fixes

@@ -1,5 +1,152 @@
 # @gradio/core
 
+## 1.4.0
+
+### Features
+
+- [#12879](https://github.com/gradio-app/gradio/pull/12879) [`c498688`](https://github.com/gradio-app/gradio/commit/c4986883b267570d76b442899c6fc09d14e3e222) - Ensure svelte version mismatches do not break custom components.  Thanks @pngwn!
+
+### Fixes
+
+- [#12970](https://github.com/gradio-app/gradio/pull/12970) [`7326ea3`](https://github.com/gradio-app/gradio/commit/7326ea312bee7ccdaf4a1e4e11ace8f11b607ca5) - remove new console logs.  Thanks @hannahblair!
+- [#12968](https://github.com/gradio-app/gradio/pull/12968) [`fe95534`](https://github.com/gradio-app/gradio/commit/fe955348f24115744015d85639e170b8518b28c1) - Fix custom component reload mode.  Thanks @freddyaboulton!
+- [#12956](https://github.com/gradio-app/gradio/pull/12956) [`e8dadd6`](https://github.com/gradio-app/gradio/commit/e8dadd648483b6016913a9b7fa2580dbc08cb823) - Fix fill_height not working after Svelte 5 migration.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/button@0.6.5
+- @gradio/code@0.17.4
+- @gradio/html@0.11.1
+- @gradio/paramviewer@0.9.5
+- @gradio/statustracker@0.12.5
+- @gradio/tabitem@0.6.6
+- @gradio/tabs@0.5.8
+- @gradio/utils@0.12.0
+- @gradio/column@0.3.2
+- @gradio/atoms@0.22.2
+- @gradio/upload@0.17.7
+- @gradio/image@0.25.4
+- @gradio/gallery@0.17.3
+- @gradio/plot@0.10.5
+- @gradio/checkbox@0.6.4
+- @gradio/textbox@0.13.5
+- @gradio/dropdown@0.11.5
+- @gradio/file@0.14.4
+- @gradio/video@0.20.4
+- @gradio/audio@0.22.4
+
+## 1.3.0
+
+### Dependency updates
+
+- @gradio/html@0.11.0
+
+## 1.3.0
+
+### Features
+
+- [#12918](https://github.com/gradio-app/gradio/pull/12918) [`e29e1cc`](https://github.com/gradio-app/gradio/commit/e29e1ccd5874cb98b813ed4f7f72d9fef2935016) - Add Space-specific skill generation to `gradio skills add`.  Thanks @abidlabs!
+- [#12929](https://github.com/gradio-app/gradio/pull/12929) [`978bc6e`](https://github.com/gradio-app/gradio/commit/978bc6ea5094aa11e10994cdd662c4c663a86a83) - Add server functions support to gr.HTML.  Thanks @aliabid94!
+- [#12907](https://github.com/gradio-app/gradio/pull/12907) [`3e625a0`](https://github.com/gradio-app/gradio/commit/3e625a0ecfab6e74b7561b68adbe55341ecbc47a) - Better error handling when connection to server is lost.  Thanks @abidlabs!
+
+### Fixes
+
+- [#12904](https://github.com/gradio-app/gradio/pull/12904) [`7c3fa2a`](https://github.com/gradio-app/gradio/commit/7c3fa2a6900cfa3c87cb61ffa9b34b75d1ae49ba) - Fix Loading Spinner Issue Caused by Events Targeting Components In Inactive Tabs.  Thanks @freddyaboulton!
+- [#12903](https://github.com/gradio-app/gradio/pull/12903) [`57707c7`](https://github.com/gradio-app/gradio/commit/57707c72edd0e9fee9821882f75ab322ce110fe3) - Fix Tab i18n issue.  Thanks @freddyaboulton!
+- [#12906](https://github.com/gradio-app/gradio/pull/12906) [`81482b5`](https://github.com/gradio-app/gradio/commit/81482b58706ee9948d0f04e84e632ebb8d4bf7ea) - Lazy load sub-tab and accordion components.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/client@2.1.0
+- @gradio/button@0.6.4
+- @gradio/html@0.10.0
+- @gradio/tabs@0.5.7
+
+## 1.2.0
+
+### Features
+
+- [#12839](https://github.com/gradio-app/gradio/pull/12839) [`1c671b3`](https://github.com/gradio-app/gradio/commit/1c671b39830ccf1c87f6cfcb4669e97dfb3a7367) - Hide forms with no elements.  Thanks @aliabid94!
+
+### Fixes
+
+- [#12875](https://github.com/gradio-app/gradio/pull/12875) [`d0b3422`](https://github.com/gradio-app/gradio/commit/d0b34228d756334d901fc34971959ea422eb55bd) - Fix stop button not switching back to submit button in chat interface.  Thanks @freddyaboulton!
+- [#12797](https://github.com/gradio-app/gradio/pull/12797) [`6a0c6ea`](https://github.com/gradio-app/gradio/commit/6a0c6eae53931ec137c0b8379428acc8a7ea27c9) - Refactor translation logic.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/utils@0.11.3
+- @gradio/atoms@0.22.0
+- @gradio/statustracker@0.12.4
+- @gradio/tabs@0.5.6
+- @gradio/code@0.17.3
+- @gradio/paramviewer@0.9.4
+- @gradio/upload@0.17.6
+- @gradio/video@0.20.3
+- @gradio/file@0.14.3
+- @gradio/image@0.25.3
+- @gradio/gallery@0.17.1
+- @gradio/plot@0.10.4
+- @gradio/checkbox@0.6.3
+- @gradio/textbox@0.13.4
+- @gradio/dropdown@0.11.4
+- @gradio/audio@0.22.3
+
+## 1.1.3
+
+### Fixes
+
+- [#12817](https://github.com/gradio-app/gradio/pull/12817) [`05acc66`](https://github.com/gradio-app/gradio/commit/05acc6627de866db6a742e0540c2733041d76a86) - Fix Login.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.21.0
+- @gradio/client@2.0.4
+- @gradio/statustracker@0.12.3
+- @gradio/file@0.14.2
+- @gradio/image@0.25.2
+- @gradio/upload@0.17.5
+- @gradio/video@0.20.2
+- @gradio/textbox@0.13.3
+- @gradio/checkbox@0.6.2
+- @gradio/audio@0.22.2
+- @gradio/gallery@0.17.0
+- @gradio/plot@0.10.3
+- @gradio/dropdown@0.11.3
+
+## 1.1.2
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+- [#12757](https://github.com/gradio-app/gradio/pull/12757) [`6d9c2d7`](https://github.com/gradio-app/gradio/commit/6d9c2d7d81e4b0936c15fac2eae9e7640ab22777) - Migrate Textbox to Svelte 5.  Thanks @dawoodkhan82!
+- [#12607](https://github.com/gradio-app/gradio/pull/12607) [`299728b`](https://github.com/gradio-app/gradio/commit/299728b707c88e7afbc6a60f1f266a9013fa424d) - fix: add ARIA landmarks for accessibility.  Thanks @majiayu000!
+
+### Dependency updates
+
+- @gradio/button@0.6.3
+- @gradio/code@0.17.1
+- @gradio/paramviewer@0.9.2
+- @gradio/statustracker@0.12.2
+- @gradio/tabitem@0.6.5
+- @gradio/tabs@0.5.5
+- @gradio/atoms@0.20.1
+- @gradio/column@0.3.2
+- @gradio/utils@0.11.2
+- @gradio/icons@0.15.1
+- @gradio/upload@0.17.4
+- @gradio/client@2.0.3
+- @gradio/image@0.25.1
+- @gradio/gallery@0.16.2
+- @gradio/plot@0.10.2
+- @gradio/theme@0.6.1
+- @gradio/textbox@0.13.2
+- @gradio/dropdown@0.11.2
+- @gradio/checkbox@0.6.1
+- @gradio/file@0.14.1
+- @gradio/video@0.20.1
+- @gradio/audio@0.22.1
+
 ## 1.1.1
 
 ### Features

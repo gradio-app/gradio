@@ -13,6 +13,7 @@ import httpx
 import yaml
 from gradio_client.utils import encode_url_or_file_to_base64
 from huggingface_hub import HfApi, ImageClassificationOutputElement, InferenceClient
+from huggingface_hub.errors import HFValidationError
 
 from gradio import components
 from gradio.exceptions import Error, TooManyRequestsError
@@ -21,8 +22,14 @@ from gradio.exceptions import Error, TooManyRequestsError
 def get_model_info(model_name, token=None):
     hf_api = HfApi(token=token)
     print(f"Fetching model from: https://huggingface.co/{model_name}")
-
-    model_info = hf_api.model_info(model_name)
+    try:
+        model_info = hf_api.model_info(model_name)
+    except HFValidationError as e:
+        if ":fastest" in model_name or ":cheapest" in model_name:
+            raise ValueError(
+                "To use :cheapest or :fastest, upgrade huggingface_hub to huggingface_hub>=1.0"
+            ) from e
+        raise
     pipeline = model_info.pipeline_tag
     tags = model_info.tags
     return pipeline, tags
@@ -319,8 +326,13 @@ def handle_hf_error(e: Exception):
         raise TooManyRequestsError() from e
     elif "401" in str(e) or "You must provide an api_key" in str(e):
         raise Error("Unauthorized, please make sure you are signed in.") from e
+    elif isinstance(e, StopIteration):
+        raise Error(
+            "This model is not supported by any Hugging Face Inference Provider. "
+            "Please check the supported models at https://huggingface.co/docs/inference-providers."
+        ) from e
     else:
-        raise Error(str(e)) from e
+        raise Error(str(e) or f"An error occurred: {type(e).__name__}") from e
 
 
 def create_endpoint_fn(

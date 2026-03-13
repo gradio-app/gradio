@@ -1,7 +1,11 @@
 <script lang="ts">
-	export let value: string[] | string | null;
-	export let type: "gallery" | "table";
-	export let selected = false;
+	interface Props {
+		value: string[] | string | null;
+		type: "gallery" | "table";
+		selected?: boolean;
+	}
+
+	let { value, type, selected = false }: Props = $props();
 </script>
 
 <ul

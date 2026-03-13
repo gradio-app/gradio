@@ -30,7 +30,7 @@
 				"assumeIsSvelteProject": false // if true, skip detection and always assume it's a Svelte project
 			}
 		],
-		"types": ["vite/client"],
+		"types": ["vite/client", "@testing-library/jest-dom"],
 		"customConditions": ["gradio"],
 		"target": "es2022"
 	},

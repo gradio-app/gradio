@@ -1,25 +1,47 @@
 <script lang="ts">
-	import { type Component } from "svelte";
-	export let Icon: Component;
-	export let label = "";
-	export let show_label = false;
-	export let pending = false;
-	export let size: "x-small" | "small" | "large" | "medium" = "small";
-	export let padded = true;
-	export let highlight = false;
-	export let disabled = false;
-	export let hasPopup = false;
-	export let color = "var(--block-label-text-color)";
-	export let transparent = false;
-	export let background = "var(--block-background-fill)";
-	export let border = "transparent";
-	$: _color = highlight ? "var(--color-accent)" : color;
+	import { type Component, type Snippet } from "svelte";
+
+	let {
+		Icon,
+		label = "",
+		show_label = false,
+		pending = false,
+		size = "small",
+		padded = true,
+		highlight = false,
+		disabled = false,
+		hasPopup = false,
+		color = "var(--block-label-text-color)",
+		transparent = false,
+		background = "var(--block-background-fill)",
+		border = "transparent",
+		onclick,
+		children
+	}: {
+		Icon: Component;
+		label?: string;
+		show_label?: boolean;
+		pending?: boolean;
+		size?: "x-small" | "small" | "large" | "medium";
+		padded?: boolean;
+		highlight?: boolean;
+		disabled?: boolean;
+		hasPopup?: boolean;
+		color?: string;
+		transparent?: boolean;
+		background?: string;
+		border?: string;
+		onclick?: (event: MouseEvent) => void;
+		children?: Snippet;
+	} = $props();
+
+	let _color = $derived(highlight ? "var(--color-accent)" : color);
 </script>
 
 <button
 	class="icon-button"
 	{disabled}
-	on:click
+	{onclick}
 	aria-label={label}
 	aria-haspopup={hasPopup}
 	title={label}
@@ -38,8 +60,8 @@
 		class:large={size === "large"}
 		class:medium={size === "medium"}
 	>
-		<svelte:component this={Icon} />
-		<slot />
+		<Icon />
+		{#if children}{@render children()}{/if}
 	</div>
 </button>
 

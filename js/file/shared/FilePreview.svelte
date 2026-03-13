@@ -1,24 +1,33 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/client";
 	import { prettyBytes } from "./utils";
-	import { createEventDispatcher } from "svelte";
 	import type { I18nFormatter, SelectData } from "@gradio/utils";
 	import { DownloadLink } from "@gradio/atoms";
 
-	const dispatch = createEventDispatcher<{
-		select: SelectData;
-		change: FileData[] | FileData;
-		delete: FileData;
-		download: FileData;
-	}>();
-	export let value: FileData | FileData[];
-	export let selectable = false;
-	export let height: number | string | undefined = undefined;
-	export let i18n: I18nFormatter;
-	export let allow_reordering = false;
+	let {
+		value,
+		selectable = false,
+		height = undefined,
+		i18n,
+		allow_reordering = false,
+		onselect,
+		onchange,
+		ondelete,
+		ondownload
+	}: {
+		value: FileData | FileData[];
+		selectable?: boolean;
+		height?: number | string | undefined;
+		i18n: I18nFormatter;
+		allow_reordering?: boolean;
+		onselect?: (event_data: SelectData) => void;
+		onchange?: (event_data: FileData[] | FileData) => void;
+		ondelete?: (event_data: FileData) => void;
+		ondownload?: (event_data: FileData) => void;
+	} = $props();
 
-	let dragging_index: number | null = null;
-	let drop_target_index: number | null = null;
+	let dragging_index: number | null = $state(null);
+	let drop_target_index: number | null = $state(null);
 
 	function handle_drag_start(event: DragEvent, index: number): void {
 		dragging_index = index;
@@ -68,7 +77,7 @@
 		);
 
 		const new_value = Array.isArray(value) ? files : files[0];
-		dispatch("change", new_value);
+		onchange?.(new_value);
 
 		dragging_index = null;
 		drop_target_index = null;
@@ -82,14 +91,18 @@
 		return [filename.slice(0, last_dot), filename.slice(last_dot)];
 	}
 
-	$: normalized_files = (Array.isArray(value) ? value : [value]).map((file) => {
-		const [filename_stem, filename_ext] = split_filename(file.orig_name ?? "");
-		return {
-			...file,
-			filename_stem,
-			filename_ext
-		};
-	});
+	let normalized_files = $derived(
+		(Array.isArray(value) ? value : [value]).map((file) => {
+			const [filename_stem, filename_ext] = split_filename(
+				file.orig_name ?? ""
+			);
+			return {
+				...file,
+				filename_stem,
+				filename_ext
+			};
+		})
+	);
 
 	function handle_row_click(
 		event: MouseEvent & { currentTarget: HTMLTableRowElement },
@@ -103,20 +116,21 @@
 				event.composedPath().includes(tr.firstElementChild)); // Or if the click is on the name column
 
 		if (should_select) {
-			dispatch("select", { value: normalized_files[index].orig_name, index });
+			onselect?.({ value: normalized_files[index].orig_name, index });
 		}
 	}
 
 	function remove_file(index: number): void {
-		const removed = normalized_files.splice(index, 1);
-		normalized_files = [...normalized_files];
-		value = normalized_files;
-		dispatch("delete", removed[0]);
-		dispatch("change", normalized_files);
+		const files = Array.isArray(value) ? [...value] : [value];
+		const removed = files.splice(index, 1);
+		const new_value = Array.isArray(value) ? files : files[0];
+		value = new_value;
+		ondelete?.(removed[0]);
+		onchange?.(new_value);
 	}
 
 	function handle_download(file: FileData): void {
-		dispatch("download", file);
+		ondownload?.(file);
 	}
 
 	const is_browser = typeof window !== "undefined";
@@ -147,14 +161,14 @@
 							? "after"
 							: "before"}
 					draggable={allow_reordering && normalized_files.length > 1}
-					on:click={(event) => {
+					onclick={(event) => {
 						handle_row_click(event, i);
 					}}
-					on:dragstart={(event) => handle_drag_start(event, i)}
-					on:dragenter|preventDefault
-					on:dragover={(event) => handle_drag_over(event, i)}
-					on:drop={(event) => handle_drop(event, i)}
-					on:dragend={handle_drag_end}
+					ondragstart={(event) => handle_drag_start(event, i)}
+					ondragenter={(event) => event.preventDefault()}
+					ondragover={(event) => handle_drag_over(event, i)}
+					ondrop={(event) => handle_drop(event, i)}
+					ondragend={handle_drag_end}
 				>
 					<td class="filename" aria-label={file.orig_name}>
 						{#if allow_reordering && normalized_files.length > 1}
@@ -187,10 +201,10 @@
 							<button
 								class="label-clear-button"
 								aria-label="Remove this file"
-								on:click={() => {
+								onclick={() => {
 									remove_file(i);
 								}}
-								on:keydown={(event) => {
+								onkeydown={(event) => {
 									if (event.key === "Enter") {
 										remove_file(i);
 									}

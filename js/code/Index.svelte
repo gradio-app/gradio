@@ -88,9 +88,9 @@
 			show_line_numbers={gradio.props.show_line_numbers}
 			autocomplete={gradio.props.autocomplete}
 			readonly={!gradio.shared.interactive}
-			on:blur={() => gradio.dispatch("blur")}
-			on:focus={() => gradio.dispatch("focus")}
-			on:input={() => gradio.dispatch("input")}
+			onblur={() => gradio.dispatch("blur")}
+			onfocus={() => gradio.dispatch("focus")}
+			oninput={() => gradio.dispatch("input")}
 		/>
 	{/if}
 </Block>

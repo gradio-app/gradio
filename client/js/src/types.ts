@@ -330,6 +330,7 @@ export interface ClientOptions {
 	headers?: Record<string, string> | Headers;
 	query_params?: Record<string, string>;
 	session_hash?: string;
+	cookies?: string;
 }
 
 export interface FileData {

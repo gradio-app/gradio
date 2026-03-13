@@ -20,13 +20,20 @@
 	let props = $props();
 	const gradio = new Gradio<NativePlotEvents, NativePlotProps>(props);
 
-	let unique_colors = $derived(
-		gradio.props.color &&
-			gradio.props.value &&
-			gradio.props.value.datatypes[gradio.props.color] === "nominal"
-			? Array.from(new Set(_data.map((d) => d[gradio.props.color!])))
-			: []
-	);
+	let unique_colors = $derived.by(() => {
+		if (
+			!gradio.props.color ||
+			!gradio.props.value ||
+			gradio.props.value.datatypes[gradio.props.color] !== "nominal"
+		) {
+			return [];
+		}
+		const color_index = gradio.props.value.columns.indexOf(gradio.props.color);
+		if (color_index === -1) return [];
+		return Array.from(
+			new Set(gradio.props.value.data.map((row) => row[color_index]))
+		);
+	});
 
 	let x_lim = $derived(gradio.props.x_lim || null); // for some unknown reason, x_lim was getting set to undefined when used in re-render, so this line is needed
 	let y_lim = $derived(gradio.props.y_lim || null);
@@ -610,7 +617,10 @@
 									labelAngle: gradio.props.x_label_angle
 								}),
 								labels: gradio.props.x_axis_labels_visible,
-								ticks: gradio.props.x_axis_labels_visible
+								ticks: gradio.props.x_axis_labels_visible,
+								...(gradio.props.x_axis_format !== null && {
+									format: gradio.props.x_axis_format
+								})
 							},
 							field: escape_field_name(gradio.props.x),
 							title: gradio.props.x_title || gradio.props.x,
@@ -624,9 +634,14 @@
 							sort: _sort
 						},
 						y: {
-							axis: gradio.props.y_label_angle
-								? { labelAngle: gradio.props.y_label_angle }
-								: {},
+							axis: {
+								...(gradio.props.y_label_angle && {
+									labelAngle: gradio.props.y_label_angle
+								}),
+								...(gradio.props.y_axis_format !== null && {
+									format: gradio.props.y_axis_format
+								})
+							},
 							field: escape_field_name(gradio.props.y),
 							title: gradio.props.y_title || gradio.props.y,
 							type: gradio.props.value!.datatypes[gradio.props.y],
@@ -799,7 +814,7 @@
 			}}
 		>
 			{#if gradio.props.buttons?.some((btn) => typeof btn === "string" && btn === "export")}
-				<IconButton Icon={Download} label="Export" on:click={export_chart} />
+				<IconButton Icon={Download} label="Export" onclick={export_chart} />
 			{/if}
 			{#if gradio.props.buttons?.some((btn) => typeof btn === "string" && btn === "fullscreen")}
 				<FullscreenButton

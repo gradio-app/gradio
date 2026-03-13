@@ -250,7 +250,7 @@
 		{#if show_share_button}
 			<IconButton
 				Icon={Community}
-				on:click={async () => {
+				onclick={async () => {
 					try {
 						// @ts-ignore
 						const formatted = await format_chat_for_sharing(value);
@@ -267,9 +267,9 @@
 		{/if}
 		<IconButton
 			Icon={Trash}
-			on:click={() => dispatch("clear")}
+			onclick={() => dispatch("clear")}
 			label={i18n("chatbot.clear")}
-		></IconButton>
+		/>
 		{#if show_copy_all_button}
 			<CopyAll {value} {watermark} />
 		{/if}
@@ -389,7 +389,7 @@
 			Icon={ScrollDownArrow}
 			label="Scroll down"
 			size="large"
-			on:click={scroll_to_bottom}
+			onclick={scroll_to_bottom}
 		/>
 	</div>
 {/if}

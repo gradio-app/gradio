@@ -7,9 +7,22 @@ import string
 from typing import Any
 
 from gradio_client.documentation import document
+from pydantic import BaseModel as PydanticBaseModel
 
 from gradio.components.base import Component
 from gradio.events import Events
+
+
+def _to_json_serializable(value: Any) -> Any:
+    """Convert a value to a JSON-serializable form.
+
+    Pydantic BaseModel instances are converted to dicts via model_dump(),
+    since they cannot be directly serialized by orjson and would otherwise
+    fall back to str() representation.
+    """
+    if isinstance(value, PydanticBaseModel):
+        return value.model_dump()
+    return value
 
 
 @document()
@@ -34,7 +47,7 @@ class BrowserState(Component):
             secret: the secret key to use for encryption. If None, a random key will be generated (recommended).
             render: should always be True, is included for consistency with other components.
         """
-        self.default_value = default_value
+        self.default_value = _to_json_serializable(default_value)
         self.secret = secret or "".join(
             secrets.choice(string.ascii_letters + string.digits) for _ in range(16)
         )
@@ -61,9 +74,9 @@ class BrowserState(Component):
         Parameters:
             value: Value to store in local storage
         Returns:
-            Passes value through unchanged
+            Passes value through unchanged, converting Pydantic models to dicts
         """
-        return value
+        return _to_json_serializable(value)
 
     def api_info(self) -> dict[str, Any]:
         return {"type": {}, "description": "any json-serializable value"}

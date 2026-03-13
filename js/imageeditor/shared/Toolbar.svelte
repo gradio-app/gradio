@@ -131,7 +131,7 @@
 				Icon={Image}
 				label="Image"
 				highlight={tool === "image"}
-				on:click={(e) => handle_tool_click(e, "image")}
+				onclick={(e) => handle_tool_click(e, "image")}
 				size="medium"
 				padded={false}
 				transparent={true}
@@ -141,7 +141,7 @@
 			<IconButton
 				Icon={Brush}
 				label="Brush"
-				on:click={(e) => handle_tool_click(e, "draw")}
+				onclick={(e) => handle_tool_click(e, "draw")}
 				highlight={tool === "draw"}
 				size="medium"
 				padded={false}
@@ -152,7 +152,7 @@
 			<IconButton
 				Icon={Erase}
 				label="Erase"
-				on:click={(e) => handle_tool_click(e, "erase")}
+				onclick={(e) => handle_tool_click(e, "erase")}
 				highlight={tool === "erase"}
 				size="medium"
 				padded={false}
@@ -172,7 +172,7 @@
 					<IconButton
 						Icon={Crop}
 						label="Crop"
-						on:click={(e) => handle_subtool_click(e, "crop")}
+						onclick={(e) => handle_subtool_click(e, "crop")}
 						highlight={subtool === "crop"}
 						size="medium"
 						padded={false}
@@ -184,7 +184,7 @@
 					<IconButton
 						Icon={Resize}
 						label="Resize"
-						on:click={(e) => handle_subtool_click(e, "size")}
+						onclick={(e) => handle_subtool_click(e, "size")}
 						highlight={subtool === "size"}
 						size="medium"
 						padded={false}
@@ -197,7 +197,7 @@
 					<IconButton
 						Icon={Upload}
 						label="Upload"
-						on:click={(e) => handle_subtool_click(e, "upload")}
+						onclick={(e) => handle_subtool_click(e, "upload")}
 						highlight={subtool === "upload"}
 						size="medium"
 						padded={false}
@@ -209,7 +209,7 @@
 					<IconButton
 						Icon={ImagePaste}
 						label="Paste"
-						on:click={(e) => handle_subtool_click(e, "paste")}
+						onclick={(e) => handle_subtool_click(e, "paste")}
 						highlight={subtool === "paste"}
 						size="large"
 						padded={false}
@@ -221,7 +221,7 @@
 					<IconButton
 						Icon={Webcam}
 						label="Webcam"
-						on:click={(e) => handle_subtool_click(e, "webcam")}
+						onclick={(e) => handle_subtool_click(e, "webcam")}
 						highlight={subtool === "webcam"}
 						size="medium"
 						padded={false}
@@ -237,7 +237,7 @@
 				Icon={ColorPickerSolid}
 				label="Color"
 				color={selected_color}
-				on:click={(e) => handle_subtool_click(e, "color")}
+				onclick={(e) => handle_subtool_click(e, "color")}
 				size="medium"
 				padded={false}
 				transparent={true}
@@ -246,7 +246,7 @@
 			<IconButton
 				Icon={Circle}
 				label="Brush Size"
-				on:click={(e) => handle_subtool_click(e, "size")}
+				onclick={(e) => handle_subtool_click(e, "size")}
 				highlight={subtool === "size"}
 				size="medium"
 				padded={false}
@@ -281,7 +281,7 @@
 			<IconButton
 				Icon={Circle}
 				label="Eraser Size"
-				on:click={(e) => handle_subtool_click(e, "size")}
+				onclick={(e) => handle_subtool_click(e, "size")}
 				highlight={subtool === "size"}
 				size="medium"
 				padded={false}

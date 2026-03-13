@@ -76,7 +76,7 @@
 							<IconButton
 								Icon={VisibilityOff}
 								size="small"
-								on:click={(e) => {
+								onclick={(e) => {
 									e.stopPropagation();
 									dispatch("toggle_layer_visibility", id);
 								}}
@@ -85,7 +85,7 @@
 							<IconButton
 								Icon={Visibility}
 								size="small"
-								on:click={(e) => {
+								onclick={(e) => {
 									e.stopPropagation();
 									dispatch("toggle_layer_visibility", id);
 								}}
@@ -100,7 +100,7 @@
 							<div>
 								{#if i > 0}
 									<IconButton
-										on:click={(e) => {
+										onclick={(e) => {
 											e.stopPropagation();
 											move_layer(id, "up");
 										}}
@@ -110,7 +110,7 @@
 								{/if}
 								{#if i < $layers.layers.length - 1}
 									<IconButton
-										on:click={(e) => {
+										onclick={(e) => {
 											e.stopPropagation();
 											move_layer(id, "down");
 										}}
@@ -120,7 +120,7 @@
 								{/if}
 								{#if $layers.layers.length > 1 && user_created}
 									<IconButton
-										on:click={(e) => {
+										onclick={(e) => {
 											e.stopPropagation();
 											delete_layer(id);
 										}}
@@ -137,7 +137,7 @@
 						<IconButton
 							Icon={Plus}
 							label="Add Layer"
-							on:click={(e) => {
+							onclick={(e) => {
 								e.stopPropagation();
 								new_layer();
 							}}

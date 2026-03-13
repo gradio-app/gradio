@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { tick } from "svelte";
+	import Self from "./JSONNode.svelte";
 
 	let {
 		value,
@@ -68,8 +69,13 @@
 	}
 
 	$effect(() => {
+		value;
+		collapsed;
+
 		if (is_root && root_element) {
-			updateLineNumbers();
+			tick().then(() => {
+				updateLineNumbers();
+			});
 		}
 	});
 </script>
@@ -134,7 +140,7 @@
 	{#if is_collapsible(value)}
 		<div class="children" class:hidden={collapsed}>
 			{#each child_nodes as [subKey, subVal], i}
-				<svelte:self
+				<Self
 					value={subVal}
 					depth={depth + 1}
 					is_last_item={i === child_nodes.length - 1}

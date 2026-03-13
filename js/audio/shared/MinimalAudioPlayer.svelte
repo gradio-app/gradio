@@ -4,18 +4,24 @@
 	import type { FileData } from "@gradio/client";
 	import { format_time } from "@gradio/utils";
 
-	export let value: FileData;
-	export let label: string;
-	export let loop = false;
+	let {
+		value,
+		label,
+		loop = false
+	}: {
+		value: FileData;
+		label: string;
+		loop?: boolean;
+	} = $props();
 
 	let container: HTMLDivElement;
 	let waveform: WaveSurfer | undefined;
-	let playing = false;
-	let duration = 0;
-	let currentTime = 0;
-	let waveform_ready = false;
+	let playing = $state(false);
+	let duration = $state(0);
+	let currentTime = $state(0);
+	let waveform_ready = $state(false);
 
-	$: resolved_src = value.url;
+	let resolved_src = $derived(value.url);
 
 	const create_waveform = async (): Promise<void> => {
 		if (!container || !resolved_src || waveform_ready) return;
@@ -92,7 +98,7 @@
 >
 	<button
 		class="play-btn"
-		on:click={togglePlay}
+		onclick={togglePlay}
 		aria-label={playing ? "Pause" : "Play"}
 	>
 		{#if playing}

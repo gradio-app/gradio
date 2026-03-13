@@ -19,7 +19,10 @@
 		formData.append("username", username);
 		formData.append("password", password);
 
-		let response = await fetch(root + "/login", {
+		// Use URL constructor to properly join paths and avoid double slashes
+		const login_url = new URL("login", root.endsWith("/") ? root : root + "/")
+			.href;
+		let response = await fetch(login_url, {
 			method: "POST",
 			body: formData
 		});

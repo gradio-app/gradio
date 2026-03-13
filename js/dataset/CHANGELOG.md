@@ -1,5 +1,56 @@
 # @gradio/dataset
 
+## 0.5.5
+
+### Dependency updates
+
+- @gradio/utils@0.12.0
+- @gradio/atoms@0.22.2
+- @gradio/upload@0.17.7
+- @gradio/textbox@0.13.5
+
+## 0.5.4
+
+### Dependency updates
+
+- @gradio/client@2.1.0
+
+## 0.5.4
+
+### Dependency updates
+
+- @gradio/utils@0.11.3
+- @gradio/atoms@0.22.0
+- @gradio/upload@0.17.6
+- @gradio/textbox@0.13.4
+
+## 0.5.3
+
+### Fixes
+
+- [#12818](https://github.com/gradio-app/gradio/pull/12818) [`6594c9c`](https://github.com/gradio-app/gradio/commit/6594c9c5b2829771f79dc04c6fafb6da72031b90) - Migrate Dataset to Svelte 5.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.21.0
+- @gradio/client@2.0.4
+- @gradio/upload@0.17.5
+- @gradio/textbox@0.13.3
+
+## 0.5.2
+
+### Fixes
+
+- [#12800](https://github.com/gradio-app/gradio/pull/12800) [`7a1c321`](https://github.com/gradio-app/gradio/commit/7a1c321b6546ba05a353488f5133e8262c4a8a39) - Bump svelte/kit for security reasons.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.20.1
+- @gradio/utils@0.11.2
+- @gradio/upload@0.17.4
+- @gradio/client@2.0.3
+- @gradio/textbox@0.13.2
+
 ## 0.5.1
 
 ### Dependency updates

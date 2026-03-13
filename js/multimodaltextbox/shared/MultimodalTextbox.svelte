@@ -1,13 +1,7 @@
 <script lang="ts">
-	import {
-		onMount,
-		beforeUpdate,
-		afterUpdate,
-		createEventDispatcher,
-		tick
-	} from "svelte";
+	import { tick } from "svelte";
 	import { text_area_resize, resize } from "../shared/utils";
-	import { BlockTitle } from "@gradio/atoms";
+	import { BlockTitle, ScrollFade } from "@gradio/atoms";
 	import { Upload } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
@@ -24,112 +18,170 @@
 		Microphone,
 		Check
 	} from "@gradio/icons";
-	import type { SelectData } from "@gradio/utils";
-	import { BaseInteractiveAudio as InteractiveAudio } from "@gradio/audio";
+	import { should_show_scroll_fade, type SelectData } from "@gradio/utils";
 	import {
 		MinimalAudioPlayer,
 		MinimalAudioRecorder
 	} from "@gradio/audio/shared";
 	import type { InputHTMLAttributes } from "./types";
 
-	export let value: { text: string; files: FileData[] } = {
-		text: "",
-		files: []
-	};
-
-	export let value_is_output = false;
-	export let lines = 1;
-	export let i18n: I18nFormatter;
-	export let placeholder = "";
-	export let disabled = false;
-	export let label: string;
-	export let info: string | undefined = undefined;
-	export let show_label = true;
-	export let max_lines: number;
-	export let submit_btn: string | boolean | null = null;
-	export let stop_btn: string | boolean | null = null;
-	export let rtl = false;
-	export let autofocus = false;
-	export let text_align: "left" | "right" | undefined = undefined;
-	export let autoscroll = true;
-	export let root: string;
-	export let file_types_string: string | null = null;
-	export let max_file_size: number | null = null;
-	export let upload: Client["upload"];
-	export let stream_handler: Client["stream"];
-	export let file_count: "single" | "multiple" | "directory" = "multiple";
-	export let max_plain_text_length = 1000;
-	export let waveform_settings: Record<string, any>;
-	export let waveform_options: WaveformOptions = {
-		show_recording_waveform: true
-	};
-	export let sources_string:
-		| "upload"
-		| "upload,microphone"
-		| "microphone"
-		| "microphone,upload" = "upload";
-	export let active_source: "microphone" | null = null;
-	export let html_attributes: InputHTMLAttributes | null = null;
-	export let upload_promise: Promise<any> | null = null;
+	let {
+		value = $bindable(),
+		value_is_output = false,
+		lines = 1,
+		i18n: _i18n,
+		placeholder = "",
+		disabled = false,
+		label,
+		info = undefined,
+		show_label = true,
+		max_lines,
+		submit_btn = null,
+		stop_btn = null,
+		rtl = false,
+		autofocus = false,
+		text_align = undefined,
+		autoscroll = true,
+		root,
+		file_types_string = null,
+		max_file_size = null,
+		upload,
+		stream_handler,
+		file_count = "multiple",
+		max_plain_text_length = 1000,
+		waveform_settings,
+		waveform_options: _waveform_options = { show_recording_waveform: true },
+		sources_string = "upload",
+		active_source = $bindable<"microphone" | null>(),
+		html_attributes = null,
+		upload_promise = $bindable<Promise<any> | null>(),
+		dragging = $bindable<boolean>(),
+		onchange,
+		onsubmit,
+		onstop,
+		onblur,
+		onselect,
+		oninput,
+		onfocus,
+		ondrag,
+		onupload,
+		onclear,
+		onload: _onload,
+		onerror,
+		onstop_recording
+	}: {
+		value?: { text: string; files: FileData[] };
+		value_is_output?: boolean;
+		lines?: number;
+		i18n: I18nFormatter;
+		placeholder?: string;
+		disabled?: boolean;
+		label: string;
+		info?: string | undefined;
+		show_label?: boolean;
+		max_lines: number;
+		submit_btn?: string | boolean | null;
+		stop_btn?: string | boolean | null;
+		rtl?: boolean;
+		autofocus?: boolean;
+		text_align?: "left" | "right" | undefined;
+		autoscroll?: boolean;
+		root: string;
+		file_types_string?: string | null;
+		max_file_size?: number | null;
+		upload: Client["upload"];
+		stream_handler: Client["stream"];
+		file_count?: "single" | "multiple" | "directory";
+		max_plain_text_length?: number;
+		waveform_settings: Record<string, any>;
+		waveform_options?: WaveformOptions;
+		sources_string?:
+			| "upload"
+			| "upload,microphone"
+			| "microphone"
+			| "microphone,upload";
+		active_source?: "microphone" | null;
+		html_attributes?: InputHTMLAttributes | null;
+		upload_promise?: Promise<any> | null;
+		dragging?: boolean;
+		onchange?: (value: { text: string; files: FileData[] }) => void;
+		onsubmit?: () => void;
+		onstop?: () => void;
+		onblur?: () => void;
+		onselect?: (data: SelectData) => void;
+		oninput?: () => void;
+		onfocus?: () => void;
+		ondrag?: (dragging: boolean) => void;
+		onupload?: (files: FileData[] | FileData) => void;
+		onclear?: () => void;
+		onload?: (files: FileData[] | FileData) => void;
+		onerror?: (error: string) => void;
+		onstop_recording?: () => void;
+	} = $props();
 
 	let upload_component: Upload;
 	let el: HTMLTextAreaElement | HTMLInputElement;
-	let can_scroll: boolean;
-	let previous_scroll_top = 0;
-	let user_has_scrolled_up = false;
-	export let dragging = false;
-	let uploading = false;
-	// value can be null in multimodalchatinterface when loading a deep link
-	let oldValue = value?.text ?? "";
-	let recording = false;
-
-	$: sources = sources_string
-		.split(",")
-		.map((s) => s.trim())
-		.filter((s) => s === "upload" || s === "microphone") as (
-		| "upload"
-		| "microphone"
-	)[];
-	$: file_types = file_types_string
-		? file_types_string.split(",").map((s) => s.trim())
-		: null;
-	$: dispatch("drag", dragging);
-	$: show_upload =
-		sources &&
-		sources.includes("upload") &&
-		!(file_count === "single" && value.files.length > 0);
-	let mic_audio: FileData | null = null;
-
+	let can_scroll = $state(false);
+	let previous_scroll_top = $state(0);
+	let user_has_scrolled_up = $state(false);
+	let show_fade = $state(false);
+	let uploading = $state(false);
+	let oldValue = $state(value?.text ?? "");
+	let recording = $state(false);
+	let mic_audio = $state<FileData | null>(null);
 	let full_container: HTMLDivElement;
 
-	$: if (oldValue !== value.text) {
-		dispatch("change", value);
-		oldValue = value.text;
+	let sources = $derived(
+		sources_string
+			.split(",")
+			.map((s) => s.trim())
+			.filter((s) => s === "upload" || s === "microphone") as (
+			| "upload"
+			| "microphone"
+		)[]
+	);
+
+	let file_types = $derived(
+		file_types_string ? file_types_string.split(",").map((s) => s.trim()) : null
+	);
+
+	let show_upload = $derived(
+		sources &&
+			sources.includes("upload") &&
+			!(file_count === "single" && value?.files?.length > 0)
+	);
+
+	function update_fade(): void {
+		show_fade = should_show_scroll_fade(el);
 	}
 
-	$: if (value === null) value = { text: "", files: [] };
-	$: (value, el && lines !== max_lines && resize(el, lines, max_lines));
+	$effect(() => {
+		if (el && value?.text !== undefined) {
+			tick().then(update_fade);
+		}
+	});
 
-	const dispatch = createEventDispatcher<{
-		change: typeof value;
-		submit: undefined;
-		stop: undefined;
-		blur: undefined;
-		select: SelectData;
-		input: undefined;
-		focus: undefined;
-		drag: boolean;
-		upload: FileData[] | FileData;
-		clear: undefined;
-		load: FileData[] | FileData;
-		error: string;
-		start_recording: undefined;
-		pause_recording: undefined;
-		stop_recording: undefined;
-	}>();
+	$effect(() => {
+		ondrag?.(dragging);
+	});
 
-	beforeUpdate(() => {
-		can_scroll = el && el.offsetHeight + el.scrollTop > el.scrollHeight - 100;
+	$effect(() => {
+		if (value && oldValue !== value.text) {
+			onchange?.(value);
+			oldValue = value.text;
+		}
+	});
+
+	$effect(() => {
+		if (el && lines !== max_lines) {
+			resize(el, lines, max_lines);
+		}
+	});
+
+	$effect.pre(() => {
+		if (el && el.offsetHeight + el.scrollTop > el.scrollHeight - 100) {
+			can_scroll = true;
+		}
 	});
 
 	const scroll = (): void => {
@@ -139,28 +191,24 @@
 	};
 
 	async function handle_change(): Promise<void> {
-		dispatch("change", value);
+		onchange?.(value);
 		if (!value_is_output) {
-			dispatch("input");
+			oninput?.();
 		}
 	}
 
-	onMount(() => {
-		if (autofocus && el !== null) {
+	$effect(() => {
+		value;
+		if (autofocus && el) {
 			el.focus();
 		}
 	});
 
-	const after_update = (): void => {
+	$effect(() => {
 		if (can_scroll && autoscroll) {
 			scroll();
 		}
-		if (autofocus && el) {
-			el.focus();
-		}
-	};
-
-	afterUpdate(after_update);
+	});
 
 	function handle_select(event: Event): void {
 		const target: HTMLTextAreaElement | HTMLInputElement = event.target as
@@ -171,14 +219,14 @@
 			target.selectionStart as number,
 			target.selectionEnd as number
 		];
-		dispatch("select", { value: text.substring(...index), index: index });
+		onselect?.({ value: text.substring(...index), index: index });
 	}
 
 	async function handle_keypress(e: KeyboardEvent): Promise<void> {
 		if (e.key === "Enter" && e.shiftKey && lines > 1) {
 			e.preventDefault();
 			await tick();
-			dispatch("submit");
+			onsubmit?.();
 		} else if (
 			e.key === "Enter" &&
 			!e.shiftKey &&
@@ -189,7 +237,7 @@
 			add_mic_audio_to_files();
 			active_source = null;
 			await tick();
-			dispatch("submit");
+			onsubmit?.();
 		}
 	}
 
@@ -206,11 +254,10 @@
 		if (user_has_scrolled_to_bottom) {
 			user_has_scrolled_up = false;
 		}
+		update_fade();
 	}
 
-	async function handle_upload({
-		detail
-	}: CustomEvent<FileData>): Promise<void> {
+	async function handle_upload(detail: FileData | FileData[]): Promise<void> {
 		handle_change();
 		if (Array.isArray(detail)) {
 			for (let file of detail) {
@@ -222,8 +269,8 @@
 			value = value;
 		}
 		await tick();
-		dispatch("change", value);
-		dispatch("upload", detail);
+		onchange?.(value);
+		onupload?.(detail);
 	}
 
 	function remove_thumbnail(event: MouseEvent, index: number): void {
@@ -238,7 +285,7 @@
 	}
 
 	function handle_stop(): void {
-		dispatch("stop");
+		onstop?.();
 	}
 
 	function add_mic_audio_to_files(): void {
@@ -246,14 +293,14 @@
 			value.files.push(mic_audio);
 			value = value;
 			mic_audio = null;
-			dispatch("change", value);
+			onchange?.(value);
 		}
 	}
 
 	function handle_submit(): void {
 		add_mic_audio_to_files();
 		active_source = null;
-		dispatch("submit");
+		onsubmit?.();
 	}
 
 	async function handle_paste(event: ClipboardEvent): Promise<void> {
@@ -319,8 +366,7 @@
 
 				const invalid_files = files.length - valid_files.length;
 				if (invalid_files > 0) {
-					dispatch(
-						"error",
+					onerror?.(
 						`${invalid_files} file(s) were rejected. Accepted formats: ${file_types.join(", ")}`
 					);
 				}
@@ -339,10 +385,10 @@
 	class="full-container"
 	class:dragging
 	bind:this={full_container}
-	on:dragenter={handle_dragenter}
-	on:dragleave={handle_dragleave}
-	on:dragover|preventDefault
-	on:drop={handle_drop}
+	ondragenter={handle_dragenter}
+	ondragleave={handle_dragleave}
+	ondragover={(e) => e.preventDefault()}
+	ondrop={handle_drop}
 	role="group"
 	aria-label="Multimedia input field"
 >
@@ -360,22 +406,18 @@
 							{root}
 							{max_file_size}
 							bind:upload_promise
-							on:change={({ detail }) => {
-								mic_audio = detail;
+							onchange={(audio_value) => {
+								mic_audio = audio_value;
 							}}
-							on:stop_recording={() => {
+							onstoprecording={() => {
 								recording = false;
-								dispatch("stop_recording");
+								onstop_recording?.();
 							}}
-							on:clear={() => {
+							onclear={() => {
 								active_source = null;
 								recording = false;
 								mic_audio = null;
-							}}
-							on:error={({ detail }) => {
-								active_source = null;
-								recording = false;
-								mic_audio = null;
+								onclear?.();
 							}}
 						/>
 					</div>
@@ -389,7 +431,7 @@
 						<div class="action-buttons">
 							<button
 								class="confirm-button"
-								on:click={() => {
+								onclick={() => {
 									add_mic_audio_to_files();
 									active_source = null;
 									recording = false;
@@ -400,7 +442,7 @@
 							</button>
 							<button
 								class="cancel-button"
-								on:click={() => {
+								onclick={() => {
 									active_source = null;
 									recording = false;
 									mic_audio = null;
@@ -418,7 +460,7 @@
 			<Upload
 				bind:upload_promise
 				bind:this={upload_component}
-				on:load={handle_upload}
+				onload={handle_upload}
 				{file_count}
 				filetype={file_types}
 				{root}
@@ -427,7 +469,7 @@
 				bind:uploading
 				show_progress={false}
 				disable_click={true}
-				on:error
+				{onerror}
 				hidden={true}
 				{upload}
 				{stream_handler}
@@ -436,9 +478,9 @@
 
 		<div
 			class="input-wrapper"
-			class:has-files={value.files.length > 0 || uploading}
+			class:has-files={(value?.files?.length ?? 0) > 0 || uploading}
 		>
-			{#if value.files.length > 0 || uploading}
+			{#if (value?.files?.length ?? 0) > 0 || uploading}
 				<div
 					class="thumbnails"
 					aria-label="Uploaded files"
@@ -449,13 +491,13 @@
 							data-testid="upload-button"
 							class="upload-button thumbnail-add"
 							{disabled}
-							on:click={handle_upload_click}
+							onclick={handle_upload_click}
 							aria-label="Upload a file"
 						>
 							<Paperclip />
 						</button>
 					{/if}
-					{#each value.files as file, index}
+					{#each value?.files ?? [] as file, index}
 						<span
 							class="thumbnail-wrapper"
 							role="listitem"
@@ -481,7 +523,7 @@
 								{/if}
 								<button
 									class="delete-button"
-									on:click={(event) => remove_thumbnail(event, index)}
+									onclick={(event) => remove_thumbnail(event, index)}
 									aria-label="Remove file"
 								>
 									<Clear />
@@ -496,46 +538,49 @@
 			{/if}
 
 			<div class="input-row">
-				{#if show_upload && value.files.length === 0 && !uploading}
+				{#if show_upload && (value?.files?.length ?? 0) === 0 && !uploading}
 					<button
 						data-testid="upload-button"
 						class="upload-button icon-button"
 						{disabled}
-						on:click={handle_upload_click}
+						onclick={handle_upload_click}
 						aria-label="Upload a file"
 					>
 						<Paperclip />
 					</button>
 				{/if}
-				<textarea
-					data-testid="textbox"
-					use:text_area_resize={{
-						text: value.text,
-						lines: lines,
-						max_lines: max_lines
-					}}
-					class:no-label={!show_label}
-					dir={rtl ? "rtl" : "ltr"}
-					bind:value={value.text}
-					bind:this={el}
-					{placeholder}
-					rows={lines}
-					{disabled}
-					on:keypress={handle_keypress}
-					on:blur
-					on:select={handle_select}
-					on:focus
-					on:scroll={handle_scroll}
-					on:paste={handle_paste}
-					style={text_align ? "text-align: " + text_align : ""}
-					autocapitalize={html_attributes?.autocapitalize}
-					autocorrect={html_attributes?.autocorrect}
-					spellcheck={html_attributes?.spellcheck}
-					autocomplete={html_attributes?.autocomplete}
-					tabindex={html_attributes?.tabindex}
-					enterkeyhint={html_attributes?.enterkeyhint}
-					lang={html_attributes?.lang}
-				/>
+				<div class="textarea-wrapper">
+					<textarea
+						data-testid="textbox"
+						use:text_area_resize={{
+							text: value.text,
+							lines: lines,
+							max_lines: max_lines
+						}}
+						class:no-label={!show_label}
+						dir={rtl ? "rtl" : "ltr"}
+						bind:value={value.text}
+						bind:this={el}
+						{placeholder}
+						rows={lines}
+						{disabled}
+						onkeypress={handle_keypress}
+						onblur={() => onblur?.()}
+						onselect={handle_select}
+						onfocus={() => onfocus?.()}
+						onscroll={handle_scroll}
+						onpaste={handle_paste}
+						style={text_align ? "text-align: " + text_align : ""}
+						autocapitalize={html_attributes?.autocapitalize}
+						autocorrect={html_attributes?.autocorrect}
+						spellcheck={html_attributes?.spellcheck}
+						autocomplete={html_attributes?.autocomplete}
+						tabindex={html_attributes?.tabindex}
+						enterkeyhint={html_attributes?.enterkeyhint}
+						lang={html_attributes?.lang}
+					/>
+					<ScrollFade visible={show_fade} position="absolute" />
+				</div>
 
 				{#if sources && sources.includes("microphone")}
 					<button
@@ -543,7 +588,7 @@
 						class="microphone-button"
 						class:recording
 						{disabled}
-						on:click={async () => {
+						onclick={async () => {
 							if (active_source !== "microphone") {
 								active_source = "microphone";
 								await tick();
@@ -565,7 +610,7 @@
 						data-testid="submit-button"
 						class:padded-button={submit_btn !== true}
 						{disabled}
-						on:click={handle_submit}
+						onclick={handle_submit}
 						aria-label="Submit"
 					>
 						{#if submit_btn === true}
@@ -579,7 +624,7 @@
 					<button
 						class="stop-button"
 						class:padded-button={stop_btn !== true}
-						on:click={handle_stop}
+						onclick={handle_stop}
 						aria-label="Stop"
 					>
 						{#if stop_btn === true}
@@ -1012,5 +1057,14 @@
 		.thumbnail-item:active .delete-button {
 			opacity: 1;
 		}
+	}
+
+	.textarea-wrapper {
+		position: relative;
+		flex-grow: 1;
+	}
+
+	.textarea-wrapper textarea {
+		width: 100%;
 	}
 </style>

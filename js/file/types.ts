@@ -21,6 +21,6 @@ export interface FileEvents {
 	clear: void;
 	select: SelectData | null;
 	change: FileData | FileData[] | null;
-	delete: void;
+	delete: FileData;
 	custom_button_click: { id: number };
 }

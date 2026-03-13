@@ -1,7 +1,11 @@
 <script lang="ts">
-	export let value: string | null;
-	export let type: "gallery" | "table";
-	export let selected = false;
+	interface Props {
+		value: string | null;
+		type: "gallery" | "table";
+		selected?: boolean;
+	}
+
+	let { value, type, selected = false }: Props = $props();
 
 	function truncate_text(text: string | null, max_length = 60): string {
 		if (!text) return "";

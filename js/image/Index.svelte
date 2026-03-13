@@ -185,7 +185,7 @@
 			}}
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
 			on:share={({ detail }) => gradio.dispatch("share", detail)}
-			on:error={({ detail }) => {
+			onerror={(detail) => {
 				gradio.shared.loading_status.status = "error";
 				gradio.dispatch("error", detail);
 			}}

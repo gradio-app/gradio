@@ -329,10 +329,10 @@ class ChatInterface(Blocks):
             )
             self.chatbot._setup_examples()
         else:
+            # Use default height of chatbot
             self.chatbot = Chatbot(
                 label=I18nData("chat_interface.chatbot"),
                 scale=1,
-                height=400 if self.fill_height else None,
                 autoscroll=self.autoscroll,
                 examples=(
                     self.examples_messages
@@ -626,12 +626,14 @@ class ChatInterface(Blocks):
         )
 
         example_select_event = None
+        example_select_runs = False
         if (
             isinstance(self.chatbot, Chatbot)
             and self.examples
             and not self._additional_inputs_in_examples
         ):
             if self.cache_examples or self.run_examples_on_click:
+                example_select_runs = True
                 example_select_event = self.chatbot.example_select(
                     self.example_clicked,
                     None,
@@ -639,6 +641,21 @@ class ChatInterface(Blocks):
                     api_visibility="undocumented",
                 )
                 if not self.cache_examples:
+                    textbox_component = (
+                        MultimodalTextbox if self.multimodal else Textbox
+                    )
+                    example_select_event = example_select_event.then(
+                        utils.async_lambda(
+                            lambda: textbox_component(
+                                submit_btn=False,
+                                stop_btn=self.original_stop_btn,
+                            )
+                        ),
+                        None,
+                        [self.textbox],
+                        api_visibility="undocumented",
+                        queue=False,
+                    )
                     example_select_event = example_select_event.then(**submit_fn_kwargs)
                 example_select_event.then(**synchronize_chat_state_kwargs)
             else:
@@ -678,13 +695,12 @@ class ChatInterface(Blocks):
         ).then(**save_fn_kwargs)
 
         events_to_cancel = [submit_event, retry_event]
-        if example_select_event is not None:
+        if example_select_event is not None and example_select_runs:
             events_to_cancel.append(example_select_event)
 
         self._setup_stop_events(
             event_triggers=[
                 self.chatbot.retry,
-                self.chatbot.example_select,
             ],
             events_to_cancel=events_to_cancel,
             after_success=user_submit,
@@ -721,9 +737,21 @@ class ChatInterface(Blocks):
                 [self.chatbot],
                 [self.chatbot, self.chatbot_state, self.saved_input],
                 api_visibility="undocumented",
+            ).then(
+                self._append_message_to_history,
+                [self.saved_input, self.chatbot_state],
+                [self.chatbot],
+                api_visibility="undocumented",
+                queue=False,
+            ).success(
+                lambda: update(interactive=False),
+                outputs=[self.textbox],
+                api_visibility="undocumented",
             ).success(**submit_fn_kwargs).success(**synchronize_chat_state_kwargs).then(
-                **save_fn_kwargs
-            )
+                lambda: update(interactive=True),
+                outputs=[self.textbox],
+                api_visibility="undocumented",
+            ).then(**save_fn_kwargs)
 
         if self.save_history:
             self.new_chat_button.click(
