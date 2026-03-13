@@ -46,7 +46,7 @@
 		flex-direction: row;
 		align-items: center;
 		justify-content: center;
-		z-index: var(--layer-2);
+		z-index: var(--layer-1);
 		gap: var(--spacing-sm);
 		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--border-color-primary);
