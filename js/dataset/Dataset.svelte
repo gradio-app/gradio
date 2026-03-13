@@ -121,7 +121,11 @@
 							sample_row.map(async (sample_cell, j) => {
 								return {
 									value: sample_cell,
-									component: load_component(components[j].name, "example", components[j].class_id)
+									component: load_component(
+										components[j].name,
+										"example",
+										components[j].class_id
+									)
 								};
 							})
 						)
