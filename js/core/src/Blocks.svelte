@@ -402,7 +402,8 @@
 		if ("parentIFrame" in window) {
 			const box = root_container.children[0].getBoundingClientRect();
 			if (!box) return;
-			window.parentIFrame?.size(box.bottom + footer_height + 32);
+			const iframe_padding = footer_links.length > 0 ? 32 : 0;
+			window.parentIFrame?.size(box.bottom + footer_height + iframe_padding);
 		}
 	}
 
