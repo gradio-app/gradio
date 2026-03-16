@@ -148,7 +148,12 @@ class Dataset(Component):
         config["component_ids"] = []
 
         for component in self._components:
-            config["components"].append({"name": component.get_block_name(), "class_id": component.get_component_class_id()})
+            config["components"].append(
+                {
+                    "name": component.get_block_name(),
+                    "class_id": component.get_component_class_id(),
+                }
+            )
 
             config["component_ids"].append(component._id)
 
