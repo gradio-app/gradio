@@ -2,7 +2,11 @@
 	import type { SvelteComponent, ComponentType } from "svelte";
 	import type { SelectData } from "@gradio/utils";
 	import { BaseExample } from "@gradio/textbox";
-	import type { load_component as load_component_type } from "@gradio/utils";
+	import type {
+		load_component as load_component_type,
+		LoadingComponent
+	} from "@gradio/utils";
+	import MountExample from "./MountExample.svelte";
 
 	interface Props {
 		components: string[];
@@ -104,7 +108,8 @@
 
 	let component_meta: {
 		value: any;
-		component: ComponentType<SvelteComponent>;
+		component: LoadingComponent;
+		runtime: false | typeof import("svelte");
 	}[][] = [];
 
 	async function get_component_meta(
@@ -119,13 +124,15 @@
 					async (sample_row) =>
 						await Promise.all(
 							sample_row.map(async (sample_cell, j) => {
+								const loaded = load_component(
+									components[j].name,
+									"example",
+									components[j].class_id
+								);
 								return {
 									value: sample_cell,
-									component: load_component(
-										components[j].name,
-										"example",
-										components[j].class_id
-									)
+									component: loaded.component,
+									runtime: loaded.runtime
 								};
 							})
 						)
@@ -160,10 +167,11 @@
 								type="gallery"
 							/>
 						{:else if component_meta.length}
-							{#await component_meta[0][0].component then component}
+							{#await Promise.all( [component_meta[0][0].component, component_meta[0][0].runtime] ) then [component, runtime]}
 								{#key sample_row[0]}
-									<svelte:component
-										this={component.default}
+									<MountExample
+										{component}
+										{runtime}
 										{...component_props[0]}
 										value={sample_row[0]}
 										{samples_dir}
@@ -206,7 +214,7 @@
 							onmouseenter={() => handle_mouseenter(i)}
 							onmouseleave={() => handle_mouseleave()}
 						>
-							{#each sample_row as { value, component }, j}
+							{#each sample_row as { value, component, runtime }, j}
 								{@const component_name = components[j]}
 
 								{#if component_name !== undefined}
@@ -216,9 +224,10 @@
 											: 'auto'}"
 										class={component_name}
 									>
-										{#await component then component}
-											<svelte:component
-												this={component.default}
+										{#await Promise.all( [component, runtime] ) then [component, runtime]}
+											<MountExample
+												{component}
+												{runtime}
 												{...component_props[j]}
 												{value}
 												{samples_dir}

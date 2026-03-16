@@ -673,9 +673,7 @@ function gather_props(
 		name: string,
 		variant: "base" | "component" | "example",
 		component_class_id?: string
-	) =>
-		get_component(name, component_class_id || "", api_url, variant)
-			.component as LoadingComponent;
+	) => get_component(name, component_class_id || "", api_url, variant);
 
 	_shared_props.visible =
 		_shared_props.visible === undefined ? true : _shared_props.visible;
