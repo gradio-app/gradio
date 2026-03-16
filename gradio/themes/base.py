@@ -645,6 +645,8 @@ class Base(ThemeClass):
         checkbox_label_gap=None,
         checkbox_label_padding=None,
         checkbox_label_shadow=None,
+        checkbox_label_shadow_hover=None,
+        checkbox_label_shadow_active=None,
         checkbox_label_text_size=None,
         checkbox_label_text_weight=None,
         checkbox_label_text_color=None,
@@ -911,6 +913,8 @@ class Base(ThemeClass):
             checkbox_label_gap: The gap consecutive checkbox or radio elements.
             checkbox_label_padding: The padding of the surrounding button of a checkbox or radio element.
             checkbox_label_shadow: The shadow of the surrounding button of a checkbox or radio element.
+            checkbox_label_shadow_hover: The shadow of the surrounding button of a checkbox or radio element on hover.
+            checkbox_label_shadow_active: The shadow of the surrounding button of a checkbox or radio element when active.
             checkbox_label_text_size: The text size of the label accompanying a checkbox or radio element.
             checkbox_label_text_weight: The text weight of the label accompanying a checkbox or radio element.
             checkbox_label_text_color: The text color of the label accompanying a checkbox or radio element.
@@ -1501,6 +1505,12 @@ class Base(ThemeClass):
         )
         self.checkbox_label_shadow = checkbox_label_shadow or getattr(
             self, "checkbox_label_shadow", "none"
+        )
+        self.checkbox_label_shadow_hover = checkbox_label_shadow_hover or getattr(
+            self, "checkbox_label_shadow_hover", "*checkbox_label_shadow"
+        )
+        self.checkbox_label_shadow_active = checkbox_label_shadow_active or getattr(
+            self, "checkbox_label_shadow_active", "*checkbox_label_shadow"
         )
         self.checkbox_label_text_size = checkbox_label_text_size or getattr(
             self, "checkbox_label_text_size", "*text_md"

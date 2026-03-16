@@ -1,6 +1,7 @@
 from gradio.themes.base import Base, ThemeClass
 from gradio.themes.citrus import Citrus
 from gradio.themes.default import Default
+from gradio.themes.evergreen import Evergreen
 from gradio.themes.glass import Glass
 from gradio.themes.monochrome import Monochrome
 from gradio.themes.ocean import Ocean
@@ -15,6 +16,7 @@ __all__ = [
     "Base",
     "Color",
     "Default",
+    "Evergreen",
     "Font",
     "Glass",
     "GoogleFont",
