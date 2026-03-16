@@ -82,7 +82,9 @@ const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
 
 			const navDuration = await page.evaluate(() => {
 				const start = performance.now();
-				const btn = document.querySelector('button[id$="chatbot"]') as HTMLElement;
+				const btn = document.querySelector(
+					'button[id$="chatbot"]'
+				) as HTMLElement;
 				btn.click();
 				return new Promise<number>((resolve) => {
 					const observer = new MutationObserver(() => {
