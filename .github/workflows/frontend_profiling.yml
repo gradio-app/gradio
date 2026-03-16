@@ -70,7 +70,9 @@ jobs:
 
       - name: Checkout PR branch
         if: steps.changes.outputs.should_run == 'true'
-        run: git checkout ${{ github.event.pull_request.head.sha }}
+        run: |
+          git clean -fd
+          git checkout -f ${{ github.event.pull_request.head.sha }}
 
       - name: Install and build PR
         if: steps.changes.outputs.should_run == 'true'
