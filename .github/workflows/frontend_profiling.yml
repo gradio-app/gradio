@@ -14,6 +14,7 @@ jobs:
   benchmark:
     permissions:
       contents: read
+      pull-requests: write
     name: "frontend-benchmark"
     runs-on: ubuntu-latest
     steps:
@@ -32,27 +33,35 @@ jobs:
         id: latest_tag
         run: echo "tag=$(git tag --list 'gradio@*' --sort=-v:refname | head -n 1)" >> "$GITHUB_OUTPUT"
 
-      - name: Checkout latest release
+      - name: Restore base benchmark cache
         if: steps.changes.outputs.should_run == 'true'
+        id: base_cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/bench_base.json
+          key: frontend-bench-base-${{ steps.latest_tag.outputs.tag }}
+
+      - name: Checkout latest release
+        if: steps.changes.outputs.should_run == 'true' && steps.base_cache.outputs.cache-hit != 'true'
         run: git checkout ${{ steps.latest_tag.outputs.tag }}
 
       - name: Install dependencies
-        if: steps.changes.outputs.should_run == 'true'
+        if: steps.changes.outputs.should_run == 'true' && steps.base_cache.outputs.cache-hit != 'true'
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           python_version: "3.10"
           os: "ubuntu-latest"
 
-      - name: Install Playwright
-        if: steps.changes.outputs.should_run == 'true'
+      - name: Install Playwright (base)
+        if: steps.changes.outputs.should_run == 'true' && steps.base_cache.outputs.cache-hit != 'true'
         run: pnpm exec playwright install chromium
 
       - name: Checkout benchmark spec from PR
-        if: steps.changes.outputs.should_run == 'true'
+        if: steps.changes.outputs.should_run == 'true' && steps.base_cache.outputs.cache-hit != 'true'
         run: git checkout ${{ github.event.pull_request.head.sha }} -- js/spa/test/tabs_performance.spec.ts
 
       - name: Run benchmark (base)
-        if: steps.changes.outputs.should_run == 'true'
+        if: steps.changes.outputs.should_run == 'true' && steps.base_cache.outputs.cache-hit != 'true'
         run: |
           . venv/bin/activate
           PERF_RESULTS_FILE=/tmp/bench_base.json pnpm exec playwright test \
@@ -72,6 +81,10 @@ jobs:
           pnpm install --no-frozen-lockfile
           pnpm build
 
+      - name: Install Playwright (PR)
+        if: steps.changes.outputs.should_run == 'true'
+        run: pnpm exec playwright install chromium
+
       - name: Run benchmark (PR)
         if: steps.changes.outputs.should_run == 'true'
         run: |
@@ -81,6 +94,7 @@ jobs:
             js/spa/test/tabs_performance.spec.ts
 
       - name: Compare results
+        id: compare
         if: always() && steps.changes.outputs.should_run == 'true'
         run: |
           node -e "
@@ -148,6 +162,10 @@ jobs:
           md += '\n> Base: \`${{ steps.latest_tag.outputs.tag }}\` | Thresholds: timing warns at +25%/fails at +50%, size warns at +10%/fails at +25%.\n';
 
           fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, md);
+          fs.writeFileSync('/tmp/bench_comment.md', md);
+
+          const core = require('@actions/core');
+          core.setOutput('failed', shouldFail ? 'true' : 'false');
 
           if (shouldFail) {
             console.log('❌ Frontend performance regression detected.');
@@ -156,3 +174,36 @@ jobs:
             console.log('✅ No performance regressions detected.');
           }
           "
+
+      - name: Post or update PR comment
+        if: always() && steps.compare.outputs.failed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('/tmp/bench_comment.md', 'utf8');
+            const marker = '<!-- frontend-perf-benchmark -->';
+            const commentBody = marker + '\n' + body;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c => c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: commentBody,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody,
+              });
+            }
