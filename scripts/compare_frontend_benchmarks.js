@@ -133,8 +133,10 @@ md +=
 fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, md);
 fs.writeFileSync("/tmp/bench_comment.md", md);
 
-const core = require("@actions/core");
-core.setOutput("failed", shouldFail ? "true" : "false");
+const ghOutput = process.env.GITHUB_OUTPUT;
+if (ghOutput) {
+	fs.appendFileSync(ghOutput, `failed=${shouldFail ? "true" : "false"}\n`);
+}
 
 if (shouldFail) {
 	console.log("❌ Frontend performance regression detected.");

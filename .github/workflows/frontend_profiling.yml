@@ -74,14 +74,12 @@ jobs:
           git clean -fd
           git checkout -f ${{ github.event.pull_request.head.sha }}
 
-      - name: Install and build PR
+      - name: Install dependencies (PR)
         if: steps.changes.outputs.should_run == 'true'
-        run: |
-          . venv/bin/activate
-          uv pip install -e client/python
-          uv pip install -e ".[oauth,mcp]"
-          pnpm install --no-frozen-lockfile
-          pnpm build
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        with:
+          python_version: "3.10"
+          os: "ubuntu-latest"
 
       - name: Install Playwright (PR)
         if: steps.changes.outputs.should_run == 'true'
@@ -97,13 +95,13 @@ jobs:
 
       - name: Compare results
         id: compare
-        if: always() && steps.changes.outputs.should_run == 'true'
+        if: steps.changes.outputs.should_run == 'true'
         env:
           BASE_TAG: ${{ steps.latest_tag.outputs.tag }}
         run: node scripts/compare_frontend_benchmarks.js
 
       - name: Post or update PR comment
-        if: always() && steps.compare.outputs.failed == 'true'
+        if: steps.compare.outputs.failed == 'true'
         uses: actions/github-script@v7
         with:
           script: |
