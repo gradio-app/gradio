@@ -4,6 +4,7 @@
 "@gradio/dataset": patch
 "@gradio/preview": patch
 "@gradio/utils": patch
+"@self/build": patch
 "gradio": patch
 ---
 
