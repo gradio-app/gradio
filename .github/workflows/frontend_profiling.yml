@@ -25,7 +25,7 @@ jobs:
       - uses: "gradio-app/gradio/.github/actions/changes@main"
         id: changes
         with:
-          filter: "functional"
+          filter: "js"
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Find latest release tag
@@ -58,7 +58,7 @@ jobs:
 
       - name: Checkout benchmark spec from PR
         if: steps.changes.outputs.should_run == 'true' && steps.base_cache.outputs.cache-hit != 'true'
-        run: git checkout ${{ github.event.pull_request.head.sha }} -- js/spa/test/tabs_performance.spec.ts
+        run: git checkout ${{ github.event.pull_request.head.sha }} -- js/spa/test/big_complex_demo.spec.ts
 
       - name: Run benchmark (base)
         if: steps.changes.outputs.should_run == 'true' && steps.base_cache.outputs.cache-hit != 'true'
@@ -66,7 +66,7 @@ jobs:
           . venv/bin/activate
           PERF_RESULTS_FILE=/tmp/bench_base.json pnpm exec playwright test \
             --config .config/playwright.config.js \
-            js/spa/test/tabs_performance.spec.ts
+            js/spa/test/big_complex_demo.spec.ts
 
       - name: Checkout PR branch
         if: steps.changes.outputs.should_run == 'true'
@@ -91,89 +91,14 @@ jobs:
           . venv/bin/activate
           PERF_RESULTS_FILE=/tmp/bench_pr.json pnpm exec playwright test \
             --config .config/playwright.config.js \
-            js/spa/test/tabs_performance.spec.ts
+            js/spa/test/big_complex_demo.spec.ts
 
       - name: Compare results
         id: compare
         if: always() && steps.changes.outputs.should_run == 'true'
-        run: |
-          node -e "
-          const fs = require('fs');
-
-          let pr, base;
-          try {
-            pr = JSON.parse(fs.readFileSync('/tmp/bench_pr.json', 'utf8'));
-            base = JSON.parse(fs.readFileSync('/tmp/bench_base.json', 'utf8'));
-          } catch (e) {
-            console.warn('Could not read benchmark results:', e.message);
-            process.exit(0);
-          }
-
-          const metrics = [
-            { name: 'DOM Content Loaded', key: 'dom_content_loaded_ms', unit: 'ms', warn: 0.25, fail: 0.50 },
-            { name: 'Page Load', key: 'page_load_ms', unit: 'ms', warn: 0.25, fail: 0.50 },
-            { name: 'LCP', key: 'lcp_ms', unit: 'ms', warn: 0.25, fail: 0.50 },
-            { name: 'Tab Navigation', key: 'tab_nav_ms', unit: 'ms', warn: 0.25, fail: 0.50 },
-            { name: 'JS Size', key: 'total_js_kb', unit: 'KB', warn: 0.10, fail: 0.25 },
-            { name: 'CSS Size', key: 'total_css_kb', unit: 'KB', warn: 0.10, fail: 0.25 },
-          ];
-
-          const pad = (s, n) => String(s).padEnd(n);
-          const rpad = (s, n) => String(s).padStart(n);
-
-          console.log('');
-          console.log('='.repeat(78));
-          console.log('  Frontend Performance Benchmark');
-          console.log('  Base: ${{ steps.latest_tag.outputs.tag }}');
-          console.log('='.repeat(78));
-          console.log('');
-          console.log(pad('Metric', 22) + rpad('Base', 12) + rpad('PR', 12) + rpad('Change', 12) + '  Status');
-          console.log('-'.repeat(78));
-
-          let shouldFail = false;
-          let md = '## Frontend Performance Benchmark\n\n';
-          md += '| Metric | Base | PR | Change | Status |\n';
-          md += '|--------|------|----|--------|--------|\n';
-
-          for (const m of metrics) {
-            const bv = base[m.key];
-            const pv = pr[m.key];
-            if (bv === undefined || pv === undefined) continue;
-            const pct = bv === 0 ? 0 : (pv - bv) / bv;
-            const pctStr = (pct * 100).toFixed(1) + '%';
-            const changeStr = (pct > 0 ? '+' : '') + pctStr;
-            const absDiff = pv - bv;
-            const minAbsDiff = m.unit === 'ms' ? 200 : 0;
-            let status = 'OK';
-            let mdStatus = '✅';
-            if (pct > m.fail && absDiff > minAbsDiff) { status = 'FAIL'; mdStatus = '❌ FAIL'; shouldFail = true; }
-            else if (pct > m.warn && absDiff > minAbsDiff) { status = 'WARNING'; mdStatus = '⚠️ WARNING'; }
-            console.log(pad(m.name, 22) + rpad(bv + ' ' + m.unit, 12) + rpad(pv + ' ' + m.unit, 12) + rpad(changeStr, 12) + '  ' + status);
-            md += '| ' + m.name + ' | ' + bv + ' ' + m.unit + ' | ' + pv + ' ' + m.unit + ' | ' + changeStr + ' | ' + mdStatus + ' |\n';
-          }
-
-          console.log('-'.repeat(78));
-          console.log(pad('JS Resources', 22) + rpad(base.js_resource_count || '-', 12) + rpad(pr.js_resource_count || '-', 12));
-          console.log(pad('CSS Resources', 22) + rpad(base.css_resource_count || '-', 12) + rpad(pr.css_resource_count || '-', 12));
-          console.log('');
-
-          md += '\n| JS Resources | ' + (base.js_resource_count || '-') + ' | ' + (pr.js_resource_count || '-') + ' | | |\n';
-          md += '| CSS Resources | ' + (base.css_resource_count || '-') + ' | ' + (pr.css_resource_count || '-') + ' | | |\n';
-          md += '\n> Base: \`${{ steps.latest_tag.outputs.tag }}\` | Thresholds: timing warns at +25%/fails at +50%, size warns at +10%/fails at +25%.\n';
-
-          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, md);
-          fs.writeFileSync('/tmp/bench_comment.md', md);
-
-          const core = require('@actions/core');
-          core.setOutput('failed', shouldFail ? 'true' : 'false');
-
-          if (shouldFail) {
-            console.log('❌ Frontend performance regression detected.');
-            process.exit(1);
-          } else {
-            console.log('✅ No performance regressions detected.');
-          }
-          "
+        env:
+          BASE_TAG: ${{ steps.latest_tag.outputs.tag }}
+        run: node scripts/compare_frontend_benchmarks.js
 
       - name: Post or update PR comment
         if: always() && steps.compare.outputs.failed == 'true'

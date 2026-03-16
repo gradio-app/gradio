@@ -18,7 +18,7 @@ function median(values: number[]): number {
 const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
 	perfPage: async ({ page }, use, testInfo) => {
 		const { port, process: appProcess } = await launchGradioApp(
-			"tabs",
+			"big_complex_demo",
 			testInfo.workerIndex,
 			60000
 		);
@@ -49,19 +49,19 @@ const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
 		const lcpValues: number[] = [];
 		const tabNavValues: number[] = [];
 
+		await page.addInitScript(() => {
+			(window as any).__lcpValue = 0;
+			new PerformanceObserver((list) => {
+				const entries = list.getEntries();
+				if (entries.length > 0) {
+					(window as any).__lcpValue = entries[entries.length - 1].startTime;
+				}
+			}).observe({ type: "largest-contentful-paint", buffered: true });
+		});
+
 		for (let i = 0; i < ITERATIONS; i++) {
 			await page.goto(url);
 			await page.waitForLoadState("networkidle");
-
-			await page.evaluate(() => {
-				(window as any).__lcpValue = 0;
-				new PerformanceObserver((list) => {
-					const entries = list.getEntries();
-					if (entries.length > 0) {
-						(window as any).__lcpValue = entries[entries.length - 1].startTime;
-					}
-				}).observe({ type: "largest-contentful-paint", buffered: true });
-			});
 
 			await page.waitForTimeout(500);
 
@@ -80,13 +80,20 @@ const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
 			pageLoadValues.push(timings.pageLoad);
 			lcpValues.push(timings.lcp);
 
-			await page.evaluate(() => performance.mark("nav-start"));
-			await page.click('button[data-tab-id="a2"]');
-			await page.locator("text=Text 2!").waitFor({ state: "visible" });
 			const navDuration = await page.evaluate(() => {
-				performance.mark("nav-end");
-				const m = performance.measure("tab-nav", "nav-start", "nav-end");
-				return Math.round(m.duration);
+				const start = performance.now();
+				const btn = document.querySelector('button[id$="chatbot"]') as HTMLElement;
+				btn.click();
+				return new Promise<number>((resolve) => {
+					const observer = new MutationObserver(() => {
+						const chatbot = document.querySelector('[data-testid="chatbot"]');
+						if (chatbot && (chatbot as HTMLElement).offsetParent !== null) {
+							observer.disconnect();
+							resolve(Math.round(performance.now() - start));
+						}
+					});
+					observer.observe(document.body, { childList: true, subtree: true });
+				});
 			});
 			tabNavValues.push(navDuration);
 		}
