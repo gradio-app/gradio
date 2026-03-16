@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, tick } from "svelte";
+	import { createEventDispatcher } from "svelte";
 	import Handlebars from "handlebars";
 	import type { Snippet } from "svelte";
 
@@ -16,6 +16,8 @@
 		component_class_name = "HTML",
 		upload = null,
 		server = {},
+		watch_fn = (_propOrProps: string | string[], _callback: () => void) => {},
+		fire_watchers = (_changedKeys: string[]) => {},
 		children
 	}: {
 		elem_classes: string[];
@@ -29,6 +31,8 @@
 		component_class_name: string;
 		upload: ((file: File) => Promise<{ path: string; url: string }>) | null;
 		server: Record<string, (...args: any[]) => Promise<any>>;
+		watch_fn?: (propOrProps: string | string[], callback: () => void) => void;
+		fire_watchers?: (changedKeys: string[]) => void;
 		children?: Snippet;
 	} = $props();
 
@@ -42,7 +46,7 @@
 		}
 	);
 
-	let old_props = $state(JSON.parse(JSON.stringify(props)));
+	let old_props = $state($state.snapshot(props));
 
 	const dispatch = createEventDispatcher<{
 		event: { type: "click" | "submit"; data: any };
@@ -63,13 +67,6 @@
 	let random_id = `html-${Math.random().toString(36).substring(2, 11)}`;
 	let style_element: HTMLStyleElement | null = null;
 	let reactiveProps: Record<string, any> = {};
-	let watchers: Map<
-		string,
-		Set<{ props: string[]; callback: () => void }>
-	> = new Map();
-	let pendingChanges: Set<string> = new Set();
-	const MAX_FLUSH_DEPTH = 20;
-	let flushDepth = 0;
 	let currentHtml = $state("");
 	let currentPreHtml = $state("");
 	let currentPostHtml = $state("");
@@ -305,76 +302,6 @@
 		}
 	}
 
-	function flushWatchers(): void {
-		if (pendingChanges.size === 0) return;
-		if (!mounted) return;
-		if (flushDepth >= MAX_FLUSH_DEPTH) {
-			console.warn("gr.HTML: too many cascading watch updates, breaking cycle");
-			pendingChanges.clear();
-			return;
-		}
-		const changed = new Set(pendingChanges);
-		pendingChanges.clear();
-		const notified = new Set<{ props: string[]; callback: () => void }>();
-		for (const prop of changed) {
-			const entries = watchers.get(prop);
-			if (!entries) continue;
-			for (const entry of entries) {
-				if (!notified.has(entry)) {
-					notified.add(entry);
-				}
-			}
-		}
-		flushDepth++;
-		for (const entry of notified) {
-			try {
-				entry.callback();
-			} catch (e) {
-				console.error("Error in watch callback:", e);
-			}
-		}
-		flushDepth--;
-		if (flushDepth === 0) {
-			queueMicrotask(() => {
-				flushDepth = 0;
-			});
-		}
-	}
-
-	function watch(
-		propOrProps: string | string[],
-		callback: () => void
-	): () => void {
-		const propList = Array.isArray(propOrProps) ? propOrProps : [propOrProps];
-		const entry = { props: propList, callback };
-		for (const prop of propList) {
-			if (!watchers.has(prop)) watchers.set(prop, new Set());
-			watchers.get(prop)!.add(entry);
-		}
-		return () => {
-			for (const prop of propList) {
-				watchers.get(prop)?.delete(entry);
-			}
-		};
-	}
-
-	function plain_value(v: any): any {
-		if (v === null || v === undefined || typeof v !== "object") return v;
-		try {
-			return structuredClone(v);
-		} catch {
-			return JSON.parse(JSON.stringify(v));
-		}
-	}
-
-	function plain_props(p: Record<string, any>): Record<string, any> {
-		const out: Record<string, any> = {};
-		for (const k in p) {
-			out[k] = plain_value(p[k]);
-		}
-		return out;
-	}
-
 	function scheduleRender(): void {
 		if (!renderScheduled) {
 			renderScheduled = true;
@@ -382,7 +309,6 @@
 				renderScheduled = false;
 				renderHTML();
 				update_css();
-				flushWatchers();
 			});
 		}
 	}
@@ -432,13 +358,12 @@
 		if (!element || mounted) return;
 		mounted = true;
 
-		reactiveProps = new Proxy(plain_props(props), {
+		reactiveProps = new Proxy($state.snapshot(props), {
 			set(target, property, value) {
 				const oldValue = target[property as string];
 				target[property as string] = value;
 
 				if (oldValue !== value) {
-					pendingChanges.add(property as string);
 					scheduleRender();
 
 					if (
@@ -499,7 +424,7 @@
 						"watch",
 						js_on_load
 					);
-					func(element, trigger, reactiveProps, server, upload_func, watch);
+					func(element, trigger, reactiveProps, server, upload_func, watch_fn);
 				} catch (error) {
 					console.error("Error executing js_on_load:", error);
 				}
@@ -507,19 +432,23 @@
 		})();
 	});
 
-	// Props update effect
 	$effect(() => {
 		if (
 			reactiveProps &&
 			props &&
 			JSON.stringify(old_props) !== JSON.stringify(props)
 		) {
+			const changedKeys: string[] = [];
 			for (const key in props) {
-				if (reactiveProps[key] !== props[key]) {
-					reactiveProps[key] = plain_value(props[key]);
+				if (JSON.stringify(reactiveProps[key]) !== JSON.stringify(props[key])) {
+					changedKeys.push(key);
 				}
+				reactiveProps[key] = $state.snapshot(props[key]);
 			}
 			old_props = props;
+			if (changedKeys.length > 0) {
+				queueMicrotask(() => fire_watchers(changedKeys));
+			}
 		}
 	});
 </script>

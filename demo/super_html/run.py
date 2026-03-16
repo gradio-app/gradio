@@ -154,27 +154,18 @@ with gr.Blocks() as demo:
 
     gr.Markdown("""
     # Watch API
-    Use `watch` inside `js_on_load` to run a callback after the template re-renders whenever specific props change. The callback takes no arguments — read current values from `props` directly.
+    Use `watch` inside `js_on_load` to run a callback after the template re-renders whenever specific props are changed from the backend (Python event listener). The callback is NOT triggered by frontend (JavaScript) changes to props. The callback takes no arguments — read current values from `props` directly.
     """)
     watch_html = gr.HTML(
         value=0,
         html_template="""
         <div>
-            <div>Will 'submit' at 10, currently ${value}</div>
-            <button class="inc">+1</button>
-            <button class="reset">Reset</button>
+            <div>value: ${value}</div>
         </div>
         """,
         js_on_load="""
-        element.querySelector('.inc').addEventListener('click', () => {
-            props.value++;
-        });
-        element.querySelector('.reset').addEventListener('click', () => {
-            props.value = 0;
-        });
-
         watch('value', () => {
-            if (props.value === 10) {
+            if (props.value >= 3) {
                 trigger('submit');
             }
         });
@@ -182,6 +173,8 @@ with gr.Blocks() as demo:
         elem_id="watch_demo",
     )
     watch_output = gr.Textbox(label="Watch Output")
+    watch_inc_btn = gr.Button("Increment")
+    watch_inc_btn.click(lambda x: (x or 0) + 1, watch_html, outputs=watch_html)
     watch_html.submit(lambda x: x, watch_html, outputs=watch_output)
 
     gr.Markdown("""
