@@ -104,7 +104,7 @@ You can trigger an event with any name. As long as the event name appears enclos
 
 ## Watching Props with `watch`
 
-The `watch` function, available inside `js_on_load`, lets you run a callback whenever specific props change. The callback fires after the template has re-rendered, so the DOM is already up to date when your code runs. Read current values directly from `props` inside the callback.
+The `watch` function, available inside `js_on_load`, lets you run a callback whenever specific props change when the component is an output to a Python event listener. Read current values directly from `props` inside the callback.
 
 ```js
 // Watch a single prop
