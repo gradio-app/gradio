@@ -111,10 +111,13 @@ export async function make_build({
 										return chunkInfo.names[0];
 									},
 									entryFileNames: (chunkInfo: PreRenderedChunk) => {
-										if (chunkInfo.isEntry) {
-											return chunkInfo.name.toLocaleLowerCase() + ".js";
+										if (
+											chunkInfo.name.toLocaleLowerCase() ===
+											"svelte_runtime_entry"
+										) {
+											return "svelte_runtime_entry.js";
 										}
-										return `${chunkInfo.name.toLocaleLowerCase()}.js`;
+										return "index.js";
 									}
 								}
 							}

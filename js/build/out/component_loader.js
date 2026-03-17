@@ -46,8 +46,6 @@ export function load_component({ api_url, name, id, variant }) {
 		if (!_id) throw new Error(`Component not found: ${name}`);
 		try {
 			const cc = get_component_with_css(api_url, _id, variant);
-			console.log({ cc });
-
 			const [component_module, svelte_runtime_module] = cc;
 
 			request_map[`${_id}-${variant}`] = component_module;
@@ -92,21 +90,15 @@ function load_css(url) {
 
 function get_component_with_css(api_url, id, variant) {
 	const environment = is_browser ? "client" : "server";
-	let path;
+
 	if (environment === "server") {
-		// uncomment when we make gradio cc build support ssr
-		//path = await (await fetch(`${api_url}/custom_component/${id}/${variant}/index.js/server`)).text();
-		const mod = [
-			Promise.all([
-				load_css(`${api_url}/custom_component/${id}/${variant}/style.css`),
-				import("@gradio/fallback")
-			]).then(([_, module]) => {
-				return module;
-			})
-		];
+		// Node.js cannot dynamically import HTTP URLs.
+		// Fall back to @gradio/fallback during SSR; the real component
+		// will be loaded client-side.
+		return [import("@gradio/fallback"), Promise.resolve(false)];
 	}
 
-	path = `${api_url}/custom_component/${id}/${environment}/${variant}/index.js`;
+	const path = `${api_url}/custom_component/${id}/${environment}/${variant}/index.js`;
 
 	return [
 		Promise.all([
