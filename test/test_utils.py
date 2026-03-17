@@ -92,8 +92,9 @@ class TestUtils:
         out_article = download_if_url(in_article)
         assert out_article == in_article
 
+    @pytest.mark.flaky
     def test_download_if_url_correct_parse(self):
-        in_article = "https://github.com/gradio-app/gradio/blob/master/README.md"
+        in_article = "https://huggingface.co/datasets/gradio/custom-html-gallery/blob/main/manifest.json"
         out_article = download_if_url(in_article)
         assert out_article != in_article
 
