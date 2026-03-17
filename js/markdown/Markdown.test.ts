@@ -1,5 +1,5 @@
 import { test, describe, assert, afterEach } from "vitest";
-import { cleanup, render } from "@self/tootils";
+import { cleanup, render } from "@self/tootils/render";
 
 import Markdown from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
@@ -48,5 +48,24 @@ describe("Markdown", () => {
 			"Invalid URL"
 		) as HTMLAnchorElement;
 		assert.equal(link.href, "https://");
+	});
+
+	test("does not apply pending class when show_progress is hidden", async () => {
+		const { container } = await render(Markdown, {
+			show_label: false,
+			max_lines: 1,
+			loading_status: {
+				...loading_status,
+				status: "pending",
+				show_progress: "hidden"
+			} as any,
+			lines: 1,
+			value: "Content",
+			label: "Markdown",
+			interactive: false
+		});
+
+		const pending_wrapper = container.querySelector("div.pending");
+		assert.equal(pending_wrapper, null);
 	});
 });

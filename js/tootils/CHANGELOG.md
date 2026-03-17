@@ -1,5 +1,23 @@
 # @self/tootils
 
+## 0.10.0
+
+### Features
+
+- [#12879](https://github.com/gradio-app/gradio/pull/12879) [`c498688`](https://github.com/gradio-app/gradio/commit/c4986883b267570d76b442899c6fc09d14e3e222) - Ensure svelte version mismatches do not break custom components.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.5
+- @gradio/utils@0.12.0
+
+## 0.9.0
+
+### Dependency updates
+
+- @gradio/utils@0.11.3
+- @gradio/statustracker@0.12.4
+
 ## 0.9.0
 
 ### Dependency updates

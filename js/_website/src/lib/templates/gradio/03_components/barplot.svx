@@ -7,6 +7,7 @@
     import FunctionsSection from "$lib/components/FunctionsSection.svelte";
     import GuidesSection from "$lib/components/GuidesSection.svelte";
     import CopyButton from "$lib/components/CopyButton.svelte";
+    import BehaviorSection from "$lib/components/BehaviorSection.svelte";
     import { style_formatted_text } from "$lib/text";
 
 
@@ -28,32 +29,99 @@ gradio.BarPlot(···)
 
 <!-- Behavior -->
 ### Behavior
-## **As input component**: {@html style_formatted_text(obj.preprocess.return_doc.doc)}
-##### Your function should accept one of these types:
 
-```python
-def predict(
-	value: AltairPlotData
-)
-	...
-```
-
-<br>
-
-## **As output component**: {@html style_formatted_text(obj.postprocess.parameter_doc[0].doc)}
-##### Your function should return one of these types:
-
-```python
-def predict(···) -> pd.DataFrame | None
-	...	
-	return value
-```
-
+<BehaviorSection name={obj.name} preprocess={obj.preprocess} postprocess={obj.postprocess} />
 
 <!--- Initialization -->
 ### Initialization
 <ParamTable parameters={obj.parameters} anchor_links={obj.name}/>
 
+
+### Key Concepts
+
+`gr.LinePlot`, `gr.ScatterPlot`, and `gr.BarPlot` all share the same API. Here is a summary of the most important features. For full details and live demos, see the [Creating Plots](/guides/creating-plots) and [Time Plots](/guides/time-plots) guides.
+
+**Basic Usage with a DataFrame**
+
+Pass a `pd.DataFrame` as the value, and specify `x` and `y` column names. The y-axis must be numeric; the x-axis can be strings, numbers, categories, or datetimes.
+
+```python
+import gradio as gr
+import pandas as pd
+
+df = pd.DataFrame({"origin": ["US", "EU", "Asia"], "sales": [120, 95, 180]})
+
+with gr.Blocks() as demo:
+    gr.BarPlot(df, x="origin", y="sales")
+```
+
+**Breaking Out Series by Color**
+
+Use the `color` argument to group bars by a categorical column. Use `color_map` to assign specific colors:
+
+```python
+gr.BarPlot(df, x="origin", y="sales", color="year",
+           color_map={"2023": "#4488FF", "2024": "#FF8844"})
+```
+
+**Aggregating Values**
+
+Use `x_bin` and `y_aggregate` to group and summarize data. For string x-axes, the string values act as category bins automatically. For numeric x-axes, `x_bin` sets the bin size:
+
+```python
+gr.BarPlot(df, x="origin", y="sales", y_aggregate="sum")
+gr.BarPlot(df, x="year", y="sales", x_bin=1, y_aggregate="mean")
+```
+
+For time-series data, pass a string suffix (`"s"`, `"m"`, `"h"`, or `"d"`) to `x_bin`:
+
+```python
+gr.BarPlot(df, x="timestamp", y="sales", x_bin="1d", y_aggregate="sum")
+```
+
+**Interactive Selection and Zoom**
+
+Use the `.select` event listener to respond to region selections (click and drag). Combine with `.double_click` and `x_lim` to implement zoom in/out:
+
+```python
+with gr.Blocks() as demo:
+    plot = gr.BarPlot(df, x="timestamp", y="sales")
+
+    @plot.select
+    def zoom(selection: gr.SelectData):
+        return gr.BarPlot(x_lim=[selection.index[0], selection.index[1]])
+
+    plot.double_click(lambda: gr.BarPlot(x_lim=None), outputs=plot)
+```
+
+**Realtime Data**
+
+Use `gr.Timer` to keep plots updated with live data. You can attach the timer via `every`, or wire it up manually:
+
+```python
+def get_data():
+    return pd.DataFrame(...)  # fetch latest data
+
+with gr.Blocks() as demo:
+    timer = gr.Timer(5)
+    plot = gr.BarPlot(get_data, x="time", y="sales", every=timer)
+```
+
+**Interactive Dashboards**
+
+Plots can be driven by other components (dropdowns, sliders, etc.) to create fully interactive dashboards:
+
+```python
+with gr.Blocks() as demo:
+    year = gr.Dropdown(choices=[2022, 2023, 2024], value=2024)
+    plot = gr.BarPlot(x="origin", y="sales")
+
+    def update(yr):
+        filtered = df[df["year"] == yr]
+        return gr.BarPlot(filtered)
+
+    year.change(update, inputs=year, outputs=plot)
+```
 
 {#if obj.string_shortcuts && obj.string_shortcuts.length > 0}
 <!--- Shortcuts -->

@@ -7,6 +7,7 @@
     import FunctionsSection from "$lib/components/FunctionsSection.svelte";
     import GuidesSection from "$lib/components/GuidesSection.svelte";
     import CopyButton from "$lib/components/CopyButton.svelte";
+    import BehaviorSection from "$lib/components/BehaviorSection.svelte";
     import { style_formatted_text } from "$lib/text";
 
 
@@ -28,32 +29,100 @@ gradio.ScatterPlot(···)
 
 <!-- Behavior -->
 ### Behavior
-## **As input component**: {@html style_formatted_text(obj.preprocess.return_doc.doc)}
-##### Your function should accept one of these types:
 
-```python
-def predict(
-	value: AltairPlotData | None
-)
-	...
-```
-
-<br>
-
-## **As output component**: {@html style_formatted_text(obj.postprocess.parameter_doc[0].doc)}
-##### Your function should return one of these types:
-
-```python
-def predict(···) -> pd.DataFrame | dict | None
-	...	
-	return value
-```
+<BehaviorSection name={obj.name} preprocess={obj.preprocess} postprocess={obj.postprocess} />
 
 
 <!--- Initialization -->
 ### Initialization
 <ParamTable parameters={obj.parameters} anchor_links={obj.name}/>
 
+
+### Key Concepts
+
+`gr.LinePlot`, `gr.ScatterPlot`, and `gr.BarPlot` all share the same API. Here is a summary of the most important features. For full details and live demos, see the [Creating Plots](/guides/creating-plots) and [Time Plots](/guides/time-plots) guides.
+
+**Basic Usage with a DataFrame**
+
+Pass a `pd.DataFrame` as the value, and specify `x` and `y` column names. The y-axis must be numeric; the x-axis can be strings, numbers, categories, or datetimes.
+
+```python
+import gradio as gr
+import pandas as pd
+
+df = pd.DataFrame({"weight": [50, 70, 90, 60], "height": [160, 175, 180, 165]})
+
+with gr.Blocks() as demo:
+    gr.ScatterPlot(df, x="weight", y="height")
+```
+
+**Breaking Out Series by Color**
+
+Use the `color` argument to split data into multiple series. The color column can be string/categorical or numeric. Use `color_map` to assign specific colors:
+
+```python
+gr.ScatterPlot(df, x="weight", y="height", color="gender",
+               color_map={"M": "#4488FF", "F": "#FF8844"})
+```
+
+**Aggregating Values**
+
+Use `x_bin` and `y_aggregate` to group and summarize data. For numeric x-axes, `x_bin` creates histogram-style bins. For string x-axes, strings act as category bins automatically:
+
+```python
+gr.ScatterPlot(df, x="age_group", y="height", y_aggregate="mean")
+gr.ScatterPlot(df, x="weight", y="height", x_bin=10, y_aggregate="mean")
+```
+
+For time-series data, pass a string suffix (`"s"`, `"m"`, `"h"`, or `"d"`) to `x_bin`:
+
+```python
+gr.ScatterPlot(df, x="timestamp", y="value", x_bin="1h", y_aggregate="mean")
+```
+
+**Interactive Selection and Zoom**
+
+Use the `.select` event listener to respond to region selections (click and drag). Combine with `.double_click` and `x_lim` to implement zoom in/out:
+
+```python
+with gr.Blocks() as demo:
+    plot = gr.ScatterPlot(df, x="weight", y="height")
+
+    @plot.select
+    def zoom(selection: gr.SelectData):
+        return gr.ScatterPlot(x_lim=[selection.index[0], selection.index[1]])
+
+    plot.double_click(lambda: gr.ScatterPlot(x_lim=None), outputs=plot)
+```
+
+**Realtime Data**
+
+Use `gr.Timer` to keep plots updated with live data. You can attach the timer via `every`, or wire it up manually:
+
+```python
+def get_data():
+    return pd.DataFrame(...)  # fetch latest data
+
+with gr.Blocks() as demo:
+    timer = gr.Timer(5)
+    plot = gr.ScatterPlot(get_data, x="weight", y="height", every=timer)
+```
+
+**Interactive Dashboards**
+
+Plots can be driven by other components (dropdowns, sliders, etc.) to create fully interactive dashboards:
+
+```python
+with gr.Blocks() as demo:
+    category = gr.Dropdown(choices=["A", "B", "C"], value="A")
+    plot = gr.ScatterPlot(x="weight", y="height")
+
+    def update(cat):
+        filtered = df[df["category"] == cat]
+        return gr.ScatterPlot(filtered)
+
+    category.change(update, inputs=category, outputs=plot)
+```
 
 {#if obj.string_shortcuts && obj.string_shortcuts.length > 0}
 <!--- Shortcuts -->

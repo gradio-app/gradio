@@ -1,5 +1,28 @@
 # @gradio/atoms
 
+## 0.22.2
+
+### Dependency updates
+
+- @gradio/utils@0.12.0
+- @gradio/markdown-code@0.6.1
+
+## 0.22.1
+
+### Features
+
+- [#12933](https://github.com/gradio-app/gradio/pull/12933) [`44a8a9f`](https://github.com/gradio-app/gradio/commit/44a8a9fe1316f1c110638c3c40158a75b6c0d135) - Fix border in gr.html as layout.  Thanks @aliabid94!
+
+## 0.22.0
+
+### Features
+
+- [#12839](https://github.com/gradio-app/gradio/pull/12839) [`1c671b3`](https://github.com/gradio-app/gradio/commit/1c671b39830ccf1c87f6cfcb4669e97dfb3a7367) - Hide forms with no elements.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/utils@0.11.3
+
 ## 0.21.0
 
 ### Features

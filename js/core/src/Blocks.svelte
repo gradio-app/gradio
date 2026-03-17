@@ -4,18 +4,15 @@
 	import { Client } from "@gradio/client";
 	import { writable } from "svelte/store";
 
-	// import type { LoadingStatus, LoadingStatusCollection } from "./stores";
-
 	import type {
 		ComponentMeta,
 		Dependency as IDependency,
 		LayoutNode
 	} from "./types";
-	// import type { UpdateTransaction } from "./_init";
 	import type { ThemeMode, Payload } from "./types";
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
-	import { type ShareData, type ValueData, GRADIO_ROOT } from "@gradio/utils";
+	import { type ShareData, GRADIO_ROOT } from "@gradio/utils";
 
 	import MountComponents from "./MountComponents.svelte";
 	import { prefix_css } from "./css";
@@ -24,18 +21,13 @@
 	import type ApiDocsInterface from "./api_docs/ApiDocs.svelte";
 	import type ApiRecorderInterface from "./api_docs/ApiRecorder.svelte";
 	import type SettingsInterface from "./api_docs/Settings.svelte";
-	// import type { ComponentType } from "svelte";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import settings_logo from "./api_docs/img/settings-logo.svg";
 	import record_stop from "./api_docs/img/record-stop.svg";
 	import { AppTree } from "./init.svelte";
-	// import type {
-	// 	LogMessage,
-	// 	RenderMessage,
-	// 	StatusMessage,
-	// } from "@gradio/client";
+
 	import * as screen_recorder from "./screen_recorder";
 
 	import { DependencyManager } from "./dependency";
@@ -104,6 +96,7 @@
 	});
 
 	let messages: (ToastMessage & { fn_index: number })[] = $state([]);
+	let reconnect_interval: ReturnType<typeof setInterval> | null = null;
 
 	function gradio_event_dispatcher(
 		id: number,
@@ -170,7 +163,8 @@
 			version,
 			api_prefix,
 			max_file_size,
-			autoscroll
+			autoscroll,
+			fill_height
 		},
 		app,
 		$reactive_formatter,
@@ -190,11 +184,6 @@
 		});
 	}
 
-	setContext(GRADIO_ROOT, {
-		register: app_tree.register_component.bind(app_tree),
-		dispatcher: gradio_event_dispatcher
-	});
-
 	let api_calls: Payload[] = $state([]);
 	let last_api_call: Payload | null = $state(null);
 	// We need a callback to add to api_calls from the DependencyManager
@@ -206,6 +195,35 @@
 		api_calls = [...api_calls, last_api_call];
 	};
 
+	function handle_connection_lost(): void {
+		messages = messages.filter((m) => m.type !== "error");
+
+		++_error_id;
+		messages.push({
+			title: "Connection Lost",
+			message: LOST_CONNECTION_MESSAGE,
+			fn_index: -1,
+			type: "error",
+			id: _error_id,
+			duration: null,
+			visible: true
+		});
+
+		reconnect_interval = setInterval(async () => {
+			try {
+				const status = await app.reconnect();
+				if (status === "connected" || status === "changed") {
+					clearInterval(reconnect_interval!);
+					reconnect_interval = null;
+					window.location.reload();
+				}
+			} catch (e) {
+				// server still unreachable
+				console.debug(e);
+			}
+		}, 2000);
+	}
+
 	let dep_manager = new DependencyManager(
 		dependencies,
 		app,
@@ -213,7 +231,8 @@
 		app_tree.get_state.bind(app_tree),
 		app_tree.rerender.bind(app_tree),
 		new_message,
-		add_to_api_calls
+		add_to_api_calls,
+		handle_connection_lost
 	);
 
 	$effect(() => {
@@ -225,7 +244,8 @@
 				version,
 				api_prefix,
 				max_file_size,
-				autoscroll
+				autoscroll,
+				fill_height
 			});
 			dep_manager.reload(
 				dependencies,
@@ -426,6 +446,7 @@
 		return () => {
 			mut.disconnect();
 			res.disconnect();
+			if (reconnect_interval) clearInterval(reconnect_interval);
 		};
 	});
 

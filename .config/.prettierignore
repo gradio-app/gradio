@@ -25,7 +25,6 @@
 **/.vscode/**
 sweep.yaml
 **/.vercel/**
-**/build/**
 **/src/lib/json/**/*
 **/playwright/.cache/**/*
 **/theme/src/pollen.css

@@ -49,7 +49,7 @@ export declare class Client {
     private _resolve_config;
     private config_success;
     handle_space_success(status: SpaceStatus): Promise<Config | void>;
-    component_server(component_id: number, fn_name: string, data: unknown[] | {
+    component_server(component_id: number, fn_name: string, data: unknown | {
         binary: boolean;
         data: Record<string, any>;
     }): Promise<unknown>;

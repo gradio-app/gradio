@@ -3,7 +3,7 @@ import { test, expect } from "@self/tootils";
 test("test HTML components", async ({ page }) => {
 	await expect(page.locator("#simple")).toContainText("Hello, World!");
 
-	await page.getByLabel("Name").fill("Sam");
+	await page.getByLabel("Name").first().fill("Sam");
 	await expect(page.locator("#templated")).toContainText(
 		"Hello, Sam! 3 letters"
 	);
@@ -64,4 +64,34 @@ test("test HTML components", async ({ page }) => {
 	await expect(secondTodoItem).not.toHaveCSS("text-decoration", /line-through/);
 	await secondTodoCheckbox.click();
 	await expect(secondTodoItem).toHaveCSS("text-decoration", /line-through/);
+
+	await expect(page.locator("#children_form")).toContainText("Contact Form");
+	await page.getByLabel("Your Name").fill("Alice");
+	await page.getByLabel("Your Email").fill("alice@example.com");
+	await page.locator("#children_form .send").click();
+	await expect(page.getByLabel("Children Output")).toHaveValue(
+		"Name: Alice, Email: alice@example.com"
+	);
+
+	const file_input = page.locator("#upload_html #html-file-input");
+	await file_input.setInputFiles("./test/files/alphabet.txt");
+	await page.locator("#upload_html #html-upload-btn").click();
+	await expect(async () => {
+		const status = await page
+			.locator("#upload_html #html-upload-status")
+			.textContent();
+		expect(status).toMatch(/^Uploaded: /);
+	}).toPass();
+	await expect(page.getByLabel("Upload Result")).not.toHaveValue("");
+
+	await page.locator("#server-fn-load").click();
+	await expect(async () => {
+		const treeContent = await page.locator("#server-fn-tree").textContent();
+		expect(treeContent).toContain("run.py");
+	}).toPass();
+
+	await page.keyboard.press("a");
+	await expect(page.getByLabel("Key Pressed")).toHaveValue("a");
+	await page.keyboard.press("Enter");
+	await expect(page.getByLabel("Key Pressed")).toHaveValue("Enter");
 });

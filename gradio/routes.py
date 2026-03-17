@@ -55,6 +55,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
+from gradio_client.snippet import generate_code_snippets
 from gradio_client.utils import ServerMessage
 from jinja2.exceptions import TemplateNotFound
 from python_multipart.multipart import parse_options_header
@@ -367,9 +368,12 @@ class App(FastAPI):
         )
         if not is_safe_url:
             raise PermissionError("This URL cannot be proxied.")
-        is_hf_url = url.host.endswith(".hf.space")
+        # Only allow proxying to Hugging Face Space URLs to prevent SSRF
+        # via malicious proxy_url values in untrusted configs.
+        if not url.host.endswith(".hf.space"):
+            raise PermissionError("This URL cannot be proxied.")
         headers = {}
-        if Context.token is not None and is_hf_url:
+        if Context.token is not None:
             headers["Authorization"] = f"Bearer {Context.token}"
         rp_req = client.build_request("GET", url, headers=headers)
         return rp_req
@@ -431,6 +435,7 @@ class App(FastAPI):
         strict_cors: bool = True,
         ssr_mode: bool = False,
         mcp_server: bool | None = None,
+        debug: bool = False,
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
@@ -440,7 +445,7 @@ class App(FastAPI):
         app_kwargs["lifespan"] = create_lifespan_handler(
             app_kwargs.get("lifespan", None), *delete_cache
         )
-        app = App(auth_dependency=auth_dependency, **app_kwargs, debug=True)
+        app = App(auth_dependency=auth_dependency, **app_kwargs, debug=debug)
         if blocks.mcp_server_obj:
             blocks.mcp_server_obj.launch_mcp_on_sse(app, mcp_subpath, blocks.root_path)
         router = APIRouter(prefix=API_PREFIX)
@@ -715,7 +720,9 @@ class App(FastAPI):
             root = route_utils.get_root_url(
                 request=request,
                 route_path=f"/{page}",
-                root_path=app.root_path or blocks.custom_mount_path,
+                root_path=app.root_path
+                or request.scope.get("root_path")
+                or blocks.custom_mount_path,
             )
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = utils.safe_deepcopy(blocks.config)
@@ -824,6 +831,21 @@ class App(FastAPI):
                 api_info = utils.safe_deepcopy(app.get_blocks().get_api_info())
                 api_info = cast(dict[str, Any], api_info)
                 api_info = route_utils.update_example_values_to_use_public_url(api_info)
+                root = route_utils.get_root_url(
+                    request=request,
+                    route_path=f"{API_PREFIX}/info",
+                    root_path=app.root_path,
+                )
+                space_id = app.get_blocks().space_id
+                api_prefix = API_PREFIX + "/"
+                for ep_name, ep_info in api_info.get("named_endpoints", {}).items():
+                    ep_info["code_snippets"] = generate_code_snippets(
+                        ep_name,
+                        ep_info,
+                        str(root),
+                        space_id=space_id,
+                        api_prefix=api_prefix,
+                    )
                 app.api_info = api_info
             return app.api_info
 
@@ -932,7 +954,9 @@ class App(FastAPI):
             root = route_utils.get_root_url(
                 request=request,
                 route_path="/config",
-                root_path=app.root_path or blocks.custom_mount_path,
+                root_path=app.root_path
+                or request.scope.get("root_path")
+                or blocks.custom_mount_path,
             )
             config["username"] = get_current_user(request)
             if deep_link:
@@ -959,6 +983,9 @@ class App(FastAPI):
             file_name: str,
             req: fastapi.Request,
         ):
+            print(
+                f"id={id}, environment={environment}, type={type}, file_name={file_name}"
+            )
             if environment not in ["client", "server"]:
                 raise HTTPException(
                     status_code=404, detail="Environment not supported."
@@ -1320,7 +1347,7 @@ class App(FastAPI):
             )
             root_path = route_utils.get_root_url(
                 request=request,
-                route_path=f"{API_PREFIX}/api/{api_name}",
+                route_path=request.url.path,
                 root_path=app.root_path,
             )
             try:

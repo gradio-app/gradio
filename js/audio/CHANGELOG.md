@@ -1,5 +1,35 @@
 # @gradio/audio
 
+## 0.22.4
+
+### Dependency updates
+
+- @gradio/button@0.6.5
+- @gradio/statustracker@0.12.5
+- @gradio/utils@0.12.0
+- @gradio/atoms@0.22.2
+- @gradio/upload@0.17.7
+
+## 0.22.3
+
+### Dependency updates
+
+- @gradio/client@2.1.0
+- @gradio/button@0.6.4
+
+## 0.22.3
+
+### Fixes
+
+- [#12873](https://github.com/gradio-app/gradio/pull/12873) [`6533d38`](https://github.com/gradio-app/gradio/commit/6533d38c29ee86823e58d94a8afedd219bcc9011) - Fix stop button not working in Audio streaming.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/utils@0.11.3
+- @gradio/atoms@0.22.0
+- @gradio/statustracker@0.12.4
+- @gradio/upload@0.17.6
+
 ## 0.22.2
 
 ### Dependency updates

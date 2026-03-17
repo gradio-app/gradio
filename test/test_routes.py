@@ -5,6 +5,7 @@ import inspect
 import json
 import os
 import pickle
+import sys
 import tempfile
 import time
 from contextlib import asynccontextmanager, closing
@@ -420,6 +421,30 @@ class TestRoutes:
             assert client.get("/ps").is_success
             assert client.get("/py").is_success
 
+    def test_mount_gradio_app_picks_up_root_path_from_asgi_scope(self):
+        """Test that media URLs include the proxy prefix when root_path is set
+        via the ASGI scope (e.g. uvicorn --root-path), without needing to
+        explicitly pass root_path to mount_gradio_app.
+        See: https://github.com/gradio-app/gradio/issues/11848
+        """
+        app = FastAPI()
+        demo = gr.Interface(lambda s: s, "textbox", "textbox")
+        app = gr.mount_gradio_app(app, demo, path="/gradio")
+
+        # root_path="/myapp" simulates a reverse proxy at /myapp;
+        # TestClient requires the full prefixed path in requests.
+        with TestClient(app, root_path="/myapp") as client:
+            # Config root should include the proxy prefix
+            resp = client.get("/myapp/gradio/config")
+            assert resp.is_success
+            config = resp.json()
+            assert "/myapp/gradio" in config["root"]
+
+            # Main page should also reflect the proxy prefix
+            resp = client.get("/myapp/gradio/")
+            assert resp.is_success
+            assert "/myapp/gradio" in resp.text
+
     def test_mount_gradio_app_with_app_kwargs(self):
         app = FastAPI()
         demo = gr.Interface(lambda s: f"You said {s}!", "textbox", "textbox").queue()
@@ -633,8 +658,32 @@ class TestRoutes:
             "https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
         )
         assert "authorization" in dict(r.headers)
-        r = app.build_proxy_request("https://google.com")
-        assert "authorization" not in dict(r.headers)
+        with pytest.raises(PermissionError):
+            app.build_proxy_request("https://google.com")
+
+    def test_proxy_rejects_non_hf_space_urls(self):
+        """Proxy should reject non-.hf.space URLs even if they are in proxy_urls,
+        to prevent SSRF via malicious proxy_url injection in configs."""
+        app = routes.App()
+        interface = gr.Interface(lambda x: x, "text", "text")
+        interface.proxy_urls = {
+            "https://gradio-tests-test-loading-examples-private.hf.space",
+            "http://169.254.169.254",
+            "http://internal-service.local",
+        }
+        app.configure_app(interface)
+        # .hf.space URL should work
+        app.build_proxy_request(
+            "https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
+        )
+        # AWS metadata endpoint should be blocked
+        with pytest.raises(PermissionError):
+            app.build_proxy_request(
+                "http://169.254.169.254/latest/meta-data/iam/security-credentials/"
+            )
+        # Internal service should be blocked
+        with pytest.raises(PermissionError):
+            app.build_proxy_request("http://internal-service.local/admin")
 
     def test_can_get_config_that_includes_non_pickle_able_objects(self):
         my_dict = {"a": 1, "b": 2, "c": 3}
@@ -777,6 +826,14 @@ class TestApp:
     def test_create_app(self):
         app = routes.App.create_app(Interface(lambda x: x, "text", "text"))
         assert isinstance(app, FastAPI)
+
+    def test_create_app_debug_default_is_false(self):
+        app = routes.App.create_app(Interface(lambda x: x, "text", "text"))
+        assert app.debug is False
+
+    def test_create_app_debug_flag_forwarded(self):
+        app = routes.App.create_app(Interface(lambda x: x, "text", "text"), debug=True)
+        assert app.debug is True
 
 
 class TestAuthenticatedRoutes:
@@ -1950,6 +2007,9 @@ def test_get_request_origin_with_headers(headers, server, route_path, expected_o
     assert origin == expected_origin
 
 
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="Skipped on Windows due to port conflicts"
+)
 def test_deep_link_unique_per_session():
     import requests
     from gradio_client import Client
@@ -2053,3 +2113,62 @@ def test_json_postprocessing_with_queue_false(connect):
     with connect(demo) as client:
         output = client.predict(api_name="/lambda")
         assert output == {"epochs": 20, "learning_rate": 0.001, "batch_size": 32}
+
+
+class TestOAuthSecurity:
+    def test_redirect_to_target_blocks_external_urls(self):
+        """_redirect_to_target should strip scheme/host to prevent open redirects."""
+        from gradio.oauth import _redirect_to_target
+
+        scope = {
+            "type": "http",
+            "method": "GET",
+            "headers": [],
+        }
+
+        # External URL should be stripped to just the path
+        scope["query_string"] = b"_target_url=https://evil.com/steal"
+        request = Request(scope)
+        response = _redirect_to_target(request)
+        assert response.headers["location"] == "/steal"
+
+        # Protocol-relative URL should be stripped
+        scope["query_string"] = b"_target_url=//evil.com/steal"
+        request = Request(scope)
+        response = _redirect_to_target(request)
+        assert response.headers["location"] == "/steal"
+
+        # Relative path should pass through unchanged
+        scope["query_string"] = b"_target_url=/my-page%3Ffoo%3Dbar"
+        request = Request(scope)
+        response = _redirect_to_target(request)
+        location = response.headers["location"]
+        assert location == "/my-page?foo=bar"
+
+        # Default target when no _target_url
+        scope["query_string"] = b""
+        request = Request(scope)
+        response = _redirect_to_target(request)
+        assert response.headers["location"] == "/"
+
+    def test_mocked_oauth_does_not_leak_real_token(self):
+        """_get_mocked_oauth_info should return a dummy token, not the real HF token."""
+        from unittest.mock import patch
+
+        from gradio.oauth import _get_mocked_oauth_info
+
+        with (
+            patch("gradio.oauth.get_token", return_value="hf_real_secret_token"),
+            patch(
+                "gradio.oauth.whoami",
+                return_value={
+                    "type": "user",
+                    "fullname": "Test User",
+                    "name": "testuser",
+                    "avatarUrl": "https://huggingface.co/avatar.png",
+                },
+            ),
+        ):
+            info = _get_mocked_oauth_info()
+            assert info["access_token"] != "hf_real_secret_token"
+            assert info["access_token"] == "mock-oauth-token-for-local-dev"
