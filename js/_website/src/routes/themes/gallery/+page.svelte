@@ -204,12 +204,6 @@
 					Light
 				{/if}
 			</button>
-			<a
-				class="text-xs text-orange-500 hover:text-orange-600 whitespace-nowrap"
-				href="/themes/builder"
-			>
-				+ Create theme
-			</a>
 		</div>
 	</div>
 
@@ -231,11 +225,7 @@
 				{#if search_query}
 					No themes found matching "{search_query}"
 				{:else if active_filter === "community"}
-					No community themes yet. <a
-						href="/themes/builder"
-						class="text-orange-500 hover:text-orange-600"
-						>Create the first one!</a
-					>
+					No community themes yet.
 				{:else}
 					No themes found
 				{/if}

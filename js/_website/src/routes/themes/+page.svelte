@@ -71,25 +71,6 @@
 					/>
 				</svg>
 			</a>
-			<a
-				href="/themes/builder"
-				class="inline-flex items-center px-6 py-3 rounded-lg border-2 border-orange-500 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950 font-semibold transition-colors"
-			>
-				Create a Theme
-				<svg
-					class="ml-2 w-4 h-4"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M12 4v16m8-8H4"
-					/>
-				</svg>
-			</a>
 		</div>
 	</div>
 
@@ -206,25 +187,6 @@
 					/>
 				</svg>
 				API Reference
-			</a>
-			<a
-				href="/themes/builder"
-				class="inline-flex items-center px-4 py-2 rounded-lg bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-700 dark:text-gray-300 transition-colors"
-			>
-				<svg
-					class="mr-2 w-4 h-4"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
-					/>
-				</svg>
-				Theme Builder
 			</a>
 		</div>
 	</div>
