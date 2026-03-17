@@ -88,12 +88,8 @@ const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
 				btn.click();
 				return new Promise<number>((resolve) => {
 					function check() {
-						const chatbot =
-							document.querySelector('[role="log"]');
-						if (
-							chatbot &&
-							(chatbot as HTMLElement).offsetParent !== null
-						) {
+						const chatbot = document.querySelector('[role="log"]');
+						if (chatbot && (chatbot as HTMLElement).offsetParent !== null) {
 							resolve(Math.round(performance.now() - start));
 						} else {
 							requestAnimationFrame(check);
