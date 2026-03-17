@@ -5,6 +5,7 @@ export type DragState = {
 	is_dragging: boolean;
 	drag_start: CellCoordinate | null;
 	mouse_down_pos: { x: number; y: number } | null;
+	click_handled: boolean;
 };
 
 export type DragHandlers = {
@@ -41,11 +42,13 @@ export function create_drag_handlers(
 
 		state.mouse_down_pos = { x: event.clientX, y: event.clientY };
 		state.drag_start = [row, col];
+		state.click_handled = false;
 
 		if (!event.shiftKey && !event.metaKey && !event.ctrlKey) {
 			set_selected_cells([[row, col]]);
 			set_selected([row, col]);
 			handle_cell_click(event, row, col);
+			state.click_handled = true;
 		}
 	};
 
@@ -64,7 +67,9 @@ export function create_drag_handlers(
 	};
 
 	const end_drag = (event: MouseEvent): void => {
-		if (!state.is_dragging && state.drag_start) {
+		if (!state.is_dragging && state.drag_start && !state.click_handled) {
+			// If the cell wasn't already processed during mousedown (due to modifier keys),
+			// handle it now on mouseup
 			handle_cell_click(event, state.drag_start[0], state.drag_start[1]);
 		} else if (state.is_dragging && parent_element) {
 			parent_element.focus();
@@ -74,6 +79,7 @@ export function create_drag_handlers(
 		set_is_dragging(false);
 		state.drag_start = null;
 		state.mouse_down_pos = null;
+		state.click_handled = false;
 	};
 
 	return {
