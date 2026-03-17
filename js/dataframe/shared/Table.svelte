@@ -768,11 +768,13 @@
 	let is_dragging = false;
 	let drag_start: [number, number] | null = null;
 	let mouse_down_pos: { x: number; y: number } | null = null;
+	let handled_cell_click = false;
 
 	const drag_state: DragState = {
 		is_dragging,
 		drag_start,
-		mouse_down_pos
+		mouse_down_pos,
+		handled_cell_click
 	};
 
 	$: {
