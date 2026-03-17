@@ -1241,6 +1241,23 @@ class TestUpdate:
         }
 
 
+
+@pytest.mark.asyncio
+async def test_none_input_uses_component_default_on_load():
+    """When frontend sends None (e.g. hot reload before hydration), use component default."""
+    user_data = {"user_1": "Alice", "user_2": "Bob"}
+
+    def display(user_id):
+        return user_data.get(user_id, "Unknown")
+
+    with gr.Blocks() as demo:
+        user_id = gr.Dropdown(choices=["user_1", "user_2"], value="user_1", label="User")
+        out = gr.Textbox()
+        gr.on([user_id.change, demo.load], display, user_id, out)
+
+    result = await demo.process_api(block_fn=0, inputs=[None], request=None, state=None)
+    assert result["data"][0] == "Alice"
+
 @pytest.mark.asyncio
 async def test_root_path():
     image_file = pathlib.Path(__file__).parent / "test_files" / "bus.png"

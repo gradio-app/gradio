@@ -1770,6 +1770,8 @@ Received inputs:
                 value_to_process = (
                     inputs[i].get("value", None) if is_prop_input else inputs[i]
                 )
+                if value_to_process is None and hasattr(block, "value") and block.value is not None:
+                    value_to_process = block.value
 
                 inputs_cached = await processing_utils.async_move_files_to_cache(
                     value_to_process,
