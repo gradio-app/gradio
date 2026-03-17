@@ -147,14 +147,12 @@
 
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
-			console.log("COPYING CLIPBOARD");
 			try {
 				await navigator.clipboard.writeText(value);
 				oncopy?.({ value: value });
 			} catch (e) {
 				console.error("COPYING CLIPBOARD FAILED", e);
 			}
-			console.log("COPYING CLIPBOARD DONE");
 			copy_feedback();
 		}
 	}

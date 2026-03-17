@@ -23,9 +23,7 @@
 	let old_value = $state(gradio.props.value);
 
 	async function dispatch_change() {
-		console.log("dispatching change");
 		if (old_value !== gradio.props.value) {
-			console.log("ACTUALLY dispatching change");
 			old_value = gradio.props.value;
 			await tick();
 			gradio.dispatch("change", $state.snapshot(gradio.props.value));
@@ -43,8 +41,6 @@
 	$effect(() => {
 		dispatch_change();
 	});
-
-	$inspect({ val: gradio.props.value });
 
 	function handle_change(value: string): void {
 		if (!gradio.shared || !gradio.props) return;
