@@ -132,5 +132,5 @@ if not PROFILING_ENABLED:
     # Replace with no-ops for zero overhead
 
     @asynccontextmanager
-    async def trace_phase(name: str):  # type: ignore  # noqa: F811
+    async def trace_phase(name: str):  # noqa: ARG001
         yield
