@@ -10,10 +10,9 @@ import type {
 	queries,
 	Queries,
 	BoundFunction,
-	EventType,
-	FireObject
+	EventType
 } from "@testing-library/dom";
-import { spy, type Spy } from "tinyspy";
+import { vi, type Mock } from "vitest";
 import { GRADIO_ROOT, allowed_shared_props } from "@gradio/utils";
 import type { LoadingStatus } from "@gradio/statustracker";
 import { _ } from "svelte-i18n";
@@ -62,8 +61,9 @@ export async function render<
 	_container?: HTMLElement
 ): Promise<
 	RenderResult<T> & {
-		listen: typeof listen;
-		wait_for_event: typeof wait_for_event;
+		listen: (event_name: string) => Mock;
+		set_data: (data: Record<string, any>) => Promise<void>;
+		get_data: () => Promise<Record<string, any>>;
 	}
 > {
 	let container: HTMLElement;
@@ -81,15 +81,41 @@ export async function render<
 
 	const id = Math.floor(Math.random() * 1000000);
 
-	const mockRegister = (): void => {};
+	let component_set_data: (data: Record<string, any>) => void;
+	let component_get_data: () => Promise<Record<string, any>>;
 
-	const mockDispatcher = (_id: number, event: string, data: any): void => {
-		const e = new CustomEvent("gradio", {
-			bubbles: true,
-			detail: { data, id: _id, event }
-		});
-		target.dispatchEvent(e);
+	const mock_register = (
+		_id: number,
+		set_data: (data: Record<string, any>) => void,
+		get_data: () => Promise<Record<string, any>>
+	): void => {
+		component_set_data = set_data;
+		component_get_data = get_data;
 	};
+
+	const event_listeners = new Map<string, Set<(data: any) => void>>();
+
+	function notify_listeners(event: string, data: any): void {
+		const listeners = event_listeners.get(event);
+		if (listeners) {
+			for (const listener of listeners) {
+				listener(data);
+			}
+		}
+	}
+
+	const dispatcher = (_id: number, event: string, data: any): void => {
+		notify_listeners(event, data);
+	};
+
+	function listen(event_name: string): Mock {
+		const fn = vi.fn();
+		if (!event_listeners.has(event_name)) {
+			event_listeners.set(event_name, new Set());
+		}
+		event_listeners.get(event_name)!.add(fn);
+		return fn;
+	}
 
 	const i18nFormatter = (s: string | null | undefined): string => s ?? "";
 
@@ -105,8 +131,8 @@ export async function render<
 		api_prefix: "",
 		server: {} as any,
 		show_label: true,
-		register_component: () => {},
-		dispatcher: () => {}
+		register_component: mock_register,
+		dispatcher
 	};
 
 	const component_props_obj: Record<string, any> = {
@@ -134,10 +160,7 @@ export async function render<
 
 	const component = mount(ComponentConstructor, {
 		target,
-		props: componentProps,
-		context: new Map([
-			[GRADIO_ROOT, { register: mockRegister, dispatcher: mockDispatcher }]
-		])
+		props: componentProps
 	}) as T;
 
 	containerCache.set(container, { target, component });
@@ -145,11 +168,20 @@ export async function render<
 
 	await tick();
 
-	type event_name = string;
-
 	return {
 		container,
 		component,
+		listen,
+		set_data: async (data: Record<string, any>) => {
+			const r = component_set_data(data);
+			// we double tick here because the event may trigger state update inside  the component
+			// the event may _only_ be fired in response to these state updates.
+			// so we want everything to settle before returning and continuing with the test.
+			await tick();
+			await tick();
+			return r;
+		},
+		get_data: () => component_get_data(),
 		//@ts-ignore
 		debug: (el = container): void => console.warn(prettyDOM(el)),
 		unmount: (): void => {
@@ -179,6 +211,13 @@ export function cleanup(): void {
 	Array.from(containerCache.keys()).forEach(cleanupAtContainer);
 }
 
+type AsyncFireObject = {
+	[K in EventType]: (
+		element: Document | Element | Window | Node,
+		options?: object
+	) => Promise<boolean>;
+};
+
 export const fireEvent = Object.keys(dtlFireEvent).reduce((acc, key) => {
 	const _key = key as EventType;
 	return {
@@ -188,11 +227,15 @@ export const fireEvent = Object.keys(dtlFireEvent).reduce((acc, key) => {
 			options: object = {}
 		): Promise<boolean> => {
 			const event = dtlFireEvent[_key](element, options);
+			// we double tick here because the event may trigger state update inside  the component
+			// the event may _only_ be fired in response to these state updates.
+			// so we want everything to settle before returning and continuing with the test.
+			await tick();
 			await tick();
 			return event;
 		}
 	};
-}, {} as FireObject);
+}, {} as AsyncFireObject);
 
 export type FireFunction = (
 	element: Document | Element | Window,
@@ -200,7 +243,3 @@ export type FireFunction = (
 ) => Promise<boolean>;
 
 export * from "@testing-library/dom";
-
-function isCustomEvent(event: Event): event is CustomEvent {
-	return "detail" in event;
-}

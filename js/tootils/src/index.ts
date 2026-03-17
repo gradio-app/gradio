@@ -172,7 +172,6 @@ export interface ActionReturn<
 }
 
 export { expect } from "@playwright/test";
-export * from "./render";
 
 export const drag_and_drop_file = async (
 	page: Page,
