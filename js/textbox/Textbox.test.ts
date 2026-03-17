@@ -171,7 +171,7 @@ describe("Events", () => {
 		btn.focus();
 
 		await fireEvent.click(btn);
-		// await tick();
+		await tick();
 
 		expect(copy).toHaveBeenCalledTimes(1);
 		expect(copy).toHaveBeenCalledWith({ value: "copy me" });
