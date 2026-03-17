@@ -26,13 +26,7 @@ with gr.Blocks() as demo:
                     gr.Code(label="Code", language="python")
 
         with gr.Tab("Chatbot", id="chatbot"):
-            gr.Chatbot(
-                label="Chatbot",
-                value=[
-                    gr.ChatMessage(role="user", content="Hello"),
-                    gr.ChatMessage(role="assistant", content="Hi there!"),
-                ],
-            )
+            gr.Chatbot(label="Chatbot")
             gr.Textbox(label="Message")
 
         with gr.Tab("Media", id="media"):
