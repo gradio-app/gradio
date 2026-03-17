@@ -35,10 +35,7 @@ export interface SharedProps {
 	scale: number;
 	min_width: number;
 	padding: number;
-	load_component: (
-		arg0: string,
-		arg1: "base" | "example" | "component"
-	) => LoadingComponent; //component_loader;
+	load_component: load_component;
 	loading_status?: any;
 	label: string;
 	show_label: boolean;
@@ -278,10 +275,16 @@ export type component_loader = (args: Args) => {
 	};
 };
 
+export type LoadedComponentWithRuntime = {
+	component: LoadingComponent;
+	runtime: false | typeof import("svelte");
+};
+
 export type load_component = (
 	name: string,
-	variant: "component" | "example" | "base"
-) => LoadingComponent;
+	variant: "component" | "example" | "base",
+	component_class_id?: string
+) => LoadedComponentWithRuntime;
 
 const is_browser = typeof window !== "undefined";
 
@@ -406,12 +409,6 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		}
 
 		this.load_component = this.shared.load_component;
-		// @ts-ignore
-		if (!is_browser || _props.props?.__GRADIO_BROWSER_TEST__) {
-			// Provide a no-op dispatcher for test environments
-			this.dispatcher = () => {};
-			return;
-		}
 
 		this.register_component = this.shared.register_component || (() => {});
 		this.dispatcher = this.shared.dispatcher || (() => {});
