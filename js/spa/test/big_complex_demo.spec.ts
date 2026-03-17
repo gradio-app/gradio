@@ -83,18 +83,23 @@ const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
 			const navDuration = await page.evaluate(() => {
 				const start = performance.now();
 				const btn = document.querySelector(
-					'button[id$="chatbot"]'
+					'button[data-tab-id="chatbot"]'
 				) as HTMLElement;
 				btn.click();
 				return new Promise<number>((resolve) => {
-					const observer = new MutationObserver(() => {
-						const chatbot = document.querySelector('[data-testid="chatbot"]');
-						if (chatbot && (chatbot as HTMLElement).offsetParent !== null) {
-							observer.disconnect();
+					function check() {
+						const chatbot =
+							document.querySelector('[role="log"]');
+						if (
+							chatbot &&
+							(chatbot as HTMLElement).offsetParent !== null
+						) {
 							resolve(Math.round(performance.now() - start));
+						} else {
+							requestAnimationFrame(check);
 						}
-					});
-					observer.observe(document.body, { childList: true, subtree: true });
+					}
+					requestAnimationFrame(check);
 				});
 			});
 			tabNavValues.push(navDuration);
