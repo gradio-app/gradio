@@ -67,18 +67,25 @@ describe("Events", () => {
 		await event.keyboard("ab");
 
 		expect(input).toHaveBeenCalled();
+		expect(input).toHaveBeenCalledTimes(1);
 	});
 
 	test("submit: emitted on Enter key in single-line textbox", async () => {
-		const { getByDisplayValue, listen } = await render(Textbox, default_props);
+		const { getByDisplayValue, listen, get_data } = await render(
+			Textbox,
+			default_props
+		);
 
 		const item: HTMLInputElement = getByDisplayValue("hi") as HTMLInputElement;
 		const submit = listen("submit");
 
 		item.focus();
+		await event.keyboard("ab");
 		await event.keyboard("{Enter}");
 
 		expect(submit).toHaveBeenCalledTimes(1);
+		const new_data = await get_data();
+		expect(new_data.value).toEqual("hi ab");
 	});
 
 	test("submit: emitted when submit button is clicked", async () => {

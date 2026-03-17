@@ -406,12 +406,6 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		}
 
 		this.load_component = this.shared.load_component;
-		// @ts-ignore
-		// if (!is_browser || _props.props?.__GRADIO_BROWSER_TEST__) {
-		// 	// Provide a no-op dispatcher for test environments
-		// 	this.dispatcher = () => {};
-		// 	return;
-		// }
 
 		this.register_component = this.shared.register_component || (() => {});
 		this.dispatcher = this.shared.dispatcher || (() => {});
@@ -502,7 +496,6 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	}
 
 	set_data(data: Partial<U & SharedProps>): void {
-		console.log("boo", data);
 		for (const key in data) {
 			// @ts-ignore
 			const value = data[key];

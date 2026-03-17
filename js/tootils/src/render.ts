@@ -174,6 +174,9 @@ export async function render<
 		listen,
 		set_data: async (data: Record<string, any>) => {
 			const r = component_set_data(data);
+			// we double tick here because the event may trigger state update inside  the component
+			// the event may _only_ be fired in response to these state updates.
+			// so we want everything to settle before returning and continuing with the test.
 			await tick();
 			await tick();
 			return r;
@@ -224,6 +227,9 @@ export const fireEvent = Object.keys(dtlFireEvent).reduce((acc, key) => {
 			options: object = {}
 		): Promise<boolean> => {
 			const event = dtlFireEvent[_key](element, options);
+			// we double tick here because the event may trigger state update inside  the component
+			// the event may _only_ be fired in response to these state updates.
+			// so we want everything to settle before returning and continuing with the test.
 			await tick();
 			await tick();
 			return event;
