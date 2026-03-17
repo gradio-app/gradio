@@ -29,8 +29,8 @@ with gr.Blocks() as demo:
             gr.Chatbot(
                 label="Chatbot",
                 value=[
-                    {"role": "user", "content": "Hello"},
-                    {"role": "assistant", "content": "Hi there!"},
+                    gr.ChatMessage(role="user", content="Hello"),
+                    gr.ChatMessage(role="assistant", content="Hi there!"),
                 ],
             )
             gr.Textbox(label="Message")
