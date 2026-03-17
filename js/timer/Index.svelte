@@ -1,24 +1,25 @@
 <script lang="ts">
-	import { onDestroy } from "svelte";
 	import type { TimerProps, TimerEvents } from "./types";
 	import { Gradio } from "@gradio/utils";
 
 	const props = $props();
 	const gradio = new Gradio<TimerEvents, TimerProps>(props);
 
-	let interval: NodeJS.Timeout | undefined = undefined;
+	let interval: NodeJS.Timeout | undefined = $state(undefined);
+	const active = $derived(gradio.props.active);
+	const value = $derived(gradio.props.value);
 
 	$effect(() => {
 		if (interval) clearInterval(interval);
-		if (gradio.props.active) {
+		if (active) {
 			interval = setInterval(() => {
 				if (document.visibilityState === "visible") {
 					gradio.dispatch("tick");
 				}
-			}, gradio.props.value * 1000);
+			}, value * 1000);
 		}
-	});
-	onDestroy(() => {
-		if (interval) clearInterval(interval);
+		return () => {
+			if (interval) clearInterval(interval);
+		};
 	});
 </script>
