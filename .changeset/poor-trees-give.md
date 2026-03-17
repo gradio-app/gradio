@@ -1,9 +1,9 @@
 ---
-"@gradio/textbox": minor
-"@gradio/utils": minor
-"@self/spa": minor
-"@self/tootils": minor
-"gradio": minor
+"@gradio/textbox": patch
+"@gradio/utils": patch
+"@self/spa": patch
+"@self/tootils": patch
+"gradio": patch
 ---
 
-feat:Browser tests follwup
+fix:Browser tests follow-up
