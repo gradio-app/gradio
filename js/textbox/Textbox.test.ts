@@ -4,17 +4,7 @@ import event from "@testing-library/user-event";
 
 import Textbox from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
-
-const loading_status: LoadingStatus = {
-	eta: 0,
-	queue_position: 1,
-	queue_size: 1,
-	status: "complete" as LoadingStatus["status"],
-	scroll_to_output: false,
-	visible: true,
-	fn_index: 0,
-	show_progress: "full"
-};
+import { tick } from "svelte";
 
 describe("Textbox", () => {
 	afterEach(() => cleanup());
@@ -23,7 +13,6 @@ describe("Textbox", () => {
 		const { getByDisplayValue } = await render(Textbox, {
 			show_label: true,
 			max_lines: 1,
-			loading_status,
 			lines: 1,
 			value: "hello world",
 			label: "Textbox",
@@ -40,7 +29,6 @@ describe("Textbox", () => {
 		const { getByDisplayValue, listen } = await render(Textbox, {
 			show_label: true,
 			max_lines: 10,
-			loading_status,
 			lines: 1,
 			value: "hi ",
 			label: "Textbox",
@@ -53,5 +41,49 @@ describe("Textbox", () => {
 		await event.keyboard("some text");
 
 		expect(item.value).toBe("hi some text");
+	});
+});
+
+describe("Events", () => {
+	test("emits an input event when the value changes", async () => {
+		const { getByDisplayValue, listen } = await render(Textbox, {
+			show_label: true,
+			max_lines: 10,
+			lines: 1,
+			value: "hi ",
+			label: "Textbox",
+			interactive: true
+		});
+
+		const item: HTMLInputElement = getByDisplayValue("hi") as HTMLInputElement;
+
+		item.focus();
+
+		const input_event = listen("input");
+
+		await event.keyboard("some text");
+		expect(input_event).toHaveBeenCalled();
+		expect(input_event).toHaveBeenCalledTimes(9);
+	});
+
+	test("emits a change event when the value changes from outside", async () => {
+		const { listen, set_data } = await render(Textbox, {
+			show_label: true,
+			max_lines: 10,
+			lines: 1,
+			value: "hi ",
+			label: "Textbox",
+			interactive: true
+		});
+
+		const change_event = listen("change");
+
+		set_data({ value: "hello world" });
+		// dispatch_change() in Textbox awaits tick() internally
+		await tick();
+		await tick();
+
+		expect(change_event).toHaveBeenCalled();
+		expect(change_event).toHaveBeenCalledTimes(1);
 	});
 });
