@@ -32,8 +32,8 @@ class TestDropdown:
         assert dropdown.preprocess("a") == 0
         assert dropdown.preprocess("b") == 1
         assert dropdown.value == "a"
-        with pytest.raises(gr.Error):
-            dropdown.preprocess("c")
+        # Value not in choices: pass through to handler (fixes #12246 cascading dropdowns)
+        assert dropdown.preprocess("c") is None
 
         dropdown = gr.Dropdown(choices=["a", "b"], type="index", multiselect=True)
         assert dropdown.preprocess(["a"]) == [0]

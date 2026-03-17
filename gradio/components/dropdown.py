@@ -200,6 +200,9 @@ class Dropdown(FormComponent):
             return None
 
         choice_values = [value for _, value in self.choices]
+        # When value is not in choices (e.g. cascading dropdowns where parent changed
+        # options), pass through to handler instead of raising. Handler can return
+        # updated component with correct value. Fixes #12246.
         if not self.allow_custom_value:
             if isinstance(payload, list):
                 for value in payload:
@@ -208,9 +211,9 @@ class Dropdown(FormComponent):
                             f"Value: {value!r} (type: {type(value)}) is not in the list of choices: {choice_values}"
                         )
             elif payload not in choice_values:
-                raise Error(
-                    f"Value: {payload} is not in the list of choices: {choice_values}"
-                )
+                # Pass through to allow handlers to process stale values from
+                # parent-triggered updates (e.g. country/city cascading dropdowns)
+                pass
 
         if self.type == "value":
             return payload
