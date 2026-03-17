@@ -14,17 +14,17 @@
 		{ label: "API", href: "/docs" },
 		{ label: "Guides", href: "/guides" },
 		{ label: "Custom Components", href: "/custom-components/gallery" },
-		{ label: "HTML Components", href: "/custom-components/html-gallery" }
+		{ label: "HTML Components", href: "/custom-components/html-gallery" },
 	];
 
 	const community_links = [
 		{ label: "Themes", href: "/themes" },
 		{
 			label: "File an Issue",
-			href: "https://github.com/gradio-app/gradio/issues/new/choose"
+			href: "https://github.com/gradio-app/gradio/issues/new/choose",
 		},
 		{ label: "Discord", href: "https://discord.gg/feTf9x3ZSB" },
-		{ label: "Github", href: "https://github.com/gradio-app/gradio" }
+		{ label: "Github", href: "https://github.com/gradio-app/gradio" },
 	];
 
 	let click_nav = false;
@@ -159,7 +159,8 @@
 									? 'rounded-b-lg'
 									: ''}"
 								{href}
-								target={href.startsWith('/') ? undefined : '_blank'}>{label}</a
+								target={href.startsWith("/") ? undefined : "_blank"}
+								on:click={() => (show_help_menu = false)}>{label}</a
 							>
 						{/each}
 					</div>
@@ -226,7 +227,7 @@
 							{#each community_links as { label, href }}
 								<a
 									{href}
-									target={href.startsWith('/') ? undefined : '_blank'}
+									target={href.startsWith("/") ? undefined : "_blank"}
 									on:click={() => (click_nav = false)}
 									class="py-2.5 text-base text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors"
 									>{label}</a

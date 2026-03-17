@@ -1,6 +1,5 @@
 <script lang="ts">
 	import MetaTags from "$lib/components/MetaTags.svelte";
-	import { page } from "$app/stores";
 	import { goto } from "$app/navigation";
 	import { BUILTIN_THEMES } from "./gallery/utils";
 	import ThemeCard from "./gallery/ThemeCard.svelte";
@@ -35,8 +34,8 @@
 
 <MetaTags
 	title="Gradio Themes"
-	url={$page.url.pathname}
-	canonical={$page.url.pathname}
+	url="/themes"
+	canonical="/themes"
 	description="Customize your Gradio apps with beautiful themes. Browse the gallery or create your own."
 />
 

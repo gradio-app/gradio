@@ -128,8 +128,8 @@
 
 <MetaTags
 	title="Gradio Theme Gallery"
-	url={$page.url.pathname}
-	canonical={$page.url.pathname}
+	url="/themes/gallery"
+	canonical="/themes/gallery"
 	description="Browse and discover beautiful themes for your Gradio apps."
 />
 
