@@ -73,6 +73,7 @@
 		oncopy?: (data: CopyData) => void;
 	} = $props();
 
+	// svelte-ignore non_reactive_update
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = $state(false);
 	let timer: NodeJS.Timeout;
@@ -81,6 +82,7 @@
 	let user_has_scrolled_up = $state(false);
 	let _max_lines = $state(1);
 
+	// svelte-ignore state_referenced_locally
 	const show_textbox_border = !submit_btn;
 
 	$effect(() => {
@@ -145,8 +147,14 @@
 
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
-			await navigator.clipboard.writeText(value);
-			oncopy?.({ value: value });
+			console.log("COPYING CLIPBOARD");
+			try {
+				await navigator.clipboard.writeText(value);
+				oncopy?.({ value: value });
+			} catch (e) {
+				console.error("COPYING CLIPBOARD FAILED", e);
+			}
+			console.log("COPYING CLIPBOARD DONE");
 			copy_feedback();
 		}
 	}
@@ -283,10 +291,9 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y-autofocus -->
 <label class:container class:show_textbox_border>
 	{#if show_label && buttons && buttons.length > 0}
-		<IconButtonWrapper {buttons} {oncustombuttonclick}>
+		<IconButtonWrapper {buttons} on_custom_button_click={oncustombuttonclick}>
 			{#if buttons.some((btn) => typeof btn === "string" && btn === "copy")}
 				<IconButton
 					Icon={copied ? Check : Copy}
@@ -306,6 +313,7 @@
 	<div class="input-container">
 		{#if lines === 1 && _max_lines === 1}
 			{#if type === "text"}
+				<!-- svelte-ignore a11y_autofocus -->
 				<input
 					data-testid="textbox"
 					type="text"
@@ -332,6 +340,7 @@
 					lang={html_attributes?.lang}
 				/>
 			{:else if type === "password"}
+				<!-- svelte-ignore a11y_autofocus -->
 				<input
 					data-testid="password"
 					type="password"
@@ -356,6 +365,7 @@
 					lang={html_attributes?.lang}
 				/>
 			{:else if type === "email"}
+				<!-- svelte-ignore a11y_autofocus -->
 				<input
 					data-testid="textbox"
 					type="email"
@@ -381,6 +391,7 @@
 				/>
 			{/if}
 		{:else}
+			<!-- svelte-ignore a11y_autofocus -->
 			<textarea
 				data-testid="textbox"
 				use:text_area_resize={value}
@@ -407,13 +418,14 @@
 				tabindex={html_attributes?.tabindex}
 				enterkeyhint={html_attributes?.enterkeyhint}
 				lang={html_attributes?.lang}
-			/>
+			></textarea>
 		{/if}
 		{#if submit_btn}
 			<button
 				class="submit-button"
 				class:padded-button={submit_btn !== true}
 				onclick={handle_submit}
+				data-testid="submit-button"
 			>
 				{#if submit_btn === true}
 					<Send />
@@ -427,6 +439,7 @@
 				class="stop-button"
 				class:padded-button={stop_btn !== true}
 				onclick={handle_stop}
+				data-testid="stop-button"
 			>
 				{#if stop_btn === true}
 					<Square fill="none" stroke_width={2.5} />

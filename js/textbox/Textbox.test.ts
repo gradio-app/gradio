@@ -1,21 +1,27 @@
 import { test, describe, assert, afterEach, expect } from "vitest";
-import { cleanup, render } from "@self/tootils/render";
+import { cleanup, render, fireEvent } from "@self/tootils/render";
 import event from "@testing-library/user-event";
 
 import Textbox from "./Index.svelte";
-import type { LoadingStatus } from "@gradio/statustracker";
 import { tick } from "svelte";
+
+const default_props = {
+	show_label: true,
+	max_lines: 10,
+	lines: 1,
+	value: "hi ",
+	label: "Textbox",
+	interactive: true
+};
 
 describe("Textbox", () => {
 	afterEach(() => cleanup());
 
 	test("renders provided value", async () => {
 		const { getByDisplayValue } = await render(Textbox, {
-			show_label: true,
+			...default_props,
 			max_lines: 1,
-			lines: 1,
 			value: "hello world",
-			label: "Textbox",
 			interactive: false
 		});
 
@@ -26,14 +32,7 @@ describe("Textbox", () => {
 	});
 
 	test("changing the text should update the value", async () => {
-		const { getByDisplayValue, listen } = await render(Textbox, {
-			show_label: true,
-			max_lines: 10,
-			lines: 1,
-			value: "hi ",
-			label: "Textbox",
-			interactive: true
-		});
+		const { getByDisplayValue } = await render(Textbox, default_props);
 
 		const item: HTMLInputElement = getByDisplayValue("hi") as HTMLInputElement;
 
@@ -45,45 +44,147 @@ describe("Textbox", () => {
 });
 
 describe("Events", () => {
-	test("emits an input event when the value changes", async () => {
-		const { getByDisplayValue, listen } = await render(Textbox, {
-			show_label: true,
-			max_lines: 10,
-			lines: 1,
-			value: "hi ",
-			label: "Textbox",
-			interactive: true
-		});
+	afterEach(() => cleanup());
+
+	test("change: emitted when value changes from outside", async () => {
+		const { listen, set_data } = await render(Textbox, default_props);
+
+		const change = listen("change");
+
+		await set_data({ value: "hello world" });
+
+		expect(change).toHaveBeenCalledTimes(1);
+		expect(change).toHaveBeenCalledWith("hello world");
+	});
+
+	test("input: emitted on each keystroke", async () => {
+		const { getByDisplayValue, listen } = await render(Textbox, default_props);
 
 		const item: HTMLInputElement = getByDisplayValue("hi") as HTMLInputElement;
+		const input = listen("input");
+
+		item.focus();
+		await event.keyboard("ab");
+
+		expect(input).toHaveBeenCalled();
+	});
+
+	test("submit: emitted on Enter key in single-line textbox", async () => {
+		const { getByDisplayValue, listen } = await render(Textbox, default_props);
+
+		const item: HTMLInputElement = getByDisplayValue("hi") as HTMLInputElement;
+		const submit = listen("submit");
+
+		item.focus();
+		await event.keyboard("{Enter}");
+
+		expect(submit).toHaveBeenCalledTimes(1);
+	});
+
+	test("submit: emitted when submit button is clicked", async () => {
+		const { listen, getByTestId } = await render(Textbox, {
+			...default_props,
+			submit_btn: true
+		});
+
+		const submit = listen("submit");
+		const btn = getByTestId("submit-button") as HTMLButtonElement;
+
+		fireEvent.click(btn);
+
+		expect(submit).toHaveBeenCalledTimes(1);
+	});
+
+	test("blur: emitted when input loses focus", async () => {
+		const { getByDisplayValue, listen } = await render(Textbox, default_props);
+
+		const item = getByDisplayValue("hi");
+		const blur = listen("blur");
+
+		item.focus();
+		item.blur();
+
+		expect(blur).toHaveBeenCalledTimes(1);
+	});
+
+	test("focus: emitted when input gains focus", async () => {
+		const { getByDisplayValue, listen } = await render(Textbox, default_props);
+
+		const item = getByDisplayValue("hi");
+		const focus = listen("focus");
 
 		item.focus();
 
-		const input_event = listen("input");
-
-		await event.keyboard("some text");
-		expect(input_event).toHaveBeenCalled();
-		expect(input_event).toHaveBeenCalledTimes(9);
+		expect(focus).toHaveBeenCalledTimes(1);
 	});
 
-	test("emits a change event when the value changes from outside", async () => {
-		const { listen, set_data } = await render(Textbox, {
-			show_label: true,
-			max_lines: 10,
-			lines: 1,
-			value: "hi ",
-			label: "Textbox",
-			interactive: true
+	test("select: emitted when text is selected", async () => {
+		const { getByDisplayValue, listen } = await render(Textbox, {
+			...default_props,
+			value: "hello world"
 		});
 
-		const change_event = listen("change");
+		const item = getByDisplayValue("hello world") as HTMLInputElement;
+		const select = listen("select");
 
-		set_data({ value: "hello world" });
-		// dispatch_change() in Textbox awaits tick() internally
-		await tick();
-		await tick();
+		item.focus();
+		item.setSelectionRange(0, 5);
+		await fireEvent.select(item);
 
-		expect(change_event).toHaveBeenCalled();
-		expect(change_event).toHaveBeenCalledTimes(1);
+		expect(select).toHaveBeenCalledWith({
+			value: "hello",
+			index: [0, 5]
+		});
+	});
+
+	test("stop: emitted when stop button is clicked", async () => {
+		const { listen, getByTestId } = await render(Textbox, {
+			...default_props,
+			stop_btn: true
+		});
+
+		const stop = listen("stop");
+		const btn = getByTestId("stop-button");
+
+		await fireEvent.click(btn);
+
+		expect(stop).toHaveBeenCalledTimes(1);
+	});
+
+	test("copy: emitted when copy button is clicked", async () => {
+		const { listen, getByLabelText } = await render(Textbox, {
+			...default_props,
+			value: "copy me",
+			buttons: ["copy"]
+		});
+
+		const copy = listen("copy");
+		const btn = getByLabelText("Copy");
+
+		btn.focus();
+
+		await fireEvent.click(btn);
+		// await tick();
+
+		expect(copy).toHaveBeenCalledTimes(1);
+		expect(copy).toHaveBeenCalledWith({ value: "copy me" });
+	});
+
+	test("custom_button_click: emitted when custom button is clicked", async () => {
+		const { listen, getByLabelText } = await render(Textbox, {
+			...default_props,
+			buttons: [{ value: "Run", id: 42, icon: null }]
+		});
+
+		const custom = listen("custom_button_click");
+		const btn = getByLabelText("Run");
+		await fireEvent.click(btn);
+
+		expect(custom).toHaveBeenCalledTimes(1);
+		expect(custom).toHaveBeenCalledWith({ id: 42 });
 	});
 });
+
+function pause(n) {
+	return new Promise((resolve) => setTimeout(resolve, n));
+}

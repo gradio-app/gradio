@@ -10,8 +10,7 @@ import type {
 	queries,
 	Queries,
 	BoundFunction,
-	EventType,
-	FireObject
+	EventType
 } from "@testing-library/dom";
 import { vi, type Mock } from "vitest";
 import { GRADIO_ROOT, allowed_shared_props } from "@gradio/utils";
@@ -63,7 +62,7 @@ export async function render<
 ): Promise<
 	RenderResult<T> & {
 		listen: (event_name: string) => Mock;
-		set_data: (data: Record<string, any>) => void;
+		set_data: (data: Record<string, any>) => Promise<void>;
 		get_data: () => Promise<Record<string, any>>;
 	}
 > {
@@ -173,7 +172,12 @@ export async function render<
 		container,
 		component,
 		listen,
-		set_data: (data: Record<string, any>) => component_set_data(data),
+		set_data: async (data: Record<string, any>) => {
+			const r = component_set_data(data);
+			await tick();
+			await tick();
+			return r;
+		},
 		get_data: () => component_get_data(),
 		//@ts-ignore
 		debug: (el = container): void => console.warn(prettyDOM(el)),
@@ -204,6 +208,13 @@ export function cleanup(): void {
 	Array.from(containerCache.keys()).forEach(cleanupAtContainer);
 }
 
+type AsyncFireObject = {
+	[K in EventType]: (
+		element: Document | Element | Window | Node,
+		options?: object
+	) => Promise<boolean>;
+};
+
 export const fireEvent = Object.keys(dtlFireEvent).reduce((acc, key) => {
 	const _key = key as EventType;
 	return {
@@ -214,10 +225,11 @@ export const fireEvent = Object.keys(dtlFireEvent).reduce((acc, key) => {
 		): Promise<boolean> => {
 			const event = dtlFireEvent[_key](element, options);
 			await tick();
+			await tick();
 			return event;
 		}
 	};
-}, {} as FireObject);
+}, {} as AsyncFireObject);
 
 export type FireFunction = (
 	element: Document | Element | Window,
