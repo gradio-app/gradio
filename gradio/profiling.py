@@ -1,15 +1,10 @@
-"""Profiling instrumentation for Gradio request lifecycle.
-
-Toggled via GRADIO_PROFILING=1 environment variable. Zero overhead when off.
-"""
-
 from __future__ import annotations
 
 import contextvars
 import os
 import time
 from collections import deque
-from contextlib import asynccontextmanager, contextmanager
+from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -83,21 +78,6 @@ async def trace_phase(name: str):
         trace.set_phase(name, duration_ms)
 
 
-@contextmanager
-def trace_phase_sync(name: str):
-    """Sync context manager that records timing for a named phase into the current trace."""
-    trace = _current_trace.get()
-    if trace is None:
-        yield
-        return
-    start = time.monotonic()
-    try:
-        yield
-    finally:
-        duration_ms = (time.monotonic() - start) * 1000
-        trace.set_phase(name, duration_ms)
-
-
 class TraceCollector:
     def __init__(self, maxlen: int = 100_000):
         self._traces: deque[RequestTrace] = deque(maxlen=maxlen)
@@ -153,8 +133,4 @@ if not PROFILING_ENABLED:
 
     @asynccontextmanager
     async def trace_phase(name: str):  # type: ignore  # noqa: F811
-        yield
-
-    @contextmanager
-    def trace_phase_sync(name: str):  # type: ignore  # noqa: F811
         yield
