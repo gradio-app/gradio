@@ -1,5 +1,18 @@
 # @gradio/accordion
 
+## 0.5.32
+
+### Fixes
+
+- [#12836](https://github.com/gradio-app/gradio/pull/12836) [`77e7871`](https://github.com/gradio-app/gradio/commit/77e7871176e50a894190ac98aa9de8fbdbf3620f) - Fixes hidden accordion's children losing all values.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.12.5
+- @gradio/utils@0.12.0
+- @gradio/column@0.3.2
+- @gradio/atoms@0.22.2
+
 ## 0.5.31
 
 ### Fixes
