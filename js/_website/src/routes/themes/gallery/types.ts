@@ -1,3 +1,14 @@
+export type ThemeStatus =
+	| "RUNNING"
+	| "BUILDING"
+	| "BUILD_ERROR"
+	| "RUNTIME_ERROR"
+	| "PAUSED"
+	| "SLEEPING"
+	| "STOPPED"
+	| "NO_APP_FILE"
+	| "UNKNOWN";
+
 export type ThemeData = {
 	id: string;
 	name: string;
@@ -8,6 +19,7 @@ export type ThemeData = {
 	hf_space_id: string;
 	subdomain: string;
 	background_color: string;
+	status: ThemeStatus;
 	colors: {
 		primary: string;
 		secondary: string;
@@ -22,7 +34,17 @@ export type ThemeData = {
 	stylesheets?: string[];
 };
 
-export type CommunityThemeManifestEntry = Omit<
-	ThemeData,
-	"is_official" | "likes" | "subdomain" | "background_color"
->;
+export type HfSpaceEntry = {
+	id: string;
+	likes: number;
+	subdomain: string;
+	runtime?: {
+		stage?: string;
+	};
+	cardData?: {
+		title?: string;
+		short_description?: string;
+		colorFrom?: string;
+		colorTo?: string;
+	};
+};

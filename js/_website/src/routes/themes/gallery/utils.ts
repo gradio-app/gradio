@@ -1,21 +1,78 @@
-import type { ThemeData, CommunityThemeManifestEntry } from "./types";
+import type { ThemeData, ThemeStatus, HfSpaceEntry } from "./types";
 
-const COMMUNITY_MANIFEST_URL =
-	"https://huggingface.co/datasets/gradio/theme-gallery/resolve/main/manifest.json";
+const HF_API_URL =
+	"https://huggingface.co/api/spaces?filter=gradio-theme&limit=200&expand[]=subdomain&expand[]=likes&expand[]=runtime&expand[]=cardData";
 
-export async function fetch_community_themes(): Promise<ThemeData[]> {
+const HF_COLOR_MAP: Record<string, string> = {
+	red: "#ef4444",
+	orange: "#f97316",
+	amber: "#f59e0b",
+	yellow: "#eab308",
+	lime: "#84cc16",
+	green: "#22c55e",
+	emerald: "#10b981",
+	teal: "#14b8a6",
+	cyan: "#06b6d4",
+	sky: "#0ea5e9",
+	blue: "#3b82f6",
+	indigo: "#6366f1",
+	violet: "#8b5cf6",
+	purple: "#a855f7",
+	fuchsia: "#d946ef",
+	pink: "#ec4899",
+	rose: "#f43f5e",
+	gray: "#6b7280",
+	stone: "#78716c",
+	zinc: "#71717a",
+	neutral: "#737373",
+	slate: "#64748b"
+};
+
+function format_theme_name(id: string): string {
+	const name = id.split("/").pop() || id;
+	return name
+		.replace(/[-_]/g, " ")
+		.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+export async function fetch_community_themes(
+	fetcher: typeof fetch = fetch
+): Promise<ThemeData[]> {
 	try {
-		const res = await fetch(COMMUNITY_MANIFEST_URL);
+		const res = await fetcher(HF_API_URL);
 		if (!res.ok) return [];
-		const entries: CommunityThemeManifestEntry[] = await res.json();
-		return entries.map((entry) => ({
-			...entry,
-			is_official: false,
-			likes: 0,
-			subdomain: "",
-			background_color: "",
-			stylesheets: entry.stylesheets ?? []
-		}));
+		const spaces: HfSpaceEntry[] = await res.json();
+
+		return spaces
+			.filter((space) => space.runtime?.stage === "RUNNING")
+			.map((space) => {
+				const color_from = space.cardData?.colorFrom ?? "";
+				const color_to = space.cardData?.colorTo ?? "";
+
+				return {
+					id: space.id,
+					name: space.cardData?.title || format_theme_name(space.id),
+					author: space.id.split("/")[0],
+					description: space.cardData?.short_description || "",
+					is_official: false,
+					likes: space.likes,
+					hf_space_id: space.id,
+					subdomain: `https://${space.subdomain}.hf.space`,
+					background_color: "",
+					status: "RUNNING" as ThemeStatus,
+					colors: {
+						primary: HF_COLOR_MAP[color_from] ?? "#3b82f6",
+						secondary: HF_COLOR_MAP[color_to] ?? "#3b82f6",
+						neutral: "#71717a",
+						background: "#ffffff",
+						background_dark: "#0b0f19"
+					},
+					fonts: {
+						main: "IBM Plex Sans",
+						mono: "IBM Plex Mono"
+					}
+				};
+			});
 	} catch {
 		return [];
 	}
@@ -42,6 +99,7 @@ export const BUILTIN_THEMES: ThemeData[] = [
 		hf_space_id: "",
 		subdomain: "",
 		background_color: "",
+		status: "RUNNING",
 		colors: {
 			primary: "#3b82f6",
 			secondary: "#3b82f6",
@@ -64,6 +122,7 @@ export const BUILTIN_THEMES: ThemeData[] = [
 		hf_space_id: "",
 		subdomain: "",
 		background_color: "",
+		status: "RUNNING",
 		colors: {
 			primary: "#f97316",
 			secondary: "#3b82f6",
@@ -86,6 +145,7 @@ export const BUILTIN_THEMES: ThemeData[] = [
 		hf_space_id: "",
 		subdomain: "",
 		background_color: "",
+		status: "RUNNING",
 		colors: {
 			primary: "#6366f1",
 			secondary: "#6366f1",
@@ -108,6 +168,7 @@ export const BUILTIN_THEMES: ThemeData[] = [
 		hf_space_id: "",
 		subdomain: "",
 		background_color: "",
+		status: "RUNNING",
 		colors: {
 			primary: "#171717",
 			secondary: "#737373",
@@ -130,6 +191,7 @@ export const BUILTIN_THEMES: ThemeData[] = [
 		hf_space_id: "",
 		subdomain: "",
 		background_color: "",
+		status: "RUNNING",
 		colors: {
 			primary: "#3b82f6",
 			secondary: "#64748b",
@@ -153,6 +215,7 @@ export const BUILTIN_THEMES: ThemeData[] = [
 		hf_space_id: "",
 		subdomain: "",
 		background_color: "",
+		status: "RUNNING",
 		colors: {
 			primary: "#f97316",
 			secondary: "#3b82f6",
@@ -175,6 +238,7 @@ export const BUILTIN_THEMES: ThemeData[] = [
 		hf_space_id: "",
 		subdomain: "",
 		background_color: "",
+		status: "RUNNING",
 		colors: {
 			primary: "#84cc16",
 			secondary: "#f59e0b",
@@ -197,6 +261,7 @@ export const BUILTIN_THEMES: ThemeData[] = [
 		hf_space_id: "",
 		subdomain: "",
 		background_color: "",
+		status: "RUNNING",
 		colors: {
 			primary: "#06b6d4",
 			secondary: "#0ea5e9",

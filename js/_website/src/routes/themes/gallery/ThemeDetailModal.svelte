@@ -18,7 +18,7 @@ with gr.Blocks(theme=gr.themes.${theme.name}()) as demo:
 with gr.Blocks(theme=gr.Theme.from_hub("${theme.id}")) as demo:
     ...`;
 
-	$: has_preview = !theme.is_official && theme.hf_space_id;
+	$: has_preview = !theme.is_official && theme.subdomain;
 
 	function copy_link() {
 		const url = new URL(window.location.href);
@@ -127,7 +127,7 @@ with gr.Blocks(theme=gr.Theme.from_hub("${theme.id}")) as demo:
 					class="preview-wrapper rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden w-full h-full"
 				>
 					<iframe
-						src="https://{theme.hf_space_id.replace('/', '-')}.hf.space"
+						src={theme.subdomain}
 						title="{theme.name} preview"
 						class="preview-iframe border-0 origin-top-left"
 						loading="lazy"
