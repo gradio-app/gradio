@@ -19,4 +19,10 @@ export type ThemeData = {
 		main: string;
 		mono: string;
 	};
+	stylesheets?: string[];
 };
+
+export type CommunityThemeManifestEntry = Omit<
+	ThemeData,
+	"is_official" | "likes" | "subdomain" | "background_color"
+>;

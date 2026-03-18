@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { ThemeData } from "./types";
 	import { clickOutside } from "./utils";
-	import { page } from "$app/stores";
 
 	export let theme: ThemeData;
 	export let on_close: () => void;
@@ -20,7 +19,7 @@ with gr.Blocks(theme=gr.Theme.from_hub("${theme.id}")) as demo:
     ...`;
 
 	function copy_link() {
-		const url = new URL($page.url.toString());
+		const url = new URL(window.location.href);
 		url.searchParams.set("id", theme.id);
 		navigator.clipboard.writeText(url.toString()).then(() => {
 			link_copied = true;

@@ -1,4 +1,25 @@
-import type { ThemeData } from "./types";
+import type { ThemeData, CommunityThemeManifestEntry } from "./types";
+
+const COMMUNITY_MANIFEST_URL =
+	"https://huggingface.co/datasets/gradio/theme-gallery/resolve/main/manifest.json";
+
+export async function fetch_community_themes(): Promise<ThemeData[]> {
+	try {
+		const res = await fetch(COMMUNITY_MANIFEST_URL);
+		if (!res.ok) return [];
+		const entries: CommunityThemeManifestEntry[] = await res.json();
+		return entries.map((entry) => ({
+			...entry,
+			is_official: false,
+			likes: 0,
+			subdomain: "",
+			background_color: "",
+			stylesheets: entry.stylesheets ?? []
+		}));
+	} catch {
+		return [];
+	}
+}
 
 export const COLOR_SETS = [
 	"from-red-50 via-red-100 to-red-50 dark:from-red-950 dark:via-red-900 dark:to-red-950",
