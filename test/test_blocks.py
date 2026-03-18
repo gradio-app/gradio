@@ -714,6 +714,36 @@ class TestBlocksPostprocessing:
             assert output["data"][1] == {"__type__": "update", "interactive": True}
 
     @pytest.mark.asyncio
+    async def test_tab_interactive_update(self):
+        """Test that Tab interactive property can be toggled from False to True."""
+
+        def unlock():
+            return gr.Tab(interactive=True)
+
+        def lock():
+            return gr.Tab(interactive=False)
+
+        with gr.Blocks() as demo:
+            with gr.Tab("tab1", id="tab1"):
+                btn_unlock = gr.Button("Unlock")
+                btn_lock = gr.Button("Lock")
+            with gr.Tab("Locked", id="tab2", interactive=False) as tab2:
+                gr.Markdown("Unlocked content")
+
+            btn_unlock.click(unlock, None, tab2)
+            btn_lock.click(lock, None, tab2)
+
+        # Unlock: interactive=False -> True
+        output = await demo.process_api(0, [], state=None)
+        assert output["data"][0]["interactive"] is True
+        assert output["data"][0]["__type__"] == "update"
+
+        # Lock: interactive=True -> False
+        output = await demo.process_api(1, [], state=None)
+        assert output["data"][0]["interactive"] is False
+        assert output["data"][0]["__type__"] == "update"
+
+    @pytest.mark.asyncio
     async def test_error_raised_if_num_outputs_is_too_low(self):
         with gr.Blocks() as demo:
             textbox1 = gr.Textbox()
