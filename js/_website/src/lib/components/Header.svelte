@@ -15,16 +15,16 @@
 		{ label: "Guides", href: "/guides" },
 		{ label: "Themes", href: "/themes/gallery" },
 		{ label: "Custom Components", href: "/custom-components/gallery" },
-		{ label: "HTML Components", href: "/custom-components/html-gallery" },
+		{ label: "HTML Components", href: "/custom-components/html-gallery" }
 	];
 
 	const community_links = [
 		{
 			label: "File an Issue",
-			href: "https://github.com/gradio-app/gradio/issues/new/choose",
+			href: "https://github.com/gradio-app/gradio/issues/new/choose"
 		},
 		{ label: "Discord", href: "https://discord.gg/feTf9x3ZSB" },
-		{ label: "Github", href: "https://github.com/gradio-app/gradio" },
+		{ label: "Github", href: "https://github.com/gradio-app/gradio" }
 	];
 
 	let click_nav = false;

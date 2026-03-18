@@ -21,14 +21,14 @@
 	$: community_count = all_themes.filter((t) => !t.is_official).length;
 
 	$: unique_fonts = [
-		...new Set(all_themes.flatMap((t) => [t.fonts.main, t.fonts.mono])),
+		...new Set(all_themes.flatMap((t) => [t.fonts.main, t.fonts.mono]))
 	];
 	$: font_url =
 		unique_fonts.length > 0
 			? `https://fonts.googleapis.com/css2?${unique_fonts.map((f) => `family=${f.replace(/ /g, "+")}:wght@400;500;600`).join("&")}&display=swap`
 			: "";
 	$: custom_stylesheets = [
-		...new Set(all_themes.flatMap((t) => t.stylesheets ?? [])),
+		...new Set(all_themes.flatMap((t) => t.stylesheets ?? []))
 	];
 
 	function filter_themes(query: string, filter: FilterType): ThemeData[] {
@@ -46,7 +46,7 @@
 				(theme) =>
 					theme.name.toLowerCase().includes(lower_query) ||
 					theme.description.toLowerCase().includes(lower_query) ||
-					theme.author.toLowerCase().includes(lower_query),
+					theme.author.toLowerCase().includes(lower_query)
 			);
 		}
 

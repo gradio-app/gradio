@@ -85,7 +85,9 @@
 					</div>
 					<div
 						class="text-[9px] leading-tight"
-						style="color: {is_dark ? '#e0e0e0' : '#374151'}; font-family: '{theme.fonts.main}', sans-serif;"
+						style="color: {is_dark
+							? '#e0e0e0'
+							: '#374151'}; font-family: '{theme.fonts.main}', sans-serif;"
 					>
 						A serene mountain...
 					</div>
