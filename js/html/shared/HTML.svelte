@@ -436,11 +436,7 @@
 	});
 
 	$effect(() => {
-		if (
-			reactiveProps &&
-			props &&
-			JSON.stringify(old_props) !== JSON.stringify(props)
-		) {
+		if (reactiveProps && props && old_props !== props) {
 			const changedKeys: string[] = [];
 			for (const key in props) {
 				if (JSON.stringify(reactiveProps[key]) !== JSON.stringify(props[key])) {
