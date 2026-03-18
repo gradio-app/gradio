@@ -304,7 +304,8 @@ export async function load_components(
 			continue;
 		}
 		const variant = component_name === "dataframe" ? "component" : "base";
-		const comp = await load_component(component_name, variant);
+		const { component } = load_component(component_name, variant);
+		const comp = await component;
 		// @ts-ignore
 		_components[component_name] = comp.default;
 	}
