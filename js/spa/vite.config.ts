@@ -172,14 +172,19 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			},
 			browser: {
 				enabled: true,
-				provider: playwright(),
+				provider: playwright({
+					contextOptions: {
+						permissions: [
+							"camera",
+							"microphone",
+							"clipboard-read",
+							"clipboard-write"
+						]
+					}
+				}),
 				instances: [
 					{
-						browser: "chromium",
-						// headless: false,
-						context: {
-							permissions: ["camera", "microphone"]
-						}
+						browser: "chromium"
 					}
 				]
 			}
