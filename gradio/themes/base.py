@@ -28,6 +28,7 @@ class ThemeClass:
         self._stylesheets = []
         self.name = None
         self._font_css = []
+        self.custom_css = ""
 
     def _get_theme_css(self):
         css = {}
@@ -93,7 +94,10 @@ class ThemeClass:
 
         font_css = "\n".join(self._font_css)
 
-        return f"{font_css}\n{css_code}\n{dark_css_code}"
+        theme_css = f"{font_css}\n{css_code}\n{dark_css_code}"
+        if self.custom_css:
+            theme_css = f"{theme_css}\n\n{self.custom_css}"
+        return theme_css
 
     def _get_computed_value(self, property: str, depth=0) -> str:
         max_depth = 100
@@ -121,7 +125,9 @@ class ThemeClass:
 
     def to_dict(self):
         """Convert the theme into a python dictionary."""
-        schema = {"theme": {}}
+        from gradio import __version__
+
+        schema = {"theme": {}, "gradio_version": __version__}
         for prop in dir(self):
             if (
                 not prop.startswith("_")
@@ -148,6 +154,20 @@ class ThemeClass:
         Parameters:
             theme: The dictionary representation of the theme.
         """
+        from gradio import __version__
+
+        theme_gradio_version = theme.get("gradio_version")
+        if theme_gradio_version:
+            try:
+                if __version__.split(".")[:2] != theme_gradio_version.split(".")[:2]:
+                    warnings.warn(
+                        f"This theme was created for Gradio {theme_gradio_version}, "
+                        f"but you are using Gradio {__version__}. "
+                        "Some styles may not work as expected."
+                    )
+            except (ValueError, IndexError):
+                pass
+
         new_theme = cls()
         for prop, value in theme["theme"].items():
             setattr(new_theme, prop, value)
@@ -380,6 +400,7 @@ class Base(ThemeClass):
 
         self.name = "base"
         self._font_css = []
+        self.custom_css = ""
 
         def expand_shortcut(shortcut, mode="color", prefix=None):
             if not isinstance(shortcut, str):
