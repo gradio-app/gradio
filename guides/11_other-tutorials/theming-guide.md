@@ -191,18 +191,24 @@ demo.launch(theme=gr.themes.Default(font=[gr.themes.GoogleFont("Inconsolata"), "
 
 ### Custom CSS
 
-You can include custom CSS directly in your theme using the `custom_css` attribute. This CSS will be appended after the theme's generated CSS and is included when the theme is exported or loaded from the Hub.
+For styling beyond what theme variables provide, you can add custom CSS via the `custom_css` attribute. This CSS is bundled with the theme, so it will be included when you upload or download themes from the Hub.
 
 ```python
 theme = gr.themes.Default()
 theme.custom_css = """
-.cool-background {
-    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+button.primary {
+    background: linear-gradient(135deg, var(--primary-400), var(--primary-600));
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--primary-500) 40%, transparent);
 }
 """
 
 with gr.Blocks(theme=theme) as demo:
-    gr.Markdown("## Markdown", elem_classes="cool-background")
+    gr.Textbox(label="Input")
+    gr.Button("Submit", variant="primary")
 demo.launch()
 ```
 
