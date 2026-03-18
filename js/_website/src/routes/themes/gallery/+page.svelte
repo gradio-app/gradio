@@ -50,7 +50,10 @@
 			);
 		}
 
-		return filtered;
+		return filtered.sort((a, b) => {
+			if (a.is_official !== b.is_official) return a.is_official ? -1 : 1;
+			return b.likes - a.likes;
+		});
 	}
 
 	function handle_card_click(theme: ThemeData) {

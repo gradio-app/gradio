@@ -13,12 +13,12 @@
 	const nav_links = [
 		{ label: "API", href: "/docs" },
 		{ label: "Guides", href: "/guides" },
+		{ label: "Themes", href: "/themes/gallery" },
 		{ label: "Custom Components", href: "/custom-components/gallery" },
 		{ label: "HTML Components", href: "/custom-components/html-gallery" },
 	];
 
 	const community_links = [
-		{ label: "Themes", href: "/themes" },
 		{
 			label: "File an Issue",
 			href: "https://github.com/gradio-app/gradio/issues/new/choose",

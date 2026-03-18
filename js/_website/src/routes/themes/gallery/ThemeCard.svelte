@@ -85,7 +85,7 @@
 					</div>
 					<div
 						class="text-[9px] leading-tight"
-						style="color: {is_dark ? '#e0e0e0' : '#374151'};"
+						style="color: {is_dark ? '#e0e0e0' : '#374151'}; font-family: '{theme.fonts.main}', sans-serif;"
 					>
 						A serene mountain...
 					</div>
@@ -195,8 +195,8 @@
 					class="w-full py-1 rounded text-[8px] font-medium border"
 					style="
 						background: transparent;
-						border-color: {theme.colors.secondary};
-						color: {theme.colors.secondary};
+						border-color: {theme.colors.neutral};
+						color: {theme.colors.neutral};
 					"
 				>
 					Secondary
