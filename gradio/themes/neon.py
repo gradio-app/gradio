@@ -72,7 +72,7 @@ class Neon(Base):
             block_label_text_weight="600",
             block_label_text_size="*text_md",
             block_label_padding="*spacing_sm *spacing_lg",
-            block_label_radius="0 0 *radius_sm 0",
+            block_label_radius="0 0 calc(*radius_sm - 1px) 0",
             block_title_background_fill="*primary_200",
             block_title_background_fill_dark="*primary_800",
             block_title_text_color="*primary_800",
