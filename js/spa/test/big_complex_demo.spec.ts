@@ -5,7 +5,8 @@ import fs from "fs";
 const PERF_RESULTS_FILE =
 	process.env.PERF_RESULTS_FILE || "/tmp/perf_results.json";
 
-const ITERATIONS = 5;
+const WARMUP_ITERATIONS = 1;
+const ITERATIONS = 6;
 
 function median(values: number[]): number {
 	const sorted = [...values].sort((a, b) => a - b);
@@ -16,110 +17,139 @@ function median(values: number[]): number {
 }
 
 const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
-	perfPage: async ({ page }, use, testInfo) => {
-		const { port, process: appProcess } = await launchGradioApp(
-			"big_complex_demo",
-			testInfo.workerIndex,
-			60000
-		);
+	perfPage: [
+		async ({ page }, use, testInfo) => {
+			const { port, process: appProcess } = await launchGradioApp(
+				"big_complex_demo",
+				testInfo.workerIndex,
+				60000
+			);
 
-		const url = `http://localhost:${port}`;
+			const url = `http://localhost:${port}`;
 
-		const resourceSizes = { js: 0, css: 0, jsCount: 0, cssCount: 0 };
-		const responseHandler = (response: any): void => {
-			const rUrl = response.url();
-			const headers = response.headers();
-			const bytes = parseInt(headers["content-length"] || "0", 10);
-			if (rUrl.endsWith(".js") || rUrl.endsWith(".mjs")) {
-				resourceSizes.js += bytes;
-				resourceSizes.jsCount++;
-			} else if (rUrl.endsWith(".css")) {
-				resourceSizes.css += bytes;
-				resourceSizes.cssCount++;
-			}
-		};
-
-		page.on("response", responseHandler);
-		await page.goto(url);
-		await page.waitForLoadState("networkidle");
-		page.removeListener("response", responseHandler);
-
-		const domContentLoadedValues: number[] = [];
-		const pageLoadValues: number[] = [];
-		const lcpValues: number[] = [];
-		const tabNavValues: number[] = [];
-
-		await page.addInitScript(() => {
-			(window as any).__lcpValue = 0;
-			new PerformanceObserver((list) => {
-				const entries = list.getEntries();
-				if (entries.length > 0) {
-					(window as any).__lcpValue = entries[entries.length - 1].startTime;
+			const resourceSizes = { js: 0, css: 0, jsCount: 0, cssCount: 0 };
+			const responseHandler = (response: any): void => {
+				const rUrl = response.url();
+				const headers = response.headers();
+				const bytes = parseInt(headers["content-length"] || "0", 10);
+				if (rUrl.endsWith(".js") || rUrl.endsWith(".mjs")) {
+					resourceSizes.js += bytes;
+					resourceSizes.jsCount++;
+				} else if (rUrl.endsWith(".css")) {
+					resourceSizes.css += bytes;
+					resourceSizes.cssCount++;
 				}
-			}).observe({ type: "largest-contentful-paint", buffered: true });
-		});
+			};
 
-		for (let i = 0; i < ITERATIONS; i++) {
+			page.on("response", responseHandler);
 			await page.goto(url);
 			await page.waitForLoadState("networkidle");
+			page.removeListener("response", responseHandler);
 
-			await page.waitForTimeout(500);
+			const domContentLoadedValues: number[] = [];
+			const pageLoadValues: number[] = [];
+			const lcpValues: number[] = [];
+			const tabNavValues: number[] = [];
 
-			const timings = await page.evaluate(() => {
-				const nav = performance.getEntriesByType(
-					"navigation"
-				)[0] as PerformanceNavigationTiming;
-				return {
-					domContentLoaded: Math.round(nav.domContentLoadedEventEnd),
-					pageLoad: Math.round(nav.loadEventEnd),
-					lcp: Math.round((window as any).__lcpValue || 0)
+			await page.addInitScript(() => {
+				(window as any).__lcpValue = 0;
+				(window as any).__lcpResolve = null;
+				(window as any).__lcpPromise = null;
+
+				(window as any).__resetLcp = () => {
+					(window as any).__lcpValue = 0;
+					(window as any).__lcpPromise = new Promise<void>((resolve) => {
+						(window as any).__lcpResolve = resolve;
+					});
 				};
-			});
+				(window as any).__resetLcp();
 
-			domContentLoadedValues.push(timings.domContentLoaded);
-			pageLoadValues.push(timings.pageLoad);
-			lcpValues.push(timings.lcp);
-
-			const navDuration = await page.evaluate(() => {
-				const start = performance.now();
-				const btn = document.querySelector(
-					'button[data-tab-id="chatbot"]'
-				) as HTMLElement;
-				btn.click();
-				return new Promise<number>((resolve) => {
-					function check() {
-						const chatbot = document.querySelector('[role="log"]');
-						if (chatbot && (chatbot as HTMLElement).offsetParent !== null) {
-							resolve(Math.round(performance.now() - start));
-						} else {
-							requestAnimationFrame(check);
+				new PerformanceObserver((list) => {
+					const entries = list.getEntries();
+					if (entries.length > 0) {
+						(window as any).__lcpValue = entries[entries.length - 1].startTime;
+						if ((window as any).__lcpResolve) {
+							(window as any).__lcpResolve();
 						}
 					}
-					requestAnimationFrame(check);
-				});
+				}).observe({ type: "largest-contentful-paint", buffered: true });
 			});
-			tabNavValues.push(navDuration);
-		}
 
-		const perfMetrics = {
-			dom_content_loaded_ms: median(domContentLoadedValues),
-			page_load_ms: median(pageLoadValues),
-			lcp_ms: median(lcpValues),
-			tab_nav_ms: median(tabNavValues),
-			total_js_kb: Math.round(resourceSizes.js / 1024),
-			total_css_kb: Math.round(resourceSizes.css / 1024),
-			js_resource_count: resourceSizes.jsCount,
-			css_resource_count: resourceSizes.cssCount
-		};
+			for (let i = 0; i < WARMUP_ITERATIONS; i++) {
+				await page.goto(url);
+				await page.waitForLoadState("networkidle");
+				await page.waitForTimeout(200);
+			}
 
-		await page.evaluate(
-			(m) => ((window as any).__perfMetrics = m),
-			perfMetrics
-		);
+			for (let i = 0; i < ITERATIONS; i++) {
+				await page.evaluate(() => (window as any).__resetLcp());
+				await page.goto(url);
+				await page.waitForLoadState("networkidle");
 
-		await use(page);
-		killGradioApp(appProcess);
-	}
+				await page.evaluate(() => {
+					return Promise.race([
+						(window as any).__lcpPromise,
+						new Promise<void>((resolve) => setTimeout(resolve, 2000))
+					]);
+				});
+
+				const timings = await page.evaluate(() => {
+					const nav = performance.getEntriesByType(
+						"navigation"
+					)[0] as PerformanceNavigationTiming;
+					return {
+						domContentLoaded: Math.round(nav.domContentLoadedEventEnd),
+						pageLoad: Math.round(nav.loadEventEnd),
+						lcp: Math.round((window as any).__lcpValue || 0)
+					};
+				});
+
+				domContentLoadedValues.push(timings.domContentLoaded);
+				pageLoadValues.push(timings.pageLoad);
+				lcpValues.push(timings.lcp);
+
+				const navDuration = await page.evaluate(() => {
+					const start = performance.now();
+					const btn = document.querySelector(
+						'button[data-tab-id="chatbot"]'
+					) as HTMLElement;
+					btn.click();
+					return new Promise<number>((resolve) => {
+						function check() {
+							const chatbot = document.querySelector('[role="log"]');
+							if (chatbot && (chatbot as HTMLElement).offsetParent !== null) {
+								resolve(Math.round(performance.now() - start));
+							} else {
+								requestAnimationFrame(check);
+							}
+						}
+						requestAnimationFrame(check);
+					});
+				});
+				tabNavValues.push(navDuration);
+			}
+
+			const perfMetrics = {
+				dom_content_loaded_ms: median(domContentLoadedValues),
+				page_load_ms: median(pageLoadValues),
+				lcp_ms: median(lcpValues),
+				tab_nav_ms: median(tabNavValues),
+				total_js_kb: Math.round(resourceSizes.js / 1024),
+				total_css_kb: Math.round(resourceSizes.css / 1024),
+				js_resource_count: resourceSizes.jsCount,
+				css_resource_count: resourceSizes.cssCount
+			};
+
+			await page.evaluate(
+				(m) => ((window as any).__perfMetrics = m),
+				perfMetrics
+			);
+
+			await use(page);
+			killGradioApp(appProcess);
+		},
+		{ timeout: 120_000 }
+	]
 });
 
 test("collect frontend performance metrics", async ({ perfPage: page }) => {

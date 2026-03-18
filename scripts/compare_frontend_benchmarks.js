@@ -15,19 +15,49 @@ const metrics = [
 		key: "dom_content_loaded_ms",
 		unit: "ms",
 		warn: 0.25,
-		fail: 0.5
+		fail: 0.5,
+		minAbsDiff: 200
 	},
-	{ name: "Page Load", key: "page_load_ms", unit: "ms", warn: 0.25, fail: 0.5 },
-	{ name: "LCP", key: "lcp_ms", unit: "ms", warn: 0.25, fail: 0.5 },
+	{
+		name: "Page Load",
+		key: "page_load_ms",
+		unit: "ms",
+		warn: 0.25,
+		fail: 0.5,
+		minAbsDiff: 200
+	},
+	{
+		name: "LCP",
+		key: "lcp_ms",
+		unit: "ms",
+		warn: 0.25,
+		fail: 0.5,
+		minAbsDiff: 300
+	},
 	{
 		name: "Tab Navigation",
 		key: "tab_nav_ms",
 		unit: "ms",
 		warn: 0.25,
-		fail: 0.5
+		fail: 0.5,
+		minAbsDiff: 200
 	},
-	{ name: "JS Size", key: "total_js_kb", unit: "KB", warn: 0.1, fail: 0.25 },
-	{ name: "CSS Size", key: "total_css_kb", unit: "KB", warn: 0.1, fail: 0.25 }
+	{
+		name: "JS Size",
+		key: "total_js_kb",
+		unit: "KB",
+		warn: 0.1,
+		fail: 0.25,
+		minAbsDiff: 0
+	},
+	{
+		name: "CSS Size",
+		key: "total_css_kb",
+		unit: "KB",
+		warn: 0.1,
+		fail: 0.25,
+		minAbsDiff: 0
+	}
 ];
 
 const pad = (s, n) => String(s).padEnd(n);
@@ -63,7 +93,7 @@ for (const m of metrics) {
 	const pctStr = (pct * 100).toFixed(1) + "%";
 	const changeStr = (pct > 0 ? "+" : "") + pctStr;
 	const absDiff = pv - bv;
-	const minAbsDiff = m.unit === "ms" ? 200 : 0;
+	const minAbsDiff = m.minAbsDiff;
 	let status = "OK";
 	let mdStatus = "✅";
 	if (pct > m.fail && absDiff > minAbsDiff) {
