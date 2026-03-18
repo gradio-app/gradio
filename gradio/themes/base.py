@@ -1516,14 +1516,16 @@ class Base(ThemeClass):
         self.checkbox_label_shadow_hover = checkbox_label_shadow_hover or getattr(
             self, "checkbox_label_shadow_hover", "*checkbox_label_shadow"
         )
-        self.checkbox_label_shadow_hover_dark = checkbox_label_shadow_hover_dark or getattr(
-            self, "checkbox_label_shadow_hover_dark", None
+        self.checkbox_label_shadow_hover_dark = (
+            checkbox_label_shadow_hover_dark
+            or getattr(self, "checkbox_label_shadow_hover_dark", None)
         )
         self.checkbox_label_shadow_active = checkbox_label_shadow_active or getattr(
             self, "checkbox_label_shadow_active", "*checkbox_label_shadow"
         )
-        self.checkbox_label_shadow_active_dark = checkbox_label_shadow_active_dark or getattr(
-            self, "checkbox_label_shadow_active_dark", None
+        self.checkbox_label_shadow_active_dark = (
+            checkbox_label_shadow_active_dark
+            or getattr(self, "checkbox_label_shadow_active_dark", None)
         )
         self.checkbox_label_text_size = checkbox_label_text_size or getattr(
             self, "checkbox_label_text_size", "*text_md"
