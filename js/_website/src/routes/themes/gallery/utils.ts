@@ -30,9 +30,7 @@ const HF_COLOR_MAP: Record<string, string> = {
 
 function format_theme_name(id: string): string {
 	const name = id.split("/").pop() || id;
-	return name
-		.replace(/[-_]/g, " ")
-		.replace(/\b\w/g, (c) => c.toUpperCase());
+	return name.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 export async function fetch_community_themes(
