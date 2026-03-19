@@ -961,7 +961,7 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
             return f"list[{elements}]"
     elif type_ == "object":
         props = schema.get("properties", {})
-        if "path" in props and "meta" in props:
+        if _is_file_schema(schema):
             return "filepath"
 
         def get_desc(v):
@@ -1161,8 +1161,43 @@ async def async_traverse(
 
 
 def value_is_file(api_info: dict) -> bool:
-    info = _json_schema_to_python_type(api_info, api_info.get("$defs"))
-    return any(file_data_format in info for file_data_format in FILE_DATA_FORMATS)
+    return _schema_contains_file(api_info, api_info.get("$defs", {}))
+
+
+def _is_file_schema(schema: dict) -> bool:
+    """Check if a schema directly represents a file type (has path + meta with gradio.FileData)."""
+    props = schema.get("properties", {})
+    if "path" not in props or "meta" not in props:
+        return False
+    meta = props["meta"]
+    meta_props = meta.get("properties", {})
+    if "_type" in meta_props:
+        type_schema = meta_props["_type"]
+        return type_schema.get("const") == "gradio.FileData"
+    meta_default = meta.get("default", {})
+    if isinstance(meta_default, dict):
+        return meta_default.get("_type") == "gradio.FileData"
+    return False
+
+
+def _schema_contains_file(schema, defs: dict) -> bool:
+    """Recursively check if a JSON schema contains a file type anywhere."""
+    if not isinstance(schema, dict):
+        if isinstance(schema, list):
+            return any(_schema_contains_file(item, defs) for item in schema)
+        return False
+    if "$ref" in schema:
+        ref_name = schema["$ref"].split("/")[-1]
+        if ref_name in defs:
+            return _schema_contains_file(defs[ref_name], defs)
+        return False
+    if _is_file_schema(schema):
+        return True
+    return any(
+        _schema_contains_file(v, defs)
+        for k, v in schema.items()
+        if k != "$defs" and isinstance(v, (dict, list))
+    )
 
 
 def is_filepath(s) -> bool:
