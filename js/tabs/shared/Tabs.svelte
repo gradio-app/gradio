@@ -32,6 +32,26 @@
 
 	$: has_tabs = tabs.length > 0;
 
+	// Keep visible_tabs and overflow_tabs in sync with tabs data.
+	// handle_menu_overflow determines which tabs go into which list (based on
+	// DOM measurements), but it is async (awaits tick()) so property updates
+	// like interactive changes can be missed. This reactive block ensures the
+	// tab objects inside visible_tabs/overflow_tabs stay current.
+	$: {
+		if (tabs) {
+			visible_tabs = visible_tabs.map((vt) => {
+				if (!vt) return vt;
+				const updated = tabs.find((t) => t?.id === vt.id);
+				return updated ?? vt;
+			});
+			overflow_tabs = overflow_tabs.map((ot) => {
+				if (!ot) return ot;
+				const updated = tabs.find((t) => t?.id === ot.id);
+				return updated ?? ot;
+			});
+		}
+	}
+
 	let tab_nav_el: HTMLDivElement;
 
 	const selected_tab = writable<false | number | string>(
