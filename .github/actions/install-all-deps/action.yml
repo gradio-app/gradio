@@ -96,6 +96,12 @@ runs:
       uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
       with:
         skip_build: ${{ inputs.skip_build }}
+    - name: generate css vars docs
+      shell: bash
+      if: inputs.skip_gradio_install != 'true' && inputs.os == 'ubuntu-latest'
+      run: |
+        . ${{ env.VENV_ACTIVATE }}
+        python scripts/generate_css_vars_docs.py
     - name: generate json
       shell: bash
       if: inputs.skip_gradio_install != 'true' && inputs.os == 'ubuntu-latest'

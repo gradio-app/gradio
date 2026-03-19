@@ -189,6 +189,29 @@ demo.launch(theme=gr.themes.Default(font=[gr.themes.GoogleFont("Inconsolata"), "
 ></iframe>
 </div>
 
+### Custom CSS
+
+For styling beyond what theme variables provide, you can add custom CSS via the `custom_css` attribute. This CSS is bundled with the theme, so it will be included when you upload or download themes from the Hub.
+
+```python
+theme = gr.themes.Default()
+theme.custom_css = """
+button.primary {
+    background: linear-gradient(135deg, var(--primary-400), var(--primary-600));
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--primary-500) 40%, transparent);
+}
+"""
+
+with gr.Blocks(theme=theme) as demo:
+    gr.Textbox(label="Input")
+    gr.Button("Submit", variant="primary")
+demo.launch()
+```
+
 ## Extending Themes via `.set()`
 
 You can also modify the values of CSS variables after the theme has been loaded. To do so, use the `.set()` method of the theme object to get access to the CSS variables. For example:
@@ -285,6 +308,10 @@ theme = gr.themes.Default().set(
 ```
 
 `button_primary_border_dark` will draw its value from `button_primary_background_fill_dark`, because dark mode always draw from the dark version of the variable.
+
+## CSS Variables Reference
+
+For a full list of all available CSS variables, see the [CSS Variables Reference](/guides/css-variables-reference).
 
 ## Creating a Full Theme
 
@@ -426,6 +453,16 @@ with gr.Blocks() as demo:
 demo.launch(theme="gradio/seafoam@>=0.0.1,<0.1.0")
     ....
 ```
+
+### Version Compatibility
+
+When you save a theme with `theme.dump()` or upload it with `theme.push_to_hub()`, the current Gradio version is automatically added. When someone loads a theme created with a different major or minor version of Gradio, they'll see a warning:
+
+```
+UserWarning: This theme was created for Gradio 5.0.0, but you are using Gradio 5.1.0. Some styles may not work as expected.
+```
+
+This helps prevent unexpected styling issues when themes rely on CSS variables that may have changed between Gradio versions. Patch version differences (e.g. 5.0.0 vs 5.0.1) will not trigger a warning.
 
 Enjoy creating your own themes! If you make one you're proud of, please share it with the world by uploading it to the hub!
 If you tag us on [Twitter](https://twitter.com/gradio) we can give your theme a shout out!
