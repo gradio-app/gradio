@@ -46,6 +46,7 @@ from gradio.components.number import Number
 from gradio.components.paramviewer import ParamViewer
 from gradio.components.plot import Plot
 from gradio.components.radio import Radio
+from gradio.components.robot_viewer import RobotViewer
 from gradio.components.slider import Slider
 from gradio.components.state import State
 from gradio.components.textbox import InputHTMLAttributes, Textbox
@@ -114,6 +115,7 @@ __all__ = [
     "Number",
     "Plot",
     "Radio",
+    "RobotViewer",
     "ScatterPlot",
     "Slider",
     "State",
