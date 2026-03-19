@@ -3,7 +3,6 @@ from gradio.themes.citrus import Citrus
 from gradio.themes.cyberpunk import Cyberpunk
 from gradio.themes.default import Default
 from gradio.themes.ember import Ember
-from gradio.themes.evergreen import Evergreen
 from gradio.themes.glass import Glass
 from gradio.themes.monochrome import Monochrome
 from gradio.themes.neon import Neon
@@ -21,7 +20,6 @@ __all__ = [
     "Color",
     "Default",
     "Ember",
-    "Evergreen",
     "Font",
     "Glass",
     "GoogleFont",
