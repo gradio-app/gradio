@@ -44,6 +44,7 @@
 		"@gradio/paramviewer": "workspace:^",
 		"@gradio/plot": "workspace:^",
 		"@gradio/radio": "workspace:^",
+		"@gradio/robotviewer": "workspace:^",
 		"@gradio/row": "workspace:^",
 		"@gradio/sidebar": "workspace:^",
 		"@gradio/simpledropdown": "workspace:^",
