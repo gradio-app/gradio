@@ -1,8 +1,15 @@
 <script lang="ts">
-	import { default as Info } from "./Info.svelte";
 	export let show_label = true;
 	export let info: string | undefined = undefined;
 	export let rtl = false;
+
+	let InfoComponent: any = null;
+
+	$: if (info && !InfoComponent) {
+		import("./Info.svelte").then((mod) => {
+			InfoComponent = mod.default;
+		});
+	}
 </script>
 
 <span
@@ -14,8 +21,8 @@
 >
 	<slot />
 </span>
-{#if info}
-	<Info {info} />
+{#if info && InfoComponent}
+	<svelte:component this={InfoComponent} {info} />
 {/if}
 
 <style>
