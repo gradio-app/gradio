@@ -9,7 +9,9 @@ from .commands import (
     custom_component,
     deploy,
     hf_login,
+    info,
     load_app,
+    predict,
     print_environment_info,
     reload,
     sketch,
@@ -28,6 +30,14 @@ app.command(
     help="Deploy a Gradio app to Spaces or Google Cloud Run. Must be called within the directory you would like to deploy.",
 )(deploy)
 app.command("sketch", help="Open the Sketch app to design a Gradio app.")(sketch)
+app.command(
+    "info",
+    help="Fetches the expected JSON payload for all of a Gradio app's endpoints.",
+)(info)
+app.command(
+    "predict",
+    help="Sends a prediction request to a Gradio app endpoint.",
+)(predict)
 
 
 def cli():
@@ -41,6 +51,8 @@ def cli():
         "sketch",
         "load",
         "skills",
+        "info",
+        "predict",
     }:
         app()
     elif args[0] in {"cc", "component"}:

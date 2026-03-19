@@ -960,11 +960,12 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
             elements = _json_schema_to_python_type(items, defs)
             return f"list[{elements}]"
     elif type_ == "object":
+        props = schema.get("properties", {})
+        if "path" in props and "meta" in props:
+            return "filepath"
 
         def get_desc(v):
             return f" ({v.get('description')})" if v.get("description") else ""
-
-        props = schema.get("properties", {})
 
         des = [
             f"{n}: {_json_schema_to_python_type(v, defs)}{get_desc(v)}"
