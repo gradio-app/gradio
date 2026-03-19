@@ -7,7 +7,6 @@ from gradio.themes.evergreen import Evergreen
 from gradio.themes.glass import Glass
 from gradio.themes.monochrome import Monochrome
 from gradio.themes.neon import Neon
-from gradio.themes.noir import Noir
 from gradio.themes.ocean import Ocean
 from gradio.themes.origin import Origin
 from gradio.themes.soft import Soft
@@ -28,7 +27,6 @@ __all__ = [
     "Cyberpunk",
     "Monochrome",
     "Neon",
-    "Noir",
     "Size",
     "Soft",
     "ThemeClass",
