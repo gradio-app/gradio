@@ -11,6 +11,7 @@ import inspect
 import os
 import warnings
 from collections.abc import AsyncGenerator, Callable, Generator
+from contextlib import aclosing
 from functools import wraps
 from typing import Any, Literal, Union, cast
 
@@ -959,27 +960,30 @@ class ChatInterface(Blocks):
 
         history = self._append_message_to_history(message, history, "user")
         additional_outputs = None
-        try:
-            first_response = await utils.async_iteration(generator)
-            if self.additional_outputs:
-                first_response, *additional_outputs = first_response
-            history_ = self._append_message_to_history(
-                first_response, history, "assistant"
-            )
-            if not additional_outputs:
-                yield first_response, history_
-            else:
-                yield first_response, history_, *additional_outputs
-        except StopIteration:
-            yield None, history
-        async for response in generator:
-            if self.additional_outputs:
-                response, *additional_outputs = response
-            history_ = self._append_message_to_history(response, history, "assistant")
-            if not additional_outputs:
-                yield response, history_
-            else:
-                yield response, history_, *additional_outputs
+        async with aclosing(generator):
+            try:
+                first_response = await utils.async_iteration(generator)
+                if self.additional_outputs:
+                    first_response, *additional_outputs = first_response
+                history_ = self._append_message_to_history(
+                    first_response, history, "assistant"
+                )
+                if not additional_outputs:
+                    yield first_response, history_
+                else:
+                    yield first_response, history_, *additional_outputs
+            except StopIteration:
+                yield None, history
+            async for response in generator:
+                if self.additional_outputs:
+                    response, *additional_outputs = response
+                history_ = self._append_message_to_history(
+                    response, history, "assistant"
+                )
+                if not additional_outputs:
+                    yield response, history_
+                else:
+                    yield response, history_, *additional_outputs
 
     def option_clicked(
         self, history: list[MessageDict], option: SelectData
@@ -1082,8 +1086,9 @@ class ChatInterface(Blocks):
         else:
             generator = await run_sync(self.fn, *inputs, limiter=self.limiter)  # type: ignore
             generator = utils.SyncToAsyncIterator(generator, self.limiter)
-        async for response in generator:
-            yield self._process_example(message, response)
+        async with aclosing(generator):
+            async for response in generator:
+                yield self._process_example(message, response)
 
     def _pop_last_user_message(
         self,
