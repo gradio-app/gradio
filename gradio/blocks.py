@@ -2810,7 +2810,13 @@ Received inputs:
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
-        if _frontend and not networking.url_ok(self.local_url) and not self.share:
+        # Use the API info endpoint instead of the root URL to avoid triggering
+        # SSR rendering, which may not be ready yet during startup.
+        if (
+            _frontend
+            and not networking.url_ok(f"{self.local_api_url}info")
+            and not self.share
+        ):
             raise ValueError(
                 "When localhost is not accessible, a shareable link must be created. Please set share=True or check your proxy settings to allow access to localhost."
             )

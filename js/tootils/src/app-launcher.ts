@@ -67,11 +67,12 @@ async function waitForServerReady(
 	while (Date.now() - start < timeoutMs) {
 		try {
 			await new Promise<void>((resolve, reject) => {
-				const req = http.get(
-					`http://127.0.0.1:${port}/`,
-					{ timeout: 2000 },
+				// Use HEAD on /gradio_api/info to avoid triggering SSR rendering on
+				// the root URL, which could block Gradio's own startup health check.
+				const req = http.request(
+					`http://127.0.0.1:${port}/gradio_api/info`,
+					{ method: "HEAD", timeout: 2000 },
 					(res) => {
-						// Any response means the server is ready
 						res.resume(); // drain the response
 						resolve();
 					}
@@ -81,6 +82,7 @@ async function waitForServerReady(
 					req.destroy();
 					reject(new Error("request timeout"));
 				});
+				req.end();
 			});
 			return; // Server responded successfully
 		} catch {
