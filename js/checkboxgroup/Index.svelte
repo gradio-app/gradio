@@ -165,6 +165,18 @@
 
 	label:hover {
 		background: var(--checkbox-label-background-fill-hover);
+		transform: var(--button-transform-hover);
+		box-shadow: var(
+			--checkbox-label-shadow-hover,
+			var(--checkbox-label-shadow)
+		);
+	}
+	label:active {
+		transform: var(--button-transform-active);
+		box-shadow: var(
+			--checkbox-label-shadow-active,
+			var(--checkbox-label-shadow)
+		);
 	}
 	label:focus {
 		background: var(--checkbox-label-background-fill-focus);
