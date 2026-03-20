@@ -961,7 +961,7 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
             return f"list[{elements}]"
     elif type_ == "object":
         props = schema.get("properties", {})
-        if _is_file_schema(schema):
+        if _is_file_schema(schema, defs or {}):
             return "filepath"
 
         def get_desc(v):
@@ -1164,12 +1164,23 @@ def value_is_file(api_info: dict) -> bool:
     return _schema_contains_file(api_info, api_info.get("$defs", {}))
 
 
-def _is_file_schema(schema: dict) -> bool:
+def _resolve_ref(schema: dict, defs: dict) -> dict:
+    """Resolve a $ref to its definition."""
+    if "$ref" in schema:
+        ref_name = schema["$ref"].split("/")[-1]
+        if ref_name in defs:
+            return defs[ref_name]
+    return schema
+
+
+def _is_file_schema(schema: dict, defs: dict | None = None) -> bool:
     """Check if a schema directly represents a file type (has path + meta with gradio.FileData)."""
+    if defs is None:
+        defs = schema.get("$defs", {})
     props = schema.get("properties", {})
     if "path" not in props or "meta" not in props:
         return False
-    meta = props["meta"]
+    meta = _resolve_ref(props["meta"], defs)
     meta_props = meta.get("properties", {})
     if "_type" in meta_props:
         type_schema = meta_props["_type"]
@@ -1191,7 +1202,7 @@ def _schema_contains_file(schema, defs: dict) -> bool:
         if ref_name in defs:
             return _schema_contains_file(defs[ref_name], defs)
         return False
-    if _is_file_schema(schema):
+    if _is_file_schema(schema, defs):
         return True
     return any(
         _schema_contains_file(v, defs)
