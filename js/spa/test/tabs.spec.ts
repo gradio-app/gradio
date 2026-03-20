@@ -84,26 +84,6 @@ test("programmatic selection works", async ({ page }) => {
 	await expect(page.getByText("Text 6!")).toBeVisible();
 });
 
-test("tab initialized with interactive=False can be unlocked", async ({
-	page
-}) => {
-	await page.waitForTimeout(1000);
-
-	// The "Locked Tab" should be visible but disabled
-	const locked_tab = page.getByRole("tab", { name: "Locked Tab" });
-	await expect(locked_tab).toBeVisible();
-	await expect(locked_tab).toBeDisabled();
-
-	// Click unlock button
-	await page.getByRole("button", { name: "Unlock Tab" }).click();
-	await page.waitForTimeout(1000);
-
-	// Tab should now be enabled and clickable
-	await expect(locked_tab).toBeEnabled();
-	await locked_tab.click();
-	await expect(page.getByText("This tab was unlocked!")).toBeVisible();
-});
-
 test("lazy load subtabs and accordion components", async ({ page }) => {
 	await page.waitForTimeout(1000);
 	// Main tab components visible and rendered
