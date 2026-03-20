@@ -867,7 +867,7 @@ class SyncToAsyncIterator:
             run_sync_iterator_async, self.iterator, limiter=self.limiter
         )
 
-    def aclose(self):
+    async def aclose(self):
         self.iterator.close()
 
 
@@ -1939,7 +1939,7 @@ async def safe_aclose_iterator(iterator, timeout=60.0, retry_interval=0.05):
     if isinstance(iterator, SyncToAsyncIterator):
         while True:
             try:
-                iterator.aclose()
+                await iterator.aclose()
                 break
             except ValueError as e:
                 if "already executing" in str(e):
