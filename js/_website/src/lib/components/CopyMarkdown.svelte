@@ -6,8 +6,11 @@
 	import IconHuggingChat from "./icons/IconHuggingChat.svelte";
 
 	import { tick } from "svelte";
+	import { cleanGuideHtml } from "$lib/utils/clean-guide-html";
 
 	export let markdown_content: string = "";
+
+	$: cleaned_content = cleanGuideHtml(markdown_content);
 
 	let label = `Copy Page as Markdown for LLMs`;
 
@@ -46,7 +49,7 @@
 	function buildUrl(): string {
 		const encodedPromptText = encodeURIComponent(
 			`--------------------------------
-${markdown_content}
+${cleaned_content}
 --------------------------------
 
 Read the documentation above so I can ask questions about it.`
@@ -86,7 +89,7 @@ Read the documentation above so I can ask questions about it.`
 
 	async function copyMarkdown(): Promise<void> {
 		try {
-			if (!markdown_content) {
+			if (!cleaned_content) {
 				console.warn("Nothing to copy");
 				return;
 			}
@@ -97,7 +100,7 @@ Read the documentation above so I can ask questions about it.`
 				typeof navigator.clipboard.writeText === "function";
 
 			if (hasNavigatorClipboard) {
-				await navigator.clipboard.writeText(markdown_content);
+				await navigator.clipboard.writeText(cleaned_content);
 			} else {
 				console.warn("Clipboard API unavailable");
 				return;
