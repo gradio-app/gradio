@@ -70,3 +70,17 @@ class TestFileExplorer:
 
         with pytest.raises(InvalidPathError):
             file_explorer.ls(["../file.txt"])
+
+    def test_file_explorer_preprocess_prevents_path_traversal_single(self, tmpdir):
+        file_explorer = gr.FileExplorer(file_count="single", root_dir=Path(tmpdir))
+        payload = FileExplorerData(root=[["..", "file.txt"]])
+
+        with pytest.raises(InvalidPathError):
+            file_explorer.preprocess(payload)
+
+    def test_file_explorer_preprocess_prevents_path_traversal_multiple(self, tmpdir):
+        file_explorer = gr.FileExplorer(file_count="multiple", root_dir=Path(tmpdir))
+        payload = FileExplorerData(root=[["folder", "file.txt"], ["..", "file.txt"]])
+
+        with pytest.raises(InvalidPathError):
+            file_explorer.preprocess(payload)
