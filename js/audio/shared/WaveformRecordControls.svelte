@@ -215,12 +215,12 @@
 
 	.record-button {
 		height: var(--size-8);
-		width: var(--size-24);
 		background-color: var(--block-background-fill);
 		border-radius: var(--button-large-radius);
 		display: flex;
 		align-items: center;
 		border: 1px solid var(--block-border-color);
+		padding-right: var(--spacing-xl);
 	}
 
 	.duration-button {
