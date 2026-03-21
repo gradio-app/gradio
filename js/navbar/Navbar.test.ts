@@ -1,5 +1,5 @@
 import { test, describe, assert, afterEach, beforeEach } from "vitest";
-import { cleanup, render } from "@self/tootils";
+import { cleanup, render } from "@self/tootils/render";
 import { setupi18n } from "../core/src/i18n";
 import { get } from "svelte/store";
 import { navbar_config } from "@gradio/core/navbar_store";
