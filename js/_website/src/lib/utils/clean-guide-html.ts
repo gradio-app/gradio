@@ -23,8 +23,7 @@ export async function cleanGuideHtml(content: string): Promise<string> {
 	);
 
 	// Replace <gradio-app> embeds with demo source code from Hugging Face
-	const appRegex =
-		/<gradio-app\s+space='gradio\/([^']+)'\s*><\/gradio-app>/g;
+	const appRegex = /<gradio-app\s+space='gradio\/([^']+)'\s*><\/gradio-app>/g;
 	const matches = [...content.matchAll(appRegex)];
 
 	const results = await Promise.all(
@@ -36,7 +35,10 @@ export async function cleanGuideHtml(content: string): Promise<string> {
 				);
 				if (res.ok) {
 					const code = await res.text();
-					return { full: match[0], replacement: `\`\`\`python\n${code}\n\`\`\`` };
+					return {
+						full: match[0],
+						replacement: `\`\`\`python\n${code}\n\`\`\``
+					};
 				}
 			} catch {}
 			return { full: match[0], replacement: "" };
