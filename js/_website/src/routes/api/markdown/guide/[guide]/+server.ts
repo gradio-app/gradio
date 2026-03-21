@@ -20,7 +20,7 @@ export async function GET({ params }) {
 			return json({ markdown: "", error: "Guide not found" }, { status: 404 });
 		}
 
-		return json({ markdown: cleanGuideHtml(markdown) });
+		return json({ markdown: await cleanGuideHtml(markdown) });
 	} catch {
 		return json({ markdown: "", error: "Guide not found" }, { status: 404 });
 	}

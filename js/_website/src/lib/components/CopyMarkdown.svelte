@@ -10,7 +10,8 @@
 
 	export let markdown_content: string = "";
 
-	$: cleaned_content = cleanGuideHtml(markdown_content);
+	let cleaned_content = "";
+	$: cleanGuideHtml(markdown_content).then((c) => (cleaned_content = c));
 
 	let label = `Copy Page as Markdown for LLMs`;
 
