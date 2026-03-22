@@ -6,7 +6,7 @@ import boto3
 from botocore import UNSIGNED
 from botocore.client import Config
 
-from src import changelog, demos, docs, guides
+from src import blogs, changelog, demos, docs, guides
 
 WEBSITE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 GRADIO_DIR = os.path.abspath(os.path.join(WEBSITE_DIR, "..", "..", "gradio"))
@@ -109,8 +109,10 @@ def create_dir_if_not_exists(path):
 
 
 create_dir_if_not_exists(make_dir(WEBSITE_DIR, "src/lib/json"))
+create_dir_if_not_exists(make_dir(WEBSITE_DIR, "src/lib/json/blogs"))
 create_dir_if_not_exists(make_dir(WEBSITE_DIR, "src/lib/json/guides"))
 
+blogs.generate(make_dir(WEBSITE_DIR, "src/lib/json/blogs/") + "/")
 demos.generate(make_dir(WEBSITE_DIR, "src/lib/json/demos.json"))
 guides.generate(make_dir(WEBSITE_DIR, "src/lib/json/guides/") + "/")
 SYSTEM_PROMPT, FALLBACK_PROMPT = docs.generate(
