@@ -13,6 +13,7 @@
 	const nav_links = [
 		{ label: "API", href: "/docs" },
 		{ label: "Guides", href: "/guides" },
+		{ label: "Blog", href: "/blog" },
 		{ label: "Themes", href: "/themes/gallery" },
 		{ label: "Custom Components", href: "/custom-components/gallery" },
 		{ label: "HTML Components", href: "/custom-components/html-gallery" }
