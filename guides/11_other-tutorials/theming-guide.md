@@ -311,7 +311,7 @@ theme = gr.themes.Default().set(
 
 ## CSS Variables Reference
 
-For a full list of all available CSS variables, see the [CSS Variables Reference](/guides/css-variables-reference).
+For a full list of all available CSS variables, see the [CSS Variables Reference](/main/guides/css-variables-reference).
 
 ## Creating a Full Theme
 
