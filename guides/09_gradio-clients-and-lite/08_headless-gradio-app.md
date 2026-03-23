@@ -2,20 +2,20 @@
 
 Tags: API, MCP, FASTAPI, CLIENT
 
-Sometimes you don't need a UI at all. You want a backend that serves a custom webpage, exposes API endpoints with built-in queuing and concurrency control, and optionally works as an MCP server — without writing any Gradio component code.
+Gradio gives you a lot out of the box — an API server with queuing and streaming, MCP tool support, ZeroGPU access, and one-click hosting on Hugging Face Spaces. But sometimes you want a **completely custom frontend** instead of the standard Gradio UI. Maybe you're building your own React app, a simple HTML page, or vibe-coding a frontend with an AI assistant.
 
-That's what `gradio.App` is for. It gives you Gradio's API engine (queue, streaming, concurrency limits) on top of a standard FastAPI server. You write plain Python functions, decorate them, and call `app.launch()`.
+`gradio.App` lets you do exactly that. It's a FastAPI server with Gradio's API engine built in, so you get all the backend benefits — queue, concurrency control, SSE streaming, MCP, ZeroGPU, Spaces hosting — while writing whatever frontend you want.
 
 ## When to use `gradio.App`
 
 Use `gradio.App` instead of `gr.Blocks` when:
 
-- You are building an **API-first** service (no Gradio UI needed)
-- You want to serve a **custom frontend** (your own HTML, React app, etc.) alongside Gradio API endpoints
-- You want to expose functions as **MCP tools** with a custom landing page
-- You want **full FastAPI control** (custom GET/POST routes, middleware, dependency injection) with Gradio's queue and streaming
+- You want a **completely custom UI** (your own HTML, React, Svelte, etc.) powered by Gradio's backend
+- You want to **vibe-code** a frontend while keeping Gradio's API, MCP, and ZeroGPU support
+- You want **full FastAPI control** (custom GET/POST routes, middleware, dependency injection) alongside Gradio API endpoints
+- You're building a service to **host on Spaces** with ZeroGPU but don't need Gradio components
 
-If you need a Gradio UI, use `gr.Blocks` or `gr.Interface` instead.
+If you're happy with Gradio's built-in UI components, use `gr.Blocks` or `gr.Interface` instead.
 
 ## Installation
 
