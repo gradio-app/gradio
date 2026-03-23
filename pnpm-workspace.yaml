@@ -6,4 +6,5 @@ packages:
   - js/preview/test/**/*
 
 patchedDependencies:
+  '@gradio/dataframe@0.20.1': patches/@gradio__dataframe@0.20.1.patch
   '@sveltejs/package': patches/@sveltejs__package.patch

@@ -772,7 +772,8 @@
 	const drag_state: DragState = {
 		is_dragging,
 		drag_start,
-		mouse_down_pos
+		mouse_down_pos,
+		click_handled: false
 	};
 
 	$: {
