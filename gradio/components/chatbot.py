@@ -262,7 +262,7 @@ class Chatbot(Component):
         layout: Literal["panel", "bubble"] | None = None,
         placeholder: str | None = None,
         examples: list[ExampleMessage] | None = None,
-        allow_file_downloads=True,
+        allow_file_downloads: bool = True,
         group_consecutive_messages: bool = True,
         allow_tags: list[str] | bool = True,
         reasoning_tags: list[tuple[str, str]] | None = None,

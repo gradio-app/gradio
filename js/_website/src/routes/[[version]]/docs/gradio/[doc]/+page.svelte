@@ -2,6 +2,7 @@
 	import DocsNav from "$lib/components/DocsNav.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import RelatedGuides from "$lib/components/RelatedGuides.svelte";
+	import DocsCopyMarkdown from "$lib/components/DocsCopyMarkdown.svelte";
 	import { page } from "$app/stores";
 	import { onNavigate } from "$app/navigation";
 	import '$lib/assets/theme.css';
@@ -220,6 +221,10 @@
 					{:else}
 						<div />
 					{/if}
+				</div>
+
+				<div class="lg:ml-10 mb-2">
+					<DocsCopyMarkdown doc_name={name} />
 				</div>
 
 				<div class="flex flex-row">

@@ -32,3 +32,4 @@ sweep.yaml
 ../js/app/src/api_docs/CodeSnippet.svelte
 ../js/app/src/api_docs/RecordingSnippet.svelte
 ../.changeset/pre.json
+../js/_website/build/**/*
