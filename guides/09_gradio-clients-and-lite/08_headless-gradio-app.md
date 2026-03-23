@@ -1,21 +1,20 @@
 # Headless Gradio Apps
 
-Tags: API, MCP, FASTAPI, CLIENT
+Tags: API, MCP, FASTAPI, HEADLESS
 
-Gradio gives you a lot out of the box — an API server with queuing and streaming, MCP tool support, ZeroGPU access, and one-click hosting on Hugging Face Spaces. But sometimes you want a **completely custom frontend** instead of the standard Gradio UI. Maybe you're building your own React app, a simple HTML page, or vibe-coding a frontend with an AI assistant.
+In this post, we will demonstrate how to build a completely custom frontend for your Gradio application, while still utilizing Gradio's backend, which means you still get an API server with queuing and streaming, MCP tool support, ZeroGPU support, and hosting on Hugging Face Spaces. 
 
-`gradio.App` lets you do exactly that. It's a FastAPI server with Gradio's API engine built in, so you get all the backend benefits — queue, concurrency control, SSE streaming, MCP, ZeroGPU, Spaces hosting — while writing whatever frontend you want.
+To do this, we will launch Gradio in "headless" mode by utilizing the `gradio.App` class directly. The `gradio.App` class is a FastAPI server with Gradio's API engine built in, so you get all the backend benefits with complete flexibility on what kind of frontend (e.g. a React app, a simple HTML page, or any vibe-coded frontend), if any, you'd like to launch alongside the backend server.
 
 ## When to use `gradio.App`
 
-Use `gradio.App` instead of `gr.Blocks` when:
+Use `gradio.App` instead of `gr.Blocks` when any of the following apply:
 
-- You want a **completely custom UI** (your own HTML, React, Svelte, etc.) powered by Gradio's backend
-- You want to **vibe-code** a frontend while keeping Gradio's API, MCP, and ZeroGPU support
+- You want a **completely custom (potentially vibe-coded) UI** (your own HTML, React, Svelte, etc.) powered by Gradio's backend
 - You want **full FastAPI control** (custom GET/POST routes, middleware, dependency injection) alongside Gradio API endpoints
-- You're building a service to **host on Spaces** with ZeroGPU but don't need Gradio components
+- You're building a service to **host on Spaces** with or without ZeroGPU but don't need Gradio components
 
-If you're happy with Gradio's built-in UI components, use `gr.Blocks` or `gr.Interface` instead.
+If you're happy with Gradio's built-in UI components, use `gr.Blocks`, `gr.ChatInterface`, or `gr.Interface` instead.
 
 ## Installation
 
@@ -108,7 +107,7 @@ The `@app.mcp.tool()` and `@app.api()` decorators are independent — you can ha
 
 ## A Complete Example with the JavaScript Client
 
-This example combines everything: custom HTML served at `/`, Gradio API endpoints with concurrency limits, MCP tools, and a custom REST endpoint — all connected via the Gradio JavaScript client.
+This example combines everything: custom HTML served at `/`, Gradio API endpoints with concurrency limits, MCP tools, and a custom REST endpoint, and two connected via [the Gradio JavaScript client](/guides/gradio-clients-and-lite/getting-started-with-the-js-client).
 
 $code_headless_app
 
