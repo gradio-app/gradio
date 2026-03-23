@@ -433,9 +433,7 @@ class ImageData(GradioModel):
     meta: dict = {"_type": "gradio.FileData"}
 
     model_config = ConfigDict(
-        json_schema_extra={
-            "description": "For input, either path or url must be provided. For output, path is always provided."
-        }
+        json_schema_extra={"description": "A local filepath or publicly available URL."}
     )
 
 
