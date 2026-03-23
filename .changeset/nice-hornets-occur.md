@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Modify API Visibility Docs
+fix:Modify API Visibility Docs
