@@ -163,6 +163,7 @@ That's the gist of the core `gradio` Python library, but Gradio is actually so m
 * [Gradio Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client) (`gradio_client`): query any Gradio app programmatically in Python.
 * [Gradio JavaScript Client](https://www.gradio.app/guides/getting-started-with-the-js-client) (`@gradio/client`): query any Gradio app programmatically in JavaScript.
 * [Hugging Face Spaces](https://huggingface.co/spaces): the most popular place to host Gradio applications — for free!
+* [Headless Gradio Apps](https://www.gradio.app/guides/headless-gradio-app) (`gradio.App`): build API-first servers with Gradio's queue, streaming, and MCP support — no UI required.
 
 ### What's Next?
 

@@ -67,8 +67,16 @@ class _MCPNamespace:
 class App(_InternalApp):
     """Headless Gradio App — exposes Gradio's API engine on a FastAPI server.
 
-    Supports registering Gradio API endpoints (with queue, SSE streaming,
-    concurrency control) alongside plain FastAPI routes and MCP tools.
+    Inherits from FastAPI, so all standard FastAPI methods (.get(), .post(),
+    .add_middleware(), .include_router(), etc.) work directly on this instance.
+
+    New methods added on top of FastAPI:
+        api(): Decorator to register a Gradio API endpoint with queue,
+            SSE streaming, and concurrency control.
+        mcp: Namespace with .tool(), .resource(), and .prompt() decorators
+            to tag functions with MCP metadata.
+        launch(): Creates an internal Blocks, registers deferred API
+            endpoints, and starts the server.
 
     Example::
 
@@ -87,8 +95,85 @@ class App(_InternalApp):
         app.launch()
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(
+        self,
+        *,
+        debug: bool = False,
+        title: str = "FastAPI",
+        summary: str | None = None,
+        description: str = "",
+        version: str = "0.1.0",
+        openapi_url: str | None = "/openapi.json",
+        openapi_tags: list[dict[str, Any]] | None = None,
+        servers: list[dict[str, Any]] | None = None,
+        dependencies: Any = None,
+        default_response_class: Any = None,
+        redirect_slashes: bool = True,
+        docs_url: str | None = "/docs",
+        redoc_url: str | None = "/redoc",
+        middleware: Any = None,
+        exception_handlers: Any = None,
+        on_startup: Any = None,
+        on_shutdown: Any = None,
+        lifespan: Any = None,
+        terms_of_service: str | None = None,
+        contact: dict[str, Any] | None = None,
+        license_info: dict[str, Any] | None = None,
+        root_path: str = "",
+        root_path_in_servers: bool = True,
+        responses: dict[int | str, dict[str, Any]] | None = None,
+        callbacks: Any = None,
+        webhooks: Any = None,
+        deprecated: bool | None = None,
+        include_in_schema: bool = True,
+        generate_unique_id_function: Any = None,
+        separate_input_output_schemas: bool = True,
+        **extra: Any,
+    ):
+        init_kwargs: dict[str, Any] = {
+            "debug": debug,
+            "title": title,
+            "summary": summary,
+            "description": description,
+            "version": version,
+            "openapi_url": openapi_url,
+            "openapi_tags": openapi_tags,
+            "servers": servers,
+            "redirect_slashes": redirect_slashes,
+            "docs_url": docs_url,
+            "redoc_url": redoc_url,
+            "terms_of_service": terms_of_service,
+            "contact": contact,
+            "license_info": license_info,
+            "root_path": root_path,
+            "root_path_in_servers": root_path_in_servers,
+            "responses": responses,
+            "deprecated": deprecated,
+            "include_in_schema": include_in_schema,
+            "separate_input_output_schemas": separate_input_output_schemas,
+            **extra,
+        }
+        if dependencies is not None:
+            init_kwargs["dependencies"] = dependencies
+        if default_response_class is not None:
+            init_kwargs["default_response_class"] = default_response_class
+        if middleware is not None:
+            init_kwargs["middleware"] = middleware
+        if exception_handlers is not None:
+            init_kwargs["exception_handlers"] = exception_handlers
+        if on_startup is not None:
+            init_kwargs["on_startup"] = on_startup
+        if on_shutdown is not None:
+            init_kwargs["on_shutdown"] = on_shutdown
+        if lifespan is not None:
+            init_kwargs["lifespan"] = lifespan
+        if callbacks is not None:
+            init_kwargs["callbacks"] = callbacks
+        if webhooks is not None:
+            init_kwargs["webhooks"] = webhooks
+        if generate_unique_id_function is not None:
+            init_kwargs["generate_unique_id_function"] = generate_unique_id_function
+        super().__init__(**init_kwargs)
         self._deferred_apis: list[tuple[Callable, dict[str, Any]]] = []
         self._mcp = _MCPNamespace()
 
@@ -116,18 +201,18 @@ class App(_InternalApp):
 
         Goes through Gradio's queue with concurrency control and SSE streaming.
         """
-        kwargs = dict(
-            api_name=name,
-            api_description=description,
-            concurrency_limit=concurrency_limit,
-            concurrency_id=concurrency_id,
-            queue=queue,
-            batch=batch,
-            max_batch_size=max_batch_size,
-            api_visibility=api_visibility,
-            time_limit=time_limit,
-            stream_every=stream_every,
-        )
+        kwargs = {
+            "api_name": name,
+            "api_description": description,
+            "concurrency_limit": concurrency_limit,
+            "concurrency_id": concurrency_id,
+            "queue": queue,
+            "batch": batch,
+            "max_batch_size": max_batch_size,
+            "api_visibility": api_visibility,
+            "time_limit": time_limit,
+            "stream_every": stream_every,
+        }
         if fn is not None:
             self._deferred_apis.append((fn, kwargs))
             return fn
