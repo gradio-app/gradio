@@ -22,15 +22,19 @@
 
 	let container: HTMLDivElement;
 	let mounted = $state(false);
+	let robot = $state<any>(null);
 
 	let THREE: typeof import("three");
 	let scene: import("three").Scene;
 	let camera: import("three").PerspectiveCamera;
 	let renderer: import("three").WebGLRenderer;
 	let controls: any;
-	let robot: any = null;
 	let animationId: number = 0;
 	let resizeObserver: ResizeObserver | null = null;
+
+	// Store initial camera state for reset
+	let initialCameraPos: import("three").Vector3 | null = null;
+	let initialCameraTarget: import("three").Vector3 | null = null;
 
 	let url = $derived(value?.url ?? null);
 
@@ -126,17 +130,26 @@
 		}
 	});
 
-	// React to joint_states changes
+	// React to joint_states changes — robot is $state so this tracks both
 	$effect(() => {
 		if (robot && joint_states) {
-			applyJointStates(joint_states);
+			applyJointStates(robot, joint_states);
 		}
 	});
 
-	function applyJointStates(states: Record<string, number>): void {
-		if (!robot) return;
-		if (typeof robot.setJointValues === "function") {
-			robot.setJointValues(states);
+	function applyJointStates(
+		r: any,
+		states: Record<string, number>
+	): void {
+		if (!r) return;
+		if (typeof r.setJointValues === "function") {
+			// MJCF robots (our parser adds this method)
+			r.setJointValues(states);
+		} else if (typeof r.setJointValue === "function") {
+			// URDF robots (urdf-loader uses singular setJointValue per joint)
+			for (const [name, val] of Object.entries(states)) {
+				r.setJointValue(name, val);
+			}
 		}
 	}
 
@@ -151,23 +164,30 @@
 
 		const ext = robotUrl.split("?")[0].split(".").pop()?.toLowerCase() ?? "";
 
+		let loaded: any = null;
 		if (ext === "urdf") {
-			await loadURDF(robotUrl);
+			loaded = await loadURDF(robotUrl);
 		} else if (ext === "xml" || ext === "mjcf") {
-			await loadMJCF(robotUrl);
+			loaded = await loadMJCF(robotUrl);
 		}
 
-		if (robot) {
-			scene.add(robot);
-			fitCameraToObject(robot);
+		if (loaded) {
+			scene.add(loaded);
+			fitCameraToObject(loaded);
+
+			// Save initial camera state for reset
+			initialCameraPos = camera.position.clone();
+			initialCameraTarget = controls.target.clone();
+
+			robot = loaded; // triggers $state update → $effect fires
 
 			if (joint_states) {
-				applyJointStates(joint_states);
+				applyJointStates(loaded, joint_states);
 			}
 		}
 	}
 
-	async function loadURDF(robotUrl: string): Promise<void> {
+	async function loadURDF(robotUrl: string): Promise<any> {
 		const URDFLoaderModule = await import("urdf-loader");
 		const URDFLoader = URDFLoaderModule.default;
 		const loader = new URDFLoader();
@@ -176,13 +196,10 @@
 		const baseUrl = robotUrl.substring(0, robotUrl.lastIndexOf("/") + 1);
 		loader.packages = (_pkg: string): string => baseUrl;
 
-		return new Promise<void>((resolve, reject) => {
+		return new Promise<any>((resolve, reject) => {
 			loader.load(
 				robotUrl,
-				(result: any) => {
-					robot = result;
-					resolve();
-				},
+				(result: any) => resolve(result),
 				undefined,
 				(error: any) => {
 					console.error("Failed to load URDF:", error);
@@ -192,11 +209,11 @@
 		});
 	}
 
-	async function loadMJCF(robotUrl: string): Promise<void> {
+	async function loadMJCF(robotUrl: string): Promise<any> {
 		const { parseMJCF } = await import("./mjcf-parser.js");
 		const response = await fetch(robotUrl);
 		const xmlText = await response.text();
-		robot = parseMJCF(THREE, xmlText);
+		return parseMJCF(THREE, xmlText);
 	}
 
 	function fitCameraToObject(object: import("three").Object3D): void {
@@ -221,6 +238,28 @@
 			center.z + cameraDistance
 		);
 		controls.target.copy(center);
+		controls.update();
+	}
+
+	export function reset_camera_position(): void {
+		if (initialCameraPos && initialCameraTarget && camera && controls) {
+			camera.position.copy(initialCameraPos);
+			controls.target.copy(initialCameraTarget);
+			controls.update();
+		}
+	}
+
+	export function update_camera(
+		cam_position: [number | null, number | null, number | null],
+		zSpeed: number,
+		pSpeed: number
+	): void {
+		if (!camera || !controls) return;
+		if (cam_position[0] !== null) camera.position.x = cam_position[0];
+		if (cam_position[1] !== null) camera.position.y = cam_position[1];
+		if (cam_position[2] !== null) camera.position.z = cam_position[2];
+		controls.zoomSpeed = zSpeed;
+		controls.panSpeed = pSpeed;
 		controls.update();
 	}
 

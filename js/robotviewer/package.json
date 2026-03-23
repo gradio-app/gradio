@@ -9,6 +9,7 @@
 	"dependencies": {
 		"three": "^0.170.0",
 		"urdf-loader": "^0.12.6",
+		"dequal": "^2.0.3",
 		"@gradio/atoms": "workspace:^",
 		"@gradio/client": "workspace:^",
 		"@gradio/icons": "workspace:^",

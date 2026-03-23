@@ -1,0 +1,113 @@
+<mujoco model="simple_humanoid">
+  <compiler angle="radian"/>
+
+  <default>
+    <joint damping="2" armature="0.01"/>
+    <geom condim="1" margin="0.001" material="body_mat" type="capsule"/>
+    <motor ctrllimited="true" ctrlrange="-1 1"/>
+  </default>
+
+  <asset>
+    <material name="body_mat" rgba="0.3 0.5 0.8 1"/>
+    <material name="joint_mat" rgba="0.8 0.3 0.2 1"/>
+    <material name="hand_mat" rgba="0.9 0.7 0.5 1"/>
+    <material name="foot_mat" rgba="0.2 0.2 0.2 1"/>
+  </asset>
+
+  <worldbody>
+    <!-- Ground -->
+    <geom type="plane" size="5 5 0.1" rgba="0.6 0.65 0.6 1"/>
+
+    <body name="torso" pos="0 0 1.2">
+      <!-- Torso -->
+      <geom name="torso_geom" fromto="0 -0.07 0 0 0.07 0" size="0.1" material="body_mat"/>
+      <geom name="chest" type="box" size="0.12 0.08 0.18" pos="0 0 0" rgba="0.3 0.5 0.8 1"/>
+
+      <!-- Head -->
+      <body name="head" pos="0 0 0.25">
+        <joint name="neck" type="hinge" axis="0 1 0" range="-0.5 0.5"/>
+        <geom name="head_geom" type="sphere" size="0.1" material="body_mat"/>
+      </body>
+
+      <!-- Right upper arm -->
+      <body name="right_upper_arm" pos="0 -0.18 0.12">
+        <joint name="right_shoulder_x" type="hinge" axis="1 0 0" range="-1.57 1.57"/>
+        <joint name="right_shoulder_z" type="hinge" axis="0 0 1" range="-1.57 0.5"/>
+        <geom name="right_upper_arm_geom" fromto="0 0 0 0 -0.25 0" size="0.04" material="body_mat"/>
+
+        <!-- Right forearm -->
+        <body name="right_forearm" pos="0 -0.25 0">
+          <joint name="right_elbow" type="hinge" axis="1 0 0" range="-2.35 0"/>
+          <geom name="right_forearm_geom" fromto="0 0 0 0 -0.22 0" size="0.035" material="body_mat"/>
+
+          <!-- Right hand -->
+          <body name="right_hand" pos="0 -0.22 0">
+            <geom name="right_hand_geom" type="sphere" size="0.04" material="hand_mat"/>
+          </body>
+        </body>
+      </body>
+
+      <!-- Left upper arm -->
+      <body name="left_upper_arm" pos="0 0.18 0.12">
+        <joint name="left_shoulder_x" type="hinge" axis="1 0 0" range="-1.57 1.57"/>
+        <joint name="left_shoulder_z" type="hinge" axis="0 0 1" range="-0.5 1.57"/>
+        <geom name="left_upper_arm_geom" fromto="0 0 0 0 0.25 0" size="0.04" material="body_mat"/>
+
+        <!-- Left forearm -->
+        <body name="left_forearm" pos="0 0.25 0">
+          <joint name="left_elbow" type="hinge" axis="1 0 0" range="-2.35 0"/>
+          <geom name="left_forearm_geom" fromto="0 0 0 0 0.22 0" size="0.035" material="body_mat"/>
+
+          <!-- Left hand -->
+          <body name="left_hand" pos="0 0.22 0">
+            <geom name="left_hand_geom" type="sphere" size="0.04" material="hand_mat"/>
+          </body>
+        </body>
+      </body>
+
+      <!-- Pelvis -->
+      <body name="pelvis" pos="0 0 -0.22">
+        <joint name="hip_bend" type="hinge" axis="0 1 0" range="-0.5 0.5"/>
+        <geom name="pelvis_geom" type="box" size="0.1 0.08 0.06" rgba="0.25 0.4 0.7 1"/>
+
+        <!-- Right thigh -->
+        <body name="right_thigh" pos="0 -0.08 -0.04">
+          <joint name="right_hip_x" type="hinge" axis="1 0 0" range="-0.4 1.2"/>
+          <joint name="right_hip_z" type="hinge" axis="0 0 1" range="-0.5 0.5"/>
+          <geom name="right_thigh_geom" fromto="0 0 0 0 0 -0.34" size="0.05" material="body_mat"/>
+
+          <!-- Right shin -->
+          <body name="right_shin" pos="0 0 -0.34">
+            <joint name="right_knee" type="hinge" axis="0 1 0" range="-2.35 0"/>
+            <geom name="right_shin_geom" fromto="0 0 0 0 0 -0.32" size="0.04" material="body_mat"/>
+
+            <!-- Right foot -->
+            <body name="right_foot" pos="0 0 -0.32">
+              <joint name="right_ankle" type="hinge" axis="0 1 0" range="-0.6 0.6"/>
+              <geom name="right_foot_geom" type="box" size="0.1 0.04 0.02" pos="0.04 0 0" material="foot_mat"/>
+            </body>
+          </body>
+        </body>
+
+        <!-- Left thigh -->
+        <body name="left_thigh" pos="0 0.08 -0.04">
+          <joint name="left_hip_x" type="hinge" axis="1 0 0" range="-0.4 1.2"/>
+          <joint name="left_hip_z" type="hinge" axis="0 0 1" range="-0.5 0.5"/>
+          <geom name="left_thigh_geom" fromto="0 0 0 0 0 -0.34" size="0.05" material="body_mat"/>
+
+          <!-- Left shin -->
+          <body name="left_shin" pos="0 0 -0.34">
+            <joint name="left_knee" type="hinge" axis="0 1 0" range="-2.35 0"/>
+            <geom name="left_shin_geom" fromto="0 0 0 0 0 -0.32" size="0.04" material="body_mat"/>
+
+            <!-- Left foot -->
+            <body name="left_foot" pos="0 0 -0.32">
+              <joint name="left_ankle" type="hinge" axis="0 1 0" range="-0.6 0.6"/>
+              <geom name="left_foot_geom" type="box" size="0.1 0.04 0.02" pos="0.04 0 0" material="foot_mat"/>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+</mujoco>
