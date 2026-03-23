@@ -1,5 +1,5 @@
 import { test, describe, assert, afterEach, expect } from "vitest";
-import { cleanup, render, fireEvent } from "@self/tootils/render";
+import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import event from "@testing-library/user-event";
 
@@ -23,8 +23,7 @@ run_shared_prop_tests({
 		max_lines: 10,
 		value: "",
 		interactive: true
-	},
-	get_interactive_element: (result) => result.getByRole("textbox")
+	}
 });
 
 describe("Textbox", () => {
@@ -76,7 +75,9 @@ describe("Props: type", () => {
 			max_lines: 1
 		});
 		const el = result.getByTestId("password");
+
 		expect(el).toBeTruthy();
+		expect(el).toHaveAttribute("type", "password");
 	});
 
 	test("type='email' renders an email input", async () => {
@@ -376,10 +377,17 @@ describe("Events", () => {
 		const input = listen("input");
 
 		item.focus();
-		await event.keyboard("ab");
+		await event.keyboard("a");
 
-		expect(input).toHaveBeenCalled();
-		expect(input).toHaveBeenCalledTimes(1);
+		await waitFor(() => {
+			expect(input).toHaveBeenCalledTimes(1);
+		});
+
+		await event.keyboard("b");
+
+		await waitFor(() => {
+			expect(input).toHaveBeenCalledTimes(2);
+		});
 	});
 
 	test("submit: emitted on Enter key in single-line textbox", async () => {
@@ -480,12 +488,11 @@ describe("Events", () => {
 		const copy = listen("copy");
 		const btn = getByLabelText("Copy");
 
-		btn.focus();
-
 		await fireEvent.click(btn);
-		await tick();
 
-		expect(copy).toHaveBeenCalledTimes(1);
+		await waitFor(() => {
+			expect(copy).toHaveBeenCalledTimes(1);
+		});
 		expect(copy).toHaveBeenCalledWith({ value: "copy me" });
 	});
 

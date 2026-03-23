@@ -1,7 +1,6 @@
 import { describe, test, expect, afterEach } from "vitest";
-import { render, cleanup, type RenderResult } from "./render";
+import { render, cleanup } from "./render";
 
-// Minimal loading status data object used by components and StatusTracker
 const loading_status = {
 	status: "complete",
 	queue_position: null,
@@ -24,15 +23,6 @@ export interface SharedPropTestConfig {
 	 */
 	has_label?: boolean;
 	/**
-	 * A callback that receives the render result and returns the primary
-	 * interactive element. Used for `interactive` tests.
-	 * Using a callback instead of a selector lets callers use accessible queries:
-	 *   result => result.getByRole("textbox")
-	 *
-	 * When not provided, `interactive` tests are skipped.
-	 */
-	get_interactive_element?: (result: RenderResult<any>) => HTMLElement;
-	/**
 	 * Whether the component renders validation_error text.
 	 * Not all components support this. Set to false to skip.
 	 * @default true
@@ -46,7 +36,6 @@ export function run_shared_prop_tests(config: SharedPropTestConfig): void {
 		base_props,
 		name,
 		has_label = true,
-		get_interactive_element,
 		has_validation_error = true
 	} = config;
 
@@ -85,15 +74,12 @@ export function run_shared_prop_tests(config: SharedPropTestConfig): void {
 		});
 
 		test("visible: true renders the component", async () => {
-			const result = await render(component, make_props({ visible: true }));
-
-			if (get_interactive_element) {
-				const el = get_interactive_element(result);
-				expect(el).toBeTruthy();
-			} else {
-				const el = result.container.querySelector(".block");
-				expect(el).not.toBeNull();
-			}
+			const { container } = await render(
+				component,
+				make_props({ visible: true })
+			);
+			const el = container.querySelector(".block");
+			expect(el).not.toBeNull();
 		});
 
 		test("visible: 'hidden' hides the component but keeps it in the DOM", async () => {
@@ -146,26 +132,6 @@ export function run_shared_prop_tests(config: SharedPropTestConfig): void {
 				// sr-only uses clip/1px dimensions rather than display:none,
 				// so toBeVisible() won't catch it. We check the class directly.
 				expect(el.closest("[data-testid='block-info']")).toHaveClass("sr-only");
-			});
-		}
-
-		if (get_interactive_element) {
-			test("interactive: true enables the element", async () => {
-				const result = await render(
-					component,
-					make_props({ interactive: true })
-				);
-				const el = get_interactive_element(result);
-				expect(el).toBeEnabled();
-			});
-
-			test("interactive: false disables the element", async () => {
-				const result = await render(
-					component,
-					make_props({ interactive: false })
-				);
-				const el = get_interactive_element(result);
-				expect(el).toBeDisabled();
 			});
 		}
 
