@@ -1,8 +1,11 @@
 from gradio.themes.base import Base, ThemeClass
 from gradio.themes.citrus import Citrus
+from gradio.themes.cyberpunk import Cyberpunk
 from gradio.themes.default import Default
+from gradio.themes.ember import Ember
 from gradio.themes.glass import Glass
 from gradio.themes.monochrome import Monochrome
+from gradio.themes.neon import Neon
 from gradio.themes.ocean import Ocean
 from gradio.themes.origin import Origin
 from gradio.themes.soft import Soft
@@ -15,10 +18,13 @@ __all__ = [
     "Base",
     "Color",
     "Default",
+    "Ember",
     "Font",
     "Glass",
     "GoogleFont",
+    "Cyberpunk",
     "Monochrome",
+    "Neon",
     "Size",
     "Soft",
     "ThemeClass",

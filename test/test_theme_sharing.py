@@ -417,6 +417,32 @@ class TestThemeUploadDownload:
         )
 
 
+class TestFromDictVersionWarning:
+    def _make_theme_dict(self, gradio_version):
+        base = gr.themes.Base()
+        d = base.to_dict()
+        d["gradio_version"] = gradio_version
+        return d
+
+    @patch("gradio.__version__", "5.3.0")
+    def test_no_warning_same_major_minor(self):
+        import warnings
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            gr.Theme.from_dict(self._make_theme_dict("5.3.1"))
+
+    @patch("gradio.__version__", "5.3.0")
+    def test_warning_different_minor(self):
+        with pytest.warns(match="Some styles may not work as expected"):
+            gr.Theme.from_dict(self._make_theme_dict("5.2.0"))
+
+    @patch("gradio.__version__", "5.3.0")
+    def test_warning_different_major(self):
+        with pytest.warns(match="Some styles may not work as expected"):
+            gr.Theme.from_dict(self._make_theme_dict("4.3.0"))
+
+
 @pytest.mark.serial
 def test_theme_builder_launches():
     gr.themes.builder(prevent_thread_lock=True)

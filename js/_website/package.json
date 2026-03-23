@@ -5,6 +5,7 @@
 	"scripts": {
 		"dev": "pip install boto3 markdown && python generate_jsons/generate.py && python ../../scripts/generate_theme.py --website --outfile ./src/lib/assets/theme.css && vite dev",
 		"build": "vite build",
+		"postbuild": "wrangler pages functions build --directory=functions --outdir=build && mv build/index.js build/_worker.js",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",

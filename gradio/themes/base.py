@@ -28,6 +28,7 @@ class ThemeClass:
         self._stylesheets = []
         self.name = None
         self._font_css = []
+        self.custom_css = ""
 
     def _get_theme_css(self):
         css = {}
@@ -93,7 +94,10 @@ class ThemeClass:
 
         font_css = "\n".join(self._font_css)
 
-        return f"{font_css}\n{css_code}\n{dark_css_code}"
+        theme_css = f"{font_css}\n{css_code}\n{dark_css_code}"
+        if self.custom_css:
+            theme_css = f"{theme_css}\n\n{self.custom_css}"
+        return theme_css
 
     def _get_computed_value(self, property: str, depth=0) -> str:
         max_depth = 100
@@ -121,7 +125,9 @@ class ThemeClass:
 
     def to_dict(self):
         """Convert the theme into a python dictionary."""
-        schema = {"theme": {}}
+        from gradio import __version__
+
+        schema = {"theme": {}, "gradio_version": __version__}
         for prop in dir(self):
             if (
                 not prop.startswith("_")
@@ -148,6 +154,20 @@ class ThemeClass:
         Parameters:
             theme: The dictionary representation of the theme.
         """
+        from gradio import __version__
+
+        theme_gradio_version = theme.get("gradio_version")
+        if theme_gradio_version:
+            try:
+                if __version__.split(".")[:2] != theme_gradio_version.split(".")[:2]:
+                    warnings.warn(
+                        f"This theme was created for Gradio {theme_gradio_version}, "
+                        f"but you are using Gradio {__version__}. "
+                        "Some styles may not work as expected."
+                    )
+            except (ValueError, IndexError):
+                pass
+
         new_theme = cls()
         for prop, value in theme["theme"].items():
             setattr(new_theme, prop, value)
@@ -380,6 +400,7 @@ class Base(ThemeClass):
 
         self.name = "base"
         self._font_css = []
+        self.custom_css = ""
 
         def expand_shortcut(shortcut, mode="color", prefix=None):
             if not isinstance(shortcut, str):
@@ -645,6 +666,11 @@ class Base(ThemeClass):
         checkbox_label_gap=None,
         checkbox_label_padding=None,
         checkbox_label_shadow=None,
+        checkbox_label_shadow_dark=None,
+        checkbox_label_shadow_hover=None,
+        checkbox_label_shadow_hover_dark=None,
+        checkbox_label_shadow_active=None,
+        checkbox_label_shadow_active_dark=None,
         checkbox_label_text_size=None,
         checkbox_label_text_weight=None,
         checkbox_label_text_color=None,
@@ -911,6 +937,9 @@ class Base(ThemeClass):
             checkbox_label_gap: The gap consecutive checkbox or radio elements.
             checkbox_label_padding: The padding of the surrounding button of a checkbox or radio element.
             checkbox_label_shadow: The shadow of the surrounding button of a checkbox or radio element.
+            checkbox_label_shadow_dark: The shadow of the surrounding button of a checkbox or radio element in dark mode.
+            checkbox_label_shadow_hover: The shadow of the surrounding button of a checkbox or radio element on hover.
+            checkbox_label_shadow_active: The shadow of the surrounding button of a checkbox or radio element when active.
             checkbox_label_text_size: The text size of the label accompanying a checkbox or radio element.
             checkbox_label_text_weight: The text weight of the label accompanying a checkbox or radio element.
             checkbox_label_text_color: The text color of the label accompanying a checkbox or radio element.
@@ -1501,6 +1530,23 @@ class Base(ThemeClass):
         )
         self.checkbox_label_shadow = checkbox_label_shadow or getattr(
             self, "checkbox_label_shadow", "none"
+        )
+        self.checkbox_label_shadow_dark = checkbox_label_shadow_dark or getattr(
+            self, "checkbox_label_shadow_dark", None
+        )
+        self.checkbox_label_shadow_hover = checkbox_label_shadow_hover or getattr(
+            self, "checkbox_label_shadow_hover", "*checkbox_label_shadow"
+        )
+        self.checkbox_label_shadow_hover_dark = (
+            checkbox_label_shadow_hover_dark
+            or getattr(self, "checkbox_label_shadow_hover_dark", None)
+        )
+        self.checkbox_label_shadow_active = checkbox_label_shadow_active or getattr(
+            self, "checkbox_label_shadow_active", "*checkbox_label_shadow"
+        )
+        self.checkbox_label_shadow_active_dark = (
+            checkbox_label_shadow_active_dark
+            or getattr(self, "checkbox_label_shadow_active_dark", None)
         )
         self.checkbox_label_text_size = checkbox_label_text_size or getattr(
             self, "checkbox_label_text_size", "*text_md"
