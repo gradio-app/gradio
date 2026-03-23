@@ -5,6 +5,7 @@ import gradio.image_utils
 import gradio.processing_utils
 import gradio.templates
 from gradio import components, layouts, mcp, themes, validators
+from gradio.app import App
 from gradio.blocks import Blocks
 from gradio.chat_interface import ChatInterface
 from gradio.cli import deploy
@@ -143,6 +144,7 @@ __version__ = get_package_version()
 __all__ = [
     "Accordion",
     "AnnotatedImage",
+    "App",
     "Annotatedimage",
     "Audio",
     "BarPlot",
