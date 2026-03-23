@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/client";
 	import { BlockLabel, IconButton, IconButtonWrapper } from "@gradio/atoms";
-	import { File, Download } from "@gradio/icons";
+	import { File, Download, Undo } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
+	import { dequal } from "dequal";
 	import type CanvasRobot from "./CanvasRobot.svelte";
 
 	let {
@@ -15,7 +16,8 @@
 		show_joint_names = false,
 		label = "",
 		show_label,
-		i18n
+		i18n,
+		has_change_history = false
 	}: {
 		value: FileData | null;
 		joint_states?: Record<string, number> | null;
@@ -27,9 +29,12 @@
 		label?: string;
 		show_label: boolean;
 		i18n: I18nFormatter;
+		has_change_history?: boolean;
 	} = $props();
 
 	let CanvasRobotComponent = $state<typeof CanvasRobot>();
+	let canvas_robot = $state<CanvasRobot | undefined>();
+	let current_settings = $state({ camera_position, zoom_speed, pan_speed });
 
 	$effect(() => {
 		if (value) {
@@ -38,6 +43,21 @@
 			});
 		}
 	});
+
+	$effect(() => {
+		if (
+			!dequal(current_settings.camera_position, camera_position) ||
+			current_settings.zoom_speed !== zoom_speed ||
+			current_settings.pan_speed !== pan_speed
+		) {
+			canvas_robot?.update_camera(camera_position, zoom_speed, pan_speed);
+			current_settings = { camera_position, zoom_speed, pan_speed };
+		}
+	});
+
+	function handle_undo(): void {
+		canvas_robot?.reset_camera_position();
+	}
 </script>
 
 <BlockLabel
@@ -48,6 +68,12 @@
 {#if value}
 	<div class="robot-viewer" data-testid="robot-viewer">
 		<IconButtonWrapper>
+			<IconButton
+				Icon={Undo}
+				label="Reset camera"
+				onclick={() => handle_undo()}
+				disabled={!has_change_history}
+			/>
 			<a
 				href={value.url}
 				target={window.__is_colab__ ? "_blank" : null}
@@ -59,6 +85,7 @@
 
 		<svelte:component
 			this={CanvasRobotComponent}
+			bind:this={canvas_robot}
 			{value}
 			{joint_states}
 			{clear_color}

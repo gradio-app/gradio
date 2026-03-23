@@ -54,6 +54,7 @@
 	} = $props();
 
 	let CanvasRobotComponent = $state<typeof CanvasRobot>();
+	let canvas_robot = $state<CanvasRobot | undefined>();
 	let dragging = $state(false);
 
 	$effect(() => {
@@ -82,6 +83,10 @@
 		onchange?.(null);
 	}
 
+	function handle_undo(): void {
+		canvas_robot?.reset_camera_position();
+	}
+
 	function handle_error(error: string): void {
 		onerror?.(error);
 	}
@@ -107,10 +112,16 @@
 	</Upload>
 {:else}
 	<div class="input-model">
-		<ModifyUpload onclear={handle_clear} {i18n} />
+		<ModifyUpload
+			undoable={true}
+			onclear={handle_clear}
+			{i18n}
+			onundo={handle_undo}
+		/>
 
 		<svelte:component
 			this={CanvasRobotComponent}
+			bind:this={canvas_robot}
 			{value}
 			{joint_states}
 			{clear_color}

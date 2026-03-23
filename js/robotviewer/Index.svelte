@@ -35,6 +35,7 @@
 	let old_value = $state(gradio.props.value);
 	let uploading = $state(false);
 	let dragging = $state(false);
+	let has_change_history = $state(false);
 	let upload_promise = $state<Promise<any>>();
 
 	const is_browser = typeof window !== "undefined";
@@ -49,6 +50,7 @@
 	function handle_change(detail: FileData | null) {
 		gradio.props.value = detail;
 		gradio.dispatch("change", detail);
+		has_change_history = true;
 	}
 
 	function handle_drag(detail: boolean) {
@@ -105,6 +107,7 @@
 				i18n={gradio.i18n}
 				label={gradio.shared.label}
 				show_label={gradio.shared.show_label}
+				{has_change_history}
 			/>
 		{:else}
 			<BlockLabel
