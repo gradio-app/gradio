@@ -3,8 +3,6 @@ from fastapi.responses import HTMLResponse
 
 app = App()
 
-cache = {}
-
 @app.mcp.tool(name="add")
 @app.api(name="add")
 def add(a: int, b: int) -> int:
@@ -54,10 +52,6 @@ async def homepage():
   </script>
 </body>
 </html>"""
-
-@app.get("/cache")
-async def get_cache():
-    return cache
 
 if __name__ == "__main__":
     app.launch(mcp_server=True)
