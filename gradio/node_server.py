@@ -9,6 +9,7 @@ import time
 import warnings
 from concurrent.futures import TimeoutError
 from contextlib import closing
+from http.client import HTTPConnection
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -166,15 +167,26 @@ def attempt_connection(host: str, port: int) -> bool:
         return False
 
 
-def verify_server_startup(host: str, port: int, timeout: float = 5.0) -> bool:
-    """Verifies if a server is up and running by attempting to connect."""
+def verify_server_startup(host: str, port: int, timeout: float = 15.0) -> bool:
+    """Verifies if a server is up and running by making an HTTP request.
+
+    A simple TCP connection check is not sufficient because the Node SSR server
+    may accept connections before it is ready to handle HTTP requests. This
+    would cause Gradio's own url_ok health check (which does HEAD /) to fail
+    intermittently.
+    """
     start_time = time.time()
     while time.time() - start_time < timeout:
         try:
-            with socket.create_connection((host, port), timeout=1):
+            conn = HTTPConnection(host, port, timeout=2)
+            conn.request("HEAD", "/")
+            resp = conn.getresponse()
+            conn.close()
+            if resp.status < 500:
                 return True
-        except (TimeoutError, OSError):
-            time.sleep(0.1)
+        except Exception:
+            pass
+        time.sleep(0.2)
     return False
 
 
