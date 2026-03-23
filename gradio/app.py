@@ -5,10 +5,6 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any, Literal
 
-import httpx
-
-from gradio.route_utils import API_PREFIX
-
 
 class _MCPNamespace:
     """Namespace for MCP decorators: app.mcp.tool(), .resource(), .prompt().
@@ -93,7 +89,6 @@ class App:
         self._deferred_apis: list[tuple[Callable, dict[str, Any]]] = []
         self._custom_routes: list[tuple[str, str, dict, Callable]] = []
         self._mcp = _MCPNamespace()
-        self._internal_app: Any | None = None
 
     @property
     def mcp(self) -> _MCPNamespace:
@@ -174,48 +169,18 @@ class App:
 
     # ---- Launch ----
 
-    def launch(
-        self,
-        server_name: str | None = None,
-        server_port: int | None = None,
-        *,
-        share: bool | None = None,
-        mcp_server: bool | None = None,
-        ssl_keyfile: str | None = None,
-        ssl_certfile: str | None = None,
-        ssl_keyfile_password: str | None = None,
-        ssl_verify: bool = True,
-        quiet: bool = False,
-        prevent_thread_lock: bool = False,
-        max_threads: int = 40,
-        auth: (
-            Callable[[str, str], bool]
-            | tuple[str, str]
-            | list[tuple[str, str]]
-            | None
-        ) = None,
-        auth_message: str | None = None,
-        allowed_paths: list[str] | None = None,
-        blocked_paths: list[str] | None = None,
-        root_path: str | None = None,
-        app_kwargs: dict[str, Any] | None = None,
-        state_session_capacity: int = 10000,
-        max_file_size: str | int | None = None,
-        enable_monitoring: bool | None = None,
-        strict_cors: bool = True,
-        default_concurrency_limit: int | None | Literal["not_set"] = "not_set",
-    ):
+    def launch(self, **kwargs):
         """Launch the headless API server.
 
         Creates an internal Blocks, registers all deferred .api() endpoints,
-        sets up Gradio's API routes, applies user-defined routes, and starts
-        the uvicorn server.
+        sets up Gradio's API routes, applies user-defined custom routes, and
+        starts the uvicorn server.
+
+        Accepts all the same keyword arguments as Blocks.launch().
 
         Returns:
             Tuple of (fastapi_app, local_url, share_url).
         """
-        import gradio.queueing
-        from gradio import http_server
         from gradio.blocks import Blocks
         from gradio.events import api as gr_api
         from gradio.routes import App as _InternalApp
@@ -223,132 +188,17 @@ class App:
         # 1. Create Blocks and register deferred APIs inside its context
         blocks = Blocks()
         blocks.__enter__()
-
-        if auth is not None:
-            blocks.auth = auth
-            blocks.auth_message = auth_message or ""
-        if root_path:
-            blocks.root_path = root_path
-        if allowed_paths:
-            blocks.allowed_paths = allowed_paths
-        if blocked_paths:
-            blocks.blocked_paths = blocked_paths
-        if max_file_size is not None:
-            blocks.max_file_size = max_file_size
-
-        blocks.max_threads = max_threads
-        blocks.state_session_capacity = state_session_capacity
-
-        for fn, kwargs in self._deferred_apis:
-            gr_api(fn=fn, **kwargs)
-
+        for fn, api_kwargs in self._deferred_apis:
+            gr_api(fn=fn, **api_kwargs)
         blocks.__exit__(None)
 
-        # 2. Set up the queue
-        blocks._queue = gradio.queueing.Queue(
-            live_updates=True,
-            concurrency_count=max_threads,
-            update_intervals=1,
-            max_size=None,
-            blocks=blocks,
-            default_concurrency_limit=default_concurrency_limit,
-        )
-
-        # 3. Create the internal FastAPI app
-        #    Register user's custom routes FIRST so they take priority
-        #    over Gradio's default routes (FastAPI uses first-match).
+        # 2. Create internal FastAPI app with user's custom routes registered
+        #    first so they take priority (FastAPI uses first-match).
         internal_app = _InternalApp()
-        self._internal_app = internal_app
-
         for method, path, route_kwargs, fn in self._custom_routes:
             getattr(internal_app, method)(path, **route_kwargs)(fn)
 
-        # 4. Apply Gradio's routes on top via create_app
-        if app_kwargs is None:
-            app_kwargs = {}
-
-        _InternalApp.create_app(
-            blocks,
-            app=internal_app,
-            app_kwargs=app_kwargs,
-            strict_cors=strict_cors,
-            mcp_server=mcp_server,
-        )
-        if blocks.mcp_error and not quiet:
-            print(blocks.mcp_error)
-
-        # 5. Start the server
-        (
-            _server_name,
-            _server_port,
-            local_url,
-            server,
-        ) = http_server.start_server(
-            app=internal_app,
-            server_name=server_name,
-            server_port=server_port,
-            ssl_keyfile=ssl_keyfile,
-            ssl_certfile=ssl_certfile,
-            ssl_keyfile_password=ssl_keyfile_password,
-        )
-
-        blocks.server_name = _server_name
-        blocks.local_url = local_url
-        blocks.local_api_url = f"{local_url.rstrip('/')}{API_PREFIX}/"
-        blocks.server_port = _server_port
-        blocks.server = server
-        blocks.is_running = True
-        blocks.has_launched = True
-        blocks.app = internal_app
-        blocks.server_app = internal_app
-
-        if blocks.mcp_server_obj:
-            blocks.mcp_server_obj._local_url = local_url
-
-        blocks._queue.set_server_app(internal_app)
-
-        protocol = "https" if local_url.startswith("https") else "http"
-        if not quiet:
-            print(
-                f"* Running on local URL:  {protocol}://{_server_name}:{_server_port}"
-            )
-
-        if enable_monitoring:
-            print(
-                f"Monitoring URL: {local_url}monitoring/{internal_app.analytics_key}"
-            )
-        internal_app.monitoring_enabled = enable_monitoring in [True, None]
-
-        resp = httpx.get(
-            f"{blocks.local_api_url}startup-events",
-            verify=ssl_verify,
-            timeout=None,
-        )
-        if not resp.is_success:
-            raise Exception(
-                f"Couldn't start the app because '{resp.url}' failed "
-                f"(code {resp.status_code})."
-            )
-
-        if blocks.mcp_server and not quiet:
-            print(f"* MCP server running at: {local_url}gradio_api/mcp/sse")
-
-        share_url = ""
-        if share:
-            from gradio import networking
-
-            share_url, _ = networking.setup_tunnel(
-                local_host=_server_name,
-                local_port=_server_port,
-                share_token="",
-                share_server_address=None,
-                share_server_protocol="https",
-                share_server_tls_certificate=None,
-            )
-            if not quiet:
-                print(f"* Running on public URL: {share_url}")
-
-        if not prevent_thread_lock:
-            server.thread.join()
-
-        return internal_app, local_url, share_url
+        # 3. Delegate to Blocks.launch() which handles everything:
+        #    queue setup, create_app (reusing internal_app), server start,
+        #    share links, monitoring, etc.
+        return blocks.launch(_app=internal_app, **kwargs)
