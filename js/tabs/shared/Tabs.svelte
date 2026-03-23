@@ -60,6 +60,7 @@
 	setContext(TABS, {
 		register_tab: (tab: Tab, order: number) => {
 			tabs[order] = tab;
+			tabs = tabs; // Trigger Svelte reactivity on array mutation
 
 			if ($selected_tab === false && tab.visible !== false && tab.interactive) {
 				$selected_tab = tab.id;
@@ -72,6 +73,7 @@
 				$selected_tab = tabs[0]?.id || false;
 			}
 			tabs[order] = null;
+			tabs = tabs; // Trigger Svelte reactivity on array mutation
 		},
 		selected_tab,
 		selected_tab_index
