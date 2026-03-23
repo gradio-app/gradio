@@ -13,6 +13,8 @@
 	const nav_links = [
 		{ label: "API", href: "/docs" },
 		{ label: "Guides", href: "/guides" },
+		{ label: "Themes", href: "/themes/gallery" },
+		{ label: "Custom Components", href: "/custom-components/gallery" },
 		{ label: "HTML Components", href: "/custom-components/html-gallery" }
 	];
 
@@ -157,7 +159,8 @@
 									? 'rounded-b-lg'
 									: ''}"
 								{href}
-								target="_blank">{label}</a
+								target={href.startsWith("/") ? undefined : "_blank"}
+								on:click={() => (show_help_menu = false)}>{label}</a
 							>
 						{/each}
 					</div>
@@ -224,7 +227,7 @@
 							{#each community_links as { label, href }}
 								<a
 									{href}
-									target="_blank"
+									target={href.startsWith("/") ? undefined : "_blank"}
 									on:click={() => (click_nav = false)}
 									class="py-2.5 text-base text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors"
 									>{label}</a
