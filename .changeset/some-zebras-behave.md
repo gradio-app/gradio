@@ -1,6 +1,6 @@
 ---
-"@gradio/atoms": minor
-"gradio": minor
+"@gradio/atoms": patch
+"gradio": patch
 ---
 
-feat:Lazy Load `Info` component
+fix:Lazy Load `Info` component
