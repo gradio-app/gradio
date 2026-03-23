@@ -7,17 +7,13 @@ app = App()
 @app.api(name="add")
 def add(a: int, b: int) -> int:
     """Add two numbers together."""
-    result = a + b
-    cache[f"{a}+{b}"] = result
-    return result
+    return a + b
 
 @app.mcp.tool(name="multiply")
 @app.api(name="multiply")
 def multiply(a: int, b: int) -> int:
     """Multiply two numbers together."""
-    result = a * b
-    cache[f"{a}*{b}"] = result
-    return result
+    return a * b
 
 @app.get("/", response_class=HTMLResponse)
 async def homepage():
