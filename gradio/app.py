@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any, Literal
 
+from gradio.routes import App as _InternalApp
+
 
 class _MCPNamespace:
     """Namespace for MCP decorators: app.mcp.tool(), .resource(), .prompt().
@@ -62,7 +64,7 @@ class _MCPNamespace:
         return decorator
 
 
-class App:
+class App(_InternalApp):
     """Headless Gradio App — exposes Gradio's API engine on a FastAPI server.
 
     Supports registering Gradio API endpoints (with queue, SSE streaming,
@@ -85,42 +87,15 @@ class App:
         app.launch()
     """
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self._deferred_apis: list[tuple[Callable, dict[str, Any]]] = []
-        self._custom_routes: list[tuple[str, str, dict, Callable]] = []
         self._mcp = _MCPNamespace()
 
     @property
     def mcp(self) -> _MCPNamespace:
         """MCP decorator namespace: app.mcp.tool(), app.mcp.resource(), app.mcp.prompt()."""
         return self._mcp
-
-    def _deferred_route(self, method: str, path: str, **kwargs):
-        def decorator(fn):
-            self._custom_routes.append((method, path, kwargs, fn))
-            return fn
-
-        return decorator
-
-    def get(self, path: str, **kwargs):
-        """Register a GET route (applied at launch time)."""
-        return self._deferred_route("get", path, **kwargs)
-
-    def post(self, path: str, **kwargs):
-        """Register a POST route (applied at launch time)."""
-        return self._deferred_route("post", path, **kwargs)
-
-    def put(self, path: str, **kwargs):
-        """Register a PUT route (applied at launch time)."""
-        return self._deferred_route("put", path, **kwargs)
-
-    def delete(self, path: str, **kwargs):
-        """Register a DELETE route (applied at launch time)."""
-        return self._deferred_route("delete", path, **kwargs)
-
-    def patch(self, path: str, **kwargs):
-        """Register a PATCH route (applied at launch time)."""
-        return self._deferred_route("patch", path, **kwargs)
 
     def api(
         self,
@@ -173,7 +148,6 @@ class App:
         """
         from gradio.blocks import Blocks
         from gradio.events import api as gr_api
-        from gradio.routes import App as _InternalApp
 
         blocks = Blocks()
         blocks.__enter__()
@@ -181,8 +155,4 @@ class App:
             gr_api(fn=fn, **api_kwargs)
         blocks.__exit__(None)
 
-        internal_app = _InternalApp()
-        for method, path, route_kwargs, fn in self._custom_routes:
-            getattr(internal_app, method)(path, **route_kwargs)(fn)
-
-        return blocks.launch(_app=internal_app, **kwargs)
+        return blocks.launch(_app=self, **kwargs)
