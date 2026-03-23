@@ -4,20 +4,12 @@
 	import IconArrowUpRight from "./icons/IconArrowUpRight.svelte";
 	import IconCaret from "./icons/IconCaret.svelte";
 	import IconHuggingChat from "./icons/IconHuggingChat.svelte";
-
 	import { tick } from "svelte";
-	import { cleanGuideHtml } from "$lib/utils/clean-guide-html";
 
-	export let markdown_content: string = "";
-
-	let cleaned_content = "";
-	$: cleanGuideHtml(markdown_content).then((c) => (cleaned_content = c));
-
-	let label = `Copy Page as Markdown for LLMs`;
+	export let doc_name: string;
 
 	let copied = false;
-	$: copied;
-
+	let loading = false;
 	let open = false;
 	let triggerEl: HTMLDivElement | null = null;
 	let menuEl: HTMLDivElement | null = null;
@@ -47,22 +39,109 @@
 		open ? closeMenu() : openMenu();
 	}
 
-	function buildUrl(): string {
-		const encodedPromptText = encodeURIComponent(
-			`--------------------------------
-${cleaned_content}
---------------------------------
-
-Read the documentation above so I can ask questions about it.`
-		);
-		return `https://huggingface.co/chat/?prompt=${encodedPromptText}`;
+	async function fetchMarkdown(): Promise<string> {
+		try {
+			const response = await fetch(`/api/markdown/${doc_name}`);
+			if (response.ok) {
+				const data = await response.json();
+				return data.markdown || "";
+			}
+		} catch (error) {
+			console.error("Error fetching markdown:", error);
+		}
+		return "";
 	}
 
-	function openHuggingChat(): void {
-		if (isClient) {
-			window.open(buildUrl(), "_blank", "noopener,noreferrer");
+	async function copyMarkdown(): Promise<void> {
+		if (loading) return;
+		loading = true;
+
+		try {
+			const markdown_content = await fetchMarkdown();
+			if (!markdown_content) {
+				console.warn("Nothing to copy");
+				loading = false;
+				return;
+			}
+
+			const hasNavigatorClipboard =
+				typeof navigator !== "undefined" &&
+				!!navigator.clipboard &&
+				typeof navigator.clipboard.writeText === "function";
+
+			if (hasNavigatorClipboard) {
+				await navigator.clipboard.writeText(markdown_content);
+			} else {
+				console.warn("Clipboard API unavailable");
+				loading = false;
+				return;
+			}
+
+			copied = true;
+			setTimeout(() => {
+				copied = false;
+			}, 1500);
+		} catch (error) {
+			console.error("Failed to copy:", error);
+		} finally {
+			loading = false;
 		}
-		closeMenu();
+	}
+
+	// Maximum URL length to avoid server errors
+	// HuggingChat has an ~8KB limit
+	const MAX_URL_LENGTH = 8000;
+
+	async function openHuggingChat(): Promise<void> {
+		if (loading) return;
+		loading = true;
+
+		try {
+			const markdown_content = await fetchMarkdown();
+
+			let prompt = `--------------------------------
+${markdown_content}
+--------------------------------
+
+Read the documentation above so I can ask questions about it.`;
+
+			let encodedPromptText = encodeURIComponent(prompt);
+			let url = `https://huggingface.co/chat/?prompt=${encodedPromptText}`;
+
+			if (url.length > MAX_URL_LENGTH) {
+				const baseUrl = "https://huggingface.co/chat/?prompt=";
+				const wrapperText = `--------------------------------\n\n--------------------------------\n\n[Content truncated due to length. Copy the full page using "Copy Page" and paste into chat.]\n\nRead the documentation above so I can ask questions about it.`;
+				const availableChars =
+					MAX_URL_LENGTH -
+					baseUrl.length -
+					encodeURIComponent(wrapperText).length;
+
+				const truncatedContent = markdown_content.substring(
+					0,
+					Math.floor(availableChars / 1.5)
+				);
+
+				prompt = `--------------------------------
+${truncatedContent}
+
+[Content truncated due to length. Copy the full page using "Copy Page" and paste into chat.]
+--------------------------------
+
+Read the documentation above so I can ask questions about it.`;
+
+				encodedPromptText = encodeURIComponent(prompt);
+				url = `https://huggingface.co/chat/?prompt=${encodedPromptText}`;
+			}
+
+			if (isClient) {
+				window.open(url, "_blank", "noopener,noreferrer");
+			}
+		} catch (error) {
+			console.error("Failed to open HuggingChat:", error);
+		} finally {
+			loading = false;
+			closeMenu();
+		}
 	}
 
 	function handleWindowPointer(event: MouseEvent): void {
@@ -87,34 +166,6 @@ Read the documentation above so I can ask questions about it.`
 	function handleWindowScroll(): void {
 		if (open) closeMenu();
 	}
-
-	async function copyMarkdown(): Promise<void> {
-		try {
-			if (!cleaned_content) {
-				console.warn("Nothing to copy");
-				return;
-			}
-
-			const hasNavigatorClipboard =
-				typeof navigator !== "undefined" &&
-				!!navigator.clipboard &&
-				typeof navigator.clipboard.writeText === "function";
-
-			if (hasNavigatorClipboard) {
-				await navigator.clipboard.writeText(cleaned_content);
-			} else {
-				console.warn("Clipboard API unavailable");
-				return;
-			}
-
-			copied = true;
-			setTimeout(() => {
-				copied = false;
-			}, 1500);
-		} catch (error) {
-			console.error("Failed to write to clipboard", error);
-		}
-	}
 </script>
 
 <svelte:window
@@ -130,6 +181,7 @@ Read the documentation above so I can ask questions about it.`
 			on:click={() => copyMarkdown()}
 			class="copy-button"
 			aria-live="polite"
+			disabled={loading}
 		>
 			<span class="icon-wrapper">
 				{#if copied}
@@ -138,7 +190,7 @@ Read the documentation above so I can ask questions about it.`
 					<IconCopy />
 				{/if}
 			</span>
-			<span>{copied ? `Copied Page!` : "Copy Page"}</span>
+			<span>{copied ? "Copied!" : loading ? "Loading..." : "Copy Page"}</span>
 		</button>
 		<button
 			on:click={toggleMenu}
@@ -180,18 +232,13 @@ Read the documentation above so I can ask questions about it.`
 				</div>
 				<div class="menu-text-container">
 					<div class="menu-text-primary">Copy Page</div>
-					<div class="menu-text-secondary">
-						{label}
-					</div>
+					<div class="menu-text-secondary">Copy Page as Markdown for LLMs</div>
 				</div>
 			</button>
 
 			<button
 				role="menuitem"
-				on:click={() => {
-					openHuggingChat();
-					closeMenu();
-				}}
+				on:click={() => openHuggingChat()}
 				class="base-menu-item"
 			>
 				<div class="menu-icon-container">
@@ -390,8 +437,14 @@ Read the documentation above so I can ask questions about it.`
 		border-top-right-radius: 0;
 		border-bottom-right-radius: 0;
 		background-color: white;
+	}
 
-		@media (max-width: 640px) {
+	.copy-button:disabled {
+		opacity: 0.7;
+	}
+
+	@media (max-width: 640px) {
+		.copy-button {
 			gap: 2px;
 			height: 20px;
 			padding-left: 6px;
@@ -400,19 +453,21 @@ Read the documentation above so I can ask questions about it.`
 			border-top-left-radius: 4px;
 			border-bottom-left-radius: 4px;
 		}
+	}
 
-		&:hover {
-			box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
-		}
+	.copy-button:hover:not(:disabled) {
+		box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+	}
 
-		@media (prefers-color-scheme: dark) {
+	@media (prefers-color-scheme: dark) {
+		.copy-button {
 			border-color: rgb(38, 38, 38);
 			background-color: rgb(10, 10, 10);
 			color: rgb(229, 231, 235);
+		}
 
-			&:hover {
-				background-color: rgb(38, 38, 38);
-			}
+		.copy-button:hover:not(:disabled) {
+			background-color: rgb(38, 38, 38);
 		}
 	}
 
