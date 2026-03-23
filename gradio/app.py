@@ -240,4 +240,5 @@ class App(_InternalApp):
             gr_api(fn=fn, **api_kwargs)
         blocks.__exit__(None)
 
+        kwargs.setdefault("ssr_mode", False)
         return blocks.launch(_app=self, **kwargs)
