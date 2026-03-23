@@ -95,8 +95,6 @@ class App:
         """MCP decorator namespace: app.mcp.tool(), app.mcp.resource(), app.mcp.prompt()."""
         return self._mcp
 
-    # ---- Deferred FastAPI route decorators ----
-
     def _deferred_route(self, method: str, path: str, **kwargs):
         def decorator(fn):
             self._custom_routes.append((method, path, kwargs, fn))
@@ -123,8 +121,6 @@ class App:
     def patch(self, path: str, **kwargs):
         """Register a PATCH route (applied at launch time)."""
         return self._deferred_route("patch", path, **kwargs)
-
-    # ---- Gradio API decorator ----
 
     def api(
         self,
@@ -167,14 +163,8 @@ class App:
 
         return wrapper
 
-    # ---- Launch ----
-
     def launch(self, **kwargs):
         """Launch the headless API server.
-
-        Creates an internal Blocks, registers all deferred .api() endpoints,
-        sets up Gradio's API routes, applies user-defined custom routes, and
-        starts the uvicorn server.
 
         Accepts all the same keyword arguments as Blocks.launch().
 
@@ -185,20 +175,14 @@ class App:
         from gradio.events import api as gr_api
         from gradio.routes import App as _InternalApp
 
-        # 1. Create Blocks and register deferred APIs inside its context
         blocks = Blocks()
         blocks.__enter__()
         for fn, api_kwargs in self._deferred_apis:
             gr_api(fn=fn, **api_kwargs)
         blocks.__exit__(None)
 
-        # 2. Create internal FastAPI app with user's custom routes registered
-        #    first so they take priority (FastAPI uses first-match).
         internal_app = _InternalApp()
         for method, path, route_kwargs, fn in self._custom_routes:
             getattr(internal_app, method)(path, **route_kwargs)(fn)
 
-        # 3. Delegate to Blocks.launch() which handles everything:
-        #    queue setup, create_app (reusing internal_app), server start,
-        #    share links, monitoring, etc.
         return blocks.launch(_app=internal_app, **kwargs)
