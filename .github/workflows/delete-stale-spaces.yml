@@ -39,4 +39,4 @@ jobs:
         run: |
           python scripts/delete_old_spaces.py $DAYS_STALE \
           gradio-pr-deploys \
-          ${{ secrets.SPACES_DEPLOY_TOKEN }}
+          ${{ secrets.WEBSITE_SPACES_DEPLOY_TOKEN }}

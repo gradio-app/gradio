@@ -114,7 +114,7 @@ jobs:
           . venv/bin/activate
           python scripts/upload_demo_to_space.py all_demos \
           gradio-pr-deploys/pr-${{ needs.changes.outputs.pr_number }}-all-demos \
-          ${{ secrets.SPACES_DEPLOY_TOKEN }} \
+          ${{ secrets.WEBSITE_SPACES_DEPLOY_TOKEN }} \
           --gradio-version ${{ needs.changes.outputs.gradio_version }} > url.txt
           echo "SPACE_URL=$(tail -n 1 url.txt)" >> $GITHUB_OUTPUT
       - name: Upload Website Demos
