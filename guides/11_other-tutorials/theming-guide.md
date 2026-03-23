@@ -311,7 +311,7 @@ theme = gr.themes.Default().set(
 
 ## CSS Variables Reference
 
-For a full list of all available CSS variables, see the [CSS Variables Reference](/guides/css-variables-reference).
+For a full list of all available CSS variables, see the [CSS Variables Reference](/main/guides/css-variables-reference).
 
 ## Creating a Full Theme
 
@@ -417,17 +417,9 @@ For example, the theme preview for the calm seafoam theme is here: [calm seafoam
 
 ### Discovering Themes
 
-The [Theme Gallery](https://huggingface.co/spaces/gradio/theme-gallery) shows all the public gradio themes. After publishing your theme,
-it will automatically show up in the theme gallery after a couple of minutes.
+The [Theme Gallery](https://gradio.app/themes/gallery) on the Gradio website shows all official and community themes. You can search, filter by official or community themes, and preview each theme's colors, fonts, and live demo.
 
-You can sort the themes by the number of likes on the space and from most to least recently created as well as toggling themes between light and dark mode.
-
-<div class="wrapper">
-<iframe
-	src="https://gradio-theme-gallery.static.hf.space"
-	frameborder="0"
-></iframe>
-</div>
+Community themes are sourced from the [gradio/theme-gallery](https://huggingface.co/datasets/gradio/theme-gallery) dataset on HuggingFace. To add your theme to the gallery, open a Pull Request to that dataset with your theme's metadata in `manifest.json`.
 
 ### Downloading
 

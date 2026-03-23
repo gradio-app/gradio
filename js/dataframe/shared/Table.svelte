@@ -1217,6 +1217,10 @@
 		background: var(--table-odd-background-fill);
 	}
 
+	tr:hover {
+		background: var(--table-row-focus);
+	}
+
 	.header-row {
 		display: flex;
 		justify-content: flex-end;
