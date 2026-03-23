@@ -1,0 +1,158 @@
+name: "frontend-profiling"
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: "frontend-profiling-${{ github.event.pull_request.number }}"
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  benchmark:
+    permissions:
+      contents: read
+      pull-requests: write
+    name: "frontend-benchmark"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: "gradio-app/gradio/.github/actions/changes@main"
+        id: changes
+        with:
+          filter: "js"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find latest release tag
+        if: steps.changes.outputs.should_run == 'true'
+        id: latest_tag
+        run: echo "tag=$(git tag --list 'gradio@*' --sort=-v:refname | head -n 1)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore base benchmark cache
+        if: steps.changes.outputs.should_run == 'true'
+        id: base_cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/bench_base.json
+          key: frontend-bench-base-${{ steps.latest_tag.outputs.tag }}
+
+      - name: Checkout latest release
+        if: steps.changes.outputs.should_run == 'true' && steps.base_cache.outputs.cache-hit != 'true'
+        run: git checkout ${{ steps.latest_tag.outputs.tag }}
+
+      - name: Install dependencies
+        if: steps.changes.outputs.should_run == 'true' && steps.base_cache.outputs.cache-hit != 'true'
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        with:
+          python_version: "3.10"
+          os: "ubuntu-latest"
+
+      - name: Install Playwright (base)
+        if: steps.changes.outputs.should_run == 'true' && steps.base_cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install chromium
+
+      - name: Checkout benchmark spec and demo from PR
+        if: steps.changes.outputs.should_run == 'true' && steps.base_cache.outputs.cache-hit != 'true'
+        run: git checkout ${{ github.event.pull_request.head.sha }} -- js/spa/test/big_complex_demo.spec.ts demo/big_complex_demo
+
+      - name: Run benchmark (base)
+        if: steps.changes.outputs.should_run == 'true' && steps.base_cache.outputs.cache-hit != 'true'
+        run: |
+          . venv/bin/activate
+          PERF_RESULTS_FILE=/tmp/bench_base.json pnpm exec playwright test \
+            --config .config/playwright.config.js \
+            js/spa/test/big_complex_demo.spec.ts
+
+      - name: Checkout PR branch
+        if: steps.changes.outputs.should_run == 'true'
+        run: |
+          git clean -fd
+          git checkout -f ${{ github.event.pull_request.head.sha }}
+
+      - name: Setup Python (PR)
+        if: steps.changes.outputs.should_run == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install pnpm (PR)
+        if: steps.changes.outputs.should_run == 'true'
+        uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # @v4
+        with:
+          version: 10.17.0
+
+      - name: Setup Node.js (PR)
+        if: steps.changes.outputs.should_run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install and build PR
+        if: steps.changes.outputs.should_run == 'true'
+        run: |
+          command -v uv >/dev/null 2>&1 || { curl -LsSf https://astral.sh/uv/0.9.2/install.sh | sh && export PATH="$HOME/.cargo/bin:$PATH"; }
+          uv venv venv --python=3.10
+          . venv/bin/activate
+          uv pip install -e client/python
+          uv pip install -e ".[oauth,mcp]"
+          pnpm install --no-frozen-lockfile
+          pnpm build
+
+      - name: Install Playwright (PR)
+        if: steps.changes.outputs.should_run == 'true'
+        run: pnpm exec playwright install chromium
+
+      - name: Run benchmark (PR)
+        if: steps.changes.outputs.should_run == 'true'
+        run: |
+          . venv/bin/activate
+          PERF_RESULTS_FILE=/tmp/bench_pr.json pnpm exec playwright test \
+            --config .config/playwright.config.js \
+            js/spa/test/big_complex_demo.spec.ts
+
+      - name: Compare results
+        id: compare
+        if: steps.changes.outputs.should_run == 'true'
+        env:
+          BASE_TAG: ${{ steps.latest_tag.outputs.tag }}
+        run: node scripts/compare_frontend_benchmarks.js
+
+      - name: Post or update PR comment
+        if: steps.compare.outputs.failed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('/tmp/bench_comment.md', 'utf8');
+            const marker = '<!-- frontend-perf-benchmark -->';
+            const commentBody = marker + '\n' + body;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c => c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: commentBody,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody,
+              });
+            }
