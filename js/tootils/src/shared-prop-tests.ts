@@ -1,8 +1,14 @@
 import { describe, test, expect, afterEach } from "vitest";
 import { render, cleanup, type RenderResult } from "./render";
-import { LoadingStatus } from "@gradio/statustracker";
 
-const loading_status = new LoadingStatus();
+// Minimal loading status data object used by components and StatusTracker
+const loading_status = {
+	status: "complete",
+	queue_position: null,
+	queue_size: null,
+	eta: null,
+	message: null
+};
 
 export interface SharedPropTestConfig {
 	/** The Svelte component to test */
