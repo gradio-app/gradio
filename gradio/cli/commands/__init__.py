@@ -1,3 +1,5 @@
+from hf_gradio.cli import info, predict
+
 from .cli_env_info import print_environment_info
 from .components import app as custom_component
 from .deploy_space import deploy
@@ -18,4 +20,6 @@ __all__ = [
     "hf_login",
     "load_app",
     "skills_app",
+    "info",
+    "predict",
 ]

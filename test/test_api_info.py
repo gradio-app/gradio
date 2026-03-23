@@ -10,7 +10,7 @@ from gradio_client.utils import json_schema_to_python_type
 from pydantic import Field
 from pydantic.networks import AnyUrl, EmailStr, IPvAnyAddress
 
-from gradio.data_classes import GradioModel, GradioRootModel
+from gradio.data_classes import FileData, GradioModel, GradioRootModel, ImageData
 
 
 class StringModel(GradioModel):
@@ -239,3 +239,23 @@ MODELS = [
 @pytest.mark.parametrize("model", MODELS)
 def test_api_info_for_model(model):
     assert json_schema_to_python_type(model.model_json_schema()) == model.answer
+
+
+def test_file_data_is_filepath():
+    assert json_schema_to_python_type(FileData.model_json_schema()) == "filepath"
+
+
+def test_image_data_is_filepath():
+    assert json_schema_to_python_type(ImageData.model_json_schema()) == "filepath"
+
+
+class GalleryItemModel(GradioModel):
+    image: ImageData
+    caption: str | None = None
+
+
+def test_nested_file_data_is_filepath():
+    schema = GalleryItemModel.model_json_schema()
+    result = json_schema_to_python_type(schema)
+    assert "filepath" in result
+    assert result == "dict(image: filepath, caption: str | None)"
