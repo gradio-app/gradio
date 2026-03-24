@@ -17,7 +17,12 @@ def generate_image(text):
     return img
 
 
-demo = gr.Interface(fn=generate_image, inputs=gr.Textbox(), outputs=gr.Image(), concurrency_limit=concurrency_limit)
+demo = gr.Interface(
+    fn=generate_image,
+    inputs=gr.Textbox(),
+    outputs=gr.Image(),
+    concurrency_limit=concurrency_limit,
+)
 
 if __name__ == "__main__":
     demo.launch()
