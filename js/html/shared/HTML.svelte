@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, tick } from "svelte";
+	import { createEventDispatcher } from "svelte";
 	import Handlebars from "handlebars";
 	import type { Snippet } from "svelte";
 
@@ -16,6 +16,8 @@
 		component_class_name = "HTML",
 		upload = null,
 		server = {},
+		watch_fn = (_propOrProps: string | string[], _callback: () => void) => {},
+		fire_watchers = (_changedKeys: string[]) => {},
 		children
 	}: {
 		elem_classes: string[];
@@ -29,6 +31,8 @@
 		component_class_name: string;
 		upload: ((file: File) => Promise<{ path: string; url: string }>) | null;
 		server: Record<string, (...args: any[]) => Promise<any>>;
+		watch_fn?: (propOrProps: string | string[], callback: () => void) => void;
+		fire_watchers?: (changedKeys: string[]) => void;
 		children?: Snippet;
 	} = $props();
 
@@ -420,9 +424,10 @@
 						"props",
 						"server",
 						"upload",
+						"watch",
 						js_on_load
 					);
-					func(element, trigger, reactiveProps, server, upload_func);
+					func(element, trigger, reactiveProps, server, upload_func, watch_fn);
 				} catch (error) {
 					console.error("Error executing js_on_load:", error);
 				}
@@ -430,19 +435,23 @@
 		})();
 	});
 
-	// Props update effect
 	$effect(() => {
 		if (
 			reactiveProps &&
 			props &&
 			JSON.stringify(old_props) !== JSON.stringify(props)
 		) {
+			const changedKeys: string[] = [];
 			for (const key in props) {
-				if (reactiveProps[key] !== props[key]) {
-					reactiveProps[key] = props[key];
+				if (JSON.stringify(reactiveProps[key]) !== JSON.stringify(props[key])) {
+					changedKeys.push(key);
 				}
+				reactiveProps[key] = props[key];
 			}
 			old_props = props;
+			if (changedKeys.length > 0) {
+				queueMicrotask(() => fire_watchers(changedKeys));
+			}
 		}
 	});
 </script>

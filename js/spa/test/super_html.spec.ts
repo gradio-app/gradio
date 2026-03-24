@@ -52,6 +52,16 @@ test("test HTML components", async ({ page }) => {
 		expect(vegetablesUnorderedHtml).toContain("<ul>");
 	}).toPass();
 
+	await expect(page.locator("#watch_demo")).toContainText("value: 0");
+	const incBackendButton = page.getByRole("button", { name: "Increment" });
+	await incBackendButton.click();
+	await expect(page.locator("#watch_demo")).toContainText("value: 1");
+	await incBackendButton.click();
+	await expect(page.locator("#watch_demo")).toContainText("value: 2");
+	await incBackendButton.click();
+	await expect(page.locator("#watch_demo")).toContainText("value: 3");
+	await expect(page.getByLabel("Watch Output")).toHaveValue("3");
+
 	await expect(page.locator("body")).toContainText("Zalue is not defined");
 
 	const secondTodoCheckbox = page
