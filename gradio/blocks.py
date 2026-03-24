@@ -2147,26 +2147,33 @@ Received inputs:
             data = list(zip(*data, strict=False))
             is_generating, iterator = None, None
         else:
+            from gradio.profiling import trace_phase
+
             old_iterator = iterator
             if old_iterator:
                 inputs = []
             else:
-                inputs = await self.preprocess_data(
-                    block_fn, inputs, state, explicit_call
-                )
+                async with trace_phase("preprocess"):
+                    inputs = await self.preprocess_data(
+                        block_fn, inputs, state, explicit_call
+                    )
             was_generating = old_iterator is not None
-            result = await self.call_function(
-                block_fn,
-                inputs,
-                old_iterator,
-                request,
-                event_id,
-                event_data,
-                in_event_listener,
-                state,
-            )
+            async with trace_phase("fn_call"):
+                result = await self.call_function(
+                    block_fn,
+                    inputs,
+                    old_iterator,
+                    request,
+                    event_id,
+                    event_data,
+                    in_event_listener,
+                    state,
+                )
 
-            data = await self.postprocess_data(block_fn, result["prediction"], state)
+            async with trace_phase("postprocess"):
+                data = await self.postprocess_data(
+                    block_fn, result["prediction"], state
+                )
             if state:
                 changed_state_ids = [
                     state_id
@@ -2181,22 +2188,23 @@ Received inputs:
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
                 run = id(old_iterator) if was_generating else id(iterator)
-                data = await self.handle_streaming_outputs(
-                    block_fn,
-                    data,
-                    session_hash=session_hash,
-                    run=run,
-                    root_path=root_path,
-                    final=not is_generating,
-                )
-                data = self.handle_streaming_diffs(
-                    block_fn,
-                    data,
-                    session_hash=session_hash,
-                    run=run,
-                    final=not is_generating,
-                    simple_format=simple_format,
-                )
+                async with trace_phase("streaming_diff"):
+                    data = await self.handle_streaming_outputs(
+                        block_fn,
+                        data,
+                        session_hash=session_hash,
+                        run=run,
+                        root_path=root_path,
+                        final=not is_generating,
+                    )
+                    data = self.handle_streaming_diffs(
+                        block_fn,
+                        data,
+                        session_hash=session_hash,
+                        run=run,
+                        final=not is_generating,
+                        simple_format=simple_format,
+                    )
 
         block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1

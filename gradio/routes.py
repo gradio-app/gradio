@@ -2348,6 +2348,26 @@ Existing code:
                 except Exception as e:
                     print(f"Error cleaning up file {file}: {str(e)}")
 
+        from gradio.profiling import PROFILING_ENABLED
+
+        if PROFILING_ENABLED:
+            from gradio.profiling import collector
+
+            @router.get("/profiling/traces")
+            async def profiling_traces(
+                last_n: int | None = None,
+            ):
+                return ORJSONResponse(collector.get_all(last_n=last_n))
+
+            @router.get("/profiling/summary")
+            async def profiling_summary():
+                return ORJSONResponse(collector.get_summary())
+
+            @router.post("/profiling/clear")
+            async def profiling_clear():
+                collector.clear()
+                return ORJSONResponse({"status": "cleared"})
+
         app.include_router(router)
         return app
 

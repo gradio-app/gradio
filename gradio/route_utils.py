@@ -351,20 +351,23 @@ async def call_process_api(
         inputs = [inputs]
 
     try:
+        from gradio.profiling import trace_phase
+
         with utils.MatplotlibBackendMananger():
-            output = await app.get_blocks().process_api(
-                block_fn=fn,
-                inputs=inputs,
-                request=gr_request,
-                state=session_state,
-                iterator=iterator,
-                session_hash=session_hash,
-                event_id=event_id,
-                event_data=event_data,
-                in_event_listener=True,
-                simple_format=body.simple_format,
-                root_path=root_path,
-            )
+            async with trace_phase("total"):
+                output = await app.get_blocks().process_api(
+                    block_fn=fn,
+                    inputs=inputs,
+                    request=gr_request,
+                    state=session_state,
+                    iterator=iterator,
+                    session_hash=session_hash,
+                    event_id=event_id,
+                    event_data=event_data,
+                    in_event_listener=True,
+                    simple_format=body.simple_format,
+                    root_path=root_path,
+                )
         iterator = output.pop("iterator", None)
         if event_id is not None:
             app.iterators[event_id] = iterator  # type: ignore
