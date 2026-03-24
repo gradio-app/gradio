@@ -1,5 +1,20 @@
 # @gradio/image
 
+## 0.26.0
+
+### Features
+
+- [#12998](https://github.com/gradio-app/gradio/pull/12998) [`d5e1b8f`](https://github.com/gradio-app/gradio/commit/d5e1b8f6cb7473b70fc8c082589996d5e0402810) - use a real browser environment for unit tests.  Thanks @pngwn!
+
+### Fixes
+
+- [#13004](https://github.com/gradio-app/gradio/pull/13004) [`73d4065`](https://github.com/gradio-app/gradio/commit/73d4065db6a75961693fad60dd26e8dbaa2a56d1) - fix(image): pass onclick to FullscreenButton in ImagePreview.  Thanks @galleon!
+
+### Dependency updates
+
+- @gradio/utils@0.12.1
+- @gradio/statustracker@0.13.0
+
 ## 0.25.4
 
 ### Dependency updates
