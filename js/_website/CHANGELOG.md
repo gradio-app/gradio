@@ -1,5 +1,24 @@
 # website
 
+## 0.73.0
+
+### Features
+
+- [#12924](https://github.com/gradio-app/gradio/pull/12924) [`84d409f`](https://github.com/gradio-app/gradio/commit/84d409f258d97982c7216d6bab7c03cf71de6606) - Support markdown for docs and guides.  Thanks @aliabd!
+- [#13123](https://github.com/gradio-app/gradio/pull/13123) [`26be3ad`](https://github.com/gradio-app/gradio/commit/26be3ade4cf23a73fe9cee119cafc22f274f1ef3) - More efficient cloudflare functions for markdown support.  Thanks @aliabd!
+- [#12976](https://github.com/gradio-app/gradio/pull/12976) [`7fb33fc`](https://github.com/gradio-app/gradio/commit/7fb33fc3b80b421817c1d1ddea19c8858a9f2924) - Add sidebar to the right guides.  Thanks @freddyaboulton!
+- [#12973](https://github.com/gradio-app/gradio/pull/12973) [`aaba8ec`](https://github.com/gradio-app/gradio/commit/aaba8ec130872a7357132990d6a068f2e882661e) - Add theme gallery to docs.  Thanks @hannahblair!
+- [#12986](https://github.com/gradio-app/gradio/pull/12986) [`429a9fa`](https://github.com/gradio-app/gradio/commit/429a9fad5207fb27648d860a4802ff52a5b38746) - Better docs for BarPlot, LinePlot and ScatterPlot.  Thanks @aliabd!
+- [#12991](https://github.com/gradio-app/gradio/pull/12991) [`6f8a053`](https://github.com/gradio-app/gradio/commit/6f8a0533ad0247e709fefe406961b864473d344d) - improve mobile menu in docs.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.13.0
+- @gradio/html@0.12.0
+- @gradio/button@0.6.6
+- @gradio/code@0.17.5
+- @gradio/paramviewer@0.9.6
+
 ## 0.72.0
 
 ### Features

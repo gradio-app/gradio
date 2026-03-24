@@ -4,6 +4,12 @@
 
 ### Dependency updates
 
+- @gradio/utils@0.12.1
+
+## 0.3.3
+
+### Dependency updates
+
 - @gradio/utils@0.12.0
 
 ## 0.3.2

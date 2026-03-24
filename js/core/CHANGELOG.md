@@ -1,5 +1,31 @@
 # @gradio/core
 
+## 1.4.1
+
+### Fixes
+
+- [#12566](https://github.com/gradio-app/gradio/pull/12566) [`7760161`](https://github.com/gradio-app/gradio/commit/7760161258abe6329b754dd6d2511fc3b61fed95) - Fix custom components in SSR Mode + Custom Component Examples.  Thanks @freddyaboulton!
+- [#12803](https://github.com/gradio-app/gradio/pull/12803) [`f4c3a6d`](https://github.com/gradio-app/gradio/commit/f4c3a6dcb45218722d3150baef953c731d3eccf2) - fix: gradio_api path in mount_gradio_app.  Thanks @shandowc!
+
+### Dependency updates
+
+- @gradio/utils@0.12.1
+- @gradio/statustracker@0.13.0
+- @gradio/gallery@0.17.4
+- @gradio/plot@0.10.6
+- @gradio/textbox@0.13.6
+- @gradio/html@0.12.0
+- @gradio/button@0.6.6
+- @gradio/code@0.17.5
+- @gradio/paramviewer@0.9.6
+- @gradio/checkbox@0.6.5
+- @gradio/image@0.26.0
+- @gradio/video@0.20.5
+- @gradio/file@0.14.5
+- @gradio/audio@0.23.0
+- @gradio/column@0.3.2
+- @gradio/dropdown@0.11.6
+
 ## 1.4.0
 
 ### Features

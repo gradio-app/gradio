@@ -1,5 +1,12 @@
 # @gradio/json
 
+## 0.7.4
+
+### Dependency updates
+
+- @gradio/utils@0.12.1
+- @gradio/statustracker@0.13.0
+
 ## 0.7.3
 
 ### Dependency updates

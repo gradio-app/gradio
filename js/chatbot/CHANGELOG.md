@@ -1,5 +1,21 @@
 # @gradio/chatbot
 
+## 0.29.6
+
+### Fixes
+
+- [#12566](https://github.com/gradio-app/gradio/pull/12566) [`7760161`](https://github.com/gradio-app/gradio/commit/7760161258abe6329b754dd6d2511fc3b61fed95) - Fix custom components in SSR Mode + Custom Component Examples.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/utils@0.12.1
+- @gradio/statustracker@0.13.0
+- @gradio/gallery@0.17.4
+- @gradio/plot@0.10.6
+- @gradio/image@0.26.0
+- @gradio/video@0.20.5
+- @gradio/audio@0.23.0
+
 ## 0.29.5
 
 ### Dependency updates
