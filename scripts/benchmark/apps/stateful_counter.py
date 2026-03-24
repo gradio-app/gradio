@@ -19,7 +19,12 @@ with gr.Blocks() as demo:
     inp = gr.Textbox(label="Input")
     output = gr.Textbox(label="Count")
     btn = gr.Button("Increment")
-    btn.click(fn=increment, inputs=[inp, state], outputs=[output, state], concurrency_limit=concurrency_limit)
+    btn.click(
+        fn=increment,
+        inputs=[inp, state],
+        outputs=[output, state],
+        concurrency_limit=concurrency_limit,
+    )
 
 if __name__ == "__main__":
     demo.launch()

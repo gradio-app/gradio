@@ -165,6 +165,14 @@ async def resolve_fn_info(app_url: str, api_name: str | None = None) -> tuple[in
         return fn_index, data_template
 
 
+def load_prompts(app_path: str) -> list[str] | None:
+    """Load prompts from a sidecar .prompts.json file if it exists."""
+    prompts_path = Path(app_path).with_suffix(".prompts.json")
+    if prompts_path.exists():
+        return json.loads(prompts_path.read_text())
+    return None
+
+
 async def run_httpx_tier(
     app_url: str,
     num_users: int,
@@ -173,6 +181,7 @@ async def run_httpx_tier(
     data_template: list | None = None,
     mode: str = "burst",
     on_round_complete: Callable | None = None,
+    prompts: list[str] | None = None,
 ) -> list[dict]:
     """Run a tier using httpx via /queue/join + /queue/data.
 
@@ -193,7 +202,10 @@ async def run_httpx_tier(
         data = []
         for item in data_template:
             if isinstance(item, str):
-                data.append(f"hello from user {user_id} req {req_id}")
+                if prompts:
+                    data.append(random.choice(prompts))
+                else:
+                    data.append(f"hello from user {user_id} req {req_id}")
             else:
                 data.append(item)
 
@@ -238,8 +250,8 @@ async def run_httpx_tier(
                 "error": str(e),
             }
 
-    async with httpx.AsyncClient() as client:
-        for req_id in range(requests_per_user):
+    for req_id in range(requests_per_user):
+        async with httpx.AsyncClient() as client:
             if mode == "burst":
                 barrier = asyncio.Barrier(num_users)
 
@@ -262,10 +274,10 @@ async def run_httpx_tier(
                 results = await asyncio.gather(
                     *[wave_request(i) for i in range(num_users)]
                 )
-            latencies.extend(results)
-            if on_round_complete is not None:
-                successful = sum(1 for r in results if r.get("success"))
-                on_round_complete(req_id + 1, requests_per_user, successful, num_users)
+        latencies.extend(results)
+        if on_round_complete is not None:
+            successful = sum(1 for r in results if r.get("success"))
+            on_round_complete(req_id + 1, requests_per_user, successful, num_users)
 
     return latencies
 
@@ -362,11 +374,16 @@ async def run_benchmark(
         fn_index, data_template = await resolve_fn_info(app_url, api_name)
         print(f"Using fn_index={fn_index}, data_template={data_template}")
 
+        # Load prompts from sidecar file if available
+        prompts = load_prompts(app_path)
+        if prompts:
+            print(f"Loaded {len(prompts)} prompts from sidecar file")
+
         # Warmup
         print("Running warmup...")
         await clear_profiling_data(app_url)
         try:
-            await run_httpx_tier(app_url, 2, 3, fn_index=fn_index, data_template=data_template, mode=mode)
+            await run_httpx_tier(app_url, 2, 3, fn_index=fn_index, data_template=data_template, mode=mode, prompts=prompts)
         except Exception:
             pass
         await clear_profiling_data(app_url)
@@ -398,7 +415,7 @@ async def run_benchmark(
             client_latencies = await run_httpx_tier(
                 app_url, tier, requests_per_user, fn_index=fn_index,
                 data_template=data_template, mode=mode,
-                on_round_complete=on_round_complete,
+                on_round_complete=on_round_complete, prompts=prompts,
             )
             pbar.close()
             elapsed = time.monotonic() - start
