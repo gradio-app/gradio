@@ -2512,6 +2512,7 @@ Received inputs:
         ssr_mode: bool | None = None,
         pwa: bool | None = None,
         mcp_server: bool | None = None,
+        _app: App | None = None,
         _frontend: bool = True,
         i18n: I18n | None = None,
         theme: Theme | str | None = None,
@@ -2712,6 +2713,7 @@ Received inputs:
 
         self.server_app = self.app = App.create_app(
             self,
+            app=_app,
             auth_dependency=auth_dependency,
             app_kwargs=app_kwargs,
             strict_cors=strict_cors,

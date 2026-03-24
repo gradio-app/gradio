@@ -45,6 +45,7 @@ def extract_instance_attr_doc(cls, attr):
 
 _module_prefixes = [
     ("gradio._simple_templates", "component"),
+    ("gradio.server", "block"),
     ("gradio.block", "block"),
     ("gradio.chat", "chatinterface"),
     ("gradio.component", "component"),

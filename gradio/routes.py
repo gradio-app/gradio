@@ -430,6 +430,7 @@ class App(FastAPI):
     @staticmethod
     def create_app(
         blocks: gradio.Blocks,
+        app: App | None = None,
         app_kwargs: dict[str, Any] | None = None,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         strict_cors: bool = True,
@@ -442,10 +443,15 @@ class App(FastAPI):
         mcp_subpath = App.setup_mcp_server(blocks, app_kwargs, mcp_server)
 
         delete_cache = blocks.delete_cache or (None, None)
-        app_kwargs["lifespan"] = create_lifespan_handler(
-            app_kwargs.get("lifespan", None), *delete_cache
-        )
-        app = App(auth_dependency=auth_dependency, **app_kwargs, debug=debug)
+        if app is None:
+            app_kwargs["lifespan"] = create_lifespan_handler(
+                app_kwargs.get("lifespan", None), *delete_cache
+            )
+            app = App(auth_dependency=auth_dependency, **app_kwargs, debug=debug)
+        else:
+            app.router.lifespan_context = create_lifespan_handler(
+                app_kwargs.get("lifespan", None), *delete_cache
+            )
         if blocks.mcp_server_obj:
             blocks.mcp_server_obj.launch_mcp_on_sse(app, mcp_subpath, blocks.root_path)
         router = APIRouter(prefix=API_PREFIX)
