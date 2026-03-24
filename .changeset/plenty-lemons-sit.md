@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Avoid Polling in SSE Route To Reduce Overhead
+fix:Avoid Polling in SSE Route To Reduce Overhead
