@@ -430,6 +430,7 @@ class App(FastAPI):
     @staticmethod
     def create_app(
         blocks: gradio.Blocks,
+        app: App | None = None,
         app_kwargs: dict[str, Any] | None = None,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         strict_cors: bool = True,
@@ -442,10 +443,15 @@ class App(FastAPI):
         mcp_subpath = App.setup_mcp_server(blocks, app_kwargs, mcp_server)
 
         delete_cache = blocks.delete_cache or (None, None)
-        app_kwargs["lifespan"] = create_lifespan_handler(
-            app_kwargs.get("lifespan", None), *delete_cache
-        )
-        app = App(auth_dependency=auth_dependency, **app_kwargs, debug=debug)
+        if app is None:
+            app_kwargs["lifespan"] = create_lifespan_handler(
+                app_kwargs.get("lifespan", None), *delete_cache
+            )
+            app = App(auth_dependency=auth_dependency, **app_kwargs, debug=debug)
+        else:
+            app.router.lifespan_context = create_lifespan_handler(
+                app_kwargs.get("lifespan", None), *delete_cache
+            )
         if blocks.mcp_server_obj:
             blocks.mcp_server_obj.launch_mcp_on_sse(app, mcp_subpath, blocks.root_path)
         router = APIRouter(prefix=API_PREFIX)
@@ -2341,6 +2347,26 @@ Existing code:
                         os.unlink(file)
                 except Exception as e:
                     print(f"Error cleaning up file {file}: {str(e)}")
+
+        from gradio.profiling import PROFILING_ENABLED
+
+        if PROFILING_ENABLED:
+            from gradio.profiling import collector
+
+            @router.get("/profiling/traces")
+            async def profiling_traces(
+                last_n: int | None = None,
+            ):
+                return ORJSONResponse(collector.get_all(last_n=last_n))
+
+            @router.get("/profiling/summary")
+            async def profiling_summary():
+                return ORJSONResponse(collector.get_summary())
+
+            @router.post("/profiling/clear")
+            async def profiling_clear():
+                collector.clear()
+                return ORJSONResponse({"status": "cleared"})
 
         app.include_router(router)
         return app
