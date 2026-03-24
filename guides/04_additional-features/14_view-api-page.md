@@ -20,7 +20,7 @@ When building a complex Gradio app, you might want to control how API endpoints 
 
 - `"public"` (default): The endpoint is shown in API docs and accessible to all
 - `"undocumented"`: The endpoint is hidden from API docs but still accessible to downstream apps
-- `"private"`: The endpoint is completely disabled and inaccessible
+- `"private"`: The endpoint is hidden from API docs and not callable by the Gradio client libraries (e.g. `gradio_client` or `@gradio/client`). Note: this does **not** block direct HTTP requests to the endpoint — it should not be relied upon as a security measure.
 
 To hide an API endpoint from the documentation while still allowing programmatic access:
 
@@ -28,15 +28,15 @@ To hide an API endpoint from the documentation while still allowing programmatic
 btn.click(add, [num1, num2], output, api_visibility="undocumented")
 ```
 
-**Disabling API endpoints**
+**Hiding endpoints from client libraries**
 
-If you want to disable an API endpoint altogether so that no one can access it programmatically, set `api_visibility="private"`:
+If you want to hide an API endpoint from the API docs and prevent it from being called by the Gradio client libraries, set `api_visibility="private"`:
 
 ```python
 btn.click(add, [num1, num2], output, api_visibility="private")
 ```
 
-Note: setting `api_visibility="private"` also means that downstream apps will not be able to load your Gradio app using `gr.load()` as this function uses the Gradio API under the hood.
+Note: setting `api_visibility="private"` also means that downstream apps will not be able to load your Gradio app using `gr.load()` as this function uses the Gradio API under the hood. However, the underlying HTTP endpoint is still accessible — this setting should not be relied upon for security.
 
 **Adding API endpoints**
 
