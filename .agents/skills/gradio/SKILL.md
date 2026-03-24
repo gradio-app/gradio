@@ -23,7 +23,6 @@ Detailed guides on specific topics (read these when relevant):
 - [Custom HTML Components](https://www.gradio.app/guides/custom-HTML-components)
 - [Getting Started with the Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client)
 - [Getting Started with the JS Client](https://www.gradio.app/guides/getting-started-with-the-js-client)
-- [Server mode](https://www.gradio.app/guides/server-mode) (`gradio.Server`): custom frontend with Gradio's API engine on FastAPI
 
 ## Core Patterns
 
