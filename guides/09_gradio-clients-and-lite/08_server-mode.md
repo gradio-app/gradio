@@ -1,14 +1,14 @@
-# Headless Gradio Apps
+# Server mode
 
-Tags: API, MCP, FASTAPI, HEADLESS
+Tags: API, MCP, FASTAPI, SERVER
 
-In this post, we will demonstrate how to build a completely custom frontend for your Gradio application, while still utilizing Gradio's backend, which means you still get an API server with queuing and streaming, MCP tool support, ZeroGPU support, and hosting on Hugging Face Spaces. 
+In this post, we will demonstrate how to build a completely custom frontend for your Gradio application, while still utilizing Gradio's backend, which means you still get an API server with queuing and streaming, MCP tool support, ZeroGPU support, and hosting on Hugging Face Spaces.
 
-To do this, we will launch Gradio in "headless" mode by utilizing the `gradio.App` class directly. The `gradio.App` class is a FastAPI server with Gradio's API engine built in, so you get all the backend benefits with complete flexibility on what kind of frontend (e.g. a React app, a simple HTML page, or any vibe-coded frontend), if any, you'd like to launch alongside the backend server.
+To do this, you use **Server mode**: instantiate `gradio.Server` directly. The `gradio.Server` class is a FastAPI server with Gradio's API engine built in, so you get all the backend benefits with complete flexibility on what kind of frontend (e.g. a React app, a simple HTML page, or any vibe-coded frontend), if any, you'd like to launch alongside the backend server.
 
-## When to use `gradio.App`
+## When to use `gradio.Server`
 
-Use `gradio.App` instead of `gr.Blocks` when any of the following apply:
+Use `gradio.Server` instead of `gr.Blocks` when any of the following apply:
 
 - You want a **completely custom (potentially vibe-coded) UI** (your own HTML, React, Svelte, etc.) powered by Gradio's backend
 - You want **full FastAPI control** (custom GET/POST routes, middleware, dependency injection) alongside Gradio API endpoints
@@ -18,7 +18,7 @@ If you're happy with Gradio's built-in UI components, use `gr.Blocks`, `gr.ChatI
 
 ## Installation
 
-`gradio.App` is included in the main Gradio package. If you want MCP support, install the extra:
+`gradio.Server` is included in the main Gradio package. If you want MCP support, install the extra:
 
 ```bash
 pip install "gradio[mcp]"
@@ -26,12 +26,12 @@ pip install "gradio[mcp]"
 
 ## A Minimal Example
 
-Here's the simplest possible headless Gradio app — a single API endpoint with no UI:
+Here's the simplest possible Server mode app — a single API endpoint with no UI:
 
 ```python
-from gradio import App
+from gradio import Server
 
-app = App()
+app = Server()
 
 @app.api(name="hello")
 def hello(name: str) -> str:
@@ -58,13 +58,13 @@ print(result)  # "Hello, World!"
 
 ## Custom Routes
 
-Since `gradio.App` inherits from FastAPI, you can add any route directly:
+Since `gradio.Server` inherits from FastAPI, you can add any route directly:
 
 ```python
-from gradio import App
+from gradio import Server
 from fastapi.responses import HTMLResponse
 
-app = App()
+app = Server()
 
 @app.api(name="hello")
 def hello(name: str) -> str:
@@ -90,9 +90,9 @@ You can also use all standard FastAPI features — `app.add_middleware()`, `app.
 To expose your API endpoints as MCP tools, add the `@app.mcp.tool()` decorator and pass `mcp_server=True` to `launch()`:
 
 ```python
-from gradio import App
+from gradio import Server
 
-app = App()
+app = Server()
 
 @app.mcp.tool(name="hello")
 @app.api(name="hello")
@@ -109,7 +109,7 @@ The `@app.mcp.tool()` and `@app.api()` decorators are independent — you can ha
 
 This example combines everything: custom HTML served at `/`, Gradio API endpoints with concurrency limits, MCP tools, and a custom REST endpoint, and two connected via [the Gradio JavaScript client](/guides/gradio-clients-and-lite/getting-started-with-the-js-client).
 
-$code_headless_app
+$code_server_app
 
 Run it with:
 
@@ -132,29 +132,4 @@ async def generate(prompt: str):
 
 Generator functions automatically stream results via SSE, just like in a regular Gradio app. The `concurrency_limit` parameter controls how many concurrent calls to this endpoint are allowed. By default, this is set to 1, since many ML workloads that run on GPU can only support a single user at a time. However, you can increase this, or set to `None` to use FastAPI defaults, if you are e.g. calling an external API.
 
-## API Reference
-
-### `App()`
-
-Creates a new headless Gradio app. Accepts all [FastAPI constructor parameters](https://fastapi.tiangolo.com/reference/fastapi/) (`title`, `version`, `docs_url`, etc.).
-
-### `@app.api()`
-
-Registers a function as a Gradio API endpoint. Parameters:
-
-| Parameter | Default | Description |
-|---|---|---|
-| `name` | function name | API endpoint name |
-| `description` | docstring | Endpoint description |
-| `concurrency_limit` | `"default"` | Max concurrent executions |
-| `concurrency_id` | `None` | Group endpoints to share a concurrency limit |
-| `queue` | `True` | Whether to queue requests |
-| `stream_every` | `0.5` | Seconds between stream chunks (for generators) |
-
-### `@app.mcp.tool()`, `@app.mcp.resource()`, `@app.mcp.prompt()`
-
-MCP metadata decorators. See the [MCP guide](/guides/building-mcp-server-with-gradio) for details.
-
-### `app.launch()`
-
-Starts the server. Accepts all the same keyword arguments as [`Blocks.launch()`](/docs/gradio/blocks#launch), including `share`, `server_name`, `server_port`, `auth`, and `mcp_server`.
+For the full API reference, see the [`Server` documentation](/docs/gradio/server).

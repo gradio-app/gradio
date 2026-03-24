@@ -5,7 +5,6 @@ import gradio.image_utils
 import gradio.processing_utils
 import gradio.templates
 from gradio import components, layouts, mcp, themes, validators
-from gradio.app import App
 from gradio.blocks import Blocks
 from gradio.chat_interface import ChatInterface
 from gradio.cli import deploy
@@ -122,6 +121,7 @@ from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.renderable import render
 from gradio.route_utils import Header
 from gradio.routes import Request, mount_gradio_app
+from gradio.server import Server
 from gradio.templates import (
     Files,
     ImageMask,
@@ -144,7 +144,7 @@ __version__ = get_package_version()
 __all__ = [
     "Accordion",
     "AnnotatedImage",
-    "App",
+    "Server",
     "Annotatedimage",
     "Audio",
     "BarPlot",

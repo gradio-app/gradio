@@ -1,7 +1,7 @@
-from gradio import App
+from gradio import Server
 from fastapi.responses import HTMLResponse
 
-app = App()
+app = Server()
 
 @app.mcp.tool(name="add")
 @app.api(name="add")

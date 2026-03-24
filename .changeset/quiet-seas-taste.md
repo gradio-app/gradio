@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Headless Gradio
+feat:Server mode (`gradio.Server`)
