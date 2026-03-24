@@ -105,7 +105,7 @@ In event listeners (such as `.click()`, `.change()`, etc.), the `show_api` param
 - `api_visibility` accepts one of three string values:
   - `"public"`: The endpoint is shown in API docs and accessible to all (equivalent to old `show_api=True`)
   - `"undocumented"`: The endpoint is hidden from API docs but still accessible to downstream apps (equivalent to old `show_api=False`)
-  - `"private"`: The endpoint is completely disabled and inaccessible (equivalent to old `api_name=False`)
+  - `"private"`: The endpoint is hidden from API docs and not callable by the Gradio client libraries (equivalent to old `api_name=False`). Note: direct HTTP requests to the endpoint are still possible.
 
 **Before (Gradio 5.x):**
 
