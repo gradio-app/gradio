@@ -23,7 +23,7 @@ async def homepage():
 <head><title>Calculator</title>
 <style>
   * { margin: 0; box-sizing: border-box; font-family: 'Courier New', monospace; }
-  body { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #1a1a2e; }
+  body { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #1a1a2e; color: #fff;}
   .calc { background: #16213e; padding: 2rem; border-radius: 1rem; box-shadow: 0 8px 32px rgba(0,0,0,.4); width: 320px; }
   #out { background: #0f3460; color: #0f0; font-size: 2rem; text-align: right; padding: .75rem 1rem; border-radius: .5rem; min-height: 3rem; margin-bottom: 1rem; }
   .row { display: flex; gap: .5rem; margin-bottom: .5rem; }
@@ -35,7 +35,9 @@ async def homepage():
 <body>
   <div class="calc">
     <div id="out">0</div>
+    Operands
     <div class="row"><input id="a" type="number" value="3"><input id="b" type="number" value="5"></div>
+    Operation
     <div class="row"><button class="add" onclick="run('add')">+</button><button class="mul" onclick="run('multiply')">&times;</button></div>
   </div>
   <script type="module">
