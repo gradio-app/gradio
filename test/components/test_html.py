@@ -148,6 +148,7 @@ class TestHTML:
             "elem_classes": [],
             "elem_id": None,
             "html_template": "${value}",
+            "head": None,
             "js_on_load": "element.addEventListener('click', function() { trigger('click') });",
             "key": None,
             "label": "HTML Input",

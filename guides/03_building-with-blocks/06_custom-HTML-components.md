@@ -118,6 +118,27 @@ watch(['value', 'color'], () => {
 });
 ```
 
+## Loading Third-Party Scripts with `head`
+
+The `head` parameter lets you load external JavaScript or CSS libraries directly on the component. The `head` content is injected and loaded **before** `js_on_load` runs, so your code can immediately use the library.
+
+```python
+gr.HTML(
+    value=[30, 70, 45, 90, 60],
+    html_template="<canvas id='chart'></canvas>",
+    js_on_load="""
+        new Chart(element.querySelector('#chart'), {
+            type: 'bar',
+            data: {
+                labels: props.value.map((_, i) => 'Item ' + (i + 1)),
+                datasets: [{ label: 'Values', data: props.value }]
+            }
+        });
+    """,
+    head='<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>',
+)
+```
+
 ## Server Functions
 
 You can call Python functions directly from your `js_on_load` code using the `server_functions` parameter. Pass a list of Python functions to `server_functions`, and they become available as async methods on a `server` object inside `js_on_load`.
