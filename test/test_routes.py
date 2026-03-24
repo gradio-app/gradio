@@ -1878,6 +1878,7 @@ def test_mount_gradio_app_args_match_launch_args():
         "strict_cors",
         "max_threads",
         "i18n",
+        "_app",
     }
 
     missing_params = []
