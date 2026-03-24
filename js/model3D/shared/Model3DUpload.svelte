@@ -7,6 +7,7 @@
 	import type { I18nFormatter } from "@gradio/utils";
 	import type Canvas3DGS from "./Canvas3DGS.svelte";
 	import type Canvas3D from "./Canvas3D.svelte";
+	import { isGaussianSplatPly } from "./utils";
 
 	let {
 		value = $bindable(),
@@ -28,7 +29,7 @@
 		onclear,
 		ondrag,
 		onload,
-		onerror
+		onerror,
 	}: {
 		value?: FileData | null;
 		display_mode?: "solid" | "point_cloud" | "wireframe";
@@ -67,18 +68,25 @@
 		return module.default;
 	}
 
+	async function resolveCanvas(file: FileData): Promise<void> {
+		if (file.path.endsWith(".splat")) {
+			use_3dgs = true;
+		} else if (file.path.endsWith(".ply")) {
+			use_3dgs = await isGaussianSplatPly(file.url);
+		} else {
+			use_3dgs = false;
+		}
+
+		if (use_3dgs) {
+			Canvas3DGSComponent = await loadCanvas3DGS();
+		} else {
+			Canvas3DComponent = await loadCanvas3D();
+		}
+	}
+
 	$effect(() => {
 		if (value) {
-			use_3dgs = value.path.endsWith(".splat") || value.path.endsWith(".ply");
-			if (use_3dgs) {
-				loadCanvas3DGS().then((component) => {
-					Canvas3DGSComponent = component;
-				});
-			} else {
-				loadCanvas3D().then((component) => {
-					Canvas3DComponent = component;
-				});
-			}
+			resolveCanvas(value);
 		}
 	});
 
