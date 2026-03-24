@@ -68,26 +68,30 @@
 		return module.default;
 	}
 
-	async function resolveCanvas(file: FileData): Promise<void> {
-		if (file.path.endsWith(".splat")) {
-			use_3dgs = true;
-		} else if (file.path.endsWith(".ply")) {
-			use_3dgs = await isGaussianSplatPly(file.url);
-		} else {
-			use_3dgs = false;
-		}
-
-		if (use_3dgs) {
-			Canvas3DGSComponent = await loadCanvas3DGS();
-		} else {
-			Canvas3DComponent = await loadCanvas3D();
-		}
-	}
-
 	$effect(() => {
-		if (value) {
-			resolveCanvas(value);
-		}
+		if (!value) return;
+		let cancelled = false;
+		const file = value;
+		(async () => {
+			let shouldUse3dgs: boolean;
+			if (file.path.endsWith(".splat")) {
+				shouldUse3dgs = true;
+			} else if (file.path.endsWith(".ply")) {
+				shouldUse3dgs = await isGaussianSplatPly(file.url);
+			} else {
+				shouldUse3dgs = false;
+			}
+			if (cancelled) return;
+			use_3dgs = shouldUse3dgs;
+			if (shouldUse3dgs) {
+				Canvas3DGSComponent = await loadCanvas3DGS();
+			} else {
+				Canvas3DComponent = await loadCanvas3D();
+			}
+		})();
+		return () => {
+			cancelled = true;
+		};
 	});
 
 	$effect(() => {

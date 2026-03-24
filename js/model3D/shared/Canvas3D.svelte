@@ -76,7 +76,7 @@
 						}
 					})
 					.then(() => {
-						if (display_mode === "point_cloud") {
+						if (url.endsWith(".ply") || display_mode === "point_cloud") {
 							setRenderingMode(true, false);
 						} else if (display_mode === "wireframe") {
 							setRenderingMode(false, true);

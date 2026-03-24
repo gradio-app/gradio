@@ -78,6 +78,27 @@ describe("isGaussianSplatPly", () => {
 		expect(await isGaussianSplatPly("http://example.com/fail.ply")).toBe(false);
 	});
 
+	it("returns false for PLY with partial Gaussian Splat properties", async () => {
+		const partial_gs = `ply
+format binary_little_endian 1.0
+element vertex 100
+property float x
+property float y
+property float z
+property float scale_0
+property float scale_1
+property float scale_2
+property float opacity
+end_header
+`;
+		vi.spyOn(globalThis, "fetch").mockResolvedValue(
+			new Response(new TextEncoder().encode(partial_gs)),
+		);
+		expect(await isGaussianSplatPly("http://example.com/partial.ply")).toBe(
+			false,
+		);
+	});
+
 	it("returns false when header is missing end_header", async () => {
 		const partial = `ply\nformat binary_little_endian 1.0\nelement vertex 100\n`;
 		vi.spyOn(globalThis, "fetch").mockResolvedValue(
