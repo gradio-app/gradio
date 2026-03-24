@@ -100,7 +100,23 @@ element.addEventListener('click', (e) =>
 );
 ```
 
-You can trigger an event with any name. As long as the event name appears enclosed in quotes in your `js_on_load` string, you can attach a Python listener using `component.do_something(fn, ...)`. If it is not one of the standard Gradio event names, your IDE might not recognize it as an event, but it will still work as long as the event name matches in both the JS and Python code.
+You can trigger an event with any name. As long as the event name appears enclosed in quotes in your `js_on_load` string, you can attach a Python listener using `component.do_something(fn, ...)`.
+
+## Watching Props with `watch`
+
+The `watch` function, available inside `js_on_load`, lets you run a callback whenever specific props change when the component is an output to a Python event listener. Read current values directly from `props` inside the callback.
+
+```js
+// Watch a single prop
+watch('value', () => {
+    console.log('value is now:', props.value);
+});
+
+// Watch multiple props
+watch(['value', 'color'], () => {
+    console.log('value or color changed');
+});
+```
 
 ## Server Functions
 
