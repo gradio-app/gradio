@@ -1,4 +1,7 @@
-"""Handy utility functions."""
+"""Handy utility functions.
+
+This module provides common utility helpers used across Gradio.
+"""
 
 import asyncio
 import copy
