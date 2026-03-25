@@ -375,7 +375,13 @@ describe("Props: buttons (interactive mode)", () => {
 	});
 });
 
-function make_upload_props() {
+const mock_stream = vi.fn().mockResolvedValue({
+	onmessage: null,
+	onerror: null,
+	close: vi.fn()
+});
+
+function make_upload_props(upload_impl?: (...args: any[]) => Promise<any>) {
 	const uploaded_file_data = {
 		path: "uploaded.png",
 		url: "https://example.com/uploaded.png",
@@ -384,12 +390,8 @@ function make_upload_props() {
 		mime_type: "image/png",
 		is_stream: false
 	};
-	const mock_upload = vi.fn().mockResolvedValue([uploaded_file_data]);
-	const mock_stream = vi.fn().mockResolvedValue({
-		onmessage: null,
-		onerror: null,
-		close: vi.fn()
-	});
+	const mock_upload =
+		upload_impl ?? vi.fn().mockResolvedValue([uploaded_file_data]);
 	return {
 		props: {
 			...default_props,
@@ -442,5 +444,35 @@ describe("Events: upload via file input", () => {
 		});
 		expect(input).toHaveBeenCalledTimes(1);
 		expect(change).toHaveBeenCalledTimes(1);
+	});
+
+	test("upload failure dispatches error event with the message", async () => {
+		const failing_upload = vi
+			.fn()
+			.mockRejectedValue(new Error("File too large"));
+		const { props } = make_upload_props(failing_upload);
+		const { container, listen } = await render(Image, props);
+
+		const error = listen("error");
+
+		const file_input = container.querySelector(
+			"[data-testid='file-upload']"
+		) as HTMLInputElement;
+
+		const file = create_test_file();
+		Object.defineProperty(file_input, "files", {
+			value: [file],
+			writable: false
+		});
+		await fireEvent.change(file_input);
+
+		await waitFor(() => {
+			expect(failing_upload).toHaveBeenCalled();
+		});
+
+		await waitFor(() => {
+			expect(error).toHaveBeenCalledTimes(1);
+		});
+		expect(error).toHaveBeenCalledWith("File too large");
 	});
 });
