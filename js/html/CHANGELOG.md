@@ -1,5 +1,17 @@
 # @gradio/html
 
+## 0.12.0
+
+### Features
+
+- [#12988](https://github.com/gradio-app/gradio/pull/12988) [`0b943a4`](https://github.com/gradio-app/gradio/commit/0b943a4fd0d7701203f1b79b70b5afed19ee8413) - Add `watch` function to gr.HTML js_on_load.  Thanks @aliabid94!
+- [#12990](https://github.com/gradio-app/gradio/pull/12990) [`b0b1dc3`](https://github.com/gradio-app/gradio/commit/b0b1dc3282389a64ef3e16edb98805911f97444c) - Custom libraries in head of gr.HTML.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/utils@0.12.1
+- @gradio/statustracker@0.13.0
+
 ## 0.11.1
 
 ### Dependency updates

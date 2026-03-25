@@ -140,7 +140,7 @@ class ChatInterface(Blocks):
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
             api_name: defines how the chat endpoint appears in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given name. If None, the name of the function will be used.
             api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
-            api_visibility: Controls the visibility of the chat endpoint. Can be "public" (shown in API docs and callable), "private" (hidden from API docs and not callable), or "undocumented" (hidden from API docs but callable).
+            api_visibility: Controls the visibility of the chat endpoint. Can be "public" (shown in API docs and callable), "private" (hidden from API docs and not callable by the Gradio client libraries), or "undocumented" (hidden from API docs but callable).
             save_history: if True, will save the chat history to the browser's local storage and display previous conversations in a side panel.
             validator: a function that takes in the inputs and can optionally return a gr.validate() object for each input.
         """

@@ -1,5 +1,11 @@
 # @self/build
 
+## 0.6.1
+
+### Fixes
+
+- [#12566](https://github.com/gradio-app/gradio/pull/12566) [`7760161`](https://github.com/gradio-app/gradio/commit/7760161258abe6329b754dd6d2511fc3b61fed95) - Fix custom components in SSR Mode + Custom Component Examples.  Thanks @freddyaboulton!
+
 ## 0.6.0
 
 ### Features
