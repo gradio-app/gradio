@@ -32,7 +32,7 @@ DEFAULT_VALUE = DefaultValue()
 @document()
 class Dropdown(FormComponent):
     """
-    Creates a dropdown of choices from which a single entry or multiple entries can be selected (as an input component) or displayed (as an output component).
+    A dropdown component for selecting one or multiple choices from a list. Functions as both an input and an output component.
 
     Demos: sentence_builder
     """
