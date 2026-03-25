@@ -72,12 +72,12 @@ jobs:
         run: |
           wheel_file=$(find ./gradio-build -maxdepth 1 -type f -name "*.whl" -print -quit)
           echo "wheel_name=$wheel_file" >> $GITHUB_OUTPUT
+      - name: Install hf CLI
+        run: curl -LsSf https://hf.co/cli/install.sh | bash -s
       - name: Upload wheel
-        run: |
-          export AWS_ACCESS_KEY_ID=${{ secrets.PYPI_PREVIEWS_AWS_S3_ACCESS_KEY }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.PYPI_PREVIEWS_AWS_S3_SECRET_ACCESS_KEY }}
-          export AWS_DEFAULT_REGION=us-east-1
-          aws s3 cp ${{ steps.set_wheel_name.outputs.wheel_name}} s3://gradio-pypi-previews/${{ needs.changes.outputs.sha }}/
+        run: hf buckets cp ${{ steps.set_wheel_name.outputs.wheel_name }} hf://buckets/gradio/pypi-previews/${{ needs.changes.outputs.sha }}/
+        env:
+          HF_TOKEN: ${{ secrets.PYPI_PREVIEWS_TOKEN }}
 
       - name: Set tarball name
         id: set_tarball_name
@@ -123,7 +123,7 @@ jobs:
         run: |
           . venv/bin/activate
           python scripts/upload_website_demos.py --AUTH_TOKEN ${{ secrets.WEBSITE_SPACES_DEPLOY_TOKEN }} \
-          --WHEEL_URL https://gradio-pypi-previews.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/ \
+          --WHEEL_URL https://huggingface.co/buckets/gradio/pypi-previews/resolve/${{ needs.changes.outputs.sha }}/ \
           --CLIENT_URL "gradio-client @ git+https://github.com/gradio-app/gradio@${{ needs.changes.outputs.sha }}#subdirectory=client/python" \
           --GRADIO_VERSION ${{ needs.changes.outputs.gradio_version }}
 
@@ -139,7 +139,7 @@ jobs:
       additional_text: |
         **Install Gradio from this PR**
         ```bash
-        pip install https://gradio-pypi-previews.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/gradio-${{ needs.changes.outputs.gradio_version }}-py3-none-any.whl
+        pip install https://huggingface.co/buckets/gradio/pypi-previews/resolve/${{ needs.changes.outputs.sha }}/gradio-${{ needs.changes.outputs.gradio_version }}-py3-none-any.whl
         ```
 
         **Install Gradio Python Client from this PR**
