@@ -5,6 +5,7 @@
     import DemosSection from "$lib/components/DemosSection.svelte";
     import FunctionsSection from "$lib/components/FunctionsSection.svelte";
     import GuidesSection from "$lib/components/GuidesSection.svelte";
+    import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
     let obj = get_object("server");
