@@ -1210,6 +1210,12 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@tanstack/table-core':
+        specifier: ^8.21.3
+        version: 8.21.3
+      '@tanstack/virtual-core':
+        specifier: ^3.13.6
+        version: 3.13.23
       '@types/d3-dsv':
         specifier: ^3.0.7
         version: 3.0.7
@@ -1226,9 +1232,6 @@ importers:
         specifier: '>=5.0.0'
         version: 5.47.1
     devDependencies:
-      '@gradio/dataframe-interim':
-        specifier: workspace:^
-        version: link:../dataframe-interim
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview
@@ -4782,6 +4785,13 @@ packages:
     resolution: {integrity: sha512-w31dd8HOx3k9vPtcQh5QHP9GwKcgbMp87j58qi6xgiBnFFtKEAgCWnDw4qUT8aHwkCp8bKvb/KGKWWHedP0AAg==}
     peerDependencies:
       tailwindcss: '>=3.0.0 || insiders || >=4.0.0-alpha.20 || >=4.0.0-beta.1'
+
+  '@tanstack/table-core@8.21.3':
+    resolution: {integrity: sha512-ldZXEhOBb8Is7xLs01fR3YEc3DERiz5silj8tnGkFZytt1abEvl/GhUmCE0PMLaMPTa3Jk4HbKmRlHmu+gCftg==}
+    engines: {node: '>=12'}
+
+  '@tanstack/virtual-core@3.13.23':
+    resolution: {integrity: sha512-zSz2Z2HNyLjCplANTDyl3BcdQJc2k1+yyFoKhNRmCr7V7dY8o8q5m8uFTI1/Pg1kL+Hgrz6u3Xo6eFUB7l66cg==}
 
   '@testing-library/dom@10.4.1':
     resolution: {integrity: sha512-o4PXJQidqJl82ckFaXUeoAW+XysPLauYI43Abki5hABd853iMhitooc6znOnczgbTYmEP6U6/y1ZyKAIsvMKGg==}
@@ -10776,6 +10786,10 @@ snapshots:
     dependencies:
       postcss-selector-parser: 6.0.10
       tailwindcss: 3.4.19
+
+  '@tanstack/table-core@8.21.3': {}
+
+  '@tanstack/virtual-core@3.13.23': {}
 
   '@testing-library/dom@10.4.1':
     dependencies:

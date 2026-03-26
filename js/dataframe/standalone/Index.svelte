@@ -5,7 +5,52 @@
 	import type { I18nFormatter } from "@gradio/utils";
 	import { default_i18n } from "./default_i18n";
 
-	export let i18n: I18nFormatter | undefined = undefined;
+	let {
+		i18n = undefined,
+		value = $bindable({
+			data: [["", "", ""]],
+			headers: ["1", "2", "3"],
+			metadata: null
+		}),
+		datatype = "str",
+		interactive = true,
+		show_row_numbers = false,
+		max_height = 500,
+		show_search = "none",
+		wrap = false,
+		line_breaks = true,
+		column_widths = [],
+		max_chars = undefined,
+		pinned_columns = 0,
+		static_columns = [],
+		fullscreen = $bindable(false),
+		label = null,
+		show_label = true,
+		latex_delimiters = [],
+		col_count = undefined,
+		row_count = undefined
+	}: {
+		i18n?: I18nFormatter | undefined;
+		value?: DataframeValue;
+		datatype?: Datatype | Datatype[];
+		interactive?: boolean;
+		show_row_numbers?: boolean;
+		max_height?: number;
+		show_search?: "none" | "search" | "filter";
+		wrap?: boolean;
+		line_breaks?: boolean;
+		column_widths?: string[];
+		max_chars?: number | undefined;
+		pinned_columns?: number;
+		static_columns?: (string | number)[];
+		fullscreen?: boolean;
+		label?: string | null;
+		show_label?: boolean;
+		latex_delimiters?: any[];
+		col_count?: [number, "fixed" | "dynamic"] | undefined;
+		row_count?: [number, "fixed" | "dynamic"] | undefined;
+	} = $props();
+
 	const i18n_fn = (key: string | null | undefined): string => {
 		if (!key) return "";
 		if (typeof i18n === "function") return (i18n as any)(key);
@@ -14,31 +59,7 @@
 		return default_i18n[key] ?? key;
 	};
 
-	export let value: DataframeValue = {
-		data: [["", "", ""]],
-		headers: ["1", "2", "3"],
-		metadata: null
-	};
-	export let datatype: Datatype | Datatype[] = "str";
-	export let interactive = true;
-	export let show_row_numbers = false;
-	export let max_height = 500;
-	export let show_search: "none" | "search" | "filter" = "none";
-	export let wrap = false;
-	export let line_breaks = true;
-	export let column_widths: string[] = [];
-	export let max_chars: number | undefined = undefined;
-	export let pinned_columns = 0;
-	export let static_columns: (string | number)[] = [];
-	export let fullscreen = false;
-	export let label: string | null = null;
-	export let show_label = true;
-	export let latex_delimiters: any[] = [];
-	export let col_count: [number, "fixed" | "dynamic"] | undefined = undefined;
-	export let row_count: [number, "fixed" | "dynamic"] | undefined = undefined;
-
-	// mirrors default row count and column count logic in dataframe.py
-	$: resolved_row_count = (() => {
+	let resolved_row_count = $derived.by(() => {
 		if (
 			row_count &&
 			Array.isArray(row_count) &&
@@ -49,8 +70,9 @@
 			return row_count as [number, "fixed" | "dynamic"];
 		}
 		return [1, "dynamic"] as [number, "fixed" | "dynamic"];
-	})();
-	$: resolved_col_count = (() => {
+	});
+
+	let resolved_col_count_base = $derived.by(() => {
 		if (
 			col_count &&
 			Array.isArray(col_count) &&
@@ -65,14 +87,18 @@
 				? value.headers.length
 				: 3;
 		return [headerLength, "dynamic"] as [number, "fixed" | "dynamic"];
-	})();
-	$: if (
-		static_columns &&
-		static_columns.length > 0 &&
-		resolved_col_count[1] !== "fixed"
-	) {
-		resolved_col_count = [resolved_col_count[0], "fixed"];
-	}
+	});
+
+	let resolved_col_count = $derived.by(() => {
+		if (
+			static_columns &&
+			static_columns.length > 0 &&
+			resolved_col_count_base[1] !== "fixed"
+		) {
+			return [resolved_col_count_base[0], "fixed"] as [number, "fixed" | "dynamic"];
+		}
+		return resolved_col_count_base;
+	});
 
 	let root = "";
 
@@ -91,8 +117,8 @@
 	<Table
 		values={value.data}
 		headers={value.headers}
-		display_value={value?.metadata?.display_value}
-		styling={value?.metadata?.styling}
+		display_value={value?.metadata?.display_value ?? null}
+		styling={value?.metadata?.styling ?? null}
 		{datatype}
 		editable={interactive}
 		{show_row_numbers}
@@ -113,15 +139,11 @@
 		row_count={resolved_row_count}
 		{root}
 		i18n={i18n_fn}
-		on:change={(e) => {
-			value.data = e.detail.data;
-			value.headers = e.detail.headers;
+		onchange={(detail) => {
+			value.data = detail.data;
+			value.headers = detail.headers;
 		}}
-		on:blur
-		on:keydown
-		on:input
-		on:select
-		on:fullscreen={(e) => (fullscreen = e.detail)}
+		onfullscreen={() => (fullscreen = !fullscreen)}
 		upload={async () => null}
 		stream_handler={() => new EventSource("about:blank")}
 	/>

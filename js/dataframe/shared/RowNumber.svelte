@@ -1,6 +1,5 @@
 <script lang="ts">
-	export let index: number | null = null;
-	export let is_header = false;
+	let { index = null, is_header = false }: { index?: number | null; is_header?: boolean } = $props();
 </script>
 
 {#if is_header}

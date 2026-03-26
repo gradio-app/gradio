@@ -1,48 +1,71 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
 	import { MarkdownCode } from "@gradio/markdown-code";
 	import type { I18nFormatter } from "@gradio/utils";
 	import type { CellValue } from "./types";
 	import SelectionButtons from "./icons/SelectionButtons.svelte";
 	import BooleanCell from "./BooleanCell.svelte";
 
-	export let edit: boolean;
-	export let value: CellValue = "";
-	export let display_value: string | null = null;
-	export let styling = "";
-	export let header = false;
-	export let datatype:
-		| "str"
-		| "markdown"
-		| "html"
-		| "number"
-		| "bool"
-		| "date"
-		| "image" = "str";
-	export let latex_delimiters: {
-		left: string;
-		right: string;
-		display: boolean;
-	}[];
-	export let line_breaks = true;
-	export let editable = true;
-	export let is_static = false;
-	export let max_chars: number | null = null;
-	export let components: Record<string, any> = {};
-	export let i18n: I18nFormatter;
-	export let is_dragging = false;
-	export let wrap_text = false;
-
-	export let show_selection_buttons = false;
-	export let coords: [number, number];
-	export let on_select_column: ((col: number) => void) | null = null;
-	export let on_select_row: ((row: number) => void) | null = null;
-	export let el: HTMLTextAreaElement | null;
-
-	const dispatch = createEventDispatcher<{
-		blur: { blur_event: FocusEvent; coords: [number, number] };
-		keydown: KeyboardEvent;
-	}>();
+	let {
+		edit,
+		value = $bindable(""),
+		display_value = null,
+		styling = "",
+		header = false,
+		datatype = "str",
+		latex_delimiters,
+		line_breaks = true,
+		editable = true,
+		is_static = false,
+		max_chars = null,
+		components = {},
+		i18n,
+		is_dragging = false,
+		wrap_text = false,
+		show_selection_buttons = false,
+		coords,
+		on_select_column = null,
+		on_select_row = null,
+		el = $bindable(null),
+		onblur,
+		onkeydown
+	}: {
+		edit: boolean;
+		value?: CellValue;
+		display_value?: string | null;
+		styling?: string;
+		header?: boolean;
+		datatype?:
+			| "str"
+			| "markdown"
+			| "html"
+			| "number"
+			| "bool"
+			| "date"
+			| "image";
+		latex_delimiters: {
+			left: string;
+			right: string;
+			display: boolean;
+		}[];
+		line_breaks?: boolean;
+		editable?: boolean;
+		is_static?: boolean;
+		max_chars?: number | null;
+		components?: Record<string, any>;
+		i18n: I18nFormatter;
+		is_dragging?: boolean;
+		wrap_text?: boolean;
+		show_selection_buttons?: boolean;
+		coords: [number, number];
+		on_select_column?: ((col: number) => void) | null;
+		on_select_row?: ((row: number) => void) | null;
+		el?: HTMLTextAreaElement | null;
+		onblur?: (detail: {
+			blur_event: FocusEvent;
+			coords: [number, number];
+		}) => void;
+		onkeydown?: (event: KeyboardEvent) => void;
+	} = $props();
 
 	function truncate_text(
 		text: CellValue,
@@ -56,17 +79,21 @@
 		return str.slice(0, max_length) + "...";
 	}
 
-	$: should_truncate = !edit && max_chars !== null && max_chars > 0;
+	let should_truncate = $derived(!edit && max_chars !== null && max_chars > 0);
 
-	$: display_content = editable
-		? value
-		: display_value !== null
-			? display_value
-			: value;
+	let display_content = $derived(
+		editable
+			? value
+			: display_value !== null
+				? display_value
+				: value
+	);
 
-	$: display_text = should_truncate
-		? truncate_text(display_content, max_chars, datatype === "image")
-		: display_content;
+	let display_text = $derived(
+		should_truncate
+			? truncate_text(display_content, max_chars, datatype === "image")
+			: display_content
+	);
 
 	function use_focus(node: HTMLTextAreaElement): any {
 		requestAnimationFrame(() => {
@@ -77,24 +104,26 @@
 	}
 
 	function handle_blur(event: FocusEvent): void {
-		dispatch("blur", {
+		onblur?.({
 			blur_event: event,
 			coords: coords
 		});
 	}
 
 	function handle_keydown(event: KeyboardEvent): void {
-		dispatch("keydown", event);
+		onkeydown?.(event);
 	}
 
 	function commit_change(checked: boolean): void {
 		handle_blur({ target: { value } } as unknown as FocusEvent);
 	}
 
-	$: if (!edit) {
-		// Shim blur on removal for Safari and Firefox
-		handle_blur({ target: { value } } as unknown as FocusEvent);
-	}
+	$effect(() => {
+		if (!edit) {
+			// Shim blur on removal for Safari and Firefox
+			handle_blur({ target: { value } } as unknown as FocusEvent);
+		}
+	});
 </script>
 
 {#if edit && datatype !== "bool"}
@@ -106,11 +135,11 @@
 		bind:value
 		class:header
 		tabindex="-1"
-		on:blur={handle_blur}
-		on:mousedown|stopPropagation
-		on:click|stopPropagation
+		onblur={handle_blur}
+		onmousedown={(e: MouseEvent) => e.stopPropagation()}
+		onclick={(e: MouseEvent) => e.stopPropagation()}
 		use:use_focus
-		on:keydown={handle_keydown}
+		onkeydown={handle_keydown}
 	/>
 {/if}
 
@@ -119,13 +148,13 @@
 {:else}
 	<span
 		class:dragging={is_dragging}
-		on:keydown={handle_keydown}
+		onkeydown={handle_keydown}
 		tabindex="0"
 		role="button"
 		class:edit
 		class:expanded={edit}
 		class:multiline={header}
-		on:focus|preventDefault
+		onfocus={(e) => e.preventDefault()}
 		style={styling}
 		data-editable={editable}
 		data-max-chars={max_chars}
@@ -135,8 +164,8 @@
 		class:wrap={wrap_text}
 	>
 		{#if datatype === "image" && components.image}
-			<svelte:component
-				this={components.image}
+			{@const ImageComponent = components.image}
+			<ImageComponent
 				value={{ url: display_text }}
 				show_label={false}
 				label="cell-image"
