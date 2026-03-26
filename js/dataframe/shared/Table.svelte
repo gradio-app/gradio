@@ -13,9 +13,8 @@
 	import { tick, onMount } from "svelte";
 	import { Upload } from "@gradio/upload";
 
-	import EditableCell from "./EditableCell.svelte";
-	import CellMenuButton from "./CellMenuButton.svelte";
-	import RowNumber from "./RowNumber.svelte";
+	import HeaderCell from "./HeaderCell.svelte";
+	import DataCell from "./DataCell.svelte";
 	import EmptyRowButton from "./EmptyRowButton.svelte";
 	import type { SelectData } from "@gradio/utils";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
@@ -24,14 +23,20 @@
 	import { cast_value_to_type } from "./utils/utils";
 	import CellMenu from "./CellMenu.svelte";
 	import Toolbar from "./Toolbar.svelte";
-	import type { CellValue, CellCoordinate, SortDirection, FilterDatatype } from "./types";
+	import type {
+		CellValue,
+		CellCoordinate,
+		SortDirection,
+		FilterDatatype
+	} from "./types";
 	import {
 		is_cell_in_selection,
 		handle_click_outside as handle_click_outside_util
 	} from "./utils/selection_utils";
 	import { copy_table_data, handle_file_upload } from "./utils/table_utils";
+	import { gradio_filter_fn } from "./utils/filter";
+	import { create_column_measurement } from "./column_measurement.svelte.js";
 
-	// ── Props ──────────────────────────────────────────────────────────
 	let {
 		datatype,
 		label = null,
@@ -104,11 +109,9 @@
 		onfullscreen?: () => void;
 	} = $props();
 
-	// ── Row type for TanStack Table ───────────────────────────────────
-	// Each row is a plain object: { _index, col_0, col_1, ... }
 	type GradioRow = Record<string, CellValue> & { _index: number };
 
-	// Convert values[][] into TanStack row objects
+	// convert values[][] into tanstack row objects
 	let row_data: GradioRow[] = $derived(
 		(values ?? []).map((row, i) => {
 			const obj: GradioRow = { _index: i };
@@ -120,60 +123,23 @@
 		})
 	);
 
-	// ── Column definitions ────────────────────────────────────────────
 	let resolved_headers = $derived.by(() => {
 		let h = headers ?? [];
 		if (col_count[1] === "fixed" && h.length < col_count[0]) {
-			h = [...h, ...Array(col_count[0] - h.length).fill(null).map((_, i) => `${i + h.length}`)];
+			h = [
+				...h,
+				...Array(col_count[0] - h.length)
+					.fill(null)
+					.map((_, i) => `${i + h.length}`)
+			];
 		}
 		if (!h.length) {
-			h = Array(col_count[0]).fill(null).map((_, i) => `${i}`);
+			h = Array(col_count[0])
+				.fill(null)
+				.map((_, i) => `${i}`);
 		}
 		return h.map((v) => v ?? "");
 	});
-
-	// Custom filter function that handles our { dtype, filter, value } format
-	function gradio_filter_fn(row: any, columnId: string, filterValue: any): boolean {
-		const { dtype, filter, value: fval } = filterValue;
-		const cell_value = String(row.getValue(columnId) ?? "");
-		const compare_val = fval ?? "";
-
-		if (dtype === "number") {
-			const num = parseFloat(cell_value);
-			const target = parseFloat(compare_val);
-			if (isNaN(num) || isNaN(target)) {
-				if (filter === "Is empty") return cell_value.trim() === "";
-				if (filter === "Is not empty") return cell_value.trim() !== "";
-				return true;
-			}
-			switch (filter) {
-				case "=": return num === target;
-				case "≠": return num !== target;
-				case ">": return num > target;
-				case "<": return num < target;
-				case "≥": return num >= target;
-				case "≤": return num <= target;
-				case "Is empty": return cell_value.trim() === "";
-				case "Is not empty": return cell_value.trim() !== "";
-				default: return true;
-			}
-		}
-
-		// String filters
-		const lower = cell_value.toLowerCase();
-		const target_lower = compare_val.toLowerCase();
-		switch (filter) {
-			case "Contains": return lower.includes(target_lower);
-			case "Does not contain": return !lower.includes(target_lower);
-			case "Starts with": return lower.startsWith(target_lower);
-			case "Ends with": return lower.endsWith(target_lower);
-			case "Is": return lower === target_lower;
-			case "Is not": return lower !== target_lower;
-			case "Is empty": return cell_value.trim() === "";
-			case "Is not empty": return cell_value.trim() !== "";
-			default: return true;
-		}
-	}
 
 	let column_defs: ColumnDef<GradioRow, CellValue>[] = $derived(
 		resolved_headers.map((header_value, j) => ({
@@ -186,13 +152,13 @@
 			meta: {
 				colIndex: j,
 				datatype: Array.isArray(datatype) ? datatype[j] : datatype,
-				isStatic: static_columns.includes(j) || static_columns.includes(header_value),
+				isStatic:
+					static_columns.includes(j) || static_columns.includes(header_value),
 				isPinned: j < pinned_columns
 			}
 		}))
 	);
 
-	// ── TanStack Table state ──────────────────────────────────────────
 	let sorting: SortingState = $state([]);
 	let column_filters: ColumnFiltersState = $state([]);
 	let global_filter: string = $state("");
@@ -201,22 +167,36 @@
 	});
 
 	const table = createSvelteTable<GradioRow>({
-		get data() { return row_data; },
-		get columns() { return column_defs; },
+		get data() {
+			return row_data;
+		},
+		get columns() {
+			return column_defs;
+		},
 		state: {
-			get sorting() { return sorting; },
-			get columnFilters() { return column_filters; },
-			get globalFilter() { return global_filter; },
-			get columnPinning() { return column_pinning; }
+			get sorting() {
+				return sorting;
+			},
+			get columnFilters() {
+				return column_filters;
+			},
+			get globalFilter() {
+				return global_filter;
+			},
+			get columnPinning() {
+				return column_pinning;
+			}
 		},
 		onSortingChange: (updater) => {
 			sorting = typeof updater === "function" ? updater(sorting) : updater;
 		},
 		onColumnFiltersChange: (updater) => {
-			column_filters = typeof updater === "function" ? updater(column_filters) : updater;
+			column_filters =
+				typeof updater === "function" ? updater(column_filters) : updater;
 		},
 		onGlobalFilterChange: (updater) => {
-			global_filter = typeof updater === "function" ? updater(global_filter) : updater;
+			global_filter =
+				typeof updater === "function" ? updater(global_filter) : updater;
 		},
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
@@ -227,15 +207,18 @@
 		maxMultiSortColCount: 3
 	});
 
-	// ── Derived table data (reactive via version counter in adapter) ──
 	let rows = $derived(table.getRowModel().rows);
 	let header_groups = $derived(table.getHeaderGroups());
 
-	// ── TanStack Virtual ──────────────────────────────────────────────
 	let scroll_container: HTMLDivElement;
 
-	const virtualizer = createSvelteVirtualizer<HTMLDivElement, HTMLTableRowElement>({
-		get count() { return rows.length; },
+	const virtualizer = createSvelteVirtualizer<
+		HTMLDivElement,
+		HTMLTableRowElement
+	>({
+		get count() {
+			return rows.length;
+		},
 		getScrollElement: () => scroll_container,
 		estimateSize: () => 35,
 		overscan: 10,
@@ -245,29 +228,33 @@
 	let virtual_items = $derived(virtualizer.virtualItems());
 	let total_size = $derived(virtualizer.totalSize());
 
-	// ── UI state (selection, editing, menus) ───────────────────────────
 	let selected_cells: CellCoordinate[] = $state([]);
 	let selected: CellCoordinate | false = $state(false);
 	let editing: CellCoordinate | false = $state(false);
 	let header_edit: number | false = $state(false);
 	let selected_header: number | false = $state(false);
-	let active_cell_menu: { row: number; col: number; x: number; y: number } | null = $state(null);
-	let active_header_menu: { col: number; x: number; y: number } | null = $state(null);
+	let active_cell_menu: {
+		row: number;
+		col: number;
+		x: number;
+		y: number;
+	} | null = $state(null);
+	let active_header_menu: { col: number; x: number; y: number } | null =
+		$state(null);
 	let copy_flash = $state(false);
 	let is_dragging = $state(false);
 	let show_scroll_button = $state(false);
 	let dragging = $state(false); // file drag
 
-	// DOM refs
 	let parent: HTMLDivElement;
 
-	// ── Helpers ────────────────────────────────────────────────────────
 	function get_dtype(col: number): Datatype {
-		return Array.isArray(datatype) ? datatype[col] ?? "str" : datatype;
+		return Array.isArray(datatype) ? (datatype[col] ?? "str") : datatype;
 	}
 
 	function get_display_value(row: number, col: number): string {
-		if (display_value?.[row]?.[col] !== undefined) return display_value[row][col];
+		if (display_value?.[row]?.[col] !== undefined)
+			return display_value[row][col];
 		return String(values?.[row]?.[col] ?? "");
 	}
 
@@ -275,25 +262,30 @@
 		return styling?.[row]?.[col] ?? "";
 	}
 
-	function push_change(new_values?: CellValue[][], new_headers?: (string | null)[]): void {
+	function push_change(
+		new_values?: CellValue[][],
+		new_headers?: (string | null)[]
+	): void {
 		onchange?.({
 			data: new_values ?? values,
-			headers: ((new_headers ?? resolved_headers) as string[]),
+			headers: (new_headers ?? resolved_headers) as string[],
 			metadata: null
 		});
 		if (!value_is_output) oninput?.();
 		value_is_output = false;
 	}
 
-	// ── Cell interaction ──────────────────────────────────────────────
-	function handle_cell_click(event: MouseEvent, row: number, col: number): void {
+	function handle_cell_click(
+		event: MouseEvent,
+		row: number,
+		col: number
+	): void {
 		event.preventDefault();
 		event.stopPropagation();
 
-		// Update selection
 		const coord: CellCoordinate = [row, col];
 		if (event.shiftKey && selected) {
-			// Range select
+			// range select
 			const [r1, c1] = selected;
 			const [r2, c2] = coord;
 			const new_cells: CellCoordinate[] = [];
@@ -304,7 +296,7 @@
 			}
 			selected_cells = new_cells;
 		} else if (event.metaKey || event.ctrlKey) {
-			// Toggle select
+			// toggle select
 			const exists = selected_cells.some(([r, c]) => r === row && c === col);
 			selected_cells = exists
 				? selected_cells.filter(([r, c]) => !(r === row && c === col))
@@ -319,7 +311,7 @@
 		active_cell_menu = null;
 		active_header_menu = null;
 
-		// Click selects, does NOT enter edit mode (double-click or typing does)
+		// click selects, does NOT enter edit mode (double-click or typing does)
 		editing = false;
 
 		onselect?.({
@@ -332,18 +324,26 @@
 		tick().then(() => parent?.focus());
 	}
 
-	function handle_cell_dblclick(event: MouseEvent, row: number, col: number): void {
+	function handle_cell_dblclick(
+		event: MouseEvent,
+		row: number,
+		col: number
+	): void {
 		event.preventDefault();
 		event.stopPropagation();
 		if (!editable) return;
-		const col_is_static = static_columns.includes(col) ||
+		const col_is_static =
+			static_columns.includes(col) ||
 			static_columns.includes(resolved_headers[col]);
 		if (!col_is_static) {
 			editing = [row, col];
 		}
 	}
 
-	function handle_blur(detail: { blur_event: FocusEvent; coords: [number, number] }): void {
+	function handle_blur(detail: {
+		blur_event: FocusEvent;
+		coords: [number, number];
+	}): void {
 		const { coords } = detail;
 		const input_el = detail.blur_event.target as HTMLTextAreaElement;
 		if (!input_el || input_el.value === undefined) return;
@@ -366,7 +366,6 @@
 		}
 	}
 
-	// ── Header interaction ────────────────────────────────────────────
 	function handle_header_click(event: MouseEvent, col: number): void {
 		if (event.target instanceof HTMLAnchorElement) return;
 		event.preventDefault();
@@ -403,16 +402,18 @@
 		}
 	}
 
-	// ── Sort/Filter handlers ──────────────────────────────────────────
 	function handle_sort(col: number, direction: SortDirection): void {
 		const col_id = `col_${col}`;
 		const desc = direction === "desc";
-		// Toggle: if already sorted this way, remove it
+		// if already sorted this way, remove it
 		const existing = sorting.findIndex((s) => s.id === col_id);
 		if (existing >= 0 && sorting[existing].desc === desc) {
 			sorting = sorting.filter((s) => s.id !== col_id);
 		} else {
-			sorting = [...sorting.filter((s) => s.id !== col_id), { id: col_id, desc }].slice(-3);
+			sorting = [
+				...sorting.filter((s) => s.id !== col_id),
+				{ id: col_id, desc }
+			].slice(-3);
 		}
 	}
 
@@ -420,13 +421,21 @@
 		sorting = [];
 	}
 
-	function handle_filter(col: number, dtype: FilterDatatype, filter: string, fvalue: string): void {
+	function handle_filter(
+		col: number,
+		dtype: FilterDatatype,
+		filter: string,
+		fvalue: string
+	): void {
 		const col_id = `col_${col}`;
 		const existing = column_filters.findIndex((f) => f.id === col_id);
 		if (existing >= 0) {
 			column_filters = column_filters.filter((f) => f.id !== col_id);
 		} else {
-			column_filters = [...column_filters, { id: col_id, value: { dtype, filter, value: fvalue } }];
+			column_filters = [
+				...column_filters,
+				{ id: col_id, value: { dtype, filter, value: fvalue } }
+			];
 		}
 	}
 
@@ -439,7 +448,6 @@
 		onsearch?.(query);
 	}
 
-	// ── Row/Column CRUD ───────────────────────────────────────────────
 	function add_row(index?: number): void {
 		if (row_count[1] !== "dynamic") return;
 		const col_len = values[0]?.length || resolved_headers.length || 1;
@@ -458,7 +466,10 @@
 
 	function add_col(index?: number): void {
 		if (col_count[1] !== "dynamic") return;
-		const new_headers = [...(headers ?? []), `Header ${(headers?.length ?? 0) + 1}`];
+		const new_headers = [
+			...(headers ?? []),
+			`Header ${(headers?.length ?? 0) + 1}`
+		];
 		const new_values = values.map((row) => [...row, ""]);
 		if (index !== undefined) {
 			new_headers.splice(index, 0, new_headers.pop()!);
@@ -481,8 +492,14 @@
 	function delete_col_at(index: number): void {
 		if (col_count[1] !== "dynamic") return;
 		if ((values[0]?.length ?? 0) <= 1) return;
-		values = values.map((row) => [...row.slice(0, index), ...row.slice(index + 1)]);
-		headers = [...(headers ?? []).slice(0, index), ...(headers ?? []).slice(index + 1)];
+		values = values.map((row) => [
+			...row.slice(0, index),
+			...row.slice(index + 1)
+		]);
+		headers = [
+			...(headers ?? []).slice(0, index),
+			...(headers ?? []).slice(index + 1)
+		];
 		push_change(values, headers as string[]);
 		active_cell_menu = null;
 		active_header_menu = null;
@@ -501,19 +518,18 @@
 		active_cell_menu = null;
 	}
 
-	function handle_select_all(col: number, checked: boolean): void {
-		values = values.map((row) => {
-			const new_row = [...row];
-			new_row[col] = checked;
-			return new_row;
-		});
-		push_change(values);
-	}
+	// function handle_select_all(col: number, checked: boolean): void {
+	// 	values = values.map((row) => {
+	// 		const new_row = [...row];
+	// 		new_row[col] = checked;
+	// 		return new_row;
+	// 	});
+	// 	push_change(values);
+	// }
 
-	// ── Commit filter (filter mode: apply search as data change) ─────
 	function commit_filter(): void {
 		if (!global_filter || show_search !== "filter") return;
-		// Get the filtered rows from TanStack and push as new values
+		// get the filtered rows from tanstack and push as new values
 		const filtered_values = rows.map((row) => {
 			const original_idx = row.original._index;
 			return values[original_idx];
@@ -523,7 +539,6 @@
 		push_change(filtered_values);
 	}
 
-	// ── Copy ──────────────────────────────────────────────────────────
 	async function handle_copy(): Promise<void> {
 		const data_for_copy = values.map((row) =>
 			row.map((val, j) => ({ id: `${j}`, value: val }))
@@ -534,7 +549,6 @@
 		setTimeout(() => (copy_flash = false), 800);
 	}
 
-	// ── Click outside ─────────────────────────────────────────────────
 	function handle_click_outside(event: Event): void {
 		if (handle_click_outside_util(event, parent)) {
 			selected_cells = [];
@@ -547,7 +561,6 @@
 		}
 	}
 
-	// ── Keyboard navigation ───────────────────────────────────────────
 	function handle_keydown(e: KeyboardEvent): void {
 		if (!selected && selected_header === false) return;
 
@@ -603,15 +616,16 @@
 					}
 					selected_cells = [selected];
 					{
-						const tab_col = selected !== false ? selected[1] : col;
-						const tab_static = static_columns.includes(tab_col) ||
+						const tab_col = (selected as CellCoordinate)[1];
+						const tab_static =
+							static_columns.includes(tab_col) ||
 							static_columns.includes(resolved_headers[tab_col]);
 						editing = editable && !tab_static ? selected : false;
 					}
 					break;
 				case "Enter":
 					if (editing && e.shiftKey) {
-						// Shift+Enter inserts newline in textarea — don't intercept
+						// shift+enter inserts newline in textarea — don't intercept
 						return;
 					}
 					e.preventDefault();
@@ -622,7 +636,8 @@
 							selected_cells = [selected];
 						}
 					} else if (editable) {
-						const enter_static = static_columns.includes(col) ||
+						const enter_static =
+							static_columns.includes(col) ||
 							static_columns.includes(resolved_headers[col]);
 						if (!enter_static) {
 							editing = [row, col];
@@ -647,7 +662,7 @@
 					}
 					break;
 				default:
-					// Start editing on printable character
+					// start editing on printable character
 					if (
 						editable &&
 						!editing &&
@@ -661,14 +676,12 @@
 					break;
 			}
 
-			// Ctrl/Cmd+C
 			if ((e.ctrlKey || e.metaKey) && e.key === "c") {
 				handle_copy();
 			}
 		}
 	}
 
-	// ── Scroll ────────────────────────────────────────────────────────
 	function handle_scroll(): void {
 		if (scroll_container) {
 			show_scroll_button = scroll_container.scrollTop > 100;
@@ -679,7 +692,6 @@
 		scroll_container?.scrollTo({ top: 0 });
 	}
 
-	// ── Context menu ──────────────────────────────────────────────────
 	function toggle_cell_menu(event: MouseEvent, row: number, col: number): void {
 		event.stopPropagation();
 		if (active_cell_menu?.row === row && active_cell_menu.col === col) {
@@ -693,13 +705,15 @@
 		}
 	}
 
-	// ── File upload ───────────────────────────────────────────────────
 	function on_file_upload(file_data: any): void {
 		handle_file_upload(
-			typeof file_data === "string" ? file_data : file_data?.data ?? "",
+			typeof file_data === "string" ? file_data : (file_data?.data ?? ""),
 			(head) => {
 				headers = head.map((h: any) => h ?? "");
-				return (headers as string[]).map((h: string, i: number) => ({ id: `h_${i}`, value: h }));
+				return (headers as string[]).map((h: string, i: number) => ({
+					id: `h_${i}`,
+					value: h
+				}));
 			},
 			(vals) => {
 				values = vals;
@@ -708,13 +722,12 @@
 		);
 	}
 
-	// ── Lifecycle ─────────────────────────────────────────────────────
 	onMount(() => {
 		document.addEventListener("click", handle_click_outside);
 		return () => document.removeEventListener("click", handle_click_outside);
 	});
 
-	// Measure row action: tells the virtualizer the actual height of each row
+	// tell the virtualizer the actual height of each row
 	function measure_row(node: HTMLElement) {
 		virtualizer.instance.measureElement(node as any);
 		return {
@@ -722,69 +735,33 @@
 		};
 	}
 
-	// Column width measurement: read header cell widths after render,
-	// apply as explicit pixel widths to body cells so they match.
 	let header_row_el: HTMLTableRowElement;
 	let header_table_el: HTMLTableElement;
-	let col_widths: number[] = $state([]);
-	let total_header_width: number = $state(0);
 
-	// Stores left offset and width for each column, measured from header cells.
-	// Using offsets (not just widths) avoids accumulated subpixel rounding errors.
-	let col_lefts: number[] = $state([]);
-
-	$effect(() => {
-		void resolved_headers;
-		void row_data;
-		if (!header_row_el) return;
-
-		requestAnimationFrame(() => {
-			if (!header_row_el) return;
-			// Measure the row-number header if present
-			const row_num_header = header_row_el.querySelector<HTMLElement>('.row-number-header');
-			const offset = row_num_header ? row_num_header.getBoundingClientRect().width : 0;
-
-			const cells = header_row_el.querySelectorAll<HTMLElement>('.header-cell');
-			const table_rect = header_table_el?.getBoundingClientRect();
-			const table_left = table_rect?.left ?? 0;
-
-			col_lefts = Array.from(cells).map(c => c.getBoundingClientRect().left - table_left);
-			col_widths = Array.from(cells).map(c => c.getBoundingClientRect().width);
-			if (header_table_el) {
-				total_header_width = table_rect?.width ?? 0;
-			}
-		});
+	const measurement = create_column_measurement({
+		header_row_el: () => header_row_el,
+		header_table_el: () => header_table_el,
+		resolved_headers: () => resolved_headers,
+		row_data: () => row_data,
+		show_row_numbers: () => show_row_numbers,
+		column_widths: () => column_widths
 	});
 
-	// Returns inline style for a body cell: absolute position + width from header measurement
-	function get_col_style(index: number): string {
-		if (col_lefts[index] !== undefined && col_widths[index] !== undefined) {
-			return `position: absolute; left: ${col_lefts[index]}px; width: ${col_widths[index]}px; top: 0; bottom: 0;`;
-		}
-		if (column_widths[index]) return `width: ${column_widths[index]};`;
-		return "width: 150px;";
-	}
-
-	// Row number left/width (measured from header)
-	let row_num_width = $derived.by(() => {
-		if (!show_row_numbers || !header_row_el) return 0;
-		const el = header_row_el.querySelector<HTMLElement>('.row-number-header');
-		return el?.getBoundingClientRect().width ?? 48;
-	});
-
-	// Derived convenience
-	let disable_scroll = $derived(active_cell_menu !== null || active_header_menu !== null);
+	let disable_scroll = $derived(
+		active_cell_menu !== null || active_header_menu !== null
+	);
 	let selected_index = $derived(selected !== false ? selected[0] : false);
 
-	// Scroll to selected row
 	$effect(() => {
 		if (typeof selected_index === "number") {
 			virtualizer.instance.scrollToIndex(selected_index, { align: "auto" });
 		}
 	});
 
-	// Sort state for header display
-	function get_sort_info(col: number): { direction: SortDirection | null; priority: number | null } {
+	function get_sort_info(col: number): {
+		direction: SortDirection | null;
+		priority: number | null;
+	} {
 		const col_id = `col_${col}`;
 		const idx = sorting.findIndex((s) => s.id === col_id);
 		if (idx === -1) return { direction: null, priority: null };
@@ -796,10 +773,12 @@
 	}
 </script>
 
-<svelte:window onresize={() => {
-	active_cell_menu = null;
-	active_header_menu = null;
-}} />
+<svelte:window
+	onresize={() => {
+		active_cell_menu = null;
+		active_header_menu = null;
+	}}
+/>
 
 <div class="table-container">
 	{#if (label && label.length !== 0 && show_label) || (buttons === null ? true : buttons.includes("fullscreen")) || (buttons === null ? true : buttons.includes("copy")) || show_search !== "none"}
@@ -808,13 +787,15 @@
 				<div class="label"><p>{label}</p></div>
 			{/if}
 			<Toolbar
-				show_fullscreen_button={buttons === null ? true : buttons.includes("fullscreen")}
+				show_fullscreen_button={buttons === null
+					? true
+					: buttons.includes("fullscreen")}
 				{fullscreen}
 				on_copy={handle_copy}
 				show_copy_button={buttons === null ? true : buttons.includes("copy")}
 				{show_search}
 				onsearch={(query) => handle_search(query)}
-				onfullscreen={onfullscreen}
+				{onfullscreen}
 				on_commit_filter={commit_filter}
 				current_search_query={global_filter || null}
 			/>
@@ -854,7 +835,7 @@
 				{#if label && label.length !== 0}
 					<span class="sr-only">{label}</span>
 				{/if}
-				<!-- Header row: uses table layout to auto-size columns by content -->
+				<!-- header row: uses table layout to auto-size columns by content -->
 				<table class="header-table" bind:this={header_table_el}>
 					<thead>
 						<tr bind:this={header_row_el}>
@@ -863,59 +844,35 @@
 							{/if}
 							{#each header_groups as headerGroup (headerGroup.id)}
 								{#each headerGroup.headers as header (header.id)}
-									{@const col_idx = (header.column.columnDef.meta as any)?.colIndex ?? 0}
-									{@const sort_info = get_sort_info(col_idx)}
-									{@const is_static = !!(header.column.columnDef.meta as any)?.isStatic}
-									<th
-										class="header-cell"
-										class:focus={header_edit === col_idx || selected_header === col_idx}
-										class:sorted={sort_info.direction !== null}
-										class:filtered={get_filter_active(col_idx)}
-										onclick={(e) => handle_header_click(e, col_idx)}
-										onmousedown={(e) => { e.preventDefault(); e.stopPropagation(); }}
-										title={String(header.column.columnDef.header ?? "")}
-									>
-										<div class="cell-wrap">
-											<div class="header-content">
-												<EditableCell
-													value={String(header.column.columnDef.header ?? "")}
-													{latex_delimiters}
-													{line_breaks}
-													edit={header_edit === col_idx}
-													onkeydown={(event) => {
-														if (["Enter", "Escape", "Tab"].includes(event.key)) {
-															end_header_edit(event.key);
-														}
-													}}
-													header
-													{editable}
-													{is_static}
-													{i18n}
-													{max_chars}
-													coords={[col_idx, 0]}
-												/>
-												{#if sort_info.direction}
-													<span class="sort-indicator">
-														{sort_info.direction === "asc" ? "▲" : "▼"}
-														{#if sorting.length > 1}
-															<span class="sort-priority">{sort_info.priority}</span>
-														{/if}
-													</span>
-												{/if}
-												{#if is_static}
-													<span class="static-icon">🔒</span>
-												{/if}
-											</div>
-											{#if col_count[1] === "dynamic"}
-												<CellMenuButton on_click={(e) => toggle_header_menu(e, col_idx)} />
-											{/if}
-										</div>
-									</th>
+									{@const col_idx =
+										(header.column.columnDef.meta as any)?.colIndex ?? 0}
+									<HeaderCell
+										value={String(header.column.columnDef.header ?? "")}
+										{col_idx}
+										is_editing={header_edit === col_idx}
+										is_selected={selected_header === col_idx}
+										is_static={!!(header.column.columnDef.meta as any)
+											?.isStatic}
+										sort_direction={get_sort_info(col_idx).direction}
+										sort_priority={get_sort_info(col_idx).priority}
+										multi_sort={sorting.length > 1}
+										is_filtered={get_filter_active(col_idx)}
+										show_menu_button={col_count[1] === "dynamic"}
+										is_first_column={col_idx === 0 && !show_row_numbers}
+										{latex_delimiters}
+										{line_breaks}
+										{editable}
+										{max_chars}
+										{i18n}
+										onclick={handle_header_click}
+										on_menu_click={toggle_header_menu}
+										on_end_edit={end_header_edit}
+									/>
 								{/each}
 							{/each}
 						</tr>
 					</thead>
-					<!-- Hidden sizing row: lets table-layout:auto consider body content widths too -->
+					<!-- hidden sizing row: lets table-layout:auto consider body content widths too -->
 					<tbody class="sizing-body" aria-hidden="true">
 						{#if rows.length > 0}
 							{@const sizing_row = rows.reduce((widest, row) => {
@@ -934,15 +891,24 @@
 								{/if}
 								{#each sizing_row as val, ci}
 									{@const dtype = get_dtype(ci)}
-									<td><div class="cell-wrap">{#if dtype === "html" || dtype === "markdown"}{@html val}{:else}{val}{/if}</div></td>
+									<td
+										><div class="cell-wrap">
+											{#if dtype === "html" || dtype === "markdown"}{@html val}{:else}{val}{/if}
+										</div></td
+									>
 								{/each}
 							</tr>
 						{/if}
 					</tbody>
 				</table>
 
-				<!-- Body: absolutely positioned rows (standard TanStack Virtual pattern) -->
-				<div class="virtual-body" style="height: {total_size}px; position: relative; width: {total_header_width ? `${total_header_width}px` : '100%'};">
+				<!-- table body: absolutely positioned rows (standard tanstack virtual pattern) -->
+				<div
+					class="virtual-body"
+					style="height: {total_size}px; position: relative; width: {measurement.total_header_width
+						? `${measurement.total_header_width}px`
+						: '100%'};"
+				>
 					{#each virtual_items as virtual_row (virtual_row.key)}
 						{@const row = rows[virtual_row.index]}
 						{@const row_idx = row?.original._index ?? virtual_row.index}
@@ -955,58 +921,76 @@
 								use:measure_row
 							>
 								{#if show_row_numbers}
-									<div class="row-number-cell" data-row={row_idx} data-col="row-number" style="position: absolute; left: 0; top: 0; bottom: 0; width: {row_num_width}px;">
+									<div
+										class="row-number-cell"
+										data-row={row_idx}
+										data-col="row-number"
+										style="position: absolute; left: 0; top: 0; bottom: 0; width: {measurement.row_num_width}px;"
+									>
 										{row_idx + 1}
 									</div>
 								{/if}
 								{#each row.getVisibleCells() as cell, ci (cell.id)}
-									{@const col_idx = (cell.column.columnDef.meta as any)?.colIndex ?? 0}
-									<div
-										class="body-cell"
-										class:cell-selected={is_cell_in_selection([row_idx, col_idx], selected_cells)}
-										class:flash={copy_flash && is_cell_in_selection([row_idx, col_idx], selected_cells)}
-										data-row={row_idx}
-										data-col={col_idx}
-										data-testid={`cell-${row_idx}-${col_idx}`}
+									{@const col_idx =
+										(cell.column.columnDef.meta as any)?.colIndex ?? 0}
+									{@const is_sel = is_cell_in_selection(
+										[row_idx, col_idx],
+										selected_cells
+									)}
+									<DataCell
+										value={cell.getValue() as CellValue}
+										display_value={get_display_value(row_idx, col_idx)}
+										datatype={get_dtype(col_idx)}
+										{row_idx}
+										{col_idx}
+										col_style={measurement.get_col_style(ci)}
+										cell_style={get_styling(row_idx, col_idx)}
+										is_selected={is_sel}
+										is_editing={!!(
+											editing &&
+											editing[0] === row_idx &&
+											editing[1] === col_idx
+										)}
+										is_flash={copy_flash && is_sel}
+										is_static={!!(cell.column.columnDef.meta as any)?.isStatic}
+										show_menu_button={editable &&
+											selected_cells.length === 1 &&
+											selected_cells[0][0] === row_idx &&
+											selected_cells[0][1] === col_idx}
+										show_selection_buttons={selected_cells.length === 1 &&
+											selected_cells[0][0] === row_idx &&
+											selected_cells[0][1] === col_idx}
+										is_first_column={ci === 0 && !show_row_numbers}
+										{latex_delimiters}
+										{line_breaks}
+										{editable}
+										{max_chars}
+										{i18n}
+										{components}
+										{is_dragging}
+										wrap_text={wrap}
 										onmousedown={(e) => handle_cell_click(e, row_idx, col_idx)}
-										ondblclick={(e) => handle_cell_dblclick(e, row_idx, col_idx)}
-										oncontextmenu={(e) => { e.preventDefault(); toggle_cell_menu(e, row_idx, col_idx); }}
-										style="{get_col_style(ci)} {get_styling(row_idx, col_idx)}"
-									>
-										<div class="cell-wrap">
-											<EditableCell
-												value={cell.getValue() as CellValue}
-												display_value={get_display_value(row_idx, col_idx)}
-												{latex_delimiters}
-												{line_breaks}
-												{editable}
-												is_static={!!(cell.column.columnDef.meta as any)?.isStatic}
-												edit={!!(editing && editing[0] === row_idx && editing[1] === col_idx)}
-												datatype={get_dtype(col_idx)}
-												onblur={handle_blur}
-												{max_chars}
-												{i18n}
-												{components}
-												show_selection_buttons={selected_cells.length === 1 &&
-													selected_cells[0][0] === row_idx &&
-													selected_cells[0][1] === col_idx}
-												coords={[row_idx, col_idx]}
-												on_select_column={(c) => {
-													selected_cells = rows.map((_, r) => [r, c] as CellCoordinate);
-													selected = selected_cells[0];
-												}}
-												on_select_row={(r) => {
-													selected_cells = resolved_headers.map((_, c) => [r, c] as CellCoordinate);
-													selected = selected_cells[0];
-												}}
-												{is_dragging}
-												wrap_text={wrap}
-											/>
-											{#if editable && selected_cells.length === 1 && selected_cells[0][0] === row_idx && selected_cells[0][1] === col_idx}
-												<CellMenuButton on_click={(e) => toggle_cell_menu(e, row_idx, col_idx)} />
-											{/if}
-										</div>
-									</div>
+										ondblclick={(e) =>
+											handle_cell_dblclick(e, row_idx, col_idx)}
+										oncontextmenu={(e) => {
+											e.preventDefault();
+											toggle_cell_menu(e, row_idx, col_idx);
+										}}
+										onblur={handle_blur}
+										on_menu_click={(e) => toggle_cell_menu(e, row_idx, col_idx)}
+										on_select_column={(c) => {
+											selected_cells = rows.map(
+												(_, r) => [r, c] as CellCoordinate
+											);
+											selected = selected_cells[0];
+										}}
+										on_select_row={(r) => {
+											selected_cells = resolved_headers.map(
+												(_, c) => [r, c] as CellCoordinate
+											);
+											selected = selected_cells[0];
+										}}
+									/>
 								{/each}
 							</div>
 						{/if}
@@ -1018,7 +1002,6 @@
 		{#if show_scroll_button}
 			<button class="scroll-top-button" onclick={scroll_to_top}>&uarr;</button>
 		{/if}
-
 	</div>
 </div>
 
@@ -1031,33 +1014,58 @@
 		{row_count}
 		on_add_row_above={() => add_row_at(active_cell_menu?.row ?? -1, "above")}
 		on_add_row_below={() => add_row_at(active_cell_menu?.row ?? -1, "below")}
-		on_add_column_left={() => add_col_at(active_cell_menu?.col ?? active_header_menu?.col ?? -1, "left")}
-		on_add_column_right={() => add_col_at(active_cell_menu?.col ?? active_header_menu?.col ?? -1, "right")}
+		on_add_column_left={() =>
+			add_col_at(
+				active_cell_menu?.col ?? active_header_menu?.col ?? -1,
+				"left"
+			)}
+		on_add_column_right={() =>
+			add_col_at(
+				active_cell_menu?.col ?? active_header_menu?.col ?? -1,
+				"right"
+			)}
 		on_delete_row={() => delete_row_at(active_cell_menu?.row ?? -1)}
-		on_delete_col={() => delete_col_at(active_cell_menu?.col ?? active_header_menu?.col ?? -1)}
+		on_delete_col={() =>
+			delete_col_at(active_cell_menu?.col ?? active_header_menu?.col ?? -1)}
 		{editable}
 		can_delete_rows={!active_header_menu && values.length > 1 && editable}
-		can_delete_cols={values.length > 0 && (values[0]?.length ?? 0) > 1 && editable}
+		can_delete_cols={values.length > 0 &&
+			(values[0]?.length ?? 0) > 1 &&
+			editable}
 		{i18n}
-		on_sort={active_header_menu ? (direction) => {
-			handle_sort(active_header_menu!.col, direction);
-			active_header_menu = null;
-		} : undefined}
-		on_clear_sort={active_header_menu ? () => {
-			clear_sort();
-			active_header_menu = null;
-		} : undefined}
-		sort_direction={active_header_menu ? get_sort_info(active_header_menu.col).direction : null}
-		sort_priority={active_header_menu ? get_sort_info(active_header_menu.col).priority : null}
-		on_filter={active_header_menu ? (dtype, filter, fvalue) => {
-			handle_filter(active_header_menu!.col, dtype, filter, fvalue);
-			active_header_menu = null;
-		} : undefined}
-		on_clear_filter={active_header_menu ? () => {
-			clear_filter();
-			active_header_menu = null;
-		} : undefined}
-		filter_active={active_header_menu ? get_filter_active(active_header_menu.col) : null}
+		on_sort={active_header_menu
+			? (direction) => {
+					handle_sort(active_header_menu!.col, direction);
+					active_header_menu = null;
+				}
+			: undefined}
+		on_clear_sort={active_header_menu
+			? () => {
+					clear_sort();
+					active_header_menu = null;
+				}
+			: undefined}
+		sort_direction={active_header_menu
+			? get_sort_info(active_header_menu.col).direction
+			: null}
+		sort_priority={active_header_menu
+			? get_sort_info(active_header_menu.col).priority
+			: null}
+		on_filter={active_header_menu
+			? (dtype, filter, fvalue) => {
+					handle_filter(active_header_menu!.col, dtype, filter, fvalue);
+					active_header_menu = null;
+				}
+			: undefined}
+		on_clear_filter={active_header_menu
+			? () => {
+					clear_filter();
+					active_header_menu = null;
+				}
+			: undefined}
+		filter_active={active_header_menu
+			? get_filter_active(active_header_menu.col)
+			: null}
 	/>
 {/if}
 
@@ -1167,66 +1175,6 @@
 		white-space: nowrap;
 	}
 
-	.header-cell {
-		--ring-color: transparent;
-		position: relative;
-		outline: none;
-		box-shadow: inset 1px 0 0 var(--border-color-primary), inset 0 0 0 1px var(--ring-color);
-		padding: 0;
-		background: var(--table-even-background-fill) !important;
-		font-weight: var(--weight-bold, 700);
-	}
-
-	.header-cell:first-child,
-	.row-number-header + .header-cell {
-		box-shadow: inset 0 0 0 1px var(--ring-color);
-	}
-
-	.header-cell:hover :global(.cell-menu-button),
-	.header-cell.focus :global(.cell-menu-button) {
-		display: flex;
-	}
-
-	.header-cell.focus {
-		--ring-color: var(--color-accent);
-		box-shadow: inset 1px 0 0 var(--border-color-primary), inset 0 0 0 2px var(--ring-color);
-		z-index: 4;
-	}
-
-	.header-content {
-		display: flex;
-		align-items: center;
-		gap: var(--size-1);
-		overflow: hidden;
-		flex-grow: 1;
-		min-width: 0;
-	}
-
-	.sort-indicator {
-		display: flex;
-		align-items: center;
-		gap: 2px;
-		font-size: 10px;
-		opacity: 0.7;
-		flex-shrink: 0;
-	}
-
-	.sort-priority {
-		font-size: 9px;
-		background: var(--button-secondary-background-fill);
-		border-radius: var(--radius-sm);
-		width: 14px;
-		height: 14px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.static-icon {
-		font-size: 12px;
-		flex-shrink: 0;
-	}
-
 	/* Virtual body */
 	.virtual-body {
 		box-sizing: border-box;
@@ -1256,43 +1204,7 @@
 		background: var(--table-row-focus);
 	}
 
-	/* Body cells — absolutely positioned within row, box-shadow for borders */
-	.body-cell {
-		--ring-color: transparent;
-		outline: none;
-		box-shadow: inset 1px 0 0 var(--border-color-primary), inset 0 0 0 1px var(--ring-color);
-		padding: 0;
-		overflow: hidden;
-		box-sizing: border-box;
-	}
-
-	.body-cell:first-child,
-	.row-number-cell + .body-cell {
-		box-shadow: inset 0 0 0 1px var(--ring-color);
-	}
-
-	.body-cell:hover :global(.cell-menu-button),
-	.body-cell.cell-selected :global(.cell-menu-button) {
-		display: flex;
-	}
-
-	.body-cell.cell-selected {
-		--ring-color: var(--color-accent);
-		box-shadow: inset 1px 0 0 var(--border-color-primary), inset 0 0 0 2px var(--ring-color);
-		z-index: 2;
-		position: relative;
-	}
-
-	.body-cell.flash.cell-selected {
-		animation: flash-color 700ms ease-out;
-	}
-
-	@keyframes flash-color {
-		0%, 30% { background: var(--color-accent-copied); }
-		100% { background: transparent; }
-	}
-
-	/* Cell content wrapper (shared) */
+	/* Cell content wrapper (used in sizing-body) */
 	.cell-wrap {
 		display: flex;
 		align-items: center;

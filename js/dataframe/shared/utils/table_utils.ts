@@ -1,10 +1,4 @@
-import type {
-	CellValue,
-	Headers,
-	HeadersWithIDs,
-	TableCell,
-	TableData
-} from "../types";
+import type { CellValue, Headers, HeadersWithIDs, TableData } from "../types";
 import { dsvFormat } from "d3-dsv";
 
 export function make_cell_id(row: number, col: number): string {
