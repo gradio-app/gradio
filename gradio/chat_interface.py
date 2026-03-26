@@ -11,6 +11,7 @@ import inspect
 import os
 import warnings
 from collections.abc import AsyncGenerator, Callable, Generator
+from contextlib import aclosing
 from functools import wraps
 from typing import Any, Literal, Union, cast
 
@@ -139,7 +140,7 @@ class ChatInterface(Blocks):
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
             api_name: defines how the chat endpoint appears in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given name. If None, the name of the function will be used.
             api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
-            api_visibility: Controls the visibility of the chat endpoint. Can be "public" (shown in API docs and callable), "private" (hidden from API docs and not callable), or "undocumented" (hidden from API docs but callable).
+            api_visibility: Controls the visibility of the chat endpoint. Can be "public" (shown in API docs and callable), "private" (hidden from API docs and not callable by the Gradio client libraries), or "undocumented" (hidden from API docs but callable).
             save_history: if True, will save the chat history to the browser's local storage and display previous conversations in a side panel.
             validator: a function that takes in the inputs and can optionally return a gr.validate() object for each input.
         """
@@ -737,9 +738,21 @@ class ChatInterface(Blocks):
                 [self.chatbot],
                 [self.chatbot, self.chatbot_state, self.saved_input],
                 api_visibility="undocumented",
+            ).then(
+                self._append_message_to_history,
+                [self.saved_input, self.chatbot_state],
+                [self.chatbot],
+                api_visibility="undocumented",
+                queue=False,
+            ).success(
+                lambda: update(interactive=False),
+                outputs=[self.textbox],
+                api_visibility="undocumented",
             ).success(**submit_fn_kwargs).success(**synchronize_chat_state_kwargs).then(
-                **save_fn_kwargs
-            )
+                lambda: update(interactive=True),
+                outputs=[self.textbox],
+                api_visibility="undocumented",
+            ).then(**save_fn_kwargs)
 
         if self.save_history:
             self.new_chat_button.click(
@@ -947,27 +960,30 @@ class ChatInterface(Blocks):
 
         history = self._append_message_to_history(message, history, "user")
         additional_outputs = None
-        try:
-            first_response = await utils.async_iteration(generator)
-            if self.additional_outputs:
-                first_response, *additional_outputs = first_response
-            history_ = self._append_message_to_history(
-                first_response, history, "assistant"
-            )
-            if not additional_outputs:
-                yield first_response, history_
-            else:
-                yield first_response, history_, *additional_outputs
-        except StopIteration:
-            yield None, history
-        async for response in generator:
-            if self.additional_outputs:
-                response, *additional_outputs = response
-            history_ = self._append_message_to_history(response, history, "assistant")
-            if not additional_outputs:
-                yield response, history_
-            else:
-                yield response, history_, *additional_outputs
+        async with aclosing(generator):
+            try:
+                first_response = await utils.async_iteration(generator)
+                if self.additional_outputs:
+                    first_response, *additional_outputs = first_response
+                history_ = self._append_message_to_history(
+                    first_response, history, "assistant"
+                )
+                if not additional_outputs:
+                    yield first_response, history_
+                else:
+                    yield first_response, history_, *additional_outputs
+            except StopIteration:
+                yield None, history
+            async for response in generator:
+                if self.additional_outputs:
+                    response, *additional_outputs = response
+                history_ = self._append_message_to_history(
+                    response, history, "assistant"
+                )
+                if not additional_outputs:
+                    yield response, history_
+                else:
+                    yield response, history_, *additional_outputs
 
     def option_clicked(
         self, history: list[MessageDict], option: SelectData
@@ -1070,8 +1086,9 @@ class ChatInterface(Blocks):
         else:
             generator = await run_sync(self.fn, *inputs, limiter=self.limiter)  # type: ignore
             generator = utils.SyncToAsyncIterator(generator, self.limiter)
-        async for response in generator:
-            yield self._process_example(message, response)
+        async with aclosing(generator):
+            async for response in generator:
+                yield self._process_example(message, response)
 
     def _pop_last_user_message(
         self,

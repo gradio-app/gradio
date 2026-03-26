@@ -746,6 +746,11 @@ def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> st
         ext = "." + "".join(
             [char for char in ext[1:] if char.isalnum() or char in "._-"]
         )
+    # If the stem was stripped entirely but an extension exists, use a
+    # fallback name so that the extension is not mistaken for a dotfile
+    # stem (e.g. "#.txt" → ".txt" → Path(".txt").suffix == "").
+    if not name and ext:
+        name = "file"
     filename = name + ext
     filename_len = len(filename.encode())
     if filename_len > max_bytes:
@@ -955,11 +960,12 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
             elements = _json_schema_to_python_type(items, defs)
             return f"list[{elements}]"
     elif type_ == "object":
+        props = schema.get("properties", {})
+        if _is_file_schema(schema, defs or {}):
+            return "filepath"
 
         def get_desc(v):
             return f" ({v.get('description')})" if v.get("description") else ""
-
-        props = schema.get("properties", {})
 
         des = [
             f"{n}: {_json_schema_to_python_type(v, defs)}{get_desc(v)}"
@@ -1155,8 +1161,54 @@ async def async_traverse(
 
 
 def value_is_file(api_info: dict) -> bool:
-    info = _json_schema_to_python_type(api_info, api_info.get("$defs"))
-    return any(file_data_format in info for file_data_format in FILE_DATA_FORMATS)
+    return _schema_contains_file(api_info, api_info.get("$defs", {}))
+
+
+def _resolve_ref(schema: dict, defs: dict) -> dict:
+    """Resolve a $ref to its definition."""
+    if "$ref" in schema:
+        ref_name = schema["$ref"].split("/")[-1]
+        if ref_name in defs:
+            return defs[ref_name]
+    return schema
+
+
+def _is_file_schema(schema: dict, defs: dict | None = None) -> bool:
+    """Check if a schema directly represents a file type (has path + meta with gradio.FileData)."""
+    if defs is None:
+        defs = schema.get("$defs", {})
+    props = schema.get("properties", {})
+    if "path" not in props or "meta" not in props:
+        return False
+    meta = _resolve_ref(props["meta"], defs)
+    meta_props = meta.get("properties", {})
+    if "_type" in meta_props:
+        type_schema = meta_props["_type"]
+        return type_schema.get("const") == "gradio.FileData"
+    meta_default = meta.get("default", {})
+    if isinstance(meta_default, dict):
+        return meta_default.get("_type") == "gradio.FileData"
+    return False
+
+
+def _schema_contains_file(schema, defs: dict) -> bool:
+    """Recursively check if a JSON schema contains a file type anywhere."""
+    if not isinstance(schema, dict):
+        if isinstance(schema, list):
+            return any(_schema_contains_file(item, defs) for item in schema)
+        return False
+    if "$ref" in schema:
+        ref_name = schema["$ref"].split("/")[-1]
+        if ref_name in defs:
+            return _schema_contains_file(defs[ref_name], defs)
+        return False
+    if _is_file_schema(schema, defs):
+        return True
+    return any(
+        _schema_contains_file(v, defs)
+        for k, v in schema.items()
+        if k != "$defs" and isinstance(v, (dict, list))
+    )
 
 
 def is_filepath(s) -> bool:

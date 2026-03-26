@@ -19,7 +19,7 @@
 	const gradio = new Gradio<HTMLEvents, HTMLProps>(props);
 
 	let _props = $derived({
-		value: gradio.props.value || "",
+		value: gradio.props.value ?? "",
 		label: gradio.shared.label,
 		visible: gradio.shared.visible,
 		...gradio.props.props
@@ -32,6 +32,30 @@
 			gradio.dispatch("change");
 		}
 	});
+
+	type WatchEntry = { props: string[]; callback: () => void };
+	let watch_entries: WatchEntry[] = [];
+
+	function watch(propOrProps: string | string[], callback: () => void): void {
+		const prop_list = Array.isArray(propOrProps) ? propOrProps : [propOrProps];
+		watch_entries.push({ props: prop_list, callback });
+	}
+
+	function fire_watchers(changed_keys: string[]): void {
+		const seen = new Set<WatchEntry>();
+		for (const entry of watch_entries) {
+			if (entry.props.some((k) => changed_keys.includes(k))) {
+				seen.add(entry);
+			}
+		}
+		for (const entry of seen) {
+			try {
+				entry.callback();
+			} catch (e) {
+				console.error("Error in watch callback:", e);
+			}
+		}
+	}
 
 	async function upload(file: File): Promise<{ path: string; url: string }> {
 		try {
@@ -109,9 +133,12 @@
 			visible={gradio.shared.visible}
 			autoscroll={gradio.shared.autoscroll}
 			apply_default_css={gradio.props.apply_default_css}
+			head={gradio.props.head}
 			component_class_name={gradio.props.component_class_name}
 			{upload}
 			server={gradio.shared.server}
+			watch_fn={watch}
+			{fire_watchers}
 			on:event={(e) => {
 				gradio.dispatch(e.detail.type, e.detail.data);
 			}}

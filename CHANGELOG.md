@@ -1,5 +1,34 @@
 # gradio
 
+## 6.10.0
+
+### Features
+
+- [#12924](https://github.com/gradio-app/gradio/pull/12924) [`84d409f`](https://github.com/gradio-app/gradio/commit/84d409f258d97982c7216d6bab7c03cf71de6606) - Support markdown for docs and guides.  Thanks @aliabd!
+- [#13032](https://github.com/gradio-app/gradio/pull/13032) [`e900202`](https://github.com/gradio-app/gradio/commit/e900202946a615f8fea84253d7a4377fe8a504f0) - Backend Profiling: Ability to trace the server and benchmark scripts.  Thanks @freddyaboulton!
+- [#12988](https://github.com/gradio-app/gradio/pull/12988) [`0b943a4`](https://github.com/gradio-app/gradio/commit/0b943a4fd0d7701203f1b79b70b5afed19ee8413) - Add `watch` function to gr.HTML js_on_load.  Thanks @aliabid94!
+- [#13021](https://github.com/gradio-app/gradio/pull/13021) [`5c4dc6a`](https://github.com/gradio-app/gradio/commit/5c4dc6aca11575cf4fec6704afd48a54664f983f) - add core themes.  Thanks @hannahblair!
+- [#13117](https://github.com/gradio-app/gradio/pull/13117) [`72e9eee`](https://github.com/gradio-app/gradio/commit/72e9eeedee785eb807496ac61d3b734b6ad0b468) - Server mode (`gradio.Server`).  Thanks @abidlabs!
+- [#12998](https://github.com/gradio-app/gradio/pull/12998) [`d5e1b8f`](https://github.com/gradio-app/gradio/commit/d5e1b8f6cb7473b70fc8c082589996d5e0402810) - use a real browser environment for unit tests.  Thanks @pngwn!
+- [#13045](https://github.com/gradio-app/gradio/pull/13045) [`a35f589`](https://github.com/gradio-app/gradio/commit/a35f5896e43d2585d9206e8256b4d7e321fcd0fe) - Gradio Prediction CLI Commands.  Thanks @freddyaboulton!
+- [#13049](https://github.com/gradio-app/gradio/pull/13049) [`9ea8359`](https://github.com/gradio-app/gradio/commit/9ea8359458afbbae5431e581486fa739b85366a2) - Fix flaky playwright tests.  Thanks @freddyaboulton!
+- [#12871](https://github.com/gradio-app/gradio/pull/12871) [`b51dc75`](https://github.com/gradio-app/gradio/commit/b51dc758fdbab2f5ebcc51b62a555e9c61e50819) - add `custom_css` param to theme class.  Thanks @hannahblair!
+- [#12990](https://github.com/gradio-app/gradio/pull/12990) [`b0b1dc3`](https://github.com/gradio-app/gradio/commit/b0b1dc3282389a64ef3e16edb98805911f97444c) - Custom libraries in head of gr.HTML.  Thanks @aliabid94!
+
+### Fixes
+
+- [#13047](https://github.com/gradio-app/gradio/pull/13047) [`37e4c00`](https://github.com/gradio-app/gradio/commit/37e4c00bb9a9ea3fed7590931f546d53f11bd345) - Fix #13044: cancel generator close in ChatInterface.  Thanks @Caldas00!
+- [#12566](https://github.com/gradio-app/gradio/pull/12566) [`7760161`](https://github.com/gradio-app/gradio/commit/7760161258abe6329b754dd6d2511fc3b61fed95) - Fix custom components in SSR Mode + Custom Component Examples.  Thanks @freddyaboulton!
+- [#13013](https://github.com/gradio-app/gradio/pull/13013) [`356db5c`](https://github.com/gradio-app/gradio/commit/356db5c2c66795b281133c4395ef6885d2992242) - Fix DuplicateBlockError in multi-page apps with gr.render during reload.  Thanks @gambletan!
+- [#13004](https://github.com/gradio-app/gradio/pull/13004) [`73d4065`](https://github.com/gradio-app/gradio/commit/73d4065db6a75961693fad60dd26e8dbaa2a56d1) - fix(image): pass onclick to FullscreenButton in ImagePreview.  Thanks @galleon!
+- [#13119](https://github.com/gradio-app/gradio/pull/13119) [`d6d2b93`](https://github.com/gradio-app/gradio/commit/d6d2b932096eda86bf01534a7da30824348d0b46) - Modify API Visibility Docs.  Thanks @freddyaboulton!
+- [#12979](https://github.com/gradio-app/gradio/pull/12979) [`4a4c7f3`](https://github.com/gradio-app/gradio/commit/4a4c7f3b0d6fd8009fdafc580d5852984f961db1) - preserve file extension when filename stem is stripped entirely in gr.File.  Thanks @giulio-leone!
+- [#12803](https://github.com/gradio-app/gradio/pull/12803) [`f4c3a6d`](https://github.com/gradio-app/gradio/commit/f4c3a6dcb45218722d3150baef953c731d3eccf2) - fix: gradio_api path in mount_gradio_app.  Thanks @shandowc!
+- [#12994](https://github.com/gradio-app/gradio/pull/12994) [`7874d04`](https://github.com/gradio-app/gradio/commit/7874d0411c81dcde9c4b08e7e064ca0dbef94e2e) - Fix dropdown detaching from input on scroll.  Thanks @hysts!
+- [#13028](https://github.com/gradio-app/gradio/pull/13028) [`30af84c`](https://github.com/gradio-app/gradio/commit/30af84cdd100855999281de8720cbb6d58b48556) - Browser tests follow-up.  Thanks @pngwn!
+- [#12984](https://github.com/gradio-app/gradio/pull/12984) [`f1cd064`](https://github.com/gradio-app/gradio/commit/f1cd0644d2608b493db07cd204c0831a111f9fb2) - fix(events): correct type hints for gr.on triggers parameter.  Thanks @giulio-leone!
+- [#12997](https://github.com/gradio-app/gradio/pull/12997) [`313f6d6`](https://github.com/gradio-app/gradio/commit/313f6d6922fccd6d248ebadff0321e30e06ebe28) - edited messages disappearing in ChatInterface UI.  Thanks @jeremy-dolan!
+
 ## 6.9.0
 
 ### Features
