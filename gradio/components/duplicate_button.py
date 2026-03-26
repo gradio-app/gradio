@@ -18,10 +18,8 @@ if TYPE_CHECKING:
 
 @document()
 class DuplicateButton(Button):
-    """
-    Button that triggers a Spaces Duplication, when the demo is on Hugging Face Spaces. Does nothing locally.
-    """
-
+    """A button that duplicates the current Hugging Face Space. Functional only when deployed on Hugging Face Spaces; no-op in local environments."""
+    
     is_template = True
 
     def __init__(
