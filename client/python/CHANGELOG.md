@@ -1,5 +1,15 @@
 # gradio_client
 
+## 2.4.0
+
+### Features
+
+- [#13045](https://github.com/gradio-app/gradio/pull/13045) [`a35f589`](https://github.com/gradio-app/gradio/commit/a35f5896e43d2585d9206e8256b4d7e321fcd0fe) - Gradio Prediction CLI Commands.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#12979](https://github.com/gradio-app/gradio/pull/12979) [`4a4c7f3`](https://github.com/gradio-app/gradio/commit/4a4c7f3b0d6fd8009fdafc580d5852984f961db1) - preserve file extension when filename stem is stripped entirely in gr.File.  Thanks @giulio-leone!
+
 ## 2.3.0
 
 ### Features
