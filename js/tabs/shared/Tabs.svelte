@@ -30,6 +30,25 @@
 	let overflow_menu_open = false;
 	let overflow_menu: HTMLElement;
 
+	// Track which tab orders have been registered by mounted TabItem components.
+	// Once a TabItem mounts and calls register_tab, it manages its own tab entry
+	// via _set_data -> register_tab, so _sync_tabs should not overwrite it.
+	let mounted_tab_orders: Set<number> = new Set();
+
+	// When initial_tabs changes (e.g. a non-mounted tab's props were updated),
+	// sync the internal tabs array so the tab buttons reflect the new state.
+	// Using a function call so the $: dependency is only on initial_tabs,
+	// not on tabs (which would cause a loop with register_tab).
+	$: _sync_tabs(initial_tabs);
+
+	function _sync_tabs(new_tabs: Tab[]): void {
+		for (let i = 0; i < new_tabs.length; i++) {
+			if (new_tabs[i] && !mounted_tab_orders.has(i)) {
+				tabs[i] = new_tabs[i];
+			}
+		}
+	}
+
 	$: has_tabs = tabs.length > 0;
 
 	let tab_nav_el: HTMLDivElement;
@@ -59,6 +78,7 @@
 
 	setContext(TABS, {
 		register_tab: (tab: Tab, order: number) => {
+			mounted_tab_orders.add(order);
 			tabs[order] = tab;
 
 			if ($selected_tab === false && tab.visible !== false && tab.interactive) {
@@ -68,6 +88,7 @@
 			return order;
 		},
 		unregister_tab: (tab: Tab, order: number) => {
+			mounted_tab_orders.delete(order);
 			if ($selected_tab === tab.id) {
 				$selected_tab = tabs[0]?.id || false;
 			}

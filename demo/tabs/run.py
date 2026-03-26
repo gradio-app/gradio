@@ -25,12 +25,16 @@ with gr.Blocks() as demo:
         for text1, text2 in zip(textset_1, textset_2):
             text1.submit(lambda x: x, text1, text2)
 
+        with gr.Tab("Locked Tab", id="locked", interactive=False) as locked_tab:
+            gr.Markdown("This tab was unlocked!")
+
     selected = gr.Textbox(label="Selected Tab")
     with gr.Row():
         hide_odd_btn = gr.Button("Hide Odd Tabs")
         show_all_btn = gr.Button("Show All Tabs")
         make_even_uninteractive_btn = gr.Button("Make Even Tabs Uninteractive")
         make_all_interactive_btn = gr.Button("Make All Tabs Interactive")
+        unlock_btn = gr.Button("Unlock Tab")
 
     select_tab_num = gr.Number(label="Select Tab #", value=1)
 
@@ -38,6 +42,7 @@ with gr.Blocks() as demo:
     show_all_btn.click(lambda: [gr.Tab(visible=True) for tab in tabset_1 + tabset_2], outputs=(tabset_1 + tabset_2))
     make_even_uninteractive_btn.click(lambda: [gr.Tab(interactive=i % 2 == 0) for i, _ in enumerate(tabset_1 + tabset_2)], outputs=(tabset_1 + tabset_2))
     make_all_interactive_btn.click(lambda: [gr.Tab(interactive=True) for tab in tabset_1 + tabset_2], outputs=(tabset_1 + tabset_2))
+    unlock_btn.click(lambda: gr.Tab(interactive=True), outputs=locked_tab)
     select_tab_num.submit(lambda x: gr.Tabs(selected=f"a{x}"), inputs=select_tab_num, outputs=tabs_1)
 
     def get_selected_index(evt: gr.SelectData):
