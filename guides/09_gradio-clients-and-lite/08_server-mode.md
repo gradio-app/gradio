@@ -107,7 +107,7 @@ The `@app.mcp.tool()` and `@app.api()` decorators are independent — you can ha
 
 ## A Complete Example with the JavaScript Client
 
-This example combines everything: custom HTML served at `/`, Gradio API endpoints with concurrency limits, MCP tools, and a custom REST endpoint, and two connected via [the Gradio JavaScript client](/guides/gradio-clients-and-lite/getting-started-with-the-js-client).
+This example combines everything: custom HTML served at `/`, Gradio API endpoints with concurrency limits, MCP tools, and a custom REST endpoint, and two connected via [the Gradio JavaScript client](/guides/getting-started-with-the-js-client).
 
 $code_server_app
 

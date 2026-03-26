@@ -89,12 +89,16 @@ test("Image copy from clipboard dispatches upload event.", async ({ page }) => {
 	// Need to make request from inside browser for blob to be formatted correctly
 	// tried lots of different things
 	await page.evaluate(async () => {
-		const blob = await (
-			await fetch(
-				`https://gradio-builds.s3.amazonaws.com/assets/PDFDisplay.png`
-			)
-		).blob();
-		navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+		const canvas = document.createElement("canvas");
+		canvas.width = 100;
+		canvas.height = 100;
+		const ctx = canvas.getContext("2d")!;
+		ctx.fillStyle = "red";
+		ctx.fillRect(0, 0, 100, 100);
+		const blob = await new Promise<Blob>((resolve) =>
+			canvas.toBlob((b) => resolve(b!), "image/png")
+		);
+		await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
 	});
 
 	await page.getByLabel("Paste from clipboard").click();
@@ -111,12 +115,16 @@ test("Image paste to clipboard via the Upload component works", async ({
 
 	await page.getByLabel("Paste from clipboard").click();
 	await page.evaluate(async () => {
-		const blob = await (
-			await fetch(
-				`https://gradio-builds.s3.amazonaws.com/assets/PDFDisplay.png`
-			)
-		).blob();
-		navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+		const canvas = document.createElement("canvas");
+		canvas.width = 100;
+		canvas.height = 100;
+		const ctx = canvas.getContext("2d")!;
+		ctx.fillStyle = "blue";
+		ctx.fillRect(0, 0, 100, 100);
+		const blob = await new Promise<Blob>((resolve) =>
+			canvas.toBlob((b) => resolve(b!), "image/png")
+		);
+		await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
 	});
 
 	await page.getByText("Paste from clipboard").click();
