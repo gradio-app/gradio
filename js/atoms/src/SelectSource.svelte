@@ -32,7 +32,7 @@
 	}
 </script>
 
-{#if unique_sources.length > 1}
+{#if unique_sources.length > 1 || sources.includes("clipboard")}
 	<span class="source-selection" data-testid="source-select">
 		{#if sources.includes("upload")}
 			<button
