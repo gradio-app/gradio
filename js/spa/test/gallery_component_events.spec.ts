@@ -11,9 +11,7 @@ async function mock_clipboard_with_image(page): Promise<void> {
 		const blob = await new Promise<Blob>((resolve) =>
 			canvas.toBlob((b) => resolve(b!), "image/png")
 		);
-		await navigator.clipboard.write([
-			new ClipboardItem({ [blob.type]: blob })
-		]);
+		await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
 	});
 }
 

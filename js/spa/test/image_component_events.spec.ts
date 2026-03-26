@@ -98,9 +98,7 @@ test("Image copy from clipboard dispatches upload event.", async ({ page }) => {
 		const blob = await new Promise<Blob>((resolve) =>
 			canvas.toBlob((b) => resolve(b!), "image/png")
 		);
-		await navigator.clipboard.write([
-			new ClipboardItem({ [blob.type]: blob })
-		]);
+		await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
 	});
 
 	await page.getByLabel("Paste from clipboard").click();
@@ -126,9 +124,7 @@ test("Image paste to clipboard via the Upload component works", async ({
 		const blob = await new Promise<Blob>((resolve) =>
 			canvas.toBlob((b) => resolve(b!), "image/png")
 		);
-		await navigator.clipboard.write([
-			new ClipboardItem({ [blob.type]: blob })
-		]);
+		await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
 	});
 
 	await page.getByText("Paste from clipboard").click();
