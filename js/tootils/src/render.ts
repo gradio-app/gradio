@@ -58,19 +58,24 @@ export async function render<
 	props?: Omit<Props, "gradio" | "loading_status"> & {
 		loading_status?: LoadingStatus;
 	},
-	_container?: HTMLElement
+	options?: {
+		container?: HTMLElement;
+	}
 ): Promise<
 	RenderResult<T> & {
-		listen: (event_name: string) => Mock;
+		listen: (
+			event_name: string,
+			opts?: { retrospective?: boolean }
+		) => Mock;
 		set_data: (data: Record<string, any>) => Promise<void>;
 		get_data: () => Promise<Record<string, any>>;
 	}
 > {
 	let container: HTMLElement;
-	if (!_container) {
+	if (!options?.container) {
 		container = document.body;
 	} else {
-		container = _container;
+		container = options.container;
 	}
 
 	const target = container.appendChild(document.createElement("div"));
@@ -94,6 +99,7 @@ export async function render<
 	};
 
 	const event_listeners = new Map<string, Set<(data: any) => void>>();
+	const event_buffer: Array<{ event: string; data: any }> = [];
 
 	function notify_listeners(event: string, data: any): void {
 		const listeners = event_listeners.get(event);
@@ -105,15 +111,28 @@ export async function render<
 	}
 
 	const dispatcher = (_id: number, event: string, data: any): void => {
+		event_buffer.push({ event, data });
 		notify_listeners(event, data);
 	};
 
-	function listen(event_name: string): Mock {
+	function listen(
+		event_name: string,
+		opts?: { retrospective?: boolean }
+	): Mock {
 		const fn = vi.fn();
 		if (!event_listeners.has(event_name)) {
 			event_listeners.set(event_name, new Set());
 		}
 		event_listeners.get(event_name)!.add(fn);
+
+		if (opts?.retrospective) {
+			for (const entry of event_buffer) {
+				if (entry.event === event_name) {
+					fn(entry.data);
+				}
+			}
+		}
+
 		return fn;
 	}
 
@@ -242,4 +261,24 @@ export type FireFunction = (
 	event: Event
 ) => Promise<boolean>;
 
+export { download_file, upload_file, drop_file } from "./download.js";
+
+/**
+ * Creates a mock client suitable for components that use file uploads.
+ * The upload mock echoes back the input FileData unchanged.
+ */
+export function mock_client(): Record<string, any> {
+	return {
+		upload: async (file_data: any[]) => file_data,
+		stream: async () => ({ onmessage: null, close: () => {} })
+	};
+}
+export {
+	TEST_TXT,
+	TEST_JPG,
+	TEST_PNG,
+	TEST_MP4,
+	TEST_WAV,
+	TEST_PDF
+} from "./fixtures.js";
 export * from "@testing-library/dom";
