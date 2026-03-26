@@ -2,11 +2,15 @@ import { test, expect } from "@self/tootils";
 
 async function mock_clipboard_with_image(page): Promise<void> {
 	await page.evaluate(async () => {
-		const blob = await (
-			await fetch(
-				`https://gradio-builds.s3.amazonaws.com/assets/PDFDisplay.png`
-			)
-		).blob();
+		const canvas = document.createElement("canvas");
+		canvas.width = 100;
+		canvas.height = 100;
+		const ctx = canvas.getContext("2d")!;
+		ctx.fillStyle = "red";
+		ctx.fillRect(0, 0, 100, 100);
+		const blob = await new Promise<Blob>((resolve) =>
+			canvas.toBlob((b) => resolve(b!), "image/png")
+		);
 		await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
 	});
 }

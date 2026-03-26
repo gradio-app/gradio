@@ -169,7 +169,20 @@ export class BrushTool implements Tool {
 		const textures_initialized =
 			this.brush_textures?.textures_initialized ?? false;
 
-		if (needs_brush_tool && (mode_changed || !textures_initialized)) {
+		let dimensions_changed = false;
+		if (this.brush_textures && textures_initialized) {
+			const current_bounds =
+				this.image_editor_context.image_container.getLocalBounds();
+			const tex_dims = this.brush_textures.get_dimensions();
+			dimensions_changed =
+				Math.round(current_bounds.width) !== Math.round(tex_dims.width) ||
+				Math.round(current_bounds.height) !== Math.round(tex_dims.height);
+		}
+
+		if (
+			needs_brush_tool &&
+			(mode_changed || !textures_initialized || dimensions_changed)
+		) {
 			this.brush_textures?.initialize_textures();
 		}
 
