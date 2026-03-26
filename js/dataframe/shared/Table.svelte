@@ -132,6 +132,49 @@
 		return h.map((v) => v ?? "");
 	});
 
+	// Custom filter function that handles our { dtype, filter, value } format
+	function gradio_filter_fn(row: any, columnId: string, filterValue: any): boolean {
+		const { dtype, filter, value: fval } = filterValue;
+		const cell_value = String(row.getValue(columnId) ?? "");
+		const compare_val = fval ?? "";
+
+		if (dtype === "number") {
+			const num = parseFloat(cell_value);
+			const target = parseFloat(compare_val);
+			if (isNaN(num) || isNaN(target)) {
+				if (filter === "Is empty") return cell_value.trim() === "";
+				if (filter === "Is not empty") return cell_value.trim() !== "";
+				return true;
+			}
+			switch (filter) {
+				case "=": return num === target;
+				case "≠": return num !== target;
+				case ">": return num > target;
+				case "<": return num < target;
+				case "≥": return num >= target;
+				case "≤": return num <= target;
+				case "Is empty": return cell_value.trim() === "";
+				case "Is not empty": return cell_value.trim() !== "";
+				default: return true;
+			}
+		}
+
+		// String filters
+		const lower = cell_value.toLowerCase();
+		const target_lower = compare_val.toLowerCase();
+		switch (filter) {
+			case "Contains": return lower.includes(target_lower);
+			case "Does not contain": return !lower.includes(target_lower);
+			case "Starts with": return lower.startsWith(target_lower);
+			case "Ends with": return lower.endsWith(target_lower);
+			case "Is": return lower === target_lower;
+			case "Is not": return lower !== target_lower;
+			case "Is empty": return cell_value.trim() === "";
+			case "Is not empty": return cell_value.trim() !== "";
+			default: return true;
+		}
+	}
+
 	let column_defs: ColumnDef<GradioRow, CellValue>[] = $derived(
 		resolved_headers.map((header_value, j) => ({
 			id: `col_${j}`,
@@ -139,6 +182,7 @@
 			header: header_value,
 			size: column_widths[j] ? parseInt(column_widths[j]) || 150 : 150,
 			minSize: 45,
+			filterFn: gradio_filter_fn,
 			meta: {
 				colIndex: j,
 				datatype: Array.isArray(datatype) ? datatype[j] : datatype,
@@ -275,9 +319,8 @@
 		active_cell_menu = null;
 		active_header_menu = null;
 
-		if (editable && selected_cells.length === 1) {
-			editing = coord;
-		}
+		// Click selects, does NOT enter edit mode (double-click or typing does)
+		editing = false;
 
 		onselect?.({
 			index: coord,
@@ -287,6 +330,17 @@
 		} as any);
 
 		tick().then(() => parent?.focus());
+	}
+
+	function handle_cell_dblclick(event: MouseEvent, row: number, col: number): void {
+		event.preventDefault();
+		event.stopPropagation();
+		if (!editable) return;
+		const col_is_static = static_columns.includes(col) ||
+			static_columns.includes(resolved_headers[col]);
+		if (!col_is_static) {
+			editing = [row, col];
+		}
 	}
 
 	function handle_blur(detail: { blur_event: FocusEvent; coords: [number, number] }): void {
@@ -471,14 +525,11 @@
 
 	// ── Copy ──────────────────────────────────────────────────────────
 	async function handle_copy(): Promise<void> {
-		const selected_data = selected_cells.map(([r, c]) => ({
-			row: r, col: c, value: values?.[r]?.[c]
-		}));
-		// Use existing copy utility with data in the old format
 		const data_for_copy = values.map((row) =>
 			row.map((val, j) => ({ id: `${j}`, value: val }))
 		);
-		await copy_table_data(data_for_copy, null);
+		const cells_to_copy = selected_cells.length > 0 ? selected_cells : null;
+		await copy_table_data(data_for_copy, cells_to_copy);
 		copy_flash = true;
 		setTimeout(() => (copy_flash = false), 800);
 	}
@@ -551,9 +602,18 @@
 						else if (row < num_rows - 1) selected = [row + 1, 0];
 					}
 					selected_cells = [selected];
-					editing = editable ? selected : false;
+					{
+						const tab_col = selected !== false ? selected[1] : col;
+						const tab_static = static_columns.includes(tab_col) ||
+							static_columns.includes(resolved_headers[tab_col]);
+						editing = editable && !tab_static ? selected : false;
+					}
 					break;
 				case "Enter":
+					if (editing && e.shiftKey) {
+						// Shift+Enter inserts newline in textarea — don't intercept
+						return;
+					}
 					e.preventDefault();
 					if (editing) {
 						editing = false;
@@ -562,7 +622,11 @@
 							selected_cells = [selected];
 						}
 					} else if (editable) {
-						editing = [row, col];
+						const enter_static = static_columns.includes(col) ||
+							static_columns.includes(resolved_headers[col]);
+						if (!enter_static) {
+							editing = [row, col];
+						}
 					}
 					break;
 				case "Escape":
@@ -868,8 +932,9 @@
 								{#if show_row_numbers}
 									<td class="row-number-cell">{rows.length}</td>
 								{/if}
-								{#each sizing_row as val}
-									<td><div class="cell-wrap">{val}</div></td>
+								{#each sizing_row as val, ci}
+									{@const dtype = get_dtype(ci)}
+									<td><div class="cell-wrap">{#if dtype === "html" || dtype === "markdown"}{@html val}{:else}{val}{/if}</div></td>
 								{/each}
 							</tr>
 						{/if}
@@ -884,7 +949,7 @@
 						{#if row}
 							<div
 								class="virtual-row"
-								class:row-odd={virtual_row.index % 2 === 0}
+								class:row-odd={virtual_row.index % 2 !== 0}
 								data-index={virtual_row.index}
 								style="position: absolute; top: 0; left: 0; width: 100%; transform: translateY({virtual_row.start}px);"
 								use:measure_row
@@ -904,6 +969,7 @@
 										data-col={col_idx}
 										data-testid={`cell-${row_idx}-${col_idx}`}
 										onmousedown={(e) => handle_cell_click(e, row_idx, col_idx)}
+										ondblclick={(e) => handle_cell_dblclick(e, row_idx, col_idx)}
 										oncontextmenu={(e) => { e.preventDefault(); toggle_cell_menu(e, row_idx, col_idx); }}
 										style="{get_col_style(ci)} {get_styling(row_idx, col_idx)}"
 									>
@@ -953,7 +1019,10 @@
 			<button class="scroll-top-button" onclick={scroll_to_top}>&uarr;</button>
 		{/if}
 
-		{#if active_cell_menu || active_header_menu}
+	</div>
+</div>
+
+{#if active_cell_menu || active_header_menu}
 	<CellMenu
 		x={active_cell_menu?.x ?? active_header_menu?.x ?? 0}
 		y={active_cell_menu?.y ?? active_header_menu?.y ?? 0}
@@ -991,8 +1060,6 @@
 		filter_active={active_header_menu ? get_filter_active(active_header_menu.col) : null}
 	/>
 {/if}
-	</div>
-</div>
 
 {#if values.length === 0 && editable && row_count[1] === "dynamic"}
 	<EmptyRowButton on_click={() => add_row()} />

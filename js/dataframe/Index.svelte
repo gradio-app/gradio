@@ -8,6 +8,8 @@
 <script lang="ts">
 	import { tick } from "svelte";
 	import Table from "./shared/Table.svelte";
+	import StatusTracker from "@gradio/statustracker";
+	import { Block } from "@gradio/atoms";
 	import { Gradio } from "@gradio/utils";
 	import type { DataframeProps, DataframeEvents } from "./types";
 	import { dequal } from "dequal";
@@ -46,12 +48,27 @@
 			const serialized = JSON.stringify(v);
 			if (serialized !== old_value) {
 				old_value = serialized;
+				gradio.dispatch("change", v);
 			}
 		}
 	});
 </script>
 
-<Table
+<Block
+	visible={gradio.shared.visible}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+	scale={gradio.shared.scale}
+	min_width={gradio.shared.min_width}
+	allow_overflow={false}
+	padding={gradio.shared.container}
+>
+	<StatusTracker
+		autoscroll={gradio.shared.autoscroll}
+		i18n={gradio.i18n}
+		{...gradio.shared.loading_status}
+	/>
+	<Table
 	headers={gradio.props.value?.headers ?? []}
 	values={gradio.props.value?.data ?? []}
 	display_value={gradio.props.value?.metadata?.display_value ?? null}
@@ -83,3 +100,4 @@
 	onselect={handle_select}
 	onedit={handle_edit}
 />
+</Block>

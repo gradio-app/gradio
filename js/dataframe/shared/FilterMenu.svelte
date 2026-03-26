@@ -14,10 +14,10 @@
 	} = $props();
 
 	let menu_element: HTMLDivElement;
-	let datatype: "string" | "number" = "string";
-	let current_filter = "Contains";
-	let filter_dropdown_open = false;
-	let filter_input_value = "";
+	let datatype: "string" | "number" = $state("string");
+	let current_filter = $state("Contains");
+	let filter_dropdown_open = $state(false);
+	let filter_input_value = $state("");
 
 	const filter_options = {
 		string: [

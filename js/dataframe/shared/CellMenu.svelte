@@ -58,7 +58,7 @@
 	} = $props();
 
 	let menu_element: HTMLDivElement;
-	let active_filter_menu: { x: number; y: number } | null = null;
+	let active_filter_menu: { x: number; y: number } | null = $state(null);
 
 	let is_header = $derived(row === -1);
 	let can_add_rows = $derived(editable && row_count[1] === "dynamic");
@@ -219,7 +219,7 @@
 <style>
 	.cell-menu {
 		position: fixed;
-		z-index: 9;
+		z-index: var(--layer-1);
 		background: var(--background-fill-primary);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-sm);
@@ -229,7 +229,7 @@
 		gap: var(--size-1);
 		box-shadow: var(--shadow-drop-lg);
 		min-width: 150px;
-		z-index: var(--layer-1);
+		width: max-content;
 	}
 
 	.cell-menu button {
