@@ -1,9 +1,6 @@
 export { createSvelteTable } from "./table.svelte.js";
 
-export {
-	createSvelteVirtualizer,
-	type VirtualItem
-} from "./virtual.svelte.js";
+export { createSvelteVirtualizer, type VirtualItem } from "./virtual.svelte.js";
 
 export {
 	createColumnHelper,

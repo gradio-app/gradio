@@ -27,7 +27,10 @@
 	class="selection-button selection-button-{position} {is_first_position
 		? `move-${direction}`
 		: ''}"
-	onclick={(e: MouseEvent) => { e.stopPropagation(); on_click && on_click(); }}
+	onclick={(e: MouseEvent) => {
+		e.stopPropagation();
+		on_click && on_click();
+	}}
 	aria-label={`Select ${position}`}
 >
 	<span class={direction}>

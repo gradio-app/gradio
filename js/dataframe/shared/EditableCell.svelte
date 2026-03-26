@@ -82,11 +82,7 @@
 	let should_truncate = $derived(!edit && max_chars !== null && max_chars > 0);
 
 	let display_content = $derived(
-		editable
-			? value
-			: display_value !== null
-				? display_value
-				: value
+		editable ? value : display_value !== null ? display_value : value
 	);
 
 	let display_text = $derived(

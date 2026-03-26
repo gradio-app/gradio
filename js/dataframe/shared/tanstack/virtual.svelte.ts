@@ -27,7 +27,9 @@ export function createSvelteVirtualizer<
 	>
 ): {
 	instance: Virtualizer<TScrollElement, TItemElement>;
-	virtualItems: () => ReturnType<Virtualizer<TScrollElement, TItemElement>["getVirtualItems"]>;
+	virtualItems: () => ReturnType<
+		Virtualizer<TScrollElement, TItemElement>["getVirtualItems"]
+	>;
 	totalSize: () => number;
 } {
 	// Reactive version counter. Only bumped from virtualizer's onChange.

@@ -95,7 +95,10 @@
 			static_columns.length > 0 &&
 			resolved_col_count_base[1] !== "fixed"
 		) {
-			return [resolved_col_count_base[0], "fixed"] as [number, "fixed" | "dynamic"];
+			return [resolved_col_count_base[0], "fixed"] as [
+				number,
+				"fixed" | "dynamic"
+			];
 		}
 		return resolved_col_count_base;
 	});

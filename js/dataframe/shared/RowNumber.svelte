@@ -1,5 +1,8 @@
 <script lang="ts">
-	let { index = null, is_header = false }: { index?: number | null; is_header?: boolean } = $props();
+	let {
+		index = null,
+		is_header = false
+	}: { index?: number | null; is_header?: boolean } = $props();
 </script>
 
 {#if is_header}

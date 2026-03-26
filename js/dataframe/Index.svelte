@@ -69,35 +69,35 @@
 		{...gradio.shared.loading_status}
 	/>
 	<Table
-	headers={gradio.props.value?.headers ?? []}
-	values={gradio.props.value?.data ?? []}
-	display_value={gradio.props.value?.metadata?.display_value ?? null}
-	styling={gradio.props.value?.metadata?.styling ?? null}
-	col_count={gradio.props.col_count}
-	row_count={gradio.props.row_count}
-	label={gradio.shared.label}
-	show_label={gradio.shared.show_label}
-	wrap={gradio.props.wrap}
-	datatype={gradio.props.datatype}
-	latex_delimiters={gradio.props.latex_delimiters}
-	max_height={gradio.props.max_height}
-	editable={gradio.shared.interactive ?? true}
-	line_breaks={gradio.props.line_breaks}
-	column_widths={gradio.props.column_widths ?? []}
-	root={gradio.shared.root}
-	i18n={gradio.i18n}
-	upload={gradio.shared.client?.upload}
-	stream_handler={gradio.shared.client?.stream}
-	buttons={gradio.props.buttons}
-	max_chars={gradio.props.max_chars}
-	show_row_numbers={gradio.props.show_row_numbers}
-	show_search={gradio.props.show_search}
-	pinned_columns={gradio.props.pinned_columns}
-	static_columns={gradio.props.static_columns ?? []}
-	fullscreen={gradio.props.fullscreen}
-	onchange={handle_change}
-	oninput={handle_input}
-	onselect={handle_select}
-	onedit={handle_edit}
-/>
+		headers={gradio.props.value?.headers ?? []}
+		values={gradio.props.value?.data ?? []}
+		display_value={gradio.props.value?.metadata?.display_value ?? null}
+		styling={gradio.props.value?.metadata?.styling ?? null}
+		col_count={gradio.props.col_count}
+		row_count={gradio.props.row_count}
+		label={gradio.shared.label}
+		show_label={gradio.shared.show_label}
+		wrap={gradio.props.wrap}
+		datatype={gradio.props.datatype}
+		latex_delimiters={gradio.props.latex_delimiters}
+		max_height={gradio.props.max_height}
+		editable={gradio.shared.interactive ?? true}
+		line_breaks={gradio.props.line_breaks}
+		column_widths={gradio.props.column_widths ?? []}
+		root={gradio.shared.root}
+		i18n={gradio.i18n}
+		upload={gradio.shared.client?.upload}
+		stream_handler={gradio.shared.client?.stream}
+		buttons={gradio.props.buttons}
+		max_chars={gradio.props.max_chars}
+		show_row_numbers={gradio.props.show_row_numbers}
+		show_search={gradio.props.show_search}
+		pinned_columns={gradio.props.pinned_columns}
+		static_columns={gradio.props.static_columns ?? []}
+		fullscreen={gradio.props.fullscreen}
+		onchange={handle_change}
+		oninput={handle_input}
+		onselect={handle_select}
+		onedit={handle_edit}
+	/>
 </Block>

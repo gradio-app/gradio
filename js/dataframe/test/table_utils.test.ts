@@ -1,5 +1,10 @@
 import { describe, test, expect } from "vitest";
-import { make_cell_id, make_header_id } from "../shared/utils/table_utils";
+import {
+	make_cell_id,
+	make_header_id,
+	guess_delimiter,
+	data_uri_to_blob
+} from "../shared/utils/table_utils";
 import { cast_value_to_type } from "../shared/utils/utils";
 
 describe("table_utils", () => {
@@ -61,5 +66,44 @@ describe("cast_value_to_type", () => {
 		expect(cast_value_to_type(undefined, "date")).toBe(undefined);
 		expect(cast_value_to_type(null, "str")).toBe(null);
 		expect(cast_value_to_type(undefined, "str")).toBe(undefined);
+	});
+});
+
+describe("guess_delimiter", () => {
+	test("detects comma delimiter", () => {
+		const csv = "a,b,c\n1,2,3\n4,5,6";
+		expect(guess_delimiter(csv, [",", "\t"])).toContain(",");
+	});
+
+	test("detects tab delimiter", () => {
+		const tsv = "a\tb\tc\n1\t2\t3\n4\t5\t6";
+		expect(guess_delimiter(tsv, [",", "\t"])).toContain("\t");
+	});
+
+	test("returns empty array when no consistent delimiter", () => {
+		const text = "abc\ndef\nghi";
+		expect(guess_delimiter(text, [",", "\t"])).toEqual([]);
+	});
+
+	test("handles single-line input", () => {
+		// single line with commas — cache set once, always matches
+		const text = "a,b,c";
+		expect(guess_delimiter(text, [",", "\t"])).toContain(",");
+	});
+});
+
+describe("data_uri_to_blob", () => {
+	test("converts data URI to Blob with correct MIME type", () => {
+		const data_uri = "data:text/plain;base64,SGVsbG8=";
+		const blob = data_uri_to_blob(data_uri);
+		expect(blob.type).toBe("text/plain");
+	});
+
+	test("converts data URI to Blob with correct content", async () => {
+		// "Hello" in base64 is "SGVsbG8="
+		const data_uri = "data:text/plain;base64,SGVsbG8=";
+		const blob = data_uri_to_blob(data_uri);
+		const text = await blob.text();
+		expect(text).toBe("Hello");
 	});
 });

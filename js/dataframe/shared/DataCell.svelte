@@ -61,7 +61,10 @@
 		onmousedown: (event: MouseEvent) => void;
 		ondblclick: (event: MouseEvent) => void;
 		oncontextmenu: (event: MouseEvent) => void;
-		onblur: (detail: { blur_event: FocusEvent; coords: [number, number] }) => void;
+		onblur: (detail: {
+			blur_event: FocusEvent;
+			coords: [number, number];
+		}) => void;
 		on_menu_click: (event: MouseEvent) => void;
 		on_select_column: (col: number) => void;
 		on_select_row: (row: number) => void;
@@ -112,7 +115,9 @@
 	.body-cell {
 		--ring-color: transparent;
 		outline: none;
-		box-shadow: inset 1px 0 0 var(--border-color-primary), inset 0 0 0 1px var(--ring-color);
+		box-shadow:
+			inset 1px 0 0 var(--border-color-primary),
+			inset 0 0 0 1px var(--ring-color);
 		padding: 0;
 		overflow: hidden;
 		box-sizing: border-box;
@@ -129,7 +134,9 @@
 
 	.body-cell.cell-selected {
 		--ring-color: var(--color-accent);
-		box-shadow: inset 1px 0 0 var(--border-color-primary), inset 0 0 0 2px var(--ring-color);
+		box-shadow:
+			inset 1px 0 0 var(--border-color-primary),
+			inset 0 0 0 2px var(--ring-color);
 		z-index: 2;
 		position: relative;
 	}
@@ -143,8 +150,13 @@
 	}
 
 	@keyframes flash-color {
-		0%, 30% { background: var(--color-accent-copied); }
-		100% { background: transparent; }
+		0%,
+		30% {
+			background: var(--color-accent-copied);
+		}
+		100% {
+			background: transparent;
+		}
 	}
 
 	.cell-wrap {

@@ -169,6 +169,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 				if (log.includes("[vite-plugin-svelte]")) return false;
 				if (log.includes("[MSW]")) return false;
 				if (log.includes("Error loading translations")) return false;
+				if (log.includes("ResizeObserver loop")) return false;
 			},
 			browser: {
 				enabled: true,

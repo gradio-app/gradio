@@ -32,4 +32,3 @@ export type DataBinding = Record<string, TableCell>;
 
 export type SortDirection = "asc" | "desc";
 export type FilterDatatype = "string" | "number";
-

@@ -45,7 +45,6 @@
 		on_menu_click: (event: MouseEvent, col: number) => void;
 		on_end_edit: (key: string) => void;
 	} = $props();
-
 </script>
 
 <th
@@ -55,7 +54,10 @@
 	class:filtered={is_filtered}
 	class:first-column={is_first_column}
 	onclick={(e) => onclick(e, col_idx)}
-	onmousedown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+	onmousedown={(e) => {
+		e.preventDefault();
+		e.stopPropagation();
+	}}
 	title={value}
 >
 	<div class="cell-wrap">
@@ -100,7 +102,9 @@
 		--ring-color: transparent;
 		position: relative;
 		outline: none;
-		box-shadow: inset 1px 0 0 var(--border-color-primary), inset 0 0 0 1px var(--ring-color);
+		box-shadow:
+			inset 1px 0 0 var(--border-color-primary),
+			inset 0 0 0 1px var(--ring-color);
 		padding: 0;
 		background: var(--table-even-background-fill) !important;
 		font-weight: var(--weight-bold, 700);
@@ -117,7 +121,9 @@
 
 	.header-cell.focus {
 		--ring-color: var(--color-accent);
-		box-shadow: inset 1px 0 0 var(--border-color-primary), inset 0 0 0 2px var(--ring-color);
+		box-shadow:
+			inset 1px 0 0 var(--border-color-primary),
+			inset 0 0 0 2px var(--ring-color);
 		z-index: 4;
 	}
 
