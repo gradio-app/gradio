@@ -73,15 +73,17 @@ export async function make_build({
 						join(__dirname, "svelte_runtime_entry.js"),
 						join(source_dir, pkg.exports["."].gradio)
 					]
-				],
-				[
+				]
+			];
+			if (pkg.exports["./example"]) {
+				exports.push([
 					join(template_dir, "example"),
 					[
 						join(__dirname, "svelte_runtime_entry.js"),
 						join(source_dir, pkg.exports["./example"].gradio)
 					]
-				]
-			].filter(([_, path]) => !!path);
+				]);
+			}
 
 			for (const [out_path, entry_path] of exports) {
 				try {
