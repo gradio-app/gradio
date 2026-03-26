@@ -178,7 +178,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			},
 			browser: {
 				enabled: true,
-				headless: false,
+				headless: process.env.CI,
 				commands: {
 					expect_download,
 					set_file_inputs,
