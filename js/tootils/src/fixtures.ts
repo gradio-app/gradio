@@ -2,11 +2,7 @@ import { FileData } from "@gradio/client";
 
 const BASE = "/test/test_files";
 
-function fixture(
-	filename: string,
-	mime_type: string,
-	size: number
-): FileData {
+function fixture(filename: string, mime_type: string, size: number): FileData {
 	const url = `${BASE}/${filename}`;
 	return new FileData({
 		path: url,

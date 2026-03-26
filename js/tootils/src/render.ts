@@ -63,10 +63,7 @@ export async function render<
 	}
 ): Promise<
 	RenderResult<T> & {
-		listen: (
-			event_name: string,
-			opts?: { retrospective?: boolean }
-		) => Mock;
+		listen: (event_name: string, opts?: { retrospective?: boolean }) => Mock;
 		set_data: (data: Record<string, any>) => Promise<void>;
 		get_data: () => Promise<Record<string, any>>;
 	}

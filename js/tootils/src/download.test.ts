@@ -12,8 +12,9 @@ describe("download_file", () => {
 		document.body.appendChild(link);
 
 		try {
-			const { suggested_filename, content } =
-				await download_file("#test-download-link");
+			const { suggested_filename, content } = await download_file(
+				"#test-download-link"
+			);
 
 			expect(suggested_filename).toBe("alphabet.txt");
 			expect(content).toBe("abcdefghijklmnopqrstuvwxyz");
