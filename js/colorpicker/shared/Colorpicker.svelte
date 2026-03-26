@@ -4,7 +4,7 @@
 	import { BlockTitle } from "@gradio/atoms";
 	import { click_outside } from "./events";
 	import { Eyedropper } from "@gradio/icons";
-	import { hsva_to_rgba, format_color } from "./utils";
+	import { hsva_to_rgba, format_color, normalize_color } from "./utils";
 
 	let {
 		value = $bindable(),
@@ -206,7 +206,7 @@
 						type="text"
 						bind:value={color_string}
 						onchange={(e) => {
-							value = e.currentTarget.value;
+							value = normalize_color(e.currentTarget.value);
 						}}
 						onkeydown={(e) => {
 							if (e.key === "Enter") {

@@ -21,7 +21,20 @@ export function hsva_to_rgba(hsva: {
 	const green = [x, chroma, chroma, x, m, m][index];
 	const blue = [m, m, x, chroma, chroma, x][index];
 
-	return `rgba(${red * 255}, ${green * 255}, ${blue * 255}, ${hsva.a})`;
+	return tinycolor({
+		r: red * 255,
+		g: green * 255,
+		b: blue * 255,
+		a: hsva.a
+	}).toHexString();
+}
+
+export function normalize_color(color: string): string {
+	const tc = tinycolor(color);
+	if (tc.isValid()) {
+		return tc.toHexString();
+	}
+	return color;
 }
 
 export function format_color(
