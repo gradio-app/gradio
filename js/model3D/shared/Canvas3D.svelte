@@ -81,6 +81,23 @@
 						} else if (display_mode === "wireframe") {
 							setRenderingMode(false, true);
 						} else {
+							let has_faces = false;
+							let has_vertices = false;
+							const meshes = viewerDetails?.scene?.meshes;
+							if (meshes) {
+								for (const mesh of meshes) {
+									if (mesh.getTotalVertices && mesh.getTotalVertices() > 0) {
+										has_vertices = true;
+									}
+									if (mesh.getTotalIndices && mesh.getTotalIndices() > 0) {
+										has_faces = true;
+									}
+								}
+							}
+							if (has_vertices && !has_faces) {
+								setRenderingMode(true, false);
+							}
+
 							update_camera(camera_position, zoom_speed, pan_speed);
 						}
 					});
