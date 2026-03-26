@@ -45,6 +45,6 @@
 		border-radius: 0;
 	}
 	.hide {
-		display: none;
+		display: none !important;
 	}
 </style>
