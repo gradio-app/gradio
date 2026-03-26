@@ -1,5 +1,16 @@
 # @gradio/dataset
 
+## 0.5.6
+
+### Fixes
+
+- [#12566](https://github.com/gradio-app/gradio/pull/12566) [`7760161`](https://github.com/gradio-app/gradio/commit/7760161258abe6329b754dd6d2511fc3b61fed95) - Fix custom components in SSR Mode + Custom Component Examples.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/utils@0.12.1
+- @gradio/textbox@0.13.6
+
 ## 0.5.5
 
 ### Dependency updates

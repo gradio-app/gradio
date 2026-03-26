@@ -1,0 +1,66 @@
+
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import DemosSection from "$lib/components/DemosSection.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let obj = get_object("server");
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage -->
+```python
+gradio.Server(···)
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj.description)}
+
+<!-- Example Usage -->
+
+{#if obj.example}
+### Example Usage
+```python
+from gradio import Server
+
+app = Server()
+
+@app.api(name="hello")
+def hello(name: str) -> str:
+    return f"Hello {name}"
+
+@app.get("/")
+def root():
+    return {"message": "Hello World"}
+
+app.launch()
+```
+{/if}
+
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={obj.parameters} anchor_links={obj.name}/>
+
+{#if obj.demos && obj.demos.length > 0}
+<!--- Demos -->
+### Demos
+<DemosSection demos={obj.demos} />
+{/if}
+
+{#if obj.fns && obj.fns.length > 0}
+<!--- Methods -->
+### Methods
+<FunctionsSection fns={obj.fns} event_listeners={false} />
+{/if}
+
+{#if obj.guides && obj.guides.length > 0}
+<!--- Guides -->
+<GuidesSection guides={obj.guides}/>
+{/if}

@@ -153,6 +153,31 @@ with gr.Blocks() as demo:
     output_box.submit(lambda x: x, output_box, outputs=form)
 
     gr.Markdown("""
+    # Watch API
+    Use `watch` inside `js_on_load` to run a callback after the template re-renders whenever specific props are changed from the backend (Python event listener). The callback is NOT triggered by frontend (JavaScript) changes to props. The callback takes no arguments — read current values from `props` directly.
+    """)
+    watch_html = gr.HTML(
+        value=0,
+        html_template="""
+        <div>
+            <div>value: ${value}</div>
+        </div>
+        """,
+        js_on_load="""
+        watch('value', () => {
+            if (props.value >= 3) {
+                trigger('submit');
+            }
+        });
+        """,
+        elem_id="watch_demo",
+    )
+    watch_output = gr.Textbox(label="Watch Output")
+    watch_inc_btn = gr.Button("Increment")
+    watch_inc_btn.click(lambda x: (x or 0) + 1, watch_html, outputs=watch_html)
+    watch_html.submit(lambda x: x, watch_html, outputs=watch_output)
+
+    gr.Markdown("""
     # Extending gr.HTML for new Components
     You can create your own Components by extending the gr.HTML class.
     """)
@@ -396,6 +421,36 @@ with gr.Blocks() as demo:
         return evt_data.key
 
     keyboard.keypress(get_key, None, key_output)
+
+    gr.Markdown("""
+    # Head / Third-Party Scripts
+    The `head` parameter lets you load third-party JS/CSS libraries directly on the component.
+    Scripts are deduplicated by `src`, so multiple components sharing the same library only load it once.
+    """)
+
+    head_html = gr.HTML(
+        value=[30, 70, 45, 90, 60],
+        html_template="""
+        <canvas id="head-chart" width="300" height="200"></canvas>
+        """,
+        js_on_load="""
+        const canvas = element.querySelector('#head-chart');
+        new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: props.value.map((_, i) => 'Item ' + (i + 1)),
+                datasets: [{
+                    label: 'Values',
+                    data: props.value,
+                    backgroundColor: 'rgba(99, 132, 255, 0.5)',
+                }]
+            },
+            options: { responsive: false }
+        });
+        """,
+        head='<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>',
+        elem_id="head_demo",
+    )
 
 if __name__ == "__main__":
     demo.launch()

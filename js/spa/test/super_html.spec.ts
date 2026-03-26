@@ -52,6 +52,16 @@ test("test HTML components", async ({ page }) => {
 		expect(vegetablesUnorderedHtml).toContain("<ul>");
 	}).toPass();
 
+	await expect(page.locator("#watch_demo")).toContainText("value: 0");
+	const incBackendButton = page.getByRole("button", { name: "Increment" });
+	await incBackendButton.click();
+	await expect(page.locator("#watch_demo")).toContainText("value: 1");
+	await incBackendButton.click();
+	await expect(page.locator("#watch_demo")).toContainText("value: 2");
+	await incBackendButton.click();
+	await expect(page.locator("#watch_demo")).toContainText("value: 3");
+	await expect(page.getByLabel("Watch Output")).toHaveValue("3");
+
 	await expect(page.locator("body")).toContainText("Zalue is not defined");
 
 	const secondTodoCheckbox = page
@@ -94,4 +104,13 @@ test("test HTML components", async ({ page }) => {
 	await expect(page.getByLabel("Key Pressed")).toHaveValue("a");
 	await page.keyboard.press("Enter");
 	await expect(page.getByLabel("Key Pressed")).toHaveValue("Enter");
+
+	// Head / third-party script test (Chart.js loaded via head param)
+	await expect(async () => {
+		const canvas = page.locator("#head_demo canvas#head-chart");
+		await expect(canvas).toBeVisible();
+		// Chart.js renders onto the canvas, so check that the script loaded
+		const chartExists = await page.evaluate(() => typeof Chart !== "undefined");
+		expect(chartExists).toBe(true);
+	}).toPass();
 });

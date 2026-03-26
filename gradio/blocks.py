@@ -693,7 +693,7 @@ class BlocksConfig:
             trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` and `.key_up()` events) would allow a second submission after the pending event is complete.
             concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `queue()`, which itself is 1 by default).
             concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
-            api_visibility: controls the visibility and accessibility of this endpoint. Can be "public" (shown in API docs and callable by clients), "private" (hidden from API docs and not callable by clients), or "undocumented" (hidden from API docs but callable by clients and via gr.load). If fn is None, api_visibility will automatically be set to "private".
+            api_visibility: controls the visibility and accessibility of this endpoint. Can be "public" (shown in API docs and callable by clients), "private" (hidden from API docs and not callable by the Gradio client libraries), or "undocumented" (hidden from API docs but callable by clients and via gr.load). If fn is None, api_visibility will automatically be set to "private".
             is_cancel_function: whether this event cancels another running event.
             connection: The connection format, either "sse" or "stream".
             time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
@@ -2147,26 +2147,33 @@ Received inputs:
             data = list(zip(*data, strict=False))
             is_generating, iterator = None, None
         else:
+            from gradio.profiling import trace_phase
+
             old_iterator = iterator
             if old_iterator:
                 inputs = []
             else:
-                inputs = await self.preprocess_data(
-                    block_fn, inputs, state, explicit_call
-                )
+                async with trace_phase("preprocess"):
+                    inputs = await self.preprocess_data(
+                        block_fn, inputs, state, explicit_call
+                    )
             was_generating = old_iterator is not None
-            result = await self.call_function(
-                block_fn,
-                inputs,
-                old_iterator,
-                request,
-                event_id,
-                event_data,
-                in_event_listener,
-                state,
-            )
+            async with trace_phase("fn_call"):
+                result = await self.call_function(
+                    block_fn,
+                    inputs,
+                    old_iterator,
+                    request,
+                    event_id,
+                    event_data,
+                    in_event_listener,
+                    state,
+                )
 
-            data = await self.postprocess_data(block_fn, result["prediction"], state)
+            async with trace_phase("postprocess"):
+                data = await self.postprocess_data(
+                    block_fn, result["prediction"], state
+                )
             if state:
                 changed_state_ids = [
                     state_id
@@ -2181,22 +2188,23 @@ Received inputs:
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
                 run = id(old_iterator) if was_generating else id(iterator)
-                data = await self.handle_streaming_outputs(
-                    block_fn,
-                    data,
-                    session_hash=session_hash,
-                    run=run,
-                    root_path=root_path,
-                    final=not is_generating,
-                )
-                data = self.handle_streaming_diffs(
-                    block_fn,
-                    data,
-                    session_hash=session_hash,
-                    run=run,
-                    final=not is_generating,
-                    simple_format=simple_format,
-                )
+                async with trace_phase("streaming_diff"):
+                    data = await self.handle_streaming_outputs(
+                        block_fn,
+                        data,
+                        session_hash=session_hash,
+                        run=run,
+                        root_path=root_path,
+                        final=not is_generating,
+                    )
+                    data = self.handle_streaming_diffs(
+                        block_fn,
+                        data,
+                        session_hash=session_hash,
+                        run=run,
+                        final=not is_generating,
+                        simple_format=simple_format,
+                    )
 
         block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1
@@ -2512,6 +2520,7 @@ Received inputs:
         ssr_mode: bool | None = None,
         pwa: bool | None = None,
         mcp_server: bool | None = None,
+        _app: App | None = None,
         _frontend: bool = True,
         i18n: I18n | None = None,
         theme: Theme | str | None = None,
@@ -2712,6 +2721,7 @@ Received inputs:
 
         self.server_app = self.app = App.create_app(
             self,
+            app=_app,
             auth_dependency=auth_dependency,
             app_kwargs=app_kwargs,
             strict_cors=strict_cors,

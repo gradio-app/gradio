@@ -71,6 +71,7 @@ class Event:
         self.closed = False
         self.n_calls = 0
         self.run_time: float = 0
+        self.enqueue_time: float = time.monotonic()
         self.signal = asyncio.Event()
 
     @property
@@ -761,6 +762,24 @@ class Queue:
                 root_path=app.root_path,
             )
             first_iteration = 0
+
+            from gradio.profiling import (
+                PROFILING_ENABLED,
+                RequestTrace,
+                set_current_trace,
+            )
+
+            if PROFILING_ENABLED:
+                trace = RequestTrace(
+                    event_id=events[0]._id,
+                    fn_name=fn.api_name or str(fn.fn),
+                    session_hash=events[0].session_hash,
+                )
+                trace.queue_wait_ms = (time.monotonic() - events[0].enqueue_time) * 1000
+                set_current_trace(trace)
+            else:
+                trace = None
+
             try:
                 start = time.monotonic()
                 response = await route_utils.call_process_api(
@@ -912,6 +931,13 @@ class Queue:
             if not isinstance(e, Error) or e.print_exception:
                 traceback.print_exc()
         finally:
+            from gradio.profiling import PROFILING_ENABLED, collector, get_current_trace
+
+            if PROFILING_ENABLED:
+                trace = get_current_trace()
+                if trace is not None:
+                    collector.add(trace)
+
             event_queue = self.event_queue_per_concurrency_id[events[0].concurrency_id]
             event_queue.current_concurrency -= 1
             start_times = event_queue.start_times_per_fn[fn]

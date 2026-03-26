@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, tick } from "svelte";
+	import { createEventDispatcher } from "svelte";
 	import Handlebars from "handlebars";
 	import type { Snippet } from "svelte";
 
@@ -16,6 +16,8 @@
 		component_class_name = "HTML",
 		upload = null,
 		server = {},
+		watch_fn = (_propOrProps: string | string[], _callback: () => void) => {},
+		fire_watchers = (_changedKeys: string[]) => {},
 		children
 	}: {
 		elem_classes: string[];
@@ -29,6 +31,8 @@
 		component_class_name: string;
 		upload: ((file: File) => Promise<{ path: string; url: string }>) | null;
 		server: Record<string, (...args: any[]) => Promise<any>>;
+		watch_fn?: (propOrProps: string | string[], callback: () => void) => void;
+		fire_watchers?: (changedKeys: string[]) => void;
 		children?: Snippet;
 	} = $props();
 
@@ -42,7 +46,7 @@
 		}
 	);
 
-	let old_props = $state(JSON.parse(JSON.stringify(props)));
+	let old_props = $state($state.snapshot(props));
 
 	const dispatch = createEventDispatcher<{
 		event: { type: "click" | "submit"; data: any };
@@ -354,30 +358,27 @@
 		if (!element || mounted) return;
 		mounted = true;
 
-		reactiveProps = new Proxy(
-			{ ...props },
-			{
-				set(target, property, value) {
-					const oldValue = target[property as string];
-					target[property as string] = value;
+		reactiveProps = new Proxy($state.snapshot(props), {
+			set(target, property, value) {
+				const oldValue = target[property as string];
+				target[property as string] = value;
 
-					if (oldValue !== value) {
-						scheduleRender();
+				if (oldValue !== value) {
+					scheduleRender();
 
-						if (
-							property === "value" ||
-							property === "label" ||
-							property === "visible"
-						) {
-							props[property] = value;
-							old_props[property] = value;
-							dispatch("update_value", { data: value, property });
-						}
+					if (
+						property === "value" ||
+						property === "label" ||
+						property === "visible"
+					) {
+						props[property] = value;
+						old_props[property] = value;
+						dispatch("update_value", { data: value, property });
 					}
-					return true;
 				}
+				return true;
 			}
-		);
+		});
 
 		if (has_children) {
 			currentPreHtml = render_template(
@@ -420,9 +421,10 @@
 						"props",
 						"server",
 						"upload",
+						"watch",
 						js_on_load
 					);
-					func(element, trigger, reactiveProps, server, upload_func);
+					func(element, trigger, reactiveProps, server, upload_func, watch_fn);
 				} catch (error) {
 					console.error("Error executing js_on_load:", error);
 				}
@@ -430,19 +432,23 @@
 		})();
 	});
 
-	// Props update effect
 	$effect(() => {
 		if (
 			reactiveProps &&
 			props &&
 			JSON.stringify(old_props) !== JSON.stringify(props)
 		) {
+			const changedKeys: string[] = [];
 			for (const key in props) {
-				if (reactiveProps[key] !== props[key]) {
-					reactiveProps[key] = props[key];
+				if (JSON.stringify(reactiveProps[key]) !== JSON.stringify(props[key])) {
+					changedKeys.push(key);
 				}
+				reactiveProps[key] = $state.snapshot(props[key]);
 			}
 			old_props = props;
+			if (changedKeys.length > 0) {
+				queueMicrotask(() => fire_watchers(changedKeys));
+			}
 		}
 	});
 </script>
