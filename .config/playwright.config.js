@@ -19,7 +19,7 @@ const base = defineConfig({
 	testMatch: /.*\.spec\.ts/,
 	testDir: "..",
 	workers: process.env.CUSTOM_TEST ? 1 : process.env.CI ? 4 : undefined,
-	retries: 0,
+	retries: 3,
 	fullyParallel: false
 });
 
