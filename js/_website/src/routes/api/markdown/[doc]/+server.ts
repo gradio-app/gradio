@@ -1,10 +1,14 @@
-import { json } from "@sveltejs/kit";
 import { readFileSync } from "fs";
 import { resolve as pathResolve } from "path";
 import { svxToMarkdown } from "$lib/utils/svx-to-markdown";
 import docs_json from "$lib/templates/docs.json";
 
 export const prerender = true;
+
+const MARKDOWN_HEADERS = {
+	"Content-Type": "text/markdown; charset=utf-8",
+	"X-Robots-Tag": "noindex"
+};
 
 export function entries() {
 	return docs_json.pages.gradio.flatMap((category) =>
@@ -28,7 +32,7 @@ export async function GET({ params }) {
 	}
 
 	if (!svxPath) {
-		return json({ markdown: "", error: "Doc not found" }, { status: 404 });
+		return new Response("Doc not found", { status: 404 });
 	}
 
 	try {
@@ -37,12 +41,9 @@ export async function GET({ params }) {
 
 		const markdown = await svxToMarkdown(svxContent, name);
 
-		return json({ markdown });
+		return new Response(markdown, { headers: MARKDOWN_HEADERS });
 	} catch (error) {
 		console.error("Error generating markdown:", error);
-		return json(
-			{ markdown: "", error: "Error generating markdown" },
-			{ status: 500 }
-		);
+		return new Response("Error generating markdown", { status: 500 });
 	}
 }

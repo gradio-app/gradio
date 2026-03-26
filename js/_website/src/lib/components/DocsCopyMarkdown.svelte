@@ -43,8 +43,7 @@
 		try {
 			const response = await fetch(`/api/markdown/${doc_name}`);
 			if (response.ok) {
-				const data = await response.json();
-				return data.markdown || "";
+				return (await response.text()) || "";
 			}
 		} catch (error) {
 			console.error("Error fetching markdown:", error);
