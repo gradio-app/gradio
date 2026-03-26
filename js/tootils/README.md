@@ -227,6 +227,93 @@ How long to wait for the download event (default 5000ms). If no download is trig
 
 This utility uses a [Vitest browser command](https://vitest.dev/guide/browser/commands) that runs server-side with access to the Playwright `Page` object. It sets up `page.waitForEvent("download")` **before** clicking the element, so the download event is never missed regardless of timing. The downloaded file is saved to a temp path by Playwright and its content is read back.
 
+## `upload_file`
+
+Sets files on an `<input type="file">` element using real file fixtures. Triggers the browser's native change event.
+
+```ts
+import { render, upload_file, mock_client, TEST_JPG } from "@self/tootils/render";
+
+const { listen } = await render(ImageUpload, { interactive: true, client: mock_client() });
+const upload = listen("upload");
+
+await upload_file(TEST_JPG);
+
+await vi.waitFor(() => expect(upload).toHaveBeenCalled());
+```
+
+### Signature
+
+```ts
+function upload_file(
+  files: FileData | FileData[],
+  selector?: string  // default: 'input[type="file"]'
+): Promise<void>
+```
+
+## `drop_file`
+
+Simulates dragging and dropping files onto an element. Reads fixture files from disk, constructs a real `DataTransfer` with `File` objects, and dispatches `dragenter`, `dragover`, and `drop` events on the target.
+
+```ts
+import { render, drop_file, mock_client, TEST_JPG } from "@self/tootils/render";
+
+const { listen } = await render(ImageUpload, { interactive: true, client: mock_client() });
+const upload = listen("upload");
+
+await drop_file(TEST_JPG, "[aria-label='Click to upload or drop files']");
+
+await vi.waitFor(() => expect(upload).toHaveBeenCalled());
+```
+
+### Signature
+
+```ts
+function drop_file(
+  files: FileData | FileData[],
+  selector: string
+): Promise<void>
+```
+
+## `mock_client`
+
+Creates a mock client suitable for components that use file uploads. The upload mock echoes back the input `FileData` unchanged, and the stream mock returns a no-op event source.
+
+```ts
+import { render, mock_client } from "@self/tootils/render";
+
+await render(FileComponent, {
+  interactive: true,
+  root: "http://localhost:7860",
+  client: mock_client()
+});
+```
+
+## Test fixtures
+
+Pre-built `FileData` instances pointing to existing test files in `test/test_files/`. Use these as `value` props or with `upload_file`/`drop_file`:
+
+| Export | File | MIME type |
+|--------|------|-----------|
+| `TEST_TXT` | `alphabet.txt` | `text/plain` |
+| `TEST_JPG` | `cheetah1.jpg` | `image/jpeg` |
+| `TEST_PNG` | `bus.png` | `image/png` |
+| `TEST_MP4` | `video_sample.mp4` | `video/mp4` |
+| `TEST_WAV` | `audio_sample.wav` | `audio/wav` |
+| `TEST_PDF` | `sample_file.pdf` | `application/pdf` |
+
+```ts
+import { render, TEST_PNG } from "@self/tootils/render";
+
+// As a component value
+await render(ImageComponent, { value: TEST_PNG });
+
+// As an upload fixture
+await upload_file(TEST_PNG);
+```
+
+Each fixture has `path`, `url`, `orig_name`, `size`, and `mime_type` set. The URLs are served by the Vite dev server during tests.
+
 ## Re-exports
 
 Everything from `@testing-library/dom` is re-exported, so you can import query utilities, `screen`, `within`, etc. directly:
