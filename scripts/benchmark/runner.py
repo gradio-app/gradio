@@ -231,9 +231,7 @@ async def run_httpx_tier(
 
                 try:
                     results = await asyncio.wait_for(
-                        asyncio.gather(
-                            *[burst_request(i) for i in range(num_users)]
-                        ),
+                        asyncio.gather(*[burst_request(i) for i in range(num_users)]),
                         timeout=round_timeout,
                     )
                 except (asyncio.TimeoutError, TimeoutError):
@@ -261,9 +259,7 @@ async def run_httpx_tier(
 
                 try:
                     results = await asyncio.wait_for(
-                        asyncio.gather(
-                            *[wave_request(i) for i in range(num_users)]
-                        ),
+                        asyncio.gather(*[wave_request(i) for i in range(num_users)]),
                         timeout=round_timeout,
                     )
                 except (asyncio.TimeoutError, TimeoutError):
@@ -379,7 +375,9 @@ async def run_benchmark(
         for line in iter(process.stdout.readline, b""):
             print(f"  [app] {line.decode(errors='replace').rstrip()}")
 
-    output_thread = threading.Thread(target=_stream_app_output, args=(proc,), daemon=True)
+    output_thread = threading.Thread(
+        target=_stream_app_output, args=(proc,), daemon=True
+    )
     output_thread.start()
 
     try:

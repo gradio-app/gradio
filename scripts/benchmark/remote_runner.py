@@ -7,7 +7,7 @@ Usage:
     # Single branch
     python scripts/benchmark/remote_runner.py run \
         --apps scripts/benchmark/apps/echo_text.py \
-        --gradio-branch main \
+        --branch main \
         --tiers 1,10,100 \
         --requests-per-user 10
 
@@ -151,29 +151,34 @@ def build_script(
     lines.extend(
         [
             "",
-            "# Save run parameters",
+            "# Save runner script and run parameters to results for reproducibility",
             "mkdir -p /tmp/results",
+            "cp /tmp/runner.py /tmp/results/runner.py",
             "cat << 'PARAMS_EOF' > /tmp/results/run_params.json",
             run_params,
             "PARAMS_EOF",
             "",
-            "# Upload function — called on exit to ensure partial results are saved",
-            "upload_results() {",
-            "    echo 'Uploading results...'",
-            "    python << 'UPLOAD_EOF'",
+            "# Write upload helper script",
+            "cat << 'UPLOAD_SCRIPT_EOF' > /tmp/upload.py",
+            "import sys, os",
             "from huggingface_hub import HfFileSystem",
-            "import os",
+            "src_dir, bucket = sys.argv[1], sys.argv[2]",
             "fs = HfFileSystem()",
-            "for root, dirs, files in os.walk('/tmp/results'):",
+            "for root, dirs, files in os.walk(src_dir):",
             "    for f in files:",
             "        local = os.path.join(root, f)",
-            f"        remote = local.replace('/tmp/results', '{bucket_dest}')",
+            "        remote = local.replace('/tmp/results', bucket)",
             "        print(f'Uploading {local} -> {remote}')",
             "        fs.put_file(local, remote)",
-            "UPLOAD_EOF",
-            f'    echo "Results uploaded to {bucket_dest}/"',
+            "UPLOAD_SCRIPT_EOF",
+            "",
+            "# Upload a directory to the bucket",
+            "upload_dir() {",
+            f'    python /tmp/upload.py "$1" "{bucket_dest}"',
             "}",
-            "trap upload_results EXIT",
+            "",
+            "# Upload run metadata (params + runner script) immediately",
+            "upload_dir /tmp/results",
             "",
             "# Run benchmarks sequentially (disable set -e so partial results are kept)",
             "set +e",
@@ -198,6 +203,8 @@ def build_script(
             [
                 f"    --output-dir /tmp/results/{stem}",
                 f'if [ $? -ne 0 ]; then echo "WARNING: {stem} benchmark failed"; benchmark_exit=1; fi',
+                f'echo "Uploading {stem} results..."',
+                f"upload_dir /tmp/results/{stem}",
                 "",
             ]
         )
@@ -205,7 +212,7 @@ def build_script(
 
     lines.extend(
         [
-            "# Exit with failure if any benchmark failed (upload still runs via trap)",
+            f'echo "All results uploaded to {bucket_dest}/"',
             "exit $benchmark_exit",
         ]
     )
@@ -400,13 +407,13 @@ def cmd_run(args):
             print(f"ERROR: App file not found: {app_path}", file=sys.stderr)
             sys.exit(1)
 
-    branch = args.gradio_branch
+    branch = args.branch
     run_name = args.run_name or f"bench_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
     result = prepare_job(
         apps=args.apps,
         branch=branch,
-        commit=args.gradio_commit,
+        commit=args.commit,
         hardware=args.hardware,
         tiers=args.tiers,
         requests_per_user=args.requests_per_user,
@@ -499,14 +506,14 @@ def main():
     run_parser = subparsers.add_parser("run", help="Run benchmarks on a single branch")
     add_common_args(run_parser)
     run_parser.add_argument(
-        "--gradio-branch",
+        "--branch",
         default="main",
         help="Git branch to benchmark. Default: main",
     )
     run_parser.add_argument(
-        "--gradio-commit",
+        "--commit",
         default=None,
-        help="Direct commit SHA (overrides --gradio-branch)",
+        help="Direct commit SHA (overrides --branch)",
     )
     run_parser.add_argument(
         "--run-name",

@@ -6,7 +6,7 @@ Tools for measuring Gradio server performance: per-phase request timing, load te
 
 ```bash
 bash scripts/install_gradio.sh
-pip install tqdm httpx numpy matplotlib
+pip install tqdm httpx numpy matplotlib huggingface-hub
 ```
 
 ## Quick Start
@@ -54,6 +54,75 @@ This will:
 
 - **burst**: All N users fire simultaneously per round via `asyncio.Barrier`. Measures worst-case queue contention.
 - **wave**: Each user waits a random 0–500ms jitter before firing. Simulates realistic staggered traffic.
+
+## Remote Benchmarking (HF Jobs)
+
+For reproducible results on standardized hardware, use the remote runner to submit benchmarks to HF Jobs infrastructure.
+
+### Single Branch
+
+```bash
+python scripts/benchmark/remote_runner.py run \
+    --apps scripts/benchmark/apps/echo_text.py scripts/benchmark/apps/streaming_chat.py \
+    --branch main \
+    --tiers 1,10,100 \
+    --requests-per-user 50 \
+    --hardware cpu-upgrade
+```
+
+### A/B Testing Two Branches
+
+```bash
+python scripts/benchmark/remote_runner.py ab \
+    --apps scripts/benchmark/apps/echo_text.py scripts/benchmark/apps/stateful_counter.py \
+          scripts/benchmark/apps/file_heavy.py scripts/benchmark/apps/streaming_chat.py \
+    --base main \
+    --branch avoid-asyncio-sleep-sse \
+    --tiers 1,10,100 \
+    --requests-per-user 50 \
+    --hardware cpu-upgrade
+```
+
+This submits two identical jobs (one per branch) to HF Jobs. Results are uploaded to a shared HF bucket path for easy comparison:
+
+```
+hf://buckets/gradio/backend-benchmarks/{run_name}/
+  main/
+    run_params.json
+    runner.py              # exact runner script used
+    echo_text/summary.json
+    streaming_chat/...
+  avoid-asyncio-sleep-sse/
+    ...
+```
+
+Use `--dry-run` to preview the generated bash script without submitting.
+
+### Remote Runner Options
+
+```
+--apps              One or more paths to local Gradio app files (required)
+--branch/--base     Git branches to benchmark (resolved to commit SHA)
+--commit            Direct commit SHA (overrides --branch, run subcommand only)
+--hardware          HF Jobs hardware flavor (default: cpu-basic)
+--tiers             Comma-separated concurrency tiers (default: 1,10,100)
+--requests-per-user Rounds per tier (default: 10)
+--mode              Load pattern: "burst" or "wave" (default: burst)
+--concurrency-limit App concurrency limit (default: 1)
+--timeout           Job timeout (default: 90m)
+--run-name          Human-readable label (default: auto-generated)
+--dry-run           Print generated script without submitting
+```
+
+### Monitoring Jobs
+
+```bash
+# Check job logs
+hf jobs logs <job_id>
+
+# Inspect job status
+hf jobs inspect <job_id>
+```
 
 ## Comparing Results
 
@@ -112,136 +181,3 @@ curl http://localhost:7860/gradio_api/profiling/summary | python -m json.tool
 # Clear collected traces
 curl -X POST http://localhost:7860/gradio_api/profiling/clear
 ```
-
----
-
-## Analyses
-
-### SSE Polling Fix (`avoid-asyncio-sleep-sse`)
-
-Replaced the `get_nowait()` + `asyncio.sleep(0.001)` polling loop in the SSE stream with `await asyncio.Queue.get()`, which blocks efficiently until a message is available. Also changed the message queue from `queue.Queue` (thread-safe) to `asyncio.Queue` (async-native).
-
-The improvement is most visible under heavy concurrent load — when many SSE connections are open simultaneously, the polling loop creates significant event loop contention that the async queue eliminates.
-
-#### Reproducing
-
-The benchmark launches all 4 test apps simultaneously on separate ports, then fires 100 concurrent burst requests at each — simulating a realistic production scenario with multiple Gradio apps sharing the same machine.
-
-**1. Save this script as `scripts/benchmark/sse_bench.py`:**
-
-```python
-import asyncio, time, httpx, json, sys, os, subprocess, numpy as np
-from pathlib import Path
-
-async def resolve_fn(app_url):
-    async with httpx.AsyncClient() as c:
-        info = (await c.get(f"{app_url}/gradio_api/info", timeout=5)).json()
-        api_name = list(info.get("named_endpoints", {}).keys())[0]
-        config = (await c.get(f"{app_url}/config", timeout=5)).json()
-        for dep in config.get("dependencies", []):
-            if dep.get("api_name") == api_name.lstrip("/"):
-                fn_index = dep.get("id", 0)
-                components = {c["id"]: c for c in config.get("components", [])}
-                data = []
-                for cid in dep.get("inputs", []):
-                    ct = components.get(cid, {}).get("type", "")
-                    data.append(None if ct == "state" else "hello")
-                return fn_index, data or ["hello"]
-    return 0, ["hello"]
-
-async def bench(app_url, name):
-    fn_index, data = await resolve_fn(app_url)
-    # Warmup
-    async with httpx.AsyncClient() as c:
-        for i in range(3):
-            sh = f"wu_{name}_{i}"
-            try:
-                await c.post(f"{app_url}/gradio_api/queue/join",
-                    json={"data": data, "fn_index": fn_index, "session_hash": sh}, timeout=10)
-                async with c.stream("GET", f"{app_url}/gradio_api/queue/data",
-                    params={"session_hash": sh}, timeout=10) as s:
-                    async for line in s.aiter_lines():
-                        if "process_completed" in line: break
-            except: pass
-
-    # Tier 100, 3 rounds, shared client
-    latencies = []
-    async with httpx.AsyncClient() as client:
-        for rid in range(3):
-            barrier = asyncio.Barrier(100)
-            async def burst(uid, rid=rid, b=barrier):
-                sh = f"b_{name}_{uid}_{rid}_{id(b)}"
-                await b.wait()
-                start = time.monotonic()
-                try:
-                    await client.post(f"{app_url}/gradio_api/queue/join",
-                        json={"data": data, "fn_index": fn_index, "session_hash": sh}, timeout=120)
-                    async with client.stream("GET", f"{app_url}/gradio_api/queue/data",
-                        params={"session_hash": sh}, timeout=120) as stream:
-                        async for line in stream.aiter_lines():
-                            if "process_completed" in line: break
-                    return (time.monotonic() - start) * 1000
-                except:
-                    return -1
-            results = await asyncio.gather(*[burst(i) for i in range(100)])
-            latencies.extend([r for r in results if r > 0])
-    arr = np.array(latencies)
-    print(f"{name:20s}: p50={np.percentile(arr,50):.0f}ms p90={np.percentile(arr,90):.0f}ms n={len(latencies)}", flush=True)
-
-async def main():
-    apps = [
-        ("scripts/benchmark/apps/echo_text.py", 7891),
-        ("scripts/benchmark/apps/file_heavy.py", 7892),
-        ("scripts/benchmark/apps/stateful_counter.py", 7893),
-        ("scripts/benchmark/apps/streaming_chat.py", 7894),
-    ]
-    procs = []
-    for app_path, port in apps:
-        env = os.environ.copy()
-        env["GRADIO_PROFILING"] = "1"
-        env["GRADIO_SERVER_PORT"] = str(port)
-        p = subprocess.Popen([sys.executable, app_path], env=env,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        procs.append(p)
-
-    for _, port in apps:
-        for _ in range(60):
-            try:
-                r = httpx.get(f"http://127.0.0.1:{port}/gradio_api/info", timeout=2)
-                if r.status_code == 200: break
-            except: pass
-            time.sleep(0.5)
-    print("All servers ready", flush=True)
-
-    await asyncio.gather(*[
-        bench(f"http://127.0.0.1:{port}", Path(app).stem)
-        for app, port in apps
-    ])
-
-    for p in procs:
-        p.terminate()
-        p.wait(timeout=5)
-
-asyncio.run(main())
-```
-
-**2. Run before/after:**
-
-```bash
-git checkout main
-python scripts/benchmark/sse_bench.py
-
-git checkout avoid-asyncio-sleep-sse
-python scripts/benchmark/sse_bench.py
-```
-
-#### Results (4 apps × 100 concurrent users, cl=1)
-
-| App | Before (main) | After (fix) | Improvement |
-|-----|--------------|-------------|-------------|
-| echo_text | 988ms | 336ms | 2.9x |
-| stateful_counter | 957ms | 319ms | 3.0x |
-| file_heavy | 958ms | 711ms | 1.3x |
-| streaming_chat | — | 2,293ms | — |
-
-The improvement is driven by eliminating event loop contention from 400 concurrent SSE connections (4 apps × 100 users) all polling at 1ms intervals. With `asyncio.Queue.get()`, idle connections sleep efficiently until a message is available, freeing the event loop for actual work.
