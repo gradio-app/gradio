@@ -160,10 +160,40 @@ async def run_httpx_tier(
 
         start = time.monotonic()
         try:
-            result = await asyncio.wait_for(
-                _do_sse_request(client, app_url, fn_index, session_hash, data),
-                timeout=request_timeout,
+            resp = await client.post(
+                f"{app_url}/gradio_api/queue/join",
+                json={
+                    "data": data,
+                    "fn_index": fn_index,
+                    "session_hash": session_hash,
+                },
+                timeout=120.0,
             )
+            if resp.status_code != 200:
+                raise Exception(
+                    f"POST /queue/join failed: {resp.status_code} {resp.text[:200]}"
+                )
+
+            completed = False
+            async with client.stream(
+                "GET",
+                f"{app_url}/gradio_api/queue/data",
+                params={"session_hash": session_hash},
+                timeout=120.0,
+            ) as stream:
+                deadline = start + request_timeout
+                async for line in stream.aiter_lines():
+                    if "process_completed" in line:
+                        completed = True
+                        break
+                    if time.monotonic() > deadline:
+                        break
+
+            if not completed:
+                raise TimeoutError(
+                    f"Request did not complete within {request_timeout:.0f}s"
+                )
+
             duration_ms = (time.monotonic() - start) * 1000
             return {
                 "user_id": user_id,
@@ -182,31 +212,10 @@ async def run_httpx_tier(
                 "error": f"{error_type}: {e}" if str(e) else error_type,
             }
 
-    async def _do_sse_request(client, app_url, fn_index, session_hash, data):
-        """POST to /queue/join then stream /queue/data until process_completed."""
-        resp = await client.post(
-            f"{app_url}/gradio_api/queue/join",
-            json={
-                "data": data,
-                "fn_index": fn_index,
-                "session_hash": session_hash,
-            },
-            timeout=120.0,
-        )
-        if resp.status_code != 200:
-            raise Exception(
-                f"POST /queue/join failed: {resp.status_code} {resp.text[:200]}"
-            )
-
-        async with client.stream(
-            "GET",
-            f"{app_url}/gradio_api/queue/data",
-            params={"session_hash": session_hash},
-            timeout=120.0,
-        ) as stream:
-            async for line in stream.aiter_lines():
-                if "process_completed" in line:
-                    return
+    # Overall timeout for an entire round. If the server deadlocks,
+    # individual request timeouts may not fire (e.g. stuck in C-level
+    # socket reads). This ensures the benchmark always makes progress.
+    round_timeout = request_timeout + 30
 
     for req_id in range(requests_per_user):
         async with httpx.AsyncClient() as client:
@@ -220,9 +229,28 @@ async def run_httpx_tier(
                     await b.wait()
                     return await _do_request(client, uid, rid, session_hash)
 
-                results = await asyncio.gather(
-                    *[burst_request(i) for i in range(num_users)]
-                )
+                try:
+                    results = await asyncio.wait_for(
+                        asyncio.gather(
+                            *[burst_request(i) for i in range(num_users)]
+                        ),
+                        timeout=round_timeout,
+                    )
+                except (asyncio.TimeoutError, TimeoutError):
+                    print(
+                        f"  WARNING: Round {req_id} timed out after {round_timeout:.0f}s "
+                        f"(server may be deadlocked)"
+                    )
+                    results = [
+                        {
+                            "user_id": i,
+                            "request_id": req_id,
+                            "latency_ms": round_timeout * 1000,
+                            "success": False,
+                            "error": f"Round timed out after {round_timeout:.0f}s",
+                        }
+                        for i in range(num_users)
+                    ]
             else:
                 # wave mode: random jitter per user (0–500ms)
                 async def wave_request(uid: int, rid: int = req_id):
@@ -231,9 +259,28 @@ async def run_httpx_tier(
                     session_hash = f"bench_{uid}_{rid}_{time.monotonic_ns()}"
                     return await _do_request(client, uid, rid, session_hash)
 
-                results = await asyncio.gather(
-                    *[wave_request(i) for i in range(num_users)]
-                )
+                try:
+                    results = await asyncio.wait_for(
+                        asyncio.gather(
+                            *[wave_request(i) for i in range(num_users)]
+                        ),
+                        timeout=round_timeout,
+                    )
+                except (asyncio.TimeoutError, TimeoutError):
+                    print(
+                        f"  WARNING: Round {req_id} timed out after {round_timeout:.0f}s "
+                        f"(server may be deadlocked)"
+                    )
+                    results = [
+                        {
+                            "user_id": i,
+                            "request_id": req_id,
+                            "latency_ms": round_timeout * 1000,
+                            "success": False,
+                            "error": f"Round timed out after {round_timeout:.0f}s",
+                        }
+                        for i in range(num_users)
+                    ]
         latencies.extend(results)
         if on_round_complete is not None:
             successful = sum(1 for r in results if r.get("success"))
@@ -315,6 +362,7 @@ async def run_benchmark(
     env["GRADIO_SERVER_PORT"] = str(port)
     cl_str = "none" if concurrency_limit is None else str(concurrency_limit)
     env["GRADIO_CONCURRENCY_LIMIT"] = cl_str
+    env["PYTHONUNBUFFERED"] = "1"
 
     print(f"Launching app: {app_path}")
     proc = subprocess.Popen(
