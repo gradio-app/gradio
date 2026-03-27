@@ -1502,8 +1502,11 @@ class App(FastAPI):
             async def heartbeat():
                 while blocks.is_running:
                     await asyncio.sleep(heartbeat_rate)
-                    queue = blocks._queue.pending_messages_per_session[session_hash]
-                    await queue.put(HeartbeatMessage())
+                    # It's possible the event has finished by the time
+                    # the heartbeat wakes up
+                    queue = blocks._queue.pending_messages_per_session.get(session_hash)
+                    if queue:
+                        await queue.put(HeartbeatMessage())
 
             async def sse_stream(request: fastapi.Request):
                 try:
