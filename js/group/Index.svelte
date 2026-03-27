@@ -2,33 +2,29 @@
 	import { Gradio } from "@gradio/utils";
 
 	const props = $props();
-
-	// Register the component with Gradio
-	const _ = new Gradio<{}, {}>(props);
-
-	const elem_id = $derived(props.elem_id || "");
-	const elem_classes = $derived(props.elem_classes || []);
-	const visible = $derived(props.visible === undefined ? true : props.visible);
+	const gradio = new Gradio<{}, {}>(props);
 </script>
 
-<div
-	id={elem_id}
-	class="gr-group {elem_classes.join(' ')}"
-	class:hide={!visible}
->
+{#if gradio.shared.visible}
 	<div
-		class="styler"
-		style:--block-radius="0px"
-		style:--block-border-width="0px"
-		style:--layout-gap="1px"
-		style:--form-gap-width="1px"
-		style:--button-border-width="0px"
-		style:--button-large-radius="0px"
-		style:--button-small-radius="0px"
+		id={gradio.shared.elem_id}
+		class="gr-group {gradio.shared.elem_classes?.join(' ') || ''}"
+		class:hide={gradio.shared.visible === "hidden"}
 	>
-		<slot />
+		<div
+			class="styler"
+			style:--block-radius="0px"
+			style:--block-border-width="0px"
+			style:--layout-gap="1px"
+			style:--form-gap-width="1px"
+			style:--button-border-width="0px"
+			style:--button-large-radius="0px"
+			style:--button-small-radius="0px"
+		>
+			<slot />
+		</div>
 	</div>
-</div>
+{/if}
 
 <style>
 	div {
