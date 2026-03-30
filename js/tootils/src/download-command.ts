@@ -1,5 +1,4 @@
 import type { BrowserCommand } from "vitest/node";
-import type { DownloadResult } from "./download.js";
 import { resolve } from "path";
 import { readFile } from "fs/promises";
 
@@ -12,7 +11,7 @@ import { readFile } from "fs/promises";
  */
 export const expect_download: BrowserCommand<
 	[selector: string, options?: { timeout?: number }],
-	DownloadResult
+	{ suggested_filename: string; content: string | null }
 > = async (context, selector, options) => {
 	const timeout = options?.timeout ?? 5000;
 	const provider = context.provider as any;
@@ -87,32 +86,40 @@ export const drop_files: BrowserCommand<
 		})
 	);
 
-	const frame = await (context as any).frame();
-	await frame.evaluate(
-		({ files, selector }: { files: Drop_file_spec[]; selector: string }) => {
-			const dt = new DataTransfer();
-			for (const f of files) {
-				const bytes = Uint8Array.from(atob(f.data), (c) => c.charCodeAt(0));
-				dt.items.add(new File([bytes], f.name, { type: f.mime_type }));
-			}
+	const iframe = (context as any).iframe;
+	await iframe
+		.locator(selector)
+		.first()
+		.evaluate(
+			(target: Element, files: Drop_file_spec[]) => {
+				const dt = new DataTransfer();
+				for (const f of files) {
+					const bytes = Uint8Array.from(atob(f.data), (c) =>
+						c.charCodeAt(0)
+					);
+					dt.items.add(
+						new File([bytes], f.name, { type: f.mime_type })
+					);
+				}
 
-			const target = document.querySelector(selector);
-			if (!target) {
-				throw new Error(`drop_file: no element matches "${selector}"`);
-			}
-
-			target.dispatchEvent(
-				new DragEvent("dragenter", { dataTransfer: dt, bubbles: true })
-			);
-			target.dispatchEvent(
-				new DragEvent("dragover", { dataTransfer: dt, bubbles: true })
-			);
-			target.dispatchEvent(
-				new DragEvent("drop", { dataTransfer: dt, bubbles: true })
-			);
-		},
-		{ files, selector }
-	);
+				target.dispatchEvent(
+					new DragEvent("dragenter", {
+						dataTransfer: dt,
+						bubbles: true
+					})
+				);
+				target.dispatchEvent(
+					new DragEvent("dragover", {
+						dataTransfer: dt,
+						bubbles: true
+					})
+				);
+				target.dispatchEvent(
+					new DragEvent("drop", { dataTransfer: dt, bubbles: true })
+				);
+			},
+			files
+		);
 };
 
 const MIME_TYPES: Record<string, string> = {
