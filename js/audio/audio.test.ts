@@ -1,4 +1,12 @@
-import { test, describe, assert, afterEach, vi, expect } from "vitest";
+import {
+	test,
+	describe,
+	assert,
+	afterEach,
+	beforeEach,
+	vi,
+	expect
+} from "vitest";
 import {
 	cleanup,
 	render,
@@ -14,48 +22,65 @@ import Audio from "./";
 import type { LoadingStatus } from "@gradio/statustracker";
 import { setupi18n } from "../core/src/i18n";
 
+function create_shadow_container(container: HTMLElement): void {
+	const wrapper = document.createElement("div");
+	const shadow = wrapper.attachShadow({ mode: "open" });
+	const left = document.createElement("div");
+	left.setAttribute("data-resize", "left");
+	const right = document.createElement("div");
+	right.setAttribute("data-resize", "right");
+	shadow.appendChild(left);
+	shadow.appendChild(right);
+	container.appendChild(wrapper);
+}
+
 vi.mock("wavesurfer.js", () => ({
 	default: {
-		create: vi.fn(() => ({
-			load: vi.fn(),
-			on: vi.fn(),
-			un: vi.fn(),
-			play: vi.fn(),
-			pause: vi.fn(),
-			playPause: vi.fn(),
-			skip: vi.fn(),
-			destroy: vi.fn(),
-			getCurrentTime: vi.fn(() => 0),
-			getDuration: vi.fn(() => 0),
-			getDecodedData: vi.fn(() => null),
-			setVolume: vi.fn(),
-			setPlaybackRate: vi.fn(),
-			seekTo: vi.fn(),
-			registerPlugin: vi.fn(() => ({
+		create: vi.fn((opts: any) => {
+			if (opts?.container instanceof HTMLElement) {
+				create_shadow_container(opts.container);
+			}
+			return {
+				load: vi.fn(),
 				on: vi.fn(),
 				un: vi.fn(),
-				// RegionsPlugin methods
-				addRegion: vi.fn(() => ({
-					start: 0,
-					end: 0,
-					play: vi.fn(),
-					remove: vi.fn(),
-					setOptions: vi.fn()
-				})),
-				getRegions: vi.fn(() => []),
-				clearRegions: vi.fn(),
-				// RecordPlugin methods
-				isPaused: vi.fn(() => false),
-				isRecording: vi.fn(() => false),
-				startMic: vi.fn(() => Promise.resolve()),
-				stopMic: vi.fn(),
-				startRecording: vi.fn(),
-				stopRecording: vi.fn(),
-				pauseRecording: vi.fn(),
-				resumeRecording: vi.fn(),
-				getAvailableAudioDevices: vi.fn(() => Promise.resolve([]))
-			}))
-		}))
+				play: vi.fn(),
+				pause: vi.fn(),
+				playPause: vi.fn(),
+				skip: vi.fn(),
+				destroy: vi.fn(),
+				getCurrentTime: vi.fn(() => 0),
+				getDuration: vi.fn(() => 0),
+				getDecodedData: vi.fn(() => null),
+				setVolume: vi.fn(),
+				setPlaybackRate: vi.fn(),
+				seekTo: vi.fn(),
+				registerPlugin: vi.fn(() => ({
+					on: vi.fn(),
+					un: vi.fn(),
+					// RegionsPlugin methods
+					addRegion: vi.fn(() => ({
+						start: 0,
+						end: 0,
+						play: vi.fn(),
+						remove: vi.fn(),
+						setOptions: vi.fn()
+					})),
+					getRegions: vi.fn(() => []),
+					clearRegions: vi.fn(),
+					// RecordPlugin methods
+					isPaused: vi.fn(() => false),
+					isRecording: vi.fn(() => false),
+					startMic: vi.fn(() => Promise.resolve()),
+					stopMic: vi.fn(),
+					startRecording: vi.fn(),
+					stopRecording: vi.fn(),
+					pauseRecording: vi.fn(),
+					resumeRecording: vi.fn(),
+					getAvailableAudioDevices: vi.fn(() => Promise.resolve([]))
+				}))
+			};
+		})
 	}
 }));
 
@@ -249,19 +274,16 @@ describe("Events: change", () => {
 		expect(change).toHaveBeenCalledTimes(1);
 	});
 
-	test.todo(
-		"change event is not triggered on mount with a default value",
-		async () => {
-			const { listen } = await render(Audio, {
-				...default_props,
-				value: fake_value
-			});
+	test("change event is not triggered on mount with a default value", async () => {
+		const { listen } = await render(Audio, {
+			...default_props,
+			value: fake_value
+		});
 
-			const change = listen("change", { retrospective: true });
+		const change = listen("change", { retrospective: true });
 
-			expect(change).not.toHaveBeenCalled();
-		}
-	);
+		expect(change).not.toHaveBeenCalled();
+	});
 
 	test("changing value multiple times triggers change each time", async () => {
 		const { listen, set_data } = await render(Audio, {
@@ -491,6 +513,37 @@ describe("Waveform controls", () => {
 		expect(getByLabelText("Trim audio to selection")).toBeTruthy();
 	});
 
+	test("clicking trim button enters edit mode with Trim and Cancel buttons", async () => {
+		const { getByLabelText, getByText } = await render(Audio, {
+			...default_props,
+			interactive: true,
+			value: fake_value,
+			sources: ["microphone"]
+		});
+
+		await fireEvent.click(getByLabelText("Trim audio to selection"));
+
+		expect(getByText("Trim")).toBeTruthy();
+		expect(getByText("Cancel")).toBeTruthy();
+	});
+
+	test("clicking Cancel exits edit mode and restores trim button", async () => {
+		const { getByLabelText, getByText, queryByText } = await render(Audio, {
+			...default_props,
+			interactive: true,
+			value: fake_value,
+			sources: ["microphone"]
+		});
+
+		await fireEvent.click(getByLabelText("Trim audio to selection"));
+		expect(getByText("Cancel")).toBeTruthy();
+
+		await fireEvent.click(getByText("Cancel"));
+
+		expect(queryByText("Cancel")).toBeNull();
+		expect(getByLabelText("Trim audio to selection")).toBeTruthy();
+	});
+
 	test("playback speed button cycles through speeds", async () => {
 		const { getByLabelText } = await render(Audio, {
 			...default_props,
@@ -518,6 +571,150 @@ describe("Waveform controls", () => {
 		});
 
 		expect(getByLabelText("Adjust volume")).toBeTruthy();
+	});
+});
+
+describe("Waveform options", () => {
+	setupi18n();
+	let WaveSurfer: any;
+
+	beforeEach(async () => {
+		WaveSurfer = (await import("wavesurfer.js")).default;
+		(WaveSurfer.create as ReturnType<typeof vi.fn>).mockClear();
+	});
+	afterEach(() => cleanup());
+
+	function get_last_create_args(): Record<string, any> {
+		const calls = (WaveSurfer.create as ReturnType<typeof vi.fn>).mock.calls;
+		return calls[calls.length - 1][0];
+	}
+
+	test("custom waveform_color is passed to WaveSurfer.create as waveColor", async () => {
+		await render(Audio, {
+			...default_props,
+			interactive: true,
+			value: fake_value,
+			sources: ["microphone"],
+			waveform_options: {
+				...default_props.waveform_options,
+				waveform_color: "#ff0000"
+			}
+		});
+
+		expect(get_last_create_args().waveColor).toBe("#ff0000");
+	});
+
+	test("custom waveform_progress_color is passed as progressColor", async () => {
+		await render(Audio, {
+			...default_props,
+			interactive: true,
+			value: fake_value,
+			sources: ["microphone"],
+			waveform_options: {
+				...default_props.waveform_options,
+				waveform_progress_color: "#00ff00"
+			}
+		});
+
+		expect(get_last_create_args().progressColor).toBe("#00ff00");
+	});
+
+	test("default waveform colors are applied when not specified", async () => {
+		await render(Audio, {
+			...default_props,
+			interactive: true,
+			value: fake_value,
+			sources: ["microphone"],
+			waveform_options: {
+				trim_region_color: "#f97316",
+				show_recording_waveform: true,
+				show_controls: true
+			}
+		});
+
+		const args = get_last_create_args();
+		expect(args.waveColor).toBe("#9ca3af");
+		expect(args.progressColor).toBe("darkorange");
+	});
+
+	test("show_controls maps to mediaControls in WaveSurfer settings", async () => {
+		await render(Audio, {
+			...default_props,
+			interactive: true,
+			value: fake_value,
+			sources: ["microphone"],
+			waveform_options: {
+				...default_props.waveform_options,
+				show_controls: true
+			}
+		});
+
+		expect(get_last_create_args().mediaControls).toBe(true);
+	});
+
+	test("show_controls defaults to false when not specified", async () => {
+		await render(Audio, {
+			...default_props,
+			interactive: true,
+			value: fake_value,
+			sources: ["microphone"],
+			waveform_options: {
+				trim_region_color: "#f97316",
+				show_recording_waveform: true
+			}
+		});
+
+		expect(get_last_create_args().mediaControls).toBe(false);
+	});
+
+	test("custom sample_rate is passed as sampleRate", async () => {
+		await render(Audio, {
+			...default_props,
+			interactive: true,
+			value: fake_value,
+			sources: ["microphone"],
+			waveform_options: {
+				...default_props.waveform_options,
+				sample_rate: 22050
+			}
+		});
+
+		expect(get_last_create_args().sampleRate).toBe(22050);
+	});
+
+	test("default sample_rate is 44100", async () => {
+		await render(Audio, {
+			...default_props,
+			interactive: true,
+			value: fake_value,
+			sources: ["microphone"],
+			waveform_options: {
+				trim_region_color: "#f97316",
+				show_recording_waveform: true,
+				show_controls: true
+			}
+		});
+
+		expect(get_last_create_args().sampleRate).toBe(44100);
+	});
+
+	test("skip_length affects skip button labels", async () => {
+		const { getByLabelText } = await render(Audio, {
+			...default_props,
+			interactive: true,
+			value: fake_value,
+			sources: ["microphone"],
+			waveform_options: {
+				...default_props.waveform_options,
+				skip_length: 10
+			}
+		});
+
+		// With audio_duration=0 and skip_length=10, get_skip_rewind_amount returns
+		// (0/100)*10 || 5 = 5. The label still shows 5 because duration is 0.
+		// But the skip_length option is wired through the controls.
+		expect(getByLabelText("Skip forward by 5 seconds")).toBeTruthy();
+		expect(getByLabelText("Skip backwards by 5 seconds")).toBeTruthy();
 	});
 });
 

@@ -205,19 +205,16 @@ describe("Events: change", () => {
 		expect(change).toHaveBeenCalledTimes(1);
 	});
 
-	test.todo(
-		"change event is not triggered on mount with a default value",
-		async () => {
-			const { listen } = await render(Video, {
-				...default_props,
-				value: fake_value
-			});
+	test("change event is not triggered on mount with a default value", async () => {
+		const { listen } = await render(Video, {
+			...default_props,
+			value: fake_value
+		});
 
-			const change = listen("change", { retrospective: true });
+		const change = listen("change", { retrospective: true });
 
-			expect(change).not.toHaveBeenCalled();
-		}
-	);
+		expect(change).not.toHaveBeenCalled();
+	});
 
 	test("changing value multiple times triggers change each time", async () => {
 		const { listen, set_data } = await render(Video, {
@@ -369,6 +366,101 @@ describe("Autoplay", () => {
 		const fn = vi.spyOn(video, "play").mockResolvedValue(undefined);
 		video.dispatchEvent(new Event("loadeddata"));
 		expect(fn).toHaveBeenCalled();
+	});
+});
+
+describe("Player controls", () => {
+	setupi18n();
+	afterEach(() => cleanup());
+
+	test("play/pause button is rendered when video has a value", async () => {
+		const { getByLabelText } = await render(Video, {
+			...default_props,
+			interactive: true,
+			value: fake_value
+		});
+
+		expect(getByLabelText("play-pause-replay-button")).toBeTruthy();
+	});
+
+	test("volume button is rendered", async () => {
+		const { getByLabelText } = await render(Video, {
+			...default_props,
+			interactive: true,
+			value: fake_value
+		});
+
+		expect(getByLabelText("Adjust volume")).toBeTruthy();
+	});
+
+	test("fullscreen button is rendered", async () => {
+		const { getByLabelText } = await render(Video, {
+			...default_props,
+			interactive: true,
+			value: fake_value
+		});
+
+		expect(getByLabelText("full-screen")).toBeTruthy();
+	});
+
+	test("trim button is rendered in interactive mode", async () => {
+		const { getByLabelText } = await render(Video, {
+			...default_props,
+			interactive: true,
+			value: fake_value
+		});
+
+		expect(getByLabelText("Trim video to selection")).toBeTruthy();
+	});
+
+	test("trim button is not rendered in static mode", async () => {
+		const { queryByLabelText } = await render(Video, {
+			...default_props,
+			interactive: false,
+			value: fake_value
+		});
+
+		expect(queryByLabelText("Trim video to selection")).toBeNull();
+	});
+
+	test("clicking trim button enters edit mode with Trim and Cancel buttons", async () => {
+		const { getByLabelText, getByText } = await render(Video, {
+			...default_props,
+			interactive: true,
+			value: fake_value
+		});
+
+		await fireEvent.click(getByLabelText("Trim video to selection"));
+
+		expect(getByText("Trim")).toBeTruthy();
+		expect(getByText("Cancel")).toBeTruthy();
+	});
+
+	test("clicking Cancel exits edit mode and restores trim button", async () => {
+		const { getByLabelText, getByText, queryByText } = await render(Video, {
+			...default_props,
+			interactive: true,
+			value: fake_value
+		});
+
+		await fireEvent.click(getByLabelText("Trim video to selection"));
+		expect(getByText("Cancel")).toBeTruthy();
+
+		await fireEvent.click(getByText("Cancel"));
+
+		expect(queryByText("Cancel")).toBeNull();
+		expect(getByLabelText("Trim video to selection")).toBeTruthy();
+	});
+
+	test("time display is rendered", async () => {
+		const { container } = await render(Video, {
+			...default_props,
+			interactive: true,
+			value: fake_value
+		});
+
+		const timeDisplay = container.querySelector(".time");
+		expect(timeDisplay).toBeTruthy();
 	});
 });
 
