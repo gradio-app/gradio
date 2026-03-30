@@ -284,6 +284,15 @@ class TestGetTypeHints:
 
         assert len(get_type_hints(GenericObject())) == 0
 
+    def test_get_type_hints_with_unresolvable_forward_ref(self):
+        """get_type_hints should return {} when annotations can't be resolved at runtime."""
+
+        def func(x: str) -> "NonExistentType":
+            return x
+
+        hints = get_type_hints(func)
+        assert hints == {}
+
     def test_is_special_typed_parameter(self):
         def func(a: list[str], b: Literal["a", "b"], c, d: Request, e: Request | None):
             pass
