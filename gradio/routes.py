@@ -13,7 +13,6 @@ import json
 import math
 import mimetypes
 import os
-import platform
 import secrets
 import sys
 import time
@@ -21,7 +20,6 @@ import traceback
 import warnings
 from collections.abc import AsyncIterator, Callable, Sequence
 from pathlib import Path
-from queue import Empty as EmptyQueue
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -1504,10 +1502,20 @@ class App(FastAPI):
             process_msg: Callable[[EventMessage], str | None],
         ):
             blocks = app.get_blocks()
+            heartbeat_rate = 15
+
+            async def heartbeat():
+                while blocks.is_running:
+                    await asyncio.sleep(heartbeat_rate)
+                    # It's possible the event has finished by the time
+                    # the heartbeat wakes up
+                    queue = blocks._queue.pending_messages_per_session.get(session_hash)
+                    if queue:
+                        await queue.put(HeartbeatMessage())
 
             async def sse_stream(request: fastapi.Request):
                 try:
-                    last_heartbeat = time.perf_counter()
+                    asyncio.create_task(heartbeat())
                     while True:
                         if await request.is_disconnected():
                             await blocks._queue.clean_events(session_hash=session_hash)
@@ -1521,23 +1529,14 @@ class App(FastAPI):
                                 status_code=status.HTTP_404_NOT_FOUND,
                             )
 
-                        heartbeat_rate = 15
-                        check_rate = 0.05 if platform.system() == "Windows" else 0.001
                         message = None
                         try:
                             messages = blocks._queue.pending_messages_per_session[
                                 session_hash
                             ]
-                            message = messages.get_nowait()
-                        except EmptyQueue:
-                            await asyncio.sleep(check_rate)
-                            if time.perf_counter() - last_heartbeat > heartbeat_rate:
-                                # Fix this
-                                message = HeartbeatMessage()
-                                # Need to reset last_heartbeat with perf_counter
-                                # otherwise only a single hearbeat msg will be sent
-                                # and then the stream will retry leading to infinite queue 😬
-                                last_heartbeat = time.perf_counter()
+                            message = await asyncio.wait_for(messages.get(), timeout=10)
+                        except (TimeoutError, asyncio.TimeoutError):
+                            pass
 
                         if blocks._queue.stopped:
                             message = UnexpectedErrorMessage(
