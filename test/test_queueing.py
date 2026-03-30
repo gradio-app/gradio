@@ -1,4 +1,7 @@
+import asyncio
+import json
 import time
+from unittest.mock import patch
 
 import gradio_client as grc
 import pytest
@@ -109,6 +112,60 @@ class TestQueueing:
 
         add_job_statuses = [add_job_1.status(), add_job_2.status(), add_job_3.status()]
         assert sorted([s.code.value for s in add_job_statuses]) == statuses
+
+
+def test_heartbeat_task_cancelled_after_stream_completes():
+    """Verify the heartbeat task is cancelled when the SSE stream ends normally."""
+    with gr.Blocks() as demo:
+        name = gr.Textbox()
+        output = gr.Textbox()
+
+        def greet(x):
+            return f"Hello, {x}!"
+
+        name.submit(greet, name, output)
+
+    app, local_url, _ = demo.launch(prevent_thread_lock=True)
+
+    heartbeat_tasks = []
+    original_create_task = asyncio.create_task
+
+    def tracking_create_task(coro, **kwargs):
+        task = original_create_task(coro, **kwargs)
+        heartbeat_tasks.append(task)
+        return task
+
+    with patch("gradio.routes.asyncio.create_task", side_effect=tracking_create_task):
+        test_client = TestClient(app)
+        r = test_client.post(
+            f"{API_PREFIX}/queue/join",
+            json={
+                "data": ["hello"],
+                "fn_index": 0,
+                "event_data": None,
+                "session_hash": "test_heartbeat",
+                "trigger_id": None,
+            },
+        )
+        assert r.status_code == 200
+
+        r = test_client.get(f"{API_PREFIX}/queue/data?session_hash=test_heartbeat")
+
+        # Verify we got a process_completed message
+        got_completed = False
+        for line in r.iter_lines():
+            if "data" in line:
+                data = json.loads(line[5:])
+                if data["msg"] == "process_completed":
+                    got_completed = True
+        assert got_completed
+
+    assert len(heartbeat_tasks) > 0, "No heartbeat tasks were created"
+    for task in heartbeat_tasks:
+        assert task.cancelled() or task.done(), (
+            "Heartbeat task was not cancelled after stream completed"
+        )
+    demo.close()
 
 
 def test_analytics_summary(monkeypatch):
