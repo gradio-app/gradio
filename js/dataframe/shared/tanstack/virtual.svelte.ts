@@ -32,7 +32,6 @@ export function createSvelteVirtualizer<
 	>;
 	totalSize: () => number;
 } {
-	// Reactive version counter. Only bumped from virtualizer's onChange.
 	let version = $state(0);
 
 	const virtualizer = new Virtualizer<TScrollElement, TItemElement>({
@@ -41,8 +40,6 @@ export function createSvelteVirtualizer<
 		scrollToFn: elementScroll,
 		...options,
 		onChange: (instance, sync) => {
-			// Bump version to notify Svelte that virtualizer state changed.
-			// Use queueMicrotask for async updates to avoid mid-render writes.
 			if (sync) {
 				version += 1;
 			} else {
@@ -56,16 +53,16 @@ export function createSvelteVirtualizer<
 
 	$effect(() => {
 		const cleanup = virtualizer._didMount();
-		// After mount, bump version so virtualItems() re-evaluates
 		untrack(() => {
 			version += 1;
 		});
 		return cleanup;
 	});
 
-	// Sync options changes (count, estimateSize, etc) to the virtualizer.
-	// This reads `options` reactively via the getter properties.
+	let prev_count = 0;
+
 	$effect(() => {
+		const current_count = options.count;
 		virtualizer.setOptions({
 			observeElementRect: observeElementRect,
 			observeElementOffset: observeElementOffset,
@@ -82,10 +79,13 @@ export function createSvelteVirtualizer<
 				options.onChange?.(instance, sync);
 			}
 		});
+
+		if (prev_count === 0 && current_count > 0) {
+			virtualizer.measure();
+		}
+		prev_count = current_count;
 	});
 
-	// Notify virtualizer that a render is about to happen.
-	// Only depends on `version` - does NOT read options.
 	$effect.pre(() => {
 		void version;
 		virtualizer._willUpdate();
@@ -94,7 +94,7 @@ export function createSvelteVirtualizer<
 	return {
 		instance: virtualizer,
 		virtualItems: () => {
-			void version; // create reactive dependency
+			void version;
 			return virtualizer.getVirtualItems();
 		},
 		totalSize: () => {

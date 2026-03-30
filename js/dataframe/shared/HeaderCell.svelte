@@ -136,7 +136,7 @@
 		align-items: center;
 		gap: var(--size-1);
 		overflow: hidden;
-		flex-grow: 1;
+
 		min-width: 0;
 	}
 

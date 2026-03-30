@@ -226,7 +226,7 @@
 	span {
 		flex: 1 1 0%;
 		position: relative;
-		display: inline-block;
+		display: block;
 		outline: none;
 		-webkit-user-select: text;
 		-moz-user-select: text;
@@ -234,8 +234,7 @@
 		user-select: text;
 		cursor: text;
 		width: 100%;
-		height: 100%;
-		overflow: hidden;
+		overflow-wrap: break-word;
 	}
 
 	span.text.expanded {

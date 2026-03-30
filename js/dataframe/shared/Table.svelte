@@ -31,6 +31,7 @@
 	} from "./types";
 	import {
 		is_cell_in_selection,
+		is_cell_selected,
 		handle_click_outside as handle_click_outside_util
 	} from "./utils/selection_utils";
 	import { copy_table_data, handle_file_upload } from "./utils/table_utils";
@@ -222,7 +223,17 @@
 		getScrollElement: () => scroll_container,
 		estimateSize: () => 35,
 		overscan: 10,
-		measureElement: (el) => el.getBoundingClientRect().height
+		measureElement: (el, _entry, instance) => {
+			const h = el.getBoundingClientRect().height;
+			if (h > 0) return h;
+
+			const idx = el.getAttribute("data-index");
+			if (idx != null) {
+				const cached = (instance as any).itemSizeCache?.get(Number(idx));
+				if (typeof cached === "number") return cached;
+			}
+			return 35;
+		}
 	});
 
 	let virtual_items = $derived(virtualizer.virtualItems());
@@ -727,9 +738,12 @@
 		return () => document.removeEventListener("click", handle_click_outside);
 	});
 
-	// tell the virtualizer the actual height of each row
 	function measure_row(node: HTMLElement) {
-		virtualizer.instance.measureElement(node as any);
+		tick().then(() => {
+			console.log("measuring");
+			virtualizer.instance.measureElement(node as any);
+		});
+
 		return {
 			destroy() {}
 		};
@@ -744,7 +758,8 @@
 		resolved_headers: () => resolved_headers,
 		row_data: () => row_data,
 		show_row_numbers: () => show_row_numbers,
-		column_widths: () => column_widths
+		column_widths: () => column_widths,
+		on_resize: undefined
 	});
 
 	let disable_scroll = $derived(
@@ -780,7 +795,7 @@
 	}}
 />
 
-<div class="table-container">
+<div class="table-container" class:fullscreen>
 	{#if (label && label.length !== 0 && show_label) || (buttons === null ? true : buttons.includes("fullscreen")) || (buttons === null ? true : buttons.includes("copy")) || show_search !== "none"}
 		<div class="header-row">
 			{#if label && label.length !== 0 && show_label}
@@ -905,7 +920,7 @@
 				<!-- table body: absolutely positioned rows (standard tanstack virtual pattern) -->
 				<div
 					class="virtual-body"
-					style="height: {total_size}px; position: relative; width: {measurement.total_header_width
+					style="height: {total_size}px; position: relative; flex-shrink: 0; width: {measurement.total_header_width
 						? `${measurement.total_header_width}px`
 						: '100%'};"
 				>
@@ -917,15 +932,19 @@
 								class="virtual-row"
 								class:row-odd={virtual_row.index % 2 !== 0}
 								data-index={virtual_row.index}
-								style="position: absolute; top: 0; left: 0; width: 100%; transform: translateY({virtual_row.start}px);"
-								use:measure_row
+								style="position: absolute; top: 0; left: 0; width: 100%; transform: translateY({virtual_row.start}px);{selected_cells.some(
+									([r]) => r === row_idx
+								)
+									? ' z-index: 3;'
+									: ''}"
+								use:measure_row={row}
 							>
 								{#if show_row_numbers}
 									<div
 										class="row-number-cell"
 										data-row={row_idx}
 										data-col="row-number"
-										style="position: absolute; left: 0; top: 0; bottom: 0; width: {measurement.row_num_width}px;"
+										style="flex: 0 0 {measurement.row_num_width}px; width: {measurement.row_num_width}px;"
 									>
 										{row_idx + 1}
 									</div>
@@ -945,7 +964,10 @@
 										{col_idx}
 										col_style={measurement.get_col_style(ci)}
 										cell_style={get_styling(row_idx, col_idx)}
-										is_selected={is_sel}
+										selection_classes={is_cell_selected(
+											[row_idx, col_idx],
+											selected_cells
+										)}
 										is_editing={!!(
 											editing &&
 											editing[0] === row_idx &&
@@ -1083,6 +1105,32 @@
 		overflow: hidden;
 	}
 
+	.table-container.fullscreen {
+		padding: var(--size-4);
+		height: 100%;
+		box-sizing: border-box;
+	}
+
+	.table-container.fullscreen .table-wrap {
+		flex: 1 1 auto;
+		min-height: 0;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.table-container.fullscreen .table-wrap > :global(*) {
+		flex: 1 1 auto;
+		min-height: 0;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.table-container.fullscreen .virtual-table-viewport {
+		max-height: none !important;
+		flex: 1 1 auto;
+		min-height: 0;
+	}
+
 	.table-wrap {
 		position: relative;
 		transition: 150ms;
@@ -1162,6 +1210,7 @@
 		position: sticky;
 		top: 0;
 		z-index: 7;
+		flex-shrink: 0;
 	}
 
 	/* Hidden sizing row — visibility:collapse hides the row but keeps column width contribution */
@@ -1181,9 +1230,10 @@
 	}
 
 	.virtual-row {
-		position: relative;
-		background: var(--table-even-background-fill);
-		border-bottom: 1px solid var(--border-color-primary);
+		display: flex;
+		align-items: stretch;
+		background: var(--table-odd-background-fill);
+
 		text-align: left;
 		font-size: var(--input-text-size);
 		line-height: var(--line-md);
@@ -1197,7 +1247,7 @@
 	}
 
 	.virtual-row.row-odd {
-		background: var(--table-odd-background-fill);
+		background: var(--table-even-background-fill);
 	}
 
 	.virtual-row:hover {

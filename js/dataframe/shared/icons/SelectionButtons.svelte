@@ -61,6 +61,8 @@
 
 	.selection-button-row {
 		left: calc(var(--size-2-5) * -1);
+		top: 50%;
+		transform: translateY(-50%);
 		border-radius: var(--radius-sm) 0 0 var(--radius-sm);
 	}
 
@@ -73,6 +75,8 @@
 	.move-right {
 		left: auto;
 		right: calc(var(--size-2-5) * -1);
+		top: 50%;
+		transform: translateY(-50%);
 		border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 	}
 

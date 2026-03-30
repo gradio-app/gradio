@@ -13,7 +13,7 @@
 		col_idx,
 		col_style = "",
 		cell_style = "",
-		is_selected = false,
+		selection_classes = "",
 		is_editing = false,
 		is_flash = false,
 		is_static = false,
@@ -43,7 +43,7 @@
 		col_idx: number;
 		col_style?: string;
 		cell_style?: string;
-		is_selected?: boolean;
+		selection_classes?: string;
 		is_editing?: boolean;
 		is_flash?: boolean;
 		is_static?: boolean;
@@ -69,11 +69,12 @@
 		on_select_column: (col: number) => void;
 		on_select_row: (row: number) => void;
 	} = $props();
+
+	let is_selected = $derived(selection_classes !== "");
 </script>
 
 <div
-	class="body-cell"
-	class:cell-selected={is_selected}
+	class="body-cell {selection_classes}"
 	class:flash={is_flash}
 	class:first-column={is_first_column}
 	data-row={row_idx}
@@ -119,7 +120,7 @@
 			inset 1px 0 0 var(--border-color-primary),
 			inset 0 0 0 1px var(--ring-color);
 		padding: 0;
-		overflow: hidden;
+		overflow: visible;
 		box-sizing: border-box;
 	}
 
@@ -134,15 +135,27 @@
 
 	.body-cell.cell-selected {
 		--ring-color: var(--color-accent);
+		--sel-top: inset 0 2px 0 0 var(--ring-color);
+		--sel-bottom: inset 0 -2px 0 0 var(--ring-color);
+		--sel-left: inset 2px 0 0 0 var(--ring-color);
+		--sel-right: inset -2px 0 0 0 var(--ring-color);
 		box-shadow:
-			inset 1px 0 0 var(--border-color-primary),
-			inset 0 0 0 2px var(--ring-color);
+			var(--sel-top), var(--sel-bottom), var(--sel-left), var(--sel-right);
 		z-index: 2;
 		position: relative;
 	}
 
-	.body-cell.cell-selected.first-column {
-		box-shadow: inset 0 0 0 2px var(--ring-color);
+	.body-cell.cell-selected.no-top {
+		--sel-top: inset 0 0 0 0 transparent;
+	}
+	.body-cell.cell-selected.no-bottom {
+		--sel-bottom: inset 0 0 0 0 transparent;
+	}
+	.body-cell.cell-selected.no-left {
+		--sel-left: inset 0 0 0 0 transparent;
+	}
+	.body-cell.cell-selected.no-right {
+		--sel-right: inset 0 0 0 0 transparent;
 	}
 
 	.body-cell.flash.cell-selected {
@@ -166,11 +179,11 @@
 		outline: none;
 		min-height: var(--size-9);
 		position: relative;
-		height: 100%;
 		padding: var(--size-2);
 		box-sizing: border-box;
 		gap: var(--size-1);
 		overflow: visible;
 		min-width: 0;
+		height: 100%;
 	}
 </style>

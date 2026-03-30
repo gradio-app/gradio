@@ -1,6 +1,4 @@
-<svelte:options accessors={true} />
-
-<script context="module" lang="ts">
+<script module lang="ts">
 	export { default as BaseDataFrame } from "./shared/Table.svelte";
 	export { default as BaseExample } from "./Example.svelte";
 </script>
@@ -16,6 +14,8 @@
 
 	let _props = $props();
 	const gradio = new Gradio<DataframeEvents, DataframeProps>(_props);
+
+	let fullscreen = $state(gradio.props.fullscreen ?? false);
 
 	let old_value = $state(
 		gradio.props.value ? JSON.stringify(gradio.props.value) : null
@@ -60,8 +60,10 @@
 	elem_classes={gradio.shared.elem_classes}
 	scale={gradio.shared.scale}
 	min_width={gradio.shared.min_width}
-	allow_overflow={false}
-	padding={gradio.shared.container}
+	padding={false}
+	container={false}
+	overflow_behavior="visible"
+	{fullscreen}
 >
 	<StatusTracker
 		autoscroll={gradio.shared.autoscroll}
@@ -94,7 +96,10 @@
 		show_search={gradio.props.show_search}
 		pinned_columns={gradio.props.pinned_columns}
 		static_columns={gradio.props.static_columns ?? []}
-		fullscreen={gradio.props.fullscreen}
+		{fullscreen}
+		onfullscreen={() => {
+			fullscreen = !fullscreen;
+		}}
 		onchange={handle_change}
 		oninput={handle_input}
 		onselect={handle_select}

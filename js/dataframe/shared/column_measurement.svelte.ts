@@ -9,46 +9,49 @@ export function create_column_measurement(opts: {
 	row_data: () => any[];
 	show_row_numbers: () => boolean;
 	column_widths: () => string[];
+	on_resize?: () => void;
 }): {
 	readonly col_widths: number[];
 	readonly col_lefts: number[];
 	readonly total_header_width: number;
+	readonly header_height: number;
 	readonly row_num_width: number;
 	get_col_style: (index: number) => string;
 } {
 	let col_widths: number[] = $state([]);
 	let total_header_width: number = $state(0);
+	let header_height: number = $state(0);
 
 	// use offsets (not just widths) avoids accumulated subpixel rounding errors
 	let col_lefts: number[] = $state([]);
 
+	function measure(): void {
+		const current_row_el = opts.header_row_el();
+		const current_table_el = opts.header_table_el();
+		if (!current_row_el) return;
+
+		const cells = current_row_el.querySelectorAll<HTMLElement>(".header-cell");
+		const table_rect = current_table_el?.getBoundingClientRect();
+		const table_left = table_rect?.left ?? 0;
+
+		col_lefts = Array.from(cells).map(
+			(c) => c.getBoundingClientRect().left - table_left
+		);
+		col_widths = Array.from(cells).map((c) => c.getBoundingClientRect().width);
+		if (current_table_el) {
+			total_header_width = table_rect?.width ?? 0;
+			header_height = table_rect?.height ?? 0;
+		}
+		opts.on_resize?.();
+	}
+
 	$effect(() => {
-		// read reactive dependencies to trigger re-measurement
-		void opts.resolved_headers();
-		void opts.row_data();
-		const row_el = opts.header_row_el();
-		if (!row_el) return;
+		const table_el = opts.header_table_el();
+		if (!table_el) return;
 
-		requestAnimationFrame(() => {
-			const current_row_el = opts.header_row_el();
-			const current_table_el = opts.header_table_el();
-			if (!current_row_el) return;
-
-			const cells =
-				current_row_el.querySelectorAll<HTMLElement>(".header-cell");
-			const table_rect = current_table_el?.getBoundingClientRect();
-			const table_left = table_rect?.left ?? 0;
-
-			col_lefts = Array.from(cells).map(
-				(c) => c.getBoundingClientRect().left - table_left
-			);
-			col_widths = Array.from(cells).map(
-				(c) => c.getBoundingClientRect().width
-			);
-			if (current_table_el) {
-				total_header_width = table_rect?.width ?? 0;
-			}
-		});
+		const ro = new ResizeObserver(measure);
+		ro.observe(table_el);
+		return () => ro.disconnect();
 	});
 
 	let row_num_width = $derived.by(() => {
@@ -60,8 +63,8 @@ export function create_column_measurement(opts: {
 	});
 
 	function get_col_style(index: number): string {
-		if (col_lefts[index] !== undefined && col_widths[index] !== undefined) {
-			return `position: absolute; left: ${col_lefts[index]}px; width: ${col_widths[index]}px; top: 0; bottom: 0;`;
+		if (col_widths[index] !== undefined) {
+			return `width: ${col_widths[index]}px; flex: 0 0 ${col_widths[index]}px;`;
 		}
 		const user_widths = opts.column_widths();
 		if (user_widths[index]) return `width: ${user_widths[index]};`;
@@ -77,6 +80,9 @@ export function create_column_measurement(opts: {
 		},
 		get total_header_width() {
 			return total_header_width;
+		},
+		get header_height() {
+			return header_height;
 		},
 		get row_num_width() {
 			return row_num_width;
