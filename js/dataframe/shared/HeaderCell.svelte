@@ -1,6 +1,7 @@
 <script lang="ts">
 	import EditableCell from "./EditableCell.svelte";
 	import CellMenuButton from "./CellMenuButton.svelte";
+	import Padlock from "./icons/Padlock.svelte";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { SortDirection } from "./types";
 
@@ -87,10 +88,10 @@
 					{/if}
 				</span>
 			{/if}
-			{#if is_static}
-				<span class="static-icon">🔒</span>
-			{/if}
 		</div>
+		{#if is_static}
+			<span class="static-icon"><Padlock /></span>
+		{/if}
 		{#if show_menu_button}
 			<CellMenuButton on_click={(e) => on_menu_click(e, col_idx)} />
 		{/if}
@@ -161,8 +162,11 @@
 	}
 
 	.static-icon {
-		font-size: 12px;
 		flex-shrink: 0;
+		margin-left: auto;
+		opacity: 0.5;
+		display: flex;
+		align-items: center;
 	}
 
 	.cell-wrap {
