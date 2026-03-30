@@ -287,7 +287,7 @@ class TestGetTypeHints:
     def test_get_type_hints_with_unresolvable_forward_ref(self):
         """get_type_hints should return {} when annotations can't be resolved at runtime."""
 
-        def func(x: str) -> "NonExistentType":  # noqa: F821, UP037
+        def func(x: str) -> "NonExistentType":  # noqa: F821, UP037  # ty: ignore[unresolved-reference]
             return x
 
         hints = get_type_hints(func)
