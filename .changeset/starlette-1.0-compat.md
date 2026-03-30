@@ -1,5 +1,5 @@
 ---
-"gradio": patch
+"gradio": minor
 ---
 
-fix:Add Starlette 1.0 compatibility by relaxing version constraint
+feat:Add Starlette 1.0 compatibility by relaxing version constraint
