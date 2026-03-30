@@ -9,8 +9,8 @@ import random
 import time
 import traceback
 import uuid
+from asyncio import Queue as AsyncQueue
 from collections import defaultdict
-from queue import Queue as ThreadQueue
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 import fastapi
@@ -122,7 +122,7 @@ class Queue:
         blocks: Blocks,
         default_concurrency_limit: int | None | Literal["not_set"] = "not_set",
     ):
-        self.pending_messages_per_session: LRUCache[str, ThreadQueue[EventMessage]] = (
+        self.pending_messages_per_session: LRUCache[str, AsyncQueue[EventMessage]] = (
             LRUCache(2000)
         )
         self.pending_event_ids_session: dict[str, set[str]] = {}
@@ -380,7 +380,7 @@ class Queue:
             body.session_hash = event.session_hash
         async with self.pending_message_lock:
             if body.session_hash not in self.pending_messages_per_session:
-                self.pending_messages_per_session[body.session_hash] = ThreadQueue()
+                self.pending_messages_per_session[body.session_hash] = AsyncQueue()
             if body.session_hash not in self.pending_event_ids_session:
                 self.pending_event_ids_session[body.session_hash] = set()
         self.pending_event_ids_session[body.session_hash].add(event._id)
