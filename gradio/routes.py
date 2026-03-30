@@ -126,6 +126,7 @@ from gradio.utils import (
     get_node_path,
     get_package_version,
     get_upload_folder,
+    safe_aclose_iterator,
 )
 
 if TYPE_CHECKING:
@@ -1454,6 +1455,10 @@ class App(FastAPI):
                 ].put_nowait(message)
             if body.event_id in app.iterators:
                 async with app.lock:
+                    try:
+                        await safe_aclose_iterator(app.iterators[body.event_id])
+                    except Exception:
+                        pass
                     del app.iterators[body.event_id]
                     app.iterators_to_reset.add(body.event_id)
             return {"success": True}

@@ -1459,6 +1459,48 @@ class TestCancel:
                 cancel.click(None, None, None, cancels=[click])
             demo.queue().launch(prevent_thread_lock=True)
 
+    def test_cancel_closes_generator(self):
+        """The /cancel endpoint must call close() on server-side generators."""
+        from gradio.routes import App
+        from gradio.utils import SyncToAsyncIterator
+
+        closed = []
+
+        def gen():
+            try:
+                while True:
+                    yield "running"
+            finally:
+                closed.append(True)
+
+        with gr.Blocks() as demo:
+            out = gr.Textbox()
+            btn = gr.Button()
+            btn.click(gen, None, out, api_name="predict")
+
+        app = App.create_app(demo)
+
+        event_id = "test_event"
+        g = gen()
+        next(g)  # advance so GeneratorExit/finally will fire on close
+        iterator = SyncToAsyncIterator(g, limiter=None)
+        app.iterators[event_id] = iterator
+
+        client = TestClient(app)
+        resp = client.post(
+            f"{API_PREFIX}/cancel",
+            json={
+                "session_hash": "test",
+                "fn_index": 0,
+                "event_id": event_id,
+            },
+        )
+        assert resp.status_code == 200
+        assert resp.json()["success"]
+        assert closed, "Generator was not closed by /cancel endpoint"
+        assert event_id not in app.iterators
+        assert event_id in app.iterators_to_reset
+
 
 class TestGetAPIInfo:
     def test_many_endpoints(self):
