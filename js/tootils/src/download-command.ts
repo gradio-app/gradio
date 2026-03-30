@@ -90,36 +90,29 @@ export const drop_files: BrowserCommand<
 	await iframe
 		.locator(selector)
 		.first()
-		.evaluate(
-			(target: Element, files: Drop_file_spec[]) => {
-				const dt = new DataTransfer();
-				for (const f of files) {
-					const bytes = Uint8Array.from(atob(f.data), (c) =>
-						c.charCodeAt(0)
-					);
-					dt.items.add(
-						new File([bytes], f.name, { type: f.mime_type })
-					);
-				}
+		.evaluate((target: Element, files: Drop_file_spec[]) => {
+			const dt = new DataTransfer();
+			for (const f of files) {
+				const bytes = Uint8Array.from(atob(f.data), (c) => c.charCodeAt(0));
+				dt.items.add(new File([bytes], f.name, { type: f.mime_type }));
+			}
 
-				target.dispatchEvent(
-					new DragEvent("dragenter", {
-						dataTransfer: dt,
-						bubbles: true
-					})
-				);
-				target.dispatchEvent(
-					new DragEvent("dragover", {
-						dataTransfer: dt,
-						bubbles: true
-					})
-				);
-				target.dispatchEvent(
-					new DragEvent("drop", { dataTransfer: dt, bubbles: true })
-				);
-			},
-			files
-		);
+			target.dispatchEvent(
+				new DragEvent("dragenter", {
+					dataTransfer: dt,
+					bubbles: true
+				})
+			);
+			target.dispatchEvent(
+				new DragEvent("dragover", {
+					dataTransfer: dt,
+					bubbles: true
+				})
+			);
+			target.dispatchEvent(
+				new DragEvent("drop", { dataTransfer: dt, bubbles: true })
+			);
+		}, files);
 };
 
 const MIME_TYPES: Record<string, string> = {
