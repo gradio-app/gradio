@@ -1,6 +1,6 @@
 ---
-"@gradio/image": minor
-"gradio": minor
+"@gradio/image": patch
+"gradio": patch
 ---
 
-feat:Use test utils
+fix:Use test utils
