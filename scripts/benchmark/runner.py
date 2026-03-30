@@ -46,65 +46,9 @@ def wait_for_server(url: str, timeout: float = 60.0) -> bool:
     return False
 
 
-async def run_gradio_client_tier(
-    app_url: str,
-    num_users: int,
-    requests_per_user: int,
-    api_name: str = "/predict",
-) -> list[dict]:
-    """Run a tier using gradio_client in burst mode.
-
-    For each round, all N users fire a request simultaneously (true concurrency),
-    then we wait for all to complete before starting the next round.
-    """
-    from gradio_client import Client
-
-    latencies = []
-
-    # Pre-create all clients
-    clients = await asyncio.gather(
-        *[asyncio.to_thread(Client, app_url, verbose=False) for _ in range(num_users)]
-    )
-
-    for req_id in range(requests_per_user):
-        barrier = asyncio.Barrier(num_users)
-
-        async def single_request(user_id: int, rid: int = req_id):
-            # Wait for all users to be ready, then fire simultaneously
-            await barrier.wait()
-            start = time.monotonic()
-            try:
-                await asyncio.to_thread(
-                    clients[user_id].predict,
-                    f"hello from user {user_id} req {rid}",
-                    api_name=api_name,
-                )
-                duration_ms = (time.monotonic() - start) * 1000
-                return {
-                    "user_id": user_id,
-                    "request_id": rid,
-                    "latency_ms": duration_ms,
-                    "success": True,
-                }
-            except Exception as e:
-                duration_ms = (time.monotonic() - start) * 1000
-                return {
-                    "user_id": user_id,
-                    "request_id": rid,
-                    "latency_ms": duration_ms,
-                    "success": False,
-                    "error": str(e),
-                }
-
-        results = await asyncio.gather(
-            *[single_request(i) for i in range(num_users)]
-        )
-        latencies.extend(results)
-
-    return latencies
-
-
-async def resolve_fn_info(app_url: str, api_name: str | None = None) -> tuple[int, list]:
+async def resolve_fn_info(
+    app_url: str, api_name: str | None = None
+) -> tuple[int, list]:
     """Resolve the fn_index and build a data template for the given api_name.
 
     Returns (fn_index, data_template) where data_template has the right number
@@ -195,6 +139,11 @@ async def run_httpx_tier(
 
     latencies = []
 
+    # Wall-clock timeout per request. The httpx timeout only triggers when no
+    # data arrives, but SSE heartbeats can keep a dead connection alive forever.
+    # Scale with num_users since all requests queue behind concurrency_limit.
+    request_timeout = max(120.0, num_users * 5.0)
+
     async def _do_request(
         client: httpx.AsyncClient, user_id: int, req_id: int, session_hash: str
     ) -> dict:
@@ -221,17 +170,29 @@ async def run_httpx_tier(
                 timeout=120.0,
             )
             if resp.status_code != 200:
-                raise Exception(f"POST /queue/join failed: {resp.status_code} {resp.text[:200]}")
+                raise Exception(
+                    f"POST /queue/join failed: {resp.status_code} {resp.text[:200]}"
+                )
 
+            completed = False
             async with client.stream(
                 "GET",
                 f"{app_url}/gradio_api/queue/data",
                 params={"session_hash": session_hash},
                 timeout=120.0,
             ) as stream:
+                deadline = start + request_timeout
                 async for line in stream.aiter_lines():
                     if "process_completed" in line:
+                        completed = True
                         break
+                    if time.monotonic() > deadline:
+                        break
+
+            if not completed:
+                raise TimeoutError(
+                    f"Request did not complete within {request_timeout:.0f}s"
+                )
 
             duration_ms = (time.monotonic() - start) * 1000
             return {
@@ -242,27 +203,52 @@ async def run_httpx_tier(
             }
         except Exception as e:
             duration_ms = (time.monotonic() - start) * 1000
+            error_type = type(e).__name__
             return {
                 "user_id": user_id,
                 "request_id": req_id,
                 "latency_ms": duration_ms,
                 "success": False,
-                "error": str(e),
+                "error": f"{error_type}: {e}" if str(e) else error_type,
             }
+
+    # Overall timeout for an entire round. If the server deadlocks,
+    # individual request timeouts may not fire (e.g. stuck in C-level
+    # socket reads). This ensures the benchmark always makes progress.
+    round_timeout = request_timeout + 30
 
     for req_id in range(requests_per_user):
         async with httpx.AsyncClient() as client:
             if mode == "burst":
                 barrier = asyncio.Barrier(num_users)
 
-                async def burst_request(uid: int, rid: int = req_id, b: asyncio.Barrier = barrier):
+                async def burst_request(
+                    uid: int, rid: int = req_id, b: asyncio.Barrier = barrier
+                ):
                     session_hash = f"bench_{uid}_{rid}_{id(b)}"
                     await b.wait()
                     return await _do_request(client, uid, rid, session_hash)
 
-                results = await asyncio.gather(
-                    *[burst_request(i) for i in range(num_users)]
-                )
+                try:
+                    results = await asyncio.wait_for(
+                        asyncio.gather(*[burst_request(i) for i in range(num_users)]),
+                        timeout=round_timeout,
+                    )
+                except (asyncio.TimeoutError, TimeoutError):
+                    print(
+                        f"  WARNING: Round {req_id} timed out after {round_timeout:.0f}s "
+                        f"(server may be deadlocked)"
+                    )
+                    results = [
+                        {
+                            "user_id": i,
+                            "request_id": req_id,
+                            "latency_ms": round_timeout * 1000,
+                            "success": False,
+                            "error": f"Round timed out after {round_timeout:.0f}s",
+                        }
+                        for i in range(num_users)
+                    ]
             else:
                 # wave mode: random jitter per user (0–500ms)
                 async def wave_request(uid: int, rid: int = req_id):
@@ -271,9 +257,26 @@ async def run_httpx_tier(
                     session_hash = f"bench_{uid}_{rid}_{time.monotonic_ns()}"
                     return await _do_request(client, uid, rid, session_hash)
 
-                results = await asyncio.gather(
-                    *[wave_request(i) for i in range(num_users)]
-                )
+                try:
+                    results = await asyncio.wait_for(
+                        asyncio.gather(*[wave_request(i) for i in range(num_users)]),
+                        timeout=round_timeout,
+                    )
+                except (asyncio.TimeoutError, TimeoutError):
+                    print(
+                        f"  WARNING: Round {req_id} timed out after {round_timeout:.0f}s "
+                        f"(server may be deadlocked)"
+                    )
+                    results = [
+                        {
+                            "user_id": i,
+                            "request_id": req_id,
+                            "latency_ms": round_timeout * 1000,
+                            "success": False,
+                            "error": f"Round timed out after {round_timeout:.0f}s",
+                        }
+                        for i in range(num_users)
+                    ]
         latencies.extend(results)
         if on_round_complete is not None:
             successful = sum(1 for r in results if r.get("success"))
@@ -286,7 +289,9 @@ async def fetch_profiling_data(app_url: str) -> tuple[list, dict]:
     """Fetch traces and summary from the profiling endpoints."""
     async with httpx.AsyncClient() as client:
         try:
-            traces_resp = await client.get(f"{app_url}/gradio_api/profiling/traces", timeout=10.0)
+            traces_resp = await client.get(
+                f"{app_url}/gradio_api/profiling/traces", timeout=10.0
+            )
             traces = traces_resp.json() if traces_resp.status_code == 200 else []
         except Exception:
             traces = []
@@ -353,19 +358,33 @@ async def run_benchmark(
     env["GRADIO_SERVER_PORT"] = str(port)
     cl_str = "none" if concurrency_limit is None else str(concurrency_limit)
     env["GRADIO_CONCURRENCY_LIMIT"] = cl_str
+    env["PYTHONUNBUFFERED"] = "1"
 
     print(f"Launching app: {app_path}")
     proc = subprocess.Popen(
         [sys.executable, app_path],
         env=env,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
     )
+
+    import threading
+
+    def _stream_app_output(process):
+        """Stream app stdout/stderr line by line with a prefix."""
+        for line in iter(process.stdout.readline, b""):
+            print(f"  [app] {line.decode(errors='replace').rstrip()}")
+
+    output_thread = threading.Thread(
+        target=_stream_app_output, args=(proc,), daemon=True
+    )
+    output_thread.start()
 
     try:
         if not wait_for_server(app_url):
             print("ERROR: Server did not start in time")
             proc.terminate()
+            output_thread.join(timeout=5)
             return
 
         print(f"Server ready at {app_url}")
@@ -383,7 +402,15 @@ async def run_benchmark(
         print("Running warmup...")
         await clear_profiling_data(app_url)
         try:
-            await run_httpx_tier(app_url, 2, 3, fn_index=fn_index, data_template=data_template, mode=mode, prompts=prompts)
+            await run_httpx_tier(
+                app_url,
+                2,
+                3,
+                fn_index=fn_index,
+                data_template=data_template,
+                mode=mode,
+                prompts=prompts,
+            )
         except Exception:
             pass
         await clear_profiling_data(app_url)
@@ -403,7 +430,10 @@ async def run_benchmark(
             tier_dir.mkdir(exist_ok=True)
 
             from tqdm import tqdm
-            pbar = tqdm(total=requests_per_user, desc=f"  Tier {tier}", unit="round", leave=True)
+
+            pbar = tqdm(
+                total=requests_per_user, desc=f"  Tier {tier}", unit="round", leave=True
+            )
 
             def on_round_complete(round_num, total_rounds, successful, num_users):
                 failed = num_users - successful
@@ -413,9 +443,14 @@ async def run_benchmark(
             # Run the tier
             start = time.monotonic()
             client_latencies = await run_httpx_tier(
-                app_url, tier, requests_per_user, fn_index=fn_index,
-                data_template=data_template, mode=mode,
-                on_round_complete=on_round_complete, prompts=prompts,
+                app_url,
+                tier,
+                requests_per_user,
+                fn_index=fn_index,
+                data_template=data_template,
+                mode=mode,
+                on_round_complete=on_round_complete,
+                prompts=prompts,
             )
             pbar.close()
             elapsed = time.monotonic() - start
@@ -451,11 +486,7 @@ async def run_benchmark(
             cp90 = client_summary.get("p90")
             cp99 = client_summary.get("p99")
             if cp50 is not None:
-                print(
-                    f"  Client p50={cp50:.1f}ms "
-                    f"p90={cp90:.1f}ms "
-                    f"p99={cp99:.1f}ms"
-                )
+                print(f"  Client p50={cp50:.1f}ms p90={cp90:.1f}ms p99={cp99:.1f}ms")
             else:
                 print("  Client: no successful requests")
             if server_summary.get("phases"):
@@ -483,11 +514,15 @@ async def run_benchmark(
         print(f"\nResults saved to {base_dir}")
 
     finally:
+        exit_code = proc.poll()
+        if exit_code is not None:
+            print(f"\nWARNING: App process already exited with code {exit_code}")
         proc.terminate()
         try:
             proc.wait(timeout=5)
         except subprocess.TimeoutExpired:
             proc.kill()
+        output_thread.join(timeout=5)
 
 
 def _write_summary_table(base_dir: Path, tier_results: list[dict]):

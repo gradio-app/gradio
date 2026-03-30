@@ -13,7 +13,6 @@ import json
 import math
 import mimetypes
 import os
-import platform
 import secrets
 import sys
 import time
@@ -21,7 +20,6 @@ import traceback
 import warnings
 from collections.abc import AsyncIterator, Callable, Sequence
 from pathlib import Path
-from queue import Empty as EmptyQueue
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -126,6 +124,7 @@ from gradio.utils import (
     get_node_path,
     get_package_version,
     get_upload_folder,
+    safe_aclose_iterator,
 )
 
 if TYPE_CHECKING:
@@ -1454,6 +1453,10 @@ class App(FastAPI):
                 ].put_nowait(message)
             if body.event_id in app.iterators:
                 async with app.lock:
+                    try:
+                        await safe_aclose_iterator(app.iterators[body.event_id])
+                    except Exception:
+                        pass
                     del app.iterators[body.event_id]
                     app.iterators_to_reset.add(body.event_id)
             return {"success": True}
@@ -1499,13 +1502,24 @@ class App(FastAPI):
             process_msg: Callable[[EventMessage], str | None],
         ):
             blocks = app.get_blocks()
+            heartbeat_rate = 15
+
+            async def heartbeat():
+                while blocks.is_running:
+                    await asyncio.sleep(heartbeat_rate)
+                    # It's possible the event has finished by the time
+                    # the heartbeat wakes up
+                    queue = blocks._queue.pending_messages_per_session.get(session_hash)
+                    if queue:
+                        await queue.put(HeartbeatMessage())
 
             async def sse_stream(request: fastapi.Request):
+                heartbeat_task = asyncio.create_task(heartbeat())
                 try:
-                    last_heartbeat = time.perf_counter()
                     while True:
                         if await request.is_disconnected():
                             await blocks._queue.clean_events(session_hash=session_hash)
+                            heartbeat_task.cancel()
                             return
 
                         if (
@@ -1516,23 +1530,14 @@ class App(FastAPI):
                                 status_code=status.HTTP_404_NOT_FOUND,
                             )
 
-                        heartbeat_rate = 15
-                        check_rate = 0.05 if platform.system() == "Windows" else 0.001
                         message = None
                         try:
                             messages = blocks._queue.pending_messages_per_session[
                                 session_hash
                             ]
-                            message = messages.get_nowait()
-                        except EmptyQueue:
-                            await asyncio.sleep(check_rate)
-                            if time.perf_counter() - last_heartbeat > heartbeat_rate:
-                                # Fix this
-                                message = HeartbeatMessage()
-                                # Need to reset last_heartbeat with perf_counter
-                                # otherwise only a single hearbeat msg will be sent
-                                # and then the stream will retry leading to infinite queue 😬
-                                last_heartbeat = time.perf_counter()
+                            message = await asyncio.wait_for(messages.get(), timeout=10)
+                        except (TimeoutError, asyncio.TimeoutError):
+                            pass
 
                         if blocks._queue.stopped:
                             message = UnexpectedErrorMessage(
@@ -1576,6 +1581,7 @@ class App(FastAPI):
                                     response = process_msg(message)
                                     if response is not None:
                                         yield response
+                                    heartbeat_task.cancel()
                                     return
                 except BaseException as e:
                     message = UnexpectedErrorMessage(
@@ -1588,6 +1594,7 @@ class App(FastAPI):
                         await blocks._queue.clean_events(session_hash=session_hash)
                     if response is not None:
                         yield response
+                    heartbeat_task.cancel()
                     raise e
 
             return StreamingResponse(

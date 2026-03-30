@@ -13,6 +13,11 @@ import prefixer from "postcss-prefix-selector";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 import { playwright } from "@vitest/browser-playwright";
+import {
+	expect_download,
+	set_file_inputs,
+	drop_files
+} from "@self/tootils/download-command";
 
 /// <reference types="@vitest/browser/providers/playwright" />
 
@@ -156,6 +161,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 		test: {
 			setupFiles: [resolve(__dirname, "../../.config/setup_vite_tests.ts")],
 			environment: TEST_MODE,
+
 			include:
 				TEST_MODE === "node"
 					? ["**/*.node-test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"]
@@ -173,6 +179,12 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			},
 			browser: {
 				enabled: true,
+				headless: !!process.env.CI,
+				commands: {
+					expect_download,
+					set_file_inputs,
+					drop_files
+				},
 				provider: playwright({
 					contextOptions: {
 						permissions: [
