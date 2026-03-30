@@ -26,6 +26,7 @@
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import settings_logo from "./api_docs/img/settings-logo.svg";
 	import record_stop from "./api_docs/img/record-stop.svg";
+	import dag_icon from "./images/dag.svg";
 	import { AppTree } from "./init.svelte";
 
 	import * as screen_recorder from "./screen_recorder";
@@ -267,6 +268,7 @@
 	let api_recorder_visible = $derived(
 		search_params.get("view") === "api-recorder" && footer_links.includes("api")
 	);
+	let dag_visible = $derived(search_params.get("view") === "dag");
 	let allow_zoom = true;
 	let allow_video_trim = true;
 
@@ -275,6 +277,7 @@
 	let ApiRecorder: ComponentType<ApiRecorderInterface> | null = null;
 	let Settings: ComponentType<SettingsInterface> | null = null;
 	let VibeEditor: any = $state(null);
+	let DAGView: any = $state(null);
 
 	async function loadApiDocs(): Promise<void> {
 		if (!ApiDocs || !ApiRecorder) {
@@ -304,6 +307,27 @@
 			const vibe_editor_module = await import("@gradio/vibeeditor");
 			VibeEditor = vibe_editor_module.default;
 		}
+	}
+
+	async function loadDAGView(): Promise<void> {
+		if (!DAGView) {
+			const dag_module = await import("./dag/DAGView.svelte");
+			DAGView = dag_module.default;
+		}
+	}
+
+	async function set_dag_visible(visible: boolean): Promise<void> {
+		if (visible) {
+			await loadDAGView();
+		}
+		let params = new URLSearchParams(window.location.search);
+		if (visible) {
+			params.set("view", "dag");
+		} else {
+			params.delete("view");
+		}
+		history.replaceState(null, "", "?" + params.toString());
+		dag_visible = visible;
 	}
 
 	async function set_api_docs_visible(visible: boolean): Promise<void> {
@@ -471,7 +495,18 @@
 		bind:this={root_container}
 		style:margin-right={vibe_mode ? `${vibe_editor_width}px` : "0"}
 	>
-		<MountComponents node={app_tree.root} />
+		{#if dag_visible && DAGView}
+			<svelte:component
+				this={DAGView}
+				{components}
+				{dependencies}
+				{dep_manager}
+				{app_tree}
+				onclose={() => set_dag_visible(false)}
+			/>
+		{:else}
+			<MountComponents node={app_tree.root} />
+		{/if}
 	</main>
 
 	{#if footer_links.length > 0}
@@ -539,6 +574,24 @@
 					<img
 						src={settings_logo}
 						alt={$reactive_formatter("common.settings")}
+					/>
+				</button>
+			{/if}
+			{#if footer_links.includes("dag")}
+				<div class="divider">·</div>
+				<button
+					on:click={() => {
+						set_dag_visible(!dag_visible);
+					}}
+					on:mouseenter={() => {
+						loadDAGView();
+					}}
+					class="show-dag"
+				>
+					DAG View
+					<img
+						src={dag_icon}
+						alt="DAG View"
 					/>
 				</button>
 			{/if}
@@ -670,7 +723,8 @@
 
 	.show-api,
 	.settings,
-	.record {
+	.record,
+	.show-dag {
 		display: flex;
 		align-items: center;
 	}
@@ -690,6 +744,12 @@
 		width: var(--size-4);
 	}
 
+	.show-dag img {
+		margin-right: var(--size-1);
+		margin-left: var(--size-2);
+		width: var(--size-4);
+	}
+
 	.record img {
 		margin-right: var(--size-1);
 		margin-left: var(--size-1);
@@ -703,7 +763,8 @@
 
 	.built-with:hover,
 	.settings:hover,
-	.record:hover {
+	.record:hover,
+	.show-dag:hover {
 		color: var(--body-text-color);
 	}
 
