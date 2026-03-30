@@ -312,15 +312,21 @@ def prepare_job(
         print(f"  Bucket dest: {bucket_dest}/")
         return None
 
-    from huggingface_hub import get_token, run_job
+    from huggingface_hub import get_token, run_job, whoami
+    from huggingface_hub.errors import HfHubHTTPError
 
     token = get_token()
+    use_gradio_namespace = False
     if not token:
         print(
             "ERROR: No HF token found. Run `huggingface-cli login` first.",
             file=sys.stderr,
         )
         sys.exit(1)
+    try:
+        use_gradio_namespace = any(o['name'] == "gradio" for o in whoami()['orgs'])
+    except HfHubHTTPError:
+        use_gradio_namespace = False
 
     print(f"[{branch}] Submitting job (hardware={hardware})...")
     job = run_job(
@@ -329,6 +335,7 @@ def prepare_job(
         flavor=hardware,
         timeout=timeout_secs,
         secrets={"HF_TOKEN": token},
+        namespace="gradio" if use_gradio_namespace else None
     )
 
     return {

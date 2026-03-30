@@ -1514,11 +1514,12 @@ class App(FastAPI):
                         await queue.put(HeartbeatMessage())
 
             async def sse_stream(request: fastapi.Request):
+                heartbeat_task = asyncio.create_task(heartbeat())
                 try:
-                    asyncio.create_task(heartbeat())
                     while True:
                         if await request.is_disconnected():
                             await blocks._queue.clean_events(session_hash=session_hash)
+                            heartbeat_task.cancel()
                             return
 
                         if (
@@ -1580,6 +1581,7 @@ class App(FastAPI):
                                     response = process_msg(message)
                                     if response is not None:
                                         yield response
+                                    heartbeat_task.cancel()
                                     return
                 except BaseException as e:
                     message = UnexpectedErrorMessage(
@@ -1592,6 +1594,7 @@ class App(FastAPI):
                         await blocks._queue.clean_events(session_hash=session_hash)
                     if response is not None:
                         yield response
+                    heartbeat_task.cancel()
                     raise e
 
             return StreamingResponse(
