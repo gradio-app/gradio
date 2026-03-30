@@ -11,6 +11,7 @@ import time
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
+from huggingface_hub import sync_bucket
 
 import httpx
 
@@ -100,6 +101,8 @@ async def resolve_fn_info(
                 data_template.append("hello")
             elif comp_type in ["state", "chatbot"]:
                 data_template.append(None)
+            elif comp_type in ["image", "audio", "video"]:
+                data_template.append({"is_file": True, "choices": [str(f.resolve()) for f in (Path("sample-inputs") / comp_type).iterdir() if f.is_file()]})
             else:
                 data_template.append("hello")
 
@@ -144,21 +147,31 @@ async def run_httpx_tier(
     # Scale with num_users since all requests queue behind concurrency_limit.
     request_timeout = max(120.0, num_users * 5.0)
 
+    async def _do_upload(client: httpx.AsyncClient, filepath: str, app_url: str):
+        with open(filepath, "rb") as f:
+            files = {"files": (filepath, f, "text/plain")}
+            response = await client.post(f"{app_url}/gradio_api/upload", files=files)
+            return response.json()[0]
+
     async def _do_request(
         client: httpx.AsyncClient, user_id: int, req_id: int, session_hash: str
     ) -> dict:
         """Send a single request and return the latency result."""
         data = []
+        start = time.monotonic()
         for item in data_template:
-            if isinstance(item, str):
-                if prompts:
-                    data.append(random.choice(prompts))
-                else:
-                    data.append(f"hello from user {user_id} req {req_id}")
+            if prompts and isinstance(item, str):
+                data.append(random.choice(prompts))
+            elif prompts and isinstance(item, dict) and item['is_file'] is True:
+                file = random.choice(prompts)
+                data.append({'path': await _do_upload(client, file['path'], app_url), "meta": {'_type': 'gradio.FileData'}})
+            elif isinstance(item, str):
+                data.append(f"hello from user {user_id} req {req_id}")
+            elif isinstance(item, dict) and item['is_file'] is True:
+                data.append({'path': await _do_upload(client, random.choice(item['choices']), app_url), "meta": {'_type': 'gradio.FileData'}})
+                print("DATA", data)
             else:
                 data.append(item)
-
-        start = time.monotonic()
         try:
             resp = await client.post(
                 f"{app_url}/gradio_api/queue/join",
@@ -359,6 +372,9 @@ async def run_benchmark(
     cl_str = "none" if concurrency_limit is None else str(concurrency_limit)
     env["GRADIO_CONCURRENCY_LIMIT"] = cl_str
     env["PYTHONUNBUFFERED"] = "1"
+
+    print(f"Synching sample-inputs to {(Path(os.getcwd()) / 'sample-inputs')}")
+    sync_bucket("hf://buckets/gradio/sample-inputs", "sample-inputs")
 
     print(f"Launching app: {app_path}")
     proc = subprocess.Popen(

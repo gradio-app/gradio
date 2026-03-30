@@ -25,6 +25,7 @@ class RequestTrace:
     streaming_diff_ms: float = 0.0
     total_ms: float = 0.0
     n_iterations: int = 0
+    upload_ms: float = 0.0
 
     def set_phase(self, name: str, duration_ms: float):
         attr = f"{name}_ms"
