@@ -109,6 +109,7 @@ def build_script(
     branch: str,
     commit_sha: str,
     timestamp: str,
+    max_threads: int
 ) -> str:
     """Build the bash script that runs inside the HF Jobs container."""
     bucket_dest = f"hf://buckets/gradio/backend-benchmarks/{run_name}/{branch}"
@@ -151,6 +152,7 @@ def build_script(
             "port": port,
             "api_name": api_name,
             "timestamp": timestamp,
+            "max_threads": max_threads
         },
         indent=2,
     )
@@ -201,6 +203,7 @@ def build_script(
             f"    --requests-per-user {requests_per_user} \\",
             f"    --mode {mode} \\",
             f"    --concurrency-limit {concurrency_limit} \\",
+            f"    --max-threads {max_threads} \\",
             f"    --port {port} \\",
         ]
         if api_name:
@@ -254,6 +257,7 @@ def prepare_job(
     port: int,
     api_name: str | None,
     dry_run: bool,
+    max_threads: int,
 ) -> dict | None:
     """Resolve inputs, build script, and submit a single benchmark job.
 
@@ -301,6 +305,7 @@ def prepare_job(
         branch=branch,
         commit_sha=commit_sha,
         timestamp=timestamp,
+        max_threads=max_threads
     )
 
     timeout_secs = parse_timeout(timeout)
@@ -391,6 +396,11 @@ def add_common_args(parser: argparse.ArgumentParser):
         help="App concurrency limit ('none' for unlimited). Default: 1",
     )
     parser.add_argument(
+        "--max-threads",
+        default="40",
+        help="Max threads in the starlette thread pool. Default: 40",
+    )
+    parser.add_argument(
         "--timeout",
         default="90m",
         help="Job timeout (e.g. 30m, 1h, 90s). Default: 90m",
@@ -437,6 +447,7 @@ def cmd_run(args):
         port=args.port,
         api_name=args.api_name,
         dry_run=args.dry_run,
+        max_threads=args.max_threads,
     )
 
     if result:

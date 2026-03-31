@@ -1796,7 +1796,9 @@ Received inputs:
                 state._update_value_in_config(block._id, inputs_serialized)
 
                 if block_fn.preprocess:
-                    processed_value = block.preprocess(inputs_cached)
+                    processed_value = await anyio.to_thread.run_sync(
+                        block.preprocess, inputs_cached, limiter=self.limiter
+                    )
                 else:
                     processed_value = inputs_serialized
 
@@ -1948,7 +1950,9 @@ Received inputs:
                         )
                     if block._id in state:
                         block = state[block._id]
-                    prediction_value = block.postprocess(prediction_value)
+                    prediction_value = await anyio.to_thread.run_sync(
+                        block.postprocess, prediction_value, limiter=self.limiter
+                    )
                     if isinstance(prediction_value, (GradioModel, GradioRootModel)):
                         prediction_value_serialized = prediction_value.model_dump()
                     else:

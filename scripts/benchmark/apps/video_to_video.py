@@ -4,6 +4,7 @@ import gradio as gr
 
 _cl = os.environ.get("GRADIO_CONCURRENCY_LIMIT", "1")
 concurrency_limit = None if _cl == "none" else int(_cl)
+_max_threads = int(os.environ.get("GRADIO_MAX_THREADS", 40))
 
 
 def generate_video(audio):
@@ -18,4 +19,4 @@ demo = gr.Interface(
 )
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(max_threads=_max_threads)
