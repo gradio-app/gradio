@@ -169,7 +169,6 @@ async def run_httpx_tier(
                 data.append(f"hello from user {user_id} req {req_id}")
             elif isinstance(item, dict) and item['is_file'] is True:
                 data.append({'path': await _do_upload(client, random.choice(item['choices']), app_url), "meta": {'_type': 'gradio.FileData'}})
-                print("DATA", data)
             else:
                 data.append(item)
         try:
@@ -445,16 +444,27 @@ async def run_benchmark(
             tier_dir = base_dir / f"tier_{tier}"
             tier_dir.mkdir(exist_ok=True)
 
-            from tqdm import tqdm
+            is_tty = sys.stdout.isatty()
+            if is_tty:
+                from tqdm import tqdm
 
-            pbar = tqdm(
-                total=requests_per_user, desc=f"  Tier {tier}", unit="round", leave=True
-            )
+                pbar = tqdm(
+                    total=requests_per_user, desc=f"  Tier {tier}", unit="round", leave=True,
+                )
 
-            def on_round_complete(round_num, total_rounds, successful, num_users):
-                failed = num_users - successful
-                pbar.set_postfix(ok=successful, fail=failed, refresh=True)
-                pbar.update(1)
+                def on_round_complete(round_num, total_rounds, successful, num_users):
+                    failed = num_users - successful
+                    pbar.set_postfix(ok=successful, fail=failed, refresh=True)
+                    pbar.update(1)
+            else:
+                pbar = None
+
+                def on_round_complete(round_num, total_rounds, successful, num_users):
+                    failed = num_users - successful
+                    print(
+                        f"  Round {round_num}/{total_rounds} — ok={successful} fail={failed}",
+                        flush=True,
+                    )
 
             # Run the tier
             start = time.monotonic()
@@ -468,7 +478,8 @@ async def run_benchmark(
                 on_round_complete=on_round_complete,
                 prompts=prompts,
             )
-            pbar.close()
+            if pbar is not None:
+                pbar.close()
             elapsed = time.monotonic() - start
 
             # Fetch server profiling data
@@ -626,4 +637,8 @@ def main():
 
 
 if __name__ == "__main__":
+    # Force line-buffered stdout/stderr so output streams in real-time
+    # when running in containers (e.g. HF Jobs) where stdout is not a TTY.
+    sys.stdout.reconfigure(line_buffering=True)
+    sys.stderr.reconfigure(line_buffering=True)
     main()

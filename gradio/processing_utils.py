@@ -172,18 +172,24 @@ def save_pil_to_cache(
 def save_img_array_to_cache(
     arr: np.ndarray, cache_dir: str, format: str = "webp"
 ) -> str:
-    pil_image = Image.fromarray(_convert(arr, np.uint8, force_copy=False))
-    return save_pil_to_cache(pil_image, cache_dir, format=format)
+    from gradio.profiling import trace_phase_sync
+
+    with trace_phase_sync("postprocess_save_img_array_to_cache"):
+        pil_image = Image.fromarray(_convert(arr, np.uint8, force_copy=False))
+        return save_pil_to_cache(pil_image, cache_dir, format=format)
 
 
 def save_audio_to_cache(
     data: np.ndarray, sample_rate: int, format: str, cache_dir: str
 ) -> str:
-    temp_dir = Path(cache_dir) / hash_bytes(data.tobytes())
-    temp_dir.mkdir(exist_ok=True, parents=True)
-    filename = str((temp_dir / f"audio.{format}").resolve())
-    audio_to_file(sample_rate, data, filename, format=format)
-    return filename
+    from gradio.profiling import trace_phase_sync
+
+    with trace_phase_sync("postprocess_save_audio_to_cache"):
+        temp_dir = Path(cache_dir) / hash_bytes(data.tobytes())
+        temp_dir.mkdir(exist_ok=True, parents=True)
+        filename = str((temp_dir / f"audio.{format}").resolve())
+        audio_to_file(sample_rate, data, filename, format=format)
+        return filename
 
 
 def detect_audio_format(data: bytes) -> str:
@@ -644,28 +650,31 @@ def resize_and_crop(img, size, crop_type="center"):
 def audio_from_file(
     filename: str, crop_min: float = 0, crop_max: float = 100
 ) -> tuple[int, np.ndarray]:
-    try:
-        audio = AudioSegment.from_file(filename)
-    except FileNotFoundError as e:
-        isfile = Path(filename).is_file()
-        msg = (
-            f"Cannot load audio from file: `{'ffprobe' if isfile else filename}` not found."
-            + " Please install `ffmpeg` in your system to use non-WAV audio file formats"
-            " and make sure `ffprobe` is in your PATH."
-            if isfile
-            else ""
-        )
-        raise RuntimeError(msg) from e
-    except OSError as e:
-        raise e
-    if crop_min != 0 or crop_max != 100:
-        audio_start = len(audio) * crop_min / 100
-        audio_end = len(audio) * crop_max / 100
-        audio = audio[audio_start:audio_end]
-    data = np.array(audio.get_array_of_samples())
-    if audio.channels > 1:
-        data = data.reshape(-1, audio.channels)
-    return audio.frame_rate, data
+    from gradio.profiling import trace_phase_sync
+
+    with trace_phase_sync("preprocess_audio_from_file"):
+        try:
+            audio = AudioSegment.from_file(filename)
+        except FileNotFoundError as e:
+            isfile = Path(filename).is_file()
+            msg = (
+                f"Cannot load audio from file: `{'ffprobe' if isfile else filename}` not found."
+                + " Please install `ffmpeg` in your system to use non-WAV audio file formats"
+                " and make sure `ffprobe` is in your PATH."
+                if isfile
+                else ""
+            )
+            raise RuntimeError(msg) from e
+        except OSError as e:
+            raise e
+        if crop_min != 0 or crop_max != 100:
+            audio_start = len(audio) * crop_min / 100
+            audio_end = len(audio) * crop_max / 100
+            audio = audio[audio_start:audio_end]
+        data = np.array(audio.get_array_of_samples())
+        if audio.channels > 1:
+            data = data.reshape(-1, audio.channels)
+        return audio.frame_rate, data
 
 
 def audio_to_file(sample_rate, data, filename, format="wav"):
