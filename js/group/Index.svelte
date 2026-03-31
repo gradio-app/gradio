@@ -5,15 +5,7 @@
 	const gradio = new Gradio<{}, {}>(props);
 </script>
 
-<<<<<<< Updated upstream
-<div
-	id={gradio.shared.elem_id}
-	class="gr-group {gradio.shared.elem_classes?.join(' ') || ''}"
-	class:hide={gradio.shared.visible === "hidden"}
->
-=======
 {#if gradio.shared.visible}
->>>>>>> Stashed changes
 	<div
 		id={gradio.shared.elem_id}
 		class="gr-group {gradio.shared.elem_classes?.join(' ') || ''}"
