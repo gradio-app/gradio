@@ -5,7 +5,11 @@
 	const gradio = new Gradio<{}, {}>(props);
 </script>
 
-{#if gradio.shared.visible}
+<div
+	id={gradio.shared.elem_id}
+	class="gr-group {gradio.shared.elem_classes?.join(' ') || ''}"
+	class:hide={gradio.shared.visible === "hidden"}
+>
 	<div
 		id={gradio.shared.elem_id}
 		class="gr-group {gradio.shared.elem_classes?.join(' ') || ''}"
@@ -24,7 +28,7 @@
 			<slot />
 		</div>
 	</div>
-{/if}
+</div>
 
 <style>
 	div {

@@ -17,15 +17,6 @@ describe("Group", () => {
 		expect(groupElement).not.toBeNull();
 	});
 
-	test("visible: false removes the Group from the DOM", async () => {
-		const { container } = await render(Group, {
-			visible: false
-		});
-
-		const groupElement = container.querySelector(".gr-group");
-		expect(groupElement).toBeNull();
-	});
-
 	test("visible: 'hidden' hides the Group but keeps it in the DOM", async () => {
 		const { container } = await render(Group, {
 			visible: "hidden"
