@@ -1,7 +1,7 @@
 ---
-"@gradio/audio": minor
-"@gradio/video": minor
-"gradio": minor
+"@gradio/audio": patch
+"@gradio/video": patch
+"gradio": patch
 ---
 
 feat:Audio and Video unit tests
