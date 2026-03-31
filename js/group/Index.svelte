@@ -5,24 +5,34 @@
 	const gradio = new Gradio<{}, {}>(props);
 </script>
 
+<<<<<<< Updated upstream
 <div
 	id={gradio.shared.elem_id}
 	class="gr-group {gradio.shared.elem_classes?.join(' ') || ''}"
 	class:hide={gradio.shared.visible === "hidden"}
 >
+=======
+{#if gradio.shared.visible}
+>>>>>>> Stashed changes
 	<div
-		class="styler"
-		style:--block-radius="0px"
-		style:--block-border-width="0px"
-		style:--layout-gap="1px"
-		style:--form-gap-width="1px"
-		style:--button-border-width="0px"
-		style:--button-large-radius="0px"
-		style:--button-small-radius="0px"
+		id={gradio.shared.elem_id}
+		class="gr-group {gradio.shared.elem_classes?.join(' ') || ''}"
+		class:hide={gradio.shared.visible === "hidden"}
 	>
-		<slot />
+		<div
+			class="styler"
+			style:--block-radius="0px"
+			style:--block-border-width="0px"
+			style:--layout-gap="1px"
+			style:--form-gap-width="1px"
+			style:--button-border-width="0px"
+			style:--button-large-radius="0px"
+			style:--button-small-radius="0px"
+		>
+			<slot />
+		</div>
 	</div>
-</div>
+{/if}
 
 <style>
 	div {
