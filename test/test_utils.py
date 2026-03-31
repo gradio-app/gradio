@@ -21,6 +21,7 @@ from gradio.exceptions import Error
 from gradio.external_utils import format_ner_list
 from gradio.utils import (
     FileSize,
+    SyncToAsyncIterator,
     UnhashableKeyDict,
     _parse_file_size,
     abspath,
@@ -42,6 +43,7 @@ from gradio.utils import (
     is_hosted_notebook,
     is_in_or_equal,
     is_special_typed_parameter,
+    safe_aclose_iterator,
     safe_deepcopy,
     sanitize_list_for_csv,
     sanitize_value_for_csv,
@@ -281,6 +283,15 @@ class TestGetTypeHints:
             assert hints["s"] is str
 
         assert len(get_type_hints(GenericObject())) == 0
+
+    def test_get_type_hints_with_unresolvable_forward_ref(self):
+        """get_type_hints should return {} when annotations can't be resolved at runtime."""
+
+        def func(x: str) -> "NonExistentType":  # noqa: F821, UP037  # ty: ignore[unresolved-reference]
+            return x
+
+        hints = get_type_hints(func)
+        assert hints == {}
 
     def test_is_special_typed_parameter(self):
         def func(a: list[str], b: Literal["a", "b"], c, d: Request, e: Request | None):
@@ -978,3 +989,96 @@ class TestConnectHeartbeat:
 
         config = demo.get_config_file()
         assert config["connect_heartbeat"] is False
+
+
+class _FakeIterator:
+    """A fake iterator with a controllable close() for testing."""
+
+    def __init__(self, fail_count=0):
+        self.close_call_count = 0
+        self._fail_count = fail_count
+        self._closed = False
+
+    def close(self):
+        self.close_call_count += 1
+        if self.close_call_count <= self._fail_count:
+            raise ValueError("generator already executing")
+        self._closed = True
+
+    def __next__(self):
+        raise StopIteration
+
+    def __iter__(self):
+        return self
+
+
+class TestSyncToAsyncIteratorAclose:
+    @pytest.mark.asyncio
+    async def test_aclose_closes_iterator(self):
+        """aclose() should call close() on the underlying sync iterator."""
+
+        def gen():
+            yield 1
+            yield 2
+
+        iterator = SyncToAsyncIterator(gen(), limiter=None)
+        await iterator.aclose()
+        assert list(iterator.iterator) == []
+
+    @pytest.mark.asyncio
+    async def test_aclose_retries_on_already_executing(self):
+        """aclose() should retry when ValueError('generator already executing') is raised."""
+        fake = _FakeIterator(fail_count=2)
+        iterator = SyncToAsyncIterator(fake, limiter=None)
+        await iterator.aclose(retry_interval=0.01)
+
+        assert fake.close_call_count == 3
+        assert fake._closed is True
+
+    @pytest.mark.asyncio
+    async def test_aclose_timeout_raises(self):
+        """aclose() should raise ValueError after timeout is exceeded."""
+        fake = _FakeIterator(fail_count=999)
+        iterator = SyncToAsyncIterator(fake, limiter=None)
+
+        with pytest.raises(ValueError, match="already executing"):
+            await iterator.aclose(timeout=0.1, retry_interval=0.02)
+
+    @pytest.mark.asyncio
+    async def test_aclose_raises_other_value_error(self):
+        """aclose() should not retry on ValueError without 'already executing'."""
+
+        class _BadIterator:
+            def close(self):
+                raise ValueError("some other error")
+
+        iterator = SyncToAsyncIterator(_BadIterator(), limiter=None)
+        with pytest.raises(ValueError, match="some other error"):
+            await iterator.aclose()
+
+
+class TestSafeAcloseIterator:
+    @pytest.mark.asyncio
+    async def test_delegates_to_aclose(self):
+        """safe_aclose_iterator() should call aclose() on the iterator."""
+
+        def gen():
+            yield 1
+
+        iterator = SyncToAsyncIterator(gen(), limiter=None)
+        await safe_aclose_iterator(iterator)
+        assert list(iterator.iterator) == []
+
+    @pytest.mark.asyncio
+    async def test_works_with_async_generator(self):
+        """safe_aclose_iterator() should work with native async generators."""
+
+        async def gen():
+            yield 1
+            yield 2
+
+        ag = gen()
+        await safe_aclose_iterator(ag)
+        # After aclose, async generator should raise StopAsyncIteration
+        with pytest.raises(StopAsyncIteration):
+            await ag.__anext__()
