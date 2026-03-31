@@ -311,13 +311,16 @@ def preprocess_image(
             warnings.simplefilter("ignore")
             if image_mode is not None:
                 im = im.convert(image_mode)
-    return format_image(
-        im,
-        type=type,
-        cache_dir=cache_dir,
-        name=name,
-        format=suffix,
-    )
+    from gradio.profiling import trace_phase_sync
+
+    with trace_phase_sync("preprocess_format_image"):
+        return format_image(
+            im,
+            type=type,
+            cache_dir=cache_dir,
+            name=name,
+            format=suffix,
+        )
 
 
 def postprocess_image(

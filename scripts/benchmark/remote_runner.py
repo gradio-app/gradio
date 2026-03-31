@@ -117,7 +117,13 @@ def build_script(
         "#!/bin/bash",
         "set -e",
         "",
-        "# Install dependencies",
+        "# Disable Python output buffering so logs stream in real-time",
+        "export PYTHONUNBUFFERED=1",
+        "",
+        "# Install system dependencies",
+        "apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*",
+        "",
+        "# Install Python dependencies",
         f"pip install '{wheel_url}' httpx tqdm numpy 'huggingface-hub[hf_xet]'",
         "",
         "# Decode runner",
@@ -189,7 +195,7 @@ def build_script(
     for stem, _ in app_files:
         cmd_lines = [
             f'echo "=== Benchmarking {stem} ==="',
-            f"python /tmp/runner.py \\",
+            f"python -u /tmp/runner.py \\",
             f"    --app /tmp/apps/{stem}.py \\",
             f"    --tiers {tiers} \\",
             f"    --requests-per-user {requests_per_user} \\",

@@ -196,59 +196,67 @@ class Video(StreamingOutput, Component):
         Returns:
             Passes the uploaded video as a `str` filepath or URL whose extension can be modified by `format`.
         """
-        if payload is None:
-            return None
-        if not payload.path:
-            raise ValueError("Payload path missing")
-        file_name = Path(payload.path)
-        uploaded_format = file_name.suffix.replace(".", "")
-        needs_formatting = self.format is not None and uploaded_format != self.format
-        flip = self.sources == ["webcam"] and self.webcam_options.mirror
-        # TODO: Check other image extensions to see if they work.
-        valid_watermark_extensions = [".png", ".jpg", ".jpeg"]
-        if self.watermark.watermark is not None:
-            if not isinstance(self.watermark.watermark, (str, Path)):
-                raise ValueError(
-                    f"Provided watermark file not an expected file type. "
-                    f"Received: {self.watermark.watermark}"
-                )
-            if Path(self.watermark.watermark).suffix not in valid_watermark_extensions:
-                raise ValueError(
-                    f"Watermark file does not have a supported extension. "
-                    f"Expected one of {','.join(valid_watermark_extensions)}. "
-                    f"Received: {Path(self.watermark.watermark).suffix}."
-                )
-        if needs_formatting or flip:
-            format = f".{self.format if needs_formatting else uploaded_format}"
-            output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else []
-            output_options += ["-an"] if not self.include_audio else []
-            flip_suffix = "_flip" if flip else ""
-            output_file_name = str(
-                file_name.with_name(f"{file_name.stem}{flip_suffix}{format}")
+        from gradio.profiling import trace_phase_sync
+
+        with trace_phase_sync("preprocess_video"):
+            if payload is None:
+                return None
+            if not payload.path:
+                raise ValueError("Payload path missing")
+            file_name = Path(payload.path)
+            uploaded_format = file_name.suffix.replace(".", "")
+            needs_formatting = (
+                self.format is not None and uploaded_format != self.format
             )
-            output_filepath = Path(output_file_name)
-            if output_filepath.exists():
+            flip = self.sources == ["webcam"] and self.webcam_options.mirror
+            # TODO: Check other image extensions to see if they work.
+            valid_watermark_extensions = [".png", ".jpg", ".jpeg"]
+            if self.watermark.watermark is not None:
+                if not isinstance(self.watermark.watermark, (str, Path)):
+                    raise ValueError(
+                        f"Provided watermark file not an expected file type. "
+                        f"Received: {self.watermark.watermark}"
+                    )
+                if (
+                    Path(self.watermark.watermark).suffix
+                    not in valid_watermark_extensions
+                ):
+                    raise ValueError(
+                        f"Watermark file does not have a supported extension. "
+                        f"Expected one of {','.join(valid_watermark_extensions)}. "
+                        f"Received: {Path(self.watermark.watermark).suffix}."
+                    )
+            if needs_formatting or flip:
+                format = f".{self.format if needs_formatting else uploaded_format}"
+                output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else []
+                output_options += ["-an"] if not self.include_audio else []
+                flip_suffix = "_flip" if flip else ""
+                output_file_name = str(
+                    file_name.with_name(f"{file_name.stem}{flip_suffix}{format}")
+                )
+                output_filepath = Path(output_file_name)
+                if output_filepath.exists():
+                    return str(output_filepath.resolve())
+
+                ff = FFmpeg(  # type: ignore
+                    inputs={str(file_name): None},
+                    outputs={output_file_name: output_options},
+                )
+                ff.run()
                 return str(output_filepath.resolve())
+            elif not self.include_audio:
+                output_file_name = str(file_name.with_name(f"muted_{file_name.name}"))
+                if Path(output_file_name).exists():
+                    return output_file_name
 
-            ff = FFmpeg(  # type: ignore
-                inputs={str(file_name): None},
-                outputs={output_file_name: output_options},
-            )
-            ff.run()
-            return str(output_filepath.resolve())
-        elif not self.include_audio:
-            output_file_name = str(file_name.with_name(f"muted_{file_name.name}"))
-            if Path(output_file_name).exists():
+                ff = FFmpeg(  # type: ignore
+                    inputs={str(file_name): None},
+                    outputs={output_file_name: ["-an"]},
+                )
+                ff.run()
                 return output_file_name
-
-            ff = FFmpeg(  # type: ignore
-                inputs={str(file_name): None},
-                outputs={output_file_name: ["-an"]},
-            )
-            ff.run()
-            return output_file_name
-        else:
-            return str(file_name)
+            else:
+                return str(file_name)
 
     def postprocess(self, value: str | Path | None) -> FileData | None:
         """
@@ -272,6 +280,8 @@ class Video(StreamingOutput, Component):
         Processes a video to ensure that it is in the correct format
         and adds a watermark if requested.
         """
+        from gradio.profiling import trace_phase_sync
+
         if video is None:
             return None
         video = str(video)
@@ -301,7 +311,8 @@ class Video(StreamingOutput, Component):
             warnings.warn(
                 "Video does not have browser-compatible container or codec. Converting to mp4."
             )
-            video = processing_utils.convert_video_to_playable_mp4(video)
+            with trace_phase_sync("postprocess_video_convert_video_to_playable_mp4"):
+                video = processing_utils.convert_video_to_playable_mp4(video)
         # Recalculate the format in case convert_video_to_playable_mp4 already made it the selected format
         returned_format = utils.get_extension_from_file_path_or_url(video).lower()
         if (
