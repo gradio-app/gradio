@@ -25,9 +25,9 @@
 		onfullscreen?: () => void;
 	} = $props();
 
-	let copied = false;
+	let copied = $state(false);
 	let timer: ReturnType<typeof setTimeout>;
-	let input_value = "";
+	let input_value = $state("");
 
 	function handle_search_input(e: Event): void {
 		const target = e.target as HTMLTextAreaElement;
