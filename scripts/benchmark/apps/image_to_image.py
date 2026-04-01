@@ -19,5 +19,4 @@ demo = gr.Interface(
 )
 
 if __name__ == "__main__":
-    print("_MAX_THREADS", _max_threads)
     demo.launch(max_threads=_max_threads)
