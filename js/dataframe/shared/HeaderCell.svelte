@@ -2,6 +2,9 @@
 	import EditableCell from "./EditableCell.svelte";
 	import CellMenuButton from "./CellMenuButton.svelte";
 	import Padlock from "./icons/Padlock.svelte";
+	import FilterIcon from "./icons/FilterIcon.svelte";
+	import SortButtonUp from "./icons/SortButtonUp.svelte";
+	import SortButtonDown from "./icons/SortButtonDown.svelte";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { SortDirection } from "./types";
 
@@ -80,17 +83,34 @@
 				{max_chars}
 				coords={[col_idx, 0]}
 			/>
-			{#if sort_direction}
-				<span class="sort-indicator">
-					{sort_direction === "asc" ? "▲" : "▼"}
-					{#if multi_sort}
-						<span class="sort-priority">{sort_priority}</span>
-					{/if}
-				</span>
-			{/if}
 		</div>
-		{#if is_static}
-			<span class="static-icon"><Padlock /></span>
+		{#if sort_direction || is_filtered || is_static}
+			<span class="header-icons">
+				{#if is_filtered}
+					<span class="filter-indicator" aria-label="Filtered">
+						<FilterIcon />
+					</span>
+				{/if}
+				{#if sort_direction}
+					<span
+						class="sort-indicator"
+						aria-label="Sorted {sort_direction}ending"
+					>
+						{#if sort_direction === "asc"}
+							<SortButtonUp size={13} />
+						{:else}
+							<SortButtonDown size={13} />
+						{/if}
+						{#if multi_sort && sort_priority != null}
+							<span class="sort-priority">{sort_priority}</span>
+						{/if}
+					</span>
+				{/if}
+
+				{#if is_static}
+					<Padlock size={11} />
+				{/if}
+			</span>
 		{/if}
 		{#if show_menu_button}
 			<CellMenuButton on_click={(e) => on_menu_click(e, col_idx)} />
@@ -137,36 +157,48 @@
 		align-items: center;
 		gap: var(--size-1);
 		overflow: hidden;
-
 		min-width: 0;
+	}
+
+	.header-icons {
+		display: flex;
+		align-items: center;
+		gap: 2px;
+		flex-shrink: 0;
+		margin-left: auto;
+		opacity: 0.6;
 	}
 
 	.sort-indicator {
 		display: flex;
 		align-items: center;
-		gap: 2px;
-		font-size: 10px;
-		opacity: 0.7;
-		flex-shrink: 0;
+		position: relative;
+		margin-left: -5px;
 	}
 
 	.sort-priority {
-		font-size: 9px;
+		font-size: 8px;
 		background: var(--button-secondary-background-fill);
-		border-radius: var(--radius-sm);
-		width: 14px;
-		height: 14px;
+		border-radius: var(--radius-full);
+		width: 12px;
+		height: 12px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		line-height: 1;
 	}
 
-	.static-icon {
-		flex-shrink: 0;
-		margin-left: auto;
-		opacity: 0.5;
+	.filter-indicator {
 		display: flex;
 		align-items: center;
+		width: 16px;
+		height: 16px;
+		margin-top: 3px;
+	}
+
+	.filter-indicator :global(svg) {
+		width: 100%;
+		height: 100%;
 	}
 
 	.cell-wrap {

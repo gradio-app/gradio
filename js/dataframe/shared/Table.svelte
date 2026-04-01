@@ -616,8 +616,9 @@
 						editing = false;
 					}
 					break;
-				case "Tab":
+				case "Tab": {
 					e.preventDefault();
+					const was_editing = !!editing;
 					if (e.shiftKey) {
 						if (col > 0) selected = [row, col - 1];
 						else if (row > 0) selected = [row - 1, num_cols - 1];
@@ -626,14 +627,18 @@
 						else if (row < num_rows - 1) selected = [row + 1, 0];
 					}
 					selected_cells = [selected];
-					{
+					if (was_editing) {
 						const tab_col = (selected as CellCoordinate)[1];
 						const tab_static =
 							static_columns.includes(tab_col) ||
 							static_columns.includes(resolved_headers[tab_col]);
 						editing = editable && !tab_static ? selected : false;
+					} else {
+						editing = false;
 					}
+					if (!editing) tick().then(() => parent?.focus());
 					break;
+				}
 				case "Enter":
 					if (editing && e.shiftKey) {
 						// shift+enter inserts newline in textarea — don't intercept
