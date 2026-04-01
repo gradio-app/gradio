@@ -1,7 +1,7 @@
 ---
 "@self/spa": minor
 "@self/tootils": minor
-"gradio": minor
+"gradio": patch
 ---
 
 feat:add test utils
