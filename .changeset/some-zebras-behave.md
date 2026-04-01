@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Lazy Load `Info` component
+fix:Minimal Markdown Utility + Frontend Profiling Fixes
