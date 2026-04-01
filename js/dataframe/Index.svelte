@@ -17,6 +17,27 @@
 
 	let fullscreen = $state(gradio.props.fullscreen ?? false);
 
+	// align datatype array to current value headers using the original
+	// config-time header→datatype mapping.
+	// when columns are hidden or reordered, positional indices shift but
+	// the datatype prop doesn't update, the map keeps them synced
+	let aligned_datatype = $derived.by(() => {
+		const dt = gradio.props.datatype;
+		if (!Array.isArray(dt)) return dt;
+
+		const config_headers: string[] | undefined = (gradio.props as any).headers;
+		const current_headers = gradio.props.value?.headers;
+		if (!config_headers || !current_headers) return dt;
+
+		const map = new Map<string, string>();
+		for (let i = 0; i < Math.min(config_headers.length, dt.length); i++) {
+			map.set(config_headers[i], dt[i]);
+		}
+		return current_headers.map(
+			(h: string, i: number) => map.get(h) ?? dt[i] ?? "str"
+		);
+	});
+
 	let old_value = $state(
 		gradio.props.value ? JSON.stringify(gradio.props.value) : null
 	);
@@ -80,7 +101,7 @@
 		label={gradio.shared.label}
 		show_label={gradio.shared.show_label}
 		wrap={gradio.props.wrap}
-		datatype={gradio.props.datatype}
+		datatype={aligned_datatype}
 		latex_delimiters={gradio.props.latex_delimiters}
 		max_height={gradio.props.max_height}
 		editable={gradio.shared.interactive ?? true}
