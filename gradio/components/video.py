@@ -22,6 +22,7 @@ from gradio.components.image_editor import WatermarkOptions, WebcamOptions
 from gradio.data_classes import FileData, MediaStreamChunk
 from gradio.events import Events
 from gradio.i18n import I18nData
+from gradio.profiling import traced_sync
 from gradio.utils import get_upload_folder, set_default_buttons
 
 if TYPE_CHECKING:
@@ -189,6 +190,7 @@ class Video(StreamingOutput, Component):
         )
         self._value_description = "a string filepath to a video"
 
+    @traced_sync("preprocess_video")
     def preprocess(self, payload: FileData | None) -> str | None:
         """
         Parameters:
@@ -196,68 +198,61 @@ class Video(StreamingOutput, Component):
         Returns:
             Passes the uploaded video as a `str` filepath or URL whose extension can be modified by `format`.
         """
-        from gradio.profiling import trace_phase_sync
-
-        with trace_phase_sync("preprocess_video"):
-            if payload is None:
-                return None
-            if not payload.path:
-                raise ValueError("Payload path missing")
-            file_name = Path(payload.path)
-            uploaded_format = file_name.suffix.replace(".", "")
-            needs_formatting = (
-                self.format is not None and uploaded_format != self.format
+        if payload is None:
+            return None
+        if not payload.path:
+            raise ValueError("Payload path missing")
+        file_name = Path(payload.path)
+        uploaded_format = file_name.suffix.replace(".", "")
+        needs_formatting = self.format is not None and uploaded_format != self.format
+        flip = self.sources == ["webcam"] and self.webcam_options.mirror
+        # TODO: Check other image extensions to see if they work.
+        valid_watermark_extensions = [".png", ".jpg", ".jpeg"]
+        if self.watermark.watermark is not None:
+            if not isinstance(self.watermark.watermark, (str, Path)):
+                raise ValueError(
+                    f"Provided watermark file not an expected file type. "
+                    f"Received: {self.watermark.watermark}"
+                )
+            if Path(self.watermark.watermark).suffix not in valid_watermark_extensions:
+                raise ValueError(
+                    f"Watermark file does not have a supported extension. "
+                    f"Expected one of {','.join(valid_watermark_extensions)}. "
+                    f"Received: {Path(self.watermark.watermark).suffix}."
+                )
+        if needs_formatting or flip:
+            format = f".{self.format if needs_formatting else uploaded_format}"
+            output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else []
+            output_options += ["-an"] if not self.include_audio else []
+            flip_suffix = "_flip" if flip else ""
+            output_file_name = str(
+                file_name.with_name(f"{file_name.stem}{flip_suffix}{format}")
             )
-            flip = self.sources == ["webcam"] and self.webcam_options.mirror
-            # TODO: Check other image extensions to see if they work.
-            valid_watermark_extensions = [".png", ".jpg", ".jpeg"]
-            if self.watermark.watermark is not None:
-                if not isinstance(self.watermark.watermark, (str, Path)):
-                    raise ValueError(
-                        f"Provided watermark file not an expected file type. "
-                        f"Received: {self.watermark.watermark}"
-                    )
-                if (
-                    Path(self.watermark.watermark).suffix
-                    not in valid_watermark_extensions
-                ):
-                    raise ValueError(
-                        f"Watermark file does not have a supported extension. "
-                        f"Expected one of {','.join(valid_watermark_extensions)}. "
-                        f"Received: {Path(self.watermark.watermark).suffix}."
-                    )
-            if needs_formatting or flip:
-                format = f".{self.format if needs_formatting else uploaded_format}"
-                output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else []
-                output_options += ["-an"] if not self.include_audio else []
-                flip_suffix = "_flip" if flip else ""
-                output_file_name = str(
-                    file_name.with_name(f"{file_name.stem}{flip_suffix}{format}")
-                )
-                output_filepath = Path(output_file_name)
-                if output_filepath.exists():
-                    return str(output_filepath.resolve())
-
-                ff = FFmpeg(  # type: ignore
-                    inputs={str(file_name): None},
-                    outputs={output_file_name: output_options},
-                )
-                ff.run()
+            output_filepath = Path(output_file_name)
+            if output_filepath.exists():
                 return str(output_filepath.resolve())
-            elif not self.include_audio:
-                output_file_name = str(file_name.with_name(f"muted_{file_name.name}"))
-                if Path(output_file_name).exists():
-                    return output_file_name
 
-                ff = FFmpeg(  # type: ignore
-                    inputs={str(file_name): None},
-                    outputs={output_file_name: ["-an"]},
-                )
-                ff.run()
+            ff = FFmpeg(  # type: ignore
+                inputs={str(file_name): None},
+                outputs={output_file_name: output_options},
+            )
+            ff.run()
+            return str(output_filepath.resolve())
+        elif not self.include_audio:
+            output_file_name = str(file_name.with_name(f"muted_{file_name.name}"))
+            if Path(output_file_name).exists():
                 return output_file_name
-            else:
-                return str(file_name)
 
+            ff = FFmpeg(  # type: ignore
+                inputs={str(file_name): None},
+                outputs={output_file_name: ["-an"]},
+            )
+            ff.run()
+            return output_file_name
+        else:
+            return str(file_name)
+
+    @traced_sync("postprocess_video")
     def postprocess(self, value: str | Path | None) -> FileData | None:
         """
         Parameters:

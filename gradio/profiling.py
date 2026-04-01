@@ -6,6 +6,7 @@ import time
 from collections import deque
 from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass, field
+from functools import wraps
 from typing import Any
 
 PROFILING_ENABLED = os.environ.get("GRADIO_PROFILING", "").strip() in ("1", "true")
@@ -33,8 +34,12 @@ class RequestTrace:
     postprocess_save_audio_to_cache_ms: float = 0.0
     preprocess_video_ms: float = 0.0
     postprocess_video_convert_video_to_playable_mp4_ms: float = 0.0
-    postprocess_update_state_in_config_ms = float = 0.0
+    postprocess_update_state_in_config_ms: float = 0.0
     postprocess_move_to_cache_ms: float = 0.0
+    postprocess_video_ms: float = 0.0
+    postprocess_save_pil_to_cache_ms: float = 0.0
+    postprocess_save_bytes_to_cache_ms: float = 0.0
+    save_file_to_cache_ms: float = 0.0
 
     def set_phase(self, name: str, duration_ms: float):
         attr = f"{name}_ms"
@@ -66,6 +71,10 @@ class RequestTrace:
             "postprocess_video_convert_video_to_playable_mp4_ms": self.postprocess_video_convert_video_to_playable_mp4_ms,
             "postprocess_update_state_in_config_ms": self.postprocess_update_state_in_config_ms,
             "postprocess_move_to_cache_ms": self.postprocess_move_to_cache_ms,
+            "postprocess_video_ms": self.postprocess_video_ms,
+            "postprocess_save_pil_to_cache_ms": self.postprocess_save_pil_to_cache_ms,
+            "postprocess_save_bytes_to_cache_ms": self.postprocess_save_bytes_to_cache_ms,
+            "save_file_to_cache_ms": self.save_file_to_cache_ms,
         }
 
 
@@ -110,6 +119,36 @@ def trace_phase_sync(name: str):
     finally:
         duration_ms = (time.monotonic() - start) * 1000
         trace.set_phase(name, duration_ms)
+
+
+def traced(phase):
+    def _factory(f):
+        @wraps(f)
+        async def wrapper(*args, **kwargs):
+            if PROFILING_ENABLED:
+                async with trace_phase(phase):
+                    return await f(*args, **kwargs)
+            else:
+                return await f(*args, **kwargs)
+
+        return wrapper
+
+    return _factory
+
+
+def traced_sync(phase):
+    def _factory(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            if PROFILING_ENABLED:
+                with trace_phase_sync(phase):
+                    return f(*args, **kwargs)
+            else:
+                return f(*args, **kwargs)
+
+        return wrapper
+
+    return _factory
 
 
 class TraceCollector:
