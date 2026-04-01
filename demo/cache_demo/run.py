@@ -2,9 +2,9 @@
 
 Demonstrates:
 1. Basic caching (sync function, image input)
-2. Prefix caching with scored match_fn + gr.CacheVar (generator, simulated KV cache)
-3. Text-to-speech caching (different modality)
-4. Data analysis caching with custom key function (DataFrame input)
+2. Semantic similarity caching without CacheVar (returns best match directly)
+3. Prefix caching with scored score_fn + gr.CacheVar (generator, chat)
+4. Text-to-speech caching (different modality)
 5. Simulated transformer KV caching with gr.CacheVar
 """
 
@@ -35,7 +35,36 @@ def classify_image(image):
 
 
 # ============================================================
-# Example 2: Prefix caching — streaming chatbot with CacheVar
+# Example 2: Semantic similarity — no CacheVar (returns best match)
+# ============================================================
+
+
+def text_similarity(curr, prev):
+    """Simple word-overlap similarity between two prompts."""
+    curr_words = set(curr["prompt"].lower().split())
+    prev_words = set(prev["prompt"].lower().split())
+    if not curr_words:
+        return 0.0
+    overlap = len(curr_words & prev_words) / len(curr_words | prev_words)
+    return overlap if overlap > 0.5 else 0.0  # floor: ignore weak matches
+
+
+@gr.cache(score_fn=text_similarity)
+def summarize(prompt):
+    """Simulate an expensive summarization model.
+
+    Because there's no CacheVar, a partial match (score between 0 and 1)
+    returns the best matching cached output directly — the function is
+    NOT re-executed. This is ideal for "close enough" semantic caching.
+    """
+    time.sleep(2)
+    # Fake summary based on word count
+    words = prompt.split()
+    return f"Summary ({len(words)} words): {' '.join(words[:5])}..."
+
+
+# ============================================================
+# Example 3: Prefix caching — streaming chatbot with CacheVar
 # ============================================================
 
 RESPONSES = {
@@ -51,8 +80,7 @@ def chat_prefix_scorer(curr, prev):
     curr_hist = curr["history"]
     prev_hist = prev["history"]
     if not curr_hist or len(prev_hist) >= len(curr_hist):
-        return 0.0  # not a proper prefix
-    # Count matching messages from the start
+        return 0.0
     match_len = 0
     for c, p in zip(curr_hist, prev_hist):
         if c == p:
@@ -62,12 +90,12 @@ def chat_prefix_scorer(curr, prev):
     return match_len / len(curr_hist)
 
 
-@gr.cache(match_fn=chat_prefix_scorer)
+@gr.cache(score_fn=chat_prefix_scorer)
 def chat_respond(history, context: gr.CacheVar[str] = None):
     """Streaming chatbot with prefix caching via CacheVar.
 
-    On a partial cache hit, `context` is restored from the best-matching entry,
-    carrying forward the previous conversation context.
+    Because CacheVar is present, a partial match re-executes the function
+    (with context restored) instead of returning cached output directly.
     """
     if not history:
         yield history
@@ -84,10 +112,8 @@ def chat_respond(history, context: gr.CacheVar[str] = None):
     if prev_context:
         response_text = f"[Resumed from cached context] {response_text}"
 
-    # Save conversation context for future prefix matches
     context.set(response_text)
 
-    # Stream the response character by character
     history.append({"role": "assistant", "content": ""})
     for i in range(len(response_text)):
         history[-1]["content"] = response_text[: i + 1]
@@ -96,7 +122,7 @@ def chat_respond(history, context: gr.CacheVar[str] = None):
 
 
 # ============================================================
-# Example 3: Text-to-speech caching (different modality)
+# Example 4: Text-to-speech caching (different modality)
 # ============================================================
 
 
@@ -107,7 +133,7 @@ def text_to_speech(text, speed=1.0):
     In a real app, this would call an expensive TTS API.
     Caching means the same text won't be re-synthesized.
     """
-    time.sleep(2)  # Simulate TTS API latency
+    time.sleep(2)
 
     if not text:
         return None
@@ -134,40 +160,9 @@ def text_to_speech(text, speed=1.0):
 
 
 # ============================================================
-# Example 4: Data analysis caching (DataFrame input)
-# ============================================================
-
-
-@gr.cache(key=lambda kw: kw["operation"])
-def analyze_data(data, operation):
-    """Analyze uploaded CSV data. Cached by operation type.
-
-    The `key` parameter means we only cache based on the operation,
-    not the data — useful when the data is large but the operation
-    is the expensive part.
-    """
-    time.sleep(1.5)
-
-    if data is None or data.empty:
-        return "No data provided."
-
-    if operation == "Summary Statistics":
-        return str(data.describe())
-    elif operation == "Column Types":
-        return str(data.dtypes)
-    elif operation == "Missing Values":
-        missing = data.isnull().sum()
-        return str(missing[missing > 0]) if missing.any() else "No missing values!"
-    elif operation == "Shape":
-        return f"Rows: {data.shape[0]}, Columns: {data.shape[1]}"
-    return "Unknown operation"
-
-
-# ============================================================
 # Example 5: Simulated KV caching for text generation
 # ============================================================
 
-# Simulated "vocabulary" and "model" for demonstration
 VOCAB = list("abcdefghijklmnopqrstuvwxyz .,!?")
 
 
@@ -184,7 +179,7 @@ def kv_prefix_scorer(curr, prev):
     return match_len / len(curr_text)
 
 
-@gr.cache(match_fn=kv_prefix_scorer)
+@gr.cache(score_fn=kv_prefix_scorer)
 def generate_with_kv_cache(
     prompt: str,
     max_tokens: int = 50,
@@ -192,31 +187,27 @@ def generate_with_kv_cache(
 ):
     """Simulate a transformer generating text with KV cache reuse.
 
-    The kv_cache CacheVar stores the simulated key-value states.
-    On a prefix match, the cached KV states are restored so only
-    new tokens need to be "computed".
+    Because CacheVar is present, partial matches re-execute the function
+    with the KV cache restored — only new tokens need to be "computed".
     """
     prev_kv = kv_cache.get({"keys": [], "values": [], "text_so_far": ""})
 
     reused_tokens = len(prev_kv["text_so_far"])
     new_chars = prompt[reused_tokens:]
 
-    # Simulate "computing" KV states for new tokens
     keys = list(prev_kv["keys"])
     values = list(prev_kv["values"])
     for ch in new_chars:
-        time.sleep(0.05)  # Simulate per-token computation
+        time.sleep(0.05)
         keys.append(ord(ch) % 64)
         values.append((ord(ch) * 7) % 64)
 
-    # Simulate generation using the full KV cache
     np.random.seed(sum(keys) % 10000)
     generated = []
     for _ in range(max_tokens):
         idx = np.random.randint(0, len(VOCAB))
         generated.append(VOCAB[idx])
 
-    # Save updated KV cache
     kv_cache.set({"keys": keys, "values": values, "text_so_far": prompt})
 
     status = (
@@ -257,13 +248,31 @@ with gr.Blocks(title="gr.cache() Demo") as demo:
                 outputs=label_output,
             )
 
-        # --- Tab 2: Streaming Chat with Prefix Caching ---
-        with gr.Tab("2. Chat + Prefix Cache"):
+        # --- Tab 2: Semantic Similarity (no CacheVar) ---
+        with gr.Tab("2. Semantic Similarity"):
             gr.Markdown(
-                "### Scored `match_fn` + `gr.CacheVar` — generator\n"
-                "Chat with the bot. The `match_fn` scores how much of "
-                "the current history is a cached prefix. On a partial hit, "
-                "the `gr.CacheVar` restores the previous conversation context.\n\n"
+                "### `score_fn` without `CacheVar` — returns best match\n"
+                "Type a prompt to summarize. Then try a **similar** prompt "
+                "(sharing >50% of words) — the cached output is returned "
+                "directly without re-running the model.\n\n"
+                "Try: **'the quick brown fox'** → then **'the quick brown dog'**"
+            )
+            sim_prompt = gr.Textbox(label="Prompt", value="the quick brown fox")
+            sim_output = gr.Textbox(label="Summary")
+            sim_btn = gr.Button("Summarize")
+            sim_btn.click(
+                fn=summarize,
+                inputs=sim_prompt,
+                outputs=sim_output,
+            )
+
+        # --- Tab 3: Streaming Chat with Prefix Caching ---
+        with gr.Tab("3. Chat + Prefix Cache"):
+            gr.Markdown(
+                "### `score_fn` + `gr.CacheVar` — re-executes with state\n"
+                "Chat with the bot. The `score_fn` scores prefix overlap. "
+                "Because `CacheVar` is present, partial matches re-execute "
+                "the function with the previous context restored.\n\n"
                 "Try: **hello**, then **what is gradio**, then **tell me a joke**"
             )
             chatbot = gr.Chatbot()
@@ -287,8 +296,8 @@ with gr.Blocks(title="gr.cache() Demo") as demo:
                 outputs=chatbot,
             )
 
-        # --- Tab 3: Text-to-Speech ---
-        with gr.Tab("3. Text-to-Speech"):
+        # --- Tab 4: Text-to-Speech ---
+        with gr.Tab("4. Text-to-Speech"):
             gr.Markdown(
                 "### Basic `@gr.cache` — different modality\n"
                 "Type text to synthesize speech. Same text + speed = "
@@ -308,47 +317,13 @@ with gr.Blocks(title="gr.cache() Demo") as demo:
                 outputs=tts_audio,
             )
 
-        # --- Tab 4: Data Analysis ---
-        with gr.Tab("4. DataFrame Analysis"):
-            gr.Markdown(
-                "### `@gr.cache(key=...)` — custom cache key\n"
-                "Cache uses `key=lambda kw: kw['operation']` so only the "
-                "operation type matters — not the data."
-            )
-            df_input = gr.Dataframe(
-                headers=["name", "age", "score"],
-                value=[
-                    ["Alice", 30, 95],
-                    ["Bob", 25, 87],
-                    ["Charlie", 35, 92],
-                ],
-                interactive=True,
-            )
-            operation = gr.Dropdown(
-                choices=[
-                    "Summary Statistics",
-                    "Column Types",
-                    "Missing Values",
-                    "Shape",
-                ],
-                value="Summary Statistics",
-                label="Operation",
-            )
-            analysis_output = gr.Textbox(label="Result", lines=8)
-            analyze_btn = gr.Button("Analyze")
-            analyze_btn.click(
-                fn=analyze_data,
-                inputs=[df_input, operation],
-                outputs=analysis_output,
-            )
-
         # --- Tab 5: Simulated KV Caching ---
         with gr.Tab("5. KV Cache Simulation"):
             gr.Markdown(
-                "### `match_fn` + `gr.CacheVar` — simulated transformer KV cache\n"
-                "Type a prompt and generate. Then **extend** the prompt "
-                "(e.g., add more words) — the KV cache from the prefix is "
-                "reused, so only new tokens are 'computed'.\n\n"
+                "### `score_fn` + `gr.CacheVar` — simulated transformer KV cache\n"
+                "Type a prompt and generate. Then **extend** the prompt — "
+                "the KV cache from the prefix is reused, so only new tokens "
+                "are 'computed'.\n\n"
                 "Try: **'The quick brown'** → then **'The quick brown fox jumps'**"
             )
             kv_prompt = gr.Textbox(

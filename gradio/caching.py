@@ -4,7 +4,7 @@ Provides @gr.cache, a decorator that caches function results with
 content-aware hashing for ML types (numpy arrays, PIL images, DataFrames, etc.).
 
 Supports sync functions, async functions, sync generators, and async generators.
-Optionally supports scored partial matching via a custom match_fn, and typed
+Optionally supports scored partial matching via a custom score_fn, and typed
 cache variables via gr.CacheVar for storing intermediate state (e.g., KV caches).
 """
 
@@ -29,12 +29,17 @@ class CacheVar(Generic[T]):
     Declare as a parameter with a type annotation to have the cache decorator
     automatically create, restore, and save it::
 
-        @gr.cache(match_fn=my_scorer)
+        @gr.cache(score_fn=my_scorer)
         def generate(prompt: str, kv: gr.CacheVar[list] = None):
             prev_kv = kv.get()          # restored from best-matching entry
             result, new_kv = model(prompt, past=prev_kv)
             kv.set(new_kv)              # saved in this entry for future matches
             return result
+
+    The presence of CacheVar parameters affects partial match behavior:
+    when score_fn returns a score between 0 and 1, the function is always
+    re-executed (with CacheVars restored) so it can update its state.
+    Without CacheVar, the best match's cached output is returned directly.
     """
 
     def __init__(self) -> None:
@@ -155,7 +160,8 @@ def _hash_repr(obj: Any) -> str:
 
     raise TypeError(
         f"gr.cache: cannot hash object of type {type(obj).__name__}. "
-        f"Use the `key` parameter to provide a custom cache key function."
+        f"Provide a score_fn that handles this type, or preprocess "
+        f"your inputs into hashable types before passing them."
     )
 
 
@@ -165,7 +171,7 @@ class CacheStore:
     def __init__(self, max_size: int = 128):
         self._max_size = max_size
         self._exact: OrderedDict[str, dict] = OrderedDict()
-        self._entries: list[dict] = []  # for match_fn iteration
+        self._entries: list[dict] = []  # for score_fn iteration
         self._lock = threading.Lock()
 
     def get_exact(self, key_hash: str) -> dict | None:
@@ -178,13 +184,13 @@ class CacheStore:
     def find_best_match(
         self,
         new_kwargs: dict,
-        match_fn: Callable,
+        score_fn: Callable,
     ) -> tuple[dict | None, float]:
         """Find the cache entry with the highest match score.
 
         Args:
             new_kwargs: The current call's kwargs (without CacheVar params).
-            match_fn: Scoring function (curr_kwargs, prev_kwargs) -> float in [0, 1].
+            score_fn: Scoring function (curr_kwargs, prev_kwargs) -> float in [0, 1].
 
         Returns:
             (best_entry, best_score) or (None, 0.0) if no match.
@@ -195,13 +201,13 @@ class CacheStore:
         best_entry = None
         best_score = 0.0
 
-        # Iterate outside the lock — match_fn is user code
+        # Iterate outside the lock — score_fn is user code
         for entry in reversed(entries_snapshot):
-            score = match_fn(new_kwargs, entry["full_kwargs"])
+            score = score_fn(new_kwargs, entry["full_kwargs"])
 
             if score > 1.0:
                 warnings.warn(
-                    f"match_fn returned score {score} > 1.0, clipping to 1.0",
+                    f"score_fn returned score {score} > 1.0, clipping to 1.0",
                     stacklevel=2,
                 )
                 score = 1.0
@@ -315,9 +321,8 @@ def _normalize_kwargs(
 def cache(
     fn: Callable | None = None,
     *,
-    match_fn: Callable | None = None,
+    score_fn: Callable | None = None,
     max_size: int = 128,
-    key: Callable | None = None,
 ):
     """Cache decorator for Gradio functions.
 
@@ -329,16 +334,25 @@ def cache(
 
     Parameters:
         fn: The function to cache (allows use as @gr.cache without parentheses).
-        match_fn: Optional scoring function for partial matching. Called as
-            match_fn(curr_kwargs, prev_kwargs) -> float in [0, 1].
-            0 means no match, 1 means perfect match. The entry with the
-            highest score > 0 is selected. Scores > 1 emit a warning.
-            If a score reaches 1.0, search terminates early.
+        score_fn: Optional scoring function for partial matching. Called as
+            ``score_fn(curr_kwargs, prev_kwargs) -> float`` in [0, 1].
+            0 means no match, 1 means perfect match (early terminates search).
+            The entry with the highest score > 0 is selected.
+
+            How partial matches (0 < score < 1) are handled depends on whether
+            the function has ``gr.CacheVar`` parameters:
+
+            - **Without CacheVar**: the best match's cached output is returned
+              directly (the function is not re-executed). Useful for semantic
+              or perceptual similarity caching.
+            - **With CacheVar**: the function is re-executed with CacheVars
+              restored from the best match, so it can update its state.
+              Useful for prefix/KV caching.
+
+            A score of exactly 1.0 always returns the cached output regardless
+            of CacheVar presence.
         max_size: Maximum number of cache entries. 0 for unlimited.
             Least-recently-used entries are evicted when full. Default: 128.
-        key: Optional function that takes the normalized kwargs dict and returns
-            a hashable cache key. Overrides default content-aware hashing.
-            Useful for ignoring certain inputs (e.g., temperature, seed).
 
     Cache Variables:
         Annotate a parameter with ``gr.CacheVar[T]`` to declare typed
@@ -346,7 +360,7 @@ def cache(
         match, the CacheVar is populated with the value from the best-matching
         entry. After execution, whatever was ``.set()`` is saved::
 
-            @gr.cache(match_fn=lambda curr, prev: ...)
+            @gr.cache(score_fn=lambda curr, prev: ...)
             def generate(prompt: str, kv: gr.CacheVar[list] = None):
                 prev_kv = kv.get()       # None on cold start, restored on match
                 result, new_kv = model(prompt, past=prev_kv)
@@ -354,15 +368,22 @@ def cache(
                 return result
 
     Examples:
-        Basic usage::
+        Basic exact caching::
 
             @gr.cache
             def classify(image):
                 return model.predict(image)
 
-        Scored prefix matching::
+        Semantic similarity (no CacheVar — returns best match directly)::
 
-            @gr.cache(match_fn=lambda curr, prev: (
+            @gr.cache(score_fn=lambda curr, prev:
+                cosine_sim(embed(curr["image"]), embed(prev["image"])))
+            def classify(image):
+                return model.predict(image)
+
+        Prefix caching with CacheVar (re-executes with restored state)::
+
+            @gr.cache(score_fn=lambda curr, prev: (
                 next((i for i, (a, b) in enumerate(zip(curr["text"], prev["text"]))
                       if a != b), min(len(curr["text"]), len(prev["text"])))
                 / len(curr["text"])
@@ -376,11 +397,7 @@ def cache(
     def decorator(func: Callable) -> Callable:
         store = CacheStore(max_size)
         cache_var_params = _detect_cache_var_params(func)
-
-        def _compute_hash(regular_kwargs: dict) -> str:
-            if key is not None:
-                return cache_hash(key(regular_kwargs))
-            return cache_hash(regular_kwargs)
+        has_cache_vars = bool(cache_var_params)
 
         def _build_call_kwargs(
             regular_kwargs: dict,
@@ -405,21 +422,36 @@ def cache(
             return result
 
         def _try_cache(regular_kwargs: dict):
-            """Attempt cache lookup. Returns (entry, is_exact) or (None, False)."""
-            key_hash = _compute_hash(regular_kwargs)
+            """Attempt cache lookup.
+
+            Returns:
+                (entry, should_skip, key_hash) where should_skip means
+                we can return the cached value without running the function.
+
+            Decision logic for should_skip:
+                - Exact hash hit: always skip (identical inputs)
+                - score_fn returns 1.0: always skip (declared equivalent)
+                - score_fn returns (0, 1): skip if NO CacheVar, run if CacheVar
+                - score_fn returns 0 / no match: run (cold start)
+            """
+            key_hash = cache_hash(regular_kwargs)
 
             # Stage 1: Exact hash match (O(1))
             entry = store.get_exact(key_hash)
             if entry is not None:
                 return entry, True, key_hash
 
-            # Stage 2: Scored partial match (if match_fn provided)
-            if match_fn is not None:
+            # Stage 2: Scored partial match
+            if score_fn is not None:
                 best_entry, best_score = store.find_best_match(
-                    regular_kwargs, match_fn
+                    regular_kwargs, score_fn
                 )
                 if best_entry is not None and best_score > 0:
-                    return best_entry, (best_score >= 1.0), key_hash
+                    if best_score >= 1.0:
+                        # Perfect score: always return cached
+                        return best_entry, True, key_hash
+                    # Partial score: skip function only if no CacheVars
+                    return best_entry, not has_cache_vars, key_hash
 
             return None, False, key_hash
 
@@ -430,10 +462,9 @@ def cache(
                 regular, _ = _normalize_kwargs(
                     func, args, kwargs, cache_var_params
                 )
-                entry, is_exact, key_hash = _try_cache(regular)
+                entry, should_skip, key_hash = _try_cache(regular)
 
-                # Exact hit: yield final value and stop
-                if entry is not None and is_exact:
+                if entry is not None and should_skip:
                     yield entry["final_value"]
                     return
 
@@ -466,9 +497,9 @@ def cache(
                 regular, _ = _normalize_kwargs(
                     func, args, kwargs, cache_var_params
                 )
-                entry, is_exact, key_hash = _try_cache(regular)
+                entry, should_skip, key_hash = _try_cache(regular)
 
-                if entry is not None and is_exact:
+                if entry is not None and should_skip:
                     yield entry["final_value"]
                     return
 
@@ -500,9 +531,9 @@ def cache(
                 regular, _ = _normalize_kwargs(
                     func, args, kwargs, cache_var_params
                 )
-                entry, is_exact, key_hash = _try_cache(regular)
+                entry, should_skip, key_hash = _try_cache(regular)
 
-                if entry is not None and is_exact:
+                if entry is not None and should_skip:
                     return entry["final_value"]
 
                 cache_var_values = (
@@ -529,9 +560,9 @@ def cache(
                 regular, _ = _normalize_kwargs(
                     func, args, kwargs, cache_var_params
                 )
-                entry, is_exact, key_hash = _try_cache(regular)
+                entry, should_skip, key_hash = _try_cache(regular)
 
-                if entry is not None and is_exact:
+                if entry is not None and should_skip:
                     return entry["final_value"]
 
                 cache_var_values = (

@@ -2,7 +2,7 @@
 
 ML inference is often expensive — image classification, text generation, and audio synthesis can each take seconds or more. If a user submits the same inputs twice, there's no reason to re-run the model. Gradio provides a `@gr.cache` decorator that caches function results with content-aware hashing, so identical inputs return instantly.
 
-Unlike Python's built-in `functools.lru_cache`, `@gr.cache` works with the types you actually use in Gradio: numpy arrays, PIL images, pandas DataFrames, and other unhashable objects. It also handles generators (streaming), async functions, and advanced patterns like prefix caching.
+Unlike Python's built-in `functools.lru_cache`, `@gr.cache` works with the types you actually use in Gradio: numpy arrays, PIL images, pandas DataFrames, and other unhashable objects. It also handles generators (streaming), async functions, and advanced patterns like prefix caching and semantic similarity matching.
 
 There are three levels of caching you can use, depending on your needs.
 
@@ -51,21 +51,14 @@ async def transcribe(audio):
 
 ### Configuration
 
-You can configure the cache size and provide a custom key function:
+You can configure the cache size:
 
 ```python
 # Limit cache to 64 entries (LRU eviction)
 @gr.cache(max_size=64)
 def generate(prompt):
     return model(prompt)
-
-# Only cache based on certain inputs (ignore temperature and seed)
-@gr.cache(key=lambda kw: kw["prompt"])
-def generate(prompt, temperature=0.7, seed=42):
-    return model(prompt, temperature=temperature, seed=seed)
 ```
-
-The `key` parameter receives the normalized kwargs dict and returns a hashable cache key. This is useful when some inputs (like random seeds or sampling parameters) shouldn't affect cache lookup.
 
 Every cached function exposes its cache store via `fn.cache`, so you can inspect or clear it:
 
@@ -74,64 +67,92 @@ generate.cache.clear()
 print(len(generate.cache))  # number of cached entries
 ```
 
-## Level 2: Scored Matching with `match_fn`
+## Level 2: Scored Matching with `score_fn`
 
-Basic caching only helps with **exact** input matches. But in many ML applications, inputs are *similar* across calls — for example, a chatbot where each message appends to the conversation history. The `match_fn` parameter lets you define a scoring function that finds the **best** partial match in the cache.
+Basic caching only helps with **exact** input matches. But in many ML applications, inputs are *similar* across calls. The `score_fn` parameter lets you define a scoring function that finds the **best** partial match in the cache.
 
-A `match_fn` takes two arguments — the current call's kwargs and a previous cached entry's kwargs — and returns a float between 0 and 1:
+A `score_fn` takes two arguments — the current call's kwargs and a previously cached entry's kwargs — and returns a float between 0 and 1:
 
-- **0** means no match
-- **1** means perfect match (early terminates the search)
+- **0** means no match (cold start — function runs from scratch)
+- **1** means perfect match (early terminates the search, returns cached output)
 - Values in between represent partial matches; the highest score wins
 
-```python
-def prefix_scorer(curr, prev):
-    """Score = fraction of current history covered by cached prefix."""
-    curr_hist = curr["history"]
-    prev_hist = prev["history"]
-    if not curr_hist or len(prev_hist) >= len(curr_hist):
-        return 0.0
-    match_len = 0
-    for c, p in zip(curr_hist, prev_hist):
-        if c == p:
-            match_len += 1
-        else:
-            break
-    return match_len / len(curr_hist)
+**How partial matches (scores between 0 and 1) behave depends on whether the function has `gr.CacheVar` parameters** (covered in Level 3):
 
-@gr.cache(match_fn=prefix_scorer)
-def respond(history):
-    # On a partial match, this function still runs — but see Level 3
-    # for how to actually *use* the cached state
-    return call_llm(history)
+- **Without `CacheVar`**: the best match's cached output is returned directly — the function is NOT re-executed. This is ideal for semantic or perceptual similarity caching, where "close enough" inputs should return the same result.
+- **With `CacheVar`**: the function IS re-executed, with CacheVars restored from the best match. This is needed for stateful patterns like prefix/KV caching where the function must process the new inputs using prior state.
+
+### Similarity caching (without `CacheVar`)
+
+This is useful when similar inputs should return the same cached result:
+
+```python
+def image_similarity(curr, prev):
+    """Score using cosine similarity of image embeddings."""
+    sim = cosine_similarity(embed(curr["image"]), embed(prev["image"]))
+    return sim if sim > 0.9 else 0.0  # ignore weak matches
+
+@gr.cache(score_fn=image_similarity)
+def classify(image):
+    return model.predict(image)
+```
+
+With this setup, if a user uploads an image that's 95% similar to a previously classified one, the cached result is returned instantly without re-running the model. The `score_fn` controls the threshold — return 0 for anything you don't consider a valid match.
+
+Here's a simpler example with text similarity:
+
+```python
+def text_similarity(curr, prev):
+    curr_words = set(curr["prompt"].lower().split())
+    prev_words = set(prev["prompt"].lower().split())
+    if not curr_words:
+        return 0.0
+    overlap = len(curr_words & prev_words) / len(curr_words | prev_words)
+    return overlap if overlap > 0.5 else 0.0
+
+@gr.cache(score_fn=text_similarity)
+def summarize(prompt):
+    time.sleep(5)  # expensive summarization
+    return model.summarize(prompt)
+
+# "the quick brown fox" and "the quick brown dog" share enough words
+# that the second call returns the cached summary instantly.
 ```
 
 The scoring approach is general. You can use it for:
 
-- **Prefix matching**: score = length of matching prefix / total length
-- **Similarity search**: score = cosine similarity of embeddings (clipped to [0, 1])
+- **Perceptual similarity**: score = cosine similarity of CLIP embeddings
+- **Text overlap**: score = Jaccard similarity of word sets
 - **Fuzzy matching**: score = edit distance ratio
 
-Note that when a `match_fn` is provided, exact hash matches (score = 1.0) are still checked first in O(1) time. The scored search only runs on a hash miss.
+Note that when a `score_fn` is provided, exact hash matches are still checked first in O(1) time. The scored search only runs on a hash miss.
 
 ## Level 3: Stateful Caching with `gr.CacheVar`
 
-Scored matching tells you *which* cached entry is closest, but how do you actually use the cached intermediate state? That's what `gr.CacheVar` is for.
+Scored matching without `CacheVar` returns cached output directly — but what if the function needs to **run** using prior state? That's what `gr.CacheVar` is for.
 
-`gr.CacheVar[T]` is a typed cache variable — like `contextvars.ContextVar` but for cache entries. Declare it as a parameter in your function, and the decorator will automatically:
+`gr.CacheVar[T]` is a typed cache variable — inspired by Python's `contextvars.ContextVar`. Declare it as a parameter in your function, and the decorator will automatically:
 
 1. Create a fresh `CacheVar` instance for each call
 2. On a partial match, **restore** the value from the best-matching cache entry
 3. After execution, **save** whatever was `.set()` into the new cache entry
 
+Because `CacheVar` signals that the function has state it needs to update, partial matches (scores between 0 and 1) always **re-execute the function** rather than returning cached output.
+
 ```python
-@gr.cache(match_fn=prefix_scorer)
+def prefix_scorer(curr, prev):
+    """Score by chat history prefix overlap."""
+    curr_hist, prev_hist = curr["history"], prev["history"]
+    if not curr_hist or len(prev_hist) >= len(curr_hist):
+        return 0.0
+    match_len = sum(1 for c, p in zip(curr_hist, prev_hist) if c == p)
+    return match_len / len(curr_hist)
+
+@gr.cache(score_fn=prefix_scorer)
 def respond(history, context: gr.CacheVar[str] = None):
     prev_context = context.get("")  # "" on cold start, restored on match
-
     response = call_llm(history, previous_context=prev_context)
     context.set(response)  # saved for future matches
-
     return response
 ```
 
@@ -151,7 +172,7 @@ def kv_scorer(curr, prev):
     )
     return match_len / len(curr_text)
 
-@gr.cache(match_fn=kv_scorer)
+@gr.cache(score_fn=kv_scorer)
 def generate(prompt: str, kv_cache: gr.CacheVar[tuple] = None):
     past_key_values = kv_cache.get()  # None on cold start
 
@@ -170,10 +191,12 @@ With this setup:
 2. `generate("The quick brown")` — exact hash hit, returns cached result instantly
 3. `generate("The quick brown fox jumps")` — prefix match (score ~0.6), restores KV cache from step 1, only computes KV states for " fox jumps"
 
+### Multiple CacheVars
+
 You can use multiple `CacheVar` parameters in a single function, and they are tracked independently:
 
 ```python
-@gr.cache(match_fn=my_scorer)
+@gr.cache(score_fn=my_scorer)
 def process(
     data,
     embeddings: gr.CacheVar[np.ndarray] = None,
@@ -187,3 +210,11 @@ def process(
 ```
 
 `CacheVar` parameters are automatically excluded from the cache key — only your regular inputs determine cache lookup.
+
+## Summary
+
+| Level | Parameters | Partial match behavior | Use case |
+|-------|-----------|----------------------|----------|
+| 1 | `@gr.cache` | N/A (exact match only) | Basic memoization |
+| 2 | `score_fn` (no `CacheVar`) | Returns best match's output | Similarity / fuzzy caching |
+| 3 | `score_fn` + `CacheVar` | Re-executes with restored state | Prefix / KV caching |
