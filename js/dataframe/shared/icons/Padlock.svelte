@@ -1,8 +1,12 @@
+<script lang="ts">
+	let { size = 16 } = $props();
+</script>
+
 <div class="wrapper" aria-label="Static column">
 	<svg
 		xmlns="http://www.w3.org/2000/svg"
-		width="13"
-		height="13"
+		width={size}
+		height={size}
 		viewBox="0 0 24 24"
 		fill="none"
 		stroke="currentColor"

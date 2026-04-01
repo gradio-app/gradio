@@ -1,128 +1,129 @@
-<svelte:options accessors={true} />
-
-<script context="module" lang="ts">
+<script module lang="ts">
 	export { default as BaseDataFrame } from "./shared/Table.svelte";
 	export { default as BaseExample } from "./Example.svelte";
 </script>
 
 <script lang="ts">
-	import type { SharedProps } from "@gradio/utils";
+	import { tick } from "svelte";
+	import Table from "./shared/Table.svelte";
+	import StatusTracker from "@gradio/statustracker";
+	import { Block } from "@gradio/atoms";
 	import { Gradio } from "@gradio/utils";
-
 	import type { DataframeProps, DataframeEvents } from "./types";
 	import { dequal } from "dequal";
-	import { onMount } from "svelte";
-	import DF from "@gradio/dataframe-interim";
-	import "@gradio/dataframe-interim/css";
 
-	let prev_data: any = null;
+	let _props = $props();
+	const gradio = new Gradio<DataframeEvents, DataframeProps>(_props);
 
-	let changed = false;
+	let fullscreen = $state(gradio.props.fullscreen ?? false);
 
-	class DataframeGradio extends Gradio<DataframeEvents, DataframeProps> {
-		async set_data(data: Partial<DataframeProps & SharedProps>): Promise<void> {
-			if (data.value) {
-				changed = true;
-			}
+	// align datatype array to current value headers using the original
+	// config-time header→datatype mapping.
+	// when columns are hidden or reordered, positional indices shift but
+	// the datatype prop doesn't update, the map keeps them synced
+	let aligned_datatype = $derived.by(() => {
+		const dt = gradio.props.datatype;
+		if (!Array.isArray(dt)) return dt;
 
-			super.set_data(data);
-			if (data.value && dequal(data.value, JSON.parse(prev_data)) === false) {
-				// this.dispatch("change");
-				prev_data = JSON.stringify(data.value);
-			}
+		const config_headers: string[] | undefined = (gradio.props as any).headers;
+		const current_headers = gradio.props.value?.headers;
+		if (!config_headers || !current_headers) return dt;
+
+		const map = new Map<string, string>();
+		for (let i = 0; i < Math.min(config_headers.length, dt.length); i++) {
+			map.set(config_headers[i], dt[i]);
+		}
+		return current_headers.map(
+			(h: string, i: number) => map.get(h) ?? dt[i] ?? "str"
+		);
+	});
+
+	let old_value = $state(
+		gradio.props.value ? JSON.stringify(gradio.props.value) : null
+	);
+
+	function handle_change(detail: any): void {
+		gradio.props.value = detail;
+		const serialized = JSON.stringify(detail);
+		if (serialized !== old_value) {
+			old_value = serialized;
+			gradio.dispatch("change", detail);
 		}
 	}
 
-	let props = $props();
-	let gradio = new DataframeGradio(props);
-	let el: HTMLDivElement;
-	let Component: typeof DF | null = null;
-	onMount(() => {
-		Component = new DF({
-			target: el,
-			props: {
-				elem_id: gradio.shared.elem_id,
-				elem_classes: gradio.shared.elem_classes,
-				visible: gradio.shared.visible,
-				value: gradio.props.value,
+	function handle_input(): void {
+		gradio.dispatch("input");
+	}
 
-				col_count: gradio.props.col_count,
-				row_count: gradio.props.row_count,
-				label: gradio.shared.label,
-				show_label: gradio.shared.show_label,
-				wrap: gradio.props.wrap,
-				datatype: gradio.props.datatype,
-				scale: gradio.shared.scale,
-				min_width: gradio.shared.min_width,
-				root: gradio.shared.root,
-				line_breaks: gradio.props.line_breaks,
-				column_widths: gradio.props.column_widths,
-				gradio: compat_gradio,
-				latex_delimiters: gradio.props.latex_delimiters,
-				max_height: gradio.props.max_height,
-				loading_status: gradio.shared.loading_status,
-				interactive: gradio.shared.interactive,
-				buttons: gradio.props.buttons,
-				max_chars: gradio.props.max_chars,
-				show_row_numbers: gradio.props.show_row_numbers,
-				show_search: gradio.props.show_search,
-				pinned_columns: gradio.props.pinned_columns,
-				static_columns: gradio.props.static_columns,
-				fullscreen: gradio.props.fullscreen,
-				show_copy_button:
-					gradio.props.buttons && gradio.props.buttons.includes("copy"),
-				show_fullscreen_button:
-					gradio.props.buttons && gradio.props.buttons.includes("fullscreen")
-			}
-		});
-	});
+	function handle_select(detail: any): void {
+		gradio.dispatch("select", detail);
+	}
 
-	const compat_gradio = {
-		i18n: gradio.i18n,
-		client: gradio.shared.client,
-		dispatch(name: keyof DataframeEvents, detail?: any) {
-			if (name === "input" && changed) {
-				changed = false;
-				return;
-			}
-			gradio.dispatch(name, detail);
-		},
-		autoscroll: gradio.shared.autoscroll
-	};
+	function handle_edit(detail: any): void {
+		gradio.dispatch("edit", detail);
+	}
+
 	$effect(() => {
-		if (Component) {
-			Component.$set({
-				elem_id: gradio.shared.elem_id,
-				elem_classes: gradio.shared.elem_classes,
-				visible: gradio.shared.visible,
-				value: gradio.props.value,
-
-				col_count: gradio.props.col_count,
-				row_count: gradio.props.row_count,
-				label: gradio.shared.label,
-				show_label: gradio.shared.show_label,
-				wrap: gradio.props.wrap,
-				datatype: gradio.props.datatype,
-				scale: gradio.shared.scale,
-				min_width: gradio.shared.min_width,
-				root: gradio.shared.root,
-				line_breaks: gradio.props.line_breaks,
-				column_widths: gradio.props.column_widths,
-				gradio: compat_gradio,
-				latex_delimiters: gradio.props.latex_delimiters,
-				max_height: gradio.props.max_height,
-				loading_status: gradio.shared.loading_status,
-				interactive: gradio.shared.interactive,
-				buttons: gradio.props.buttons,
-				max_chars: gradio.props.max_chars,
-				show_row_numbers: gradio.props.show_row_numbers,
-				show_search: gradio.props.show_search,
-				pinned_columns: gradio.props.pinned_columns,
-				static_columns: gradio.props.static_columns,
-				fullscreen: gradio.props.fullscreen
-			});
+		const v = gradio.props.value;
+		if (v) {
+			const serialized = JSON.stringify(v);
+			if (serialized !== old_value) {
+				old_value = serialized;
+				gradio.dispatch("change", v);
+			}
 		}
 	});
 </script>
 
-<div bind:this={el} />
+<Block
+	visible={gradio.shared.visible}
+	elem_id={gradio.shared.elem_id}
+	elem_classes={gradio.shared.elem_classes}
+	scale={gradio.shared.scale}
+	min_width={gradio.shared.min_width}
+	padding={false}
+	container={false}
+	overflow_behavior="visible"
+	{fullscreen}
+>
+	<StatusTracker
+		autoscroll={gradio.shared.autoscroll}
+		i18n={gradio.i18n}
+		{...gradio.shared.loading_status}
+	/>
+	<Table
+		headers={gradio.props.value?.headers ?? []}
+		values={gradio.props.value?.data ?? []}
+		display_value={gradio.props.value?.metadata?.display_value ?? null}
+		styling={gradio.props.value?.metadata?.styling ?? null}
+		col_count={gradio.props.col_count}
+		row_count={gradio.props.row_count}
+		label={gradio.shared.label}
+		show_label={gradio.shared.show_label}
+		wrap={gradio.props.wrap}
+		datatype={aligned_datatype}
+		latex_delimiters={gradio.props.latex_delimiters}
+		max_height={gradio.props.max_height}
+		editable={gradio.shared.interactive ?? true}
+		line_breaks={gradio.props.line_breaks}
+		column_widths={gradio.props.column_widths ?? []}
+		root={gradio.shared.root}
+		i18n={gradio.i18n}
+		upload={gradio.shared.client?.upload}
+		stream_handler={gradio.shared.client?.stream}
+		buttons={gradio.props.buttons}
+		max_chars={gradio.props.max_chars}
+		show_row_numbers={gradio.props.show_row_numbers}
+		show_search={gradio.props.show_search}
+		pinned_columns={gradio.props.pinned_columns}
+		static_columns={gradio.props.static_columns ?? []}
+		{fullscreen}
+		onfullscreen={() => {
+			fullscreen = !fullscreen;
+		}}
+		onchange={handle_change}
+		oninput={handle_input}
+		onselect={handle_select}
+		onedit={handle_edit}
+	/>
+</Block>

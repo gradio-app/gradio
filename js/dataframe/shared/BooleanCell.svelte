@@ -1,13 +1,19 @@
 <script lang="ts">
 	import { BaseCheckbox } from "@gradio/checkbox";
 
-	export let value = false;
-	export let editable = true;
-	export let on_change: (value: boolean) => void;
+	let {
+		value = $bindable(false),
+		editable = true,
+		on_change
+	}: {
+		value?: boolean;
+		editable?: boolean;
+		on_change: (value: boolean) => void;
+	} = $props();
 
-	function handle_change(event: CustomEvent<boolean>): void {
+	function handle_change(val: boolean): void {
 		if (editable) {
-			on_change(event.detail);
+			on_change(val);
 		}
 	}
 </script>
@@ -17,7 +23,7 @@
 		bind:value
 		label=""
 		interactive={editable}
-		on:change={handle_change}
+		on_change={handle_change}
 	/>
 </div>
 
