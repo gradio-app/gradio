@@ -19,7 +19,7 @@
 	<span>
 		<Icon />
 	</span>
-	{label}
+	{typeof label === "string" ? label : label?.toString?.() ?? ""}
 </label>
 
 <style>
