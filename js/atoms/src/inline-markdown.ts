@@ -1,10 +1,12 @@
-/**
- * Lightweight inline markdown renderer for short descriptive text (e.g. component info).
- * Supports: bold, italic, inline code, links, and line breaks.
- * No block-level elements, no heavy dependencies.
- */
+export const INLINE_CODE_RE = /`([^`]+)`/g;
+export const LINK_RE = /\[([^\]]+)\]\(([^)]+)\)/g;
+export const BOLD_ASTERISK_RE = /\*\*(.+?)\*\*/g;
+export const BOLD_UNDERSCORE_RE = /__(.+?)__/g;
+export const ITALIC_ASTERISK_RE = /\*(.+?)\*/g;
+export const ITALIC_UNDERSCORE_RE = /(?<!\w)_(.+?)_(?!\w)/g;
+export const PROTOCOL_RE = /^\w+:/;
 
-function escape_html(text: string): string {
+export function escape_html(text: string): string {
 	return text
 		.replace(/&/g, "&amp;")
 		.replace(/</g, "&lt;")
@@ -12,27 +14,26 @@ function escape_html(text: string): string {
 		.replace(/"/g, "&quot;");
 }
 
+function render_link(_match: string, text: string, url: string): string {
+	const trimmed = url.trim();
+	if (PROTOCOL_RE.test(trimmed)) {
+		if (/^https?:/i.test(trimmed)) {
+			return `<a href="${trimmed}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+		}
+		return text;
+	}
+	return `<a href="${trimmed}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+}
+
 export function render_inline_markdown(text: string): string {
 	let result = escape_html(text);
 
-	// inline code (must come before bold/italic to avoid conflicts)
-	result = result.replace(/`([^`]+)`/g, "<code>$1</code>");
-
-	// links [text](url)
-	result = result.replace(
-		/\[([^\]]+)\]\(([^)]+)\)/g,
-		'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
-	);
-
-	// bold **text** or __text__
-	result = result.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-	result = result.replace(/__(.+?)__/g, "<strong>$1</strong>");
-
-	// italic *text* or _text_
-	result = result.replace(/\*(.+?)\*/g, "<em>$1</em>");
-	result = result.replace(/(?<!\w)_(.+?)_(?!\w)/g, "<em>$1</em>");
-
-	// line breaks
+	result = result.replace(INLINE_CODE_RE, "<code>$1</code>");
+	result = result.replace(LINK_RE, render_link);
+	result = result.replace(BOLD_ASTERISK_RE, "<strong>$1</strong>");
+	result = result.replace(BOLD_UNDERSCORE_RE, "<strong>$1</strong>");
+	result = result.replace(ITALIC_ASTERISK_RE, "<em>$1</em>");
+	result = result.replace(ITALIC_UNDERSCORE_RE, "<em>$1</em>");
 	result = result.replace(/\n/g, "<br>");
 
 	return result;
