@@ -228,14 +228,18 @@
 		}
 	}
 
-	$effect(() => {
+$effect(() => {
 		if (selected_index !== old_selected_index) {
 			old_selected_index = selected_index;
 			if (selected_index !== null) {
 				if (resolved_value != null) {
+					// FIX: Use actual 'value' length if available to prevent 
+					// clamping to old array length during simultaneous updates.
+					const current_length = value ? value.length : resolved_value.length;
+					
 					selected_index = Math.max(
 						0,
-						Math.min(selected_index, resolved_value.length - 1)
+						Math.min(selected_index, current_length - 1)
 					);
 				}
 				onselect({
