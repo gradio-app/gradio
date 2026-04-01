@@ -1,0 +1,63 @@
+{
+  "app": "scripts/benchmark/apps/streaming_chat.py",
+  "timestamp": "20260325_133447",
+  "tiers": [
+    {
+      "tier": 1,
+      "requests_per_user": 3,
+      "total_requests": 3,
+      "elapsed_seconds": 0.04769033403135836,
+      "client_summary": {
+        "count": 3,
+        "success_count": 3,
+        "success_rate": 1.0,
+        "p50": 7.170042023062706,
+        "p90": 7.33527559787035,
+        "p95": 7.355929794721305,
+        "p99": 7.37245315220207,
+        "mean": 6.898055978429814,
+        "min": 6.147541920654476,
+        "max": 7.376583991572261
+      },
+      "server_summary": {}
+    },
+    {
+      "tier": 10,
+      "requests_per_user": 3,
+      "total_requests": 30,
+      "elapsed_seconds": 0.11005891708191484,
+      "client_summary": {
+        "count": 30,
+        "success_count": 30,
+        "success_rate": 1.0,
+        "p50": 22.183583467267454,
+        "p90": 25.854203943163157,
+        "p95": 26.665100175887346,
+        "p99": 27.801535128382966,
+        "mean": 22.50668336637318,
+        "min": 18.262082943692803,
+        "max": 28.18983292672783
+      },
+      "server_summary": {}
+    },
+    {
+      "tier": 100,
+      "requests_per_user": 3,
+      "total_requests": 300,
+      "elapsed_seconds": 0.9034492919454351,
+      "client_summary": {
+        "count": 300,
+        "success_count": 300,
+        "success_rate": 1.0,
+        "p50": 223.69458351749927,
+        "p90": 271.56624228227884,
+        "p95": 276.58347949036397,
+        "p99": 283.62482657423243,
+        "mean": 214.13473571495464,
+        "min": 98.48791698459536,
+        "max": 285.1391660515219
+      },
+      "server_summary": {}
+    }
+  ]
+}

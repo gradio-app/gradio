@@ -1,0 +1,63 @@
+{
+  "app": "scripts/benchmark/apps/stateful_counter.py",
+  "timestamp": "20260325_133446",
+  "tiers": [
+    {
+      "tier": 1,
+      "requests_per_user": 3,
+      "total_requests": 3,
+      "elapsed_seconds": 0.06986341695301235,
+      "client_summary": {
+        "count": 3,
+        "success_count": 3,
+        "success_rate": 1.0,
+        "p50": 10.314124985598028,
+        "p90": 11.210491391830146,
+        "p95": 11.322537192609161,
+        "p99": 11.412173833232373,
+        "mean": 9.582249641728898,
+        "min": 6.99804094620049,
+        "max": 11.434582993388176
+      },
+      "server_summary": {}
+    },
+    {
+      "tier": 10,
+      "requests_per_user": 3,
+      "total_requests": 30,
+      "elapsed_seconds": 0.10900266608223319,
+      "client_summary": {
+        "count": 30,
+        "success_count": 30,
+        "success_rate": 1.0,
+        "p50": 22.06475002458319,
+        "p90": 26.509349688421935,
+        "p95": 27.3933524324093,
+        "p99": 29.154900391586125,
+        "mean": 21.936827808773767,
+        "min": 16.27550006378442,
+        "max": 29.777916963212192
+      },
+      "server_summary": {}
+    },
+    {
+      "tier": 100,
+      "requests_per_user": 3,
+      "total_requests": 300,
+      "elapsed_seconds": 0.8983402079902589,
+      "client_summary": {
+        "count": 300,
+        "success_count": 300,
+        "success_rate": 1.0,
+        "p50": 222.56693796953186,
+        "p90": 272.7800045046024,
+        "p95": 278.56883757631294,
+        "p99": 286.06794835533947,
+        "mean": 213.19011816599718,
+        "min": 96.64412494748831,
+        "max": 288.44491695053875
+      },
+      "server_summary": {}
+    }
+  ]
+}
