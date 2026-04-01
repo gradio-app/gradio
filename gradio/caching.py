@@ -14,11 +14,14 @@ import functools
 import hashlib
 import inspect
 import threading
+import typing
 import warnings
 from collections import OrderedDict
-from typing import Any, Callable, Generic, TypeVar
+from collections.abc import Callable
+from typing import Any, Generic, TypeVar, overload
 
 T = TypeVar("T")
+U = TypeVar("U")
 
 _MISSING = object()
 
@@ -30,7 +33,7 @@ class CacheVar(Generic[T]):
     automatically create, restore, and save it::
 
         @gr.cache(score_fn=my_scorer)
-        def generate(prompt: str, kv: gr.CacheVar[list] = None):
+        def generate(prompt: str, kv: gr.CacheVar[list] | None = None):
             prev_kv = kv.get()          # restored from best-matching entry
             result, new_kv = model(prompt, past=prev_kv)
             kv.set(new_kv)              # saved in this entry for future matches
@@ -45,7 +48,13 @@ class CacheVar(Generic[T]):
     def __init__(self) -> None:
         self._value: Any = _MISSING
 
-    def get(self, default: T | None = None) -> T | None:
+    @overload
+    def get(self) -> T | None: ...
+
+    @overload
+    def get(self, default: U) -> T | U: ...
+
+    def get(self, default: U | None = None) -> T | U | None:
         """Get the cached value, or default if no cached value exists."""
         if self._value is _MISSING:
             return default
@@ -124,7 +133,8 @@ def _hash_repr(obj: Any) -> str:
         if isinstance(obj, pd.DataFrame):
             col_hash = _hash_repr(list(obj.columns))
             val_hash = hashlib.sha256(obj.values.tobytes()).hexdigest()
-            return f"DF({col_hash},{val_hash})"
+            idx_hash = hashlib.sha256(obj.index.to_numpy().tobytes()).hexdigest()
+            return f"DF({col_hash},{val_hash},{idx_hash})"
     except ImportError:
         pass
 
@@ -144,7 +154,8 @@ def _hash_repr(obj: Any) -> str:
         if isinstance(obj, pd.Series):
             name_hash = _hash_repr(obj.name)
             val_hash = hashlib.sha256(obj.values.tobytes()).hexdigest()
-            return f"Series({name_hash},{val_hash})"
+            idx_hash = hashlib.sha256(obj.index.to_numpy().tobytes()).hexdigest()
+            return f"Series({name_hash},{val_hash},{idx_hash})"
     except ImportError:
         pass
 
@@ -247,9 +258,7 @@ class CacheStore:
             if key_hash in self._exact:
                 self._exact.move_to_end(key_hash)
                 self._exact[key_hash] = entry
-                self._entries = [
-                    e for e in self._entries if e["hash"] != key_hash
-                ]
+                self._entries = [e for e in self._entries if e["hash"] != key_hash]
                 self._entries.append(entry)
             else:
                 if self._max_size > 0 and len(self._exact) >= self._max_size:
@@ -270,21 +279,30 @@ class CacheStore:
             return len(self._exact)
 
 
+def _is_cache_var_annotation(annotation: Any) -> bool:
+    if annotation is CacheVar or getattr(annotation, "__origin__", None) is CacheVar:
+        return True
+
+    origin = typing.get_origin(annotation)
+    if origin is None:
+        return False
+
+    return any(_is_cache_var_annotation(arg) for arg in typing.get_args(annotation))
+
+
 def _detect_cache_var_params(func: Callable) -> set[str]:
     """Detect parameters annotated as CacheVar or with CacheVar default."""
     cache_var_names = set()
     sig = inspect.signature(func)
-    hints = getattr(func, "__annotations__", {})
+    try:
+        hints = typing.get_type_hints(func, include_extras=True)
+    except Exception:
+        hints = getattr(func, "__annotations__", {})
 
     for name, param in sig.parameters.items():
         annotation = hints.get(name)
         # Check annotation: CacheVar or CacheVar[T]
-        if annotation is CacheVar:
-            cache_var_names.add(name)
-        elif getattr(annotation, "__origin__", None) is CacheVar:
-            cache_var_names.add(name)
-        # Also check if the default is a CacheVar instance
-        elif isinstance(param.default, CacheVar):
+        if _is_cache_var_annotation(annotation) or isinstance(param.default, CacheVar):
             cache_var_names.add(name)
 
     return cache_var_names
@@ -361,7 +379,7 @@ def cache(
         entry. After execution, whatever was ``.set()`` is saved::
 
             @gr.cache(score_fn=lambda curr, prev: ...)
-            def generate(prompt: str, kv: gr.CacheVar[list] = None):
+            def generate(prompt: str, kv: gr.CacheVar[list] | None = None):
                 prev_kv = kv.get()       # None on cold start, restored on match
                 result, new_kv = model(prompt, past=prev_kv)
                 kv.set(new_kv)           # saved for future matches
@@ -388,7 +406,7 @@ def cache(
                       if a != b), min(len(curr["text"]), len(prev["text"])))
                 / len(curr["text"])
             ) if curr["text"] else 0.0)
-            def generate(text: str, kv: gr.CacheVar[tuple] = None):
+            def generate(text: str, kv: gr.CacheVar[tuple] | None = None):
                 result = model(text, past_key_values=kv.get())
                 kv.set(model.past_key_values)
                 return result
@@ -443,9 +461,7 @@ def cache(
 
             # Stage 2: Scored partial match
             if score_fn is not None:
-                best_entry, best_score = store.find_best_match(
-                    regular_kwargs, score_fn
-                )
+                best_entry, best_score = store.find_best_match(regular_kwargs, score_fn)
                 if best_entry is not None and best_score > 0:
                     if best_score >= 1.0:
                         # Perfect score: always return cached
@@ -459,9 +475,7 @@ def cache(
 
             @functools.wraps(func)
             def sync_gen_wrapper(*args, **kwargs):
-                regular, _ = _normalize_kwargs(
-                    func, args, kwargs, cache_var_params
-                )
+                regular, _ = _normalize_kwargs(func, args, kwargs, cache_var_params)
                 entry, should_skip, key_hash = _try_cache(regular)
 
                 if entry is not None and should_skip:
@@ -469,9 +483,7 @@ def cache(
                     return
 
                 # Partial hit or cold start: execute with CacheVars
-                cache_var_values = (
-                    entry["cache_vars"] if entry is not None else None
-                )
+                cache_var_values = entry["cache_vars"] if entry is not None else None
                 call_kwargs = _build_call_kwargs(regular, cache_var_values)
 
                 final_value = None
@@ -494,18 +506,14 @@ def cache(
 
             @functools.wraps(func)
             async def async_gen_wrapper(*args, **kwargs):
-                regular, _ = _normalize_kwargs(
-                    func, args, kwargs, cache_var_params
-                )
+                regular, _ = _normalize_kwargs(func, args, kwargs, cache_var_params)
                 entry, should_skip, key_hash = _try_cache(regular)
 
                 if entry is not None and should_skip:
                     yield entry["final_value"]
                     return
 
-                cache_var_values = (
-                    entry["cache_vars"] if entry is not None else None
-                )
+                cache_var_values = entry["cache_vars"] if entry is not None else None
                 call_kwargs = _build_call_kwargs(regular, cache_var_values)
 
                 final_value = None
@@ -528,17 +536,13 @@ def cache(
 
             @functools.wraps(func)
             async def async_wrapper(*args, **kwargs):
-                regular, _ = _normalize_kwargs(
-                    func, args, kwargs, cache_var_params
-                )
+                regular, _ = _normalize_kwargs(func, args, kwargs, cache_var_params)
                 entry, should_skip, key_hash = _try_cache(regular)
 
                 if entry is not None and should_skip:
                     return entry["final_value"]
 
-                cache_var_values = (
-                    entry["cache_vars"] if entry is not None else None
-                )
+                cache_var_values = entry["cache_vars"] if entry is not None else None
                 call_kwargs = _build_call_kwargs(regular, cache_var_values)
 
                 result = await func(**call_kwargs)
@@ -557,17 +561,13 @@ def cache(
 
             @functools.wraps(func)
             def sync_wrapper(*args, **kwargs):
-                regular, _ = _normalize_kwargs(
-                    func, args, kwargs, cache_var_params
-                )
+                regular, _ = _normalize_kwargs(func, args, kwargs, cache_var_params)
                 entry, should_skip, key_hash = _try_cache(regular)
 
                 if entry is not None and should_skip:
                     return entry["final_value"]
 
-                cache_var_values = (
-                    entry["cache_vars"] if entry is not None else None
-                )
+                cache_var_values = entry["cache_vars"] if entry is not None else None
                 call_kwargs = _build_call_kwargs(regular, cache_var_values)
 
                 result = func(**call_kwargs)

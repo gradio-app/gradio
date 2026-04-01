@@ -76,8 +76,9 @@ class TestServer:
         app, _, _ = server.launch(prevent_thread_lock=True, mcp_server=True)
         try:
             blocks = app.get_blocks()
-            if getattr(blocks, "mcp_error", None):
-                pytest.skip(blocks.mcp_error)
+            mcp_error = getattr(blocks, "mcp_error", None)
+            if mcp_error:
+                pytest.skip(mcp_error)
             assert blocks.mcp_server is True
             assert blocks.mcp_server_obj is not None
         finally:

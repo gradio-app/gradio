@@ -91,7 +91,7 @@ def chat_prefix_scorer(curr, prev):
 
 
 @gr.cache(score_fn=chat_prefix_scorer)
-def chat_respond(history, context: gr.CacheVar[str] = None):
+def chat_respond(history, context: gr.CacheVar[str] | None = None):
     """Streaming chatbot with prefix caching via CacheVar.
 
     Because CacheVar is present, a partial match re-executes the function
@@ -100,6 +100,7 @@ def chat_respond(history, context: gr.CacheVar[str] = None):
     if not history:
         yield history
         return
+    assert context is not None
 
     prev_context = context.get("")
     last_user_msg = history[-1]["content"].lower().strip()
@@ -183,13 +184,14 @@ def kv_prefix_scorer(curr, prev):
 def generate_with_kv_cache(
     prompt: str,
     max_tokens: int = 50,
-    kv_cache: gr.CacheVar[dict] = None,
+    kv_cache: gr.CacheVar[dict[str, list[int] | str]] | None = None,
 ):
     """Simulate a transformer generating text with KV cache reuse.
 
     Because CacheVar is present, partial matches re-execute the function
     with the KV cache restored — only new tokens need to be "computed".
     """
+    assert kv_cache is not None
     prev_kv = kv_cache.get({"keys": [], "values": [], "text_so_far": ""})
 
     reused_tokens = len(prev_kv["text_so_far"])

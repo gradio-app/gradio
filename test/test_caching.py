@@ -9,7 +9,6 @@ import pytest
 import gradio as gr
 from gradio.caching import CacheStore, CacheVar, cache, cache_hash
 
-
 # ============================================================
 # cache_hash tests
 # ============================================================
@@ -120,9 +119,7 @@ class TestCacheHash:
     def test_unhashable_raises(self):
         with pytest.raises(TypeError, match="gr.cache: cannot hash"):
             cache_hash(
-                object.__new__(
-                    type("X", (), {"__hash__": None, "__slots__": ()})
-                )
+                object.__new__(type("X", (), {"__hash__": None, "__slots__": ()}))
             )
 
 
@@ -206,9 +203,7 @@ class TestCacheStore:
         store.put("c", {"text": "hel"}, "r3")
 
         def scorer(curr, prev):
-            common = sum(
-                1 for a, b in zip(curr["text"], prev["text"]) if a == b
-            )
+            common = sum(1 for a, b in zip(curr["text"], prev["text"]) if a == b)
             return common / len(curr["text"]) if curr["text"] else 0.0
 
         entry, score = store.find_best_match({"text": "hello world"}, scorer)
@@ -218,9 +213,7 @@ class TestCacheStore:
     def test_find_best_match_no_match(self):
         store = CacheStore(max_size=10)
         store.put("a", {"x": 1}, "r1")
-        entry, score = store.find_best_match(
-            {"x": 2}, lambda curr, prev: 0.0
-        )
+        entry, score = store.find_best_match({"x": 2}, lambda curr, prev: 0.0)
         assert entry is None
         assert score == 0.0
 
@@ -397,9 +390,7 @@ class TestScoredMatchNoCacheVar:
             prev_items = prev["items"]
             if not curr_items or len(prev_items) >= len(curr_items):
                 return 0.0
-            common = sum(
-                1 for a, b in zip(curr_items, prev_items) if a == b
-            )
+            common = sum(1 for a, b in zip(curr_items, prev_items) if a == b)
             return common / len(curr_items)
 
         @cache(score_fn=prefix_scorer)
@@ -443,7 +434,7 @@ class TestScoredMatchWithCacheVar:
         call_count = 0
 
         @cache(score_fn=lambda c, p: 0.5 if p["x"] < c["x"] else 0.0)
-        def fn(x: int, accum: CacheVar[int] = None):
+        def fn(x: int, accum: CacheVar[int] | None = None):
             nonlocal call_count
             call_count += 1
             prev = accum.get(0)
@@ -463,7 +454,7 @@ class TestScoredMatchWithCacheVar:
         call_count = 0
 
         @cache
-        def fn(x: int, state: CacheVar[str] = None):
+        def fn(x: int, state: CacheVar[str] | None = None):
             nonlocal call_count
             call_count += 1
             state.set(f"seen_{x}")
@@ -478,7 +469,7 @@ class TestScoredMatchWithCacheVar:
         call_count = 0
 
         @cache(score_fn=lambda c, p: 1.0)
-        def fn(x: int, state: CacheVar[int] = None):
+        def fn(x: int, state: CacheVar[int] | None = None):
             nonlocal call_count
             call_count += 1
             state.set(x)
@@ -490,7 +481,7 @@ class TestScoredMatchWithCacheVar:
 
     def test_cold_start_cache_var(self):
         @cache
-        def fn(x: int, state: CacheVar[list] = None):
+        def fn(x: int, state: CacheVar[list] | None = None):
             prev = state.get()
             assert prev is None
             state.set([x])
@@ -502,8 +493,8 @@ class TestScoredMatchWithCacheVar:
         @cache(score_fn=lambda c, p: 0.5 if p["x"] < c["x"] else 0.0)
         def fn(
             x: int,
-            counts: CacheVar[int] = None,
-            history: CacheVar[list] = None,
+            counts: CacheVar[int] | None = None,
+            history: CacheVar[list] | None = None,
         ):
             c = counts.get(0)
             h = history.get([])
@@ -520,7 +511,7 @@ class TestScoredMatchWithCacheVar:
         call_count = 0
 
         @cache
-        def fn(x: int, state: CacheVar[str] = None):
+        def fn(x: int, state: CacheVar[str] | None = None):
             nonlocal call_count
             call_count += 1
             state.set(f"seen_{x}")
@@ -539,11 +530,7 @@ class TestScoredMatchWithCacheVar:
             if not curr_text or len(prev_text) >= len(curr_text):
                 return 0.0
             match_len = next(
-                (
-                    i
-                    for i, (a, b) in enumerate(zip(curr_text, prev_text))
-                    if a != b
-                ),
+                (i for i, (a, b) in enumerate(zip(curr_text, prev_text)) if a != b),
                 min(len(curr_text), len(prev_text)),
             )
             return match_len / len(curr_text)
@@ -551,11 +538,9 @@ class TestScoredMatchWithCacheVar:
         call_log = []
 
         @cache(score_fn=prefix_scorer)
-        def generate(text: str, kv_cache: CacheVar[list] = None):
+        def generate(text: str, kv_cache: CacheVar[list] | None = None):
             prev_kv = kv_cache.get([])
-            call_log.append(
-                {"text": text, "reused_kv_len": len(prev_kv)}
-            )
+            call_log.append({"text": text, "reused_kv_len": len(prev_kv)})
             new_kv = prev_kv + list(text[len(prev_kv) :])
             kv_cache.set(new_kv)
             return "".join(new_kv)
@@ -632,7 +617,7 @@ class TestCacheGenerators:
 
     def test_generator_with_cache_var(self):
         @cache(score_fn=lambda c, p: 0.5 if p["n"] < c["n"] else 0.0)
-        def gen(n: int, state: CacheVar[int] = None):
+        def gen(n: int, state: CacheVar[int] | None = None):
             start = state.get(0)
             total = start
             for i in range(1, n + 1):
@@ -672,7 +657,7 @@ class TestCacheAsync:
 
     def test_async_with_cache_var(self):
         @cache(score_fn=lambda c, p: 0.5 if p["x"] < c["x"] else 0.0)
-        async def fn(x: int, state: CacheVar[int] = None):
+        async def fn(x: int, state: CacheVar[int] | None = None):
             prev = state.get(0)
             state.set(prev + x)
             return prev + x
