@@ -33,14 +33,6 @@ jobs:
         id: latest_tag
         run: echo "tag=$(git tag --list 'gradio@*' --sort=-v:refname | head -n 1)" >> "$GITHUB_OUTPUT"
 
-      - name: Restore base benchmark cache
-        if: steps.changes.outputs.should_run == 'true'
-        id: base_cache
-        uses: actions/cache@v4
-        with:
-          path: /tmp/bench_base.json
-          key: frontend-bench-base-${{ steps.latest_tag.outputs.tag }}
-
       - name: Setup Python
         if: steps.changes.outputs.should_run == 'true'
         uses: actions/setup-python@v5
@@ -66,11 +58,11 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
 
       - name: Checkout latest release
-        if: steps.changes.outputs.should_run == 'true' && steps.base_cache.outputs.cache-hit != 'true'
+        if: steps.changes.outputs.should_run == 'true'
         run: git checkout ${{ steps.latest_tag.outputs.tag }}
 
       - name: Create venv and install Python deps (base)
-        if: steps.changes.outputs.should_run == 'true' && steps.base_cache.outputs.cache-hit != 'true'
+        if: steps.changes.outputs.should_run == 'true'
         run: |
           export PATH="$HOME/.cargo/bin:$PATH"
           uv venv venv --python=3.10
@@ -79,19 +71,19 @@ jobs:
           uv pip install -e ".[oauth,mcp]"
 
       - name: Install frontend deps and build (base)
-        if: steps.changes.outputs.should_run == 'true' && steps.base_cache.outputs.cache-hit != 'true'
+        if: steps.changes.outputs.should_run == 'true'
         run: pnpm i --frozen-lockfile --ignore-scripts && pnpm css && pnpm build
 
       - name: Install Playwright (base)
-        if: steps.changes.outputs.should_run == 'true' && steps.base_cache.outputs.cache-hit != 'true'
+        if: steps.changes.outputs.should_run == 'true'
         run: pnpm exec playwright install chromium
 
       - name: Checkout benchmark spec and demo from PR
-        if: steps.changes.outputs.should_run == 'true' && steps.base_cache.outputs.cache-hit != 'true'
+        if: steps.changes.outputs.should_run == 'true'
         run: git checkout ${{ github.event.pull_request.head.sha }} -- js/spa/test/big_complex_demo.spec.ts demo/big_complex_demo
 
       - name: Run benchmark (base)
-        if: steps.changes.outputs.should_run == 'true' && steps.base_cache.outputs.cache-hit != 'true'
+        if: steps.changes.outputs.should_run == 'true'
         run: |
           . venv/bin/activate
           PERF_RESULTS_FILE=/tmp/bench_base.json pnpm exec playwright test \
@@ -113,7 +105,7 @@ jobs:
           uv pip install -e client/python
           uv pip install -e ".[oauth,mcp]"
           pnpm install --no-frozen-lockfile
-          pnpm build
+          pnpm css && pnpm build
 
       - name: Install Playwright (PR)
         if: steps.changes.outputs.should_run == 'true'

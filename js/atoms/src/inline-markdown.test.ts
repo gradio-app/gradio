@@ -64,9 +64,7 @@ describe("LINK_RE", () => {
 	});
 
 	test("captures link text with spaces", () => {
-		const matches = [
-			..."[click here](https://example.com)".matchAll(LINK_RE)
-		];
+		const matches = [..."[click here](https://example.com)".matchAll(LINK_RE)];
 		expect(matches[0][1]).toBe("click here");
 	});
 
@@ -157,9 +155,7 @@ describe("PROTOCOL_RE", () => {
 describe("render_inline_markdown", () => {
 	describe("inline code", () => {
 		test("renders inline code", () => {
-			expect(render_inline_markdown("`code`")).toBe(
-				"<code>code</code>"
-			);
+			expect(render_inline_markdown("`code`")).toBe("<code>code</code>");
 		});
 
 		test("renders multiple code spans", () => {
@@ -171,37 +167,27 @@ describe("render_inline_markdown", () => {
 
 	describe("bold", () => {
 		test("renders **bold**", () => {
-			expect(render_inline_markdown("**bold**")).toBe(
-				"<strong>bold</strong>"
-			);
+			expect(render_inline_markdown("**bold**")).toBe("<strong>bold</strong>");
 		});
 
 		test("renders __bold__", () => {
-			expect(render_inline_markdown("__bold__")).toBe(
-				"<strong>bold</strong>"
-			);
+			expect(render_inline_markdown("__bold__")).toBe("<strong>bold</strong>");
 		});
 	});
 
 	describe("italic", () => {
 		test("renders *italic*", () => {
-			expect(render_inline_markdown("*italic*")).toBe(
-				"<em>italic</em>"
-			);
+			expect(render_inline_markdown("*italic*")).toBe("<em>italic</em>");
 		});
 
 		test("renders _italic_", () => {
-			expect(render_inline_markdown("_italic_")).toBe(
-				"<em>italic</em>"
-			);
+			expect(render_inline_markdown("_italic_")).toBe("<em>italic</em>");
 		});
 	});
 
 	describe("line breaks", () => {
 		test("converts newlines to <br>", () => {
-			expect(render_inline_markdown("line1\nline2")).toBe(
-				"line1<br>line2"
-			);
+			expect(render_inline_markdown("line1\nline2")).toBe("line1<br>line2");
 		});
 	});
 
@@ -221,17 +207,13 @@ describe("render_inline_markdown", () => {
 
 	describe("safe links", () => {
 		test("renders http links", () => {
-			expect(
-				render_inline_markdown("[click](http://example.com)")
-			).toBe(
+			expect(render_inline_markdown("[click](http://example.com)")).toBe(
 				'<a href="http://example.com" target="_blank" rel="noopener noreferrer">click</a>'
 			);
 		});
 
 		test("renders https links", () => {
-			expect(
-				render_inline_markdown("[click](https://example.com)")
-			).toBe(
+			expect(render_inline_markdown("[click](https://example.com)")).toBe(
 				'<a href="https://example.com" target="_blank" rel="noopener noreferrer">click</a>'
 			);
 		});
@@ -243,25 +225,19 @@ describe("render_inline_markdown", () => {
 		});
 
 		test("renders www links (no protocol)", () => {
-			expect(
-				render_inline_markdown("[Google](www.google.com)")
-			).toBe(
+			expect(render_inline_markdown("[Google](www.google.com)")).toBe(
 				'<a href="www.google.com" target="_blank" rel="noopener noreferrer">Google</a>'
 			);
 		});
 
 		test("renders relative path links", () => {
-			expect(
-				render_inline_markdown("[docs](/path/to/docs)")
-			).toBe(
+			expect(render_inline_markdown("[docs](/path/to/docs)")).toBe(
 				'<a href="/path/to/docs" target="_blank" rel="noopener noreferrer">docs</a>'
 			);
 		});
 
 		test("trims whitespace from URLs", () => {
-			expect(
-				render_inline_markdown("[click](  https://example.com  )")
-			).toBe(
+			expect(render_inline_markdown("[click](  https://example.com  )")).toBe(
 				'<a href="https://example.com" target="_blank" rel="noopener noreferrer">click</a>'
 			);
 		});
@@ -280,23 +256,17 @@ describe("render_inline_markdown", () => {
 		});
 
 		test("blocks javascript: with simple payload", () => {
-			expect(
-				render_inline_markdown("[xss](javascript:void)")
-			).toBe("xss");
+			expect(render_inline_markdown("[xss](javascript:void)")).toBe("xss");
 		});
 
 		test("blocks javascript: with leading spaces", () => {
-			const result = render_inline_markdown(
-				"[xss](  javascript:alert(1)  )"
-			);
+			const result = render_inline_markdown("[xss](  javascript:alert(1)  )");
 			expect(result).not.toContain("<a");
 			expect(result).not.toContain("javascript:");
 		});
 
 		test("blocks vbscript: protocol links", () => {
-			expect(
-				render_inline_markdown("[xss](vbscript:msgbox)")
-			).toBe("xss");
+			expect(render_inline_markdown("[xss](vbscript:msgbox)")).toBe("xss");
 		});
 
 		test("blocks data: protocol links", () => {
@@ -309,15 +279,14 @@ describe("render_inline_markdown", () => {
 
 		test("blocks data: with nested HTML", () => {
 			const result = render_inline_markdown(
-				'[xss](data:text/html,<script>alert(1)</script>)'
+				"[xss](data:text/html,<script>alert(1)</script>)"
 			);
 			expect(result).not.toContain("<a");
 			expect(result).not.toContain("data:");
 		});
 
 		test("safe text surrounded by dangerous links renders correctly", () => {
-			const input =
-				"[bad](javascript:void) hello [good](https://example.com)";
+			const input = "[bad](javascript:void) hello [good](https://example.com)";
 			const result = render_inline_markdown(input);
 			expect(result).toContain("bad");
 			expect(result).not.toContain("javascript:");
@@ -329,24 +298,20 @@ describe("render_inline_markdown", () => {
 
 	describe("combined syntax", () => {
 		test("renders bold inside a sentence", () => {
-			expect(
-				render_inline_markdown("This is **important** info")
-			).toBe("This is <strong>important</strong> info");
+			expect(render_inline_markdown("This is **important** info")).toBe(
+				"This is <strong>important</strong> info"
+			);
 		});
 
 		test("renders code and bold together", () => {
-			expect(
-				render_inline_markdown("Use `func()` for **speed**")
-			).toBe(
+			expect(render_inline_markdown("Use `func()` for **speed**")).toBe(
 				"Use <code>func()</code> for <strong>speed</strong>"
 			);
 		});
 
 		test("renders link with surrounding text", () => {
 			expect(
-				render_inline_markdown(
-					"See [docs](https://docs.io) for more"
-				)
+				render_inline_markdown("See [docs](https://docs.io) for more")
 			).toBe(
 				'See <a href="https://docs.io" target="_blank" rel="noopener noreferrer">docs</a> for more'
 			);
@@ -357,9 +322,7 @@ describe("render_inline_markdown", () => {
 		});
 
 		test("plain text passes through unchanged", () => {
-			expect(render_inline_markdown("hello world")).toBe(
-				"hello world"
-			);
+			expect(render_inline_markdown("hello world")).toBe("hello world");
 		});
 	});
 });
