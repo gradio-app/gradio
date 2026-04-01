@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 import gradio as gr
-from gradio.caching import CacheStore, cache, cache_hash
+from gradio.caching import CacheStore, CacheVar, cache, cache_hash
 
 
 # ============================================================
@@ -32,11 +32,9 @@ class TestCacheHash:
     def test_list_and_tuple(self):
         assert cache_hash([1, 2, 3]) == cache_hash([1, 2, 3])
         assert cache_hash([1, 2, 3]) != cache_hash([1, 2, 4])
-        # Lists and tuples should hash differently
         assert cache_hash([1, 2]) != cache_hash((1, 2))
 
     def test_dict(self):
-        # Order shouldn't matter
         assert cache_hash({"a": 1, "b": 2}) == cache_hash({"b": 2, "a": 1})
         assert cache_hash({"a": 1}) != cache_hash({"a": 2})
 
@@ -119,6 +117,36 @@ class TestCacheHash:
         assert cache_hash(a) == cache_hash(b)
         assert cache_hash(a) != cache_hash(c)
 
+    def test_unhashable_raises(self):
+        with pytest.raises(TypeError, match="gr.cache: cannot hash"):
+            cache_hash(object.__new__(type("X", (), {"__hash__": None, "__slots__": ()})))
+
+
+# ============================================================
+# CacheVar tests
+# ============================================================
+
+
+class TestCacheVar:
+    def test_default_is_none(self):
+        cv = CacheVar()
+        assert cv.get() is None
+
+    def test_default_value(self):
+        cv = CacheVar()
+        assert cv.get("fallback") == "fallback"
+
+    def test_set_and_get(self):
+        cv = CacheVar()
+        cv.set(42)
+        assert cv.get() == 42
+
+    def test_has_value(self):
+        cv = CacheVar()
+        assert not cv._has_value()
+        cv.set("x")
+        assert cv._has_value()
+
 
 # ============================================================
 # CacheStore tests
@@ -151,7 +179,7 @@ class TestCacheStore:
         store.put("a", {}, "ra")
         store.put("b", {}, "rb")
         store.get_exact("a")  # refresh "a"
-        store.put("c", {}, "rc")  # should evict "b" (least recent)
+        store.put("c", {}, "rc")  # should evict "b"
         assert store.get_exact("a") is not None
         assert store.get_exact("b") is None
 
@@ -161,25 +189,63 @@ class TestCacheStore:
         store.clear()
         assert len(store) == 0
 
-    def test_find_partial(self):
+    def test_cache_vars_stored(self):
         store = CacheStore(max_size=10)
-        store.put("a", {"x": [1, 2]}, "result_12")
+        store.put("key1", {"x": 1}, "result", {"kv": [1, 2, 3]})
+        entry = store.get_exact("key1")
+        assert entry["cache_vars"] == {"kv": [1, 2, 3]}
 
-        def match(cached_kw, new_kw, cached_result):
-            if new_kw["x"][: len(cached_kw["x"])] == cached_kw["x"]:
-                return {**new_kw, "prev": cached_result}
-            return None
-
-        result = store.find_partial({"x": [1, 2, 3]}, match)
-        assert result == {"x": [1, 2, 3], "prev": "result_12"}
-
-    def test_find_partial_no_match(self):
+    def test_find_best_match_returns_highest_score(self):
         store = CacheStore(max_size=10)
-        store.put("a", {"x": [1, 2]}, "result")
-        result = store.find_partial(
-            {"x": [3, 4]}, lambda c, n, r: None
+        store.put("a", {"text": "he"}, "r1")
+        store.put("b", {"text": "hello"}, "r2")
+        store.put("c", {"text": "hel"}, "r3")
+
+        def scorer(curr, prev):
+            # Score = fraction of curr matched by prev
+            common = sum(
+                1 for a, b in zip(curr["text"], prev["text"]) if a == b
+            )
+            return common / len(curr["text"]) if curr["text"] else 0.0
+
+        entry, score = store.find_best_match({"text": "hello world"}, scorer)
+        assert entry is not None
+        # "hello" (5 chars match) should beat "hel" (3) and "he" (2)
+        assert entry["full_kwargs"]["text"] == "hello"
+
+    def test_find_best_match_no_match(self):
+        store = CacheStore(max_size=10)
+        store.put("a", {"x": 1}, "r1")
+        entry, score = store.find_best_match(
+            {"x": 2}, lambda curr, prev: 0.0
         )
-        assert result is None
+        assert entry is None
+        assert score == 0.0
+
+    def test_find_best_match_early_termination(self):
+        """Score of 1.0 should stop searching."""
+        call_count = 0
+
+        store = CacheStore(max_size=10)
+        store.put("a", {"x": 1}, "r1")
+        store.put("b", {"x": 2}, "r2")
+        store.put("c", {"x": 3}, "r3")  # most recent, searched first
+
+        def scorer(curr, prev):
+            nonlocal call_count
+            call_count += 1
+            return 1.0 if prev["x"] == 3 else 0.5
+
+        entry, score = store.find_best_match({"x": 3}, scorer)
+        assert entry is not None
+        assert score >= 1.0
+        assert call_count == 1  # stopped after first (most recent) entry
+
+    def test_find_best_match_warns_on_score_above_1(self):
+        store = CacheStore(max_size=10)
+        store.put("a", {"x": 1}, "r1")
+        with pytest.warns(match="score .* > 1.0"):
+            store.find_best_match({"x": 1}, lambda c, p: 1.5)
 
 
 # ============================================================
@@ -199,7 +265,7 @@ class TestCacheSync:
 
         assert add(1, 2) == 3
         assert add(1, 2) == 3
-        assert call_count == 1  # second call was cached
+        assert call_count == 1
 
     def test_different_args(self):
         call_count = 0
@@ -243,8 +309,8 @@ class TestCacheSync:
 
         result1 = generate("hello", temperature=0.5)
         result2 = generate("hello", temperature=0.9)
-        assert call_count == 1  # temperature ignored in key
-        assert result2 == result1  # returns cached result
+        assert call_count == 1
+        assert result2 == result1
 
     def test_kwargs_normalization(self):
         call_count = 0
@@ -258,7 +324,7 @@ class TestCacheSync:
         assert add(1) == 11
         assert add(1, y=10) == 11
         assert add(1, 10) == 11
-        assert call_count == 1  # all equivalent
+        assert call_count == 1
 
     def test_numpy_input(self):
         call_count = 0
@@ -270,7 +336,7 @@ class TestCacheSync:
             return arr.sum()
 
         a = np.array([1.0, 2.0, 3.0])
-        b = np.array([1.0, 2.0, 3.0])  # same content, different object
+        b = np.array([1.0, 2.0, 3.0])
         assert process(a) == 6.0
         assert process(b) == 6.0
         assert call_count == 1
@@ -283,34 +349,226 @@ class TestCacheSync:
         assert hasattr(fn, "cache")
         assert isinstance(fn.cache, CacheStore)
 
-    def test_match_fn(self):
+
+# ============================================================
+# @cache decorator — scored match_fn
+# ============================================================
+
+
+class TestCacheScoredMatch:
+    def test_scored_match_finds_best(self):
+        """match_fn returns a score; best match wins."""
+        call_log = []
+
+        def prefix_scorer(curr, prev):
+            """Score = fraction of curr that prev covers as a prefix."""
+            curr_items = curr["items"]
+            prev_items = prev["items"]
+            if not curr_items or len(prev_items) >= len(curr_items):
+                return 0.0  # not a proper prefix
+            common = sum(
+                1 for a, b in zip(curr_items, prev_items) if a == b
+            )
+            return common / len(curr_items)
+
+        @cache(match_fn=prefix_scorer)
+        def process(items):
+            call_log.append(list(items))
+            return sum(items)
+
+        # Cold start
+        assert process([1, 2, 3]) == 6
+        assert len(call_log) == 1
+
+        # Exact match (hash hit)
+        assert process([1, 2, 3]) == 6
+        assert len(call_log) == 1
+
+        # Add another entry
+        assert process([1, 2]) == 3
+        assert len(call_log) == 2
+
+        # [1, 2, 3, 4, 5]: should match [1, 2, 3] with score 3/5=0.6
+        # and [1, 2] with score 2/5=0.4 — best is [1, 2, 3]
+        result = process([1, 2, 3, 4, 5])
+        assert len(call_log) == 3  # had to execute (partial match)
+        assert result == 15
+
+    def test_exact_match_beats_partial(self):
+        """Exact hash match should be preferred over scored match."""
+        match_fn_called = False
+
+        def scorer(curr, prev):
+            nonlocal match_fn_called
+            match_fn_called = True
+            return 0.5
+
+        @cache(match_fn=scorer)
+        def fn(x):
+            return x * 2
+
+        fn(5)
+        fn(5)  # exact hit — match_fn should NOT be called
+        assert not match_fn_called
+
+    def test_score_zero_is_no_match(self):
         call_count = 0
 
-        def prefix_match(cached_kw, new_kw, cached_result):
-            old = cached_kw["items"]
-            new = new_kw["items"]
-            if len(new) > len(old) and new[: len(old)] == old:
-                return {**new_kw, "start_from": cached_result}
-            return None
-
-        @cache(match_fn=prefix_match)
-        def accumulate(items, start_from=0):
+        @cache(match_fn=lambda c, p: 0.0)
+        def fn(x):
             nonlocal call_count
             call_count += 1
-            return start_from + sum(items)
+            return x
 
-        assert accumulate([1, 2, 3]) == 6
+        fn(1)
+        fn(2)
+        assert call_count == 2  # no matches, both cold starts
+
+    def test_score_one_is_exact(self):
+        """Score of 1.0 should be treated as exact match (yields cached value)."""
+        call_count = 0
+
+        @cache(match_fn=lambda c, p: 1.0)
+        def fn(x):
+            nonlocal call_count
+            call_count += 1
+            return x * 2
+
+        assert fn(1) == 2
+        # Different input but match_fn returns 1.0 → treated as exact
+        assert fn(999) == 2
         assert call_count == 1
 
-        # Same input — exact cache hit
-        assert accumulate([1, 2, 3]) == 6
+
+# ============================================================
+# @cache decorator — CacheVar
+# ============================================================
+
+
+class TestCacheVarIntegration:
+    def test_cache_var_cold_start(self):
+        """CacheVar.get() returns None on cold start."""
+
+        @cache
+        def fn(x: int, state: CacheVar[list] = None):
+            prev = state.get()
+            assert prev is None  # cold start
+            state.set([x])
+            return x
+
+        assert fn(1) == 1
+
+    def test_cache_var_restored_on_partial_match(self):
+        """CacheVar is restored from best matching entry."""
+
+        @cache(match_fn=lambda curr, prev: 0.5 if prev["x"] < curr["x"] else 0.0)
+        def fn(x: int, accum: CacheVar[int] = None):
+            prev = accum.get(0)
+            result = prev + x
+            accum.set(result)
+            return result
+
+        assert fn(10) == 10  # cold start, accum=0+10=10
+        # Partial match: accum restored to 10, result = 10 + 20 = 30
+        assert fn(20) == 30
+
+    def test_cache_var_not_in_hash_key(self):
+        """CacheVar params should not affect the cache key."""
+        call_count = 0
+
+        @cache
+        def fn(x: int, state: CacheVar[str] = None):
+            nonlocal call_count
+            call_count += 1
+            state.set(f"seen_{x}")
+            return x
+
+        fn(1)
+        fn(1)  # same x → exact hit, even though CacheVar would differ
         assert call_count == 1
 
-        # Extended input — partial match injects start_from=6
-        result = accumulate([1, 2, 3, 4, 5])
-        assert call_count == 2
-        # start_from=6 (cached) + sum([1,2,3,4,5])=15 = 21
-        assert result == 21
+    def test_multiple_cache_vars(self):
+        """Multiple CacheVars are independently tracked."""
+
+        @cache(match_fn=lambda curr, prev: 0.5 if prev["x"] < curr["x"] else 0.0)
+        def fn(
+            x: int,
+            counts: CacheVar[int] = None,
+            history: CacheVar[list] = None,
+        ):
+            c = counts.get(0)
+            h = history.get([])
+            counts.set(c + 1)
+            history.set(h + [x])
+            return {"count": c + 1, "history": h + [x]}
+
+        r1 = fn(1)
+        assert r1 == {"count": 1, "history": [1]}
+
+        r2 = fn(2)  # partial match, restores count=1 and history=[1]
+        assert r2 == {"count": 2, "history": [1, 2]}
+
+    def test_cache_var_with_generator(self):
+        """CacheVar works with generator functions."""
+
+        @cache(match_fn=lambda c, p: 0.5 if p["n"] < c["n"] else 0.0)
+        def gen(n: int, state: CacheVar[int] = None):
+            start = state.get(0)
+            total = start
+            for i in range(1, n + 1):
+                total += i
+                yield total
+            state.set(total)
+
+        r1 = list(gen(3))  # 1, 3, 6
+        assert r1 == [1, 3, 6]
+
+        r2 = list(gen(5))  # partial match, start=6, yields 7, 9, 12, 16, 21
+        assert r2 == [7, 9, 12, 16, 21]
+
+    def test_prefix_caching_pattern(self):
+        """End-to-end prefix caching: simulate KV cache reuse."""
+
+        def prefix_scorer(curr, prev):
+            curr_text = curr["text"]
+            prev_text = prev["text"]
+            if not curr_text:
+                return 0.0
+            # Count matching characters from start
+            match_len = next(
+                (
+                    i
+                    for i, (a, b) in enumerate(zip(curr_text, prev_text))
+                    if a != b
+                ),
+                min(len(curr_text), len(prev_text)),
+            )
+            return match_len / len(curr_text)
+
+        call_log = []
+
+        @cache(match_fn=prefix_scorer)
+        def generate(text: str, kv_cache: CacheVar[list] = None):
+            prev_kv = kv_cache.get([])
+            call_log.append(
+                {"text": text, "reused_kv_len": len(prev_kv)}
+            )
+            # Simulate building KV cache token by token
+            new_kv = prev_kv + list(text[len(prev_kv) :])
+            kv_cache.set(new_kv)
+            return "".join(new_kv)
+
+        # First call: cold start, builds full KV
+        assert generate("hello") == "hello"
+        assert call_log[-1]["reused_kv_len"] == 0
+
+        # Same input: exact hit, no execution
+        assert generate("hello") == "hello"
+        assert len(call_log) == 1
+
+        # Extended input: partial match, reuses KV from "hello"
+        assert generate("hello world") == "hello world"
+        assert call_log[-1]["reused_kv_len"] == 5  # reused 5 chars of KV
 
 
 # ============================================================
@@ -337,7 +595,17 @@ class TestCacheAsync:
         async def fn(x):
             return x
 
-        assert asyncio.iscoroutinefunction(fn)
+        assert inspect.iscoroutinefunction(fn)
+
+    def test_async_with_cache_var(self):
+        @cache(match_fn=lambda c, p: 0.5 if p["x"] < c["x"] else 0.0)
+        async def fn(x: int, state: CacheVar[int] = None):
+            prev = state.get(0)
+            state.set(prev + x)
+            return prev + x
+
+        assert asyncio.run(fn(10)) == 10
+        assert asyncio.run(fn(20)) == 30  # partial: 10 + 20
 
 
 # ============================================================
@@ -358,14 +626,12 @@ class TestCacheSyncGen:
                 total += i
                 yield total
 
-        # First call: streams values
         results1 = list(count_up(3))
         assert results1 == [1, 3, 6]
         assert call_count == 1
 
-        # Second call: yields only final value
         results2 = list(count_up(3))
-        assert results2 == [6]  # only final cached value
+        assert results2 == [6]
         assert call_count == 1
 
     def test_generator_is_detected(self):
@@ -374,31 +640,6 @@ class TestCacheSyncGen:
             yield x
 
         assert inspect.isgeneratorfunction(gen)
-
-    def test_generator_with_match_fn(self):
-        call_count = 0
-
-        def match(cached_kw, new_kw, cached_result):
-            if new_kw["n"] > cached_kw["n"]:
-                return {**new_kw, "start": cached_result}
-            return None
-
-        @cache(match_fn=match)
-        def running_sum(n, start=0):
-            nonlocal call_count
-            call_count += 1
-            total = start
-            for i in range(1, n + 1):
-                total += i
-                yield total
-
-        list(running_sum(3))  # yields 1, 3, 6
-        assert call_count == 1
-
-        # Partial match: start=6, then adds 1+2+3+4 = 10 → total 16
-        results = list(running_sum(4))
-        assert call_count == 2
-        assert results[-1] == 16  # 6 + 1+2+3+4 = 16
 
 
 # ============================================================
@@ -442,11 +683,15 @@ class TestCacheAsyncGen:
 
 
 # ============================================================
-# Integration: works as gr.cache
+# Integration: works as gr.cache / gr.CacheVar
 # ============================================================
 
 
 class TestGradioExport:
-    def test_exported(self):
+    def test_cache_exported(self):
         assert hasattr(gr, "cache")
         assert gr.cache is cache
+
+    def test_cache_var_exported(self):
+        assert hasattr(gr, "CacheVar")
+        assert gr.CacheVar is CacheVar

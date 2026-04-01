@@ -4,7 +4,8 @@ Provides @gr.cache, a decorator that caches function results with
 content-aware hashing for ML types (numpy arrays, PIL images, DataFrames, etc.).
 
 Supports sync functions, async functions, sync generators, and async generators.
-Optionally supports partial/prefix matching via a custom match_fn.
+Optionally supports scored partial matching via a custom match_fn, and typed
+cache variables via gr.CacheVar for storing intermediate state (e.g., KV caches).
 """
 
 from __future__ import annotations
@@ -13,8 +14,47 @@ import functools
 import hashlib
 import inspect
 import threading
+import warnings
 from collections import OrderedDict
-from typing import Any, Callable
+from typing import Any, Callable, Generic, TypeVar
+
+T = TypeVar("T")
+
+_MISSING = object()
+
+
+class CacheVar(Generic[T]):
+    """A typed cache variable for storing intermediate state across cache hits.
+
+    Declare as a parameter with a type annotation to have the cache decorator
+    automatically create, restore, and save it::
+
+        @gr.cache(match_fn=my_scorer)
+        def generate(prompt: str, kv: gr.CacheVar[list] = None):
+            prev_kv = kv.get()          # restored from best-matching entry
+            result, new_kv = model(prompt, past=prev_kv)
+            kv.set(new_kv)              # saved in this entry for future matches
+            return result
+    """
+
+    def __init__(self) -> None:
+        self._value: Any = _MISSING
+
+    def get(self, default: T | None = None) -> T | None:
+        """Get the cached value, or default if no cached value exists."""
+        if self._value is _MISSING:
+            return default
+        return self._value
+
+    def set(self, value: T) -> None:
+        """Set the value to be cached for future matches."""
+        self._value = value
+
+    def _has_value(self) -> bool:
+        return self._value is not _MISSING
+
+    def _get_raw(self) -> Any:
+        return self._value
 
 
 def cache_hash(obj: Any) -> str:
@@ -109,7 +149,7 @@ def _hash_repr(obj: Any) -> str:
     except TypeError:
         pass
 
-    # Last resort: try model_dump / __dict__ for dataclass-like objects
+    # Last resort: try __dict__ for dataclass-like objects
     if hasattr(obj, "__dict__"):
         return _hash_repr(vars(obj))
 
@@ -120,7 +160,7 @@ def _hash_repr(obj: Any) -> str:
 
 
 class CacheStore:
-    """Thread-safe LRU cache store with optional partial matching."""
+    """Thread-safe LRU cache store with scored partial matching."""
 
     def __init__(self, max_size: int = 128):
         self._max_size = max_size
@@ -135,45 +175,77 @@ class CacheStore:
                 return self._exact[key_hash]
             return None
 
-    def find_partial(
+    def find_best_match(
         self,
         new_kwargs: dict,
         match_fn: Callable,
-    ) -> dict | None:
-        """Iterate entries to find a partial match via match_fn.
+    ) -> tuple[dict | None, float]:
+        """Find the cache entry with the highest match score.
 
-        Returns modified kwargs from match_fn, or None.
+        Args:
+            new_kwargs: The current call's kwargs (without CacheVar params).
+            match_fn: Scoring function (curr_kwargs, prev_kwargs) -> float in [0, 1].
+
+        Returns:
+            (best_entry, best_score) or (None, 0.0) if no match.
         """
         with self._lock:
             entries_snapshot = list(self._entries)
 
+        best_entry = None
+        best_score = 0.0
+
         # Iterate outside the lock — match_fn is user code
         for entry in reversed(entries_snapshot):
-            result = match_fn(
-                entry["full_kwargs"], new_kwargs, entry["final_value"]
-            )
-            if result is not None:
-                return result
-        return None
+            score = match_fn(new_kwargs, entry["full_kwargs"])
 
-    def put(self, key_hash: str, full_kwargs: dict, final_value: Any) -> None:
+            if score > 1.0:
+                warnings.warn(
+                    f"match_fn returned score {score} > 1.0, clipping to 1.0",
+                    stacklevel=2,
+                )
+                score = 1.0
+
+            if score > best_score:
+                best_score = score
+                best_entry = entry
+
+            # Early termination: score ~= 1.0 means perfect match
+            if best_score >= 1.0:
+                break
+
+        if best_score > 0.0 and best_entry is not None:
+            # Refresh LRU position for the matched entry
+            with self._lock:
+                h = best_entry["hash"]
+                if h in self._exact:
+                    self._exact.move_to_end(h)
+            return best_entry, best_score
+
+        return None, 0.0
+
+    def put(
+        self,
+        key_hash: str,
+        full_kwargs: dict,
+        final_value: Any,
+        cache_vars: dict[str, Any] | None = None,
+    ) -> None:
         entry = {
             "full_kwargs": full_kwargs,
             "final_value": final_value,
+            "cache_vars": cache_vars or {},
             "hash": key_hash,
         }
         with self._lock:
             if key_hash in self._exact:
-                # Update existing entry
                 self._exact.move_to_end(key_hash)
                 self._exact[key_hash] = entry
-                # Update in _entries list too
                 self._entries = [
                     e for e in self._entries if e["hash"] != key_hash
                 ]
                 self._entries.append(entry)
             else:
-                # Evict if at capacity
                 if self._max_size > 0 and len(self._exact) >= self._max_size:
                     _, evicted = self._exact.popitem(last=False)
                     self._entries = [
@@ -192,12 +264,52 @@ class CacheStore:
             return len(self._exact)
 
 
-def _normalize_kwargs(func: Callable, args: tuple, kwargs: dict) -> dict:
-    """Normalize positional + keyword args into a single kwargs dict."""
+def _detect_cache_var_params(func: Callable) -> set[str]:
+    """Detect parameters annotated as CacheVar or with CacheVar default."""
+    cache_var_names = set()
+    sig = inspect.signature(func)
+    hints = getattr(func, "__annotations__", {})
+
+    for name, param in sig.parameters.items():
+        annotation = hints.get(name)
+        # Check annotation: CacheVar or CacheVar[T]
+        if annotation is CacheVar:
+            cache_var_names.add(name)
+        elif getattr(annotation, "__origin__", None) is CacheVar:
+            cache_var_names.add(name)
+        # Also check if the default is a CacheVar instance
+        elif isinstance(param.default, CacheVar):
+            cache_var_names.add(name)
+
+    return cache_var_names
+
+
+def _normalize_kwargs(
+    func: Callable,
+    args: tuple,
+    kwargs: dict,
+    cache_var_params: set[str],
+) -> tuple[dict, dict]:
+    """Normalize args into kwargs, separating regular params from CacheVar params.
+
+    Returns:
+        (regular_kwargs, cache_var_kwargs) where cache_var_kwargs maps
+        param names to their CacheVar instances (or None if not provided).
+    """
     sig = inspect.signature(func)
     bound = sig.bind(*args, **kwargs)
     bound.apply_defaults()
-    return dict(bound.arguments)
+    all_kwargs = dict(bound.arguments)
+
+    regular = {}
+    cvar_kwargs = {}
+    for k, v in all_kwargs.items():
+        if k in cache_var_params:
+            cvar_kwargs[k] = v
+        else:
+            regular[k] = v
+
+    return regular, cvar_kwargs
 
 
 def cache(
@@ -217,15 +329,29 @@ def cache(
 
     Parameters:
         fn: The function to cache (allows use as @gr.cache without parentheses).
-        match_fn: Optional function for partial/prefix matching. Called as
-            match_fn(cached_kwargs, new_kwargs, cached_result) -> dict | None.
-            If it returns a dict, that dict is used as kwargs to execute the
-            function (allowing injection of cached state). If None, no match.
+        match_fn: Optional scoring function for partial matching. Called as
+            match_fn(curr_kwargs, prev_kwargs) -> float in [0, 1].
+            0 means no match, 1 means perfect match. The entry with the
+            highest score > 0 is selected. Scores > 1 emit a warning.
+            If a score reaches 1.0, search terminates early.
         max_size: Maximum number of cache entries. 0 for unlimited.
             Least-recently-used entries are evicted when full. Default: 128.
         key: Optional function that takes the normalized kwargs dict and returns
             a hashable cache key. Overrides default content-aware hashing.
             Useful for ignoring certain inputs (e.g., temperature, seed).
+
+    Cache Variables:
+        Annotate a parameter with ``gr.CacheVar[T]`` to declare typed
+        intermediate state that persists across cache entries. On a partial
+        match, the CacheVar is populated with the value from the best-matching
+        entry. After execution, whatever was ``.set()`` is saved::
+
+            @gr.cache(match_fn=lambda curr, prev: ...)
+            def generate(prompt: str, kv: gr.CacheVar[list] = None):
+                prev_kv = kv.get()       # None on cold start, restored on match
+                result, new_kv = model(prompt, past=prev_kv)
+                kv.set(new_kv)           # saved for future matches
+                return result
 
     Examples:
         Basic usage::
@@ -234,71 +360,101 @@ def cache(
             def classify(image):
                 return model.predict(image)
 
-        With configuration::
+        Scored prefix matching::
 
-            @gr.cache(max_size=256)
-            def generate(prompt, temperature=0.7):
-                return llm(prompt, temperature)
-
-        Ignore certain inputs::
-
-            @gr.cache(key=lambda kw: kw["prompt"])
-            def generate(prompt, temperature=0.7, seed=42):
-                return llm(prompt, temperature, seed)
-
-        Prefix caching with match_fn::
-
-            def prefix_match(cached_kw, new_kw, cached_result):
-                old_hist = cached_kw["history"]
-                new_hist = new_kw["history"]
-                if (len(new_hist) > len(old_hist)
-                        and new_hist[:len(old_hist)] == old_hist):
-                    return {**new_kw, "previous_response": cached_result}
-                return None
-
-            @gr.cache(match_fn=prefix_match)
-            def respond(history, previous_response=None):
-                if previous_response:
-                    return call_llm(history, context=previous_response)
-                return call_llm(history)
+            @gr.cache(match_fn=lambda curr, prev: (
+                next((i for i, (a, b) in enumerate(zip(curr["text"], prev["text"]))
+                      if a != b), min(len(curr["text"]), len(prev["text"])))
+                / len(curr["text"])
+            ) if curr["text"] else 0.0)
+            def generate(text: str, kv: gr.CacheVar[tuple] = None):
+                result = model(text, past_key_values=kv.get())
+                kv.set(model.past_key_values)
+                return result
     """
 
     def decorator(func: Callable) -> Callable:
         store = CacheStore(max_size)
+        cache_var_params = _detect_cache_var_params(func)
 
-        def _compute_hash(normalized_kwargs: dict) -> str:
+        def _compute_hash(regular_kwargs: dict) -> str:
             if key is not None:
-                return cache_hash(key(normalized_kwargs))
-            return cache_hash(normalized_kwargs)
+                return cache_hash(key(regular_kwargs))
+            return cache_hash(regular_kwargs)
+
+        def _build_call_kwargs(
+            regular_kwargs: dict,
+            cache_var_values: dict[str, Any] | None,
+        ) -> dict:
+            """Build the full kwargs dict for calling func, with CacheVar instances."""
+            call_kwargs = dict(regular_kwargs)
+            for name in cache_var_params:
+                cv = CacheVar()
+                if cache_var_values and name in cache_var_values:
+                    cv.set(cache_var_values[name])
+                call_kwargs[name] = cv
+            return call_kwargs
+
+        def _extract_cache_vars(call_kwargs: dict) -> dict[str, Any]:
+            """Extract CacheVar values from call kwargs after execution."""
+            result = {}
+            for name in cache_var_params:
+                cv = call_kwargs.get(name)
+                if isinstance(cv, CacheVar) and cv._has_value():
+                    result[name] = cv._get_raw()
+            return result
+
+        def _try_cache(regular_kwargs: dict):
+            """Attempt cache lookup. Returns (entry, is_exact) or (None, False)."""
+            key_hash = _compute_hash(regular_kwargs)
+
+            # Stage 1: Exact hash match (O(1))
+            entry = store.get_exact(key_hash)
+            if entry is not None:
+                return entry, True, key_hash
+
+            # Stage 2: Scored partial match (if match_fn provided)
+            if match_fn is not None:
+                best_entry, best_score = store.find_best_match(
+                    regular_kwargs, match_fn
+                )
+                if best_entry is not None and best_score > 0:
+                    return best_entry, (best_score >= 1.0), key_hash
+
+            return None, False, key_hash
 
         if inspect.isgeneratorfunction(func):
 
             @functools.wraps(func)
             def sync_gen_wrapper(*args, **kwargs):
-                normalized = _normalize_kwargs(func, args, kwargs)
-                key_hash = _compute_hash(normalized)
+                regular, _ = _normalize_kwargs(
+                    func, args, kwargs, cache_var_params
+                )
+                entry, is_exact, key_hash = _try_cache(regular)
 
-                # Stage 1: Exact match
-                entry = store.get_exact(key_hash)
-                if entry is not None:
+                # Exact hit: yield final value and stop
+                if entry is not None and is_exact:
                     yield entry["final_value"]
                     return
 
-                # Stage 2: Partial match
-                kwargs_to_execute = normalized
-                if match_fn is not None:
-                    partial_result = store.find_partial(normalized, match_fn)
-                    if partial_result is not None:
-                        kwargs_to_execute = partial_result
+                # Partial hit or cold start: execute with CacheVars
+                cache_var_values = (
+                    entry["cache_vars"] if entry is not None else None
+                )
+                call_kwargs = _build_call_kwargs(regular, cache_var_values)
 
-                # Stage 3: Execute
                 final_value = None
-                for value in func(**kwargs_to_execute):
+                for value in func(**call_kwargs):
                     final_value = value
                     yield value
 
                 if final_value is not None:
-                    store.put(key_hash, normalized, final_value)
+                    store.put(
+                        key_hash,
+                        regular,
+                        final_value,
+                        _extract_cache_vars(call_kwargs),
+                    )
 
             sync_gen_wrapper.cache = store  # type: ignore
             return sync_gen_wrapper
@@ -307,30 +463,32 @@ def cache(
 
             @functools.wraps(func)
             async def async_gen_wrapper(*args, **kwargs):
-                normalized = _normalize_kwargs(func, args, kwargs)
-                key_hash = _compute_hash(normalized)
+                regular, _ = _normalize_kwargs(
+                    func, args, kwargs, cache_var_params
+                )
+                entry, is_exact, key_hash = _try_cache(regular)
 
-                # Stage 1: Exact match
-                entry = store.get_exact(key_hash)
-                if entry is not None:
+                if entry is not None and is_exact:
                     yield entry["final_value"]
                     return
 
-                # Stage 2: Partial match
-                kwargs_to_execute = normalized
-                if match_fn is not None:
-                    partial_result = store.find_partial(normalized, match_fn)
-                    if partial_result is not None:
-                        kwargs_to_execute = partial_result
+                cache_var_values = (
+                    entry["cache_vars"] if entry is not None else None
+                )
+                call_kwargs = _build_call_kwargs(regular, cache_var_values)
 
-                # Stage 3: Execute
                 final_value = None
-                async for value in func(**kwargs_to_execute):
+                async for value in func(**call_kwargs):
                     final_value = value
                     yield value
 
                 if final_value is not None:
-                    store.put(key_hash, normalized, final_value)
+                    store.put(
+                        key_hash,
+                        regular,
+                        final_value,
+                        _extract_cache_vars(call_kwargs),
+                    )
 
             async_gen_wrapper.cache = store  # type: ignore
             return async_gen_wrapper
@@ -339,24 +497,26 @@ def cache(
 
             @functools.wraps(func)
             async def async_wrapper(*args, **kwargs):
-                normalized = _normalize_kwargs(func, args, kwargs)
-                key_hash = _compute_hash(normalized)
+                regular, _ = _normalize_kwargs(
+                    func, args, kwargs, cache_var_params
+                )
+                entry, is_exact, key_hash = _try_cache(regular)
 
-                # Stage 1: Exact match
-                entry = store.get_exact(key_hash)
-                if entry is not None:
+                if entry is not None and is_exact:
                     return entry["final_value"]
 
-                # Stage 2: Partial match
-                kwargs_to_execute = normalized
-                if match_fn is not None:
-                    partial_result = store.find_partial(normalized, match_fn)
-                    if partial_result is not None:
-                        kwargs_to_execute = partial_result
+                cache_var_values = (
+                    entry["cache_vars"] if entry is not None else None
+                )
+                call_kwargs = _build_call_kwargs(regular, cache_var_values)
 
-                # Stage 3: Execute
-                result = await func(**kwargs_to_execute)
-                store.put(key_hash, normalized, result)
+                result = await func(**call_kwargs)
+                store.put(
+                    key_hash,
+                    regular,
+                    result,
+                    _extract_cache_vars(call_kwargs),
+                )
                 return result
 
             async_wrapper.cache = store  # type: ignore
@@ -366,24 +526,26 @@ def cache(
 
             @functools.wraps(func)
             def sync_wrapper(*args, **kwargs):
-                normalized = _normalize_kwargs(func, args, kwargs)
-                key_hash = _compute_hash(normalized)
+                regular, _ = _normalize_kwargs(
+                    func, args, kwargs, cache_var_params
+                )
+                entry, is_exact, key_hash = _try_cache(regular)
 
-                # Stage 1: Exact match
-                entry = store.get_exact(key_hash)
-                if entry is not None:
+                if entry is not None and is_exact:
                     return entry["final_value"]
 
-                # Stage 2: Partial match
-                kwargs_to_execute = normalized
-                if match_fn is not None:
-                    partial_result = store.find_partial(normalized, match_fn)
-                    if partial_result is not None:
-                        kwargs_to_execute = partial_result
+                cache_var_values = (
+                    entry["cache_vars"] if entry is not None else None
+                )
+                call_kwargs = _build_call_kwargs(regular, cache_var_values)
 
-                # Stage 3: Execute
-                result = func(**kwargs_to_execute)
-                store.put(key_hash, normalized, result)
+                result = func(**call_kwargs)
+                store.put(
+                    key_hash,
+                    regular,
+                    result,
+                    _extract_cache_vars(call_kwargs),
+                )
                 return result
 
             sync_wrapper.cache = store  # type: ignore
