@@ -19,77 +19,18 @@ import {
 } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import Audio from "./";
+import WaveSurfer from "wavesurfer.js";
 import type { LoadingStatus } from "@gradio/statustracker";
 import { setupi18n } from "../core/src/i18n";
 
-function create_shadow_container(container: HTMLElement): void {
-	const wrapper = document.createElement("div");
-	const shadow = wrapper.attachShadow({ mode: "open" });
-	const left = document.createElement("div");
-	left.setAttribute("data-resize", "left");
-	const right = document.createElement("div");
-	right.setAttribute("data-resize", "right");
-	shadow.appendChild(left);
-	shadow.appendChild(right);
-	container.appendChild(wrapper);
+// WaveSurfer.destroy() throws AbortError when in-flight fetches are cancelled
+// during test cleanup. This is expected and not a test failure.
+function suppress_abort(e: PromiseRejectionEvent): void {
+	if (e.reason?.name === "AbortError") {
+		e.preventDefault();
+	}
 }
-
-vi.mock("wavesurfer.js", () => ({
-	default: {
-		create: vi.fn((opts: any) => {
-			if (opts?.container instanceof HTMLElement) {
-				create_shadow_container(opts.container);
-			}
-			return {
-				load: vi.fn(),
-				on: vi.fn(),
-				un: vi.fn(),
-				play: vi.fn(),
-				pause: vi.fn(),
-				playPause: vi.fn(),
-				skip: vi.fn(),
-				destroy: vi.fn(),
-				getCurrentTime: vi.fn(() => 0),
-				getDuration: vi.fn(() => 0),
-				getDecodedData: vi.fn(() => null),
-				setVolume: vi.fn(),
-				setPlaybackRate: vi.fn(),
-				seekTo: vi.fn(),
-				registerPlugin: vi.fn(() => ({
-					on: vi.fn(),
-					un: vi.fn(),
-					// RegionsPlugin methods
-					addRegion: vi.fn(() => ({
-						start: 0,
-						end: 0,
-						play: vi.fn(),
-						remove: vi.fn(),
-						setOptions: vi.fn()
-					})),
-					getRegions: vi.fn(() => []),
-					clearRegions: vi.fn(),
-					// RecordPlugin methods
-					isPaused: vi.fn(() => false),
-					isRecording: vi.fn(() => false),
-					startMic: vi.fn(() => Promise.resolve()),
-					stopMic: vi.fn(),
-					startRecording: vi.fn(),
-					stopRecording: vi.fn(),
-					pauseRecording: vi.fn(),
-					resumeRecording: vi.fn(),
-					getAvailableAudioDevices: vi.fn(() => Promise.resolve([]))
-				}))
-			};
-		})
-	}
-}));
-
-vi.mock("wavesurfer.js/dist/plugins/record.js", () => ({
-	default: {
-		create: vi.fn(() => ({})),
-		getAvailableAudioDevices: vi.fn(() => Promise.resolve([]))
-	}
-}));
+window.addEventListener("unhandledrejection", suppress_abort);
 
 const loading_status: LoadingStatus = {
 	eta: 0,
@@ -105,11 +46,7 @@ const loading_status: LoadingStatus = {
 };
 
 const fake_value = {
-	path: "audio_sample.wav",
-	url: "https://example.com/audio_sample.wav",
-	orig_name: "audio_sample.wav",
-	size: 16136,
-	mime_type: "audio/wav",
+	...TEST_WAV,
 	is_stream: false
 };
 
@@ -576,17 +513,18 @@ describe("Waveform controls", () => {
 
 describe("Waveform options", () => {
 	setupi18n();
-	let WaveSurfer: any;
+	let createSpy: ReturnType<typeof vi.spyOn>;
 
-	beforeEach(async () => {
-		WaveSurfer = (await import("wavesurfer.js")).default;
-		(WaveSurfer.create as ReturnType<typeof vi.fn>).mockClear();
+	beforeEach(() => {
+		createSpy = vi.spyOn(WaveSurfer, "create");
 	});
-	afterEach(() => cleanup());
+	afterEach(() => {
+		createSpy.mockRestore();
+		cleanup();
+	});
 
 	function get_last_create_args(): Record<string, any> {
-		const calls = (WaveSurfer.create as ReturnType<typeof vi.fn>).mock.calls;
-		return calls[calls.length - 1][0];
+		return createSpy.mock.calls[createSpy.mock.calls.length - 1][0];
 	}
 
 	test("custom waveform_color is passed to WaveSurfer.create as waveColor", async () => {
