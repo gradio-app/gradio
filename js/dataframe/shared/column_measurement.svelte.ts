@@ -47,10 +47,21 @@ export function create_column_measurement(opts: {
 
 	$effect(() => {
 		const table_el = opts.header_table_el();
-		if (!table_el) return;
+		const row_el = opts.header_row_el();
+		if (!table_el || !row_el) return;
+
+		// re-run when columns change so we observe new cells
+		opts.resolved_headers();
 
 		const ro = new ResizeObserver(measure);
 		ro.observe(table_el);
+
+		// observe individual header cells so content-driven column
+		// width changes (editing, data updates) trigger a re-measure
+		// even when the overall table dimensions stay the same
+		const cells = row_el.querySelectorAll<HTMLElement>(".header-cell");
+		cells.forEach((cell) => ro.observe(cell));
+
 		return () => ro.disconnect();
 	});
 

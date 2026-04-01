@@ -646,6 +646,7 @@
 							selected = [row + 1, col];
 							selected_cells = [selected];
 						}
+						tick().then(() => parent?.focus());
 					} else if (editable) {
 						const enter_static =
 							static_columns.includes(col) ||
@@ -657,6 +658,7 @@
 					break;
 				case "Escape":
 					editing = false;
+					tick().then(() => parent?.focus());
 					break;
 				case "Delete":
 				case "Backspace":
