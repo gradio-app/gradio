@@ -368,7 +368,6 @@ def cache(
         @gr.cache(max_size=256, per_session=True)
         def generate(prompt):
             return llm(prompt)
-    Guides: caching
     """
     store = _make_store(max_size, max_memory, per_session)
 
