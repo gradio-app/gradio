@@ -52,13 +52,29 @@ RESPONSES = {
 }
 
 
+def _message_plain_text(message):
+    content = message["content"]
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = []
+        for part in content:
+            if isinstance(part, str):
+                parts.append(part)
+            elif isinstance(part, dict) and part.get("type") == "text":
+                parts.append(part.get("text", ""))
+        return "".join(parts)
+    return str(content)
+
+
 @gr.cache
 def chat_respond(history):
     if not history:
         yield history
         return
-    last_msg = history[-1]["content"].lower().strip()
-    response = RESPONSES.get(last_msg, f"You said: '{history[-1]['content']}'")
+    user_text = _message_plain_text(history[-1])
+    last_msg = user_text.lower().strip()
+    response = RESPONSES.get(last_msg, f"You said: '{user_text}'")
     history.append({"role": "assistant", "content": ""})
     for i in range(len(response)):
         history[-1]["content"] = response[: i + 1]
