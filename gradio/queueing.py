@@ -385,6 +385,44 @@ class Queue:
                 self.pending_event_ids_session[body.session_hash] = set()
         self.pending_event_ids_session[body.session_hash].add(event._id)
         self.event_ids_to_events[event._id] = event
+
+        # Cache bypass: if the function is @gr.cache-decorated, try to
+        # serve from cache without entering the queue (same pattern as validator).
+        if hasattr(fn.fn, "cache"):
+            try:
+                from gradio.caching import CacheMiss, probe_cache
+
+                gr_request = route_utils.compile_gr_request(
+                    body=body, fn=fn, username=username, request=None,
+                )
+                assert body.request is not None  # noqa: S101
+                api_route_path = route_utils.get_api_call_path(
+                    request=body.request
+                )
+                root_path = route_utils.get_root_url(
+                    request=body.request,
+                    route_path=api_route_path,
+                    root_path=self.blocks.app.root_path,
+                )
+                with probe_cache():
+                    response = await route_utils.call_process_api(
+                        app=self.blocks.app,
+                        body=body,
+                        gr_request=gr_request,
+                        fn=fn,
+                        root_path=root_path,
+                    )
+                # Cache hit — send completion immediately, skip the queue
+                self.send_message(
+                    event,
+                    ProcessCompletedMessage(output=response, success=True),
+                )
+                return True, event._id, "success"
+            except CacheMiss:
+                pass  # Fall through to normal queue path
+            except Exception:
+                pass  # Any other error — fall through to queue
+
         try:
             event_queue = self.event_queue_per_concurrency_id[event.concurrency_id]
         except KeyError as e:

@@ -1,31 +1,22 @@
 # Caching Function Results
 
-ML inference is often expensive — image classification, text generation, and audio synthesis can each take seconds or more. If a user submits the same inputs twice, there's no reason to re-run the model. Gradio provides a `@gr.cache` decorator that caches function results with content-aware hashing, so identical inputs return instantly.
+ML inference is often expensive — image classification, text generation, and audio synthesis can each take seconds or more. If a user submits the same inputs twice, there's no reason to re-run the model. Gradio provides two caching mechanisms: `@gr.cache` for automatic exact-match caching, and `gr.Cache()` for manual cache control inside your functions.
 
-Unlike Python's built-in `functools.lru_cache`, `@gr.cache` works with the types you actually use in Gradio: numpy arrays, PIL images, pandas DataFrames, and other unhashable objects. It also handles generators (streaming) and async functions.
+## `@gr.cache` — Automatic Caching
 
-## Basic Usage
-
-Add `@gr.cache` to any function to cache its results. The decorator hashes inputs by their content — two different numpy arrays with the same pixel values will produce a cache hit.
+Add `@gr.cache` to any function to automatically cache its results. The decorator hashes inputs by their content — two different numpy arrays with the same pixel values will produce a cache hit. Cache hits bypass the Gradio queue entirely.
 
 ```python
 import gradio as gr
-import time
 
 @gr.cache
 def classify(image):
-    time.sleep(3)  # simulate expensive inference
     return model.predict(image)
-
-demo = gr.Interface(fn=classify, inputs="image", outputs="label")
-demo.launch()
 ```
 
-The first call takes 3 seconds. The second call with the same image is instant.
+### Generators
 
-## Generators
-
-For generator functions, `@gr.cache` captures and caches **all yielded values**. On a cache hit, it replays the full sequence of yields — this is important for streaming media (audio/video chunks) where each yield is a piece of the output, not the full result:
+For generator functions, `@gr.cache` caches **all yielded values** and replays them on a hit. This is important for streaming media (audio/video chunks) where each yield is a piece of the output:
 
 ```python
 @gr.cache
@@ -34,10 +25,9 @@ def stream_response(prompt):
     for token in model.generate(prompt):
         response += token
         yield response
-    # all yields are cached — next call replays the full streaming sequence
 ```
 
-## Async Functions
+### Async
 
 Async functions and async generators work identically:
 
@@ -47,56 +37,38 @@ async def transcribe(audio):
     return await model.transcribe(audio)
 ```
 
-## Configuration
-
-You can configure the maximum number of cache entries. When the limit is reached, the least-recently-used entry is evicted:
+### Parameters
 
 ```python
-@gr.cache(max_size=64)
-def generate(prompt):
-    return model(prompt)
+@gr.cache(
+    key=lambda kw: kw["prompt"],  # only cache based on prompt, ignore temperature
+    max_size=256,                  # max entries (LRU eviction), default 128
+    max_memory="512mb",            # max memory before eviction
+    per_session=True,              # isolate cache per user session
+)
+def generate(prompt, temperature=0.7):
+    return llm(prompt, temperature=temperature)
 ```
 
-The default `max_size` is 128.
+- **`key`** — function that takes the kwargs dict and returns what to hash. Useful for ignoring parameters like temperature or seed.
+- **`max_size`** — maximum number of entries. LRU eviction when full. Default 128. Set to 0 for unlimited.
+- **`max_memory`** — maximum memory usage. Accepts strings like `"512mb"`, `"2gb"` or raw bytes. LRU eviction when exceeded.
+- **`per_session`** — when `True`, each user session gets an isolated cache. Prevents one user's cached results from being served to another.
 
-Every cached function exposes its cache store via `fn.cache`, so you can inspect or clear it programmatically:
+
+Access the cache programmatically via `fn.cache`:
 
 ```python
 generate.cache.clear()
-print(len(generate.cache))  # number of cached entries
+print(len(generate.cache))
 ```
 
-## Supported Input Types
+## `gr.Cache()` — Manual Cache Control
 
-`@gr.cache` uses content-aware hashing, so it works with all common Gradio input types out of the box:
-
-- **Primitives**: strings, numbers, booleans
-- **Collections**: lists, tuples, dicts, sets
-- **NumPy arrays**: hashed by shape, dtype, and content
-- **PIL Images**: hashed by mode, size, and pixel data
-- **Pandas DataFrames/Series**: hashed by columns, index, and values
-- **Pydantic models**: hashed via `model_dump()`
-- **File paths**: hashed as strings (not file content)
-- **Any hashable object**: falls back to `hash()`
-
-## When to Use Caching
-
-`@gr.cache` is most useful for **deterministic** functions — where the same input always produces the same output:
-
-- Image classification
-- Audio transcription
-- Embedding computation
-- Structured data extraction
-- Any pure computation
-
-It is less useful for **non-deterministic** functions like text generation or image generation, where users typically expect different outputs for the same input on each run.
-
-## Manual Caching with `gr.cache()`
-
-For more control over what gets cached and when, use `gr.cache()` as an injectable parameter (like `gr.Progress`). Gradio injects the same `cache` object on every call, giving you manual `get`/`set` control:
+For full control over what gets cached and when, use `gr.Cache()` as an injectable parameter (like `gr.Progress`). Gradio injects the same instance on every call, giving you a thread-safe `get`/`set` interface:
 
 ```python
-def my_function(prompt, c=gr.cache()):
+def my_function(prompt, c=gr.Cache()):
     hit = c.get(prompt)
     if hit is not None:
         return hit["result"]
@@ -105,11 +77,20 @@ def my_function(prompt, c=gr.cache()):
     return result
 ```
 
-You decide what to cache — it doesn't have to be the function's output. For example, you can cache intermediate state like transformer KV caches:
+### Why use `gr.Cache()` over a plain dict?
+
+- **Thread-safe** — built-in locking for concurrent requests
+- **LRU eviction** + **memory limits** — bounded memory usage (`max_size`, `max_memory`)
+- **Per-session isolation** — `gr.Cache(per_session=True)` partitions the cache by user session, preventing data leakage between users
+
+- **Content-aware keys** — numpy arrays, PIL images, DataFrames all work as cache keys
+
+### KV Cache Example
+
+You can cache arbitrary intermediate state, not just function outputs. Here's how to cache transformer KV states for prefix reuse:
 
 ```python
-def generate(prompt, c=gr.cache()):
-    # Find the longest cached prefix
+def generate(prompt, c=gr.Cache(per_session=True)):
     best_key = None
     best_len = 0
     for cached_key in c.keys():
@@ -127,13 +108,17 @@ def generate(prompt, c=gr.cache()):
     return output.text
 ```
 
-The API:
+### API
 
 - `c.get(key)` — returns a dict of stored data, or `None` on miss
 - `c.set(key, **data)` — stores arbitrary keyword data under a key
 - `c.keys()` — returns all stored keys (for iteration/prefix matching)
 - `c.clear()` — clears all entries
 
-Keys can be any type that `@gr.cache` supports (strings, numbers, numpy arrays, etc.). Configure `max_size` via `gr.cache(max_size=256)`.
+`gr.Cache()` accepts the same `max_size`, `max_memory`, and `per_session` parameters as `@gr.cache`.
 
-Note that `gr.cache` is the same object used in both modes — as a decorator it auto-caches, as a parameter it's injected for manual control.
+## When to Use Caching
+
+`@gr.cache` is most useful for **deterministic** functions where the same input always produces the same output: image classification, audio transcription, embedding computation, structured data extraction.
+
+It is less useful for **non-deterministic** functions like text generation or image generation, where users expect different outputs for the same input. For those, `gr.Cache()` with manual control may be more appropriate — you can cache intermediate state (like KV caches) without caching the output itself.

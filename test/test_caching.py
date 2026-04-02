@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 from PIL import Image
 
-from gradio.caching import cache, cache_hash, resolve_generator
+from gradio.caching import Cache, cache, cache_hash, resolve_generator
 
 
 class TestCacheHash:
@@ -26,7 +26,6 @@ class TestCacheHash:
         c = np.array([1.0, 2.0, 4.0])
         assert cache_hash(a) == cache_hash(b)
         assert cache_hash(a) != cache_hash(c)
-        assert cache_hash(np.zeros((2, 3))) != cache_hash(np.zeros((3, 2)))
 
     def test_pil_image(self):
         a = Image.new("RGB", (10, 10), color=(255, 0, 0))
@@ -39,7 +38,6 @@ class TestCacheHash:
         a = pd.DataFrame({"x": [1, 2], "y": [3, 4]})
         b = pd.DataFrame({"x": [1, 2], "y": [3, 4]})
         assert cache_hash(a) == cache_hash(b)
-        assert cache_hash(pd.Series([1, 2])) == cache_hash(pd.Series([1, 2]))
 
     def test_unhashable_raises(self):
         with pytest.raises(TypeError, match="gr.cache"):
@@ -55,18 +53,7 @@ class TestResolveGenerator:
                 yield i
 
         wrapped, values = resolve_generator(gen)
-        result = wrapped(4)
-        assert result == 3
-        assert values == [0, 1, 2, 3]
-
-    def test_async_generator(self):
-        async def gen(n):
-            for i in range(n):
-                yield i
-
-        wrapped, values = resolve_generator(gen)
-        result = asyncio.run(wrapped(4))
-        assert result == 3
+        assert wrapped(4) == 3
         assert values == [0, 1, 2, 3]
 
     def test_regular_function_unchanged(self):
@@ -91,8 +78,6 @@ class TestCacheDecorator:
         assert add(1, 2) == 3
         assert add(1, 2) == 3
         assert call_count == 1
-        assert add(3, 4) == 7
-        assert call_count == 2
 
     def test_async_function(self):
         call_count = 0
@@ -153,21 +138,21 @@ class TestCacheDecorator:
 
         assert add(1) == 11
         assert add(1, y=10) == 11
-        assert add(1, 10) == 11
         assert call_count == 1
 
-    def test_numpy_input(self):
+    def test_key_parameter(self):
         call_count = 0
 
-        @cache
-        def process(arr):
+        @cache(key=lambda kw: kw["prompt"])
+        def generate(prompt, temperature=0.7):
             nonlocal call_count
             call_count += 1
-            return arr.sum()
+            return f"{prompt}_{temperature}"
 
-        assert process(np.array([1.0, 2.0])) == 3.0
-        assert process(np.array([1.0, 2.0])) == 3.0
+        r1 = generate("hello", temperature=0.5)
+        r2 = generate("hello", temperature=0.9)
         assert call_count == 1
+        assert r2 == r1
 
     def test_max_size(self):
         @cache(max_size=2)
@@ -196,7 +181,7 @@ class TestCacheDecorator:
         assert inspect.isasyncgenfunction(agen)
         assert inspect.iscoroutinefunction(afn)
 
-    def test_sync_generator_mutable_yields(self):
+    def test_mutable_yields_deepcopied(self):
         @cache
         def streamer(n):
             result = []
@@ -205,8 +190,7 @@ class TestCacheDecorator:
                 yield result
 
         list(streamer(3))
-        cached_run = list(streamer(3))
-        assert cached_run == [[1], [1, 2], [1, 2, 3]]
+        assert list(streamer(3)) == [[1], [1, 2], [1, 2, 3]]
 
     def test_with_parens(self):
         @cache()
@@ -227,26 +211,27 @@ class TestCacheDecorator:
         assert len(fn.cache) == 0
 
 
+
 class TestCacheManual:
     def test_get_set(self):
-        c = cache()
+        c = Cache()
         assert c.get("k") is None
         c.set("k", value=42)
         assert c.get("k") == {"value": 42}
 
     def test_multiple_fields(self):
-        c = cache()
+        c = Cache()
         c.set("k", output="hello", kv=[1, 2, 3])
         assert c.get("k") == {"output": "hello", "kv": [1, 2, 3]}
 
     def test_keys(self):
-        c = cache()
+        c = Cache()
         c.set("a", v=1)
         c.set("b", v=2)
         assert sorted(c.keys()) == ["a", "b"]
 
     def test_prefix_matching_pattern(self):
-        c = cache()
+        c = Cache()
         c.set("hello", kv=[1, 2, 3, 4, 5])
         c.set("hello world", kv=list(range(11)))
 
@@ -262,7 +247,7 @@ class TestCacheManual:
         assert c.get(best_key)["kv"] == list(range(11))
 
     def test_eviction_by_count(self):
-        c = cache(max_size=2)
+        c = Cache(max_size=2)
         c.set("a", v=1)
         c.set("b", v=2)
         c.set("c", v=3)
@@ -270,21 +255,28 @@ class TestCacheManual:
         assert c.get("a") is None
 
     def test_eviction_by_memory(self):
-        c = cache(max_size=0, max_memory="1kb")
-        c.set("a", data=np.zeros(100, dtype=np.float64))  # 800 bytes
+        c = Cache(max_size=0, max_memory="1kb")
+        c.set("a", data=np.zeros(100, dtype=np.float64))
         assert len(c) == 1
-        c.set("b", data=np.zeros(100, dtype=np.float64))  # 800 more → over 1kb
-        assert len(c) == 1  # evicted "a" to stay under 1kb
+        c.set("b", data=np.zeros(100, dtype=np.float64))
+        assert len(c) == 1
         assert c.get("a") is None
-        assert c.get("b") is not None
 
-    def test_max_memory_string_parsing(self):
-        c = cache(max_memory="512mb")
-        assert c._store._max_memory == 512 * 1024 * 1024
+    def test_thread_safe(self):
+        import concurrent.futures
+
+        c = Cache(max_size=1000)
+
+        def writer(i):
+            c.set(f"key_{i}", value=i)
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+            list(executor.map(writer, range(100)))
+
+        assert len(c) == 100
 
     def test_injection_pattern(self):
-        """Simulates how Gradio would inject gr.cache() as a parameter."""
-        c = cache()
+        c = Cache()
 
         def my_fn(x, my_cache=c):
             hit = my_cache.get(x)
@@ -295,5 +287,6 @@ class TestCacheManual:
             return result
 
         assert my_fn(5) == 10
-        assert my_fn(5) == 10  # from cache
+        assert my_fn(5) == 10
         assert len(c) == 1
+

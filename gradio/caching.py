@@ -6,6 +6,7 @@ import copy
 import functools
 import hashlib
 import inspect
+import sys
 import threading
 from collections import OrderedDict
 from collections.abc import Callable
@@ -44,38 +45,28 @@ def _hash_repr(obj: Any) -> str:
     if isinstance(obj, set):
         items = sorted(_hash_repr(x) for x in obj)
         return f"S{{{','.join(items)}}}"
-
     if isinstance(obj, np.ndarray):
-        return (
-            f"np({obj.shape},{obj.dtype},{hashlib.sha256(obj.tobytes()).hexdigest()})"
-        )
-
+        return f"np({obj.shape},{obj.dtype},{hashlib.sha256(obj.tobytes()).hexdigest()})"
     if isinstance(obj, Image.Image):
         return f"PIL({obj.mode},{obj.size},{hashlib.sha256(obj.tobytes()).hexdigest()})"
-
     if isinstance(obj, pd.DataFrame):
         col_hash = _hash_repr(list(obj.columns))
         val_hash = hashlib.sha256(obj.values.tobytes()).hexdigest()
         idx_hash = hashlib.sha256(obj.index.to_numpy().tobytes()).hexdigest()
         return f"DF({col_hash},{val_hash},{idx_hash})"
-
     if isinstance(obj, BaseModel):
         return _hash_repr(obj.model_dump())
-
     if isinstance(obj, pd.Series):
         name_hash = _hash_repr(obj.name)
         val_hash = hashlib.sha256(obj.values.tobytes()).hexdigest()
         idx_hash = hashlib.sha256(obj.index.to_numpy().tobytes()).hexdigest()
         return f"Series({name_hash},{val_hash},{idx_hash})"
-
     try:
         return repr(hash(obj))
     except TypeError:
         pass
-
     if hasattr(obj, "__dict__"):
         return _hash_repr(vars(obj))
-
     raise TypeError(
         f"gr.cache: cannot hash object of type {type(obj).__name__}. "
         f"Preprocess your inputs into hashable types before passing them."
@@ -98,7 +89,6 @@ def resolve_generator(fn: Callable) -> tuple[Callable, list | None]:
             return x
 
         return wrapper, generated_values
-
     elif inspect.isasyncgenfunction(fn):
         generated_values = []
 
@@ -110,14 +100,10 @@ def resolve_generator(fn: Callable) -> tuple[Callable, list | None]:
             return x
 
         return wrapper, generated_values
-
     return fn, None
 
 
 def _estimate_size(obj: Any) -> int:
-    """Estimate memory usage in bytes for common ML types."""
-    import sys
-
     if isinstance(obj, np.ndarray):
         return obj.nbytes
     if isinstance(obj, Image.Image):
@@ -144,34 +130,60 @@ def _estimate_size(obj: Any) -> int:
     return sys.getsizeof(obj)
 
 
+def _get_session_hash() -> str | None:
+    try:
+        from gradio.context import LocalContext
+
+        req = LocalContext.request.get(None)
+        if req is not None:
+            return req.session_hash
+    except Exception:
+        pass
+    return None
+
+
 class _CacheStore:
-    def __init__(self, max_size: int = 128, max_memory: int | None = None):
+    def __init__(
+        self,
+        max_size: int = 128,
+        max_memory: int | None = None,
+        per_session: bool = False,
+    ):
         self._max_size = max_size
         self._max_memory = max_memory
+        self._per_session = per_session
         self._exact: OrderedDict[str, dict] = OrderedDict()
         self._entry_sizes: dict[str, int] = {}
         self._total_memory: int = 0
         self._lock = threading.Lock()
 
+    def _session_key(self, key_hash: str) -> str:
+        if not self._per_session:
+            return key_hash
+        session = _get_session_hash() or "_global"
+        return f"{session}:{key_hash}"
+
     def get(self, key_hash: str) -> dict | None:
+        full_key = self._session_key(key_hash)
         with self._lock:
-            if key_hash in self._exact:
-                self._exact.move_to_end(key_hash)
-                return self._exact[key_hash]
+            if full_key in self._exact:
+                self._exact.move_to_end(full_key)
+                return self._exact[full_key]
             return None
 
     def put(self, key_hash: str, **entry: Any) -> None:
+        full_key = self._session_key(key_hash)
         entry_size = _estimate_size(entry) if self._max_memory else 0
         with self._lock:
-            if key_hash in self._exact:
-                self._total_memory -= self._entry_sizes.get(key_hash, 0)
-                self._exact.move_to_end(key_hash)
-                self._exact[key_hash] = entry
-                self._entry_sizes[key_hash] = entry_size
+            if full_key in self._exact:
+                self._total_memory -= self._entry_sizes.get(full_key, 0)
+                self._exact.move_to_end(full_key)
+                self._exact[full_key] = entry
+                self._entry_sizes[full_key] = entry_size
                 self._total_memory += entry_size
             else:
-                self._exact[key_hash] = entry
-                self._entry_sizes[key_hash] = entry_size
+                self._exact[full_key] = entry
+                self._entry_sizes[full_key] = entry_size
                 self._total_memory += entry_size
             self._evict()
 
@@ -211,17 +223,63 @@ def _normalize_kwargs(func: Callable, args: tuple, kwargs: dict) -> dict:
     return dict(bound.arguments)
 
 
-def _make_wrapper(func: Callable, store: _CacheStore) -> Callable:
+class CacheMiss(Exception):
+    pass
+
+
+_probe_mode = threading.local()
+
+
+class probe_cache:
+    """Context manager for probe mode. Wrappers raise CacheMiss instead of
+    running the function on a miss. Used by the queue for cache bypass."""
+
+    def __enter__(self):
+        _probe_mode.active = True
+        return self
+
+    def __exit__(self, *exc):
+        _probe_mode.active = False
+        return False
+
+
+def _make_store(
+    max_size: int,
+    max_memory: str | int | None,
+    per_session: bool,
+) -> _CacheStore:
+    from gradio.utils import _parse_file_size
+
+    return _CacheStore(
+        max_size=max_size,
+        max_memory=_parse_file_size(max_memory),
+        per_session=per_session,
+    )
+
+
+def _make_wrapper(
+    func: Callable, store: _CacheStore, key: Callable | None = None
+) -> Callable:
+    def _compute_hash(normalized: dict) -> str:
+        if key is not None:
+            return cache_hash(key(normalized))
+        return cache_hash(normalized)
+
+    def _on_miss():
+        if getattr(_probe_mode, "active", False):
+            raise CacheMiss()
+
     if inspect.isgeneratorfunction(func):
 
         @functools.wraps(func)
         def sync_gen_wrapper(*args, **kwargs):
             normalized = _normalize_kwargs(func, args, kwargs)
-            key_hash = cache_hash(normalized)
+            key_hash = _compute_hash(normalized)
             entry = store.get(key_hash)
             if entry is not None:
                 yield from entry["yields"]
                 return
+            _on_miss()
             all_yields = []
             for value in func(**normalized):
                 all_yields.append(copy.deepcopy(value))
@@ -236,12 +294,13 @@ def _make_wrapper(func: Callable, store: _CacheStore) -> Callable:
         @functools.wraps(func)
         async def async_gen_wrapper(*args, **kwargs):
             normalized = _normalize_kwargs(func, args, kwargs)
-            key_hash = cache_hash(normalized)
+            key_hash = _compute_hash(normalized)
             entry = store.get(key_hash)
             if entry is not None:
                 for value in entry["yields"]:
                     yield value
                 return
+            _on_miss()
             all_yields = []
             async for value in func(**normalized):
                 all_yields.append(copy.deepcopy(value))
@@ -256,10 +315,11 @@ def _make_wrapper(func: Callable, store: _CacheStore) -> Callable:
         @functools.wraps(func)
         async def async_wrapper(*args, **kwargs):
             normalized = _normalize_kwargs(func, args, kwargs)
-            key_hash = cache_hash(normalized)
+            key_hash = _compute_hash(normalized)
             entry = store.get(key_hash)
             if entry is not None:
                 return entry["value"]
+            _on_miss()
             result = await func(**normalized)
             store.put(key_hash, value=result)
             return result
@@ -271,10 +331,11 @@ def _make_wrapper(func: Callable, store: _CacheStore) -> Callable:
         @functools.wraps(func)
         def sync_wrapper(*args, **kwargs):
             normalized = _normalize_kwargs(func, args, kwargs)
-            key_hash = cache_hash(normalized)
+            key_hash = _compute_hash(normalized)
             entry = store.get(key_hash)
             if entry is not None:
                 return entry["value"]
+            _on_miss()
             result = func(**normalized)
             store.put(key_hash, value=result)
             return result
@@ -283,60 +344,63 @@ def _make_wrapper(func: Callable, store: _CacheStore) -> Callable:
 
 
 class cache:
-    """Unified caching for Gradio functions.
+    """Decorator that auto-caches function results based on content-hashed inputs.
 
-    As a decorator, auto-caches based on content-hashed inputs::
-
-        @gr.cache
-        def classify(image):
-            return model.predict(image)
-
-        @gr.cache(max_size=256)
-        def classify(image):
-            return model.predict(image)
-
-    As an injectable parameter, gives manual get/set control::
-
-        def generate(prompt, c=gr.cache()):
-            hit = c.get(prompt)
-            if hit is not None:
-                return model(prompt, past=hit["kv"])
-            output = model(prompt)
-            c.set(prompt, kv=model.past_key_values)
-            return output
+    Works with sync/async functions and sync/async generators.
+    For generators, all yielded values are cached and replayed on hit.
+    Cache hits bypass the Gradio queue.
     """
 
     def __new__(
         cls,
         fn: Callable | None = None,
         *,
+        key: Callable | None = None,
         max_size: int = 128,
         max_memory: str | int | None = None,
+        per_session: bool = False,
     ):
-        from gradio.utils import _parse_file_size
-
         instance = super().__new__(cls)
-        max_memory_bytes = _parse_file_size(max_memory)
-        instance._store = _CacheStore(max_size, max_memory=max_memory_bytes)
+        instance._store = _make_store(max_size, max_memory, per_session)
+        instance._key = key
         if fn is not None and callable(fn):
-            wrapper = _make_wrapper(fn, instance._store)
+            wrapper = _make_wrapper(fn, instance._store, key=key)
             wrapper.cache = instance  # type: ignore
             return wrapper
         return instance
 
-    def __init__(
-        self,
-        fn: Callable | None = None,
-        *,
-        max_size: int = 128,
-        max_memory: str | int | None = None,
-    ):
+    def __init__(self, fn=None, *, key=None, max_size=128, max_memory=None, per_session=False):
         pass
 
     def __call__(self, fn: Callable) -> Callable:
-        wrapper = _make_wrapper(fn, self._store)
+        if not hasattr(self, "_store"):
+            return fn
+        wrapper = _make_wrapper(fn, self._store, key=self._key)
         wrapper.cache = self  # type: ignore
         return wrapper
+
+    def clear(self) -> None:
+        self._store.clear()
+
+    def __len__(self) -> int:
+        return len(self._store)
+
+
+class Cache:
+    """Thread-safe cache with manual get/set control, injected as a parameter.
+
+    Add as a default parameter value (like gr.Progress) and Gradio injects it.
+    Supports per-session isolation so cached data doesn't leak between users.
+    """
+
+    def __init__(
+        self,
+        *,
+        max_size: int = 128,
+        max_memory: str | int | None = None,
+        per_session: bool = False,
+    ):
+        self._store = _make_store(max_size, max_memory, per_session)
 
     def get(self, key: Any) -> dict | None:
         key_hash = cache_hash(key)
