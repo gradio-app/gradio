@@ -6,7 +6,7 @@ import gradio.processing_utils
 import gradio.templates
 from gradio import components, layouts, mcp, themes, validators
 from gradio.blocks import Blocks
-from gradio.caching import CacheVar, cache
+from gradio.caching import cache
 from gradio.chat_interface import ChatInterface
 from gradio.cli import deploy
 from gradio.components import (
@@ -154,7 +154,6 @@ __all__ = [
     "Brush",
     "Button",
     "CSVLogger",
-    "CacheVar",
     "cache",
     "ChatInterface",
     "ChatMessage",

@@ -523,29 +523,11 @@ class Examples:
         else:
             print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
             self.cache_logger.setup(self.outputs, self.cached_folder)  # type: ignore
-            generated_values = []
-            if inspect.isgeneratorfunction(self.fn):
+            from gradio.caching import resolve_generator
 
-                def get_final_item(*args):  # type: ignore
-                    x = None
-                    generated_values.clear()
-                    for x in self.fn(*args):  # noqa: B007  # type: ignore
-                        generated_values.append(x)
-                    return x
-
-                fn = get_final_item
-            elif inspect.isasyncgenfunction(self.fn):
-
-                async def get_final_item(*args):
-                    x = None
-                    generated_values.clear()
-                    async for x in self.fn(*args):  # noqa: B007  # type: ignore
-                        generated_values.append(x)
-                    return x
-
-                fn = get_final_item
-            else:
-                fn = self.fn
+            fn, generated_values = resolve_generator(self.fn)
+            if generated_values is None:
+                generated_values = []
 
             # create a fake dependency to process the examples and get the predictions
             from gradio.events import EventListenerMethod
