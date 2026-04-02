@@ -51,39 +51,210 @@ describe("Props: value", () => {
 		const el = getByLabelText("Number") as HTMLInputElement;
 		expect(el.value).toBe("");
 	});
+
+	test("zero is rendered correctly", async () => {
+		const { getByLabelText } = await render(Number, {
+			...default_props,
+			value: 0
+		});
+
+		const el = getByLabelText("Number") as HTMLInputElement;
+		expect(el.valueAsNumber).toBe(0);
+		expect(el.value).toBe("0");
+	});
+
+	test("undefined renders empty input", async () => {
+		const { getByLabelText } = await render(Number, {
+			...default_props,
+			value: undefined
+		});
+
+		const el = getByLabelText("Number") as HTMLInputElement;
+		expect(el.value).toBe("");
+	});
+
+	test("negative numbers are preserved", async () => {
+		const { getByLabelText } = await render(Number, {
+			...default_props,
+			value: -42
+		});
+
+		const el = getByLabelText("Number") as HTMLInputElement;
+		expect(el.valueAsNumber).toBe(-42);
+	});
+
+	test("decimal numbers are preserved", async () => {
+		const { getByLabelText } = await render(Number, {
+			...default_props,
+			value: 3.14159
+		});
+
+		const el = getByLabelText("Number") as HTMLInputElement;
+		expect(el.valueAsNumber).toBe(3.14159);
+	});
 });
 
 describe("Props: limits", () => {
 	afterEach(() => cleanup());
 
-	test("minimum is applied to the input", async () => {
+	test("step up increments by step", async () => {
 		const { getByLabelText } = await render(Number, {
 			...default_props,
-			minimum: 0
-		});
-
-		const el = getByLabelText("Number");
-		expect(el).toHaveAttribute("min", "0");
-	});
-
-	test("maximum is applied to the input", async () => {
-		const { getByLabelText } = await render(Number, {
-			...default_props,
-			maximum: 100
-		});
-
-		const el = getByLabelText("Number");
-		expect(el).toHaveAttribute("max", "100");
-	});
-
-	test("step is applied to the input", async () => {
-		const { getByLabelText } = await render(Number, {
-			...default_props,
+			value: 0,
 			step: 5
 		});
 
+		const el = getByLabelText("Number") as HTMLInputElement;
+		el.stepUp();
+		await fireEvent.input(el);
+
+		await waitFor(() => {
+			expect(el.valueAsNumber).toBe(5);
+		});
+	});
+
+	test("step down decrements by step", async () => {
+		const { getByLabelText } = await render(Number, {
+			...default_props,
+			value: 10,
+			step: 5
+		});
+
+		const el = getByLabelText("Number") as HTMLInputElement;
+		el.stepDown();
+		await fireEvent.input(el);
+
+		await waitFor(() => {
+			expect(el.valueAsNumber).toBe(5);
+		});
+	});
+
+	test("step down does not go below minimum", async () => {
+		const { getByLabelText } = await render(Number, {
+			...default_props,
+			value: 0,
+			minimum: 0,
+			step: 1
+		});
+
+		const el = getByLabelText("Number") as HTMLInputElement;
+		el.stepDown();
+		await fireEvent.input(el);
+
+		await waitFor(() => {
+			expect(el.valueAsNumber).toBeGreaterThanOrEqual(0);
+		});
+	});
+
+	test("step up does not exceed maximum", async () => {
+		const { getByLabelText } = await render(Number, {
+			...default_props,
+			value: 100,
+			maximum: 100,
+			step: 1
+		});
+
+		const el = getByLabelText("Number") as HTMLInputElement;
+		el.stepUp();
+
+		await fireEvent.input(el);
+
+		await waitFor(() => {
+			expect(el.valueAsNumber).toBeLessThanOrEqual(100);
+		});
+	});
+
+	test("out-of-bounds value via set_data is flagged as invalid", async () => {
+		const { getByLabelText } = await render(Number, {
+			...default_props,
+			value: 50,
+			minimum: 0,
+			maximum: 100
+		});
+
+		const el = getByLabelText("Number") as HTMLInputElement;
+		el.value = "200";
+		await fireEvent.input(el);
+
+		expect(el.validity.rangeOverflow).toBe(true);
+	});
+
+	test("below-minimum value via user input is flagged as invalid", async () => {
+		const { getByLabelText } = await render(Number, {
+			...default_props,
+			value: 50,
+			minimum: 0,
+			maximum: 100
+		});
+
+		const el = getByLabelText("Number") as HTMLInputElement;
+		el.value = "-5";
+		await fireEvent.input(el);
+
+		expect(el.validity.rangeUnderflow).toBe(true);
+	});
+});
+
+describe("Validation error", () => {
+	afterEach(() => cleanup());
+
+	test("validation error is displayed when set via loading_status", async () => {
+		const { getByText } = await render(Number, {
+			...default_props,
+			loading_status: {
+				status: "complete",
+				validation_error: "Value must be between 0 and 100"
+			}
+		});
+
+		getByText("Value must be between 0 and 100");
+	});
+
+	test("input has validation-error class when error is present", async () => {
+		const { getByLabelText } = await render(Number, {
+			...default_props,
+			loading_status: {
+				status: "complete",
+				validation_error: "Invalid"
+			}
+		});
+
 		const el = getByLabelText("Number");
-		expect(el).toHaveAttribute("step", "5");
+		expect(el).toHaveClass("validation-error");
+	});
+
+	test("no validation error when loading_status has no error", async () => {
+		const { queryByText } = await render(Number, {
+			...default_props,
+			loading_status: {
+				status: "complete",
+				validation_error: null
+			}
+		});
+
+		expect(queryByText("Value must be between 0 and 100")).toBeNull();
+	});
+});
+
+describe("Props: buttons", () => {
+	afterEach(() => cleanup());
+
+	test("buttons are rendered when provided", async () => {
+		const { getByLabelText } = await render(Number, {
+			...default_props,
+			buttons: [{ value: "Randomize", id: 1, icon: null }]
+		});
+
+		getByLabelText("Randomize");
+	});
+
+	test("no buttons rendered when empty array", async () => {
+		const { queryByRole } = await render(Number, {
+			...default_props,
+			buttons: []
+		});
+
+		expect(queryByRole("button")).toBeNull();
 	});
 });
 
@@ -107,6 +278,15 @@ describe("Props: text", () => {
 		});
 
 		getByText("Must be between 0 and 100");
+	});
+
+	test("info is not rendered when not provided", async () => {
+		const { queryByText } = await render(Number, {
+			...default_props,
+			info: undefined
+		});
+
+		expect(queryByText("Must be between 0 and 100")).toBeNull();
 	});
 });
 
@@ -236,11 +416,31 @@ describe("get_data / set_data", () => {
 		expect(data.value).toBe(123);
 	});
 
-	test("set_data updates the current value", async () => {
-		const { set_data, get_data } = await render(Number, default_props);
+	test("set_data updates the value in the UI", async () => {
+		const { set_data, getByLabelText } = await render(Number, {
+			...default_props,
+			value: 0
+		});
 
-		await set_data({ value: 77 });
-		const data = await get_data();
-		expect(data.value).toBe(77);
+		await set_data({ value: 999 });
+
+		const el = getByLabelText("Number") as HTMLInputElement;
+		expect(el.valueAsNumber).toBe(999);
+	});
+
+	test("user input is reflected in get_data", async () => {
+		const { getByLabelText, get_data } = await render(Number, {
+			...default_props,
+			value: null
+		});
+
+		const el = getByLabelText("Number") as HTMLInputElement;
+		el.focus();
+		await event.type(el, "42");
+
+		await waitFor(async () => {
+			const data = await get_data();
+			expect(data.value).toBe(42);
+		});
 	});
 });
