@@ -393,12 +393,13 @@ class Queue:
                 from gradio.caching import CacheMiss, probe_cache
 
                 gr_request = route_utils.compile_gr_request(
-                    body=body, fn=fn, username=username, request=None,
+                    body=body,
+                    fn=fn,
+                    username=username,
+                    request=None,
                 )
                 assert body.request is not None  # noqa: S101
-                api_route_path = route_utils.get_api_call_path(
-                    request=body.request
-                )
+                api_route_path = route_utils.get_api_call_path(request=body.request)
                 root_path = route_utils.get_root_url(
                     request=body.request,
                     route_path=api_route_path,

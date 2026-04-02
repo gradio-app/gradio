@@ -211,7 +211,6 @@ class TestCacheDecorator:
         assert len(fn.cache) == 0
 
 
-
 class TestCacheManual:
     def test_get_set(self):
         c = Cache()
@@ -289,4 +288,3 @@ class TestCacheManual:
         assert my_fn(5) == 10
         assert my_fn(5) == 10
         assert len(c) == 1
-

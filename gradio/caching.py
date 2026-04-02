@@ -46,7 +46,9 @@ def _hash_repr(obj: Any) -> str:
         items = sorted(_hash_repr(x) for x in obj)
         return f"S{{{','.join(items)}}}"
     if isinstance(obj, np.ndarray):
-        return f"np({obj.shape},{obj.dtype},{hashlib.sha256(obj.tobytes()).hexdigest()})"
+        return (
+            f"np({obj.shape},{obj.dtype},{hashlib.sha256(obj.tobytes()).hexdigest()})"
+        )
     if isinstance(obj, Image.Image):
         return f"PIL({obj.mode},{obj.size},{hashlib.sha256(obj.tobytes()).hexdigest()})"
     if isinstance(obj, pd.DataFrame):
@@ -369,7 +371,9 @@ class cache:
             return wrapper
         return instance
 
-    def __init__(self, fn=None, *, key=None, max_size=128, max_memory=None, per_session=False):
+    def __init__(
+        self, fn=None, *, key=None, max_size=128, max_memory=None, per_session=False
+    ):
         pass
 
     def __call__(self, fn: Callable) -> Callable:
