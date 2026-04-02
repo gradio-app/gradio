@@ -18,6 +18,7 @@ import numpy as np
 from anyio.to_thread import run_sync
 
 from gradio import route_utils, routes
+from gradio.caching import CacheMissError, ProbeCache
 from gradio.data_classes import (
     PredictBodyInternal,
 )
@@ -390,8 +391,6 @@ class Queue:
         # serve from cache without entering the queue (same pattern as validator).
         if hasattr(fn.fn, "cache"):
             try:
-                from gradio.caching import CacheMiss, probe_cache
-
                 gr_request = route_utils.compile_gr_request(
                     body=body,
                     fn=fn,
@@ -405,7 +404,7 @@ class Queue:
                     route_path=api_route_path,
                     root_path=self.blocks.app.root_path,
                 )
-                with probe_cache():
+                with ProbeCache():
                     response = await route_utils.call_process_api(
                         app=self.blocks.app,
                         body=body,
@@ -419,7 +418,7 @@ class Queue:
                     ProcessCompletedMessage(output=response, success=True),
                 )
                 return True, event._id, "success"
-            except CacheMiss:
+            except CacheMissError:
                 pass  # Fall through to normal queue path
             except Exception:
                 pass  # Any other error — fall through to queue

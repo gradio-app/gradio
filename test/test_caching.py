@@ -49,8 +49,7 @@ class TestCacheHash:
 class TestResolveGenerator:
     def test_sync_generator(self):
         def gen(n):
-            for i in range(n):
-                yield i
+            yield from range(n)
 
         wrapped, values = resolve_generator(gen)
         assert wrapped(4) == 3
@@ -237,7 +236,7 @@ class TestCacheManual:
         prompt = "hello world foo"
         best_key = None
         best_len = 0
-        for cached_key in c.keys():
+        for cached_key in c.keys():  # noqa: SIM118
             if prompt.startswith(cached_key) and len(cached_key) > best_len:
                 best_key = cached_key
                 best_len = len(cached_key)

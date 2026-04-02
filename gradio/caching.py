@@ -12,6 +12,8 @@ from collections import OrderedDict
 from collections.abc import Callable
 from typing import Any
 
+from gradio_client.documentation import document
+
 import numpy as np
 import pandas as pd
 from PIL import Image
@@ -212,10 +214,6 @@ class _CacheStore:
         with self._lock:
             return len(self._exact)
 
-    @property
-    def memory_usage(self) -> int:
-        with self._lock:
-            return self._total_memory
 
 
 def _normalize_kwargs(func: Callable, args: tuple, kwargs: dict) -> dict:
@@ -225,14 +223,14 @@ def _normalize_kwargs(func: Callable, args: tuple, kwargs: dict) -> dict:
     return dict(bound.arguments)
 
 
-class CacheMiss(Exception):
+class CacheMissError(Exception):
     pass
 
 
 _probe_mode = threading.local()
 
 
-class probe_cache:
+class ProbeCache:
     """Context manager for probe mode. Wrappers raise CacheMiss instead of
     running the function on a miss. Used by the queue for cache bypass."""
 
@@ -269,7 +267,7 @@ def _make_wrapper(
 
     def _on_miss():
         if getattr(_probe_mode, "active", False):
-            raise CacheMiss()
+            raise CacheMissError()
 
     if inspect.isgeneratorfunction(func):
 
@@ -345,56 +343,63 @@ def _make_wrapper(
         return sync_wrapper
 
 
-class cache:
-    """Decorator that auto-caches function results based on content-hashed inputs.
-
-    Works with sync/async functions and sync/async generators.
-    For generators, all yielded values are cached and replayed on hit.
-    Cache hits bypass the Gradio queue.
+@document()
+def cache(
+    fn: Callable | None = None,
+    *,
+    key: Callable | None = None,
+    max_size: int = 128,
+    max_memory: str | int | None = None,
+    per_session: bool = False,
+):
     """
+    Decorator that auto-caches function results based on content-hashed inputs. Works with sync/async functions and sync/async generators. For generators, all yielded values are cached and replayed on hit. Cache hits bypass the Gradio queue.
+    Parameters:
+        fn: The function to cache. When used as @gr.cache without parentheses, this is the decorated function. When used as @gr.cache(...), this is None.
+        key: Optional function that receives the normalized kwargs dict and returns a hashable cache key. Useful for ignoring certain inputs (e.g., temperature, seed).
+        max_size: Maximum number of cache entries. Least-recently-used entries are evicted when full. Set to 0 for unlimited. Default: 128.
+        max_memory: Maximum total memory usage before eviction. Accepts strings like "512mb", "2gb" or integer bytes. When exceeded, least-recently-used entries are evicted.
+        per_session: When True, each user session gets an isolated cache, preventing cached results from leaking between users. Default: False.
+    Example:
+        import gradio as gr
+        @gr.cache
+        def classify(image):
+            return model.predict(image)
+        @gr.cache(max_size=256, per_session=True)
+        def generate(prompt):
+            return llm(prompt)
+    Guides: caching
+    """
+    store = _make_store(max_size, max_memory, per_session)
 
-    def __new__(
-        cls,
-        fn: Callable | None = None,
-        *,
-        key: Callable | None = None,
-        max_size: int = 128,
-        max_memory: str | int | None = None,
-        per_session: bool = False,
-    ):
-        instance = super().__new__(cls)
-        instance._store = _make_store(max_size, max_memory, per_session)
-        instance._key = key
-        if fn is not None and callable(fn):
-            wrapper = _make_wrapper(fn, instance._store, key=key)
-            wrapper.cache = instance  # type: ignore
-            return wrapper
-        return instance
-
-    def __init__(
-        self, fn=None, *, key=None, max_size=128, max_memory=None, per_session=False
-    ):
-        pass
-
-    def __call__(self, fn: Callable) -> Callable:
-        if not hasattr(self, "_store"):
-            return fn
-        wrapper = _make_wrapper(fn, self._store, key=self._key)
-        wrapper.cache = self  # type: ignore
+    def decorator(func: Callable) -> Callable:
+        wrapper = _make_wrapper(func, store, key=key)
+        wrapper.cache = store  # type: ignore
         return wrapper
 
-    def clear(self) -> None:
-        self._store.clear()
-
-    def __len__(self) -> int:
-        return len(self._store)
+    if fn is not None:
+        return decorator(fn)
+    return decorator
 
 
+@document("get", "set", "keys", "clear")
 class Cache:
-    """Thread-safe cache with manual get/set control, injected as a parameter.
-
-    Add as a default parameter value (like gr.Progress) and Gradio injects it.
-    Supports per-session isolation so cached data doesn't leak between users.
+    """
+    Thread-safe cache with manual get/set control, injected as a function parameter (like gr.Progress). Add as a default parameter value and Gradio will inject it automatically. Supports per-session isolation so cached data doesn't leak between users, content-aware hashing for ML types (numpy, PIL, pandas), and LRU eviction with memory limits.
+    Parameters:
+        max_size: Maximum number of cache entries. Least-recently-used entries are evicted when full. Set to 0 for unlimited. Default: 128.
+        max_memory: Maximum total memory usage before eviction. Accepts strings like "512mb", "2gb" or integer bytes.
+        per_session: When True, each user session gets an isolated cache, preventing cached data from leaking between users. Default: False.
+    Example:
+        import gradio as gr
+        def generate(prompt, c=gr.Cache(per_session=True)):
+            hit = c.get(prompt)
+            if hit is not None:
+                return model(prompt, past=hit["kv"])
+            output = model(prompt)
+            c.set(prompt, kv=model.past_key_values)
+            return output
+    Guides: caching
     """
 
     def __init__(
@@ -407,6 +412,11 @@ class Cache:
         self._store = _make_store(max_size, max_memory, per_session)
 
     def get(self, key: Any) -> dict | None:
+        """
+        Look up a cache entry by key. Returns a dict of stored data, or None on miss. Keys can be any type supported by gr.cache (strings, numbers, numpy arrays, PIL images, etc.).
+        Parameters:
+            key: The cache key to look up.
+        """
         key_hash = cache_hash(key)
         entry = self._store.get(key_hash)
         if entry is None:
@@ -414,14 +424,26 @@ class Cache:
         return {k: v for k, v in entry.items() if k != "_key"}
 
     def set(self, key: Any, **data: Any) -> None:
+        """
+        Store arbitrary keyword data under a key.
+        Parameters:
+            key: The cache key.
+            data: Arbitrary keyword arguments to store.
+        """
         key_hash = cache_hash(key)
         self._store.put(key_hash, _key=key, **data)
 
     def keys(self) -> list[Any]:
+        """
+        Return all stored raw keys. Useful for iteration or prefix matching.
+        """
         with self._store._lock:
             return [entry.get("_key") for entry in self._store._exact.values()]
 
     def clear(self) -> None:
+        """
+        Clear all entries from the cache.
+        """
         self._store.clear()
 
     def __len__(self) -> int:

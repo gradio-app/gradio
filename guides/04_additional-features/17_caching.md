@@ -1,6 +1,6 @@
 # Caching Function Results
 
-ML inference is often expensive — image classification, text generation, and audio synthesis can each take seconds or more. If a user submits the same inputs twice, there's no reason to re-run the model. Gradio provides two caching mechanisms: `@gr.cache` for automatic exact-match caching, and `gr.Cache()` for manual cache control inside your functions.
+ML inference is often expensive: image classification, text generation, and audio synthesis can each take seconds or more. If a user submits the same inputs twice, there's no reason to re-run the model. Gradio provides two caching mechanisms: `@gr.cache` for automatic exact-match caching, and `gr.Cache()` for manual cache control inside your functions.
 
 ## `@gr.cache` — Automatic Caching
 
@@ -108,14 +108,6 @@ def generate(prompt, c=gr.Cache(per_session=True)):
     return output.text
 ```
 
-### API
-
-- `c.get(key)` — returns a dict of stored data, or `None` on miss
-- `c.set(key, **data)` — stores arbitrary keyword data under a key
-- `c.keys()` — returns all stored keys (for iteration/prefix matching)
-- `c.clear()` — clears all entries
-
-`gr.Cache()` accepts the same `max_size`, `max_memory`, and `per_session` parameters as `@gr.cache`.
 
 ## When to Use Caching
 
