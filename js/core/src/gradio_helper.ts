@@ -17,7 +17,10 @@ export function formatter(value: string | null | undefined): string {
 	}
 
 	const direct_translation = translate(string_value);
-	if (direct_translation !== string_value) {
+	if (
+		typeof direct_translation === "string" &&
+		direct_translation !== string_value
+	) {
 		return direct_translation;
 	}
 
