@@ -88,15 +88,6 @@ describe("Label", () => {
 		});
 
 		expect(getByText("My Image")).toBeTruthy();
-	});
-
-	test("show_label=true makes the label visible", async () => {
-		const { getByText } = await render(AnnotatedImage, {
-			...default_props,
-			label: "My Image",
-			show_label: true
-		});
-
 		expect(getByText("My Image")).toBeVisible();
 	});
 
@@ -116,27 +107,23 @@ describe("AnnotatedImage", () => {
 	afterEach(() => cleanup());
 
 	test("renders empty state when value is null", async () => {
-		const { container } = await render(AnnotatedImage, {
+		const { queryByAltText } = await render(AnnotatedImage, {
 			...default_props,
 			value: null
 		});
 
-		// Empty component renders the Image icon SVG inside the Empty wrapper
-		// No base image should be present
-		const img = container.querySelector("img.base-image");
-		expect(img).toBeNull();
+		expect(queryByAltText("the base file that is annotated")).toBeNull();
 	});
 
 	test("renders base image when value is set", async () => {
-		const { container } = await render(AnnotatedImage, {
+		const { getByAltText } = await render(AnnotatedImage, {
 			...default_props,
 			value: fake_value
 		});
 
-		const img = container.querySelector("img.base-image"); // no role/label available for this bare img besides class
+		const img = getByAltText("the base file that is annotated");
 		expect(img).toBeTruthy();
-		expect(img?.getAttribute("src")).toBe("https://example.com/test.png");
-		expect(img?.getAttribute("alt")).toBe("the base file that is annotated");
+		expect(img.getAttribute("src")).toBe("https://example.com/test.png");
 	});
 
 	test("renders annotation masks when value has annotations", async () => {
@@ -164,6 +151,8 @@ describe("Props: show_legend", () => {
 
 		expect(getByRole("button", { name: "cat" })).toBeTruthy();
 		expect(getByRole("button", { name: "dog" })).toBeTruthy();
+		expect(getByRole("button", { name: "cat" })).toBeVisible();
+		expect(getByRole("button", { name: "dog" })).toBeVisible();
 	});
 
 	test("show_legend=false hides legend", async () => {
@@ -249,6 +238,7 @@ describe("Props: buttons", () => {
 		});
 
 		expect(getByLabelText("Fullscreen")).toBeTruthy();
+		expect(getByLabelText("Fullscreen")).toBeVisible();
 	});
 
 	test("empty buttons array shows no fullscreen button", async () => {
@@ -324,7 +314,7 @@ describe("Events: change", () => {
 
 		const change = listen("change", { retrospective: true });
 
-		expect(change).toHaveBeenCalledTimes(1);
+		expect(change).not.toHaveBeenCalled();
 	});
 
 	test("changing value multiple times triggers change each time", async () => {
@@ -336,6 +326,7 @@ describe("Events: change", () => {
 		const change = listen("change");
 
 		await set_data({ value: fake_value });
+		expect(change).toHaveBeenCalledTimes(1);
 		await set_data({ value: single_annotation_value });
 
 		expect(change).toHaveBeenCalledTimes(2);
@@ -491,16 +482,16 @@ describe("get_data / set_data", () => {
 	});
 
 	test("set_data updates the displayed image", async () => {
-		const { set_data, container } = await render(AnnotatedImage, {
+		const { set_data, getByAltText } = await render(AnnotatedImage, {
 			...default_props,
 			value: null
 		});
 
 		await set_data({ value: fake_value });
 
-		const img = container.querySelector("img.base-image");
+		const img = getByAltText("the base file that is annotated");
 		expect(img).toBeTruthy();
-		expect(img?.getAttribute("src")).toBe("https://example.com/test.png");
+		expect(img.getAttribute("src")).toBe("https://example.com/test.png");
 	});
 
 	test("get_data reflects set_data value (round-trip)", async () => {
@@ -516,15 +507,14 @@ describe("get_data / set_data", () => {
 	});
 
 	test("set_data to null shows empty state", async () => {
-		const { set_data, container } = await render(AnnotatedImage, {
+		const { set_data, queryByAltText } = await render(AnnotatedImage, {
 			...default_props,
 			value: fake_value
 		});
 
 		await set_data({ value: null });
 
-		const img = container.querySelector("img.base-image");
-		expect(img).toBeNull();
+		expect(queryByAltText("the base file that is annotated")).toBeNull();
 	});
 
 	test("set_data updates legend items", async () => {
@@ -562,16 +552,18 @@ describe("Edge cases", () => {
 	});
 
 	test("value with empty annotations array renders base image but no masks or legend", async () => {
-		const { container, queryByRole } = await render(AnnotatedImage, {
-			...default_props,
-			value: {
-				image: fake_image,
-				annotations: []
+		const { container, getByAltText, queryByRole } = await render(
+			AnnotatedImage,
+			{
+				...default_props,
+				value: {
+					image: fake_image,
+					annotations: []
+				}
 			}
-		});
+		);
 
-		const img = container.querySelector("img.base-image");
-		expect(img).toBeTruthy();
+		expect(getByAltText("the base file that is annotated")).toBeTruthy();
 
 		const masks = container.querySelectorAll("img.mask");
 		expect(masks.length).toBe(0);
