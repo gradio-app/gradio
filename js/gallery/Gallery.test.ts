@@ -1,147 +1,153 @@
-import { test, describe, assert, afterEach, vi, beforeEach } from "vitest";
+import { test, describe, expect, afterEach, vi } from "vitest";
 import { cleanup, render } from "@self/tootils/render";
-import { setupi18n } from "../core/src/i18n";
 
 import Gallery from "./Index.svelte";
-import type { LoadingStatus } from "@gradio/statustracker";
 
-const loading_status: LoadingStatus = {
-	eta: 0,
-	queue_position: 1,
-	queue_size: 1,
-	status: "complete" as LoadingStatus["status"],
-	scroll_to_output: false,
-	visible: true,
-	fn_index: 0,
-	show_progress: "full"
+const fake_image = (id: string) => ({
+	path: `${id}.png`,
+	url: `https://example.com/${id}.png`,
+	orig_name: `${id}.png`,
+	size: 1024,
+	mime_type: "image/png",
+	is_stream: false
+});
+
+const fake_video = (id: string) => ({
+	path: `${id}.mp4`,
+	url: `https://example.com/${id}.mp4`,
+	orig_name: `${id}.mp4`,
+	size: 2048,
+	mime_type: "video/mp4",
+	is_stream: false
+});
+
+const default_props = {
+	label: "Gallery",
+	show_label: true,
+	preview: true,
+	allow_preview: true,
+	selected_index: null as number | null,
+	object_fit: "cover" as const,
+	buttons: ["fullscreen"] as string[],
+	value: null as any,
+	columns: 2,
+	rows: undefined as number | undefined,
+	height: "auto",
+	fit_columns: true,
+	interactive: false,
+	sources: ["upload"] as ("upload" | "webcam" | "clipboard")[]
 };
 
 describe("Gallery", () => {
-	afterEach(() => {
-		cleanup();
-		vi.useRealTimers();
-	});
-	beforeEach(() => {
-		setupi18n();
-	});
-	test("renders the image provided", async () => {
+	afterEach(() => cleanup());
+
+	test("renders the image provided in preview", async () => {
 		const { getByTestId } = await render(Gallery, {
-			show_label: true,
-			label: "Gallery",
-			loading_status: loading_status,
+			...default_props,
 			preview: true,
-			buttons: ["share", "download", "fullscreen"],
 			selected_index: 0,
-			value: [
-				{
-					image: {
-						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg"
-					},
-					caption: null
-				}
-			]
+			buttons: ["share", "download", "fullscreen"],
+			value: [{ image: fake_image("cat"), caption: null }]
 		});
-		let item = getByTestId("detailed-image") as HTMLImageElement;
-		assert.equal(
-			item.src,
-			"https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg"
-		);
+
+		const item = getByTestId("detailed-image") as HTMLImageElement;
+		expect(item.src).toBe("https://example.com/cat.png");
 	});
 
-	test("renders the video provided", async () => {
+	test("renders the video provided in preview", async () => {
 		const { getByTestId } = await render(Gallery, {
-			show_label: true,
-			label: "Gallery",
-			loading_status: loading_status,
+			...default_props,
 			preview: true,
-			buttons: ["share", "download", "fullscreen"],
 			selected_index: 0,
-			value: [
-				{
-					video: {
-						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/world.mp4",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/world.mp4"
-					},
-					caption: null
-				}
-			]
+			buttons: ["share", "download", "fullscreen"],
+			value: [{ video: fake_video("clip"), caption: null }]
 		});
-		let item = getByTestId("detailed-video") as HTMLVideoElement;
-		assert.equal(
-			item.src,
-			"https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/world.mp4"
-		);
+
+		const item = getByTestId("detailed-video") as HTMLVideoElement;
+		expect(item.src).toBe("https://example.com/clip.mp4");
+	});
+});
+
+// Regression test for https://github.com/gradio-app/gradio/issues/13170
+// When appending a new image and setting selected_index to the last item,
+// the gallery would select the second-to-last image because the index was
+// clamped against the stale resolved_value.length instead of value.length.
+describe("Regression: #13170 — selected_index points to newly appended image", () => {
+	afterEach(() => cleanup());
+
+	test("selected_index pointing to a newly appended last item shows the correct image", async () => {
+		const initial_value = [
+			{ image: fake_image("img1"), caption: null },
+			{ image: fake_image("img2"), caption: null }
+		];
+
+		const { set_data, getByTestId } = await render(Gallery, {
+			...default_props,
+			preview: true,
+			selected_index: 0,
+			value: initial_value
+		});
+
+		// Append a new image and set selected_index to the new last item
+		const updated_value = [
+			...initial_value,
+			{ image: fake_image("img3"), caption: null }
+		];
+
+		await set_data({ value: updated_value, selected_index: 2 });
+
+		// The preview should show the newly appended image (img3),
+		// NOT the second-to-last image (img2)
+		const preview_img = getByTestId("detailed-image") as HTMLImageElement;
+		expect(preview_img.src).toBe("https://example.com/img3.png");
 	});
 
-	test.skip("triggers the change event if and only if the images change", async () => {
-		// TODO: Fix this test, the test requires prop update using $set which is deprecated in Svelte 5.
-		const { listen, component } = await render(Gallery, {
-			show_label: true,
-			label: "Gallery",
-			loading_status: loading_status,
-			preview: true,
-			value: [
-				{
-					image: {
-						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg"
-					},
-					caption: null
-				}
-			]
-		});
-		const change_event = listen("change");
+	test("selected_index pointing to newly appended item dispatches select with correct data", async () => {
+		const initial_value = [
+			{ image: fake_image("a"), caption: null },
+			{ image: fake_image("b"), caption: null }
+		];
 
-		await component.$set({
-			value: [
-				{
-					image: {
-						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg"
-					},
-					caption: null
-				}
-			]
+		const { set_data, listen } = await render(Gallery, {
+			...default_props,
+			preview: true,
+			selected_index: 0,
+			value: initial_value
 		});
-		assert.equal(change_event.callCount, 0);
+
+		const select = listen("select");
+
+		const new_image = { image: fake_image("c"), caption: null };
+		await set_data({
+			value: [...initial_value, new_image],
+			selected_index: 2
+		});
+
+		// The select event should fire with index 2 pointing to the new image
+		expect(select).toHaveBeenCalled();
+		const last_call = select.mock.calls[select.mock.calls.length - 1][0];
+		expect(last_call.index).toBe(2);
 	});
 
-	test.skip("triggers preview_close event when pressing Escape key", async () => {
-		const { listen, getByTestId } = await render(Gallery, {
-			show_label: true,
-			label: "Gallery",
-			loading_status: loading_status,
+	test("rapidly appending images with selected_index tracking last always shows the latest", async () => {
+		const { set_data, getByTestId } = await render(Gallery, {
+			...default_props,
 			preview: true,
-			buttons: ["share", "download", "fullscreen"],
 			selected_index: 0,
-			value: [
-				{
-					image: {
-						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg",
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/cheetah.jpg"
-					},
-					caption: null
-				}
-			]
+			value: [{ image: fake_image("img1"), caption: null }]
 		});
 
-		const preview_close_event = listen("preview_close");
-
-		// Find the preview container and dispatch Escape key event
-		const preview = document.querySelector(".preview");
-		if (preview) {
-			const escapeEvent = new KeyboardEvent("keydown", {
-				code: "Escape",
-				key: "Escape",
-				bubbles: true
-			});
-			preview.dispatchEvent(escapeEvent);
+		// Simulate multiple rapid appends (like a streaming chatbot adding images)
+		for (let i = 2; i <= 5; i++) {
+			const images = Array.from({ length: i }, (_, j) => ({
+				image: fake_image(`img${j + 1}`),
+				caption: null
+			}));
+			await set_data({ value: images, selected_index: i - 1 });
 		}
 
-		assert.isTrue(
-			preview_close_event.callCount >= 1,
-			"preview_close event should be triggered when pressing Escape"
-		);
+		// After all appends, preview should show the very last image
+		const preview_img = getByTestId("detailed-image") as HTMLImageElement;
+		expect(preview_img.src).toBe("https://example.com/img5.png");
 	});
 });
