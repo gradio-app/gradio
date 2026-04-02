@@ -399,7 +399,6 @@ class Cache:
             output = model(prompt)
             c.set(prompt, kv=model.past_key_values)
             return output
-    Guides: caching
     """
 
     def __init__(
