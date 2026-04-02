@@ -136,13 +136,13 @@ export function run_shared_prop_tests(config: SharedPropTestConfig): void {
 		}
 
 		if (has_validation_error) {
-			test("validation_error displays error text", async () => {
+			test("validation_error displays error text visibly", async () => {
 				const result = await render(
 					component,
 					make_props({ validation_error: "This field is required" })
 				);
 				const el = result.getByText("This field is required");
-				expect(el).toBeTruthy();
+				expect(el).toBeVisible();
 			});
 		}
 	});
