@@ -10,25 +10,10 @@ from collections import OrderedDict
 from collections.abc import Callable
 from typing import Any
 
-try:
-    import numpy as np
-except ImportError:
-    np = None  # type: ignore
-
-try:
-    from PIL import Image
-except ImportError:
-    Image = None  # type: ignore
-
-try:
-    import pandas as pd
-except ImportError:
-    pd = None  # type: ignore
-
-try:
-    from pydantic import BaseModel
-except ImportError:
-    BaseModel = None  # type: ignore
+import numpy as np
+import pandas as pd
+from PIL import Image
+from pydantic import BaseModel
 
 
 def cache_hash(obj: Any) -> str:
