@@ -125,6 +125,31 @@ await event.type(el, "123");
 await event.clear(el);
 ```
 
+## Running Tests
+
+**Always use `pnpm test:run`.** Never use `pnpm test` — it starts in watch mode and never exits.
+
+All commands are run from the repo root.
+
+```bash
+# Run all unit tests
+pnpm test:run
+
+# Run a specific test file (match by filename)
+pnpm test:run Textbox.test.ts
+
+# Run all tests within a folder (match by path segment)
+pnpm test:run dataframe
+
+# Filter by test name with -t
+pnpm test:run -t elem_id
+
+# Combine file/folder filter with test name filter
+pnpm test:run accordion -t elem_id
+```
+
+After writing or modifying tests, always run them to verify they pass.
+
 ## Test File Structure
 
 ```ts
