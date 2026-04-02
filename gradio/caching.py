@@ -1,11 +1,4 @@
-"""Caching utilities for Gradio.
-
-Provides:
-- @gr.cache: a decorator that caches function results with content-aware
-  hashing for ML types (numpy arrays, PIL images, DataFrames, etc.).
-  Supports sync/async functions and sync/async generators.
-- Generator utilities shared with example caching in helpers.py.
-"""
+"""Caching utilities for Gradio functions."""
 
 from __future__ import annotations
 
@@ -14,30 +7,17 @@ import hashlib
 import inspect
 import threading
 from collections import OrderedDict
-from collections.abc import AsyncIterator, Callable, Iterator
+from collections.abc import Callable
 from typing import Any
 
 
-# ============================================================
-# Content-aware hashing
-# ============================================================
-
-
 def cache_hash(obj: Any) -> str:
-    """Compute a content-aware hash for objects commonly used in Gradio.
-
-    Handles: primitives, bytes, dicts, lists, tuples, sets, numpy arrays,
-    PIL Images, pandas DataFrames/Series, Pydantic models, and any Hashable.
-
-    Raises TypeError for objects that can't be deterministically hashed.
-    """
     hasher = hashlib.sha256()
     hasher.update(_hash_repr(obj).encode("utf-8"))
     return hasher.hexdigest()
 
 
 def _hash_repr(obj: Any) -> str:
-    """Return a deterministic string representation for hashing."""
     if obj is None:
         return "None"
     if isinstance(obj, (bool, int, float, str)):
@@ -59,7 +39,6 @@ def _hash_repr(obj: Any) -> str:
         items = sorted(_hash_repr(x) for x in obj)
         return f"S{{{','.join(items)}}}"
 
-    # numpy array
     try:
         import numpy as np
 
@@ -68,7 +47,6 @@ def _hash_repr(obj: Any) -> str:
     except ImportError:
         pass
 
-    # PIL Image
     try:
         from PIL import Image
 
@@ -77,7 +55,6 @@ def _hash_repr(obj: Any) -> str:
     except ImportError:
         pass
 
-    # pandas DataFrame
     try:
         import pandas as pd
 
@@ -89,7 +66,6 @@ def _hash_repr(obj: Any) -> str:
     except ImportError:
         pass
 
-    # Pydantic BaseModel
     try:
         from pydantic import BaseModel
 
@@ -98,7 +74,6 @@ def _hash_repr(obj: Any) -> str:
     except ImportError:
         pass
 
-    # pandas Series
     try:
         import pandas as pd
 
@@ -110,13 +85,11 @@ def _hash_repr(obj: Any) -> str:
     except ImportError:
         pass
 
-    # Generic hashable
     try:
         return repr(hash(obj))
     except TypeError:
         pass
 
-    # Last resort: try __dict__ for dataclass-like objects
     if hasattr(obj, "__dict__"):
         return _hash_repr(vars(obj))
 
@@ -126,26 +99,10 @@ def _hash_repr(obj: Any) -> str:
     )
 
 
-# ============================================================
-# Generator utilities (shared with helpers.py example caching)
-# ============================================================
+def resolve_generator(fn: Callable) -> tuple[Callable, list | None]:
+    """Wrap a generator to capture all yields and return the final value.
 
-
-def resolve_generator(
-    fn: Callable,
-) -> tuple[Callable, list | None]:
-    """Wrap a generator function to capture yields and return the final value.
-
-    If ``fn`` is a sync/async generator, returns a wrapped version that:
-    - Iterates the generator to exhaustion
-    - Appends every yielded value to ``generated_values``
-    - Returns only the final yielded value
-
-    If ``fn`` is a regular (non-generator) function, returns it unchanged.
-
-    Returns:
-        (wrapped_fn, generated_values) where generated_values is a list
-        that will be populated with all yields (or None for non-generators).
+    Returns (wrapped_fn, generated_values) or (fn, None) for non-generators.
     """
     if inspect.isgeneratorfunction(fn):
         generated_values: list = []
@@ -174,25 +131,13 @@ def resolve_generator(
     return fn, None
 
 
-# ============================================================
-# Cache store
-# ============================================================
-
-
 class CacheStore:
-    """Thread-safe LRU cache store."""
-
     def __init__(self, max_size: int = 128):
         self._max_size = max_size
         self._exact: OrderedDict[str, dict] = OrderedDict()
         self._lock = threading.Lock()
 
     def get(self, key_hash: str) -> dict | None:
-        """Get cached entry by hash key. Returns None on miss.
-
-        Returns a dict with "value" (for regular functions) or
-        "yields" (list of all yielded values, for generators).
-        """
         with self._lock:
             if key_hash in self._exact:
                 self._exact.move_to_end(key_hash)
@@ -200,11 +145,6 @@ class CacheStore:
             return None
 
     def put(self, key_hash: str, **entry: Any) -> None:
-        """Store a cache entry. Evicts LRU entry if at capacity.
-
-        For regular functions: ``store.put(key, value=result)``
-        For generators: ``store.put(key, yields=[v1, v2, ...])``
-        """
         with self._lock:
             if key_hash in self._exact:
                 self._exact.move_to_end(key_hash)
@@ -223,58 +163,19 @@ class CacheStore:
             return len(self._exact)
 
 
-# ============================================================
-# @gr.cache decorator
-# ============================================================
-
-
 def _normalize_kwargs(func: Callable, args: tuple, kwargs: dict) -> dict:
-    """Normalize positional + keyword args into a single kwargs dict."""
     sig = inspect.signature(func)
     bound = sig.bind(*args, **kwargs)
     bound.apply_defaults()
     return dict(bound.arguments)
 
 
-def cache(
-    fn: Callable | None = None,
-    *,
-    max_size: int = 128,
-):
+def cache(fn: Callable | None = None, *, max_size: int = 128):
     """Cache decorator for Gradio functions.
 
-    Caches function results using content-aware hashing that works with
-    numpy arrays, PIL images, pandas DataFrames, and other Gradio types.
-
-    Works with sync functions, async functions, sync generators, and
-    async generators. For generators, caches the final yielded value.
-
-    Parameters:
-        fn: The function to cache (allows use as @gr.cache without parentheses).
-        max_size: Maximum number of cache entries. 0 for unlimited.
-            Least-recently-used entries are evicted when full. Default: 128.
-
-    Examples:
-        Basic usage::
-
-            @gr.cache
-            def classify(image):
-                return model.predict(image)
-
-        With configuration::
-
-            @gr.cache(max_size=256)
-            def generate(prompt):
-                return llm(prompt)
-
-        Generator (caches final yield)::
-
-            @gr.cache
-            def stream_response(prompt):
-                response = ""
-                for token in model.generate(prompt):
-                    response += token
-                    yield response
+    Works with sync/async functions and sync/async generators.
+    For generators, all yielded values are cached and replayed on hit.
+    Uses content-aware hashing (numpy, PIL, pandas, etc.).
     """
 
     def decorator(func: Callable) -> Callable:
@@ -286,17 +187,14 @@ def cache(
             def sync_gen_wrapper(*args, **kwargs):
                 normalized = _normalize_kwargs(func, args, kwargs)
                 key_hash = cache_hash(normalized)
-
                 entry = store.get(key_hash)
                 if entry is not None:
                     yield from entry["yields"]
                     return
-
                 all_yields = []
                 for value in func(**normalized):
                     all_yields.append(value)
                     yield value
-
                 if all_yields:
                     store.put(key_hash, yields=all_yields)
 
@@ -309,18 +207,15 @@ def cache(
             async def async_gen_wrapper(*args, **kwargs):
                 normalized = _normalize_kwargs(func, args, kwargs)
                 key_hash = cache_hash(normalized)
-
                 entry = store.get(key_hash)
                 if entry is not None:
                     for value in entry["yields"]:
                         yield value
                     return
-
                 all_yields = []
                 async for value in func(**normalized):
                     all_yields.append(value)
                     yield value
-
                 if all_yields:
                     store.put(key_hash, yields=all_yields)
 
@@ -333,11 +228,9 @@ def cache(
             async def async_wrapper(*args, **kwargs):
                 normalized = _normalize_kwargs(func, args, kwargs)
                 key_hash = cache_hash(normalized)
-
                 entry = store.get(key_hash)
                 if entry is not None:
                     return entry["value"]
-
                 result = await func(**normalized)
                 store.put(key_hash, value=result)
                 return result
@@ -351,11 +244,9 @@ def cache(
             def sync_wrapper(*args, **kwargs):
                 normalized = _normalize_kwargs(func, args, kwargs)
                 key_hash = cache_hash(normalized)
-
                 entry = store.get(key_hash)
                 if entry is not None:
                     return entry["value"]
-
                 result = func(**normalized)
                 store.put(key_hash, value=result)
                 return result
