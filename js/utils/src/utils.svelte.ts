@@ -525,15 +525,21 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		}
 	}
 
-	watch_for_change(value: any) {
-		if (!this.mounted) {
-			this.old_value = value;
-			this.mounted = true;
-		}
-		if (this.old_value != value) {
-			this.old_value = value;
-			this.dispatch("change");
-		}
+	watch_for_change() {
+		$effect(() => {
+			if (!this.mounted) {
+				// @ts-ignore
+				this.old_value = this.props.value;
+				this.mounted = true;
+			}
+			// @ts-ignore
+			if (this.old_value != this.props.value) {
+				// @ts-ignore
+				this.old_value = this.props.value;
+				// @ts-ignore
+				this.dispatch("change");
+			}
+		});
 	}
 }
 

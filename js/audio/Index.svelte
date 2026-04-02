@@ -96,9 +96,7 @@
 		gradio.dispatch(level as "error" | "warning", detail);
 	}
 
-	$effect(() => {
-		gradio.watch_for_change(gradio.props.value);
-	});
+	gradio.watch_for_change();
 
 	onMount(() => {
 		set_trim_region_colour();
