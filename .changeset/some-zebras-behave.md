@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Minimal Markdown Utility + Frontend Profiling Fixes
+fix:Reduce load times of all components
