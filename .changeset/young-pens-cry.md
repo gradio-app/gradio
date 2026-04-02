@@ -1,7 +1,7 @@
 ---
-"@gradio/accordion": minor
-"@self/tootils": minor
-"gradio": minor
+"@gradio/accordion": patch
+"@self/tootils": patch
+"gradio": patch
 ---
 
-feat:Accordion tests
+fix:Accordion tests
