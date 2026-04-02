@@ -21,6 +21,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
 from gradio import components, oauth, processing_utils, routes, utils
+from gradio.caching import resolve_generator
 from gradio.context import Context, LocalContext, get_blocks_context
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Dependency, EventData
@@ -28,7 +29,6 @@ from gradio.exceptions import Error
 from gradio.flagging import CSVLogger
 from gradio.i18n import I18nData
 from gradio.route_utils import Header
-from gradio.caching import resolve_generator
 from gradio.utils import UnhashableKeyDict
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).

@@ -46,7 +46,9 @@ def _hash_repr(obj: Any) -> str:
         return f"S{{{','.join(items)}}}"
 
     if isinstance(obj, np.ndarray):
-        return f"np({obj.shape},{obj.dtype},{hashlib.sha256(obj.tobytes()).hexdigest()})"
+        return (
+            f"np({obj.shape},{obj.dtype},{hashlib.sha256(obj.tobytes()).hexdigest()})"
+        )
 
     if isinstance(obj, Image.Image):
         return f"PIL({obj.mode},{obj.size},{hashlib.sha256(obj.tobytes()).hexdigest()})"

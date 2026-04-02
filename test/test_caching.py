@@ -46,9 +46,7 @@ class TestCacheHash:
     def test_unhashable_raises(self):
         with pytest.raises(TypeError, match="gr.cache"):
             cache_hash(
-                object.__new__(
-                    type("X", (), {"__hash__": None, "__slots__": ()})
-                )
+                object.__new__(type("X", (), {"__hash__": None, "__slots__": ()}))
             )
 
 
