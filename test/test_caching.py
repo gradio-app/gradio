@@ -242,7 +242,9 @@ class TestCacheManual:
                 best_len = len(cached_key)
 
         assert best_key == "hello world"
-        assert c.get(best_key)["kv"] == list(range(11))
+        result = c.get(best_key)
+        assert result is not None
+        assert result["kv"] == list(range(11))
 
     def test_eviction_by_count(self):
         c = Cache(max_size=2)

@@ -524,6 +524,7 @@ class Examples:
         else:
             print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
             self.cache_logger.setup(self.outputs, self.cached_folder)  # type: ignore
+            assert self.fn is not None
             fn, generated_values = resolve_generator(self.fn)
             if generated_values is None:
                 generated_values = []
