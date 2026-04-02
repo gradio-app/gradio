@@ -96,13 +96,7 @@
 		gradio.dispatch(level as "error" | "warning", detail);
 	}
 
-	let old_value = $state(gradio.props.value);
-	$effect(() => {
-		if (old_value != gradio.props.value) {
-			old_value = gradio.props.value;
-			gradio.dispatch("change");
-		}
-	});
+	gradio.watch_for_change();
 
 	onMount(() => {
 		set_trim_region_colour();
