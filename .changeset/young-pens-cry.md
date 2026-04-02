@@ -4,4 +4,4 @@
 "gradio": patch
 ---
 
-fix:Accordion tests
+fix:Ensure the Accordion's `expand` and `collapse` events fire when toggled from python
