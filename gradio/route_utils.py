@@ -1153,9 +1153,5 @@ STATIC_ROUTE_PREFIXES = (
     "/file=",
     "/file/",
     "/upload",
-    "/theme.css",
-    "/robots.txt",
-    "/manifest.json",
-    "/pwa_icon",
     "/custom_component/",
 )

@@ -239,19 +239,25 @@ client = httpx.AsyncClient(
 file_upload_statuses = FileUploadProgress()
 
 
-class StaticRedirectMiddleware:
+class StaticProxyMiddleware:
     """
-    Pure ASGI middleware — no-op when ``app.static_worker_pool is None``.
+    Pure ASGI middleware that proxies static file requests to worker processes.
 
-    Registered at app-creation time so the middleware stack is built once.
-    The ``app`` reference is the Gradio ``App`` (the outermost FastAPI instance).
-    Because the only work on the non-static path is two attribute lookups and
-    a pointer comparison, overhead on queue/SSE requests is negligible.
+    No-op when ``app.static_worker_pool is None`` — the fast path is a single
+    pointer comparison, so there is zero overhead when workers aren't configured.
+
+    Uses httpx streaming so large file downloads are never buffered in memory.
     """
 
     def __init__(self, asgi_app: ASGIApp, gradio_app: App) -> None:
         self.asgi_app = asgi_app
         self.gradio_app = gradio_app
+        self._client: httpx.AsyncClient | None = None
+
+    def _get_client(self) -> httpx.AsyncClient:
+        if self._client is None or self._client.is_closed:
+            self._client = httpx.AsyncClient(timeout=60.0)
+        return self._client
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http" or self.gradio_app.static_worker_pool is None:
@@ -261,33 +267,82 @@ class StaticRedirectMiddleware:
         path: str = scope.get("path", "")
         check_path = path
         if check_path.startswith(API_PREFIX):
-            check_path = check_path[len(API_PREFIX) :]
+            check_path = check_path[len(API_PREFIX):]
 
-        if any(check_path.startswith(p) for p in self.gradio_app._static_prefixes):
-            request = fastapi.Request(scope, receive)
-            response = _redirect_to_static_worker(
-                request, self.gradio_app.static_worker_pool
-            )
-            await response(scope, receive, send)
+        if not any(check_path.startswith(p) for p in self.gradio_app._static_prefixes):
+            await self.asgi_app(scope, receive, send)
             return
 
-        await self.asgi_app(scope, receive, send)
+        # Proxy to a static worker
+        try:
+            await self._proxy(scope, receive, send)
+        except Exception:
+            # Fall through to main app on proxy failure
+            await self.asgi_app(scope, receive, send)
 
+    async def _proxy(self, scope: Scope, receive: Receive, send: Send) -> None:
+        pool = self.gradio_app.static_worker_pool
+        backend_url = pool.get_next_url()
 
-def _redirect_to_static_worker(
-    request: fastapi.Request,
-    worker_pool,
-) -> RedirectResponse:
-    """Redirect a request to one of the static file worker processes."""
-    backend_url = worker_pool.get_next_url()
-    # Strip the API prefix so the static worker's routes match
-    path = request.url.path
-    if path.startswith(API_PREFIX):
-        path = path[len(API_PREFIX) :]
-    url = f"{backend_url}{path}"
-    if request.url.query:
-        url += f"?{request.url.query}"
-    return RedirectResponse(url=url, status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+        path = scope.get("path", "")
+        if path.startswith(API_PREFIX):
+            path = path[len(API_PREFIX):]
+        query_string = scope.get("query_string", b"")
+        url = f"{backend_url}{path}"
+        if query_string:
+            url += f"?{query_string.decode()}"
+
+        # Build headers, skip hop-by-hop
+        headers = {}
+        for key, value in scope.get("headers", []):
+            k = key.decode("latin-1").lower()
+            if k not in ("host", "transfer-encoding"):
+                headers[k] = value.decode("latin-1")
+
+        method = scope.get("method", "GET")
+
+        # Collect request body for POST/PUT/PATCH
+        body = b""
+        if method in ("POST", "PUT", "PATCH"):
+            while True:
+                message = await receive()
+                body += message.get("body", b"")
+                if not message.get("more_body", False):
+                    break
+
+        client = self._get_client()
+
+        # Stream the response back — never buffer the full body
+        async with client.stream(
+            method=method,
+            url=url,
+            headers=headers,
+            content=body if body else None,
+        ) as response:
+            # Send response headers
+            resp_headers = [
+                (k.encode(), v.encode())
+                for k, v in response.headers.multi_items()
+                if k.lower() not in ("transfer-encoding",)
+            ]
+            await send({
+                "type": "http.response.start",
+                "status": response.status_code,
+                "headers": resp_headers,
+            })
+
+            # Stream response body
+            async for chunk in response.aiter_bytes():
+                await send({
+                    "type": "http.response.body",
+                    "body": chunk,
+                    "more_body": True,
+                })
+            await send({
+                "type": "http.response.body",
+                "body": b"",
+                "more_body": False,
+            })
 
 
 class App(FastAPI):
@@ -520,7 +575,7 @@ class App(FastAPI):
 
         app.configure_app(blocks)
 
-        app.add_middleware(StaticRedirectMiddleware, gradio_app=app)  # type: ignore
+        app.add_middleware(StaticProxyMiddleware, gradio_app=app)  # type: ignore
         app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)  # type: ignore
         app.add_middleware(
             BrotliMiddleware,  # type: ignore
