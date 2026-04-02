@@ -60,6 +60,7 @@ from python_multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
 from starlette.datastructures import UploadFile as StarletteUploadFile
 from starlette.responses import RedirectResponse
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 import gradio
 from gradio import (
@@ -238,6 +239,57 @@ client = httpx.AsyncClient(
 file_upload_statuses = FileUploadProgress()
 
 
+class StaticRedirectMiddleware:
+    """
+    Pure ASGI middleware — no-op when ``app.static_worker_pool is None``.
+
+    Registered at app-creation time so the middleware stack is built once.
+    The ``app`` reference is the Gradio ``App`` (the outermost FastAPI instance).
+    Because the only work on the non-static path is two attribute lookups and
+    a pointer comparison, overhead on queue/SSE requests is negligible.
+    """
+
+    def __init__(self, asgi_app: ASGIApp, gradio_app: App) -> None:
+        self.asgi_app = asgi_app
+        self.gradio_app = gradio_app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http" or self.gradio_app.static_worker_pool is None:
+            await self.asgi_app(scope, receive, send)
+            return
+
+        path: str = scope.get("path", "")
+        check_path = path
+        if check_path.startswith(API_PREFIX):
+            check_path = check_path[len(API_PREFIX) :]
+
+        if any(check_path.startswith(p) for p in self.gradio_app._static_prefixes):
+            request = fastapi.Request(scope, receive)
+            response = _redirect_to_static_worker(
+                request, self.gradio_app.static_worker_pool
+            )
+            await response(scope, receive, send)
+            return
+
+        await self.asgi_app(scope, receive, send)
+
+
+def _redirect_to_static_worker(
+    request: fastapi.Request,
+    worker_pool,
+) -> RedirectResponse:
+    """Redirect a request to one of the static file worker processes."""
+    backend_url = worker_pool.get_next_url()
+    # Strip the API prefix so the static worker's routes match
+    path = request.url.path
+    if path.startswith(API_PREFIX):
+        path = path[len(API_PREFIX) :]
+    url = f"{backend_url}{path}"
+    if request.url.query:
+        url += f"?{request.url.query}"
+    return RedirectResponse(url=url, status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+
+
 class App(FastAPI):
     """
     FastAPI App Wrapper
@@ -270,7 +322,11 @@ class App(FastAPI):
         self._asyncio_tasks: list[asyncio.Task] = []
         self.auth_dependency = auth_dependency
         self.api_info = None
+        self.static_worker_pool = None  # Set by launch() when num_workers > 0
         self.all_app_info = None
+        self._static_prefixes: tuple[
+            str, ...
+        ] = ()  # Populated by enable_static_workers
 
         # Allow user to manually set `docs_url` and `redoc_url`
         # when instantiating an App; when they're not set, disable docs and redoc.
@@ -278,6 +334,13 @@ class App(FastAPI):
         kwargs.setdefault("redoc_url", None)
         self.custom_component_hashes: dict[str, str] = {}
         super().__init__(**kwargs)
+
+    def enable_static_workers(self, worker_pool) -> None:
+        """Activate the static redirect middleware by setting the worker pool reference."""
+        from gradio.route_utils import STATIC_ROUTE_PREFIXES
+
+        self.static_worker_pool = worker_pool
+        self._static_prefixes = STATIC_ROUTE_PREFIXES
 
     # Create a single client to be reused across requests
     # We're not overriding any defaults here
@@ -457,6 +520,7 @@ class App(FastAPI):
 
         app.configure_app(blocks)
 
+        app.add_middleware(StaticRedirectMiddleware, gradio_app=app)  # type: ignore
         app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)  # type: ignore
         app.add_middleware(
             BrotliMiddleware,  # type: ignore
