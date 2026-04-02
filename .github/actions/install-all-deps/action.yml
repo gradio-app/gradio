@@ -101,7 +101,7 @@ runs:
       if: inputs.skip_gradio_install != 'true' && inputs.os == 'ubuntu-latest'
       run: |
         . ${{ env.VENV_ACTIVATE }}
-        python scripts/generate_css_vars_docs.py
+        [ -f scripts/generate_css_vars_docs.py ] && python scripts/generate_css_vars_docs.py || true
     - name: generate json
       shell: bash
       if: inputs.skip_gradio_install != 'true' && inputs.os == 'ubuntu-latest'
