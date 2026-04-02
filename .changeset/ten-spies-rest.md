@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Add (partial) caching with support for storing intermediate caching state
+feat:Add `@gr.cache()` decorator for caching deterministic functions, generators, etc.
