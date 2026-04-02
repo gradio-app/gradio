@@ -12,10 +12,9 @@ from collections import OrderedDict
 from collections.abc import Callable
 from typing import Any
 
-from gradio_client.documentation import document
-
 import numpy as np
 import pandas as pd
+from gradio_client.documentation import document
 from PIL import Image
 from pydantic import BaseModel
 
@@ -213,7 +212,6 @@ class _CacheStore:
     def __len__(self) -> int:
         with self._lock:
             return len(self._exact)
-
 
 
 def _normalize_kwargs(func: Callable, args: tuple, kwargs: dict) -> dict:
