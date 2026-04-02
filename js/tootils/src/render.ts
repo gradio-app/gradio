@@ -194,7 +194,9 @@ export async function render<
 		}
 	}
 
-	shared_props_obj.loading_status = loading_status;
+	shared_props_obj.loading_status = props?.loading_status
+		? props.loading_status
+		: loading_status;
 
 	const componentProps = {
 		shared_props: shared_props_obj,
