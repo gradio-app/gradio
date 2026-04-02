@@ -217,6 +217,37 @@ class TestCache:
         assert inspect.isasyncgenfunction(agen)
         assert inspect.iscoroutinefunction(afn)
 
+    def test_sync_generator_mutable_yields(self):
+        """Cached replay should snapshot each yield, not alias mutable objects."""
+
+        @cache
+        def streamer(n):
+            result = []
+            for i in range(1, n + 1):
+                result.append(i)
+                yield result
+
+        list(streamer(3))
+        cached_run = list(streamer(3))
+        assert cached_run == [[1], [1, 2], [1, 2, 3]]
+
+    def test_async_generator_mutable_yields(self):
+        """Async variant: cached replay should snapshot each yield."""
+
+        @cache
+        async def streamer(n):
+            result = []
+            for i in range(1, n + 1):
+                result.append(i)
+                yield result
+
+        async def run():
+            return [v async for v in streamer(3)]
+
+        asyncio.run(run())
+        cached_run = asyncio.run(run())
+        assert cached_run == [[1], [1, 2], [1, 2, 3]]
+
     def test_cache_clear(self):
         @cache
         def fn(x):

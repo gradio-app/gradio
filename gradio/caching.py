@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import functools
 import hashlib
 import inspect
@@ -173,7 +174,7 @@ def cache(fn: Callable | None = None, *, max_size: int = 128):
                     return
                 all_yields = []
                 for value in func(**normalized):
-                    all_yields.append(value)
+                    all_yields.append(copy.deepcopy(value))
                     yield value
                 if all_yields:
                     store.put(key_hash, yields=all_yields)
@@ -194,7 +195,7 @@ def cache(fn: Callable | None = None, *, max_size: int = 128):
                     return
                 all_yields = []
                 async for value in func(**normalized):
-                    all_yields.append(value)
+                    all_yields.append(copy.deepcopy(value))
                     yield value
                 if all_yields:
                     store.put(key_hash, yields=all_yields)
