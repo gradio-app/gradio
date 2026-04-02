@@ -10,6 +10,26 @@ from collections import OrderedDict
 from collections.abc import Callable
 from typing import Any
 
+try:
+    import numpy as np
+except ImportError:
+    np = None  # type: ignore
+
+try:
+    from PIL import Image
+except ImportError:
+    Image = None  # type: ignore
+
+try:
+    import pandas as pd
+except ImportError:
+    pd = None  # type: ignore
+
+try:
+    from pydantic import BaseModel
+except ImportError:
+    BaseModel = None  # type: ignore
+
 
 def cache_hash(obj: Any) -> str:
     hasher = hashlib.sha256()
@@ -39,51 +59,26 @@ def _hash_repr(obj: Any) -> str:
         items = sorted(_hash_repr(x) for x in obj)
         return f"S{{{','.join(items)}}}"
 
-    try:
-        import numpy as np
+    if np is not None and isinstance(obj, np.ndarray):
+        return f"np({obj.shape},{obj.dtype},{hashlib.sha256(obj.tobytes()).hexdigest()})"
 
-        if isinstance(obj, np.ndarray):
-            return f"np({obj.shape},{obj.dtype},{hashlib.sha256(obj.tobytes()).hexdigest()})"
-    except ImportError:
-        pass
+    if Image is not None and isinstance(obj, Image.Image):
+        return f"PIL({obj.mode},{obj.size},{hashlib.sha256(obj.tobytes()).hexdigest()})"
 
-    try:
-        from PIL import Image
+    if pd is not None and isinstance(obj, pd.DataFrame):
+        col_hash = _hash_repr(list(obj.columns))
+        val_hash = hashlib.sha256(obj.values.tobytes()).hexdigest()
+        idx_hash = hashlib.sha256(obj.index.to_numpy().tobytes()).hexdigest()
+        return f"DF({col_hash},{val_hash},{idx_hash})"
 
-        if isinstance(obj, Image.Image):
-            return f"PIL({obj.mode},{obj.size},{hashlib.sha256(obj.tobytes()).hexdigest()})"
-    except ImportError:
-        pass
+    if BaseModel is not None and isinstance(obj, BaseModel):
+        return _hash_repr(obj.model_dump())
 
-    try:
-        import pandas as pd
-
-        if isinstance(obj, pd.DataFrame):
-            col_hash = _hash_repr(list(obj.columns))
-            val_hash = hashlib.sha256(obj.values.tobytes()).hexdigest()
-            idx_hash = hashlib.sha256(obj.index.to_numpy().tobytes()).hexdigest()
-            return f"DF({col_hash},{val_hash},{idx_hash})"
-    except ImportError:
-        pass
-
-    try:
-        from pydantic import BaseModel
-
-        if isinstance(obj, BaseModel):
-            return _hash_repr(obj.model_dump())
-    except ImportError:
-        pass
-
-    try:
-        import pandas as pd
-
-        if isinstance(obj, pd.Series):
-            name_hash = _hash_repr(obj.name)
-            val_hash = hashlib.sha256(obj.values.tobytes()).hexdigest()
-            idx_hash = hashlib.sha256(obj.index.to_numpy().tobytes()).hexdigest()
-            return f"Series({name_hash},{val_hash},{idx_hash})"
-    except ImportError:
-        pass
+    if pd is not None and isinstance(obj, pd.Series):
+        name_hash = _hash_repr(obj.name)
+        val_hash = hashlib.sha256(obj.values.tobytes()).hexdigest()
+        idx_hash = hashlib.sha256(obj.index.to_numpy().tobytes()).hexdigest()
+        return f"Series({name_hash},{val_hash},{idx_hash})"
 
     try:
         return repr(hash(obj))
