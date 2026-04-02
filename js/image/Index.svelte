@@ -70,10 +70,16 @@
 		}
 	};
 
-	let old_value = $state(gradio.props.value);
+	let old_value = gradio.props.value;
+	let mounted = false;
 
 	$effect(() => {
-		if (old_value != gradio.props.value) {
+		if (!mounted) {
+			old_value = gradio.props.value;
+			mounted = true;
+			return;
+		}
+		if (old_value !== gradio.props.value) {
 			old_value = gradio.props.value;
 			gradio.dispatch("change");
 		}
