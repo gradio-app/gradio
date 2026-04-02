@@ -44,22 +44,22 @@ def _hash_repr(obj: Any) -> str:
         items = sorted(_hash_repr(x) for x in obj)
         return f"S{{{','.join(items)}}}"
 
-    if np is not None and isinstance(obj, np.ndarray):
+    if isinstance(obj, np.ndarray):
         return f"np({obj.shape},{obj.dtype},{hashlib.sha256(obj.tobytes()).hexdigest()})"
 
-    if Image is not None and isinstance(obj, Image.Image):
+    if isinstance(obj, Image.Image):
         return f"PIL({obj.mode},{obj.size},{hashlib.sha256(obj.tobytes()).hexdigest()})"
 
-    if pd is not None and isinstance(obj, pd.DataFrame):
+    if isinstance(obj, pd.DataFrame):
         col_hash = _hash_repr(list(obj.columns))
         val_hash = hashlib.sha256(obj.values.tobytes()).hexdigest()
         idx_hash = hashlib.sha256(obj.index.to_numpy().tobytes()).hexdigest()
         return f"DF({col_hash},{val_hash},{idx_hash})"
 
-    if BaseModel is not None and isinstance(obj, BaseModel):
+    if isinstance(obj, BaseModel):
         return _hash_repr(obj.model_dump())
 
-    if pd is not None and isinstance(obj, pd.Series):
+    if isinstance(obj, pd.Series):
         name_hash = _hash_repr(obj.name)
         val_hash = hashlib.sha256(obj.values.tobytes()).hexdigest()
         idx_hash = hashlib.sha256(obj.index.to_numpy().tobytes()).hexdigest()
