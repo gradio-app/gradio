@@ -83,20 +83,46 @@ python scripts/benchmark/remote_runner.py ab \
     --hardware cpu-upgrade
 ```
 
-This submits two identical jobs (one per branch) to HF Jobs. Results are uploaded to a shared HF bucket path for easy comparison:
+This submits two identical jobs (one per branch) to HF Jobs. Results are uploaded to a shared HF bucket path for easy comparison. Use `--dry-run` to preview the generated bash script without submitting.
+
+### Results Directory Structure
+
+Each branch produces the following structure in the HF bucket:
+
+```
+hf://buckets/gradio/backend-benchmarks/{run_name}/{branch}/
+├── runner.py                          # Copy of the benchmark runner script (for reproducibility)
+├── run_params.json                    # Job parameters (branch, commit, apps, tiers, etc.)
+└── {app_stem}/                        # One directory per app (e.g. "echo_text")
+    └── {timestamp}/                   # e.g. "20260330_142500"
+        ├── summary.json               # Overall results: app name, timestamp, all tier results
+        ├── summary_table.txt          # Human-readable table (client/server p50/p90/p99, success%)
+        ├── tier_1/
+        │   ├── client_latencies.jsonl  # One JSON object per request (client-side timing)
+        │   └── traces.jsonl            # Server-side profiling traces
+        ├── tier_10/
+        │   ├── client_latencies.jsonl
+        │   └── traces.jsonl
+        └── tier_100/
+            ├── client_latencies.jsonl
+            └── traces.jsonl
+```
+
+For A/B tests, both branches share the same `{run_name}` prefix:
 
 ```
 hf://buckets/gradio/backend-benchmarks/{run_name}/
-  main/
-    run_params.json
-    runner.py              # exact runner script used
-    echo_text/summary.json
-    streaming_chat/...
-  avoid-asyncio-sleep-sse/
-    ...
+├── main/
+│   ├── runner.py
+│   ├── run_params.json
+│   └── {app_stem}/{timestamp}/...
+└── {compare_branch}/
+    ├── runner.py
+    ├── run_params.json
+    └── {app_stem}/{timestamp}/...
 ```
 
-Use `--dry-run` to preview the generated bash script without submitting.
+The `tier_{N}` directories are created for each value in `--tiers` (default `1,10,100`), and each app passed via `--apps` gets its own `{app_stem}/` directory.
 
 ### Remote Runner Options
 

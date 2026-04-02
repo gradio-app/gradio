@@ -30,6 +30,7 @@ from gradio import utils
 from gradio.context import LocalContext
 from gradio.data_classes import FileData, GradioModel, GradioRootModel, JsonData
 from gradio.exceptions import Error, InvalidPathError
+from gradio.profiling import traced_sync
 from gradio.route_utils import API_PREFIX
 from gradio.utils import abspath, get_hash_seed, get_upload_folder, is_in_or_equal
 
@@ -155,6 +156,7 @@ def hash_base64(base64_encoding: str, chunk_num_blocks: int = 128) -> str:
     return sha.hexdigest()
 
 
+@traced_sync("postprocess_save_pil_to_cache")
 def save_pil_to_cache(
     img: Image.Image,
     cache_dir: str,
@@ -169,6 +171,7 @@ def save_pil_to_cache(
     return filename
 
 
+@traced_sync("postprocess_save_img_array_to_cache")
 def save_img_array_to_cache(
     arr: np.ndarray, cache_dir: str, format: str = "webp"
 ) -> str:
@@ -176,6 +179,7 @@ def save_img_array_to_cache(
     return save_pil_to_cache(pil_image, cache_dir, format=format)
 
 
+@traced_sync("postprocess_save_audio_to_cache")
 def save_audio_to_cache(
     data: np.ndarray, sample_rate: int, format: str, cache_dir: str
 ) -> str:
@@ -207,6 +211,7 @@ def detect_audio_format(data: bytes) -> str:
     return ""
 
 
+@traced_sync("postprocess_save_bytes_to_cache")
 def save_bytes_to_cache(data: bytes, file_name: str, cache_dir: str) -> str:
     path = Path(cache_dir) / hash_bytes(data)
     path.mkdir(exist_ok=True, parents=True)
@@ -218,6 +223,7 @@ def save_bytes_to_cache(data: bytes, file_name: str, cache_dir: str) -> str:
     return str(path.resolve())
 
 
+@traced_sync("save_file_to_cache")
 def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
     """Returns a temporary file path for a copy of the given file path if it does
     not already exist. Otherwise returns the path to the existing temp file."""
@@ -644,28 +650,31 @@ def resize_and_crop(img, size, crop_type="center"):
 def audio_from_file(
     filename: str, crop_min: float = 0, crop_max: float = 100
 ) -> tuple[int, np.ndarray]:
-    try:
-        audio = AudioSegment.from_file(filename)
-    except FileNotFoundError as e:
-        isfile = Path(filename).is_file()
-        msg = (
-            f"Cannot load audio from file: `{'ffprobe' if isfile else filename}` not found."
-            + " Please install `ffmpeg` in your system to use non-WAV audio file formats"
-            " and make sure `ffprobe` is in your PATH."
-            if isfile
-            else ""
-        )
-        raise RuntimeError(msg) from e
-    except OSError as e:
-        raise e
-    if crop_min != 0 or crop_max != 100:
-        audio_start = len(audio) * crop_min / 100
-        audio_end = len(audio) * crop_max / 100
-        audio = audio[audio_start:audio_end]
-    data = np.array(audio.get_array_of_samples())
-    if audio.channels > 1:
-        data = data.reshape(-1, audio.channels)
-    return audio.frame_rate, data
+    from gradio.profiling import trace_phase_sync
+
+    with trace_phase_sync("preprocess_audio_from_file"):
+        try:
+            audio = AudioSegment.from_file(filename)
+        except FileNotFoundError as e:
+            isfile = Path(filename).is_file()
+            msg = (
+                f"Cannot load audio from file: `{'ffprobe' if isfile else filename}` not found."
+                + " Please install `ffmpeg` in your system to use non-WAV audio file formats"
+                " and make sure `ffprobe` is in your PATH."
+                if isfile
+                else ""
+            )
+            raise RuntimeError(msg) from e
+        except OSError as e:
+            raise e
+        if crop_min != 0 or crop_max != 100:
+            audio_start = len(audio) * crop_min / 100
+            audio_end = len(audio) * crop_max / 100
+            audio = audio[audio_start:audio_end]
+        data = np.array(audio.get_array_of_samples())
+        if audio.channels > 1:
+            data = data.reshape(-1, audio.channels)
+        return audio.frame_rate, data
 
 
 def audio_to_file(sample_rate, data, filename, format="wav"):
