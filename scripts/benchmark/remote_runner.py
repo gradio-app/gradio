@@ -109,7 +109,7 @@ def build_script(
     branch: str,
     commit_sha: str,
     timestamp: str,
-    max_threads: int
+    max_threads: int,
 ) -> str:
     """Build the bash script that runs inside the HF Jobs container."""
     bucket_dest = f"hf://buckets/gradio/backend-benchmarks/{run_name}/{branch}"
@@ -152,7 +152,7 @@ def build_script(
             "port": port,
             "api_name": api_name,
             "timestamp": timestamp,
-            "max_threads": max_threads
+            "max_threads": max_threads,
         },
         indent=2,
     )
@@ -305,7 +305,7 @@ def prepare_job(
         branch=branch,
         commit_sha=commit_sha,
         timestamp=timestamp,
-        max_threads=max_threads
+        max_threads=max_threads,
     )
 
     timeout_secs = parse_timeout(timeout)
@@ -335,7 +335,7 @@ def prepare_job(
         )
         sys.exit(1)
     try:
-        use_gradio_namespace = any(o['name'] == "gradio" for o in whoami()['orgs'])
+        use_gradio_namespace = any(o["name"] == "gradio" for o in whoami()["orgs"])
     except HfHubHTTPError:
         use_gradio_namespace = False
 
@@ -346,7 +346,7 @@ def prepare_job(
         flavor=hardware,
         timeout=timeout_secs,
         secrets={"HF_TOKEN": token},
-        namespace="gradio" if use_gradio_namespace else None
+        namespace="gradio" if use_gradio_namespace else None,
     )
 
     return {

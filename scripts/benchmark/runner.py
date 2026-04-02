@@ -102,7 +102,16 @@ async def resolve_fn_info(
             elif comp_type in ["state", "chatbot"]:
                 data_template.append(None)
             elif comp_type in ["image", "audio", "video"]:
-                data_template.append({"is_file": True, "choices": [str(f.resolve()) for f in (Path("sample-inputs") / comp_type).iterdir() if f.is_file()]})
+                data_template.append(
+                    {
+                        "is_file": True,
+                        "choices": [
+                            str(f.resolve())
+                            for f in (Path("sample-inputs") / comp_type).iterdir()
+                            if f.is_file()
+                        ],
+                    }
+                )
             else:
                 data_template.append("hello")
 
@@ -152,7 +161,9 @@ async def run_httpx_tier(
         result = None
         with open(filepath, "rb") as f:
             files = {"files": (filepath, f, "text/plain")}
-            response = await client.post(f"{app_url}/gradio_api/upload", files=files, timeout=60)
+            response = await client.post(
+                f"{app_url}/gradio_api/upload", files=files, timeout=60
+            )
             result = response.json()[0]
             return result, time.monotonic() - start
 
@@ -166,15 +177,17 @@ async def run_httpx_tier(
         for item in data_template:
             if prompts and isinstance(item, str):
                 data.append(random.choice(prompts))
-            elif prompts and isinstance(item, dict) and item['is_file'] is True:
+            elif prompts and isinstance(item, dict) and item["is_file"] is True:
                 file = random.choice(prompts)
-                path, upload_ms = await _do_upload(client, file['path'], app_url)
-                data.append({'path': path, "meta": {'_type': 'gradio.FileData'}})
+                path, upload_ms = await _do_upload(client, file["path"], app_url)
+                data.append({"path": path, "meta": {"_type": "gradio.FileData"}})
             elif isinstance(item, str):
                 data.append(f"hello from user {user_id} req {req_id}")
-            elif isinstance(item, dict) and item['is_file'] is True:
-                path, upload_ms = await _do_upload(client, random.choice(item['choices']), app_url)
-                data.append({'path': path, "meta": {'_type': 'gradio.FileData'}})
+            elif isinstance(item, dict) and item["is_file"] is True:
+                path, upload_ms = await _do_upload(
+                    client, random.choice(item["choices"]), app_url
+                )
+                data.append({"path": path, "meta": {"_type": "gradio.FileData"}})
             else:
                 data.append(item)
         try:
@@ -218,7 +231,7 @@ async def run_httpx_tier(
                 "request_id": req_id,
                 "latency_ms": duration_ms,
                 "success": True,
-                "upload_ms": upload_ms * 1000 if upload_ms is not None else None
+                "upload_ms": upload_ms * 1000 if upload_ms is not None else None,
             }
         except Exception as e:
             duration_ms = (time.monotonic() - start) * 1000
@@ -229,7 +242,7 @@ async def run_httpx_tier(
                 "latency_ms": duration_ms,
                 "success": False,
                 "error": f"{error_type}: {e}" if str(e) else error_type,
-                "upload_ms": upload_ms * 1000 if upload_ms is not None else None
+                "upload_ms": upload_ms * 1000 if upload_ms is not None else None,
             }
 
     # Overall timeout for an entire round. If the server deadlocks,
@@ -460,7 +473,10 @@ async def run_benchmark(
                 from tqdm import tqdm
 
                 pbar = tqdm(
-                    total=requests_per_user, desc=f"  Tier {tier}", unit="round", leave=True,
+                    total=requests_per_user,
+                    desc=f"  Tier {tier}",
+                    unit="round",
+                    leave=True,
                 )
 
                 def on_round_complete(round_num, total_rounds, successful, num_users):
@@ -649,7 +665,7 @@ def main():
             api_name=args.api_name,
             concurrency_limit=cl,
             mode=args.mode,
-            max_threads=max_threads
+            max_threads=max_threads,
         )
     )
 
