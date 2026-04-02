@@ -28,6 +28,7 @@ from gradio.exceptions import Error
 from gradio.flagging import CSVLogger
 from gradio.i18n import I18nData
 from gradio.route_utils import Header
+from gradio.caching import resolve_generator
 from gradio.utils import UnhashableKeyDict
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
@@ -523,8 +524,6 @@ class Examples:
         else:
             print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
             self.cache_logger.setup(self.outputs, self.cached_folder)  # type: ignore
-            from gradio.caching import resolve_generator
-
             fn, generated_values = resolve_generator(self.fn)
             if generated_values is None:
                 generated_values = []
