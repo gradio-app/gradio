@@ -1,6 +1,6 @@
 ---
 "@gradio/atoms": minor
-"gradio": minor
+"gradio": patch
 ---
 
 feat:Add Image Unit Tests
