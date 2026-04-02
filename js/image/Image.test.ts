@@ -26,19 +26,6 @@ const fake_value = {
 	is_stream: false
 };
 
-const loading_status = {
-	status: "complete" as const,
-	eta: 0,
-	queue_position: 1,
-	queue_size: 1,
-	scroll_to_output: false,
-	visible: true,
-	fn_index: 0,
-	show_progress: "full" as const,
-	type: "input" as const,
-	stream_state: "closed" as const
-};
-
 const default_props = {
 	sources: ["upload", "webcam", "clipboard"] as (
 		| "upload"
@@ -59,8 +46,7 @@ const default_props = {
 	placeholder: "",
 	buttons: [] as (string | { value: string; id: number; icon: null })[],
 	webcam_options: { mirror: false, constraints: {} },
-	watermark: null,
-	loading_status
+	watermark: null
 };
 
 run_shared_prop_tests({
@@ -68,9 +54,7 @@ run_shared_prop_tests({
 	name: "Image",
 	base_props: {
 		...default_props
-	},
-	has_label: false,
-	has_validation_error: false
+	}
 });
 
 describe("Image: validation error via loading_status", () => {
