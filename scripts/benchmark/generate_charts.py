@@ -25,7 +25,16 @@ Usage:
 """
 
 # Stable color palette for up to 8 series
-COLORS = ["#e74c3c", "#3498db", "#2ecc71", "#f39c12", "#9b59b6", "#1abc9c", "#e67e22", "#34495e"]
+COLORS = [
+    "#e74c3c",
+    "#3498db",
+    "#2ecc71",
+    "#f39c12",
+    "#9b59b6",
+    "#1abc9c",
+    "#e67e22",
+    "#34495e",
+]
 
 PHASE_COLORS = {
     "queue_wait": "#e74c3c",
@@ -91,12 +100,23 @@ def load_all_data(
                 clients = []
                 cl_path = tier_dir / "client_latencies.jsonl"
                 if cl_path.exists():
-                    clients = [json.loads(line) for line in cl_path.read_text().splitlines() if line.strip()]
+                    clients = [
+                        json.loads(line)
+                        for line in cl_path.read_text().splitlines()
+                        if line.strip()
+                    ]
                 traces = []
                 tr_path = tier_dir / "traces.jsonl"
                 if tr_path.exists():
-                    traces = [json.loads(line) for line in tr_path.read_text().splitlines() if line.strip()]
-                data[app_name][label][tier] = {"client_latencies": clients, "traces": traces}
+                    traces = [
+                        json.loads(line)
+                        for line in tr_path.read_text().splitlines()
+                        if line.strip()
+                    ]
+                data[app_name][label][tier] = {
+                    "client_latencies": clients,
+                    "traces": traces,
+                }
 
     apps = sorted(all_apps)
     labels = list(result_dirs.keys())
@@ -106,7 +126,11 @@ def load_all_data(
 
 def _get_client_percentiles(tier_data: dict) -> dict[str, float]:
     """Return p50, p90, p99 for client latencies."""
-    lats = [r["latency_ms"] for r in tier_data.get("client_latencies", []) if r.get("success")]
+    lats = [
+        r["latency_ms"]
+        for r in tier_data.get("client_latencies", [])
+        if r.get("success")
+    ]
     if not lats:
         return {"p50": 0.0, "p90": 0.0, "p99": 0.0}
     arr = np.array(lats)
@@ -127,14 +151,18 @@ def _get_trace_phase_p50(tier_data: dict, phase: str) -> float:
     return float(np.percentile(vals, 50)) if vals else 0.0
 
 
-def chart_client_latency_by_label(data: dict, apps: list[str], labels: list[str], tiers: list[int], output_dir: Path):
+def chart_client_latency_by_label(
+    data: dict, apps: list[str], labels: list[str], tiers: list[int], output_dir: Path
+):
     """Bar chart: client p50/p90/p99 at max tier for each app, one subplot per app."""
     max_tier = max(tiers)
     percentiles = ["p50", "p90", "p99"]
     pct_colors = {"p50": "#2ecc71", "p90": "#f39c12", "p99": "#e74c3c"}
 
     n_apps = len(apps)
-    fig, axes = plt.subplots(1, n_apps, figsize=(4 * n_apps, 5), sharey=False, squeeze=False)
+    fig, axes = plt.subplots(
+        1, n_apps, figsize=(4 * n_apps, 5), sharey=False, squeeze=False
+    )
     axes = axes[0]
 
     for idx, app in enumerate(apps):
@@ -144,12 +172,23 @@ def chart_client_latency_by_label(data: dict, apps: list[str], labels: list[str]
         width = 0.8 / n_pcts
 
         for i, pct in enumerate(percentiles):
-            vals = [_get_client_percentiles(data[app].get(label, {}).get(max_tier, {}))[pct] for label in labels]
-            bars = ax.bar(x + i * width, vals, width, label=pct, color=pct_colors[pct], alpha=0.85)
+            vals = [
+                _get_client_percentiles(data[app].get(label, {}).get(max_tier, {}))[pct]
+                for label in labels
+            ]
+            bars = ax.bar(
+                x + i * width, vals, width, label=pct, color=pct_colors[pct], alpha=0.85
+            )
             for bar, val in zip(bars, vals):
                 if val > 0:
-                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
-                            f"{val:.0f}", ha="center", va="bottom", fontsize=7)
+                    ax.text(
+                        bar.get_x() + bar.get_width() / 2,
+                        bar.get_height(),
+                        f"{val:.0f}",
+                        ha="center",
+                        va="bottom",
+                        fontsize=7,
+                    )
 
         ax.set_xticks(x + width)
         ax.set_xticklabels(labels, fontsize=9)
@@ -164,21 +203,37 @@ def chart_client_latency_by_label(data: dict, apps: list[str], labels: list[str]
 
     fig.suptitle(f"Client Latency at {max_tier} Concurrent Users", fontsize=12, y=1.02)
     fig.tight_layout()
-    fig.savefig(output_dir / "client_latency_by_label.png", dpi=150, bbox_inches="tight")
+    fig.savefig(
+        output_dir / "client_latency_by_label.png", dpi=150, bbox_inches="tight"
+    )
     plt.close(fig)
 
 
-def chart_latency_vs_tier(data: dict, apps: list[str], labels: list[str], tiers: list[int], output_dir: Path):
+def chart_latency_vs_tier(
+    data: dict, apps: list[str], labels: list[str], tiers: list[int], output_dir: Path
+):
     """Line chart: client p50 across tiers, one subplot per app, lines per label."""
     n_apps = len(apps)
-    fig, axes = plt.subplots(1, n_apps, figsize=(4 * n_apps, 4), sharey=False, squeeze=False)
+    fig, axes = plt.subplots(
+        1, n_apps, figsize=(4 * n_apps, 4), sharey=False, squeeze=False
+    )
     axes = axes[0]
 
     for idx, app in enumerate(apps):
         ax = axes[idx]
         for i, label in enumerate(labels):
-            p50s = [_get_client_p50(data[app].get(label, {}).get(tier, {})) for tier in tiers]
-            ax.plot(tiers, p50s, marker="o", label=label, color=COLORS[i % len(COLORS)], linewidth=2)
+            p50s = [
+                _get_client_p50(data[app].get(label, {}).get(tier, {}))
+                for tier in tiers
+            ]
+            ax.plot(
+                tiers,
+                p50s,
+                marker="o",
+                label=label,
+                color=COLORS[i % len(COLORS)],
+                linewidth=2,
+            )
         ax.set_xlabel("Concurrent Users")
         if idx == 0:
             ax.set_ylabel("Client p50 (ms)")
@@ -196,12 +251,16 @@ def chart_latency_vs_tier(data: dict, apps: list[str], labels: list[str], tiers:
     plt.close(fig)
 
 
-def chart_phase_breakdown(data: dict, apps: list[str], labels: list[str], tiers: list[int], output_dir: Path):
+def chart_phase_breakdown(
+    data: dict, apps: list[str], labels: list[str], tiers: list[int], output_dir: Path
+):
     """Stacked bar: server phase breakdown at max tier for each (app, label) combo."""
     max_tier = max(tiers)
     phases = list(PHASE_COLORS.keys())
     n_apps = len(apps)
-    fig, axes = plt.subplots(1, n_apps, figsize=(4 * n_apps, 5), sharey=False, squeeze=False)
+    fig, axes = plt.subplots(
+        1, n_apps, figsize=(4 * n_apps, 5), sharey=False, squeeze=False
+    )
     axes = axes[0]
 
     for idx, app in enumerate(apps):
@@ -210,11 +269,23 @@ def chart_phase_breakdown(data: dict, apps: list[str], labels: list[str], tiers:
 
         bottom = np.zeros(len(labels))
         for phase in phases:
-            vals = np.array([
-                _get_trace_phase_p50(data[app].get(label, {}).get(max_tier, {}), phase)
-                for label in labels
-            ])
-            ax.bar(x, vals, bottom=bottom, label=phase, color=PHASE_COLORS[phase], alpha=0.85, width=0.6)
+            vals = np.array(
+                [
+                    _get_trace_phase_p50(
+                        data[app].get(label, {}).get(max_tier, {}), phase
+                    )
+                    for label in labels
+                ]
+            )
+            ax.bar(
+                x,
+                vals,
+                bottom=bottom,
+                label=phase,
+                color=PHASE_COLORS[phase],
+                alpha=0.85,
+                width=0.6,
+            )
             bottom += vals
 
         ax.set_xticks(x)
@@ -225,13 +296,19 @@ def chart_phase_breakdown(data: dict, apps: list[str], labels: list[str], tiers:
             ax.legend(fontsize=7)
         ax.grid(True, alpha=0.3, axis="y")
 
-    fig.suptitle(f"Server Phase Breakdown at {max_tier} Concurrent Users (p50)", fontsize=12, y=1.02)
+    fig.suptitle(
+        f"Server Phase Breakdown at {max_tier} Concurrent Users (p50)",
+        fontsize=12,
+        y=1.02,
+    )
     fig.tight_layout()
     fig.savefig(output_dir / "phase_breakdown.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
 
 
-def chart_improvement_factor(data: dict, apps: list[str], labels: list[str], tiers: list[int], output_dir: Path):
+def chart_improvement_factor(
+    data: dict, apps: list[str], labels: list[str], tiers: list[int], output_dir: Path
+):
     """Grouped bar chart: paired bars per label showing baseline vs target, with multiplier annotation."""
     if len(labels) < 2:
         return
@@ -239,7 +316,9 @@ def chart_improvement_factor(data: dict, apps: list[str], labels: list[str], tie
     baseline_label = labels[0]
 
     n_apps = len(apps)
-    fig, axes = plt.subplots(1, n_apps, figsize=(4 * n_apps, 5), sharey=False, squeeze=False)
+    fig, axes = plt.subplots(
+        1, n_apps, figsize=(4 * n_apps, 5), sharey=False, squeeze=False
+    )
     axes = axes[0]
 
     for idx, app in enumerate(apps):
@@ -252,18 +331,41 @@ def chart_improvement_factor(data: dict, apps: list[str], labels: list[str], tie
         base_vals = [base_p50] * (len(labels) - 1)
         target_vals = []
         for target_label in labels[1:]:
-            target_vals.append(_get_client_p50(data[app].get(target_label, {}).get(max_tier, {})))
+            target_vals.append(
+                _get_client_p50(data[app].get(target_label, {}).get(max_tier, {}))
+            )
 
-        ax.bar(x - width / 2, base_vals, width, label=baseline_label, color="#e74c3c", alpha=0.85)
-        ax.bar(x + width / 2, target_vals, width, label="comparison", color="#3498db", alpha=0.85)
+        ax.bar(
+            x - width / 2,
+            base_vals,
+            width,
+            label=baseline_label,
+            color="#e74c3c",
+            alpha=0.85,
+        )
+        ax.bar(
+            x + width / 2,
+            target_vals,
+            width,
+            label="comparison",
+            color="#3498db",
+            alpha=0.85,
+        )
 
         for i, (bv, tv) in enumerate(zip(base_vals, target_vals)):
             factor = bv / tv if tv > 0 else 0
             y_pos = max(bv, tv)
-            ax.annotate(f"{factor:.1f}x",
-                        xy=(i, y_pos), xytext=(0, 8),
-                        textcoords="offset points", ha="center", va="bottom",
-                        fontsize=9, fontweight="bold", color="#555555")
+            ax.annotate(
+                f"{factor:.1f}x",
+                xy=(i, y_pos),
+                xytext=(0, 8),
+                textcoords="offset points",
+                ha="center",
+                va="bottom",
+                fontsize=9,
+                fontweight="bold",
+                color="#555555",
+            )
 
         ax.set_xticks(x)
         ax.set_xticklabels(labels[1:], fontsize=9)
@@ -275,18 +377,25 @@ def chart_improvement_factor(data: dict, apps: list[str], labels: list[str], tie
         ymax = ax.get_ylim()[1]
         ax.set_ylim(top=ymax * 1.15)
 
-    fig.suptitle(f"Latency Improvement vs {baseline_label} at {max_tier} Concurrent Users",
-                 fontsize=12, y=1.02)
+    fig.suptitle(
+        f"Latency Improvement vs {baseline_label} at {max_tier} Concurrent Users",
+        fontsize=12,
+        y=1.02,
+    )
     fig.tight_layout()
     fig.savefig(output_dir / "improvement_factor.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
 
 
-def chart_sse_overhead(data: dict, apps: list[str], labels: list[str], tiers: list[int], output_dir: Path):
+def chart_sse_overhead(
+    data: dict, apps: list[str], labels: list[str], tiers: list[int], output_dir: Path
+):
     """Grouped bar chart: client p50 vs (queue_wait + total) p50, showing SSE overhead."""
     max_tier = max(tiers)
     n_apps = len(apps)
-    fig, axes = plt.subplots(1, n_apps, figsize=(4 * n_apps, 5), sharey=False, squeeze=False)
+    fig, axes = plt.subplots(
+        1, n_apps, figsize=(4 * n_apps, 5), sharey=False, squeeze=False
+    )
     axes = axes[0]
     x = np.arange(len(labels))
     width = 0.35
@@ -301,19 +410,41 @@ def chart_sse_overhead(data: dict, apps: list[str], labels: list[str], tiers: li
             client_p50s.append(_get_client_p50(tier_data))
             traces = tier_data.get("traces", [])
             server_vals = [t["queue_wait_ms"] + t["total_ms"] for t in traces]
-            server_p50s.append(float(np.percentile(server_vals, 50)) if server_vals else 0.0)
+            server_p50s.append(
+                float(np.percentile(server_vals, 50)) if server_vals else 0.0
+            )
 
-        ax.bar(x - width / 2, client_p50s, width, label="Client p50", color="#e74c3c", alpha=0.85)
-        ax.bar(x + width / 2, server_p50s, width, label="queue_wait + total p50", color="#3498db", alpha=0.85)
+        ax.bar(
+            x - width / 2,
+            client_p50s,
+            width,
+            label="Client p50",
+            color="#e74c3c",
+            alpha=0.85,
+        )
+        ax.bar(
+            x + width / 2,
+            server_p50s,
+            width,
+            label="queue_wait + total p50",
+            color="#3498db",
+            alpha=0.85,
+        )
 
         for i, (cv, sv) in enumerate(zip(client_p50s, server_p50s)):
             overhead = cv - sv
             pct = (overhead / cv * 100) if cv > 0 else 0
             y_pos = max(cv, sv)
-            ax.annotate(f"+{overhead:.0f}ms\n({pct:.0f}%)",
-                        xy=(i, y_pos), xytext=(0, 8),
-                        textcoords="offset points", ha="center", va="bottom",
-                        fontsize=7, color="#555555")
+            ax.annotate(
+                f"+{overhead:.0f}ms\n({pct:.0f}%)",
+                xy=(i, y_pos),
+                xytext=(0, 8),
+                textcoords="offset points",
+                ha="center",
+                va="bottom",
+                fontsize=7,
+                color="#555555",
+            )
 
         ax.set_xticks(x)
         ax.set_xticklabels(labels, fontsize=9)
@@ -325,8 +456,11 @@ def chart_sse_overhead(data: dict, apps: list[str], labels: list[str], tiers: li
         ymax = ax.get_ylim()[1]
         ax.set_ylim(top=ymax * 1.15)
 
-    fig.suptitle(f"Client Latency vs Server Time at {max_tier} Concurrent Users\n(gap = SSE protocol overhead)",
-                 fontsize=12, y=1.04)
+    fig.suptitle(
+        f"Client Latency vs Server Time at {max_tier} Concurrent Users\n(gap = SSE protocol overhead)",
+        fontsize=12,
+        y=1.04,
+    )
     fig.tight_layout()
     fig.savefig(output_dir / "sse_overhead.png", dpi=150, bbox_inches="tight")
     plt.close(fig)

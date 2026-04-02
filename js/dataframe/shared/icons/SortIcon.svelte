@@ -1,15 +1,21 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
 	import type { I18nFormatter } from "@gradio/utils";
 	import SortButtonUp from "./SortButtonUp.svelte";
 	import SortButtonDown from "./SortButtonDown.svelte";
 	import { IconButton } from "@gradio/atoms";
 	type SortDirection = "asc" | "desc";
-	export let direction: SortDirection | null = null;
-	export let priority: number | null = null;
-	export let i18n: I18nFormatter;
 
-	const dispatch = createEventDispatcher<{ sort: SortDirection }>();
+	let {
+		direction = null,
+		priority = null,
+		i18n,
+		onsort
+	}: {
+		direction?: SortDirection | null;
+		priority?: number | null;
+		i18n: I18nFormatter;
+		onsort?: (direction: SortDirection) => void;
+	} = $props();
 </script>
 
 <div class="sort-icons" role="group" aria-label={i18n("dataframe.sort_column")}>
@@ -25,7 +31,7 @@
 		highlight={direction === "asc"}
 		onclick={(event) => {
 			event.stopPropagation();
-			dispatch("sort", "asc");
+			onsort?.("asc");
 		}}
 	></IconButton>
 	<IconButton
@@ -35,7 +41,7 @@
 		highlight={direction === "desc"}
 		onclick={(event) => {
 			event.stopPropagation();
-			dispatch("sort", "desc");
+			onsort?.("desc");
 		}}
 	></IconButton>
 </div>
