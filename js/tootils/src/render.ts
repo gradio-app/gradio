@@ -14,7 +14,7 @@ import type {
 } from "@testing-library/dom";
 import { vi, type Mock } from "vitest";
 import { GRADIO_ROOT, allowed_shared_props } from "@gradio/utils";
-import type { LoadingStatus } from "@gradio/statustracker";
+import type { LoadingStatus, ILoadingStatus } from "@gradio/statustracker";
 import { _ } from "svelte-i18n";
 
 const containerCache = new Map();
@@ -31,16 +31,44 @@ export type RenderResult<
 	debug: (el?: HTMLElement | DocumentFragment) => void;
 	unmount: () => void;
 } & { [P in keyof Q]: BoundFunction<Q[P]> };
+export interface ILoadingStatus {
+	eta: number | null;
+	status: "pending" | "error" | "complete" | "generating" | "streaming";
+	queue: boolean;
+	queue_position: number | null;
+	queue_size?: number;
+	fn_index: number;
+	message?: string | null;
+	scroll_to_output?: boolean;
+	show_progress?: "full" | "minimal" | "hidden";
+	time_limit?: number | null | undefined;
+	progress?: {
+		progress: number | null;
+		index: number | null;
+		length: number | null;
+		unit: string | null;
+		desc: string | null;
+	}[];
+	validation_error?: string | null;
+	type: "input" | "output";
+	stream_state: "open" | "closed" | "waiting" | null;
+}
 
-const loading_status: LoadingStatus = {
+const loading_status: ILoadingStatus = {
 	eta: 0,
 	queue_position: 1,
 	queue_size: 1,
-	status: "complete" as LoadingStatus["status"],
+	queue: true,
+	message: null,
+	time_limit: null,
+	progress: [],
+	validation_error: null,
+	type: "output",
+	stream_state: null,
+	status: "complete" as ILoadingStatus["status"],
 	scroll_to_output: false,
-	visible: true,
 	fn_index: 0,
-	show_progress: "full"
+	show_progress: "full" as ILoadingStatus["show_progress"]
 };
 
 export interface RenderOptions<Q extends Queries = typeof queries> {
@@ -165,6 +193,8 @@ export async function render<
 			}
 		}
 	}
+
+	shared_props_obj.loading_status = loading_status;
 
 	const componentProps = {
 		shared_props: shared_props_obj,
