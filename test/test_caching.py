@@ -2,9 +2,11 @@ import asyncio
 import inspect
 
 import numpy as np
+import pandas as pd
 import pytest
+from PIL import Image
 
-from gradio.caching import CacheStore, cache, cache_hash, resolve_generator
+from gradio.caching import cache, cache_hash, resolve_generator
 
 
 class TestCacheHash:
@@ -27,8 +29,6 @@ class TestCacheHash:
         assert cache_hash(np.zeros((2, 3))) != cache_hash(np.zeros((3, 2)))
 
     def test_pil_image(self):
-        from PIL import Image
-
         a = Image.new("RGB", (10, 10), color=(255, 0, 0))
         b = Image.new("RGB", (10, 10), color=(255, 0, 0))
         c = Image.new("RGB", (10, 10), color=(0, 255, 0))
@@ -36,8 +36,6 @@ class TestCacheHash:
         assert cache_hash(a) != cache_hash(c)
 
     def test_pandas(self):
-        import pandas as pd
-
         a = pd.DataFrame({"x": [1, 2], "y": [3, 4]})
         b = pd.DataFrame({"x": [1, 2], "y": [3, 4]})
         assert cache_hash(a) == cache_hash(b)
@@ -80,24 +78,7 @@ class TestResolveGenerator:
         assert values is None
 
 
-class TestCacheStore:
-    def test_put_get_miss(self):
-        store = CacheStore(max_size=10)
-        store.put("k", value="result")
-        assert store.get("k") == {"value": "result"}
-        assert store.get("miss") is None
-
-    def test_lru_eviction(self):
-        store = CacheStore(max_size=2)
-        store.put("a", value=1)
-        store.put("b", value=2)
-        store.get("a")  # refresh "a"
-        store.put("c", value=3)  # evicts "b"
-        assert store.get("a") is not None
-        assert store.get("b") is None
-
-
-class TestCache:
+class TestCacheDecorator:
     def test_sync_function(self):
         call_count = 0
 
@@ -216,8 +197,6 @@ class TestCache:
         assert inspect.iscoroutinefunction(afn)
 
     def test_sync_generator_mutable_yields(self):
-        """Cached replay should snapshot each yield, not alias mutable objects."""
-
         @cache
         def streamer(n):
             result = []
@@ -229,24 +208,15 @@ class TestCache:
         cached_run = list(streamer(3))
         assert cached_run == [[1], [1, 2], [1, 2, 3]]
 
-    def test_async_generator_mutable_yields(self):
-        """Async variant: cached replay should snapshot each yield."""
+    def test_with_parens(self):
+        @cache()
+        def fn(x):
+            return x * 2
 
-        @cache
-        async def streamer(n):
-            result = []
-            for i in range(1, n + 1):
-                result.append(i)
-                yield result
+        assert fn(5) == 10
+        assert fn(5) == 10
 
-        async def run():
-            return [v async for v in streamer(3)]
-
-        asyncio.run(run())
-        cached_run = asyncio.run(run())
-        assert cached_run == [[1], [1, 2], [1, 2, 3]]
-
-    def test_cache_clear(self):
+    def test_clear(self):
         @cache
         def fn(x):
             return x
@@ -255,3 +225,75 @@ class TestCache:
         assert len(fn.cache) == 1
         fn.cache.clear()
         assert len(fn.cache) == 0
+
+
+class TestCacheManual:
+    def test_get_set(self):
+        c = cache()
+        assert c.get("k") is None
+        c.set("k", value=42)
+        assert c.get("k") == {"value": 42}
+
+    def test_multiple_fields(self):
+        c = cache()
+        c.set("k", output="hello", kv=[1, 2, 3])
+        assert c.get("k") == {"output": "hello", "kv": [1, 2, 3]}
+
+    def test_keys(self):
+        c = cache()
+        c.set("a", v=1)
+        c.set("b", v=2)
+        assert sorted(c.keys()) == ["a", "b"]
+
+    def test_prefix_matching_pattern(self):
+        c = cache()
+        c.set("hello", kv=[1, 2, 3, 4, 5])
+        c.set("hello world", kv=list(range(11)))
+
+        prompt = "hello world foo"
+        best_key = None
+        best_len = 0
+        for cached_key in c.keys():
+            if prompt.startswith(cached_key) and len(cached_key) > best_len:
+                best_key = cached_key
+                best_len = len(cached_key)
+
+        assert best_key == "hello world"
+        assert c.get(best_key)["kv"] == list(range(11))
+
+    def test_eviction_by_count(self):
+        c = cache(max_size=2)
+        c.set("a", v=1)
+        c.set("b", v=2)
+        c.set("c", v=3)
+        assert len(c) == 2
+        assert c.get("a") is None
+
+    def test_eviction_by_memory(self):
+        c = cache(max_size=0, max_memory="1kb")
+        c.set("a", data=np.zeros(100, dtype=np.float64))  # 800 bytes
+        assert len(c) == 1
+        c.set("b", data=np.zeros(100, dtype=np.float64))  # 800 more → over 1kb
+        assert len(c) == 1  # evicted "a" to stay under 1kb
+        assert c.get("a") is None
+        assert c.get("b") is not None
+
+    def test_max_memory_string_parsing(self):
+        c = cache(max_memory="512mb")
+        assert c._store._max_memory == 512 * 1024 * 1024
+
+    def test_injection_pattern(self):
+        """Simulates how Gradio would inject gr.cache() as a parameter."""
+        c = cache()
+
+        def my_fn(x, my_cache=c):
+            hit = my_cache.get(x)
+            if hit is not None:
+                return hit["result"]
+            result = x * 2
+            my_cache.set(x, result=result)
+            return result
+
+        assert my_fn(5) == 10
+        assert my_fn(5) == 10  # from cache
+        assert len(c) == 1

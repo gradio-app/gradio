@@ -114,10 +114,43 @@ def resolve_generator(fn: Callable) -> tuple[Callable, list | None]:
     return fn, None
 
 
-class CacheStore:
-    def __init__(self, max_size: int = 128):
+def _estimate_size(obj: Any) -> int:
+    """Estimate memory usage in bytes for common ML types."""
+    import sys
+
+    if isinstance(obj, np.ndarray):
+        return obj.nbytes
+    if isinstance(obj, Image.Image):
+        return obj.size[0] * obj.size[1] * len(obj.getbands())
+    if isinstance(obj, pd.DataFrame):
+        return obj.memory_usage(deep=True).sum()
+    if isinstance(obj, pd.Series):
+        return obj.memory_usage(deep=True)
+    if isinstance(obj, (bytes, bytearray)):
+        return len(obj)
+    if isinstance(obj, str):
+        return sys.getsizeof(obj)
+    try:
+        import torch
+
+        if isinstance(obj, torch.Tensor):
+            return obj.nelement() * obj.element_size()
+    except ImportError:
+        pass
+    if isinstance(obj, dict):
+        return sum(_estimate_size(v) for v in obj.values())
+    if isinstance(obj, (list, tuple)):
+        return sum(_estimate_size(v) for v in obj)
+    return sys.getsizeof(obj)
+
+
+class _CacheStore:
+    def __init__(self, max_size: int = 128, max_memory: int | None = None):
         self._max_size = max_size
+        self._max_memory = max_memory
         self._exact: OrderedDict[str, dict] = OrderedDict()
+        self._entry_sizes: dict[str, int] = {}
+        self._total_memory: int = 0
         self._lock = threading.Lock()
 
     def get(self, key_hash: str) -> dict | None:
@@ -128,22 +161,47 @@ class CacheStore:
             return None
 
     def put(self, key_hash: str, **entry: Any) -> None:
+        entry_size = _estimate_size(entry) if self._max_memory else 0
         with self._lock:
             if key_hash in self._exact:
+                self._total_memory -= self._entry_sizes.get(key_hash, 0)
                 self._exact.move_to_end(key_hash)
                 self._exact[key_hash] = entry
+                self._entry_sizes[key_hash] = entry_size
+                self._total_memory += entry_size
             else:
-                if self._max_size > 0 and len(self._exact) >= self._max_size:
-                    self._exact.popitem(last=False)
                 self._exact[key_hash] = entry
+                self._entry_sizes[key_hash] = entry_size
+                self._total_memory += entry_size
+            self._evict()
+
+    def _evict(self) -> None:
+        while self._exact:
+            over_count = self._max_size > 0 and len(self._exact) > self._max_size
+            over_memory = (
+                self._max_memory is not None
+                and self._total_memory > self._max_memory
+                and len(self._exact) > 1
+            )
+            if not over_count and not over_memory:
+                break
+            key, _ = self._exact.popitem(last=False)
+            self._total_memory -= self._entry_sizes.pop(key, 0)
 
     def clear(self) -> None:
         with self._lock:
             self._exact.clear()
+            self._entry_sizes.clear()
+            self._total_memory = 0
 
     def __len__(self) -> int:
         with self._lock:
             return len(self._exact)
+
+    @property
+    def memory_usage(self) -> int:
+        with self._lock:
+            return self._total_memory
 
 
 def _normalize_kwargs(func: Callable, args: tuple, kwargs: dict) -> dict:
@@ -153,90 +211,150 @@ def _normalize_kwargs(func: Callable, args: tuple, kwargs: dict) -> dict:
     return dict(bound.arguments)
 
 
-def cache(fn: Callable | None = None, *, max_size: int = 128):
-    """Cache decorator for Gradio functions.
+def _make_wrapper(func: Callable, store: _CacheStore) -> Callable:
+    if inspect.isgeneratorfunction(func):
 
-    Works with sync/async functions and sync/async generators.
-    For generators, all yielded values are cached and replayed on hit.
-    Uses content-aware hashing (numpy, PIL, pandas, etc.).
+        @functools.wraps(func)
+        def sync_gen_wrapper(*args, **kwargs):
+            normalized = _normalize_kwargs(func, args, kwargs)
+            key_hash = cache_hash(normalized)
+            entry = store.get(key_hash)
+            if entry is not None:
+                yield from entry["yields"]
+                return
+            all_yields = []
+            for value in func(**normalized):
+                all_yields.append(copy.deepcopy(value))
+                yield value
+            if all_yields:
+                store.put(key_hash, yields=all_yields)
+
+        return sync_gen_wrapper
+
+    elif inspect.isasyncgenfunction(func):
+
+        @functools.wraps(func)
+        async def async_gen_wrapper(*args, **kwargs):
+            normalized = _normalize_kwargs(func, args, kwargs)
+            key_hash = cache_hash(normalized)
+            entry = store.get(key_hash)
+            if entry is not None:
+                for value in entry["yields"]:
+                    yield value
+                return
+            all_yields = []
+            async for value in func(**normalized):
+                all_yields.append(copy.deepcopy(value))
+                yield value
+            if all_yields:
+                store.put(key_hash, yields=all_yields)
+
+        return async_gen_wrapper
+
+    elif inspect.iscoroutinefunction(func):
+
+        @functools.wraps(func)
+        async def async_wrapper(*args, **kwargs):
+            normalized = _normalize_kwargs(func, args, kwargs)
+            key_hash = cache_hash(normalized)
+            entry = store.get(key_hash)
+            if entry is not None:
+                return entry["value"]
+            result = await func(**normalized)
+            store.put(key_hash, value=result)
+            return result
+
+        return async_wrapper
+
+    else:
+
+        @functools.wraps(func)
+        def sync_wrapper(*args, **kwargs):
+            normalized = _normalize_kwargs(func, args, kwargs)
+            key_hash = cache_hash(normalized)
+            entry = store.get(key_hash)
+            if entry is not None:
+                return entry["value"]
+            result = func(**normalized)
+            store.put(key_hash, value=result)
+            return result
+
+        return sync_wrapper
+
+
+class cache:
+    """Unified caching for Gradio functions.
+
+    As a decorator, auto-caches based on content-hashed inputs::
+
+        @gr.cache
+        def classify(image):
+            return model.predict(image)
+
+        @gr.cache(max_size=256)
+        def classify(image):
+            return model.predict(image)
+
+    As an injectable parameter, gives manual get/set control::
+
+        def generate(prompt, c=gr.cache()):
+            hit = c.get(prompt)
+            if hit is not None:
+                return model(prompt, past=hit["kv"])
+            output = model(prompt)
+            c.set(prompt, kv=model.past_key_values)
+            return output
     """
 
-    def decorator(func: Callable) -> Callable:
-        store = CacheStore(max_size)
+    def __new__(
+        cls,
+        fn: Callable | None = None,
+        *,
+        max_size: int = 128,
+        max_memory: str | int | None = None,
+    ):
+        from gradio.utils import _parse_file_size
 
-        if inspect.isgeneratorfunction(func):
+        instance = super().__new__(cls)
+        max_memory_bytes = _parse_file_size(max_memory)
+        instance._store = _CacheStore(max_size, max_memory=max_memory_bytes)
+        if fn is not None and callable(fn):
+            wrapper = _make_wrapper(fn, instance._store)
+            wrapper.cache = instance  # type: ignore
+            return wrapper
+        return instance
 
-            @functools.wraps(func)
-            def sync_gen_wrapper(*args, **kwargs):
-                normalized = _normalize_kwargs(func, args, kwargs)
-                key_hash = cache_hash(normalized)
-                entry = store.get(key_hash)
-                if entry is not None:
-                    yield from entry["yields"]
-                    return
-                all_yields = []
-                for value in func(**normalized):
-                    all_yields.append(copy.deepcopy(value))
-                    yield value
-                if all_yields:
-                    store.put(key_hash, yields=all_yields)
+    def __init__(
+        self,
+        fn: Callable | None = None,
+        *,
+        max_size: int = 128,
+        max_memory: str | int | None = None,
+    ):
+        pass
 
-            sync_gen_wrapper.cache = store  # type: ignore
-            return sync_gen_wrapper
+    def __call__(self, fn: Callable) -> Callable:
+        wrapper = _make_wrapper(fn, self._store)
+        wrapper.cache = self  # type: ignore
+        return wrapper
 
-        elif inspect.isasyncgenfunction(func):
+    def get(self, key: Any) -> dict | None:
+        key_hash = cache_hash(key)
+        entry = self._store.get(key_hash)
+        if entry is None:
+            return None
+        return {k: v for k, v in entry.items() if k != "_key"}
 
-            @functools.wraps(func)
-            async def async_gen_wrapper(*args, **kwargs):
-                normalized = _normalize_kwargs(func, args, kwargs)
-                key_hash = cache_hash(normalized)
-                entry = store.get(key_hash)
-                if entry is not None:
-                    for value in entry["yields"]:
-                        yield value
-                    return
-                all_yields = []
-                async for value in func(**normalized):
-                    all_yields.append(copy.deepcopy(value))
-                    yield value
-                if all_yields:
-                    store.put(key_hash, yields=all_yields)
+    def set(self, key: Any, **data: Any) -> None:
+        key_hash = cache_hash(key)
+        self._store.put(key_hash, _key=key, **data)
 
-            async_gen_wrapper.cache = store  # type: ignore
-            return async_gen_wrapper
+    def keys(self) -> list[Any]:
+        with self._store._lock:
+            return [entry.get("_key") for entry in self._store._exact.values()]
 
-        elif inspect.iscoroutinefunction(func):
+    def clear(self) -> None:
+        self._store.clear()
 
-            @functools.wraps(func)
-            async def async_wrapper(*args, **kwargs):
-                normalized = _normalize_kwargs(func, args, kwargs)
-                key_hash = cache_hash(normalized)
-                entry = store.get(key_hash)
-                if entry is not None:
-                    return entry["value"]
-                result = await func(**normalized)
-                store.put(key_hash, value=result)
-                return result
-
-            async_wrapper.cache = store  # type: ignore
-            return async_wrapper
-
-        else:
-
-            @functools.wraps(func)
-            def sync_wrapper(*args, **kwargs):
-                normalized = _normalize_kwargs(func, args, kwargs)
-                key_hash = cache_hash(normalized)
-                entry = store.get(key_hash)
-                if entry is not None:
-                    return entry["value"]
-                result = func(**normalized)
-                store.put(key_hash, value=result)
-                return result
-
-            sync_wrapper.cache = store  # type: ignore
-            return sync_wrapper
-
-    if fn is not None:
-        return decorator(fn)
-    return decorator
+    def __len__(self) -> int:
+        return len(self._store)

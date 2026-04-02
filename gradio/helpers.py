@@ -21,7 +21,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
 from gradio import components, oauth, processing_utils, routes, utils
-from gradio.caching import resolve_generator
+from gradio.caching import cache, resolve_generator
 from gradio.context import Context, LocalContext, get_blocks_context
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Dependency, EventData
@@ -953,6 +953,9 @@ def special_args(
         type_hint = type_hints.get(param.name)
         if isinstance(param.default, Progress):
             progress_index = i
+            if inputs is not None:
+                inputs.insert(i, param.default)
+        elif isinstance(param.default, cache):
             if inputs is not None:
                 inputs.insert(i, param.default)
         elif type_hint in (routes.Request, Optional[routes.Request]):
