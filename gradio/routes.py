@@ -1767,7 +1767,9 @@ class App(FastAPI):
             bg_tasks: BackgroundTasks,
             upload_id: str | None = None,
         ):
-            start = time.monotonic()
+            start = None
+            if PROFILING_ENABLED:
+                start = time.monotonic()
             content_type_header = request.headers.get("Content-Type")
             content_type: bytes
             content_type, _ = parse_options_header(content_type_header or "")
@@ -1832,9 +1834,10 @@ class App(FastAPI):
                 bg_tasks.add_task(
                     move_uploaded_files_to_cache, files_to_copy, locations
                 )
-            bg_tasks.add_task(
-                set_upload_trace, request.headers.get("session_hash", ""), start
-            )
+            if PROFILING_ENABLED:
+                bg_tasks.add_task(
+                    set_upload_trace, request.headers.get("session_hash", ""), start
+                )
 
             return output_files
 

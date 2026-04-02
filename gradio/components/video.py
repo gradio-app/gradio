@@ -22,7 +22,7 @@ from gradio.components.image_editor import WatermarkOptions, WebcamOptions
 from gradio.data_classes import FileData, MediaStreamChunk
 from gradio.events import Events
 from gradio.i18n import I18nData
-from gradio.profiling import traced_sync
+from gradio.profiling import trace_phase_sync, traced_sync
 from gradio.utils import get_upload_folder, set_default_buttons
 
 if TYPE_CHECKING:
@@ -275,7 +275,6 @@ class Video(StreamingOutput, Component):
         Processes a video to ensure that it is in the correct format
         and adds a watermark if requested.
         """
-        from gradio.profiling import trace_phase_sync
 
         if video is None:
             return None
@@ -410,8 +409,6 @@ class Video(StreamingOutput, Component):
         """
         Convert subtitle format to VTT and process the video to ensure it meets the HTML5 requirements.
         """
-        import json
-        from pathlib import Path
 
         def srt_to_vtt(srt_file_path, vtt_file_path):
             """Convert an SRT subtitle file to a VTT subtitle file"""
