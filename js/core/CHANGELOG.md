@@ -1,5 +1,32 @@
 # @gradio/core
 
+## 1.4.2
+
+### Fixes
+
+- [#13048](https://github.com/gradio-app/gradio/pull/13048) [`a5d4096`](https://github.com/gradio-app/gradio/commit/a5d40965bba21a832da522127048926b71c1a6dd) - Fix Tab Interactive Bug.  Thanks @freddyaboulton!
+- [#13172](https://github.com/gradio-app/gradio/pull/13172) [`03a9d4c`](https://github.com/gradio-app/gradio/commit/03a9d4c99f3c9466e4fc162d02800850ed67a29e) - fix: prevent [object Object] when label matches a nested i18n key.  Thanks @mango766!
+
+### Dependency updates
+
+- @gradio/utils@0.12.2
+- @gradio/atoms@0.23.0
+- @gradio/statustracker@0.13.1
+- @gradio/upload@0.17.8
+- @gradio/tabs@0.5.9
+- @gradio/code@0.17.6
+- @gradio/html@0.12.1
+- @gradio/paramviewer@0.9.7
+- @gradio/image@0.26.1
+- @gradio/checkbox@0.6.6
+- @gradio/video@0.20.6
+- @gradio/file@0.14.6
+- @gradio/gallery@0.17.5
+- @gradio/plot@0.10.7
+- @gradio/textbox@0.13.7
+- @gradio/dropdown@0.11.7
+- @gradio/audio@0.23.1
+
 ## 1.4.1
 
 ### Fixes
