@@ -17,6 +17,7 @@ from gradio import processing_utils
 from gradio.components.image_editor import WatermarkOptions
 from gradio.data_classes import ImageData
 from gradio.exceptions import Error
+from gradio.profiling import traced_sync
 
 PIL.Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843 (remove when requiring Pillow 9.4+)
 
@@ -258,6 +259,7 @@ def extract_svg_content(image_file: str | Path) -> str:
         return svg_content
 
 
+@traced_sync("preprocess_format_image")
 def preprocess_image(
     payload: ImageData | None,
     cache_dir: str,
@@ -311,6 +313,7 @@ def preprocess_image(
             warnings.simplefilter("ignore")
             if image_mode is not None:
                 im = im.convert(image_mode)
+
     return format_image(
         im,
         type=type,
