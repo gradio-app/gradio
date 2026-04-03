@@ -412,7 +412,8 @@
 		class:fade-out={cache_indicator_fading}
 		style:position={absolute ? "absolute" : "static"}
 	>
-		&#9889; from cache: {#if cache_display_avg}~{cache_display_avg}s &rarr; {/if}{cache_display_time}s
+		&#9889; from cache: {#if cache_display_avg}~{cache_display_avg}s &rarr;
+		{/if}{cache_display_time}s
 	</div>
 {/if}
 

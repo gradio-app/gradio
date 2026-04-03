@@ -12,7 +12,6 @@ import gradio as gr
 CLASSES = ["cat", "dog", "bird", "fish", "car", "plane", "ship", "truck"]
 
 
-@gr.cache
 def classify_image(image):
     time.sleep(2)
     if image is None:
