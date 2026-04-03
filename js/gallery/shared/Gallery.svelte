@@ -229,15 +229,13 @@
 	}
 
 	$effect(() => {
+		// Only trigger the effect if the selected_index has actually changed
 		if (selected_index !== old_selected_index) {
 			old_selected_index = selected_index;
-			if (selected_index !== null) {
-				if (resolved_value != null) {
-					selected_index = Math.max(
-						0,
-						Math.min(selected_index, resolved_value.length - 1)
-					);
-				}
+
+			// Ensure we have a valid selection and data to work with
+			if (selected_index !== null && resolved_value !== null) {
+				// Notify the parent component or listener about the updated selection
 				onselect({
 					index: selected_index,
 					value: resolved_value?.[selected_index]

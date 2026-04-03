@@ -54,7 +54,6 @@ This is a simple breakdown of our current quality checks:
 | n/a        | Functional      | linux            | `test-functional.yml`      |                                              |
 | n/a        | Visual          | linux            | `deploy+test-visual/yml`   |                                              |
 | n/a        | Large files     | linux            | `test-hygiene.yml`         | Checks that all files are below 5 MB         |
-| n/a        | Notebooks match | linux            | `test-hygiene.yml`         | Ensures that notebooks and demos are in sync |
 
 One important thing to note is that we split 'flaky' and 'non-flaky' Python unit/integration tests out.
 These tests are flaky because of network requests that they make. They are typically fine, but anything that can cause a red check in PRs makes us less trustworthy of our CI and confidence is the goal!
