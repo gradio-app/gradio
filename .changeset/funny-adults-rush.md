@@ -1,6 +1,6 @@
 ---
-"@gradio/atoms": minor
-"gradio": minor
+"@gradio/atoms": patch
+"gradio": patch
 ---
 
 feat:Chatbot Unit Tests
