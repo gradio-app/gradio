@@ -19,7 +19,6 @@ def generate(prompt):
     )
     return image
 
-
 demo = gr.Interface(
     fn=generate,
     inputs=gr.Textbox(label="Prompt"),

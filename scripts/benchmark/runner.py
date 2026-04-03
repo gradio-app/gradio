@@ -120,6 +120,41 @@ def load_prompts(app_path: str) -> list[str] | None:
     return None
 
 
+import shutil
+
+
+def save_sample_outputs(
+    results: list[dict],
+    output_dir: Path,
+    round_id: int,
+    sample_count: int = 1,
+):
+    """Copy output files from a random sample of successful results to output_dir/samples/."""
+    successful = [r for r in results if r.get("success") and r.get("output_data")]
+    if not successful or output_dir is None:
+        if output_dir is not None:
+            with_data = sum(1 for r in results if r.get("output_data"))
+            print(f"  [samples] Round {round_id}: {with_data}/{len(results)} results have output_data, {len(successful)} successful with data")
+        return
+    samples_dir = output_dir / "samples"
+    samples_dir.mkdir(parents=True, exist_ok=True)
+    sample = random.sample(successful, min(sample_count, len(successful)))
+    for r in sample:
+        for i, item in enumerate(r["output_data"]):
+            if not isinstance(item, dict):
+                continue
+            # Gradio FileData has a "path" key pointing to the local file
+            path = item.get("path")
+            if not path or not Path(path).exists():
+                continue
+            ext = Path(path).suffix or ".bin"
+            dest = samples_dir / f"round_{round_id}_user_{r['user_id']}_output_{i}{ext}"
+            try:
+                shutil.copy2(path, dest)
+            except Exception as e:
+                print(f"  WARNING: Failed to copy sample output: {e}")
+
+
 async def run_httpx_tier(
     app_url: str,
     num_users: int,
@@ -129,11 +164,13 @@ async def run_httpx_tier(
     mode: str = "burst",
     on_round_complete: Callable | None = None,
     prompts: list[str] | None = None,
+    output_dir: Path | None = None,
+    sample_count: int = 1,
 ) -> list[dict]:
     """Run a tier using httpx via /queue/join + /queue/data.
 
     Modes:
-        burst: All N users fire simultaneously per round (asyncio.Barrier).
+        burst: All N users fire simultaneously per round.
         wave:  Each user waits a random delay (0 to 500ms) before firing,
                simulating staggered real-world arrivals.
     """
@@ -163,20 +200,24 @@ async def run_httpx_tier(
         data = []
         start = time.monotonic()
         upload_ms = None
-        for item in data_template:
-            if prompts and isinstance(item, str):
-                data.append(random.choice(prompts))
-            elif prompts and isinstance(item, dict) and item['is_file'] is True:
-                file = random.choice(prompts)
-                path, upload_ms = await _do_upload(client, file['path'], app_url)
-                data.append({'path': path, "meta": {'_type': 'gradio.FileData'}})
-            elif isinstance(item, str):
-                data.append(f"hello from user {user_id} req {req_id}")
-            elif isinstance(item, dict) and item['is_file'] is True:
-                path, upload_ms = await _do_upload(client, random.choice(item['choices']), app_url)
-                data.append({'path': path, "meta": {'_type': 'gradio.FileData'}})
-            else:
-                data.append(item)
+        # If prompts are full data payloads (list of lists), use them directly
+        if prompts and isinstance(prompts[0], list):
+            data = list(random.choice(prompts))
+        else:
+            for item in data_template:
+                if prompts and isinstance(item, str):
+                    data.append(random.choice(prompts))
+                elif prompts and isinstance(item, dict) and item['is_file'] is True:
+                    file = random.choice(prompts)
+                    path, upload_ms = await _do_upload(client, file['path'], app_url)
+                    data.append({'path': path, "meta": {'_type': 'gradio.FileData'}})
+                elif isinstance(item, str):
+                    data.append(f"hello from user {user_id} req {req_id}")
+                elif isinstance(item, dict) and item['is_file'] is True:
+                    path, upload_ms = await _do_upload(client, random.choice(item['choices']), app_url)
+                    data.append({'path': path, "meta": {'_type': 'gradio.FileData'}})
+                else:
+                    data.append(item)
         try:
             resp = await client.post(
                 f"{app_url}/gradio_api/queue/join",
@@ -193,6 +234,7 @@ async def run_httpx_tier(
                 )
 
             completed = False
+            output_data = None
             async with client.stream(
                 "GET",
                 f"{app_url}/gradio_api/queue/data",
@@ -200,11 +242,20 @@ async def run_httpx_tier(
                 timeout=120.0,
             ) as stream:
                 deadline = start + request_timeout
-                async for line in stream.aiter_lines():
-                    if "process_completed" in line:
-                        completed = True
-                        break
-                    if time.monotonic() > deadline:
+                buffer = b""
+                async for chunk in stream.aiter_bytes():
+                    buffer += chunk
+                    while b"\n\n" in buffer:
+                        message, buffer = buffer.split(b"\n\n", 1)
+                        line = message.decode("utf-8").rstrip("\n")
+                        if not line or not line.startswith("data:"):
+                            continue
+                        msg = json.loads(line[5:])
+                        if msg.get("msg") == "process_completed":
+                            completed = True
+                            output_data = msg.get("output", {}).get("data")
+                            break
+                    if completed or time.monotonic() > deadline:
                         break
 
             if not completed:
@@ -218,7 +269,8 @@ async def run_httpx_tier(
                 "request_id": req_id,
                 "latency_ms": duration_ms,
                 "success": True,
-                "upload_ms": upload_ms * 1000 if upload_ms is not None else None
+                "upload_ms": upload_ms * 1000 if upload_ms is not None else None,
+                "output_data": output_data,
             }
         except Exception as e:
             duration_ms = (time.monotonic() - start) * 1000
@@ -240,13 +292,20 @@ async def run_httpx_tier(
     for req_id in range(requests_per_user):
         async with httpx.AsyncClient() as client:
             if mode == "burst":
-                barrier = asyncio.Barrier(num_users)
+                # Use an Event + counter instead of asyncio.Barrier (3.11+)
+                _arrived = 0
+                _go = asyncio.Event()
 
                 async def burst_request(
-                    uid: int, rid: int = req_id, b: asyncio.Barrier = barrier
+                    uid: int, rid: int = req_id,
                 ):
-                    session_hash = f"bench_{uid}_{rid}_{id(b)}"
-                    await b.wait()
+                    nonlocal _arrived
+                    session_hash = f"bench_{uid}_{rid}_{id(_go)}"
+                    _arrived += 1
+                    if _arrived >= num_users:
+                        _go.set()
+                    else:
+                        await _go.wait()
                     return await _do_request(client, uid, rid, session_hash)
 
                 try:
@@ -302,7 +361,13 @@ async def run_httpx_tier(
         if on_round_complete is not None:
             successful = sum(1 for r in results if r.get("success"))
             on_round_complete(req_id + 1, requests_per_user, successful, num_users)
+        # Save sample outputs after the round (doesn't affect latency measurements)
+        if output_dir is not None:
+            save_sample_outputs(results, output_dir, req_id, sample_count)
 
+    # Strip output_data before returning (it would bloat the JSONL files)
+    for lat in latencies:
+        lat.pop("output_data", None)
     return latencies
 
 
@@ -361,6 +426,174 @@ def compute_client_summary(latencies: list[dict]) -> dict:
     }
 
 
+async def _bg_page_loads(client, app_url, results, stop_event):
+    """Simulate users loading the app page."""
+    endpoints = ["/", "/config", "/gradio_api/info", "/theme.css"]
+    while not stop_event.is_set():
+        endpoint = random.choice(endpoints)
+        start = time.monotonic()
+        try:
+            resp = await client.get(f"{app_url}{endpoint}", timeout=10.0)
+            results.append({"latency_ms": (time.monotonic() - start) * 1000, "endpoint": endpoint, "success": resp.status_code == 200})
+        except Exception as e:
+            results.append({"latency_ms": (time.monotonic() - start) * 1000, "endpoint": endpoint, "success": False, "error": str(e)})
+        await asyncio.sleep(random.uniform(0.05, 0.5))
+
+
+async def _bg_uploads(client, app_url, results, stop_event, upload_files):
+    """Simulate users uploading files."""
+    while not stop_event.is_set():
+        filepath = random.choice(upload_files)
+        start = time.monotonic()
+        try:
+            with open(filepath, "rb") as f:
+                files = {"files": (Path(filepath).name, f, "application/octet-stream")}
+                resp = await client.post(f"{app_url}/gradio_api/upload", files=files, timeout=60.0)
+            results.append({"latency_ms": (time.monotonic() - start) * 1000, "success": resp.status_code == 200, "file_size_bytes": Path(filepath).stat().st_size})
+        except Exception as e:
+            results.append({"latency_ms": (time.monotonic() - start) * 1000, "success": False, "error": str(e)})
+        await asyncio.sleep(random.uniform(0.1, 0.5))
+
+
+async def _bg_downloads(client, app_url, results, stop_event, file_urls):
+    """Simulate users downloading output files."""
+    while not stop_event.is_set():
+        url = random.choice(file_urls)
+        full_url = f"{app_url}{url}" if url.startswith("/") else url
+        start = time.monotonic()
+        try:
+            resp = await client.get(full_url, timeout=30.0)
+            results.append({"latency_ms": (time.monotonic() - start) * 1000, "success": resp.status_code == 200, "response_size_bytes": len(resp.content)})
+        except Exception as e:
+            results.append({"latency_ms": (time.monotonic() - start) * 1000, "success": False, "error": str(e)})
+        await asyncio.sleep(random.uniform(0.05, 0.5))
+
+
+async def run_background_traffic(app_url, num_users, stop_event, file_urls, upload_files):
+    """Spawn background traffic workers and return results when stopped."""
+    bg_results = {"page_loads": [], "uploads": [], "downloads": []}
+    tasks = []
+
+    async with httpx.AsyncClient(
+        limits=httpx.Limits(max_connections=200, max_keepalive_connections=50)
+    ) as client:
+        # Page loaders: 2x prediction users
+        for _ in range(max(1, num_users * 2)):
+            tasks.append(asyncio.create_task(_bg_page_loads(client, app_url, bg_results["page_loads"], stop_event)))
+
+        # Uploaders: 0.5x prediction users
+        if upload_files:
+            for _ in range(max(1, num_users // 2)):
+                tasks.append(asyncio.create_task(_bg_uploads(client, app_url, bg_results["uploads"], stop_event, upload_files)))
+
+        # Downloaders: 1x prediction users
+        if file_urls:
+            for _ in range(max(1, num_users)):
+                tasks.append(asyncio.create_task(_bg_downloads(client, app_url, bg_results["downloads"], stop_event, file_urls)))
+
+        # Wait for stop signal, then let workers finish their current request
+        await stop_event.wait()
+        await asyncio.gather(*tasks, return_exceptions=True)
+
+    return bg_results
+
+
+async def _collect_download_urls(app_url, fn_index, data_template, prompts):
+    """Run a few predictions and extract output file URLs for download traffic seeding.
+
+    Uses the same data-building logic as _do_request in run_httpx_tier, including
+    file uploads for image/audio/video inputs.
+    """
+    urls = []
+    async with httpx.AsyncClient() as client:
+        for i in range(3):
+            session_hash = f"seed_{i}_{time.monotonic_ns()}"
+            data = []
+            if prompts and isinstance(prompts[0], list):
+                data = list(random.choice(prompts))
+            else:
+                for item in data_template:
+                    if prompts and isinstance(item, str):
+                        data.append(random.choice(prompts))
+                    elif isinstance(item, dict) and item.get("is_file") is True:
+                        # Upload a real file just like _do_request does
+                        filepath = random.choice(item["choices"])
+                        try:
+                            with open(filepath, "rb") as f:
+                                files = {"files": (filepath, f, "application/octet-stream")}
+                                upload_resp = await client.post(f"{app_url}/gradio_api/upload", files=files, timeout=60)
+                                path = upload_resp.json()[0]
+                            data.append({"path": path, "meta": {"_type": "gradio.FileData"}})
+                        except Exception:
+                            data.append(None)
+                    elif isinstance(item, str):
+                        data.append(f"seed request {i}")
+                    else:
+                        data.append(item)
+            try:
+                resp = await client.post(
+                    f"{app_url}/gradio_api/queue/join",
+                    json={"data": data, "fn_index": fn_index, "session_hash": session_hash},
+                    timeout=120.0,
+                )
+                if resp.status_code != 200:
+                    continue
+                async with client.stream("GET", f"{app_url}/gradio_api/queue/data", params={"session_hash": session_hash}, timeout=120.0) as stream:
+                    buffer = b""
+                    async for chunk in stream.aiter_bytes():
+                        buffer += chunk
+                        while b"\n\n" in buffer:
+                            message, buffer = buffer.split(b"\n\n", 1)
+                            line = message.decode("utf-8").rstrip("\n")
+                            if not line or not line.startswith("data:"):
+                                continue
+                            msg = json.loads(line[5:])
+                            if msg.get("msg") == "process_completed":
+                                for item in (msg.get("output", {}).get("data") or []):
+                                    if isinstance(item, dict) and item.get("url"):
+                                        url = item["url"]
+                                        # Convert absolute URLs to relative paths
+                                        if "://" in url:
+                                            from urllib.parse import urlparse
+                                            url = urlparse(url).path
+                                        urls.append(url)
+                                break
+                        if urls:
+                            break
+            except Exception:
+                continue
+    if urls:
+        print(f"  Seeded {len(urls)} download URLs from warmup predictions")
+    else:
+        print("  No file outputs found — download traffic will be skipped")
+    return urls
+
+
+def compute_background_summary(bg_results):
+    """Compute p50/p90/p99 for each background traffic type."""
+    import numpy as np
+    summary = {}
+    for traffic_type, results in bg_results.items():
+        if not results:
+            continue
+        successful = [r["latency_ms"] for r in results if r.get("success")]
+        total = len(results)
+        if not successful:
+            summary[traffic_type] = {"count": total, "success_rate": 0}
+            continue
+        arr = np.array(successful)
+        summary[traffic_type] = {
+            "count": total,
+            "success_count": len(successful),
+            "success_rate": len(successful) / total,
+            "p50": float(np.percentile(arr, 50)),
+            "p90": float(np.percentile(arr, 90)),
+            "p99": float(np.percentile(arr, 99)),
+            "mean": float(np.mean(arr)),
+        }
+    return summary
+
+
 async def run_benchmark(
     app_path: str,
     tiers: list[int],
@@ -371,6 +604,8 @@ async def run_benchmark(
     concurrency_limit: int | None = 1,
     mode: str = "burst",
     max_threads: int = 40,
+    mixed_traffic: bool = False,
+    num_workers: int = 1,
 ):
     app_url = f"http://127.0.0.1:{port}"
 
@@ -381,6 +616,12 @@ async def run_benchmark(
     cl_str = "none" if concurrency_limit is None else str(concurrency_limit)
     env["GRADIO_CONCURRENCY_LIMIT"] = cl_str
     env["GRADIO_MAX_THREADS"] = str(max_threads)
+    if concurrency_limit is not None:
+        # Need this for ZeroGPU spaces
+        print("SETTING CONCURRENCY_LIMIT", str(concurrency_limit))
+        env["GRADIO_DEFAULT_CONCURRENCY_LIMIT"] = str(concurrency_limit)
+    if num_workers > 1:
+        env["GRADIO_NUM_WORKERS"] = str(num_workers)
     env["PYTHONUNBUFFERED"] = "1"
 
     print(f"Synching sample-inputs to {(Path(os.getcwd()) / 'sample-inputs')}")
@@ -441,6 +682,20 @@ async def run_benchmark(
             pass
         await clear_profiling_data(app_url)
 
+        # Seed mixed traffic data if enabled
+        download_urls = []
+        upload_files = []
+        if mixed_traffic:
+            print("Mixed traffic enabled — collecting download URLs and upload files...")
+            download_urls = await _collect_download_urls(app_url, fn_index, data_template, prompts)
+            sample_inputs = Path("sample-inputs")
+            if sample_inputs.exists():
+                upload_files = [str(f) for f in sample_inputs.rglob("*") if f.is_file()]
+            if upload_files:
+                print(f"  Found {len(upload_files)} files for upload traffic")
+            else:
+                print("  No sample-inputs found — upload traffic will be skipped")
+
         # Create output directory
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         base_dir = Path(output_dir) / timestamp
@@ -477,6 +732,15 @@ async def run_benchmark(
                         flush=True,
                     )
 
+            # Start background traffic if enabled
+            bg_task = None
+            stop_event = None
+            if mixed_traffic:
+                stop_event = asyncio.Event()
+                bg_task = asyncio.create_task(
+                    run_background_traffic(app_url, tier, stop_event, download_urls, upload_files)
+                )
+
             # Run the tier
             start = time.monotonic()
             client_latencies = await run_httpx_tier(
@@ -488,10 +752,31 @@ async def run_benchmark(
                 mode=mode,
                 on_round_complete=on_round_complete,
                 prompts=prompts,
+                output_dir=tier_dir,
             )
             if pbar is not None:
                 pbar.close()
             elapsed = time.monotonic() - start
+
+            # Stop background traffic and collect results
+            bg_results = None
+            if bg_task is not None:
+                stop_event.set()
+                bg_results = await bg_task
+
+                # Save background traffic JSONL files
+                for traffic_type, results in bg_results.items():
+                    if results:
+                        with open(tier_dir / f"background_{traffic_type}.jsonl", "w") as f:
+                            for r in results:
+                                f.write(json.dumps(r) + "\n")
+
+                bg_summary = compute_background_summary(bg_results)
+                total_bg = sum(len(v) for v in bg_results.values())
+                print(f"  Background traffic: {total_bg} requests across {len(bg_summary)} types")
+                for ttype, s in bg_summary.items():
+                    if s.get("p50"):
+                        print(f"    {ttype}: p50={s['p50']:.1f}ms p90={s['p90']:.1f}ms ({s['count']} reqs, {s['success_rate']:.0%} ok)")
 
             # Fetch server profiling data
             traces, server_summary = await fetch_profiling_data(app_url)
@@ -507,6 +792,8 @@ async def run_benchmark(
                 "client_summary": client_summary,
                 "server_summary": server_summary,
             }
+            if bg_results is not None:
+                tier_result["background_traffic"] = compute_background_summary(bg_results)
             all_tier_results.append(tier_result)
 
             # Save tier data
@@ -633,6 +920,17 @@ def main():
         default="40",
         help="Concurrency limit for the app (default: 1, use 'none' for unlimited)",
     )
+    parser.add_argument(
+        "--mixed-traffic",
+        action="store_true",
+        help="Run background traffic (page loads, uploads, downloads, heartbeats) alongside predictions",
+    )
+    parser.add_argument(
+        "--num-workers",
+        type=int,
+        default=1,
+        help="Number of Gradio workers (sets GRADIO_NUM_WORKERS). Default: 1",
+    )
 
     args = parser.parse_args()
     tiers = [int(t.strip()) for t in args.tiers.split(",")]
@@ -649,7 +947,9 @@ def main():
             api_name=args.api_name,
             concurrency_limit=cl,
             mode=args.mode,
-            max_threads=max_threads
+            max_threads=max_threads,
+            mixed_traffic=args.mixed_traffic,
+            num_workers=args.num_workers,
         )
     )
 
