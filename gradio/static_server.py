@@ -246,18 +246,14 @@ def create_static_app(config: StaticServerConfig) -> fastapi.FastAPI:
 # ── Static Worker Pool ──────────────────────────────────────────────────────
 
 
-def _find_free_port(start: int = 7861, num: int = 100) -> int:
-    """Find a free port starting from `start`."""
-    for port in range(start, start + num):
-        try:
-            s = socket.socket()
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.bind(("127.0.0.1", port))
-            s.close()
-            return port
-        except OSError:
-            continue
-    raise OSError(f"No free port found in range {start}-{start + num}")
+def _find_free_port(start: int = 0) -> int:
+    """Find a free port. If start=0, let the OS pick an ephemeral port."""
+    s = socket.socket()
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.bind(("127.0.0.1", start))
+    port = s.getsockname()[1]
+    s.close()
+    return port
 
 
 def _run_static_worker(port: int, config_dict: dict):
@@ -297,10 +293,8 @@ class StaticWorkerPool:
             "favicon_path": self.config.favicon_path,
         }
 
-        next_port = 7861
         for i in range(self.num_workers):
-            port = _find_free_port(next_port)
-            next_port = port + 1
+            port = _find_free_port()  # OS picks an ephemeral port
             process = multiprocessing.Process(
                 target=_run_static_worker,
                 args=(port, config_dict),
@@ -336,11 +330,9 @@ class StaticWorkerPool:
     def shutdown(self):
         """Stop all static worker processes."""
         for process in self.workers:
-            process.terminate()
+            process.kill()
         for process in self.workers:
-            process.join(timeout=5)
-            if process.is_alive():
-                process.kill()
+            process.join(timeout=3)
         self.workers.clear()
         self.ports.clear()
         self._started = False
