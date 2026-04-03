@@ -1,5 +1,19 @@
 # @gradio/dataframe
 
+## 0.23.0
+
+### Features
+
+- [#13150](https://github.com/gradio-app/gradio/pull/13150) [`9487b60`](https://github.com/gradio-app/gradio/commit/9487b60670f6532eaccb3251d15f5505fa23d4e3) - migrate dataframe to svelte 5.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/utils@0.12.2
+- @gradio/atoms@0.23.0
+- @gradio/statustracker@0.13.1
+- @gradio/upload@0.17.8
+- @gradio/checkbox@0.6.6
+
 ## 0.22.0
 
 ### Features
