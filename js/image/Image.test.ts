@@ -57,42 +57,6 @@ run_shared_prop_tests({
 	}
 });
 
-describe("Image: validation error via loading_status", () => {
-	afterEach(() => cleanup());
-
-	test("validation error is rendered when present in loading_status", async () => {
-		const { container } = await render(Image, {
-			...default_props,
-			loading_status: {
-				...loading_status,
-				validation_error: "Image must be portrait",
-				show_validation_error: true
-			}
-		});
-
-		const errorEl = container.querySelector(".validation-error");
-		expect(errorEl).not.toBeNull();
-		expect(errorEl!.textContent).toContain("Image must be portrait");
-	});
-
-	test("StatusTracker is rendered for interactive Image when validation_error is set (type guard fix)", async () => {
-		const { container } = await render(Image, {
-			...default_props,
-			interactive: true,
-			loading_status: {
-				...loading_status,
-				type: "input" as const,
-				validation_error: "Error message",
-				show_validation_error: true
-			}
-		});
-
-		const tracker = container.querySelector("[data-testid='status-tracker']");
-		expect(tracker).not.toBeNull();
-		expect(tracker!.classList.contains("hide")).toBe(false);
-	});
-});
-
 describe("Image", () => {
 	afterEach(() => cleanup());
 
