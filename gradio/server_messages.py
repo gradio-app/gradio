@@ -48,7 +48,7 @@ class ProcessCompletedMessage(BaseMessage):
     output: dict
     success: bool
     title: str | None = None
-    from_cache: bool = False
+    used_cache: Literal["full", "partial"] | None = None
     cache_duration: float | None = None
     avg_time: float | None = None
 

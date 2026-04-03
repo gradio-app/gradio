@@ -425,7 +425,7 @@ class Queue:
                     ProcessCompletedMessage(
                         output=response,
                         success=True,
-                        from_cache=True,
+                        used_cache="full",
                         cache_duration=cache_duration,
                         avg_time=avg_time,
                     ),
@@ -950,7 +950,18 @@ class Queue:
                     output = error_payload(error, app.get_blocks().show_error)
                 for event in awake_events:
                     self.send_message(
-                        event, ProcessCompletedMessage(output=output, success=success)
+                        event,
+                        ProcessCompletedMessage(
+                            output=output,
+                            success=success,
+                            used_cache="partial"
+                            if success and output.get("used_cache")
+                            else None,
+                            cache_duration=output.get("duration")
+                            if success and output.get("used_cache")
+                            else None,
+                            avg_time=output.get("average_duration") if success else None,
+                        ),
                     )
 
             elif response:
@@ -966,6 +977,13 @@ class Queue:
                         ProcessCompletedMessage(
                             output=output,
                             success=success,
+                            used_cache="partial"
+                            if success and output.get("used_cache")
+                            else None,
+                            cache_duration=output.get("duration")
+                            if success and output.get("used_cache")
+                            else None,
+                            avg_time=output.get("average_duration") if success else None,
                         ),
                     )
             end_time = time.time()

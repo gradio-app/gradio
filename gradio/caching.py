@@ -8,6 +8,7 @@ import hashlib
 import inspect
 import sys
 import threading
+from contextvars import ContextVar
 from collections import OrderedDict
 from collections.abc import Callable
 from typing import Any
@@ -225,7 +226,12 @@ class CacheMissError(Exception):
     pass
 
 
-_probe_mode = threading.local()
+_probe_mode_active: ContextVar[bool] = ContextVar(
+    "gradio_probe_cache_active", default=False
+)
+_manual_cache_used: ContextVar[dict[str, bool] | None] = ContextVar(
+    "gradio_manual_cache_used", default=None
+)
 
 
 class ProbeCache:
@@ -233,12 +239,36 @@ class ProbeCache:
     running the function on a miss. Used by the queue for cache bypass."""
 
     def __enter__(self):
-        _probe_mode.active = True
+        self._token = _probe_mode_active.set(True)
         return self
 
     def __exit__(self, *exc):
-        _probe_mode.active = False
+        _probe_mode_active.reset(self._token)
         return False
+
+
+class TrackManualCacheUsage:
+    """Context manager for tracking whether gr.Cache.get() had a hit during a call."""
+
+    def __enter__(self):
+        self._holder = {"used": False}
+        self._token = _manual_cache_used.set(self._holder)
+        return self
+
+    def __exit__(self, *exc):
+        _manual_cache_used.reset(self._token)
+        return False
+
+
+def mark_manual_cache_hit() -> None:
+    holder = _manual_cache_used.get()
+    if holder is not None:
+        holder["used"] = True
+
+
+def used_manual_cache() -> bool:
+    holder = _manual_cache_used.get()
+    return holder["used"] if holder is not None else False
 
 
 def _make_store(
@@ -264,7 +294,7 @@ def _make_wrapper(
         return cache_hash(normalized)
 
     def _on_miss():
-        if getattr(_probe_mode, "active", False):
+        if _probe_mode_active.get():
             raise CacheMissError()
 
     if inspect.isgeneratorfunction(func):
@@ -417,6 +447,7 @@ class Cache:
         entry = self._store.get(key_hash)
         if entry is None:
             return None
+        mark_manual_cache_hit()
         return {k: v for k, v in entry.items() if k != "_key"}
 
     def set(self, key: Any, **data: Any) -> None:

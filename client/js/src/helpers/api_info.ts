@@ -377,7 +377,7 @@ export function handle_message(
 					changed_state_ids: data.success
 						? data.output.changed_state_ids
 						: undefined,
-					from_cache: data.from_cache,
+					used_cache: data.used_cache,
 					cache_duration: data.cache_duration,
 					avg_time: data.avg_time
 				},

@@ -84,7 +84,7 @@
 		show_validation_error?: boolean;
 		type?: "input" | "output" | null;
 		on_clear_status?: () => void;
-		from_cache?: boolean;
+		used_cache?: "full" | "partial" | null;
 		cache_duration?: number | null;
 		avg_time?: number | null;
 	}
@@ -116,7 +116,7 @@
 		show_validation_error = true,
 		type = null,
 		on_clear_status,
-		from_cache = false,
+		used_cache = null,
 		cache_duration = null,
 		avg_time = null
 	}: Props = $props();
@@ -134,7 +134,10 @@
 	let cache_indicator_fading = $state(false);
 	let cache_display_time = $state<string | null>(null);
 	let cache_display_avg = $state<string | null>(null);
-	let cache_timeout = $state<NodeJS.Timeout | null>(null);
+	let cache_indicator_label = $state("from cache");
+	let show_cache_avg = $state(false);
+	let cache_timeout: ReturnType<typeof setTimeout> | null = null;
+	let cache_fade_timeout: ReturnType<typeof setTimeout> | null = null;
 
 	const should_hide = $derived(
 		type === "input" ||
@@ -156,6 +159,7 @@
 	const formatted_timer = $derived(timer_diff.toFixed(1));
 
 	let show_eta_bar = $derived(progress != null ? false : true);
+	let effective_eta = $derived(eta ?? old_eta);
 
 	function run(): void {
 		raf(() => {
@@ -237,13 +241,10 @@
 	});
 
 	$effect(() => {
-		if (eta === null) {
-			eta = old_eta;
-		}
-		if (eta != null && old_eta !== eta) {
-			eta_from_start = (performance.now() - timer_start) / 1000 + eta;
+		if (effective_eta != null && old_eta !== effective_eta) {
+			eta_from_start = (performance.now() - timer_start) / 1000 + effective_eta;
 			formatted_eta = eta_from_start.toFixed(1);
-			old_eta = eta;
+			old_eta = effective_eta;
 		}
 	});
 
@@ -265,17 +266,21 @@
 	});
 
 	$effect(() => {
-		if (status === "complete" && from_cache && cache_duration != null) {
+		if (status === "complete" && used_cache && cache_duration != null) {
 			cache_display_time = cache_duration.toFixed(1);
-			cache_display_avg =
-				avg_time != null && avg_time > 0 ? avg_time.toFixed(1) : null;
+			cache_indicator_label =
+				used_cache === "full" ? "from cache" : "used cache";
+			show_cache_avg =
+				avg_time != null && avg_time > cache_duration && avg_time > 0;
+			cache_display_avg = show_cache_avg ? avg_time!.toFixed(1) : null;
 			show_cache_indicator = true;
 			cache_indicator_fading = false;
 
 			if (cache_timeout) clearTimeout(cache_timeout);
+			if (cache_fade_timeout) clearTimeout(cache_fade_timeout);
 			cache_timeout = setTimeout(() => {
 				cache_indicator_fading = true;
-				cache_timeout = setTimeout(() => {
+				cache_fade_timeout = setTimeout(() => {
 					show_cache_indicator = false;
 					cache_indicator_fading = false;
 				}, 500);
@@ -412,7 +417,7 @@
 		class:fade-out={cache_indicator_fading}
 		style:position={absolute ? "absolute" : "static"}
 	>
-		&#9889; from cache: {#if cache_display_avg}~{cache_display_avg}s &rarr;
+		&#9889; {cache_indicator_label}: {#if show_cache_avg}~{cache_display_avg}s &rarr;&nbsp;
 		{/if}{cache_display_time}s
 	</div>
 {/if}

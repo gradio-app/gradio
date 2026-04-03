@@ -41,7 +41,7 @@ export class LoadingStatus {
 				stream_state,
 				time_limit,
 				type,
-				from_cache,
+				used_cache,
 				cache_duration,
 				avg_time
 			}) => {
@@ -58,7 +58,7 @@ export class LoadingStatus {
 					time_limit,
 					type,
 					show_progress: this.show_progress[args.fn_index],
-					from_cache,
+					used_cache,
 					cache_duration,
 					avg_time
 				};
@@ -81,7 +81,7 @@ export class LoadingStatus {
 			stream_state = null,
 			time_limit = null,
 			progress_data = null,
-			from_cache = false,
+			used_cache = null,
 			cache_duration = null,
 			avg_time = null
 		} = args;
@@ -140,7 +140,7 @@ export class LoadingStatus {
 					stream_state: stream_state,
 					time_limit,
 					type: type,
-					from_cache,
+					used_cache,
 					cache_duration,
 					avg_time
 				};

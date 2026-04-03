@@ -402,7 +402,7 @@ export interface Status {
 	changed_state_ids?: number[];
 	time_limit?: number;
 	session_not_found?: boolean;
-	from_cache?: boolean;
+	used_cache?: "full" | "partial" | null;
 	cache_duration?: number;
 	avg_time?: number;
 }

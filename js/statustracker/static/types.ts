@@ -19,7 +19,7 @@ export interface ILoadingStatus {
 	validation_error?: string | null;
 	type: "input" | "output";
 	stream_state: "open" | "closed" | "waiting" | null;
-	from_cache?: boolean;
+	used_cache?: "full" | "partial" | null;
 	cache_duration?: number | null;
 	avg_time?: number | null;
 }
@@ -38,7 +38,7 @@ export interface LoadingStatusArgs {
 	stream_state: "open" | "closed" | "waiting" | null;
 	validation_error?: string;
 	show_validation_error?: boolean;
-	from_cache?: boolean;
+	used_cache?: "full" | "partial" | null;
 	cache_duration?: number | null;
 	avg_time?: number | null;
 }

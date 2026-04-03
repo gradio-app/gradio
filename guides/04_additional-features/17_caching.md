@@ -63,6 +63,8 @@ generate.cache.clear()
 print(len(generate.cache))
 ```
 
+When a queued event is served from `@gr.cache`, Gradio shows a small `from cache` timing badge in the UI.
+
 ## `gr.Cache()` — Manual Cache Control
 
 For full control over what gets cached and when, use `gr.Cache()` as an injectable parameter (like `gr.Progress`). Gradio injects the same instance on every call, giving you a thread-safe `get`/`set` interface:
@@ -76,6 +78,8 @@ def my_function(prompt, c=gr.Cache()):
     c.set(prompt, result=result)
     return result
 ```
+
+If a queued function gets a successful hit from `c.get(...)`, Gradio also shows a timing badge in the UI. This badge says `used cache` instead of `from cache`, because the request still ran, but part of its work was reused from `gr.Cache()`.
 
 ### Why use `gr.Cache()` over a plain dict?
 

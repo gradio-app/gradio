@@ -6,7 +6,14 @@ import pandas as pd
 import pytest
 from PIL import Image
 
-from gradio.caching import Cache, cache, cache_hash, resolve_generator
+from gradio.caching import (
+    Cache,
+    TrackManualCacheUsage,
+    cache,
+    cache_hash,
+    resolve_generator,
+    used_manual_cache,
+)
 
 
 class TestCacheHash:
@@ -65,6 +72,44 @@ class TestResolveGenerator:
 
 
 class TestCacheDecorator:
+    def test_probe_cache_raises_on_sync_miss_in_worker_thread(self):
+        call_count = 0
+
+        @cache
+        def add(x, y):
+            nonlocal call_count
+            call_count += 1
+            return x + y
+
+        async def run():
+            with ProbeCache():
+                await asyncio.to_thread(add, 1, 2)
+
+        from gradio.caching import ProbeCache, CacheMissError
+
+        with pytest.raises(CacheMissError):
+            asyncio.run(run())
+        assert call_count == 0
+
+    def test_probe_cache_raises_on_async_miss(self):
+        call_count = 0
+
+        @cache
+        async def add(x, y):
+            nonlocal call_count
+            call_count += 1
+            return x + y
+
+        async def run():
+            with ProbeCache():
+                await add(1, 2)
+
+        from gradio.caching import ProbeCache, CacheMissError
+
+        with pytest.raises(CacheMissError):
+            asyncio.run(run())
+        assert call_count == 0
+
     def test_sync_function(self):
         call_count = 0
 
@@ -289,3 +334,14 @@ class TestCacheManual:
         assert my_fn(5) == 10
         assert my_fn(5) == 10
         assert len(c) == 1
+
+    def test_manual_cache_hit_tracking(self):
+        c = Cache()
+        c.set("k", value=42)
+
+        with TrackManualCacheUsage():
+            assert used_manual_cache() is False
+            assert c.get("missing") is None
+            assert used_manual_cache() is False
+            assert c.get("k") == {"value": 42}
+            assert used_manual_cache() is True
