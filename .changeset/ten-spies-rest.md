@@ -1,5 +1,6 @@
 ---
 "@gradio/client": minor
+"@gradio/markdown-code": minor
 "@gradio/statustracker": minor
 "gradio": minor
 ---
