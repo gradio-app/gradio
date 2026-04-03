@@ -1,8 +1,9 @@
 import { test, describe, expect, afterEach } from "vitest";
 import { mount, unmount, tick } from "svelte";
+import { within } from "@self/tootils/render";
 import StatusTracker from "./static/index.svelte";
 
-describe("StatusTracker: should_hide with validation errors", () => {
+describe("StatusTracker: validation errors", () => {
 	let target: HTMLDivElement;
 	let component: ReturnType<typeof mount>;
 
@@ -22,7 +23,7 @@ describe("StatusTracker: should_hide with validation errors", () => {
 		}
 	});
 
-	test("wrap does not have .hide when validation_error is present", async () => {
+	test("component is visible when validation_error is present", async () => {
 		target = document.createElement("div");
 		document.body.appendChild(target);
 
@@ -37,9 +38,8 @@ describe("StatusTracker: should_hide with validation errors", () => {
 		});
 		await tick();
 
-		const wrap = target.querySelector("[data-testid='status-tracker']");
-		expect(wrap).not.toBeNull();
-		expect(wrap!.classList.contains("hide")).toBe(false);
+		const { getByTestId } = within(target);
+		expect(getByTestId("status-tracker")).toBeVisible();
 	});
 
 	test("validation error text is rendered and visible", async () => {
@@ -57,12 +57,11 @@ describe("StatusTracker: should_hide with validation errors", () => {
 		});
 		await tick();
 
-		const errorEl = target.querySelector(".validation-error");
-		expect(errorEl).not.toBeNull();
-		expect(errorEl!.textContent).toContain("Can't be error");
+		const { getByText } = within(target);
+		expect(getByText("Can't be error")).toBeVisible();
 	});
 
-	test("wrap has .hide when status is null and no validation error", async () => {
+	test("component is hidden when status is null and no validation error", async () => {
 		target = document.createElement("div");
 		document.body.appendChild(target);
 
@@ -77,12 +76,11 @@ describe("StatusTracker: should_hide with validation errors", () => {
 		});
 		await tick();
 
-		const wrap = target.querySelector("[data-testid='status-tracker']");
-		expect(wrap).not.toBeNull();
-		expect(wrap!.classList.contains("hide")).toBe(true);
+		const { getByTestId } = within(target);
+		expect(getByTestId("status-tracker")).not.toBeVisible();
 	});
 
-	test("validation error stays visible even when status is undefined (simulating update_state_cb replacement)", async () => {
+	test("validation error stays visible when status is undefined", async () => {
 		target = document.createElement("div");
 		document.body.appendChild(target);
 
@@ -97,14 +95,12 @@ describe("StatusTracker: should_hide with validation errors", () => {
 		});
 		await tick();
 
-		const wrap = target.querySelector("[data-testid='status-tracker']");
-		expect(wrap!.classList.contains("hide")).toBe(false);
-
-		const errorEl = target.querySelector(".validation-error");
-		expect(errorEl!.textContent).toContain("Error message");
+		const { getByTestId, getByText } = within(target);
+		expect(getByTestId("status-tracker")).toBeVisible();
+		expect(getByText("Error message")).toBeVisible();
 	});
 
-	test("wrap has .hide when show_validation_error is false even with validation_error", async () => {
+	test("component is hidden when show_validation_error is false even with validation_error", async () => {
 		target = document.createElement("div");
 		document.body.appendChild(target);
 
@@ -119,7 +115,7 @@ describe("StatusTracker: should_hide with validation errors", () => {
 		});
 		await tick();
 
-		const wrap = target.querySelector("[data-testid='status-tracker']");
-		expect(wrap!.classList.contains("hide")).toBe(true);
+		const { getByTestId } = within(target);
+		expect(getByTestId("status-tracker")).not.toBeVisible();
 	});
 });
