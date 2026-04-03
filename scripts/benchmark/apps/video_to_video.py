@@ -1,5 +1,6 @@
 import os
-
+import time
+import random
 import gradio as gr
 
 _cl = os.environ.get("GRADIO_CONCURRENCY_LIMIT", "1")
@@ -8,6 +9,7 @@ _max_threads = int(os.environ.get("GRADIO_MAX_THREADS", 40))
 
 
 def generate_video(audio):
+    time.sleep(random.random() * 5)
     return audio
 
 
