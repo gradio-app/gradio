@@ -1,443 +1,489 @@
-import { test, describe, assert, afterEach, vi, expect } from "vitest";
-import { cleanup, render } from "@self/tootils/render";
+import { test, describe, expect, afterEach } from "vitest";
+import { cleanup, render, fireEvent } from "@self/tootils/render";
+import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import event from "@testing-library/user-event";
-import { setupi18n } from "../core/src/i18n";
 
 import CheckboxGroup from "./Index.svelte";
-import type { LoadingStatus } from "@gradio/statustracker";
 
-const loading_status: LoadingStatus = {
-	eta: 0,
-	queue_position: 1,
-	queue_size: 1,
-	status: "complete" as LoadingStatus["status"],
-	scroll_to_output: false,
-	visible: true,
-	fn_index: 0,
-	show_progress: "full"
+const default_props = {
+	label: "Options",
+	show_label: true,
+	value: [] as (string | number)[],
+	choices: [
+		["Choice One", "one"],
+		["Choice Two", "two"],
+		["Choice Three", "three"]
+	] as [string, string | number][],
+	interactive: true,
+	info: "",
+	show_select_all: false
 };
 
-beforeEach(() => {
-	setupi18n();
+// CheckboxGroup uses BlockTitle (not BlockLabel) and doesn't use
+// StatusTracker's validation_error, so disable both.
+run_shared_prop_tests({
+	component: CheckboxGroup,
+	name: "CheckboxGroup",
+	base_props: { ...default_props },
+	has_label: false,
+	has_validation_error: false
 });
 
-afterEach(cleanup);
+// ── Basic rendering ──────────────────────────────────────────────────
 
-describe("Values", () => {
-	test("renders correct value when passed as string: single value", async () => {
+describe("CheckboxGroup", () => {
+	afterEach(() => cleanup());
+
+	test("renders all choices as checkboxes", async () => {
 		const { getByLabelText } = await render(CheckboxGroup, {
-			value: ["choice_one"],
-			label: "Dropdown",
-			choices: [
-				["Choice One", "choice_one"],
-				["Choice Two", "choice_two"]
-			]
+			...default_props
 		});
 
-		const item_one = getByLabelText("Choice One") as HTMLInputElement;
-		const item_two = getByLabelText("Choice Two") as HTMLInputElement;
-
-		expect(item_one).toBeChecked();
-		expect(item_two).not.toBeChecked();
+		expect(getByLabelText("Choice One")).toBeTruthy();
+		expect(getByLabelText("Choice Two")).toBeTruthy();
+		expect(getByLabelText("Choice Three")).toBeTruthy();
 	});
 
-	test("renders correct value when passed as string: multiple values", async () => {
+	test("renders correct checked state for string values", async () => {
 		const { getByLabelText } = await render(CheckboxGroup, {
-			value: ["choice_one", "choice_three"],
-			label: "Dropdown",
-			choices: [
-				["Choice One", "choice_one"],
-				["Choice Two", "choice_two"],
-				["Choice Three", "choice_three"]
-			]
+			...default_props,
+			value: ["one", "three"]
 		});
 
-		const item_one = getByLabelText("Choice One") as HTMLInputElement;
-		const item_two = getByLabelText("Choice Two") as HTMLInputElement;
-		const item_three = getByLabelText("Choice Three") as HTMLInputElement;
-		assert.equal(item_one.checked, true);
-		assert.equal(item_two.checked, false);
-		assert.equal(item_three.checked, true);
-
-		expect(item_one).toBeChecked();
-		expect(item_two).not.toBeChecked();
-		expect(item_three).toBeChecked();
+		expect(getByLabelText("Choice One")).toBeChecked();
+		expect(getByLabelText("Choice Two")).not.toBeChecked();
+		expect(getByLabelText("Choice Three")).toBeChecked();
 	});
 
-	test("renders correct value when passed as number: single value", async () => {
+	test("renders correct checked state for number values", async () => {
 		const { getByLabelText } = await render(CheckboxGroup, {
-			value: [1],
-			label: "Dropdown",
+			...default_props,
 			choices: [
-				["Choice One", 1],
-				["Choice Two", 2]
-			]
+				["A", 1],
+				["B", 2],
+				["C", 3]
+			],
+			value: [1, 3]
 		});
 
-		const item_one = getByLabelText("Choice One") as HTMLInputElement;
-		const item_two = getByLabelText("Choice Two") as HTMLInputElement;
-
-		expect(item_one).toBeChecked();
-		expect(item_two).not.toBeChecked();
+		expect(getByLabelText("A")).toBeChecked();
+		expect(getByLabelText("B")).not.toBeChecked();
+		expect(getByLabelText("C")).toBeChecked();
 	});
 
-	test("renders correct value when passed as number: multiple values", async () => {
+	test("empty value renders all unchecked", async () => {
 		const { getByLabelText } = await render(CheckboxGroup, {
-			value: [1, 3],
-			label: "Dropdown",
-			choices: [
-				["Choice One", 1],
-				["Choice Two", 2],
-				["Choice Three", 3]
-			]
+			...default_props,
+			value: []
 		});
 
-		const item_one = getByLabelText("Choice One") as HTMLInputElement;
-		const item_two = getByLabelText("Choice Two") as HTMLInputElement;
-		const item_three = getByLabelText("Choice Three") as HTMLInputElement;
-
-		expect(item_one).toBeChecked();
-		expect(item_two).not.toBeChecked();
-		expect(item_three).toBeChecked();
+		expect(getByLabelText("Choice One")).not.toBeChecked();
+		expect(getByLabelText("Choice Two")).not.toBeChecked();
+		expect(getByLabelText("Choice Three")).not.toBeChecked();
 	});
 
-	test("component value and rendered value are in sync", async () => {
+	test("value that does not match any choice leaves all unchecked", async () => {
 		const { getByLabelText } = await render(CheckboxGroup, {
-			value: [1, 3],
-			label: "Dropdown",
-			choices: [
-				["Choice One", 1],
-				["Choice Two", 2],
-				["Choice Three", 3]
-			]
+			...default_props,
+			value: ["nonexistent"]
 		});
 
-		const item_one = getByLabelText("Choice One") as HTMLInputElement;
-		const item_two = getByLabelText("Choice Two") as HTMLInputElement;
-		const item_three = getByLabelText("Choice Three") as HTMLInputElement;
-
-		expect(item_one).toBeChecked();
-		expect(item_two).not.toBeChecked();
-		expect(item_three).toBeChecked();
-	});
-
-	test("changing the component value updates the checkboxes", async () => {
-		const { getByLabelText, unmount } = await render(CheckboxGroup, {
-			value: [],
-			label: "Dropdown",
-			choices: [
-				["Choice One", 1],
-				["Choice Two", 2],
-				["Choice Three", 3]
-			]
-		});
-
-		let item_one = getByLabelText("Choice One") as HTMLInputElement;
-		let item_two = getByLabelText("Choice Two") as HTMLInputElement;
-		let item_three = getByLabelText("Choice Three") as HTMLInputElement;
-
-		expect(item_one).not.toBeChecked();
-		expect(item_two).not.toBeChecked();
-		expect(item_three).not.toBeChecked();
-
-		unmount();
-		const { getByLabelText: getByLabelText2 } = await render(CheckboxGroup, {
-			value: [1, 3],
-			label: "Dropdown",
-			choices: [
-				["Choice One", 1],
-				["Choice Two", 2],
-				["Choice Three", 3]
-			]
-		});
-
-		item_one = getByLabelText2("Choice One") as HTMLInputElement;
-		item_two = getByLabelText2("Choice Two") as HTMLInputElement;
-		item_three = getByLabelText2("Choice Three") as HTMLInputElement;
-
-		expect(item_one).toBeChecked();
-		expect(item_two).not.toBeChecked();
-		expect(item_three).toBeChecked();
-	});
-
-	test("setting a value that does not exist does nothing", async () => {
-		const { getByLabelText, unmount } = await render(CheckboxGroup, {
-			value: [],
-			label: "Dropdown",
-			choices: [
-				["Choice One", 1],
-				["Choice Two", 2],
-				["Choice Three", 3]
-			]
-		});
-
-		let item_one = getByLabelText("Choice One") as HTMLInputElement;
-		let item_two = getByLabelText("Choice Two") as HTMLInputElement;
-		let item_three = getByLabelText("Choice Three") as HTMLInputElement;
-
-		expect(item_one).not.toBeChecked();
-		expect(item_two).not.toBeChecked();
-		expect(item_three).not.toBeChecked();
-
-		unmount();
-		const { getByLabelText: getByLabelText2 } = await render(CheckboxGroup, {
-			value: ["choice_one"],
-			label: "Dropdown",
-			choices: [
-				["Choice One", 1],
-				["Choice Two", 2],
-				["Choice Three", 3]
-			]
-		});
-
-		item_one = getByLabelText2("Choice One") as HTMLInputElement;
-		item_two = getByLabelText2("Choice Two") as HTMLInputElement;
-		item_three = getByLabelText2("Choice Three") as HTMLInputElement;
-
-		expect(item_one).not.toBeChecked();
-		expect(item_two).not.toBeChecked();
-		expect(item_three).not.toBeChecked();
+		expect(getByLabelText("Choice One")).not.toBeChecked();
+		expect(getByLabelText("Choice Two")).not.toBeChecked();
+		expect(getByLabelText("Choice Three")).not.toBeChecked();
 	});
 });
 
-describe.skip("Events", () => {
-	test.skip("changing the value via the UI emits a change event", async () => {
-		const { getByLabelText, listen } = await render(CheckboxGroup, {
-			loading_status,
-			value: [],
-			label: "Dropdown",
-			interactive: true,
-			choices: [
-				["Choice One", 1],
-				["Choice Two", 2],
-				["Choice Three", 3]
-			]
-		});
+// ── Props: interactive ───────────────────────────────────────────────
 
-		const item_one = getByLabelText("Choice One") as HTMLInputElement;
-		const item_two = getByLabelText("Choice Two") as HTMLInputElement;
-		const item_three = getByLabelText("Choice Three") as HTMLInputElement;
+describe("Props: interactive", () => {
+	afterEach(() => cleanup());
 
-		expect(item_one).not.toBeChecked();
-		expect(item_two).not.toBeChecked();
-		expect(item_three).not.toBeChecked();
-
-		const mock = listen("change");
-
-		await event.click(item_one);
-		expect(mock.callCount).toBe(1);
-
-		await event.click(item_three);
-		expect(mock.callCount).toBe(2);
-	});
-
-	test("changing the value from outside emits a change event", async () => {
-		const { getByLabelText, listen } = await render(CheckboxGroup, {
-			value: [],
-			label: "Dropdown",
-			interactive: true,
-			choices: [
-				["Choice One", 1],
-				["Choice Two", 2],
-				["Choice Three", 3]
-			]
-		});
-
-		const item_one = getByLabelText("Choice One") as HTMLInputElement;
-
-		expect(item_one).not.toBeChecked();
-
-		const mock = listen("change");
-
-		await event.click(item_one);
-		expect(mock.callCount).toBe(1);
-	});
-
-	test.skip("changing the value from the UI emits an input event", async () => {
-		const { getByLabelText, listen } = await render(CheckboxGroup, {
-			value: [],
-			label: "Dropdown",
-			interactive: true,
-			choices: [
-				["Choice One", 1],
-				["Choice Two", 2],
-				["Choice Three", 3]
-			]
-		});
-
-		const item_one = getByLabelText("Choice One") as HTMLInputElement;
-
-		const mock = listen("input");
-		await event.click(item_one);
-
-		expect(mock.callCount).toBe(1);
-	});
-
-	test.skip("changing the value from outside DOES NOT emit an input event", async () => {
-		const { listen, unmount } = await render(CheckboxGroup, {
-			value: [],
-			label: "Dropdown",
-			choices: [
-				["Choice One", 1],
-				["Choice Two", 2],
-				["Choice Three", 3]
-			]
-		});
-
-		const mock = listen("input");
-		unmount();
-		await render(CheckboxGroup, {
-			value: [1],
-			label: "Dropdown",
-			choices: [
-				["Choice One", 1],
-				["Choice Two", 2],
-				["Choice Three", 3]
-			]
-		});
-
-		expect(mock.callCount).toBe(0);
-	});
-
-	test.skip("changing the value via the UI emits a select event", async () => {
-		const { getByLabelText, listen } = await render(CheckboxGroup, {
-			value: [],
-			label: "Dropdown",
-			interactive: true,
-			choices: [
-				["Choice One", 1],
-				["Choice Two", 2],
-				["Choice Three", 3]
-			]
-		});
-
-		const item_one = getByLabelText("Choice One") as HTMLInputElement;
-
-		const mock = listen("select");
-		await event.click(item_one);
-
-		expect(mock.callCount).toBe(1);
-	});
-
-	test.skip("select event payload contains the selected value and index", async () => {
-		const { getByLabelText, listen } = await render(CheckboxGroup, {
-			value: [],
-			label: "Dropdown",
-			interactive: true,
-			choices: [
-				["Choice One", "val"],
-				["Choice Two", "val_two"],
-				["Choice Three", 3]
-			]
-		});
-
-		const item = getByLabelText("Choice Two") as HTMLInputElement;
-
-		const mock = listen("select");
-		await event.click(item);
-
-		expect(mock.calls[0][0].detail.data.value).toBe("val_two");
-		expect(mock.calls[0][0].detail.data.index).toBe(1);
-	});
-
-	test.skip("select event payload contains the correct selected state", async () => {
-		const { getByLabelText, listen } = await render(CheckboxGroup, {
-			value: [],
-			label: "Dropdown",
-			interactive: true,
-			choices: [
-				["Choice One", "val"],
-				["Choice Two", "val_two"],
-				["Choice Three", 3]
-			]
-		});
-
-		const item = getByLabelText("Choice Two") as HTMLInputElement;
-
-		const mock = listen("select");
-
-		await event.click(item);
-		expect(mock.calls[0][0].detail.data.selected).toBe(true);
-
-		await event.click(item);
-		expect(mock.calls[1][0].detail.data.selected).toBe(false);
-	});
-});
-
-describe("interactive vs static", () => {
-	test("interactive component can be checked", async () => {
+	test("interactive=true allows toggling choices", async () => {
 		const { getByLabelText } = await render(CheckboxGroup, {
-			value: [],
-			label: "Dropdown",
+			...default_props,
 			interactive: true,
-			choices: [
-				["Choice One", 1],
-				["Choice Two", 2]
-			]
+			value: []
 		});
 
-		const item_one = getByLabelText("Choice One") as HTMLInputElement;
-
-		await event.click(item_one);
-
-		expect(item_one).toBeChecked();
+		const cb = getByLabelText("Choice One");
+		await event.click(cb);
+		expect(cb).toBeChecked();
 	});
 
-	test("static component cannot be checked", async () => {
+	test("interactive=false disables all checkboxes", async () => {
 		const { getByLabelText } = await render(CheckboxGroup, {
-			value: [],
-			label: "Dropdown",
+			...default_props,
 			interactive: false,
-			choices: [
-				["Choice One", 1],
-				["Choice Two", 2]
-			]
+			value: []
 		});
 
-		const item_one = getByLabelText("Choice One") as HTMLInputElement;
-
-		await event.click(item_one);
-
-		expect(item_one).not.toBeChecked();
+		expect(getByLabelText("Choice One")).toBeDisabled();
+		expect(getByLabelText("Choice Two")).toBeDisabled();
+		expect(getByLabelText("Choice Three")).toBeDisabled();
 	});
 
-	test.skip("interactive component updates the value", async () => {
-		const { getByLabelText, listen } = await render(CheckboxGroup, {
-			value: [],
-			label: "Dropdown",
-			interactive: true,
-			choices: [
-				["Choice One", 1],
-				["Choice Two", 2]
-			]
-		});
-
-		const item_one = getByLabelText("Choice One") as HTMLInputElement;
-
-		const mock = listen("change");
-		await event.click(item_one);
-
-		expect(mock.callCount).toBe(1);
-		expect(mock.calls[0][0].detail.data).toEqual([1]);
-	});
-
-	test.skip("static component does not update the value", async () => {
+	test("interactive=false prevents toggling", async () => {
 		const { getByLabelText } = await render(CheckboxGroup, {
-			value: [],
-			label: "Dropdown",
+			...default_props,
 			interactive: false,
-			choices: [
-				["Choice One", 1],
-				["Choice Two", 2]
-			]
+			value: []
 		});
 
-		const item_one = getByLabelText("Choice One") as HTMLInputElement;
+		await event.click(getByLabelText("Choice One"));
+		expect(getByLabelText("Choice One")).not.toBeChecked();
+	});
+});
 
-		const mock = listen("change");
-		await event.click(item_one);
+// ── Props: show_select_all ───────────────────────────────────────────
 
-		expect(mock.callCount).toBe(0);
-		expect(item_one).not.toBeChecked();
+describe("Props: show_select_all", () => {
+	afterEach(() => cleanup());
+
+	test("show_select_all=true renders select all button", async () => {
+		const { getByRole } = await render(CheckboxGroup, {
+			...default_props,
+			show_select_all: true
+		});
+
+		expect(getByRole("button", { name: "Options" })).toBeTruthy();
+	});
+
+	test("clicking select all checks all choices", async () => {
+		const { getByRole, getByLabelText } = await render(CheckboxGroup, {
+			...default_props,
+			show_select_all: true,
+			value: []
+		});
+
+		await fireEvent.click(getByRole("button", { name: "Options" }));
+
+		expect(getByLabelText("Choice One")).toBeChecked();
+		expect(getByLabelText("Choice Two")).toBeChecked();
+		expect(getByLabelText("Choice Three")).toBeChecked();
+	});
+
+	test("clicking select all when all checked unchecks all", async () => {
+		const { getByRole, getByLabelText } = await render(CheckboxGroup, {
+			...default_props,
+			show_select_all: true,
+			value: ["one", "two", "three"]
+		});
+
+		await fireEvent.click(getByRole("button", { name: "Options" }));
+
+		expect(getByLabelText("Choice One")).not.toBeChecked();
+		expect(getByLabelText("Choice Two")).not.toBeChecked();
+		expect(getByLabelText("Choice Three")).not.toBeChecked();
+	});
+
+	test("clicking select all when some checked selects all", async () => {
+		const { getByRole, getByLabelText } = await render(CheckboxGroup, {
+			...default_props,
+			show_select_all: true,
+			value: ["one"]
+		});
+
+		await fireEvent.click(getByRole("button", { name: "Options" }));
+
+		expect(getByLabelText("Choice One")).toBeChecked();
+		expect(getByLabelText("Choice Two")).toBeChecked();
+		expect(getByLabelText("Choice Three")).toBeChecked();
+	});
+
+	test("show_select_all=false does not render select all button", async () => {
+		const { queryByTitle } = await render(CheckboxGroup, {
+			...default_props,
+			show_select_all: false
+		});
+
+		expect(queryByTitle("Select/Deselect All")).toBeNull();
+	});
+});
+
+// ── Events: change ───────────────────────────────────────────────────
+
+describe("Events: change", () => {
+	afterEach(() => cleanup());
+
+	test("clicking a choice dispatches change with updated value", async () => {
+		const { listen, getByLabelText } = await render(CheckboxGroup, {
+			...default_props,
+			value: [],
+			interactive: true
+		});
+
+		const change = listen("change");
+		await fireEvent.click(getByLabelText("Choice One"));
+
+		expect(change).toHaveBeenCalledTimes(1);
+		expect(change).toHaveBeenCalledWith(["one"]);
+	});
+
+	test("unchecking a choice dispatches change without that value", async () => {
+		const { listen, getByLabelText } = await render(CheckboxGroup, {
+			...default_props,
+			value: ["one", "two"],
+			interactive: true
+		});
+
+		const change = listen("change");
+		await fireEvent.click(getByLabelText("Choice One"));
+
+		expect(change).toHaveBeenCalledTimes(1);
+		expect(change).toHaveBeenCalledWith(["two"]);
+	});
+
+	test("set_data triggers change event", async () => {
+		const { listen, set_data } = await render(CheckboxGroup, {
+			...default_props,
+			value: []
+		});
+
+		const change = listen("change");
+		await set_data({ value: ["one"] });
+
+		expect(change).toHaveBeenCalledTimes(1);
+	});
+
+	test("no spurious change on mount", async () => {
+		const { listen } = await render(CheckboxGroup, {
+			...default_props,
+			value: ["one"]
+		});
+
+		const change = listen("change", { retrospective: true });
+		expect(change).not.toHaveBeenCalled();
+	});
+
+	test("set_data with same value does not trigger change", async () => {
+		const { listen, set_data } = await render(CheckboxGroup, {
+			...default_props,
+			value: ["one"]
+		});
+
+		const change = listen("change");
+		await set_data({ value: ["one"] });
+
+		expect(change).not.toHaveBeenCalled();
+	});
+});
+
+// ── Events: input ────────────────────────────────────────────────────
+
+describe("Events: input", () => {
+	afterEach(() => cleanup());
+
+	test("clicking a choice dispatches input event", async () => {
+		const { listen, getByLabelText } = await render(CheckboxGroup, {
+			...default_props,
+			value: [],
+			interactive: true
+		});
+
+		const input = listen("input");
+		await fireEvent.click(getByLabelText("Choice Two"));
+
+		expect(input).toHaveBeenCalledTimes(1);
+	});
+
+	test("select all dispatches input event", async () => {
+		const { listen, getByRole } = await render(CheckboxGroup, {
+			...default_props,
+			show_select_all: true,
+			value: [],
+			interactive: true
+		});
+
+		const input = listen("input");
+		await fireEvent.click(getByRole("button", { name: "Options" }));
+
+		expect(input).toHaveBeenCalledTimes(1);
+	});
+});
+
+// ── Events: select ───────────────────────────────────────────────────
+
+describe("Events: select", () => {
+	afterEach(() => cleanup());
+
+	test("clicking a choice dispatches select with index and value", async () => {
+		const { listen, getByLabelText } = await render(CheckboxGroup, {
+			...default_props,
+			value: [],
+			interactive: true
+		});
+
+		const select = listen("select");
+		await fireEvent.click(getByLabelText("Choice Two"));
+
+		expect(select).toHaveBeenCalledTimes(1);
+		expect(select).toHaveBeenCalledWith(
+			expect.objectContaining({ index: 1, value: "two", selected: true })
+		);
+	});
+
+	test("unchecking dispatches select with selected=false", async () => {
+		const { listen, getByLabelText } = await render(CheckboxGroup, {
+			...default_props,
+			value: ["two"],
+			interactive: true
+		});
+
+		const select = listen("select");
+		await fireEvent.click(getByLabelText("Choice Two"));
+
+		expect(select).toHaveBeenCalledWith(
+			expect.objectContaining({ index: 1, value: "two", selected: false })
+		);
+	});
+});
+
+// ── Events: custom_button_click ──────────────────────────────────────
+
+describe("Events: custom_button_click", () => {
+	afterEach(() => cleanup());
+
+	test("custom button dispatches custom_button_click", async () => {
+		const { listen, getByLabelText } = await render(CheckboxGroup, {
+			...default_props,
+			show_label: true,
+			buttons: [{ value: "Help", id: 5, icon: null }]
+		});
+
+		const custom = listen("custom_button_click");
+		await fireEvent.click(getByLabelText("Help"));
+
+		expect(custom).toHaveBeenCalledTimes(1);
+		expect(custom).toHaveBeenCalledWith({ id: 5 });
+	});
+});
+
+// ── get_data / set_data ──────────────────────────────────────────────
+
+describe("get_data / set_data", () => {
+	afterEach(() => cleanup());
+
+	test("get_data returns current value", async () => {
+		const { get_data } = await render(CheckboxGroup, {
+			...default_props,
+			value: ["one", "three"]
+		});
+
+		const data = await get_data();
+		expect(data.value).toEqual(["one", "three"]);
+	});
+
+	test("set_data updates the checkboxes", async () => {
+		const { set_data, getByLabelText } = await render(CheckboxGroup, {
+			...default_props,
+			value: []
+		});
+
+		await set_data({ value: ["two"] });
+
+		expect(getByLabelText("Choice One")).not.toBeChecked();
+		expect(getByLabelText("Choice Two")).toBeChecked();
+		expect(getByLabelText("Choice Three")).not.toBeChecked();
+	});
+
+	test("round-trip: set_data then get_data", async () => {
+		const { set_data, get_data } = await render(CheckboxGroup, {
+			...default_props,
+			value: []
+		});
+
+		await set_data({ value: ["one", "two"] });
+		const data = await get_data();
+		expect(data.value).toEqual(["one", "two"]);
+	});
+
+	test("user click reflected in get_data", async () => {
+		const { get_data, getByLabelText } = await render(CheckboxGroup, {
+			...default_props,
+			value: [],
+			interactive: true
+		});
+
+		await fireEvent.click(getByLabelText("Choice Three"));
+		const data = await get_data();
+		expect(data.value).toEqual(["three"]);
+	});
+
+	test("multiple user clicks accumulate in get_data", async () => {
+		const { get_data, getByLabelText } = await render(CheckboxGroup, {
+			...default_props,
+			value: [],
+			interactive: true
+		});
+
+		await fireEvent.click(getByLabelText("Choice One"));
+		await fireEvent.click(getByLabelText("Choice Three"));
+		const data = await get_data();
+		expect(data.value).toEqual(["one", "three"]);
+	});
+});
+
+// ── Keyboard interaction ─────────────────────────────────────────────
+
+describe("Keyboard interaction", () => {
+	afterEach(() => cleanup());
+
+	test("Enter key toggles a checkbox and dispatches events", async () => {
+		const { listen, getByLabelText, get_data } = await render(CheckboxGroup, {
+			...default_props,
+			value: [],
+			interactive: true
+		});
+
+		const select = listen("select");
+		const change = listen("change");
+		const cb = getByLabelText("Choice One");
+
+		await fireEvent.keyDown(cb, { key: "Enter" });
+
+		expect(select).toHaveBeenCalledTimes(1);
+		expect(change).toHaveBeenCalledTimes(1);
+		const data = await get_data();
+		expect(data.value).toEqual(["one"]);
+	});
+});
+
+// ── Edge cases ───────────────────────────────────────────────────────
+
+describe("Edge cases", () => {
+	afterEach(() => cleanup());
+
+	test("toggling same choice twice returns to original state", async () => {
+		const { get_data, getByLabelText } = await render(CheckboxGroup, {
+			...default_props,
+			value: [],
+			interactive: true
+		});
+
+		await fireEvent.click(getByLabelText("Choice One"));
+		await fireEvent.click(getByLabelText("Choice One"));
+
+		const data = await get_data();
+		expect(data.value).toEqual([]);
+	});
+
+	test("choices with display value different from internal value", async () => {
+		const { getByLabelText, get_data } = await render(CheckboxGroup, {
+			...default_props,
+			choices: [
+				["Displayed Label", "internal_val"],
+				["Another Label", 42]
+			],
+			value: ["internal_val"],
+			interactive: true
+		});
+
+		// Display value is shown, internal value is stored
+		expect(getByLabelText("Displayed Label")).toBeChecked();
+		expect(getByLabelText("Another Label")).not.toBeChecked();
+
+		const data = await get_data();
+		expect(data.value).toEqual(["internal_val"]);
 	});
 });
