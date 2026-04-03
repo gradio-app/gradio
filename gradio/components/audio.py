@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import dataclasses
 import io
+import json
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
@@ -414,9 +415,6 @@ class Audio(
     def _process_subtitle_file(
         self, subtitle_file: str | Path
     ) -> FileData | list[dict[str, Any]]:
-        import json
-        from pathlib import Path
-
         file_path = Path(subtitle_file)
         if file_path.suffix.lower() == ".json":
             try:

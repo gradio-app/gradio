@@ -28,6 +28,13 @@ export interface SharedPropTestConfig {
 	 * @default true
 	 */
 	has_validation_error?: boolean;
+	/**
+	 * Some components (e.g. Accordion) map visible=false to "hidden"
+	 * instead of removing from the DOM. Set to true to expect hidden
+	 * behaviour rather than removal.
+	 * @default false
+	 */
+	visible_false_hides?: boolean;
 }
 
 export function run_shared_prop_tests(config: SharedPropTestConfig): void {
@@ -36,7 +43,8 @@ export function run_shared_prop_tests(config: SharedPropTestConfig): void {
 		base_props,
 		name,
 		has_label = true,
-		has_validation_error = true
+		has_validation_error = true,
+		visible_false_hides = false
 	} = config;
 
 	const label = "Test Label";
@@ -93,15 +101,28 @@ export function run_shared_prop_tests(config: SharedPropTestConfig): void {
 			expect(el).not.toBeVisible();
 		});
 
-		test("visible: false removes the component from the DOM", async () => {
-			const result = await render(
-				component,
-				make_props({ visible: false, elem_id: "gone-test" })
-			);
+		if (visible_false_hides) {
+			test("visible: false hides the component but keeps it in the DOM", async () => {
+				const result = await render(
+					component,
+					make_props({ visible: false, elem_id: "gone-test" })
+				);
 
-			const el = result.container.querySelector("#gone-test");
-			expect(el).toBeNull();
-		});
+				const el = result.container.querySelector("#gone-test");
+				expect(el).not.toBeNull();
+				expect(el).not.toBeVisible();
+			});
+		} else {
+			test("visible: false removes the component from the DOM", async () => {
+				const result = await render(
+					component,
+					make_props({ visible: false, elem_id: "gone-test" })
+				);
+
+				const el = result.container.querySelector("#gone-test");
+				expect(el).toBeNull();
+			});
+		}
 
 		if (has_label) {
 			test("label text is rendered", async () => {
@@ -139,7 +160,10 @@ export function run_shared_prop_tests(config: SharedPropTestConfig): void {
 			test("validation_error displays error text visibly", async () => {
 				const result = await render(
 					component,
-					make_props({ validation_error: "This field is required" })
+					make_props({
+						validation_error: "This field is required",
+						show_validation_error: true
+					})
 				);
 				const el = result.getByText("This field is required");
 				expect(el).toBeVisible();

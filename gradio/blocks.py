@@ -1771,11 +1771,14 @@ Received inputs:
                     inputs[i].get("value", None) if is_prop_input else inputs[i]
                 )
 
-                inputs_cached = await processing_utils.async_move_files_to_cache(
-                    value_to_process,
-                    block,
-                    check_in_upload_folder=not explicit_call,
-                )
+                from gradio.profiling import trace_phase
+
+                async with trace_phase("preprocess_move_to_cache"):
+                    inputs_cached = await processing_utils.async_move_files_to_cache(
+                        value_to_process,
+                        block,
+                        check_in_upload_folder=not explicit_call,
+                    )
                 if getattr(block, "data_model", None) and inputs_cached is not None:
                     data_model = cast(
                         Union[GradioModel, GradioRootModel], block.data_model
@@ -1793,7 +1796,9 @@ Received inputs:
                 state._update_value_in_config(block._id, inputs_serialized)
 
                 if block_fn.preprocess:
-                    processed_value = block.preprocess(inputs_cached)
+                    processed_value = await anyio.to_thread.run_sync(
+                        block.preprocess, inputs_cached, limiter=self.limiter
+                    )
                 else:
                     processed_value = inputs_serialized
 
@@ -1855,6 +1860,8 @@ Received inputs:
         predictions: list | dict,
         state: SessionState | None,
     ) -> list[Any]:
+        from gradio.profiling import trace_phase
+
         state = state or SessionState(self)
         if (
             isinstance(predictions, dict)
@@ -1943,33 +1950,36 @@ Received inputs:
                         )
                     if block._id in state:
                         block = state[block._id]
-                    prediction_value = block.postprocess(prediction_value)
+                    prediction_value = await anyio.to_thread.run_sync(
+                        block.postprocess, prediction_value, limiter=self.limiter
+                    )
                     if isinstance(prediction_value, (GradioModel, GradioRootModel)):
                         prediction_value_serialized = prediction_value.model_dump()
                     else:
                         prediction_value_serialized = prediction_value
-                    prediction_value_serialized = (
-                        await processing_utils.async_move_files_to_cache(
-                            prediction_value_serialized,
-                            block,
-                            postprocess=True,
+                    async with trace_phase("postprocess_update_state_in_config"):
+                        prediction_value_serialized = (
+                            await processing_utils.async_move_files_to_cache(
+                                prediction_value_serialized,
+                                block,
+                                postprocess=True,
+                            )
                         )
-                    )
-                    if block._id not in state:
-                        state[block._id] = block
-                    state._update_value_in_config(
-                        block._id, prediction_value_serialized
-                    )
+                        if block._id not in state:
+                            state[block._id] = block
+                        state._update_value_in_config(
+                            block._id, prediction_value_serialized
+                        )
                 elif not block_fn.postprocess:
                     if block._id not in state:
                         state[block._id] = block
                     state._update_value_in_config(block._id, prediction_value)
-
-                outputs_cached = await processing_utils.async_move_files_to_cache(
-                    prediction_value,
-                    block,
-                    postprocess=True,
-                )
+                async with trace_phase("postprocess_move_to_cache"):
+                    outputs_cached = await processing_utils.async_move_files_to_cache(
+                        prediction_value,
+                        block,
+                        postprocess=True,
+                    )
                 output.append(outputs_cached)
 
         return output

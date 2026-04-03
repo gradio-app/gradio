@@ -27,7 +27,8 @@
 	}
 
 	const gradio = new VideoGradio(props);
-	let old_value = $state(gradio.props.value);
+	let old_value = gradio.props.value;
+	let mounted = false;
 
 	let uploading = $state(false);
 	let dragging = $state(false);
@@ -37,6 +38,11 @@
 	let initial_value: FileData | null = gradio.props.value;
 
 	$effect(() => {
+		if (!mounted) {
+			old_value = gradio.props.value;
+			mounted = true;
+			return;
+		}
 		if (old_value != gradio.props.value) {
 			old_value = gradio.props.value;
 			gradio.dispatch("change");

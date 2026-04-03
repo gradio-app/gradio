@@ -4,8 +4,9 @@ import contextvars
 import os
 import time
 from collections import deque
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass, field
+from functools import wraps
 from typing import Any
 
 PROFILING_ENABLED = os.environ.get("GRADIO_PROFILING", "").strip() in ("1", "true")
@@ -25,6 +26,20 @@ class RequestTrace:
     streaming_diff_ms: float = 0.0
     total_ms: float = 0.0
     n_iterations: int = 0
+    upload_ms: float = 0.0
+    preprocess_move_to_cache_ms: float = 0.0
+    preprocess_format_image_ms: float = 0.0
+    postprocess_save_img_array_to_cache_ms: float = 0.0
+    preprocess_audio_from_file_ms: float = 0.0
+    postprocess_save_audio_to_cache_ms: float = 0.0
+    preprocess_video_ms: float = 0.0
+    postprocess_video_convert_video_to_playable_mp4_ms: float = 0.0
+    postprocess_update_state_in_config_ms: float = 0.0
+    postprocess_move_to_cache_ms: float = 0.0
+    postprocess_video_ms: float = 0.0
+    postprocess_save_pil_to_cache_ms: float = 0.0
+    postprocess_save_bytes_to_cache_ms: float = 0.0
+    save_file_to_cache_ms: float = 0.0
 
     def set_phase(self, name: str, duration_ms: float):
         attr = f"{name}_ms"
@@ -47,6 +62,19 @@ class RequestTrace:
             "streaming_diff_ms": self.streaming_diff_ms,
             "total_ms": self.total_ms,
             "n_iterations": self.n_iterations,
+            "preprocess_move_to_cache_ms": self.preprocess_move_to_cache_ms,
+            "preprocess_format_image_ms": self.preprocess_format_image_ms,
+            "postprocess_save_img_array_to_cache_ms": self.postprocess_save_img_array_to_cache_ms,
+            "preprocess_audio_from_file_ms": self.preprocess_audio_from_file_ms,
+            "postprocess_save_audio_to_cache_ms": self.postprocess_save_audio_to_cache_ms,
+            "preprocess_video_ms": self.preprocess_video_ms,
+            "postprocess_video_convert_video_to_playable_mp4_ms": self.postprocess_video_convert_video_to_playable_mp4_ms,
+            "postprocess_update_state_in_config_ms": self.postprocess_update_state_in_config_ms,
+            "postprocess_move_to_cache_ms": self.postprocess_move_to_cache_ms,
+            "postprocess_video_ms": self.postprocess_video_ms,
+            "postprocess_save_pil_to_cache_ms": self.postprocess_save_pil_to_cache_ms,
+            "postprocess_save_bytes_to_cache_ms": self.postprocess_save_bytes_to_cache_ms,
+            "save_file_to_cache_ms": self.save_file_to_cache_ms,
         }
 
 
@@ -76,6 +104,51 @@ async def trace_phase(name: str):
     finally:
         duration_ms = (time.monotonic() - start) * 1000
         trace.set_phase(name, duration_ms)
+
+
+@contextmanager
+def trace_phase_sync(name: str):
+    """Context manager that records timing for a named phase into the current trace."""
+    trace = _current_trace.get()
+    if trace is None:
+        yield
+        return
+    start = time.monotonic()
+    try:
+        yield
+    finally:
+        duration_ms = (time.monotonic() - start) * 1000
+        trace.set_phase(name, duration_ms)
+
+
+def traced(phase):
+    if not PROFILING_ENABLED:
+        return lambda f: f
+
+    def _factory(f):
+        @wraps(f)
+        async def wrapper(*args, **kwargs):
+            async with trace_phase(phase):
+                return await f(*args, **kwargs)
+
+        return wrapper
+
+    return _factory
+
+
+def traced_sync(phase):
+    if not PROFILING_ENABLED:
+        return lambda f: f
+
+    def _factory(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            with trace_phase_sync(phase):
+                return f(*args, **kwargs)
+
+        return wrapper
+
+    return _factory
 
 
 class TraceCollector:
@@ -133,4 +206,8 @@ if not PROFILING_ENABLED:
 
     @asynccontextmanager
     async def trace_phase(name: str):  # noqa: ARG001
+        yield
+
+    @contextmanager
+    def trace_phase_sync(name: str):  # noqa: ARG001
         yield

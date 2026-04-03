@@ -1,5 +1,11 @@
 # @gradio/box
 
+## 0.2.31
+
+### Dependency updates
+
+- @gradio/atoms@0.23.0
+
 ## 0.2.30
 
 ### Dependency updates
