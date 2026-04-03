@@ -35,7 +35,7 @@
 	});
 
 	$effect(() => {
-		if (gradio.props.value == null) return;
+		if (gradio.props.value == null || !range_input) return;
 		range_input.style.setProperty("--range_progress", `${percentage}%`);
 		range_input.value = gradio.props.value.toString();
 	});
