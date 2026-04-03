@@ -256,5 +256,4 @@ describe("Events: click", () => {
 
 		expect(click).toHaveBeenCalledTimes(1);
 	});
-
 });
