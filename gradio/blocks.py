@@ -40,8 +40,8 @@ from gradio import (
     utils,
 )
 from gradio.block_function import BlockFunction
-from gradio.caching import TrackManualCacheUsage, used_manual_cache
 from gradio.blocks_events import BLOCKS_EVENTS, BlocksEvents, BlocksMeta
+from gradio.caching import TrackManualCacheUsage, used_manual_cache
 from gradio.context import (
     Context,
     LocalContext,

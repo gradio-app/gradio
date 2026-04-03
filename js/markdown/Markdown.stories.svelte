@@ -167,7 +167,8 @@ A --> B
 <Story
 	name="Markdown heading inline code"
 	args={{
-		value: "# `@gr.cache()` Demo\nClick the heading test to confirm the inline code renders cleanly.",
+		value:
+			"# `@gr.cache()` Demo\nClick the heading test to confirm the inline code renders cleanly.",
 		height: "150px"
 	}}
 >

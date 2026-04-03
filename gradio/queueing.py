@@ -960,7 +960,9 @@ class Queue:
                             cache_duration=output.get("duration")
                             if success and output.get("used_cache")
                             else None,
-                            avg_time=output.get("average_duration") if success else None,
+                            avg_time=output.get("average_duration")
+                            if success
+                            else None,
                         ),
                     )
 
@@ -983,7 +985,9 @@ class Queue:
                             cache_duration=output.get("duration")
                             if success and output.get("used_cache")
                             else None,
-                            avg_time=output.get("average_duration") if success else None,
+                            avg_time=output.get("average_duration")
+                            if success
+                            else None,
                         ),
                     )
             end_time = time.time()

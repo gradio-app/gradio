@@ -8,9 +8,9 @@ import hashlib
 import inspect
 import sys
 import threading
-from contextvars import ContextVar
 from collections import OrderedDict
 from collections.abc import Callable
+from contextvars import ContextVar
 from typing import Any
 
 import numpy as np

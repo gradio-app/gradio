@@ -85,7 +85,7 @@ class TestCacheDecorator:
             with ProbeCache():
                 await asyncio.to_thread(add, 1, 2)
 
-        from gradio.caching import ProbeCache, CacheMissError
+        from gradio.caching import CacheMissError, ProbeCache
 
         with pytest.raises(CacheMissError):
             asyncio.run(run())
@@ -104,7 +104,7 @@ class TestCacheDecorator:
             with ProbeCache():
                 await add(1, 2)
 
-        from gradio.caching import ProbeCache, CacheMissError
+        from gradio.caching import CacheMissError, ProbeCache
 
         with pytest.raises(CacheMissError):
             asyncio.run(run())
