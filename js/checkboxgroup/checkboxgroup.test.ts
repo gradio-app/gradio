@@ -29,8 +29,6 @@ run_shared_prop_tests({
 	has_validation_error: false
 });
 
-// ── Basic rendering ──────────────────────────────────────────────────
-
 describe("CheckboxGroup", () => {
 	afterEach(() => cleanup());
 
@@ -94,8 +92,6 @@ describe("CheckboxGroup", () => {
 	});
 });
 
-// ── Props: interactive ───────────────────────────────────────────────
-
 describe("Props: interactive", () => {
 	afterEach(() => cleanup());
 
@@ -134,8 +130,6 @@ describe("Props: interactive", () => {
 		expect(getByLabelText("Choice One")).not.toBeChecked();
 	});
 });
-
-// ── Props: show_select_all ───────────────────────────────────────────
 
 describe("Props: show_select_all", () => {
 	afterEach(() => cleanup());
@@ -200,8 +194,6 @@ describe("Props: show_select_all", () => {
 		expect(queryByTitle("Select/Deselect All")).toBeNull();
 	});
 });
-
-// ── Events: change ───────────────────────────────────────────────────
 
 describe("Events: change", () => {
 	afterEach(() => cleanup());
@@ -269,8 +261,6 @@ describe("Events: change", () => {
 	});
 });
 
-// ── Events: input ────────────────────────────────────────────────────
-
 describe("Events: input", () => {
 	afterEach(() => cleanup());
 
@@ -301,8 +291,6 @@ describe("Events: input", () => {
 		expect(input).toHaveBeenCalledTimes(1);
 	});
 });
-
-// ── Events: select ───────────────────────────────────────────────────
 
 describe("Events: select", () => {
 	afterEach(() => cleanup());
@@ -339,8 +327,6 @@ describe("Events: select", () => {
 	});
 });
 
-// ── Events: custom_button_click ──────────────────────────────────────
-
 describe("Events: custom_button_click", () => {
 	afterEach(() => cleanup());
 
@@ -358,8 +344,6 @@ describe("Events: custom_button_click", () => {
 		expect(custom).toHaveBeenCalledWith({ id: 5 });
 	});
 });
-
-// ── get_data / set_data ──────────────────────────────────────────────
 
 describe("get_data / set_data", () => {
 	afterEach(() => cleanup());
@@ -424,8 +408,6 @@ describe("get_data / set_data", () => {
 	});
 });
 
-// ── Keyboard interaction ─────────────────────────────────────────────
-
 describe("Keyboard interaction", () => {
 	afterEach(() => cleanup());
 
@@ -448,8 +430,6 @@ describe("Keyboard interaction", () => {
 		expect(data.value).toEqual(["one"]);
 	});
 });
-
-// ── Edge cases ───────────────────────────────────────────────────────
 
 describe("Edge cases", () => {
 	afterEach(() => cleanup());
