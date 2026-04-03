@@ -22,6 +22,7 @@ from gradio.components.image_editor import WatermarkOptions, WebcamOptions
 from gradio.data_classes import FileData, MediaStreamChunk
 from gradio.events import Events
 from gradio.i18n import I18nData
+from gradio.profiling import trace_phase_sync, traced_sync
 from gradio.utils import get_upload_folder, set_default_buttons
 
 if TYPE_CHECKING:
@@ -189,6 +190,7 @@ class Video(StreamingOutput, Component):
         )
         self._value_description = "a string filepath to a video"
 
+    @traced_sync("preprocess_video")
     def preprocess(self, payload: FileData | None) -> str | None:
         """
         Parameters:
@@ -250,6 +252,7 @@ class Video(StreamingOutput, Component):
         else:
             return str(file_name)
 
+    @traced_sync("postprocess_video")
     def postprocess(self, value: str | Path | None) -> FileData | None:
         """
         Parameters:
@@ -272,6 +275,7 @@ class Video(StreamingOutput, Component):
         Processes a video to ensure that it is in the correct format
         and adds a watermark if requested.
         """
+
         if video is None:
             return None
         video = str(video)
@@ -301,7 +305,8 @@ class Video(StreamingOutput, Component):
             warnings.warn(
                 "Video does not have browser-compatible container or codec. Converting to mp4."
             )
-            video = processing_utils.convert_video_to_playable_mp4(video)
+            with trace_phase_sync("postprocess_video_convert_video_to_playable_mp4"):
+                video = processing_utils.convert_video_to_playable_mp4(video)
         # Recalculate the format in case convert_video_to_playable_mp4 already made it the selected format
         returned_format = utils.get_extension_from_file_path_or_url(video).lower()
         if (
@@ -404,8 +409,6 @@ class Video(StreamingOutput, Component):
         """
         Convert subtitle format to VTT and process the video to ensure it meets the HTML5 requirements.
         """
-        import json
-        from pathlib import Path
 
         def srt_to_vtt(srt_file_path, vtt_file_path):
             """Convert an SRT subtitle file to a VTT subtitle file"""
