@@ -454,26 +454,26 @@ describe("Accessibility", () => {
 	test("number input has correct aria-label", async () => {
 		const { getByTestId } = await render(Slider, {
 			...default_props,
-			label: "Volume"
+			label: "Range"
 		});
 
 		const number_input = getByTestId("number-input") as HTMLInputElement;
 		expect(number_input.getAttribute("aria-label")).toBe(
-			"number input for Volume"
+			"number input for Range"
 		);
 	});
 
 	test("range input has correct aria-label", async () => {
 		const { container } = await render(Slider, {
 			...default_props,
-			label: "Volume"
+			label: "Range"
 		});
 
 		const range_input = container.querySelector(
 			'input[type="range"]'
 		) as HTMLInputElement;
 		expect(range_input.getAttribute("aria-label")).toBe(
-			"range slider for Volume"
+			"range slider for Range"
 		);
 	});
 
@@ -483,8 +483,6 @@ describe("Accessibility", () => {
 		});
 
 		const reset_btn = getByTestId("reset-button");
-		expect(reset_btn.getAttribute("aria-label")).toBe(
-			"Reset to default value"
-		);
+		expect(reset_btn.getAttribute("aria-label")).toBe("Reset to default value");
 	});
 });
