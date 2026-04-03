@@ -391,6 +391,7 @@ class Queue:
         # serve from cache without entering the queue (same pattern as validator).
         if hasattr(fn.fn, "cache"):
             try:
+                cache_start = time.time()
                 gr_request = route_utils.compile_gr_request(
                     body=body,
                     fn=fn,
@@ -412,10 +413,22 @@ class Queue:
                         fn=fn,
                         root_path=root_path,
                     )
+                cache_duration = time.time() - cache_start
+                avg_time = (
+                    self.process_time_per_fn[fn].avg_time
+                    if fn in self.process_time_per_fn
+                    else None
+                )
                 # Cache hit — send completion immediately, skip the queue
                 self.send_message(
                     event,
-                    ProcessCompletedMessage(output=response, success=True),
+                    ProcessCompletedMessage(
+                        output=response,
+                        success=True,
+                        from_cache=True,
+                        cache_duration=cache_duration,
+                        avg_time=avg_time,
+                    ),
                 )
                 return True, event._id, "success"
             except CacheMissError:

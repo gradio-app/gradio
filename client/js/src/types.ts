@@ -402,6 +402,9 @@ export interface Status {
 	changed_state_ids?: number[];
 	time_limit?: number;
 	session_not_found?: boolean;
+	from_cache?: boolean;
+	cache_duration?: number;
+	avg_time?: number;
 }
 
 export interface StatusMessage extends Status {

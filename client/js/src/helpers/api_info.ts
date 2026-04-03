@@ -376,7 +376,10 @@ export function handle_message(
 					progress_data: data.progress_data,
 					changed_state_ids: data.success
 						? data.output.changed_state_ids
-						: undefined
+						: undefined,
+					from_cache: data.from_cache,
+					cache_duration: data.cache_duration,
+					avg_time: data.avg_time
 				},
 				data: data.success ? data.output : null
 			};

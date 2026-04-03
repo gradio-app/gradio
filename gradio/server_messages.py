@@ -48,6 +48,9 @@ class ProcessCompletedMessage(BaseMessage):
     output: dict
     success: bool
     title: str | None = None
+    from_cache: bool = False
+    cache_duration: float | None = None
+    avg_time: float | None = None
 
 
 class ProcessGeneratingMessage(BaseMessage):

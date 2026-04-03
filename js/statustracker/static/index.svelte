@@ -84,6 +84,9 @@
 		show_validation_error?: boolean;
 		type?: "input" | "output" | null;
 		on_clear_status?: () => void;
+		from_cache?: boolean;
+		cache_duration?: number | null;
+		avg_time?: number | null;
 	}
 
 	interface ProgressLevel {
@@ -112,7 +115,10 @@
 		validation_error = null,
 		show_validation_error = true,
 		type = null,
-		on_clear_status
+		on_clear_status,
+		from_cache = false,
+		cache_duration = null,
+		avg_time = null
 	}: Props = $props();
 
 	let el: HTMLDivElement;
@@ -124,6 +130,11 @@
 	let message_visible = $state(false);
 	let formatted_eta = $state<string | null>(null);
 	let show_message_timeout = $state<NodeJS.Timeout | null>(null);
+	let show_cache_indicator = $state(false);
+	let cache_indicator_fading = $state(false);
+	let cache_display_time = $state<string | null>(null);
+	let cache_display_avg = $state<string | null>(null);
+	let cache_timeout = $state<NodeJS.Timeout | null>(null);
 
 	const should_hide = $derived(
 		type === "input" ||
@@ -252,6 +263,25 @@
 			message_visible = true;
 		}
 	});
+
+	$effect(() => {
+		if (status === "complete" && from_cache && cache_duration != null) {
+			cache_display_time = cache_duration.toFixed(1);
+			cache_display_avg =
+				avg_time != null && avg_time > 0 ? avg_time.toFixed(1) : null;
+			show_cache_indicator = true;
+			cache_indicator_fading = false;
+
+			if (cache_timeout) clearTimeout(cache_timeout);
+			cache_timeout = setTimeout(() => {
+				cache_indicator_fading = true;
+				cache_timeout = setTimeout(() => {
+					show_cache_indicator = false;
+					cache_indicator_fading = false;
+				}, 500);
+			}, 1000);
+		}
+	});
 </script>
 
 <div
@@ -375,6 +405,16 @@
 		<slot name="error" />
 	{/if}
 </div>
+
+{#if show_cache_indicator}
+	<div
+		class="cache-indicator"
+		class:fade-out={cache_indicator_fading}
+		style:position={absolute ? "absolute" : "static"}
+	>
+		&#9889; from cache: {#if cache_display_avg}~{cache_display_avg}s &rarr; {/if}{cache_display_time}s
+	</div>
+{/if}
 
 <style>
 	.wrap {
@@ -572,5 +612,23 @@
 		justify-content: flex-end;
 		gap: var(--spacing-sm);
 		z-index: var(--layer-1);
+	}
+
+	.cache-indicator {
+		position: absolute;
+		bottom: 0;
+		right: 0;
+		z-index: var(--layer-2);
+		padding: var(--size-1) var(--size-2);
+		font-size: var(--text-sm);
+		font-family: var(--font-mono);
+		pointer-events: none;
+		background: var(--block-background-fill);
+		opacity: 1;
+		transition: opacity 0.5s ease-out;
+	}
+
+	.cache-indicator.fade-out {
+		opacity: 0;
 	}
 </style>
