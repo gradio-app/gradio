@@ -55,15 +55,23 @@ def _hash_repr(obj: Any) -> str:
         return f"PIL({obj.mode},{obj.size},{hashlib.sha256(obj.tobytes()).hexdigest()})"
     if isinstance(obj, pd.DataFrame):
         col_hash = _hash_repr(list(obj.columns))
-        val_hash = hashlib.sha256(obj.values.tobytes()).hexdigest()
-        idx_hash = hashlib.sha256(obj.index.to_numpy().tobytes()).hexdigest()
+        val_hash = hashlib.sha256(
+            pd.util.hash_pandas_object(obj, index=False).to_numpy().tobytes()
+        ).hexdigest()
+        idx_hash = hashlib.sha256(
+            pd.util.hash_pandas_object(obj.index).to_numpy().tobytes()
+        ).hexdigest()
         return f"DF({col_hash},{val_hash},{idx_hash})"
     if isinstance(obj, BaseModel):
         return _hash_repr(obj.model_dump())
     if isinstance(obj, pd.Series):
         name_hash = _hash_repr(obj.name)
-        val_hash = hashlib.sha256(obj.values.tobytes()).hexdigest()
-        idx_hash = hashlib.sha256(obj.index.to_numpy().tobytes()).hexdigest()
+        val_hash = hashlib.sha256(
+            pd.util.hash_pandas_object(obj, index=False).to_numpy().tobytes()
+        ).hexdigest()
+        idx_hash = hashlib.sha256(
+            pd.util.hash_pandas_object(obj.index).to_numpy().tobytes()
+        ).hexdigest()
         return f"Series({name_hash},{val_hash},{idx_hash})"
     try:
         return repr(hash(obj))
@@ -210,6 +218,18 @@ class _CacheStore:
             self._entry_sizes.clear()
             self._total_memory = 0
 
+    def keys(self) -> list[Any]:
+        with self._lock:
+            if not self._per_session:
+                return [entry.get("_key") for entry in self._exact.values()]
+
+            session_prefix = f"{_get_session_hash() or '_global'}:"
+            return [
+                entry.get("_key")
+                for key, entry in self._exact.items()
+                if key.startswith(session_prefix)
+            ]
+
     def __len__(self) -> int:
         with self._lock:
             return len(self._exact)
@@ -312,8 +332,7 @@ def _make_wrapper(
             for value in func(**normalized):
                 all_yields.append(copy.deepcopy(value))
                 yield value
-            if all_yields:
-                store.put(key_hash, yields=all_yields)
+            store.put(key_hash, yields=all_yields)
 
         return sync_gen_wrapper
 
@@ -333,8 +352,7 @@ def _make_wrapper(
             async for value in func(**normalized):
                 all_yields.append(copy.deepcopy(value))
                 yield value
-            if all_yields:
-                store.put(key_hash, yields=all_yields)
+            store.put(key_hash, yields=all_yields)
 
         return async_gen_wrapper
 
@@ -464,8 +482,7 @@ class Cache:
         """
         Return all stored raw keys. Useful for iteration or prefix matching.
         """
-        with self._store._lock:
-            return [entry.get("_key") for entry in self._store._exact.values()]
+        return self._store.keys()
 
     def clear(self) -> None:
         """

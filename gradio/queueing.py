@@ -177,10 +177,6 @@ class Queue:
                 )
             raise e
 
-    @staticmethod
-    def _get_numeric_message_value(value: Any) -> int | float | None:
-        return value if isinstance(value, (int, float)) else None
-
     def compute_analytics_summary(self, event_analytics):
         if (
             len(event_analytics) - self.event_count_at_last_cache
@@ -391,8 +387,6 @@ class Queue:
         self.pending_event_ids_session[body.session_hash].add(event._id)
         self.event_ids_to_events[event._id] = event
 
-        # Cache bypass: if the function is @gr.cache-decorated, try to
-        # serve from cache without entering the queue (same pattern as validator).
         if hasattr(fn.fn, "cache"):
             try:
                 cache_start = time.time()
@@ -423,7 +417,6 @@ class Queue:
                     if fn in self.process_time_per_fn
                     else None
                 )
-                # Cache hit — send completion immediately, skip the queue
                 self.send_message(
                     event,
                     ProcessCompletedMessage(
@@ -953,16 +946,6 @@ class Queue:
                     error = err or old_err
                     output = error_payload(error, app.get_blocks().show_error)
                 for event in awake_events:
-                    cache_duration = (
-                        self._get_numeric_message_value(output.get("duration"))
-                        if success and output.get("used_cache")
-                        else None
-                    )
-                    avg_time = (
-                        self._get_numeric_message_value(output.get("average_duration"))
-                        if success
-                        else None
-                    )
                     self.send_message(
                         event,
                         ProcessCompletedMessage(
@@ -971,8 +954,8 @@ class Queue:
                             used_cache="partial"
                             if success and output.get("used_cache")
                             else None,
-                            cache_duration=cache_duration,
-                            avg_time=avg_time,
+                            cache_duration=output.get("duration"),  # type: ignore[arg-type]
+                            avg_time=output.get("average_duration"),  # type: ignore[arg-type]
                         ),
                     )
 
@@ -984,16 +967,6 @@ class Queue:
                             e
                         ]
                     success = response is not None
-                    cache_duration = (
-                        self._get_numeric_message_value(output.get("duration"))
-                        if success and output.get("used_cache")
-                        else None
-                    )
-                    avg_time = (
-                        self._get_numeric_message_value(output.get("average_duration"))
-                        if success
-                        else None
-                    )
                     self.send_message(
                         event,
                         ProcessCompletedMessage(
@@ -1002,8 +975,8 @@ class Queue:
                             used_cache="partial"
                             if success and output.get("used_cache")
                             else None,
-                            cache_duration=cache_duration,
-                            avg_time=avg_time,
+                            cache_duration=output.get("duration"),  # type: ignore[arg-type]
+                            avg_time=output.get("average_duration"),  # type: ignore[arg-type]
                         ),
                     )
             end_time = time.time()

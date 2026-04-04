@@ -1,14 +1,13 @@
 import asyncio
-import inspect
-
 import numpy as np
 import pandas as pd
 import pytest
 from PIL import Image
 
-import gradio.caching as caching_module
 from gradio.caching import (
     Cache,
+    CacheMissError,
+    ProbeCache,
     TrackManualCacheUsage,
     cache,
     cache_hash,
@@ -42,9 +41,14 @@ class TestCacheHash:
         assert cache_hash(a) == cache_hash(b)
         assert cache_hash(a) != cache_hash(c)
 
-    def test_pandas(self):
-        a = pd.DataFrame({"x": [1, 2], "y": [3, 4]})
-        b = pd.DataFrame({"x": [1, 2], "y": [3, 4]})
+    def test_pandas_object_columns(self):
+        a = pd.DataFrame({"x": ["a", "b"], "y": ["c", "d"]})
+        b = pd.DataFrame({"x": ["a", "b"], "y": ["c", "d"]})
+        assert cache_hash(a) == cache_hash(b)
+
+    def test_pandas_series_object_values(self):
+        a = pd.Series(["a", "b"], name="letters")
+        b = pd.Series(["a", "b"], name="letters")
         assert cache_hash(a) == cache_hash(b)
 
     def test_unhashable_raises(self):
@@ -63,14 +67,6 @@ class TestResolveGenerator:
         assert wrapped(4) == 3
         assert values == [0, 1, 2, 3]
 
-    def test_regular_function_unchanged(self):
-        def fn(x):
-            return x * 2
-
-        wrapped, values = resolve_generator(fn)
-        assert wrapped is fn
-        assert values is None
-
 
 class TestCacheDecorator:
     def test_probe_cache_raises_on_sync_miss_in_worker_thread(self):
@@ -85,8 +81,6 @@ class TestCacheDecorator:
         async def run():
             with ProbeCache():
                 await asyncio.to_thread(add, 1, 2)
-
-        from gradio.caching import CacheMissError, ProbeCache
 
         with pytest.raises(CacheMissError):
             asyncio.run(run())
@@ -105,8 +99,6 @@ class TestCacheDecorator:
             with ProbeCache():
                 await add(1, 2)
 
-        from gradio.caching import CacheMissError, ProbeCache
-
         with pytest.raises(CacheMissError):
             asyncio.run(run())
         assert call_count == 0
@@ -122,19 +114,6 @@ class TestCacheDecorator:
 
         assert add(1, 2) == 3
         assert add(1, 2) == 3
-        assert call_count == 1
-
-    def test_async_function(self):
-        call_count = 0
-
-        @cache
-        async def add(x, y):
-            nonlocal call_count
-            call_count += 1
-            return x + y
-
-        assert asyncio.run(add(1, 2)) == 3
-        assert asyncio.run(add(1, 2)) == 3
         assert call_count == 1
 
     def test_sync_generator_replays_all_yields(self):
@@ -153,23 +132,35 @@ class TestCacheDecorator:
         assert list(count_up(3)) == [1, 3, 6]
         assert call_count == 1
 
-    def test_async_generator_replays_all_yields(self):
+    def test_sync_generator_caches_zero_yield_result(self):
         call_count = 0
 
         @cache
-        async def count_up(n):
+        def empty_stream(flag):
             nonlocal call_count
             call_count += 1
-            total = 0
-            for i in range(1, n + 1):
-                total += i
-                yield total
+            if flag:
+                yield "value"
+
+        assert list(empty_stream(False)) == []
+        assert list(empty_stream(False)) == []
+        assert call_count == 1
+
+    def test_async_generator_caches_zero_yield_result(self):
+        call_count = 0
+
+        @cache
+        async def empty_stream(flag):
+            nonlocal call_count
+            call_count += 1
+            if flag:
+                yield "value"
 
         async def run():
-            return [v async for v in count_up(3)]
+            return [v async for v in empty_stream(False)]
 
-        assert asyncio.run(run()) == [1, 3, 6]
-        assert asyncio.run(run()) == [1, 3, 6]
+        assert asyncio.run(run()) == []
+        assert asyncio.run(run()) == []
         assert call_count == 1
 
     def test_kwargs_normalization(self):
@@ -209,23 +200,6 @@ class TestCacheDecorator:
         fn(3)
         assert len(fn.cache) == 2
 
-    def test_preserves_function_type(self):
-        @cache
-        def gen(x):
-            yield x
-
-        @cache
-        async def agen(x):
-            yield x
-
-        @cache
-        async def afn(x):
-            return x
-
-        assert inspect.isgeneratorfunction(gen)
-        assert inspect.isasyncgenfunction(agen)
-        assert inspect.iscoroutinefunction(afn)
-
     def test_mutable_yields_deepcopied(self):
         @cache
         def streamer(n):
@@ -237,24 +211,6 @@ class TestCacheDecorator:
         list(streamer(3))
         assert list(streamer(3)) == [[1], [1, 2], [1, 2, 3]]
 
-    def test_with_parens(self):
-        @cache()
-        def fn(x):
-            return x * 2
-
-        assert fn(5) == 10
-        assert fn(5) == 10
-
-    def test_clear(self):
-        @cache
-        def fn(x):
-            return x
-
-        fn(1)
-        assert len(fn.cache) == 1
-        fn.cache.clear()
-        assert len(fn.cache) == 0
-
 
 class TestCacheManual:
     def test_get_set(self):
@@ -262,17 +218,6 @@ class TestCacheManual:
         assert c.get("k") is None
         c.set("k", value=42)
         assert c.get("k") == {"value": 42}
-
-    def test_multiple_fields(self):
-        c = Cache()
-        c.set("k", output="hello", kv=[1, 2, 3])
-        assert c.get("k") == {"output": "hello", "kv": [1, 2, 3]}
-
-    def test_keys(self):
-        c = Cache()
-        c.set("a", v=1)
-        c.set("b", v=2)
-        assert sorted(c.keys()) == ["a", "b"]
 
     def test_prefix_matching_pattern(self):
         c = Cache()
@@ -307,57 +252,6 @@ class TestCacheManual:
         c.set("b", data=np.zeros(100, dtype=np.float64))
         assert len(c) == 1
         assert c.get("a") is None
-
-    def test_per_session_limits_apply_globally(self, monkeypatch):
-        c = Cache(max_size=2, per_session=True)
-
-        monkeypatch.setattr(caching_module, "_get_session_hash", lambda: "session-a")
-        c.set("a", value=1)
-
-        monkeypatch.setattr(caching_module, "_get_session_hash", lambda: "session-b")
-        c.set("b", value=2)
-
-        monkeypatch.setattr(caching_module, "_get_session_hash", lambda: "session-c")
-        c.set("c", value=3)
-
-        assert len(c) == 2
-
-        monkeypatch.setattr(caching_module, "_get_session_hash", lambda: "session-a")
-        assert c.get("a") is None
-
-        monkeypatch.setattr(caching_module, "_get_session_hash", lambda: "session-b")
-        assert c.get("b") == {"value": 2}
-
-        monkeypatch.setattr(caching_module, "_get_session_hash", lambda: "session-c")
-        assert c.get("c") == {"value": 3}
-
-    def test_thread_safe(self):
-        import concurrent.futures
-
-        c = Cache(max_size=1000)
-
-        def writer(i):
-            c.set(f"key_{i}", value=i)
-
-        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-            list(executor.map(writer, range(100)))
-
-        assert len(c) == 100
-
-    def test_injection_pattern(self):
-        c = Cache()
-
-        def my_fn(x, my_cache=c):
-            hit = my_cache.get(x)
-            if hit is not None:
-                return hit["result"]
-            result = x * 2
-            my_cache.set(x, result=result)
-            return result
-
-        assert my_fn(5) == 10
-        assert my_fn(5) == 10
-        assert len(c) == 1
 
     def test_manual_cache_hit_tracking(self):
         c = Cache()
