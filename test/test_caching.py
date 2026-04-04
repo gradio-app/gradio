@@ -4,9 +4,9 @@ import inspect
 import numpy as np
 import pandas as pd
 import pytest
-import gradio.caching as caching_module
 from PIL import Image
 
+import gradio.caching as caching_module
 from gradio.caching import (
     Cache,
     TrackManualCacheUsage,

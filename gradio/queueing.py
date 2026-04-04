@@ -959,9 +959,7 @@ class Queue:
                         else None
                     )
                     avg_time = (
-                        self._get_numeric_message_value(
-                            output.get("average_duration")
-                        )
+                        self._get_numeric_message_value(output.get("average_duration"))
                         if success
                         else None
                     )
@@ -992,9 +990,7 @@ class Queue:
                         else None
                     )
                     avg_time = (
-                        self._get_numeric_message_value(
-                            output.get("average_duration")
-                        )
+                        self._get_numeric_message_value(output.get("average_duration"))
                         if success
                         else None
                     )
