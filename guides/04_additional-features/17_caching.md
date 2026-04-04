@@ -2,6 +2,14 @@
 
 ML inference is often expensive: image classification, text generation, and audio synthesis can each take seconds or more. If a user submits the same inputs twice, there's no reason to re-run the model. Gradio provides two caching mechanisms: `@gr.cache` for automatic exact-match caching, and `gr.Cache()` for manual cache control inside your functions.
 
+## Demo Apps
+
+Try the caching patterns in these demos:
+
+- [`@gr.cache()` function types demo](https://github.com/gradio-app/gradio/blob/main/demo/cache_demo/run.py) - sync, async, generator, and async generator caching
+- [`gr.Cache()` manual cache demo](https://github.com/gradio-app/gradio/blob/main/demo/cache_manual_demo/run.py) - normalized manual cache keys with explicit `get` / `set`
+- [`gr.Cache()` KV cache demo](https://github.com/gradio-app/gradio/blob/main/demo/cache_kv_demo/run.py) - transformer prefix reuse with cached KV state
+
 ## `@gr.cache` — Automatic Caching
 
 Add `@gr.cache` to any function to automatically cache its results. The decorator hashes inputs by their content — two different numpy arrays with the same pixel values will produce a cache hit. Cache hits bypass the Gradio queue entirely.
@@ -81,6 +89,8 @@ def my_function(prompt, c=gr.Cache()):
 
 If a queued function gets a successful hit from `c.get(...)`, Gradio also shows a timing badge in the UI. This badge says `used cache` instead of `from cache`, because the request still ran, but part of its work was reused from `gr.Cache()`.
 
+A minimal example is available in the [`gr.Cache()` manual cache demo](https://github.com/gradio-app/gradio/blob/main/demo/cache_manual_demo/run.py).
+
 ### Why use `gr.Cache()` over a plain dict?
 
 - **Thread-safe** — built-in locking for concurrent requests
@@ -111,6 +121,8 @@ def generate(prompt, c=gr.Cache(per_session=True)):
     c.set(prompt, kv=model.past_key_values)
     return output.text
 ```
+
+For a full runnable version, see the [`gr.Cache()` KV cache demo](https://github.com/gradio-app/gradio/blob/main/demo/cache_kv_demo/run.py).
 
 
 ## When to Use Caching
