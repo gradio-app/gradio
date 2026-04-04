@@ -126,7 +126,7 @@ async def async_summarize(text):
 
 with gr.Blocks(title="gr.cache() Demo") as demo:
     gr.Markdown(
-        "# `@gr.cache()` Demo\n"
+        "# `@gr.cache` Demo\n"
         "Each tab shows a different function type. "
         "**Submit the same input twice** — the second call replays from cache."
     )
