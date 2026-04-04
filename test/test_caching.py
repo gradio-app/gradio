@@ -4,6 +4,7 @@ import inspect
 import numpy as np
 import pandas as pd
 import pytest
+import gradio.caching as caching_module
 from PIL import Image
 
 from gradio.caching import (
@@ -306,6 +307,29 @@ class TestCacheManual:
         c.set("b", data=np.zeros(100, dtype=np.float64))
         assert len(c) == 1
         assert c.get("a") is None
+
+    def test_per_session_limits_apply_globally(self, monkeypatch):
+        c = Cache(max_size=2, per_session=True)
+
+        monkeypatch.setattr(caching_module, "_get_session_hash", lambda: "session-a")
+        c.set("a", value=1)
+
+        monkeypatch.setattr(caching_module, "_get_session_hash", lambda: "session-b")
+        c.set("b", value=2)
+
+        monkeypatch.setattr(caching_module, "_get_session_hash", lambda: "session-c")
+        c.set("c", value=3)
+
+        assert len(c) == 2
+
+        monkeypatch.setattr(caching_module, "_get_session_hash", lambda: "session-a")
+        assert c.get("a") is None
+
+        monkeypatch.setattr(caching_module, "_get_session_hash", lambda: "session-b")
+        assert c.get("b") == {"value": 2}
+
+        monkeypatch.setattr(caching_module, "_get_session_hash", lambda: "session-c")
+        assert c.get("c") == {"value": 3}
 
     def test_thread_safe(self):
         import concurrent.futures

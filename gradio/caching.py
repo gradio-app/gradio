@@ -384,10 +384,10 @@ def cache(
     Decorator that auto-caches function results based on content-hashed inputs. Works with sync/async functions and sync/async generators. For generators, all yielded values are cached and replayed on hit. Cache hits bypass the Gradio queue.
     Parameters:
         fn: The function to cache. When used as @gr.cache without parentheses, this is the decorated function. When used as @gr.cache(...), this is None.
-        key: Optional function that receives the normalized kwargs dict and returns a hashable cache key. Useful for ignoring certain inputs (e.g., temperature, seed).
+        key: Optional function that receives the kwargs dict and returns a hashable cache key, e.g. to only cache based on the prompt, pass in: lambda kw: kw["prompt"]
         max_size: Maximum number of cache entries. Least-recently-used entries are evicted when full. Set to 0 for unlimited. Default: 128.
-        max_memory: Maximum total memory usage before eviction. Accepts strings like "512mb", "2gb" or integer bytes. When exceeded, least-recently-used entries are evicted.
-        per_session: When True, each user session gets an isolated cache, preventing cached results from leaking between users. Default: False.
+        max_memory: Maximum total memory usage before eviction. Accepts strings like "512mb", "2gb" or integer bytes. When exceeded, least-recently-used entries are evicted. If None, no memory limit is applied. If both max_size and max_memory are set, the cache will evict entries when either limit is reached.
+        per_session: When True, each user session gets an isolated cache namespace, preventing cached results from leaking between users. The max_size and max_memory limits apply to the sum of all entries across all sessions.
     Example:
         import gradio as gr
         @gr.cache
@@ -412,11 +412,11 @@ def cache(
 @document("get", "set", "keys", "clear")
 class Cache:
     """
-    Thread-safe cache with manual get/set control, injected as a function parameter (like gr.Progress). Add as a default parameter value and Gradio will inject it automatically. Supports per-session isolation so cached data doesn't leak between users, content-aware hashing for ML types (numpy, PIL, pandas), and LRU eviction with memory limits.
+    Thread-safe cache with manual get/set control, injected as a function parameter (add as a default parameter value and Gradio will inject it automatically). Supports per-session isolation so cached data doesn't leak between users, content-aware hashing for ML types (numpy, PIL, pandas), and LRU eviction with memory limits.
     Parameters:
         max_size: Maximum number of cache entries. Least-recently-used entries are evicted when full. Set to 0 for unlimited. Default: 128.
         max_memory: Maximum total memory usage before eviction. Accepts strings like "512mb", "2gb" or integer bytes.
-        per_session: When True, each user session gets an isolated cache, preventing cached data from leaking between users. Default: False.
+        per_session: When True, each user session gets an isolated cache namespace, preventing cached data from leaking between users. The max_size and max_memory limits still apply to the shared underlying cache store across all sessions. Default: False.
     Example:
         import gradio as gr
         def generate(prompt, c=gr.Cache(per_session=True)):
