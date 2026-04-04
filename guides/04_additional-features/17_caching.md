@@ -1,14 +1,6 @@
 # Caching Function Results
 
-ML inference is often expensive: image classification, text generation, and audio synthesis can each take seconds or more. If a user submits the same inputs twice, there's no reason to re-run the model. Gradio provides two caching mechanisms: `@gr.cache` for automatic exact-match caching, and `gr.Cache()` for manual cache control inside your functions.
-
-## Demo Apps
-
-Try the caching patterns in these demos:
-
-- [`@gr.cache()` function types demo](https://github.com/gradio-app/gradio/blob/main/demo/cache_demo/run.py) - sync, async, generator, and async generator caching
-- [`gr.Cache()` manual cache demo](https://github.com/gradio-app/gradio/blob/main/demo/cache_manual_demo/run.py) - normalized manual cache keys with explicit `get` / `set`
-- [`gr.Cache()` KV cache demo](https://github.com/gradio-app/gradio/blob/main/demo/cache_kv_demo/run.py) - transformer prefix reuse with cached KV state
+ML inference is often expensive: image editing, video classification, or audio transcription can each take seconds, minutes, or longer. If a user submits the same inputs twice, there's no reason to re-run the model. Gradio provides two caching mechanisms: `@gr.cache` for automatic exact-match caching, and `gr.Cache()` for manual cache control inside your functions.
 
 ## `@gr.cache` — Automatic Caching
 
@@ -24,7 +16,7 @@ def classify(image):
 
 ### Generators
 
-For generator functions, `@gr.cache` caches **all yielded values** and replays them on a hit. This is important for streaming media (audio/video chunks) where each yield is a piece of the output:
+For generator functions, `@gr.cache` caches **all yielded values** and replays them on a hit. This is particularly important for streaming media (`gr.Audio` or `gr.Video` with `streaming=True`) where each yield is a chunk of the output:
 
 ```python
 @gr.cache
@@ -46,6 +38,8 @@ async def transcribe(audio):
 ```
 
 ### Parameters
+
+The behavior of `@gr.cache()` can be customized with a few parameters, most notably the `key`:
 
 ```python
 @gr.cache(
@@ -71,7 +65,7 @@ generate.cache.clear()
 print(len(generate.cache))
 ```
 
-When a queued event is served from `@gr.cache`, Gradio shows a small `from cache` timing badge in the UI.
+When a queued event is served from `@gr.cache`, Gradio shows a small `from cache` timing badge in the UI which appears temporarily in the relevant output components.
 
 ## `gr.Cache()` — Manual Cache Control
 
@@ -129,4 +123,13 @@ For a full runnable version, see the [`gr.Cache()` KV cache demo](https://github
 
 `@gr.cache` is most useful for **deterministic** functions where the same input always produces the same output: image classification, audio transcription, embedding computation, structured data extraction.
 
-It is less useful for **non-deterministic** functions like text generation or image generation, where users expect different outputs for the same input. For those, `gr.Cache()` with manual control may be more appropriate — you can cache intermediate state (like KV caches) without caching the output itself.
+It is less useful for **non-deterministic** functions like text generation or image generation, where users expect different outputs for the same input. For those, `gr.Cache()` with manual control may be more appropriate as you can cache intermediate state (like KV caches) without caching the output completely.
+
+
+## Next Steps
+
+Take a look at these complete examples and then build your own Gradio app with caching!
+
+- [`@gr.cache()` function types demo](https://github.com/gradio-app/gradio/blob/main/demo/cache_demo/run.py) - sync, async, generator, and async generator caching
+- [`gr.Cache()` manual cache demo](https://github.com/gradio-app/gradio/blob/main/demo/cache_manual_demo/run.py) - normalized manual cache keys with explicit `get` / `set`
+- [`gr.Cache()` KV cache demo](https://github.com/gradio-app/gradio/blob/main/demo/cache_kv_demo/run.py) - transformer prefix reuse with cached KV state
