@@ -38,7 +38,7 @@ run_shared_prop_tests({
 		...default_props
 	},
 	has_label: true,
-	has_validation_error: false
+	has_validation_error: true
 });
 
 describe("Slider", () => {
@@ -217,12 +217,16 @@ describe("Events: change", () => {
 		});
 
 		const change = listen("change");
+		const input = listen("input");
+		const release = listen("release");
 
 		await set_data({ value: 3 });
 		await set_data({ value: 7 });
 		await set_data({ value: 10 });
 
 		expect(change).toHaveBeenCalledTimes(3);
+		expect(input).not.toHaveBeenCalled();
+		expect(release).not.toHaveBeenCalled();
 	});
 
 	test("setting same value does not trigger change", async () => {
