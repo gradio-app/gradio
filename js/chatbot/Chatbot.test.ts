@@ -134,7 +134,7 @@ describe("Chatbot", () => {
 		expect(getAllByTestId("bot").length).toBe(2);
 	});
 
-	test("renders with null value showing placeholder area", async () => {
+	test("renders with null value showing no messages", async () => {
 		const { queryAllByTestId } = await render(Chatbot, {
 			...default_props,
 			value: null
