@@ -2,7 +2,7 @@
 
 ML inference is often expensive: image editing, video classification, or audio transcription can each take seconds, minutes, or longer. If a user submits the same inputs twice, there's no reason to re-run the model. Gradio provides two caching mechanisms: `@gr.cache` for automatic exact-match caching, and `gr.Cache()` for manual cache control inside your functions.
 
-## `@gr.cache` — Automatic Caching
+## Automatic caching with `@gr.cache`
 
 Add `@gr.cache` to any function to automatically cache its results. The decorator hashes inputs by their content — two different numpy arrays with the same pixel values will produce a cache hit. Cache hits bypass the Gradio queue entirely.
 
@@ -67,7 +67,7 @@ print(len(generate.cache))
 
 When a queued event is served from `@gr.cache`, Gradio shows a small `from cache` timing badge in the UI which appears temporarily in the relevant output components.
 
-## `gr.Cache()` — Manual Cache Control
+## Manual cache control with `gr.Cache()`
 
 For full control over what gets cached and when, use `gr.Cache()` as an injectable parameter (like `gr.Progress`). Gradio injects the same instance on every call, giving you a thread-safe `get`/`set` interface:
 
@@ -118,14 +118,14 @@ def generate(prompt, c=gr.Cache(per_session=True)):
 For a full runnable version, see the [`gr.Cache()` KV cache demo](https://github.com/gradio-app/gradio/blob/main/demo/cache_kv_demo/run.py).
 
 
-## When to Use Caching
+## When to use caching
 
 `@gr.cache` is most useful for **deterministic** functions where the same input always produces the same output: image classification, audio transcription, embedding computation, structured data extraction.
 
-It is less useful for **non-deterministic** functions like text generation or image generation, where users expect different outputs for the same input. For those, `gr.Cache()` with manual control may be more appropriate as you can cache intermediate state (like KV caches) without caching the output completely.
+It is less useful for **non-deterministic** functions like text generation or image generation, where users might want different outputs even for the same input. For those, `gr.Cache()` with manual control may be more appropriate as you can cache intermediate state (like KV caches) without caching the output completely.
 
 
-## Next Steps
+## Next steps
 
 Take a look at these complete examples and then build your own Gradio app with caching!
 
