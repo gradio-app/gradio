@@ -28,7 +28,7 @@ def _find_longest_prefix(prompt: str, c: gr.cache) -> tuple[str | None, int]:
     return best_key, best_len
 
 
-def generate(prompt, max_new_tokens, c=gr.cache()):
+def generate(prompt, max_new_tokens, c=gr.Cache()):
     start = time.time()
 
     best_prefix, prefix_len = _find_longest_prefix(prompt, c)
