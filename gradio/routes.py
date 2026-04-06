@@ -256,7 +256,13 @@ class StaticProxyMiddleware:
 
     def _get_client(self) -> httpx.AsyncClient:
         if self._client is None or self._client.is_closed:
-            self._client = httpx.AsyncClient(timeout=60.0)
+            self._client = httpx.AsyncClient(
+                timeout=60.0,
+                limits=httpx.Limits(
+                    max_connections=200,
+                    max_keepalive_connections=50,
+                ),
+            )
         return self._client
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
@@ -267,7 +273,7 @@ class StaticProxyMiddleware:
         path: str = scope.get("path", "")
         check_path = path
         if check_path.startswith(API_PREFIX):
-            check_path = check_path[len(API_PREFIX):]
+            check_path = check_path[len(API_PREFIX) :]
 
         if not any(check_path.startswith(p) for p in self.gradio_app._static_prefixes):
             await self.asgi_app(scope, receive, send)
@@ -277,8 +283,21 @@ class StaticProxyMiddleware:
         try:
             await self._proxy(scope, receive, send)
         except Exception:
-            # Fall through to main app on proxy failure
-            await self.asgi_app(scope, receive, send)
+            # Can't fall through — receive() is already consumed.
+            # Return 502 so the client retries.
+            await send(
+                {
+                    "type": "http.response.start",
+                    "status": 502,
+                    "headers": [(b"content-type", b"text/plain")],
+                }
+            )
+            await send(
+                {
+                    "type": "http.response.body",
+                    "body": b"Static worker unavailable",
+                }
+            )
 
     async def _proxy(self, scope: Scope, receive: Receive, send: Send) -> None:
         pool = self.gradio_app.static_worker_pool
@@ -286,7 +305,7 @@ class StaticProxyMiddleware:
 
         path = scope.get("path", "")
         if path.startswith(API_PREFIX):
-            path = path[len(API_PREFIX):]
+            path = path[len(API_PREFIX) :]
         query_string = scope.get("query_string", b"")
         url = f"{backend_url}{path}"
         if query_string:
@@ -301,14 +320,17 @@ class StaticProxyMiddleware:
 
         method = scope.get("method", "GET")
 
-        # Collect request body for POST/PUT/PATCH
-        body = b""
-        if method in ("POST", "PUT", "PATCH"):
+        # Stream request body from the client to avoid buffering uploads in memory
+        async def stream_request_body():
             while True:
                 message = await receive()
-                body += message.get("body", b"")
+                body = message.get("body", b"")
+                if body:
+                    yield body
                 if not message.get("more_body", False):
                     break
+
+        content = stream_request_body() if method in ("POST", "PUT", "PATCH") else None
 
         client = self._get_client()
 
@@ -317,7 +339,7 @@ class StaticProxyMiddleware:
             method=method,
             url=url,
             headers=headers,
-            content=body if body else None,
+            content=content,
         ) as response:
             # Send response headers
             resp_headers = [
@@ -325,24 +347,30 @@ class StaticProxyMiddleware:
                 for k, v in response.headers.multi_items()
                 if k.lower() not in ("transfer-encoding",)
             ]
-            await send({
-                "type": "http.response.start",
-                "status": response.status_code,
-                "headers": resp_headers,
-            })
+            await send(
+                {
+                    "type": "http.response.start",
+                    "status": response.status_code,
+                    "headers": resp_headers,
+                }
+            )
 
             # Stream response body
             async for chunk in response.aiter_bytes():
-                await send({
+                await send(
+                    {
+                        "type": "http.response.body",
+                        "body": chunk,
+                        "more_body": True,
+                    }
+                )
+            await send(
+                {
                     "type": "http.response.body",
-                    "body": chunk,
-                    "more_body": True,
-                })
-            await send({
-                "type": "http.response.body",
-                "body": b"",
-                "more_body": False,
-            })
+                    "body": b"",
+                    "more_body": False,
+                }
+            )
 
 
 class App(FastAPI):
