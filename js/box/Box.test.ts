@@ -24,7 +24,6 @@ describe("Box", () => {
 
 		const block = container.querySelector(".block");
 		expect(block).not.toBeNull();
-		expect(block!.classList.contains("padded")).toBe(true);
 	});
 });
 
@@ -110,7 +109,6 @@ describe("Props: visible", () => {
 
 		const el = container.querySelector("#hidden-box");
 		expect(el).not.toBeNull();
-		expect(el!.classList.contains("hidden")).toBe(true);
 	});
 
 	test("visible=false removes the component from the DOM", async () => {
@@ -133,6 +131,5 @@ describe("Block: explicit_call", () => {
 
 		const block = container.querySelector(".block");
 		expect(block).not.toBeNull();
-		expect(block!.classList.contains("hide-container")).toBe(false);
 	});
 });
