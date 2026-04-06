@@ -90,7 +90,6 @@ A minimal example is available in the [`gr.Cache()` manual cache demo](https://g
 - **Thread-safe** — built-in locking for concurrent requests
 - **LRU eviction** + **memory limits** — bounded memory usage (`max_size`, `max_memory`)
 - **Per-session isolation** — `gr.Cache(per_session=True)` partitions the cache by user session, prevents data leakage between users, clears that session's entries when the client disconnects, and still applies `max_size` and `max_memory` across the combined cache entries of all sessions
-
 - **Content-aware keys** — numpy arrays, PIL images, DataFrames all work as cache keys
 
 ### KV Cache Example
