@@ -22,7 +22,7 @@ def _find_longest_prefix(prompt: str, c: gr.Cache) -> tuple[str | None, int]:
     best_key = None
     best_len = 0
     for cached_key in c.keys():
-        if prompt.startswith(cached_key) and len(cached_key) > best_len:
+        if prompt.startswith(cached_key) and best_len < len(cached_key) < len(prompt):
             best_key = cached_key
             best_len = len(cached_key)
     return best_key, best_len

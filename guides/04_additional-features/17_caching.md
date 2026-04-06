@@ -55,7 +55,7 @@ def generate(prompt, temperature=0.7):
 - **`key`** — function that takes the kwargs dict and returns what to hash. Useful for ignoring parameters like temperature or seed.
 - **`max_size`** — maximum number of entries. LRU eviction when full. Default 128. Set to 0 for unlimited.
 - **`max_memory`** — maximum memory usage. Accepts strings like `"512mb"`, `"2gb"` or raw bytes. LRU eviction when exceeded.
-- **`per_session`** — when `True`, each user session gets an isolated cache namespace. Prevents one user's cached results from being served to another, while `max_size` and `max_memory` still apply to the shared cache store across all sessions.
+- **`per_session`** — when `True`, each user session gets an isolated cache namespace. Prevents one user's cached results from being served to another, clears that session's entries when the client disconnects, and still applies `max_size` and `max_memory` to the shared cache store across all sessions.
 
 
 Access the cache programmatically via `fn.cache`:
@@ -89,7 +89,7 @@ A minimal example is available in the [`gr.Cache()` manual cache demo](https://g
 
 - **Thread-safe** — built-in locking for concurrent requests
 - **LRU eviction** + **memory limits** — bounded memory usage (`max_size`, `max_memory`)
-- **Per-session isolation** — `gr.Cache(per_session=True)` partitions the cache by user session, preventing data leakage between users, while `max_size` and `max_memory` still apply across the combined cache entries of all sessions
+- **Per-session isolation** — `gr.Cache(per_session=True)` partitions the cache by user session, prevents data leakage between users, clears that session's entries when the client disconnects, and still applies `max_size` and `max_memory` across the combined cache entries of all sessions
 
 - **Content-aware keys** — numpy arrays, PIL images, DataFrames all work as cache keys
 

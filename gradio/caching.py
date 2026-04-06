@@ -8,6 +8,7 @@ import hashlib
 import inspect
 import sys
 import threading
+import weakref
 from collections import OrderedDict
 from collections.abc import Callable
 from contextvars import ContextVar
@@ -168,12 +169,17 @@ class _CacheStore:
         self._entry_sizes: dict[str, int] = {}
         self._total_memory: int = 0
         self._lock = threading.Lock()
+        if self._per_session:
+            _per_session_stores.add(self)
+
+    def _session_prefix(self, session_hash: str | None = None) -> str:
+        session = session_hash or _get_session_hash() or "_global"
+        return f"{session}:"
 
     def _session_key(self, key_hash: str) -> str:
         if not self._per_session:
             return key_hash
-        session = _get_session_hash() or "_global"
-        return f"{session}:{key_hash}"
+        return f"{self._session_prefix()}{key_hash}"
 
     def get(self, key_hash: str) -> dict | None:
         full_key = self._session_key(key_hash)
@@ -218,12 +224,24 @@ class _CacheStore:
             self._entry_sizes.clear()
             self._total_memory = 0
 
+    def clear_session(self, session_hash: str | None = None) -> None:
+        if not self._per_session:
+            return
+        session_prefix = self._session_prefix(session_hash)
+        with self._lock:
+            keys_to_delete = [
+                key for key in self._exact if key.startswith(session_prefix)
+            ]
+            for key in keys_to_delete:
+                self._exact.pop(key, None)
+                self._total_memory -= self._entry_sizes.pop(key, 0)
+
     def keys(self) -> list[Any]:
         with self._lock:
             if not self._per_session:
                 return [entry.get("_key") for entry in self._exact.values()]
 
-            session_prefix = f"{_get_session_hash() or '_global'}:"
+            session_prefix = self._session_prefix()
             return [
                 entry.get("_key")
                 for key, entry in self._exact.items()
@@ -233,6 +251,9 @@ class _CacheStore:
     def __len__(self) -> int:
         with self._lock:
             return len(self._exact)
+
+
+_per_session_stores: weakref.WeakSet[_CacheStore] = weakref.WeakSet()
 
 
 def _normalize_kwargs(func: Callable, args: tuple, kwargs: dict) -> dict:
@@ -303,6 +324,11 @@ def _make_store(
         max_memory=_parse_file_size(max_memory),
         per_session=per_session,
     )
+
+
+def clear_session_caches(session_hash: str | None) -> None:
+    for store in list(_per_session_stores):
+        store.clear_session(session_hash)
 
 
 def _make_wrapper(
@@ -405,7 +431,7 @@ def cache(
         key: Optional function that receives the kwargs dict and returns a hashable cache key, e.g. to only cache based on the prompt, pass in: lambda kw: kw["prompt"]
         max_size: Maximum number of cache entries. Least-recently-used entries are evicted when full. Set to 0 for unlimited. Default: 128.
         max_memory: Maximum total memory usage before eviction. Accepts strings like "512mb", "2gb" or integer bytes. When exceeded, least-recently-used entries are evicted. If None, no memory limit is applied. If both max_size and max_memory are set, the cache will evict entries when either limit is reached.
-        per_session: When True, each user session gets an isolated cache namespace, preventing cached results from leaking between users. The max_size and max_memory limits apply to the sum of all entries across all sessions.
+        per_session: When True, each user session gets an isolated cache namespace, preventing cached results from leaking between users. Per-session entries are cleared when the client session disconnects. The max_size and max_memory limits apply to the sum of all entries across all sessions.
     Example:
         import gradio as gr
         @gr.cache
@@ -434,7 +460,7 @@ class Cache:
     Parameters:
         max_size: Maximum number of cache entries. Least-recently-used entries are evicted when full. Set to 0 for unlimited. Default: 128.
         max_memory: Maximum total memory usage before eviction. Accepts strings like "512mb", "2gb" or integer bytes.
-        per_session: When True, each user session gets an isolated cache namespace, preventing cached data from leaking between users. The max_size and max_memory limits still apply to the shared underlying cache store across all sessions. Default: False.
+        per_session: When True, each user session gets an isolated cache namespace, preventing cached data from leaking between users. Per-session entries are cleared when the client session disconnects. The max_size and max_memory limits still apply to the shared underlying cache store across all sessions. Default: False.
     Example:
         import gradio as gr
         def generate(prompt, c=gr.Cache(per_session=True)):

@@ -1,4 +1,5 @@
 import asyncio
+from contextlib import contextmanager
 
 import numpy as np
 import pandas as pd
@@ -12,9 +13,21 @@ from gradio.caching import (
     TrackManualCacheUsage,
     cache,
     cache_hash,
+    clear_session_caches,
     resolve_generator,
     used_manual_cache,
 )
+from gradio.context import LocalContext
+from gradio.route_utils import Request
+
+
+@contextmanager
+def session_context(session_hash: str):
+    token = LocalContext.request.set(Request(session_hash=session_hash))
+    try:
+        yield
+    finally:
+        LocalContext.request.reset(token)
 
 
 class TestCacheHash:
@@ -264,3 +277,38 @@ class TestCacheManual:
             assert used_manual_cache() is False
             assert c.get("k") == {"value": 42}
             assert used_manual_cache() is True
+
+    def test_clear_session_caches_evicts_closed_session_only(self):
+        manual_cache = Cache(per_session=True)
+        global_cache = Cache()
+        call_count = 0
+
+        @cache(per_session=True)
+        def decorated(value):
+            nonlocal call_count
+            call_count += 1
+            return value * 2
+
+        with session_context("session-1"):
+            manual_cache.set("k", value=1)
+            global_cache.set("shared", value=100)
+            assert decorated(3) == 6
+
+        with session_context("session-2"):
+            manual_cache.set("k", value=2)
+            assert decorated(3) == 6
+
+        assert call_count == 2
+
+        clear_session_caches("session-1")
+
+        with session_context("session-1"):
+            assert manual_cache.get("k") is None
+            assert decorated(3) == 6
+
+        with session_context("session-2"):
+            assert manual_cache.get("k") == {"value": 2}
+            assert decorated(3) == 6
+
+        assert global_cache.get("shared") == {"value": 100}
+        assert call_count == 3
