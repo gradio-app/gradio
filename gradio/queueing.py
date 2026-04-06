@@ -125,8 +125,8 @@ class Queue:
         self.pending_messages_per_session: LRUCache[str, ThreadQueue[EventMessage]] = (
             LRUCache(2000)
         )
-        self.pending_event_ids_session: LRUCache[str, set[str]] = LRUCache(2000)
-        self.event_ids_to_events: LRUCache[str, Event] = LRUCache(2000)
+        self.pending_event_ids_session: dict[str, set[str]] = {}
+        self.event_ids_to_events: dict[str, Event] = {}
         self.pending_message_lock = safe_get_lock()
         self.event_queue_per_concurrency_id: dict[str, EventQueue] = {}
         self.stopped = False
@@ -149,9 +149,7 @@ class Queue:
         self.default_concurrency_limit = self._resolve_concurrency_limit(
             default_concurrency_limit
         )
-        self.event_analytics: LRUCache[str, dict[str, float | str | None]] = LRUCache(
-            10000
-        )
+        self.event_analytics: dict[str, dict[str, float | str | None]] = {}
         self.cached_event_analytics_summary = {"functions": {}}
         self.event_count_at_last_cache = 0
         self.ANAYLTICS_CACHE_FREQUENCY = int(
@@ -974,17 +972,6 @@ class Queue:
                 else:
                     self.event_analytics[event._id]["status"] = "cancelled"
                 await run_sync(self.compute_analytics_summary, self.event_analytics)
-
-                self.event_ids_to_events.pop(event._id, None)
-                session_events = self.pending_event_ids_session.get(
-                    event.session_hash
-                )
-                if session_events is not None:
-                    session_events.discard(event._id)
-                    if not session_events:
-                        self.pending_event_ids_session.pop(
-                            event.session_hash, None
-                        )
 
     async def reset_iterators(self, event_id: str):
         # Do the same thing as the /reset route
