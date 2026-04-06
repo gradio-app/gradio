@@ -54,7 +54,7 @@ export function run_shared_prop_tests(config: SharedPropTestConfig): void {
 	): Record<string, any> {
 		return {
 			...base_props,
-			loading_status,
+			loading_status: { ...loading_status, ...overrides },
 			label,
 			...overrides
 		};
@@ -157,7 +157,7 @@ export function run_shared_prop_tests(config: SharedPropTestConfig): void {
 		}
 
 		if (has_validation_error) {
-			test("validation_error displays error text", async () => {
+			test("validation_error displays error text visibly", async () => {
 				const result = await render(
 					component,
 					make_props({
@@ -166,7 +166,7 @@ export function run_shared_prop_tests(config: SharedPropTestConfig): void {
 					})
 				);
 				const el = result.getByText("This field is required");
-				expect(el).toBeTruthy();
+				expect(el).toBeVisible();
 			});
 		}
 	});
