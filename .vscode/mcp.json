@@ -1,0 +1,21 @@
+{
+	"servers": {
+		"io.github.netdata/mcp-server": {
+			"type": "http",
+			"url": "https://app.netdata.cloud/api/v1/mcp",
+			"headers": {
+				"Authorization": "Bearer ${input:NETDATA_CLOUD_API_TOKEN}"
+			},
+			"gallery": "https://api.mcp.github.com",
+			"version": "2.9.0"
+		}
+	},
+	"inputs": [
+		{
+			"id": "NETDATA_CLOUD_API_TOKEN",
+			"type": "promptString",
+			"description": "Netdata Cloud API token (create at app.netdata.cloud > User Settings > API Tokens with scope:mcp)",
+			"password": true
+		}
+	]
+}
