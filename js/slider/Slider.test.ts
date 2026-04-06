@@ -201,7 +201,9 @@ describe("Events: change", () => {
 			value: 5
 		});
 
-		const change = listen("change");
+    const change = listen("change", { retrospective: true });
+
+	expect(change).not.toHaveBeenCalled();
 		await tick();
 		await tick();
 
