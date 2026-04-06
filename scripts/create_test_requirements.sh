@@ -10,6 +10,5 @@ To match the CI environment, this script should be run from a Unix-like system i
 
 uv pip compile \
   --exclude-newer "${UV_EXCLUDE_NEWER:-2026-04-06T23:59:59-07:00}" \
-  --excludes test/uv-excludes.txt \
   test/requirements.in \
   -o test/requirements.txt
