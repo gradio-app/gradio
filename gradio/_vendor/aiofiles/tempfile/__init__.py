@@ -1,4 +1,5 @@
 import asyncio
+import sys
 from functools import partial, singledispatch
 from io import BufferedRandom, BufferedReader, BufferedWriter, FileIO, TextIOBase
 from tempfile import NamedTemporaryFile as syncNamedTemporaryFile
@@ -11,7 +12,6 @@ from ..base import AiofilesContextManager
 from ..threadpool.binary import AsyncBufferedIOBase, AsyncBufferedReader, AsyncFileIO
 from ..threadpool.text import AsyncTextIOWrapper
 from .temptypes import AsyncSpooledTemporaryFile, AsyncTemporaryDirectory
-import sys
 
 __all__ = [
     "NamedTemporaryFile",
@@ -333,7 +333,7 @@ class AiofilesContextManagerTempDir(AiofilesContextManager):
 @singledispatch
 def wrap(base_io_obj, file, *, loop=None, executor=None):
     """Wrap the object with interface based on type of underlying IO"""
-    raise TypeError("Unsupported IO type: {}".format(base_io_obj))
+    raise TypeError(f"Unsupported IO type: {base_io_obj}")
 
 
 @wrap.register(TextIOBase)

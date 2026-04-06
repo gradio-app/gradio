@@ -4,7 +4,8 @@ import errno
 import itertools
 import shlex
 import subprocess
-from typing import IO, Any, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from typing import IO, Any
 
 try:
     from psutil import Popen  # noqa: F401
@@ -110,11 +111,18 @@ class FFmpeg:
         """
         try:
             self.process = popen(
-                self._cmd, stdin=subprocess.PIPE, stdout=stdout, stderr=stderr, env=env, **kwargs
+                self._cmd,
+                stdin=subprocess.PIPE,
+                stdout=stdout,
+                stderr=stderr,
+                env=env,
+                **kwargs,
             )
         except OSError as e:
             if e.errno == errno.ENOENT:
-                raise FFExecutableNotFoundError(f"Executable '{self.executable}' not found")
+                raise FFExecutableNotFoundError(
+                    f"Executable '{self.executable}' not found"
+                )
             else:
                 raise
 
@@ -147,7 +155,9 @@ class FFprobe(FFmpeg):
         :param dict inputs: a dictionary specifying one or more inputs as keys with their
             corresponding options as values
         """
-        super().__init__(executable=executable, global_options=global_options, inputs=inputs)
+        super().__init__(
+            executable=executable, global_options=global_options, inputs=inputs
+        )
 
 
 class FFExecutableNotFoundError(Exception):
@@ -176,12 +186,7 @@ class FFRuntimeError(Exception):
         stdout_display = _safe_decode(stdout)
         stderr_display = _safe_decode(stderr)
 
-        message = "`{}` exited with status {}\n\nSTDOUT:\n{}\n\nSTDERR:\n{}".format(
-            self.cmd,
-            exit_code,
-            stdout_display,
-            stderr_display,
-        )
+        message = f"`{self.cmd}` exited with status {exit_code}\n\nSTDOUT:\n{stdout_display}\n\nSTDERR:\n{stderr_display}"
 
         super().__init__(message)
 
@@ -216,7 +221,9 @@ def _merge_args_opts(
     return merged
 
 
-def _normalize_options(options: Sequence[str] | str | None, split_mixed: bool = False) -> list[str]:
+def _normalize_options(
+    options: Sequence[str] | str | None, split_mixed: bool = False
+) -> list[str]:
     """Normalize options string or list of strings.
 
     Splits `options` into a list of strings. If `split_mixed` is `True`, splits (flattens) mixed
@@ -229,11 +236,10 @@ def _normalize_options(options: Sequence[str] | str | None, split_mixed: bool = 
         return []
     elif isinstance(options, str):
         return shlex.split(options)
+    elif split_mixed:
+        return list(itertools.chain(*[shlex.split(o) for o in options]))
     else:
-        if split_mixed:
-            return list(itertools.chain(*[shlex.split(o) for o in options]))
-        else:
-            return list(options)
+        return list(options)
 
 
 def _safe_decode(stream_data: bytes | str | None) -> str:

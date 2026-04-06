@@ -1,7 +1,8 @@
 """Various base classes."""
+
+from asyncio import get_running_loop
 from collections.abc import Awaitable
 from contextlib import AbstractAsyncContextManager
-from asyncio import get_running_loop
 
 
 class AsyncBase:
