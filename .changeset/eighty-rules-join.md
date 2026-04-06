@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Vendor in deps and use `exclude-newer` flag
+feat:Vendor in / pin Gradio dependencies and use `exclude-newer` flag in our CI 
