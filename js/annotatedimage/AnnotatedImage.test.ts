@@ -1,14 +1,6 @@
-import { test, describe, afterEach, expect, vi } from "vitest";
-import {
-	cleanup,
-	render,
-	fireEvent,
-	waitFor,
-	TEST_JPG,
-	TEST_PNG
-} from "@self/tootils/render";
+import { test, describe, afterEach, expect } from "vitest";
+import { cleanup, render, fireEvent } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
-import { tick } from "svelte";
 
 import AnnotatedImage from "./Index.svelte";
 
@@ -305,7 +297,7 @@ describe("Events: change", () => {
 		expect(change).not.toHaveBeenCalled();
 	});
 
-	test("change event fires once on mount when initial value is set", async () => {
+	test("change event does not fire once on mount when initial value is set", async () => {
 		// The component's $effect fires change when old_value != value on mount
 		const { listen } = await render(AnnotatedImage, {
 			...default_props,
