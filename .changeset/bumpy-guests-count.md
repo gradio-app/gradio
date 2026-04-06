@@ -1,6 +1,6 @@
 ---
-"@gradio/slider": minor
-"gradio": minor
+"@gradio/slider": patch
+"gradio": patch
 ---
 
 feat:Slider Tests
