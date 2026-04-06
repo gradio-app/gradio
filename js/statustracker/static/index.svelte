@@ -140,12 +140,12 @@
 	let cache_fade_timeout: ReturnType<typeof setTimeout> | null = null;
 
 	const should_hide = $derived(
-		type === "input" ||
-			!status ||
-			status === "complete" ||
-			show_progress === "hidden" ||
-			status == "streaming" ||
-			!!(show_validation_error && validation_error)
+		!(show_validation_error && validation_error) &&
+			(type === "input" ||
+				!status ||
+				status === "complete" ||
+				show_progress === "hidden" ||
+				status == "streaming")
 	);
 
 	let timer_diff = $state(0);
