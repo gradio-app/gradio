@@ -150,7 +150,7 @@
 		on:dragover={handle_drag_event}
 		on:drop={handle_drop}
 	>
-		{#if gradio.shared.loading_status.type === "output"}
+		{#if gradio.shared.loading_status.type === "output" || gradio.shared.loading_status.validation_error}
 			<StatusTracker
 				autoscroll={gradio.shared.autoscroll}
 				i18n={gradio.i18n}
