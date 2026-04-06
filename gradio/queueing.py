@@ -386,6 +386,7 @@ class Queue:
                 self.pending_event_ids_session[body.session_hash] = set()
         self.pending_event_ids_session[body.session_hash].add(event._id)
         self.event_ids_to_events[event._id] = event
+        body.event_id = event._id if not fn.batch else None
 
         if hasattr(fn.fn, "cache"):
             try:
@@ -411,6 +412,21 @@ class Queue:
                         fn=fn,
                         root_path=root_path,
                     )
+                    while response and response.get("is_generating", False):
+                        self.send_message(
+                            event,
+                            ProcessGeneratingMessage(
+                                output=response,
+                                success=True,
+                            ),
+                        )
+                        response = await route_utils.call_process_api(
+                            app=self.blocks.app,
+                            body=body,
+                            gr_request=gr_request,
+                            fn=fn,
+                            root_path=root_path,
+                        )
                 cache_duration = time.time() - cache_start
                 avg_time = (
                     self.process_time_per_fn[fn].avg_time

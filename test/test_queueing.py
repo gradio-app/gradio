@@ -75,6 +75,34 @@ class TestQueueing:
         assert job2.result() == "Hello, b!"
         assert job4.result() == "Hello, d!"
 
+    def test_cached_generator_finishes_on_queue_cache_hit(self, connect):
+        call_count = 0
+
+        @gr.cache
+        def stream_text(text):
+            nonlocal call_count
+            call_count += 1
+            for i in range(len(text)):
+                yield text[: i + 1]
+
+        with gr.Blocks() as demo:
+            name = gr.Textbox()
+            output = gr.Textbox()
+            name.submit(stream_text, name, output)
+
+        demo.queue()
+
+        with connect(demo) as client:
+            first = client.submit("hello", fn_index=0)
+            assert first.result(timeout=5) == "hello"
+            assert first.outputs() == ["h", "he", "hel", "hell", "hello"]
+
+            second = client.submit("hello", fn_index=0)
+            assert second.result(timeout=5) == "hello"
+            assert second.outputs() == ["h", "he", "hel", "hell", "hello"]
+
+        assert call_count == 1
+
     @pytest.mark.flaky
     @pytest.mark.parametrize(
         "default_concurrency_limit, statuses",
