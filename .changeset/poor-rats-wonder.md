@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Fix unbounded memory growth in queue event tracking
+fix:Pop finished events from queue data structures
