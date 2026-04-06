@@ -1,6 +1,6 @@
 ---
-"@gradio/atoms": minor
-"gradio": minor
+"@gradio/atoms": patch
+"gradio": patch
 ---
 
-feat:Add Checkbox and CheckboxGroup tests
+fix:Add Checkbox and CheckboxGroup tests
