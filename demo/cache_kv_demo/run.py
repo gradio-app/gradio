@@ -33,7 +33,7 @@ def generate(prompt, max_new_tokens, c=gr.Cache()):
 
     best_prefix, prefix_len = _find_longest_prefix(prompt, c)
     if best_prefix:
-        past = c.get(best_prefix)["kv"]
+        past = c.get(best_prefix)["kv"]  # type: ignore
         input_ids = tokenizer.encode(prompt, return_tensors="pt")
         prefix_token_len = tokenizer.encode(best_prefix, return_tensors="pt").shape[1]
         new_input_ids = input_ids[:, prefix_token_len:]
