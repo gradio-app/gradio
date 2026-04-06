@@ -15,7 +15,6 @@
 	const props = $props();
 	const gradio = new Gradio<AnnotatedImageEvents, AnnotatedImageProps>(props);
 
-	let old_value = $state(gradio.props.value);
 	let active: string | null = $state(null);
 	let image_container: HTMLElement;
 	let fullscreen = $state(false);
@@ -23,12 +22,7 @@
 		gradio.shared.label || gradio.i18n("annotated_image.annotated_image")
 	);
 
-	$effect(() => {
-		if (old_value != gradio.props.value) {
-			old_value = gradio.props.value;
-			gradio.dispatch("change");
-		}
-	});
+	gradio.watch_for_change();
 
 	function handle_mouseover(_label: string): void {
 		active = _label;
