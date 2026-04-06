@@ -12,7 +12,6 @@ import {
 	TEST_PNG
 } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
-import { tick } from "svelte";
 
 import Image from "./Index.svelte";
 import { get_coordinates_of_clicked_image } from "./shared/utils";
@@ -54,7 +53,9 @@ run_shared_prop_tests({
 	name: "Image",
 	base_props: {
 		...default_props
-	}
+	},
+	has_label: false,
+	has_validation_error: true
 });
 
 describe("Image", () => {
@@ -78,6 +79,40 @@ describe("Image", () => {
 		const img = container.querySelector("img");
 		expect(img).toBeTruthy();
 		expect(img?.getAttribute("src")).toBe("https://example.com/test.png");
+	});
+});
+
+describe("Props: label", () => {
+	afterEach(() => cleanup());
+
+	test("label text is rendered", async () => {
+		const result = await render(Image, {
+			...default_props,
+			label: "My Custom Label",
+			show_label: true
+		});
+		const el = result.getByText("My Custom Label");
+		expect(el).toBeTruthy();
+	});
+
+	test("show_label: true makes the label visible", async () => {
+		const result = await render(Image, {
+			...default_props,
+			label: "Visible Label",
+			show_label: true
+		});
+		const el = result.getByText("Visible Label");
+		expect(el).toBeVisible();
+	});
+
+	test("show_label: false hides the label visually but keeps it in the DOM", async () => {
+		const result = await render(Image, {
+			...default_props,
+			label: "Hidden Label",
+			show_label: false
+		});
+		const el = result.getByText("Hidden Label");
+		expect(el).not.toBeVisible();
 	});
 });
 

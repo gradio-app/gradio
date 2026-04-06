@@ -54,7 +54,7 @@ export function run_shared_prop_tests(config: SharedPropTestConfig): void {
 	): Record<string, any> {
 		return {
 			...base_props,
-			loading_status,
+			loading_status: { ...loading_status, ...overrides },
 			label,
 			...overrides
 		};
