@@ -100,9 +100,7 @@ describe("StatusTracker: validation errors", () => {
 		expect(getByText("Error message")).toBeVisible();
 	});
 
-	test(
-		"component is hidden when show_validation_error is false even with validation_error",
-		async () => {
+	test("component is hidden when show_validation_error is false even with validation_error", async () => {
 		target = document.createElement("div");
 		document.body.appendChild(target);
 
@@ -119,8 +117,7 @@ describe("StatusTracker: validation errors", () => {
 
 		const { getByTestId } = within(target);
 		expect(getByTestId("status-tracker")).not.toBeVisible();
-		}
-	);
+	});
 
 	test("cache indicator only appears on outputs", async () => {
 		target = document.createElement("div");
