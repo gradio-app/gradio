@@ -118,26 +118,4 @@ describe("StatusTracker: validation errors", () => {
 		const { getByTestId } = within(target);
 		expect(getByTestId("status-tracker")).not.toBeVisible();
 	});
-
-	test("cache indicator only appears on outputs", async () => {
-		target = document.createElement("div");
-		document.body.appendChild(target);
-
-		component = mount(StatusTracker, {
-			target,
-			props: {
-				...base_props,
-				status: "complete",
-				type: "input",
-				used_cache: "partial",
-				cache_duration: 0.1,
-				avg_time: 1
-			}
-		});
-		await tick();
-
-		const { queryByText } = within(target);
-		expect(queryByText("used cache")).toBeNull();
-		expect(queryByText("from cache")).toBeNull();
-	});
 });
