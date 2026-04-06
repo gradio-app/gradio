@@ -84,9 +84,7 @@ fsspec==2024.12.0
     #   huggingface-hub
     #   torch
 gradio==5.10.0
-    # via
-    #   -r test/requirements.in
-    #   gradio-pdf
+    # via gradio-pdf
 gradio-client==1.5.3
     # via gradio
 gradio-pdf==0.0.21
