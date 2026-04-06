@@ -280,24 +280,39 @@ class StaticProxyMiddleware:
             return
 
         # Proxy to a static worker
+        response_started = False
+
+        async def tracking_send(message):
+            nonlocal response_started
+            if message["type"] == "http.response.start":
+                response_started = True
+            await send(message)
+
         try:
-            await self._proxy(scope, receive, send)
-        except Exception:
-            # Can't fall through — receive() is already consumed.
-            # Return 502 so the client retries.
-            await send(
-                {
-                    "type": "http.response.start",
-                    "status": 502,
-                    "headers": [(b"content-type", b"text/plain")],
-                }
+            await self._proxy(scope, receive, tracking_send)
+        except Exception as e:
+            import logging
+
+            logging.getLogger("gradio.static_proxy").warning(
+                "Static proxy error for %s: %s", path, e
             )
-            await send(
-                {
-                    "type": "http.response.body",
-                    "body": b"Static worker unavailable",
-                }
-            )
+            if not response_started:
+                # Haven't sent headers yet — we can send a clean 502
+                await send(
+                    {
+                        "type": "http.response.start",
+                        "status": 502,
+                        "headers": [(b"content-type", b"text/plain")],
+                    }
+                )
+                await send(
+                    {
+                        "type": "http.response.body",
+                        "body": b"Static worker unavailable",
+                    }
+                )
+            # If response already started, nothing we can do —
+            # the client will see a truncated response.
 
     async def _proxy(self, scope: Scope, receive: Receive, send: Send) -> None:
         pool = self.gradio_app.static_worker_pool
