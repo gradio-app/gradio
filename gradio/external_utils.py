@@ -15,7 +15,7 @@ from huggingface_hub import HfApi, ImageClassificationOutputElement, InferenceCl
 from huggingface_hub.errors import HFValidationError
 
 from gradio import components
-from gradio._vendor import yaml
+import yaml
 from gradio.exceptions import Error, TooManyRequestsError
 
 
