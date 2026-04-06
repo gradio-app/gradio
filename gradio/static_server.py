@@ -329,8 +329,7 @@ class StaticWorkerPool:
         for process in self.workers:
             process.kill()
         for process in self.workers:
-            process.join(timeout=3)
+            process.join(timeout=0.5)
         self.workers.clear()
         self.ports.clear()
         self._started = False
-        logger.info("StaticWorkerPool shut down")
