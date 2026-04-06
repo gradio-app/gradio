@@ -18,7 +18,7 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 
 
-def _find_longest_prefix(prompt: str, c: gr.cache) -> tuple[str | None, int]:
+def _find_longest_prefix(prompt: str, c: gr.Cache) -> tuple[str | None, int]:
     best_key = None
     best_len = 0
     for cached_key in c.keys():
