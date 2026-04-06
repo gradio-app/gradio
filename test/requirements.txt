@@ -21,7 +21,7 @@ attrs==25.1.0
     #   hypothesis
     #   jsonschema
     #   referencing
-audioop-lts==0.2.2
+audioop-lts==0.2.2 ; python_version >= "3.13"
     # via gradio
 boto3==1.36.8
     # via -r test/requirements.in
