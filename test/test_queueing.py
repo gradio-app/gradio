@@ -103,6 +103,34 @@ class TestQueueing:
 
         assert call_count == 1
 
+    def test_queue_average_excludes_manual_cache_hits(self, connect):
+        def greet(x, c=gr.Cache()):
+            hit = c.get(x)
+            if hit is not None:
+                return hit["value"]
+            time.sleep(0.02)
+            value = f"Hello, {x}!"
+            c.set(x, value=value)
+            return value
+
+        with gr.Blocks() as demo:
+            name = gr.Textbox()
+            output = gr.Textbox()
+            name.submit(greet, name, output)
+
+        demo.queue()
+
+        with connect(demo) as client:
+            first = client.submit("x", fn_index=0)
+            assert first.result(timeout=5) == "Hello, x!"
+
+            second = client.submit("x", fn_index=0)
+            assert second.result(timeout=5) == "Hello, x!"
+
+        process_time = demo._queue.process_time_per_fn[demo.fns[0]]
+        assert process_time.count == 1
+        assert process_time.avg_time >= 0.02
+
     @pytest.mark.flaky
     @pytest.mark.parametrize(
         "default_concurrency_limit, statuses",

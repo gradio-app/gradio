@@ -266,7 +266,12 @@
 	});
 
 	$effect(() => {
-		if (status === "complete" && used_cache && cache_duration != null) {
+		if (
+			status === "complete" &&
+			type === "output" &&
+			used_cache &&
+			cache_duration != null
+		) {
 			cache_display_time = cache_duration.toFixed(1);
 			cache_indicator_label =
 				used_cache === "full" ? "from cache" : "used cache";

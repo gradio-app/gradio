@@ -1009,7 +1009,8 @@ class Queue:
                     if not events[0].streaming
                     else first_iteration
                 )
-                self.process_time_per_fn[events[0].fn].add(duration)
+                if not response.get("used_cache"):
+                    self.process_time_per_fn[events[0].fn].add(duration)
                 for event in events:
                     self.event_analytics[event._id]["process_time"] = duration
         except Exception as e:
