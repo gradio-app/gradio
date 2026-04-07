@@ -106,6 +106,9 @@ exclude = [
   "gradio/_vendor/**",
 ]
 
+[tool.uv]
+exclude-newer = "7 days"
+
 [tool.ruff]
 exclude = ["gradio/node/*.py", ".venv/*", "gradio/_frontend_code/*.py", "gradio/_vendor/*"]
 
