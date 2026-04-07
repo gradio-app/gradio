@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ThemeData } from "./types";
-	import { clickOutside } from "./utils";
+	import { clickOutside, is_color_dark } from "./utils";
 
 	export let theme: ThemeData;
 	export let on_close: () => void;
@@ -38,27 +38,6 @@ with gr.Blocks(theme=gr.Theme.from_hub("${theme.id}")) as demo:
 				code_copied = false;
 			}, 1500);
 		});
-	}
-
-	function is_color_dark(hex: string): boolean {
-		let m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-		if (!m) {
-			const short = /^#?([a-f\d])([a-f\d])([a-f\d])$/i.exec(hex);
-			if (short) {
-				m = [
-					"",
-					short[1] + short[1],
-					short[2] + short[2],
-					short[3] + short[3]
-				] as unknown as RegExpExecArray;
-			}
-		}
-		if (!m) return false;
-		const r = parseInt(m[1], 16);
-		const g = parseInt(m[2], 16);
-		const b = parseInt(m[3], 16);
-		const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-		return luminance < 0.5;
 	}
 </script>
 

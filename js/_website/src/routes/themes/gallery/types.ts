@@ -32,7 +32,6 @@ export type ThemeData = {
 		button_primary: string;
 		button_secondary_border: string;
 		button_secondary_text: string;
-		input_background: string;
 	};
 	fonts: {
 		main: string;
