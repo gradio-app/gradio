@@ -40,10 +40,6 @@ runs:
       shell: bash
       run: |
         echo "venv_activate=$VENV_ACTIVATE" >> $GITHUB_OUTPUT
-    - name: Set uv exclude-newer
-      shell: bash
-      run: |
-        echo "UV_EXCLUDE_NEWER=7 days" >> $GITHUB_ENV
     - name: Install Python
       id: setup-python
       uses: actions/setup-python@v5
@@ -54,6 +50,10 @@ runs:
           requirements.txt
           requirements-mcp.txt
           test/requirements.txt
+    - name: Set uv exclude-newer
+      shell: bash
+      run: |
+        echo "UV_EXCLUDE_NEWER=$(python -c 'from datetime import UTC, datetime, timedelta; print((datetime.now(UTC) - timedelta(days=7)).date().isoformat())')" >> "$GITHUB_ENV"
     - name: Install uv (linux)
       if: ${{ inputs.os == 'ubuntu-latest' }}
       shell: bash

@@ -12,8 +12,6 @@ permissions: {}
 
 jobs:
   benchmark:
-    env:
-      UV_EXCLUDE_NEWER: 7 days
     permissions:
       contents: read
       pull-requests: write
@@ -40,6 +38,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
+
+      - name: Set uv exclude-newer
+        if: steps.changes.outputs.should_run == 'true'
+        run: |
+          echo "UV_EXCLUDE_NEWER=$(python -c 'from datetime import UTC, datetime, timedelta; print((datetime.now(UTC) - timedelta(days=7)).date().isoformat())')" >> "$GITHUB_ENV"
 
       - name: Install uv
         if: steps.changes.outputs.should_run == 'true'
