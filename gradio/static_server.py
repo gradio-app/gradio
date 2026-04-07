@@ -314,6 +314,13 @@ class StaticWorkerPool:
                 except Exception:
                     time.sleep(0.1)
 
+        # Write ports to file so external tools (nginx, benchmarks) can discover them
+        ports_file = os.environ.get("GRADIO_WORKER_PORTS_FILE")
+        if ports_file:
+            import json
+
+            Path(ports_file).write_text(json.dumps(self.ports))
+
         logger.info(
             f"StaticWorkerPool: {self.num_workers} workers on ports {self.ports}"
         )

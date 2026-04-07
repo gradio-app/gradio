@@ -102,16 +102,7 @@ async def resolve_fn_info(
             elif comp_type in ["state", "chatbot"]:
                 data_template.append(None)
             elif comp_type in ["image", "audio", "video"]:
-                data_template.append(
-                    {
-                        "is_file": True,
-                        "choices": [
-                            str(f.resolve())
-                            for f in (Path("sample-inputs") / comp_type).iterdir()
-                            if f.is_file()
-                        ],
-                    }
-                )
+                data_template.append({"is_file": True, "choices": [str(f.resolve()) for f in (Path("sample-inputs") / comp_type).iterdir() if f.is_file()]})
             else:
                 data_template.append("hello")
 
@@ -129,6 +120,41 @@ def load_prompts(app_path: str) -> list[str] | None:
     return None
 
 
+import shutil
+
+
+def save_sample_outputs(
+    results: list[dict],
+    output_dir: Path,
+    round_id: int,
+    sample_count: int = 1,
+):
+    """Copy output files from a random sample of successful results to output_dir/samples/."""
+    successful = [r for r in results if r.get("success") and r.get("output_data")]
+    if not successful or output_dir is None:
+        if output_dir is not None:
+            with_data = sum(1 for r in results if r.get("output_data"))
+            print(f"  [samples] Round {round_id}: {with_data}/{len(results)} results have output_data, {len(successful)} successful with data")
+        return
+    samples_dir = output_dir / "samples"
+    samples_dir.mkdir(parents=True, exist_ok=True)
+    sample = random.sample(successful, min(sample_count, len(successful)))
+    for r in sample:
+        for i, item in enumerate(r["output_data"]):
+            if not isinstance(item, dict):
+                continue
+            # Gradio FileData has a "path" key pointing to the local file
+            path = item.get("path")
+            if not path or not Path(path).exists():
+                continue
+            ext = Path(path).suffix or ".bin"
+            dest = samples_dir / f"round_{round_id}_user_{r['user_id']}_output_{i}{ext}"
+            try:
+                shutil.copy2(path, dest)
+            except Exception as e:
+                print(f"  WARNING: Failed to copy sample output: {e}")
+
+
 async def run_httpx_tier(
     app_url: str,
     num_users: int,
@@ -138,11 +164,13 @@ async def run_httpx_tier(
     mode: str = "burst",
     on_round_complete: Callable | None = None,
     prompts: list[str] | None = None,
+    output_dir: Path | None = None,
+    sample_count: int = 1,
 ) -> list[dict]:
     """Run a tier using httpx via /queue/join + /queue/data.
 
     Modes:
-        burst: All N users fire simultaneously per round (asyncio.Barrier).
+        burst: All N users fire simultaneously per round.
         wave:  Each user waits a random delay (0 to 500ms) before firing,
                simulating staggered real-world arrivals.
     """
@@ -161,9 +189,7 @@ async def run_httpx_tier(
         result = None
         with open(filepath, "rb") as f:
             files = {"files": (filepath, f, "text/plain")}
-            response = await client.post(
-                f"{app_url}/gradio_api/upload", files=files, timeout=60
-            )
+            response = await client.post(f"{app_url}/gradio_api/upload", files=files, timeout=60, follow_redirects=True)
             result = response.json()[0]
             return result, time.monotonic() - start
 
@@ -174,22 +200,24 @@ async def run_httpx_tier(
         data = []
         start = time.monotonic()
         upload_ms = None
-        for item in data_template:
-            if prompts and isinstance(item, str):
-                data.append(random.choice(prompts))
-            elif prompts and isinstance(item, dict) and item["is_file"] is True:
-                file = random.choice(prompts)
-                path, upload_ms = await _do_upload(client, file["path"], app_url)
-                data.append({"path": path, "meta": {"_type": "gradio.FileData"}})
-            elif isinstance(item, str):
-                data.append(f"hello from user {user_id} req {req_id}")
-            elif isinstance(item, dict) and item["is_file"] is True:
-                path, upload_ms = await _do_upload(
-                    client, random.choice(item["choices"]), app_url
-                )
-                data.append({"path": path, "meta": {"_type": "gradio.FileData"}})
-            else:
-                data.append(item)
+        # If prompts are full data payloads (list of lists), use them directly
+        if prompts and isinstance(prompts[0], list):
+            data = list(random.choice(prompts))
+        else:
+            for item in data_template:
+                if prompts and isinstance(item, str):
+                    data.append(random.choice(prompts))
+                elif prompts and isinstance(item, dict) and item['is_file'] is True:
+                    file = random.choice(prompts)
+                    path, upload_ms = await _do_upload(client, file['path'], app_url)
+                    data.append({'path': path, "meta": {'_type': 'gradio.FileData'}})
+                elif isinstance(item, str):
+                    data.append(f"hello from user {user_id} req {req_id}")
+                elif isinstance(item, dict) and item['is_file'] is True:
+                    path, upload_ms = await _do_upload(client, random.choice(item['choices']), app_url)
+                    data.append({'path': path, "meta": {'_type': 'gradio.FileData'}})
+                else:
+                    data.append(item)
         try:
             resp = await client.post(
                 f"{app_url}/gradio_api/queue/join",
@@ -206,6 +234,7 @@ async def run_httpx_tier(
                 )
 
             completed = False
+            output_data = None
             async with client.stream(
                 "GET",
                 f"{app_url}/gradio_api/queue/data",
@@ -213,11 +242,20 @@ async def run_httpx_tier(
                 timeout=120.0,
             ) as stream:
                 deadline = start + request_timeout
-                async for line in stream.aiter_lines():
-                    if "process_completed" in line:
-                        completed = True
-                        break
-                    if time.monotonic() > deadline:
+                buffer = b""
+                async for chunk in stream.aiter_bytes():
+                    buffer += chunk
+                    while b"\n\n" in buffer:
+                        message, buffer = buffer.split(b"\n\n", 1)
+                        line = message.decode("utf-8").rstrip("\n")
+                        if not line or not line.startswith("data:"):
+                            continue
+                        msg = json.loads(line[5:])
+                        if msg.get("msg") == "process_completed":
+                            completed = True
+                            output_data = msg.get("output", {}).get("data")
+                            break
+                    if completed or time.monotonic() > deadline:
                         break
 
             if not completed:
@@ -232,6 +270,7 @@ async def run_httpx_tier(
                 "latency_ms": duration_ms,
                 "success": True,
                 "upload_ms": upload_ms * 1000 if upload_ms is not None else None,
+                "output_data": output_data,
             }
         except Exception as e:
             duration_ms = (time.monotonic() - start) * 1000
@@ -242,7 +281,7 @@ async def run_httpx_tier(
                 "latency_ms": duration_ms,
                 "success": False,
                 "error": f"{error_type}: {e}" if str(e) else error_type,
-                "upload_ms": upload_ms * 1000 if upload_ms is not None else None,
+                "upload_ms": upload_ms * 1000 if upload_ms is not None else None
             }
 
     # Overall timeout for an entire round. If the server deadlocks,
@@ -253,13 +292,20 @@ async def run_httpx_tier(
     for req_id in range(requests_per_user):
         async with httpx.AsyncClient() as client:
             if mode == "burst":
-                barrier = asyncio.Barrier(num_users)
+                # Use an Event + counter instead of asyncio.Barrier (3.11+)
+                _arrived = 0
+                _go = asyncio.Event()
 
                 async def burst_request(
-                    uid: int, rid: int = req_id, b: asyncio.Barrier = barrier
+                    uid: int, rid: int = req_id,
                 ):
-                    session_hash = f"bench_{uid}_{rid}_{id(b)}"
-                    await b.wait()
+                    nonlocal _arrived
+                    session_hash = f"bench_{uid}_{rid}_{id(_go)}"
+                    _arrived += 1
+                    if _arrived >= num_users:
+                        _go.set()
+                    else:
+                        await _go.wait()
                     return await _do_request(client, uid, rid, session_hash)
 
                 try:
@@ -315,7 +361,13 @@ async def run_httpx_tier(
         if on_round_complete is not None:
             successful = sum(1 for r in results if r.get("success"))
             on_round_complete(req_id + 1, requests_per_user, successful, num_users)
+        # Save sample outputs after the round (doesn't affect latency measurements)
+        if output_dir is not None:
+            save_sample_outputs(results, output_dir, req_id, sample_count)
 
+    # Strip output_data before returning (it would bloat the JSONL files)
+    for lat in latencies:
+        lat.pop("output_data", None)
     return latencies
 
 
@@ -374,6 +426,243 @@ def compute_client_summary(latencies: list[dict]) -> dict:
     }
 
 
+async def _discover_asset_urls(client, app_url):
+    """Fetch the main page and extract static/asset URLs from the HTML."""
+    import re
+    urls = []
+    try:
+        resp = await client.get(f"{app_url}/", timeout=10.0)
+        if resp.status_code == 200:
+            html = resp.text
+            # Match src="..." and href="..." pointing to assets/ or static/
+            # URLs may be relative ("./assets/...") or absolute ("/assets/...")
+            for match in re.findall(r'(?:src|href)="\.?(/?(?:assets|static)/[^"]+)"', html):
+                # Normalize to absolute path
+                if not match.startswith("/"):
+                    match = "/" + match
+                urls.append(match)
+    except Exception:
+        pass
+    return urls
+
+
+async def _bg_page_loads(client, app_url, results, stop_event, asset_urls=None):
+    """Simulate users loading the app page, including static asset fetches."""
+    endpoints = ["/", "/config", "/gradio_api/info", "/theme.css"]
+    if asset_urls:
+        endpoints.extend(asset_urls)
+    while not stop_event.is_set():
+        endpoint = random.choice(endpoints)
+        start = time.monotonic()
+        try:
+            resp = await client.get(f"{app_url}{endpoint}", timeout=10.0)
+            results.append({"latency_ms": (time.monotonic() - start) * 1000, "endpoint": endpoint, "success": resp.status_code == 200})
+        except Exception as e:
+            results.append({"latency_ms": (time.monotonic() - start) * 1000, "endpoint": endpoint, "success": False, "error": str(e)})
+        await asyncio.sleep(random.uniform(0.05, 0.5))
+
+
+async def _bg_uploads(client, app_url, results, stop_event, upload_files):
+    """Simulate users uploading files."""
+    while not stop_event.is_set():
+        filepath = random.choice(upload_files)
+        start = time.monotonic()
+        try:
+            with open(filepath, "rb") as f:
+                files = {"files": (Path(filepath).name, f, "application/octet-stream")}
+                resp = await client.post(f"{app_url}/gradio_api/upload", files=files, timeout=60.0)
+            results.append({"latency_ms": (time.monotonic() - start) * 1000, "success": resp.status_code == 200, "file_size_bytes": Path(filepath).stat().st_size})
+        except Exception as e:
+            results.append({"latency_ms": (time.monotonic() - start) * 1000, "success": False, "error": str(e)})
+        await asyncio.sleep(random.uniform(0.1, 0.5))
+
+
+async def _bg_downloads(client, app_url, results, stop_event, file_urls):
+    """Simulate users downloading output files."""
+    while not stop_event.is_set():
+        url = random.choice(file_urls)
+        full_url = f"{app_url}{url}" if url.startswith("/") else url
+        start = time.monotonic()
+        try:
+            resp = await client.get(full_url, timeout=30.0)
+            results.append({"latency_ms": (time.monotonic() - start) * 1000, "success": resp.status_code == 200, "response_size_bytes": len(resp.content)})
+        except Exception as e:
+            results.append({"latency_ms": (time.monotonic() - start) * 1000, "success": False, "error": str(e)})
+        await asyncio.sleep(random.uniform(0.05, 0.5))
+
+
+async def run_background_traffic(app_url, num_users, stop_event, file_urls, upload_files):
+    """Spawn background traffic workers and return results when stopped."""
+    bg_results = {"page_loads": [], "uploads": [], "downloads": []}
+    tasks = []
+
+    async with httpx.AsyncClient(
+        limits=httpx.Limits(max_connections=200, max_keepalive_connections=50), follow_redirects=True
+    ) as client:
+        # Discover static/asset URLs from the HTML page
+        asset_urls = await _discover_asset_urls(client, app_url)
+        if asset_urls:
+            print(f"  Discovered {len(asset_urls)} static asset URLs for background traffic")
+
+        # Cap worker counts to avoid exhausting file descriptors
+        # Each worker holds ~1 connection, plus prediction users need their own
+        max_bg_workers = 50
+
+        # Page loaders: 2x prediction users (capped)
+        for _ in range(min(max(1, num_users * 2), max_bg_workers)):
+            tasks.append(asyncio.create_task(_bg_page_loads(client, app_url, bg_results["page_loads"], stop_event, asset_urls)))
+
+        # Uploaders: 1x prediction users (capped)
+        if upload_files:
+            for _ in range(min(max(1, num_users), max_bg_workers)):
+                tasks.append(asyncio.create_task(_bg_uploads(client, app_url, bg_results["uploads"], stop_event, upload_files)))
+
+        # Downloaders: 2x prediction users (capped)
+        if file_urls:
+            for _ in range(min(max(1, num_users * 2), max_bg_workers)):
+                tasks.append(asyncio.create_task(_bg_downloads(client, app_url, bg_results["downloads"], stop_event, file_urls)))
+
+        # Wait for stop signal, then let workers finish their current request
+        await stop_event.wait()
+        await asyncio.gather(*tasks, return_exceptions=True)
+
+    return bg_results
+
+
+
+def compute_background_summary(bg_results):
+    """Compute p50/p90/p99 for each background traffic type."""
+    import numpy as np
+    summary = {}
+    for traffic_type, results in bg_results.items():
+        if not results:
+            continue
+        successful = [r["latency_ms"] for r in results if r.get("success")]
+        total = len(results)
+        if not successful:
+            summary[traffic_type] = {"count": total, "success_rate": 0}
+            continue
+        arr = np.array(successful)
+        summary[traffic_type] = {
+            "count": total,
+            "success_count": len(successful),
+            "success_rate": len(successful) / total,
+            "p50": float(np.percentile(arr, 50)),
+            "p90": float(np.percentile(arr, 90)),
+            "p99": float(np.percentile(arr, 99)),
+            "mean": float(np.mean(arr)),
+        }
+    return summary
+
+
+NGINX_CONF_TEMPLATE = """\
+worker_processes auto;
+pid /tmp/nginx.pid;
+error_log /tmp/nginx_error.log;
+
+events {{
+    worker_connections 1024;
+}}
+
+http {{
+    access_log off;
+    client_max_body_size 100m;
+
+    upstream gradio_main {{
+        server 127.0.0.1:{gradio_port};
+    }}
+
+    upstream static_workers {{
+{upstream_servers}
+    }}
+
+    server {{
+        listen {nginx_port};
+
+        # Static routes -> worker processes (direct, no double-send)
+        location /gradio_api/upload {{
+            proxy_pass http://static_workers/upload;
+            proxy_set_header Host $host;
+            proxy_request_buffering off;
+        }}
+        location /gradio_api/file= {{
+            proxy_pass http://static_workers/file=;
+            proxy_set_header Host $host;
+        }}
+        location /gradio_api/file/ {{
+            proxy_pass http://static_workers/file/;
+            proxy_set_header Host $host;
+        }}
+        location /static/ {{
+            proxy_pass http://static_workers;
+            proxy_set_header Host $host;
+        }}
+        location /assets/ {{
+            proxy_pass http://static_workers;
+            proxy_set_header Host $host;
+        }}
+        location /svelte/ {{
+            proxy_pass http://static_workers;
+            proxy_set_header Host $host;
+        }}
+        location /favicon.ico {{
+            proxy_pass http://static_workers;
+            proxy_set_header Host $host;
+        }}
+        location /custom_component/ {{
+            proxy_pass http://static_workers/custom_component/;
+            proxy_set_header Host $host;
+        }}
+
+        # Everything else -> main Gradio server
+        location / {{
+            proxy_pass http://gradio_main;
+            proxy_set_header Host $host;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            chunked_transfer_encoding off;
+            proxy_buffering off;
+            proxy_cache off;
+        }}
+    }}
+}}
+"""
+
+
+def _start_nginx(gradio_port: int, worker_ports: list[int], nginx_port: int) -> subprocess.Popen | None:
+    """Generate nginx config and start nginx to front the Gradio app + static workers."""
+    if not worker_ports:
+        return None
+
+    upstream_servers = "\n".join(
+        f"        server 127.0.0.1:{p};" for p in worker_ports
+    )
+    conf = NGINX_CONF_TEMPLATE.format(
+        gradio_port=gradio_port,
+        nginx_port=nginx_port,
+        upstream_servers=upstream_servers,
+    )
+    conf_path = Path("/tmp/gradio_nginx.conf")
+    conf_path.write_text(conf)
+
+    proc = subprocess.Popen(
+        ["nginx", "-c", str(conf_path), "-g", "daemon off;"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    # Wait for nginx to be ready
+    for _ in range(50):
+        try:
+            r = httpx.get(f"http://127.0.0.1:{nginx_port}/gradio_api/info", timeout=2)
+            if r.status_code == 200:
+                print(f"  nginx ready on port {nginx_port}, proxying to gradio:{gradio_port} + workers:{worker_ports}")
+                return proc
+        except Exception:
+            time.sleep(0.1)
+    print("  WARNING: nginx did not become ready in time")
+    return proc
+
+
 async def run_benchmark(
     app_path: str,
     tiers: list[int],
@@ -384,7 +673,22 @@ async def run_benchmark(
     concurrency_limit: int | None = 1,
     mode: str = "burst",
     max_threads: int = 40,
+    mixed_traffic: bool = False,
+    num_workers: int = 1,
+    use_nginx: bool = False,
 ):
+    import socket
+
+    def find_available_port(start_port):
+        """Find an available port starting from start_port."""
+        p = start_port
+        while True:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                if s.connect_ex(("127.0.0.1", p)) != 0:
+                    return p
+            p += 1
+
+    port = find_available_port(port)
     app_url = f"http://127.0.0.1:{port}"
 
     # Launch the target app
@@ -394,10 +698,18 @@ async def run_benchmark(
     cl_str = "none" if concurrency_limit is None else str(concurrency_limit)
     env["GRADIO_CONCURRENCY_LIMIT"] = cl_str
     env["GRADIO_MAX_THREADS"] = str(max_threads)
+    if concurrency_limit is not None:
+        # Need this for ZeroGPU spaces
+        env["GRADIO_DEFAULT_CONCURRENCY_LIMIT"] = str(concurrency_limit)
+    if num_workers > 1:
+        env["GRADIO_NUM_WORKERS"] = str(num_workers)
+    worker_ports_file = "/tmp/gradio_worker_ports.json"
+    env["GRADIO_WORKER_PORTS_FILE"] = worker_ports_file
     env["PYTHONUNBUFFERED"] = "1"
 
     print(f"Synching sample-inputs to {(Path(os.getcwd()) / 'sample-inputs')}")
     sync_bucket("hf://buckets/gradio/sample-inputs", "sample-inputs")
+    env["GRADIO_ALLOWED_PATHS"] = str((Path(os.getcwd()) / 'sample-inputs').resolve())
 
     print(f"Launching app: {app_path}")
     proc = subprocess.Popen(
@@ -428,6 +740,30 @@ async def run_benchmark(
 
         print(f"Server ready at {app_url}")
 
+        # Start nginx if requested and workers are available
+        nginx_proc = None
+        if use_nginx and num_workers > 1:
+            worker_ports = []
+            # Wait for the ports file — workers may still be starting
+            for _ in range(30):
+                if Path(worker_ports_file).exists():
+                    worker_ports = json.loads(Path(worker_ports_file).read_text())
+                    if worker_ports:
+                        break
+                time.sleep(0.5)
+            if worker_ports:
+                nginx_port = find_available_port(8080)
+                nginx_proc = _start_nginx(port, worker_ports, nginx_port)
+                if nginx_proc:
+                    app_url = f"http://127.0.0.1:{nginx_port}"
+                    print(f"Benchmark will use nginx at {app_url}")
+                else:
+                    print("WARNING: nginx failed to start, falling back to direct connection")
+            else:
+                print(f"WARNING: no worker ports found in {worker_ports_file}, skipping nginx")
+
+        print(f"Benchmark app_url = {app_url}")
+
         # Resolve fn_index and data template
         fn_index, data_template = await resolve_fn_info(app_url, api_name)
         print(f"Using fn_index={fn_index}, data_template={data_template}")
@@ -454,6 +790,25 @@ async def run_benchmark(
             pass
         await clear_profiling_data(app_url)
 
+        # Seed mixed traffic data if enabled
+        download_urls = []
+        upload_files = []
+        if mixed_traffic:
+            print("Mixed traffic enabled — collecting upload/download files...")
+            sample_inputs = Path("sample-inputs")
+            if sample_inputs.exists():
+                sample_files = [str(f) for f in sample_inputs.rglob("*") if f.is_file()]
+                upload_files = sample_files
+                # Build download URLs from sample-inputs (served via /gradio_api/file=)
+                # Requires "sample-inputs" in the app's allowed_paths
+                download_urls = [
+                    f"/gradio_api/file={str(Path(f).resolve())}" for f in sample_files
+                ]
+            if upload_files:
+                print(f"  Found {len(upload_files)} files for upload/download traffic")
+            else:
+                print("  No sample-inputs found — upload/download traffic will be skipped")
+
         # Create output directory
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         base_dir = Path(output_dir) / timestamp
@@ -473,10 +828,7 @@ async def run_benchmark(
                 from tqdm import tqdm
 
                 pbar = tqdm(
-                    total=requests_per_user,
-                    desc=f"  Tier {tier}",
-                    unit="round",
-                    leave=True,
+                    total=requests_per_user, desc=f"  Tier {tier}", unit="round", leave=True,
                 )
 
                 def on_round_complete(round_num, total_rounds, successful, num_users):
@@ -493,6 +845,15 @@ async def run_benchmark(
                         flush=True,
                     )
 
+            # Start background traffic if enabled
+            bg_task = None
+            stop_event = None
+            if mixed_traffic:
+                stop_event = asyncio.Event()
+                bg_task = asyncio.create_task(
+                    run_background_traffic(app_url, tier, stop_event, download_urls, upload_files)
+                )
+
             # Run the tier
             start = time.monotonic()
             client_latencies = await run_httpx_tier(
@@ -504,10 +865,31 @@ async def run_benchmark(
                 mode=mode,
                 on_round_complete=on_round_complete,
                 prompts=prompts,
+                output_dir=tier_dir,
             )
             if pbar is not None:
                 pbar.close()
             elapsed = time.monotonic() - start
+
+            # Stop background traffic and collect results
+            bg_results = None
+            if bg_task is not None:
+                stop_event.set()
+                bg_results = await bg_task
+
+                # Save background traffic JSONL files
+                for traffic_type, results in bg_results.items():
+                    if results:
+                        with open(tier_dir / f"background_{traffic_type}.jsonl", "w") as f:
+                            for r in results:
+                                f.write(json.dumps(r) + "\n")
+
+                bg_summary = compute_background_summary(bg_results)
+                total_bg = sum(len(v) for v in bg_results.values())
+                print(f"  Background traffic: {total_bg} requests across {len(bg_summary)} types")
+                for ttype, s in bg_summary.items():
+                    if s.get("p50"):
+                        print(f"    {ttype}: p50={s['p50']:.1f}ms p90={s['p90']:.1f}ms ({s['count']} reqs, {s['success_rate']:.0%} ok)")
 
             # Fetch server profiling data
             traces, server_summary = await fetch_profiling_data(app_url)
@@ -523,6 +905,8 @@ async def run_benchmark(
                 "client_summary": client_summary,
                 "server_summary": server_summary,
             }
+            if bg_results is not None:
+                tier_result["background_traffic"] = compute_background_summary(bg_results)
             all_tier_results.append(tier_result)
 
             # Save tier data
@@ -568,6 +952,9 @@ async def run_benchmark(
         print(f"\nResults saved to {base_dir}")
 
     finally:
+        if nginx_proc is not None:
+            nginx_proc.terminate()
+            nginx_proc.wait(timeout=3)
         exit_code = proc.poll()
         if exit_code is not None:
             print(f"\nWARNING: App process already exited with code {exit_code}")
@@ -649,6 +1036,22 @@ def main():
         default="40",
         help="Concurrency limit for the app (default: 1, use 'none' for unlimited)",
     )
+    parser.add_argument(
+        "--mixed-traffic",
+        action="store_true",
+        help="Run background traffic (page loads, uploads, downloads, heartbeats) alongside predictions",
+    )
+    parser.add_argument(
+        "--num-workers",
+        type=int,
+        default=1,
+        help="Number of Gradio workers (sets GRADIO_NUM_WORKERS). Default: 1",
+    )
+    parser.add_argument(
+        "--nginx",
+        action="store_true",
+        help="Put nginx in front to route static traffic to workers (requires nginx installed)",
+    )
 
     args = parser.parse_args()
     tiers = [int(t.strip()) for t in args.tiers.split(",")]
@@ -666,6 +1069,9 @@ def main():
             concurrency_limit=cl,
             mode=args.mode,
             max_threads=max_threads,
+            mixed_traffic=args.mixed_traffic,
+            num_workers=args.num_workers,
+            use_nginx=args.nginx,
         )
     )
 
