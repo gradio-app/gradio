@@ -55,6 +55,18 @@ describe("Props: value", () => {
 		});
 	});
 
+	test("undefined value renders no radio checked", async () => {
+		const { getAllByRole } = await render(Radio, {
+			...default_props,
+			value: undefined
+		});
+
+		const radios = getAllByRole("radio") as HTMLInputElement[];
+		radios.forEach((radio) => {
+			expect(radio).not.toBeChecked();
+		});
+	});
+
 	test("numeric values are supported in choices", async () => {
 		const numeric_choices: [string, number][] = [
 			["one", 1],
