@@ -103,10 +103,14 @@ exclude = [
   "gradio/_frontend_code/*.py",
   "gradio/cli/commands/cli_env_info.py",
   "demo/scratch/**",
+  "gradio/_vendor/**",
 ]
 
+[tool.uv]
+exclude-newer = "7 days"
+
 [tool.ruff]
-exclude = ["gradio/node/*.py", ".venv/*", "gradio/_frontend_code/*.py"]
+exclude = ["gradio/node/*.py", ".venv/*", "gradio/_frontend_code/*.py", "gradio/_vendor/*"]
 
 [tool.ruff.lint]
 extend-select = [
