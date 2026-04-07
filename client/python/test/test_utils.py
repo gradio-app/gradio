@@ -117,15 +117,22 @@ def test_get_mimetype(filename, expected_mimetype):
     "orig_filename, new_filename",
     [
         ("abc", "abc"),
-        ("$$AAabc&3", "AAabc3"),
-        ("$$AAa&..b-c3_", "AAa..b-c3_"),
-        ("#.txt", "file.txt"),
-        ("###.pdf", "file.pdf"),
-        ("@!$.csv", "file.csv"),
-        ("a#.txt", "a.txt"),
+        ("$$AAabc&3", "$$AAabc&3"),
+        ("$$AAa&..b-c3_", "$$AAa&..b-c3_"),
+        ("#.txt", "#.txt"),
+        ("###.pdf", "###.pdf"),
+        ("@!$.csv", "@!$.csv"),
+        ("a#.txt", "a#.txt"),
+        # Path traversal characters are stripped
+        ("a/b\\c.txt", "abc.txt"),
+        ('a<b>c:"d.txt', "abcd.txt"),
+        ("a\x00b.txt", "ab.txt"),
+        # Special characters like parentheses, brackets, braces are preserved
+        ("[{(Hunting's Shadowsl!)}].epub", "[{(Hunting's Shadowsl!)}].epub"),
+        ("l!)}]test[{(.txt", "l!)}]test[{(.txt"),
         (
             "ゆかりです｡私､こんなかわいい服は初めて着ました…｡なんだかうれしくって､楽しいです｡歌いたくなる気分って､初めてです｡これがｱｲﾄﾞﾙってことなのかもしれませんね",
-            "ゆかりです私こんなかわいい服は初めて着ましたなんだかうれしくって楽しいです歌いたくなる気分って初めてですこれがｱｲﾄﾞﾙってことなの",
+            "ゆかりです｡私､こんなかわいい服は初めて着ました…｡なんだかうれしくって､楽しいです｡歌いたくなる気分って､初めてです｡これがｱｲﾄﾞﾙってことなの",
         ),
         (
             "Bringing-computational-thinking-into-classrooms-a-systematic-review-on-supporting-teachers-in-integrating-computational-thinking-into-K12-classrooms_2024_Springer-Science-and-Business-Media-Deutschland-GmbH.pdf",
