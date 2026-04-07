@@ -57,7 +57,6 @@ from gradio_client.snippet import generate_code_snippets
 from gradio_client.utils import ServerMessage
 from jinja2.exceptions import TemplateNotFound
 from python_multipart.multipart import parse_options_header
-from starlette.concurrency import iterate_in_threadpool
 from starlette.background import BackgroundTask
 from starlette.datastructures import UploadFile as StarletteUploadFile
 from starlette.responses import RedirectResponse
@@ -228,29 +227,6 @@ def toorjson(value):
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 templates.env.filters["toorjson"] = toorjson
 
-ZEROGPU_HANDSHAKE_MARKER = "data-gradio-zerogpu-handshake"
-ZEROGPU_HANDSHAKE_MESSAGE = "supports-zerogpu-headers"
-ZEROGPU_HANDSHAKE_SNIPPET = f"""
-<script {ZEROGPU_HANDSHAKE_MARKER}>
-(() => {{
-  window.addEventListener("message", (event) => {{
-    if (event.data === "{ZEROGPU_HANDSHAKE_MESSAGE}") {{
-      window.supports_zerogpu_headers = true;
-    }}
-  }});
-  const hostname = window.location.hostname;
-  const isHfHost =
-    hostname.endsWith(".hf.space") || hostname.includes(".dev.");
-  if (isHfHost) {{
-    const origin = hostname.includes(".dev.")
-      ? `https://moon-${{hostname.split(".")[1]}}.dev.spaces.huggingface.tech`
-      : "https://huggingface.co";
-    window.parent?.postMessage("{ZEROGPU_HANDSHAKE_MESSAGE}", origin);
-  }}
-}})();
-</script>
-""".strip()
-
 client = httpx.AsyncClient(
     limits=httpx.Limits(
         max_connections=100,
@@ -260,61 +236,6 @@ client = httpx.AsyncClient(
 )
 
 file_upload_statuses = FileUploadProgress()
-
-
-def _inject_zerogpu_handshake(body: bytes) -> bytes:
-    lowered_body = body.lower()
-    if (
-        ZEROGPU_HANDSHAKE_MARKER.encode() in body
-        or ZEROGPU_HANDSHAKE_MESSAGE.encode() in body
-        or b"<gradio-app" in lowered_body
-    ):
-        return body
-    try:
-        html = body.decode("utf-8")
-    except UnicodeDecodeError:
-        return body
-    for pattern in (r"</head\s*>", r"</body\s*>"):
-        match = re.search(pattern, html, flags=re.IGNORECASE)
-        if match:
-            html = (
-                html[: match.start()]
-                + ZEROGPU_HANDSHAKE_SNIPPET
-                + html[match.start() :]
-            )
-            return html.encode("utf-8")
-    return f"{ZEROGPU_HANDSHAKE_SNIPPET}{html}".encode("utf-8")
-
-
-async def _read_response_body(response: Response) -> tuple[bytes | None, bool]:
-    body = getattr(response, "body", None)
-    if isinstance(body, bytes):
-        return body, False
-    body_iterator = getattr(response, "body_iterator", None)
-    if body_iterator is None:
-        return None, False
-    chunks = [chunk async for chunk in body_iterator]
-    return b"".join(chunks), True
-
-
-async def _maybe_inject_zerogpu_handshake(response: Response) -> Response:
-    if utils.get_space() is None:
-        return response
-    content_type = response.headers.get("content-type", "")
-    if "text/html" not in content_type:
-        return response
-    body, reset_body_iterator = await _read_response_body(response)
-    if body is None:
-        return response
-    updated_body = _inject_zerogpu_handshake(body)
-    if hasattr(response, "body"):
-        response.body = updated_body
-    if reset_body_iterator:
-        response.body_iterator = iterate_in_threadpool([updated_body])
-    if updated_body == body:
-        return response
-    response.headers["content-length"] = str(len(updated_body))
-    return response
 
 
 class App(FastAPI):
@@ -542,11 +463,6 @@ class App(FastAPI):
             quality=4,
             excluded_handlers=[mcp_subpath],
         )
-
-        @app.middleware("http")
-        async def zerogpu_handshake_middleware(request: fastapi.Request, call_next):
-            response = await call_next(request)
-            return await _maybe_inject_zerogpu_handshake(response)
 
         if ssr_mode:
 

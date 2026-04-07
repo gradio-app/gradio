@@ -31,6 +31,7 @@ import {
 	parse_and_set_cookies
 } from "./helpers/init_helpers";
 import { check_and_wake_space, check_space_status } from "./helpers/spaces";
+import { initialize_zerogpu_handshake } from "./helpers/zerogpu";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
 import {
 	API_INFO_ERROR_MSG,
@@ -40,6 +41,8 @@ import {
 	COMPONENT_SERVER_URL
 } from "./constants";
 declare const BROWSER_BUILD: boolean;
+
+initialize_zerogpu_handshake();
 
 export class Client {
 	app_reference: string;

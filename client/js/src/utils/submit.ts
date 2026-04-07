@@ -13,6 +13,10 @@ import type {
 
 import { skip_queue, post_message, handle_payload } from "../helpers/data";
 import {
+	get_zerogpu_origin,
+	initialize_zerogpu_handshake
+} from "../helpers/zerogpu";
+import {
 	handle_message,
 	map_data_to_params,
 	process_endpoint
@@ -410,17 +414,16 @@ export function submit(
 				let hostname = "";
 				if (typeof window !== "undefined" && typeof document !== "undefined") {
 					hostname = window?.location?.hostname;
+					initialize_zerogpu_handshake();
 				}
 
-				let hfhubdev = "dev.spaces.huggingface.tech";
-				const origin = hostname.includes(".dev.")
-					? `https://moon-${hostname.split(".")[1]}.${hfhubdev}`
-					: `https://huggingface.co`;
+				const origin = get_zerogpu_origin(hostname);
 
 				const is_zerogpu_iframe =
 					typeof window !== "undefined" &&
 					typeof document !== "undefined" &&
 					window.parent != window &&
+					!!origin &&
 					window.supports_zerogpu_headers;
 				const zerogpu_auth_promise = is_zerogpu_iframe
 					? post_message<Map<string, string>>("zerogpu-headers", origin)

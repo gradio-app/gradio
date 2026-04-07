@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 
 import pytest
 from fastapi import Request
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi.responses import PlainTextResponse
 from fastapi.testclient import TestClient
 from gradio_client import Client
 
@@ -95,27 +95,6 @@ class TestServer:
             with TestClient(app) as client:
                 info = client.get(f"{API_PREFIX}/info").json()
             assert "/named_echo" in info.get("named_endpoints", {})
-        finally:
-            gr.close_all()
-
-    def test_server_injects_zerogpu_handshake_into_custom_html(
-        self, monkeypatch: pytest.MonkeyPatch
-    ):
-        monkeypatch.setenv("SYSTEM", "spaces")
-        monkeypatch.setenv("SPACE_ID", "gradio/test-space")
-        server = gr.Server()
-
-        @server.get("/")
-        def root():
-            return HTMLResponse("<html><head></head><body>Hello</body></html>")
-
-        app, _, _ = server.launch(prevent_thread_lock=True)
-        try:
-            with TestClient(app) as client:
-                response = client.get("/")
-            assert response.status_code == 200
-            assert "supports-zerogpu-headers" in response.text
-            assert response.text.count("data-gradio-zerogpu-handshake") == 1
         finally:
             gr.close_all()
 
