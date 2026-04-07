@@ -48,7 +48,7 @@ runs:
       id: setup-python
       uses: actions/setup-python@v5
       with:
-          python-version: ${{ inputs.python_version }}
+        python-version: ${{ inputs.python_version }}
         cache-dependency-path: |
           client/python/requirements.txt
           requirements.txt

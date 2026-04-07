@@ -341,7 +341,7 @@ tokenizers==0.22.2
     # via transformers
 tomlkit==0.13.2
     # via gradio
-torch==2.11.0
+torch==2.6.0
     # via -r test/requirements.in
 tqdm==4.67.1
     # via
