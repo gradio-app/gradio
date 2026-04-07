@@ -140,11 +140,12 @@
 		</div>
 
 		<div class="slider_input_container">
-			<span class="min_value">{minimum_value}</span>
+			<span class="min_value" data-testid="min-value">{minimum_value}</span>
 			<input
 				type="range"
 				{id}
 				name="cowbell"
+				data-testid="range-input"
 				bind:value={gradio.props.value}
 				bind:this={range_input}
 				min={gradio.props.minimum}
@@ -155,7 +156,9 @@
 				on:pointerup={handle_release}
 				aria-label={`range slider for ${gradio.shared.label}`}
 			/>
-			<span class="max_value">{gradio.props.maximum}</span>
+			<span class="max_value" data-testid="max-value"
+				>{gradio.props.maximum}</span
+			>
 		</div>
 	</div>
 </Block>

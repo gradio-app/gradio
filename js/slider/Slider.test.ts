@@ -51,38 +51,34 @@ describe("Slider", () => {
 		});
 
 		const number_input = getByTestId("number-input") as HTMLInputElement;
-		expect(number_input).toBeTruthy();
+		expect(number_input).toBeVisible();
 		expect(number_input.value).toBe("7");
 	});
 
 	test("renders range input with correct min, max, and step", async () => {
-		const { container } = await render(Slider, {
+		const { getByTestId } = await render(Slider, {
 			...default_props,
 			minimum: 2,
 			maximum: 20,
 			step: 0.5
 		});
 
-		const range_input = container.querySelector(
-			'input[type="range"]'
-		) as HTMLInputElement;
-		expect(range_input).toBeTruthy();
+		const range_input = getByTestId("range-input") as HTMLInputElement;
+		expect(range_input).toBeVisible();
 		expect(range_input.min).toBe("2");
 		expect(range_input.max).toBe("20");
 		expect(range_input.step).toBe("0.5");
 	});
 
 	test("displays min and max values", async () => {
-		const { container } = await render(Slider, {
+		const { getByTestId } = await render(Slider, {
 			...default_props,
 			minimum: -10,
 			maximum: 100
 		});
 
-		const min_span = container.querySelector(".min_value");
-		const max_span = container.querySelector(".max_value");
-		expect(min_span?.textContent).toBe("-10");
-		expect(max_span?.textContent).toBe("100");
+		expect(getByTestId("min-value")).toHaveTextContent("-10");
+		expect(getByTestId("max-value")).toHaveTextContent("100");
 	});
 
 	test("defaults label to 'Slider' when label is empty", async () => {
@@ -91,7 +87,7 @@ describe("Slider", () => {
 			label: ""
 		});
 
-		expect(getByText("Slider")).toBeTruthy();
+		expect(getByText("Slider")).toBeVisible();
 	});
 });
 
@@ -99,33 +95,29 @@ describe("Props: interactive", () => {
 	afterEach(() => cleanup());
 
 	test("interactive=true enables both inputs", async () => {
-		const { container, getByTestId } = await render(Slider, {
+		const { getByTestId } = await render(Slider, {
 			...default_props,
 			interactive: true
 		});
 
 		const number_input = getByTestId("number-input") as HTMLInputElement;
-		const range_input = container.querySelector(
-			'input[type="range"]'
-		) as HTMLInputElement;
+		const range_input = getByTestId("range-input") as HTMLInputElement;
 
-		expect(number_input.disabled).toBe(false);
-		expect(range_input.disabled).toBe(false);
+		expect(number_input).toBeEnabled();
+		expect(range_input).toBeEnabled();
 	});
 
 	test("interactive=false disables both inputs", async () => {
-		const { container, getByTestId } = await render(Slider, {
+		const { getByTestId } = await render(Slider, {
 			...default_props,
 			interactive: false
 		});
 
 		const number_input = getByTestId("number-input") as HTMLInputElement;
-		const range_input = container.querySelector(
-			'input[type="range"]'
-		) as HTMLInputElement;
+		const range_input = getByTestId("range-input") as HTMLInputElement;
 
-		expect(number_input.disabled).toBe(true);
-		expect(range_input.disabled).toBe(true);
+		expect(number_input).toBeDisabled();
+		expect(range_input).toBeDisabled();
 	});
 
 	test("interactive=false disables the reset button", async () => {
@@ -134,8 +126,7 @@ describe("Props: interactive", () => {
 			interactive: false
 		});
 
-		const reset_btn = getByTestId("reset-button") as HTMLButtonElement;
-		expect(reset_btn.disabled).toBe(true);
+		expect(getByTestId("reset-button")).toBeDisabled();
 	});
 });
 
@@ -148,7 +139,7 @@ describe("Props: buttons", () => {
 			buttons: null
 		});
 
-		expect(getByTestId("reset-button")).toBeTruthy();
+		expect(getByTestId("reset-button")).toBeVisible();
 	});
 
 	test("reset button is shown when buttons includes 'reset'", async () => {
@@ -157,7 +148,7 @@ describe("Props: buttons", () => {
 			buttons: ["reset"]
 		});
 
-		expect(getByTestId("reset-button")).toBeTruthy();
+		expect(getByTestId("reset-button")).toBeVisible();
 	});
 
 	test("reset button is hidden when buttons is empty array", async () => {
@@ -261,15 +252,13 @@ describe("Events: input", () => {
 	});
 
 	test("moving range slider fires input event", async () => {
-		const { container, listen } = await render(Slider, {
+		const { getByTestId, listen } = await render(Slider, {
 			...default_props,
 			value: 5
 		});
 
 		const input = listen("input");
-		const range_input = container.querySelector(
-			'input[type="range"]'
-		) as HTMLInputElement;
+		const range_input = getByTestId("range-input") as HTMLInputElement;
 
 		await fireEvent.input(range_input, { target: { value: "8" } });
 
@@ -281,15 +270,13 @@ describe("Events: release", () => {
 	afterEach(() => cleanup());
 
 	test("pointerup on range input fires release event with value", async () => {
-		const { container, listen } = await render(Slider, {
+		const { getByTestId, listen } = await render(Slider, {
 			...default_props,
 			value: 5
 		});
 
 		const release = listen("release");
-		const range_input = container.querySelector(
-			'input[type="range"]'
-		) as HTMLInputElement;
+		const range_input = getByTestId("range-input") as HTMLInputElement;
 
 		await fireEvent.pointerUp(range_input);
 
@@ -438,14 +425,12 @@ describe("Number input and range input sync", () => {
 	});
 
 	test("range input reflects the current value", async () => {
-		const { container, set_data } = await render(Slider, {
+		const { getByTestId, set_data } = await render(Slider, {
 			...default_props,
 			value: 3
 		});
 
-		const range_input = container.querySelector(
-			'input[type="range"]'
-		) as HTMLInputElement;
+		const range_input = getByTestId("range-input") as HTMLInputElement;
 		expect(range_input.value).toBe("3");
 
 		await set_data({ value: 8 });
@@ -458,37 +443,28 @@ describe("Accessibility", () => {
 	afterEach(() => cleanup());
 
 	test("number input has correct aria-label", async () => {
-		const { getByTestId } = await render(Slider, {
+		const { getByLabelText } = await render(Slider, {
 			...default_props,
 			label: "Range"
 		});
 
-		const number_input = getByTestId("number-input") as HTMLInputElement;
-		expect(number_input.getAttribute("aria-label")).toBe(
-			"number input for Range"
-		);
+		expect(() => getByLabelText("number input for Range")).not.toThrow();
 	});
 
 	test("range input has correct aria-label", async () => {
-		const { container } = await render(Slider, {
+		const { getByLabelText } = await render(Slider, {
 			...default_props,
 			label: "Range"
 		});
 
-		const range_input = container.querySelector(
-			'input[type="range"]'
-		) as HTMLInputElement;
-		expect(range_input.getAttribute("aria-label")).toBe(
-			"range slider for Range"
-		);
+		expect(() => getByLabelText("range slider for Range")).not.toThrow();
 	});
 
 	test("reset button has aria-label", async () => {
-		const { getByTestId } = await render(Slider, {
+		const { getByLabelText } = await render(Slider, {
 			...default_props
 		});
 
-		const reset_btn = getByTestId("reset-button");
-		expect(reset_btn.getAttribute("aria-label")).toBe("Reset to default value");
+		expect(() => getByLabelText("Reset to default value")).not.toThrow();
 	});
 });
