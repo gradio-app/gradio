@@ -573,6 +573,13 @@ class Queue:
                 self.event_queue_per_concurrency_id[event.concurrency_id].queue.remove(
                     event
                 )
+                self.event_ids_to_events.pop(event._id, None)
+
+            if session_hash and session_hash in self.pending_event_ids_session:
+                removed_ids = {e._id for e in events_to_remove}
+                self.pending_event_ids_session[session_hash] -= removed_ids
+                if not self.pending_event_ids_session[session_hash]:
+                    self.pending_event_ids_session.pop(session_hash, None)
 
     async def notify_clients(self) -> None:
         """

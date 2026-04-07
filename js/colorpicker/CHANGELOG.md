@@ -1,5 +1,17 @@
 # @gradio/colorpicker
 
+## 0.5.9
+
+### Fixes
+
+- [#13126](https://github.com/gradio-app/gradio/pull/13126) [`a09c0e8`](https://github.com/gradio-app/gradio/commit/a09c0e891709e007e4f265fc48f466175f5a2a22) - normalize ColorPicker value to hex string format.  Thanks @Krishnachaitanyakc!
+
+### Dependency updates
+
+- @gradio/utils@0.12.2
+- @gradio/atoms@0.23.0
+- @gradio/statustracker@0.13.1
+
 ## 0.5.8
 
 ### Dependency updates

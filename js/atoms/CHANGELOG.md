@@ -1,5 +1,19 @@
 # @gradio/atoms
 
+## 0.23.0
+
+### Features
+
+- [#13122](https://github.com/gradio-app/gradio/pull/13122) [`64828b0`](https://github.com/gradio-app/gradio/commit/64828b08d5be4fdde8a73932b3f288c073ec49bd) - Add Image Unit Tests.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#13041](https://github.com/gradio-app/gradio/pull/13041) [`835e4bd`](https://github.com/gradio-app/gradio/commit/835e4bd1adcaf5716283fa379e909f916a032b8a) - Reduce load times of all components.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/utils@0.12.2
+
 ## 0.22.2
 
 ### Dependency updates
