@@ -26,6 +26,13 @@ export type ThemeData = {
 		neutral: string;
 		background: string;
 		background_dark: string;
+		block_background: string;
+		block_border: string;
+		text_color: string;
+		button_primary: string;
+		button_secondary_border: string;
+		button_secondary_text: string;
+		input_background: string;
 	};
 	fonts: {
 		main: string;

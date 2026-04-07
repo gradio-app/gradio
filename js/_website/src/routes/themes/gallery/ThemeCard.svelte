@@ -7,6 +7,12 @@
 
 	$: current_bg = dark ? theme.colors.background_dark : theme.colors.background;
 	$: is_dark = is_color_dark(current_bg);
+	$: block_bg = theme.colors.block_background;
+	$: block_border = theme.colors.block_border;
+	$: text = theme.colors.text_color;
+	$: btn_primary = theme.colors.button_primary;
+	$: btn_secondary_border = theme.colors.button_secondary_border;
+	$: btn_secondary_text = theme.colors.button_secondary_text;
 
 	function is_color_dark(hex: string): boolean {
 		const rgb = hex_to_rgb(hex);
@@ -17,21 +23,22 @@
 
 	function hex_to_rgb(hex: string): { r: number; g: number; b: number } | null {
 		const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-		return result
-			? {
-					r: parseInt(result[1], 16),
-					g: parseInt(result[2], 16),
-					b: parseInt(result[3], 16)
-				}
-			: null;
-	}
-
-	function adjust_color(hex: string, amount: number): string {
-		const rgb = hex_to_rgb(hex);
-		if (!rgb) return hex;
-		const clamp = (n: number) => Math.min(255, Math.max(0, Math.round(n)));
-		const toHex = (c: number) => c.toString(16).padStart(2, "0");
-		return `#${toHex(clamp(rgb.r + amount))}${toHex(clamp(rgb.g + amount))}${toHex(clamp(rgb.b + amount))}`;
+		if (result) {
+			return {
+				r: parseInt(result[1], 16),
+				g: parseInt(result[2], 16),
+				b: parseInt(result[3], 16)
+			};
+		}
+		const short = /^#?([a-f\d])([a-f\d])([a-f\d])$/i.exec(hex);
+		if (short) {
+			return {
+				r: parseInt(short[1] + short[1], 16),
+				g: parseInt(short[2] + short[2], 16),
+				b: parseInt(short[3] + short[3], 16)
+			};
+		}
+		return null;
 	}
 
 	function mix_color(hex: string, opacity: number): string {
@@ -63,7 +70,7 @@
 	<div class="p-2.5">
 		<div
 			class="text-[11px] font-semibold truncate mb-2"
-			style="color: {is_dark ? '#ffffff' : '#1f2937'};"
+			style="color: {text}; font-family: '{theme.fonts.main}', sans-serif;"
 		>
 			{theme.name}
 		</div>
@@ -73,21 +80,19 @@
 				<div
 					class="rounded p-1.5 border"
 					style="
-						background: {is_dark ? adjust_color(current_bg, 15) : '#ffffff'};
-						border-color: {is_dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
+						background: {block_bg};
+						border-color: {block_border};
 					"
 				>
 					<div
 						class="text-[8px] font-medium mb-0.5"
-						style="color: {is_dark ? '#a0a0a0' : '#6b7280'};"
+						style="color: {mix_color(text, 0.6)};"
 					>
 						Prompt
 					</div>
 					<div
 						class="text-[9px] leading-tight"
-						style="color: {is_dark
-							? '#e0e0e0'
-							: '#374151'}; font-family: '{theme.fonts.main}', sans-serif;"
+						style="color: {text}; font-family: '{theme.fonts.main}', sans-serif;"
 					>
 						A serene mountain...
 					</div>
@@ -96,14 +101,14 @@
 				<div
 					class="rounded p-1.5 border"
 					style="
-						background: {is_dark ? adjust_color(current_bg, 15) : '#ffffff'};
-						border-color: {is_dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
+						background: {block_bg};
+						border-color: {block_border};
 					"
 				>
 					<div class="flex justify-between items-center mb-1">
 						<span
 							class="text-[8px] font-medium"
-							style="color: {is_dark ? '#a0a0a0' : '#6b7280'};"
+							style="color: {mix_color(text, 0.6)};"
 						>
 							Steps
 						</span>
@@ -116,9 +121,7 @@
 					</div>
 					<div
 						class="h-1 rounded-full relative"
-						style="background: {is_dark
-							? 'rgba(255,255,255,0.1)'
-							: 'rgba(0,0,0,0.1)'};"
+						style="background: {mix_color(text, 0.1)};"
 					>
 						<div
 							class="absolute left-0 top-0 h-full rounded-full"
@@ -130,8 +133,8 @@
 				<button
 					class="w-full py-1 rounded text-[9px] font-semibold"
 					style="
-						background: {theme.colors.primary};
-						color: {is_color_dark(theme.colors.primary) ? '#ffffff' : '#000000'};
+						background: {btn_primary};
+						color: {is_color_dark(btn_primary) ? '#ffffff' : '#000000'};
 					"
 				>
 					Generate
@@ -142,21 +145,19 @@
 				<div
 					class="rounded p-1.5 border"
 					style="
-						background: {is_dark ? adjust_color(current_bg, 15) : '#ffffff'};
-						border-color: {is_dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
+						background: {block_bg};
+						border-color: {block_border};
 					"
 				>
 					<div
 						class="text-[7px] mb-0.5"
-						style="color: {is_dark ? '#a0a0a0' : '#6b7280'};"
+						style="color: {mix_color(text, 0.6)};"
 					>
 						Font
 					</div>
 					<div
 						class="text-[10px] font-medium leading-tight"
-						style="color: {is_dark
-							? '#e0e0e0'
-							: '#374151'}; font-family: '{theme.fonts.main}', sans-serif;"
+						style="color: {text}; font-family: '{theme.fonts.main}', sans-serif;"
 					>
 						{theme.fonts.main}
 					</div>
@@ -165,8 +166,8 @@
 				<div
 					class="rounded p-1.5 border flex items-center gap-1.5"
 					style="
-						background: {is_dark ? adjust_color(current_bg, 15) : '#ffffff'};
-						border-color: {is_dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
+						background: {block_bg};
+						border-color: {block_border};
 					"
 				>
 					<div
@@ -189,7 +190,7 @@
 					</div>
 					<span
 						class="text-[8px]"
-						style="color: {is_dark ? '#e0e0e0' : '#374151'};">Enabled</span
+						style="color: {text};">Enabled</span
 					>
 				</div>
 
@@ -197,8 +198,8 @@
 					class="w-full py-1 rounded text-[8px] font-medium border"
 					style="
 						background: transparent;
-						border-color: {theme.colors.neutral};
-						color: {theme.colors.neutral};
+						border-color: {btn_secondary_border};
+						color: {btn_secondary_text};
 					"
 				>
 					Secondary
@@ -227,7 +228,7 @@
 			{:else if theme.likes > 0}
 				<span
 					class="flex items-center gap-0.5 text-[8px]"
-					style="color: {is_dark ? '#a0a0a0' : '#6b7280'};"
+					style="color: {mix_color(text, 0.6)};"
 				>
 					<svg class="w-2 h-2" fill="currentColor" viewBox="0 0 20 20">
 						<path
@@ -243,8 +244,7 @@
 		<div class="flex items-center gap-1">
 			<div
 				class="w-2.5 h-2.5 rounded-full"
-				style="background: {theme.colors
-					.primary}; box-shadow: 0 0 0 1px {is_dark
+				style="background: {btn_primary}; box-shadow: 0 0 0 1px {is_dark
 					? 'rgba(255,255,255,0.1)'
 					: 'rgba(0,0,0,0.1)'};"
 			></div>
