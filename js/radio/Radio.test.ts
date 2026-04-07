@@ -67,6 +67,18 @@ describe("Props: value", () => {
 		});
 	});
 
+	test("value not in choices renders no radio checked", async () => {
+		const { getAllByRole } = await render(Radio, {
+			...default_props,
+			value: "fish"
+		});
+
+		const radios = getAllByRole("radio") as HTMLInputElement[];
+		radios.forEach((radio) => {
+			expect(radio).not.toBeChecked();
+		});
+	});
+
 	test("numeric values are supported in choices", async () => {
 		const numeric_choices: [string, number][] = [
 			["one", 1],
@@ -286,5 +298,14 @@ describe("get_data / set_data", () => {
 
 		const data = await get_data();
 		expect(data.value).toBe("dog");
+	});
+
+	test("set_data to null clears the value", async () => {
+		const { set_data, get_data } = await render(Radio, default_props);
+
+		await set_data({ value: null });
+
+		const data = await get_data();
+		expect(data.value).toBeNull();
 	});
 });
