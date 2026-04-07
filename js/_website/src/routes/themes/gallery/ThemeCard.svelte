@@ -9,8 +9,11 @@
 	$: current_bg = dark ? theme.colors.background_dark : theme.colors.background;
 	$: is_dark = is_color_dark(current_bg);
 	$: is_btn_dark = is_color_dark(theme.colors.button_primary);
-	$: label_color = is_dark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.45)";
-	$: track_color = is_dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)";
+	$: is_block_dark = is_color_dark(theme.colors.block_background);
+	$: card_text = is_dark ? "#ffffff" : theme.colors.text_color;
+	$: block_text = is_block_dark ? "#ffffff" : theme.colors.text_color;
+	$: label_color = is_block_dark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.45)";
+	$: track_color = is_block_dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)";
 
 	function mix_color(hex: string, opacity: number): string {
 		return `${hex}${Math.round(opacity * 255)
@@ -41,7 +44,7 @@
 	<div class="p-2.5">
 		<div
 			class="text-[11px] font-semibold truncate mb-2"
-			style="color: {theme.colors.text_color}; font-family: '{theme.fonts.main}', sans-serif;"
+			style="color: {card_text}; font-family: '{theme.fonts.main}', sans-serif;"
 		>
 			{theme.name}
 		</div>
@@ -63,7 +66,7 @@
 					</div>
 					<div
 						class="text-[9px] leading-tight"
-						style="color: {theme.colors.text_color}; font-family: '{theme.fonts.main}', sans-serif;"
+						style="color: {block_text}; font-family: '{theme.fonts.main}', sans-serif;"
 					>
 						A serene mountain...
 					</div>
@@ -128,7 +131,7 @@
 					</div>
 					<div
 						class="text-[10px] font-medium leading-tight"
-						style="color: {theme.colors.text_color}; font-family: '{theme.fonts.main}', sans-serif;"
+						style="color: {block_text}; font-family: '{theme.fonts.main}', sans-serif;"
 					>
 						{theme.fonts.main}
 					</div>
@@ -161,7 +164,7 @@
 					</div>
 					<span
 						class="text-[8px]"
-						style="color: {theme.colors.text_color};">Enabled</span
+						style="color: {block_text};">Enabled</span
 					>
 				</div>
 
