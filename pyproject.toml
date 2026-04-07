@@ -107,7 +107,7 @@ exclude = [
 ]
 
 [tool.uv]
-exclude-newer = "2026-04-06T23:59:59-07:00"
+exclude-newer = "7 days"
 
 [tool.ruff]
 exclude = ["gradio/node/*.py", ".venv/*", "gradio/_frontend_code/*.py", "gradio/_vendor/*"]

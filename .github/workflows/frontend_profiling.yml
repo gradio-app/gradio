@@ -13,7 +13,7 @@ permissions: {}
 jobs:
   benchmark:
     env:
-      UV_EXCLUDE_NEWER: 2026-04-06T23:59:59-07:00
+      UV_EXCLUDE_NEWER: 7 days
     permissions:
       contents: read
       pull-requests: write

@@ -43,7 +43,7 @@ runs:
     - name: Set uv exclude-newer
       shell: bash
       run: |
-        echo "UV_EXCLUDE_NEWER=2026-04-06T23:59:59-07:00" >> $GITHUB_ENV
+        echo "UV_EXCLUDE_NEWER=7 days" >> $GITHUB_ENV
     - name: Install Python
       id: setup-python
       uses: actions/setup-python@v5
