@@ -103,6 +103,7 @@ exclude = [
   "gradio/_frontend_code/*.py",
   "gradio/cli/commands/cli_env_info.py",
   "demo/scratch/**",
+  "gradio/_vendor/**",
 ]
 
 [tool.uv]
