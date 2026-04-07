@@ -61,7 +61,7 @@ describe("Checkbox", () => {
 			show_label: false
 		});
 
-		expect(queryByText("My Checkbox")).toBeNull();
+		expect(queryByText("My Checkbox")).not.toBeVisible();
 	});
 
 	test("info text is rendered when provided", async () => {
@@ -70,7 +70,7 @@ describe("Checkbox", () => {
 			info: "This is required"
 		});
 
-		expect(getByText("This is required")).toBeTruthy();
+		expect(getByText("This is required")).toBeVisible();
 	});
 });
 
