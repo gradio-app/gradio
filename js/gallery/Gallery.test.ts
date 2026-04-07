@@ -460,6 +460,86 @@ describe("Props: interactive", () => {
 	});
 });
 
+// ─── Props: sources ──────────────────────────────────────────────────
+// Source buttons appear inside ModifyUpload when interactive=true,
+// selected_index is null, and the gallery has items.
+describe("Props: sources", () => {
+	afterEach(() => cleanup());
+
+	const sources_props = {
+		...default_props,
+		interactive: true,
+		selected_index: null as number | null,
+		value: three_images
+	};
+
+	test("sources=['upload'] shows only upload button", async () => {
+		const { getByLabelText, queryByLabelText } = await render(Gallery, {
+			...sources_props,
+			sources: ["upload"]
+		});
+
+		expect(getByLabelText("upload_text.click_to_upload")).toBeTruthy();
+		expect(queryByLabelText("common.webcam")).toBeNull();
+		expect(queryByLabelText("upload_text.paste_clipboard")).toBeNull();
+	});
+
+	test("sources=['upload', 'webcam'] shows upload and webcam buttons", async () => {
+		const { getByLabelText } = await render(Gallery, {
+			...sources_props,
+			sources: ["upload", "webcam"]
+		});
+
+		expect(getByLabelText("upload_text.click_to_upload")).toBeTruthy();
+		expect(getByLabelText("common.webcam")).toBeTruthy();
+	});
+
+	test("sources=['upload', 'clipboard'] shows upload and clipboard buttons", async () => {
+		const { getByLabelText } = await render(Gallery, {
+			...sources_props,
+			sources: ["upload", "clipboard"]
+		});
+
+		expect(getByLabelText("upload_text.click_to_upload")).toBeTruthy();
+		expect(getByLabelText("upload_text.paste_clipboard")).toBeTruthy();
+	});
+
+	test("sources=['upload', 'webcam', 'clipboard'] shows all source buttons", async () => {
+		const { getByLabelText } = await render(Gallery, {
+			...sources_props,
+			sources: ["upload", "webcam", "clipboard"]
+		});
+
+		expect(getByLabelText("upload_text.click_to_upload")).toBeTruthy();
+		expect(getByLabelText("common.webcam")).toBeTruthy();
+		expect(getByLabelText("upload_text.paste_clipboard")).toBeTruthy();
+	});
+
+	test("source buttons are hidden when selected_index is set (preview active)", async () => {
+		const { queryByLabelText } = await render(Gallery, {
+			...sources_props,
+			sources: ["upload", "webcam", "clipboard"],
+			selected_index: 0,
+			preview: true
+		});
+
+		// ModifyUpload only renders when selected_index === null
+		expect(queryByLabelText("common.webcam")).toBeNull();
+		expect(queryByLabelText("upload_text.paste_clipboard")).toBeNull();
+	});
+
+	test("source buttons are hidden when interactive=false", async () => {
+		const { queryByLabelText } = await render(Gallery, {
+			...sources_props,
+			interactive: false,
+			sources: ["upload", "webcam", "clipboard"]
+		});
+
+		expect(queryByLabelText("common.webcam")).toBeNull();
+		expect(queryByLabelText("upload_text.paste_clipboard")).toBeNull();
+	});
+});
+
 // ─── Props: visual-only ──────────────────────────────────────────────
 describe("Props: visual-only", () => {
 	test.todo(
