@@ -21,7 +21,8 @@ run_shared_prop_tests({
 	base_props: { ...default_props },
 	has_label: false,
 	has_validation_error: false,
-	visible_false_hides: true
+	visible_false_hides: true,
+	has_block_wrapper: false
 });
 
 describe("Button", () => {
