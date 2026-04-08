@@ -14,17 +14,6 @@ const base_props = {
 	value: null
 };
 
-// NOTE: run_shared_prop_tests is intentionally omitted here.
-// BrowserState is a fully headless component — its Svelte template is empty (no HTML output).
-// The shared prop tests for elem_id, elem_classes, and visible all rely on finding a wrapper
-// DOM element with those attributes/classes, which does not exist for this component.
-// If a wrapper element is ever added to BrowserState, add run_shared_prop_tests back with:
-//   has_label: false, has_validation_error: false
-
-// ---------------------------------------------------------------------------
-// Mount: empty localStorage
-// ---------------------------------------------------------------------------
-
 describe("BrowserState: mount — empty localStorage", () => {
 	beforeEach(() => localStorage.clear());
 	afterEach(() => cleanup());
@@ -90,10 +79,6 @@ describe("BrowserState: mount — empty localStorage", () => {
 	});
 });
 
-// ---------------------------------------------------------------------------
-// Mount: with a value already stored in localStorage
-// ---------------------------------------------------------------------------
-
 describe("BrowserState: mount — with stored value", () => {
 	beforeEach(() => localStorage.clear());
 	afterEach(() => cleanup());
@@ -107,7 +92,10 @@ describe("BrowserState: mount — with stored value", () => {
 	});
 
 	test("loads and decrypts a string value from localStorage on mount", async () => {
-		localStorage.setItem(STORAGE_KEY, encrypt(JSON.stringify("stored-string"), SECRET));
+		localStorage.setItem(
+			STORAGE_KEY,
+			encrypt(JSON.stringify("stored-string"), SECRET)
+		);
 
 		const { get_data } = await render(BrowserState, base_props);
 		expect((await get_data()).value).toBe("stored-string");
@@ -146,7 +134,10 @@ describe("BrowserState: mount — with stored value", () => {
 
 	test("falls back to default_value when stored data was encrypted with a different secret", async () => {
 		const stored = { key: "value" };
-		localStorage.setItem(STORAGE_KEY, encrypt(JSON.stringify(stored), "different-secret"));
+		localStorage.setItem(
+			STORAGE_KEY,
+			encrypt(JSON.stringify(stored), "different-secret")
+		);
 
 		// Using the original SECRET — decryption produces garbled output → JSON.parse fails → fallback
 		const { get_data } = await render(BrowserState, {
@@ -168,10 +159,6 @@ describe("BrowserState: mount — with stored value", () => {
 		expect((await get_data()).value).toBe("fallback");
 	});
 });
-
-// ---------------------------------------------------------------------------
-// get_data / set_data
-// ---------------------------------------------------------------------------
 
 describe("BrowserState: get_data / set_data", () => {
 	beforeEach(() => localStorage.clear());
@@ -242,10 +229,6 @@ describe("BrowserState: get_data / set_data", () => {
 	});
 });
 
-// ---------------------------------------------------------------------------
-// localStorage persistence
-// ---------------------------------------------------------------------------
-
 describe("BrowserState: localStorage persistence", () => {
 	beforeEach(() => localStorage.clear());
 	afterEach(() => cleanup());
@@ -297,7 +280,9 @@ describe("BrowserState: localStorage persistence", () => {
 
 		expect(localStorage.getItem("slot-A")).not.toBeNull();
 		expect(localStorage.getItem("slot-B")).not.toBeNull();
-		expect(localStorage.getItem("slot-A")).not.toBe(localStorage.getItem("slot-B"));
+		expect(localStorage.getItem("slot-A")).not.toBe(
+			localStorage.getItem("slot-B")
+		);
 	});
 
 	test("data written to one storage_key is not read when using a different key", async () => {
@@ -316,9 +301,6 @@ describe("BrowserState: localStorage persistence", () => {
 		});
 		expect((await get_data()).value).toBe("fallback");
 	});
-
-	// save_value has a `if (!value) return` guard — falsy values are not persisted.
-	// The change event still fires; the localStorage slot is just left untouched.
 
 	test("null value is NOT saved to localStorage", async () => {
 		const { set_data } = await render(BrowserState, base_props);
@@ -357,10 +339,6 @@ describe("BrowserState: localStorage persistence", () => {
 	});
 });
 
-// ---------------------------------------------------------------------------
-// Events: change
-// ---------------------------------------------------------------------------
-
 describe("Events: change", () => {
 	beforeEach(() => localStorage.clear());
 	afterEach(() => cleanup());
@@ -390,7 +368,10 @@ describe("Events: change", () => {
 	});
 
 	test("fires when value is loaded from localStorage on mount (loaded value differs from initial prop)", async () => {
-		localStorage.setItem(STORAGE_KEY, encrypt(JSON.stringify("stored"), SECRET));
+		localStorage.setItem(
+			STORAGE_KEY,
+			encrypt(JSON.stringify("stored"), SECRET)
+		);
 		// value: null initially — stored value is "stored" — they differ → change fires on mount
 		const { listen } = await render(BrowserState, {
 			...base_props,
@@ -441,10 +422,6 @@ describe("Events: change", () => {
 	});
 });
 
-// ---------------------------------------------------------------------------
-// Props: secret
-// ---------------------------------------------------------------------------
-
 describe("Props: secret", () => {
 	beforeEach(() => localStorage.clear());
 	afterEach(() => cleanup());
@@ -467,10 +444,6 @@ describe("Props: secret", () => {
 		expect((await get_data()).value).toBe("fallback");
 	});
 });
-
-// ---------------------------------------------------------------------------
-// Edge cases
-// ---------------------------------------------------------------------------
 
 describe("Edge cases", () => {
 	beforeEach(() => localStorage.clear());
@@ -497,10 +470,6 @@ describe("Edge cases", () => {
 		expect((await get_data()).value).toEqual(nested);
 	});
 });
-
-// ---------------------------------------------------------------------------
-// Visual-only / placeholders
-// ---------------------------------------------------------------------------
 
 test.todo(
 	"VISUAL: BrowserState renders no visible UI — Playwright visual regression screenshot should confirm no DOM leakage in the rendered page"

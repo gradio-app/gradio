@@ -37,14 +37,18 @@ describe("decrypt", () => {
 	test("round-trips a JSON-stringified object", () => {
 		const obj = { user: "alice", count: 42 };
 		const key = "secret";
-		const roundtripped = JSON.parse(decrypt(encrypt(JSON.stringify(obj), key), key));
+		const roundtripped = JSON.parse(
+			decrypt(encrypt(JSON.stringify(obj), key), key)
+		);
 		expect(roundtripped).toEqual(obj);
 	});
 
 	test("round-trips a JSON-stringified array", () => {
 		const arr = [1, "two", true, null];
 		const key = "secret";
-		const roundtripped = JSON.parse(decrypt(encrypt(JSON.stringify(arr), key), key));
+		const roundtripped = JSON.parse(
+			decrypt(encrypt(JSON.stringify(arr), key), key)
+		);
 		expect(roundtripped).toEqual(arr);
 	});
 
