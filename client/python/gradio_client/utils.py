@@ -68,6 +68,13 @@ INVALID_RUNTIME = [
     SpaceStage.PAUSED,
 ]
 
+# Characters forbidden in filenames across OS and shell environments:
+# < > : " / \ | ? *  – forbidden on Windows
+# \x00-\x1f           – null byte and ASCII control characters
+# \x7f                – DEL character
+# ` $ ! { }           – shell-dangerous characters
+_FORBIDDEN_RE = re.compile(r'[<>:"/\\|?*\x00-\x1f\x7f`$!{}]')
+
 
 class Message(TypedDict, total=False):
     msg: str
@@ -738,15 +745,11 @@ def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> st
     """
     Strips invalid characters from a filename and ensures it does not exceed the maximum byte length.
     Only removes characters that are truly dangerous for file systems: path separators,
-    null bytes, and control characters. Preserves all other characters including
-    parentheses, brackets, braces, exclamation marks, unicode characters, etc.
+    null bytes, control characters, and shell-dangerous characters. Preserves all other
+    characters including parentheses, brackets, unicode characters, etc.
     The filename may include an extension (in which case it is preserved exactly as is),
     or could be just a name without an extension.
     """
-    # Characters forbidden in filenames across OS:
-    # / \ (path separators), \x00 (null byte), and control chars (\x01-\x1f)
-    # Also < > : " | ? * which are forbidden on Windows
-    _FORBIDDEN_RE = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
     name, ext = os.path.splitext(filename)
     name = _FORBIDDEN_RE.sub("", name)
     # Also sanitize the extension (excluding the leading dot)
