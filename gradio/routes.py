@@ -63,6 +63,7 @@ from starlette.responses import RedirectResponse
 
 import gradio
 from gradio import (
+    caching,
     ranged_response,
     route_utils,
     themes,
@@ -1309,6 +1310,7 @@ class App(FastAPI):
                         # This will mark the state to be deleted in an hour
                         if session_hash in app.state_holder.session_data:
                             app.state_holder.session_data[session_hash].is_closed = True
+                        caching.clear_session_caches(session_hash)
                         for (
                             event_id
                         ) in app.get_blocks()._queue.pending_event_ids_session.get(

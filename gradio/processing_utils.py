@@ -19,7 +19,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar
 from urllib.parse import urlparse
 
-import aiofiles
 import httpx
 import numpy as np
 import safehttpx as sh
@@ -27,6 +26,7 @@ from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, ImageSequence, PngImagePlugin
 
 from gradio import utils
+from gradio._vendor import aiofiles
 from gradio.context import LocalContext
 from gradio.data_classes import FileData, GradioModel, GradioRootModel, JsonData
 from gradio.exceptions import Error, InvalidPathError
@@ -1038,7 +1038,7 @@ def video_is_playable(video_filepath: str) -> bool:
         .webm -> vp9
         .ogg -> theora
     """
-    from ffmpy import FFprobe, FFRuntimeError
+    from gradio._vendor.ffmpy import FFprobe, FFRuntimeError
 
     try:
         container = Path(video_filepath).suffix.lower()
@@ -1064,7 +1064,7 @@ def video_is_playable(video_filepath: str) -> bool:
 
 def convert_video_to_playable_mp4(video_path: str) -> str:
     """Convert the video to mp4. If something goes wrong return the original video."""
-    from ffmpy import FFmpeg, FFRuntimeError
+    from gradio._vendor.ffmpy import FFmpeg, FFRuntimeError
 
     try:
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:

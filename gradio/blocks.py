@@ -41,6 +41,7 @@ from gradio import (
 )
 from gradio.block_function import BlockFunction
 from gradio.blocks_events import BLOCKS_EVENTS, BlocksEvents, BlocksMeta
+from gradio.caching import TrackManualCacheUsage, used_manual_cache
 from gradio.context import (
     Context,
     LocalContext,
@@ -2121,6 +2122,7 @@ Received inputs:
             max_batch_size = block_fn.max_batch_size
             batch_sizes = [len(inp) for inp in inputs]
             batch_size = batch_sizes[0]
+            manual_cache_used = False
             if inspect.isasyncgenfunction(block_fn.fn) or inspect.isgeneratorfunction(
                 block_fn.fn
             ):
@@ -2137,16 +2139,18 @@ Received inputs:
                 await self.preprocess_data(block_fn, list(i), state, explicit_call)
                 for i in zip(*inputs, strict=False)
             ]
-            result = await self.call_function(
-                block_fn,
-                list(zip(*inputs, strict=False)),
-                None,
-                request,
-                event_id,
-                event_data,
-                in_event_listener,
-                state,
-            )
+            with TrackManualCacheUsage():
+                result = await self.call_function(
+                    block_fn,
+                    list(zip(*inputs, strict=False)),
+                    None,
+                    request,
+                    event_id,
+                    event_data,
+                    in_event_listener,
+                    state,
+                )
+                manual_cache_used = used_manual_cache()
             preds = result["prediction"]
             data = [
                 await self.postprocess_data(block_fn, list(o), state)
@@ -2160,6 +2164,7 @@ Received inputs:
             from gradio.profiling import trace_phase
 
             old_iterator = iterator
+            manual_cache_used = False
             if old_iterator:
                 inputs = []
             else:
@@ -2168,17 +2173,19 @@ Received inputs:
                         block_fn, inputs, state, explicit_call
                     )
             was_generating = old_iterator is not None
-            async with trace_phase("fn_call"):
-                result = await self.call_function(
-                    block_fn,
-                    inputs,
-                    old_iterator,
-                    request,
-                    event_id,
-                    event_data,
-                    in_event_listener,
-                    state,
-                )
+            with TrackManualCacheUsage():
+                async with trace_phase("fn_call"):
+                    result = await self.call_function(
+                        block_fn,
+                        inputs,
+                        old_iterator,
+                        request,
+                        event_id,
+                        event_data,
+                        in_event_listener,
+                        state,
+                    )
+                manual_cache_used = used_manual_cache()
 
             async with trace_phase("postprocess"):
                 data = await self.postprocess_data(
@@ -2216,16 +2223,22 @@ Received inputs:
                         simple_format=simple_format,
                     )
 
-        block_fn.total_runtime += result["duration"]
-        block_fn.total_runs += 1
+        if not manual_cache_used:
+            block_fn.total_runtime += result["duration"]
+            block_fn.total_runs += 1
         output = {
             "data": data,
             "is_generating": is_generating,
             "iterator": iterator,
             "duration": result["duration"],
-            "average_duration": block_fn.total_runtime / block_fn.total_runs,
+            "average_duration": (
+                block_fn.total_runtime / block_fn.total_runs
+                if block_fn.total_runs > 0
+                else None
+            ),
             "render_config": None,
             "changed_state_ids": changed_state_ids,
+            "used_cache": "partial" if manual_cache_used else None,
         }
         if block_fn.renderable and state:
             output["render_config"] = state.blocks_config.get_config(
@@ -2319,7 +2332,7 @@ Received inputs:
         }
         config.update(self.default_config.get_config())  # type: ignore
         config["connect_heartbeat"] = utils.connect_heartbeat(
-            config, self.blocks.values()
+            config, self.blocks.values(), self.fns.values()
         )
         return config
 

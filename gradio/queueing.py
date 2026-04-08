@@ -18,6 +18,7 @@ import numpy as np
 from anyio.to_thread import run_sync
 
 from gradio import route_utils, routes
+from gradio.caching import CacheMissError, ProbeCache
 from gradio.data_classes import (
     PredictBodyInternal,
 )
@@ -385,6 +386,69 @@ class Queue:
                 self.pending_event_ids_session[body.session_hash] = set()
         self.pending_event_ids_session[body.session_hash].add(event._id)
         self.event_ids_to_events[event._id] = event
+        body.event_id = event._id if not fn.batch else None
+
+        if hasattr(fn.fn, "cache"):
+            try:
+                cache_start = time.time()
+                gr_request = route_utils.compile_gr_request(
+                    body=body,
+                    fn=fn,
+                    username=username,
+                    request=None,
+                )
+                assert body.request is not None  # noqa: S101
+                api_route_path = route_utils.get_api_call_path(request=body.request)
+                root_path = route_utils.get_root_url(
+                    request=body.request,
+                    route_path=api_route_path,
+                    root_path=self.blocks.app.root_path,
+                )
+                with ProbeCache():
+                    response = await route_utils.call_process_api(
+                        app=self.blocks.app,
+                        body=body,
+                        gr_request=gr_request,
+                        fn=fn,
+                        root_path=root_path,
+                    )
+                    while response and response.get("is_generating", False):
+                        self.send_message(
+                            event,
+                            ProcessGeneratingMessage(
+                                output=response,
+                                success=True,
+                            ),
+                        )
+                        response = await route_utils.call_process_api(
+                            app=self.blocks.app,
+                            body=body,
+                            gr_request=gr_request,
+                            fn=fn,
+                            root_path=root_path,
+                        )
+                cache_duration = time.time() - cache_start
+                avg_time = (
+                    self.process_time_per_fn[fn].avg_time
+                    if fn in self.process_time_per_fn
+                    else None
+                )
+                self.send_message(
+                    event,
+                    ProcessCompletedMessage(
+                        output=response,
+                        success=True,
+                        used_cache="full",
+                        cache_duration=cache_duration,
+                        avg_time=avg_time,
+                    ),
+                )
+                return True, event._id, "success"
+            except CacheMissError:
+                pass  # Fall through to normal queue path
+            except Exception:
+                raise
+
         try:
             event_queue = self.event_queue_per_concurrency_id[event.concurrency_id]
         except KeyError as e:
@@ -906,7 +970,14 @@ class Queue:
                     output = error_payload(error, app.get_blocks().show_error)
                 for event in awake_events:
                     self.send_message(
-                        event, ProcessCompletedMessage(output=output, success=success)
+                        event,
+                        ProcessCompletedMessage(
+                            output=output,
+                            success=success,
+                            used_cache=output.get("used_cache") if success else None,
+                            cache_duration=output.get("duration"),  # type: ignore[arg-type]
+                            avg_time=output.get("average_duration"),  # type: ignore[arg-type]
+                        ),
                     )
 
             elif response:
@@ -922,6 +993,9 @@ class Queue:
                         ProcessCompletedMessage(
                             output=output,
                             success=success,
+                            used_cache=output.get("used_cache") if success else None,
+                            cache_duration=output.get("duration"),  # type: ignore[arg-type]
+                            avg_time=output.get("average_duration"),  # type: ignore[arg-type]
                         ),
                     )
             end_time = time.time()
@@ -931,7 +1005,8 @@ class Queue:
                     if not events[0].streaming
                     else first_iteration
                 )
-                self.process_time_per_fn[events[0].fn].add(duration)
+                if not response.get("used_cache"):
+                    self.process_time_per_fn[events[0].fn].add(duration)
                 for event in events:
                     self.event_analytics[event._id]["process_time"] = duration
         except Exception as e:
@@ -1014,8 +1089,8 @@ def process_validation_response(
                 validation_data.append({"is_valid": True, "message": ""})
 
     elif (
-        isinstance(validation_data, dict)
-        and validation_data.get("is_valid", None) is False
+        isinstance(validation_response, dict)
+        and validation_response.get("is_valid", None) is False
     ):
         validation_data.append(
             validation_response,

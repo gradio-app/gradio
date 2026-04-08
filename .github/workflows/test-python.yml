@@ -13,6 +13,7 @@ concurrency:
 
 env:
   HF_TOKEN: ${{ vars.HF_TOKEN }}
+  UV_EXCLUDE_NEWER: 7 days
 
 permissions: {}
 
