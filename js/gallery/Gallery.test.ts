@@ -85,8 +85,7 @@ describe("Props: label", () => {
 			value: three_images
 		});
 
-		// Gallery uses {#if show_label} — label is completely removed, not just hidden
-		expect(queryByText("My Gallery")).toBeNull();
+		expect(queryByText("My Gallery")).not.toBeInTheDocument();
 	});
 });
 
@@ -183,7 +182,7 @@ describe("Props: preview / allow_preview", () => {
 			value: three_images
 		});
 
-		expect(queryByTestId("detailed-image")).toBeNull();
+		expect(queryByTestId("detailed-image")).not.toBeInTheDocument();
 	});
 
 	test("allow_preview=false hides preview even when selected_index is set", async () => {
@@ -194,7 +193,7 @@ describe("Props: preview / allow_preview", () => {
 			value: three_images
 		});
 
-		expect(queryByTestId("detailed-image")).toBeNull();
+		expect(queryByTestId("detailed-image")).not.toBeInTheDocument();
 	});
 
 	test("allow_preview=true shows preview when thumbnail clicked", async () => {
@@ -224,7 +223,6 @@ describe("Props: preview / allow_preview", () => {
 	});
 });
 
-// ─── Props: selected_index ───────────────────────────────────────────
 describe("Props: selected_index", () => {
 	afterEach(() => cleanup());
 
@@ -249,7 +247,7 @@ describe("Props: selected_index", () => {
 			value: three_images
 		});
 
-		expect(queryByTestId("detailed-image")).toBeNull();
+		expect(queryByTestId("detailed-image")).not.toBeInTheDocument();
 	});
 
 	test("changing selected_index via set_data updates preview", async () => {
@@ -267,7 +265,6 @@ describe("Props: selected_index", () => {
 	});
 });
 
-// ─── Props: columns ──────────────────────────────────────────────────
 describe("Props: columns", () => {
 	afterEach(() => cleanup());
 
@@ -320,7 +317,6 @@ describe("Props: columns", () => {
 	});
 });
 
-// ─── Props: fit_columns ──────────────────────────────────────────────
 describe("Props: fit_columns", () => {
 	afterEach(() => cleanup());
 
@@ -361,7 +357,6 @@ describe("Props: fit_columns", () => {
 	});
 });
 
-// ─── Props: buttons ──────────────────────────────────────────────────
 describe("Props: buttons", () => {
 	afterEach(() => cleanup());
 
@@ -397,8 +392,10 @@ describe("Props: buttons", () => {
 		});
 
 		expect(getByRole("button", { name: "Close" })).toBeVisible();
-		expect(queryByRole("button", { name: "common.download" })).toBeNull();
-		expect(queryByLabelText("Fullscreen")).toBeNull();
+		expect(
+			queryByRole("button", { name: "common.download" })
+		).not.toBeInTheDocument();
+		expect(queryByLabelText("Fullscreen")).not.toBeInTheDocument();
 	});
 
 	test("custom button renders and dispatches custom_button_click", async () => {
@@ -416,7 +413,6 @@ describe("Props: buttons", () => {
 	});
 });
 
-// ─── Props: interactive ──────────────────────────────────────────────
 describe("Props: interactive", () => {
 	afterEach(() => cleanup());
 
@@ -438,7 +434,9 @@ describe("Props: interactive", () => {
 			value: three_images
 		});
 
-		expect(queryByRole("button", { name: "Delete image" })).toBeNull();
+		expect(
+			queryByRole("button", { name: "Delete image" })
+		).not.toBeInTheDocument();
 	});
 
 	test("interactive=true with no value shows upload area", async () => {
@@ -460,13 +458,10 @@ describe("Props: interactive", () => {
 			value: null
 		});
 
-		expect(queryByTestId("file-upload")).toBeNull();
+		expect(queryByTestId("file-upload")).not.toBeInTheDocument();
 	});
 });
 
-// ─── Props: sources ──────────────────────────────────────────────────
-// Source buttons appear inside ModifyUpload when interactive=true,
-// selected_index is null, and the gallery has items.
 describe("Props: sources", () => {
 	afterEach(() => cleanup());
 
@@ -484,8 +479,10 @@ describe("Props: sources", () => {
 		});
 
 		expect(getByLabelText("upload_text.click_to_upload")).toBeVisible();
-		expect(queryByLabelText("common.webcam")).toBeNull();
-		expect(queryByLabelText("upload_text.paste_clipboard")).toBeNull();
+		expect(queryByLabelText("common.webcam")).not.toBeInTheDocument();
+		expect(
+			queryByLabelText("upload_text.paste_clipboard")
+		).not.toBeInTheDocument();
 	});
 
 	test("sources=['upload', 'webcam'] shows upload and webcam buttons", async () => {
@@ -527,9 +524,10 @@ describe("Props: sources", () => {
 			preview: true
 		});
 
-		// ModifyUpload only renders when selected_index === null
-		expect(queryByLabelText("common.webcam")).toBeNull();
-		expect(queryByLabelText("upload_text.paste_clipboard")).toBeNull();
+		expect(queryByLabelText("common.webcam")).not.toBeInTheDocument();
+		expect(
+			queryByLabelText("upload_text.paste_clipboard")
+		).not.toBeInTheDocument();
 	});
 
 	test("source buttons are hidden when interactive=false", async () => {
@@ -539,12 +537,13 @@ describe("Props: sources", () => {
 			sources: ["upload", "webcam", "clipboard"]
 		});
 
-		expect(queryByLabelText("common.webcam")).toBeNull();
-		expect(queryByLabelText("upload_text.paste_clipboard")).toBeNull();
+		expect(queryByLabelText("common.webcam")).not.toBeInTheDocument();
+		expect(
+			queryByLabelText("upload_text.paste_clipboard")
+		).not.toBeInTheDocument();
 	});
 });
 
-// ─── Props: visual-only ──────────────────────────────────────────────
 describe("Props: visual-only", () => {
 	test.todo(
 		"VISUAL: object_fit='contain' vs 'cover' changes image display in thumbnails — needs Playwright visual regression screenshot comparison"
@@ -559,7 +558,6 @@ describe("Props: visual-only", () => {
 	);
 });
 
-// ─── Events: change ──────────────────────────────────────────────────
 describe("Events: change", () => {
 	afterEach(() => cleanup());
 
@@ -612,7 +610,6 @@ describe("Events: change", () => {
 	});
 });
 
-// ─── Events: select ──────────────────────────────────────────────────
 describe("Events: select", () => {
 	afterEach(() => cleanup());
 
@@ -647,7 +644,6 @@ describe("Events: select", () => {
 	});
 });
 
-// ─── Events: delete ──────────────────────────────────────────────────
 describe("Events: delete", () => {
 	afterEach(() => cleanup());
 
@@ -679,14 +675,15 @@ describe("Events: delete", () => {
 		await fireEvent.click(deleteButtons[0]);
 
 		await waitFor(() => {
-			expect(queryByRole("button", { name: "Thumbnail 2 of 2" })).toBeNull();
+			expect(
+				queryByRole("button", { name: "Thumbnail 2 of 2" })
+			).not.toBeInTheDocument();
 		});
 
 		expect(queryByRole("button", { name: "Thumbnail 1 of 1" })).toBeVisible();
 	});
 });
 
-// ─── Events: preview_open / preview_close ────────────────────────────
 describe("Events: preview_open / preview_close", () => {
 	afterEach(() => cleanup());
 
@@ -740,7 +737,6 @@ describe("Events: preview_open / preview_close", () => {
 	});
 });
 
-// ─── Keyboard navigation ─────────────────────────────────────────────
 describe("Keyboard navigation", () => {
 	afterEach(() => cleanup());
 
@@ -804,11 +800,10 @@ describe("Keyboard navigation", () => {
 
 		await fireEvent.keyDown(detail_button, { code: "Escape" });
 
-		expect(queryByTestId("detailed-image")).toBeNull();
+		expect(queryByTestId("detailed-image")).not.toBeInTheDocument();
 	});
 });
 
-// ─── get_data / set_data ─────────────────────────────────────────────
 describe("get_data / set_data", () => {
 	afterEach(() => cleanup());
 
@@ -869,11 +864,12 @@ describe("get_data / set_data", () => {
 
 		const data = await get_data();
 		expect(data.value).toBeNull();
-		expect(queryByRole("button", { name: /^Thumbnail/ })).toBeNull();
+		expect(
+			queryByRole("button", { name: /^Thumbnail/ })
+		).not.toBeInTheDocument();
 	});
 });
 
-// ─── Edge cases ──────────────────────────────────────────────────────
 describe("Edge cases", () => {
 	afterEach(() => cleanup());
 
@@ -936,7 +932,7 @@ describe("Edge cases", () => {
 
 		await fireEvent.click(getByRole("button", { name: "Close" }));
 
-		expect(queryByTestId("detailed-image")).toBeNull();
+		expect(queryByTestId("detailed-image")).not.toBeInTheDocument();
 	});
 
 	test("clicking thumbnail in preview switches selection", async () => {
@@ -960,7 +956,6 @@ describe("Edge cases", () => {
 	});
 });
 
-// ─── Regression: #13170 ──────────────────────────────────────────────
 describe("Regression: #13170 — selected_index points to newly appended image", () => {
 	afterEach(() => cleanup());
 
