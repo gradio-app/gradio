@@ -29,10 +29,6 @@ run_shared_prop_tests({
 	has_label: false
 });
 
-// ---------------------------------------------------------------------------
-// Props: show_label / label
-// ---------------------------------------------------------------------------
-
 describe("Props: show_label", () => {
 	afterEach(() => cleanup());
 
@@ -64,10 +60,6 @@ describe("Props: show_label", () => {
 		expect(getByText("Custom Label Text")).toBeTruthy();
 	});
 });
-
-// ---------------------------------------------------------------------------
-// General rendering
-// ---------------------------------------------------------------------------
 
 describe("Code", () => {
 	afterEach(() => cleanup());
@@ -103,10 +95,6 @@ describe("Code", () => {
 	});
 });
 
-// ---------------------------------------------------------------------------
-// Props: interactive
-// ---------------------------------------------------------------------------
-
 describe("Props: interactive", () => {
 	afterEach(() => cleanup());
 
@@ -128,10 +116,6 @@ describe("Props: interactive", () => {
 		expect(editor).toHaveAttribute("contenteditable", "false");
 	});
 });
-
-// ---------------------------------------------------------------------------
-// Props: buttons
-// ---------------------------------------------------------------------------
 
 describe("Props: buttons", () => {
 	afterEach(() => cleanup());
@@ -201,10 +185,6 @@ describe("Props: buttons", () => {
 	});
 });
 
-// ---------------------------------------------------------------------------
-// Props: language
-// ---------------------------------------------------------------------------
-
 describe("Props: language", () => {
 	afterEach(() => cleanup());
 
@@ -244,10 +224,6 @@ describe("Props: language", () => {
 	});
 });
 
-// ---------------------------------------------------------------------------
-// Props: lines / max_lines (visual — height constraints)
-// ---------------------------------------------------------------------------
-
 test.todo(
 	"VISUAL: lines=10 sets the minimum visible height of the editor to 10 line-heights — needs Playwright screenshot comparison"
 );
@@ -255,10 +231,6 @@ test.todo(
 test.todo(
 	"VISUAL: max_lines=3 caps the editor height at 3 line-heights and enables scrolling for longer content — needs Playwright screenshot comparison"
 );
-
-// ---------------------------------------------------------------------------
-// Props: show_line_numbers (visual)
-// ---------------------------------------------------------------------------
 
 test.todo(
 	"VISUAL: show_line_numbers=true renders the line number gutter — needs Playwright screenshot comparison"
@@ -268,10 +240,6 @@ test.todo(
 	"VISUAL: show_line_numbers=false hides the line number gutter — needs Playwright screenshot comparison"
 );
 
-// ---------------------------------------------------------------------------
-// Props: wrap_lines (visual)
-// ---------------------------------------------------------------------------
-
 test.todo(
 	"VISUAL: wrap_lines=true wraps long lines within the container width instead of scrolling — needs Playwright screenshot comparison"
 );
@@ -280,17 +248,9 @@ test.todo(
 	"VISUAL: wrap_lines=false lets long lines overflow horizontally — needs Playwright screenshot comparison"
 );
 
-// ---------------------------------------------------------------------------
-// Props: autocomplete (visual)
-// ---------------------------------------------------------------------------
-
 test.todo(
 	"VISUAL: autocomplete=true shows an autocompletion dropdown when typing in supported languages — needs Playwright interaction test"
 );
-
-// ---------------------------------------------------------------------------
-// Events
-// ---------------------------------------------------------------------------
 
 describe("Events", () => {
 	afterEach(() => cleanup());
@@ -354,10 +314,6 @@ describe("Events", () => {
 	});
 });
 
-// ---------------------------------------------------------------------------
-// get_data / set_data
-// ---------------------------------------------------------------------------
-
 describe("get_data / set_data", () => {
 	afterEach(() => cleanup());
 
@@ -397,10 +353,6 @@ describe("get_data / set_data", () => {
 	});
 });
 
-// ---------------------------------------------------------------------------
-// Copy button
-// ---------------------------------------------------------------------------
-
 describe("Copy button", () => {
 	afterEach(() => cleanup());
 
@@ -426,10 +378,6 @@ describe("Copy button", () => {
 		"VISUAL: copy button icon changes from Copy to Check for ~2 seconds after clicking — needs Playwright screenshot comparison"
 	);
 });
-
-// ---------------------------------------------------------------------------
-// Download button
-// ---------------------------------------------------------------------------
 
 describe("Download button", () => {
 	afterEach(() => cleanup());
@@ -458,10 +406,6 @@ describe("Download button", () => {
 		"VISUAL: download button icon changes from Download to Check for ~2 seconds after clicking — needs Playwright screenshot comparison"
 	);
 });
-
-// ---------------------------------------------------------------------------
-// Edge cases
-// ---------------------------------------------------------------------------
 
 describe("Edge cases", () => {
 	afterEach(() => cleanup());
