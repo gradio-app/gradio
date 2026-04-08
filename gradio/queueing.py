@@ -1093,8 +1093,8 @@ def process_validation_response(
                 validation_data.append({"is_valid": True, "message": ""})
 
     elif (
-        isinstance(validation_data, dict)
-        and validation_data.get("is_valid", None) is False
+        isinstance(validation_response, dict)
+        and validation_response.get("is_valid", None) is False
     ):
         validation_data.append(
             validation_response,
