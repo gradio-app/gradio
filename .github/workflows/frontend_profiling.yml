@@ -65,7 +65,7 @@ jobs:
         if: steps.changes.outputs.should_run == 'true'
         run: |
           export PATH="$HOME/.cargo/bin:$PATH"
-          uv venv venv --python=3.10
+          uv venv --allow-existing venv --python=3.10
           . venv/bin/activate
           uv pip install -e client/python
           uv pip install -e ".[oauth,mcp]"
@@ -100,7 +100,7 @@ jobs:
         if: steps.changes.outputs.should_run == 'true'
         run: |
           export PATH="$HOME/.cargo/bin:$PATH"
-          uv venv venv --python=3.10
+          uv venv --allow-existing venv --python=3.10
           . venv/bin/activate
           uv pip install -e client/python
           uv pip install -e ".[oauth,mcp]"
