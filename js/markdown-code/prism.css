@@ -87,12 +87,25 @@ th {
 
 /* Inline code */
 .md :not(pre) > code {
-	padding: 0.1em;
+	padding-block: var(--spacing-xxs);
+	padding-inline: var(--spacing-xs);
 	border-radius: var(--radius-xs);
 	white-space: normal;
 	background: var(--code-background-fill);
 	border: 1px solid var(--panel-border-color);
-	padding: var(--spacing-xxs) var(--spacing-xs);
+	display: inline-flex;
+	align-items: center;
+	line-height: 1.4;
+}
+
+.md h1 > code,
+.md h2 > code,
+.md h3 > code,
+.md h4 > code,
+.md h5 > code,
+.md h6 > code {
+	font-size: inherit;
+	line-height: inherit;
 }
 
 .md .token.comment,

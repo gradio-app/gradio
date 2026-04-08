@@ -165,6 +165,21 @@ A --> B
 </Story>
 
 <Story
+	name="Markdown heading inline code"
+	args={{
+		value:
+			"# `@gr.cache()` Demo\nClick the heading test to confirm the inline code renders cleanly.",
+		height: "150px"
+	}}
+>
+	{#snippet template(args)}
+		<Markdown
+			{...wrapProps({ latex_delimiters: [], height: args.height, ...args })}
+		/>
+	{/snippet}
+</Story>
+
+<Story
 	name="Markdown Several Coding languages"
 	args={{
 		value: `

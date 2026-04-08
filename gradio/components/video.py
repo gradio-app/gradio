@@ -16,6 +16,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
 from gradio import processing_utils, utils
+from gradio._vendor.ffmpy import FFmpeg
 from gradio.components.base import Component, StreamingOutput
 from gradio.components.button import Button
 from gradio.components.image_editor import WatermarkOptions, WebcamOptions
@@ -27,9 +28,6 @@ from gradio.utils import get_upload_folder, set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
-
-
-from ffmpy import FFmpeg
 
 
 @document()
