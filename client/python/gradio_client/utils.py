@@ -9,6 +9,7 @@ import json
 import mimetypes
 import os
 import pkgutil
+import re
 import secrets
 import shutil
 import tempfile
@@ -66,6 +67,13 @@ INVALID_RUNTIME = [
     SpaceStage.RUNTIME_ERROR,
     SpaceStage.PAUSED,
 ]
+
+# Characters forbidden in filenames across OS and shell environments:
+# < > : " / \ | ? *  – forbidden on Windows
+# \x00-\x1f           – null byte and ASCII control characters
+# \x7f                – DEL character
+# ` $ ! { }           – shell-dangerous characters
+_FORBIDDEN_RE = re.compile(r'[<>:"/\\|?*\x00-\x1f\x7f`$!{}]')
 
 
 class Message(TypedDict, total=False):
@@ -735,17 +743,18 @@ def decode_base64_to_binary(encoding: str) -> tuple[bytes, str | None]:
 
 def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> str:
     """
-    Strips invalid characters from a filename and ensures it does not exceed the maximum byte length
-    Invalid characters are any characters that are not alphanumeric or one of the following: . _ - ,
-    The filename may include an extension (in which case it is preserved exactly as is), or could be just a name without an extension.
+    Strips invalid characters from a filename and ensures it does not exceed the maximum byte length.
+    Only removes characters that are truly dangerous for file systems: path separators,
+    null bytes, control characters, and shell-dangerous characters. Preserves all other
+    characters including parentheses, brackets, unicode characters, etc.
+    The filename may include an extension (in which case it is preserved exactly as is),
+    or could be just a name without an extension.
     """
     name, ext = os.path.splitext(filename)
-    name = "".join([char for char in name if char.isalnum() or char in "._-, "])
+    name = _FORBIDDEN_RE.sub("", name)
     # Also sanitize the extension (excluding the leading dot)
     if ext:
-        ext = "." + "".join(
-            [char for char in ext[1:] if char.isalnum() or char in "._-"]
-        )
+        ext = "." + _FORBIDDEN_RE.sub("", ext[1:])
     # If the stem was stripped entirely but an extension exists, use a
     # fallback name so that the extension is not mistaken for a dotfile
     # stem (e.g. "#.txt" → ".txt" → Path(".txt").suffix == "").
