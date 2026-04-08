@@ -63,5 +63,5 @@
 	href={download_value}
 	onclick={copy_feedback}
 >
-	<IconButton Icon={copied ? Check : Download} />
+	<IconButton Icon={copied ? Check : Download} label="Download" />
 </DownloadLink>
