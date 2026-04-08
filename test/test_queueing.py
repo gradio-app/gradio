@@ -75,6 +75,62 @@ class TestQueueing:
         assert job2.result() == "Hello, b!"
         assert job4.result() == "Hello, d!"
 
+    def test_cached_generator_finishes_on_queue_cache_hit(self, connect):
+        call_count = 0
+
+        @gr.cache
+        def stream_text(text):
+            nonlocal call_count
+            call_count += 1
+            for i in range(len(text)):
+                yield text[: i + 1]
+
+        with gr.Blocks() as demo:
+            name = gr.Textbox()
+            output = gr.Textbox()
+            name.submit(stream_text, name, output)
+
+        demo.queue()
+
+        with connect(demo) as client:
+            first = client.submit("hello", fn_index=0)
+            assert first.result(timeout=5) == "hello"
+            assert first.outputs() == ["h", "he", "hel", "hell", "hello"]
+
+            second = client.submit("hello", fn_index=0)
+            assert second.result(timeout=5) == "hello"
+            assert second.outputs() == ["h", "he", "hel", "hell", "hello"]
+
+        assert call_count == 1
+
+    def test_queue_average_excludes_manual_cache_hits(self, connect):
+        def greet(x, c=gr.Cache()):
+            hit = c.get(x)
+            if hit is not None:
+                return hit["value"]
+            time.sleep(0.02)
+            value = f"Hello, {x}!"
+            c.set(x, value=value)
+            return value
+
+        with gr.Blocks() as demo:
+            name = gr.Textbox()
+            output = gr.Textbox()
+            name.submit(greet, name, output)
+
+        demo.queue()
+
+        with connect(demo) as client:
+            first = client.submit("x", fn_index=0)
+            assert first.result(timeout=5) == "Hello, x!"
+
+            second = client.submit("x", fn_index=0)
+            assert second.result(timeout=5) == "Hello, x!"
+
+        process_time = demo._queue.process_time_per_fn[demo.fns[0]]
+        assert process_time.count == 1
+        assert process_time.avg_time >= 0.02
+
     @pytest.mark.flaky
     @pytest.mark.parametrize(
         "default_concurrency_limit, statuses",
