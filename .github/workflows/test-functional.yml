@@ -15,6 +15,7 @@ permissions: {}
 
 env:
   CI: true
+  UV_EXCLUDE_NEWER: 7 days
 
 jobs:
   changes:

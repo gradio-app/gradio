@@ -1747,12 +1747,29 @@ class App(FastAPI):
                 media_type="text/event-stream",
             )
 
+        def set_upload_trace(session_hash: str, start: float):
+            import uuid
+
+            from gradio.profiling import PROFILING_ENABLED, RequestTrace, collector
+
+            if PROFILING_ENABLED:
+                trace = RequestTrace(
+                    event_id=str(uuid.uuid4()),
+                    fn_name="gradio_file_upload",
+                    session_hash=session_hash,
+                )
+                trace.upload_ms = (time.monotonic() - start) * 1000
+                collector.add(trace)
+
         @router.post("/upload", dependencies=[Depends(login_check)])
         async def upload_file(
             request: fastapi.Request,
             bg_tasks: BackgroundTasks,
             upload_id: str | None = None,
         ):
+            start = None
+            if PROFILING_ENABLED:
+                start = time.monotonic()
             content_type_header = request.headers.get("Content-Type")
             content_type: bytes
             content_type, _ = parse_options_header(content_type_header or "")
@@ -1817,6 +1834,11 @@ class App(FastAPI):
                 bg_tasks.add_task(
                     move_uploaded_files_to_cache, files_to_copy, locations
                 )
+            if PROFILING_ENABLED:
+                bg_tasks.add_task(
+                    set_upload_trace, request.headers.get("session_hash", ""), start
+                )
+
             return output_files
 
         @router.get("/startup-events")

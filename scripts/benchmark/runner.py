@@ -11,6 +11,7 @@ import time
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
+from huggingface_hub import sync_bucket
 
 import httpx
 
@@ -100,6 +101,8 @@ async def resolve_fn_info(
                 data_template.append("hello")
             elif comp_type in ["state", "chatbot"]:
                 data_template.append(None)
+            elif comp_type in ["image", "audio", "video"]:
+                data_template.append({"is_file": True, "choices": [str(f.resolve()) for f in (Path("sample-inputs") / comp_type).iterdir() if f.is_file()]})
             else:
                 data_template.append("hello")
 
@@ -144,21 +147,36 @@ async def run_httpx_tier(
     # Scale with num_users since all requests queue behind concurrency_limit.
     request_timeout = max(120.0, num_users * 5.0)
 
+    async def _do_upload(client: httpx.AsyncClient, filepath: str, app_url: str):
+        start = time.monotonic()
+        result = None
+        with open(filepath, "rb") as f:
+            files = {"files": (filepath, f, "text/plain")}
+            response = await client.post(f"{app_url}/gradio_api/upload", files=files, timeout=60)
+            result = response.json()[0]
+            return result, time.monotonic() - start
+
     async def _do_request(
         client: httpx.AsyncClient, user_id: int, req_id: int, session_hash: str
     ) -> dict:
         """Send a single request and return the latency result."""
         data = []
+        start = time.monotonic()
+        upload_ms = None
         for item in data_template:
-            if isinstance(item, str):
-                if prompts:
-                    data.append(random.choice(prompts))
-                else:
-                    data.append(f"hello from user {user_id} req {req_id}")
+            if prompts and isinstance(item, str):
+                data.append(random.choice(prompts))
+            elif prompts and isinstance(item, dict) and item['is_file'] is True:
+                file = random.choice(prompts)
+                path, upload_ms = await _do_upload(client, file['path'], app_url)
+                data.append({'path': path, "meta": {'_type': 'gradio.FileData'}})
+            elif isinstance(item, str):
+                data.append(f"hello from user {user_id} req {req_id}")
+            elif isinstance(item, dict) and item['is_file'] is True:
+                path, upload_ms = await _do_upload(client, random.choice(item['choices']), app_url)
+                data.append({'path': path, "meta": {'_type': 'gradio.FileData'}})
             else:
                 data.append(item)
-
-        start = time.monotonic()
         try:
             resp = await client.post(
                 f"{app_url}/gradio_api/queue/join",
@@ -200,6 +218,7 @@ async def run_httpx_tier(
                 "request_id": req_id,
                 "latency_ms": duration_ms,
                 "success": True,
+                "upload_ms": upload_ms * 1000 if upload_ms is not None else None
             }
         except Exception as e:
             duration_ms = (time.monotonic() - start) * 1000
@@ -210,6 +229,7 @@ async def run_httpx_tier(
                 "latency_ms": duration_ms,
                 "success": False,
                 "error": f"{error_type}: {e}" if str(e) else error_type,
+                "upload_ms": upload_ms * 1000 if upload_ms is not None else None
             }
 
     # Overall timeout for an entire round. If the server deadlocks,
@@ -272,6 +292,7 @@ async def run_httpx_tier(
                             "user_id": i,
                             "request_id": req_id,
                             "latency_ms": round_timeout * 1000,
+                            "upload_ms": None,
                             "success": False,
                             "error": f"Round timed out after {round_timeout:.0f}s",
                         }
@@ -349,6 +370,7 @@ async def run_benchmark(
     api_name: str | None = None,
     concurrency_limit: int | None = 1,
     mode: str = "burst",
+    max_threads: int = 40,
 ):
     app_url = f"http://127.0.0.1:{port}"
 
@@ -358,7 +380,11 @@ async def run_benchmark(
     env["GRADIO_SERVER_PORT"] = str(port)
     cl_str = "none" if concurrency_limit is None else str(concurrency_limit)
     env["GRADIO_CONCURRENCY_LIMIT"] = cl_str
+    env["GRADIO_MAX_THREADS"] = str(max_threads)
     env["PYTHONUNBUFFERED"] = "1"
+
+    print(f"Synching sample-inputs to {(Path(os.getcwd()) / 'sample-inputs')}")
+    sync_bucket("hf://buckets/gradio/sample-inputs", "sample-inputs")
 
     print(f"Launching app: {app_path}")
     proc = subprocess.Popen(
@@ -429,16 +455,27 @@ async def run_benchmark(
             tier_dir = base_dir / f"tier_{tier}"
             tier_dir.mkdir(exist_ok=True)
 
-            from tqdm import tqdm
+            is_tty = sys.stdout.isatty()
+            if is_tty:
+                from tqdm import tqdm
 
-            pbar = tqdm(
-                total=requests_per_user, desc=f"  Tier {tier}", unit="round", leave=True
-            )
+                pbar = tqdm(
+                    total=requests_per_user, desc=f"  Tier {tier}", unit="round", leave=True,
+                )
 
-            def on_round_complete(round_num, total_rounds, successful, num_users):
-                failed = num_users - successful
-                pbar.set_postfix(ok=successful, fail=failed, refresh=True)
-                pbar.update(1)
+                def on_round_complete(round_num, total_rounds, successful, num_users):
+                    failed = num_users - successful
+                    pbar.set_postfix(ok=successful, fail=failed, refresh=True)
+                    pbar.update(1)
+            else:
+                pbar = None
+
+                def on_round_complete(round_num, total_rounds, successful, num_users):
+                    failed = num_users - successful
+                    print(
+                        f"  Round {round_num}/{total_rounds} — ok={successful} fail={failed}",
+                        flush=True,
+                    )
 
             # Run the tier
             start = time.monotonic()
@@ -452,7 +489,8 @@ async def run_benchmark(
                 on_round_complete=on_round_complete,
                 prompts=prompts,
             )
-            pbar.close()
+            if pbar is not None:
+                pbar.close()
             elapsed = time.monotonic() - start
 
             # Fetch server profiling data
@@ -590,10 +628,16 @@ def main():
         default="1",
         help="Concurrency limit for the app (default: 1, use 'none' for unlimited)",
     )
+    parser.add_argument(
+        "--max-threads",
+        default="40",
+        help="Concurrency limit for the app (default: 1, use 'none' for unlimited)",
+    )
 
     args = parser.parse_args()
     tiers = [int(t.strip()) for t in args.tiers.split(",")]
     cl = None if args.concurrency_limit == "none" else int(args.concurrency_limit)
+    max_threads = int(args.max_threads)
 
     asyncio.run(
         run_benchmark(
@@ -605,9 +649,14 @@ def main():
             api_name=args.api_name,
             concurrency_limit=cl,
             mode=args.mode,
+            max_threads=max_threads
         )
     )
 
 
 if __name__ == "__main__":
+    # Force line-buffered stdout/stderr so output streams in real-time
+    # when running in containers (e.g. HF Jobs) where stdout is not a TTY.
+    sys.stdout.reconfigure(line_buffering=True)
+    sys.stderr.reconfigure(line_buffering=True)
     main()
