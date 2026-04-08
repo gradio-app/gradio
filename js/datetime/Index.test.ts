@@ -189,7 +189,10 @@ describe("Events", () => {
 
 	test("change: dispatched without a payload (value is accessed via get_data)", async () => {
 		// DateTime's change event has no payload — the new value is read via get_data.
-		const { listen, set_data, get_data } = await render(DateTime, default_props);
+		const { listen, set_data, get_data } = await render(
+			DateTime,
+			default_props
+		);
 		const change = listen("change");
 		await set_data({ value: "2021-05-20 09:00:00" });
 		expect(change).toHaveBeenCalledTimes(1);
