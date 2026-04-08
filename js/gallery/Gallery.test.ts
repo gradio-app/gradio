@@ -120,9 +120,9 @@ describe("Gallery", () => {
 			value: three_images
 		});
 
-		expect(getByRole("button", { name: "Thumbnail 1 of 3" })).toBeTruthy();
-		expect(getByRole("button", { name: "Thumbnail 2 of 3" })).toBeTruthy();
-		expect(getByRole("button", { name: "Thumbnail 3 of 3" })).toBeTruthy();
+		expect(getByRole("button", { name: "Thumbnail 1 of 3" })).toBeVisible();
+		expect(getByRole("button", { name: "Thumbnail 2 of 3" })).toBeVisible();
+		expect(getByRole("button", { name: "Thumbnail 3 of 3" })).toBeVisible();
 	});
 
 	test("renders video thumbnails in grid", async () => {
@@ -131,8 +131,8 @@ describe("Gallery", () => {
 			value: [vid("clip1"), vid("clip2")]
 		});
 
-		expect(getByRole("button", { name: "Thumbnail 1 of 2" })).toBeTruthy();
-		expect(getByRole("button", { name: "Thumbnail 2 of 2" })).toBeTruthy();
+		expect(getByRole("button", { name: "Thumbnail 1 of 2" })).toBeVisible();
+		expect(getByRole("button", { name: "Thumbnail 2 of 2" })).toBeVisible();
 	});
 
 	test("renders captions on thumbnails", async () => {
@@ -141,8 +141,8 @@ describe("Gallery", () => {
 			value: [img("cat", "A cute cat"), img("dog", "A good dog")]
 		});
 
-		expect(getByText("A cute cat")).toBeTruthy();
-		expect(getByText("A good dog")).toBeTruthy();
+		expect(getByText("A cute cat")).toBeVisible();
+		expect(getByText("A good dog")).toBeVisible();
 	});
 
 	test("mixed images and videos render correctly", async () => {
@@ -151,9 +151,9 @@ describe("Gallery", () => {
 			value: [img("photo"), vid("clip"), img("photo2")]
 		});
 
-		expect(getByRole("button", { name: "Thumbnail 1 of 3" })).toBeTruthy();
-		expect(getByRole("button", { name: "Thumbnail 2 of 3" })).toBeTruthy();
-		expect(getByRole("button", { name: "Thumbnail 3 of 3" })).toBeTruthy();
+		expect(getByRole("button", { name: "Thumbnail 1 of 3" })).toBeVisible();
+		expect(getByRole("button", { name: "Thumbnail 2 of 3" })).toBeVisible();
+		expect(getByRole("button", { name: "Thumbnail 3 of 3" })).toBeVisible();
 	});
 });
 
@@ -281,7 +281,7 @@ describe("Props: columns", () => {
 
 		// No testid or role available on the grid-container div; querySelector is the only option
 		const grid = container.querySelector(".grid-container") as HTMLElement;
-		expect(grid).toBeTruthy();
+		expect(grid).toBeInTheDocument();
 		expect(grid.style.getPropertyValue("--grid-cols")).toBe("3");
 	});
 
@@ -297,7 +297,9 @@ describe("Props: columns", () => {
 
 		// All 5 thumbnails are rendered
 		for (let i = 1; i <= 5; i++) {
-			expect(getByRole("button", { name: `Thumbnail ${i} of 5` })).toBeTruthy();
+			expect(
+				getByRole("button", { name: `Thumbnail ${i} of 5` })
+			).toBeVisible();
 		}
 
 		// Grid is set to 2 columns (wrapping after 2)
@@ -376,7 +378,7 @@ describe("Props: buttons", () => {
 			buttons: ["download"]
 		});
 
-		expect(getByRole("button", { name: "common.download" })).toBeTruthy();
+		expect(getByRole("button", { name: "common.download" })).toBeVisible();
 	});
 
 	test("buttons=['fullscreen'] shows fullscreen button in preview", async () => {
@@ -385,7 +387,7 @@ describe("Props: buttons", () => {
 			buttons: ["fullscreen"]
 		});
 
-		expect(getByLabelText("Fullscreen")).toBeTruthy();
+		expect(getByLabelText("Fullscreen")).toBeVisible();
 	});
 
 	test("buttons=[] shows only close button in preview", async () => {
@@ -394,7 +396,7 @@ describe("Props: buttons", () => {
 			buttons: []
 		});
 
-		expect(getByRole("button", { name: "Close" })).toBeTruthy();
+		expect(getByRole("button", { name: "Close" })).toBeVisible();
 		expect(queryByRole("button", { name: "common.download" })).toBeNull();
 		expect(queryByLabelText("Fullscreen")).toBeNull();
 	});
@@ -446,7 +448,9 @@ describe("Props: interactive", () => {
 			value: null
 		});
 
-		expect(getByTestId("file-upload")).toBeTruthy();
+		// The file input itself is display:none (the visible area is a styled overlay),
+		// so we check it exists in the DOM rather than visibility.
+		expect(getByTestId("file-upload")).toBeInTheDocument();
 	});
 
 	test("interactive=false with no value does not show upload area", async () => {
@@ -479,7 +483,7 @@ describe("Props: sources", () => {
 			sources: ["upload"]
 		});
 
-		expect(getByLabelText("upload_text.click_to_upload")).toBeTruthy();
+		expect(getByLabelText("upload_text.click_to_upload")).toBeVisible();
 		expect(queryByLabelText("common.webcam")).toBeNull();
 		expect(queryByLabelText("upload_text.paste_clipboard")).toBeNull();
 	});
@@ -490,8 +494,8 @@ describe("Props: sources", () => {
 			sources: ["upload", "webcam"]
 		});
 
-		expect(getByLabelText("upload_text.click_to_upload")).toBeTruthy();
-		expect(getByLabelText("common.webcam")).toBeTruthy();
+		expect(getByLabelText("upload_text.click_to_upload")).toBeVisible();
+		expect(getByLabelText("common.webcam")).toBeVisible();
 	});
 
 	test("sources=['upload', 'clipboard'] shows upload and clipboard buttons", async () => {
@@ -500,8 +504,8 @@ describe("Props: sources", () => {
 			sources: ["upload", "clipboard"]
 		});
 
-		expect(getByLabelText("upload_text.click_to_upload")).toBeTruthy();
-		expect(getByLabelText("upload_text.paste_clipboard")).toBeTruthy();
+		expect(getByLabelText("upload_text.click_to_upload")).toBeVisible();
+		expect(getByLabelText("upload_text.paste_clipboard")).toBeVisible();
 	});
 
 	test("sources=['upload', 'webcam', 'clipboard'] shows all source buttons", async () => {
@@ -510,9 +514,9 @@ describe("Props: sources", () => {
 			sources: ["upload", "webcam", "clipboard"]
 		});
 
-		expect(getByLabelText("upload_text.click_to_upload")).toBeTruthy();
-		expect(getByLabelText("common.webcam")).toBeTruthy();
-		expect(getByLabelText("upload_text.paste_clipboard")).toBeTruthy();
+		expect(getByLabelText("upload_text.click_to_upload")).toBeVisible();
+		expect(getByLabelText("common.webcam")).toBeVisible();
+		expect(getByLabelText("upload_text.paste_clipboard")).toBeVisible();
 	});
 
 	test("source buttons are hidden when selected_index is set (preview active)", async () => {
@@ -669,7 +673,7 @@ describe("Events: delete", () => {
 			value: [img("a"), img("b")]
 		});
 
-		expect(queryByRole("button", { name: "Thumbnail 2 of 2" })).toBeTruthy();
+		expect(queryByRole("button", { name: "Thumbnail 2 of 2" })).toBeVisible();
 
 		const deleteButtons = getAllByRole("button", { name: "Delete image" });
 		await fireEvent.click(deleteButtons[0]);
@@ -678,7 +682,7 @@ describe("Events: delete", () => {
 			expect(queryByRole("button", { name: "Thumbnail 2 of 2" })).toBeNull();
 		});
 
-		expect(queryByRole("button", { name: "Thumbnail 1 of 1" })).toBeTruthy();
+		expect(queryByRole("button", { name: "Thumbnail 1 of 1" })).toBeVisible();
 	});
 });
 
@@ -834,12 +838,12 @@ describe("get_data / set_data", () => {
 			value: [img("a")]
 		});
 
-		expect(getByRole("button", { name: "Thumbnail 1 of 1" })).toBeTruthy();
+		expect(getByRole("button", { name: "Thumbnail 1 of 1" })).toBeVisible();
 
 		await set_data({ value: [img("a"), img("b"), img("c")] });
 
-		expect(getByRole("button", { name: "Thumbnail 1 of 3" })).toBeTruthy();
-		expect(getByRole("button", { name: "Thumbnail 3 of 3" })).toBeTruthy();
+		expect(getByRole("button", { name: "Thumbnail 1 of 3" })).toBeVisible();
+		expect(getByRole("button", { name: "Thumbnail 3 of 3" })).toBeVisible();
 	});
 
 	test("set_data -> get_data round-trip", async () => {
@@ -928,7 +932,7 @@ describe("Edge cases", () => {
 			value: three_images
 		});
 
-		expect(queryByTestId("detailed-image")).toBeTruthy();
+		expect(queryByTestId("detailed-image")).toBeVisible();
 
 		await fireEvent.click(getByRole("button", { name: "Close" }));
 
