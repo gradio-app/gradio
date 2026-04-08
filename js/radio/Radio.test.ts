@@ -101,9 +101,9 @@ describe("Props: choices", () => {
 	test("renders display values as labels", async () => {
 		const { getByText } = await render(Radio, default_props);
 
-		expect(getByText("dog")).toBeTruthy();
-		expect(getByText("cat")).toBeTruthy();
-		expect(getByText("turtle")).toBeTruthy();
+		expect(getByText("dog")).toBeVisible();
+		expect(getByText("cat")).toBeVisible();
+		expect(getByText("turtle")).toBeVisible();
 	});
 
 	test("display value and internal value can differ", async () => {
@@ -112,14 +112,17 @@ describe("Props: choices", () => {
 			["cat label", "cat_val"]
 		];
 
-		const { getByText, get_data } = await render(Radio, {
+		const { getByText, getAllByRole, get_data } = await render(Radio, {
 			...default_props,
 			choices: custom_choices,
 			value: "cat_val"
 		});
 
-		expect(getByText("dog label")).toBeTruthy();
-		expect(getByText("cat label")).toBeTruthy();
+		expect(getByText("dog label")).toBeVisible();
+		expect(getByText("cat label")).toBeVisible();
+
+		const radios = getAllByRole("radio") as HTMLInputElement[];
+		expect(radios[1]).toBeChecked();
 
 		const data = await get_data();
 		expect(data.value).toBe("cat_val");
@@ -157,7 +160,7 @@ describe("Props: info", () => {
 			info: "Pick your favorite animal"
 		});
 
-		expect(getByText("Pick your favorite animal")).toBeTruthy();
+		expect(getByText("Pick your favorite animal")).toBeVisible();
 	});
 
 	test("no info does not render info text", async () => {
