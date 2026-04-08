@@ -10,6 +10,7 @@ import time
 import warnings
 from pathlib import Path
 
+from gradio.exceptions import ShareCertificateWriteError
 import httpx
 
 from gradio.routes import App  # HACK: to avoid circular import # noqa: F401
@@ -37,14 +38,21 @@ def setup_tunnel(
             payload = response.json()[0]
             remote_host, remote_port = payload["host"], int(payload["port"])
             certificate = payload["root_ca"]
-            Path(CERTIFICATE_PATH).parent.mkdir(parents=True, exist_ok=True)
-            with open(CERTIFICATE_PATH, "w") as f:
-                f.write(certificate)
-            share_server_tls_certificate = CERTIFICATE_PATH
         except Exception as e:
             raise RuntimeError(
                 "Could not get share link from Gradio API Server."
             ) from e
+        try:
+            Path(CERTIFICATE_PATH).parent.mkdir(parents=True, exist_ok=True)
+            with open(CERTIFICATE_PATH, "w") as f:
+                f.write(certificate)
+        except Exception as e:
+            raise ShareCertificateWriteError(
+                f"{e}. "
+                "This can happen when the current working directory is read-only."
+            ) from e
+        share_server_tls_certificate = CERTIFICATE_PATH
+
     else:
         remote_host, remote_port = share_server_address.split(":")
         remote_port = int(remote_port)
