@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import cast
 
 import pytest
 
@@ -161,10 +162,12 @@ class TestGetDatetimeFromStr:
         assert result.day == 1
 
     def test_applies_timezone_to_parsed_string(self):
+        import pytz
+
         dt = gr.DateTime(timezone="US/Pacific")
         result = dt.get_datetime_from_str("2020-02-01 08:10:25")
         assert result.tzinfo is not None
-        assert result.tzinfo.zone == "US/Pacific"
+        assert cast(pytz.BaseTzInfo, result.tzinfo).zone == "US/Pacific"
 
     def test_now_returns_current_time(self):
         dt = gr.DateTime(timezone="US/Pacific")
