@@ -1,6 +1,5 @@
 ---
-"@gradio/code": minor
-"gradio": minor
+"@gradio/code": patch
 ---
 
 feat:code tests
