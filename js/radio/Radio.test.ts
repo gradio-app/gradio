@@ -250,7 +250,7 @@ describe("Events", () => {
 	test("change event does not fire on mount", async () => {
 		const { listen } = await render(Radio, default_props);
 
-		const change = listen("change");
+		const change = listen("change", { retrospective: true });
 
 		expect(change).not.toHaveBeenCalled();
 	});
