@@ -2830,7 +2830,14 @@ Received inputs:
                     ports=worker_ports,
                 )
                 self._static_worker_pool.start()
-                self.server_app.enable_static_workers(self._static_worker_pool)
+                # Only enable the 307 redirect middleware when there's no
+                # external reverse proxy (nginx) doing the routing.  When
+                # nginx sits in front the middleware must stay disabled so
+                # the browser never sees internal worker addresses.
+                if not os.environ.get("GRADIO_DISABLE_REDIRECT_MIDDLEWARE"):
+                    self.server_app.enable_static_workers(
+                        self._static_worker_pool
+                    )
                 if not quiet:
                     print(
                         f"* Static file workers: {resolved_num_workers} processes on ports {self._static_worker_pool.ports}"
