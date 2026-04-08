@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 @document()
 class UploadButton(Component):
     """
-    Used to create an upload button, when clicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
+    Creates a button that opens the file picker when clicked, allowing users to upload a single file, multiple files, or an entire directory, optionally filtered by file type.
 
     Demos: upload_and_download, upload_button
     """
@@ -60,24 +60,24 @@ class UploadButton(Component):
         """
         Parameters:
             label: Text to display on the button. Defaults to "Upload a File".
-            value: File or list of files to upload by default.
-            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
+            value: A default file path, URL, list of file paths/URLs, or a callable that returns one of those values.
+            every: Continuously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
-            variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
-            visible: If False, component will be hidden. If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM
-            size: size of the button. Can be "sm", "md", or "lg".
-            icon: URL or path to the icon file to display within the button. If None, no icon will be displayed.
-            scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
-            min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
-            interactive: If False, the UploadButton will be in a disabled state.
+            variant: Sets the button style. Use 'primary' for main call-to-action buttons, 'secondary' for a more subdued style, or 'stop' for a stop button.
+            visible: If False, component will be hidden. If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM.
+            size: Size of the button. Can be "sm", "md", or "lg".
+            icon: URL or path to an icon file to display inside the button. If None, no icon is shown.
+            scale: Relative size compared to adjacent components. For example, if components A and B are in a Row, and A has scale=2 while B has scale=1, A will be twice as wide as B. Scale applies in Rows, and to top-level components in Blocks where `fill_height=True`.
+            min_width: Minimum pixel width. If a certain scale value results in this component being narrower than `min_width`, `min_width` will be respected first.
+            interactive: If False, the UploadButton will be disabled.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
-            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
-            preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
-            type: Type of value to be returned by component. "file" returns a temporary file object with the same base name as the uploaded file, whose full path can be retrieved by file_obj.name, "binary" returns an bytes object.
-            file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
-            file_types: List of type of files to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
+            render: If False, component will not be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            key: In a gr.render, components with the same key across re-renders are treated as the same component, not a new component. Properties set in `preserved_by_key` are not reset across a re-render.
+            preserved_by_key: A list of constructor parameters that should be preserved when this component is re-rendered inside `gr.render()` with the same key.
+            type: Type of value returned by the component. `"filepath"` returns a temporary file path, while `"binary"` returns the uploaded file contents as bytes.
+            file_count: Controls how many files the user can upload. Use `"single"` for one file, `"multiple"` for several files, or `"directory"` to upload all files from a selected folder.
+            file_types: Optional list of accepted file categories or extensions. For example, `"image"`, `"audio"`, `"video"`, `"text"`, or extensions such as `.pdf`.
         """
         valid_types = [
             "filepath",
