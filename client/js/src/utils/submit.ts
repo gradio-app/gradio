@@ -12,10 +12,7 @@ import type {
 } from "../types";
 
 import { skip_queue, post_message, handle_payload } from "../helpers/data";
-import {
-	get_zerogpu_origin,
-	initialize_zerogpu_handshake
-} from "../helpers/zerogpu";
+import { get_zerogpu_origin } from "../helpers/zerogpu";
 import {
 	handle_message,
 	map_data_to_params,
@@ -414,7 +411,6 @@ export function submit(
 				let hostname = "";
 				if (typeof window !== "undefined" && typeof document !== "undefined") {
 					hostname = window?.location?.hostname;
-					initialize_zerogpu_handshake();
 				}
 
 				const origin = get_zerogpu_origin(hostname);
