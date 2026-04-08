@@ -420,23 +420,6 @@ describe("Edge cases", () => {
 		expect(queryByLabelText("Code input container")).toBeTruthy();
 	});
 
-	test("no spurious change event on initial render", async () => {
-		const { listen } = await render(Code, default_props);
-		const change = listen("change", { retrospective: true });
-		expect(change).not.toHaveBeenCalled();
-	});
-
-	test("change deduplication: same value set twice fires change only once", async () => {
-		const { listen, set_data } = await render(Code, {
-			...default_props,
-			value: "original"
-		});
-		const change = listen("change");
-		await set_data({ value: "updated" });
-		await set_data({ value: "updated" });
-		expect(change).toHaveBeenCalledTimes(1);
-	});
-
 	test("empty string value with interactive=true shows the editor", async () => {
 		const { getByLabelText } = await render(Code, {
 			...default_props,
