@@ -13,7 +13,6 @@ import mimetypes
 import multiprocessing
 import os
 import secrets
-import socket
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -243,16 +242,6 @@ def create_static_app(config: StaticServerConfig) -> fastapi.FastAPI:
 # ── Static Worker Pool ──────────────────────────────────────────────────────
 
 
-def _find_free_port(start: int = 0) -> int:
-    """Find a free port. If start=0, let the OS pick an ephemeral port."""
-    s = socket.socket()
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    s.bind(("127.0.0.1", start))
-    port = s.getsockname()[1]
-    s.close()
-    return port
-
-
 def _run_static_worker(port: int, config_dict: dict):
     """Entry point for a static worker subprocess."""
     config = StaticServerConfig(**config_dict)
@@ -263,11 +252,11 @@ def _run_static_worker(port: int, config_dict: dict):
 class StaticWorkerPool:
     """Manages N static file server processes."""
 
-    def __init__(self, num_workers: int, config: StaticServerConfig):
+    def __init__(self, num_workers: int, config: StaticServerConfig, ports: list[int]):
         self.num_workers = num_workers
         self.config = config
         self.workers: list[multiprocessing.Process] = []
-        self.ports: list[int] = []
+        self.ports = list(ports)
         self._counter = 0
         self._started = False
 
@@ -290,8 +279,7 @@ class StaticWorkerPool:
             "favicon_path": self.config.favicon_path,
         }
 
-        for i in range(self.num_workers):
-            port = _find_free_port()  # OS picks an ephemeral port
+        for i, port in enumerate(self.ports):
             process = multiprocessing.Process(
                 target=_run_static_worker,
                 args=(port, config_dict),
@@ -300,7 +288,6 @@ class StaticWorkerPool:
             )
             process.start()
             self.workers.append(process)
-            self.ports.append(port)
 
         # Wait for workers to be ready
         import httpx
@@ -313,13 +300,6 @@ class StaticWorkerPool:
                         break
                 except Exception:
                     time.sleep(0.1)
-
-        # Write ports to file so external tools (nginx, benchmarks) can discover them
-        ports_file = os.environ.get("GRADIO_WORKER_PORTS_FILE")
-        if ports_file:
-            import json
-
-            Path(ports_file).write_text(json.dumps(self.ports))
 
         logger.info(
             f"StaticWorkerPool: {self.num_workers} workers on ports {self.ports}"

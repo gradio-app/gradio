@@ -703,8 +703,6 @@ async def run_benchmark(
         env["GRADIO_DEFAULT_CONCURRENCY_LIMIT"] = str(concurrency_limit)
     if num_workers > 1:
         env["GRADIO_NUM_WORKERS"] = str(num_workers)
-    worker_ports_file = "/tmp/gradio_worker_ports.json"
-    env["GRADIO_WORKER_PORTS_FILE"] = worker_ports_file
     env["PYTHONUNBUFFERED"] = "1"
 
     print(f"Synching sample-inputs to {(Path(os.getcwd()) / 'sample-inputs')}")
@@ -743,24 +741,14 @@ async def run_benchmark(
         # Start nginx if requested and workers are available
         nginx_proc = None
         if use_nginx and num_workers > 1:
-            worker_ports = []
-            # Wait for the ports file — workers may still be starting
-            for _ in range(30):
-                if Path(worker_ports_file).exists():
-                    worker_ports = json.loads(Path(worker_ports_file).read_text())
-                    if worker_ports:
-                        break
-                time.sleep(0.5)
-            if worker_ports:
-                nginx_port = find_available_port(8080)
-                nginx_proc = _start_nginx(port, worker_ports, nginx_port)
-                if nginx_proc:
-                    app_url = f"http://127.0.0.1:{nginx_port}"
-                    print(f"Benchmark will use nginx at {app_url}")
-                else:
-                    print("WARNING: nginx failed to start, falling back to direct connection")
+            worker_ports = [port + 1 + i for i in range(num_workers)]
+            nginx_port = find_available_port(8080)
+            nginx_proc = _start_nginx(port, worker_ports, nginx_port)
+            if nginx_proc:
+                app_url = f"http://127.0.0.1:{nginx_port}"
+                print(f"Benchmark will use nginx at {app_url}")
             else:
-                print(f"WARNING: no worker ports found in {worker_ports_file}, skipping nginx")
+                print("WARNING: nginx failed to start, falling back to direct connection")
 
         print(f"Benchmark app_url = {app_url}")
 
