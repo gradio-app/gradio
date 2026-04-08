@@ -2820,9 +2820,14 @@ Received inputs:
                     max_file_size=self.max_file_size,
                     favicon_path=str(self.favicon_path) if self.favicon_path else None,
                 )
+                worker_ports = [
+                    self.server_port + 1 + i
+                    for i in range(resolved_num_workers)
+                ]
                 self._static_worker_pool = StaticWorkerPool(
                     num_workers=resolved_num_workers,
                     config=static_config,
+                    ports=worker_ports,
                 )
                 self._static_worker_pool.start()
                 self.server_app.enable_static_workers(self._static_worker_pool)
