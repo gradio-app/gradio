@@ -242,9 +242,11 @@ describe("Events", () => {
 		const { listen, set_data } = await render(Radio, default_props);
 
 		const change = listen("change");
+		const input = listen("input");
 		await set_data({ value: "dog" });
 
 		expect(change).toHaveBeenCalledTimes(1);
+		expect(input).not.toHaveBeenCalled();
 	});
 
 	test("change event does not fire on mount", async () => {
