@@ -177,8 +177,8 @@ class TestBlocksMethods:
         first = await demo.process_api(inputs=[3], block_fn=0, state=None)
         second = await demo.process_api(inputs=[3], block_fn=0, state=None)
 
-        assert first["used_cache"] is False
-        assert second["used_cache"] is True
+        assert first["used_cache"] is None
+        assert second["used_cache"] == "partial"
         assert first["average_duration"] is not None
         assert second["average_duration"] == pytest.approx(first["average_duration"])
         assert demo.fns[0].total_runs == 1

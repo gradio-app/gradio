@@ -289,7 +289,7 @@
 					show_cache_indicator = false;
 					cache_indicator_fading = false;
 				}, 500);
-			}, 1000);
+			}, 1750);
 		}
 	});
 </script>

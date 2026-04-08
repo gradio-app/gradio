@@ -447,7 +447,7 @@ class Queue:
             except CacheMissError:
                 pass  # Fall through to normal queue path
             except Exception:
-                pass  # Any other error — fall through to queue
+                raise
 
         try:
             event_queue = self.event_queue_per_concurrency_id[event.concurrency_id]
@@ -974,9 +974,7 @@ class Queue:
                         ProcessCompletedMessage(
                             output=output,
                             success=success,
-                            used_cache="partial"
-                            if success and output.get("used_cache")
-                            else None,
+                            used_cache=output.get("used_cache") if success else None,
                             cache_duration=output.get("duration"),  # type: ignore[arg-type]
                             avg_time=output.get("average_duration"),  # type: ignore[arg-type]
                         ),
@@ -995,9 +993,7 @@ class Queue:
                         ProcessCompletedMessage(
                             output=output,
                             success=success,
-                            used_cache="partial"
-                            if success and output.get("used_cache")
-                            else None,
+                            used_cache=output.get("used_cache") if success else None,
                             cache_duration=output.get("duration"),  # type: ignore[arg-type]
                             avg_time=output.get("average_duration"),  # type: ignore[arg-type]
                         ),

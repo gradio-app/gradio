@@ -256,9 +256,8 @@ class _CacheStore:
 _per_session_stores: weakref.WeakSet[_CacheStore] = weakref.WeakSet()
 
 
-def _normalize_kwargs(func: Callable, args: tuple, kwargs: dict) -> dict:
-    sig = inspect.signature(func)
-    bound = sig.bind(*args, **kwargs)
+def _normalize_kwargs(signature: inspect.Signature, args: tuple, kwargs: dict) -> dict:
+    bound = signature.bind(*args, **kwargs)
     bound.apply_defaults()
     return dict(bound.arguments)
 
@@ -334,6 +333,8 @@ def clear_session_caches(session_hash: str | None) -> None:
 def _make_wrapper(
     func: Callable, store: _CacheStore, key: Callable | None = None
 ) -> Callable:
+    signature = inspect.signature(func)
+
     def _compute_hash(normalized: dict) -> str:
         if key is not None:
             return cache_hash(key(normalized))
@@ -347,7 +348,7 @@ def _make_wrapper(
 
         @functools.wraps(func)
         def sync_gen_wrapper(*args, **kwargs):
-            normalized = _normalize_kwargs(func, args, kwargs)
+            normalized = _normalize_kwargs(signature, args, kwargs)
             key_hash = _compute_hash(normalized)
             entry = store.get(key_hash)
             if entry is not None:
@@ -366,7 +367,7 @@ def _make_wrapper(
 
         @functools.wraps(func)
         async def async_gen_wrapper(*args, **kwargs):
-            normalized = _normalize_kwargs(func, args, kwargs)
+            normalized = _normalize_kwargs(signature, args, kwargs)
             key_hash = _compute_hash(normalized)
             entry = store.get(key_hash)
             if entry is not None:
@@ -386,7 +387,7 @@ def _make_wrapper(
 
         @functools.wraps(func)
         async def async_wrapper(*args, **kwargs):
-            normalized = _normalize_kwargs(func, args, kwargs)
+            normalized = _normalize_kwargs(signature, args, kwargs)
             key_hash = _compute_hash(normalized)
             entry = store.get(key_hash)
             if entry is not None:
@@ -402,7 +403,7 @@ def _make_wrapper(
 
         @functools.wraps(func)
         def sync_wrapper(*args, **kwargs):
-            normalized = _normalize_kwargs(func, args, kwargs)
+            normalized = _normalize_kwargs(signature, args, kwargs)
             key_hash = _compute_hash(normalized)
             entry = store.get(key_hash)
             if entry is not None:

@@ -2238,7 +2238,7 @@ Received inputs:
             ),
             "render_config": None,
             "changed_state_ids": changed_state_ids,
-            "used_cache": manual_cache_used,
+            "used_cache": "partial" if manual_cache_used else None,
         }
         if block_fn.renderable and state:
             output["render_config"] = state.blocks_config.get_config(
@@ -2332,7 +2332,7 @@ Received inputs:
         }
         config.update(self.default_config.get_config())  # type: ignore
         config["connect_heartbeat"] = utils.connect_heartbeat(
-            config, self.blocks.values()
+            config, self.blocks.values(), self.fns.values()
         )
         return config
 
