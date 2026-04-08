@@ -19,7 +19,9 @@ if TYPE_CHECKING:
 @document()
 class DuplicateButton(Button):
     """
-    Button that triggers a Spaces Duplication, when the demo is on Hugging Face Spaces. Does nothing locally.
+    Creates a button that opens the current Hugging Face Space's duplication page in a new tab, making it easy for users to duplicate your demo. Outside of Spaces, the button renders but does not perform any action.
+
+    Demos: blocks_essay
     """
 
     is_template = True
@@ -48,23 +50,23 @@ class DuplicateButton(Button):
     ):
         """
         Parameters:
-        Parameters:
-            value: default text for the button to display. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
-            every: continuously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
-            inputs: components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
-            variant: sets the background and text color of the button. Use 'primary' for main call-to-action buttons, 'secondary' for a more subdued style, 'stop' for a stop button, 'huggingface' for a black background with white text, consistent with Hugging Face's button styles.
-            size: size of the button. Can be "sm", "md", or "lg".
-            icon: URL or path to the icon file to display within the button. If None, no icon will be displayed.
-            link: URL to open when the button is clicked. If None, no link will be used.
-            visible: If False, component will be hidden. If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM
-            interactive: if False, the Button will be in a disabled state.
-            elem_id: an optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
-            elem_classes: an optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
-            render: if False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
-            preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
-            scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
-            min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
+            value: Text to display on the button. If a function is provided, the function will be called each time the app loads to set the initial label.
+            every: Continuously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
+            inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
+            variant: Sets the button style. Use 'huggingface' to match the Hugging Face Spaces duplicate button styling, or 'primary', 'secondary', or 'stop' for standard button variants.
+            size: Size of the button. Can be "sm", "md", or "lg".
+            icon: URL or path to an icon file to display inside the button. If None, no icon is shown.
+            link: Optional URL to open when the button is clicked. In Spaces, the duplicate action is registered automatically and overrides the need to pass a manual duplication link.
+            link_target: The target window for `link`, such as `_blank` or `_self`.
+            visible: If False, component will be hidden. If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM.
+            interactive: If False, the button will be disabled.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            key: In a gr.render, components with the same key across re-renders are treated as the same component, not a new component. Properties set in `preserved_by_key` are not reset across a re-render.
+            preserved_by_key: A list of constructor parameters that should be preserved when this component is re-rendered inside `gr.render()` with the same key.
+            scale: Relative size compared to adjacent components. For example, if components A and B are in a Row, and A has scale=2 while B has scale=1, A will be twice as wide as B. Scale applies in Rows, and to top-level components in Blocks where `fill_height=True`.
+            min_width: Minimum pixel width. If a certain scale value results in this component being narrower than `min_width`, `min_width` will be respected first.
         """
         super().__init__(
             value=value,
