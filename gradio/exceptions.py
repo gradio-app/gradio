@@ -110,8 +110,10 @@ class InvalidPathError(ValueError):
 class ChecksumMismatchError(Exception):
     pass
 
+
 class ShareCertificateWriteError(RuntimeError):
     pass
+
 
 class TooManyRequestsError(Error):
     """Raised when the Hugging Face API returns a 429 status code."""

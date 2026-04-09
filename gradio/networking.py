@@ -10,9 +10,9 @@ import time
 import warnings
 from pathlib import Path
 
-from gradio.exceptions import ShareCertificateWriteError
 import httpx
 
+from gradio.exceptions import ShareCertificateWriteError
 from gradio.routes import App  # HACK: to avoid circular import # noqa: F401
 from gradio.tunneling import CERTIFICATE_PATH, Tunnel
 
@@ -48,8 +48,7 @@ def setup_tunnel(
                 f.write(certificate)
         except Exception as e:
             raise ShareCertificateWriteError(
-                f"{e}. "
-                "This can happen when the current working directory is read-only."
+                f"{e}. This can happen when the current working directory is read-only."
             ) from e
         share_server_tls_certificate = CERTIFICATE_PATH
 
