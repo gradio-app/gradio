@@ -40,7 +40,10 @@ export class LoadingStatus {
 				progress,
 				stream_state,
 				time_limit,
-				type
+				type,
+				used_cache,
+				cache_duration,
+				avg_time
 			}) => {
 				this.current[id] = {
 					queue: args.queue || false,
@@ -54,7 +57,10 @@ export class LoadingStatus {
 					fn_index: args.fn_index,
 					time_limit,
 					type,
-					show_progress: this.show_progress[args.fn_index]
+					show_progress: this.show_progress[args.fn_index],
+					used_cache,
+					cache_duration,
+					avg_time
 				};
 			}
 		);
@@ -74,7 +80,10 @@ export class LoadingStatus {
 			message = null,
 			stream_state = null,
 			time_limit = null,
-			progress_data = null
+			progress_data = null,
+			used_cache = null,
+			cache_duration = null,
+			avg_time = null
 		} = args;
 
 		const outputs = this.fn_outputs[fn_index];
@@ -130,7 +139,10 @@ export class LoadingStatus {
 					progress: progress_data,
 					stream_state: stream_state,
 					time_limit,
-					type: type
+					type: type,
+					used_cache,
+					cache_duration,
+					avg_time
 				};
 			})
 			.filter((update) => update.type !== "skip");

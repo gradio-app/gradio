@@ -122,13 +122,13 @@ def trace_phase_sync(name: str):
 
 
 def traced(phase):
+    if not PROFILING_ENABLED:
+        return lambda f: f
+
     def _factory(f):
         @wraps(f)
         async def wrapper(*args, **kwargs):
-            if PROFILING_ENABLED:
-                async with trace_phase(phase):
-                    return await f(*args, **kwargs)
-            else:
+            async with trace_phase(phase):
                 return await f(*args, **kwargs)
 
         return wrapper
@@ -137,13 +137,13 @@ def traced(phase):
 
 
 def traced_sync(phase):
+    if not PROFILING_ENABLED:
+        return lambda f: f
+
     def _factory(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            if PROFILING_ENABLED:
-                with trace_phase_sync(phase):
-                    return f(*args, **kwargs)
-            else:
+            with trace_phase_sync(phase):
                 return f(*args, **kwargs)
 
         return wrapper
