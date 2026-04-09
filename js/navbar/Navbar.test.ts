@@ -1,4 +1,4 @@
-import { test, describe, assert, afterEach, beforeEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { cleanup, render } from "@self/tootils/render";
 import { setupi18n } from "../core/src/i18n";
 import { get } from "svelte/store";
@@ -14,81 +14,81 @@ beforeEach(() => {
 
 afterEach(cleanup);
 
+const baseProps = {
+	visible: true,
+	main_page_name: "Home",
+	elem_classes: [] as string[],
+	value: null as [string, string][] | null,
+};
+
 describe("Navbar Component", () => {
 	test("initializes the navbar store with custom props", async () => {
 		await render(Navbar, {
-			visible: true,
+			...baseProps,
 			main_page_name: "Dashboard",
-			elem_classes: [],
 			value: [
 				["Main", ""],
-				["Settings", "settings"]
-			]
+				["Settings", "settings"],
+			],
 		});
 
-		const store_value = get(navbar_config);
-		assert.equal(store_value?.visible, true);
-		assert.equal(store_value?.main_page_name, "Dashboard");
-		assert.deepEqual(store_value?.value, [
-			["Main", ""],
-			["Settings", "settings"]
-		]);
+		expect(get(navbar_config)).toMatchObject({
+			visible: true,
+			main_page_name: "Dashboard",
+			value: [
+				["Main", ""],
+				["Settings", "settings"],
+			],
+		});
 	});
 
 	test("setting elem_id and elem_classes applies to the navbar", async () => {
 		const { container } = await render(Navbar, {
-			visible: true,
-			main_page_name: "Home",
+			...baseProps,
 			elem_id: "test-navbar",
-			elem_classes: ["custom-class"]
+			elem_classes: ["custom-class"],
 		});
 
-		const navbar_div = container.querySelector("#test-navbar");
-		assert.isTrue(navbar_div?.classList.contains("custom-class"));
+		const navbarDiv = container.querySelector("#test-navbar");
+		expect(navbarDiv?.classList.contains("custom-class")).toBe(true);
 	});
 
 	test("navbar store updates when props change", async () => {
-		const { unmount } = await render(Navbar, {
+		const { unmount } = await render(Navbar, baseProps);
+
+		expect(get(navbar_config)).toMatchObject({
 			visible: true,
 			main_page_name: "Home",
-			elem_classes: [],
-			value: null
+			value: null,
 		});
-
-		let store_value = get(navbar_config);
-		assert.equal(store_value?.visible, true);
-		assert.equal(store_value?.main_page_name, "Home");
-		assert.equal(store_value?.value, null);
 
 		unmount();
 		await render(Navbar, {
+			...baseProps,
 			visible: false,
 			main_page_name: "Admin Panel",
-			elem_classes: [],
 			value: [
 				["Dashboard", ""],
-				["Users", "users"]
-			]
+				["Users", "users"],
+			],
 		});
 
-		store_value = get(navbar_config);
-		assert.equal(store_value?.visible, false);
-		assert.equal(store_value?.main_page_name, "Admin Panel");
-		assert.deepEqual(store_value?.value, [
-			["Dashboard", ""],
-			["Users", "users"]
-		]);
+		expect(get(navbar_config)).toMatchObject({
+			visible: false,
+			main_page_name: "Admin Panel",
+			value: [
+				["Dashboard", ""],
+				["Users", "users"],
+			],
+		});
 	});
 
 	test("main_page_name can be set to false", async () => {
 		await render(Navbar, {
-			visible: true,
+			...baseProps,
 			main_page_name: false,
-			elem_classes: [],
-			value: null
 		});
 
-		const store_value = get(navbar_config);
-		assert.equal(store_value?.main_page_name, false);
+		expect(get(navbar_config)?.main_page_name).toBe(false);
 	});
 });
