@@ -258,6 +258,7 @@ class SpacesReloader(ServerReloader):
     def swap_blocks(self, demo: "Blocks"):
         super().swap_blocks(demo)
         demo.config = demo.get_config_file()
+        demo.server = self.get_attribute("server", demo)
 
 
 class SourceFileReloader(ServerReloader):
