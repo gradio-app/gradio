@@ -4,7 +4,6 @@ import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 
 import Label from "./Index.svelte";
 
-// Default props: label with three confidence items
 const default_props = {
 	value: {
 		label: "Cat",
@@ -18,8 +17,6 @@ const default_props = {
 	_selectable: false,
 	buttons: null
 };
-
-// ─── Shared prop tests ────────────────────────────────────────────────────────
 
 // has_label: false because the Label component removes BlockLabel from the DOM
 // when show_label=false (using {#if show_label}) rather than keeping it with
@@ -69,8 +66,6 @@ describe("Label: label prop", () => {
 	});
 });
 
-// ─── General rendering ────────────────────────────────────────────────────────
-
 describe("Label — rendering", () => {
 	afterEach(() => cleanup());
 
@@ -117,8 +112,6 @@ describe("Label — rendering", () => {
 		);
 	});
 });
-
-// ─── Props: value — confidence bars ──────────────────────────────────────────
 
 describe("Props: value — confidence bars", () => {
 	afterEach(() => cleanup());
@@ -202,8 +195,6 @@ describe("Props: value — confidence bars", () => {
 	});
 });
 
-// ─── Props: show_heading ──────────────────────────────────────────────────────
-
 describe("Props: show_heading", () => {
 	afterEach(() => cleanup());
 
@@ -240,8 +231,6 @@ describe("Props: show_heading", () => {
 		expect(getByTestId("label-output-value")).toBeVisible();
 	});
 });
-
-// ─── Props: _selectable ───────────────────────────────────────────────────────
 
 describe("Props: _selectable", () => {
 	afterEach(() => cleanup());
@@ -292,15 +281,11 @@ describe("Props: _selectable", () => {
 	);
 });
 
-// ─── Props: color ─────────────────────────────────────────────────────────────
-
 describe("Props: color", () => {
 	test.todo(
 		"VISUAL: color='red' applies a red background colour to the label heading element — needs Playwright visual regression screenshot comparison"
 	);
 });
-
-// ─── Props: buttons ───────────────────────────────────────────────────────────
 
 describe("Props: buttons", () => {
 	afterEach(() => cleanup());
@@ -354,8 +339,6 @@ describe("Props: buttons", () => {
 	});
 });
 
-// ─── Events ───────────────────────────────────────────────────────────────────
-
 describe("Events", () => {
 	afterEach(() => cleanup());
 
@@ -391,8 +374,6 @@ describe("Events", () => {
 		expect(select).toHaveBeenCalledWith({ index: 0, value: "cat" });
 	});
 });
-
-// ─── get_data / set_data ──────────────────────────────────────────────────────
 
 describe("get_data / set_data", () => {
 	afterEach(() => cleanup());
@@ -452,8 +433,6 @@ describe("get_data / set_data", () => {
 		expect(queryByTestId("label-output-value")).not.toBeInTheDocument();
 	});
 });
-
-// ─── Accessibility ────────────────────────────────────────────────────────────
 
 describe("Accessibility", () => {
 	afterEach(() => cleanup());
@@ -519,8 +498,6 @@ describe("Accessibility", () => {
 		expect(document.getElementById(labelledby_id!)).toBeInTheDocument();
 	});
 });
-
-// ─── Edge cases ───────────────────────────────────────────────────────────────
 
 describe("Edge cases", () => {
 	afterEach(() => cleanup());
