@@ -75,9 +75,11 @@ export function createSvelteTable<TData extends RowData>(
 
 	function updateOptions(): void {
 		table.setOptions((prev) => {
-			// mergeObjects creates lazy getters — `state` is NOT read here,
-			// only when TanStack accesses the `state` property later.
-			return mergeObjects(prev, options, {
+			// Eagerly resolve prev into a plain object to prevent
+			// unbounded getter chains. Each setOptions call wraps prev
+			// in a new mergeObjects layer; without flattening, property
+			// lookups traverse every previous layer, causing stack overflow.
+			return mergeObjects({ ...prev }, options, {
 				state: mergeObjects(state, options.state || {}),
 				onStateChange: (updater: any) => {
 					if (updater instanceof Function) state = updater(state);
