@@ -135,7 +135,7 @@ describe("Props: interactive", () => {
 			expect(getByText("readme.txt")).toBeVisible();
 		});
 
-		expect(queryByRole("checkbox")).toBeNull();
+		expect(queryByRole("checkbox")).not.toBeInTheDocument();
 	});
 });
 
@@ -294,8 +294,10 @@ describe("Events: change", () => {
 
 		const change = listen("change");
 		await set_data({ value: [["readme.txt"]] });
+		const select = listen("select");
 
 		expect(change).toHaveBeenCalledTimes(1);
+		expect(select).not.toHaveBeenCalled();
 	});
 
 	test("change fires on mount with initial empty value", async () => {
