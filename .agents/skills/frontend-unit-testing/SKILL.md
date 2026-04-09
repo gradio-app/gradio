@@ -41,6 +41,8 @@ You are an expert at writing unit tests for Gradio's Svelte frontend components.
    );
    ```
 
+8. **No useless comments.** Comments should be used exceptionally, only when clarification of the code is essential. Do NOT create comments to describe types of tests (`describe` blocks do that). Do NOT add comments explaining the flow of the code (the code does that). Only add comments when something is confusing or complex, adds useful context (i.e. giving more detail on the failure case it is guarding against), or goes against our principles (this requires a comment + rationale).
+
 ## Test Environment & Utilities
 
 All test utilities come from `@self/tootils/render`. Never import from `@testing-library/svelte` directly.
