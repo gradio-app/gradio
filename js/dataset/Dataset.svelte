@@ -110,7 +110,7 @@
 		value: any;
 		component: LoadingComponent;
 		runtime: false | typeof import("svelte");
-	}[][] = [];
+	}[][] = $state([]);
 
 	async function get_component_meta(
 		selected_samples_json: string
@@ -145,10 +145,39 @@
 	let selected_samples_json = $derived(JSON.stringify(selected_samples || []));
 </script>
 
-{#await get_component_meta(selected_samples_json) then _}
+{#await get_component_meta(selected_samples_json)}
 	{#if gallery}
 		<div class="gallery">
-			{#each selected_samples as sample_row, i}
+			{#each selected_samples as sample_row, i (i)}
+				{#if sample_row[0] != null}
+					<button
+						class="gallery-item"
+						onclick={() => {
+							value = i + page * samples_per_page;
+							onclick({ index: value, value: sample_row });
+							onselect({ index: value, value: sample_row });
+						}}
+						onmouseenter={() => handle_mouseenter(i)}
+						onmouseleave={() => handle_mouseleave()}
+					>
+						{#if sample_labels}
+							<BaseExample
+								value={sample_row[0]}
+								selected={current_hover === i}
+								type="gallery"
+							/>
+						{:else}
+							{sample_row[0]}
+						{/if}
+					</button>
+				{/if}
+			{/each}
+		</div>
+	{/if}
+{:then _}
+	{#if gallery}
+		<div class="gallery">
+			{#each selected_samples as sample_row, i (i)}
 				{#if sample_row[0] != null}
 					<button
 						class="gallery-item"
@@ -192,7 +221,7 @@
 			<table tabindex="0" role="grid">
 				<thead>
 					<tr class="tr-head">
-						{#each headers as header}
+						{#each headers as header (header)}
 							<th>
 								{header}
 							</th>
@@ -200,7 +229,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each component_meta as sample_row, i}
+					{#each component_meta as sample_row, i (i)}
 						<tr
 							class="tr-body"
 							onclick={() => {
@@ -214,7 +243,7 @@
 							onmouseenter={() => handle_mouseenter(i)}
 							onmouseleave={() => handle_mouseleave()}
 						>
-							{#each sample_row as { value, component, runtime }, j}
+							{#each sample_row as { value, component, runtime }, j (j)}
 								{@const component_name = components[j]}
 
 								{#if component_name !== undefined}
@@ -249,7 +278,7 @@
 	{#if paginate}
 		<div class="paginate">
 			Pages:
-			{#each visible_pages as visible_page}
+			{#each visible_pages as visible_page (visible_page)}
 				{#if visible_page === -1}
 					<div>...</div>
 				{:else}
