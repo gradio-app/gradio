@@ -1,5 +1,17 @@
 # @gradio/accordion
 
+## 0.5.34
+
+### Fixes
+
+- [#13183](https://github.com/gradio-app/gradio/pull/13183) [`1bf9bae`](https://github.com/gradio-app/gradio/commit/1bf9bae723475ad664f7d3d32596856c4881e63d) - Ensure the Accordion's `expand` and `collapse` events fire when toggled from python.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/utils@0.12.2
+- @gradio/atoms@0.23.0
+- @gradio/statustracker@0.13.1
+
 ## 0.5.33
 
 ### Dependency updates

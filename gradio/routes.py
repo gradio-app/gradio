@@ -64,6 +64,7 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 
 import gradio
 from gradio import (
+    caching,
     ranged_response,
     route_utils,
     themes,
@@ -1374,6 +1375,7 @@ class App(FastAPI):
                         # This will mark the state to be deleted in an hour
                         if session_hash in app.state_holder.session_data:
                             app.state_holder.session_data[session_hash].is_closed = True
+                        caching.clear_session_caches(session_hash)
                         for (
                             event_id
                         ) in app.get_blocks()._queue.pending_event_ids_session.get(
@@ -1832,7 +1834,9 @@ class App(FastAPI):
             bg_tasks: BackgroundTasks,
             upload_id: str | None = None,
         ):
-            start = time.monotonic()
+            start = None
+            if PROFILING_ENABLED:
+                start = time.monotonic()
             content_type_header = request.headers.get("Content-Type")
             content_type: bytes
             content_type, _ = parse_options_header(content_type_header or "")
@@ -1897,9 +1901,10 @@ class App(FastAPI):
                 bg_tasks.add_task(
                     move_uploaded_files_to_cache, files_to_copy, locations
                 )
-            bg_tasks.add_task(
-                set_upload_trace, request.headers.get("session_hash", ""), start
-            )
+            if PROFILING_ENABLED:
+                bg_tasks.add_task(
+                    set_upload_trace, request.headers.get("session_hash", ""), start
+                )
 
             return output_files
 

@@ -24,7 +24,7 @@ const metrics = [
 		unit: "ms",
 		warn: 0.25,
 		fail: 0.5,
-		minAbsDiff: 200
+		minAbsDiff: 500
 	},
 	{
 		name: "LCP",

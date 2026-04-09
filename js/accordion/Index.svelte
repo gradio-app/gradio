@@ -12,8 +12,13 @@
 	let props = $props();
 	class AccordionGradio extends Gradio<AccordionEvents, AccordionProps> {
 		set_data(data: Partial<object & SharedProps>): void {
-			if ("open" in data && data.open) {
-				this.dispatch("gradio_expand");
+			if ("open" in data && data.open !== this.props.open) {
+				if (data.open) {
+					this.dispatch("expand");
+					this.dispatch("gradio_expand");
+				} else {
+					this.dispatch("collapse");
+				}
 			}
 			super.set_data(data);
 			this.shared.loading_status.status = "complete";

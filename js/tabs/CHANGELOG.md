@@ -1,5 +1,15 @@
 # @gradio/tabs
 
+## 0.5.9
+
+### Fixes
+
+- [#13048](https://github.com/gradio-app/gradio/pull/13048) [`a5d4096`](https://github.com/gradio-app/gradio/commit/a5d40965bba21a832da522127048926b71c1a6dd) - Fix Tab Interactive Bug.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/utils@0.12.2
+
 ## 0.5.8
 
 ### Dependency updates

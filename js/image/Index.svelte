@@ -70,10 +70,16 @@
 		}
 	};
 
-	let old_value = $state(gradio.props.value);
+	let old_value = gradio.props.value;
+	let mounted = false;
 
 	$effect(() => {
-		if (old_value != gradio.props.value) {
+		if (!mounted) {
+			old_value = gradio.props.value;
+			mounted = true;
+			return;
+		}
+		if (old_value !== gradio.props.value) {
 			old_value = gradio.props.value;
 			gradio.dispatch("change");
 		}
@@ -144,7 +150,7 @@
 		on:dragover={handle_drag_event}
 		on:drop={handle_drop}
 	>
-		{#if gradio.shared.loading_status.type === "output"}
+		{#if gradio.shared.loading_status.type === "output" || gradio.shared.loading_status.validation_error}
 			<StatusTracker
 				autoscroll={gradio.shared.autoscroll}
 				i18n={gradio.i18n}

@@ -1,13 +1,13 @@
 <script lang="ts">
-	export let on_click: (event: MouseEvent) => void;
+	let { on_click }: { on_click: (event: MouseEvent) => void } = $props();
 </script>
 
 <button
 	aria-label="Open cell menu"
 	class="cell-menu-button"
 	aria-haspopup="menu"
-	on:click={on_click}
-	on:touchstart={(event) => {
+	onclick={on_click}
+	ontouchstart={(event) => {
 		event.preventDefault();
 		const touch = event.touches[0];
 		const mouseEvent = new MouseEvent("click", {

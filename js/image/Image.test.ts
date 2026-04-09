@@ -1,7 +1,17 @@
 import { test, describe, afterEach, expect, vi } from "vitest";
-import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
+import {
+	cleanup,
+	render,
+	fireEvent,
+	waitFor,
+	upload_file,
+	drop_file,
+	mock_client,
+	download_file,
+	TEST_JPG,
+	TEST_PNG
+} from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
-import { tick } from "svelte";
 
 import Image from "./Index.svelte";
 import { get_coordinates_of_clicked_image } from "./shared/utils";
@@ -13,19 +23,6 @@ const fake_value = {
 	size: 1024,
 	mime_type: "image/png",
 	is_stream: false
-};
-
-const loading_status = {
-	status: "complete" as const,
-	eta: 0,
-	queue_position: 1,
-	queue_size: 1,
-	scroll_to_output: false,
-	visible: true,
-	fn_index: 0,
-	show_progress: "full" as const,
-	type: "input" as const,
-	stream_state: "closed" as const
 };
 
 const default_props = {
@@ -48,8 +45,7 @@ const default_props = {
 	placeholder: "",
 	buttons: [] as (string | { value: string; id: number; icon: null })[],
 	webcam_options: { mirror: false, constraints: {} },
-	watermark: null,
-	loading_status
+	watermark: null
 };
 
 run_shared_prop_tests({
@@ -59,7 +55,7 @@ run_shared_prop_tests({
 		...default_props
 	},
 	has_label: false,
-	has_validation_error: false
+	has_validation_error: true
 });
 
 describe("Image", () => {
@@ -83,6 +79,40 @@ describe("Image", () => {
 		const img = container.querySelector("img");
 		expect(img).toBeTruthy();
 		expect(img?.getAttribute("src")).toBe("https://example.com/test.png");
+	});
+});
+
+describe("Props: label", () => {
+	afterEach(() => cleanup());
+
+	test("label text is rendered", async () => {
+		const result = await render(Image, {
+			...default_props,
+			label: "My Custom Label",
+			show_label: true
+		});
+		const el = result.getByText("My Custom Label");
+		expect(el).toBeTruthy();
+	});
+
+	test("show_label: true makes the label visible", async () => {
+		const result = await render(Image, {
+			...default_props,
+			label: "Visible Label",
+			show_label: true
+		});
+		const el = result.getByText("Visible Label");
+		expect(el).toBeVisible();
+	});
+
+	test("show_label: false hides the label visually but keeps it in the DOM", async () => {
+		const result = await render(Image, {
+			...default_props,
+			label: "Hidden Label",
+			show_label: false
+		});
+		const el = result.getByText("Hidden Label");
+		expect(el).not.toBeVisible();
 	});
 });
 
@@ -222,22 +252,16 @@ describe("Events: change", () => {
 		expect(change).toHaveBeenCalledTimes(1);
 	});
 
-	test.todo(
-		"change event is not triggered on mount with a default value",
-		async () => {
-			const { listen } = await render(Image, {
-				...default_props,
-				value: fake_value
-			});
+	test("change event is not triggered on mount with a default value", async () => {
+		const { listen } = await render(Image, {
+			...default_props,
+			value: fake_value
+		});
 
-			const change = listen("change");
-			// need to wait for state to flush
-			await tick();
-			await tick();
+		const change = listen("change", { retrospective: true });
 
-			expect(change).not.toHaveBeenCalled();
-		}
-	);
+		expect(change).not.toHaveBeenCalled();
+	});
 
 	test("changing value multiple times triggers change each time", async () => {
 		const { listen, set_data } = await render(Image, {
@@ -277,16 +301,18 @@ describe("Props: buttons (static mode)", () => {
 		const { container } = await render(Image, {
 			...default_props,
 			interactive: false,
-			value: fake_value,
+			value: {
+				...TEST_JPG,
+				is_stream: false
+			},
 			buttons: ["download"]
 		});
 
 		const downloadLink = container.querySelector("a.download-link");
 		expect(downloadLink).toBeTruthy();
-		expect(downloadLink?.getAttribute("href")).toBe(
-			"https://example.com/test.png"
-		);
-		expect(downloadLink?.getAttribute("download")).toBe("test.png");
+
+		const { suggested_filename } = await download_file("a.download-link");
+		expect(suggested_filename).toBe("cheetah1.jpg");
 	});
 
 	test("buttons with fullscreen shows fullscreen button", async () => {
@@ -621,69 +647,42 @@ describe("get_coordinates_of_clicked_image", () => {
 	});
 });
 
-const mock_stream = vi.fn().mockResolvedValue({
-	onmessage: null,
-	onerror: null,
-	close: vi.fn()
-});
-
-function make_upload_props(upload_impl?: (...args: any[]) => Promise<any>) {
-	const uploaded_file_data = {
-		path: "uploaded.png",
-		url: "https://example.com/uploaded.png",
-		orig_name: "uploaded.png",
-		size: 2048,
-		mime_type: "image/png",
-		is_stream: false
-	};
-	const mock_upload =
-		upload_impl ?? vi.fn().mockResolvedValue([uploaded_file_data]);
-	return {
-		props: {
-			...default_props,
-			sources: ["upload"] as "upload"[],
-			interactive: true,
-			value: null,
-			root: "https://example.com",
-			client: { upload: mock_upload, stream: mock_stream }
-		},
-		mock_upload,
-		uploaded_file_data
-	};
-}
-
-function create_test_file(): File {
-	return new File(["fake image data"], "photo.png", {
-		type: "image/png"
-	});
-}
+const upload_props = {
+	...default_props,
+	sources: ["upload"] as "upload"[],
+	interactive: true,
+	value: null,
+	root: "https://example.com",
+	client: mock_client()
+};
 
 describe("Events: upload via file input", () => {
 	afterEach(() => cleanup());
 
 	test("selecting a file triggers upload, change, and input events", async () => {
-		const { props, mock_upload, uploaded_file_data } = make_upload_props();
-		const { container, listen } = await render(Image, props);
+		const { listen } = await render(Image, upload_props);
 
 		const upload = listen("upload");
 		const change = listen("change");
 		const input = listen("input");
 
-		const file_input = container.querySelector(
-			"[data-testid='file-upload']"
-		) as HTMLInputElement;
-		expect(file_input).toBeTruthy();
-
-		const file = create_test_file();
-		Object.defineProperty(file_input, "files", {
-			value: [file],
-			writable: false
-		});
-		await fireEvent.change(file_input);
+		await upload_file(TEST_JPG);
 
 		await waitFor(() => {
-			expect(mock_upload).toHaveBeenCalled();
+			expect(upload).toHaveBeenCalledTimes(1);
 		});
+		expect(input).toHaveBeenCalledTimes(1);
+		expect(change).toHaveBeenCalledTimes(1);
+	});
+
+	test("drag and drop a file triggers upload, change, and input events", async () => {
+		const { listen } = await render(Image, upload_props);
+
+		const upload = listen("upload");
+		const change = listen("change");
+		const input = listen("input");
+
+		await drop_file(TEST_PNG, "[aria-label='image.drop_to_upload']");
 
 		await waitFor(() => {
 			expect(upload).toHaveBeenCalledTimes(1);
@@ -696,21 +695,17 @@ describe("Events: upload via file input", () => {
 		const failing_upload = vi
 			.fn()
 			.mockRejectedValue(new Error("File too large"));
-		const { props } = make_upload_props(failing_upload);
-		const { container, listen } = await render(Image, props);
+		const { listen } = await render(Image, {
+			...upload_props,
+			client: {
+				upload: failing_upload,
+				stream: async () => ({ onmessage: null, close: () => {} })
+			}
+		});
 
 		const error = listen("error");
 
-		const file_input = container.querySelector(
-			"[data-testid='file-upload']"
-		) as HTMLInputElement;
-
-		const file = create_test_file();
-		Object.defineProperty(file_input, "files", {
-			value: [file],
-			writable: false
-		});
-		await fireEvent.change(file_input);
+		await upload_file(TEST_JPG);
 
 		await waitFor(() => {
 			expect(failing_upload).toHaveBeenCalled();

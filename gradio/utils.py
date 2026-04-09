@@ -258,6 +258,7 @@ class SpacesReloader(ServerReloader):
     def swap_blocks(self, demo: "Blocks"):
         super().swap_blocks(demo)
         demo.config = demo.get_config_file()
+        demo.server = self.get_attribute("server", demo)
 
 
 class SourceFileReloader(ServerReloader):
@@ -1596,15 +1597,17 @@ def _parse_file_size(size: str | int | None) -> int | None:
     return multiple * size_int
 
 
-def connect_heartbeat(config: BlocksConfigDict, blocks) -> bool:
+def connect_heartbeat(config: BlocksConfigDict, blocks, fns=None) -> bool:
     """
     Determines whether a heartbeat is required for a given config.
     """
+    from gradio.caching import Cache
     from gradio.components import State
 
     any_state = any(isinstance(block, State) for block in blocks)
     any_unload = False
     any_stream = False
+    any_per_session_cache = False
 
     if "dependencies" not in config:
         raise ValueError(
@@ -1621,7 +1624,28 @@ def connect_heartbeat(config: BlocksConfigDict, blocks) -> bool:
                     any_stream = True
         if any_unload and any_stream:
             break
-    return any_state or any_unload or any_stream
+
+    if fns is not None:
+        for block_fn in fns:
+            fn = getattr(block_fn, "fn", None)
+            if fn is None:
+                continue
+            cache_store = getattr(fn, "cache", None)
+            if getattr(cache_store, "_per_session", False):
+                any_per_session_cache = True
+                break
+            try:
+                signature = inspect.signature(fn)
+            except (TypeError, ValueError):
+                continue
+            if any(
+                isinstance(param.default, Cache) and param.default._store._per_session
+                for param in signature.parameters.values()
+            ):
+                any_per_session_cache = True
+                break
+
+    return any_state or any_unload or any_stream or any_per_session_cache
 
 
 def deep_hash(obj):
