@@ -1,4 +1,4 @@
-import { test, describe, assert, afterEach } from "vitest";
+import { afterEach, describe, expect, test } from "vitest";
 import { cleanup, render } from "@self/tootils/render";
 
 import Markdown from "./Index.svelte";
@@ -12,60 +12,53 @@ const loading_status: LoadingStatus = {
 	scroll_to_output: false,
 	visible: true,
 	fn_index: 0,
-	show_progress: "full"
+	show_progress: "full",
+};
+
+const baseProps = {
+	show_label: true,
+	max_lines: 1,
+	loading_status,
+	lines: 1,
+	label: "Markdown",
+	interactive: false,
 };
 
 describe("Markdown", () => {
-	afterEach(() => cleanup());
+	afterEach(cleanup);
 
-	test("renders valid URL", async () => {
+	test("renders valid URLs", async () => {
 		const { getByText } = await render(Markdown, {
-			show_label: true,
-			max_lines: 1,
-			loading_status,
-			lines: 1,
+			...baseProps,
 			value: "Visit [Gradio](https://www.gradio.app/) for more information.",
-			label: "Markdown",
-			interactive: false
 		});
 
-		const link: HTMLAnchorElement = getByText("Gradio") as HTMLAnchorElement;
-		assert.equal(link.href, "https://www.gradio.app/");
+		const link = getByText("Gradio") as HTMLAnchorElement;
+		expect(link.href).toBe("https://www.gradio.app/");
 	});
 
-	test("renders invalid URL", async () => {
+	test("renders invalid URLs without stripping the href", async () => {
 		const { getByText } = await render(Markdown, {
-			show_label: true,
-			max_lines: 1,
-			loading_status,
-			lines: 1,
+			...baseProps,
 			value: "Visit [Invalid URL](https://) for more information.",
-			label: "Markdown",
-			interactive: false
 		});
 
-		const link: HTMLAnchorElement = getByText(
-			"Invalid URL"
-		) as HTMLAnchorElement;
-		assert.equal(link.href, "https://");
+		const link = getByText("Invalid URL") as HTMLAnchorElement;
+		expect(link.href).toBe("https://");
 	});
 
-	test("does not apply pending class when show_progress is hidden", async () => {
+	test("does not apply the pending class when show_progress is hidden", async () => {
 		const { container } = await render(Markdown, {
+			...baseProps,
 			show_label: false,
-			max_lines: 1,
 			loading_status: {
 				...loading_status,
 				status: "pending",
-				show_progress: "hidden"
-			} as any,
-			lines: 1,
+				show_progress: "hidden",
+			} as LoadingStatus,
 			value: "Content",
-			label: "Markdown",
-			interactive: false
 		});
 
-		const pending_wrapper = container.querySelector("div.pending");
-		assert.equal(pending_wrapper, null);
+		expect(container.querySelector("div.pending")).toBeNull();
 	});
 });
