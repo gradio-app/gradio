@@ -284,6 +284,85 @@ describe("Cell selection", () => {
 		expect(get_cell(container, 1, 0)!.className).toContain("cell-selected");
 		expect(get_cell(container, 1, 1)!.className).toContain("cell-selected");
 	});
+
+	// Regression: pressing Ctrl between mousedown and mouseup must not call
+	// handle_cell_click a second time via the click event.  If it did, the
+	// Ctrl+click path would toggle the already-selected cell back off,
+	// producing conflicting state updates that froze the interface.
+	test("pressing Ctrl between mousedown and mouseup keeps cell selected", async () => {
+		const { container } = await render(Dataframe, default_props);
+		await wait();
+
+		const cell = get_cell(container, 0, 0)!;
+
+		// mousedown (no ctrl) selects the cell
+		await fireEvent.mouseDown(cell);
+		await wait();
+		expect(cell.className).toContain("cell-selected");
+
+		// The browser fires a click event when the user releases the mouse button.
+		// If the user pressed Ctrl before releasing, that click carries ctrlKey:true.
+		// A second call to handle_cell_click with ctrlKey would toggle the cell
+		// back off (deselect it).  Verify that the click event has no effect.
+		await fireEvent.click(cell, { ctrlKey: true });
+		await wait();
+
+		expect(cell.className).toContain("cell-selected");
+	});
+});
+
+describe("Header overflow", () => {
+	let wrapper: HTMLDivElement;
+
+	afterEach(async () => {
+		cleanup();
+		wrapper?.remove();
+	});
+
+	// Headers must expand to fit their text (no ellipsis truncation).
+	// When headers are wider than the scroll container, later columns are
+	// hidden by the container's overflow — not by cutting off the text.
+	test("long headers are not truncated in the DOM and the 3rd header is hidden by scroll overflow", async () => {
+		// Narrow container makes overflow predictable regardless of viewport size.
+		wrapper = document.createElement("div");
+		wrapper.style.width = "300px";
+		document.body.appendChild(wrapper);
+
+		// Capital W is one of the widest glyphs — 60 of them easily exceeds 300 px.
+		const long_header = "W".repeat(60);
+
+		const { getAllByRole } = await render(
+			Dataframe,
+			{
+				...default_props,
+				value: {
+					data: [["a", "b", "c"]],
+					headers: [long_header + " A", long_header + " B", long_header + " C"],
+					metadata: null
+				},
+				col_count: [3, "fixed"] as [number, "fixed" | "dynamic"],
+				row_count: [1, "fixed"] as [number, "fixed" | "dynamic"]
+			},
+			{ container: wrapper }
+		);
+
+		await wait();
+
+		const headers = getAllByRole("columnheader");
+		expect(headers).toHaveLength(3);
+
+		// Full text must be present in the DOM — no in-cell truncation.
+		expect(headers[2].textContent?.trim()).toContain(long_header + " C");
+
+		// The 3rd header's left edge must be beyond the scroll container's right
+		// edge, meaning it is completely outside the visible area.
+		const viewport = wrapper.querySelector(
+			".virtual-table-viewport"
+		) as HTMLElement;
+		const viewport_rect = viewport.getBoundingClientRect();
+		const third_rect = headers[2].getBoundingClientRect();
+		expect(third_rect.left).toBeGreaterThanOrEqual(viewport_rect.right);
+	});
 });
 
 describe("Sorting", () => {
