@@ -968,13 +968,19 @@ class Queue:
                     success = False
                     error = err or old_err
                     output = error_payload(error, app.get_blocks().show_error)
+                used_cache = output.get("used_cache") if success else None
+                used_cache = (
+                    cast(Literal["full", "partial"], used_cache)
+                    if used_cache in ("full", "partial")
+                    else None
+                )
                 for event in awake_events:
                     self.send_message(
                         event,
                         ProcessCompletedMessage(
                             output=output,
                             success=success,
-                            used_cache=output.get("used_cache") if success else None,
+                            used_cache=used_cache,
                             cache_duration=output.get("duration"),  # type: ignore[arg-type]
                             avg_time=output.get("average_duration"),  # type: ignore[arg-type]
                         ),
@@ -988,12 +994,18 @@ class Queue:
                             e
                         ]
                     success = response is not None
+                    used_cache = output.get("used_cache") if success else None
+                    used_cache = (
+                        cast(Literal["full", "partial"], used_cache)
+                        if used_cache in ("full", "partial")
+                        else None
+                    )
                     self.send_message(
                         event,
                         ProcessCompletedMessage(
                             output=output,
                             success=success,
-                            used_cache=output.get("used_cache") if success else None,
+                            used_cache=used_cache,
                             cache_duration=output.get("duration"),  # type: ignore[arg-type]
                             avg_time=output.get("average_duration"),  # type: ignore[arg-type]
                         ),
