@@ -337,11 +337,7 @@ describe("Header overflow", () => {
 				...default_props,
 				value: {
 					data: [["a", "b", "c"]],
-					headers: [
-						long_header + " A",
-						long_header + " B",
-						long_header + " C"
-					],
+					headers: [long_header + " A", long_header + " B", long_header + " C"],
 					metadata: null
 				},
 				col_count: [3, "fixed"] as [number, "fixed" | "dynamic"],
