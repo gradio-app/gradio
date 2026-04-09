@@ -69,6 +69,7 @@ from gradio.exceptions import (
     DuplicateBlockError,
     InvalidApiNameError,
     InvalidComponentError,
+    ShareCertificateWriteError,
 )
 from gradio.helpers import create_tracker, skip, special_args
 from gradio.i18n import I18n, I18nData
@@ -2894,6 +2895,8 @@ Received inputs:
                     print(
                         f"\nCould not create share link. Checksum mismatch for file: {BINARY_PATH}."
                     )
+                elif isinstance(e, ShareCertificateWriteError):
+                    print(f"\nCould not create share link. {e}")
                 elif Path(BINARY_PATH).exists():
                     print(
                         "\nCould not create share link. Please check your internet connection or our status page: https://status.gradio.app."
