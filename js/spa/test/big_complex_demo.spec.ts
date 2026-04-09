@@ -8,6 +8,7 @@ const PERF_RESULTS_FILE =
 const WARMUP_ITERATIONS = 1;
 const ITERATIONS = 6;
 
+// Use the median (with IQR trimming below) to reduce variance between runs.
 function median(values: number[]): number {
 	const sorted = [...values].sort((a, b) => a - b);
 	const mid = Math.floor(sorted.length / 2);
