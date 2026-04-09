@@ -2,6 +2,7 @@ import { test, describe, afterEach, expect } from "vitest";
 import { cleanup, render } from "@self/tootils/render";
 
 import Group from "./Index.svelte";
+import GroupWithChild from "./WithChild.svelte";
 
 describe("Group", () => {
 	afterEach(() => cleanup());
@@ -54,6 +55,28 @@ describe("Group", () => {
 		const el = container.querySelector("#group-false");
 		expect(el).not.toBeNull();
 		expect(el).toBeVisible();
+	});
+});
+
+describe("Children / slot", () => {
+	afterEach(() => cleanup());
+
+	test("renders slot children inside the group container", async () => {
+		const { getByTestId } = await render(GroupWithChild, {});
+		expect(getByTestId("slot-content")).not.toBeNull();
+	});
+
+	test("slot children are visible when group is visible", async () => {
+		const { getByTestId } = await render(GroupWithChild, { visible: true });
+		expect(getByTestId("slot-content")).toBeVisible();
+	});
+
+	test("slot children are hidden when group uses visible: 'hidden'", async () => {
+		const { getByTestId } = await render(GroupWithChild, {
+			visible: "hidden"
+		});
+		// Group applies display:none via .hide class when visible === "hidden"
+		expect(getByTestId("slot-content")).not.toBeVisible();
 	});
 });
 

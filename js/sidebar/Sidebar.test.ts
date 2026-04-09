@@ -2,6 +2,7 @@ import { test, describe, afterEach, expect } from "vitest";
 import { cleanup, render, fireEvent } from "@self/tootils/render";
 
 import Sidebar from "./Index.svelte";
+import SidebarWithChild from "./WithChild.svelte";
 
 // Sidebar requires both `visible` and `open` to be passed explicitly:
 // - Index.svelte uses {#if gradio.shared.visible}, so omitting visible leaves
@@ -284,6 +285,41 @@ describe("get_data / set_data", () => {
 		});
 		await fireEvent.click(getByRole("button", { name: "Toggle Sidebar" }));
 		expect((await get_data()).open).toBe(true);
+	});
+});
+
+describe("Children / slot", () => {
+	afterEach(() => cleanup());
+
+	test("renders slot children inside the sidebar", async () => {
+		const { getByTestId } = await render(SidebarWithChild, {
+			width: 320,
+			visible: true,
+			open: true,
+			position: "left"
+		});
+		expect(getByTestId("slot-content")).not.toBeNull();
+	});
+
+	test("slot children are in the DOM when sidebar is visible", async () => {
+		const { getByTestId } = await render(SidebarWithChild, {
+			width: 320,
+			visible: true,
+			open: true,
+			position: "left"
+		});
+		expect(getByTestId("slot-content")).toBeInTheDocument();
+	});
+
+	test("slot children are not in the DOM when sidebar is removed (visible: false)", async () => {
+		const { queryByTestId } = await render(SidebarWithChild, {
+			width: 320,
+			visible: false,
+			open: true,
+			position: "left"
+		});
+		// {#if visible} removes the entire sidebar from the DOM, including slot children
+		expect(queryByTestId("slot-content")).not.toBeInTheDocument();
 	});
 });
 

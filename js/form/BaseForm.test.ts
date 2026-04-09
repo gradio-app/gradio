@@ -3,6 +3,7 @@ import { cleanup, render } from "@self/tootils/render";
 
 import Form from "./Index.svelte";
 import BaseForm from "./BaseForm.svelte";
+import FormWithChild from "./WithChild.svelte";
 
 // Form/Index.svelte is a 3-line pass-through; BaseForm.svelte is the real component.
 // Form does NOT forward elem_id, elem_classes, or label to BaseForm — only visible,
@@ -111,6 +112,33 @@ describe("Props: scale / min_width", () => {
 		const el = container.querySelector(".form") as HTMLElement | null;
 		// Inline style is calc(min(320px, 100%))
 		expect(el?.style.minWidth).toContain("320");
+	});
+});
+
+describe("Children / slot", () => {
+	afterEach(() => cleanup());
+
+	test("renders slot children inside the form container", async () => {
+		const { getByTestId } = await render(FormWithChild, { visible: true });
+		expect(getByTestId("slot-content")).not.toBeNull();
+	});
+
+	test("slot children are visible when form is visible", async () => {
+		const { getByTestId } = await render(FormWithChild, { visible: true });
+		// With a non-hidden child present, the CSS :has auto-hide rule does not trigger
+		expect(getByTestId("slot-content")).toBeVisible();
+	});
+
+	test("slot children are not visible when form is hidden (visible: false)", async () => {
+		const { getByTestId } = await render(FormWithChild, { visible: false });
+		expect(getByTestId("slot-content")).not.toBeVisible();
+	});
+
+	test("slot children are not visible when form is hidden (visible: 'hidden')", async () => {
+		const { getByTestId } = await render(FormWithChild, {
+			visible: "hidden"
+		});
+		expect(getByTestId("slot-content")).not.toBeVisible();
 	});
 });
 

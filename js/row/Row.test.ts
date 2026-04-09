@@ -2,6 +2,7 @@ import { test, describe, afterEach, expect } from "vitest";
 import { cleanup, render } from "@self/tootils/render";
 
 import Row from "./Index.svelte";
+import RowWithChild from "./WithChild.svelte";
 
 describe("Row", () => {
 	afterEach(() => cleanup());
@@ -52,6 +53,26 @@ describe("Row", () => {
 		const el = container.querySelector("#row-str-hidden");
 		expect(el).not.toBeNull();
 		expect(el).toBeVisible();
+	});
+});
+
+describe("Children / slot", () => {
+	afterEach(() => cleanup());
+
+	test("renders slot children inside the row container", async () => {
+		const { getByTestId } = await render(RowWithChild, {});
+		expect(getByTestId("slot-content")).not.toBeNull();
+	});
+
+	test("slot children are visible when row is visible", async () => {
+		const { getByTestId } = await render(RowWithChild, { visible: true });
+		expect(getByTestId("slot-content")).toBeVisible();
+	});
+
+	test("slot children are hidden when row is hidden (visible: false)", async () => {
+		const { getByTestId } = await render(RowWithChild, { visible: false });
+		// Row applies display:none via .hide class — children inherit the hidden state
+		expect(getByTestId("slot-content")).not.toBeVisible();
 	});
 });
 
