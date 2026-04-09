@@ -1,7 +1,7 @@
 ---
-"@self/app": minor
-"@self/spa": minor
-"gradio": minor
+"@self/app": patch
+"@self/spa": patch
+"gradio": patch
 ---
 
 feat:Reduce `gradio` package size by restoring frontend settings
