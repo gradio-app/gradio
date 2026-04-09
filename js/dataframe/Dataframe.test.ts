@@ -1,5 +1,5 @@
 import { test, describe, afterEach, expect } from "vitest";
-import { cleanup, render, fireEvent } from "@self/tootils/render";
+import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 import { tick } from "svelte";
 
 import Dataframe from "./Index.svelte";
@@ -701,9 +701,11 @@ describe("Copy", () => {
 
 		const table_wrap = get_table_wrap(container)!;
 		await fireEvent.keyDown(table_wrap, { key: "c", metaKey: true });
-		await wait(100);
 
-		const clipboard = await navigator.clipboard.readText();
-		expect(clipboard).toBe("Alice");
+		// handle_copy() is async but called without await in the keydown handler,
+		// so the clipboard write may not be complete immediately. Poll until it settles.
+		await waitFor(async () => {
+			expect(await navigator.clipboard.readText()).toBe("Alice");
+		});
 	});
 });
