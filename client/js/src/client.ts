@@ -42,8 +42,6 @@ import {
 } from "./constants";
 declare const BROWSER_BUILD: boolean;
 
-initialize_zerogpu_handshake();
-
 export class Client {
 	app_reference: string;
 	options: ClientOptions;
@@ -223,6 +221,8 @@ export class Client {
 	}
 
 	private async init(): Promise<void> {
+		initialize_zerogpu_handshake();
+
 		if (this.options.auth) {
 			await this.resolve_cookies();
 		}
