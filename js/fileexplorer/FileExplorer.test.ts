@@ -279,7 +279,7 @@ describe("File selection", () => {
 
 		await waitFor(async () => {
 			const data = await get_data();
-			expect(data.value.length).toBeGreaterThan(0);
+			expect(data.value.length).toEqual(2);
 		});
 	});
 });
