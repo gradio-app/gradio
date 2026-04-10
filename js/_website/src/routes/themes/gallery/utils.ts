@@ -147,7 +147,10 @@ type SpaceConfig = {
 };
 
 function first_font_family(raw: string | undefined): string | undefined {
-	return raw?.split(",")[0]?.trim()?.replace(/^['"]|['"]$/g, "");
+	return raw
+		?.split(",")[0]
+		?.trim()
+		?.replace(/^['"]|['"]$/g, "");
 }
 
 function fetch_with_timeout(
@@ -228,8 +231,9 @@ async function fetch_theme_details(
 			DEFAULT_COLORS.text_color;
 
 		const button_primary =
-			extract_hex_color(resolve_css_var(vars, "button-primary-background-fill")) ??
-			primary;
+			extract_hex_color(
+				resolve_css_var(vars, "button-primary-background-fill")
+			) ?? primary;
 
 		const button_secondary_border =
 			extract_hex_color(
@@ -255,7 +259,9 @@ async function fetch_theme_details(
 				button_secondary_text
 			},
 			fonts: {
-				main: first_font_family(resolve_css_var(vars, "font")) || DEFAULT_FONTS.main,
+				main:
+					first_font_family(resolve_css_var(vars, "font")) ||
+					DEFAULT_FONTS.main,
 				mono:
 					first_font_family(resolve_css_var(vars, "font-mono")) ||
 					DEFAULT_FONTS.mono
@@ -302,8 +308,7 @@ export async function fetch_community_themes(
 
 		return results
 			.filter(
-				(r): r is PromiseFulfilledResult<ThemeData> =>
-					r.status === "fulfilled"
+				(r): r is PromiseFulfilledResult<ThemeData> => r.status === "fulfilled"
 			)
 			.map((r) => r.value);
 	} catch {

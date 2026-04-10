@@ -66,7 +66,8 @@
 					</div>
 					<div
 						class="text-[9px] leading-tight"
-						style="color: {block_text}; font-family: '{theme.fonts.main}', sans-serif;"
+						style="color: {block_text}; font-family: '{theme.fonts
+							.main}', sans-serif;"
 					>
 						A serene mountain...
 					</div>
@@ -80,10 +81,7 @@
 					"
 				>
 					<div class="flex justify-between items-center mb-1">
-						<span
-							class="text-[8px] font-medium"
-							style="color: {label_color};"
-						>
+						<span class="text-[8px] font-medium" style="color: {label_color};">
 							Steps
 						</span>
 						<span
@@ -123,15 +121,13 @@
 						border-color: {theme.colors.block_border};
 					"
 				>
-					<div
-						class="text-[7px] mb-0.5"
-						style="color: {label_color};"
-					>
+					<div class="text-[7px] mb-0.5" style="color: {label_color};">
 						Font
 					</div>
 					<div
 						class="text-[10px] font-medium leading-tight"
-						style="color: {block_text}; font-family: '{theme.fonts.main}', sans-serif;"
+						style="color: {block_text}; font-family: '{theme.fonts
+							.main}', sans-serif;"
 					>
 						{theme.fonts.main}
 					</div>
@@ -162,10 +158,7 @@
 							/>
 						</svg>
 					</div>
-					<span
-						class="text-[8px]"
-						style="color: {block_text};">Enabled</span
-					>
+					<span class="text-[8px]" style="color: {block_text};">Enabled</span>
 				</div>
 
 				<button
@@ -218,7 +211,8 @@
 		<div class="flex items-center gap-1">
 			<div
 				class="w-2.5 h-2.5 rounded-full"
-				style="background: {theme.colors.button_primary}; box-shadow: 0 0 0 1px {is_dark
+				style="background: {theme.colors
+					.button_primary}; box-shadow: 0 0 0 1px {is_dark
 					? 'rgba(255,255,255,0.1)'
 					: 'rgba(0,0,0,0.1)'};"
 			></div>
