@@ -59,7 +59,6 @@ run_shared_prop_tests({
 	}
 });
 
-
 describe("Single-select: Rendering", () => {
 	afterEach(() => cleanup());
 
@@ -134,7 +133,6 @@ describe("Single-select: Rendering", () => {
 		expect(input).not.toHaveAttribute("readonly");
 	});
 });
-
 
 describe("Single-select: Options display", () => {
 	afterEach(() => cleanup());
@@ -213,7 +211,6 @@ describe("Single-select: Options display", () => {
 	});
 });
 
-
 describe("Single-select: Filtering", () => {
 	afterEach(() => cleanup());
 
@@ -268,7 +265,6 @@ describe("Single-select: Filtering", () => {
 		expect(options).toHaveLength(2);
 	});
 });
-
 
 describe("Single-select: Selection", () => {
 	afterEach(() => cleanup());
@@ -378,7 +374,6 @@ describe("Single-select: Selection", () => {
 		expect(options[1]).toHaveClass("selected");
 	});
 });
-
 
 describe("Single-select: Custom values", () => {
 	afterEach(() => cleanup());
@@ -505,7 +500,6 @@ describe("Single-select: Custom values", () => {
 		expect(input.value).toBe("");
 	});
 });
-
 
 describe("Single-select: Events", () => {
 	afterEach(() => cleanup());
@@ -655,7 +649,6 @@ describe("Single-select: Events", () => {
 	});
 });
 
-
 describe("Single-select: get_data / set_data", () => {
 	afterEach(() => cleanup());
 
@@ -726,7 +719,6 @@ describe("Single-select: get_data / set_data", () => {
 	});
 });
 
-
 describe("Multiselect: Rendering", () => {
 	afterEach(() => cleanup());
 
@@ -776,7 +768,6 @@ describe("Multiselect: Rendering", () => {
 	});
 });
 
-
 describe("Multiselect: Options display", () => {
 	afterEach(() => cleanup());
 
@@ -809,7 +800,6 @@ describe("Multiselect: Options display", () => {
 	});
 });
 
-
 describe("Multiselect: Selection", () => {
 	afterEach(() => cleanup());
 
@@ -824,7 +814,7 @@ describe("Multiselect: Selection", () => {
 
 		const options = getAllByTestId("dropdown-option");
 		await event.click(options[0]);
-		
+
 		await input.focus();
 		const tokens = container.querySelectorAll(".token");
 		expect(tokens).toHaveLength(1);
@@ -957,7 +947,6 @@ describe("Multiselect: Selection", () => {
 	});
 });
 
-
 describe("Multiselect: Custom values", () => {
 	afterEach(() => cleanup());
 
@@ -1044,7 +1033,6 @@ describe("Multiselect: Filtering", () => {
 		expect(options[0]).toHaveAttribute("aria-label", "banana");
 	});
 });
-
 
 describe("Multiselect: Events", () => {
 	afterEach(() => cleanup());
@@ -1138,7 +1126,6 @@ describe("Multiselect: Events", () => {
 	});
 });
 
-
 describe("Multiselect: get_data / set_data", () => {
 	afterEach(() => cleanup());
 
@@ -1193,7 +1180,6 @@ describe("Multiselect: get_data / set_data", () => {
 	});
 });
 
-
 describe("Regression: #12629 — Buttons on multiselect", () => {
 	afterEach(() => cleanup());
 
@@ -1223,7 +1209,6 @@ describe("Regression: #12629 — Buttons on multiselect", () => {
 		expect(customButton).toBeInTheDocument();
 	});
 });
-
 
 describe("Regression: #12764 — Multiselect event propagation", () => {
 	afterEach(() => cleanup());
@@ -1370,7 +1355,6 @@ describe("Edge cases", () => {
 		expect(input.value).toBe("apple_choice");
 	});
 });
-
 
 test.todo(
 	"VISUAL: subdued text color applied when input text doesn't match any choice and allow_custom_value is false — needs Playwright visual regression screenshot comparison"
