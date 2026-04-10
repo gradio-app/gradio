@@ -69,9 +69,9 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			open: "/"
 		},
 		build: {
-			sourcemap: true,
+			sourcemap: false,
 			target: "esnext",
-			minify: false,
+			minify: production,
 			outDir: "../../gradio/templates/frontend",
 			rollupOptions: {
 				external: ["virtual:cc-init"]
