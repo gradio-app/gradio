@@ -1,5 +1,16 @@
 # @gradio/code
 
+## 0.17.7
+
+### Features
+
+- [#13222](https://github.com/gradio-app/gradio/pull/13222) [`10b22a0`](https://github.com/gradio-app/gradio/commit/10b22a02b7cccccbd2cfee624040b3092a4347f0) - code tests.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.23.1
+- @gradio/statustracker@0.14.0
+
 ## 0.17.6
 
 ### Dependency updates
