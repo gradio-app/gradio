@@ -1853,7 +1853,8 @@ Received inputs:
     Output components:
         [{wanted}]
     Output values returned:
-        [{received}]"""
+        [{received}]""",
+                    stacklevel=2,
                 )
 
     async def postprocess_data(
@@ -2493,6 +2494,7 @@ Received inputs:
             warnings.warn(
                 "SSR mode is not supported with multi-page apps when mounting on a FastAPI app. Disabling SSR mode.",
                 UserWarning,
+                stacklevel=2,
             )
             return False
         return (
@@ -2662,11 +2664,13 @@ Received inputs:
         if self.auth and not callable(self.auth):
             if any(not authenticable[0] for authenticable in self.auth):  # type: ignore
                 warnings.warn(
-                    "You have provided an empty username in `auth`. Please provide a valid username."
+                    "You have provided an empty username in `auth`. Please provide a valid username.",
+                    stacklevel=2,
                 )
             if any(not authenticable[1] for authenticable in self.auth):  # type: ignore
                 warnings.warn(
-                    "You have provided an empty password in `auth`. Please provide a valid password."
+                    "You have provided an empty password in `auth`. Please provide a valid password.",
+                    stacklevel=2,
                 )
 
         self.auth_message = auth_message
@@ -2864,7 +2868,7 @@ Received inputs:
                 )
 
         if self.share and self.space_id:
-            warnings.warn("Setting share=True is not supported on Hugging Face Spaces")
+            warnings.warn("Setting share=True is not supported on Hugging Face Spaces", stacklevel=2)
             self.share = False
 
         if self.share:

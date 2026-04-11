@@ -300,9 +300,7 @@ class Video(StreamingOutput, Component):
             processing_utils.ffmpeg_installed()
             and not processing_utils.video_is_playable(video)
         ):
-            warnings.warn(
-                "Video does not have browser-compatible container or codec. Converting to mp4."
-            )
+            warnings.warn("Video does not have browser-compatible container or codec. Converting to mp4.", stacklevel=2)
             with trace_phase_sync("postprocess_video_convert_video_to_playable_mp4"):
                 video = processing_utils.convert_video_to_playable_mp4(video)
         # Recalculate the format in case convert_video_to_playable_mp4 already made it the selected format

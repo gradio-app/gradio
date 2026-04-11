@@ -191,7 +191,8 @@ class Dataset(Component):
                 index = None
                 warnings.warn(
                     "The `Dataset` component does not support updating the dataset data by providing "
-                    "a set of list values. Instead, you should return a new Dataset(samples=...) object."
+                    "a set of list values. Instead, you should return a new Dataset(samples=...) object.",
+                    stacklevel=2,
                 )
             return index
 

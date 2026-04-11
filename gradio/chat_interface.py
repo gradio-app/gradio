@@ -321,7 +321,8 @@ class ChatInterface(Blocks):
             self.chatbot = cast(Chatbot, get_component_instance(chatbot, render=True))
             if self.chatbot.examples and self.examples_messages:
                 warnings.warn(
-                    "The ChatInterface already has examples set. The examples provided in the chatbot will be ignored."
+                    "The ChatInterface already has examples set. The examples provided in the chatbot will be ignored.",
+                    stacklevel=2,
                 )
             self.chatbot.examples = (
                 self.examples_messages

@@ -130,13 +130,12 @@ class Dropdown(FormComponent):
             value = [value]
 
         if not multiselect and max_choices is not None:
-            warnings.warn(
-                "The `max_choices` parameter is ignored when `multiselect` is False."
-            )
+            warnings.warn("The `max_choices` parameter is ignored when `multiselect` is False.", stacklevel=2)
         if not filterable and allow_custom_value:
             filterable = True
             warnings.warn(
-                "The `filterable` parameter cannot be set to False when `allow_custom_value` is True. Setting `filterable` to True."
+                "The `filterable` parameter cannot be set to False when `allow_custom_value` is True. Setting `filterable` to True.",
+                stacklevel=2,
             )
         self.max_choices = max_choices
         self.allow_custom_value = allow_custom_value
@@ -233,7 +232,8 @@ class Dropdown(FormComponent):
         if self.allow_custom_value or value in [value for _, value in self.choices]:
             return
         warnings.warn(
-            f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {value} or set allow_custom_value=True."
+            f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {value} or set allow_custom_value=True.",
+            stacklevel=2,
         )
 
     def postprocess(

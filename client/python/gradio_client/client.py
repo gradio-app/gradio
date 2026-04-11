@@ -425,7 +425,8 @@ class Client:
                 )
             if secrets is not None:
                 warnings.warn(
-                    "Secrets are only used when the Space is duplicated for the first time, and are not updated if the duplicated Space already exists."
+                    "Secrets are only used when the Space is duplicated for the first time, and are not updated if the duplicated Space already exists.",
+                    stacklevel=2,
                 )
         except RepositoryNotFoundError:
             if verbose:
@@ -1150,7 +1151,7 @@ class Endpoint:
 
         def _cancel():
             if cancel_msg:
-                warnings.warn(cancel_msg)
+                warnings.warn(cancel_msg, stacklevel=2)
             if cancellable:
                 httpx.post(
                     url,

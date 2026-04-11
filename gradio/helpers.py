@@ -150,6 +150,7 @@ class Examples:
         if _initiated_directly:
             warnings.warn(
                 "Please use gr.Examples(...) instead of gr.helpers.Examples(...) to create the Examples.",
+                stacklevel=2,
             )
 
         self.cache_examples = False
@@ -178,7 +179,8 @@ class Examples:
                 cache_mode = "eager"
                 warnings.warn(
                     "The `GRADIO_CACHE_MODE` environment variable must be either 'eager' or 'lazy'. "
-                    "Defaulting to 'eager'."
+                    "Defaulting to 'eager'.",
+                    stacklevel=2,
                 )
 
         if self.cache_examples and cache_mode == "lazy":
@@ -467,7 +469,8 @@ class Examples:
                     )
         else:
             warnings.warn(
-                f"If an Examples object is created outside a Blocks Context, make sure to call `examples.dataset.render()`{'and `examples.create()`' if self.cache_examples else ''} to render the examples in the interface."
+                f"If an Examples object is created outside a Blocks Context, make sure to call `examples.dataset.render()`{'and `examples.create()`' if self.cache_examples else ''} to render the examples in the interface.",
+                stacklevel=2,
             )
 
     async def _postprocess_output(self, output) -> list:
@@ -503,7 +506,8 @@ class Examples:
                         "example values. This may result in an exception being thrown by "
                         "your function. If you do get an error while caching examples, make "
                         "sure all of your inputs have example values for all of your examples "
-                        "or you provide default values for those particular parameters in your function."
+                        "or you provide default values for those particular parameters in your function.",
+                        stacklevel=2,
                     )
                     break
         if self.cache_examples is True:
@@ -986,6 +990,7 @@ def special_args(
                         warnings.warn(
                             "Empty session being created. Install gradio[oauth] and add a gr.LoginButton to your app to enable OAuth login.",
                             UserWarning,
+                            stacklevel=2,
                         )
                         session = {}
                     else:
@@ -1065,7 +1070,7 @@ def special_args(
             i = len(inputs)
             param = positional_args[i]
             if param.default == param.empty:
-                warnings.warn("Unexpected argument. Filling with None.")
+                warnings.warn("Unexpected argument. Filling with None.", stacklevel=2)
                 inputs.append(None)
             else:
                 inputs.append(param.default)
@@ -1146,7 +1151,7 @@ def log_message(
         if level in ("info", "success"):
             print(message)
         elif level == "warning":
-            warnings.warn(message)
+            warnings.warn(message, stacklevel=2)
         return
     blocks._queue.log_message(
         event_id=event_id,

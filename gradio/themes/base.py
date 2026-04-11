@@ -102,7 +102,7 @@ class ThemeClass:
     def _get_computed_value(self, property: str, depth=0) -> str:
         max_depth = 100
         if depth > max_depth:
-            warnings.warn(f"Cannot resolve '{property}' - circular reference detected.")
+            warnings.warn(f"Cannot resolve '{property}' - circular reference detected.", stacklevel=2)
             return ""
         is_dark = property.endswith("_dark")
         if is_dark:
@@ -163,7 +163,8 @@ class ThemeClass:
                     warnings.warn(
                         f"This theme was created for Gradio {theme_gradio_version}, "
                         f"but you are using Gradio {__version__}. "
-                        "Some styles may not work as expected."
+                        "Some styles may not work as expected.",
+                        stacklevel=2,
                     )
             except (ValueError, IndexError):
                 pass

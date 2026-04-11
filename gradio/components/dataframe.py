@@ -183,6 +183,7 @@ class Dataframe(Component):
             warnings.warn(
                 "The `row_limits` parameter is not yet implemented.",
                 UserWarning,
+                stacklevel=2,
             )
         self.row_limits = row_limits
         self.column_count = self.col_count = self.__process_counts(
@@ -192,11 +193,13 @@ class Dataframe(Component):
             warnings.warn(
                 "The `col_count` parameter is deprecated and will be removed. Please use `column_count` instead.",
                 UserWarning,
+                stacklevel=2,
             )
         if column_limits is not None:
             warnings.warn(
                 "The `column_limits` parameter is not yet implemented.",
                 UserWarning,
+                stacklevel=2,
             )
         self.column_limits = column_limits
         self.static_columns = static_columns or []
@@ -495,7 +498,8 @@ class Dataframe(Component):
             )
         if isinstance(value, Styler) and self.interactive:
             warnings.warn(
-                "Cannot display Styler object in interactive mode. Will display as a regular pandas dataframe instead."
+                "Cannot display Styler object in interactive mode. Will display as a regular pandas dataframe instead.",
+                stacklevel=2,
             )
 
         headers = self.get_headers(value) or self.headers

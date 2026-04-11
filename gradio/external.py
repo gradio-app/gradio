@@ -178,7 +178,8 @@ def load_blocks_from_huggingface(
     if token is not None:
         if Context.token is not None and Context.token != token:
             warnings.warn(
-                """You are loading a model/Space with a different access token than the one you used to load a previous model/Space. This is not recommended, as it may cause unexpected behavior."""
+                """You are loading a model/Space with a different access token than the one you used to load a previous model/Space. This is not recommended, as it may cause unexpected behavior.""",
+                stacklevel=2,
             )
         Context.token = token
 
@@ -520,7 +521,8 @@ def from_spaces(
 ) -> Blocks:
     if provider is not None:
         warnings.warn(
-            "The `provider` parameter is not supported when loading Spaces. It will be ignored."
+            "The `provider` parameter is not supported when loading Spaces. It will be ignored.",
+            stacklevel=2,
         )
 
     space_url = f"https://huggingface.co/spaces/{space_name}"
@@ -570,7 +572,8 @@ def from_spaces(
                 "You cannot override parameters for this Space by passing in kwargs. "
                 "Instead, please load the Space as a function and use it to create a "
                 "Blocks or Interface locally. You may find this Guide helpful: "
-                "https://gradio.app/using_blocks_like_functions/"
+                "https://gradio.app/using_blocks_like_functions/",
+                stacklevel=2,
             )
         return from_spaces_blocks(space=space_name, token=token)
 

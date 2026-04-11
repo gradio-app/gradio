@@ -579,7 +579,7 @@ def get_theme(theme: Theme | str | None) -> Theme:
             try:
                 theme = Theme.from_hub(theme)
             except Exception as e:
-                warnings.warn(f"Cannot load {theme}. Caught Exception: {str(e)}")
+                warnings.warn(f"Cannot load {theme}. Caught Exception: {str(e)}", stacklevel=2)
                 theme = DefaultTheme()
     return theme
 
@@ -1197,17 +1197,11 @@ def check_function_inputs_match(fn: Callable, inputs: Sequence, inputs_as_dict: 
             return f"Keyword-only args must have default values for function {fn}"
     arg_count = 1 if inputs_as_dict else len(inputs)
     if min_args == max_args and max_args != arg_count:
-        warnings.warn(
-            f"Expected {max_args} arguments for function {fn}, received {arg_count}."
-        )
+        warnings.warn(f"Expected {max_args} arguments for function {fn}, received {arg_count}.", stacklevel=2)
     if arg_count < min_args:
-        warnings.warn(
-            f"Expected at least {min_args} arguments for function {fn}, received {arg_count}."
-        )
+        warnings.warn(f"Expected at least {min_args} arguments for function {fn}, received {arg_count}.", stacklevel=2)
     if max_args != infinity and arg_count > max_args:
-        warnings.warn(
-            f"Expected maximum {max_args} arguments for function {fn}, received {arg_count}."
-        )
+        warnings.warn(f"Expected maximum {max_args} arguments for function {fn}, received {arg_count}.", stacklevel=2)
 
 
 class TupleNoPrint(tuple):

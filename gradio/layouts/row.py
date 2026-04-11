@@ -66,9 +66,7 @@ class Row(BlockContext, metaclass=ComponentMeta):
         self.max_height = max_height
         self.min_height = min_height
         if scale and scale != round(scale):
-            warnings.warn(
-                f"'scale' value should be an integer. Using {scale} will cause issues."
-            )
+            warnings.warn(f"'scale' value should be an integer. Using {scale} will cause issues.", stacklevel=2)
 
         self.scale = scale
 

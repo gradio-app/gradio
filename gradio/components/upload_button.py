@@ -90,9 +90,7 @@ class UploadButton(Component):
         self.type = type
         self.file_count = file_count
         if file_count == "directory" and file_types is not None:
-            warnings.warn(
-                "The `file_types` parameter is ignored when `file_count` is 'directory'."
-            )
+            warnings.warn("The `file_types` parameter is ignored when `file_count` is 'directory'.", stacklevel=2)
         if file_types is not None and not isinstance(file_types, list):
             raise ValueError(
                 f"Parameter file_types must be a list. Received {file_types.__class__.__name__}"

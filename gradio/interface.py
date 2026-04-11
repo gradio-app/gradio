@@ -270,7 +270,8 @@ class Interface(Blocks):
             if cache_examples:
                 warnings.warn(
                     "Cache examples cannot be used with state inputs and outputs. "
-                    "Setting cache_examples to False."
+                    "Setting cache_examples to False.",
+                    stacklevel=2,
                 )
             self.cache_examples = False
 
@@ -738,9 +739,7 @@ class Interface(Blocks):
 
             for component in self.input_components:  # type: ignore
                 if getattr(component, "streaming", None):
-                    warnings.warn(
-                        "Streaming components are only supported in live interfaces."
-                    )
+                    warnings.warn("Streaming components are only supported in live interfaces.", stacklevel=2)
 
             if _stop_btn:
                 extra_output = [_submit_btn, _stop_btn]

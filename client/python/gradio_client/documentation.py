@@ -106,7 +106,7 @@ def document(*fns, inherit=False, documentation_group=None):
                     # Then this is likely a custom Gradio component that we do not include in the documentation
                     pass
             except Exception as exc:
-                warnings.warn(f"Could not get documentation group for {cls}: {exc}")
+                warnings.warn(f"Could not get documentation group for {cls}: {exc}", stacklevel=2)
         classes_to_document[documentation_group].append((cls, functions))
         return cls
 

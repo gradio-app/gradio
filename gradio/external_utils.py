@@ -43,7 +43,7 @@ def get_model_info(model_name, token=None):
 def get_tabular_examples(model_name: str) -> dict[str, list[float]]:
     readme = httpx.get(f"https://huggingface.co/{model_name}/resolve/main/README.md")
     if readme.status_code != 200:
-        warnings.warn(f"Cannot load examples from README for {model_name}", UserWarning)
+        warnings.warn(f"Cannot load examples from README for {model_name}", UserWarning, stacklevel=2)
         example_data = {}
     else:
         yaml_regex = re.search(

@@ -134,9 +134,7 @@ def start_node_process(
         except OSError:
             continue
         except Exception as e:
-            warnings.warn(
-                f"Unexpected error while starting Node server: {e}. Trying next port..."
-            )
+            warnings.warn(f"Unexpected error while starting Node server: {e}. Trying next port...", stacklevel=2)
             if node_process:
                 node_process.terminate()
                 node_process = None

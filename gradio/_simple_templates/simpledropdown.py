@@ -106,7 +106,8 @@ class SimpleDropdown(FormComponent):
     def _warn_if_invalid_choice(self, y):
         if y not in [value for _, value in self.choices]:
             warnings.warn(
-                f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {y}."
+                f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {y}.",
+                stacklevel=2,
             )
 
     def postprocess(self, value):

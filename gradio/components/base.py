@@ -180,16 +180,14 @@ class Component(ComponentBase, Block):
         self.info = info
         if not container:
             if show_label:
-                warnings.warn("show_label has no effect when container is False.")
+                warnings.warn("show_label has no effect when container is False.", stacklevel=2)
             show_label = False
         if show_label is None:
             show_label = True
         self.show_label = show_label
         self.container = container
         if scale is not None and scale != round(scale):
-            warnings.warn(
-                f"'scale' value should be an integer. Using {scale} will cause issues."
-            )
+            warnings.warn(f"'scale' value should be an integer. Using {scale} will cause issues.", stacklevel=2)
         self.scale = scale
         self.min_width = min_width
         self.interactive = interactive

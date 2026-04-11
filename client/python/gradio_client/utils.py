@@ -321,6 +321,7 @@ def is_valid_url(possible_url: str) -> bool:
     warnings.warn(
         "is_valid_url should not be used. "
         "Use is_http_url_like() and probe_url(), as suitable, instead.",
+        stacklevel=2,
     )
     return is_http_url_like(possible_url) and probe_url(possible_url)
 
@@ -1300,7 +1301,8 @@ def handle_file(filepath_or_url: str | Path):
 
 def file(filepath_or_url: str | Path):
     warnings.warn(
-        "file() is deprecated and will be removed in a future version. Use handle_file() instead."
+        "file() is deprecated and will be removed in a future version. Use handle_file() instead.",
+        stacklevel=2,
     )
     return handle_file(filepath_or_url)
 

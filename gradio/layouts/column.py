@@ -56,9 +56,7 @@ class Column(BlockContext, metaclass=ComponentMeta):
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
         """
         if scale != round(scale):
-            warnings.warn(
-                f"'scale' value should be an integer. Using {scale} will cause issues."
-            )
+            warnings.warn(f"'scale' value should be an integer. Using {scale} will cause issues.", stacklevel=2)
 
         self.scale = scale
         self.min_width = min_width

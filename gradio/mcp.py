@@ -207,7 +207,8 @@ class GradioMCPServer:
                 warnings.warn(
                     "This MCP server includes a tool that has a gr.State input, which will not be "
                     "updated between tool calls. The original, default value of the State will be "
-                    "used each time."
+                    "used each time.",
+                    stacklevel=2,
                 )
 
     def _get_or_create_client(self) -> Client:

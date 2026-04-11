@@ -140,6 +140,7 @@ class JSON(Component):
                 f"JSON component received unexpected type {type(value)}. "
                 "Expected a string (including a valid JSON string), dict, list, or Callable.",
                 UserWarning,
+                stacklevel=2,
             )
 
         if isinstance(value, str):

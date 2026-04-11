@@ -93,12 +93,13 @@ def version_check():
             warnings.warn(
                 f"IMPORTANT: You are using gradio version {current_pkg_version}, "
                 f"however version {latest_pkg_version} is available, please upgrade. \n"
-                f"--------"
+                f"--------",
+                stacklevel=2,
             )
     except json.decoder.JSONDecodeError:  # type: ignore
-        warnings.warn("unable to parse version details from package URL.")
+        warnings.warn("unable to parse version details from package URL.", stacklevel=2)
     except KeyError:
-        warnings.warn("package URL does not contain version info.")
+        warnings.warn("package URL does not contain version info.", stacklevel=2)
     except Exception:
         pass
 

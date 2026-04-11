@@ -162,7 +162,8 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
     warnings.warn(
         "Gradio does not support OAuth features outside of a Space environment. To help"
         " you debug your app locally, the login and logout buttons are mocked with your"
-        " profile. To make it work, your machine must be logged in to Huggingface."
+        " profile. To make it work, your machine must be logged in to Huggingface.",
+        stacklevel=2,
     )
     mocked_oauth_info = _get_mocked_oauth_info()
 

@@ -2598,7 +2598,8 @@ def mount_gradio_app(
     if favicon_path is not None and path != "/":
         warnings.warn(
             "The 'favicon_path' parameter is set but will be ignored because 'path' is not '/'. "
-            "Please add the favicon directly to your FastAPI app."
+            "Please add the favicon directly to your FastAPI app.",
+            stacklevel=2,
         )
 
     blocks.dev_mode = False

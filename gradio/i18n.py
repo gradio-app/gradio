@@ -112,6 +112,7 @@ class I18n:
                     f"Invalid locale code: '{locale}'. Locale codes should follow BCP 47 format (e.g., 'en', 'en-US'). "
                     f"This locale will still be included, but may not work correctly.",
                     UserWarning,
+                    stacklevel=2,
                 )
             self.translations[locale] = translation_dict
 

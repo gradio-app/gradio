@@ -137,12 +137,14 @@ class Textbox(FormComponent):
         if type in ["password", "email"]:
             if lines != 1:
                 warnings.warn(
-                    "The `lines` parameter must be 1 for `type` of 'password' or 'email'. Setting `lines` to 1."
+                    "The `lines` parameter must be 1 for `type` of 'password' or 'email'. Setting `lines` to 1.",
+                    stacklevel=2,
                 )
                 lines = 1
             if max_lines not in [None, 1]:
                 warnings.warn(
-                    "The `max_lines` parameter must be None or 1 for `type` of 'password' or 'email'. Setting `max_lines` to 1."
+                    "The `max_lines` parameter must be None or 1 for `type` of 'password' or 'email'. Setting `max_lines` to 1.",
+                    stacklevel=2,
                 )
                 max_lines = 1
         self.lines = lines

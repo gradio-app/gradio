@@ -307,7 +307,7 @@ def preprocess_image(
         try:
             im = ImageOps.exif_transpose(im)
         except Exception:
-            warnings.warn(f"Failed to transpose image {file_path} based on EXIF data.")
+            warnings.warn(f"Failed to transpose image {file_path} based on EXIF data.", stacklevel=2)
     if suffix.lower() != "gif" and im is not None:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
