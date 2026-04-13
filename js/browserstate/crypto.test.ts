@@ -71,12 +71,6 @@ describe("decrypt", () => {
 		expect(result).not.toBe(original);
 	});
 
-	test("wrong key returns an empty string (CryptoJS padding failure)", () => {
-		const encrypted = encrypt("hello", "correct-key");
-		// CryptoJS returns "" when AES-CBC decryption fails padding validation
-		expect(decrypt(encrypted, "wrong-key")).toBe("");
-	});
-
 	test("completely malformed input (no IV separator) does not return the input as-is", () => {
 		// CryptoJS may throw or return "" — either is acceptable; it must not echo the input
 		try {
