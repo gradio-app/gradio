@@ -1,5 +1,17 @@
 # @gradio/image
 
+## 0.26.2
+
+### Fixes
+
+- [#13181](https://github.com/gradio-app/gradio/pull/13181) [`755c3d3`](https://github.com/gradio-app/gradio/commit/755c3d32c388a36d2296f8d895c5c0e1144fb54f) - fix: show validation errors on StatusTracker-dependent components.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/atoms@0.23.1
+- @gradio/statustracker@0.14.0
+- @gradio/client@2.2.0
+
 ## 0.26.1
 
 ### Fixes
