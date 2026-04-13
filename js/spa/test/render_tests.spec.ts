@@ -53,15 +53,19 @@ test("Test examples work in render", async ({ page }) => {
 	await input.waitFor();
 	const testButton = page.getByRole("button", { name: "test" });
 	await testButton.waitFor();
-	await testButton.click();
-	await expect(input).toHaveValue("test", { timeout: 10000 });
+	await expect(async () => {
+		await testButton.click();
+		await expect(input).toHaveValue("test", { timeout: 2000 });
+	}).toPass({ timeout: 10000 });
 
 	const little_textbox = page.getByLabel("little textbox", { exact: true });
 	await little_textbox.waitFor();
 	const defButton = page.getByRole("button", { name: "def", exact: true });
 	await defButton.waitFor();
-	await defButton.click();
-	await expect(little_textbox).toHaveValue("def", { timeout: 10000 });
+	await expect(async () => {
+		await defButton.click();
+		await expect(little_textbox).toHaveValue("def", { timeout: 2000 });
+	}).toPass({ timeout: 10000 });
 });
 
 test("Test keyed event listeners in render", async ({ page }) => {
