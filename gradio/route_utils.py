@@ -274,7 +274,13 @@ def compile_gr_request(
         body.data = [body.session_hash]
     if body.request:
         if body.batched:
-            gr_request = [Request(username=username, request=request)]
+            gr_request = [
+                Request(
+                    username=username,
+                    request=body.request,
+                    session_hash=body.session_hash,
+                )
+            ]
         else:
             gr_request = Request(
                 username=username, request=body.request, session_hash=body.session_hash
