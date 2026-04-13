@@ -105,7 +105,9 @@ describe("ImageSlider", () => {
 			client: mock_client()
 		});
 
-		const btns = getAllByRole("button", { name: "Click to upload or drop files" });
+		const btns = getAllByRole("button", {
+			name: "Click to upload or drop files"
+		});
 		expect(btns[0]).toBeVisible();
 	});
 
@@ -133,7 +135,9 @@ describe("Props: value", () => {
 			client: mock_client()
 		});
 
-		const btns = getAllByRole("button", { name: "Click to upload or drop files" });
+		const btns = getAllByRole("button", {
+			name: "Click to upload or drop files"
+		});
 		expect(btns[0]).toBeVisible();
 	});
 
@@ -158,7 +162,9 @@ describe("Props: value", () => {
 			client: mock_client()
 		});
 
-		expect(getByRole("button", { name: "Click to upload or drop files" })).toBeVisible();
+		expect(
+			getByRole("button", { name: "Click to upload or drop files" })
+		).toBeVisible();
 	});
 
 	test("[null, img] + interactive shows upload mode (first image missing)", async () => {
@@ -169,7 +175,9 @@ describe("Props: value", () => {
 			client: mock_client()
 		});
 
-		expect(getByRole("button", { name: "Click to upload or drop files" })).toBeVisible();
+		expect(
+			getByRole("button", { name: "Click to upload or drop files" })
+		).toBeVisible();
 	});
 
 	test("[img, img] + interactive switches to preview mode", async () => {
@@ -179,7 +187,9 @@ describe("Props: value", () => {
 			value: [img_a, img_b]
 		});
 
-		expect(queryByRole("button", { name: "Click to upload or drop files" })).toBeNull();
+		expect(
+			queryByRole("button", { name: "Click to upload or drop files" })
+		).toBeNull();
 		// img elements have alt="" (decorative); using querySelectorAll
 		const imgs = container.querySelectorAll("img");
 		expect(imgs.length).toBeGreaterThan(0);
@@ -236,7 +246,9 @@ describe("Props: interactive", () => {
 			client: mock_client()
 		});
 
-		const btns = getAllByRole("button", { name: "Click to upload or drop files" });
+		const btns = getAllByRole("button", {
+			name: "Click to upload or drop files"
+		});
 		expect(btns[0]).toBeVisible();
 	});
 
@@ -247,7 +259,9 @@ describe("Props: interactive", () => {
 			value: [img_a, img_b]
 		});
 
-		expect(queryByRole("button", { name: "Click to upload or drop files" })).toBeNull();
+		expect(
+			queryByRole("button", { name: "Click to upload or drop files" })
+		).toBeNull();
 		// img elements have alt="" (decorative); using querySelectorAll
 		const imgs = container.querySelectorAll("img");
 		expect(imgs.length).toBeGreaterThan(0);
