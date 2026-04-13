@@ -529,14 +529,29 @@
 		active_cell_menu = null;
 	}
 
-	// function handle_select_all(col: number, checked: boolean): void {
-	// 	values = values.map((row) => {
-	// 		const new_row = [...row];
-	// 		new_row[col] = checked;
-	// 		return new_row;
-	// 	});
-	// 	push_change(values);
-	// }
+	function handle_select_all(col: number, checked: boolean): void {
+		const new_values = values.map((row) => {
+			const new_row = [...row];
+			new_row[col] = checked;
+			return new_row;
+		});
+		values = new_values;
+		push_change(new_values);
+	}
+
+	function get_select_all_state(
+		col: number
+	): "checked" | "unchecked" | "indeterminate" {
+		if (!values.length) return "unchecked";
+		let true_count = 0;
+		for (const row of values) {
+			const v = row[col];
+			if (v === true || v === "true" || v === "True") true_count++;
+		}
+		if (true_count === 0) return "unchecked";
+		if (true_count === values.length) return "checked";
+		return "indeterminate";
+	}
 
 	function commit_filter(): void {
 		if (!global_filter || show_search !== "filter") return;
@@ -875,6 +890,8 @@
 										is_selected={selected_header === col_idx}
 										is_static={!!(header.column.columnDef.meta as any)
 											?.isStatic}
+										is_bool={get_dtype(col_idx) === "bool"}
+										select_all_state={get_select_all_state(col_idx)}
 										sort_direction={get_sort_info(col_idx).direction}
 										sort_priority={get_sort_info(col_idx).priority}
 										multi_sort={sorting.length > 1}
@@ -889,6 +906,7 @@
 										onclick={handle_header_click}
 										on_menu_click={toggle_header_menu}
 										on_end_edit={end_header_edit}
+										on_select_all={handle_select_all}
 									/>
 								{/each}
 							{/each}
