@@ -321,9 +321,7 @@ describe("Copy button", () => {
 		await fireEvent.click(getByLabelText("Copy"));
 		await waitFor(() => {
 			expect(write_text).toHaveBeenCalledTimes(1);
-			expect(write_text).toHaveBeenCalledWith(
-				JSON.stringify(value, null, 2)
-			);
+			expect(write_text).toHaveBeenCalledWith(JSON.stringify(value, null, 2));
 		});
 	});
 
@@ -487,13 +485,19 @@ describe("get_data / set_data", () => {
 	});
 
 	test("set_data with null switches to Empty state", async () => {
-		const { set_data, queryByLabelText } = await render(JSONOutput, default_props);
+		const { set_data, queryByLabelText } = await render(
+			JSONOutput,
+			default_props
+		);
 		await set_data({ value: null });
 		expect(queryByLabelText("Copy")).not.toBeInTheDocument();
 	});
 
 	test("set_data with empty object switches to Empty state", async () => {
-		const { set_data, queryByLabelText } = await render(JSONOutput, default_props);
+		const { set_data, queryByLabelText } = await render(
+			JSONOutput,
+			default_props
+		);
 		await set_data({ value: {} });
 		expect(queryByLabelText("Copy")).not.toBeInTheDocument();
 	});
