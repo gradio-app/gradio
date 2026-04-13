@@ -113,6 +113,7 @@
 				{i18n}
 				{max_chars}
 				coords={[col_idx, 0]}
+				pad_left={show_select_all ? true : false}
 			/>
 		</div>
 		{#if sort_direction || is_filtered || is_static}
@@ -160,6 +161,13 @@
 		padding: 0;
 		background: var(--table-even-background-fill) !important;
 		font-weight: var(--weight-bold, 700);
+		outline: none;
+		box-shadow:
+			inset 1px 0 0 var(--border-color-primary),
+			inset 0 0 0 1px var(--ring-color);
+		padding: 0;
+		overflow: visible;
+		box-sizing: border-box;
 	}
 
 	.header-cell.first-column {
@@ -173,10 +181,14 @@
 
 	.header-cell.focus {
 		--ring-color: var(--color-accent);
+		--sel-top: inset 0 2px 0 0 var(--ring-color);
+		--sel-bottom: inset 0 -2px 0 0 var(--ring-color);
+		--sel-left: inset 2px 0 0 0 var(--ring-color);
+		--sel-right: inset -2px 0 0 0 var(--ring-color);
 		box-shadow:
-			inset 1px 0 0 var(--border-color-primary),
-			inset 0 0 0 2px var(--ring-color);
-		z-index: 4;
+			var(--sel-top), var(--sel-bottom), var(--sel-left), var(--sel-right);
+		z-index: 2;
+		position: relative;
 	}
 
 	.header-cell.focus.first-column {
@@ -186,7 +198,7 @@
 	.header-content {
 		display: flex;
 		align-items: center;
-		gap: var(--size-1);
+		gap: var(--size-3);
 		overflow: hidden;
 		min-width: 0;
 	}
@@ -252,6 +264,7 @@
 		align-items: center;
 		justify-content: center;
 		flex-shrink: 0;
+		width: var(--size-4);
 	}
 
 	.select-all-checkbox :global(label) {

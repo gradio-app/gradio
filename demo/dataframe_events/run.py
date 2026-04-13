@@ -155,7 +155,7 @@ with gr.Blocks() as demo:
         with gr.Column():
             df_tall = gr.Dataframe(
                 value=tall_df_value,
-                interactive=False,
+                interactive=True,
                 label="Tall Dataframe (Scroll Vertically)",
                 datatype=["str", "number", "bool"],  # type: ignore
                 max_height=200,
