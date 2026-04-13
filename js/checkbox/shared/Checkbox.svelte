@@ -4,6 +4,7 @@
 	let {
 		label = "Checkbox",
 		value = $bindable(),
+		indeterminate = false,
 		interactive = true,
 		show_label = true,
 		on_change,
@@ -12,6 +13,7 @@
 	}: {
 		label?: string;
 		value?: boolean;
+		indeterminate?: boolean;
 		interactive?: boolean;
 		show_label?: boolean;
 		on_change?: (value: boolean) => void;
@@ -59,6 +61,7 @@
 <label class="checkbox-container" class:disabled>
 	<input
 		bind:checked={value}
+		bind:indeterminate
 		on:keydown={handle_enter}
 		on:input={handle_input}
 		{disabled}

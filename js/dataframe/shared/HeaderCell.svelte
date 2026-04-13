@@ -5,6 +5,7 @@
 	import FilterIcon from "./icons/FilterIcon.svelte";
 	import SortButtonUp from "./icons/SortButtonUp.svelte";
 	import SortButtonDown from "./icons/SortButtonDown.svelte";
+	import { BaseCheckbox } from "@gradio/checkbox";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { SortDirection } from "./types";
 
@@ -14,6 +15,8 @@
 		is_editing = false,
 		is_selected = false,
 		is_static = false,
+		is_bool = false,
+		select_all_state = "unchecked",
 		sort_direction = null,
 		sort_priority = null,
 		multi_sort = false,
@@ -27,13 +30,16 @@
 		i18n,
 		onclick,
 		on_menu_click,
-		on_end_edit
+		on_end_edit,
+		on_select_all
 	}: {
 		value: string;
 		col_idx: number;
 		is_editing?: boolean;
 		is_selected?: boolean;
 		is_static?: boolean;
+		is_bool?: boolean;
+		select_all_state?: "checked" | "unchecked" | "indeterminate";
 		sort_direction?: SortDirection | null;
 		sort_priority?: number | null;
 		multi_sort?: boolean;
@@ -48,7 +54,12 @@
 		onclick: (event: MouseEvent, col: number) => void;
 		on_menu_click: (event: MouseEvent, col: number) => void;
 		on_end_edit: (key: string) => void;
+		on_select_all?: (col: number, checked: boolean) => void;
 	} = $props();
+
+	let show_select_all = $derived(
+		is_bool && editable && !is_static && !!on_select_all
+	);
 </script>
 
 <th
@@ -57,6 +68,7 @@
 	class:sorted={sort_direction !== null}
 	class:filtered={is_filtered}
 	class:first-column={is_first_column}
+	data-heading={col_idx}
 	onclick={(e) => onclick(e, col_idx)}
 	onmousedown={(e) => {
 		e.preventDefault();
@@ -66,6 +78,25 @@
 >
 	<div class="cell-wrap">
 		<div class="header-content">
+			{#if show_select_all}
+				<div
+					class="select-all-checkbox"
+					role="button"
+					tabindex="-1"
+					onclick={(e) => e.stopPropagation()}
+					onmousedown={(e) => e.stopPropagation()}
+					onkeydown={(e) => e.stopPropagation()}
+				>
+					<BaseCheckbox
+						value={select_all_state === "checked"}
+						indeterminate={select_all_state === "indeterminate"}
+						label=""
+						interactive={true}
+						on_select={() =>
+							on_select_all?.(col_idx, select_all_state !== "checked")}
+					/>
+				</div>
+			{/if}
 			<EditableCell
 				{value}
 				{latex_delimiters}
@@ -214,5 +245,20 @@
 		gap: var(--size-1);
 		overflow: visible;
 		min-width: 0;
+	}
+
+	.select-all-checkbox {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.select-all-checkbox :global(label) {
+		margin: 0;
+	}
+
+	.select-all-checkbox :global(span) {
+		display: none;
 	}
 </style>
