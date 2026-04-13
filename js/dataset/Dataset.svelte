@@ -195,8 +195,10 @@
 								selected={current_hover === i}
 								type="gallery"
 							/>
-						{:else if component_meta.length}
-							{#await Promise.all( [component_meta[0][0].component, component_meta[0][0].runtime] ) then [component, runtime]}
+						{:else if component_meta.length && component_meta[0]?.length}
+							{#await Promise.all( [component_meta[0][0].component, component_meta[0][0].runtime] )}
+								{sample_row[0]}
+							{:then [component, runtime]}
 								{#key sample_row[0]}
 									<MountExample
 										{component}
@@ -210,7 +212,11 @@
 										{root}
 									/>
 								{/key}
+							{:catch}
+								{sample_row[0]}
 							{/await}
+						{:else}
+							{sample_row[0]}
 						{/if}
 					</button>
 				{/if}

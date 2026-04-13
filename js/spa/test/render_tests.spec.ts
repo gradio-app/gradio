@@ -49,16 +49,10 @@ test("Test event/selection data can trigger render", async ({ page }) => {
 });
 
 test("Test examples work in render", async ({ page }) => {
-	const testButton = page.getByRole("button", { name: "test" });
-	try {
-		await testButton.waitFor({ timeout: 10000 });
-	} catch {
-		await page.reload();
-		await page.waitForLoadState("load");
-		await testButton.waitFor({ timeout: 10000 });
-	}
-
 	const input = page.getByLabel("input", { exact: true });
+	await input.waitFor();
+	const testButton = page.getByRole("button", { name: "test" });
+	await testButton.waitFor();
 	await testButton.click();
 	await expect(input).toHaveValue("test", { timeout: 10000 });
 
