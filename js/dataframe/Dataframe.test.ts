@@ -1,5 +1,11 @@
 import { test, describe, afterEach, expect } from "vitest";
-import { cleanup, render, fireEvent, waitFor, within } from "@self/tootils/render";
+import {
+	cleanup,
+	render,
+	fireEvent,
+	waitFor,
+	within
+} from "@self/tootils/render";
 import { tick } from "svelte";
 
 import Dataframe from "./Index.svelte";
