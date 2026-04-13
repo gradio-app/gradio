@@ -22,7 +22,6 @@
 
 <!--- Usage -->
 ```python
-@gradio.cache
 @gradio.cache(···)
 ```
 
