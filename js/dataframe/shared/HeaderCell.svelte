@@ -90,7 +90,7 @@
 					<BaseCheckbox
 						value={select_all_state === "checked"}
 						indeterminate={select_all_state === "indeterminate"}
-						label=""
+						label={`Toggle all: ${value}`}
 						interactive={true}
 						on_select={() =>
 							on_select_all?.(col_idx, select_all_state !== "checked")}
