@@ -291,7 +291,13 @@
 		row: number,
 		col: number
 	): void {
-		event.preventDefault();
+		const col_is_static =
+			!editable ||
+			static_columns.includes(col) ||
+			static_columns.includes(resolved_headers[col]);
+		if (!col_is_static) {
+			event.preventDefault();
+		}
 		event.stopPropagation();
 
 		const coord: CellCoordinate = [row, col];
@@ -332,7 +338,9 @@
 			col_value: values?.map((r) => r[col]) ?? []
 		} as any);
 
-		tick().then(() => parent?.focus());
+		if (!col_is_static) {
+			tick().then(() => parent?.focus());
+		}
 	}
 
 	function handle_cell_dblclick(
@@ -340,15 +348,14 @@
 		row: number,
 		col: number
 	): void {
-		event.preventDefault();
-		event.stopPropagation();
-		if (!editable) return;
 		const col_is_static =
+			!editable ||
 			static_columns.includes(col) ||
 			static_columns.includes(resolved_headers[col]);
-		if (!col_is_static) {
-			editing = [row, col];
-		}
+		if (col_is_static) return;
+		event.preventDefault();
+		event.stopPropagation();
+		editing = [row, col];
 	}
 
 	function handle_blur(detail: {
@@ -999,8 +1006,10 @@
 											editing[1] === col_idx
 										)}
 										is_flash={copy_flash && is_sel}
-										is_static={!!(cell.column.columnDef.meta as any)?.isStatic}
+										is_static={!editable ||
+											!!(cell.column.columnDef.meta as any)?.isStatic}
 										show_menu_button={editable &&
+											!(cell.column.columnDef.meta as any)?.isStatic &&
 											selected_cells.length === 1 &&
 											selected_cells[0][0] === row_idx &&
 											selected_cells[0][1] === col_idx}
@@ -1020,6 +1029,10 @@
 										ondblclick={(e) =>
 											handle_cell_dblclick(e, row_idx, col_idx)}
 										oncontextmenu={(e) => {
+											const is_static_cell = !!(
+												cell.column.columnDef.meta as any
+											)?.isStatic;
+											if (!editable || is_static_cell) return;
 											e.preventDefault();
 											toggle_cell_menu(e, row_idx, col_idx);
 										}}
