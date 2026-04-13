@@ -452,10 +452,16 @@ describe("Props: placeholder", () => {
 describe("Events: change", () => {
 	afterEach(() => cleanup());
 
-	test.todo(
-		"no spurious change event on mount — currently fires once on initial mount due to " +
-			"Svelte 5 identity comparison between old_value and gradio.props.value copies"
-	);
+	test("no spurious change event on initial mount", async () => {
+		const { listen } = await render(ImageSlider, {
+			...default_props,
+			value: [img_a, img_b]
+		});
+
+		const change = listen("change", { retrospective: true });
+
+		expect(change).not.toHaveBeenCalled();
+	});
 
 	test("fires when set_data changes value", async () => {
 		const { listen, set_data } = await render(ImageSlider, {
@@ -593,6 +599,33 @@ describe("Events: input", () => {
 			expect(input).toHaveBeenCalledTimes(1);
 		});
 	});
+
+	test("does not fire when value changes via set_data (backend output)", async () => {
+		const { listen, set_data } = await render(ImageSlider, {
+			...default_props,
+			value: [null, null]
+		});
+
+		const input = listen("input");
+
+		await set_data({ value: [img_a, img_b] });
+
+		expect(input).not.toHaveBeenCalled();
+	});
+
+	test("fires when Remove Image button is clicked", async () => {
+		const { listen, getByLabelText } = await render(ImageSlider, {
+			...default_props,
+			interactive: true,
+			value: [img_a, img_b]
+		});
+
+		const input = listen("input");
+
+		await fireEvent.click(getByLabelText("Remove Image"));
+
+		expect(input).toHaveBeenCalledTimes(1);
+	});
 });
 
 describe("Events: custom_button_click", () => {
@@ -711,10 +744,16 @@ describe("Edge cases", () => {
 		expect(container).toBeInTheDocument();
 	});
 
-	test.todo(
-		"no spurious change event on initial mount when value is set — currently fires " +
-			"once on mount; see Events: change describe block for the known issue"
-	);
+	test("no change event on initial mount when value is set", async () => {
+		const { listen } = await render(ImageSlider, {
+			...default_props,
+			value: [img_a, img_b]
+		});
+
+		const change = listen("change", { retrospective: true });
+
+		expect(change).not.toHaveBeenCalled();
+	});
 });
 
 test.todo(
