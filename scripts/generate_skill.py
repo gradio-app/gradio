@@ -241,7 +241,7 @@ def generate_skill_md(organized, guide_links):
 
     skill_md = f"""---
 name: gradio
-description: Creates Gradio apps. Use this skill when the user asks to build an AI web app or to edit an existing Gradio app. Gradio provides a highly flexible python API for creating AI apps - chatbots, text to image, image to text, and everything else.
+description: Build Gradio web UIs and demos in Python. Use when creating, modifying, debugging, or answering questions about Gradio and its capabilties, components, event listeners, or layouts.
 ---
 
 # Gradio
