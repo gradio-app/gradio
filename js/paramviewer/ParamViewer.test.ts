@@ -37,7 +37,7 @@ describe("ParamViewer", () => {
 	test("renders parameter types alongside names", async () => {
 		const { getByText } = await render(ParamViewer, default_props);
 
-		expect(getByText("float")).toBeInTheDocument();
+		expect(getByText("float")).toBeVisible();
 	});
 
 	test("renders header text when provided", async () => {
@@ -46,7 +46,7 @@ describe("ParamViewer", () => {
 			header: "My Parameters"
 		});
 
-		expect(getByText("My Parameters")).toBeInTheDocument();
+		expect(getByText("My Parameters")).toBeVisible();
 	});
 
 	test("does not render header section when header is null", async () => {
@@ -56,14 +56,14 @@ describe("ParamViewer", () => {
 		});
 
 		expect(queryByText("Parameters")).not.toBeInTheDocument();
-		expect(getByRole("button")).toBeInTheDocument();
+		expect(getByRole("button")).toBeVisible();
 	});
 
 	test("renders toggle-all button", async () => {
 		const { getByRole } = await render(ParamViewer, default_props);
 
 		const btn = getByRole("button");
-		expect(btn).toBeInTheDocument();
+		expect(btn).toBeVisible();
 		expect(btn).toBeEnabled();
 	});
 
@@ -401,7 +401,7 @@ describe("Edge cases", () => {
 	test("no spurious change event on mount", async () => {
 		const { listen } = await render(ParamViewer, default_props);
 
-		const change = listen("change");
+		const change = listen("change", { retrospective: true });
 		expect(change).not.toHaveBeenCalled();
 	});
 });

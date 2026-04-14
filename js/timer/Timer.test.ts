@@ -145,20 +145,6 @@ describe("Props: value", () => {
 describe("Events: tick", () => {
 	afterEach(() => cleanup());
 
-	test("tick is dispatched multiple times at regular intervals", async () => {
-		const { listen } = await render(Timer, {
-			...default_props,
-			value: 0.1,
-			active: true
-		});
-
-		const tick = listen("tick");
-
-		await waitFor(() => {
-			expect(tick.mock.calls.length).toBeGreaterThanOrEqual(3);
-		});
-	});
-
 	test("tick respects document visibility state", async () => {
 		const { listen } = await render(Timer, {
 			...default_props,

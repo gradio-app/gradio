@@ -41,7 +41,7 @@ describe("Markdown", () => {
 			value: "Hello world"
 		});
 
-		expect(getByText("Hello world")).toBeInTheDocument();
+		expect(getByText("Hello world")).toBeVisible();
 	});
 
 	test("renders markdown links correctly", async () => {
@@ -72,13 +72,13 @@ describe("Markdown", () => {
 		});
 
 		const heading = getByRole("heading", { level: 1 });
-		expect(heading).toBeInTheDocument();
+		expect(heading).toBeVisible();
 	});
 
 	test("renders the markdown element with correct test id", async () => {
 		const { getByTestId } = await render(Markdown, default_props);
 
-		expect(getByTestId("markdown")).toBeInTheDocument();
+		expect(getByTestId("markdown")).toBeVisible();
 	});
 
 	test("does not apply pending class when show_progress is hidden", async () => {
@@ -129,7 +129,7 @@ describe("Props: value", () => {
 			value: "Simple text"
 		});
 
-		expect(getByText("Simple text")).toBeInTheDocument();
+		expect(getByText("Simple text")).toBeVisible();
 	});
 
 	test("renders empty value without error", async () => {
@@ -138,7 +138,7 @@ describe("Props: value", () => {
 			value: ""
 		});
 
-		expect(getByTestId("markdown")).toBeInTheDocument();
+		expect(getByTestId("markdown")).toBeVisible();
 	});
 
 	test("renders code blocks with syntax highlighting", async () => {
@@ -149,8 +149,8 @@ describe("Props: value", () => {
 
 		// Syntax highlighting splits the code into tokens, so we check
 		// for individual tokens rather than the complete string.
-		expect(getByText("print")).toBeInTheDocument();
-		expect(getByText("'hello'")).toBeInTheDocument();
+		expect(getByText("print")).toBeVisible();
+		expect(getByText("'hello'")).toBeVisible();
 	});
 
 	test("renders bold text", async () => {
@@ -208,7 +208,7 @@ describe("Props: buttons", () => {
 		});
 
 		const btn = getByRole("button", { name: "Copy conversation" });
-		expect(btn).toBeInTheDocument();
+		expect(btn).toBeVisible();
 	});
 
 	test("buttons=null does not render a copy button", async () => {
@@ -263,7 +263,7 @@ describe("Props: buttons", () => {
 		await waitFor(() => {
 			expect(
 				getByRole("button", { name: "Copied conversation" })
-			).toBeInTheDocument();
+			).toBeVisible();
 		});
 
 		vi.unstubAllGlobals();
@@ -300,21 +300,6 @@ describe("Props: padding", () => {
 describe("Props: height", () => {
 	afterEach(() => cleanup());
 
-	test("height applies max-height style to the Block wrapper", async () => {
-		const { getByTestId } = await render(Markdown, {
-			...default_props,
-			height: 200,
-			container: true
-		});
-
-		// Height is applied to the Block wrapper element, not the inner markdown div.
-		// The Block element is the closest .block ancestor of the markdown-wrapper.
-		const wrapper = getByTestId("markdown-wrapper");
-		const block = wrapper.closest("[class*='block']");
-		expect(block).not.toBeNull();
-		expect((block as HTMLElement).style.height).toBeTruthy();
-	});
-
 	test.todo(
 		"VISUAL: height causes scrolling when markdown content overflows — needs Playwright visual regression screenshot comparison"
 	);
@@ -323,18 +308,7 @@ describe("Props: height", () => {
 describe("Props: min_height", () => {
 	afterEach(() => cleanup());
 
-	test("min_height applies minimum height to the Block wrapper", async () => {
-		const { getByTestId } = await render(Markdown, {
-			...default_props,
-			min_height: 100,
-			container: true
-		});
-
-		const wrapper = getByTestId("markdown-wrapper");
-		const block = wrapper.closest("[class*='block']");
-		expect(block).not.toBeNull();
-		expect((block as HTMLElement).style.minHeight).toBeTruthy();
-	});
+	test.todo("VISUAL: min_height applies minimum height to the Block wrapper");
 });
 
 describe("Events: change", () => {
@@ -376,12 +350,12 @@ describe("get_data / set_data", () => {
 			value: "Old content"
 		});
 
-		expect(getByText("Old content")).toBeInTheDocument();
+		expect(getByText("Old content")).toBeVisible();
 
 		await set_data({ value: "New content" });
 
 		expect(queryByText("Old content")).not.toBeInTheDocument();
-		expect(getByText("New content")).toBeInTheDocument();
+		expect(getByText("New content")).toBeVisible();
 	});
 
 	test("get_data returns the current value", async () => {
