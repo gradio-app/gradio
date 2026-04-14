@@ -972,7 +972,7 @@ def delete_files_created_by_app(blocks: Blocks, age: int | None) -> None:
             try:
                 file_path = Path(file)
                 modified_time = datetime.fromtimestamp(file_path.lstat().st_ctime)
-                if age is None or (datetime.now() - modified_time).seconds > age:
+                if age is None or (datetime.now() - modified_time).total_seconds() > age:
                     os.remove(file)
                     to_remove.add(file)
             except FileNotFoundError:
