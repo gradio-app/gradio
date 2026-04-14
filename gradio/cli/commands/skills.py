@@ -318,7 +318,7 @@ def skills_add(
 ) -> None:
     """Download and install Gradio skills for an AI assistant.
 
-    When called without a space_id, installs both the gradio (building apps) 
+    When called without a space_id, installs both the gradio (building apps)
     and hf-gradio (using Spaces via API) skills.
     When called with a space_id, generates and installs a skill for that
     specific Gradio Space with Python, JS, and cURL usage examples.
