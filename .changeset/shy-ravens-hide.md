@@ -1,6 +1,6 @@
 ---
-"@gradio/markdown": minor
-"gradio": minor
+"@gradio/markdown": patch
+"gradio": patch
 ---
 
-feat:Unit tests for js/paramviewer, js/timer, js/markdown
+fix:Unit tests for js/paramviewer, js/timer, js/markdown
