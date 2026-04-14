@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fix Request.state serialization
+feat:Fix typo in `Request.state` serialization
