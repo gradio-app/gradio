@@ -77,9 +77,11 @@
 	class="body-cell {selection_classes}"
 	class:flash={is_flash}
 	class:first-column={is_first_column}
+	class:static={is_static}
 	data-row={row_idx}
 	data-col={col_idx}
 	data-testid={`cell-${row_idx}-${col_idx}`}
+	tabindex={is_static ? -1 : undefined}
 	{onmousedown}
 	{ondblclick}
 	{oncontextmenu}
@@ -122,6 +124,11 @@
 		padding: 0;
 		overflow: visible;
 		box-sizing: border-box;
+		user-select: none;
+	}
+
+	.body-cell.static {
+		user-select: text;
 	}
 
 	.body-cell.first-column {
