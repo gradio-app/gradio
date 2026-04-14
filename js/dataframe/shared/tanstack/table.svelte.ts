@@ -74,12 +74,14 @@ export function createSvelteTable<TData extends RowData>(
 	let version = $state(0);
 
 	function updateOptions(): void {
-		table.setOptions((prev) => {
-			// Eagerly resolve prev into a plain object to prevent
-			// unbounded getter chains. Each setOptions call wraps prev
-			// in a new mergeObjects layer; without flattening, property
-			// lookups traverse every previous layer, causing stack overflow.
-			return mergeObjects({ ...prev }, options, {
+		table.setOptions(() => {
+			// Always merge from resolvedOptions instead of prev to prevent
+			// unbounded getter chains. Using prev would add a new mergeObjects
+			// layer on every call; properties not in the overrides would have
+			// to traverse every previous layer, causing stack overflow.
+			// TanStack's setOptions already re-applies feature defaults via
+			// mergeOptions, so we don't lose any internal defaults.
+			return mergeObjects(resolvedOptions, options, {
 				state: mergeObjects(state, options.state || {}),
 				onStateChange: (updater: any) => {
 					if (updater instanceof Function) state = updater(state);
