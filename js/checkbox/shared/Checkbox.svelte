@@ -4,6 +4,7 @@
 	let {
 		label = "Checkbox",
 		value = $bindable(),
+		indeterminate = false,
 		interactive = true,
 		show_label = true,
 		on_change,
@@ -12,6 +13,7 @@
 	}: {
 		label?: string;
 		value?: boolean;
+		indeterminate?: boolean;
 		interactive?: boolean;
 		show_label?: boolean;
 		on_change?: (value: boolean) => void;
@@ -59,6 +61,7 @@
 <label class="checkbox-container" class:disabled>
 	<input
 		bind:checked={value}
+		bind:indeterminate
 		on:keydown={handle_enter}
 		on:input={handle_input}
 		{disabled}
@@ -103,6 +106,7 @@
 		background-color: var(--checkbox-background-color);
 		line-height: var(--line-sm);
 		flex-shrink: 0;
+		z-index: 0;
 	}
 
 	input:checked,
@@ -136,6 +140,19 @@
 		position: relative;
 	}
 
+	input:indeterminate::before {
+		content: "";
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		width: 100%;
+		height: 100%;
+		z-index: 1;
+		border-radius: var(--checkbox-border-radius);
+		background-color: var(--checkbox-background-color-selected);
+	}
+
 	input:indeterminate::after {
 		content: "";
 		position: absolute;
@@ -145,6 +162,7 @@
 		width: 8px;
 		height: 2px;
 		background-color: white;
+		z-index: 2;
 	}
 
 	input:indeterminate:hover {
