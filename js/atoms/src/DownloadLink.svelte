@@ -19,6 +19,7 @@
 <a
 	style:position="relative"
 	class="download-link"
+	data-testid="download-link"
 	{href}
 	target={typeof window !== "undefined" && window.__is_colab__
 		? "_blank"

@@ -86,15 +86,13 @@ describe("ImageSlider", () => {
 	afterEach(() => cleanup());
 
 	test("renders empty state when non-interactive with no images", async () => {
-		// img elements with alt="" are presentational and excluded from the a11y tree,
-		// so querySelectorAll is used to count image elements
-		const { container } = await render(ImageSlider, {
+		const { queryAllByTestId } = await render(ImageSlider, {
 			...default_props,
 			interactive: false,
 			value: [null, null]
 		});
 
-		expect(container.querySelectorAll("img")).toHaveLength(0);
+		expect(queryAllByTestId("imageslider-image")).toHaveLength(0);
 	});
 
 	test("renders upload area when interactive with no images", async () => {
@@ -113,14 +111,12 @@ describe("ImageSlider", () => {
 	});
 
 	test("renders both images when value has two images", async () => {
-		// img elements have alt="" (decorative), so getByRole("img") does not match them
-		const { container } = await render(ImageSlider, {
+		const { getAllByTestId } = await render(ImageSlider, {
 			...default_props,
 			value: [img_a, img_b]
 		});
 
-		const imgs = container.querySelectorAll("img");
-		expect(imgs.length).toBeGreaterThan(0);
+		expect(getAllByTestId("imageslider-image").length).toBeGreaterThan(0);
 	});
 });
 
@@ -143,14 +139,13 @@ describe("Props: value", () => {
 	});
 
 	test("both images show their URLs in <img> src attributes", async () => {
-		// img elements have alt="" (decorative), so they are not in the a11y tree
-		const { container } = await render(ImageSlider, {
+		const { getAllByTestId } = await render(ImageSlider, {
 			...default_props,
 			value: [img_a, img_b]
 		});
 
-		const imgs = container.querySelectorAll("img");
-		const srcs = Array.from(imgs).map((img) => (img as HTMLImageElement).src);
+		const imgs = getAllByTestId("imageslider-image");
+		const srcs = imgs.map((img) => (img as HTMLImageElement).src);
 		expect(srcs).toContain("https://example.com/img_a.png");
 		expect(srcs).toContain("https://example.com/img_b.png");
 	});
@@ -182,7 +177,7 @@ describe("Props: value", () => {
 	});
 
 	test("[img, img] + interactive switches to preview mode", async () => {
-		const { container, queryByRole } = await render(ImageSlider, {
+		const { getAllByTestId, queryByRole } = await render(ImageSlider, {
 			...default_props,
 			interactive: true,
 			value: [img_a, img_b]
@@ -191,29 +186,25 @@ describe("Props: value", () => {
 		expect(
 			queryByRole("button", { name: "Click to upload or drop files" })
 		).toBeNull();
-		// img elements have alt="" (decorative); using querySelectorAll
-		const imgs = container.querySelectorAll("img");
-		expect(imgs.length).toBeGreaterThan(0);
+		expect(getAllByTestId("imageslider-image").length).toBeGreaterThan(0);
 	});
 
 	test("set_data with both images updates DOM with correct src values", async () => {
-		// img elements have alt="" (decorative); using querySelectorAll
-		const { set_data, container } = await render(ImageSlider, {
+		const { set_data, getAllByTestId } = await render(ImageSlider, {
 			...default_props,
 			value: [null, null]
 		});
 
 		await set_data({ value: [img_a, img_b] });
 
-		const imgs = container.querySelectorAll("img");
-		const srcs = Array.from(imgs).map((img) => (img as HTMLImageElement).src);
+		const imgs = getAllByTestId("imageslider-image");
+		const srcs = imgs.map((img) => (img as HTMLImageElement).src);
 		expect(srcs).toContain("https://example.com/img_a.png");
 		expect(srcs).toContain("https://example.com/img_b.png");
 	});
 
 	test("set_data with [null, null] removes images from DOM", async () => {
-		// img elements have alt="" (decorative); using querySelectorAll
-		const { set_data, container } = await render(ImageSlider, {
+		const { set_data, queryAllByTestId } = await render(ImageSlider, {
 			...default_props,
 			interactive: false,
 			value: [img_a, img_b]
@@ -221,7 +212,7 @@ describe("Props: value", () => {
 
 		await set_data({ value: [null, null] });
 
-		expect(container.querySelectorAll("img")).toHaveLength(0);
+		expect(queryAllByTestId("imageslider-image")).toHaveLength(0);
 	});
 });
 
@@ -229,13 +220,13 @@ describe("Props: interactive", () => {
 	afterEach(() => cleanup());
 
 	test("interactive: false with no images shows static empty state without file inputs", async () => {
-		const { container } = await render(ImageSlider, {
+		const { queryByTestId } = await render(ImageSlider, {
 			...default_props,
 			interactive: false,
 			value: [null, null]
 		});
 
-		expect(container.querySelector("input[type='file']")).toBeNull();
+		expect(queryByTestId("file-upload")).toBeNull();
 	});
 
 	test("interactive: true with no images shows upload area", async () => {
@@ -254,7 +245,7 @@ describe("Props: interactive", () => {
 	});
 
 	test("interactive: true with both images shows preview without upload buttons", async () => {
-		const { container, queryByRole } = await render(ImageSlider, {
+		const { getAllByTestId, queryByRole } = await render(ImageSlider, {
 			...default_props,
 			interactive: true,
 			value: [img_a, img_b]
@@ -263,22 +254,18 @@ describe("Props: interactive", () => {
 		expect(
 			queryByRole("button", { name: "Click to upload or drop files" })
 		).toBeNull();
-		// img elements have alt="" (decorative); using querySelectorAll
-		const imgs = container.querySelectorAll("img");
-		expect(imgs.length).toBeGreaterThan(0);
+		expect(getAllByTestId("imageslider-image").length).toBeGreaterThan(0);
 	});
 
 	test("interactive: false with both images shows static preview", async () => {
-		const { container } = await render(ImageSlider, {
+		const { queryByTestId, getAllByTestId } = await render(ImageSlider, {
 			...default_props,
 			interactive: false,
 			value: [img_a, img_b]
 		});
 
-		expect(container.querySelector("input[type='file']")).toBeNull();
-		// img elements have alt="" (decorative); using querySelectorAll
-		const imgs = container.querySelectorAll("img");
-		expect(imgs.length).toBeGreaterThan(0);
+		expect(queryByTestId("file-upload")).toBeNull();
+		expect(getAllByTestId("imageslider-image").length).toBeGreaterThan(0);
 	});
 });
 
@@ -286,14 +273,13 @@ describe("Props: slider_position", () => {
 	afterEach(() => cleanup());
 
 	test("slider_position: 50 renders the slider element", async () => {
-		// Slider uses role="none" and has no accessible name; using querySelector
-		const { container } = await render(ImageSlider, {
+		const { getByTestId } = await render(ImageSlider, {
 			...default_props,
 			value: [img_a, img_b],
 			slider_position: 50
 		});
 
-		expect(container.querySelector(".outer")).not.toBeNull();
+		expect(getByTestId("slider")).toBeInTheDocument();
 	});
 
 	test.todo(
@@ -314,22 +300,21 @@ describe("Props: buttons", () => {
 	};
 
 	test("buttons: ['download'] shows a download link", async () => {
-		const { container } = await render(ImageSlider, {
+		const { getByTestId } = await render(ImageSlider, {
 			...preview_props,
 			buttons: ["download"]
 		});
 
-		// DownloadLink renders an <a class="download-link"> element
-		expect(container.querySelector("a.download-link")).not.toBeNull();
+		expect(getByTestId("download-link")).toBeInTheDocument();
 	});
 
 	test("buttons: [] hides the download link", async () => {
-		const { container } = await render(ImageSlider, {
+		const { queryByTestId } = await render(ImageSlider, {
 			...preview_props,
 			buttons: []
 		});
 
-		expect(container.querySelector("a.download-link")).toBeNull();
+		expect(queryByTestId("download-link")).toBeNull();
 	});
 
 	test("buttons: ['fullscreen'] shows the fullscreen button", async () => {
@@ -351,12 +336,12 @@ describe("Props: buttons", () => {
 	});
 
 	test("buttons: ['download', 'fullscreen'] shows both buttons", async () => {
-		const { container, getByLabelText } = await render(ImageSlider, {
+		const { getByTestId, getByLabelText } = await render(ImageSlider, {
 			...preview_props,
 			buttons: ["download", "fullscreen"]
 		});
 
-		expect(container.querySelector("a.download-link")).not.toBeNull();
+		expect(getByTestId("download-link")).toBeInTheDocument();
 		expect(getByLabelText("Fullscreen")).toBeVisible();
 	});
 

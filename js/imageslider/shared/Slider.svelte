@@ -89,6 +89,7 @@
 	<div
 		class="outer"
 		class:disabled
+		data-testid="slider"
 		bind:this={inner}
 		role="none"
 		style="transform: translateX({px}px)"
