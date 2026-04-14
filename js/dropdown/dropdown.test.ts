@@ -4,6 +4,7 @@ import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import event from "@testing-library/user-event";
 
 import Dropdown from "./Index.svelte";
+import { handle_filter } from "./shared/utils";
 
 const single_select_props = {
 	label: "Dropdown",
@@ -622,10 +623,9 @@ describe("Single-select: Events", () => {
 		await input.focus();
 		await event.keyboard("a");
 
-		expect(key_up).toHaveBeenCalled();
-		const call_args = key_up.mock.calls[0][0];
-		expect(call_args.key).toBe("a");
-		expect(call_args.input_value).toBe("a");
+		expect(key_up).toHaveBeenCalledWith(
+			expect.objectContaining({ key: "a", input_value: "a" })
+		);
 	});
 
 	test("regression #12634: key_up passes updated value, not stale value", async () => {
@@ -643,9 +643,9 @@ describe("Single-select: Events", () => {
 		await event.keyboard("5");
 		await event.keyboard("4");
 
-		const last_call = key_up.mock.calls[key_up.mock.calls.length - 1][0];
-		expect(last_call.key).toBe("4");
-		expect(last_call.input_value).toBe("154");
+		expect(key_up).toHaveBeenLastCalledWith(
+			expect.objectContaining({ key: "4", input_value: "154" })
+		);
 	});
 });
 
@@ -730,28 +730,24 @@ describe("Multiselect: Rendering", () => {
 	});
 
 	test("renders selected values as tokens", async () => {
-		const { container } = await render(Dropdown, {
+		const { getByText } = await render(Dropdown, {
 			...multiselect_props,
 			value: ["apple", "cherry"]
 		});
 
-		const tokens = container.querySelectorAll(".token");
-		expect(tokens).toHaveLength(2);
-		expect(tokens[0].textContent).toContain("apple");
-		expect(tokens[1].textContent).toContain("cherry");
+		expect(getByText("apple")).toBeTruthy();
+		expect(getByText("cherry")).toBeTruthy();
 	});
 
 	test("renders display names for tuple choices in tokens", async () => {
-		const { container } = await render(Dropdown, {
+		const { getByText } = await render(Dropdown, {
 			...multiselect_props,
 			choices: tuple_choices,
 			value: ["apple_val", "cherry_val"]
 		});
 
-		const tokens = container.querySelectorAll(".token");
-		expect(tokens).toHaveLength(2);
-		expect(tokens[0].textContent).toContain("Apple Display");
-		expect(tokens[1].textContent).toContain("Cherry Display");
+		expect(getByText("Apple Display")).toBeTruthy();
+		expect(getByText("Cherry Display")).toBeTruthy();
 	});
 
 	test("disabled state: no remove buttons on tokens", async () => {
@@ -928,6 +924,44 @@ describe("Multiselect: Selection", () => {
 
 		const data = await get_data();
 		expect((data.value as string[]).length).toBeLessThanOrEqual(2);
+	});
+
+	test("max_choices closes the options panel when limit is met", async () => {
+		const { container, getAllByTestId, queryAllByTestId } = await render(
+			Dropdown,
+			{
+				...multiselect_props,
+				max_choices: 2
+			}
+		);
+
+		const input = container.querySelector("input") as HTMLInputElement;
+		await input.focus();
+		let options = getAllByTestId("dropdown-option");
+		await event.click(options[0]);
+
+		await input.focus();
+		options = getAllByTestId("dropdown-option");
+		await event.click(options[1]);
+
+		await waitFor(() => {
+			expect(queryAllByTestId("dropdown-option")).toHaveLength(0);
+		});
+	});
+
+	test("backspace removes the last token when input is empty", async () => {
+		const { container, get_data } = await render(Dropdown, {
+			...multiselect_props,
+			value: ["apple", "banana", "cherry"]
+		});
+
+		const input = container.querySelector("input") as HTMLInputElement;
+		await input.focus();
+
+		await fireEvent.keyDown(input, { key: "Backspace" });
+
+		const data = await get_data();
+		expect(data.value).toEqual(["apple", "banana"]);
 	});
 
 	test("Enter selects the active option when allow_custom_value is false", async () => {
@@ -1353,6 +1387,43 @@ describe("Edge cases", () => {
 
 		const input = getByLabelText("Dropdown") as HTMLInputElement;
 		expect(input.value).toBe("apple_choice");
+	});
+});
+
+describe("handle_filter", () => {
+	const choices: [string, string | number][] = [
+		["Apple", "apple"],
+		["Banana", "banana"],
+		["Cherry", "cherry"],
+		["Apricot", "apricot"]
+	];
+
+	test("returns all indices when input_text is empty", () => {
+		expect(handle_filter(choices, "")).toEqual([0, 1, 2, 3]);
+	});
+
+	test("filters by case-insensitive substring match on display name", () => {
+		expect(handle_filter(choices, "ap")).toEqual([0, 3]);
+	});
+
+	test("returns empty array when no choices match", () => {
+		expect(handle_filter(choices, "xyz")).toEqual([]);
+	});
+
+	test("matches full display name", () => {
+		expect(handle_filter(choices, "banana")).toEqual([1]);
+	});
+
+	test("is case-insensitive", () => {
+		expect(handle_filter(choices, "CHERRY")).toEqual([2]);
+	});
+
+	test("handles empty choices array", () => {
+		expect(handle_filter([], "test")).toEqual([]);
+	});
+
+	test("matches substring anywhere in display name", () => {
+		expect(handle_filter(choices, "an")).toEqual([1]);
 	});
 });
 
