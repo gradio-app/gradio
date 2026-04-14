@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Fix ZeroGPU request context lost in child threads
+feat:Fix batched queue events losing request context
