@@ -34,7 +34,13 @@ import gradio_client.utils as client_utils
 import httpx
 from gradio_client.documentation import document
 from python_multipart.multipart import MultipartParser, parse_options_header
-from starlette.datastructures import FormData, Headers, MutableHeaders, UploadFile
+from starlette.datastructures import (
+    FormData,
+    Headers,
+    MutableHeaders,
+    State,
+    UploadFile,
+)
 from starlette.formparsers import MultiPartException, MultipartPart
 from starlette.responses import PlainTextResponse, Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
@@ -196,19 +202,23 @@ class Request:
                 "url": getattr(self, "url", ""),
             }
         )
-        if request_state := hasattr(self, "state"):
-            try:
-                pickle.dumps(request_state)
-                self.kwargs["request_state"] = request_state
-            except pickle.PicklingError:
-                pass
+        state_obj = getattr(self, "state", None)
+        if state_obj is not None:
+            request_state = dict(getattr(state_obj, "_state", {}))
+            if request_state:
+                try:
+                    pickle.dumps(request_state)
+                    self.kwargs["request_state"] = request_state
+                except pickle.PicklingError:
+                    pass
         self.request = None
         return self.__dict__
 
     def __setstate__(self, state: dict[str, Any]):
-        if request_state := state.pop("request_state", None):
-            self.state = request_state
+        request_state = state.pop("request_state", None)
         self.__dict__ = state
+        if request_state is not None:
+            self.state = State(request_state)
 
 
 @document()
