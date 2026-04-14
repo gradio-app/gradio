@@ -25,7 +25,8 @@ SKILL_ID = "gradio"
 _GITHUB_RAW = "https://raw.githubusercontent.com/gradio-app/gradio/main"
 _SKILL_PREFIX = ".agents/skills/gradio"
 
-_SKILL_FILES = ["SKILL.md", "examples.md"]
+_SKILL_FILES = ["SKILL.md"]
+_REFERENCE_FILES = ["examples.md", "api-signatures.md", "event-listeners.md"]
 
 skills_app = typer.Typer(help="Manage Gradio skills for AI assistants.")
 
@@ -96,9 +97,17 @@ def _install_to(skills_dir: Path, force: bool) -> Path:
     _remove_existing(dest, force)
     dest.mkdir()
 
+    # Download main skill files
     for fname in _SKILL_FILES:
         content = _download(f"{_GITHUB_RAW}/{_SKILL_PREFIX}/{fname}")
         (dest / fname).write_text(content, encoding="utf-8")
+
+    # Download reference files to references/ subdirectory
+    references_dir = dest / "references"
+    references_dir.mkdir(exist_ok=True)
+    for fname in _REFERENCE_FILES:
+        content = _download(f"{_GITHUB_RAW}/{_SKILL_PREFIX}/references/{fname}")
+        (references_dir / fname).write_text(content, encoding="utf-8")
 
     return dest
 
