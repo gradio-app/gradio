@@ -257,6 +257,7 @@ const cleanupAtContainer = (container: HTMLElement): void => {
 
 export function cleanup(): void {
 	Array.from(containerCache.keys()).forEach(cleanupAtContainer);
+	document.body.innerHTML = "";
 }
 
 type AsyncFireObject = {

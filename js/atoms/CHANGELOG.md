@@ -1,5 +1,11 @@
 # @gradio/atoms
 
+## 0.23.1
+
+### Features
+
+- [#13190](https://github.com/gradio-app/gradio/pull/13190) [`bc53d08`](https://github.com/gradio-app/gradio/commit/bc53d0891466c09b3b40b89b70df5770cfc6967f) - Chatbot Unit Tests.  Thanks @freddyaboulton!
+
 ## 0.23.0
 
 ### Features

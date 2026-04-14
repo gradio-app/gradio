@@ -1,5 +1,20 @@
 # @self/tootils
 
+## 0.13.0
+
+### Features
+
+- [#13192](https://github.com/gradio-app/gradio/pull/13192) [`f4656ae`](https://github.com/gradio-app/gradio/commit/f4656ae89c30b78b4f0652b6778176d34c1b61af) - Button Unit Tests.  Thanks @dawoodkhan82!
+- [#13235](https://github.com/gradio-app/gradio/pull/13235) [`394423d`](https://github.com/gradio-app/gradio/commit/394423ddd3ec919b8dabceb3903479ab3bf8194f) - clear DOM after cleanup in render.  Thanks @hannahblair!
+
+### Fixes
+
+- [#13181](https://github.com/gradio-app/gradio/pull/13181) [`755c3d3`](https://github.com/gradio-app/gradio/commit/755c3d32c388a36d2296f8d895c5c0e1144fb54f) - fix: show validation errors on StatusTracker-dependent components.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/statustracker@0.14.0
+
 ## 0.12.0
 
 ### Features

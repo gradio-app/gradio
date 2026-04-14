@@ -270,6 +270,21 @@ describe("Events", () => {
 		expect(change).toHaveBeenCalledTimes(1);
 	});
 
+	test("input and select emitted on user click", async () => {
+		const { listen, getAllByRole } = await render(Radio, default_props);
+
+		const input = listen("input");
+		const select = listen("select");
+		const radios = getAllByRole("radio") as HTMLInputElement[];
+
+		await event.click(radios[2]);
+
+		await waitFor(() => {
+			expect(input).toHaveBeenCalledTimes(1);
+			expect(select).toHaveBeenCalledTimes(1);
+			expect(select).toHaveBeenCalledWith({ value: "turtle", index: 2 });
+		});
+	});
 	test("custom_button_click emitted when custom button is clicked", async () => {
 		const { listen, getByLabelText } = await render(Radio, {
 			...default_props,

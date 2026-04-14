@@ -629,7 +629,7 @@ class App(FastAPI):
                     await asyncio.sleep(check_rate)
                     if time.perf_counter() - last_heartbeat > heartbeat_rate:
                         yield """event: heartbeat\ndata: {}\n\n"""
-                        last_heartbeat = time.time()
+                        last_heartbeat = time.perf_counter()
 
             return StreamingResponse(
                 reload_checker(request),

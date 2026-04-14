@@ -1,5 +1,31 @@
 # gradio
 
+## 6.12.0
+
+### Features
+
+- [#13140](https://github.com/gradio-app/gradio/pull/13140) [`0dd1c79`](https://github.com/gradio-app/gradio/commit/0dd1c79c75406d4609c79698987fadc624bb9035) - Slider Tests.  Thanks @dawoodkhan82!
+- [#13202](https://github.com/gradio-app/gradio/pull/13202) [`a1cbf32`](https://github.com/gradio-app/gradio/commit/a1cbf32a3b851cda35cc40fac95c5626fa384abd) - Vendor in / pin Gradio dependencies and use `exclude-newer` flag in our CI.  Thanks @abidlabs!
+- [#13231](https://github.com/gradio-app/gradio/pull/13231) [`89f7a09`](https://github.com/gradio-app/gradio/commit/89f7a096ceb947c97ac5dce9f8b8d62e1361ad7b) - Layout tests.  Thanks @pngwn!
+- [#13190](https://github.com/gradio-app/gradio/pull/13190) [`bc53d08`](https://github.com/gradio-app/gradio/commit/bc53d0891466c09b3b40b89b70df5770cfc6967f) - Chatbot Unit Tests.  Thanks @freddyaboulton!
+- [#13246](https://github.com/gradio-app/gradio/pull/13246) [`ff90963`](https://github.com/gradio-app/gradio/commit/ff909638e72f0b44e8629e5a28cea8276cdd9ab2) - Add Documentation Group for gr.Cache.  Thanks @freddyaboulton!
+- [#13234](https://github.com/gradio-app/gradio/pull/13234) [`109f32d`](https://github.com/gradio-app/gradio/commit/109f32de542acf204f97cc637dc33015537e2f8e) - reloading: Copy `server` attr for Space reloader.  Thanks @cbensimon!
+- [#13213](https://github.com/gradio-app/gradio/pull/13213) [`457f130`](https://github.com/gradio-app/gradio/commit/457f130b310ac087fdc6ba7dbbc7fa78e0bcccf8) - Gallery Unit Tests.  Thanks @freddyaboulton!
+- [#13218](https://github.com/gradio-app/gradio/pull/13218) [`3a30ef6`](https://github.com/gradio-app/gradio/commit/3a30ef6b0001ea4c8c23b4301cdd83090345d989) - Add comprehensive DateTime tests and fix whitespace preprocess bug.  Thanks @pngwn!
+- [#13185](https://github.com/gradio-app/gradio/pull/13185) [`ffc00ff`](https://github.com/gradio-app/gradio/commit/ffc00ff4cf23641e90f0963cec6ed52f85ed511c) - Annotated image unit tests.  Thanks @freddyaboulton!
+- [#13176](https://github.com/gradio-app/gradio/pull/13176) [`45c4ecd`](https://github.com/gradio-app/gradio/commit/45c4ecd25fc83c7ee0210d216df1bc4bd509e622) - Add `@gr.cache()` decorator for caching deterministic functions, as as well as a lower-level `gr.Cache` that uses dependency injection.  Thanks @abidlabs!
+- [#13205](https://github.com/gradio-app/gradio/pull/13205) [`348327f`](https://github.com/gradio-app/gradio/commit/348327f6d7014feaf3f0b4cfb7e2653a1078ea33) - fix : check validation_response instead of validation_data.  Thanks @nameearly!
+
+### Fixes
+
+- [#13229](https://github.com/gradio-app/gradio/pull/13229) [`6261872`](https://github.com/gradio-app/gradio/commit/6261872a4dadc2901f677f3c49b74b5309ffe81b) - fix(share): clearer error message when cert write failed during sharing init.  Thanks @xuan25!
+- [#13233](https://github.com/gradio-app/gradio/pull/13233) [`66817ca`](https://github.com/gradio-app/gradio/commit/66817cac4d204471cc2b435a6d0d11397ddbca58) - Label tests.  Thanks @pngwn!
+- [#13156](https://github.com/gradio-app/gradio/pull/13156) [`d58702c`](https://github.com/gradio-app/gradio/commit/d58702c1be950b65f5c642de14e513935047ec17) - Pop finished events from queue data structures.  Thanks @moktamd!
+- [#13239](https://github.com/gradio-app/gradio/pull/13239) [`9efdcb5`](https://github.com/gradio-app/gradio/commit/9efdcb57b46fc808dc55051a113154489fcc237d) - Reduce `gradio` package size by restoring frontend settings.  Thanks @abidlabs!
+- [#13181](https://github.com/gradio-app/gradio/pull/13181) [`755c3d3`](https://github.com/gradio-app/gradio/commit/755c3d32c388a36d2296f8d895c5c0e1144fb54f) - fix: show validation errors on StatusTracker-dependent components.  Thanks @hysts!
+- [#13204](https://github.com/gradio-app/gradio/pull/13204) [`9953db9`](https://github.com/gradio-app/gradio/commit/9953db94e406477df96f98adf3e47246181ceef9) - fix: preserve special characters in uploaded filenames.  Thanks @xr843!
+- [#13210](https://github.com/gradio-app/gradio/pull/13210) [`4005b93`](https://github.com/gradio-app/gradio/commit/4005b93dd59d7e0d144619986f01e900659b3d0b) - Fix ZeroGPU handling for `gr.Server`.  Thanks @abidlabs!
+
 ## 6.11.0
 
 ### Features

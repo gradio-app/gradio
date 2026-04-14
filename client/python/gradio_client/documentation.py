@@ -63,6 +63,7 @@ _module_prefixes = [
     ("gradio.utils", "helpers"),
     ("gradio.renderable", "renderable"),
     ("gradio.validators", "validators"),
+    ("gradio.caching", "helpers"),
 ]
 
 

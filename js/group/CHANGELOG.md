@@ -1,5 +1,11 @@
 # @gradio/group
 
+## 0.3.5
+
+### Features
+
+- [#13231](https://github.com/gradio-app/gradio/pull/13231) [`89f7a09`](https://github.com/gradio-app/gradio/commit/89f7a096ceb947c97ac5dce9f8b8d62e1361ad7b) - Layout tests.  Thanks @pngwn!
+
 ## 0.3.4
 
 ### Fixes

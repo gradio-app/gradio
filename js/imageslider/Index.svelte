@@ -30,8 +30,6 @@
 	const props = $props();
 	const gradio = new ImageSliderGradio(props);
 
-	let value_is_output = $state(false);
-	let old_value = $state(gradio.props.value);
 	let fullscreen = $state(false);
 	let dragging = $state(false);
 	let active_source: sources = $state(null);
@@ -41,15 +39,7 @@
 		Math.max(0, Math.min(100, gradio.props.slider_position)) / 100
 	);
 
-	$effect(() => {
-		if (old_value != gradio.props.value) {
-			old_value = gradio.props.value;
-			gradio.dispatch("change");
-			if (!value_is_output) {
-				gradio.dispatch("input");
-			}
-		}
-	});
+	gradio.watch_for_change();
 
 	const handle_drag_event = (event: Event): void => {
 		const drag_event = event as DragEvent;
@@ -101,7 +91,10 @@
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
 			on:share={({ detail }) => gradio.dispatch("share", detail)}
 			on:error={({ detail }) => gradio.dispatch("error", detail)}
-			on:clear={() => gradio.dispatch("clear")}
+			on:clear={() => {
+				gradio.dispatch("clear");
+				gradio.dispatch("input");
+			}}
 			on:fullscreen={({ detail }) => {
 				fullscreen = detail;
 			}}
@@ -162,9 +155,13 @@
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => {
 				gradio.dispatch("clear");
+				gradio.dispatch("input");
 			}}
 			on:drag={({ detail }) => (dragging = detail)}
-			on:upload={() => gradio.dispatch("upload")}
+			on:upload={() => {
+				gradio.dispatch("upload");
+				gradio.dispatch("input");
+			}}
 			on:error={({ detail }) => {
 				if (gradio.shared.loading_status)
 					gradio.shared.loading_status.status = "error";

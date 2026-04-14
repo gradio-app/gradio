@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ThemeData } from "./types";
-	import { clickOutside } from "./utils";
+	import { clickOutside, is_color_dark } from "./utils";
 
 	export let theme: ThemeData;
 	export let on_close: () => void;
@@ -38,16 +38,6 @@ with gr.Blocks(theme=gr.Theme.from_hub("${theme.id}")) as demo:
 				code_copied = false;
 			}, 1500);
 		});
-	}
-
-	function is_color_dark(hex: string): boolean {
-		const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-		if (!result) return false;
-		const r = parseInt(result[1], 16);
-		const g = parseInt(result[2], 16);
-		const b = parseInt(result[3], 16);
-		const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-		return luminance < 0.5;
 	}
 </script>
 
@@ -144,7 +134,7 @@ with gr.Blocks(theme=gr.Theme.from_hub("${theme.id}")) as demo:
 					Colors
 				</h3>
 				<div class="flex gap-2">
-					{#each [{ label: "Primary", color: theme.colors.primary }, { label: "Accent", color: theme.colors.secondary }, { label: "Neutral", color: theme.colors.neutral }, { label: "Bg", color: theme.colors.background }, { label: "Bg Dark", color: theme.colors.background_dark }] as { label, color }}
+					{#each [{ label: "Primary", color: theme.colors.primary }, { label: "Accent", color: theme.colors.secondary }, { label: "Neutral", color: theme.colors.neutral }, { label: "Background", color: theme.colors.background }, { label: "Background Dark", color: theme.colors.background_dark }] as { label, color }}
 						<div class="flex-1 flex flex-col">
 							<div
 								class="h-10 rounded-md border border-gray-200 dark:border-gray-700 flex items-end justify-start p-1"

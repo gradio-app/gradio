@@ -35,6 +35,13 @@ export interface SharedPropTestConfig {
 	 * @default false
 	 */
 	visible_false_hides?: boolean;
+	/**
+	 * Whether the component is wrapped in a Block (which renders a `.block`
+	 * element). Components like Button render a bare element instead.
+	 * Set to false to skip `.block` selector checks.
+	 * @default true
+	 */
+	has_block_wrapper?: boolean;
 }
 
 export function run_shared_prop_tests(config: SharedPropTestConfig): void {
@@ -44,7 +51,8 @@ export function run_shared_prop_tests(config: SharedPropTestConfig): void {
 		name,
 		has_label = true,
 		has_validation_error = true,
-		visible_false_hides = false
+		visible_false_hides = false,
+		has_block_wrapper = true
 	} = config;
 
 	const label = "Test Label";
@@ -84,9 +92,11 @@ export function run_shared_prop_tests(config: SharedPropTestConfig): void {
 		test("visible: true renders the component", async () => {
 			const { container } = await render(
 				component,
-				make_props({ visible: true })
+				make_props({ visible: true, elem_id: "visible-test" })
 			);
-			const el = container.querySelector(".block");
+			const el = has_block_wrapper
+				? container.querySelector(".block")
+				: container.querySelector("#visible-test");
 			expect(el).not.toBeNull();
 		});
 
