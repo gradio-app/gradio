@@ -34,7 +34,13 @@ import gradio_client.utils as client_utils
 import httpx
 from gradio_client.documentation import document
 from python_multipart.multipart import MultipartParser, parse_options_header
-from starlette.datastructures import FormData, Headers, MutableHeaders, State, UploadFile
+from starlette.datastructures import (
+    FormData,
+    Headers,
+    MutableHeaders,
+    State,
+    UploadFile,
+)
 from starlette.formparsers import MultiPartException, MultipartPart
 from starlette.responses import PlainTextResponse, Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
