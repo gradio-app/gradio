@@ -196,7 +196,7 @@ class Request:
                 "url": getattr(self, "url", ""),
             }
         )
-        if request_state := hasattr(self, "state"):
+        if request_state := getattr(self, "state", None):
             try:
                 pickle.dumps(request_state)
                 self.kwargs["request_state"] = request_state
