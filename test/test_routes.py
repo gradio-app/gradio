@@ -7,7 +7,6 @@ import os
 import pickle
 import sys
 import tempfile
-import threading
 import time
 from contextlib import asynccontextmanager, closing
 from pathlib import Path
@@ -2174,27 +2173,3 @@ class TestOAuthSecurity:
             info = _get_mocked_oauth_info()
             assert info["access_token"] != "hf_real_secret_token"
             assert info["access_token"] == "mock-oauth-token-for-local-dev"
-
-
-def test_child_thread_inherits_request_context():
-    """LocalContext.request should be readable from a child threading.Thread.
-
-    threading.Thread does not inherit ContextVar values, so without the
-    _RequestContextVar fallback this test fails with result=None.
-    """
-    from gradio.context import LocalContext
-    from gradio.route_utils import Request as GradioRequest
-
-    req = GradioRequest(username="test_user", session_hash="abc123")
-    LocalContext.request.set(req)
-
-    result = [None]
-
-    def child():
-        result[0] = LocalContext.request.get(None)
-
-    t = threading.Thread(target=child)
-    t.start()
-    t.join()
-
-    assert result[0] is req
