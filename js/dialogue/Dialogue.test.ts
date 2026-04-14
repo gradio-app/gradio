@@ -9,7 +9,6 @@ import type { DialogueLine } from "./utils";
 function mock_server() {
 	return {
 		format: vi.fn(async (value: DialogueLine[]): Promise<string> => {
-			// Simple mock: join speaker:text with newlines
 			return value.map((line) => `${line.speaker}: ${line.text}`).join("\n");
 		}),
 		unformat: vi.fn(
@@ -79,7 +78,7 @@ describe("Dialogue", () => {
 	});
 
 	test("renders empty line when value is empty array and speakers exist", async () => {
-		const { getByDisplayValue } = await render(Dialogue, {
+		await render(Dialogue, {
 			...default_props,
 			value: [],
 			speakers: ["Speaker1"]
@@ -101,11 +100,9 @@ describe("Props: ui_mode", () => {
 			value: [{ speaker: "Speaker1", text: "Hello" }]
 		});
 
-		// Should show dialogue lines
 		expect(getByDisplayValue("Hello")).toBeInTheDocument();
 		// Should NOT show the plain text textarea (which has data-testid="textbox")
 		expect(queryByTestId("textbox")).not.toBeInTheDocument();
-		// Should NOT show the switch
 		const switchButton = document.querySelector('[role="switch"]');
 		expect(switchButton).not.toBeInTheDocument();
 	});
@@ -117,9 +114,7 @@ describe("Props: ui_mode", () => {
 			value: "Plain text value"
 		});
 
-		// Should show plain text textarea
 		expect(getByTestId("textbox")).toBeInTheDocument();
-		// Should NOT show the switch
 		const switchButton = document.querySelector('[role="switch"]');
 		expect(switchButton).not.toBeInTheDocument();
 	});
@@ -133,9 +128,8 @@ describe("Props: ui_mode", () => {
 
 		// Should show dialogue lines by default
 		expect(getByDisplayValue("Hello")).toBeInTheDocument();
-		// Should show the switch
 		const switchButton = document.querySelector('[role="switch"]');
-		expect(switchButton).toBeInTheDocument();
+		expect(switchButton).toBeVisible();
 	});
 });
 
@@ -165,7 +159,7 @@ describe("Props: interactive", () => {
 	});
 
 	test("interactive=false hides add/delete buttons", async () => {
-		const { container } = await render(Dialogue, {
+		const { queryByRole } = await render(Dialogue, {
 			...default_props,
 			interactive: false,
 			value: [
@@ -174,8 +168,14 @@ describe("Props: interactive", () => {
 			]
 		});
 
-		const hiddenButtons = container.querySelectorAll(".hidden");
-		expect(hiddenButtons.length).toBeGreaterThan(0);
+		// When interactive=false, the buttons should not be visible in the DOM
+		// because the parent container has class:hidden which removes them from layout
+		const addButton = queryByRole("button", { name: "Add new line" });
+		const deleteButton = queryByRole("button", { name: "Remove current line" });
+
+		// Buttons should not be in the document when interactive=false
+		expect(addButton).not.toBeInTheDocument();
+		expect(deleteButton).not.toBeInTheDocument();
 	});
 });
 
@@ -199,32 +199,36 @@ describe("Props: submit_btn", () => {
 	afterEach(() => cleanup());
 
 	test("submit_btn=false does not render submit button", async () => {
-		const { container } = await render(Dialogue, {
+		const { queryByTestId } = await render(Dialogue, {
 			...default_props,
 			submit_btn: false
 		});
 
-		const submitButton = container.querySelector(".submit-button");
+		// When submit_btn=false, no submit button should be in the document
+		const submitButton = queryByTestId("dialogue-submit-button");
 		expect(submitButton).not.toBeInTheDocument();
 	});
 
 	test("submit_btn=true renders default submit button", async () => {
-		const { container } = await render(Dialogue, {
+		const { getByTestId } = await render(Dialogue, {
 			...default_props,
 			submit_btn: true
 		});
 
-		const submitButton = container.querySelector(".submit-button");
+		// When submit_btn=true, a button with SVG icon is rendered
+		const submitButton = getByTestId("dialogue-submit-button");
 		expect(submitButton).toBeInTheDocument();
 	});
 
 	test("submit_btn='Custom Text' renders submit button with custom text", async () => {
-		const { getByText } = await render(Dialogue, {
+		const { getByRole } = await render(Dialogue, {
 			...default_props,
 			submit_btn: "Send Message"
 		});
 
-		expect(getByText("Send Message")).toBeInTheDocument();
+		// When submit_btn is a string, the button has that text as its accessible name
+		const submitButton = getByRole("button", { name: "Send Message" });
+		expect(submitButton).toBeInTheDocument();
 	});
 });
 
@@ -308,6 +312,7 @@ describe("Events", () => {
 		textarea.focus();
 		await event.type(textarea, "abc");
 
+		// Input event is fired for each character typed
 		expect(inputEvent).toHaveBeenCalled();
 	});
 
@@ -324,16 +329,14 @@ describe("Events", () => {
 	});
 
 	test("submit event is dispatched when submit button is clicked", async () => {
-		const { container, listen } = await render(Dialogue, {
+		const { getByTestId, listen } = await render(Dialogue, {
 			...default_props,
 			submit_btn: true
 		});
 
 		const submitEvent = listen("submit");
-		// Submit button has the .submit-button class and contains an SVG icon
-		const submitButton = container.querySelector(".submit-button");
-		expect(submitButton).toBeInTheDocument();
-		await fireEvent.click(submitButton!);
+		const submitButton = getByTestId("dialogue-submit-button");
+		await fireEvent.click(submitButton);
 
 		expect(submitEvent).toHaveBeenCalledTimes(1);
 	});
@@ -345,7 +348,7 @@ describe("Events", () => {
 		});
 
 		const changeEvent = listen("change");
-		// Don't use retrospective here - we only want to check events after initial mount
+		// Check no change events fired after initial mount
 		expect(changeEvent).not.toHaveBeenCalled();
 	});
 });
@@ -365,10 +368,8 @@ describe("get_data / set_data", () => {
 
 		await set_data({ value: [{ speaker: "Speaker1", text: "Updated value" }] });
 
-		// Check new value is rendered
 		const updatedTextarea = getByDisplayValue("Updated value");
 		expect(updatedTextarea).toBeInTheDocument();
-		// Old value should no longer be present
 		expect(() => getByDisplayValue("Hello world")).toThrow();
 	});
 
@@ -419,43 +420,41 @@ describe("Interactive features", () => {
 	afterEach(() => cleanup());
 
 	test("clicking add button creates a new dialogue line", async () => {
-		const { getAllByRole, getByDisplayValue } = await render(Dialogue, {
+		const { getByTestId, getByDisplayValue } = await render(Dialogue, {
 			...default_props,
 			value: [{ speaker: "Speaker1", text: "First line" }]
 		});
 
-		const addButtons = document.querySelectorAll(".add-button");
-		expect(addButtons.length).toBe(1);
-		await fireEvent.click(addButtons[0]);
+		// Click the add button on the first line
+		const addButton = getByTestId("dialogue-add-button-0");
+		await fireEvent.click(addButton);
 
 		// Now there should be two textareas for text content
-		const textareas = document.querySelectorAll(".text-column textarea");
-		expect(textareas.length).toBe(2);
+		expect(getByDisplayValue("First line")).toBeInTheDocument();
+		expect(getByTestId("dialogue-add-button-1")).toBeInTheDocument();
 	});
 
 	test("clicking delete button removes a dialogue line", async () => {
-		const { getByDisplayValue } = await render(Dialogue, {
-			...default_props,
-			value: [
-				{ speaker: "Speaker1", text: "Line 1" },
-				{ speaker: "Speaker2", text: "Line 2" }
-			]
-		});
+		const { getByTestId, getByDisplayValue, queryByDisplayValue } =
+			await render(Dialogue, {
+				...default_props,
+				value: [
+					{ speaker: "Speaker1", text: "Line 1" },
+					{ speaker: "Speaker2", text: "Line 2" }
+				]
+			});
 
 		// Both lines should be present
 		expect(getByDisplayValue("Line 1")).toBeInTheDocument();
 		expect(getByDisplayValue("Line 2")).toBeInTheDocument();
 
-		// Find delete buttons - lines after first have delete buttons
-		const deleteButtons = document.querySelectorAll(".delete-button");
-		// The component structure may have different delete button count
-		expect(deleteButtons.length).toBeGreaterThanOrEqual(1);
+		// Click the delete button on the second line (index 1)
+		const deleteButton = getByTestId("dialogue-delete-button-1");
+		await fireEvent.click(deleteButton);
 
-		// Click the last delete button to remove the last line
-		await fireEvent.click(deleteButtons[deleteButtons.length - 1]);
-
-		// Second line should be removed
+		// Second line should be removed, first line should remain
 		expect(getByDisplayValue("Line 1")).toBeInTheDocument();
+		expect(queryByDisplayValue("Line 2")).not.toBeInTheDocument();
 	});
 });
 

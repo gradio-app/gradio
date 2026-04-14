@@ -564,6 +564,7 @@
 						<div class:action-column={i == 0} class:hidden={disabled}>
 							<button
 								class="add-button"
+								data-testid="dialogue-add-button-{i}"
 								on:click={() => add_line(i)}
 								aria-label="Add new line"
 								{disabled}
@@ -575,6 +576,7 @@
 					<div class="action-column" class:hidden={disabled || i == 0}>
 						<button
 							class="delete-button"
+							data-testid="dialogue-delete-button-{i}"
 							on:click={() => delete_line(i)}
 							aria-label="Remove current line"
 							{disabled}
@@ -653,7 +655,12 @@
 
 	{#if gradio.props.submit_btn && !disabled}
 		<div class="submit-container">
-			<button class="submit-button" on:click={handle_submit} {disabled}>
+			<button
+				class="submit-button"
+				data-testid="dialogue-submit-button"
+				on:click={handle_submit}
+				{disabled}
+			>
 				{#if typeof gradio.props.submit_btn === "string"}
 					{gradio.props.submit_btn}
 				{:else}
