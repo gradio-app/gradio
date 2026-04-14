@@ -221,6 +221,7 @@
 		font-weight: inherit;
 		line-height: var(--line-lg);
 		left: var(--size-2);
+		user-select: text;
 	}
 
 	textarea:focus {
@@ -236,10 +237,6 @@
 		position: relative;
 		display: block;
 		outline: none;
-		-webkit-user-select: text;
-		-moz-user-select: text;
-		-ms-user-select: text;
-		user-select: text;
 		cursor: text;
 		width: 100%;
 		overflow-wrap: break-word;
