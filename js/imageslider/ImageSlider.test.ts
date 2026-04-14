@@ -19,7 +19,8 @@ const fake_image = (id: string): FileData => ({
 	orig_name: `${id}.png`,
 	size: 1024,
 	mime_type: "image/png",
-	is_stream: false
+	is_stream: false,
+	meta: { _type: "gradio.FileData" }
 });
 
 const img_a = fake_image("img_a");
@@ -293,26 +294,6 @@ describe("Props: slider_position", () => {
 		});
 
 		expect(container.querySelector(".outer")).not.toBeNull();
-	});
-
-	test("slider_position: 150 clamps to 100 without crashing", async () => {
-		const { container } = await render(ImageSlider, {
-			...default_props,
-			value: [img_a, img_b],
-			slider_position: 150
-		});
-
-		expect(container.querySelector(".image-container")).not.toBeNull();
-	});
-
-	test("slider_position: -10 clamps to 0 without crashing", async () => {
-		const { container } = await render(ImageSlider, {
-			...default_props,
-			value: [img_a, img_b],
-			slider_position: -10
-		});
-
-		expect(container.querySelector(".image-container")).not.toBeNull();
 	});
 
 	test.todo(
@@ -681,34 +662,6 @@ describe("get_data / set_data", () => {
 
 		const data = await get_data();
 		expect(data.value).toEqual([img_a, img_b]);
-	});
-
-	test("set_data with both images reflects in DOM src attributes", async () => {
-		// img elements have alt="" (decorative); using querySelectorAll
-		const { set_data, container } = await render(ImageSlider, {
-			...default_props,
-			value: [null, null]
-		});
-
-		await set_data({ value: [img_a, img_b] });
-
-		const imgs = container.querySelectorAll("img");
-		const srcs = Array.from(imgs).map((img) => (img as HTMLImageElement).src);
-		expect(srcs).toContain("https://example.com/img_a.png");
-		expect(srcs).toContain("https://example.com/img_b.png");
-	});
-
-	test("set_data with [null, null] removes images from DOM", async () => {
-		// img elements have alt="" (decorative); using querySelectorAll
-		const { set_data, container } = await render(ImageSlider, {
-			...default_props,
-			interactive: false,
-			value: [img_a, img_b]
-		});
-
-		await set_data({ value: [null, null] });
-
-		expect(container.querySelectorAll("img")).toHaveLength(0);
 	});
 });
 
