@@ -1,71 +1,449 @@
-import { test, describe, assert, afterEach } from "vitest";
-import { cleanup, render } from "@self/tootils/render";
+import { test, describe, afterEach, expect, vi } from "vitest";
+import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
+import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 
 import Markdown from "./Index.svelte";
-import type { LoadingStatus } from "@gradio/statustracker";
 
-const loading_status: LoadingStatus = {
-	eta: 0,
-	queue_position: 1,
-	queue_size: 1,
-	status: "complete" as LoadingStatus["status"],
-	scroll_to_output: false,
-	visible: true,
-	fn_index: 0,
-	show_progress: "full"
+const default_props = {
+	value: "Hello world",
+	label: "Markdown",
+	show_label: true,
+	interactive: false,
+	rtl: false,
+	sanitize_html: true,
+	line_breaks: false,
+	header_links: false,
+	buttons: null as string[] | null,
+	height: null as number | null,
+	min_height: null as number | null,
+	max_height: null as number | null,
+	container: false,
+	latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 };
+
+run_shared_prop_tests({
+	component: Markdown,
+	name: "Markdown",
+	base_props: {
+		value: "Hello",
+		label: "Markdown"
+	},
+	has_label: false,
+	has_validation_error: false
+});
 
 describe("Markdown", () => {
 	afterEach(() => cleanup());
 
-	test("renders valid URL", async () => {
+	test("renders markdown content as text", async () => {
 		const { getByText } = await render(Markdown, {
-			show_label: true,
-			max_lines: 1,
-			loading_status,
-			lines: 1,
-			value: "Visit [Gradio](https://www.gradio.app/) for more information.",
-			label: "Markdown",
-			interactive: false
+			...default_props,
+			value: "Hello world"
 		});
 
-		const link: HTMLAnchorElement = getByText("Gradio") as HTMLAnchorElement;
-		assert.equal(link.href, "https://www.gradio.app/");
+		expect(getByText("Hello world")).toBeInTheDocument();
 	});
 
-	test("renders invalid URL", async () => {
+	test("renders markdown links correctly", async () => {
 		const { getByText } = await render(Markdown, {
-			show_label: true,
-			max_lines: 1,
-			loading_status,
-			lines: 1,
-			value: "Visit [Invalid URL](https://) for more information.",
-			label: "Markdown",
-			interactive: false
+			...default_props,
+			value: "Visit [Gradio](https://www.gradio.app/) for more information."
 		});
 
-		const link: HTMLAnchorElement = getByText(
-			"Invalid URL"
-		) as HTMLAnchorElement;
-		assert.equal(link.href, "https://");
+		const link = getByText("Gradio") as HTMLAnchorElement;
+		expect(link.tagName).toBe("A");
+		expect(link.href).toBe("https://www.gradio.app/");
+	});
+
+	test("renders markdown with invalid URL", async () => {
+		const { getByText } = await render(Markdown, {
+			...default_props,
+			value: "Visit [Invalid URL](https://) for more information."
+		});
+
+		const link = getByText("Invalid URL") as HTMLAnchorElement;
+		expect(link.href).toBe("https://");
+	});
+
+	test("renders markdown headings", async () => {
+		const { getByRole } = await render(Markdown, {
+			...default_props,
+			value: "# Hello"
+		});
+
+		const heading = getByRole("heading", { level: 1 });
+		expect(heading).toBeInTheDocument();
+	});
+
+	test("renders the markdown element with correct test id", async () => {
+		const { getByTestId } = await render(Markdown, default_props);
+
+		expect(getByTestId("markdown")).toBeInTheDocument();
 	});
 
 	test("does not apply pending class when show_progress is hidden", async () => {
-		const { container } = await render(Markdown, {
-			show_label: false,
-			max_lines: 1,
+		const { getByTestId } = await render(Markdown, {
+			...default_props,
 			loading_status: {
-				...loading_status,
+				eta: 0,
+				queue_position: 1,
+				queue_size: 1,
 				status: "pending",
+				scroll_to_output: false,
+				visible: true,
+				fn_index: 0,
 				show_progress: "hidden"
-			} as any,
-			lines: 1,
-			value: "Content",
-			label: "Markdown",
-			interactive: false
+			}
 		});
 
-		const pending_wrapper = container.querySelector("div.pending");
-		assert.equal(pending_wrapper, null);
+		const wrapper = getByTestId("markdown-wrapper");
+		expect(wrapper).not.toHaveClass("pending");
 	});
+
+	test("applies pending class when status is pending and show_progress is not hidden", async () => {
+		const { getByTestId } = await render(Markdown, {
+			...default_props,
+			loading_status: {
+				eta: 0,
+				queue_position: 1,
+				queue_size: 1,
+				status: "pending",
+				scroll_to_output: false,
+				visible: true,
+				fn_index: 0,
+				show_progress: "full"
+			}
+		});
+
+		const wrapper = getByTestId("markdown-wrapper");
+		expect(wrapper).toHaveClass("pending");
+	});
+});
+
+describe("Props: value", () => {
+	afterEach(() => cleanup());
+
+	test("renders simple text value", async () => {
+		const { getByText } = await render(Markdown, {
+			...default_props,
+			value: "Simple text"
+		});
+
+		expect(getByText("Simple text")).toBeInTheDocument();
+	});
+
+	test("renders empty value without error", async () => {
+		const { getByTestId } = await render(Markdown, {
+			...default_props,
+			value: ""
+		});
+
+		expect(getByTestId("markdown")).toBeInTheDocument();
+	});
+
+	test("renders code blocks with syntax highlighting", async () => {
+		const { getByText } = await render(Markdown, {
+			...default_props,
+			value: "```python\nprint('hello')\n```"
+		});
+
+		// Syntax highlighting splits the code into tokens, so we check
+		// for individual tokens rather than the complete string.
+		expect(getByText("print")).toBeInTheDocument();
+		expect(getByText("'hello'")).toBeInTheDocument();
+	});
+
+	test("renders bold text", async () => {
+		const { getByText } = await render(Markdown, {
+			...default_props,
+			value: "This is **bold** text"
+		});
+
+		const bold = getByText("bold");
+		expect(bold.tagName).toBe("STRONG");
+	});
+
+	test("renders italic text", async () => {
+		const { getByText } = await render(Markdown, {
+			...default_props,
+			value: "This is *italic* text"
+		});
+
+		const italic = getByText("italic");
+		expect(italic.tagName).toBe("EM");
+	});
+});
+
+describe("Props: rtl", () => {
+	afterEach(() => cleanup());
+
+	test("rtl=true sets right-to-left direction on markdown element", async () => {
+		const { getByTestId } = await render(Markdown, {
+			...default_props,
+			rtl: true
+		});
+
+		const md = getByTestId("markdown");
+		expect(md).toHaveAttribute("dir", "rtl");
+	});
+
+	test("rtl=false sets left-to-right direction on markdown element", async () => {
+		const { getByTestId } = await render(Markdown, {
+			...default_props,
+			rtl: false
+		});
+
+		const md = getByTestId("markdown");
+		expect(md).toHaveAttribute("dir", "ltr");
+	});
+});
+
+describe("Props: buttons", () => {
+	afterEach(() => cleanup());
+
+	test("buttons=['copy'] renders a copy button", async () => {
+		const { getByRole } = await render(Markdown, {
+			...default_props,
+			buttons: ["copy"]
+		});
+
+		const btn = getByRole("button", { name: "Copy conversation" });
+		expect(btn).toBeInTheDocument();
+	});
+
+	test("buttons=null does not render a copy button", async () => {
+		const { queryByRole } = await render(Markdown, {
+			...default_props,
+			buttons: null
+		});
+
+		const btn = queryByRole("button", { name: "Copy conversation" });
+		expect(btn).not.toBeInTheDocument();
+	});
+
+	test("clicking copy button dispatches copy event", async () => {
+		// navigator.clipboard must be mocked because it's not available
+		// in the test browser context without user interaction.
+		const writeText = vi.fn().mockResolvedValue(undefined);
+		vi.stubGlobal("navigator", {
+			clipboard: { writeText }
+		});
+
+		const { getByRole, listen } = await render(Markdown, {
+			...default_props,
+			value: "Copy me!",
+			buttons: ["copy"]
+		});
+
+		const copy_event = listen("copy");
+		const btn = getByRole("button", { name: "Copy conversation" });
+		await fireEvent.click(btn);
+
+		expect(writeText).toHaveBeenCalledWith("Copy me!");
+		expect(copy_event).toHaveBeenCalledTimes(1);
+
+		vi.unstubAllGlobals();
+	});
+
+	test("copy button label changes after clicking", async () => {
+		const writeText = vi.fn().mockResolvedValue(undefined);
+		vi.stubGlobal("navigator", {
+			clipboard: { writeText }
+		});
+
+		const { getByRole } = await render(Markdown, {
+			...default_props,
+			value: "Test",
+			buttons: ["copy"]
+		});
+
+		const btn = getByRole("button", { name: "Copy conversation" });
+		await fireEvent.click(btn);
+
+		await waitFor(() => {
+			expect(
+				getByRole("button", { name: "Copied conversation" })
+			).toBeInTheDocument();
+		});
+
+		vi.unstubAllGlobals();
+	});
+});
+
+describe("Props: padding", () => {
+	afterEach(() => cleanup());
+
+	test("padding=true adds padding class to wrapper", async () => {
+		const { getByTestId } = await render(Markdown, {
+			...default_props,
+			padding: true
+		});
+
+		// The Block component receives padding via gradio.shared, which controls
+		// the block-level padding. The inner wrapper div uses gradio.props.padding
+		// for the "padding" CSS class.
+		const wrapper = getByTestId("markdown-wrapper");
+		expect(wrapper).toHaveClass("padding");
+	});
+
+	test("padding=false does not add padding class to wrapper", async () => {
+		const { getByTestId } = await render(Markdown, {
+			...default_props,
+			padding: false
+		});
+
+		const wrapper = getByTestId("markdown-wrapper");
+		expect(wrapper).not.toHaveClass("padding");
+	});
+});
+
+describe("Props: height", () => {
+	afterEach(() => cleanup());
+
+	test("height applies max-height style to the Block wrapper", async () => {
+		const { getByTestId } = await render(Markdown, {
+			...default_props,
+			height: 200,
+			container: true
+		});
+
+		// Height is applied to the Block wrapper element, not the inner markdown div.
+		// The Block element is the closest .block ancestor of the markdown-wrapper.
+		const wrapper = getByTestId("markdown-wrapper");
+		const block = wrapper.closest("[class*='block']");
+		expect(block).not.toBeNull();
+		expect((block as HTMLElement).style.height).toBeTruthy();
+	});
+
+	test.todo(
+		"VISUAL: height causes scrolling when markdown content overflows — needs Playwright visual regression screenshot comparison"
+	);
+});
+
+describe("Props: min_height", () => {
+	afterEach(() => cleanup());
+
+	test("min_height applies minimum height to the Block wrapper", async () => {
+		const { getByTestId } = await render(Markdown, {
+			...default_props,
+			min_height: 100,
+			container: true
+		});
+
+		const wrapper = getByTestId("markdown-wrapper");
+		const block = wrapper.closest("[class*='block']");
+		expect(block).not.toBeNull();
+		expect((block as HTMLElement).style.minHeight).toBeTruthy();
+	});
+});
+
+describe("Events: change", () => {
+	afterEach(() => cleanup());
+
+	test("change is dispatched when value is set via set_data", async () => {
+		const { listen, set_data } = await render(Markdown, {
+			...default_props,
+			value: "Initial"
+		});
+
+		const change = listen("change");
+
+		await set_data({ value: "Updated" });
+
+		expect(change).toHaveBeenCalledTimes(1);
+	});
+
+	test("change is not dispatched for same value", async () => {
+		const { listen, set_data } = await render(Markdown, {
+			...default_props,
+			value: "Same"
+		});
+
+		const change = listen("change");
+
+		await set_data({ value: "Same" });
+
+		expect(change).toHaveBeenCalledTimes(0);
+	});
+});
+
+describe("get_data / set_data", () => {
+	afterEach(() => cleanup());
+
+	test("set_data updates the rendered markdown content", async () => {
+		const { set_data, getByText, queryByText } = await render(Markdown, {
+			...default_props,
+			value: "Old content"
+		});
+
+		expect(getByText("Old content")).toBeInTheDocument();
+
+		await set_data({ value: "New content" });
+
+		expect(queryByText("Old content")).not.toBeInTheDocument();
+		expect(getByText("New content")).toBeInTheDocument();
+	});
+
+	test("get_data returns the current value", async () => {
+		const { get_data } = await render(Markdown, {
+			...default_props,
+			value: "Test value"
+		});
+
+		const data = await get_data();
+		expect(data.value).toBe("Test value");
+	});
+
+	test("set_data then get_data round-trips", async () => {
+		const { set_data, get_data } = await render(Markdown, {
+			...default_props,
+			value: "Original"
+		});
+
+		await set_data({ value: "Updated" });
+		const data = await get_data();
+		expect(data.value).toBe("Updated");
+	});
+});
+
+describe("Edge cases", () => {
+	afterEach(() => cleanup());
+
+	test("change event fires on mount when value is truthy", async () => {
+		// The Markdown component's $effect fires onchange when value is initially set,
+		// which dispatches a "change" event on mount. This is by design.
+		const { listen } = await render(Markdown, {
+			...default_props,
+			value: "Initial"
+		});
+
+		const change = listen("change", { retrospective: true });
+		expect(change).toHaveBeenCalledTimes(1);
+	});
+
+	test("no change event fires on mount when value is empty", async () => {
+		const { listen } = await render(Markdown, {
+			...default_props,
+			value: ""
+		});
+
+		const change = listen("change", { retrospective: true });
+		expect(change).not.toHaveBeenCalled();
+	});
+
+	test.todo(
+		"VISUAL: sanitize_html=false allows raw HTML rendering — needs Playwright visual regression or content inspection test"
+	);
+
+	test.todo(
+		"VISUAL: header_links=true creates anchor links on headings — needs Playwright visual regression screenshot comparison"
+	);
+
+	test.todo(
+		"VISUAL: latex_delimiters renders LaTeX expressions — needs Playwright visual regression or MathJax verification"
+	);
+
+	test.todo(
+		"VISUAL: line_breaks=true enables GFM line breaks — needs Playwright visual regression screenshot comparison"
+	);
 });
