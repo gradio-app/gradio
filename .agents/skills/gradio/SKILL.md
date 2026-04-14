@@ -26,7 +26,6 @@ Detailed guides on specific topics (read these when relevant):
 - [Streaming Inputs](https://www.gradio.app/guides/streaming-inputs)
 - [Sharing Your App](https://www.gradio.app/guides/sharing-your-app)
 - [Custom HTML Components](https://www.gradio.app/guides/custom-HTML-components)
-- [Server Mode](https://www.gradio.app/guides/server-mode)
 - [Getting Started with the Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client)
 - [Getting Started with the JS Client](https://www.gradio.app/guides/getting-started-with-the-js-client)
 
@@ -73,7 +72,6 @@ gr.ChatInterface(fn=respond).launch()
 If a task requires significant customization of an existing component or a component that doesn't exist in Gradio, you can create one with `gr.HTML`. It supports `html_template` (with `${}` JS expressions and `{{}}` Handlebars syntax), `css_template` for scoped styles, and `js_on_load` for interactivity — where `props.value` updates the component value and `trigger('event_name')` fires Gradio events. For reuse, subclass `gr.HTML` and define `api_info()` for API/MCP support. 
 
 See the [full guide](https://www.gradio.app/guides/custom-HTML-components) as well as example in `references/examples.md`
-
 
 ## Server Mode
 

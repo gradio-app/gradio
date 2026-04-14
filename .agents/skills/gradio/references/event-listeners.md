@@ -1,6 +1,9 @@
-## Event Listeners
+# Event Listeners
 
-All event listeners share the same signature:
+Events supported by each component.
+
+
+## Event Listener Signature
 
 ```python
 component.event_name(
@@ -30,52 +33,98 @@ component.event_name(
 ) -> Dependency
 ```
 
-Supported events per component:
+## Supported Events by Component
 
 - **AnnotatedImage**: select
+
 - **Audio**: stream, change, clear, play, pause, stop, pause, start_recording, pause_recording, stop_recording, upload, input
+
 - **BarPlot**: select, double_click
+
 - **BrowserState**: change
+
 - **Button**: click
+
 - **Chatbot**: change, select, like, retry, undo, example_select, option_select, clear, copy, edit
+
 - **Checkbox**: change, input, select
+
 - **CheckboxGroup**: change, input, select
+
 - **ClearButton**: click
+
 - **Code**: change, input, focus, blur
+
 - **ColorPicker**: change, input, submit, focus, blur
+
 - **Dataframe**: change, input, select, edit
+
 - **Dataset**: click, select
+
 - **DateTime**: change, submit
+
 - **DeepLinkButton**: click
+
 - **Dialogue**: change, input, submit
+
 - **DownloadButton**: click
+
 - **Dropdown**: change, input, select, focus, blur, key_up
+
 - **DuplicateButton**: click
+
 - **File**: change, select, clear, upload, delete, download
+
 - **FileExplorer**: change, input, select
+
 - **Gallery**: select, upload, change, delete, preview_close, preview_open
+
 - **HTML**: change, input, click, double_click, submit, stop, edit, clear, play, pause, end, start_recording, pause_recording, stop_recording, focus, blur, upload, release, select, stream, like, example_select, option_select, load, key_up, apply, delete, tick, undo, retry, expand, collapse, download, copy
+
 - **HighlightedText**: change, select
+
 - **Image**: clear, change, stream, select, upload, input
+
 - **ImageEditor**: clear, change, input, select, upload, apply
+
 - **ImageSlider**: clear, change, stream, select, upload, input
+
 - **JSON**: change
+
 - **Label**: change, select
+
 - **LinePlot**: select, double_click
+
 - **LoginButton**: click
+
 - **Markdown**: change, copy
+
 - **Model3D**: change, upload, edit, clear
+
 - **MultimodalTextbox**: change, input, select, submit, focus, blur, stop
+
 - **Navbar**: change
+
 - **Number**: change, input, submit, focus, blur
+
 - **ParamViewer**: change, upload
+
 - **Plot**: change
+
 - **Radio**: select, change, input
+
 - **ScatterPlot**: select, double_click
+
 - **SimpleImage**: clear, change, upload
+
 - **Slider**: change, input, release
+
 - **State**: change
+
 - **Textbox**: change, input, select, submit, focus, blur, stop, copy
+
 - **Timer**: tick
+
 - **UploadButton**: click, upload
+
 - **Video**: change, clear, start_recording, stop_recording, stop, play, pause, end, upload, input
