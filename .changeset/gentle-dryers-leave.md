@@ -1,5 +1,6 @@
 ---
 "@gradio/dataframe": patch
+"@gradio/tabs": patch
 "gradio": patch
 ---
 
