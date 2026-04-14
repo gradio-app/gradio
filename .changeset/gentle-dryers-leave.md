@@ -4,4 +4,4 @@
 "gradio": patch
 ---
 
-fix:Fix stack overflow when hidden tab has dataframe
+fix:Fix infinite effect loop in tabs
