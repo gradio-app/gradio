@@ -1,6 +1,6 @@
 ---
-"@gradio/dialogue": minor
-"gradio": minor
+"@gradio/dialogue": patch
+"gradio": patch
 ---
 
-feat:Dialogue component unit tests
+fix:Dialogue component unit tests
