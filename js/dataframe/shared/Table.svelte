@@ -291,7 +291,13 @@
 		row: number,
 		col: number
 	): void {
-		event.preventDefault();
+		const col_is_static =
+			!editable ||
+			static_columns.includes(col) ||
+			static_columns.includes(resolved_headers[col]);
+		if (!col_is_static) {
+			event.preventDefault();
+		}
 		event.stopPropagation();
 
 		const coord: CellCoordinate = [row, col];
@@ -332,7 +338,9 @@
 			col_value: values?.map((r) => r[col]) ?? []
 		} as any);
 
-		tick().then(() => parent?.focus());
+		if (!col_is_static) {
+			tick().then(() => parent?.focus());
+		}
 	}
 
 	function handle_cell_dblclick(
@@ -340,15 +348,14 @@
 		row: number,
 		col: number
 	): void {
-		event.preventDefault();
-		event.stopPropagation();
-		if (!editable) return;
 		const col_is_static =
+			!editable ||
 			static_columns.includes(col) ||
 			static_columns.includes(resolved_headers[col]);
-		if (!col_is_static) {
-			editing = [row, col];
-		}
+		if (col_is_static) return;
+		event.preventDefault();
+		event.stopPropagation();
+		editing = [row, col];
 	}
 
 	function handle_blur(detail: {
@@ -529,14 +536,29 @@
 		active_cell_menu = null;
 	}
 
-	// function handle_select_all(col: number, checked: boolean): void {
-	// 	values = values.map((row) => {
-	// 		const new_row = [...row];
-	// 		new_row[col] = checked;
-	// 		return new_row;
-	// 	});
-	// 	push_change(values);
-	// }
+	function handle_select_all(col: number, checked: boolean): void {
+		const new_values = values.map((row) => {
+			const new_row = [...row];
+			new_row[col] = checked;
+			return new_row;
+		});
+		values = new_values;
+		push_change(new_values);
+	}
+
+	function get_select_all_state(
+		col: number
+	): "checked" | "unchecked" | "indeterminate" {
+		if (!values.length) return "unchecked";
+		let true_count = 0;
+		for (const row of values) {
+			const v = row[col];
+			if (v === true || v === "true" || v === "True") true_count++;
+		}
+		if (true_count === 0) return "unchecked";
+		if (true_count === values.length) return "checked";
+		return "indeterminate";
+	}
 
 	function commit_filter(): void {
 		if (!global_filter || show_search !== "filter") return;
@@ -875,6 +897,8 @@
 										is_selected={selected_header === col_idx}
 										is_static={!!(header.column.columnDef.meta as any)
 											?.isStatic}
+										is_bool={get_dtype(col_idx) === "bool"}
+										select_all_state={get_select_all_state(col_idx)}
 										sort_direction={get_sort_info(col_idx).direction}
 										sort_priority={get_sort_info(col_idx).priority}
 										multi_sort={sorting.length > 1}
@@ -889,6 +913,7 @@
 										onclick={handle_header_click}
 										on_menu_click={toggle_header_menu}
 										on_end_edit={end_header_edit}
+										on_select_all={handle_select_all}
 									/>
 								{/each}
 							{/each}
@@ -981,8 +1006,10 @@
 											editing[1] === col_idx
 										)}
 										is_flash={copy_flash && is_sel}
-										is_static={!!(cell.column.columnDef.meta as any)?.isStatic}
+										is_static={!editable ||
+											!!(cell.column.columnDef.meta as any)?.isStatic}
 										show_menu_button={editable &&
+											!(cell.column.columnDef.meta as any)?.isStatic &&
 											selected_cells.length === 1 &&
 											selected_cells[0][0] === row_idx &&
 											selected_cells[0][1] === col_idx}
@@ -1002,6 +1029,10 @@
 										ondblclick={(e) =>
 											handle_cell_dblclick(e, row_idx, col_idx)}
 										oncontextmenu={(e) => {
+											const is_static_cell = !!(
+												cell.column.columnDef.meta as any
+											)?.isStatic;
+											if (!editable || is_static_cell) return;
 											e.preventDefault();
 											toggle_cell_menu(e, row_idx, col_idx);
 										}}

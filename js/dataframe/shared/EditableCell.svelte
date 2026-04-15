@@ -27,7 +27,8 @@
 		on_select_row = null,
 		el = $bindable(null),
 		onblur,
-		onkeydown
+		onkeydown,
+		pad_left = false
 	}: {
 		edit: boolean;
 		value?: CellValue;
@@ -65,6 +66,7 @@
 			coords: [number, number];
 		}) => void;
 		onkeydown?: (event: KeyboardEvent) => void;
+		pad_left: boolean;
 	} = $props();
 
 	function truncate_text(
@@ -136,6 +138,7 @@
 		onclick={(e: MouseEvent) => e.stopPropagation()}
 		use:use_focus
 		onkeydown={handle_keydown}
+		class:pad_left
 	/>
 {/if}
 
@@ -205,7 +208,7 @@
 	textarea {
 		position: absolute;
 		flex: 1 1 0%;
-		transform: translateX(-0.1px);
+		transform: translate(0.2px, -0.5px);
 		outline: none;
 		border: none;
 		background: transparent;
@@ -217,10 +220,16 @@
 		font-size: inherit;
 		font-weight: inherit;
 		line-height: var(--line-lg);
+		left: var(--size-2);
+		user-select: text;
 	}
 
 	textarea:focus {
 		outline: none;
+	}
+
+	textarea.pad_left {
+		margin-left: var(--size-7);
 	}
 
 	span {
@@ -228,10 +237,6 @@
 		position: relative;
 		display: block;
 		outline: none;
-		-webkit-user-select: text;
-		-moz-user-select: text;
-		-ms-user-select: text;
-		user-select: text;
 		cursor: text;
 		width: 100%;
 		overflow-wrap: break-word;
@@ -252,12 +257,10 @@
 	}
 
 	.header {
-		transform: translateX(0);
 		font-weight: var(--weight-bold);
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
-		margin-left: var(--size-1);
 	}
 
 	.edit {
