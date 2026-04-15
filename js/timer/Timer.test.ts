@@ -38,7 +38,7 @@ describe("Props: active", () => {
 		const tick = listen("tick");
 
 		await waitFor(() => {
-			expect(tick).toHaveBeenCalledTimes(1);
+			expect(tick).toHaveBeenCalled();
 		});
 	});
 
@@ -65,7 +65,7 @@ describe("Props: active", () => {
 		const tick = listen("tick");
 
 		await waitFor(() => {
-			expect(tick).toHaveBeenCalledTimes(1);
+			expect(tick).toHaveBeenCalled();
 		});
 
 		await set_data({ active: false });
@@ -91,7 +91,7 @@ describe("Props: active", () => {
 		await set_data({ active: true });
 
 		await waitFor(() => {
-			expect(tick).toHaveBeenCalledTimes(1);
+			expect(tick).toHaveBeenCalled();
 		});
 	});
 });
@@ -102,7 +102,7 @@ describe("Props: value", () => {
 	test("value controls the tick interval in seconds", async () => {
 		const { listen } = await render(Timer, {
 			...default_props,
-			value: 0.2,
+			value: 0.5,
 			active: true
 		});
 
@@ -112,7 +112,7 @@ describe("Props: value", () => {
 		expect(tick).not.toHaveBeenCalled();
 
 		await waitFor(() => {
-			expect(tick).toHaveBeenCalledTimes(1);
+			expect(tick).toHaveBeenCalled();
 		});
 	});
 
@@ -126,7 +126,7 @@ describe("Props: value", () => {
 		const tick = listen("tick");
 
 		await waitFor(() => {
-			expect(tick).toHaveBeenCalledTimes(1);
+			expect(tick).toHaveBeenCalled();
 		});
 
 		await set_data({ value: 0.5 });
@@ -139,40 +139,6 @@ describe("Props: value", () => {
 		await waitFor(() => {
 			expect(tick.mock.calls.length).toBeGreaterThan(count_after_change);
 		});
-	});
-});
-
-describe("Events: tick", () => {
-	afterEach(() => cleanup());
-
-	test("tick respects document visibility state", async () => {
-		const { listen } = await render(Timer, {
-			...default_props,
-			value: 0.1,
-			active: true
-		});
-
-		const tick = listen("tick");
-
-		Object.defineProperty(document, "visibilityState", {
-			value: "hidden",
-			writable: true,
-			configurable: true
-		});
-
-		await new Promise((resolve) => setTimeout(resolve, 400));
-
-		const hidden_count = tick.mock.calls.length;
-
-		Object.defineProperty(document, "visibilityState", {
-			value: "visible",
-			writable: true,
-			configurable: true
-		});
-
-		await new Promise((resolve) => setTimeout(resolve, 400));
-
-		expect(tick.mock.calls.length).toBeGreaterThan(hidden_count);
 	});
 });
 

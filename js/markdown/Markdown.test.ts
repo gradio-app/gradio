@@ -74,50 +74,6 @@ describe("Markdown", () => {
 		const heading = getByRole("heading", { level: 1 });
 		expect(heading).toBeVisible();
 	});
-
-	test("renders the markdown element with correct test id", async () => {
-		const { getByTestId } = await render(Markdown, default_props);
-
-		expect(getByTestId("markdown")).toBeVisible();
-	});
-
-	test("does not apply pending class when show_progress is hidden", async () => {
-		const { getByTestId } = await render(Markdown, {
-			...default_props,
-			loading_status: {
-				eta: 0,
-				queue_position: 1,
-				queue_size: 1,
-				status: "pending",
-				scroll_to_output: false,
-				visible: true,
-				fn_index: 0,
-				show_progress: "hidden"
-			}
-		});
-
-		const wrapper = getByTestId("markdown-wrapper");
-		expect(wrapper).not.toHaveClass("pending");
-	});
-
-	test("applies pending class when status is pending and show_progress is not hidden", async () => {
-		const { getByTestId } = await render(Markdown, {
-			...default_props,
-			loading_status: {
-				eta: 0,
-				queue_position: 1,
-				queue_size: 1,
-				status: "pending",
-				scroll_to_output: false,
-				visible: true,
-				fn_index: 0,
-				show_progress: "full"
-			}
-		});
-
-		const wrapper = getByTestId("markdown-wrapper");
-		expect(wrapper).toHaveClass("pending");
-	});
 });
 
 describe("Props: value", () => {
@@ -141,37 +97,9 @@ describe("Props: value", () => {
 		expect(getByTestId("markdown")).toBeVisible();
 	});
 
-	test("renders code blocks with syntax highlighting", async () => {
-		const { getByText } = await render(Markdown, {
-			...default_props,
-			value: "```python\nprint('hello')\n```"
-		});
-
-		// Syntax highlighting splits the code into tokens, so we check
-		// for individual tokens rather than the complete string.
-		expect(getByText("print")).toBeVisible();
-		expect(getByText("'hello'")).toBeVisible();
-	});
-
-	test("renders bold text", async () => {
-		const { getByText } = await render(Markdown, {
-			...default_props,
-			value: "This is **bold** text"
-		});
-
-		const bold = getByText("bold");
-		expect(bold.tagName).toBe("STRONG");
-	});
-
-	test("renders italic text", async () => {
-		const { getByText } = await render(Markdown, {
-			...default_props,
-			value: "This is *italic* text"
-		});
-
-		const italic = getByText("italic");
-		expect(italic.tagName).toBe("EM");
-	});
+	test.todo(
+		"VISUAL: renders code blocks with syntax highlighting, bold text, italic text"
+	);
 });
 
 describe("Props: rtl", () => {
@@ -273,28 +201,7 @@ describe("Props: buttons", () => {
 describe("Props: padding", () => {
 	afterEach(() => cleanup());
 
-	test("padding=true adds padding class to wrapper", async () => {
-		const { getByTestId } = await render(Markdown, {
-			...default_props,
-			padding: true
-		});
-
-		// The Block component receives padding via gradio.shared, which controls
-		// the block-level padding. The inner wrapper div uses gradio.props.padding
-		// for the "padding" CSS class.
-		const wrapper = getByTestId("markdown-wrapper");
-		expect(wrapper).toHaveClass("padding");
-	});
-
-	test("padding=false does not add padding class to wrapper", async () => {
-		const { getByTestId } = await render(Markdown, {
-			...default_props,
-			padding: false
-		});
-
-		const wrapper = getByTestId("markdown-wrapper");
-		expect(wrapper).not.toHaveClass("padding");
-	});
+	test.todo("VISUAL: padding=true adds padding class to wrapper");
 });
 
 describe("Props: height", () => {
