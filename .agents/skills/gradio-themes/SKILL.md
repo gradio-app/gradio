@@ -631,6 +631,145 @@ super().set(
 )
 ```
 
+## Custom CSS (`custom_css`)
+
+Themes can bundle arbitrary CSS via `self.custom_css`. This CSS is injected directly into the theme's output alongside the CSS variables — it ships with the theme when published to HuggingFace Hub, so users get the full experience from `Theme.from_hub()` without needing separate CSS.
+
+```python
+class MyTheme(Base):
+    def __init__(self, ...):
+        super().__init__(...)
+        self.name = "my_theme"
+        self.custom_css = """
+.gradio-container {
+    background: url("data:image/png;base64,...") repeat !important;
+}
+input[type="range"]::-webkit-slider-thumb {
+    background: url("data:image/png;base64,...") no-repeat center / contain !important;
+}
+"""
+        super().set(...)
+```
+
+**Use `custom_css` for things CSS variables can't express:**
+- Tiling background images (sky, textures, patterns)
+- Custom slider thumbs (replacing the default circle)
+- Pseudo-element patterns (brick textures, decorative borders)
+- Targeting specific Gradio DOM elements (`.label-wrap`, `.reset-button`, `button.secondary`)
+- Font overrides for icon/symbol elements that render poorly in display fonts
+
+**Do NOT use a separate `.css()` method** — `custom_css` is bundled with the theme and published to the Hub automatically.
+
+### Embedded Image Assets
+
+Use base64 data URIs to embed pixel art, textures, or icons directly in the theme. This avoids external dependencies and works everywhere.
+
+Generate tiles with PIL/Pillow:
+```python
+import base64, io
+from PIL import Image
+
+img = Image.new('RGBA', (W, H), transparent)
+# ... draw pixels ...
+img_scaled = img.resize((W * SCALE, H * SCALE), Image.NEAREST)  # NEAREST for pixel art
+
+buf = io.BytesIO()
+img_scaled.save(buf, format='PNG', optimize=True)
+b64 = base64.b64encode(buf.getvalue()).decode()
+data_uri = f"data:image/png;base64,{b64}"
+```
+
+Tips:
+- Use `Image.NEAREST` resampling for pixel art — keeps edges sharp and blocky
+- Keep tiles small (16x16 or 10x10 source) and scale up (3-4x) — final PNGs are typically 200-400 bytes
+- Store data URIs as module-level constants, reference them in `custom_css` f-strings
+- For tiling backgrounds: `background: url("{DATA_URI}") repeat !important;`
+- For single images (e.g. slider thumb): `background: url("{DATA_URI}") no-repeat center / contain !important;`
+
+### Custom Slider Thumbs
+
+Replace the default slider circle with a custom image:
+```python
+self.custom_css = f"""
+input[type="range"]::-webkit-slider-thumb {{
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    width: 30px !important;
+    height: 30px !important;
+    background: url("{MY_IMAGE}") no-repeat center / contain !important;
+    background-color: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    cursor: pointer !important;
+    margin-top: -12px !important;
+}}
+input[type="range"]::-moz-range-thumb {{
+    appearance: none !important;
+    width: 30px !important;
+    height: 30px !important;
+    background: url("{MY_IMAGE}") no-repeat center / contain !important;
+    background-color: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    cursor: pointer !important;
+}}
+"""
+```
+
+Key details:
+- Must include both `-webkit-slider-thumb` and `-moz-range-thumb` for cross-browser support
+- `background-color: transparent` and `box-shadow: none` prevent default styling from bleeding through
+- `margin-top` on webkit adjusts vertical centering relative to the track
+- Use `!important` throughout — Gradio's built-in styles are specific
+
+### Tiling Background Patterns
+
+Apply texture patterns to the page background or specific elements:
+```python
+self.custom_css = f"""
+.gradio-container {{
+    background: url("{SKY_TILE}") repeat !important;
+}}
+.dark .gradio-container {{
+    background: url("{DARK_SKY_TILE}") repeat !important;
+}}
+button.secondary {{
+    background: url("{BRICK_TILE}") repeat !important;
+}}
+"""
+```
+
+### Targeting Gradio DOM Elements
+
+Gradio uses generic class names. Key selectors discovered through inspection:
+- `.gradio-container` — the outermost app wrapper
+- `.block` — component wrapper (used for almost everything)
+- `.label-wrap` — accordion header button
+- `button.secondary` — secondary variant buttons
+- `.reset-button` — small reset/clear buttons on inputs
+- `input[type="range"]` — slider track
+- `.dark .xxx` — dark mode variants (Gradio adds `.dark` class to the root)
+
+**Always inspect the live DOM** to find the right selectors — Gradio's class names include Svelte hashes and may change between versions.
+
+### Icon/Symbol Font Fix
+
+Display fonts (pixel fonts, decorative fonts) often render unicode symbols (↺, ☀︎, ⏾, 🖥︎) poorly. Fix icon-bearing elements:
+```python
+self.custom_css = """
+.reset-button,
+.icon,
+[class*="icon"] {
+    font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif !important;
+    font-size: 18px !important;
+}
+"""
+```
+
+Caveat: some Gradio elements mix icons and text inline (e.g. theme toggle buttons render `☀︎  Light` as a single text node). These can't be targeted separately — overriding the font fixes the icon but changes the label text too.
+
 ## Registering a Built-in Theme
 
 1. Create `gradio/themes/my_theme.py` with your theme class
@@ -653,6 +792,8 @@ theme.push_to_hub(
     private=False,             # set True for private spaces
 )
 ```
+
+Any `custom_css` set on the theme is included automatically — users get the full experience including embedded images, custom thumbs, and texture patterns.
 
 Loading from Hub:
 ```python
@@ -695,3 +836,4 @@ Study these for patterns, quality, and coverage:
 | `gradio/themes/glass.py` | Editorial, subtle | Gradient fills on inputs/buttons, small text, system fonts |
 | `gradio/themes/monochrome.py` | Sharp, no colour | All neutral hues, serif font, sharp radius, thick borders |
 | `gradio/themes/default.py` | Balanced, standard | Orange+blue dual hue, stat gradients, error colours |
+| `gradio/themes/mario.py` | Pixel art, retro | `custom_css` with embedded base64 image tiles, custom slider thumb, tiling backgrounds, icon font fix, DOM-targeted selectors |
