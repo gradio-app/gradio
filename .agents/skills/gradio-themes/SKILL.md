@@ -13,7 +13,12 @@ You are an expert at building Gradio themes. Themes control the entire visual id
 
 2. **Every theme tells a story.** A theme is not a colour swap. Choose fonts, shadows, border radii, and spacing that work together to create a coherent personality and emotional tone.
 
-3. **Contrast drives clarity.** Interactive elements (buttons, inputs, labels) must be immediately distinguishable from their surroundings in both modes. Test text on backgrounds, focus rings, hover states.
+3. **Text contrast is non-negotiable.** Every text element must be clearly readable against its background. This is the single most important visual quality of a theme — a beautiful theme that can't be read is useless. Specifically:
+   - Body text on body background: use dark text (#333 or darker) on light backgrounds, light text (#e0 or lighter) on dark backgrounds. Never gray-on-gray.
+   - Label text on label background: if the label has a coloured fill (e.g. `block_label_background_fill="*primary_100"`), the text colour must contrast against that fill, not the page background.
+   - Button text on button fill: white text on coloured buttons is fine, but never light text on light buttons or dark text on dark buttons.
+   - Placeholder text: must be visible but clearly distinct from entered text. At least #999 on white.
+   - Selected/active states: when a checkbox or radio gets a coloured fill, the text must still be readable on that colour.
 
 4. **Typography carries weight.** Font choice is a core part of each theme's identity. Pair a display/body font with a mono font that shares its personality.
 
@@ -486,6 +491,46 @@ All accept `_dark` suffixes.
 | `accordion_text_color` | Accordion body text |
 | `chatbot_text_size` | Chatbot text size |
 
+## Building from a Reference Image
+
+When the user provides a screenshot or reference image of a UI they want to match, your goal is to reproduce its visual identity as closely as possible within Gradio's theme system. Follow this process:
+
+### 1. Analyse the image systematically
+
+Extract these specific properties from the reference:
+- **Background:** solid colour, gradient, texture, pattern? What exact colours?
+- **Cards/panels:** white, coloured, gradient? Border style (none, thin, thick)? Rounded or sharp? Shadow style (none, subtle, heavy, inset)?
+- **Text:** weight (thin, normal, bold, heavy)? Colour (dark, light, coloured)? What contrast level against backgrounds?
+- **Buttons:** gradient or flat? Border style? Glow or shadow effects? Rounded or pill-shaped?
+- **Accent colour:** what's the primary interactive colour? Extract the exact hue.
+- **Typography feel:** clean/modern, playful, technical, editorial?
+- **Overall texture:** flat/minimal, glossy/skeuomorphic, textured, pixel art?
+- **Distinctive elements:** any signature visual features (glow borders, wavy lines, pixel patterns, specific shapes)?
+
+### 2. Map to Gradio theme properties
+
+For each visual property identified:
+- **Background colour/gradient** → `body_background_fill` + `custom_css` on `.gradio-container` for complex backgrounds
+- **Card appearance** → `block_background_fill` (supports gradients), `block_border_*`, `block_shadow`, `block_radius`
+- **Button style** → `button_primary_*` variables for the theme + `custom_css` with `button.primary` for complex gradients/glows that need `!important`
+- **Accent colour** → create a custom `Color()` with 11 shades matching the reference hue
+- **Distinctive elements** → `custom_css` with embedded base64 images or CSS patterns
+
+### 3. Prioritise fidelity
+
+- Get the **background** right first — it sets the entire mood
+- Then **blocks/cards** — they're the main visual surface
+- Then **buttons** — the most interactive, eye-catching elements
+- Then **inputs, labels, checkboxes** — supporting elements
+- Finally **details** — slider thumbs, icons, hover states
+
+### 4. Common pitfalls when matching references
+
+- **Text contrast:** the reference might have dark text that looks fine on its background, but your theme variables might produce light-on-light or dark-on-dark in some states. Always verify every text/background pair.
+- **Glossy/skeuomorphic buttons:** CSS variables alone can't express complex multi-stop gradients with inner highlights. Use `custom_css` with `button.primary` / `button.secondary` selectors and `!important`.
+- **Background textures:** CSS variables only support solid colours and simple gradients. For patterns, waves, or images, use `custom_css` on `.gradio-container` with embedded base64 tiles.
+- **Rounded corners clipping text:** very large border-radius values combined with Gradio's `overflow: hidden` can clip content. Keep radius reasonable (12-20px max for blocks).
+
 ## Theme Design Patterns
 
 ### Pattern 1: Bold & Maximalist (Cyberpunk, Neon)
@@ -813,9 +858,16 @@ theme = gr.themes.Theme.load("my_theme.json")
 ## Checklist: Before Shipping a Theme
 
 1. Set `self.name` in `__init__`
-2. Light mode: verify body, blocks, inputs, buttons, labels, checkboxes, tables
-3. Dark mode: verify all the same elements — dark is independently designed, not auto-generated
-4. Check text contrast on all backgrounds (body, block, input, label, button)
+2. **Text contrast audit (do this first):**
+   - Body text on body/block background — must be clearly readable, not washed out
+   - Label text on label background — if labels have a coloured fill, text must contrast against *that* fill
+   - Button text on button fill — for all three variants (primary, secondary, cancel)
+   - Placeholder text on input background — visible but distinct from entered text
+   - Selected checkbox/radio text on selected background
+   - Error text on error background
+   - Link text on body background
+3. Light mode: verify body, blocks, inputs, buttons, labels, checkboxes, tables
+4. Dark mode: verify all the same elements — dark is independently designed, not auto-generated
 5. Check focus states on inputs and interactive elements
 6. Check hover + active states on all three button variants (primary, secondary, cancel)
 7. Check selected states on checkboxes and radio buttons
