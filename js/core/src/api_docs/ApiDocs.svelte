@@ -392,11 +392,7 @@
 								set_query_param("lang", language);
 							}}
 						>
-							<img
-								src={img}
-								alt=""
-								class:agent-icon={language === "cli"}
-							/>
+							<img src={img} alt="" class:agent-icon={language === "cli"} />
 							{display_name}
 						</li>
 					{/each}
