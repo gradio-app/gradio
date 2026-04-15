@@ -81,7 +81,7 @@ describe("Props: icon", () => {
 			icon: null
 		});
 
-		expect(queryByRole("img")).toBeNull();
+		expect(queryByRole("img")).not.toBeInTheDocument();
 	});
 });
 
@@ -198,6 +198,108 @@ describe("Props: value", () => {
 	});
 });
 
+describe("Props: disabled", () => {
+	afterEach(() => cleanup());
+
+	test("interactive=false renders the button as disabled", async () => {
+		const { getByRole } = await render(DownloadButton, {
+			...default_props,
+			interactive: false,
+			value: {
+				url: "https://gradio.app/files/report.pdf",
+				orig_name: "report.pdf",
+				path: "report.pdf"
+			} as any
+		});
+
+		expect(getByRole("button", { name: "Download" })).toBeDisabled();
+	});
+
+	test("interactive=true renders the button as enabled", async () => {
+		const { getByRole } = await render(DownloadButton, {
+			...default_props,
+			interactive: true
+		});
+
+		expect(getByRole("button", { name: "Download" })).toBeEnabled();
+	});
+});
+
+describe("get_data / set_data", () => {
+	let anchor_spy: ReturnType<typeof spy_anchor_click>;
+
+	beforeEach(() => {
+		anchor_spy = spy_anchor_click();
+	});
+
+	afterEach(() => {
+		anchor_spy.restore();
+		cleanup();
+	});
+
+	test("get_data returns the current value", async () => {
+		const file_value = {
+			url: "https://gradio.app/files/report.pdf",
+			orig_name: "report.pdf",
+			path: "report.pdf"
+		};
+		const { get_data } = await render(DownloadButton, {
+			...default_props,
+			value: file_value as any
+		});
+
+		expect((await get_data()).value).toEqual(file_value);
+	});
+
+	test("get_data returns null when no value is set", async () => {
+		const { get_data } = await render(DownloadButton, {
+			...default_props,
+			value: null
+		});
+
+		expect((await get_data()).value).toBeNull();
+	});
+
+	test("set_data updates the value used for download", async () => {
+		const { getByRole, set_data } = await render(DownloadButton, {
+			...default_props,
+			value: null
+		});
+
+		await set_data({
+			value: {
+				url: "https://gradio.app/files/updated.pdf",
+				orig_name: "updated.pdf",
+				path: "updated.pdf"
+			}
+		});
+
+		await fireEvent.click(getByRole("button", { name: "Download" }));
+
+		expect(anchor_spy.captured).toHaveLength(1);
+		expect(anchor_spy.captured[0].href).toBe(
+			"https://gradio.app/files/updated.pdf"
+		);
+		expect(anchor_spy.captured[0].download).toBe("updated.pdf");
+	});
+
+	test("set_data then get_data round-trips the value", async () => {
+		const { get_data, set_data } = await render(DownloadButton, {
+			...default_props,
+			value: null
+		});
+
+		const new_value = {
+			url: "https://gradio.app/files/data.csv",
+			orig_name: "data.csv",
+			path: "data.csv"
+		};
+		await set_data({ value: new_value });
+
+		expect((await get_data()).value).toEqual(new_value);
+	});
+});
+
 describe("Events", () => {
 	let anchor_spy: ReturnType<typeof spy_anchor_click>;
 
@@ -208,6 +310,20 @@ describe("Events", () => {
 	afterEach(() => {
 		anchor_spy.restore();
 		cleanup();
+	});
+
+	test("does not dispatch spurious click event on mount", async () => {
+		const { listen } = await render(DownloadButton, {
+			...default_props,
+			value: {
+				url: "https://gradio.app/file.zip",
+				orig_name: "file.zip",
+				path: "file.zip"
+			} as any
+		});
+
+		const click = listen("click", { retrospective: true });
+		expect(click).not.toHaveBeenCalled();
 	});
 
 	test("dispatches click event with a downloadable value", async () => {
@@ -236,5 +352,67 @@ describe("Events", () => {
 		await fireEvent.click(getByRole("button", { name: "Download" }));
 
 		expect(click).toHaveBeenCalledTimes(1);
+	});
+});
+
+describe("Edge cases", () => {
+	let anchor_spy: ReturnType<typeof spy_anchor_click>;
+
+	beforeEach(() => {
+		anchor_spy = spy_anchor_click();
+	});
+
+	afterEach(() => {
+		anchor_spy.restore();
+		cleanup();
+	});
+
+	test("falls back to 'file' when orig_name is empty and URL ends with a trailing slash", async () => {
+		const { getByRole } = await render(DownloadButton, {
+			...default_props,
+			value: {
+				url: "https://gradio.app/files/",
+				orig_name: "",
+				path: "files/"
+			} as any
+		});
+
+		await fireEvent.click(getByRole("button", { name: "Download" }));
+
+		expect(anchor_spy.captured).toHaveLength(1);
+		expect(anchor_spy.captured[0].download).toBe("file");
+	});
+
+	test("falls back to 'file' when URL has no path segments after domain", async () => {
+		const { getByRole } = await render(DownloadButton, {
+			...default_props,
+			value: {
+				url: "https://gradio.app/",
+				orig_name: "",
+				path: ""
+			} as any
+		});
+
+		await fireEvent.click(getByRole("button", { name: "Download" }));
+
+		expect(anchor_spy.captured).toHaveLength(1);
+		expect(anchor_spy.captured[0].download).toBe("file");
+	});
+
+	test("does not leak anchor elements into document.body after download", async () => {
+		const anchors_before = document.body.querySelectorAll("a").length;
+
+		const { getByRole } = await render(DownloadButton, {
+			...default_props,
+			value: {
+				url: "https://gradio.app/files/report.pdf",
+				orig_name: "report.pdf",
+				path: "report.pdf"
+			} as any
+		});
+
+		await fireEvent.click(getByRole("button", { name: "Download" }));
+
+		expect(document.body.querySelectorAll("a").length).toBe(anchors_before);
 	});
 });
