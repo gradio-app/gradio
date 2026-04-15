@@ -103,6 +103,7 @@ jobs:
           onlyChanged: true
           exitOnceUploaded: true
           storybookBuildDir: storybook-static
+          untraced: "package.json pnpm-lock.yaml .github/** **/*.py **/*.md"
 
   comment-chromatic-end:
     uses: "./.github/workflows/comment-queue.yml"

@@ -1,5 +1,17 @@
 # @self/app
 
+## 2.1.1
+
+### Fixes
+
+- [#13239](https://github.com/gradio-app/gradio/pull/13239) [`9efdcb5`](https://github.com/gradio-app/gradio/commit/9efdcb57b46fc808dc55051a113154489fcc237d) - Reduce `gradio` package size by restoring frontend settings.  Thanks @abidlabs!
+- [#13210](https://github.com/gradio-app/gradio/pull/13210) [`4005b93`](https://github.com/gradio-app/gradio/commit/4005b93dd59d7e0d144619986f01e900659b3d0b) - Fix ZeroGPU handling for `gr.Server`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/client@2.2.0
+- @gradio/core@1.4.2
+
 ## 2.1.0
 
 ### Dependency updates
