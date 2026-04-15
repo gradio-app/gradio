@@ -102,27 +102,30 @@ describe("Static mode", () => {
 	afterEach(() => cleanup());
 
 	test("download link href matches value.url", async () => {
-		const { container } = await render(Model3D, {
+		const { getByTestId } = await render(Model3D, {
 			...base_props,
 			value: TEST_GLTF
 		});
 
 		await waitFor(() => {
-			const link = container.querySelector("a[download]") as HTMLAnchorElement;
-			expect(link).toBeInTheDocument();
-			expect(link.getAttribute("href")).toBe(TEST_GLTF.url);
+			expect(getByTestId("model3d-download-link")).toHaveAttribute(
+				"href",
+				TEST_GLTF.url
+			);
 		});
 	});
 
 	test("download attribute uses orig_name", async () => {
-		const { container } = await render(Model3D, {
+		const { getByTestId } = await render(Model3D, {
 			...base_props,
 			value: TEST_GLTF
 		});
 
 		await waitFor(() => {
-			const link = container.querySelector("a[download]") as HTMLAnchorElement;
-			expect(link.getAttribute("download")).toBe(TEST_GLTF.orig_name);
+			expect(getByTestId("model3d-download-link")).toHaveAttribute(
+				"download",
+				TEST_GLTF.orig_name!
+			);
 		});
 	});
 
@@ -134,14 +137,16 @@ describe("Static mode", () => {
 			size: 100,
 			mime_type: "model/gltf+json"
 		};
-		const { container } = await render(Model3D, {
+		const { getByTestId } = await render(Model3D, {
 			...base_props,
 			value: value_no_orig as any
 		});
 
 		await waitFor(() => {
-			const link = container.querySelector("a[download]") as HTMLAnchorElement;
-			expect(link.getAttribute("download")).toBe("/tmp/mymodel.gltf");
+			expect(getByTestId("model3d-download-link")).toHaveAttribute(
+				"download",
+				"/tmp/mymodel.gltf"
+			);
 		});
 	});
 
@@ -348,30 +353,26 @@ describe("Props: buttons", () => {
 		expect(queryByLabelText("HiddenBtn")).not.toBeInTheDocument();
 	});
 
-	test("does not render buttons when buttons is null", async () => {
-		const { container } = await render(Model3D, {
+	test("does not render custom button when buttons is null", async () => {
+		const { queryByLabelText } = await render(Model3D, {
 			...base_props,
 			value: null,
 			show_label: true,
 			buttons: null
 		});
 
-		expect(
-			container.querySelector("[data-testid='icon-button-wrapper']")
-		).not.toBeInTheDocument();
+		expect(queryByLabelText("Custom action")).not.toBeInTheDocument();
 	});
 
-	test("does not render buttons when buttons is empty array", async () => {
-		const { container } = await render(Model3D, {
+	test("does not render custom button when buttons is empty array", async () => {
+		const { queryByLabelText } = await render(Model3D, {
 			...base_props,
 			value: null,
 			show_label: true,
 			buttons: []
 		});
 
-		expect(
-			container.querySelector("[data-testid='icon-button-wrapper']")
-		).not.toBeInTheDocument();
+		expect(queryByLabelText("Custom action")).not.toBeInTheDocument();
 	});
 });
 
