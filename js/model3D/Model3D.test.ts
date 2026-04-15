@@ -234,7 +234,7 @@ describe("Interactive mode", () => {
 describe("Events", () => {
 	afterEach(() => cleanup());
 
-	test("no spurious change event on mount with null value", async () => {
+	test("mounting with a null value does not fire change", async () => {
 		const { listen } = await render(Model3D, {
 			...base_props,
 			value: null
@@ -244,7 +244,7 @@ describe("Events", () => {
 		expect(change).not.toHaveBeenCalled();
 	});
 
-	test("no spurious change event on mount with set value", async () => {
+	test("mounting with an initial value does not fire change", async () => {
 		const { listen } = await render(Model3D, {
 			...base_props,
 			value: TEST_GLTF
