@@ -150,13 +150,6 @@ describe("Props: buttons", () => {
 	});
 
 	test("clicking copy button dispatches copy event", async () => {
-		// navigator.clipboard must be mocked because it's not available
-		// in the test browser context without user interaction.
-		const writeText = vi.fn().mockResolvedValue(undefined);
-		vi.stubGlobal("navigator", {
-			clipboard: { writeText }
-		});
-
 		const { getByRole, listen } = await render(Markdown, {
 			...default_props,
 			value: "Copy me!",
@@ -164,10 +157,16 @@ describe("Props: buttons", () => {
 		});
 
 		const copy_event = listen("copy");
-		const btn = getByRole("button", { name: "Copy conversation" });
+		const btn = getByRole("button", {
+			name: "Copy conversation"
+		}) as HTMLButtonElement;
+		btn.focus();
+		await fireEvent.mouseDown(btn);
 		await fireEvent.click(btn);
 
-		expect(writeText).toHaveBeenCalledWith("Copy me!");
+		await waitFor(async () => {
+			expect(await navigator.clipboard.readText()).toBe("Copy me!");
+		});
 		expect(copy_event).toHaveBeenCalledTimes(1);
 
 		vi.unstubAllGlobals();
