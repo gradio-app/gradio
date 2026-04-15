@@ -57,6 +57,7 @@
 	} = $props();
 
 	let url = $derived(value?.url);
+	let previous_url = $state<string | undefined>(undefined);
 	let old_playback_position = $state(0);
 
 	let container: HTMLDivElement;
@@ -199,10 +200,17 @@
 	async function load_audio(data: string): Promise<void> {
 		stream_active = false;
 
+		if (data !== previous_url) {
+			previous_url = data;
+			playback_position = 0;
+			old_playback_position = 0;
+		}
+
 		if (waveform_options.show_recording_waveform) {
 			waveform?.load(data);
 		} else if (audio_player) {
 			audio_player.src = data;
+			audio_player.currentTime = 0;
 		}
 	}
 

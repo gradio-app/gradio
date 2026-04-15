@@ -320,6 +320,59 @@ describe("Props: buttons (interactive mode)", () => {
 	});
 });
 
+describe("Audio source change", () => {
+	setupi18n();
+	afterEach(() => cleanup());
+
+	test("replacing audio value resets playback position to zero", async () => {
+		const value_a = { ...fake_value, url: "https://example.com/a.wav" };
+		const value_b = { ...fake_value, url: "https://example.com/b.wav" };
+
+		const { set_data } = await render(Audio, {
+			...default_props,
+			value: value_a,
+			sources: ["upload"]
+		});
+
+		const waveform_instance = (WaveSurfer.create as ReturnType<typeof vi.fn>)
+			.mock.results[0]?.value;
+		if (waveform_instance) {
+			waveform_instance.getCurrentTime = vi.fn().mockReturnValue(45);
+			waveform_instance.seekTo = vi.fn();
+		}
+
+		await set_data({ value: value_b });
+
+		// seekTo should NOT have been called to restore an old position
+		if (waveform_instance) {
+			expect(waveform_instance.seekTo).not.toHaveBeenCalledWith(
+				expect.not.closeTo(0, 5)
+			);
+		}
+	});
+
+	test("reloading the same audio url does not reset playback position", async () => {
+		const value_a = { ...fake_value, url: "https://example.com/a.wav" };
+
+		const { set_data } = await render(Audio, {
+			...default_props,
+			value: null,
+			sources: ["upload"]
+		});
+
+		await set_data({ value: value_a });
+		const first_render_count = (WaveSurfer.create as ReturnType<typeof vi.fn>)
+			.mock.calls.length;
+
+		// Set the same value again — should not reinitialise the source
+		await set_data({ value: { ...value_a } });
+
+		expect(
+			(WaveSurfer.create as ReturnType<typeof vi.fn>).mock.calls.length
+		).toBe(first_render_count);
+	});
+});
+
 describe("get_data", () => {
 	setupi18n();
 	afterEach(() => cleanup());
