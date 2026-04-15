@@ -21,11 +21,16 @@ from gradio_client.snippet import generate_code_snippets
 from huggingface_hub import HfApi
 
 SKILL_ID = "gradio"
+HF_SKILL_ID = "hf-gradio"
 
 _GITHUB_RAW = "https://raw.githubusercontent.com/gradio-app/gradio/main"
 _SKILL_PREFIX = ".agents/skills/gradio"
+_HF_SKILL_PREFIX = ".agents/skills/hf-gradio"
 
-_SKILL_FILES = ["SKILL.md", "examples.md"]
+_SKILL_FILES = ["SKILL.md"]
+_REFERENCE_FILES = ["examples.md", "api-signatures.md", "event-listeners.md"]
+
+_HF_SKILL_FILES = ["SKILL.md"]
 
 skills_app = typer.Typer(help="Manage Gradio skills for AI assistants.")
 
@@ -89,6 +94,7 @@ def _create_symlink(
 
 
 def _install_to(skills_dir: Path, force: bool) -> Path:
+    """Install the gradio skill (for building apps)."""
     skills_dir = skills_dir.expanduser().resolve()
     skills_dir.mkdir(parents=True, exist_ok=True)
     dest = skills_dir / SKILL_ID
@@ -96,8 +102,33 @@ def _install_to(skills_dir: Path, force: bool) -> Path:
     _remove_existing(dest, force)
     dest.mkdir()
 
+    # Download main skill files
     for fname in _SKILL_FILES:
         content = _download(f"{_GITHUB_RAW}/{_SKILL_PREFIX}/{fname}")
+        (dest / fname).write_text(content, encoding="utf-8")
+
+    # Download reference files to references/ subdirectory
+    references_dir = dest / "references"
+    references_dir.mkdir(exist_ok=True)
+    for fname in _REFERENCE_FILES:
+        content = _download(f"{_GITHUB_RAW}/{_SKILL_PREFIX}/references/{fname}")
+        (references_dir / fname).write_text(content, encoding="utf-8")
+
+    return dest
+
+
+def _install_hf_gradio_to(skills_dir: Path, force: bool) -> Path:
+    """Install the hf-gradio skill (for using Spaces via API)."""
+    skills_dir = skills_dir.expanduser().resolve()
+    skills_dir.mkdir(parents=True, exist_ok=True)
+    dest = skills_dir / HF_SKILL_ID
+
+    _remove_existing(dest, force)
+    dest.mkdir()
+
+    # Download main skill files
+    for fname in _HF_SKILL_FILES:
+        content = _download(f"{_GITHUB_RAW}/{_HF_SKILL_PREFIX}/{fname}")
         (dest / fname).write_text(content, encoding="utf-8")
 
     return dest
@@ -285,9 +316,10 @@ def skills_add(
         typer.Option("--force", help="Overwrite existing skills in the destination."),
     ] = False,
 ) -> None:
-    """Download and install a Gradio skill for an AI assistant.
+    """Download and install Gradio skills for an AI assistant.
 
-    When called without a space_id, installs the general Gradio skill.
+    When called without a space_id, installs both the gradio (building apps)
+    and hf-gradio (using Spaces via API) skills.
     When called with a space_id, generates and installs a skill for that
     specific Gradio Space with Python, JS, and cURL usage examples.
     """
@@ -344,7 +376,9 @@ def skills_add(
             print("--dest cannot be combined with agent flags or --global.")
             raise typer.Exit(code=1)
         skill_dest = _install_to(dest, force)
+        hf_skill_dest = _install_hf_gradio_to(dest, force)
         print(f"Installed '{SKILL_ID}' to {skill_dest}")
+        print(f"Installed '{HF_SKILL_ID}' to {hf_skill_dest}")
         return
 
     agent_targets = []
@@ -358,9 +392,20 @@ def skills_add(
         agent_targets.append(targets_dict["opencode"])
 
     central_path = central_global if global_ else central_local
+
+    # Install gradio skill
     central_skill_path = _install_to(central_path, force)
     print(f"Installed '{SKILL_ID}' to central location: {central_skill_path}")
 
+    # Install hf-gradio skill
+    central_hf_skill_path = _install_hf_gradio_to(central_path, force)
+    print(f"Installed '{HF_SKILL_ID}' to central location: {central_hf_skill_path}")
+
     for agent_target in agent_targets:
+        # Create symlinks for both skills
         link_path = _create_symlink(agent_target, central_skill_path, force)
         print(f"Created symlink: {link_path}")
+        hf_link_path = _create_symlink(
+            agent_target, central_hf_skill_path, force, skill_id=HF_SKILL_ID
+        )
+        print(f"Created symlink: {hf_link_path}")
