@@ -542,7 +542,8 @@
 								If your endpoint accepts files, you must first upload them via a
 								<code>POST</code> to <code>/upload</code>, then reference the
 								returned path with the <code>meta</code> key:
-								<code>{"{"}"path": "...", "meta": {"{"}"_type": "gradio.FileData"{"}"}{"}"}
+								<code
+									>{"{"}"path": "...", "meta": {"{"}"_type": "gradio.FileData"{"}"}{"}"}
 								</code>.
 								{#if username !== null}
 									Note: connecting to an authenticated app requires an
