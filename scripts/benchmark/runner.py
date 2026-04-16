@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import multiprocessing as mp
 import os
 import random
 import subprocess
@@ -290,7 +291,9 @@ async def run_httpx_tier(
     round_timeout = request_timeout + 30
 
     for req_id in range(requests_per_user):
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(
+            limits=httpx.Limits(max_connections=num_users * 3, max_keepalive_connections=num_users),
+        ) as client:
             if mode == "burst":
                 # Use an Event + counter instead of asyncio.Barrier (3.11+)
                 _arrived = 0
@@ -497,7 +500,7 @@ async def run_background_traffic(app_url, num_users, stop_event, file_urls, uplo
     tasks = []
 
     async with httpx.AsyncClient(
-        limits=httpx.Limits(max_connections=200, max_keepalive_connections=50), follow_redirects=True
+        limits=httpx.Limits(max_connections=500, max_keepalive_connections=100), follow_redirects=True
     ) as client:
         # Discover static/asset URLs from the HTML page
         asset_urls = await _discover_asset_urls(client, app_url)
@@ -506,7 +509,7 @@ async def run_background_traffic(app_url, num_users, stop_event, file_urls, uplo
 
         # Cap worker counts to avoid exhausting file descriptors
         # Each worker holds ~1 connection, plus prediction users need their own
-        max_bg_workers = 50
+        max_bg_workers = 20
 
         # Page loaders: 2x prediction users (capped)
         for _ in range(min(max(1, num_users * 2), max_bg_workers)):
@@ -528,6 +531,35 @@ async def run_background_traffic(app_url, num_users, stop_event, file_urls, uplo
 
     return bg_results
 
+
+def _bg_process_main(app_url, num_users, stop_event_mp, result_path, file_urls, upload_files):
+    """Process entrypoint: runs background traffic in an isolated event loop.
+
+    Why: keeping bg traffic in the same process as the foreground run_httpx_tier
+    means a single event loop serves ~100 SSE streams plus 150 bg workers, and
+    loop lag contaminates bg latency numbers. Running it in its own process
+    gives each side a dedicated event loop and GIL, so bg p50 measures the
+    server, not harness queueing.
+    """
+    async def _run():
+        stop_event = asyncio.Event()
+
+        async def _watch():
+            while not stop_event_mp.is_set():
+                await asyncio.sleep(0.1)
+            stop_event.set()
+
+        watcher = asyncio.create_task(_watch())
+        try:
+            return await run_background_traffic(
+                app_url, num_users, stop_event, file_urls, upload_files
+            )
+        finally:
+            watcher.cancel()
+
+    bg_results = asyncio.run(_run())
+    with open(result_path, "w") as f:
+        json.dump(bg_results, f)
 
 
 def compute_background_summary(bg_results):
@@ -561,7 +593,7 @@ pid /tmp/nginx.pid;
 error_log /tmp/nginx_error.log;
 
 events {{
-    worker_connections 1024;
+    worker_connections 4096;
 }}
 
 http {{
@@ -570,10 +602,12 @@ http {{
 
     upstream gradio_main {{
         server 127.0.0.1:{gradio_port};
+        keepalive 32;
     }}
 
     upstream static_workers {{
 {upstream_servers}
+        keepalive 32;
     }}
 
     server {{
@@ -583,35 +617,62 @@ http {{
         location /gradio_api/upload {{
             proxy_pass http://static_workers/upload;
             proxy_set_header Host $host;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
             proxy_request_buffering off;
         }}
         location /gradio_api/file= {{
             proxy_pass http://static_workers/file=;
             proxy_set_header Host $host;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
         }}
         location /gradio_api/file/ {{
             proxy_pass http://static_workers/file/;
             proxy_set_header Host $host;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
         }}
         location /static/ {{
             proxy_pass http://static_workers;
             proxy_set_header Host $host;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
         }}
         location /assets/ {{
             proxy_pass http://static_workers;
             proxy_set_header Host $host;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
         }}
         location /svelte/ {{
             proxy_pass http://static_workers;
             proxy_set_header Host $host;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
         }}
         location /favicon.ico {{
             proxy_pass http://static_workers;
             proxy_set_header Host $host;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
         }}
         location /custom_component/ {{
             proxy_pass http://static_workers/custom_component/;
             proxy_set_header Host $host;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+        }}
+
+        # SSE stream -> static workers (when Redis SSE is enabled)
+        location /gradio_api/queue/data {{
+            proxy_pass http://static_workers/queue/data;
+            proxy_set_header Host $host;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            chunked_transfer_encoding off;
+            proxy_buffering off;
+            proxy_cache off;
         }}
 
         # Everything else -> main Gradio server
@@ -703,10 +764,18 @@ async def run_benchmark(
         env["GRADIO_DEFAULT_CONCURRENCY_LIMIT"] = str(concurrency_limit)
     if num_workers > 1:
         env["GRADIO_NUM_WORKERS"] = str(num_workers)
+    redis_url = os.environ.get("GRADIO_REDIS_URL")
+    if redis_url and num_workers > 1:
+        env["GRADIO_REDIS_URL"] = redis_url
     env["PYTHONUNBUFFERED"] = "1"
 
-    print(f"Synching sample-inputs to {(Path(os.getcwd()) / 'sample-inputs')}")
-    sync_bucket("hf://buckets/gradio/sample-inputs", "sample-inputs")
+    sample_inputs_path = (Path(os.getcwd()) / 'sample-inputs')
+
+    if sample_inputs_path.exists():
+        print("Skipping sample-inputs sync")
+    else:
+        print(f"Synching sample-inputs to {sample_inputs_path}")
+        sync_bucket("hf://buckets/gradio/sample-inputs", "sample-inputs")
     env["GRADIO_ALLOWED_PATHS"] = str((Path(os.getcwd()) / 'sample-inputs').resolve())
 
     print(f"Launching app: {app_path}")
@@ -833,14 +902,29 @@ async def run_benchmark(
                         flush=True,
                     )
 
-            # Start background traffic if enabled
-            bg_task = None
-            stop_event = None
+            # Start background traffic in a SEPARATE PROCESS if enabled.
+            # Isolating the bg event loop from the foreground SSE-heavy loop
+            # prevents client-side queueing from inflating bg latencies.
+            bg_proc = None
+            bg_stop_mp = None
+            bg_result_path = None
             if mixed_traffic:
-                stop_event = asyncio.Event()
-                bg_task = asyncio.create_task(
-                    run_background_traffic(app_url, tier, stop_event, download_urls, upload_files)
+                bg_stop_mp = mp.Event()
+                bg_result_path = tier_dir / "_bg_results.json"
+                bg_proc = mp.Process(
+                    target=_bg_process_main,
+                    args=(
+                        app_url,
+                        tier,
+                        bg_stop_mp,
+                        str(bg_result_path),
+                        download_urls,
+                        upload_files,
+                    ),
+                    daemon=True,
                 )
+                print("RUNNING BACKGROUND PROCESS SEPARATE PROCESS")
+                bg_proc.start()
 
             # Run the tier
             start = time.monotonic()
@@ -861,9 +945,20 @@ async def run_benchmark(
 
             # Stop background traffic and collect results
             bg_results = None
-            if bg_task is not None:
-                stop_event.set()
-                bg_results = await bg_task
+            if bg_proc is not None:
+                bg_stop_mp.set()
+                bg_proc.join(timeout=180)
+                if bg_proc.is_alive():
+                    print("  WARNING: bg traffic process did not exit cleanly, terminating")
+                    bg_proc.terminate()
+                    bg_proc.join(timeout=10)
+                if bg_result_path.exists():
+                    with open(bg_result_path) as f:
+                        bg_results = json.load(f)
+                    bg_result_path.unlink()
+                else:
+                    print("  WARNING: bg traffic process produced no results file")
+                    bg_results = {"page_loads": [], "uploads": [], "downloads": []}
 
                 # Save background traffic JSONL files
                 for traffic_type, results in bg_results.items():
@@ -943,6 +1038,14 @@ async def run_benchmark(
         if nginx_proc is not None:
             nginx_proc.terminate()
             nginx_proc.wait(timeout=3)
+            try:
+                src = Path("/tmp/nginx_error.log")
+                if src.exists():
+                    dest = Path(base_dir) / "nginx_error.log"
+                    dest.write_bytes(src.read_bytes())
+                    print(f"  Copied nginx error log -> {dest}")
+            except Exception as e:
+                print(f"  WARNING: failed to copy nginx error log: {e}")
         exit_code = proc.poll()
         if exit_code is not None:
             print(f"\nWARNING: App process already exited with code {exit_code}")
