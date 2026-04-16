@@ -436,6 +436,15 @@ a:hover {{ opacity: 0.7; }}
     color: var(--ink-soft);
     font-style: italic;
 }}
+.dek-text::first-letter {{
+    font-family: 'Instrument Serif', serif;
+    font-size: 3.4em;
+    line-height: 0.8;
+    float: left;
+    padding: 4px 8px 0 0;
+    color: var(--oxblood);
+    font-style: normal;
+}}
 .dek-meta {{
     text-align: right;
     font-family: 'JetBrains Mono', monospace;
@@ -1116,7 +1125,7 @@ button.action:active {{
             <canvas id="chart"></canvas>
         </div>
         <div class="figure-caption">
-            Forest area as percentage of total land. Oxblood markers denote known policy events
+            <span class="smallcaps">Note —</span> Forest area as percentage of total land. Oxblood markers denote known policy events
             (hover the line to read). Rule of Law index plotted on secondary axis where available.
             Click any data point for a detailed dossier.
         </div>
@@ -1148,7 +1157,7 @@ button.action:active {{
         <div class="colophon-section">
             <div class="colophon-imprint">Notes.</div>
             <div class="body">
-                Every figure herein is drawn from the public record. Where the policy
+                <span class="smallcaps">On method —</span> Every figure herein is drawn from the public record. Where the policy
                 register falls silent, we supply historical context in earnest italics —
                 droughts, fires, wars, booms &amp; busts — to explain the line.
             </div>
