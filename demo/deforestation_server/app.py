@@ -1168,19 +1168,99 @@ button.action:active {{
 }}
 
 @media (max-width: 900px) {{
-    .masthead, .sheet, .colophon {{ padding-left: 24px; padding-right: 24px; }}
-    .findings {{ grid-template-columns: 1fr 1fr; }}
-    .finding {{ border-right: none; border-bottom: 1px solid var(--rule); }}
-    .finding:nth-child(2n) {{ border-right: none; }}
-    .finding:nth-child(odd) {{ border-right: 1px solid var(--rule); }}
-    .dossier-stats {{ grid-template-columns: 1fr 1fr; gap: 20px; }}
+    .masthead, .sheet, .colophon {{ padding-left: 18px; padding-right: 18px; }}
+    .masthead {{ padding-top: 10px; }}
+    .masthead-row {{
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px 14px;
+        padding: 8px 0 10px;
+        align-items: center;
+    }}
+    .wordmark {{ font-size: 28px; line-height: 1; grid-column: 1; grid-row: 1; margin: 0; }}
+    .dek-text {{
+        display: none;
+    }}
+    .dek-meta {{
+        grid-column: 2; grid-row: 1;
+        text-align: right;
+        font-size: 8px;
+        line-height: 1.4;
+        white-space: nowrap;
+    }}
+    .dek-meta .badge {{ padding: 1px 5px; margin-top: 2px; font-size: 8px; }}
+    .masthead-top {{ flex-wrap: wrap; gap: 6px; font-size: 8px; padding-bottom: 4px; letter-spacing: 0.12em; }}
+    .masthead-top .vol {{ gap: 10px; }}
+    .masthead-top .vol span:not(:last-child)::after {{ margin-left: 10px; }}
+
+    .control-strip {{
+        grid-template-columns: 1fr 1fr;
+        gap: 10px 12px;
+        padding: 10px 0 12px;
+        margin-bottom: 12px;
+    }}
+    .section-title {{ display: none; }}
+    .control-group {{ min-width: 0; }}
+    .control-group label {{ font-size: 8px; }}
+    select {{
+        width: 100%;
+        min-width: 0;
+        font-size: 14px;
+        padding: 4px 20px 4px 0;
+    }}
+    button.action {{
+        grid-column: 1 / -1;
+        width: 100%;
+        padding: 11px;
+        font-size: 10px;
+    }}
+
+    .figure {{ margin-bottom: 20px; }}
+    .figure-head {{ flex-direction: column; align-items: flex-start; gap: 4px; padding-bottom: 8px; margin-bottom: 0; }}
+    .figure-title {{ font-size: 15px; }}
+    .figure-title::before {{ display: none; }}
+    .figure-note {{ font-size: 8px; }}
+    .figure-frame {{ height: clamp(280px, 48vh, 380px); padding: 10px; }}
+    .figure-caption {{ font-size: 11px; padding-top: 8px; }}
+
+    .findings {{ grid-template-columns: 1fr 1fr; margin-bottom: 22px; }}
+    .finding {{ border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 10px 12px; min-height: auto; }}
+    .finding:nth-child(even) {{ border-right: none; }}
+    .finding:nth-last-child(-n+2) {{ border-bottom: none; }}
+    .finding .label {{ font-size: 8px; }}
+    .finding .value {{ font-size: 22px; }}
+    .finding .unit {{ font-size: 10px; }}
+    .finding .sub {{ font-size: 8px; margin-top: 4px; }}
+
+    .dossier {{ padding: 20px 14px; }}
+    .dossier-label {{ left: 14px; }}
+    .dossier-head {{ font-size: 17px; }}
+    .dossier-stats {{ grid-template-columns: 1fr 1fr; gap: 14px; }}
+    .dossier-stat .v {{ font-size: 22px; }}
+    .rate-strip {{ flex-direction: column; gap: 8px; }}
+
     .split.active {{ grid-template-columns: 1fr; }}
-    .panel {{ border-right: none; border-bottom: 1px solid var(--rule); }}
-    .control-strip {{ grid-template-columns: 1fr; gap: 16px; }}
-    .section-num {{ display: none; }}
-    .dek {{ flex-direction: column; align-items: flex-start; }}
-    .wordmark {{ font-size: 72px; }}
-    .colophon-top {{ grid-template-columns: 1fr; }}
+    .panel {{ border-right: none; border-bottom: 1px solid var(--rule); padding: 18px 14px; }}
+    .panel:last-child {{ border-bottom: none; }}
+    .panel-title {{ font-size: 17px; }}
+    .policy {{ grid-template-columns: 48px 1fr; gap: 10px; padding: 10px 0; }}
+    .policy-year {{ font-size: 22px; }}
+    .policy-text {{ font-size: 14px; }}
+    .policy-metric {{ grid-column: 2; color: var(--ink-fade); font-size: 10px; }}
+
+    .colophon {{ padding: 26px 18px 40px; }}
+    .colophon-top {{ grid-template-columns: 1fr; gap: 20px; padding-bottom: 18px; }}
+    .colophon-imprint {{ font-size: 36px; }}
+    .colophon-mark {{ flex-direction: column; gap: 6px; align-items: flex-start; font-size: 8px; }}
+}}
+
+@media (max-width: 420px) {{
+    .wordmark {{ font-size: 24px; }}
+    .dek-meta {{ font-size: 7px; }}
+    .findings {{ grid-template-columns: 1fr; }}
+    .finding {{ border-right: none !important; }}
+    .finding:last-child {{ border-bottom: none; }}
+    .dossier-stats {{ grid-template-columns: 1fr 1fr; gap: 10px; }}
 }}
 </style>
 </head>
