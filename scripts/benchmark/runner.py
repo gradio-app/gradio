@@ -191,6 +191,8 @@ async def run_httpx_tier(
         with open(filepath, "rb") as f:
             files = {"files": (filepath, f, "text/plain")}
             response = await client.post(f"{app_url}/gradio_api/upload", files=files, timeout=60, follow_redirects=True)
+            if response.status_code != 200:
+                print(f"  [upload] FAILED status={response.status_code} body={response.text[:200]}", flush=True)
             result = response.json()[0]
             return result, time.monotonic() - start
 
@@ -276,12 +278,14 @@ async def run_httpx_tier(
         except Exception as e:
             duration_ms = (time.monotonic() - start) * 1000
             error_type = type(e).__name__
+            error_msg = f"{error_type}: {e}" if str(e) else error_type
+            print(f"  [request] user={user_id} req={req_id} FAILED after {duration_ms:.0f}ms: {error_msg}", flush=True)
             return {
                 "user_id": user_id,
                 "request_id": req_id,
                 "latency_ms": duration_ms,
                 "success": False,
-                "error": f"{error_type}: {e}" if str(e) else error_type,
+                "error": error_msg,
                 "upload_ms": upload_ms * 1000 if upload_ms is not None else None
             }
 
