@@ -39,13 +39,19 @@ def process_image(image_path):
         img = Image.fromarray(depth_image)
         return [img, gltf_path, gltf_path]
     except Exception:
-        gltf_path = create_3d_obj(
-            np.array(image), depth_image, image_path, depth=8)
-        img = Image.fromarray(depth_image)
-        return [img, gltf_path, gltf_path]
-    except:
-        print("Error reconstructing 3D model")
-        raise Exception("Error reconstructing 3D model")
+        # Retry with a lower Poisson depth to produce a coarser but more
+        # robust mesh when the first attempt fails (e.g. too many vertices).
+        # The previous bare `except:` after this block was dead code: in Python
+        # only one except clause per try block can match, so the second handler
+        # never ran.  Nest the fallback in its own try/except instead.
+        try:
+            gltf_path = create_3d_obj(
+                np.array(image), depth_image, image_path, depth=8)
+            img = Image.fromarray(depth_image)
+            return [img, gltf_path, gltf_path]
+        except Exception:
+            print("Error reconstructing 3D model")
+            raise
 
 def create_3d_obj(rgb_image, depth_image, image_path, depth=10):
     depth_o3d = o3d.geometry.Image(depth_image)
