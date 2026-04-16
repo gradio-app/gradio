@@ -171,13 +171,20 @@ def organize_docs(d):
                     if "default" in p:
                         p["default"] = str(p["default"])
             if mode == "component":
-                organized["gradio"]["components"][c["name"].lower()] = c
+                target = organized["gradio"]["components"]
             elif mode == "py-client":
-                organized["python-client"][c["name"].lower()] = c
+                target = organized["python-client"]
             elif mode in ["helpers", "routes", "chatinterface", "modals"]:
-                organized["gradio"][mode][c["name"].lower()] = c                
+                target = organized["gradio"][mode]
             else:
-                organized["gradio"]["building"][c["name"].lower()] = c
+                target = organized["gradio"]["building"]
+            key = c["name"].lower()
+            if key in target:
+                if c["name"] != c["name"].lower():
+                    key = key + "-class"
+                else:
+                    target[key + "-class"] = target.pop(key)
+            target[key] = c
     
 
     def format_name(page_name):
