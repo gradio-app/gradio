@@ -13,7 +13,7 @@
 		pan_speed: number;
 	} = $props();
 
-	let path = $derived(value?.path);
+	let url = $derived(value?.url);
 
 	let canvas: HTMLCanvasElement;
 	let scene: SPLAT.Scene;
@@ -156,7 +156,7 @@
 	});
 
 	$effect(() => {
-		const next = path;
+		const next = url;
 		if (!next) return;
 		if (!canvas) return;
 		if (next === active_path) return;
