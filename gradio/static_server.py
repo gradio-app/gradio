@@ -186,6 +186,7 @@ def create_static_app(config: StaticServerConfig) -> fastapi.FastAPI:
     async def upload_file(
         request: fastapi.Request,
     ):
+        print(f"[UPLOAD] Received upload request", flush=True)
         content_type_header = request.headers.get("Content-Type")
         content_type: bytes
         content_type, _ = parse_options_header(content_type_header or "")
