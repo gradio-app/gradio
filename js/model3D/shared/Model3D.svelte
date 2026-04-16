@@ -68,7 +68,10 @@
 			for (const chunk of chunks) {
 				const remaining = merged.length - offset;
 				if (remaining <= 0) break;
-				merged.set(chunk.subarray(0, Math.min(chunk.length, remaining)), offset);
+				merged.set(
+					chunk.subarray(0, Math.min(chunk.length, remaining)),
+					offset
+				);
 				offset += Math.min(chunk.length, remaining);
 			}
 			const text = new TextDecoder().decode(merged);
