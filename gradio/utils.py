@@ -181,6 +181,7 @@ class BaseReloader(ABC):
         demo.js = self.get_attribute("js", demo)
         demo.head = self.get_attribute("head", demo)
         demo.head_paths = self.get_attribute("head_paths", demo)
+        demo.server = self.get_attribute("server", demo)
         demo._set_html_css_theme_variables()
         self.running_app.state_holder.set_blocks(demo)
         for session in self.running_app.state_holder.session_data.values():
@@ -258,7 +259,6 @@ class SpacesReloader(ServerReloader):
     def swap_blocks(self, demo: "Blocks"):
         super().swap_blocks(demo)
         demo.config = demo.get_config_file()
-        demo.server = self.get_attribute("server", demo)
 
 
 class SourceFileReloader(ServerReloader):
