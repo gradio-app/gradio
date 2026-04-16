@@ -1,5 +1,16 @@
 # @gradio/slider
 
+## 0.7.10
+
+### Features
+
+- [#13140](https://github.com/gradio-app/gradio/pull/13140) [`0dd1c79`](https://github.com/gradio-app/gradio/commit/0dd1c79c75406d4609c79698987fadc624bb9035) - Slider Tests.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/atoms@0.23.1
+- @gradio/statustracker@0.14.0
+
 ## 0.7.9
 
 ### Dependency updates

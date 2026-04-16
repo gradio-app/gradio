@@ -1,5 +1,14 @@
 # @gradio/video
 
+## 0.20.7
+
+### Dependency updates
+
+- @gradio/atoms@0.23.1
+- @gradio/statustracker@0.14.0
+- @gradio/client@2.2.0
+- @gradio/image@0.26.2
+
 ## 0.20.6
 
 ### Features

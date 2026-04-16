@@ -44,6 +44,41 @@ gradio.Textbox(···)
 ### Shortcuts
 <ShortcutTable shortcuts={obj.string_shortcuts} />
 {/if}
+### Common Patterns
+
+#### Multi-line text input
+
+By default, `gr.Textbox` renders as a single-line input. For longer text such as paragraphs or code, set `lines` to show multiple rows and optionally `max_lines` to cap the height:
+
+```python
+import gradio as gr
+
+def summarize(text):
+    return f"Received {len(text.split())} words."
+
+demo = gr.Interface(
+    fn=summarize,
+    inputs=gr.Textbox(lines=5, max_lines=10, label="Paste your text here"),
+    outputs="text",
+)
+```
+
+#### Password and sensitive input
+
+Set `type="password"` to mask characters as the user types. The value is passed as plain text to your function — masking is display-only:
+
+```python
+import gradio as gr
+
+def check(password):
+    return "Access granted" if password == "secret" else "Wrong password"
+
+demo = gr.Interface(
+    fn=check,
+    inputs=gr.Textbox(type="password", label="Enter password"),
+    outputs="text",
+)
+```
 
 {#if obj.demos && obj.demos.length > 0}
 <!--- Demos -->

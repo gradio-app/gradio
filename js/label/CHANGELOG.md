@@ -1,5 +1,16 @@
 # @gradio/label
 
+## 0.6.7
+
+### Fixes
+
+- [#13233](https://github.com/gradio-app/gradio/pull/13233) [`66817ca`](https://github.com/gradio-app/gradio/commit/66817cac4d204471cc2b435a6d0d11397ddbca58) - Label tests.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.23.1
+- @gradio/statustracker@0.14.0
+
 ## 0.6.6
 
 ### Dependency updates

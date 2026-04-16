@@ -2,6 +2,27 @@
 
 ## 1.4.2
 
+### Dependency updates
+
+- @gradio/atoms@0.23.1
+- @gradio/statustracker@0.14.0
+- @gradio/client@2.2.0
+- @gradio/textbox@0.13.8
+- @gradio/column@0.3.3
+- @gradio/image@0.26.2
+- @gradio/file@0.14.7
+- @gradio/video@0.20.7
+- @gradio/code@0.17.7
+- @gradio/html@0.12.2
+- @gradio/paramviewer@0.9.8
+- @gradio/gallery@0.17.6
+- @gradio/plot@0.10.8
+- @gradio/checkbox@0.6.7
+- @gradio/dropdown@0.11.8
+- @gradio/audio@0.23.2
+
+## 1.4.2
+
 ### Fixes
 
 - [#13048](https://github.com/gradio-app/gradio/pull/13048) [`a5d4096`](https://github.com/gradio-app/gradio/commit/a5d40965bba21a832da522127048926b71c1a6dd) - Fix Tab Interactive Bug.  Thanks @freddyaboulton!

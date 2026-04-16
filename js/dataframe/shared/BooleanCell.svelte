@@ -34,7 +34,6 @@
 		justify-content: center;
 		width: min-content;
 		height: var(--size-full);
-		margin: 0 auto;
 	}
 
 	.bool-cell :global(input:disabled) {

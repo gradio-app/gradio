@@ -1,5 +1,20 @@
 # @gradio/gallery
 
+## 0.17.6
+
+### Features
+
+- [#13213](https://github.com/gradio-app/gradio/pull/13213) [`457f130`](https://github.com/gradio-app/gradio/commit/457f130b310ac087fdc6ba7dbbc7fa78e0bcccf8) - Gallery Unit Tests.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.23.1
+- @gradio/statustracker@0.14.0
+- @gradio/client@2.2.0
+- @gradio/image@0.26.2
+- @gradio/file@0.14.7
+- @gradio/video@0.20.7
+
 ## 0.17.5
 
 ### Fixes

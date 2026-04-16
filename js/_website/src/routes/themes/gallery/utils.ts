@@ -1,36 +1,275 @@
 import type { ThemeData, ThemeStatus, HfSpaceEntry } from "./types";
 
 const HF_API_URL =
-	"https://huggingface.co/api/spaces?filter=gradio-theme&limit=200&expand[]=subdomain&expand[]=likes&expand[]=runtime&expand[]=cardData";
+	"https://huggingface.co/api/spaces?filter=gradio-theme&limit=500&sort=lastModified&direction=-1&expand[]=subdomain&expand[]=likes&expand[]=runtime&expand[]=cardData";
 
-const HF_COLOR_MAP: Record<string, string> = {
-	red: "#ef4444",
-	orange: "#f97316",
-	amber: "#f59e0b",
-	yellow: "#eab308",
-	lime: "#84cc16",
-	green: "#22c55e",
-	emerald: "#10b981",
-	teal: "#14b8a6",
-	cyan: "#06b6d4",
-	sky: "#0ea5e9",
-	blue: "#3b82f6",
-	indigo: "#6366f1",
-	violet: "#8b5cf6",
-	purple: "#a855f7",
-	fuchsia: "#d946ef",
-	pink: "#ec4899",
-	rose: "#f43f5e",
-	gray: "#6b7280",
-	stone: "#78716c",
-	zinc: "#71717a",
-	neutral: "#737373",
-	slate: "#64748b"
+const DEFAULT_COLORS = {
+	primary: "#3b82f6",
+	secondary: "#3b82f6",
+	neutral: "#71717a",
+	background: "#ffffff",
+	background_dark: "#0b0f19",
+	block_background: "#ffffff",
+	block_border: "#e4e4e7",
+	text_color: "#1f2937",
+	button_primary: "#3b82f6",
+	button_secondary_border: "#e4e4e7",
+	button_secondary_text: "#71717a"
+};
+
+const DEFAULT_FONTS = {
+	main: "IBM Plex Sans",
+	mono: "IBM Plex Mono"
 };
 
 function format_theme_name(id: string): string {
 	const name = id.split("/").pop() || id;
 	return name.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+const CSS_NAMED_COLORS: Record<string, string> = {
+	black: "#000000",
+	white: "#ffffff",
+	red: "#ff0000",
+	green: "#008000",
+	blue: "#0000ff",
+	yellow: "#ffff00",
+	cyan: "#00ffff",
+	magenta: "#ff00ff",
+	purple: "#800080",
+	orange: "#ffa500",
+	pink: "#ffc0cb",
+	gray: "#808080",
+	grey: "#808080",
+	teal: "#008080",
+	navy: "#000080",
+	maroon: "#800000",
+	lime: "#00ff00",
+	aqua: "#00ffff",
+	silver: "#c0c0c0",
+	olive: "#808000",
+	fuchsia: "#ff00ff",
+	indigo: "#4b0082",
+	violet: "#ee82ee",
+	coral: "#ff7f50",
+	salmon: "#fa8072",
+	tomato: "#ff6347",
+	gold: "#ffd700",
+	khaki: "#f0e68c",
+	plum: "#dda0dd",
+	orchid: "#da70d6",
+	tan: "#d2b48c",
+	crimson: "#dc143c",
+	turquoise: "#40e0d0"
+};
+
+const HEX_6_RE = /^#[0-9a-fA-F]{6}$/;
+const HEX_SHORT_RE = /^#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$/;
+const HEX_ANY_RE = /^#[0-9a-fA-F]{3,8}$/;
+const HEX_IN_VALUE_RE = /#[0-9a-fA-F]{3,8}/;
+const VAR_REF_RE = /^var\(--([\w-]+)\)$/;
+const CSS_VAR_DECL_RE = /--([\w-]+):\s*([^;]+);/g;
+const MAX_VAR_RESOLVE_DEPTH = 10;
+
+function normalize_hex(hex: string): string {
+	const short = HEX_SHORT_RE.exec(hex);
+	if (short) {
+		return `#${short[1]}${short[1]}${short[2]}${short[2]}${short[3]}${short[3]}`;
+	}
+	return hex;
+}
+
+function extract_hex_color(value: string | undefined): string | undefined {
+	if (!value) return undefined;
+	const trimmed = value.trim();
+	if (HEX_ANY_RE.test(trimmed)) return normalize_hex(trimmed);
+	const named = CSS_NAMED_COLORS[trimmed.toLowerCase()];
+	if (named) return named;
+	const hex_match = trimmed.match(HEX_IN_VALUE_RE);
+	if (hex_match) return normalize_hex(hex_match[0]);
+	return undefined;
+}
+
+export function hex_to_rgb(
+	hex: string
+): { r: number; g: number; b: number } | null {
+	const normalized = normalize_hex(hex);
+	const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(normalized);
+	return result
+		? {
+				r: parseInt(result[1], 16),
+				g: parseInt(result[2], 16),
+				b: parseInt(result[3], 16)
+			}
+		: null;
+}
+
+export function is_color_dark(hex: string): boolean {
+	const rgb = hex_to_rgb(hex);
+	if (!rgb) return false;
+	const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+	return luminance < 0.5;
+}
+
+function parse_css_vars(css: string): Record<string, string> {
+	const vars: Record<string, string> = {};
+	let match;
+	CSS_VAR_DECL_RE.lastIndex = 0;
+	while ((match = CSS_VAR_DECL_RE.exec(css)) !== null) {
+		vars[match[1]] = match[2].trim();
+	}
+	return vars;
+}
+
+function resolve_css_var(
+	vars: Record<string, string>,
+	name: string,
+	depth = 0
+): string | undefined {
+	const value = vars[name];
+	if (!value || depth > MAX_VAR_RESOLVE_DEPTH) return undefined;
+	const ref = value.match(VAR_REF_RE);
+	if (ref && ref[1]) {
+		return resolve_css_var(vars, ref[1], depth + 1);
+	}
+	return value;
+}
+
+const FETCH_TIMEOUT_MS = 5000;
+
+type SpaceConfig = {
+	body_css?: {
+		body_background_fill?: string;
+		body_text_color?: string;
+		body_background_fill_dark?: string;
+		body_text_color_dark?: string;
+	};
+};
+
+function first_font_family(raw: string | undefined): string | undefined {
+	return raw
+		?.split(",")[0]
+		?.trim()
+		?.replace(/^['"]|['"]$/g, "");
+}
+
+function fetch_with_timeout(
+	url: string,
+	fetcher: typeof fetch
+): Promise<Response> {
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+	return fetcher(url, { signal: controller.signal }).finally(() =>
+		clearTimeout(timeout)
+	);
+}
+
+async function fetch_theme_details(
+	subdomain: string,
+	fetcher: typeof fetch
+): Promise<{
+	colors: ThemeData["colors"];
+	fonts: ThemeData["fonts"];
+}> {
+	const fallback = { colors: DEFAULT_COLORS, fonts: DEFAULT_FONTS };
+	try {
+		const [css_res, config_res] = await Promise.all([
+			fetch_with_timeout(`${subdomain}/theme.css`, fetcher),
+			fetch_with_timeout(`${subdomain}/config`, fetcher)
+		]);
+
+		if (!css_res.ok) return fallback;
+		const css = await css_res.text();
+		const vars = parse_css_vars(css);
+
+		// /config provides pre-resolved background colors; /theme.css may have unresolved var() chains
+		let body_css: SpaceConfig["body_css"] = undefined;
+		if (config_res.ok) {
+			try {
+				const config: SpaceConfig = await config_res.json();
+				body_css = config.body_css;
+			} catch {
+				// ignore parse errors
+			}
+		}
+
+		const resolved_accent = extract_hex_color(
+			resolve_css_var(vars, "color-accent")
+		);
+
+		const primary =
+			extract_hex_color(resolve_css_var(vars, "primary-500")) ??
+			resolved_accent ??
+			DEFAULT_COLORS.primary;
+
+		const accent = resolved_accent ?? primary;
+
+		const neutral =
+			extract_hex_color(resolve_css_var(vars, "neutral-500")) ??
+			DEFAULT_COLORS.neutral;
+
+		const background =
+			extract_hex_color(body_css?.body_background_fill) ??
+			extract_hex_color(resolve_css_var(vars, "body-background-fill")) ??
+			DEFAULT_COLORS.background;
+
+		const background_dark =
+			extract_hex_color(body_css?.body_background_fill_dark) ??
+			extract_hex_color(resolve_css_var(vars, "body-background-fill-dark")) ??
+			DEFAULT_COLORS.background_dark;
+
+		const block_background =
+			extract_hex_color(resolve_css_var(vars, "block-background-fill")) ??
+			DEFAULT_COLORS.block_background;
+
+		const block_border =
+			extract_hex_color(resolve_css_var(vars, "block-border-color")) ??
+			DEFAULT_COLORS.block_border;
+
+		const text_color =
+			extract_hex_color(resolve_css_var(vars, "body-text-color")) ??
+			DEFAULT_COLORS.text_color;
+
+		const button_primary =
+			extract_hex_color(
+				resolve_css_var(vars, "button-primary-background-fill")
+			) ?? primary;
+
+		const button_secondary_border =
+			extract_hex_color(
+				resolve_css_var(vars, "button-secondary-border-color")
+			) ?? neutral;
+
+		const button_secondary_text =
+			extract_hex_color(resolve_css_var(vars, "button-secondary-text-color")) ??
+			neutral;
+
+		return {
+			colors: {
+				primary,
+				secondary: accent,
+				neutral,
+				background,
+				background_dark,
+				block_background,
+				block_border,
+				text_color,
+				button_primary,
+				button_secondary_border,
+				button_secondary_text
+			},
+			fonts: {
+				main:
+					first_font_family(resolve_css_var(vars, "font")) ||
+					DEFAULT_FONTS.main,
+				mono:
+					first_font_family(resolve_css_var(vars, "font-mono")) ||
+					DEFAULT_FONTS.mono
+			}
+		};
+	} catch {
+		return fallback;
+	}
 }
 
 export async function fetch_community_themes(
@@ -41,11 +280,14 @@ export async function fetch_community_themes(
 		if (!res.ok) return [];
 		const spaces: HfSpaceEntry[] = await res.json();
 
-		return spaces
-			.filter((space) => space.runtime?.stage === "RUNNING")
-			.map((space) => {
-				const color_from = space.cardData?.colorFrom ?? "";
-				const color_to = space.cardData?.colorTo ?? "";
+		const running_spaces = spaces.filter(
+			(space) => space.runtime?.stage === "RUNNING"
+		);
+
+		const results = await Promise.allSettled(
+			running_spaces.map(async (space) => {
+				const subdomain = `https://${space.subdomain}.hf.space`;
+				const details = await fetch_theme_details(subdomain, fetcher);
 
 				return {
 					id: space.id,
@@ -55,22 +297,20 @@ export async function fetch_community_themes(
 					is_official: false,
 					likes: space.likes,
 					hf_space_id: space.id,
-					subdomain: `https://${space.subdomain}.hf.space`,
+					subdomain,
 					background_color: "",
 					status: "RUNNING" as ThemeStatus,
-					colors: {
-						primary: HF_COLOR_MAP[color_from] ?? "#3b82f6",
-						secondary: HF_COLOR_MAP[color_to] ?? "#3b82f6",
-						neutral: "#71717a",
-						background: "#ffffff",
-						background_dark: "#0b0f19"
-					},
-					fonts: {
-						main: "IBM Plex Sans",
-						mono: "IBM Plex Mono"
-					}
+					colors: details.colors,
+					fonts: details.fonts
 				};
-			});
+			})
+		);
+
+		return results
+			.filter(
+				(r): r is PromiseFulfilledResult<ThemeData> => r.status === "fulfilled"
+			)
+			.map((r) => r.value);
 	} catch {
 		return [];
 	}
@@ -103,7 +343,13 @@ export const BUILTIN_THEMES: ThemeData[] = [
 			secondary: "#3b82f6",
 			neutral: "#71717a",
 			background: "#ffffff",
-			background_dark: "#0b0f19"
+			background_dark: "#0b0f19",
+			block_background: "#ffffff",
+			block_border: "#e4e4e7",
+			text_color: "#1f2937",
+			button_primary: "#3b82f6",
+			button_secondary_border: "#e4e4e7",
+			button_secondary_text: "#71717a"
 		},
 		fonts: {
 			main: "IBM Plex Sans",
@@ -126,7 +372,13 @@ export const BUILTIN_THEMES: ThemeData[] = [
 			secondary: "#3b82f6",
 			neutral: "#71717a",
 			background: "#ffffff",
-			background_dark: "#0b0f19"
+			background_dark: "#0b0f19",
+			block_background: "#ffffff",
+			block_border: "#e4e4e7",
+			text_color: "#1f2937",
+			button_primary: "#f97316",
+			button_secondary_border: "#e4e4e7",
+			button_secondary_text: "#71717a"
 		},
 		fonts: {
 			main: "Source Sans Pro",
@@ -149,7 +401,13 @@ export const BUILTIN_THEMES: ThemeData[] = [
 			secondary: "#6366f1",
 			neutral: "#6b7280",
 			background: "#ffffff",
-			background_dark: "#0b0f19"
+			background_dark: "#0b0f19",
+			block_background: "#ffffff",
+			block_border: "#e4e4e7",
+			text_color: "#1f2937",
+			button_primary: "#6366f1",
+			button_secondary_border: "#e4e4e7",
+			button_secondary_text: "#6b7280"
 		},
 		fonts: {
 			main: "Montserrat",
@@ -172,7 +430,13 @@ export const BUILTIN_THEMES: ThemeData[] = [
 			secondary: "#737373",
 			neutral: "#737373",
 			background: "#ffffff",
-			background_dark: "#0f0f0f"
+			background_dark: "#0f0f0f",
+			block_background: "#ffffff",
+			block_border: "#e4e4e7",
+			text_color: "#1f2937",
+			button_primary: "#171717",
+			button_secondary_border: "#e4e4e7",
+			button_secondary_text: "#737373"
 		},
 		fonts: {
 			main: "Lora",
@@ -195,7 +459,13 @@ export const BUILTIN_THEMES: ThemeData[] = [
 			secondary: "#64748b",
 			neutral: "#64748b",
 			background: "#ffffff",
-			background_dark: "#1e293b"
+			background_dark: "#1e293b",
+			block_background: "#ffffff",
+			block_border: "#e4e4e7",
+			text_color: "#1f2937",
+			button_primary: "#3b82f6",
+			button_secondary_border: "#e4e4e7",
+			button_secondary_text: "#64748b"
 		},
 		fonts: {
 			main: "Optima",
@@ -219,7 +489,13 @@ export const BUILTIN_THEMES: ThemeData[] = [
 			secondary: "#3b82f6",
 			neutral: "#6b7280",
 			background: "#ffffff",
-			background_dark: "#0b0f19"
+			background_dark: "#0b0f19",
+			block_background: "#ffffff",
+			block_border: "#e4e4e7",
+			text_color: "#1f2937",
+			button_primary: "#f97316",
+			button_secondary_border: "#e4e4e7",
+			button_secondary_text: "#6b7280"
 		},
 		fonts: {
 			main: "Source Sans Pro",
@@ -242,7 +518,13 @@ export const BUILTIN_THEMES: ThemeData[] = [
 			secondary: "#f59e0b",
 			neutral: "#78716c",
 			background: "#ffffff",
-			background_dark: "#0b0f19"
+			background_dark: "#0b0f19",
+			block_background: "#ffffff",
+			block_border: "#e4e4e7",
+			text_color: "#1f2937",
+			button_primary: "#84cc16",
+			button_secondary_border: "#e4e4e7",
+			button_secondary_text: "#78716c"
 		},
 		fonts: {
 			main: "Ubuntu",
@@ -265,7 +547,13 @@ export const BUILTIN_THEMES: ThemeData[] = [
 			secondary: "#0ea5e9",
 			neutral: "#71717a",
 			background: "#ffffff",
-			background_dark: "#0b0f19"
+			background_dark: "#0b0f19",
+			block_background: "#ffffff",
+			block_border: "#e4e4e7",
+			text_color: "#1f2937",
+			button_primary: "#06b6d4",
+			button_secondary_border: "#e4e4e7",
+			button_secondary_text: "#71717a"
 		},
 		fonts: {
 			main: "IBM Plex Sans",
