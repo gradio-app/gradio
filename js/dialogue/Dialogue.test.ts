@@ -78,14 +78,14 @@ describe("Dialogue", () => {
 	});
 
 	test("renders empty line when value is empty array and speakers exist", async () => {
-		await render(Dialogue, {
+		const { getAllByRole } = await render(Dialogue, {
 			...default_props,
 			value: [],
 			speakers: ["Speaker1"]
 		});
 
 		// An empty line is automatically added
-		const textareas = document.querySelectorAll("textarea");
+		const textareas = getAllByRole("textbox");
 		expect(textareas.length).toBeGreaterThan(0);
 	});
 });
@@ -94,33 +94,34 @@ describe("Props: ui_mode", () => {
 	afterEach(() => cleanup());
 
 	test("ui_mode='dialogue' shows only dialogue lines view", async () => {
-		const { queryByTestId, getByDisplayValue } = await render(Dialogue, {
-			...default_props,
-			ui_mode: "dialogue",
-			value: [{ speaker: "Speaker1", text: "Hello" }]
-		});
+		const { queryByTestId, queryByRole, getByDisplayValue } = await render(
+			Dialogue,
+			{
+				...default_props,
+				ui_mode: "dialogue",
+				value: [{ speaker: "Speaker1", text: "Hello" }]
+			}
+		);
 
 		expect(getByDisplayValue("Hello")).toBeInTheDocument();
 		// Should NOT show the plain text textarea (which has data-testid="textbox")
 		expect(queryByTestId("textbox")).not.toBeInTheDocument();
-		const switchButton = document.querySelector('[role="switch"]');
-		expect(switchButton).not.toBeInTheDocument();
+		expect(queryByRole("switch")).not.toBeInTheDocument();
 	});
 
 	test("ui_mode='text' shows only plain text view", async () => {
-		const { getByTestId } = await render(Dialogue, {
+		const { getByTestId, queryByRole } = await render(Dialogue, {
 			...default_props,
 			ui_mode: "text",
 			value: "Plain text value"
 		});
 
 		expect(getByTestId("textbox")).toBeInTheDocument();
-		const switchButton = document.querySelector('[role="switch"]');
-		expect(switchButton).not.toBeInTheDocument();
+		expect(queryByRole("switch")).not.toBeInTheDocument();
 	});
 
 	test("ui_mode='both' shows dialogue view with switch to toggle", async () => {
-		const { getByDisplayValue } = await render(Dialogue, {
+		const { getByDisplayValue, getByRole } = await render(Dialogue, {
 			...default_props,
 			ui_mode: "both",
 			value: [{ speaker: "Speaker1", text: "Hello" }]
@@ -128,8 +129,7 @@ describe("Props: ui_mode", () => {
 
 		// Should show dialogue lines by default
 		expect(getByDisplayValue("Hello")).toBeInTheDocument();
-		const switchButton = document.querySelector('[role="switch"]');
-		expect(switchButton).toBeVisible();
+		expect(getByRole("switch")).toBeVisible();
 	});
 });
 
@@ -263,7 +263,7 @@ describe("Props: max_lines", () => {
 	afterEach(() => cleanup());
 
 	test("add button is hidden when max_lines is reached", async () => {
-		const { container } = await render(Dialogue, {
+		const { queryAllByTestId } = await render(Dialogue, {
 			...default_props,
 			max_lines: 2,
 			value: [
@@ -273,7 +273,7 @@ describe("Props: max_lines", () => {
 		});
 
 		// With max_lines=2 and 2 lines already, there should be no add button on the last line
-		const addButtons = container.querySelectorAll(".add-button");
+		const addButtons = queryAllByTestId(/^dialogue-add-button-/);
 		expect(addButtons.length).toBe(1); // Only on first line
 	});
 });
@@ -282,7 +282,7 @@ describe("Props: tags", () => {
 	afterEach(() => cleanup());
 
 	test("typing ':' shows tag autocomplete menu with matching options", async () => {
-		const { getByDisplayValue } = await render(Dialogue, {
+		const { getByDisplayValue, queryByTestId } = await render(Dialogue, {
 			...default_props,
 			tags: ["greeting", "farewell", "question"],
 			value: [{ speaker: "Speaker1", text: "" }]
@@ -293,8 +293,7 @@ describe("Props: tags", () => {
 		await event.type(textarea, "Hello :");
 
 		// The tag menu should appear
-		const tagMenu = document.getElementById("tag-menu");
-		expect(tagMenu).toBeInTheDocument();
+		expect(queryByTestId("dialogue-tag-menu")).toBeInTheDocument();
 	});
 });
 
@@ -460,7 +459,7 @@ describe("Interactive features", () => {
 
 test("mock server format/unformat round-trip works correctly", async () => {
 	const serverMock = mock_server();
-	const { getByTestId, getByDisplayValue } = await render(Dialogue, {
+	const { getByTestId, getByDisplayValue, getByRole } = await render(Dialogue, {
 		...default_props,
 		ui_mode: "both",
 		value: [
@@ -471,9 +470,7 @@ test("mock server format/unformat round-trip works correctly", async () => {
 	});
 
 	// Switch to plain text mode - this triggers server.format
-	const switchButton = document.querySelector(
-		'[role="switch"]'
-	) as HTMLButtonElement;
+	const switchButton = getByRole("switch");
 	await fireEvent.click(switchButton);
 
 	// Verify format was called with the dialogue lines
@@ -509,18 +506,18 @@ describe("Edge cases", () => {
 	afterEach(() => cleanup());
 
 	test("handles empty speakers array gracefully", async () => {
-		const { container } = await render(Dialogue, {
+		const { getAllByTestId } = await render(Dialogue, {
 			...default_props,
 			speakers: [],
 			value: []
 		});
 
 		// Should still render without crashing
-		expect(container.querySelector(".dialogue-container")).toBeInTheDocument();
+		expect(getAllByTestId("dialogue-container").length).toBeGreaterThan(0);
 	});
 
 	test("handles undefined max_lines", async () => {
-		const { container } = await render(Dialogue, {
+		const { queryAllByTestId } = await render(Dialogue, {
 			...default_props,
 			max_lines: undefined,
 			value: [
@@ -531,7 +528,7 @@ describe("Edge cases", () => {
 		});
 
 		// All add buttons should be visible when max_lines is undefined
-		const addButtons = container.querySelectorAll(".add-button");
+		const addButtons = queryAllByTestId(/^dialogue-add-button-/);
 		expect(addButtons.length).toBe(3);
 	});
 
@@ -559,17 +556,14 @@ describe("Plain text mode", () => {
 	afterEach(() => cleanup());
 
 	test("switching to plain text mode shows textarea", async () => {
-		const { getByTestId } = await render(Dialogue, {
+		const { getByTestId, getByRole } = await render(Dialogue, {
 			...default_props,
 			ui_mode: "both",
 			value: [{ speaker: "Speaker1", text: "Dialogue text" }]
 		});
 
 		// Switch to plain text mode
-		const switchButton = document.querySelector(
-			'[role="switch"]'
-		) as HTMLButtonElement;
-		await fireEvent.click(switchButton);
+		await fireEvent.click(getByRole("switch"));
 
 		// Plain text textarea should be visible
 		expect(getByTestId("textbox")).toBeInTheDocument();

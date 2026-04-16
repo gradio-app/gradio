@@ -351,7 +351,9 @@
 	function handle_click_outside(event: MouseEvent): void {
 		if (showTagMenu) {
 			const target = event.target as Node;
-			const tagMenu = document.getElementById("tag-menu");
+			const tagMenu = document.querySelector(
+				'[data-testid="dialogue-tag-menu"]'
+			);
 			if (tagMenu && !tagMenu.contains(target)) {
 				showTagMenu = false;
 			}
@@ -457,6 +459,7 @@
 	{#if !checked && gradio.props.ui_mode !== "text"}
 		<div
 			class="dialogue-container"
+			data-testid="dialogue-container"
 			bind:this={dialogue_container_element}
 			class:loading={is_unformatting}
 		>
@@ -539,7 +542,7 @@
 							></textarea>
 							{#if showTagMenu && currentLineIndex === i}
 								<div
-									id="tag-menu"
+									data-testid="dialogue-tag-menu"
 									class="tag-menu"
 									transition:fade={{ duration: 100 }}
 								>
@@ -633,7 +636,7 @@
 			/>
 			{#if showTagMenu}
 				<div
-					id="tag-menu"
+					data-testid="dialogue-tag-menu"
 					class="tag-menu-plain-text"
 					transition:fade={{ duration: 100 }}
 				>
