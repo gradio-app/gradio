@@ -310,10 +310,15 @@ class Queue:
                 messages_to_publish.append(CloseStreamMessage())
 
         async def _publish_all():
-            for msg in messages_to_publish:
-                await self.sse_publisher.publish(session_hash, msg)
-            if any(isinstance(m, CloseStreamMessage) for m in messages_to_publish):
-                await self.sse_publisher.mark_done(session_hash)
+            try:
+                for msg in messages_to_publish:
+                    await self.sse_publisher.publish(session_hash, msg)
+                if any(isinstance(m, CloseStreamMessage) for m in messages_to_publish):
+                    await self.sse_publisher.mark_done(session_hash)
+            except Exception as e:
+                import traceback
+                print(f"ERROR: Failed to publish SSE to Redis for session {session_hash}: {e}")
+                traceback.print_exc()
 
         asyncio.ensure_future(_publish_all())
 
