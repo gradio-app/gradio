@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import datetime
 from contextlib import contextmanager
 
 import gradio as gr
 
 from gradio_client import Client
-from gradio_client.snippet import generate_code_snippets
+from gradio_client.snippet import _stringify_py, generate_code_snippets
 
 
 @contextmanager
@@ -94,3 +95,20 @@ class TestSnippetExecution:
             namespace = {}
             exec(python_snippet, namespace)
             assert isinstance(namespace["result"], (int, float))
+
+
+class TestStringifyPy:
+    def test_datetime_in_nested_structure(self):
+        """Non-JSON-native types like datetime should not raise TypeError."""
+        value = {
+            "headers": ["t", "x"],
+            "data": [[datetime.datetime(2026, 1, 1, 0, 0), 1]],
+        }
+        result = _stringify_py(value)
+        assert "2026-01-01" in result
+        assert isinstance(result, str)
+
+    def test_date_serialization(self):
+        value = [datetime.date(2026, 6, 15)]
+        result = _stringify_py(value)
+        assert "2026-06-15" in result
