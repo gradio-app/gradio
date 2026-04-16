@@ -15,7 +15,8 @@
 		| "javascript"
 		| "bash"
 		| "skill"
-		| "mcp";
+		| "mcp"
+		| "cli";
 	export let space_id: string | null;
 	export let root: string;
 	export let api_count: number;
@@ -280,7 +281,9 @@ Read more about the MCP in the [Gradio docs](${mcp_docs}).
 				? "JavaScript"
 				: current_language === "bash"
 					? "Bash"
-					: "MCP";
+					: current_language === "cli"
+						? "CLI"
+						: "MCP";
 
 	$: current_language;
 	$: current_language_label =
@@ -290,7 +293,9 @@ Read more about the MCP in the [Gradio docs](${mcp_docs}).
 				? "JavaScript"
 				: current_language === "bash"
 					? "Bash"
-					: "MCP";
+					: current_language === "cli"
+						? "CLI"
+						: "MCP";
 
 	let label = `Copy ${current_language_label} Docs as Markdown for LLMs`;
 	$: label = `Copy ${current_language_label} Docs as Markdown for LLMs`;
@@ -369,7 +374,7 @@ Read the documentation above so I can ask questions about it.`
 	}
 
 	async function copyMarkdown(
-		current_language: "python" | "javascript" | "bash" | "skill" | "mcp"
+		current_language: "python" | "javascript" | "bash" | "skill" | "mcp" | "cli"
 	): Promise<void> {
 		try {
 			if (!markdown_content[current_language]) {

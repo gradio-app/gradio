@@ -216,22 +216,12 @@ def generate_bash_snippet(
 
     if has_file:
         lines.append("# Step 1: Upload file(s)")
-        lines.append(
-            f"curl -X POST {upload_url} -F 'files=@/path/to/your/file'"
-        )
-        lines.append(
-            '# Returns: ["/path/on/server/file.ext"]'
-        )
+        lines.append(f"curl -X POST {upload_url} -F 'files=@/path/to/your/file'")
+        lines.append('# Returns: ["/path/on/server/file.ext"]')
         lines.append("")
-        lines.append(
-            "# Step 2: Call the API with the uploaded file path"
-        )
-        lines.append(
-            "# Use the path from step 1 along with the meta key"
-        )
-        lines.append(
-            '# {"path": "<path>", "meta": {"_type": "gradio.FileData"}}'
-        )
+        lines.append("# Step 2: Call the API with the uploaded file path")
+        lines.append("# Use the path from step 1 along with the meta key")
+        lines.append('# {"path": "<path>", "meta": {"_type": "gradio.FileData"}}')
 
     data_dict = {}
     for p in params:
@@ -241,18 +231,18 @@ def generate_bash_snippet(
         formatted = _represent_value(value, ptype, "bash")
         data_dict[name] = formatted
 
-    data_entries = ", ".join(
-        f'"{k}": {v}' for k, v in data_dict.items()
-    )
+    data_entries = ", ".join(f'"{k}": {v}' for k, v in data_dict.items())
     data_str = "{" + data_entries + "}"
     base_url = f"{normalised_root}{normalised_prefix}call/v2/{endpoint_name}"
     get_url = f"{normalised_root}{normalised_prefix}call/{endpoint_name}"
 
-    lines.extend([
-        f"curl -X POST {base_url} -s -H \"Content-Type: application/json\" -d '{data_str}' \\",
-        "  | awk -F'\"' '{ print $4}' \\",
-        f"  | read EVENT_ID; curl -N {get_url}/$EVENT_ID",
-    ])
+    lines.extend(
+        [
+            f"curl -X POST {base_url} -s -H \"Content-Type: application/json\" -d '{data_str}' \\",
+            "  | awk -F'\"' '{ print $4}' \\",
+            f"  | read EVENT_ID; curl -N {get_url}/$EVENT_ID",
+        ]
+    )
 
     return "\n".join(lines)
 
