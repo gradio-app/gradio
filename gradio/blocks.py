@@ -2825,6 +2825,14 @@ Received inputs:
                 )
                 from gradio.static_server import StaticServerConfig, StaticWorkerPool
 
+                redis_url = os.environ.get("GRADIO_REDIS_URL")
+                if redis_url:
+                    from gradio.queueing import RedisSSEPublisher
+
+                    self._queue.sse_publisher = RedisSSEPublisher(redis_url)
+                    if not quiet:
+                        print(f"* SSE delivery via Redis: {redis_url}")
+
                 static_config = StaticServerConfig(
                     build_path=str(BUILD_PATH_LIB),
                     static_path=str(STATIC_PATH_LIB),
@@ -2833,6 +2841,7 @@ Received inputs:
                     blocked_paths=self.blocked_paths,
                     max_file_size=self.max_file_size,
                     favicon_path=str(self.favicon_path) if self.favicon_path else None,
+                    redis_url=redis_url,
                 )
                 worker_ports = [
                     self.server_port + 1 + i

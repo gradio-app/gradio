@@ -48,6 +48,7 @@ class StaticServerConfig:
     blocked_paths: list[str] = field(default_factory=list)
     max_file_size: int | float | None = None
     favicon_path: str | None = None
+    redis_url: str | None = None
 
 
 XSS_SAFE_MIMETYPES = {
@@ -232,6 +233,54 @@ def create_static_app(config: StaticServerConfig) -> fastapi.FastAPI:
 
         return output_files
 
+    if config.redis_url:
+        import asyncio
+        import json
+
+        from starlette.responses import StreamingResponse
+
+        @app.get("/queue/data")
+        async def queue_data(request: fastapi.Request, session_hash: str):
+            import redis.asyncio as aioredis
+
+            r = aioredis.from_url(config.redis_url)
+            key = f"sse:{session_hash}"
+
+            async def sse_stream():
+                last_id = "0"
+                last_heartbeat = time.monotonic()
+                try:
+                    while True:
+                        if await request.is_disconnected():
+                            return
+                        result = await r.xread(
+                            {key: last_id}, count=10, block=1000
+                        )
+                        if result:
+                            for _stream_key, entries in result:
+                                for entry_id, fields in entries:
+                                    last_id = entry_id
+                                    payload = fields.get(b"payload") or fields.get("payload")
+                                    if payload is None:
+                                        continue
+                                    if isinstance(payload, bytes):
+                                        payload = payload.decode("utf-8")
+                                    yield f"data: {payload}\n\n"
+                                    data = json.loads(payload)
+                                    if data.get("msg") in ("close_stream", "server_stopped"):
+                                        return
+                        if time.monotonic() - last_heartbeat >= 15:
+                            yield 'data: {"msg": "heartbeat"}\n\n'
+                            last_heartbeat = time.monotonic()
+                except asyncio.CancelledError:
+                    return
+                finally:
+                    await r.aclose()
+
+            return StreamingResponse(
+                sse_stream(), media_type="text/event-stream"
+            )
+
     @app.get("/health")
     def health():
         return {"status": "ok"}
@@ -277,6 +326,7 @@ class StaticWorkerPool:
             and self.config.max_file_size != math.inf
             else None,
             "favicon_path": self.config.favicon_path,
+            "redis_url": self.config.redis_url,
         }
 
         for i, port in enumerate(self.ports):

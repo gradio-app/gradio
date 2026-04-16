@@ -133,10 +133,19 @@ def build_script(
     mixed_traffic: bool = False,
     num_workers: int = 1,
     use_nginx: bool = False,
+    use_redis: bool = False,
 ) -> str:
-    """Build the bash script that runs inside the HF Jobs container."""
-    bucket_dest = f"hf://buckets/gradio/backend-benchmarks/{run_name}/{branch}"
-    outputs_bucket_dest = f"hf://buckets/gradio/backend-benchmark-outputs/{run_name}/{branch}"
+    """Build the bash script that runs inside the HF Jobs container.
+
+    Results are written to /mnt/results which is a mounted bucket volume.
+    """
+    results_dir = f"/mnt/results/{run_name}/{branch}"
+
+    sys_packages = "ffmpeg nginx"
+    pip_packages = f"'{wheel_url}' httpx tqdm numpy 'huggingface-hub[hf_xet]'"
+    if use_redis:
+        sys_packages += " redis-server"
+        pip_packages += " redis"
 
     lines = [
         "#!/bin/bash",
@@ -149,17 +158,29 @@ def build_script(
         "ulimit -n 65536 2>/dev/null || true",
         "",
         "# Install system dependencies",
-        "apt-get update && apt-get install -y --no-install-recommends ffmpeg nginx && rm -rf /var/lib/apt/lists/*",
+        f"apt-get update && apt-get install -y --no-install-recommends {sys_packages} && rm -rf /var/lib/apt/lists/*",
         "",
         "# Install Python dependencies",
-        f"pip install '{wheel_url}' httpx tqdm numpy 'huggingface-hub[hf_xet]'",
+        f"pip install {pip_packages}",
         "",
+    ]
+
+    if use_redis:
+        lines.extend([
+            "# Start Redis server",
+            "redis-server --daemonize yes --save '' --appendonly no",
+            "export GRADIO_REDIS_URL=redis://localhost:6379",
+            "echo 'Redis started'",
+            "",
+        ])
+
+    lines.extend([
         "# Decode runner",
         f"echo '{runner_b64}' | base64 -d > /tmp/runner.py",
         "",
         "# Decode app files",
         "mkdir -p /tmp/apps",
-    ]
+    ])
 
     for stem, b64 in app_files:
         lines.append(f"echo '{b64}' | base64 -d > /tmp/apps/{stem}.py")
@@ -187,47 +208,19 @@ def build_script(
             "mixed_traffic": mixed_traffic,
             "num_workers": num_workers,
             "nginx": use_nginx,
+            "redis": use_redis,
         },
         indent=2,
     )
     lines.extend(
         [
             "",
-            "# Save runner script and run parameters to results for reproducibility",
-            "mkdir -p /tmp/results",
-            "cp /tmp/runner.py /tmp/results/runner.py",
-            "cat << 'PARAMS_EOF' > /tmp/results/run_params.json",
+            "# Save runner script and run parameters to results",
+            f"mkdir -p {results_dir}",
+            f"cp /tmp/runner.py {results_dir}/runner.py",
+            f"cat << 'PARAMS_EOF' > {results_dir}/run_params.json",
             run_params,
             "PARAMS_EOF",
-            "",
-            "# Write upload helper script",
-            "cat << 'UPLOAD_SCRIPT_EOF' > /tmp/upload.py",
-            "import sys, os",
-            "from huggingface_hub import HfFileSystem",
-            "src_dir, bucket = sys.argv[1], sys.argv[2]",
-            "fs = HfFileSystem()",
-            "for root, dirs, files in os.walk(src_dir):",
-            "    for f in files:",
-            "        local = os.path.join(root, f)",
-            "        remote = local.replace('/tmp/results', bucket)",
-            "        print(f'Uploading {local} -> {remote}')",
-            "        fs.put_file(local, remote)",
-            "UPLOAD_SCRIPT_EOF",
-            "",
-            "# Upload a directory to the bucket",
-            "upload_dir() {",
-            f'    python /tmp/upload.py "$1" "{bucket_dest}"',
-            "}",
-            "",
-            "# Upload only samples/ subdirs to a separate bucket",
-            "upload_outputs() {",
-            '    for d in $(find "$1" -type d -name samples 2>/dev/null); do',
-            f'        python /tmp/upload.py "$d" "{outputs_bucket_dest}"',
-            "    done",
-            "}",
-            "",
-            "# Upload run metadata (params + runner script) immediately",
-            "upload_dir /tmp/results",
             "",
             "# Run benchmarks sequentially (disable set -e so partial results are kept)",
             "set +e",
@@ -257,12 +250,8 @@ def build_script(
             cmd_lines.append(f"    --nginx \\")
         cmd_lines.extend(
             [
-                f"    --output-dir /tmp/results/{stem}",
+                f"    --output-dir {results_dir}/{stem}",
                 f'if [ $? -ne 0 ]; then echo "WARNING: {stem} benchmark failed"; benchmark_exit=1; fi',
-                f'echo "Uploading {stem} results..."',
-                f"upload_dir /tmp/results/{stem}",
-                f'echo "Uploading {stem} sample outputs..."',
-                f"upload_outputs /tmp/results/{stem}",
                 "",
             ]
         )
@@ -270,7 +259,7 @@ def build_script(
 
     lines.extend(
         [
-            f'echo "All results uploaded to {bucket_dest}/"',
+            f'echo "All results written to {results_dir}/"',
             "exit $benchmark_exit",
         ]
     )
@@ -298,11 +287,11 @@ def build_space_script(
     mixed_traffic: bool = False,
     num_workers: int = 1,
     use_nginx: bool = False,
+    use_redis: bool = False,
     app_path: str = "app.py",
 ) -> str:
     """Build the bash script for benchmarking a HF Space with a custom gradio wheel."""
-    bucket_dest = f"hf://buckets/gradio/backend-benchmarks/{run_name}/{branch}"
-    outputs_bucket_dest = f"hf://buckets/gradio/backend-benchmark-outputs/{run_name}/{branch}"
+    results_dir = f"/mnt/results/{run_name}/{branch}"
     app_stem = space_id.replace("/", "_")
 
     run_params = json.dumps(
@@ -358,40 +347,11 @@ def build_space_script(
     lines.extend(
         [
             "# Save run parameters for reproducibility",
-            "mkdir -p /tmp/results",
-            "cp /tmp/runner.py /tmp/results/runner.py",
-            "cat << 'PARAMS_EOF' > /tmp/results/run_params.json",
+            f"mkdir -p {results_dir}",
+            f"cp /tmp/runner.py {results_dir}/runner.py",
+            f"cat << 'PARAMS_EOF' > {results_dir}/run_params.json",
             run_params,
             "PARAMS_EOF",
-            "",
-            "# Write upload helper script",
-            "cat << 'UPLOAD_SCRIPT_EOF' > /tmp/upload.py",
-            "import sys, os",
-            "from huggingface_hub import HfFileSystem",
-            "src_dir, bucket = sys.argv[1], sys.argv[2]",
-            "fs = HfFileSystem()",
-            "for root, dirs, files in os.walk(src_dir):",
-            "    for f in files:",
-            "        local = os.path.join(root, f)",
-            "        remote = local.replace('/tmp/results', bucket)",
-            "        print(f'Uploading {local} -> {remote}')",
-            "        fs.put_file(local, remote)",
-            "UPLOAD_SCRIPT_EOF",
-            "",
-            "# Upload a directory to the bucket",
-            "upload_dir() {",
-            f'    python /tmp/upload.py "$1" "{bucket_dest}"',
-            "}",
-            "",
-            "# Upload only samples/ subdirs to a separate bucket",
-            "upload_outputs() {",
-            '    for d in $(find "$1" -type d -name samples 2>/dev/null); do',
-            f'        python /tmp/upload.py "$d" "{outputs_bucket_dest}"',
-            "    done",
-            "}",
-            "",
-            "# Upload run metadata immediately",
-            "upload_dir /tmp/results",
             "",
             f"# Run benchmark against the space app (working dir is /home/user/app)",
             "set +e",
@@ -419,12 +379,8 @@ def build_space_script(
         cmd_lines.append(f"    --nginx \\")
     cmd_lines.extend(
         [
-            f"    --output-dir /tmp/results/{app_stem}",
+            f"    --output-dir {results_dir}/{app_stem}",
             f'if [ $? -ne 0 ]; then echo "WARNING: {app_stem} benchmark failed"; benchmark_exit=1; fi',
-            f'echo "Uploading {app_stem} results..."',
-            f"upload_dir /tmp/results/{app_stem}",
-            f'echo "Uploading {app_stem} sample outputs..."',
-            f"upload_outputs /tmp/results/{app_stem}",
             "",
         ]
     )
@@ -432,7 +388,7 @@ def build_space_script(
 
     lines.extend(
         [
-            f'echo "All results uploaded to {bucket_dest}/"',
+            f'echo "All results written to {results_dir}/"',
             "exit $benchmark_exit",
         ]
     )
@@ -473,6 +429,7 @@ def prepare_job(
     mixed_traffic: bool = False,
     num_workers: int = 1,
     use_nginx: bool = False,
+    use_redis: bool = False,
 ) -> dict | None:
     """Resolve inputs, build script, and submit a single benchmark job.
 
@@ -551,6 +508,7 @@ def prepare_job(
             mixed_traffic=mixed_traffic,
             num_workers=num_workers,
             use_nginx=use_nginx,
+            use_redis=use_redis,
         )
     else:
         image = "python:3.12"
@@ -584,6 +542,7 @@ def prepare_job(
             mixed_traffic=mixed_traffic,
             num_workers=num_workers,
             use_nginx=use_nginx,
+            use_redis=use_redis,
         )
 
     timeout_secs = parse_timeout(timeout)
@@ -601,7 +560,7 @@ def prepare_job(
         print(f"  Bucket dest: {bucket_dest}/")
         return None
 
-    from huggingface_hub import get_token, run_job, whoami
+    from huggingface_hub import Volume, get_token, run_job, whoami
     from huggingface_hub.errors import HfHubHTTPError
 
     token = get_token()
@@ -617,6 +576,9 @@ def prepare_job(
     except HfHubHTTPError:
         use_gradio_namespace = False
 
+    namespace = "gradio" if use_gradio_namespace else None
+    results_bucket = f"{namespace}/backend-benchmarks" if namespace else "backend-benchmarks"
+
     print(f"[{branch}] Submitting job (hardware={hardware}, image={image})...")
     job = run_job(
         image=image,
@@ -624,7 +586,12 @@ def prepare_job(
         flavor=hardware,
         timeout=timeout_secs,
         secrets={"HF_TOKEN": token},
-        namespace="gradio" if use_gradio_namespace else None
+        namespace=namespace,
+        volumes=[
+            Volume(type="bucket", source=results_bucket, mount_path="/mnt/results"),
+            Volume(type="bucket", source="gradio/sample-inputs", mount_path="/sample-inputs")
+        ],
+        labels={"branch": branch, "run_name": run_name}
     )
 
     return {
@@ -717,6 +684,11 @@ def add_common_args(parser: argparse.ArgumentParser):
         help="Put nginx in front to route static traffic to workers (requires --num-workers > 1)",
     )
     parser.add_argument(
+        "--redis",
+        action="store_true",
+        help="Use Redis streams for SSE delivery via static workers (requires --nginx and --num-workers > 1)",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Print the Docker command and job config without submitting",
@@ -752,6 +724,7 @@ def cmd_run(args):
         mixed_traffic=args.mixed_traffic,
         num_workers=args.num_workers,
         use_nginx=args.nginx,
+        use_redis=args.redis,
     )
 
     if result:
@@ -797,6 +770,7 @@ def cmd_ab(args):
         mixed_traffic=args.mixed_traffic,
         num_workers=args.num_workers,
         use_nginx=args.nginx,
+        use_redis=args.redis,
     )
 
     result_a = prepare_job(branch=args.base, **common)
