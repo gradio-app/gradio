@@ -78,7 +78,19 @@
 		if (!res.ok) throw new Error(`Failed to fetch (${res.status})`);
 		const buffer = await res.arrayBuffer();
 		const normalized = normalize_ply_buffer(buffer);
-		SPLAT.PLYLoader.LoadFromArrayBuffer(normalized, scene);
+		try {
+			SPLAT.PLYLoader.LoadFromArrayBuffer(normalized, scene);
+		} catch (err) {
+			const bytes = new Uint8Array(normalized);
+			const head = Array.from(bytes.slice(0, 16))
+				.map((b) => b.toString(16).padStart(2, "0"))
+				.join(" ");
+			const sample = new TextDecoder().decode(bytes.slice(0, 500));
+			console.error(
+				`Model3D: PLY parse failed. url=${target_url} size=${bytes.length} first16=${head} sample=${JSON.stringify(sample)}`
+			);
+			throw err;
+		}
 	}
 
 	async function reset_scene(target_url: string): Promise<void> {

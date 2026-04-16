@@ -48,13 +48,34 @@
 	}
 
 	async function is_gaussian_splat_ply(url: string): Promise<boolean> {
+		const controller = new AbortController();
 		try {
-			const res = await fetch(url, { headers: { Range: "bytes=0-16383" } });
-			if (!res.ok && res.status !== 206) return false;
-			const text = await res.text();
+			const res = await fetch(url, { signal: controller.signal });
+			if (!res.ok || !res.body) return false;
+			const reader = res.body.getReader();
+			const chunks: Uint8Array[] = [];
+			let total = 0;
+			const LIMIT = 16384;
+			while (total < LIMIT) {
+				const { done, value } = await reader.read();
+				if (done) break;
+				chunks.push(value);
+				total += value.length;
+			}
+			controller.abort();
+			const merged = new Uint8Array(Math.min(total, LIMIT));
+			let offset = 0;
+			for (const chunk of chunks) {
+				const remaining = merged.length - offset;
+				if (remaining <= 0) break;
+				merged.set(chunk.subarray(0, Math.min(chunk.length, remaining)), offset);
+				offset += Math.min(chunk.length, remaining);
+			}
+			const text = new TextDecoder().decode(merged);
 			const header = text.split("end_header")[0] ?? "";
 			return /property\s+float\s+(f_dc_0|scale_0|rot_0)/.test(header);
 		} catch {
+			controller.abort();
 			return false;
 		}
 	}
