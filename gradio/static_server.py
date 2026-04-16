@@ -237,13 +237,13 @@ def create_static_app(config: StaticServerConfig) -> fastapi.FastAPI:
         import asyncio
         import json
 
+        import redis.asyncio as aioredis
         from starlette.responses import StreamingResponse
+
+        _redis_pool = aioredis.from_url(config.redis_url)
 
         @app.get("/queue/data")
         async def queue_data(request: fastapi.Request, session_hash: str):
-            import redis.asyncio as aioredis
-
-            r = aioredis.from_url(config.redis_url)
             key = f"sse:{session_hash}"
 
             async def sse_stream():
@@ -253,7 +253,7 @@ def create_static_app(config: StaticServerConfig) -> fastapi.FastAPI:
                     while True:
                         if await request.is_disconnected():
                             return
-                        result = await r.xread(
+                        result = await _redis_pool.xread(
                             {key: last_id}, count=10, block=1000
                         )
                         if result:
@@ -274,8 +274,6 @@ def create_static_app(config: StaticServerConfig) -> fastapi.FastAPI:
                             last_heartbeat = time.monotonic()
                 except asyncio.CancelledError:
                     return
-                finally:
-                    await r.aclose()
 
             return StreamingResponse(
                 sse_stream(), media_type="text/event-stream"

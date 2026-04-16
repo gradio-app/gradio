@@ -664,7 +664,7 @@ http {{
             proxy_http_version 1.1;
         }}
 
-        # SSE stream -> static workers (when Redis SSE is enabled)
+        # SSE stream -> static workers (Redis-backed)
         location /gradio_api/queue/data {{
             proxy_pass http://static_workers/queue/data;
             proxy_set_header Host $host;
@@ -737,6 +737,7 @@ async def run_benchmark(
     mixed_traffic: bool = False,
     num_workers: int = 1,
     use_nginx: bool = False,
+    redis_url: str | None = None,
 ):
     import socket
 
@@ -764,9 +765,9 @@ async def run_benchmark(
         env["GRADIO_DEFAULT_CONCURRENCY_LIMIT"] = str(concurrency_limit)
     if num_workers > 1:
         env["GRADIO_NUM_WORKERS"] = str(num_workers)
-    redis_url = os.environ.get("GRADIO_REDIS_URL")
-    if redis_url and num_workers > 1:
-        env["GRADIO_REDIS_URL"] = redis_url
+    resolved_redis = redis_url or os.environ.get("GRADIO_REDIS_URL")
+    if resolved_redis and num_workers > 1:
+        env["GRADIO_REDIS_URL"] = resolved_redis
     env["PYTHONUNBUFFERED"] = "1"
 
     sample_inputs_path = (Path(os.getcwd()) / 'sample-inputs')
@@ -1143,6 +1144,11 @@ def main():
         action="store_true",
         help="Put nginx in front to route static traffic to workers (requires nginx installed)",
     )
+    parser.add_argument(
+        "--redis",
+        default=None,
+        help="Redis URL for SSE delivery via static workers (e.g. redis://localhost:6379)",
+    )
 
     args = parser.parse_args()
     tiers = [int(t.strip()) for t in args.tiers.split(",")]
@@ -1163,6 +1169,7 @@ def main():
             mixed_traffic=args.mixed_traffic,
             num_workers=args.num_workers,
             use_nginx=args.nginx,
+            redis_url=args.redis,
         )
     )
 
