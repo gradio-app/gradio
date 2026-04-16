@@ -77,6 +77,98 @@ POLICY_EVENTS = {
         {"year": 2012, "text": "Carbon farming legislation", "url": "https://en.wikipedia.org/wiki/Climate_change_in_Australia"},
         {"year": 2022, "text": "Nature Repair Market Act", "url": "https://en.wikipedia.org/wiki/Climate_change_in_Australia"},
     ],
+    "United States": [
+        {"year": 2001, "text": "Healthy Forests Initiative", "url": "https://en.wikipedia.org/wiki/Healthy_Forests_Initiative"},
+        {"year": 2008, "text": "Lacey Act amended to ban illegal timber", "url": "https://en.wikipedia.org/wiki/Lacey_Act_of_1900"},
+        {"year": 2022, "text": "Inflation Reduction Act — $5B for forests", "url": "https://en.wikipedia.org/wiki/Inflation_Reduction_Act"},
+    ],
+    "Russia": [
+        {"year": 1997, "text": "First Russian Forest Code", "url": "https://en.wikipedia.org/wiki/Forestry_in_Russia"},
+        {"year": 2006, "text": "New Forest Code — privatisation of management", "url": "https://en.wikipedia.org/wiki/Forestry_in_Russia"},
+        {"year": 2020, "text": "Forest protection reform after record fires", "url": "https://en.wikipedia.org/wiki/Forestry_in_Russia"},
+    ],
+    "Bolivia": [
+        {"year": 1996, "text": "Forestry Law 1700 enacted", "url": "https://en.wikipedia.org/wiki/Deforestation"},
+        {"year": 2012, "text": "Mother Earth Law", "url": "https://en.wikipedia.org/wiki/Law_of_the_Rights_of_Mother_Earth"},
+    ],
+    "Peru": [
+        {"year": 2011, "text": "Forest and Wildlife Law 29763", "url": "https://en.wikipedia.org/wiki/Deforestation_in_Peru"},
+        {"year": 2014, "text": "Joint Declaration with Norway & Germany", "url": "https://en.wikipedia.org/wiki/Deforestation_in_Peru"},
+    ],
+    "Paraguay": [
+        {"year": 2004, "text": "Zero Deforestation Law (East region)", "url": "https://en.wikipedia.org/wiki/Deforestation"},
+    ],
+    "Madagascar": [
+        {"year": 2003, "text": "Durban Vision — triple protected areas", "url": "https://en.wikipedia.org/wiki/Environment_of_Madagascar"},
+        {"year": 2015, "text": "National REDD+ strategy", "url": "https://en.wikipedia.org/wiki/REDD_and_REDD%2B"},
+    ],
+    "Cameroon": [
+        {"year": 1994, "text": "Forest Law 94/01 enacted", "url": "https://en.wikipedia.org/wiki/Forestry_in_Cameroon"},
+        {"year": 2010, "text": "CAFI partnership initiated", "url": "https://en.wikipedia.org/wiki/Forestry_in_Cameroon"},
+    ],
+    "Nigeria": [
+        {"year": 1999, "text": "Federal Forestry Policy", "url": "https://en.wikipedia.org/wiki/Forestry_in_Nigeria"},
+        {"year": 2017, "text": "Great Green Wall commitment", "url": "https://en.wikipedia.org/wiki/Great_Green_Wall_(Africa)"},
+    ],
+    "Myanmar": [
+        {"year": 1992, "text": "Forest Law passed", "url": "https://en.wikipedia.org/wiki/Deforestation"},
+        {"year": 2014, "text": "Raw log export ban", "url": "https://en.wikipedia.org/wiki/Deforestation"},
+    ],
+    "Tanzania": [
+        {"year": 2002, "text": "Forest Act enacted", "url": "https://en.wikipedia.org/wiki/Environmental_issues_in_Tanzania"},
+        {"year": 2015, "text": "National REDD+ strategy", "url": "https://en.wikipedia.org/wiki/REDD_and_REDD%2B"},
+    ],
+}
+
+
+CLIMATE_EVENTS = {
+    "Australia": [
+        {"year": 2002, "text": "Millennium Drought intensifies", "url": "https://en.wikipedia.org/wiki/2000s_Australian_drought"},
+        {"year": 2009, "text": "Black Saturday bushfires (430k ha)", "url": "https://en.wikipedia.org/wiki/Black_Saturday_bushfires"},
+        {"year": 2020, "text": "Black Summer fires (18.6M ha)", "url": "https://en.wikipedia.org/wiki/2019%E2%80%9320_Australian_bushfire_season"},
+    ],
+    "Indonesia": [
+        {"year": 1997, "text": "Southeast Asian haze from peat fires", "url": "https://en.wikipedia.org/wiki/1997_Southeast_Asian_haze"},
+        {"year": 2015, "text": "Peat fires burn 2.6M ha", "url": "https://en.wikipedia.org/wiki/2015_Southeast_Asian_haze"},
+        {"year": 2019, "text": "Major fire season, 1.6M ha burned", "url": "https://en.wikipedia.org/wiki/2019_Southeast_Asian_haze"},
+    ],
+    "Brazil": [
+        {"year": 2019, "text": "Amazon fires spike 84%", "url": "https://en.wikipedia.org/wiki/2019_Amazon_rainforest_wildfires"},
+        {"year": 2020, "text": "Pantanal wetland fires (4M ha)", "url": "https://en.wikipedia.org/wiki/2020_Pantanal_wildfires"},
+    ],
+    "Canada": [
+        {"year": 2005, "text": "Mountain pine beetle peak (18M ha)", "url": "https://en.wikipedia.org/wiki/Mountain_pine_beetle"},
+        {"year": 2016, "text": "Fort McMurray fire", "url": "https://en.wikipedia.org/wiki/2016_Fort_McMurray_wildfire"},
+        {"year": 2023, "text": "Record fire season (18.5M ha)", "url": "https://en.wikipedia.org/wiki/2023_Canadian_wildfires"},
+    ],
+    "Russia": [
+        {"year": 2010, "text": "Moscow smog — wildfires kill 56k", "url": "https://en.wikipedia.org/wiki/2010_Russian_wildfires"},
+        {"year": 2019, "text": "Siberian fires (4M ha)", "url": "https://en.wikipedia.org/wiki/2019_Siberia_wildfires"},
+        {"year": 2021, "text": "Record Siberian fires (18.8M ha)", "url": "https://en.wikipedia.org/wiki/2021_Russia_wildfires"},
+    ],
+    "China": [
+        {"year": 1998, "text": "Yangtze floods kill 4,000+", "url": "https://en.wikipedia.org/wiki/1998_China_floods"},
+    ],
+    "United States": [
+        {"year": 2018, "text": "Camp Fire destroys Paradise", "url": "https://en.wikipedia.org/wiki/Camp_Fire_(2018)"},
+        {"year": 2020, "text": "Record fire season (4.2M acres)", "url": "https://en.wikipedia.org/wiki/2020_California_wildfires"},
+        {"year": 2023, "text": "Maui fires & Canadian smoke crisis", "url": "https://en.wikipedia.org/wiki/2023_Hawaii_wildfires"},
+    ],
+    "Colombia": [
+        {"year": 2017, "text": "Deforestation spikes in post-FARC areas", "url": "https://en.wikipedia.org/wiki/Deforestation_in_Colombia"},
+    ],
+    "Mexico": [
+        {"year": 2011, "text": "Worst drought in 70 years", "url": "https://en.wikipedia.org/wiki/Climate_change_in_Mexico"},
+    ],
+    "Bolivia": [
+        {"year": 2019, "text": "Chiquitano fires burn 2.3M ha", "url": "https://en.wikipedia.org/wiki/2019_Amazon_rainforest_wildfires"},
+    ],
+    "Madagascar": [
+        {"year": 2020, "text": "Severe drought in southern regions", "url": "https://en.wikipedia.org/wiki/Environment_of_Madagascar"},
+    ],
+    "DR Congo": [
+        {"year": 2003, "text": "Second Congo War ends", "url": "https://en.wikipedia.org/wiki/Second_Congo_War"},
+    ],
 }
 
 
@@ -192,6 +284,7 @@ def get_forest_data(country: str) -> dict:
     forest = _fetch_wb(code, "AG.LND.FRST.ZS")
     governance = _fetch_wb(code, "RL.EST")
     policies = POLICY_EVENTS.get(country, [])
+    climate = CLIMATE_EVENTS.get(country, [])
 
     summary = {}
     if forest:
@@ -212,6 +305,7 @@ def get_forest_data(country: str) -> dict:
         "forest": forest,
         "governance": governance,
         "policies": policies,
+        "climate": climate,
         "summary": summary,
     }
 
@@ -238,6 +332,8 @@ def explain_spike(country: str, year: int) -> dict:
 
     policies = POLICY_EVENTS.get(country, [])
     nearby_policies = [p for p in policies if abs(p["year"] - year) <= 3]
+    climate = CLIMATE_EVENTS.get(country, [])
+    nearby_climate = [c for c in climate if abs(c["year"] - year) <= 3]
 
     window = [f for f in forest if abs(f["year"] - year) <= 5]
     window.sort(key=lambda x: x["year"])
@@ -288,6 +384,7 @@ def explain_spike(country: str, year: int) -> dict:
         "rate_5yr_before": rate_before,
         "rate_5yr_after": rate_after,
         "nearby_policies": nearby_policies,
+        "nearby_climate": nearby_climate,
         "context": context,
         "window": window,
     }
@@ -1143,9 +1240,14 @@ button.action:active {{
             <canvas id="chart"></canvas>
         </div>
         <div class="figure-caption">
-            <span class="smallcaps">Note —</span> Forest area as percentage of total land. Oxblood markers denote known policy events
-            (hover the line to read). Rule of Law index plotted on secondary axis where available.
-            Click any data point for a detailed dossier.
+            <span class="smallcaps">Legend —</span>
+            <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--oxblood);vertical-align:middle;margin-right:4px"></span> policy event
+            &nbsp;·&nbsp;
+            <span style="display:inline-block;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:10px solid var(--amber);vertical-align:middle;margin-right:4px"></span> climate / disaster event
+            &nbsp;·&nbsp;
+            <span style="display:inline-block;width:12px;height:2px;background:var(--amber);vertical-align:middle;margin-right:4px"></span> rule of law
+            <br>
+            Hover the line to read an event. Click any year for a full dossier.
         </div>
     </section>
 
@@ -1377,14 +1479,14 @@ function renderChart(data, compareData) {{
 
     const annotations = {{}};
     (data.policies || []).forEach((p, i) => {{
-        annotations['line' + i] = {{
+        annotations['pline' + i] = {{
             type: 'line',
             xMin: p.year, xMax: p.year,
-            borderColor: 'rgba(139, 42, 31, 0.25)',
+            borderColor: 'rgba(139, 42, 31, 0.22)',
             borderWidth: 1,
             borderDash: [3, 4],
         }};
-        annotations['label' + i] = {{
+        annotations['ppoint' + i] = {{
             type: 'point',
             xValue: p.year,
             yValue: data.forest.find(f => f.year === p.year)?.value || data.forest[0].value,
@@ -1393,6 +1495,26 @@ function renderChart(data, compareData) {{
             borderColor: PAPER_TINT,
             borderWidth: 2,
             hoverRadius: 8,
+        }};
+    }});
+    (data.climate || []).forEach((c, i) => {{
+        annotations['cline' + i] = {{
+            type: 'line',
+            xMin: c.year, xMax: c.year,
+            borderColor: 'rgba(168, 115, 42, 0.22)',
+            borderWidth: 1,
+            borderDash: [1, 3],
+        }};
+        annotations['cpoint' + i] = {{
+            type: 'point',
+            xValue: c.year,
+            yValue: data.forest.find(f => f.year === c.year)?.value || data.forest[0].value,
+            radius: 6,
+            pointStyle: 'triangle',
+            backgroundColor: AMBER,
+            borderColor: PAPER_TINT,
+            borderWidth: 2,
+            hoverRadius: 9,
         }};
     }});
 
@@ -1442,8 +1564,12 @@ function renderChart(data, compareData) {{
                         afterBody: function(items) {{
                             if (!items.length) return;
                             const year = Math.round(items[0].parsed.x);
+                            const lines = [];
                             const policy = (data.policies || []).find(p => p.year === year);
-                            return policy ? ['', '§ ' + policy.text] : '';
+                            const climateEv = (data.climate || []).find(c => c.year === year);
+                            if (policy) lines.push('', '§ Policy — ' + policy.text);
+                            if (climateEv) lines.push('', '△ Climate — ' + climateEv.text);
+                            return lines;
                         }}
                     }}
                 }}
@@ -1637,10 +1763,20 @@ async function handlePointClick(year) {{
 
     if (result.nearby_policies && result.nearby_policies.length) {{
         html += `<div class="nearby-block">
-            <div class="k">Nearby policy events · ±3 years</div>`;
+            <div class="k">§ Nearby policy events · ±3 years</div>`;
         result.nearby_policies.forEach(p => {{
             const pLink = p.url ? ` <a href="${{p.url}}" target="_blank" style="color:var(--ink-mute);font-size:11px">↗</a>` : '';
             html += `<div class="nearby-item"><span class="yr">${{p.year}}</span><span>${{p.text}}${{pLink}}</span></div>`;
+        }});
+        html += `</div>`;
+    }}
+
+    if (result.nearby_climate && result.nearby_climate.length) {{
+        html += `<div class="nearby-block">
+            <div class="k" style="color:var(--amber-deep)">△ Nearby climate events · ±3 years</div>`;
+        result.nearby_climate.forEach(c => {{
+            const cLink = c.url ? ` <a href="${{c.url}}" target="_blank" style="color:var(--ink-mute);font-size:11px">↗</a>` : '';
+            html += `<div class="nearby-item"><span class="yr" style="color:var(--amber-deep)">${{c.year}}</span><span>${{c.text}}${{cLink}}</span></div>`;
         }});
         html += `</div>`;
     }}
