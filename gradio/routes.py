@@ -946,14 +946,21 @@ class App(FastAPI):
             for endpoint_path, endpoint_info in info.get("named_endpoints", {}).items():  # type: ignore
                 if endpoint_info.get("api_visibility", "public") == "private":
                     continue
+                endpoint_name = endpoint_path.strip("/").replace("/", "_")
+                has_file_params = any(
+                    p.get("type", {}).get("type") == "filepath"
+                    for p in info_simple[endpoint_path].get("parameters", [])
+                )
+                summary = (
+                    endpoint_info.get("description", "") or f"Endpoint {endpoint_path}"
+                )
+                if has_file_params:
+                    summary += '. Any file inputs must include {"path": "url", "meta": {"_type": "gradio.FileData"}}. The meta key signals the gradio server to treat this input as a valid file.'
                 path_item = {
                     "post": {
-                        "summary": endpoint_info.get(
-                            "description", f"Endpoint {endpoint_path}"
-                        )
-                        + 'Any previously uploaded files must include {"path": "url", "meta": {"_type": "gradio.FileData"}}. The meta key signals the gradio server to treat this input as a valid file.',
+                        "summary": summary,
                         "description": endpoint_info.get("description", ""),
-                        "operationId": endpoint_path.strip("/").replace("/", "_"),
+                        "operationId": endpoint_name,
                         "requestBody": {
                             "required": True,
                             "content": {
@@ -969,7 +976,9 @@ class App(FastAPI):
                                     "application/json": {
                                         "schema": {
                                             "type": "object",
-                                            "properties": {"event_id": "string"},
+                                            "properties": {
+                                                "event_id": {"type": "string"}
+                                            },
                                         }
                                     }
                                 },
@@ -992,6 +1001,11 @@ class App(FastAPI):
                     if "properties" in param_type and "type" not in param_type:
                         param_type = dict(param_type)
                         param_type["type"] = "object"
+
+                    if param_type.get("type") == "filepath":
+                        param_type = dict(param_type)
+                        param_type["type"] = "string"
+                        param_type["format"] = "filepath"
 
                     request_properties[param_name] = param_type  # type: ignore
 
@@ -1022,6 +1036,32 @@ class App(FastAPI):
                 )
 
                 schema["paths"][f"/gradio_api/call/v2{endpoint_path}"] = path_item  # type: ignore
+
+                get_path = f"/gradio_api/call{endpoint_path}/{{event_id}}"
+                schema["paths"][get_path] = {  # type: ignore
+                    "get": {
+                        "summary": f"Fetch results for {endpoint_path}",
+                        "description": "Returns a stream of server-sent events (SSE). The final event has `event: complete` with `data` containing a JSON array of outputs.",
+                        "operationId": f"{endpoint_name}_get",
+                        "parameters": [
+                            {
+                                "name": "event_id",
+                                "in": "path",
+                                "required": True,
+                                "schema": {"type": "string"},
+                                "description": "The event_id returned by the POST request",
+                            }
+                        ],
+                        "responses": {
+                            "200": {
+                                "description": "SSE stream with event: complete containing a JSON array of outputs",
+                                "content": {
+                                    "text/event-stream": {"schema": {"type": "string"}}
+                                },
+                            }
+                        },
+                    }
+                }
 
             return schema
 
