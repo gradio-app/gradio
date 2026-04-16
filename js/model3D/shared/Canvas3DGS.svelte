@@ -20,7 +20,6 @@
 	let camera: SPLAT.Camera;
 	let renderer: SPLAT.WebGLRenderer | null = null;
 	let controls: SPLAT.OrbitControls;
-	let mounted = false;
 	let frameId: number | null = null;
 	let active_path: string | undefined;
 	let load_token = 0;
@@ -47,6 +46,39 @@
 			frameId = requestAnimationFrame(tick);
 		};
 		frameId = requestAnimationFrame(tick);
+	}
+
+	function normalize_ply_buffer(buffer: ArrayBuffer): ArrayBuffer {
+		const bytes = new Uint8Array(buffer);
+		let offset = 0;
+		if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+			offset = 3;
+		}
+		if (
+			bytes[offset] === 0x70 &&
+			bytes[offset + 1] === 0x6c &&
+			bytes[offset + 2] === 0x79 &&
+			bytes[offset + 3] === 0x0d &&
+			bytes[offset + 4] === 0x0a
+		) {
+			const out = new Uint8Array(bytes.length - offset - 1);
+			out.set(bytes.subarray(offset, offset + 3), 0);
+			out[3] = 0x0a;
+			out.set(bytes.subarray(offset + 5), 4);
+			return out.buffer;
+		}
+		if (offset > 0) {
+			return bytes.subarray(offset).slice().buffer;
+		}
+		return buffer;
+	}
+
+	async function load_ply(target_url: string): Promise<void> {
+		const res = await fetch(target_url);
+		if (!res.ok) throw new Error(`Failed to fetch (${res.status})`);
+		const buffer = await res.arrayBuffer();
+		const normalized = normalize_ply_buffer(buffer);
+		SPLAT.PLYLoader.LoadFromArrayBuffer(normalized, scene);
 	}
 
 	async function reset_scene(target_url: string): Promise<void> {
@@ -79,7 +111,7 @@
 		error = null;
 		try {
 			if (target_url.endsWith(".ply")) {
-				await SPLAT.PLYLoader.LoadAsync(target_url, scene, undefined);
+				await load_ply(target_url);
 			} else if (target_url.endsWith(".splat")) {
 				await SPLAT.Loader.LoadAsync(target_url, scene, undefined);
 			} else {
@@ -97,8 +129,6 @@
 	}
 
 	onMount(() => {
-		mounted = true;
-
 		return () => {
 			load_token++;
 			stop_frame();
@@ -119,9 +149,7 @@
 		if (!canvas) return;
 		if (next === active_path) return;
 		active_path = next;
-		untrack(() => {
-			if (mounted) reset_scene(next);
-		});
+		untrack(() => reset_scene(next));
 	});
 </script>
 
