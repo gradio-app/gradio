@@ -1,9 +1,7 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, untrack } from "svelte";
 	import * as SPLAT from "gsplat";
 	import type { FileData } from "@gradio/client";
-	import PlyWorker from "./ply.worker.ts?worker";
-	import type { ParseResponse } from "./ply.worker";
 
 	let {
 		value,
@@ -15,28 +13,20 @@
 		pan_speed: number;
 	} = $props();
 
-	let url = $derived(value?.url);
 	let path = $derived(value?.path);
 
 	let canvas: HTMLCanvasElement;
 	let scene: SPLAT.Scene;
 	let camera: SPLAT.Camera;
-	let renderer = $state<SPLAT.WebGLRenderer | null>(null);
+	let renderer: SPLAT.WebGLRenderer | null = null;
 	let controls: SPLAT.OrbitControls;
-	let mounted = $state(false);
+	let mounted = false;
 	let frameId: number | null = null;
-	let abort: AbortController | null = null;
-	let worker: Worker | null = null;
+	let active_path: string | undefined;
+	let load_token = 0;
 
 	let loading = $state(false);
 	let error = $state<string | null>(null);
-
-	function dispose_load(): void {
-		abort?.abort();
-		abort = null;
-		worker?.terminate();
-		worker = null;
-	}
 
 	function stop_frame(): void {
 		if (frameId !== null) {
@@ -59,83 +49,47 @@
 		frameId = requestAnimationFrame(tick);
 	}
 
-	async function load_ply(target_url: string): Promise<void> {
-		const controller = new AbortController();
-		abort = controller;
-		const res = await fetch(target_url, { signal: controller.signal });
-		if (!res.ok) throw new Error(`Failed to fetch .ply (${res.status})`);
-		const buffer = await res.arrayBuffer();
-		if (controller.signal.aborted) return;
-
-		const w = new PlyWorker();
-		worker = w;
-
-		await new Promise<void>((resolve, reject) => {
-			controller.signal.addEventListener("abort", () => {
-				w.terminate();
-				reject(new DOMException("Aborted", "AbortError"));
-			});
-			w.onmessage = (e: MessageEvent<ParseResponse>) => {
-				if (controller.signal.aborted) return;
-				if (!e.data.ok) {
-					reject(new Error(e.data.error));
-					return;
-				}
-				try {
-					const splat_data = SPLAT.SplatData.Deserialize(e.data.data);
-					const splat = new SPLAT.Splat(splat_data);
-					scene.addObject(splat);
-					resolve();
-				} catch (err) {
-					reject(err);
-				}
-			};
-			w.onerror = (e) => reject(new Error(e.message || "Worker error"));
-			w.postMessage({ buffer, format: "" }, [buffer]);
-		});
-	}
-
-	async function load(target_url: string): Promise<void> {
-		if (target_url.endsWith(".ply")) {
-			await load_ply(target_url);
-		} else if (target_url.endsWith(".splat")) {
-			const controller = new AbortController();
-			abort = controller;
-			await SPLAT.Loader.LoadAsync(target_url, scene, undefined);
-			if (controller.signal.aborted) return;
-		} else {
-			throw new Error("Unsupported file type");
-		}
-	}
-
-	async function reset_scene(): Promise<void> {
-		dispose_load();
+	async function reset_scene(target_url: string): Promise<void> {
+		const token = ++load_token;
 		stop_frame();
 
 		if (renderer !== null) {
-			renderer.dispose();
+			try {
+				renderer.dispose();
+			} catch (err) {
+				console.warn("Model3D: renderer dispose failed", err);
+			}
 			renderer = null;
 		}
 
-		scene = new SPLAT.Scene();
-		camera = new SPLAT.Camera();
-		renderer = new SPLAT.WebGLRenderer(canvas);
-		controls = new SPLAT.OrbitControls(camera, canvas);
-		controls.zoomSpeed = zoom_speed;
-		controls.panSpeed = pan_speed;
-
-		if (!url) return;
+		try {
+			scene = new SPLAT.Scene();
+			camera = new SPLAT.Camera();
+			renderer = new SPLAT.WebGLRenderer(canvas);
+			controls = new SPLAT.OrbitControls(camera, canvas);
+			controls.zoomSpeed = zoom_speed;
+			controls.panSpeed = pan_speed;
+		} catch (err) {
+			error = (err as Error).message || "Failed to initialise 3D viewer";
+			console.error("Model3D: scene init failed", err);
+			return;
+		}
 
 		loading = true;
 		error = null;
-		const target_url = url;
 		try {
-			await load(target_url);
-			if (url !== target_url) return;
+			if (target_url.endsWith(".ply")) {
+				await SPLAT.PLYLoader.LoadAsync(target_url, scene, undefined);
+			} else if (target_url.endsWith(".splat")) {
+				await SPLAT.Loader.LoadAsync(target_url, scene, undefined);
+			} else {
+				throw new Error("Unsupported file type");
+			}
+			if (token !== load_token) return;
 			loading = false;
 			start_frame();
 		} catch (err) {
-			if ((err as Error).name === "AbortError") return;
+			if (token !== load_token) return;
 			loading = false;
 			error = (err as Error).message || "Failed to load 3D model";
 			console.error("Model3D: failed to load", err);
@@ -143,25 +97,31 @@
 	}
 
 	onMount(() => {
-		if (value != null) {
-			reset_scene();
-		}
 		mounted = true;
 
 		return () => {
-			dispose_load();
+			load_token++;
 			stop_frame();
 			if (renderer) {
-				renderer.dispose();
+				try {
+					renderer.dispose();
+				} catch {
+					/* noop */
+				}
 				renderer = null;
 			}
 		};
 	});
 
 	$effect(() => {
-		if (canvas && mounted && path) {
-			reset_scene();
-		}
+		const next = path;
+		if (!next) return;
+		if (!canvas) return;
+		if (next === active_path) return;
+		active_path = next;
+		untrack(() => {
+			if (mounted) reset_scene(next);
+		});
 	});
 </script>
 

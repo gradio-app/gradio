@@ -36,6 +36,7 @@
 	let Canvas3DGSComponent = $state<typeof Canvas3DGS>();
 	let Canvas3DComponent = $state<typeof Canvas3D>();
 	let canvas3d = $state<Canvas3D | undefined>();
+	let resolved_path: string | undefined;
 
 	async function loadCanvas3D(): Promise<typeof Canvas3D> {
 		const module = await import("./Canvas3D.svelte");
@@ -59,19 +60,22 @@
 	}
 
 	$effect(() => {
-		if (!value) {
+		const next_path = value?.path;
+		const next_url = value?.url;
+		if (next_path === resolved_path) return;
+		resolved_path = next_path;
+
+		if (!next_path) {
 			use_3dgs = null;
 			return;
 		}
-		const current_path = value.path;
-		const current_url = value.url;
-		if (current_path.endsWith(".splat")) {
+		if (next_path.endsWith(".splat")) {
 			use_3dgs = true;
 			loadCanvas3DGS().then((component) => {
 				Canvas3DGSComponent = component;
 			});
-		} else if (current_path.endsWith(".ply")) {
-			if (!current_url) {
+		} else if (next_path.endsWith(".ply")) {
+			if (!next_url) {
 				use_3dgs = false;
 				loadCanvas3D().then((component) => {
 					Canvas3DComponent = component;
@@ -79,8 +83,8 @@
 				return;
 			}
 			use_3dgs = null;
-			is_gaussian_splat_ply(current_url).then((is_gs) => {
-				if (value?.path !== current_path) return;
+			is_gaussian_splat_ply(next_url).then((is_gs) => {
+				if (resolved_path !== next_path) return;
 				use_3dgs = is_gs;
 				if (is_gs) {
 					loadCanvas3DGS().then((component) => {
