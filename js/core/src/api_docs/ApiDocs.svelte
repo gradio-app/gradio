@@ -483,7 +483,14 @@
 								<code>GET</code> request to fetch the results. In these
 								snippets, we've used <code>awk</code> and <code>read</code> to
 								parse the results, combining these two requests into one command
-								for ease of use. {#if username !== null}
+								for ease of use.
+								<br />&nbsp;<br />
+								If your endpoint accepts files, you must first upload them via a
+								<code>POST</code> to <code>/upload</code>, then reference the
+								returned path with the <code>meta</code> key:
+								<code>{"{"}"path": "...", "meta": {"{"}"_type": "gradio.FileData"{"}"}{"}"}
+								</code>.
+								{#if username !== null}
 									Note: connecting to an authenticated app requires an
 									additional request.{/if} See
 								<a href={bash_docs} target="_blank">curl docs</a>.

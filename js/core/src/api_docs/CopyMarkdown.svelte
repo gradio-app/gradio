@@ -153,7 +153,9 @@ curl --version
 
 2. Find the API endpoint below corresponding to your desired function in the app. Copy the code snippet, replacing the placeholder values with your own input data.
 
-Making a prediction and getting a result requires 2 requests: a POST and a GET request. The POST request returns an EVENT_ID, which is used in the second GET request to fetch the results. In these snippets, we've used awk and read to parse the results, combining these two requests into one command for ease of use. See [curl docs](${bash_docs}).
+Making a prediction and getting a result requires 2 requests: a POST and a GET request. The POST request returns an EVENT_ID, which is used in the second GET request to fetch the results. In these snippets, we've used awk and read to parse the results, combining these two requests into one command for ease of use.
+
+If your endpoint accepts files, you must first upload them via a POST to \`/upload\`, then reference the returned path with the meta key: \`{"path": "...", "meta": {"_type": "gradio.FileData"}}\`. See [curl docs](${bash_docs}).
 
 ${dependencies
 	.filter(

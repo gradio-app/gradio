@@ -209,21 +209,50 @@ def generate_bash_snippet(
     normalised_prefix = api_prefix if api_prefix else "/"
     endpoint_name = api_name.lstrip("/")
 
-    data_values = []
+    has_file = any(_has_file_data(p.get("example_input")) for p in params)
+    upload_url = f"{normalised_root}{normalised_prefix}upload"
+
+    lines: list[str] = []
+
+    if has_file:
+        lines.append("# Step 1: Upload file(s)")
+        lines.append(
+            f"curl -X POST {upload_url} -F 'files=@/path/to/your/file'"
+        )
+        lines.append(
+            '# Returns: ["/path/on/server/file.ext"]'
+        )
+        lines.append("")
+        lines.append(
+            "# Step 2: Call the API with the uploaded file path"
+        )
+        lines.append(
+            "# Use the path from step 1 along with the meta key"
+        )
+        lines.append(
+            '# {"path": "<path>", "meta": {"_type": "gradio.FileData"}}'
+        )
+
+    data_dict = {}
     for p in params:
+        name = p.get("parameter_name") or p.get("label", "input")
         value = _get_param_value(p)
         ptype = p.get("python_type", {}).get("type")
         formatted = _represent_value(value, ptype, "bash")
-        data_values.append(formatted)
+        data_dict[name] = formatted
 
-    data_str = ", ".join(data_values)
-    base_url = f"{normalised_root}{normalised_prefix}call/{endpoint_name}"
+    data_entries = ", ".join(
+        f'"{k}": {v}' for k, v in data_dict.items()
+    )
+    data_str = "{" + data_entries + "}"
+    base_url = f"{normalised_root}{normalised_prefix}call/v2/{endpoint_name}"
+    get_url = f"{normalised_root}{normalised_prefix}call/{endpoint_name}"
 
-    lines = [
-        f'curl -X POST {base_url} -s -H "Content-Type: application/json" -d \'{{"data": [{data_str}]}}\' \\',
+    lines.extend([
+        f"curl -X POST {base_url} -s -H \"Content-Type: application/json\" -d '{data_str}' \\",
         "  | awk -F'\"' '{ print $4}' \\",
-        f"  | read EVENT_ID; curl -N {base_url}/$EVENT_ID",
-    ]
+        f"  | read EVENT_ID; curl -N {get_url}/$EVENT_ID",
+    ])
 
     return "\n".join(lines)
 

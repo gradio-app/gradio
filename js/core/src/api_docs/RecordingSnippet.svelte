@@ -69,7 +69,7 @@
 							"js"
 						)}`;
 					} else if (lang === "bash") {
-						return `    ${represent_value(
+						return `    "${param_name}": ${represent_value(
 							param as string,
 							python_type,
 							"bash"
@@ -86,7 +86,7 @@
 			} else if (lang === "js") {
 				return `{\n${params},\n}`;
 			} else if (lang === "bash") {
-				return `\n${params}\n`;
+				return `{\n${params}\n}`;
 			}
 		}
 		if (lang === "py") {
@@ -179,8 +179,7 @@ await client.predict(<span
 				</div>
 				<div bind:this={bash_code}>
 					{#each bash_zipped as { call, api_name }}
-						<pre>curl -X POST {short_root}call/{api_name} -s -H "Content-Type: application/json" -d '{"{"} 
-	"data": [{call}]{"}"}' \
+						<pre>curl -X POST {short_root}call/v2/{api_name} -s -H "Content-Type: application/json" -d '{call}' \
   | awk -F'"' '{"{"} print $4{"}"}' \
   | read EVENT_ID; curl -N {short_root}call/{api_name}/$EVENT_ID</pre>
 						<br />
