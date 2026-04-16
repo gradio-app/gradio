@@ -585,6 +585,67 @@ describe("Add/remove rows and columns", () => {
 	});
 });
 
+describe("Cell menu visibility on static cells", () => {
+	afterEach(() => cleanup());
+
+	test("context menu does not open on a static column cell", async () => {
+		const { container } = await render(Dataframe, {
+			...default_props,
+			static_columns: [0]
+		});
+		await wait();
+
+		const cell = get_cell(container, 0, 0)!;
+		await fireEvent.contextMenu(cell);
+		await wait();
+
+		expect(within(document.body).queryByRole("menu")).toBeNull();
+	});
+
+	test("context menu does not open when interactive is false", async () => {
+		const { container } = await render(Dataframe, {
+			...default_props,
+			interactive: false,
+			editable: false
+		});
+		await wait();
+
+		const cell = get_cell(container, 0, 0)!;
+		await fireEvent.contextMenu(cell);
+		await wait();
+
+		expect(within(document.body).queryByRole("menu")).toBeNull();
+	});
+
+	test("context menu does open on an editable, non-static cell", async () => {
+		const { container } = await render(Dataframe, {
+			...default_props,
+			row_count: [3, "dynamic"] as [number, "fixed" | "dynamic"]
+		});
+		await wait();
+
+		const cell = get_cell(container, 0, 0)!;
+		await fireEvent.contextMenu(cell);
+		await wait();
+
+		expect(within(document.body).queryByRole("menu")).not.toBeNull();
+	});
+
+	test("cell menu button does not render on a static column cell", async () => {
+		const { container } = await render(Dataframe, {
+			...default_props,
+			static_columns: [0]
+		});
+		await wait();
+
+		const cell = get_cell(container, 0, 0)!;
+		await fireEvent.mouseDown(cell);
+		await wait();
+
+		expect(cell.querySelector(".cell-menu-button")).toBeNull();
+	});
+});
+
 describe("Delete/clear cells", () => {
 	afterEach(() => cleanup());
 
