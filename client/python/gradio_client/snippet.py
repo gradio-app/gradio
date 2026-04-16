@@ -76,7 +76,7 @@ def _stringify_py(obj: Any) -> str:
         return o
 
     prepared = _prepare(obj)
-    result = json.dumps(prepared)
+    result = json.dumps(prepared, default=str)
     result = re.sub(
         rf'"{_UNQUOTED}(handle_file\([^)]*\))"',
         r"\1",
