@@ -584,7 +584,7 @@ describe("Events: copy", () => {
 			writable: true
 		});
 
-		const { getByLabelText } = await render(Chatbot, {
+		const { getByLabelText, listen } = await render(Chatbot, {
 			...default_props,
 			buttons: ["copy_all"],
 			value: [
@@ -592,8 +592,10 @@ describe("Events: copy", () => {
 				text_msg("assistant", "bot msg", 1)
 			]
 		});
-
+		const copy = listen("copy");
 		await fireEvent.click(getByLabelText("Copy conversation"));
+
+		expect(copy).not.toHaveBeenCalled();
 
 		expect(clipboard_mock).toHaveBeenCalledWith(
 			expect.stringContaining("user: user msg")
@@ -601,6 +603,20 @@ describe("Events: copy", () => {
 		expect(clipboard_mock).toHaveBeenCalledWith(
 			expect.stringContaining("assistant: bot msg")
 		);
+	});
+
+	test("copy message button triggers copy event", async () => {
+		const { getAllByTitle, listen } = await render(Chatbot, {
+			...default_props,
+			buttons: ["copy_all", "copy"],
+			value: [
+				text_msg("user", "user msg", 0),
+				text_msg("assistant", "bot msg", 1)
+			]
+		});
+		const copy = listen("copy");
+		await fireEvent.click(getAllByTitle("chatbot.copy_message")[0]);
+		expect(copy).toHaveBeenCalled();
 	});
 });
 
