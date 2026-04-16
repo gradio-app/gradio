@@ -245,6 +245,7 @@ def create_static_app(config: StaticServerConfig) -> fastapi.FastAPI:
         @app.get("/queue/data")
         async def queue_data(request: fastapi.Request, session_hash: str):
             key = f"sse:{session_hash}"
+            print(f"[SSE] Worker received /queue/data for {session_hash}", flush=True)
 
             async def sse_stream():
                 last_id = "0"
@@ -252,6 +253,7 @@ def create_static_app(config: StaticServerConfig) -> fastapi.FastAPI:
                 try:
                     while True:
                         if await request.is_disconnected():
+                            print(f"[SSE] Client disconnected: {session_hash}", flush=True)
                             return
                         result = await _redis_pool.xread(
                             {key: last_id}, count=10, block=1000
@@ -265,15 +267,20 @@ def create_static_app(config: StaticServerConfig) -> fastapi.FastAPI:
                                         continue
                                     if isinstance(payload, bytes):
                                         payload = payload.decode("utf-8")
-                                    yield f"data: {payload}\n\n"
                                     data = json.loads(payload)
+                                    print(f"[SSE] {session_hash}: msg={data.get('msg')}", flush=True)
+                                    yield f"data: {payload}\n\n"
                                     if data.get("msg") in ("close_stream", "server_stopped"):
                                         return
                         if time.monotonic() - last_heartbeat >= 15:
                             yield 'data: {"msg": "heartbeat"}\n\n'
                             last_heartbeat = time.monotonic()
                 except asyncio.CancelledError:
+                    print(f"[SSE] Cancelled: {session_hash}", flush=True)
                     return
+                except Exception as e:
+                    print(f"[SSE] Error for {session_hash}: {e}", flush=True)
+                    raise
 
             return StreamingResponse(
                 sse_stream(), media_type="text/event-stream"
