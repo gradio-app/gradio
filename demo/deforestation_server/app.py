@@ -669,6 +669,23 @@ button.action:active {{
     height: clamp(420px, 56vh, 580px);
     position: relative;
 }}
+.figure-loading {{
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 22px;
+    color: var(--ink-mute);
+    background: var(--paper-tint);
+    z-index: 5;
+}}
+.figure-loading::after {{
+    content: ' ·';
+    animation: ellipsis 1.4s infinite;
+}}
 .figure-caption {{
     padding-top: 10px;
     font-size: 13px;
@@ -1122,6 +1139,7 @@ button.action:active {{
             <div class="figure-note">click · any · year · for · dossier</div>
         </div>
         <div class="figure-frame">
+            <div id="chart-loading" class="figure-loading" style="display:none">Gathering field notes</div>
             <canvas id="chart"></canvas>
         </div>
         <div class="figure-caption">
@@ -1235,6 +1253,7 @@ async function loadData() {{
     const compare = compareSelect.value;
 
     document.getElementById('findings').innerHTML = '<div class="loading">Gathering field notes</div>';
+    document.getElementById('chart-loading').style.display = 'flex';
     document.getElementById('split').classList.remove('active');
     document.getElementById('dossier').style.display = 'none';
     if (chart) {{ chart.destroy(); chart = null; }}
@@ -1305,6 +1324,7 @@ function renderFindings(data) {{
 
 function renderChart(data, compareData) {{
     if (chart) chart.destroy();
+    document.getElementById('chart-loading').style.display = 'none';
 
     const ctx = document.getElementById('chart').getContext('2d');
     const INK = '#1a1f18';
