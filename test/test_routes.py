@@ -1618,6 +1618,169 @@ class TestSimpleAPIRoutes:
         ]
 
 
+class TestCurlEndpointWithFiles:
+    def test_image_to_image(self):
+        def invert(img):
+            return 255 - img
+
+        demo = gr.Interface(invert, gr.Image(), gr.Image(), api_name="predict")
+        demo.launch(prevent_thread_lock=True)
+        try:
+            with open("test/test_files/bus.png", "rb") as f:
+                upload_resp = requests.post(
+                    f"{demo.local_api_url}upload", files={"files": f}
+                )
+            assert upload_resp.status_code == 200
+            uploaded_path = upload_resp.json()[0]
+
+            post_resp = requests.post(
+                f"{demo.local_api_url}call/v2/predict",
+                json={
+                    "img": {
+                        "path": uploaded_path,
+                        "meta": {"_type": "gradio.FileData"},
+                    }
+                },
+            )
+            assert post_resp.status_code == 200
+            event_id = post_resp.json()["event_id"]
+
+            output = []
+            sse_resp = requests.get(
+                f"{demo.local_api_url}call/predict/{event_id}", stream=True
+            )
+            for line in sse_resp.iter_lines():
+                if line:
+                    output.append(line.decode("utf-8"))
+
+            assert len(output) == 2
+            assert output[0] == "event: complete"
+            data = json.loads(output[1].removeprefix("data: "))
+            assert isinstance(data, list) and len(data) == 1
+            assert "url" in data[0]
+        finally:
+            demo.close()
+
+    def test_text_to_image(self):
+        def generate(prompt):
+            return np.zeros((64, 64, 3), dtype=np.uint8)
+
+        demo = gr.Interface(generate, gr.Textbox(), gr.Image(), api_name="predict")
+        demo.launch(prevent_thread_lock=True)
+        try:
+            post_resp = requests.post(
+                f"{demo.local_api_url}call/v2/predict",
+                json={"prompt": "a cat"},
+            )
+            assert post_resp.status_code == 200
+            event_id = post_resp.json()["event_id"]
+
+            output = []
+            sse_resp = requests.get(
+                f"{demo.local_api_url}call/predict/{event_id}", stream=True
+            )
+            for line in sse_resp.iter_lines():
+                if line:
+                    output.append(line.decode("utf-8"))
+
+            assert len(output) == 2
+            assert output[0] == "event: complete"
+            data = json.loads(output[1].removeprefix("data: "))
+            assert isinstance(data, list) and len(data) == 1
+            assert "url" in data[0]
+        finally:
+            demo.close()
+
+    def test_image_to_image_exception_reported_in_sse(self):
+        def fail_fn(img):
+            raise ValueError("Image processing failed!")
+
+        demo = gr.Interface(fail_fn, gr.Image(), gr.Image(), api_name="predict")
+        demo.launch(prevent_thread_lock=True)
+        try:
+            with open("test/test_files/bus.png", "rb") as f:
+                upload_resp = requests.post(
+                    f"{demo.local_api_url}upload", files={"files": f}
+                )
+            uploaded_path = upload_resp.json()[0]
+
+            post_resp = requests.post(
+                f"{demo.local_api_url}call/v2/predict",
+                json={
+                    "img": {
+                        "path": uploaded_path,
+                        "meta": {"_type": "gradio.FileData"},
+                    }
+                },
+            )
+            event_id = post_resp.json()["event_id"]
+
+            output = []
+            sse_resp = requests.get(
+                f"{demo.local_api_url}call/predict/{event_id}", stream=True
+            )
+            for line in sse_resp.iter_lines():
+                if line:
+                    output.append(line.decode("utf-8"))
+
+            assert output[0] == "event: error"
+            assert output[1] == "data: null"
+        finally:
+            demo.close()
+
+    def test_text_to_image_exception_reported_in_sse(self):
+        def fail_fn(prompt):
+            raise RuntimeError("Generation exploded!")
+
+        demo = gr.Interface(fail_fn, gr.Textbox(), gr.Image(), api_name="predict")
+        demo.launch(prevent_thread_lock=True)
+        try:
+            post_resp = requests.post(
+                f"{demo.local_api_url}call/v2/predict",
+                json={"prompt": "a cat"},
+            )
+            event_id = post_resp.json()["event_id"]
+
+            output = []
+            sse_resp = requests.get(
+                f"{demo.local_api_url}call/predict/{event_id}", stream=True
+            )
+            for line in sse_resp.iter_lines():
+                if line:
+                    output.append(line.decode("utf-8"))
+
+            assert output[0] == "event: error"
+            assert output[1] == "data: null"
+        finally:
+            demo.close()
+
+    def test_gr_error_reported_in_sse(self):
+        def fail_fn(prompt):
+            raise gr.Error("Custom user-facing error message")
+
+        demo = gr.Interface(fail_fn, gr.Textbox(), gr.Image(), api_name="predict")
+        demo.launch(prevent_thread_lock=True)
+        try:
+            post_resp = requests.post(
+                f"{demo.local_api_url}call/v2/predict",
+                json={"prompt": "a cat"},
+            )
+            event_id = post_resp.json()["event_id"]
+
+            output = []
+            sse_resp = requests.get(
+                f"{demo.local_api_url}call/predict/{event_id}", stream=True
+            )
+            for line in sse_resp.iter_lines():
+                if line:
+                    output.append(line.decode("utf-8"))
+
+            assert output[0] == "event: error"
+            assert output[1] == "data: null"
+        finally:
+            demo.close()
+
+
 def test_compare_passwords_securely():
     password1 = "password"
     password2 = "pässword"

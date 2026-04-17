@@ -1511,8 +1511,6 @@ class App(FastAPI):
             full_body.fn_index = fn._id
             return await queue_join_helper(full_body, request, username)
 
-        @router.post("/call/v2/{api_name}", dependencies=[Depends(login_check)])
-        @router.post("/call/v2/{api_name}/", dependencies=[Depends(login_check)])
         @router.post("/call/{api_name}", dependencies=[Depends(login_check)])
         @router.post("/call/{api_name}/", dependencies=[Depends(login_check)])
         async def simple_predict_post(
@@ -1601,6 +1599,9 @@ class App(FastAPI):
                     app.iterators_to_reset.add(body.event_id)
             return {"success": True}
 
+        @router.get(
+            "/call/v2/{api_name}/{event_id}", dependencies=[Depends(login_check)]
+        )
         @router.get("/call/{api_name}/{event_id}", dependencies=[Depends(login_check)])
         async def simple_predict_get(
             request: fastapi.Request,
