@@ -55,7 +55,11 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.snippet import generate_code_snippets
 from gradio_client.utils import ServerMessage
+<<<<<<< HEAD
 from hf_gradio.cli import _condense_info, generate_cli_snippet
+=======
+from hf_gradio.cli import generate_cli_snippet
+>>>>>>> main
 from jinja2.exceptions import TemplateNotFound
 from python_multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
