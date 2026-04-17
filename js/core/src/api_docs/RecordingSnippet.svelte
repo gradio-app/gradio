@@ -14,7 +14,8 @@
 		| "javascript"
 		| "bash"
 		| "skill"
-		| "mcp";
+		| "mcp"
+		| "cli";
 	export let username: string | null;
 
 	let python_code: HTMLElement;

@@ -108,6 +108,7 @@ exclude = [
 
 [tool.uv]
 exclude-newer = "7 days"
+exclude-newer-package = {hf-gradio = false, gradio-client = false}
 
 [tool.ruff]
 exclude = ["gradio/node/*.py", ".venv/*", "gradio/_frontend_code/*.py", "gradio/_vendor/*"]

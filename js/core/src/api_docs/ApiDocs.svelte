@@ -22,6 +22,9 @@
 	import skill from "./img/skill.svg";
 	import SkillSnippet from "./SkillSnippet.svelte";
 	import mcp from "./img/mcp.svg";
+	import agent from "./img/agent.svg";
+	import hf_logo from "./img/hf-logo.svg";
+	import gradio_logo from "../images/logo.svg";
 	import MCPSnippet from "./MCPSnippet.svelte";
 	import CopyMarkdown from "./CopyMarkdown.svelte";
 
@@ -55,8 +58,17 @@
 	}
 
 	export let api_calls: Payload[] = [];
-	let current_language: "python" | "javascript" | "bash" | "skill" | "mcp" =
-		"python";
+	let current_language:
+		| "python"
+		| "javascript"
+		| "bash"
+		| "skill"
+		| "mcp"
+		| "cli" = "python";
+
+	let cli_flavor: "hf" | "gradio" = "gradio";
+
+	$: cli_command = cli_flavor === "hf" ? "hf gradio" : "gradio";
 
 	$: sorted_dependencies = (() => {
 		const valid = dependencies.filter(
@@ -84,7 +96,7 @@
 	}
 
 	function is_valid_language(lang: string | null): boolean {
-		return ["python", "javascript", "bash", "skill", "mcp"].includes(
+		return ["python", "javascript", "bash", "skill", "mcp", "cli"].includes(
 			lang ?? ""
 		);
 	}
@@ -92,6 +104,7 @@
 	$: langs = [
 		["python", "Python", python],
 		["javascript", "JavaScript", javascript],
+		["cli", "CLI", agent],
 		["bash", "cURL", bash],
 		...(space_id ? [["skill", "Skill", skill] as const] : []),
 		["mcp", "MCP", mcp]
@@ -264,13 +277,24 @@
 		}
 	}
 
-	let markdown_code_snippets: Record<string, Record<string, string>> = {};
-
-	$: markdown_code_snippets;
+	$: markdown_code_snippets = (() => {
+		const out: Record<string, Record<string, string>> = {};
+		if (!info?.named_endpoints) return out;
+		for (const dep of dependencies) {
+			const ep = info.named_endpoints["/" + dep.api_name];
+			if (!ep?.code_snippets) continue;
+			const snippets = ep.code_snippets;
+			out[dep.api_name] = {
+				python: snippets.python || "",
+				javascript: snippets.javascript || "",
+				bash: snippets.bash || "",
+				cli: (snippets.cli || "").replace("{command}", cli_command)
+			};
+		}
+		return out;
+	})();
 
 	let config_snippets: Record<string, string> = {};
-
-	$: config_snippets;
 
 	onMount(() => {
 		const controller = new AbortController();
@@ -288,6 +312,7 @@
 				| "javascript"
 				| "bash"
 				| "skill"
+				| "cli"
 				| "mcp";
 		}
 
@@ -367,7 +392,7 @@
 								set_query_param("lang", language);
 							}}
 						>
-							<img src={img} alt="" />
+							<img src={img} alt="" class:agent-icon={language === "cli"} />
 							{display_name}
 						</li>
 					{/each}
@@ -421,8 +446,37 @@
 								>) if you don't already have it installed.
 							{:else if current_language == "bash"}
 								1. Confirm that you have cURL installed on your system.
+							{:else if current_language == "cli"}
+								1. Install the CLI if you don't already have it installed.
 							{/if}
 						</p>
+					{/if}
+
+					{#if current_language === "cli"}
+						<div class="cli-flavor-selector">
+							<li
+								class="snippet {cli_flavor === 'gradio'
+									? 'current-lang'
+									: 'inactive-lang'}"
+								on:click={() => {
+									cli_flavor = "gradio";
+								}}
+							>
+								<img src={gradio_logo} alt="Gradio" />
+								Gradio CLI
+							</li>
+							<li
+								class="snippet {cli_flavor === 'hf'
+									? 'current-lang'
+									: 'inactive-lang'}"
+								on:click={() => {
+									cli_flavor = "hf";
+								}}
+							>
+								<img src={hf_logo} alt="HF" />
+								HF CLI
+							</li>
+						</div>
 					{/if}
 
 					<div class:hidden={current_language !== "skill"}>
@@ -446,7 +500,7 @@
 					</div>
 
 					{#if current_language !== "mcp" && current_language !== "skill"}
-						<InstallSnippet {current_language} />
+						<InstallSnippet {current_language} {cli_flavor} />
 
 						<p class="padded">
 							2. Find the API endpoint below corresponding to your desired
@@ -515,7 +569,7 @@
 									{last_api_call}
 									code_snippets={info.named_endpoints["/" + dependency.api_name]
 										.code_snippets}
-									bind:markdown_code_snippets
+									{cli_command}
 								/>
 
 								<ParametersSnippet
@@ -525,7 +579,9 @@
 									js_returns={js_info.named_endpoints["/" + dependency.api_name]
 										.parameters}
 									{is_running}
-									{current_language}
+									current_language={current_language === "cli"
+										? "python"
+										: current_language}
 								/>
 
 								<ResponseSnippet
@@ -535,7 +591,9 @@
 									js_returns={js_info.named_endpoints["/" + dependency.api_name]
 										.returns}
 									{is_running}
-									{current_language}
+									current_language={current_language === "cli"
+										? "python"
+										: current_language}
 								/>
 							</div>
 						{/if}
@@ -738,5 +796,21 @@
 
 	.hidden {
 		display: none;
+	}
+
+	.cli-flavor-selector {
+		display: flex;
+		align-items: center;
+		margin-bottom: var(--size-4);
+	}
+
+	.cli-flavor-selector > * + * {
+		margin-left: var(--size-2);
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.agent-icon {
+			filter: invert(1);
+		}
 	}
 </style>
