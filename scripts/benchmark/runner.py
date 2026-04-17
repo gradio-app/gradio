@@ -190,9 +190,11 @@ async def run_httpx_tier(
         result = None
         with open(filepath, "rb") as f:
             files = {"files": (filepath, f, "text/plain")}
+            print(f"    [upload] sending POST", flush=True)
             response = await client.post(f"{app_url}/gradio_api/upload", files=files, timeout=60, follow_redirects=True)
+            print(f"    [upload] got response status={response.status_code} in {(time.monotonic()-start)*1000:.0f}ms", flush=True)
             if response.status_code != 200:
-                print(f"  [upload] FAILED status={response.status_code} body={response.text[:200]}", flush=True)
+                print(f"    [upload] FAILED body={response.text[:200]}", flush=True)
             result = response.json()[0]
             return result, time.monotonic() - start
 
@@ -222,6 +224,7 @@ async def run_httpx_tier(
                 else:
                     data.append(item)
         try:
+            print(f"    [user={user_id}] upload done, posting queue/join", flush=True)
             resp = await client.post(
                 f"{app_url}/gradio_api/queue/join",
                 json={
@@ -236,6 +239,7 @@ async def run_httpx_tier(
                     f"POST /queue/join failed: {resp.status_code} {resp.text[:200]}"
                 )
 
+            print(f"    [user={user_id}] queue/join ok, opening SSE stream", flush=True)
             completed = False
             output_data = None
             async with client.stream(
@@ -257,8 +261,11 @@ async def run_httpx_tier(
                         if msg.get("msg") == "process_completed":
                             completed = True
                             output_data = msg.get("output", {}).get("data")
+                        elif msg.get("msg") == "close_stream":
                             break
-                    if completed or time.monotonic() > deadline:
+                    if msg and msg.get("msg") == "close_stream":
+                        break
+                    if time.monotonic() > deadline:
                         break
 
             if not completed:
@@ -295,6 +302,7 @@ async def run_httpx_tier(
     round_timeout = request_timeout + 30
 
     for req_id in range(requests_per_user):
+        print(f"    Round {req_id+1}/{requests_per_user} starting ({num_users} users)", flush=True)
         async with httpx.AsyncClient(
             limits=httpx.Limits(max_connections=num_users * 3, max_keepalive_connections=num_users),
         ) as client:
@@ -611,7 +619,6 @@ http {{
 
     upstream static_workers {{
 {upstream_servers}
-        keepalive 32;
     }}
 
     server {{
@@ -769,6 +776,7 @@ async def run_benchmark(
         env["GRADIO_DEFAULT_CONCURRENCY_LIMIT"] = str(concurrency_limit)
     if num_workers > 1:
         env["GRADIO_NUM_WORKERS"] = str(num_workers)
+        env["GRADIO_DISABLE_REDIRECT_MIDDLEWARE"] = "1"
     resolved_redis = redis_url or os.environ.get("GRADIO_REDIS_URL")
     if resolved_redis and num_workers > 1:
         env["GRADIO_REDIS_URL"] = resolved_redis
@@ -790,8 +798,13 @@ async def run_benchmark(
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
     )
-
-    import threading
+    print("APP PROCESS", proc.pid)
+    # time.sleep(2)
+    # import threading
+    # proc_2 = subprocess.Popen(
+    #     ["py-spy", "record", "-o", "profile_raw.txt", "--pid", f"{proc.pid}", "--format", "raw"],
+    #     env=env,
+    # )
 
     def _stream_app_output(process):
         """Stream app stdout/stderr line by line with a prefix."""
@@ -816,6 +829,20 @@ async def run_benchmark(
         nginx_proc = None
         if use_nginx and num_workers > 1:
             worker_ports = [port + 1 + i for i in range(num_workers)]
+            # Wait for static workers to be ready before starting nginx
+            print("  Waiting for static workers...")
+            for wp in worker_ports:
+                for _ in range(100):
+                    try:
+                        r = httpx.get(f"http://127.0.0.1:{wp}/health", timeout=1)
+                        if r.status_code == 200:
+                            break
+                    except Exception:
+                        time.sleep(0.2)
+                else:
+                    print(f"  WARNING: static worker on port {wp} did not become ready")
+            print(f"  Static workers ready on ports {worker_ports}")
+
             nginx_port = find_available_port(8080)
             nginx_proc = _start_nginx(port, worker_ports, nginx_port)
             if nginx_proc:
@@ -932,6 +959,7 @@ async def run_benchmark(
                 bg_proc.start()
 
             # Run the tier
+            print(f"  Starting run_httpx_tier: {tier} users, {requests_per_user} rounds, mode={mode}", flush=True)
             start = time.monotonic()
             client_latencies = await run_httpx_tier(
                 app_url,
@@ -1057,8 +1085,10 @@ async def run_benchmark(
         proc.terminate()
         try:
             proc.wait(timeout=5)
+            proc_2.wait(timeout=5)
         except subprocess.TimeoutExpired:
             proc.kill()
+            proc_2.kill()
         output_thread.join(timeout=5)
 
 

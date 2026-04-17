@@ -475,7 +475,6 @@ class Queue:
             "session_hash": body.session_hash,
         }
 
-        self.broadcast_estimations(event.concurrency_id, len(event_queue.queue) - 1)
         return True, event._id, "success"
 
     def _cancel_asyncio_tasks(self):
