@@ -134,6 +134,7 @@ def build_script(
     num_workers: int = 1,
     use_nginx: bool = False,
     use_redis: bool = False,
+    client_concurrency: int | None = None,
 ) -> str:
     """Build the bash script that runs inside the HF Jobs container.
 
@@ -209,6 +210,7 @@ def build_script(
             "num_workers": num_workers,
             "nginx": use_nginx,
             "redis": use_redis,
+            "client_concurrency": client_concurrency,
         },
         indent=2,
     )
@@ -248,6 +250,8 @@ def build_script(
             cmd_lines.append(f"    --num-workers {num_workers} \\")
         if use_nginx:
             cmd_lines.append(f"    --nginx \\")
+        if client_concurrency is not None:
+            cmd_lines.append(f"    --client-concurrency {client_concurrency} \\")
         cmd_lines.extend(
             [
                 f"    --output-dir {results_dir}/{stem}",
@@ -289,6 +293,7 @@ def build_space_script(
     use_nginx: bool = False,
     use_redis: bool = False,
     app_path: str = "app.py",
+    client_concurrency: int | None = None,
 ) -> str:
     """Build the bash script for benchmarking a HF Space with a custom gradio wheel."""
     results_dir = f"/mnt/results/{run_name}/{branch}"
@@ -313,6 +318,7 @@ def build_space_script(
             "mixed_traffic": mixed_traffic,
             "num_workers": num_workers,
             "nginx": use_nginx,
+            "client_concurrency": client_concurrency,
         },
         indent=2,
     )
@@ -377,6 +383,8 @@ def build_space_script(
         cmd_lines.append(f"    --mixed-traffic \\")
     if use_nginx:
         cmd_lines.append(f"    --nginx \\")
+    if client_concurrency is not None:
+        cmd_lines.append(f"    --client-concurrency {client_concurrency} \\")
     cmd_lines.extend(
         [
             f"    --output-dir {results_dir}/{app_stem}",
@@ -430,6 +438,7 @@ def prepare_job(
     num_workers: int = 1,
     use_nginx: bool = False,
     use_redis: bool = False,
+    client_concurrency: int | None = None,
 ) -> dict | None:
     """Resolve inputs, build script, and submit a single benchmark job.
 
@@ -509,6 +518,7 @@ def prepare_job(
             num_workers=num_workers,
             use_nginx=use_nginx,
             use_redis=use_redis,
+            client_concurrency=client_concurrency,
         )
     else:
         image = "python:3.12"
@@ -543,6 +553,7 @@ def prepare_job(
             num_workers=num_workers,
             use_nginx=use_nginx,
             use_redis=use_redis,
+            client_concurrency=client_concurrency,
         )
 
     timeout_secs = parse_timeout(timeout)
@@ -689,6 +700,12 @@ def add_common_args(parser: argparse.ArgumentParser):
         help="Use Redis streams for SSE delivery via static workers (requires --nginx and --num-workers > 1)",
     )
     parser.add_argument(
+        "--client-concurrency",
+        type=int,
+        default=None,
+        help="Max concurrent requests in wave mode (default: min(20, num_users))",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Print the Docker command and job config without submitting",
@@ -725,6 +742,7 @@ def cmd_run(args):
         num_workers=args.num_workers,
         use_nginx=args.nginx,
         use_redis=args.redis,
+        client_concurrency=args.client_concurrency,
     )
 
     if result:
@@ -771,6 +789,7 @@ def cmd_ab(args):
         num_workers=args.num_workers,
         use_nginx=args.nginx,
         use_redis=args.redis,
+        client_concurrency=args.client_concurrency,
     )
 
     result_a = prepare_job(branch=args.base, **common)
