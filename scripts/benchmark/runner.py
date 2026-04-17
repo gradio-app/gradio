@@ -168,6 +168,7 @@ async def run_httpx_tier(
     output_dir: Path | None = None,
     sample_count: int = 1,
     user_id_offset: int = 0,
+    client_concurrency: int | None = None,
 ) -> list[dict]:
     """Run a tier using httpx via /queue/join + /queue/data.
 
@@ -302,13 +303,80 @@ async def run_httpx_tier(
     # socket reads). This ensures the benchmark always makes progress.
     round_timeout = request_timeout + 30
 
-    for req_id in range(requests_per_user):
-        print(f"    Round {req_id+1}/{requests_per_user} starting ({num_users} users)", flush=True)
+    if mode == "wave":
+        # Wave mode: launch all requests with a semaphore limiting concurrency
+        # and jitter between launches. No rounds — requests flow continuously.
+        max_concurrent = client_concurrency or min(20, num_users)
+        sem = asyncio.Semaphore(max_concurrent)
+        total_requests = num_users * requests_per_user
+        print(
+            f"    Wave mode: {total_requests} total requests, "
+            f"max {max_concurrent} concurrent",
+            flush=True,
+        )
+
+        async def wave_request(uid: int, rid: int):
+            async with sem:
+                session_hash = f"bench_{uid + user_id_offset}_{rid}_{time.monotonic_ns()}"
+                return await _do_request(client_shared, uid, rid, session_hash)
+
         async with httpx.AsyncClient(
-            limits=httpx.Limits(max_connections=num_users * 3, max_keepalive_connections=num_users),
-        ) as client:
-            if mode == "burst":
-                # Use an Event + counter instead of asyncio.Barrier (3.11+)
+            limits=httpx.Limits(
+                max_connections=max_concurrent * 3,
+                max_keepalive_connections=max_concurrent,
+            ),
+        ) as client_shared:
+            # Stagger task creation with jitter so they don't all queue at once
+            tasks = []
+            for rid in range(requests_per_user):
+                for uid in range(num_users):
+                    tasks.append(asyncio.create_task(wave_request(uid, rid)))
+                    jitter = random.uniform(0.01, 0.1)
+                    await asyncio.sleep(jitter)
+
+            try:
+                results = await asyncio.wait_for(
+                    asyncio.gather(*tasks, return_exceptions=True),
+                    timeout=round_timeout * requests_per_user,
+                )
+                # Convert exceptions to error dicts
+                final_results = []
+                for i, r in enumerate(results):
+                    if isinstance(r, Exception):
+                        uid = i % num_users
+                        rid = i // num_users
+                        final_results.append({
+                            "user_id": uid,
+                            "request_id": rid,
+                            "latency_ms": 0,
+                            "success": False,
+                            "error": f"{type(r).__name__}: {r}",
+                        })
+                    else:
+                        final_results.append(r)
+                latencies.extend(final_results)
+            except (asyncio.TimeoutError, TimeoutError):
+                print(f"  WARNING: Wave timed out after {round_timeout * requests_per_user:.0f}s")
+                latencies.extend([
+                    {
+                        "user_id": i % num_users,
+                        "request_id": i // num_users,
+                        "latency_ms": round_timeout * 1000,
+                        "success": False,
+                        "error": "Wave timed out",
+                    }
+                    for i in range(total_requests)
+                ])
+
+        if output_dir is not None:
+            save_sample_outputs(latencies, output_dir, 0, sample_count)
+    else:
+        # Burst mode: all N users fire simultaneously per round
+        for req_id in range(requests_per_user):
+            print(f"    Round {req_id+1}/{requests_per_user} starting ({num_users} users)", flush=True)
+            async with httpx.AsyncClient(
+                limits=httpx.Limits(max_connections=num_users * 3, max_keepalive_connections=num_users),
+            ) as client:
                 _arrived = 0
                 _go = asyncio.Event()
 
@@ -344,42 +412,12 @@ async def run_httpx_tier(
                         }
                         for i in range(num_users)
                     ]
-            else:
-                # wave mode: random jitter per user (0–500ms)
-                async def wave_request(uid: int, rid: int = req_id):
-                    jitter = random.uniform(0, 0.5)
-                    await asyncio.sleep(jitter)
-                    session_hash = f"bench_{uid + user_id_offset}_{rid}_{time.monotonic_ns()}"
-                    return await _do_request(client, uid, rid, session_hash)
-
-                try:
-                    results = await asyncio.wait_for(
-                        asyncio.gather(*[wave_request(i) for i in range(num_users)]),
-                        timeout=round_timeout,
-                    )
-                except (asyncio.TimeoutError, TimeoutError):
-                    print(
-                        f"  WARNING: Round {req_id} timed out after {round_timeout:.0f}s "
-                        f"(server may be deadlocked)"
-                    )
-                    results = [
-                        {
-                            "user_id": i,
-                            "request_id": req_id,
-                            "latency_ms": round_timeout * 1000,
-                            "upload_ms": None,
-                            "success": False,
-                            "error": f"Round timed out after {round_timeout:.0f}s",
-                        }
-                        for i in range(num_users)
-                    ]
-        latencies.extend(results)
-        if on_round_complete is not None:
-            successful = sum(1 for r in results if r.get("success"))
-            on_round_complete(req_id + 1, requests_per_user, successful, num_users)
-        # Save sample outputs after the round (doesn't affect latency measurements)
-        if output_dir is not None:
-            save_sample_outputs(results, output_dir, req_id, sample_count)
+            latencies.extend(results)
+            if on_round_complete is not None:
+                successful = sum(1 for r in results if r.get("success"))
+                on_round_complete(req_id + 1, requests_per_user, successful, num_users)
+            if output_dir is not None:
+                save_sample_outputs(results, output_dir, req_id, sample_count)
 
     # Strip output_data before returning (it would bloat the JSONL files)
     for lat in latencies:
@@ -767,6 +805,7 @@ async def run_benchmark(
     num_workers: int = 1,
     use_nginx: bool = False,
     redis_url: str | None = None,
+    client_concurrency: int | None = None,
 ):
     import socket
 
@@ -989,6 +1028,7 @@ async def run_benchmark(
                 on_round_complete=on_round_complete,
                 prompts=prompts,
                 output_dir=tier_dir,
+                client_concurrency=client_concurrency,
             )
             if pbar is not None:
                 pbar.close()
@@ -1178,6 +1218,12 @@ def main():
         "'wave' staggers arrivals with random jitter (default: burst)",
     )
     parser.add_argument(
+        "--client-concurrency",
+        type=int,
+        default=None,
+        help="Max concurrent requests in wave mode (default: min(20, num_users))",
+    )
+    parser.add_argument(
         "--port",
         type=int,
         default=7860,
@@ -1240,6 +1286,7 @@ def main():
             num_workers=args.num_workers,
             use_nginx=args.nginx,
             redis_url=args.redis,
+            client_concurrency=args.client_concurrency,
         )
     )
 
