@@ -20,7 +20,7 @@
 	$: cli_install =
 		cli_flavor === "hf"
 			? "hf extensions install gradio-app/hf-gradio"
-			: "pip install gradio";
+			: "pip install gradio --upgrade";
 </script>
 
 {#if current_language === "python"}
