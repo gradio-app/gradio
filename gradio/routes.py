@@ -955,7 +955,7 @@ class App(FastAPI):
                     endpoint_info.get("description", "") or f"Endpoint {endpoint_path}"
                 )
                 if has_file_params:
-                    summary += '. Any file inputs must include {"path": "url", "meta": {"_type": "gradio.FileData"}}. The meta key signals the gradio server to treat this input as a valid file.'
+                    summary += '. File inputs must first be uploaded via POST /gradio_api/upload (multipart/form-data with a "files" field). Use the returned path in the request body as {"path": "<uploaded_path>", "meta": {"_type": "gradio.FileData"}}.'
                 path_item = {
                     "post": {
                         "summary": summary,
