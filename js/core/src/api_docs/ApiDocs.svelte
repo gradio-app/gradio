@@ -66,7 +66,7 @@
 		| "mcp"
 		| "cli" = "python";
 
-	let cli_flavor: "hf" | "gradio" = "hf";
+	let cli_flavor: "hf" | "gradio" = "gradio";
 
 	$: cli_command = cli_flavor === "hf" ? "hf gradio" : "gradio";
 
@@ -455,17 +455,6 @@
 					{#if current_language === "cli"}
 						<div class="cli-flavor-selector">
 							<li
-								class="snippet {cli_flavor === 'hf'
-									? 'current-lang'
-									: 'inactive-lang'}"
-								on:click={() => {
-									cli_flavor = "hf";
-								}}
-							>
-								<img src={hf_logo} alt="HF" />
-								HF CLI
-							</li>
-							<li
 								class="snippet {cli_flavor === 'gradio'
 									? 'current-lang'
 									: 'inactive-lang'}"
@@ -475,6 +464,17 @@
 							>
 								<img src={gradio_logo} alt="Gradio" />
 								Gradio CLI
+							</li>
+							<li
+								class="snippet {cli_flavor === 'hf'
+									? 'current-lang'
+									: 'inactive-lang'}"
+								on:click={() => {
+									cli_flavor = "hf";
+								}}
+							>
+								<img src={hf_logo} alt="HF" />
+								HF CLI
 							</li>
 						</div>
 					{/if}
