@@ -167,6 +167,7 @@ async def run_httpx_tier(
     prompts: list[str] | None = None,
     output_dir: Path | None = None,
     sample_count: int = 1,
+    user_id_offset: int = 0,
 ) -> list[dict]:
     """Run a tier using httpx via /queue/join + /queue/data.
 
@@ -315,7 +316,7 @@ async def run_httpx_tier(
                     uid: int, rid: int = req_id,
                 ):
                     nonlocal _arrived
-                    session_hash = f"bench_{uid}_{rid}_{id(_go)}"
+                    session_hash = f"bench_{uid + user_id_offset}_{rid}_{id(_go)}"
                     _arrived += 1
                     if _arrived >= num_users:
                         _go.set()
@@ -348,7 +349,7 @@ async def run_httpx_tier(
                 async def wave_request(uid: int, rid: int = req_id):
                     jitter = random.uniform(0, 0.5)
                     await asyncio.sleep(jitter)
-                    session_hash = f"bench_{uid}_{rid}_{time.monotonic_ns()}"
+                    session_hash = f"bench_{uid + user_id_offset}_{rid}_{time.monotonic_ns()}"
                     return await _do_request(client, uid, rid, session_hash)
 
                 try:
@@ -572,6 +573,23 @@ def _bg_process_main(app_url, num_users, stop_event_mp, result_path, file_urls, 
     bg_results = asyncio.run(_run())
     with open(result_path, "w") as f:
         json.dump(bg_results, f)
+
+
+def _tier_worker_main(
+    app_url, num_users, requests_per_user, fn_index, data_template,
+    mode, prompts, result_path, user_id_offset,
+):
+    """Process entrypoint: runs a subset of users in an isolated event loop."""
+    async def _run():
+        return await run_httpx_tier(
+            app_url, num_users, requests_per_user,
+            fn_index=fn_index, data_template=data_template,
+            mode=mode, prompts=prompts,
+            user_id_offset=user_id_offset,
+        )
+    results = asyncio.run(_run())
+    with open(result_path, "w") as f:
+        json.dump(results, f)
 
 
 def compute_background_summary(bg_results):
@@ -800,7 +818,7 @@ async def run_benchmark(
     )
     print("APP PROCESS", proc.pid)
     # time.sleep(2)
-    # import threading
+    import threading
     # proc_2 = subprocess.Popen(
     #     ["py-spy", "record", "-o", "profile_raw.txt", "--pid", f"{proc.pid}", "--format", "raw"],
     #     env=env,
@@ -972,6 +990,9 @@ async def run_benchmark(
                 prompts=prompts,
                 output_dir=tier_dir,
             )
+                        rpath.unlink()
+                    else:
+                        print(f"  WARNING: tier worker produced no results: {rpath}")
             if pbar is not None:
                 pbar.close()
             elapsed = time.monotonic() - start
@@ -1052,6 +1073,20 @@ async def run_benchmark(
                         f"p90={total.get('p90', 0):.1f}ms "
                         f"p99={total.get('p99', 0):.1f}ms"
                     )
+                qw = server_summary["phases"].get("queue_wait", {})
+                if qw.get("p50") is not None:
+                    print(
+                        f"  Server queue_wait p50={qw['p50']:.1f}ms "
+                        f"p90={qw.get('p90', 0):.1f}ms "
+                        f"p99={qw.get('p99', 0):.1f}ms"
+                    )
+            upload = server_summary.get("upload", {})
+            if upload.get("count"):
+                print(
+                    f"  Server upload p50={upload['p50']:.1f}ms "
+                    f"p90={upload.get('p90', 0):.1f}ms "
+                    f"(n={upload['count']})"
+                )
 
         # Save overall summary
         summary = {
@@ -1085,10 +1120,8 @@ async def run_benchmark(
         proc.terminate()
         try:
             proc.wait(timeout=5)
-            proc_2.wait(timeout=5)
         except subprocess.TimeoutExpired:
             proc.kill()
-            proc_2.kill()
         output_thread.join(timeout=5)
 
 
@@ -1097,17 +1130,23 @@ def _write_summary_table(base_dir: Path, tier_results: list[dict]):
     lines = []
     lines.append(
         f"{'Tier':>8} | {'Reqs':>8} | {'Client p50':>12} | {'Client p90':>12} | "
-        f"{'Client p99':>12} | {'Success%':>9} | {'Server p50':>12} | {'Server p90':>12}"
+        f"{'Client p99':>12} | {'Success%':>9} | {'Server p50':>12} | {'Server p90':>12} | "
+        f"{'Queue p50':>12} | {'Queue p90':>12} | {'Upload p50':>12}"
     )
-    lines.append("-" * 110)
+    lines.append("-" * 160)
     for r in tier_results:
         cs = r.get("client_summary", {})
-        ss = r.get("server_summary", {}).get("phases", {}).get("total", {})
+        ss = r.get("server_summary", {})
+        total = ss.get("phases", {}).get("total", {})
+        qw = ss.get("phases", {}).get("queue_wait", {})
+        upload = ss.get("upload", {})
         lines.append(
             f"{r['tier']:>8} | {r['total_requests']:>8} | "
             f"{cs.get('p50', 0):>10.1f}ms | {cs.get('p90', 0):>10.1f}ms | "
             f"{cs.get('p99', 0):>10.1f}ms | {cs.get('success_rate', 0):>8.1%} | "
-            f"{ss.get('p50', 0):>10.1f}ms | {ss.get('p90', 0):>10.1f}ms"
+            f"{total.get('p50', 0):>10.1f}ms | {total.get('p90', 0):>10.1f}ms | "
+            f"{qw.get('p50', 0):>10.1f}ms | {qw.get('p90', 0):>10.1f}ms | "
+            f"{upload.get('p50', 0):>10.1f}ms"
         )
     table = "\n".join(lines)
     with open(base_dir / "summary_table.txt", "w") as f:
