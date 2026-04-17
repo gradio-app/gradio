@@ -309,9 +309,6 @@ export {
 	TEST_PNG,
 	TEST_MP4,
 	TEST_WAV,
-	TEST_PDF,
-	TEST_GLTF,
-	TEST_PLY,
-	TEST_SPLAT
+	TEST_PDF
 } from "./fixtures.js";
 export * from "@testing-library/dom";

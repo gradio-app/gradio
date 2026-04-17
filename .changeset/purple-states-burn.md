@@ -1,7 +1,6 @@
 ---
-"@gradio/model3d": minor
-"@self/tootils": minor
-"gradio": minor
+"@gradio/model3d": patch
+"gradio": patch
 ---
 
-feat:`model3d` ply freeze fix
+fix:`model3d` ply freeze fix

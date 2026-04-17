@@ -32,11 +32,10 @@
 	} = $props();
 
 	let current_settings = $state({ camera_position, zoom_speed, pan_speed });
-	let use_3dgs = $state<boolean | null>(null);
+	let use_3dgs = $state(false);
 	let Canvas3DGSComponent = $state<typeof Canvas3DGS>();
 	let Canvas3DComponent = $state<typeof Canvas3D>();
 	let canvas3d = $state<Canvas3D | undefined>();
-	let resolved_path: string | undefined;
 
 	async function loadCanvas3D(): Promise<typeof Canvas3D> {
 		const module = await import("./Canvas3D.svelte");
@@ -47,84 +46,18 @@
 		return module.default;
 	}
 
-	async function is_gaussian_splat_ply(url: string): Promise<boolean> {
-		const controller = new AbortController();
-		try {
-			const res = await fetch(url, { signal: controller.signal });
-			if (!res.ok || !res.body) return false;
-			const reader = res.body.getReader();
-			const chunks: Uint8Array[] = [];
-			let total = 0;
-			const LIMIT = 16384;
-			while (total < LIMIT) {
-				const { done, value } = await reader.read();
-				if (done) break;
-				chunks.push(value);
-				total += value.length;
-			}
-			controller.abort();
-			const merged = new Uint8Array(Math.min(total, LIMIT));
-			let offset = 0;
-			for (const chunk of chunks) {
-				const remaining = merged.length - offset;
-				if (remaining <= 0) break;
-				merged.set(
-					chunk.subarray(0, Math.min(chunk.length, remaining)),
-					offset
-				);
-				offset += Math.min(chunk.length, remaining);
-			}
-			const text = new TextDecoder().decode(merged);
-			const header = text.split("end_header")[0] ?? "";
-			return /property\s+float\s+(f_dc_0|scale_0|rot_0)/.test(header);
-		} catch {
-			controller.abort();
-			return false;
-		}
-	}
-
 	$effect(() => {
-		const next_path = value?.path;
-		const next_url = value?.url;
-		if (next_path === resolved_path) return;
-		resolved_path = next_path;
-
-		if (!next_path) {
-			use_3dgs = null;
-			return;
-		}
-		if (next_path.endsWith(".splat")) {
-			use_3dgs = true;
-			loadCanvas3DGS().then((component) => {
-				Canvas3DGSComponent = component;
-			});
-		} else if (next_path.endsWith(".ply")) {
-			if (!next_url) {
-				use_3dgs = false;
+		if (value) {
+			use_3dgs = value.path.endsWith(".splat") || value.path.endsWith(".ply");
+			if (use_3dgs) {
+				loadCanvas3DGS().then((component) => {
+					Canvas3DGSComponent = component;
+				});
+			} else {
 				loadCanvas3D().then((component) => {
 					Canvas3DComponent = component;
 				});
-				return;
 			}
-			use_3dgs = null;
-			is_gaussian_splat_ply(next_url).then((is_gs) => {
-				if (resolved_path !== next_path) return;
-				use_3dgs = is_gs;
-				if (is_gs) {
-					loadCanvas3DGS().then((component) => {
-						Canvas3DGSComponent = component;
-					});
-				} else {
-					loadCanvas3D().then((component) => {
-						Canvas3DComponent = component;
-					});
-				}
-			});
-		} else {
-			use_3dgs = false;
-			loadCanvas3D().then((component) => {
-				Canvas3DComponent = component;
-			});
 		}
 	});
 
@@ -152,7 +85,7 @@
 {#if value}
 	<div class="model3D" data-testid="model3d">
 		<IconButtonWrapper>
-			{#if use_3dgs === false}
+			{#if !use_3dgs}
 				<!-- Canvas3DGS doesn't implement the undo method (reset_camera_position) -->
 				<IconButton
 					Icon={Undo}
@@ -170,14 +103,14 @@
 			</a>
 		</IconButtonWrapper>
 
-		{#if use_3dgs === true}
+		{#if use_3dgs}
 			<svelte:component
 				this={Canvas3DGSComponent}
 				{value}
 				{zoom_speed}
 				{pan_speed}
 			/>
-		{:else if use_3dgs === false}
+		{:else}
 			<svelte:component
 				this={Canvas3DComponent}
 				bind:this={canvas3d}
@@ -188,10 +121,6 @@
 				{zoom_speed}
 				{pan_speed}
 			/>
-		{:else}
-			<div class="detecting" data-testid="model3d-detecting">
-				<div class="spinner"></div>
-			</div>
 		{/if}
 	</div>
 {/if}
@@ -210,25 +139,5 @@
 		height: var(--size-full);
 		object-fit: contain;
 		overflow: hidden;
-	}
-	.detecting {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: var(--size-full);
-		height: var(--size-full);
-	}
-	.spinner {
-		width: 28px;
-		height: 28px;
-		border: 3px solid var(--border-color-primary);
-		border-top-color: var(--color-accent);
-		border-radius: 50%;
-		animation: spin 0.9s linear infinite;
-	}
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
 	}
 </style>
