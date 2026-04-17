@@ -990,9 +990,6 @@ async def run_benchmark(
                 prompts=prompts,
                 output_dir=tier_dir,
             )
-                        rpath.unlink()
-                    else:
-                        print(f"  WARNING: tier worker produced no results: {rpath}")
             if pbar is not None:
                 pbar.close()
             elapsed = time.monotonic() - start
