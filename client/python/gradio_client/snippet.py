@@ -240,7 +240,7 @@ def generate_bash_snippet(
 
     data_entries = ", ".join(f'"{k}": {v}' for k, v in data_dict.items())
     data_str = "{" + data_entries + "}"
-    for name in file_param_names:
+    for _ in file_param_names:
         replacement = '{"path": "\'$FILE_PATH\'", "meta": {"_type": "gradio.FileData"}}'
         data_str = data_str.replace("FILE_PATH_PLACEHOLDER", replacement)
 
