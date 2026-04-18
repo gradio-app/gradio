@@ -85,8 +85,11 @@ class Slider(FormComponent):
         self.precision = precision
         if step is None:
             difference = maximum - minimum
-            power = math.floor(math.log10(difference) - 2)
-            self.step = 10**power
+            if difference <= 0:
+                self.step = 1
+            else:
+                power = math.floor(math.log10(difference) - 2)
+                self.step = 10**power
         else:
             self.step = step
         self.buttons = buttons
