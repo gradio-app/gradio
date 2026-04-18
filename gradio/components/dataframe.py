@@ -562,6 +562,8 @@ class Dataframe(Component):
             ]
 
         elif isinstance(value, np.ndarray):
+            if value.ndim == 1:
+                value = value.reshape(1, -1)
             self.datatype = [
                 dtype_mapping.get(
                     numbers_re.sub(
@@ -573,15 +575,18 @@ class Dataframe(Component):
             ]
 
         elif isinstance(value, list):
-            self.datatype = [
-                dtype_mapping.get(
-                    numbers_re.sub(
-                        "", brackets_re.sub("", str(type(val).__name__))
-                    ).lower(),
-                    "str",
-                )
-                for val in value[0]
-            ]
+            if len(value) == 0:
+                self.datatype = "str"
+            else:
+                self.datatype = [
+                    dtype_mapping.get(
+                        numbers_re.sub(
+                            "", brackets_re.sub("", str(type(val).__name__))
+                        ).lower(),
+                        "str",
+                    )
+                    for val in value[0]
+                ]
 
         elif _is_polars_available():
             pl = _import_polars()
