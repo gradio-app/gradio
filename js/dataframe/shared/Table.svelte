@@ -922,16 +922,26 @@
 					<!-- hidden sizing row: lets table-layout:auto consider body content widths too -->
 					<tbody class="sizing-body" aria-hidden="true">
 						{#if rows.length > 0}
-							{@const sizing_row = rows.reduce((widest, row) => {
-								const cells = row.getVisibleCells();
-								cells.forEach((cell, i) => {
-									const val = String(cell.getValue() ?? "");
-									if (!widest[i] || val.length > widest[i].length) {
-										widest[i] = val;
-									}
-								});
-								return widest;
-							}, [] as string[])}
+							{@const sizing_row = (() => {
+								const MAX_SAMPLE = 200;
+								let sampled_rows = rows;
+								if (rows.length > MAX_SAMPLE) {
+									const half = MAX_SAMPLE >> 1;
+									const head = rows.slice(0, half);
+									const tail = rows.slice(-half);
+									sampled_rows = head.concat(tail);
+								}
+								return sampled_rows.reduce((widest, row) => {
+									const cells = row.getVisibleCells();
+									cells.forEach((cell, i) => {
+										const val = String(cell.getValue() ?? "");
+										if (!widest[i] || val.length > widest[i].length) {
+											widest[i] = val;
+										}
+									});
+									return widest;
+								}, [] as string[]);
+							})()}
 							<tr>
 								{#if show_row_numbers}
 									<td class="row-number-cell">{rows.length}</td>
