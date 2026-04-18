@@ -419,7 +419,7 @@ class Video(StreamingOutput, Component):
                     subtitle_lines = subtitle_block.split("\n")
                     subtitle_timing = subtitle_lines[1].replace(",", ".")
                     subtitle_text = "\n".join(subtitle_lines[2:])
-                    vtt_file.write(f"{subtitle_timing} --> {subtitle_timing}\n")
+                    vtt_file.write(f"{subtitle_timing}\n")
                     vtt_file.write(f"{subtitle_text}\n\n")
 
         file_path = Path(subtitle)  # type: ignore
