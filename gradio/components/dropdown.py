@@ -65,6 +65,7 @@ class Dropdown(FormComponent):
         filterable: bool = True,
         label: str | I18nData | None = None,
         info: str | I18nData | None = None,
+        placeholder: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
@@ -91,6 +92,7 @@ class Dropdown(FormComponent):
             filterable: if True, user will be able to type into the dropdown and filter the choices by typing. Can only be set to False if `allow_custom_value` is False.
             label: the label for this component, displayed above the component if `show_label` is `True` and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component corresponds to.
             info: additional component description, appears below the label in smaller font. Supports markdown / HTML syntax.
+            placeholder: placeholder hint to provide behind the dropdown input field. Only applies when no value is selected.
             every: continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
@@ -160,6 +162,7 @@ class Dropdown(FormComponent):
             value=value,
         )
         self.buttons = set_default_buttons(buttons, None)
+        self.placeholder = placeholder
         self._value_description = f"one{' or more' if multiselect else ''} of {[c[1] if isinstance(c, tuple) else c for c in self.choices]}"
 
     def api_info(self) -> dict[str, Any]:

@@ -11,6 +11,7 @@ export interface DropdownProps {
 	info: string;
 	filterable: boolean;
 	buttons: (string | CustomButton)[] | null;
+	placeholder?: string;
 }
 
 export interface DropdownEvents {

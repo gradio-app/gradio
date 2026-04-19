@@ -15,6 +15,7 @@
 	let {
 		label = "Dropdown",
 		info = undefined,
+		placeholder = undefined,
 		value = $bindable<string | number | null>(),
 		choices = [],
 		interactive = true,
@@ -41,6 +42,7 @@
 		allow_custom_value: boolean;
 		filterable: boolean;
 		buttons: (string | CustomButtonType)[] | null;
+		placeholder?: string;
 		oncustom_button_click?: ((id: number) => void) | null;
 		on_change?: (value: string | number | null) => void;
 		on_input?: () => void;
@@ -182,6 +184,9 @@
 			on_change?.(value);
 		}
 	});
+
+	// Show placeholder only when no text is entered
+	let resolved_placeholder = $derived(input_text === "" ? placeholder : undefined);
 </script>
 
 <div class:container>
@@ -208,6 +213,7 @@
 					{disabled}
 					bind:value={input_text}
 					bind:this={filter_input}
+					placeholder={resolved_placeholder}
 					onkeydown={handle_key_down}
 					onkeyup={(e) => {
 						on_key_up?.({

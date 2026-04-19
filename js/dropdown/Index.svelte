@@ -39,6 +39,7 @@
 		<Dropdown
 			label={gradio.shared.label}
 			info={gradio.props.info}
+			placeholder={gradio.props.placeholder}
 			bind:value={gradio.props.value}
 			choices={gradio.props.choices}
 			interactive={gradio.shared.interactive}
