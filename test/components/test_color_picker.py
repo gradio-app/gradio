@@ -52,3 +52,12 @@ class TestColorPicker:
         """
         component = gr.ColorPicker("#000000")
         assert component.get_config().get("value") == "#000000"
+
+    def test_release_event_listener(self):
+        with gr.Blocks() as demo:
+            color = gr.ColorPicker()
+            output = gr.Textbox()
+            color.release(lambda value: value, color, output)
+
+        assert "dependencies" in demo.config
+        assert demo.config["dependencies"][0]["targets"][0][1] == "release"

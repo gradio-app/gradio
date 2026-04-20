@@ -13,6 +13,7 @@
 		disabled,
 		show_label,
 		on_input = () => {},
+		on_release = () => {},
 		on_submit = () => {},
 		on_blur = () => {},
 		on_focus = () => {}
@@ -23,6 +24,7 @@
 		disabled: boolean;
 		show_label: boolean;
 		on_input?: () => void;
+		on_release?: () => void;
 		on_submit?: () => void;
 		on_blur?: () => void;
 		on_focus?: () => void;
@@ -98,8 +100,12 @@
 	}
 
 	function handle_end(): void {
+		const should_dispatch_release = sl_moving || hue_moving;
 		sl_moving = false;
 		hue_moving = false;
+		if (should_dispatch_release) {
+			on_release();
+		}
 	}
 
 	async function update_mouse_from_color(color: string): Promise<void> {
