@@ -116,10 +116,12 @@
 		handle_blur({ target: { value } } as unknown as FocusEvent);
 	}
 
+	// returning cleanup from the effect fires the blur only when leaving edit mode, not on every render
 	$effect(() => {
-		if (!edit) {
-			// Shim blur on removal for Safari and Firefox
-			handle_blur({ target: { value } } as unknown as FocusEvent);
+		if (edit) {
+			return () => {
+				handle_blur({ target: { value } } as unknown as FocusEvent);
+			};
 		}
 	});
 </script>
