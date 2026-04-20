@@ -1614,7 +1614,7 @@ class TestSimpleAPIRoutes:
             "event: generating",
             'data: ["Hello, w!"]',
             "event: error",
-            "data: null",
+            f"data: {json.dumps({'error': None})}",
         ]
 
 
@@ -1726,8 +1726,9 @@ class TestCurlEndpointWithFiles:
                 if line:
                     output.append(line.decode("utf-8"))
 
+            data = {"error": None}
             assert output[0] == "event: error"
-            assert output[1] == "data: null"
+            assert output[1] == f"data: {json.dumps(data)}"
         finally:
             demo.close()
 
@@ -1754,7 +1755,7 @@ class TestCurlEndpointWithFiles:
                     output.append(line.decode("utf-8"))
             data = {"error": None}
             assert output[0] == "event: error"
-            assert output[1] == f"data: {data}"
+            assert output[1] == f"data: {json.dumps(data)}"
         finally:
             demo.close()
 
