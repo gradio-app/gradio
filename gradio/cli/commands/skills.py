@@ -35,20 +35,22 @@ _HF_SKILL_FILES = ["SKILL.md"]
 skills_app = typer.Typer(help="Manage Gradio skills for AI assistants.")
 
 
-def _import_hf_skills():
-    try:
-        from huggingface_hub.cli.skills import (  # type: ignore[import-not-found]
-            CENTRAL_GLOBAL,
-            CENTRAL_LOCAL,
-            GLOBAL_TARGETS,
-            LOCAL_TARGETS,
-        )
-    except (ImportError, ModuleNotFoundError):
-        raise SystemExit(
-            "The 'gradio skills' command requires huggingface_hub >= 1.4.0.\n"
-            "Please upgrade: pip install --upgrade huggingface_hub"
-        ) from None
-    return CENTRAL_GLOBAL, CENTRAL_LOCAL, GLOBAL_TARGETS, LOCAL_TARGETS
+def _get_skill_targets():
+    central_local = Path(".agents/skills")
+    central_global = Path("~/.agents/skills")
+    claude_local = Path(".claude/skills")
+    claude_global = Path("~/.claude/skills")
+    global_targets = {
+        "claude": claude_global,
+        "codex": Path("~/.codex/skills"),
+        "opencode": Path("~/.opencode/skills"),
+    }
+    local_targets = {
+        "claude": claude_local,
+        "codex": Path(".codex/skills"),
+        "opencode": Path(".opencode/skills"),
+    }
+    return central_global, central_local, global_targets, local_targets
 
 
 def _download(url: str) -> str:
@@ -324,7 +326,7 @@ def skills_add(
     specific Gradio Space with Python, JS, and cURL usage examples.
     """
     central_global, central_local, hf_global_targets, hf_local_targets = (
-        _import_hf_skills()
+        _get_skill_targets()
     )
 
     if not (cursor or claude or codex or opencode or dest):
