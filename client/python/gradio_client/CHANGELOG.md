@@ -1,5 +1,15 @@
 # gradio_client
 
+## 2.5.0
+
+### Features
+
+- [#13289](https://github.com/gradio-app/gradio/pull/13289) [`d6f24df`](https://github.com/gradio-app/gradio/commit/d6f24df6233e7882746ba6e49307a34a11101ea1) - Improve curl info.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#13280](https://github.com/gradio-app/gradio/pull/13280) [`bb9c130`](https://github.com/gradio-app/gradio/commit/bb9c130e1e8c60b8a717da7184b02ab459be3f03) - Fix snippet generator crash on datetime values in Dataframe inputs.  Thanks @ParamChordiya!
+
 ## 2.4.1
 
 ### Features
