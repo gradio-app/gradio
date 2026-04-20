@@ -6,6 +6,7 @@ export interface ColorPickerProps {
 export interface ColorPickerEvents {
 	change: never;
 	input: never;
+	release: string;
 	submit: never;
 	focus: never;
 	blur: never;
