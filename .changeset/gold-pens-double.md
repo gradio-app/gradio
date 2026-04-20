@@ -1,7 +1,7 @@
 ---
-"@gradio/dataframe": minor
-"@gradio/tabs": minor
-"gradio": minor
+"@gradio/dataframe": patch
+"@gradio/tabs": patch
+"gradio": patch
 ---
 
-feat:Rework `Dataframe` wrapping, truncation, and column width sizing.
+fix:Rework `Dataframe` wrapping, truncation, and column width sizing.
