@@ -55,6 +55,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.snippet import generate_code_snippets
 from gradio_client.utils import ServerMessage
+from hf_gradio.cli import generate_cli_snippet
 from jinja2.exceptions import TemplateNotFound
 from python_multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
@@ -564,7 +565,7 @@ class App(FastAPI):
                     await asyncio.sleep(check_rate)
                     if time.perf_counter() - last_heartbeat > heartbeat_rate:
                         yield """event: heartbeat\ndata: {}\n\n"""
-                        last_heartbeat = time.time()
+                        last_heartbeat = time.perf_counter()
 
             return StreamingResponse(
                 reload_checker(request),
@@ -843,6 +844,9 @@ class App(FastAPI):
                     root_path=app.root_path,
                 )
                 space_id = app.get_blocks().space_id
+                cli_snippets = generate_cli_snippet(api_info["named_endpoints"])
+                for k, v in cli_snippets.items():
+                    cli_snippets[k] = v.replace("{space_id}", space_id or str(root))
                 api_prefix = API_PREFIX + "/"
                 for ep_name, ep_info in api_info.get("named_endpoints", {}).items():
                     ep_info["code_snippets"] = generate_code_snippets(
@@ -852,6 +856,7 @@ class App(FastAPI):
                         space_id=space_id,
                         api_prefix=api_prefix,
                     )
+                    ep_info["code_snippets"]["cli"] = cli_snippets[ep_name]
                 app.api_info = api_info
             return app.api_info
 
