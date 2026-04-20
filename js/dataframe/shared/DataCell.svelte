@@ -20,6 +20,7 @@
 		show_menu_button = false,
 		show_selection_buttons = false,
 		is_first_column = false,
+		is_solo = false,
 		latex_delimiters,
 		line_breaks = true,
 		editable = true,
@@ -50,6 +51,7 @@
 		show_menu_button?: boolean;
 		show_selection_buttons?: boolean;
 		is_first_column?: boolean;
+		is_solo?: boolean;
 		latex_delimiters: { left: string; right: string; display: boolean }[];
 		line_breaks?: boolean;
 		editable?: boolean;
@@ -71,6 +73,20 @@
 	} = $props();
 
 	let is_selected = $derived(selection_classes !== "");
+
+	// lock the cell-wrap's height to its pre-selection value so the
+	// row doesn't shift when the span goes position: absolute.
+	let wrap_el: HTMLDivElement | undefined = $state();
+	let locked_height = $state("");
+
+	// pre is weird but runs _before_ DOM updates
+	$effect.pre(() => {
+		if (is_solo && wrap_el) {
+			locked_height = `height: ${wrap_el.offsetHeight}px;`;
+		} else {
+			locked_height = "";
+		}
+	});
 </script>
 
 <div
@@ -78,6 +94,7 @@
 	class:flash={is_flash}
 	class:first-column={is_first_column}
 	class:static={is_static}
+	class:cell-solo={is_solo}
 	data-row={row_idx}
 	data-col={col_idx}
 	data-testid={`cell-${row_idx}-${col_idx}`}
@@ -87,7 +104,7 @@
 	{oncontextmenu}
 	style="{col_style} {cell_style}"
 >
-	<div class="cell-wrap">
+	<div class="cell-wrap" bind:this={wrap_el} style={locked_height}>
 		<EditableCell
 			{value}
 			{display_value}
@@ -107,6 +124,7 @@
 			{on_select_row}
 			{is_dragging}
 			{wrap_text}
+			expanded={is_solo}
 		/>
 		{#if show_menu_button}
 			<CellMenuButton on_click={on_menu_click} />
@@ -122,9 +140,10 @@
 			inset 1px 0 0 var(--border-color-primary),
 			inset 0 0 0 1px var(--ring-color);
 		padding: 0;
-		overflow: visible;
+		overflow: hidden;
 		box-sizing: border-box;
 		user-select: none;
+		min-width: 0;
 	}
 
 	.body-cell.static {
@@ -150,6 +169,65 @@
 			var(--sel-top), var(--sel-bottom), var(--sel-left), var(--sel-right);
 		z-index: 2;
 		position: relative;
+	}
+
+	.body-cell.cell-solo {
+		z-index: 10;
+		overflow: visible;
+	}
+
+	.body-cell.cell-solo .cell-wrap {
+		overflow: visible;
+	}
+
+	.body-cell.cell-solo :global(.cell-wrap > span) {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		min-height: 100%;
+		padding: var(--size-2);
+		box-sizing: border-box;
+		white-space: normal;
+		overflow: visible;
+		text-overflow: clip;
+		overflow-wrap: break-word;
+		word-break: break-word;
+		background: var(--background-fill-primary);
+		box-shadow:
+			inset 0 2px 0 0 var(--color-accent),
+			inset 0 -2px 0 0 var(--color-accent),
+			inset 2px 0 0 0 var(--color-accent),
+			inset -2px 0 0 0 var(--color-accent),
+			0 6px 12px -4px rgba(0, 0, 0, 0.22);
+		z-index: 1;
+	}
+
+	.body-cell.cell-solo :global(.cell-wrap > textarea) {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		min-height: 100%;
+		padding: var(--size-2);
+		padding-left: var(--size-2);
+		margin: 0;
+		box-sizing: border-box;
+		transform: none;
+		background: var(--background-fill-primary);
+		box-shadow:
+			inset 0 2px 0 0 var(--color-accent),
+			inset 0 -2px 0 0 var(--color-accent),
+			inset 2px 0 0 0 var(--color-accent),
+			inset -2px 0 0 0 var(--color-accent),
+			0 6px 12px -4px rgba(0, 0, 0, 0.22);
+		z-index: 2;
+		field-sizing: content;
+		height: auto;
+	}
+
+	.body-cell.cell-solo :global(.selection-button) {
+		z-index: 3;
 	}
 
 	.body-cell.cell-selected.no-top {
@@ -189,7 +267,7 @@
 		padding: var(--size-2);
 		box-sizing: border-box;
 		gap: var(--size-1);
-		overflow: visible;
+		overflow: hidden;
 		min-width: 0;
 		height: 100%;
 	}
