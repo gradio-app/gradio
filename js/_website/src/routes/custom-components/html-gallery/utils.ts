@@ -1,4 +1,5 @@
 import themeCSS from "$lib/assets/theme.css?raw";
+import Handlebars from "handlebars";
 
 export function clickOutside(
 	element: HTMLDivElement,
@@ -32,15 +33,11 @@ export function needs_iframe(css_template: string | undefined): boolean {
 }
 
 /**
- * Render a component's template string (Handlebars + JS template literals)
- * the same way BaseHTML does, but synchronously in the parent page.
+ * Render a component's template string using Handlebars.
  */
 function render_template(template: string, props: Record<string, any>): string {
 	try {
-		const keys = Object.keys(props);
-		const values = Object.values(props);
-		const fn = new Function(...keys, `return \`${template}\``);
-		return fn(...values);
+		return Handlebars.compile(template)(props);
 	} catch (e) {
 		console.error("Template rendering error:", e);
 		return "";

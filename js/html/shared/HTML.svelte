@@ -2,6 +2,7 @@
 	import { createEventDispatcher } from "svelte";
 	import Handlebars from "handlebars";
 	import type { Snippet } from "svelte";
+	import { sanitize } from "@gradio/sanitize";
 
 	let {
 		elem_classes = [],
@@ -134,20 +135,13 @@
 	): string {
 		try {
 			const handlebarsTemplate = Handlebars.compile(template);
-			const handlebarsRendered = handlebarsTemplate(props);
-
-			const propKeys = Object.keys(props);
-			const propValues = Object.values(props);
-			const templateFunc = new Function(
-				...propKeys,
-				`return \`${handlebarsRendered}\`;`
-			);
+			const rendered = handlebarsTemplate(props);
 			if (language === "html") {
 				html_error_message = null;
 			} else if (language === "css") {
 				css_error_message = null;
 			}
-			return templateFunc(...propValues);
+			return rendered;
 		} catch (e) {
 			console.error("Error evaluating template:", e);
 			if (language === "html") {
@@ -181,7 +175,7 @@
 		if (!_element || oldHtml === newHtml) return;
 
 		const tempContainer = document.createElement("div");
-		tempContainer.innerHTML = newHtml;
+		tempContainer.innerHTML = sanitize(newHtml);
 
 		const oldNodes = Array.from(_element.childNodes);
 		const newNodes = Array.from(tempContainer.childNodes);
@@ -386,16 +380,16 @@
 				reactiveProps,
 				"html"
 			);
-			pre_element.innerHTML = currentPreHtml;
+			pre_element.innerHTML = sanitize(currentPreHtml);
 			currentPostHtml = render_template(
 				post_html_template,
 				reactiveProps,
 				"html"
 			);
-			post_element.innerHTML = currentPostHtml;
+			post_element.innerHTML = sanitize(currentPostHtml);
 		} else {
 			currentHtml = render_template(html_template, reactiveProps, "html");
-			element.innerHTML = currentHtml;
+			element.innerHTML = sanitize(currentHtml);
 		}
 		update_css();
 
