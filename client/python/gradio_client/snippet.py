@@ -209,21 +209,52 @@ def generate_bash_snippet(
     normalised_prefix = api_prefix if api_prefix else "/"
     endpoint_name = api_name.lstrip("/")
 
-    data_values = []
+    has_file = any(_has_file_data(p.get("example_input")) for p in params)
+    upload_url = f"{normalised_root}{normalised_prefix}upload"
+
+    lines: list[str] = []
+
+    file_param_names: list[str] = []
+    if has_file:
+        for p in params:
+            if _has_file_data(p.get("example_input")):
+                name = p.get("parameter_name") or p.get("label", "input")
+                file_param_names.append(name)
+        lines.append(
+            f"FILE_PATH=$(curl -s -X POST {upload_url}"
+            " -F 'files=@/path/to/your/file'"
+            " | tr -d '[]\" ')"
+        )
+        lines.append("")
+
+    data_dict = {}
     for p in params:
-        value = _get_param_value(p)
-        ptype = p.get("python_type", {}).get("type")
-        formatted = _represent_value(value, ptype, "bash")
-        data_values.append(formatted)
+        name = p.get("parameter_name") or p.get("label", "input")
+        if name in file_param_names:
+            data_dict[name] = "FILE_PATH_PLACEHOLDER"
+        else:
+            value = _get_param_value(p)
+            ptype = p.get("python_type", {}).get("type")
+            formatted = _represent_value(value, ptype, "bash")
+            data_dict[name] = formatted
 
-    data_str = ", ".join(data_values)
-    base_url = f"{normalised_root}{normalised_prefix}call/{endpoint_name}"
+    data_entries = ", ".join(f'"{k}": {v}' for k, v in data_dict.items())
+    data_str = "{" + data_entries + "}"
+    for _ in file_param_names:
+        replacement = '{"path": "\'$FILE_PATH\'", "meta": {"_type": "gradio.FileData"}}'
+        data_str = data_str.replace("FILE_PATH_PLACEHOLDER", replacement)
 
-    lines = [
-        f'curl -X POST {base_url} -s -H "Content-Type: application/json" -d \'{{"data": [{data_str}]}}\' \\',
-        "  | awk -F'\"' '{ print $4}' \\",
-        f"  | read EVENT_ID; curl -N {base_url}/$EVENT_ID",
-    ]
+    base_url = f"{normalised_root}{normalised_prefix}call/v2/{endpoint_name}"
+    get_url = f"{normalised_root}{normalised_prefix}call/{endpoint_name}"
+
+    lines.extend(
+        [
+            f'curl -X POST {base_url} -s -H "Content-Type: application/json" \\',
+            f"  -d '{data_str}' \\",
+            "  | awk -F'\"' '{ print $4}' \\",
+            f"  | read EVENT_ID; curl -N {get_url}/$EVENT_ID",
+        ]
+    )
 
     return "\n".join(lines)
 

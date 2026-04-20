@@ -58,6 +58,11 @@ class SimplePredictBody(BaseModel):
     session_hash: str | None = None
 
 
+class SimplePredictBodyV2(BaseModel):
+    data: dict[str, Any]
+    session_hash: str | None = None
+
+
 class _StarletteRequestPydanticAnnotation:
     @classmethod
     def __get_pydantic_core_schema__(
