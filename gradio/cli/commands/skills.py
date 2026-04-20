@@ -35,7 +35,7 @@ _HF_SKILL_FILES = ["SKILL.md"]
 skills_app = typer.Typer(help="Manage Gradio skills for AI assistants.")
 
 
-def _import_hf_skills():
+def _get_skill_targets():
     central_local = Path(".agents/skills")
     central_global = Path("~/.agents/skills")
     claude_local = Path(".claude/skills")
@@ -326,7 +326,7 @@ def skills_add(
     specific Gradio Space with Python, JS, and cURL usage examples.
     """
     central_global, central_local, hf_global_targets, hf_local_targets = (
-        _import_hf_skills()
+        _get_skill_targets()
     )
 
     if not (cursor or claude or codex or opencode or dest):
