@@ -21,6 +21,7 @@
 		i18n,
 		is_dragging = false,
 		wrap_text = false,
+		expanded = false,
 		show_selection_buttons = false,
 		coords,
 		on_select_column = null,
@@ -56,6 +57,7 @@
 		i18n: I18nFormatter;
 		is_dragging?: boolean;
 		wrap_text?: boolean;
+		expanded?: boolean;
 		show_selection_buttons?: boolean;
 		coords: [number, number];
 		on_select_column?: ((col: number) => void) | null;
@@ -81,7 +83,9 @@
 		return str.slice(0, max_length) + "...";
 	}
 
-	let should_truncate = $derived(!edit && max_chars !== null && max_chars > 0);
+	let should_truncate = $derived(
+		!edit && !expanded && max_chars !== null && max_chars > 0
+	);
 
 	let display_content = $derived(
 		editable ? value : display_value !== null ? display_value : value
@@ -99,6 +103,22 @@
 		});
 
 		return {};
+	}
+
+	// grow the edit-mode textarea to fit its content so the overlay
+	// expands the same way the display span does.
+	function use_autosize(node: HTMLTextAreaElement): any {
+		function resize(): void {
+			node.style.height = "auto";
+			node.style.height = `${node.scrollHeight}px`;
+		}
+		node.addEventListener("input", resize);
+		requestAnimationFrame(resize);
+		return {
+			destroy() {
+				node.removeEventListener("input", resize);
+			}
+		};
 	}
 
 	function handle_blur(event: FocusEvent): void {
@@ -139,6 +159,7 @@
 		onmousedown={(e: MouseEvent) => e.stopPropagation()}
 		onclick={(e: MouseEvent) => e.stopPropagation()}
 		use:use_focus
+		use:use_autosize
 		onkeydown={handle_keydown}
 		class:pad_left
 	/>
@@ -154,7 +175,7 @@
 		role="button"
 		class:edit
 		class:expanded={edit}
-		class:multiline={header}
+		class:header
 		onfocus={(e) => e.preventDefault()}
 		style={styling}
 		data-editable={editable}
@@ -241,7 +262,14 @@
 		outline: none;
 		cursor: text;
 		width: 100%;
-		overflow-wrap: break-word;
+		min-width: 0;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.header {
+		font-weight: var(--weight-bold);
 	}
 
 	span.text.expanded {
@@ -252,19 +280,6 @@
 		overflow: visible;
 	}
 
-	.multiline {
-		white-space: pre;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.header {
-		font-weight: var(--weight-bold);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
 	.edit {
 		opacity: 0;
 		pointer-events: none;
@@ -272,6 +287,8 @@
 
 	span :global(img) {
 		max-height: 100px;
+		max-width: 100%;
+		height: auto;
 		width: auto;
 		object-fit: contain;
 	}
@@ -283,8 +300,9 @@
 	.wrap,
 	.wrap.expanded {
 		white-space: normal;
-		word-wrap: break-word;
+		overflow: visible;
+		text-overflow: clip;
 		overflow-wrap: break-word;
-		word-wrap: break-word;
+		word-break: break-word;
 	}
 </style>

@@ -148,7 +148,7 @@
 			id: `col_${j}`,
 			accessorKey: `col_${j}`,
 			header: header_value,
-			size: column_widths[j] ? parseInt(column_widths[j]) || 150 : 150,
+			size: 150,
 			minSize: 45,
 			filterFn: gradio_filter_fn,
 			meta: {
@@ -680,13 +680,22 @@
 		if (selected) {
 			const [row, col] = selected;
 
+			if (
+				editing &&
+				(e.key === "ArrowUp" ||
+					e.key === "ArrowDown" ||
+					e.key === "ArrowLeft" ||
+					e.key === "ArrowRight")
+			) {
+				return;
+			}
+
 			switch (e.key) {
 				case "ArrowUp":
 					e.preventDefault();
 					if (row > 0) {
 						selected = [row - 1, col];
 						selected_cells = [selected];
-						editing = false;
 						virtualizer.instance.scrollToIndex(row - 1, { align: "auto" });
 					}
 					break;
@@ -695,7 +704,6 @@
 					if (row < num_rows - 1) {
 						selected = [row + 1, col];
 						selected_cells = [selected];
-						editing = false;
 						virtualizer.instance.scrollToIndex(row + 1, { align: "auto" });
 					}
 					break;
@@ -704,7 +712,6 @@
 					if (col > 0) {
 						selected = [row, col - 1];
 						selected_cells = [selected];
-						editing = false;
 					}
 					break;
 				case "ArrowRight":
@@ -712,7 +719,6 @@
 					if (col < num_cols - 1) {
 						selected = [row, col + 1];
 						selected_cells = [selected];
-						editing = false;
 					}
 					break;
 				case "Tab": {
@@ -857,6 +863,7 @@
 
 	let header_row_el: HTMLTableRowElement;
 	let header_table_el: HTMLTableElement;
+	let viewport_width = $state(0);
 
 	const measurement = create_column_measurement({
 		header_row_el: () => header_row_el,
@@ -865,6 +872,7 @@
 		row_data: () => row_data,
 		show_row_numbers: () => show_row_numbers,
 		column_widths: () => column_widths,
+		viewport_width: () => viewport_width,
 		on_resize: undefined
 	});
 
@@ -927,11 +935,11 @@
 		bind:this={parent}
 		class="table-wrap"
 		class:dragging={is_dragging}
-		class:no-wrap={!wrap}
 		class:menu-open={active_cell_menu || active_header_menu}
 		onkeydown={handle_keydown}
 		role="grid"
 		tabindex="0"
+		style="--df-max-col-width: {viewport_width}px;"
 	>
 		<Upload
 			{upload}
@@ -949,6 +957,7 @@
 				class="virtual-table-viewport"
 				class:disable-scroll={disable_scroll}
 				bind:this={scroll_container}
+				bind:clientWidth={viewport_width}
 				onscroll={handle_scroll}
 				style="max-height: {max_height}px;"
 				role="grid"
@@ -987,6 +996,7 @@
 										{editable}
 										{max_chars}
 										{i18n}
+										wrap_text={wrap}
 										onclick={handle_header_click}
 										on_menu_click={toggle_header_menu}
 										on_end_edit={end_header_edit}
@@ -996,7 +1006,7 @@
 							{/each}
 						</tr>
 					</thead>
-					<!-- hidden sizing row: lets table-layout:auto consider body content widths too -->
+
 					<tbody class="sizing-body" aria-hidden="true">
 						{#if rows.length > 0}
 							{@const sizing_row = compute_sizing_row()}
@@ -1092,6 +1102,9 @@
 											selected_cells[0][0] === row_idx &&
 											selected_cells[0][1] === col_idx}
 										show_selection_buttons={selected_cells.length === 1 &&
+											selected_cells[0][0] === row_idx &&
+											selected_cells[0][1] === col_idx}
+										is_solo={selected_cells.length === 1 &&
 											selected_cells[0][0] === row_idx &&
 											selected_cells[0][1] === col_idx}
 										is_first_column={ci === 0 && !show_row_numbers}
@@ -1218,7 +1231,7 @@
 		gap: var(--size-2);
 		position: relative;
 		max-width: 100%;
-		overflow: hidden;
+		overflow-x: hidden;
 	}
 
 	.table-container.fullscreen {
@@ -1338,6 +1351,12 @@
 		padding: var(--size-2);
 		border: none;
 		white-space: nowrap;
+		max-width: var(--df-max-col-width);
+		overflow: hidden;
+	}
+
+	.header-table :global(.header-cell) {
+		max-width: var(--df-max-col-width);
 	}
 
 	/* Virtual body */
@@ -1411,18 +1430,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-	}
-
-	.no-wrap {
-		white-space: nowrap;
-	}
-
-	div:not(.no-wrap) :global(td) {
-		overflow-wrap: anywhere;
-	}
-
-	div.no-wrap :global(td) {
-		overflow-x: hidden;
 	}
 
 	.header-row {
