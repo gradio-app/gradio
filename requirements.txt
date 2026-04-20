@@ -3,7 +3,7 @@ audioop-lts<=0.2.2; python_version >= "3.13" # this is a replacement for the bui
 brotli>=1.1.0
 fastapi>=0.115.2,<1.0
 groovy~=0.1
-gradio_client==2.4.1
+gradio_client==2.5.0
 hf-gradio>=0.4.1,<1.0
 httpx>=0.24.1,<1.0
 huggingface_hub>=0.33.5,<2.0

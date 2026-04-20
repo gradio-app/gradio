@@ -2,6 +2,12 @@
 
 ## 0.13.0
 
+### Dependency updates
+
+- @gradio/statustracker@0.14.1
+
+## 0.13.0
+
 ### Features
 
 - [#13192](https://github.com/gradio-app/gradio/pull/13192) [`f4656ae`](https://github.com/gradio-app/gradio/commit/f4656ae89c30b78b4f0652b6778176d34c1b61af) - Button Unit Tests.  Thanks @dawoodkhan82!

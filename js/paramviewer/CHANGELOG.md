@@ -1,5 +1,12 @@
 # @gradio/paramviewer
 
+## 0.9.9
+
+### Dependency updates
+
+- @gradio/atoms@0.24.0
+- @gradio/statustracker@0.14.1
+
 ## 0.9.8
 
 ### Dependency updates

@@ -1,5 +1,11 @@
 # @gradio/tabs
 
+## 0.5.10
+
+### Fixes
+
+- [#13303](https://github.com/gradio-app/gradio/pull/13303) [`79c5776`](https://github.com/gradio-app/gradio/commit/79c577680978adfb5eeaa01944635e14dc67e5f1) - Rework `Dataframe` wrapping, truncation, and column width sizing.  Thanks @pngwn!
+
 ## 0.5.9
 
 ### Fixes
