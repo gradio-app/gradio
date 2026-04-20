@@ -28,6 +28,7 @@
 		editable = true,
 		max_chars = undefined,
 		i18n,
+		wrap_text = false,
 		onclick,
 		on_menu_click,
 		on_end_edit,
@@ -51,6 +52,7 @@
 		editable?: boolean;
 		max_chars?: number | undefined;
 		i18n: I18nFormatter;
+		wrap_text?: boolean;
 		onclick: (event: MouseEvent, col: number) => void;
 		on_menu_click: (event: MouseEvent, col: number) => void;
 		on_end_edit: (key: string) => void;
@@ -112,6 +114,7 @@
 				{is_static}
 				{i18n}
 				{max_chars}
+				{wrap_text}
 				coords={[col_idx, 0]}
 				pad_left={show_select_all ? true : false}
 			/>
