@@ -1619,6 +1619,7 @@ class TestSimpleAPIRoutes:
 
 
 class TestCurlEndpointWithFiles:
+    @pytest.mark.serial
     def test_image_to_image(self):
         def invert(img):
             return 255 - img
@@ -1661,6 +1662,7 @@ class TestCurlEndpointWithFiles:
         finally:
             demo.close()
 
+    @pytest.mark.serial
     def test_text_to_image(self):
         def generate(prompt):
             return np.zeros((64, 64, 3), dtype=np.uint8)
@@ -1691,6 +1693,7 @@ class TestCurlEndpointWithFiles:
         finally:
             demo.close()
 
+    @pytest.mark.serial
     def test_image_to_image_exception_reported_in_sse(self):
         def fail_fn(img):
             raise ValueError("Image processing failed!")
@@ -1728,6 +1731,7 @@ class TestCurlEndpointWithFiles:
         finally:
             demo.close()
 
+    @pytest.mark.seriale
     def test_text_to_image_exception_reported_in_sse(self):
         def fail_fn(prompt):
             raise RuntimeError("Generation exploded!")
@@ -1748,12 +1752,13 @@ class TestCurlEndpointWithFiles:
             for line in sse_resp.iter_lines():
                 if line:
                     output.append(line.decode("utf-8"))
-
+            data = {"error": None}
             assert output[0] == "event: error"
-            assert output[1] == "data: null"
+            assert output[1] == f"data: {data}"
         finally:
             demo.close()
 
+    @pytest.mark.serial
     def test_gr_error_reported_in_sse(self):
         def fail_fn(prompt):
             raise gr.Error("Custom user-facing error message")
@@ -1774,9 +1779,48 @@ class TestCurlEndpointWithFiles:
             for line in sse_resp.iter_lines():
                 if line:
                     output.append(line.decode("utf-8"))
-
+            data = {
+                "error": "Custom user-facing error message",
+                "duration": 10,
+                "visible": True,
+                "title": "Error",
+            }
             assert output[0] == "event: error"
-            assert output[1] == "data: null"
+            assert output[1] == f"data: {json.dumps(data)}"
+        finally:
+            demo.close()
+
+    @pytest.mark.serial
+    def test_gr_error_reported_in_iterator_sse(self):
+        def fail_fn(prompt):
+            yield "Foo"
+            raise gr.Error("Custom iterator message")
+            yield "Bar"
+
+        demo = gr.Interface(fail_fn, gr.Textbox(), gr.Textbox(), api_name="predict")
+        demo.launch(prevent_thread_lock=True)
+        try:
+            post_resp = requests.post(
+                f"{demo.local_api_url}call/v2/predict",
+                json={"prompt": "a cat"},
+            )
+            event_id = post_resp.json()["event_id"]
+
+            output = []
+            sse_resp = requests.get(
+                f"{demo.local_api_url}call/predict/{event_id}", stream=True
+            )
+            for line in sse_resp.iter_lines():
+                if line:
+                    output.append(line.decode("utf-8"))
+            data = {
+                "error": "Custom iterator message",
+                "duration": 10,
+                "visible": True,
+                "title": "Error",
+            }
+            assert output[-2] == "event: error"
+            assert output[-1] == f"data: {json.dumps(data)}"
         finally:
             demo.close()
 

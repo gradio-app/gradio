@@ -1611,10 +1611,14 @@ class App(FastAPI):
                 msg = message.model_dump()
                 if isinstance(message, ProcessCompletedMessage):
                     event = "complete" if message.success else "error"
-                    data = msg["output"].get("data")
+                    data = (
+                        msg["output"].get("data") if message.success else msg["output"]
+                    )
                 elif isinstance(message, ProcessGeneratingMessage):
                     event = "generating" if message.success else "error"
-                    data = msg["output"].get("data")
+                    data = (
+                        msg["output"].get("data") if message.success else msg["output"]
+                    )
                 elif isinstance(message, HeartbeatMessage):
                     event = "heartbeat"
                     data = None
