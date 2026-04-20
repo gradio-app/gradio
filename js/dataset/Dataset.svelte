@@ -61,9 +61,10 @@
 
 	// page resets to 0 whenever effective_samples changes,
 	// but can still be overwritten by user clicks
-	let page = $derived.by(() => {
+	let page = $state(0);
+	$effect(() => {
 		effective_samples;
-		return 0;
+		page = 0;
 	});
 
 	let paginate = $derived(effective_samples.length > samples_per_page);
@@ -195,8 +196,8 @@
 								selected={current_hover === i}
 								type="gallery"
 							/>
-						{:else if component_meta.length}
-							{#await Promise.all( [component_meta[0][0].component, component_meta[0][0].runtime] ) then [component, runtime]}
+						{:else if component_meta.length && component_meta[i]}
+							{#await Promise.all( [component_meta[i][0].component, component_meta[i][0].runtime] ) then [component, runtime]}
 								{#key sample_row[0]}
 									<MountExample
 										{component}
