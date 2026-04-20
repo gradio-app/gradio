@@ -71,7 +71,7 @@ with gr.Blocks() as demo:
         f"### Reproduction for #13279: {ROWS} rows × mixed dtypes (markdown/html/date/number/bool/str)"
     )
     gr.Dataframe(
-        value=data, headers=headers, datatype=datatype, interactive=False
+        value=data, headers=headers, datatype=datatype, interactive=False # type: ignore
     )
 
 if __name__ == "__main__":
