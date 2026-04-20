@@ -287,6 +287,20 @@
 		return stripped;
 	}
 
+	// mirror EditableCell.truncate_text so the sizing row reserves width
+	// for the truncated ("…") string, not the full source
+	function apply_truncation(s: string, dtype: Datatype): string {
+		if (
+			max_chars &&
+			max_chars > 0 &&
+			dtype !== "image" &&
+			s.length > max_chars
+		) {
+			return s.slice(0, max_chars) + "...";
+		}
+		return s;
+	}
+
 	// find the widest rendered value per visible column for the sizing row
 	function compute_sizing_row(): SizingEntry[] {
 		const headers = header_groups[0]?.headers ?? [];
@@ -315,7 +329,7 @@
 					: (display_value?.[row_idx]?.[col_idx] ??
 						values?.[row_idx]?.[col_idx]);
 				if (rendered == null) continue;
-				const v = String(rendered);
+				const v = apply_truncation(String(rendered), dtype);
 				const len = visual_len(v);
 				if (len > best_len) {
 					best_len = len;
