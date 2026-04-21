@@ -252,6 +252,7 @@ async def run_httpx_tier(
             ) as stream:
                 deadline = start + request_timeout
                 buffer = b""
+                msg = {}
                 async for chunk in stream.aiter_bytes():
                     buffer += chunk
                     while b"\n\n" in buffer:

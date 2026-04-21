@@ -1,7 +1,7 @@
 import os
 
 import numpy as np
-
+import time
 import gradio as gr
 
 _cl = os.environ.get("GRADIO_CONCURRENCY_LIMIT", "1")
@@ -10,10 +10,7 @@ _max_threads = int(os.environ.get("GRADIO_MAX_THREADS", 40))
 
 
 def generate_video(video):
-    # CPU-bound work that holds the GIL (~300-500ms)
-    a = np.random.rand(1500, 1500)
-    b = np.random.rand(1500, 1500)
-    _ = a @ b
+    time.sleep(0.3)
     return video
 
 
