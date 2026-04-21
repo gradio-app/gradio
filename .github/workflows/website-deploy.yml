@@ -61,12 +61,15 @@ jobs:
           path: js/_website/build
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: download functions artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: functions
+          path: js/_website/build/functions
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: list files
         run: ls -R .
-
-      - name: copy functions
-        run: cp -r js/_website/functions js/_website/build/functions
-
       - name: Deploy Preview Website to Cloudflare Pages
         if: needs.changes.outputs.pr_number != 'false'
         id: cloudflare-preview
