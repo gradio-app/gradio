@@ -208,9 +208,7 @@ class Client:
             self._refresh_heartbeat = threading.Event()
             self._kill_heartbeat = threading.Event()
 
-            self.heartbeat = threading.Thread(
-                target=self._stream_heartbeat, daemon=True
-            )
+            self.heartbeat = threading.Thread(target=self._stream_heartbeat, daemon=True)
             self.heartbeat.start()
 
         self.stream_open = False
@@ -359,19 +357,17 @@ class Client:
         to_id: str | None = None,
         token: str | None = None,
         private: bool = True,
-        hardware: (
-            Literal[
-                "cpu-basic",
-                "cpu-upgrade",
-                "t4-small",
-                "t4-medium",
-                "a10g-small",
-                "a10g-large",
-                "a100-large",
-            ]
-            | SpaceHardware
-            | None
-        ) = None,
+        hardware: Literal[
+            "cpu-basic",
+            "cpu-upgrade",
+            "t4-small",
+            "t4-medium",
+            "a10g-small",
+            "a10g-large",
+            "a100-large",
+        ]
+        | SpaceHardware
+        | None = None,
         secrets: dict[str, str] | None = None,
         sleep_timeout: int = 5,
         max_workers: int = 40,
