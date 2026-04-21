@@ -93,3 +93,9 @@ jobs:
           name: website
           path: js/_website/build
           include-hidden-files: true
+      - name: upload functions artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: functions
+          path: js/_website/functions
+          include-hidden-files: true
