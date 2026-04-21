@@ -27,6 +27,7 @@
 		"node": ">=22.0.0"
 	},
 	"dependencies": {
+		"@gradio/client": "workspace:^",
 		"@gradio/code": "workspace:^",
 		"@gradio/html": "workspace:^",
 		"@gradio/paramviewer": "workspace:^",
