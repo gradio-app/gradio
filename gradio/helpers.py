@@ -668,6 +668,26 @@ class TrackedIterable:
         self._tqdm = _tqdm
         self.progress = progress
 
+    def __getstate__(self):
+        return {
+            "iterable": None,
+            "index": self.index,
+            "length": self.length,
+            "desc": self.desc,
+            "unit": self.unit,
+            "_tqdm": None,
+            "progress": self.progress,
+        }
+
+    def __setstate__(self, state):
+        self.iterable = state["iterable"]
+        self.index = state["index"]
+        self.length = state["length"]
+        self.desc = state["desc"]
+        self.unit = state["unit"]
+        self._tqdm = state["_tqdm"]
+        self.progress = state["progress"]
+
 
 @document("__call__", "tqdm")
 class Progress(Iterable):

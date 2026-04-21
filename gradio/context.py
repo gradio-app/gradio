@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from contextvars import ContextVar
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext, Blocks, BlocksConfig
@@ -28,6 +28,7 @@ class LocalContext:
     event_id: ContextVar[str | None] = ContextVar("event_id")
     request: ContextVar[Request | None] = ContextVar("request")
     progress: ContextVar[Progress | None] = ContextVar("progress")
+    queue_transport: ContextVar[Callable[[tuple[str, tuple[Any, ...], dict[str, Any]]], None] | None] = ContextVar("queue_transport")
     key_to_id_map: ContextVar[dict[int | str | tuple[str | int, ...], int] | None] = (
         ContextVar("key_to_id_map")
     )
