@@ -465,6 +465,9 @@ class App(FastAPI):
             quality=4,
             excluded_handlers=[mcp_subpath],
         )
+        from gradio import zerogpu
+
+        zerogpu.install_middleware(app)
 
         if ssr_mode:
 

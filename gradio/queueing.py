@@ -19,6 +19,7 @@ from anyio.to_thread import run_sync
 
 from gradio import route_utils, routes
 from gradio.caching import CacheMissError, ProbeCache
+from gradio.zerogpu import maybe_rpc
 from gradio.data_classes import (
     PredictBodyInternal,
 )
@@ -571,6 +572,7 @@ class Queue:
 
             await asyncio.sleep(self.progress_update_sleep_when_free)
 
+    @maybe_rpc
     def set_progress(
         self,
         event_id: str,
@@ -596,6 +598,7 @@ class Queue:
                     evt.progress = ProgressMessage(progress_data=progress_data)
                     evt.progress_pending = True
 
+    @maybe_rpc
     def log_message(
         self,
         event_id: str,
