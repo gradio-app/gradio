@@ -8,6 +8,25 @@ import type {
 	FileValue
 } from "./workflow-types";
 
+// Cache connected clients to avoid reconnecting on every run
+const clientCache = new Map<string, { client: any; timestamp: number }>();
+const CLIENT_TTL = 5 * 60 * 1000; // 5 minutes
+
+async function getClient(spaceId: string): Promise<any> {
+	const cached = clientCache.get(spaceId);
+	if (cached && Date.now() - cached.timestamp < CLIENT_TTL) {
+		return cached.client;
+	}
+	const client = await Promise.race([
+		Client.connect(spaceId, { events: ["data", "status"] }),
+		new Promise<never>((_, reject) =>
+			setTimeout(() => reject(new Error("Timed out connecting to Space")), 15000)
+		)
+	]);
+	clientCache.set(spaceId, { client, timestamp: Date.now() });
+	return client;
+}
+
 type StatusCallback = (nodeId: string, status: NodeStatus, error?: string) => void;
 type OutputCallback = (nodeId: string, portId: string, value: NodeDataValue) => void;
 
@@ -150,14 +169,7 @@ export async function executeWorkflow(
 
 			try {
 				const inputs = resolveInputs(node, edges, dataMap);
-				const app = await Promise.race([
-					Client.connect(node.space_id, {
-						events: ["data", "status"]
-					}),
-					new Promise<never>((_, reject) =>
-						setTimeout(() => reject(new Error("Timed out connecting to Space")), 15000)
-					)
-				]);
+				const app = await getClient(node.space_id);
 
 				// Build payload array from input ports
 				const payload: unknown[] = await Promise.all(

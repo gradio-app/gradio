@@ -97,7 +97,18 @@
 		);
 	}
 
+	function revokeAllBlobUrls(nodes: WFNode[]): void {
+		for (const node of nodes) {
+			for (const v of Object.values(node.data ?? {})) {
+				if (v && typeof v === "object" && "url" in v && v.url?.startsWith("blob:")) {
+					URL.revokeObjectURL(v.url);
+				}
+			}
+		}
+	}
+
 	function clearWorkflow(): void {
+		revokeAllBlobUrls($workflow.nodes);
 		workflow.set({
 			version: "1",
 			name: $workflow.name,
@@ -277,6 +288,7 @@
 				const text = await file.text();
 				const wf = JSON.parse(text);
 				if (wf.nodes && wf.edges) {
+					revokeAllBlobUrls($workflow.nodes);
 					wf.nodes = wf.nodes.map((n: any) => ({ ...n, data: n.data ?? {} }));
 					workflow.set(wf);
 				}

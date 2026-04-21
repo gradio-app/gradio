@@ -669,13 +669,13 @@
 	}
 
 	.port-dot:hover {
-		transform: scale(1.6);
+		transform: scale(1.4);
 		background: var(--port-color);
-		box-shadow: 0 0 8px var(--port-color);
+		box-shadow: 0 0 6px var(--port-color);
 	}
 
 	.output-dot:hover {
-		transform: rotate(45deg) scale(1.6);
+		transform: rotate(45deg) scale(1.4);
 	}
 
 	.port-dot.pulse {
