@@ -64,6 +64,9 @@ jobs:
       - name: list files
         run: ls -R .
 
+      - name: copy functions
+        run: cp -r js/_website/functions js/_website/build/functions
+
       - name: Deploy Preview Website to Cloudflare Pages
         if: needs.changes.outputs.pr_number != 'false'
         id: cloudflare-preview
