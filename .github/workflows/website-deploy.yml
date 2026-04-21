@@ -65,11 +65,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: functions
-          path: js/_website/build/functions
+          path: js/_website/functions
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: list files
         run: ls -R .
+      - name: build worker
+        uses: cloudflare/wrangler-action@v3.5.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages functions build js/_website/functions/ --outdir=js/_website/build/
       - name: Deploy Preview Website to Cloudflare Pages
         if: needs.changes.outputs.pr_number != 'false'
         id: cloudflare-preview
