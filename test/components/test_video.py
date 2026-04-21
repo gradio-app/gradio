@@ -152,6 +152,30 @@ class TestVideo:
             output = output.model_dump()
             assert processing_utils.video_is_playable(output["path"])
 
+    def test_video_subtitles_srt_converts_to_valid_vtt(self):
+        srt_content = """1
+00:00:01,000 --> 00:00:05,000
+Hello world
+
+2
+00:00:06,000 --> 00:00:10,000
+This is a test
+"""
+
+        with tempfile.NamedTemporaryFile(suffix=".srt", delete=False) as tmp_srt:
+            tmp_srt.write(srt_content.encode("utf-8"))
+            subtitle_path = tmp_srt.name
+
+        subtitle_file = gr.Video(subtitles=subtitle_path).subtitles
+        assert subtitle_file is not None
+
+        with open(subtitle_file.path, encoding="utf-8") as converted:
+            converted_content = converted.read()
+
+        assert "WEBVTT" in converted_content
+        assert "00:00:01.000 --> 00:00:05.000\n" in converted_content
+        assert "00:00:01.000 --> 00:00:05.000 -->" not in converted_content
+
     @patch("pathlib.Path.exists", MagicMock(return_value=False))
     @patch("gradio.components.video.FFmpeg")
     def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg, media_data):
