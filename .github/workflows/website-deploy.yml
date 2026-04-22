@@ -58,42 +58,31 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: website
-          path: js/_website/build
+          path: js/_website
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: download functions artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: functions
-          path: js/_website/functions
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: list files
-        run: ls -R .
-      - name: build worker
-        uses: cloudflare/wrangler-action@v3.5.0
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages functions build js/_website/functions/ --outdir=js/_website/build/
-      - name: Deploy Preview Website to Cloudflare Pages
+
+        # preview
+      - name: Deploy Preview Worker to Cloudflare
         if: needs.changes.outputs.pr_number != 'false'
         id: cloudflare-preview
-        uses: cloudflare/wrangler-action@v3.5.0
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy js/_website/build --project-name=gradio-website --branch=${{ needs.changes.outputs.source_branch }}
+          workingDirectory: js/_website
+          command: versions upload
 
         # production
-      - name: Deploy Production Website to Cloudflare Pages
+      - name: Deploy Production Worker to Cloudflare
         if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && needs.changes.outputs.source_branch == 'refs/heads/main'
         id: cloudflare-production
-        uses: cloudflare/wrangler-action@v3.5.0
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy js/_website/build --project-name=gradio-website --branch=main
+          workingDirectory: js/_website
+          command: deploy
 
   comment-deploy-success:
     uses: "./.github/workflows/comment-queue.yml"
