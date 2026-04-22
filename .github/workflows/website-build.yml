@@ -86,12 +86,14 @@ jobs:
         run: |
           . venv/bin/activate
           python scripts/upload_docs_json.py
-
       - name: upload website artifacts
         uses: actions/upload-artifact@v4
         with:
           name: website
-          path: js/_website/build
+          path: |
+            js/_website/build
+            js/_website/wrangler.jsonc
+            js/_website/worker
           include-hidden-files: true
       - name: upload functions artifacts
         uses: actions/upload-artifact@v4
