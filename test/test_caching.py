@@ -225,6 +225,62 @@ class TestCacheDecorator:
         list(streamer(3))
         assert list(streamer(3)) == [[1], [1, 2], [1, 2, 3]]
 
+    def test_runtime_wrapper_reuses_cache(self):
+        call_count = 0
+
+        def add(x, y=0):
+            nonlocal call_count
+            call_count += 1
+            return x + y
+
+        assert cache(add)(1, y=2) == 3
+        assert cache(add)(1, y=2) == 3
+        assert call_count == 1
+
+    def test_runtime_wrapper_with_key_parameter(self):
+        call_count = 0
+        cache_key = lambda kw: kw["prompt"]
+
+        def generate(prompt, temperature=0.7):
+            nonlocal call_count
+            call_count += 1
+            return f"{prompt}_{temperature}"
+
+        cached_generate = cache(generate, key=cache_key)
+        r1 = cached_generate("hello", temperature=0.5)
+        r2 = cache(generate, key=cache_key)("hello", temperature=0.9)
+
+        assert r1 == r2
+        assert call_count == 1
+
+    def test_runtime_wrapper_tracks_manual_cache_usage(self):
+        call_count = 0
+
+        def add(x):
+            nonlocal call_count
+            call_count += 1
+            return x + 1
+
+        cached_add = cache(add)
+        assert cached_add(1) == 2
+
+        with TrackManualCacheUsage():
+            assert used_manual_cache() is False
+            assert cache(add)(1) == 2
+            assert used_manual_cache() is True
+
+        assert call_count == 1
+
+    def test_runtime_wrapper_non_callable_raises(self):
+        with pytest.raises(TypeError, match="expected a callable"):
+            cache(123)
+
+        def add(x):
+            return x + 1
+
+        with pytest.raises(TypeError, match="Use gr.cache\\(fn\\)\\(\\*args\\)"):
+            cache(add(1))
+
 
 class TestCacheManual:
     def test_get_set(self):
