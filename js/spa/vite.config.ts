@@ -75,6 +75,12 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			outDir: "../../gradio/templates/frontend",
 			rollupOptions: {
 				external: ["virtual:cc-init"]
+			},
+			rolldownOptions: {
+				experimental: {
+					strictExecutionOrder: true
+				},
+				external: ["virtual:cc-init"]
 			}
 		},
 		define: {
@@ -153,7 +159,12 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 				"@ffmpeg/util",
 				"chromium-bidi",
 				"esbuild"
-			]
+			],
+			rolldownOptions: {
+				experimental: {
+					strictExecutionOrder: true
+				}
+			}
 		},
 		resolve: {
 			conditions: ["gradio", "browser", "default"]
