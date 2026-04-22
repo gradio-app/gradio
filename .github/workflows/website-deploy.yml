@@ -71,6 +71,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: js/_website
+          wranglerVersion: "4"
           command: versions upload
 
         # production
@@ -82,6 +83,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: js/_website
+          wranglerVersion: "4"
           command: deploy
 
   comment-deploy-success:
