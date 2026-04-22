@@ -96,13 +96,10 @@ class TestSlider:
         assert slider.preprocess(5.1) == 5
         assert slider.api_info()["type"] == "integer"
 
-    def test_equal_minimum_and_maximum_defaults_step_to_one(self):
-        slider = gr.Slider(minimum=5, maximum=5)
-
-        assert slider.step == 1
-        assert slider.minimum == 5
-        assert slider.maximum == 5
+    def test_raises_when_minimum_equals_maximum(self):
+        with pytest.raises(ValueError, match="minimum must be less than maximum"):
+            gr.Slider(minimum=5, maximum=5)
 
     def test_raises_when_minimum_is_greater_than_maximum(self):
-        with pytest.raises(ValueError, match="minimum must be less than or equal to maximum"):
+        with pytest.raises(ValueError, match="minimum must be less than maximum"):
             gr.Slider(minimum=10, maximum=5)

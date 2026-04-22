@@ -80,18 +80,14 @@ class Slider(FormComponent):
             randomize: If True, the value of the slider when the app loads is taken uniformly at random from the range given by the minimum and maximum.
             buttons: A list of buttons to show for the component. Currently, the only valid option is "reset". The "reset" button allows the user to reset the slider to its default value. By default, no buttons are shown.
         """
+        if minimum >= maximum:
+            raise ValueError("Slider minimum must be less than maximum.")
         self.minimum = minimum
         self.maximum = maximum
         self.precision = precision
         if step is None:
-            difference = maximum - minimum
-            if difference < 0:
-                raise ValueError("Slider minimum must be less than or equal to maximum.")
-            if difference == 0:
-                self.step = 1
-            else:
-                power = math.floor(math.log10(difference) - 2)
-                self.step = 10**power
+            power = math.floor(math.log10(maximum - minimum) - 2)
+            self.step = 10**power
         else:
             self.step = step
         self.buttons = buttons
