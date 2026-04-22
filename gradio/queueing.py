@@ -217,14 +217,19 @@ class Queue:
         run_coro_in_background(self.start_progress_updates)
         if not self.live_updates:
             run_coro_in_background(self.notify_clients)
-        if os.getenv("GRADIO_QUEUE_MULTIPROCESSING_ENABLED", "").lower() in ("1", "true"):
+        if os.getenv("GRADIO_QUEUE_MULTIPROCESSING_ENABLED", "").lower() in (
+            "1",
+            "true",
+        ):
             Thread(target=self.start_rpc, daemon=True).start()
 
     def start_rpc(self):
         try:
-            ctx = multiprocessing.get_context('fork')
+            ctx = multiprocessing.get_context("fork")
         except ValueError:
-            warnings.warn("GRADIO_QUEUE_MULTIPROCESSING_ENABLED but fork context not available")
+            warnings.warn(
+                "GRADIO_QUEUE_MULTIPROCESSING_ENABLED but fork context not available"
+            )
             return
         self.rpc_queue = ctx.Queue()
         while True:
@@ -596,7 +601,9 @@ class Queue:
     ):
         if os.getpid() != self.server_pid:
             if self.rpc_queue is None:
-                warnings.warn("Sending queue event from child process without GRADIO_QUEUE_MULTIPROCESSING_ENABLED")
+                warnings.warn(
+                    "Sending queue event from child process without GRADIO_QUEUE_MULTIPROCESSING_ENABLED"
+                )
             else:
                 self.rpc_queue.put_nowait((event_id, message))
                 return
