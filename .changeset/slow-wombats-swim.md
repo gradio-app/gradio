@@ -1,6 +1,4 @@
 ---
-"@gradio/theme": minor
-"gradio": minor
 "website": minor
 ---
 
