@@ -2,4 +2,4 @@
 "website": minor
 ---
 
-feat:Markdown negotiation
+feat:Fix website CORS errors
