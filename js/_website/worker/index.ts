@@ -32,7 +32,7 @@ function matchSingleSegment(
 ): string | null {
 	for (const prefix of prefixes) {
 		if (pathname.startsWith(prefix)) {
-			const rest = pathname.slice(prefix.length);
+			const rest = pathname.slice(prefix.length).replace(/\/$/, "");
 			if (rest && !rest.includes("/")) return rest;
 		}
 	}
