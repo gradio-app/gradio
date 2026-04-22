@@ -95,3 +95,9 @@ jobs:
             js/_website/wrangler.jsonc
             js/_website/worker
           include-hidden-files: true
+      - name: upload functions artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: functions
+          path: js/_website/functions
+          include-hidden-files: true
