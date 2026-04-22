@@ -1,7 +1,9 @@
 <script lang="ts">
 	import type { WFNode, PortType, NodeDataValue, FileValue, NodeStatus } from "./workflow-types";
 	import { PORT_COLOR, PORT_COLOR_DIM, KIND_LABEL } from "./workflow-types";
-	import { resizeNode } from "./workflow-store";
+	import { resizeNode, workflow } from "./workflow-store";
+	import { BaseTextbox } from "@gradio/textbox";
+	import { BaseStaticImage } from "@gradio/image";
 
 	interface Props {
 		node: WFNode;
@@ -30,6 +32,9 @@
 		connectedPorts: Set<string>;
 		status: NodeStatus;
 		error: string;
+		zoom: number;
+		selected: boolean;
+		onselect: (id: string) => void;
 	}
 
 	let {
@@ -43,10 +48,26 @@
 		onautoconnect,
 		connectedPorts,
 		status,
-		error
+		error,
+		zoom,
+		selected,
+		onselect
 	}: Props = $props();
 
 	let nodeEl: HTMLDivElement;
+	let editingLabel = $state(false);
+	let labelInput: HTMLInputElement;
+
+	function renameNode(newLabel: string): void {
+		const trimmed = newLabel.trim();
+		if (trimmed && trimmed !== node.label) {
+			workflow.update((wf) => ({
+				...wf,
+				nodes: wf.nodes.map((n) => n.id === node.id ? { ...n, label: trimmed } : n)
+			}));
+		}
+		editingLabel = false;
+	}
 
 	const primaryType: PortType =
 		node.outputs[0]?.type ?? node.inputs[0]?.type ?? "any";
@@ -146,13 +167,30 @@
 		ondatachange(node.id, widgetPortId, null);
 	}
 
+	// Stubs for Gradio component upload API
+	const i18n = (key: string) => key;
+	async function stubUpload(files: File[]): Promise<any[]> {
+		return files.map(f => ({
+			url: URL.createObjectURL(f),
+			orig_name: f.name,
+			path: f.name,
+			mime_type: f.type,
+			size: f.size
+		}));
+	}
+	async function stubStream(): Promise<any> { return; }
+
 	function onHandleMouseDown(e: MouseEvent) {
 		e.preventDefault();
-		const startX = e.clientX - node.x;
-		const startY = e.clientY - node.y;
+		const startMouseX = e.clientX;
+		const startMouseY = e.clientY;
+		const startNodeX = node.x;
+		const startNodeY = node.y;
 
 		function onMove(ev: MouseEvent) {
-			onmove(node.id, ev.clientX - startX, ev.clientY - startY);
+			const dx = (ev.clientX - startMouseX) / zoom;
+			const dy = (ev.clientY - startMouseY) / zoom;
+			onmove(node.id, startNodeX + dx, startNodeY + dy);
 		}
 		function onUp() {
 			window.removeEventListener("mousemove", onMove);
@@ -184,7 +222,9 @@
 	class:node-running={status === "running"}
 	class:node-done={status === "done"}
 	class:node-error={status === "error"}
+	class:node-selected={selected}
 	bind:this={nodeEl}
+	onclick={() => onselect(node.id)}
 	style="
 		left: {node.x}px;
 		top: {node.y}px;
@@ -201,7 +241,29 @@
 				<span class="node-status-spinner"></span>
 			{/if}
 			<span class="kind-tag">{KIND_LABEL[node.kind] ?? "?"}</span>
-			<span class="node-label">{node.label}</span>
+			{#if editingLabel}
+				<input
+					bind:this={labelInput}
+					class="node-label-input"
+					value={node.label}
+					onblur={(e) => renameNode(e.currentTarget.value)}
+					onkeydown={(e) => {
+						if (e.key === "Enter") renameNode(e.currentTarget.value);
+						if (e.key === "Escape") editingLabel = false;
+						e.stopPropagation();
+					}}
+					onmousedown={(e) => e.stopPropagation()}
+				/>
+			{:else}
+				<span
+					class="node-label"
+					ondblclick={(e) => {
+						e.stopPropagation();
+						editingLabel = true;
+						requestAnimationFrame(() => labelInput?.select());
+					}}
+				>{node.label}</span>
+			{/if}
 			<button
 				class="node-delete"
 				onmousedown={(e) => e.stopPropagation()}
@@ -258,7 +320,7 @@
 						>{port.type}</span
 					>
 				</div>
-				{#if !portConnected && node.kind === "transform"}
+				{#if !portConnected && node.kind === "transform" && (port.type === "text" || port.type === "number" || port.type === "boolean" || port.type === "any" || port.type === "json")}
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<div class="port-inline-config" onmousedown={(e) => e.stopPropagation()}>
 						{#if port.type === "number"}
@@ -266,7 +328,7 @@
 								class="inline-input inline-number"
 								type="number"
 								step="any"
-								placeholder="0"
+								placeholder={port.default_value != null ? String(port.default_value) : "0"}
 								value={node.data?.[port.id] ?? ""}
 								oninput={(e) => ondatachange(node.id, port.id, parseFloat(e.currentTarget.value) || 0)}
 							/>
@@ -299,19 +361,18 @@
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div class="widget-zone" onmousedown={(e) => e.stopPropagation()}>
 			{#if widgetType === "text" || widgetType === "json"}
-				{#if isReadonly}
-					<div class="widget-text-display">
-						{getTextValue() || getJsonValue() || "Waiting for output..."}
-					</div>
-				{:else}
-					<textarea
-						class="widget-textarea"
-						rows={widgetType === "json" ? 4 : 3}
-						placeholder={widgetType === "json" ? '{"key": "value"}' : "Enter text..."}
-						value={widgetType === "json" ? getJsonValue() : getTextValue()}
-						oninput={handleTextInput}
-					></textarea>
-				{/if}
+				<div class="widget-gradio-wrap">
+					<BaseTextbox
+						value={getTextValue() || getJsonValue()}
+						label="text"
+						show_label={false}
+						lines={widgetType === "json" ? 4 : 3}
+						max_lines={8}
+						placeholder={isReadonly ? "Waiting for output..." : widgetType === "json" ? '{"key": "value"}' : "Enter text..."}
+						disabled={isReadonly}
+						oninput={(val) => { if (widgetPortId) ondatachange(node.id, widgetPortId, val); }}
+					/>
+				</div>
 			{:else if widgetType === "number"}
 				{#if isReadonly}
 					<div class="widget-text-display">
@@ -346,7 +407,16 @@
 				{@const fileVal = getFileValue()}
 				{#if fileVal}
 					<div class="widget-preview">
-						{#if widgetType === "image" || widgetType === "gallery"}
+						{#if (widgetType === "image" || widgetType === "gallery") && isReadonly}
+							<div class="widget-gradio-wrap widget-gradio-image">
+								<BaseStaticImage
+									value={{ url: fileVal.url, orig_name: fileVal.name, path: fileVal.url, mime_type: fileVal.mime }}
+									show_label={false}
+									{i18n}
+									buttons={[]}
+								/>
+							</div>
+						{:else if widgetType === "image" || widgetType === "gallery"}
 							<img class="widget-img" src={fileVal.url} alt={fileVal.name} />
 						{:else if widgetType === "audio"}
 							<audio class="widget-audio" controls src={fileVal.url}></audio>
@@ -419,6 +489,12 @@
 			{/each}
 		</div>
 	{/if}
+
+	{#if status === "error" && error}
+		<div class="node-error-banner" title={error}>
+			{error.length > 60 ? error.slice(0, 60) + "..." : error}
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -439,6 +515,11 @@
 		box-shadow:
 			0 0 0 1px var(--accent-dim),
 			0 4px 20px rgba(0, 0, 0, 0.4);
+	}
+
+	.wf-node.node-selected {
+		border-color: #f97316;
+		box-shadow: 0 0 0 1px #f97316, 0 0 16px rgba(249, 115, 22, 0.15);
 	}
 
 	.wf-node.node-running {
@@ -525,6 +606,22 @@
 		font-weight: 600;
 		color: #d5d6de;
 		white-space: nowrap;
+		cursor: text;
+	}
+
+	.node-label-input {
+		font-family: "Manrope", sans-serif;
+		font-size: 12.5px;
+		font-weight: 600;
+		color: #d5d6de;
+		background: #101118;
+		border: 1px solid #f97316;
+		border-radius: 4px;
+		padding: 1px 4px;
+		outline: none;
+		width: 100%;
+		min-width: 0;
+		box-sizing: border-box;
 	}
 
 	.source-badge {
@@ -688,6 +785,15 @@
 		animation: none;
 	}
 
+	:global(.port-snap) {
+		animation: port-snap-anim 0.4s ease-out !important;
+	}
+
+	@keyframes port-snap-anim {
+		0% { transform: scale(2); background: var(--port-color); box-shadow: 0 0 12px var(--port-color); }
+		100% { transform: scale(1); }
+	}
+
 	@keyframes port-pulse {
 		0%,
 		100% {
@@ -697,6 +803,17 @@
 			box-shadow: 0 0 0 4px var(--port-color);
 			opacity: 0.3;
 		}
+	}
+
+	.node-error-banner {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 9px;
+		color: #fca5a5;
+		background: rgba(239, 68, 68, 0.1);
+		border-top: 1px solid rgba(239, 68, 68, 0.2);
+		padding: 6px 12px;
+		line-height: 1.4;
+		word-break: break-word;
 	}
 
 	/* ─── Inline Config ─── */
@@ -737,6 +854,122 @@
 		font-size: 10px;
 		color: #8b8d98;
 		cursor: pointer;
+	}
+
+	/* ─── Gradio Component Wrapper ─── */
+	.widget-gradio-wrap {
+		font-size: 12px;
+		--input-text-size: 11px;
+		--input-text-weight: 400;
+		--input-padding: 8px 10px;
+		--input-background-fill: #101118;
+		--input-background-fill-focus: #101118;
+		--input-border-color: #1e1f2a;
+		--input-border-color-focus: var(--accent);
+		--input-border-width: 1px;
+		--input-radius: 6px;
+		--input-shadow: none;
+		--input-shadow-focus: 0 0 0 2px var(--accent-dim);
+		--input-placeholder-color: #4a4b58;
+		--body-text-color: #c8c9d2;
+		--font-sans: "JetBrains Mono", monospace;
+		--line-sm: 1.4;
+		--spacing-sm: 4px;
+		--weight-semibold: 600;
+		--layer-1: #101118;
+		--shadow-inset: none;
+		--button-secondary-background-fill: #1e1f2a;
+		--button-secondary-background-fill-hover: #2a2b36;
+		--button-secondary-text-color: #8b8d98;
+		--button-shadow-active: none;
+		--error-icon-color: #ef4444;
+	}
+
+	.widget-gradio-wrap :global(textarea),
+	.widget-gradio-wrap :global(input) {
+		font-family: "JetBrains Mono", monospace !important;
+		font-size: 11px !important;
+		line-height: 1.4 !important;
+		background: #101118 !important;
+		color: #c8c9d2 !important;
+		border: 1px solid #1e1f2a !important;
+		border-radius: 6px !important;
+		padding: 8px 10px !important;
+		outline: none !important;
+		box-shadow: none !important;
+	}
+
+	.widget-gradio-wrap :global(textarea:focus),
+	.widget-gradio-wrap :global(input:focus) {
+		border-color: var(--accent) !important;
+		box-shadow: 0 0 0 2px var(--accent-dim) !important;
+	}
+
+	.widget-gradio-wrap :global(textarea::placeholder),
+	.widget-gradio-wrap :global(input::placeholder) {
+		color: #4a4b58 !important;
+	}
+
+	.widget-gradio-wrap :global(.block),
+	.widget-gradio-wrap :global(.wrap),
+	.widget-gradio-wrap :global(.container) {
+		background: transparent !important;
+		border: none !important;
+		box-shadow: none !important;
+		padding: 0 !important;
+		margin: 0 !important;
+		gap: 0 !important;
+	}
+
+	.widget-gradio-wrap :global(.block.padded) {
+		padding: 0 !important;
+	}
+
+	.widget-gradio-wrap :global(.label-wrap),
+	.widget-gradio-wrap :global(.info-text),
+	.widget-gradio-wrap :global(.icon-button-wrapper),
+	.widget-gradio-wrap :global(.icon-buttons) {
+		display: none !important;
+	}
+
+	.widget-gradio-image {
+		overflow: hidden;
+		border-radius: 6px;
+	}
+
+	.widget-gradio-image :global(img) {
+		max-height: 140px !important;
+		width: 100% !important;
+		object-fit: contain !important;
+		display: block !important;
+	}
+
+	.widget-gradio-image :global(.image-container) {
+		max-height: 140px !important;
+		overflow: hidden !important;
+	}
+
+	.widget-gradio-image :global(.empty-wrapper) {
+		display: none !important;
+	}
+
+	.widget-gradio-wrap :global(.icon-button-wrapper),
+	.widget-gradio-wrap :global(.icon-buttons) {
+		display: none !important;
+	}
+
+	.widget-gradio-wrap :global(textarea) {
+		min-height: 60px !important;
+		height: auto !important;
+		resize: vertical !important;
+	}
+
+	.widget-gradio-wrap :global(label) {
+		display: block !important;
+	}
+
+	.widget-gradio-wrap :global(.input-container) {
+		display: flex !important;
 	}
 
 	/* ─── Widget Zone ─── */

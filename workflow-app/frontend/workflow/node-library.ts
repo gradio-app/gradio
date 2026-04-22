@@ -101,9 +101,10 @@ export const LIBRARY: Record<string, NodeTemplate[]> = {
 			label: "Remove background",
 			kind: "transform",
 			source: "space",
-			space_id: "facebook/sam2",
+			space_id: "not-lain/background-removal",
+			endpoint: "/image",
 			inputs: [{ id: "in", label: "Image", type: "image", required: true }],
-			outputs: [{ id: "out", label: "Mask", type: "image" }],
+			outputs: [{ id: "out", label: "Image", type: "image" }],
 			width: 200,
 			height: 90
 		},
@@ -121,19 +122,20 @@ export const LIBRARY: Record<string, NodeTemplate[]> = {
 			label: "Transcribe",
 			kind: "transform",
 			source: "space",
-			space_id: "hf-audio/whisper-large-v3",
+			space_id: "hf-audio/whisper-large-v3-turbo",
 			inputs: [{ id: "in", label: "Audio", type: "audio", required: true }],
 			outputs: [{ id: "out", label: "Text", type: "text" }],
 			width: 200,
 			height: 90
 		},
 		{
-			label: "Animate image",
+			label: "Describe image",
 			kind: "transform",
 			source: "space",
-			space_id: "google/veo",
+			space_id: "Salesforce/BLIP",
+			endpoint: "/predict",
 			inputs: [{ id: "in", label: "Image", type: "image", required: true }],
-			outputs: [{ id: "out", label: "Video", type: "video" }],
+			outputs: [{ id: "out", label: "Caption", type: "text" }],
 			width: 200,
 			height: 90
 		}

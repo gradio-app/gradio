@@ -12,9 +12,12 @@
 			y: number;
 		} | null;
 		onremove: (id: string) => void;
+		zoom: number;
+		panX: number;
+		panY: number;
 	}
 
-	let { pending, onremove }: Props = $props();
+	let { pending, onremove, zoom, panX, panY }: Props = $props();
 
 	function bez(x1: number, y1: number, x2: number, y2: number): string {
 		const cx = Math.max(Math.abs(x2 - x1) * 0.5, 60);
@@ -27,37 +30,31 @@
 		portId: string,
 		side: "output" | "input"
 	): { x: number; y: number } {
-		// Try DOM measurement first
+		// DOM measurement — always accurate regardless of layout
 		const dotEl = document.querySelector(`[data-port-id="${nodeId}:${portId}:${side}"]`);
 		const transformEl = document.querySelector('.canvas-transform');
 		if (dotEl && transformEl) {
 			const dotRect = dotEl.getBoundingClientRect();
 			const transformRect = transformEl.getBoundingClientRect();
-			const zoom = transformRect.width === 0 ? 1 :
-				parseFloat(getComputedStyle(transformEl).transform.split(',')[0]?.replace('matrix(', '') || '1') || 1;
 			return {
 				x: (dotRect.left + dotRect.width / 2 - transformRect.left) / zoom,
 				y: (dotRect.top + dotRect.height / 2 - transformRect.top) / zoom
 			};
 		}
 
-		// Fallback to calculated positions
+		// Fallback
 		const node = nodes.find((n) => n.id === nodeId);
 		if (!node) return { x: 0, y: 0 };
-
 		const ports = side === "output" ? node.outputs : node.inputs;
 		const idx = ports.findIndex((p) => p.id === portId);
 		const portIndex = idx >= 0 ? idx : 0;
-
 		const x = side === "output" ? node.x + node.width : node.x;
 		const headerH = node.source === "space" && node.space_id ? 60 : 44;
-
 		if (side === "input") {
 			return { x, y: node.y + headerH + portIndex * 26 };
 		} else {
 			const portsBlockH = ports.length * 26;
-			const y = node.y + node.height - portsBlockH + portIndex * 26 - 2;
-			return { x, y };
+			return { x, y: node.y + node.height - portsBlockH + portIndex * 26 - 2 };
 		}
 	}
 </script>
@@ -104,17 +101,17 @@
 			d={bez(from.x, from.y, to.x, to.y)}
 			fill="none"
 			stroke={PORT_COLOR[edge.type]}
-			stroke-width="6"
+			stroke-width={6 / zoom}
 			stroke-opacity="0.08"
 			style="pointer-events: none"
 		/>
 		<!-- hitbox -->
 		<path
+			class="wire-hitbox"
 			d={bez(from.x, from.y, to.x, to.y)}
 			fill="none"
 			stroke="transparent"
-			stroke-width="16"
-			style="pointer-events: stroke; cursor: pointer"
+			stroke-width={16 / zoom}
 			onclick={() => onremove(edge.id)}
 			role="button"
 			tabindex="-1"
@@ -125,7 +122,7 @@
 			d={bez(from.x, from.y, to.x, to.y)}
 			fill="none"
 			stroke="url(#grad-{edge.id})"
-			stroke-width="2"
+			stroke-width={2 / zoom}
 			style="pointer-events: none"
 		/>
 		<!-- flow particles -->
@@ -134,18 +131,19 @@
 			d={bez(from.x, from.y, to.x, to.y)}
 			fill="none"
 			stroke={PORT_COLOR[edge.type]}
-			stroke-width="2"
-			stroke-dasharray="4 12"
+			stroke-width={2 / zoom}
+			stroke-dasharray="{4 / zoom} {12 / zoom}"
 			stroke-opacity="0.5"
 			style="pointer-events: none"
 		/>
 		<!-- end diamond -->
+		{@const ds = 3.5 / zoom}
 		<rect
-			x={to.x - 3.5}
-			y={to.y - 3.5}
-			width="7"
-			height="7"
-			rx="1"
+			x={to.x - ds}
+			y={to.y - ds}
+			width={ds * 2}
+			height={ds * 2}
+			rx={1 / zoom}
 			fill={PORT_COLOR[edge.type]}
 			transform="rotate(45 {to.x} {to.y})"
 			style="pointer-events: none"
@@ -162,19 +160,19 @@
 		<path
 			d={bez(from.x, from.y, pending.x, pending.y)}
 			fill="none"
-			stroke="#5c5e6a"
-			stroke-width="2"
-			stroke-dasharray="6 4"
+			stroke={PORT_COLOR[pending.type] ?? "#5c5e6a"}
+			stroke-width={2 / zoom}
+			stroke-dasharray="{6 / zoom} {4 / zoom}"
 			stroke-opacity="0.6"
 			style="pointer-events: none"
 		/>
 		<circle
 			cx={pending.x}
 			cy={pending.y}
-			r="4"
+			r={4 / zoom}
 			fill="none"
-			stroke="#5c5e6a"
-			stroke-width="1.5"
+			stroke={PORT_COLOR[pending.type] ?? "#5c5e6a"}
+			stroke-width={1.5 / zoom}
 			stroke-opacity="0.5"
 			style="pointer-events: none"
 		/>
@@ -190,6 +188,16 @@
 		height: 1px;
 		overflow: visible;
 		pointer-events: none;
+	}
+
+	.wire-hitbox {
+		pointer-events: stroke;
+		cursor: pointer;
+		transition: stroke 0.15s;
+	}
+
+	.wire-hitbox:hover {
+		stroke: rgba(239, 68, 68, 0.25);
 	}
 
 	.wire-flow {

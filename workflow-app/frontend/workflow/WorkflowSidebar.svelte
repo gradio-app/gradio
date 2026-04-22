@@ -1,15 +1,23 @@
 <script lang="ts">
 	import { Client } from "@gradio/client";
 	import { LIBRARY, type NodeTemplate } from "./node-library";
-	import { PORT_COLOR, PORT_COLOR_DIM } from "./workflow-types";
+	import { PORT_COLOR } from "./workflow-types";
 	import type { PortType } from "./workflow-types";
 
 	let expandedSection: string | null = $state("inputs");
+	let collapsed = $state(false);
 	let customSpaceInput = $state("");
 	let customSpaces: NodeTemplate[] = $state([]);
 	let loadingSpace = $state(false);
 	let loadingSpaceName = $state("");
 	let spaceError = $state("");
+
+	function handleWindowClick(e: MouseEvent): void {
+		const target = e.target as HTMLElement;
+		if (searchResults.length > 0 && !target.closest(".add-space-wrapper")) {
+			searchResults = [];
+		}
+	}
 
 	// Search state
 	let searchResults: { id: string; likes: number; title?: string }[] = $state([]);
@@ -123,13 +131,16 @@
 		try {
 			// Timeout after 10s to avoid infinite retries on static/non-Gradio Spaces
 			const app = await Promise.race([
-				Client.connect(spaceId),
+				Client.connect(spaceId.startsWith("http") ? spaceId : `https://${spaceId.replace("/", "-").toLowerCase()}.hf.space`),
 				new Promise<never>((_, reject) =>
 					setTimeout(() => reject(new Error("Timed out — Space may not have a Gradio API")), 10000)
 				)
 			]);
 			const api = await app.view_api();
-			const endpoints = api.named_endpoints ?? {};
+			const named = api.named_endpoints ?? {};
+			const unnamed = api.unnamed_endpoints ?? {};
+			// Merge named and unnamed endpoints
+			const endpoints = { ...named, ...unnamed };
 			const endpointNames = Object.keys(endpoints);
 
 			if (endpointNames.length === 0) {
@@ -137,14 +148,6 @@
 				loadingSpace = false;
 				return;
 			}
-
-			// Log all endpoints for debugging
-			console.log(`[Workflow] ${spaceId} endpoints:`, Object.fromEntries(
-				endpointNames.map(name => [name, {
-					params: (endpoints[name].parameters ?? []).map((p: any) => `${p.label}(${p.component}/${p.type})`),
-					returns: (endpoints[name].returns ?? []).map((r: any) => `${r.label}(${r.component}/${r.type})`)
-				}])
-			));
 
 			// Pick the best endpoint: prefer /predict, then the one with the most returns
 			let epName: string;
@@ -216,12 +219,21 @@
 	];
 </script>
 
-<aside class="sidebar">
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+<svelte:window onclick={handleWindowClick} />
+
+<aside class="sidebar" class:sidebar-collapsed={collapsed}>
 	<div class="sidebar-header">
-		<span class="sidebar-icon">&#xe1b8;</span>
-		<span class="sidebar-title">Components</span>
+		<button class="sidebar-collapse-btn" onclick={() => collapsed = !collapsed}>
+			{collapsed ? "›" : "‹"}
+		</button>
+		{#if !collapsed}
+			<span class="sidebar-icon">&#xe1b8;</span>
+			<span class="sidebar-title">Components</span>
+		{/if}
 	</div>
 
+	{#if !collapsed}
 	{#each sections as section}
 		<button
 			class="section-toggle"
@@ -229,7 +241,7 @@
 			onclick={() => toggle(section.key)}
 		>
 			<span class="section-label">{section.label}</span>
-			<span class="section-count">{section.items.length}</span>
+			<span class="section-count">{section.key === "spaces" ? section.items.length + customSpaces.length : section.items.length}</span>
 			<span class="section-chevron">&#x203A;</span>
 		</button>
 
@@ -240,11 +252,18 @@
 					<div
 						draggable="true"
 						class="chip"
-						ondragstart={(e) =>
+						ondragstart={(e) => {
 							e.dataTransfer!.setData(
 								"node-template",
 								JSON.stringify(item)
-							)}
+							);
+							const ghost = document.createElement("div");
+							ghost.textContent = item.label;
+							ghost.style.cssText = `background:${PORT_COLOR[pt]};color:#0c0d10;padding:4px 10px;border-radius:5px;font-family:Manrope,sans-serif;font-size:11px;font-weight:600;position:fixed;top:-100px`;
+							document.body.appendChild(ghost);
+							e.dataTransfer!.setDragImage(ghost, 0, 0);
+							setTimeout(() => document.body.removeChild(ghost), 0);
+						}}
 					>
 						<span
 							class="chip-dot"
@@ -315,13 +334,11 @@
 									if (e.key === "Escape") searchResults = [];
 								}}
 							/>
-							{#if customSpaceInput.includes("/")}
-								<button
-									class="space-add-btn"
-									onclick={() => { searchResults = []; addCustomSpace(); }}
-									disabled={loadingSpace}
-								>{loadingSpace ? "..." : "+"}</button>
-							{/if}
+							<button
+								class="space-add-btn"
+								onclick={() => { searchResults = []; addCustomSpace(); }}
+								disabled={loadingSpace || !customSpaceInput.trim().includes("/")}
+							>{loadingSpace ? "..." : "+"}</button>
 						</div>
 						{#if searchResults.length > 0}
 							<div class="search-dropdown">
@@ -366,18 +383,47 @@
 	<div class="sidebar-footer">
 		<span class="hint">Drag to canvas</span>
 	</div>
+	{/if}
 </aside>
 
 <style>
 	.sidebar {
 		width: 220px;
 		min-width: 220px;
+		transition: width 0.2s, min-width 0.2s;
 		display: flex;
 		flex-direction: column;
 		background: #101118;
 		border-right: 1px solid #1e1f2a;
 		overflow-y: auto;
 		font-family: "Manrope", sans-serif;
+		color-scheme: dark;
+	}
+
+	.sidebar-collapsed {
+		width: 40px;
+		min-width: 40px;
+	}
+
+	.sidebar-collapse-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 22px;
+		height: 22px;
+		border: none;
+		border-radius: 4px;
+		background: transparent;
+		color: #5c5e6a;
+		font-size: 14px;
+		cursor: pointer;
+		flex-shrink: 0;
+		transition: color 0.15s, background 0.15s;
+	}
+
+	.sidebar-collapse-btn:hover {
+		background: #1e1f2a;
+		color: #a0a2ae;
 	}
 
 	.sidebar-header {
@@ -386,6 +432,11 @@
 		gap: 8px;
 		padding: 14px 16px 10px;
 		border-bottom: 1px solid #1e1f2a;
+	}
+
+	.sidebar-collapsed .sidebar-header {
+		justify-content: center;
+		padding: 14px 8px 10px;
 	}
 
 	.sidebar-icon {
@@ -576,10 +627,10 @@
 	.space-add-btn {
 		width: 28px;
 		height: 28px;
-		border: 1px solid #1e1f2a;
+		border: 1px solid #3e3f4d;
 		border-radius: 5px;
-		background: transparent;
-		color: #5c5e6a;
+		background: #1a1b25;
+		color: #a0a2ae;
 		font-size: 14px;
 		font-weight: 600;
 		cursor: pointer;
@@ -591,14 +642,17 @@
 	}
 
 	.space-add-btn:hover:not(:disabled) {
-		background: #1a1b25;
+		background: #2a2b36;
 		color: #f97316;
 		border-color: #f97316;
 	}
 
 	.space-add-btn:disabled {
-		opacity: 0.3;
+		opacity: 0.35;
 		cursor: default;
+		background: #101118;
+		color: #3e3f4d;
+		border-color: #1e1f2a;
 	}
 
 	.add-space-wrapper {
