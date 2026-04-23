@@ -239,7 +239,9 @@ class TestCacheDecorator:
 
     def test_runtime_wrapper_with_key_parameter(self):
         call_count = 0
-        cache_key = lambda kw: kw["prompt"]
+
+        def cache_key(kw):
+            return kw["prompt"]
 
         def generate(prompt, temperature=0.7):
             nonlocal call_count
