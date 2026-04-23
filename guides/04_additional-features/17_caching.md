@@ -80,7 +80,7 @@ def predict(text):
     return rerank(embedding)
 ```
 
-This is especially useful when only part of your function is deterministic or reusable. Runtime `gr.cache(fn)(...)` uses the same cache store for repeated calls to that helper and shows the same `used cache` badge as `gr.Cache()` when a hit is reused during a request.
+This is especially useful when only part of your function is deterministic or reusable. Runtime `gr.cache(fn)(...)` uses the same cache store for repeated calls to that helper and shows the same `used cache` badge as `gr.Cache()` (see below) when a hit is reused during a request.
 
 `gr.cache()` must wrap a callable. If you accidentally write `gr.cache(fn(...))`, Gradio raises an error and tells you to use `gr.cache(fn)(...)` instead.
 
