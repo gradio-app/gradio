@@ -254,7 +254,11 @@ class _CacheStore:
 
 
 _per_session_stores: weakref.WeakSet[_CacheStore] = weakref.WeakSet()
+# Runtime `gr.cache(fn)(...)` may be evaluated on every request, so keep one
+# shared wrapper/store per function+config instead of recreating an empty cache.
 _cache_wrappers: dict[tuple[Any, ...], Callable] = {}
+# Requests can resolve `gr.cache(fn)` concurrently; guard registry creation so
+# only one shared wrapper/store is installed for a given cache key.
 _runtime_cache_lock = threading.Lock()
 
 
@@ -430,39 +434,6 @@ def _make_wrapper(
         return sync_wrapper
 
 
-def _fingerprint_callable(fn: Callable) -> str:
-    target = inspect.unwrap(fn)
-    if not inspect.isroutine(target) and hasattr(target, "__call__"):
-        target = inspect.unwrap(target.__call__)
-
-    code = getattr(target, "__code__", None)
-    identity = {
-        "module": getattr(target, "__module__", None),
-        "qualname": getattr(target, "__qualname__", None),
-        "name": getattr(target, "__name__", None),
-        "self_type": (
-            type(getattr(target, "__self__", None)).__qualname__
-            if getattr(target, "__self__", None) is not None
-            else None
-        ),
-    }
-    if code is not None:
-        identity["code"] = {
-            "co_code": hashlib.sha256(code.co_code).hexdigest(),
-            "co_filename": code.co_filename,
-            "co_firstlineno": code.co_firstlineno,
-            "co_consts": repr(code.co_consts),
-            "co_names": code.co_names,
-            "co_varnames": code.co_varnames,
-            "co_argcount": code.co_argcount,
-            "co_kwonlyargcount": code.co_kwonlyargcount,
-            "co_posonlyargcount": code.co_posonlyargcount,
-        }
-    else:
-        identity["repr"] = repr(target)
-    return cache_hash(identity)
-
-
 def _get_cached_wrapper(
     func: Callable,
     *,
@@ -474,8 +445,8 @@ def _get_cached_wrapper(
     from gradio.utils import _parse_file_size
 
     registry_key = (
-        _fingerprint_callable(func),
-        _fingerprint_callable(key) if key is not None else None,
+        id(func),
+        id(key) if key is not None else None,
         max_size,
         _parse_file_size(max_memory),
         per_session,
