@@ -494,6 +494,7 @@ def cache(
         def generate(prompt):
             return llm(prompt)
     """
+
     def decorator(func: Callable) -> Callable:
         return _get_cached_wrapper(
             func,
