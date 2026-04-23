@@ -254,11 +254,13 @@ class _CacheStore:
 
 
 _per_session_stores: weakref.WeakSet[_CacheStore] = weakref.WeakSet()
-# Runtime `gr.cache(fn)(...)` may be evaluated on every request, so keep one
-# shared wrapper/store per function+config instead of recreating an empty cache.
+# We need this store because runtime `gr.cache(fn)(...)` may be evaluated on
+# every request, and we want one shared wrapper/cache per function+config
+# instead of recreating an empty cache each time.
 _cache_wrappers: dict[tuple[Any, ...], Callable] = {}
-# Requests can resolve `gr.cache(fn)` concurrently; guard registry creation so
-# only one shared wrapper/store is installed for a given cache key.
+# We need this lock because requests can resolve `gr.cache(fn)` concurrently,
+# and wrapper creation must be atomic so only one shared wrapper/cache is
+# installed for a given cache key.
 _runtime_cache_lock = threading.Lock()
 
 
