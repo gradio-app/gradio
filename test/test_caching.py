@@ -253,20 +253,25 @@ class TestCacheDecorator:
         assert r1 == r2
         assert call_count == 1
 
-    def test_runtime_wrapper_tracks_manual_cache_usage(self):
+    def test_runtime_wrapper_reuses_async_generator_and_tracks_manual_cache_usage(
+        self,
+    ):
         call_count = 0
 
-        def add(x):
+        async def passthrough(flag):
             nonlocal call_count
             call_count += 1
-            return x + 1
+            if flag:
+                yield "value"
 
-        cached_add = cache(add)
-        assert cached_add(1) == 2
+        async def collect_values():
+            return [v async for v in cache(passthrough)(True)]
+
+        assert asyncio.run(collect_values()) == ["value"]
 
         with TrackManualCacheUsage():
             assert used_manual_cache() is False
-            assert cache(add)(1) == 2
+            assert asyncio.run(collect_values()) == ["value"]
             assert used_manual_cache() is True
 
         assert call_count == 1
