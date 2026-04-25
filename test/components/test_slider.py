@@ -95,3 +95,10 @@ class TestSlider:
         slider = gr.Slider(precision=0)
         assert slider.preprocess(5.1) == 5
         assert slider.api_info()["type"] == "integer"
+
+    def test_same_minimum_and_maximum_uses_single_value_range(self):
+        slider = gr.Slider(minimum=5, maximum=5)
+
+        assert slider.step == 1
+        assert slider.get_config()["minimum"] == 5
+        assert slider.get_config()["maximum"] == 5
