@@ -8,8 +8,6 @@
 	const props = $props();
 	const gradio = new Gradio<NumberEvents, NumberProps>(props);
 
-	gradio.props.value ??= 0;
-
 	let old_value = $state(gradio.props.value);
 
 	$effect(() => {

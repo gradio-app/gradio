@@ -1,5 +1,5 @@
 import { describe, test, expect, afterEach } from "vitest";
-import { render, cleanup } from "./render";
+import { render, cleanup } from "./render.svelte";
 
 const loading_status = {
 	status: "complete",

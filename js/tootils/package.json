@@ -16,7 +16,7 @@
 	},
 	"exports": {
 		".": "./src/index.ts",
-		"./render": "./src/render.ts",
+		"./render": "./src/render.svelte.ts",
 		"./shared-prop-tests": "./src/shared-prop-tests.ts",
 		"./app-launcher": "./src/app-launcher.ts",
 		"./download-command": "./src/download-command.ts"

@@ -198,13 +198,19 @@ export async function render<
 		? props.loading_status
 		: loading_status;
 
-	const componentProps = {
+	// Wrap in `$state(...)` so the component sees a reactive proxy — the
+	// real app delivers `shared_props` / `props` from AppTree's `$state`
+	// tree (a deep proxy), and the Gradio class aliases those proxies
+	// directly. If we passed plain objects here, reactive reads of
+	// `gradio.shared.X` and `gradio.props.X` inside component templates
+	// wouldn't track, breaking effects that drive change/input dispatch.
+	const componentProps = $state({
 		shared_props: shared_props_obj,
 		props: {
 			...component_props_obj
 		},
 		...shared_props_obj
-	};
+	});
 
 	const component = mount(ComponentConstructor, {
 		target,

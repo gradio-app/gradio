@@ -1,22 +1,7 @@
 <script module lang="ts">
 	import * as Prism from "prismjs";
-
-	const prism_loaders: Record<string, () => Promise<unknown>> = {
-		python: () => import("prismjs/components/prism-python"),
-		typescript: () => import("prismjs/components/prism-typescript")
-	};
-
-	const prism_loading = new Map<string, Promise<void>>();
-
-	async function load_prism_language(lang: string): Promise<void> {
-		const loader = prism_loaders[lang];
-		if (!loader) return;
-		let p = prism_loading.get(lang);
-		if (p) return p;
-		p = loader().then(() => undefined);
-		prism_loading.set(lang, p);
-		return p;
-	}
+	import "prismjs/components/prism-python";
+	import "prismjs/components/prism-typescript";
 </script>
 
 <script lang="ts">
@@ -49,7 +34,7 @@
 	let all_open = $state(false);
 	let lang: string = "python";
 
-	let _docs = $derived(await highlight_code(docs, lang));
+	let _docs = $derived(highlight_code(docs, lang));
 
 	function create_slug(name: string, anchor_links: string | boolean): string {
 		let prefix = "param-";
@@ -59,11 +44,7 @@
 		return prefix + name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 	}
 
-	async function highlight(
-		code: string,
-		lang: "python" | "typescript"
-	): Promise<string> {
-		await load_prism_language(lang);
+	function highlight(code: string, lang: "python" | "typescript"): string {
 		let highlighted = Prism.languages[lang]
 			? Prism.highlight(code, Prism.languages[lang], lang)
 			: code;
@@ -78,23 +59,20 @@
 		return highlighted;
 	}
 
-	async function highlight_code(
+	function highlight_code(
 		_docs: typeof docs,
 		lang: "python" | "typescript"
-	): Promise<Param[]> {
+	): Param[] {
 		if (!_docs) {
 			return [];
 		}
-		await load_prism_language(lang);
-		return Promise.all(
-			Object.entries(_docs).map(
-				async ([name, { type, description, default: _default }]) => ({
-					name,
-					type: type ? await highlight(type, lang) : null,
-					description,
-					default: _default ? await highlight(_default, lang) : null
-				})
-			)
+		return Object.entries(_docs).map(
+			([name, { type, description, default: _default }]) => ({
+				name,
+				type: type ? highlight(type, lang) : null,
+				description,
+				default: _default ? highlight(_default, lang) : null
+			})
 		);
 	}
 
