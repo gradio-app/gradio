@@ -2,7 +2,9 @@
 "@gradio/accordion": minor
 "@gradio/core": minor
 "@gradio/file": minor
+"@gradio/fileexplorer": minor
 "@gradio/markdown-code": minor
+"@gradio/number": minor
 "@gradio/paramviewer": minor
 "@gradio/preview": minor
 "@gradio/tabs": minor
@@ -13,6 +15,7 @@
 "@self/component-test": minor
 "@self/spa": minor
 "@self/spaces-test": minor
+"@self/tootils": minor
 "gradio": minor
 "website": minor
 ---
