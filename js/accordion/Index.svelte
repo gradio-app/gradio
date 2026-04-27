@@ -18,12 +18,9 @@
 			if ("open" in data && data.open !== old_open) {
 				if (data.open) {
 					this.dispatch("expand");
-					// Defer gradio_expand (which triggers visibility updates for
-					// previously hidden descendants) to the next tick so Svelte
-					// can flush the open-prop propagation first. Dispatching
-					// synchronously here races with the open state update and
-					// can leave the shared accordion rendering as closed until
-					// a subsequent state change kicks it.
+					// dispatching synchronously here races with the open state update
+					// this can leave the shared accordion rendering as closed until
+					// a subsequent state change flushes it.
 					tick().then(() => this.dispatch("gradio_expand"));
 				} else {
 					this.dispatch("collapse");

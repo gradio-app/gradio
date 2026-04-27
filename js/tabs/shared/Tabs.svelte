@@ -30,6 +30,8 @@
 	let overflow_menu_open = false;
 	let overflow_menu: HTMLElement;
 
+	// TODO: MIGRATE TABS
+	//
 	// Track which tab orders have been registered by mounted TabItem components.
 	// Once a TabItem mounts and calls register_tab, it manages its own tab entry
 	// via _set_data -> register_tab, so _sync_tabs should not overwrite it.

@@ -427,19 +427,9 @@ export class AppTree {
 		}
 		n.children = subtree.children;
 
-		// Reused child components (unkeyed {#each} in MountComponents keeps
-		// the same component instance at each position across rerender) hold
-		// references to the *old* node's props via the Gradio class aliases.
-		// To reflect server-pushed prop changes (e.g. updated Markdown text
-		// from @gr.render), push the new defined prop values through each
-		// component's registered set_data callback. undefined keys are
-		// skipped so user-edited values (typically absent from the payload
-		// because the server doesn't know about them) are preserved.
-		//
-		// The reused components only re-register with their new ids after
-		// the Gradio class's id-change $effect fires, so enqueue each node's
-		// data into #pending_updates for register_component to pick up.
-		// Also call set_data directly for anything already registered.
+		// push server prop changes into mounted components, skipping undefined
+		// so local edits survive. keys + identity persist.
+		// queue for pending re-registrations, apply directly otherwise.
 		this.#sync_reused_components_after_rerender(subtree);
 	}
 
@@ -459,8 +449,7 @@ export class AppTree {
 			if (set_data) {
 				set_data(data);
 			} else {
-				// Component hasn't re-registered yet. Queue the update so it's
-				// applied in register_component when the $effect fires.
+				// component hasn't re-registered yet. queue the update for later.
 				const existing = this.#pending_updates.get(node.id) || {};
 				this.#pending_updates.set(node.id, { ...existing, ...data });
 			}

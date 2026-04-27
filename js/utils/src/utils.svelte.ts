@@ -373,8 +373,8 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		_props: { shared_props: SharedProps; props: U },
 		default_values?: Partial<U>
 	) {
-		// Single source of truth: the app-level reactive node state is also
-		// this instance's state. No copy loop, no dual-state drift.
+		// single source of truth: the app-level reactive node state is also
+		// this instance's state. no copy loop.
 		this.shared = _props.shared_props;
 		this.props = _props.props;
 
@@ -390,7 +390,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		// @ts-ignore
 		this.i18n = this.props.i18n ?? ((v: string) => v);
 
-		// Translate i18n-managed keys in place; translatable_props remembers
+		// translate i18n-managed keys in place, translatable_props remembers
 		// the originals so locale changes can re-translate from source.
 		for (const key of TRANSLATABLE_PROPS) {
 			// @ts-ignore
@@ -420,19 +420,9 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 			this.get_data.bind(this)
 		);
 
-		// @gr.render replaces the node subtree (via AppTree.rerender) which
-		// reassigns `_props.shared_props`/`_props.props` on the reused child
-		// component. The Gradio instance persists (same `<svelte:component>`
-		// constructor reference) and keeps pointing at the OLD node's props
-		// via the aliases captured above — that's what preserves user-edited
-		// values across rerender (new server payloads rarely include a
-		// user's in-progress `value`).
-		//
-		// But the new node has a new `id`, and the dependency graph was
-		// rebuilt with that new id as the input reference. We need to
-		// re-register the callbacks under the new id so `gather_state` and
-		// `update_state` route correctly. This effect only re-fires when
-		// `_props.shared_props.id` actually changes.
+		// @gr.render preserves user-edited values across rerenders
+		// but the new node has a new id, we need to re-register
+		// the callbacks under the new id so updates route correctly.
 		$effect(() => {
 			const current_id = _props.shared_props.id;
 			if (current_id !== this.shared.id) {
@@ -445,7 +435,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 			}
 		});
 
-		// Retranslate props when locale changes
+		// retranslate props when locale changes
 		if (Object.keys(this.translatable_props).length > 0) {
 			locale.subscribe(() => {
 				for (const [full_key, original] of Object.entries(
