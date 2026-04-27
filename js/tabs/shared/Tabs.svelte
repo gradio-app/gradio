@@ -37,9 +37,21 @@
 
 	// When initial_tabs changes (e.g. a non-mounted tab's props were updated),
 	// sync the internal tabs array so the tab buttons reflect the new state.
-	// Using a function call so the $: dependency is only on initial_tabs,
-	// not on tabs (which would cause a loop with register_tab).
-	$: _sync_tabs(initial_tabs);
+	// Using a function call so the `$:` dependency is only on `initial_tabs`,
+	// not on `tabs` (which would cause a loop with `register_tab`).
+	//
+	// The `_tick++` write inside the block prevents a Svelte 5 async-mode
+	// batch-scheduler loop (`effect_update_depth_exceeded`) that otherwise
+	// fires when a tab switch reveals previously-hidden children, whose
+	// mount cascades into reactive updates that re-fire the $: statements
+	// in this file. Adding a local self-invalidating write decouples this
+	// statement's batch from the cascade. TODO: revisit once Svelte 5's
+	// legacy-$: interaction with async-mode batching is fixed upstream.
+	let _tick = 0;
+	$: {
+		_tick++;
+		_sync_tabs(initial_tabs);
+	}
 
 	function _sync_tabs(new_tabs: Tab[]): void {
 		for (let i = 0; i < new_tabs.length; i++) {

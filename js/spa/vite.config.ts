@@ -77,9 +77,6 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 				external: ["virtual:cc-init"]
 			},
 			rolldownOptions: {
-				experimental: {
-					strictExecutionOrder: true
-				},
 				external: ["virtual:cc-init"]
 			}
 		},
@@ -159,12 +156,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 				"@ffmpeg/util",
 				"chromium-bidi",
 				"esbuild"
-			],
-			rolldownOptions: {
-				experimental: {
-					strictExecutionOrder: true
-				}
-			}
+			]
 		},
 		resolve: {
 			conditions: ["gradio", "browser", "default"]

@@ -48,15 +48,9 @@ export default defineConfig(({ mode }) => {
 			noExternal: ["@gradio/*", "@huggingface/space-header"],
 			external: mode === "development" ? [] : ["svelte", "svelte/*"]
 		},
-		// optimizeDeps.rolldownOptions.experimental.strictExecutionOrder: true
 		build: {
 			rollupOptions: {
 				external: svelte_exports
-			},
-			rolldownOptions: {
-				experimental: {
-					strictExecutionOrder: true
-				}
 			},
 			minify: true,
 			sourcemap: false
@@ -94,12 +88,7 @@ export default defineConfig(({ mode }) => {
 			}
 		},
 		optimizeDeps: {
-			exclude: ["@gradio/*", "/svelte", "/svelte/*"],
-			rolldownOptions: {
-				experimental: {
-					strictExecutionOrder: true
-				}
-			}
+			exclude: ["@gradio/*", "/svelte", "/svelte/*"]
 		},
 		plugins: [sveltekit(), inject_component_loader({ mode })]
 	};

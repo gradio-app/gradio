@@ -1,7 +1,7 @@
 import type { ActionReturn } from "svelte/action";
 import type { Client } from "@gradio/client";
 import type { ComponentType, SvelteComponent } from "svelte";
-import { tick, untrack } from "svelte";
+import { tick } from "svelte";
 import type { Component } from "svelte";
 import { locale } from "svelte-i18n";
 
@@ -354,9 +354,9 @@ export function translate_i18n_marker(
 
 export class Gradio<T extends object = {}, U extends object = {}> {
 	load_component: load_component;
-	shared: SharedProps = $state<SharedProps>({} as SharedProps) as SharedProps;
-	props = $state<U>({} as U) as U;
-	i18n: I18nFormatter = $state<any>((v: string) => v) as any;
+	shared: SharedProps;
+	props: U;
+	i18n: I18nFormatter;
 	translatable_props: Record<string, string> = {};
 	dispatcher!: Function;
 	last_update: ReturnType<typeof tick> | null = null;
@@ -373,14 +373,10 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		_props: { shared_props: SharedProps; props: U },
 		default_values?: Partial<U>
 	) {
-		for (const key in _props.shared_props) {
-			// @ts-ignore i'm not doing pointless typescript gymanstics
-			this.shared[key] = _props.shared_props[key];
-		}
-		for (const key in _props.props) {
-			// @ts-ignore same here
-			this.props[key] = _props.props[key];
-		}
+		// Single source of truth: the app-level reactive node state is also
+		// this instance's state. No copy loop, no dual-state drift.
+		this.shared = _props.shared_props;
+		this.props = _props.props;
 
 		if (default_values) {
 			for (const key in default_values) {
@@ -390,65 +386,66 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 				}
 			}
 		}
-		// @ts-ignore same here
+
+		// @ts-ignore
 		this.i18n = this.props.i18n ?? ((v: string) => v);
 
+		// Translate i18n-managed keys in place; translatable_props remembers
+		// the originals so locale changes can re-translate from source.
 		for (const key of TRANSLATABLE_PROPS) {
 			// @ts-ignore
 			this.shared[key] = this._translate_and_store(
 				"shared",
 				key,
 				// @ts-ignore
-				_props.shared_props[key]
+				this.shared[key]
 			);
 			// @ts-ignore
 			this.props[key] = this._translate_and_store(
 				"props",
 				key,
 				// @ts-ignore
-				_props.props[key]
+				this.props[key]
 			);
 		}
 
 		this.load_component = this.shared.load_component;
-
 		this.register_component = this.shared.register_component || (() => {});
 		this.dispatcher = this.shared.dispatcher || (() => {});
 
 		this.register_component(
-			_props.shared_props.id,
+			this.shared.id,
 			// @ts-ignore
 			this.set_data.bind(this),
 			this.get_data.bind(this)
 		);
 
+		// @gr.render replaces the node subtree (via AppTree.rerender) which
+		// reassigns `_props.shared_props`/`_props.props` on the reused child
+		// component. The Gradio instance persists (same `<svelte:component>`
+		// constructor reference) and keeps pointing at the OLD node's props
+		// via the aliases captured above — that's what preserves user-edited
+		// values across rerender (new server payloads rarely include a
+		// user's in-progress `value`).
+		//
+		// But the new node has a new `id`, and the dependency graph was
+		// rebuilt with that new id as the input reference. We need to
+		// re-register the callbacks under the new id so `gather_state` and
+		// `update_state` route correctly. This effect only re-fires when
+		// `_props.shared_props.id` actually changes.
 		$effect(() => {
-			// Need to update the props here
-			// otherwise UI won't reflect latest state from render
-			for (const key in _props.shared_props) {
-				// @ts-ignore
-				if (this._is_i18n_managed(`shared.${key}`, _props.shared_props[key]))
-					continue;
-				// @ts-ignore i'm not doing pointless typescript gymanstics
-				this.shared[key] = _props.shared_props[key];
+			const current_id = _props.shared_props.id;
+			if (current_id !== this.shared.id) {
+				this.register_component(
+					current_id,
+					// @ts-ignore
+					this.set_data.bind(this),
+					this.get_data.bind(this)
+				);
 			}
-			for (const key in _props.props) {
-				if (this._is_i18n_managed(`props.${key}`, _props.props[key])) continue;
-				// @ts-ignore same here
-				this.props[key] = _props.props[key];
-			}
-			this.register_component(
-				_props.shared_props.id,
-				// @ts-ignore
-				this.set_data.bind(this),
-				this.get_data.bind(this)
-			);
-			untrack(() => {
-				this.shared.id = _props.shared_props.id;
-			});
 		});
 
-		// retranslate props when locale changes
+		// Retranslate props when locale changes
 		if (Object.keys(this.translatable_props).length > 0) {
 			locale.subscribe(() => {
 				for (const [full_key, original] of Object.entries(

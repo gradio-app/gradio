@@ -426,6 +426,50 @@ export class AppTree {
 			throw new Error("Rerender failed: root node not found in current tree");
 		}
 		n.children = subtree.children;
+
+		// Reused child components (unkeyed {#each} in MountComponents keeps
+		// the same component instance at each position across rerender) hold
+		// references to the *old* node's props via the Gradio class aliases.
+		// To reflect server-pushed prop changes (e.g. updated Markdown text
+		// from @gr.render), push the new defined prop values through each
+		// component's registered set_data callback. undefined keys are
+		// skipped so user-edited values (typically absent from the payload
+		// because the server doesn't know about them) are preserved.
+		//
+		// The reused components only re-register with their new ids after
+		// the Gradio class's id-change $effect fires, so enqueue each node's
+		// data into #pending_updates for register_component to pick up.
+		// Also call set_data directly for anything already registered.
+		this.#sync_reused_components_after_rerender(subtree);
+	}
+
+	#sync_reused_components_after_rerender(node: ProcessedComponentMeta): void {
+		const data: Record<string, unknown> = {};
+		for (const key in node.props.shared_props) {
+			// @ts-ignore
+			const v = node.props.shared_props[key];
+			if (v !== undefined) data[key] = v;
+		}
+		for (const key in node.props.props) {
+			const v = node.props.props[key];
+			if (v !== undefined) data[key] = v;
+		}
+		if (Object.keys(data).length > 0) {
+			const set_data = this.#set_callbacks.get(node.id);
+			if (set_data) {
+				set_data(data);
+			} else {
+				// Component hasn't re-registered yet. Queue the update so it's
+				// applied in register_component when the $effect fires.
+				const existing = this.#pending_updates.get(node.id) || {};
+				this.#pending_updates.set(node.id, { ...existing, ...data });
+			}
+		}
+		if (node.children) {
+			for (const child of node.children) {
+				this.#sync_reused_components_after_rerender(child);
+			}
+		}
 	}
 	/*
 	 * Updates the state of a component by its ID

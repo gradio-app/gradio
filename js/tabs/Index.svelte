@@ -7,22 +7,28 @@
 	import Tabs from "./shared/Tabs.svelte";
 	import Walkthrough from "./shared/Walkthrough.svelte";
 	import type { TabsProps, TabsEvents } from "./types";
-	import { untrack } from "svelte";
+	import { tick, untrack } from "svelte";
 
 	let props = $props();
 	const gradio = new Gradio<TabsEvents, TabsProps>(props);
 
 	$effect(() => {
 		if (gradio.props.selected) {
-			untrack(() => {
-				const i = gradio.props.initial_tabs.findIndex(
-					(t) => t.id === gradio.props.selected
-				);
+			const selected = gradio.props.selected;
+			const initial_tabs = untrack(() => gradio.props.initial_tabs);
+			// Defer dispatch so downstream work (revealing previously hidden
+			// tab content via render_previously_invisible_children) doesn't
+			// race with the selected-prop propagation to the shared Tabs
+			// component; synchronous state mutations here leave the tab UI
+			// stuck on the previous selection.
+			tick().then(() => {
+				const i = initial_tabs.findIndex((t) => t.id === selected);
+				if (i === -1) return;
 				gradio.dispatch("gradio_tab_select", {
-					value: gradio.props.initial_tabs[i].label,
+					value: initial_tabs[i].label,
 					index: i,
-					id: gradio.props.initial_tabs[i].id,
-					component_id: gradio.props.initial_tabs[i].component_id
+					id: initial_tabs[i].id,
+					component_id: initial_tabs[i].component_id
 				});
 			});
 		}
@@ -38,7 +44,10 @@
 		on:change={() => gradio.dispatch("change")}
 		on:select={(e) => {
 			gradio.dispatch("select", e.detail);
-			gradio.dispatch("gradio_tab_select", e.detail);
+			// gradio_tab_select is dispatched via the $effect above, which
+			// waits until the selected-prop propagation to the shared Tabs
+			// has flushed. Dispatching synchronously here races with that
+			// propagation and can stall reactive updates.
 		}}
 		initial_tabs={gradio.props.initial_tabs}
 	>
@@ -53,7 +62,10 @@
 		on:change={() => gradio.dispatch("change")}
 		on:select={(e) => {
 			gradio.dispatch("select", e.detail);
-			gradio.dispatch("gradio_tab_select", e.detail);
+			// gradio_tab_select is dispatched via the $effect above, which
+			// waits until the selected-prop propagation to the shared Tabs
+			// has flushed. Dispatching synchronously here races with that
+			// propagation and can stall reactive updates.
 		}}
 		initial_tabs={gradio.props.initial_tabs}
 	>

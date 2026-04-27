@@ -8,19 +8,27 @@
 	import type { SharedProps } from "@gradio/utils";
 
 	import type { AccordionProps, AccordionEvents } from "./types";
+	import { tick } from "svelte";
 
 	let props = $props();
 	class AccordionGradio extends Gradio<AccordionEvents, AccordionProps> {
 		set_data(data: Partial<object & SharedProps>): void {
-			if ("open" in data && data.open !== this.props.open) {
+			const old_open = this.props.open;
+			super.set_data(data);
+			if ("open" in data && data.open !== old_open) {
 				if (data.open) {
 					this.dispatch("expand");
-					this.dispatch("gradio_expand");
+					// Defer gradio_expand (which triggers visibility updates for
+					// previously hidden descendants) to the next tick so Svelte
+					// can flush the open-prop propagation first. Dispatching
+					// synchronously here races with the open state update and
+					// can leave the shared accordion rendering as closed until
+					// a subsequent state change kicks it.
+					tick().then(() => this.dispatch("gradio_expand"));
 				} else {
 					this.dispatch("collapse");
 				}
 			}
-			super.set_data(data);
 			this.shared.loading_status.status = "complete";
 		}
 	}
