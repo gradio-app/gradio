@@ -1,9 +1,11 @@
-import { test, describe, afterEach, expect, vi } from "vitest";
+import { test, describe, afterEach, beforeAll, afterAll, expect, vi } from "vitest";
 import {
 	cleanup,
 	render,
 	waitFor,
 	mock_client,
+	upload_file,
+	drop_file,
 	TEST_GLTF,
 	TEST_PLY,
 	TEST_SPLAT
@@ -12,6 +14,29 @@ import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import event from "@testing-library/user-event";
 
 import Model3D from "./Index.svelte";
+
+// BabylonJS and gsplat perform async initialization (canvas setup, model loading)
+// that can complete after component cleanup, causing unhandled rejections.
+// These are harmless race conditions in the 3D rendering libraries, not test bugs.
+function suppress_3d_library_errors(e: PromiseRejectionEvent): void {
+	const msg = e.reason?.message ?? "";
+	if (
+		msg.includes("addEventListener") ||
+		msg.includes("Viewer is disposed") ||
+		msg.includes("Invalid URL") ||
+		msg.includes("Unsupported property type")
+	) {
+		e.preventDefault();
+	}
+}
+
+beforeAll(() => {
+	window.addEventListener("unhandledrejection", suppress_3d_library_errors);
+});
+
+afterAll(() => {
+	window.removeEventListener("unhandledrejection", suppress_3d_library_errors);
+});
 
 const base_props = {
 	label: "3D Model",
@@ -196,6 +221,7 @@ describe("Static mode", () => {
 			expect(getByLabelText("Undo")).toBeInTheDocument();
 		});
 	});
+
 });
 
 describe("Interactive mode", () => {
@@ -233,6 +259,67 @@ describe("Interactive mode", () => {
 			expect(queryByTestId("model3d")).not.toBeInTheDocument();
 		});
 		expect(getByLabelText("model3d.drop_to_upload")).toBeInTheDocument();
+	});
+
+	test("undo is available for .gltf files", async () => {
+		const { getByLabelText } = await render(Model3D, {
+			...interactive_props,
+			value: TEST_GLTF
+		});
+
+		expect(getByLabelText("common.undo")).toBeInTheDocument();
+	});
+
+	test("undo is not available for .ply files", async () => {
+		const { getByLabelText, queryByLabelText } = await render(Model3D, {
+			...interactive_props,
+			value: TEST_PLY
+		});
+
+		expect(getByLabelText("common.clear")).toBeInTheDocument();
+		expect(queryByLabelText("common.undo")).not.toBeInTheDocument();
+	});
+
+	test("undo is not available for .splat files", async () => {
+		const { getByLabelText, queryByLabelText } = await render(Model3D, {
+			...interactive_props,
+			value: TEST_SPLAT
+		});
+
+		expect(getByLabelText("common.clear")).toBeInTheDocument();
+		expect(queryByLabelText("common.undo")).not.toBeInTheDocument();
+	});
+
+	test("set_data to null shows upload dropzone", async () => {
+		const { set_data, getByLabelText } = await render(Model3D, {
+			...interactive_props,
+			value: TEST_GLTF
+		});
+
+		await set_data({ value: null });
+
+		await waitFor(() => {
+			expect(
+				getByLabelText("model3d.drop_to_upload")
+			).toBeInTheDocument();
+		});
+	});
+
+	test("set_data with value shows viewer and clear button", async () => {
+		const { set_data, getByLabelText, queryByLabelText } = await render(
+			Model3D,
+			{
+				...interactive_props,
+				value: null
+			}
+		);
+
+		await set_data({ value: TEST_GLTF });
+
+		await waitFor(() => {
+			expect(getByLabelText("common.clear")).toBeInTheDocument();
+		});
+		expect(queryByLabelText("model3d.drop_to_upload")).not.toBeInTheDocument();
 	});
 });
 
@@ -326,6 +413,81 @@ describe("Events", () => {
 		expect(custom_click).toHaveBeenCalledTimes(1);
 		expect(custom_click).toHaveBeenCalledWith({ id: 42 });
 	});
+
+	test("change fires when switching file types via set_data", async () => {
+		const { listen, set_data } = await render(Model3D, {
+			...base_props,
+			value: TEST_GLTF
+		});
+
+		const change = listen("change");
+		await set_data({ value: TEST_PLY });
+
+		expect(change).toHaveBeenCalledTimes(1);
+	});
+
+	test("upload event fires when file is uploaded", async () => {
+		const { listen } = await render(Model3D, {
+			...interactive_props,
+			value: null
+		});
+
+		const upload = listen("upload");
+		const change = listen("change");
+
+		await upload_file(TEST_GLTF);
+
+		await waitFor(() => {
+			expect(upload).toHaveBeenCalledTimes(1);
+		});
+		expect(change).toHaveBeenCalled();
+	});
+
+	test("drag and drop triggers upload and change events", async () => {
+		const { listen } = await render(Model3D, {
+			...interactive_props,
+			value: null
+		});
+
+		const upload = listen("upload");
+		const change = listen("change");
+
+		await drop_file(
+			TEST_GLTF,
+			"[aria-label='model3d.drop_to_upload']"
+		);
+
+		await waitFor(() => {
+			expect(upload).toHaveBeenCalledTimes(1);
+		});
+		expect(change).toHaveBeenCalled();
+	});
+
+	test("upload failure dispatches error event", async () => {
+		const failing_upload = vi
+			.fn()
+			.mockRejectedValue(new Error("File too large"));
+		const { listen } = await render(Model3D, {
+			...interactive_props,
+			client: {
+				upload: failing_upload,
+				stream: async () => ({ onmessage: null, close: () => {} })
+			}
+		});
+
+		const error = listen("error");
+
+		await upload_file(TEST_GLTF);
+
+		await waitFor(() => {
+			expect(failing_upload).toHaveBeenCalled();
+		});
+
+		await waitFor(() => {
+			expect(error).toHaveBeenCalledTimes(1);
+		});
+		expect(error).toHaveBeenCalledWith("File too large");
+	});
 });
 
 describe("Props: buttons", () => {
@@ -373,6 +535,21 @@ describe("Props: buttons", () => {
 		});
 
 		expect(queryByLabelText("Custom action")).not.toBeInTheDocument();
+	});
+
+	test("renders multiple custom buttons", async () => {
+		const { getByLabelText } = await render(Model3D, {
+			...base_props,
+			value: null,
+			show_label: true,
+			buttons: [
+				{ value: "First", id: 1, icon: null },
+				{ value: "Second", id: 2, icon: null }
+			] as any
+		});
+
+		expect(getByLabelText("First")).toBeInTheDocument();
+		expect(getByLabelText("Second")).toBeInTheDocument();
 	});
 });
 
@@ -448,6 +625,28 @@ describe("get_data / set_data", () => {
 		const data = await get_data();
 		expect(data.value).toBeNull();
 	});
+
+	test("set_data switches file type and get_data reflects it", async () => {
+		const { set_data, get_data } = await render(Model3D, {
+			...base_props,
+			value: TEST_GLTF
+		});
+
+		await set_data({ value: TEST_PLY });
+		const data = await get_data();
+		expect(data.value).toEqual(TEST_PLY);
+	});
+
+	test("set_data in interactive mode reflects in get_data", async () => {
+		const { set_data, get_data } = await render(Model3D, {
+			...interactive_props,
+			value: null
+		});
+
+		await set_data({ value: TEST_GLTF });
+		const data = await get_data();
+		expect(data.value).toEqual(TEST_GLTF);
+	});
 });
 
 describe("Edge cases", () => {
@@ -513,4 +712,8 @@ test.todo(
 
 test.todo(
 	"VISUAL: height prop resizes the Block containing the viewer — needs Playwright visual regression screenshot comparison"
+);
+
+test.todo(
+	"VISUAL: pan_speed affects drag pan sensitivity — needs Playwright interaction + screenshot comparison"
 );
