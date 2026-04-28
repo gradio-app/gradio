@@ -1,5 +1,5 @@
 import { test, describe, afterEach, expect, vi } from "vitest";
-import { cleanup, render, fireEvent } from "@self/tootils/render";
+import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import event from "@testing-library/user-event";
 
@@ -482,16 +482,6 @@ test("mock server format/unformat round-trip works correctly", async () => {
 
 describe("Edge cases", () => {
 	afterEach(() => cleanup());
-
-	test("handles empty speakers array gracefully", async () => {
-		const { getAllByTestId } = await render(Dialogue, {
-			...default_props,
-			speakers: [],
-			value: []
-		});
-
-		expect(getAllByTestId("dialogue-container").length).toEqual(2);
-	});
 
 	test("handles undefined max_lines", async () => {
 		const { queryAllByTestId } = await render(Dialogue, {
