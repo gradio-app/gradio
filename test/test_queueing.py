@@ -224,6 +224,65 @@ def test_heartbeat_task_cancelled_after_stream_completes():
     demo.close()
 
 
+def test_cancel_removes_pending_event_from_queue():
+    """Cancelling a queued (not yet running) event should remove it from the queue."""
+    with gr.Blocks() as demo:
+        start = gr.Button()
+        output = gr.Textbox()
+
+        def slow():
+            time.sleep(5)
+            return "done"
+
+        start.click(slow, None, output)
+
+    demo.queue(default_concurrency_limit=1)
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+
+    join_payload = {
+        "data": [],
+        "fn_index": 0,
+        "event_data": None,
+        "session_hash": "sess1",
+        "trigger_id": None,
+    }
+
+    try:
+        first = test_client.post(f"{API_PREFIX}/queue/join", json=join_payload)
+        second = test_client.post(f"{API_PREFIX}/queue/join", json=join_payload)
+        third = test_client.post(f"{API_PREFIX}/queue/join", json=join_payload)
+        assert first.status_code == 200
+        assert second.status_code == 200
+        assert third.status_code == 200
+
+        second_event_id = second.json()["event_id"]
+        third_event_id = third.json()["event_id"]
+
+        # First event gets picked up by the worker; second and third are queued
+        assert len(demo._queue) == 2
+        assert second_event_id in demo._queue.event_ids_to_events
+        assert second_event_id in demo._queue.pending_event_ids_session["sess1"]
+
+        # Cancel the second (pending/queued) event
+        resp = test_client.post(
+            f"{API_PREFIX}/cancel",
+            json={
+                "session_hash": "sess1",
+                "fn_index": 0,
+                "event_id": second_event_id,
+            },
+        )
+        assert resp.status_code == 200
+
+        assert len(demo._queue) == 1
+        assert second_event_id not in demo._queue.event_ids_to_events
+        assert second_event_id not in demo._queue.pending_event_ids_session["sess1"]
+        assert third_event_id in demo._queue.event_ids_to_events
+    finally:
+        demo.close()
+
+
 def test_analytics_summary(monkeypatch):
     """Test that the analytics summary endpoint is correctly being computed every N requests,
     where N is set by the GRADIO_ANALYTICS_CACHE_FREQUENCY environment variable."""

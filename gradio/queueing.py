@@ -467,6 +467,22 @@ class Queue:
         self.broadcast_estimations(event.concurrency_id, len(event_queue.queue) - 1)
         return True, event._id, "success"
 
+    async def remove_from_queue(self, event_id: str):
+        event = self.event_ids_to_events.get(event_id)
+        if event:
+            async with self.delete_lock:
+                q = self.event_queue_per_concurrency_id[event.concurrency_id]
+                try:
+                    q.queue.remove(event)
+                except ValueError:
+                    pass
+                self.event_ids_to_events.pop(event_id, None)
+                session_hash = event.session_hash
+                if session_hash in self.pending_event_ids_session:
+                    self.pending_event_ids_session[session_hash].discard(event_id)
+                    if not self.pending_event_ids_session[session_hash]:
+                        self.pending_event_ids_session.pop(session_hash, None)
+
     def _cancel_asyncio_tasks(self):
         for task in self._asyncio_tasks:
             task.cancel()
