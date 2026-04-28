@@ -1,6 +1,6 @@
 ---
-"@gradio/gallery": minor
-"gradio": minor
+"@gradio/gallery": patch
+"gradio": patch
 ---
 
-feat:Prevent Gallery Select Event From Triggering When Value Updated Programmatically
+fix:Prevent Gallery Select Event From Triggering When Value Updated Programmatically
