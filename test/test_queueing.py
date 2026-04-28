@@ -224,6 +224,66 @@ def test_heartbeat_task_cancelled_after_stream_completes():
     demo.close()
 
 
+def test_cancel_removes_pending_event_from_queue():
+    from gradio.routes import App
+
+    with gr.Blocks() as demo:
+        start = gr.Button()
+        output = gr.Textbox()
+
+        def wait():
+            time.sleep(1)
+            return "done"
+
+        start.click(wait, None, output)
+
+    demo.queue(default_concurrency_limit=1)
+    app = App.create_app(demo)
+    client = TestClient(app)
+
+    first = client.post(
+        f"{API_PREFIX}/queue/join",
+        json={
+            "data": [],
+            "fn_index": 0,
+            "event_data": None,
+            "session_hash": "test_session",
+            "trigger_id": None,
+        },
+    )
+    assert first.status_code == 200
+
+    second = client.post(
+        f"{API_PREFIX}/queue/join",
+        json={
+            "data": [],
+            "fn_index": 0,
+            "event_data": None,
+            "session_hash": "test_session",
+            "trigger_id": None,
+        },
+    )
+    assert second.status_code == 200
+    assert len(demo._queue) == 2
+
+    response = client.post(
+        f"{API_PREFIX}/cancel",
+        json={
+            "session_hash": "test_session",
+            "fn_index": 0,
+            "event_id": second.json()["event_id"],
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["success"]
+    assert len(demo._queue) == 1
+    assert second.json()["event_id"] not in demo._queue.event_ids_to_events
+    assert second.json()["event_id"] not in demo._queue.pending_event_ids_session[
+        "test_session"
+    ]
+
+
 def test_analytics_summary(monkeypatch):
     """Test that the analytics summary endpoint is correctly being computed every N requests,
     where N is set by the GRADIO_ANALYTICS_CACHE_FREQUENCY environment variable."""

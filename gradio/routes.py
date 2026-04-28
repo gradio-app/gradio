@@ -1582,6 +1582,7 @@ class App(FastAPI):
                 body.event_id
                 in blocks._queue.pending_event_ids_session.get(body.session_hash, {})
             )
+            await blocks._queue.clean_events(event_id=body.event_id)
             if session_open and event_running:
                 message = ProcessCompletedMessage(
                     output={}, success=True, event_id=body.event_id
@@ -1697,30 +1698,23 @@ class App(FastAPI):
                                 isinstance(message, ProcessCompletedMessage)
                                 and message.event_id
                             ):
+                                pending_event_ids = (
+                                    blocks._queue.pending_event_ids_session.get(
+                                        session_hash, set()
+                                    )
+                                )
                                 # It's possible that the event_id has already been removed
                                 # for example, the user sent two duplicate `/cancel` requests.
                                 # The first one would have removed the event_id from pending_event_ids_session
-                                if (
-                                    message.event_id
-                                    in (
-                                        blocks._queue.pending_event_ids_session[
-                                            session_hash
-                                        ]
-                                    )
-                                ):
-                                    blocks._queue.pending_event_ids_session[
-                                        session_hash
-                                    ].remove(message.event_id)
+                                if message.event_id in pending_event_ids:
+                                    pending_event_ids.remove(message.event_id)
+                                    if not pending_event_ids:
+                                        blocks._queue.pending_event_ids_session.pop(
+                                            session_hash, None
+                                        )
                                 if message.msg == ServerMessage.server_stopped or (
                                     message.msg == ServerMessage.process_completed
-                                    and (
-                                        len(
-                                            blocks._queue.pending_event_ids_session[
-                                                session_hash
-                                            ]
-                                        )
-                                        == 0
-                                    )
+                                    and not pending_event_ids
                                 ):
                                     message = CloseStreamMessage()
                                     response = process_msg(message)

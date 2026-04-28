@@ -639,11 +639,20 @@ class Queue:
                 )
                 self.event_ids_to_events.pop(event._id, None)
 
-            if session_hash and session_hash in self.pending_event_ids_session:
-                removed_ids = {e._id for e in events_to_remove}
-                self.pending_event_ids_session[session_hash] -= removed_ids
-                if not self.pending_event_ids_session[session_hash]:
-                    self.pending_event_ids_session.pop(session_hash, None)
+            removed_ids = {e._id for e in events_to_remove}
+            if event_id:
+                removed_ids.add(event_id)
+            if removed_ids:
+                sessions = (
+                    [session_hash]
+                    if session_hash
+                    else list(self.pending_event_ids_session)
+                )
+                for session in sessions:
+                    if session in self.pending_event_ids_session:
+                        self.pending_event_ids_session[session] -= removed_ids
+                        if not self.pending_event_ids_session[session]:
+                            self.pending_event_ids_session.pop(session, None)
 
     async def notify_clients(self) -> None:
         """
