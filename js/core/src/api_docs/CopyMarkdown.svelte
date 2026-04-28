@@ -15,7 +15,8 @@
 		| "javascript"
 		| "bash"
 		| "skill"
-		| "mcp";
+		| "mcp"
+		| "cli";
 	export let space_id: string | null;
 	export let root: string;
 	export let api_count: number;
@@ -153,7 +154,9 @@ curl --version
 
 2. Find the API endpoint below corresponding to your desired function in the app. Copy the code snippet, replacing the placeholder values with your own input data.
 
-Making a prediction and getting a result requires 2 requests: a POST and a GET request. The POST request returns an EVENT_ID, which is used in the second GET request to fetch the results. In these snippets, we've used awk and read to parse the results, combining these two requests into one command for ease of use. See [curl docs](${bash_docs}).
+Making a prediction and getting a result requires 2 requests: a POST and a GET request. The POST request returns an EVENT_ID, which is used in the second GET request to fetch the results. In these snippets, we've used awk and read to parse the results, combining these two requests into one command for ease of use.
+
+If your endpoint accepts files, you must first upload them via a POST to \`/upload\`, then reference the returned path with the meta key: \`{"path": "...", "meta": {"_type": "gradio.FileData"}}\`. See [curl docs](${bash_docs}).
 
 ${dependencies
 	.filter(
@@ -169,21 +172,21 @@ ${info?.named_endpoints["/" + d.api_name]?.description ? "Description: " + info?
 ${markdown_code_snippets[d.api_name as keyof typeof markdown_code_snippets]?.bash}
 \`\`\`
 
-Accepts ${info?.named_endpoints["/" + d.api_name]?.parameters?.length} parameter${info?.named_endpoints["/" + d.api_name]?.parameters?.length != 1 ? "s" : ""}:
+Accepts a JSON object with ${info?.named_endpoints["/" + d.api_name]?.parameters?.length} key${info?.named_endpoints["/" + d.api_name]?.parameters?.length != 1 ? "s" : ""}:
 
 ${info?.named_endpoints["/" + d.api_name]?.parameters
 	?.map((p: any) => {
 		const defaultValue = "Required";
-		const type = `${js_info.named_endpoints["/" + d.api_name]?.parameters.find((_p: any) => _p.parameter_name === p.parameter_name)?.type || "any"}`;
-		return `${`[${js_info.named_endpoints["/" + d.api_name]?.parameters.findIndex((_p: any) => _p.parameter_name === p.parameter_name)}]`}:\n- Type: ${type}\n- ${defaultValue}\n- The input value that is provided in the ${p.label} ${p.component} component. ${p.python_type.description}`;
+		const type = `${p.python_type.type}`;
+		return `${p.parameter_name}:\n- Type: ${type}\n- ${defaultValue}\n- The input value that is provided in the ${p.label} ${p.component} component. ${p.python_type.description}`;
 	})
 	.join("\n\n")}
 
-Returns ${info?.named_endpoints["/" + d.api_name]?.returns?.length > 1 ? `list of ${info?.named_endpoints["/" + d.api_name]?.returns?.length} elements` : "1 element"}:
+Returns ${info?.named_endpoints["/" + d.api_name]?.returns?.length > 1 ? `an array of ${info?.named_endpoints["/" + d.api_name]?.returns?.length} elements` : "an array of 1 element"}:
 
 ${info?.named_endpoints["/" + d.api_name]?.returns
 	?.map((r: any, i: number) => {
-		const type = js_info.named_endpoints["/" + d.api_name]?.returns[i]?.type;
+		const type = r.python_type.type;
 		return `${info?.named_endpoints["/" + d.api_name]?.returns?.length > 1 ? `[${i}]: ` : ""}- Type: ${type}\n- The output value that appears in the "${r.label}" ${r.component} component.`;
 	})
 	.join("\n\n")}
@@ -278,7 +281,9 @@ Read more about the MCP in the [Gradio docs](${mcp_docs}).
 				? "JavaScript"
 				: current_language === "bash"
 					? "Bash"
-					: "MCP";
+					: current_language === "cli"
+						? "CLI"
+						: "MCP";
 
 	$: current_language;
 	$: current_language_label =
@@ -288,7 +293,9 @@ Read more about the MCP in the [Gradio docs](${mcp_docs}).
 				? "JavaScript"
 				: current_language === "bash"
 					? "Bash"
-					: "MCP";
+					: current_language === "cli"
+						? "CLI"
+						: "MCP";
 
 	let label = `Copy ${current_language_label} Docs as Markdown for LLMs`;
 	$: label = `Copy ${current_language_label} Docs as Markdown for LLMs`;
@@ -367,7 +374,7 @@ Read the documentation above so I can ask questions about it.`
 	}
 
 	async function copyMarkdown(
-		current_language: "python" | "javascript" | "bash" | "skill" | "mcp"
+		current_language: "python" | "javascript" | "bash" | "skill" | "mcp" | "cli"
 	): Promise<void> {
 		try {
 			if (!markdown_content[current_language]) {
