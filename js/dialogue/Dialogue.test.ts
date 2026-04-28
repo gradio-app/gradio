@@ -6,6 +6,8 @@ import event from "@testing-library/user-event";
 import Dialogue from "./Index.svelte";
 import type { DialogueLine } from "./utils";
 
+// These are backend functions that do not exist when the tests run
+// the mocks are neccessary
 function mock_server() {
 	return {
 		format: vi.fn(async (value: DialogueLine[]): Promise<string> => {
@@ -13,7 +15,6 @@ function mock_server() {
 		}),
 		unformat: vi.fn(
 			async (params: { text: string }): Promise<DialogueLine[]> => {
-				// Simple mock: parse "Speaker: text" format
 				const lines = params.text.split("\n").filter((line) => line.trim());
 				return lines.map((line) => {
 					const colonIndex = line.indexOf(":");
@@ -86,7 +87,7 @@ describe("Dialogue", () => {
 
 		// An empty line is automatically added
 		const textareas = getAllByRole("textbox");
-		expect(textareas.length).toBeGreaterThan(0);
+		expect(textareas.length).toEqual(1);
 	});
 });
 
@@ -104,7 +105,6 @@ describe("Props: ui_mode", () => {
 		);
 
 		expect(getByDisplayValue("Hello")).toBeInTheDocument();
-		// Should NOT show the plain text textarea (which has data-testid="textbox")
 		expect(queryByTestId("textbox")).not.toBeInTheDocument();
 		expect(queryByRole("switch")).not.toBeInTheDocument();
 	});
@@ -127,7 +127,6 @@ describe("Props: ui_mode", () => {
 			value: [{ speaker: "Speaker1", text: "Hello" }]
 		});
 
-		// Should show dialogue lines by default
 		expect(getByDisplayValue("Hello")).toBeInTheDocument();
 		expect(getByRole("switch")).toBeVisible();
 	});
@@ -173,7 +172,6 @@ describe("Props: interactive", () => {
 		const addButton = queryByRole("button", { name: "Add new line" });
 		const deleteButton = queryByRole("button", { name: "Remove current line" });
 
-		// Buttons should not be in the document when interactive=false
 		expect(addButton).not.toBeInTheDocument();
 		expect(deleteButton).not.toBeInTheDocument();
 	});
@@ -204,7 +202,6 @@ describe("Props: submit_btn", () => {
 			submit_btn: false
 		});
 
-		// When submit_btn=false, no submit button should be in the document
 		const submitButton = queryByTestId("dialogue-submit-button");
 		expect(submitButton).not.toBeInTheDocument();
 	});
@@ -215,7 +212,6 @@ describe("Props: submit_btn", () => {
 			submit_btn: true
 		});
 
-		// When submit_btn=true, a button with SVG icon is rendered
 		const submitButton = getByTestId("dialogue-submit-button");
 		expect(submitButton).toBeInTheDocument();
 	});
@@ -226,7 +222,6 @@ describe("Props: submit_btn", () => {
 			submit_btn: "Send Message"
 		});
 
-		// When submit_btn is a string, the button has that text as its accessible name
 		const submitButton = getByRole("button", { name: "Send Message" });
 		expect(submitButton).toBeInTheDocument();
 	});
@@ -272,9 +267,8 @@ describe("Props: max_lines", () => {
 			]
 		});
 
-		// With max_lines=2 and 2 lines already, there should be no add button on the last line
 		const addButtons = queryAllByTestId(/^dialogue-add-button-/);
-		expect(addButtons.length).toBe(1); // Only on first line
+		expect(addButtons.length).toBe(1);
 	});
 });
 
@@ -292,7 +286,6 @@ describe("Props: tags", () => {
 		textarea.focus();
 		await event.type(textarea, "Hello :");
 
-		// The tag menu should appear
 		expect(queryByTestId("dialogue-tag-menu")).toBeInTheDocument();
 	});
 });
@@ -311,7 +304,6 @@ describe("Events", () => {
 		textarea.focus();
 		await event.type(textarea, "abc");
 
-		// Input event is fired for each character typed
 		expect(inputEvent).toHaveBeenCalled();
 	});
 
@@ -346,8 +338,7 @@ describe("Events", () => {
 			value: [{ speaker: "Speaker1", text: "Hello" }]
 		});
 
-		const changeEvent = listen("change");
-		// Check no change events fired after initial mount
+		const changeEvent = listen("change", { retrospective: true });
 		expect(changeEvent).not.toHaveBeenCalled();
 	});
 });
@@ -361,7 +352,6 @@ describe("get_data / set_data", () => {
 			value: [{ speaker: "Speaker1", text: "Hello world" }]
 		});
 
-		// Verify initial value is rendered
 		const initialTextarea = getByDisplayValue("Hello world");
 		expect(initialTextarea).toBeInTheDocument();
 
@@ -391,11 +381,10 @@ describe("get_data / set_data", () => {
 			value: [{ speaker: "Speaker1", text: "Hello" }]
 		});
 
-		// Wait for component to initialize
-		await new Promise((resolve) => setTimeout(resolve, 10));
-
-		const data = await get_data();
-		expect(data.value).toEqual([{ speaker: "Speaker1", text: "Hello" }]);
+		await vi.waitFor(async () => {
+			const data = await get_data();
+			expect(data.value).toEqual([{ speaker: "Speaker1", text: "Hello" }]);
+		});
 	});
 
 	test("get_data reflects user input changes", async () => {
@@ -424,11 +413,9 @@ describe("Interactive features", () => {
 			value: [{ speaker: "Speaker1", text: "First line" }]
 		});
 
-		// Click the add button on the first line
 		const addButton = getByTestId("dialogue-add-button-0");
 		await fireEvent.click(addButton);
 
-		// Now there should be two textareas for text content
 		expect(getByDisplayValue("First line")).toBeInTheDocument();
 		expect(getByTestId("dialogue-add-button-1")).toBeInTheDocument();
 	});
@@ -443,15 +430,12 @@ describe("Interactive features", () => {
 				]
 			});
 
-		// Both lines should be present
 		expect(getByDisplayValue("Line 1")).toBeInTheDocument();
 		expect(getByDisplayValue("Line 2")).toBeInTheDocument();
 
-		// Click the delete button on the second line (index 1)
 		const deleteButton = getByTestId("dialogue-delete-button-1");
 		await fireEvent.click(deleteButton);
 
-		// Second line should be removed, first line should remain
 		expect(getByDisplayValue("Line 1")).toBeInTheDocument();
 		expect(queryByDisplayValue("Line 2")).not.toBeInTheDocument();
 	});
@@ -469,11 +453,9 @@ test("mock server format/unformat round-trip works correctly", async () => {
 		server: serverMock
 	});
 
-	// Switch to plain text mode - this triggers server.format
 	const switchButton = getByRole("switch");
 	await fireEvent.click(switchButton);
 
-	// Verify format was called with the dialogue lines
 	expect(serverMock.format).toHaveBeenCalled();
 	expect(serverMock.format).toHaveBeenCalledWith(
 		expect.arrayContaining([
@@ -482,14 +464,11 @@ test("mock server format/unformat round-trip works correctly", async () => {
 		])
 	);
 
-	// Verify the formatted plain text is displayed
 	const textbox = getByTestId("textbox") as HTMLTextAreaElement;
 	expect(textbox.value).toBe("Speaker1: Hello world\nSpeaker2: How are you?");
 
-	// Switch back to dialogue mode - this triggers server.unformat
 	await fireEvent.click(switchButton);
 
-	// Verify unformat was called with the plain text
 	expect(serverMock.unformat).toHaveBeenCalled();
 	expect(serverMock.unformat).toHaveBeenCalledWith(
 		expect.objectContaining({
@@ -497,7 +476,6 @@ test("mock server format/unformat round-trip works correctly", async () => {
 		})
 	);
 
-	// Verify we're back in dialogue view with parsed lines
 	expect(getByDisplayValue("Hello world")).toBeInTheDocument();
 	expect(getByDisplayValue("How are you?")).toBeInTheDocument();
 });
@@ -512,8 +490,7 @@ describe("Edge cases", () => {
 			value: []
 		});
 
-		// Should still render without crashing
-		expect(getAllByTestId("dialogue-container").length).toBeGreaterThan(0);
+		expect(getAllByTestId("dialogue-container").length).toEqual(2);
 	});
 
 	test("handles undefined max_lines", async () => {
@@ -527,7 +504,6 @@ describe("Edge cases", () => {
 			]
 		});
 
-		// All add buttons should be visible when max_lines is undefined
 		const addButtons = queryAllByTestId(/^dialogue-add-button-/);
 		expect(addButtons.length).toBe(3);
 	});
@@ -538,17 +514,9 @@ describe("Edge cases", () => {
 			value: [{ speaker: "Speaker1", text: "Hello" }]
 		});
 
-		// Wait for mount to settle
-		await new Promise((resolve) => setTimeout(resolve, 10));
-
-		const changeEvent = listen("change");
-		// Set identical value - note: set_data may still trigger change depending on internal comparison
+		const changeEvent = listen("change", { retrospective: true });
 		await set_data({ value: [{ speaker: "Speaker1", text: "Hello" }] });
-
-		// The Dialogue component may trigger change events on set_data
-		// We document this behavior rather than enforce strict deduplication
-		// This verifies the component handles set_data without errors
-		expect(set_data).toBeDefined();
+		expect(changeEvent).not.toHaveBeenCalled();
 	});
 });
 
@@ -562,10 +530,8 @@ describe("Plain text mode", () => {
 			value: [{ speaker: "Speaker1", text: "Dialogue text" }]
 		});
 
-		// Switch to plain text mode
 		await fireEvent.click(getByRole("switch"));
 
-		// Plain text textarea should be visible
 		expect(getByTestId("textbox")).toBeInTheDocument();
 	});
 

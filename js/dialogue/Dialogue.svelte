@@ -44,15 +44,6 @@
 		gradio.dispatch("custom_button_click", { id });
 	};
 
-	let old_value = $state(gradio.props.value);
-
-	$effect(() => {
-		if (old_value != gradio.props.value) {
-			old_value = gradio.props.value;
-			gradio.dispatch("change");
-		}
-	});
-
 	let dialogue_container_element: HTMLDivElement;
 
 	let showTagMenu = $state(false);
