@@ -70,6 +70,8 @@ const interactive_props = {
 	client: mock_client()
 };
 
+// Model3D uses BlockLabel (floating label) instead of the standard block-info label,
+// so the shared label tests don't apply — label behaviour is tested manually below.
 run_shared_prop_tests({
 	component: Model3D,
 	name: "Model3D",
@@ -295,6 +297,18 @@ describe("Interactive mode", () => {
 
 		expect(getByLabelText("common.clear")).toBeInTheDocument();
 		expect(queryByLabelText("common.undo")).not.toBeInTheDocument();
+	});
+
+	test("clicking undo does not clear the value", async () => {
+		const { getByLabelText, get_data } = await render(Model3D, {
+			...interactive_props,
+			value: TEST_GLTF
+		});
+
+		await event.click(getByLabelText("common.undo"));
+
+		const data = await get_data();
+		expect(data.value).toEqual(TEST_GLTF);
 	});
 
 	test("set_data to null shows upload dropzone", async () => {
