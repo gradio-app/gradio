@@ -13,6 +13,7 @@
 	import { tick, onMount } from "svelte";
 	import { Upload } from "@gradio/upload";
 
+	import { MarkdownCode } from "@gradio/markdown-code";
 	import HeaderCell from "./HeaderCell.svelte";
 	import DataCell from "./DataCell.svelte";
 	import EmptyRowButton from "./EmptyRowButton.svelte";
@@ -147,7 +148,7 @@
 			id: `col_${j}`,
 			accessorKey: `col_${j}`,
 			header: header_value,
-			size: column_widths[j] ? parseInt(column_widths[j]) || 150 : 150,
+			size: 150,
 			minSize: 45,
 			filterFn: gradio_filter_fn,
 			meta: {
@@ -261,6 +262,82 @@
 
 	function get_dtype(col: number): Datatype {
 		return Array.isArray(datatype) ? (datatype[col] ?? "str") : datatype;
+	}
+
+	type SizingEntry = { val: string; col_idx: number; dtype: Datatype };
+
+	// heading multipliers for markdown/html block elements that render
+	// at a larger font size than body text.
+	const HEADING_MULT = [2.2, 1.7, 1.4, 1.2, 1.1, 1.05];
+
+	function md_visual_length(s: string): number {
+		const heading = s.match(/^\s*(#{1,6})\s+(.+)/);
+		if (heading) {
+			const lvl = heading[1].length;
+			const text = heading[2].replace(/[*_`[\]()]/g, "");
+			return text.length * HEADING_MULT[lvl - 1];
+		}
+		return s.replace(/[*_`#[\]()]/g, "").length;
+	}
+
+	function html_visual_length(s: string): number {
+		const stripped = s.replace(/<[^>]+>/g, "").length;
+		const h = s.match(/<h([1-6])\b/i);
+		if (h) return stripped * HEADING_MULT[parseInt(h[1]) - 1];
+		return stripped;
+	}
+
+	// mirror EditableCell.truncate_text so the sizing row reserves width
+	// for the truncated ("…") string, not the full source
+	function apply_truncation(s: string, dtype: Datatype): string {
+		if (
+			max_chars &&
+			max_chars > 0 &&
+			dtype !== "image" &&
+			s.length > max_chars
+		) {
+			return s.slice(0, max_chars) + "...";
+		}
+		return s;
+	}
+
+	// find the widest rendered value per visible column for the sizing row
+	function compute_sizing_row(): SizingEntry[] {
+		const headers = header_groups[0]?.headers ?? [];
+		return headers.map((header) => {
+			const col_idx = (header.column.columnDef.meta as any)?.colIndex ?? 0;
+			const dtype = get_dtype(col_idx);
+			const accessor = `col_${col_idx}`;
+
+			if (dtype === "bool") {
+				return { val: "false", col_idx, dtype };
+			}
+
+			const visual_len =
+				dtype === "markdown"
+					? md_visual_length
+					: dtype === "html"
+						? html_visual_length
+						: (s: string) => s.length;
+
+			let best = "";
+			let best_len = -1;
+			for (const r of rows) {
+				const row_idx = r.original._index;
+				const rendered = editable
+					? r.original[accessor]
+					: (display_value?.[row_idx]?.[col_idx] ??
+						values?.[row_idx]?.[col_idx]);
+				if (rendered == null) continue;
+				const v = apply_truncation(String(rendered), dtype);
+				const len = visual_len(v);
+				if (len > best_len) {
+					best_len = len;
+					best = v;
+				}
+			}
+			return { val: best, col_idx, dtype };
+		});
 	}
 
 	function get_display_value(row: number, col: number): string {
@@ -603,13 +680,22 @@
 		if (selected) {
 			const [row, col] = selected;
 
+			if (
+				editing &&
+				(e.key === "ArrowUp" ||
+					e.key === "ArrowDown" ||
+					e.key === "ArrowLeft" ||
+					e.key === "ArrowRight")
+			) {
+				return;
+			}
+
 			switch (e.key) {
 				case "ArrowUp":
 					e.preventDefault();
 					if (row > 0) {
 						selected = [row - 1, col];
 						selected_cells = [selected];
-						editing = false;
 						virtualizer.instance.scrollToIndex(row - 1, { align: "auto" });
 					}
 					break;
@@ -618,7 +704,6 @@
 					if (row < num_rows - 1) {
 						selected = [row + 1, col];
 						selected_cells = [selected];
-						editing = false;
 						virtualizer.instance.scrollToIndex(row + 1, { align: "auto" });
 					}
 					break;
@@ -627,7 +712,6 @@
 					if (col > 0) {
 						selected = [row, col - 1];
 						selected_cells = [selected];
-						editing = false;
 					}
 					break;
 				case "ArrowRight":
@@ -635,7 +719,6 @@
 					if (col < num_cols - 1) {
 						selected = [row, col + 1];
 						selected_cells = [selected];
-						editing = false;
 					}
 					break;
 				case "Tab": {
@@ -780,6 +863,7 @@
 
 	let header_row_el: HTMLTableRowElement;
 	let header_table_el: HTMLTableElement;
+	let viewport_width = $state(0);
 
 	const measurement = create_column_measurement({
 		header_row_el: () => header_row_el,
@@ -788,6 +872,7 @@
 		row_data: () => row_data,
 		show_row_numbers: () => show_row_numbers,
 		column_widths: () => column_widths,
+		viewport_width: () => viewport_width,
 		on_resize: undefined
 	});
 
@@ -850,11 +935,11 @@
 		bind:this={parent}
 		class="table-wrap"
 		class:dragging={is_dragging}
-		class:no-wrap={!wrap}
 		class:menu-open={active_cell_menu || active_header_menu}
 		onkeydown={handle_keydown}
 		role="grid"
 		tabindex="0"
+		style="--df-max-col-width: {viewport_width}px;"
 	>
 		<Upload
 			{upload}
@@ -872,6 +957,7 @@
 				class="virtual-table-viewport"
 				class:disable-scroll={disable_scroll}
 				bind:this={scroll_container}
+				bind:clientWidth={viewport_width}
 				onscroll={handle_scroll}
 				style="max-height: {max_height}px;"
 				role="grid"
@@ -910,6 +996,7 @@
 										{editable}
 										{max_chars}
 										{i18n}
+										wrap_text={wrap}
 										onclick={handle_header_click}
 										on_menu_click={toggle_header_menu}
 										on_end_edit={end_header_edit}
@@ -919,28 +1006,29 @@
 							{/each}
 						</tr>
 					</thead>
-					<!-- hidden sizing row: lets table-layout:auto consider body content widths too -->
+
 					<tbody class="sizing-body" aria-hidden="true">
 						{#if rows.length > 0}
-							{@const sizing_row = rows.reduce((widest, row) => {
-								const cells = row.getVisibleCells();
-								cells.forEach((cell, i) => {
-									const val = String(cell.getValue() ?? "");
-									if (!widest[i] || val.length > widest[i].length) {
-										widest[i] = val;
-									}
-								});
-								return widest;
-							}, [] as string[])}
+							{@const sizing_row = compute_sizing_row()}
 							<tr>
 								{#if show_row_numbers}
 									<td class="row-number-cell">{rows.length}</td>
 								{/if}
-								{#each sizing_row as val, ci}
-									{@const dtype = get_dtype(ci)}
+								{#each sizing_row as entry (entry.col_idx)}
 									<td
 										><div class="cell-wrap">
-											{#if dtype === "html" || dtype === "markdown"}{@html val}{:else}{val}{/if}
+											{#if entry.dtype === "markdown"}
+												<MarkdownCode
+													message={entry.val}
+													{latex_delimiters}
+													{line_breaks}
+													chatbot={false}
+												/>
+											{:else if entry.dtype === "html"}
+												{@html entry.val}
+											{:else}
+												{entry.val}
+											{/if}
 										</div></td
 									>
 								{/each}
@@ -1014,6 +1102,9 @@
 											selected_cells[0][0] === row_idx &&
 											selected_cells[0][1] === col_idx}
 										show_selection_buttons={selected_cells.length === 1 &&
+											selected_cells[0][0] === row_idx &&
+											selected_cells[0][1] === col_idx}
+										is_solo={selected_cells.length === 1 &&
 											selected_cells[0][0] === row_idx &&
 											selected_cells[0][1] === col_idx}
 										is_first_column={ci === 0 && !show_row_numbers}
@@ -1140,7 +1231,7 @@
 		gap: var(--size-2);
 		position: relative;
 		max-width: 100%;
-		overflow: hidden;
+		overflow-x: hidden;
 	}
 
 	.table-container.fullscreen {
@@ -1260,6 +1351,12 @@
 		padding: var(--size-2);
 		border: none;
 		white-space: nowrap;
+		max-width: var(--df-max-col-width);
+		overflow: hidden;
+	}
+
+	.header-table :global(.header-cell) {
+		max-width: var(--df-max-col-width);
 	}
 
 	/* Virtual body */
@@ -1333,18 +1430,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-	}
-
-	.no-wrap {
-		white-space: nowrap;
-	}
-
-	div:not(.no-wrap) :global(td) {
-		overflow-wrap: anywhere;
-	}
-
-	div.no-wrap :global(td) {
-		overflow-x: hidden;
 	}
 
 	.header-row {

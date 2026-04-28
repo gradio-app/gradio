@@ -55,7 +55,7 @@ component.event_name(
 
 - **Code**: change, input, focus, blur
 
-- **ColorPicker**: change, input, submit, focus, blur
+- **ColorPicker**: change, input, release, submit, focus, blur
 
 - **Dataframe**: change, input, select, edit
 

@@ -37,7 +37,9 @@
 		loading = true;
 		error = "";
 		try {
-			const res = await fetch(`${BASE_URL}/manifest.json`);
+			const res = await fetch(`${BASE_URL}/manifest.json`, {
+				referrerPolicy: "no-referrer"
+			});
 			if (!res.ok) throw new Error(`HTTP ${res.status}`);
 			manifest = await res.json();
 		} catch (e) {
@@ -53,7 +55,9 @@
 	): Promise<HTMLComponentEntry | null> {
 		if (component_cache[id]) return component_cache[id];
 		try {
-			const res = await fetch(`${BASE_URL}/components/${id}.json`);
+			const res = await fetch(`${BASE_URL}/components/${id}.json`, {
+				referrerPolicy: "no-referrer"
+			});
 			if (!res.ok) throw new Error(`HTTP ${res.status}`);
 			const data: HTMLComponentEntry = await res.json();
 			component_cache[id] = data;
