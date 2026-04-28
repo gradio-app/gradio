@@ -441,43 +441,56 @@ describe("Interactive features", () => {
 	});
 });
 
-test("mock server format/unformat round-trip works correctly", async () => {
-	const serverMock = mock_server();
-	const { getByTestId, getByDisplayValue, getByRole } = await render(Dialogue, {
-		...default_props,
-		ui_mode: "both",
-		value: [
-			{ speaker: "Speaker1", text: "Hello world" },
-			{ speaker: "Speaker2", text: "How are you?" }
-		],
-		server: serverMock
+describe("Mode switching", () => {
+	afterEach(() => cleanup());
+
+	test("mock server format/unformat round-trip works correctly", async () => {
+		const serverMock = mock_server();
+		const { getByTestId, getByDisplayValue, getByRole } = await render(
+			Dialogue,
+			{
+				...default_props,
+				ui_mode: "both",
+				value: [
+					{ speaker: "Speaker1", text: "Hello world" },
+					{ speaker: "Speaker2", text: "How are you?" }
+				],
+				server: serverMock
+			}
+		);
+
+		const switchButton = getByRole("switch");
+		await fireEvent.click(switchButton);
+
+		expect(serverMock.format).toHaveBeenCalled();
+		expect(serverMock.format).toHaveBeenCalledWith(
+			expect.arrayContaining([
+				expect.objectContaining({
+					speaker: "Speaker1",
+					text: "Hello world"
+				}),
+				expect.objectContaining({
+					speaker: "Speaker2",
+					text: "How are you?"
+				})
+			])
+		);
+
+		const textbox = getByTestId("textbox") as HTMLTextAreaElement;
+		expect(textbox.value).toBe("Speaker1: Hello world\nSpeaker2: How are you?");
+
+		await fireEvent.click(switchButton);
+
+		expect(serverMock.unformat).toHaveBeenCalled();
+		expect(serverMock.unformat).toHaveBeenCalledWith(
+			expect.objectContaining({
+				text: "Speaker1: Hello world\nSpeaker2: How are you?"
+			})
+		);
+
+		expect(getByDisplayValue("Hello world")).toBeInTheDocument();
+		expect(getByDisplayValue("How are you?")).toBeInTheDocument();
 	});
-
-	const switchButton = getByRole("switch");
-	await fireEvent.click(switchButton);
-
-	expect(serverMock.format).toHaveBeenCalled();
-	expect(serverMock.format).toHaveBeenCalledWith(
-		expect.arrayContaining([
-			expect.objectContaining({ speaker: "Speaker1", text: "Hello world" }),
-			expect.objectContaining({ speaker: "Speaker2", text: "How are you?" })
-		])
-	);
-
-	const textbox = getByTestId("textbox") as HTMLTextAreaElement;
-	expect(textbox.value).toBe("Speaker1: Hello world\nSpeaker2: How are you?");
-
-	await fireEvent.click(switchButton);
-
-	expect(serverMock.unformat).toHaveBeenCalled();
-	expect(serverMock.unformat).toHaveBeenCalledWith(
-		expect.objectContaining({
-			text: "Speaker1: Hello world\nSpeaker2: How are you?"
-		})
-	);
-
-	expect(getByDisplayValue("Hello world")).toBeInTheDocument();
-	expect(getByDisplayValue("How are you?")).toBeInTheDocument();
 });
 
 describe("Edge cases", () => {
