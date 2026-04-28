@@ -1,4 +1,12 @@
-import { test, describe, afterEach, beforeAll, afterAll, expect, vi } from "vitest";
+import {
+	test,
+	describe,
+	afterEach,
+	beforeAll,
+	afterAll,
+	expect,
+	vi
+} from "vitest";
 import {
 	cleanup,
 	render,
@@ -221,7 +229,6 @@ describe("Static mode", () => {
 			expect(getByLabelText("Undo")).toBeInTheDocument();
 		});
 	});
-
 });
 
 describe("Interactive mode", () => {
@@ -299,9 +306,7 @@ describe("Interactive mode", () => {
 		await set_data({ value: null });
 
 		await waitFor(() => {
-			expect(
-				getByLabelText("model3d.drop_to_upload")
-			).toBeInTheDocument();
+			expect(getByLabelText("model3d.drop_to_upload")).toBeInTheDocument();
 		});
 	});
 
@@ -452,10 +457,7 @@ describe("Events", () => {
 		const upload = listen("upload");
 		const change = listen("change");
 
-		await drop_file(
-			TEST_GLTF,
-			"[aria-label='model3d.drop_to_upload']"
-		);
+		await drop_file(TEST_GLTF, "[aria-label='model3d.drop_to_upload']");
 
 		await waitFor(() => {
 			expect(upload).toHaveBeenCalledTimes(1);
