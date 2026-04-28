@@ -96,9 +96,7 @@ class TestSlider:
         assert slider.preprocess(5.1) == 5
         assert slider.api_info()["type"] == "integer"
 
-    def test_same_minimum_and_maximum_uses_single_value_range(self):
-        slider = gr.Slider(minimum=5, maximum=5)
-
-        assert slider.step == 1
-        assert slider.get_config()["minimum"] == 5
-        assert slider.get_config()["maximum"] == 5
+    @pytest.mark.parametrize("minimum,maximum", [(5, 5), (10, 5)])
+    def test_slider_requires_minimum_less_than_maximum(self, minimum, maximum):
+        with pytest.raises(ValueError, match="minimum must be less than maximum"):
+            gr.Slider(minimum=minimum, maximum=maximum)
