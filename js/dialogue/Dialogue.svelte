@@ -44,15 +44,6 @@
 		gradio.dispatch("custom_button_click", { id });
 	};
 
-	let old_value = $state(gradio.props.value);
-
-	$effect(() => {
-		if (old_value != gradio.props.value) {
-			old_value = gradio.props.value;
-			gradio.dispatch("change");
-		}
-	});
-
 	let dialogue_container_element: HTMLDivElement;
 
 	let showTagMenu = $state(false);
@@ -351,7 +342,9 @@
 	function handle_click_outside(event: MouseEvent): void {
 		if (showTagMenu) {
 			const target = event.target as Node;
-			const tagMenu = document.getElementById("tag-menu");
+			const tagMenu = document.querySelector(
+				'[data-testid="dialogue-tag-menu"]'
+			);
 			if (tagMenu && !tagMenu.contains(target)) {
 				showTagMenu = false;
 			}
@@ -457,6 +450,7 @@
 	{#if !checked && gradio.props.ui_mode !== "text"}
 		<div
 			class="dialogue-container"
+			data-testid="dialogue-container"
 			bind:this={dialogue_container_element}
 			class:loading={is_unformatting}
 		>
@@ -539,7 +533,7 @@
 							></textarea>
 							{#if showTagMenu && currentLineIndex === i}
 								<div
-									id="tag-menu"
+									data-testid="dialogue-tag-menu"
 									class="tag-menu"
 									transition:fade={{ duration: 100 }}
 								>
@@ -564,6 +558,7 @@
 						<div class:action-column={i == 0} class:hidden={disabled}>
 							<button
 								class="add-button"
+								data-testid="dialogue-add-button-{i}"
 								on:click={() => add_line(i)}
 								aria-label="Add new line"
 								{disabled}
@@ -575,6 +570,7 @@
 					<div class="action-column" class:hidden={disabled || i == 0}>
 						<button
 							class="delete-button"
+							data-testid="dialogue-delete-button-{i}"
 							on:click={() => delete_line(i)}
 							aria-label="Remove current line"
 							{disabled}
@@ -631,7 +627,7 @@
 			/>
 			{#if showTagMenu}
 				<div
-					id="tag-menu"
+					data-testid="dialogue-tag-menu"
 					class="tag-menu-plain-text"
 					transition:fade={{ duration: 100 }}
 				>
@@ -653,7 +649,12 @@
 
 	{#if gradio.props.submit_btn && !disabled}
 		<div class="submit-container">
-			<button class="submit-button" on:click={handle_submit} {disabled}>
+			<button
+				class="submit-button"
+				data-testid="dialogue-submit-button"
+				on:click={handle_submit}
+				{disabled}
+			>
 				{#if typeof gradio.props.submit_btn === "string"}
 					{gradio.props.submit_btn}
 				{:else}
