@@ -996,6 +996,7 @@ describe("Regression: #13170 — selected_index points to newly appended image",
 		expect(select).toHaveBeenCalled();
 		const last_call = select.mock.calls[select.mock.calls.length - 1][0];
 		expect(last_call.index).toBe(2);
+		expect(last_call.value).toEqual(img("c"));
 	});
 
 	test("rapidly appending images with selected_index tracking last always shows the latest", async () => {

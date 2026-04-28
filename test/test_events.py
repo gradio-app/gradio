@@ -43,6 +43,12 @@ class TestEvent:
         assert resp.status_code == 200
         assert resp.json()["data"][0] == "1"
 
+    def test_select_event_data_without_value(self):
+        event_data = gr.SelectData(None, {"index": 1})
+
+        assert event_data.index == 1
+        assert event_data.value is None
+
     def test_consecutive_events(self):
         def double(x):
             return x + x

@@ -224,7 +224,7 @@ class SelectData(EventData):
         """
         The index of the selected item. Is a tuple if the component is two dimensional or selection is a range.
         """
-        self.value: Any = data["value"]
+        self.value: Any = data.get("value")
         """
         The value of the selected item.
         """
