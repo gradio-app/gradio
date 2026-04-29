@@ -37,7 +37,7 @@ export function killGradioApp(process: ChildProcess): void {
 function reapOrphanedDemos(): void {
 	try {
 		const result = spawnSync("ps", ["-A", "-o", "pid=,ppid=,command="], {
-			encoding: "utf8",
+			encoding: "utf8"
 		});
 		if (result.status !== 0 || !result.stdout) return;
 
