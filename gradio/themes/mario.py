@@ -218,4 +218,5 @@ class Mario(Base):
 
         This CSS is automatically applied when using the Mario theme.
         This method is provided for reference or if you want to extract the CSS separately.
+        """
         return _MARIO_CSS
