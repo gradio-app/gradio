@@ -79,8 +79,17 @@ runs:
       shell: bash
       run: |
         uv venv --allow-existing venv --python=${{ inputs.python_version }}
-    - name: Install ffmpeg
-      uses: FedericoCarboni/setup-ffmpeg@37062fbf7149fc5578d6c57e08aed62458b375d6 # @v3.1
+    - name: Install ffmpeg (linux)
+      if: ${{ inputs.os == 'ubuntu-latest' }}
+      shell: bash
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y --no-install-recommends ffmpeg
+    - name: Install ffmpeg (windows)
+      if: ${{ inputs.os == 'windows-latest' }}
+      shell: bash
+      run: |
+        choco install ffmpeg -y --no-progress
     - name: Install test dependencies
       if: inputs.test == 'true' && steps.cache.outputs.cache-hit != 'true'
       shell: bash
