@@ -186,6 +186,7 @@ BUILT_IN_THEMES: dict[str, Theme] = {
         themes.Origin(),
         themes.Citrus(),
         themes.Ocean(),
+        themes.Mario(),
     ]
     if t.name is not None
 }
