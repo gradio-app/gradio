@@ -1,5 +1,6 @@
 from gradio.themes.base import Base, ThemeClass
 from gradio.themes.citrus import Citrus
+from gradio.themes.mario import Mario
 from gradio.themes.cyberpunk import Cyberpunk
 from gradio.themes.default import Default
 from gradio.themes.ember import Ember
@@ -33,6 +34,7 @@ __all__ = [
     "Origin",
     "Citrus",
     "Ocean",
+    "Mario"
 ]
 
 
