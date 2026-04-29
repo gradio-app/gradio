@@ -474,14 +474,9 @@ class Queue:
                 q = self.event_queue_per_concurrency_id[event.concurrency_id]
                 try:
                     q.queue.remove(event)
+                    self.event_ids_to_events.pop(event_id, None)
                 except ValueError:
                     pass
-                self.event_ids_to_events.pop(event_id, None)
-                session_hash = event.session_hash
-                if session_hash in self.pending_event_ids_session:
-                    self.pending_event_ids_session[session_hash].discard(event_id)
-                    if not self.pending_event_ids_session[session_hash]:
-                        self.pending_event_ids_session.pop(session_hash, None)
 
     def _cancel_asyncio_tasks(self):
         for task in self._asyncio_tasks:

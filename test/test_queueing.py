@@ -231,7 +231,7 @@ def test_cancel_removes_pending_event_from_queue():
         output = gr.Textbox()
 
         def slow():
-            time.sleep(5)
+            time.sleep(2)
             return "done"
 
         start.click(slow, None, output)
@@ -274,11 +274,21 @@ def test_cancel_removes_pending_event_from_queue():
             },
         )
         assert resp.status_code == 200
+        assert third_event_id in demo._queue.event_ids_to_events
 
         assert len(demo._queue) == 1
-        assert second_event_id not in demo._queue.event_ids_to_events
+        r = test_client.get(f"{API_PREFIX}/queue/data?session_hash=sess1")
+
+        # Verify we got a process_completed message
+        got_completed = False
+        for line in r.iter_lines():
+            if "data" in line:
+                data = json.loads(line[5:])
+                if data["msg"] == "process_completed":
+                    got_completed = True
+        assert got_completed
         assert second_event_id not in demo._queue.pending_event_ids_session["sess1"]
-        assert third_event_id in demo._queue.event_ids_to_events
+        assert second_event_id not in demo._queue.event_ids_to_events
     finally:
         demo.close()
 
