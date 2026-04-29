@@ -94,7 +94,7 @@ BUILT_IN_THEMES: dict[str, Theme] = {  # type: ignore
         themes.Origin(),
         themes.Citrus(),
         themes.Ocean(),
-        themes.Mario()
+        themes.Mario(),
     ]
 }
 
