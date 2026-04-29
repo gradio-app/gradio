@@ -2,7 +2,7 @@
 	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import Gallery from "./Index.svelte";
 	import { allModes } from "../storybook/modes";
-	import { within } from "@testing-library/dom";
+	import { within, waitFor } from "@testing-library/dom";
 	import { userEvent } from "storybook/test";
 	import { wrapProps } from "../storybook/wrapProps";
 
@@ -155,13 +155,18 @@
 		label: "My Cheetah Gallery",
 		show_label: true,
 		buttons: ["fullscreen", "download", "share"],
-		sources: ["upload"]
+		sources: ["upload"],
+		allow_preview: true
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
 		const image = await canvas.findByLabelText("Thumbnail 1 of 8");
 		await userEvent.click(image);
-		const expand_btn = await canvas.findByRole("button", {
+		// Wait for preview to render after clicking thumbnail
+		await waitFor(() => {
+			canvas.getByRole("button", { name: "Fullscreen" });
+		});
+		const expand_btn = canvas.getByRole("button", {
 			name: "Fullscreen"
 		});
 		await userEvent.click(expand_btn);
