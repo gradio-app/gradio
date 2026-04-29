@@ -1583,6 +1583,7 @@ class App(FastAPI):
                 body.event_id
                 in blocks._queue.pending_event_ids_session.get(body.session_hash, {})
             )
+            await blocks._queue.remove_from_queue(body.event_id)
             if session_open and event_running:
                 message = ProcessCompletedMessage(
                     output={}, success=True, event_id=body.event_id
