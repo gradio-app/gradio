@@ -64,19 +64,44 @@
 		return mapped.join(", ");
 	});
 
+	function is_valid_mimetype(
+		file_accept: string | null,
+		file_extension: string,
+		file_type: string
+	): boolean {
+		if (!file_accept || file_accept === "") {
+			return true;
+		}
+		const accept_array = file_accept.split(",").map((s) => s.trim());
+		return (
+			accept_array.includes(file_extension) ||
+			accept_array.some((type) => {
+				const [category] = type.split("/").map((s) => s.trim());
+				return type.endsWith("/*") && file_type.startsWith(category + "/");
+			})
+		);
+	}
+
 	function open_file_upload(): void {
 		onclick?.();
 		hidden_upload.click();
 	}
 
 	async function load_files(files: FileList): Promise<void> {
-		let _files: File[] = Array.from(files);
+		let _files: File[] = Array.from(files).filter((file) => {
+			const ext = "." + file.name.toLowerCase().split(".").pop();
+			if (is_valid_mimetype(accept_file_types, ext, file.type)) {
+				return true;
+			}
+			onerror?.(`Invalid file type only ${file_types?.join(", ")} allowed.`);
+			return false;
+		});
 
-		if (!files.length) {
+		if (!_files.length) {
 			return;
 		}
 		if (file_count === "single") {
-			_files = [files[0]];
+			_files = [_files[0]];
 		}
 		let all_file_data = await prepare_files(_files);
 		await tick();

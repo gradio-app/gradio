@@ -75,26 +75,43 @@ describe("UploadButton", () => {
 describe("Props: file_count", () => {
 	afterEach(() => cleanup());
 
-	test("file_count='single' does not set multiple attribute on input", async () => {
-		const { getByTestId } = await render(UploadButton, {
-			...base_props,
+	test("file_count='single' returns a single FileData, not an array", async () => {
+		const { get_data } = await render(UploadButton, {
+			...upload_props,
 			file_count: "single"
 		});
 
-		const input = getByTestId("Upload-upload-button");
-		expect(input).not.toHaveAttribute("multiple");
+		await upload_file(TEST_TXT);
+
+		await waitFor(async () => {
+			const data = await get_data();
+			expect(data.value).not.toBeNull();
+		});
+		const data = await get_data();
+		expect(Array.isArray(data.value)).toBe(false);
+		expect(data.value).toHaveProperty("orig_name");
 	});
 
-	test("file_count='multiple' sets multiple attribute on input", async () => {
-		const { getByTestId } = await render(UploadButton, {
-			...base_props,
+	test("file_count='multiple' returns an array of FileData", async () => {
+		const { get_data } = await render(UploadButton, {
+			...upload_props,
 			file_count: "multiple"
 		});
 
-		const input = getByTestId("Upload-upload-button");
-		expect(input).toHaveAttribute("multiple");
+		await upload_file([TEST_TXT, TEST_JPG]);
+
+		await waitFor(async () => {
+			const data = await get_data();
+			expect(data.value).not.toBeNull();
+		});
+		const data = await get_data();
+		expect(Array.isArray(data.value)).toBe(true);
+		expect(data.value).toHaveLength(2);
 	});
 
+	// Attribute assertion: directory upload can't be driven programmatically —
+	// webkitdirectory is the browser-native mechanism and there's no behavioural
+	// equivalent we can simulate in a unit test.
 	test("file_count='directory' sets webkitdirectory attribute on input", async () => {
 		const { getByTestId } = await render(UploadButton, {
 			...base_props,
@@ -138,6 +155,94 @@ describe("Props: file_types", () => {
 		const input = getByTestId("Upload-upload-button");
 		expect(input).toHaveAttribute("accept", "");
 	});
+
+	test("rejects files that do not match file_types and dispatches error", async () => {
+		const { listen } = await render(UploadButton, {
+			...upload_props,
+			file_types: ["image"]
+		});
+
+		const upload = listen("upload");
+		const error = listen("error");
+
+		await upload_file(TEST_TXT);
+
+		await waitFor(() => {
+			expect(error).toHaveBeenCalledTimes(1);
+		});
+		expect(error).toHaveBeenCalledWith(
+			expect.stringContaining("Invalid file type")
+		);
+		expect(upload).not.toHaveBeenCalled();
+	});
+
+	test("accepts files matching a wildcard MIME category", async () => {
+		const { listen } = await render(UploadButton, {
+			...upload_props,
+			file_types: ["image"]
+		});
+
+		const upload = listen("upload");
+
+		await upload_file(TEST_JPG);
+
+		await waitFor(() => {
+			expect(upload).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	test("accepts files matching a dot-prefixed extension", async () => {
+		const { listen } = await render(UploadButton, {
+			...upload_props,
+			file_types: [".txt"]
+		});
+
+		const upload = listen("upload");
+
+		await upload_file(TEST_TXT);
+
+		await waitFor(() => {
+			expect(upload).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	test("multiple file_types each allow their matching files", async () => {
+		const { listen } = await render(UploadButton, {
+			...upload_props,
+			file_types: ["image", ".txt"]
+		});
+
+		const upload = listen("upload");
+
+		await upload_file(TEST_JPG);
+
+		await waitFor(() => {
+			expect(upload).toHaveBeenCalledTimes(1);
+		});
+
+		await upload_file(TEST_TXT);
+
+		await waitFor(() => {
+			expect(upload).toHaveBeenCalledTimes(2);
+		});
+	});
+
+	test("rejects file not matching any of multiple file_types", async () => {
+		const { listen } = await render(UploadButton, {
+			...upload_props,
+			file_types: ["image", "audio"]
+		});
+
+		const upload = listen("upload");
+		const error = listen("error");
+
+		await upload_file(TEST_TXT);
+
+		await waitFor(() => {
+			expect(error).toHaveBeenCalledTimes(1);
+		});
+		expect(upload).not.toHaveBeenCalled();
+	});
 });
 
 describe("Props: icon", () => {
@@ -155,7 +260,10 @@ describe("Props: icon", () => {
 			}
 		});
 
-		expect(getByRole("img")).toBeInTheDocument();
+		expect(getByRole("img")).toHaveAttribute(
+			"src",
+			"https://example.com/icon.png"
+		);
 	});
 
 	test("no icon rendered when icon is null", async () => {
@@ -214,10 +322,7 @@ describe("Events", () => {
 			.mockRejectedValue(new Error("File too large"));
 		const { listen } = await render(UploadButton, {
 			...upload_props,
-			client: {
-				upload: failing_upload,
-				stream: async () => ({ onmessage: null, close: () => {} })
-			}
+			client: { ...mock_client(), upload: failing_upload }
 		});
 
 		const error = listen("error");
@@ -257,10 +362,41 @@ describe("get_data / set_data", () => {
 		const data = await get_data();
 		expect(data.value).toEqual(TEST_TXT);
 	});
+
+	test("set_data updates the value reported by get_data", async () => {
+		const { set_data, get_data } = await render(UploadButton, base_props);
+		await set_data({ value: TEST_TXT });
+		await waitFor(async () =>
+			expect((await get_data()).value).toEqual(TEST_TXT)
+		);
+	});
+
+	test("upload interaction is reflected in get_data", async () => {
+		const { get_data } = await render(UploadButton, upload_props);
+		await upload_file(TEST_TXT);
+		await waitFor(async () => expect((await get_data()).value).not.toBeNull());
+	});
 });
 
 describe("Edge cases", () => {
 	afterEach(() => cleanup());
+
+	test("max_file_size is forwarded to client.upload", async () => {
+		const upload_spy = vi.fn(async (file_data) => file_data);
+		await render(UploadButton, {
+			...upload_props,
+			max_file_size: 100,
+			client: { ...mock_client(), upload: upload_spy }
+		});
+		await upload_file(TEST_TXT);
+		await waitFor(() => expect(upload_spy).toHaveBeenCalled());
+		expect(upload_spy).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.anything(),
+			undefined,
+			100
+		);
+	});
 
 	test("no mount-time events with initial value set", async () => {
 		const { listen } = await render(UploadButton, {
