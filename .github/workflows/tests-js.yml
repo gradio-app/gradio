@@ -61,6 +61,9 @@ jobs:
       # - name: typecheck
       #   run: pnpm ts:check
       - name: unit tests
-        run: pnpm test:run
+        timeout-minutes: 10
+        env:
+          DEBUG: "vitest:browser:*"
+        run: pnpm test:run --reporter=verbose
       - name: client tests
         run: pnpm --filter @gradio/client test
