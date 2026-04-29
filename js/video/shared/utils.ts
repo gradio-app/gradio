@@ -87,7 +87,7 @@ export async function trimVideo(
 
 		let command = [
 			"-ss",
-            startTime.toString(),
+			startTime.toString(),
 			"-i",
 			inputName,
 			...(endTime !== 0 ? ["-to", (endTime - startTime).toString()] : []),
