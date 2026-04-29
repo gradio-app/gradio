@@ -1,4 +1,4 @@
-import { spawn, type ChildProcess } from "node:child_process";
+import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import http from "http";
 import net from "net";
 import path from "path";
@@ -19,6 +19,48 @@ export function killGradioApp(process: ChildProcess): void {
 		process.kill("SIGTERM");
 	} catch {
 		// Process may already be dead
+	}
+}
+
+/**
+ * Sweep orphaned gradio demo python processes — i.e. processes running
+ * `python <demo>/run.py` whose parent has died (PPID == 1, reparented to
+ * init/launchd). Without this, a Playwright worker that crashes (e.g.
+ * after a test timeout) leaves its spawned demo apps behind: the new
+ * worker has an empty appCache and won't kill them, ports get squatted,
+ * and resources accumulate. Documented behavior, not a guess: in the SSR
+ * profile run, this orphaning produced 100+ leaked python procs / 7.5GB.
+ *
+ * Best-effort: failures in the sweep are swallowed so they can't block
+ * the spawn path itself.
+ */
+function reapOrphanedDemos(): void {
+	try {
+		const result = spawnSync("ps", ["-A", "-o", "pid=,ppid=,command="], {
+			encoding: "utf8",
+		});
+		if (result.status !== 0 || !result.stdout) return;
+
+		for (const line of result.stdout.split("\n")) {
+			const trimmed = line.trim();
+			if (!trimmed) continue;
+			const match = trimmed.match(/^(\d+)\s+(\d+)\s+(.*)$/);
+			if (!match) continue;
+			const [, pidStr, ppidStr, cmd] = match;
+			if (ppidStr !== "1") continue;
+			// Only target our test demo apps (python running gradio demo files).
+			// Match `gradio/.../demo/<name>/<file>.py` to avoid accidentally
+			// killing unrelated python processes.
+			if (!/python.*\/demo\/[^/]+\/[^/]+\.py/.test(cmd)) continue;
+			if (!cmd.includes("/gradio/")) continue;
+			try {
+				process.kill(Number(pidStr), "SIGTERM");
+			} catch {
+				// already dead, or not ours to kill
+			}
+		}
+	} catch {
+		// ps unavailable or parse error — non-fatal
 	}
 }
 
@@ -132,6 +174,10 @@ export async function launchGradioApp(
 	timeout: number = 60000,
 	testcaseName?: string
 ): Promise<GradioApp> {
+	// Sweep orphaned demo apps from previous (crashed) worker generations
+	// before claiming a port — see reapOrphanedDemos() for rationale.
+	reapOrphanedDemos();
+
 	// Partition ports by worker index to avoid collisions
 	const basePort = 7860 + workerIndex * 100;
 	const port = await findFreePort(basePort, basePort + 99);
@@ -151,9 +197,12 @@ export async function launchGradioApp(
 		fs.mkdirSync(instanceDir, { recursive: true });
 	}
 
-	// Run the demo file directly - the demo's own if __name__ == "__main__" block
-	// has the correct launch parameters (show_error, etc.)
-	const childProcess = spawn("python", [demoFilePath], {
+	// Run the demo via _demo_runner.py instead of directly. The wrapper
+	// starts a parent-death watcher: if the playwright worker that spawned
+	// us is SIGKILLed (test timeout etc), the demo self-exits within ~2s
+	// instead of becoming an orphan that survives the rest of the suite.
+	const demoRunnerPath = path.join(__dirname, "_demo_runner.py");
+	const childProcess = spawn("python", [demoRunnerPath, demoFilePath], {
 		stdio: "pipe",
 		cwd: ROOT_DIR,
 		env: {
@@ -166,7 +215,9 @@ export async function launchGradioApp(
 			GRADIO_SERVER_PORT: port.toString(),
 			// Use unique directories per instance to avoid conflicts
 			GRADIO_EXAMPLES_CACHE: cacheDir,
-			GRADIO_TEMP_DIR: tempDir
+			GRADIO_TEMP_DIR: tempDir,
+			// PID the runner watches; demo self-exits if this dies.
+			E2E_TEST_PARENT_PID: process.pid.toString()
 		}
 	});
 
