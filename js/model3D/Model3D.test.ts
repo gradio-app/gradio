@@ -14,6 +14,7 @@ import {
 	mock_client,
 	upload_file,
 	drop_file,
+	download_file,
 	TEST_GLTF,
 	TEST_PLY,
 	TEST_SPLAT
@@ -136,53 +137,35 @@ describe("Model3D", () => {
 describe("Static mode", () => {
 	afterEach(() => cleanup());
 
-	test("download link href matches value.url", async () => {
-		const { getByTestId } = await render(Model3D, {
+	test("download produces file with orig_name as filename", async () => {
+		await render(Model3D, {
 			...base_props,
 			value: TEST_GLTF
 		});
 
-		await waitFor(() => {
-			expect(getByTestId("model3d-download-link")).toHaveAttribute(
-				"href",
-				TEST_GLTF.url
-			);
-		});
+		const { suggested_filename } = await download_file(
+			"[data-testid='model3d-download-link']"
+		);
+		expect(suggested_filename).toBe(TEST_GLTF.orig_name);
 	});
 
-	test("download attribute uses orig_name", async () => {
-		const { getByTestId } = await render(Model3D, {
-			...base_props,
-			value: TEST_GLTF
-		});
-
-		await waitFor(() => {
-			expect(getByTestId("model3d-download-link")).toHaveAttribute(
-				"download",
-				TEST_GLTF.orig_name!
-			);
-		});
-	});
-
-	test("download attribute falls back to path when orig_name is missing", async () => {
+	test("download falls back to path when orig_name is missing", async () => {
 		const value_no_orig = {
-			path: "/tmp/mymodel.gltf",
-			url: "https://example.com/mymodel.gltf",
+			path: "mymodel.gltf",
+			url: "/test/test_files/Box.gltf",
 			orig_name: undefined,
 			size: 100,
 			mime_type: "model/gltf+json"
 		};
-		const { getByTestId } = await render(Model3D, {
+		await render(Model3D, {
 			...base_props,
 			value: value_no_orig as any
 		});
 
-		await waitFor(() => {
-			expect(getByTestId("model3d-download-link")).toHaveAttribute(
-				"download",
-				"/tmp/mymodel.gltf"
-			);
-		});
+		const { suggested_filename } = await download_file(
+			"[data-testid='model3d-download-link']"
+		);
+		expect(suggested_filename).toBe("mymodel.gltf");
 	});
 
 	test("undo button is disabled when has_change_history is false", async () => {
@@ -256,7 +239,7 @@ describe("Interactive mode", () => {
 	});
 
 	test("clicking clear transitions back to upload dropzone", async () => {
-		const { getByLabelText, queryByTestId } = await render(Model3D, {
+		const { getByLabelText } = await render(Model3D, {
 			...interactive_props,
 			value: TEST_GLTF
 		});
@@ -265,9 +248,8 @@ describe("Interactive mode", () => {
 		await event.click(clear_btn);
 
 		await waitFor(() => {
-			expect(queryByTestId("model3d")).not.toBeInTheDocument();
+			expect(getByLabelText("model3d.drop_to_upload")).toBeInTheDocument();
 		});
-		expect(getByLabelText("model3d.drop_to_upload")).toBeInTheDocument();
 	});
 
 	test("undo is available for .gltf files", async () => {
@@ -685,19 +667,39 @@ describe("Edge cases", () => {
 		});
 	});
 
-	test("switching file types re-renders the canvas wrapper", async () => {
-		const { set_data, getByTestId } = await render(Model3D, {
-			...base_props,
-			value: TEST_GLTF
-		});
+	test("switching from gltf to ply removes undo button", async () => {
+		const { set_data, getByTestId, getByLabelText, queryByLabelText } =
+			await render(Model3D, {
+				...base_props,
+				value: TEST_GLTF
+			});
 
 		await waitFor(() => {
-			expect(getByTestId("model3d")).toBeInTheDocument();
+			expect(getByLabelText("Undo")).toBeInTheDocument();
 		});
 
 		await set_data({ value: TEST_PLY });
 		await waitFor(() => {
 			expect(getByTestId("model3d")).toBeInTheDocument();
+		});
+		expect(queryByLabelText("Undo")).not.toBeInTheDocument();
+	});
+
+	test("switching from ply to gltf restores undo button", async () => {
+		const { set_data, getByTestId, getByLabelText, queryByLabelText } =
+			await render(Model3D, {
+				...base_props,
+				value: TEST_PLY
+			});
+
+		await waitFor(() => {
+			expect(getByTestId("model3d")).toBeInTheDocument();
+		});
+		expect(queryByLabelText("Undo")).not.toBeInTheDocument();
+
+		await set_data({ value: TEST_GLTF });
+		await waitFor(() => {
+			expect(getByLabelText("Undo")).toBeInTheDocument();
 		});
 	});
 });
