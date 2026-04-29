@@ -1,5 +1,12 @@
 import { test, expect } from "@self/tootils";
 
+// SSR setup waits for `#svelte-announcer`; under svelte 5.55 +
+// vite-plugin-svelte 7 hydration of this render-heavy demo can push past the
+// default 30s. Give every test in this file headroom.
+test.beforeEach(({}, testInfo) => {
+	testInfo.setTimeout(60_000);
+});
+
 test("Test button.click listener works in render", async ({ page }) => {
 	const slider = page.getByLabel("number input for Box Count");
 	await slider.fill("6");
