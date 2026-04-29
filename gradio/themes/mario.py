@@ -4,7 +4,6 @@ from collections.abc import Iterable
 
 from gradio.themes.base import Base
 from gradio.themes.utils import colors, fonts, sizes
-from gradio.themes.utils.sizes import Size
 
 SKY_BLUE = "#6B8CFF"
 BRICK_BROWN = "#C84C0C"
