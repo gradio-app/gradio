@@ -11,13 +11,7 @@
 	const props = $props();
 	const gradio = new Gradio<UploadButtonEvents, UploadButtonProps>(props);
 
-	let value = $state(gradio.props.value);
-
-	$effect(() => {
-		if (value !== gradio.props.value) {
-			gradio.props.value = value;
-		}
-	});
+	let value = $derived(gradio.props.value);
 
 	async function handle_event(
 		detail: null | FileData | FileData[],
