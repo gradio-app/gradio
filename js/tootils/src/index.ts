@@ -119,7 +119,6 @@ const test_normal = base.extend<{ setup: void }>({
 				}
 			}
 
-			appInfo.refCount++;
 			try {
 				// Navigate to the app
 				await page.goto(`http://localhost:${appInfo.port}`);
@@ -137,7 +136,6 @@ const test_normal = base.extend<{ setup: void }>({
 
 				await use();
 			} finally {
-				appInfo.refCount--;
 			}
 		},
 		{ auto: true }

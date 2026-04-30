@@ -77,7 +77,7 @@ export async function findFreePort(
 }
 
 function isPortFree(port: number): Promise<boolean> {
-	return new Promise((resolve, reject) => {
+	return new Promise((resolve) => {
 		const sock = net.createConnection(port, "127.0.0.1");
 		sock.once("connect", () => {
 			sock.end();
@@ -85,11 +85,12 @@ function isPortFree(port: number): Promise<boolean> {
 		});
 		sock.once("error", (e: NodeJS.ErrnoException) => {
 			sock.destroy();
-			if (e.code === "ECONNREFUSED") {
-				resolve(true);
-			} else {
-				reject(e);
-			}
+			// ECONNREFUSED → no listener (free). Anything else (ECONNRESET from
+			// a half-closed socket left by a SIGTERM'd demo, ETIMEDOUT, etc.)
+			// → don't trust the port, skip to the next one. Previously we
+			// rejected on non-ECONNREFUSED errors, which aborted the whole
+			// findFreePort scan and surfaced as "Failed to launch app".
+			resolve(e.code === "ECONNREFUSED");
 		});
 	});
 }
@@ -198,9 +199,10 @@ export async function launchGradioApp(
 	}
 
 	// Run the demo via _demo_runner.py instead of directly. The wrapper
-	// starts a parent-death watcher: if the playwright worker that spawned
-	// us is SIGKILLed (test timeout etc), the demo self-exits within ~2s
-	// instead of becoming an orphan that survives the rest of the suite.
+	// watches its stdin pipe: if the playwright worker that spawned us
+	// dies (cleanly or via SIGKILL on timeout), the kernel closes the pipe,
+	// stdin returns EOF and the demo self-exits immediately — instead of
+	// becoming an orphan that survives the rest of the suite.
 	const demoRunnerPath = path.join(__dirname, "_demo_runner.py");
 	const childProcess = spawn("python", [demoRunnerPath, demoFilePath], {
 		stdio: "pipe",
@@ -215,9 +217,7 @@ export async function launchGradioApp(
 			GRADIO_SERVER_PORT: port.toString(),
 			// Use unique directories per instance to avoid conflicts
 			GRADIO_EXAMPLES_CACHE: cacheDir,
-			GRADIO_TEMP_DIR: tempDir,
-			// PID the runner watches; demo self-exits if this dies.
-			E2E_TEST_PARENT_PID: process.pid.toString()
+			GRADIO_TEMP_DIR: tempDir
 		}
 	});
 
