@@ -12,19 +12,22 @@
 	let props = $props();
 	const gradio = new Gradio<TabsEvents, TabsProps>(props);
 
+	let old_selected = $state(gradio.props.selected);
+
 	$effect(() => {
-		if (gradio.props.selected) {
-			untrack(() => {
-				const i = gradio.props.initial_tabs.findIndex(
-					(t) => t.id === gradio.props.selected
-				);
+		if (old_selected !== gradio.props.selected) {
+			const i = gradio.props.initial_tabs.findIndex(
+				(t) => t.id === gradio.props.selected
+			);
+			if (i >= 0) {
 				gradio.dispatch("gradio_tab_select", {
 					value: gradio.props.initial_tabs[i].label,
 					index: i,
 					id: gradio.props.initial_tabs[i].id,
 					component_id: gradio.props.initial_tabs[i].component_id
 				});
-			});
+			}
+			old_selected = gradio.props.selected;
 		}
 	});
 </script>
