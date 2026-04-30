@@ -1160,3 +1160,17 @@ class NodeProxyCache:
             yield head
         while (chunk := await queue.get()) is not None:
             yield chunk
+
+
+# Prefixes that identify "dumb" routes safe to proxy to static workers.
+# These routes serve files, static assets, or handle uploads — no queue/state needed.
+STATIC_ROUTE_PREFIXES = (
+    "/svelte/",
+    "/static/",
+    "/assets/",
+    "/favicon.ico",
+    "/file=",
+    "/file/",
+    "/upload",
+    "/custom_component/",
+)

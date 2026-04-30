@@ -2544,6 +2544,7 @@ Received inputs:
         ssr_mode: bool | None = None,
         pwa: bool | None = None,
         mcp_server: bool | None = None,
+        num_workers: int | None = None,
         _app: App | None = None,
         _frontend: bool = True,
         i18n: I18n | None = None,
@@ -2810,6 +2811,51 @@ Received inputs:
                 print(s.format(self.protocol, self.server_name, self.server_port))
 
             self._queue.set_server_app(self.server_app)
+
+            # Static worker pool for offloading file serving / uploads
+            resolved_num_workers = num_workers
+            if resolved_num_workers is None:
+                env_val = os.environ.get("GRADIO_NUM_WORKERS")
+                if env_val is not None:
+                    resolved_num_workers = int(env_val)
+            if resolved_num_workers is not None and resolved_num_workers >= 1:
+                from gradio.routes import (
+                    BUILD_PATH_LIB,
+                    STATIC_PATH_LIB,
+                )
+                from gradio.static_server import StaticServerConfig, StaticWorkerPool
+
+                static_config = StaticServerConfig(
+                    build_path=str(BUILD_PATH_LIB),
+                    static_path=str(STATIC_PATH_LIB),
+                    uploaded_file_dir=self.server_app.uploaded_file_dir,
+                    allowed_paths=self.allowed_paths,
+                    blocked_paths=self.blocked_paths,
+                    max_file_size=self.max_file_size,
+                    favicon_path=str(self.favicon_path) if self.favicon_path else None,
+                )
+                # Start worker ports after the node port (if SSR is active)
+                # to avoid port collisions.
+                worker_start = self.server_port + 1
+                if self.node_port is not None:
+                    worker_start = max(worker_start, self.node_port + 1)
+                worker_ports = [worker_start + i for i in range(resolved_num_workers)]
+                self._static_worker_pool = StaticWorkerPool(
+                    num_workers=resolved_num_workers,
+                    config=static_config,
+                    ports=worker_ports,
+                )
+                self._static_worker_pool.start()
+                # Only enable the 307 redirect middleware when there's no
+                # external reverse proxy (nginx) doing the routing.  When
+                # nginx sits in front the middleware must stay disabled so
+                # the browser never sees internal worker addresses.
+                if not os.environ.get("GRADIO_DISABLE_REDIRECT_MIDDLEWARE"):
+                    self.server_app.enable_static_workers(self._static_worker_pool)
+                if not quiet:
+                    print(
+                        f"* Static file workers: {resolved_num_workers} processes on ports {self._static_worker_pool.ports}"
+                    )
 
             resp = httpx.get(
                 f"{self.local_api_url}startup-events",
@@ -3086,6 +3132,12 @@ Received inputs:
             return
 
         try:
+            if (
+                hasattr(self, "_static_worker_pool")
+                and self._static_worker_pool is not None
+            ):
+                self._static_worker_pool.shutdown()
+                self._static_worker_pool = None
             self._queue.close()
             # set this before closing server to shut down heartbeats
             self.is_running = False
