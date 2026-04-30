@@ -223,18 +223,14 @@ export class AppTree {
 		this.#get_callbacks.set(id, _get_data);
 		this.components_to_register.delete(id);
 
-		// Apply any pending updates that were stored while the component
-		// was not yet mounted (e.g. hidden in an inactive tab).
-		// We must apply AFTER tick() so that the Gradio class's $effect
-		// (which syncs from node props) has already run. Otherwise the
-		// $effect would overwrite the values we set here.
+		// Drain any updates that arrived before this component registered —
+		// e.g. update_state called against a hidden/inactive-tab component,
+		// or #sync_reused_components_after_rerender pushing server props for
+		// a freshly-rerendered subtree whose new ids haven't re-registered yet.
 		const pending = this.#pending_updates.get(id);
 		if (pending) {
 			this.#pending_updates.delete(id);
-			tick().then(() => {
-				const _set = this.#set_callbacks.get(id);
-				if (_set) _set(pending);
-			});
+			_set_data(pending);
 		}
 
 		if (this.components_to_register.size === 0 && !this.resolved) {
