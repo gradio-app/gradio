@@ -1,5 +1,12 @@
 # website
 
+## 0.76.0
+
+### Features
+
+- [#13317](https://github.com/gradio-app/gradio/pull/13317) [`34e5b74`](https://github.com/gradio-app/gradio/commit/34e5b746596e53fb9f83cc8d7bfbc40891be714b) - Markdown negotiation.  Thanks @pngwn!
+- [#13320](https://github.com/gradio-app/gradio/pull/13320) [`fffd4c6`](https://github.com/gradio-app/gradio/commit/fffd4c661f5d3becb864d4b78d93d24eb3c94aab) - Fix website CORS errors.  Thanks @pngwn!
+
 ## 0.75.0
 
 ### Features
