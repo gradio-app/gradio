@@ -2,21 +2,44 @@ import { type Renderer, Marked } from "marked";
 import { markedHighlight } from "marked-highlight";
 import { gfmHeadingId } from "marked-gfm-heading-id";
 import * as Prism from "prismjs";
-import "prismjs/components/prism-python";
-import "prismjs/components/prism-latex";
-import "prismjs/components/prism-bash";
-// Add additional Prism languages here
-import "prismjs/components/prism-c";
-import "prismjs/components/prism-cpp";
-import "prismjs/components/prism-json";
-import "prismjs/components/prism-sql";
-import "prismjs/components/prism-java";
-import "prismjs/components/prism-go";
-import "prismjs/components/prism-rust";
-import "prismjs/components/prism-php";
-import "prismjs/components/prism-yaml";
-import "prismjs/components/prism-markup-templating";
 import GithubSlugger from "github-slugger";
+
+const prism_loaders: Record<string, () => Promise<unknown>> = {
+	python: () => import("prismjs/components/prism-python"),
+	latex: () => import("prismjs/components/prism-latex"),
+	bash: () => import("prismjs/components/prism-bash"),
+	c: () => import("prismjs/components/prism-c"),
+	cpp: () => import("prismjs/components/prism-cpp"),
+	json: () => import("prismjs/components/prism-json"),
+	sql: () => import("prismjs/components/prism-sql"),
+	java: () => import("prismjs/components/prism-java"),
+	go: () => import("prismjs/components/prism-go"),
+	rust: () => import("prismjs/components/prism-rust"),
+	php: () => import("prismjs/components/prism-php"),
+	yaml: () => import("prismjs/components/prism-yaml"),
+	"markup-templating": () =>
+		import("prismjs/components/prism-markup-templating")
+};
+
+// prism-php references Prism.languages["markup-templating"] at load time
+const prism_deps: Record<string, string[]> = {
+	php: ["markup-templating"]
+};
+
+const prism_loading = new Map<string, Promise<void>>();
+
+async function load_prism_language(lang: string): Promise<void> {
+	const loader = prism_loaders[lang];
+	if (!loader) return;
+	let p = prism_loading.get(lang);
+	if (p) return p;
+	p = (async () => {
+		for (const dep of prism_deps[lang] ?? []) await load_prism_language(dep);
+		await loader();
+	})();
+	prism_loading.set(lang, p);
+	return p;
+}
 
 const LINK_ICON_CODE = `<svg class="md-link-icon" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>`;
 
@@ -193,7 +216,9 @@ export function create_marked({
 			breaks: line_breaks
 		},
 		markedHighlight({
-			highlight: (code: string, lang: string) => {
+			async: true,
+			highlight: async (code: string, lang: string) => {
+				await load_prism_language(lang);
 				if (Prism?.languages?.[lang]) {
 					return Prism.highlight(code, Prism.languages[lang], lang);
 				}

@@ -7,22 +7,25 @@
 	import Tabs from "./shared/Tabs.svelte";
 	import Walkthrough from "./shared/Walkthrough.svelte";
 	import type { TabsProps, TabsEvents } from "./types";
-	import { untrack } from "svelte";
+	import { tick, untrack } from "svelte";
 
 	let props = $props();
 	const gradio = new Gradio<TabsEvents, TabsProps>(props);
 
 	$effect(() => {
 		if (gradio.props.selected) {
-			untrack(() => {
-				const i = gradio.props.initial_tabs.findIndex(
-					(t) => t.id === gradio.props.selected
-				);
+			const selected = gradio.props.selected;
+			const initial_tabs = untrack(() => gradio.props.initial_tabs);
+			// defer dispatch to avoid race with selected-prop propagation
+			// to the shared tabs component
+			tick().then(() => {
+				const i = initial_tabs.findIndex((t) => t.id === selected);
+				if (i === -1) return;
 				gradio.dispatch("gradio_tab_select", {
-					value: gradio.props.initial_tabs[i].label,
+					value: initial_tabs[i].label,
 					index: i,
-					id: gradio.props.initial_tabs[i].id,
-					component_id: gradio.props.initial_tabs[i].component_id
+					id: initial_tabs[i].id,
+					component_id: initial_tabs[i].component_id
 				});
 			});
 		}
@@ -38,11 +41,10 @@
 		on:change={() => gradio.dispatch("change")}
 		on:select={(e) => {
 			gradio.dispatch("select", e.detail);
-			gradio.dispatch("gradio_tab_select", e.detail);
 		}}
 		initial_tabs={gradio.props.initial_tabs}
 	>
-		<slot />
+		{@render props.children?.()}
 	</Walkthrough>
 {:else}
 	<Tabs
@@ -53,10 +55,9 @@
 		on:change={() => gradio.dispatch("change")}
 		on:select={(e) => {
 			gradio.dispatch("select", e.detail);
-			gradio.dispatch("gradio_tab_select", e.detail);
 		}}
 		initial_tabs={gradio.props.initial_tabs}
 	>
-		<slot />
+		{@render props.children?.()}
 	</Tabs>
 {/if}

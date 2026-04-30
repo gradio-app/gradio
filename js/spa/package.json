@@ -7,10 +7,10 @@
 		"dev": "vite --port 9876",
 		"build": "vite build --mode production --emptyOutDir",
 		"preview": "vite preview",
-		"test:snapshot": "pnpm exec playwright test snapshots/ --config=../../.config/playwright.config.js",
-		"test:browser": "pnpm exec playwright test test/ --grep-invert 'reload.spec.ts' --config=../../.config/playwright.config.js",
-		"test:browser:dev": "pnpm exec playwright test test/ --ui --config=../../.config/playwright.config.js",
-		"test:browser:reload": "CI=1 pnpm exec playwright test test/ --grep 'reload.spec.ts' --config=../../.config/playwright.config.js",
+		"test:snapshot": "pnpm exec playwright test js/spa/snapshots/ --config=../../.config/playwright.config.js",
+		"test:browser": "pnpm exec playwright test js/spa/test/ --grep-invert 'reload.spec.ts' --config=../../.config/playwright.config.js",
+		"test:browser:dev": "pnpm exec playwright test js/spa/test/ --ui --config=../../.config/playwright.config.js",
+		"test:browser:reload": "CI=1 pnpm exec playwright test js/spa/test/ --grep 'reload.spec.ts' --config=../../.config/playwright.config.js",
 		"build:css": "pollen -c pollen.config.cjs -o src/pollen-dev.css"
 	},
 	"devDependencies": {

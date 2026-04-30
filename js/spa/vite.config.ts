@@ -75,6 +75,9 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			outDir: "../../gradio/templates/frontend",
 			rollupOptions: {
 				external: ["virtual:cc-init"]
+			},
+			rolldownOptions: {
+				external: ["virtual:cc-init"]
 			}
 		},
 		define: {
@@ -153,6 +156,22 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 				"@ffmpeg/util",
 				"chromium-bidi",
 				"esbuild"
+			],
+			// Pre-declare dynamic-import deps so they end up in the same
+			// optimizer batch as static-scanned deps. Vitest browser mode
+			// can't tolerate mid-suite force-reloads — the orchestrator's
+			// iframe.onload has no timeout — and discovering dynamic deps
+			// later in the run would force-reload and hang. The cold-start
+			// reload that fires once when this list is committed happens
+			// before iframes start running tests, so it's harmless. CI
+			// caches `node_modules/.vite` so even that one reload is rare.
+			include: [
+				"katex/contrib/auto-render",
+				"mermaid",
+				"vega-embed",
+				"@babylonjs/viewer",
+				"extendable-media-recorder",
+				"extendable-media-recorder-wav-encoder"
 			]
 		},
 		resolve: {

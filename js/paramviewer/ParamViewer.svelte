@@ -1,9 +1,11 @@
-<script lang="ts">
-	import "./prism.css";
-
-	import Prism from "prismjs";
+<script module lang="ts">
+	import * as Prism from "prismjs";
 	import "prismjs/components/prism-python";
 	import "prismjs/components/prism-typescript";
+</script>
+
+<script lang="ts">
+	import "./prism.css";
 
 	import { onMount, tick } from "svelte";
 
@@ -43,7 +45,9 @@
 	}
 
 	function highlight(code: string, lang: "python" | "typescript"): string {
-		let highlighted = Prism.highlight(code, Prism.languages[lang], lang);
+		let highlighted = Prism.languages[lang]
+			? Prism.highlight(code, Prism.languages[lang], lang)
+			: code;
 
 		for (const link of linkify) {
 			highlighted = highlighted.replace(
@@ -63,16 +67,12 @@
 			return [];
 		}
 		return Object.entries(_docs).map(
-			([name, { type, description, default: _default }]) => {
-				let highlighted_type = type ? highlight(type, lang) : null;
-
-				return {
-					name: name,
-					type: highlighted_type,
-					description: description,
-					default: _default ? highlight(_default, lang) : null
-				};
-			}
+			([name, { type, description, default: _default }]) => ({
+				name,
+				type: type ? highlight(type, lang) : null,
+				description,
+				default: _default ? highlight(_default, lang) : null
+			})
 		);
 	}
 
