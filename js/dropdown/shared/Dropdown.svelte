@@ -59,8 +59,27 @@
 	let choices_values = $derived(choices.map((c) => c[1]));
 	let input_text = $state("");
 	let selected_index: number | null = $state(null);
+	let is_focused = $state(false);
 
 	$effect(() => {
+		// When the input is focused (user is actively typing), don't reset
+		// input_text just because choices changed. This prevents clearing the
+		// user's typed text during search-as-you-type (key_up) workflows.
+		// We do refresh filtered_indices so newly-returned choices appear.
+		if (is_focused) {
+			filtered_indices = choices.map((_, i) => i);
+			if (
+				value !== undefined &&
+				value !== null &&
+				choices_values.includes(value as string | number)
+			) {
+				selected_index = choices_values.indexOf(
+					value as string | number
+				);
+			}
+			return;
+		}
+
 		if (
 			value === undefined ||
 			value === null ||
@@ -80,6 +99,7 @@
 			selected_index = null;
 		}
 	});
+
 	// Use last_typed_value to track when the user has typed
 	// on_blur we only want to update value if the user has typed
 	let last_typed_value = input_text;
@@ -117,12 +137,14 @@
 	}
 
 	function handle_focus(e: FocusEvent): void {
+		is_focused = true;
 		filtered_indices = choices.map((_, i) => i);
 		show_options = true;
 		on_focus?.();
 	}
 
 	function handle_blur(): void {
+		is_focused = false;
 		if (!allow_custom_value) {
 			input_text =
 				choices_names[choices_values.indexOf(value as string | number)];
