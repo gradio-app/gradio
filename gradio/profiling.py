@@ -173,9 +173,7 @@ class TraceCollector:
         prediction_traces = [
             t for t in self._traces if t.fn_name != "gradio_file_upload"
         ]
-        upload_traces = [
-            t for t in self._traces if t.fn_name == "gradio_file_upload"
-        ]
+        upload_traces = [t for t in self._traces if t.fn_name == "gradio_file_upload"]
 
         phases = [
             "queue_wait",
@@ -207,8 +205,13 @@ class TraceCollector:
                 result["phases"][phase] = _percentiles(np.array(values))
             else:
                 result["phases"][phase] = {
-                    "p50": 0.0, "p90": 0.0, "p95": 0.0, "p99": 0.0,
-                    "mean": 0.0, "min": 0.0, "max": 0.0,
+                    "p50": 0.0,
+                    "p90": 0.0,
+                    "p95": 0.0,
+                    "p99": 0.0,
+                    "mean": 0.0,
+                    "min": 0.0,
+                    "max": 0.0,
                 }
 
         if upload_traces:
