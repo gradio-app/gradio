@@ -199,9 +199,10 @@ export async function launchGradioApp(
 	}
 
 	// Run the demo via _demo_runner.py instead of directly. The wrapper
-	// starts a parent-death watcher: if the playwright worker that spawned
-	// us is SIGKILLed (test timeout etc), the demo self-exits within ~2s
-	// instead of becoming an orphan that survives the rest of the suite.
+	// watches its stdin pipe: if the playwright worker that spawned us
+	// dies (cleanly or via SIGKILL on timeout), the kernel closes the pipe,
+	// stdin returns EOF and the demo self-exits immediately — instead of
+	// becoming an orphan that survives the rest of the suite.
 	const demoRunnerPath = path.join(__dirname, "_demo_runner.py");
 	const childProcess = spawn("python", [demoRunnerPath, demoFilePath], {
 		stdio: "pipe",
@@ -216,9 +217,7 @@ export async function launchGradioApp(
 			GRADIO_SERVER_PORT: port.toString(),
 			// Use unique directories per instance to avoid conflicts
 			GRADIO_EXAMPLES_CACHE: cacheDir,
-			GRADIO_TEMP_DIR: tempDir,
-			// PID the runner watches; demo self-exits if this dies.
-			E2E_TEST_PARENT_PID: process.pid.toString()
+			GRADIO_TEMP_DIR: tempDir
 		}
 	});
 
