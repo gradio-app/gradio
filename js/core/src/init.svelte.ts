@@ -197,6 +197,15 @@ export class AppTree {
 		this.initial_tabs = {};
 		gather_initial_tabs(this.root!, this.initial_tabs);
 		this.postprocess(this.root!);
+
+		// Push new server-defined props into reused component instances.
+		// MountComponents matches children by position (unkeyed each), so most
+		// component instances are reused across a reload — but the Gradio class
+		// inside each instance aliases the OLD node's props, so without an
+		// explicit set_data the UI keeps showing pre-reload values. Same
+		// mechanism @gr.render uses: only defined keys are pushed, so locally
+		// edited values (server sends them undefined) are preserved.
+		this.#sync_reused_components_after_rerender(this.root!);
 	}
 
 	/**
