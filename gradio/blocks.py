@@ -2834,10 +2834,12 @@ Received inputs:
                     max_file_size=self.max_file_size,
                     favicon_path=str(self.favicon_path) if self.favicon_path else None,
                 )
-                worker_ports = [
-                    self.server_port + 1 + i
-                    for i in range(resolved_num_workers)
-                ]
+                # Start worker ports after the node port (if SSR is active)
+                # to avoid port collisions.
+                worker_start = self.server_port + 1
+                if self.node_port is not None:
+                    worker_start = max(worker_start, self.node_port + 1)
+                worker_ports = [worker_start + i for i in range(resolved_num_workers)]
                 self._static_worker_pool = StaticWorkerPool(
                     num_workers=resolved_num_workers,
                     config=static_config,
@@ -2849,9 +2851,7 @@ Received inputs:
                 # nginx sits in front the middleware must stay disabled so
                 # the browser never sees internal worker addresses.
                 if not os.environ.get("GRADIO_DISABLE_REDIRECT_MIDDLEWARE"):
-                    self.server_app.enable_static_workers(
-                        self._static_worker_pool
-                    )
+                    self.server_app.enable_static_workers(self._static_worker_pool)
                 if not quiet:
                     print(
                         f"* Static file workers: {resolved_num_workers} processes on ports {self._static_worker_pool.ports}"

@@ -265,7 +265,7 @@ class StaticRedirectMiddleware:
         path: str = scope.get("path", "")
         check_path = path
         if check_path.startswith(API_PREFIX):
-            check_path = check_path[len(API_PREFIX):]
+            check_path = check_path[len(API_PREFIX) :]
 
         if not any(check_path.startswith(p) for p in self.gradio_app._static_prefixes):
             await self.asgi_app(scope, receive, send)
@@ -280,18 +280,22 @@ class StaticRedirectMiddleware:
         if query_string:
             url += f"?{query_string.decode()}"
 
-        await send({
-            "type": "http.response.start",
-            "status": 307,
-            "headers": [
-                (b"location", url.encode()),
-                (b"content-length", b"0"),
-            ],
-        })
-        await send({
-            "type": "http.response.body",
-            "body": b"",
-        })
+        await send(
+            {
+                "type": "http.response.start",
+                "status": 307,
+                "headers": [
+                    (b"location", url.encode()),
+                    (b"content-length", b"0"),
+                ],
+            }
+        )
+        await send(
+            {
+                "type": "http.response.body",
+                "body": b"",
+            }
+        )
 
 
 class App(FastAPI):
