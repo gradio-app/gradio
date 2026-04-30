@@ -1,5 +1,5 @@
 ---
-"gradio": patch
+"gradio": minor
 ---
 
-feat:Run Pre/Post processing for components in a separate thread
+feat:Offload traffic to static workers
