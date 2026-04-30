@@ -159,9 +159,10 @@ function fetch_with_timeout(
 ): Promise<Response> {
 	const controller = new AbortController();
 	const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-	return fetcher(url, { signal: controller.signal }).finally(() =>
-		clearTimeout(timeout)
-	);
+	return fetcher(url, {
+		signal: controller.signal,
+		referrerPolicy: "no-referrer"
+	}).finally(() => clearTimeout(timeout));
 }
 
 async function fetch_theme_details(
@@ -276,7 +277,7 @@ export async function fetch_community_themes(
 	fetcher: typeof fetch = fetch
 ): Promise<ThemeData[]> {
 	try {
-		const res = await fetcher(HF_API_URL);
+		const res = await fetcher(HF_API_URL, { referrerPolicy: "no-referrer" });
 		if (!res.ok) return [];
 		const spaces: HfSpaceEntry[] = await res.json();
 

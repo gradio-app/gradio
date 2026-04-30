@@ -1,0 +1,74 @@
+name: Sync Gradio Skills to Hugging Face
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".agents/skills/**"
+  workflow_dispatch:
+
+jobs:
+  sync-skills:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout gradio repo
+        uses: actions/checkout@v4
+
+      - name: Determine PR title
+        id: pr_title
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "title=Sync Gradio Skills (${{ github.sha }})" >> $GITHUB_OUTPUT
+          else
+            echo "title=Sync Gradio Skills (manual trigger)" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout skills repo
+        uses: actions/checkout@v4
+        with:
+          repository: huggingface/skills
+          token: ${{ secrets.GRADIO_PAT }}
+          path: skills-repo
+
+      - name: Copy gradio skill files
+        run: |
+          mkdir -p skills-repo/skills/gradio/references
+          cp -r .agents/skills/gradio/* skills-repo/skills/gradio/
+
+      - name: Copy hf-gradio skill files
+        run: |
+          mkdir -p skills-repo/skills/hf-gradio
+          cp -r .agents/skills/hf-gradio/* skills-repo/skills/hf-gradio/
+
+      - name: Regenerate skills repo artifacts
+        working-directory: skills-repo
+        run: ./scripts/publish.sh
+
+      - name: Check for changes
+        id: check_changes
+        working-directory: skills-repo
+        run: |
+          git diff --quiet && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request
+        if: steps.check_changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GRADIO_PAT }}
+          path: skills-repo
+          branch: sync/gradio-skills-${{ github.run_id }}
+          delete-branch: true
+          title: ${{ steps.pr_title.outputs.title }}
+          body: |
+            Auto-generated from [gradio@${{ github.sha }}](https://github.com/gradio-app/gradio/commit/${{ github.sha }})
+
+            Triggered by changes to `.agents/skills/`
+
+            ---
+            This PR was created automatically by the [sync-skills](https://github.com/gradio-app/gradio/blob/main/.github/workflows/sync-skills.yml) workflow.
+          commit-message: "Sync Gradio skills from gradio@${{ github.sha }}"
+          labels: |
+            automated

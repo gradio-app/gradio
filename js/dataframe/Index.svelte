@@ -83,7 +83,6 @@
 	min_width={gradio.shared.min_width}
 	padding={false}
 	container={false}
-	overflow_behavior="visible"
 	{fullscreen}
 >
 	<StatusTracker

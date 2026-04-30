@@ -15,7 +15,9 @@
 	let code: string;
 
 	onMount(async () => {
-		code = await fetch(code_url).then((res) => res.text());
+		code = await fetch(code_url, { referrerPolicy: "no-referrer" }).then(
+			(res) => res.text()
+		);
 	});
 </script>
 

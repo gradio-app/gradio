@@ -1,5 +1,23 @@
 # @gradio/model3d
 
+## 0.17.0
+
+### Features
+
+- [#13275](https://github.com/gradio-app/gradio/pull/13275) [`2d025c5`](https://github.com/gradio-app/gradio/commit/2d025c56cffb5c4eecbe47515ec771b5ecf46611) - Model3D Unit Tests.  Thanks @dawoodkhan82!
+
+## 0.16.9
+
+### Fixes
+
+- [#13288](https://github.com/gradio-app/gradio/pull/13288) [`d75e311`](https://github.com/gradio-app/gradio/commit/d75e311a4b64fc1998b6deda3134a3dc6efb5dd5) - `model3d` ply freeze fix.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/atoms@0.24.0
+- @gradio/statustracker@0.14.1
+- @gradio/upload@0.17.9
+
 ## 0.16.8
 
 ### Dependency updates

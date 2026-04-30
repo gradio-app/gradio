@@ -166,20 +166,73 @@ def generate_examples(all_demos):
     return "\n".join(lines)
 
 
+def generate_api_signatures(organized):
+    """Generate API signatures for commonly used components."""
+    lines = ["# Component API Signatures\n"]
+    lines.append("Quick reference for common Gradio component constructors.\n")
+
+    for name in KEY_COMPONENTS:
+        if name not in organized["components"]:
+            continue
+        entry = organized["components"][name]
+        sig = build_signature(entry)
+        desc = entry.get("description", "").replace("<br>", " ").strip()
+        lines.append(f"## `{name}`\n")
+        lines.append(f"```python\n{sig}\n```\n")
+        if desc:
+            lines.append(f"{desc}\n")
+    return "\n".join(lines)
+
+
+def generate_event_listeners(organized):
+    """Generate event listener documentation."""
+    events_matrix = build_events_matrix(organized)
+
+    lines = ["# Event Listeners\n"]
+    lines.append("Events supported by each component.\n\n")
+
+    lines.append("## Event Listener Signature\n")
+    lines.append("```python")
+    lines.append("""component.event_name(
+    fn: Callable | None | Literal["decorator"] = "decorator",
+    inputs: Component | Sequence[Component] | set[Component] | None = None,
+    outputs: Component | Sequence[Component] | set[Component] | None = None,
+    api_name: str | None = None,
+    api_description: str | None | Literal[False] = None,
+    scroll_to_output: bool = False,
+    show_progress: Literal["full", "minimal", "hidden"] = "full",
+    show_progress_on: Component | Sequence[Component] | None = None,
+    queue: bool = True,
+    batch: bool = False,
+    max_batch_size: int = 4,
+    preprocess: bool = True,
+    postprocess: bool = True,
+    cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
+    trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
+    js: str | Literal[True] | None = None,
+    concurrency_limit: int | None | Literal["default"] = "default",
+    concurrency_id: str | None = None,
+    api_visibility: Literal["public", "private", "undocumented"] = "public",
+    time_limit: int | None = None,
+    stream_every: float = 0.5,
+    key: int | str | tuple[int | str, ...] | None = None,
+    validator: Callable | None = None,
+) -> Dependency""")
+    lines.append("```\n")
+
+    lines.append("## Supported Events by Component\n")
+    for comp, events in sorted(events_matrix.items()):
+        lines.append(f"- **{comp}**: {', '.join(events)}\n")
+
+    return "\n".join(lines)
+
+
 def generate_skill_md(organized, guide_links):
-    key_sigs = []
+    # Build list of key component names for main doc
+    key_component_list = []
     for name in KEY_COMPONENTS:
         if name in organized["components"]:
-            entry = organized["components"][name]
-            sig = build_signature(entry)
-            desc = entry.get("description", "").replace("<br>", " ").strip()
-            first_sentence = desc.split(". ")[0] + "." if desc else ""
-            key_sigs.append(f"### `{sig}`\n{first_sentence}\n")
-
-    events_matrix = build_events_matrix(organized)
-    event_lines = []
-    for comp, events in sorted(events_matrix.items()):
-        event_lines.append(f"- **{comp}**: {', '.join(events)}")
+            key_component_list.append(f"- `{name}`")
 
     guide_list = "\n".join(
         f"- [{title}](https://www.gradio.app/guides/{slug})"
@@ -188,12 +241,17 @@ def generate_skill_md(organized, guide_links):
 
     skill_md = f"""---
 name: gradio
-description: Build Gradio web UIs and demos in Python. Use when creating or editing Gradio apps, components, event listeners, layouts, or chatbots.
+description: Build Gradio web UIs and demos in Python. Use when creating, modifying, debugging, or answering questions about Gradio and its capabilties, components, event listeners, or layouts.
 ---
 
 # Gradio
 
 Gradio is a Python library for building interactive web UIs and ML demos. This skill covers the core API, patterns, and examples.
+
+## References
+- `references/examples.md` -  Illustrative examples showcasing the core Gradio API.
+- `references/api-signatures.md` - API signatures of commonly used components.
+- `references/event-listeners.md` - API signatures of events supported by each component.
 
 ## Guides
 
@@ -239,153 +297,21 @@ def respond(message, history):
 gr.ChatInterface(fn=respond).launch()
 ```
 
-## Key Component Signatures
-
-{chr(10).join(key_sigs)}
-
 ## Custom HTML Components
 
-If a task requires significant customization of an existing component or a component that doesn't exist in Gradio, you can create one with `gr.HTML`. It supports `html_template` (with `${{}}` JS expressions and `{{{{}}}}` Handlebars syntax), `css_template` for scoped styles, and `js_on_load` for interactivity — where `props.value` updates the component value and `trigger('event_name')` fires Gradio events. For reuse, subclass `gr.HTML` and define `api_info()` for API/MCP support. See the [full guide](https://www.gradio.app/guides/custom-HTML-components).
+If a task requires significant customization of an existing component or a component that doesn't exist in Gradio, you can create one with `gr.HTML`. It supports `html_template` (with `${{}}` JS expressions and `{{{{}}}}` Handlebars syntax), `css_template` for scoped styles, and `js_on_load` for interactivity — where `props.value` updates the component value and `trigger('event_name')` fires Gradio events. For reuse, subclass `gr.HTML` and define `api_info()` for API/MCP support. 
 
-Here's an example that shows how to create and use these kinds of components:
+See the [full guide](https://www.gradio.app/guides/custom-HTML-components) as well as example in `references/examples.md`
 
-```python
-import gradio as gr
+## Server Mode
 
-class StarRating(gr.HTML):
-    def __init__(self, label, value=0, **kwargs):
-        html_template = \"\"\"
-        <h2>${{label}} rating:</h2>
-        ${{Array.from({{length: 5}}, (_, i) => `<img class='${{i < value ? '' : 'faded'}}' src='https://upload.wikimedia.org/wikipedia/commons/d/df/Award-star-gold-3d.svg'>`).join('')}}
-        \"\"\"
-        css_template = \"\"\"
-            img {{ height: 50px; display: inline-block; cursor: pointer; }}
-            .faded {{ filter: grayscale(100%); opacity: 0.3; }}
-        \"\"\"
-        js_on_load = \"\"\"
-            const imgs = element.querySelectorAll('img');
-            imgs.forEach((img, index) => {{
-                img.addEventListener('click', () => {{
-                    props.value = index + 1;
-                }});
-            }});
-        \"\"\"
-        super().__init__(value=value, label=label, html_template=html_template, css_template=css_template, js_on_load=js_on_load, **kwargs)
+Use `gr.Server` instead of gr.Blocks when the users requests any of the following:
+- Completely custom UI (your own HTML, React, Svelte, etc.) powered by Gradio's backend.
+- Full control of FastAPI server (custom GET/POST routes, middleware, dependency injection) alongside Gradio API endpoints
 
-    def api_info(self):
-        return {{"type": "integer", "minimum": 0, "maximum": 5}}
+See the [full guide](https://www.gradio.app/guides/server-mode) and example in `references/examples.md`.
 
-
-with gr.Blocks() as demo:
-    gr.Markdown("# Restaurant Review")
-    food_rating = StarRating(label="Food", value=3)
-    service_rating = StarRating(label="Service", value=3)
-    ambience_rating = StarRating(label="Ambience", value=3)
-    average_btn = gr.Button("Calculate Average Rating")
-    rating_output = StarRating(label="Average", value=3)
-    def calculate_average(food, service, ambience):
-        return round((food + service + ambience) / 3)
-    average_btn.click(
-        fn=calculate_average,
-        inputs=[food_rating, service_rating, ambience_rating],
-        outputs=rating_output
-    )
-
-demo.launch()
-```
-
-## Prediction CLI
-
-The `gradio` CLI includes `info` and `predict` commands for interacting with Gradio apps programmatically. These are especially useful for coding agents that need to use Spaces in their workflows.
-
-### `gradio info` — Discover endpoints and parameters
-
-```bash
-gradio info <space_id_or_url>
-```
-
-Returns a JSON payload describing all endpoints, their parameters (with types and defaults), and return values.
-
-```bash
-gradio info gradio/calculator
-#    {{
-#   "/predict": {{
-#     "parameters": [
-#       {{"name": "num1", "required": true, "default": null, "type": {{"type": "number"}}}},
-#       {{"name": "operation", "required": true, "default": null, "type": {{"enum": ["add", "subtract", "multiply", "divide"], "type": "string"}}}},
-#       {{"name": "num2", "required": true, "default": null, "type": {{"type": "number"}}}}
-#     ],
-#     "returns": [{{"name": "output", "type": {{"type": "number"}}}}],
-#     "description": ""
-#   }}
-# }}
-```
-
-File-type parameters show `"type": "filepath"` with instructions to include `"meta": {{"_type": "gradio.FileData"}}` — this signals the file will be uploaded to the remote server.
-
-### `gradio predict` — Send predictions
-
-```bash
-gradio predict <space_id_or_url> <endpoint> <json_payload>
-```
-
-Returns a JSON object with named output keys.
-
-```bash
-# Simple numeric prediction
-gradio predict gradio/calculator /predict '{{"num1": 5, "operation": "multiply", "num2": 3}}'
-# {{"output": 15}}
-
-# Image generation
-gradio predict black-forest-labs/FLUX.2-dev /infer '{{"prompt": "A majestic dragon"}}'
-# {{"Result": "/tmp/gradio/.../image.webp", "Seed": 1117868604}}
-
-# File upload (must include meta key)
-gradio predict gradio/image_mod /predict '{{"image": {{"path": "/path/to/image.png", "meta": {{"_type": "gradio.FileData"}}}}}}'
-# {{"output": "/tmp/gradio/.../output.png"}}
-```
-
-Both commands accept `--token` for accessing private Spaces.
-
-## Event Listeners
-
-All event listeners share the same signature:
-
-```python
-component.event_name(
-    fn: Callable | None | Literal["decorator"] = "decorator",
-    inputs: Component | Sequence[Component] | set[Component] | None = None,
-    outputs: Component | Sequence[Component] | set[Component] | None = None,
-    api_name: str | None = None,
-    api_description: str | None | Literal[False] = None,
-    scroll_to_output: bool = False,
-    show_progress: Literal["full", "minimal", "hidden"] = "full",
-    show_progress_on: Component | Sequence[Component] | None = None,
-    queue: bool = True,
-    batch: bool = False,
-    max_batch_size: int = 4,
-    preprocess: bool = True,
-    postprocess: bool = True,
-    cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
-    trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
-    js: str | Literal[True] | None = None,
-    concurrency_limit: int | None | Literal["default"] = "default",
-    concurrency_id: str | None = None,
-    api_visibility: Literal["public", "private", "undocumented"] = "public",
-    time_limit: int | None = None,
-    stream_every: float = 0.5,
-    key: int | str | tuple[int | str, ...] | None = None,
-    validator: Callable | None = None,
-) -> Dependency
-```
-
-Supported events per component:
-
-{chr(10).join(event_lines)}
-
-## Additional Reference
-
-- [End-to-End Examples](examples.md) — complete working apps
+If the user's use case can be handled by Gradio's built-in components or customizable HTML components, prefer not to use `gr.Server`.
 """
     return skill_md.strip() + "\n"
 
@@ -418,13 +344,27 @@ def generate_to(output_dir):
         title = GUIDE_TITLES.get(guide_name, guide_name.replace("-", " ").title())
         guide_links.append((title, guide_name))
 
+    # Create references subdirectory
+    references_dir = os.path.join(output_dir, "references")
+    os.makedirs(references_dir, exist_ok=True)
+
+    # Generate main skill file
     skill_md = generate_skill_md(organized, guide_links)
     with open(os.path.join(output_dir, "SKILL.md"), "w") as f:
         f.write(skill_md)
 
+    # Generate reference files
     examples = generate_examples(all_demos)
-    with open(os.path.join(output_dir, "examples.md"), "w") as f:
+    with open(os.path.join(references_dir, "examples.md"), "w") as f:
         f.write(examples)
+
+    api_signatures = generate_api_signatures(organized)
+    with open(os.path.join(references_dir, "api-signatures.md"), "w") as f:
+        f.write(api_signatures)
+
+    event_listeners = generate_event_listeners(organized)
+    with open(os.path.join(references_dir, "event-listeners.md"), "w") as f:
+        f.write(event_listeners)
 
     return skill_md
 
@@ -442,7 +382,7 @@ def check(output_dir):
         tmp_skill = os.path.join(tmp, "gradio")
         generate_to(tmp_skill)
 
-        generated_files = ["SKILL.md", "examples.md"]
+        generated_files = ["SKILL.md", "references/examples.md", "references/api-signatures.md", "references/event-listeners.md"]
         stale = []
         for fname in generated_files:
             existing = os.path.join(output_dir, fname)

@@ -1,5 +1,21 @@
 # @gradio/dataframe
 
+## 0.23.2
+
+### Fixes
+
+- [#13250](https://github.com/gradio-app/gradio/pull/13250) [`2e9eb51`](https://github.com/gradio-app/gradio/commit/2e9eb51d4da5e4a997ac2fc18e5814bacf6f818d) - Restore select-all checkbox in boolean column headers of `gr.Dataframe`.  Thanks @pngwn!
+- [#13259](https://github.com/gradio-app/gradio/pull/13259) [`b5e6491`](https://github.com/gradio-app/gradio/commit/b5e64918b721550bc3762169fda81c5270904eaa) - Dataframe: allow native context menu and text selection on static cells.  Thanks @pngwn!
+- [#13305](https://github.com/gradio-app/gradio/pull/13305) [`1d5994d`](https://github.com/gradio-app/gradio/commit/1d5994da102bd9bf2367f58789de508b1727b1bf) - Dataframe: fix extreme rendering slowdown with `datatype="date"` (and any future dtype with asymmetric string casts) by firing `EditableCell`'s shim-blur only on edit teardown instead of every render. Also makes the hidden sizing-row computation faster by avoiding Date rendering for every entry.  Thanks @pngwn!
+- [#13303](https://github.com/gradio-app/gradio/pull/13303) [`79c5776`](https://github.com/gradio-app/gradio/commit/79c577680978adfb5eeaa01944635e14dc67e5f1) - Rework `Dataframe` wrapping, truncation, and column width sizing.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.24.0
+- @gradio/statustracker@0.14.1
+- @gradio/checkbox@0.7.0
+- @gradio/upload@0.17.9
+
 ## 0.23.1
 
 ### Dependency updates
