@@ -1,5 +1,27 @@
 # website
 
+## 0.76.0
+
+### Features
+
+- [#13317](https://github.com/gradio-app/gradio/pull/13317) [`34e5b74`](https://github.com/gradio-app/gradio/commit/34e5b746596e53fb9f83cc8d7bfbc40891be714b) - Markdown negotiation.  Thanks @pngwn!
+- [#13320](https://github.com/gradio-app/gradio/pull/13320) [`fffd4c6`](https://github.com/gradio-app/gradio/commit/fffd4c661f5d3becb864d4b78d93d24eb3c94aab) - Fix website CORS errors.  Thanks @pngwn!
+
+## 0.75.0
+
+### Features
+
+- [#13211](https://github.com/gradio-app/gradio/pull/13211) [`7617801`](https://github.com/gradio-app/gradio/commit/7617801ab602a0e1d937f721d4cf241a6b0026d6) - improve preview and metadata for community themes.  Thanks @hannahblair!
+- [#13261](https://github.com/gradio-app/gradio/pull/13261) [`3462368`](https://github.com/gradio-app/gradio/commit/34623682aea502f78e116ba2c1e77014fd857cd5) - Add docs for gr.cache and gr.Cache.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/statustracker@0.14.1
+- @gradio/tabs@0.5.10
+- @gradio/code@0.17.8
+- @gradio/html@0.12.3
+- @gradio/paramviewer@0.9.9
+
 ## 0.74.1
 
 ### Dependency updates

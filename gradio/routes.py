@@ -55,6 +55,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.snippet import generate_code_snippets
 from gradio_client.utils import ServerMessage
+from hf_gradio.cli import _condense_info, generate_cli_snippet
 from jinja2.exceptions import TemplateNotFound
 from python_multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
@@ -186,6 +187,7 @@ BUILT_IN_THEMES: dict[str, Theme] = {
         themes.Origin(),
         themes.Citrus(),
         themes.Ocean(),
+        themes.Mario(),
     ]
     if t.name is not None
 }
@@ -908,6 +910,9 @@ class App(FastAPI):
                     root_path=app.root_path,
                 )
                 space_id = app.get_blocks().space_id
+                cli_snippets = generate_cli_snippet(api_info["named_endpoints"])
+                for k, v in cli_snippets.items():
+                    cli_snippets[k] = v.replace("{space_id}", space_id or str(root))
                 api_prefix = API_PREFIX + "/"
                 for ep_name, ep_info in api_info.get("named_endpoints", {}).items():
                     ep_info["code_snippets"] = generate_code_snippets(
@@ -917,6 +922,7 @@ class App(FastAPI):
                         space_id=space_id,
                         api_prefix=api_prefix,
                     )
+                    ep_info["code_snippets"]["cli"] = cli_snippets[ep_name]
                 app.api_info = api_info
             return app.api_info
 
@@ -924,6 +930,7 @@ class App(FastAPI):
         def openapi_schema(request: fastapi.Request):
             """Generate an OpenAPI schema from the Gradio app's API info."""
             info = api_info(request)
+            info_simple = _condense_info(info, url_only=True)
             schema = {
                 "openapi": "3.0.2",
                 "info": {
@@ -931,26 +938,101 @@ class App(FastAPI):
                     "description": getattr(app.get_blocks(), "description", ""),
                     "version": VERSION,
                 },
-                "paths": {},
+                "paths": {
+                    "/gradio_api/upload": {
+                        "post": {
+                            "summary": "Upload File",
+                            "operationId": "upload_file_upload_post",
+                            "parameters": [
+                                {
+                                    "name": "upload_id",
+                                    "in": "query",
+                                    "required": False,
+                                    "schema": {
+                                        "type": "string",
+                                        "nullable": True,
+                                        "default": None,
+                                    },
+                                    "description": "Optional ID to track upload progress",
+                                }
+                            ],
+                            "requestBody": {
+                                "required": True,
+                                "content": {
+                                    "multipart/form-data": {
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "files": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "format": "binary",
+                                                    },
+                                                    "description": "One or more files to upload",
+                                                }
+                                            },
+                                            "required": ["files"],
+                                        }
+                                    }
+                                },
+                            },
+                            "responses": {
+                                "200": {
+                                    "description": "List of file paths where the uploaded files were saved",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "type": "array",
+                                                "items": {"type": "string"},
+                                            }
+                                        }
+                                    },
+                                },
+                                "400": {
+                                    "description": "Invalid content type or invalid file name",
+                                    "content": {
+                                        "text/plain": {"schema": {"type": "string"}}
+                                    },
+                                },
+                                "413": {
+                                    "description": "File exceeds maximum allowed size",
+                                    "content": {
+                                        "text/plain": {"schema": {"type": "string"}}
+                                    },
+                                },
+                            },
+                            "security": [{"login_check": []}],
+                        }
+                    }
+                },
                 "components": {"schemas": {}},
             }
 
             for endpoint_path, endpoint_info in info.get("named_endpoints", {}).items():  # type: ignore
                 if endpoint_info.get("api_visibility", "public") == "private":
                     continue
+                endpoint_name = endpoint_path.strip("/").replace("/", "_")
+                has_file_params = any(
+                    p.get("type", {}).get("type") == "filepath"
+                    for p in info_simple[endpoint_path].get("parameters", [])
+                )
+                summary = (
+                    endpoint_info.get("description", "") or f"Endpoint {endpoint_path}"
+                )
+                if has_file_params:
+                    summary += '. File inputs must first be uploaded via POST /gradio_api/upload (multipart/form-data with a "files" field). Use the returned path in the request body as {"path": "<uploaded_path>", "meta": {"_type": "gradio.FileData"}}.'
                 path_item = {
                     "post": {
-                        "summary": endpoint_info.get(
-                            "description", f"Endpoint {endpoint_path}"
-                        ),
+                        "summary": summary,
                         "description": endpoint_info.get("description", ""),
-                        "operationId": endpoint_path.strip("/").replace("/", "_"),
+                        "operationId": endpoint_name,
                         "requestBody": {
                             "required": True,
                             "content": {
                                 "application/json": {
                                     "schema": {"type": "object", "properties": {}}
-                                }
+                                },
                             },
                         },
                         "responses": {
@@ -958,7 +1040,12 @@ class App(FastAPI):
                                 "description": "Successful response",
                                 "content": {
                                     "application/json": {
-                                        "schema": {"type": "object", "properties": {}}
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "event_id": {"type": "string"}
+                                            },
+                                        }
                                     }
                                 },
                             }
@@ -969,8 +1056,8 @@ class App(FastAPI):
                 request_properties = path_item["post"]["requestBody"]["content"][  # type: ignore
                     "application/json"
                 ]["schema"]["properties"]  # type: ignore
-                for param in endpoint_info.get("parameters", []):
-                    param_name = param["parameter_name"]
+                for param in info_simple[endpoint_path].get("parameters", []):
+                    param_name = param["name"]
                     param_type = param.get("type", {})
 
                     if "additional_description" in param_type:
@@ -980,6 +1067,11 @@ class App(FastAPI):
                     if "properties" in param_type and "type" not in param_type:
                         param_type = dict(param_type)
                         param_type["type"] = "object"
+
+                    if param_type.get("type") == "filepath":
+                        param_type = dict(param_type)
+                        param_type["type"] = "string"
+                        param_type["format"] = "filepath"
 
                     request_properties[param_name] = param_type  # type: ignore
 
@@ -997,24 +1089,45 @@ class App(FastAPI):
                             "examples"
                         ]["example1"]["value"][param_name] = param["example_input"]  # type: ignore
 
-                response_properties = path_item["post"]["responses"]["200"]["content"][  # type: ignore
-                    "application/json"
-                ]["schema"]["properties"]  # type: ignore
-                for i, ret in enumerate(endpoint_info.get("returns", [])):
+                returns_info = []
+                for i, ret in enumerate(info_simple[endpoint_path].get("returns", [])):
                     ret_name = f"output_{i}" if i > 0 else "output"
                     ret_type = ret.get("type", {})
+                    desc = ""
+                    returns_info.append(
+                        f"{ret_name} ({ret_type})" + "" if not desc else f"desc: {desc}"
+                    )  # type: ignore
+                path_item["post"]["description"] += (  # type: ignore
+                    f"Output must be fetched from GET /gradio_api/call{endpoint_path}/{{event_id}}. Returns an array of {len(returns_info)} elements of the following format: {returns_info}"
+                )
 
-                    if "additional_description" in ret_type:
-                        ret_type = dict(ret_type)
-                        ret_type.pop("additional_description", None)
+                schema["paths"][f"/gradio_api/call/v2{endpoint_path}"] = path_item  # type: ignore
 
-                    if "properties" in ret_type and "type" not in ret_type:
-                        ret_type = dict(ret_type)
-                        ret_type["type"] = "object"
-
-                    response_properties[ret_name] = ret_type  # type: ignore
-
-                schema["paths"][f"/run{endpoint_path}"] = path_item  # type: ignore
+                get_path = f"/gradio_api/call{endpoint_path}/{{event_id}}"
+                schema["paths"][get_path] = {  # type: ignore
+                    "get": {
+                        "summary": f"Fetch results for {endpoint_path}",
+                        "description": "Returns a stream of server-sent events (SSE). The final event has `event: complete` with `data` containing a JSON array of outputs.",
+                        "operationId": f"{endpoint_name}_get",
+                        "parameters": [
+                            {
+                                "name": "event_id",
+                                "in": "path",
+                                "required": True,
+                                "schema": {"type": "string"},
+                                "description": "The event_id returned by the POST request",
+                            }
+                        ],
+                        "responses": {
+                            "200": {
+                                "description": "SSE stream with event: complete containing a JSON array of outputs",
+                                "content": {
+                                    "text/event-stream": {"schema": {"type": "string"}}
+                                },
+                            }
+                        },
+                    }
+                }
 
             return schema
 
@@ -1440,6 +1553,30 @@ class App(FastAPI):
                 )
             return ORJSONResponse(output)
 
+        @router.post("/call/v2/{api_name}", dependencies=[Depends(login_check)])
+        @router.post("/call/v2/{api_name}/", dependencies=[Depends(login_check)])
+        async def _(
+            api_name: str,
+            body: dict[str, Any],
+            request: fastapi.Request,
+            username: str = Depends(get_current_user),
+        ):
+            parameters_info = app.api_info["named_endpoints"]["/" + api_name][  # type: ignore
+                "parameters"
+            ]
+            processed_args = client_utils.construct_args(
+                parameters_info,
+                (),
+                body,
+            )
+            simple_body = SimplePredictBody(data=processed_args)
+            full_body = PredictBody(**simple_body.model_dump(), simple_format=True)  # type: ignore
+            fn = route_utils.get_fn(
+                blocks=app.get_blocks(), api_name=api_name, body=full_body
+            )
+            full_body.fn_index = fn._id
+            return await queue_join_helper(full_body, request, username)
+
         @router.post("/call/{api_name}", dependencies=[Depends(login_check)])
         @router.post("/call/{api_name}/", dependencies=[Depends(login_check)])
         async def simple_predict_post(
@@ -1511,6 +1648,7 @@ class App(FastAPI):
                 body.event_id
                 in blocks._queue.pending_event_ids_session.get(body.session_hash, {})
             )
+            await blocks._queue.remove_from_queue(body.event_id)
             if session_open and event_running:
                 message = ProcessCompletedMessage(
                     output={}, success=True, event_id=body.event_id
@@ -1528,6 +1666,9 @@ class App(FastAPI):
                     app.iterators_to_reset.add(body.event_id)
             return {"success": True}
 
+        @router.get(
+            "/call/v2/{api_name}/{event_id}", dependencies=[Depends(login_check)]
+        )
         @router.get("/call/{api_name}/{event_id}", dependencies=[Depends(login_check)])
         async def simple_predict_get(
             request: fastapi.Request,
@@ -1537,10 +1678,14 @@ class App(FastAPI):
                 msg = message.model_dump()
                 if isinstance(message, ProcessCompletedMessage):
                     event = "complete" if message.success else "error"
-                    data = msg["output"].get("data")
+                    data = (
+                        msg["output"].get("data") if message.success else msg["output"]
+                    )
                 elif isinstance(message, ProcessGeneratingMessage):
                     event = "generating" if message.success else "error"
-                    data = msg["output"].get("data")
+                    data = (
+                        msg["output"].get("data") if message.success else msg["output"]
+                    )
                 elif isinstance(message, HeartbeatMessage):
                     event = "heartbeat"
                     data = None
