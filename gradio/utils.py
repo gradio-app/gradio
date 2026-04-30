@@ -251,11 +251,14 @@ class SpacesReloader(ServerReloader):
 
     def postrun(self, *_args, **_kwargs):
         NO_RELOAD.set(True)
-        demo = getattr(self.watch_module, self.demo_name)
-        if demo is not self.running_app.blocks:
-            self.swap_blocks(demo)
-            return True
-        return False
+        demo = getattr(self.watch_module, self.demo_name, None)
+        if demo is None:
+            print("{hint / instruction / docs link}")
+            return False
+        if demo is self.running_app.blocks:
+            return False
+        self.swap_blocks(demo)
+        return True
 
     def swap_blocks(self, demo: "Blocks"):
         super().swap_blocks(demo)
