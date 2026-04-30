@@ -732,16 +732,7 @@ http {{
             proxy_http_version 1.1;
         }}
 
-        # SSE stream -> static workers (Redis-backed)
-        location /gradio_api/queue/data {{
-            proxy_pass http://static_workers/queue/data;
-            proxy_set_header Host $host;
-            proxy_set_header Connection '';
-            proxy_http_version 1.1;
-            chunked_transfer_encoding off;
-            proxy_buffering off;
-            proxy_cache off;
-        }}
+        {redis_conf}
 
         # Everything else -> main Gradio server
         location / {{
@@ -758,7 +749,7 @@ http {{
 """
 
 
-def _start_nginx(gradio_port: int, worker_ports: list[int], nginx_port: int) -> subprocess.Popen | None:
+def _start_nginx(gradio_port: int, worker_ports: list[int], nginx_port: int, use_redis: bool) -> subprocess.Popen | None:
     """Generate nginx config and start nginx to front the Gradio app + static workers."""
     if not worker_ports:
         return None
@@ -766,10 +757,26 @@ def _start_nginx(gradio_port: int, worker_ports: list[int], nginx_port: int) -> 
     upstream_servers = "\n".join(
         f"        server 127.0.0.1:{p};" for p in worker_ports
     )
+
+    redis_conf = (
+"""
+        {# SSE stream -> static workers (Redis-backed)
+        location /gradio_api/queue/data {{
+            proxy_pass http://static_workers/queue/data;
+            proxy_set_header Host $host;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            chunked_transfer_encoding off;
+            proxy_buffering off;
+            proxy_cache off;
+        }}
+""")
+
     conf = NGINX_CONF_TEMPLATE.format(
         gradio_port=gradio_port,
         nginx_port=nginx_port,
         upstream_servers=upstream_servers,
+        redis_conf=redis_conf if use_redis else ""
     )
     conf_path = Path("/tmp/gradio_nginx.conf")
     conf_path.write_text(conf)
@@ -902,7 +909,7 @@ async def run_benchmark(
             print(f"  Static workers ready on ports {worker_ports}")
 
             nginx_port = find_available_port(8080)
-            nginx_proc = _start_nginx(port, worker_ports, nginx_port)
+            nginx_proc = _start_nginx(port, worker_ports, nginx_port, bool(redis_url))
             if nginx_proc:
                 app_url = f"http://127.0.0.1:{nginx_port}"
                 print(f"Benchmark will use nginx at {app_url}")
