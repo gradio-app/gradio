@@ -77,7 +77,7 @@ export async function findFreePort(
 }
 
 function isPortFree(port: number): Promise<boolean> {
-	return new Promise((resolve, reject) => {
+	return new Promise((resolve) => {
 		const sock = net.createConnection(port, "127.0.0.1");
 		sock.once("connect", () => {
 			sock.end();
@@ -85,11 +85,12 @@ function isPortFree(port: number): Promise<boolean> {
 		});
 		sock.once("error", (e: NodeJS.ErrnoException) => {
 			sock.destroy();
-			if (e.code === "ECONNREFUSED") {
-				resolve(true);
-			} else {
-				reject(e);
-			}
+			// ECONNREFUSED → no listener (free). Anything else (ECONNRESET from
+			// a half-closed socket left by a SIGTERM'd demo, ETIMEDOUT, etc.)
+			// → don't trust the port, skip to the next one. Previously we
+			// rejected on non-ECONNREFUSED errors, which aborted the whole
+			// findFreePort scan and surfaced as "Failed to launch app".
+			resolve(e.code === "ECONNREFUSED");
 		});
 	});
 }
