@@ -1,11 +1,36 @@
 <script lang="ts">
-	import { Client } from "@gradio/client";
 	import { LIBRARY, type NodeTemplate } from "./node-library";
 	import { PORT_COLOR } from "./workflow-types";
 	import type { PortType } from "./workflow-types";
+	import { fetchSpaceApi, componentToPortType } from "./space-api";
 
-	let expandedSection: string | null = $state("inputs");
+	let expandedSection: string | null = $state("spaces");
 	let collapsed = $state(false);
+	let hiddenPresets = $state(new Set<string>(
+		typeof localStorage !== "undefined"
+			? JSON.parse(localStorage.getItem("gradio_hidden_presets") ?? "[]")
+			: []
+	));
+	let sidebarWidth = $state(220);
+	let isResizing = $state(false);
+
+	function startResize(e: MouseEvent) {
+		e.preventDefault();
+		isResizing = true;
+		const startX = e.clientX;
+		const startWidth = sidebarWidth;
+
+		function onMove(ev: MouseEvent) {
+			sidebarWidth = Math.max(160, Math.min(400, startWidth + (ev.clientX - startX)));
+		}
+		function onUp() {
+			isResizing = false;
+			window.removeEventListener("mousemove", onMove);
+			window.removeEventListener("mouseup", onUp);
+		}
+		window.addEventListener("mousemove", onMove);
+		window.addEventListener("mouseup", onUp);
+	}
 	let customSpaceInput = $state("");
 	let customSpaces: NodeTemplate[] = $state([]);
 	let loadingSpace = $state(false);
@@ -20,7 +45,7 @@
 	}
 
 	// Search state
-	let searchResults: { id: string; likes: number; title?: string }[] = $state([]);
+	let searchResults: { id: string; likes: number; title?: string; description?: string; running: boolean }[] = $state([]);
 	let searching = $state(false);
 	let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -47,17 +72,19 @@
 		searchTimeout = setTimeout(async () => {
 			try {
 				const res = await fetch(
-					`https://huggingface.co/api/spaces?search=${encodeURIComponent(query)}&filter=gradio&limit=20&sort=likes&direction=-1&expand[]=likes&expand[]=cardData&expand[]=runtime`
+					`https://huggingface.co/api/spaces/semantic-search?q=${encodeURIComponent(query)}&limit=8`
 				);
 				if (!res.ok) { searchResults = []; return; }
 				const data = await res.json();
 				searchResults = data
-					.filter((s: any) => s.runtime?.stage === "RUNNING")
+					.filter((s: any) => s.sdk === "gradio")
 					.slice(0, 6)
 					.map((s: any) => ({
 						id: s.id,
 						likes: s.likes ?? 0,
-						title: s.cardData?.title || s.id.split("/").pop()
+						title: s.title || s.id.split("/").pop(),
+						description: s.ai_short_description || "",
+						running: s.runtime?.stage === "RUNNING"
 					}));
 			} catch {
 				searchResults = [];
@@ -83,41 +110,12 @@
 		expandedSection = expandedSection === section ? null : section;
 	}
 
-	// Map Gradio component types to our port types
-	function componentToPortType(component: string, type?: string): PortType {
-		const c = component.toLowerCase();
-		if (c === "image" || c === "imageeditor") return "image";
-		if (c === "gallery") return "gallery";
-		if (c === "audio") return "audio";
-		if (c === "video") return "video";
-		if (c === "number" || c === "slider") return "number";
-		if (c === "checkbox") return "boolean";
-		if (c === "file" || c === "uploadbutton" || c === "downloadbutton") return "file";
-		if (c === "model3d") return "model3d";
-		if (c === "json" || c === "dataframe") return "json";
-		if (c === "textbox" || c === "text" || c === "markdown" || c === "chatbot" || c === "label" || c === "code" || c === "highlightedtext" || c === "dropdown" || c === "radio" || c === "checkboxgroup" || c === "colorpicker") return "text";
-
-		// Fallback: check the type field from the API
-		if (type) {
-			const t = type.toLowerCase();
-			if (t.includes("image") || t.includes("pil")) return "image";
-			if (t.includes("video") || t.includes("mp4")) return "video";
-			if (t.includes("audio") || t.includes("wav") || t.includes("mp3")) return "audio";
-			if (t.includes("filepath") || t.includes("file")) return "file";
-			if (t === "number" || t === "float" || t === "int" || t === "integer") return "number";
-			if (t === "bool" || t === "boolean") return "boolean";
-			if (t === "str" || t === "string") return "text";
-		}
-
-		return "any";
-	}
-
 	async function addCustomSpace() {
 		const spaceId = customSpaceInput.trim();
 		if (!spaceId || !spaceId.includes("/")) return;
 		if (
 			customSpaces.some((s) => s.space_id === spaceId) ||
-			LIBRARY.spaces.some((s) => s.space_id === spaceId)
+			LIBRARY.spaces.some((s) => s.space_id === spaceId && !hiddenPresets.has(spaceId))
 		) {
 			customSpaceInput = "";
 			return;
@@ -129,67 +127,9 @@
 		customSpaceInput = "";
 
 		try {
-			// Timeout after 10s to avoid infinite retries on static/non-Gradio Spaces
-			const app = await Promise.race([
-				Client.connect(spaceId.startsWith("http") ? spaceId : `https://${spaceId.replace("/", "-").toLowerCase()}.hf.space`),
-				new Promise<never>((_, reject) =>
-					setTimeout(() => reject(new Error("Timed out — Space may not have a Gradio API")), 10000)
-				)
-			]);
-			const api = await app.view_api();
-			const named = api.named_endpoints ?? {};
-			const unnamed = api.unnamed_endpoints ?? {};
-			// Merge named and unnamed endpoints
-			const endpoints = { ...named, ...unnamed };
-			const endpointNames = Object.keys(endpoints);
-
-			if (endpointNames.length === 0) {
-				spaceError = "No API endpoints found";
-				loadingSpace = false;
-				return;
-			}
-
-			// Pick the best endpoint: prefer /predict, then the one with the most returns
-			let epName: string;
-			if (endpointNames.includes("/predict")) {
-				epName = "/predict";
-			} else {
-				// Sort by number of returns (descending) to pick the most complete endpoint
-				epName = endpointNames.sort((a, b) =>
-					(endpoints[b].returns?.length ?? 0) - (endpoints[a].returns?.length ?? 0)
-				)[0];
-			}
-			const ep = endpoints[epName];
-
-			const inputs = (ep.parameters ?? []).map((p: any, i: number) => {
-				const hasDefault = p.default !== undefined && p.default !== null;
-				return {
-					id: `in_${i}`,
-					label: p.label || p.parameter_name || `Input ${i}`,
-					type: componentToPortType(p.component ?? "", p.type ?? ""),
-					required: !hasDefault,
-					default_value: hasDefault ? p.default : undefined
-				};
-			});
-
-			const outputs = (ep.returns ?? []).map((r: any, i: number) => ({
-				id: `out_${i}`,
-				label: r.label || `Output ${i}`,
-				type: componentToPortType(r.component ?? "", r.type ?? "")
-			}));
-
-			// Fallback if introspection returns empty
-			if (inputs.length === 0) inputs.push({ id: "in", label: "Input", type: "any" as PortType });
-			if (outputs.length === 0) outputs.push({ id: "out", label: "Output", type: "any" as PortType });
-
+			const apiInfo = await fetchSpaceApi(spaceId);
 			const label = spaceId.split("/").pop() ?? spaceId;
-			// Calculate width based on longest port label
-			const maxPortLen = Math.max(
-				...inputs.map((p: any) => (p.label as string).length),
-				...outputs.map((p: any) => (p.label as string).length),
-				label.length
-			);
-			const width = Math.max(280, Math.min(400, maxPortLen * 9 + 100));
+
 			customSpaces = [
 				...customSpaces,
 				{
@@ -197,10 +137,10 @@
 					kind: "transform",
 					source: "space",
 					space_id: spaceId,
-					endpoint: epName,
-					inputs,
-					outputs,
-					width,
+					endpoint: apiInfo.endpoint,
+					inputs: apiInfo.inputs,
+					outputs: apiInfo.outputs,
+					width: apiInfo.width,
 					height: 90
 				}
 			];
@@ -212,9 +152,25 @@
 		}
 	}
 
+	const spaceCategories = [
+		{ key: "image", label: "Image" },
+		{ key: "audio", label: "Audio" },
+		{ key: "text", label: "Text" },
+		{ key: "video", label: "Video" }
+	];
+
+	function getSpacesByCategory(cat: string) {
+		return LIBRARY.spaces.filter((s) => s.category === cat && !hiddenPresets.has(s.space_id ?? ""));
+	}
+
+	function removePreset(spaceId: string) {
+		hiddenPresets = new Set([...hiddenPresets, spaceId]);
+		localStorage.setItem("gradio_hidden_presets", JSON.stringify([...hiddenPresets]));
+	}
+
 	const sections = [
-		{ key: "inputs", label: "Inputs", icon: "arrow_forward", items: LIBRARY.inputs },
 		{ key: "spaces", label: "Spaces", icon: "hub", items: LIBRARY.spaces },
+		{ key: "inputs", label: "Inputs", icon: "arrow_forward", items: LIBRARY.inputs },
 		{ key: "outputs", label: "Outputs", icon: "arrow_back", items: LIBRARY.outputs }
 	];
 </script>
@@ -222,13 +178,12 @@
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <svelte:window onclick={handleWindowClick} />
 
-<aside class="sidebar" class:sidebar-collapsed={collapsed}>
+<aside class="sidebar" class:sidebar-collapsed={collapsed} style="width: {collapsed ? 40 : sidebarWidth}px; min-width: {collapsed ? 40 : sidebarWidth}px;">
 	<div class="sidebar-header">
 		<button class="sidebar-collapse-btn" onclick={() => collapsed = !collapsed}>
-			{collapsed ? "›" : "‹"}
+			{collapsed ? "▸" : "◂"}
 		</button>
 		{#if !collapsed}
-			<span class="sidebar-icon">&#xe1b8;</span>
 			<span class="sidebar-title">Components</span>
 		{/if}
 	</div>
@@ -242,46 +197,80 @@
 		>
 			<span class="section-label">{section.label}</span>
 			<span class="section-count">{section.key === "spaces" ? section.items.length + customSpaces.length : section.items.length}</span>
-			<span class="section-chevron">&#x203A;</span>
+			<span class="section-chevron">{expandedSection === section.key ? "▾" : "▸"}</span>
 		</button>
 
 		{#if expandedSection === section.key}
 			<div class="section-items">
-				{#each section.items as item}
-					{@const pt = primaryType(item)}
-					<div
-						draggable="true"
-						class="chip"
-						ondragstart={(e) => {
-							e.dataTransfer!.setData(
-								"node-template",
-								JSON.stringify(item)
-							);
-							const ghost = document.createElement("div");
-							ghost.textContent = item.label;
-							ghost.style.cssText = `background:${PORT_COLOR[pt]};color:#0c0d10;padding:4px 10px;border-radius:5px;font-family:Manrope,sans-serif;font-size:11px;font-weight:600;position:fixed;top:-100px`;
-							document.body.appendChild(ghost);
-							e.dataTransfer!.setDragImage(ghost, 0, 0);
-							setTimeout(() => document.body.removeChild(ghost), 0);
-						}}
-					>
-						<span
-							class="chip-dot"
-							style="background: {PORT_COLOR[pt]}; box-shadow: 0 0 6px {PORT_COLOR[pt]}40"
-						></span>
-						<span class="chip-label">{item.label}</span>
-						{#if item.source === "space" && item.space_id}
-							<a
-								class="chip-link"
-								href="https://huggingface.co/spaces/{item.space_id}"
-								target="_blank"
-								rel="noopener"
-								onclick={(e) => e.stopPropagation()}
-								title="Open on HuggingFace"
-							>&#x2197;</a>
+				{#if section.key === "spaces"}
+					<!-- Categorized spaces -->
+					{#each spaceCategories as cat}
+						{@const catSpaces = getSpacesByCategory(cat.key)}
+						{#if catSpaces.length > 0}
+							<div class="category-header">
+								<span class="category-label">{cat.label}</span>
+							</div>
+							{#each catSpaces as item}
+								{@const pt = primaryType(item)}
+								<div
+									draggable="true"
+									class="chip"
+									ondragstart={(e) => {
+										e.dataTransfer!.setData("node-template", JSON.stringify(item));
+										const ghost = document.createElement("div");
+										ghost.textContent = item.label;
+										ghost.style.cssText = `background:${PORT_COLOR[pt]};color:#0c0d10;padding:4px 10px;border-radius:5px;font-family:Manrope,sans-serif;font-size:11px;font-weight:600;position:fixed;top:-100px`;
+										document.body.appendChild(ghost);
+										e.dataTransfer!.setDragImage(ghost, 0, 0);
+										setTimeout(() => document.body.removeChild(ghost), 0);
+									}}
+								>
+									<span
+										class="chip-dot"
+										style="background: {PORT_COLOR[pt]}; box-shadow: 0 0 6px {PORT_COLOR[pt]}40"
+									></span>
+									<span class="chip-label">{item.label}</span>
+									<a
+										class="chip-link"
+										href="https://huggingface.co/spaces/{item.space_id}"
+										target="_blank"
+										rel="noopener"
+										onclick={(e) => e.stopPropagation()}
+										title="Open on HuggingFace"
+									>&#x2197;</a>
+									<button
+										class="chip-remove"
+										onclick={(e) => { e.stopPropagation(); removePreset(item.space_id ?? ""); }}
+										title="Remove"
+									>&times;</button>
+								</div>
+							{/each}
 						{/if}
-					</div>
-				{/each}
+					{/each}
+				{:else}
+					{#each section.items as item}
+						{@const pt = primaryType(item)}
+						<div
+							draggable="true"
+							class="chip"
+							ondragstart={(e) => {
+								e.dataTransfer!.setData("node-template", JSON.stringify(item));
+								const ghost = document.createElement("div");
+								ghost.textContent = item.label;
+								ghost.style.cssText = `background:${PORT_COLOR[pt]};color:#0c0d10;padding:4px 10px;border-radius:5px;font-family:Manrope,sans-serif;font-size:11px;font-weight:600;position:fixed;top:-100px`;
+								document.body.appendChild(ghost);
+								e.dataTransfer!.setDragImage(ghost, 0, 0);
+								setTimeout(() => document.body.removeChild(ghost), 0);
+							}}
+						>
+							<span
+								class="chip-dot"
+								style="background: {PORT_COLOR[pt]}; box-shadow: 0 0 6px {PORT_COLOR[pt]}40"
+							></span>
+							<span class="chip-label">{item.label}</span>
+						</div>
+					{/each}
+				{/if}
 
 				{#if section.key === "spaces"}
 					{#each customSpaces as item, i}
@@ -347,16 +336,22 @@
 										class="search-result"
 										onclick={() => selectSearchResult(result.id)}
 									>
-										<span class="search-result-name">{result.id}</span>
-										<span class="search-result-likes">&hearts; {result.likes}</span>
-										<a
-											class="search-result-link"
-											href="https://huggingface.co/spaces/{result.id}"
-											target="_blank"
-											rel="noopener"
-											onclick={(e) => e.stopPropagation()}
-											title="Open on HuggingFace"
-										>&#x2197;</a>
+										<div class="search-result-top">
+											<span class="search-result-status" class:search-result-running={result.running} title={result.running ? "Running" : "Not running"}></span>
+											<span class="search-result-name">{result.id}</span>
+											<span class="search-result-likes">&hearts; {result.likes}</span>
+											<a
+												class="search-result-link"
+												href="https://huggingface.co/spaces/{result.id}"
+												target="_blank"
+												rel="noopener"
+												onclick={(e) => e.stopPropagation()}
+												title="Open on HuggingFace"
+											>&#x2197;</a>
+										</div>
+										{#if result.description}
+											<div class="search-result-desc">{result.description}</div>
+										{/if}
 									</button>
 								{/each}
 							</div>
@@ -384,13 +379,15 @@
 		<span class="hint">Drag to canvas</span>
 	</div>
 	{/if}
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	{#if !collapsed}
+		<div class="resize-handle" onmousedown={startResize}></div>
+	{/if}
 </aside>
 
 <style>
 	.sidebar {
-		width: 220px;
-		min-width: 220px;
-		transition: width 0.2s, min-width 0.2s;
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		background: #101118;
@@ -409,15 +406,17 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 22px;
-		height: 22px;
+		width: 24px;
+		height: 24px;
 		border: none;
 		border-radius: 4px;
 		background: transparent;
 		color: #5c5e6a;
-		font-size: 14px;
+		font-size: 16px !important;
 		cursor: pointer;
 		flex-shrink: 0;
+		padding: 0;
+		line-height: 1;
 		transition: color 0.15s, background 0.15s;
 	}
 
@@ -429,8 +428,8 @@
 	.sidebar-header {
 		display: flex;
 		align-items: center;
-		gap: 8px;
-		padding: 14px 16px 10px;
+		gap: 6px;
+		padding: 12px 12px 10px;
 		border-bottom: 1px solid #1e1f2a;
 	}
 
@@ -439,11 +438,6 @@
 		padding: 14px 8px 10px;
 	}
 
-	.sidebar-icon {
-		font-family: "Material Symbols Rounded";
-		font-size: 16px;
-		color: #5c5e6a;
-	}
 
 	.sidebar-title {
 		font-size: 11px;
@@ -484,14 +478,13 @@
 	}
 
 	.section-chevron {
-		font-size: 14px;
-		color: #3e3f4d;
-		transition: transform 0.2s;
+		font-size: 14px !important;
+		color: #5c5e6a;
 		line-height: 1;
 	}
 
 	.section-toggle.expanded .section-chevron {
-		transform: rotate(90deg);
+		transform: none;
 	}
 
 	.section-items {
@@ -526,6 +519,26 @@
 		height: 7px;
 		border-radius: 50%;
 		flex-shrink: 0;
+	}
+
+	.category-header {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 8px 10px 4px;
+		margin-top: 4px;
+	}
+
+	.category-header:first-child {
+		margin-top: 0;
+	}
+
+	.category-label {
+		font-size: 10px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: #5c5e6a;
 	}
 
 	.chip-label {
@@ -675,11 +688,11 @@
 
 	.search-result {
 		display: flex;
-		align-items: center;
-		justify-content: space-between;
+		flex-direction: column;
 		width: 100%;
 		padding: 7px 10px;
 		border: none;
+		border-bottom: 1px solid #1e1f2a;
 		background: transparent;
 		color: #c8c9d2;
 		cursor: pointer;
@@ -687,8 +700,32 @@
 		transition: background 0.1s;
 	}
 
+	.search-result:last-child {
+		border-bottom: none;
+	}
+
 	.search-result:hover {
 		background: #1a1b25;
+	}
+
+	.search-result-top {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		width: 100%;
+	}
+
+	.search-result-status {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: #5c5e6a;
+		flex-shrink: 0;
+	}
+
+	.search-result-running {
+		background: #34d399;
+		box-shadow: 0 0 4px #34d39960;
 	}
 
 	.search-result-name {
@@ -700,12 +737,21 @@
 		white-space: nowrap;
 	}
 
+	.search-result-desc {
+		font-size: 9.5px;
+		color: #5c5e6a;
+		margin-top: 2px;
+		padding-left: 12px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
 	.search-result-likes {
 		font-family: "JetBrains Mono", monospace;
 		font-size: 9px;
 		color: #5c5e6a;
 		flex-shrink: 0;
-		margin-left: 6px;
 	}
 
 	.search-result-link {
@@ -772,6 +818,20 @@
 		margin-top: auto;
 		padding: 12px 16px;
 		border-top: 1px solid #1e1f2a;
+	}
+
+	.resize-handle {
+		position: absolute;
+		top: 0;
+		right: -3px;
+		width: 6px;
+		height: 100%;
+		cursor: col-resize;
+		z-index: 10;
+	}
+
+	.resize-handle:hover {
+		background: rgba(249, 115, 22, 0.3);
 	}
 
 	.hint {

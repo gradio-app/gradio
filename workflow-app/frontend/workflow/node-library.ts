@@ -6,6 +6,7 @@ export interface NodeTemplate {
 	source: "local" | "space";
 	space_id?: string;
 	endpoint?: string;
+	category?: string;
 	inputs: { id: string; label: string; type: PortType }[];
 	outputs: { id: string; label: string; type: PortType }[];
 	width: number;
@@ -60,15 +61,6 @@ export const LIBRARY: Record<string, NodeTemplate[]> = {
 			height: 130
 		},
 		{
-			label: "Checkbox",
-			kind: "input",
-			source: "local",
-			outputs: [{ id: "out", label: "Boolean", type: "boolean" }],
-			inputs: [],
-			width: 220,
-			height: 110
-		},
-		{
 			label: "File",
 			kind: "input",
 			source: "local",
@@ -97,46 +89,84 @@ export const LIBRARY: Record<string, NodeTemplate[]> = {
 		}
 	],
 	spaces: [
+		// Image
 		{
-			label: "Remove background",
+			label: "not-lain/background-removal",
 			kind: "transform",
 			source: "space",
 			space_id: "not-lain/background-removal",
-			endpoint: "/image",
-			inputs: [{ id: "in", label: "Image", type: "image", required: true }],
-			outputs: [{ id: "out", label: "Image", type: "image" }],
-			width: 200,
+			category: "image",
+			inputs: [],
+			outputs: [],
+			width: 280,
 			height: 90
 		},
 		{
-			label: "Generate image",
+			label: "black-forest-labs/FLUX.1-schnell",
 			kind: "transform",
 			source: "space",
 			space_id: "black-forest-labs/FLUX.1-schnell",
-			inputs: [{ id: "in", label: "Prompt", type: "text", required: true }],
-			outputs: [{ id: "out", label: "Image", type: "image" }],
-			width: 200,
+			category: "image",
+			inputs: [],
+			outputs: [],
+			width: 280,
 			height: 90
 		},
 		{
-			label: "Transcribe",
+			label: "vikhyatk/moondream1",
+			kind: "transform",
+			source: "space",
+			space_id: "vikhyatk/moondream1",
+			category: "image",
+			inputs: [],
+			outputs: [],
+			width: 280,
+			height: 90
+		},
+		// Audio
+		{
+			label: "hf-audio/whisper-large-v3-turbo",
 			kind: "transform",
 			source: "space",
 			space_id: "hf-audio/whisper-large-v3-turbo",
-			inputs: [{ id: "in", label: "Audio", type: "audio", required: true }],
-			outputs: [{ id: "out", label: "Text", type: "text" }],
-			width: 200,
+			category: "audio",
+			inputs: [],
+			outputs: [],
+			width: 280,
 			height: 90
 		},
 		{
-			label: "Describe image",
+			label: "mrfakename/E2-F5-TTS",
 			kind: "transform",
 			source: "space",
-			space_id: "Salesforce/BLIP",
-			endpoint: "/predict",
-			inputs: [{ id: "in", label: "Image", type: "image", required: true }],
-			outputs: [{ id: "out", label: "Caption", type: "text" }],
-			width: 200,
+			space_id: "mrfakename/E2-F5-TTS",
+			category: "audio",
+			inputs: [],
+			outputs: [],
+			width: 280,
+			height: 90
+		},
+		// Text
+		{
+			label: "UNESCO/nllb",
+			kind: "transform",
+			source: "space",
+			space_id: "UNESCO/nllb",
+			category: "text",
+			inputs: [],
+			outputs: [],
+			width: 280,
+			height: 90
+		},
+		{
+			label: "huggingface-projects/gemma-2-9b-it",
+			kind: "transform",
+			source: "space",
+			space_id: "huggingface-projects/gemma-2-9b-it",
+			category: "text",
+			inputs: [],
+			outputs: [],
+			width: 280,
 			height: 90
 		}
 	],

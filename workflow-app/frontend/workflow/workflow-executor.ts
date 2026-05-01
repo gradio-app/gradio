@@ -7,96 +7,9 @@ import type {
 	FileValue
 } from "./workflow-types";
 
-function spaceBaseUrl(spaceId: string): string {
-	if (spaceId.startsWith("http")) return spaceId;
-	return `https://${spaceId.replace("/", "-").toLowerCase()}.hf.space`;
-}
-
-// Simple fetch-based Space API caller (avoids @gradio/client resolving to localhost)
-async function callSpaceApi(
-	spaceId: string,
-	endpoint: string,
-	data: unknown[]
-): Promise<{ data: unknown[] }> {
-	const base = spaceBaseUrl(spaceId);
-
-	// First, upload any Blob/File args and wrap as FileData objects
-	const processedData = await Promise.all(
-		data.map(async (arg) => {
-			if (arg instanceof Blob) {
-				const formData = new FormData();
-				formData.append("files", arg);
-				const uploadRes = await fetch(`${base}/gradio_api/upload`, { method: "POST", body: formData });
-				if (!uploadRes.ok) throw new Error(`Upload failed: ${uploadRes.status}`);
-				const files = await uploadRes.json();
-				// Wrap as FileData object — the API expects {path: ...} not a bare string
-				const filePath = files[0];
-				return { path: filePath };
-			}
-			return arg;
-		})
-	);
-
-	const res = await fetch(`${base}/gradio_api/call${endpoint}`, {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ data: processedData })
-	});
-
-	if (!res.ok) {
-		const errText = await res.text();
-		throw new Error(`Space API error ${res.status}: ${errText}`);
-	}
-
-	const { event_id } = await res.json();
-
-	// Poll for results via SSE
-	const statusRes = await fetch(`${base}/gradio_api/call${endpoint}/${event_id}`);
-	if (!statusRes.ok) throw new Error(`Status check failed: ${statusRes.status}`);
-
-	const text = await statusRes.text();
-	// Parse SSE response — events come as "event: type\ndata: json\n\n"
-	const events = text.split("\n\n").filter(Boolean);
-	for (const event of events) {
-		const lines = event.split("\n");
-		let eventType = "";
-		let eventData = "";
-		for (const line of lines) {
-			if (line.startsWith("event: ")) eventType = line.slice(7).trim();
-			if (line.startsWith("data: ")) eventData = line.slice(6);
-		}
-		if (eventType === "error") {
-			let errorMsg = "Space returned an error";
-			if (eventData && eventData !== "null") {
-				try {
-					const errObj = JSON.parse(eventData);
-					errorMsg = typeof errObj === "string" ? errObj : errObj?.message || errObj?.error || JSON.stringify(errObj);
-				} catch {
-					errorMsg = eventData;
-				}
-			} else {
-				errorMsg = "Space error — may be ZeroGPU quota exceeded or Space is sleeping. Try again later.";
-			}
-			throw new Error(errorMsg);
-		}
-		if (eventType === "complete" && eventData) {
-			try {
-				const parsed = JSON.parse(eventData);
-				if (Array.isArray(parsed)) return { data: parsed };
-				if (parsed && parsed.data) return { data: parsed.data };
-			} catch {
-				throw new Error(`Failed to parse result: ${eventData}`);
-			}
-		}
-	}
-	throw new Error("No data received from Space");
-}
-
-type StatusCallback = (nodeId: string, status: NodeStatus, error?: string) => void;
+type StatusCallback = (nodeId: string, status: NodeStatus, error?: string, errorType?: string) => void;
 type OutputCallback = (nodeId: string, portId: string, value: NodeDataValue) => void;
-
-// Data flowing through the DAG, keyed by nodeId then portId
-type DataMap = Record<string, Record<string, NodeDataValue>>;
+type ServerCallFn = (spaceId: string, endpoint: string, argsJson: string) => Promise<string>;
 
 function topoSort(nodes: WFNode[], edges: WFEdge[]): WFNode[] {
 	const deg = new Map(nodes.map((n) => [n.id, 0]));
@@ -122,7 +35,7 @@ function topoSort(nodes: WFNode[], edges: WFEdge[]): WFNode[] {
 function resolveInputs(
 	node: WFNode,
 	edges: WFEdge[],
-	dataMap: DataMap
+	dataMap: Record<string, Record<string, NodeDataValue>>
 ): Record<string, NodeDataValue> {
 	const resolved: Record<string, NodeDataValue> = {};
 	for (const port of node.inputs) {
@@ -132,7 +45,6 @@ function resolveInputs(
 		if (edge) {
 			resolved[port.id] = dataMap[edge.from_node_id]?.[edge.from_port_id] ?? null;
 		} else {
-			// Check node.data for directly configured values, then port default, otherwise null
 			resolved[port.id] = node.data?.[port.id]
 				?? (port.default_value as NodeDataValue)
 				?? null;
@@ -141,58 +53,64 @@ function resolveInputs(
 	return resolved;
 }
 
-async function toGradioInput(value: NodeDataValue): Promise<unknown> {
+async function toGradioArg(value: NodeDataValue): Promise<unknown> {
 	if (value === null) return null;
 	if (typeof value === "string") return value;
 	if (typeof value === "number") return value;
 	if (typeof value === "boolean") return value;
-	// FileValue — handle differently based on URL type
-	if (value.url.startsWith("blob:") || value.url.startsWith("data:")) {
-		// Local file — fetch into a Blob
-		const response = await fetch(value.url);
-		return await response.blob();
+	const fileVal = value as FileValue;
+	// Blob URLs need to be uploaded to our Gradio server first
+	if (fileVal.url.startsWith("blob:") || fileVal.url.startsWith("data:")) {
+		try {
+			const response = await fetch(fileVal.url);
+			if (!response.ok) throw new Error(`Blob fetch failed: ${response.status}`);
+			const blob = await response.blob();
+			const formData = new FormData();
+			formData.append("files", blob, fileVal.name || "file");
+			// Try /gradio_api/upload first, then /upload
+			for (const path of ["/gradio_api/upload", "/upload"]) {
+				const uploadRes = await fetch(path, { method: "POST", body: formData });
+				if (uploadRes.ok) {
+					const files = await uploadRes.json();
+					return { path: files[0], url: files[0] };
+				}
+			}
+			throw new Error("Upload failed");
+		} catch (err) {
+			console.error("[Executor] File upload error:", err);
+			throw new Error(`Failed to upload file: ${err instanceof Error ? err.message : err}`);
+		}
 	}
-	// Remote URL (from a previous Space output) — pass as FileData
-	return { url: value.url };
+	// Remote URLs can be passed directly
+	return { url: fileVal.url };
 }
 
 function fromGradioOutput(result: unknown, portType: string): NodeDataValue {
 	if (result === null || result === undefined) return null;
-	// Unwrap arrays (e.g. ImageSlider returns [before, after] — take the last/processed one)
+	// Unwrap arrays (e.g. ImageSlider returns [before, after])
 	if (Array.isArray(result)) {
 		if (result.length === 0) return null;
-		// Take the last element (usually the processed output)
 		return fromGradioOutput(result[result.length - 1], portType);
 	}
 	if (typeof result === "number") return result;
 	if (typeof result === "boolean") return result;
 	if (typeof result === "string") {
-		// Could be a URL to a file or plain text
 		if (
 			portType !== "text" &&
-			(result.startsWith("http://") ||
-				result.startsWith("https://") ||
-				result.startsWith("blob:") ||
-				result.startsWith("data:"))
+			(result.startsWith("http://") || result.startsWith("https://") || result.startsWith("blob:") || result.startsWith("data:"))
 		) {
-			return {
-				name: "output",
-				url: result,
-				mime: portType === "image" ? "image/png" : portType === "audio" ? "audio/wav" : "video/mp4"
-			} satisfies FileValue;
+			return { name: "output", url: result, mime: portType === "image" ? "image/png" : portType === "audio" ? "audio/wav" : "video/mp4" } satisfies FileValue;
 		}
 		return result;
 	}
-	// Gradio often returns objects with a `url` field
 	if (typeof result === "object" && "url" in (result as Record<string, unknown>)) {
 		const obj = result as Record<string, unknown>;
 		return {
-			name: (obj.orig_name as string) ?? (obj.path as string) ?? "output",
+			name: (obj.orig_name as string) ?? "output",
 			url: obj.url as string,
 			mime: (obj.mime_type as string) ?? "application/octet-stream"
 		} satisfies FileValue;
 	}
-	// Fallback: stringify
 	return String(result);
 }
 
@@ -200,21 +118,20 @@ export async function executeWorkflow(
 	workflow: Workflow,
 	onStatus: StatusCallback,
 	onOutput: OutputCallback,
-	signal?: AbortSignal
+	signal?: AbortSignal,
+	serverCallSpace?: ServerCallFn
 ): Promise<void> {
 	const { nodes, edges } = workflow;
-	const dataMap: DataMap = {};
+	const dataMap: Record<string, Record<string, NodeDataValue>> = {};
 
-	// Seed data from input nodes
+	// Seed input nodes
 	for (const node of nodes.filter((n) => n.kind === "input")) {
 		dataMap[node.id] = { ...(node.data ?? {}) };
 	}
 
-	// Group nodes into layers by dependency depth for parallel execution
+	// Build layers for parallel execution
 	const sorted = topoSort(nodes, edges);
 	const layers: WFNode[][] = [];
-
-	// Build layers: a node goes in the earliest layer where all its deps are done
 	for (const node of sorted) {
 		const depDepth = edges
 			.filter((e) => e.to_node_id === node.id)
@@ -254,27 +171,38 @@ export async function executeWorkflow(
 
 			try {
 				const inputs = resolveInputs(node, edges, dataMap);
-				const payload: unknown[] = await Promise.all(
-					node.inputs.map((port) => toGradioInput(inputs[port.id]))
-				);
-
+				const args = await Promise.all(node.inputs.map((port) => toGradioArg(inputs[port.id])));
 				const endpointName = node.endpoint ?? "/predict";
-				console.log(`[Executor] Calling ${node.space_id} endpoint="${endpointName}" with ${payload.length} args via fetch`);
 
-				if (signal?.aborted) {
-					onStatus(node.id, "error", "Cancelled");
-					return;
+				console.log(`[Executor] Calling ${node.space_id} endpoint="${endpointName}" inputs:`, JSON.stringify(inputs), `args:`, JSON.stringify(args), `node.data:`, JSON.stringify(node.data));
+
+				if (!serverCallSpace) {
+					throw new Error("Server call function not available");
 				}
 
-				const result = await Promise.race([
-					callSpaceApi(node.space_id, endpointName, payload),
+				const resultJson = await Promise.race([
+					serverCallSpace(node.space_id, endpointName, JSON.stringify(args)),
 					new Promise<never>((_, reject) =>
-						setTimeout(() => reject(new Error("Request timed out — Space may be overloaded or quota exceeded")), 120000)
+						setTimeout(() => reject(new Error("Request timed out — Space may be overloaded")), 300000)
 					)
 				]);
 
+				const resultData = JSON.parse(resultJson);
+
+				// Check for structured error from Python
+				if (resultData && typeof resultData === "object" && "error" in resultData) {
+					const title = resultData.title;
+					const suggestion = resultData.suggestion;
+					const errorType = resultData.error_type;
+					let msg = title ? `${title}: ${resultData.error}` : resultData.error;
+					if (suggestion) msg += ` — ${suggestion}`;
+					const err = new Error(msg);
+					(err as any).errorType = errorType;
+					throw err;
+				}
+
 				dataMap[node.id] = {};
-				const outputData = Array.isArray(result.data) ? result.data : [result.data];
+				const outputData = Array.isArray(resultData) ? resultData : [resultData];
 				node.outputs.forEach((port, i) => {
 					const value = fromGradioOutput(outputData[i] ?? null, port.type);
 					dataMap[node.id][port.id] = value;
@@ -284,7 +212,8 @@ export async function executeWorkflow(
 				onStatus(node.id, "done");
 			} catch (err) {
 				const msg = err instanceof Error ? err.message : String(err);
-				onStatus(node.id, "error", msg);
+				const errorType = (err as any)?.errorType;
+				onStatus(node.id, "error", msg, errorType);
 				dataMap[node.id] = {};
 				node.outputs.forEach((port) => {
 					dataMap[node.id][port.id] = null;
@@ -293,7 +222,7 @@ export async function executeWorkflow(
 		}
 	}
 
-	// Execute layers — nodes within a layer run in parallel
+	// Execute layers in parallel
 	for (const layer of layers) {
 		if (signal?.aborted) break;
 		await Promise.all(layer.map(executeNode));

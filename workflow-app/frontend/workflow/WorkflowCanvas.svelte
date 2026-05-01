@@ -2,6 +2,7 @@
 	import WorkflowNode from "./WorkflowNode.svelte";
 	import WorkflowEdges from "./WorkflowEdges.svelte";
 	import WorkflowSidebar from "./WorkflowSidebar.svelte";
+	import { fetchSpaceApi } from "./space-api";
 	import {
 		workflow,
 		addNode,
@@ -18,223 +19,15 @@
 	import { publishToHub } from "./workflow-to-space";
 	import type { Workflow } from "./workflow-types";
 
+	let { server = {} }: { server?: Record<string, any> } = $props();
+
 	const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] = [
 		{
-			name: "Remove background",
+			name: "not-lain/background-removal",
 			desc: "Image → background removal → clean image",
 			build: () => ({
 				version: "1",
-				name: "Remove background",
-				nodes: [
-					{
-						id: "t1",
-						kind: "input",
-						label: "Image",
-						source: "local",
-						inputs: [],
-						outputs: [{ id: "out", label: "Image", type: "image" }],
-						x: 80,
-						y: 120,
-						width: 220,
-						height: 160,
-						data: {},
-					},
-					{
-						id: "t2",
-						kind: "transform",
-						label: "Remove background",
-						source: "space",
-						space_id: "BRIA/BRIA-RMBG-2.0",
-						inputs: [
-							{ id: "in", label: "Image", type: "image", required: true },
-						],
-						outputs: [{ id: "out", label: "Image", type: "image" }],
-						x: 420,
-						y: 120,
-						width: 200,
-						height: 90,
-						data: {},
-					},
-					{
-						id: "t3",
-						kind: "output",
-						label: "Image",
-						source: "local",
-						inputs: [{ id: "in", label: "Image", type: "image" }],
-						outputs: [{ id: "out", label: "Image", type: "image" }],
-						x: 740,
-						y: 120,
-						width: 220,
-						height: 160,
-						data: {},
-					},
-				],
-				edges: [
-					{
-						id: "e1",
-						from_node_id: "t1",
-						from_port_id: "out",
-						to_node_id: "t2",
-						to_port_id: "in",
-						type: "image",
-					},
-					{
-						id: "e2",
-						from_node_id: "t2",
-						from_port_id: "out",
-						to_node_id: "t3",
-						to_port_id: "in",
-						type: "image",
-					},
-				],
-			}),
-		},
-		{
-			name: "Text to image",
-			desc: "Prompt → FLUX → generated image",
-			build: () => ({
-				version: "1",
-				name: "Text to image",
-				nodes: [
-					{
-						id: "t1",
-						kind: "input",
-						label: "Textbox",
-						source: "local",
-						inputs: [],
-						outputs: [{ id: "out", label: "Text", type: "text" }],
-						x: 80,
-						y: 120,
-						width: 220,
-						height: 160,
-						data: {},
-					},
-					{
-						id: "t2",
-						kind: "transform",
-						label: "Generate image",
-						source: "space",
-						space_id: "black-forest-labs/FLUX.1-schnell",
-						inputs: [
-							{ id: "in", label: "Prompt", type: "text", required: true },
-						],
-						outputs: [{ id: "out", label: "Image", type: "image" }],
-						x: 420,
-						y: 120,
-						width: 200,
-						height: 90,
-						data: {},
-					},
-					{
-						id: "t3",
-						kind: "output",
-						label: "Image",
-						source: "local",
-						inputs: [{ id: "in", label: "Image", type: "image" }],
-						outputs: [{ id: "out", label: "Image", type: "image" }],
-						x: 740,
-						y: 120,
-						width: 220,
-						height: 160,
-						data: {},
-					},
-				],
-				edges: [
-					{
-						id: "e1",
-						from_node_id: "t1",
-						from_port_id: "out",
-						to_node_id: "t2",
-						to_port_id: "in",
-						type: "text",
-					},
-					{
-						id: "e2",
-						from_node_id: "t2",
-						from_port_id: "out",
-						to_node_id: "t3",
-						to_port_id: "in",
-						type: "image",
-					},
-				],
-			}),
-		},
-		{
-			name: "Transcribe audio",
-			desc: "Audio → Whisper → transcript text",
-			build: () => ({
-				version: "1",
-				name: "Transcribe audio",
-				nodes: [
-					{
-						id: "t1",
-						kind: "input",
-						label: "Audio",
-						source: "local",
-						inputs: [],
-						outputs: [{ id: "out", label: "Audio", type: "audio" }],
-						x: 80,
-						y: 120,
-						width: 220,
-						height: 160,
-						data: {},
-					},
-					{
-						id: "t2",
-						kind: "transform",
-						label: "Transcribe",
-						source: "space",
-						space_id: "hf-audio/whisper-large-v3-turbo",
-						inputs: [
-							{ id: "in", label: "Audio", type: "audio", required: true },
-						],
-						outputs: [{ id: "out", label: "Text", type: "text" }],
-						x: 420,
-						y: 120,
-						width: 200,
-						height: 90,
-						data: {},
-					},
-					{
-						id: "t3",
-						kind: "output",
-						label: "Textbox",
-						source: "local",
-						inputs: [{ id: "in", label: "Text", type: "text" }],
-						outputs: [{ id: "out", label: "Text", type: "text" }],
-						x: 740,
-						y: 120,
-						width: 220,
-						height: 160,
-						data: {},
-					},
-				],
-				edges: [
-					{
-						id: "e1",
-						from_node_id: "t1",
-						from_port_id: "out",
-						to_node_id: "t2",
-						to_port_id: "in",
-						type: "audio",
-					},
-					{
-						id: "e2",
-						from_node_id: "t2",
-						from_port_id: "out",
-						to_node_id: "t3",
-						to_port_id: "in",
-						type: "text",
-					},
-				],
-			}),
-		},
-		{
-			name: "Remove background",
-			desc: "Image → remove background → clean image",
-			build: () => ({
-				version: "1",
-				name: "Remove background",
+				name: "not-lain/background-removal",
 				nodes: [
 					{
 						id: "t1",
@@ -300,13 +93,274 @@
 				],
 			}),
 		},
+		{
+			name: "black-forest-labs/FLUX.1-schnell",
+			desc: "Prompt → FLUX → generated image",
+			build: () => ({
+				version: "1",
+				name: "black-forest-labs/FLUX.1-schnell",
+				nodes: [
+					{
+						id: "t1",
+						kind: "input",
+						label: "Textbox",
+						source: "local",
+						inputs: [],
+						outputs: [{ id: "out", label: "Text", type: "text" }],
+						x: 80,
+						y: 120,
+						width: 220,
+						height: 160,
+						data: {},
+					},
+					{
+						id: "t2",
+						kind: "transform",
+						label: "Generate image",
+						source: "space",
+						space_id: "black-forest-labs/FLUX.1-schnell",
+						inputs: [
+							{ id: "in", label: "Prompt", type: "text", required: true },
+						],
+						outputs: [{ id: "out", label: "Image", type: "image" }],
+						x: 420,
+						y: 120,
+						width: 200,
+						height: 90,
+						data: {},
+					},
+					{
+						id: "t3",
+						kind: "output",
+						label: "Image",
+						source: "local",
+						inputs: [{ id: "in", label: "Image", type: "image" }],
+						outputs: [{ id: "out", label: "Image", type: "image" }],
+						x: 740,
+						y: 120,
+						width: 220,
+						height: 160,
+						data: {},
+					},
+				],
+				edges: [
+					{
+						id: "e1",
+						from_node_id: "t1",
+						from_port_id: "out",
+						to_node_id: "t2",
+						to_port_id: "in",
+						type: "text",
+					},
+					{
+						id: "e2",
+						from_node_id: "t2",
+						from_port_id: "out",
+						to_node_id: "t3",
+						to_port_id: "in",
+						type: "image",
+					},
+				],
+			}),
+		},
+		{
+			name: "hf-audio/whisper-large-v3-turbo",
+			desc: "Audio → Whisper → transcript text",
+			build: () => ({
+				version: "1",
+				name: "hf-audio/whisper-large-v3-turbo",
+				nodes: [
+					{
+						id: "t1",
+						kind: "input",
+						label: "Audio",
+						source: "local",
+						inputs: [],
+						outputs: [{ id: "out", label: "Audio", type: "audio" }],
+						x: 80,
+						y: 120,
+						width: 220,
+						height: 160,
+						data: {},
+					},
+					{
+						id: "t2",
+						kind: "transform",
+						label: "Transcribe",
+						source: "space",
+						space_id: "hf-audio/whisper-large-v3-turbo",
+						inputs: [
+							{ id: "in", label: "Audio", type: "audio", required: true },
+						],
+						outputs: [{ id: "out", label: "Text", type: "text" }],
+						x: 420,
+						y: 120,
+						width: 200,
+						height: 90,
+						data: {},
+					},
+					{
+						id: "t3",
+						kind: "output",
+						label: "Textbox",
+						source: "local",
+						inputs: [{ id: "in", label: "Text", type: "text" }],
+						outputs: [{ id: "out", label: "Text", type: "text" }],
+						x: 740,
+						y: 120,
+						width: 220,
+						height: 160,
+						data: {},
+					},
+				],
+				edges: [
+					{
+						id: "e1",
+						from_node_id: "t1",
+						from_port_id: "out",
+						to_node_id: "t2",
+						to_port_id: "in",
+						type: "audio",
+					},
+					{
+						id: "e2",
+						from_node_id: "t2",
+						from_port_id: "out",
+						to_node_id: "t3",
+						to_port_id: "in",
+						type: "text",
+					},
+				],
+			}),
+		},
+		{
+			name: "vikhyatk/moondream1",
+			desc: "Image → caption → text description",
+			build: () => ({
+				version: "1",
+				name: "vikhyatk/moondream1",
+				nodes: [
+					{
+						id: "t1",
+						kind: "input",
+						label: "Image",
+						source: "local",
+						inputs: [],
+						outputs: [{ id: "out", label: "Image", type: "image" }],
+						x: 80,
+						y: 120,
+						width: 220,
+						height: 160,
+						data: {},
+					},
+					{
+						id: "t2",
+						kind: "transform",
+						label: "Describe image",
+						source: "space",
+						space_id: "vikhyatk/moondream1",
+						inputs: [
+							{ id: "in", label: "Image", type: "image", required: true },
+						],
+						outputs: [{ id: "out", label: "Caption", type: "text" }],
+						x: 420,
+						y: 120,
+						width: 200,
+						height: 90,
+						data: {},
+					},
+					{
+						id: "t3",
+						kind: "output",
+						label: "Textbox",
+						source: "local",
+						inputs: [{ id: "in", label: "Text", type: "text" }],
+						outputs: [{ id: "out", label: "Text", type: "text" }],
+						x: 740,
+						y: 120,
+						width: 220,
+						height: 160,
+						data: {},
+					},
+				],
+				edges: [
+					{
+						id: "e1",
+						from_node_id: "t1",
+						from_port_id: "out",
+						to_node_id: "t2",
+						to_port_id: "in",
+						type: "image",
+					},
+					{
+						id: "e2",
+						from_node_id: "t2",
+						from_port_id: "out",
+						to_node_id: "t3",
+						to_port_id: "in",
+						type: "text",
+					},
+				],
+			}),
+		},
 	];
 
-	function loadTemplate(t: (typeof TEMPLATES)[number]): void {
+	async function loadTemplate(t: (typeof TEMPLATES)[number]): Promise<void> {
 		revokeAllBlobUrls($workflow.nodes);
-		workflow.set(t.build());
+		const wf = t.build();
+		workflow.set(wf);
 		resetView();
-		showToast(`Loaded "${t.name}"`);
+		showToast(`Loading "${t.name}"...`);
+
+		// Fetch API info for any space nodes and update them in place
+		const spaceNodes = wf.nodes.filter((n: any) => n.source === "space" && n.space_id);
+		const updates = await Promise.allSettled(
+			spaceNodes.map(async (node: any) => {
+				const apiInfo = await fetchSpaceApi(node.space_id);
+				return { nodeId: node.id, apiInfo };
+			})
+		);
+
+		workflow.update((current) => ({
+			...current,
+			nodes: current.nodes.map((n) => {
+				const update = updates.find(
+					(u) => u.status === "fulfilled" && u.value.nodeId === n.id
+				);
+				if (update && update.status === "fulfilled") {
+					const { apiInfo } = update.value;
+					return { ...n, inputs: apiInfo.inputs, outputs: apiInfo.outputs, endpoint: apiInfo.endpoint, width: apiInfo.width };
+				}
+				return n;
+			}),
+			// Remap edges to use new port IDs
+			edges: current.edges.map((e) => {
+				const srcUpdate = updates.find(
+					(u) => u.status === "fulfilled" && u.value.nodeId === e.from_node_id
+				);
+				const dstUpdate = updates.find(
+					(u) => u.status === "fulfilled" && u.value.nodeId === e.to_node_id
+				);
+				let edge = { ...e };
+				// Map old "out" port to first output, old "in" port to first input
+				if (srcUpdate && srcUpdate.status === "fulfilled") {
+					const firstOut = srcUpdate.value.apiInfo.outputs[0];
+					if (firstOut && edge.from_port_id === "out") edge = { ...edge, from_port_id: firstOut.id };
+				}
+				if (dstUpdate && dstUpdate.status === "fulfilled") {
+					const firstIn = dstUpdate.value.apiInfo.inputs[0];
+					if (firstIn && edge.to_port_id === "in") edge = { ...edge, to_port_id: firstIn.id };
+				}
+				return edge;
+			})
+		}));
+
+		const failures = updates.filter((u) => u.status === "rejected");
+		if (failures.length > 0) {
+			showToast("Some Spaces could not be reached", 5000, "warning");
+		} else {
+			showToast(`Loaded "${t.name}"`, 3000, "success");
+		}
 	}
 
 	let canvasEl: HTMLDivElement;
@@ -333,13 +387,27 @@
 	let deployStatus = $state("");
 	let deploying = $state(false);
 	let deployUrl = $state("");
-	let toast: string | null = $state(null);
+	interface WfToast {
+		id: number;
+		message: string;
+		type: "info" | "warning" | "error" | "success";
+	}
 
-	function showToast(msg: string, ms = 2000): void {
-		toast = msg;
-		setTimeout(() => {
-			toast = null;
-		}, ms);
+	let toasts: WfToast[] = $state([]);
+	let toastCounter = 0;
+
+	function showToast(msg: string, ms = 3000, type: "info" | "warning" | "error" | "success" = "info"): void {
+		const id = ++toastCounter;
+		toasts = [...toasts, { id, message: msg, type }].slice(-3);
+		if (ms > 0) {
+			setTimeout(() => {
+				toasts = toasts.filter((t) => t.id !== id);
+			}, ms);
+		}
+	}
+
+	function dismissToast(id: number): void {
+		toasts = toasts.filter((t) => t.id !== id);
 	}
 
 	// Pan & zoom
@@ -405,16 +473,31 @@
 		return a === "any" || b === "any" || a === b;
 	}
 
-	function handleDrop(e: DragEvent): void {
+	async function handleDrop(e: DragEvent): Promise<void> {
 		e.preventDefault();
 		const raw = e.dataTransfer?.getData("node-template");
 		if (!raw) return;
+		const template = JSON.parse(raw);
 		const r = canvasEl.getBoundingClientRect();
-		addNode(
-			JSON.parse(raw),
-			(e.clientX - r.left - panX) / zoom - 100,
-			(e.clientY - r.top - panY) / zoom - 45,
-		);
+		const x = (e.clientX - r.left - panX) / zoom - 100;
+		const y = (e.clientY - r.top - panY) / zoom - 45;
+
+		// If this is a space node with no inputs/outputs, fetch API info first
+		if (template.source === "space" && template.space_id && template.inputs.length === 0) {
+			showToast(`Connecting to ${template.space_id}...`);
+			try {
+				const apiInfo = await fetchSpaceApi(template.space_id);
+				template.inputs = apiInfo.inputs;
+				template.outputs = apiInfo.outputs;
+				template.endpoint = apiInfo.endpoint;
+				template.width = apiInfo.width;
+			} catch (err) {
+				showToast(err instanceof Error ? err.message : "Failed to connect to Space", 5000, "error");
+				return;
+			}
+		}
+
+		addNode(template, x, y);
 	}
 
 	function revokeAllBlobUrls(nodes: WFNode[]): void {
@@ -509,26 +592,48 @@
 		nodeErrors = {};
 		abortController = new AbortController();
 
+		// Check login status — warn if running GPU spaces without a token
+		const hasGpuSpaces = $workflow.nodes.some((n) => n.source === "space" && n.space_id);
+		if (hasGpuSpaces && server?.get_token) {
+			try {
+				const token = await server.get_token();
+				if (!token) {
+					showToast("Running as guest — GPU Spaces may hit quota limits. Log in for your own compute.", 5000, "warning");
+				}
+			} catch { /* ignore */ }
+		}
+
 		await executeWorkflow(
 			$workflow,
-			(nodeId, status, error) => {
+			(nodeId, status, error, errorType) => {
 				nodeStatus = { ...nodeStatus, [nodeId]: status };
 				if (error) {
 					nodeErrors = { ...nodeErrors, [nodeId]: error };
+					// Show contextual toast for errors
+					const node = $workflow.nodes.find((n) => n.id === nodeId);
+					const label = node?.label ?? node?.space_id ?? "Node";
+					if (errorType === "quota" || errorType === "gpu") {
+						showToast(`${label}: ${error}`, 0, "error"); // persistent
+					} else {
+						showToast(`${label}: ${error}`, 5000, "error");
+					}
 				}
 			},
 			(nodeId, portId, value) => {
 				updateNodeData(nodeId, portId, value);
 			},
 			abortController.signal,
+			server?.call_space
 		);
 
 		running = false;
 		abortController = null;
 
 		const hasErrors = Object.values(nodeStatus).some((s) => s === "error");
-		if (!hasErrors) {
-			showToast("Workflow complete");
+		if (hasErrors) {
+			showToast("Workflow finished with errors", 5000, "error");
+		} else {
+			showToast("Workflow complete", 3000, "success");
 		}
 
 		// Clear done status after 3s so nodes go back to neutral
@@ -550,7 +655,7 @@
 				s === "running" ? "idle" : s,
 			]),
 		);
-		showToast("Stopped");
+		showToast("Stopped", 3000, "warning");
 	}
 
 	function handleGlobalClick(e: MouseEvent): void {
@@ -1047,8 +1152,12 @@
 		</div>
 	</div>
 
-	{#if toast}
-		<div class="toast">{toast}</div>
+	{#if toasts.length > 0}
+		<div class="wf-toast-stack">
+			{#each toasts as t (t.id)}
+				<div class="wf-toast wf-toast-{t.type}">{t.message}</div>
+			{/each}
+		</div>
 	{/if}
 
 	{#if showDeploy}
@@ -1513,11 +1622,19 @@
 		line-height: 1.4;
 	}
 
-	.toast {
+	.wf-toast-stack {
 		position: absolute;
 		bottom: 16px;
 		left: 50%;
 		transform: translateX(-50%);
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		z-index: 30;
+		pointer-events: none;
+	}
+
+	.wf-toast {
 		font-family: "JetBrains Mono", monospace;
 		font-size: 11px;
 		font-weight: 600;
@@ -1527,19 +1644,34 @@
 		color: #c8c9d2;
 		border: 1px solid #2a2b36;
 		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-		z-index: 30;
-		pointer-events: none;
-		animation: toast-in 0.2s ease-out;
+		opacity: 1;
+		white-space: nowrap;
+		animation: wf-toast-in 0.2s ease-out;
 	}
 
-	@keyframes toast-in {
+	.wf-toast.wf-toast-error {
+		border-color: #f87171;
+		color: #fca5a5;
+	}
+
+	.wf-toast.wf-toast-warning {
+		border-color: #f59e0b;
+		color: #fcd34d;
+	}
+
+	.wf-toast.wf-toast-success {
+		border-color: #34d399;
+		color: #6ee7b7;
+	}
+
+	@keyframes wf-toast-in {
 		from {
 			opacity: 0;
-			transform: translateX(-50%) translateY(8px);
+			transform: translateY(8px);
 		}
 		to {
 			opacity: 1;
-			transform: translateX(-50%) translateY(0);
+			transform: translateY(0);
 		}
 	}
 

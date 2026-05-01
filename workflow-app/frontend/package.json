@@ -8,6 +8,7 @@
   "private": false,
   "dependencies": {
     "@gradio/atoms": "0.23.1",
+    "@gradio/checkbox": "latest",
     "@gradio/icons": "0.15.1",
     "@gradio/image": "latest",
     "@gradio/statustracker": "0.14.0",

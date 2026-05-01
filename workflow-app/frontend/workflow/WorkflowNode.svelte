@@ -289,7 +289,7 @@
 			{#each node.inputs as port}
 				{@const portConnected = connectedPorts.has(`${node.id}:${port.id}:input`)}
 				<div class="port-row input-row">
-					{#if !portConnected}
+					{#if !portConnected && !pending}
 						<button
 							class="port-auto-btn"
 							style="--port-color: {PORT_COLOR[port.type]}"
@@ -388,21 +388,16 @@
 					/>
 				{/if}
 			{:else if widgetType === "boolean"}
-				{#if isReadonly}
-					<div class="widget-text-display">
-						{getBooleanValue() ? "true" : "false"}
-					</div>
-				{:else}
-					<label class="widget-checkbox-row">
-						<input
-							class="widget-checkbox"
-							type="checkbox"
-							checked={getBooleanValue()}
-							onchange={handleBooleanInput}
-						/>
-						<span class="widget-checkbox-label">{getBooleanValue() ? "On" : "Off"}</span>
-					</label>
-				{/if}
+				<label class="widget-checkbox-row">
+					<input
+						class="widget-checkbox"
+						type="checkbox"
+						checked={getBooleanValue()}
+						disabled={isReadonly}
+						onchange={handleBooleanInput}
+					/>
+					<span class="widget-checkbox-label">{getBooleanValue() ? "On" : "Off"}</span>
+				</label>
 			{:else if widgetType === "image" || widgetType === "audio" || widgetType === "video" || widgetType === "file" || widgetType === "gallery" || widgetType === "model3d"}
 				{@const fileVal = getFileValue()}
 				{#if fileVal}
@@ -476,7 +471,7 @@
 						onmousedown={(e) =>
 							onstartconnection(node.id, port.id, port.type, e)}
 					></span>
-					{#if !portConnected}
+					{#if !portConnected && !pending}
 						<button
 							class="port-auto-btn"
 							style="--port-color: {PORT_COLOR[port.type]}"
@@ -491,8 +486,8 @@
 	{/if}
 
 	{#if status === "error" && error}
-		<div class="node-error-banner" title={error}>
-			{error.length > 60 ? error.slice(0, 60) + "..." : error}
+		<div class="node-error-banner">
+			{error}
 		</div>
 	{/if}
 </div>
@@ -509,9 +504,11 @@
 		overflow: hidden;
 		transition: box-shadow 0.2s, border-color 0.3s;
 		box-sizing: border-box;
+		z-index: 1;
 	}
 
 	.wf-node:hover {
+		z-index: 2;
 		box-shadow:
 			0 0 0 1px var(--accent-dim),
 			0 4px 20px rgba(0, 0, 0, 0.4);
@@ -520,6 +517,7 @@
 	.wf-node.node-selected {
 		border-color: #f97316;
 		box-shadow: 0 0 0 1px #f97316, 0 0 16px rgba(249, 115, 22, 0.15);
+		z-index: 3;
 	}
 
 	.wf-node.node-running {
@@ -607,6 +605,11 @@
 		color: #d5d6de;
 		white-space: nowrap;
 		cursor: text;
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+		mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+		-webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
 	}
 
 	.node-label-input {
@@ -677,18 +680,20 @@
 
 	.node-delete {
 		display: none;
-		width: 18px;
-		height: 18px;
+		width: 20px;
+		height: 20px;
 		border: none;
 		border-radius: 4px;
 		background: transparent;
 		color: #5c5e6a;
-		font-size: 14px;
-		line-height: 1;
+		font-size: 12px;
 		cursor: pointer;
+		flex-shrink: 0;
+		margin-left: auto;
 		align-items: center;
 		justify-content: center;
-		flex-shrink: 0;
+		padding: 0;
+		text-align: center;
 		margin-left: auto;
 		padding: 0;
 	}
