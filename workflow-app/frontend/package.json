@@ -1,0 +1,34 @@
+{
+  "name": "gradio_workflowcanvas",
+  "version": "0.0.1",
+  "description": "Gradio Workflow Builder — visual canvas for building AI pipelines",
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "private": false,
+  "dependencies": {
+    "@gradio/atoms": "0.23.1",
+    "@gradio/checkbox": "latest",
+    "@gradio/icons": "0.15.1",
+    "@gradio/image": "latest",
+    "@gradio/statustracker": "0.14.0",
+    "@gradio/textbox": "latest",
+    "@gradio/utils": "0.12.2",
+    "@huggingface/hub": "^1.0.0",
+    "svelte": "^5.48.0"
+  },
+  "devDependencies": {
+    "@gradio/preview": "0.16.2"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "gradio": "./Index.svelte",
+      "svelte": "./dist/Index.svelte",
+      "types": "./dist/Index.svelte.d.ts"
+    }
+  },
+  "peerDependencies": {
+    "svelte": "^5.48.0"
+  }
+}
