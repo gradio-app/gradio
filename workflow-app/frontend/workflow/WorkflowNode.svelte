@@ -57,6 +57,9 @@
 	let nodeEl: HTMLDivElement;
 	let editingLabel = $state(false);
 	let labelInput: HTMLInputElement;
+	let showAllInputs = $state(false);
+
+	const INPUT_COLLAPSE_THRESHOLD = 3;
 
 	function renameNode(newLabel: string): void {
 		const trimmed = newLabel.trim();
@@ -285,74 +288,93 @@
 
 	<!-- Input ports -->
 	{#if node.inputs.length > 0}
+		{@const collapsible = node.inputs.length > INPUT_COLLAPSE_THRESHOLD}
+		{@const hiddenCount = node.inputs.length - INPUT_COLLAPSE_THRESHOLD}
 		<div class="ports">
-			{#each node.inputs as port}
+			{#each node.inputs as port, i}
 				{@const portConnected = connectedPorts.has(`${node.id}:${port.id}:input`)}
-				<div class="port-row input-row">
-					{#if !portConnected && !pending}
-						<button
-							class="port-auto-btn"
-							style="--port-color: {PORT_COLOR[port.type]}"
-							onmousedown={(e) => e.stopPropagation()}
-							onclick={() => onautoconnect(node.id, port.id, port.type, "input")}
-							title="Add {port.type} input"
-						>+</button>
-					{/if}
-					<span
-						class="port-dot input-dot"
-						class:port-optional={port.required === false}
-						class:port-filled={port.required !== false}
-						class:incompatible={pending !== null &&
-							!compatible(pending.type, port.type)}
-						class:pulse={pending !== null &&
-							compatible(pending.type, port.type)}
-						style="--port-color: {PORT_COLOR[port.type]}"
-						data-port-id="{node.id}:{port.id}:input"
-						role="button"
-						tabindex="-1"
-						onmouseup={() =>
-							oncompleteconnection(node.id, port.id, port.type)}
-					></span>
-					<span class="port-label" class:port-label-optional={port.required === false}>{port.label}</span>
-					<span
-						class="port-type-tag"
-						style="color: {PORT_COLOR[port.type]}"
-						>{port.type}</span
-					>
-				</div>
-				{#if !portConnected && node.kind === "transform" && (port.type === "text" || port.type === "number" || port.type === "boolean" || port.type === "any" || port.type === "json")}
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<div class="port-inline-config" onmousedown={(e) => e.stopPropagation()}>
-						{#if port.type === "number"}
-							<input
-								class="inline-input inline-number"
-								type="number"
-								step="any"
-								placeholder={port.default_value != null ? String(port.default_value) : "0"}
-								value={node.data?.[port.id] ?? ""}
-								oninput={(e) => ondatachange(node.id, port.id, parseFloat(e.currentTarget.value) || 0)}
-							/>
-						{:else if port.type === "boolean"}
-							<label class="inline-checkbox">
-								<input
-									type="checkbox"
-									checked={!!node.data?.[port.id]}
-									onchange={(e) => ondatachange(node.id, port.id, e.currentTarget.checked)}
-								/>
-								<span>{node.data?.[port.id] ? "On" : "Off"}</span>
-							</label>
-						{:else}
-							<input
-								class="inline-input"
-								type="text"
-								placeholder={port.default_value != null ? String(port.default_value) : port.label}
-								value={typeof node.data?.[port.id] === "string" ? node.data[port.id] : ""}
-								oninput={(e) => ondatachange(node.id, port.id, e.currentTarget.value)}
-							/>
+				{@const visible = showAllInputs || i < INPUT_COLLAPSE_THRESHOLD || portConnected}
+				{#if visible}
+					<div class="port-row input-row">
+						{#if !portConnected && !pending}
+							<button
+								class="port-auto-btn"
+								style="--port-color: {PORT_COLOR[port.type]}"
+								onmousedown={(e) => e.stopPropagation()}
+								onclick={() => onautoconnect(node.id, port.id, port.type, "input")}
+								title="Add {port.type} input"
+							>+</button>
 						{/if}
+						<span
+							class="port-dot input-dot"
+							class:port-optional={port.required === false}
+							class:port-filled={port.required !== false}
+							class:incompatible={pending !== null &&
+								!compatible(pending.type, port.type)}
+							class:pulse={pending !== null &&
+								compatible(pending.type, port.type)}
+							style="--port-color: {PORT_COLOR[port.type]}"
+							data-port-id="{node.id}:{port.id}:input"
+							role="button"
+							tabindex="-1"
+							onmouseup={() =>
+								oncompleteconnection(node.id, port.id, port.type)}
+						></span>
+						<span class="port-label" class:port-label-optional={port.required === false}>{port.label}</span>
+						<span
+							class="port-type-tag"
+							style="color: {PORT_COLOR[port.type]}"
+							>{port.type}</span
+						>
 					</div>
+					{#if !portConnected && node.kind === "transform" && (port.type === "text" || port.type === "number" || port.type === "boolean" || port.type === "any" || port.type === "json")}
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
+						<div class="port-inline-config" onmousedown={(e) => e.stopPropagation()}>
+							{#if port.type === "number"}
+								<input
+									class="inline-input inline-number"
+									type="number"
+									step="any"
+									placeholder={port.default_value != null ? String(port.default_value) : "0"}
+									value={node.data?.[port.id] ?? ""}
+									oninput={(e) => ondatachange(node.id, port.id, parseFloat(e.currentTarget.value) || 0)}
+								/>
+							{:else if port.type === "boolean"}
+								<label class="inline-checkbox">
+									<input
+										type="checkbox"
+										checked={!!node.data?.[port.id]}
+										onchange={(e) => ondatachange(node.id, port.id, e.currentTarget.checked)}
+									/>
+									<span>{node.data?.[port.id] ? "On" : "Off"}</span>
+								</label>
+							{:else}
+								<input
+									class="inline-input"
+									type="text"
+									placeholder={port.default_value != null ? String(port.default_value) : port.label}
+									value={typeof node.data?.[port.id] === "string" ? node.data[port.id] : ""}
+									oninput={(e) => ondatachange(node.id, port.id, e.currentTarget.value)}
+								/>
+							{/if}
+						</div>
+					{/if}
 				{/if}
 			{/each}
+			{#if collapsible}
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<button
+					class="ports-toggle"
+					onmousedown={(e) => e.stopPropagation()}
+					onclick={() => (showAllInputs = !showAllInputs)}
+				>
+					{#if showAllInputs}
+						▴ show less
+					{:else}
+						▾ {hiddenCount} more params
+					{/if}
+				</button>
+			{/if}
 		</div>
 	{/if}
 
@@ -819,6 +841,26 @@
 		padding: 6px 12px;
 		line-height: 1.4;
 		word-break: break-word;
+	}
+
+	.ports-toggle {
+		display: block;
+		width: 100%;
+		padding: 4px 12px;
+		border: none;
+		background: transparent;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 9px;
+		font-weight: 600;
+		color: #3e3f4d;
+		cursor: pointer;
+		text-align: left;
+		letter-spacing: 0.03em;
+		transition: color 0.15s;
+	}
+
+	.ports-toggle:hover {
+		color: #8b8d98;
 	}
 
 	/* ─── Inline Config ─── */

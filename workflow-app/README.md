@@ -1,16 +1,11 @@
 ---
-title: Workflow_Builder
-app_file: demo/app.py
+title: Workflow Builder
+app_file: app.py
 sdk: gradio
 sdk_version: 6.12.0
+hf_oauth: true
 ---
 
-# gradio_workflowcanvas
-A Custom Gradio component.
+# Workflow Builder
 
-## Example usage
-
-```python
-import gradio as gr
-from gradio_workflowcanvas import WorkflowCanvas
-```
+Build and run AI pipelines visually by connecting Hugging Face Spaces together.

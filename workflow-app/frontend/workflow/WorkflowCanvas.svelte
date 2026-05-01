@@ -18,8 +18,20 @@
 	import { LIBRARY } from "./node-library";
 	import { publishToHub } from "./workflow-to-space";
 	import type { Workflow } from "./workflow-types";
+	import { onMount } from "svelte";
 
 	let { server = {} }: { server?: Record<string, any> } = $props();
+
+	let isLoggedIn = $state(false);
+
+	onMount(async () => {
+		if (server?.get_token) {
+			try {
+				const token = await server.get_token();
+				isLoggedIn = !!token;
+			} catch { /* ignore */ }
+		}
+	});
 
 	const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] = [
 		{
@@ -473,15 +485,7 @@
 		return a === "any" || b === "any" || a === b;
 	}
 
-	async function handleDrop(e: DragEvent): Promise<void> {
-		e.preventDefault();
-		const raw = e.dataTransfer?.getData("node-template");
-		if (!raw) return;
-		const template = JSON.parse(raw);
-		const r = canvasEl.getBoundingClientRect();
-		const x = (e.clientX - r.left - panX) / zoom - 100;
-		const y = (e.clientY - r.top - panY) / zoom - 45;
-
+	async function addTemplateToCanvas(template: any, x?: number, y?: number): Promise<void> {
 		// If this is a space node with no inputs/outputs, fetch API info first
 		if (template.source === "space" && template.space_id && template.inputs.length === 0) {
 			showToast(`Connecting to ${template.space_id}...`);
@@ -497,7 +501,25 @@
 			}
 		}
 
+		// If no position given, place to the right of the rightmost node
+		if (x === undefined || y === undefined) {
+			const nodes = $workflow.nodes;
+			x = nodes.length > 0 ? Math.max(...nodes.map((n) => n.x + n.width)) + 80 : 200;
+			y = nodes.length > 0 ? nodes[nodes.length - 1].y : 150;
+		}
+
 		addNode(template, x, y);
+	}
+
+	async function handleDrop(e: DragEvent): Promise<void> {
+		e.preventDefault();
+		const raw = e.dataTransfer?.getData("node-template");
+		if (!raw) return;
+		const template = JSON.parse(raw);
+		const r = canvasEl.getBoundingClientRect();
+		const x = (e.clientX - r.left - panX) / zoom - 100;
+		const y = (e.clientY - r.top - panY) / zoom - 45;
+		await addTemplateToCanvas(template, x, y);
 	}
 
 	function revokeAllBlobUrls(nodes: WFNode[]): void {
@@ -952,6 +974,11 @@
 			>
 		</div>
 		<div class="toolbar-right">
+			{#if !isLoggedIn}
+				<a class="tool-btn login-btn" href="/login/huggingface">
+					Sign in with HF
+				</a>
+			{/if}
 			<div class="toolbar-dropdown-wrap">
 				<button
 					class="tool-btn"
@@ -1020,7 +1047,7 @@
 
 	<!-- Editor — always visible -->
 	<div class="editor">
-		<WorkflowSidebar />
+		<WorkflowSidebar onadd={(t) => addTemplateToCanvas(t)} />
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="canvas"
@@ -1316,6 +1343,17 @@
 		background: #16171f;
 		color: #a0a2ae;
 		border-color: #2a2b36;
+	}
+
+	.login-btn {
+		text-decoration: none;
+		color: #f5a623 !important;
+		border-color: rgba(245, 166, 35, 0.3) !important;
+	}
+
+	.login-btn:hover {
+		background: rgba(245, 166, 35, 0.08) !important;
+		border-color: rgba(245, 166, 35, 0.5) !important;
 	}
 
 	.tool-icon {

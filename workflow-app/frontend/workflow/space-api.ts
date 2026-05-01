@@ -33,14 +33,33 @@ export function componentToPortType(component: string, type?: string): PortType 
 /** Preferred endpoint names in priority order */
 const PREFERRED_ENDPOINTS = ["/predict", "/infer", "/generate", "/run", "/process", "/translate"];
 
+/** Prefixes that indicate utility/event-handler endpoints — skip these */
+const UTILITY_PREFIXES = ["/on_", "/handle_", "/update_", "/prepare_", "/load_", "/clear_", "/reset_"];
+
+/** File-like components score much higher than scalar outputs */
+const FILE_COMPONENTS = new Set(["video", "image", "imageeditor", "imageslider", "audio", "file", "uploadbutton", "gallery", "model3d"]);
+
+function outputScore(ep: any): number {
+	return (ep.returns ?? []).reduce((s: number, r: any) => {
+		const comp = (r.component ?? "").toLowerCase();
+		return s + (FILE_COMPONENTS.has(comp) ? 10 : 1);
+	}, 0);
+}
+
 function pickBestEndpoint(endpoints: Record<string, any>): string {
 	const names = Object.keys(endpoints);
+
+	// Filter out event-handler / utility endpoints
+	const candidates = names.filter(n => !UTILITY_PREFIXES.some(p => n.startsWith(p)));
+	const pool = candidates.length > 0 ? candidates : names;
+
+	// Prefer well-known names first
 	for (const pref of PREFERRED_ENDPOINTS) {
-		if (names.includes(pref)) return pref;
+		if (pool.includes(pref)) return pref;
 	}
-	return names.sort((a, b) =>
-		(endpoints[b].returns?.length ?? 0) - (endpoints[a].returns?.length ?? 0)
-	)[0];
+
+	// Pick the endpoint with the richest outputs (file outputs >> scalar outputs)
+	return pool.slice().sort((a, b) => outputScore(endpoints[b]) - outputScore(endpoints[a]))[0];
 }
 
 export interface SpaceApiInfo {
@@ -81,15 +100,28 @@ export async function fetchSpaceApi(spaceId: string): Promise<SpaceApiInfo> {
 	const api = await infoRes.json();
 	const named = api.named_endpoints ?? {};
 	const unnamed = api.unnamed_endpoints ?? {};
-	const endpoints = { ...named, ...unnamed };
-	const endpointNames = Object.keys(endpoints);
 
-	if (endpointNames.length === 0) {
+	if (Object.keys(named).length === 0 && Object.keys(unnamed).length === 0) {
 		throw new Error("No API endpoints found");
 	}
 
-	const epName = pickBestEndpoint(endpoints);
-	const ep = endpoints[epName];
+	// Use the same endpoint the Space UI uses by default:
+	// 1. unnamed[0] — the first Submit button in a gr.Interface / gr.Blocks
+	// 2. named["/predict"] — gr.Interface default name
+	// 3. heuristic: filter utility endpoints, prefer richest outputs
+	let epName: string;
+	let ep: any;
+	if (unnamed["0"]) {
+		epName = "0";
+		ep = unnamed["0"];
+	} else if (named["/predict"]) {
+		epName = "/predict";
+		ep = named["/predict"];
+	} else {
+		epName = pickBestEndpoint(named);
+		ep = named[epName];
+	}
+
 
 	const inputs = (ep.parameters ?? [])
 		.map((p: any, i: number) => {

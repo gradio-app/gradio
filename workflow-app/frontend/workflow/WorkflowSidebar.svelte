@@ -4,6 +4,8 @@
 	import type { PortType } from "./workflow-types";
 	import { fetchSpaceApi, componentToPortType } from "./space-api";
 
+	let { onadd = undefined }: { onadd?: (template: NodeTemplate) => void } = $props();
+
 	let expandedSection: string | null = $state("spaces");
 	let collapsed = $state(false);
 	let hiddenPresets = $state(new Set<string>(
@@ -215,6 +217,7 @@
 								<div
 									draggable="true"
 									class="chip"
+									onclick={() => onadd?.(item)}
 									ondragstart={(e) => {
 										e.dataTransfer!.setData("node-template", JSON.stringify(item));
 										const ghost = document.createElement("div");
@@ -253,6 +256,7 @@
 						<div
 							draggable="true"
 							class="chip"
+							onclick={() => onadd?.(item)}
 							ondragstart={(e) => {
 								e.dataTransfer!.setData("node-template", JSON.stringify(item));
 								const ghost = document.createElement("div");
@@ -278,6 +282,7 @@
 						<div
 							draggable="true"
 							class="chip"
+							onclick={() => onadd?.(item)}
 							ondragstart={(e) =>
 								e.dataTransfer!.setData(
 									"node-template",
@@ -498,7 +503,7 @@
 		padding: 7px 10px;
 		margin-bottom: 2px;
 		border-radius: 6px;
-		cursor: grab;
+		cursor: pointer;
 		transition:
 			background 0.15s,
 			transform 0.1s;

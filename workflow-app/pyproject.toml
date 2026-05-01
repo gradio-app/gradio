@@ -48,7 +48,7 @@ classifiers = [
 dev = ["build", "twine"]
 
 [tool.hatch.build]
-artifacts = ["/backend/gradio_workflowcanvas/templates", "*.pyi"]
+artifacts = ["/backend/gradio_workflowcanvas/templates", "*.pyi", "/Users/hannahblair/.pyenv/versions/3.11.3/lib/python3.11/site-packages/gradio_workflowcanvas/templates"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["/backend/gradio_workflowcanvas"]
