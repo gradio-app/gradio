@@ -186,7 +186,7 @@
 		<div
 			class="color-gradient"
 			role="slider"
-			aria-label="Color"
+			aria-label="Saturation and brightness"
 			aria-valuetext={value}
 			tabindex="0"
 			onmousedown={handle_sl_down}
