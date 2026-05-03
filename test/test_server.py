@@ -98,6 +98,28 @@ class TestServer:
         finally:
             gr.close_all()
 
+    def test_server_launch_sets_heartbeat_interval(self, monkeypatch):
+        server = gr.Server()
+
+        @server.api(name="echo")
+        def echo(x: str) -> str:
+            return x
+
+        captured = {}
+
+        def fake_launch(self, **kwargs):
+            captured.update(kwargs)
+            return None, None, None
+
+        monkeypatch.setattr(gr.Blocks, "launch", fake_launch)
+
+        server.launch(
+            prevent_thread_lock=True,
+            _frontend=False,
+            heartbeat_interval=0.5,
+        )
+        assert captured["heartbeat_interval"] == 0.5
+
 
 def test_server_launch_args_match_blocks_launch():
     launch_params = inspect.signature(gr.Blocks.launch).parameters

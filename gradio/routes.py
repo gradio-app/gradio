@@ -1375,7 +1375,7 @@ class App(FastAPI):
             """Clients make a persistent connection to this endpoint to keep the session alive.
             When the client disconnects, the session state is deleted.
             """
-            heartbeat_rate = 0.25 if os.getenv("GRADIO_IS_E2E_TEST", None) else 15
+            heartbeat_rate = app.get_blocks().heartbeat_interval
 
             async def iterator():
                 stop_stream_task = asyncio.create_task(app.stop_event.wait())
@@ -2682,6 +2682,7 @@ def mount_gradio_app(
     root_path: str | None = None,
     allowed_paths: list[str] | None = None,
     blocked_paths: list[str] | None = None,
+    heartbeat_interval: float = 15.0,
     favicon_path: str | None = None,
     show_error: bool = True,
     max_file_size: str | int | None = None,
@@ -2714,6 +2715,7 @@ def mount_gradio_app(
         root_path: The subpath corresponding to the public deployment of this FastAPI application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". A full URL beginning with http:// or https:// can be provided, which will be used in its entirety. Normally, this does not need to provided (even if you are using a custom `path`). However, if you are serving the FastAPI app behind a proxy, the proxy may not provide the full path to the Gradio app in the request headers. In which case, you can provide the root path here.
         allowed_paths: List of complete filepaths or parent directories that this gradio app is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
         blocked_paths: List of complete filepaths or parent directories that this gradio app is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
+        heartbeat_interval: The number of seconds to wait between heartbeat messages on the session heartbeat stream. Lower values allow unload events to fire sooner after a client disconnects. Defaults to 15.
         favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for this gradio app's page.
         show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log. Otherwise, errors will only be visible in the terminal session running the Gradio app.
         max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
@@ -2753,6 +2755,9 @@ def mount_gradio_app(
     blocks.max_file_size = utils._parse_file_size(max_file_size)
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
+    if heartbeat_interval <= 0:
+        raise ValueError("`heartbeat_interval` must be greater than 0.")
+    blocks.heartbeat_interval = heartbeat_interval
     blocks.custom_mount_path = path
     blocks.server_port = server_port
     blocks.server_name = server_name

@@ -29,4 +29,4 @@ with gr.Blocks() as demo:
     demo.load(lambda: log_file.write_text(""))
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(heartbeat_interval=0.25)
