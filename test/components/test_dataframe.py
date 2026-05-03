@@ -391,6 +391,13 @@ class TestDataframe:
         assert not df.is_empty(pd.DataFrame({"a": [1, 2]}))
         assert not df.is_empty(pd.DataFrame({"a": [1, 2]}).style)
 
+    def test_auto_datatype_handles_empty_list_and_1d_ndarray(self):
+        dataframe_empty_list = gr.Dataframe(value=[], datatype="auto")
+        assert dataframe_empty_list.datatype == "str"
+
+        dataframe_1d_array = gr.Dataframe(value=np.array([1, 2, 3]), datatype="auto")
+        assert dataframe_1d_array.datatype == "str"
+
     def test_get_headers(self):
         """Test get_headers method with various data types"""
         df = gr.Dataframe()
