@@ -458,6 +458,19 @@ class TestRoutes:
         with TestClient(app) as client:
             assert client.get("/echo/docs-custom").is_success
 
+    def test_mount_gradio_app_sets_heartbeat_interval(self):
+        app = FastAPI()
+        demo = gr.Interface(lambda s: s, "textbox", "textbox")
+
+        gr.mount_gradio_app(
+            app,
+            demo,
+            path="/gradio",
+            heartbeat_interval=0.5,
+        )
+
+        assert demo.heartbeat_interval == 0.5
+
     def test_mount_gradio_app_with_auth_and_params(self):
         app = FastAPI()
         demo = gr.Interface(lambda s: f"You said {s}!", "textbox", "textbox").queue()

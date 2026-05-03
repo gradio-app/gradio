@@ -145,6 +145,7 @@ class Block:
         self.is_rendered: bool = False
         self._constructor_args: list[dict]
         self.state_session_capacity = 10000
+        self.heartbeat_interval = 15.0
         self.temp_files: set[str] = set()
         self.GRADIO_CACHE = get_upload_folder()
         self.key = key
@@ -2532,6 +2533,7 @@ Received inputs:
         root_path: str | None = None,
         app_kwargs: dict[str, Any] | None = None,
         state_session_capacity: int = 10000,
+        heartbeat_interval: float = 15.0,
         share_server_address: str | None = None,
         share_server_protocol: Literal["http", "https"] | None = None,
         share_server_tls_certificate: str | None = None,
@@ -2583,6 +2585,7 @@ Received inputs:
             root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". A full URL beginning with http:// or https:// can be provided, which will be used as the root path in its entirety. Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
             app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
             state_session_capacity: The maximum number of sessions whose information to store in memory. If the number of sessions exceeds this number, the oldest sessions will be removed. Reduce capacity to reduce memory usage when using gradio.State or returning updated components from functions. Defaults to 10000.
+            heartbeat_interval: The number of seconds to wait between heartbeat messages on the session heartbeat stream. Lower values allow unload events to fire sooner after a client disconnects. Defaults to 15.
             share_server_address: Use this to specify a custom FRP server and port for sharing Gradio apps (only applies if share=True). If not provided, will use the default FRP server at https://gradio.live. See https://github.com/huggingface/frp for more information.
             share_server_protocol: Use this to specify the protocol to use for the share links. Defaults to "https", unless a custom share_server_address is provided, in which case it defaults to "http". If you are using a custom share_server_address and want to use https, you must set this to "https".
             share_server_tls_certificate: The path to a TLS certificate file to use when connecting to a custom share server. This parameter is not used with the default FRP server at https://gradio.live. Otherwise, you must provide a valid TLS certificate file (e.g. a "cert.pem") relative to the current working directory, or the connection will not use TLS encryption, which is insecure.
@@ -2676,6 +2679,9 @@ Received inputs:
         self.favicon_path = favicon_path
         self.ssl_verify = ssl_verify
         self.state_session_capacity = state_session_capacity
+        if heartbeat_interval <= 0:
+            raise ValueError("`heartbeat_interval` must be greater than 0.")
+        self.heartbeat_interval = heartbeat_interval
         if root_path is None:
             self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         else:
