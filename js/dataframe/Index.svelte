@@ -16,6 +16,14 @@
 	const gradio = new Gradio<DataframeEvents, DataframeProps>(_props);
 
 	let fullscreen = $state(gradio.props.fullscreen ?? false);
+	let rendered_value = $state(structuredClone(gradio.props.value) ?? null);
+
+	$effect(() => {
+		const next_value = gradio.props.value;
+		if (!dequal(next_value, rendered_value)) {
+			rendered_value = structuredClone(next_value) ?? null;
+		}
+	});
 
 	// align datatype array to current value headers using the original
 	// config-time header→datatype mapping.
@@ -91,10 +99,10 @@
 		{...gradio.shared.loading_status}
 	/>
 	<Table
-		headers={gradio.props.value?.headers ?? []}
-		values={gradio.props.value?.data ?? []}
-		display_value={gradio.props.value?.metadata?.display_value ?? null}
-		styling={gradio.props.value?.metadata?.styling ?? null}
+		headers={rendered_value?.headers ?? []}
+		values={rendered_value?.data ?? []}
+		display_value={rendered_value?.metadata?.display_value ?? null}
+		styling={rendered_value?.metadata?.styling ?? null}
 		col_count={gradio.props.col_count}
 		row_count={gradio.props.row_count}
 		label={gradio.shared.label}

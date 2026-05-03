@@ -731,6 +731,33 @@ describe("Events", () => {
 		expect(change).toHaveBeenCalled();
 	});
 
+	test("regression: UI refreshes when set_data reuses the same value object reference", async () => {
+		const value_object = {
+			data: [["file_1"]],
+			headers: ["File Name"],
+			metadata: null
+		};
+		const { set_data, container } = await render(Dataframe, {
+			...default_props,
+			value: value_object,
+			interactive: false,
+			editable: false,
+			col_count: [1, "fixed"] as [number, "fixed" | "dynamic"],
+			row_count: [1, "dynamic"] as [number, "fixed" | "dynamic"]
+		});
+		await wait();
+
+		expect(get_cell(container, 0, 0)?.textContent).toContain("file_1");
+
+		// Simulate a same-reference update where nested data changes in place.
+		value_object.data.push(["file_2"]);
+		await set_data({ value: value_object });
+		await wait();
+
+		expect(get_rows(container).length).toBe(2);
+		expect(get_cell(container, 1, 0)?.textContent).toContain("file_2");
+	});
+
 	test("select: emitted when cell is clicked", async () => {
 		const { container, listen } = await render(Dataframe, default_props);
 		await wait();
