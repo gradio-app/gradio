@@ -562,6 +562,9 @@ class Dataframe(Component):
             ]
 
         elif isinstance(value, np.ndarray):
+            if value.ndim < 2 or value.size == 0:
+                self.datatype = "str"
+                return
             self.datatype = [
                 dtype_mapping.get(
                     numbers_re.sub(
@@ -573,6 +576,9 @@ class Dataframe(Component):
             ]
 
         elif isinstance(value, list):
+            if len(value) == 0:
+                self.datatype = "str"
+                return
             self.datatype = [
                 dtype_mapping.get(
                     numbers_re.sub(
