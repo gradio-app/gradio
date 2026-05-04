@@ -474,7 +474,7 @@ class App(FastAPI):
                 pass
             else:
                 app.add_middleware(
-                    ZeroGPUMiddleware, # ty: ignore[invalid-argument-type]
+                    ZeroGPUMiddleware,  # ty: ignore[invalid-argument-type]
                     exception_mapper=lambda err, exc: (
                         setattr(exc, "print_exception", False) or exc
                         if isinstance(exc, Error)
