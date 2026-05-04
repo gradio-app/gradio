@@ -140,7 +140,7 @@ class Queue:
         self.delete_lock = safe_get_lock()
         self.server_app = None
         self.server_pid = os.getpid()
-        self.rpc_queue: multiprocessing.Queue[tuple[str, EventMessage]] | None = None
+        self.rpc_queue: multiprocessing.SimpleQueue[tuple[str, EventMessage]] | None = None
         self.process_time_per_fn: defaultdict[BlockFunction, ProcessTime] = defaultdict(
             ProcessTime
         )
@@ -226,7 +226,7 @@ class Queue:
         except ValueError:
             warnings.warn("GRADIO_QUEUE_MULTIPROCESSING_ENABLED but fork not available")
             return
-        self.rpc_queue = ctx.Queue()
+        self.rpc_queue = ctx.SimpleQueue()
         while True:
             event_id, message = self.rpc_queue.get()
             self._send_message_rpc(event_id, message)
@@ -611,7 +611,7 @@ class Queue:
                     "Sending queue event from child process without GRADIO_QUEUE_MULTIPROCESSING_ENABLED"
                 )
             else:
-                self.rpc_queue.put_nowait((event_id, message))
+                self.rpc_queue.put((event_id, message))
                 return
         events = [evt for job in self.active_jobs if job is not None for evt in job]
         for event in events:
