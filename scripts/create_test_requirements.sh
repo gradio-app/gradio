@@ -10,5 +10,6 @@ To match the CI environment, this script should be run from a Unix-like system i
 
 uv pip compile \
   --exclude-newer "${UV_EXCLUDE_NEWER:-7 days}" \
+  --exclude-newer-package "spaces=0 days" \
   test/requirements.in \
   -o test/requirements.txt
