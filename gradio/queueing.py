@@ -3,14 +3,18 @@ from __future__ import annotations
 import asyncio
 import copy
 import inspect
+import multiprocessing
 import os
 import platform
 import random
 import time
 import traceback
 import uuid
+import warnings
 from asyncio import Queue as AsyncQueue
 from collections import defaultdict
+from multiprocessing import SimpleQueue
+from threading import Thread
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 import fastapi
@@ -136,6 +140,8 @@ class Queue:
         self.active_jobs: list[None | list[Event]] = []
         self.delete_lock = safe_get_lock()
         self.server_app = None
+        self.server_pid = os.getpid()
+        self.rpc_queue: SimpleQueue[tuple[str, EventMessage]] | None = None
         self.process_time_per_fn: defaultdict[BlockFunction, ProcessTime] = defaultdict(
             ProcessTime
         )
@@ -212,6 +218,23 @@ class Queue:
         run_coro_in_background(self.start_progress_updates)
         if not self.live_updates:
             run_coro_in_background(self.notify_clients)
+        if os.getenv("GRADIO_QUEUE_MULTIPROCESSING_ENABLED") == "true":
+            Thread(target=self.start_rpc, daemon=True).start()
+
+    def start_rpc(self):
+        try:
+            ctx = multiprocessing.get_context("fork")
+        except ValueError:
+            warnings.warn("GRADIO_QUEUE_MULTIPROCESSING_ENABLED but fork not available")
+            return
+        self.rpc_queue = ctx.SimpleQueue()
+        while True:
+            event_id, message = self.rpc_queue.get()
+            try:
+                self._send_message_rpc(event_id, message)
+            except Exception:
+                print("Exception while calling _send_message_rpc from Queue RPC thread")
+                traceback.print_exc()
 
     def create_event_queue_for_fn(self, block_fn: BlockFunction):
         concurrency_id = block_fn.concurrency_id
@@ -582,6 +605,29 @@ class Queue:
 
             await asyncio.sleep(self.progress_update_sleep_when_free)
 
+    def _send_message_rpc(
+        self,
+        event_id: str,
+        message: EventMessage,
+    ):
+        if os.getpid() != self.server_pid:
+            if self.rpc_queue is None:
+                warnings.warn(
+                    "Sending queue event from child process without GRADIO_QUEUE_MULTIPROCESSING_ENABLED"
+                )
+            else:
+                self.rpc_queue.put((event_id, message))
+                return
+        events = [evt for job in self.active_jobs if job is not None for evt in job]
+        for event in events:
+            if event._id == event_id:
+                match message:
+                    case ProgressMessage():
+                        event.progress = message
+                        event.progress_pending = True
+                    case _:
+                        self.send_message(event, message)
+
     def set_progress(
         self,
         event_id: str,
@@ -589,23 +635,17 @@ class Queue:
     ):
         if iterables is None:
             return
-        for job in self.active_jobs:
-            if job is None:
-                continue
-            for evt in job:
-                if evt._id == event_id:
-                    progress_data: list[ProgressUnit] = []
-                    for iterable in iterables:
-                        progress_unit = ProgressUnit(
-                            index=iterable.index,
-                            length=iterable.length,
-                            unit=iterable.unit,
-                            progress=iterable.progress,
-                            desc=iterable.desc,
-                        )
-                        progress_data.append(progress_unit)
-                    evt.progress = ProgressMessage(progress_data=progress_data)
-                    evt.progress_pending = True
+        progress_data: list[ProgressUnit] = []
+        for iterable in iterables:
+            progress_unit = ProgressUnit(
+                index=iterable.index,
+                length=iterable.length,
+                unit=iterable.unit,
+                progress=iterable.progress,
+                desc=iterable.desc,
+            )
+            progress_data.append(progress_unit)
+        self._send_message_rpc(event_id, ProgressMessage(progress_data=progress_data))
 
     def log_message(
         self,
@@ -616,17 +656,14 @@ class Queue:
         duration: float | None = 10,
         visible: bool = True,
     ):
-        events = [evt for job in self.active_jobs if job is not None for evt in job]
-        for event in events:
-            if event._id == event_id:
-                log_message = LogMessage(
-                    log=log,
-                    level=level,
-                    duration=duration,
-                    visible=visible,
-                    title=title,
-                )
-                self.send_message(event, log_message)
+        log_message = LogMessage(
+            log=log,
+            level=level,
+            duration=duration,
+            visible=visible,
+            title=title,
+        )
+        self._send_message_rpc(event_id, log_message)
 
     async def clean_events(
         self, *, session_hash: str | None = None, event_id: str | None = None
