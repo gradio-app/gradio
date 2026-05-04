@@ -13,6 +13,7 @@ import uuid
 import warnings
 from asyncio import Queue as AsyncQueue
 from collections import defaultdict
+from multiprocessing import SimpleQueue
 from threading import Thread
 from typing import TYPE_CHECKING, Any, Literal, cast
 
@@ -140,7 +141,7 @@ class Queue:
         self.delete_lock = safe_get_lock()
         self.server_app = None
         self.server_pid = os.getpid()
-        self.rpc_queue: multiprocessing.SimpleQueue[tuple[str, EventMessage]] | None = None
+        self.rpc_queue: SimpleQueue[tuple[str, EventMessage]] | None = None
         self.process_time_per_fn: defaultdict[BlockFunction, ProcessTime] = defaultdict(
             ProcessTime
         )
@@ -229,7 +230,11 @@ class Queue:
         self.rpc_queue = ctx.SimpleQueue()
         while True:
             event_id, message = self.rpc_queue.get()
-            self._send_message_rpc(event_id, message)
+            try:
+                self._send_message_rpc(event_id, message)
+            except Exception:
+                print("Exception while calling _send_message_rpc from Queue RPC thread")
+                traceback.print_exc()
 
     def create_event_queue_for_fn(self, block_fn: BlockFunction):
         concurrency_id = block_fn.concurrency_id
