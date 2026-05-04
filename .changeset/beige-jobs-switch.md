@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:feat(queue): multiprocessing support
+feat:ZeroGPU native support
