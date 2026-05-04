@@ -1,13 +1,13 @@
 import { test, expect } from "@self/tootils";
 
-test("Test button.click listener works in render", async ({ page }) => {
+test.skip("Test button.click listener works in render", async ({ page }) => {
 	const slider = page.getByLabel("number input for Box Count");
 	await slider.fill("6");
 	await page.getByRole("button", { name: "Create Boxes" }).click();
 	await expect(page.getByLabel("Count 4")).toHaveValue("3");
 });
 
-test("Test every= works in render", async ({ page }) => {
+test.skip("Test every= works in render", async ({ page }) => {
 	const timebox = page.getByLabel("Time");
 	const box_1 = page.getByLabel("Render 1");
 	const slider = page.getByLabel("number input for Slider");
@@ -29,7 +29,7 @@ test("Test every= works in render", async ({ page }) => {
 	expect(box_2_value_end).toBeGreaterThan(box_2_value_start);
 });
 
-test("Test event/selection data works in render", async ({ page }) => {
+test.skip("Test event/selection data works in render", async ({ page }) => {
 	const selected_button = page.getByLabel("Selected Button");
 	const slider = page.getByLabel("number input for Slider");
 	await slider.fill("3");
@@ -42,13 +42,13 @@ test("Test event/selection data works in render", async ({ page }) => {
 	await expect(selected_chat).toHaveValue("1");
 });
 
-test("Test event/selection data can trigger render", async ({ page }) => {
+test.skip("Test event/selection data can trigger render", async ({ page }) => {
 	await page.getByText("chat3").click();
 	const selected_chat = page.getByLabel("Trigger Index");
 	await expect(selected_chat).toHaveValue("2");
 });
 
-test("Test examples work in render", async ({ page }) => {
+test.skip("Test examples work in render", async ({ page }) => {
 	const input = page.getByLabel("input", { exact: true });
 	await input.waitFor();
 	const testButton = page.getByRole("button", { name: "test" });
@@ -64,7 +64,7 @@ test("Test examples work in render", async ({ page }) => {
 	await expect(little_textbox).toHaveValue("def", { timeout: 10000 });
 });
 
-test("Test keyed event listeners in render", async ({ page }) => {
+test.skip("Test keyed event listeners in render", async ({ page }) => {
 	await page.getByLabel("box-a").fill("a");
 	await page.waitForTimeout(1000);
 	await expect(page.getByLabel("box-b")).toHaveValue("a");
@@ -73,7 +73,7 @@ test("Test keyed event listeners in render", async ({ page }) => {
 	await expect(page.getByLabel("box-b")).toHaveValue("abc");
 });
 
-test("Test Tabs Rendered Correctly in gr.render", async ({ page }) => {
+test.skip("Test Tabs Rendered Correctly in gr.render", async ({ page }) => {
 	await page.getByRole("button", { name: "Render Tab" }).click();
 	await expect(page.getByLabel("Rendered Tab", { exact: true })).toHaveValue(
 		"This is a rendered tab"

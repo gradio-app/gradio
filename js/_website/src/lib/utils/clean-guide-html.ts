@@ -31,7 +31,8 @@ export async function cleanGuideHtml(content: string): Promise<string> {
 			const spaceName = match[1];
 			try {
 				const res = await fetch(
-					`https://huggingface.co/spaces/gradio/${spaceName}/raw/main/app.py`
+					`https://huggingface.co/spaces/gradio/${spaceName}/raw/main/app.py`,
+					{ referrerPolicy: "no-referrer" }
 				);
 				if (res.ok) {
 					const code = await res.text();

@@ -1,5 +1,20 @@
 # gradio
 
+## 6.14.0
+
+### Features
+
+- [#13275](https://github.com/gradio-app/gradio/pull/13275) [`2d025c5`](https://github.com/gradio-app/gradio/commit/2d025c56cffb5c4eecbe47515ec771b5ecf46611) - Model3D Unit Tests.  Thanks @dawoodkhan82!
+- [#13258](https://github.com/gradio-app/gradio/pull/13258) [`0d08926`](https://github.com/gradio-app/gradio/commit/0d089260e1f17dc0bbed85f38029f75e657782b4) - add theme designer skill.  Thanks @hannahblair!
+
+### Fixes
+
+- [#13324](https://github.com/gradio-app/gradio/pull/13324) [`0453450`](https://github.com/gradio-app/gradio/commit/0453450409ce6412382f8c6e5a4b5e973d80f8b8) - Fix gr.Slider crash for zero-width ranges.  Thanks @onthebed!
+- [#13264](https://github.com/gradio-app/gradio/pull/13264) [`f65acd0`](https://github.com/gradio-app/gradio/commit/f65acd0f24c9b6b593b9835c7ae46282f52fdc9d) - Dialogue component unit tests.  Thanks @freddyaboulton!
+- [#13333](https://github.com/gradio-app/gradio/pull/13333) [`0e3c485`](https://github.com/gradio-app/gradio/commit/0e3c48549fdf4aeaff3a2f098c1d23420e4814c5) - Remove Event From Queue When Cancelled.  Thanks @freddyaboulton!
+- [#13326](https://github.com/gradio-app/gradio/pull/13326) [`d42a1d7`](https://github.com/gradio-app/gradio/commit/d42a1d72ad56b5155acdb4ff3bcbe7bceab39bfb) - Fix incorrect description of js parameter in Blocks.load.  Thanks @AryaLolusare2712!
+- [#13335](https://github.com/gradio-app/gradio/pull/13335) [`953efe0`](https://github.com/gradio-app/gradio/commit/953efe06fa6d0742a9dd899b846d45fbc6ea3ccf) - Prevent Gallery Select Event From Triggering When Value Updated Programmatically.  Thanks @freddyaboulton!
+
 ## 6.13.0
 
 ### Features
