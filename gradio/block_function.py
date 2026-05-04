@@ -6,11 +6,6 @@ from typing import TYPE_CHECKING, Literal
 
 from . import utils
 
-try:
-    import spaces  # type: ignore
-except Exception:
-    spaces = None
-
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components.base import Component
