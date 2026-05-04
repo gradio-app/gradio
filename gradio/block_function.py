@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Literal
 
 from . import utils
 
-
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components.base import Component
     from gradio.renderable import Renderable

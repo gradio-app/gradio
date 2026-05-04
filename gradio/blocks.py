@@ -95,7 +95,6 @@ from gradio.utils import (
     get_upload_folder,
 )
 
-
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components.base import Component
     from gradio.mcp import GradioMCPServer
