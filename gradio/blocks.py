@@ -45,6 +45,7 @@ from gradio.caching import TrackManualCacheUsage, used_manual_cache
 from gradio.context import (
     Context,
     LocalContext,
+    MultiprocessWorkerContextualizer,
     get_blocks_context,
     get_render_context,
     set_render_context,
@@ -67,11 +68,12 @@ from gradio.events import (
 from gradio.exceptions import (
     ChecksumMismatchError,
     DuplicateBlockError,
+    Error,
     InvalidApiNameError,
     InvalidComponentError,
     ShareCertificateWriteError,
 )
-from gradio.helpers import create_tracker, skip, special_args
+from gradio.helpers import create_tracker, log_message, skip, special_args
 from gradio.i18n import I18n, I18nData
 from gradio.node_server import start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream, slugify
@@ -2749,7 +2751,7 @@ Received inputs:
         )
 
         if utils.is_zero_gpu_space():
-            utils.setup_zerogpu_middleware(self.app)
+            self._setup_zerogpu_middleware()
 
         if self.mcp_error and not quiet:
             print(self.mcp_error)
@@ -3329,3 +3331,27 @@ Received inputs:
         self.pages.append((path, name, show_in_navbar))
         self.current_page = path
         return self
+
+    def _setup_zerogpu_middleware(self):
+        try:
+            from spaces.zero import ZeroGPUMiddleware
+        except ImportError:
+            return
+
+        self.app.add_middleware(
+            ZeroGPUMiddleware,  # ty: ignore[invalid-argument-type]
+            exception_mapper=lambda err, exc: (
+                setattr(exc, "print_exception", False) or exc
+                if isinstance(exc, Error)
+                else Error(
+                    title=err["detail"]["title"],
+                    message=err["detail"]["message"],
+                )
+            ),
+            log_emitter=lambda log: log_message(
+                title=log["title"],
+                message=log["message"],
+                level=log["level"],
+            ),
+            worker_contextualizer=MultiprocessWorkerContextualizer,
+        )

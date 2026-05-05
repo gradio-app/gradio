@@ -62,7 +62,7 @@ from typing_extensions import ParamSpec
 
 import gradio
 from gradio import themes
-from gradio.context import MultiprocessWorkerContextualizer, get_blocks_context
+from gradio.context import get_blocks_context
 from gradio.data_classes import (
     BlocksConfigDict,
     DeveloperPath,
@@ -70,7 +70,6 @@ from gradio.data_classes import (
     UserProvidedPath,
 )
 from gradio.exceptions import Error, InvalidPathError
-from gradio.helpers import log_message
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
 
@@ -569,31 +568,6 @@ def get_space() -> str | None:
 
 def is_zero_gpu_space() -> bool:
     return os.getenv("SPACES_ZERO_GPU") == "true"
-
-
-def setup_zerogpu_middleware(app: App):
-    try:
-        from spaces.zero import ZeroGPUMiddleware
-    except ImportError:
-        return
-
-    app.add_middleware(
-        ZeroGPUMiddleware,  # ty: ignore[invalid-argument-type]
-        exception_mapper=lambda err, exc: (
-            setattr(exc, "print_exception", False) or exc
-            if isinstance(exc, Error)
-            else Error(
-                title=err["detail"]["title"],
-                message=err["detail"]["message"],
-            )
-        ),
-        log_emitter=lambda log: log_message(
-            title=log["title"],
-            message=log["message"],
-            level=log["level"],
-        ),
-        worker_contextualizer=MultiprocessWorkerContextualizer,
-    )
 
 
 def get_theme(theme: Theme | str | None) -> Theme:
