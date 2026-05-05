@@ -2750,8 +2750,7 @@ Received inputs:
             debug=debug,
         )
 
-        if utils.is_zero_gpu_space():
-            self._setup_zerogpu_middleware()
+        self.maybe_setup_zerogpu_middleware()
 
         if self.mcp_error and not quiet:
             print(self.mcp_error)
@@ -3332,7 +3331,10 @@ Received inputs:
         self.current_page = path
         return self
 
-    def _setup_zerogpu_middleware(self):
+    def maybe_setup_zerogpu_middleware(self):
+        if not utils.is_zero_gpu_space():
+            return
+
         try:
             from spaces.zero import ZeroGPUMiddleware
         except ImportError:

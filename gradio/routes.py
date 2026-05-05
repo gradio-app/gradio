@@ -2818,6 +2818,7 @@ def mount_gradio_app(
         ssr_mode=blocks.ssr_mode,
         mcp_server=mcp_server,
     )
+    blocks.maybe_setup_zerogpu_middleware()
     old_lifespan = app.router.lifespan_context
 
     @contextlib.asynccontextmanager
