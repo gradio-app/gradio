@@ -178,23 +178,15 @@
 	}
 
 	async function handle_keypress(e: KeyboardEvent): Promise<void> {
-		if (e.key === "Enter" && !e.shiftKey) {
-			e.preventDefault();
-			await tick();
-			onsubmit?.();
-		} else if (
-			e.key === "Enter" &&
-			!e.shiftKey &&
-			lines === 1 &&
-			_max_lines >= 1
-		) {
-			e.preventDefault();
-			await tick();
-			onsubmit?.();
-		}
+	if (e.key === "Enter" && !e.shiftKey) {
+		e.preventDefault();
 		await tick();
-		oninput?.(value);
+		onsubmit?.();
 	}
+
+	await tick();
+	oninput?.(value);
+}
 
 	function handle_scroll(event: Event): void {
 		const target = event.target as HTMLElement;
