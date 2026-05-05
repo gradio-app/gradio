@@ -107,6 +107,7 @@ from gradio.route_utils import (  # noqa: F401
     Request,
     compare_passwords_securely,
     create_lifespan_handler,
+    maybe_setup_zerogpu_middleware,
     move_uploaded_files_to_cache,
 )
 from gradio.screen_recording_utils import process_video_with_ffmpeg
@@ -2818,7 +2819,6 @@ def mount_gradio_app(
         ssr_mode=blocks.ssr_mode,
         mcp_server=mcp_server,
     )
-    blocks.maybe_setup_zerogpu_middleware()
     old_lifespan = app.router.lifespan_context
 
     @contextlib.asynccontextmanager
@@ -2834,6 +2834,7 @@ def mount_gradio_app(
     app.router.lifespan_context = new_lifespan  # type: ignore
 
     app.mount(path, gradio_app)
+    maybe_setup_zerogpu_middleware(app)
     return app
 
 
