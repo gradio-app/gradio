@@ -2747,6 +2747,10 @@ Received inputs:
             mcp_server=mcp_server,
             debug=debug,
         )
+
+        if utils.is_zero_gpu_space():
+            utils.setup_zerogpu_middleware(self.app)
+
         if self.mcp_error and not quiet:
             print(self.mcp_error)
 

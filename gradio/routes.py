@@ -71,7 +71,7 @@ from gradio import (
     utils,
 )
 from gradio.brotli_middleware import BrotliMiddleware
-from gradio.context import Context, MultiprocessWorkerContextualizer
+from gradio.context import Context
 from gradio.data_classes import (
     CancelBody,
     ComponentServerBlobBody,
@@ -88,7 +88,7 @@ from gradio.data_classes import (
     VibeEditBody,
 )
 from gradio.exceptions import Error, InvalidPathError
-from gradio.helpers import log_message, special_args
+from gradio.helpers import special_args
 from gradio.i18n import I18n
 from gradio.node_server import (
     start_node_server,
@@ -466,30 +466,6 @@ class App(FastAPI):
             quality=4,
             excluded_handlers=[mcp_subpath],
         )
-
-        if utils.is_zero_gpu_space():
-            try:
-                from spaces.zero import ZeroGPUMiddleware
-            except ImportError:
-                pass
-            else:
-                app.add_middleware(
-                    ZeroGPUMiddleware,  # ty: ignore[invalid-argument-type]
-                    exception_mapper=lambda err, exc: (
-                        setattr(exc, "print_exception", False) or exc
-                        if isinstance(exc, Error)
-                        else Error(
-                            title=err["detail"]["title"],
-                            message=err["detail"]["message"],
-                        )
-                    ),
-                    log_emitter=lambda log: log_message(
-                        title=log["title"],
-                        message=log["message"],
-                        level=log["level"],
-                    ),
-                    worker_contextualizer=MultiprocessWorkerContextualizer,
-                )
 
         if ssr_mode:
 
