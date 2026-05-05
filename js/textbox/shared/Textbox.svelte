@@ -178,7 +178,7 @@
 	}
 
 	async function handle_keypress(e: KeyboardEvent): Promise<void> {
-		if (e.key === "Enter" && e.shiftKey && lines > 1) {
+		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
 			await tick();
 			onsubmit?.();
