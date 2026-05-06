@@ -1,4 +1,5 @@
 import asyncio
+import contextvars
 import json
 import time
 from unittest.mock import patch
@@ -9,6 +10,27 @@ from fastapi.testclient import TestClient
 
 import gradio as gr
 from gradio.route_utils import API_PREFIX
+from gradio.routes import App
+
+
+request_context = contextvars.ContextVar("request_context", default="unset")
+
+
+class ContextHeaderMiddleware:
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        headers = dict(scope.get("headers", []))
+        value = headers.get(b"x-test-context", b"missing").decode()
+        token = request_context.set(value)
+        try:
+            await self.app(scope, receive, send)
+        finally:
+            request_context.reset(token)
 
 
 class TestQueueing:
@@ -222,6 +244,59 @@ def test_heartbeat_task_cancelled_after_stream_completes():
             "Heartbeat task was not cancelled after stream completed"
         )
     demo.close()
+
+
+def test_queue_event_propagates_context_from_join_request():
+    with gr.Blocks() as demo:
+        start = gr.Button()
+        output = gr.Textbox()
+
+        def read_context():
+            return request_context.get()
+
+        start.click(read_context, None, output)
+
+    demo.queue()
+    app = App.create_app(demo)
+    app.add_middleware(ContextHeaderMiddleware)
+
+    try:
+        with TestClient(app) as test_client:
+            startup = test_client.get(
+                f"{API_PREFIX}/startup-events",
+                headers={"x-test-context": "startup"},
+            )
+            assert startup.status_code == 200
+
+            join = test_client.post(
+                f"{API_PREFIX}/queue/join",
+                headers={"x-test-context": "join"},
+                json={
+                    "data": [],
+                    "fn_index": 0,
+                    "event_data": None,
+                    "session_hash": "context_session",
+                    "trigger_id": None,
+                },
+            )
+            assert join.status_code == 200
+
+            stream = test_client.get(
+                f"{API_PREFIX}/queue/data?session_hash=context_session"
+            )
+
+            output_data = None
+            for line in stream.iter_lines():
+                if not line.startswith("data: "):
+                    continue
+                message = json.loads(line[6:])
+                if message["msg"] == "process_completed":
+                    output_data = message["output"]["data"]
+                    break
+
+            assert output_data == ["join"]
+    finally:
+        demo.close()
 
 
 def test_cancel_removes_pending_event_from_queue():
