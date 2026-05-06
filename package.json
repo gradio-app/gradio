@@ -58,6 +58,7 @@
 		"eslint": "^9.37.0",
 		"eslint-plugin-svelte": "^3.12.4",
 		"globals": "^16.4.0",
+		"handlebars": "4.7.9",
 		"happy-dom": "^19.0.2",
 		"jsdom": "^27.0.0",
 		"kleur": "^4.1.5",
