@@ -1547,7 +1547,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             self.process_api,
             block_fn=fn,
             inputs=processed_inputs,
-            context=None,
             request=None,
             state={},
             explicit_call=True,
@@ -1567,12 +1566,12 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         block_fn: BlockFunction | int,
         processed_input: list[Any],
         iterator: AsyncIterator[Any] | None = None,
-        context: contextvars.Context | None = None,
         requests: Request | list[Request] | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
         in_event_listener: bool = False,
         state: SessionState | None = None,
+        context: contextvars.Context | None = None,
     ):
         """
         Calls function with given index and preprocessed input, and measures process time.
@@ -2087,7 +2086,6 @@ Received inputs:
         block_fn: BlockFunction | int,
         inputs: list[Any],
         state: SessionState | None = None,
-        context: contextvars.Context | None = None,
         request: Request | list[Request] | None = None,
         iterator: AsyncIterator | None = None,
         session_hash: str | None = None,
@@ -2097,6 +2095,7 @@ Received inputs:
         simple_format: bool = False,
         explicit_call: bool = False,
         root_path: str | None = None,
+        context: contextvars.Context | None = None,
     ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -2155,12 +2154,12 @@ Received inputs:
                     block_fn,
                     list(zip(*inputs, strict=False)),
                     None,
-                    context,
                     request,
                     event_id,
                     event_data,
                     in_event_listener,
                     state,
+                    context=context,
                 )
                 manual_cache_used = used_manual_cache()
             preds = result["prediction"]
@@ -2191,12 +2190,12 @@ Received inputs:
                         block_fn,
                         inputs,
                         old_iterator,
-                        context,
                         request,
                         event_id,
                         event_data,
                         in_event_listener,
                         state,
+                        context=context,
                     )
                 manual_cache_used = used_manual_cache()
 

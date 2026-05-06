@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-import contextvars
 import hashlib
 import importlib.resources
 import inspect
@@ -1420,7 +1419,6 @@ class App(FastAPI):
                                 body=body,
                                 gr_request=req,
                                 fn=app.get_blocks().fns[fn_index],
-                                context=None,
                                 root_path=root_path,
                             )
                         # This will mark the state to be deleted in an hour
@@ -1456,7 +1454,6 @@ class App(FastAPI):
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=body
             )
-            context = contextvars.copy_context()
 
             if not app.get_blocks().api_open and fn.queue:
                 raise HTTPException(
@@ -1480,7 +1477,6 @@ class App(FastAPI):
                     body=body,
                     gr_request=gr_request,
                     fn=fn,
-                    context=context,
                     root_path=root_path,
                 )
             except BaseException as error:

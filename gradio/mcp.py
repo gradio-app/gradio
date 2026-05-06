@@ -1,6 +1,5 @@
 import base64
 import contextlib
-import contextvars
 import copy
 import os
 import re
@@ -399,7 +398,6 @@ class GradioMCPServer:
             endpoint_name, processed_args, request_headers, block_fn = (
                 self._prepare_tool_call_args(name, arguments)
             )
-            context = contextvars.copy_context()
             processed_args = self.insert_empty_state(block_fn.inputs, processed_args)
 
             if not block_fn.queue:
@@ -412,7 +410,6 @@ class GradioMCPServer:
                     block_fn=block_fn,
                     inputs=processed_args,
                     state=session_state,
-                    context=context,
                     request=self.mcp_server.request_context.request,
                 )
                 output_data = raw_output["data"]

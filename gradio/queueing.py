@@ -61,7 +61,7 @@ class Event:
         self,
         session_hash: str | None,
         fn: BlockFunction,
-        context: contextvars.Context | None,
+        context: contextvars.Context,
         request: fastapi.Request,
         username: str | None,
     ):

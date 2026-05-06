@@ -354,8 +354,8 @@ async def call_process_api(
     body: PredictBodyInternal,
     gr_request: Union[Request, list[Request]],
     fn: BlockFunction,
-    context: contextvars.Context | None,
     root_path: str,
+    context: contextvars.Context | None = None,
 ):
     session_state, iterator = restore_session_state(app=app, body=body)
 
