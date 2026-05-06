@@ -560,6 +560,7 @@ class Examples:
                     prediction = await self.root_block.process_api(
                         block_fn=self.root_block.default_config.fns[fn_index],
                         inputs=processed_input,
+                        context=None,
                         request=None,
                         in_event_listener=self.cache_examples != "lazy",
                     )

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextvars
 import copy
 import dataclasses
 import hashlib
@@ -18,6 +19,7 @@ import weakref
 import webbrowser
 from collections import defaultdict
 from collections.abc import AsyncIterator, Callable, Coroutine, Sequence, Set
+from functools import partial
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 from typing import TYPE_CHECKING, Any, Literal, Union, cast
@@ -1546,6 +1548,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             self.process_api,
             block_fn=fn,
             inputs=processed_inputs,
+            context=None,
             request=None,
             state={},
             explicit_call=True,
@@ -1565,6 +1568,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         block_fn: BlockFunction | int,
         processed_input: list[Any],
         iterator: AsyncIterator[Any] | None = None,
+        context: contextvars.Context | None = None,
         requests: Request | list[Request] | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
@@ -1597,6 +1601,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             request=request,  # type: ignore
             state=state,
         )
+
+        if context is not None:
+            fn = partial(context.copy().run, fn)
 
         if iterator is None:  # If not a generator function that has already run
             if block_fn.inputs_as_dict:
@@ -2077,6 +2084,7 @@ Received inputs:
         block_fn: BlockFunction | int,
         inputs: list[Any],
         state: SessionState | None = None,
+        context: contextvars.Context | None = None,
         request: Request | list[Request] | None = None,
         iterator: AsyncIterator | None = None,
         session_hash: str | None = None,
@@ -2144,6 +2152,7 @@ Received inputs:
                     block_fn,
                     list(zip(*inputs, strict=False)),
                     None,
+                    context,
                     request,
                     event_id,
                     event_data,
@@ -2179,6 +2188,7 @@ Received inputs:
                         block_fn,
                         inputs,
                         old_iterator,
+                        context,
                         request,
                         event_id,
                         event_data,
