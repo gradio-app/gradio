@@ -86,12 +86,11 @@ export async function trimVideo(
 		);
 
 		let command = [
-			"-ss",
-			startTime.toString(),
 			"-i",
 			inputName,
-			...(endTime !== 0 ? ["-to", (endTime - startTime).toString()] : []),
-			"-c",
+			...(startTime !== 0 ? ["-ss", startTime.toString()] : []),
+			...(endTime !== 0 ? ["-to", endTime.toString()] : []),
+			"-c:a",
 			"copy",
 			outputName
 		];
