@@ -2427,8 +2427,6 @@ Received inputs:
         """
         if api_open is not None:
             self.api_open = api_open
-        if utils.is_zero_gpu_space():
-            max_size = 1 if max_size is None else max_size
         self._queue = queueing.Queue(
             live_updates=status_update_rate == "auto",
             concurrency_count=self.max_threads,
