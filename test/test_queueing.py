@@ -12,7 +12,6 @@ import gradio as gr
 from gradio.route_utils import API_PREFIX
 from gradio.routes import App
 
-
 request_context = contextvars.ContextVar("request_context", default="unset")
 
 

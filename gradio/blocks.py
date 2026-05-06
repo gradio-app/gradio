@@ -19,7 +19,6 @@ import weakref
 import webbrowser
 from collections import defaultdict
 from collections.abc import AsyncIterator, Callable, Coroutine, Sequence, Set
-from functools import partial
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 from typing import TYPE_CHECKING, Any, Literal, Union, cast
@@ -1638,15 +1637,14 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     prediction = await context.copy().run(fn, *processed_input)
                 else:
                     prediction = await fn(*processed_input)
+            elif context is not None:
+                prediction = await anyio.to_thread.run_sync(  # type: ignore
+                    context.copy().run, fn, *processed_input, limiter=self.limiter
+                )
             else:
-                if context is not None:
-                    prediction = await anyio.to_thread.run_sync(  # type: ignore
-                        context.copy().run, fn, *processed_input, limiter=self.limiter
-                    )
-                else:
-                    prediction = await anyio.to_thread.run_sync(  # type: ignore
-                        fn, *processed_input, limiter=self.limiter
-                    )
+                prediction = await anyio.to_thread.run_sync(  # type: ignore
+                    fn, *processed_input, limiter=self.limiter
+                )
         else:
             prediction = None
 
