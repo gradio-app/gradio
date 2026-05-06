@@ -567,7 +567,7 @@ def get_space() -> str | None:
 
 
 def is_zero_gpu_space() -> bool:
-    return os.getenv("SPACES_ZERO_GPU") == "true"
+    return os.getenv("SPACES_ZERO_GPU") in ("1", "true")
 
 
 def get_theme(theme: Theme | str | None) -> Theme:
