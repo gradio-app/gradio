@@ -1602,9 +1602,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             state=state,
         )
 
-        if context is not None:
-            fn = partial(context.copy().run, fn)
-
         if iterator is None:  # If not a generator function that has already run
             if block_fn.inputs_as_dict:
                 processed_input = [
@@ -1637,11 +1634,19 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 processed_input[progress_index] = progress_tracker
 
             if inspect.iscoroutinefunction(fn):
-                prediction = await fn(*processed_input)
+                if context is not None:
+                    prediction = await context.copy().run(fn, *processed_input)
+                else:
+                    prediction = await fn(*processed_input)
             else:
-                prediction = await anyio.to_thread.run_sync(  # type: ignore
-                    fn, *processed_input, limiter=self.limiter
-                )
+                if context is not None:
+                    prediction = await anyio.to_thread.run_sync(  # type: ignore
+                        context.copy().run, fn, *processed_input, limiter=self.limiter
+                    )
+                else:
+                    prediction = await anyio.to_thread.run_sync(  # type: ignore
+                        fn, *processed_input, limiter=self.limiter
+                    )
         else:
             prediction = None
 
