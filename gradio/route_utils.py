@@ -47,7 +47,6 @@ from starlette.responses import PlainTextResponse, Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from gradio import processing_utils, utils
-from gradio.context import MultiprocessWorkerContextualizer
 from gradio.data_classes import (
     BlocksConfigDict,
     MediaStreamChunk,
@@ -1164,33 +1163,3 @@ class NodeProxyCache:
             yield head
         while (chunk := await queue.get()) is not None:
             yield chunk
-
-
-def maybe_setup_zerogpu_middleware(app: fastapi.FastAPI):
-    if not utils.is_zero_gpu_space():
-        return
-
-    try:
-        from spaces.zero import ZeroGPUMiddleware
-    except ImportError:
-        return
-
-    from gradio.helpers import log_message
-
-    app.add_middleware(
-        ZeroGPUMiddleware,  # ty: ignore[invalid-argument-type]
-        exception_mapper=lambda err, exc: (
-            setattr(exc, "print_exception", False) or exc
-            if isinstance(exc, Error)
-            else Error(
-                title=err["detail"]["title"],
-                message=err["detail"]["message"],
-            )
-        ),
-        log_emitter=lambda log: log_message(
-            title=log["title"],
-            message=log["message"],
-            level=log["level"],
-        ),
-        worker_contextualizer=MultiprocessWorkerContextualizer,
-    )

@@ -107,7 +107,6 @@ from gradio.route_utils import (  # noqa: F401
     Request,
     compare_passwords_securely,
     create_lifespan_handler,
-    maybe_setup_zerogpu_middleware,
     move_uploaded_files_to_cache,
 )
 from gradio.screen_recording_utils import process_video_with_ffmpeg
@@ -129,6 +128,7 @@ from gradio.utils import (
     get_upload_folder,
     safe_aclose_iterator,
 )
+from gradio.zerogpu import maybe_setup_zerogpu_middleware
 
 if TYPE_CHECKING:
     from gradio.blocks import Block

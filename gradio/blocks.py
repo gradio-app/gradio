@@ -79,7 +79,6 @@ from gradio.node_server import start_node_server
 from gradio.route_utils import (
     API_PREFIX,
     MediaStream,
-    maybe_setup_zerogpu_middleware,
     slugify,
 )
 from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
@@ -101,6 +100,7 @@ from gradio.utils import (
     get_package_version,
     get_upload_folder,
 )
+from gradio.zerogpu import maybe_setup_zerogpu_middleware
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components.base import Component
