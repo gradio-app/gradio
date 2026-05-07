@@ -1166,7 +1166,7 @@ class NodeProxyCache:
             yield chunk
 
 
-def maybe_setup_zerogpu_middleware(app: App | fastapi.FastAPI):
+def maybe_setup_zerogpu_middleware(app: fastapi.FastAPI):
     if not utils.is_zero_gpu_space():
         return
 

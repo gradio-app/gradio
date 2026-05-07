@@ -280,7 +280,7 @@ def test_queue_event_propagates_context_from_join_request(
 
     demo.queue()
     app = App.create_app(demo)
-    app.add_middleware(ContextHeaderMiddleware)
+    app.add_middleware(ContextHeaderMiddleware)  # ty: ignore[invalid-argument-type]
 
     try:
         with TestClient(app) as test_client:
