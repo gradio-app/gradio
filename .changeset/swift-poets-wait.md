@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:[codex] fix component load event target
+fix:[codex] fix component load event target
