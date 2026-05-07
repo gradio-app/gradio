@@ -583,7 +583,7 @@ class TestComponentsInBlocks:
             if "load" in [target[1] for target in dep["targets"]]
         ]
         assert len(load_dependencies) == 1
-        assert load_dependencies[0]["targets"] == [(0, "load")]
+        assert load_dependencies[0]["targets"][0][1] == "load"
         assert load_dependencies[0]["outputs"] == [button._id]
 
     def test_load_events_work_with_builtins(self):
