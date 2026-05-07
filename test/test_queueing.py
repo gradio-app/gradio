@@ -1,6 +1,7 @@
 import asyncio
 import contextvars
 import json
+import threading
 import time
 from unittest.mock import patch
 
@@ -317,6 +318,70 @@ def test_queue_event_propagates_context_from_join_request(
                     break
 
             assert output_data == ["join"]
+    finally:
+        demo.close()
+
+
+def test_queue_context_task_is_cancelled_with_event():
+    started = threading.Event()
+    cancelled = threading.Event()
+    completed = threading.Event()
+
+    with gr.Blocks() as demo:
+        start = gr.Button()
+        output = gr.Textbox()
+
+        async def wait_forever():
+            try:
+                assert request_context.get() == "join"
+                started.set()
+                await asyncio.Event().wait()
+                completed.set()
+                return "done"
+            finally:
+                cancelled.set()
+
+        start.click(wait_forever, None, output)
+
+    demo.queue()
+    app = App.create_app(demo)
+    app.add_middleware(ContextHeaderMiddleware)  # ty: ignore[invalid-argument-type]
+
+    try:
+        with TestClient(app) as test_client:
+            startup = test_client.get(
+                f"{API_PREFIX}/startup-events",
+                headers={"x-test-context": "startup"},
+            )
+            assert startup.status_code == 200
+
+            join = test_client.post(
+                f"{API_PREFIX}/queue/join",
+                headers={"x-test-context": "join"},
+                json={
+                    "data": [],
+                    "fn_index": 0,
+                    "event_data": None,
+                    "session_hash": "cancel_context_session",
+                    "trigger_id": None,
+                },
+            )
+            assert join.status_code == 200
+            event_id = join.json()["event_id"]
+
+            assert started.wait(timeout=2)
+
+            cancel = test_client.post(
+                f"{API_PREFIX}/cancel",
+                json={
+                    "session_hash": "cancel_context_session",
+                    "fn_index": 0,
+                    "event_id": event_id,
+                },
+            )
+            assert cancel.status_code == 200
+            assert cancelled.wait(timeout=2)
+            assert not completed.is_set()
     finally:
         demo.close()
 
