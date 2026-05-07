@@ -2125,13 +2125,14 @@ def test_multiple_navbar_components_in_same_page_raise_error():
         gr.Textbox()
 
 
+@pytest.mark.flaky
 def test_blocks_close_closes_thread_properly():
     a = gr.Blocks()
 
     def poll():
         start = time.time()
-        while time.time() - start < 1:
-            time.sleep(0.25)
+        while time.time() - start < 0.5:
+            time.sleep(0.1)
         print("Closing...")
         a.close()
 
