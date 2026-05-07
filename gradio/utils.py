@@ -1,6 +1,7 @@
 """Handy utility functions."""
 
 import asyncio
+import contextvars
 import copy
 import functools
 import hashlib
@@ -52,6 +53,7 @@ from typing import (
 )
 
 import anyio
+import anyio.to_thread
 import gradio_client.utils as client_utils
 import httpx
 import orjson
@@ -857,14 +859,27 @@ def run_sync_iterator_async(iterator):
 class SyncToAsyncIterator:
     """Treat a synchronous iterator as async one."""
 
-    def __init__(self, iterator, limiter) -> None:
+    def __init__(
+        self,
+        iterator,
+        limiter,
+        context: contextvars.Context | None = None,
+    ) -> None:
         self.iterator = iterator
         self.limiter = limiter
+        self.context = context
 
     def __aiter__(self):
         return self
 
     async def __anext__(self):
+        if self.context is not None:
+            return await anyio.to_thread.run_sync(
+                self.context.copy().run,
+                run_sync_iterator_async,
+                self.iterator,
+                limiter=self.limiter,
+            )
         return await anyio.to_thread.run_sync(
             run_sync_iterator_async, self.iterator, limiter=self.limiter
         )
@@ -882,8 +897,17 @@ class SyncToAsyncIterator:
                     raise
 
 
-async def async_iteration(iterator):
-    return await anext(iterator)
+async def async_iteration(
+    iterator,
+    context: contextvars.Context | None = None,
+):
+    if context is None:
+        return await anext(iterator)
+
+    def create_task():
+        return asyncio.create_task(anext(iterator))
+
+    return await context.copy().run(create_task)
 
 
 @contextmanager

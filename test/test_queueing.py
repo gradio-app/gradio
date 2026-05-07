@@ -245,7 +245,11 @@ def test_heartbeat_task_cancelled_after_stream_completes():
     demo.close()
 
 
-def test_queue_event_propagates_context_from_join_request():
+@pytest.mark.parametrize("generator", [False, True])
+@pytest.mark.parametrize("asynchronous", [False, True])
+def test_queue_event_propagates_context_from_join_request(
+    asynchronous: bool, generator: bool
+):
     with gr.Blocks() as demo:
         start = gr.Button()
         output = gr.Textbox()
@@ -253,7 +257,26 @@ def test_queue_event_propagates_context_from_join_request():
         def read_context():
             return request_context.get()
 
-        start.click(read_context, None, output)
+        def read_context_gen():
+            yield request_context.get()
+
+        async def read_context_async():
+            return request_context.get()
+
+        async def read_context_asyncgen():
+            yield request_context.get()
+
+        match asynchronous, generator:
+            case False, False:
+                fn = read_context
+            case False, True:
+                fn = read_context_gen
+            case True, False:
+                fn = read_context_async
+            case True, True:
+                fn = read_context_asyncgen
+
+        start.click(fn, None, output)
 
     demo.queue()
     app = App.create_app(demo)

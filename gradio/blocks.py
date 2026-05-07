@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import contextvars
 import copy
 import dataclasses
@@ -1633,7 +1634,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
             if inspect.iscoroutinefunction(fn):
                 if context is not None:
-                    prediction = await context.copy().run(fn, *processed_input)
+                    prediction = await context.copy().run(
+                        asyncio.create_task, fn(*processed_input)
+                    )
                 else:
                     prediction = await fn(*processed_input)
             elif context is not None:
@@ -1652,8 +1655,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 if iterator is None:
                     iterator = cast(AsyncIterator[Any], prediction)
                 if inspect.isgenerator(iterator):
-                    iterator = utils.SyncToAsyncIterator(iterator, self.limiter)
-                prediction = await utils.async_iteration(iterator)
+                    iterator = utils.SyncToAsyncIterator(
+                        iterator, self.limiter, context
+                    )
+                prediction = await utils.async_iteration(iterator, context=context)
                 is_generating = True
             except StopAsyncIteration:
                 n_outputs = len(block_fn.outputs)
