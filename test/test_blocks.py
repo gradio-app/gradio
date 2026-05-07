@@ -26,6 +26,7 @@ from PIL import Image
 
 import gradio as gr
 from gradio import blocks, helpers
+from gradio.context import LocalContext
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
@@ -2131,3 +2132,66 @@ def test_blocks_close_closes_thread_properly():
     time.sleep(1.2)
     assert not t.is_alive()
     assert not a.is_running
+
+
+def test_render_apply_does_not_raise_keyerror_when_fns_are_popped():
+    """
+    `Renderable.apply` snapshots `fns_from_last_render` *before* running the user
+    render function. If the user render function (or anything it calls -- e.g.
+    `gr.Examples` -- which transiently appends and then pops a function in
+    `gradio/helpers.py`) leaves `blocks_config.fns` without an entry for one of
+    the previously-rendered ids, the cleanup loop in `Renderable.apply` must
+    treat that absent entry as "already cleaned up" rather than raising.
+
+    Reproduces issue #12081 deterministically without spinning up an HTTP
+    server.
+    """
+
+    captured = {}
+
+    with gr.Blocks() as demo:
+        with gr.Tab(key="tab", label="Tab"):
+            dropdown = gr.Dropdown(["a", "b", "c"])
+
+            @gr.render(inputs=[dropdown])
+            def _render(value):  # noqa: D401
+                gr.Textbox(key="text", label="Text")
+                gr.Examples(
+                    examples=["a1", "a2", "a3"],
+                    example_labels=["First", "Second", "Third"],
+                    inputs=[gr.Textbox(visible=False)],
+                )
+
+            for renderable in demo.renderables:
+                captured["renderable"] = renderable
+
+    renderable = captured["renderable"]
+
+    blocks_config = demo.default_config
+
+    class _StubBlockFn:
+        rendered_in = renderable
+        render_iteration = renderable.render_iteration  # current iteration
+        _id = max(blocks_config.fns.keys(), default=-1) + 1_000
+
+    stub = _StubBlockFn()
+    blocks_config.fns[stub._id] = stub  # type: ignore[assignment]
+
+    token = LocalContext.blocks_config.set(blocks_config)
+    try:
+        # Concurrently pop the stub mid-render to simulate gr.Examples' fake-
+        # event cleanup (`gradio/helpers.py:580`).
+        original_fn = renderable.fn
+
+        def _user_fn_that_pops(*args, **kwargs):
+            blocks_config.fns.pop(stub._id, None)
+            return original_fn(*args, **kwargs)
+
+        renderable.fn = _user_fn_that_pops
+        try:
+            # Should NOT raise KeyError -- this is the fix for #12081.
+            renderable.apply("a")
+        finally:
+            renderable.fn = original_fn
+    finally:
+        LocalContext.blocks_config.reset(token)
