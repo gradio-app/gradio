@@ -1,5 +1,11 @@
 # @gradio/dialogue
 
+## 0.3.9
+
+### Fixes
+
+- [#13264](https://github.com/gradio-app/gradio/pull/13264) [`f65acd0`](https://github.com/gradio-app/gradio/commit/f65acd0f24c9b6b593b9835c7ae46282f52fdc9d) - Dialogue component unit tests.  Thanks @freddyaboulton!
+
 ## 0.3.8
 
 ### Dependency updates
