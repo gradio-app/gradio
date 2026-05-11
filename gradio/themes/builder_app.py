@@ -297,10 +297,10 @@ with gr.Blocks(  # noqa: SIM117
                     1. First, set the "Source Theme". This will set the default values that you can override.
                     2. Set the "Core Colors", "Core Sizing" and "Core Fonts". These are the core variables that are used to build the rest of the theme.
                     3. The rest of the tabs set specific CSS theme variables. These control finer aspects of the UI. Within these theme variables, you can reference the core variables and other theme variables using the variable name preceded by an asterisk, e.g. `*primary_50` or `*body_text_color`. Clear the dropdown to set a custom value.
-                    4. Once you have finished your theme, click on "View Code" below to see how you can integrate the theme into your app. You can also click on "Upload to Hub" to upload your theme to the Hugging Face Hub, where others can download and use your theme.
+                    4. Once you have finished your theme, click on "View / Edit Code" below to see how you can integrate the theme into your app. You can also directly edit the generated code to further customize your theme. Additionally, click on "Upload to Hub" to upload your theme to the Hugging Face Hub, where others can download and use your theme.
                     """
                 )
-                with gr.Accordion("View Code", open=False):
+                with gr.Accordion("View / Edit Code", open=True):
                     output_code = gr.Code(language="python", interactive=True) 
                     apply_code_btn = gr.Button("Apply Code")
                 with gr.Accordion("Upload to Hub", open=False):
