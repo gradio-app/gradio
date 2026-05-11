@@ -157,12 +157,13 @@ def _publish(
             config_file = str(Path.home() / ".pypirc")
         elif upload_pypi:
             print(
-                ":light_bulb: If you have Two Factor Authentication enabled, the username is __token__ and your password is your API key."
+                ":light_bulb: You can generate an API token at [blue]https://pypi.org/manage/account/token/[/]"
             )
-            pypi_username = Prompt.ask(":laptop_computer: Enter your pypi username")
-            pypi_password = Prompt.ask(
-                ":closed_lock_with_key: Enter your pypi password", password=True
+            pypi_token = Prompt.ask(
+                ":closed_lock_with_key: Enter your pypi API token", password=True
             )
+            pypi_username = "__token__"
+            pypi_password = pypi_token
     if upload_pypi:
         try:
             from twine.commands.upload import upload as twine_upload  # type: ignore
