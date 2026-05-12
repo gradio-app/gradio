@@ -661,6 +661,19 @@ class TestRoutes:
         with pytest.raises(PermissionError):
             app.build_proxy_request("https://google.com")
 
+    def test_proxy_clients_do_not_share_cookies(self):
+        """Each `/proxy=` call must use a fresh `httpx.AsyncClient` so that
+        `Set-Cookie: Domain=hf.space` from one upstream Space cannot leak
+        into a later proxied request to a different `*.hf.space`. Regression
+        test for GHSA-2mr9-9r47-px2g.
+        """
+        first = routes._build_proxy_client()
+        second = routes._build_proxy_client()
+        assert first is not second
+        assert first.cookies is not second.cookies
+        first.cookies.set("session_id", "ATTACKER", domain=".hf.space")
+        assert "session_id" not in second.cookies
+
     def test_proxy_rejects_non_hf_space_urls(self):
         """Proxy should reject non-.hf.space URLs even if they are in proxy_urls,
         to prevent SSRF via malicious proxy_url injection in configs."""

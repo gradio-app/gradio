@@ -230,13 +230,31 @@ def toorjson(value):
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 templates.env.filters["toorjson"] = toorjson
 
-client = httpx.AsyncClient(
+# Shared transport keeps the connection pool warm without sharing an
+# `httpx.AsyncClient` (and therefore a cookie jar) across `/proxy=` requests.
+# A single shared `AsyncClient` would persist `Set-Cookie` headers from one
+# proxied response and replay them on subsequent requests to any sibling
+# `*.hf.space` URL — see GHSA-2mr9-9r47-px2g.
+_proxy_transport = httpx.AsyncHTTPTransport(
     limits=httpx.Limits(
         max_connections=100,
         max_keepalive_connections=20,
     ),
-    timeout=httpx.Timeout(10.0),
 )
+
+
+def _build_proxy_client() -> httpx.AsyncClient:
+    """Per-call client for the `/proxy=` reverse proxy.
+
+    Each call returns a fresh `httpx.AsyncClient` with its own cookie jar,
+    so a malicious upstream `Set-Cookie: Domain=hf.space` response cannot
+    leak into a later proxy request to a different `*.hf.space`. The
+    underlying connection pool is shared via the module-level transport.
+    """
+    return httpx.AsyncClient(
+        transport=_proxy_transport,
+        timeout=httpx.Timeout(10.0),
+    )
 
 file_upload_statuses = FileUploadProgress()
 
@@ -377,7 +395,10 @@ class App(FastAPI):
         headers = {}
         if Context.token is not None:
             headers["Authorization"] = f"Bearer {Context.token}"
-        rp_req = client.build_request("GET", url, headers=headers)
+        # Build a plain request rather than `client.build_request` so that
+        # the proxy does not share an `httpx.AsyncClient` (or cookie jar)
+        # across calls (see GHSA-2mr9-9r47-px2g).
+        rp_req = httpx.Request("GET", url, headers=headers)
         return rp_req
 
     def _cancel_asyncio_tasks(self):
@@ -1180,7 +1201,13 @@ class App(FastAPI):
                 rp_req = app.build_proxy_request(url_path)
             except PermissionError as err:
                 raise HTTPException(status_code=400, detail=str(err)) from err
-            rp_resp = await client.send(rp_req, stream=True)
+            proxy_client = _build_proxy_client()
+            rp_resp = await proxy_client.send(rp_req, stream=True)
+
+            async def _close_proxy_resources() -> None:
+                await rp_resp.aclose()
+                await proxy_client.aclose()
+
             mime_type, _ = mimetypes.guess_type(url_path)
             if mime_type not in XSS_SAFE_MIMETYPES:
                 rp_resp.headers.update({"Content-Disposition": "attachment"})
@@ -1189,7 +1216,7 @@ class App(FastAPI):
                 rp_resp.aiter_raw(),
                 status_code=rp_resp.status_code,
                 headers=rp_resp.headers,  # type: ignore
-                background=BackgroundTask(rp_resp.aclose),
+                background=BackgroundTask(_close_proxy_resources),
             )
 
         @router.head("/file={path_or_url:path}", dependencies=[Depends(login_check)])
