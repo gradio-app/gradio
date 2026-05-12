@@ -81,8 +81,8 @@ class TestImageEditor:
         editor = gr.ImageEditor(
             brush=False,
             eraser=False,
-            transforms=["crop"],
-            sources=["upload", "clipboard"],
+            transforms=("crop",),
+            sources=("upload", "clipboard"),
             layers=False,
         )
         config = editor.get_config()
