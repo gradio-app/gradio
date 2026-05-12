@@ -50,6 +50,28 @@ class Tabs(BlockContext, metaclass=ComponentMeta):
         )
         self.selected = selected
 
+    def __exit__(self, exc_type=None, *args):
+        super().__exit__(exc_type, *args)
+        if exc_type is not None:
+            return
+        for child in self.children:
+            if isinstance(child, Tab):
+                continue
+            # Unwrap gradio auto-wrappers (e.g. gr.Form around a single gr.Textbox)
+            # so the error names the component the user actually wrote.
+            user_visible = child
+            while (
+                isinstance(user_visible, BlockContext)
+                and not getattr(user_visible, "is_rendered", True)
+                and len(user_visible.children) == 1
+            ):
+                user_visible = user_visible.children[0]
+            raise ValueError(
+                f"gr.Tabs() can only contain gr.Tab() (or gr.TabItem()) components as direct children, "
+                f"but received a gr.{type(user_visible).__name__}(). "
+                f"Wrap it inside a gr.Tab(...) block to fix this."
+            )
+
 
 @document()
 class Tab(BlockContext, metaclass=ComponentMeta):

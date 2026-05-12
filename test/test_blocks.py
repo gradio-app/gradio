@@ -2112,6 +2112,41 @@ def test_multiple_navbar_components_in_same_page_raise_error():
         gr.Textbox()
 
 
+def test_tabs_rejects_non_tab_direct_children():
+    # Regression for #9832: putting a non-Tab component directly inside gr.Tabs()
+    # used to silently produce a cryptic JS error in the browser. The Python layer
+    # should now raise a clear ValueError naming the offending component.
+    with pytest.raises(ValueError, match=r"gr\.Tabs\(\).*gr\.Textbox\(\)"):
+        with gr.Blocks():
+            with gr.Tabs():
+                gr.Textbox()
+
+    with pytest.raises(ValueError, match=r"gr\.Tabs\(\).*gr\.Row\(\)"):
+        with gr.Blocks():
+            with gr.Tabs():
+                with gr.Row():
+                    gr.Textbox()
+
+    # A Tab sibling next to a non-Tab still surfaces the non-Tab clearly.
+    with pytest.raises(ValueError, match=r"gr\.Tabs\(\).*gr\.Markdown\(\)"):
+        with gr.Blocks():
+            with gr.Tabs():
+                with gr.Tab("ok"):
+                    gr.Textbox()
+                gr.Markdown("leaked sibling")
+
+    # Supported usages remain unaffected.
+    with gr.Blocks():
+        with gr.Tabs():
+            with gr.Tab("A"):
+                gr.Textbox()
+            with gr.Tab("B"):
+                gr.Button("ok")
+    with gr.Blocks():
+        with gr.Tabs():
+            pass  # empty Tabs is allowed (vacuous)
+
+
 def test_blocks_close_closes_thread_properly():
     a = gr.Blocks()
 
