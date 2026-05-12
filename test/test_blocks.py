@@ -2127,6 +2127,17 @@ def test_tabs_rejects_non_tab_direct_children():
                 with gr.Row():
                     gr.Textbox()
 
+    # Multiple consecutive FormComponents are grouped into a single auto-wrap
+    # by fill_expected_parents; the error should still name them, not gr.Form.
+    with pytest.raises(
+        ValueError,
+        match=r"gr\.Tabs\(\).*gr\.Textbox\(\).*gr\.Dropdown\(\)",
+    ):
+        with gr.Blocks():
+            with gr.Tabs():
+                gr.Textbox()
+                gr.Dropdown(choices=["a", "b"])
+
     # A Tab sibling next to a non-Tab still surfaces the non-Tab clearly.
     with pytest.raises(ValueError, match=r"gr\.Tabs\(\).*gr\.Markdown\(\)"):
         with gr.Blocks():

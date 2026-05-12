@@ -57,19 +57,20 @@ class Tabs(BlockContext, metaclass=ComponentMeta):
         for child in self.children:
             if isinstance(child, Tab):
                 continue
-            # Unwrap gradio auto-wrappers (e.g. gr.Form around a single gr.Textbox)
-            # so the error names the component the user actually wrote.
-            user_visible = child
-            while (
-                isinstance(user_visible, BlockContext)
-                and not getattr(user_visible, "is_rendered", True)
-                and len(user_visible.children) == 1
+            # Surface the component(s) the user actually wrote rather than a
+            # gradio-generated auto-wrap (e.g. gr.Form grouping consecutive
+            # FormComponents into a single wrapper with multiple children).
+            if (
+                isinstance(child, BlockContext)
+                and not getattr(child, "is_rendered", True)
+                and child.children
             ):
-                user_visible = user_visible.children[0]
+                names = ", ".join(f"gr.{type(c).__name__}()" for c in child.children)
+            else:
+                names = f"gr.{type(child).__name__}()"
             raise ValueError(
                 f"gr.Tabs() can only contain gr.Tab() (or gr.TabItem()) components as direct children, "
-                f"but received a gr.{type(user_visible).__name__}(). "
-                f"Wrap it inside a gr.Tab(...) block to fix this."
+                f"but received {names}. Wrap inside a gr.Tab(...) block to fix this."
             )
 
 
