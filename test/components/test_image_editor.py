@@ -77,6 +77,19 @@ class TestImageEditor:
             "fixed_canvas": False,
         }
 
+    def test_brush_false_eraser_false_config(self):
+        editor = gr.ImageEditor(
+            brush=False,
+            eraser=False,
+            transforms=("crop",),
+            sources=("upload", "clipboard"),
+            layers=False,
+        )
+        config = editor.get_config()
+        assert config["brush"] is False
+        assert config["eraser"] is False
+        assert config["transforms"] == ["crop"]
+
     def test_process_example(self):
         test_image_path = "test/test_files/bus.png"
         image_editor = gr.ImageEditor()
