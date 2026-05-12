@@ -2157,6 +2157,16 @@ def test_tabs_rejects_non_tab_direct_children():
         with gr.Tabs():
             pass  # empty Tabs is allowed (vacuous)
 
+    # Invisible utility components (no DOM) are allowed at any level, including
+    # directly inside gr.Tabs(), since they cannot trigger the JS crash.
+    with gr.Blocks():
+        with gr.Tabs():
+            gr.State(value=0)
+            gr.Timer(value=1)
+            gr.BrowserState()
+            with gr.Tab("A"):
+                gr.Textbox()
+
 
 def test_blocks_close_closes_thread_properly():
     a = gr.Blocks()

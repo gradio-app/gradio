@@ -57,6 +57,13 @@ class Tabs(BlockContext, metaclass=ComponentMeta):
         for child in self.children:
             if isinstance(child, Tab):
                 continue
+            # Invisible utility components (gr.State, gr.BrowserState, gr.Timer, ...)
+            # have no DOM and never cause the IntersectionObserver crash this
+            # validation is guarding against. They are conventionally marked by
+            # `breaks_grouping() == False`, the same flag fill_expected_parents
+            # already uses to allow them to live anywhere in the tree.
+            if not child.breaks_grouping():
+                continue
             # Surface the component(s) the user actually wrote rather than a
             # gradio-generated auto-wrap (e.g. gr.Form grouping consecutive
             # FormComponents into a single wrapper with multiple children).
