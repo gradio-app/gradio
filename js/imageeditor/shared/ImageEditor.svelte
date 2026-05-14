@@ -371,8 +371,12 @@
 			ready = true;
 			if (sources.length > 0) {
 				handle_tool_change({ tool: "image" });
-			} else {
+			} else if (brush_options) {
 				handle_tool_change({ tool: "draw" });
+			} else if (eraser_options) {
+				handle_tool_change({ tool: "erase" });
+			} else {
+				handle_tool_change({ tool: "image" });
 			}
 			crop.set_subtool("crop");
 		});
