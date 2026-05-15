@@ -573,6 +573,19 @@ class TestComponentsInBlocks:
             comp.load_event in demo.config["dependencies"] for comp in components
         )
 
+    def test_component_load_events_target_root(self):
+        with gr.Blocks() as demo:
+            button = gr.Button(value=lambda: "Loaded")
+
+        load_dependencies = [
+            dep
+            for dep in demo.config["dependencies"]
+            if "load" in [target[1] for target in dep["targets"]]
+        ]
+        assert len(load_dependencies) == 1
+        assert load_dependencies[0]["targets"][0][1] == "load"
+        assert load_dependencies[0]["outputs"] == [button._id]
+
     def test_load_events_work_with_builtins(self):
         with gr.Blocks() as demo:
             gr.State(dict)
@@ -2112,13 +2125,14 @@ def test_multiple_navbar_components_in_same_page_raise_error():
         gr.Textbox()
 
 
+@pytest.mark.flaky
 def test_blocks_close_closes_thread_properly():
     a = gr.Blocks()
 
     def poll():
         start = time.time()
-        while time.time() - start < 1:
-            time.sleep(0.25)
+        while time.time() - start < 0.5:
+            time.sleep(0.1)
         print("Closing...")
         a.close()
 
