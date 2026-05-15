@@ -230,13 +230,18 @@ def toorjson(value):
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 templates.env.filters["toorjson"] = toorjson
 
-client = httpx.AsyncClient(
+# Shared transport keeps the connection pool warm without sharing an
+# `httpx.AsyncClient` (and therefore a cookie jar) across `/proxy=` requests.
+# A single shared `AsyncClient` would persist `Set-Cookie` headers from one
+# proxied response and replay them on subsequent requests to any sibling
+# `*.hf.space` URL — see GHSA-2mr9-9r47-px2g.
+_proxy_transport = httpx.AsyncHTTPTransport(
     limits=httpx.Limits(
         max_connections=100,
         max_keepalive_connections=20,
     ),
-    timeout=httpx.Timeout(10.0),
 )
+
 
 file_upload_statuses = FileUploadProgress()
 
@@ -377,8 +382,10 @@ class App(FastAPI):
         headers = {}
         if Context.token is not None:
             headers["Authorization"] = f"Bearer {Context.token}"
-        rp_req = client.build_request("GET", url, headers=headers)
-        return rp_req
+        # Build a plain request rather than `client.build_request` so that
+        # the proxy does not share an `httpx.AsyncClient` (or cookie jar)
+        # across calls (see GHSA-2mr9-9r47-px2g).
+        return url, headers
 
     def _cancel_asyncio_tasks(self):
         for task in self._asyncio_tasks:
@@ -1177,10 +1184,17 @@ class App(FastAPI):
         async def reverse_proxy(url_path: str):
             # Adapted from: https://github.com/tiangolo/fastapi/issues/1788
             try:
-                rp_req = app.build_proxy_request(url_path)
+                proxy_client = httpx.AsyncClient(
+                    transport=_proxy_transport,
+                    timeout=httpx.Timeout(10.0),
+                )
+                url, headers = app.build_proxy_request(url_path)
+                rp_req = proxy_client.build_request("GET", url, headers=headers)
             except PermissionError as err:
                 raise HTTPException(status_code=400, detail=str(err)) from err
-            rp_resp = await client.send(rp_req, stream=True)
+
+            rp_resp = await proxy_client.send(rp_req, stream=True)
+
             mime_type, _ = mimetypes.guess_type(url_path)
             if mime_type not in XSS_SAFE_MIMETYPES:
                 rp_resp.headers.update({"Content-Disposition": "attachment"})

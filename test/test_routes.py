@@ -654,10 +654,10 @@ class TestRoutes:
             "https://google.com",
         }
         app.configure_app(interface)
-        r = app.build_proxy_request(
+        url, headers = app.build_proxy_request(
             "https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
         )
-        assert "authorization" in dict(r.headers)
+        assert "Authorization" in dict(headers)
         with pytest.raises(PermissionError):
             app.build_proxy_request("https://google.com")
 
