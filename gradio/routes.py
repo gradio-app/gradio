@@ -243,39 +243,6 @@ _proxy_transport = httpx.AsyncHTTPTransport(
 )
 
 
-class _SharedProxyTransport(httpx.AsyncBaseTransport):
-    # Per-request `AsyncClient.aclose()` propagates to the underlying
-    # transport (httpx closes the transport when the client closes), which
-    # would tear down `_proxy_transport`'s connection pool after the first
-    # `/proxy=` request — subsequent requests would fail with a closed-pool
-    # error. This wrapper keeps the shared pool alive across requests; the
-    # pool is released when the worker process exits.
-    def __init__(self, inner: httpx.AsyncBaseTransport) -> None:
-        self._inner = inner
-
-    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
-        return await self._inner.handle_async_request(request)
-
-    async def aclose(self) -> None:
-        return None
-
-
-_shared_proxy_transport = _SharedProxyTransport(_proxy_transport)
-
-
-def _build_proxy_client() -> httpx.AsyncClient:
-    """Per-call client for the `/proxy=` reverse proxy.
-
-    Each call returns a fresh `httpx.AsyncClient` with its own cookie jar,
-    so a malicious upstream `Set-Cookie: Domain=hf.space` response cannot
-    leak into a later proxy request to a different `*.hf.space`. The
-    underlying connection pool is shared via the module-level transport.
-    """
-    return httpx.AsyncClient(
-        transport=_shared_proxy_transport,
-        timeout=httpx.Timeout(10.0),
-    )
-
 file_upload_statuses = FileUploadProgress()
 
 
@@ -418,8 +385,7 @@ class App(FastAPI):
         # Build a plain request rather than `client.build_request` so that
         # the proxy does not share an `httpx.AsyncClient` (or cookie jar)
         # across calls (see GHSA-2mr9-9r47-px2g).
-        rp_req = httpx.Request("GET", url, headers=headers)
-        return rp_req
+        return url, headers
 
     def _cancel_asyncio_tasks(self):
         for task in self._asyncio_tasks:
@@ -1218,15 +1184,16 @@ class App(FastAPI):
         async def reverse_proxy(url_path: str):
             # Adapted from: https://github.com/tiangolo/fastapi/issues/1788
             try:
-                rp_req = app.build_proxy_request(url_path)
+                proxy_client = httpx.AsyncClient(
+                    transport=_proxy_transport,
+                    timeout=httpx.Timeout(10.0),
+                )
+                url, headers = app.build_proxy_request(url_path)
+                rp_req = proxy_client.build_request("GET", url, headers=headers)
             except PermissionError as err:
                 raise HTTPException(status_code=400, detail=str(err)) from err
-            proxy_client = _build_proxy_client()
-            rp_resp = await proxy_client.send(rp_req, stream=True)
 
-            async def _close_proxy_resources() -> None:
-                await rp_resp.aclose()
-                await proxy_client.aclose()
+            rp_resp = await proxy_client.send(rp_req, stream=True)
 
             mime_type, _ = mimetypes.guess_type(url_path)
             if mime_type not in XSS_SAFE_MIMETYPES:
@@ -1236,7 +1203,7 @@ class App(FastAPI):
                 rp_resp.aiter_raw(),
                 status_code=rp_resp.status_code,
                 headers=rp_resp.headers,  # type: ignore
-                background=BackgroundTask(_close_proxy_resources),
+                background=BackgroundTask(rp_resp.aclose),
             )
 
         @router.head("/file={path_or_url:path}", dependencies=[Depends(login_check)])
