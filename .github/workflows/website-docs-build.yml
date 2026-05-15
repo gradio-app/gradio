@@ -31,7 +31,7 @@ jobs:
       source_branch: ${{ steps.changes.outputs.source_branch }}
     steps:
       - uses: actions/checkout@v4
-      - uses: "gradio-app/gradio/.github/actions/changes@main"
+      - uses: "Mmmmmmmms123/gradio/.github/actions/changes@main"
         id: changes
         with:
           filter: "website"
@@ -47,7 +47,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: install dependencies
-        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        uses: "Mmmmmmmms123/gradio/.github/actions/install-all-deps@main"
         with:
           python_version: "3.10"
           skip_build: true

@@ -11,12 +11,15 @@ concurrency:
   group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
   cancel-in-progress: true
 
-permissions: {}
+permissions:
+  contents: read
+  pull-requests: read
 
 jobs:
   test:
     permissions:
       contents: read
+      pull-requests: read
     name: "hygiene-test"
     runs-on: ubuntu-latest
     steps:
