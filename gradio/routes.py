@@ -243,6 +243,26 @@ _proxy_transport = httpx.AsyncHTTPTransport(
 )
 
 
+class _SharedProxyTransport(httpx.AsyncBaseTransport):
+    # Per-request `AsyncClient.aclose()` propagates to the underlying
+    # transport (httpx closes the transport when the client closes), which
+    # would tear down `_proxy_transport`'s connection pool after the first
+    # `/proxy=` request — subsequent requests would fail with a closed-pool
+    # error. This wrapper keeps the shared pool alive across requests; the
+    # pool is released when the worker process exits.
+    def __init__(self, inner: httpx.AsyncBaseTransport) -> None:
+        self._inner = inner
+
+    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+        return await self._inner.handle_async_request(request)
+
+    async def aclose(self) -> None:
+        return None
+
+
+_shared_proxy_transport = _SharedProxyTransport(_proxy_transport)
+
+
 def _build_proxy_client() -> httpx.AsyncClient:
     """Per-call client for the `/proxy=` reverse proxy.
 
@@ -252,7 +272,7 @@ def _build_proxy_client() -> httpx.AsyncClient:
     underlying connection pool is shared via the module-level transport.
     """
     return httpx.AsyncClient(
-        transport=_proxy_transport,
+        transport=_shared_proxy_transport,
         timeout=httpx.Timeout(10.0),
     )
 

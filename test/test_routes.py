@@ -674,6 +674,31 @@ class TestRoutes:
         first.cookies.set("session_id", "ATTACKER", domain=".hf.space")
         assert "session_id" not in second.cookies
 
+    @pytest.mark.asyncio
+    async def test_proxy_client_close_does_not_close_shared_pool(self):
+        """Closing a per-request proxy client must not tear down the shared
+        connection pool — otherwise the first `/proxy=` request would close
+        `_proxy_transport` and every subsequent request would fail with a
+        closed-pool error. Regression test for the cursor-bugbot finding on
+        the GHSA-2mr9-9r47-px2g fix.
+        """
+        from unittest.mock import AsyncMock, MagicMock
+
+        inner = MagicMock(spec=httpx.AsyncBaseTransport)
+        inner.aclose = AsyncMock()
+        wrapper = routes._SharedProxyTransport(inner)
+        client = httpx.AsyncClient(transport=wrapper)
+        await client.aclose()
+        # Per-request client close must not propagate to the shared inner
+        # transport (which owns the module-level connection pool).
+        inner.aclose.assert_not_called()
+        # The real `/proxy=` client must wire through the wrapper, not the
+        # bare shared transport, for the same reason.
+        assert (
+            routes._build_proxy_client()._transport is routes._shared_proxy_transport
+        )
+        assert routes._shared_proxy_transport._inner is routes._proxy_transport
+
     def test_proxy_rejects_non_hf_space_urls(self):
         """Proxy should reject non-.hf.space URLs even if they are in proxy_urls,
         to prevent SSRF via malicious proxy_url injection in configs."""
