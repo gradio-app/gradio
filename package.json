@@ -147,6 +147,7 @@
 		"@gradio/tabitem": "workspace:^",
 		"@gradio/tabs": "workspace:^",
 		"@gradio/textbox": "workspace:^",
+		"@gradio/timeline": "workspace:^",
 		"@gradio/timer": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/uploadbutton": "workspace:^",
