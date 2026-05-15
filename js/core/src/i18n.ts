@@ -15,7 +15,7 @@ const lang_map = {
 	de: "Deutsch",
 	en: "English",
 	es: "Español",
-	et: "eesti keel"
+	et: "eesti keel",
 	eu: "Euskara",
 	fa: "فارسی",
 	fi: "Suomi",
