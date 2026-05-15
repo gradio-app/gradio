@@ -25,7 +25,7 @@
 	},
 	"scripts": {
 		"bundle": "vite build --ssr",
-		"bundle:browser": "BROWSER_BUILD=true vite build",
+		"bundle:browser": "cross-env BROWSER_BUILD=true vite build",
 		"generate_types": "tsc",
 		"clean": "rm -rf dist",
 		"build": "pnpm clean && pnpm bundle && pnpm bundle:browser && pnpm generate_types",

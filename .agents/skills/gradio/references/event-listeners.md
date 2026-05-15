@@ -123,6 +123,8 @@ component.event_name(
 
 - **Textbox**: change, input, select, submit, focus, blur, stop, copy
 
+- **Timeline**: click, select
+
 - **Timer**: tick
 
 - **UploadButton**: click, upload

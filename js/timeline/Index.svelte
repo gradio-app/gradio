@@ -55,7 +55,11 @@
 
 <Block
 	elem_id={gradio.shared.elem_id}
-	elem_classes={["gradio-timeline", `layout-${gradio.props.layout}`, ...gradio.shared.elem_classes]}
+	elem_classes={[
+		"gradio-timeline",
+		`layout-${gradio.props.layout}`,
+		...gradio.shared.elem_classes
+	]}
 	show_label={gradio.shared.show_label}
 	container={gradio.shared.container}
 	scale={gradio.shared.scale}
@@ -195,8 +199,13 @@
 	}
 
 	@keyframes pulse {
-		0%, 100% { transform: scale(1); }
-		50% { transform: scale(1.1); }
+		0%,
+		100% {
+			transform: scale(1);
+		}
+		50% {
+			transform: scale(1.1);
+		}
 	}
 
 	.timeline-line {

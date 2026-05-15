@@ -90,7 +90,7 @@ def load_all_demo_code():
         runfile = os.path.join(DEMOS_DIR, demo_folder, "run.py")
         if not os.path.exists(runfile):
             continue
-        with open(runfile) as f:
+        with open(runfile, encoding="utf-8") as f:
             code = f.read()
             code = code.replace("# type: ignore", "").replace(
                 'if __name__ == "__main__":\n    demo.launch()', "demo.launch()"
@@ -350,20 +350,20 @@ def generate_to(output_dir):
 
     # Generate main skill file
     skill_md = generate_skill_md(organized, guide_links)
-    with open(os.path.join(output_dir, "SKILL.md"), "w") as f:
+    with open(os.path.join(output_dir, "SKILL.md"), "w", encoding="utf-8") as f:
         f.write(skill_md)
 
     # Generate reference files
     examples = generate_examples(all_demos)
-    with open(os.path.join(references_dir, "examples.md"), "w") as f:
+    with open(os.path.join(references_dir, "examples.md"), "w", encoding="utf-8") as f:
         f.write(examples)
 
     api_signatures = generate_api_signatures(organized)
-    with open(os.path.join(references_dir, "api-signatures.md"), "w") as f:
+    with open(os.path.join(references_dir, "api-signatures.md"), "w", encoding="utf-8") as f:
         f.write(api_signatures)
 
     event_listeners = generate_event_listeners(organized)
-    with open(os.path.join(references_dir, "event-listeners.md"), "w") as f:
+    with open(os.path.join(references_dir, "event-listeners.md"), "w", encoding="utf-8") as f:
         f.write(event_listeners)
 
     return skill_md
@@ -372,7 +372,7 @@ def generate_to(output_dir):
 def files_equal(path1, path2):
     if not os.path.exists(path1) or not os.path.exists(path2):
         return False
-    with open(path1) as f1, open(path2) as f2:
+    with open(path1, encoding="utf-8") as f1, open(path2, encoding="utf-8") as f2:
         return f1.read() == f2.read()
 
 
@@ -429,7 +429,7 @@ def main():
             count = len(os.listdir(path))
             print(f"  {name}/: {count} files")
         elif os.path.isfile(path):
-            with open(path) as f:
+            with open(path, encoding="utf-8") as f:
                 lines = len(f.readlines())
             print(f"  {name}: {lines} lines")
 
