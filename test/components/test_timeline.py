@@ -1,6 +1,5 @@
 """Tests for gr.Timeline() component."""
 
-import pytest
 from gradio.components import Timeline
 
 
