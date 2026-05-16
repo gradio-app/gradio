@@ -10,6 +10,8 @@ from gradio.caching import Cache, cache
 from gradio.chat_interface import ChatInterface
 from gradio.cli import deploy
 from gradio.components import (
+    HTML,
+    JSON,
     AnnotatedImage,
     Annotatedimage,
     Audio,
@@ -40,12 +42,10 @@ from gradio.components import (
     Highlight,
     HighlightedText,
     Highlightedtext,
-    HTML,
     Image,
     ImageEditor,
     ImageSlider,
     InputHTMLAttributes,
-    JSON,
     Json,
     Label,
     LinePlot,
@@ -138,7 +138,7 @@ from gradio.templates import (
     TextArea,
 )
 from gradio.themes import Base as Theme
-from gradio.utils import FileSize, NO_RELOAD, get_package_version, set_static_paths
+from gradio.utils import NO_RELOAD, FileSize, get_package_version, set_static_paths
 
 # this is the verion:
 __version__ = get_package_version()
