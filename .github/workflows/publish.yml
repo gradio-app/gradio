@@ -11,6 +11,7 @@ env:
   PNPM_CACHE_FOLDER: .pnpm-store
 jobs:
   version_or_publish:
+    if: github.repository == 'gradio-app/gradio'
     runs-on: ubuntu-22.04
     environment: publish
     permissions:
