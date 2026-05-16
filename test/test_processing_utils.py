@@ -9,6 +9,7 @@ import numpy as np
 import pytest
 from PIL import Image, ImageCms
 from pydantic import BaseModel
+from pydub import AudioSegment
 
 import gradio as gr
 from gradio import components, data_classes, processing_utils, utils
@@ -203,6 +204,38 @@ class TestAudioPreprocessing:
         processing_utils.audio_to_file(audio[0], audio[1], "test_audio_to_file")
         assert os.path.exists("test_audio_to_file")
         os.remove("test_audio_to_file")
+
+    @pytest.mark.parametrize("fmt", ["wav", "mp3", "flac"])
+    def test_audio_to_file_float32_non_wav(self, fmt, tmp_path):
+        # Regression test for #13364: audio_to_file produced static noise for
+        # non-WAV formats because float32 samples were not converted to int16
+        # before being handed to pydub (which then treated the 4-byte values
+        # as int32 PCM). Round-tripping a sine through audio_to_file and
+        # decoding it back should preserve the waveform shape for every
+        # supported format, not just "wav".
+        sr = 24000
+        t = np.arange(sr) / sr  # 1 second
+        sine = np.sin(2 * np.pi * 440 * t).astype(np.float32)
+        out_path = tmp_path / f"sine.{fmt}"
+
+        processing_utils.audio_to_file(sr, sine, str(out_path), format=fmt)
+        assert out_path.exists()
+
+        decoded = AudioSegment.from_file(str(out_path), format=fmt)
+        samples = np.array(decoded.get_array_of_samples(), dtype=np.float64)
+        n = min(len(samples), len(sine))
+        samples = samples[:n]
+        reference = sine[:n].astype(np.float64)
+        if np.abs(samples).max() > 0:
+            samples = samples / np.abs(samples).max()
+        # Lossy codecs (mp3) blur the waveform but preserve overall shape;
+        # the int32-misinterpretation bug produced noise with RMS error
+        # ~0.3+, so 0.1 cleanly separates "encoded correctly" from "noise".
+        rms_error = float(np.sqrt(np.mean((samples - reference) ** 2)))
+        assert rms_error < 0.1, (
+            f"audio_to_file produced noise for format={fmt!r} "
+            f"(RMS error {rms_error:.3f} vs sine input)"
+        )
 
     def test_convert_to_16_bit_wav(self):
         # Generate a random audio sample and set the amplitude

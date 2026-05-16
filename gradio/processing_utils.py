@@ -678,7 +678,13 @@ def audio_from_file(
 
 
 def audio_to_file(sample_rate, data, filename, format="wav"):
-    if format == "wav":
+    # pydub's `AudioSegment` raw constructor only supports integer PCM, and
+    # interprets `sample_width=4` as int32 rather than float32. Without an
+    # explicit conversion, non-WAV formats (mp3, flac, ogg, ...) end up
+    # feeding float32 bytes through ffmpeg as `pcm_s32le`, which decodes as
+    # noise. Run the same int16 conversion for every format so the encoded
+    # output matches the input waveform regardless of `format`. See #13364.
+    if data.dtype != np.int16:
         data = convert_to_16_bit_wav(data)
 
     audio = AudioSegment(
