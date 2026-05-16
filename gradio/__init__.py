@@ -10,8 +10,6 @@ from gradio.caching import Cache, cache
 from gradio.chat_interface import ChatInterface
 from gradio.cli import deploy
 from gradio.components import (
-    HTML,
-    JSON,
     AnnotatedImage,
     Annotatedimage,
     Audio,
@@ -42,10 +40,12 @@ from gradio.components import (
     Highlight,
     HighlightedText,
     Highlightedtext,
+    HTML,
     Image,
     ImageEditor,
     ImageSlider,
     InputHTMLAttributes,
+    JSON,
     Json,
     Label,
     LinePlot,
@@ -64,8 +64,8 @@ from gradio.components import (
     State,
     Text,
     Textbox,
-    Timer,
     Timeline,
+    Timer,
     UploadButton,
     Video,
     component,
