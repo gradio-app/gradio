@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import contextvars
 import copy
 import dataclasses
 import hashlib
@@ -74,7 +76,11 @@ from gradio.exceptions import (
 from gradio.helpers import create_tracker, skip, special_args
 from gradio.i18n import I18n, I18nData
 from gradio.node_server import start_node_server
-from gradio.route_utils import API_PREFIX, MediaStream, slugify
+from gradio.route_utils import (
+    API_PREFIX,
+    MediaStream,
+    slugify,
+)
 from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
 from gradio.state_holder import SessionState, StateHolder
 from gradio.themes import ThemeClass as Theme
@@ -94,12 +100,7 @@ from gradio.utils import (
     get_package_version,
     get_upload_folder,
 )
-
-try:
-    import spaces  # type: ignore
-except Exception:
-    spaces = None
-
+from gradio.zerogpu import maybe_setup_zerogpu_middleware
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components.base import Component
@@ -1571,6 +1572,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         event_data: EventData | None = None,
         in_event_listener: bool = False,
         state: SessionState | None = None,
+        context: contextvars.Context | None = None,
     ):
         """
         Calls function with given index and preprocessed input, and measures process time.
@@ -1631,7 +1633,16 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 processed_input[progress_index] = progress_tracker
 
             if inspect.iscoroutinefunction(fn):
-                prediction = await fn(*processed_input)
+                if context is not None:
+                    prediction = await context.copy().run(
+                        asyncio.create_task, fn(*processed_input)
+                    )
+                else:
+                    prediction = await fn(*processed_input)
+            elif context is not None:
+                prediction = await anyio.to_thread.run_sync(  # type: ignore
+                    context.copy().run, fn, *processed_input, limiter=self.limiter
+                )
             else:
                 prediction = await anyio.to_thread.run_sync(  # type: ignore
                     fn, *processed_input, limiter=self.limiter
@@ -1644,8 +1655,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 if iterator is None:
                     iterator = cast(AsyncIterator[Any], prediction)
                 if inspect.isgenerator(iterator):
-                    iterator = utils.SyncToAsyncIterator(iterator, self.limiter)
-                prediction = await utils.async_iteration(iterator)
+                    iterator = utils.SyncToAsyncIterator(
+                        iterator, self.limiter, context
+                    )
+                prediction = await utils.async_iteration(iterator, context=context)
                 is_generating = True
             except StopAsyncIteration:
                 n_outputs = len(block_fn.outputs)
@@ -2087,6 +2100,7 @@ Received inputs:
         simple_format: bool = False,
         explicit_call: bool = False,
         root_path: str | None = None,
+        context: contextvars.Context | None = None,
     ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -2150,6 +2164,7 @@ Received inputs:
                     event_data,
                     in_event_listener,
                     state,
+                    context=context,
                 )
                 manual_cache_used = used_manual_cache()
             preds = result["prediction"]
@@ -2185,6 +2200,7 @@ Received inputs:
                         event_data,
                         in_event_listener,
                         state,
+                        context=context,
                     )
                 manual_cache_used = used_manual_cache()
 
@@ -2428,8 +2444,6 @@ Received inputs:
         """
         if api_open is not None:
             self.api_open = api_open
-        if utils.is_zero_gpu_space():
-            max_size = 1 if max_size is None else max_size
         self._queue = queueing.Queue(
             live_updates=status_update_rate == "auto",
             concurrency_count=self.max_threads,
@@ -2753,6 +2767,9 @@ Received inputs:
             mcp_server=mcp_server,
             debug=debug,
         )
+
+        maybe_setup_zerogpu_middleware(self.app)
+
         if self.mcp_error and not quiet:
             print(self.mcp_error)
 

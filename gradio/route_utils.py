@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextvars
 import functools
 import hashlib
 import hmac
@@ -353,6 +354,7 @@ async def call_process_api(
     gr_request: Union[Request, list[Request]],
     fn: BlockFunction,
     root_path: str,
+    context: contextvars.Context | None = None,
 ):
     session_state, iterator = restore_session_state(app=app, body=body)
 
@@ -374,6 +376,7 @@ async def call_process_api(
                 output = await app.get_blocks().process_api(
                     block_fn=fn,
                     inputs=inputs,
+                    context=context,
                     request=gr_request,
                     state=session_state,
                     iterator=iterator,

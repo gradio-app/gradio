@@ -28,3 +28,4 @@ tqdm
 transformers
 vega_datasets
 diffusers
+spaces>=0.50.dev0
