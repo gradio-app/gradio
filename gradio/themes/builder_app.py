@@ -55,6 +55,7 @@ def get_doc_theme_var_groups():
 
 variable_groups, flat_variables = get_doc_theme_var_groups()
 
+
 css = """
 .gradio-container {
     overflow: visible !important;
@@ -297,11 +298,11 @@ with gr.Blocks(  # noqa: SIM117
                     1. First, set the "Source Theme". This will set the default values that you can override.
                     2. Set the "Core Colors", "Core Sizing" and "Core Fonts". These are the core variables that are used to build the rest of the theme.
                     3. The rest of the tabs set specific CSS theme variables. These control finer aspects of the UI. Within these theme variables, you can reference the core variables and other theme variables using the variable name preceded by an asterisk, e.g. `*primary_50` or `*body_text_color`. Clear the dropdown to set a custom value.
-                    4. Once you have finished your theme, click on "View Code" below to see how you can integrate the theme into your app. You can also click on "Upload to Hub" to upload your theme to the Hugging Face Hub, where others can download and use your theme.
-                    """
+                    4. Once you have finished your theme, click on "View / Edit Code" below to see how you can integrate the theme into your app. You can also directly edit the generated code to further customize your theme. Additionally, click on "Upload to Hub" to upload your theme to the Hugging Face Hub, where others can download and use your theme.                    """
                 )
-                with gr.Accordion("View Code", open=False):
-                    output_code = gr.Code(language="python")
+                with gr.Accordion("View / Edit Code", open=True):
+                    output_code = gr.Code(language="python", interactive=True)
+                    apply_code_btn = gr.Button("Apply Code")
                 with gr.Accordion("Upload to Hub", open=False):
                     gr.Markdown(
                         "You can save your theme on the Hugging Face Hub. HF API write token can be found [here](https://huggingface.co/settings/tokens)."
@@ -720,9 +721,218 @@ theme = gr.themes.{base_theme_name}({newline if core_diffs_code or font_diffs_co
 
 with gr.Blocks() as demo:
     ... # your code here
+
 demo.launch(theme=theme)
-    ..."""
+"""
             return output
+
+        def load_theme_from_code(code_string):
+            import ast
+
+            class ThemeVisitor(ast.NodeVisitor):  # ATS
+                def __init__(self):
+                    self.base_theme = "Base"
+                    self.init_kwargs = {}
+                    self.set_kwargs = {}
+
+                def visit_Assign(self, node):
+                    if (
+                        len(node.targets) == 1
+                        and isinstance(node.targets[0], ast.Name)
+                        and node.targets[0].id == "theme"
+                    ):
+                        self.visit(node.value)
+
+                def visit_Call(self, node):
+                    if isinstance(node.func, ast.Attribute) and node.func.attr == "set":
+                        for kw in node.keywords:
+                            if isinstance(kw.value, ast.Constant):
+                                self.set_kwargs[kw.arg] = kw.value.value
+                        self.visit(node.func.value)
+                    else:
+                        is_theme_instantiation = False
+                        if (
+                            isinstance(node.func, ast.Attribute)
+                            and isinstance(node.func.value, ast.Attribute)
+                            and node.func.value.attr == "themes"
+                            or isinstance(node.func, ast.Attribute)
+                            and node.func.attr in [t.__name__ for t in themes]
+                        ):
+                            self.base_theme = node.func.attr
+                            is_theme_instantiation = True
+
+                        if is_theme_instantiation:
+                            for kw in node.keywords:
+                                if isinstance(kw.value, ast.Constant):
+                                    self.init_kwargs[kw.arg] = kw.value.value
+                                elif isinstance(kw.value, ast.Name):
+                                    self.init_kwargs[kw.arg] = kw.value.id
+                                elif isinstance(kw.value, ast.List):
+                                    fonts = []
+                                    for elt in kw.value.elts:
+                                        if isinstance(elt, ast.Constant):
+                                            fonts.append(elt.value)
+                                        elif (
+                                            isinstance(elt, ast.Call)
+                                            and isinstance(elt.func, ast.Attribute)
+                                            and elt.func.attr == "GoogleFont"
+                                            and elt.args
+                                            and isinstance(elt.args[0], ast.Constant)
+                                        ):
+                                            fonts.append(
+                                                gr.themes.GoogleFont(elt.args[0].value)
+                                            )
+                                    self.init_kwargs[kw.arg] = fonts
+                                elif (
+                                    isinstance(kw.value, ast.Call)
+                                    and isinstance(kw.value.func, ast.Attribute)
+                                    and kw.value.func.attr in ["Color", "Size"]
+                                ):
+                                    vals = {
+                                        k.arg: k.value.value
+                                        for k in kw.value.keywords
+                                        if isinstance(k.value, ast.Constant)
+                                    }
+
+                                    class ParsedThemeObject:
+                                        def __init__(self, vals, is_color):
+                                            self.__dict__.update(vals)
+                                            self.is_color = is_color
+                                            self.name = ""
+
+                                        def expand(self):
+                                            if self.is_color:
+                                                return [
+                                                    self.__dict__.get(f"c{i}")
+                                                    for i in palette_range
+                                                ]
+                                            return [
+                                                self.__dict__.get(i) for i in size_range
+                                            ]
+
+                                    if kw.value.func.attr == "Color":
+                                        self.init_kwargs[kw.arg] = ParsedThemeObject(
+                                            vals, True
+                                        )
+                                    elif kw.value.func.attr == "Size":
+                                        self.init_kwargs[kw.arg] = ParsedThemeObject(
+                                            vals, False
+                                        )
+                        else:
+                            self.generic_visit(node)
+
+            v = ThemeVisitor()
+            try:
+                if code_string:
+                    v.visit(ast.parse(code_string))
+
+                theme_class = [t for t in themes if t.__name__ == v.base_theme]
+                theme_class = gr.themes.Base if not theme_class else theme_class[0]
+
+                parameters = inspect.signature(theme_class.__init__).parameters
+
+                def get_val(name, source_class):
+                    val = v.init_kwargs.get(name, parameters[name].default)
+                    if isinstance(val, str):
+                        objs = [obj for obj in source_class.all if obj.name == val]
+                        if not objs and source_class == gr.themes.Size:
+                            prefix = name.split("_")[0]
+                            objs = [
+                                obj
+                                for obj in source_class.all
+                                if obj.name == f"{prefix}_{val}"
+                            ]
+                        if objs:
+                            return objs[0]
+                    return val
+
+                primary_hue = get_val("primary_hue", gr.themes.Color)
+                secondary_hue = get_val("secondary_hue", gr.themes.Color)
+                neutral_hue = get_val("neutral_hue", gr.themes.Color)
+                text_size = get_val("text_size", gr.themes.Size)
+                spacing_size = get_val("spacing_size", gr.themes.Size)
+                radius_size = get_val("radius_size", gr.themes.Size)
+
+                # Load defautl theme variable
+                theme = theme_class(
+                    primary_hue=primary_hue
+                    if not hasattr(primary_hue, "is_color")
+                    else parameters["primary_hue"].default,
+                    secondary_hue=secondary_hue
+                    if not hasattr(secondary_hue, "is_color")
+                    else parameters["secondary_hue"].default,
+                    neutral_hue=neutral_hue
+                    if not hasattr(neutral_hue, "is_color")
+                    else parameters["neutral_hue"].default,
+                    text_size=text_size
+                    if not hasattr(text_size, "is_color")
+                    else parameters["text_size"].default,
+                    spacing_size=spacing_size
+                    if not hasattr(spacing_size, "is_color")
+                    else parameters["spacing_size"].default,
+                    radius_size=radius_size
+                    if not hasattr(radius_size, "is_color")
+                    else parameters["radius_size"].default,
+                    font=v.init_kwargs.get("font", parameters["font"].default),
+                    font_mono=v.init_kwargs.get(
+                        "font_mono", parameters["font_mono"].default
+                    ),
+                )
+
+                font = theme._font[:4]
+                font_mono = theme._font_mono[:4]
+                font_is_google = [isinstance(f, gr.themes.GoogleFont) for f in font]
+                font_mono_is_google = [
+                    isinstance(f, gr.themes.GoogleFont) for f in font_mono
+                ]
+
+                def pad_to_4(x):
+                    return x + [None] * (4 - len(x))
+
+                var_output = []
+                for variable in flat_variables:
+                    # Override with set_kwargs
+                    if variable in v.set_kwargs:
+                        var_output.append(v.set_kwargs[variable])
+                    else:
+                        theme_val = getattr(theme, variable)
+                        if theme_val is None and variable.endswith("_dark"):
+                            theme_val = getattr(theme, variable[:-5])
+                        var_output.append(theme_val)
+
+                return (
+                    [v.base_theme]
+                    + [
+                        getattr(primary_hue, "name", ""),
+                        getattr(secondary_hue, "name", ""),
+                        getattr(neutral_hue, "name", ""),
+                    ]
+                    + primary_hue.expand()
+                    + secondary_hue.expand()
+                    + neutral_hue.expand()
+                    + [
+                        getattr(text_size, "name", ""),
+                        getattr(spacing_size, "name", ""),
+                        getattr(radius_size, "name", ""),
+                    ]
+                    + text_size.expand()
+                    + spacing_size.expand()
+                    + radius_size.expand()
+                    + pad_to_4([getattr(f, "name", f) for f in font])
+                    + pad_to_4(font_is_google)
+                    + pad_to_4([getattr(f, "name", f) for f in font_mono])
+                    + pad_to_4(font_mono_is_google)
+                    + var_output
+                )
+
+            except Exception as e:
+                import traceback
+
+                print(
+                    f"[Theme ThemeVisitor Error] Failed to load theme from code:- {e}"
+                )
+                traceback.print_exc()
+                return [gr.skip()] * (len(theme_inputs) + 1)
 
         history = gr.State([])
         current_theme = gr.State(None)
@@ -927,6 +1137,15 @@ demo.launch(theme=theme)
             ).then
         )
 
+        attach_rerender(
+            apply_code_btn.click(
+                load_theme_from_code,
+                output_code,
+                [base_theme_dropdown] + theme_inputs,
+                api_visibility="undocumented",
+            ).then
+        )
+
         for theme_box in (
             text_sizes + spacing_sizes + radius_sizes + main_fonts + mono_fonts
         ):
@@ -1011,7 +1230,7 @@ demo.launch(theme=theme)
             api_visibility="undocumented",
         )
 
-        demo.load(lambda: print("FOO"))
+        demo.load(lambda: print("[Theme Builder] Web App started/reloaded"))
 
 
 if __name__ == "__main__":
