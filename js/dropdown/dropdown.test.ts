@@ -500,6 +500,112 @@ describe("Single-select: Custom values", () => {
 		const input = getByLabelText("Dropdown") as HTMLInputElement;
 		expect(input.value).toBe("");
 	});
+
+	test("updating choices while typing should preserve the input text", async () => {
+		const { getByLabelText, set_data } = await render(Dropdown, {
+			show_label: true,
+			loading_status,
+			value: null,
+			allow_custom_value: true,
+			label: "Dropdown",
+			choices: [],
+			filterable: true,
+			interactive: true
+		});
+
+		const item: HTMLInputElement = getByLabelText(
+			"Dropdown"
+		) as HTMLInputElement;
+
+		await item.focus();
+		await event.keyboard("ap");
+		expect(item.value).toBe("ap");
+
+		// Simulate backend returning new choices (as in key_up handler)
+		await set_data({
+			choices: [
+				["ap item 1", "ap item 1"],
+				["ap item 2", "ap item 2"],
+				["ap item 3", "ap item 3"]
+			]
+		});
+
+		// Input text should be preserved, not cleared
+		expect(item.value).toBe("ap");
+	});
+
+	test("updating choices while typing should not fire a change event", async () => {
+		const { getByLabelText, listen, set_data } = await render(Dropdown, {
+			show_label: true,
+			loading_status,
+			value: null,
+			allow_custom_value: true,
+			label: "Dropdown",
+			choices: [],
+			filterable: true,
+			interactive: true
+		});
+
+		const item: HTMLInputElement = getByLabelText(
+			"Dropdown"
+		) as HTMLInputElement;
+		const change_event = listen("change");
+
+		await item.focus();
+		await event.keyboard("test");
+
+		// Simulate backend returning new choices
+		await set_data({
+			choices: [
+				["test item 1", "test item 1"],
+				["test item 2", "test item 2"]
+			]
+		});
+
+		// No change event should have fired (only choices changed, not value)
+		expect(change_event).not.toHaveBeenCalled();
+	});
+
+	test("updating choices while typing should show updated options", async () => {
+		const { getByLabelText, getAllByTestId, set_data } = await render(
+			Dropdown,
+			{
+				show_label: true,
+				loading_status,
+				value: null,
+				allow_custom_value: true,
+				label: "Dropdown",
+				choices: [
+					["old item 1", "old item 1"],
+					["old item 2", "old item 2"]
+				],
+				filterable: true,
+				interactive: true
+			}
+		);
+
+		const item: HTMLInputElement = getByLabelText(
+			"Dropdown"
+		) as HTMLInputElement;
+
+		await item.focus();
+		await event.keyboard("new");
+
+		// Simulate backend returning new choices
+		await set_data({
+			choices: [
+				["new item 1", "new item 1"],
+				["new item 2", "new item 2"],
+				["new item 3", "new item 3"]
+			]
+		});
+
+		const options = getAllByTestId("dropdown-option");
+		// All 3 new choices should be shown (they all contain "new")
+		expect(options).toHaveLength(3);
+		// Input text should still be preserved
+		expect(item.value).toBe("new");
+	});
 });
 
 describe("Single-select: Events", () => {
