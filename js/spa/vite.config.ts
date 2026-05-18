@@ -73,9 +73,11 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			target: "esnext",
 			minify: production,
 			outDir: "../../gradio/templates/frontend",
-			rollupOptions: {
-				external: ["virtual:cc-init"]
-			},
+			// rollupOptions: {
+			// 	external: ["virtual:cc-init"]
+			// }
+			//
+
 			rolldownOptions: {
 				external: ["virtual:cc-init"]
 			}
@@ -113,6 +115,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			}
 		},
 		plugins: [
+			handle_cc_init(),
 			handle_msw_imports(),
 			svelte_plugin({
 				inspector: false,
@@ -155,7 +158,8 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 				"@ffmpeg/ffmpeg",
 				"@ffmpeg/util",
 				"chromium-bidi",
-				"esbuild"
+				"esbuild",
+				"virtual:cc-init"
 			],
 			// Pre-declare dynamic-import deps so they end up in the same
 			// optimizer batch as static-scanned deps. Vitest browser mode
@@ -246,6 +250,19 @@ function handle_msw_imports(): Plugin {
 					console.warn("Failed to resolve msw/node:", e);
 					return null;
 				}
+			}
+			return null;
+		}
+	};
+}
+
+function handle_cc_init(): Plugin {
+	return {
+		name: "handle_cc_init",
+		enforce: "pre",
+		resolveId(id, importer, options) {
+			if (id === "virtual:cc-init") {
+				return { external: true, id: "virtual:cc-init" };
 			}
 			return null;
 		}

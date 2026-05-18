@@ -21,6 +21,7 @@
 			tick().then(() => {
 				const i = initial_tabs.findIndex((t) => t.id === selected);
 				if (i === -1) return;
+
 				gradio.dispatch("gradio_tab_select", {
 					value: initial_tabs[i].label,
 					index: i,
@@ -30,6 +31,8 @@
 			});
 		}
 	});
+
+	$inspect(gradio.props.selected);
 </script>
 
 {#if gradio.props.name === "walkthrough"}
@@ -37,7 +40,7 @@
 		visible={gradio.shared.visible}
 		elem_id={gradio.shared.elem_id}
 		elem_classes={gradio.shared.elem_classes}
-		bind:selected={gradio.props.selected}
+		selected={gradio.props.selected}
 		on:change={() => gradio.dispatch("change")}
 		on:select={(e) => {
 			gradio.dispatch("select", e.detail);
@@ -51,7 +54,7 @@
 		visible={gradio.shared.visible}
 		elem_id={gradio.shared.elem_id}
 		elem_classes={gradio.shared.elem_classes}
-		bind:selected={gradio.props.selected}
+		selected={gradio.props.selected}
 		on:change={() => gradio.dispatch("change")}
 		on:select={(e) => {
 			gradio.dispatch("select", e.detail);

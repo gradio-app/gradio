@@ -56,6 +56,12 @@
 	}
 
 	function _sync_tabs(new_tabs: Tab[]): void {
+		console.log(
+			"[_sync_tabs] mounted_orders=",
+			[...mounted_tab_orders],
+			"incoming=",
+			new_tabs.map((t) => t && { id: t.id, visible: t.visible })
+		);
 		for (let i = 0; i < new_tabs.length; i++) {
 			if (new_tabs[i] && !mounted_tab_orders.has(i)) {
 				tabs[i] = new_tabs[i];
@@ -93,6 +99,7 @@
 
 	setContext(TABS, {
 		register_tab: (tab: Tab, order: number) => {
+			console.log("Reg", tab, order);
 			mounted_tab_orders.add(order);
 			tabs[order] = tab;
 
@@ -103,6 +110,7 @@
 			return order;
 		},
 		unregister_tab: (tab: Tab, order: number) => {
+			console.log("Unreg", tab, order);
 			mounted_tab_orders.delete(order);
 			if ($selected_tab === tab.id) {
 				$selected_tab = tabs[0]?.id || false;
