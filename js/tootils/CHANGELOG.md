@@ -1,5 +1,12 @@
 # @self/tootils
 
+## 0.14.0
+
+### Features
+
+- [#13348](https://github.com/gradio-app/gradio/pull/13348) [`d7c4cad`](https://github.com/gradio-app/gradio/commit/d7c4cadd8fdd5205ae544d57ca001fb32b2aae5a) - fix(e2e): plug gradio-app leaks in playwright test harness, and stop spurious ECONNRESETs from aborting the free-port scan.  Thanks @pngwn!
+- [#13348](https://github.com/gradio-app/gradio/pull/13348) [`d7c4cad`](https://github.com/gradio-app/gradio/commit/d7c4cadd8fdd5205ae544d57ca001fb32b2aae5a) - fix(e2e): plug gradio-app leaks in playwright test harness.  Thanks @pngwn!
+
 ## 0.13.0
 
 ### Dependency updates
