@@ -41,6 +41,7 @@
 		on:change={() => gradio.dispatch("change")}
 		on:select={(e) => {
 			gradio.dispatch("select", e.detail);
+			gradio.dispatch("gradio_tab_select", e.detail);
 		}}
 		initial_tabs={gradio.props.initial_tabs}
 	>
@@ -55,6 +56,7 @@
 		on:change={() => gradio.dispatch("change")}
 		on:select={(e) => {
 			gradio.dispatch("select", e.detail);
+			gradio.dispatch("gradio_tab_select", e.detail);
 		}}
 		initial_tabs={gradio.props.initial_tabs}
 	>

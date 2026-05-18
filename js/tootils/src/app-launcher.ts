@@ -8,6 +8,13 @@ import url from "url";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, "../../..");
+const LOCAL_PYTHONPATH = [
+	ROOT_DIR,
+	path.join(ROOT_DIR, "client", "python"),
+	process.env.PYTHONPATH
+]
+	.filter(Boolean)
+	.join(path.delimiter);
 
 export interface GradioApp {
 	port: number;
@@ -217,7 +224,8 @@ export async function launchGradioApp(
 			GRADIO_SERVER_PORT: port.toString(),
 			// Use unique directories per instance to avoid conflicts
 			GRADIO_EXAMPLES_CACHE: cacheDir,
-			GRADIO_TEMP_DIR: tempDir
+			GRADIO_TEMP_DIR: tempDir,
+			PYTHONPATH: LOCAL_PYTHONPATH
 		}
 	});
 
