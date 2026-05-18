@@ -11,7 +11,7 @@
 		"lint": "ESLINT_USE_FLAT_CONFIG=true eslint -c .config/eslint.config.js js client/js",
 		"ts:check": "svelte-check --tsconfig tsconfig.json --threshold error",
 		"test": "pnpm --filter @gradio/client build && vitest dev --config .config/vitest.config.ts",
-		"test:run": "pnpm --filter @gradio/client build && vitest run --config .config/vitest.config.ts",
+		"test:run": "pnpm --filter @gradio/client build && vitest run --config .config/vitest.config.ts && node --test js/app/proxy_routes.test.js",
 		"test:client": "pnpm --filter=@gradio/client test",
 		"test:browser": "pnpm --filter @self/spa test:browser",
 		"test:browser:reload": "CUSTOM_TEST=1 pnpm --filter @self/spa test:browser:reload",
