@@ -296,8 +296,7 @@ class TestCacheDecorator:
         def counter(n):
             nonlocal call_count
             call_count += 1
-            for i in range(1, n + 1):
-                yield i
+            yield from range(1, n + 1)
 
         assert list(cache(counter)(3)) == [1, 2, 3]
         assert list(cache(counter)(3)) == [1, 2, 3]
