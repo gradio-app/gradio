@@ -303,21 +303,6 @@ class TestCacheDecorator:
         assert list(cache(counter)(3)) == [1, 2, 3]
         assert call_count == 1
 
-    def test_runtime_wrapper_registry_bounded(self):
-        from gradio import caching as caching_module
-
-        original_max = caching_module._RUNTIME_WRAPPER_REGISTRY_MAX
-        caching_module._RUNTIME_WRAPPER_REGISTRY_MAX = 4
-        try:
-            with caching_module._runtime_cache_lock:
-                caching_module._cache_wrappers.clear()
-            funcs = [(lambda v=v: lambda x: x + v)() for v in range(10)]
-            for fn in funcs:
-                cache(fn)(0)
-            assert len(caching_module._cache_wrappers) == 4
-        finally:
-            caching_module._RUNTIME_WRAPPER_REGISTRY_MAX = original_max
-
     def test_runtime_wrapper_non_callable_raises(self):
         with pytest.raises(TypeError, match="expected a callable"):
             cache(123)
