@@ -74,6 +74,25 @@ class TestRoutes:
         response = test_client.get("/favicon.ico")
         assert response.status_code == 200
 
+    @pytest.mark.parametrize(
+        ("size", "expected_status"),
+        [
+            (0, 400),
+            (-1, 400),
+            (routes.MAX_PWA_ICON_SIZE, 200),
+            (routes.MAX_PWA_ICON_SIZE + 1, 400),
+        ],
+    )
+    def test_pwa_icon_validates_resize_size(self, size, expected_status):
+        io = Interface(lambda x: x + x, "text", "text")
+        io.favicon_path = "test/test_files/bus.png"
+        app = routes.App.create_app(io)
+        client = TestClient(app)
+
+        response = client.get(f"/pwa_icon/{size}")
+
+        assert response.status_code == expected_status
+
     def test_openapi_route(self, test_client):
         response = test_client.get(f"{API_PREFIX}/openapi.json")
         assert response.status_code == 200

@@ -156,6 +156,7 @@ BUILD_PATH_LIB = cast(
     .as_posix(),  # type: ignore
 )
 VERSION = get_package_version()
+MAX_PWA_ICON_SIZE = 512
 XSS_SAFE_MIMETYPES = {
     "image/jpeg",
     "image/png",
@@ -2033,14 +2034,19 @@ class App(FastAPI):
 
             if size is None:
                 return FileResponse(favicon_path)
+            if size <= 0 or size > MAX_PWA_ICON_SIZE:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Icon size must be between 1 and {MAX_PWA_ICON_SIZE}.",
+                )
 
             import PIL.Image
 
-            img = PIL.Image.open(favicon_path)
-            img = img.resize((size, size))
+            with PIL.Image.open(favicon_path) as img:
+                img = img.resize((size, size))
 
-            img_byte_array = io.BytesIO()
-            img.save(img_byte_array, format="PNG")
+                img_byte_array = io.BytesIO()
+                img.save(img_byte_array, format="PNG")
             img_byte_array.seek(0)
 
             return StreamingResponse(
@@ -2082,8 +2088,8 @@ class App(FastAPI):
                         "purpose": "any",
                     },
                     {
-                        "src": app.url_path_for("pwa_icon", size=512),
-                        "sizes": "512x512",
+                        "src": app.url_path_for("pwa_icon", size=MAX_PWA_ICON_SIZE),
+                        "sizes": f"{MAX_PWA_ICON_SIZE}x{MAX_PWA_ICON_SIZE}",
                         "type": "image/png",
                         "purpose": "any",
                     },
