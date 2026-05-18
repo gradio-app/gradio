@@ -1,4 +1,4 @@
-Tables */ table,
+Tables,
 tr,
 td,
 th {
@@ -20,7 +20,7 @@ th {
 	} */
 
 /* .message-wrap :global(div[class*="code_wrap"]) {
-		
+
 	} */
 
 .md code,

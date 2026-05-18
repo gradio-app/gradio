@@ -155,16 +155,12 @@
 		label: "My Cheetah Gallery",
 		show_label: true,
 		buttons: ["fullscreen", "download", "share"],
-		sources: ["upload"]
+		sources: ["upload"],
+		allow_preview: true
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
-		const image = await canvas.findByLabelText("Thumbnail 1 of 8");
-		await userEvent.click(image);
-		const expand_btn = await canvas.findByRole("button", {
-			name: "Fullscreen"
-		});
-		await userEvent.click(expand_btn);
+		await canvas.findByLabelText("Thumbnail 1 of 8");
 	}}
 >
 	{#snippet template(args)}

@@ -197,6 +197,15 @@ export class AppTree {
 		this.initial_tabs = {};
 		gather_initial_tabs(this.root!, this.initial_tabs);
 		this.postprocess(this.root!);
+
+		// Push new server-defined props into reused component instances.
+		// MountComponents matches children by position (unkeyed each), so most
+		// component instances are reused across a reload — but the Gradio class
+		// inside each instance aliases the OLD node's props, so without an
+		// explicit set_data the UI keeps showing pre-reload values. Same
+		// mechanism @gr.render uses: only defined keys are pushed, so locally
+		// edited values (server sends them undefined) are preserved.
+		this.#sync_reused_components_after_rerender(this.root!);
 	}
 
 	/**
@@ -214,18 +223,14 @@ export class AppTree {
 		this.#get_callbacks.set(id, _get_data);
 		this.components_to_register.delete(id);
 
-		// Apply any pending updates that were stored while the component
-		// was not yet mounted (e.g. hidden in an inactive tab).
-		// We must apply AFTER tick() so that the Gradio class's $effect
-		// (which syncs from node props) has already run. Otherwise the
-		// $effect would overwrite the values we set here.
+		// Drain any updates that arrived before this component registered —
+		// e.g. update_state called against a hidden/inactive-tab component,
+		// or #sync_reused_components_after_rerender pushing server props for
+		// a freshly-rerendered subtree whose new ids haven't re-registered yet.
 		const pending = this.#pending_updates.get(id);
 		if (pending) {
 			this.#pending_updates.delete(id);
-			tick().then(() => {
-				const _set = this.#set_callbacks.get(id);
-				if (_set) _set(pending);
-			});
+			_set_data(pending);
 		}
 
 		if (this.components_to_register.size === 0 && !this.resolved) {
@@ -426,6 +431,39 @@ export class AppTree {
 			throw new Error("Rerender failed: root node not found in current tree");
 		}
 		n.children = subtree.children;
+
+		// push server prop changes into mounted components, skipping undefined
+		// so local edits survive. keys + identity persist.
+		// queue for pending re-registrations, apply directly otherwise.
+		this.#sync_reused_components_after_rerender(subtree);
+	}
+
+	#sync_reused_components_after_rerender(node: ProcessedComponentMeta): void {
+		const data: Record<string, unknown> = {};
+		for (const key in node.props.shared_props) {
+			// @ts-ignore
+			const v = node.props.shared_props[key];
+			if (v !== undefined) data[key] = v;
+		}
+		for (const key in node.props.props) {
+			const v = node.props.props[key];
+			if (v !== undefined) data[key] = v;
+		}
+		if (Object.keys(data).length > 0) {
+			const set_data = this.#set_callbacks.get(node.id);
+			if (set_data) {
+				set_data(data);
+			} else {
+				// component hasn't re-registered yet. queue the update for later.
+				const existing = this.#pending_updates.get(node.id) || {};
+				this.#pending_updates.set(node.id, { ...existing, ...data });
+			}
+		}
+		if (node.children) {
+			for (const child of node.children) {
+				this.#sync_reused_components_after_rerender(child);
+			}
+		}
 	}
 	/*
 	 * Updates the state of a component by its ID

@@ -189,7 +189,12 @@
 	});
 
 	$effect(() => {
-		if (playback_position !== time && video) {
+		if (
+			playback_position !== time &&
+			video &&
+			typeof playback_position === "number" &&
+			Number.isFinite(playback_position)
+		) {
 			video.currentTime = playback_position;
 		}
 	});

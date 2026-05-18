@@ -5,6 +5,10 @@ import {
 } from "@testing-library/dom";
 import { tick, mount, unmount } from "svelte";
 import type { SvelteComponent, Component } from "svelte";
+// @ts-ignore — `proxy` is the runtime implementation behind `$state(...)`.
+// Using it directly keeps this file as plain `.ts` instead of `.svelte.ts`,
+// which intermittently fails to load in CI under concurrent test-file imports.
+import { proxy } from "svelte/internal/client";
 
 import type {
 	queries,
@@ -198,13 +202,19 @@ export async function render<
 		? props.loading_status
 		: loading_status;
 
-	const componentProps = {
+	// Wrap in a reactive proxy — the real app delivers `shared_props` /
+	// `props` from AppTree's `$state` tree (a deep proxy), and the Gradio
+	// class aliases those proxies directly. If we passed plain objects
+	// here, reactive reads of `gradio.shared.X` and `gradio.props.X` inside
+	// component templates wouldn't track, breaking effects that drive
+	// change/input dispatch. `proxy(...)` is the runtime form of `$state(...)`.
+	const componentProps = proxy({
 		shared_props: shared_props_obj,
 		props: {
 			...component_props_obj
 		},
 		...shared_props_obj
-	};
+	});
 
 	const component = mount(ComponentConstructor, {
 		target,

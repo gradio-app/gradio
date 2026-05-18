@@ -146,7 +146,7 @@
 >
 	<table class="file-preview">
 		<tbody>
-			{#each normalized_files as file, i (file.url)}
+			{#each normalized_files as file, i ((file.url ?? "") + "::" + i)}
 				<tr
 					class="file"
 					class:selectable

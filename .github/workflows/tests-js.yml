@@ -60,7 +60,25 @@ jobs:
       #   run: pnpm lint
       # - name: typecheck
       #   run: pnpm ts:check
+      - name: cache vite optimizeDeps
+        # Vitest browser mode hangs on the cold-start reload that fires
+        # when the optimizer commits its first dep batch. Persisting the
+        # cache turns subsequent runs warm so that reload never happens.
+        uses: actions/cache@v4
+        with:
+          path: node_modules/.vite
+          key: vite-optimize-deps-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'js/spa/vite.config.ts') }}
+          restore-keys: |
+            vite-optimize-deps-${{ runner.os }}-
+      - name: prewarm vite optimizeDeps
+        # On a cache miss the optimizer's first run forces a page reload
+        # that disrupts vitest's iframe orchestrator. `vitest list` triggers
+        # the optimizer without actually running tests, so the populated
+        # cache is in place before the real test step starts.
+        timeout-minutes: 5
+        run: pnpm exec vitest list --config .config/vitest.config.ts > /dev/null 2>&1 || true
       - name: unit tests
+        timeout-minutes: 10
         run: pnpm test:run
       - name: client tests
         run: pnpm --filter @gradio/client test
