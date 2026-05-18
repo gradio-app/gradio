@@ -12,8 +12,8 @@
 
 <MetaTags
 	title="Workflow | Gradio"
-	url="https://www.gradio.app/workflow"
-	canonical="https://www.gradio.app/workflow"
+	url="https://gradio.app/workflow"
+	canonical="https://gradio.app/workflow"
 	description="Gradio Workflow — build and run workflows visually."
 />
 
