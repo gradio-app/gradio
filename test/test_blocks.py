@@ -96,6 +96,61 @@ class TestBlocksMethods:
         config2 = demo2.get_config_file()
         assert assert_configs_are_equivalent_besides_ids(config1, config2)
 
+    def test_from_config_rejects_non_hf_space_proxy_url(self):
+        """`Blocks.from_config()` must only register `proxy_url`s whose host
+        ends in `.hf.space` — otherwise a malicious config (or a malicious
+        `gr.load()` source) could seed `blocks.proxy_urls` with internal /
+        SSRF targets that `App.build_proxy_request` would later treat as
+        legitimate. Regression coverage for GHSA-jmh7-g254-2cq9.
+        """
+
+        def update(name):
+            return f"Welcome to Gradio, {name}!"
+
+        with gr.Blocks() as demo:
+            inp = gr.Textbox(placeholder="What is your name?")
+            out = gr.Textbox()
+            inp.submit(fn=update, inputs=inp, outputs=out, api_name="greet")
+
+        config = demo.get_config_file()
+
+        # 1. Top-level non-.hf.space proxy_url must not be registered.
+        blocks1 = gr.Blocks.from_config(config, [update], "http://169.254.169.254")
+        assert blocks1.proxy_urls == set()
+
+        # 2. Suffix-confusion attempt (`.hf.space.evil.com`) must be rejected
+        # by the `str.endswith(".hf.space")` guard.
+        blocks2 = gr.Blocks.from_config(
+            config, [update], "https://victim.hf.space.evil.com"
+        )
+        assert blocks2.proxy_urls == set()
+
+        # 3. Child components carrying a malicious `proxy_url` in their
+        # props (e.g. via a tampered remote `gr.load()` config) must also
+        # be filtered, even when the top-level `proxy_url` is legitimate.
+        poisoned_config = copy.deepcopy(config)
+        for component in poisoned_config["components"]:
+            component["props"]["proxy_url"] = "http://internal-service.local/"
+        blocks3 = gr.Blocks.from_config(
+            poisoned_config, [update], "https://benign.hf.space"
+        )
+        assert blocks3.proxy_urls == {"https://benign.hf.space"}
+        assert all(
+            not url.startswith("http://internal-service.local")
+            for url in blocks3.proxy_urls
+        )
+
+        # 4. Legitimate `.hf.space` hosts on both top-level and children
+        # are registered (positive control).
+        good_config = copy.deepcopy(config)
+        for component in good_config["components"]:
+            component["props"]["proxy_url"] = "https://child.hf.space/"
+        blocks4 = gr.Blocks.from_config(
+            good_config, [update], "https://root.hf.space"
+        )
+        assert "https://root.hf.space" in blocks4.proxy_urls
+        assert "https://child.hf.space/" in blocks4.proxy_urls
+
     def test_load_from_config_with_blocks_events(self):
         fake_url = "https://fake.hf.space"
 
