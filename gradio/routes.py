@@ -1405,6 +1405,8 @@ class App(FastAPI):
                         )
                         if stop_stream_task in done:
                             raise asyncio.CancelledError()
+                        if await request.is_disconnected():
+                            raise asyncio.CancelledError()
                     except asyncio.CancelledError:
                         if not stop_stream_task.done():
                             stop_stream_task.cancel()
