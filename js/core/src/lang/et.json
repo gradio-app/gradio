@@ -61,12 +61,12 @@
 		"built_with": "loodud kasutades",
 		"built_with_gradio": "Loodud Gradioga",
 		"clear": "Tühjenda",
-		"download": "Laadi alla",
+		"download": "Lae alla",
 		"edit": "Muuda",
 		"empty": "Tühi",
 		"error": "Viga",
 		"hosted_on": "Majutatud platvormil",
-		"loading": "Laadimine",
+		"loading": "Laen",
 		"logo": "logo",
 		"or": "või",
 		"remove": "Eemalda",
@@ -81,7 +81,7 @@
 		"record": "Salvesta",
 		"stop_recording": "Peata salvestamine",
 		"screen_studio": "Screen Studio",
-		"share_gradio_tab": "[Jagamine] Gradio vahekaart",
+		"share_gradio_tab": "[Jaga] Gradio vahekaart",
 		"run": "Käivita"
 	},
 	"dataframe": {
@@ -137,7 +137,7 @@
 		"label": "Silt"
 	},
 	"login": {
-		"enable_cookies": "Kui külastad HuggingFace Space'i privaatses režiimis, pead lubama kolmanda osapoole küpsised.",
+		"enable_cookies": "Kui külastad Hugging Face Space'i privaatses režiimis, pead lubama kolmanda osapoole küpsised.",
 		"incorrect_credentials": "Valed sisenemisandmed",
 		"username": "kasutajanimi",
 		"password": "salasõna",
