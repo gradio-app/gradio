@@ -256,8 +256,11 @@ class _CacheStore:
 _per_session_stores: weakref.WeakSet[_CacheStore] = weakref.WeakSet()
 # We need this store because runtime `gr.cache(fn)(...)` may be evaluated on
 # every request, and we want one shared wrapper/cache per function+config
-# instead of recreating an empty cache each time.
-_cache_wrappers: dict[tuple[Any, ...], Callable] = {}
+# instead of recreating an empty cache each time. Bounded with LRU eviction so
+# dynamically-created callables in long-running servers can't grow it without
+# limit.
+_RUNTIME_WRAPPER_REGISTRY_MAX = 1024
+_cache_wrappers: OrderedDict[tuple[Any, ...], Callable] = OrderedDict()
 # We need this lock because requests can resolve `gr.cache(fn)` concurrently,
 # and wrapper creation must be atomic so only one shared wrapper/cache is
 # installed for a given cache key.
@@ -455,16 +458,20 @@ def _get_cached_wrapper(
     )
     with _runtime_cache_lock:
         wrapper = _cache_wrappers.get(registry_key)
-        if wrapper is None:
-            store = _make_store(max_size, max_memory, per_session)
-            wrapper = _make_wrapper(
-                func,
-                store,
-                key=key,
-                track_cache_hits=True,
-            )
-            wrapper.cache = store  # type: ignore
-            _cache_wrappers[registry_key] = wrapper
+        if wrapper is not None:
+            _cache_wrappers.move_to_end(registry_key)
+            return wrapper
+        store = _make_store(max_size, max_memory, per_session)
+        wrapper = _make_wrapper(
+            func,
+            store,
+            key=key,
+            track_cache_hits=True,
+        )
+        wrapper.cache = store  # type: ignore
+        _cache_wrappers[registry_key] = wrapper
+        while len(_cache_wrappers) > _RUNTIME_WRAPPER_REGISTRY_MAX:
+            _cache_wrappers.popitem(last=False)
         return wrapper
 
 
