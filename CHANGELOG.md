@@ -1,5 +1,21 @@
 # gradio
 
+## 6.14.1
+
+### Features
+
+- [#13367](https://github.com/gradio-app/gradio/pull/13367) [`5d9c9fe`](https://github.com/gradio-app/gradio/commit/5d9c9fe5ff32951309765d37da610a4833b4b694) - fix: upgrade handlebars to 4.7.9 (CVE-2026-33937).  Thanks @orbisai0security!
+
+### Fixes
+
+- [#13384](https://github.com/gradio-app/gradio/pull/13384) [`feb7237`](https://github.com/gradio-app/gradio/commit/feb7237d01f359d2ad4ee42d00344e61692b3b39) - Isolate cookie jars in `/proxy=` requests so a malicious upstream Space cannot leak cookies into proxied requests to a different `*.hf.space` (GHSA-2mr9-9r47-px2g).  Thanks @xr843!
+- [#13344](https://github.com/gradio-app/gradio/pull/13344) [`563e7b7`](https://github.com/gradio-app/gradio/commit/563e7b7948ba2da9d900065c69301ab349648cb0) - Stop @gr.render from crashing with KeyError when an inner gr.Examples pops its fake-event fn.  Thanks @GopalGB!
+- [#13379](https://github.com/gradio-app/gradio/pull/13379) [`b8e8745`](https://github.com/gradio-app/gradio/commit/b8e8745d2f4fb156dd12d57a3f4eb2e165f20216) - fix default tool logic in gr.ImageEditor.  Thanks @hannahblair!
+- [#13363](https://github.com/gradio-app/gradio/pull/13363) [`0872f5e`](https://github.com/gradio-app/gradio/commit/0872f5eccad07a140ed5e24e3adddc661667ff9a) - add colour picker unit tests.  Thanks @hannahblair!
+- [#13380](https://github.com/gradio-app/gradio/pull/13380) [`5d7a9ba`](https://github.com/gradio-app/gradio/commit/5d7a9bae2698c792db867f2b689fd91cee8bf4a5) - update pypi prompt.  Thanks @hannahblair!
+- [#13390](https://github.com/gradio-app/gradio/pull/13390) [`d86903e`](https://github.com/gradio-app/gradio/commit/d86903eaa5628ca0b30f27b87ec1d7e194b3eff6) - Add Estonian language support and translation.  Thanks @paulpall!
+- [#13360](https://github.com/gradio-app/gradio/pull/13360) [`2887302`](https://github.com/gradio-app/gradio/commit/2887302069b2d33429ead157e7699d5502e29e0a) - [codex] fix component load event target.  Thanks @thomwolf!
+
 ## 6.14.0
 
 ### Features
