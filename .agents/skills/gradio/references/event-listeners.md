@@ -128,3 +128,5 @@ component.event_name(
 - **UploadButton**: click, upload
 
 - **Video**: change, clear, start_recording, stop_recording, stop, play, pause, end, upload, input
+
+- **VideoEditor**: change, upload, clear

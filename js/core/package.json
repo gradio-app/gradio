@@ -61,7 +61,8 @@
 		"@gradio/uploadbutton": "workspace:^",
 		"@gradio/utils": "workspace:^",
 		"@gradio/vibeeditor": "workspace:^",
-		"@gradio/video": "workspace:^"
+		"@gradio/video": "workspace:^",
+		"@gradio/videoeditor": "workspace:^"
 	},
 	"msw": {
 		"workerDirectory": "public"

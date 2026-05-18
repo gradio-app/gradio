@@ -52,6 +52,7 @@ from gradio.components.textbox import InputHTMLAttributes, Textbox
 from gradio.components.timer import Timer
 from gradio.components.upload_button import UploadButton
 from gradio.components.video import Video
+from gradio.components.video_editor import VideoEditor
 from gradio.layouts import Form
 
 Text = Textbox
@@ -120,6 +121,7 @@ __all__ = [
     "Timer",
     "UploadButton",
     "Video",
+    "VideoEditor",
     "StreamingInput",
     "StreamingOutput",
     "ImageEditor",

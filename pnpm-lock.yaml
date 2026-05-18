@@ -2503,6 +2503,37 @@ importers:
         specifier: workspace:^
         version: link:../preview
 
+  js/videoeditor:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/upload':
+        specifier: workspace:^
+        version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      '@gradio/video':
+        specifier: workspace:^
+        version: link:../video
+      svelte:
+        specifier: ^5.48.0
+        version: 5.48.0
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
+
 packages:
 
   '@acemir/cssom@0.9.31':

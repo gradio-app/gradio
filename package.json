@@ -152,6 +152,7 @@
 		"@gradio/uploadbutton": "workspace:^",
 		"@gradio/vibeeditor": "workspace:^",
 		"@gradio/video": "workspace:^",
+		"@gradio/videoeditor": "workspace:^",
 		"@storybook/addon-a11y": "^10.1.11",
 		"@storybook/addon-docs": "^10.1.11",
 		"@storybook/addon-svelte-csf": "^5.0.10",

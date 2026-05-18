@@ -67,6 +67,7 @@ from gradio.components import (
     Timer,
     UploadButton,
     Video,
+    VideoEditor,
     component,
 )
 from gradio.components.audio import WaveformOptions
@@ -253,6 +254,7 @@ __all__ = [
     "UndoData",
     "UploadButton",
     "Video",
+    "VideoEditor",
     "Walkthrough",
     "Step",
     "Warning",
