@@ -3,7 +3,7 @@ import {
 	get_component,
 	get_inputs_outputs
 } from "./init_utils";
-import { tick } from "svelte";
+import { settled, tick } from "svelte";
 import { dequal } from "dequal";
 
 import type {
@@ -223,20 +223,34 @@ export class AppTree {
 		this.#get_callbacks.set(id, _get_data);
 		this.components_to_register.delete(id);
 
-		// Drain any updates that arrived before this component registered —
-		// e.g. update_state called against a hidden/inactive-tab component,
-		// or #sync_reused_components_after_rerender pushing server props for
-		// a freshly-rerendered subtree whose new ids haven't re-registered yet.
+		// Apply any pending updates that were stored while the component
+		// was not yet mounted (e.g. hidden in an inactive tab).
+		// We must apply AFTER tick() so that the Gradio class's $effect
+		// (which syncs from node props) has already run. Otherwise the
+		// $effect would overwrite the values we set here.
 		const pending = this.#pending_updates.get(id);
 		if (pending) {
 			this.#pending_updates.delete(id);
-			_set_data(pending);
+			settled().then(() => {
+				const _set = this.#set_callbacks.get(id);
+				if (_set) _set(pending);
+			});
 		}
 
 		if (this.components_to_register.size === 0 && !this.resolved) {
 			this.resolved = true;
 			this.ready_resolve();
 		}
+	}
+
+	unregister_component(
+		id: number,
+		_set_data?: set_data_type
+	): void {
+		const current_set_data = this.#set_callbacks.get(id);
+		if (_set_data && current_set_data !== _set_data) return;
+		this.#set_callbacks.delete(id);
+		this.#get_callbacks.delete(id);
 	}
 
 	/**
@@ -372,6 +386,7 @@ export class AppTree {
 			{
 				...this.#config,
 				register_component: this.register_component.bind(this),
+				unregister_component: this.unregister_component.bind(this),
 				dispatcher: this.#event_dispatcher.bind(this)
 			}
 		);
@@ -453,7 +468,7 @@ export class AppTree {
 			const set_data = this.#set_callbacks.get(node.id);
 			if (set_data) {
 				set_data(data);
-			} else {
+			} else if (node.props.shared_props.visible !== false) {
 				// component hasn't re-registered yet. queue the update for later.
 				const existing = this.#pending_updates.get(node.id) || {};
 				this.#pending_updates.set(node.id, { ...existing, ...data });
@@ -475,7 +490,7 @@ export class AppTree {
 		new_state: Partial<SharedProps> & Record<string, unknown>,
 		check_visibility: boolean = true
 	) {
-		const node = find_node_by_id(this.root!, id);
+		let node = find_node_by_id(this.root!, id);
 		let already_updated_visibility = false;
 		if (check_visibility && !node?.component) {
 			await tick();
@@ -486,26 +501,19 @@ export class AppTree {
 				(n) => handle_visibility(n, this.#config.api_url)
 			]);
 			await tick();
+			node = find_node_by_id(this.root!, id);
 			already_updated_visibility = true;
 		}
 		const _set_data = this.#set_callbacks.get(id);
+		if (node && !("value" in new_state)) {
+			await this.#sync_current_value_to_node(id, node);
+			await this.#sync_current_values_to_descendants(node);
+		}
+		const old_value = node?.props.props.value;
+		if (node) {
+			apply_state_to_node(node, new_state);
+		}
 		if (!_set_data) {
-			const old_value = node?.props.props.value;
-			// @ts-ignore
-			const new_props = create_props_shared_props(new_state);
-			// Modify props in-place instead of replacing the entire object.
-			// Replacing with a new object via spread can cause Svelte 5's
-			// deep $state proxy to lose track of the values during async
-			// component mounting/revival.
-			for (const key in new_props.shared_props) {
-				// @ts-ignore
-				node!.props.shared_props[key] = new_props.shared_props[key];
-			}
-			for (const key in new_props.props) {
-				// @ts-ignore
-				node!.props.props[key] = new_props.props[key];
-			}
-
 			// Also store as pending so the value can be applied via _set_data
 			// when the component eventually mounts and registers
 			const existing = this.#pending_updates.get(id) || {};
@@ -522,6 +530,9 @@ export class AppTree {
 			}
 		} else if (_set_data) {
 			_set_data(new_state);
+			if (node?.type === "tabitem") {
+				this.#update_parent_tabs_initial_tab(id, node);
+			}
 		}
 		if (!check_visibility || already_updated_visibility) return;
 		// need to let the UI settle before traversing again
@@ -538,13 +549,38 @@ export class AppTree {
 		node: ProcessedComponentMeta,
 		new_state: any
 	): Promise<void> {
-		node.children.forEach((child) => {
+		for (const child of node.children) {
 			const _set_data = this.#set_callbacks.get(child.id);
+			if (!("value" in new_state)) {
+				await this.#sync_current_value_to_node(child.id, child);
+			}
 			if (_set_data) {
 				_set_data(new_state);
 			}
-			this.update_visibility(child, new_state);
-		});
+			await this.update_visibility(child, new_state);
+		}
+	}
+
+	async #sync_current_value_to_node(
+		id: number,
+		node: ProcessedComponentMeta
+	): Promise<void> {
+		const _get_data = this.#get_callbacks.get(id);
+		if (!_get_data) return;
+
+		const current_data = await _get_data();
+		if (current_data && "value" in current_data) {
+			apply_state_to_node(node, { value: current_data.value });
+		}
+	}
+
+	async #sync_current_values_to_descendants(
+		node: ProcessedComponentMeta
+	): Promise<void> {
+		for (const child of node.children) {
+			await this.#sync_current_value_to_node(child.id, child);
+			await this.#sync_current_values_to_descendants(child);
+		}
 	}
 
 	/**
@@ -631,6 +667,10 @@ export class AppTree {
 
 		make_visible_if_not_rendered(node, this.#hidden_on_startup, true);
 		load_components(node, this.#config.api_url);
+		await tick();
+		await settled();
+		await new Promise((resolve) => requestAnimationFrame(resolve));
+		this.#sync_reused_components_after_rerender(node);
 	}
 }
 
@@ -639,15 +679,12 @@ function make_visible_if_not_rendered(
 	hidden_on_startup: Set<number>,
 	is_target_node = false
 ): void {
-	console.log(
-		"make_visible_if_not_rendered",
-		node.id,
-		node.type,
-		is_target_node
-	);
-	node.props.shared_props.visible = hidden_on_startup.has(node.id)
-		? true
-		: node.props.shared_props.visible;
+	if (hidden_on_startup.has(node.id)) {
+		node.props.shared_props = {
+			...node.props.shared_props,
+			visible: true
+		};
+	}
 
 	if (node.type === "tabs") {
 		const selectedId =
@@ -737,6 +774,24 @@ function create_props_shared_props(props: ComponentMeta["props"]): {
 		}
 	}
 	return { shared_props: _shared_props as SharedProps, props: _props };
+}
+
+function apply_state_to_node(
+	node: ProcessedComponentMeta,
+	new_state: Partial<SharedProps> & Record<string, unknown>
+): void {
+	// Keep the app tree in step with set_data. Lazy-render sync later reads
+	// this tree and should not replay stale component state.
+	const new_props = create_props_shared_props(
+		new_state as ComponentMeta["props"]
+	);
+	for (const key in new_props.shared_props) {
+		// @ts-ignore
+		node.props.shared_props[key] = new_props.shared_props[key];
+	}
+	for (const key in new_props.props) {
+		node.props.props[key] = new_props.props[key];
+	}
 }
 
 /**
