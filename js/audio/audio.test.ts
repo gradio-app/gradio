@@ -239,6 +239,29 @@ describe("Events: change", () => {
 		expect(change).toHaveBeenCalledTimes(2);
 	});
 
+	test("changing value resets audio playback to the beginning", async () => {
+		const { container, set_data } = await render(Audio, {
+			...default_props,
+			value: { ...fake_value, url: "https://example.com/a.wav" },
+			waveform_options: {
+				...default_props.waveform_options,
+				show_recording_waveform: false
+			}
+		});
+
+		const audio = container.querySelector("audio");
+		assert.exists(audio);
+		audio.currentTime = 5;
+
+		await set_data({
+			value: { ...fake_value, url: "https://example.com/b.wav" }
+		});
+
+		await waitFor(() => {
+			expect(audio.currentTime).toBe(0);
+		});
+	});
+
 	test("setting value to null after a value triggers change", async () => {
 		const { listen, set_data } = await render(Audio, {
 			...default_props,

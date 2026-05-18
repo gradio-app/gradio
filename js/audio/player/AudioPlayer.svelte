@@ -196,8 +196,16 @@
 		onedit?.();
 	};
 
+	function reset_playback_position(): void {
+		playback_position = 0;
+		old_playback_position = 0;
+		if (timeRef) timeRef.textContent = format_time(0);
+		if (audio_player) audio_player.currentTime = 0;
+	}
+
 	async function load_audio(data: string): Promise<void> {
 		stream_active = false;
+		reset_playback_position();
 
 		if (waveform_options.show_recording_waveform) {
 			waveform?.load(data);
