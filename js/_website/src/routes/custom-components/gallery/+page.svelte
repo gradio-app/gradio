@@ -46,11 +46,13 @@
 	};
 
 	async function fetch_components(selection: string[] = []) {
-		components = await fetch(
+		const result = await fetch(
 			`${API}components?name_or_tags=${selection.join(",")}`
 		)
 			.then((response) => response.json())
-			.catch((error) => `Error: ${error}`);
+			.catch(() => []);
+		if (!Array.isArray(result)) return;
+		components = result;
 		define_colors(components);
 		if (!components_length) {
 			components_length = components.length;
@@ -82,7 +84,7 @@
 		});
 	}
 
-	$: fetch_components(selection.split(","));
+	$: if (browser) fetch_components(selection.split(","));
 </script>
 
 <MetaTags
