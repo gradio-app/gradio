@@ -1751,6 +1751,7 @@ class App(FastAPI):
                     blocks.max_file_size or float("inf"),
                     upload_id,
                     force_move=False,
+                    upload_progress=file_upload_statuses if upload_id else None,
                 )
             except MultiPartException as exc:
                 code = 413 if "maximum allowed size" in exc.message else 400

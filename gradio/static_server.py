@@ -7,6 +7,8 @@ to free the main Gradio server for queue/SSE/state work.
 
 from __future__ import annotations
 
+import asyncio
+import json
 import math
 import multiprocessing
 import time
@@ -16,11 +18,14 @@ from pathlib import Path
 import fastapi
 import uvicorn
 from starlette.formparsers import MultiPartException
-from starlette.responses import PlainTextResponse
+from starlette.responses import PlainTextResponse, StreamingResponse
 
 from gradio.route_utils import (
     BUILD_PATH_LIB,
     STATIC_PATH_LIB,
+    FileUploadProgress,
+    FileUploadProgressNotQueuedError,
+    FileUploadProgressNotTrackedError,
     favicon,
     file_fetch,
     file_response,
@@ -83,19 +88,76 @@ def create_static_app(config: StaticServerConfig) -> fastapi.FastAPI:
     async def file(path_or_url: str, request: fastapi.Request):
         return file_fetch(path_or_url, request, config, upload_dir)
 
+    file_upload_statuses = FileUploadProgress()
+
     @app.post("/gradio_api/upload")
     @app.post("/upload")
     async def upload_file(
         request: fastapi.Request,
+        upload_id: str | None = None,
     ):
         try:
             output_files, _, _ = await upload_fn(
-                request, upload_dir, max_file_size, upload_id=None, force_move=False
+                request,
+                upload_dir,
+                max_file_size,
+                upload_id=upload_id,
+                force_move=False,
+                upload_progress=file_upload_statuses if upload_id else None,
             )
         except MultiPartException as exc:
             code = 413 if "maximum allowed size" in exc.message else 400
             return PlainTextResponse(exc.message, status_code=code)
         return output_files
+
+    @app.get("/gradio_api/upload_progress")
+    @app.get("/upload_progress")
+    async def get_upload_progress(upload_id: str, request: fastapi.Request):
+        async def sse_stream(request: fastapi.Request):
+            last_heartbeat = time.perf_counter()
+            is_done = False
+            while True:
+                if await request.is_disconnected():
+                    file_upload_statuses.stop_tracking(upload_id)
+                    return
+                if is_done:
+                    file_upload_statuses.stop_tracking(upload_id)
+                    return
+
+                heartbeat_rate = 15
+                check_rate = 0.05
+                try:
+                    if file_upload_statuses.is_done(upload_id):
+                        message = {"msg": "done"}
+                        is_done = True
+                    else:
+                        update = file_upload_statuses.pop(upload_id)
+                        message = {
+                            "msg": "update",
+                            "orig_name": update.filename,
+                            "chunk_size": update.chunk_size,
+                        }
+                    yield f"data: {json.dumps(message)}\n\n"
+                except FileUploadProgressNotTrackedError:
+                    return
+                except FileUploadProgressNotQueuedError:
+                    await asyncio.sleep(check_rate)
+                    if time.perf_counter() - last_heartbeat > heartbeat_rate:
+                        message = {"msg": "heartbeat"}
+                        yield f"data: {json.dumps(message)}\n\n"
+                        last_heartbeat = time.perf_counter()
+
+        try:
+            await asyncio.wait_for(
+                file_upload_statuses.is_tracked(upload_id), timeout=3
+            )
+        except (asyncio.TimeoutError, TimeoutError):
+            return PlainTextResponse("Upload not found", status_code=404)
+
+        return StreamingResponse(
+            sse_stream(request),
+            media_type="text/event-stream",
+        )
 
     @app.get("/health")
     def health():
@@ -121,6 +183,9 @@ class StaticWorkerPool:
         self.ports = list(ports)
         self._counter = 0
         self._started = False
+        # Use fork context to avoid re-importing the main module (which would
+        # re-run demo.launch() in each child on macOS where spawn is default).
+        self._mp_ctx = multiprocessing.get_context("fork")
 
     def start(self):
         """Spawn all static worker processes."""
@@ -142,7 +207,7 @@ class StaticWorkerPool:
         }
 
         for i, port in enumerate(self.ports):
-            process = multiprocessing.Process(
+            process = self._mp_ctx.Process(
                 target=_run_static_worker,
                 args=(port, config_dict),
                 daemon=True,

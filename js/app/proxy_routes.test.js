@@ -11,6 +11,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
 	classifyRoute,
+	hashString,
 	matchesPrefix,
 	PYTHON_ROUTE_PREFIXES,
 	STATIC_ROUTE_PREFIXES
@@ -37,7 +38,7 @@ describe("classifyRoute", () => {
 
 		for (const path of pythonPaths) {
 			it(`${path} -> python`, () => {
-				assert.equal(classifyRoute(path, { hasWorkers: true }), "python");
+				assert.equal(classifyRoute(path, { hasWorkers: true }).route, "python");
 			});
 		}
 	});
@@ -45,11 +46,9 @@ describe("classifyRoute", () => {
 	describe("worker routes (workers configured)", () => {
 		const workerPaths = [
 			"/gradio_api/upload",
-			"/gradio_api/upload?upload_id=abc123",
 			"/gradio_api/file=/tmp/test.txt",
 			"/gradio_api/file/some/path",
 			"/upload",
-			"/upload?upload_id=xyz",
 			"/file=/tmp/test.txt",
 			"/file/some/path",
 			"/static/img/logo.svg",
@@ -62,9 +61,7 @@ describe("classifyRoute", () => {
 
 		for (const path of workerPaths) {
 			it(`${path} -> worker`, () => {
-				// Strip query string for classification (matches proxy_index.js behavior)
-				const cleanPath = path.split("?")[0];
-				assert.equal(classifyRoute(cleanPath, { hasWorkers: true }), "worker");
+				assert.equal(classifyRoute(path, { hasWorkers: true }).route, "worker");
 			});
 		}
 	});
@@ -80,7 +77,10 @@ describe("classifyRoute", () => {
 
 		for (const path of paths) {
 			it(`${path} -> python (no workers)`, () => {
-				assert.equal(classifyRoute(path, { hasWorkers: false }), "python");
+				assert.equal(
+					classifyRoute(path, { hasWorkers: false }).route,
+					"python"
+				);
 			});
 		}
 	});
@@ -95,7 +95,10 @@ describe("classifyRoute", () => {
 
 		for (const path of sveltekitPaths) {
 			it(`${path} -> sveltekit`, () => {
-				assert.equal(classifyRoute(path, { hasWorkers: true }), "sveltekit");
+				assert.equal(
+					classifyRoute(path, { hasWorkers: true }).route,
+					"sveltekit"
+				);
 			});
 		}
 	});
@@ -103,35 +106,44 @@ describe("classifyRoute", () => {
 	describe("priority", () => {
 		it("/gradio_api/upload goes to worker, not python", () => {
 			assert.equal(
-				classifyRoute("/gradio_api/upload", { hasWorkers: true }),
+				classifyRoute("/gradio_api/upload", { hasWorkers: true }).route,
+				"worker"
+			);
+		});
+
+		it("/gradio_api/upload_progress goes to worker, not python", () => {
+			assert.equal(
+				classifyRoute("/gradio_api/upload_progress", {
+					hasWorkers: true
+				}).route,
 				"worker"
 			);
 		});
 
 		it("/gradio_api/file=/path goes to worker, not python", () => {
 			assert.equal(
-				classifyRoute("/gradio_api/file=/path", { hasWorkers: true }),
+				classifyRoute("/gradio_api/file=/path", { hasWorkers: true }).route,
 				"worker"
 			);
 		});
 
 		it("/gradio_api/file/path goes to worker, not python", () => {
 			assert.equal(
-				classifyRoute("/gradio_api/file/path", { hasWorkers: true }),
+				classifyRoute("/gradio_api/file/path", { hasWorkers: true }).route,
 				"worker"
 			);
 		});
 
 		it("/gradio_api/info still goes to python", () => {
 			assert.equal(
-				classifyRoute("/gradio_api/info", { hasWorkers: true }),
+				classifyRoute("/gradio_api/info", { hasWorkers: true }).route,
 				"python"
 			);
 		});
 
 		it("/gradio_api/queue/join still goes to python", () => {
 			assert.equal(
-				classifyRoute("/gradio_api/queue/join", { hasWorkers: true }),
+				classifyRoute("/gradio_api/queue/join", { hasWorkers: true }).route,
 				"python"
 			);
 		});
@@ -139,12 +151,15 @@ describe("classifyRoute", () => {
 
 	describe("server mode", () => {
 		it("/ -> python when serverModeEnabled", () => {
-			assert.equal(classifyRoute("/", { serverModeEnabled: true }), "python");
+			assert.equal(
+				classifyRoute("/", { serverModeEnabled: true }).route,
+				"python"
+			);
 		});
 
 		it("/any/path -> python when serverModeEnabled", () => {
 			assert.equal(
-				classifyRoute("/any/path", { serverModeEnabled: true }),
+				classifyRoute("/any/path", { serverModeEnabled: true }).route,
 				"python"
 			);
 		});
@@ -154,10 +169,108 @@ describe("classifyRoute", () => {
 				classifyRoute("/gradio_api/upload", {
 					hasWorkers: true,
 					serverModeEnabled: true
-				}),
+				}).route,
 				"worker"
 			);
 		});
+	});
+
+	describe("upload affinity routing", () => {
+		const opts = { hasWorkers: true, numWorkers: 3 };
+
+		it("upload with upload_id gets a deterministic workerIndex", () => {
+			const result = classifyRoute("/gradio_api/upload", {
+				...opts,
+				queryString: "upload_id=abc123"
+			});
+			assert.equal(result.route, "worker");
+			assert.equal(typeof result.workerIndex, "number");
+			assert.ok(result.workerIndex >= 0 && result.workerIndex < 3);
+		});
+
+		it("upload_progress with same upload_id gets same workerIndex", () => {
+			const uploadResult = classifyRoute("/gradio_api/upload", {
+				...opts,
+				queryString: "upload_id=abc123"
+			});
+			const progressResult = classifyRoute("/gradio_api/upload_progress", {
+				...opts,
+				queryString: "upload_id=abc123"
+			});
+			assert.equal(uploadResult.workerIndex, progressResult.workerIndex);
+		});
+
+		it("/upload (no gradio_api prefix) also gets affinity", () => {
+			const result = classifyRoute("/upload", {
+				...opts,
+				queryString: "upload_id=test456"
+			});
+			assert.equal(result.route, "worker");
+			assert.equal(typeof result.workerIndex, "number");
+		});
+
+		it("/upload_progress (no gradio_api prefix) also gets affinity", () => {
+			const uploadResult = classifyRoute("/upload", {
+				...opts,
+				queryString: "upload_id=test456"
+			});
+			const progressResult = classifyRoute("/upload_progress", {
+				...opts,
+				queryString: "upload_id=test456"
+			});
+			assert.equal(uploadResult.workerIndex, progressResult.workerIndex);
+		});
+
+		it("upload without upload_id gets no workerIndex (round-robin)", () => {
+			const result = classifyRoute("/gradio_api/upload", {
+				...opts,
+				queryString: ""
+			});
+			assert.equal(result.route, "worker");
+			assert.equal(result.workerIndex, undefined);
+		});
+
+		it("different upload_ids can map to different workers", () => {
+			// Generate several IDs and check we get at least 2 distinct indices
+			const indices = new Set();
+			for (let i = 0; i < 20; i++) {
+				const result = classifyRoute("/gradio_api/upload", {
+					...opts,
+					queryString: `upload_id=id-${i}`
+				});
+				indices.add(result.workerIndex);
+			}
+			assert.ok(
+				indices.size > 1,
+				"expected different upload_ids to map to different workers"
+			);
+		});
+
+		it("non-upload worker routes get no workerIndex", () => {
+			const result = classifyRoute("/static/img/logo.svg", {
+				...opts,
+				queryString: "upload_id=abc123"
+			});
+			assert.equal(result.route, "worker");
+			assert.equal(result.workerIndex, undefined);
+		});
+	});
+});
+
+describe("hashString", () => {
+	it("returns a non-negative integer", () => {
+		const h = hashString("test");
+		assert.equal(typeof h, "number");
+		assert.ok(h >= 0);
+		assert.ok(Number.isInteger(h));
+	});
+
+	it("is deterministic", () => {
+		assert.equal(hashString("abc123"), hashString("abc123"));
+	});
+
+	it("different strings produce different hashes", () => {
+		assert.notEqual(hashString("abc"), hashString("xyz"));
 	});
 });
 
@@ -187,6 +300,7 @@ describe("route prefix lists are consistent", () => {
 		// The critical routes that must be in STATIC before PYTHON catches them
 		const critical = [
 			"/gradio_api/upload",
+			"/gradio_api/upload_progress",
 			"/gradio_api/file=",
 			"/gradio_api/file/"
 		];

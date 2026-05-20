@@ -38,18 +38,28 @@ proxy.on("error", (err, req, res) => {
 
 const server = http.createServer((req, res) => {
 	const url = req.url || "/";
-	const path = url.split("?")[0];
-	const route = classifyRoute(path, {
+	const qmark = url.indexOf("?");
+	const path = qmark === -1 ? url : url.substring(0, qmark);
+	const queryString = qmark === -1 ? "" : url.substring(qmark + 1);
+	const { route, workerIndex: affinityIndex } = classifyRoute(path, {
 		hasWorkers: staticWorkerPorts.length > 0,
-		serverModeEnabled: !!serverModeEnabled
+		serverModeEnabled: !!serverModeEnabled,
+		numWorkers: staticWorkerPorts.length,
+		queryString
 	});
 
 	if (route === "worker") {
-		const workerPort =
-			staticWorkerPorts[workerIndex % staticWorkerPorts.length];
-		workerIndex = (workerIndex + 1) % staticWorkerPorts.length;
+		let targetPort;
+		if (affinityIndex !== undefined) {
+			// Affinity routing: upload_id hashed to a specific worker
+			targetPort = staticWorkerPorts[affinityIndex];
+		} else {
+			// Round-robin for non-affinity static routes
+			targetPort = staticWorkerPorts[workerIndex % staticWorkerPorts.length];
+			workerIndex = (workerIndex + 1) % staticWorkerPorts.length;
+		}
 		proxy.web(req, res, {
-			target: `http://${pythonHost}:${workerPort}`
+			target: `http://${pythonHost}:${targetPort}`
 		});
 		return;
 	}

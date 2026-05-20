@@ -784,6 +784,7 @@ class GradioMultiPartParser:
         try:
             # Feed the parser with data from the request.
             async for chunk in self.stream:
+                await asyncio.sleep(0.01)
                 parser.write(chunk)
                 # Write file data, it needs to use await with the UploadFile methods
                 # that call the corresponding file methods *in a threadpool*,
@@ -1261,12 +1262,16 @@ async def upload_fn(
     max_file_size,
     upload_id,
     force_move: bool = True,
+    upload_progress: FileUploadProgress | None = None,
 ):
     content_type_header = request.headers.get("Content-Type")
     content_type: bytes
     content_type, _ = parse_options_header(content_type_header or "")
     if content_type != b"multipart/form-data":
         raise HTTPException(status_code=400, detail="Invalid content type.")
+
+    if upload_id and upload_progress:
+        upload_progress.track(upload_id)
 
     multipart_parser = GradioMultiPartParser(
         request.headers,
@@ -1275,6 +1280,7 @@ async def upload_fn(
         max_fields=1000,
         max_file_size=max_file_size,
         upload_id=upload_id,
+        upload_progress=upload_progress,
     )
     form = await multipart_parser.parse()
 
