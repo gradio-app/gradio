@@ -1,0 +1,171 @@
+{
+	"_name": "eesti keel",
+	"3D_model": {
+		"3d_model": "3D-mudel",
+		"drop_to_upload": "Lohista 3D-mudeli fail (.obj, .glb, .stl, .gltf, .splat või .ply) üleslaadimiseks siia"
+	},
+	"annotated_image": {
+		"annotated_image": "Annoteeritud pilt"
+	},
+	"audio": {
+		"allow_recording_access": "Palun luba salvestamiseks juurdepääs mikrofonile.",
+		"audio": "Heli",
+		"drop_to_upload": "Lohista helifail üleslaadimiseks siia",
+		"record_from_microphone": "Salvesta mikrofonist",
+		"stop_recording": "Peata salvestamine",
+		"no_device_support": "Meediaseadmetele ei õnnestunud juurde pääseda. Kontrolli, et kasutad turvalist allikat (https) või localhosti (või oled edastanud parameetrile ssl_verify kehtiva SSL-sertifikaadi) ning oled lubanud brauseril oma seadmele juurde pääseda.",
+		"stop": "Peata",
+		"resume": "Jätka",
+		"record": "Salvesta",
+		"no_microphone": "Mikrofoni ei leitud",
+		"pause": "Paus",
+		"play": "Esita",
+		"waiting": "Ootel"
+	},
+	"blocks": {
+		"connection_can_break": "Mobiilis võib ühendus katkeda, kui see vahekaart kaotab fookuse või seade läheb ooteolekusse, mistõttu kaob sinu koht järjekorras.",
+		"long_requests_queue": "Ootel päringute järjekord on pikk. Vahelejätmiseks dubleeri see Space.",
+		"lost_connection": "Ühendus katkes lehelt lahkumise tõttu. Liitutakse järjekorraga uuesti...",
+		"waiting_for_inputs": "Oodatakse faili(de) üleslaadimise lõppu, palun proovi uuesti."
+	},
+	"chatbot": {
+		"edit": "Muuda",
+		"retry": "Proovi uuesti",
+		"undo": "Võta tagasi",
+		"submit": "Saada",
+		"cancel": "Tühista",
+		"like": "Meeldib",
+		"dislike": "Ei meeldi",
+		"clear": "Tühjenda",
+		"copy_message": "Kopeeri sõnum",
+		"copied_message": "Sõnum kopeeritud"
+	},
+	"chat_interface": {
+		"new_chat": "Uus vestlus",
+		"message_placeholder": "Sisesta sõnum...",
+		"additional_inputs": "Lisasisendid",
+		"chatbot": "Vestlusrobot",
+		"conversation": "Vestlus"
+	},
+	"checkbox": {
+		"checkbox": "Märkeruut",
+		"checkbox_group": "Märkeruutude rühm"
+	},
+	"code": {
+		"code": "Kood"
+	},
+	"color_picker": {
+		"color_picker": "Värvivalija"
+	},
+	"common": {
+		"built_with": "loodud kasutades",
+		"built_with_gradio": "Loodud Gradioga",
+		"clear": "Tühjenda",
+		"download": "Lae alla",
+		"edit": "Muuda",
+		"empty": "Tühi",
+		"error": "Viga",
+		"hosted_on": "Majutatud platvormil",
+		"loading": "Laen",
+		"logo": "logo",
+		"or": "või",
+		"remove": "Eemalda",
+		"settings": "Seaded",
+		"share": "Jaga",
+		"submit": "Saada",
+		"undo": "Võta tagasi",
+		"no_devices": "Seadmeid ei leitud",
+		"language": "Keel",
+		"display_theme": "Kuvateema",
+		"pwa": "Progressiivne veebirakendus",
+		"record": "Salvesta",
+		"stop_recording": "Peata salvestamine",
+		"screen_studio": "Screen Studio",
+		"share_gradio_tab": "[Jaga] Gradio vahekaart",
+		"run": "Käivita"
+	},
+	"dataframe": {
+		"incorrect_format": "Vale vorming, toetatud on ainult CSV- ja TSV-failid",
+		"new_column": "Lisa veerg",
+		"new_row": "Uus rida",
+		"add_row_above": "Lisa rida ülespoole",
+		"add_row_below": "Lisa rida allapoole",
+		"delete_row": "Kustuta rida",
+		"delete_column": "Kustuta veerg",
+		"add_column_left": "Lisa veerg vasakule",
+		"add_column_right": "Lisa veerg paremale",
+		"sort_column": "Sordi veergu",
+		"sort_ascending": "Sordi kasvavalt",
+		"sort_descending": "Sordi kahanevalt",
+		"drop_to_upload": "Lohista CSV- või TSV-failid siia, et importida andmed andmetabelisse",
+		"clear_sort": "Eemalda sortimine",
+		"filter": "Filter",
+		"clear_filter": "Tühjenda filtrid"
+	},
+	"dropdown": {
+		"dropdown": "Rippmenüü"
+	},
+	"errors": {
+		"build_error": "esines koostamise viga",
+		"config_error": "esines seadistuse viga",
+		"contact_page_author": "Palun võta lehe autoriga ühendust ja anna sellest teada.",
+		"no_app_file": "rakenduse fail puudub",
+		"runtime_error": "esines käitusaegne viga",
+		"space_not_working": "\"Space ei tööta, sest\" {0}",
+		"space_paused": "Space on peatatud",
+		"use_via_api": "Kasuta API kaudu",
+		"use_via_api_or_mcp": "Kasuta API või MCP kaudu"
+	},
+	"file": {
+		"uploading": "Üleslaadimine..."
+	},
+	"highlighted_text": {
+		"highlighted_text": "Esiletõstetud tekst"
+	},
+	"image": {
+		"allow_webcam_access": "Palun luba salvestamiseks juurdepääs veebikaamerale.",
+		"brush_color": "Pintsli värv",
+		"brush_radius": "Pintsli raadius",
+		"image": "Pilt",
+		"remove_image": "Eemalda pilt",
+		"select_brush_color": "Vali pintsli värv",
+		"start_drawing": "Alusta joonistamist",
+		"use_brush": "Kasuta pintslit",
+		"drop_to_upload": "Lohista pildifail üleslaadimiseks siia"
+	},
+	"label": {
+		"label": "Silt"
+	},
+	"login": {
+		"enable_cookies": "Kui külastad Hugging Face Space'i privaatses režiimis, pead lubama kolmanda osapoole küpsised.",
+		"incorrect_credentials": "Valed sisenemisandmed",
+		"username": "kasutajanimi",
+		"password": "salasõna",
+		"login": "Logi sisse"
+	},
+	"number": {
+		"number": "Arv"
+	},
+	"plot": {
+		"plot": "Graafik"
+	},
+	"radio": {
+		"radio": "Raadionupp"
+	},
+	"slider": {
+		"slider": "Liugur"
+	},
+	"upload_text": {
+		"click_to_upload": "Klõpsa üleslaadimiseks",
+		"drop_audio": "Lohista heli siia",
+		"drop_csv": "Lohista CSV siia",
+		"drop_file": "Lohista fail siia",
+		"drop_image": "Lohista pilt siia",
+		"drop_video": "Lohista video siia",
+		"drop_gallery": "Lohista meedia siia",
+		"paste_clipboard": "Kleebi lõikelaualt"
+	},
+	"video": {
+		"drop_to_upload": "Lohista videofail üleslaadimiseks siia"
+	}
+}
