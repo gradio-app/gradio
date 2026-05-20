@@ -11,9 +11,11 @@ import asyncio
 import json
 import math
 import multiprocessing
+import multiprocessing.process
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
+import platform
 
 import fastapi
 import uvicorn
@@ -179,13 +181,15 @@ class StaticWorkerPool:
     def __init__(self, num_workers: int, config: StaticServerConfig, ports: list[int]):
         self.num_workers = num_workers
         self.config = config
-        self.workers: list[multiprocessing.Process] = []
+        self.workers: list[multiprocessing.process.BaseProcess] = []
         self.ports = list(ports)
         self._counter = 0
         self._started = False
+        if platform.system() == 'Windows':
+            self._mp_ctx = multiprocessing
         # Use fork context to avoid re-importing the main module (which would
         # re-run demo.launch() in each child on macOS where spawn is default).
-        self._mp_ctx = multiprocessing.get_context("fork")
+            self._mp_ctx = multiprocessing.get_context("fork")
 
     def start(self):
         """Spawn all static worker processes."""
