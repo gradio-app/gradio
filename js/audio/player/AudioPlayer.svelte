@@ -58,6 +58,7 @@
 
 	let url = $derived(value?.url);
 	let old_playback_position = $state(0);
+	let loaded_url: string | undefined;
 
 	let container: HTMLDivElement;
 	let waveform: WaveSurfer | undefined;
@@ -203,9 +204,9 @@
 		if (audio_player) audio_player.currentTime = 0;
 	}
 
-	async function load_audio(data: string): Promise<void> {
+	async function load_audio(data: string, reset_position: boolean): Promise<void> {
 		stream_active = false;
-		reset_playback_position();
+		if (reset_position) reset_playback_position();
 
 		if (waveform_options.show_recording_waveform) {
 			waveform?.load(data);
@@ -270,7 +271,9 @@
 
 	$effect(() => {
 		if (audio_player && url && waveform_ready && url) {
-			load_audio(url);
+			const reset_position = loaded_url !== undefined && loaded_url !== url;
+			loaded_url = url;
+			load_audio(url, reset_position);
 		}
 	});
 

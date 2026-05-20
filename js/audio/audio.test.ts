@@ -240,9 +240,10 @@ describe("Events: change", () => {
 	});
 
 	test("changing value resets audio playback to the beginning", async () => {
-		const { container, set_data } = await render(Audio, {
+		const { container, get_data, set_data } = await render(Audio, {
 			...default_props,
 			value: { ...fake_value, url: "https://example.com/a.wav" },
+			playback_position: 5,
 			waveform_options: {
 				...default_props.waveform_options,
 				show_recording_waveform: false
@@ -259,6 +260,24 @@ describe("Events: change", () => {
 
 		await waitFor(() => {
 			expect(audio.currentTime).toBe(0);
+		});
+		expect((await get_data()).playback_position).toBe(0);
+	});
+
+	test("initial playback position is preserved on load", async () => {
+		const { get_data } = await render(Audio, {
+			...default_props,
+			value: { ...fake_value, url: "https://example.com/a.wav" },
+			playback_position: 5,
+			waveform_options: {
+				...default_props.waveform_options,
+				show_recording_waveform: false
+			}
+		});
+
+		await waitFor(async () => {
+			const data = await get_data();
+			expect(data.playback_position).toBe(5);
 		});
 	});
 
