@@ -12,10 +12,10 @@ import json
 import math
 import multiprocessing
 import multiprocessing.process
+import platform
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-import platform
 
 import fastapi
 import uvicorn
@@ -185,10 +185,10 @@ class StaticWorkerPool:
         self.ports = list(ports)
         self._counter = 0
         self._started = False
-        if platform.system() == 'Windows':
+        if platform.system() == "Windows":
             self._mp_ctx = multiprocessing
-        # Use fork context to avoid re-importing the main module (which would
-        # re-run demo.launch() in each child on macOS where spawn is default).
+            # Use fork context to avoid re-importing the main module (which would
+            # re-run demo.launch() in each child on macOS where spawn is default).
             self._mp_ctx = multiprocessing.get_context("fork")
 
     def start(self):
