@@ -160,7 +160,6 @@
 	if (selected_index == null && preview && value?.length) {
 		selected_index = 0;
 	}
-	let old_selected_index: number | null = $state(selected_index);
 
 	$effect(() => {
 		if (!dequal(prev_value, value)) {
@@ -195,6 +194,15 @@
 		() => ((selected_index ?? 0) + 1) % (resolved_value?.length ?? 0)
 	);
 
+	function dispatch_select(index: number): void {
+		if (resolved_value !== null) {
+			onselect({
+				index,
+				value: resolved_value?.[index]
+			});
+		}
+	}
+
 	function handle_preview_click(event: MouseEvent): void {
 		const element = event.target as HTMLElement;
 		const x = event.offsetX;
@@ -206,6 +214,7 @@
 		} else {
 			selected_index = next;
 		}
+		dispatch_select(selected_index);
 	}
 
 	function on_keydown(e: KeyboardEvent): void {
@@ -218,31 +227,17 @@
 			case "ArrowLeft":
 				e.preventDefault();
 				selected_index = previous;
+				dispatch_select(selected_index);
 				break;
 			case "ArrowRight":
 				e.preventDefault();
 				selected_index = next;
+				dispatch_select(selected_index);
 				break;
 			default:
 				break;
 		}
 	}
-
-	$effect(() => {
-		// Only trigger the effect if the selected_index has actually changed
-		if (selected_index !== old_selected_index) {
-			old_selected_index = selected_index;
-
-			// Ensure we have a valid selection and data to work with
-			if (selected_index !== null && resolved_value !== null) {
-				// Notify the parent component or listener about the updated selection
-				onselect({
-					index: selected_index,
-					value: resolved_value?.[selected_index]
-				});
-			}
-		}
-	});
 
 	$effect(() => {
 		if (allow_preview && container_element) {
@@ -495,7 +490,10 @@
 					{#each resolved_value as media, i}
 						<button
 							bind:this={el[i]}
-							on:click={() => (selected_index = i)}
+							on:click={() => {
+								selected_index = i;
+								dispatch_select(i);
+							}}
 							class="thumbnail-item thumbnail-small"
 							class:selected={selected_index === i && mode !== "minimal"}
 							aria-label={"Thumbnail " +
@@ -616,6 +614,7 @@
 									onpreview_open();
 								}
 								selected_index = i;
+								dispatch_select(i);
 							}}
 							aria-label={"Thumbnail " +
 								(i + 1) +

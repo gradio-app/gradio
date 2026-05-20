@@ -627,7 +627,7 @@ describe("Events: select", () => {
 		expect(select).toHaveBeenCalledWith(expect.objectContaining({ index: 1 }));
 	});
 
-	test("select: fired when selected_index changes via set_data", async () => {
+	test("select: not fired when selected_index changes via set_data", async () => {
 		const { listen, set_data } = await render(Gallery, {
 			...default_props,
 			preview: true,
@@ -639,8 +639,25 @@ describe("Events: select", () => {
 
 		await set_data({ selected_index: 2 });
 
-		expect(select).toHaveBeenCalled();
-		expect(select).toHaveBeenCalledWith(expect.objectContaining({ index: 2 }));
+		expect(select).not.toHaveBeenCalled();
+	});
+
+	test("select: not fired when value and selected_index update together via set_data", async () => {
+		const { listen, set_data } = await render(Gallery, {
+			...default_props,
+			preview: true,
+			selected_index: 0,
+			value: [img("a"), img("b")]
+		});
+
+		const select = listen("select");
+
+		await set_data({
+			value: [img("a"), img("b"), img("c")],
+			selected_index: 2
+		});
+
+		expect(select).not.toHaveBeenCalled();
 	});
 });
 
@@ -976,7 +993,7 @@ describe("Regression: #13170 — selected_index points to newly appended image",
 		expect(preview_img.src).toBe("https://example.com/img3.png");
 	});
 
-	test("selected_index pointing to newly appended item dispatches select with correct data", async () => {
+	test("selected_index pointing to newly appended item does not dispatch select", async () => {
 		const initial_value = [img("a"), img("b")];
 
 		const { set_data, listen } = await render(Gallery, {
@@ -993,9 +1010,7 @@ describe("Regression: #13170 — selected_index points to newly appended image",
 			selected_index: 2
 		});
 
-		expect(select).toHaveBeenCalled();
-		const last_call = select.mock.calls[select.mock.calls.length - 1][0];
-		expect(last_call.index).toBe(2);
+		expect(select).not.toHaveBeenCalled();
 	});
 
 	test("rapidly appending images with selected_index tracking last always shows the latest", async () => {
