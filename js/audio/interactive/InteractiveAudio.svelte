@@ -261,6 +261,7 @@
 		onchange?.(null);
 		onclear?.();
 		mode = "";
+		playback_position = 0;
 		value = null;
 	}
 
