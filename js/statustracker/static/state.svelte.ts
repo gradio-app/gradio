@@ -7,6 +7,7 @@ export class LoadingStatus {
 	pending_outputs = new Map<number, number>();
 	fn_status: Record<number, ILoadingStatus["status"]> = {};
 	show_progress: Record<number, "full" | "minimal" | "hidden"> = {};
+	cache_event_id = 0;
 
 	register(
 		dependency_id: number,
@@ -27,6 +28,19 @@ export class LoadingStatus {
 	}
 
 	update(args: LoadingStatusArgs): void {
+		for (const [id, current] of Object.entries(this.current)) {
+			if (current.fn_index !== args.fn_index) {
+				this.current[id] = {
+					...current,
+					used_cache: null,
+					cache_duration: null,
+					avg_time: null,
+					cache_event_id: null
+				};
+			}
+		}
+
+		const cache_event_id = args.used_cache ? ++this.cache_event_id : null;
 		const updates = this.resolve_args(args);
 
 		updates.forEach(
@@ -50,6 +64,7 @@ export class LoadingStatus {
 					queue_size: queue_size,
 					queue_position: queue_position,
 					eta: eta,
+					component_id: Number(id),
 					stream_state: stream_state,
 					message: message,
 					progress: progress || undefined,
@@ -60,7 +75,8 @@ export class LoadingStatus {
 					show_progress: this.show_progress[args.fn_index],
 					used_cache,
 					cache_duration,
-					avg_time
+					avg_time,
+					cache_event_id
 				};
 			}
 		);

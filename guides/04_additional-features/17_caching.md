@@ -67,6 +67,23 @@ print(len(generate.cache))
 
 When a queued event is served from `@gr.cache`, Gradio shows a small `from cache` timing badge in the UI which appears temporarily in the relevant output components.
 
+### Caching intermediate helper calls
+
+You can also apply `gr.cache()` to a callable at runtime to cache an intermediate step inside a larger Gradio callback:
+
+```python
+def embed(text):
+    return embedding_model(text)
+
+def predict(text):
+    embedding = gr.cache(embed, per_session=True)(text)
+    return rerank(embedding)
+```
+
+This is especially useful when only part of your function is deterministic or reusable. Runtime `gr.cache(fn)(...)` uses the same cache store for repeated calls to that helper and shows the same `used cache` badge as `gr.Cache()` (see below) when a hit is reused during a request.
+
+`gr.cache()` must wrap a callable. If you accidentally write `gr.cache(fn(...))`, Gradio raises an error and tells you to use `gr.cache(fn)(...)` instead.
+
 ## Manual cache control with `gr.Cache()`
 
 For full control over what gets cached and when, use `gr.Cache()` as an injectable parameter (like `gr.Progress`). Gradio injects the same instance on every call, giving you a thread-safe `get`/`set` interface:
