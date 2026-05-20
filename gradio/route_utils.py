@@ -784,7 +784,6 @@ class GradioMultiPartParser:
         try:
             # Feed the parser with data from the request.
             async for chunk in self.stream:
-                await asyncio.sleep(0.01)
                 parser.write(chunk)
                 # Write file data, it needs to use await with the UploadFile methods
                 # that call the corresponding file methods *in a threadpool*,
