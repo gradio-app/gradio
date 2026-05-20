@@ -265,3 +265,5 @@ setTimeout(() => {
 	job.cancel();
 }, 3000);
 ```
+## Vercel Templates
+To quickly deploy a Gradio JS Client app, you can use our community-provided Vercel templates. [Deploy with Vercel](https://vercel.com/new/clone?repository-url=https://github.com/gradio-app/gradio) to get started instantly!
