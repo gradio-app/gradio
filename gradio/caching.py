@@ -371,8 +371,10 @@ def _make_wrapper(
             key_hash = _compute_hash(normalized)
             entry = store.get(key_hash)
             if entry is not None:
+                for value in entry["yields"]:
+                    _on_hit()
+                    yield value
                 _on_hit()
-                yield from entry["yields"]
                 return
             _on_miss()
             all_yields = []
@@ -391,9 +393,10 @@ def _make_wrapper(
             key_hash = _compute_hash(normalized)
             entry = store.get(key_hash)
             if entry is not None:
-                _on_hit()
                 for value in entry["yields"]:
+                    _on_hit()
                     yield value
+                _on_hit()
                 return
             _on_miss()
             all_yields = []
@@ -497,9 +500,15 @@ def cache(
         @gr.cache
         def classify(image):
             return model.predict(image)
+
         @gr.cache(max_size=256, per_session=True)
         def generate(prompt):
             return llm(prompt)
+
+        def chat(message):
+            cached_retrieve = gr.cache(retrieve_docs)
+            docs = cached_retrieve(message)
+            return llm(message, docs)
     """
 
     def decorator(func: Callable) -> Callable:
