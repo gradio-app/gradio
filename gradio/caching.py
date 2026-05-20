@@ -495,7 +495,7 @@ def cache(
         max_size: Maximum number of cache entries. Least-recently-used entries are evicted when full. Set to 0 for unlimited. Default: 128.
         max_memory: Maximum total memory usage before eviction. Accepts strings like "512mb", "2gb" or integer bytes. When exceeded, least-recently-used entries are evicted. If None, no memory limit is applied. If both max_size and max_memory are set, the cache will evict entries when either limit is reached.
         per_session: When True, each user session gets an isolated cache namespace, preventing cached results from leaking between users. Per-session entries are cleared when the client session disconnects. The max_size and max_memory limits apply to the sum of all entries across all sessions.
-    Example:
+    Example: (decorator)
         import gradio as gr
         @gr.cache
         def classify(image):
@@ -504,7 +504,8 @@ def cache(
         @gr.cache(max_size=256, per_session=True)
         def generate(prompt):
             return llm(prompt)
-
+    Example: (runtime)
+        import gradio as gr
         def chat(message):
             cached_retrieve = gr.cache(retrieve_docs)
             docs = cached_retrieve(message)
