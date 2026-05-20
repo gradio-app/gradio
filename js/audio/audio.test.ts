@@ -281,6 +281,28 @@ describe("Events: change", () => {
 		});
 	});
 
+	test("reloading the same value after clearing resets playback position", async () => {
+		const { get_data, set_data } = await render(Audio, {
+			...default_props,
+			value: { ...fake_value, url: "https://example.com/a.wav" },
+			playback_position: 5,
+			waveform_options: {
+				...default_props.waveform_options,
+				show_recording_waveform: false
+			}
+		});
+
+		await set_data({ value: null });
+		await set_data({
+			value: { ...fake_value, url: "https://example.com/a.wav" }
+		});
+
+		await waitFor(async () => {
+			const data = await get_data();
+			expect(data.playback_position).toBe(0);
+		});
+	});
+
 	test("setting value to null after a value triggers change", async () => {
 		const { listen, set_data } = await render(Audio, {
 			...default_props,

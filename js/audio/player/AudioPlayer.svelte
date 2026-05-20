@@ -58,7 +58,7 @@
 
 	let url = $derived(value?.url);
 	let old_playback_position = $state(0);
-	let loaded_url: string | undefined;
+	let loaded_url: string | null | undefined;
 
 	let container: HTMLDivElement;
 	let waveform: WaveSurfer | undefined;
@@ -270,7 +270,12 @@
 	}
 
 	$effect(() => {
-		if (audio_player && url && waveform_ready && url) {
+		if (audio_player && waveform_ready) {
+			if (!url) {
+				if (loaded_url !== undefined) loaded_url = null;
+				return;
+			}
+
 			const reset_position = loaded_url !== undefined && loaded_url !== url;
 			loaded_url = url;
 			load_audio(url, reset_position);
