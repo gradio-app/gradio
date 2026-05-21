@@ -29,11 +29,28 @@ const proxy = httpProxy.createProxyServer({
 });
 
 proxy.on("error", (err, req, res) => {
+	// Suppress ECONNRESET from client-initiated disconnects
+	if (err.code === "ECONNRESET") return;
 	console.error(`[gradio-proxy] Proxy error for ${req.url}:`, err.message);
 	if (res.writeHead && !res.headersSent) {
 		res.writeHead(502, { "Content-Type": "text/plain" });
 		res.end("Bad Gateway");
 	}
+});
+
+// When the browser closes an SSE/streaming connection, propagate the
+// disconnect to Python so that `request.is_disconnected()` returns True.
+// http-proxy only listens for the deprecated `aborted` event, which
+// doesn't fire reliably in newer Node versions. We listen on `res`
+// (the outgoing response to the client) because for GET/SSE requests
+// `req` closes immediately after the empty body is consumed — before
+// the proxy response even arrives.
+proxy.on("proxyRes", (proxyRes, req, res) => {
+	res.on("close", () => {
+		if (!res.writableEnded) {
+			proxyRes.destroy();
+		}
+	});
 });
 
 const server = http.createServer((req, res) => {
