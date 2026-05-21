@@ -979,7 +979,15 @@ class Queue:
                     success = False
                     error = err or old_err
                     output = error_payload(error, app.get_blocks().show_error)
-                used_cache = output.get("used_cache") if success else None
+                cache_source = output
+                if (
+                    success
+                    and not output.get("used_cache")
+                    and old_response
+                    and old_response.get("used_cache")
+                ):
+                    cache_source = old_response
+                used_cache = cache_source.get("used_cache") if success else None
                 used_cache = (
                     cast(Literal["full", "partial"], used_cache)
                     if used_cache in ("full", "partial")
@@ -992,8 +1000,8 @@ class Queue:
                             output=output,
                             success=success,
                             used_cache=used_cache,
-                            cache_duration=output.get("duration"),  # type: ignore[arg-type]
-                            avg_time=output.get("average_duration"),  # type: ignore[arg-type]
+                            cache_duration=cache_source.get("duration"),  # type: ignore[arg-type]
+                            avg_time=cache_source.get("average_duration"),  # type: ignore[arg-type]
                         ),
                     )
 
