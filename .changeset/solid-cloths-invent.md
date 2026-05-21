@@ -7,6 +7,7 @@
 "@gradio/markdown-code": minor
 "@gradio/paramviewer": minor
 "@gradio/preview": minor
+"@gradio/tabitem": minor
 "@gradio/tabs": minor
 "@gradio/theme": minor
 "@gradio/utils": minor
