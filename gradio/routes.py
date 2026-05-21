@@ -229,7 +229,8 @@ def _render_endpoint_skill_section(
             component = p.get("component", "")
             default_info = ""
             if p.get("parameter_has_default"):
-                default_info = f", default: `{p.get('parameter_default')}`"
+                default_val = str(p.get("parameter_default", "")).replace("`", "\\`")
+                default_info = f", default: `{default_val}`"
             required = (
                 " (required)" if not p.get("parameter_has_default", False) else ""
             )
@@ -278,7 +279,9 @@ def generate_app_skill_md(app_title: str, src_url: str, info: dict) -> str:
     (those that send ``Accept: text/markdown`` or a known AI User-Agent).
     """
     lines: list[str] = []
-    lines.append(f"# {app_title}\n")
+    # Escape newlines in the title to avoid breaking the H1 heading
+    safe_title = app_title.replace("\n", " ").replace("\r", "")
+    lines.append(f"# {safe_title}\n")
     lines.append(
         f"This document describes how to use the Gradio app at `{src_url}` "
         "programmatically via its API.\n"
