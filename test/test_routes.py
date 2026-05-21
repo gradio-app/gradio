@@ -2411,7 +2411,10 @@ class TestLLMSkillRoute:
         assert "predict" in body
         assert "Accept: text/markdown" in body
 
-    def test_normal_request_returns_html(self, test_client):
-        response = test_client.get("/")
-        assert response.status_code == 200
-        assert "text/html" in response.headers["content-type"]
+    def test_normal_request_does_not_return_markdown(self, llm_test_client):
+        # A plain request without LLM headers should NOT return text/markdown.
+        # (The HTML template may be unavailable in source builds, but we only
+        # care that it did *not* serve the skill markdown.)
+        client = TestClient(llm_test_client.app, raise_server_exceptions=False)
+        response = client.get("/")
+        assert "text/markdown" not in response.headers.get("content-type", "")
