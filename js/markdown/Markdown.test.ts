@@ -53,6 +53,44 @@ describe("Markdown", () => {
 		const link = getByText("Gradio") as HTMLAnchorElement;
 		expect(link.tagName).toBe("A");
 		expect(link.href).toBe("https://www.gradio.app/");
+		expect(link).toHaveAttribute("target", "_blank");
+		expect(link).toHaveAttribute("rel", "noopener noreferrer");
+	});
+
+	test("renders relative markdown links to open in a new tab", async () => {
+		const { getByText } = await render(Markdown, {
+			...default_props,
+			value: "Read the [docs](/docs)."
+		});
+
+		const link = getByText("docs") as HTMLAnchorElement;
+		expect(link.getAttribute("href")).toBe("/docs");
+		expect(link).toHaveAttribute("target", "_blank");
+		expect(link).toHaveAttribute("rel", "noopener noreferrer");
+	});
+
+	test("renders markdown links to open in a new tab when HTML sanitization is disabled", async () => {
+		const { getByText } = await render(Markdown, {
+			...default_props,
+			sanitize_html: false,
+			value: "Visit [Gradio](https://www.gradio.app/)."
+		});
+
+		const link = getByText("Gradio") as HTMLAnchorElement;
+		expect(link).toHaveAttribute("target", "_blank");
+		expect(link).toHaveAttribute("rel", "noopener noreferrer");
+	});
+
+	test("does not open hash-only markdown links in a new tab", async () => {
+		const { getByText } = await render(Markdown, {
+			...default_props,
+			value: "Jump to [section](#section)."
+		});
+
+		const link = getByText("section") as HTMLAnchorElement;
+		expect(link.getAttribute("href")).toBe("#section");
+		expect(link).not.toHaveAttribute("target");
+		expect(link).not.toHaveAttribute("rel");
 	});
 
 	test("renders markdown with invalid URL", async () => {
