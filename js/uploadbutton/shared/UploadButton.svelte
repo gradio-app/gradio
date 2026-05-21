@@ -2,6 +2,7 @@
 	import { tick } from "svelte";
 	import { BaseButton } from "@gradio/button";
 	import { prepare_files, type FileData, type Client } from "@gradio/client";
+	import { is_valid_mimetype } from "@gradio/upload";
 
 	let {
 		elem_id = "",
@@ -63,24 +64,6 @@
 		});
 		return mapped.join(", ");
 	});
-
-	function is_valid_mimetype(
-		file_accept: string | null,
-		file_extension: string,
-		file_type: string
-	): boolean {
-		if (!file_accept || file_accept === "") {
-			return true;
-		}
-		const accept_array = file_accept.split(",").map((s) => s.trim());
-		return (
-			accept_array.includes(file_extension) ||
-			accept_array.some((type) => {
-				const [category] = type.split("/").map((s) => s.trim());
-				return type.endsWith("/*") && file_type.startsWith(category + "/");
-			})
-		);
-	}
 
 	function open_file_upload(): void {
 		onclick?.();
