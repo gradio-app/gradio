@@ -2381,3 +2381,37 @@ class TestOAuthSecurity:
             info = _get_mocked_oauth_info()
             assert info["access_token"] != "hf_real_secret_token"
             assert info["access_token"] == "mock-oauth-token-for-local-dev"
+
+
+class TestLLMSkillRoute:
+    """Tests that coding-agent / LLM requests to / receive skill markdown."""
+
+    @pytest.fixture()
+    def llm_test_client(self):
+        io = Interface(lambda x: x, "text", "text", api_name="predict")
+        io.queue()
+        app = routes.App.create_app(io)
+        return TestClient(app)
+
+    def test_accept_markdown_returns_skill(self, llm_test_client):
+        response = llm_test_client.get("/", headers={"Accept": "text/markdown"})
+        assert response.status_code == 200
+        assert "text/markdown" in response.headers["content-type"]
+        body = response.text
+        # Should contain API endpoint information
+        assert "predict" in body
+        # Should contain the note explaining why markdown was served
+        assert "Accept: text/markdown" in body
+
+    def test_llm_user_agent_returns_skill(self, llm_test_client):
+        response = llm_test_client.get("/", headers={"User-Agent": "ClaudeBot/1.0"})
+        assert response.status_code == 200
+        assert "text/markdown" in response.headers["content-type"]
+        body = response.text
+        assert "predict" in body
+        assert "Accept: text/markdown" in body
+
+    def test_normal_request_returns_html(self, test_client):
+        response = test_client.get("/")
+        assert response.status_code == 200
+        assert "text/html" in response.headers["content-type"]
