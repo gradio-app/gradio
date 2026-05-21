@@ -5,7 +5,10 @@
 	import type { I18nFormatter } from "@gradio/utils";
 	import { dequal } from "dequal";
 	import type Canvas3DGS from "./Canvas3DGS.svelte";
+	import type Canvas3DPLY from "./Canvas3DPLY.svelte";
 	import type Canvas3D from "./Canvas3D.svelte";
+
+	type Canvas3DLike = Canvas3D | Canvas3DPLY;
 
 	let {
 		value,
@@ -33,9 +36,11 @@
 
 	let current_settings = $state({ camera_position, zoom_speed, pan_speed });
 	let use_3dgs = $state(false);
+	let use_ply = $state(false);
 	let Canvas3DGSComponent = $state<typeof Canvas3DGS>();
+	let Canvas3DPLYComponent = $state<typeof Canvas3DPLY>();
 	let Canvas3DComponent = $state<typeof Canvas3D>();
-	let canvas3d = $state<Canvas3D | undefined>();
+	let canvas3d = $state<Canvas3DLike | undefined>();
 
 	async function loadCanvas3D(): Promise<typeof Canvas3D> {
 		const module = await import("./Canvas3D.svelte");
@@ -45,14 +50,25 @@
 		const module = await import("./Canvas3DGS.svelte");
 		return module.default;
 	}
+	async function loadCanvas3DPLY(): Promise<typeof Canvas3DPLY> {
+		const module = await import("./Canvas3DPLY.svelte");
+		return module.default;
+	}
 
 	$effect(() => {
 		if (value) {
-			use_3dgs = value.path.endsWith(".splat") || value.path.endsWith(".ply");
+			use_ply = value.path.endsWith(".ply");
+			use_3dgs = value.path.endsWith(".splat") || use_ply;
 			if (use_3dgs) {
-				loadCanvas3DGS().then((component) => {
-					Canvas3DGSComponent = component;
-				});
+				if (use_ply) {
+					loadCanvas3DPLY().then((component) => {
+						Canvas3DPLYComponent = component;
+					});
+				} else {
+					loadCanvas3DGS().then((component) => {
+						Canvas3DGSComponent = component;
+					});
+				}
 			} else {
 				loadCanvas3D().then((component) => {
 					Canvas3DComponent = component;
@@ -104,7 +120,18 @@
 			</a>
 		</IconButtonWrapper>
 
-		{#if use_3dgs}
+		{#if use_ply}
+			<svelte:component
+				this={Canvas3DPLYComponent}
+				bind:this={canvas3d}
+				{value}
+				{display_mode}
+				{clear_color}
+				{camera_position}
+				{zoom_speed}
+				{pan_speed}
+			/>
+		{:else if use_3dgs}
 			<svelte:component
 				this={Canvas3DGSComponent}
 				{value}
