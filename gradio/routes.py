@@ -229,7 +229,11 @@ def _render_endpoint_skill_section(
             component = p.get("component", "")
             default_info = ""
             if p.get("parameter_has_default"):
-                default_val = str(p.get("parameter_default", "")).replace("`", "\\`")
+                default_val = (
+                    str(p.get("parameter_default", ""))
+                    .replace("\\", "\\\\")
+                    .replace("`", "\\`")
+                )
                 default_info = f", default: `{default_val}`"
             required = (
                 " (required)" if not p.get("parameter_has_default", False) else ""
