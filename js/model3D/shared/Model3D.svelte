@@ -101,8 +101,8 @@
 {#if value}
 	<div class="model3D" data-testid="model3d">
 		<IconButtonWrapper>
-			{#if !use_3dgs}
-				<!-- Canvas3DGS doesn't implement the undo method (reset_camera_position) -->
+			{#if !use_3dgs || use_ply}
+				<!-- Canvas3DGS is the only renderer here without reset_camera_position. -->
 				<IconButton
 					Icon={Undo}
 					label="Undo"

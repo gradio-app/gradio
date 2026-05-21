@@ -50,7 +50,12 @@ const PLY_TYPE_SIZES: Record<string, number> = {
 	float64: 8
 };
 
-function normalize_channel(value: number): number {
+const BYTE_COLOR_TYPES = new Set(["uchar", "uint8"]);
+
+function normalize_channel(value: number, type?: string): number {
+	if (type && BYTE_COLOR_TYPES.has(type)) {
+		return value / 255;
+	}
 	return value > 1 ? value / 255 : value;
 }
 
@@ -66,13 +71,17 @@ function push_color(
 	red: number | undefined,
 	green: number | undefined,
 	blue: number | undefined,
-	alpha = 1
+	alpha = 1,
+	red_type?: string,
+	green_type?: string,
+	blue_type?: string,
+	alpha_type?: string
 ): void {
 	colors.push(
-		normalize_channel(red ?? 1),
-		normalize_channel(green ?? 1),
-		normalize_channel(blue ?? 1),
-		normalize_channel(alpha)
+		normalize_channel(red ?? 1, red_type),
+		normalize_channel(green ?? 1, green_type),
+		normalize_channel(blue ?? 1, blue_type),
+		normalize_channel(alpha, alpha_type)
 	);
 }
 
@@ -302,7 +311,11 @@ function parse_ascii_ply(
 				values[red_index],
 				values[green_index],
 				values[blue_index],
-				alpha_index === -1 ? 1 : values[alpha_index]
+				alpha_index === -1 ? 1 : values[alpha_index],
+				properties[red_index].type,
+				properties[green_index].type,
+				properties[blue_index].type,
+				alpha_index === -1 ? undefined : properties[alpha_index].type
 			);
 		}
 	}
@@ -361,7 +374,11 @@ function parse_binary_ply(
 				values[red_index],
 				values[green_index],
 				values[blue_index],
-				alpha_index === -1 ? 1 : values[alpha_index]
+				alpha_index === -1 ? 1 : values[alpha_index],
+				properties[red_index].type,
+				properties[green_index].type,
+				properties[blue_index].type,
+				alpha_index === -1 ? undefined : properties[alpha_index].type
 			);
 		}
 

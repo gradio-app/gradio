@@ -146,7 +146,7 @@
 {:else}
 	<div class="input-model">
 		<ModifyUpload
-			undoable={!use_3dgs}
+			undoable={!use_3dgs || use_ply}
 			onclear={handle_clear}
 			{i18n}
 			onundo={handle_undo}

@@ -102,6 +102,27 @@ end_header
 		);
 	});
 
+	test("normalizes uchar PLY color value one as 1/255", () => {
+		const point_cloud = parse_ply_point_cloud(
+			ascii_buffer(`ply
+format ascii 1.0
+element vertex 1
+property float x
+property float y
+property float z
+property uchar red
+property uchar green
+property uchar blue
+end_header
+1 2 3 1 1 1
+`)
+		);
+
+		expect(Array.from(point_cloud?.colors ?? [])).toEqual(
+			float32([1 / 255, 1 / 255, 1 / 255, 1])
+		);
+	});
+
 	test("parses binary little-endian PLY vertices with RGB colors", () => {
 		const point_cloud = parse_ply_point_cloud(binary_little_endian_ply());
 
