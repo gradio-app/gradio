@@ -1,4 +1,4 @@
-import { type Renderer, Marked, Renderer as MarkedRenderer } from "marked";
+import { Marked, Renderer } from "marked";
 import { markedHighlight } from "marked-highlight";
 import { gfmHeadingId } from "marked-gfm-heading-id";
 import * as Prism from "prismjs";
@@ -38,7 +38,7 @@ const COPY_BUTTON_CODE = `<button title="copy" class="copy_code_button">
   <span class="check">${CHECK_ICON_CODE}</span>
 </button>`;
 
-const default_renderer = new MarkedRenderer();
+const default_renderer = new Renderer();
 
 function should_open_link_in_new_tab(href: string): boolean {
 	const trimmed_href = href.trim();
