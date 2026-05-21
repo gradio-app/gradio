@@ -2087,6 +2087,7 @@ def test_mount_gradio_app_args_match_launch_args():
         "max_threads",
         "i18n",
         "_app",
+        "num_workers",
     }
 
     missing_params = []

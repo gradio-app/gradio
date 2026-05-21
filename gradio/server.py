@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any, Literal
@@ -268,6 +269,7 @@ class Server(App):
         js: str | Literal[True] | None = None,
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
+        num_workers: int | None = None,
     ) -> tuple[App, str, str]:
         """Launch the Gradio API server (Server mode).
 
@@ -276,13 +278,14 @@ class Server(App):
         Returns:
             Tuple of (fastapi_app, local_url, share_url).
         """
-        _ = ssr_mode
         from gradio.blocks import Blocks
         from gradio.events import api as gr_api
 
         with Blocks() as blocks:
             for fn, api_kwargs in self._deferred_apis:
                 gr_api(fn=fn, **api_kwargs)
+
+        os.environ["GRADIO_SERVER_MODE_ENABLED"] = "1"
 
         return blocks.launch(
             _app=self,
@@ -320,7 +323,7 @@ class Server(App):
             strict_cors=strict_cors,
             node_server_name=node_server_name,
             node_port=node_port,
-            ssr_mode=False,  # Server mode does not support SSR
+            ssr_mode=ssr_mode,
             pwa=pwa,
             mcp_server=mcp_server,
             _frontend=_frontend,
@@ -331,4 +334,5 @@ class Server(App):
             js=js,
             head=head,
             head_paths=head_paths,
+            num_workers=num_workers,
         )
