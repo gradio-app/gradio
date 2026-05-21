@@ -1748,7 +1748,9 @@ class App(FastAPI):
                 output_files, files_to_copy, locations = await upload_fn(
                     request,
                     app.uploaded_file_dir,
-                    max_file_size if max_file_size is not None else math.inf,
+                    blocks.max_file_size
+                    if blocks.max_file_size is not None
+                    else math.inf,
                     upload_id,
                     force_move=False,
                     upload_progress=file_upload_statuses if upload_id else None,
