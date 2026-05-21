@@ -29,18 +29,19 @@
 	$effect(() => {
 		if (!value?.url || value.url === loaded_url) return;
 
-		loaded_url = value.url;
+		const load_url = value.url;
+		loaded_url = load_url;
 		renderer = "loading";
 		point_cloud = null;
 
-		load_ply_point_cloud(value.url)
+		load_ply_point_cloud(load_url)
 			.then((loaded_point_cloud) => {
-				if (loaded_url !== value.url) return;
+				if (loaded_url !== load_url) return;
 				point_cloud = loaded_point_cloud;
 				renderer = loaded_point_cloud ? "point_cloud" : "gs";
 			})
 			.catch(() => {
-				if (loaded_url === value.url) {
+				if (loaded_url === load_url) {
 					renderer = "gs";
 				}
 			});
