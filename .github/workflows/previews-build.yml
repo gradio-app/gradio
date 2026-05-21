@@ -79,3 +79,8 @@ jobs:
         with:
           name: js-client-tarball
           path: ${{ steps.create_js_tarball.outputs.tarball_name }}
+      - name: Upload JS client dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: js-client-dist
+          path: client/js/dist

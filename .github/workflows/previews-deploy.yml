@@ -79,6 +79,11 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.PYPI_PREVIEWS_TOKEN }}
 
+      - name: Upload JS client dist to HF
+        run: hf buckets cp --recursive ./js-client-dist hf://buckets/gradio/npm-previews/${{ needs.changes.outputs.sha }}/
+        env:
+          HF_TOKEN: ${{ secrets.PYPI_PREVIEWS_TOKEN }}
+
       - name: Set tarball name
         id: set_tarball_name
         run: |
