@@ -11,7 +11,8 @@
 		clear_color,
 		camera_position,
 		zoom_speed,
-		pan_speed
+		pan_speed,
+		reset_camera_available = $bindable(false)
 	}: {
 		value: FileData;
 		display_mode: "solid" | "point_cloud" | "wireframe";
@@ -19,6 +20,7 @@
 		camera_position: [number | null, number | null, number | null];
 		zoom_speed: number;
 		pan_speed: number;
+		reset_camera_available?: boolean;
 	} = $props();
 
 	let canvas3d = $state<Canvas3D | undefined>();
@@ -33,16 +35,19 @@
 		loaded_url = load_url;
 		renderer = "loading";
 		point_cloud = null;
+		reset_camera_available = false;
 
 		load_ply_point_cloud(load_url)
 			.then((loaded_point_cloud) => {
 				if (loaded_url !== load_url) return;
 				point_cloud = loaded_point_cloud;
 				renderer = loaded_point_cloud ? "point_cloud" : "gs";
+				reset_camera_available = renderer === "point_cloud";
 			})
 			.catch(() => {
 				if (loaded_url === load_url) {
 					renderer = "gs";
+					reset_camera_available = false;
 				}
 			});
 	});

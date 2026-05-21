@@ -41,6 +41,7 @@
 	let Canvas3DPLYComponent = $state<typeof Canvas3DPLY>();
 	let Canvas3DComponent = $state<typeof Canvas3D>();
 	let canvas3d = $state<Canvas3DLike | undefined>();
+	let reset_camera_available = $state(false);
 
 	async function loadCanvas3D(): Promise<typeof Canvas3D> {
 		const module = await import("./Canvas3D.svelte");
@@ -56,24 +57,30 @@
 	}
 
 	$effect(() => {
-		if (value) {
-			use_ply = value.path.endsWith(".ply");
-			use_3dgs = value.path.endsWith(".splat") || use_ply;
-			if (use_3dgs) {
-				if (use_ply) {
-					loadCanvas3DPLY().then((component) => {
-						Canvas3DPLYComponent = component;
-					});
-				} else {
-					loadCanvas3DGS().then((component) => {
-						Canvas3DGSComponent = component;
-					});
-				}
+		if (!value) {
+			use_ply = false;
+			use_3dgs = false;
+			reset_camera_available = false;
+			return;
+		}
+
+		use_ply = value.path.endsWith(".ply");
+		use_3dgs = value.path.endsWith(".splat") || use_ply;
+		reset_camera_available = false;
+		if (use_3dgs) {
+			if (use_ply) {
+				loadCanvas3DPLY().then((component) => {
+					Canvas3DPLYComponent = component;
+				});
 			} else {
-				loadCanvas3D().then((component) => {
-					Canvas3DComponent = component;
+				loadCanvas3DGS().then((component) => {
+					Canvas3DGSComponent = component;
 				});
 			}
+		} else {
+			loadCanvas3D().then((component) => {
+				Canvas3DComponent = component;
+			});
 		}
 	});
 
@@ -101,7 +108,7 @@
 {#if value}
 	<div class="model3D" data-testid="model3d">
 		<IconButtonWrapper>
-			{#if !use_3dgs || use_ply}
+			{#if !use_3dgs || (use_ply && reset_camera_available)}
 				<!-- Canvas3DGS is the only renderer here without reset_camera_position. -->
 				<IconButton
 					Icon={Undo}
@@ -130,6 +137,7 @@
 				{camera_position}
 				{zoom_speed}
 				{pan_speed}
+				bind:reset_camera_available
 			/>
 		{:else if use_3dgs}
 			<svelte:component
