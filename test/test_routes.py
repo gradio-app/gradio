@@ -2413,8 +2413,8 @@ class TestLLMSkillRoute:
 
     def test_normal_request_does_not_return_markdown(self, llm_test_client):
         # A plain request without LLM headers should NOT return text/markdown.
-        # (The HTML template may be unavailable in source builds, but we only
-        # care that it did *not* serve the skill markdown.)
-        client = TestClient(llm_test_client.app, raise_server_exceptions=False)
-        response = client.get("/")
+        # (The HTML template may be unavailable in source builds, so we suppress
+        # server exceptions and only assert that skill markdown was not served.)
+        with TestClient(llm_test_client.app, raise_server_exceptions=False) as c:
+            response = c.get("/")
         assert "text/markdown" not in response.headers.get("content-type", "")
