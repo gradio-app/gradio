@@ -80,7 +80,12 @@ jobs:
           HF_TOKEN: ${{ secrets.PYPI_PREVIEWS_TOKEN }}
 
       - name: Upload JS client dist to HF
-        run: hf buckets cp --recursive ./js-client-dist hf://buckets/gradio/npm-previews/${{ needs.changes.outputs.sha }}/
+        run: |
+          if [ -d ./js-client-dist ]; then
+            hf buckets cp --recursive ./js-client-dist hf://buckets/gradio/npm-previews/${{ needs.changes.outputs.sha }}/
+          else
+            echo "Skipping JS client dist upload: ./js-client-dist not found."
+          fi
         env:
           HF_TOKEN: ${{ secrets.PYPI_PREVIEWS_TOKEN }}
 
