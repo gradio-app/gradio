@@ -189,6 +189,7 @@ class StaticWorkerPool:
             self._mp_ctx = multiprocessing
             # Use fork context to avoid re-importing the main module (which would
             # re-run demo.launch() in each child on macOS where spawn is default).
+        else:
             self._mp_ctx = multiprocessing.get_context("fork")
 
     def start(self):
