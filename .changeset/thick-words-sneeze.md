@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:fix(heartbeat): check client disconnect after each heartbeat sleep
+fix:fix(heartbeat): check client disconnect after each heartbeat sleep
