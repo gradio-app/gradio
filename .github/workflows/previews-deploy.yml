@@ -81,7 +81,7 @@ jobs:
       - name: Upload JS client dist to HF
         run: |
           if [ -d ./js-client-dist ]; then
-            hf buckets cp --recursive ./js-client-dist hf://buckets/gradio/npm-previews/${{ needs.changes.outputs.sha }}/
+            hf buckets sync ./js-client-dist hf://buckets/gradio/npm-previews/${{ needs.changes.outputs.sha }}
           else
             echo "Skipping JS client dist upload: ./js-client-dist not found."
           fi
