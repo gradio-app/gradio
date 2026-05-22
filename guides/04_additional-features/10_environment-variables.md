@@ -225,8 +225,15 @@ Environment variables in Gradio provide a way to customize your applications and
   ```
 
 
+### 24. `GRADIO_NUM_WORKERS`
 
-
+- **Description**: Number of multiple workers to launch in the background to offload traffic for file I/O and static assets from the main Gradio server. Only works when SSR mode is set.
+- **Default**: not set.
+- **Options**: Any positive integer.
+- **Example**:
+  ```sh
+  export GRADIO_NUM_WORKERS=4
+  ```
 
 ## How to Set Environment Variables
 
