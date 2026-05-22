@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:fix(client): close submit iterator on next/close race
+fix:[js-client] close submit iterator on next/close race
