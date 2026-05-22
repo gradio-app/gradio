@@ -243,10 +243,7 @@ export class AppTree {
 		}
 	}
 
-	unregister_component(
-		id: number,
-		_set_data?: set_data_type
-	): void {
+	unregister_component(id: number, _set_data?: set_data_type): void {
 		const current_set_data = this.#set_callbacks.get(id);
 		if (_set_data && current_set_data !== _set_data) return;
 		this.#set_callbacks.delete(id);

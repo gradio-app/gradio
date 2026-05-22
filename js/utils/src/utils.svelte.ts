@@ -1,7 +1,7 @@
 import type { ActionReturn } from "svelte/action";
 import type { Client } from "@gradio/client";
 import type { ComponentType, SvelteComponent } from "svelte";
-import { onDestroy, tick, untrack } from "svelte";
+import { tick, untrack } from "svelte";
 import type { Component } from "svelte";
 import { locale } from "svelte-i18n";
 
@@ -484,10 +484,12 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 			});
 		});
 
-		onDestroy(() => {
-			if (this.registered_id !== null) {
-				this.unregister_component(this.registered_id, this.set_data_callback);
-			}
+		$effect(() => {
+			return () => {
+				if (this.registered_id !== null) {
+					this.unregister_component(this.registered_id, this.set_data_callback);
+				}
+			};
 		});
 
 		// retranslate props when locale changes
