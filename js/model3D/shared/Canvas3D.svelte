@@ -3,7 +3,7 @@
 	import type { FileData } from "@gradio/client";
 	import type { Viewer, ViewerDetails } from "@babylonjs/viewer";
 	import { Color4, PointsCloudSystem, Vector3 } from "@babylonjs/core";
-	import type { Mesh } from "@babylonjs/core";
+	import type { Camera, Mesh, Observer } from "@babylonjs/core";
 	import { load_obj_point_cloud, type PointCloudData } from "./point-cloud";
 
 	let BABYLON_VIEWER: typeof import("@babylonjs/viewer");
@@ -34,6 +34,8 @@
 	let mounted = $state(false);
 	let pointCloudSystem: PointsCloudSystem | undefined;
 	let pointCloudMesh: Mesh | undefined;
+	let cameraSensitivityObserver: Observer<Camera> | null = null;
+	let cameraSensitivityCamera: Camera | null = null;
 	let loadToken = 0;
 
 	onMount(() => {
@@ -56,13 +58,20 @@
 		initViewer();
 
 		return () => {
+			if (cameraSensitivityCamera && cameraSensitivityObserver) {
+				cameraSensitivityCamera.onAfterCheckInputsObservable.remove(
+					cameraSensitivityObserver
+				);
+			}
 			viewer?.dispose();
+			cameraSensitivityObserver = null;
+			cameraSensitivityCamera = null;
 		};
 	});
 
 	$effect(() => {
 		if (mounted) {
-			load_model(url);
+			void load_model(url);
 		}
 	});
 
@@ -148,39 +157,43 @@
 
 	async function load_model(url: string | undefined): Promise<void> {
 		const currentToken = ++loadToken;
-		if (viewer) {
-			if (url) {
-				clear_point_cloud();
-				const parsedPointCloud =
-					point_cloud ??
-					(is_obj_url(url) ? await try_load_obj_point_cloud(url) : null);
-				if (currentToken !== loadToken) return;
-				if (parsedPointCloud) {
-					await render_point_cloud(parsedPointCloud, currentToken);
-					return;
-				}
+		if (!viewer) return;
 
-				viewer
-					.loadModel(url, {
-						pluginOptions: {
-							obj: {
-								importVertexColors: true
-							}
-						}
-					})
-					.then(() => {
-						if (currentToken !== loadToken) return;
-						if (display_mode === "point_cloud") {
-							setRenderingMode(true, false);
-						} else if (display_mode === "wireframe") {
-							setRenderingMode(false, true);
-						} else {
-							update_camera(camera_position, zoom_speed, pan_speed);
-						}
-					});
-			} else {
+		try {
+			if (!url) {
 				clear_point_cloud();
 				viewer.resetModel();
+				return;
+			}
+
+			clear_point_cloud();
+			const parsedPointCloud =
+				point_cloud ??
+				(is_obj_url(url) ? await try_load_obj_point_cloud(url) : null);
+			if (currentToken !== loadToken) return;
+			if (parsedPointCloud) {
+				await render_point_cloud(parsedPointCloud, currentToken);
+				return;
+			}
+
+			await viewer.loadModel(url, {
+				pluginOptions: {
+					obj: {
+						importVertexColors: true
+					}
+				}
+			});
+			if (currentToken !== loadToken) return;
+			if (display_mode === "point_cloud") {
+				setRenderingMode(true, false);
+			} else if (display_mode === "wireframe") {
+				setRenderingMode(false, true);
+			} else {
+				update_camera(camera_position, zoom_speed, pan_speed);
+			}
+		} catch {
+			if (currentToken === loadToken) {
+				clear_point_cloud();
 			}
 		}
 	}
@@ -207,7 +220,15 @@
 			camera.panningSensibility = (10000 * pan_speed) / camera.radius;
 		};
 		updateCameraSensibility();
-		camera.onAfterCheckInputsObservable.add(updateCameraSensibility);
+		if (cameraSensitivityCamera && cameraSensitivityObserver) {
+			cameraSensitivityCamera.onAfterCheckInputsObservable.remove(
+				cameraSensitivityObserver
+			);
+		}
+		cameraSensitivityObserver = camera.onAfterCheckInputsObservable.add(
+			updateCameraSensibility
+		);
+		cameraSensitivityCamera = camera;
 	}
 
 	export function reset_camera_position(): void {

@@ -66,6 +66,11 @@ function color_property_index(
 	return properties.findIndex((property) => names.includes(property.name));
 }
 
+function parse_ply_count(value: string | undefined): number | null {
+	const count = Number(value);
+	return Number.isInteger(count) && count >= 0 ? count : null;
+}
+
 function push_color(
 	colors: number[],
 	red: number | undefined,
@@ -153,9 +158,17 @@ function parse_ply_header(buffer: ArrayBuffer): PlyHeader | null {
 		} else if (parts[0] === "element") {
 			current_element = parts[1] ?? null;
 			if (current_element === "vertex") {
-				vertex_count = Number(parts[2] ?? 0);
+				const count = parse_ply_count(parts[2]);
+				if (count === null) {
+					return null;
+				}
+				vertex_count = count;
 			} else if (current_element === "face") {
-				face_count = Number(parts[2] ?? 0);
+				const count = parse_ply_count(parts[2]);
+				if (count === null) {
+					return null;
+				}
+				face_count = count;
 			}
 		} else if (
 			parts[0] === "property" &&
@@ -277,7 +290,7 @@ export function parse_obj_point_cloud(text: string): PointCloudData | null {
 }
 
 function parse_ascii_ply(
-	text: string,
+	body_text: string,
 	header: PlyHeader
 ): PointCloudData | null {
 	const positions: number[] = [];
@@ -295,10 +308,7 @@ function parse_ascii_ply(
 		return null;
 	}
 
-	for (const line of text
-		.slice(header.header_length)
-		.split(/\r?\n/)
-		.slice(0, header.vertex_count)) {
+	for (const line of body_text.split(/\r?\n/).slice(0, header.vertex_count)) {
 		const values = line.trim().split(/\s+/).map(Number);
 		if (values.length < properties.length) {
 			continue;
@@ -342,13 +352,19 @@ function parse_binary_ply(
 		return null;
 	}
 
-	const stride = properties.reduce(
-		(size, property) => size + (PLY_TYPE_SIZES[property.type] ?? 0),
-		0
-	);
+	const property_offsets: number[] = [];
+	let stride = 0;
+	for (const property of properties) {
+		const size = PLY_TYPE_SIZES[property.type];
+		if (!size) {
+			return null;
+		}
+		property_offsets.push(stride);
+		stride += size;
+	}
 	if (
 		stride === 0 ||
-		properties.some((property) => !PLY_TYPE_SIZES[property.type])
+		buffer.byteLength < header.header_length + header.vertex_count * stride
 	) {
 		return null;
 	}
@@ -356,25 +372,23 @@ function parse_binary_ply(
 	const view = new DataView(buffer);
 	const little_endian = header.format === "binary_little_endian";
 	let row_offset = header.header_length;
+	const value_at = (index: number): number =>
+		ply_property_value(
+			view,
+			row_offset + property_offsets[index],
+			properties[index].type,
+			little_endian
+		);
 
 	for (let row = 0; row < header.vertex_count; row++) {
-		const values: number[] = [];
-		let property_offset = row_offset;
-		for (const property of properties) {
-			values.push(
-				ply_property_value(view, property_offset, property.type, little_endian)
-			);
-			property_offset += PLY_TYPE_SIZES[property.type];
-		}
-
-		positions.push(values[x_index], values[y_index], values[z_index]);
+		positions.push(value_at(x_index), value_at(y_index), value_at(z_index));
 		if (red_index !== -1 && green_index !== -1 && blue_index !== -1) {
 			push_color(
 				colors,
-				values[red_index],
-				values[green_index],
-				values[blue_index],
-				alpha_index === -1 ? 1 : values[alpha_index],
+				value_at(red_index),
+				value_at(green_index),
+				value_at(blue_index),
+				alpha_index === -1 ? 1 : value_at(alpha_index),
 				properties[red_index].type,
 				properties[green_index].type,
 				properties[blue_index].type,
@@ -402,19 +416,24 @@ export function parse_ply_point_cloud(
 	}
 
 	if (header.format === "ascii") {
-		return parse_ascii_ply(
-			new TextDecoder("utf-8").decode(array_buffer),
-			header
-		);
+		const body = new Uint8Array(array_buffer, header.header_length);
+		return parse_ascii_ply(new TextDecoder("utf-8").decode(body), header);
 	}
 
-	return parse_binary_ply(array_buffer, header);
+	try {
+		return parse_binary_ply(array_buffer, header);
+	} catch {
+		return null;
+	}
 }
 
 export async function load_obj_point_cloud(
 	url: string
 ): Promise<PointCloudData | null> {
 	const response = await fetch(url);
+	if (!response.ok) {
+		return null;
+	}
 	return parse_obj_point_cloud(await response.text());
 }
 
@@ -422,5 +441,8 @@ export async function load_ply_point_cloud(
 	url: string
 ): Promise<PointCloudData | null> {
 	const response = await fetch(url);
+	if (!response.ok) {
+		return null;
+	}
 	return parse_ply_point_cloud(await response.arrayBuffer());
 }

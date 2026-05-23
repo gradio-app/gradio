@@ -1,6 +1,11 @@
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 
-import { parse_obj_point_cloud, parse_ply_point_cloud } from "./point-cloud";
+import {
+	load_obj_point_cloud,
+	load_ply_point_cloud,
+	parse_obj_point_cloud,
+	parse_ply_point_cloud
+} from "./point-cloud";
 
 function ascii_buffer(value: string): ArrayBuffer {
 	return new TextEncoder().encode(value).buffer;
@@ -52,6 +57,10 @@ function binary_little_endian_ply(): ArrayBuffer {
 }
 
 describe("point cloud parsing", () => {
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
 	test("parses OBJ vertices with colors when no faces are present", () => {
 		const point_cloud = parse_obj_point_cloud(`
 v 1 2 3 0.25 0.5 0.75
@@ -102,6 +111,23 @@ end_header
 		);
 	});
 
+	test("parses ASCII PLY data after multibyte header comments", () => {
+		const point_cloud = parse_ply_point_cloud(
+			ascii_buffer(`ply
+format ascii 1.0
+comment café
+element vertex 1
+property float x
+property float y
+property float z
+end_header
+1 2 3
+`)
+		);
+
+		expect(Array.from(point_cloud?.positions ?? [])).toEqual([1, 2, 3]);
+	});
+
 	test("normalizes uchar PLY color value one as 1/255", () => {
 		const point_cloud = parse_ply_point_cloud(
 			ascii_buffer(`ply
@@ -134,6 +160,43 @@ end_header
 		);
 	});
 
+	test("ignores malformed PLY element counts", () => {
+		expect(
+			parse_ply_point_cloud(
+				ascii_buffer(`ply
+format ascii 1.0
+element vertex nope
+property float x
+property float y
+property float z
+end_header
+1 2 3
+`)
+			)
+		).toBeNull();
+		expect(
+			parse_ply_point_cloud(
+				ascii_buffer(`ply
+format ascii 1.0
+element vertex 1
+property float x
+property float y
+property float z
+element face NaN
+end_header
+1 2 3
+`)
+			)
+		).toBeNull();
+	});
+
+	test("ignores truncated binary PLY data", () => {
+		const buffer = binary_little_endian_ply();
+		expect(
+			parse_ply_point_cloud(buffer.slice(0, buffer.byteLength - 1))
+		).toBeNull();
+	});
+
 	test("leaves Gaussian splat PLY files for the existing GS renderer", () => {
 		const point_cloud = parse_ply_point_cloud(
 			ascii_buffer(`ply
@@ -152,5 +215,21 @@ end_header
 		);
 
 		expect(point_cloud).toBeNull();
+	});
+
+	test("does not parse failed fetch responses", async () => {
+		const failed_response = {
+			ok: false,
+			arrayBuffer: async () => new ArrayBuffer(0),
+			text: async () => ""
+		} as unknown as Response;
+
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => failed_response)
+		);
+
+		await expect(load_obj_point_cloud("/missing.obj")).resolves.toBeNull();
+		await expect(load_ply_point_cloud("/missing.ply")).resolves.toBeNull();
 	});
 });
