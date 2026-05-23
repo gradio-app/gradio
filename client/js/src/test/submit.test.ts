@@ -24,7 +24,7 @@ async function race_with_timeout<T>(
 	try {
 		return await Promise.race([promise, timeout]);
 	} finally {
-		if (timer) clearTimeout(timer);
+		if (timer !== undefined) clearTimeout(timer);
 	}
 }
 
