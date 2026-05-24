@@ -286,42 +286,87 @@ function build_point_cloud(
 export function parse_obj_point_cloud(text: string): PointCloudData | null {
 	const positions: number[] = [];
 	const colors: number[] = [];
-	let has_faces = false;
 
 	for (const raw_line of text.split(/\r?\n/)) {
-		const line = raw_line.trim();
-		if (!line || line.startsWith("#")) {
-			continue;
-		}
-
-		const parts = line.split(/\s+/);
-		if (parts[0] === "f") {
-			has_faces = true;
-			break;
-		}
-
-		if (parts[0] !== "v" || parts.length < 4) {
-			continue;
-		}
-
-		const position = parts.slice(1, 4).map(Number);
-		if (position.some((coordinate) => Number.isNaN(coordinate))) {
-			continue;
-		}
-		positions.push(...position);
-
-		if (
-			parts.length >= 7 &&
-			!parts.slice(4, 7).some((channel) => Number.isNaN(Number(channel)))
-		) {
-			const color = parts.slice(4, 7).map(Number);
-			push_color(colors, color[0], color[1], color[2]);
-		} else {
-			push_color(colors, 1, 1, 1);
+		if (parse_obj_line(raw_line, positions, colors)) {
+			return null;
 		}
 	}
 
-	return has_faces ? null : build_point_cloud(positions, colors);
+	return build_point_cloud(positions, colors);
+}
+
+function parse_obj_line(
+	raw_line: string,
+	positions: number[],
+	colors: number[]
+): boolean {
+	const line = raw_line.trim();
+	if (!line || line.startsWith("#")) {
+		return false;
+	}
+
+	const parts = line.split(/\s+/);
+	if (parts[0] === "f") {
+		return true;
+	}
+
+	if (parts[0] !== "v" || parts.length < 4) {
+		return false;
+	}
+
+	const position = parts.slice(1, 4).map(Number);
+	if (position.some((coordinate) => Number.isNaN(coordinate))) {
+		return false;
+	}
+	positions.push(...position);
+
+	if (
+		parts.length >= 7 &&
+		!parts.slice(4, 7).some((channel) => Number.isNaN(Number(channel)))
+	) {
+		const color = parts.slice(4, 7).map(Number);
+		push_color(colors, color[0], color[1], color[2]);
+	} else {
+		push_color(colors, 1, 1, 1);
+	}
+
+	return false;
+}
+
+async function parse_obj_point_cloud_stream(
+	body: ReadableStream<Uint8Array>
+): Promise<PointCloudData | null> {
+	const reader = body.getReader();
+	const decoder = new TextDecoder("utf-8");
+	const positions: number[] = [];
+	const colors: number[] = [];
+	let pending = "";
+
+	while (true) {
+		const { value, done } = await reader.read();
+		if (done) {
+			break;
+		}
+
+		pending += decoder.decode(value, { stream: true });
+		const lines = pending.split(/\r?\n/);
+		pending = lines.pop() ?? "";
+
+		for (const line of lines) {
+			if (parse_obj_line(line, positions, colors)) {
+				await reader.cancel();
+				return null;
+			}
+		}
+	}
+
+	pending += decoder.decode();
+	if (pending && parse_obj_line(pending, positions, colors)) {
+		return null;
+	}
+
+	return build_point_cloud(positions, colors);
 }
 
 function parse_ascii_ply(
@@ -468,6 +513,9 @@ export async function load_obj_point_cloud(
 	const response = await fetch(url);
 	if (!response.ok) {
 		return null;
+	}
+	if (response.body) {
+		return parse_obj_point_cloud_stream(response.body);
 	}
 	return parse_obj_point_cloud(await response.text());
 }

@@ -255,6 +255,31 @@ end_header
 		await expect(load_ply_point_cloud("/missing.ply")).resolves.toBeNull();
 	});
 
+	test("does not read an entire streamed OBJ mesh before returning null", async () => {
+		const bytes = new TextEncoder().encode("v 1 2 3\nf 1 2 3\n");
+		const text = vi.fn(async () => {
+			throw new Error("full response body should not be read");
+		});
+		const fetch_mock = vi.fn(
+			async () =>
+				({
+					ok: true,
+					body: new ReadableStream<Uint8Array>({
+						start(controller) {
+							controller.enqueue(bytes);
+							controller.close();
+						}
+					}),
+					text
+				}) as unknown as Response
+		);
+
+		vi.stubGlobal("fetch", fetch_mock);
+
+		await expect(load_obj_point_cloud("/mesh.obj")).resolves.toBeNull();
+		expect(text).not.toHaveBeenCalled();
+	});
+
 	test("fetches the full PLY after a point-cloud header probe", async () => {
 		const point_cloud_header = ascii_buffer(`ply
 format ascii 1.0
