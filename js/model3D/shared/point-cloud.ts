@@ -388,7 +388,12 @@ function parse_ascii_ply(
 		return null;
 	}
 
-	for (const line of body_text.split(/\r?\n/).slice(0, header.vertex_count)) {
+	let parsed_vertices = 0;
+	for (const line of body_text.split(/\r?\n/)) {
+		if (parsed_vertices >= header.vertex_count) {
+			break;
+		}
+
 		const values = line.trim().split(/\s+/).map(Number);
 		if (values.length < properties.length) {
 			continue;
@@ -408,6 +413,7 @@ function parse_ascii_ply(
 				alpha_index === -1 ? undefined : properties[alpha_index].type
 			);
 		}
+		parsed_vertices += 1;
 	}
 
 	return build_point_cloud(positions, colors);
