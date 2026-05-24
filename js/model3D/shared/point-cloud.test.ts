@@ -149,6 +149,28 @@ end_header
 		);
 	});
 
+	test("normalizes 16-bit integer PLY color channels", () => {
+		const point_cloud = parse_ply_point_cloud(
+			ascii_buffer(`ply
+format ascii 1.0
+element vertex 1
+property float x
+property float y
+property float z
+property ushort red
+property uint16 green
+property ushort blue
+property uint16 alpha
+end_header
+1 2 3 65535 32768 1 65535
+`)
+		);
+
+		expect(Array.from(point_cloud?.colors ?? [])).toEqual(
+			float32([1, 32768 / 65535, 1 / 65535, 1])
+		);
+	});
+
 	test("parses binary little-endian PLY vertices with RGB colors", () => {
 		const point_cloud = parse_ply_point_cloud(binary_little_endian_ply());
 

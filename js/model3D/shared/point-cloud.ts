@@ -53,11 +53,25 @@ const PLY_TYPE_SIZES: Record<string, number> = {
 const PLY_HEADER_PROBE_BYTES = 64 * 1024;
 type PlyContentKind = "point_cloud" | "gaussian_splat" | "unsupported";
 
-const BYTE_COLOR_TYPES = new Set(["uchar", "uint8"]);
+const INTEGER_COLOR_MAX_VALUES: Record<string, number> = {
+	char: 127,
+	int8: 127,
+	uchar: 255,
+	uint8: 255,
+	short: 32767,
+	int16: 32767,
+	ushort: 65535,
+	uint16: 65535,
+	int: 2147483647,
+	int32: 2147483647,
+	uint: 4294967295,
+	uint32: 4294967295
+};
 
 function normalize_channel(value: number, type?: string): number {
-	if (type && BYTE_COLOR_TYPES.has(type)) {
-		return value / 255;
+	const max_value = type ? INTEGER_COLOR_MAX_VALUES[type] : undefined;
+	if (max_value) {
+		return value / max_value;
 	}
 	return value > 1 ? value / 255 : value;
 }
