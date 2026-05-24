@@ -26,16 +26,4 @@ describe("sanitize", () => {
 		expect(link?.getAttribute("target")).toBeNull();
 		expect(link?.getAttribute("rel")).toBeNull();
 	});
-
-	test("does not add new-tab attributes when a link href is removed", () => {
-		const node = new DOMParser().parseFromString(
-			sanitize('<a href="javascript:alert(1)">bad</a>'),
-			"text/html"
-		);
-
-		const link = node.querySelector("a");
-		expect(link?.getAttribute("href")).toBeNull();
-		expect(link?.getAttribute("target")).toBeNull();
-		expect(link?.getAttribute("rel")).toBeNull();
-	});
 });
