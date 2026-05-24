@@ -148,6 +148,26 @@ end_header
 		]);
 	});
 
+	test("parses ASCII PLY vertices after malformed data lines", () => {
+		const point_cloud = parse_ply_point_cloud(
+			ascii_buffer(`ply
+format ascii 1.0
+element vertex 2
+property float x
+property float y
+property float z
+end_header
+1 2 3
+not a vertex
+4 5 6
+`)
+		);
+
+		expect(Array.from(point_cloud?.positions ?? [])).toEqual([
+			1, 2, 3, 4, 5, 6
+		]);
+	});
+
 	test("normalizes uchar PLY color value one as 1/255", () => {
 		const point_cloud = parse_ply_point_cloud(
 			ascii_buffer(`ply

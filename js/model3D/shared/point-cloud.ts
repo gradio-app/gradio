@@ -398,6 +398,13 @@ function parse_ascii_ply(
 		if (values.length < properties.length) {
 			continue;
 		}
+		if (
+			values
+				.slice(0, properties.length)
+				.some((value) => !Number.isFinite(value))
+		) {
+			continue;
+		}
 
 		positions.push(values[x_index], values[y_index], values[z_index]);
 		if (red_index !== -1 && green_index !== -1 && blue_index !== -1) {
