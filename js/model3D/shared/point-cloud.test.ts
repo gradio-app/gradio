@@ -232,4 +232,76 @@ end_header
 		await expect(load_obj_point_cloud("/missing.obj")).resolves.toBeNull();
 		await expect(load_ply_point_cloud("/missing.ply")).resolves.toBeNull();
 	});
+
+	test("fetches the full PLY after a point-cloud header probe", async () => {
+		const point_cloud_header = ascii_buffer(`ply
+format ascii 1.0
+element vertex 1
+property float x
+property float y
+property float z
+end_header
+`);
+		const point_cloud_ply = ascii_buffer(`ply
+format ascii 1.0
+element vertex 1
+property float x
+property float y
+property float z
+end_header
+1 2 3
+`);
+		const fetch_mock = vi
+			.fn()
+			.mockResolvedValueOnce({
+				ok: true,
+				status: 206,
+				arrayBuffer: async () => point_cloud_header
+			} as unknown as Response)
+			.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				arrayBuffer: async () => point_cloud_ply
+			} as unknown as Response);
+
+		vi.stubGlobal("fetch", fetch_mock);
+
+		const point_cloud = await load_ply_point_cloud("/model.ply");
+		expect(Array.from(point_cloud?.positions ?? [])).toEqual([1, 2, 3]);
+		expect(fetch_mock).toHaveBeenNthCalledWith(1, "/model.ply", {
+			headers: { Range: "bytes=0-65535" }
+		});
+		expect(fetch_mock).toHaveBeenNthCalledWith(2, "/model.ply");
+	});
+
+	test("does not fetch a full Gaussian splat PLY before GS rendering", async () => {
+		const gaussian_splat_header = ascii_buffer(`ply
+format ascii 1.0
+element vertex 1
+property float x
+property float y
+property float z
+property float f_dc_0
+property float opacity
+property float scale_0
+property float rot_0
+end_header
+`);
+		const fetch_mock = vi.fn(
+			async () =>
+				({
+					ok: true,
+					status: 206,
+					arrayBuffer: async () => gaussian_splat_header
+				}) as unknown as Response
+		);
+
+		vi.stubGlobal("fetch", fetch_mock);
+
+		await expect(load_ply_point_cloud("/model.ply")).resolves.toBeNull();
+		expect(fetch_mock).toHaveBeenCalledOnce();
+		expect(fetch_mock).toHaveBeenCalledWith("/model.ply", {
+			headers: { Range: "bytes=0-65535" }
+		});
+	});
 });

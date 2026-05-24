@@ -50,6 +50,9 @@ const PLY_TYPE_SIZES: Record<string, number> = {
 	float64: 8
 };
 
+const PLY_HEADER_PROBE_BYTES = 64 * 1024;
+type PlyContentKind = "point_cloud" | "gaussian_splat" | "unsupported";
+
 const BYTE_COLOR_TYPES = new Set(["uchar", "uint8"]);
 
 function normalize_channel(value: number, type?: string): number {
@@ -196,6 +199,24 @@ function is_gaussian_splat_ply(properties: PlyProperty[]): boolean {
 	return properties.some((property) =>
 		GAUSSIAN_SPLAT_PROPERTIES.has(property.name)
 	);
+}
+
+function classify_ply_content(buffer: ArrayBufferLike): PlyContentKind | null {
+	const array_buffer = trim_array_buffer(buffer);
+	const has_complete_header =
+		find_ply_header_end(new Uint8Array(array_buffer)) !== -1;
+	const header = parse_ply_header(array_buffer);
+
+	if (!header) {
+		return has_complete_header ? "unsupported" : null;
+	}
+	if (is_gaussian_splat_ply(header.vertex_properties)) {
+		return "gaussian_splat";
+	}
+	if (header.face_count > 0) {
+		return "unsupported";
+	}
+	return "point_cloud";
 }
 
 function ply_property_value(
@@ -440,9 +461,27 @@ export async function load_obj_point_cloud(
 export async function load_ply_point_cloud(
 	url: string
 ): Promise<PointCloudData | null> {
+	const probe_response = await fetch(url, {
+		headers: { Range: `bytes=0-${PLY_HEADER_PROBE_BYTES - 1}` }
+	});
+	if (!probe_response.ok) {
+		return null;
+	}
+
+	const probe_buffer = await probe_response.arrayBuffer();
+	if (probe_response.status !== 206) {
+		return parse_ply_point_cloud(probe_buffer);
+	}
+
+	const content_kind = classify_ply_content(probe_buffer);
+	if (content_kind === "gaussian_splat" || content_kind === "unsupported") {
+		return null;
+	}
+
 	const response = await fetch(url);
 	if (!response.ok) {
 		return null;
 	}
+
 	return parse_ply_point_cloud(await response.arrayBuffer());
 }
