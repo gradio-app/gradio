@@ -1,3 +1,37 @@
+export function is_valid_mimetype(
+	file_accept: string | string[] | null,
+	uploaded_file_extension: string,
+	uploaded_file_type: string
+): boolean {
+	if (
+		!file_accept ||
+		file_accept === "*" ||
+		file_accept === "file/*" ||
+		(Array.isArray(file_accept) &&
+			file_accept.some((accept) => accept === "*" || accept === "file/*"))
+	) {
+		return true;
+	}
+	let acceptArray: string[];
+	if (typeof file_accept === "string") {
+		acceptArray = file_accept.split(",").map((s) => s.trim());
+	} else if (Array.isArray(file_accept)) {
+		acceptArray = file_accept;
+	} else {
+		return false;
+	}
+
+	return (
+		acceptArray.includes(uploaded_file_extension) ||
+		acceptArray.some((type) => {
+			const [category] = type.split("/").map((s) => s.trim());
+			return (
+				type.endsWith("/*") && uploaded_file_type.startsWith(category + "/")
+			);
+		})
+	);
+}
+
 interface DragActionOptions {
 	disable_click?: boolean;
 	accepted_types?: string | string[] | null;
