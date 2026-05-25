@@ -119,8 +119,6 @@
 	.video-player {
 		width: 100%;
 		display: block;
-		max-height: 480px;
-		object-fit: contain;
 		background: var(--block-background-fill);
 	}
 	.controls-bar {
