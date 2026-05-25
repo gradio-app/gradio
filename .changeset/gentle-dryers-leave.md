@@ -4,4 +4,4 @@
 "gradio": patch
 ---
 
-fix:Fix infinite effect loop in tabs
+fix:Fix infinite effect loop in tabs and stack overflow in dataframe
