@@ -53,6 +53,20 @@ const appCache = new Map<
 	{ port: number; process: ChildProcess; refCount: number }
 >();
 
+// Track the cacheKey of the currently-running spec file so we can kill the
+// previous spec's gradio app when the worker moves on. Without this, every
+// app spawned during a worker's lifetime stayed resident until process exit
+// (~50 python procs / 5GB RSS by end of suite — the tail of the run starved
+// for CPU and tests timed out).
+let currentCacheKey: string | null = null;
+
+function killAndEvict(cacheKey: string): void {
+	const info = appCache.get(cacheKey);
+	if (!info) return;
+	killGradioApp(info.process);
+	appCache.delete(cacheKey);
+}
+
 // Test fixture that launches Gradio app per test
 const test_normal = base.extend<{ setup: void }>({
 	setup: [
@@ -72,6 +86,18 @@ const test_normal = base.extend<{ setup: void }>({
 
 			// Cache key includes testcase if present
 			const cacheKey = testcaseName ? `${demoName}_${testcaseName}` : demoName;
+
+			// First test of a new spec file → previous file's app is no longer
+			// needed on this worker. fullyParallel=false in playwright.config
+			// guarantees a worker finishes a file before starting the next, so
+			// the kill is unconditional on the transition (we don't gate on
+			// refCount: a throw before `await use()` — e.g. a flaky SSR
+			// hydration wait — can leak refCount, which would otherwise pin
+			// the previous spec's app forever).
+			if (currentCacheKey !== null && currentCacheKey !== cacheKey) {
+				killAndEvict(currentCacheKey);
+			}
+			currentCacheKey = cacheKey;
 
 			let appInfo = appCache.get(cacheKey);
 
@@ -93,29 +119,24 @@ const test_normal = base.extend<{ setup: void }>({
 				}
 			}
 
-			appInfo.refCount++;
+			try {
+				// Navigate to the app
+				await page.goto(`http://localhost:${appInfo.port}`);
 
-			// Navigate to the app
-			await page.goto(`http://localhost:${appInfo.port}`);
+				if (
+					process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true" &&
+					!(
+						demoName.includes("multipage") ||
+						demoName.includes("chatinterface_deep_link")
+					)
+				) {
+					await page.waitForSelector("#svelte-announcer");
+				}
+				await page.waitForLoadState("load");
 
-			if (
-				process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true" &&
-				!(
-					demoName.includes("multipage") ||
-					demoName.includes("chatinterface_deep_link")
-				)
-			) {
-				await page.waitForSelector("#svelte-announcer");
+				await use();
+			} finally {
 			}
-			await page.waitForLoadState("load");
-
-			await use();
-
-			// Decrement ref count
-			appInfo.refCount--;
-
-			// Note: We don't kill the app here because other tests might
-			// still need it. The app will be killed when the process exits.
 		},
 		{ auto: true }
 	]

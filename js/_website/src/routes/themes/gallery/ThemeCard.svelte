@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { ThemeData } from "./types";
+	import { is_color_dark } from "./utils";
 
 	export let theme: ThemeData;
 	export let on_click: () => void;
@@ -7,32 +8,12 @@
 
 	$: current_bg = dark ? theme.colors.background_dark : theme.colors.background;
 	$: is_dark = is_color_dark(current_bg);
-
-	function is_color_dark(hex: string): boolean {
-		const rgb = hex_to_rgb(hex);
-		if (!rgb) return false;
-		const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
-		return luminance < 0.5;
-	}
-
-	function hex_to_rgb(hex: string): { r: number; g: number; b: number } | null {
-		const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-		return result
-			? {
-					r: parseInt(result[1], 16),
-					g: parseInt(result[2], 16),
-					b: parseInt(result[3], 16)
-				}
-			: null;
-	}
-
-	function adjust_color(hex: string, amount: number): string {
-		const rgb = hex_to_rgb(hex);
-		if (!rgb) return hex;
-		const clamp = (n: number) => Math.min(255, Math.max(0, Math.round(n)));
-		const toHex = (c: number) => c.toString(16).padStart(2, "0");
-		return `#${toHex(clamp(rgb.r + amount))}${toHex(clamp(rgb.g + amount))}${toHex(clamp(rgb.b + amount))}`;
-	}
+	$: is_btn_dark = is_color_dark(theme.colors.button_primary);
+	$: is_block_dark = is_color_dark(theme.colors.block_background);
+	$: card_text = is_dark ? "#ffffff" : theme.colors.text_color;
+	$: block_text = is_block_dark ? "#ffffff" : theme.colors.text_color;
+	$: label_color = is_block_dark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.45)";
+	$: track_color = is_block_dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)";
 
 	function mix_color(hex: string, opacity: number): string {
 		return `${hex}${Math.round(opacity * 255)
@@ -63,7 +44,7 @@
 	<div class="p-2.5">
 		<div
 			class="text-[11px] font-semibold truncate mb-2"
-			style="color: {is_dark ? '#ffffff' : '#1f2937'};"
+			style="color: {card_text}; font-family: '{theme.fonts.main}', sans-serif;"
 		>
 			{theme.name}
 		</div>
@@ -73,21 +54,20 @@
 				<div
 					class="rounded p-1.5 border"
 					style="
-						background: {is_dark ? adjust_color(current_bg, 15) : '#ffffff'};
-						border-color: {is_dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
+						background: {theme.colors.block_background};
+						border-color: {theme.colors.block_border};
 					"
 				>
 					<div
 						class="text-[8px] font-medium mb-0.5"
-						style="color: {is_dark ? '#a0a0a0' : '#6b7280'};"
+						style="color: {label_color};"
 					>
 						Prompt
 					</div>
 					<div
 						class="text-[9px] leading-tight"
-						style="color: {is_dark
-							? '#e0e0e0'
-							: '#374151'}; font-family: '{theme.fonts.main}', sans-serif;"
+						style="color: {block_text}; font-family: '{theme.fonts
+							.main}', sans-serif;"
 					>
 						A serene mountain...
 					</div>
@@ -96,15 +76,12 @@
 				<div
 					class="rounded p-1.5 border"
 					style="
-						background: {is_dark ? adjust_color(current_bg, 15) : '#ffffff'};
-						border-color: {is_dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
+						background: {theme.colors.block_background};
+						border-color: {theme.colors.block_border};
 					"
 				>
 					<div class="flex justify-between items-center mb-1">
-						<span
-							class="text-[8px] font-medium"
-							style="color: {is_dark ? '#a0a0a0' : '#6b7280'};"
-						>
+						<span class="text-[8px] font-medium" style="color: {label_color};">
 							Steps
 						</span>
 						<span
@@ -116,9 +93,7 @@
 					</div>
 					<div
 						class="h-1 rounded-full relative"
-						style="background: {is_dark
-							? 'rgba(255,255,255,0.1)'
-							: 'rgba(0,0,0,0.1)'};"
+						style="background: {track_color};"
 					>
 						<div
 							class="absolute left-0 top-0 h-full rounded-full"
@@ -130,8 +105,8 @@
 				<button
 					class="w-full py-1 rounded text-[9px] font-semibold"
 					style="
-						background: {theme.colors.primary};
-						color: {is_color_dark(theme.colors.primary) ? '#ffffff' : '#000000'};
+						background: {theme.colors.button_primary};
+						color: {is_btn_dark ? '#ffffff' : '#000000'};
 					"
 				>
 					Generate
@@ -142,21 +117,17 @@
 				<div
 					class="rounded p-1.5 border"
 					style="
-						background: {is_dark ? adjust_color(current_bg, 15) : '#ffffff'};
-						border-color: {is_dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
+						background: {theme.colors.block_background};
+						border-color: {theme.colors.block_border};
 					"
 				>
-					<div
-						class="text-[7px] mb-0.5"
-						style="color: {is_dark ? '#a0a0a0' : '#6b7280'};"
-					>
+					<div class="text-[7px] mb-0.5" style="color: {label_color};">
 						Font
 					</div>
 					<div
 						class="text-[10px] font-medium leading-tight"
-						style="color: {is_dark
-							? '#e0e0e0'
-							: '#374151'}; font-family: '{theme.fonts.main}', sans-serif;"
+						style="color: {block_text}; font-family: '{theme.fonts
+							.main}', sans-serif;"
 					>
 						{theme.fonts.main}
 					</div>
@@ -165,8 +136,8 @@
 				<div
 					class="rounded p-1.5 border flex items-center gap-1.5"
 					style="
-						background: {is_dark ? adjust_color(current_bg, 15) : '#ffffff'};
-						border-color: {is_dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
+						background: {theme.colors.block_background};
+						border-color: {theme.colors.block_border};
 					"
 				>
 					<div
@@ -187,18 +158,15 @@
 							/>
 						</svg>
 					</div>
-					<span
-						class="text-[8px]"
-						style="color: {is_dark ? '#e0e0e0' : '#374151'};">Enabled</span
-					>
+					<span class="text-[8px]" style="color: {block_text};">Enabled</span>
 				</div>
 
 				<button
 					class="w-full py-1 rounded text-[8px] font-medium border"
 					style="
 						background: transparent;
-						border-color: {theme.colors.neutral};
-						color: {theme.colors.neutral};
+						border-color: {theme.colors.button_secondary_border};
+						color: {theme.colors.button_secondary_text};
 					"
 				>
 					Secondary
@@ -227,7 +195,7 @@
 			{:else if theme.likes > 0}
 				<span
 					class="flex items-center gap-0.5 text-[8px]"
-					style="color: {is_dark ? '#a0a0a0' : '#6b7280'};"
+					style="color: {label_color};"
 				>
 					<svg class="w-2 h-2" fill="currentColor" viewBox="0 0 20 20">
 						<path
@@ -244,7 +212,7 @@
 			<div
 				class="w-2.5 h-2.5 rounded-full"
 				style="background: {theme.colors
-					.primary}; box-shadow: 0 0 0 1px {is_dark
+					.button_primary}; box-shadow: 0 0 0 1px {is_dark
 					? 'rgba(255,255,255,0.1)'
 					: 'rgba(0,0,0,0.1)'};"
 			></div>

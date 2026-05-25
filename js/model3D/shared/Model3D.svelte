@@ -98,6 +98,7 @@
 				href={value.url}
 				target={window.__is_colab__ ? "_blank" : null}
 				download={window.__is_colab__ ? null : value.orig_name || value.path}
+				data-testid="model3d-download-link"
 			>
 				<IconButton Icon={Download} label={i18n("common.download")} />
 			</a>

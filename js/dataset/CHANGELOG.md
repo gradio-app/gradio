@@ -1,5 +1,17 @@
 # @gradio/dataset
 
+## 0.5.9
+
+### Fixes
+
+- [#13291](https://github.com/gradio-app/gradio/pull/13291) [`77fca72`](https://github.com/gradio-app/gradio/commit/77fca72b8eba2bcda19c31bba285af2642a4cc9d) - Dataset: fix gallery view using wrong component metadata index and fix broken pagination after Svelte 5 migration.  Thanks @ParamChordiya!
+
+### Dependency updates
+
+- @gradio/atoms@0.24.0
+- @gradio/upload@0.17.9
+- @gradio/textbox@0.13.9
+
 ## 0.5.8
 
 ### Features

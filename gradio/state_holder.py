@@ -154,7 +154,8 @@ class SessionState:
                 yield (
                     block,
                     value,
-                    (datetime.datetime.now() - created_at).seconds > time_to_live,
+                    (datetime.datetime.now() - created_at).total_seconds()
+                    > time_to_live,
                 )
         for _id in state_ids_to_delete:
             del self.state_data[_id]

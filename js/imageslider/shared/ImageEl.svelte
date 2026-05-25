@@ -85,6 +85,7 @@
 <!-- svelte-ignore a11y-missing-attribute -->
 <img
 	{src}
+	data-testid="imageslider-image"
 	{...$$restProps}
 	class:fixed
 	style:transform

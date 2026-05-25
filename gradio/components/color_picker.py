@@ -22,7 +22,14 @@ class ColorPicker(Component):
     Demos: color_picker
     """
 
-    EVENTS = [Events.change, Events.input, Events.submit, Events.focus, Events.blur]
+    EVENTS = [
+        Events.change,
+        Events.input,
+        Events.release,
+        Events.submit,
+        Events.focus,
+        Events.blur,
+    ]
 
     def __init__(
         self,

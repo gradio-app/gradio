@@ -2,6 +2,12 @@
 
 ## 1.3.1
 
+### Dependency updates
+
+- @gradio/core@1.5.0
+
+## 1.3.1
+
 ### Fixes
 
 - [#13239](https://github.com/gradio-app/gradio/pull/13239) [`9efdcb5`](https://github.com/gradio-app/gradio/commit/9efdcb57b46fc808dc55051a113154489fcc237d) - Reduce `gradio` package size by restoring frontend settings.  Thanks @abidlabs!

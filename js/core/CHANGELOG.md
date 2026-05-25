@@ -1,5 +1,31 @@
 # @gradio/core
 
+## 1.5.0
+
+### Features
+
+- [#13289](https://github.com/gradio-app/gradio/pull/13289) [`d6f24df`](https://github.com/gradio-app/gradio/commit/d6f24df6233e7882746ba6e49307a34a11101ea1) - Improve curl info.  Thanks @freddyaboulton!
+- [#13277](https://github.com/gradio-app/gradio/pull/13277) [`cab8be0`](https://github.com/gradio-app/gradio/commit/cab8be062deb958a718aae25175e07fb013dfd4f) - CLI/Agent API Docs.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.24.0
+- @gradio/statustracker@0.14.1
+- @gradio/checkbox@0.7.0
+- @gradio/upload@0.17.9
+- @gradio/textbox@0.13.9
+- @gradio/tabs@0.5.10
+- @gradio/code@0.17.8
+- @gradio/html@0.12.3
+- @gradio/paramviewer@0.9.9
+- @gradio/file@0.14.8
+- @gradio/gallery@0.17.7
+- @gradio/plot@0.10.9
+- @gradio/dropdown@0.12.0
+- @gradio/image@0.26.3
+- @gradio/video@0.20.8
+- @gradio/audio@0.23.3
+
 ## 1.4.2
 
 ### Dependency updates

@@ -1,5 +1,11 @@
 import { test, describe, afterEach, expect } from "vitest";
-import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
+import {
+	cleanup,
+	render,
+	fireEvent,
+	waitFor,
+	within
+} from "@self/tootils/render";
 import { tick } from "svelte";
 
 import Dataframe from "./Index.svelte";
@@ -579,6 +585,67 @@ describe("Add/remove rows and columns", () => {
 	});
 });
 
+describe("Cell menu visibility on static cells", () => {
+	afterEach(() => cleanup());
+
+	test("context menu does not open on a static column cell", async () => {
+		const { container } = await render(Dataframe, {
+			...default_props,
+			static_columns: [0]
+		});
+		await wait();
+
+		const cell = get_cell(container, 0, 0)!;
+		await fireEvent.contextMenu(cell);
+		await wait();
+
+		expect(within(document.body).queryByRole("menu")).toBeNull();
+	});
+
+	test("context menu does not open when interactive is false", async () => {
+		const { container } = await render(Dataframe, {
+			...default_props,
+			interactive: false,
+			editable: false
+		});
+		await wait();
+
+		const cell = get_cell(container, 0, 0)!;
+		await fireEvent.contextMenu(cell);
+		await wait();
+
+		expect(within(document.body).queryByRole("menu")).toBeNull();
+	});
+
+	test("context menu does open on an editable, non-static cell", async () => {
+		const { container } = await render(Dataframe, {
+			...default_props,
+			row_count: [3, "dynamic"] as [number, "fixed" | "dynamic"]
+		});
+		await wait();
+
+		const cell = get_cell(container, 0, 0)!;
+		await fireEvent.contextMenu(cell);
+		await wait();
+
+		expect(within(document.body).queryByRole("menu")).not.toBeNull();
+	});
+
+	test("cell menu button does not render on a static column cell", async () => {
+		const { container } = await render(Dataframe, {
+			...default_props,
+			static_columns: [0]
+		});
+		await wait();
+
+		const cell = get_cell(container, 0, 0)!;
+		await fireEvent.mouseDown(cell);
+		await wait();
+
+		expect(cell.querySelector(".cell-menu-button")).toBeNull();
+	});
+});
+
 describe("Delete/clear cells", () => {
 	afterEach(() => cleanup());
 
@@ -786,5 +853,169 @@ describe("Copy", () => {
 		await waitFor(async () => {
 			expect(await navigator.clipboard.readText()).toBe("Alice");
 		});
+	});
+});
+
+describe("Boolean column select-all header checkbox", () => {
+	afterEach(() => cleanup());
+
+	const bool_props = {
+		...default_props,
+		value: {
+			data: [
+				["Alice", true, false],
+				["Bob", false, false],
+				["Carol", true, false]
+			],
+			headers: ["Name", "Active", "Admin"],
+			metadata: null
+		},
+		datatype: ["str", "bool", "bool"] as any,
+		col_count: [3, "fixed"] as [number, "fixed" | "dynamic"]
+	};
+
+	function get_header(container: HTMLElement, col_idx: number): HTMLElement {
+		return container.querySelector<HTMLElement>(
+			`th[data-heading='${col_idx}']`
+		)!;
+	}
+
+	function get_header_checkbox(
+		container: HTMLElement,
+		col_idx: number
+	): HTMLInputElement {
+		return within(get_header(container, col_idx)).getByTestId(
+			"checkbox"
+		) as HTMLInputElement;
+	}
+
+	test("renders checkbox in bool column header (interactive mode)", async () => {
+		const { container } = await render(Dataframe, bool_props);
+		await wait();
+
+		expect(get_header_checkbox(container, 1)).toBeInTheDocument();
+		expect(get_header_checkbox(container, 2)).toBeInTheDocument();
+
+		expect(
+			within(get_header(container, 0)).queryByTestId("checkbox")
+		).not.toBeInTheDocument();
+	});
+
+	test("does not render checkbox when not interactive", async () => {
+		const { container } = await render(Dataframe, {
+			...bool_props,
+			interactive: false
+		});
+		await wait();
+
+		expect(
+			within(get_header(container, 1)).queryByTestId("checkbox")
+		).not.toBeInTheDocument();
+	});
+
+	test("header checkbox reflects indeterminate state for mixed column", async () => {
+		const { container } = await render(Dataframe, bool_props);
+		await wait();
+
+		const active = get_header_checkbox(container, 1);
+		expect(active.indeterminate).toBe(true);
+		expect(active.checked).toBe(false);
+	});
+
+	test("header checkbox is checked when all column values are true", async () => {
+		const { container } = await render(Dataframe, {
+			...bool_props,
+			value: {
+				data: [
+					["Alice", true],
+					["Bob", true]
+				],
+				headers: ["Name", "Active"],
+				metadata: null
+			},
+			datatype: ["str", "bool"] as any,
+			col_count: [2, "fixed"] as [number, "fixed" | "dynamic"]
+		});
+		await wait();
+
+		const active = get_header_checkbox(container, 1);
+		expect(active.checked).toBe(true);
+		expect(active.indeterminate).toBe(false);
+	});
+
+	test("clicking indeterminate header checkbox sets all column cells to true", async () => {
+		const { container, listen } = await render(Dataframe, bool_props);
+		await wait();
+
+		const change = listen("change");
+		await fireEvent.click(get_header_checkbox(container, 1));
+		await wait();
+
+		const data = change.mock.calls.at(-1)?.[0].data;
+		expect(data).toEqual([
+			["Alice", true, false],
+			["Bob", true, false],
+			["Carol", true, false]
+		]);
+
+		const updated = get_header_checkbox(container, 1);
+		expect(updated.checked).toBe(true);
+		expect(updated.indeterminate).toBe(false);
+	});
+
+	test("clicking fully-checked header checkbox sets all column cells to false", async () => {
+		const { container, listen } = await render(Dataframe, {
+			...bool_props,
+			value: {
+				data: [
+					["Alice", true, false],
+					["Bob", true, false]
+				],
+				headers: ["Name", "Active", "Admin"],
+				metadata: null
+			}
+		});
+		await wait();
+
+		const change = listen("change");
+		await fireEvent.click(get_header_checkbox(container, 1));
+		await wait();
+
+		const data = change.mock.calls.at(-1)?.[0].data;
+		expect(data).toEqual([
+			["Alice", false, false],
+			["Bob", false, false]
+		]);
+	});
+
+	test("toggling one bool header does not affect cells in other bool columns", async () => {
+		const { container, listen } = await render(Dataframe, {
+			...bool_props,
+			value: {
+				data: [
+					["Alice", false, true],
+					["Bob", false, true],
+					["Carol", false, true]
+				],
+				headers: ["Name", "Active", "Admin"],
+				metadata: null
+			}
+		});
+		await wait();
+
+		const change = listen("change");
+		await fireEvent.click(get_header_checkbox(container, 1));
+		await wait();
+
+		const data = change.mock.calls.at(-1)?.[0].data;
+		expect(data).toEqual([
+			["Alice", true, true],
+			["Bob", true, true],
+			["Carol", true, true]
+		]);
+
+		const admin = get_header_checkbox(container, 2);
+		expect(admin.checked).toBe(true);
+		expect(admin.indeterminate).toBe(false);
 	});
 });

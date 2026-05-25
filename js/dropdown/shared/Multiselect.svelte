@@ -168,7 +168,10 @@
 			}
 		}
 		if (e.key === "Backspace" && input_text === "") {
-			selected_indices = [...selected_indices.slice(0, -1)];
+			const new_indices = selected_indices.slice(0, -1);
+			gradio.props.value = new_indices.map((index) =>
+				typeof index === "number" ? choices_values[index] : index
+			);
 		}
 		if (selected_indices.length === gradio.props.max_choices) {
 			show_options = false;

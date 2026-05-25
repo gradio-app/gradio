@@ -18,10 +18,10 @@
 	let canvas: HTMLCanvasElement;
 	let scene: SPLAT.Scene;
 	let camera: SPLAT.Camera;
-	let renderer = $state<SPLAT.WebGLRenderer | null>(null);
+	let renderer: SPLAT.WebGLRenderer | null = null;
 	let controls: SPLAT.OrbitControls;
 	let mounted = $state(false);
-	let frameId = $state<number | null>(null);
+	let frameId: number | null = null;
 
 	function reset_scene(): void {
 		if (frameId !== null) {
