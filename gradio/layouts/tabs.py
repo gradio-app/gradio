@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from typing import Literal
 
 from gradio_client.documentation import document
@@ -49,6 +50,39 @@ class Tabs(BlockContext, metaclass=ComponentMeta):
             preserved_by_key=preserved_by_key,
         )
         self.selected = selected
+
+    def __exit__(self, exc_type=None, *args):
+        super().__exit__(exc_type, *args)
+        if exc_type is not None:
+            return
+        for child in self.children:
+            if isinstance(child, Tab):
+                continue
+            # Invisible utility components (gr.State, gr.BrowserState, gr.Timer, ...)
+            # have no DOM and never cause the IntersectionObserver crash this
+            # validation is guarding against. They are conventionally marked by
+            # `breaks_grouping() == False`, the same flag fill_expected_parents
+            # already uses to allow them to live anywhere in the tree.
+            if not child.breaks_grouping():
+                continue
+            # Surface the component(s) the user actually wrote rather than a
+            # gradio-generated auto-wrap (e.g. gr.Form grouping consecutive
+            # FormComponents into a single wrapper with multiple children).
+            if (
+                isinstance(child, BlockContext)
+                and not getattr(child, "is_rendered", True)
+                and child.children
+            ):
+                names = ", ".join(f"gr.{type(c).__name__}()" for c in child.children)
+            else:
+                names = f"gr.{type(child).__name__}()"
+            warnings.warn(
+                f"gr.Tabs() can only contain gr.Tab() (or gr.TabItem()) components as direct children, "
+                f"but received {names}. Wrap inside a gr.Tab(...) block to fix this.",
+                UserWarning,
+                stacklevel=2,
+            )
+            return
 
 
 @document()
