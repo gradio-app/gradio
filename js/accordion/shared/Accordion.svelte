@@ -29,7 +29,7 @@
 		▼
 	</span>
 </button>
-<div style:display={open ? "block" : "none"}>
+<div data-testid="accordion-content" style:display={open ? "block" : "none"}>
 	<slot />
 </div>
 

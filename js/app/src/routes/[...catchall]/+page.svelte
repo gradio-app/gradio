@@ -262,6 +262,9 @@
 	}
 
 	onMount(async () => {
+		window.addEventListener("beforeunload", () => {
+			app?.close();
+		});
 		//@ts-ignore
 		config = data.config;
 		window.gradio_config = data.config;
@@ -292,22 +295,6 @@
 		window.__is_colab__ = config.is_colab;
 
 		await add_custom_html_head(config.head);
-
-		const supports_zerogpu_headers = "supports-zerogpu-headers";
-		window.addEventListener("message", (event) => {
-			if (event.data === supports_zerogpu_headers) {
-				window.supports_zerogpu_headers = true;
-			}
-		});
-		const hostname = window.location.hostname;
-		const is_hf_host =
-			hostname.includes(".dev.") || hostname.endsWith(".hf.space");
-		if (is_hf_host) {
-			const origin = hostname.includes(".dev.")
-				? `https://moon-${hostname.split(".")[1]}.dev.spaces.huggingface.tech`
-				: `https://huggingface.co`;
-			window.parent.postMessage(supports_zerogpu_headers, origin);
-		}
 
 		if (config.js) {
 			try {

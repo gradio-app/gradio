@@ -1,22 +1,28 @@
 <script lang="ts">
-	import { MarkdownCode as Markdown } from "@gradio/markdown-code";
+	import { render_inline_markdown } from "./inline-markdown";
 	export let info: string;
 </script>
 
-<div>
-	<Markdown message={info} sanitize_html={true} />
+<div class="info-text">
+	{@html render_inline_markdown(info)}
 </div>
 
 <style>
-	div > :global(.md.prose) {
+	.info-text {
 		font-weight: var(--block-info-text-weight);
 		font-size: var(--block-info-text-size);
 		line-height: var(--line-sm);
-	}
-	div > :global(.md.prose *) {
 		color: var(--block-info-text-color);
-	}
-	div {
 		margin-bottom: var(--spacing-md);
+	}
+	.info-text :global(a) {
+		color: var(--link-text-color);
+		text-decoration: underline;
+	}
+	.info-text :global(code) {
+		background: var(--code-background-fill);
+		padding: 0.1em 0.3em;
+		border-radius: 3px;
+		font-size: 0.9em;
 	}
 </style>

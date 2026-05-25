@@ -10,20 +10,15 @@
 		| "javascript"
 		| "bash"
 		| "skill"
+		| "cli"
 		| "mcp";
 	export let api_description: string | null = null;
 	export let analytics: Record<string, any>;
-	export let markdown_code_snippets: Record<string, Record<string, string>>;
 	export let code_snippets: Record<string, string>;
 	export let last_api_call: Payload | null = null;
+	export let cli_command = "";
 
-	$: markdown_code_snippets[
-		dependency.api_name as keyof typeof markdown_code_snippets
-	] = {
-		python: code_snippets.python || "",
-		javascript: code_snippets.javascript || "",
-		bash: code_snippets.bash || ""
-	};
+	$: cli_code = (code_snippets.cli || "").replace("{command}", cli_command);
 
 	function escape_html(text: string): string {
 		return text
@@ -73,6 +68,7 @@
 	$: python_html = highlight_python(code_snippets.python || "");
 	$: js_html = highlight_javascript(code_snippets.javascript || "");
 	$: bash_html = highlight_bash(code_snippets.bash || "");
+	$: cli_html = highlight_bash(cli_code);
 </script>
 
 <div class="container">
@@ -110,6 +106,16 @@
 					<CopyButton code={code_snippets.bash || ""} />
 				</div>
 				<pre>{@html bash_html}</pre>
+			</code>
+		</Block>
+	</div>
+	<div class:hidden={current_language !== "cli"}>
+		<Block>
+			<code>
+				<div class="copy">
+					<CopyButton code={cli_code} />
+				</div>
+				<pre>{@html cli_html}</pre>
 			</code>
 		</Block>
 	</div>

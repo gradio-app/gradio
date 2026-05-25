@@ -86,7 +86,16 @@ class Renderable:
             LocalContext.key_to_id_map.set(None)
 
         for fn in fns_from_last_render:
-            if blocks_config.fns[fn._id].render_iteration != self.render_iteration:
+            # The block-function may already have been removed from `blocks_config.fns`
+            # during the inner render -- e.g. `gr.Examples` adds and then pops a
+            # transient "fake_event" function (gradio/helpers.py) for cache-on-launch
+            # processing. If the inner render never re-registered ``fn``, indexing
+            # would raise `KeyError`. The cleanup intent is "drop stale fns from the
+            # previous iteration", so a missing entry is already in the desired state.
+            current_fn = blocks_config.fns.get(fn._id)
+            if current_fn is None:
+                continue
+            if current_fn.render_iteration != self.render_iteration:
                 del blocks_config.fns[fn._id]
 
         self.render_iteration += 1

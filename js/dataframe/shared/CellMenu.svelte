@@ -3,44 +3,66 @@
 	import CellMenuIcons from "./CellMenuIcons.svelte";
 	import FilterMenu from "./FilterMenu.svelte";
 	import type { I18nFormatter } from "@gradio/utils";
-	import type {
-		SortDirection,
-		FilterDatatype
-	} from "./context/dataframe_context";
+	import type { SortDirection, FilterDatatype } from "./types";
 
-	export let x: number;
-	export let y: number;
-	export let on_add_row_above: () => void;
-	export let on_add_row_below: () => void;
-	export let on_add_column_left: () => void;
-	export let on_add_column_right: () => void;
-	export let row: number;
-	export let col_count: [number, "fixed" | "dynamic"];
-	export let row_count: [number, "fixed" | "dynamic"];
-	export let on_delete_row: () => void;
-	export let on_delete_col: () => void;
-	export let can_delete_rows: boolean;
-	export let can_delete_cols: boolean;
-	export let on_sort: (direction: SortDirection) => void = () => {};
-	export let on_clear_sort: () => void = () => {};
-	export let sort_direction: SortDirection | null = null;
-	export let sort_priority: number | null = null;
-	export let on_filter: (
-		datatype: FilterDatatype,
-		selected_filter: string,
-		value: string
-	) => void = () => {};
-	export let on_clear_filter: () => void = () => {};
-	export let filter_active: boolean | null = null;
-	export let editable = true;
+	let {
+		x,
+		y,
+		on_add_row_above,
+		on_add_row_below,
+		on_add_column_left,
+		on_add_column_right,
+		row,
+		col_count,
+		row_count,
+		on_delete_row,
+		on_delete_col,
+		can_delete_rows,
+		can_delete_cols,
+		on_sort = () => {},
+		on_clear_sort = () => {},
+		sort_direction = null,
+		sort_priority = null,
+		on_filter = () => {},
+		on_clear_filter = () => {},
+		filter_active = null,
+		editable = true,
+		i18n
+	}: {
+		x: number;
+		y: number;
+		on_add_row_above: () => void;
+		on_add_row_below: () => void;
+		on_add_column_left: () => void;
+		on_add_column_right: () => void;
+		row: number;
+		col_count: [number, "fixed" | "dynamic"];
+		row_count: [number, "fixed" | "dynamic"];
+		on_delete_row: () => void;
+		on_delete_col: () => void;
+		can_delete_rows: boolean;
+		can_delete_cols: boolean;
+		on_sort?: (direction: SortDirection) => void;
+		on_clear_sort?: () => void;
+		sort_direction?: SortDirection | null;
+		sort_priority?: number | null;
+		on_filter?: (
+			datatype: FilterDatatype,
+			selected_filter: string,
+			value: string
+		) => void;
+		on_clear_filter?: () => void;
+		filter_active?: boolean | null;
+		editable?: boolean;
+		i18n: I18nFormatter;
+	} = $props();
 
-	export let i18n: I18nFormatter;
 	let menu_element: HTMLDivElement;
-	let active_filter_menu: { x: number; y: number } | null = null;
+	let active_filter_menu: { x: number; y: number } | null = $state(null);
 
-	$: is_header = row === -1;
-	$: can_add_rows = editable && row_count[1] === "dynamic";
-	$: can_add_columns = editable && col_count[1] === "dynamic";
+	let is_header = $derived(row === -1);
+	let can_add_rows = $derived(editable && row_count[1] === "dynamic");
+	let can_add_columns = $derived(editable && col_count[1] === "dynamic");
 
 	onMount(() => {
 		position_menu();
@@ -86,7 +108,7 @@
 	{#if is_header}
 		<button
 			role="menuitem"
-			on:click={() => on_sort("asc")}
+			onclick={() => on_sort("asc")}
 			class:active={sort_direction === "asc"}
 		>
 			<CellMenuIcons icon="sort-asc" />
@@ -97,7 +119,7 @@
 		</button>
 		<button
 			role="menuitem"
-			on:click={() => on_sort("desc")}
+			onclick={() => on_sort("desc")}
 			class:active={sort_direction === "desc"}
 		>
 			<CellMenuIcons icon="sort-desc" />
@@ -106,13 +128,16 @@
 				<span class="priority">{sort_priority}</span>
 			{/if}
 		</button>
-		<button role="menuitem" on:click={on_clear_sort}>
+		<button role="menuitem" onclick={on_clear_sort}>
 			<CellMenuIcons icon="clear-sort" />
 			{i18n("dataframe.clear_sort")}
 		</button>
 		<button
 			role="menuitem"
-			on:click|stopPropagation={toggle_filter_menu}
+			onclick={(e) => {
+				e.stopPropagation();
+				toggle_filter_menu();
+			}}
 			class:active={filter_active || active_filter_menu}
 		>
 			<CellMenuIcons icon="filter" />
@@ -121,7 +146,7 @@
 				<span class="priority">1</span>
 			{/if}
 		</button>
-		<button role="menuitem" on:click={on_clear_filter}>
+		<button role="menuitem" onclick={on_clear_filter}>
 			<CellMenuIcons icon="clear-filter" />
 			{i18n("dataframe.clear_filter")}
 		</button>
@@ -130,7 +155,7 @@
 	{#if !is_header && can_add_rows}
 		<button
 			role="menuitem"
-			on:click={() => on_add_row_above()}
+			onclick={() => on_add_row_above()}
 			aria-label="Add row above"
 		>
 			<CellMenuIcons icon="add-row-above" />
@@ -138,7 +163,7 @@
 		</button>
 		<button
 			role="menuitem"
-			on:click={() => on_add_row_below()}
+			onclick={() => on_add_row_below()}
 			aria-label="Add row below"
 		>
 			<CellMenuIcons icon="add-row-below" />
@@ -147,7 +172,7 @@
 		{#if can_delete_rows}
 			<button
 				role="menuitem"
-				on:click={on_delete_row}
+				onclick={on_delete_row}
 				class="delete"
 				aria-label="Delete row"
 			>
@@ -159,7 +184,7 @@
 	{#if can_add_columns}
 		<button
 			role="menuitem"
-			on:click={() => on_add_column_left()}
+			onclick={() => on_add_column_left()}
 			aria-label="Add column to the left"
 		>
 			<CellMenuIcons icon="add-column-left" />
@@ -167,7 +192,7 @@
 		</button>
 		<button
 			role="menuitem"
-			on:click={() => on_add_column_right()}
+			onclick={() => on_add_column_right()}
 			aria-label="Add column to the right"
 		>
 			<CellMenuIcons icon="add-column-right" />
@@ -176,7 +201,7 @@
 		{#if can_delete_cols}
 			<button
 				role="menuitem"
-				on:click={on_delete_col}
+				onclick={on_delete_col}
 				class="delete"
 				aria-label="Delete column"
 			>
@@ -194,7 +219,7 @@
 <style>
 	.cell-menu {
 		position: fixed;
-		z-index: 9;
+		z-index: var(--layer-1);
 		background: var(--background-fill-primary);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-sm);
@@ -204,7 +229,7 @@
 		gap: var(--size-1);
 		box-shadow: var(--shadow-drop-lg);
 		min-width: 150px;
-		z-index: var(--layer-1);
+		width: max-content;
 	}
 
 	.cell-menu button {

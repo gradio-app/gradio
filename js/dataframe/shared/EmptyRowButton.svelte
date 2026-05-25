@@ -1,8 +1,8 @@
 <script lang="ts">
-	export let on_click: () => void;
+	let { on_click }: { on_click: () => void } = $props();
 </script>
 
-<button class="add-row-button" on:click={on_click} aria-label="Add row">
+<button class="add-row-button" onclick={on_click} aria-label="Add row">
 	+
 </button>
 

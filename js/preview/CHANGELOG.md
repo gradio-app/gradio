@@ -1,5 +1,11 @@
 # @gradio/preview
 
+## 0.16.2
+
+### Fixes
+
+- [#13182](https://github.com/gradio-app/gradio/pull/13182) [`2e36802`](https://github.com/gradio-app/gradio/commit/2e36802a04251315454c3872aa888bbf984ae4c1) - fix: make example field optional in cc build.  Thanks @xr843!
+
 ## 0.16.1
 
 ### Fixes

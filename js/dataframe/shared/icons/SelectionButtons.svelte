@@ -1,25 +1,36 @@
 <script lang="ts">
-	export let position: "column" | "row";
-	export let coords: [number, number];
-	export let on_click: (() => void) | null = null;
+	let {
+		position,
+		coords,
+		on_click = null
+	}: {
+		position: "column" | "row";
+		coords: [number, number];
+		on_click?: (() => void) | null;
+	} = $props();
 
-	$: is_first_position =
-		position === "column" ? coords[0] === 0 : coords[1] === 0;
-	$: direction =
+	let is_first_position = $derived(
+		position === "column" ? coords[0] === 0 : coords[1] === 0
+	);
+	let direction = $derived(
 		position === "column"
 			? is_first_position
 				? "down"
 				: "up"
 			: is_first_position
 				? "right"
-				: "left";
+				: "left"
+	);
 </script>
 
 <button
 	class="selection-button selection-button-{position} {is_first_position
 		? `move-${direction}`
 		: ''}"
-	on:click|stopPropagation={() => on_click && on_click()}
+	onclick={(e: MouseEvent) => {
+		e.stopPropagation();
+		on_click && on_click();
+	}}
 	aria-label={`Select ${position}`}
 >
 	<span class={direction}>
@@ -50,6 +61,8 @@
 
 	.selection-button-row {
 		left: calc(var(--size-2-5) * -1);
+		top: 50%;
+		transform: translateY(-50%);
 		border-radius: var(--radius-sm) 0 0 var(--radius-sm);
 	}
 
@@ -62,6 +75,8 @@
 	.move-right {
 		left: auto;
 		right: calc(var(--size-2-5) * -1);
+		top: 50%;
+		transform: translateY(-50%);
 		border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 	}
 

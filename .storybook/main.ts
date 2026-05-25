@@ -4,7 +4,8 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 const config: StorybookConfig = {
 	stories: [
 		"../js/storybook/**/*.mdx",
-		"../js/!(dataframe|dataframe-interim|core)/**/*.stories.svelte"
+		"../js/!(dataframe|dataframe-interim|core)/*.stories.svelte",
+		"../js/!(dataframe|dataframe-interim|core)/src/**/*.stories.svelte"
 	],
 	staticDirs: ["../js/spa/public", "../js/storybook/public", "./test_files"],
 	addons: [

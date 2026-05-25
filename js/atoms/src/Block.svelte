@@ -188,14 +188,14 @@
 		padding: var(--block-padding);
 	}
 
-	.hidden {
-		/* We use "hidden" class name in form/Index.svelte to hide parent forms, so if this class changes, edit form/Index.svelte accordingly */
-		display: none;
-	}
-
 	.flex {
 		display: flex;
 		flex-direction: column;
+	}
+
+	.hidden {
+		/* We use "hidden" class name in form/Index.svelte to hide parent forms, so if this class changes, edit form/Index.svelte accordingly */
+		display: none;
 	}
 	.hide-container:not(.fullscreen) {
 		margin: 0;

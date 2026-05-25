@@ -4,6 +4,7 @@ export interface ILoadingStatus {
 	queue: boolean;
 	queue_position: number | null;
 	queue_size?: number;
+	component_id?: number;
 	fn_index: number;
 	message?: string | null;
 	scroll_to_output?: boolean;
@@ -19,6 +20,10 @@ export interface ILoadingStatus {
 	validation_error?: string | null;
 	type: "input" | "output";
 	stream_state: "open" | "closed" | "waiting" | null;
+	used_cache?: "full" | "partial" | null;
+	cache_duration?: number | null;
+	avg_time?: number | null;
+	cache_event_id?: number | null;
 }
 
 export interface LoadingStatusArgs {
@@ -35,6 +40,9 @@ export interface LoadingStatusArgs {
 	stream_state: "open" | "closed" | "waiting" | null;
 	validation_error?: string;
 	show_validation_error?: boolean;
+	used_cache?: "full" | "partial" | null;
+	cache_duration?: number | null;
+	avg_time?: number | null;
 }
 
 export interface ToastMessage {

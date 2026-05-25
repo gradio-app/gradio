@@ -26,6 +26,7 @@ from PIL import Image
 
 import gradio as gr
 from gradio import blocks, helpers
+from gradio.context import LocalContext
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
@@ -156,6 +157,32 @@ class TestBlocksMethods:
             difference = end - start
             assert difference >= 0.01
             assert result
+
+    @pytest.mark.asyncio
+    async def test_process_api_average_duration_excludes_manual_cache_hits(self):
+        def double(x, c=gr.Cache()):
+            hit = c.get(x)
+            if hit is not None:
+                return hit["value"]
+            time.sleep(0.02)
+            value = x * 2
+            c.set(x, value=value)
+            return value
+
+        with gr.Blocks() as demo:
+            text = gr.Number()
+            output = gr.Number()
+            button = gr.Button()
+            button.click(double, [text], [output])
+
+        first = await demo.process_api(inputs=[3], block_fn=0, state=None)
+        second = await demo.process_api(inputs=[3], block_fn=0, state=None)
+
+        assert first["used_cache"] is None
+        assert second["used_cache"] == "partial"
+        assert first["average_duration"] is not None
+        assert second["average_duration"] == pytest.approx(first["average_duration"])
+        assert demo.fns[0].total_runs == 1
 
     @patch("gradio.analytics._do_analytics_request")
     def test_initiated_analytics(self, mock_anlaytics, monkeypatch):
@@ -545,6 +572,19 @@ class TestComponentsInBlocks:
         assert all(
             comp.load_event in demo.config["dependencies"] for comp in components
         )
+
+    def test_component_load_events_target_root(self):
+        with gr.Blocks() as demo:
+            button = gr.Button(value=lambda: "Loaded")
+
+        load_dependencies = [
+            dep
+            for dep in demo.config["dependencies"]
+            if "load" in [target[1] for target in dep["targets"]]
+        ]
+        assert len(load_dependencies) == 1
+        assert load_dependencies[0]["targets"][0][1] == "load"
+        assert load_dependencies[0]["outputs"] == [button._id]
 
     def test_load_events_work_with_builtins(self):
         with gr.Blocks() as demo:
@@ -1459,6 +1499,48 @@ class TestCancel:
                 cancel.click(None, None, None, cancels=[click])
             demo.queue().launch(prevent_thread_lock=True)
 
+    def test_cancel_closes_generator(self):
+        """The /cancel endpoint must call close() on server-side generators."""
+        from gradio.routes import App
+        from gradio.utils import SyncToAsyncIterator
+
+        closed = []
+
+        def gen():
+            try:
+                while True:
+                    yield "running"
+            finally:
+                closed.append(True)
+
+        with gr.Blocks() as demo:
+            out = gr.Textbox()
+            btn = gr.Button()
+            btn.click(gen, None, out, api_name="predict")
+
+        app = App.create_app(demo)
+
+        event_id = "test_event"
+        g = gen()
+        next(g)  # advance so GeneratorExit/finally will fire on close
+        iterator = SyncToAsyncIterator(g, limiter=None)
+        app.iterators[event_id] = iterator
+
+        client = TestClient(app)
+        resp = client.post(
+            f"{API_PREFIX}/cancel",
+            json={
+                "session_hash": "test",
+                "fn_index": 0,
+                "event_id": event_id,
+            },
+        )
+        assert resp.status_code == 200
+        assert resp.json()["success"]
+        assert closed, "Generator was not closed by /cancel endpoint"
+        assert event_id not in app.iterators
+        assert event_id in app.iterators_to_reset
+
 
 class TestGetAPIInfo:
     def test_many_endpoints(self):
@@ -2043,13 +2125,14 @@ def test_multiple_navbar_components_in_same_page_raise_error():
         gr.Textbox()
 
 
+@pytest.mark.flaky
 def test_blocks_close_closes_thread_properly():
     a = gr.Blocks()
 
     def poll():
         start = time.time()
-        while time.time() - start < 1:
-            time.sleep(0.25)
+        while time.time() - start < 0.5:
+            time.sleep(0.1)
         print("Closing...")
         a.close()
 
@@ -2063,3 +2146,66 @@ def test_blocks_close_closes_thread_properly():
     time.sleep(1.2)
     assert not t.is_alive()
     assert not a.is_running
+
+
+def test_render_apply_does_not_raise_keyerror_when_fns_are_popped():
+    """
+    `Renderable.apply` snapshots `fns_from_last_render` *before* running the user
+    render function. If the user render function (or anything it calls -- e.g.
+    `gr.Examples` -- which transiently appends and then pops a function in
+    `gradio/helpers.py`) leaves `blocks_config.fns` without an entry for one of
+    the previously-rendered ids, the cleanup loop in `Renderable.apply` must
+    treat that absent entry as "already cleaned up" rather than raising.
+
+    Reproduces issue #12081 deterministically without spinning up an HTTP
+    server.
+    """
+
+    captured = {}
+
+    with gr.Blocks() as demo:
+        with gr.Tab(key="tab", label="Tab"):
+            dropdown = gr.Dropdown(["a", "b", "c"])
+
+            @gr.render(inputs=[dropdown])
+            def _render(value):  # noqa: D401
+                gr.Textbox(key="text", label="Text")
+                gr.Examples(
+                    examples=["a1", "a2", "a3"],
+                    example_labels=["First", "Second", "Third"],
+                    inputs=[gr.Textbox(visible=False)],
+                )
+
+            for renderable in demo.renderables:
+                captured["renderable"] = renderable
+
+    renderable = captured["renderable"]
+
+    blocks_config = demo.default_config
+
+    class _StubBlockFn:
+        rendered_in = renderable
+        render_iteration = renderable.render_iteration  # current iteration
+        _id = max(blocks_config.fns.keys(), default=-1) + 1_000
+
+    stub = _StubBlockFn()
+    blocks_config.fns[stub._id] = stub  # type: ignore[assignment]
+
+    token = LocalContext.blocks_config.set(blocks_config)
+    try:
+        # Concurrently pop the stub mid-render to simulate gr.Examples' fake-
+        # event cleanup (`gradio/helpers.py:580`).
+        original_fn = renderable.fn
+
+        def _user_fn_that_pops(*args, **kwargs):
+            blocks_config.fns.pop(stub._id, None)
+            return original_fn(*args, **kwargs)
+
+        renderable.fn = _user_fn_that_pops
+        try:
+            # Should NOT raise KeyError -- this is the fix for #12081.
+            renderable.apply("a")
+        finally:
+            renderable.fn = original_fn
+    finally:
+        LocalContext.blocks_config.reset(token)

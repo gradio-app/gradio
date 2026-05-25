@@ -11,7 +11,8 @@
 		| "javascript"
 		| "bash"
 		| "skill"
-		| "mcp" = "python";
+		| "mcp"
+		| "cli" = "python";
 
 	const dispatch = createEventDispatcher();
 </script>
@@ -19,13 +20,14 @@
 <h2>
 	<img src={api_logo} alt="" />
 	<div class="title">
-		{#if current_language === "mcp"}MCP{:else}API{/if} documentation
+		{#if current_language === "mcp"}MCP{:else if current_language === "cli"}CLI{:else}API{/if}
+		documentation
 		<div class="url">
 			{root}
 		</div>
 	</div>
 	<span class="counts">
-		{#if current_language !== "mcp"}
+		{#if current_language !== "mcp" && current_language !== "cli"}
 			<BaseButton
 				size="sm"
 				variant="secondary"
@@ -38,8 +40,8 @@
 		{/if}
 		<p>
 			<span class="url">{api_count}</span>
-			{#if current_language !== "mcp"}API endpoint{:else}MCP Tool{/if}{#if api_count > 1}s{/if}<br
-			/>
+			{#if current_language === "mcp"}MCP Tool{:else if current_language === "cli"}CLI
+				endpoint{:else}API endpoint{/if}{#if api_count > 1}s{/if}<br />
 		</p>
 	</span>
 </h2>

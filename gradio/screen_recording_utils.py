@@ -11,7 +11,7 @@ DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
 
 
 async def process_video_with_ffmpeg(input_path, output_path, params):
-    from ffmpy import FFmpeg
+    from gradio._vendor.ffmpy import FFmpeg
 
     current_input = input_path
     temp_files = [input_path]
@@ -185,7 +185,7 @@ async def zoom_in(
     zoom_duration=2.0,
     zoom_start_frame=None,
 ):
-    from ffmpy import FFmpeg
+    from gradio._vendor.ffmpy import FFmpeg
 
     temp_files = []
 

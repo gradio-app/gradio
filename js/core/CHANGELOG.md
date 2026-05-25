@@ -1,5 +1,79 @@
 # @gradio/core
 
+## 1.5.0
+
+### Features
+
+- [#13289](https://github.com/gradio-app/gradio/pull/13289) [`d6f24df`](https://github.com/gradio-app/gradio/commit/d6f24df6233e7882746ba6e49307a34a11101ea1) - Improve curl info.  Thanks @freddyaboulton!
+- [#13277](https://github.com/gradio-app/gradio/pull/13277) [`cab8be0`](https://github.com/gradio-app/gradio/commit/cab8be062deb958a718aae25175e07fb013dfd4f) - CLI/Agent API Docs.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.24.0
+- @gradio/statustracker@0.14.1
+- @gradio/checkbox@0.7.0
+- @gradio/upload@0.17.9
+- @gradio/textbox@0.13.9
+- @gradio/tabs@0.5.10
+- @gradio/code@0.17.8
+- @gradio/html@0.12.3
+- @gradio/paramviewer@0.9.9
+- @gradio/file@0.14.8
+- @gradio/gallery@0.17.7
+- @gradio/plot@0.10.9
+- @gradio/dropdown@0.12.0
+- @gradio/image@0.26.3
+- @gradio/video@0.20.8
+- @gradio/audio@0.23.3
+
+## 1.4.2
+
+### Dependency updates
+
+- @gradio/atoms@0.23.1
+- @gradio/statustracker@0.14.0
+- @gradio/client@2.2.0
+- @gradio/textbox@0.13.8
+- @gradio/column@0.3.3
+- @gradio/image@0.26.2
+- @gradio/file@0.14.7
+- @gradio/video@0.20.7
+- @gradio/code@0.17.7
+- @gradio/html@0.12.2
+- @gradio/paramviewer@0.9.8
+- @gradio/gallery@0.17.6
+- @gradio/plot@0.10.8
+- @gradio/checkbox@0.6.7
+- @gradio/dropdown@0.11.8
+- @gradio/audio@0.23.2
+
+## 1.4.2
+
+### Fixes
+
+- [#13048](https://github.com/gradio-app/gradio/pull/13048) [`a5d4096`](https://github.com/gradio-app/gradio/commit/a5d40965bba21a832da522127048926b71c1a6dd) - Fix Tab Interactive Bug.  Thanks @freddyaboulton!
+- [#13172](https://github.com/gradio-app/gradio/pull/13172) [`03a9d4c`](https://github.com/gradio-app/gradio/commit/03a9d4c99f3c9466e4fc162d02800850ed67a29e) - fix: prevent [object Object] when label matches a nested i18n key.  Thanks @mango766!
+
+### Dependency updates
+
+- @gradio/utils@0.12.2
+- @gradio/atoms@0.23.0
+- @gradio/statustracker@0.13.1
+- @gradio/upload@0.17.8
+- @gradio/tabs@0.5.9
+- @gradio/code@0.17.6
+- @gradio/html@0.12.1
+- @gradio/paramviewer@0.9.7
+- @gradio/image@0.26.1
+- @gradio/checkbox@0.6.6
+- @gradio/video@0.20.6
+- @gradio/file@0.14.6
+- @gradio/gallery@0.17.5
+- @gradio/plot@0.10.7
+- @gradio/textbox@0.13.7
+- @gradio/dropdown@0.11.7
+- @gradio/audio@0.23.1
+
 ## 1.4.1
 
 ### Fixes

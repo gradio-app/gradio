@@ -233,7 +233,7 @@ describe("Props: info", () => {
 			...default_props,
 			info: "Additional info here"
 		});
-		const el = result.getByText("Additional info here");
+		const el = await waitFor(() => result.getByText("Additional info here"));
 		expect(el).toBeTruthy();
 	});
 

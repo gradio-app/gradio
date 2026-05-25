@@ -10,6 +10,7 @@
 	const raf = is_browser
 		? window.requestAnimationFrame
 		: (cb: (...args: any[]) => void) => {};
+	const shown_cache_indicator_keys = new Set<string>();
 
 	async function scroll_into_view(
 		el: HTMLDivElement,
@@ -62,6 +63,8 @@
 		eta?: number | null;
 		queue_position: number | null;
 		queue_size: number | null;
+		component_id?: number | null;
+		fn_index?: number | null;
 		status:
 			| "complete"
 			| "pending"
@@ -84,6 +87,10 @@
 		show_validation_error?: boolean;
 		type?: "input" | "output" | null;
 		on_clear_status?: () => void;
+		used_cache?: "full" | "partial" | null;
+		cache_duration?: number | null;
+		avg_time?: number | null;
+		cache_event_id?: number | null;
 	}
 
 	interface ProgressLevel {
@@ -97,6 +104,8 @@
 		eta = null,
 		queue_position,
 		queue_size,
+		component_id = null,
+		fn_index = null,
 		status,
 		scroll_to_output = false,
 		timer = true,
@@ -112,7 +121,11 @@
 		validation_error = null,
 		show_validation_error = true,
 		type = null,
-		on_clear_status
+		on_clear_status,
+		used_cache = null,
+		cache_duration = null,
+		avg_time = null,
+		cache_event_id = null
 	}: Props = $props();
 
 	let el: HTMLDivElement;
@@ -124,14 +137,32 @@
 	let message_visible = $state(false);
 	let formatted_eta = $state<string | null>(null);
 	let show_message_timeout = $state<NodeJS.Timeout | null>(null);
+	let show_cache_indicator = $state(false);
+	let cache_indicator_fading = $state(false);
+	let cache_display_time = $state<string | null>(null);
+	let cache_display_avg = $state<string | null>(null);
+	let cache_indicator_label = $state("from cache");
+	let show_cache_avg = $state(false);
+	let cache_timeout: ReturnType<typeof setTimeout> | null = null;
+	let cache_fade_timeout: ReturnType<typeof setTimeout> | null = null;
+	let last_cache_indicator_key: string | null = null;
+
+	function hide_cache_indicator(): void {
+		if (cache_timeout) clearTimeout(cache_timeout);
+		if (cache_fade_timeout) clearTimeout(cache_fade_timeout);
+		cache_timeout = null;
+		cache_fade_timeout = null;
+		show_cache_indicator = false;
+		cache_indicator_fading = false;
+	}
 
 	const should_hide = $derived(
-		type === "input" ||
-			!status ||
-			status === "complete" ||
-			show_progress === "hidden" ||
-			status == "streaming" ||
-			!!(show_validation_error && validation_error)
+		!(show_validation_error && validation_error) &&
+			(type === "input" ||
+				!status ||
+				status === "complete" ||
+				show_progress === "hidden" ||
+				status == "streaming")
 	);
 
 	let timer_diff = $state(0);
@@ -145,6 +176,7 @@
 	const formatted_timer = $derived(timer_diff.toFixed(1));
 
 	let show_eta_bar = $derived(progress != null ? false : true);
+	let effective_eta = $derived(eta ?? old_eta);
 
 	function run(): void {
 		raf(() => {
@@ -226,13 +258,10 @@
 	});
 
 	$effect(() => {
-		if (eta === null) {
-			eta = old_eta;
-		}
-		if (eta != null && old_eta !== eta) {
-			eta_from_start = (performance.now() - timer_start) / 1000 + eta;
+		if (effective_eta != null && old_eta !== effective_eta) {
+			eta_from_start = (performance.now() - timer_start) / 1000 + effective_eta;
 			formatted_eta = eta_from_start.toFixed(1);
-			old_eta = eta;
+			old_eta = effective_eta;
 		}
 	});
 
@@ -250,6 +279,51 @@
 
 		if (status === "error" && message) {
 			message_visible = true;
+		}
+	});
+
+	$effect(() => {
+		if (
+			status === "complete" &&
+			type === "output" &&
+			used_cache &&
+			cache_duration != null
+		) {
+			const cache_indicator_key =
+				cache_event_id == null
+					? null
+					: `${component_id ?? fn_index ?? "unknown"}:${fn_index ?? "unknown"}:${cache_event_id}`;
+			if (
+				cache_indicator_key === last_cache_indicator_key ||
+				(cache_indicator_key != null &&
+					shown_cache_indicator_keys.has(cache_indicator_key))
+			) {
+				return;
+			}
+			last_cache_indicator_key = cache_indicator_key;
+			if (cache_indicator_key != null) {
+				shown_cache_indicator_keys.add(cache_indicator_key);
+			}
+			cache_display_time = cache_duration.toFixed(1);
+			cache_indicator_label =
+				used_cache === "full" ? "from cache" : "used cache";
+			show_cache_avg =
+				avg_time != null && avg_time > cache_duration && avg_time > 0;
+			cache_display_avg = show_cache_avg ? avg_time!.toFixed(1) : null;
+			show_cache_indicator = true;
+			cache_indicator_fading = false;
+
+			if (cache_timeout) clearTimeout(cache_timeout);
+			if (cache_fade_timeout) clearTimeout(cache_fade_timeout);
+			cache_timeout = setTimeout(() => {
+				cache_indicator_fading = true;
+				cache_fade_timeout = setTimeout(() => {
+					show_cache_indicator = false;
+					cache_indicator_fading = false;
+				}, 500);
+			}, 1750);
+		} else if (type === "output" && !used_cache) {
+			hide_cache_indicator();
 		}
 	});
 </script>
@@ -375,6 +449,18 @@
 		<slot name="error" />
 	{/if}
 </div>
+
+{#if show_cache_indicator}
+	<div
+		class="cache-indicator"
+		class:fade-out={cache_indicator_fading}
+		style:position={absolute ? "absolute" : "static"}
+	>
+		&#9889; {cache_indicator_label}: {#if show_cache_avg}~{cache_display_avg}s
+			&rarr;&nbsp;
+		{/if}{cache_display_time}s
+	</div>
+{/if}
 
 <style>
 	.wrap {
@@ -572,5 +658,23 @@
 		justify-content: flex-end;
 		gap: var(--spacing-sm);
 		z-index: var(--layer-1);
+	}
+
+	.cache-indicator {
+		position: absolute;
+		bottom: 0;
+		right: 0;
+		z-index: var(--layer-2);
+		padding: var(--size-1) var(--size-2);
+		font-size: var(--text-sm);
+		font-family: var(--font-mono);
+		pointer-events: none;
+		background: var(--block-background-fill);
+		opacity: 1;
+		transition: opacity 0.5s ease-out;
+	}
+
+	.cache-indicator.fade-out {
+		opacity: 0;
 	}
 </style>

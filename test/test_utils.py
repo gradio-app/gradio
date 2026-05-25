@@ -990,6 +990,35 @@ class TestConnectHeartbeat:
         config = demo.get_config_file()
         assert config["connect_heartbeat"] is False
 
+    def test_per_session_manual_cache_connects_heartbeat(self):
+        def predict(value, cache=gr.Cache(per_session=True)):
+            hit = cache.get(value)
+            if hit is not None:
+                return hit["value"]
+            cache.set(value, value=value)
+            return value
+
+        with gr.Blocks() as demo:
+            text = gr.Textbox()
+            output = gr.Textbox()
+            gr.Button("Click").click(predict, [text], [output])
+
+        config = demo.get_config_file()
+        assert config["connect_heartbeat"] is True
+
+    def test_per_session_decorator_cache_connects_heartbeat(self):
+        @gr.cache(per_session=True)
+        def predict(value):
+            return value
+
+        with gr.Blocks() as demo:
+            text = gr.Textbox()
+            output = gr.Textbox()
+            gr.Button("Click").click(predict, [text], [output])
+
+        config = demo.get_config_file()
+        assert config["connect_heartbeat"] is True
+
 
 class _FakeIterator:
     """A fake iterator with a controllable close() for testing."""

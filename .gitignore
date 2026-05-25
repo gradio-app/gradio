@@ -100,10 +100,11 @@ js/storybook/theme.css
 .config/playwright/.cache
 
 *.local.*
-.claude/
+.claude/settings.local
 CLAUDE.md
 .sonda/
 
 # docs upload
 scripts/docs.json
 tmp_input
+.claude/scheduled_tasks.lock

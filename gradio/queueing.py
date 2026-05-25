@@ -9,8 +9,8 @@ import random
 import time
 import traceback
 import uuid
+from asyncio import Queue as AsyncQueue
 from collections import defaultdict
-from queue import Queue as ThreadQueue
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 import fastapi
@@ -18,6 +18,7 @@ import numpy as np
 from anyio.to_thread import run_sync
 
 from gradio import route_utils, routes
+from gradio.caching import CacheMissError, ProbeCache
 from gradio.data_classes import (
     PredictBodyInternal,
 )
@@ -122,7 +123,7 @@ class Queue:
         blocks: Blocks,
         default_concurrency_limit: int | None | Literal["not_set"] = "not_set",
     ):
-        self.pending_messages_per_session: LRUCache[str, ThreadQueue[EventMessage]] = (
+        self.pending_messages_per_session: LRUCache[str, AsyncQueue[EventMessage]] = (
             LRUCache(2000)
         )
         self.pending_event_ids_session: dict[str, set[str]] = {}
@@ -380,11 +381,74 @@ class Queue:
             body.session_hash = event.session_hash
         async with self.pending_message_lock:
             if body.session_hash not in self.pending_messages_per_session:
-                self.pending_messages_per_session[body.session_hash] = ThreadQueue()
+                self.pending_messages_per_session[body.session_hash] = AsyncQueue()
             if body.session_hash not in self.pending_event_ids_session:
                 self.pending_event_ids_session[body.session_hash] = set()
         self.pending_event_ids_session[body.session_hash].add(event._id)
         self.event_ids_to_events[event._id] = event
+        body.event_id = event._id if not fn.batch else None
+
+        if hasattr(fn.fn, "cache"):
+            try:
+                cache_start = time.time()
+                gr_request = route_utils.compile_gr_request(
+                    body=body,
+                    fn=fn,
+                    username=username,
+                    request=None,
+                )
+                assert body.request is not None  # noqa: S101
+                api_route_path = route_utils.get_api_call_path(request=body.request)
+                root_path = route_utils.get_root_url(
+                    request=body.request,
+                    route_path=api_route_path,
+                    root_path=self.blocks.app.root_path,
+                )
+                with ProbeCache():
+                    response = await route_utils.call_process_api(
+                        app=self.blocks.app,
+                        body=body,
+                        gr_request=gr_request,
+                        fn=fn,
+                        root_path=root_path,
+                    )
+                    while response and response.get("is_generating", False):
+                        self.send_message(
+                            event,
+                            ProcessGeneratingMessage(
+                                output=response,
+                                success=True,
+                            ),
+                        )
+                        response = await route_utils.call_process_api(
+                            app=self.blocks.app,
+                            body=body,
+                            gr_request=gr_request,
+                            fn=fn,
+                            root_path=root_path,
+                        )
+                cache_duration = time.time() - cache_start
+                avg_time = (
+                    self.process_time_per_fn[fn].avg_time
+                    if fn in self.process_time_per_fn
+                    else None
+                )
+                self.send_message(
+                    event,
+                    ProcessCompletedMessage(
+                        output=response,
+                        success=True,
+                        used_cache="full",
+                        cache_duration=cache_duration,
+                        avg_time=avg_time,
+                    ),
+                )
+                return True, event._id, "success"
+            except CacheMissError:
+                pass  # Fall through to normal queue path
+            except Exception:
+                raise
+
         try:
             event_queue = self.event_queue_per_concurrency_id[event.concurrency_id]
         except KeyError as e:
@@ -402,6 +466,17 @@ class Queue:
 
         self.broadcast_estimations(event.concurrency_id, len(event_queue.queue) - 1)
         return True, event._id, "success"
+
+    async def remove_from_queue(self, event_id: str):
+        event = self.event_ids_to_events.get(event_id)
+        if event:
+            async with self.delete_lock:
+                q = self.event_queue_per_concurrency_id[event.concurrency_id]
+                try:
+                    q.queue.remove(event)
+                    self.event_ids_to_events.pop(event_id, None)
+                except ValueError:
+                    pass
 
     def _cancel_asyncio_tasks(self):
         for task in self._asyncio_tasks:
@@ -573,6 +648,13 @@ class Queue:
                 self.event_queue_per_concurrency_id[event.concurrency_id].queue.remove(
                     event
                 )
+                self.event_ids_to_events.pop(event._id, None)
+
+            if session_hash and session_hash in self.pending_event_ids_session:
+                removed_ids = {e._id for e in events_to_remove}
+                self.pending_event_ids_session[session_hash] -= removed_ids
+                if not self.pending_event_ids_session[session_hash]:
+                    self.pending_event_ids_session.pop(session_hash, None)
 
     async def notify_clients(self) -> None:
         """
@@ -897,9 +979,30 @@ class Queue:
                     success = False
                     error = err or old_err
                     output = error_payload(error, app.get_blocks().show_error)
+                cache_source = output
+                if (
+                    success
+                    and not output.get("used_cache")
+                    and old_response
+                    and old_response.get("used_cache")
+                ):
+                    cache_source = old_response
+                used_cache = cache_source.get("used_cache") if success else None
+                used_cache = (
+                    cast(Literal["full", "partial"], used_cache)
+                    if used_cache in ("full", "partial")
+                    else None
+                )
                 for event in awake_events:
                     self.send_message(
-                        event, ProcessCompletedMessage(output=output, success=success)
+                        event,
+                        ProcessCompletedMessage(
+                            output=output,
+                            success=success,
+                            used_cache=used_cache,
+                            cache_duration=cache_source.get("duration"),  # type: ignore[arg-type]
+                            avg_time=cache_source.get("average_duration"),  # type: ignore[arg-type]
+                        ),
                     )
 
             elif response:
@@ -910,11 +1013,20 @@ class Queue:
                             e
                         ]
                     success = response is not None
+                    used_cache = output.get("used_cache") if success else None
+                    used_cache = (
+                        cast(Literal["full", "partial"], used_cache)
+                        if used_cache in ("full", "partial")
+                        else None
+                    )
                     self.send_message(
                         event,
                         ProcessCompletedMessage(
                             output=output,
                             success=success,
+                            used_cache=used_cache,
+                            cache_duration=output.get("duration"),  # type: ignore[arg-type]
+                            avg_time=output.get("average_duration"),  # type: ignore[arg-type]
                         ),
                     )
             end_time = time.time()
@@ -924,7 +1036,8 @@ class Queue:
                     if not events[0].streaming
                     else first_iteration
                 )
-                self.process_time_per_fn[events[0].fn].add(duration)
+                if not response.get("used_cache"):
+                    self.process_time_per_fn[events[0].fn].add(duration)
                 for event in events:
                     self.event_analytics[event._id]["process_time"] = duration
         except Exception as e:
@@ -1007,8 +1120,8 @@ def process_validation_response(
                 validation_data.append({"is_valid": True, "message": ""})
 
     elif (
-        isinstance(validation_data, dict)
-        and validation_data.get("is_valid", None) is False
+        isinstance(validation_response, dict)
+        and validation_response.get("is_valid", None) is False
     ):
         validation_data.append(
             validation_response,

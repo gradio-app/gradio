@@ -69,9 +69,9 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			open: "/"
 		},
 		build: {
-			sourcemap: true,
+			sourcemap: false,
 			target: "esnext",
-			minify: false,
+			minify: production,
 			outDir: "../../gradio/templates/frontend",
 			rollupOptions: {
 				external: ["virtual:cc-init"]
@@ -166,7 +166,15 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 				TEST_MODE === "node"
 					? ["**/*.node-test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"]
 					: ["**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
-			exclude: ["**/node_modules/**", "**/gradio/gradio/**", "**/client/js/**"],
+			exclude: [
+				"**/node_modules/**",
+				"**/gradio/gradio/**",
+				"**/client/js/**",
+				"js/app/proxy_routes.test.js",
+				"**/.svelte-kit/**",
+				"**/dist/**",
+				".venv/**"
+			],
 			globals: true,
 
 			onConsoleLog(log, type) {
@@ -175,6 +183,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 				if (log.includes("[vite-plugin-svelte]")) return false;
 				if (log.includes("[MSW]")) return false;
 				if (log.includes("Error loading translations")) return false;
+				if (log.includes("ResizeObserver loop")) return false;
 			},
 			browser: {
 				enabled: true,

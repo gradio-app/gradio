@@ -21,6 +21,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
 from gradio import components, oauth, processing_utils, routes, utils
+from gradio.caching import Cache, resolve_generator
 from gradio.context import Context, LocalContext, get_blocks_context
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Dependency, EventData
@@ -523,29 +524,10 @@ class Examples:
         else:
             print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
             self.cache_logger.setup(self.outputs, self.cached_folder)  # type: ignore
-            generated_values = []
-            if inspect.isgeneratorfunction(self.fn):
-
-                def get_final_item(*args):  # type: ignore
-                    x = None
-                    generated_values.clear()
-                    for x in self.fn(*args):  # noqa: B007  # type: ignore
-                        generated_values.append(x)
-                    return x
-
-                fn = get_final_item
-            elif inspect.isasyncgenfunction(self.fn):
-
-                async def get_final_item(*args):
-                    x = None
-                    generated_values.clear()
-                    async for x in self.fn(*args):  # noqa: B007  # type: ignore
-                        generated_values.append(x)
-                    return x
-
-                fn = get_final_item
-            else:
-                fn = self.fn
+            assert self.fn is not None  # noqa: S101
+            fn, generated_values = resolve_generator(self.fn)
+            if generated_values is None:
+                generated_values = []
 
             # create a fake dependency to process the examples and get the predictions
             from gradio.events import EventListenerMethod
@@ -972,6 +954,9 @@ def special_args(
         type_hint = type_hints.get(param.name)
         if isinstance(param.default, Progress):
             progress_index = i
+            if inputs is not None:
+                inputs.insert(i, param.default)
+        elif isinstance(param.default, Cache):
             if inputs is not None:
                 inputs.insert(i, param.default)
         elif type_hint in (routes.Request, Optional[routes.Request]):

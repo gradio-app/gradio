@@ -37,12 +37,10 @@
 
 	let fullscreen = $state(false);
 
-	function handle_delete(
-		event: CustomEvent<{ file: FileData; index: number }>
-	): void {
+	function handle_delete(data: { file: FileData; index: number }): void {
 		if (!gradio.props.value) return;
-		const { index } = event.detail;
-		gradio.dispatch("delete", event.detail);
+		const { index } = data;
+		gradio.dispatch("delete", data);
 		gradio.props.value = gradio.props.value.filter((_, i) => i !== index);
 		gradio.dispatch("change", gradio.props.value);
 	}
@@ -309,7 +307,7 @@
 				(btn) => typeof btn === "string" && btn === "fullscreen"
 			)}
 			buttons={gradio.props.buttons}
-			on_custom_button_click={(id) => {
+			oncustom_button_click={(id) => {
 				gradio.dispatch("custom_button_click", { id });
 			}}
 			{fullscreen}

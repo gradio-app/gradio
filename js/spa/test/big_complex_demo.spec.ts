@@ -16,6 +16,18 @@ function median(values: number[]): number {
 		: Math.round((sorted[mid - 1] + sorted[mid]) / 2);
 }
 
+function trimmedMedian(values: number[]): number {
+	if (values.length < 4) return median(values);
+	const sorted = [...values].sort((a, b) => a - b);
+	const q1 = sorted[Math.floor(sorted.length * 0.25)];
+	const q3 = sorted[Math.floor(sorted.length * 0.75)];
+	const iqr = q3 - q1;
+	const lower = q1 - 1.5 * iqr;
+	const upper = q3 + 1.5 * iqr;
+	const filtered = sorted.filter((v) => v >= lower && v <= upper);
+	return filtered.length > 0 ? median(filtered) : median(values);
+}
+
 const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
 	perfPage: [
 		async ({ page }, use, testInfo) => {
@@ -130,10 +142,10 @@ const test = base.extend<{ perfPage: import("@playwright/test").Page }>({
 			}
 
 			const perfMetrics = {
-				dom_content_loaded_ms: median(domContentLoadedValues),
-				page_load_ms: median(pageLoadValues),
-				lcp_ms: median(lcpValues),
-				tab_nav_ms: median(tabNavValues),
+				dom_content_loaded_ms: trimmedMedian(domContentLoadedValues),
+				page_load_ms: trimmedMedian(pageLoadValues),
+				lcp_ms: trimmedMedian(lcpValues),
+				tab_nav_ms: trimmedMedian(tabNavValues),
 				total_js_kb: Math.round(resourceSizes.js / 1024),
 				total_css_kb: Math.round(resourceSizes.css / 1024),
 				js_resource_count: resourceSizes.jsCount,

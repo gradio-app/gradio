@@ -1,5 +1,32 @@
 # @gradio/markdown
 
+## 0.13.33
+
+### Fixes
+
+- [#13269](https://github.com/gradio-app/gradio/pull/13269) [`e9c963e`](https://github.com/gradio-app/gradio/commit/e9c963e1e8cf06849ddac15d004384331e3dc10e) - Unit tests for js/paramviewer, js/timer, js/markdown.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.24.0
+- @gradio/statustracker@0.14.1
+
+## 0.13.32
+
+### Dependency updates
+
+- @gradio/atoms@0.23.1
+- @gradio/statustracker@0.14.0
+- @gradio/markdown-code@0.7.0
+
+## 0.13.31
+
+### Dependency updates
+
+- @gradio/utils@0.12.2
+- @gradio/atoms@0.23.0
+- @gradio/statustracker@0.13.1
+
 ## 0.13.30
 
 ### Dependency updates

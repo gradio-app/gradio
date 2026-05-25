@@ -29,13 +29,20 @@ def start_node_server(
     server_name: str | None = None,
     server_port: int | None = None,
     node_path: str | None = None,
+    python_port: int | None = None,
+    python_host: str | None = None,
+    static_worker_ports: list[int] | None = None,
+    debug: bool = False,
 ) -> tuple[str | None, subprocess.Popen[bytes] | None, int | None]:
-    """Launches a local server running the provided Interface
+    """Launches the Node SSR server as a front proxy.
+
     Parameters:
         server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
         server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT.
         node_path: the path to the node executable. Can be set by environment variable GRADIO_NODE_PATH.
-        ssr_mode: If False, will not start the node server and will serve the SPA from the Python server
+        python_port: the port of the main Python (FastAPI) server that Node will proxy to.
+        python_host: the host of the main Python server (default 127.0.0.1).
+        static_worker_ports: ports of static file worker processes for round-robin proxying.
 
     Returns:
         server_name: the name of the server (default is "localhost")
@@ -56,13 +63,17 @@ def start_node_server(
     server_ports = (
         [server_port]
         if server_port is not None
-        else range(INITIAL_PORT_VALUE + 1, INITIAL_PORT_VALUE + 1 + TRY_NUM_PORTS)
+        else range(INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS)
     )
 
     node_process, node_port = start_node_process(
         node_path=node_path or os.getenv("GRADIO_NODE_PATH"),
         server_name=host,
         server_ports=server_ports,
+        python_port=python_port,
+        python_host=python_host or "127.0.0.1",
+        static_worker_ports=static_worker_ports or [],
+        debug=debug,
     )
 
     return server_name, node_process, node_port
@@ -76,6 +87,10 @@ def start_node_process(
     node_path: str | None,
     server_name: str,
     server_ports: list[int] | range,
+    python_port: int | None = None,
+    python_host: str = "127.0.0.1",
+    static_worker_ports: list[int] | None = None,
+    debug: bool = False,
 ) -> tuple[subprocess.Popen[bytes] | None, int | None]:
     if GRADIO_LOCAL_DEV_MODE:
         return None, 9876
@@ -103,6 +118,15 @@ def start_node_process(
             if GRADIO_LOCAL_DEV_MODE:
                 env["GRADIO_LOCAL_DEV_MODE"] = "1"
 
+            # Proxy configuration: tell Node where Python and workers are
+            if python_port is not None:
+                env["GRADIO_PYTHON_PORT"] = str(python_port)
+                env["GRADIO_PYTHON_HOST"] = python_host
+            if static_worker_ports:
+                env["GRADIO_STATIC_WORKER_PORTS"] = ",".join(
+                    str(p) for p in static_worker_ports
+                )
+
             register_file = str(
                 Path(__file__).parent.joinpath("templates", "register.mjs")
             )
@@ -112,11 +136,16 @@ def start_node_process(
 
             node_process = subprocess.Popen(
                 [node_path, "--import", register_file, SSR_APP_PATH],
-                stdout=subprocess.DEVNULL,
                 env=env,
+                stdout=subprocess.DEVNULL if not debug else None,
+                stderr=subprocess.DEVNULL if not debug else None,
             )
 
-            is_working = verify_server_startup(server_name, port, timeout=5)
+            # When Node is the front proxy, Python isn't up yet so SSR
+            # pages will fail. Just check TCP connectivity.
+            is_working = verify_server_startup(
+                server_name, port, timeout=5, tcp_only=(python_port is not None)
+            )
             if is_working:
                 signal.signal(
                     signal.SIGTERM, lambda _, __: handle_sigterm(node_process)
@@ -167,23 +196,29 @@ def attempt_connection(host: str, port: int) -> bool:
         return False
 
 
-def verify_server_startup(host: str, port: int, timeout: float = 15.0) -> bool:
-    """Verifies if a server is up and running by making an HTTP request.
+def verify_server_startup(
+    host: str, port: int, timeout: float = 15.0, tcp_only: bool = False
+) -> bool:
+    """Verifies if a server is up and running.
 
-    A simple TCP connection check is not sufficient because the Node SSR server
-    may accept connections before it is ready to handle HTTP requests. This
-    would cause Gradio's own url_ok health check (which does HEAD /) to fail
-    intermittently.
+    When tcp_only=False (default), makes an HTTP HEAD request and checks for
+    a non-500 status. When tcp_only=True, only checks TCP connectivity — this
+    is needed when Node acts as a front proxy because the SSR handler cannot
+    render pages until the Python backend is up.
     """
     start_time = time.time()
     while time.time() - start_time < timeout:
         try:
-            conn = HTTPConnection(host, port, timeout=2)
-            conn.request("HEAD", "/")
-            resp = conn.getresponse()
-            conn.close()
-            if resp.status < 500:
-                return True
+            if tcp_only:
+                with closing(socket.create_connection((host, port), timeout=2)):
+                    return True
+            else:
+                conn = HTTPConnection(host, port, timeout=2)
+                conn.request("HEAD", "/")
+                resp = conn.getresponse()
+                conn.close()
+                if resp.status < 500:
+                    return True
         except Exception:
             pass
         time.sleep(0.2)

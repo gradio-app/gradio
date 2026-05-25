@@ -13,6 +13,7 @@
 		disabled,
 		show_label,
 		on_input = () => {},
+		on_release = () => {},
 		on_submit = () => {},
 		on_blur = () => {},
 		on_focus = () => {}
@@ -23,6 +24,7 @@
 		disabled: boolean;
 		show_label: boolean;
 		on_input?: () => void;
+		on_release?: () => void;
 		on_submit?: () => void;
 		on_blur?: () => void;
 		on_focus?: () => void;
@@ -98,8 +100,12 @@
 	}
 
 	function handle_end(): void {
+		const should_dispatch_release = sl_moving || hue_moving;
 		sl_moving = false;
 		hue_moving = false;
+		if (should_dispatch_release) {
+			on_release();
+		}
 	}
 
 	async function update_mouse_from_color(color: string): Promise<void> {
@@ -162,6 +168,7 @@
 <BlockTitle {show_label} {info}>{label}</BlockTitle>
 <button
 	class="dialog-button"
+	aria-label={label}
 	style:background={value}
 	{disabled}
 	onfocus={on_focus}
@@ -176,9 +183,12 @@
 
 {#if dialog_open}
 	<div class="color-picker" use:click_outside={handle_click_outside}>
-		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<div
 			class="color-gradient"
+			role="slider"
+			aria-label="Saturation and brightness"
+			aria-valuetext={value}
+			tabindex="0"
 			onmousedown={handle_sl_down}
 			style="--hue:{hue}"
 			bind:this={sl_wrap}
@@ -189,8 +199,17 @@
 				style:background={value}
 			/>
 		</div>
-		<!-- svelte-ignore a11y-no-static-element-interactions -->
-		<div class="hue-slider" onmousedown={handle_hue_down} bind:this={hue_wrap}>
+		<div
+			class="hue-slider"
+			role="slider"
+			aria-label="Hue"
+			aria-valuemin={0}
+			aria-valuemax={360}
+			aria-valuenow={Math.round(hue)}
+			tabindex="0"
+			onmousedown={handle_hue_down}
+			bind:this={hue_wrap}
+		>
 			<div
 				class="marker"
 				style:background={"hsl(" + hue + ", 100%, 50%)"}

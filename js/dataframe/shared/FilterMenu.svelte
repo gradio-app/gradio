@@ -1,19 +1,23 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { Check, DropdownArrow } from "@gradio/icons";
-	import type { FilterDatatype } from "./context/dataframe_context";
+	import type { FilterDatatype } from "./types";
 
-	export let on_filter: (
-		datatype: FilterDatatype,
-		selected_filter: string,
-		value: string
-	) => void = () => {};
+	let {
+		on_filter = () => {}
+	}: {
+		on_filter?: (
+			datatype: FilterDatatype,
+			selected_filter: string,
+			value: string
+		) => void;
+	} = $props();
 
 	let menu_element: HTMLDivElement;
-	let datatype: "string" | "number" = "string";
-	let current_filter = "Contains";
-	let filter_dropdown_open = false;
-	let filter_input_value = "";
+	let datatype: "string" | "number" = $state("string");
+	let current_filter = $state("Contains");
+	let filter_dropdown_open = $state(false);
+	let filter_input_value = $state("");
 
 	const filter_options = {
 		string: [
@@ -59,7 +63,8 @@
 		<div class="filter-datatype-container">
 			<span>Filter as</span>
 			<button
-				on:click|stopPropagation={() => {
+				onclick={(e) => {
+					e.stopPropagation();
 					datatype = datatype === "string" ? "number" : "string";
 					current_filter = filter_options[datatype][0];
 				}}
@@ -72,8 +77,10 @@
 		<div class="input-container">
 			<div class="filter-dropdown">
 				<button
-					on:click|stopPropagation={() =>
-						(filter_dropdown_open = !filter_dropdown_open)}
+					onclick={(e) => {
+						e.stopPropagation();
+						filter_dropdown_open = !filter_dropdown_open;
+					}}
 					aria-label={`Change filter. Using '${current_filter}'`}
 				>
 					{current_filter}
@@ -84,7 +91,8 @@
 					<div class="dropdown-filter-options">
 						{#each filter_options[datatype] as opt}
 							<button
-								on:click|stopPropagation={() => {
+								onclick={(e) => {
+									e.stopPropagation();
 									current_filter = opt;
 									filter_dropdown_open = !filter_dropdown_open;
 								}}
@@ -100,8 +108,8 @@
 			<input
 				type="text"
 				value={filter_input_value}
-				on:click|stopPropagation
-				on:input={handle_filter_input}
+				onclick={(e) => e.stopPropagation()}
+				oninput={handle_filter_input}
 				placeholder="Type a value"
 				class="filter-input"
 			/>
@@ -109,7 +117,7 @@
 
 		<button
 			class="check-button"
-			on:click={() => on_filter(datatype, current_filter, filter_input_value)}
+			onclick={() => on_filter(datatype, current_filter, filter_input_value)}
 		>
 			<Check />
 		</button>

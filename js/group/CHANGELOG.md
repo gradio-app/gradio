@@ -1,5 +1,21 @@
 # @gradio/group
 
+## 0.3.5
+
+### Features
+
+- [#13231](https://github.com/gradio-app/gradio/pull/13231) [`89f7a09`](https://github.com/gradio-app/gradio/commit/89f7a096ceb947c97ac5dce9f8b8d62e1361ad7b) - Layout tests.  Thanks @pngwn!
+
+## 0.3.4
+
+### Fixes
+
+- [#13155](https://github.com/gradio-app/gradio/pull/13155) [`59421d1`](https://github.com/gradio-app/gradio/commit/59421d13fbefb493fc5d0b4c5fc48ff30ebb3ef3) - fix(group): read visibility from shared props to fix dynamic toggling.  Thanks @viditkbhatnagar!
+
+### Dependency updates
+
+- @gradio/utils@0.12.2
+
 ## 0.3.3
 
 ### Dependency updates

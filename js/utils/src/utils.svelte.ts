@@ -361,6 +361,8 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	dispatcher!: Function;
 	last_update: ReturnType<typeof tick> | null = null;
 	shared_props: (keyof SharedProps)[] = allowed_shared_props;
+	mounted: boolean = false;
+	old_value: any;
 	register_component!: (
 		id: number,
 		set_data: (data: Record<string, any> & SharedProps) => void,
@@ -521,6 +523,23 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 			// @ts-ignore
 			this.props[key] = translated;
 		}
+	}
+
+	watch_for_change() {
+		$effect(() => {
+			if (!this.mounted) {
+				// @ts-ignore
+				this.old_value = this.props.value;
+				this.mounted = true;
+			}
+			// @ts-ignore
+			if (this.old_value != this.props.value) {
+				// @ts-ignore
+				this.old_value = this.props.value;
+				// @ts-ignore
+				this.dispatch("change");
+			}
+		});
 	}
 }
 

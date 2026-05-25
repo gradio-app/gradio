@@ -70,10 +70,11 @@
 
 	onMount(() => {
 		if (!tab_nav_el) return;
-		const observer = new IntersectionObserver((entries) => {
+		const ro = new ResizeObserver(() => {
 			handle_menu_overflow();
 		});
-		observer.observe(tab_nav_el);
+		ro.observe(tab_nav_el);
+		return () => ro.disconnect();
 	});
 
 	setContext(TABS, {
@@ -128,33 +129,42 @@
 		}
 	}
 
+	// approximate width of the "..." overflow button including margin
+	const OVERFLOW_BTN_RESERVE = 48;
+
 	async function handle_menu_overflow(): Promise<void> {
 		if (!tab_nav_el) return;
 
 		await tick();
-		const tab_nav_size = tab_nav_el.getBoundingClientRect();
+		await new Promise((r) => requestAnimationFrame(r));
 
-		let max_width = tab_nav_size.width;
-		const tab_sizes = get_tab_sizes(tabs, tab_els);
-		let last_visible_index = 0;
-		const offset = tab_nav_size.left;
+		const available = tab_nav_el.clientWidth;
 
-		for (let i = tabs.length - 1; i >= 0; i--) {
+		let cumulative = 0;
+		let split_index = tabs.length;
+
+		for (let i = 0; i < tabs.length; i++) {
 			const tab = tabs[i];
-			if (!tab) continue;
-			const tab_rect = tab_sizes[tab.id];
-			if (!tab_rect) continue;
-			if (tab_rect.right - offset < max_width) {
-				last_visible_index = i;
+			if (!tab || tab.visible === false || tab.visible === "hidden") continue;
+			const el = tab_els[tab.id];
+			if (!el) continue;
+			cumulative += el.getBoundingClientRect().width;
+			const has_more = tabs
+				.slice(i + 1)
+				.some((t) => t && t.visible !== false && t.visible !== "hidden");
+			const limit = has_more ? available - OVERFLOW_BTN_RESERVE : available;
+			if (cumulative > limit) {
+				split_index = i;
 				break;
 			}
 		}
 
-		overflow_tabs = tabs.slice(last_visible_index + 1);
-		visible_tabs = tabs.slice(0, last_visible_index + 1);
+		visible_tabs = tabs.slice(0, split_index);
+		overflow_tabs = tabs.slice(split_index);
 
 		overflow_has_selected_tab = handle_overflow_has_selected_tab($selected_tab);
-		is_overflowing = overflow_tabs.length > 0;
+		is_overflowing =
+			overflow_tabs.filter((t) => t && t.visible !== false).length > 0;
 	}
 
 	$: overflow_has_selected_tab =
@@ -165,18 +175,6 @@
 	): boolean {
 		if (selected_tab === false) return false;
 		return overflow_tabs.some((t) => t?.id === selected_tab);
-	}
-
-	function get_tab_sizes(
-		tabs: (Tab | null)[],
-		tab_els: Record<string | number, HTMLElement>
-	): Record<string | number, DOMRect> {
-		const tab_sizes: Record<string | number, DOMRect> = {};
-		tabs.forEach((tab) => {
-			if (!tab) return;
-			tab_sizes[tab.id] = tab_els[tab.id]?.getBoundingClientRect();
-		});
-		return tab_sizes;
 	}
 
 	$: tab_scale =
@@ -277,9 +275,7 @@
 <style>
 	.tabs {
 		position: relative;
-		display: flex;
 		flex-direction: column;
-		gap: var(--layout-gap);
 	}
 
 	.hide {
@@ -297,6 +293,7 @@
 		position: relative;
 		height: var(--size-8);
 		padding-bottom: var(--size-2);
+		margin-bottom: var(--layout-gap);
 	}
 
 	.tab-container {

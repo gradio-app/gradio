@@ -108,7 +108,7 @@ class DateTime(FormComponent):
         Returns:
             Passes text value as a {str} into the function.
         """
-        if payload is None or payload == "":
+        if payload is None or payload.strip() == "":
             return None
         if self.type == "string" and "now" not in payload:
             return payload

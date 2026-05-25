@@ -5,7 +5,6 @@ from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import patch
 
-import ffmpy
 import numpy as np
 import pytest
 from PIL import Image, ImageCms
@@ -13,6 +12,7 @@ from pydantic import BaseModel
 
 import gradio as gr
 from gradio import components, data_classes, processing_utils, utils
+from gradio._vendor import ffmpy
 from gradio.context import LocalContext
 from gradio.exceptions import InvalidPathError
 from gradio.route_utils import API_PREFIX
@@ -288,7 +288,10 @@ class TestVideoProcessing:
         self, exception_to_raise, test_file_dir
     ):
         with (
-            patch("ffmpy.FFprobe.run", side_effect=exception_to_raise),
+            patch(
+                "gradio._vendor.ffmpy.FFprobe.run",
+                side_effect=exception_to_raise,
+            ),
             tempfile.NamedTemporaryFile(
                 suffix="out.avi", delete=False
             ) as tmp_not_playable_vid,
@@ -314,7 +317,10 @@ class TestVideoProcessing:
             assert not Path(mock_remove.call_args[0][0]).exists()
             assert processing_utils.video_is_playable(playable_vid)
 
-    @patch("ffmpy.FFmpeg.run", side_effect=raise_ffmpy_runtime_exception)
+    @patch(
+        "gradio._vendor.ffmpy.FFmpeg.run",
+        side_effect=raise_ffmpy_runtime_exception,
+    )
     def test_video_conversion_returns_original_video_if_fails(
         self, mock_run, test_file_dir
     ):

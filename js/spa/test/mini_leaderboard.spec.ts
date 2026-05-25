@@ -3,11 +3,8 @@ import { test, expect } from "@self/tootils";
 test("Search bar filters dataframe correctly.", async ({ page }) => {
 	await page.getByTestId("textbox").fill("yam-peleg");
 	await page.getByTestId("textbox").press("Enter");
-	await expect(
-		page
-			.getByRole("button", { name: "yam-peleg/Experiment26-7B", exact: true })
-			.first()
-	).toBeInViewport();
+	const cell = page.getByTestId("cell-0-1").first();
+	await expect(cell).toContainText("yam-peleg/Experiment26-7B");
 });
 
 test("Column selection adds columns to the dataframe.", async ({ page }) => {
