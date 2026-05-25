@@ -7,12 +7,11 @@
 	import Tabs from "./shared/Tabs.svelte";
 	import Walkthrough from "./shared/Walkthrough.svelte";
 	import type { TabsProps, TabsEvents } from "./types";
-	import { untrack } from "svelte";
 
 	let props = $props();
 	const gradio = new Gradio<TabsEvents, TabsProps>(props);
 
-	let old_selected = $state(gradio.props.selected);
+	let old_selected = gradio.props.selected;
 
 	$effect(() => {
 		if (old_selected !== gradio.props.selected) {
