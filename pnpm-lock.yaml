@@ -368,6 +368,9 @@ importers:
       '@gradio/video':
         specifier: workspace:^
         version: link:js/video
+      '@gradio/videoeditor':
+        specifier: workspace:^
+        version: link:js/videoeditor
       '@storybook/addon-a11y':
         specifier: ^10.1.11
         version: 10.1.11(storybook@10.1.11(@testing-library/dom@10.4.1)(bufferutil@4.1.0)(prettier@3.8.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))
@@ -1186,6 +1189,9 @@ importers:
       '@gradio/video':
         specifier: workspace:^
         version: link:../video
+      '@gradio/videoeditor':
+        specifier: workspace:^
+        version: link:../videoeditor
 
   js/dataframe:
     dependencies:
@@ -2523,9 +2529,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
-      '@gradio/video':
-        specifier: workspace:^
-        version: link:../video
       svelte:
         specifier: ^5.48.0
         version: 5.48.0

@@ -40,19 +40,19 @@
 
 	const gradio = new VideoEditorGradio(props);
 
-	let video_src = $state<string | null>(gradio.props.value?.video?.url ?? null);
+	let video_src = $derived<string | null>(
+		gradio.props.value?.video?.url ?? null
+	);
 	let editor: VideoEditor;
 	let uploading = $state(false);
 
 	function handle_upload(file_data: FileData): void {
-		video_src = file_data.url ?? null;
 		gradio.props.value = { video: file_data } as VideoEditorData;
 		gradio.dispatch("upload");
 		gradio.dispatch("change");
 	}
 
 	function handle_remove(): void {
-		video_src = null;
 		gradio.props.value = null;
 		gradio.dispatch("clear");
 		gradio.dispatch("change");
