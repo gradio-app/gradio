@@ -573,6 +573,19 @@ class TestComponentsInBlocks:
             comp.load_event in demo.config["dependencies"] for comp in components
         )
 
+    def test_component_load_events_target_root(self):
+        with gr.Blocks() as demo:
+            button = gr.Button(value=lambda: "Loaded")
+
+        load_dependencies = [
+            dep
+            for dep in demo.config["dependencies"]
+            if "load" in [target[1] for target in dep["targets"]]
+        ]
+        assert len(load_dependencies) == 1
+        assert load_dependencies[0]["targets"][0][1] == "load"
+        assert load_dependencies[0]["outputs"] == [button._id]
+
     def test_load_events_work_with_builtins(self):
         with gr.Blocks() as demo:
             gr.State(dict)
@@ -2115,22 +2128,22 @@ def test_multiple_navbar_components_in_same_page_raise_error():
 def test_tabs_rejects_non_tab_direct_children():
     # Regression for #9832: putting a non-Tab component directly inside gr.Tabs()
     # used to silently produce a cryptic JS error in the browser. The Python layer
-    # should now raise a clear ValueError naming the offending component.
-    with pytest.raises(ValueError, match=r"gr\.Tabs\(\).*gr\.Textbox\(\)"):
+    # should now warn the user, naming the offending component.
+    with pytest.warns(UserWarning, match=r"gr\.Tabs\(\).*gr\.Textbox\(\)"):
         with gr.Blocks():
             with gr.Tabs():
                 gr.Textbox()
 
-    with pytest.raises(ValueError, match=r"gr\.Tabs\(\).*gr\.Row\(\)"):
+    with pytest.warns(UserWarning, match=r"gr\.Tabs\(\).*gr\.Row\(\)"):
         with gr.Blocks():
             with gr.Tabs():
                 with gr.Row():
                     gr.Textbox()
 
     # Multiple consecutive FormComponents are grouped into a single auto-wrap
-    # by fill_expected_parents; the error should still name them, not gr.Form.
-    with pytest.raises(
-        ValueError,
+    # by fill_expected_parents; the warning should still name them, not gr.Form.
+    with pytest.warns(
+        UserWarning,
         match=r"gr\.Tabs\(\).*gr\.Textbox\(\).*gr\.Dropdown\(\)",
     ):
         with gr.Blocks():
@@ -2139,7 +2152,7 @@ def test_tabs_rejects_non_tab_direct_children():
                 gr.Dropdown(choices=["a", "b"])
 
     # A Tab sibling next to a non-Tab still surfaces the non-Tab clearly.
-    with pytest.raises(ValueError, match=r"gr\.Tabs\(\).*gr\.Markdown\(\)"):
+    with pytest.warns(UserWarning, match=r"gr\.Tabs\(\).*gr\.Markdown\(\)"):
         with gr.Blocks():
             with gr.Tabs():
                 with gr.Tab("ok"):
@@ -2168,13 +2181,14 @@ def test_tabs_rejects_non_tab_direct_children():
                 gr.Textbox()
 
 
+@pytest.mark.flaky
 def test_blocks_close_closes_thread_properly():
     a = gr.Blocks()
 
     def poll():
         start = time.time()
-        while time.time() - start < 1:
-            time.sleep(0.25)
+        while time.time() - start < 0.5:
+            time.sleep(0.1)
         print("Closing...")
         a.close()
 

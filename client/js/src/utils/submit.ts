@@ -666,6 +666,9 @@ export function submit(
 			if (values.length > 0) {
 				return Promise.resolve(values.shift() as (typeof values)[0]);
 			}
+			if (done) {
+				return Promise.resolve({ value: undefined, done: true });
+			}
 			return new Promise((resolve) => resolvers.push(resolve));
 		}
 

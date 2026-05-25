@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from typing import Literal
 
 from gradio_client.documentation import document
@@ -75,10 +76,13 @@ class Tabs(BlockContext, metaclass=ComponentMeta):
                 names = ", ".join(f"gr.{type(c).__name__}()" for c in child.children)
             else:
                 names = f"gr.{type(child).__name__}()"
-            raise ValueError(
+            warnings.warn(
                 f"gr.Tabs() can only contain gr.Tab() (or gr.TabItem()) components as direct children, "
-                f"but received {names}. Wrap inside a gr.Tab(...) block to fix this."
+                f"but received {names}. Wrap inside a gr.Tab(...) block to fix this.",
+                UserWarning,
+                stacklevel=2,
             )
+            return
 
 
 @document()
