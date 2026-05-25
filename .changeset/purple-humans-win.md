@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Raise clear ValueError when gr.Tabs() has non-Tab direct children (#9832)
+fix:Warn when gr.Tabs() has non-Tab direct children (#9832)
