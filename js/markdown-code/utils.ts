@@ -1,4 +1,4 @@
-import { type Renderer, Marked } from "marked";
+import { Marked, Renderer } from "marked";
 import { markedHighlight } from "marked-highlight";
 import { gfmHeadingId } from "marked-gfm-heading-id";
 import * as Prism from "prismjs";
@@ -37,6 +37,13 @@ const COPY_BUTTON_CODE = `<button title="copy" class="copy_code_button">
   <span class="copy-text">${COPY_ICON_CODE}</span>
   <span class="check">${CHECK_ICON_CODE}</span>
 </button>`;
+
+const default_renderer = new Renderer();
+
+function should_open_link_in_new_tab(href: string): boolean {
+	const trimmed_href = href.trim();
+	return trimmed_href !== "" && !trimmed_href.startsWith("#");
+}
 
 const escape_test = /[&<>"']/;
 const escape_replace = new RegExp(escape_test.source, "g");
@@ -170,6 +177,24 @@ const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 			'">' +
 			(escaped ? code : escape(code, true)) +
 			"</code></pre></div>\n"
+		);
+	},
+	link(
+		this: Renderer,
+		href: string,
+		title: string | null | undefined,
+		text: string
+	) {
+		const rendered_link = default_renderer.link(href, title, text);
+		if (
+			!should_open_link_in_new_tab(href) ||
+			!rendered_link.startsWith("<a ")
+		) {
+			return rendered_link;
+		}
+		return rendered_link.replace(
+			/^<a /,
+			'<a target="_blank" rel="noopener noreferrer" '
 		);
 	}
 };
