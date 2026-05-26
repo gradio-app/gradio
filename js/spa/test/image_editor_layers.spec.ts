@@ -10,6 +10,10 @@ test.fixme("ImageEditor layers are properly set", async ({ page }) => {
 test("Clicking on examples should properly run the function", async ({
 	page
 }) => {
-	await page.locator(".gallery > .gallery-item").first().click();
+	const examples = page.locator(".gallery > .gallery-item");
+	await expect(examples).toHaveCount(2);
+	const local_example = examples.nth(1);
+	await expect(local_example).toBeVisible();
+	await local_example.click();
 	await expect(page.getByLabel("Example Ran")).toHaveValue("1");
 });
