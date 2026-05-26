@@ -187,7 +187,7 @@ def save_audio_to_cache(
         "cache_schema": "audio-cache-v1",
         "dtype": str(data.dtype),
         "format": format,
-        "sample_rate": sample_rate,
+        "sample_rate": int(sample_rate),
         "shape": data.shape,
     }
     audio_hash = hashlib.sha256()

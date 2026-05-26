@@ -233,6 +233,17 @@ class TestAudioPreprocessing:
         assert Path(path_8000).parent != Path(path_uint16).parent
         assert Path(path_8000).parent != Path(path_stereo).parent
 
+    def test_save_audio_to_cache_accepts_numpy_sample_rate(self, gradio_temp_dir):
+        data = np.array([0, 1, 2, 3], dtype=np.int16)
+        with patch("gradio.processing_utils.audio_to_file"):
+            path_py_int = processing_utils.save_audio_to_cache(
+                data, 8000, "wav", cache_dir=gradio_temp_dir
+            )
+            path_np_int = processing_utils.save_audio_to_cache(
+                data, np.int64(8000), "wav", cache_dir=gradio_temp_dir
+            )
+        assert Path(path_py_int).parent == Path(path_np_int).parent
+
     def test_convert_to_16_bit_wav(self):
         # Generate a random audio sample and set the amplitude
         audio = np.random.randint(-100, 100, size=(100), dtype="int16")
