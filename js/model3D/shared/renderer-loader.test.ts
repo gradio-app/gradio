@@ -16,6 +16,10 @@ function deferred<T>(): {
 	return { promise, resolve };
 }
 
+function flushPromises(): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 describe("renderer_for_model3d_path", () => {
 	test("routes PLY files to the PLY renderer", () => {
 		expect(renderer_for_model3d_path("model.ply")).toBe("ply");
@@ -52,5 +56,31 @@ describe("load_renderer_component", () => {
 		await Promise.resolve();
 
 		expect(assigned).toEqual([]);
+	});
+
+	test("handles component loader rejections", async () => {
+		const error = new Error("chunk failed");
+		const assigned: string[] = [];
+		const errors: unknown[] = [];
+
+		load_renderer_component(
+			"ply",
+			{
+				mesh: async () => "mesh-component",
+				ply: () => Promise.reject(error),
+				splat: async () => "splat-component"
+			},
+			(renderer, component) => {
+				assigned.push(`${renderer}:${component}`);
+			},
+			(error) => {
+				errors.push(error);
+			}
+		);
+
+		await flushPromises();
+
+		expect(assigned).toEqual([]);
+		expect(errors).toEqual([error]);
 	});
 });

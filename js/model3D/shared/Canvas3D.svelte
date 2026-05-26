@@ -2,8 +2,12 @@
 	import { onMount } from "svelte";
 	import type { FileData } from "@gradio/client";
 	import type { Viewer, ViewerDetails } from "@babylonjs/viewer";
-	import { Color4, PointsCloudSystem, Vector3 } from "@babylonjs/core";
-	import type { Camera, Mesh, Observer } from "@babylonjs/core";
+	import type {
+		Camera,
+		Mesh,
+		Observer,
+		PointsCloudSystem
+	} from "@babylonjs/core";
 	import type { PointCloudData } from "./point-cloud";
 
 	let BABYLON_VIEWER: typeof import("@babylonjs/viewer");
@@ -92,6 +96,9 @@
 		currentToken: number
 	): Promise<void> {
 		if (!viewerDetails || !viewer) return;
+		const { Color4, PointsCloudSystem, Vector3 } =
+			await import("@babylonjs/core");
+		if (currentToken !== loadToken) return;
 
 		viewer.resetModel();
 		clear_point_cloud();
