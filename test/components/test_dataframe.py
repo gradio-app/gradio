@@ -514,3 +514,21 @@ class TestDataframe:
         )
         result = ["str", "number", "number", "date", "str", "date", "bool"]
         assert dataframe.datatype == result
+
+        dataframe = gr.Dataframe(value=[], datatype="auto")
+        assert dataframe.datatype == "str"
+
+        dataframe = gr.Dataframe(value=[1, 2, 3], datatype="auto")
+        assert dataframe.datatype == "str"
+
+        dataframe = gr.Dataframe(value=np.array([]), datatype="auto")
+        assert dataframe.datatype == "str"
+
+        dataframe = gr.Dataframe(value=np.array([1, 2, 3]), datatype="auto")
+        assert dataframe.datatype == "str"
+
+        dataframe = gr.Dataframe(value=[[1, 2], [3, 4]], datatype="auto")
+        assert dataframe.datatype == ["number", "number"]
+
+        dataframe = gr.Dataframe(value=np.array([[1, 2], [3, 4]]), datatype="auto")
+        assert dataframe.datatype == ["number", "number"]
