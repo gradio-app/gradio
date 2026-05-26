@@ -204,6 +204,46 @@ class TestAudioPreprocessing:
         assert os.path.exists("test_audio_to_file")
         os.remove("test_audio_to_file")
 
+    def test_save_audio_to_cache_uses_audio_metadata_in_cache_key(
+        self, gradio_temp_dir
+    ):
+        data = np.array([0, 1, 2, 3], dtype=np.int16)
+        data_with_different_dtype = np.array([0, 1, 2, 3], dtype=np.uint16)
+        data_with_different_shape = np.array([[0, 1], [2, 3]], dtype=np.int16)
+
+        with patch("gradio.processing_utils.audio_to_file"):
+            path_8000 = processing_utils.save_audio_to_cache(
+                data, 8000, "wav", cache_dir=gradio_temp_dir
+            )
+            path_16000 = processing_utils.save_audio_to_cache(
+                data, 16000, "wav", cache_dir=gradio_temp_dir
+            )
+            path_mp3 = processing_utils.save_audio_to_cache(
+                data, 8000, "mp3", cache_dir=gradio_temp_dir
+            )
+            path_uint16 = processing_utils.save_audio_to_cache(
+                data_with_different_dtype, 8000, "wav", cache_dir=gradio_temp_dir
+            )
+            path_stereo = processing_utils.save_audio_to_cache(
+                data_with_different_shape, 8000, "wav", cache_dir=gradio_temp_dir
+            )
+
+        assert Path(path_8000).parent != Path(path_16000).parent
+        assert Path(path_8000).parent != Path(path_mp3).parent
+        assert Path(path_8000).parent != Path(path_uint16).parent
+        assert Path(path_8000).parent != Path(path_stereo).parent
+
+    def test_save_audio_to_cache_accepts_numpy_sample_rate(self, gradio_temp_dir):
+        data = np.array([0, 1, 2, 3], dtype=np.int16)
+        with patch("gradio.processing_utils.audio_to_file"):
+            path_py_int = processing_utils.save_audio_to_cache(
+                data, 8000, "wav", cache_dir=gradio_temp_dir
+            )
+            path_np_int = processing_utils.save_audio_to_cache(
+                data, np.int64(8000), "wav", cache_dir=gradio_temp_dir
+            )
+        assert Path(path_py_int).parent == Path(path_np_int).parent
+
     def test_convert_to_16_bit_wav(self):
         # Generate a random audio sample and set the amplitude
         audio = np.random.randint(-100, 100, size=(100), dtype="int16")
