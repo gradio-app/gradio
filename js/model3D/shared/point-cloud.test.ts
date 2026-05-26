@@ -1,11 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 
-import {
-	load_obj_point_cloud,
-	load_ply_point_cloud,
-	parse_obj_point_cloud,
-	parse_ply_point_cloud
-} from "./point-cloud";
+import { load_ply_point_cloud, parse_ply_point_cloud } from "./point-cloud";
 
 function ascii_buffer(value: string): ArrayBuffer {
 	return new TextEncoder().encode(value).buffer;
@@ -59,31 +54,6 @@ function binary_little_endian_ply(): ArrayBuffer {
 describe("point cloud parsing", () => {
 	afterEach(() => {
 		vi.unstubAllGlobals();
-	});
-
-	test("parses OBJ vertices with colors when no faces are present", () => {
-		const point_cloud = parse_obj_point_cloud(`
-v 1 2 3 0.25 0.5 0.75
-v -1 -2 -3 255 128 0
-`);
-
-		expect(Array.from(point_cloud?.positions ?? [])).toEqual([
-			1, 2, 3, -1, -2, -3
-		]);
-		expect(Array.from(point_cloud?.colors ?? [])).toEqual(
-			float32([0.25, 0.5, 0.75, 1, 1, 128 / 255, 0, 1])
-		);
-	});
-
-	test("does not claim OBJ meshes that contain faces", () => {
-		const point_cloud = parse_obj_point_cloud(`
-v 1 2 3
-v 4 5 6
-v 7 8 9
-f 1 2 3
-`);
-
-		expect(point_cloud).toBeNull();
 	});
 
 	test("parses ASCII PLY vertices with RGB colors", () => {
@@ -291,33 +261,7 @@ end_header
 			vi.fn(async () => failed_response)
 		);
 
-		await expect(load_obj_point_cloud("/missing.obj")).resolves.toBeNull();
 		await expect(load_ply_point_cloud("/missing.ply")).resolves.toBeNull();
-	});
-
-	test("does not read an entire streamed OBJ mesh before returning null", async () => {
-		const bytes = new TextEncoder().encode("v 1 2 3\nf 1 2 3\n");
-		const text = vi.fn(async () => {
-			throw new Error("full response body should not be read");
-		});
-		const fetch_mock = vi.fn(
-			async () =>
-				({
-					ok: true,
-					body: new ReadableStream<Uint8Array>({
-						start(controller) {
-							controller.enqueue(bytes);
-							controller.close();
-						}
-					}),
-					text
-				}) as unknown as Response
-		);
-
-		vi.stubGlobal("fetch", fetch_mock);
-
-		await expect(load_obj_point_cloud("/mesh.obj")).resolves.toBeNull();
-		expect(text).not.toHaveBeenCalled();
 	});
 
 	test("fetches the full PLY after a point-cloud header probe", async () => {

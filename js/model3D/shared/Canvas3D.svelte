@@ -4,7 +4,7 @@
 	import type { Viewer, ViewerDetails } from "@babylonjs/viewer";
 	import { Color4, PointsCloudSystem, Vector3 } from "@babylonjs/core";
 	import type { Camera, Mesh, Observer } from "@babylonjs/core";
-	import { load_obj_point_cloud, type PointCloudData } from "./point-cloud";
+	import type { PointCloudData } from "./point-cloud";
 
 	let BABYLON_VIEWER: typeof import("@babylonjs/viewer");
 
@@ -87,20 +87,6 @@
 		pointCloudMesh = undefined;
 	}
 
-	function is_obj_url(url: string): boolean {
-		return url.toLowerCase().split(/[?#]/)[0].endsWith(".obj");
-	}
-
-	async function try_load_obj_point_cloud(
-		url: string
-	): Promise<PointCloudData | null> {
-		try {
-			return await load_obj_point_cloud(url);
-		} catch {
-			return null;
-		}
-	}
-
 	async function render_point_cloud(
 		point_cloud: PointCloudData,
 		currentToken: number
@@ -167,9 +153,7 @@
 			}
 
 			clear_point_cloud();
-			const parsedPointCloud =
-				point_cloud ??
-				(is_obj_url(url) ? await try_load_obj_point_cloud(url) : null);
+			const parsedPointCloud = point_cloud;
 			if (currentToken !== loadToken) return;
 			if (parsedPointCloud) {
 				await render_point_cloud(parsedPointCloud, currentToken);
