@@ -3,6 +3,11 @@ export interface PointCloudData {
 	colors?: Float32Array;
 }
 
+export interface PlyPointCloudLoadResult {
+	point_cloud: PointCloudData | null;
+	fallback_url?: string;
+}
+
 interface PlyProperty {
 	name: string;
 	type: string;
@@ -233,6 +238,92 @@ function classify_ply_content(buffer: ArrayBufferLike): PlyContentKind | null {
 	return "point_cloud";
 }
 
+function create_ply_blob_url(buffer: ArrayBuffer): string | undefined {
+	if (
+		typeof Blob === "undefined" ||
+		typeof URL === "undefined" ||
+		typeof URL.createObjectURL !== "function"
+	) {
+		return undefined;
+	}
+
+	return URL.createObjectURL(
+		new Blob([buffer], { type: "application/octet-stream" })
+	);
+}
+
+function merge_chunks(chunks: Uint8Array[], byte_length: number): ArrayBuffer {
+	const bytes = new Uint8Array(byte_length);
+	let offset = 0;
+	for (const chunk of chunks) {
+		bytes.set(chunk, offset);
+		offset += chunk.byteLength;
+	}
+	return bytes.buffer;
+}
+
+async function load_full_ply_response(
+	response: Response
+): Promise<PlyPointCloudLoadResult> {
+	const buffer = await response.arrayBuffer();
+	const content_kind = classify_ply_content(buffer);
+	if (content_kind === "gaussian_splat") {
+		return {
+			point_cloud: null,
+			fallback_url: create_ply_blob_url(buffer)
+		};
+	}
+	return { point_cloud: parse_ply_point_cloud(buffer) };
+}
+
+async function load_streamed_ply_response(
+	response: Response
+): Promise<PlyPointCloudLoadResult> {
+	if (!response.body) {
+		return load_full_ply_response(response);
+	}
+
+	const reader = response.body.getReader();
+	const chunks: Uint8Array[] = [];
+	let byte_length = 0;
+	let content_kind: PlyContentKind | null = null;
+
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) {
+			break;
+		}
+
+		chunks.push(value);
+		byte_length += value.byteLength;
+		content_kind = classify_ply_content(merge_chunks(chunks, byte_length));
+		if (content_kind === "gaussian_splat" || content_kind === "unsupported") {
+			await reader.cancel();
+			return { point_cloud: null };
+		}
+		if (content_kind === "point_cloud") {
+			break;
+		}
+	}
+
+	if (content_kind !== "point_cloud") {
+		return { point_cloud: null };
+	}
+
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) {
+			break;
+		}
+		chunks.push(value);
+		byte_length += value.byteLength;
+	}
+
+	return {
+		point_cloud: parse_ply_point_cloud(merge_chunks(chunks, byte_length))
+	};
+}
+
 function ply_property_value(
 	view: DataView,
 	offset: number,
@@ -436,28 +527,28 @@ export function parse_ply_point_cloud(
 
 export async function load_ply_point_cloud(
 	url: string
-): Promise<PointCloudData | null> {
+): Promise<PlyPointCloudLoadResult> {
 	const probe_response = await fetch(url, {
 		headers: { Range: `bytes=0-${PLY_HEADER_PROBE_BYTES - 1}` }
 	});
 	if (!probe_response.ok) {
-		return null;
+		return { point_cloud: null };
+	}
+
+	if (probe_response.status !== 206) {
+		return load_streamed_ply_response(probe_response);
 	}
 
 	const probe_buffer = await probe_response.arrayBuffer();
-	if (probe_response.status !== 206) {
-		return parse_ply_point_cloud(probe_buffer);
-	}
-
 	const content_kind = classify_ply_content(probe_buffer);
 	if (content_kind === "gaussian_splat" || content_kind === "unsupported") {
-		return null;
+		return { point_cloud: null };
 	}
 
 	const response = await fetch(url);
 	if (!response.ok) {
-		return null;
+		return { point_cloud: null };
 	}
 
-	return parse_ply_point_cloud(await response.arrayBuffer());
+	return { point_cloud: parse_ply_point_cloud(await response.arrayBuffer()) };
 }

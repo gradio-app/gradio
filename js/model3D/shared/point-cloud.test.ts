@@ -51,6 +51,31 @@ function binary_little_endian_ply(): ArrayBuffer {
 	return bytes.buffer;
 }
 
+function streamed_response(
+	chunks: ArrayBuffer[],
+	on_cancel: () => void,
+	array_buffer: () => Promise<ArrayBuffer>
+): Response {
+	let index = 0;
+	return {
+		ok: true,
+		status: 200,
+		body: new ReadableStream<Uint8Array>({
+			pull(controller): void {
+				if (index < chunks.length) {
+					controller.enqueue(new Uint8Array(chunks[index]));
+					index += 1;
+				}
+				if (index === chunks.length) {
+					controller.close();
+				}
+			},
+			cancel: on_cancel
+		}),
+		arrayBuffer: array_buffer
+	} as unknown as Response;
+}
+
 describe("point cloud parsing", () => {
 	afterEach(() => {
 		vi.unstubAllGlobals();
@@ -261,7 +286,9 @@ end_header
 			vi.fn(async () => failed_response)
 		);
 
-		await expect(load_ply_point_cloud("/missing.ply")).resolves.toBeNull();
+		await expect(load_ply_point_cloud("/missing.ply")).resolves.toEqual({
+			point_cloud: null
+		});
 	});
 
 	test("fetches the full PLY after a point-cloud header probe", async () => {
@@ -297,8 +324,8 @@ end_header
 
 		vi.stubGlobal("fetch", fetch_mock);
 
-		const point_cloud = await load_ply_point_cloud("/model.ply");
-		expect(Array.from(point_cloud?.positions ?? [])).toEqual([1, 2, 3]);
+		const loaded = await load_ply_point_cloud("/model.ply");
+		expect(Array.from(loaded.point_cloud?.positions ?? [])).toEqual([1, 2, 3]);
 		expect(fetch_mock).toHaveBeenNthCalledWith(1, "/model.ply", {
 			headers: { Range: "bytes=0-65535" }
 		});
@@ -329,10 +356,88 @@ end_header
 
 		vi.stubGlobal("fetch", fetch_mock);
 
-		await expect(load_ply_point_cloud("/model.ply")).resolves.toBeNull();
+		await expect(load_ply_point_cloud("/model.ply")).resolves.toEqual({
+			point_cloud: null
+		});
 		expect(fetch_mock).toHaveBeenCalledOnce();
 		expect(fetch_mock).toHaveBeenCalledWith("/model.ply", {
 			headers: { Range: "bytes=0-65535" }
 		});
+	});
+
+	test("reuses full Gaussian splat PLY responses when range is unsupported", async () => {
+		const gaussian_splat_ply = ascii_buffer(`ply
+format ascii 1.0
+element vertex 1
+property float x
+property float y
+property float z
+property float f_dc_0
+property float opacity
+property float scale_0
+property float rot_0
+end_header
+0 0 0 0 1 1 0
+`);
+		const createObjectURL = vi.fn(() => "blob:gaussian-splat-ply");
+		vi.stubGlobal("URL", {
+			...URL,
+			createObjectURL,
+			revokeObjectURL: vi.fn()
+		});
+		const fetch_mock = vi.fn(
+			async () =>
+				({
+					ok: true,
+					status: 200,
+					arrayBuffer: async () => gaussian_splat_ply
+				}) as unknown as Response
+		);
+
+		vi.stubGlobal("fetch", fetch_mock);
+
+		await expect(load_ply_point_cloud("/model.ply")).resolves.toEqual({
+			point_cloud: null,
+			fallback_url: "blob:gaussian-splat-ply"
+		});
+		expect(createObjectURL).toHaveBeenCalledOnce();
+		expect(fetch_mock).toHaveBeenCalledOnce();
+	});
+
+	test("cancels a non-range Gaussian splat PLY response after reading its header", async () => {
+		const gaussian_splat_header = ascii_buffer(`ply
+format ascii 1.0
+element vertex 1
+property float x
+property float y
+property float z
+property float f_dc_0
+property float opacity
+property float scale_0
+property float rot_0
+end_header
+`);
+		let cancelled = false;
+		const read_full_body = vi.fn(async () => {
+			throw new Error("should not read the full response body");
+		});
+		const fetch_mock = vi.fn(async () =>
+			streamed_response(
+				[gaussian_splat_header, new ArrayBuffer(1024)],
+				() => {
+					cancelled = true;
+				},
+				read_full_body
+			)
+		);
+
+		vi.stubGlobal("fetch", fetch_mock);
+
+		await expect(load_ply_point_cloud("/model.ply")).resolves.toEqual({
+			point_cloud: null
+		});
+		expect(fetch_mock).toHaveBeenCalledOnce();
+		expect(read_full_body).not.toHaveBeenCalled();
+		expect(cancelled).toBe(true);
 	});
 });

@@ -4,19 +4,16 @@
 	import { File, Download, Undo } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import { dequal } from "dequal";
-	import type Canvas3DGS from "./Canvas3DGS.svelte";
-	import type Canvas3DPLY from "./Canvas3DPLY.svelte";
-	import type Canvas3D from "./Canvas3D.svelte";
 	import {
 		load_renderer_component,
-		renderer_for_model3d_path
+		model3d_renderer_loaders,
+		renderer_for_model3d_path,
+		type Canvas3DComponentType,
+		type Canvas3DGSComponentType,
+		type Canvas3DLike,
+		type Canvas3DPLYComponentType,
+		type Model3DCanvasComponent
 	} from "./renderer-loader";
-
-	type Canvas3DLike = Canvas3D | Canvas3DPLY;
-	type Model3DCanvasComponent =
-		| typeof Canvas3D
-		| typeof Canvas3DGS
-		| typeof Canvas3DPLY;
 
 	let {
 		value,
@@ -45,24 +42,11 @@
 	let current_settings = $state({ camera_position, zoom_speed, pan_speed });
 	let use_3dgs = $state(false);
 	let use_ply = $state(false);
-	let Canvas3DGSComponent = $state<typeof Canvas3DGS>();
-	let Canvas3DPLYComponent = $state<typeof Canvas3DPLY>();
-	let Canvas3DComponent = $state<typeof Canvas3D>();
+	let Canvas3DGSComponent = $state<Canvas3DGSComponentType>();
+	let Canvas3DPLYComponent = $state<Canvas3DPLYComponentType>();
+	let Canvas3DComponent = $state<Canvas3DComponentType>();
 	let canvas3d = $state<Canvas3DLike | undefined>();
 	let reset_camera_available = $state(false);
-
-	async function loadCanvas3D(): Promise<typeof Canvas3D> {
-		const module = await import("./Canvas3D.svelte");
-		return module.default;
-	}
-	async function loadCanvas3DGS(): Promise<typeof Canvas3DGS> {
-		const module = await import("./Canvas3DGS.svelte");
-		return module.default;
-	}
-	async function loadCanvas3DPLY(): Promise<typeof Canvas3DPLY> {
-		const module = await import("./Canvas3DPLY.svelte");
-		return module.default;
-	}
 
 	$effect(() => {
 		if (!value) {
@@ -79,18 +63,14 @@
 
 		return load_renderer_component<Model3DCanvasComponent>(
 			renderer,
-			{
-				mesh: loadCanvas3D,
-				ply: loadCanvas3DPLY,
-				splat: loadCanvas3DGS
-			},
+			model3d_renderer_loaders,
 			(renderer, component) => {
 				if (renderer === "ply") {
-					Canvas3DPLYComponent = component as typeof Canvas3DPLY;
+					Canvas3DPLYComponent = component as Canvas3DPLYComponentType;
 				} else if (renderer === "splat") {
-					Canvas3DGSComponent = component as typeof Canvas3DGS;
+					Canvas3DGSComponent = component as Canvas3DGSComponentType;
 				} else {
-					Canvas3DComponent = component as typeof Canvas3D;
+					Canvas3DComponent = component as Canvas3DComponentType;
 				}
 			}
 		);

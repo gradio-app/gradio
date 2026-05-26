@@ -14,6 +14,7 @@
 	} = $props();
 
 	let url = $derived(value.url);
+	let path = $derived(value?.path);
 
 	let canvas: HTMLCanvasElement;
 	let scene: SPLAT.Scene;
@@ -55,9 +56,10 @@
 				throw new Error("No resolved URL");
 			}
 			loading = true;
-			if (url.endsWith(".ply")) {
+			const model_path = path ?? url;
+			if (model_path.endsWith(".ply")) {
 				await SPLAT.PLYLoader.LoadAsync(url, scene, undefined);
-			} else if (url.endsWith(".splat")) {
+			} else if (model_path.endsWith(".splat")) {
 				await SPLAT.Loader.LoadAsync(url, scene, undefined);
 			} else {
 				throw new Error("Unsupported file type");
@@ -97,8 +99,6 @@
 			}
 		};
 	});
-
-	let path = $derived(value?.path);
 
 	$effect(() => {
 		if (canvas && mounted && path) {
