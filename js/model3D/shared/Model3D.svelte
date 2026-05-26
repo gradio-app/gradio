@@ -7,8 +7,16 @@
 	import type Canvas3DGS from "./Canvas3DGS.svelte";
 	import type Canvas3DPLY from "./Canvas3DPLY.svelte";
 	import type Canvas3D from "./Canvas3D.svelte";
+	import {
+		load_renderer_component,
+		renderer_for_model3d_path
+	} from "./renderer-loader";
 
 	type Canvas3DLike = Canvas3D | Canvas3DPLY;
+	type Model3DCanvasComponent =
+		| typeof Canvas3D
+		| typeof Canvas3DGS
+		| typeof Canvas3DPLY;
 
 	let {
 		value,
@@ -64,24 +72,28 @@
 			return;
 		}
 
-		use_ply = value.path.endsWith(".ply");
-		use_3dgs = value.path.endsWith(".splat") || use_ply;
+		const renderer = renderer_for_model3d_path(value.path);
+		use_ply = renderer === "ply";
+		use_3dgs = renderer !== "mesh";
 		reset_camera_available = false;
-		if (use_3dgs) {
-			if (use_ply) {
-				loadCanvas3DPLY().then((component) => {
-					Canvas3DPLYComponent = component;
-				});
-			} else {
-				loadCanvas3DGS().then((component) => {
-					Canvas3DGSComponent = component;
-				});
+
+		return load_renderer_component<Model3DCanvasComponent>(
+			renderer,
+			{
+				mesh: loadCanvas3D,
+				ply: loadCanvas3DPLY,
+				splat: loadCanvas3DGS
+			},
+			(renderer, component) => {
+				if (renderer === "ply") {
+					Canvas3DPLYComponent = component as typeof Canvas3DPLY;
+				} else if (renderer === "splat") {
+					Canvas3DGSComponent = component as typeof Canvas3DGS;
+				} else {
+					Canvas3DComponent = component as typeof Canvas3D;
+				}
 			}
-		} else {
-			loadCanvas3D().then((component) => {
-				Canvas3DComponent = component;
-			});
-		}
+		);
 	});
 
 	function handle_undo(): void {
