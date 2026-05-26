@@ -42,6 +42,7 @@
 		height = "auto",
 		preview,
 		allow_preview = true,
+                allow_download_all = false,
 		object_fit = "cover",
 		show_share_button = false,
 		show_download_button = false,
@@ -80,6 +81,7 @@
 		height: number | string;
 		preview: boolean;
 		allow_preview: boolean;
+                allow_download_all: boolean;
 		object_fit: "contain" | "cover" | "fill" | "none" | "scale-down";
 		show_share_button: boolean;
 		show_download_button: boolean;
@@ -315,6 +317,41 @@
 
 	let thumbnails_overflow = false;
 
+        async function download_all(): Promise<void> {
+		if (!resolved_value || resolved_value.length === 0) return;
+		
+		// Dynamically import fflate so we don't slow down the initial page load
+		const { zipSync, strToU8 } = await import("fflate");
+		
+		const zip_data: Record<string, Uint8Array> = {};
+		
+		for (let i = 0; i < resolved_value.length; i++) {
+			const media = resolved_value[i];
+			const file = "image" in media ? media.image : media.video;
+			if (!file || !file.url) continue;
+			
+			try {
+				const response = await _fetch(file.url);
+				const buffer = await response.arrayBuffer();
+				const filename = file.orig_name || `media_${i}.${file.url.split('.').pop()?.split('?')[0] || 'png'}`;
+				zip_data[filename] = new Uint8Array(buffer);
+			} catch (e) {
+				console.error(`Failed to download ${file.url}`, e);
+			}
+		}
+		
+		if (Object.keys(zip_data).length > 0) {
+			const zipped = zipSync(zip_data);
+			const blob = new Blob([zipped], { type: "application/zip" });
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			link.href = url;
+			link.download = "gallery_download.zip";
+			link.click();
+			URL.revokeObjectURL(url);
+		}
+	}
+
 	function check_thumbnails_overflow(): void {
 		if (container_element) {
 			thumbnails_overflow =
@@ -385,7 +422,13 @@
 					display_top_corner={display_icon_button_wrapper_top_corner}
 					{buttons}
 					on_custom_button_click={oncustom_button_click}
-				>
+				>    {#if allow_download_all && resolved_value && resolved_value.length > 0}
+						<IconButton
+							Icon={Download}
+							label="Download All"
+							onclick={download_all}
+						/>
+					{/if}
 					{#if show_download_button}
 						<IconButton
 							Icon={Download}

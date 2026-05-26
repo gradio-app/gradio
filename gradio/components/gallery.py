@@ -102,6 +102,7 @@ class Gallery(Component):
         rows: int | None = None,
         height: int | float | str | None = None,
         allow_preview: bool = True,
+        allow_download_all: bool = False,
         preview: bool | None = None,
         selected_index: int | None = None,
         object_fit: (
@@ -152,6 +153,7 @@ class Gallery(Component):
         self.preview = preview
         self.object_fit = object_fit
         self.allow_preview = allow_preview
+        self.allow_download_all = allow_download_all
         self.selected_index = selected_index
         if type not in ["numpy", "pil", "filepath"]:
             raise ValueError(

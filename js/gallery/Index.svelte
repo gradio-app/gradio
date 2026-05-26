@@ -292,6 +292,7 @@
 			object_fit={gradio.props.object_fit}
 			interactive={gradio.shared.interactive}
 			allow_preview={gradio.props.allow_preview}
+                        allow_download_all={gradio.props.allow_download_all}
 			bind:selected_index={gradio.props.selected_index}
 			bind:value={gradio.props.value}
 			show_share_button={gradio.props.buttons.some(
