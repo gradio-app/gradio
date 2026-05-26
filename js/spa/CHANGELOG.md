@@ -1,5 +1,16 @@
 # @self/spa
 
+## 1.4.0
+
+### Features
+
+- [#13366](https://github.com/gradio-app/gradio/pull/13366) [`10f43e0`](https://github.com/gradio-app/gradio/commit/10f43e0fe187aac9594f3a9765f8addc81b63ad1) - Offload traffic to static workers and use node as the proxy.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/client@2.2.1
+- @gradio/core@1.5.1
+
 ## 1.3.1
 
 ### Dependency updates

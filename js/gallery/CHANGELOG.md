@@ -2,6 +2,13 @@
 
 ## 0.17.8
 
+### Dependency updates
+
+- @gradio/client@2.2.1
+- @gradio/upload@0.17.10
+
+## 0.17.8
+
 ### Fixes
 
 - [#13335](https://github.com/gradio-app/gradio/pull/13335) [`953efe0`](https://github.com/gradio-app/gradio/commit/953efe06fa6d0742a9dd899b846d45fbc6ea3ccf) - Prevent Gallery Select Event From Triggering When Value Updated Programmatically.  Thanks @freddyaboulton!
