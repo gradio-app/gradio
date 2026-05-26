@@ -145,9 +145,7 @@ class TestBlocksMethods:
         good_config = copy.deepcopy(config)
         for component in good_config["components"]:
             component["props"]["proxy_url"] = "https://child.hf.space/"
-        blocks4 = gr.Blocks.from_config(
-            good_config, [update], "https://root.hf.space"
-        )
+        blocks4 = gr.Blocks.from_config(good_config, [update], "https://root.hf.space")
         assert "https://root.hf.space" in blocks4.proxy_urls
         assert "https://child.hf.space/" in blocks4.proxy_urls
 

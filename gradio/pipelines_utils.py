@@ -266,12 +266,7 @@ def handle_diffusers_pipeline(pipeline: Any) -> dict[str, Any] | None:
             "outputs": components.Image(
                 label="Generated Image", render=False, type="pil"
             ),
-            "preprocess": lambda prompt,
-            n_prompt,
-            image,
-            strength,
-            num_inf_steps,
-            g_scale: {
+            "preprocess": lambda prompt, n_prompt, image, strength, num_inf_steps, g_scale: {
                 "prompt": prompt,
                 "image": Image.open(image).resize((768, 768)),
                 "negative_prompt": n_prompt,
@@ -309,13 +304,7 @@ def handle_diffusers_pipeline(pipeline: Any) -> dict[str, Any] | None:
             "outputs": components.Image(
                 label="Generated Image", render=False, type="pil"
             ),
-            "preprocess": lambda prompt,
-            n_prompt,
-            image,
-            mask_image,
-            strength,
-            num_inf_steps,
-            g_scale: {
+            "preprocess": lambda prompt, n_prompt, image, mask_image, strength, num_inf_steps, g_scale: {
                 "prompt": prompt,
                 "image": Image.open(image).resize((768, 768)),
                 "mask_image": Image.open(mask_image).resize((768, 768)),
@@ -353,12 +342,7 @@ def handle_diffusers_pipeline(pipeline: Any) -> dict[str, Any] | None:
             "outputs": components.Image(
                 label="Generated Image", render=False, type="pil"
             ),
-            "preprocess": lambda prompt,
-            n_prompt,
-            image,
-            strength,
-            num_inf_steps,
-            g_scale: {
+            "preprocess": lambda prompt, n_prompt, image, strength, num_inf_steps, g_scale: {
                 "prompt": prompt,
                 "image": Image.open(image).resize((768, 768)),
                 "negative_prompt": n_prompt,
@@ -428,12 +412,7 @@ def handle_diffusers_pipeline(pipeline: Any) -> dict[str, Any] | None:
             "outputs": components.Image(
                 label="Generated Image", render=False, type="pil"
             ),
-            "preprocess": lambda prompt,
-            n_prompt,
-            image,
-            num_inf_steps,
-            g_scale,
-            img_g_scale: {
+            "preprocess": lambda prompt, n_prompt, image, num_inf_steps, g_scale, img_g_scale: {
                 "prompt": prompt,
                 "image": Image.open(image).resize((768, 768)),
                 "negative_prompt": n_prompt,
@@ -470,12 +449,7 @@ def handle_diffusers_pipeline(pipeline: Any) -> dict[str, Any] | None:
             "outputs": components.Image(
                 label="Generated Image", render=False, type="pil"
             ),
-            "preprocess": lambda prompt,
-            n_prompt,
-            image,
-            num_inf_steps,
-            g_scale,
-            noise_level: {
+            "preprocess": lambda prompt, n_prompt, image, num_inf_steps, g_scale, noise_level: {
                 "prompt": prompt,
                 "image": Image.open(image).resize((768, 768)),
                 "negative_prompt": n_prompt,
