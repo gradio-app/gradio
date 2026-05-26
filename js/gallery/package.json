@@ -7,6 +7,7 @@
 	"license": "ISC",
 	"private": false,
 	"dependencies": {
+                "fflate": "^0.8.0",
 		"@gradio/atoms": "workspace:^",
 		"@gradio/client": "workspace:^",
 		"@gradio/file": "workspace:^",

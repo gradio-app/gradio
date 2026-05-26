@@ -317,11 +317,11 @@
 
 	let thumbnails_overflow = false;
 
-        async function download_all(): Promise<void> {
+       async function download_all(): Promise<void> {
 		if (!resolved_value || resolved_value.length === 0) return;
 		
 		// Dynamically import fflate so we don't slow down the initial page load
-		const { zipSync, strToU8 } = await import("fflate");
+		const { zipSync } = await import("fflate");
 		
 		const zip_data: Record<string, Uint8Array> = {};
 		
@@ -333,7 +333,11 @@
 			try {
 				const response = await _fetch(file.url);
 				const buffer = await response.arrayBuffer();
-				const filename = file.orig_name || `media_${i}.${file.url.split('.').pop()?.split('?')[0] || 'png'}`;
+				const fallback_ext = file.url.split('.').pop()?.split('?')[0] || 'png';
+				const safe_name = file.orig_name || `media.${fallback_ext}`;
+				
+				// BUGFIX: Prepend the index to guarantee unique filenames in the ZIP
+				const filename = `${i}_${safe_name}`;
 				zip_data[filename] = new Uint8Array(buffer);
 			} catch (e) {
 				console.error(`Failed to download ${file.url}`, e);
@@ -351,7 +355,6 @@
 			URL.revokeObjectURL(url);
 		}
 	}
-
 	function check_thumbnails_overflow(): void {
 		if (container_element) {
 			thumbnails_overflow =
