@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/client";
-	import { onDestroy } from "svelte";
 	import { load_ply_point_cloud, type PointCloudData } from "./point-cloud";
 	import {
 		loadCanvas3D,
@@ -76,6 +75,11 @@
 		reset_camera_available = false;
 
 		void load_renderer(load_url, currentToken);
+
+		return () => {
+			loadToken++;
+			revoke_fallback_url();
+		};
 	});
 
 	async function load_renderer(
@@ -125,8 +129,6 @@
 			reset_camera_available = false;
 		}
 	}
-
-	onDestroy(revoke_fallback_url);
 
 	export function update_camera(
 		camera_position: [number | null, number | null, number | null],

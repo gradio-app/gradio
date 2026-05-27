@@ -102,4 +102,14 @@ describe("Canvas3DPLY renderer loaders", () => {
 			/function\s+loadCanvas3D(?:GS)?\s*\(/
 		);
 	});
+
+	test("invalidates pending loads during effect cleanup", () => {
+		const cleanup = canvas3d_ply_source.match(
+			/\$effect\(\(\) => \{[\s\S]*?void load_renderer\(load_url, currentToken\);\s*return \(\) => \{([\s\S]*?)\};\s*\}\);/
+		)?.[1];
+
+		expect(cleanup).toBeDefined();
+		expect(cleanup ?? "").toContain("loadToken++");
+		expect(cleanup ?? "").toContain("revoke_fallback_url()");
+	});
 });
