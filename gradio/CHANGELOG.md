@@ -1,5 +1,17 @@
 # gradio
 
+## 6.15.1
+
+### Features
+
+- [#13388](https://github.com/gradio-app/gradio/pull/13388) [`c889673`](https://github.com/gradio-app/gradio/commit/c889673a242c2a368c2a222da34c8267491d0495) - tests:add regression coverage for the `Blocks.from_config()` proxy_url SSRF guard (GHSA-jmh7-g254-2cq9).  Thanks @xr843!
+
+### Fixes
+
+- [#13394](https://github.com/gradio-app/gradio/pull/13394) [`1c609af`](https://github.com/gradio-app/gradio/commit/1c609af6918b20d0b4347b9f41b04569d6adca24) - Fix audio cache keys to include metadata.  Thanks @3em0!
+- [#13424](https://github.com/gradio-app/gradio/pull/13424) [`14ccbf1`](https://github.com/gradio-app/gradio/commit/14ccbf1115d30b7bb666f7d11264bd9280a40176) - Defer Node front proxy startup until Python is ready in SSR mode.  Thanks @pngwn!
+- [#13391](https://github.com/gradio-app/gradio/pull/13391) [`270c12a`](https://github.com/gradio-app/gradio/commit/270c12a8ea382d20ce701e391fea61b12badbf5c) - fix(dataframe): handle empty and 1d auto datatype values.  Thanks @danyalahmed1995!
+
 ## 6.15.0
 
 ### Features
